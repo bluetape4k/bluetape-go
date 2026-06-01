@@ -83,10 +83,33 @@ and [`docs/research`](docs/research/) for the current planning record.
 ## Development
 
 ```bash
-go test ./...
+make test
+make ci
 ```
 
+Common commands:
+
+| Command | Purpose |
+|---|---|
+| `make fmt` | Format Go sources with `gofmt`. |
+| `make fmt-check` | Fail when Go sources are not formatted. |
+| `make tidy` | Run `go mod tidy`. |
+| `make tidy-check` | Fail when `go.mod` or `go.sum` drift after `go mod tidy`. |
+| `make vet` | Run `go vet ./...`. |
+| `make lint` | Run `golangci-lint run ./...`. |
+| `make test` | Run `go test ./...`. |
+| `make race` | Run `go test -race ./...`. |
+| `make ci` | Run the local CI gate. |
+
 Redis integration tests use Testcontainers and require Docker.
+
+## Project Management
+
+- [Changelog](CHANGELOG.md)
+- [Current WIP](WIP.md)
+- [Research index](docs/research/README.md)
+- [Package layout policy](docs/package-layout.md)
+- [Release guide](docs/release.md)
 
 ## Project Rules
 
@@ -96,4 +119,3 @@ Redis integration tests use Testcontainers and require Docker.
 - Use proven Go dependencies where they reduce risk, but avoid wrapping mature
   SDKs without a bluetape-specific reason.
 - Add Testcontainers-backed smoke tests for infrastructure packages.
-

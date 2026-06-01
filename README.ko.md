@@ -81,10 +81,33 @@ Kotlin 구현의 Redis key 호환 여부는 첫 stable tag 전에 명시적으�
 ## 개발
 
 ```bash
-go test ./...
+make test
+make ci
 ```
 
+주요 명령:
+
+| 명령 | 목적 |
+|---|---|
+| `make fmt` | `gofmt`로 Go source를 format합니다. |
+| `make fmt-check` | format되지 않은 Go source가 있으면 실패합니다. |
+| `make tidy` | `go mod tidy`를 실행합니다. |
+| `make tidy-check` | `go mod tidy` 후 `go.mod`/`go.sum` 변경이 있으면 실패합니다. |
+| `make vet` | `go vet ./...`를 실행합니다. |
+| `make lint` | `golangci-lint run ./...`를 실행합니다. |
+| `make test` | `go test ./...`를 실행합니다. |
+| `make race` | `go test -race ./...`를 실행합니다. |
+| `make ci` | 로컬 CI gate를 실행합니다. |
+
 Redis integration test는 Testcontainers를 사용하므로 Docker가 필요합니다.
+
+## 프로젝트 관리
+
+- [Changelog](CHANGELOG.md)
+- [Current WIP](WIP.md)
+- [Research index](docs/research/README.md)
+- [Package layout policy](docs/package-layout.md)
+- [Release guide](docs/release.md)
 
 ## 프로젝트 원칙
 
@@ -95,4 +118,3 @@ Redis integration test는 Testcontainers를 사용하므로 Docker가 필요합�
 - 위험을 낮출 수 있으면 검증된 Go dependency를 사용합니다. 다만 성숙한 SDK를
   bluetape 고유 가치 없이 감싸지 않습니다.
 - 인프라 패키지는 Testcontainers 기반 smoke test를 추가합니다.
-

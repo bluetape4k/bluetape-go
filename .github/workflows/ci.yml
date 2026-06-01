@@ -6,7 +6,7 @@ on:
   pull_request:
 
 jobs:
-  test:
+  ci:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -18,5 +18,23 @@ jobs:
           go-version-file: go.mod
           cache: true
 
+      - name: Check formatting
+        run: make fmt-check
+
+      - name: Check module tidiness
+        run: make tidy-check
+
+      - name: Vet
+        run: make vet
+
+      - name: Lint
+        uses: golangci/golangci-lint-action@v9.2.1
+        with:
+          version: v2.12.2
+          args: --timeout=5m
+
       - name: Test
-        run: go test ./...
+        run: make test
+
+      - name: Race test
+        run: make race

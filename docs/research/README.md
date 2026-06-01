@@ -1,0 +1,26 @@
+# Research Index
+
+Milestone research notes connect bluetape4k source capabilities to Go package
+scope, dependency candidates, and GitHub issues.
+
+| Milestone | Research |
+|---|---|
+| `0.1.0` | [Foundation](2026-06-01-milestone-0.1.0-foundation-research.md) |
+| `0.2.0` | [Resilience](2026-06-01-milestone-0.2.0-resilience-research.md) |
+| `0.3.0` | [Cache and coordination](2026-06-01-milestone-0.3.0-cache-coordination-research.md) |
+| `0.4.0` | [State and workflow](2026-06-01-milestone-0.4.0-state-workflow-research.md) |
+| `0.5.0` | [Batch](2026-06-01-milestone-0.5.0-batch-research.md) |
+| `0.6.0` | [Utilities](2026-06-01-milestone-0.6.0-utilities-research.md) |
+| `0.7.0` | [Next tracks](2026-06-01-milestone-0.7.0-next-tracks-research.md) |
+| `0.8.0` | [Graph](2026-06-01-milestone-0.8.0-graph-research.md) |
+| `0.9.0` | [Text](2026-06-01-milestone-0.9.0-text-research.md) |
+| `0.10.0` | [Audit and JaVers patterns](2026-06-01-milestone-0.10.0-audit-javers-research.md) |
+| `0.11.0` | [AWS](2026-06-01-milestone-0.11.0-aws-research.md) |
+
+## Update Rule
+
+Update the matching research note before adding broad implementation issues or
+changing milestone scope. Each note should name the bluetape4k source modules,
+the Go package direction, candidate dependencies, linked issues, and the
+current decision.
+
