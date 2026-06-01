@@ -95,11 +95,12 @@ make ci
 | `make tidy-check` | `go mod tidy` 후 `go.mod`/`go.sum` 변경이 있으면 실패합니다. |
 | `make vet` | `go vet ./...`를 실행합니다. |
 | `make lint` | `golangci-lint run ./...`를 실행합니다. |
-| `make test` | `go test ./...`를 실행합니다. |
-| `make race` | `go test -race ./...`를 실행합니다. |
+| `make test` | Testcontainers 테스트가 실제 실행되도록 `go test -count=1 ./...`를 실행합니다. |
+| `make race` | Testcontainers 테스트가 race detector에서도 실제 실행되도록 `go test -race -count=1 ./...`를 실행합니다. |
 | `make ci` | 로컬 CI gate를 실행합니다. |
 
-Redis integration test는 Testcontainers를 사용하므로 Docker가 필요합니다.
+Redis integration test는 Testcontainers를 사용하므로 Docker가 필요합니다. 일반
+CI와 Nightly workflow 모두 실제 container를 사용해 테스트합니다.
 
 ## 프로젝트 관리
 

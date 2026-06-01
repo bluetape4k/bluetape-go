@@ -97,11 +97,12 @@ Common commands:
 | `make tidy-check` | Fail when `go.mod` or `go.sum` drift after `go mod tidy`. |
 | `make vet` | Run `go vet ./...`. |
 | `make lint` | Run `golangci-lint run ./...`. |
-| `make test` | Run `go test ./...`. |
-| `make race` | Run `go test -race ./...`. |
+| `make test` | Run `go test -count=1 ./...` so Testcontainers tests execute. |
+| `make race` | Run `go test -race -count=1 ./...` so Testcontainers tests execute under the race detector. |
 | `make ci` | Run the local CI gate. |
 
-Redis integration tests use Testcontainers and require Docker.
+Redis integration tests use Testcontainers and require Docker. The regular CI
+and Nightly workflows both run these tests against real containers.
 
 ## Project Management
 

@@ -14,8 +14,8 @@ help:
 		'  tidy-check  Run go mod tidy and fail on go.mod/go.sum drift' \
 		'  vet         Run go vet ./...' \
 		'  lint        Run golangci-lint' \
-		'  test        Run go test ./...' \
-		'  race        Run go test -race ./...' \
+		'  test        Run uncached go test ./... including Testcontainers tests' \
+		'  race        Run uncached go test -race ./... including Testcontainers tests' \
 		'  ci          Run the local CI gate'
 
 fmt:
@@ -38,10 +38,9 @@ lint:
 	@$(GOLANGCI_LINT) run ./...
 
 test:
-	@$(GO) test ./...
+	@$(GO) test -count=1 ./...
 
 race:
-	@$(GO) test -race ./...
+	@$(GO) test -race -count=1 ./...
 
 ci: tidy-check fmt-check vet lint test race
-

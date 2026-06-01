@@ -26,6 +26,8 @@ Before `v1.0.0`, public APIs may still change. Document breaking changes in
   final release scope.
 - `make ci` passes locally.
 - GitHub Actions CI passes on `develop`.
+- Nightly `smoke` or `testcontainers` scope passes with real Testcontainers
+  execution.
 - Redis leader API semantics are documented.
 - Redis compatibility decision with `bluetape4k-leader` is documented.
 - At least two representative examples exist or the missing examples are listed
@@ -52,4 +54,3 @@ Move entries from `Unreleased` into the version section when tagging.
 4. Tag on `main`.
 5. Push the tag.
 6. Create GitHub release notes from `CHANGELOG.md`.
-
