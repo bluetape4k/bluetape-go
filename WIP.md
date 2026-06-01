@@ -13,6 +13,8 @@ codecs/compression, Redis leader election, and shared test infrastructure.
 - Strengthen CI before continuing feature issues.
 - Keep both regular CI and Nightly workflows running Testcontainers-backed tests
   against real containers.
+- Implement issue #8 core support as small idiomatic Go helpers, not a direct
+  Kotlin extension API port.
 
 ## Next Feature Issues
 
@@ -36,4 +38,6 @@ codecs/compression, Redis leader election, and shared test infrastructure.
 - Use Testcontainers-backed smoke tests for infrastructure packages.
 - Use `-count=1` in CI and Nightly test commands so Go's test cache cannot hide
   Testcontainers execution.
+- Keep `core` limited to helpers that reduce repeated service code while staying
+  obvious to Go readers.
 - Document milestone research before adding broad implementation issues.

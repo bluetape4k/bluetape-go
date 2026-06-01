@@ -35,3 +35,7 @@ repositories until the package boundaries and release cadence are proven inside
 
 Keep CI and Nightly test commands uncached with `go test -count=1` so
 Testcontainers startup is exercised instead of hidden by Go's test cache.
+
+For `core`, port concepts rather than Kotlin extension shapes. Prefer
+error-returning validation, small generic helpers, and explicit documentation of
+standard-library adoption or deferred areas.

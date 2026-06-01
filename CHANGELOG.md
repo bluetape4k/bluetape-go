@@ -18,6 +18,10 @@ and this project uses semantic versioning once the first tag is published.
   package layout policy, and release guide.
 - Nightly workflow that runs Testcontainers-backed tests on a scheduled smoke
   and full cadence.
+- Core support helpers for validation, zero/default handling, pointers,
+  strings, and small numeric checks.
+- Issue #8 core support inventory that classifies implement/adopt/defer areas
+  from `bluetape4k/core`.
 
 ### Changed
 
