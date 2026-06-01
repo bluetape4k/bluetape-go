@@ -39,3 +39,7 @@ Testcontainers startup is exercised instead of hidden by Go's test cache.
 For `core`, port concepts rather than Kotlin extension shapes. Prefer
 error-returning validation, small generic helpers, and explicit documentation of
 standard-library adoption or deferred areas.
+
+For `collections`, avoid wrapping Go's standard `slices` and `maps` packages.
+Add helpers only for repeated service transformations such as chunking,
+grouping, distinct-by-key, and error-aware map/filter.

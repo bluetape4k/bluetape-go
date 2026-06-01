@@ -22,6 +22,7 @@ research 문서로 추적합니다.
 | 패키지 | 상태 | 목적 |
 |---|---:|---|
 | `core` | active | 작은 공용 validation, zero/default, pointer, string, number helper. |
+| `collections` | active | chunking, grouping, distinct, error-aware transform용 작은 generic slice/map helper. |
 | `testing` | initial | eventual consistency 테스트용 공용 helper. |
 | `testcontainers/redis` | initial | Testcontainers for Go 기반 Redis fixture. |
 | `leader` | initial | Leader election API. |

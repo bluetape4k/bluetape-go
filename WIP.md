@@ -15,6 +15,8 @@ codecs/compression, Redis leader election, and shared test infrastructure.
   against real containers.
 - Implement issue #8 core support as small idiomatic Go helpers, not a direct
   Kotlin extension API port.
+- Implement issue #9 collections as focused generic slice/map helpers that do
+  not duplicate Go's standard `slices` and `maps` packages.
 
 ## Next Feature Issues
 
@@ -40,4 +42,6 @@ codecs/compression, Redis leader election, and shared test infrastructure.
   Testcontainers execution.
 - Keep `core` limited to helpers that reduce repeated service code while staying
   obvious to Go readers.
+- Keep `collections` focused on transformations with clear service value:
+  chunking, grouping, distinct-by-key, and error-aware map/filter.
 - Document milestone research before adding broad implementation issues.
