@@ -22,6 +22,10 @@ and this project uses semantic versioning once the first tag is published.
   strings, and small numeric checks.
 - Issue #8 core support inventory that classifies implement/adopt/defer areas
   from `bluetape4k/core`.
+- Collections helpers for chunking, grouping, distinct values, and error-aware
+  slice transformations.
+- Issue #9 collections inventory that classifies implement/adopt/defer areas
+  from `bluetape4k/core` collection support.
 
 ### Changed
 

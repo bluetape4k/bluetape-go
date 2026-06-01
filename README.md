@@ -23,6 +23,7 @@ the roadmap is tracked through milestones and research notes.
 | Package | Status | Purpose |
 |---|---:|---|
 | `core` | active | Small shared validation, zero/default, pointer, string, and number helpers. |
+| `collections` | active | Focused generic slice/map helpers for chunking, grouping, distinct, and error-aware transforms. |
 | `testing` | initial | Common test helpers for eventual consistency checks. |
 | `testcontainers/redis` | initial | Redis fixture helpers based on Testcontainers for Go. |
 | `leader` | initial | Leader election API. |
