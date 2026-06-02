@@ -3,7 +3,7 @@ GOLANGCI_LINT ?= golangci-lint
 
 GO_FILES := $(shell find . -name '*.go' -not -path './.git/*')
 
-.PHONY: help fmt fmt-check tidy tidy-check vet lint test race ci
+.PHONY: help fmt fmt-check tidy tidy-check vet lint test race bench-compression ci
 
 help:
 	@printf '%s\n' \
@@ -42,5 +42,8 @@ test:
 
 race:
 	@$(GO) test -race -count=1 ./...
+
+bench-compression:
+	@$(GO) test -run '^$$' -bench '^BenchmarkCompressors' -benchmem ./compression
 
 ci: tidy-check fmt-check vet lint test race
