@@ -28,15 +28,18 @@ func TestGroupPropagatesErrorAndCancelsContext(t *testing.T) {
 	expected := errors.New("stop")
 	group := concurrency.NewGroup(context.Background())
 
-	group.Go(func(context.Context) error {
-		return expected
-	})
-
+	ready := make(chan struct{})
 	cancelled := make(chan struct{})
 	group.Go(func(ctx context.Context) error {
+		close(ready)
 		<-ctx.Done()
 		close(cancelled)
 		return nil
+	})
+
+	<-ready
+	group.Go(func(context.Context) error {
+		return expected
 	})
 
 	if err := group.Wait(); !errors.Is(err, expected) {
