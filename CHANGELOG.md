@@ -32,6 +32,8 @@ and this project uses semantic versioning once the first tag is published.
   `concurrency`, `serialization`, and `testing/concurrency` packages.
 - PostgreSQL, MySQL 8.4, NATS, and Kafka Testcontainers fixtures with smoke
   tests.
+- Gomega-backed asynchronous test helpers for eventual and consistent
+  conditions.
 
 ### Changed
 

@@ -107,6 +107,16 @@ make ci
 Redis integration test는 Testcontainers를 사용하므로 Docker가 필요합니다. 일반
 CI와 Nightly workflow 모두 실제 container를 사용해 테스트합니다.
 
+비동기 테스트 assertion은 Gomega 기반 `testing` helper를 사용합니다.
+
+```go
+bttesting.Eventually(t, time.Second, func() bool {
+    return cache.IsReady()
+})
+
+bttesting.Consistently(t, 200*time.Millisecond, elector.IsLeader)
+```
+
 Testcontainers fixture는 작은 `Start(ctx, t)` helper로 제공되며, `t.Cleanup`에
 정리를 등록하고 service connection 정보를 반환합니다.
 
