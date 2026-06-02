@@ -47,6 +47,13 @@ release-ready:
 - error semantics and sentinel errors when exposed;
 - compatibility notes for bluetape4k Kotlin/JVM behavior when applicable.
 
+## Source Comments
+
+Write source comments in Korean for this repository. Keep them short and
+Go-native: exported declarations still start with the exported identifier and a
+space before any Korean particle so `go doc`, pkg.go.dev, and linters can
+associate the comment with the API.
+
 ## Examples
 
 Prefer examples that solve real backend problems:
@@ -57,4 +64,3 @@ Prefer examples that solve real backend problems:
 - Redis near-cache invalidation;
 - resilient HTTP client/server calls;
 - LocalStack-backed AWS examples.
-
