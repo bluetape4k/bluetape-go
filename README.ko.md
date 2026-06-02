@@ -25,6 +25,8 @@ research 문서로 추적합니다.
 | `collections` | active | chunking, grouping, distinct, error-aware transform용 작은 generic slice/map helper. |
 | `testing` | initial | eventual consistency 테스트용 공용 helper. |
 | `testcontainers/redis` | initial | Testcontainers for Go 기반 Redis fixture. |
+| `testcontainers/postgres` | initial | Testcontainers for Go 기반 PostgreSQL fixture. |
+| `testcontainers/nats` | initial | Testcontainers for Go 기반 NATS fixture. |
 | `leader` | initial | Leader election API. |
 | `leader/redis` | initial | Redis `SET NX PX`와 TTL renewal 기반 leader election 구현. |
 
@@ -102,6 +104,15 @@ make ci
 
 Redis integration test는 Testcontainers를 사용하므로 Docker가 필요합니다. 일반
 CI와 Nightly workflow 모두 실제 container를 사용해 테스트합니다.
+
+Testcontainers fixture는 작은 `Start(ctx, t)` helper로 제공되며, `t.Cleanup`에
+정리를 등록하고 service connection string을 반환합니다.
+
+```go
+redisAddr := redistestcontainer.Start(ctx, t)
+postgresURL := postgrestestcontainer.Start(ctx, t)
+natsURL := natstestcontainer.Start(ctx, t)
+```
 
 ## 프로젝트 관리
 
