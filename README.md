@@ -27,7 +27,9 @@ the roadmap is tracked through milestones and research notes.
 | `testing` | initial | Common test helpers for eventual consistency checks. |
 | `testcontainers/redis` | initial | Redis fixture helpers based on Testcontainers for Go. |
 | `testcontainers/postgres` | initial | PostgreSQL fixture helpers based on Testcontainers for Go. |
+| `testcontainers/mysql` | initial | MySQL 8.4 fixture helpers based on Testcontainers for Go. |
 | `testcontainers/nats` | initial | NATS fixture helpers based on Testcontainers for Go. |
+| `testcontainers/kafka` | initial | Kafka fixture helpers based on Testcontainers for Go. |
 | `leader` | initial | Leader election API. |
 | `leader/redis` | initial | Redis-backed leader election using `SET NX PX` and TTL renewal. |
 
@@ -108,12 +110,14 @@ Redis integration tests use Testcontainers and require Docker. The regular CI
 and Nightly workflows both run these tests against real containers.
 
 Testcontainers fixtures expose small `Start(ctx, t)` helpers that register
-cleanup with `t.Cleanup` and return a service connection string:
+cleanup with `t.Cleanup` and return service connection details:
 
 ```go
 redisAddr := redistestcontainer.Start(ctx, t)
 postgresURL := postgrestestcontainer.Start(ctx, t)
+mysqlDSN := mysqltestcontainer.Start(ctx, t)
 natsURL := natstestcontainer.Start(ctx, t)
+kafkaBrokers := kafkatestcontainer.Start(ctx, t)
 ```
 
 ## Project Management

@@ -11,4 +11,6 @@ parallel-safe.
 
 Use the Testcontainers module helper when it provides a connection string. For
 PostgreSQL this is `PostgresContainer.ConnectionString(ctx, "sslmode=disable")`;
-for NATS this is `NATSContainer.ConnectionString(ctx)`.
+for MySQL this is `MySQLContainer.ConnectionString(ctx, "parseTime=true")`;
+for NATS this is `NATSContainer.ConnectionString(ctx)`; for Kafka this is
+`KafkaContainer.Brokers(ctx)`.
