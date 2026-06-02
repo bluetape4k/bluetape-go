@@ -109,6 +109,16 @@ Common commands:
 Redis integration tests use Testcontainers and require Docker. The regular CI
 and Nightly workflows both run these tests against real containers.
 
+Async test assertions use Gomega-backed helpers from `testing`:
+
+```go
+bttesting.Eventually(t, time.Second, func() bool {
+    return cache.IsReady()
+})
+
+bttesting.Consistently(t, 200*time.Millisecond, elector.IsLeader)
+```
+
 Testcontainers fixtures expose small `Start(ctx, t)` helpers that register
 cleanup with `t.Cleanup` and return service connection details:
 
