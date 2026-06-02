@@ -30,7 +30,8 @@ and this project uses semantic versioning once the first tag is published.
   loss, renewal failure, and leader lookup semantics.
 - Testable Go examples for the `core`, `collections`, `codec`, `compression`,
   `concurrency`, `serialization`, and `testing/concurrency` packages.
-- PostgreSQL and NATS Testcontainers fixtures with smoke tests.
+- PostgreSQL, MySQL 8.4, NATS, and Kafka Testcontainers fixtures with smoke
+  tests.
 
 ### Changed
 
