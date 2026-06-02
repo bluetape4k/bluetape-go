@@ -62,7 +62,12 @@ defer elector.Resign(context.Background())
 ```
 
 Kotlin/JVM `bluetape4k-leader` repository는 별도로 계속 유지합니다. Go 구현과
-Kotlin 구현의 Redis key 호환 여부는 첫 stable tag 전에 명시적으로 결정합니다.
+Kotlin 구현을 같은 Redis leader 참가자로 섞는 방식은 `0.1.0`에서 지원하지
+않습니다. Go Redis backend는 `bluetape:leader:<group>` key에
+`memberID:random` token을 TTL과 함께 저장하는 자체 key 형식을 사용합니다.
+Kotlin/JVM `bluetape4k-leader`의 Lettuce backend는 lock name을 직접 key로 쓰고,
+Redisson backend는 Redisson `RLock` 내부 구조를 사용합니다. 명시적인 interop
+adapter를 추가하기 전까지 Kotlin과 Go leader group은 분리해서 운영합니다.
 
 Redis leader 예제는 backend replica 중 하나만 실행해야 하는 조정 문제를 다룹니다.
 
