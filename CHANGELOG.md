@@ -35,6 +35,7 @@ and this project uses semantic versioning once the first tag is published.
 - Gomega-backed asynchronous test helpers for eventual and consistent
   conditions.
 - Redis leader coordination examples for batch scheduling and migration gates.
+- Redis leader key compatibility decision for Kotlin/Go mixed participants.
 
 ### Changed
 

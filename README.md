@@ -63,8 +63,12 @@ defer elector.Resign(context.Background())
 ```
 
 The Kotlin/JVM `bluetape4k-leader` repository remains supported separately.
-Cross-language Redis key compatibility is still an explicit design question and
-will be decided before the first stable tag.
+Mixed Kotlin/Go Redis leader participants are not supported in `0.1.0`. The Go
+Redis backend owns its own key format: `bluetape:leader:<group>` stores a
+`memberID:random` token with a Redis TTL. Kotlin/JVM `bluetape4k-leader`
+Lettuce uses the lock name directly with a generated token value, and Redisson
+uses Redisson `RLock` internals. Keep Kotlin and Go leader groups separate
+unless a future explicit interoperability adapter is added.
 
 Redis leader examples cover backend coordination problems that must run on only
 one replica at a time:
