@@ -66,6 +66,14 @@ The Kotlin/JVM `bluetape4k-leader` repository remains supported separately.
 Cross-language Redis key compatibility is still an explicit design question and
 will be decided before the first stable tag.
 
+Redis leader examples cover backend coordination problems that must run on only
+one replica at a time:
+
+| Example | Problem | Smoke test |
+|---|---|---|
+| Batch scheduler | Prevents every scheduler replica from running the same nightly job. | `go test -count=1 ./leader/redis -run TestBatchSchedulerExample` |
+| Migration gate | Allows only one service instance to apply a rollout migration. | `go test -count=1 ./leader/redis -run TestMigrationGateExample` |
+
 ## Roadmap
 
 | Milestone | Theme |

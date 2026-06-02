@@ -64,6 +64,13 @@ defer elector.Resign(context.Background())
 Kotlin/JVM `bluetape4k-leader` repository는 별도로 계속 유지합니다. Go 구현과
 Kotlin 구현의 Redis key 호환 여부는 첫 stable tag 전에 명시적으로 결정합니다.
 
+Redis leader 예제는 backend replica 중 하나만 실행해야 하는 조정 문제를 다룹니다.
+
+| 예제 | 문제 | Smoke test |
+|---|---|---|
+| Batch scheduler | 모든 scheduler replica가 같은 nightly job을 실행하지 않게 합니다. | `go test -count=1 ./leader/redis -run TestBatchSchedulerExample` |
+| Migration gate | 배포 중 하나의 service instance만 migration을 적용하게 합니다. | `go test -count=1 ./leader/redis -run TestMigrationGateExample` |
+
 ## Roadmap
 
 | Milestone | 주제 |
