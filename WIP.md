@@ -1,5 +1,9 @@
 # WIP
 
+Snapshot: 2026-06-02 KST
+Scope: open GitHub issues assigned to `debop`.
+Open count: 30 issues.
+
 ## Current Milestone
 
 `0.1.0` - Foundation packages: core support, collections, goroutine helpers,
