@@ -34,6 +34,7 @@ and this project uses semantic versioning once the first tag is published.
   tests.
 - Gomega-backed asynchronous test helpers for eventual and consistent
   conditions.
+- Redis leader coordination examples for batch scheduling and migration gates.
 
 ### Changed
 
