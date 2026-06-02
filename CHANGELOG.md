@@ -28,6 +28,8 @@ and this project uses semantic versioning once the first tag is published.
   from `bluetape4k/core` collection support.
 - Redis leader lifecycle tests for duplicate campaign, repeated resign, renewal
   loss, renewal failure, and leader lookup semantics.
+- Testable Go examples for the `core`, `collections`, `codec`, `compression`,
+  `concurrency`, `serialization`, and `testing/concurrency` packages.
 
 ### Changed
 
