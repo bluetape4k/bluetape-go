@@ -27,7 +27,7 @@ end
 return 0
 `
 
-// Elector is a Redis-backed leader elector.
+// Elector 는 Redis 기반 leader elector다.
 type Elector struct {
 	client redis.Cmdable
 	opts   leader.Options
@@ -40,7 +40,7 @@ type Elector struct {
 	done   chan struct{}
 }
 
-// New creates a Redis-backed leader elector.
+// New 는 Redis 기반 leader elector를 만든다.
 func New(client redis.Cmdable, opts leader.Options) (*Elector, error) {
 	if client == nil {
 		return nil, errors.New("redis client must not be nil")
@@ -64,7 +64,7 @@ func New(client redis.Cmdable, opts leader.Options) (*Elector, error) {
 	}, nil
 }
 
-// Campaign attempts to acquire leadership for this member.
+// Campaign 은 이 member의 leadership 획득을 시도한다.
 func (e *Elector) Campaign(ctx context.Context) error {
 	e.mu.Lock()
 	if e.owned {
@@ -75,7 +75,7 @@ func (e *Elector) Campaign(ctx context.Context) error {
 
 	ok, err := e.client.SetNX(ctx, e.key, e.token, e.opts.Lease).Result()
 	if err != nil {
-		return err
+		return fmt.Errorf("redis leader campaign: %w", err)
 	}
 	if !ok {
 		return leader.ErrNotLeader
@@ -94,7 +94,7 @@ func (e *Elector) Campaign(ctx context.Context) error {
 	return nil
 }
 
-// Resign releases leadership when this elector still owns it.
+// Resign 은 이 elector가 아직 소유한 leadership만 해제한다.
 func (e *Elector) Resign(ctx context.Context) error {
 	e.mu.Lock()
 	if !e.owned {
@@ -116,23 +116,29 @@ func (e *Elector) Resign(ctx context.Context) error {
 	}
 
 	_, err := e.client.Eval(ctx, releaseScript, []string{e.key}, e.token).Result()
-	return err
+	if err != nil {
+		return fmt.Errorf("redis leader resign: %w", err)
+	}
+	return nil
 }
 
-// IsLeader reports whether this elector currently believes it owns leadership.
+// IsLeader 는 이 elector가 아직 leader라고 판단하는지 알려준다.
 func (e *Elector) IsLeader() bool {
 	e.mu.RLock()
 	defer e.mu.RUnlock()
 	return e.owned
 }
 
-// Leader returns the current Redis value for the election key.
+// Leader 는 Redis에 기록된 현재 leader token을 반환한다.
 func (e *Elector) Leader(ctx context.Context) (string, error) {
 	value, err := e.client.Get(ctx, e.key).Result()
 	if errors.Is(err, redis.Nil) {
 		return "", nil
 	}
-	return value, err
+	if err != nil {
+		return "", fmt.Errorf("redis leader lookup: %w", err)
+	}
+	return value, nil
 }
 
 func (e *Elector) renewLoop(ctx context.Context, done chan<- struct{}) {

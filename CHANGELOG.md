@@ -26,6 +26,8 @@ and this project uses semantic versioning once the first tag is published.
   slice transformations.
 - Issue #9 collections inventory that classifies implement/adopt/defer areas
   from `bluetape4k/core` collection support.
+- Redis leader lifecycle tests for duplicate campaign, repeated resign, renewal
+  loss, renewal failure, and leader lookup semantics.
 
 ### Changed
 
@@ -33,6 +35,8 @@ and this project uses semantic versioning once the first tag is published.
   tests against real Testcontainers dependencies.
 - `make test` and `make race` now pass `-count=1` so integration tests are not
   skipped by Go's test cache.
+- `leader` API docs now define ownership, cancellation, idempotent resign,
+  lost-leadership, and `errors.Is` comparison semantics.
 
 ### Removed
 
