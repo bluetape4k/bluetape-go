@@ -14,3 +14,9 @@ PostgreSQL this is `PostgresContainer.ConnectionString(ctx, "sslmode=disable")`;
 for MySQL this is `MySQLContainer.ConnectionString(ctx, "parseTime=true")`;
 for NATS this is `NATSContainer.ConnectionString(ctx)`; for Kafka this is
 `KafkaContainer.Brokers(ctx)`.
+
+Redis does not expose a connection-string helper in the current local fixture;
+the fixture returns `host:port`. Keep its package-local smoke test on a real
+`go-redis` client and verify both `PING` and a simple `SET`/`GET` round-trip so
+the package contract is covered directly, not only through leader integration
+tests.
