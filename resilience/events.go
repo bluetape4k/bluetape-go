@@ -16,16 +16,27 @@ const (
 	EventRetry EventKind = "retry"
 	// EventTimeout reports that a timeout policy's own deadline expired.
 	EventTimeout EventKind = "timeout"
+	// EventCircuitStateTransition reports that a circuit breaker changed state.
+	EventCircuitStateTransition EventKind = "circuit_state_transition"
+	// EventCircuitRejected reports that a circuit breaker rejected a call.
+	EventCircuitRejected EventKind = "circuit_rejected"
+	// EventBulkheadAccepted reports that a bulkhead admitted a call.
+	EventBulkheadAccepted EventKind = "bulkhead_accepted"
+	// EventBulkheadRejected reports that a bulkhead rejected a call.
+	EventBulkheadRejected EventKind = "bulkhead_rejected"
 )
 
 // Event describes a policy decision or outcome.
 type Event struct {
-	PolicyName string
-	PolicyType string
-	Kind       EventKind
-	Attempt    int
-	Delay      time.Duration
-	Err        error
+	PolicyName    string
+	PolicyType    string
+	Kind          EventKind
+	Attempt       int
+	Delay         time.Duration
+	Err           error
+	State         CircuitState
+	PreviousState CircuitState
+	InFlight      int
 }
 
 // EventHandler receives policy events synchronously.
