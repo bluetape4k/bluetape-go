@@ -11,4 +11,8 @@
 // labels so callers can bridge events to logging, metrics, or tracing without a
 // built-in telemetry exporter dependency. Keep handlers fast and non-blocking;
 // a slow handler runs on the protected call path.
+//
+// HTTP adapters keep policy composition close to net/http. NewRoundTripper
+// wraps outbound requests, and NewHandler wraps server handlers without adding a
+// framework dependency.
 package resilience

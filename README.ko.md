@@ -35,7 +35,7 @@ research 문서로 추적합니다.
 | `testcontainers/kafka` | initial | Testcontainers for Go 기반 Kafka fixture. |
 | `leader` | initial | Leader election API. |
 | `leader/redis` | initial | Redis `SET NX PX`와 TTL renewal 기반 leader election 구현. |
-| `resilience` | initial | service call을 위한 자체 composable retry, timeout, circuit breaker, bulkhead policy와 synchronous observability hook. |
+| `resilience` | initial | service call을 위한 자체 composable retry, timeout, circuit breaker, bulkhead policy, synchronous observability hook, `net/http` adapter. |
 
 계획 중인 패키지군은 `collections`, `concurrency`, `serialization`,
 `cache`, `workflow`, `batch`, `id`, `jwt`, `graph`, `text`, `audit`, AWS
@@ -110,9 +110,54 @@ retry, err := resilience.NewRetry[string](resilience.RetryOptions{
 })
 ```
 
-Core policy API에는 OpenTelemetry exporter나 HTTP middleware를 내장하지 않습니다.
-Event handler는 보호 대상 call을 지연시키지 않도록 빠르고 non-blocking하게
-작성해야 합니다.
+Package는 OpenTelemetry exporter를 내장하지 않습니다. Event handler는 보호 대상
+call을 지연시키지 않도록 빠르고 non-blocking하게 작성해야 합니다.
+
+HTTP client는 `net/http` transport adapter로 같은 policy를 사용할 수 있습니다.
+Adapter는 retry 가능한 response status를 `StatusError`로 바꾸고, 다음 시도 전에
+해당 response body를 닫으며, observability는 같은 `OnEvent` hook contract를
+사용합니다.
+
+```go
+retry, err := resilience.NewRetry[*http.Response](resilience.RetryOptions{
+    Name:        "catalog-http",
+    MaxAttempts: 3,
+    Backoff:     resilience.ConstantBackoff(50 * time.Millisecond),
+    OnEvent:     onResilienceEvent,
+})
+if err != nil {
+    return err
+}
+timeout, err := resilience.NewTimeout[*http.Response](resilience.TimeoutOptions{
+    Name:    "catalog-http",
+    Timeout: 500 * time.Millisecond,
+    OnEvent: onResilienceEvent,
+})
+if err != nil {
+    return err
+}
+breaker, err := resilience.NewCircuitBreaker[*http.Response](resilience.CircuitBreakerOptions{
+    Name:             "catalog-http",
+    FailureThreshold: 5,
+    OpenTimeout:      30 * time.Second,
+    OnEvent:          onResilienceEvent,
+})
+if err != nil {
+    return err
+}
+
+client := http.Client{
+    Transport: resilience.NewRoundTripper(resilience.RoundTripperOptions{
+        Transport:       http.DefaultTransport,
+        Policies:        []resilience.Policy[*http.Response]{retry, timeout, breaker},
+        RetryableStatus: resilience.RetryableServerError,
+    }),
+}
+```
+
+Server handler는 `NewHandler`로 admission 또는 timeout policy를 적용할 수 있습니다.
+Response를 이미 쓴 server handler를 retry하지 말고, request body를 replay할 수
+있는 outbound client call 쪽에 retry를 적용하는 방식을 우선합니다.
 
 ## Roadmap
 

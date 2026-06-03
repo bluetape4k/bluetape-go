@@ -36,7 +36,7 @@ the roadmap is tracked through milestones and research notes.
 | `testcontainers/kafka` | initial | Kafka fixture helpers based on Testcontainers for Go. |
 | `leader` | initial | Leader election API. |
 | `leader/redis` | initial | Redis-backed leader election using `SET NX PX` and TTL renewal. |
-| `resilience` | initial | First-party composable retry, timeout, circuit breaker, and bulkhead policies with synchronous observability hooks for service calls. |
+| `resilience` | initial | First-party composable retry, timeout, circuit breaker, and bulkhead policies with synchronous observability hooks and `net/http` adapters for service calls. |
 
 Planned package families include `collections`, `concurrency`, `serialization`,
 `cache`, `workflow`, `batch`, `id`, `jwt`, `graph`, `text`, `audit`, and AWS
@@ -113,9 +113,55 @@ retry, err := resilience.NewRetry[string](resilience.RetryOptions{
 })
 ```
 
-The package intentionally does not include a built-in OpenTelemetry exporter or
-HTTP middleware in the core policy APIs. Keep event handlers fast and
-non-blocking because a slow handler delays the protected call.
+The package intentionally does not include a built-in OpenTelemetry exporter.
+Keep event handlers fast and non-blocking because a slow handler delays the
+protected call.
+
+HTTP clients can use the same policies through a `net/http` transport adapter.
+The adapter can turn retryable response statuses into `StatusError`, closes the
+retryable response body before the next attempt, and keeps observability on the
+same `OnEvent` hook contract:
+
+```go
+retry, err := resilience.NewRetry[*http.Response](resilience.RetryOptions{
+    Name:        "catalog-http",
+    MaxAttempts: 3,
+    Backoff:     resilience.ConstantBackoff(50 * time.Millisecond),
+    OnEvent:     onResilienceEvent,
+})
+if err != nil {
+    return err
+}
+timeout, err := resilience.NewTimeout[*http.Response](resilience.TimeoutOptions{
+    Name:    "catalog-http",
+    Timeout: 500 * time.Millisecond,
+    OnEvent: onResilienceEvent,
+})
+if err != nil {
+    return err
+}
+breaker, err := resilience.NewCircuitBreaker[*http.Response](resilience.CircuitBreakerOptions{
+    Name:             "catalog-http",
+    FailureThreshold: 5,
+    OpenTimeout:      30 * time.Second,
+    OnEvent:          onResilienceEvent,
+})
+if err != nil {
+    return err
+}
+
+client := http.Client{
+    Transport: resilience.NewRoundTripper(resilience.RoundTripperOptions{
+        Transport:       http.DefaultTransport,
+        Policies:        []resilience.Policy[*http.Response]{retry, timeout, breaker},
+        RetryableStatus: resilience.RetryableServerError,
+    }),
+}
+```
+
+Server handlers can be protected with admission or timeout policies through
+`NewHandler`. Avoid retrying a server handler after it has written a response;
+prefer retry on outbound client calls where the request body is replayable.
 
 ## Roadmap
 
