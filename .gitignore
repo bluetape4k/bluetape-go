@@ -4,3 +4,10 @@ coverage.out
 dist/
 tmp/
 .codegraph/
+
+# AI
+.claude/
+.codex/
+.omc/
+.omx/
+.worktrees/
