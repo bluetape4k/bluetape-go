@@ -62,6 +62,46 @@ func TestBatchSchedulerExample(t *testing.T) {
 	})
 }
 
+// TestGroupBatchWorkersExample 는 동시에 실행할 수 있는 batch worker 수를 제한한다.
+func TestGroupBatchWorkersExample(t *testing.T) {
+	ctx := context.Background()
+	client := redisExampleClient(ctx, t)
+
+	const group = "example-group-batch-workers"
+	workers := []*redisleader.GroupElector{
+		redisExampleGroupElector(t, client, group, "worker-a", 2),
+		redisExampleGroupElector(t, client, group, "worker-b", 2),
+		redisExampleGroupElector(t, client, group, "worker-c", 2),
+	}
+
+	for i := 0; i < 2; i++ {
+		worker := workers[i]
+		if err := worker.Campaign(ctx); err != nil {
+			t.Fatalf("worker %d campaign: %v", i, err)
+		}
+		t.Cleanup(func() {
+			_ = worker.Resign(context.Background())
+		})
+		if err := client.Incr(ctx, "example:group-batch:running").Err(); err != nil {
+			t.Fatalf("count running worker: %v", err)
+		}
+	}
+
+	waitCtx, cancel := context.WithTimeout(ctx, 100*time.Millisecond)
+	defer cancel()
+	if err := workers[2].Campaign(waitCtx); !errors.Is(err, context.DeadlineExceeded) {
+		t.Fatalf("third worker should wait until context deadline, got %v", err)
+	}
+
+	count, err := client.Get(ctx, "example:group-batch:running").Int()
+	if err != nil {
+		t.Fatalf("read running worker count: %v", err)
+	}
+	if count != 2 {
+		t.Fatalf("only two workers should run concurrently, got %d", count)
+	}
+}
+
 // TestMigrationGateExample 는 배포 중 여러 instance가 같은 migration을 중복 적용하지 않게 한다.
 func TestMigrationGateExample(t *testing.T) {
 	ctx := context.Background()
@@ -129,6 +169,30 @@ func redisExampleElector(t *testing.T, client redis.Cmdable, group string, membe
 	})
 	if err != nil {
 		t.Fatalf("new elector: %v", err)
+	}
+	return elector
+}
+
+func redisExampleGroupElector(
+	t *testing.T,
+	client redis.Cmdable,
+	group string,
+	memberID string,
+	maxLeaders int,
+) *redisleader.GroupElector {
+	t.Helper()
+
+	elector, err := redisleader.NewGroup(client, leader.GroupOptions{
+		Options: leader.Options{
+			Group:         group,
+			MemberID:      memberID,
+			Lease:         2 * time.Second,
+			RenewInterval: 500 * time.Millisecond,
+		},
+		MaxLeaders: maxLeaders,
+	})
+	if err != nil {
+		t.Fatalf("new group elector: %v", err)
 	}
 	return elector
 }
