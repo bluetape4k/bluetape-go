@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
+	"io"
 )
 
 // JSONOption configures JSONSerializer.
@@ -65,7 +66,8 @@ func (s JSONSerializer[T]) Unmarshal(data []byte) (T, error) {
 	if err := decoder.Decode(&value); err != nil {
 		return value, fmt.Errorf("unmarshal json: %w", err)
 	}
-	if decoder.More() {
+	var trailing json.RawMessage
+	if err := decoder.Decode(&trailing); err != io.EOF {
 		return value, fmt.Errorf("unmarshal json: trailing data")
 	}
 	return value, nil
