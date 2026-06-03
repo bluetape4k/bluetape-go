@@ -35,7 +35,7 @@ research 문서로 추적합니다.
 | `testcontainers/kafka` | initial | Testcontainers for Go 기반 Kafka fixture. |
 | `leader` | initial | Leader election API. |
 | `leader/redis` | initial | Redis `SET NX PX`와 TTL renewal 기반 leader election 구현. |
-| `resilience` | initial | service call을 위한 자체 composable retry/timeout policy. |
+| `resilience` | initial | service call을 위한 자체 composable retry, timeout, circuit breaker, bulkhead policy와 synchronous observability hook. |
 
 계획 중인 패키지군은 `collections`, `concurrency`, `serialization`,
 `cache`, `workflow`, `batch`, `id`, `jwt`, `graph`, `text`, `audit`, AWS
@@ -80,6 +80,39 @@ Redis leader 예제는 backend replica 중 하나만 실행해야 하는 조정 
 |---|---|---|
 | Batch scheduler | 모든 scheduler replica가 같은 nightly job을 실행하지 않게 합니다. | `go test -count=1 ./leader/redis -run TestBatchSchedulerExample` |
 | Migration gate | 배포 중 하나의 service instance만 migration을 적용하게 합니다. | `go test -count=1 ./leader/redis -run TestMigrationGateExample` |
+
+## Resilience Policy
+
+Resilience policy는 service call 주변에 조합할 수 있는 retry, timeout, circuit
+breaker, bulkhead primitive를 제공합니다. 각 policy는 `OnEvent` hook을 받을 수
+있으며, 이 hook은 보호 대상 call path에서 동기적으로 호출됩니다. Hook payload인
+`resilience.Event`에는 안정적인 policy type, event kind, event category,
+attempt/state data, 낮은 cardinality의 error category label이 들어갑니다.
+
+`OnEvent`는 service가 이미 사용하는 logging, metrics, tracing 도구로 policy
+결정을 전달하는 얇은 bridge로 사용합니다.
+
+```go
+retry, err := resilience.NewRetry[string](resilience.RetryOptions{
+    Name:        "catalog",
+    MaxAttempts: 3,
+    Backoff:     resilience.ConstantBackoff(50 * time.Millisecond),
+    OnEvent: func(ctx context.Context, event resilience.Event) {
+        logger.InfoContext(ctx, "resilience event",
+            "policy", event.PolicyName,
+            "type", event.PolicyType,
+            "kind", event.Kind,
+            "category", event.Category,
+            "error_category", event.ErrorCategory,
+            "attempt", event.Attempt,
+        )
+    },
+})
+```
+
+Core policy API에는 OpenTelemetry exporter나 HTTP middleware를 내장하지 않습니다.
+Event handler는 보호 대상 call을 지연시키지 않도록 빠르고 non-blocking하게
+작성해야 합니다.
 
 ## Roadmap
 

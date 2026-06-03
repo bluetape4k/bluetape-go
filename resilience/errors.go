@@ -8,8 +8,10 @@ import (
 
 // Sentinel errors used with errors.Is.
 var (
-	ErrRetryExhausted = errors.New("retry attempts exhausted")
-	ErrTimeout        = errors.New("operation timed out")
+	ErrRetryExhausted   = errors.New("retry attempts exhausted")
+	ErrTimeout          = errors.New("operation timed out")
+	ErrCircuitOpen      = errors.New("circuit breaker is open")
+	ErrBulkheadRejected = errors.New("bulkhead rejected call")
 )
 
 // RetryError reports that a retry policy exhausted its attempts.
@@ -58,4 +60,39 @@ func (e TimeoutError) Unwrap() error {
 // Is allows errors.Is(err, ErrTimeout).
 func (e TimeoutError) Is(target error) bool {
 	return target == ErrTimeout
+}
+
+// CircuitOpenError reports that a circuit breaker rejected a call.
+type CircuitOpenError struct {
+	PolicyName string
+	State      CircuitState
+}
+
+func (e CircuitOpenError) Error() string {
+	if e.PolicyName != "" {
+		return fmt.Sprintf("circuit breaker %q rejected call in %s state", e.PolicyName, e.State)
+	}
+	return fmt.Sprintf("circuit breaker rejected call in %s state", e.State)
+}
+
+// Is allows errors.Is(err, ErrCircuitOpen).
+func (e CircuitOpenError) Is(target error) bool {
+	return target == ErrCircuitOpen
+}
+
+// BulkheadRejectedError reports that a bulkhead rejected a call.
+type BulkheadRejectedError struct {
+	PolicyName string
+}
+
+func (e BulkheadRejectedError) Error() string {
+	if e.PolicyName != "" {
+		return fmt.Sprintf("bulkhead %q rejected call", e.PolicyName)
+	}
+	return "bulkhead rejected call"
+}
+
+// Is allows errors.Is(err, ErrBulkheadRejected).
+func (e BulkheadRejectedError) Is(target error) bool {
+	return target == ErrBulkheadRejected
 }
