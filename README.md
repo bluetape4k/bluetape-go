@@ -36,10 +36,11 @@ the roadmap is tracked through milestones and research notes.
 | `testcontainers/kafka` | initial | Kafka fixture helpers based on Testcontainers for Go. |
 | `leader` | initial | Leader election API. |
 | `leader/redis` | initial | Redis-backed leader election using `SET NX PX` and TTL renewal. |
+| `resilience` | initial | First-party composable retry and timeout policies for service calls. |
 
 Planned package families include `collections`, `concurrency`, `serialization`,
-`resilience`, `cache`, `workflow`, `batch`, `id`, `jwt`, `graph`, `text`,
-`audit`, and AWS helper/example packages.
+`cache`, `workflow`, `batch`, `id`, `jwt`, `graph`, `text`, `audit`, and AWS
+helper/example packages.
 
 ## Install
 
