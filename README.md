@@ -35,7 +35,7 @@ the roadmap is tracked through milestones and research notes.
 | `testcontainers/nats` | initial | NATS fixture helpers based on Testcontainers for Go. |
 | `testcontainers/kafka` | initial | Kafka fixture helpers based on Testcontainers for Go. |
 | `leader` | initial | Leader election API. |
-| `leader/redis` | initial | Redis-backed leader election using `SET NX PX` and TTL renewal. |
+| `leader/redis` | initial | Redis-backed single and group leader election using TTL renewal and ZSET slot tokens. |
 | `resilience` | initial | First-party composable retry, timeout, circuit breaker, and bulkhead policies with synchronous observability hooks and `net/http` adapters for service calls. |
 
 Planned package families include `collections`, `concurrency`, `serialization`,
@@ -82,6 +82,33 @@ one replica at a time:
 |---|---|---|
 | Batch scheduler | Prevents every scheduler replica from running the same nightly job. | `go test -count=1 ./leader/redis -run TestBatchSchedulerExample` |
 | Migration gate | Allows only one service instance to apply a rollout migration. | `go test -count=1 ./leader/redis -run TestMigrationGateExample` |
+
+Use `NewGroup` when a bounded number of replicas may run the same worker lane at
+the same time:
+
+```go
+group, err := redisleader.NewGroup(client, leader.GroupOptions{
+    Options: leader.Options{
+        Group:    "batch-workers",
+        MemberID: "worker-1",
+    },
+    MaxLeaders: 3,
+})
+if err != nil {
+    return err
+}
+
+if err := group.Campaign(ctx); err != nil {
+    return err
+}
+defer group.Resign(context.Background())
+```
+
+The Redis group backend stores live slots in
+`bluetape:leader-group:<group>` as ZSET members. Each member is a
+`memberID:random` token with an expiry score based on Redis server time. Expired
+slots are pruned during acquire and status checks, so leaked slots from crashed
+processes are reclaimed without a separate reaper.
 
 ## Resilience Policies
 

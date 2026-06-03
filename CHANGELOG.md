@@ -7,6 +7,11 @@ and this project uses semantic versioning once the first tag is published.
 
 ## [Unreleased]
 
+### Added
+
+- `leader.GroupElector` and Redis-backed `redisleader.NewGroup` for
+  semaphore-style multi-leader election with ZSET slot tokens.
+
 ## [v0.1.0] - 2026-06-03
 
 ### Added
