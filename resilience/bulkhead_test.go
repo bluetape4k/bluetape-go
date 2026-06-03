@@ -3,6 +3,8 @@ package resilience_test
 import (
 	"context"
 	"errors"
+	"sync"
+	"sync/atomic"
 	"testing"
 	"time"
 
@@ -122,6 +124,153 @@ func TestBulkheadReleasesPermitAfterFailure(t *testing.T) {
 	}
 	if got != 42 {
 		t.Fatalf("got %d, want 42", got)
+	}
+}
+
+func TestBulkheadRejectStressNeverExceedsMaxConcurrent(t *testing.T) {
+	const (
+		maxConcurrent = int32(8)
+		workers       = int32(128)
+	)
+
+	bulkhead, err := resilience.NewBulkhead[int](resilience.BulkheadOptions{
+		MaxConcurrent: int(maxConcurrent),
+	})
+	if err != nil {
+		t.Fatalf("NewBulkhead failed: %v", err)
+	}
+
+	start := make(chan struct{})
+	release := make(chan struct{})
+	errs := make(chan error, workers)
+
+	var entered atomic.Int32
+	var rejected atomic.Int32
+	var current atomic.Int32
+	var maxObserved atomic.Int32
+	var wg sync.WaitGroup
+
+	for range workers {
+		wg.Add(1)
+		go func() {
+			defer wg.Done()
+			<-start
+
+			_, err := resilience.Run(context.Background(), func(context.Context) (int, error) {
+				inFlight := current.Add(1)
+				recordAtomicMax(&maxObserved, inFlight)
+				entered.Add(1)
+				<-release
+				current.Add(-1)
+				return 1, nil
+			}, bulkhead)
+
+			switch {
+			case err == nil:
+			case errors.Is(err, resilience.ErrBulkheadRejected):
+				rejected.Add(1)
+			default:
+				errs <- err
+			}
+		}()
+	}
+
+	close(start)
+	waitForAtomicSumAtLeast(t, &entered, &rejected, workers)
+
+	if got := maxObserved.Load(); got > maxConcurrent {
+		t.Fatalf("max concurrent = %d, want <= %d", got, maxConcurrent)
+	}
+	if got := entered.Load(); got != maxConcurrent {
+		t.Fatalf("entered operations = %d, want %d", got, maxConcurrent)
+	}
+	if got := rejected.Load(); got != workers-maxConcurrent {
+		t.Fatalf("rejected operations = %d, want %d", got, workers-maxConcurrent)
+	}
+
+	close(release)
+	wg.Wait()
+	close(errs)
+	for err := range errs {
+		t.Fatalf("unexpected worker error: %v", err)
+	}
+
+	if got := current.Load(); got != 0 {
+		t.Fatalf("current operations = %d, want 0", got)
+	}
+	if got := bulkhead.InFlight(); got != 0 {
+		t.Fatalf("in flight = %d, want 0", got)
+	}
+}
+
+func TestBulkheadWaitStressCyclesPermitsWithoutLeaks(t *testing.T) {
+	const (
+		maxConcurrent = int32(8)
+		workers       = int32(96)
+	)
+
+	bulkhead, err := resilience.NewBulkhead[int](resilience.BulkheadOptions{
+		MaxConcurrent: int(maxConcurrent),
+		Wait:          true,
+	})
+	if err != nil {
+		t.Fatalf("NewBulkhead failed: %v", err)
+	}
+
+	start := make(chan struct{})
+	release := make(chan struct{})
+	errs := make(chan error, workers)
+
+	var entered atomic.Int32
+	var current atomic.Int32
+	var maxObserved atomic.Int32
+	var wg sync.WaitGroup
+
+	for range workers {
+		wg.Add(1)
+		go func() {
+			defer wg.Done()
+			<-start
+
+			_, err := resilience.Run(context.Background(), func(context.Context) (int, error) {
+				inFlight := current.Add(1)
+				recordAtomicMax(&maxObserved, inFlight)
+				entered.Add(1)
+				<-release
+				current.Add(-1)
+				return 1, nil
+			}, bulkhead)
+			if err != nil {
+				errs <- err
+			}
+		}()
+	}
+
+	close(start)
+	waitForAtomicAtLeast(t, &entered, maxConcurrent)
+
+	if got := maxObserved.Load(); got > maxConcurrent {
+		t.Fatalf("max concurrent before release = %d, want <= %d", got, maxConcurrent)
+	}
+
+	close(release)
+	wg.Wait()
+	close(errs)
+	for err := range errs {
+		t.Fatalf("unexpected worker error: %v", err)
+	}
+
+	if got := entered.Load(); got != workers {
+		t.Fatalf("entered operations = %d, want %d", got, workers)
+	}
+	if got := maxObserved.Load(); got > maxConcurrent {
+		t.Fatalf("max concurrent = %d, want <= %d", got, maxConcurrent)
+	}
+	if got := current.Load(); got != 0 {
+		t.Fatalf("current operations = %d, want 0", got)
+	}
+	if got := bulkhead.InFlight(); got != 0 {
+		t.Fatalf("in flight = %d, want 0", got)
 	}
 }
 

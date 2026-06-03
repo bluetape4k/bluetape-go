@@ -43,6 +43,8 @@
     method and was fixed before validation.
   - New option validation behavior was made explicit with constructor tests for
     circuit breaker and bulkhead.
+- Stress coverage was strengthened after the first PR review by adding
+  goroutine-heavy circuit breaker half-open probe and bulkhead permit tests.
 - P3: 0
 
 ## Tier Verdicts
@@ -51,17 +53,19 @@
 |---|---|---:|---|
 | 1 Security | input, secrets, auth, dependency risk | PASS | No new network, file IO, auth, secrets, or runtime dependency. `.gitignore` only suppresses local agent/runtime directories. |
 | 2 Architecture | package/API boundary | PASS | New policies implement existing `Policy[T]` without reshaping `Operation`, `Compose`, or `Run`. External libraries remain reference-only. |
-| 3 Reliability/Performance | concurrency, cancellation, timing | PASS | Circuit breaker uses mutex-protected state and injected clock; bulkhead uses bounded permit accounting and context-aware waiting. |
-| 4 Code Correctness | state, errors, events | PASS | Open/half-open/closed transitions, probe limits, typed sentinel errors, and event emissions are tested. |
-| 5 Tests | determinism and coverage | PASS | Fake-clock circuit tests avoid timing sleeps; bulkhead concurrency tests use explicit channels; race test passes for `./resilience`. |
+| 3 Reliability/Performance | concurrency, cancellation, timing | PASS | Circuit breaker uses mutex-protected state and injected clock; bulkhead uses bounded permit accounting and context-aware waiting; stress tests assert max observed concurrency never exceeds configured limits. |
+| 4 Code Correctness | state, errors, events | PASS | Open/half-open/closed transitions, probe limits, typed sentinel errors, event emissions, circuit rejection under half-open stress, and bulkhead permit release are tested. |
+| 5 Tests | determinism and coverage | PASS | Fake-clock circuit tests avoid timing sleeps; stress tests use explicit start/release channels and atomic counters; race test passes for `./resilience`. |
 | 6 Docs/Release | public docs and planning | PASS | Research/spec/plan added; README locale pair updates package description. |
 | 7 Evidence | validation and metadata | PASS | Focused tests, race test, repo tests, vet, raw golangci-lint, fmt-check, tidy-check, diff-check, CodeGraph, and code-review-graph all passed. |
 
 ## Validation Evidence
 
-- `go test -count=1 ./resilience`: PASS, 26 tests
-- `go test -race -count=1 ./resilience`: PASS, 26 tests
-- `go test -count=1 ./...`: PASS, 148 tests in 16 packages
+- `go test -count=1 ./resilience`: PASS, 29 tests
+- `go test -race -count=1 ./resilience`: PASS, 29 tests
+- `go test -count=20 -run 'Stress|Concurrent' ./resilience`: PASS, 120 stress/concurrency test executions
+- `go test -race -count=3 ./resilience`: PASS, 81 race test executions
+- `go test -count=1 ./...`: PASS, 151 tests in 16 packages
 - `go vet ./...`: PASS
 - `golangci-lint run ./...`: PASS
 - `make fmt-check`: PASS

@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"sync"
+	"sync/atomic"
 	"testing"
 	"time"
 
@@ -206,6 +207,95 @@ func TestCircuitBreakerConcurrentCallsAreRaceSafe(t *testing.T) {
 	}
 }
 
+func TestCircuitBreakerHalfOpenStressLimitsConcurrentProbes(t *testing.T) {
+	const (
+		halfOpenLimit = int32(4)
+		workers       = int32(64)
+	)
+
+	now := time.Date(2026, 6, 3, 0, 0, 0, 0, time.UTC)
+	breaker, err := resilience.NewCircuitBreaker[int](resilience.CircuitBreakerOptions{
+		FailureThreshold:      1,
+		SuccessThreshold:      int(halfOpenLimit),
+		OpenTimeout:           time.Second,
+		HalfOpenMaxConcurrent: int(halfOpenLimit),
+		Now: func() time.Time {
+			return now
+		},
+	})
+	if err != nil {
+		t.Fatalf("NewCircuitBreaker failed: %v", err)
+	}
+
+	_, _ = resilience.Run(context.Background(), func(context.Context) (int, error) {
+		return 0, errors.New("open circuit")
+	}, breaker)
+	now = now.Add(time.Second)
+
+	start := make(chan struct{})
+	release := make(chan struct{})
+	errs := make(chan error, workers)
+
+	var entered atomic.Int32
+	var rejected atomic.Int32
+	var current atomic.Int32
+	var maxObserved atomic.Int32
+	var wg sync.WaitGroup
+
+	for range workers {
+		wg.Add(1)
+		go func() {
+			defer wg.Done()
+			<-start
+
+			_, err := resilience.Run(context.Background(), func(context.Context) (int, error) {
+				inFlight := current.Add(1)
+				recordAtomicMax(&maxObserved, inFlight)
+				entered.Add(1)
+				<-release
+				current.Add(-1)
+				return 1, nil
+			}, breaker)
+
+			switch {
+			case err == nil:
+			case errors.Is(err, resilience.ErrCircuitOpen):
+				rejected.Add(1)
+			default:
+				errs <- err
+			}
+		}()
+	}
+
+	close(start)
+	waitForAtomicAtLeast(t, &entered, halfOpenLimit)
+	waitForAtomicSumAtLeast(t, &entered, &rejected, workers)
+
+	if got := maxObserved.Load(); got > halfOpenLimit {
+		t.Fatalf("max half-open probes = %d, want <= %d", got, halfOpenLimit)
+	}
+	if got := entered.Load(); got != halfOpenLimit {
+		t.Fatalf("entered probes = %d, want %d", got, halfOpenLimit)
+	}
+	if got := rejected.Load(); got != workers-halfOpenLimit {
+		t.Fatalf("rejected probes = %d, want %d", got, workers-halfOpenLimit)
+	}
+
+	close(release)
+	wg.Wait()
+	close(errs)
+	for err := range errs {
+		t.Fatalf("unexpected worker error: %v", err)
+	}
+
+	if got := current.Load(); got != 0 {
+		t.Fatalf("current probes = %d, want 0", got)
+	}
+	if breaker.State() != resilience.CircuitStateClosed {
+		t.Fatalf("state = %s, want closed", breaker.State())
+	}
+}
+
 func TestCircuitBreakerValidatesOptions(t *testing.T) {
 	if _, err := resilience.NewCircuitBreaker[int](resilience.CircuitBreakerOptions{
 		FailureThreshold: 0,
@@ -218,5 +308,46 @@ func TestCircuitBreakerValidatesOptions(t *testing.T) {
 		OpenTimeout:      0,
 	}); err == nil {
 		t.Fatal("expected open timeout validation error")
+	}
+}
+
+func recordAtomicMax(maximum *atomic.Int32, candidate int32) {
+	for {
+		current := maximum.Load()
+		if candidate <= current || maximum.CompareAndSwap(current, candidate) {
+			return
+		}
+	}
+}
+
+func waitForAtomicAtLeast(t *testing.T, value *atomic.Int32, minimum int32) {
+	t.Helper()
+
+	deadline := time.After(2 * time.Second)
+	tick := time.NewTicker(time.Millisecond)
+	defer tick.Stop()
+
+	for value.Load() < minimum {
+		select {
+		case <-deadline:
+			t.Fatalf("value = %d, want at least %d", value.Load(), minimum)
+		case <-tick.C:
+		}
+	}
+}
+
+func waitForAtomicSumAtLeast(t *testing.T, left, right *atomic.Int32, minimum int32) {
+	t.Helper()
+
+	deadline := time.After(2 * time.Second)
+	tick := time.NewTicker(time.Millisecond)
+	defer tick.Stop()
+
+	for left.Load()+right.Load() < minimum {
+		select {
+		case <-deadline:
+			t.Fatalf("sum = %d, want at least %d", left.Load()+right.Load(), minimum)
+		case <-tick.C:
+		}
 	}
 }
