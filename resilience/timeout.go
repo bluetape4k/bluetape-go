@@ -41,8 +41,10 @@ func (p *TimeoutPolicy[T]) Apply(operation Operation[T]) Operation[T] {
 		if err == nil {
 			emitEvent(ctx, p.options.OnEvent, Event{
 				PolicyName: p.options.Name,
-				PolicyType: "timeout",
+				PolicyType: PolicyTypeTimeout,
 				Kind:       EventSuccess,
+				Category:   EventCategorySuccess,
+				Timeout:    p.options.Timeout,
 			})
 			return value, nil
 		}
@@ -56,10 +58,13 @@ func (p *TimeoutPolicy[T]) Apply(operation Operation[T]) Operation[T] {
 				Cause:      err,
 			}
 			emitEvent(ctx, p.options.OnEvent, Event{
-				PolicyName: p.options.Name,
-				PolicyType: "timeout",
-				Kind:       EventTimeout,
-				Err:        timeoutErr,
+				PolicyName:    p.options.Name,
+				PolicyType:    PolicyTypeTimeout,
+				Kind:          EventTimeout,
+				Category:      EventCategoryTimeout,
+				Timeout:       p.options.Timeout,
+				Err:           timeoutErr,
+				ErrorCategory: categorizeError(timeoutErr),
 			})
 			return value, timeoutErr
 		}

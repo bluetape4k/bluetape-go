@@ -83,8 +83,9 @@ func (p *RetryPolicy[T]) Apply(operation Operation[T]) Operation[T] {
 			if err == nil {
 				emitEvent(ctx, p.options.OnEvent, Event{
 					PolicyName: p.options.Name,
-					PolicyType: "retry",
+					PolicyType: PolicyTypeRetry,
 					Kind:       EventSuccess,
+					Category:   EventCategorySuccess,
 					Attempt:    attempt,
 				})
 				return value, nil
@@ -92,24 +93,45 @@ func (p *RetryPolicy[T]) Apply(operation Operation[T]) Operation[T] {
 
 			lastErr = err
 			if !p.options.RetryIf(err) {
+				emitEvent(ctx, p.options.OnEvent, Event{
+					PolicyName:    p.options.Name,
+					PolicyType:    PolicyTypeRetry,
+					Kind:          EventFailure,
+					Category:      EventCategoryFailure,
+					Attempt:       attempt,
+					Err:           err,
+					ErrorCategory: categorizeError(err),
+				})
 				return zero, err
 			}
 			if attempt == p.options.MaxAttempts {
-				return zero, RetryError{
+				retryErr := RetryError{
 					PolicyName: p.options.Name,
 					Attempts:   attempt,
 					Cause:      lastErr,
 				}
+				emitEvent(ctx, p.options.OnEvent, Event{
+					PolicyName:    p.options.Name,
+					PolicyType:    PolicyTypeRetry,
+					Kind:          EventFailure,
+					Category:      EventCategoryFailure,
+					Attempt:       attempt,
+					Err:           retryErr,
+					ErrorCategory: categorizeError(retryErr),
+				})
+				return zero, retryErr
 			}
 
 			delay := p.options.Backoff.Delay(attempt)
 			emitEvent(ctx, p.options.OnEvent, Event{
-				PolicyName: p.options.Name,
-				PolicyType: "retry",
-				Kind:       EventRetry,
-				Attempt:    attempt,
-				Delay:      delay,
-				Err:        err,
+				PolicyName:    p.options.Name,
+				PolicyType:    PolicyTypeRetry,
+				Kind:          EventRetry,
+				Category:      EventCategoryRetry,
+				Attempt:       attempt,
+				Delay:         delay,
+				Err:           err,
+				ErrorCategory: categorizeError(err),
 			})
 
 			if err := p.options.Sleeper.Sleep(ctx, delay); err != nil {

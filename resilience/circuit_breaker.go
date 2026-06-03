@@ -124,11 +124,13 @@ func (p *CircuitBreakerPolicy[T]) beforeCall(ctx context.Context) (CircuitState,
 	if p.state == CircuitStateOpen {
 		rejection := CircuitOpenError{PolicyName: p.options.Name, State: p.state}
 		event := Event{
-			PolicyName: p.options.Name,
-			PolicyType: "circuit_breaker",
-			Kind:       EventCircuitRejected,
-			State:      p.state,
-			Err:        rejection,
+			PolicyName:    p.options.Name,
+			PolicyType:    PolicyTypeCircuitBreaker,
+			Kind:          EventCircuitRejected,
+			Category:      EventCategoryRejection,
+			State:         p.state,
+			Err:           rejection,
+			ErrorCategory: categorizeError(rejection),
 		}
 		p.mu.Unlock()
 		emitEvent(ctx, p.options.OnEvent, event)
@@ -139,12 +141,14 @@ func (p *CircuitBreakerPolicy[T]) beforeCall(ctx context.Context) (CircuitState,
 		if p.halfOpenInFlight >= p.options.HalfOpenMaxConcurrent {
 			rejection := CircuitOpenError{PolicyName: p.options.Name, State: p.state}
 			event := Event{
-				PolicyName: p.options.Name,
-				PolicyType: "circuit_breaker",
-				Kind:       EventCircuitRejected,
-				State:      p.state,
-				InFlight:   p.halfOpenInFlight,
-				Err:        rejection,
+				PolicyName:    p.options.Name,
+				PolicyType:    PolicyTypeCircuitBreaker,
+				Kind:          EventCircuitRejected,
+				Category:      EventCategoryRejection,
+				State:         p.state,
+				InFlight:      p.halfOpenInFlight,
+				Err:           rejection,
+				ErrorCategory: categorizeError(rejection),
 			}
 			p.mu.Unlock()
 			emitEvent(ctx, p.options.OnEvent, event)
@@ -215,8 +219,9 @@ func (p *CircuitBreakerPolicy[T]) transitionLocked(next CircuitState, now time.T
 
 	return &Event{
 		PolicyName:    p.options.Name,
-		PolicyType:    "circuit_breaker",
+		PolicyType:    PolicyTypeCircuitBreaker,
 		Kind:          EventCircuitStateTransition,
+		Category:      EventCategoryTransition,
 		State:         next,
 		PreviousState: previous,
 	}
