@@ -34,7 +34,7 @@ research 문서로 추적합니다.
 | `testcontainers/nats` | initial | Testcontainers for Go 기반 NATS fixture. |
 | `testcontainers/kafka` | initial | Testcontainers for Go 기반 Kafka fixture. |
 | `leader` | initial | Leader election API. |
-| `leader/redis` | initial | Redis `SET NX PX`와 TTL renewal 기반 leader election 구현. |
+| `leader/redis` | initial | TTL renewal과 ZSET slot token 기반 Redis 단일/group leader election 구현. |
 | `resilience` | initial | service call을 위한 자체 composable retry, timeout, circuit breaker, bulkhead policy, synchronous observability hook, `net/http` adapter. |
 
 계획 중인 패키지군은 `collections`, `concurrency`, `serialization`,
@@ -80,6 +80,32 @@ Redis leader 예제는 backend replica 중 하나만 실행해야 하는 조정 
 |---|---|---|
 | Batch scheduler | 모든 scheduler replica가 같은 nightly job을 실행하지 않게 합니다. | `go test -count=1 ./leader/redis -run TestBatchSchedulerExample` |
 | Migration gate | 배포 중 하나의 service instance만 migration을 적용하게 합니다. | `go test -count=1 ./leader/redis -run TestMigrationGateExample` |
+
+동시에 제한된 수의 replica가 같은 worker lane을 실행해도 된다면 `NewGroup`을
+사용합니다.
+
+```go
+group, err := redisleader.NewGroup(client, leader.GroupOptions{
+    Options: leader.Options{
+        Group:    "batch-workers",
+        MemberID: "worker-1",
+    },
+    MaxLeaders: 3,
+})
+if err != nil {
+    return err
+}
+
+if err := group.Campaign(ctx); err != nil {
+    return err
+}
+defer group.Resign(context.Background())
+```
+
+Redis group backend는 살아 있는 slot을 `bluetape:leader-group:<group>` ZSET에
+저장합니다. 각 member는 Redis server time 기준 만료 score를 가진
+`memberID:random` token입니다. 만료된 slot은 acquire와 status check 중 정리되므로,
+process crash로 누수된 slot도 별도 reaper 없이 회수됩니다.
 
 ## Resilience Policy
 
