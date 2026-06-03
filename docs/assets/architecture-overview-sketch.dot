@@ -1,0 +1,109 @@
+digraph bluetape_go_architecture {
+    graph [
+        rankdir=TB
+        splines=ortho
+        nodesep=0.7
+        ranksep=0.9
+        fontname="Helvetica"
+    ]
+    node [shape=box fontname="Helvetica" fontsize=11 margin="0.2,0.1"]
+    edge [fontname="Helvetica" fontsize=9]
+
+    // Layer 0: Title band (virtual)
+    subgraph cluster_title {
+        label="" style=invis
+        TITLE [label="bluetape-go Architecture Overview" shape=plaintext fontsize=16]
+    }
+
+    // Layer 1: Active packages (v0.1.0)
+    subgraph cluster_foundation {
+        label="v0.1.0 Foundation"
+        style=filled fillcolor="#EBF4FF"
+        core [label="core\nvalidation, zero/default,\npointers, strings, numbers"]
+        collections [label="collections\nchunk, group, distinct,\nerror-aware transforms"]
+        codec [label="codec\nbinary encoding"]
+        compression [label="compression\ngzip/snappy/zstd"]
+        concurrency [label="concurrency\ngoroutine helpers"]
+        serialization [label="serialization\njson/msgpack/gob"]
+    }
+
+    subgraph cluster_testing {
+        label="Testing Infrastructure"
+        style=filled fillcolor="#F0FFF4"
+        testing [label="testing\neventually/consistently\nGomega helpers"]
+        tc_redis   [label="testcontainers/redis"]
+        tc_pg      [label="testcontainers/postgres"]
+        tc_mysql   [label="testcontainers/mysql"]
+        tc_nats    [label="testcontainers/nats"]
+        tc_kafka   [label="testcontainers/kafka"]
+    }
+
+    subgraph cluster_leader {
+        label="Leader Election"
+        style=filled fillcolor="#FFF7ED"
+        leader      [label="leader\nLeader API interface"]
+        leader_redis [label="leader/redis\nSET NX PX + TTL renewal"]
+    }
+
+    // Layer 2: Resilience (v0.2.0)
+    subgraph cluster_resilience {
+        label="v0.2.0 Resilience"
+        style=filled fillcolor="#FEF3C7"
+        resilience [label="resilience\nretry, timeout,\ncircuit breaker,\nbulkhead, HTTP middleware"]
+    }
+
+    // Layer 3: Cache & Coordination (v0.3.0)
+    subgraph cluster_cache {
+        label="v0.3.0 Cache & Coordination"
+        style=filled fillcolor="#F0FDF4"
+        cache [label="cache\nnear cache, Redis locks,\ntoken-bucket rate limiting"]
+    }
+
+    // Layer 4: Workflow / Batch (v0.4-0.5)
+    subgraph cluster_workflow {
+        label="v0.4-0.5 Workflow & Batch"
+        style=filled fillcolor="#FDF4FF"
+        workflow [label="workflow\nstate machine,\nlightweight workflows"]
+        batch    [label="batch\ncheckpoints,\nleader-guarded examples"]
+    }
+
+    // Layer 5: Portable Utilities (v0.6)
+    subgraph cluster_portable {
+        label="v0.6 Portable Utilities"
+        style=filled fillcolor="#FFF1F2"
+        portable [label="id, jwt, money,\nprobabilistic, rule engine"]
+    }
+
+    // Layer 6: Domain Packages (v0.8-0.11)
+    subgraph cluster_domain {
+        label="v0.8-0.11 Domain Packages"
+        style=filled fillcolor="#F0F9FF"
+        graph_pkg [label="graph\nNeo4j/Memgraph patterns"]
+        text_pkg  [label="text\nsearch, blockword, tokenizer"]
+        audit_pkg [label="audit\nevent packages"]
+        aws_pkg   [label="aws\nhelpers, LocalStack examples"]
+    }
+
+    // Edges: dependencies / progression
+    core -> resilience
+    core -> cache
+    collections -> batch
+    concurrency -> resilience
+    serialization -> cache
+
+    leader -> leader_redis
+    leader_redis -> cache [style=dashed label="used by"]
+    leader_redis -> batch [style=dashed label="leader-guarded"]
+
+    resilience -> workflow
+    cache -> workflow
+    workflow -> batch
+
+    resilience -> portable [style=dashed]
+    batch -> portable [style=dashed]
+
+    portable -> graph_pkg [style=dashed]
+    portable -> text_pkg  [style=dashed]
+    portable -> audit_pkg [style=dashed]
+    portable -> aws_pkg   [style=dashed]
+}
