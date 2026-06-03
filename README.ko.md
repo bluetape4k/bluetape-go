@@ -35,10 +35,11 @@ research 문서로 추적합니다.
 | `testcontainers/kafka` | initial | Testcontainers for Go 기반 Kafka fixture. |
 | `leader` | initial | Leader election API. |
 | `leader/redis` | initial | Redis `SET NX PX`와 TTL renewal 기반 leader election 구현. |
+| `resilience` | initial | service call을 위한 자체 composable retry/timeout policy. |
 
 계획 중인 패키지군은 `collections`, `concurrency`, `serialization`,
-`resilience`, `cache`, `workflow`, `batch`, `id`, `jwt`, `graph`, `text`,
-`audit`, AWS helper/example 패키지입니다.
+`cache`, `workflow`, `batch`, `id`, `jwt`, `graph`, `text`, `audit`, AWS
+helper/example 패키지입니다.
 
 ## 설치
 
