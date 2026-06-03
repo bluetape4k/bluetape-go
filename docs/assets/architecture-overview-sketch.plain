@@ -1,0 +1,43 @@
+graph 1 31.583 11.74
+node TITLE 7.1528 10.849 3.8375 0.5 "bluetape-go Architecture Overview" solid plaintext black lightgrey
+node core 3.5278 9.1347 2.1188 0.7 "core\nvalidation, zero/default,\npointers, strings, numbers" solid box black lightgrey
+node collections 10.597 9.1347 1.9417 0.7 "collections\nchunk, group, distinct,\nerror-aware transforms" solid box black lightgrey
+node codec 6.0139 9.1347 1.4521 0.53333 "codec\nbinary encoding" solid box black lightgrey
+node compression 8.1806 9.1347 1.5042 0.53333 "compression\ngzip/snappy/zstd" solid box black lightgrey
+node concurrency 1 9.1347 1.5562 0.53333 "concurrency\ngoroutine helpers" solid box black lightgrey
+node serialization 13.056 9.1347 1.5979 0.53333 "serialization\njson/msgpack/gob" solid box black lightgrey
+node testing 18.181 10.849 1.8792 0.7 "testing\neventually/consistently\nGomega helpers" solid box black lightgrey
+node tc_redis 20.667 10.849 1.6917 0.5 "testcontainers/redis" solid box black lightgrey
+node tc_pg 23.181 10.849 1.9417 0.5 "testcontainers/postgres" solid box black lightgrey
+node tc_mysql 25.722 10.849 1.7542 0.5 "testcontainers/mysql" solid box black lightgrey
+node tc_nats 28.125 10.849 1.65 0.5 "testcontainers/nats" solid box black lightgrey
+node tc_kafka 30.5 10.849 1.7229 0.5 "testcontainers/kafka" solid box black lightgrey
+node leader 15.667 10.849 1.7646 0.53333 "leader\nLeader API interface" solid box black lightgrey
+node leader_redis 15.667 9.1347 2.2333 0.53333 "leader/redis\nSET NX PX + TTL renewal" solid box black lightgrey
+node resilience 4.7083 7.216 2.3063 0.86667 "resilience\nretry, timeout,\ncircuit breaker,\nbulkhead, HTTP middleware" solid box black lightgrey
+node cache 12.861 7.216 2.0563 0.7 "cache\nnear cache, Redis locks,\ntoken-bucket rate limiting" solid box black lightgrey
+node workflow 8.6389 5.2972 1.8167 0.7 "workflow\nstate machine,\nlightweight workflows" solid box black lightgrey
+node batch 8.8194 3.6667 2.0979 0.7 "batch\ncheckpoints,\nleader-guarded examples" solid box black lightgrey
+node portable 6.1806 2.0361 2.0042 0.53333 "id, jwt, money,\nprobabilistic, rule engine" solid box black lightgrey
+node graph_pkg 2.2778 0.48889 2.1396 0.53333 "graph\nNeo4j/Memgraph patterns" solid box black lightgrey
+node text_pkg 5.1944 0.48889 2.2958 0.53333 "text\nsearch, blockword, tokenizer" solid box black lightgrey
+node audit_pkg 7.7639 0.48889 1.4417 0.53333 "audit\nevent packages" solid box black lightgrey
+node aws_pkg 10.375 0.48889 2.3792 0.53333 "aws\nhelpers, LocalStack examples" solid box black lightgrey
+edge core resilience 4 3.8992 8.7783 3.8992 8.7783 3.8992 7.8146 3.8992 7.8146 solid black
+edge core cache 10 4.2432 8.7793 4.2432 8.5231 4.2432 8.2222 4.2432 8.2222 4.2432 8.2222 12.045 8.2222 12.045 8.2222 12.045 8.2222 12.045 7.7278 12.045 7.7278 solid black
+edge collections batch 4 9.7474 8.7802 9.7474 8.7802 9.7474 4.1803 9.7474 4.1803 solid black
+edge concurrency resilience 7 1.4931 8.8648 1.4931 8.3376 1.4931 7.2222 1.4931 7.2222 1.4931 7.2222 3.3922 7.2222 3.3922 7.2222 solid black
+edge serialization cache 4 13.056 8.8639 13.056 8.8639 13.056 7.7301 13.056 7.7301 solid black
+edge leader leader_redis 4 15.667 10.577 15.667 10.577 15.667 9.5649 15.667 9.5649 solid black
+edge leader_redis cache 7 15.294 8.8648 15.294 8.3376 15.294 7.2222 15.294 7.2222 15.294 7.2222 14.053 7.2222 14.053 7.2222 "used by" 14.432 8.2587 dashed black
+edge leader_redis batch 7 16.039 8.8636 16.039 7.7602 16.039 3.6667 16.039 3.6667 16.039 3.6667 10.033 3.6667 10.033 3.6667 "leader-guarded" 15.748 6.2566 dashed black
+edge resilience workflow 7 5.6338 6.7793 5.6338 6.2116 5.6338 5.2917 5.6338 5.2917 5.6338 5.2917 7.5651 5.2917 7.5651 5.2917 solid black
+edge resilience portable 4 5.4061 6.7788 5.4061 6.7788 5.4061 2.4645 5.4061 2.4645 dashed black
+edge cache workflow 7 11.829 7.2222 10.78 7.2222 9.3094 7.2222 9.3094 7.2222 9.3094 7.2222 9.3094 5.8102 9.3094 5.8102 solid black
+edge workflow batch 4 8.6589 4.9434 8.6589 4.9434 8.6589 4.1797 8.6589 4.1797 solid black
+edge batch portable 7 7.7655 3.6667 7.3461 3.6667 6.9613 3.6667 6.9613 3.6667 6.9613 3.6667 6.9613 2.4689 6.9613 2.4689 dashed black
+edge portable graph_pkg 7 5.172 2.0417 4.2104 2.0417 2.908 2.0417 2.908 2.0417 2.908 2.0417 2.908 0.91927 2.908 0.91927 dashed black
+edge portable text_pkg 4 5.7604 1.7631 5.7604 1.7631 5.7604 0.91912 5.7604 0.91912 dashed black
+edge portable audit_pkg 4 7.1128 1.7631 7.1128 1.7631 7.1128 0.91912 7.1128 0.91912 dashed black
+edge portable aws_pkg 7 7.1891 2.0417 8.1744 2.0417 9.5269 2.0417 9.5269 2.0417 9.5269 2.0417 9.5269 0.91927 9.5269 0.91927 dashed black
+stop

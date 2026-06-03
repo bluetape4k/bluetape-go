@@ -12,6 +12,10 @@ rewrite of bluetape4k. It provides idiomatic Go packages for teams that prefer
 Go for backend infrastructure, service coordination, test fixtures, resilience,
 caching, workflow, batch, graph, text, audit, and AWS-adjacent service code.
 
+## Architecture
+
+![bluetape-go Architecture Overview](docs/assets/bluetape-go-architecture-overview.png)
+
 ## Current Status
 
 `bluetape-go` is in early `0.1.0` development. The repository already contains

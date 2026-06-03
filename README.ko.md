@@ -11,6 +11,10 @@ bluetape 생태계를 위한 Go 백엔드 유틸리티와 분산 인프라 패�
 fixture, resilience, cache, workflow, batch, graph, text, audit, AWS 관련
 반복 코드를 Go답게 제공하는 별도 구현입니다.
 
+## 아키텍처
+
+![bluetape-go Architecture Overview](docs/assets/bluetape-go-architecture-overview.png)
+
 ## 현재 상태
 
 `bluetape-go`는 초기 `0.1.0` 개발 단계입니다. 현재 repository에는 첫 foundation
