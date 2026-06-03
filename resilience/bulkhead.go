@@ -52,8 +52,9 @@ func (p *BulkheadPolicy[T]) Apply(operation Operation[T]) Operation[T] {
 		if err == nil {
 			emitEvent(ctx, p.options.OnEvent, Event{
 				PolicyName: p.options.Name,
-				PolicyType: "bulkhead",
+				PolicyType: PolicyTypeBulkhead,
 				Kind:       EventSuccess,
+				Category:   EventCategorySuccess,
 				InFlight:   p.InFlight(),
 			})
 		}
@@ -83,11 +84,13 @@ func (p *BulkheadPolicy[T]) acquire(ctx context.Context) error {
 	default:
 		rejection := BulkheadRejectedError{PolicyName: p.options.Name}
 		emitEvent(ctx, p.options.OnEvent, Event{
-			PolicyName: p.options.Name,
-			PolicyType: "bulkhead",
-			Kind:       EventBulkheadRejected,
-			InFlight:   p.InFlight(),
-			Err:        rejection,
+			PolicyName:    p.options.Name,
+			PolicyType:    PolicyTypeBulkhead,
+			Kind:          EventBulkheadRejected,
+			Category:      EventCategoryRejection,
+			InFlight:      p.InFlight(),
+			Err:           rejection,
+			ErrorCategory: categorizeError(rejection),
 		})
 		return rejection
 	}
@@ -100,8 +103,9 @@ func (p *BulkheadPolicy[T]) release() {
 func (p *BulkheadPolicy[T]) emitAccepted(ctx context.Context) {
 	emitEvent(ctx, p.options.OnEvent, Event{
 		PolicyName: p.options.Name,
-		PolicyType: "bulkhead",
+		PolicyType: PolicyTypeBulkhead,
 		Kind:       EventBulkheadAccepted,
+		Category:   EventCategoryAdmission,
 		InFlight:   p.InFlight(),
 	})
 }

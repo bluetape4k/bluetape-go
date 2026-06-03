@@ -36,7 +36,7 @@ the roadmap is tracked through milestones and research notes.
 | `testcontainers/kafka` | initial | Kafka fixture helpers based on Testcontainers for Go. |
 | `leader` | initial | Leader election API. |
 | `leader/redis` | initial | Redis-backed leader election using `SET NX PX` and TTL renewal. |
-| `resilience` | initial | First-party composable retry, timeout, circuit breaker, and bulkhead policies for service calls. |
+| `resilience` | initial | First-party composable retry, timeout, circuit breaker, and bulkhead policies with synchronous observability hooks for service calls. |
 
 Planned package families include `collections`, `concurrency`, `serialization`,
 `cache`, `workflow`, `batch`, `id`, `jwt`, `graph`, `text`, `audit`, and AWS
@@ -82,6 +82,40 @@ one replica at a time:
 |---|---|---|
 | Batch scheduler | Prevents every scheduler replica from running the same nightly job. | `go test -count=1 ./leader/redis -run TestBatchSchedulerExample` |
 | Migration gate | Allows only one service instance to apply a rollout migration. | `go test -count=1 ./leader/redis -run TestMigrationGateExample` |
+
+## Resilience Policies
+
+Resilience policies provide first-party retry, timeout, circuit breaker, and
+bulkhead primitives that can be composed around a service call. Each policy
+accepts an `OnEvent` hook. The hook is called synchronously on the protected
+call path with a structured `resilience.Event` payload containing stable policy
+type, event kind, event category, attempt/state data, and low-cardinality error
+category labels.
+
+Use `OnEvent` to bridge policy decisions to the logging, metrics, or tracing
+tooling already used by the service:
+
+```go
+retry, err := resilience.NewRetry[string](resilience.RetryOptions{
+    Name:        "catalog",
+    MaxAttempts: 3,
+    Backoff:     resilience.ConstantBackoff(50 * time.Millisecond),
+    OnEvent: func(ctx context.Context, event resilience.Event) {
+        logger.InfoContext(ctx, "resilience event",
+            "policy", event.PolicyName,
+            "type", event.PolicyType,
+            "kind", event.Kind,
+            "category", event.Category,
+            "error_category", event.ErrorCategory,
+            "attempt", event.Attempt,
+        )
+    },
+})
+```
+
+The package intentionally does not include a built-in OpenTelemetry exporter or
+HTTP middleware in the core policy APIs. Keep event handlers fast and
+non-blocking because a slow handler delays the protected call.
 
 ## Roadmap
 
