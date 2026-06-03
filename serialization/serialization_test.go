@@ -42,6 +42,14 @@ func TestJSONSerializerRejectsCorruptInput(t *testing.T) {
 	}
 }
 
+func TestJSONSerializerRejectsTrailingJSONValue(t *testing.T) {
+	serializer := serialization.NewJSONSerializer[account]()
+
+	if _, err := serializer.Unmarshal([]byte(`{"id":"acct-1","active":true}{"id":"acct-2","active":false}`)); err == nil {
+		t.Fatal("expected trailing JSON value to fail")
+	}
+}
+
 func TestJSONSerializerRejectsUnknownFieldsWhenConfigured(t *testing.T) {
 	serializer := serialization.NewJSONSerializer[account](serialization.WithDisallowUnknownFields())
 
