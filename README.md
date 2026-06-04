@@ -35,15 +35,15 @@ benchmarks.
 | `codec` | active | Base58, Base62, Base64, hex, and URL-safe encoding helpers. |
 | `compression` | active | gzip, deflate, zstd, lz4, snappy, and registry-backed compression helpers. |
 | `serialization` | active | JSON and binary serializer interfaces with safe defaults. |
-| `testing` | initial | Common test helpers for eventual consistency checks. |
-| `testcontainers/redis` | initial | Redis fixture helpers based on Testcontainers for Go. |
-| `testcontainers/postgres` | initial | PostgreSQL fixture helpers based on Testcontainers for Go. |
-| `testcontainers/mysql` | initial | MySQL 8.4 fixture helpers based on Testcontainers for Go. |
-| `testcontainers/nats` | initial | NATS fixture helpers based on Testcontainers for Go. |
-| `testcontainers/kafka` | initial | Kafka fixture helpers based on Testcontainers for Go. |
-| `leader` | initial | Leader election API. |
-| `leader/redis` | initial | Redis-backed single and group leader election using TTL renewal and ZSET slot tokens. |
-| `resilience` | initial | First-party composable retry, timeout, circuit breaker, and bulkhead policies with synchronous observability hooks and `net/http` adapters for service calls. |
+| `testing` | active | Common test helpers for eventual consistency checks. |
+| `testcontainers/redis` | active | Redis fixture helpers based on Testcontainers for Go. |
+| `testcontainers/postgres` | active | PostgreSQL fixture helpers based on Testcontainers for Go. |
+| `testcontainers/mysql` | active | MySQL 8.4 fixture helpers based on Testcontainers for Go. |
+| `testcontainers/nats` | active | NATS fixture helpers based on Testcontainers for Go. |
+| `testcontainers/kafka` | active | Kafka fixture helpers based on Testcontainers for Go. |
+| `leader` | active | Leader election API. |
+| `leader/redis` | active | Redis-backed single and group leader election using TTL renewal and ZSET slot tokens. |
+| `resilience` | active | First-party composable retry, timeout, circuit breaker, and bulkhead policies with synchronous observability hooks and `net/http` adapters for service calls. |
 | `cache` | initial | Generic in-process TTL cache interfaces with context-aware loaders and same-key stampede protection. |
 
 Next planned package families include `workflow`, `batch`, `id`, `jwt`,
