@@ -96,3 +96,16 @@ Measured paths:
 Lower `ns/op` and lower allocations are better. Redis-backed benchmark scope is
 kept separate because it depends on external Redis latency and deployment
 topology.
+
+## Benchmark Snapshot
+
+These are local smoke numbers, not production capacity rankings. The run used
+macOS arm64 on Apple M4 Pro. Lower `ns/op`, `B/op`, and `allocs/op` are better.
+
+![ratelimit benchmark latency](../docs/images/readme-charts/ratelimit-benchmark-latency.png)
+
+| Benchmark | ns/op | B/op | allocs/op |
+|---|---:|---:|---:|
+| `BenchmarkTokenBucketAllowAllowed` | 116.4 | 0 | 0 |
+| `BenchmarkTokenBucketAllowRejected` | 76.76 | 0 | 0 |
+| `BenchmarkHandlerAllowed` | 51.26 | 160 | 3 |
