@@ -7,7 +7,7 @@ scope, dependency candidates, and GitHub issues.
 |---|---|
 | `0.1.0` | [Foundation](2026-06-01-milestone-0.1.0-foundation-research.md), [Issue #8 core support inventory](2026-06-01-issue-8-core-support-inventory.md), [Issue #9 collections inventory](2026-06-01-issue-9-collections-inventory.md) |
 | `0.2.0` | [Resilience](2026-06-01-milestone-0.2.0-resilience-research.md) |
-| `0.3.0` | [Cache and coordination](2026-06-01-milestone-0.3.0-cache-coordination-research.md) |
+| `0.3.0` | [Cache and coordination](2026-06-01-milestone-0.3.0-cache-coordination-research.md), [Issue #110 RESP3 CLIENT TRACKING](2026-06-04-issue-110-resp3-client-tracking.md) |
 | `0.4.0` | [State and workflow](2026-06-01-milestone-0.4.0-state-workflow-research.md) |
 | `0.5.0` | [Batch](2026-06-01-milestone-0.5.0-batch-research.md) |
 | `0.6.0` | [Utilities](2026-06-01-milestone-0.6.0-utilities-research.md) |
