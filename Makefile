@@ -3,7 +3,7 @@ GOLANGCI_LINT ?= golangci-lint
 
 GO_FILES := $(shell find . -name '*.go' -not -path './.git/*')
 
-.PHONY: help fmt fmt-check tidy tidy-check vet lint test race bench-compression ci
+.PHONY: help fmt fmt-check tidy tidy-check vet lint test race bench-cache bench-compression ci
 
 help:
 	@printf '%s\n' \
@@ -16,6 +16,7 @@ help:
 		'  lint        Run golangci-lint' \
 		'  test        Run uncached go test ./... including Testcontainers tests' \
 		'  race        Run uncached go test -race ./... including Testcontainers tests' \
+		'  bench-cache Run opt-in cache and Redis NearCache benchmarks' \
 		'  ci          Run the local CI gate'
 
 fmt:
@@ -42,6 +43,10 @@ test:
 
 race:
 	@$(GO) test -race -count=1 ./...
+
+bench-cache:
+	@$(GO) test -run '^$$' -bench '^BenchmarkMemory' -benchmem ./cache
+	@$(GO) test -run '^$$' -bench '^BenchmarkNearCache' -benchmem ./cache/redisnear
 
 bench-compression:
 	@$(GO) test -run '^$$' -bench '^BenchmarkCompressors' -benchmem ./compression
