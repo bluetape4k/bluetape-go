@@ -113,7 +113,7 @@ make ci
 | `make lint` | `golangci-lint run ./...`를 실행합니다. |
 | `make test` | Testcontainers 테스트가 실제 실행되도록 `go test -count=1 ./...`를 실행합니다. |
 | `make race` | Testcontainers 테스트가 race detector에서도 실제 실행되도록 `go test -race -count=1 ./...`를 실행합니다. |
-| `make coverage` | `coverage/` 아래에 Go coverage profile, text summary, HTML report를 생성합니다. |
+| `make coverage` | `coverage/` 아래에 Go coverage profile, package 소계 table, text summary, HTML report를 생성합니다. |
 | `make bench-cache` | opt-in cache, Redis NearCache, Redis coordinator benchmark를 실행합니다. |
 | `make ci` | 로컬 CI gate를 실행합니다. |
 

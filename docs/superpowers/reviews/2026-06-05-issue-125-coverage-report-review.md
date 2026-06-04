@@ -22,7 +22,7 @@
 3. Operations: artifacts are uploaded with `if-no-files-found: warn` so cleanup steps do not mask the real test failure.
 4. User: README command tables document local report generation.
 5. Security: no new token, secret, or external upload target is introduced.
-6. Integration: CI and Nightly share the same `make coverage` target.
+6. Integration: CI and Nightly share the same `make coverage` target and publish package subtotals in Step Summary.
 7. Maintenance: lesson note records the Go-native choice and follow-up boundary.
 
 ## Verdict

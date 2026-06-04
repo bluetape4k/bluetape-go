@@ -57,13 +57,13 @@ jobs:
       - name: Summarize coverage
         if: always()
         run: |
-          if [ -f coverage/coverage.txt ]; then
+          if [ -f coverage/coverage-packages.md ]; then
             {
               echo "## Coverage"
               echo
-              echo '```text'
-              tail -n 20 coverage/coverage.txt
-              echo '```'
+              cat coverage/coverage-packages.md
+              echo
+              echo "_Full profile, function-level text, and HTML reports are available in the \`coverage-go\` artifact._"
             } >> "$GITHUB_STEP_SUMMARY"
           fi
 
