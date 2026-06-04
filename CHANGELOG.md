@@ -7,6 +7,21 @@ and this project uses semantic versioning once the first tag is published.
 
 ## [Unreleased]
 
+### Added
+
+- `cache` package with generic cache interfaces, process-local TTL `Memory`,
+  `ErrCacheMiss`, context-aware loaders, and `GetOrLoad` same-key stampede
+  protection.
+- Cache stress and cancellation coverage using `GoroutineStressTester` and
+  `AsyncJobTester`, plus zero-value `Memory` safety coverage.
+- Type A research, spec, plan, review, and lessons artifacts for the initial
+  cache contract.
+
+### Changed
+
+- README and WIP documentation now reflect the current `0.3.0` development line,
+  merged package surface, and open cache/coordination follow-up issues.
+
 ## [v0.2.0] - 2026-06-04
 
 ### Added
