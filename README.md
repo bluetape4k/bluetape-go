@@ -20,9 +20,9 @@ caching, workflow, batch, graph, text, audit, and AWS-adjacent service code.
 
 `bluetape-go` is on the `0.3.0` development line. The repository already
 contains foundation utilities, codecs, compression, concurrency helpers,
-serialization contracts, Redis-backed leader election, resilience policies, and
-the cache and Redis coordination packages. Remaining `0.3.0` work focuses on
-token-bucket rate limiting and pluggable leader election strategies.
+serialization contracts, Redis-backed leader election, resilience policies, the
+cache and Redis coordination packages, and token-bucket rate limiting.
+Remaining `0.3.0` work focuses on pluggable leader election strategies.
 
 ## Packages
 
@@ -48,6 +48,8 @@ token-bucket rate limiting and pluggable leader election strategies.
 | [`cache/redisnear`](cache/redisnear/README.md) | active | Redis Pub/Sub near-cache invalidation for process-local loading caches. |
 | [`cache/rediscoord`](cache/rediscoord/README.md) | active | Opt-in Redis coordination wrapper that shares one loader result across process-local caches during a cold burst. |
 | [`lock/redis`](lock/redis/README.md) | active | Redis single-instance owner-token lock with TTL acquisition and owner-safe Lua unlock. |
+| [`ratelimit`](ratelimit/README.md) | active | Process-local keyed token-bucket limiter and `net/http` middleware. |
+| [`ratelimit/redis`](ratelimit/redis/README.md) | active | Redis-backed token-bucket limiter with atomic Lua consume/refill and idle key expiration. |
 
 Next planned package families include `workflow`, `batch`, `id`, `jwt`,
 `graph`, `text`, `audit`, and AWS helper/example packages.
@@ -75,7 +77,8 @@ benchmarks live next to each package:
   [`lock/redis`](lock/redis/README.md).
 - Runtime policies and cache: [`resilience`](resilience/README.md),
   [`cache`](cache/README.md), [`cache/redisnear`](cache/redisnear/README.md),
-  and [`cache/rediscoord`](cache/rediscoord/README.md).
+  [`cache/rediscoord`](cache/rediscoord/README.md), and
+  [`ratelimit`](ratelimit/README.md).
 
 ## Roadmap
 
@@ -118,6 +121,7 @@ Common commands:
 | `make race` | Run `go test -race -count=1 ./...` so Testcontainers tests execute under the race detector. |
 | `make coverage` | Generate Go coverage profile, package subtotal table, text summary, and HTML report under `coverage/`. |
 | `make bench-cache` | Run opt-in cache, Redis NearCache, and Redis coordinator benchmarks. |
+| `make bench-ratelimit` | Run opt-in local rate limiter benchmarks. |
 | `make ci` | Run the local CI gate. |
 
 Redis integration tests use Testcontainers and require Docker. The regular CI

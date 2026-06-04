@@ -19,10 +19,9 @@ fixture, resilience, cache, workflow, batch, graph, text, audit, AWS 관련
 
 `bluetape-go`는 현재 `0.3.0` 개발선에 있습니다. Repository에는 foundation
 utility, codec, compression, concurrency helper, serialization contract,
-Redis 기반 leader election, resilience policy, 첫 cache contract가 들어
-있습니다. 현재는 cache와 Redis coordination package까지 들어갔고, 남은
-`0.3.0` 작업은 token-bucket rate limiting과 pluggable leader election strategy에
-집중합니다.
+Redis 기반 leader election, resilience policy, cache/Redis coordination package,
+token-bucket rate limiting이 들어 있습니다. 남은 `0.3.0` 작업은 pluggable
+leader election strategy에 집중합니다.
 
 ## 패키지
 
@@ -48,6 +47,8 @@ Redis 기반 leader election, resilience policy, 첫 cache contract가 들어
 | [`cache/redisnear`](cache/redisnear/README.md) | active | process-local loading cache를 위한 Redis Pub/Sub near-cache invalidation. |
 | [`cache/rediscoord`](cache/rediscoord/README.md) | active | cold burst 동안 하나의 loader 결과를 process-local cache 사이에서 공유하는 opt-in Redis coordination wrapper. |
 | [`lock/redis`](lock/redis/README.md) | active | TTL acquire와 owner-safe Lua unlock을 제공하는 Redis 단일 인스턴스 owner-token lock. |
+| [`ratelimit`](ratelimit/README.md) | active | process-local keyed token-bucket limiter와 `net/http` middleware. |
+| [`ratelimit/redis`](ratelimit/redis/README.md) | active | atomic Lua consume/refill과 idle key expiration을 쓰는 Redis-backed token-bucket limiter. |
 
 다음 계획 패키지군은 `workflow`, `batch`, `id`, `jwt`, `graph`, `text`,
 `audit`, AWS helper/example 패키지입니다.
@@ -72,7 +73,8 @@ go get github.com/bluetape4k/bluetape-go
   [`leader/redis`](leader/redis/README.md), [`lock/redis`](lock/redis/README.md).
 - Runtime policy/cache: [`resilience`](resilience/README.md),
   [`cache`](cache/README.md), [`cache/redisnear`](cache/redisnear/README.md),
-  [`cache/rediscoord`](cache/rediscoord/README.md).
+  [`cache/rediscoord`](cache/rediscoord/README.md),
+  [`ratelimit`](ratelimit/README.md).
 
 ## Roadmap
 
@@ -115,6 +117,7 @@ make ci
 | `make race` | Testcontainers 테스트가 race detector에서도 실제 실행되도록 `go test -race -count=1 ./...`를 실행합니다. |
 | `make coverage` | `coverage/` 아래에 Go coverage profile, package 소계 table, text summary, HTML report를 생성합니다. |
 | `make bench-cache` | opt-in cache, Redis NearCache, Redis coordinator benchmark를 실행합니다. |
+| `make bench-ratelimit` | opt-in local rate limiter benchmark를 실행합니다. |
 | `make ci` | 로컬 CI gate를 실행합니다. |
 
 Redis integration test는 Testcontainers를 사용하므로 Docker가 필요합니다. 일반

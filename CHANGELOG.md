@@ -23,6 +23,10 @@ and this project uses semantic versioning once the first tag is published.
   cache stampede protection, owner-token load leases, short-lived shared result
   envelopes, Testcontainers NearCache collapse coverage, lease-expiry tests, and
   stress/cancellation tests.
+- `ratelimit` and `ratelimit/redis` packages with local and Redis-backed
+  token-bucket limiting, HTTP middleware, Redis Lua atomic consume/refill,
+  Testcontainers concurrency coverage, stress/cancellation tests, and local
+  benchmark coverage.
 - Cache stress and cancellation coverage using `GoroutineStressTester` and
   `AsyncJobTester`, plus zero-value `Memory` safety coverage.
 - Type A research, spec, plan, review, and lessons artifacts for the initial
@@ -37,6 +41,7 @@ and this project uses semantic versioning once the first tag is published.
   root README files remain high-level indexes with links.
 - README and WIP documentation now reflect the current `0.3.0` development line,
   merged package surface, and open cache/coordination follow-up issues.
+- `make bench-ratelimit` now exposes opt-in local rate limiter benchmark runs.
 
 ## [v0.2.0] - 2026-06-04
 

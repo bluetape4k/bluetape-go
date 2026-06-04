@@ -82,6 +82,8 @@ Rules:
 - Already-canceled context returns the context error.
 - blank `key` returns a validation error.
 - `tokens <= 0` returns a validation error.
+- `tokens > Burst` returns a validation error because the bucket can never
+  satisfy that request.
 - rejection returns `Result{Allowed:false}` and `nil` error.
 - `Remaining` is whole tokens after the attempt.
 - `RetryAfter` is zero for allowed attempts.
@@ -159,6 +161,7 @@ Invalid:
 - key whose byte length exceeds `MaxKeyBytes`;
 - `Burst * 1_000_000`, requested tokens, or `RatePerSecond * 1_000_000`
   cannot be represented safely as positive `int64` microtokens.
+- per-call requested tokens greater than `Burst`.
 
 ## Redis Keys And Script
 

@@ -26,13 +26,15 @@ Open count: 30 issues.
   Redis coordination wrapper for cross-process cache stampede protection.
 - Issue #123 is closed with package-specific usage, behavior, and benchmark
   notes moved into package-level README files.
-- Issue #125 is in progress to publish Go coverage reports from CI and Nightly.
+- Issue #125 is closed with Go coverage reports published from CI and Nightly.
+- Issue #25 is in progress with Type A research/spec/plan/review artifacts and
+  local plus Redis-backed token-bucket rate limiter implementation work.
 - Regular CI and Nightly workflows continue to run Testcontainers-backed tests
   against real containers and now publish Go coverage artifacts.
 
 ## Next Feature Issues
 
-1. #25 Implement token-bucket rate limiter.
+1. #25 Finish token-bucket rate limiter validation and PR.
 2. #86 Add pluggable leader election strategies.
 3. #3 Close the 0.3.0 epic after remaining issues land.
 
