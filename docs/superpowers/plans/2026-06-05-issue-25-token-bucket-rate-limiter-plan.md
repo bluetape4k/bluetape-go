@@ -19,7 +19,7 @@ backend failures.
 |---|---|---|---|
 | T1 Shared API scaffold | `ratelimit/doc.go`, `ratelimit/result.go`, `ratelimit/errors.go` | Define `Limiter`, `Result`, validation helpers, context normalization, and package docs. | `go test -count=1 ./ratelimit -run 'Test.*Validation|Test.*Interface'` |
 | T2 Local options/state | `ratelimit/options.go`, `ratelimit/token_bucket.go` | Normalize `RatePerSecond`, `Burst`, `IdleTTL`; store per-key state with mutex and idle cleanup; add unexported test clock constructor. | option/default tests |
-| T3 Local algorithm | `ratelimit/token_bucket.go` | Implement refill, consume, retry-after, reset-after, and context checks. | burst/refill/rejection tests |
+| T3 Local algorithm | `ratelimit/token_bucket.go` | Implement refill, consume, retry-after, reset-after, context checks, and over-burst request validation. | burst/refill/rejection tests |
 | T4 HTTP middleware | `ratelimit/http.go`, examples | Add `NewHandler`, default remote-IP keying without proxy-header trust, 429/503 behavior, `Retry-After`, custom handler. | HTTP tests and compile-checked examples |
 | T5 Local stress/benchmarks | `ratelimit/*_test.go`, benchmark files | Use `GoroutineStressTester`, `AsyncJobTester`, and add focused local benchmarks. | `go test -race -count=1 ./ratelimit`; benchmark smoke |
 | T6 Redis options/script | `ratelimit/redis/options.go`, `ratelimit/redis/limiter.go` | Normalize Redis options, key builder, microtoken conversion with overflow checks, Lua script with `TIME`, `HSET`, `PEXPIRE`. | Redis option tests and Testcontainers burst tests |
@@ -85,6 +85,7 @@ Lua script:
 
 - Invalid limiter options fail constructor calls.
 - Invalid per-call key or token count returns validation errors.
+- Per-call token count greater than `Burst` returns a validation error.
 - Context cancellation returns `ctx.Err()` before backend work.
 - Redis `Eval` errors are wrapped and returned as backend errors.
 - Rejection is not an error.
