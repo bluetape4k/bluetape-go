@@ -37,6 +37,7 @@ the roadmap is tracked through milestones and research notes.
 | `leader` | initial | Leader election API. |
 | `leader/redis` | initial | Redis-backed single and group leader election using TTL renewal and ZSET slot tokens. |
 | `resilience` | initial | First-party composable retry, timeout, circuit breaker, and bulkhead policies with synchronous observability hooks and `net/http` adapters for service calls. |
+| `cache` | initial | Generic in-process TTL cache interfaces with context-aware loaders and same-key stampede protection. |
 
 Planned package families include `collections`, `concurrency`, `serialization`,
 `cache`, `workflow`, `batch`, `id`, `jwt`, `graph`, `text`, `audit`, and AWS
@@ -189,6 +190,33 @@ client := http.Client{
 Server handlers can be protected with admission or timeout policies through
 `NewHandler`. Avoid retrying a server handler after it has written a response;
 prefer retry on outbound client calls where the request body is replayable.
+
+## Cache
+
+The `cache` package provides a small, framework-neutral cache contract and a
+process-local memory implementation. `ErrCacheMiss` identifies absent or expired
+entries, TTL `0` stores values without expiration, and `GetOrLoad` collapses
+same-key in-flight loader calls inside one cache instance.
+
+```go
+localCache := cache.NewMemory[string, string]()
+
+value, err := localCache.GetOrLoad(ctx, "catalog", time.Minute,
+    func(ctx context.Context, key string) (string, error) {
+        return loadCatalogValue(ctx, key)
+    },
+)
+if err != nil {
+    return err
+}
+fmt.Println(value)
+```
+
+`Delete` and `Clear` are safe for concurrent callers, but they do not cancel an
+already running loader. A successful in-flight loader may repopulate the cache
+after a delete or clear according to normal cache-aside ordering. Redis
+near-cache invalidation and cross-process stampede protection are tracked in
+later 0.3.0 work.
 
 ## Roadmap
 
