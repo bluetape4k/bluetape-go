@@ -17,7 +17,7 @@ Scope: `cache/rediscoord`, `README.md`, `README.ko.md`, `CHANGELOG.md`, `Makefil
 | Stress coverage | Done | `TestStampedeCacheSameKeyStressUsesOneLoader` uses `GoroutineStressTester`. |
 | Cancellation coverage | Done | `TestStampedeCacheAsyncWaiterCancellation` uses `AsyncJobTester`. |
 | Lease expiry recovery | Done | `TestStampedeCacheLeaseExpiryLetsPeerRecover`. |
-| Docs updated | Done | README pair, benchmark charts, CHANGELOG, WIP, research index. |
+| Docs updated | Done | Root README pair links to package details; `cache/rediscoord/README.md` contains usage, semantics, benchmark chart, and measured table. CHANGELOG, WIP, and research index are updated. |
 | Benchmarks kept opt-in | Done | `BenchmarkStampedeCache*` added to `make bench-cache`, not `make ci`. |
 
 ## Validation Evidence

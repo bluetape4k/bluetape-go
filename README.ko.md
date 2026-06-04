@@ -45,7 +45,7 @@ Redis 기반 leader election, resilience policy, 첫 cache contract가 들어
 | `resilience` | active | service call을 위한 자체 composable retry, timeout, circuit breaker, bulkhead policy, synchronous observability hook, `net/http` adapter. |
 | `cache` | active | context-aware loader와 same-key stampede protection을 제공하는 generic in-process TTL cache interface. |
 | `cache/redisnear` | active | process-local loading cache를 위한 Redis Pub/Sub near-cache invalidation. |
-| `cache/rediscoord` | active | cold burst 동안 하나의 loader 결과를 process-local cache 사이에서 공유하는 opt-in Redis coordination wrapper. |
+| `cache/rediscoord` | active | cold burst 동안 하나의 loader 결과를 process-local cache 사이에서 공유하는 opt-in Redis coordination wrapper. 자세한 내용은 [package README](cache/rediscoord/README.md)를 참고하세요. |
 | `lock/redis` | active | TTL acquire와 owner-safe Lua unlock을 제공하는 Redis 단일 인스턴스 owner-token lock. |
 
 다음 계획 패키지군은 `workflow`, `batch`, `id`, `jwt`, `graph`, `text`,
@@ -262,7 +262,8 @@ cache를 다시 채울 수 있습니다.
 opt-in으로 제공합니다. `redisnear.NearCache`를 포함한
 `cache.LoadingCache[string,V]`를 감싸고, Redis owner-token load lease와 짧게
 저장되는 encoded result envelope를 사용해 waiter가 자기 loader를 실행하지 않고
-local cache를 채우게 합니다.
+local cache를 채우게 합니다. 상세 동작, 사용법, benchmark chart는
+[`cache/rediscoord` package README](cache/rediscoord/README.md)에 둡니다.
 
 ```go
 coordinated, err := rediscoord.NewStampedeCache[string](rediscoord.Options[string]{
@@ -288,39 +289,6 @@ namespace 격리를 사용해야 합니다. Winning loader가 설정한 lock TTL
 걸리면 다른 process가 load lease를 얻어 loader를 실행할 수 있습니다. 예상 loader
 시간에 맞게 `LockTTL`을 설정해야 합니다. Coordinator benchmark는 `make ci`가
 아니라 opt-in cache benchmark suite에서 다룹니다.
-
-### Cache Benchmark Snapshot
-
-아래 값은 local smoke 결과이며 production capacity ranking이 아닙니다. 실행
-환경은 macOS arm64, Apple M4 Pro, `-benchtime=100ms`이고 Redis benchmark는
-Testcontainers Redis 7.4를 사용했습니다. `ns/op`는 낮을수록 좋습니다.
-
-```mermaid
-xychart-beta
-    title "Cache local path latency (ns/op)"
-    x-axis ["Memory hit", "Coord hot", "Near hit", "Near invalidated", "Memory cold"]
-    y-axis "ns/op" 0 --> 1200
-    bar [42.68, 52.92, 57.83, 279.9, 1065]
-```
-
-```mermaid
-xychart-beta
-    title "Coordination path latency (ns/op)"
-    x-axis ["Memory same-key", "Near publish", "Coord cold winner"]
-    y-axis "ns/op" 0 --> 1700000
-    bar [11030, 424923, 1685522]
-```
-
-| Benchmark | ns/op | B/op | allocs/op | Extra |
-|---|---:|---:|---:|---:|
-| `BenchmarkMemoryGetHit` | 42.68 | 0 | 0 |  |
-| `BenchmarkStampedeCacheGetOrLoadHot` | 52.92 | 16 | 1 |  |
-| `BenchmarkNearCacheGetLocalHit` | 57.83 | 16 | 1 |  |
-| `BenchmarkNearCacheGetOrLoadUnderInvalidation` | 279.9 | 43 | 2 | `0.005107 loads/op` |
-| `BenchmarkMemoryGetOrLoadCold` | 1065 | 784 | 10 | `1.000 loads/op` |
-| `BenchmarkMemoryGetOrLoadSameKeyConcurrent` | 11030 | 4189 | 57 | `1.000 loads/op` |
-| `BenchmarkNearCacheSetPublish` | 424923 | 1209 | 29 |  |
-| `BenchmarkStampedeCacheGetOrLoadColdWinner` | 1685522 | 2692 | 58 | `1.000 loads/op` |
 
 ## Redis Distributed Lock
 

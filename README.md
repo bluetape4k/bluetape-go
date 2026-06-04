@@ -45,7 +45,7 @@ token-bucket rate limiting and pluggable leader election strategies.
 | `resilience` | active | First-party composable retry, timeout, circuit breaker, and bulkhead policies with synchronous observability hooks and `net/http` adapters for service calls. |
 | `cache` | active | Generic in-process TTL cache interfaces with context-aware loaders and same-key stampede protection. |
 | `cache/redisnear` | active | Redis Pub/Sub near-cache invalidation for process-local loading caches. |
-| `cache/rediscoord` | active | Opt-in Redis coordination wrapper that shares one loader result across process-local caches during a cold burst. |
+| `cache/rediscoord` | active | Opt-in Redis coordination wrapper that shares one loader result across process-local caches during a cold burst. See the [package README](cache/rediscoord/README.md). |
 | `lock/redis` | active | Redis single-instance owner-token lock with TTL acquisition and owner-safe Lua unlock. |
 
 Next planned package families include `workflow`, `batch`, `id`, `jwt`,
@@ -269,7 +269,8 @@ after a delete or clear according to normal cache-aside ordering.
 bursts. It wraps any `cache.LoadingCache[string,V]`, including
 `redisnear.NearCache`, uses a Redis owner-token load lease, and stores a
 short-lived encoded result envelope so waiters can populate their local cache
-without running their own loader.
+without running their own loader. Detailed behavior, usage, and benchmark charts
+live in the [`cache/rediscoord` package README](cache/rediscoord/README.md).
 
 ```go
 coordinated, err := rediscoord.NewStampedeCache[string](rediscoord.Options[string]{
@@ -295,39 +296,6 @@ namespace isolation when payloads are sensitive. If the winning loader exceeds
 the configured lock TTL, another process may acquire the load lease and run a
 loader; set `LockTTL` for the expected loader duration. Coordinator benchmarks
 remain opt-in and tracked with the cache benchmark suite rather than `make ci`.
-
-### Cache Benchmark Snapshot
-
-These are local smoke numbers, not production capacity rankings. The run used
-macOS arm64 on Apple M4 Pro with `-benchtime=100ms`; Redis-backed benchmarks use
-Testcontainers Redis 7.4. Lower `ns/op` is better.
-
-```mermaid
-xychart-beta
-    title "Cache local path latency (ns/op)"
-    x-axis ["Memory hit", "Coord hot", "Near hit", "Near invalidated", "Memory cold"]
-    y-axis "ns/op" 0 --> 1200
-    bar [42.68, 52.92, 57.83, 279.9, 1065]
-```
-
-```mermaid
-xychart-beta
-    title "Coordination path latency (ns/op)"
-    x-axis ["Memory same-key", "Near publish", "Coord cold winner"]
-    y-axis "ns/op" 0 --> 1700000
-    bar [11030, 424923, 1685522]
-```
-
-| Benchmark | ns/op | B/op | allocs/op | Extra |
-|---|---:|---:|---:|---:|
-| `BenchmarkMemoryGetHit` | 42.68 | 0 | 0 |  |
-| `BenchmarkStampedeCacheGetOrLoadHot` | 52.92 | 16 | 1 |  |
-| `BenchmarkNearCacheGetLocalHit` | 57.83 | 16 | 1 |  |
-| `BenchmarkNearCacheGetOrLoadUnderInvalidation` | 279.9 | 43 | 2 | `0.005107 loads/op` |
-| `BenchmarkMemoryGetOrLoadCold` | 1065 | 784 | 10 | `1.000 loads/op` |
-| `BenchmarkMemoryGetOrLoadSameKeyConcurrent` | 11030 | 4189 | 57 | `1.000 loads/op` |
-| `BenchmarkNearCacheSetPublish` | 424923 | 1209 | 29 |  |
-| `BenchmarkStampedeCacheGetOrLoadColdWinner` | 1685522 | 2692 | 58 | `1.000 loads/op` |
 
 ## Redis Distributed Lock
 
