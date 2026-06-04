@@ -7,10 +7,38 @@ and this project uses semantic versioning once the first tag is published.
 
 ## [Unreleased]
 
+## [v0.2.0] - 2026-06-04
+
 ### Added
 
 - `leader.GroupElector` and Redis-backed `redisleader.NewGroup` for
   semaphore-style multi-leader election with ZSET slot tokens.
+- Circuit breaker and bulkhead policies for the first-party `resilience`
+  package.
+- Structured resilience events with stable policy type, event category, error
+  category, retry attempt, circuit transition, timeout, and bulkhead data.
+- HTTP client and server adapters for composing resilience policies with
+  `net/http`.
+- Redis Testcontainers smoke coverage for the reusable Redis fixture.
+
+### Changed
+
+- README examples now show retry, timeout, circuit breaker, bulkhead,
+  observability hooks, HTTP adapters, and leader group election.
+
+## [v0.1.1] - 2026-06-03
+
+### Added
+
+- Initial first-party `resilience` package with composable typed policies,
+  retry, timeout, deterministic backoff, event hooks, and examples.
+- Retrospective milestone evidence for the `0.1.0` foundation surface,
+  including research, spec, plan, 7-tier review, and lessons artifacts.
+
+### Fixed
+
+- JSON deserialization now rejects trailing payloads after the first valid JSON
+  value.
 
 ## [v0.1.0] - 2026-06-03
 
