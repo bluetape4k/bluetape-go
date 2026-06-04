@@ -131,13 +131,35 @@ jobs:
           docker version
           docker info
 
-      - name: Test with Testcontainers
+      - name: Test with Testcontainers and coverage
         run: |
           for attempt in 1 2 3; do
-            make test && break
+            make coverage && break
             echo "Attempt $attempt failed"
             [ "$attempt" -lt 3 ] && sleep 10 || exit 1
           done
+
+      - name: Summarize coverage
+        if: always()
+        run: |
+          if [ -f coverage/coverage.txt ]; then
+            {
+              echo "## Coverage"
+              echo
+              echo '```text'
+              tail -n 20 coverage/coverage.txt
+              echo '```'
+            } >> "$GITHUB_STEP_SUMMARY"
+          fi
+
+      - name: Upload coverage report
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: nightly-coverage-go
+          path: coverage/
+          retention-days: 14
+          if-no-files-found: warn
 
   race:
     name: Race / Testcontainers

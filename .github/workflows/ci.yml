@@ -51,8 +51,30 @@ jobs:
           version: v2.12.2
           args: --timeout=5m
 
-      - name: Test with Testcontainers
-        run: make test
+      - name: Test with Testcontainers and coverage
+        run: make coverage
+
+      - name: Summarize coverage
+        if: always()
+        run: |
+          if [ -f coverage/coverage.txt ]; then
+            {
+              echo "## Coverage"
+              echo
+              echo '```text'
+              tail -n 20 coverage/coverage.txt
+              echo '```'
+            } >> "$GITHUB_STEP_SUMMARY"
+          fi
+
+      - name: Upload coverage report
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: coverage-go
+          path: coverage/
+          retention-days: 30
+          if-no-files-found: warn
 
       - name: Race test with Testcontainers
         run: make race
