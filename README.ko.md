@@ -33,15 +33,15 @@ token-bucket rate limiting, cache benchmark에 집중합니다.
 | `codec` | active | Base58, Base62, Base64, hex, URL-safe encoding helper. |
 | `compression` | active | gzip, deflate, zstd, lz4, snappy, registry 기반 compression helper. |
 | `serialization` | active | 안전한 기본값을 가진 JSON/binary serializer interface. |
-| `testing` | initial | eventual consistency 테스트용 공용 helper. |
-| `testcontainers/redis` | initial | Testcontainers for Go 기반 Redis fixture. |
-| `testcontainers/postgres` | initial | Testcontainers for Go 기반 PostgreSQL fixture. |
-| `testcontainers/mysql` | initial | Testcontainers for Go 기반 MySQL 8.4 fixture. |
-| `testcontainers/nats` | initial | Testcontainers for Go 기반 NATS fixture. |
-| `testcontainers/kafka` | initial | Testcontainers for Go 기반 Kafka fixture. |
-| `leader` | initial | Leader election API. |
-| `leader/redis` | initial | TTL renewal과 ZSET slot token 기반 Redis 단일/group leader election 구현. |
-| `resilience` | initial | service call을 위한 자체 composable retry, timeout, circuit breaker, bulkhead policy, synchronous observability hook, `net/http` adapter. |
+| `testing` | active | eventual consistency 테스트용 공용 helper. |
+| `testcontainers/redis` | active | Testcontainers for Go 기반 Redis fixture. |
+| `testcontainers/postgres` | active | Testcontainers for Go 기반 PostgreSQL fixture. |
+| `testcontainers/mysql` | active | Testcontainers for Go 기반 MySQL 8.4 fixture. |
+| `testcontainers/nats` | active | Testcontainers for Go 기반 NATS fixture. |
+| `testcontainers/kafka` | active | Testcontainers for Go 기반 Kafka fixture. |
+| `leader` | active | Leader election API. |
+| `leader/redis` | active | TTL renewal과 ZSET slot token 기반 Redis 단일/group leader election 구현. |
+| `resilience` | active | service call을 위한 자체 composable retry, timeout, circuit breaker, bulkhead policy, synchronous observability hook, `net/http` adapter. |
 | `cache` | initial | context-aware loader와 same-key stampede protection을 제공하는 generic in-process TTL cache interface. |
 
 다음 계획 패키지군은 `workflow`, `batch`, `id`, `jwt`, `graph`, `text`,
