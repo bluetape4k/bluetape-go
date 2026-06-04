@@ -247,6 +247,12 @@ clears the local cache and reports the error through `Options.OnError`.
 through a bounded internal buffer, and handler panics are recovered so the
 subscriber keeps processing invalidations.
 
+A receive failure caused by a Redis outage clears local entries, but automatic
+resubscribe is still a best-effort behavior of the active Redis connection. For
+terminal subscriber failures or Redis restarts, close the current `NearCache`
+and create a new one with a fresh Redis client before relying on peer
+invalidation again.
+
 Local mutation is not rolled back when the Redis publish fails. Treat the
 returned publish error as an operational signal that peers may keep stale local
 entries until their TTL expires or another invalidation arrives. Redis channel
