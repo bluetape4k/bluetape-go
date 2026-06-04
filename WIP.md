@@ -2,7 +2,7 @@
 
 Snapshot: 2026-06-04 KST
 Scope: open GitHub issues assigned to `debop`.
-Open count: 50 issues.
+Open count: 30 issues.
 
 ## Current Milestone
 
@@ -22,17 +22,18 @@ Open count: 50 issues.
   measurements stay outside ordinary package tests.
 - Issue #24 is closed with Redis owner-token distributed lock implementation,
   expiration/contention coverage, and stress/cancellation tests.
-- Issue #117 is in progress with Type A research/spec/plan/review artifacts and
-  a Redis coordination wrapper for cross-process cache stampede protection.
+- Issue #117 is closed with Type A research/spec/plan/review artifacts and a
+  Redis coordination wrapper for cross-process cache stampede protection.
+- Issue #123 is in progress to move package-specific usage, behavior, and
+  benchmark notes into package-level README files.
 - Regular CI and Nightly workflows continue to run Testcontainers-backed tests
   against real containers.
 
 ## Next Feature Issues
 
-1. #117 Evaluate cross-process cache stampede protection.
-2. #25 Implement token-bucket rate limiter.
-3. #86 Add pluggable leader election strategies.
-4. #3 Close the 0.3.0 epic after remaining issues land.
+1. #25 Implement token-bucket rate limiter.
+2. #86 Add pluggable leader election strategies.
+3. #3 Close the 0.3.0 epic after remaining issues land.
 
 ## Decision Log
 

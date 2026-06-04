@@ -8,6 +8,12 @@ waiters reuse the winning loader result for a cold burst.
 This package is not a durable Redis L2 cache. Redis stores only a short-lived
 owner-token result envelope for the active load attempt.
 
+## Import
+
+```go
+import "github.com/bluetape4k/bluetape-go/cache/rediscoord"
+```
+
 ## Usage
 
 ```go
@@ -60,6 +66,18 @@ value, err := coordinated.GetOrLoad(ctx, "sku:42", time.Minute,
   another process may acquire the load lease and run a loader.
 - Benchmarks are opt-in through `make bench-cache`; normal `make ci` does not
   run benchmark workloads.
+
+## Test
+
+```bash
+go test -count=1 ./cache/rediscoord
+```
+
+## Benchmarks
+
+```bash
+go test -run '^$' -bench '^BenchmarkStampedeCache' -benchmem ./cache/rediscoord
+```
 
 ## Benchmark Snapshot
 

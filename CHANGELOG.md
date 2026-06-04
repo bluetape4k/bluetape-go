@@ -30,6 +30,8 @@ and this project uses semantic versioning once the first tag is published.
 
 ### Changed
 
+- Package documentation now lives in package-level `README.md` files, while
+  root README files remain high-level indexes with links.
 - README and WIP documentation now reflect the current `0.3.0` development line,
   merged package surface, and open cache/coordination follow-up issues.
 
