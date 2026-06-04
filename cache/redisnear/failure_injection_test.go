@@ -57,6 +57,9 @@ func TestNearCacheRecreateAfterRedisOutageRestoresPeerInvalidation(t *testing.T)
 	ctx := context.Background()
 	addr, terminateRedis := redisServer(ctx, t)
 	client := redis.NewClient(&redis.Options{Addr: addr})
+	t.Cleanup(func() {
+		_ = client.Close()
+	})
 	waitForRedis(t, client)
 
 	var reports int32

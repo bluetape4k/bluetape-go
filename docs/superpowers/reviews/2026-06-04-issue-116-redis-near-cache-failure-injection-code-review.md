@@ -36,15 +36,26 @@ Gate verdict: PASS. P0 = 0 and P1 = 0.
 ## Validation Evidence
 
 - `go test -count=1 ./cache/redisnear -run "RedisOutage|RecreateAfterRedisOutage"`:
-  PASS (`ok github.com/bluetape4k/bluetape-go/cache/redisnear 1.562s`)
+  PASS (`ok github.com/bluetape4k/bluetape-go/cache/redisnear 1.835s`)
 - `go test -count=1 ./cache/redisnear`: PASS
-  (`ok github.com/bluetape4k/bluetape-go/cache/redisnear 3.427s`)
+  (`ok github.com/bluetape4k/bluetape-go/cache/redisnear 3.096s`)
 - `go test -race -count=1 ./cache/redisnear`: PASS
-  (`ok github.com/bluetape4k/bluetape-go/cache/redisnear 4.115s`)
+  (`ok github.com/bluetape4k/bluetape-go/cache/redisnear 3.989s`)
 - `go test -count=1 ./cache ./cache/redisnear`: PASS
-  (`cache 0.380s`, `cache/redisnear 3.356s`)
+  (`cache 0.367s`, `cache/redisnear 3.586s`)
 - `git diff --check`: PASS
 - `make ci`: PASS
+
+## Post-PR Review Iteration
+
+- Finding: the first Redis client in
+  `TestNearCacheRecreateAfterRedisOutageRestoresPeerInvalidation` was closed on
+  the normal path but not registered with `t.Cleanup`, so an early test failure
+  could leak the client until process exit.
+- Severity: P3 cleanup/reliability.
+- Resolution: added `t.Cleanup` for the first client and reran targeted,
+  package, race, related package, diff hygiene, and full `make ci` validation.
+- Final review verdict: PASS. P0 = 0 and P1 = 0.
 
 ## Review Notes
 
