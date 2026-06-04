@@ -12,6 +12,10 @@ and this project uses semantic versioning once the first tag is published.
 - `cache` package with generic cache interfaces, process-local TTL `Memory`,
   `ErrCacheMiss`, context-aware loaders, and `GetOrLoad` same-key stampede
   protection.
+- `cache/redisnear` package with Redis Pub/Sub invalidation for process-local
+  loading caches, including close semantics, malformed-message reporting,
+  Testcontainers peer invalidation coverage, stress testing, and cancellation
+  coverage.
 - Cache stress and cancellation coverage using `GoroutineStressTester` and
   `AsyncJobTester`, plus zero-value `Memory` safety coverage.
 - Type A research, spec, plan, review, and lessons artifacts for the initial
