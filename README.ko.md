@@ -36,6 +36,7 @@ research 문서로 추적합니다.
 | `leader` | initial | Leader election API. |
 | `leader/redis` | initial | TTL renewal과 ZSET slot token 기반 Redis 단일/group leader election 구현. |
 | `resilience` | initial | service call을 위한 자체 composable retry, timeout, circuit breaker, bulkhead policy, synchronous observability hook, `net/http` adapter. |
+| `cache` | initial | context-aware loader와 same-key stampede protection을 제공하는 generic in-process TTL cache interface. |
 
 계획 중인 패키지군은 `collections`, `concurrency`, `serialization`,
 `cache`, `workflow`, `batch`, `id`, `jwt`, `graph`, `text`, `audit`, AWS
@@ -184,6 +185,32 @@ client := http.Client{
 Server handler는 `NewHandler`로 admission 또는 timeout policy를 적용할 수 있습니다.
 Response를 이미 쓴 server handler를 retry하지 말고, request body를 replay할 수
 있는 outbound client call 쪽에 retry를 적용하는 방식을 우선합니다.
+
+## Cache
+
+`cache` 패키지는 framework-neutral cache 계약과 process-local memory 구현을
+제공합니다. `ErrCacheMiss`는 없는 값이나 만료된 값을 구분하고, TTL `0`은 만료
+없는 저장을 의미합니다. `GetOrLoad`는 한 cache instance 안에서 같은 key의
+동시 loader 호출을 하나의 in-flight 실행으로 합칩니다.
+
+```go
+localCache := cache.NewMemory[string, string]()
+
+value, err := localCache.GetOrLoad(ctx, "catalog", time.Minute,
+    func(ctx context.Context, key string) (string, error) {
+        return loadCatalogValue(ctx, key)
+    },
+)
+if err != nil {
+    return err
+}
+fmt.Println(value)
+```
+
+`Delete`와 `Clear`는 동시 호출에 안전하지만 이미 실행 중인 loader를 취소하지는
+않습니다. 실행 중인 loader가 나중에 성공하면 일반적인 cache-aside 순서에 따라
+cache를 다시 채울 수 있습니다. Redis near-cache invalidation과 cross-process
+stampede protection은 이후 0.3.0 작업에서 다룹니다.
 
 ## Roadmap
 
