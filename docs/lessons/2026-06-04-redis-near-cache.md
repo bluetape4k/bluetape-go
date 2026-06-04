@@ -61,3 +61,40 @@ result.
 
 - Initial `make ci` failed in `cache/redisnear/example_test.go`.
 - After wrapping deferred closes, `make ci` passed with `0 issues`.
+
+## L4: NearCache reviews must stress peer behavior, not only local methods
+
+### Problem
+
+The first stress test exercised one `NearCache` instance. That passed race and CI
+but did not pressure the actual near-cache risk: two peers exchanging
+invalidations while local `GetOrLoad` calls continue.
+
+### Lesson
+
+Redis near-cache stress coverage must include at least two Redis-backed peers,
+concurrent mutating operations on both sides, and peer reads/loaders under
+invalidation pressure.
+
+### Evidence
+
+- Hard PR review found this as P1.
+- `TestNearCacheConcurrentStress` now uses two peer `NearCache` instances.
+
+## L5: Observer hooks on background loops need isolation
+
+### Problem
+
+`OnError` originally ran inline on the subscriber loop. A blocking handler could
+delay invalidation processing, and a panic could terminate the goroutine.
+
+### Lesson
+
+Background lifecycle loops should isolate diagnostic hooks from protocol
+processing. Use a bounded queue where loss is acceptable, recover handler
+panics, and document the best-effort contract.
+
+### Evidence
+
+- `TestNearCacheOnErrorDoesNotBlockSubscriber`.
+- `TestNearCacheOnErrorPanicIsRecovered`.

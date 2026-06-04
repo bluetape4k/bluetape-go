@@ -15,9 +15,9 @@ invalidation while preserving a strategy boundary for future RESP3
 
 | Task | Scope | Details | Validation |
 |---|---|---|---|
-| T1 Package scaffold | `cache/redisnear` | Add `doc.go`, options, client interface, `ErrClosed`, operation constants, and constructor defaults. | `go test -count=1 ./cache/redisnear` |
+| T1 Package scaffold | `cache/redisnear` | Add `doc.go`, options, minimal Redis client interface, `ErrClosed`, operation constants, and constructor defaults. | `go test -count=1 ./cache/redisnear` |
 | T2 Message contract | `cache/redisnear` | Encode/decode JSON invalidation messages with version, namespace, origin ID, operation, and key. | Unit tests for valid, malformed, unknown version/op, namespace/origin filtering. |
-| T3 Subscriber lifecycle | `cache/redisnear` | `NewPubSub` subscribes, waits for ack, starts one receive loop, clears local cache on receive error, applies bounded backoff, and supports idempotent `Close`. | Unit tests for close behavior; Testcontainers constructor readiness test. |
+| T3 Subscriber lifecycle | `cache/redisnear` | `NewPubSub` subscribes, waits for ack, starts one receive loop, clears local cache on receive error, applies bounded backoff, isolates `OnError` through a bounded async reporter, and supports idempotent `Close`. | Unit tests for close behavior, OnError panic/blocking behavior; Testcontainers constructor readiness test. |
 | T4 Cache operations | `cache/redisnear` | Implement `Get`, `Set`, `Delete`, `Clear`, `GetOrLoad`; local mutations delegate to `cache.LoadingCache[string,V]`; mutating operations publish invalidations. | Unit tests for local behavior and `ErrClosed`; Testcontainers peer invalidation tests. |
 | T5 Testcontainers peer proof | `cache/redisnear` | Use Redis fixture to run two `NearCache` instances and prove `Set`, `Delete`, `Clear`, and repopulation after invalidation. | `go test -count=1 ./cache/redisnear -run TestPubSub` |
 | T6 Stress/cancellation | `cache/redisnear` | Use `GoroutineStressTester` for concurrent operations and peer invalidation; use `AsyncJobTester` for cancellation/close paths. | `go test -count=1 ./cache/redisnear -run 'Stress|Async|Cancellation'` |
@@ -26,12 +26,17 @@ invalidation while preserving a strategy boundary for future RESP3
 
 ## API and Lifecycle Checks
 
-- `Client` must include `redis.Cmdable` plus `Subscribe`.
+- `Client` must expose only required Redis Pub/Sub operations: `Publish` plus
+  `Subscribe`.
 - `NewPubSub` must return only after Redis subscription acknowledgement.
-- `ErrClosed` must be returned by public operations after `Close`.
+- `ErrClosed` must be returned by public operations after `Close`; close must
+  wait for already-entered operations before returning and use a bounded
+  shutdown error if operations do not stop.
 - `Close` must be idempotent and must close the subscription goroutine.
 - Receive errors before close must call local `Clear`, call `OnError` when set,
   and retry with bounded backoff.
+- `OnError` must not stop or block the subscriber receive loop; handler panic
+  is recovered.
 - `Set`, `Delete`, and `Clear` must return publish errors without rolling back
   local mutation.
 
@@ -48,8 +53,9 @@ invalidation while preserving a strategy boundary for future RESP3
 | Clear invalidation | Testcontainers | peer local cache is cleared after another instance calls `Clear`. |
 | GetOrLoad repopulation | Testcontainers | peer `GetOrLoad` reloads after invalidation. |
 | Subscription readiness | Testcontainers | invalidation published immediately after constructor is observed by peer. |
-| Concurrent operations | Stress | `GoroutineStressTester` catches panics/errors/races across operations. |
+| Concurrent operations | Stress | `GoroutineStressTester` catches panics/errors/races across peer near-cache operations. |
 | Cancellation/close | Async | `AsyncJobTester` verifies canceled constructor/loader/close paths do not hang. |
+| OnError isolation | Unit/Testcontainers | blocking or panicking error handlers do not stop peer invalidation processing. |
 
 ## Validation Commands
 
@@ -86,6 +92,8 @@ After #23 lands, #107 should include:
 
 - README.md: add Redis NearCache package row and concise cache section note.
 - README.ko.md: synchronized Korean update.
+- README pair: document publish failure semantics, best-effort `OnError`, and
+  Redis ACL/TLS/channel isolation expectations.
 - CHANGELOG.md: Unreleased entry for `cache/redisnear`.
 - Package docs/comments: Go source comments are Korean and short; public
   contributor artifacts remain English.

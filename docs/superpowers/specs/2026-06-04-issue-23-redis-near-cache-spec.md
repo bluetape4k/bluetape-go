@@ -49,7 +49,7 @@ Core shape:
 
 ```go
 type Client interface {
-    redis.Cmdable
+    Publish(ctx context.Context, channel string, message any) *redis.IntCmd
     Subscribe(ctx context.Context, channels ...string) *redis.PubSub
 }
 
@@ -86,7 +86,9 @@ use a distinct constructor such as `NewTracking`, not a hidden runtime switch.
 - `OriginID` defaults to a random process-local token.
 - `Local` defaults to `cache.NewMemory[string, V]()`.
 - `OnError` is optional. When absent, subscription errors are not reported to
-  user code.
+  user code. When present, errors are delivered best-effort through a bounded
+  asynchronous reporter so a slow handler does not block the subscriber loop.
+  Handler panics are recovered.
 
 Invalid options:
 
@@ -142,8 +144,12 @@ errors are returned to the caller. The local clear is not rolled back.
 `Close` closes the Pub/Sub subscription and stops the subscriber loop. Repeated
 `Close` calls are safe.
 
-After `Close`, public cache operations return `ErrClosed`. This avoids serving
-stale local data after invalidation has stopped.
+After `Close`, public cache operations return `ErrClosed`. Calls that start
+after `Close` wins the lifecycle gate are rejected; operations already in flight
+may finish before `Close` returns. `Close` uses the same shutdown budget for
+in-flight operations and reports an error if they do not stop. This avoids
+serving stale local data after invalidation has stopped without allowing
+unbounded shutdown waits.
 
 Subscription setup waits for the initial subscribe acknowledgement before
 `NewPubSub` returns. This avoids a race where the first invalidation is
@@ -153,6 +159,9 @@ If the subscriber loop observes a receive error before close, it clears local
 state and reports the error through `OnError`. This protects against stale reads
 after reconnect ambiguity. Receive retries use a bounded backoff so repeated
 errors cannot create a tight loop.
+
+Pub/Sub messages are invalidation commands, not a trust boundary. Deployments
+must isolate channels with Redis ACL/TLS and namespace/channel conventions.
 
 ## Consistency Model
 
@@ -173,8 +182,11 @@ Unit tests:
 - same-origin messages ignored;
 - wrong namespace messages ignored;
 - malformed/unknown messages call `OnError`;
+- blocking or panicking `OnError` does not stop subscriber invalidation;
 - `Close` is idempotent;
-- operations after `Close` return `ErrClosed`.
+- operations after `Close` return `ErrClosed`;
+- close waits for an already entered operation before returning, with a bounded
+  shutdown error if the operation does not stop.
 
 Redis Testcontainers tests:
 

@@ -233,7 +233,9 @@ near, err := redisnear.NewPubSub[string](ctx, redisnear.Options[string]{
 if err != nil {
     return err
 }
-defer near.Close()
+defer func() {
+    _ = near.Close()
+}()
 ```
 
 `Set`, `Delete`, and `Clear` mutate the local cache and publish peer
@@ -241,6 +243,16 @@ invalidation. Peer caches delete affected entries, then refill through their
 own loader on the next miss. `GetOrLoad` fills only the local cache and does not
 publish invalidation. If the subscriber sees a receive error before close, it
 clears the local cache and reports the error through `Options.OnError`.
+`OnError` is a best-effort diagnostic hook: it is delivered asynchronously
+through a bounded internal buffer, and handler panics are recovered so the
+subscriber keeps processing invalidations.
+
+Local mutation is not rolled back when the Redis publish fails. Treat the
+returned publish error as an operational signal that peers may keep stale local
+entries until their TTL expires or another invalidation arrives. Redis channel
+isolation is also part of the deployment contract: use Redis ACL/TLS and
+namespace/channel separation because Pub/Sub messages are invalidation commands,
+not an authentication boundary.
 
 `Delete` and `Clear` are safe for concurrent callers, but they do not cancel an
 already running loader. A successful in-flight loader may repopulate the cache

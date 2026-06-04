@@ -17,7 +17,9 @@ Scope: `cache/redisnear`, `README.md`, `README.ko.md`, `CHANGELOG.md`
 | Peer `Set/Delete/Clear` invalidates local entries | Done | `TestNearCacheInvalidatesPeerEntries`. |
 | Malformed/unknown messages reported and ignored | Done | `TestNearCacheReportsMalformedMessages`, `TestDecodeMessageRejectsMalformedPayload`. |
 | Receive errors clear local cache and call `OnError` | Done | `TestNearCacheClearsLocalOnReceiveError`. |
+| Blocking or panicking `OnError` does not stop invalidation | Done | `TestNearCacheOnErrorDoesNotBlockSubscriber`, `TestNearCacheOnErrorPanicIsRecovered`. |
 | Close is idempotent and public operations return `ErrClosed` after close | Done | `TestNearCacheCloseIsIdempotentAndBlocksOperations`. |
+| `Close` waits for already entered operations before returning | Done | `TestNearCacheCloseWaitsForInflightOperation`. |
 | Stress/cancellation tests included | Done | `TestNearCacheConcurrentStress`, `TestNewPubSubPropagatesCanceledContext`. |
 | Benchmark follow-up tracked | Done | GitHub issue #107 body updated with Redis NearCache benchmark acceptance criteria. |
 
@@ -38,10 +40,10 @@ Scope: `cache/redisnear`, `README.md`, `README.ko.md`, `CHANGELOG.md`
 
 | Command | Status | Result |
 |---|---:|---|
-| `go test -count=1 ./cache/redisnear` | PASS | 10 tests passed. |
-| `go test -race -count=1 ./cache/redisnear` | PASS | 10 tests passed under race detector. |
-| `go test -count=1 ./cache ./cache/redisnear` | PASS | 23 tests passed. |
-| `go test -count=1 ./...` | PASS | 201 tests passed. |
+| `go test -count=1 ./cache/redisnear` | PASS | 13 tests passed. |
+| `go test -race -count=1 ./cache/redisnear` | PASS | 13 tests passed under race detector. |
+| `go test -count=1 ./cache ./cache/redisnear` | PASS | 26 tests passed. |
+| `go test -count=1 ./...` | PASS | 204 tests passed. |
 | `make ci` | PASS | Lint reported 0 issues; full test and race suites passed. |
 
 ## Open Items

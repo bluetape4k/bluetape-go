@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"sync"
 	"sync/atomic"
 	"testing"
 	"time"
@@ -143,6 +144,81 @@ func TestNearCacheReportsMalformedMessages(t *testing.T) {
 	}
 }
 
+func TestNearCacheOnErrorDoesNotBlockSubscriber(t *testing.T) {
+	ctx := context.Background()
+	clientA, clientB := redisClients(ctx, t)
+	const namespace = "onerror-nonblocking"
+	blockErrorHandler := make(chan struct{})
+	defer close(blockErrorHandler)
+	var reports int32
+
+	cacheA, err := NewPubSub[string](ctx, Options[string]{
+		Client:    clientA,
+		Namespace: namespace,
+		OriginID:  "origin-a",
+	})
+	if err != nil {
+		t.Fatalf("new cache a: %v", err)
+	}
+	t.Cleanup(func() {
+		_ = cacheA.Close()
+	})
+	cacheB, err := NewPubSub[string](ctx, Options[string]{
+		Client:    clientB,
+		Namespace: namespace,
+		OriginID:  "origin-b",
+		OnError: func(context.Context, error) {
+			atomic.AddInt32(&reports, 1)
+			<-blockErrorHandler
+		},
+	})
+	if err != nil {
+		t.Fatalf("new cache b: %v", err)
+	}
+	t.Cleanup(func() {
+		_ = cacheB.Close()
+	})
+
+	if _, err := cacheB.GetOrLoad(ctx, "item", 0, func(context.Context, string) (string, error) {
+		return "stale", nil
+	}); err != nil {
+		t.Fatalf("prime peer cache: %v", err)
+	}
+	if err := clientA.Publish(ctx, defaultChannel(namespace), "{").Err(); err != nil {
+		t.Fatalf("publish malformed message: %v", err)
+	}
+	bttesting.Eventually(t, 2*time.Second, func() bool {
+		return atomic.LoadInt32(&reports) > 0
+	})
+
+	if err := cacheA.Set(ctx, "item", "fresh", 0); err != nil {
+		t.Fatalf("set cache a: %v", err)
+	}
+	assertEventuallyMiss(t, cacheB, "item")
+}
+
+func TestNearCacheOnErrorPanicIsRecovered(t *testing.T) {
+	var reports int32
+	near := &NearCache[string]{
+		cfg: config[string]{
+			namespace: "panic",
+			originID:  "origin-a",
+			local:     cache.NewMemory[string, string](),
+			onError: func(context.Context, error) {
+				atomic.AddInt32(&reports, 1)
+				panic("observer failed")
+			},
+		},
+	}
+
+	near.applyMessage(context.Background(), "{")
+	near.applyMessage(context.Background(), "{")
+
+	if atomic.LoadInt32(&reports) != 2 {
+		t.Fatalf("panic should not stop later error reporting, got %d reports", reports)
+	}
+}
+
 func TestNearCacheClearsLocalOnReceiveError(t *testing.T) {
 	ctx := context.Background()
 	client, _ := redisClients(ctx, t)
@@ -207,6 +283,42 @@ func TestNearCacheCloseIsIdempotentAndBlocksOperations(t *testing.T) {
 	}
 }
 
+func TestNearCacheCloseWaitsForInflightOperation(t *testing.T) {
+	local := &blockingLocalCache[string]{value: "value", entered: make(chan struct{}), release: make(chan struct{})}
+	near := &NearCache[string]{
+		cfg: config[string]{
+			local: local,
+		},
+	}
+
+	getDone := make(chan error, 1)
+	go func() {
+		_, err := near.Get(context.Background(), "key")
+		getDone <- err
+	}()
+	<-local.entered
+
+	closeDone := make(chan error, 1)
+	go func() {
+		closeDone <- near.Close()
+	}()
+
+	bttesting.Consistently(t, 100*time.Millisecond, func() bool {
+		return len(closeDone) == 0
+	})
+	close(local.release)
+
+	if err := <-getDone; err != nil {
+		t.Fatalf("inflight get should finish before close: %v", err)
+	}
+	if err := <-closeDone; err != nil {
+		t.Fatalf("close: %v", err)
+	}
+	if _, err := near.Get(context.Background(), "key"); !errors.Is(err, ErrClosed) {
+		t.Fatalf("post-close get should fail with ErrClosed, got %v", err)
+	}
+}
+
 func TestNewPubSubPropagatesCanceledContext(t *testing.T) {
 	client := redis.NewClient(&redis.Options{Addr: "127.0.0.1:0"})
 	t.Cleanup(func() {
@@ -240,31 +352,56 @@ func TestNewPubSubPropagatesCanceledContext(t *testing.T) {
 
 func TestNearCacheConcurrentStress(t *testing.T) {
 	ctx := context.Background()
-	client, _ := redisClients(ctx, t)
-	near, err := NewPubSub[int64](ctx, Options[int64]{
-		Client:    client,
+	clientA, clientB := redisClients(ctx, t)
+	nearA, err := NewPubSub[int64](ctx, Options[int64]{
+		Client:    clientA,
 		Namespace: "stress",
+		OriginID:  "origin-a",
 	})
 	if err != nil {
-		t.Fatalf("new cache: %v", err)
+		t.Fatalf("new cache a: %v", err)
 	}
 	t.Cleanup(func() {
-		_ = near.Close()
+		_ = nearA.Close()
+	})
+	nearB, err := NewPubSub[int64](ctx, Options[int64]{
+		Client:    clientB,
+		Namespace: "stress",
+		OriginID:  "origin-b",
+	})
+	if err != nil {
+		t.Fatalf("new cache b: %v", err)
+	}
+	t.Cleanup(func() {
+		_ = nearB.Close()
 	})
 	var sequence int64
 
 	task := func(ctx context.Context) error {
 		current := atomic.AddInt64(&sequence, 1)
 		key := fmt.Sprintf("key-%d", current%8)
-		switch current % 4 {
+		switch current % 6 {
 		case 0:
-			return near.Set(ctx, key, current, time.Second)
+			return nearA.Set(ctx, key, current, time.Second)
 		case 1:
-			return near.Delete(ctx, key)
+			return nearB.Set(ctx, key, current, time.Second)
 		case 2:
-			return near.Clear(ctx)
+			return nearA.Delete(ctx, key)
+		case 3:
+			return nearB.Clear(ctx)
+		case 4:
+			value, err := nearA.GetOrLoad(ctx, key, time.Second, func(context.Context, string) (int64, error) {
+				return current, nil
+			})
+			if err != nil {
+				return err
+			}
+			if value == 0 {
+				return fmt.Errorf("loaded value should not be zero")
+			}
+			return nil
 		default:
-			value, err := near.GetOrLoad(ctx, key, time.Second, func(context.Context, string) (int64, error) {
+			value, err := nearB.GetOrLoad(ctx, key, time.Second, func(context.Context, string) (int64, error) {
 				return current, nil
 			})
 			if err != nil {
@@ -318,4 +455,40 @@ func assertEventuallyMiss[V any](t *testing.T, c *NearCache[V], key string) {
 		_, err := c.Get(context.Background(), key)
 		return errors.Is(err, cache.ErrCacheMiss)
 	})
+}
+
+type blockingLocalCache[V any] struct {
+	value   V
+	entered chan struct{}
+	release chan struct{}
+	once    sync.Once
+}
+
+func (c *blockingLocalCache[V]) Get(context.Context, string) (V, error) {
+	c.once.Do(func() {
+		close(c.entered)
+	})
+	<-c.release
+	return c.value, nil
+}
+
+func (c *blockingLocalCache[V]) Set(context.Context, string, V, time.Duration) error {
+	return nil
+}
+
+func (c *blockingLocalCache[V]) Delete(context.Context, string) error {
+	return nil
+}
+
+func (c *blockingLocalCache[V]) Clear(context.Context) error {
+	return nil
+}
+
+func (c *blockingLocalCache[V]) GetOrLoad(
+	ctx context.Context,
+	key string,
+	_ time.Duration,
+	_ cache.Loader[string, V],
+) (V, error) {
+	return c.Get(ctx, key)
 }

@@ -16,6 +16,7 @@ import (
 const (
 	defaultNamespace       = "default"
 	defaultChannelPrefix   = "bluetape:cache:near"
+	defaultErrorBuffer     = 16
 	initialReceiveBackoff  = 10 * time.Millisecond
 	maximumReceiveBackoff  = 250 * time.Millisecond
 	receiverShutdownBudget = time.Second
@@ -26,7 +27,7 @@ var ErrClosed = errors.New("near cache is closed")
 
 // Client 는 invalidation publish/subscribe에 필요한 Redis 명령 계약이다.
 type Client interface {
-	redis.Cmdable
+	Publish(ctx context.Context, channel string, message any) *redis.IntCmd
 	Subscribe(ctx context.Context, channels ...string) *redis.PubSub
 }
 
@@ -58,15 +59,22 @@ type config[V any] struct {
 	onError   OnError
 }
 
+type errorReport struct {
+	ctx context.Context
+	err error
+}
+
 // NearCache 는 Redis invalidation을 local LoadingCache에 적용한다.
 type NearCache[V any] struct {
-	cfg    config[V]
-	pubsub *redis.PubSub
-	cancel context.CancelFunc
-	done   chan struct{}
+	cfg     config[V]
+	pubsub  *redis.PubSub
+	cancel  context.CancelFunc
+	done    chan struct{}
+	errorCh chan errorReport
 
-	mu     sync.RWMutex
-	closed bool
+	mu       sync.Mutex
+	closed   bool
+	inflight sync.WaitGroup
 }
 
 var _ cache.LoadingCache[string, string] = (*NearCache[string])(nil)
@@ -91,10 +99,14 @@ func NewPubSub[V any](ctx context.Context, options Options[V]) (*NearCache[V], e
 
 	runCtx, cancel := context.WithCancel(context.Background())
 	near := &NearCache[V]{
-		cfg:    cfg,
-		pubsub: pubsub,
-		cancel: cancel,
-		done:   make(chan struct{}),
+		cfg:     cfg,
+		pubsub:  pubsub,
+		cancel:  cancel,
+		done:    make(chan struct{}),
+		errorCh: newErrorChannel[V](cfg),
+	}
+	if near.errorCh != nil {
+		go near.reportErrors(runCtx)
 	}
 	go near.receive(runCtx)
 	return near, nil
@@ -107,9 +119,11 @@ func (c *NearCache[V]) Get(ctx context.Context, key string) (V, error) {
 	if err := ctx.Err(); err != nil {
 		return zero, err
 	}
-	if err := c.ensureOpen(); err != nil {
+	release, err := c.enter()
+	if err != nil {
 		return zero, err
 	}
+	defer release()
 	return c.cfg.local.Get(ctx, key)
 }
 
@@ -119,9 +133,11 @@ func (c *NearCache[V]) Set(ctx context.Context, key string, value V, ttl time.Du
 	if err := ctx.Err(); err != nil {
 		return err
 	}
-	if err := c.ensureOpen(); err != nil {
+	release, err := c.enter()
+	if err != nil {
 		return err
 	}
+	defer release()
 	if err := c.cfg.local.Set(ctx, key, value, ttl); err != nil {
 		return err
 	}
@@ -134,9 +150,11 @@ func (c *NearCache[V]) Delete(ctx context.Context, key string) error {
 	if err := ctx.Err(); err != nil {
 		return err
 	}
-	if err := c.ensureOpen(); err != nil {
+	release, err := c.enter()
+	if err != nil {
 		return err
 	}
+	defer release()
 	if err := c.cfg.local.Delete(ctx, key); err != nil {
 		return err
 	}
@@ -149,9 +167,11 @@ func (c *NearCache[V]) Clear(ctx context.Context) error {
 	if err := ctx.Err(); err != nil {
 		return err
 	}
-	if err := c.ensureOpen(); err != nil {
+	release, err := c.enter()
+	if err != nil {
 		return err
 	}
+	defer release()
 	if err := c.cfg.local.Clear(ctx); err != nil {
 		return err
 	}
@@ -170,9 +190,11 @@ func (c *NearCache[V]) GetOrLoad(
 	if err := ctx.Err(); err != nil {
 		return zero, err
 	}
-	if err := c.ensureOpen(); err != nil {
+	release, err := c.enter()
+	if err != nil {
 		return zero, err
 	}
+	defer release()
 	return c.cfg.local.GetOrLoad(ctx, key, ttl, loader)
 }
 
@@ -200,14 +222,15 @@ func (c *NearCache[V]) Close() error {
 	if pubsub != nil {
 		closeErr = pubsub.Close()
 	}
+	inflightErr := c.waitInflight()
 	if done != nil {
 		select {
 		case <-done:
 		case <-time.After(receiverShutdownBudget):
-			return errors.Join(closeErr, fmt.Errorf("near cache subscriber did not stop"))
+			return errors.Join(closeErr, inflightErr, fmt.Errorf("near cache subscriber did not stop"))
 		}
 	}
-	return closeErr
+	return errors.Join(closeErr, inflightErr)
 }
 
 func normalizeOptions[V any](options Options[V]) (config[V], error) {
@@ -256,13 +279,15 @@ func randomOriginID() (string, error) {
 	return hex.EncodeToString(bytes[:]), nil
 }
 
-func (c *NearCache[V]) ensureOpen() error {
-	c.mu.RLock()
-	defer c.mu.RUnlock()
+func (c *NearCache[V]) enter() (func(), error) {
+	c.mu.Lock()
 	if c.closed {
-		return ErrClosed
+		c.mu.Unlock()
+		return nil, ErrClosed
 	}
-	return nil
+	c.inflight.Add(1)
+	c.mu.Unlock()
+	return c.inflight.Done, nil
 }
 
 func (c *NearCache[V]) publish(ctx context.Context, op operation, key string) error {
@@ -328,12 +353,37 @@ func (c *NearCache[V]) reportError(ctx context.Context, err error) {
 	if err == nil || c.cfg.onError == nil {
 		return
 	}
+	if c.errorCh == nil {
+		c.callOnError(ctx, err)
+		return
+	}
+	select {
+	case c.errorCh <- errorReport{ctx: ctx, err: err}:
+	default:
+	}
+}
+
+func (c *NearCache[V]) reportErrors(ctx context.Context) {
+	for {
+		select {
+		case <-ctx.Done():
+			return
+		case report := <-c.errorCh:
+			c.callOnError(report.ctx, report.err)
+		}
+	}
+}
+
+func (c *NearCache[V]) callOnError(ctx context.Context, err error) {
+	defer func() {
+		_ = recover()
+	}()
 	c.cfg.onError(ctx, err)
 }
 
 func (c *NearCache[V]) isClosed() bool {
-	c.mu.RLock()
-	defer c.mu.RUnlock()
+	c.mu.Lock()
+	defer c.mu.Unlock()
 	return c.closed
 }
 
@@ -361,5 +411,27 @@ func sleep(ctx context.Context, duration time.Duration) bool {
 		return false
 	case <-timer.C:
 		return true
+	}
+}
+
+func newErrorChannel[V any](cfg config[V]) chan errorReport {
+	if cfg.onError == nil {
+		return nil
+	}
+	return make(chan errorReport, defaultErrorBuffer)
+}
+
+func (c *NearCache[V]) waitInflight() error {
+	done := make(chan struct{})
+	go func() {
+		c.inflight.Wait()
+		close(done)
+	}()
+
+	select {
+	case <-done:
+		return nil
+	case <-time.After(receiverShutdownBudget):
+		return fmt.Errorf("near cache operations did not stop")
 	}
 }
