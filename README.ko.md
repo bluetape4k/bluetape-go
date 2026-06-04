@@ -17,9 +17,11 @@ fixture, resilience, cache, workflow, batch, graph, text, audit, AWS 관련
 
 ## 현재 상태
 
-`bluetape-go`는 초기 `0.1.0` 개발 단계입니다. 현재 repository에는 첫 foundation
-패키지와 Redis 기반 leader election 구현이 들어 있으며, 이후 범위는 milestone과
-research 문서로 추적합니다.
+`bluetape-go`는 현재 `0.3.0` 개발선에 있습니다. Repository에는 foundation
+utility, codec, compression, concurrency helper, serialization contract,
+Redis 기반 leader election, resilience policy, 첫 cache contract가 들어
+있습니다. 남은 `0.3.0` 작업은 Redis near-cache invalidation, distributed lock,
+token-bucket rate limiting, cache benchmark에 집중합니다.
 
 ## 패키지
 
@@ -27,6 +29,10 @@ research 문서로 추적합니다.
 |---|---:|---|
 | `core` | active | 작은 공용 validation, zero/default, pointer, string, number helper. |
 | `collections` | active | chunking, grouping, distinct, error-aware transform용 작은 generic slice/map helper. |
+| `concurrency` | active | context-aware goroutine group, worker pool, bounded parallel helper. |
+| `codec` | active | Base58, Base62, Base64, hex, URL-safe encoding helper. |
+| `compression` | active | gzip, deflate, zstd, lz4, snappy, registry 기반 compression helper. |
+| `serialization` | active | 안전한 기본값을 가진 JSON/binary serializer interface. |
 | `testing` | initial | eventual consistency 테스트용 공용 helper. |
 | `testcontainers/redis` | initial | Testcontainers for Go 기반 Redis fixture. |
 | `testcontainers/postgres` | initial | Testcontainers for Go 기반 PostgreSQL fixture. |
@@ -38,9 +44,8 @@ research 문서로 추적합니다.
 | `resilience` | initial | service call을 위한 자체 composable retry, timeout, circuit breaker, bulkhead policy, synchronous observability hook, `net/http` adapter. |
 | `cache` | initial | context-aware loader와 same-key stampede protection을 제공하는 generic in-process TTL cache interface. |
 
-계획 중인 패키지군은 `collections`, `concurrency`, `serialization`,
-`cache`, `workflow`, `batch`, `id`, `jwt`, `graph`, `text`, `audit`, AWS
-helper/example 패키지입니다.
+다음 계획 패키지군은 `workflow`, `batch`, `id`, `jwt`, `graph`, `text`,
+`audit`, AWS helper/example 패키지입니다.
 
 ## 설치
 
@@ -259,7 +264,7 @@ CI와 Nightly workflow 모두 실제 container를 사용해 테스트합니다.
 
 ```go
 bttesting.Eventually(t, time.Second, func() bool {
-    return cache.IsReady()
+    return elector.IsLeader()
 })
 
 bttesting.Consistently(t, 200*time.Millisecond, elector.IsLeader)

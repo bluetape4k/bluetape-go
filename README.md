@@ -18,9 +18,12 @@ caching, workflow, batch, graph, text, audit, and AWS-adjacent service code.
 
 ## Current Status
 
-`bluetape-go` is in early `0.1.0` development. The repository already contains
-the first foundation packages and Redis-backed leader election, and the rest of
-the roadmap is tracked through milestones and research notes.
+`bluetape-go` is on the `0.3.0` development line. The repository already
+contains foundation utilities, codecs, compression, concurrency helpers,
+serialization contracts, Redis-backed leader election, resilience policies, and
+the first cache contracts. Remaining `0.3.0` work focuses on Redis near-cache
+invalidation, distributed locks, token-bucket rate limiting, and cache
+benchmarks.
 
 ## Packages
 
@@ -28,6 +31,10 @@ the roadmap is tracked through milestones and research notes.
 |---|---:|---|
 | `core` | active | Small shared validation, zero/default, pointer, string, and number helpers. |
 | `collections` | active | Focused generic slice/map helpers for chunking, grouping, distinct, and error-aware transforms. |
+| `concurrency` | active | Context-aware goroutine groups, worker pools, and bounded parallel helpers. |
+| `codec` | active | Base58, Base62, Base64, hex, and URL-safe encoding helpers. |
+| `compression` | active | gzip, deflate, zstd, lz4, snappy, and registry-backed compression helpers. |
+| `serialization` | active | JSON and binary serializer interfaces with safe defaults. |
 | `testing` | initial | Common test helpers for eventual consistency checks. |
 | `testcontainers/redis` | initial | Redis fixture helpers based on Testcontainers for Go. |
 | `testcontainers/postgres` | initial | PostgreSQL fixture helpers based on Testcontainers for Go. |
@@ -39,9 +46,8 @@ the roadmap is tracked through milestones and research notes.
 | `resilience` | initial | First-party composable retry, timeout, circuit breaker, and bulkhead policies with synchronous observability hooks and `net/http` adapters for service calls. |
 | `cache` | initial | Generic in-process TTL cache interfaces with context-aware loaders and same-key stampede protection. |
 
-Planned package families include `collections`, `concurrency`, `serialization`,
-`cache`, `workflow`, `batch`, `id`, `jwt`, `graph`, `text`, `audit`, and AWS
-helper/example packages.
+Next planned package families include `workflow`, `batch`, `id`, `jwt`,
+`graph`, `text`, `audit`, and AWS helper/example packages.
 
 ## Install
 
@@ -265,7 +271,7 @@ Async test assertions use Gomega-backed helpers from `testing`:
 
 ```go
 bttesting.Eventually(t, time.Second, func() bool {
-    return cache.IsReady()
+    return elector.IsLeader()
 })
 
 bttesting.Consistently(t, 200*time.Millisecond, elector.IsLeader)
