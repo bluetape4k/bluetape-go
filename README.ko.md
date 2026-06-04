@@ -42,7 +42,8 @@ token-bucket rate limiting, cache benchmark에 집중합니다.
 | `leader` | active | Leader election API. |
 | `leader/redis` | active | TTL renewal과 ZSET slot token 기반 Redis 단일/group leader election 구현. |
 | `resilience` | active | service call을 위한 자체 composable retry, timeout, circuit breaker, bulkhead policy, synchronous observability hook, `net/http` adapter. |
-| `cache` | initial | context-aware loader와 same-key stampede protection을 제공하는 generic in-process TTL cache interface. |
+| `cache` | active | context-aware loader와 same-key stampede protection을 제공하는 generic in-process TTL cache interface. |
+| `cache/redisnear` | active | process-local loading cache를 위한 Redis Pub/Sub near-cache invalidation. |
 
 다음 계획 패키지군은 `workflow`, `batch`, `id`, `jwt`, `graph`, `text`,
 `audit`, AWS helper/example 패키지입니다.
@@ -212,10 +213,33 @@ if err != nil {
 fmt.Println(value)
 ```
 
+`cache/redisnear`는 process-local `cache.LoadingCache[string,V]` 위에 Redis
+Pub/Sub invalidation을 더합니다. Redis는 invalidation bus로만 사용하고, 각
+process가 local 값을 보관합니다.
+
+```go
+client := redis.NewClient(&redis.Options{Addr: "localhost:6379"})
+
+near, err := redisnear.NewPubSub[string](ctx, redisnear.Options[string]{
+    Client:    client,
+    Namespace: "catalog",
+})
+if err != nil {
+    return err
+}
+defer near.Close()
+```
+
+`Set`, `Delete`, `Clear`는 local cache를 변경한 뒤 peer invalidation을
+발행합니다. Peer cache는 해당 entry를 지우고 다음 miss에서 자기 loader로 다시
+채웁니다. `GetOrLoad`는 local cache만 채우며 invalidation을 발행하지 않습니다.
+Subscriber가 close 전 receive error를 만나면 local cache를 비우고
+`Options.OnError`로 오류를 보고합니다.
+
 `Delete`와 `Clear`는 동시 호출에 안전하지만 이미 실행 중인 loader를 취소하지는
 않습니다. 실행 중인 loader가 나중에 성공하면 일반적인 cache-aside 순서에 따라
-cache를 다시 채울 수 있습니다. Redis near-cache invalidation과 cross-process
-stampede protection은 이후 0.3.0 작업에서 다룹니다.
+cache를 다시 채울 수 있습니다. Cross-process stampede protection은 이후
+0.3.0 작업에서 다룹니다.
 
 ## Roadmap
 

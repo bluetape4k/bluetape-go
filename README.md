@@ -44,7 +44,8 @@ benchmarks.
 | `leader` | active | Leader election API. |
 | `leader/redis` | active | Redis-backed single and group leader election using TTL renewal and ZSET slot tokens. |
 | `resilience` | active | First-party composable retry, timeout, circuit breaker, and bulkhead policies with synchronous observability hooks and `net/http` adapters for service calls. |
-| `cache` | initial | Generic in-process TTL cache interfaces with context-aware loaders and same-key stampede protection. |
+| `cache` | active | Generic in-process TTL cache interfaces with context-aware loaders and same-key stampede protection. |
+| `cache/redisnear` | active | Redis Pub/Sub near-cache invalidation for process-local loading caches. |
 
 Next planned package families include `workflow`, `batch`, `id`, `jwt`,
 `graph`, `text`, `audit`, and AWS helper/example packages.
@@ -218,11 +219,33 @@ if err != nil {
 fmt.Println(value)
 ```
 
+`cache/redisnear` adds Redis Pub/Sub invalidation around a process-local
+`cache.LoadingCache[string,V]`. Redis is used only as the invalidation bus; each
+process still owns its local values.
+
+```go
+client := redis.NewClient(&redis.Options{Addr: "localhost:6379"})
+
+near, err := redisnear.NewPubSub[string](ctx, redisnear.Options[string]{
+    Client:    client,
+    Namespace: "catalog",
+})
+if err != nil {
+    return err
+}
+defer near.Close()
+```
+
+`Set`, `Delete`, and `Clear` mutate the local cache and publish peer
+invalidation. Peer caches delete affected entries, then refill through their
+own loader on the next miss. `GetOrLoad` fills only the local cache and does not
+publish invalidation. If the subscriber sees a receive error before close, it
+clears the local cache and reports the error through `Options.OnError`.
+
 `Delete` and `Clear` are safe for concurrent callers, but they do not cancel an
 already running loader. A successful in-flight loader may repopulate the cache
-after a delete or clear according to normal cache-aside ordering. Redis
-near-cache invalidation and cross-process stampede protection are tracked in
-later 0.3.0 work.
+after a delete or clear according to normal cache-aside ordering. Cross-process
+stampede protection is tracked in later 0.3.0 work.
 
 ## Roadmap
 
