@@ -16,18 +16,19 @@ Open count: 30 issues.
 - Issue #22 is closed with Type A research/spec/plan/review/lessons artifacts,
   generic cache interfaces, in-process TTL memory cache, `GetOrLoad`
   same-key stampede protection, and stress/cancellation coverage.
-- Cache benchmark work is tracked separately in #107 so performance baselines do
-  not block ordinary package tests.
+- Issue #107 is closed with opt-in cache benchmark baselines, so performance
+  measurements stay outside ordinary package tests.
+- Issue #24 is in progress with Type A research/spec/plan/review artifacts and
+  Redis owner-token distributed lock implementation work.
 - Regular CI and Nightly workflows continue to run Testcontainers-backed tests
   against real containers.
 
 ## Next Feature Issues
 
 1. #23 Implement Redis-backed near cache with invalidation.
-2. #107 Add cache benchmark suite for 0.3.0.
-3. #24 Implement Redis distributed lock package.
-4. #25 Implement token-bucket rate limiter.
-5. #86 Add pluggable leader election strategies.
+2. #24 Implement Redis distributed lock package.
+3. #25 Implement token-bucket rate limiter.
+4. #86 Add pluggable leader election strategies.
 
 ## Decision Log
 

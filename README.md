@@ -46,6 +46,7 @@ benchmarks.
 | `resilience` | active | First-party composable retry, timeout, circuit breaker, and bulkhead policies with synchronous observability hooks and `net/http` adapters for service calls. |
 | `cache` | active | Generic in-process TTL cache interfaces with context-aware loaders and same-key stampede protection. |
 | `cache/redisnear` | active | Redis Pub/Sub near-cache invalidation for process-local loading caches. |
+| `lock/redis` | active | Redis single-instance owner-token lock with TTL acquisition and owner-safe Lua unlock. |
 
 Next planned package families include `workflow`, `batch`, `id`, `jwt`,
 `graph`, `text`, `audit`, and AWS helper/example packages.
@@ -264,6 +265,38 @@ not an authentication boundary.
 already running loader. A successful in-flight loader may repopulate the cache
 after a delete or clear according to normal cache-aside ordering. Cross-process
 stampede protection is tracked in later 0.3.0 work.
+
+## Redis Distributed Lock
+
+`lock/redis` provides a small single-Redis-instance lock for coordination tasks
+that need owner tokens and automatic TTL cleanup. `TryLock` performs one
+non-blocking acquire attempt with `SET NX` plus TTL. `Lease.Unlock` removes the
+key only when the stored token still matches the lease token.
+
+```go
+client := redis.NewClient(&redis.Options{Addr: "localhost:6379"})
+
+mutex, err := redislock.New(client, redislock.Options{
+    Key: "locks:billing-rollup",
+    TTL: 30 * time.Second,
+})
+if err != nil {
+    return err
+}
+
+lease, err := mutex.TryLock(ctx)
+if errors.Is(err, redislock.ErrNotAcquired) {
+    return nil
+}
+if err != nil {
+    return err
+}
+defer lease.Unlock(context.Background())
+```
+
+This package intentionally does not implement Redlock quorum, fencing tokens,
+TTL renewal, or blocking retry loops. Compose retries at the call site when the
+caller can define backoff, cancellation, and observability policy.
 
 ## Roadmap
 

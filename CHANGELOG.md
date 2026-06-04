@@ -16,6 +16,9 @@ and this project uses semantic versioning once the first tag is published.
   loading caches, including close semantics, malformed-message reporting,
   Testcontainers peer invalidation coverage, stress testing, and cancellation
   coverage.
+- `lock/redis` package with single-Redis-instance owner-token locking, TTL
+  acquisition, owner-safe Lua unlock, Testcontainers contention/expiration
+  coverage, and stress/cancellation tests.
 - Cache stress and cancellation coverage using `GoroutineStressTester` and
   `AsyncJobTester`, plus zero-value `Memory` safety coverage.
 - Type A research, spec, plan, review, and lessons artifacts for the initial
