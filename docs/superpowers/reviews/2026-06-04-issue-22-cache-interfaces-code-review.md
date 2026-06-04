@@ -28,6 +28,12 @@ Required references loaded:
 | 6 Performance/stability | singleflight, locking, waits, race | 0 | 0 | 0 | 0 | `singleflight.DoChan` prevents duplicate same-key loads and allows caller cancellation while waiting; race test passes; tests use bounded timeouts. |
 | 7 Docs/release/evidence | README, research/spec/plan, validation | 0 | 0 | 0 | 0 | README locale pair updated; research/spec/plan/review artifacts exist; `make ci` and targeted validation passed. |
 
+## Post-PR Review Iteration
+
+| Priority | Area | Finding | Fix | Status |
+|---|---|---|---|---|
+| P1 | Go/API quality | The exported concrete `Memory[K,V]` type was not zero-value safe; `var c Memory[string,string]; c.Set(...)` could assign into a nil map. | Added lazy map initialization, nil clock fallback, and `TestMemoryZeroValueIsUsable`. | Fixed and revalidated |
+
 ## Current-Session Integration Review
 
 | Area | Verdict | Evidence |
@@ -35,7 +41,7 @@ Required references loaded:
 | Spec conformance | Pass | Verifier artifact maps every spec item to implementation/test evidence. |
 | Plan conformance | Pass | T1-T12 complete; T13 in this artifact; T14 remains workflow post-review. |
 | Risk consistency | Pass | Key-collision, loader locking, cancellation, and delete/clear ordering risks addressed in code/tests/docs. |
-| Validation freshness | Pass | `go test`, race, `git diff --check`, and `make ci` rerun after the last implementation change. |
+| Validation freshness | Pass | `go test`, race, `git diff --check`, and `make ci` rerun after the zero-value fix. |
 | Unrelated changes | Pass | Changed scope is #22 docs, `cache`, and README locale pair. |
 
 ## Convergence
@@ -43,7 +49,7 @@ Required references loaded:
 | Priority | Count | Status |
 |---|---:|---|
 | P0 | 0 | Closed |
-| P1 | 0 | Closed |
+| P1 | 0 | Found once during post-PR review, fixed, and revalidated |
 | P2 | 0 | Closed |
 | P3 | 0 | Closed |
 

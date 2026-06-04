@@ -28,6 +28,7 @@ Date: 2026-06-04
 | Same-key duplicate load suppression | Done | `singleflight.Group.DoChan`, `TestMemorySameKeyStressRunsOneLoader`. |
 | Generic flight key collision resistance | Done | cache-instance `flightKeys map[K]string`, `TestMemoryDifferentKeysDoNotShareFlightResult`. |
 | Loader errors/cancellation not cached | Done | `TestMemoryGetOrLoadDoesNotCacheLoaderError`, `TestMemoryAsyncJobTesterPropagatesLoaderCancellation`. |
+| Exported `Memory` zero value is safe | Done | `TestMemoryZeroValueIsUsable`; lazy map/clock initialization. |
 | `GoroutineStressTester` used | Done | `TestMemorySameKeyStressRunsOneLoader`. |
 | `AsyncJobTester` used | Done | `TestMemoryAsyncJobTesterPropagatesLoaderCancellation`. |
 | README English/Korean updated | Done | `README.md`, `README.ko.md` cache sections. |
@@ -37,7 +38,7 @@ Date: 2026-06-04
 | Task | Status | Evidence |
 |---|---|---|
 | T1 package skeleton | Done | `cache/doc.go`, `cache/errors.go`, `cache/cache.go`. |
-| T2 memory storage/context | Done | `cache/memory.go`; context pre-cancel tests. |
+| T2 memory storage/context | Done | `cache/memory.go`; context pre-cancel and zero-value tests. |
 | T3 TTL validation/cleanup | Done | TTL tests and `validateTTL`. |
 | T4 `GetOrLoad` loader behavior | Done | loader success/error/cancellation tests. |
 | T5 collision-free flight namespace | Done | `flightKeys map[K]string`; collision-style key test. |
