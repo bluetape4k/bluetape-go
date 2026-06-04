@@ -26,7 +26,7 @@
   </defs>
 
   <rect x="0" y="0" width="1080" height="540" fill="#F8FAFC" stroke="#E2E8F0" stroke-width="1.5" rx="18"/>
-  <text x="540" y="44" text-anchor="middle" dominant-baseline="middle" class="title">ratelimit Benchmark Snapshot</text>
+  <text x="540" y="44" text-anchor="middle" dominant-baseline="middle" class="title">Ratelimit Benchmark Snapshot</text>
   <text x="540" y="72" text-anchor="middle" dominant-baseline="middle" class="subtitle">Local smoke · Apple M4 Pro · darwin/arm64 · latency scale, lower is better</text>
 
   <rect x="56" y="104" width="968" height="356" fill="#FFFFFF" stroke="#CBD5E1" stroke-width="1.5" rx="14"/>
