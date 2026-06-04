@@ -100,6 +100,7 @@ and [`docs/research`](docs/research/) for the current planning record.
 
 ```bash
 make test
+make coverage
 make ci
 ```
 
@@ -115,11 +116,13 @@ Common commands:
 | `make lint` | Run `golangci-lint run ./...`. |
 | `make test` | Run `go test -count=1 ./...` so Testcontainers tests execute. |
 | `make race` | Run `go test -race -count=1 ./...` so Testcontainers tests execute under the race detector. |
+| `make coverage` | Generate Go coverage profile, text summary, and HTML report under `coverage/`. |
 | `make bench-cache` | Run opt-in cache, Redis NearCache, and Redis coordinator benchmarks. |
 | `make ci` | Run the local CI gate. |
 
 Redis integration tests use Testcontainers and require Docker. The regular CI
-and Nightly workflows both run these tests against real containers.
+and Nightly workflows both run these tests against real containers and publish
+Go coverage report artifacts.
 
 See [`testing`](testing/README.md), [`testing/concurrency`](testing/concurrency/README.md),
 and the package-level Testcontainers README files for fixture usage.

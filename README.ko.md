@@ -97,6 +97,7 @@ go get github.com/bluetape4k/bluetape-go
 
 ```bash
 make test
+make coverage
 make ci
 ```
 
@@ -112,11 +113,13 @@ make ci
 | `make lint` | `golangci-lint run ./...`를 실행합니다. |
 | `make test` | Testcontainers 테스트가 실제 실행되도록 `go test -count=1 ./...`를 실행합니다. |
 | `make race` | Testcontainers 테스트가 race detector에서도 실제 실행되도록 `go test -race -count=1 ./...`를 실행합니다. |
+| `make coverage` | `coverage/` 아래에 Go coverage profile, text summary, HTML report를 생성합니다. |
 | `make bench-cache` | opt-in cache, Redis NearCache, Redis coordinator benchmark를 실행합니다. |
 | `make ci` | 로컬 CI gate를 실행합니다. |
 
 Redis integration test는 Testcontainers를 사용하므로 Docker가 필요합니다. 일반
-CI와 Nightly workflow 모두 실제 container를 사용해 테스트합니다.
+CI와 Nightly workflow 모두 실제 container를 사용해 테스트하고 Go coverage
+report artifact를 게시합니다.
 
 Fixture 사용법은 [`testing`](testing/README.md),
 [`testing/concurrency`](testing/concurrency/README.md), 각 Testcontainers package

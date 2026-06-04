@@ -1,6 +1,6 @@
 # WIP
 
-Snapshot: 2026-06-04 KST
+Snapshot: 2026-06-05 KST
 Scope: open GitHub issues assigned to `debop`.
 Open count: 30 issues.
 
@@ -24,10 +24,11 @@ Open count: 30 issues.
   expiration/contention coverage, and stress/cancellation tests.
 - Issue #117 is closed with Type A research/spec/plan/review artifacts and a
   Redis coordination wrapper for cross-process cache stampede protection.
-- Issue #123 is in progress to move package-specific usage, behavior, and
-  benchmark notes into package-level README files.
+- Issue #123 is closed with package-specific usage, behavior, and benchmark
+  notes moved into package-level README files.
+- Issue #125 is in progress to publish Go coverage reports from CI and Nightly.
 - Regular CI and Nightly workflows continue to run Testcontainers-backed tests
-  against real containers.
+  against real containers and now publish Go coverage artifacts.
 
 ## Next Feature Issues
 
@@ -56,3 +57,6 @@ Open count: 30 issues.
   concurrency or timing semantics are part of the contract.
 - Refresh README, WIP, and CHANGELOG after milestone merges, not only at tag
   time.
+- Use Go native coverage reports for bluetape-go CI/Nightly first; defer
+  third-party coverage SaaS uploads or threshold enforcement until the baseline
+  is stable.
