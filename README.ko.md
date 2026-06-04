@@ -20,8 +20,9 @@ fixture, resilience, cache, workflow, batch, graph, text, audit, AWS 관련
 `bluetape-go`는 현재 `0.3.0` 개발선에 있습니다. Repository에는 foundation
 utility, codec, compression, concurrency helper, serialization contract,
 Redis 기반 leader election, resilience policy, 첫 cache contract가 들어
-있습니다. 남은 `0.3.0` 작업은 Redis near-cache invalidation, distributed lock,
-token-bucket rate limiting, cache benchmark에 집중합니다.
+있습니다. 현재는 cache와 Redis coordination package까지 들어갔고, 남은
+`0.3.0` 작업은 token-bucket rate limiting과 pluggable leader election strategy에
+집중합니다.
 
 ## 패키지
 
@@ -44,6 +45,7 @@ token-bucket rate limiting, cache benchmark에 집중합니다.
 | `resilience` | active | service call을 위한 자체 composable retry, timeout, circuit breaker, bulkhead policy, synchronous observability hook, `net/http` adapter. |
 | `cache` | active | context-aware loader와 same-key stampede protection을 제공하는 generic in-process TTL cache interface. |
 | `cache/redisnear` | active | process-local loading cache를 위한 Redis Pub/Sub near-cache invalidation. |
+| `cache/rediscoord` | active | cold burst 동안 하나의 loader 결과를 process-local cache 사이에서 공유하는 opt-in Redis coordination wrapper. 자세한 내용은 [package README](cache/rediscoord/README.md)를 참고하세요. |
 | `lock/redis` | active | TTL acquire와 owner-safe Lua unlock을 제공하는 Redis 단일 인스턴스 owner-token lock. |
 
 다음 계획 패키지군은 `workflow`, `batch`, `id`, `jwt`, `graph`, `text`,
@@ -254,8 +256,39 @@ namespace/channel 분리를 사용해야 합니다.
 
 `Delete`와 `Clear`는 동시 호출에 안전하지만 이미 실행 중인 loader를 취소하지는
 않습니다. 실행 중인 loader가 나중에 성공하면 일반적인 cache-aside 순서에 따라
-cache를 다시 채울 수 있습니다. Cross-process stampede protection은 이후
-0.3.0 작업에서 다룹니다.
+cache를 다시 채울 수 있습니다.
+
+`cache/rediscoord`는 cold miss burst에 대한 cross-process stampede protection을
+opt-in으로 제공합니다. `redisnear.NearCache`를 포함한
+`cache.LoadingCache[string,V]`를 감싸고, Redis owner-token load lease와 짧게
+저장되는 encoded result envelope를 사용해 waiter가 자기 loader를 실행하지 않고
+local cache를 채우게 합니다. 상세 동작, 사용법, benchmark chart는
+[`cache/rediscoord` package README](cache/rediscoord/README.md)에 둡니다.
+
+```go
+coordinated, err := rediscoord.NewStampedeCache[string](rediscoord.Options[string]{
+    Client:    client,
+    Cache:     near,
+    Namespace: "catalog",
+    Codec:     rediscoord.JSONCodec[string]{},
+})
+if err != nil {
+    return err
+}
+
+value, err := coordinated.GetOrLoad(ctx, "sku:42", time.Minute,
+    func(ctx context.Context, key string) (string, error) {
+        return loadCatalogValue(ctx, key)
+    },
+)
+```
+
+Result envelope는 임시 coordination artifact이며 durable Redis cache 값이
+아닙니다. Redis는 encoded payload를 볼 수 있으므로 민감한 payload에는 ACL/TLS와
+namespace 격리를 사용해야 합니다. Winning loader가 설정한 lock TTL보다 오래
+걸리면 다른 process가 load lease를 얻어 loader를 실행할 수 있습니다. 예상 loader
+시간에 맞게 `LockTTL`을 설정해야 합니다. Coordinator benchmark는 `make ci`가
+아니라 opt-in cache benchmark suite에서 다룹니다.
 
 ## Redis Distributed Lock
 
@@ -327,6 +360,7 @@ make ci
 | `make lint` | `golangci-lint run ./...`를 실행합니다. |
 | `make test` | Testcontainers 테스트가 실제 실행되도록 `go test -count=1 ./...`를 실행합니다. |
 | `make race` | Testcontainers 테스트가 race detector에서도 실제 실행되도록 `go test -race -count=1 ./...`를 실행합니다. |
+| `make bench-cache` | opt-in cache, Redis NearCache, Redis coordinator benchmark를 실행합니다. |
 | `make ci` | 로컬 CI gate를 실행합니다. |
 
 Redis integration test는 Testcontainers를 사용하므로 Docker가 필요합니다. 일반

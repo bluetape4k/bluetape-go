@@ -19,6 +19,10 @@ and this project uses semantic versioning once the first tag is published.
 - `lock/redis` package with single-Redis-instance owner-token locking, TTL
   acquisition, owner-safe Lua unlock, Testcontainers contention/expiration
   coverage, and stress/cancellation tests.
+- `cache/rediscoord` package with opt-in Redis coordination for cross-process
+  cache stampede protection, owner-token load leases, short-lived shared result
+  envelopes, Testcontainers NearCache collapse coverage, lease-expiry tests, and
+  stress/cancellation tests.
 - Cache stress and cancellation coverage using `GoroutineStressTester` and
   `AsyncJobTester`, plus zero-value `Memory` safety coverage.
 - Type A research, spec, plan, review, and lessons artifacts for the initial
