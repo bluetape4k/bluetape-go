@@ -75,6 +75,25 @@ func TestMemoryStoresDeletesAndClearsValues(t *testing.T) {
 	}
 }
 
+func TestMemoryZeroValueIsUsable(t *testing.T) {
+	ctx := context.Background()
+	var cache Memory[string, string]
+
+	if _, err := cache.Get(ctx, "missing"); !errors.Is(err, ErrCacheMiss) {
+		t.Fatalf("zero-value cache should return miss, got %v", err)
+	}
+	if err := cache.Set(ctx, "key", "value", 0); err != nil {
+		t.Fatalf("zero-value set: %v", err)
+	}
+	value, err := cache.Get(ctx, "key")
+	if err != nil {
+		t.Fatalf("zero-value get: %v", err)
+	}
+	if value != "value" {
+		t.Fatalf("zero-value cache stored %q", value)
+	}
+}
+
 func TestMemoryTTLExpiresAndZeroTTLDoesNotExpire(t *testing.T) {
 	ctx := context.Background()
 	clock := newFakeClock()

@@ -31,3 +31,16 @@ write.
 For cache-aside APIs, document whether mutation methods cancel or only race with
 in-flight loaders. Tests should prove data-race safety, and README/package docs
 should state the caller-visible ordering.
+
+## L3: Exported concrete types should be zero-value safe or hidden
+
+### Problem
+
+The first `Memory[K,V]` implementation exposed a concrete type but initialized
+its maps only through `NewMemory`. A caller using `var c cache.Memory[...]`
+could panic on `Set`.
+
+### Lesson
+
+When a Go package exports a concrete type, either keep the zero value usable or
+avoid exposing the type. Add a zero-value test before PR review closes.

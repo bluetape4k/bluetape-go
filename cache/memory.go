@@ -46,6 +46,13 @@ func newMemoryWithClock[K comparable, V any](now func() time.Time) *Memory[K, V]
 	}
 }
 
+func (m *Memory[K, V]) currentTime() time.Time {
+	if m.now == nil {
+		return time.Now()
+	}
+	return m.now()
+}
+
 // Get 은 key의 값을 반환한다.
 func (m *Memory[K, V]) Get(ctx context.Context, key K) (V, error) {
 	var zero V
@@ -61,7 +68,7 @@ func (m *Memory[K, V]) Get(ctx context.Context, key K) (V, error) {
 	if !ok {
 		return zero, ErrCacheMiss
 	}
-	if item.expired(m.now()) {
+	if item.expired(m.currentTime()) {
 		delete(m.values, key)
 		delete(m.flightKeys, key)
 		return zero, ErrCacheMiss
@@ -81,11 +88,12 @@ func (m *Memory[K, V]) Set(ctx context.Context, key K, value V, ttl time.Duratio
 
 	var expiresAt time.Time
 	if ttl > 0 {
-		expiresAt = m.now().Add(ttl)
+		expiresAt = m.currentTime().Add(ttl)
 	}
 
 	m.mu.Lock()
 	defer m.mu.Unlock()
+	m.ensureValues()
 	m.values[key] = entry[V]{value: value, expiresAt: expiresAt}
 	return nil
 }
@@ -187,6 +195,7 @@ func (m *Memory[K, V]) GetOrLoad(ctx context.Context, key K, ttl time.Duration, 
 func (m *Memory[K, V]) flightKey(key K) string {
 	m.mu.Lock()
 	defer m.mu.Unlock()
+	m.ensureFlightKeys()
 
 	if existing, ok := m.flightKeys[key]; ok {
 		return existing
@@ -201,4 +210,16 @@ func (m *Memory[K, V]) deleteFlightKey(key K) {
 	m.mu.Lock()
 	defer m.mu.Unlock()
 	delete(m.flightKeys, key)
+}
+
+func (m *Memory[K, V]) ensureValues() {
+	if m.values == nil {
+		m.values = make(map[K]entry[V])
+	}
+}
+
+func (m *Memory[K, V]) ensureFlightKeys() {
+	if m.flightKeys == nil {
+		m.flightKeys = make(map[K]string)
+	}
 }
