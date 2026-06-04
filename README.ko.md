@@ -44,6 +44,7 @@ token-bucket rate limiting, cache benchmark에 집중합니다.
 | `resilience` | active | service call을 위한 자체 composable retry, timeout, circuit breaker, bulkhead policy, synchronous observability hook, `net/http` adapter. |
 | `cache` | active | context-aware loader와 same-key stampede protection을 제공하는 generic in-process TTL cache interface. |
 | `cache/redisnear` | active | process-local loading cache를 위한 Redis Pub/Sub near-cache invalidation. |
+| `lock/redis` | active | TTL acquire와 owner-safe Lua unlock을 제공하는 Redis 단일 인스턴스 owner-token lock. |
 
 다음 계획 패키지군은 `workflow`, `batch`, `id`, `jwt`, `graph`, `text`,
 `audit`, AWS helper/example 패키지입니다.
@@ -255,6 +256,38 @@ namespace/channel 분리를 사용해야 합니다.
 않습니다. 실행 중인 loader가 나중에 성공하면 일반적인 cache-aside 순서에 따라
 cache를 다시 채울 수 있습니다. Cross-process stampede protection은 이후
 0.3.0 작업에서 다룹니다.
+
+## Redis Distributed Lock
+
+`lock/redis`는 owner token과 TTL cleanup이 필요한 조정 작업을 위한 작은 Redis
+단일 인스턴스 lock입니다. `TryLock`은 `SET NX`와 TTL로 한 번만 non-blocking
+acquire를 시도합니다. `Lease.Unlock`은 Redis에 저장된 token이 lease token과
+같을 때만 key를 제거합니다.
+
+```go
+client := redis.NewClient(&redis.Options{Addr: "localhost:6379"})
+
+mutex, err := redislock.New(client, redislock.Options{
+    Key: "locks:billing-rollup",
+    TTL: 30 * time.Second,
+})
+if err != nil {
+    return err
+}
+
+lease, err := mutex.TryLock(ctx)
+if errors.Is(err, redislock.ErrNotAcquired) {
+    return nil
+}
+if err != nil {
+    return err
+}
+defer lease.Unlock(context.Background())
+```
+
+이 패키지는 Redlock quorum, fencing token, TTL renewal, blocking retry loop를
+제공하지 않습니다. Retry는 caller가 backoff, cancellation, observability
+정책을 정한 뒤 call site에서 조합해야 합니다.
 
 ## Roadmap
 
