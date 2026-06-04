@@ -296,6 +296,39 @@ the configured lock TTL, another process may acquire the load lease and run a
 loader; set `LockTTL` for the expected loader duration. Coordinator benchmarks
 remain opt-in and tracked with the cache benchmark suite rather than `make ci`.
 
+### Cache Benchmark Snapshot
+
+These are local smoke numbers, not production capacity rankings. The run used
+macOS arm64 on Apple M4 Pro with `-benchtime=100ms`; Redis-backed benchmarks use
+Testcontainers Redis 7.4. Lower `ns/op` is better.
+
+```mermaid
+xychart-beta
+    title "Cache local path latency (ns/op)"
+    x-axis ["Memory hit", "Coord hot", "Near hit", "Near invalidated", "Memory cold"]
+    y-axis "ns/op" 0 --> 1200
+    bar [42.68, 52.92, 57.83, 279.9, 1065]
+```
+
+```mermaid
+xychart-beta
+    title "Coordination path latency (ns/op)"
+    x-axis ["Memory same-key", "Near publish", "Coord cold winner"]
+    y-axis "ns/op" 0 --> 1700000
+    bar [11030, 424923, 1685522]
+```
+
+| Benchmark | ns/op | B/op | allocs/op | Extra |
+|---|---:|---:|---:|---:|
+| `BenchmarkMemoryGetHit` | 42.68 | 0 | 0 |  |
+| `BenchmarkStampedeCacheGetOrLoadHot` | 52.92 | 16 | 1 |  |
+| `BenchmarkNearCacheGetLocalHit` | 57.83 | 16 | 1 |  |
+| `BenchmarkNearCacheGetOrLoadUnderInvalidation` | 279.9 | 43 | 2 | `0.005107 loads/op` |
+| `BenchmarkMemoryGetOrLoadCold` | 1065 | 784 | 10 | `1.000 loads/op` |
+| `BenchmarkMemoryGetOrLoadSameKeyConcurrent` | 11030 | 4189 | 57 | `1.000 loads/op` |
+| `BenchmarkNearCacheSetPublish` | 424923 | 1209 | 29 |  |
+| `BenchmarkStampedeCacheGetOrLoadColdWinner` | 1685522 | 2692 | 58 | `1.000 loads/op` |
+
 ## Redis Distributed Lock
 
 `lock/redis` provides a small single-Redis-instance lock for coordination tasks

@@ -289,6 +289,39 @@ namespace 격리를 사용해야 합니다. Winning loader가 설정한 lock TTL
 시간에 맞게 `LockTTL`을 설정해야 합니다. Coordinator benchmark는 `make ci`가
 아니라 opt-in cache benchmark suite에서 다룹니다.
 
+### Cache Benchmark Snapshot
+
+아래 값은 local smoke 결과이며 production capacity ranking이 아닙니다. 실행
+환경은 macOS arm64, Apple M4 Pro, `-benchtime=100ms`이고 Redis benchmark는
+Testcontainers Redis 7.4를 사용했습니다. `ns/op`는 낮을수록 좋습니다.
+
+```mermaid
+xychart-beta
+    title "Cache local path latency (ns/op)"
+    x-axis ["Memory hit", "Coord hot", "Near hit", "Near invalidated", "Memory cold"]
+    y-axis "ns/op" 0 --> 1200
+    bar [42.68, 52.92, 57.83, 279.9, 1065]
+```
+
+```mermaid
+xychart-beta
+    title "Coordination path latency (ns/op)"
+    x-axis ["Memory same-key", "Near publish", "Coord cold winner"]
+    y-axis "ns/op" 0 --> 1700000
+    bar [11030, 424923, 1685522]
+```
+
+| Benchmark | ns/op | B/op | allocs/op | Extra |
+|---|---:|---:|---:|---:|
+| `BenchmarkMemoryGetHit` | 42.68 | 0 | 0 |  |
+| `BenchmarkStampedeCacheGetOrLoadHot` | 52.92 | 16 | 1 |  |
+| `BenchmarkNearCacheGetLocalHit` | 57.83 | 16 | 1 |  |
+| `BenchmarkNearCacheGetOrLoadUnderInvalidation` | 279.9 | 43 | 2 | `0.005107 loads/op` |
+| `BenchmarkMemoryGetOrLoadCold` | 1065 | 784 | 10 | `1.000 loads/op` |
+| `BenchmarkMemoryGetOrLoadSameKeyConcurrent` | 11030 | 4189 | 57 | `1.000 loads/op` |
+| `BenchmarkNearCacheSetPublish` | 424923 | 1209 | 29 |  |
+| `BenchmarkStampedeCacheGetOrLoadColdWinner` | 1685522 | 2692 | 58 | `1.000 loads/op` |
+
 ## Redis Distributed Lock
 
 `lock/redis`는 owner token과 TTL cleanup이 필요한 조정 작업을 위한 작은 Redis

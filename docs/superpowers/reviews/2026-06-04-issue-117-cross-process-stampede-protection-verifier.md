@@ -17,7 +17,7 @@ Scope: `cache/rediscoord`, `README.md`, `README.ko.md`, `CHANGELOG.md`, `Makefil
 | Stress coverage | Done | `TestStampedeCacheSameKeyStressUsesOneLoader` uses `GoroutineStressTester`. |
 | Cancellation coverage | Done | `TestStampedeCacheAsyncWaiterCancellation` uses `AsyncJobTester`. |
 | Lease expiry recovery | Done | `TestStampedeCacheLeaseExpiryLetsPeerRecover`. |
-| Docs updated | Done | README pair, CHANGELOG, WIP, research index. |
+| Docs updated | Done | README pair, benchmark charts, CHANGELOG, WIP, research index. |
 | Benchmarks kept opt-in | Done | `BenchmarkStampedeCache*` added to `make bench-cache`, not `make ci`. |
 
 ## Validation Evidence
@@ -28,6 +28,9 @@ Scope: `cache/rediscoord`, `README.md`, `README.ko.md`, `CHANGELOG.md`, `Makefil
 | `go test -race -count=1 ./cache/rediscoord` | PASS | 16 tests passed under race detector. |
 | `go test -count=1 ./cache ./cache/redisnear ./cache/rediscoord ./lock/redis` | PASS | 59 tests passed. |
 | `go test -run '^$' -bench '^BenchmarkStampedeCache' -benchtime=10ms -benchmem ./cache/rediscoord` | PASS | Hot path and cold winner benchmark smoke passed; cold winner reported `1.000 loads/op`. |
+| `go test -run '^$' -bench '^BenchmarkMemory(GetHit\|GetOrLoadCold\|GetOrLoadSameKeyConcurrent)' -benchtime=100ms -benchmem ./cache` | PASS | README benchmark snapshot source. |
+| `go test -run '^$' -bench '^BenchmarkNearCache(GetLocalHit\|SetPublish\|GetOrLoadUnderInvalidation)' -benchtime=100ms -benchmem ./cache/redisnear` | PASS | README benchmark snapshot source. |
+| `go test -run '^$' -bench '^BenchmarkStampedeCache' -benchtime=100ms -benchmem ./cache/rediscoord` | PASS | README benchmark snapshot source. |
 | `go test -count=1 ./...` | PASS | 237 tests passed in 20 packages. |
 | `make ci` | PASS | Lint reported 0 issues; full test and race suites passed. |
 
