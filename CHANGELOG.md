@@ -28,8 +28,8 @@ and this project uses semantic versioning once the first tag is published.
 - Type A research, spec, plan, review, and lessons artifacts for the initial
   cache contract.
 - Go coverage reporting for CI and Nightly through native coverage profiles,
-  text summaries, HTML reports, GitHub Step Summary output, and uploaded
-  workflow artifacts.
+  package subtotal summaries, function-level text summaries, HTML reports,
+  GitHub Step Summary output, and uploaded workflow artifacts.
 
 ### Changed
 
