@@ -16,7 +16,7 @@ help:
 		'  lint        Run golangci-lint' \
 		'  test        Run uncached go test ./... including Testcontainers tests' \
 		'  race        Run uncached go test -race ./... including Testcontainers tests' \
-		'  bench-cache Run opt-in cache and Redis NearCache benchmarks' \
+		'  bench-cache Run opt-in cache, Redis NearCache, and Redis coordinator benchmarks' \
 		'  ci          Run the local CI gate'
 
 fmt:
@@ -47,6 +47,7 @@ race:
 bench-cache:
 	@$(GO) test -run '^$$' -bench '^BenchmarkMemory' -benchmem ./cache
 	@$(GO) test -run '^$$' -bench '^BenchmarkNearCache' -benchmem ./cache/redisnear
+	@$(GO) test -run '^$$' -bench '^BenchmarkStampedeCache' -benchmem ./cache/rediscoord
 
 bench-compression:
 	@$(GO) test -run '^$$' -bench '^BenchmarkCompressors' -benchmem ./compression

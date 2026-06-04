@@ -21,9 +21,8 @@ caching, workflow, batch, graph, text, audit, and AWS-adjacent service code.
 `bluetape-go` is on the `0.3.0` development line. The repository already
 contains foundation utilities, codecs, compression, concurrency helpers,
 serialization contracts, Redis-backed leader election, resilience policies, and
-the first cache contracts. Remaining `0.3.0` work focuses on Redis near-cache
-invalidation, distributed locks, token-bucket rate limiting, and cache
-benchmarks.
+the cache and Redis coordination packages. Remaining `0.3.0` work focuses on
+token-bucket rate limiting and pluggable leader election strategies.
 
 ## Packages
 
@@ -46,6 +45,7 @@ benchmarks.
 | `resilience` | active | First-party composable retry, timeout, circuit breaker, and bulkhead policies with synchronous observability hooks and `net/http` adapters for service calls. |
 | `cache` | active | Generic in-process TTL cache interfaces with context-aware loaders and same-key stampede protection. |
 | `cache/redisnear` | active | Redis Pub/Sub near-cache invalidation for process-local loading caches. |
+| `cache/rediscoord` | active | Opt-in Redis coordination wrapper that shares one loader result across process-local caches during a cold burst. |
 | `lock/redis` | active | Redis single-instance owner-token lock with TTL acquisition and owner-safe Lua unlock. |
 
 Next planned package families include `workflow`, `batch`, `id`, `jwt`,
@@ -263,8 +263,38 @@ not an authentication boundary.
 
 `Delete` and `Clear` are safe for concurrent callers, but they do not cancel an
 already running loader. A successful in-flight loader may repopulate the cache
-after a delete or clear according to normal cache-aside ordering. Cross-process
-stampede protection is tracked in later 0.3.0 work.
+after a delete or clear according to normal cache-aside ordering.
+
+`cache/rediscoord` adds opt-in cross-process stampede protection for cold miss
+bursts. It wraps any `cache.LoadingCache[string,V]`, including
+`redisnear.NearCache`, uses a Redis owner-token load lease, and stores a
+short-lived encoded result envelope so waiters can populate their local cache
+without running their own loader.
+
+```go
+coordinated, err := rediscoord.NewStampedeCache[string](rediscoord.Options[string]{
+    Client:    client,
+    Cache:     near,
+    Namespace: "catalog",
+    Codec:     rediscoord.JSONCodec[string]{},
+})
+if err != nil {
+    return err
+}
+
+value, err := coordinated.GetOrLoad(ctx, "sku:42", time.Minute,
+    func(ctx context.Context, key string) (string, error) {
+        return loadCatalogValue(ctx, key)
+    },
+)
+```
+
+The result envelope is a transient coordination artifact, not a durable Redis
+cache value. Redis can see the encoded payload, so deploy it with ACL/TLS and
+namespace isolation when payloads are sensitive. If the winning loader exceeds
+the configured lock TTL, another process may acquire the load lease and run a
+loader; set `LockTTL` for the expected loader duration. Coordinator benchmarks
+remain opt-in and tracked with the cache benchmark suite rather than `make ci`.
 
 ## Redis Distributed Lock
 
@@ -336,6 +366,7 @@ Common commands:
 | `make lint` | Run `golangci-lint run ./...`. |
 | `make test` | Run `go test -count=1 ./...` so Testcontainers tests execute. |
 | `make race` | Run `go test -race -count=1 ./...` so Testcontainers tests execute under the race detector. |
+| `make bench-cache` | Run opt-in cache, Redis NearCache, and Redis coordinator benchmarks. |
 | `make ci` | Run the local CI gate. |
 
 Redis integration tests use Testcontainers and require Docker. The regular CI

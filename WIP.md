@@ -2,7 +2,7 @@
 
 Snapshot: 2026-06-04 KST
 Scope: open GitHub issues assigned to `debop`.
-Open count: 30 issues.
+Open count: 50 issues.
 
 ## Current Milestone
 
@@ -16,19 +16,23 @@ Open count: 30 issues.
 - Issue #22 is closed with Type A research/spec/plan/review/lessons artifacts,
   generic cache interfaces, in-process TTL memory cache, `GetOrLoad`
   same-key stampede protection, and stress/cancellation coverage.
+- Issue #23 is closed with Redis Pub/Sub near-cache invalidation and
+  Testcontainers peer invalidation coverage.
 - Issue #107 is closed with opt-in cache benchmark baselines, so performance
   measurements stay outside ordinary package tests.
-- Issue #24 is in progress with Type A research/spec/plan/review artifacts and
-  Redis owner-token distributed lock implementation work.
+- Issue #24 is closed with Redis owner-token distributed lock implementation,
+  expiration/contention coverage, and stress/cancellation tests.
+- Issue #117 is in progress with Type A research/spec/plan/review artifacts and
+  a Redis coordination wrapper for cross-process cache stampede protection.
 - Regular CI and Nightly workflows continue to run Testcontainers-backed tests
   against real containers.
 
 ## Next Feature Issues
 
-1. #23 Implement Redis-backed near cache with invalidation.
-2. #24 Implement Redis distributed lock package.
-3. #25 Implement token-bucket rate limiter.
-4. #86 Add pluggable leader election strategies.
+1. #117 Evaluate cross-process cache stampede protection.
+2. #25 Implement token-bucket rate limiter.
+3. #86 Add pluggable leader election strategies.
+4. #3 Close the 0.3.0 epic after remaining issues land.
 
 ## Decision Log
 
@@ -43,7 +47,8 @@ Open count: 30 issues.
 - Use `-count=1` in CI and Nightly test commands so Go's test cache cannot hide
   Testcontainers execution.
 - Keep cache cross-process behavior out of the local memory cache; Redis
-  near-cache invalidation belongs to #23.
+  near-cache invalidation belongs to `cache/redisnear`, while opt-in load-result
+  coordination belongs to `cache/rediscoord`.
 - Keep benchmarks opt-in and tracked under #107 before turning them into a
   release gate.
 - Add stress/cancellation tests for new `0.3.0` coordination features when
