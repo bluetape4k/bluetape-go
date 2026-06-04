@@ -240,6 +240,11 @@ Subscriber가 close 전 receive error를 만나면 local cache를 비우고
 Bounded internal buffer를 통해 비동기로 전달되며, handler panic은 recover되어
 subscriber가 invalidation 처리를 계속합니다.
 
+Redis outage로 receive failure가 발생하면 local entry는 비워집니다. 다만 자동
+resubscribe는 현재 Redis connection의 best-effort 동작으로 봐야 합니다. Terminal
+subscriber failure나 Redis restart 이후에는 현재 `NearCache`를 닫고 새 Redis
+client로 다시 만들어야 peer invalidation을 다시 신뢰할 수 있습니다.
+
 Redis publish가 실패해도 local mutation은 rollback하지 않습니다. 반환된 publish
 error는 peer가 TTL 만료 또는 다음 invalidation 전까지 stale local entry를 유지할
 수 있다는 운영 신호로 다뤄야 합니다. Redis channel 격리도 배포 계약의 일부입니다.
