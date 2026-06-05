@@ -17,8 +17,8 @@ Open count: 8 issues in milestone `0.4.0`.
   implementation sequencing before package work began.
 - Issue #26 delivered the independent `state` finite state machine package.
 - Issue #28 delivered the shared `workreport` result and failure-policy model.
-- Issue #27 owns `workflow` sequential, parallel, and conditional runners after
-  `workreport` exists.
+- Issue #27 delivers `workflow` sequential, parallel, and conditional runners
+  after `workreport` exists.
 - Issue #136 tracks stress/cancellation coverage for 0.4.0 concurrency and
   timing contracts.
 - Issue #137 tracks compile-checked runnable examples for new 0.4.0 APIs.
@@ -26,7 +26,7 @@ Open count: 8 issues in milestone `0.4.0`.
 
 ## Release Checklist
 
-1. Implement #27 `workflow`.
+1. Merge #27 `workflow`.
 2. Close the coverage, example, README, and diagram issues.
 3. Refresh README, WIP, and CHANGELOG before releasing `v0.4.0`.
 

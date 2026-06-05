@@ -15,6 +15,9 @@ and this project uses semantic versioning once the first tag is published.
 - `workreport` package with workflow status values, failure policies, report
   trees, deterministic aggregation, zero-value safety checks,
   stress/cancellation coverage, and compile-checked examples.
+- `workflow` package with sequential, conditional, and all-branches parallel
+  runners built on `context.Context` and `workreport`, including cancellation,
+  stress, race, and compile-checked example coverage.
 
 ### Changed
 
