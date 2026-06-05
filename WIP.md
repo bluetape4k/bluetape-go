@@ -15,7 +15,8 @@ Open count: 10 issues in milestone `0.4.0`.
 - Epic #4 is open for state machine and lightweight workflow primitives.
 - Issue #135 starts 0.4.0 by refreshing source-grounded research, milestone
   spec, and implementation sequencing before package work begins.
-- Issue #26 owns the independent `state` finite state machine package.
+- Issue #26 is implementing the independent `state` finite state machine
+  package.
 - Issue #28 owns the shared `workreport` result and failure-policy model.
 - Issue #27 owns `workflow` sequential, parallel, and conditional runners after
   `workreport` exists.

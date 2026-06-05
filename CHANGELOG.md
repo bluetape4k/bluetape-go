@@ -9,7 +9,9 @@ and this project uses semantic versioning once the first tag is published.
 
 ### Added
 
-- Nothing yet.
+- `state` package with first-party finite state machine primitives, explicit
+  transitions, context-aware guards, final states, deterministic transition
+  errors, stress/cancellation coverage, and compile-checked examples.
 
 ## [v0.3.0] - 2026-06-05
 
