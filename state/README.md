@@ -4,6 +4,14 @@
 It keeps the API framework-free: callers define comparable state and event
 values, explicit transitions, optional guards, and final states.
 
+## Diagrams
+
+![state transition model](../docs/images/readme-diagrams/state-transition-model.png)
+
+![state guarded transition flow](../docs/images/readme-diagrams/state-guarded-transition-flow.png)
+
+## Example
+
 ```go
 machine, err := state.NewMachine(
     "created",
