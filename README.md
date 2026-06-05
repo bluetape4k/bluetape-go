@@ -18,29 +18,42 @@ caching, workflow, batch, graph, text, audit, and AWS-adjacent service code.
 
 ## Current Status
 
-`bluetape-go` is in early `0.1.0` development. The repository already contains
-the first foundation packages and Redis-backed leader election, and the rest of
-the roadmap is tracked through milestones and research notes.
+`bluetape-go` is on the `0.3.0` release line. The repository already
+contains foundation utilities, codecs, compression, concurrency helpers,
+serialization contracts, Redis-backed leader election, resilience policies, the
+cache and Redis coordination packages, and token-bucket rate limiting.
+This release line also adds pluggable leader election strategies for candidate-registry
+coordination.
 
 ## Packages
 
 | Package | Status | Purpose |
 |---|---:|---|
-| `core` | active | Small shared validation, zero/default, pointer, string, and number helpers. |
-| `collections` | active | Focused generic slice/map helpers for chunking, grouping, distinct, and error-aware transforms. |
-| `testing` | initial | Common test helpers for eventual consistency checks. |
-| `testcontainers/redis` | initial | Redis fixture helpers based on Testcontainers for Go. |
-| `testcontainers/postgres` | initial | PostgreSQL fixture helpers based on Testcontainers for Go. |
-| `testcontainers/mysql` | initial | MySQL 8.4 fixture helpers based on Testcontainers for Go. |
-| `testcontainers/nats` | initial | NATS fixture helpers based on Testcontainers for Go. |
-| `testcontainers/kafka` | initial | Kafka fixture helpers based on Testcontainers for Go. |
-| `leader` | initial | Leader election API. |
-| `leader/redis` | initial | Redis-backed single and group leader election using TTL renewal and ZSET slot tokens. |
-| `resilience` | initial | First-party composable retry, timeout, circuit breaker, and bulkhead policies with synchronous observability hooks and `net/http` adapters for service calls. |
+| [`core`](core/README.md) | active | Small shared validation, zero/default, pointer, string, and number helpers. |
+| [`collections`](collections/README.md) | active | Focused generic slice/map helpers for chunking, grouping, distinct, and error-aware transforms. |
+| [`concurrency`](concurrency/README.md) | active | Context-aware goroutine groups, worker pools, and bounded parallel helpers. |
+| [`codec`](codec/README.md) | active | Base58, Base62, Base64, hex, and URL-safe encoding helpers. |
+| [`compression`](compression/README.md) | active | gzip, deflate, zstd, lz4, snappy, and registry-backed compression helpers. |
+| [`serialization`](serialization/README.md) | active | JSON and binary serializer interfaces with safe defaults. |
+| [`testing`](testing/README.md) | active | Common test helpers for eventual consistency checks. |
+| [`testing/concurrency`](testing/concurrency/README.md) | active | Stress and async job helpers for concurrent tests. |
+| [`testcontainers/redis`](testcontainers/redis/README.md) | active | Redis fixture helpers based on Testcontainers for Go. |
+| [`testcontainers/postgres`](testcontainers/postgres/README.md) | active | PostgreSQL fixture helpers based on Testcontainers for Go. |
+| [`testcontainers/mysql`](testcontainers/mysql/README.md) | active | MySQL 8.4 fixture helpers based on Testcontainers for Go. |
+| [`testcontainers/nats`](testcontainers/nats/README.md) | active | NATS fixture helpers based on Testcontainers for Go. |
+| [`testcontainers/kafka`](testcontainers/kafka/README.md) | active | Kafka fixture helpers based on Testcontainers for Go. |
+| [`leader`](leader/README.md) | active | Leader election API, including single, group, and strategy-based contracts. |
+| [`leader/redis`](leader/redis/README.md) | active | Redis-backed single, group, and strategic leader election using TTL renewal, ZSET slot tokens, and candidate registries. |
+| [`resilience`](resilience/README.md) | active | First-party composable retry, timeout, circuit breaker, and bulkhead policies with synchronous observability hooks and `net/http` adapters. |
+| [`cache`](cache/README.md) | active | Generic in-process TTL cache interfaces with context-aware loaders and same-key stampede protection. |
+| [`cache/redisnear`](cache/redisnear/README.md) | active | Redis Pub/Sub near-cache invalidation for process-local loading caches. |
+| [`cache/rediscoord`](cache/rediscoord/README.md) | active | Opt-in Redis coordination wrapper that shares one loader result across process-local caches during a cold burst. |
+| [`lock/redis`](lock/redis/README.md) | active | Redis single-instance owner-token lock with TTL acquisition and owner-safe Lua unlock. |
+| [`ratelimit`](ratelimit/README.md) | active | Process-local keyed token-bucket limiter and `net/http` middleware. |
+| [`ratelimit/redis`](ratelimit/redis/README.md) | active | Redis-backed token-bucket limiter with atomic Lua consume/refill and idle key expiration. |
 
-Planned package families include `collections`, `concurrency`, `serialization`,
-`cache`, `workflow`, `batch`, `id`, `jwt`, `graph`, `text`, `audit`, and AWS
-helper/example packages.
+Next planned package families include `workflow`, `batch`, `id`, `jwt`,
+`graph`, `text`, `audit`, and AWS helper/example packages.
 
 ## Install
 
@@ -48,147 +61,25 @@ helper/example packages.
 go get github.com/bluetape4k/bluetape-go
 ```
 
-## Leader Election
+## Package Documentation
 
-```go
-client := redis.NewClient(&redis.Options{Addr: "localhost:6379"})
+Detailed usage examples, operational boundaries, and package-specific
+benchmarks live next to each package:
 
-elector, err := redisleader.New(client, leader.Options{
-    Group:    "billing-workers",
-    MemberID: "worker-1",
-})
-if err != nil {
-    return err
-}
-
-if err := elector.Campaign(ctx); err != nil {
-    return err
-}
-defer elector.Resign(context.Background())
-```
-
-The Kotlin/JVM `bluetape4k-leader` repository remains supported separately.
-Mixed Kotlin/Go Redis leader participants are not supported in `0.1.0`. The Go
-Redis backend owns its own key format: `bluetape:leader:<group>` stores a
-`memberID:random` token with a Redis TTL. Kotlin/JVM `bluetape4k-leader`
-Lettuce uses the lock name directly with a generated token value, and Redisson
-uses Redisson `RLock` internals. Keep Kotlin and Go leader groups separate
-unless a future explicit interoperability adapter is added.
-
-Redis leader examples cover backend coordination problems that must run on only
-one replica at a time:
-
-| Example | Problem | Smoke test |
-|---|---|---|
-| Batch scheduler | Prevents every scheduler replica from running the same nightly job. | `go test -count=1 ./leader/redis -run TestBatchSchedulerExample` |
-| Migration gate | Allows only one service instance to apply a rollout migration. | `go test -count=1 ./leader/redis -run TestMigrationGateExample` |
-
-Use `NewGroup` when a bounded number of replicas may run the same worker lane at
-the same time:
-
-```go
-group, err := redisleader.NewGroup(client, leader.GroupOptions{
-    Options: leader.Options{
-        Group:    "batch-workers",
-        MemberID: "worker-1",
-    },
-    MaxLeaders: 3,
-})
-if err != nil {
-    return err
-}
-
-if err := group.Campaign(ctx); err != nil {
-    return err
-}
-defer group.Resign(context.Background())
-```
-
-The Redis group backend stores live slots in
-`bluetape:leader-group:<group>` as ZSET members. Each member is a
-`memberID:random` token with an expiry score based on Redis server time. Expired
-slots are pruned during acquire and status checks, so leaked slots from crashed
-processes are reclaimed without a separate reaper.
-
-## Resilience Policies
-
-Resilience policies provide first-party retry, timeout, circuit breaker, and
-bulkhead primitives that can be composed around a service call. Each policy
-accepts an `OnEvent` hook. The hook is called synchronously on the protected
-call path with a structured `resilience.Event` payload containing stable policy
-type, event kind, event category, attempt/state data, and low-cardinality error
-category labels.
-
-Use `OnEvent` to bridge policy decisions to the logging, metrics, or tracing
-tooling already used by the service:
-
-```go
-retry, err := resilience.NewRetry[string](resilience.RetryOptions{
-    Name:        "catalog",
-    MaxAttempts: 3,
-    Backoff:     resilience.ConstantBackoff(50 * time.Millisecond),
-    OnEvent: func(ctx context.Context, event resilience.Event) {
-        logger.InfoContext(ctx, "resilience event",
-            "policy", event.PolicyName,
-            "type", event.PolicyType,
-            "kind", event.Kind,
-            "category", event.Category,
-            "error_category", event.ErrorCategory,
-            "attempt", event.Attempt,
-        )
-    },
-})
-```
-
-The package intentionally does not include a built-in OpenTelemetry exporter.
-Keep event handlers fast and non-blocking because a slow handler delays the
-protected call.
-
-HTTP clients can use the same policies through a `net/http` transport adapter.
-The adapter can turn retryable response statuses into `StatusError`, closes the
-retryable response body before the next attempt, and keeps observability on the
-same `OnEvent` hook contract:
-
-```go
-retry, err := resilience.NewRetry[*http.Response](resilience.RetryOptions{
-    Name:        "catalog-http",
-    MaxAttempts: 3,
-    Backoff:     resilience.ConstantBackoff(50 * time.Millisecond),
-    OnEvent:     onResilienceEvent,
-})
-if err != nil {
-    return err
-}
-timeout, err := resilience.NewTimeout[*http.Response](resilience.TimeoutOptions{
-    Name:    "catalog-http",
-    Timeout: 500 * time.Millisecond,
-    OnEvent: onResilienceEvent,
-})
-if err != nil {
-    return err
-}
-breaker, err := resilience.NewCircuitBreaker[*http.Response](resilience.CircuitBreakerOptions{
-    Name:             "catalog-http",
-    FailureThreshold: 5,
-    OpenTimeout:      30 * time.Second,
-    OnEvent:          onResilienceEvent,
-})
-if err != nil {
-    return err
-}
-
-client := http.Client{
-    Transport: resilience.NewRoundTripper(resilience.RoundTripperOptions{
-        Transport:       http.DefaultTransport,
-        Policies:        []resilience.Policy[*http.Response]{retry, timeout, breaker},
-        RetryableStatus: resilience.RetryableServerError,
-    }),
-}
-```
-
-Server handlers can be protected with admission or timeout policies through
-`NewHandler`. Avoid retrying a server handler after it has written a response;
-prefer retry on outbound client calls where the request body is replayable.
+- Foundation: [`core`](core/README.md), [`collections`](collections/README.md),
+  [`concurrency`](concurrency/README.md), [`codec`](codec/README.md),
+  [`compression`](compression/README.md), and
+  [`serialization`](serialization/README.md).
+- Test support: [`testing`](testing/README.md),
+  [`testing/concurrency`](testing/concurrency/README.md), and the fixture
+  package READMEs listed above.
+- Coordination: [`leader`](leader/README.md),
+  [`leader/redis`](leader/redis/README.md), and
+  [`lock/redis`](lock/redis/README.md).
+- Runtime policies and cache: [`resilience`](resilience/README.md),
+  [`cache`](cache/README.md), [`cache/redisnear`](cache/redisnear/README.md),
+  [`cache/rediscoord`](cache/rediscoord/README.md), and
+  [`ratelimit`](ratelimit/README.md).
 
 ## Roadmap
 
@@ -196,7 +87,7 @@ prefer retry on outbound client calls where the request body is replayable.
 |---|---|
 | `0.1.0` | Core support, collections, goroutine helpers, codecs, compression, Redis leader election, Testcontainers. |
 | `0.2.0` | Resilience primitives: retry, timeout, circuit breaker, bulkhead, HTTP middleware. |
-| `0.3.0` | Cache and coordination: near cache, Redis locks, token-bucket rate limiting. |
+| `0.3.0` | Cache and coordination: near cache, Redis locks, token-bucket rate limiting, strategic leader election. |
 | `0.4.0` | State machine and lightweight workflow primitives. |
 | `0.5.0` | Batch processing with checkpoints and leader-guarded examples. |
 | `0.6.0` | Portable utilities: ID generation, JWT, measured values, money, probabilistic structures, rule engine. |
@@ -213,6 +104,7 @@ and [`docs/research`](docs/research/) for the current planning record.
 
 ```bash
 make test
+make coverage
 make ci
 ```
 
@@ -228,31 +120,17 @@ Common commands:
 | `make lint` | Run `golangci-lint run ./...`. |
 | `make test` | Run `go test -count=1 ./...` so Testcontainers tests execute. |
 | `make race` | Run `go test -race -count=1 ./...` so Testcontainers tests execute under the race detector. |
+| `make coverage` | Generate Go coverage profile, package subtotal table, text summary, and HTML report under `coverage/`. |
+| `make bench-cache` | Run opt-in cache, Redis NearCache, and Redis coordinator benchmarks. |
+| `make bench-ratelimit` | Run opt-in local rate limiter benchmarks. |
 | `make ci` | Run the local CI gate. |
 
 Redis integration tests use Testcontainers and require Docker. The regular CI
-and Nightly workflows both run these tests against real containers.
+and Nightly workflows both run these tests against real containers and publish
+Go coverage report artifacts.
 
-Async test assertions use Gomega-backed helpers from `testing`:
-
-```go
-bttesting.Eventually(t, time.Second, func() bool {
-    return cache.IsReady()
-})
-
-bttesting.Consistently(t, 200*time.Millisecond, elector.IsLeader)
-```
-
-Testcontainers fixtures expose small `Start(ctx, t)` helpers that register
-cleanup with `t.Cleanup` and return service connection details:
-
-```go
-redisAddr := redistestcontainer.Start(ctx, t)
-postgresURL := postgrestestcontainer.Start(ctx, t)
-mysqlDSN := mysqltestcontainer.Start(ctx, t)
-natsURL := natstestcontainer.Start(ctx, t)
-kafkaBrokers := kafkatestcontainer.Start(ctx, t)
-```
+See [`testing`](testing/README.md), [`testing/concurrency`](testing/concurrency/README.md),
+and the package-level Testcontainers README files for fixture usage.
 
 ## Project Management
 

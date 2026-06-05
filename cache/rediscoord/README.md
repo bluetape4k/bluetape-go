@@ -1,0 +1,101 @@
+# cache/rediscoord
+
+`cache/rediscoord` is an opt-in Redis coordination wrapper for cross-process
+cache stampede protection. It wraps an existing
+`cache.LoadingCache[string,V]`, including `cache/redisnear.NearCache`, and lets
+waiters reuse the winning loader result for a cold burst.
+
+This package is not a durable Redis L2 cache. Redis stores only a short-lived
+owner-token result envelope for the active load attempt.
+
+## Import
+
+```go
+import "github.com/bluetape4k/bluetape-go/cache/rediscoord"
+```
+
+## Usage
+
+```go
+client := redis.NewClient(&redis.Options{Addr: "localhost:6379"})
+
+near, err := redisnear.NewPubSub[string](ctx, redisnear.Options[string]{
+    Client:    client,
+    Namespace: "catalog",
+})
+if err != nil {
+    return err
+}
+defer near.Close()
+
+coordinated, err := rediscoord.NewStampedeCache[string](rediscoord.Options[string]{
+    Client:    client,
+    Cache:     near,
+    Namespace: "catalog",
+    Codec:     rediscoord.JSONCodec[string]{},
+})
+if err != nil {
+    return err
+}
+
+value, err := coordinated.GetOrLoad(ctx, "sku:42", time.Minute,
+    func(ctx context.Context, key string) (string, error) {
+        return loadCatalogValue(ctx, key)
+    },
+)
+```
+
+## Behavior
+
+- `Get`, `Set`, `Delete`, and `Clear` delegate to the wrapped cache.
+- `GetOrLoad` checks the wrapped cache first.
+- On a cold miss, one process acquires a Redis owner-token load lease.
+- The winner runs the user loader through the wrapped cache and publishes a
+  short-lived result envelope.
+- Waiters accept only an envelope whose token matches the observed load owner.
+- Waiters fill their local cache through the wrapped `GetOrLoad`, not `Set`, so
+  `redisnear` does not publish accidental invalidations.
+
+## Operational Boundaries
+
+- Redis can see encoded payload bytes. Use ACL/TLS and namespace isolation for
+  sensitive payloads.
+- The result envelope is transient coordination metadata, not a durable cache
+  value.
+- Mutual exclusion is bounded by `LockTTL`. If a loader runs past the lease,
+  another process may acquire the load lease and run a loader.
+- Benchmarks are opt-in through `make bench-cache`; normal `make ci` does not
+  run benchmark workloads.
+
+## Test
+
+```bash
+go test -count=1 ./cache/rediscoord
+```
+
+## Benchmarks
+
+```bash
+go test -run '^$' -bench '^BenchmarkStampedeCache' -benchmem ./cache/rediscoord
+```
+
+## Benchmark Snapshot
+
+These are local smoke numbers, not production capacity rankings. The run used
+macOS arm64 on Apple M4 Pro with `-benchtime=100ms`; Redis-backed benchmarks use
+Testcontainers Redis 7.4. Lower `ns/op` is better. The chart uses a log scale
+because local hit paths and Redis coordination paths differ by orders of
+magnitude.
+
+![Redis coordinator benchmark latency](../../docs/images/readme-charts/rediscoord-benchmark-latency.png)
+
+| Benchmark | ns/op | B/op | allocs/op | Extra |
+|---|---:|---:|---:|---:|
+| `BenchmarkMemoryGetHit` | 42.68 | 0 | 0 |  |
+| `BenchmarkStampedeCacheGetOrLoadHot` | 52.92 | 16 | 1 |  |
+| `BenchmarkNearCacheGetLocalHit` | 57.83 | 16 | 1 |  |
+| `BenchmarkNearCacheGetOrLoadUnderInvalidation` | 279.9 | 43 | 2 | `0.005107 loads/op` |
+| `BenchmarkMemoryGetOrLoadCold` | 1065 | 784 | 10 | `1.000 loads/op` |
+| `BenchmarkMemoryGetOrLoadSameKeyConcurrent` | 11030 | 4189 | 57 | `1.000 loads/op` |
+| `BenchmarkNearCacheSetPublish` | 424923 | 1209 | 29 |  |
+| `BenchmarkStampedeCacheGetOrLoadColdWinner` | 1685522 | 2692 | 58 | `1.000 loads/op` |
