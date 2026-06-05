@@ -215,12 +215,16 @@ func TestNilContextIsNormalized(t *testing.T) {
 		{From: stateCreated, Event: eventPay, To: statePaid},
 	})
 
-	if _, err := machine.Transition(nil, eventPay); err != nil {
+	if _, err := machine.Transition(nilContext(), eventPay); err != nil {
 		t.Fatalf("nil context transition: %v", err)
 	}
 	if got := machine.State(); got != statePaid {
 		t.Fatalf("state = %q, want %q", got, statePaid)
 	}
+}
+
+func nilContext() context.Context {
+	return nil
 }
 
 func TestTransitionErrorMatchesSentinelAndCause(t *testing.T) {
