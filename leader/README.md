@@ -1,5 +1,7 @@
 # leader
 
+[English](README.md) | [한국어](README.ko.md)
+
 `leader` defines the leader-election contracts used by bluetape-go backends.
 The package owns option validation, sentinel errors, and the shared API shape;
 backend-specific Redis behavior lives in `leader/redis`.

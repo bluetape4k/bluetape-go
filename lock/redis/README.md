@@ -1,5 +1,7 @@
 # lock/redis
 
+[English](README.md) | [한국어](README.ko.md)
+
 `lock/redis` provides a small single-Redis-instance owner-token lock for
 coordination work that needs TTL cleanup and owner-safe unlock semantics.
 

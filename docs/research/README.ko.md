@@ -2,8 +2,7 @@
 
 [English](README.md) | [한국어](README.ko.md)
 
-Milestone research notes connect bluetape4k source capabilities to Go package
-scope, dependency candidates, and GitHub issues.
+Milestone research note는 bluetape4k source capability를 Go package scope, dependency candidate, GitHub issue와 연결합니다.
 
 | Milestone | Research |
 |---|---|
@@ -19,9 +18,6 @@ scope, dependency candidates, and GitHub issues.
 | `0.10.0` | [Audit and JaVers patterns](2026-06-01-milestone-0.10.0-audit-javers-research.md) |
 | `0.11.0` | [AWS](2026-06-01-milestone-0.11.0-aws-research.md) |
 
-## Update Rule
+## 갱신 규칙
 
-Update the matching research note before adding broad implementation issues or
-changing milestone scope. Each note should name the bluetape4k source modules,
-the Go package direction, candidate dependencies, linked issues, and the
-current decision.
+Broad implementation issue를 추가하거나 milestone scope를 바꾸기 전에 matching research note를 먼저 갱신합니다. 각 note는 bluetape4k source module, Go package direction, candidate dependency, linked issue, current decision을 명시해야 합니다.

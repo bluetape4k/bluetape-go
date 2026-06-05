@@ -1,5 +1,7 @@
 # codec
 
+[English](README.md) | [한국어](README.ko.md)
+
 `codec` contains small string and byte encoders used by bluetape-go packages.
 Base64 and hex wrap the Go standard library, while Base58 and Base62 cover
 identifier and key formats that are not provided by the standard library.

@@ -1,5 +1,7 @@
 # core
 
+[English](README.md) | [한국어](README.ko.md)
+
 `core` contains narrow shared helpers used by bluetape-go packages. Prefer the
 Go standard library when it already expresses the operation clearly; this
 package is for repeated validation, pointer, zero/default, string, and small

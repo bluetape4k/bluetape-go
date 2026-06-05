@@ -13,6 +13,11 @@ and this project uses semantic versioning once the first tag is published.
   transitions, context-aware guards, final states, deterministic transition
   errors, stress/cancellation coverage, and compile-checked examples.
 
+### Changed
+
+- Every package-level `README.md` now has a sibling `README.ko.md` and a
+  consistent `English | 한국어` language switch.
+
 ## [v0.3.0] - 2026-06-05
 
 ### Added

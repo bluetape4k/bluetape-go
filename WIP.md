@@ -2,7 +2,7 @@
 
 Snapshot: 2026-06-05 KST
 Scope: milestone `0.4.0` start.
-Open count: 10 issues in milestone `0.4.0`.
+Open count: 8 issues in milestone `0.4.0`.
 
 ## Current Release
 
@@ -13,10 +13,9 @@ Open count: 10 issues in milestone `0.4.0`.
 - `0.1.0`, `0.1.1`, `0.2.0`, and `0.3.0` are tagged and released.
 - Issue #3 and milestone `0.3.0` are closed.
 - Epic #4 is open for state machine and lightweight workflow primitives.
-- Issue #135 starts 0.4.0 by refreshing source-grounded research, milestone
-  spec, and implementation sequencing before package work begins.
-- Issue #26 is implementing the independent `state` finite state machine
-  package.
+- Issue #135 refreshed source-grounded research, milestone spec, and
+  implementation sequencing before package work began.
+- Issue #26 delivered the independent `state` finite state machine package.
 - Issue #28 owns the shared `workreport` result and failure-policy model.
 - Issue #27 owns `workflow` sequential, parallel, and conditional runners after
   `workreport` exists.
@@ -27,12 +26,10 @@ Open count: 10 issues in milestone `0.4.0`.
 
 ## Release Checklist
 
-1. Complete #135 and merge the 0.4.0 research/spec/plan PR.
-2. Implement #26 `state`.
-3. Implement #28 `workreport`.
-4. Implement #27 `workflow`.
-5. Close the coverage, example, README, and diagram issues.
-6. Refresh README, WIP, and CHANGELOG before releasing `v0.4.0`.
+1. Implement #28 `workreport`.
+2. Implement #27 `workflow`.
+3. Close the coverage, example, README, and diagram issues.
+4. Refresh README, WIP, and CHANGELOG before releasing `v0.4.0`.
 
 ## Decision Log
 
@@ -55,6 +52,8 @@ Open count: 10 issues in milestone `0.4.0`.
   concurrency or timing semantics are part of the contract.
 - Refresh README, WIP, and CHANGELOG after milestone merges, not only at tag
   time.
+- Keep package-level Korean README siblings synchronized with English package
+  README changes.
 - Use Go native coverage reports for bluetape-go CI/Nightly first; defer
   third-party coverage SaaS uploads or threshold enforcement until the baseline
   is stable.

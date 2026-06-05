@@ -1,5 +1,7 @@
 # collections
 
+[English](README.md) | [한국어](README.ko.md)
+
 `collections` provides focused generic helpers for common slice and map
 transformations such as chunking, grouping, distinct-by-key, counting, and
 error-aware map/filter pipelines.

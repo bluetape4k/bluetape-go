@@ -2,17 +2,15 @@
 
 [English](README.md) | [한국어](README.ko.md)
 
-`testing/concurrency` provides deterministic helpers for stress and async job
-tests. It is useful when a package needs repeated bounded goroutine execution,
-panic capture, cancellation checks, or timeout reports.
+`testing/concurrency`는 stress test와 async job test를 위한 deterministic helper를 제공합니다. Package가 repeated bounded goroutine execution, panic capture, cancellation check, timeout report를 필요로 할 때 유용합니다.
 
-## Import
+## 가져오기
 
 ```go
 import concurrencytest "github.com/bluetape4k/bluetape-go/testing/concurrency"
 ```
 
-## Usage
+## 사용 예
 
 ```go
 tester := concurrencytest.NewGoroutineStressTester(concurrencytest.Options{
@@ -29,7 +27,7 @@ if err != nil {
 _ = report.Completed
 ```
 
-For context-aware background jobs:
+Context-aware background job에는 다음 helper를 사용합니다.
 
 ```go
 tester := concurrencytest.NewAsyncJobTester(concurrencytest.Options{
@@ -42,15 +40,14 @@ report := tester.RunT(t, func(ctx context.Context) error {
 })
 ```
 
-## Behavior
+## 동작
 
-- `GoroutineStressTester` runs each task for `RoundsPerTask` rounds across a
-  bounded worker count.
-- `AsyncJobTester` runs jobs with a timeout-aware context.
-- Panics and task errors are reported as failures in the returned `Report`.
-- `RunT` fails the supplied test when the run reports an error.
+- `GoroutineStressTester`는 bounded worker count로 각 task를 `RoundsPerTask` round 동안 실행합니다.
+- `AsyncJobTester`는 timeout-aware context로 job을 실행합니다.
+- Panic과 task error는 returned `Report`의 failure로 보고됩니다.
+- `RunT`는 run이 error를 보고하면 supplied test를 실패시킵니다.
 
-## Test
+## 테스트
 
 ```bash
 go test -count=1 ./testing/concurrency

@@ -1,5 +1,7 @@
 # testcontainers/nats
 
+[English](README.md) | [한국어](README.ko.md)
+
 `testcontainers/nats` starts a NATS container for integration tests and returns
 the client connection URL.
 
