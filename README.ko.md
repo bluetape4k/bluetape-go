@@ -17,10 +17,10 @@ fixture, resilience, cache, workflow, batch, graph, text, audit, AWS 관련
 
 ## 현재 상태
 
-`bluetape-go`는 현재 `0.3.0` 개발선에 있습니다. Repository에는 foundation
+`bluetape-go`는 현재 `0.3.0` 릴리스 선에 있습니다. Repository에는 foundation
 utility, codec, compression, concurrency helper, serialization contract,
 Redis 기반 leader election, resilience policy, cache/Redis coordination package,
-token-bucket rate limiting이 들어 있습니다. 이 개발선은 candidate registry 기반
+token-bucket rate limiting이 들어 있습니다. 이 릴리스 선은 candidate registry 기반
 pluggable leader election strategy도 포함합니다.
 
 ## 패키지

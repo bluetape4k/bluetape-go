@@ -9,6 +9,12 @@ and this project uses semantic versioning once the first tag is published.
 
 ### Added
 
+- Nothing yet.
+
+## [v0.3.0] - 2026-06-05
+
+### Added
+
 - `cache` package with generic cache interfaces, process-local TTL `Memory`,
   `ErrCacheMiss`, context-aware loaders, and `GetOrLoad` same-key stampede
   protection.
@@ -42,7 +48,7 @@ and this project uses semantic versioning once the first tag is published.
 
 - Package documentation now lives in package-level `README.md` files, while
   root README files remain high-level indexes with links.
-- README and WIP documentation now reflect the current `0.3.0` development line,
+- README and WIP documentation now reflect the completed `0.3.0` release line,
   merged package surface, and open cache/coordination follow-up issues.
 - `make bench-ratelimit` now exposes opt-in local rate limiter benchmark runs.
 

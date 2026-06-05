@@ -18,11 +18,11 @@ caching, workflow, batch, graph, text, audit, and AWS-adjacent service code.
 
 ## Current Status
 
-`bluetape-go` is on the `0.3.0` development line. The repository already
+`bluetape-go` is on the `0.3.0` release line. The repository already
 contains foundation utilities, codecs, compression, concurrency helpers,
 serialization contracts, Redis-backed leader election, resilience policies, the
 cache and Redis coordination packages, and token-bucket rate limiting.
-This line also adds pluggable leader election strategies for candidate-registry
+This release line also adds pluggable leader election strategies for candidate-registry
 coordination.
 
 ## Packages

@@ -1,18 +1,17 @@
 # WIP
 
 Snapshot: 2026-06-05 KST
-Scope: open GitHub issues assigned to `debop`.
-Open count: 30 issues.
+Scope: release status for `0.3.0`.
+Open count: 0 issues in milestone `0.3.0`.
 
-## Current Milestone
+## Current Release
 
 `0.3.0` - Cache and distributed coordination primitives.
 
 ## Current State
 
 - `0.1.0`, `0.1.1`, and `0.2.0` are tagged and released.
-- Foundation packages, Redis leader election, resilience policies, and the first
-  cache contracts are merged on `develop`.
+- `0.3.0` implementation work is complete on `develop`.
 - Issue #22 is closed with Type A research/spec/plan/review/lessons artifacts,
   generic cache interfaces, in-process TTL memory cache, `GetOrLoad`
   same-key stampede protection, and stress/cancellation coverage.
@@ -30,15 +29,21 @@ Open count: 30 issues.
 - Issue #25 is closed with local plus Redis-backed token-bucket rate limiter
   implementation, Testcontainers coverage, stress/cancellation tests, and local
   benchmark coverage.
-- Issue #86 is in progress with Type A research/spec/plan artifacts and
-  strategy-based leader election implementation work.
+- Issue #86 is closed with strategy-based leader election, Redis-backed
+  candidate registry, Testcontainers coverage, stress/cancellation tests, and
+  local 7-tier review evidence.
+- Issue #3, the 0.3.0 epic, is closed after verifying all child issues.
 - Regular CI and Nightly workflows continue to run Testcontainers-backed tests
   against real containers and now publish Go coverage artifacts.
 
-## Next Feature Issues
+## Release Checklist
 
-1. #86 Add pluggable leader election strategies.
-2. #3 Close the 0.3.0 epic after remaining issues land.
+1. Close the GitHub milestone `0.3.0`.
+2. Promote `develop` to `main` through a release PR.
+3. Tag the merged `main` commit as `v0.3.0`.
+4. Create the GitHub Release from `CHANGELOG.md`.
+5. Update downstream Go modules, such as `bluetape-go-workshop`, to require
+   `github.com/bluetape4k/bluetape-go v0.3.0`.
 
 ## Decision Log
 
