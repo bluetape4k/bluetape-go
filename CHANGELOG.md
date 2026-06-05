@@ -12,6 +12,9 @@ and this project uses semantic versioning once the first tag is published.
 - `state` package with first-party finite state machine primitives, explicit
   transitions, context-aware guards, final states, deterministic transition
   errors, stress/cancellation coverage, and compile-checked examples.
+- `workreport` package with workflow status values, failure policies, report
+  trees, deterministic aggregation, zero-value safety checks,
+  stress/cancellation coverage, and compile-checked examples.
 
 ### Changed
 
