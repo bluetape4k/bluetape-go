@@ -1,0 +1,49 @@
+digraph StateGuardedTransitionFlow {
+  graph [
+    rankdir=LR,
+    bgcolor="#F8FAFC",
+    pad=0.35,
+    nodesep=0.55,
+    ranksep=0.8,
+    fontname="Comic Mono"
+  ];
+  node [
+    shape=box,
+    style="rounded,filled",
+    color="#93C5FD",
+    fillcolor="white",
+    fontname="Comic Mono",
+    fontsize=11,
+    margin="0.14,0.10"
+  ];
+  edge [
+    color="#475569",
+    fontname="Comic Mono",
+    fontsize=10,
+    arrowsize=0.8
+  ];
+
+  caller [label="caller\nTransition(ctx,event)", fillcolor="#EBF4FF"];
+  context [label="normalize ctx\ncheck cancellation"];
+  lookup [label="read current\nlookup from+event"];
+  guard [label="run guard\noutside lock", fillcolor="#FAF5FF", color="#C4B5FD"];
+  ctx2 [label="check ctx\nbefore commit"];
+  lock [label="lock machine\nrecheck state"];
+  commit [label="commit target\nreturn Result", fillcolor="#F0FFF4", color="#6EE7B7"];
+
+  invalid [label="ErrInvalidTransition\nor ErrFinalState", fillcolor="#FFF1F2", color="#FDA4AF"];
+  rejected [label="ErrGuardRejected\nwrap cause", fillcolor="#FFF1F2", color="#FDA4AF"];
+  cancelled [label="context error\nno mutation", fillcolor="#FFF1F2", color="#FDA4AF"];
+  conflict [label="ErrConcurrentTransition\nstate changed", fillcolor="#FFF1F2", color="#FDA4AF"];
+
+  caller -> context;
+  context -> lookup;
+  lookup -> guard [label="found"];
+  lookup -> invalid [label="missing/final"];
+  guard -> ctx2 [label="allow"];
+  guard -> rejected [label="error"];
+  ctx2 -> lock [label="active"];
+  ctx2 -> cancelled [label="canceled"];
+  lock -> commit [label="same state"];
+  lock -> conflict [label="different state"];
+}
