@@ -20,8 +20,8 @@ fixture, resilience, cache, workflow, batch, graph, text, audit, AWS 관련
 `bluetape-go`는 현재 `0.3.0` 개발선에 있습니다. Repository에는 foundation
 utility, codec, compression, concurrency helper, serialization contract,
 Redis 기반 leader election, resilience policy, cache/Redis coordination package,
-token-bucket rate limiting이 들어 있습니다. 남은 `0.3.0` 작업은 pluggable
-leader election strategy에 집중합니다.
+token-bucket rate limiting이 들어 있습니다. 이 개발선은 candidate registry 기반
+pluggable leader election strategy도 포함합니다.
 
 ## 패키지
 
@@ -40,8 +40,8 @@ leader election strategy에 집중합니다.
 | [`testcontainers/mysql`](testcontainers/mysql/README.md) | active | Testcontainers for Go 기반 MySQL 8.4 fixture. |
 | [`testcontainers/nats`](testcontainers/nats/README.md) | active | Testcontainers for Go 기반 NATS fixture. |
 | [`testcontainers/kafka`](testcontainers/kafka/README.md) | active | Testcontainers for Go 기반 Kafka fixture. |
-| [`leader`](leader/README.md) | active | Leader election API. |
-| [`leader/redis`](leader/redis/README.md) | active | TTL renewal과 ZSET slot token 기반 Redis 단일/group leader election 구현. |
+| [`leader`](leader/README.md) | active | 단일, group, strategy 기반 계약을 포함한 leader election API. |
+| [`leader/redis`](leader/redis/README.md) | active | TTL renewal, ZSET slot token, candidate registry 기반 Redis 단일/group/strategic leader election 구현. |
 | [`resilience`](resilience/README.md) | active | service call을 위한 자체 composable retry, timeout, circuit breaker, bulkhead policy, synchronous observability hook, `net/http` adapter. |
 | [`cache`](cache/README.md) | active | context-aware loader와 same-key stampede protection을 제공하는 generic in-process TTL cache interface. |
 | [`cache/redisnear`](cache/redisnear/README.md) | active | process-local loading cache를 위한 Redis Pub/Sub near-cache invalidation. |
@@ -82,7 +82,7 @@ go get github.com/bluetape4k/bluetape-go
 |---|---|
 | `0.1.0` | Core support, collections, goroutine helper, codec, compression, Redis leader election, Testcontainers. |
 | `0.2.0` | Resilience primitive: retry, timeout, circuit breaker, bulkhead, HTTP middleware. |
-| `0.3.0` | Cache/coordination: near cache, Redis lock, token-bucket rate limiting. |
+| `0.3.0` | Cache/coordination: near cache, Redis lock, token-bucket rate limiting, strategic leader election. |
 | `0.4.0` | State machine과 lightweight workflow primitive. |
 | `0.5.0` | Checkpoint 기반 batch processing과 leader-guarded example. |
 | `0.6.0` | ID generation, JWT, measured value, money, probabilistic structure, rule engine. |

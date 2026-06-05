@@ -22,7 +22,8 @@ caching, workflow, batch, graph, text, audit, and AWS-adjacent service code.
 contains foundation utilities, codecs, compression, concurrency helpers,
 serialization contracts, Redis-backed leader election, resilience policies, the
 cache and Redis coordination packages, and token-bucket rate limiting.
-Remaining `0.3.0` work focuses on pluggable leader election strategies.
+This line also adds pluggable leader election strategies for candidate-registry
+coordination.
 
 ## Packages
 
@@ -41,8 +42,8 @@ Remaining `0.3.0` work focuses on pluggable leader election strategies.
 | [`testcontainers/mysql`](testcontainers/mysql/README.md) | active | MySQL 8.4 fixture helpers based on Testcontainers for Go. |
 | [`testcontainers/nats`](testcontainers/nats/README.md) | active | NATS fixture helpers based on Testcontainers for Go. |
 | [`testcontainers/kafka`](testcontainers/kafka/README.md) | active | Kafka fixture helpers based on Testcontainers for Go. |
-| [`leader`](leader/README.md) | active | Leader election API. |
-| [`leader/redis`](leader/redis/README.md) | active | Redis-backed single and group leader election using TTL renewal and ZSET slot tokens. |
+| [`leader`](leader/README.md) | active | Leader election API, including single, group, and strategy-based contracts. |
+| [`leader/redis`](leader/redis/README.md) | active | Redis-backed single, group, and strategic leader election using TTL renewal, ZSET slot tokens, and candidate registries. |
 | [`resilience`](resilience/README.md) | active | First-party composable retry, timeout, circuit breaker, and bulkhead policies with synchronous observability hooks and `net/http` adapters. |
 | [`cache`](cache/README.md) | active | Generic in-process TTL cache interfaces with context-aware loaders and same-key stampede protection. |
 | [`cache/redisnear`](cache/redisnear/README.md) | active | Redis Pub/Sub near-cache invalidation for process-local loading caches. |
@@ -86,7 +87,7 @@ benchmarks live next to each package:
 |---|---|
 | `0.1.0` | Core support, collections, goroutine helpers, codecs, compression, Redis leader election, Testcontainers. |
 | `0.2.0` | Resilience primitives: retry, timeout, circuit breaker, bulkhead, HTTP middleware. |
-| `0.3.0` | Cache and coordination: near cache, Redis locks, token-bucket rate limiting. |
+| `0.3.0` | Cache and coordination: near cache, Redis locks, token-bucket rate limiting, strategic leader election. |
 | `0.4.0` | State machine and lightweight workflow primitives. |
 | `0.5.0` | Batch processing with checkpoints and leader-guarded examples. |
 | `0.6.0` | Portable utilities: ID generation, JWT, measured values, money, probabilistic structures, rule engine. |
