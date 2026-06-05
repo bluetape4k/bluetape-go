@@ -7,6 +7,51 @@ and this project uses semantic versioning once the first tag is published.
 
 ## [Unreleased]
 
+### Added
+
+- Nothing yet.
+
+## [v0.3.0] - 2026-06-05
+
+### Added
+
+- `cache` package with generic cache interfaces, process-local TTL `Memory`,
+  `ErrCacheMiss`, context-aware loaders, and `GetOrLoad` same-key stampede
+  protection.
+- `cache/redisnear` package with Redis Pub/Sub invalidation for process-local
+  loading caches, including close semantics, malformed-message reporting,
+  Testcontainers peer invalidation coverage, stress testing, and cancellation
+  coverage.
+- `lock/redis` package with single-Redis-instance owner-token locking, TTL
+  acquisition, owner-safe Lua unlock, Testcontainers contention/expiration
+  coverage, and stress/cancellation tests.
+- `cache/rediscoord` package with opt-in Redis coordination for cross-process
+  cache stampede protection, owner-token load leases, short-lived shared result
+  envelopes, Testcontainers NearCache collapse coverage, lease-expiry tests, and
+  stress/cancellation tests.
+- `ratelimit` and `ratelimit/redis` packages with local and Redis-backed
+  token-bucket limiting, HTTP middleware, Redis Lua atomic consume/refill,
+  Testcontainers concurrency coverage, stress/cancellation tests, and local
+  benchmark coverage.
+- `leader` strategy APIs and Redis-backed `redisleader.NewStrategic` for
+  candidate-registry leader election with FIFO, seed-stable random, scored
+  strategies, Testcontainers coverage, and stress/cancellation tests.
+- Cache stress and cancellation coverage using `GoroutineStressTester` and
+  `AsyncJobTester`, plus zero-value `Memory` safety coverage.
+- Type A research, spec, plan, review, and lessons artifacts for the initial
+  cache contract.
+- Go coverage reporting for CI and Nightly through native coverage profiles,
+  package subtotal summaries, function-level text summaries, HTML reports,
+  GitHub Step Summary output, and uploaded workflow artifacts.
+
+### Changed
+
+- Package documentation now lives in package-level `README.md` files, while
+  root README files remain high-level indexes with links.
+- README and WIP documentation now reflect the completed `0.3.0` release line,
+  merged package surface, and open cache/coordination follow-up issues.
+- `make bench-ratelimit` now exposes opt-in local rate limiter benchmark runs.
+
 ## [v0.2.0] - 2026-06-04
 
 ### Added

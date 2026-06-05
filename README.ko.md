@@ -17,29 +17,41 @@ fixture, resilience, cache, workflow, batch, graph, text, audit, AWS 관련
 
 ## 현재 상태
 
-`bluetape-go`는 초기 `0.1.0` 개발 단계입니다. 현재 repository에는 첫 foundation
-패키지와 Redis 기반 leader election 구현이 들어 있으며, 이후 범위는 milestone과
-research 문서로 추적합니다.
+`bluetape-go`는 현재 `0.3.0` 릴리스 선에 있습니다. Repository에는 foundation
+utility, codec, compression, concurrency helper, serialization contract,
+Redis 기반 leader election, resilience policy, cache/Redis coordination package,
+token-bucket rate limiting이 들어 있습니다. 이 릴리스 선은 candidate registry 기반
+pluggable leader election strategy도 포함합니다.
 
 ## 패키지
 
 | 패키지 | 상태 | 목적 |
 |---|---:|---|
-| `core` | active | 작은 공용 validation, zero/default, pointer, string, number helper. |
-| `collections` | active | chunking, grouping, distinct, error-aware transform용 작은 generic slice/map helper. |
-| `testing` | initial | eventual consistency 테스트용 공용 helper. |
-| `testcontainers/redis` | initial | Testcontainers for Go 기반 Redis fixture. |
-| `testcontainers/postgres` | initial | Testcontainers for Go 기반 PostgreSQL fixture. |
-| `testcontainers/mysql` | initial | Testcontainers for Go 기반 MySQL 8.4 fixture. |
-| `testcontainers/nats` | initial | Testcontainers for Go 기반 NATS fixture. |
-| `testcontainers/kafka` | initial | Testcontainers for Go 기반 Kafka fixture. |
-| `leader` | initial | Leader election API. |
-| `leader/redis` | initial | TTL renewal과 ZSET slot token 기반 Redis 단일/group leader election 구현. |
-| `resilience` | initial | service call을 위한 자체 composable retry, timeout, circuit breaker, bulkhead policy, synchronous observability hook, `net/http` adapter. |
+| [`core`](core/README.md) | active | 작은 공용 validation, zero/default, pointer, string, number helper. |
+| [`collections`](collections/README.md) | active | chunking, grouping, distinct, error-aware transform용 작은 generic slice/map helper. |
+| [`concurrency`](concurrency/README.md) | active | context-aware goroutine group, worker pool, bounded parallel helper. |
+| [`codec`](codec/README.md) | active | Base58, Base62, Base64, hex, URL-safe encoding helper. |
+| [`compression`](compression/README.md) | active | gzip, deflate, zstd, lz4, snappy, registry 기반 compression helper. |
+| [`serialization`](serialization/README.md) | active | 안전한 기본값을 가진 JSON/binary serializer interface. |
+| [`testing`](testing/README.md) | active | eventual consistency 테스트용 공용 helper. |
+| [`testing/concurrency`](testing/concurrency/README.md) | active | concurrent test를 위한 stress/async job helper. |
+| [`testcontainers/redis`](testcontainers/redis/README.md) | active | Testcontainers for Go 기반 Redis fixture. |
+| [`testcontainers/postgres`](testcontainers/postgres/README.md) | active | Testcontainers for Go 기반 PostgreSQL fixture. |
+| [`testcontainers/mysql`](testcontainers/mysql/README.md) | active | Testcontainers for Go 기반 MySQL 8.4 fixture. |
+| [`testcontainers/nats`](testcontainers/nats/README.md) | active | Testcontainers for Go 기반 NATS fixture. |
+| [`testcontainers/kafka`](testcontainers/kafka/README.md) | active | Testcontainers for Go 기반 Kafka fixture. |
+| [`leader`](leader/README.md) | active | 단일, group, strategy 기반 계약을 포함한 leader election API. |
+| [`leader/redis`](leader/redis/README.md) | active | TTL renewal, ZSET slot token, candidate registry 기반 Redis 단일/group/strategic leader election 구현. |
+| [`resilience`](resilience/README.md) | active | service call을 위한 자체 composable retry, timeout, circuit breaker, bulkhead policy, synchronous observability hook, `net/http` adapter. |
+| [`cache`](cache/README.md) | active | context-aware loader와 same-key stampede protection을 제공하는 generic in-process TTL cache interface. |
+| [`cache/redisnear`](cache/redisnear/README.md) | active | process-local loading cache를 위한 Redis Pub/Sub near-cache invalidation. |
+| [`cache/rediscoord`](cache/rediscoord/README.md) | active | cold burst 동안 하나의 loader 결과를 process-local cache 사이에서 공유하는 opt-in Redis coordination wrapper. |
+| [`lock/redis`](lock/redis/README.md) | active | TTL acquire와 owner-safe Lua unlock을 제공하는 Redis 단일 인스턴스 owner-token lock. |
+| [`ratelimit`](ratelimit/README.md) | active | process-local keyed token-bucket limiter와 `net/http` middleware. |
+| [`ratelimit/redis`](ratelimit/redis/README.md) | active | atomic Lua consume/refill과 idle key expiration을 쓰는 Redis-backed token-bucket limiter. |
 
-계획 중인 패키지군은 `collections`, `concurrency`, `serialization`,
-`cache`, `workflow`, `batch`, `id`, `jwt`, `graph`, `text`, `audit`, AWS
-helper/example 패키지입니다.
+다음 계획 패키지군은 `workflow`, `batch`, `id`, `jwt`, `graph`, `text`,
+`audit`, AWS helper/example 패키지입니다.
 
 ## 설치
 
@@ -47,143 +59,22 @@ helper/example 패키지입니다.
 go get github.com/bluetape4k/bluetape-go
 ```
 
-## Leader Election
+## 패키지 문서
 
-```go
-client := redis.NewClient(&redis.Options{Addr: "localhost:6379"})
+상세 사용법, 운영 경계, package별 benchmark는 각 package README에 둡니다.
 
-elector, err := redisleader.New(client, leader.Options{
-    Group:    "billing-workers",
-    MemberID: "worker-1",
-})
-if err != nil {
-    return err
-}
-
-if err := elector.Campaign(ctx); err != nil {
-    return err
-}
-defer elector.Resign(context.Background())
-```
-
-Kotlin/JVM `bluetape4k-leader` repository는 별도로 계속 유지합니다. Go 구현과
-Kotlin 구현을 같은 Redis leader 참가자로 섞는 방식은 `0.1.0`에서 지원하지
-않습니다. Go Redis backend는 `bluetape:leader:<group>` key에
-`memberID:random` token을 TTL과 함께 저장하는 자체 key 형식을 사용합니다.
-Kotlin/JVM `bluetape4k-leader`의 Lettuce backend는 lock name을 직접 key로 쓰고,
-Redisson backend는 Redisson `RLock` 내부 구조를 사용합니다. 명시적인 interop
-adapter를 추가하기 전까지 Kotlin과 Go leader group은 분리해서 운영합니다.
-
-Redis leader 예제는 backend replica 중 하나만 실행해야 하는 조정 문제를 다룹니다.
-
-| 예제 | 문제 | Smoke test |
-|---|---|---|
-| Batch scheduler | 모든 scheduler replica가 같은 nightly job을 실행하지 않게 합니다. | `go test -count=1 ./leader/redis -run TestBatchSchedulerExample` |
-| Migration gate | 배포 중 하나의 service instance만 migration을 적용하게 합니다. | `go test -count=1 ./leader/redis -run TestMigrationGateExample` |
-
-동시에 제한된 수의 replica가 같은 worker lane을 실행해도 된다면 `NewGroup`을
-사용합니다.
-
-```go
-group, err := redisleader.NewGroup(client, leader.GroupOptions{
-    Options: leader.Options{
-        Group:    "batch-workers",
-        MemberID: "worker-1",
-    },
-    MaxLeaders: 3,
-})
-if err != nil {
-    return err
-}
-
-if err := group.Campaign(ctx); err != nil {
-    return err
-}
-defer group.Resign(context.Background())
-```
-
-Redis group backend는 살아 있는 slot을 `bluetape:leader-group:<group>` ZSET에
-저장합니다. 각 member는 Redis server time 기준 만료 score를 가진
-`memberID:random` token입니다. 만료된 slot은 acquire와 status check 중 정리되므로,
-process crash로 누수된 slot도 별도 reaper 없이 회수됩니다.
-
-## Resilience Policy
-
-Resilience policy는 service call 주변에 조합할 수 있는 retry, timeout, circuit
-breaker, bulkhead primitive를 제공합니다. 각 policy는 `OnEvent` hook을 받을 수
-있으며, 이 hook은 보호 대상 call path에서 동기적으로 호출됩니다. Hook payload인
-`resilience.Event`에는 안정적인 policy type, event kind, event category,
-attempt/state data, 낮은 cardinality의 error category label이 들어갑니다.
-
-`OnEvent`는 service가 이미 사용하는 logging, metrics, tracing 도구로 policy
-결정을 전달하는 얇은 bridge로 사용합니다.
-
-```go
-retry, err := resilience.NewRetry[string](resilience.RetryOptions{
-    Name:        "catalog",
-    MaxAttempts: 3,
-    Backoff:     resilience.ConstantBackoff(50 * time.Millisecond),
-    OnEvent: func(ctx context.Context, event resilience.Event) {
-        logger.InfoContext(ctx, "resilience event",
-            "policy", event.PolicyName,
-            "type", event.PolicyType,
-            "kind", event.Kind,
-            "category", event.Category,
-            "error_category", event.ErrorCategory,
-            "attempt", event.Attempt,
-        )
-    },
-})
-```
-
-Package는 OpenTelemetry exporter를 내장하지 않습니다. Event handler는 보호 대상
-call을 지연시키지 않도록 빠르고 non-blocking하게 작성해야 합니다.
-
-HTTP client는 `net/http` transport adapter로 같은 policy를 사용할 수 있습니다.
-Adapter는 retry 가능한 response status를 `StatusError`로 바꾸고, 다음 시도 전에
-해당 response body를 닫으며, observability는 같은 `OnEvent` hook contract를
-사용합니다.
-
-```go
-retry, err := resilience.NewRetry[*http.Response](resilience.RetryOptions{
-    Name:        "catalog-http",
-    MaxAttempts: 3,
-    Backoff:     resilience.ConstantBackoff(50 * time.Millisecond),
-    OnEvent:     onResilienceEvent,
-})
-if err != nil {
-    return err
-}
-timeout, err := resilience.NewTimeout[*http.Response](resilience.TimeoutOptions{
-    Name:    "catalog-http",
-    Timeout: 500 * time.Millisecond,
-    OnEvent: onResilienceEvent,
-})
-if err != nil {
-    return err
-}
-breaker, err := resilience.NewCircuitBreaker[*http.Response](resilience.CircuitBreakerOptions{
-    Name:             "catalog-http",
-    FailureThreshold: 5,
-    OpenTimeout:      30 * time.Second,
-    OnEvent:          onResilienceEvent,
-})
-if err != nil {
-    return err
-}
-
-client := http.Client{
-    Transport: resilience.NewRoundTripper(resilience.RoundTripperOptions{
-        Transport:       http.DefaultTransport,
-        Policies:        []resilience.Policy[*http.Response]{retry, timeout, breaker},
-        RetryableStatus: resilience.RetryableServerError,
-    }),
-}
-```
-
-Server handler는 `NewHandler`로 admission 또는 timeout policy를 적용할 수 있습니다.
-Response를 이미 쓴 server handler를 retry하지 말고, request body를 replay할 수
-있는 outbound client call 쪽에 retry를 적용하는 방식을 우선합니다.
+- Foundation: [`core`](core/README.md), [`collections`](collections/README.md),
+  [`concurrency`](concurrency/README.md), [`codec`](codec/README.md),
+  [`compression`](compression/README.md), [`serialization`](serialization/README.md).
+- Test support: [`testing`](testing/README.md),
+  [`testing/concurrency`](testing/concurrency/README.md), 위 표의 Testcontainers
+  fixture package README.
+- Coordination: [`leader`](leader/README.md),
+  [`leader/redis`](leader/redis/README.md), [`lock/redis`](lock/redis/README.md).
+- Runtime policy/cache: [`resilience`](resilience/README.md),
+  [`cache`](cache/README.md), [`cache/redisnear`](cache/redisnear/README.md),
+  [`cache/rediscoord`](cache/rediscoord/README.md),
+  [`ratelimit`](ratelimit/README.md).
 
 ## Roadmap
 
@@ -191,7 +82,7 @@ Response를 이미 쓴 server handler를 retry하지 말고, request body를 rep
 |---|---|
 | `0.1.0` | Core support, collections, goroutine helper, codec, compression, Redis leader election, Testcontainers. |
 | `0.2.0` | Resilience primitive: retry, timeout, circuit breaker, bulkhead, HTTP middleware. |
-| `0.3.0` | Cache/coordination: near cache, Redis lock, token-bucket rate limiting. |
+| `0.3.0` | Cache/coordination: near cache, Redis lock, token-bucket rate limiting, strategic leader election. |
 | `0.4.0` | State machine과 lightweight workflow primitive. |
 | `0.5.0` | Checkpoint 기반 batch processing과 leader-guarded example. |
 | `0.6.0` | ID generation, JWT, measured value, money, probabilistic structure, rule engine. |
@@ -208,6 +99,7 @@ Response를 이미 쓴 server handler를 retry하지 말고, request body를 rep
 
 ```bash
 make test
+make coverage
 make ci
 ```
 
@@ -223,31 +115,18 @@ make ci
 | `make lint` | `golangci-lint run ./...`를 실행합니다. |
 | `make test` | Testcontainers 테스트가 실제 실행되도록 `go test -count=1 ./...`를 실행합니다. |
 | `make race` | Testcontainers 테스트가 race detector에서도 실제 실행되도록 `go test -race -count=1 ./...`를 실행합니다. |
+| `make coverage` | `coverage/` 아래에 Go coverage profile, package 소계 table, text summary, HTML report를 생성합니다. |
+| `make bench-cache` | opt-in cache, Redis NearCache, Redis coordinator benchmark를 실행합니다. |
+| `make bench-ratelimit` | opt-in local rate limiter benchmark를 실행합니다. |
 | `make ci` | 로컬 CI gate를 실행합니다. |
 
 Redis integration test는 Testcontainers를 사용하므로 Docker가 필요합니다. 일반
-CI와 Nightly workflow 모두 실제 container를 사용해 테스트합니다.
+CI와 Nightly workflow 모두 실제 container를 사용해 테스트하고 Go coverage
+report artifact를 게시합니다.
 
-비동기 테스트 assertion은 Gomega 기반 `testing` helper를 사용합니다.
-
-```go
-bttesting.Eventually(t, time.Second, func() bool {
-    return cache.IsReady()
-})
-
-bttesting.Consistently(t, 200*time.Millisecond, elector.IsLeader)
-```
-
-Testcontainers fixture는 작은 `Start(ctx, t)` helper로 제공되며, `t.Cleanup`에
-정리를 등록하고 service connection 정보를 반환합니다.
-
-```go
-redisAddr := redistestcontainer.Start(ctx, t)
-postgresURL := postgrestestcontainer.Start(ctx, t)
-mysqlDSN := mysqltestcontainer.Start(ctx, t)
-natsURL := natstestcontainer.Start(ctx, t)
-kafkaBrokers := kafkatestcontainer.Start(ctx, t)
-```
+Fixture 사용법은 [`testing`](testing/README.md),
+[`testing/concurrency`](testing/concurrency/README.md), 각 Testcontainers package
+README를 참고하세요.
 
 ## 프로젝트 관리
 

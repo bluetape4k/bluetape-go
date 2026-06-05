@@ -1,36 +1,49 @@
 # WIP
 
-Snapshot: 2026-06-02 KST
-Scope: open GitHub issues assigned to `debop`.
-Open count: 30 issues.
+Snapshot: 2026-06-05 KST
+Scope: release status for `0.3.0`.
+Open count: 0 issues in milestone `0.3.0`.
 
-## Current Milestone
+## Current Release
 
-`0.1.0` - Foundation packages: core support, collections, goroutine helpers,
-codecs/compression, Redis leader election, and shared test infrastructure.
+`0.3.0` - Cache and distributed coordination primitives.
 
-## Current Setup Work
+## Current State
 
-- Establish bilingual README coverage.
-- Add project hygiene files: changelog, WIP log, Makefile, lint config, research
-  index, package layout policy, and release guide.
-- Strengthen CI before continuing feature issues.
-- Keep both regular CI and Nightly workflows running Testcontainers-backed tests
-  against real containers.
-- Implement issue #8 core support as small idiomatic Go helpers, not a direct
-  Kotlin extension API port.
-- Implement issue #9 collections as focused generic slice/map helpers that do
-  not duplicate Go's standard `slices` and `maps` packages.
+- `0.1.0`, `0.1.1`, and `0.2.0` are tagged and released.
+- `0.3.0` implementation work is complete on `develop`.
+- Issue #22 is closed with Type A research/spec/plan/review/lessons artifacts,
+  generic cache interfaces, in-process TTL memory cache, `GetOrLoad`
+  same-key stampede protection, and stress/cancellation coverage.
+- Issue #23 is closed with Redis Pub/Sub near-cache invalidation and
+  Testcontainers peer invalidation coverage.
+- Issue #107 is closed with opt-in cache benchmark baselines, so performance
+  measurements stay outside ordinary package tests.
+- Issue #24 is closed with Redis owner-token distributed lock implementation,
+  expiration/contention coverage, and stress/cancellation tests.
+- Issue #117 is closed with Type A research/spec/plan/review artifacts and a
+  Redis coordination wrapper for cross-process cache stampede protection.
+- Issue #123 is closed with package-specific usage, behavior, and benchmark
+  notes moved into package-level README files.
+- Issue #125 is closed with Go coverage reports published from CI and Nightly.
+- Issue #25 is closed with local plus Redis-backed token-bucket rate limiter
+  implementation, Testcontainers coverage, stress/cancellation tests, and local
+  benchmark coverage.
+- Issue #86 is closed with strategy-based leader election, Redis-backed
+  candidate registry, Testcontainers coverage, stress/cancellation tests, and
+  local 7-tier review evidence.
+- Issue #3, the 0.3.0 epic, is closed after verifying all child issues.
+- Regular CI and Nightly workflows continue to run Testcontainers-backed tests
+  against real containers and now publish Go coverage artifacts.
 
-## Next Feature Issues
+## Release Checklist
 
-1. #8 Port core support functions into idiomatic Go helpers.
-2. #9 Port collection slice and map helper functions.
-3. #10 Design goroutine and context helper package.
-4. #12 Design binary serializer interfaces and safe defaults.
-5. #13 Port compressor package with streaming support.
-6. #14 Harden leader API contracts and lifecycle semantics.
-7. #15 Decide Redis key compatibility with bluetape4k-leader.
+1. Close the GitHub milestone `0.3.0`.
+2. Promote `develop` to `main` through a release PR.
+3. Tag the merged `main` commit as `v0.3.0`.
+4. Create the GitHub Release from `CHANGELOG.md`.
+5. Update downstream Go modules, such as `bluetape-go-workshop`, to require
+   `github.com/bluetape4k/bluetape-go v0.3.0`.
 
 ## Decision Log
 
@@ -44,8 +57,15 @@ codecs/compression, Redis leader election, and shared test infrastructure.
 - Use Testcontainers-backed smoke tests for infrastructure packages.
 - Use `-count=1` in CI and Nightly test commands so Go's test cache cannot hide
   Testcontainers execution.
-- Keep `core` limited to helpers that reduce repeated service code while staying
-  obvious to Go readers.
-- Keep `collections` focused on transformations with clear service value:
-  chunking, grouping, distinct-by-key, and error-aware map/filter.
-- Document milestone research before adding broad implementation issues.
+- Keep cache cross-process behavior out of the local memory cache; Redis
+  near-cache invalidation belongs to `cache/redisnear`, while opt-in load-result
+  coordination belongs to `cache/rediscoord`.
+- Keep benchmarks opt-in and tracked under #107 before turning them into a
+  release gate.
+- Add stress/cancellation tests for new `0.3.0` coordination features when
+  concurrency or timing semantics are part of the contract.
+- Refresh README, WIP, and CHANGELOG after milestone merges, not only at tag
+  time.
+- Use Go native coverage reports for bluetape-go CI/Nightly first; defer
+  third-party coverage SaaS uploads or threshold enforcement until the baseline
+  is stable.

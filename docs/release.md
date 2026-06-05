@@ -1,5 +1,7 @@
 # Release Guide
 
+Detailed release procedure: [`docs/release/release-guide.md`](release/release-guide.md).
+
 ## Branches
 
 - `develop` is the default integration branch.
