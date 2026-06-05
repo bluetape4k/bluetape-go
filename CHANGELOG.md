@@ -18,6 +18,8 @@ and this project uses semantic versioning once the first tag is published.
 - `workflow` package with sequential, conditional, and all-branches parallel
   runners built on `context.Context` and `workreport`, including cancellation,
   stress, race, and compile-checked example coverage.
+- 0.4.0 stress/cancellation gate documenting required race-compatible coverage
+  for `state`, `workreport`, and `workflow`.
 
 ### Changed
 

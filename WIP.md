@@ -19,15 +19,15 @@ Open count: 8 issues in milestone `0.4.0`.
 - Issue #28 delivered the shared `workreport` result and failure-policy model.
 - Issue #27 delivers `workflow` sequential, parallel, and conditional runners
   after `workreport` exists.
-- Issue #136 tracks stress/cancellation coverage for 0.4.0 concurrency and
-  timing contracts.
+- Issue #136 verifies the milestone stress/cancellation gate for 0.4.0
+  concurrency and timing contracts.
 - Issue #137 tracks compile-checked runnable examples for new 0.4.0 APIs.
 - Issues #132, #133, and #134 track package README and diagram completion.
 
 ## Release Checklist
 
 1. Merge #27 `workflow`.
-2. Close the coverage, example, README, and diagram issues.
+2. Close the example, README, and diagram issues.
 3. Refresh README, WIP, and CHANGELOG before releasing `v0.4.0`.
 
 ## Decision Log
