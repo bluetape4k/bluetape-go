@@ -1,8 +1,9 @@
 # leader/redis
 
-`leader/redis` implements `leader.Elector` and `leader.GroupElector` with
-Redis TTL ownership. Use it when only one replica, or a bounded number of
-replicas, may run a coordination lane.
+`leader/redis` implements `leader.Elector`, `leader.GroupElector`, and
+`leader.StrategicElector` with Redis TTL ownership. Use it when only one
+replica, a bounded number of replicas, or one strategy-elected candidate may
+run a coordination lane.
 
 ## Import
 
@@ -41,15 +42,46 @@ group, err := redisleader.NewGroup(client, leader.GroupOptions{
 })
 ```
 
+Use `NewStrategic` when candidates should be ranked by metadata instead of
+competing for a lock:
+
+```go
+elector, err := redisleader.NewStrategic[string](client, leader.Options{
+    Group:    "nightly-jobs",
+    MemberID: "worker-1",
+})
+if err != nil {
+    return err
+}
+
+err = elector.RegisterCandidate(ctx, "nightly-jobs", leader.CandidateInfo{
+    NodeID: "worker-1",
+}, 30*time.Second)
+if err != nil {
+    return err
+}
+
+strategy := leader.ScoredStrategy{Scorer: leader.IdleTimeScorer{}}
+result, ran, err := elector.RunIfLeader(ctx, "nightly-jobs", strategy, func(context.Context) (string, error) {
+    return "report-created", nil
+})
+_ = result
+_ = ran
+```
+
 ## Behavior
 
 - Single leader election stores `memberID:random` in
   `bluetape:leader:<group>` with a Redis TTL.
 - Group election stores slot tokens in `bluetape:leader-group:<group>` as ZSET
   members with expiry scores.
+- Strategic election stores candidate JSON values under
+  `bluetape:leader-strategy:<group>:candidates:<nodeID>` and tracks live
+  candidates in `bluetape:leader-strategy:<group>:index`.
 - Renewal runs in the background after a successful campaign.
 - Duplicate campaign calls on the same elector are rejected.
 - Expired group slots are pruned during acquire and status checks.
+- Expired strategic candidates are pruned during list operations.
 
 ## Operational Boundaries
 

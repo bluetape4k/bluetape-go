@@ -27,16 +27,18 @@ Open count: 30 issues.
 - Issue #123 is closed with package-specific usage, behavior, and benchmark
   notes moved into package-level README files.
 - Issue #125 is closed with Go coverage reports published from CI and Nightly.
-- Issue #25 is in progress with Type A research/spec/plan/review artifacts and
-  local plus Redis-backed token-bucket rate limiter implementation work.
+- Issue #25 is closed with local plus Redis-backed token-bucket rate limiter
+  implementation, Testcontainers coverage, stress/cancellation tests, and local
+  benchmark coverage.
+- Issue #86 is in progress with Type A research/spec/plan artifacts and
+  strategy-based leader election implementation work.
 - Regular CI and Nightly workflows continue to run Testcontainers-backed tests
   against real containers and now publish Go coverage artifacts.
 
 ## Next Feature Issues
 
-1. #25 Finish token-bucket rate limiter validation and PR.
-2. #86 Add pluggable leader election strategies.
-3. #3 Close the 0.3.0 epic after remaining issues land.
+1. #86 Add pluggable leader election strategies.
+2. #3 Close the 0.3.0 epic after remaining issues land.
 
 ## Decision Log
 

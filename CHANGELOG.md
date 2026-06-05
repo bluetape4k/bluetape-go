@@ -27,6 +27,9 @@ and this project uses semantic versioning once the first tag is published.
   token-bucket limiting, HTTP middleware, Redis Lua atomic consume/refill,
   Testcontainers concurrency coverage, stress/cancellation tests, and local
   benchmark coverage.
+- `leader` strategy APIs and Redis-backed `redisleader.NewStrategic` for
+  candidate-registry leader election with FIFO, seed-stable random, scored
+  strategies, Testcontainers coverage, and stress/cancellation tests.
 - Cache stress and cancellation coverage using `GoroutineStressTester` and
   `AsyncJobTester`, plus zero-value `Memory` safety coverage.
 - Type A research, spec, plan, review, and lessons artifacts for the initial

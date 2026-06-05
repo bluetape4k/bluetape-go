@@ -30,6 +30,12 @@ if err != nil {
 - `Campaign` attempts leadership acquisition; `Resign` releases only the
   caller's current ownership.
 - `GroupElector` allows up to `MaxLeaders` live members in one group.
+- `StrategicElector` uses a candidate registry plus a deterministic
+  `ElectionStrategy` so every node can compute the same winner from the same
+  live candidate list.
+- Built-in strategies include FIFO, seed-stable random, and scored election.
+- Built-in scorers include idle time, success rate, candidate weight, and
+  weighted composition.
 - Public errors are sentinel errors and should be compared with `errors.Is`.
 - Backend renewal failures should cause `IsLeader` to return false.
 
