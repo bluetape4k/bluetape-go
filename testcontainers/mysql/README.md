@@ -1,5 +1,7 @@
 # testcontainers/mysql
 
+[English](README.md) | [한국어](README.ko.md)
+
 `testcontainers/mysql` starts a MySQL container for integration tests and
 returns a DSN suitable for `database/sql` with the MySQL driver.
 

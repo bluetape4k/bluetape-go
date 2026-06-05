@@ -1,5 +1,7 @@
 # serialization
 
+[English](README.md) | [한국어](README.ko.md)
+
 `serialization` defines small serializer contracts for storage, cache, and
 message payloads. The package favors explicit formats and safe decoding over
 unsafe object deserialization.

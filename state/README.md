@@ -1,5 +1,7 @@
 # state
 
+[English](README.md) | [한국어](README.ko.md)
+
 `state` provides small finite state machine primitives for ordinary Go code.
 It keeps the API framework-free: callers define comparable state and event
 values, explicit transitions, optional guards, and final states.

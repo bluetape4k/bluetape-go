@@ -1,5 +1,7 @@
 # cache/rediscoord
 
+[English](README.md) | [한국어](README.ko.md)
+
 `cache/rediscoord` is an opt-in Redis coordination wrapper for cross-process
 cache stampede protection. It wraps an existing
 `cache.LoadingCache[string,V]`, including `cache/redisnear.NearCache`, and lets

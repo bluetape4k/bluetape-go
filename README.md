@@ -18,12 +18,13 @@ caching, workflow, batch, graph, text, audit, and AWS-adjacent service code.
 
 ## Current Status
 
-`bluetape-go` is on the `0.3.0` release line. The repository already
+`bluetape-go` has published the `0.3.0` release line. The repository already
 contains foundation utilities, codecs, compression, concurrency helpers,
 serialization contracts, Redis-backed leader election, resilience policies, the
-cache and Redis coordination packages, and token-bucket rate limiting.
-This release line also adds pluggable leader election strategies for candidate-registry
-coordination.
+cache and Redis coordination packages, token-bucket rate limiting, and
+pluggable leader election strategies for candidate-registry coordination.
+Development for the `0.4.0` line has started with finite state machine
+primitives in `state`.
 
 ## Packages
 
@@ -51,6 +52,7 @@ coordination.
 | [`lock/redis`](lock/redis/README.md) | active | Redis single-instance owner-token lock with TTL acquisition and owner-safe Lua unlock. |
 | [`ratelimit`](ratelimit/README.md) | active | Process-local keyed token-bucket limiter and `net/http` middleware. |
 | [`ratelimit/redis`](ratelimit/redis/README.md) | active | Redis-backed token-bucket limiter with atomic Lua consume/refill and idle key expiration. |
+| [`state`](state/README.md) | active | Small finite state machine primitives with typed transitions, guards, final states, and sentinel errors. |
 
 Next planned package families include `workflow`, `batch`, `id`, `jwt`,
 `graph`, `text`, `audit`, and AWS helper/example packages.
@@ -76,10 +78,10 @@ benchmarks live next to each package:
 - Coordination: [`leader`](leader/README.md),
   [`leader/redis`](leader/redis/README.md), and
   [`lock/redis`](lock/redis/README.md).
-- Runtime policies and cache: [`resilience`](resilience/README.md),
+- Runtime policies, cache, and state: [`resilience`](resilience/README.md),
   [`cache`](cache/README.md), [`cache/redisnear`](cache/redisnear/README.md),
-  [`cache/rediscoord`](cache/rediscoord/README.md), and
-  [`ratelimit`](ratelimit/README.md).
+  [`cache/rediscoord`](cache/rediscoord/README.md), [`ratelimit`](ratelimit/README.md),
+  and [`state`](state/README.md).
 
 ## Roadmap
 

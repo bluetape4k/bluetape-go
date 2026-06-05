@@ -1,5 +1,7 @@
 # leader/redis
 
+[English](README.md) | [한국어](README.ko.md)
+
 `leader/redis` implements `leader.Elector`, `leader.GroupElector`, and
 `leader.StrategicElector` with Redis TTL ownership. Use it when only one
 replica, a bounded number of replicas, or one strategy-elected candidate may

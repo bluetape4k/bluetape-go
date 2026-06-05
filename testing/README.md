@@ -1,5 +1,7 @@
 # testing
 
+[English](README.md) | [한국어](README.ko.md)
+
 `testing` provides small asynchronous assertion helpers for bluetape-go tests.
 Use it when a condition should become true eventually or should remain true for
 a short observation window.

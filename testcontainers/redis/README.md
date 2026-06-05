@@ -1,5 +1,7 @@
 # testcontainers/redis
 
+[English](README.md) | [한국어](README.ko.md)
+
 `testcontainers/redis` starts a Redis container for integration tests and
 returns the mapped `host:port` address.
 

@@ -1,5 +1,7 @@
 # compression
 
+[English](README.md) | [한국어](README.ko.md)
+
 `compression` provides explicit compressor adapters with byte and stream
 operations. Standard-library algorithms cover gzip, zlib, and raw deflate;
 focused Go dependencies provide zstd, lz4, and snappy.

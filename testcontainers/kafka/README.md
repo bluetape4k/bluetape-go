@@ -1,5 +1,7 @@
 # testcontainers/kafka
 
+[English](README.md) | [한국어](README.ko.md)
+
 `testcontainers/kafka` starts a Kafka container for integration tests and
 returns at least one broker address.
 
