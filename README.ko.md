@@ -21,9 +21,9 @@ fixture, resilience, cache, workflow, batch, graph, text, audit, AWS 관련
 utility, codec, compression, concurrency helper, serialization contract,
 Redis 기반 leader election, resilience policy, cache/Redis coordination package,
 token-bucket rate limiting, candidate registry 기반 pluggable leader election
-strategy가 들어 있습니다. `0.4.0` 개발은 `state`, `workreport`, `workflow`의
-finite state machine primitive, workflow report, lightweight workflow runner를
-추가했습니다.
+strategy가 들어 있습니다. `0.4.0` milestone은 닫혔고 릴리스 준비 단계입니다.
+이번 milestone은 `state`, `workreport`, `workflow`의 finite state machine
+primitive, workflow report, lightweight workflow runner를 추가했습니다.
 
 ## 패키지
 

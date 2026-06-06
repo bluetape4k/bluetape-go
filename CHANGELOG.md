@@ -31,6 +31,8 @@ and this project uses semantic versioning once the first tag is published.
 
 - Every package-level `README.md` now has a sibling `README.ko.md` and a
   consistent `English | 한국어` language switch.
+- Root README, WIP, and release guide now reflect the closed `0.4.0` milestone
+  and `v0.4.0` release-preparation state.
 
 ## [v0.3.0] - 2026-06-05
 

@@ -23,9 +23,9 @@ contains foundation utilities, codecs, compression, concurrency helpers,
 serialization contracts, Redis-backed leader election, resilience policies, the
 cache and Redis coordination packages, token-bucket rate limiting, and
 pluggable leader election strategies for candidate-registry coordination.
-Development for the `0.4.0` line has added finite state machine primitives,
-workflow reports, and lightweight workflow runners in `state`, `workreport`,
-and `workflow`.
+The `0.4.0` milestone is closed and ready for release preparation; it adds
+finite state machine primitives, workflow reports, and lightweight workflow
+runners in `state`, `workreport`, and `workflow`.
 
 ## Packages
 
