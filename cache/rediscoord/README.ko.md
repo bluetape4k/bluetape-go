@@ -6,6 +6,10 @@
 
 이 패키지는 durable Redis L2 cache가 아닙니다. Redis에는 active load attempt를 위한 짧은 수명의 owner-token result envelope만 저장됩니다.
 
+## Diagram
+
+![Redis cache stampede coordination flow](../../docs/images/readme-diagrams/rediscoord-cold-burst-coordination.png)
+
 ## 가져오기
 
 ```go

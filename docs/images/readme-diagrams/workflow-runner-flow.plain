@@ -1,0 +1,21 @@
+graph 1 13.338 4.6097
+node caller 0.755 0.30139 1.51 0.60278 <<FONT FACE="Architects Daughter" POINT-SIZE="18"><B>Caller</B></FONT><BR/><FONT FACE="Comic Mono" POINT-SIZE="11">context.Context</FONT>> rounded,filled box #93C5FD #EBF4FF
+node runner 3.1678 1.6486 1.76 0.60278 <<FONT FACE="Architects Daughter" POINT-SIZE="18"><B>Runner</B></FONT><BR/><FONT FACE="Comic Mono" POINT-SIZE="11">Run(ctx) -&gt; Report</FONT>> rounded,filled box #C4B5FD #FAF5FF
+node sequential 5.8722 3.7181 1.8433 0.75556 <<FONT FACE="Architects Daughter" POINT-SIZE="18"><B>Sequential</B></FONT><BR/><FONT FACE="Comic Mono" POINT-SIZE="11">input order</FONT><BR/><FONT FACE="Comic Mono" POINT-SIZE="11">policy decides stop</FONT>> rounded,filled box #7DD3FC #F0F9FF
+node conditional 5.8722 2.3431 1.8433 0.75556 <<FONT FACE="Architects Daughter" POINT-SIZE="18"><B>Conditional</B></FONT><BR/><FONT FACE="Comic Mono" POINT-SIZE="11">predicate once</FONT><BR/><FONT FACE="Comic Mono" POINT-SIZE="11">one selected branch</FONT>> rounded,filled box #86EFAC #F0FDF4
+node parallel 5.8722 0.96806 2.0933 0.75556 <<FONT FACE="Architects Daughter" POINT-SIZE="18"><B>Parallel</B></FONT><BR/><FONT FACE="Comic Mono" POINT-SIZE="11">shared cancellable ctx</FONT><BR/><FONT FACE="Comic Mono" POINT-SIZE="11">preserve child order</FONT>> rounded,filled box #FCD34D #FFF7ED
+node aggregate 9.1392 2.3014 2.885 0.60278 <<FONT FACE="Architects Daughter" POINT-SIZE="18"><B>workreport.Aggregate</B></FONT><BR/><FONT FACE="Comic Mono" POINT-SIZE="11">child reports + policy</FONT>> rounded,filled box #FDE047 #FEF9C3
+node report 12.349 1.6208 1.9788 0.75556 <<FONT FACE="Architects Daughter" POINT-SIZE="18"><B>Parent Report</B></FONT><BR/><FONT FACE="Comic Mono" POINT-SIZE="11">completed / partial</FONT><BR/><FONT FACE="Comic Mono" POINT-SIZE="11">failed / cancelled</FONT>> rounded,filled box #FDA4AF #FFF1F2
+node cancel 9.1392 0.96806 2.3433 0.75556 <<FONT FACE="Architects Daughter" POINT-SIZE="18"><B>Cancellation</B></FONT><BR/><FONT FACE="Comic Mono" POINT-SIZE="11">ctx error stops work</FONT><BR/><FONT FACE="Comic Mono" POINT-SIZE="11">parallel cancels siblings</FONT>> rounded,filled box #FCA5A5 #FEE2E2
+edge caller runner 7 0.75486 0.61385 0.75486 1.0118 0.75486 1.6486 0.75486 1.6486 0.75486 1.6486 2.123 1.6486 2.123 1.6486 solid #475569
+edge caller cancel 7 1.5217 0.29514 3.5925 0.29514 9.1438 0.29514 9.1438 0.29514 9.1438 0.29514 9.1438 0.42736 9.1438 0.42736 solid #EF4444
+edge runner sequential 7 3.1715 1.9584 3.1715 2.5357 3.1715 3.7181 3.1715 3.7181 3.1715 3.7181 4.7859 3.7181 4.7859 3.7181 solid #475569
+edge runner conditional 7 4.0587 1.7993 4.8447 1.7993 5.866 1.7993 5.866 1.7993 5.866 1.7993 5.866 1.8147 5.866 1.8147 solid #475569
+edge runner parallel 7 4.056 1.6486 4.4789 1.6486 4.8938 1.6486 4.8938 1.6486 4.8938 1.6486 4.8938 1.5092 4.8938 1.5092 solid #475569
+edge sequential aggregate 7 6.8053 3.7181 7.7723 3.7181 9.1438 3.7181 9.1438 3.7181 9.1438 3.7181 9.1438 2.7654 9.1438 2.7654 solid #475569
+edge conditional aggregate 4 6.804 2.4019 6.804 2.4019 7.5343 2.4019 7.5343 2.4019 solid #475569
+edge parallel aggregate 7 6.8521 1.3581 6.8521 1.7193 6.8521 2.2009 6.8521 2.2009 6.8521 2.2009 7.5311 2.2009 7.5311 2.2009 solid #475569
+edge parallel cancel 4 6.9284 0.96806 6.9284 0.96806 7.8033 0.96806 7.8033 0.96806 solid #EF4444
+edge aggregate report 7 10.449 1.9884 10.449 1.7628 10.449 1.4979 10.449 1.4979 10.449 1.4979 11.196 1.4979 11.196 1.4979 solid #475569
+edge cancel report 4 10.321 1.2944 10.321 1.2944 11.196 1.2944 11.196 1.2944 solid #EF4444
+stop

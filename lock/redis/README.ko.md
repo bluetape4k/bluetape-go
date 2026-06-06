@@ -4,6 +4,10 @@
 
 `lock/redis`는 TTL cleanup과 owner-safe unlock semantic이 필요한 coordination 작업을 위해 작은 single-Redis-instance owner-token lock을 제공합니다.
 
+## Diagram
+
+![Redis lock owner-token lifecycle](../../docs/images/readme-diagrams/redis-lock-owner-token-lifecycle.png)
+
 ## 가져오기
 
 ```go

@@ -7,6 +7,10 @@
 replica, a bounded number of replicas, or one strategy-elected candidate may
 run a coordination lane.
 
+## Diagram
+
+![Redis leader election lifecycle](../../docs/images/readme-diagrams/redis-leader-election-lifecycle.png)
+
 ## Import
 
 ```go

@@ -9,6 +9,10 @@ The package is intentionally small: it has sequential, conditional, and
 all-branches parallel runners. It does not provide a durable workflow engine,
 retry scheduler, Kotlin-style DSL, or mutable shared `WorkContext` map.
 
+## Diagram
+
+![workflow runner flow](../docs/images/readme-diagrams/workflow-runner-flow.png)
+
 ## Example
 
 ```go

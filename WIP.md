@@ -2,7 +2,7 @@
 
 Snapshot: 2026-06-06 KST
 Scope: milestone `0.4.0` start.
-Remaining after #137: 3 issues in milestone `0.4.0`.
+Remaining after #134: 1 issue in milestone `0.4.0`.
 
 ## Current Release
 
@@ -24,12 +24,13 @@ Remaining after #137: 3 issues in milestone `0.4.0`.
 - Issue #132 verifies package-level README coverage and root package indexes
   for the new 0.4.0 package surface.
 - Issue #137 verifies compile-checked runnable examples for new 0.4.0 APIs.
-- Issues #133 and #134 track README diagram completion.
+- Issues #133 and #134 verify README diagram coverage for the 0.4.0 state and
+  workflow primitives plus complex Redis coordination packages.
 
 ## Release Checklist
 
-1. Close the diagram issues.
-2. Refresh README, WIP, and CHANGELOG before releasing `v0.4.0`.
+1. Close epic #4 after final README, WIP, and CHANGELOG verification.
+2. Release `v0.4.0`.
 
 ## Decision Log
 

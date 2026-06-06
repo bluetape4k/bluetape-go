@@ -6,6 +6,10 @@
 report-tree value를 제공합니다. Runner 실행과 분리되어 ordinary Go function과
 향후 `workflow` runner가 같은 result model을 공유할 수 있습니다.
 
+## Diagram
+
+![workreport failure policy flow](../docs/images/readme-diagrams/workreport-failure-policy-flow.png)
+
 ## 예제
 
 ```go

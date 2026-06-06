@@ -24,6 +24,8 @@ and this project uses semantic versioning once the first tag is published.
   `workreport`, and `workflow` package surface.
 - Package README links to compile-checked runnable examples for the 0.4.0
   `state`, `workreport`, and `workflow` APIs.
+- README diagram assets for 0.4.0 workflow primitives and complex Redis
+  coordination packages, with PNG-only README embeds and adjacent SVG sources.
 
 ### Changed
 
