@@ -21,8 +21,9 @@ fixture, resilience, cache, workflow, batch, graph, text, audit, AWS 관련
 utility, codec, compression, concurrency helper, serialization contract,
 Redis 기반 leader election, resilience policy, cache/Redis coordination package,
 token-bucket rate limiting, candidate registry 기반 pluggable leader election
-strategy가 들어 있습니다. `0.4.0` 개발은 `state`의 finite state machine
-primitive로 시작되었습니다.
+strategy가 들어 있습니다. `0.4.0` 개발은 `state`, `workreport`, `workflow`의
+finite state machine primitive, workflow report, lightweight workflow runner를
+추가했습니다.
 
 ## 패키지
 
@@ -51,9 +52,11 @@ primitive로 시작되었습니다.
 | [`ratelimit`](ratelimit/README.ko.md) | active | process-local keyed token-bucket limiter와 `net/http` middleware. |
 | [`ratelimit/redis`](ratelimit/redis/README.ko.md) | active | atomic Lua consume/refill과 idle key expiration을 쓰는 Redis-backed token-bucket limiter. |
 | [`state`](state/README.ko.md) | active | typed transition, guard, final state, sentinel error를 제공하는 작은 finite state machine primitive. |
+| [`workreport`](workreport/README.ko.md) | active | lightweight workflow code를 위한 status, failure-policy, report-tree value. |
+| [`workflow`](workflow/README.ko.md) | active | `context.Context`와 `workreport` 기반 sequential, conditional, all-branches parallel runner. |
 
-다음 계획 패키지군은 `workflow`, `batch`, `id`, `jwt`, `graph`, `text`,
-`audit`, AWS helper/example 패키지입니다.
+다음 계획 패키지군은 `batch`, `id`, `jwt`, `graph`, `text`, `audit`,
+AWS helper/example 패키지입니다.
 
 ## 설치
 
@@ -73,10 +76,11 @@ go get github.com/bluetape4k/bluetape-go
   fixture package README.
 - Coordination: [`leader`](leader/README.ko.md),
   [`leader/redis`](leader/redis/README.ko.md), [`lock/redis`](lock/redis/README.ko.md).
-- Runtime policy/cache/state: [`resilience`](resilience/README.ko.md),
+- Runtime policy/cache/state/workflow: [`resilience`](resilience/README.ko.md),
   [`cache`](cache/README.ko.md), [`cache/redisnear`](cache/redisnear/README.ko.md),
   [`cache/rediscoord`](cache/rediscoord/README.ko.md), [`ratelimit`](ratelimit/README.ko.md),
-  [`state`](state/README.ko.md).
+  [`state`](state/README.ko.md), [`workreport`](workreport/README.ko.md),
+  [`workflow`](workflow/README.ko.md).
 
 ## Roadmap
 
