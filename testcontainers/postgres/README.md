@@ -1,5 +1,7 @@
 # testcontainers/postgres
 
+[English](README.md) | [한국어](README.ko.md)
+
 `testcontainers/postgres` starts a PostgreSQL container for integration tests
 and returns a connection string with `sslmode=disable`.
 

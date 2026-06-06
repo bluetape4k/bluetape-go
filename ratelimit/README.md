@@ -1,5 +1,7 @@
 # ratelimit
 
+[English](README.md) | [한국어](README.ko.md)
+
 `ratelimit` provides a process-local keyed token-bucket limiter and
 standard-library HTTP middleware. It is intended for in-process request guards,
 tenant throttles, and tests that need deterministic rejection diagnostics.

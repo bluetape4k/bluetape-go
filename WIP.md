@@ -1,49 +1,49 @@
 # WIP
 
-Snapshot: 2026-06-05 KST
-Scope: release status for `0.3.0`.
-Open count: 0 issues in milestone `0.3.0`.
+Snapshot: 2026-06-06 KST
+Scope: `v0.5.0` planning after `v0.4.0` release promotion.
+Remaining before `v0.4.0`: tag `main` as `v0.4.0` and create the GitHub
+Release after the release PR merges.
 
-## Current Release
+## Current Target Release
 
-`0.3.0` - Cache and distributed coordination primitives.
+`0.5.0` - Batch processing with checkpoints and leader-guarded examples.
 
 ## Current State
 
-- `0.1.0`, `0.1.1`, and `0.2.0` are tagged and released.
-- `0.3.0` implementation work is complete on `develop`.
-- Issue #22 is closed with Type A research/spec/plan/review/lessons artifacts,
-  generic cache interfaces, in-process TTL memory cache, `GetOrLoad`
-  same-key stampede protection, and stress/cancellation coverage.
-- Issue #23 is closed with Redis Pub/Sub near-cache invalidation and
-  Testcontainers peer invalidation coverage.
-- Issue #107 is closed with opt-in cache benchmark baselines, so performance
-  measurements stay outside ordinary package tests.
-- Issue #24 is closed with Redis owner-token distributed lock implementation,
-  expiration/contention coverage, and stress/cancellation tests.
-- Issue #117 is closed with Type A research/spec/plan/review artifacts and a
-  Redis coordination wrapper for cross-process cache stampede protection.
-- Issue #123 is closed with package-specific usage, behavior, and benchmark
-  notes moved into package-level README files.
-- Issue #125 is closed with Go coverage reports published from CI and Nightly.
-- Issue #25 is closed with local plus Redis-backed token-bucket rate limiter
-  implementation, Testcontainers coverage, stress/cancellation tests, and local
-  benchmark coverage.
-- Issue #86 is closed with strategy-based leader election, Redis-backed
-  candidate registry, Testcontainers coverage, stress/cancellation tests, and
-  local 7-tier review evidence.
-- Issue #3, the 0.3.0 epic, is closed after verifying all child issues.
-- Regular CI and Nightly workflows continue to run Testcontainers-backed tests
-  against real containers and now publish Go coverage artifacts.
+- `0.1.0`, `0.1.1`, `0.2.0`, and `0.3.0` are tagged and released.
+- Issue #3 and milestone `0.3.0` are closed.
+- Milestone `0.4.0` is closed with 0 open issues and ready for the `v0.4.0`
+  tag plus GitHub Release.
+- Epic #4 completed the state machine and lightweight workflow primitive scope.
+- Issue #135 refreshed source-grounded research, milestone spec, and
+  implementation sequencing before package work began.
+- Issue #26 delivered the independent `state` finite state machine package.
+- Issue #28 delivered the shared `workreport` result and failure-policy model.
+- Issue #27 delivered `workflow` sequential, parallel, and conditional runners
+  after `workreport` exists.
+- Issue #136 verifies the milestone stress/cancellation gate for 0.4.0
+  concurrency and timing contracts.
+- Issue #132 verifies package-level README coverage and root package indexes
+  for the new 0.4.0 package surface.
+- Issue #137 verifies compile-checked runnable examples for new 0.4.0 APIs.
+- Issues #133 and #134 verify README diagram coverage for the 0.4.0 state and
+  workflow primitives plus complex Redis coordination packages.
 
 ## Release Checklist
 
-1. Close the GitHub milestone `0.3.0`.
-2. Promote `develop` to `main` through a release PR.
-3. Tag the merged `main` commit as `v0.3.0`.
-4. Create the GitHub Release from `CHANGELOG.md`.
-5. Update downstream Go modules, such as `bluetape-go-workshop`, to require
-   `github.com/bluetape4k/bluetape-go v0.3.0`.
+1. Promote `develop` to `main` through the `v0.4.0` release PR.
+2. Tag `main` as `v0.4.0`.
+3. Create GitHub Release `v0.4.0` from the changelog section.
+
+## Next Milestone Queue
+
+Milestone `0.5.0` is open with four issues:
+
+- #5 `[Epic] 0.5.0 Batch processing with checkpoints`
+- #29 `Design batch reader processor writer core` (`priority: p0`)
+- #30 `Implement retry skip and checkpoint policies for batch` (`priority: p0`)
+- #31 `Add batch examples for scheduler and migration workloads`
 
 ## Decision Log
 
@@ -66,6 +66,13 @@ Open count: 0 issues in milestone `0.3.0`.
   concurrency or timing semantics are part of the contract.
 - Refresh README, WIP, and CHANGELOG after milestone merges, not only at tag
   time.
+- Keep package-level Korean README siblings synchronized with English package
+  README changes.
 - Use Go native coverage reports for bluetape-go CI/Nightly first; defer
   third-party coverage SaaS uploads or threshold enforcement until the baseline
   is stable.
+- Start 0.4.0 with `state`, `workreport`, and `workflow` as separate packages;
+  do not mechanically port Kotlin DSL, coroutine, reactive, or Virtual Thread
+  layers.
+- Keep workflow runners `context.Context`-driven and first-party; avoid durable
+  orchestration engines in 0.4.0.

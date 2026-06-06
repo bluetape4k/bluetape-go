@@ -1,8 +1,14 @@
 # cache/redisnear
 
+[English](README.md) | [한국어](README.ko.md)
+
 `cache/redisnear` adds Redis Pub/Sub invalidation around a process-local
 `cache.LoadingCache[string,V]`. Redis is the invalidation bus only; values stay
 inside each process-local cache.
+
+## Diagram
+
+![Redis near-cache invalidation sequence](../../docs/images/readme-diagrams/redisnear-invalidation-sequence.png)
 
 ## Import
 

@@ -1,5 +1,7 @@
 # concurrency
 
+[English](README.md) | [한국어](README.ko.md)
+
 `concurrency` provides context-aware goroutine helpers built around
 `golang.org/x/sync/errgroup`: task groups, bounded parallel map/for-each, a
 simple worker pool, and panic-to-error conversion.

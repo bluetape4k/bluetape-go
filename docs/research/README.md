@@ -1,5 +1,7 @@
 # Research Index
 
+[English](README.md) | [한국어](README.ko.md)
+
 Milestone research notes connect bluetape4k source capabilities to Go package
 scope, dependency candidates, and GitHub issues.
 
