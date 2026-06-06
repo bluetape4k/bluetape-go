@@ -106,23 +106,26 @@ go test ./...
    - Commit `go.mod` and `go.sum` changes.
    - Open a PR in the consumer repository.
 
-## `v0.3.0` Release Plan
+## `v0.4.0` Release Plan
 
-`v0.3.0` contains cache and distributed coordination primitives:
+`v0.4.0` contains state machine and lightweight workflow primitives:
 
-- Generic local cache interfaces and `Memory` cache.
-- Redis Pub/Sub near-cache invalidation.
-- Redis owner-token distributed locks.
-- Redis load coordination for cross-process stampede protection.
-- Local and Redis-backed token-bucket rate limiting.
-- Strategy-based leader election with Redis candidate registry.
-- CI and Nightly Go coverage reports.
-- Package-level README files and benchmark evidence.
+- `state` finite state machine primitives with typed transitions, guards, final
+  states, deterministic transition errors, examples, and stress/cancellation
+  coverage.
+- `workreport` status, failure-policy, and report-tree values with deterministic
+  aggregation, zero-value safety checks, examples, and stress/cancellation
+  coverage.
+- `workflow` sequential, conditional, and all-branches parallel runners built on
+  `context.Context` and `workreport`, including cancellation, race-compatible
+  stress coverage, and compile-checked examples.
+- Package README coverage, root package indexes, runnable example links, and
+  README diagram assets for the new workflow surface.
 
 Release sequence:
 
-1. Close milestone `0.3.0`.
+1. Verify milestone `0.4.0` is closed with zero open issues.
 2. Merge `develop` into `main` through a release PR.
-3. Tag `main` as `v0.3.0`.
-4. Create GitHub Release `v0.3.0`.
-5. Update `bluetape-go-workshop` to require `github.com/bluetape4k/bluetape-go v0.3.0`.
+3. Tag `main` as `v0.4.0`.
+4. Create GitHub Release `v0.4.0`.
+5. Update downstream consumers that should require `github.com/bluetape4k/bluetape-go v0.4.0`.

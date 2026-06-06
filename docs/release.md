@@ -20,20 +20,18 @@ Use semantic versioning once the first tag is published.
 Before `v1.0.0`, public APIs may still change. Document breaking changes in
 `CHANGELOG.md`.
 
-## `v0.1.0` Tag Criteria
+## Release Tag Criteria
 
-- `README.md` and `README.ko.md` are current.
-- `CHANGELOG.md` has an `Unreleased` section that can become `v0.1.0`.
-- `docs/research/2026-06-01-milestone-0.1.0-foundation-research.md` reflects
-  final release scope.
+- `README.md` and `README.ko.md` are current for the release scope.
+- `CHANGELOG.md` has an `Unreleased` section that can become the target
+  `vX.Y.Z` section.
+- `WIP.md` records the target release-preparation state.
+- The matching milestone is closed with zero open issues.
 - `make ci` passes locally.
 - GitHub Actions CI passes on `develop`.
 - Nightly `smoke` or `testcontainers` scope passes with real Testcontainers
   execution.
-- Redis leader API semantics are documented.
-- Redis compatibility decision with `bluetape4k-leader` is documented.
-- At least two representative examples exist or the missing examples are listed
-  in release notes as deferred.
+- Public package semantics, examples, and release notes are documented.
 
 ## Changelog Rule
 

@@ -1,10 +1,10 @@
 # WIP
 
 Snapshot: 2026-06-06 KST
-Scope: milestone `0.4.0` closure.
-Remaining after #4 cleanup: 0 issues in milestone `0.4.0`.
+Scope: `v0.4.0` release preparation.
+Remaining before `v0.4.0`: 0 open issues in milestone `0.4.0`.
 
-## Current Release
+## Current Target Release
 
 `0.4.0` - State machine and lightweight workflow primitives.
 
@@ -12,6 +12,7 @@ Remaining after #4 cleanup: 0 issues in milestone `0.4.0`.
 
 - `0.1.0`, `0.1.1`, `0.2.0`, and `0.3.0` are tagged and released.
 - Issue #3 and milestone `0.3.0` are closed.
+- Milestone `0.4.0` is closed with 0 open issues.
 - Epic #4 completed the state machine and lightweight workflow primitive scope.
 - Issue #135 refreshed source-grounded research, milestone spec, and
   implementation sequencing before package work began.
@@ -29,8 +30,9 @@ Remaining after #4 cleanup: 0 issues in milestone `0.4.0`.
 
 ## Release Checklist
 
-1. Close epic #4 and milestone `0.4.0` after this cleanup lands.
-2. Release `v0.4.0`.
+1. Promote `develop` to `main` through a release PR.
+2. Tag `main` as `v0.4.0`.
+3. Create GitHub Release `v0.4.0` from the changelog section.
 
 ## Decision Log
 
