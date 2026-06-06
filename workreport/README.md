@@ -6,6 +6,10 @@
 lightweight workflow code. It is independent from runner execution so ordinary
 Go functions and future `workflow` runners can share the same result model.
 
+## Diagram
+
+![workreport failure policy flow](../docs/images/readme-diagrams/workreport-failure-policy-flow.png)
+
 ## Example
 
 ```go

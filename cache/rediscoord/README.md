@@ -10,6 +10,10 @@ waiters reuse the winning loader result for a cold burst.
 This package is not a durable Redis L2 cache. Redis stores only a short-lived
 owner-token result envelope for the active load attempt.
 
+## Diagram
+
+![Redis cache stampede coordination flow](../../docs/images/readme-diagrams/rediscoord-cold-burst-coordination.png)
+
 ## Import
 
 ```go

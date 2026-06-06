@@ -1,0 +1,17 @@
+graph 1 14.151 4.2694
+node single 1.156 3.1278 2.01 0.75556 <<FONT FACE="Architects Daughter" POINT-SIZE="18"><B>Single Elector</B></FONT><BR/><FONT FACE="Comic Mono" POINT-SIZE="11">SET NX memberID:token</FONT><BR/><FONT FACE="Comic Mono" POINT-SIZE="11">Redis TTL key</FONT>> rounded,filled box #93C5FD #EBF4FF
+node group 1.156 1.7528 1.9475 0.75556 <<FONT FACE="Architects Daughter" POINT-SIZE="18"><B>Group Elector</B></FONT><BR/><FONT FACE="Comic Mono" POINT-SIZE="11">ZSET slot tokens</FONT><BR/><FONT FACE="Comic Mono" POINT-SIZE="11">MaxLeaders</FONT>> rounded,filled box #86EFAC #F0FDF4
+node strategic 1.156 0.37778 2.3121 0.75556 <<FONT FACE="Architects Daughter" POINT-SIZE="18"><B>Strategic Elector</B></FONT><BR/><FONT FACE="Comic Mono" POINT-SIZE="11">candidate JSON</FONT><BR/><FONT FACE="Comic Mono" POINT-SIZE="11">index + strategy</FONT>> rounded,filled box #C4B5FD #FAF5FF
+node campaign 4.0532 1.7528 1.9267 0.75556 <<FONT FACE="Architects Daughter" POINT-SIZE="18"><B>Campaign</B></FONT><BR/><FONT FACE="Comic Mono" POINT-SIZE="11">wait until acquired</FONT><BR/><FONT FACE="Comic Mono" POINT-SIZE="11">or context cancelled</FONT>> rounded,filled box #FCD34D #FFF7ED
+node renew 6.9243 3.3778 2.26 0.75556 <<FONT FACE="Architects Daughter" POINT-SIZE="18"><B>Renew Loop</B></FONT><BR/><FONT FACE="Comic Mono" POINT-SIZE="11">refresh TTL</FONT><BR/><FONT FACE="Comic Mono" POINT-SIZE="11">background after success</FONT>> rounded,filled box #FDE047 #FEF9C3
+node run 10.014 3.3361 2.3642 0.60278 <<FONT FACE="Architects Daughter" POINT-SIZE="18"><B>Coordination Lane</B></FONT><BR/><FONT FACE="Comic Mono" POINT-SIZE="11">leader-only work</FONT>> rounded,filled box #6EE7B7 #ECFDF5
+node resign 13.062 1.7528 2.1767 0.75556 <<FONT FACE="Architects Daughter" POINT-SIZE="18"><B>Resign / Prune</B></FONT><BR/><FONT FACE="Comic Mono" POINT-SIZE="11">owner-safe release</FONT><BR/><FONT FACE="Comic Mono" POINT-SIZE="11">expired members removed</FONT>> rounded,filled box #FDA4AF #FFF1F2
+edge single campaign 7 2.1712 2.875 2.8926 2.875 3.734 2.875 3.734 2.875 3.734 2.875 3.734 2.2921 3.734 2.2921 solid #475569
+edge group campaign 4 2.1409 1.8787 2.1409 1.8787 2.9277 1.8787 2.9277 1.8787 solid #475569
+edge strategic campaign 7 2.234 0.76615 2.234 1.1328 2.234 1.6269 2.234 1.6269 2.234 1.6269 2.9265 1.6269 2.9265 1.6269 solid #475569
+edge campaign renew 7 4.3729 2.143 4.3729 2.5874 4.3729 3.2528 4.3729 3.2528 4.3729 3.2528 5.6298 3.2528 5.6298 3.2528 solid #16A34A
+edge campaign resign 4 5.0259 1.8787 5.0259 1.8787 11.811 1.8787 11.811 1.8787 solid #EF4444
+edge renew run 4 8.0661 3.3361 8.0661 3.3361 8.667 3.3361 8.667 3.3361 solid #475569
+edge run resign 7 11.208 3.3361 12.064 3.3361 13.067 3.3361 13.067 3.3361 13.067 3.3361 13.067 2.2933 13.067 2.2933 solid #475569
+edge resign campaign 4 11.962 1.6269 11.962 1.6269 5.1767 1.6269 5.1767 1.6269 solid #7C3AED
+stop

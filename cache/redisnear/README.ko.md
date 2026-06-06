@@ -4,6 +4,10 @@
 
 `cache/redisnear`는 process-local `cache.LoadingCache[string,V]` 주변에 Redis Pub/Sub invalidation을 추가합니다. Redis는 invalidation bus로만 사용되며 값은 각 process-local cache 안에 남습니다.
 
+## Diagram
+
+![Redis near-cache invalidation sequence](../../docs/images/readme-diagrams/redisnear-invalidation-sequence.png)
+
 ## 가져오기
 
 ```go

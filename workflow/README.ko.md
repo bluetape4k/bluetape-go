@@ -9,6 +9,10 @@
 parallel runner만 제공하며 durable workflow engine, retry scheduler,
 Kotlin-style DSL, mutable shared `WorkContext` map을 제공하지 않습니다.
 
+## Diagram
+
+![workflow runner flow](../docs/images/readme-diagrams/workflow-runner-flow.png)
+
 ## 예제
 
 ```go

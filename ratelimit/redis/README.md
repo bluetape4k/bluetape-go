@@ -6,6 +6,10 @@
 processes. Each `Allow` call runs one Redis Lua script that refills, consumes,
 stores bucket state, and refreshes key expiration atomically.
 
+## Diagram
+
+![Redis token-bucket rate limit flow](../../docs/images/readme-diagrams/redis-ratelimit-token-bucket-flow.png)
+
 ## Install
 
 ```go

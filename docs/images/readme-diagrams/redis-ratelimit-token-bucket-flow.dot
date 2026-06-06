@@ -1,0 +1,53 @@
+digraph G {
+
+graph [
+  bgcolor="#F8FAFC",
+  pad="0.28",
+  nodesep="0.62",
+  ranksep="0.78",
+  splines=ortho,
+  fontname="Comic Mono",
+  fontsize=15,
+  labelloc=t,
+  labeljust=c
+];
+node [
+  shape=box,
+  style="rounded,filled",
+  penwidth=1.8,
+  margin="0.13,0.10",
+  fontname="Comic Mono",
+  fontsize=12,
+  color="#CBD5E1",
+  fillcolor="white",
+  fontcolor="#1E293B"
+];
+edge [
+  color="#475569",
+  penwidth=2.0,
+  arrowsize=0.8,
+  fontname="Comic Mono",
+  fontsize=11,
+  fontcolor="#334155"
+];
+
+graph [rankdir=LR, label=<<FONT FACE="Architects Daughter" POINT-SIZE="18"><B>ratelimit/redis - Token Bucket Flow</B></FONT><BR/><FONT FACE="Comic Mono" POINT-SIZE="11">source-grounded README diagram</FONT>>];
+
+caller [label=<<FONT FACE="Architects Daughter" POINT-SIZE="18"><B>Caller</B></FONT><BR/><FONT FACE="Comic Mono" POINT-SIZE="11">Allow(ctx, key, tokens)</FONT>> fillcolor="#EBF4FF" color="#93C5FD"];
+validate [label=<<FONT FACE="Architects Daughter" POINT-SIZE="18"><B>Validate</B></FONT><BR/><FONT FACE="Comic Mono" POINT-SIZE="11">key length</FONT><BR/><FONT FACE="Comic Mono" POINT-SIZE="11">tokens &lt;= burst</FONT>> fillcolor="#FAF5FF" color="#C4B5FD"];
+script [label=<<FONT FACE="Architects Daughter" POINT-SIZE="18"><B>Redis Lua Script</B></FONT><BR/><FONT FACE="Comic Mono" POINT-SIZE="11">TIME + HMGET</FONT><BR/><FONT FACE="Comic Mono" POINT-SIZE="11">atomic refill/consume</FONT>> fillcolor="#FFF7ED" color="#FCD34D"];
+bucket [label=<<FONT FACE="Architects Daughter" POINT-SIZE="18"><B>Bucket Hash</B></FONT><BR/><FONT FACE="Comic Mono" POINT-SIZE="11">tokens</FONT><BR/><FONT FACE="Comic Mono" POINT-SIZE="11">updated_ms</FONT>> fillcolor="#FEF9C3" color="#FDE047"];
+allowed [label=<<FONT FACE="Architects Daughter" POINT-SIZE="18"><B>Allowed Result</B></FONT><BR/><FONT FACE="Comic Mono" POINT-SIZE="11">remaining</FONT><BR/><FONT FACE="Comic Mono" POINT-SIZE="11">reset after</FONT>> fillcolor="#ECFDF5" color="#6EE7B7"];
+rejected [label=<<FONT FACE="Architects Daughter" POINT-SIZE="18"><B>Rejected Result</B></FONT><BR/><FONT FACE="Comic Mono" POINT-SIZE="11">retry after</FONT><BR/><FONT FACE="Comic Mono" POINT-SIZE="11">not an error</FONT>> fillcolor="#FFF1F2" color="#FDA4AF"];
+expire [label=<<FONT FACE="Architects Daughter" POINT-SIZE="18"><B>PEXPIRE</B></FONT><BR/><FONT FACE="Comic Mono" POINT-SIZE="11">IdleTTL bounds</FONT><BR/><FONT FACE="Comic Mono" POINT-SIZE="11">inactive keys</FONT>> fillcolor="#F0F9FF" color="#7DD3FC"];
+
+caller -> validate;
+validate -> script;
+validate -> rejected [color="#EF4444" fontcolor="#B91C1C"];
+script -> bucket;
+bucket -> script;
+script -> allowed [color="#16A34A" fontcolor="#166534"];
+script -> rejected [color="#F59E0B" fontcolor="#92400E"];
+script -> expire [color="#7C3AED" fontcolor="#5B21B6"];
+
+}
