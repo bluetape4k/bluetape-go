@@ -1,8 +1,8 @@
 # WIP
 
 Snapshot: 2026-06-06 KST
-Scope: milestone `0.4.0` start.
-Remaining after #134: 1 issue in milestone `0.4.0`.
+Scope: milestone `0.4.0` closure.
+Remaining after #4 cleanup: 0 issues in milestone `0.4.0`.
 
 ## Current Release
 
@@ -12,7 +12,7 @@ Remaining after #134: 1 issue in milestone `0.4.0`.
 
 - `0.1.0`, `0.1.1`, `0.2.0`, and `0.3.0` are tagged and released.
 - Issue #3 and milestone `0.3.0` are closed.
-- Epic #4 is open for state machine and lightweight workflow primitives.
+- Epic #4 completed the state machine and lightweight workflow primitive scope.
 - Issue #135 refreshed source-grounded research, milestone spec, and
   implementation sequencing before package work began.
 - Issue #26 delivered the independent `state` finite state machine package.
@@ -29,7 +29,7 @@ Remaining after #134: 1 issue in milestone `0.4.0`.
 
 ## Release Checklist
 
-1. Close epic #4 after final README, WIP, and CHANGELOG verification.
+1. Close epic #4 and milestone `0.4.0` after this cleanup lands.
 2. Release `v0.4.0`.
 
 ## Decision Log
