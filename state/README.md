@@ -28,6 +28,15 @@ if err != nil {
 result, err := machine.Transition(context.Background(), "pay")
 ```
 
+## Runnable Examples
+
+Compile-checked examples live in [`state_example_test.go`](state_example_test.go).
+Run them with:
+
+```bash
+go test ./state
+```
+
 ## Contracts
 
 - `Transition` applies one event or returns an error without mutating state.

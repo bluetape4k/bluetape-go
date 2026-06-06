@@ -26,6 +26,15 @@ if err != nil {
 result, err := machine.Transition(context.Background(), "pay")
 ```
 
+## 실행 가능한 예제
+
+Compile-checked 예제는 [`state_example_test.go`](state_example_test.go)에 있습니다.
+다음 명령으로 실행합니다.
+
+```bash
+go test ./state
+```
+
 ## 계약
 
 - `Transition`은 하나의 event를 적용하거나 state를 변경하지 않고 error를 반환합니다.

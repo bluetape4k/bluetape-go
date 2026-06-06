@@ -25,6 +25,16 @@ if report.IsPartial() {
 }
 ```
 
+## 실행 가능한 예제
+
+Sequential, conditional, parallel runner의 compile-checked 예제는
+[`workflow_example_test.go`](workflow_example_test.go)에 있습니다. 다음 명령으로
+실행합니다.
+
+```bash
+go test ./workflow
+```
+
 ## Runners
 
 - `Sequential`은 work를 input order대로 실행합니다. `StopOnFailure`는 첫 failed

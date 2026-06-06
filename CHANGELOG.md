@@ -22,6 +22,8 @@ and this project uses semantic versioning once the first tag is published.
   for `state`, `workreport`, and `workflow`.
 - Package README coverage and root README indexes for the 0.4.0 `state`,
   `workreport`, and `workflow` package surface.
+- Package README links to compile-checked runnable examples for the 0.4.0
+  `state`, `workreport`, and `workflow` APIs.
 
 ### Changed
 

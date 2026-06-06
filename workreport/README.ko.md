@@ -24,6 +24,16 @@ if report.IsPartial() {
 }
 ```
 
+## 실행 가능한 예제
+
+Aggregation과 cancellation report의 compile-checked 예제는
+[`workreport_example_test.go`](workreport_example_test.go)에 있습니다. 다음 명령으로
+실행합니다.
+
+```bash
+go test ./workreport
+```
+
 ## 상태
 
 - `StatusCompleted`: failed child 없이 work가 완료되었습니다.
