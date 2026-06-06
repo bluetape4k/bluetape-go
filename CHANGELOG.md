@@ -20,6 +20,8 @@ and this project uses semantic versioning once the first tag is published.
   stress, race, and compile-checked example coverage.
 - 0.4.0 stress/cancellation gate documenting required race-compatible coverage
   for `state`, `workreport`, and `workflow`.
+- Package README coverage and root README indexes for the 0.4.0 `state`,
+  `workreport`, and `workflow` package surface.
 
 ### Changed
 

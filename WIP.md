@@ -1,8 +1,8 @@
 # WIP
 
-Snapshot: 2026-06-05 KST
+Snapshot: 2026-06-06 KST
 Scope: milestone `0.4.0` start.
-Open count: 8 issues in milestone `0.4.0`.
+Remaining after #132: 4 issues in milestone `0.4.0`.
 
 ## Current Release
 
@@ -17,18 +17,19 @@ Open count: 8 issues in milestone `0.4.0`.
   implementation sequencing before package work began.
 - Issue #26 delivered the independent `state` finite state machine package.
 - Issue #28 delivered the shared `workreport` result and failure-policy model.
-- Issue #27 delivers `workflow` sequential, parallel, and conditional runners
+- Issue #27 delivered `workflow` sequential, parallel, and conditional runners
   after `workreport` exists.
 - Issue #136 verifies the milestone stress/cancellation gate for 0.4.0
   concurrency and timing contracts.
+- Issue #132 verifies package-level README coverage and root package indexes
+  for the new 0.4.0 package surface.
 - Issue #137 tracks compile-checked runnable examples for new 0.4.0 APIs.
-- Issues #132, #133, and #134 track package README and diagram completion.
+- Issues #133 and #134 track README diagram completion.
 
 ## Release Checklist
 
-1. Merge #27 `workflow`.
-2. Close the example, README, and diagram issues.
-3. Refresh README, WIP, and CHANGELOG before releasing `v0.4.0`.
+1. Close the example and diagram issues.
+2. Refresh README, WIP, and CHANGELOG before releasing `v0.4.0`.
 
 ## Decision Log
 
