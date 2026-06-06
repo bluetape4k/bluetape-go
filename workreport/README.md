@@ -24,6 +24,15 @@ if report.IsPartial() {
 }
 ```
 
+## Runnable Examples
+
+Compile-checked examples for aggregation and cancellation reports live in
+[`workreport_example_test.go`](workreport_example_test.go). Run them with:
+
+```bash
+go test ./workreport
+```
+
 ## Statuses
 
 - `StatusCompleted`: work finished without failed children.

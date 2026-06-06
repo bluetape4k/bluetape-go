@@ -2,7 +2,7 @@
 
 Snapshot: 2026-06-06 KST
 Scope: milestone `0.4.0` start.
-Remaining after #132: 4 issues in milestone `0.4.0`.
+Remaining after #137: 3 issues in milestone `0.4.0`.
 
 ## Current Release
 
@@ -23,12 +23,12 @@ Remaining after #132: 4 issues in milestone `0.4.0`.
   concurrency and timing contracts.
 - Issue #132 verifies package-level README coverage and root package indexes
   for the new 0.4.0 package surface.
-- Issue #137 tracks compile-checked runnable examples for new 0.4.0 APIs.
+- Issue #137 verifies compile-checked runnable examples for new 0.4.0 APIs.
 - Issues #133 and #134 track README diagram completion.
 
 ## Release Checklist
 
-1. Close the example and diagram issues.
+1. Close the diagram issues.
 2. Refresh README, WIP, and CHANGELOG before releasing `v0.4.0`.
 
 ## Decision Log

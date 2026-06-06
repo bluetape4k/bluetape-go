@@ -25,6 +25,15 @@ if report.IsPartial() {
 }
 ```
 
+## Runnable Examples
+
+Compile-checked examples for sequential, conditional, and parallel runners live
+in [`workflow_example_test.go`](workflow_example_test.go). Run them with:
+
+```bash
+go test ./workflow
+```
+
 ## Runners
 
 - `Sequential` runs work in input order. `StopOnFailure` stops at the first
