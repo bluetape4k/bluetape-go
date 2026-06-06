@@ -17,41 +17,46 @@ fixture, resilience, cache, workflow, batch, graph, text, audit, AWS 관련
 
 ## 현재 상태
 
-`bluetape-go`는 현재 `0.3.0` 릴리스 선에 있습니다. Repository에는 foundation
+`bluetape-go`는 `0.3.0` 릴리스 선을 배포했습니다. Repository에는 foundation
 utility, codec, compression, concurrency helper, serialization contract,
 Redis 기반 leader election, resilience policy, cache/Redis coordination package,
-token-bucket rate limiting이 들어 있습니다. 이 릴리스 선은 candidate registry 기반
-pluggable leader election strategy도 포함합니다.
+token-bucket rate limiting, candidate registry 기반 pluggable leader election
+strategy가 들어 있습니다. `0.4.0` milestone은 닫혔고 릴리스 준비 단계입니다.
+이번 milestone은 `state`, `workreport`, `workflow`의 finite state machine
+primitive, workflow report, lightweight workflow runner를 추가했습니다.
 
 ## 패키지
 
 | 패키지 | 상태 | 목적 |
 |---|---:|---|
-| [`core`](core/README.md) | active | 작은 공용 validation, zero/default, pointer, string, number helper. |
-| [`collections`](collections/README.md) | active | chunking, grouping, distinct, error-aware transform용 작은 generic slice/map helper. |
-| [`concurrency`](concurrency/README.md) | active | context-aware goroutine group, worker pool, bounded parallel helper. |
-| [`codec`](codec/README.md) | active | Base58, Base62, Base64, hex, URL-safe encoding helper. |
-| [`compression`](compression/README.md) | active | gzip, deflate, zstd, lz4, snappy, registry 기반 compression helper. |
-| [`serialization`](serialization/README.md) | active | 안전한 기본값을 가진 JSON/binary serializer interface. |
-| [`testing`](testing/README.md) | active | eventual consistency 테스트용 공용 helper. |
-| [`testing/concurrency`](testing/concurrency/README.md) | active | concurrent test를 위한 stress/async job helper. |
-| [`testcontainers/redis`](testcontainers/redis/README.md) | active | Testcontainers for Go 기반 Redis fixture. |
-| [`testcontainers/postgres`](testcontainers/postgres/README.md) | active | Testcontainers for Go 기반 PostgreSQL fixture. |
-| [`testcontainers/mysql`](testcontainers/mysql/README.md) | active | Testcontainers for Go 기반 MySQL 8.4 fixture. |
-| [`testcontainers/nats`](testcontainers/nats/README.md) | active | Testcontainers for Go 기반 NATS fixture. |
-| [`testcontainers/kafka`](testcontainers/kafka/README.md) | active | Testcontainers for Go 기반 Kafka fixture. |
-| [`leader`](leader/README.md) | active | 단일, group, strategy 기반 계약을 포함한 leader election API. |
-| [`leader/redis`](leader/redis/README.md) | active | TTL renewal, ZSET slot token, candidate registry 기반 Redis 단일/group/strategic leader election 구현. |
-| [`resilience`](resilience/README.md) | active | service call을 위한 자체 composable retry, timeout, circuit breaker, bulkhead policy, synchronous observability hook, `net/http` adapter. |
-| [`cache`](cache/README.md) | active | context-aware loader와 same-key stampede protection을 제공하는 generic in-process TTL cache interface. |
-| [`cache/redisnear`](cache/redisnear/README.md) | active | process-local loading cache를 위한 Redis Pub/Sub near-cache invalidation. |
-| [`cache/rediscoord`](cache/rediscoord/README.md) | active | cold burst 동안 하나의 loader 결과를 process-local cache 사이에서 공유하는 opt-in Redis coordination wrapper. |
-| [`lock/redis`](lock/redis/README.md) | active | TTL acquire와 owner-safe Lua unlock을 제공하는 Redis 단일 인스턴스 owner-token lock. |
-| [`ratelimit`](ratelimit/README.md) | active | process-local keyed token-bucket limiter와 `net/http` middleware. |
-| [`ratelimit/redis`](ratelimit/redis/README.md) | active | atomic Lua consume/refill과 idle key expiration을 쓰는 Redis-backed token-bucket limiter. |
+| [`core`](core/README.ko.md) | active | 작은 공용 validation, zero/default, pointer, string, number helper. |
+| [`collections`](collections/README.ko.md) | active | chunking, grouping, distinct, error-aware transform용 작은 generic slice/map helper. |
+| [`concurrency`](concurrency/README.ko.md) | active | context-aware goroutine group, worker pool, bounded parallel helper. |
+| [`codec`](codec/README.ko.md) | active | Base58, Base62, Base64, hex, URL-safe encoding helper. |
+| [`compression`](compression/README.ko.md) | active | gzip, deflate, zstd, lz4, snappy, registry 기반 compression helper. |
+| [`serialization`](serialization/README.ko.md) | active | 안전한 기본값을 가진 JSON/binary serializer interface. |
+| [`testing`](testing/README.ko.md) | active | eventual consistency 테스트용 공용 helper. |
+| [`testing/concurrency`](testing/concurrency/README.ko.md) | active | concurrent test를 위한 stress/async job helper. |
+| [`testcontainers/redis`](testcontainers/redis/README.ko.md) | active | Testcontainers for Go 기반 Redis fixture. |
+| [`testcontainers/postgres`](testcontainers/postgres/README.ko.md) | active | Testcontainers for Go 기반 PostgreSQL fixture. |
+| [`testcontainers/mysql`](testcontainers/mysql/README.ko.md) | active | Testcontainers for Go 기반 MySQL 8.4 fixture. |
+| [`testcontainers/nats`](testcontainers/nats/README.ko.md) | active | Testcontainers for Go 기반 NATS fixture. |
+| [`testcontainers/kafka`](testcontainers/kafka/README.ko.md) | active | Testcontainers for Go 기반 Kafka fixture. |
+| [`leader`](leader/README.ko.md) | active | 단일, group, strategy 기반 계약을 포함한 leader election API. |
+| [`leader/redis`](leader/redis/README.ko.md) | active | TTL renewal, ZSET slot token, candidate registry 기반 Redis 단일/group/strategic leader election 구현. |
+| [`resilience`](resilience/README.ko.md) | active | service call을 위한 자체 composable retry, timeout, circuit breaker, bulkhead policy, synchronous observability hook, `net/http` adapter. |
+| [`cache`](cache/README.ko.md) | active | context-aware loader와 same-key stampede protection을 제공하는 generic in-process TTL cache interface. |
+| [`cache/redisnear`](cache/redisnear/README.ko.md) | active | process-local loading cache를 위한 Redis Pub/Sub near-cache invalidation. |
+| [`cache/rediscoord`](cache/rediscoord/README.ko.md) | active | cold burst 동안 하나의 loader 결과를 process-local cache 사이에서 공유하는 opt-in Redis coordination wrapper. |
+| [`lock/redis`](lock/redis/README.ko.md) | active | TTL acquire와 owner-safe Lua unlock을 제공하는 Redis 단일 인스턴스 owner-token lock. |
+| [`ratelimit`](ratelimit/README.ko.md) | active | process-local keyed token-bucket limiter와 `net/http` middleware. |
+| [`ratelimit/redis`](ratelimit/redis/README.ko.md) | active | atomic Lua consume/refill과 idle key expiration을 쓰는 Redis-backed token-bucket limiter. |
+| [`state`](state/README.ko.md) | active | typed transition, guard, final state, sentinel error를 제공하는 작은 finite state machine primitive. |
+| [`workreport`](workreport/README.ko.md) | active | lightweight workflow code를 위한 status, failure-policy, report-tree value. |
+| [`workflow`](workflow/README.ko.md) | active | `context.Context`와 `workreport` 기반 sequential, conditional, all-branches parallel runner. |
 
-다음 계획 패키지군은 `workflow`, `batch`, `id`, `jwt`, `graph`, `text`,
-`audit`, AWS helper/example 패키지입니다.
+다음 계획 패키지군은 `batch`, `id`, `jwt`, `graph`, `text`, `audit`,
+AWS helper/example 패키지입니다.
 
 ## 설치
 
@@ -63,18 +68,19 @@ go get github.com/bluetape4k/bluetape-go
 
 상세 사용법, 운영 경계, package별 benchmark는 각 package README에 둡니다.
 
-- Foundation: [`core`](core/README.md), [`collections`](collections/README.md),
-  [`concurrency`](concurrency/README.md), [`codec`](codec/README.md),
-  [`compression`](compression/README.md), [`serialization`](serialization/README.md).
-- Test support: [`testing`](testing/README.md),
-  [`testing/concurrency`](testing/concurrency/README.md), 위 표의 Testcontainers
+- Foundation: [`core`](core/README.ko.md), [`collections`](collections/README.ko.md),
+  [`concurrency`](concurrency/README.ko.md), [`codec`](codec/README.ko.md),
+  [`compression`](compression/README.ko.md), [`serialization`](serialization/README.ko.md).
+- Test support: [`testing`](testing/README.ko.md),
+  [`testing/concurrency`](testing/concurrency/README.ko.md), 위 표의 Testcontainers
   fixture package README.
-- Coordination: [`leader`](leader/README.md),
-  [`leader/redis`](leader/redis/README.md), [`lock/redis`](lock/redis/README.md).
-- Runtime policy/cache: [`resilience`](resilience/README.md),
-  [`cache`](cache/README.md), [`cache/redisnear`](cache/redisnear/README.md),
-  [`cache/rediscoord`](cache/rediscoord/README.md),
-  [`ratelimit`](ratelimit/README.md).
+- Coordination: [`leader`](leader/README.ko.md),
+  [`leader/redis`](leader/redis/README.ko.md), [`lock/redis`](lock/redis/README.ko.md).
+- Runtime policy/cache/state/workflow: [`resilience`](resilience/README.ko.md),
+  [`cache`](cache/README.ko.md), [`cache/redisnear`](cache/redisnear/README.ko.md),
+  [`cache/rediscoord`](cache/rediscoord/README.ko.md), [`ratelimit`](ratelimit/README.ko.md),
+  [`state`](state/README.ko.md), [`workreport`](workreport/README.ko.md),
+  [`workflow`](workflow/README.ko.md).
 
 ## Roadmap
 
@@ -124,15 +130,15 @@ Redis integration test는 Testcontainers를 사용하므로 Docker가 필요합�
 CI와 Nightly workflow 모두 실제 container를 사용해 테스트하고 Go coverage
 report artifact를 게시합니다.
 
-Fixture 사용법은 [`testing`](testing/README.md),
-[`testing/concurrency`](testing/concurrency/README.md), 각 Testcontainers package
+Fixture 사용법은 [`testing`](testing/README.ko.md),
+[`testing/concurrency`](testing/concurrency/README.ko.md), 각 Testcontainers package
 README를 참고하세요.
 
 ## 프로젝트 관리
 
 - [Changelog](CHANGELOG.md)
 - [Current WIP](WIP.md)
-- [Research index](docs/research/README.md)
+- [Research index](docs/research/README.ko.md)
 - [Package layout policy](docs/package-layout.md)
 - [Release guide](docs/release.md)
 

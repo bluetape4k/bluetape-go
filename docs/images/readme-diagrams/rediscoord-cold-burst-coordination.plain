@@ -1,0 +1,19 @@
+graph 1 16.772 2.4431
+node caller_a 0.88 1.6278 1.4267 0.60278 <<FONT FACE="Architects Daughter" POINT-SIZE="18"><B>Caller A</B></FONT><BR/><FONT FACE="Comic Mono" POINT-SIZE="11">cold GetOrLoad</FONT>> rounded,filled box #93C5FD #EBF4FF
+node caller_b 0.88 0.36389 1.76 0.60278 <<FONT FACE="Architects Daughter" POINT-SIZE="18"><B>Caller B</B></FONT><BR/><FONT FACE="Comic Mono" POINT-SIZE="11">same-key wait path</FONT>> rounded,filled box #93C5FD #EBF4FF
+node local_cache 15.715 1.0306 2.1142 0.75556 <<FONT FACE="Architects Daughter" POINT-SIZE="18"><B>Wrapped Cache</B></FONT><BR/><FONT FACE="Comic Mono" POINT-SIZE="11">Memory or redisnear</FONT><BR/><FONT FACE="Comic Mono" POINT-SIZE="11">checked first</FONT>> rounded,filled box #86EFAC #F0FDF4
+node lease 3.7094 1.0028 2.3433 0.75556 <<FONT FACE="Architects Daughter" POINT-SIZE="18"><B>Redis Load Lease</B></FONT><BR/><FONT FACE="Comic Mono" POINT-SIZE="11">owner token</FONT><BR/><FONT FACE="Comic Mono" POINT-SIZE="11">bounded by LockTTL</FONT>> rounded,filled box #FCD34D #FFF7ED
+node loader 6.7472 1.6278 2.1767 0.60278 <<FONT FACE="Architects Daughter" POINT-SIZE="18"><B>Winning Loader</B></FONT><BR/><FONT FACE="Comic Mono" POINT-SIZE="11">runs user function once</FONT>> rounded,filled box #C4B5FD #FAF5FF
+node envelope 9.6444 0.37778 2.0621 0.75556 <<FONT FACE="Architects Daughter" POINT-SIZE="18"><B>Result Envelope</B></FONT><BR/><FONT FACE="Comic Mono" POINT-SIZE="11">token-matched</FONT><BR/><FONT FACE="Comic Mono" POINT-SIZE="11">short ResultTTL</FONT>> rounded,filled box #FDE047 #FEF9C3
+node waiter 12.667 0.37778 2.4267 0.75556 <<FONT FACE="Architects Daughter" POINT-SIZE="18"><B>Follower Fill</B></FONT><BR/><FONT FACE="Comic Mono" POINT-SIZE="11">uses wrapped GetOrLoad</FONT><BR/><FONT FACE="Comic Mono" POINT-SIZE="11">no accidental invalidation</FONT>> rounded,filled box #6EE7B7 #ECFDF5
+edge caller_a local_cache 10 1.6057 1.6549 2.8825 1.6549 5.3968 1.6549 5.3968 1.6549 5.3968 1.6549 5.3968 1.041 5.3968 1.041 5.3968 1.041 14.496 1.041 14.496 1.041 solid #475569
+edge caller_a lease 7 0.88292 1.3182 0.88292 1.2059 0.88292 1.106 0.88292 1.106 0.88292 1.106 2.374 1.106 2.374 1.106 solid #16A34A
+edge caller_b local_cache 10 1.7693 0.34375 3.0197 0.34375 5.1468 0.34375 5.1468 0.34375 5.1468 0.34375 5.1468 0.89826 5.1468 0.89826 5.1468 0.89826 14.495 0.89826 14.495 0.89826 solid #475569
+edge caller_b lease 7 1.6746 0.67343 1.6746 0.78578 1.6746 0.88565 1.6746 0.88565 1.6746 0.88565 2.3726 0.88565 2.3726 0.88565 solid #7C3AED
+edge lease loader 7 4.8923 1.1837 5.8723 1.1837 7.1051 1.1837 7.1051 1.1837 7.1051 1.1837 7.1051 1.1968 7.1051 1.1968 solid #475569
+edge lease envelope 4 4.8926 0.66852 4.8926 0.66852 8.4491 0.66852 8.4491 0.66852 solid #475569
+edge loader local_cache 7 7.847 1.6687 10.242 1.6687 15.716 1.6687 15.716 1.6687 15.716 1.6687 15.716 1.5733 15.716 1.5733 solid #475569
+edge loader envelope 7 6.3829 1.3177 6.3829 1.0521 6.3829 0.71204 6.3829 0.71204 6.3829 0.71204 8.4503 0.71204 8.4503 0.71204 solid #475569
+edge envelope waiter 4 10.684 0.37778 10.684 0.37778 11.289 0.37778 11.289 0.37778 solid #7C3AED
+edge waiter local_cache 4 13.889 0.70417 13.889 0.70417 14.496 0.70417 14.496 0.70417 solid #475569
+stop

@@ -1,8 +1,14 @@
 # ratelimit/redis
 
+[English](README.md) | [한국어](README.ko.md)
+
 `ratelimit/redis` provides a Redis-backed token-bucket limiter for multiple
 processes. Each `Allow` call runs one Redis Lua script that refills, consumes,
 stores bucket state, and refreshes key expiration atomically.
+
+## Diagram
+
+![Redis token-bucket rate limit flow](../../docs/images/readme-diagrams/redis-ratelimit-token-bucket-flow.png)
 
 ## Install
 

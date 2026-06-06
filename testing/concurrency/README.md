@@ -1,5 +1,7 @@
 # testing/concurrency
 
+[English](README.md) | [한국어](README.ko.md)
+
 `testing/concurrency` provides deterministic helpers for stress and async job
 tests. It is useful when a package needs repeated bounded goroutine execution,
 panic capture, cancellation checks, or timeout reports.

@@ -7,9 +7,36 @@ and this project uses semantic versioning once the first tag is published.
 
 ## [Unreleased]
 
+No unreleased changes yet.
+
+## [v0.4.0] - 2026-06-06
+
 ### Added
 
-- Nothing yet.
+- `state` package with first-party finite state machine primitives, explicit
+  transitions, context-aware guards, final states, deterministic transition
+  errors, stress/cancellation coverage, and compile-checked examples.
+- `workreport` package with workflow status values, failure policies, report
+  trees, deterministic aggregation, zero-value safety checks,
+  stress/cancellation coverage, and compile-checked examples.
+- `workflow` package with sequential, conditional, and all-branches parallel
+  runners built on `context.Context` and `workreport`, including cancellation,
+  stress, race, and compile-checked example coverage.
+- 0.4.0 stress/cancellation gate documenting required race-compatible coverage
+  for `state`, `workreport`, and `workflow`.
+- Package README coverage and root README indexes for the 0.4.0 `state`,
+  `workreport`, and `workflow` package surface.
+- Package README links to compile-checked runnable examples for the 0.4.0
+  `state`, `workreport`, and `workflow` APIs.
+- README diagram assets for 0.4.0 workflow primitives and complex Redis
+  coordination packages, with PNG-only README embeds and adjacent SVG sources.
+
+### Changed
+
+- Every package-level `README.md` now has a sibling `README.ko.md` and a
+  consistent `English | 한국어` language switch.
+- Root README, WIP, and release guide now reflect the closed `0.4.0` milestone
+  and `v0.4.0` release-preparation state.
 
 ## [v0.3.0] - 2026-06-05
 

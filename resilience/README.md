@@ -1,5 +1,7 @@
 # resilience
 
+[English](README.md) | [한국어](README.ko.md)
+
 `resilience` provides first-party retry, timeout, circuit breaker, and bulkhead
 policies for service calls. Policies compose around typed operations and expose
 synchronous event hooks for logging, metrics, or tracing bridges.
