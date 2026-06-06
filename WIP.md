@@ -1,18 +1,20 @@
 # WIP
 
 Snapshot: 2026-06-06 KST
-Scope: `v0.4.0` release preparation.
-Remaining before `v0.4.0`: 0 open issues in milestone `0.4.0`.
+Scope: `v0.5.0` planning after `v0.4.0` release promotion.
+Remaining before `v0.4.0`: tag `main` as `v0.4.0` and create the GitHub
+Release after the release PR merges.
 
 ## Current Target Release
 
-`0.4.0` - State machine and lightweight workflow primitives.
+`0.5.0` - Batch processing with checkpoints and leader-guarded examples.
 
 ## Current State
 
 - `0.1.0`, `0.1.1`, `0.2.0`, and `0.3.0` are tagged and released.
 - Issue #3 and milestone `0.3.0` are closed.
-- Milestone `0.4.0` is closed with 0 open issues.
+- Milestone `0.4.0` is closed with 0 open issues and ready for the `v0.4.0`
+  tag plus GitHub Release.
 - Epic #4 completed the state machine and lightweight workflow primitive scope.
 - Issue #135 refreshed source-grounded research, milestone spec, and
   implementation sequencing before package work began.
@@ -30,9 +32,18 @@ Remaining before `v0.4.0`: 0 open issues in milestone `0.4.0`.
 
 ## Release Checklist
 
-1. Promote `develop` to `main` through a release PR.
+1. Promote `develop` to `main` through the `v0.4.0` release PR.
 2. Tag `main` as `v0.4.0`.
 3. Create GitHub Release `v0.4.0` from the changelog section.
+
+## Next Milestone Queue
+
+Milestone `0.5.0` is open with four issues:
+
+- #5 `[Epic] 0.5.0 Batch processing with checkpoints`
+- #29 `Design batch reader processor writer core` (`priority: p0`)
+- #30 `Implement retry skip and checkpoint policies for batch` (`priority: p0`)
+- #31 `Add batch examples for scheduler and migration workloads`
 
 ## Decision Log
 
