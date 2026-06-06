@@ -7,6 +7,10 @@ and this project uses semantic versioning once the first tag is published.
 
 ## [Unreleased]
 
+No unreleased changes yet.
+
+## [v0.4.0] - 2026-06-06
+
 ### Added
 
 - `state` package with first-party finite state machine primitives, explicit
