@@ -94,15 +94,15 @@
 <text x="660.0" y="481.6" font-family="Architects Daughter" font-size="13" fill="#1E293B" font-weight="bold" text-anchor="middle" dominant-baseline="middle">cache</text>
 <text x="660.0" y="500.8" font-family="Comic Mono" font-size="10" fill="#334155" font-weight="normal" text-anchor="middle" dominant-baseline="middle">near cache · Redis locks · token-bucket rate limiting</text>
 <rect x="30" y="545" width="1260" height="110" fill="#FAF5FF" stroke="#C4B5FD" stroke-width="1.5" rx="12"/>
-<text x="660.0" y="561" font-family="Architects Daughter" font-size="13" fill="#1E293B" font-weight="bold" text-anchor="middle" dominant-baseline="middle">v0.4-0.5 — Workflow &amp; Batch</text>
+<text x="660.0" y="561" font-family="Architects Daughter" font-size="13" fill="#1E293B" font-weight="bold" text-anchor="middle" dominant-baseline="middle">v0.4-0.5 — Workflow &amp; Batch Recovery</text>
 <rect x="400.0" y="575" width="240" height="70" fill="white" stroke="#C4B5FD" stroke-width="1.5" rx="8"/>
 <text x="520.0" y="600.2" font-family="Architects Daughter" font-size="13" fill="#1E293B" font-weight="bold" text-anchor="middle" dominant-baseline="middle">workflow</text>
 <text x="520.0" y="615.85" font-family="Comic Mono" font-size="10" fill="#334155" font-weight="normal" text-anchor="middle" dominant-baseline="middle">state machine</text>
 <text x="520.0" y="629.35" font-family="Comic Mono" font-size="10" fill="#334155" font-weight="normal" text-anchor="middle" dominant-baseline="middle">lightweight workflows</text>
 <rect x="680.0" y="575" width="240" height="70" fill="white" stroke="#E879F9" stroke-width="1.5" rx="8"/>
 <text x="800.0" y="600.2" font-family="Architects Daughter" font-size="13" fill="#1E293B" font-weight="bold" text-anchor="middle" dominant-baseline="middle">batch</text>
-<text x="800.0" y="615.85" font-family="Comic Mono" font-size="10" fill="#334155" font-weight="normal" text-anchor="middle" dominant-baseline="middle">checkpoints</text>
-<text x="800.0" y="629.35" font-family="Comic Mono" font-size="10" fill="#334155" font-weight="normal" text-anchor="middle" dominant-baseline="middle">leader-guarded examples</text>
+<text x="800.0" y="615.85" font-family="Comic Mono" font-size="10" fill="#334155" font-weight="normal" text-anchor="middle" dominant-baseline="middle">retry / skip policies</text>
+<text x="800.0" y="629.35" font-family="Comic Mono" font-size="10" fill="#334155" font-weight="normal" text-anchor="middle" dominant-baseline="middle">checkpoint restart</text>
 <rect x="30" y="670" width="1260" height="90" fill="#FFF1F2" stroke="#FDA4AF" stroke-width="1.5" rx="12"/>
 <text x="660.0" y="686" font-family="Architects Daughter" font-size="13" fill="#1E293B" font-weight="bold" text-anchor="middle" dominant-baseline="middle">v0.6 — Portable Utilities</text>
 <rect x="460.0" y="696" width="400" height="55" fill="white" stroke="#FDA4AF" stroke-width="1.5" rx="8"/>
