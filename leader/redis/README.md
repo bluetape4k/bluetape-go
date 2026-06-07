@@ -96,6 +96,22 @@ _ = ran
 - Campaign waits until leadership is acquired or the caller context is
   cancelled.
 
+## Runnable Batch Examples
+
+`coordination_example_test.go` connects `leader/redis` with the `batch` package:
+
+- `TestBatchSchedulerExample` lets only the current leader run a scheduled
+  batch job.
+- `TestMigrationGateExample` lets only the current leader run a migration batch
+  and skips an already applied migration after leadership changes.
+
+The examples use `testcontainers/redis`, so Docker or another
+Testcontainers-compatible runtime must be available.
+
+```bash
+go test -count=1 ./leader/redis -run 'Test(BatchSchedulerExample|MigrationGateExample)'
+```
+
 ## Test
 
 ```bash

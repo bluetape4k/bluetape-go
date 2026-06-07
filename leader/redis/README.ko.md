@@ -86,6 +86,19 @@ _ = ran
 - Redis key format은 Go-owned이며 Kotlin/JVM bluetape4k-leader Lettuce 또는 Redisson participant와 호환되지 않습니다.
 - Campaign은 leadership을 획득하거나 caller context가 cancel될 때까지 대기합니다.
 
+## 실행 가능한 Batch 예제
+
+`coordination_example_test.go`는 `leader/redis`와 `batch` 패키지를 연결합니다.
+
+- `TestBatchSchedulerExample`은 현재 leader만 scheduled batch job을 실행하게 합니다.
+- `TestMigrationGateExample`은 현재 leader만 migration batch를 실행하고, leadership이 바뀐 뒤 이미 적용된 migration은 skip합니다.
+
+예제는 `testcontainers/redis`를 사용하므로 Docker 또는 Testcontainers-compatible runtime이 필요합니다.
+
+```bash
+go test -count=1 ./leader/redis -run 'Test(BatchSchedulerExample|MigrationGateExample)'
+```
+
 ## 테스트
 
 ```bash
