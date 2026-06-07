@@ -106,26 +106,26 @@ go test ./...
    - Commit `go.mod` and `go.sum` changes.
    - Open a PR in the consumer repository.
 
-## `v0.4.0` Release Plan
+## `v0.5.0` Release Plan
 
-`v0.4.0` contains state machine and lightweight workflow primitives:
+`v0.5.0` contains batch processing with checkpoints and leader-guarded
+examples:
 
-- `state` finite state machine primitives with typed transitions, guards, final
-  states, deterministic transition errors, examples, and stress/cancellation
-  coverage.
-- `workreport` status, failure-policy, and report-tree values with deterministic
-  aggregation, zero-value safety checks, examples, and stress/cancellation
-  coverage.
-- `workflow` sequential, conditional, and all-branches parallel runners built on
-  `context.Context` and `workreport`, including cancellation, race-compatible
-  stress coverage, and compile-checked examples.
-- Package README coverage, root package indexes, runnable example links, and
-  README diagram assets for the new workflow surface.
+- `batch` reader/processor/writer chunk steps, sequential jobs, reports,
+  filtering, cancellation, and resource cleanup.
+- Retry/skip policies for processor/write failures with context cancellation
+  preserved as a caller-owned stop signal.
+- Pluggable checkpoint storage and restart behavior for readers that implement
+  `CheckpointReader`.
+- Leader-guarded Redis examples for scheduled batch jobs and migration workloads
+  that must run only under the current leader.
+- README and architecture diagram refreshes for the completed batch recovery
+  scope.
 
 Release sequence:
 
-1. Verify milestone `0.4.0` is closed with zero open issues.
+1. Verify milestone `0.5.0` is closed with zero open issues.
 2. Merge `develop` into `main` through a release PR.
-3. Tag `main` as `v0.4.0`.
-4. Create GitHub Release `v0.4.0`.
-5. Update downstream consumers that should require `github.com/bluetape4k/bluetape-go v0.4.0`.
+3. Tag `main` as `v0.5.0`.
+4. Create GitHub Release `v0.5.0`.
+5. Update downstream consumers that should require `github.com/bluetape4k/bluetape-go v0.5.0`.
