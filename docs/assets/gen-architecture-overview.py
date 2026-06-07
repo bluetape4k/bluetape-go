@@ -5,6 +5,9 @@ Fonts: Architects Daughter (titles/labels), Comic Mono (details/captions).
 Layout: TB layered — Foundation -> Resilience -> Cache -> Workflow/Batch -> Portable -> Domain
 """
 
+from html import escape
+from pathlib import Path
+
 ARCH_FONT = "Architects Daughter"
 DETAIL_FONT = "Comic Mono"
 
@@ -50,11 +53,11 @@ def text_block(x, cy, lines, font, size, color, weight="normal", anchor="middle"
     out = []
     for i, line in enumerate(lines):
         ty = start_y + i * lh
-        out.append(f'<text x="{x}" y="{ty}" font-family="{font}" font-size="{size}" fill="{color}" font-weight="{weight}" text-anchor="{anchor}" dominant-baseline="middle">{line}</text>')
+        out.append(f'<text x="{x}" y="{ty}" font-family="{font}" font-size="{size}" fill="{color}" font-weight="{weight}" text-anchor="{anchor}" dominant-baseline="middle">{escape(line, quote=False)}</text>')
     return "\n".join(out)
 
 def section_label(x, y, label, color=PASTEL["section_label"]):
-    return f'<text x="{x}" y="{y}" font-family="{ARCH_FONT}" font-size="13" fill="{color}" font-weight="bold" text-anchor="middle" dominant-baseline="middle">{label}</text>'
+    return f'<text x="{x}" y="{y}" font-family="{ARCH_FONT}" font-size="13" fill="{color}" font-weight="bold" text-anchor="middle" dominant-baseline="middle">{escape(label, quote=False)}</text>'
 
 def arrow(x1, y1, x2, y2, color=PASTEL["arrow"], dashed=False, marker="url(#arrowhead)"):
     dash = ' stroke-dasharray="6,4"' if dashed else ""
@@ -229,7 +232,7 @@ cac_center = (cac_cx + cac_cw/2, cac_cy + cac_ch)
 # ── ROW 4: Workflow + Batch ───────────────────────────────────────────────────
 R4X = MARGIN; R4W = W - 2*MARGIN
 parts.append(rect(R4X, Y_ROW4, R4W, BAND_H4, PASTEL["workflow"], PASTEL["workflow_border"], rx=12))
-parts.append(section_label(R4X + R4W/2, Y_ROW4 + 16, "v0.4-0.5 — Workflow & Batch"))
+parts.append(section_label(R4X + R4W/2, Y_ROW4 + 16, "v0.4-0.5 — Workflow & Batch Recovery"))
 
 wf_cw = 240; wf_ch = 70
 wf_cx = R4X + R4W/2 - wf_cw - 20
@@ -242,7 +245,7 @@ bt_cw = 240; bt_ch = 70
 bt_cx = R4X + R4W/2 + 20
 bt_cy = wf_cy
 parts.append(card(bt_cx, bt_cy, bt_cw, bt_ch, "white", PASTEL["batch_border"],
-                  ["batch"], ["checkpoints", "leader-guarded examples"], rx=8))
+                  ["batch"], ["retry / skip policies", "checkpoint restart"], rx=8))
 bt_center = (bt_cx + bt_cw/2, bt_cy + bt_ch)
 
 # ── ROW 5: Portable ───────────────────────────────────────────────────────────
@@ -350,7 +353,6 @@ parts.append(f'<text x="{leg_x+92}" y="{leg_y+84}" font-family="{DETAIL_FONT}" f
 parts.append('</svg>')
 
 svg_out = "\n".join(parts)
-out_path = "/Users/debop/work/bluetape4k/bluetape-go/docs/assets/bluetape-go-architecture-overview.svg"
-with open(out_path, "w") as f:
-    f.write(svg_out)
+out_path = Path(__file__).resolve().parent / "bluetape-go-architecture-overview.svg"
+out_path.write_text(svg_out)
 print(f"Written: {out_path}")
