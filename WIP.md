@@ -1,9 +1,7 @@
 # WIP
 
-Snapshot: 2026-06-06 KST
-Scope: `v0.5.0` planning after `v0.4.0` release promotion.
-Remaining before `v0.4.0`: tag `main` as `v0.4.0` and create the GitHub
-Release after the release PR merges.
+Snapshot: 2026-06-08 KST
+Scope: `v0.5.0` release preparation after the batch milestone merged.
 
 ## Current Target Release
 
@@ -11,39 +9,32 @@ Release after the release PR merges.
 
 ## Current State
 
-- `0.1.0`, `0.1.1`, `0.2.0`, and `0.3.0` are tagged and released.
-- Issue #3 and milestone `0.3.0` are closed.
-- Milestone `0.4.0` is closed with 0 open issues and ready for the `v0.4.0`
-  tag plus GitHub Release.
-- Epic #4 completed the state machine and lightweight workflow primitive scope.
-- Issue #135 refreshed source-grounded research, milestone spec, and
-  implementation sequencing before package work began.
-- Issue #26 delivered the independent `state` finite state machine package.
-- Issue #28 delivered the shared `workreport` result and failure-policy model.
-- Issue #27 delivered `workflow` sequential, parallel, and conditional runners
-  after `workreport` exists.
-- Issue #136 verifies the milestone stress/cancellation gate for 0.4.0
-  concurrency and timing contracts.
-- Issue #132 verifies package-level README coverage and root package indexes
-  for the new 0.4.0 package surface.
-- Issue #137 verifies compile-checked runnable examples for new 0.4.0 APIs.
-- Issues #133 and #134 verify README diagram coverage for the 0.4.0 state and
-  workflow primitives plus complex Redis coordination packages.
+- `0.1.0`, `0.1.1`, `0.2.0`, `0.3.0`, and `0.4.0` are tagged and released.
+- Milestone `0.5.0` implementation is merged on `develop`.
+- Issue #29 delivered the `batch` reader/processor/writer core and sequential
+  job model.
+- Issue #30 delivered retry/skip policies, checkpoint storage, restart
+  behavior, and the root README architecture diagram refresh.
+- Issue #31 delivered leader-guarded scheduler and migration batch examples
+  with Redis Testcontainers runnable commands.
+- Epic #5 and milestone `0.5.0` are ready for closure after this release-prep
+  documentation lands.
 
 ## Release Checklist
 
-1. Promote `develop` to `main` through the `v0.4.0` release PR.
-2. Tag `main` as `v0.4.0`.
-3. Create GitHub Release `v0.4.0` from the changelog section.
+1. Merge the `v0.5.0` release-prep documentation PR into `develop`.
+2. Close epic #5 after verifying child issues #29, #30, and #31 are closed.
+3. Close milestone `0.5.0` after its open issue count reaches zero.
+4. Promote `develop` to `main` through the `v0.5.0` release PR.
+5. Tag `main` as `v0.5.0`.
+6. Create GitHub Release `v0.5.0` from the changelog section.
 
 ## Next Milestone Queue
 
-Milestone `0.5.0` is open with four issues:
+Milestone `0.6.0` is the next release queue after `v0.5.0` ships.
 
-- #5 `[Epic] 0.5.0 Batch processing with checkpoints`
-- #29 `Design batch reader processor writer core` (`priority: p0`)
-- #30 `Implement retry skip and checkpoint policies for batch` (`priority: p0`)
-- #31 `Add batch examples for scheduler and migration workloads`
+The planned portable-utilities scope is represented in the roadmap and should
+be rechecked against current GitHub issues before implementation starts.
 
 ## Decision Log
 
@@ -76,3 +67,6 @@ Milestone `0.5.0` is open with four issues:
   layers.
 - Keep workflow runners `context.Context`-driven and first-party; avoid durable
   orchestration engines in 0.4.0.
+- Keep 0.5.0 `batch` first-party and narrow: chunk steps, retry/skip policies,
+  checkpoints, reports, and examples are in scope; durable external checkpoint
+  adapters are deferred.

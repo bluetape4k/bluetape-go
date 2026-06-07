@@ -9,6 +9,31 @@ and this project uses semantic versioning once the first tag is published.
 
 No unreleased changes yet.
 
+## [v0.5.0] - 2026-06-08
+
+### Added
+
+- `batch` package with first-party reader/processor/writer chunk steps,
+  sequential jobs, reports, filtering, context cancellation, resource cleanup,
+  and stress/cancellation coverage.
+- Batch retry and skip policies for processor/write failures, with explicit
+  context-cancellation preservation and retry/skip count reporting.
+- Pluggable checkpoint support with `CheckpointReader`, `CheckpointStore`,
+  in-memory checkpoint storage, restart coverage, and checkpoint persistence
+  after committed progress.
+- Leader-guarded batch examples in `leader/redis` showing scheduled batch work
+  and migration workloads that only run under the current Redis leader.
+- Runnable Redis Testcontainers commands and bilingual README coverage for
+  leader-guarded batch examples.
+- README architecture diagram refresh showing batch retry/skip policies and
+  checkpoint restart scope.
+
+### Changed
+
+- Root README architecture assets now reflect the completed 0.5.0 batch
+  recovery scope.
+- WIP and release guide now reflect 0.5.0 release-preparation state.
+
 ## [v0.4.0] - 2026-06-06
 
 ### Added
