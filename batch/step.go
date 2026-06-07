@@ -188,8 +188,11 @@ func (s *Step[I, O]) flush(ctx context.Context, report *Report, chunk []O) error
 	}
 	if err := s.write(ctx, report, chunk); err != nil {
 		if s.skip.shouldSkip(err, report.SkipCount, len(chunk)) {
+			if s.store != nil {
+				return fmt.Errorf("%w: %w", ErrUnsafeWriterSkipCheckpoint, err)
+			}
 			report.SkipCount += len(chunk)
-			return s.saveCheckpoint(ctx)
+			return nil
 		}
 		return err
 	}

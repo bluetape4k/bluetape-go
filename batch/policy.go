@@ -16,7 +16,8 @@ type RetryPolicy struct {
 }
 
 // SkipPolicy skips failed processor items or failed writer chunks after retry
-// is exhausted.
+// is exhausted. When a Step has a CheckpointStore, failed writer chunks are not
+// skipped because Writer cannot report a safe committed item boundary.
 type SkipPolicy struct {
 	MaxSkips int
 	SkipIf   ErrorPredicate

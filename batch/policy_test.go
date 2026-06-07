@@ -110,6 +110,69 @@ func TestStepRunRestartsFromCheckpoint(t *testing.T) {
 	}
 }
 
+func TestStepRunDoesNotCheckpointSkippedWriterChunk(t *testing.T) {
+	store := NewMemoryCheckpointStore()
+	expected := errors.New("partial writer failed")
+	firstWriter := &partialFailWriter[int]{failOnChunk: 2, err: expected}
+	skip := mustSkipPolicy(t, 10, func(err error) bool {
+		return errors.Is(err, expected)
+	})
+	first := mustStep(t, StepOptions[int, int]{
+		Name:            "skip-writer-checkpoint",
+		ChunkSize:       2,
+		Reader:          newCheckpointReader([]int{1, 2, 3, 4}),
+		Processor:       passThroughProcessor[int](),
+		Writer:          firstWriter,
+		SkipPolicy:      skip,
+		CheckpointStore: store,
+		CheckpointKey:   "skip-writer-key",
+	})
+
+	firstReport := first.Run(context.Background())
+	if firstReport.Status != StatusFailed {
+		t.Fatalf("expected unsafe writer skip to fail, got %+v", firstReport)
+	}
+	if !errors.Is(firstReport.Err, ErrUnsafeWriterSkipCheckpoint) {
+		t.Fatalf("expected unsafe checkpoint error, got %v", firstReport.Err)
+	}
+	if !errors.Is(firstReport.Err, expected) {
+		t.Fatalf("expected writer cause, got %v", firstReport.Err)
+	}
+	if firstReport.SkipCount != 0 {
+		t.Fatalf("writer chunk should not be reported as skipped when checkpointing is enabled: %+v", firstReport)
+	}
+	checkpoint, ok, err := store.Load(context.Background(), "skip-writer-key")
+	if err != nil || !ok || checkpoint != 2 {
+		t.Fatalf("expected checkpoint to stay at last committed chunk, got checkpoint=%v ok=%v err=%v", checkpoint, ok, err)
+	}
+	if got := firstWriter.Written(); !reflect.DeepEqual(got, []int{1, 2, 3}) {
+		t.Fatalf("expected partial writer side effects before failure, got %#v", got)
+	}
+
+	secondWriter := &partialFailWriter[int]{}
+	second := mustStep(t, StepOptions[int, int]{
+		Name:            "skip-writer-checkpoint",
+		ChunkSize:       2,
+		Reader:          newCheckpointReader([]int{1, 2, 3, 4}),
+		Processor:       passThroughProcessor[int](),
+		Writer:          secondWriter,
+		CheckpointStore: store,
+		CheckpointKey:   "skip-writer-key",
+	})
+
+	secondReport := second.Run(context.Background())
+	if !secondReport.IsSuccess() {
+		t.Fatalf("expected restart to complete from safe checkpoint, got %+v", secondReport)
+	}
+	if got := secondWriter.Written(); !reflect.DeepEqual(got, []int{3, 4}) {
+		t.Fatalf("expected restart to replay the failed chunk, got %#v", got)
+	}
+	checkpoint, ok, err = store.Load(context.Background(), "skip-writer-key")
+	if err != nil || !ok || checkpoint != 4 {
+		t.Fatalf("expected final checkpoint 4, got checkpoint=%v ok=%v err=%v", checkpoint, ok, err)
+	}
+}
+
 func TestRetrySkipPoliciesDoNotHandleContextCancellation(t *testing.T) {
 	retry := mustRetryPolicy(t, 3, func(error) bool { return true })
 	skip := mustSkipPolicy(t, 10, func(error) bool { return true })
@@ -234,3 +297,37 @@ func (r *checkpointReader) Checkpoint(ctx context.Context) (any, bool, error) {
 }
 
 func (r *checkpointReader) Close(context.Context) error { return nil }
+
+type partialFailWriter[T any] struct {
+	mu          sync.Mutex
+	written     []T
+	writeCalls  int
+	failOnChunk int
+	err         error
+}
+
+func (w *partialFailWriter[T]) Open(context.Context) error { return nil }
+
+func (w *partialFailWriter[T]) Write(ctx context.Context, items []T) error {
+	if err := ctx.Err(); err != nil {
+		return err
+	}
+	w.mu.Lock()
+	defer w.mu.Unlock()
+	w.writeCalls++
+	for index, item := range items {
+		w.written = append(w.written, item)
+		if w.failOnChunk > 0 && w.writeCalls == w.failOnChunk && index == 0 {
+			return w.err
+		}
+	}
+	return nil
+}
+
+func (w *partialFailWriter[T]) Close(context.Context) error { return nil }
+
+func (w *partialFailWriter[T]) Written() []T {
+	w.mu.Lock()
+	defer w.mu.Unlock()
+	return append([]T(nil), w.written...)
+}
