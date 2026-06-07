@@ -11,11 +11,15 @@ const DefaultChunkSize = 100
 
 // StepOptions configures a batch step.
 type StepOptions[I any, O any] struct {
-	Name      string
-	ChunkSize int
-	Reader    Reader[I]
-	Processor Processor[I, O]
-	Writer    Writer[O]
+	Name            string
+	ChunkSize       int
+	Reader          Reader[I]
+	Processor       Processor[I, O]
+	Writer          Writer[O]
+	RetryPolicy     RetryPolicy
+	SkipPolicy      SkipPolicy
+	CheckpointStore CheckpointStore
+	CheckpointKey   string
 }
 
 // Step runs a reader, processor, and writer as one chunk-oriented batch unit.
@@ -25,6 +29,10 @@ type Step[I any, O any] struct {
 	reader    Reader[I]
 	processor Processor[I, O]
 	writer    Writer[O]
+	retry     RetryPolicy
+	skip      SkipPolicy
+	store     CheckpointStore
+	key       string
 }
 
 // NewStep creates a batch step.
@@ -47,12 +55,27 @@ func NewStep[I any, O any](options StepOptions[I, O]) (*Step[I, O], error) {
 	if options.Writer == nil {
 		return nil, fmt.Errorf("writer must not be nil")
 	}
+	retry, err := options.RetryPolicy.normalize()
+	if err != nil {
+		return nil, err
+	}
+	skip, err := options.SkipPolicy.normalize()
+	if err != nil {
+		return nil, err
+	}
+	if options.CheckpointStore != nil && options.CheckpointKey == "" {
+		options.CheckpointKey = options.Name
+	}
 	return &Step[I, O]{
 		name:      options.Name,
 		chunkSize: options.ChunkSize,
 		reader:    options.Reader,
 		processor: options.Processor,
 		writer:    options.Writer,
+		retry:     retry,
+		skip:      skip,
+		store:     options.CheckpointStore,
+		key:       options.CheckpointKey,
 	}, nil
 }
 
@@ -96,6 +119,10 @@ func (s *Step[I, O]) Run(ctx context.Context) (report Report) {
 		return report
 	}
 	writerOpened = true
+	if err := s.restoreCheckpoint(ctx); err != nil {
+		report.finish(statusForError(err), err)
+		return report
+	}
 
 	chunk := make([]O, 0, s.chunkSize)
 	for {
@@ -119,13 +146,25 @@ func (s *Step[I, O]) Run(ctx context.Context) (report Report) {
 		}
 		report.ReadCount++
 
-		processed, keep, err := s.processor.Process(ctx, item)
+		processed, keep, err := s.process(ctx, &report, item)
 		if err != nil {
+			if s.skip.shouldSkip(err, report.SkipCount, 1) {
+				report.SkipCount++
+				if err := s.saveCheckpoint(ctx); err != nil {
+					report.finish(statusForError(err), err)
+					return report
+				}
+				continue
+			}
 			report.finish(statusForError(err), err)
 			return report
 		}
 		if !keep {
 			report.FilterCount++
+			if err := s.saveCheckpoint(ctx); err != nil {
+				report.finish(statusForError(err), err)
+				return report
+			}
 			continue
 		}
 
@@ -147,11 +186,78 @@ func (s *Step[I, O]) flush(ctx context.Context, report *Report, chunk []O) error
 	if err := ctx.Err(); err != nil {
 		return err
 	}
-	if err := s.writer.Write(ctx, chunk); err != nil {
+	if err := s.write(ctx, report, chunk); err != nil {
+		if s.skip.shouldSkip(err, report.SkipCount, len(chunk)) {
+			report.SkipCount += len(chunk)
+			return s.saveCheckpoint(ctx)
+		}
 		return err
 	}
 	report.WriteCount += len(chunk)
-	return nil
+	return s.saveCheckpoint(ctx)
+}
+
+func (s *Step[I, O]) process(ctx context.Context, report *Report, item I) (O, bool, error) {
+	var zero O
+	for attempt := 1; ; attempt++ {
+		if err := ctx.Err(); err != nil {
+			return zero, false, err
+		}
+		value, keep, err := s.processor.Process(ctx, item)
+		if err == nil {
+			return value, keep, nil
+		}
+		if !s.retry.shouldRetry(err, attempt) {
+			return zero, false, err
+		}
+		report.RetryCount++
+	}
+}
+
+func (s *Step[I, O]) write(ctx context.Context, report *Report, chunk []O) error {
+	for attempt := 1; ; attempt++ {
+		if err := ctx.Err(); err != nil {
+			return err
+		}
+		if err := s.writer.Write(ctx, chunk); err != nil {
+			if !s.retry.shouldRetry(err, attempt) {
+				return err
+			}
+			report.RetryCount++
+			continue
+		}
+		return nil
+	}
+}
+
+func (s *Step[I, O]) restoreCheckpoint(ctx context.Context) error {
+	if s.store == nil {
+		return nil
+	}
+	reader, ok := s.reader.(CheckpointReader)
+	if !ok {
+		return fmt.Errorf("reader does not support checkpoints")
+	}
+	checkpoint, exists, err := s.store.Load(ctx, s.key)
+	if err != nil || !exists {
+		return err
+	}
+	return reader.Restore(ctx, checkpoint)
+}
+
+func (s *Step[I, O]) saveCheckpoint(ctx context.Context) error {
+	if s.store == nil {
+		return nil
+	}
+	reader, ok := s.reader.(CheckpointReader)
+	if !ok {
+		return fmt.Errorf("reader does not support checkpoints")
+	}
+	checkpoint, exists, err := reader.Checkpoint(ctx)
+	if err != nil || !exists {
+		return err
+	}
+	return s.store.Save(ctx, s.key, checkpoint)
 }
 
 func (s *Step[I, O]) closeResources(ctx context.Context, report *Report, readerOpened bool, writerOpened bool) {
@@ -180,7 +286,7 @@ func normalizeContext(ctx context.Context) context.Context {
 }
 
 func statusForError(err error) Status {
-	if errors.Is(err, context.Canceled) || errors.Is(err, context.DeadlineExceeded) {
+	if isContextError(err) {
 		return StatusCancelled
 	}
 	return StatusFailed

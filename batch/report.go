@@ -25,6 +25,8 @@ type Report struct {
 	ReadCount   int
 	WriteCount  int
 	FilterCount int
+	SkipCount   int
+	RetryCount  int
 	Err         error
 	Children    []Report
 }

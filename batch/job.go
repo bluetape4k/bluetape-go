@@ -58,6 +58,8 @@ func (j *Job) Run(ctx context.Context) Report {
 		report.ReadCount += child.ReadCount
 		report.WriteCount += child.WriteCount
 		report.FilterCount += child.FilterCount
+		report.SkipCount += child.SkipCount
+		report.RetryCount += child.RetryCount
 		if !child.IsSuccess() {
 			report.Children = copyReports(children)
 			status := child.Status
