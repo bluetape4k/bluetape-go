@@ -1,15 +1,18 @@
 # WIP
 
 Snapshot: 2026-06-08 KST
-Scope: `v0.5.0` release preparation after the batch milestone merged.
+Scope: `v0.5.1` patch release preparation after the checkpoint-safe batch
+writer skip fix merged.
 
 ## Current Target Release
 
-`0.5.0` - Batch processing with checkpoints and leader-guarded examples.
+`0.5.1` - Patch release for checkpoint-safe skipped writer chunks in
+`batch.Step`.
 
 ## Current State
 
-- `0.1.0`, `0.1.1`, `0.2.0`, `0.3.0`, and `0.4.0` are tagged and released.
+- `0.1.0`, `0.1.1`, `0.2.0`, `0.3.0`, `0.4.0`, and `0.5.0` are tagged and
+  released.
 - Milestone `0.5.0` implementation is merged on `develop`.
 - Issue #29 delivered the `batch` reader/processor/writer core and sequential
   job model.
@@ -17,21 +20,24 @@ Scope: `v0.5.0` release preparation after the batch milestone merged.
   behavior, and the root README architecture diagram refresh.
 - Issue #31 delivered leader-guarded scheduler and migration batch examples
   with Redis Testcontainers runnable commands.
-- Epic #5 and milestone `0.5.0` are ready for closure after this release-prep
-  documentation lands.
+- Issue #158 delivered the checkpoint-safe writer skip fix after the `v0.5.0`
+  tag existed, so the release target is `v0.5.1` without rewriting `v0.5.0`.
+- Epic #5 and milestone `0.5.0` are ready for closure after the patch release
+  is published.
 
 ## Release Checklist
 
-1. Merge the `v0.5.0` release-prep documentation PR into `develop`.
-2. Close epic #5 after verifying child issues #29, #30, and #31 are closed.
+1. Merge the `v0.5.1` release-prep documentation PR into `develop`.
+2. Close epic #5 after verifying child issues #29, #30, #31, and #158 are
+   closed.
 3. Close milestone `0.5.0` after its open issue count reaches zero.
-4. Promote `develop` to `main` through the `v0.5.0` release PR.
-5. Tag `main` as `v0.5.0`.
-6. Create GitHub Release `v0.5.0` from the changelog section.
+4. Promote `develop` to `main` through the `v0.5.1` release PR.
+5. Tag `main` as `v0.5.1`.
+6. Create GitHub Release `v0.5.1` from the changelog section.
 
 ## Next Milestone Queue
 
-Milestone `0.6.0` is the next release queue after `v0.5.0` ships.
+Milestone `0.6.0` is the next release queue after `v0.5.1` ships.
 
 The planned portable-utilities scope is represented in the roadmap and should
 be rechecked against current GitHub issues before implementation starts.
