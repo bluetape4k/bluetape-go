@@ -9,6 +9,15 @@ and this project uses semantic versioning once the first tag is published.
 
 No unreleased changes yet.
 
+## [v0.5.1] - 2026-06-08
+
+### Fixed
+
+- Checkpointed `batch.Step` writer failures that match `SkipPolicy` now fail
+  with `ErrUnsafeWriterSkipCheckpoint` instead of advancing the checkpoint after
+  an unsafe skipped writer chunk. Restarts replay from the last safe checkpoint
+  and preserve the original writer error for `errors.Is` checks.
+
 ## [v0.5.0] - 2026-06-08
 
 ### Added
