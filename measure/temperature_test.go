@@ -27,7 +27,7 @@ func TestTemperatureConversionsAndDeltas(t *testing.T) {
 	assertClose(t, raised.InCelsius(), 10)
 	assertClose(t, raised.Delta(fahrenheit).InFahrenheit(), 18)
 
-	text, err := raised.Format(measure.CelsiusUnit)
+	text, err := raised.Format(measure.CelsiusUnit())
 	if err != nil {
 		t.Fatalf("temperature format failed: %v", err)
 	}
@@ -62,7 +62,7 @@ func TestTemperatureParsing(t *testing.T) {
 		t.Fatalf("expected invalid temperature, got %v", err)
 	}
 	overflow := measure.MustKelvin(math.MaxFloat64).Add(measure.MustKelvinDelta(math.MaxFloat64))
-	if _, err := overflow.Format(measure.KelvinUnit); !errors.Is(err, measure.ErrInvalidMeasure) {
+	if _, err := overflow.Format(measure.KelvinUnit()); !errors.Is(err, measure.ErrInvalidMeasure) {
 		t.Fatalf("expected overflow format error, got %v", err)
 	}
 }
@@ -77,6 +77,6 @@ func TestAngleInverseFunctionsReturnErrors(t *testing.T) {
 	if angle, err := measure.ATan(1); err != nil {
 		t.Fatalf("ATan failed: %v", err)
 	} else {
-		assertMeasureIn(t, angle, measure.AngleRadian, math.Pi/4)
+		assertMeasureIn(t, angle, measure.AngleRadian(), math.Pi/4)
 	}
 }

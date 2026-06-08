@@ -10,8 +10,12 @@ var (
 	ErrInvalidUnit = errors.New("measure: invalid unit")
 	// ErrInvalidMeasure  측정값 또는 온도 값이 유효하지 않을 때 사용합니다.
 	ErrInvalidMeasure = errors.New("measure: invalid measure")
+	// ErrIncompatibleUnit  단위 차원 또는 단위 관계가 호환되지 않을 때 사용합니다.
+	ErrIncompatibleUnit = errors.New("measure: incompatible unit")
 	// ErrInvalidParse  측정값 문자열을 파싱할 수 없을 때 사용합니다.
 	ErrInvalidParse = errors.New("measure: invalid parse")
+	// ErrDivideByZero  0으로 나누는 측정 연산에 사용합니다.
+	ErrDivideByZero = errors.New("measure: divide by zero")
 )
 
 // ParseError  파싱 실패 입력과 원인을 보존합니다.

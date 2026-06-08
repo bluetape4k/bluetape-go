@@ -13,15 +13,21 @@ type TemperatureUnit struct {
 }
 
 var (
-	// KelvinUnit  Kelvin 표현 단위입니다.
-	KelvinUnit = TemperatureUnit{name: "kelvin", suffix: "K"}
-	// CelsiusUnit  Celsius 표현 단위입니다.
-	CelsiusUnit = TemperatureUnit{name: "celsius", suffix: "degC"}
-	// FahrenheitUnit  Fahrenheit 표현 단위입니다.
-	FahrenheitUnit = TemperatureUnit{name: "fahrenheit", suffix: "degF"}
+	kelvinUnit     = TemperatureUnit{name: "kelvin", suffix: "K"}
+	celsiusUnit    = TemperatureUnit{name: "celsius", suffix: "degC"}
+	fahrenheitUnit = TemperatureUnit{name: "fahrenheit", suffix: "degF"}
 )
 
-var temperatureUnits = []TemperatureUnit{FahrenheitUnit, CelsiusUnit, KelvinUnit}
+var temperatureUnits = []TemperatureUnit{fahrenheitUnit, celsiusUnit, kelvinUnit}
+
+// KelvinUnit  Kelvin 표현 단위를 반환합니다.
+func KelvinUnit() TemperatureUnit { return kelvinUnit }
+
+// CelsiusUnit  Celsius 표현 단위를 반환합니다.
+func CelsiusUnit() TemperatureUnit { return celsiusUnit }
+
+// FahrenheitUnit  Fahrenheit 표현 단위를 반환합니다.
+func FahrenheitUnit() TemperatureUnit { return fahrenheitUnit }
 
 // Name  온도 단위 이름을 반환합니다.
 func (u TemperatureUnit) Name() string {
@@ -196,11 +202,11 @@ func (t Temperature) Format(unit TemperatureUnit) (string, error) {
 		return "", fmt.Errorf("%w: temperature must be finite", ErrInvalidMeasure)
 	}
 	switch unit {
-	case KelvinUnit:
+	case kelvinUnit:
 		return renderNumber(t.InKelvin()) + " " + unit.suffix, nil
-	case CelsiusUnit:
+	case celsiusUnit:
 		return renderNumber(t.InCelsius()) + " " + unit.suffix, nil
-	case FahrenheitUnit:
+	case fahrenheitUnit:
 		return renderNumber(t.InFahrenheit()) + " " + unit.suffix, nil
 	default:
 		return "", fmt.Errorf("%w: unknown temperature unit", ErrInvalidUnit)
@@ -213,11 +219,11 @@ func (d TemperatureDelta) Format(unit TemperatureUnit) (string, error) {
 		return "", fmt.Errorf("%w: temperature delta must be finite", ErrInvalidMeasure)
 	}
 	switch unit {
-	case KelvinUnit:
+	case kelvinUnit:
 		return renderNumber(d.InKelvin()) + " " + unit.suffix, nil
-	case CelsiusUnit:
+	case celsiusUnit:
 		return renderNumber(d.InCelsius()) + " " + unit.suffix, nil
-	case FahrenheitUnit:
+	case fahrenheitUnit:
 		return renderNumber(d.InFahrenheit()) + " " + unit.suffix, nil
 	default:
 		return "", fmt.Errorf("%w: unknown temperature unit", ErrInvalidUnit)
@@ -226,7 +232,7 @@ func (d TemperatureDelta) Format(unit TemperatureUnit) (string, error) {
 
 // String  절대 온도를 Celsius 기준 디버그 문자열로 반환합니다.
 func (t Temperature) String() string {
-	text, err := t.Format(CelsiusUnit)
+	text, err := t.Format(celsiusUnit)
 	if err != nil {
 		return "<invalid temperature>"
 	}
@@ -235,7 +241,7 @@ func (t Temperature) String() string {
 
 // String  온도 차이를 Celsius 기준 디버그 문자열로 반환합니다.
 func (d TemperatureDelta) String() string {
-	text, err := d.Format(CelsiusUnit)
+	text, err := d.Format(celsiusUnit)
 	if err != nil {
 		return "<invalid temperature delta>"
 	}
@@ -249,11 +255,11 @@ func ParseTemperature(text string) (Temperature, error) {
 		return Temperature{}, err
 	}
 	switch unit {
-	case KelvinUnit:
+	case kelvinUnit:
 		return Kelvin(value)
-	case CelsiusUnit:
+	case celsiusUnit:
 		return Celsius(value)
-	case FahrenheitUnit:
+	case fahrenheitUnit:
 		return Fahrenheit(value)
 	default:
 		return Temperature{}, fmt.Errorf("%w: unknown temperature unit", ErrInvalidUnit)
@@ -267,11 +273,11 @@ func ParseTemperatureDelta(text string) (TemperatureDelta, error) {
 		return TemperatureDelta{}, err
 	}
 	switch unit {
-	case KelvinUnit:
+	case kelvinUnit:
 		return KelvinDelta(value)
-	case CelsiusUnit:
+	case celsiusUnit:
 		return CelsiusDelta(value)
-	case FahrenheitUnit:
+	case fahrenheitUnit:
 		return FahrenheitDelta(value)
 	default:
 		return TemperatureDelta{}, fmt.Errorf("%w: unknown temperature unit", ErrInvalidUnit)

@@ -25,21 +25,21 @@ import "github.com/bluetape4k/bluetape-go/measure"
 ## 사용법
 
 ```go
-distance := measure.Must(1500, measure.LengthMeter)
-text, err := distance.Format(measure.LengthKilometer)
+distance := measure.Must(1500, measure.LengthMeter())
+text, err := distance.Format(measure.LengthKilometer())
 if err != nil {
     return err
 }
 fmt.Println(text) // 1.5 km
 
 speed, err := measure.Div(
-    measure.Must(100, measure.LengthMeter),
-    measure.Must(9.58, measure.TimeSecond),
+    measure.Must(100, measure.LengthMeter()),
+    measure.Must(9.58, measure.TimeSecond()),
 )
 if err != nil {
     return err
 }
-metersPerSecond, err := speed.In(measure.VelocityMeterPerSecond)
+metersPerSecond, err := speed.In(measure.VelocityMeterPerSecond())
 ```
 
 ## 동작
@@ -52,7 +52,8 @@ metersPerSecond, err := speed.In(measure.VelocityMeterPerSecond)
 - `Measure[D]`는 현재 단위의 amount를 저장합니다. `In`은
   `amount * from.Ratio() / to.Ratio()` 공식으로 변환합니다.
 - Public constructor와 error-returning operation은 `ErrInvalidUnit`,
-  `ErrInvalidMeasure`, `ErrInvalidParse` sentinel을 감쌉니다.
+  `ErrInvalidMeasure`, `ErrIncompatibleUnit`, `ErrInvalidParse`,
+  `ErrDivideByZero` sentinel을 감쌉니다.
 - `String()`은 panic 없는 debug formatting입니다. 호출자가 typed validation
   failure를 다뤄야 하면 `Format` 또는 `Parse`를 사용해야 합니다.
 - Built-in storage 단위는 1024 ratio(`KB`, `MB`, ...)를 씁니다. Binary size는

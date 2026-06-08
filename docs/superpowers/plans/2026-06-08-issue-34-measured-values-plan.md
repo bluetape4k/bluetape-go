@@ -45,7 +45,7 @@ indirect dependency through infrastructure tooling, but #34 must not import it.
 - `time.Duration` helpers should be explicit, e.g. `Duration(d time.Duration)
   Measure[Time]` and `ToDuration(m Measure[Time]) (time.Duration, error)`.
 - Keep `Byte` naming out of the public API if it reads as predeclared `byte`;
-  prefer `StorageByte`, `BinaryByte`, or similarly unambiguous names if review
+  prefer `StorageByte()`, `BinaryByte()`, or similarly unambiguous names if review
   finds collision risk during implementation.
 
 ## Validation Commands

@@ -150,8 +150,9 @@ Required `Registry[D]` behavior:
 - `MustRegistry` is only for package initialization and static examples.
 - Zero-value `Registry[D]` is invalid; parsing with it returns `ErrInvalidParse`
   and wraps `ErrInvalidUnit`.
-- Built-in family registries are package variables initialized from
-  `MustRegistry` and are safe for concurrent use.
+- Built-in family units and registries are returned through package accessor
+  functions backed by unexported immutable values, so callers cannot reassign
+  shared globals while other goroutines parse or convert values.
 
 Floating-point contract:
 

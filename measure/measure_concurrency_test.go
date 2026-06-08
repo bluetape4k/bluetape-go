@@ -25,29 +25,29 @@ func TestMeasureParsingWithGoroutineStressTester(t *testing.T) {
 		if err != nil {
 			return err
 		}
-		meters, err := value.In(measure.LengthMeter)
+		meters, err := value.In(measure.LengthMeter())
 		if err != nil {
 			return err
 		}
 		if meters != 1000 {
 			return errors.New("unexpected conversion")
 		}
-		sum, err := value.Add(measure.Must(500, measure.LengthMeter))
+		sum, err := value.Add(measure.Must(500, measure.LengthMeter()))
 		if err != nil {
 			return err
 		}
-		text, err := sum.Format(measure.LengthKilometer)
+		text, err := sum.Format(measure.LengthKilometer())
 		if err != nil {
 			return err
 		}
 		if text != "1.5 km" {
 			return errors.New("unexpected formatting")
 		}
-		speed, err := measure.VelocityFromLengthTime(value, measure.Must(100, measure.TimeSecond))
+		speed, err := measure.VelocityFromLengthTime(value, measure.Must(100, measure.TimeSecond()))
 		if err != nil {
 			return err
 		}
-		if got, err := speed.In(measure.VelocityMeterPerSecond); err != nil || got != 10 {
+		if got, err := speed.In(measure.VelocityMeterPerSecond()); err != nil || got != 10 {
 			return errors.New("unexpected velocity")
 		}
 		mu.Lock()

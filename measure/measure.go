@@ -143,8 +143,11 @@ func (m Measure[D]) DivScalar(scalar float64) (Measure[D], error) {
 	if err := m.validate(); err != nil {
 		return Measure[D]{}, err
 	}
-	if !finite(scalar) || scalar == 0 {
-		return Measure[D]{}, fmt.Errorf("%w: scalar must be finite and non-zero", ErrInvalidMeasure)
+	if !finite(scalar) {
+		return Measure[D]{}, fmt.Errorf("%w: scalar must be finite", ErrInvalidMeasure)
+	}
+	if scalar == 0 {
+		return Measure[D]{}, fmt.Errorf("%w: scalar must be non-zero", ErrDivideByZero)
 	}
 	return New(m.amount/scalar, m.unit)
 }

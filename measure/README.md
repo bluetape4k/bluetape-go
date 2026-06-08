@@ -25,21 +25,21 @@ import "github.com/bluetape4k/bluetape-go/measure"
 ## Usage
 
 ```go
-distance := measure.Must(1500, measure.LengthMeter)
-text, err := distance.Format(measure.LengthKilometer)
+distance := measure.Must(1500, measure.LengthMeter())
+text, err := distance.Format(measure.LengthKilometer())
 if err != nil {
     return err
 }
 fmt.Println(text) // 1.5 km
 
 speed, err := measure.Div(
-    measure.Must(100, measure.LengthMeter),
-    measure.Must(9.58, measure.TimeSecond),
+    measure.Must(100, measure.LengthMeter()),
+    measure.Must(9.58, measure.TimeSecond()),
 )
 if err != nil {
     return err
 }
-metersPerSecond, err := speed.In(measure.VelocityMeterPerSecond)
+metersPerSecond, err := speed.In(measure.VelocityMeterPerSecond())
 ```
 
 ## Behavior
@@ -52,7 +52,8 @@ metersPerSecond, err := speed.In(measure.VelocityMeterPerSecond)
 - `Measure[D]` stores the amount in its current unit. `In` converts with
   `amount * from.Ratio() / to.Ratio()`.
 - Public constructors and error-returning operations wrap repo-owned sentinels:
-  `ErrInvalidUnit`, `ErrInvalidMeasure`, and `ErrInvalidParse`.
+  `ErrInvalidUnit`, `ErrInvalidMeasure`, `ErrIncompatibleUnit`,
+  `ErrInvalidParse`, and `ErrDivideByZero`.
 - `String()` is no-panic debug formatting. Use `Format` or `Parse` when callers
   need typed validation failures.
 - Built-in storage units use 1024 ratios (`KB`, `MB`, ...). Binary size keeps a
