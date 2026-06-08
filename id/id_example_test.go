@@ -53,6 +53,39 @@ func ExampleNewMonotonicULIDGenerator() {
 	// true
 }
 
+func ExampleNewKSUIDGenerator() {
+	fixed := time.Date(2026, 6, 8, 1, 2, 3, 0, time.UTC)
+	generator, err := id.NewKSUIDGenerator(
+		id.WithKSUIDTime(func() time.Time { return fixed }),
+		id.WithKSUIDEntropy(strings.NewReader("abcdefghijklmnop")),
+	)
+	if err != nil {
+		return
+	}
+
+	value, err := generator.NextString()
+	if err != nil {
+		return
+	}
+	parsed, err := id.ParseKSUID(value)
+	if err != nil {
+		return
+	}
+	createdAt, err := id.KSUIDTime(value)
+	if err != nil {
+		return
+	}
+
+	fmt.Println(len(value))
+	fmt.Println(parsed == value)
+	fmt.Println(createdAt.Equal(fixed))
+
+	// Output:
+	// 27
+	// true
+	// true
+}
+
 func ExampleNewSnowflakeGenerator() {
 	epoch := time.Date(2026, 1, 1, 0, 0, 0, 0, time.UTC)
 	now := epoch.Add(42 * time.Millisecond)

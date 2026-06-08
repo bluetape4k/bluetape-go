@@ -26,7 +26,8 @@ machine primitives, workflow reports, lightweight workflow runners, and
 checkpointed batch processing.
 
 The `0.6.0` milestone is in progress and adds portable service utilities,
-starting with the `id` package for UUID, ULID, and Snowflake identifiers.
+starting with the `id` package for UUID, ULID, KSUID, and Snowflake
+identifiers.
 
 ## Packages
 
@@ -57,7 +58,7 @@ starting with the `id` package for UUID, ULID, and Snowflake identifiers.
 | [`state`](state/README.md) | active | Small finite state machine primitives with typed transitions, guards, final states, and sentinel errors. |
 | [`workreport`](workreport/README.md) | active | Status, failure-policy, and report-tree values for lightweight workflow code. |
 | [`workflow`](workflow/README.md) | active | Sequential, conditional, and all-branches parallel runners built on `context.Context` and `workreport`. |
-| [`id`](id/README.md) | active | UUID v4/v7, random and monotonic ULID, and Snowflake ID generators. |
+| [`id`](id/README.md) | active | UUID v4/v7, random and monotonic ULID, standard KSUID, and Snowflake ID generators. |
 
 Next planned package families include `jwt`, measured values, money,
 probabilistic structures, relational SQL helpers, AWS/Floci helper examples,

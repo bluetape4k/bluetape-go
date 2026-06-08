@@ -6,7 +6,7 @@ Scope: `0.6.0` portable utilities after the `v0.5.1` patch release.
 ## Current Target Release
 
 `0.6.0` - Portable service utilities, starting with the `id` package for UUID,
-ULID, and Snowflake identifiers.
+ULID, standard KSUID, and Snowflake identifiers.
 
 ## Current State
 
@@ -19,20 +19,22 @@ ULID, and Snowflake identifiers.
   behavior, and the root README architecture diagram refresh.
 - Issue #31 delivered leader-guarded scheduler and migration batch examples
   with Redis Testcontainers runnable commands.
-- Issue #32 is delivering the `id` package foundation.
-- Child issues #164, #165, and #167 are covered by UUID v4/v7, random and
+- Issue #32 delivered the `id` package foundation.
+- Child issues #164, #165, and #167 are closed by UUID v4/v7, random and
   monotonic ULID, and Snowflake generation.
-- KSUID (#166), Flake, and Hashids remain deferred outside 0.6.0 closure.
+- Issue #166 is delivering the standard seconds-precision KSUID generator
+  family for `0.6.0`.
+- Millisecond KSUID compatibility (#171), Flake, and Hashids remain deferred
+  outside 0.6.0 closure.
 
 ## Release Checklist
 
-1. Complete issue #32 with implementation, tests, docs, and Step 6-R subagent
+1. Complete issue #166 with implementation, tests, docs, and Step 6-R subagent
    7-Tier code review.
-2. Verify child issues #164, #165, and #167 are closed by #32 or linked PR
-   evidence.
-3. Keep KSUID (#166), Flake, and Hashids deferred in docs and issue tracking.
-4. Run local `make ci`, PR review, and GitHub CI before merge.
-5. Continue the remaining `0.6.0` portable utility issues after `id` lands.
+2. Keep millisecond KSUID compatibility (#171), Flake, and Hashids deferred in
+   docs and issue tracking.
+3. Run local `make ci`, PR review, and GitHub CI before merge.
+4. Continue the remaining `0.6.0` portable utility issues after `id` lands.
 
 ## Next Milestone Queue
 

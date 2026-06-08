@@ -48,6 +48,18 @@ func BenchmarkULIDMonotonicParallel(b *testing.B) {
 	})
 }
 
+func BenchmarkKSUIDNextString(b *testing.B) {
+	generator, err := NewKSUIDGenerator()
+	if err != nil {
+		b.Fatal(err)
+	}
+	for b.Loop() {
+		if _, err := generator.NextString(); err != nil {
+			b.Fatal(err)
+		}
+	}
+}
+
 func BenchmarkSnowflakeNextInt64(b *testing.B) {
 	generator, err := newBenchmarkSnowflake()
 	if err != nil {

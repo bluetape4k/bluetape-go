@@ -61,7 +61,7 @@ func (e ParseError) Is(target error) bool {
 	return target == ErrInvalidID || errors.Is(e.Err, target)
 }
 
-// EntropyError wraps reader failures from UUID and ULID entropy sources.
+// EntropyError wraps reader failures from UUID, ULID, and KSUID entropy sources.
 type EntropyError struct {
 	Kind string
 	Err  error

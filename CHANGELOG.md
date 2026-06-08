@@ -10,9 +10,11 @@ and this project uses semantic versioning once the first tag is published.
 ### Added
 
 - `id` package with repo-owned UUID v4/v7 string generators, random and
-  monotonic ULID generators, Snowflake int64 generation and decoding,
+  monotonic ULID generators, standard seconds-precision KSUID generation,
+  parsing, and timestamp extraction, Snowflake int64 generation and decoding,
   sentinel/typed error contracts, stress/race coverage, benchmark smoke, and
-  bilingual package README coverage.
+  bilingual package README coverage. Kotlin-compatible millisecond KSUID remains
+  deferred to #171.
 
 ## [v0.5.1] - 2026-06-08
 

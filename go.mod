@@ -14,6 +14,7 @@ require (
 	github.com/pierrec/lz4/v4 v4.1.27
 	github.com/redis/go-redis/v9 v9.20.0
 	github.com/segmentio/kafka-go v0.4.51
+	github.com/segmentio/ksuid v1.0.4
 	github.com/testcontainers/testcontainers-go v0.42.0
 	github.com/testcontainers/testcontainers-go/modules/kafka v0.42.0
 	github.com/testcontainers/testcontainers-go/modules/mysql v0.42.0
