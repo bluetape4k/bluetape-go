@@ -57,8 +57,8 @@ runners in `state`, `workreport`, and `workflow`.
 | [`workreport`](workreport/README.md) | active | Status, failure-policy, and report-tree values for lightweight workflow code. |
 | [`workflow`](workflow/README.md) | active | Sequential, conditional, and all-branches parallel runners built on `context.Context` and `workreport`. |
 
-Next planned package families include `batch`, `id`, `jwt`, `graph`, `text`,
-`audit`, and AWS helper/example packages.
+Next planned package families include `id`, `jwt`, relational SQL helpers,
+AWS/Floci helper examples, text, audit, and graph packages.
 
 ## Install
 
@@ -98,10 +98,11 @@ benchmarks live next to each package:
 | `0.5.0` | Batch processing with checkpoints and leader-guarded examples. |
 | `0.6.0` | Portable utilities: ID generation, JWT, measured values, money, probabilistic structures, rule engine. |
 | `0.7.0` | Research gate for larger domains. |
-| `0.8.0` | Graph packages and examples. |
-| `0.9.0` | Text search, blockword masking, tokenizer research. |
-| `0.10.0` | Audit and event packages inspired by bluetape4k-javers patterns. |
-| `0.11.0` | AWS helper packages and LocalStack examples. |
+| `0.8.0` | Relational SQL DSL and repository helpers. |
+| `0.9.0` | AWS helper packages and Floci-backed examples. |
+| `0.10.0` | Text search, blockword masking, tokenizer research. |
+| `0.11.0` | Audit and event packages inspired by bluetape4k-javers patterns. |
+| `0.12.0` | Graph packages and examples. |
 
 See the [GitHub milestones](https://github.com/bluetape4k/bluetape-go/milestones)
 and [`docs/research`](docs/research/) for the current planning record.

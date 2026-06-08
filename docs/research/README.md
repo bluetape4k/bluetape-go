@@ -14,10 +14,11 @@ scope, dependency candidates, and GitHub issues.
 | `0.5.0` | [Batch](2026-06-01-milestone-0.5.0-batch-research.md) |
 | `0.6.0` | [Utilities](2026-06-01-milestone-0.6.0-utilities-research.md) |
 | `0.7.0` | [Next tracks](2026-06-01-milestone-0.7.0-next-tracks-research.md) |
-| `0.8.0` | [Graph](2026-06-01-milestone-0.8.0-graph-research.md) |
-| `0.9.0` | [Text](2026-06-01-milestone-0.9.0-text-research.md) |
-| `0.10.0` | [Audit and JaVers patterns](2026-06-01-milestone-0.10.0-audit-javers-research.md) |
-| `0.11.0` | [AWS](2026-06-01-milestone-0.11.0-aws-research.md) |
+| `0.8.0` | [Relational SQL](2026-06-01-milestone-0.8.0-sql-research.md) |
+| `0.9.0` | [AWS and Floci](2026-06-01-milestone-0.9.0-aws-research.md) |
+| `0.10.0` | [Text](2026-06-01-milestone-0.10.0-text-research.md) |
+| `0.11.0` | [Audit and JaVers patterns](2026-06-01-milestone-0.11.0-audit-javers-research.md) |
+| `0.12.0` | [Graph](2026-06-01-milestone-0.12.0-graph-research.md) |
 
 ## Update Rule
 

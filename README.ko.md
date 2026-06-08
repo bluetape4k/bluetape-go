@@ -55,8 +55,8 @@ primitive, workflow report, lightweight workflow runner를 추가했습니다.
 | [`workreport`](workreport/README.ko.md) | active | lightweight workflow code를 위한 status, failure-policy, report-tree value. |
 | [`workflow`](workflow/README.ko.md) | active | `context.Context`와 `workreport` 기반 sequential, conditional, all-branches parallel runner. |
 
-다음 계획 패키지군은 `batch`, `id`, `jwt`, `graph`, `text`, `audit`,
-AWS helper/example 패키지입니다.
+다음 계획 패키지군은 `id`, `jwt`, relational SQL helper, AWS/Floci
+helper example, text, audit, graph 패키지입니다.
 
 ## 설치
 
@@ -93,10 +93,11 @@ go get github.com/bluetape4k/bluetape-go
 | `0.5.0` | Checkpoint 기반 batch processing과 leader-guarded example. |
 | `0.6.0` | ID generation, JWT, measured value, money, probabilistic structure, rule engine. |
 | `0.7.0` | 큰 도메인에 대한 research gate. |
-| `0.8.0` | Graph package와 example. |
-| `0.9.0` | Text search, blockword masking, tokenizer research. |
-| `0.10.0` | bluetape4k-javers 패턴 기반 audit/event package. |
-| `0.11.0` | AWS helper package와 LocalStack example. |
+| `0.8.0` | Relational SQL DSL과 repository helper. |
+| `0.9.0` | AWS helper package와 Floci-backed example. |
+| `0.10.0` | Text search, blockword masking, tokenizer research. |
+| `0.11.0` | bluetape4k-javers 패턴 기반 audit/event package. |
+| `0.12.0` | Graph package와 example. |
 
 현재 계획은 [GitHub milestones](https://github.com/bluetape4k/bluetape-go/milestones)
 와 [`docs/research`](docs/research/)에서 확인할 수 있습니다.
