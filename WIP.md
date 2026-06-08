@@ -6,8 +6,10 @@ Scope: `0.6.0` portable utilities after the `v0.5.1` patch release.
 ## Current Target Release
 
 `0.6.0` - Portable service utilities, including the `id` package for UUID, ULID,
-standard KSUID, and Snowflake identifiers plus the `jwt` package for
-explicit-algorithm JWT signing, parsing, validation, and local key rotation.
+standard KSUID, and Snowflake identifiers, the `jwt` package for
+explicit-algorithm JWT signing, parsing, validation, and local key rotation, and
+the `measure` package for typed units, measured values, compound units, parsing,
+formatting, and temperature helpers.
 
 ## Current State
 
@@ -25,9 +27,12 @@ explicit-algorithm JWT signing, parsing, validation, and local key rotation.
   monotonic ULID, and Snowflake generation.
 - Issue #166 delivered the standard seconds-precision KSUID generator family for
   `0.6.0`.
-- Issue #33 is delivering the `jwt` helper package with explicit algorithms,
+- Issue #33 delivered the `jwt` helper package with explicit algorithms,
   fixed and rotating in-memory KeyChains, typed claim readers, `kid` lookup,
   weak-secret rejection, and stress/race coverage.
+- Issue #34 is delivering the `measure` package with typed unit/measure values,
+  family parsers, compound units, source-parity helpers, affine temperature, and
+  stress/race coverage.
 - Millisecond KSUID compatibility (#171), Flake, and Hashids remain deferred
   outside 0.6.0 closure.
 - Distributed JWT KeyChain repositories (#173), safe JWT compression/JOSE
@@ -36,7 +41,7 @@ explicit-algorithm JWT signing, parsing, validation, and local key rotation.
 
 ## Release Checklist
 
-1. Complete issue #33 with implementation, tests, docs, and Step 6-R subagent
+1. Complete issue #34 with implementation, tests, docs, and Step 6-R subagent
    7-Tier code review.
 2. Keep millisecond KSUID compatibility (#171), Flake, Hashids, distributed JWT
    repositories (#173), JOSE compression scope (#174), and provider cache
