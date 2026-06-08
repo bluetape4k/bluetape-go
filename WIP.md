@@ -5,8 +5,9 @@ Scope: `0.6.0` portable utilities after the `v0.5.1` patch release.
 
 ## Current Target Release
 
-`0.6.0` - Portable service utilities, starting with the `id` package for UUID,
-ULID, standard KSUID, and Snowflake identifiers.
+`0.6.0` - Portable service utilities, including the `id` package for UUID, ULID,
+standard KSUID, and Snowflake identifiers plus the `jwt` package for
+explicit-algorithm JWT signing, parsing, validation, and local key rotation.
 
 ## Current State
 
@@ -22,19 +23,26 @@ ULID, standard KSUID, and Snowflake identifiers.
 - Issue #32 delivered the `id` package foundation.
 - Child issues #164, #165, and #167 are closed by UUID v4/v7, random and
   monotonic ULID, and Snowflake generation.
-- Issue #166 is delivering the standard seconds-precision KSUID generator
-  family for `0.6.0`.
+- Issue #166 delivered the standard seconds-precision KSUID generator family for
+  `0.6.0`.
+- Issue #33 is delivering the `jwt` helper package with explicit algorithms,
+  fixed and rotating in-memory KeyChains, typed claim readers, `kid` lookup,
+  weak-secret rejection, and stress/race coverage.
 - Millisecond KSUID compatibility (#171), Flake, and Hashids remain deferred
   outside 0.6.0 closure.
+- Distributed JWT KeyChain repositories (#173), safe JWT compression/JOSE
+  dependency scope (#174), and optional JWT provider cache adapters (#175) remain
+  deferred outside #33.
 
 ## Release Checklist
 
-1. Complete issue #166 with implementation, tests, docs, and Step 6-R subagent
+1. Complete issue #33 with implementation, tests, docs, and Step 6-R subagent
    7-Tier code review.
-2. Keep millisecond KSUID compatibility (#171), Flake, and Hashids deferred in
-   docs and issue tracking.
+2. Keep millisecond KSUID compatibility (#171), Flake, Hashids, distributed JWT
+   repositories (#173), JOSE compression scope (#174), and provider cache
+   adapters (#175) deferred in docs and issue tracking.
 3. Run local `make ci`, PR review, and GitHub CI before merge.
-4. Continue the remaining `0.6.0` portable utility issues after `id` lands.
+4. Recheck GitHub milestone state before declaring `0.6.0` complete.
 
 ## Next Milestone Queue
 
