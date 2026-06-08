@@ -23,8 +23,8 @@ Redis 기반 leader election, resilience policy, cache/Redis coordination packag
 token-bucket rate limiting, finite state machine primitive, workflow report,
 lightweight workflow runner, checkpoint 기반 batch processing이 들어 있습니다.
 
-`0.6.0` milestone은 진행 중이며 UUID, ULID, Snowflake identifier를 제공하는
-`id` package부터 portable service utility를 추가합니다.
+`0.6.0` milestone은 진행 중이며 UUID, ULID, KSUID, Snowflake identifier를
+제공하는 `id` package부터 portable service utility를 추가합니다.
 
 ## 패키지
 
@@ -55,7 +55,7 @@ lightweight workflow runner, checkpoint 기반 batch processing이 들어 있습
 | [`state`](state/README.ko.md) | active | typed transition, guard, final state, sentinel error를 제공하는 작은 finite state machine primitive. |
 | [`workreport`](workreport/README.ko.md) | active | lightweight workflow code를 위한 status, failure-policy, report-tree value. |
 | [`workflow`](workflow/README.ko.md) | active | `context.Context`와 `workreport` 기반 sequential, conditional, all-branches parallel runner. |
-| [`id`](id/README.ko.md) | active | UUID v4/v7, random/monotonic ULID, Snowflake ID generator. |
+| [`id`](id/README.ko.md) | active | UUID v4/v7, random/monotonic ULID, standard KSUID, Snowflake ID generator. |
 
 다음 계획 패키지군은 `jwt`, measured value, money, probabilistic structure,
 relational SQL helper, AWS/Floci helper example, text, audit, graph 패키지입니다.

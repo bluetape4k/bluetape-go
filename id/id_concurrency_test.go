@@ -108,6 +108,12 @@ func TestGUIDGeneratorsStayUniqueAcrossGoroutines(t *testing.T) {
 				return NewMonotonicULIDGenerator()
 			},
 		},
+		{
+			name: "ksuid",
+			new: func() (StringGenerator, error) {
+				return NewKSUIDGenerator()
+			},
+		},
 	}
 
 	for _, tt := range tests {
