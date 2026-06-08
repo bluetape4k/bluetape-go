@@ -182,7 +182,11 @@ func copyValue(value any) any {
 	case []string:
 		return append([]string(nil), typed...)
 	case []any:
-		return append([]any(nil), typed...)
+		copied := make([]any, len(typed))
+		for index, item := range typed {
+			copied[index] = copyValue(item)
+		}
+		return copied
 	case map[string]any:
 		copied := make(map[string]any, len(typed))
 		for key, item := range typed {

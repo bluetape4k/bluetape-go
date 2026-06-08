@@ -35,9 +35,10 @@ func TestFixedHMACProviderComposesAndParsesClaims(t *testing.T) {
 		WithNotBefore(now.Add(-time.Minute)),
 		WithJWTID("jwt-id"),
 		WithHeader("env", "test"),
-		WithHeader("trace", []any{"a", "b"}),
+		WithHeader("trace", []any{"a", map[string]any{"nested": "b"}}),
 		WithClaim("role", "admin"),
 		WithClaim("meta", map[string]any{"team": "core"}),
+		WithClaim("items", []any{map[string]any{"name": "first"}}),
 	)
 	if err != nil {
 		t.Fatalf("Compose() error = %v", err)
@@ -70,9 +71,13 @@ func TestFixedHMACProviderComposesAndParsesClaims(t *testing.T) {
 		t.Fatalf("Header(trace) missing")
 	}
 	headerTrace.([]any)[0] = "mutated"
+	headerTrace.([]any)[1].(map[string]any)["nested"] = "mutated"
 	headerTraceAgain, _ := reader.Header("trace")
 	if headerTraceAgain.([]any)[0] != "a" {
 		t.Fatalf("Header() did not return isolated copy: %v", headerTraceAgain)
+	}
+	if headerTraceAgain.([]any)[1].(map[string]any)["nested"] != "b" {
+		t.Fatalf("Header() did not return isolated nested copy: %v", headerTraceAgain)
 	}
 	claimMeta, ok := reader.Claim("meta")
 	if !ok {
@@ -82,6 +87,15 @@ func TestFixedHMACProviderComposesAndParsesClaims(t *testing.T) {
 	claimMetaAgain, _ := reader.Claim("meta")
 	if claimMetaAgain.(map[string]any)["team"] != "core" {
 		t.Fatalf("Claim() did not return isolated copy: %v", claimMetaAgain)
+	}
+	claimItems, ok := reader.Claim("items")
+	if !ok {
+		t.Fatalf("Claim(items) missing")
+	}
+	claimItems.([]any)[0].(map[string]any)["name"] = "mutated"
+	claimItemsAgain, _ := reader.Claim("items")
+	if claimItemsAgain.([]any)[0].(map[string]any)["name"] != "first" {
+		t.Fatalf("Claim() did not return isolated nested copy: %v", claimItemsAgain)
 	}
 	if issuedAt, ok := reader.IssuedAt(); !ok || !issuedAt.Equal(now) {
 		t.Fatalf("IssuedAt() = %v ok=%v", issuedAt, ok)
