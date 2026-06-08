@@ -42,6 +42,12 @@ Milestone `0.6.0` is the next release queue after `v0.5.1` ships.
 The planned portable-utilities scope is represented in the roadmap and should
 be rechecked against current GitHub issues before implementation starts.
 
+From `0.8.0` onward, the roadmap order is relational SQL, AWS/Floci, text,
+audit, then graph. SQL moved earlier because repository/database ergonomics are
+foundational backend service infrastructure. Graph moved to the last planned
+slot because driver maturity, backend abstraction, graph I/O, and domain
+examples carry more research uncertainty.
+
 ## Decision Log
 
 - Keep `README.md` and `README.ko.md` synchronized when package scope, roadmap,
