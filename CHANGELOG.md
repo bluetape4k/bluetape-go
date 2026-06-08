@@ -7,7 +7,12 @@ and this project uses semantic versioning once the first tag is published.
 
 ## [Unreleased]
 
-No unreleased changes yet.
+### Added
+
+- `id` package with repo-owned UUID v4/v7 string generators, random and
+  monotonic ULID generators, Snowflake int64 generation and decoding,
+  sentinel/typed error contracts, stress/race coverage, benchmark smoke, and
+  bilingual package README coverage.
 
 ## [v0.5.1] - 2026-06-08
 
