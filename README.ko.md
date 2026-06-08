@@ -17,13 +17,14 @@ fixture, resilience, cache, workflow, batch, graph, text, audit, AWS 관련
 
 ## 현재 상태
 
-`bluetape-go`는 `0.3.0` 릴리스 선을 배포했습니다. Repository에는 foundation
+`bluetape-go`는 `v0.5.1` 릴리스 선을 배포했습니다. Repository에는 foundation
 utility, codec, compression, concurrency helper, serialization contract,
 Redis 기반 leader election, resilience policy, cache/Redis coordination package,
-token-bucket rate limiting, candidate registry 기반 pluggable leader election
-strategy가 들어 있습니다. `0.4.0` milestone은 닫혔고 릴리스 준비 단계입니다.
-이번 milestone은 `state`, `workreport`, `workflow`의 finite state machine
-primitive, workflow report, lightweight workflow runner를 추가했습니다.
+token-bucket rate limiting, finite state machine primitive, workflow report,
+lightweight workflow runner, checkpoint 기반 batch processing이 들어 있습니다.
+
+`0.6.0` milestone은 진행 중이며 UUID, ULID, Snowflake identifier를 제공하는
+`id` package부터 portable service utility를 추가합니다.
 
 ## 패키지
 
@@ -54,9 +55,10 @@ primitive, workflow report, lightweight workflow runner를 추가했습니다.
 | [`state`](state/README.ko.md) | active | typed transition, guard, final state, sentinel error를 제공하는 작은 finite state machine primitive. |
 | [`workreport`](workreport/README.ko.md) | active | lightweight workflow code를 위한 status, failure-policy, report-tree value. |
 | [`workflow`](workflow/README.ko.md) | active | `context.Context`와 `workreport` 기반 sequential, conditional, all-branches parallel runner. |
+| [`id`](id/README.ko.md) | active | UUID v4/v7, random/monotonic ULID, Snowflake ID generator. |
 
-다음 계획 패키지군은 `id`, `jwt`, relational SQL helper, AWS/Floci
-helper example, text, audit, graph 패키지입니다.
+다음 계획 패키지군은 `jwt`, measured value, money, probabilistic structure,
+relational SQL helper, AWS/Floci helper example, text, audit, graph 패키지입니다.
 
 ## 설치
 
@@ -81,6 +83,7 @@ go get github.com/bluetape4k/bluetape-go
   [`cache/rediscoord`](cache/rediscoord/README.ko.md), [`ratelimit`](ratelimit/README.ko.md),
   [`state`](state/README.ko.md), [`workreport`](workreport/README.ko.md),
   [`workflow`](workflow/README.ko.md).
+- Portable utility: [`id`](id/README.ko.md).
 
 ## Roadmap
 
@@ -91,13 +94,14 @@ go get github.com/bluetape4k/bluetape-go
 | `0.3.0` | Cache/coordination: near cache, Redis lock, token-bucket rate limiting, strategic leader election. |
 | `0.4.0` | State machine과 lightweight workflow primitive. |
 | `0.5.0` | Checkpoint 기반 batch processing과 leader-guarded example. |
-| `0.6.0` | ID generation, JWT, measured value, money, probabilistic structure, rule engine. |
-| `0.7.0` | 큰 도메인에 대한 research gate. |
+| `0.6.0` | ID generation, JWT, measured value, money, probabilistic structure. |
+| `0.7.0` | Encryption/Tink utility와 큰 도메인에 대한 research gate. |
 | `0.8.0` | Relational SQL DSL과 repository helper. |
 | `0.9.0` | AWS helper package와 Floci-backed example. |
 | `0.10.0` | Text search, blockword masking, tokenizer research. |
 | `0.11.0` | bluetape4k-javers 패턴 기반 audit/event package. |
 | `0.12.0` | Graph package와 example. |
+| `0.13.0` | Rule engine research와 구현. |
 
 현재 계획은 [GitHub milestones](https://github.com/bluetape4k/bluetape-go/milestones)
 와 [`docs/research`](docs/research/)에서 확인할 수 있습니다.

@@ -1,46 +1,45 @@
 # WIP
 
 Snapshot: 2026-06-08 KST
-Scope: `v0.5.1` patch release preparation after the checkpoint-safe batch
-writer skip fix merged.
+Scope: `0.6.0` portable utilities after the `v0.5.1` patch release.
 
 ## Current Target Release
 
-`0.5.1` - Patch release for checkpoint-safe skipped writer chunks in
-`batch.Step`.
+`0.6.0` - Portable service utilities, starting with the `id` package for UUID,
+ULID, and Snowflake identifiers.
 
 ## Current State
 
-- `0.1.0`, `0.1.1`, `0.2.0`, `0.3.0`, `0.4.0`, and `0.5.0` are tagged and
-  released.
-- Milestone `0.5.0` implementation is merged on `develop`.
+- `0.1.0`, `0.1.1`, `0.2.0`, `0.3.0`, `0.4.0`, `0.5.0`, and `v0.5.1` are
+  tagged and released.
+- Milestone `0.6.0` implementation is in progress.
 - Issue #29 delivered the `batch` reader/processor/writer core and sequential
   job model.
 - Issue #30 delivered retry/skip policies, checkpoint storage, restart
   behavior, and the root README architecture diagram refresh.
 - Issue #31 delivered leader-guarded scheduler and migration batch examples
   with Redis Testcontainers runnable commands.
-- Issue #158 delivered the checkpoint-safe writer skip fix after the `v0.5.0`
-  tag existed, so the release target is `v0.5.1` without rewriting `v0.5.0`.
-- Epic #5 and milestone `0.5.0` are ready for closure after the patch release
-  is published.
+- Issue #32 is delivering the `id` package foundation.
+- Child issues #164, #165, and #167 are covered by UUID v4/v7, random and
+  monotonic ULID, and Snowflake generation.
+- KSUID (#166), Flake, and Hashids remain deferred outside 0.6.0 closure.
 
 ## Release Checklist
 
-1. Merge the `v0.5.1` release-prep documentation PR into `develop`.
-2. Close epic #5 after verifying child issues #29, #30, #31, and #158 are
-   closed.
-3. Close milestone `0.5.0` after its open issue count reaches zero.
-4. Promote `develop` to `main` through the `v0.5.1` release PR.
-5. Tag `main` as `v0.5.1`.
-6. Create GitHub Release `v0.5.1` from the changelog section.
+1. Complete issue #32 with implementation, tests, docs, and Step 6-R subagent
+   7-Tier code review.
+2. Verify child issues #164, #165, and #167 are closed by #32 or linked PR
+   evidence.
+3. Keep KSUID (#166), Flake, and Hashids deferred in docs and issue tracking.
+4. Run local `make ci`, PR review, and GitHub CI before merge.
+5. Continue the remaining `0.6.0` portable utility issues after `id` lands.
 
 ## Next Milestone Queue
 
-Milestone `0.6.0` is the next release queue after `v0.5.1` ships.
+Milestone `0.6.0` is the active release queue.
 
 The planned portable-utilities scope is represented in the roadmap and should
-be rechecked against current GitHub issues before implementation starts.
+be rechecked against current GitHub issues before each new package starts.
 
 From `0.8.0` onward, the roadmap order is relational SQL, AWS/Floci, text,
 audit, then graph. SQL moved earlier because repository/database ergonomics are
@@ -69,6 +68,8 @@ examples carry more research uncertainty.
   concurrency or timing semantics are part of the contract.
 - Refresh README, WIP, and CHANGELOG after milestone merges, not only at tag
   time.
+- Before starting a new milestone package, compare issue scope against the
+  broader `bluetape4k-*` ecosystem so Go support is not accidentally too narrow.
 - Keep package-level Korean README siblings synchronized with English package
   README changes.
 - Use Go native coverage reports for bluetape-go CI/Nightly first; defer
