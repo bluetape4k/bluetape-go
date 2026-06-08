@@ -15,6 +15,12 @@ and this project uses semantic versioning once the first tag is published.
   sentinel/typed error contracts, stress/race coverage, benchmark smoke, and
   bilingual package README coverage. Kotlin-compatible millisecond KSUID remains
   deferred to #171.
+- `jwt` package with explicit HS/RS/PS algorithm providers, fixed and in-memory
+  rotating KeyChains, typed claim/header readers, issuer/subject/audience/exp
+  validation helpers, `kid` lookup, weak-secret rejection, unsupported JOSE
+  header rejection, sentinel error contracts, stress/race coverage, and
+  bilingual package README coverage. Distributed repositories, JOSE compression,
+  and provider cache adapters remain deferred to #173, #174, and #175.
 
 ## [v0.5.1] - 2026-06-08
 

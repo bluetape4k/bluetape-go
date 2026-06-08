@@ -26,8 +26,9 @@ machine primitives, workflow reports, lightweight workflow runners, and
 checkpointed batch processing.
 
 The `0.6.0` milestone is in progress and adds portable service utilities,
-starting with the `id` package for UUID, ULID, KSUID, and Snowflake
-identifiers.
+including the `id` package for UUID, ULID, KSUID, and Snowflake identifiers and
+the `jwt` package for explicit-algorithm JWT signing, parsing, validation, and
+local key rotation.
 
 ## Packages
 
@@ -59,10 +60,11 @@ identifiers.
 | [`workreport`](workreport/README.md) | active | Status, failure-policy, and report-tree values for lightweight workflow code. |
 | [`workflow`](workflow/README.md) | active | Sequential, conditional, and all-branches parallel runners built on `context.Context` and `workreport`. |
 | [`id`](id/README.md) | active | UUID v4/v7, random and monotonic ULID, standard KSUID, and Snowflake ID generators. |
+| [`jwt`](jwt/README.md) | active | JWT signing, parsing, validation, typed claim reading, and in-memory `kid` key rotation with explicit algorithms. |
 
-Next planned package families include `jwt`, measured values, money,
-probabilistic structures, relational SQL helpers, AWS/Floci helper examples,
-text, audit, and graph packages.
+Next planned package families include measured values, money, probabilistic
+structures, relational SQL helpers, AWS/Floci helper examples, text, audit, and
+graph packages.
 
 ## Install
 
@@ -90,7 +92,7 @@ benchmarks live next to each package:
   [`cache/rediscoord`](cache/rediscoord/README.md), [`ratelimit`](ratelimit/README.md),
   [`state`](state/README.md), [`workreport`](workreport/README.md), and
   [`workflow`](workflow/README.md).
-- Portable utilities: [`id`](id/README.md).
+- Portable utilities: [`id`](id/README.md) and [`jwt`](jwt/README.md).
 
 ## Roadmap
 
