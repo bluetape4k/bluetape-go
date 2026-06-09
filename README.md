@@ -26,9 +26,10 @@ machine primitives, workflow reports, lightweight workflow runners, and
 checkpointed batch processing.
 
 The `0.6.0` milestone is in progress and adds portable service utilities,
-including the `id` package for UUID, ULID, KSUID, and Snowflake identifiers and
-the `jwt` package for explicit-algorithm JWT signing, parsing, validation, and
-local key rotation.
+including the `id` package for UUID, ULID, KSUID, and Snowflake identifiers, the
+`jwt` package for explicit-algorithm JWT signing, parsing, validation, and local
+key rotation, and the `measure` package for typed units, measured values,
+compound units, parsing, formatting, and temperature helpers.
 
 ## Packages
 
@@ -61,10 +62,11 @@ local key rotation.
 | [`workflow`](workflow/README.md) | active | Sequential, conditional, and all-branches parallel runners built on `context.Context` and `workreport`. |
 | [`id`](id/README.md) | active | UUID v4/v7, random and monotonic ULID, standard KSUID, and Snowflake ID generators. |
 | [`jwt`](jwt/README.md) | active | JWT signing, parsing, validation, typed claim reading, and in-memory `kid` key rotation with explicit algorithms. |
+| [`measure`](measure/README.md) | active | Typed units, measured values, compound units, parsing, formatting, and affine temperature helpers. |
 
-Next planned package families include measured values, money, probabilistic
-structures, relational SQL helpers, AWS/Floci helper examples, text, audit, and
-graph packages.
+Next planned package families include money, probabilistic structures,
+relational SQL helpers, AWS/Floci helper examples, text, audit, and graph
+packages.
 
 ## Install
 
@@ -92,7 +94,8 @@ benchmarks live next to each package:
   [`cache/rediscoord`](cache/rediscoord/README.md), [`ratelimit`](ratelimit/README.md),
   [`state`](state/README.md), [`workreport`](workreport/README.md), and
   [`workflow`](workflow/README.md).
-- Portable utilities: [`id`](id/README.md) and [`jwt`](jwt/README.md).
+- Portable utilities: [`id`](id/README.md), [`jwt`](jwt/README.md), and
+  [`measure`](measure/README.md).
 
 ## Roadmap
 

@@ -24,8 +24,10 @@ token-bucket rate limiting, finite state machine primitive, workflow report,
 lightweight workflow runner, checkpoint 기반 batch processing이 들어 있습니다.
 
 `0.6.0` milestone은 진행 중이며 UUID, ULID, KSUID, Snowflake identifier를
-제공하는 `id` package와 명시적 algorithm 기반 JWT signing, parsing, validation,
-local key rotation을 제공하는 `jwt` package를 추가합니다.
+제공하는 `id` package, 명시적 algorithm 기반 JWT signing, parsing, validation,
+local key rotation을 제공하는 `jwt` package, typed unit/measured value,
+compound unit, parsing, formatting, temperature helper를 제공하는 `measure`
+package를 추가합니다.
 
 ## 패키지
 
@@ -58,9 +60,10 @@ local key rotation을 제공하는 `jwt` package를 추가합니다.
 | [`workflow`](workflow/README.ko.md) | active | `context.Context`와 `workreport` 기반 sequential, conditional, all-branches parallel runner. |
 | [`id`](id/README.ko.md) | active | UUID v4/v7, random/monotonic ULID, standard KSUID, Snowflake ID generator. |
 | [`jwt`](jwt/README.ko.md) | active | 명시적 algorithm을 사용하는 JWT signing, parsing, validation, typed claim reading, in-memory `kid` key rotation. |
+| [`measure`](measure/README.ko.md) | active | Typed unit, measured value, compound unit, parsing, formatting, affine temperature helper. |
 
-다음 계획 패키지군은 measured value, money, probabilistic structure, relational
-SQL helper, AWS/Floci helper example, text, audit, graph 패키지입니다.
+다음 계획 패키지군은 money, probabilistic structure, relational SQL helper,
+AWS/Floci helper example, text, audit, graph 패키지입니다.
 
 ## 설치
 
@@ -85,7 +88,8 @@ go get github.com/bluetape4k/bluetape-go
   [`cache/rediscoord`](cache/rediscoord/README.ko.md), [`ratelimit`](ratelimit/README.ko.md),
   [`state`](state/README.ko.md), [`workreport`](workreport/README.ko.md),
   [`workflow`](workflow/README.ko.md).
-- Portable utility: [`id`](id/README.ko.md), [`jwt`](jwt/README.ko.md).
+- Portable utility: [`id`](id/README.ko.md), [`jwt`](jwt/README.ko.md),
+  [`measure`](measure/README.ko.md).
 
 ## Roadmap
 

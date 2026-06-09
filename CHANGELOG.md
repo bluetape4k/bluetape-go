@@ -21,6 +21,13 @@ and this project uses semantic versioning once the first tag is published.
   header rejection, sentinel error contracts, stress/race coverage, and
   bilingual package README coverage. Distributed repositories, JOSE compression,
   and provider cache adapters remain deferred to #173, #174, and #175.
+- `measure` package with typed `Unit[D]` and `Measure[D]`, built-in length,
+  time, mass, area, volume, storage, binary size, frequency, energy, power,
+  pressure, angle, graphics length, velocity, acceleration, affine temperature,
+  generic and family parsers, compound unit helpers, source-parity named
+  helpers, sentinel error contracts, stress/race coverage, and bilingual README
+  coverage. Decimal money precision remains deferred to the future money
+  package.
 
 ## [v0.5.1] - 2026-06-08
 
