@@ -7,6 +7,8 @@ and this project uses semantic versioning once the first tag is published.
 
 ## [Unreleased]
 
+## [v0.6.0] - 2026-06-09
+
 ### Added
 
 - `id` package with repo-owned UUID v4/v7 string generators, random and
