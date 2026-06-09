@@ -26,11 +26,12 @@ machine primitives, workflow reports, lightweight workflow runners, and
 checkpointed batch processing.
 
 The `0.6.0` milestone is in progress and adds portable service utilities,
-including the `id` package for UUID, ULID, KSUID, and Snowflake identifiers, the
-`jwt` package for explicit-algorithm JWT signing, parsing, validation, and local
-key rotation, and the `measure` package for typed units, measured values,
-compound units, parsing, formatting, and temperature helpers, and the `money`
-package for ISO currency and decimal-backed amount operations.
+including the `id` package for UUID, ULID, KSUID, and Snowflake identifiers,
+the `jwt` package for explicit-algorithm JWT signing, parsing, validation, and
+local key rotation, the `measure` package for typed units, measured values,
+compound units, parsing, formatting, and temperature helpers, the `money`
+package for ISO currency and decimal-backed amount operations, and the
+`probabilistic` package for in-memory Bloom filters.
 
 ## Packages
 
@@ -65,10 +66,11 @@ package for ISO currency and decimal-backed amount operations.
 | [`jwt`](jwt/README.md) | active | JWT signing, parsing, validation, typed claim reading, and in-memory `kid` key rotation with explicit algorithms. |
 | [`measure`](measure/README.md) | active | Typed units, measured values, compound units, parsing, formatting, and affine temperature helpers. |
 | [`money`](money/README.md) | active | ISO 4217 currency values, decimal-backed money amounts, aggregation, serialization, and caller-supplied exchange-rate conversion. |
+| [`probabilistic`](probabilistic/README.md) | active | Goroutine-safe in-memory Bloom filters with deterministic config, merge compatibility checks, and stress/race coverage. |
 
-Next planned package families include probabilistic structures,
-relational SQL helpers, AWS/Floci helper examples, text, audit, and graph
-packages.
+Next planned package families include relational SQL helpers, AWS/Floci helper
+examples, text, audit, and graph packages. Redis-backed Bloom/Cuckoo/HyperLogLog
+support is tracked separately for `0.6.1`.
 
 ## Install
 
@@ -96,8 +98,9 @@ benchmarks live next to each package:
   [`cache/rediscoord`](cache/rediscoord/README.md), [`ratelimit`](ratelimit/README.md),
   [`state`](state/README.md), [`workreport`](workreport/README.md), and
   [`workflow`](workflow/README.md).
-- Portable utilities: [`id`](id/README.md), [`jwt`](jwt/README.md), and
-  [`measure`](measure/README.md), and [`money`](money/README.md).
+- Portable utilities: [`id`](id/README.md), [`jwt`](jwt/README.md),
+  [`measure`](measure/README.md), [`money`](money/README.md), and
+  [`probabilistic`](probabilistic/README.md).
 
 ## Roadmap
 
