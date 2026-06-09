@@ -27,7 +27,8 @@ lightweight workflow runner, checkpoint 기반 batch processing이 들어 있습
 제공하는 `id` package, 명시적 algorithm 기반 JWT signing, parsing, validation,
 local key rotation을 제공하는 `jwt` package, typed unit/measured value,
 compound unit, parsing, formatting, temperature helper를 제공하는 `measure`
-package를 추가합니다.
+package, ISO 통화와 decimal-backed 금액 연산을 제공하는 `money` package를
+추가합니다.
 
 ## 패키지
 
@@ -61,9 +62,10 @@ package를 추가합니다.
 | [`id`](id/README.ko.md) | active | UUID v4/v7, random/monotonic ULID, standard KSUID, Snowflake ID generator. |
 | [`jwt`](jwt/README.ko.md) | active | 명시적 algorithm을 사용하는 JWT signing, parsing, validation, typed claim reading, in-memory `kid` key rotation. |
 | [`measure`](measure/README.ko.md) | active | Typed unit, measured value, compound unit, parsing, formatting, affine temperature helper. |
+| [`money`](money/README.ko.md) | active | ISO 4217 통화 값, decimal-backed 금액, 합산, 직렬화, caller-supplied 환율 변환. |
 
-다음 계획 패키지군은 money, probabilistic structure, relational SQL helper,
-AWS/Floci helper example, text, audit, graph 패키지입니다.
+다음 계획 패키지군은 probabilistic structure, relational SQL helper, AWS/Floci
+helper example, text, audit, graph 패키지입니다.
 
 ## 설치
 
@@ -89,7 +91,7 @@ go get github.com/bluetape4k/bluetape-go
   [`state`](state/README.ko.md), [`workreport`](workreport/README.ko.md),
   [`workflow`](workflow/README.ko.md).
 - Portable utility: [`id`](id/README.ko.md), [`jwt`](jwt/README.ko.md),
-  [`measure`](measure/README.ko.md).
+  [`measure`](measure/README.ko.md), [`money`](money/README.ko.md).
 
 ## Roadmap
 

@@ -1,6 +1,6 @@
 # WIP
 
-Snapshot: 2026-06-08 KST
+Snapshot: 2026-06-09 KST
 Scope: `0.6.0` portable utilities after the `v0.5.1` patch release.
 
 ## Current Target Release
@@ -9,7 +9,8 @@ Scope: `0.6.0` portable utilities after the `v0.5.1` patch release.
 standard KSUID, and Snowflake identifiers, the `jwt` package for
 explicit-algorithm JWT signing, parsing, validation, and local key rotation, and
 the `measure` package for typed units, measured values, compound units, parsing,
-formatting, and temperature helpers.
+formatting, and temperature helpers, and the `money` package for ISO currency
+and decimal-backed amount operations.
 
 ## Current State
 
@@ -30,22 +31,29 @@ formatting, and temperature helpers.
 - Issue #33 delivered the `jwt` helper package with explicit algorithms,
   fixed and rotating in-memory KeyChains, typed claim readers, `kid` lookup,
   weak-secret rejection, and stress/race coverage.
-- Issue #34 is delivering the `measure` package with typed unit/measure values,
+- Issue #34 delivered the `measure` package with typed unit/measure values,
   family parsers, compound units, source-parity helpers, affine temperature, and
   stress/race coverage.
+- Issue #35 is delivering the `money` helper package with ISO 4217 currency
+  wrappers, decimal-backed `Money` values, caller-supplied exchange-rate
+  conversion, and stress/race coverage.
 - Millisecond KSUID compatibility (#171), Flake, and Hashids remain deferred
   outside 0.6.0 closure.
 - Distributed JWT KeyChain repositories (#173), safe JWT compression/JOSE
   dependency scope (#174), and optional JWT provider cache adapters (#175) remain
   deferred outside #33.
+- Provider-backed money exchange rates (#178), full locale-to-currency mapping
+  (#179), and long-backed FastMoney evaluation (#180) remain deferred outside
+  #35.
 
 ## Release Checklist
 
-1. Complete issue #34 with implementation, tests, docs, and Step 6-R subagent
+1. Complete issue #35 with implementation, tests, docs, and Step 6-R subagent
    7-Tier code review.
 2. Keep millisecond KSUID compatibility (#171), Flake, Hashids, distributed JWT
-   repositories (#173), JOSE compression scope (#174), and provider cache
-   adapters (#175) deferred in docs and issue tracking.
+   repositories (#173), JOSE compression scope (#174), provider cache adapters
+   (#175), provider-backed money exchange rates (#178), full locale mapping
+   (#179), and FastMoney evaluation (#180) deferred in docs and issue tracking.
 3. Run local `make ci`, PR review, and GitHub CI before merge.
 4. Recheck GitHub milestone state before declaring `0.6.0` complete.
 
