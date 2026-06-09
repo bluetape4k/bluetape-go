@@ -7,6 +7,8 @@ require (
 	github.com/golang-jwt/jwt/v5 v5.3.1
 	github.com/golang/snappy v1.0.0
 	github.com/google/uuid v1.6.0
+	github.com/govalues/decimal v0.1.36
+	github.com/govalues/money v0.2.4
 	github.com/jackc/pgx/v5 v5.9.2
 	github.com/klauspost/compress v1.18.6
 	github.com/nats-io/nats.go v1.52.0

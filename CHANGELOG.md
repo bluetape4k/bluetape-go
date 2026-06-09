@@ -28,6 +28,12 @@ and this project uses semantic versioning once the first tag is published.
   helpers, sentinel error contracts, stress/race coverage, and bilingual README
   coverage. Decimal money precision remains deferred to the future money
   package.
+- `money` package with ISO 4217 currency wrappers, decimal-backed `Money`
+  values, same-currency arithmetic, half-even rounding, minor-unit helpers,
+  JSON/text serialization, caller-supplied `ExchangeRate` conversion, typed
+  sentinel errors, goroutine stress/race coverage, and bilingual package README
+  coverage. Provider-backed exchange rates, full locale mapping, and separate
+  long-backed FastMoney remain deferred to #178, #179, and #180.
 
 ## [v0.5.1] - 2026-06-08
 
