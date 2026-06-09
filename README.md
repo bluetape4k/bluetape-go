@@ -18,20 +18,19 @@ caching, workflow, batch, graph, text, audit, and AWS-adjacent service code.
 
 ## Current Status
 
-`bluetape-go` has published the `v0.5.1` release line. The repository already
-contains foundation utilities, codecs, compression, concurrency helpers,
-serialization contracts, Redis-backed leader election, resilience policies,
-cache and Redis coordination packages, token-bucket rate limiting, finite state
-machine primitives, workflow reports, lightweight workflow runners, and
-checkpointed batch processing.
+`bluetape-go` has published the `v0.6.0` release line. The repository contains
+foundation utilities, codecs, compression, concurrency helpers, serialization
+contracts, Redis-backed leader election, resilience policies, cache and Redis
+coordination packages, token-bucket rate limiting, finite state machine
+primitives, workflow reports, lightweight workflow runners, checkpointed batch
+processing, and portable service utilities.
 
-The `0.6.0` milestone is in progress and adds portable service utilities,
-including the `id` package for UUID, ULID, KSUID, and Snowflake identifiers,
-the `jwt` package for explicit-algorithm JWT signing, parsing, validation, and
-local key rotation, the `measure` package for typed units, measured values,
-compound units, parsing, formatting, and temperature helpers, the `money`
-package for ISO currency and decimal-backed amount operations, and the
-`probabilistic` package for in-memory Bloom filters.
+The `v0.6.0` portable utilities scope includes the `id` package for UUID, ULID,
+KSUID, and Snowflake identifiers, the `jwt` package for explicit-algorithm JWT
+signing, parsing, validation, and local key rotation, the `measure` package for
+typed units, measured values, compound units, parsing, formatting, and
+temperature helpers, the `money` package for ISO currency and decimal-backed
+amount operations, and the `probabilistic` package for in-memory Bloom filters.
 
 ## Packages
 

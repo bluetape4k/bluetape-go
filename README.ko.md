@@ -17,18 +17,19 @@ fixture, resilience, cache, workflow, batch, graph, text, audit, AWS 관련
 
 ## 현재 상태
 
-`bluetape-go`는 `v0.5.1` 릴리스 선을 배포했습니다. Repository에는 foundation
+`bluetape-go`는 `v0.6.0` 릴리스 선을 배포했습니다. Repository에는 foundation
 utility, codec, compression, concurrency helper, serialization contract,
 Redis 기반 leader election, resilience policy, cache/Redis coordination package,
 token-bucket rate limiting, finite state machine primitive, workflow report,
-lightweight workflow runner, checkpoint 기반 batch processing이 들어 있습니다.
+lightweight workflow runner, checkpoint 기반 batch processing, portable service
+utility가 들어 있습니다.
 
-`0.6.0` milestone은 진행 중이며 UUID, ULID, KSUID, Snowflake identifier를
+`v0.6.0` portable utility scope는 UUID, ULID, KSUID, Snowflake identifier를
 제공하는 `id` package, 명시적 algorithm 기반 JWT signing, parsing, validation,
 local key rotation을 제공하는 `jwt` package, typed unit/measured value,
 compound unit, parsing, formatting, temperature helper를 제공하는 `measure`
 package, ISO 통화와 decimal-backed 금액 연산을 제공하는 `money` package,
-인메모리 Bloom filter를 제공하는 `probabilistic` package를 추가합니다.
+인메모리 Bloom filter를 제공하는 `probabilistic` package를 포함합니다.
 
 ## 패키지
 

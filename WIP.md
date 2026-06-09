@@ -5,7 +5,7 @@ Scope: `0.6.0` portable utilities after the `v0.5.1` patch release.
 
 ## Current Target Release
 
-`0.6.0` - Portable service utilities, including the `id` package for UUID, ULID,
+`v0.6.0` - Portable service utilities, including the `id` package for UUID, ULID,
 standard KSUID, and Snowflake identifiers, the `jwt` package for
 explicit-algorithm JWT signing, parsing, validation, and local key rotation, and
 the `measure` package for typed units, measured values, compound units, parsing,
@@ -17,7 +17,8 @@ in-memory Bloom filters.
 
 - `0.1.0`, `0.1.1`, `0.2.0`, `0.3.0`, `0.4.0`, `0.5.0`, and `v0.5.1` are
   tagged and released.
-- Milestone `0.6.0` implementation is in progress.
+- Milestone `0.6.0` implementation is complete; release promotion is in
+  progress.
 - Issue #29 delivered the `batch` reader/processor/writer core and sequential
   job model.
 - Issue #30 delivered retry/skip policies, checkpoint storage, restart
@@ -38,8 +39,8 @@ in-memory Bloom filters.
 - Issue #35 delivered the `money` helper package with ISO 4217 currency
   wrappers, decimal-backed `Money` values, caller-supplied exchange-rate
   conversion, and stress/race coverage.
-- Issue #36 is delivering the final `0.6.0` package: goroutine-safe in-memory
-  Bloom filters with deterministic config, merge compatibility, and stress/race
+- Issue #36 delivered the final `0.6.0` package: goroutine-safe in-memory Bloom
+  filters with deterministic config, merge compatibility, and stress/race
   coverage.
 - Millisecond KSUID compatibility (#171), Flake, and Hashids remain deferred
   outside 0.6.0 closure.
@@ -54,19 +55,20 @@ in-memory Bloom filters.
 
 ## Release Checklist
 
-1. Complete issue #36 with implementation, tests, docs, and Step 6-R subagent
+1. Issue #36 is complete with implementation, tests, docs, and Step 6-R subagent
    7-Tier code review.
 2. Keep millisecond KSUID compatibility (#171), Flake, Hashids, distributed JWT
    repositories (#173), JOSE compression scope (#174), provider cache adapters
    (#175), provider-backed money exchange rates (#178), full locale mapping
    (#179), FastMoney evaluation (#180), and Redis-backed probabilistic filters
    (#182) deferred in docs and issue tracking.
-3. Run local `make ci`, PR review, and GitHub CI before merge.
-4. Recheck GitHub milestone state before declaring `0.6.0` complete.
+3. Local `make ci`, PR review, and GitHub CI passed for the final #36 merge.
+4. Recheck GitHub milestone state, close epic #6, close milestone `0.6.0`, then
+   promote `develop` to `main` and tag `v0.6.0`.
 
 ## Next Milestone Queue
 
-Milestone `0.6.0` is the active release queue.
+Milestone `0.6.1` is the next patch queue after `v0.6.0` release promotion.
 
 The planned portable-utilities scope is represented in the roadmap and should
 be rechecked against current GitHub issues before each new package starts.
