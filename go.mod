@@ -4,14 +4,20 @@ go 1.26.3
 
 require (
 	github.com/go-sql-driver/mysql v1.10.0
+	github.com/golang-jwt/jwt/v5 v5.3.1
 	github.com/golang/snappy v1.0.0
+	github.com/google/uuid v1.6.0
+	github.com/govalues/decimal v0.1.36
+	github.com/govalues/money v0.2.4
 	github.com/jackc/pgx/v5 v5.9.2
 	github.com/klauspost/compress v1.18.6
 	github.com/nats-io/nats.go v1.52.0
+	github.com/oklog/ulid/v2 v2.1.1
 	github.com/onsi/gomega v1.41.0
 	github.com/pierrec/lz4/v4 v4.1.27
 	github.com/redis/go-redis/v9 v9.20.0
 	github.com/segmentio/kafka-go v0.4.51
+	github.com/segmentio/ksuid v1.0.4
 	github.com/testcontainers/testcontainers-go v0.42.0
 	github.com/testcontainers/testcontainers-go/modules/kafka v0.42.0
 	github.com/testcontainers/testcontainers-go/modules/mysql v0.42.0
@@ -43,7 +49,6 @@ require (
 	github.com/go-logr/stdr v1.2.2 // indirect
 	github.com/go-ole/go-ole v1.2.6 // indirect
 	github.com/google/go-cmp v0.7.0 // indirect
-	github.com/google/uuid v1.6.0 // indirect
 	github.com/jackc/pgpassfile v1.0.0 // indirect
 	github.com/jackc/pgservicefile v0.0.0-20240606120523-5a60cdf6a761 // indirect
 	github.com/lufia/plan9stats v0.0.0-20211012122336-39d0f177ccd0 // indirect

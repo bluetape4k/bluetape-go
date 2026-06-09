@@ -1,46 +1,83 @@
 # WIP
 
-Snapshot: 2026-06-08 KST
-Scope: `v0.5.1` patch release preparation after the checkpoint-safe batch
-writer skip fix merged.
+Snapshot: 2026-06-09 KST
+Scope: `0.6.0` portable utilities after the `v0.5.1` patch release.
 
 ## Current Target Release
 
-`0.5.1` - Patch release for checkpoint-safe skipped writer chunks in
-`batch.Step`.
+`v0.6.0` - Portable service utilities, including the `id` package for UUID, ULID,
+standard KSUID, and Snowflake identifiers, the `jwt` package for
+explicit-algorithm JWT signing, parsing, validation, and local key rotation, and
+the `measure` package for typed units, measured values, compound units, parsing,
+formatting, and temperature helpers, and the `money` package for ISO currency
+and decimal-backed amount operations, and the `probabilistic` package for
+in-memory Bloom filters.
 
 ## Current State
 
-- `0.1.0`, `0.1.1`, `0.2.0`, `0.3.0`, `0.4.0`, and `0.5.0` are tagged and
-  released.
-- Milestone `0.5.0` implementation is merged on `develop`.
+- `0.1.0`, `0.1.1`, `0.2.0`, `0.3.0`, `0.4.0`, `0.5.0`, and `v0.5.1` are
+  tagged and released.
+- Milestone `0.6.0` implementation is complete; release promotion is in
+  progress.
 - Issue #29 delivered the `batch` reader/processor/writer core and sequential
   job model.
 - Issue #30 delivered retry/skip policies, checkpoint storage, restart
   behavior, and the root README architecture diagram refresh.
 - Issue #31 delivered leader-guarded scheduler and migration batch examples
   with Redis Testcontainers runnable commands.
-- Issue #158 delivered the checkpoint-safe writer skip fix after the `v0.5.0`
-  tag existed, so the release target is `v0.5.1` without rewriting `v0.5.0`.
-- Epic #5 and milestone `0.5.0` are ready for closure after the patch release
-  is published.
+- Issue #32 delivered the `id` package foundation.
+- Child issues #164, #165, and #167 are closed by UUID v4/v7, random and
+  monotonic ULID, and Snowflake generation.
+- Issue #166 delivered the standard seconds-precision KSUID generator family for
+  `0.6.0`.
+- Issue #33 delivered the `jwt` helper package with explicit algorithms,
+  fixed and rotating in-memory KeyChains, typed claim readers, `kid` lookup,
+  weak-secret rejection, and stress/race coverage.
+- Issue #34 delivered the `measure` package with typed unit/measure values,
+  family parsers, compound units, source-parity helpers, affine temperature, and
+  stress/race coverage.
+- Issue #35 delivered the `money` helper package with ISO 4217 currency
+  wrappers, decimal-backed `Money` values, caller-supplied exchange-rate
+  conversion, and stress/race coverage.
+- Issue #36 delivered the final `0.6.0` package: goroutine-safe in-memory Bloom
+  filters with deterministic config, merge compatibility, and stress/race
+  coverage.
+- Millisecond KSUID compatibility (#171), Flake, and Hashids remain deferred
+  outside 0.6.0 closure.
+- Distributed JWT KeyChain repositories (#173), safe JWT compression/JOSE
+  dependency scope (#174), and optional JWT provider cache adapters (#175) remain
+  deferred outside #33.
+- Provider-backed money exchange rates (#178), full locale-to-currency mapping
+  (#179), and long-backed FastMoney evaluation (#180) remain deferred outside
+  #35.
+- Redis-backed Bloom/Cuckoo/HyperLogLog support (#182) remains deferred outside
+  #36 and is tracked for `0.6.1`.
 
 ## Release Checklist
 
-1. Merge the `v0.5.1` release-prep documentation PR into `develop`.
-2. Close epic #5 after verifying child issues #29, #30, #31, and #158 are
-   closed.
-3. Close milestone `0.5.0` after its open issue count reaches zero.
-4. Promote `develop` to `main` through the `v0.5.1` release PR.
-5. Tag `main` as `v0.5.1`.
-6. Create GitHub Release `v0.5.1` from the changelog section.
+1. Issue #36 is complete with implementation, tests, docs, and Step 6-R subagent
+   7-Tier code review.
+2. Keep millisecond KSUID compatibility (#171), Flake, Hashids, distributed JWT
+   repositories (#173), JOSE compression scope (#174), provider cache adapters
+   (#175), provider-backed money exchange rates (#178), full locale mapping
+   (#179), FastMoney evaluation (#180), and Redis-backed probabilistic filters
+   (#182) deferred in docs and issue tracking.
+3. Local `make ci`, PR review, and GitHub CI passed for the final #36 merge.
+4. Recheck GitHub milestone state, close epic #6, close milestone `0.6.0`, then
+   promote `develop` to `main` and tag `v0.6.0`.
 
 ## Next Milestone Queue
 
-Milestone `0.6.0` is the next release queue after `v0.5.1` ships.
+Milestone `0.6.1` is the next patch queue after `v0.6.0` release promotion.
 
 The planned portable-utilities scope is represented in the roadmap and should
-be rechecked against current GitHub issues before implementation starts.
+be rechecked against current GitHub issues before each new package starts.
+
+From `0.8.0` onward, the roadmap order is relational SQL, AWS/Floci, text,
+audit, then graph. SQL moved earlier because repository/database ergonomics are
+foundational backend service infrastructure. Graph moved to the last planned
+slot because driver maturity, backend abstraction, graph I/O, and domain
+examples carry more research uncertainty.
 
 ## Decision Log
 
@@ -63,6 +100,8 @@ be rechecked against current GitHub issues before implementation starts.
   concurrency or timing semantics are part of the contract.
 - Refresh README, WIP, and CHANGELOG after milestone merges, not only at tag
   time.
+- Before starting a new milestone package, compare issue scope against the
+  broader `bluetape4k-*` ecosystem so Go support is not accidentally too narrow.
 - Keep package-level Korean README siblings synchronized with English package
   README changes.
 - Use Go native coverage reports for bluetape-go CI/Nightly first; defer
