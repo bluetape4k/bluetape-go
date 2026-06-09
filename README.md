@@ -18,14 +18,19 @@ caching, workflow, batch, graph, text, audit, and AWS-adjacent service code.
 
 ## Current Status
 
-`bluetape-go` has published the `0.3.0` release line. The repository already
-contains foundation utilities, codecs, compression, concurrency helpers,
-serialization contracts, Redis-backed leader election, resilience policies, the
-cache and Redis coordination packages, token-bucket rate limiting, and
-pluggable leader election strategies for candidate-registry coordination.
-The `0.4.0` milestone is closed and ready for release preparation; it adds
-finite state machine primitives, workflow reports, and lightweight workflow
-runners in `state`, `workreport`, and `workflow`.
+`bluetape-go` has published the `v0.6.0` release line. The repository contains
+foundation utilities, codecs, compression, concurrency helpers, serialization
+contracts, Redis-backed leader election, resilience policies, cache and Redis
+coordination packages, token-bucket rate limiting, finite state machine
+primitives, workflow reports, lightweight workflow runners, checkpointed batch
+processing, and portable service utilities.
+
+The `v0.6.0` portable utilities scope includes the `id` package for UUID, ULID,
+KSUID, and Snowflake identifiers, the `jwt` package for explicit-algorithm JWT
+signing, parsing, validation, and local key rotation, the `measure` package for
+typed units, measured values, compound units, parsing, formatting, and
+temperature helpers, the `money` package for ISO currency and decimal-backed
+amount operations, and the `probabilistic` package for in-memory Bloom filters.
 
 ## Packages
 
@@ -56,9 +61,15 @@ runners in `state`, `workreport`, and `workflow`.
 | [`state`](state/README.md) | active | Small finite state machine primitives with typed transitions, guards, final states, and sentinel errors. |
 | [`workreport`](workreport/README.md) | active | Status, failure-policy, and report-tree values for lightweight workflow code. |
 | [`workflow`](workflow/README.md) | active | Sequential, conditional, and all-branches parallel runners built on `context.Context` and `workreport`. |
+| [`id`](id/README.md) | active | UUID v4/v7, random and monotonic ULID, standard KSUID, and Snowflake ID generators. |
+| [`jwt`](jwt/README.md) | active | JWT signing, parsing, validation, typed claim reading, and in-memory `kid` key rotation with explicit algorithms. |
+| [`measure`](measure/README.md) | active | Typed units, measured values, compound units, parsing, formatting, and affine temperature helpers. |
+| [`money`](money/README.md) | active | ISO 4217 currency values, decimal-backed money amounts, aggregation, serialization, and caller-supplied exchange-rate conversion. |
+| [`probabilistic`](probabilistic/README.md) | active | Goroutine-safe in-memory Bloom filters with deterministic config, merge compatibility checks, and stress/race coverage. |
 
-Next planned package families include `batch`, `id`, `jwt`, `graph`, `text`,
-`audit`, and AWS helper/example packages.
+Next planned package families include relational SQL helpers, AWS/Floci helper
+examples, text, audit, and graph packages. Redis-backed Bloom/Cuckoo/HyperLogLog
+support is tracked separately for `0.6.1`.
 
 ## Install
 
@@ -86,6 +97,9 @@ benchmarks live next to each package:
   [`cache/rediscoord`](cache/rediscoord/README.md), [`ratelimit`](ratelimit/README.md),
   [`state`](state/README.md), [`workreport`](workreport/README.md), and
   [`workflow`](workflow/README.md).
+- Portable utilities: [`id`](id/README.md), [`jwt`](jwt/README.md),
+  [`measure`](measure/README.md), [`money`](money/README.md), and
+  [`probabilistic`](probabilistic/README.md).
 
 ## Roadmap
 
@@ -96,12 +110,14 @@ benchmarks live next to each package:
 | `0.3.0` | Cache and coordination: near cache, Redis locks, token-bucket rate limiting, strategic leader election. |
 | `0.4.0` | State machine and lightweight workflow primitives. |
 | `0.5.0` | Batch processing with checkpoints and leader-guarded examples. |
-| `0.6.0` | Portable utilities: ID generation, JWT, measured values, money, probabilistic structures, rule engine. |
-| `0.7.0` | Research gate for larger domains. |
-| `0.8.0` | Graph packages and examples. |
-| `0.9.0` | Text search, blockword masking, tokenizer research. |
-| `0.10.0` | Audit and event packages inspired by bluetape4k-javers patterns. |
-| `0.11.0` | AWS helper packages and LocalStack examples. |
+| `0.6.0` | Portable utilities: ID generation, JWT, measured values, money, probabilistic structures. |
+| `0.7.0` | Encryption/Tink utilities and research gate for larger domains. |
+| `0.8.0` | Relational SQL DSL and repository helpers. |
+| `0.9.0` | AWS helper packages and Floci-backed examples. |
+| `0.10.0` | Text search, blockword masking, tokenizer research. |
+| `0.11.0` | Audit and event packages inspired by bluetape4k-javers patterns. |
+| `0.12.0` | Graph packages and examples. |
+| `0.13.0` | Rule engine research and implementation. |
 
 See the [GitHub milestones](https://github.com/bluetape4k/bluetape-go/milestones)
 and [`docs/research`](docs/research/) for the current planning record.

@@ -7,7 +7,41 @@ and this project uses semantic versioning once the first tag is published.
 
 ## [Unreleased]
 
-No unreleased changes yet.
+## [v0.6.0] - 2026-06-09
+
+### Added
+
+- `id` package with repo-owned UUID v4/v7 string generators, random and
+  monotonic ULID generators, standard seconds-precision KSUID generation,
+  parsing, and timestamp extraction, Snowflake int64 generation and decoding,
+  sentinel/typed error contracts, stress/race coverage, benchmark smoke, and
+  bilingual package README coverage. Kotlin-compatible millisecond KSUID remains
+  deferred to #171.
+- `jwt` package with explicit HS/RS/PS algorithm providers, fixed and in-memory
+  rotating KeyChains, typed claim/header readers, issuer/subject/audience/exp
+  validation helpers, `kid` lookup, weak-secret rejection, unsupported JOSE
+  header rejection, sentinel error contracts, stress/race coverage, and
+  bilingual package README coverage. Distributed repositories, JOSE compression,
+  and provider cache adapters remain deferred to #173, #174, and #175.
+- `measure` package with typed `Unit[D]` and `Measure[D]`, built-in length,
+  time, mass, area, volume, storage, binary size, frequency, energy, power,
+  pressure, angle, graphics length, velocity, acceleration, affine temperature,
+  generic and family parsers, compound unit helpers, source-parity named
+  helpers, sentinel error contracts, stress/race coverage, and bilingual README
+  coverage. Decimal money precision remains deferred to the future money
+  package.
+- `money` package with ISO 4217 currency wrappers, decimal-backed `Money`
+  values, same-currency arithmetic, half-even rounding, minor-unit helpers,
+  JSON/text serialization, caller-supplied `ExchangeRate` conversion, typed
+  sentinel errors, goroutine stress/race coverage, and bilingual package README
+  coverage. Provider-backed exchange rates, full locale mapping, and separate
+  long-backed FastMoney remain deferred to #178, #179, and #180.
+- `probabilistic` package with goroutine-safe in-memory Bloom filters,
+  deterministic config sizing, SHA-256 double hashing, explicit generic hasher
+  keys, compatible filter merge, false-positive and no-false-negative contract
+  tests, sentinel errors, stress/race coverage, opt-in benchmark smoke, and
+  bilingual package README coverage. Redis-backed Bloom, Cuckoo, and HyperLogLog
+  remain deferred to #182.
 
 ## [v0.5.1] - 2026-06-08
 
