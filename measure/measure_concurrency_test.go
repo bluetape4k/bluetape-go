@@ -3,6 +3,7 @@ package measure_test
 import (
 	"context"
 	"errors"
+	"runtime"
 	"sync"
 	"testing"
 	"time"
@@ -12,10 +13,11 @@ import (
 )
 
 func TestMeasureParsingWithGoroutineStressTester(t *testing.T) {
+	const rounds = 512
 	tester := concurrencytest.NewGoroutineStressTester(concurrencytest.Options{
-		Workers:       8,
-		RoundsPerTask: 128,
-		Timeout:       2 * time.Second,
+		Workers:       max(32, runtime.GOMAXPROCS(0)*4),
+		RoundsPerTask: rounds,
+		Timeout:       10 * time.Second,
 	})
 
 	var mu sync.Mutex
@@ -58,8 +60,8 @@ func TestMeasureParsingWithGoroutineStressTester(t *testing.T) {
 	if err != nil {
 		t.Fatalf("stress failed: %v", err)
 	}
-	if report.Completed != 128 {
-		t.Fatalf("expected 128 completed runs, got %+v", report)
+	if report.Completed != rounds {
+		t.Fatalf("expected %d completed runs, got %+v", rounds, report)
 	}
 	if len(seen) != 1 {
 		t.Fatalf("expected stable formatting, got %v", seen)
