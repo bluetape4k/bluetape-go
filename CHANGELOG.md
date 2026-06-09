@@ -34,6 +34,12 @@ and this project uses semantic versioning once the first tag is published.
   sentinel errors, goroutine stress/race coverage, and bilingual package README
   coverage. Provider-backed exchange rates, full locale mapping, and separate
   long-backed FastMoney remain deferred to #178, #179, and #180.
+- `probabilistic` package with goroutine-safe in-memory Bloom filters,
+  deterministic config sizing, SHA-256 double hashing, explicit generic hasher
+  keys, compatible filter merge, false-positive and no-false-negative contract
+  tests, sentinel errors, stress/race coverage, opt-in benchmark smoke, and
+  bilingual package README coverage. Redis-backed Bloom, Cuckoo, and HyperLogLog
+  remain deferred to #182.
 
 ## [v0.5.1] - 2026-06-08
 

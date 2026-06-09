@@ -10,7 +10,8 @@ standard KSUID, and Snowflake identifiers, the `jwt` package for
 explicit-algorithm JWT signing, parsing, validation, and local key rotation, and
 the `measure` package for typed units, measured values, compound units, parsing,
 formatting, and temperature helpers, and the `money` package for ISO currency
-and decimal-backed amount operations.
+and decimal-backed amount operations, and the `probabilistic` package for
+in-memory Bloom filters.
 
 ## Current State
 
@@ -34,9 +35,12 @@ and decimal-backed amount operations.
 - Issue #34 delivered the `measure` package with typed unit/measure values,
   family parsers, compound units, source-parity helpers, affine temperature, and
   stress/race coverage.
-- Issue #35 is delivering the `money` helper package with ISO 4217 currency
+- Issue #35 delivered the `money` helper package with ISO 4217 currency
   wrappers, decimal-backed `Money` values, caller-supplied exchange-rate
   conversion, and stress/race coverage.
+- Issue #36 is delivering the final `0.6.0` package: goroutine-safe in-memory
+  Bloom filters with deterministic config, merge compatibility, and stress/race
+  coverage.
 - Millisecond KSUID compatibility (#171), Flake, and Hashids remain deferred
   outside 0.6.0 closure.
 - Distributed JWT KeyChain repositories (#173), safe JWT compression/JOSE
@@ -45,15 +49,18 @@ and decimal-backed amount operations.
 - Provider-backed money exchange rates (#178), full locale-to-currency mapping
   (#179), and long-backed FastMoney evaluation (#180) remain deferred outside
   #35.
+- Redis-backed Bloom/Cuckoo/HyperLogLog support (#182) remains deferred outside
+  #36 and is tracked for `0.6.1`.
 
 ## Release Checklist
 
-1. Complete issue #35 with implementation, tests, docs, and Step 6-R subagent
+1. Complete issue #36 with implementation, tests, docs, and Step 6-R subagent
    7-Tier code review.
 2. Keep millisecond KSUID compatibility (#171), Flake, Hashids, distributed JWT
    repositories (#173), JOSE compression scope (#174), provider cache adapters
    (#175), provider-backed money exchange rates (#178), full locale mapping
-   (#179), and FastMoney evaluation (#180) deferred in docs and issue tracking.
+   (#179), FastMoney evaluation (#180), and Redis-backed probabilistic filters
+   (#182) deferred in docs and issue tracking.
 3. Run local `make ci`, PR review, and GitHub CI before merge.
 4. Recheck GitHub milestone state before declaring `0.6.0` complete.
 
