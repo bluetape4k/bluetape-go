@@ -111,6 +111,8 @@ and still include batch uniqueness-check work.
 - PASS: visual inspection of the rendered PNG for font rendering, label overlap,
   clipping, Kotlin-vs-Go `ns/id` normalization, single-thread comparison, and
   concurrent comparison
+- PASS: chart color inspection after switching Go/Kotlin bars to complementary
+  amber/blue colors for clearer visual separation
 - PASS: vision subagent review of the revised chart, with `P0=0 P1=0`; the
   reported P2 footer density was repaired by shortening panel subtitles and the
   conversion footnote

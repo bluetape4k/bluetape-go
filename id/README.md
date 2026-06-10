@@ -188,6 +188,11 @@ The chart normalizes Kotlin `kotlinx-benchmark` throughput to `ns/id` with
 `1e9 / (ops/s * 100)`, so Go and Kotlin can be read on the same axis. Lower is
 better. Kotlin benchmark rows include batch uniqueness checks.
 
+Result reading: Go Snowflake is the clear hot-path winner in both single-thread
+and concurrent runs. Kotlin is faster for UUID v4/v7 and KSUID families in this
+snapshot. ULID is mixed: Kotlin is faster in the single-thread monotonic row,
+while Go monotonic ULID is faster under the concurrent comparison.
+
 | Benchmark | ns/op | B/op | allocs/op |
 |---|---:|---:|---:|
 | `BenchmarkSnowflakeNextInt64-12` | 12.13 | 0 | 0 |

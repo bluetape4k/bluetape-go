@@ -219,12 +219,19 @@ backend output.
 
 - The Go `id` benchmark suite now has a first-class `make bench-id` target and
   reports allocations consistently with other package benchmark suites.
-- Go Snowflake is allocation-free in the measured hot paths.
+- Go Snowflake is the clear hot-path winner in this snapshot: 12.13 ns/id
+  single-thread and 85.74 ns/id concurrent, both allocation-free.
+- Kotlin `bluetape4k-idgenerators` is faster for UUID v4/v7 and KSUID
+  seconds/millis in the normalized `ns/id` comparison, even though its benchmark
+  rows include batch uniqueness checks.
+- ULID is workload-sensitive. Kotlin monotonic ULID is faster in the
+  single-thread row, while Go monotonic ULID is faster in the concurrent row.
 - Go string ID generators allocate because they return string values and depend
-  on entropy/encoding work; current allocation counts are visible and stable
-  enough for future regression comparison.
-- The sibling JVM benchmark remains useful for API-family comparison and
-  concurrency uniqueness evidence, but not for raw throughput ranking against Go.
+  on entropy/encoding work. The new parallel rows make that cost visible under
+  shared-generator pressure.
+- Treat this as a local implementation snapshot, not a universal language
+  ranking. Runtime, workload shape, UUID/ULID/KSUID implementation choices, and
+  Kotlin batch uniqueness checks all affect the numbers.
 - No evidence-backed follow-up implementation issue is required from this run.
 
 ## Follow-Up Watch Items
