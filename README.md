@@ -61,7 +61,7 @@ amount operations, and the `probabilistic` package for in-memory Bloom filters.
 | [`state`](state/README.md) | active | Small finite state machine primitives with typed transitions, guards, final states, and sentinel errors. |
 | [`workreport`](workreport/README.md) | active | Status, failure-policy, and report-tree values for lightweight workflow code. |
 | [`workflow`](workflow/README.md) | active | Sequential, conditional, and all-branches parallel runners built on `context.Context` and `workreport`. |
-| [`id`](id/README.md) | active | UUID v4/v7, random and monotonic ULID, standard KSUID, and Snowflake ID generators. |
+| [`id`](id/README.md) | active | UUID v4/v7, random and monotonic ULID, standard KSUID, Kotlin-compatible KSUID millis, and Snowflake ID generators. |
 | [`jwt`](jwt/README.md) | active | JWT signing, parsing, validation, typed claim reading, and in-memory `kid` key rotation with explicit algorithms. |
 | [`measure`](measure/README.md) | active | Typed units, measured values, compound units, parsing, formatting, and affine temperature helpers. |
 | [`money`](money/README.md) | active | ISO 4217 currency values, decimal-backed money amounts, aggregation, serialization, and caller-supplied exchange-rate conversion. |

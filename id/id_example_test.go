@@ -113,6 +113,33 @@ func ExampleNewKSUIDGenerator() {
 	// true
 }
 
+func ExampleNewKSUIDMillisGenerator() {
+	fixed := time.Date(2026, 6, 8, 1, 2, 3, 987_000_000, time.UTC)
+	generator, err := id.NewKSUIDMillisGenerator(
+		id.WithKSUIDMillisTime(func() time.Time { return fixed }),
+		id.WithKSUIDMillisEntropy(strings.NewReader("abcdefghijkl")),
+	)
+	if err != nil {
+		return
+	}
+
+	value, err := generator.NextString()
+	if err != nil {
+		return
+	}
+	createdAt, err := id.KSUIDMillisTime(value)
+	if err != nil {
+		return
+	}
+
+	fmt.Println(len(value))
+	fmt.Println(createdAt.Equal(fixed))
+
+	// Output:
+	// 27
+	// true
+}
+
 func ExampleNewSnowflakeGenerator() {
 	epoch := time.Date(2026, 1, 1, 0, 0, 0, 0, time.UTC)
 	now := epoch.Add(42 * time.Millisecond)

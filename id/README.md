@@ -3,8 +3,8 @@
 [English](README.md) | [한국어](README.ko.md)
 
 `id` provides Go-native generators for service identifiers: UUID v4, UUID v7,
-random ULID, monotonic ULID, standard seconds-precision KSUID, and Snowflake
-int64 IDs.
+random ULID, monotonic ULID, standard seconds-precision KSUID,
+Kotlin-compatible millisecond KSUID, and Snowflake int64 IDs.
 
 ## Import
 
@@ -24,10 +24,10 @@ import (
 | Database primary key with UUID storage | UUID v7 | Sorts better than UUID v4 when wall-clock behavior is acceptable. |
 | Monotonic string ID | ULID | Canonical 26-character Crockford Base32 string. |
 | Distributed numeric entity ID | Snowflake | 63-bit non-negative int64 with timestamp, machine ID, and sequence fields. |
-| URL-safe string ID | ULID or KSUID | ULID is 26-character Crockford Base32. KSUID is 27-character Base62 with a seconds timestamp. |
+| URL-safe string ID | ULID or KSUID | ULID is 26-character Crockford Base32. KSUID variants are 27-character Base62 strings. |
 | Log/event ID with second-level time sorting | KSUID | Canonical Segment-compatible 27-character string. |
+| Kotlin-compatible millisecond KSUID | KSUID millis | `NewKSUIDMillisGenerator`, `ParseKSUIDMillis`, and `KSUIDMillisTime` use the bluetape4k `Ksuid.Millis` 8-byte millisecond timestamp plus 12-byte payload format. It is source-compatible, not Segment-sortable. |
 | Deterministic or name-based UUID | Deferred | UUID v5/name-based helpers are not part of 0.6.0. |
-| Millisecond KSUID compatibility | Deferred | Kotlin-compatible millis KSUID format is tracked separately in #171. |
 | Future compact UUID string | Base62 deferred | Use `codec/base62` directly until an explicit ID rendering API is scoped. |
 | Future 128-bit sortable byte/string ID | Flake deferred | Follow-up source-parity candidate. |
 | Future short obfuscation | Hashids deferred | Obfuscation is not security. |
@@ -71,6 +71,19 @@ if err != nil {
     return err
 }
 
+ksuidMillis, err := id.NewKSUIDMillisGenerator()
+if err != nil {
+    return err
+}
+millisID, err := ksuidMillis.NextString()
+if err != nil {
+    return err
+}
+millisTime, err := id.KSUIDMillisTime(millisID)
+if err != nil {
+    return err
+}
+
 fixed := time.Date(2026, 6, 8, 1, 2, 3, 0, time.UTC)
 deterministicUUIDs, err := id.NewUUIDV7Generator(
     id.WithUUIDTime(func() time.Time { return fixed }),
@@ -105,19 +118,34 @@ if err != nil {
 - KSUID generation uses crypto-grade default entropy and the standard Segment
   seconds-precision format. Lexical ordering follows the encoded timestamp, but
   same-second ordering is entropy-dependent and not monotonic.
-- Custom KSUID entropy readers and clock functions must be safe for concurrent
-  use when a generator instance is shared across goroutines.
+- KSUID millis generation uses the Kotlin `Ksuid.Millis` compatibility format:
+  20 bytes as 8-byte big-endian milliseconds since `1400000000000` plus a
+  12-byte payload, encoded with bluetape4k's bit-stream Base62 alphabet.
+- KSUID millis is not a Segment KSUID and does not claim lexicographic timestamp
+  ordering. The compatibility alphabet is `A-Z a-z 0-9`, not Segment's
+  sortable `0-9 A-Z a-z` encoding.
+- Segment KSUID seconds and bluetape4k KSUID millis are both bare 27-character
+  Base62 strings, so the string alone does not identify the family. Use
+  `KSUIDTime` only for Segment seconds strings and `KSUIDMillisTime` only for
+  millis strings; cross-family parsing may succeed but returns the other
+  family's timestamp interpretation.
+- Custom KSUID and KSUID millis entropy readers and clock functions must be safe
+  for concurrent use when a generator instance is shared across goroutines.
 - KSUID clocks must stay within the standard KSUID timestamp range, from the
   KSUID epoch through the maximum 32-bit seconds offset.
 - Public APIs return strings or repo-owned values. Dependency UUID/ULID/KSUID
   concrete types are not part of the stable bluetape-go API.
 - Concrete generator implementations are unexported. Callers do not depend on a
   zero-value concrete generator contract.
-- Public parse helpers return canonical strings and wrap invalid input so callers
-  can use `errors.Is(err, id.ErrInvalidID)`. UUID parsing accepts only canonical
-  36-character lowercase UUID strings.
+- Public parse helpers wrap invalid input so callers can use
+  `errors.Is(err, id.ErrInvalidID)`. UUID and Segment KSUID helpers return
+  canonical strings; KSUID millis validates and returns the supplied
+  Kotlin-compatible string because Kotlin truncates the encoded bit stream to 27
+  characters.
 - KSUID parsing accepts canonical 27-character Segment-compatible strings and
   exposes timestamp extraction through `KSUIDTime`.
+- KSUID millis parsing accepts 27-character Kotlin-compatible strings and
+  exposes timestamp extraction through `KSUIDMillisTime`.
 - Generated IDs are identifiers, not authentication tokens, authorization
   secrets, or a standalone security boundary.
 
