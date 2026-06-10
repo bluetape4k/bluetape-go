@@ -41,6 +41,10 @@ converted from throughput with `1e9 / (ops/s * batchSize)` using `batchSize=100`
 and still include batch uniqueness-check work. UUID chart rows use reused Go
 generators; Snowflake rows are labeled as synthetic-clock Go hot-path
 measurements and are not production-equivalent Snowflake verdicts by themselves.
+The chart also makes the correction visible in the image itself with a top
+correction strip and a bottom benchmark-correction band, so the UUID
+reused-generator and Snowflake synthetic-clock boundaries are not hidden in
+surrounding prose.
 
 ## 7-Tier Findings
 
@@ -87,7 +91,8 @@ measurements and are not production-equivalent Snowflake verdicts by themselves.
   overstate a synthetic-clock Go benchmark. The indexes now place the report
   under `0.6.1`, UUID chart rows use reused-generator benchmarks, and Snowflake
   rows are labeled as synthetic-clock hot-path data with an explicit
-  interpretation boundary.
+  interpretation boundary. The rendered chart now repeats that boundary in the
+  top correction strip and bottom benchmark-correction band.
 - Gate: P0=0, P1=0.
 
 ### Tier 6: Completion Verification
@@ -126,8 +131,8 @@ measurements and are not production-equivalent Snowflake verdicts by themselves.
 - PASS: chart color inspection after switching Go/Kotlin bars to complementary
   amber/blue colors for clearer visual separation
 - PASS: vision subagent review of the revised chart, with `P0=0 P1=0`; the
-  reported P2 caveat prominence remains non-blocking because the same caveat is
-  explicit in README/research text and the chart footer
+  follow-up revision made the correction more prominent with a top correction
+  strip plus bottom benchmark-correction band
 - PASS: critic re-review after Snowflake/revision/follow-up repairs, with
   `P0=0 P1=0`
 - PASS: performance-focused verifier re-review after UUID/ULID/Snowflake
@@ -143,7 +148,8 @@ measurements and are not production-equivalent Snowflake verdicts by themselves.
 - Tier 6 critic subagent: initially P0=0 P1=2; Snowflake synthetic-clock
   labeling, review/revision consistency, and follow-up issue body were repaired
   and re-reviewed.
-- Tier 7 vision subagent: P0=0 P1=0, P2 non-blocking caveat prominence noted.
+- Tier 7 vision subagent: P0=0 P1=0 after the chart correction strip and
+  benchmark-correction band were added.
 
 ## Performance Review Repair Note
 
@@ -153,8 +159,9 @@ Snowflake synthetic-clock row was too easy to read as a production-equivalent
 Go-vs-Kotlin verdict. The current artifact records the repair: UUID chart rows
 now use reused generators, convenience-function rows remain only as overhead
 evidence, Snowflake rows are labeled as synthetic-clock hot-path data, and
-follow-up issues require equivalent clock/batch remeasurement before optimization
-claims.
+the chart itself now carries a visible correction strip plus correction band.
+Follow-up issues require equivalent clock/batch remeasurement before
+optimization claims.
 
 ## Gate Verdict
 
