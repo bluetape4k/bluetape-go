@@ -16,8 +16,9 @@ without confusing runtime-specific benchmark results with API design decisions?
 Keep the comparison as a reproducible local snapshot, not a cross-runtime ranking.
 Use Go package benchmarks for per-ID cost and the existing JVM
 `kotlinx-benchmark` benchmark suite for `bluetape4k-idgenerators` batch
-throughput and uniqueness checks. No follow-up implementation issue is justified
-from this snapshot alone.
+throughput and uniqueness checks. Follow-up optimization issues now track the
+two visible gaps from this snapshot: `bluetape4k-projects#738` for Kotlin
+Snowflake and `bluetape-go#192` for Go UUID/KSUID.
 
 ## Comparable Surface
 
@@ -207,6 +208,11 @@ backend output.
 - Go Snowflake benchmarks use deterministic clock hooks and a caller-provided
   machine ID. JVM Snowflake benchmarks use the sibling library's default
   generator setup.
+- Snowflake benchmark rows need enough generated IDs to span multiple
+  millisecond windows. Because the algorithm uses a per-millisecond sequence
+  window, tiny samples can overfit one timestamp tick; follow-up Snowflake work
+  should measure at least `4096 * 16` IDs per operation or document an
+  equivalent multi-millisecond sample.
 - Go does not currently implement Flake or Hashids, so those JVM results are
   recorded only as sibling-library context.
 - Go UUID v7 and JVM UUID v7 use different implementations and clock/entropy
@@ -232,13 +238,18 @@ backend output.
 - Treat this as a local implementation snapshot, not a universal language
   ranking. Runtime, workload shape, UUID/ULID/KSUID implementation choices, and
   Kotlin batch uniqueness checks all affect the numbers.
-- No evidence-backed follow-up implementation issue is required from this run.
+- Follow-up optimization issues were created for the evidence-backed gaps:
+  `bluetape4k-projects#738` for Snowflake and `bluetape-go#192` for UUID v4/v7
+  plus KSUID seconds/millis.
 
 ## Follow-Up Watch Items
 
 - If future work wants a stricter cross-runtime benchmark, add a Go batch
   benchmark that mirrors the JVM uniqueness-check workload before comparing
   normalized throughput.
+- For Snowflake specifically, avoid conclusions from samples that do not span
+  multiple millisecond windows. Use a large enough batch, such as `4096 * 16`
+  IDs, to exercise sequence rollover and timestamp advancement behavior.
 - If allocation pressure becomes a user-facing concern, evaluate byte-oriented or
   caller-provided-buffer APIs separately instead of changing the current simple
   string-returning constructors.
