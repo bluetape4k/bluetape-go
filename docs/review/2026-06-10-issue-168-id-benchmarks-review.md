@@ -32,10 +32,12 @@ throughput plus uniqueness checks. It also records stress/race evidence for the
 Go `id` package and concludes that no evidence-backed follow-up implementation
 issue is required from this snapshot.
 
-The chart asset summarizes the same measured tables in two separate panels: Go
-per-ID latency (`ns/op`, lower is better) and JVM `kotlinx-benchmark` batch
-throughput (`ops/s`, higher is better). The chart explicitly warns not to
-compare Go `ns/op` directly with JVM `ops/s`.
+The chart asset normalizes Go and Kotlin measurements to one unit: `ns/id`,
+lower is better. It compares the same ID generator families across Go
+`bluetape-go/id` and Kotlin `bluetape4k-idgenerators`, and it shows both
+single-thread and concurrent measurements. Kotlin `kotlinx-benchmark` rows are
+converted from throughput with `1e9 / (ops/s * batchSize)` using `batchSize=100`
+and still include batch uniqueness-check work.
 
 ## 7-Tier Findings
 
@@ -107,7 +109,11 @@ compare Go `ns/op` directly with JVM `ops/s`.
 - PASS: `xmllint --noout docs/images/readme-charts/id-generator-benchmark-summary.svg`
 - PASS: rendered `docs/images/readme-charts/id-generator-benchmark-summary.png` with `rsvg-convert`
 - PASS: visual inspection of the rendered PNG for font rendering, label overlap,
-  clipping, and Go/JVM unit separation
+  clipping, Kotlin-vs-Go `ns/id` normalization, single-thread comparison, and
+  concurrent comparison
+- PASS: vision subagent review of the revised chart, with `P0=0 P1=0`; the
+  reported P2 footer density was repaired by shortening panel subtitles and the
+  conversion footnote
 
 ## Subagent Gate Summary
 

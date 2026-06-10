@@ -177,27 +177,36 @@ Issue #168 records a local Go-vs-JVM comparison against
 Local Go command:
 
 ```bash
-go test -run '^$' -bench '^Benchmark(UUIDV4|UUIDV7|ULIDRandom|ULIDMonotonicParallel|KSUIDNextString|KSUIDMillisNextString|SnowflakeNextInt64|SnowflakeNextInt64SameMillisecond|SnowflakeNextInt64Parallel)$' -benchtime=1s -benchmem ./id
+make bench-id
 ```
 
 Environment: macOS arm64, Apple M4 Pro, Go 1.26.4.
 
 ![ID generator benchmark summary](../docs/images/readme-charts/id-generator-benchmark-summary.png)
 
+The chart normalizes Kotlin `kotlinx-benchmark` throughput to `ns/id` with
+`1e9 / (ops/s * 100)`, so Go and Kotlin can be read on the same axis. Lower is
+better. Kotlin benchmark rows include batch uniqueness checks.
+
 | Benchmark | ns/op | B/op | allocs/op |
 |---|---:|---:|---:|
-| `BenchmarkSnowflakeNextInt64-12` | 12.17 | 0 | 0 |
-| `BenchmarkSnowflakeNextInt64SameMillisecond-12` | 13.01 | 0 | 0 |
-| `BenchmarkULIDRandom-12` | 138.3 | 48 | 2 |
-| `BenchmarkULIDMonotonicParallel-12` | 190.4 | 48 | 2 |
-| `BenchmarkUUIDV4-12` | 254.0 | 112 | 3 |
-| `BenchmarkUUIDV7-12` | 304.0 | 112 | 3 |
-| `BenchmarkKSUIDMillisNextString-12` | 325.7 | 104 | 3 |
-| `BenchmarkKSUIDNextString-12` | 404.1 | 48 | 2 |
-| `BenchmarkSnowflakeNextInt64Parallel-12` | 87.99 | 0 | 0 |
+| `BenchmarkSnowflakeNextInt64-12` | 12.13 | 0 | 0 |
+| `BenchmarkSnowflakeNextInt64SameMillisecond-12` | 12.46 | 0 | 0 |
+| `BenchmarkULIDMonotonic-12` | 67.77 | 48 | 2 |
+| `BenchmarkSnowflakeNextInt64Parallel-12` | 85.74 | 0 | 0 |
+| `BenchmarkULIDRandom-12` | 108.4 | 48 | 2 |
+| `BenchmarkULIDMonotonicParallel-12` | 191.4 | 48 | 2 |
+| `BenchmarkUUIDV4-12` | 241.1 | 112 | 3 |
+| `BenchmarkUUIDV7-12` | 270.9 | 112 | 3 |
+| `BenchmarkULIDRandomParallel-12` | 302.2 | 48 | 2 |
+| `BenchmarkKSUIDMillisNextString-12` | 342.5 | 104 | 3 |
+| `BenchmarkKSUIDNextString-12` | 393.1 | 48 | 2 |
+| `BenchmarkUUIDV4Parallel-12` | 576.8 | 112 | 3 |
+| `BenchmarkUUIDV7Parallel-12` | 580.4 | 112 | 3 |
+| `BenchmarkKSUIDMillisNextStringParallel-12` | 644.2 | 104 | 3 |
+| `BenchmarkKSUIDNextStringParallel-12` | 664.1 | 48 | 2 |
 
-Interpretation boundary: Go benchmarks measure per-ID generation with `ns/op`
-and allocation metrics. The JVM `bluetape4k-idgenerators` benchmark uses
-`kotlinx-benchmark` with the JMH JVM backend and measures batch throughput with
-uniqueness checks. Treat the two result sets as runtime-specific snapshots, not
-as a raw cross-runtime ranking.
+Interpretation boundary: Go rows measure per-ID generation directly. Kotlin
+rows in the chart are normalized from `kotlinx-benchmark` batch throughput, so
+they are comparable as a local snapshot but still include Kotlin benchmark
+batch uniqueness-check work.

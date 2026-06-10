@@ -76,6 +76,6 @@ bench-compression:
 	@$(GO) test -run '^$$' -bench '^BenchmarkCompressors' -benchmem ./compression
 
 bench-id:
-	@$(GO) test -run '^$$' -bench '^Benchmark(UUIDV4|UUIDV7|ULIDRandom|ULIDMonotonicParallel|KSUIDNextString|KSUIDMillisNextString|SnowflakeNextInt64|SnowflakeNextInt64SameMillisecond|SnowflakeNextInt64Parallel)$$' -benchmem ./id
+	@$(GO) test -run '^$$' -bench '^Benchmark(UUIDV4|UUIDV4Parallel|UUIDV7|UUIDV7Parallel|ULIDRandom|ULIDRandomParallel|ULIDMonotonic|ULIDMonotonicParallel|KSUIDNextString|KSUIDNextStringParallel|KSUIDMillisNextString|KSUIDMillisNextStringParallel|SnowflakeNextInt64|SnowflakeNextInt64SameMillisecond|SnowflakeNextInt64Parallel)$$' -benchmem ./id
 
 ci: tidy-check fmt-check vet lint test race

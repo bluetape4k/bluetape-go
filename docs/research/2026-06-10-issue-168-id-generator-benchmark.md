@@ -39,7 +39,7 @@ from this snapshot alone.
 make bench-id
 go test -count=1 ./id
 go test -race -count=1 ./id
-go test -run '^$' -bench '^Benchmark(UUIDV4|UUIDV7|ULIDRandom|ULIDMonotonicParallel|KSUIDNextString|KSUIDMillisNextString|SnowflakeNextInt64|SnowflakeNextInt64SameMillisecond|SnowflakeNextInt64Parallel)$' -benchtime=1s -benchmem ./id
+go test -run '^$' -bench '^Benchmark(UUIDV4|UUIDV4Parallel|UUIDV7|UUIDV7Parallel|ULIDRandom|ULIDRandomParallel|ULIDMonotonic|ULIDMonotonicParallel|KSUIDNextString|KSUIDNextStringParallel|KSUIDMillisNextString|KSUIDMillisNextStringParallel|SnowflakeNextInt64|SnowflakeNextInt64SameMillisecond|SnowflakeNextInt64Parallel)$' -benchmem ./id
 ```
 
 ### JVM
@@ -82,11 +82,36 @@ Observed local environment:
 
 ## Chart Summary
 
-The chart below summarizes the Go per-ID latency snapshot and the JVM
-`kotlinx-benchmark` batch throughput snapshot as separate panels. It is a visual
-summary of the measured tables below, not a raw cross-runtime ranking.
+The chart below compares the same ID generator families across Go and Kotlin
+using one normalized unit: `ns/id`, where lower is better. Go rows use package
+benchmark `ns/op` directly. Kotlin rows convert `kotlinx-benchmark` throughput
+with `1e9 / (ops/s * batchSize)` using the `batchSize=100` rows. The chart shows
+both single-thread and concurrent measurements so the comparison covers simple
+generation cost and shared-generator contention.
 
 ![ID generator benchmark summary](../images/readme-charts/id-generator-benchmark-summary.png)
+
+### Normalized Single-Thread Comparison
+
+| Generator | Go ns/id | Kotlin ns/id | Kotlin source |
+|---|---:|---:|---|
+| Snowflake | 12.13 | 244.06 | `snowflake`, batch 100 |
+| ULID monotonic | 67.77 | 37.01 | `ulid`, batch 100 |
+| UUID v4 | 241.10 | 95.09 | `uuidV4`, batch 100 |
+| UUID v7 | 270.90 | 23.59 | `uuidV7`, batch 100 |
+| KSUID millis | 342.50 | 167.80 | `ksuidMillis`, batch 100 |
+| KSUID seconds | 393.10 | 187.93 | `ksuidSeconds`, batch 100 |
+
+### Normalized Concurrent Comparison
+
+| Generator | Go ns/id | Kotlin ns/id | Kotlin source |
+|---|---:|---:|---|
+| Snowflake | 85.74 | 373.89 | `snowflake`, batch 100 |
+| ULID monotonic | 191.40 | 408.56 | `ulid`, batch 100 |
+| UUID v4 | 576.80 | 329.69 | `uuidV4`, batch 100 |
+| UUID v7 | 580.40 | 115.42 | `uuidV7`, batch 100 |
+| KSUID millis | 644.20 | 396.50 | `ksuidMillis`, batch 100 |
+| KSUID seconds | 664.10 | 388.70 | `ksuidSeconds`, batch 100 |
 
 ## Go Snapshot
 
@@ -104,20 +129,26 @@ outputs above are retained with the benchmark artifacts.
 Command:
 
 ```bash
-go test -run '^$' -bench '^Benchmark(UUIDV4|UUIDV7|ULIDRandom|ULIDMonotonicParallel|KSUIDNextString|KSUIDMillisNextString|SnowflakeNextInt64|SnowflakeNextInt64SameMillisecond|SnowflakeNextInt64Parallel)$' -benchtime=1s -benchmem ./id
+go test -run '^$' -bench '^Benchmark(UUIDV4|UUIDV4Parallel|UUIDV7|UUIDV7Parallel|ULIDRandom|ULIDRandomParallel|ULIDMonotonic|ULIDMonotonicParallel|KSUIDNextString|KSUIDNextStringParallel|KSUIDMillisNextString|KSUIDMillisNextStringParallel|SnowflakeNextInt64|SnowflakeNextInt64SameMillisecond|SnowflakeNextInt64Parallel)$' -benchmem ./id
 ```
 
 | Benchmark | ns/op | B/op | allocs/op |
 |---|---:|---:|---:|
-| `BenchmarkSnowflakeNextInt64-12` | 12.17 | 0 | 0 |
-| `BenchmarkSnowflakeNextInt64SameMillisecond-12` | 13.01 | 0 | 0 |
-| `BenchmarkSnowflakeNextInt64Parallel-12` | 87.99 | 0 | 0 |
-| `BenchmarkULIDRandom-12` | 138.3 | 48 | 2 |
-| `BenchmarkULIDMonotonicParallel-12` | 190.4 | 48 | 2 |
-| `BenchmarkUUIDV4-12` | 254.0 | 112 | 3 |
-| `BenchmarkUUIDV7-12` | 304.0 | 112 | 3 |
-| `BenchmarkKSUIDMillisNextString-12` | 325.7 | 104 | 3 |
-| `BenchmarkKSUIDNextString-12` | 404.1 | 48 | 2 |
+| `BenchmarkSnowflakeNextInt64-12` | 12.13 | 0 | 0 |
+| `BenchmarkSnowflakeNextInt64SameMillisecond-12` | 12.46 | 0 | 0 |
+| `BenchmarkULIDMonotonic-12` | 67.77 | 48 | 2 |
+| `BenchmarkSnowflakeNextInt64Parallel-12` | 85.74 | 0 | 0 |
+| `BenchmarkULIDRandom-12` | 108.4 | 48 | 2 |
+| `BenchmarkULIDMonotonicParallel-12` | 191.4 | 48 | 2 |
+| `BenchmarkUUIDV4-12` | 241.1 | 112 | 3 |
+| `BenchmarkUUIDV7-12` | 270.9 | 112 | 3 |
+| `BenchmarkULIDRandomParallel-12` | 302.2 | 48 | 2 |
+| `BenchmarkKSUIDMillisNextString-12` | 342.5 | 104 | 3 |
+| `BenchmarkKSUIDNextString-12` | 393.1 | 48 | 2 |
+| `BenchmarkUUIDV4Parallel-12` | 576.8 | 112 | 3 |
+| `BenchmarkUUIDV7Parallel-12` | 580.4 | 112 | 3 |
+| `BenchmarkKSUIDMillisNextStringParallel-12` | 644.2 | 104 | 3 |
+| `BenchmarkKSUIDNextStringParallel-12` | 664.1 | 48 | 2 |
 
 ## JVM Snapshot
 
@@ -166,17 +197,13 @@ backend output.
 
 ## Interpretation Boundary
 
-- Do not compare Go `ns/op` directly to JVM `ops/s`. The Go benchmark measures
-  one ID operation, while the JVM benchmark operation generates a batch and
-  includes uniqueness checks.
-- JVM batch results can be normalized roughly by multiplying `ops/s` by
-  `batchSize`, but that still includes collection allocation and uniqueness
+- Compare Go and Kotlin on the same axis only after normalizing Kotlin
+  throughput to `ns/id` with `1e9 / (ops/s * batchSize)`.
+- Kotlin batch results still include collection allocation and uniqueness
   verification that Go package benchmarks do not include.
-- Go parallel benchmark coverage intentionally focuses on stateful hot paths
-  that can contend under shared generator use: monotonic ULID and Snowflake.
-  Cross-family goroutine uniqueness for all comparable Go generators is covered
-  by `go test -count=1 ./id` and `go test -race -count=1 ./id`, not by a
-  throughput benchmark for every algorithm.
+- Go parallel benchmark coverage now includes UUID v4/v7, ULID random,
+  monotonic ULID, KSUID seconds/millis, and Snowflake so concurrent chart rows
+  compare the same generator families where both repos expose them.
 - Go Snowflake benchmarks use deterministic clock hooks and a caller-provided
   machine ID. JVM Snowflake benchmarks use the sibling library's default
   generator setup.

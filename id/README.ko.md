@@ -179,27 +179,36 @@ durable report와 raw output은
 Local Go command:
 
 ```bash
-go test -run '^$' -bench '^Benchmark(UUIDV4|UUIDV7|ULIDRandom|ULIDMonotonicParallel|KSUIDNextString|KSUIDMillisNextString|SnowflakeNextInt64|SnowflakeNextInt64SameMillisecond|SnowflakeNextInt64Parallel)$' -benchtime=1s -benchmem ./id
+make bench-id
 ```
 
 Environment: macOS arm64, Apple M4 Pro, Go 1.26.4.
 
 ![ID generator benchmark summary](../docs/images/readme-charts/id-generator-benchmark-summary.png)
 
+Chart는 Kotlin `kotlinx-benchmark` throughput을 `1e9 / (ops/s * 100)`으로
+`ns/id`로 환산해 Go와 Kotlin을 같은 축에서 읽게 합니다. 낮을수록 좋습니다.
+Kotlin benchmark row에는 batch uniqueness check 비용이 포함됩니다.
+
 | Benchmark | ns/op | B/op | allocs/op |
 |---|---:|---:|---:|
-| `BenchmarkSnowflakeNextInt64-12` | 12.17 | 0 | 0 |
-| `BenchmarkSnowflakeNextInt64SameMillisecond-12` | 13.01 | 0 | 0 |
-| `BenchmarkULIDRandom-12` | 138.3 | 48 | 2 |
-| `BenchmarkULIDMonotonicParallel-12` | 190.4 | 48 | 2 |
-| `BenchmarkUUIDV4-12` | 254.0 | 112 | 3 |
-| `BenchmarkUUIDV7-12` | 304.0 | 112 | 3 |
-| `BenchmarkKSUIDMillisNextString-12` | 325.7 | 104 | 3 |
-| `BenchmarkKSUIDNextString-12` | 404.1 | 48 | 2 |
-| `BenchmarkSnowflakeNextInt64Parallel-12` | 87.99 | 0 | 0 |
+| `BenchmarkSnowflakeNextInt64-12` | 12.13 | 0 | 0 |
+| `BenchmarkSnowflakeNextInt64SameMillisecond-12` | 12.46 | 0 | 0 |
+| `BenchmarkULIDMonotonic-12` | 67.77 | 48 | 2 |
+| `BenchmarkSnowflakeNextInt64Parallel-12` | 85.74 | 0 | 0 |
+| `BenchmarkULIDRandom-12` | 108.4 | 48 | 2 |
+| `BenchmarkULIDMonotonicParallel-12` | 191.4 | 48 | 2 |
+| `BenchmarkUUIDV4-12` | 241.1 | 112 | 3 |
+| `BenchmarkUUIDV7-12` | 270.9 | 112 | 3 |
+| `BenchmarkULIDRandomParallel-12` | 302.2 | 48 | 2 |
+| `BenchmarkKSUIDMillisNextString-12` | 342.5 | 104 | 3 |
+| `BenchmarkKSUIDNextString-12` | 393.1 | 48 | 2 |
+| `BenchmarkUUIDV4Parallel-12` | 576.8 | 112 | 3 |
+| `BenchmarkUUIDV7Parallel-12` | 580.4 | 112 | 3 |
+| `BenchmarkKSUIDMillisNextStringParallel-12` | 644.2 | 104 | 3 |
+| `BenchmarkKSUIDNextStringParallel-12` | 664.1 | 48 | 2 |
 
-Interpretation boundary: Go benchmark는 per-ID generation을 `ns/op`와 allocation
-metric으로 측정합니다. JVM `bluetape4k-idgenerators` benchmark는
-`kotlinx-benchmark`의 JMH JVM backend로 batch throughput과 uniqueness check를
-측정합니다. 두 결과는 runtime-specific snapshot이며 raw cross-runtime ranking으로
-해석하지 않습니다.
+Interpretation boundary: Go row는 per-ID generation을 직접 측정합니다. Chart의
+Kotlin row는 `kotlinx-benchmark` batch throughput을 환산한 값이므로 local
+snapshot으로는 같은 축에서 비교할 수 있지만, Kotlin benchmark의 batch uniqueness
+check 비용은 포함되어 있습니다.
