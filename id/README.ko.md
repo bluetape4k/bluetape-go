@@ -9,7 +9,11 @@ Snowflake int64 ID입니다.
 ## Import
 
 ```go
-import "github.com/bluetape4k/bluetape-go/id"
+import (
+    "time"
+
+    "github.com/bluetape4k/bluetape-go/id"
+)
 ```
 
 ## 선택 가이드
@@ -66,13 +70,36 @@ eventTime, err := id.KSUIDTime(eventID)
 if err != nil {
     return err
 }
+
+fixed := time.Date(2026, 6, 8, 1, 2, 3, 0, time.UTC)
+deterministicUUIDs, err := id.NewUUIDV7Generator(
+    id.WithUUIDTime(func() time.Time { return fixed }),
+)
+if err != nil {
+    return err
+}
+testID, err := deterministicUUIDs.NextString()
+if err != nil {
+    return err
+}
 ```
 
 ## 동작
 
 - UUID v4와 UUID v7은 기본적으로 crypto-grade entropy를 사용합니다.
-- UUID v7과 ULID ordering은 wall-clock rollback 상황에서 약해질 수 있습니다.
-  생성 결과를 clock-monotonicity 보장으로 취급하지 마세요.
+- UUID v7은 기본적으로 current Unix Epoch millisecond timestamp를 인코딩합니다.
+  `WithUUIDTime`은 UUID v7 generator에 deterministic clock을 주입할 때 사용하고
+  UUID v4 generator에서는 무시됩니다.
+- UUID clock option은 production default를 바꾸지 않고 deterministic boundary 및
+  ordering test를 작성할 수 있게 public API로 제공합니다.
+- UUID v7 same-tick 및 rollback 상황에서는 generator별 logical tick을
+  전진시켜 같은 shared generator에서 나온 값의 lexical order를 유지합니다. 이
+  ordering은 별도 generator instance나 process 사이를 조정하지 않습니다. supplied
+  millisecond의 12-bit logical tick이 소진되면 order 보존을 위해 encoded
+  timestamp가 logical하게 전진할 수 있고, maximum UUID v7 timestamp에서 overflow가
+  나면 invalid time option error를 반환합니다.
+- Custom UUID entropy reader와 clock function을 shared generator에서 사용할
+  때는 caller가 concurrent use safety를 보장해야 합니다.
 - Random/monotonic ULID 기본값은 `crypto/rand`를 사용합니다. 이 package는
   `oklog/ulid`의 `math/rand` default entropy를 사용하지 않습니다.
 - KSUID generation은 crypto-grade default entropy와 Segment 표준

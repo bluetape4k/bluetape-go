@@ -9,7 +9,11 @@ int64 IDs.
 ## Import
 
 ```go
-import "github.com/bluetape4k/bluetape-go/id"
+import (
+    "time"
+
+    "github.com/bluetape4k/bluetape-go/id"
+)
 ```
 
 ## Selection Guide
@@ -66,13 +70,36 @@ eventTime, err := id.KSUIDTime(eventID)
 if err != nil {
     return err
 }
+
+fixed := time.Date(2026, 6, 8, 1, 2, 3, 0, time.UTC)
+deterministicUUIDs, err := id.NewUUIDV7Generator(
+    id.WithUUIDTime(func() time.Time { return fixed }),
+)
+if err != nil {
+    return err
+}
+testID, err := deterministicUUIDs.NextString()
+if err != nil {
+    return err
+}
 ```
 
 ## Behavior
 
 - UUID v4 and UUID v7 generation use crypto-grade default entropy.
-- UUID v7 and ULID ordering may degrade during wall-clock rollback;
-  generation must not be treated as a clock-monotonicity guarantee.
+- UUID v7 encodes the current Unix Epoch millisecond timestamp by default.
+  `WithUUIDTime` may inject a deterministic clock for UUID v7 generators and is
+  ignored by UUID v4 generators.
+- The UUID clock option is public so callers can write deterministic boundary
+  and ordering tests without changing production defaults.
+- UUID v7 same-tick and rollback generation advances a per-generator logical
+  tick so values from the same shared generator keep lexical order. This does
+  not coordinate ordering across separate generator instances or processes.
+  When a supplied millisecond exhausts its available 12-bit logical ticks, the
+  encoded timestamp may advance logically to preserve order; at the maximum
+  UUID v7 timestamp, overflow returns an invalid time option error.
+- Custom UUID entropy readers and clock functions must be safe for concurrent
+  use when a generator instance is shared across goroutines.
 - Random and monotonic ULID defaults use `crypto/rand`; this package does not
   use the `oklog/ulid` `math/rand` default entropy.
 - KSUID generation uses crypto-grade default entropy and the standard Segment
