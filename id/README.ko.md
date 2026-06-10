@@ -4,7 +4,7 @@
 
 `id`는 서비스 식별자를 위한 Go-native generator를 제공합니다. 범위는 UUID v4,
 UUID v7, random ULID, monotonic ULID, standard seconds-precision KSUID,
-Snowflake int64 ID입니다.
+Kotlin-compatible millisecond KSUID, Snowflake int64 ID입니다.
 
 ## Import
 
@@ -24,10 +24,10 @@ import (
 | UUID 저장 DB primary key | UUID v7 | clock 동작을 받아들일 수 있으면 UUID v4보다 정렬성이 좋습니다. |
 | monotonic string ID | ULID | 표준 26자 Crockford Base32 문자열입니다. |
 | 분산 numeric entity ID | Snowflake | timestamp, machine ID, sequence field를 가진 63-bit non-negative int64입니다. |
-| URL-safe string ID | ULID 또는 KSUID | ULID는 26-character Crockford Base32이고 KSUID는 seconds timestamp를 가진 27-character Base62입니다. |
+| URL-safe string ID | ULID 또는 KSUID | ULID는 26-character Crockford Base32이고 KSUID variants는 27-character Base62 string입니다. |
 | second-level time sorting이 필요한 log/event ID | KSUID | Segment-compatible canonical 27-character string입니다. |
+| Kotlin-compatible millisecond KSUID | KSUID millis | `NewKSUIDMillisGenerator`, `ParseKSUIDMillis`, `KSUIDMillisTime`은 bluetape4k `Ksuid.Millis`의 8-byte millisecond timestamp + 12-byte payload format을 사용합니다. source-compatible이며 Segment-sortable format은 아닙니다. |
 | deterministic/name-based UUID | Deferred | UUID v5/name-based helper는 0.6.0 범위가 아닙니다. |
-| millisecond KSUID compatibility | Deferred | Kotlin-compatible millis KSUID format은 #171에서 별도 추적합니다. |
 | future compact UUID string | Base62 deferred | 명시적인 ID rendering API 범위가 정해지기 전까지는 `codec/base62`를 직접 사용합니다. |
 | future 128-bit sortable byte/string ID | Flake deferred | 후속 source-parity 후보입니다. |
 | future short obfuscation | Hashids deferred | obfuscation은 security가 아닙니다. |
@@ -71,6 +71,19 @@ if err != nil {
     return err
 }
 
+ksuidMillis, err := id.NewKSUIDMillisGenerator()
+if err != nil {
+    return err
+}
+millisID, err := ksuidMillis.NextString()
+if err != nil {
+    return err
+}
+millisTime, err := id.KSUIDMillisTime(millisID)
+if err != nil {
+    return err
+}
+
 fixed := time.Date(2026, 6, 8, 1, 2, 3, 0, time.UTC)
 deterministicUUIDs, err := id.NewUUIDV7Generator(
     id.WithUUIDTime(func() time.Time { return fixed }),
@@ -105,19 +118,34 @@ if err != nil {
 - KSUID generation은 crypto-grade default entropy와 Segment 표준
   seconds-precision format을 사용합니다. Lexical ordering은 encoded timestamp를
   따르지만 same-second ordering은 entropy-dependent이며 monotonic하지 않습니다.
-- Custom KSUID entropy reader와 clock function을 shared generator에서 사용할
-  때는 caller가 concurrent use safety를 보장해야 합니다.
+- KSUID millis generation은 Kotlin `Ksuid.Millis` compatibility format을
+  사용합니다. 20 bytes는 `1400000000000` 기준 8-byte big-endian millisecond
+  timestamp와 12-byte payload이고, bluetape4k bit-stream Base62 alphabet으로
+  인코딩합니다.
+- KSUID millis는 Segment KSUID가 아니며 lexicographic timestamp ordering을
+  보장하지 않습니다. Compatibility alphabet은 `A-Z a-z 0-9`이고 Segment의
+  sortable `0-9 A-Z a-z` encoding과 다릅니다.
+- Segment KSUID seconds와 bluetape4k KSUID millis는 모두 bare 27-character
+  Base62 string이라 string만으로 family를 식별할 수 없습니다. `KSUIDTime`은
+  Segment seconds string에만, `KSUIDMillisTime`은 millis string에만 사용하세요.
+  cross-family parsing은 성공할 수 있지만 다른 family 기준 timestamp를 반환합니다.
+- Custom KSUID 및 KSUID millis entropy reader와 clock function을 shared
+  generator에서 사용할 때는 caller가 concurrent use safety를 보장해야 합니다.
 - KSUID clock은 KSUID epoch부터 maximum 32-bit seconds offset까지의 표준 KSUID
   timestamp range 안에 있어야 합니다.
 - Public API는 string 또는 repo-owned value를 반환합니다. Dependency
   UUID/ULID/KSUID concrete type은 stable bluetape-go API가 아닙니다.
 - Concrete generator 구현은 export하지 않습니다. Caller는 zero-value concrete
   generator contract에 의존하지 않습니다.
-- Public parse helper는 canonical string을 반환하고 invalid input은
-  `errors.Is(err, id.ErrInvalidID)`로 확인할 수 있게 감쌉니다. UUID parsing은
-  canonical 36-character lowercase UUID string만 허용합니다.
+- Public parse helper는 invalid input을 `errors.Is(err, id.ErrInvalidID)`로
+  확인할 수 있게 감쌉니다. UUID와 Segment KSUID helper는 canonical string을
+  반환하고, KSUID millis는 Kotlin이 encoded bit stream을 27 characters로
+  truncate하므로 supplied Kotlin-compatible string을 validate한 뒤 그대로
+  반환합니다.
 - KSUID parsing은 canonical 27-character Segment-compatible string만 허용하고
   `KSUIDTime`으로 timestamp를 추출합니다.
+- KSUID millis parsing은 27-character Kotlin-compatible string을 허용하고
+  `KSUIDMillisTime`으로 timestamp를 추출합니다.
 - 생성된 ID는 identifier입니다. authentication token, authorization secret,
   standalone security boundary가 아닙니다.
 
