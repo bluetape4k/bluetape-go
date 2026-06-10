@@ -6,7 +6,8 @@ import (
 	"time"
 )
 
-func BenchmarkUUIDV4(b *testing.B) {
+func BenchmarkUUIDV4NewString(b *testing.B) {
+	b.ReportAllocs()
 	for b.Loop() {
 		if _, err := NewUUIDV4(); err != nil {
 			b.Fatal(err)
@@ -14,7 +15,47 @@ func BenchmarkUUIDV4(b *testing.B) {
 	}
 }
 
-func BenchmarkUUIDV7(b *testing.B) {
+func BenchmarkUUIDV4NewStringParallel(b *testing.B) {
+	b.ReportAllocs()
+	b.RunParallel(func(pb *testing.PB) {
+		for pb.Next() {
+			if _, err := NewUUIDV4(); err != nil {
+				b.Fatal(err)
+			}
+		}
+	})
+}
+
+func BenchmarkUUIDV4ReuseGenerator(b *testing.B) {
+	generator, err := NewUUIDV4Generator()
+	if err != nil {
+		b.Fatal(err)
+	}
+	b.ReportAllocs()
+	for b.Loop() {
+		if _, err := generator.NextString(); err != nil {
+			b.Fatal(err)
+		}
+	}
+}
+
+func BenchmarkUUIDV4ReuseGeneratorParallel(b *testing.B) {
+	generator, err := NewUUIDV4Generator()
+	if err != nil {
+		b.Fatal(err)
+	}
+	b.ReportAllocs()
+	b.RunParallel(func(pb *testing.PB) {
+		for pb.Next() {
+			if _, err := generator.NextString(); err != nil {
+				b.Fatal(err)
+			}
+		}
+	})
+}
+
+func BenchmarkUUIDV7NewString(b *testing.B) {
+	b.ReportAllocs()
 	for b.Loop() {
 		if _, err := NewUUIDV7(); err != nil {
 			b.Fatal(err)
@@ -22,11 +63,79 @@ func BenchmarkUUIDV7(b *testing.B) {
 	}
 }
 
+func BenchmarkUUIDV7NewStringParallel(b *testing.B) {
+	b.ReportAllocs()
+	b.RunParallel(func(pb *testing.PB) {
+		for pb.Next() {
+			if _, err := NewUUIDV7(); err != nil {
+				b.Fatal(err)
+			}
+		}
+	})
+}
+
+func BenchmarkUUIDV7ReuseGenerator(b *testing.B) {
+	generator, err := NewUUIDV7Generator()
+	if err != nil {
+		b.Fatal(err)
+	}
+	b.ReportAllocs()
+	for b.Loop() {
+		if _, err := generator.NextString(); err != nil {
+			b.Fatal(err)
+		}
+	}
+}
+
+func BenchmarkUUIDV7ReuseGeneratorParallel(b *testing.B) {
+	generator, err := NewUUIDV7Generator()
+	if err != nil {
+		b.Fatal(err)
+	}
+	b.ReportAllocs()
+	b.RunParallel(func(pb *testing.PB) {
+		for pb.Next() {
+			if _, err := generator.NextString(); err != nil {
+				b.Fatal(err)
+			}
+		}
+	})
+}
+
 func BenchmarkULIDRandom(b *testing.B) {
 	generator, err := NewULIDGenerator()
 	if err != nil {
 		b.Fatal(err)
 	}
+	b.ReportAllocs()
+	for b.Loop() {
+		if _, err := generator.NextString(); err != nil {
+			b.Fatal(err)
+		}
+	}
+}
+
+func BenchmarkULIDRandomParallel(b *testing.B) {
+	generator, err := NewULIDGenerator()
+	if err != nil {
+		b.Fatal(err)
+	}
+	b.ReportAllocs()
+	b.RunParallel(func(pb *testing.PB) {
+		for pb.Next() {
+			if _, err := generator.NextString(); err != nil {
+				b.Fatal(err)
+			}
+		}
+	})
+}
+
+func BenchmarkULIDMonotonic(b *testing.B) {
+	generator, err := NewMonotonicULIDGenerator()
+	if err != nil {
+		b.Fatal(err)
+	}
+	b.ReportAllocs()
 	for b.Loop() {
 		if _, err := generator.NextString(); err != nil {
 			b.Fatal(err)
@@ -39,6 +148,7 @@ func BenchmarkULIDMonotonicParallel(b *testing.B) {
 	if err != nil {
 		b.Fatal(err)
 	}
+	b.ReportAllocs()
 	b.RunParallel(func(pb *testing.PB) {
 		for pb.Next() {
 			if _, err := generator.NextString(); err != nil {
@@ -53,11 +163,27 @@ func BenchmarkKSUIDNextString(b *testing.B) {
 	if err != nil {
 		b.Fatal(err)
 	}
+	b.ReportAllocs()
 	for b.Loop() {
 		if _, err := generator.NextString(); err != nil {
 			b.Fatal(err)
 		}
 	}
+}
+
+func BenchmarkKSUIDNextStringParallel(b *testing.B) {
+	generator, err := NewKSUIDGenerator()
+	if err != nil {
+		b.Fatal(err)
+	}
+	b.ReportAllocs()
+	b.RunParallel(func(pb *testing.PB) {
+		for pb.Next() {
+			if _, err := generator.NextString(); err != nil {
+				b.Fatal(err)
+			}
+		}
+	})
 }
 
 func BenchmarkKSUIDMillisNextString(b *testing.B) {
@@ -65,6 +191,7 @@ func BenchmarkKSUIDMillisNextString(b *testing.B) {
 	if err != nil {
 		b.Fatal(err)
 	}
+	b.ReportAllocs()
 	for b.Loop() {
 		if _, err := generator.NextString(); err != nil {
 			b.Fatal(err)
@@ -72,11 +199,27 @@ func BenchmarkKSUIDMillisNextString(b *testing.B) {
 	}
 }
 
+func BenchmarkKSUIDMillisNextStringParallel(b *testing.B) {
+	generator, err := NewKSUIDMillisGenerator()
+	if err != nil {
+		b.Fatal(err)
+	}
+	b.ReportAllocs()
+	b.RunParallel(func(pb *testing.PB) {
+		for pb.Next() {
+			if _, err := generator.NextString(); err != nil {
+				b.Fatal(err)
+			}
+		}
+	})
+}
+
 func BenchmarkSnowflakeNextInt64(b *testing.B) {
 	generator, err := newBenchmarkSnowflake()
 	if err != nil {
 		b.Fatal(err)
 	}
+	b.ReportAllocs()
 	for b.Loop() {
 		if _, err := generator.NextInt64(); err != nil {
 			b.Fatal(err)
@@ -89,6 +232,7 @@ func BenchmarkSnowflakeNextInt64SameMillisecond(b *testing.B) {
 	if err != nil {
 		b.Fatal(err)
 	}
+	b.ReportAllocs()
 	for b.Loop() {
 		if _, err := generator.NextInt64(); err != nil {
 			b.Fatal(err)
@@ -101,6 +245,7 @@ func BenchmarkSnowflakeNextInt64Parallel(b *testing.B) {
 	if err != nil {
 		b.Fatal(err)
 	}
+	b.ReportAllocs()
 	b.RunParallel(func(pb *testing.PB) {
 		for pb.Next() {
 			if _, err := generator.NextInt64(); err != nil {

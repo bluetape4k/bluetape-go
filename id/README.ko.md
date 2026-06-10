@@ -166,5 +166,65 @@ millisecond restart에서 duplicate machine ID를 재사용하면 duplicate ID�
 ```bash
 go test -count=1 ./id
 go test -race -count=1 ./id
-go test -run '^$' -bench . -benchmem ./id
+make bench-id
 ```
+
+## Benchmark Snapshot
+
+Issue #168은 `bluetape4k-idgenerators`와의 local Go-vs-JVM 비교를 기록합니다.
+durable report와 raw output은
+[`docs/research/2026-06-10-issue-168-id-generator-benchmark.md`](../docs/research/2026-06-10-issue-168-id-generator-benchmark.md)에
+있습니다.
+
+Local Go command:
+
+```bash
+make bench-id
+```
+
+Environment: macOS arm64, Apple M4 Pro, Go 1.26.4.
+
+![ID generator benchmark summary](../docs/images/readme-charts/id-generator-benchmark-summary.png)
+
+Chart는 Kotlin `kotlinx-benchmark` throughput을 `1e9 / (ops/s * 100)`으로
+`ns/id`로 환산해 Go와 Kotlin을 같은 축에서 읽게 합니다. 낮을수록 좋습니다.
+Kotlin benchmark row에는 batch uniqueness check 비용이 포함됩니다.
+
+결과 해석: Go Snowflake synthetic-clock row는 single-thread와 concurrent 모두에서
+가장 낮은 `ns/id`를 보입니다. 다만 Go benchmark는 deterministic clock hook을
+주입하므로 production-equivalent Go-vs-Kotlin Snowflake verdict로 읽으면 안
+됩니다. 이번 local snapshot에서는 Go UUID row를 generator 재사용 기준으로 고쳐도
+Kotlin row가 UUID v4/v7과 KSUID 계열에서 더 낮은 `ns/id`를 보입니다. ULID는
+혼합 결과입니다. single-thread monotonic row는 Kotlin이 낮고, concurrent
+comparison에서는 Go monotonic ULID가 낮습니다.
+
+| Benchmark | ns/op | B/op | allocs/op |
+|---|---:|---:|---:|
+| `BenchmarkSnowflakeNextInt64-12` | 11.98 | 0 | 0 |
+| `BenchmarkSnowflakeNextInt64SameMillisecond-12` | 12.23 | 0 | 0 |
+| `BenchmarkULIDMonotonic-12` | 65.45 | 48 | 2 |
+| `BenchmarkSnowflakeNextInt64Parallel-12` | 92.37 | 0 | 0 |
+| `BenchmarkULIDRandom-12` | 104.5 | 48 | 2 |
+| `BenchmarkULIDMonotonicParallel-12` | 190.5 | 48 | 2 |
+| `BenchmarkUUIDV4ReuseGenerator-12` | 225.8 | 64 | 2 |
+| `BenchmarkUUIDV4NewString-12` | 230.1 | 112 | 3 |
+| `BenchmarkUUIDV7ReuseGenerator-12` | 251.2 | 64 | 2 |
+| `BenchmarkUUIDV7NewString-12` | 271.7 | 112 | 3 |
+| `BenchmarkULIDRandomParallel-12` | 280.9 | 48 | 2 |
+| `BenchmarkKSUIDMillisNextString-12` | 320.6 | 104 | 3 |
+| `BenchmarkUUIDV7ReuseGeneratorParallel-12` | 376.4 | 64 | 2 |
+| `BenchmarkKSUIDNextString-12` | 389.7 | 48 | 2 |
+| `BenchmarkUUIDV4NewStringParallel-12` | 549.2 | 112 | 3 |
+| `BenchmarkUUIDV4ReuseGeneratorParallel-12` | 557.5 | 64 | 2 |
+| `BenchmarkUUIDV7NewStringParallel-12` | 569.6 | 112 | 3 |
+| `BenchmarkKSUIDMillisNextStringParallel-12` | 632.3 | 104 | 3 |
+| `BenchmarkKSUIDNextStringParallel-12` | 656.3 | 48 | 2 |
+
+Interpretation boundary: Go row는 per-ID generation을 직접 측정합니다. Chart의
+Kotlin row는 `kotlinx-benchmark` batch throughput을 환산한 값이므로 local
+snapshot으로는 같은 축에서 비교할 수 있지만, Kotlin benchmark의 batch uniqueness
+check 비용은 포함되어 있습니다. UUID chart row는 Go generator 재사용 benchmark를
+사용하며, `NewString` row는 convenience function overhead를 보여주는 용도라
+cross-runtime chart에는 사용하지 않습니다. Snowflake chart row는 synthetic Go
+clock hook을 사용하므로 production-equivalent Go-vs-Kotlin Snowflake claim을
+하려면 equivalent clock/batch condition에서 다시 측정해야 합니다.

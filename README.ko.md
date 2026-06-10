@@ -141,6 +141,7 @@ make ci
 | `make coverage` | `coverage/` 아래에 Go coverage profile, package 소계 table, text summary, HTML report를 생성합니다. |
 | `make bench-cache` | opt-in cache, Redis NearCache, Redis coordinator benchmark를 실행합니다. |
 | `make bench-ratelimit` | opt-in local rate limiter benchmark를 실행합니다. |
+| `make bench-id` | opt-in id generator benchmark를 실행합니다. |
 | `make ci` | 로컬 CI gate를 실행합니다. |
 
 Redis integration test는 Testcontainers를 사용하므로 Docker가 필요합니다. 일반

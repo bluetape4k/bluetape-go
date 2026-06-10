@@ -165,5 +165,64 @@ Valid machine IDs are `0..1023`.
 ```bash
 go test -count=1 ./id
 go test -race -count=1 ./id
-go test -run '^$' -bench . -benchmem ./id
+make bench-id
 ```
+
+## Benchmark Snapshot
+
+Issue #168 records a local Go-vs-JVM comparison against
+`bluetape4k-idgenerators`. The durable report and raw outputs are in
+[`docs/research/2026-06-10-issue-168-id-generator-benchmark.md`](../docs/research/2026-06-10-issue-168-id-generator-benchmark.md).
+
+Local Go command:
+
+```bash
+make bench-id
+```
+
+Environment: macOS arm64, Apple M4 Pro, Go 1.26.4.
+
+![ID generator benchmark summary](../docs/images/readme-charts/id-generator-benchmark-summary.png)
+
+The chart normalizes Kotlin `kotlinx-benchmark` throughput to `ns/id` with
+`1e9 / (ops/s * 100)`, so Go and Kotlin can be read on the same axis. Lower is
+better. Kotlin benchmark rows include batch uniqueness checks.
+
+Result reading: the Go Snowflake synthetic-clock row has the lowest measured
+`ns/id` in both single-thread and concurrent runs. That row is not a
+production-equivalent Go-vs-Kotlin Snowflake verdict because the Go benchmark
+injects deterministic clock hooks. Kotlin rows have lower `ns/id` for UUID
+v4/v7 and KSUID families in this local snapshot even when Go UUID rows reuse
+generators. ULID is mixed: Kotlin is lower in the single-thread monotonic row,
+while Go monotonic ULID is lower under the concurrent comparison.
+
+| Benchmark | ns/op | B/op | allocs/op |
+|---|---:|---:|---:|
+| `BenchmarkSnowflakeNextInt64-12` | 11.98 | 0 | 0 |
+| `BenchmarkSnowflakeNextInt64SameMillisecond-12` | 12.23 | 0 | 0 |
+| `BenchmarkULIDMonotonic-12` | 65.45 | 48 | 2 |
+| `BenchmarkSnowflakeNextInt64Parallel-12` | 92.37 | 0 | 0 |
+| `BenchmarkULIDRandom-12` | 104.5 | 48 | 2 |
+| `BenchmarkULIDMonotonicParallel-12` | 190.5 | 48 | 2 |
+| `BenchmarkUUIDV4ReuseGenerator-12` | 225.8 | 64 | 2 |
+| `BenchmarkUUIDV4NewString-12` | 230.1 | 112 | 3 |
+| `BenchmarkUUIDV7ReuseGenerator-12` | 251.2 | 64 | 2 |
+| `BenchmarkUUIDV7NewString-12` | 271.7 | 112 | 3 |
+| `BenchmarkULIDRandomParallel-12` | 280.9 | 48 | 2 |
+| `BenchmarkKSUIDMillisNextString-12` | 320.6 | 104 | 3 |
+| `BenchmarkUUIDV7ReuseGeneratorParallel-12` | 376.4 | 64 | 2 |
+| `BenchmarkKSUIDNextString-12` | 389.7 | 48 | 2 |
+| `BenchmarkUUIDV4NewStringParallel-12` | 549.2 | 112 | 3 |
+| `BenchmarkUUIDV4ReuseGeneratorParallel-12` | 557.5 | 64 | 2 |
+| `BenchmarkUUIDV7NewStringParallel-12` | 569.6 | 112 | 3 |
+| `BenchmarkKSUIDMillisNextStringParallel-12` | 632.3 | 104 | 3 |
+| `BenchmarkKSUIDNextStringParallel-12` | 656.3 | 48 | 2 |
+
+Interpretation boundary: Go rows measure per-ID generation directly. Kotlin
+rows in the chart are normalized from `kotlinx-benchmark` batch throughput, so
+they are comparable as a local snapshot but still include Kotlin benchmark
+batch uniqueness-check work. UUID chart rows use reused Go generators; the
+`NewString` rows show convenience function overhead and are not used for the
+cross-runtime chart. Snowflake chart rows use synthetic Go clock hooks and must
+be remeasured under equivalent clock/batch conditions before making a
+production-equivalent Go-vs-Kotlin Snowflake claim.

@@ -1,0 +1,1 @@
+ok  	github.com/bluetape4k/bluetape-go/id	0.217s
