@@ -1,0 +1,144 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1280" height="900" viewBox="0 0 1280 900">
+  <defs>
+    <style>
+      @font-face {
+        font-family: 'Architects Daughter';
+        src: url('/Users/debop/Library/Fonts/ArchitectsDaughter-Regular.ttf');
+      }
+      @font-face {
+        font-family: 'Comic Mono';
+        src: url('/Users/debop/Library/Fonts/ComicMono.ttf');
+        font-weight: normal;
+      }
+      @font-face {
+        font-family: 'Comic Mono';
+        src: url('/Users/debop/Library/Fonts/ComicMono-Bold.ttf');
+        font-weight: bold;
+      }
+      .title { font-family: 'Architects Daughter'; font-size: 34px; fill: #1E293B; font-weight: bold; }
+      .subtitle { font-family: 'Comic Mono'; font-size: 14px; fill: #64748B; }
+      .section { font-family: 'Architects Daughter'; font-size: 23px; fill: #1E293B; font-weight: bold; }
+      .label { font-family: 'Comic Mono'; font-size: 12px; fill: #334155; }
+      .value { font-family: 'Comic Mono'; font-size: 12px; fill: #0F172A; font-weight: bold; }
+      .axis { font-family: 'Comic Mono'; font-size: 11px; fill: #64748B; }
+      .legend { font-family: 'Comic Mono'; font-size: 12px; fill: #334155; }
+      .note { font-family: 'Comic Mono'; font-size: 12px; fill: #475569; }
+    </style>
+  </defs>
+
+  <rect x="0" y="0" width="1280" height="900" fill="#F8FAFC" stroke="#E2E8F0" stroke-width="1.5" rx="18"/>
+  <text x="640" y="42" text-anchor="middle" dominant-baseline="middle" class="title">ID Generator Benchmark Snapshot</text>
+  <text x="640" y="72" text-anchor="middle" dominant-baseline="middle" class="subtitle">Issue #168 · Apple M4 Pro · Go per-ID latency and JVM batch throughput are separate result sets</text>
+
+  <rect x="56" y="106" width="1168" height="338" fill="#FFFFFF" stroke="#CBD5E1" stroke-width="1.5" rx="14"/>
+  <text x="86" y="137" dominant-baseline="middle" class="section">Go id package · latency, lower is better</text>
+  <text x="1188" y="137" text-anchor="end" dominant-baseline="middle" class="axis">go test -bench ... -benchtime=1s -benchmem</text>
+
+  <g opacity="0.9">
+    <line x1="330" y1="164" x2="330" y2="396" stroke="#E2E8F0"/>
+    <line x1="518" y1="164" x2="518" y2="396" stroke="#E2E8F0"/>
+    <line x1="706" y1="164" x2="706" y2="396" stroke="#E2E8F0"/>
+    <line x1="894" y1="164" x2="894" y2="396" stroke="#E2E8F0"/>
+    <line x1="1090" y1="164" x2="1090" y2="396" stroke="#E2E8F0"/>
+  </g>
+  <text x="330" y="420" text-anchor="middle" class="axis">0</text>
+  <text x="518" y="420" text-anchor="middle" class="axis">100</text>
+  <text x="706" y="420" text-anchor="middle" class="axis">200</text>
+  <text x="894" y="420" text-anchor="middle" class="axis">300</text>
+  <text x="1090" y="420" text-anchor="middle" class="axis">400 ns/op</text>
+
+  <g>
+    <text x="84" y="175" dominant-baseline="middle" class="label">Snowflake int64</text>
+    <rect x="330" y="164" width="23" height="22" fill="#5EEAD4" stroke="#14B8A6" rx="6"/>
+    <text x="365" y="175" dominant-baseline="middle" class="value">12.17 ns/op · 0 B</text>
+
+    <text x="84" y="202" dominant-baseline="middle" class="label">Snowflake same-ms</text>
+    <rect x="330" y="191" width="25" height="22" fill="#99F6E4" stroke="#2DD4BF" rx="6"/>
+    <text x="367" y="202" dominant-baseline="middle" class="value">13.01 ns/op · 0 B</text>
+
+    <text x="84" y="229" dominant-baseline="middle" class="label">Snowflake parallel</text>
+    <rect x="330" y="218" width="166" height="22" fill="#CCFBF1" stroke="#5EEAD4" rx="6"/>
+    <text x="508" y="229" dominant-baseline="middle" class="value">87.99 ns/op · 0 B</text>
+
+    <text x="84" y="256" dominant-baseline="middle" class="label">ULID random</text>
+    <rect x="330" y="245" width="260" height="22" fill="#BAE6FD" stroke="#38BDF8" rx="6"/>
+    <text x="602" y="256" dominant-baseline="middle" class="value">138.3 ns/op · 48 B</text>
+
+    <text x="84" y="283" dominant-baseline="middle" class="label">ULID monotonic parallel</text>
+    <rect x="330" y="272" width="358" height="22" fill="#BFDBFE" stroke="#60A5FA" rx="6"/>
+    <text x="700" y="283" dominant-baseline="middle" class="value">190.4 ns/op · 48 B</text>
+
+    <text x="84" y="310" dominant-baseline="middle" class="label">UUID v4</text>
+    <rect x="330" y="299" width="478" height="22" fill="#DDD6FE" stroke="#A78BFA" rx="6"/>
+    <text x="820" y="310" dominant-baseline="middle" class="value">254.0 ns/op · 112 B</text>
+
+    <text x="84" y="337" dominant-baseline="middle" class="label">UUID v7</text>
+    <rect x="330" y="326" width="572" height="22" fill="#E9D5FF" stroke="#C084FC" rx="6"/>
+    <text x="914" y="337" dominant-baseline="middle" class="value">304.0 ns/op · 112 B</text>
+
+    <text x="84" y="364" dominant-baseline="middle" class="label">KSUID millis</text>
+    <rect x="330" y="353" width="613" height="22" fill="#FBCFE8" stroke="#F472B6" rx="6"/>
+    <text x="955" y="364" dominant-baseline="middle" class="value">325.7 ns/op · 104 B</text>
+
+    <text x="84" y="391" dominant-baseline="middle" class="label">KSUID seconds</text>
+    <rect x="330" y="380" width="760" height="22" fill="#FED7AA" stroke="#FB923C" rx="6"/>
+    <text x="1102" y="391" dominant-baseline="middle" class="value">404.1 ns/op · 48 B</text>
+  </g>
+
+  <rect x="56" y="474" width="1168" height="338" fill="#FFFFFF" stroke="#CBD5E1" stroke-width="1.5" rx="14"/>
+  <text x="86" y="505" dominant-baseline="middle" class="section">JVM bluetape4k-idgenerators · batch throughput, higher is better</text>
+  <text x="1188" y="505" text-anchor="end" dominant-baseline="middle" class="axis">kotlinx-benchmark · JMH JVM backend · batchSize=100</text>
+
+  <g opacity="0.9">
+    <line x1="330" y1="536" x2="330" y2="758" stroke="#E2E8F0"/>
+    <line x1="509" y1="536" x2="509" y2="758" stroke="#E2E8F0"/>
+    <line x1="689" y1="536" x2="689" y2="758" stroke="#E2E8F0"/>
+    <line x1="868" y1="536" x2="868" y2="758" stroke="#E2E8F0"/>
+    <line x1="1090" y1="536" x2="1090" y2="758" stroke="#E2E8F0"/>
+  </g>
+  <text x="330" y="782" text-anchor="middle" class="axis">0</text>
+  <text x="509" y="782" text-anchor="middle" class="axis">100k</text>
+  <text x="689" y="782" text-anchor="middle" class="axis">200k</text>
+  <text x="868" y="782" text-anchor="middle" class="axis">300k</text>
+  <text x="1090" y="782" text-anchor="middle" class="axis">400k ops/s</text>
+
+  <g>
+    <text x="84" y="552" dominant-baseline="middle" class="label">UUID v7</text>
+    <rect x="330" y="540" width="760" height="13" fill="#93C5FD" stroke="#60A5FA" rx="4"/>
+    <rect x="330" y="557" width="155" height="13" fill="#A7F3D0" stroke="#34D399" rx="4"/>
+    <text x="1102" y="552" dominant-baseline="middle" class="value">423,831 / 86,638 ops/s</text>
+
+    <text x="84" y="588" dominant-baseline="middle" class="label">ULID</text>
+    <rect x="330" y="576" width="485" height="13" fill="#93C5FD" stroke="#60A5FA" rx="4"/>
+    <rect x="330" y="593" width="44" height="13" fill="#A7F3D0" stroke="#34D399" rx="4"/>
+    <text x="827" y="588" dominant-baseline="middle" class="value">270,204 / 24,476 ops/s</text>
+
+    <text x="84" y="624" dominant-baseline="middle" class="label">UUID v4</text>
+    <rect x="330" y="612" width="189" height="13" fill="#93C5FD" stroke="#60A5FA" rx="4"/>
+    <rect x="330" y="629" width="54" height="13" fill="#A7F3D0" stroke="#34D399" rx="4"/>
+    <text x="531" y="624" dominant-baseline="middle" class="value">105,159 / 30,332 ops/s</text>
+
+    <text x="84" y="660" dominant-baseline="middle" class="label">KSUID millis</text>
+    <rect x="330" y="648" width="107" height="13" fill="#93C5FD" stroke="#60A5FA" rx="4"/>
+    <rect x="330" y="665" width="45" height="13" fill="#A7F3D0" stroke="#34D399" rx="4"/>
+    <text x="449" y="660" dominant-baseline="middle" class="value">59,593 / 25,221 ops/s</text>
+
+    <text x="84" y="696" dominant-baseline="middle" class="label">KSUID seconds</text>
+    <rect x="330" y="684" width="96" height="13" fill="#93C5FD" stroke="#60A5FA" rx="4"/>
+    <rect x="330" y="701" width="46" height="13" fill="#A7F3D0" stroke="#34D399" rx="4"/>
+    <text x="438" y="696" dominant-baseline="middle" class="value">53,210 / 25,727 ops/s</text>
+
+    <text x="84" y="732" dominant-baseline="middle" class="label">Snowflake</text>
+    <rect x="330" y="720" width="74" height="13" fill="#93C5FD" stroke="#60A5FA" rx="4"/>
+    <rect x="330" y="737" width="48" height="13" fill="#A7F3D0" stroke="#34D399" rx="4"/>
+    <text x="416" y="732" dominant-baseline="middle" class="value">40,973 / 26,746 ops/s</text>
+  </g>
+
+  <g>
+    <rect x="82" y="836" width="12" height="12" fill="#93C5FD" stroke="#60A5FA" rx="2"/>
+    <text x="102" y="846" class="legend">JVM single-thread batch throughput</text>
+    <rect x="340" y="836" width="12" height="12" fill="#A7F3D0" stroke="#34D399" rx="2"/>
+    <text x="360" y="846" class="legend">JVM concurrent batch throughput</text>
+    <text x="704" y="846" class="note">Do not compare Go ns/op directly with JVM ops/s; workloads and units differ.</text>
+  </g>
+</svg>

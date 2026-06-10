@@ -14,6 +14,8 @@
   - `id/README.ko.md`
   - `docs/research/README.md`
   - `docs/research/README.ko.md`
+  - `docs/images/readme-charts/id-generator-benchmark-summary.svg`
+  - `docs/images/readme-charts/id-generator-benchmark-summary.png`
   - `docs/research/2026-06-10-issue-168-id-generator-benchmark.md`
   - `docs/research/outputs/issue-168/*`
 
@@ -29,6 +31,11 @@ The report keeps Go per-ID `ns/op` benchmark results separate from JVM batch
 throughput plus uniqueness checks. It also records stress/race evidence for the
 Go `id` package and concludes that no evidence-backed follow-up implementation
 issue is required from this snapshot.
+
+The chart asset summarizes the same measured tables in two separate panels: Go
+per-ID latency (`ns/op`, lower is better) and JVM `kotlinx-benchmark` batch
+throughput (`ops/s`, higher is better). The chart explicitly warns not to
+compare Go `ns/op` directly with JVM `ops/s`.
 
 ## 7-Tier Findings
 
@@ -97,6 +104,10 @@ issue is required from this snapshot.
 - PASS: `make ci`
 - PASS: sibling `./gradlew :bluetape4k-idgenerators:singleThreadBenchmark`
 - PASS: sibling `./gradlew :bluetape4k-idgenerators:concurrentBenchmark`
+- PASS: `xmllint --noout docs/images/readme-charts/id-generator-benchmark-summary.svg`
+- PASS: rendered `docs/images/readme-charts/id-generator-benchmark-summary.png` with `rsvg-convert`
+- PASS: visual inspection of the rendered PNG for font rendering, label overlap,
+  clipping, and Go/JVM unit separation
 
 ## Subagent Gate Summary
 

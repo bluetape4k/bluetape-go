@@ -182,6 +182,8 @@ go test -run '^$' -bench '^Benchmark(UUIDV4|UUIDV7|ULIDRandom|ULIDMonotonicParal
 
 Environment: macOS arm64, Apple M4 Pro, Go 1.26.4.
 
+![ID generator benchmark summary](../docs/images/readme-charts/id-generator-benchmark-summary.png)
+
 | Benchmark | ns/op | B/op | allocs/op |
 |---|---:|---:|---:|
 | `BenchmarkSnowflakeNextInt64-12` | 12.17 | 0 | 0 |

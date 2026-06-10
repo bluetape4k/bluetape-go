@@ -80,6 +80,14 @@ Observed local environment:
 - Go 1.26.4.
 - Oracle GraalVM Java 25.0.3.
 
+## Chart Summary
+
+The chart below summarizes the Go per-ID latency snapshot and the JVM
+`kotlinx-benchmark` batch throughput snapshot as separate panels. It is a visual
+summary of the measured tables below, not a raw cross-runtime ranking.
+
+![ID generator benchmark summary](../images/readme-charts/id-generator-benchmark-summary.png)
+
 ## Go Snapshot
 
 Validation and stress/race evidence:
