@@ -7,6 +7,7 @@ import (
 )
 
 func BenchmarkUUIDV4(b *testing.B) {
+	b.ReportAllocs()
 	for b.Loop() {
 		if _, err := NewUUIDV4(); err != nil {
 			b.Fatal(err)
@@ -15,6 +16,7 @@ func BenchmarkUUIDV4(b *testing.B) {
 }
 
 func BenchmarkUUIDV7(b *testing.B) {
+	b.ReportAllocs()
 	for b.Loop() {
 		if _, err := NewUUIDV7(); err != nil {
 			b.Fatal(err)
@@ -27,6 +29,7 @@ func BenchmarkULIDRandom(b *testing.B) {
 	if err != nil {
 		b.Fatal(err)
 	}
+	b.ReportAllocs()
 	for b.Loop() {
 		if _, err := generator.NextString(); err != nil {
 			b.Fatal(err)
@@ -39,6 +42,7 @@ func BenchmarkULIDMonotonicParallel(b *testing.B) {
 	if err != nil {
 		b.Fatal(err)
 	}
+	b.ReportAllocs()
 	b.RunParallel(func(pb *testing.PB) {
 		for pb.Next() {
 			if _, err := generator.NextString(); err != nil {
@@ -53,6 +57,7 @@ func BenchmarkKSUIDNextString(b *testing.B) {
 	if err != nil {
 		b.Fatal(err)
 	}
+	b.ReportAllocs()
 	for b.Loop() {
 		if _, err := generator.NextString(); err != nil {
 			b.Fatal(err)
@@ -65,6 +70,7 @@ func BenchmarkKSUIDMillisNextString(b *testing.B) {
 	if err != nil {
 		b.Fatal(err)
 	}
+	b.ReportAllocs()
 	for b.Loop() {
 		if _, err := generator.NextString(); err != nil {
 			b.Fatal(err)
@@ -77,6 +83,7 @@ func BenchmarkSnowflakeNextInt64(b *testing.B) {
 	if err != nil {
 		b.Fatal(err)
 	}
+	b.ReportAllocs()
 	for b.Loop() {
 		if _, err := generator.NextInt64(); err != nil {
 			b.Fatal(err)
@@ -89,6 +96,7 @@ func BenchmarkSnowflakeNextInt64SameMillisecond(b *testing.B) {
 	if err != nil {
 		b.Fatal(err)
 	}
+	b.ReportAllocs()
 	for b.Loop() {
 		if _, err := generator.NextInt64(); err != nil {
 			b.Fatal(err)
@@ -101,6 +109,7 @@ func BenchmarkSnowflakeNextInt64Parallel(b *testing.B) {
 	if err != nil {
 		b.Fatal(err)
 	}
+	b.ReportAllocs()
 	b.RunParallel(func(pb *testing.PB) {
 		for pb.Next() {
 			if _, err := generator.NextInt64(); err != nil {

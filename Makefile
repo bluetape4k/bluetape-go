@@ -8,7 +8,7 @@ COVERAGE_TEXT ?= $(COVERAGE_DIR)/coverage.txt
 COVERAGE_PACKAGES ?= $(COVERAGE_DIR)/coverage-packages.md
 COVERAGE_HTML ?= $(COVERAGE_DIR)/coverage.html
 
-.PHONY: help fmt fmt-check tidy tidy-check vet lint test race coverage bench-cache bench-ratelimit bench-compression ci
+.PHONY: help fmt fmt-check tidy tidy-check vet lint test race coverage bench-cache bench-ratelimit bench-compression bench-id ci
 
 help:
 	@printf '%s\n' \
@@ -24,6 +24,7 @@ help:
 		'  coverage    Generate Go coverage profile, package summary, and HTML report' \
 		'  bench-cache Run opt-in cache, Redis NearCache, and Redis coordinator benchmarks' \
 		'  bench-ratelimit Run opt-in local rate limiter benchmarks' \
+		'  bench-id    Run opt-in id generator benchmarks' \
 		'  ci          Run the local CI gate'
 
 fmt:
@@ -73,5 +74,8 @@ bench-ratelimit:
 
 bench-compression:
 	@$(GO) test -run '^$$' -bench '^BenchmarkCompressors' -benchmem ./compression
+
+bench-id:
+	@$(GO) test -run '^$$' -bench '^Benchmark(UUIDV4|UUIDV7|ULIDRandom|ULIDMonotonicParallel|KSUIDNextString|KSUIDMillisNextString|SnowflakeNextInt64|SnowflakeNextInt64SameMillisecond|SnowflakeNextInt64Parallel)$$' -benchmem ./id
 
 ci: tidy-check fmt-check vet lint test race

@@ -166,5 +166,38 @@ millisecond restart에서 duplicate machine ID를 재사용하면 duplicate ID�
 ```bash
 go test -count=1 ./id
 go test -race -count=1 ./id
-go test -run '^$' -bench . -benchmem ./id
+make bench-id
 ```
+
+## Benchmark Snapshot
+
+Issue #168은 `bluetape4k-idgenerators`와의 local Go-vs-JVM 비교를 기록합니다.
+durable report와 raw output은
+[`docs/research/2026-06-10-issue-168-id-generator-benchmark.md`](../docs/research/2026-06-10-issue-168-id-generator-benchmark.md)에
+있습니다.
+
+Local Go command:
+
+```bash
+go test -run '^$' -bench '^Benchmark(UUIDV4|UUIDV7|ULIDRandom|ULIDMonotonicParallel|KSUIDNextString|KSUIDMillisNextString|SnowflakeNextInt64|SnowflakeNextInt64SameMillisecond|SnowflakeNextInt64Parallel)$' -benchtime=1s -benchmem ./id
+```
+
+Environment: macOS arm64, Apple M4 Pro, Go 1.26.4.
+
+| Benchmark | ns/op | B/op | allocs/op |
+|---|---:|---:|---:|
+| `BenchmarkSnowflakeNextInt64-12` | 12.17 | 0 | 0 |
+| `BenchmarkSnowflakeNextInt64SameMillisecond-12` | 13.01 | 0 | 0 |
+| `BenchmarkULIDRandom-12` | 138.3 | 48 | 2 |
+| `BenchmarkULIDMonotonicParallel-12` | 190.4 | 48 | 2 |
+| `BenchmarkUUIDV4-12` | 254.0 | 112 | 3 |
+| `BenchmarkUUIDV7-12` | 304.0 | 112 | 3 |
+| `BenchmarkKSUIDMillisNextString-12` | 325.7 | 104 | 3 |
+| `BenchmarkKSUIDNextString-12` | 404.1 | 48 | 2 |
+| `BenchmarkSnowflakeNextInt64Parallel-12` | 87.99 | 0 | 0 |
+
+Interpretation boundary: Go benchmark는 per-ID generation을 `ns/op`와 allocation
+metric으로 측정합니다. JVM `bluetape4k-idgenerators` benchmark는
+`kotlinx-benchmark`의 JMH JVM backend로 batch throughput과 uniqueness check를
+측정합니다. 두 결과는 runtime-specific snapshot이며 raw cross-runtime ranking으로
+해석하지 않습니다.

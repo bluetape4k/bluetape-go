@@ -165,5 +165,37 @@ Valid machine IDs are `0..1023`.
 ```bash
 go test -count=1 ./id
 go test -race -count=1 ./id
-go test -run '^$' -bench . -benchmem ./id
+make bench-id
 ```
+
+## Benchmark Snapshot
+
+Issue #168 records a local Go-vs-JVM comparison against
+`bluetape4k-idgenerators`. The durable report and raw outputs are in
+[`docs/research/2026-06-10-issue-168-id-generator-benchmark.md`](../docs/research/2026-06-10-issue-168-id-generator-benchmark.md).
+
+Local Go command:
+
+```bash
+go test -run '^$' -bench '^Benchmark(UUIDV4|UUIDV7|ULIDRandom|ULIDMonotonicParallel|KSUIDNextString|KSUIDMillisNextString|SnowflakeNextInt64|SnowflakeNextInt64SameMillisecond|SnowflakeNextInt64Parallel)$' -benchtime=1s -benchmem ./id
+```
+
+Environment: macOS arm64, Apple M4 Pro, Go 1.26.4.
+
+| Benchmark | ns/op | B/op | allocs/op |
+|---|---:|---:|---:|
+| `BenchmarkSnowflakeNextInt64-12` | 12.17 | 0 | 0 |
+| `BenchmarkSnowflakeNextInt64SameMillisecond-12` | 13.01 | 0 | 0 |
+| `BenchmarkULIDRandom-12` | 138.3 | 48 | 2 |
+| `BenchmarkULIDMonotonicParallel-12` | 190.4 | 48 | 2 |
+| `BenchmarkUUIDV4-12` | 254.0 | 112 | 3 |
+| `BenchmarkUUIDV7-12` | 304.0 | 112 | 3 |
+| `BenchmarkKSUIDMillisNextString-12` | 325.7 | 104 | 3 |
+| `BenchmarkKSUIDNextString-12` | 404.1 | 48 | 2 |
+| `BenchmarkSnowflakeNextInt64Parallel-12` | 87.99 | 0 | 0 |
+
+Interpretation boundary: Go benchmarks measure per-ID generation with `ns/op`
+and allocation metrics. The JVM `bluetape4k-idgenerators` benchmark uses
+`kotlinx-benchmark` with the JMH JVM backend and measures batch throughput with
+uniqueness checks. Treat the two result sets as runtime-specific snapshots, not
+as a raw cross-runtime ranking.

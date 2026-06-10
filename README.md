@@ -145,6 +145,7 @@ Common commands:
 | `make coverage` | Generate Go coverage profile, package subtotal table, text summary, and HTML report under `coverage/`. |
 | `make bench-cache` | Run opt-in cache, Redis NearCache, and Redis coordinator benchmarks. |
 | `make bench-ratelimit` | Run opt-in local rate limiter benchmarks. |
+| `make bench-id` | Run opt-in id generator benchmarks. |
 | `make ci` | Run the local CI gate. |
 
 Redis integration tests use Testcontainers and require Docker. The regular CI
