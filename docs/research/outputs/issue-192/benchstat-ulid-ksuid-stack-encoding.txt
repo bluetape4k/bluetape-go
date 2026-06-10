@@ -1,0 +1,68 @@
+goos: darwin
+goarch: arm64
+pkg: github.com/bluetape4k/bluetape-go/id
+cpu: Apple M4 Pro
+                                 │ docs/research/outputs/issue-192/go-id-baseline-count10.txt │ docs/research/outputs/issue-192/go-id-ulid-ksuid-stack-encoding-count10.txt │
+                                 │                           sec/op                           │                       sec/op                        vs base                 │
+UUIDV4NewString-12                                                                238.5n ± 2%
+UUIDV4NewStringParallel-12                                                        533.2n ± 6%
+UUIDV4ReuseGenerator-12                                                           224.1n ± 0%
+UUIDV4ReuseGeneratorParallel-12                                                   500.2n ± 0%
+UUIDV7NewString-12                                                                267.6n ± 1%
+UUIDV7NewStringParallel-12                                                        562.9n ± 1%
+UUIDV7ReuseGenerator-12                                                           255.6n ± 0%
+UUIDV7ReuseGeneratorParallel-12                                                   343.6n ± 0%
+ULIDRandom-12                                                                     104.5n ± 0%                                          102.9n ± 0%  -1.53% (p=0.000 n=10)
+ULIDRandomParallel-12                                                             278.5n ± 1%                                          278.2n ± 1%       ~ (p=0.542 n=10)
+ULIDMonotonic-12                                                                  65.80n ± 0%                                          65.56n ± 1%       ~ (p=0.183 n=10)
+ULIDMonotonicParallel-12                                                          181.5n ± 1%                                          182.5n ± 1%       ~ (p=0.171 n=10)
+KSUIDNextString-12                                                                393.1n ± 0%                                          397.6n ± 0%  +1.12% (p=0.000 n=10)
+KSUIDNextStringParallel-12                                                        668.2n ± 0%                                          664.2n ± 0%  -0.60% (p=0.035 n=10)
+KSUIDMillisNextString-12                                                          316.8n ± 0%                                          309.9n ± 0%  -2.15% (p=0.000 n=10)
+KSUIDMillisNextStringParallel-12                                                  621.0n ± 1%                                          601.9n ± 1%  -3.07% (p=0.000 n=10)
+geomean                                                                           295.5n                                               253.2n       -0.78%                ¹
+¹ benchmark set differs from baseline; geomeans may not be comparable
+
+                                 │ docs/research/outputs/issue-192/go-id-baseline-count10.txt │ docs/research/outputs/issue-192/go-id-ulid-ksuid-stack-encoding-count10.txt │
+                                 │                            B/op                            │                       B/op                         vs base                  │
+UUIDV4NewString-12                                                                 112.0 ± 0%
+UUIDV4NewStringParallel-12                                                         112.0 ± 0%
+UUIDV4ReuseGenerator-12                                                            64.00 ± 0%
+UUIDV4ReuseGeneratorParallel-12                                                    64.00 ± 0%
+UUIDV7NewString-12                                                                 112.0 ± 0%
+UUIDV7NewStringParallel-12                                                         112.0 ± 0%
+UUIDV7ReuseGenerator-12                                                            64.00 ± 0%
+UUIDV7ReuseGeneratorParallel-12                                                    64.00 ± 0%
+ULIDRandom-12                                                                      48.00 ± 0%                                          48.00 ± 0%        ~ (p=1.000 n=10) ¹
+ULIDRandomParallel-12                                                              48.00 ± 0%                                          48.00 ± 0%        ~ (p=1.000 n=10) ¹
+ULIDMonotonic-12                                                                   48.00 ± 0%                                          48.00 ± 0%        ~ (p=1.000 n=10) ¹
+ULIDMonotonicParallel-12                                                           48.00 ± 0%                                          48.00 ± 0%        ~ (p=1.000 n=10) ¹
+KSUIDNextString-12                                                                 48.00 ± 0%                                          48.00 ± 0%        ~ (p=1.000 n=10) ¹
+KSUIDNextStringParallel-12                                                         48.00 ± 0%                                          48.00 ± 0%        ~ (p=1.000 n=10) ¹
+KSUIDMillisNextString-12                                                          104.00 ± 0%                                          56.00 ± 0%  -46.15% (p=0.000 n=10)
+KSUIDMillisNextStringParallel-12                                                  104.00 ± 0%                                          56.00 ± 0%  -46.15% (p=0.000 n=10)
+geomean                                                                            70.22                                               49.89       -14.34%                ²
+¹ all samples are equal
+² benchmark set differs from baseline; geomeans may not be comparable
+
+                                 │ docs/research/outputs/issue-192/go-id-baseline-count10.txt │ docs/research/outputs/issue-192/go-id-ulid-ksuid-stack-encoding-count10.txt │
+                                 │                         allocs/op                          │                     allocs/op                      vs base                  │
+UUIDV4NewString-12                                                                 3.000 ± 0%
+UUIDV4NewStringParallel-12                                                         3.000 ± 0%
+UUIDV4ReuseGenerator-12                                                            2.000 ± 0%
+UUIDV4ReuseGeneratorParallel-12                                                    2.000 ± 0%
+UUIDV7NewString-12                                                                 3.000 ± 0%
+UUIDV7NewStringParallel-12                                                         3.000 ± 0%
+UUIDV7ReuseGenerator-12                                                            2.000 ± 0%
+UUIDV7ReuseGeneratorParallel-12                                                    2.000 ± 0%
+ULIDRandom-12                                                                      2.000 ± 0%                                          2.000 ± 0%        ~ (p=1.000 n=10) ¹
+ULIDRandomParallel-12                                                              2.000 ± 0%                                          2.000 ± 0%        ~ (p=1.000 n=10) ¹
+ULIDMonotonic-12                                                                   2.000 ± 0%                                          2.000 ± 0%        ~ (p=1.000 n=10) ¹
+ULIDMonotonicParallel-12                                                           2.000 ± 0%                                          2.000 ± 0%        ~ (p=1.000 n=10) ¹
+KSUIDNextString-12                                                                 2.000 ± 0%                                          2.000 ± 0%        ~ (p=1.000 n=10) ¹
+KSUIDNextStringParallel-12                                                         2.000 ± 0%                                          2.000 ± 0%        ~ (p=1.000 n=10) ¹
+KSUIDMillisNextString-12                                                           3.000 ± 0%                                          2.000 ± 0%  -33.33% (p=0.000 n=10)
+KSUIDMillisNextStringParallel-12                                                   3.000 ± 0%                                          2.000 ± 0%  -33.33% (p=0.000 n=10)
+geomean                                                                            2.328                                               2.000        -9.64%                ²
+¹ all samples are equal
+² benchmark set differs from baseline; geomeans may not be comparable

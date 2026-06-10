@@ -1,7 +1,6 @@
 package id
 
 import (
-	"crypto/rand"
 	"io"
 	"time"
 
@@ -40,12 +39,12 @@ func WithULIDTime(now func() time.Time) ULIDOption {
 
 // NewULIDGenerator creates a random ULID string generator.
 func NewULIDGenerator(options ...ULIDOption) (StringGenerator, error) {
-	return newULIDGenerator(rand.Reader, time.Now, options...)
+	return newULIDGenerator(defaultEntropyReader(), time.Now, options...)
 }
 
 // NewMonotonicULIDGenerator creates a concurrency-safe monotonic ULID generator.
 func NewMonotonicULIDGenerator(options ...ULIDOption) (StringGenerator, error) {
-	g, err := newULIDGenerator(rand.Reader, time.Now, options...)
+	g, err := newULIDGenerator(defaultEntropyReader(), time.Now, options...)
 	if err != nil {
 		return nil, err
 	}
@@ -80,7 +79,11 @@ func (g *ulidGenerator) NextString() (string, error) {
 	if err != nil {
 		return "", EntropyError{Kind: "ulid", Err: err}
 	}
-	return value.String(), nil
+	var encoded [okulid.EncodedSize]byte
+	if err := value.MarshalTextTo(encoded[:]); err != nil {
+		return "", EntropyError{Kind: "ulid", Err: err}
+	}
+	return string(encoded[:]), nil
 }
 
 // NewULID returns a random canonical ULID string.

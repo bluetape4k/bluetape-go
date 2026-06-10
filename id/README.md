@@ -99,7 +99,10 @@ if err != nil {
 
 ## Behavior
 
-- UUID v4 and UUID v7 generation use crypto-grade default entropy.
+- UUID v4 and UUID v7 generation use crypto-grade default entropy. The default
+  entropy path batches `crypto/rand` reads behind a package-local lock to reduce
+  per-ID randomness overhead; generated IDs remain identifiers, not
+  authentication or authorization secrets.
 - UUID v7 encodes the current Unix Epoch millisecond timestamp by default.
   `WithUUIDTime` may inject a deterministic clock for UUID v7 generators and is
   ignored by UUID v4 generators.
@@ -113,11 +116,11 @@ if err != nil {
   UUID v7 timestamp, overflow returns an invalid time option error.
 - Custom UUID entropy readers and clock functions must be safe for concurrent
   use when a generator instance is shared across goroutines.
-- Random and monotonic ULID defaults use `crypto/rand`; this package does not
-  use the `oklog/ulid` `math/rand` default entropy.
-- KSUID generation uses crypto-grade default entropy and the standard Segment
-  seconds-precision format. Lexical ordering follows the encoded timestamp, but
-  same-second ordering is entropy-dependent and not monotonic.
+- Random and monotonic ULID defaults use the same buffered `crypto/rand` entropy
+  path; this package does not use the `oklog/ulid` `math/rand` default entropy.
+- KSUID generation uses buffered crypto-grade default entropy and the standard
+  Segment seconds-precision format. Lexical ordering follows the encoded
+  timestamp, but same-second ordering is entropy-dependent and not monotonic.
 - KSUID millis generation uses the Kotlin `Ksuid.Millis` compatibility format:
   20 bytes as 8-byte big-endian milliseconds since `1400000000000` plus a
   12-byte payload, encoded with bluetape4k's bit-stream Base62 alphabet.
@@ -173,6 +176,9 @@ make bench-id
 Issue #168 records a local Go-vs-JVM comparison against
 `bluetape4k-idgenerators`. The durable report and raw outputs are in
 [`docs/research/2026-06-10-issue-168-id-generator-benchmark.md`](../docs/research/2026-06-10-issue-168-id-generator-benchmark.md).
+This section intentionally preserves that pre-optimization snapshot and chart.
+The Issue #192 before/after optimization results are recorded separately in
+[`docs/research/2026-06-11-issue-192-id-generator-performance.md`](../docs/research/2026-06-11-issue-192-id-generator-performance.md).
 
 Local Go command:
 
@@ -217,6 +223,21 @@ while Go monotonic ULID is lower under the concurrent comparison.
 | `BenchmarkUUIDV7NewStringParallel-12` | 569.6 | 112 | 3 |
 | `BenchmarkKSUIDMillisNextStringParallel-12` | 632.3 | 104 | 3 |
 | `BenchmarkKSUIDNextStringParallel-12` | 656.3 | 48 | 2 |
+
+### Post-Optimization Comparison
+
+Issue #192 keeps the Issue #168 chart as the pre-optimization baseline and adds
+an updated Kotlin-vs-Go comparison using the optimized Go UUID, ULID, and KSUID
+rows. Snowflake is unchanged by Issue #192, so that row keeps the Issue #168
+synthetic-clock Go measurement.
+
+![Kotlin vs Go optimized ID generator comparison](../docs/images/readme-charts/id-generator-kotlin-go-optimized-comparison.png)
+
+After buffering Go entropy, the local snapshot changes materially: Go now leads
+UUID v4, KSUID millis, and the concurrent ULID/KSUID rows. Kotlin still leads
+UUID v7 and the single-thread monotonic ULID row. UUID v7 is the clearest
+remaining Go optimization target because ordering/lock cost remains visible
+after entropy overhead is reduced.
 
 Interpretation boundary: Go rows measure per-ID generation directly. Kotlin
 rows in the chart are normalized from `kotlinx-benchmark` batch throughput, so

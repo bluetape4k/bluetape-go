@@ -1,0 +1,26 @@
+File: id.test
+Type: alloc_space
+Time: 2026-06-11 00:12:27 KST
+Showing nodes accounting for 7415.72MB, 99.94% of 7419.88MB total
+Dropped 32 nodes (cum <= 37.10MB)
+      flat  flat%   sum%        cum   cum%
+ 2761.08MB 37.21% 37.21%  2761.08MB 37.21%  github.com/oklog/ulid/v2.ULID.String (inline)
+ 1365.52MB 18.40% 55.62%  1365.52MB 18.40%  github.com/oklog/ulid/v2.New
+ 1336.06MB 18.01% 73.62%  1336.06MB 18.01%  github.com/google/uuid.UUID.String (inline)
+  855.53MB 11.53% 85.15%   855.53MB 11.53%  github.com/bluetape4k/bluetape-go/id.encodeKSUIDMillisBase62
+  285.51MB  3.85% 89.00%   285.51MB  3.85%  github.com/segmentio/ksuid.KSUID.String (inline)
+  259.01MB  3.49% 92.49%  1114.54MB 15.02%  github.com/bluetape4k/bluetape-go/id.(*ksuidMillisGenerator).NextString
+  222.50MB  3.00% 95.49%   222.50MB  3.00%  github.com/google/uuid.NewRandomFromReader
+  204.50MB  2.76% 98.25%   204.50MB  2.76%  github.com/bluetape4k/bluetape-go/id.(*uuidGenerator).nextV7
+     126MB  1.70% 99.94%   411.51MB  5.55%  github.com/bluetape4k/bluetape-go/id.(*ksuidGenerator).NextString
+         0     0% 99.94%  4126.61MB 55.62%  github.com/bluetape4k/bluetape-go/id.(*ulidGenerator).NextString
+         0     0% 99.94%  1763.07MB 23.76%  github.com/bluetape4k/bluetape-go/id.(*uuidGenerator).NextString
+         0     0% 99.94%  1114.54MB 15.02%  github.com/bluetape4k/bluetape-go/id.BenchmarkKSUIDMillisNextString
+         0     0% 99.94%   411.51MB  5.55%  github.com/bluetape4k/bluetape-go/id.BenchmarkKSUIDNextString
+         0     0% 99.94%  2569.57MB 34.63%  github.com/bluetape4k/bluetape-go/id.BenchmarkULIDMonotonic
+         0     0% 99.94%  1557.04MB 20.98%  github.com/bluetape4k/bluetape-go/id.BenchmarkULIDRandom
+         0     0% 99.94%   929.04MB 12.52%  github.com/bluetape4k/bluetape-go/id.BenchmarkUUIDV4ReuseGenerator
+         0     0% 99.94%   834.03MB 11.24%  github.com/bluetape4k/bluetape-go/id.BenchmarkUUIDV7ReuseGenerator
+         0     0% 99.94%   222.50MB  3.00%  github.com/google/uuid.NewRandom
+         0     0% 99.94%  7415.72MB 99.94%  testing.(*B).run1.func1
+         0     0% 99.94%  7415.72MB 99.94%  testing.(*B).runN
