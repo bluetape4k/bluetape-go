@@ -18,7 +18,7 @@ Use Go package benchmarks for per-ID cost and the existing JVM
 `kotlinx-benchmark` benchmark suite for `bluetape4k-idgenerators` batch
 throughput and uniqueness checks. Follow-up optimization issues now track the
 two visible gaps from this snapshot: `bluetape4k-projects#738` for Kotlin
-Snowflake and `bluetape-go#192` for Go UUID/KSUID.
+Snowflake and `bluetape-go#192` for Go UUID/ULID/KSUID.
 
 ## Comparable Surface
 
@@ -40,7 +40,7 @@ Snowflake and `bluetape-go#192` for Go UUID/KSUID.
 make bench-id
 go test -count=1 ./id
 go test -race -count=1 ./id
-go test -run '^$' -bench '^Benchmark(UUIDV4|UUIDV4Parallel|UUIDV7|UUIDV7Parallel|ULIDRandom|ULIDRandomParallel|ULIDMonotonic|ULIDMonotonicParallel|KSUIDNextString|KSUIDNextStringParallel|KSUIDMillisNextString|KSUIDMillisNextStringParallel|SnowflakeNextInt64|SnowflakeNextInt64SameMillisecond|SnowflakeNextInt64Parallel)$' -benchmem ./id
+go test -run '^$' -bench '^Benchmark(UUIDV4NewString|UUIDV4NewStringParallel|UUIDV4ReuseGenerator|UUIDV4ReuseGeneratorParallel|UUIDV7NewString|UUIDV7NewStringParallel|UUIDV7ReuseGenerator|UUIDV7ReuseGeneratorParallel|ULIDRandom|ULIDRandomParallel|ULIDMonotonic|ULIDMonotonicParallel|KSUIDNextString|KSUIDNextStringParallel|KSUIDMillisNextString|KSUIDMillisNextStringParallel|SnowflakeNextInt64|SnowflakeNextInt64SameMillisecond|SnowflakeNextInt64Parallel)$' -benchmem ./id
 ```
 
 ### JVM
@@ -96,23 +96,23 @@ generation cost and shared-generator contention.
 
 | Generator | Go ns/id | Kotlin ns/id | Kotlin source |
 |---|---:|---:|---|
-| Snowflake | 12.13 | 244.06 | `snowflake`, batch 100 |
-| ULID monotonic | 67.77 | 37.01 | `ulid`, batch 100 |
-| UUID v4 | 241.10 | 95.09 | `uuidV4`, batch 100 |
-| UUID v7 | 270.90 | 23.59 | `uuidV7`, batch 100 |
-| KSUID millis | 342.50 | 167.80 | `ksuidMillis`, batch 100 |
-| KSUID seconds | 393.10 | 187.93 | `ksuidSeconds`, batch 100 |
+| Snowflake synthetic clock | 11.98 | 244.06 | `snowflake`, batch 100 |
+| ULID monotonic | 65.45 | 37.01 | `ulid`, batch 100 |
+| UUID v4 reused generator | 225.80 | 95.09 | `uuidV4`, batch 100 |
+| UUID v7 reused generator | 251.20 | 23.59 | `uuidV7`, batch 100 |
+| KSUID millis | 320.60 | 167.80 | `ksuidMillis`, batch 100 |
+| KSUID seconds | 389.70 | 187.93 | `ksuidSeconds`, batch 100 |
 
 ### Normalized Concurrent Comparison
 
 | Generator | Go ns/id | Kotlin ns/id | Kotlin source |
 |---|---:|---:|---|
-| Snowflake | 85.74 | 373.89 | `snowflake`, batch 100 |
-| ULID monotonic | 191.40 | 408.56 | `ulid`, batch 100 |
-| UUID v4 | 576.80 | 329.69 | `uuidV4`, batch 100 |
-| UUID v7 | 580.40 | 115.42 | `uuidV7`, batch 100 |
-| KSUID millis | 644.20 | 396.50 | `ksuidMillis`, batch 100 |
-| KSUID seconds | 664.10 | 388.70 | `ksuidSeconds`, batch 100 |
+| Snowflake synthetic clock | 92.37 | 373.89 | `snowflake`, batch 100 |
+| ULID monotonic | 190.50 | 408.56 | `ulid`, batch 100 |
+| UUID v4 reused generator | 557.50 | 329.69 | `uuidV4`, batch 100 |
+| UUID v7 reused generator | 376.40 | 115.42 | `uuidV7`, batch 100 |
+| KSUID millis | 632.30 | 396.50 | `ksuidMillis`, batch 100 |
+| KSUID seconds | 656.30 | 388.70 | `ksuidSeconds`, batch 100 |
 
 ## Go Snapshot
 
@@ -130,26 +130,30 @@ outputs above are retained with the benchmark artifacts.
 Command:
 
 ```bash
-go test -run '^$' -bench '^Benchmark(UUIDV4|UUIDV4Parallel|UUIDV7|UUIDV7Parallel|ULIDRandom|ULIDRandomParallel|ULIDMonotonic|ULIDMonotonicParallel|KSUIDNextString|KSUIDNextStringParallel|KSUIDMillisNextString|KSUIDMillisNextStringParallel|SnowflakeNextInt64|SnowflakeNextInt64SameMillisecond|SnowflakeNextInt64Parallel)$' -benchmem ./id
+go test -run '^$' -bench '^Benchmark(UUIDV4NewString|UUIDV4NewStringParallel|UUIDV4ReuseGenerator|UUIDV4ReuseGeneratorParallel|UUIDV7NewString|UUIDV7NewStringParallel|UUIDV7ReuseGenerator|UUIDV7ReuseGeneratorParallel|ULIDRandom|ULIDRandomParallel|ULIDMonotonic|ULIDMonotonicParallel|KSUIDNextString|KSUIDNextStringParallel|KSUIDMillisNextString|KSUIDMillisNextStringParallel|SnowflakeNextInt64|SnowflakeNextInt64SameMillisecond|SnowflakeNextInt64Parallel)$' -benchmem ./id
 ```
 
 | Benchmark | ns/op | B/op | allocs/op |
 |---|---:|---:|---:|
-| `BenchmarkSnowflakeNextInt64-12` | 12.13 | 0 | 0 |
-| `BenchmarkSnowflakeNextInt64SameMillisecond-12` | 12.46 | 0 | 0 |
-| `BenchmarkULIDMonotonic-12` | 67.77 | 48 | 2 |
-| `BenchmarkSnowflakeNextInt64Parallel-12` | 85.74 | 0 | 0 |
-| `BenchmarkULIDRandom-12` | 108.4 | 48 | 2 |
-| `BenchmarkULIDMonotonicParallel-12` | 191.4 | 48 | 2 |
-| `BenchmarkUUIDV4-12` | 241.1 | 112 | 3 |
-| `BenchmarkUUIDV7-12` | 270.9 | 112 | 3 |
-| `BenchmarkULIDRandomParallel-12` | 302.2 | 48 | 2 |
-| `BenchmarkKSUIDMillisNextString-12` | 342.5 | 104 | 3 |
-| `BenchmarkKSUIDNextString-12` | 393.1 | 48 | 2 |
-| `BenchmarkUUIDV4Parallel-12` | 576.8 | 112 | 3 |
-| `BenchmarkUUIDV7Parallel-12` | 580.4 | 112 | 3 |
-| `BenchmarkKSUIDMillisNextStringParallel-12` | 644.2 | 104 | 3 |
-| `BenchmarkKSUIDNextStringParallel-12` | 664.1 | 48 | 2 |
+| `BenchmarkSnowflakeNextInt64-12` | 11.98 | 0 | 0 |
+| `BenchmarkSnowflakeNextInt64SameMillisecond-12` | 12.23 | 0 | 0 |
+| `BenchmarkULIDMonotonic-12` | 65.45 | 48 | 2 |
+| `BenchmarkSnowflakeNextInt64Parallel-12` | 92.37 | 0 | 0 |
+| `BenchmarkULIDRandom-12` | 104.5 | 48 | 2 |
+| `BenchmarkULIDMonotonicParallel-12` | 190.5 | 48 | 2 |
+| `BenchmarkUUIDV4ReuseGenerator-12` | 225.8 | 64 | 2 |
+| `BenchmarkUUIDV4NewString-12` | 230.1 | 112 | 3 |
+| `BenchmarkUUIDV7ReuseGenerator-12` | 251.2 | 64 | 2 |
+| `BenchmarkUUIDV7NewString-12` | 271.7 | 112 | 3 |
+| `BenchmarkULIDRandomParallel-12` | 280.9 | 48 | 2 |
+| `BenchmarkKSUIDMillisNextString-12` | 320.6 | 104 | 3 |
+| `BenchmarkUUIDV7ReuseGeneratorParallel-12` | 376.4 | 64 | 2 |
+| `BenchmarkKSUIDNextString-12` | 389.7 | 48 | 2 |
+| `BenchmarkUUIDV4NewStringParallel-12` | 549.2 | 112 | 3 |
+| `BenchmarkUUIDV4ReuseGeneratorParallel-12` | 557.5 | 64 | 2 |
+| `BenchmarkUUIDV7NewStringParallel-12` | 569.6 | 112 | 3 |
+| `BenchmarkKSUIDMillisNextStringParallel-12` | 632.3 | 104 | 3 |
+| `BenchmarkKSUIDNextStringParallel-12` | 656.3 | 48 | 2 |
 
 ## JVM Snapshot
 
@@ -205,9 +209,13 @@ backend output.
 - Go parallel benchmark coverage now includes UUID v4/v7, ULID random,
   monotonic ULID, KSUID seconds/millis, and Snowflake so concurrent chart rows
   compare the same generator families where both repos expose them.
-- Go Snowflake benchmarks use deterministic clock hooks and a caller-provided
-  machine ID. JVM Snowflake benchmarks use the sibling library's default
-  generator setup.
+- Go UUID comparison rows use the reused-generator benchmarks. The convenience
+  `NewUUIDV4` and `NewUUIDV7` rows are retained only to expose factory-plus-ID
+  cost and are not used for the Kotlin-vs-Go chart.
+- Go Snowflake chart rows are synthetic-clock hot-path measurements: they use
+  deterministic clock hooks and a caller-provided machine ID. JVM Snowflake
+  rows use the sibling library's default generator setup, so the Snowflake rows
+  are not production-equivalent cross-runtime evidence by themselves.
 - Snowflake benchmark rows need enough generated IDs to span multiple
   millisecond windows. Because the algorithm uses a per-millisecond sequence
   window, tiny samples can overfit one timestamp tick; follow-up Snowflake work
@@ -225,22 +233,26 @@ backend output.
 
 - The Go `id` benchmark suite now has a first-class `make bench-id` target and
   reports allocations consistently with other package benchmark suites.
-- Go Snowflake is the clear hot-path winner in this snapshot: 12.13 ns/id
-  single-thread and 85.74 ns/id concurrent, both allocation-free.
-- Kotlin `bluetape4k-idgenerators` is faster for UUID v4/v7 and KSUID
-  seconds/millis in the normalized `ns/id` comparison, even though its benchmark
-  rows include batch uniqueness checks.
-- ULID is workload-sensitive. Kotlin monotonic ULID is faster in the
-  single-thread row, while Go monotonic ULID is faster in the concurrent row.
+- The Go Snowflake synthetic-clock row has the lowest measured `ns/id` in this
+  snapshot: 11.98 ns/id single-thread and 92.37 ns/id concurrent, both
+  allocation-free. Treat that as a Go implementation ceiling, not a
+  production-equivalent Go-vs-Kotlin Snowflake verdict.
+- Kotlin `bluetape4k-idgenerators` rows have lower `ns/id` for UUID v4/v7 and
+  KSUID seconds/millis in this local normalized comparison, even after Go UUID
+  rows are corrected to reuse generators.
+- ULID remains workload-sensitive. Kotlin monotonic ULID has lower `ns/id` in
+  the single-thread row, while Go monotonic ULID has lower `ns/id` in the
+  concurrent row.
 - Go string ID generators allocate because they return string values and depend
   on entropy/encoding work. The new parallel rows make that cost visible under
   shared-generator pressure.
 - Treat this as a local implementation snapshot, not a universal language
   ranking. Runtime, workload shape, UUID/ULID/KSUID implementation choices, and
   Kotlin batch uniqueness checks all affect the numbers.
-- Follow-up optimization issues were created for the evidence-backed gaps:
-  `bluetape4k-projects#738` for Snowflake and `bluetape-go#192` for UUID v4/v7
-  plus KSUID seconds/millis.
+- Follow-up issues were created for the evidence-backed gaps:
+  `bluetape4k-projects#738` to remeasure and optimize Snowflake under
+  equivalent clock/batch conditions, and `bluetape-go#192` for UUID, ULID, and
+  KSUID.
 
 ## Follow-Up Watch Items
 

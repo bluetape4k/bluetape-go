@@ -2,14 +2,24 @@ goos: darwin
 goarch: arm64
 pkg: github.com/bluetape4k/bluetape-go/id
 cpu: Apple M4 Pro
-BenchmarkUUIDV4-12                               	  413502	       275.7 ns/op	     112 B/op	       3 allocs/op
-BenchmarkUUIDV7-12                               	  438495	       275.9 ns/op	     112 B/op	       3 allocs/op
-BenchmarkULIDRandom-12                           	 1000000	       108.1 ns/op	      48 B/op	       2 allocs/op
-BenchmarkULIDMonotonicParallel-12                	  705622	       196.8 ns/op	      48 B/op	       2 allocs/op
-BenchmarkKSUIDNextString-12                      	  299622	       395.9 ns/op	      48 B/op	       2 allocs/op
-BenchmarkKSUIDMillisNextString-12                	  379016	       318.2 ns/op	     104 B/op	       3 allocs/op
-BenchmarkSnowflakeNextInt64-12                   	10128042	        11.92 ns/op	       0 B/op	       0 allocs/op
-BenchmarkSnowflakeNextInt64SameMillisecond-12    	 9617054	        12.32 ns/op	       0 B/op	       0 allocs/op
-BenchmarkSnowflakeNextInt64Parallel-12           	 1265942	        92.67 ns/op	       0 B/op	       0 allocs/op
+BenchmarkUUIDV4NewString-12                      	  393128	       293.5 ns/op	     112 B/op	       3 allocs/op
+BenchmarkUUIDV4NewStringParallel-12              	  241340	       521.0 ns/op	     112 B/op	       3 allocs/op
+BenchmarkUUIDV4ReuseGenerator-12                 	  531747	       242.1 ns/op	      64 B/op	       2 allocs/op
+BenchmarkUUIDV4ReuseGeneratorParallel-12         	  233396	       539.0 ns/op	      64 B/op	       2 allocs/op
+BenchmarkUUIDV7NewString-12                      	  436429	       271.1 ns/op	     112 B/op	       3 allocs/op
+BenchmarkUUIDV7NewStringParallel-12              	  181921	       593.2 ns/op	     112 B/op	       3 allocs/op
+BenchmarkUUIDV7ReuseGenerator-12                 	  450034	       259.1 ns/op	      64 B/op	       2 allocs/op
+BenchmarkUUIDV7ReuseGeneratorParallel-12         	  285376	       393.5 ns/op	      64 B/op	       2 allocs/op
+BenchmarkULIDRandom-12                           	 1000000	       108.2 ns/op	      48 B/op	       2 allocs/op
+BenchmarkULIDRandomParallel-12                   	  436429	       283.2 ns/op	      48 B/op	       2 allocs/op
+BenchmarkULIDMonotonic-12                        	 1766972	        71.71 ns/op	      48 B/op	       2 allocs/op
+BenchmarkULIDMonotonicParallel-12                	  633078	       188.1 ns/op	      48 B/op	       2 allocs/op
+BenchmarkKSUIDNextString-12                      	  295198	       396.9 ns/op	      48 B/op	       2 allocs/op
+BenchmarkKSUIDNextStringParallel-12              	  186160	       661.3 ns/op	      48 B/op	       2 allocs/op
+BenchmarkKSUIDMillisNextString-12                	  352345	       327.5 ns/op	     104 B/op	       3 allocs/op
+BenchmarkKSUIDMillisNextStringParallel-12        	  185745	       635.0 ns/op	     104 B/op	       3 allocs/op
+BenchmarkSnowflakeNextInt64-12                   	10089367	        11.95 ns/op	       0 B/op	       0 allocs/op
+BenchmarkSnowflakeNextInt64SameMillisecond-12    	 9682623	        12.46 ns/op	       0 B/op	       0 allocs/op
+BenchmarkSnowflakeNextInt64Parallel-12           	 1258966	        91.96 ns/op	       0 B/op	       0 allocs/op
 PASS
-ok  	github.com/bluetape4k/bluetape-go/id	1.615s
+ok  	github.com/bluetape4k/bluetape-go/id	2.851s
