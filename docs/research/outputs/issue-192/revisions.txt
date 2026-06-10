@@ -1,0 +1,6 @@
+capturedAt=2026-06-11T00:46:04+09:00
+branch=issue/192-id-performance
+baselineCommit=ce4e5ca5d39bff8c5542c093bc67585b34f148a0
+baselineSource=develop after PR #191 merge; Issue #168 chart/results preserved
+finalSource=uncommitted candidate changes in this worktree before PR creation
+note=Final PR commit hash should be read from the issue #192 pull request after review.

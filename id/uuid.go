@@ -1,7 +1,6 @@
 package id
 
 import (
-	"crypto/rand"
 	"errors"
 	"io"
 	"sync"
@@ -30,7 +29,8 @@ type uuidGenerator struct {
 // UUIDOption configures UUID string generation.
 type UUIDOption func(*uuidGenerator) error
 
-// WithUUIDReader injects an entropy reader for deterministic tests.
+// WithUUIDReader injects an entropy reader for deterministic tests. Custom
+// readers must be safe for concurrent use when a generator is shared.
 func WithUUIDReader(reader io.Reader) UUIDOption {
 	return func(g *uuidGenerator) error {
 		if reader == nil {
@@ -68,6 +68,7 @@ func NewUUIDV7Generator(options ...UUIDOption) (StringGenerator, error) {
 func newUUIDGenerator(version uuidVersion, options ...UUIDOption) (*uuidGenerator, error) {
 	g := &uuidGenerator{
 		version:    version,
+		reader:     defaultEntropyReader(),
 		now:        time.Now,
 		lastV7Tick: -1,
 	}
@@ -92,11 +93,7 @@ func (g *uuidGenerator) NextString() (string, error) {
 	)
 	switch g.version {
 	case uuidVersion4:
-		if g.reader == nil {
-			uuid, err = googleuuid.NewRandom()
-		} else {
-			uuid, err = googleuuid.NewRandomFromReader(g.reader)
-		}
+		uuid, err = googleuuid.NewRandomFromReader(g.reader)
 	case uuidVersion7:
 		uuid, err = g.nextV7()
 	default:
@@ -129,7 +126,7 @@ func (g *uuidGenerator) nextV7() (googleuuid.UUID, error) {
 	var uuid googleuuid.UUID
 	reader := g.reader
 	if reader == nil {
-		reader = rand.Reader
+		reader = defaultEntropyReader()
 	}
 	if _, err := io.ReadFull(reader, uuid[:]); err != nil {
 		return googleuuid.Nil, err

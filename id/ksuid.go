@@ -1,7 +1,6 @@
 package id
 
 import (
-	"crypto/rand"
 	"io"
 	"time"
 
@@ -48,7 +47,7 @@ func WithKSUIDTime(now func() time.Time) KSUIDOption {
 
 // NewKSUIDGenerator creates a standard seconds-precision KSUID string generator.
 func NewKSUIDGenerator(options ...KSUIDOption) (StringGenerator, error) {
-	return newKSUIDGenerator(rand.Reader, time.Now, options...)
+	return newKSUIDGenerator(defaultEntropyReader(), time.Now, options...)
 }
 
 func newKSUIDGenerator(entropy io.Reader, now func() time.Time, options ...KSUIDOption) (*ksuidGenerator, error) {

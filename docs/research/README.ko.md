@@ -12,7 +12,7 @@ Milestone research note는 bluetape4k source capability를 Go package scope, dep
 | `0.4.0` | [State and workflow](2026-06-01-milestone-0.4.0-state-workflow-research.md) |
 | `0.5.0` | [Batch](2026-06-01-milestone-0.5.0-batch-research.md) |
 | `0.6.0` | [Utilities](2026-06-01-milestone-0.6.0-utilities-research.md) |
-| `0.6.1` | [Issue #168 id generator benchmark comparison](2026-06-10-issue-168-id-generator-benchmark.md) |
+| `0.6.1` | [Issue #168 id generator benchmark comparison](2026-06-10-issue-168-id-generator-benchmark.md), [Issue #192 id generator performance optimization](2026-06-11-issue-192-id-generator-performance.md) |
 | `0.7.0` | [Next tracks](2026-06-01-milestone-0.7.0-next-tracks-research.md) |
 | `0.8.0` | [Relational SQL](2026-06-01-milestone-0.8.0-sql-research.md) |
 | `0.9.0` | [AWS and Floci](2026-06-01-milestone-0.9.0-aws-research.md) |

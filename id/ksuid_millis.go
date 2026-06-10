@@ -1,7 +1,6 @@
 package id
 
 import (
-	"crypto/rand"
 	"encoding/binary"
 	"fmt"
 	"io"
@@ -50,7 +49,7 @@ func WithKSUIDMillisTime(now func() time.Time) KSUIDMillisOption {
 
 // NewKSUIDMillisGenerator creates a Kotlin-compatible millisecond KSUID string generator.
 func NewKSUIDMillisGenerator(options ...KSUIDMillisOption) (StringGenerator, error) {
-	return newKSUIDMillisGenerator(rand.Reader, time.Now, options...)
+	return newKSUIDMillisGenerator(defaultEntropyReader(), time.Now, options...)
 }
 
 func newKSUIDMillisGenerator(entropy io.Reader, now func() time.Time, options ...KSUIDMillisOption) (*ksuidMillisGenerator, error) {
@@ -82,10 +81,8 @@ func (g *ksuidMillisGenerator) NextString() (string, error) {
 	if _, err := io.ReadFull(g.entropy, raw[ksuidMillisTimestampLen:]); err != nil {
 		return "", EntropyError{Kind: "ksuid-millis", Err: err}
 	}
-	encoded := encodeKSUIDMillisBase62(raw[:])
-	if len(encoded) > ksuidMillisEncodedLen {
-		encoded = encoded[:ksuidMillisEncodedLen]
-	}
+	var buffer [ksuidMillisEncodedLen]byte
+	encoded := encodeKSUIDMillisBase62Prefix(buffer[:0], raw[:], ksuidMillisEncodedLen)
 	return encoded, nil
 }
 
@@ -149,18 +146,22 @@ func encodeKSUIDMillisBase62(data []byte) string {
 		return ""
 	}
 
+	output := encodeKSUIDMillisBase62Prefix(make([]byte, 0, len(data)*8/5+1), data, 0)
+	return output
+}
+
+func encodeKSUIDMillisBase62Prefix(dst []byte, data []byte, limit int) string {
 	input := bitInput{bytes: data, bitLength: len(data) * 8}
-	output := make([]byte, 0, len(data)*8/5+1)
-	for input.hasMore() {
+	for input.hasMore() && (limit == 0 || len(dst) < limit) {
 		rawBits := input.readBits(6)
 		bits := rawBits
 		if rawBits&ksuidMillisCompactMask == ksuidMillisCompactMask {
 			bits = rawBits & ksuidMillisMask5Bits
 			input.seekBit(-1)
 		}
-		output = append(output, ksuidMillisEncodeTable[bits])
+		dst = append(dst, ksuidMillisEncodeTable[bits])
 	}
-	return string(output)
+	return string(dst)
 }
 
 func decodeKSUIDMillisBase62(value string, expectedBytes int) ([]byte, error) {

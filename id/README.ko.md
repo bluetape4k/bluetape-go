@@ -99,7 +99,10 @@ if err != nil {
 
 ## 동작
 
-- UUID v4와 UUID v7은 기본적으로 crypto-grade entropy를 사용합니다.
+- UUID v4와 UUID v7은 기본적으로 crypto-grade entropy를 사용합니다. 기본
+  entropy path는 per-ID randomness overhead를 줄이기 위해 package-local lock
+  뒤에서 `crypto/rand` read를 batch 처리합니다. 생성된 ID는 identifier이며
+  authentication 또는 authorization secret이 아닙니다.
 - UUID v7은 기본적으로 current Unix Epoch millisecond timestamp를 인코딩합니다.
   `WithUUIDTime`은 UUID v7 generator에 deterministic clock을 주입할 때 사용하고
   UUID v4 generator에서는 무시됩니다.
@@ -113,9 +116,10 @@ if err != nil {
   나면 invalid time option error를 반환합니다.
 - Custom UUID entropy reader와 clock function을 shared generator에서 사용할
   때는 caller가 concurrent use safety를 보장해야 합니다.
-- Random/monotonic ULID 기본값은 `crypto/rand`를 사용합니다. 이 package는
-  `oklog/ulid`의 `math/rand` default entropy를 사용하지 않습니다.
-- KSUID generation은 crypto-grade default entropy와 Segment 표준
+- Random/monotonic ULID 기본값은 같은 buffered `crypto/rand` entropy path를
+  사용합니다. 이 package는 `oklog/ulid`의 `math/rand` default entropy를
+  사용하지 않습니다.
+- KSUID generation은 buffered crypto-grade default entropy와 Segment 표준
   seconds-precision format을 사용합니다. Lexical ordering은 encoded timestamp를
   따르지만 same-second ordering은 entropy-dependent이며 monotonic하지 않습니다.
 - KSUID millis generation은 Kotlin `Ksuid.Millis` compatibility format을
@@ -175,6 +179,10 @@ Issue #168은 `bluetape4k-idgenerators`와의 local Go-vs-JVM 비교를 기록�
 durable report와 raw output은
 [`docs/research/2026-06-10-issue-168-id-generator-benchmark.md`](../docs/research/2026-06-10-issue-168-id-generator-benchmark.md)에
 있습니다.
+이 section은 해당 pre-optimization snapshot과 chart를 의도적으로 보존합니다.
+Issue #192 before/after optimization 결과는
+[`docs/research/2026-06-11-issue-192-id-generator-performance.md`](../docs/research/2026-06-11-issue-192-id-generator-performance.md)에
+별도로 기록했습니다.
 
 Local Go command:
 
@@ -219,6 +227,21 @@ comparison에서는 Go monotonic ULID가 낮습니다.
 | `BenchmarkUUIDV7NewStringParallel-12` | 569.6 | 112 | 3 |
 | `BenchmarkKSUIDMillisNextStringParallel-12` | 632.3 | 104 | 3 |
 | `BenchmarkKSUIDNextStringParallel-12` | 656.3 | 48 | 2 |
+
+### Post-Optimization Comparison
+
+Issue #192는 Issue #168 chart를 pre-optimization baseline으로 보존하고,
+optimized Go UUID, ULID, KSUID row를 사용한 Kotlin-vs-Go comparison을
+추가합니다. Snowflake는 Issue #192의 변경 대상이 아니므로 Issue #168의 Go
+synthetic-clock measurement를 그대로 사용합니다.
+
+![Kotlin vs Go optimized ID generator comparison](../docs/images/readme-charts/id-generator-kotlin-go-optimized-comparison.png)
+
+Go entropy buffering 이후 local snapshot의 해석은 꽤 바뀝니다. Go는 UUID v4,
+KSUID millis, concurrent ULID/KSUID row에서 앞섭니다. Kotlin은 UUID v7과
+single-thread monotonic ULID row에서 여전히 낮은 `ns/id`를 보입니다. entropy
+overhead가 줄어든 뒤에도 UUID v7 ordering/lock cost가 남아 있으므로 UUID v7이
+가장 명확한 Go follow-up optimization target입니다.
 
 Interpretation boundary: Go row는 per-ID generation을 직접 측정합니다. Chart의
 Kotlin row는 `kotlinx-benchmark` batch throughput을 환산한 값이므로 local

@@ -1,0 +1,171 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1280" height="1080" viewBox="0 0 1280 1080">
+  <defs>
+    <style>
+      @font-face {
+        font-family: 'Architects Daughter';
+        src: url('/Users/debop/Library/Fonts/ArchitectsDaughter-Regular.ttf');
+      }
+      @font-face {
+        font-family: 'Comic Mono';
+        src: url('/Users/debop/Library/Fonts/ComicMono.ttf');
+        font-weight: normal;
+      }
+      @font-face {
+        font-family: 'Comic Mono';
+        src: url('/Users/debop/Library/Fonts/ComicMono-Bold.ttf');
+        font-weight: bold;
+      }
+      .title { font-family: 'Architects Daughter'; font-size: 34px; fill: #1E293B; font-weight: bold; }
+      .subtitle { font-family: 'Comic Mono'; font-size: 14px; fill: #64748B; }
+      .label { font-family: 'Comic Mono'; font-size: 12px; fill: #334155; }
+      .axis { font-family: 'Comic Mono'; font-size: 11px; fill: #64748B; }
+      .value { font-family: 'Comic Mono'; font-size: 11px; fill: #0F172A; font-weight: bold; }
+      .legend { font-family: 'Comic Mono'; font-size: 12px; fill: #334155; }
+      .callout-title { font-family: 'Architects Daughter'; font-size: 21px; fill: #1E293B; font-weight: bold; }
+      .callout { font-family: 'Comic Mono'; font-size: 12px; fill: #334155; }
+      .callout-strong { font-family: 'Comic Mono'; font-size: 12px; fill: #0F172A; font-weight: bold; }
+    </style>
+  </defs>
+
+  <rect x="0" y="0" width="1280" height="1080" fill="#F8FAFC" stroke="#E2E8F0" stroke-width="1.5" rx="18"/>
+  <text x="640" y="42" text-anchor="middle" dominant-baseline="middle" class="title">Go UUID / ULID / KSUID Optimization</text>
+  <text x="640" y="72" text-anchor="middle" dominant-baseline="middle" class="subtitle">Issue #192 · excludes Snowflake · baseline vs buffered entropy · ns/op · lower is better · Apple M4 Pro local snapshot</text>
+
+  <g>
+    <rect x="56" y="104" width="1168" height="798" fill="#FFFFFF" stroke="#CBD5E1" stroke-width="1.5" rx="14"/>
+    <text x="84" y="136" dominant-baseline="middle" class="callout-title">Before / after latency</text>
+    <text x="1188" y="136" text-anchor="end" dominant-baseline="middle" class="axis">0 to 700 ns/op</text>
+
+    <g opacity="0.9">
+      <line x1="380" y1="164" x2="380" y2="862" stroke="#E2E8F0"/>
+      <line x1="489" y1="164" x2="489" y2="862" stroke="#E2E8F0"/>
+      <line x1="597" y1="164" x2="597" y2="862" stroke="#E2E8F0"/>
+      <line x1="706" y1="164" x2="706" y2="862" stroke="#E2E8F0"/>
+      <line x1="814" y1="164" x2="814" y2="862" stroke="#E2E8F0"/>
+      <line x1="923" y1="164" x2="923" y2="862" stroke="#E2E8F0"/>
+      <line x1="1031" y1="164" x2="1031" y2="862" stroke="#E2E8F0"/>
+      <line x1="1140" y1="164" x2="1140" y2="862" stroke="#E2E8F0"/>
+    </g>
+    <text x="380" y="886" text-anchor="middle" class="axis">0</text>
+    <text x="597" y="886" text-anchor="middle" class="axis">200</text>
+    <text x="814" y="886" text-anchor="middle" class="axis">400</text>
+    <text x="1031" y="886" text-anchor="middle" class="axis">600</text>
+    <text x="1140" y="886" text-anchor="middle" class="axis">700 ns/op</text>
+
+    <text x="84" y="178" dominant-baseline="middle" class="label">UUID v4 NewString</text>
+    <rect x="380" y="166" width="259" height="10" fill="#FCA5A5" stroke="#EF4444" rx="3"/>
+    <rect x="380" y="181" width="63" height="10" fill="#67E8F9" stroke="#0891B2" rx="3"/>
+    <text x="650" y="176" dominant-baseline="middle" class="value">238.45</text>
+    <text x="454" y="191" dominant-baseline="middle" class="value">58.43</text>
+
+    <text x="84" y="221" dominant-baseline="middle" class="label">UUID v4 NewString parallel</text>
+    <rect x="380" y="209" width="579" height="10" fill="#FCA5A5" stroke="#EF4444" rx="3"/>
+    <rect x="380" y="224" width="184" height="10" fill="#67E8F9" stroke="#0891B2" rx="3"/>
+    <text x="970" y="219" dominant-baseline="middle" class="value">533.20</text>
+    <text x="575" y="234" dominant-baseline="middle" class="value">169.10</text>
+
+    <text x="84" y="264" dominant-baseline="middle" class="label">UUID v4 reused</text>
+    <rect x="380" y="252" width="243" height="10" fill="#FCA5A5" stroke="#EF4444" rx="3"/>
+    <rect x="380" y="267" width="49" height="10" fill="#67E8F9" stroke="#0891B2" rx="3"/>
+    <text x="634" y="262" dominant-baseline="middle" class="value">224.10</text>
+    <text x="440" y="277" dominant-baseline="middle" class="value">45.57</text>
+
+    <text x="84" y="307" dominant-baseline="middle" class="label">UUID v4 reused parallel</text>
+    <rect x="380" y="295" width="543" height="10" fill="#FCA5A5" stroke="#EF4444" rx="3"/>
+    <rect x="380" y="310" width="157" height="10" fill="#67E8F9" stroke="#0891B2" rx="3"/>
+    <text x="934" y="305" dominant-baseline="middle" class="value">500.20</text>
+    <text x="548" y="320" dominant-baseline="middle" class="value">145.00</text>
+
+    <text x="84" y="350" dominant-baseline="middle" class="label">UUID v7 NewString</text>
+    <rect x="380" y="338" width="290" height="10" fill="#FCA5A5" stroke="#EF4444" rx="3"/>
+    <rect x="380" y="353" width="96" height="10" fill="#67E8F9" stroke="#0891B2" rx="3"/>
+    <text x="681" y="348" dominant-baseline="middle" class="value">267.60</text>
+    <text x="487" y="363" dominant-baseline="middle" class="value">88.04</text>
+
+    <text x="84" y="393" dominant-baseline="middle" class="label">UUID v7 NewString parallel</text>
+    <rect x="380" y="381" width="611" height="10" fill="#FCA5A5" stroke="#EF4444" rx="3"/>
+    <rect x="380" y="396" width="209" height="10" fill="#67E8F9" stroke="#0891B2" rx="3"/>
+    <text x="1002" y="391" dominant-baseline="middle" class="value">562.90</text>
+    <text x="600" y="406" dominant-baseline="middle" class="value">192.20</text>
+
+    <text x="84" y="436" dominant-baseline="middle" class="label">UUID v7 reused</text>
+    <rect x="380" y="424" width="277" height="10" fill="#FCA5A5" stroke="#EF4444" rx="3"/>
+    <rect x="380" y="439" width="80" height="10" fill="#67E8F9" stroke="#0891B2" rx="3"/>
+    <text x="668" y="434" dominant-baseline="middle" class="value">255.60</text>
+    <text x="471" y="449" dominant-baseline="middle" class="value">73.95</text>
+
+    <text x="84" y="479" dominant-baseline="middle" class="label">UUID v7 reused parallel</text>
+    <rect x="380" y="467" width="373" height="10" fill="#FCA5A5" stroke="#EF4444" rx="3"/>
+    <rect x="380" y="482" width="220" height="10" fill="#67E8F9" stroke="#0891B2" rx="3"/>
+    <text x="764" y="477" dominant-baseline="middle" class="value">343.60</text>
+    <text x="611" y="492" dominant-baseline="middle" class="value">202.80</text>
+
+    <text x="84" y="522" dominant-baseline="middle" class="label">ULID random</text>
+    <rect x="380" y="510" width="113" height="10" fill="#FCA5A5" stroke="#EF4444" rx="3"/>
+    <rect x="380" y="525" width="69" height="10" fill="#67E8F9" stroke="#0891B2" rx="3"/>
+    <text x="504" y="520" dominant-baseline="middle" class="value">104.50</text>
+    <text x="460" y="535" dominant-baseline="middle" class="value">63.12</text>
+
+    <text x="84" y="565" dominant-baseline="middle" class="label">ULID random parallel</text>
+    <rect x="380" y="553" width="302" height="10" fill="#FCA5A5" stroke="#EF4444" rx="3"/>
+    <rect x="380" y="568" width="180" height="10" fill="#67E8F9" stroke="#0891B2" rx="3"/>
+    <text x="693" y="563" dominant-baseline="middle" class="value">278.50</text>
+    <text x="571" y="578" dominant-baseline="middle" class="value">166.10</text>
+
+    <text x="84" y="608" dominant-baseline="middle" class="label">ULID monotonic</text>
+    <rect x="380" y="596" width="71" height="10" fill="#FCA5A5" stroke="#EF4444" rx="3"/>
+    <rect x="380" y="611" width="71" height="10" fill="#67E8F9" stroke="#0891B2" rx="3"/>
+    <text x="462" y="606" dominant-baseline="middle" class="value">65.80</text>
+    <text x="462" y="621" dominant-baseline="middle" class="value">65.31</text>
+
+    <text x="84" y="651" dominant-baseline="middle" class="label">ULID monotonic parallel</text>
+    <rect x="380" y="639" width="197" height="10" fill="#FCA5A5" stroke="#EF4444" rx="3"/>
+    <rect x="380" y="654" width="196" height="10" fill="#67E8F9" stroke="#0891B2" rx="3"/>
+    <text x="588" y="649" dominant-baseline="middle" class="value">181.50</text>
+    <text x="587" y="664" dominant-baseline="middle" class="value">180.20</text>
+
+    <text x="84" y="694" dominant-baseline="middle" class="label">KSUID seconds</text>
+    <rect x="380" y="682" width="427" height="10" fill="#FCA5A5" stroke="#EF4444" rx="3"/>
+    <rect x="380" y="697" width="237" height="10" fill="#67E8F9" stroke="#0891B2" rx="3"/>
+    <text x="818" y="692" dominant-baseline="middle" class="value">393.10</text>
+    <text x="628" y="707" dominant-baseline="middle" class="value">217.90</text>
+
+    <text x="84" y="737" dominant-baseline="middle" class="label">KSUID seconds parallel</text>
+    <rect x="380" y="725" width="726" height="10" fill="#FCA5A5" stroke="#EF4444" rx="3"/>
+    <rect x="380" y="740" width="265" height="10" fill="#67E8F9" stroke="#0891B2" rx="3"/>
+    <text x="1117" y="735" dominant-baseline="middle" class="value">668.20</text>
+    <text x="656" y="750" dominant-baseline="middle" class="value">244.20</text>
+
+    <text x="84" y="780" dominant-baseline="middle" class="label">KSUID millis</text>
+    <rect x="380" y="768" width="344" height="10" fill="#FCA5A5" stroke="#EF4444" rx="3"/>
+    <rect x="380" y="783" width="133" height="10" fill="#67E8F9" stroke="#0891B2" rx="3"/>
+    <text x="735" y="778" dominant-baseline="middle" class="value">316.80</text>
+    <text x="524" y="793" dominant-baseline="middle" class="value">122.80</text>
+
+    <text x="84" y="823" dominant-baseline="middle" class="label">KSUID millis parallel</text>
+    <rect x="380" y="811" width="674" height="10" fill="#FCA5A5" stroke="#EF4444" rx="3"/>
+    <rect x="380" y="826" width="227" height="10" fill="#67E8F9" stroke="#0891B2" rx="3"/>
+    <text x="1065" y="821" dominant-baseline="middle" class="value">621.00</text>
+    <text x="618" y="836" dominant-baseline="middle" class="value">209.00</text>
+  </g>
+
+  <g>
+    <rect x="56" y="922" width="1168" height="92" fill="#F0FDFA" stroke="#14B8A6" stroke-width="1.4" rx="12"/>
+    <text x="84" y="952" dominant-baseline="middle" class="callout-title">Optimization result</text>
+    <rect x="360" y="936" width="210" height="32" fill="#FFFFFF" stroke="#67E8F9" rx="8"/>
+    <text x="376" y="956" dominant-baseline="middle" class="callout-strong">geomean latency -58.34%</text>
+    <rect x="594" y="936" width="226" height="32" fill="#FFFFFF" stroke="#67E8F9" rx="8"/>
+    <text x="610" y="956" dominant-baseline="middle" class="callout">sysrand CPU: ~25% to ~1%</text>
+    <rect x="844" y="936" width="292" height="32" fill="#FFFFFF" stroke="#FCA5A5" rx="8"/>
+    <text x="860" y="956" dominant-baseline="middle" class="callout">KSUID millis alloc: 104B/3 to 56B/2</text>
+    <text x="84" y="984" dominant-baseline="middle" class="callout">Issue #168 chart is preserved as the pre-optimization Kotlin-vs-Go baseline.</text>
+    <text x="84" y="1002" dominant-baseline="middle" class="callout">Raw data: docs/research/outputs/issue-192/benchstat-default-buffer.txt</text>
+  </g>
+
+  <g>
+    <rect x="82" y="1038" width="12" height="12" fill="#FCA5A5" stroke="#EF4444" rx="2"/>
+    <text x="102" y="1048" class="legend">Baseline count=10</text>
+    <rect x="252" y="1038" width="12" height="12" fill="#67E8F9" stroke="#0891B2" rx="2"/>
+    <text x="272" y="1048" class="legend">After buffered entropy + KSUID millis prefix</text>
+  </g>
+</svg>
