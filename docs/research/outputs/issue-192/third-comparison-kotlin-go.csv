@@ -1,0 +1,9 @@
+workload,goBenchmark,goNsPerId,goBOp,goAllocsOp,kotlinBenchmark,kotlinNsPerId,lower,note
+Snowflake single,BenchmarkSnowflakeNextInt64,11.98,0,0,single.snowflakeDefaultGenerateOnly,244.02,Go,Go synthetic clock; Kotlin real clock/batch ceiling
+Snowflake concurrent,BenchmarkSnowflakeNextInt64Parallel,90.01,0,0,concurrent.snowflakeDefaultGenerateOnly,243.65,Go,Go synthetic clock; Kotlin real clock/batch ceiling
+ULID monotonic single,BenchmarkULIDMonotonic,64.96,48,2,single.ulidMonotonicString,26.28,Kotlin,
+ULID monotonic concurrent,BenchmarkULIDMonotonicParallel,194.80,48,2,concurrent.ulidMonotonicString,336.00,Go,
+KSUID seconds single,BenchmarkKSUIDNextString,215.60,48,2,single.ksuidSecondsDefaultString,175.86,Kotlin,
+KSUID seconds concurrent,BenchmarkKSUIDNextStringParallel,256.40,48,2,concurrent.ksuidSecondsDefaultString,242.50,Kotlin,
+KSUID millis single,BenchmarkKSUIDMillisNextString,123.50,56,2,single.ksuidMillisDefaultString,167.07,Go,Kotlin full candidate 3 run; targeted repeat was 157.03 ns/id
+KSUID millis concurrent,BenchmarkKSUIDMillisNextStringParallel,215.90,56,2,concurrent.ksuidMillisDefaultString,215.81,Kotlin,

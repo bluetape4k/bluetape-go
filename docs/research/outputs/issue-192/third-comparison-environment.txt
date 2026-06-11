@@ -1,0 +1,6 @@
+2026-06-11T13:11:03+09:00
+Darwin debop-m4-pro.local 25.5.0 Darwin Kernel Version 25.5.0: Mon Apr 27 20:41:15 PDT 2026; root:xnu-12377.121.6~2/RELEASE_ARM64_T6041 arm64
+go version go1.26.4 darwin/arm64
+1599b0b3be30a451c4664c21e08ba1081441e58e
+## develop...origin/develop
+?? docs/research/outputs/issue-192/third-comparison-environment.txt
