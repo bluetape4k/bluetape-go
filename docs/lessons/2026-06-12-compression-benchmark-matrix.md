@@ -14,9 +14,12 @@ same-condition JSON/Text/Binary/Random matrix used by sibling ecosystem work.
   trustworthy-looking benchmark numbers.
 - When raw benchmark output is captured from an uncommitted PR diff, record the
   dirty tree state and diff stat next to the environment metadata.
-- If a research note includes benchmark result tables, add a chart asset next
-  to the measured table so reviewers can scan throughput and density patterns
-  without treating the chart as the numeric source of truth.
+- If a research note includes benchmark result tables, add a real chart asset
+  next to the measured table so reviewers can scan throughput and density
+  patterns without treating the chart as the numeric source of truth. A
+  heatmap or matrix of numeric cells is not a substitute for a benchmark chart
+  when the reviewer needs visual comparison; bar length, axes, or another real
+  visual encoding must carry the comparison signal.
 - If `golangci-lint` reports files from a removed sibling worktree, run
   `golangci-lint cache clean` and rerun the exact CI gate before treating the
   failure as code-related.
@@ -26,6 +29,6 @@ same-condition JSON/Text/Binary/Random matrix used by sibling ecosystem work.
 - `compression/compression_benchmark_test.go`
 - `docs/research/2026-06-12-issue-195-compression-benchmark-matrix.md`
 - `docs/research/outputs/issue-195/go-compression-bench.txt`
-- `docs/images/readme-charts/compression-large-payload-benchmark-matrix.svg`
-- `docs/images/readme-charts/compression-large-payload-benchmark-matrix.png`
+- `docs/images/readme-charts/compression-large-payload-benchmark-bars.svg`
+- `docs/images/readme-charts/compression-large-payload-benchmark-bars.png`
 - `docs/review/2026-06-12-issue-195-compression-benchmark-matrix-review.md`
