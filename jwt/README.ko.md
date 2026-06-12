@@ -19,7 +19,8 @@ import "github.com/bluetape4k/bluetape-go/jwt"
 | 고정 asymmetric signing key | `NewFixedRSAProvider` | 검증된 2048-bit 이상 RSA private key로 RS256/384/512, PS256/384/512를 지원합니다. |
 | local in-memory key rotation | `NewHMACProvider` 또는 `NewRSAProvider` | in-memory KeyChain repository, `kid` header, TTL, retained key를 사용합니다. |
 | distributed key repository | Deferred | context-aware Redis/Mongo 등 repository는 #173에서 추적합니다. |
-| JOSE compression, JWE, JWK, JWKS | Deferred | 안전한 dependency 범위와 compression 동작은 #174에서 추적합니다. |
+| signed JWT compression | Non-goal | `zip`은 signed JWT helper가 아니라 JWE 경계에 속합니다. |
+| JWE, JWK, JWKS | Deferred | 실제 사용 사례가 생기면 JWE를 명시적인 optional JOSE 경계로 추가할 수 있습니다. |
 | external provider cache adapter | Deferred | optional cache-backed provider adapter는 #175에서 추적합니다. |
 
 ## 사용법
@@ -79,8 +80,9 @@ role, ok := reader.ClaimString("role")
   감쌉니다. Error string에는 raw token, HMAC secret, private key를 포함하지
   않습니다.
 - Unsupported JOSE/compression header인 `zip`, `crit`, `jku`, `jwk`, `x5u`,
-  `x5c`를 포함한 inbound signed token은 #174에서 안전한 동작을 정하기 전까지
-  거부합니다.
+  `x5c`를 포함한 inbound signed token은 거부합니다. #174 결론에 따라 signed
+  JWT compression은 non-goal이며, 표준 호환 compression은 future explicit JWE
+  API 경계에 속합니다.
 - 현재 repository는 process-local 전용입니다. Future context-aware distributed
   key storage는 #173에서 진행합니다.
 

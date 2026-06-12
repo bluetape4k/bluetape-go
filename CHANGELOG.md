@@ -7,6 +7,13 @@ and this project uses semantic versioning once the first tag is published.
 
 ## [Unreleased]
 
+### Changed
+
+- Documented the #174 JWT compression/JOSE decision: signed JWT compression is
+  a non-goal for the current `jwt` helper, `zip=DEF` belongs to a future
+  explicit JWE boundary, and `go-jose/go-jose/v4` is the preferred candidate if
+  that optional JWE scope is ever implemented.
+
 ## [v0.6.0] - 2026-06-09
 
 ### Added
