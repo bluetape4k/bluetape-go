@@ -4,7 +4,8 @@ Issue: #195
 Branch: `issue/195-compression-benchmark-matrix`
 Date: 2026-06-12
 Scope: `compression/compression_benchmark_test.go`, research note, index entries,
-and raw benchmark evidence under `docs/research/outputs/issue-195/`.
+raw benchmark evidence under `docs/research/outputs/issue-195/`, and generated
+chart assets under `docs/images/readme-charts/`.
 
 ## Verdict
 
@@ -18,6 +19,7 @@ P0=0 P1=0
 |---|---|---|
 | Verifier | PASS | Initial P1 found missing decompression custom metrics. Re-review confirmed all 72 decompression rows include `compressed/original` and `compressed_bytes`. |
 | Code reviewer | PASS | Initial P2/P3 suggested byte-equality setup validation and dirty-tree evidence. Re-review confirmed both were fixed with no remaining P0/P1/P2/P3 findings. |
+| Chart verifier | PASS | `generate-compression-charts.mjs` parsed 48 large-payload rows, rendered SVG/PNG, and the PNG was visually inspected for nonblank panels, labels, and legend. |
 
 ## Findings Resolved
 
@@ -33,6 +35,8 @@ P0=0 P1=0
 |---|---|
 | `go test -count=1 ./compression` | PASS |
 | `go test -run '^$' -bench '^BenchmarkCompressors' -benchmem ./compression` | PASS, raw output stored at `docs/research/outputs/issue-195/go-compression-bench.txt` |
+| `node docs/images/readme-charts/generate-compression-charts.mjs` | PASS, `rows=48 panels=3 algorithms=6 payloads=4` |
+| `rsvg-convert docs/images/readme-charts/compression-large-payload-benchmark-matrix.svg -o docs/images/readme-charts/compression-large-payload-benchmark-matrix.png` | PASS, PNG rendered at 1280x1180 |
 | `git diff --check` | PASS |
 | `make ci` | PASS after clearing stale `golangci-lint` cache that referenced a removed sibling worktree |
 

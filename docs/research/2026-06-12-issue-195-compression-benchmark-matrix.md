@@ -49,6 +49,7 @@ Raw environment and benchmark outputs are stored under
 |---|---|
 | `environment.txt` | Host, OS, Go version, CPU, logical CPU count, branch, base commit, and dirty tree state for the benchmarked PR diff. |
 | `go-compression-bench.txt` | Full Go benchmark output for compression and decompression paths. |
+| `../images/readme-charts/compression-large-payload-benchmark-matrix.png` | Scan-friendly large-payload chart generated from the raw benchmark output. |
 
 Observed local environment:
 
@@ -60,9 +61,16 @@ Observed local environment:
 
 ## Snapshot Highlights
 
+![Compression benchmark matrix](../images/readme-charts/compression-large-payload-benchmark-matrix.png)
+
 The table below records representative large-payload rows from the raw output.
 Lower `ns/op` is faster, higher `MB/s` is higher throughput, and lower
 `compressed/original` is better compression density.
+
+The chart is generated from the same raw output and covers all
+`compression.All()` algorithms for large JSON, text, binary, and random
+payloads. Keep the tables and raw output as the numeric source of truth; the
+chart is only for fast scanning.
 
 ### Compression - Large Payloads
 
