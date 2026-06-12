@@ -19,7 +19,8 @@ import "github.com/bluetape4k/bluetape-go/jwt"
 | Fixed asymmetric signing key | `NewFixedRSAProvider` | Supports RS256/384/512 and PS256/384/512 with validated 2048-bit-or-larger RSA private keys. |
 | Local in-memory key rotation | `NewHMACProvider` or `NewRSAProvider` | Uses an in-memory KeyChain repository, `kid` headers, TTL, and retained keys. |
 | Distributed key repository | Deferred | Context-aware Redis/Mongo/etc repositories are tracked in #173. |
-| JOSE compression, JWE, JWK, JWKS | Deferred | Safe dependency scope and compression behavior are tracked in #174. |
+| Signed JWT compression | Non-goal | `zip` belongs to a JWE boundary, not to the signed JWT helper. |
+| JWE, JWK, JWKS | Deferred | JWE can be added later as an explicit optional JOSE boundary if a real use case appears. |
 | External provider cache adapters | Deferred | Optional cache-backed provider adapters are tracked in #175. |
 
 ## Usage
@@ -80,8 +81,9 @@ role, ok := reader.ClaimString("role")
   `ErrKeyNotFound`; error strings do not include raw tokens, HMAC secrets, or
   private keys.
 - Inbound signed tokens containing unsupported JOSE/compression headers
-  `zip`, `crit`, `jku`, `jwk`, `x5u`, or `x5c` are rejected until #174 defines
-  the safe behavior.
+  `zip`, `crit`, `jku`, `jwk`, `x5u`, or `x5c` are rejected. Issue #174
+  concluded that signed JWT compression is a non-goal; standards-compatible
+  compression belongs to a future explicit JWE API.
 - The current repository is process-local only. Use #173 for future
   context-aware distributed key storage.
 

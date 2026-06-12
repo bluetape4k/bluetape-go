@@ -44,9 +44,11 @@ in-memory Bloom filters.
   coverage.
 - Millisecond KSUID compatibility (#171) is tracked in `0.6.1`; Flake and
   Hashids remain deferred outside 0.6.0 closure.
-- Distributed JWT KeyChain repositories (#173), safe JWT compression/JOSE
-  dependency scope (#174), and optional JWT provider cache adapters (#175) remain
-  deferred outside #33.
+- Distributed JWT KeyChain repositories (#173) and optional JWT provider cache
+  adapters (#175) remain deferred outside #33. JWT compression/JOSE dependency
+  scope (#174) is researched for `0.6.1`: signed JWT compression remains a
+  non-goal, and any standards-compatible compression belongs to a future
+  explicit JWE boundary.
 - Provider-backed money exchange rates (#178), full locale-to-currency mapping
   (#179), and long-backed FastMoney evaluation (#180) remain deferred outside
   #35.
@@ -57,11 +59,11 @@ in-memory Bloom filters.
 
 1. Issue #36 is complete with implementation, tests, docs, and Step 6-R subagent
    7-Tier code review.
-2. Keep Flake, Hashids, distributed JWT repositories (#173), JOSE compression
-   scope (#174), provider cache adapters (#175), provider-backed money exchange
-   rates (#178), full locale mapping (#179), FastMoney evaluation (#180), and
-   Redis-backed probabilistic filters (#182) deferred in docs and issue
-   tracking.
+2. Keep Flake, Hashids, distributed JWT repositories (#173), future JWE
+   compression scope after #174, provider cache adapters (#175),
+   provider-backed money exchange rates (#178), full locale mapping (#179),
+   FastMoney evaluation (#180), and Redis-backed probabilistic filters (#182)
+   deferred in docs and issue tracking.
 3. Local `make ci`, PR review, and GitHub CI passed for the final #36 merge.
 4. Recheck GitHub milestone state, close epic #6, close milestone `0.6.0`, then
    promote `develop` to `main` and tag `v0.6.0`.
