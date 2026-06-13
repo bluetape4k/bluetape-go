@@ -78,7 +78,7 @@ Apply `$bluetape-go-patterns` to every Go API, test, benchmark, example, README,
 - Create: `docs/superpowers/reviews/2026-06-12-issue-173-distributed-jwt-keychain-repositories-preimplementation-risk.md`
 - Read: `jwt/provider.go`, `jwt/repository.go`, `jwt/keychain.go`, `ratelimit/redis/limiter.go`, `ratelimit/redis/options.go`, `testcontainers/redis/redis.go`, `testing/concurrency/*.go`
 
-- [ ] **Step 1: Confirm branch and clean baseline**
+- [x] **Step 1: Confirm branch and clean baseline**
 
 Run:
 
@@ -90,7 +90,7 @@ git merge-base --is-ancestor origin/develop HEAD
 
 Expected: working directory is the issue worktree, branch is `issue-173-distributed-jwt-keychain-repositories`, and command exit code confirms the branch contains `origin/develop` history.
 
-- [ ] **Step 2: Record current dependency and API evidence**
+- [x] **Step 2: Record current dependency and API evidence**
 
 Create the risk note with these sections:
 
@@ -123,7 +123,7 @@ Create the risk note with these sections:
 - Add README runbook tasks with safe Redis inspection and recovery checks.
 ```
 
-- [ ] **Step 3: Verify evidence commands**
+- [x] **Step 3: Verify evidence commands**
 
 Run:
 
@@ -137,7 +137,7 @@ git diff --check
 
 Expected: every command prints matching evidence and `git diff --check` passes.
 
-- [ ] **Step 4: Commit point**
+- [x] **Step 4: Commit point**
 
 Do not commit Task 0 alone unless Step 3-R requested preimplementation notes before the plan commit. Otherwise include the risk note in the first implementation commit.
 
@@ -149,7 +149,7 @@ Do not commit Task 0 alone unless Step 3-R requested preimplementation notes bef
 - Create: `jwt/distributed_provider_test.go`
 - Use: `$bluetape-go-patterns`
 
-- [ ] **Step 1: Write fake repository tests before production code**
+- [x] **Step 1: Write fake repository tests before production code**
 
 Add a fake repository inside `jwt/distributed_provider_test.go` with context recording and deterministic failures:
 
@@ -185,7 +185,7 @@ func (r *fakeDistributedRepository) Current(ctx context.Context, now time.Time) 
 
 The same fake implements `Find`, `Rotate`, `ForcedRotate`, and `DeleteAll` by preserving context errors, wrapping configured repository errors, and trimming to test-local capacity.
 
-- [ ] **Step 2: Add constructor and cross-instance tests**
+- [x] **Step 2: Add constructor and cross-instance tests**
 
 Add tests with these exact names:
 
@@ -212,7 +212,7 @@ Required assertions:
 - nil and typed-nil repositories return an `ErrInvalidOptions` compatible error before any bootstrap call;
 - `DistributedProvider` has no anonymous `Provider` field visible through reflection.
 
-- [ ] **Step 3: Add failure and boundary tests**
+- [x] **Step 3: Add failure and boundary tests**
 
 Add tests with these exact names:
 
@@ -239,7 +239,7 @@ Required assertions:
 - constructor, compose, current, find, rotate, forced rotate, and parse reject repository keys whose algorithm does not match the provider algorithm;
 - no public import/export migration method exists on `DistributedProvider`.
 
-- [ ] **Step 4: Verify failing tests**
+- [x] **Step 4: Verify failing tests**
 
 Run:
 
@@ -260,7 +260,7 @@ Expected before implementation: build fails because `DistributedProvider`, const
 - Test: `jwt/distributed_provider_test.go`
 - Use: `$bluetape-go-patterns`
 
-- [ ] **Step 1: Add repository interface and context helper**
+- [x] **Step 1: Add repository interface and context helper**
 
 Create `jwt/distributed_repository.go`:
 
@@ -323,7 +323,7 @@ func createWithContext(ctx context.Context, create func() (*KeyChain, error)) fu
 }
 ```
 
-- [ ] **Step 2: Add constructor shape**
+- [x] **Step 2: Add constructor shape**
 
 Create `jwt/distributed_provider.go` with this public shape:
 
@@ -350,7 +350,7 @@ func NewDistributedRSAProvider(ctx context.Context, repo DistributedKeyChainRepo
 
 `newDistributedProvider` first calls `requireContext(ctx)` and `requireDistributedRepository(repo)` before any bootstrap call. It then normalizes provider options, sets default entropy when nil, builds `&Provider{algorithm: algorithm, cfg: cfg}`, calls `repo.Rotate(ctx, createWithContext(ctx, p.createKeyChain), p.now())`, validates returned key algorithm, and returns `&DistributedProvider{provider: p, repo: repo}`.
 
-- [ ] **Step 3: Add context-aware public methods**
+- [x] **Step 3: Add context-aware public methods**
 
 Add methods:
 
@@ -372,7 +372,7 @@ Method rules:
 - `ParseContext` uses `golangjwt.ParseWithClaims` with a distributed `Keyfunc` that validates `kid`, rejects unsupported inbound JOSE headers, calls `repo.Find(ctx, kid, now)`, checks algorithm equality, and returns verification material;
 - methods do not call context-free `Provider.Compose`, `Provider.Parse`, or in-memory repository operations.
 
-- [ ] **Step 4: Extract reusable signing/parsing helpers from `Provider` without widening public API**
+- [x] **Step 4: Extract reusable signing/parsing helpers from `Provider` without widening public API**
 
 Modify `jwt/provider.go` only enough to reuse package-private helpers:
 
@@ -383,7 +383,7 @@ func (p *Provider) parseWithKeyFunc(tokenValue string, keyFunc golangjwt.Keyfunc
 
 `Provider.Compose` becomes `return p.composeWithKey(key, options...)`. `Provider.Parse` becomes `return p.parseWithKeyFunc(tokenValue, p.keyFunc(cfg.now), options...)` or an equivalent helper that avoids changing public behavior.
 
-- [ ] **Step 5: Run targeted provider tests**
+- [x] **Step 5: Run targeted provider tests**
 
 Run:
 
@@ -405,7 +405,7 @@ Expected: distributed provider tests pass, and existing JWT tests keep passing.
 - Create: `jwt/redis/doc.go`
 - Use: `$bluetape-go-patterns`
 
-- [ ] **Step 1: Write options tests first**
+- [x] **Step 1: Write options tests first**
 
 Add tests:
 
@@ -427,7 +427,7 @@ invalid := []string{"", " ", "a:b", "tenant/name", "tenant\nname", "tenant name"
 
 Required namespace rule: trim surrounding whitespace, require non-empty, enforce max `128` bytes, allow only ASCII `[A-Za-z0-9._-]`, and reject all whitespace, controls, Redis delimiters, glob/metacharacters, and non-ASCII. Static options tests cover only static bounds and format; TTL-vs-key-validity safety is tested in Task 6 where provider key validity exists.
 
-- [ ] **Step 2: Implement normalized options**
+- [x] **Step 2: Implement normalized options**
 
 Create `Options`:
 
@@ -463,7 +463,7 @@ Defaults and bounds:
 - namespace byte limit `128`;
 - key prefix `bluetape:jwt:v1:<namespace>`.
 
-- [ ] **Step 3: Add key-name helpers**
+- [x] **Step 3: Add key-name helpers**
 
 Implement helpers:
 
@@ -483,7 +483,7 @@ bluetape:jwt:v1:prod:keys
 bluetape:jwt:v1:prod:order
 ```
 
-- [ ] **Step 4: Verify**
+- [x] **Step 4: Verify**
 
 Run:
 
@@ -503,7 +503,7 @@ Expected: tests pass after implementation.
 - Create: `jwt/redis_dto_test.go`
 - Use: `$bluetape-go-patterns`
 
-- [ ] **Step 1: Write DTO tests first**
+- [x] **Step 1: Write DTO tests first**
 
 Add tests:
 
@@ -522,7 +522,7 @@ func TestRedisDTORequiresPackagePrivateReconstruction(t *testing.T) {}
 
 Use representative secret strings such as `super-secret-material` in inputs and assert they are absent from every returned error string.
 
-- [ ] **Step 2: Implement internal DTO**
+- [x] **Step 2: Implement internal DTO**
 
 Create internal DTO:
 
@@ -548,11 +548,11 @@ Rules:
 - decode validates payload byte length before `json.Unmarshal`;
 - decode calls package-private constructors in package `jwt`, not public raw-key constructors and not struct field mutation from outside package.
 
-- [ ] **Step 3: Preserve the no public raw-key API boundary**
+- [x] **Step 3: Preserve the no public raw-key API boundary**
 
 Keep DTO encode/decode and Redis repository core in package `jwt` so they can use `newHMACKeyChain`, `newRSAKeyChain`, and package-private signing material helpers. Do not add any exported functions that accept raw HMAC secrets or RSA private keys for repository loading. Package `jwt/redis` must remain a facade around `jwt.NewRedisRepository` and must not expose DTO bytes, signing material, or repository seed/import helpers.
 
-- [ ] **Step 4: Verify**
+- [x] **Step 4: Verify**
 
 Run:
 
@@ -576,7 +576,7 @@ Expected: DTO tests pass and `jwt` remains green.
 - Create: `jwt/redis/redis_test.go`
 - Use: `$bluetape-go-patterns`
 
-- [ ] **Step 1: Write read/delete integration tests first**
+- [x] **Step 1: Write read/delete integration tests first**
 
 Use Testcontainers Redis serially. Add tests:
 
@@ -596,7 +596,7 @@ func TestRedisFacadeNewReturnsRepository(t *testing.T) {}
 
 Expected Redis commands for `Find`: exactly one `HGET` by requested `kid`, DTO decode, and no retained-list scan. Expected Redis commands for `Current`: current-pointer read plus one `HGET`. Implement command-capture tests with `redis.Hook`, an instrumented `redis.Cmdable`, or an equivalent wrapper. Assert no `SCAN`, `KEYS`, `LRANGE`, `ZRANGE`, `HGETALL`, or retained-list read appears in the captured command log. Record command logs in verifier evidence.
 
-- [ ] **Step 2: Implement repository constructor and read paths**
+- [x] **Step 2: Implement repository constructor and read paths**
 
 Public shape:
 
@@ -629,7 +629,7 @@ Method behavior:
 - `DeleteAll(ctx)` deletes `meta`, `current`, `keys`, and `order`;
 - every method rejects nil context with `ErrInvalidOptions` and preserves canceled/deadline errors.
 
-- [ ] **Step 3: Use `AsyncJobTester` for cancellation tests**
+- [x] **Step 3: Use `AsyncJobTester` for cancellation tests**
 
 Add cancellation test structure:
 
@@ -650,7 +650,7 @@ tester.RunT(t, func(ctx context.Context) error {
 })
 ```
 
-- [ ] **Step 4: Verify**
+- [x] **Step 4: Verify**
 
 Run:
 
@@ -672,7 +672,7 @@ Expected: Testcontainers Redis suite passes serially.
 - Modify: `jwt/redis_repository_test.go`
 - Use: `$bluetape-go-patterns`
 
-- [ ] **Step 1: Write rotate tests first**
+- [x] **Step 1: Write rotate tests first**
 
 Add tests:
 
@@ -707,7 +707,7 @@ if created {
 _ = key
 ```
 
-- [ ] **Step 2: Implement two-phase CAS rotate**
+- [x] **Step 2: Implement two-phase CAS rotate**
 
 `Rotate` algorithm:
 
@@ -716,7 +716,7 @@ _ = key
 3. Lua CAS phase rechecks current pointer, stores candidate only when no concurrent non-expired current won, updates meta/current/hash/zset, trims to capacity, applies Redis TTL only when `KeyTTL > 0`, and returns stored or winning payload.
 4. Context cancellation after key creation but before store returns the context error and avoids storing the candidate.
 
-- [ ] **Step 3: Implement forced rotate**
+- [x] **Step 3: Implement forced rotate**
 
 `ForcedRotate` algorithm:
 
@@ -728,7 +728,7 @@ _ = key
 
 Add a forced-rotate cancellation test where `create` succeeds, the test hook cancels context before the store phase, and Redis `current`, `keys`, and `order` remain unchanged.
 
-- [ ] **Step 4: Pin Redis command-count and benchmark budget in evidence**
+- [x] **Step 4: Pin Redis command-count and benchmark budget in evidence**
 
 Add comments and verifier-ready evidence:
 
@@ -750,7 +750,7 @@ Add comments and verifier-ready evidence:
 - Any published benchmark table must have a chart asset in `docs/images/readme-charts`.
 ```
 
-- [ ] **Step 5: Verify**
+- [x] **Step 5: Verify**
 
 Run:
 
@@ -771,7 +771,7 @@ Expected: Redis rotation and TTL tests pass.
 - Create: `jwt/redis_integration_test.go`
 - Use: `$bluetape-go-patterns`
 
-- [ ] **Step 1: Write cross-instance Redis tests**
+- [x] **Step 1: Write cross-instance Redis tests**
 
 Add tests:
 
@@ -787,7 +787,7 @@ func TestRedisDistributedProviderConstructorDeadlineAfterCreateDoesNotPersistCan
 
 Each test uses caller-owned `redis.Client`, defers `Close`, and constructs a fresh namespace.
 
-- [ ] **Step 2: Add `GoroutineStressTester` stress tests**
+- [x] **Step 2: Add `GoroutineStressTester` stress tests**
 
 Add:
 
@@ -813,7 +813,7 @@ Stress invariants:
 - create call count is bounded by concurrency attempts and no unbounded retry loop exists;
 - no goroutine leak or data race appears under the race gate.
 
-- [ ] **Step 3: Add cancellation/deadline provider tests with `AsyncJobTester`**
+- [x] **Step 3: Add cancellation/deadline provider tests with `AsyncJobTester`**
 
 Add:
 
@@ -824,7 +824,7 @@ func TestRedisDistributedProviderDeadlineStress(t *testing.T) {}
 
 Use `AsyncJobTester` and assert `errors.Is(err, context.Canceled)` or `errors.Is(err, context.DeadlineExceeded)`.
 
-- [ ] **Step 4: Verify targeted and race tests**
+- [x] **Step 4: Verify targeted and race tests**
 
 Run:
 
@@ -836,7 +836,7 @@ go test -race -p 1 -count=1 ./jwt ./jwt/redis
 
 Expected: targeted package tests and race tests pass.
 
-### Task 8: Benchmarks and Chart Asset Gate
+### Task 8: Benchmarks, Diagram, and Chart Asset Gate
 
 **complexity: medium**
 
@@ -845,11 +845,17 @@ Expected: targeted package tests and race tests pass.
 - Create when benchmark results are recorded: `docs/research/outputs/issue-173/distributed-jwt-redis-bench.txt`
 - Create when benchmark results are recorded: `docs/images/readme-charts/distributed-jwt-redis-benchmark.svg`
 - Create when benchmark results are recorded: `docs/images/readme-charts/distributed-jwt-redis-benchmark.png`
+- Create: `docs/images/readme-diagrams/redis-jwt-distributed-key-rotation.dot`
+- Create: `docs/images/readme-diagrams/redis-jwt-distributed-key-rotation.plain`
+- Create: `docs/images/readme-diagrams/redis-jwt-distributed-key-rotation-graphviz.svg`
+- Create: `docs/images/readme-diagrams/redis-jwt-distributed-key-rotation-graphviz.png`
+- Create: `docs/images/readme-diagrams/redis-jwt-distributed-key-rotation.svg`
+- Create: `docs/images/readme-diagrams/redis-jwt-distributed-key-rotation.png`
 - Use: `$bluetape-go-patterns`
 - Use: `$bluetape4k-diagram`
 - Use: `$vega`
 
-- [ ] **Step 1: Add benchmark harness**
+- [x] **Step 1: Add benchmark harness**
 
 Add benchmarks:
 
@@ -870,7 +876,7 @@ Benchmark rules:
 - Do not run Testcontainers benchmarks in parallel lanes.
 - Add `b.Cleanup` to close Redis client and terminate container.
 
-- [ ] **Step 2: Run opt-in benchmark smoke**
+- [x] **Step 2: Run opt-in benchmark smoke**
 
 Run:
 
@@ -880,7 +886,7 @@ go test -p 1 -run '^$' -bench 'BenchmarkRedis(Repository|Distributed)' -benchtim
 
 Expected: benchmark smoke produces `ns/op`, `B/op`, and `allocs/op`.
 
-- [ ] **Step 3: If benchmark results are used in docs, verifier, PR, or README, create chart assets**
+- [x] **Step 3: If benchmark results are used in docs, verifier, PR, or README, create chart assets**
 
 Store raw output:
 
@@ -889,22 +895,26 @@ mkdir -p docs/research/outputs/issue-173
 go test -p 1 -run '^$' -bench 'BenchmarkRedis(Repository|Distributed)' -benchtime=100ms -benchmem ./jwt | tee docs/research/outputs/issue-173/distributed-jwt-redis-bench.txt
 ```
 
-Create a Vega-Lite spec that renders bar charts for `ns/op`, `B/op`, and `allocs/op` from parsed benchmark rows. Save the spec next to the chart source if a JSON chart source is used, and render to:
+Create a source-grounded README diagram for the distributed JWT Redis key-rotation flow and a Vega-Lite spec that renders bar charts for `ns/op`, `B/op`, and `allocs/op` from parsed benchmark rows. Save the spec next to the chart source if a JSON chart source is used, and render to:
 
 ```text
+docs/images/readme-diagrams/redis-jwt-distributed-key-rotation.png
+docs/images/readme-diagrams/redis-jwt-distributed-key-rotation.svg
 docs/images/readme-charts/distributed-jwt-redis-benchmark.svg
 docs/images/readme-charts/distributed-jwt-redis-benchmark.png
 ```
 
-Chart requirements:
+Diagram and chart requirements:
 
+- README/spec embed the diagram PNG, not the SVG;
+- Graphviz `.dot`, `.plain`, `-graphviz.svg`, and `-graphviz.png` evidence exist for the diagram;
 - use bars with labeled axes, not a numeric heatmap;
 - show benchmark names on the category axis;
 - separate latency from allocation metrics so the scale is readable;
 - include command-count notes in nearby prose, not inside the bars;
 - render PNG and visually verify dimensions and legibility.
 
-- [ ] **Step 4: Verify chart and benchmark evidence**
+- [x] **Step 4: Verify chart and benchmark evidence**
 
 Run the published-benchmark branch when benchmark results are included in docs, verifier, PR evidence, or README:
 
@@ -912,7 +922,12 @@ Run the published-benchmark branch when benchmark results are included in docs, 
 go test -p 1 -run '^$' -bench 'BenchmarkRedis(Repository|Distributed)' -benchtime=100ms -benchmem ./jwt
 test -s docs/images/readme-charts/distributed-jwt-redis-benchmark.svg
 test -s docs/images/readme-charts/distributed-jwt-redis-benchmark.png
+test -s docs/images/readme-diagrams/redis-jwt-distributed-key-rotation.svg
+test -s docs/images/readme-diagrams/redis-jwt-distributed-key-rotation.png
+test -s docs/images/readme-diagrams/redis-jwt-distributed-key-rotation.dot
+test -s docs/images/readme-diagrams/redis-jwt-distributed-key-rotation.plain
 file docs/images/readme-charts/distributed-jwt-redis-benchmark.png
+file docs/images/readme-diagrams/redis-jwt-distributed-key-rotation.png
 git diff --check
 ```
 
@@ -938,7 +953,7 @@ Expected: published benchmark evidence has SVG/PNG files and a readable PNG; unp
 - Modify when needed: `README.ko.md`
 - Use: `$bluetape-go-patterns`
 
-- [ ] **Step 1: Add compile-checked examples**
+- [x] **Step 1: Add compile-checked examples**
 
 Examples:
 
@@ -957,7 +972,7 @@ Example content must show:
 - `ComposeContext` and `ParseContext`;
 - no raw secret or private key printing.
 
-- [ ] **Step 2: Update README pair for usage and migration**
+- [x] **Step 2: Update README pair for usage and migration**
 
 Add sections to both README files:
 
@@ -970,7 +985,7 @@ Add sections to both README files:
 - `DeleteKeyChainsContext` is for tests or explicit operator reset only.
 - unsupported capabilities remain out of scope: JWKS, JWE, OIDC, auth middleware, sessions, roles, and background rotation timers.
 
-- [ ] **Step 3: Add operator runbook**
+- [x] **Step 3: Add operator runbook**
 
 README runbook must include these Redis inspection commands:
 
@@ -1002,7 +1017,7 @@ Runbook must also cover:
 - Redis command errors and context timeout/deadline monitoring;
 - secret-safe logging guidance that permits namespace and `kid` but never token strings, HMAC secrets, RSA private keys, or serialized key payloads.
 
-- [ ] **Step 4: Verify docs and examples**
+- [x] **Step 4: Verify docs and examples**
 
 Run:
 
@@ -1025,7 +1040,7 @@ Expected: examples compile and both README files contain usage, trust boundary, 
 - Create: `docs/superpowers/reviews/2026-06-12-issue-173-distributed-jwt-keychain-repositories-step-6r-code-review.md`
 - Use: `$bluetape-go-patterns`
 
-- [ ] **Step 1: Run validation commands**
+- [x] **Step 1: Run validation commands**
 
 Run:
 
@@ -1042,7 +1057,7 @@ git diff --check
 
 If a broad command fails due to an unrelated package or environment dependency, record the exact package, command, and error in the verifier, then run the next-best targeted package commands.
 
-- [ ] **Step 2: Write verifier artifact**
+- [x] **Step 2: Write verifier artifact**
 
 Verifier must map every acceptance criterion to evidence:
 
@@ -1058,7 +1073,7 @@ Verifier must map every acceptance criterion to evidence:
 | Benchmark results have chart asset when published. | Chart path or explicit N/A reason. | PASS |
 ```
 
-- [ ] **Step 3: Run Step 6-R as 6 independent subagent lanes plus main integration**
+- [x] **Step 3: Run Step 6-R as 6 independent subagent lanes plus main integration**
 
 Mandatory lanes:
 
@@ -1071,7 +1086,7 @@ Mandatory lanes:
 
 Each lane reviews the implemented diff, spec, plan, verifier, and validation evidence. Each lane returns only P0/P1/P2/P3 findings with file:line evidence. Main session integrates results, covers documentation/release/evidence integrity, deduplicates findings, normalizes severity, fixes P0/P1, reruns affected lanes, and closes only when latest integrated table has `P0=0 P1=0`.
 
-- [ ] **Step 4: Verify Step 6-R closure**
+- [x] **Step 4: Verify Step 6-R closure**
 
 Run:
 
@@ -1082,7 +1097,7 @@ git diff --check
 
 Expected: review artifact proves 6 lane results, main integration, and final blocker-free gate.
 
-### Task 11: Commit, PR, Step 7-R Review, CI, and Merge Gate
+ Commit, PR, Step 7-R Review, CI, and Merge Gate
 
 **complexity: medium**
 

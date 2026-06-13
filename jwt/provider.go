@@ -119,6 +119,13 @@ func (p *Provider) Compose(options ...ComposeOption) (string, error) {
 	if err != nil {
 		return "", err
 	}
+	return p.composeWithKey(key, options...)
+}
+
+func (p *Provider) composeWithKey(key *KeyChain, options ...ComposeOption) (string, error) {
+	if err := p.requireKeyAlgorithm(key); err != nil {
+		return "", err
+	}
 	method, err := p.algorithm.signingMethod()
 	if err != nil {
 		return "", err
@@ -150,6 +157,10 @@ func (p *Provider) Parse(tokenValue string, options ...ParseOption) (*Reader, er
 	if err := p.validateReady(); err != nil {
 		return nil, err
 	}
+	return p.parseWithKeyFunc(tokenValue, p.keyFunc, options...)
+}
+
+func (p *Provider) parseWithKeyFunc(tokenValue string, keyFunc func(func() time.Time) golangjwt.Keyfunc, options ...ParseOption) (*Reader, error) {
 	if tokenValue == "" {
 		return nil, TokenError{Kind: ErrInvalidToken, Err: errorsNew("empty token")}
 	}
@@ -178,7 +189,7 @@ func (p *Provider) Parse(tokenValue string, options ...ParseOption) (*Reader, er
 		parserOptions = append(parserOptions, golangjwt.WithExpirationRequired())
 	}
 
-	parsed, err := golangjwt.ParseWithClaims(tokenValue, claims, p.keyFunc(cfg.now), parserOptions...)
+	parsed, err := golangjwt.ParseWithClaims(tokenValue, claims, keyFunc(cfg.now), parserOptions...)
 	if err != nil {
 		return nil, mapTokenError(err)
 	}
@@ -264,6 +275,16 @@ func (p *Provider) validateReadyForRotation() error {
 	}
 	if p.fixedKey == nil && p.repo == nil {
 		return OptionError{Option: "provider", Err: errorsNew("must be constructed by a constructor")}
+	}
+	return nil
+}
+
+func (p *Provider) requireKeyAlgorithm(key *KeyChain) error {
+	if key == nil {
+		return KeyError{Kind: ErrInvalidKey, Err: errorsNew("key must not be nil")}
+	}
+	if key.Algorithm() != p.algorithm {
+		return KeyError{Kind: ErrInvalidKey, KID: key.KID(), Err: errorsNew("key algorithm mismatch")}
 	}
 	return nil
 }
