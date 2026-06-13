@@ -29,8 +29,8 @@ utility가 들어 있습니다.
 local key rotation을 제공하는 `jwt` package, typed unit/measured value,
 compound unit, parsing, formatting, temperature helper를 제공하는 `measure`
 package, ISO 통화와 decimal-backed 금액 연산을 제공하는 `money` package,
-인메모리와 Redis-backed Bloom filter를 제공하는 `probabilistic` package family를
-포함합니다.
+인메모리 Bloom filter를 제공하는 `probabilistic` package를 포함합니다.
+Unreleased `0.6.1` 선에서 Redis-backed Bloom package를 추가합니다.
 
 ## 패키지
 

@@ -122,8 +122,13 @@ verification window 동안 dual-write한 뒤, reader를 전환하고 rollback이
   rebuild하고 reader를 검증한 뒤 rollback 지점을 결정하고, 새 namespace를
   수용한 후 old keys를 retire합니다.
 - Redis persistence와 eviction policy는 caller 책임입니다. 이 package는 TTL을
-  설정하지 않습니다. `PTTL`로 예상치 못한 expiry가 없는지 확인하고 공유 filter에
-  volatile-only eviction policy를 쓰지 마세요.
+  설정하지 않습니다. 공유 filter에는 `noeviction`이나 충분한 reserved memory를
+  권장합니다. `allkeys-*` eviction policy는 피하세요. Redis가 `:config`는 남기고
+  `:bits`를 evict하면 read는 빈 bitmap으로 보이며 no-false-negative 보장은 새
+  namespace로 rebuild하기 전까지 무효입니다.
+- Incident 중에는 `evicted_keys`를 monitoring하고 두 key를 모두 확인하세요.
+  `:bits`와 `:config`에 대해 `EXISTS`와 `PTTL`을 확인하고, bitmap이 없거나 외부에서
+  삭제된 경우 해당 namespace의 data loss로 취급해야 합니다.
 - TLS, AUTH, ACL을 사용하세요. Application access에는 script 실행과 script/runbook이
   쓰는 최소 command set이 필요합니다. `EVALSHA`, `EVAL`, `HSET`, `HGET`,
   `HGETALL`, `HLEN`, `GETBIT`, `SETBIT`, `BITCOUNT`, `STRLEN`, `DEL`, `PTTL`.
@@ -133,9 +138,11 @@ Diagnostics는 보통 metadata와 size 확인에서 시작합니다.
 ```text
 HGETALL bluetape:probabilistic:bloom:v1:{namespace}:config
 HLEN    bluetape:probabilistic:bloom:v1:{namespace}:config
+EXISTS  bluetape:probabilistic:bloom:v1:{namespace}:config
 STRLEN  bluetape:probabilistic:bloom:v1:{namespace}:bits
 BITCOUNT bluetape:probabilistic:bloom:v1:{namespace}:bits
 PTTL    bluetape:probabilistic:bloom:v1:{namespace}:bits
+EXISTS  bluetape:probabilistic:bloom:v1:{namespace}:bits
 ```
 
 ### Redis 오류
@@ -177,5 +184,9 @@ HLL/HyperLogLog constructor는 후속 범위이며 이 Redis Bloom API에 포함
 
 ```bash
 go test -count=1 ./probabilistic
+go test -p 1 -count=1 ./probabilistic/redis
 go test -race -count=1 ./probabilistic
+go test -p 1 -race -count=1 ./probabilistic/redis
 ```
+
+`./probabilistic/redis`는 Redis Testcontainers를 사용하므로 Docker가 필요합니다.

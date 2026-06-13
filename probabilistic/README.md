@@ -122,8 +122,13 @@ retiring old keys after rollback is no longer needed.
   data into a new namespace, verify readers, decide rollback points, and retire
   old keys only after the new namespace is accepted.
 - Redis persistence and eviction policy are caller-owned. The package does not
-  set TTLs; use `PTTL` to confirm no unexpected expiry and avoid volatile-only
-  eviction policies for shared filters.
+  set TTLs; prefer `noeviction` or reserved Redis memory for shared filters.
+  Avoid `allkeys-*` eviction policies: if Redis evicts `:bits` while `:config`
+  remains, reads observe an empty bitmap and the no-false-negative guarantee is
+  void until the filter is rebuilt into a new namespace.
+- Monitor `evicted_keys` and verify both keys during incidents. Check `EXISTS`
+  and `PTTL` for `:bits` and `:config`; a missing or externally deleted bitmap
+  must be treated as data loss for that namespace.
 - Use TLS, AUTH, and ACLs. Application access needs script execution plus the
   minimum command set used by the scripts and runbooks: `EVALSHA`, `EVAL`,
   `HSET`, `HGET`, `HGETALL`, `HLEN`, `GETBIT`, `SETBIT`, `BITCOUNT`, `STRLEN`,
@@ -134,9 +139,11 @@ Diagnostics usually start with metadata and size checks:
 ```text
 HGETALL bluetape:probabilistic:bloom:v1:{namespace}:config
 HLEN    bluetape:probabilistic:bloom:v1:{namespace}:config
+EXISTS  bluetape:probabilistic:bloom:v1:{namespace}:config
 STRLEN  bluetape:probabilistic:bloom:v1:{namespace}:bits
 BITCOUNT bluetape:probabilistic:bloom:v1:{namespace}:bits
 PTTL    bluetape:probabilistic:bloom:v1:{namespace}:bits
+EXISTS  bluetape:probabilistic:bloom:v1:{namespace}:bits
 ```
 
 ### Redis Errors
@@ -178,5 +185,9 @@ part of this Redis Bloom API.
 
 ```bash
 go test -count=1 ./probabilistic
+go test -p 1 -count=1 ./probabilistic/redis
 go test -race -count=1 ./probabilistic
+go test -p 1 -race -count=1 ./probabilistic/redis
 ```
+
+`./probabilistic/redis` uses Redis Testcontainers, so Docker must be available.

@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 
-import { mkdirSync, writeFileSync } from "node:fs";
+import { existsSync, mkdirSync, writeFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { spawnSync } from "node:child_process";
@@ -19,10 +19,38 @@ const paths = {
   png: join(outDir, `${name}.png`),
 };
 
+function findFont(envName, candidates) {
+  const envPath = process.env[envName];
+  if (envPath) {
+    if (!existsSync(envPath)) {
+      throw new Error(`${envName} points to a missing font: ${envPath}`);
+    }
+    return envPath;
+  }
+  const found = candidates.find((candidate) => existsSync(candidate));
+  if (!found) {
+    throw new Error(`missing required font for ${envName}: ${candidates.join(", ")}`);
+  }
+  return found;
+}
+
+const home = process.env.HOME ?? "/Users/debop";
 const fonts = {
-  title: "/Users/debop/Library/Fonts/ArchitectsDaughter-Regular.ttf",
-  detail: "/Users/debop/Library/Fonts/ComicMono.ttf",
-  detailBold: "/Users/debop/Library/Fonts/ComicMono-Bold.ttf",
+  title: findFont("BLUETAPE_ARCHITECTS_DAUGHTER_FONT", [
+    join(home, "Library/Fonts/ArchitectsDaughter-Regular.ttf"),
+    "/Library/Fonts/ArchitectsDaughter-Regular.ttf",
+    "/usr/share/fonts/truetype/architects-daughter/ArchitectsDaughter-Regular.ttf",
+  ]),
+  detail: findFont("BLUETAPE_COMIC_MONO_FONT", [
+    join(home, "Library/Fonts/ComicMono.ttf"),
+    "/Library/Fonts/ComicMono.ttf",
+    "/usr/share/fonts/truetype/comic-mono/ComicMono.ttf",
+  ]),
+  detailBold: findFont("BLUETAPE_COMIC_MONO_BOLD_FONT", [
+    join(home, "Library/Fonts/ComicMono-Bold.ttf"),
+    "/Library/Fonts/ComicMono-Bold.ttf",
+    "/usr/share/fonts/truetype/comic-mono/ComicMono-Bold.ttf",
+  ]),
 };
 
 const colors = {
