@@ -157,8 +157,9 @@ Contract rules:
   `ErrKeyNotFound` / `ErrInvalidKey` compatible error.
 - `Rotate` returns the current non-expired key if one exists, otherwise stores
   and returns a newly created key.
-- `ForcedRotate` always stores and returns a newly created key.
-- Implementations trim retained keys to capacity while preserving newest keys.
+- `ForcedRotate` always stores and returns the newly created key as current.
+- Implementations trim to capacity by preserving the current candidate plus the
+  newest retained non-current keys.
 - `DeleteAll` exists for tests and explicit operator reset flows; docs must warn
   against casual production use.
 
@@ -321,7 +322,8 @@ Provider-level tests with a fake repository:
 Redis repository tests with Testcontainers Redis:
 
 - `Current`, `Find`, `Rotate`, `ForcedRotate`, and `DeleteAll`.
-- Capacity trimming preserves newest keys and evicts oldest keys.
+- Capacity trimming preserves the current candidate plus newest retained
+  non-current keys, then evicts older non-current keys.
 - Expiry filtering rejects stale keys.
 - Namespace isolation.
 - Malformed stored payload handling.
