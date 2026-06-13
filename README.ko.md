@@ -30,8 +30,8 @@ local key rotation을 제공하는 `jwt` package, typed unit/measured value,
 compound unit, parsing, formatting, temperature helper를 제공하는 `measure`
 package, ISO 통화와 decimal-backed 금액 연산을 제공하는 `money` package,
 인메모리 Bloom filter를 제공하는 `probabilistic` package를 포함합니다.
-Unreleased `0.6.1` 선에서 Redis-backed Bloom package와 optional JWT provider
-cache adapter를 추가합니다.
+Unreleased `0.6.1` 선에서 Redis-backed Bloom package, optional JWT provider
+cache adapter, ECB-backed money exchange-rate provider를 추가합니다.
 
 ## 패키지
 
@@ -65,7 +65,7 @@ cache adapter를 추가합니다.
 | [`id`](id/README.ko.md) | active | UUID v4/v7, random/monotonic ULID, standard KSUID, Kotlin-compatible KSUID millis, Snowflake ID generator. |
 | [`jwt`](jwt/README.ko.md) | active | 명시적 algorithm을 사용하는 JWT signing, parsing, validation, typed claim reading, in-memory/distributed `kid` key rotation, optional provider cache adapter. |
 | [`measure`](measure/README.ko.md) | active | Typed unit, measured value, compound unit, parsing, formatting, affine temperature helper. |
-| [`money`](money/README.ko.md) | active | ISO 4217 통화 값, decimal-backed 금액, 합산, 직렬화, caller-supplied 환율 변환. |
+| [`money`](money/README.ko.md) | active | ISO 4217 통화 값, decimal-backed 금액, 합산, 직렬화, caller-supplied 환율 변환, ECB-backed provider 변환. |
 | [`probabilistic`](probabilistic/README.ko.md) | active | deterministic config, merge compatibility check, stress/race coverage를 갖춘 goroutine-safe 인메모리 Bloom filter. |
 | [`probabilistic/redis`](probabilistic/README.ko.md#redis-backed-bloom-filter) | active | Static Lua script, immutable config metadata, operator runbook 경계를 갖춘 Redis-backed shared Bloom filter. |
 

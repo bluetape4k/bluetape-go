@@ -108,26 +108,26 @@ Exit condition: integrated table shows `P0=0 P1=0`.
 - Modify `money/errors.go`
 - Create/update `money/provider_test.go`
 
-- [ ] Write failing tests for `ConvertWithProvider` success returning both
+- [x] Write failing tests for `ConvertWithProvider` success returning both
   converted money and the exact quote used.
-- [ ] Write failing tests for nil provider and typed-nil provider returning
+- [x] Write failing tests for nil provider and typed-nil provider returning
   `ErrExchangeRateProvider`.
-- [ ] Write failing tests proving nil context is normalized to
+- [x] Write failing tests proving nil context is normalized to
   `context.Background()` and does not panic.
-- [ ] Write failing tests for provider errors preserving `errors.Is` and not
+- [x] Write failing tests for provider errors preserving `errors.Is` and not
   returning a valid `Money`.
-- [ ] Write failing tests proving a provider quote with invalid
+- [x] Write failing tests proving a provider quote with invalid
   `ExchangeRate` returns `ErrInvalidExchangeRate` and no valid `Money`.
-- [ ] Write failing tests for invalid amount currency and invalid target
+- [x] Write failing tests for invalid amount currency and invalid target
   currency returning existing money/currency sentinels.
-- [ ] Add `ExchangeRateProvider`, `ExchangeRateQuote`, and
+- [x] Add `ExchangeRateProvider`, `ExchangeRateQuote`, and
   `ConvertWithProvider`.
-- [ ] Add provider sentinels:
+- [x] Add provider sentinels:
   `ErrExchangeRateProvider`, `ErrExchangeRateUnavailable`,
   `ErrExchangeRateStale`, and `ErrUnsupportedExchangeRate`.
-- [ ] Add Go doc comments for every exported type/function/field where
+- [x] Add Go doc comments for every exported type/function/field where
   required by Go lint.
-- [ ] Verify:
+- [x] Verify:
 
 ```bash
 go test -count=1 ./money -run 'ConvertWithProvider|ExchangeRateProvider'
@@ -139,18 +139,18 @@ go test -count=1 ./money -run 'ConvertWithProvider|ExchangeRateProvider'
 - Create `money/ecb_provider.go`
 - Create/update `money/ecb_provider_test.go`
 
-- [ ] Write failing tests for default options: endpoint is ECB daily XML,
+- [x] Write failing tests for default options: endpoint is ECB daily XML,
   timeout/cache TTL/retry defaults are positive and documented, and no
   background goroutine is started.
-- [ ] Write failing tests for negative `Timeout`, `CacheTTL`, `MaxStale`,
+- [x] Write failing tests for negative `Timeout`, `CacheTTL`, `MaxStale`,
   `RetryCount`, and `RetryBackoff` returning `ErrExchangeRateProvider`.
-- [ ] Write failing tests for empty endpoint and non-HTTP(S) endpoint scheme
+- [x] Write failing tests for empty endpoint and non-HTTP(S) endpoint scheme
   returning `ErrExchangeRateProvider`.
-- [ ] Write tests proving nil `Client` and nil `Now` use safe defaults.
-- [ ] Implement `ECBProviderOptions`, `ECBProvider`, default constants,
+- [x] Write tests proving nil `Client` and nil `Now` use safe defaults.
+- [x] Implement `ECBProviderOptions`, `ECBProvider`, default constants,
   constructor validation, nil context normalization, and endpoint parsing.
-- [ ] Keep `RetryCount` semantics explicit: it excludes the first attempt.
-- [ ] Verify:
+- [x] Keep `RetryCount` semantics explicit: it excludes the first attempt.
+- [x] Verify:
 
 ```bash
 go test -count=1 ./money -run 'ECB.*Option|NewECBProvider'
@@ -162,23 +162,23 @@ go test -count=1 ./money -run 'ECB.*Option|NewECBProvider'
 - Update `money/ecb_provider.go`
 - Create/update `money/ecb_provider_test.go`
 
-- [ ] Write failing `httptest.Server` success tests for ECB daily XML with
+- [x] Write failing `httptest.Server` success tests for ECB daily XML with
   `Cube time='YYYY-MM-DD'` and rate entries.
-- [ ] Write failing tests for HTTP non-2xx status wrapping
+- [x] Write failing tests for HTTP non-2xx status wrapping
   `ErrExchangeRateProvider` and closing the response body.
-- [ ] Write failing tests for malformed XML, missing observation date, missing
+- [x] Write failing tests for malformed XML, missing observation date, missing
   rates, duplicate currencies, invalid currency code, and malformed rate
   value.
-- [ ] Write failing tests proving caller `context.Canceled` and
+- [x] Write failing tests proving caller `context.Canceled` and
   `context.DeadlineExceeded` are preserved with `errors.Is`.
-- [ ] Write failing tests proving provider `Timeout` expires a slow server
+- [x] Write failing tests proving provider `Timeout` expires a slow server
   request and never weakens a stricter caller deadline.
-- [ ] Implement fetch with `http.NewRequestWithContext`, per-fetch timeout that
+- [x] Implement fetch with `http.NewRequestWithContext`, per-fetch timeout that
   never weakens stricter caller deadlines, response body close, and XML decode.
-- [ ] Parse ECB observation date as UTC midnight for `ObservedAt`; set
+- [x] Parse ECB observation date as UTC midnight for `ObservedAt`; set
   `FetchedAt` from `Now`.
-- [ ] Store snapshot source as `ECB`.
-- [ ] Verify:
+- [x] Store snapshot source as `ECB`.
+- [x] Verify:
 
 ```bash
 go test -count=1 ./money -run 'ECB.*Fetch|ECB.*Parse|ECB.*HTTP|ECB.*Context'
@@ -190,17 +190,17 @@ go test -count=1 ./money -run 'ECB.*Fetch|ECB.*Parse|ECB.*HTTP|ECB.*Context'
 - Update `money/ecb_provider.go`
 - Create/update `money/ecb_provider_test.go`
 
-- [ ] Write failing tests for same-currency rate `1` without HTTP fetch.
-- [ ] Write failing tests for EUR to quote currency, quote currency to EUR,
+- [x] Write failing tests for same-currency rate `1` without HTTP fetch.
+- [x] Write failing tests for EUR to quote currency, quote currency to EUR,
   and non-EUR cross rate such as USD to KRW.
-- [ ] Write failing tests for absent snapshot currency returning
+- [x] Write failing tests for absent snapshot currency returning
   `ErrUnsupportedExchangeRate`.
-- [ ] Write failing tests for invalid `Currency{}` base/target returning
+- [x] Write failing tests for invalid `Currency{}` base/target returning
   `ErrInvalidCurrency`.
-- [ ] Implement ECB direct/reverse/cross computation using decimal values and
+- [x] Implement ECB direct/reverse/cross computation using decimal values and
   existing `NewExchangeRate`; do not use `float32` or `float64`.
-- [ ] Ensure quote metadata is preserved for direct, reverse, and cross rates.
-- [ ] Verify:
+- [x] Ensure quote metadata is preserved for direct, reverse, and cross rates.
+- [x] Verify:
 
 ```bash
 go test -count=1 ./money -run 'ECB.*Rate|ECB.*Cross|UnsupportedExchangeRate'
@@ -212,25 +212,25 @@ go test -count=1 ./money -run 'ECB.*Rate|ECB.*Cross|UnsupportedExchangeRate'
 - Update `money/ecb_provider.go`
 - Create/update `money/ecb_provider_test.go`
 
-- [ ] Write failing tests proving fresh cache hit avoids a second HTTP request.
-- [ ] Write failing tests proving stale cache with
+- [x] Write failing tests proving fresh cache hit avoids a second HTTP request.
+- [x] Write failing tests proving stale cache with
   `AllowStaleOnError=false` returns `ErrExchangeRateStale` when refresh fails.
-- [ ] Write failing tests proving stale cache with `AllowStaleOnError=true`
+- [x] Write failing tests proving stale cache with `AllowStaleOnError=true`
   returns quote with `Stale=true` and non-nil `RefreshError` preserving
   `errors.Is`.
-- [ ] Write failing tests proving snapshots older than `MaxStale` are not
+- [x] Write failing tests proving snapshots older than `MaxStale` are not
   returned even when `AllowStaleOnError=true`.
-- [ ] Write failing tests for cache miss with no successful fetch returning
+- [x] Write failing tests for cache miss with no successful fetch returning
   `ErrExchangeRateUnavailable` when appropriate.
-- [ ] Write failing tests for retry success after transient 500 or network
+- [x] Write failing tests for retry success after transient 500 or network
   failure.
-- [ ] Write failing tests proving retry does not repeat after
+- [x] Write failing tests proving retry does not repeat after
   `context.Canceled` or caller deadline.
-- [ ] Implement snapshot cache guarded by `sync.RWMutex`.
-- [ ] Implement retry loop with bounded backoff and context-aware sleep.
-- [ ] Keep all refresh IO caller-driven from `Rate`; do not add background
+- [x] Implement snapshot cache guarded by `sync.RWMutex`.
+- [x] Implement retry loop with bounded backoff and context-aware sleep.
+- [x] Keep all refresh IO caller-driven from `Rate`; do not add background
   refresh goroutines.
-- [ ] Verify:
+- [x] Verify:
 
 ```bash
 go test -count=1 ./money -run 'ECB.*Cache|ECB.*Stale|ECB.*Retry'
@@ -242,13 +242,13 @@ go test -count=1 ./money -run 'ECB.*Cache|ECB.*Stale|ECB.*Retry'
 - Create/update `money/ecb_provider_concurrency_test.go`
 - Update `money/ecb_provider.go` if races or cancellation gaps are found.
 
-- [ ] Add `GoroutineStressTester` coverage with concurrent `Rate` calls across
+- [x] Add `GoroutineStressTester` coverage with concurrent `Rate` calls across
   EUR/USD, USD/EUR, USD/KRW, KRW/USD, and same-currency paths.
-- [ ] Add `GoroutineStressTester` coverage for concurrent stale refresh where
+- [x] Add `GoroutineStressTester` coverage for concurrent stale refresh where
   only valid snapshots are published to readers.
-- [ ] Add `AsyncJobTester` coverage for already-canceled and deadline contexts.
-- [ ] Prove `go test -race` passes for `./money ./testing/concurrency`.
-- [ ] Verify:
+- [x] Add `AsyncJobTester` coverage for already-canceled and deadline contexts.
+- [x] Prove `go test -race` passes for `./money ./testing/concurrency`.
+- [x] Verify:
 
 ```bash
 go test -count=1 ./money ./testing/concurrency -run 'ECB.*Concurrent|ECB.*Async|GoroutineStress|AsyncJob'
@@ -266,19 +266,19 @@ go test -race -count=1 ./money ./testing/concurrency
 - Modify `README.ko.md`
 - Modify `CHANGELOG.md`
 
-- [ ] Add compile-checked `ExampleConvertWithProvider` with a fake in-memory
+- [x] Add compile-checked `ExampleConvertWithProvider` with a fake in-memory
   provider, not live ECB network.
-- [ ] Add README examples for `NewECBProvider`, `ConvertWithProvider`, and
+- [x] Add README examples for `NewECBProvider`, `ConvertWithProvider`, and
   stale fallback handling.
-- [ ] Update EN/KO selection guides to replace "provider-backed fetching is
+- [x] Update EN/KO selection guides to replace "provider-backed fetching is
   deferred to #178" with current ECB provider status.
-- [ ] Document ECB reference-rate source, TARGET/weekend freshness caveat,
+- [x] Document ECB reference-rate source, TARGET/weekend freshness caveat,
   informational-only boundary, and non-accounting/non-trading/non-tax scope.
-- [ ] Document timeout, retry, stale fallback, source, `ObservedAt`,
+- [x] Document timeout, retry, stale fallback, source, `ObservedAt`,
   `FetchedAt`, `ExpiresAt`, `Stale`, and `RefreshError`.
-- [ ] Link #231 and #232 as follow-up provider expansions.
-- [ ] Keep Korean README natural and semantically equivalent to English.
-- [ ] Verify examples compile:
+- [x] Link #231 and #232 as follow-up provider expansions.
+- [x] Keep Korean README natural and semantically equivalent to English.
+- [x] Verify examples compile:
 
 ```bash
 go test -count=1 ./money -run 'Example|ConvertWithProvider'
@@ -292,19 +292,19 @@ go test -count=1 ./money -run 'Example|ConvertWithProvider'
 - Modify `money/README.md`
 - Modify `money/README.ko.md`
 
-- [ ] Build the diagram source from actual package boundaries:
+- [x] Build the diagram source from actual package boundaries:
   caller, `ConvertWithProvider`, `ExchangeRateProvider`, `ECBProvider`,
   snapshot cache, ECB daily XML, `Convert`, and failure/stale paths.
-- [ ] Generate DOT, Graphviz SVG/PNG, and final hand-authored SVG/PNG assets
+- [x] Generate DOT, Graphviz SVG/PNG, and final hand-authored SVG/PNG assets
   following the existing diagram script pattern.
-- [ ] Include geometry validation: no node overlap, orthogonal route checks,
+- [x] Include geometry validation: no node overlap, orthogonal route checks,
   endpoint checks, enough lane/card clearance, balanced margins, and title gap.
-- [ ] Include text validation: no draft filler words, no raw Mermaid, no
+- [x] Include text validation: no draft filler words, no raw Mermaid, no
   "Graphviz only" artifact text, and no default web fonts.
-- [ ] Render PNG with `rsvg-convert` and validate SVG with `xmllint`.
-- [ ] Add diagram references to both money README files with matching EN/KO
+- [x] Render PNG with `rsvg-convert` and validate SVG with `xmllint`.
+- [x] Add diagram references to both money README files with matching EN/KO
   alt text.
-- [ ] Verify:
+- [x] Verify:
 
 ```bash
 node scripts/generate-money-exchange-rate-provider-diagram.mjs
@@ -315,25 +315,25 @@ git diff --check
 
 **Files:** all changed files.
 
-- [ ] Run targeted tests:
+- [x] Run targeted tests:
 
 ```bash
 go test -count=1 ./money ./testing/concurrency
 ```
 
-- [ ] Run race tests:
+- [x] Run race tests:
 
 ```bash
 go test -race -count=1 ./money ./testing/concurrency
 ```
 
-- [ ] Run repository tests:
+- [x] Run repository tests:
 
 ```bash
 go test -count=1 ./...
 ```
 
-- [ ] Run standard project gates:
+- [x] Run standard project gates:
 
 ```bash
 make fmt-check
@@ -346,7 +346,7 @@ make ci
 git diff --check
 ```
 
-- [ ] If a repo-wide gate fails outside this issue's scope, capture the exact
+- [x] If a repo-wide gate fails outside this issue's scope, capture the exact
   command and failure in the review artifact and use the smallest targeted
   passing evidence that proves #178.
 
@@ -355,21 +355,21 @@ git diff --check
 **Files:**
 - Create `docs/superpowers/reviews/2026-06-14-issue-178-money-exchange-rate-providers-step-6r-code-review.md`
 
-- [ ] Run the 7-Tier gate as six independent main-session role lanes plus main
+- [x] Run the 7-Tier gate as six independent main-session role lanes plus main
   integration.
-- [ ] Tier 1 Performance: lock contention, decimal/cross-rate path, retry/backoff,
+- [x] Tier 1 Performance: lock contention, decimal/cross-rate path, retry/backoff,
   allocation hot spots, stress/race evidence.
-- [ ] Tier 2 Stability: cancellation, deadline, body close, stale fallback,
+- [x] Tier 2 Stability: cancellation, deadline, body close, stale fallback,
   retry stop rules, malformed payloads, race evidence.
-- [ ] Tier 3 Security: endpoint validation, XML parsing, credential-free design,
+- [x] Tier 3 Security: endpoint validation, XML parsing, credential-free design,
   source metadata integrity, dependency surface.
-- [ ] Tier 4 Operator/Ops: freshness docs, diagnostics, changelog, rollback,
+- [x] Tier 4 Operator/Ops: freshness docs, diagnostics, changelog, rollback,
   non-accounting/trading runbook language.
-- [ ] Tier 5 Developer/API: Go docs, typed-nil handling, option validation,
+- [x] Tier 5 Developer/API: Go docs, typed-nil handling, option validation,
   module boundaries, examples, compatibility.
-- [ ] Tier 6 User/Caller: README EN/KO parity, misuse resistance, error
+- [x] Tier 6 User/Caller: README EN/KO parity, misuse resistance, error
   discoverability, follow-up links.
-- [ ] Fix every P0/P1 and rerun affected lanes until integrated verdict is
+- [x] Fix every P0/P1 and rerun affected lanes until integrated verdict is
   `P0=0 P1=0`.
 
 ### Task 11: PR Preparation and Step 7-R

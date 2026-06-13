@@ -21,6 +21,11 @@ and this project uses semantic versioning once the first tag is published.
   compile-checked examples, diagram-backed bilingual README documentation, and
   operator caveats for process-local clear scope and unsupported untrusted
   shared/external caches.
+- `money` provider-backed exchange-rate conversion with `ExchangeRateProvider`,
+  `ConvertWithProvider`, `NewECBProvider`, caller-visible source/freshness/stale
+  fallback metadata, cancellation/retry/cache coverage, stress/race tests, and
+  diagram-backed bilingual README documentation. IMF and Bloomberg providers
+  remain follow-up issues #231 and #232.
 
 ### Changed
 

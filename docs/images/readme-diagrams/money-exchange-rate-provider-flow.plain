@@ -1,0 +1,19 @@
+graph 1 14.717 5.3389
+node caller 0.58833 2.8569 1.1767 0.60278 <<FONT FACE="Architects Daughter" POINT-SIZE="18"><B>Caller</B></FONT><BR/><FONT FACE="Comic Mono" POINT-SIZE="11">ctx + Money</FONT>> rounded,filled box #93C5FD #DBEAFE
+node convert 3.3692 2.8569 2.7183 0.60278 <<FONT FACE="Architects Daughter" POINT-SIZE="18"><B>ConvertWithProvider</B></FONT><BR/><FONT FACE="Comic Mono" POINT-SIZE="11">Money + target</FONT>> rounded,filled box #FDBA74 #FFEDD5
+node provider 6.9885 2.8569 2.8537 0.60278 <<FONT FACE="Architects Daughter" POINT-SIZE="18"><B>ExchangeRateProvider</B></FONT><BR/><FONT FACE="Comic Mono" POINT-SIZE="11">Rate(ctx, base, target)</FONT>> rounded,filled box #C4B5FD #EDE9FE
+node cache 13.654 4.5236 2.1246 0.60278 <<FONT FACE="Architects Daughter" POINT-SIZE="18"><B>Snapshot Cache</B></FONT><BR/><FONT FACE="Comic Mono" POINT-SIZE="11">fresh or stale</FONT>> rounded,filled box #86EFAC #DCFCE7
+node ecb 10.504 2.8569 2.01 0.60278 <<FONT FACE="Architects Daughter" POINT-SIZE="18"><B>ECB Daily XML</B></FONT><BR/><FONT FACE="Comic Mono" POINT-SIZE="11">EUR-base rates</FONT>> rounded,filled box #C4B5FD #F3E8FF
+node core 10.504 1.5792 2.3433 0.60278 <<FONT FACE="Architects Daughter" POINT-SIZE="18"><B>Value Core</B></FONT><BR/><FONT FACE="Comic Mono" POINT-SIZE="11">NewExchangeRate + Convert</FONT>> rounded,filled box #FDBA74 #FED7AA
+node result 13.654 1.5792 1.3433 0.60278 <<FONT FACE="Architects Daughter" POINT-SIZE="18"><B>Result</B></FONT><BR/><FONT FACE="Comic Mono" POINT-SIZE="11">Money + Quote</FONT>> rounded,filled box #86EFAC #DCFCE7
+node errors 10.504 0.30139 2.51 0.60278 <<FONT FACE="Architects Daughter" POINT-SIZE="18"><B>Typed Errors</B></FONT><BR/><FONT FACE="Comic Mono" POINT-SIZE="11">network, stale, unsupported</FONT>> rounded,filled box #FCA5A5 #FEE2E2
+edge caller convert 4 1.1849 2.8569 1.1849 2.8569 1.849 2.8569 1.849 2.8569 solid #475569
+edge convert provider 4 4.7375 2.8569 4.7375 2.8569 5.3988 2.8569 5.3988 2.8569 solid #2563EB
+edge provider cache 7 6.5083 3.1688 6.5083 3.6761 6.5083 4.6241 6.5083 4.6241 6.5083 4.6241 12.428 4.6241 12.428 4.6241 solid #16A34A
+edge provider ecb 4 8.4234 2.9574 8.4234 2.9574 9.3345 2.9574 9.3345 2.9574 solid #7C3AED
+edge provider core 7 8.4258 2.7565 8.9474 2.7565 9.4111 2.7565 9.4111 2.7565 9.4111 2.7565 9.4111 2.0416 9.4111 2.0416 solid #EA580C
+edge provider errors 7 6.9944 2.5436 6.9944 1.8612 6.9944 0.30139 6.9944 0.30139 6.9944 0.30139 9.0837 0.30139 9.0837 0.30139 solid #DC2626
+edge cache provider 7 12.58 4.4231 10.808 4.4231 7.4667 4.4231 7.4667 4.4231 7.4667 4.4231 7.4667 3.3233 7.4667 3.3233 solid #16A34A
+edge ecb cache 7 11.518 2.8569 12.128 2.8569 12.786 2.8569 12.786 2.8569 12.786 2.8569 12.786 4.057 12.786 4.057 solid #7C3AED
+edge core result 4 11.686 1.5792 11.686 1.5792 12.821 1.5792 12.821 1.5792 solid #EA580C
+stop
