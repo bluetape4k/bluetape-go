@@ -377,13 +377,13 @@ git diff --check
 **Files:**
 - Create `docs/superpowers/reviews/2026-06-14-issue-178-money-exchange-rate-providers-step-7r-pr-review.md`
 
-- [ ] Ensure research, spec, plan, Step 2-R, Step 3-R, Step 6-R, code, tests,
+- [x] Ensure research, spec, plan, Step 2-R, Step 3-R, Step 6-R, code, tests,
   docs, diagram assets, and changelog are committed with Lore commit messages.
-- [ ] Create PR with `--body-file`; verify live body with
+- [x] Create PR with `--body-file`; verify live body with
   `gh pr view <number> --json body`.
-- [ ] Keep the last `##` section in the PR body as `## DoD Status`.
-- [ ] Run Step 7-R with the same 7-Tier main-role fallback.
-- [ ] Do not merge until the user explicitly approves the PR merge.
+- [x] Keep the last `##` section in the PR body as `## DoD Status`.
+- [x] Run Step 7-R with the same 7-Tier main-role fallback.
+- [x] Do not merge until the user explicitly approves the PR merge.
 
 ## Completion Criteria
 
