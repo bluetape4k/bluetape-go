@@ -1,4 +1,4 @@
-package redisbloom
+package redisbloom_test
 
 import (
 	"context"
@@ -6,6 +6,7 @@ import (
 	"fmt"
 
 	"github.com/bluetape4k/bluetape-go/probabilistic"
+	redisbloom "github.com/bluetape4k/bluetape-go/probabilistic/redis"
 	"github.com/redis/go-redis/v9"
 )
 
@@ -21,7 +22,7 @@ func ExampleNewStringBloomFilter() {
 		panic(err)
 	}
 
-	filter, err := NewStringBloomFilter(ctx, client, "auth:tenant-a:login-attempts", cfg)
+	filter, err := redisbloom.NewStringBloomFilter(ctx, client, "auth:tenant-a:login-attempts", cfg)
 	if err != nil {
 		panic(err)
 	}
@@ -78,20 +79,20 @@ func ExampleBloomFilter_diagnostics() {
 }
 
 func Example_errors() {
-	err := fmt.Errorf("%w: redacted-key-id", ErrConfigMismatch)
-	if errors.Is(err, ErrConfigMismatch) {
+	err := fmt.Errorf("%w: redacted-key-id", redisbloom.ErrConfigMismatch)
+	if errors.Is(err, redisbloom.ErrConfigMismatch) {
 		// Inspect stored metadata, then rebuild or switch readers to a new namespace.
 		_ = "switch readers after verification"
 	}
 
-	err = fmt.Errorf("%w: redacted-key-id", ErrConfigCorrupt)
-	if errors.Is(err, ErrConfigCorrupt) {
+	err = fmt.Errorf("%w: redacted-key-id", redisbloom.ErrConfigCorrupt)
+	if errors.Is(err, redisbloom.ErrConfigCorrupt) {
 		// Escalate to the operator runbook before deleting or clearing shared state.
 		_ = "operator runbook required"
 	}
 
-	err = RedisError{Operation: "put", KeyID: "redacted-key-id", Err: context.DeadlineExceeded}
-	var redisErr RedisError
+	err = redisbloom.RedisError{Operation: "put", KeyID: "redacted-key-id", Err: context.DeadlineExceeded}
+	var redisErr redisbloom.RedisError
 	if errors.As(err, &redisErr) {
 		// Log redisErr.Operation and the redacted redisErr.KeyID, not inserted values or raw keys.
 		_, _ = redisErr.Operation, redisErr.KeyID
@@ -104,7 +105,7 @@ func operatorApproved(context.Context, string) bool {
 
 type exampleBloomFilter struct{}
 
-func exampleFilter() BloomFilter[string] {
+func exampleFilter() redisbloom.BloomFilter[string] {
 	return exampleBloomFilter{}
 }
 

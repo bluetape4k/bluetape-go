@@ -1,15 +1,12 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="1900" height="1060" viewBox="0 0 1900 1060">
 <defs>
   <style>
-    @font-face { font-family: 'Architects Daughter'; src: url('/Users/debop/Library/Fonts/ArchitectsDaughter-Regular.ttf'); }
-    @font-face { font-family: 'Comic Mono'; src: url('/Users/debop/Library/Fonts/ComicMono.ttf'); font-weight: 400; }
-    @font-face { font-family: 'Comic Mono'; src: url('/Users/debop/Library/Fonts/ComicMono-Bold.ttf'); font-weight: 700; }
-    .title { font-family: 'Architects Daughter'; font-size: 34px; font-weight: 700; fill: #1E293B; }
-    .subtitle { font-family: 'Comic Mono'; font-size: 16px; fill: #64748B; }
-    .panel-label { font-family: 'Architects Daughter'; font-size: 20px; font-weight: 700; fill: #1E293B; }
-    .card-title { font-family: 'Architects Daughter'; font-size: 22px; font-weight: 700; fill: #1E293B; }
-    .detail { font-family: 'Comic Mono'; font-size: 14px; fill: #1E293B; }
-    .footer { font-family: 'Comic Mono'; font-size: 14px; fill: #1E293B; }
+    .title { font-family: 'Architects Daughter', 'Comic Sans MS', cursive; font-size: 34px; font-weight: 700; fill: #1E293B; }
+    .subtitle { font-family: 'Comic Mono', 'Menlo', monospace; font-size: 16px; fill: #64748B; }
+    .panel-label { font-family: 'Architects Daughter', 'Comic Sans MS', cursive; font-size: 20px; font-weight: 700; fill: #1E293B; }
+    .card-title { font-family: 'Architects Daughter', 'Comic Sans MS', cursive; font-size: 22px; font-weight: 700; fill: #1E293B; }
+    .detail { font-family: 'Comic Mono', 'Menlo', monospace; font-size: 14px; fill: #1E293B; }
+    .footer { font-family: 'Comic Mono', 'Menlo', monospace; font-size: 14px; fill: #1E293B; }
   </style>
   <filter id="shadow" x="-10%" y="-10%" width="120%" height="120%">
     <feDropShadow dx="0" dy="8" stdDeviation="8" flood-color="#94A3B8" flood-opacity="0.22"/>
