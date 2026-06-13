@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 
-import { existsSync, mkdirSync, writeFileSync } from "node:fs";
+import { mkdirSync, writeFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { spawnSync } from "node:child_process";
@@ -17,40 +17,6 @@ const paths = {
   graphvizPng: join(outDir, `${name}-graphviz.png`),
   svg: join(outDir, `${name}.svg`),
   png: join(outDir, `${name}.png`),
-};
-
-function findFont(envName, candidates) {
-  const envPath = process.env[envName];
-  if (envPath) {
-    if (!existsSync(envPath)) {
-      throw new Error(`${envName} points to a missing font: ${envPath}`);
-    }
-    return envPath;
-  }
-  const found = candidates.find((candidate) => existsSync(candidate));
-  if (!found) {
-    throw new Error(`missing required font for ${envName}: ${candidates.join(", ")}`);
-  }
-  return found;
-}
-
-const home = process.env.HOME ?? "/Users/debop";
-const fonts = {
-  title: findFont("BLUETAPE_ARCHITECTS_DAUGHTER_FONT", [
-    join(home, "Library/Fonts/ArchitectsDaughter-Regular.ttf"),
-    "/Library/Fonts/ArchitectsDaughter-Regular.ttf",
-    "/usr/share/fonts/truetype/architects-daughter/ArchitectsDaughter-Regular.ttf",
-  ]),
-  detail: findFont("BLUETAPE_COMIC_MONO_FONT", [
-    join(home, "Library/Fonts/ComicMono.ttf"),
-    "/Library/Fonts/ComicMono.ttf",
-    "/usr/share/fonts/truetype/comic-mono/ComicMono.ttf",
-  ]),
-  detailBold: findFont("BLUETAPE_COMIC_MONO_BOLD_FONT", [
-    join(home, "Library/Fonts/ComicMono-Bold.ttf"),
-    "/Library/Fonts/ComicMono-Bold.ttf",
-    "/usr/share/fonts/truetype/comic-mono/ComicMono-Bold.ttf",
-  ]),
 };
 
 const colors = {
@@ -297,15 +263,12 @@ function writeSvg() {
   const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${canvas.w}" height="${canvas.h}" viewBox="0 0 ${canvas.w} ${canvas.h}">
 <defs>
   <style>
-    @font-face { font-family: 'Architects Daughter'; src: url('${fonts.title}'); }
-    @font-face { font-family: 'Comic Mono'; src: url('${fonts.detail}'); font-weight: 400; }
-    @font-face { font-family: 'Comic Mono'; src: url('${fonts.detailBold}'); font-weight: 700; }
-    .title { font-family: 'Architects Daughter'; font-size: 34px; font-weight: 700; fill: ${colors.ink}; }
-    .subtitle { font-family: 'Comic Mono'; font-size: 16px; fill: ${colors.muted}; }
-    .panel-label { font-family: 'Architects Daughter'; font-size: 20px; font-weight: 700; fill: ${colors.ink}; }
-    .card-title { font-family: 'Architects Daughter'; font-size: 22px; font-weight: 700; fill: ${colors.ink}; }
-    .detail { font-family: 'Comic Mono'; font-size: 14px; fill: ${colors.ink}; }
-    .footer { font-family: 'Comic Mono'; font-size: 14px; fill: ${colors.ink}; }
+    .title { font-family: 'Architects Daughter', 'Comic Sans MS', cursive; font-size: 34px; font-weight: 700; fill: ${colors.ink}; }
+    .subtitle { font-family: 'Comic Mono', 'Menlo', monospace; font-size: 16px; fill: ${colors.muted}; }
+    .panel-label { font-family: 'Architects Daughter', 'Comic Sans MS', cursive; font-size: 20px; font-weight: 700; fill: ${colors.ink}; }
+    .card-title { font-family: 'Architects Daughter', 'Comic Sans MS', cursive; font-size: 22px; font-weight: 700; fill: ${colors.ink}; }
+    .detail { font-family: 'Comic Mono', 'Menlo', monospace; font-size: 14px; fill: ${colors.ink}; }
+    .footer { font-family: 'Comic Mono', 'Menlo', monospace; font-size: 14px; fill: ${colors.ink}; }
   </style>
   <filter id="shadow" x="-10%" y="-10%" width="120%" height="120%">
     <feDropShadow dx="0" dy="8" stdDeviation="8" flood-color="#94A3B8" flood-opacity="0.22"/>

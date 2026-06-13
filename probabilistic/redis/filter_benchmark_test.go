@@ -86,16 +86,22 @@ func BenchmarkRedisBloomMightContain(b *testing.B) {
 func BenchmarkRedisBloomOffsets(b *testing.B) {
 	for _, bc := range benchmarkRedisBloomConfigs(b, uint64(max(b.N, 1))*2) {
 		b.Run(bc.name, func(b *testing.B) {
-			filter := newBenchmarkStringBloomFilter(b, bc.config)
-			concrete, ok := filter.(*bloomFilter[string])
-			if !ok {
-				b.Fatalf("unexpected filter type %T", filter)
+			hasher, err := probabilistic.NewHasher(stringHasherKey, func(value string) []byte {
+				return []byte(value)
+			})
+			if err != nil {
+				b.Fatalf("NewHasher failed: %v", err)
+			}
+			filter := &bloomFilter[string]{
+				config: bc.config,
+				hasher: hasher,
+				meta:   newMetadata(bc.config, hasher.Key()),
 			}
 
 			b.ReportAllocs()
 			b.ResetTimer()
 			for i := 0; i < b.N; i++ {
-				if _, err := concrete.offsets("value:" + strconv.Itoa(i)); err != nil {
+				if _, err := filter.offsets("value:" + strconv.Itoa(i)); err != nil {
 					b.Fatalf("offsets failed: %v", err)
 				}
 			}

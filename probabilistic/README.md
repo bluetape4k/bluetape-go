@@ -80,6 +80,7 @@ if err != nil {
     return err
 }
 
+value := "candidate-key"
 changed, err := filter.Put(ctx, value)
 if err != nil {
     return err

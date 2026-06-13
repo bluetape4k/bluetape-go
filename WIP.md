@@ -52,7 +52,7 @@ in-memory Bloom filters.
 - Provider-backed money exchange rates (#178), full locale-to-currency mapping
   (#179), and long-backed FastMoney evaluation (#180) remain deferred outside
   #35.
-- Redis-backed Bloom support (#182) is tracked in `0.6.1`; Redis-backed
+- Redis-backed Bloom support is delivered by #182 / PR #229; Redis-backed
   Cuckoo/HyperLogLog constructors remain separate follow-up scope after the
   Bloom API.
 

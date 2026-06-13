@@ -137,6 +137,14 @@ func TestValidateNamespaceRejectsUnsafeNames(t *testing.T) {
 		"tenant-a:사용자",
 		"alice@example.test",
 		"token:secret",
+		"password:reset",
+		"secret:tenant-a",
+		"credential:tenant-a",
+		"api-key:tenant-a",
+		"api_key:tenant-a",
+		"api.key:tenant-a",
+		"api:key:tenant-a",
+		"apikey:tenant-a",
 		tooLong,
 	} {
 		t.Run(namespace, func(t *testing.T) {
@@ -153,7 +161,23 @@ func TestHasherKeyRejectsSensitiveOrUnsafeNames(t *testing.T) {
 	t.Parallel()
 
 	cfg, _ := validOptionsParts(t)
-	for _, key := range []string{"", " schema:v1", "schema:v1 ", "schema\nv1", strings.Repeat("a", 129), "alice@example.test"} {
+	for _, key := range []string{
+		"",
+		" schema:v1",
+		"schema:v1 ",
+		"schema\nv1",
+		strings.Repeat("a", 129),
+		"alice@example.test",
+		"token:schema:v1",
+		"secret:schema:v1",
+		"password:schema:v1",
+		"credential:schema:v1",
+		"api-key:schema:v1",
+		"api_key:schema:v1",
+		"api.key:schema:v1",
+		"api:key:schema:v1",
+		"apikey:schema:v1",
+	} {
 		t.Run(key, func(t *testing.T) {
 			t.Parallel()
 			hasher, _ := probabilistic.NewHasher(key, func(value string) []byte { return []byte(value) })

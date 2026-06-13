@@ -76,7 +76,7 @@ func validateIdentifier(kind, value string) error {
 	if value == "" || value != strings.TrimSpace(value) || len(value) > 128 || !utf8.ValidString(value) {
 		return fmt.Errorf("%s: invalid length or whitespace", kind)
 	}
-	if strings.Contains(value, "@") || strings.Contains(strings.ToLower(value), "token") {
+	if containsSensitiveMarker(value) {
 		return fmt.Errorf("%s: use a non-sensitive schema identifier", kind)
 	}
 	for _, r := range value {
@@ -101,7 +101,7 @@ func validateNamespace(namespace string) error {
 	if strings.HasSuffix(namespace, ":bits") || strings.HasSuffix(namespace, ":config") {
 		return fmt.Errorf("reserved suffix")
 	}
-	if strings.Contains(namespace, "@") || strings.Contains(strings.ToLower(namespace), "token") {
+	if containsSensitiveMarker(namespace) {
 		return fmt.Errorf("use a non-sensitive namespace")
 	}
 	for _, r := range namespace {
@@ -111,4 +111,15 @@ func validateNamespace(namespace string) error {
 		return fmt.Errorf("invalid character %q", r)
 	}
 	return nil
+}
+
+func containsSensitiveMarker(value string) bool {
+	lower := strings.ToLower(value)
+	for _, marker := range []string{"@", "token", "secret", "password", "credential"} {
+		if strings.Contains(lower, marker) {
+			return true
+		}
+	}
+	normalized := strings.NewReplacer("-", "", "_", "", ".", "", ":", "").Replace(lower)
+	return strings.Contains(normalized, "apikey")
 }
