@@ -368,7 +368,7 @@ func TestRepositoryCapacityTrimPreservesNewestKeys(t *testing.T) {
 	}
 }
 
-func TestRepositoryCapacityTrimSkipsCandidateWithoutExceedingCapacity(t *testing.T) {
+func TestRepositoryCapacityTrimKeepsCandidateAndNewestRetainedKey(t *testing.T) {
 	ctx := context.Background()
 	client := jwtRedisClient(ctx, t)
 	repo := newTestRedisRepository(t, client, "capacity-skew", RedisRepositoryOptions{Capacity: 2})
@@ -393,6 +393,12 @@ func TestRepositoryCapacityTrimSkipsCandidateWithoutExceedingCapacity(t *testing
 	}
 	if _, err := repo.Find(ctx, "skewed-candidate", now); err != nil {
 		t.Fatalf("Find(skewed-candidate) error = %v", err)
+	}
+	if _, err := repo.Find(ctx, "new", now.Add(3*time.Minute)); err != nil {
+		t.Fatalf("Find(new) error = %v", err)
+	}
+	if _, err := repo.Find(ctx, "middle", now.Add(3*time.Minute)); !errors.Is(err, ErrKeyNotFound) {
+		t.Fatalf("Find(middle) error = %v, want ErrKeyNotFound", err)
 	}
 }
 

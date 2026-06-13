@@ -37,18 +37,26 @@ redis.call("ZADD", KEYS[3], candidate_score, candidate_kid)
 redis.call("SET", KEYS[1], candidate_kid)
 redis.call("HSET", KEYS[4], "version", version, "algorithm", algorithm)
 
-local count = redis.call("ZCARD", KEYS[3])
-if count > capacity then
-	local stale = redis.call("ZRANGE", KEYS[3], 0, -1)
-	for _, stale_kid in ipairs(stale) do
-		if redis.call("ZCARD", KEYS[3]) <= capacity then
-			break
-		elseif stale_kid ~= candidate_kid then
-			redis.call("HDEL", KEYS[2], stale_kid)
-			redis.call("ZREM", KEYS[3], stale_kid)
+	local count = redis.call("ZCARD", KEYS[3])
+	if count > capacity then
+		local keep = {}
+		keep[candidate_kid] = true
+		local retained = 0
+		local newest = redis.call("ZREVRANGE", KEYS[3], 0, -1)
+		for _, retained_kid in ipairs(newest) do
+			if retained_kid ~= candidate_kid and retained < (capacity - 1) then
+				keep[retained_kid] = true
+				retained = retained + 1
+			end
+		end
+		local stale = redis.call("ZRANGE", KEYS[3], 0, -1)
+		for _, stale_kid in ipairs(stale) do
+			if not keep[stale_kid] then
+				redis.call("HDEL", KEYS[2], stale_kid)
+				redis.call("ZREM", KEYS[3], stale_kid)
+			end
 		end
 	end
-end
 
 if ttl_ms > 0 then
 	redis.call("PEXPIRE", KEYS[1], ttl_ms)
@@ -79,18 +87,26 @@ redis.call("ZADD", KEYS[3], candidate_score, candidate_kid)
 redis.call("SET", KEYS[1], candidate_kid)
 redis.call("HSET", KEYS[4], "version", version, "algorithm", algorithm)
 
-local count = redis.call("ZCARD", KEYS[3])
-if count > capacity then
-	local stale = redis.call("ZRANGE", KEYS[3], 0, -1)
-	for _, stale_kid in ipairs(stale) do
-		if redis.call("ZCARD", KEYS[3]) <= capacity then
-			break
-		elseif stale_kid ~= candidate_kid then
-			redis.call("HDEL", KEYS[2], stale_kid)
-			redis.call("ZREM", KEYS[3], stale_kid)
+	local count = redis.call("ZCARD", KEYS[3])
+	if count > capacity then
+		local keep = {}
+		keep[candidate_kid] = true
+		local retained = 0
+		local newest = redis.call("ZREVRANGE", KEYS[3], 0, -1)
+		for _, retained_kid in ipairs(newest) do
+			if retained_kid ~= candidate_kid and retained < (capacity - 1) then
+				keep[retained_kid] = true
+				retained = retained + 1
+			end
+		end
+		local stale = redis.call("ZRANGE", KEYS[3], 0, -1)
+		for _, stale_kid in ipairs(stale) do
+			if not keep[stale_kid] then
+				redis.call("HDEL", KEYS[2], stale_kid)
+				redis.call("ZREM", KEYS[3], stale_kid)
+			end
 		end
 	end
-end
 
 if ttl_ms > 0 then
 	redis.call("PEXPIRE", KEYS[1], ttl_ms)
