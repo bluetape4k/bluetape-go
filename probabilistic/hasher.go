@@ -43,11 +43,16 @@ func (h Hasher[T]) validate() error {
 	return nil
 }
 
-func (h Hasher[T]) bytes(value T) ([]byte, error) {
+// Bytes validates the hasher and returns stable hash input bytes for value.
+func (h Hasher[T]) Bytes(value T) ([]byte, error) {
 	if err := h.validate(); err != nil {
 		return nil, err
 	}
 	return h.sum(value), nil
+}
+
+func (h Hasher[T]) bytes(value T) ([]byte, error) {
+	return h.Bytes(value)
 }
 
 func stringHasher() Hasher[string] {
