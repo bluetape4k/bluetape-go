@@ -149,7 +149,7 @@ const nodes = [
     w: 360,
     h: 76,
     title: "Bounded Lifetime",
-    details: ["entry cannot outlive claim expiry"],
+    details: ["entry cannot outlive claim or key expiry"],
     fill: "#FEF3C7",
     stroke: "#FCD34D",
   },
