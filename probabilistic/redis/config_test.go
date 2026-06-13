@@ -12,45 +12,45 @@ import (
 	"github.com/redis/go-redis/v9"
 )
 
-func newRedisClient(t *testing.T) *redis.Client {
-	t.Helper()
+func newRedisClient(tb testing.TB) *redis.Client {
+	tb.Helper()
 	ctx := context.Background()
-	addr := redistestcontainer.Start(ctx, t)
+	addr := redistestcontainer.Start(ctx, tb)
 	client := redis.NewClient(&redis.Options{Addr: addr})
-	t.Cleanup(func() {
+	tb.Cleanup(func() {
 		if err := client.Close(); err != nil {
-			t.Fatalf("close redis client: %v", err)
+			tb.Fatalf("close redis client: %v", err)
 		}
 	})
 	if err := client.Ping(ctx).Err(); err != nil {
-		t.Fatalf("ping redis: %v", err)
+		tb.Fatalf("ping redis: %v", err)
 	}
 	return client
 }
 
-func testConfig(t *testing.T, expected uint64) probabilistic.Config {
-	t.Helper()
+func testConfig(tb testing.TB, expected uint64) probabilistic.Config {
+	tb.Helper()
 	cfg, err := probabilistic.NewConfig(expected, 0.01)
 	if err != nil {
-		t.Fatalf("NewConfig failed: %v", err)
+		tb.Fatalf("NewConfig failed: %v", err)
 	}
 	return cfg
 }
 
-func testNamespace(t *testing.T) string {
-	t.Helper()
-	return "test:" + strings.ReplaceAll(t.Name(), "/", ":")
+func testNamespace(tb testing.TB) string {
+	tb.Helper()
+	return "test:" + strings.ReplaceAll(tb.Name(), "/", ":")
 }
 
-func cleanupNamespace(t *testing.T, client redis.Cmdable, namespace string) {
-	t.Helper()
+func cleanupNamespace(tb testing.TB, client redis.Cmdable, namespace string) {
+	tb.Helper()
 	keys, err := buildKeys(namespace)
 	if err != nil {
-		t.Fatalf("buildKeys failed: %v", err)
+		tb.Fatalf("buildKeys failed: %v", err)
 	}
-	t.Cleanup(func() {
+	tb.Cleanup(func() {
 		if err := client.Del(context.Background(), keys.bits, keys.config).Err(); err != nil {
-			t.Fatalf("cleanup redis keys: %v", err)
+			tb.Fatalf("cleanup redis keys: %v", err)
 		}
 	})
 }
