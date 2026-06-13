@@ -55,7 +55,7 @@ func (e KeyError) Error() string {
 	if e.KID == "" {
 		return fmt.Sprintf("%v: %v", kind, e.Err)
 	}
-	return fmt.Sprintf("%v: kid=%s: %v", kind, e.KID, e.Err)
+	return fmt.Sprintf("%v: kid=%q: %v", kind, e.KID, e.Err)
 }
 
 func (e KeyError) Unwrap() error { return e.Err }

@@ -164,6 +164,30 @@ envelope -> waiter [color="#7C3AED" fontcolor="#5B21B6"];
 waiter -> local_cache;
 ''',
     ),
+    "redis-jwt-distributed-key-rotation": dot(
+        "jwt/redis - Distributed Key Rotation",
+        "LR",
+        f'''
+caller [label={html("Service Instance", "ComposeContext / ParseContext", "caller-owned deadlines")} fillcolor="#EBF4FF" color="#93C5FD"];
+provider [label={html("DistributedProvider", "context-only API", "algorithm guard")} fillcolor="#FAF5FF" color="#C4B5FD"];
+repository [label={html("RedisRepository", "namespace-isolated", "Go-owned payloads")} fillcolor="#F0FDF4" color="#86EFAC"];
+rotate [label={html("Rotate CAS Script", "current or winner key", "capacity trim")} fillcolor="#FFF7ED" color="#FCD34D"];
+redis_state [label={html("Redis Keyspace", "meta / current", "keys hash / order zset")} fillcolor="#FEF9C3" color="#FDE047"];
+current [label={html("Current KeyChain", "signs new tokens", "kid header")} fillcolor="#ECFDF5" color="#6EE7B7"];
+retained [label={html("Retained Keys", "verify old tokens", "TTL + leeway")} fillcolor="#F0F9FF" color="#7DD3FC"];
+operator [label={html("Operator Runbook", "TLS + ACL", "diagnose before reset")} fillcolor="#FFF1F2" color="#FDA4AF"];
+
+caller -> provider;
+provider -> repository;
+repository -> rotate [color="#7C3AED"];
+rotate -> redis_state [color="#7C3AED"];
+redis_state -> current [color="#16A34A"];
+redis_state -> retained [color="#0EA5E9"];
+current -> provider [color="#16A34A"];
+retained -> provider [color="#0EA5E9"];
+operator -> redis_state [color="#EF4444"];
+''',
+    ),
     "redis-lock-owner-token-lifecycle": dot(
         "lock/redis - Owner Token Lifecycle",
         "LR",

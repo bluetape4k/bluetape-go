@@ -76,6 +76,10 @@ Redisson deque format.
 
 ## Selected Architecture
 
+Architecture diagram:
+
+![Redis distributed JWT key rotation](../../images/readme-diagrams/redis-jwt-distributed-key-rotation.png)
+
 Add a separate `DistributedProvider` type in package `jwt`:
 
 ```go

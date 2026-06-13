@@ -1,0 +1,55 @@
+digraph G {
+
+graph [
+  bgcolor="#F8FAFC",
+  pad="0.28",
+  nodesep="0.62",
+  ranksep="0.78",
+  splines=ortho,
+  fontname="Comic Mono",
+  fontsize=15,
+  labelloc=t,
+  labeljust=c
+];
+node [
+  shape=box,
+  style="rounded,filled",
+  penwidth=1.8,
+  margin="0.13,0.10",
+  fontname="Comic Mono",
+  fontsize=12,
+  color="#CBD5E1",
+  fillcolor="white",
+  fontcolor="#1E293B"
+];
+edge [
+  color="#475569",
+  penwidth=2.0,
+  arrowsize=0.8,
+  fontname="Comic Mono",
+  fontsize=11,
+  fontcolor="#334155"
+];
+
+graph [rankdir=LR, label=<<FONT FACE="Architects Daughter" POINT-SIZE="18"><B>jwt/redis - Distributed Key Rotation</B></FONT><BR/><FONT FACE="Comic Mono" POINT-SIZE="11">source-grounded README diagram</FONT>>];
+
+caller [label=<<FONT FACE="Architects Daughter" POINT-SIZE="18"><B>Service Instance</B></FONT><BR/><FONT FACE="Comic Mono" POINT-SIZE="11">ComposeContext / ParseContext</FONT><BR/><FONT FACE="Comic Mono" POINT-SIZE="11">caller-owned deadlines</FONT>> fillcolor="#EBF4FF" color="#93C5FD"];
+provider [label=<<FONT FACE="Architects Daughter" POINT-SIZE="18"><B>DistributedProvider</B></FONT><BR/><FONT FACE="Comic Mono" POINT-SIZE="11">context-only API</FONT><BR/><FONT FACE="Comic Mono" POINT-SIZE="11">algorithm guard</FONT>> fillcolor="#FAF5FF" color="#C4B5FD"];
+repository [label=<<FONT FACE="Architects Daughter" POINT-SIZE="18"><B>RedisRepository</B></FONT><BR/><FONT FACE="Comic Mono" POINT-SIZE="11">namespace-isolated</FONT><BR/><FONT FACE="Comic Mono" POINT-SIZE="11">Go-owned payloads</FONT>> fillcolor="#F0FDF4" color="#86EFAC"];
+rotate [label=<<FONT FACE="Architects Daughter" POINT-SIZE="18"><B>Rotate CAS Script</B></FONT><BR/><FONT FACE="Comic Mono" POINT-SIZE="11">current or winner key</FONT><BR/><FONT FACE="Comic Mono" POINT-SIZE="11">capacity trim</FONT>> fillcolor="#FFF7ED" color="#FCD34D"];
+redis_state [label=<<FONT FACE="Architects Daughter" POINT-SIZE="18"><B>Redis Keyspace</B></FONT><BR/><FONT FACE="Comic Mono" POINT-SIZE="11">meta / current</FONT><BR/><FONT FACE="Comic Mono" POINT-SIZE="11">keys hash / order zset</FONT>> fillcolor="#FEF9C3" color="#FDE047"];
+current [label=<<FONT FACE="Architects Daughter" POINT-SIZE="18"><B>Current KeyChain</B></FONT><BR/><FONT FACE="Comic Mono" POINT-SIZE="11">signs new tokens</FONT><BR/><FONT FACE="Comic Mono" POINT-SIZE="11">kid header</FONT>> fillcolor="#ECFDF5" color="#6EE7B7"];
+retained [label=<<FONT FACE="Architects Daughter" POINT-SIZE="18"><B>Retained Keys</B></FONT><BR/><FONT FACE="Comic Mono" POINT-SIZE="11">verify old tokens</FONT><BR/><FONT FACE="Comic Mono" POINT-SIZE="11">TTL + leeway</FONT>> fillcolor="#F0F9FF" color="#7DD3FC"];
+operator [label=<<FONT FACE="Architects Daughter" POINT-SIZE="18"><B>Operator Runbook</B></FONT><BR/><FONT FACE="Comic Mono" POINT-SIZE="11">TLS + ACL</FONT><BR/><FONT FACE="Comic Mono" POINT-SIZE="11">diagnose before reset</FONT>> fillcolor="#FFF1F2" color="#FDA4AF"];
+
+caller -> provider;
+provider -> repository;
+repository -> rotate [color="#7C3AED"];
+rotate -> redis_state [color="#7C3AED"];
+redis_state -> current [color="#16A34A"];
+redis_state -> retained [color="#0EA5E9"];
+current -> provider [color="#16A34A"];
+retained -> provider [color="#0EA5E9"];
+operator -> redis_state [color="#EF4444"];
+
+}
