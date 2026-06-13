@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"strconv"
+	"strings"
 	"sync"
 	"testing"
 	"time"
@@ -292,5 +293,145 @@ func TestDeadlineExceededVisible(t *testing.T) {
 	_, err = filter.MightContain(ctx, "alpha")
 	if !errors.Is(err, context.DeadlineExceeded) {
 		t.Fatalf("expected context.DeadlineExceeded, got %v", err)
+	}
+}
+
+type commandRecorder struct {
+	mu     sync.Mutex
+	counts map[string]int
+}
+
+func newCommandRecorder() *commandRecorder {
+	return &commandRecorder{counts: make(map[string]int)}
+}
+
+func (r *commandRecorder) DialHook(next redis.DialHook) redis.DialHook {
+	return next
+}
+
+func (r *commandRecorder) ProcessHook(next redis.ProcessHook) redis.ProcessHook {
+	return func(ctx context.Context, cmd redis.Cmder) error {
+		r.record(cmd)
+		return next(ctx, cmd)
+	}
+}
+
+func (r *commandRecorder) ProcessPipelineHook(next redis.ProcessPipelineHook) redis.ProcessPipelineHook {
+	return func(ctx context.Context, cmds []redis.Cmder) error {
+		for _, cmd := range cmds {
+			r.record(cmd)
+		}
+		return next(ctx, cmds)
+	}
+}
+
+func (r *commandRecorder) record(cmd redis.Cmder) {
+	r.mu.Lock()
+	defer r.mu.Unlock()
+	r.counts[strings.ToLower(cmd.Name())]++
+}
+
+func (r *commandRecorder) Reset() {
+	r.mu.Lock()
+	defer r.mu.Unlock()
+	for name := range r.counts {
+		delete(r.counts, name)
+	}
+}
+
+func (r *commandRecorder) Count(name string) int {
+	r.mu.Lock()
+	defer r.mu.Unlock()
+	return r.counts[strings.ToLower(name)]
+}
+
+func (r *commandRecorder) ScriptDelta() int {
+	return r.Count("eval") + r.Count("evalsha")
+}
+
+func TestHotPathUsesOneScriptRoundTripPerCall(t *testing.T) {
+	ctx := context.Background()
+	client := newRedisClient(t)
+	recorder := newCommandRecorder()
+	client.AddHook(recorder)
+	namespace := testNamespace(t)
+	cleanupNamespace(t, client, namespace)
+	filter, err := NewStringBloomFilter(ctx, client, namespace, testConfig(t, 1000))
+	if err != nil {
+		t.Fatalf("NewStringBloomFilter failed: %v", err)
+	}
+
+	_, _ = filter.Put(ctx, "warm")
+	_, _ = filter.MightContain(ctx, "warm")
+	_, _ = filter.BitCount(ctx)
+	_, _ = filter.IsEmpty(ctx)
+	_ = filter.Clear(ctx)
+
+	assertOneScript := func(name string, op func() error) {
+		t.Helper()
+		recorder.Reset()
+		if err := op(); err != nil {
+			t.Fatalf("%s failed: %v", name, err)
+		}
+		if got := recorder.ScriptDelta(); got != 1 {
+			t.Fatalf("%s script commands = %d, want 1", name, got)
+		}
+		if got := recorder.Count("eval"); got != 0 {
+			t.Fatalf("%s eval commands = %d, want 0 after warmup", name, got)
+		}
+		for _, direct := range []string{"getbit", "setbit", "bitcount", "hget", "hgetall", "hset", "del", "strlen"} {
+			if got := recorder.Count(direct); got != 0 {
+				t.Fatalf("%s sent direct %s command %d times", name, direct, got)
+			}
+		}
+	}
+
+	assertOneScript("init matched", func() error {
+		_, err := NewStringBloomFilter(ctx, client, namespace, testConfig(t, 1000))
+		return err
+	})
+	assertOneScript("put", func() error {
+		_, err := filter.Put(ctx, "alpha")
+		return err
+	})
+	assertOneScript("might contain", func() error {
+		_, err := filter.MightContain(ctx, "alpha")
+		return err
+	})
+	assertOneScript("bit count", func() error {
+		_, err := filter.BitCount(ctx)
+		return err
+	})
+	assertOneScript("is empty", func() error {
+		_, err := filter.IsEmpty(ctx)
+		return err
+	})
+	assertOneScript("clear", func() error {
+		return filter.Clear(ctx)
+	})
+}
+
+func TestLuaScriptsAreStaticAndUseKeysArgv(t *testing.T) {
+	scripts := map[string]string{
+		"init":         initConfigLua,
+		"put":          putLua,
+		"mightContain": mightContainLua,
+		"clear":        clearLua,
+		"bitCount":     bitCountLua,
+		"isEmpty":      isEmptyLua,
+	}
+
+	for name, script := range scripts {
+		t.Run(name, func(t *testing.T) {
+			if !strings.Contains(script, "KEYS[") {
+				t.Fatal("script does not reference KEYS")
+			}
+			if !strings.Contains(script, "ARGV[") {
+				t.Fatal("script does not reference ARGV")
+			}
+			if strings.Contains(script, "{"+"{") || strings.Contains(script, "%s") {
+				t.Fatal("script appears to contain runtime interpolation marker")
+			}
+		})
 	}
 }
