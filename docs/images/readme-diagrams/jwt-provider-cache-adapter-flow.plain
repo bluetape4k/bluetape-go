@@ -1,0 +1,18 @@
+graph 1 16.3 3.3597
+node caller 0.96333 2.4681 1.9267 0.60278 <<FONT FACE="Architects Daughter" POINT-SIZE="18"><B>Caller</B></FONT><BR/><FONT FACE="Comic Mono" POINT-SIZE="11">Parse / ParseContext</FONT>> rounded,filled box #93C5FD #DBEAFE
+node adapter 3.8119 2.4681 2.1037 0.75556 <<FONT FACE="Architects Daughter" POINT-SIZE="18"><B>CachedProvider</B></FONT><BR/><FONT FACE="Comic Mono" POINT-SIZE="11">token digest</FONT><BR/><FONT FACE="Comic Mono" POINT-SIZE="11">parse profile</FONT>> rounded,filled box #C4B5FD #F3E8FF
+node cache 15.086 2.4681 2.4267 0.60278 <<FONT FACE="Architects Daughter" POINT-SIZE="18"><B>Reader Cache</B></FONT><BR/><FONT FACE="Comic Mono" POINT-SIZE="11">Get / Set / Delete / Clear</FONT>> rounded,filled box #93C5FD #DBEAFE
+node provider 6.5771 1.6347 1.76 0.60278 <<FONT FACE="Architects Daughter" POINT-SIZE="18"><B>Provider</B></FONT><BR/><FONT FACE="Comic Mono" POINT-SIZE="11">signature + claims</FONT>> rounded,filled box #86EFAC #DCFCE7
+node ttl 9.41 0.30139 1.6558 0.60278 <<FONT FACE="Architects Daughter" POINT-SIZE="18"><B>TTL Clipper</B></FONT><BR/><FONT FACE="Comic Mono" POINT-SIZE="11">bounded by exp</FONT>> rounded,filled box #FCD34D #FEF3C7
+node repo 9.41 1.6347 2.2392 0.60278 <<FONT FACE="Architects Daughter" POINT-SIZE="18"><B>KeyChain Source</B></FONT><BR/><FONT FACE="Comic Mono" POINT-SIZE="11">local or distributed</FONT>> rounded,filled box #6EE7B7 #D1FAE5
+node invalidate 12.201 1.6347 1.6767 0.60278 <<FONT FACE="Architects Daughter" POINT-SIZE="18"><B>Invalidate</B></FONT><BR/><FONT FACE="Comic Mono" POINT-SIZE="11">rotation or reset</FONT>> rounded,filled box #FDA4AF #FFE4E6
+edge caller adapter 4 1.9357 2.4681 1.9357 2.4681 2.5981 2.4681 2.5981 2.4681 solid #475569
+edge adapter cache 4 4.8725 2.6489 4.8725 2.6489 13.71 2.6489 13.71 2.6489 solid #2563EB
+edge adapter provider 7 4.8732 2.4078 5.6531 2.4078 6.5774 2.4078 6.5774 2.4078 6.5774 2.4078 6.5774 2.0979 6.5774 2.0979 solid #7C3AED
+edge adapter ttl 7 3.8135 2.0807 3.8135 1.4575 3.8135 0.30139 3.8135 0.30139 3.8135 0.30139 8.419 0.30139 8.419 0.30139 solid #2563EB
+edge cache adapter 4 13.864 2.5283 13.864 2.5283 5.0265 2.5283 5.0265 2.5283 solid #16A34A
+edge provider repo 4 7.4695 1.6347 7.4695 1.6347 8.1293 1.6347 8.1293 1.6347 solid #7C3AED
+edge ttl cache 7 10.248 0.30139 11.829 0.30139 15.091 0.30139 15.091 0.30139 15.091 0.30139 15.091 2.0045 15.091 2.0045 solid #2563EB
+edge repo invalidate 4 10.541 1.6347 10.541 1.6347 11.198 1.6347 11.198 1.6347 solid #EF4444
+edge invalidate cache 7 12.202 1.9457 12.202 2.1137 12.202 2.2872 12.202 2.2872 12.202 2.2872 13.71 2.2872 13.71 2.2872 solid #EF4444
+stop

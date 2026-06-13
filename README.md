@@ -31,7 +31,8 @@ signing, parsing, validation, and local key rotation, the `measure` package for
 typed units, measured values, compound units, parsing, formatting, and
 temperature helpers, the `money` package for ISO currency and decimal-backed
 amount operations, and the `probabilistic` package for in-memory Bloom filters.
-The Unreleased `0.6.1` line adds the Redis-backed Bloom package.
+The Unreleased `0.6.1` line adds the Redis-backed Bloom package and optional
+JWT provider cache adapters.
 
 ## Packages
 
@@ -63,7 +64,7 @@ The Unreleased `0.6.1` line adds the Redis-backed Bloom package.
 | [`workreport`](workreport/README.md) | active | Status, failure-policy, and report-tree values for lightweight workflow code. |
 | [`workflow`](workflow/README.md) | active | Sequential, conditional, and all-branches parallel runners built on `context.Context` and `workreport`. |
 | [`id`](id/README.md) | active | UUID v4/v7, random and monotonic ULID, standard KSUID, Kotlin-compatible KSUID millis, and Snowflake ID generators. |
-| [`jwt`](jwt/README.md) | active | JWT signing, parsing, validation, typed claim reading, and in-memory `kid` key rotation with explicit algorithms. |
+| [`jwt`](jwt/README.md) | active | JWT signing, parsing, validation, typed claim reading, in-memory/distributed `kid` key rotation, and optional provider cache adapters with explicit algorithms. |
 | [`measure`](measure/README.md) | active | Typed units, measured values, compound units, parsing, formatting, and affine temperature helpers. |
 | [`money`](money/README.md) | active | ISO 4217 currency values, decimal-backed money amounts, aggregation, serialization, and caller-supplied exchange-rate conversion. |
 | [`probabilistic`](probabilistic/README.md) | active | Goroutine-safe in-memory Bloom filters with deterministic config, merge compatibility checks, and stress/race coverage. |

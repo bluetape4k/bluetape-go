@@ -13,6 +13,7 @@ import (
     "errors"
     "time"
 
+    "github.com/bluetape4k/bluetape-go/cache"
     "github.com/bluetape4k/bluetape-go/jwt"
     redisjwt "github.com/bluetape4k/bluetape-go/jwt/redis"
     "github.com/redis/go-redis/v9"
@@ -30,7 +31,7 @@ import (
 | MongoDB-backed distributed key rotation | Backlog | MongoDB storage는 #198로 이관했습니다. |
 | signed JWT compression | Non-goal | `zip`은 signed JWT helper가 아니라 JWE 경계에 속합니다. |
 | JWE, JWK, JWKS | Deferred | 실제 사용 사례가 생기면 JWE/JWKS를 명시적인 optional JOSE 경계로 추가할 수 있습니다. |
-| external provider cache adapter | Deferred | optional cache-backed provider adapter는 #175에서 추적합니다. |
+| provider cache adapter | `NewCachedProvider` 또는 `NewCachedDistributedProvider` | optional trusted `cache.Cache[string,*jwt.Reader]` wrapper로 provider validation을 우회하지 않고 반복 parse/signature verification 비용을 줄입니다. |
 
 ## 사용법
 
@@ -64,6 +65,111 @@ if err != nil {
 }
 role, ok := reader.ClaimString("role")
 ```
+
+## Provider Cache Adapter
+
+같은 token을 반복 parse하는 경로가 hot path라면 local provider에는
+`NewCachedProvider`, distributed provider에는 `NewCachedDistributedProvider`를
+사용합니다. Adapter는 성공한 `*jwt.Reader` 결과만 trusted cache backend에
+저장하고, token digest, parse profile, provider algorithm, key prefix, trust
+scope로 cache key를 만듭니다. Warm hit도 반환 전에 wrapped provider의 현재 key
+상태로 다시 검증합니다.
+
+![JWT provider cache adapter flow](../docs/images/readme-diagrams/jwt-provider-cache-adapter-flow.png)
+
+```go
+provider, err := jwt.NewFixedHMACProvider(
+    jwt.HS256,
+    []byte("0123456789abcdef0123456789abcdef"),
+)
+if err != nil {
+    return err
+}
+readerCache := cache.NewMemory[string, *jwt.Reader]()
+cached, err := jwt.NewCachedProvider(provider, readerCache)
+if err != nil {
+    return err
+}
+
+token, err := cached.Compose(
+    jwt.WithSubject("account-42"),
+    jwt.WithExpiresAfter(time.Hour),
+)
+if err != nil {
+    return err
+}
+reader, err := cached.Parse(token, jwt.WithExpectedSubject("account-42"))
+if err != nil {
+    return err
+}
+```
+
+Distributed provider는 같은 cache contract를 쓰되 repository I/O에 대한 명시적
+context를 유지합니다.
+
+```go
+opCtx := context.Background()
+repo, err := redisjwt.New(redisjwt.Options{
+    Client:    redisClient,
+    Namespace: "service-auth",
+})
+if err != nil {
+    return err
+}
+provider, err := jwt.NewDistributedHMACProvider(opCtx, repo, jwt.HS256)
+if err != nil {
+    return err
+}
+token, err := provider.ComposeContext(opCtx,
+    jwt.WithSubject("account-42"),
+    jwt.WithExpiresAfter(time.Hour),
+)
+if err != nil {
+    return err
+}
+readerCache := cache.NewMemory[string, *jwt.Reader]()
+cached, err := jwt.NewCachedDistributedProvider(provider, readerCache)
+if err != nil {
+    return err
+}
+reader, err := cached.ParseContext(opCtx, token, jwt.WithExpectedSubject("account-42"))
+```
+
+Cache adapter는 성능 helper일 뿐입니다. Auth middleware, session storage, token
+revocation, authorization policy, JWKS, 외부 trust service가 아닙니다.
+`*jwt.Reader` 값은 이미 검증된 token 결과이므로 trusted application-process cache
+backend만 사용하세요. Untrusted shared/external cache backend는 이번 범위에서
+지원하지 않습니다.
+
+`WithParseClock`을 쓰는 parse는 cache를 우회합니다. Cache hit도 cached Reader가
+nil이 아닌지, algorithm이 일치하는지, `kid`가 live key로 해석되는지, key
+algorithm이 여전히 일치하는지 확인합니다. Adapter를 통해 실행한 `ForcedRotate`,
+`ForcedRotateContext`, `DeleteKeyChainsContext`는 wrapped operation 성공 후 설정된
+cache를 clear합니다. `ClearCache` 범위는 supplied cache backend에 한정됩니다.
+`cache.Memory`라면 process-local state만 지웁니다.
+
+운영 메모:
+
+- `WithCacheTrustScope`는 private provider/tenant/key namespace로 다룹니다.
+  tenant, algorithm, key store 사이에서 재사용하지 마세요. 기본 scope는 adapter
+  construction마다 random으로 생성됩니다. 여러 adapter instance가 의도적으로 같은
+  cache namespace를 공유해야 할 때만 stable private scope를 지정하세요.
+- Cache get/set/delete/clear failure에 대한 diagnostics/monitoring을
+  application boundary에 추가하세요. Non-miss cache error와 stale-entry delete
+  failure는 caller-visible입니다.
+- Adapter metrics/log는 parse sentinel(`ErrInvalidToken`, `ErrExpiredToken`,
+  `ErrNotYetValid`, `ErrInvalidKey`, `ErrKeyNotFound`), unknown `kid`, key
+  revalidation failure, timeout/cancellation, cache get/set/delete/clear
+  failure, stale-entry delete failure, rotation/reset 이후 clear failure로
+  분류하세요.
+- `ForcedRotate`, `ForcedRotateContext`, `DeleteKeyChainsContext`가
+  `jwt cache clear failed`를 반환해도 wrapped key operation은 이미 성공했을 수
+  있습니다. Key state를 확인하고 affected process-local cache를 clear/recreate하거나
+  필요한 instance를 restart한 뒤, rollback으로 간주하지 말고 roll forward하세요.
+- Multi-instance deployment에서 process-local cache는 instance마다 따로
+  clear됩니다. 안전성은 global invalidation이 아니라 hit revalidation에서 옵니다.
+- Raw bearer token, cache key, token digest, parse-profile hash, raw-token
+  correlation value를 log에 남기지 마세요.
 
 ## Redis Distributed Provider
 
@@ -104,7 +210,7 @@ reader, err := provider.ParseContext(opCtx, token, jwt.WithExpectedSubject("acco
 if err != nil {
     return err
 }
-if subject, ok := reader.Subject(); !ok || subject != "account-42" {
+if reader.Subject() != "account-42" {
     return errors.New("subject missing")
 }
 ```
