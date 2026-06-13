@@ -1,0 +1,45 @@
+digraph G {
+graph [
+  bgcolor="#F8FAFC",
+  rankdir=LR,
+  pad="0.28",
+  nodesep="0.68",
+  ranksep="0.84",
+  splines=ortho,
+  fontname="Comic Mono",
+  fontsize=15,
+  labelloc=t,
+  label=<<FONT FACE="Architects Daughter" POINT-SIZE="18"><B>probabilistic/redis - Redis Bloom Key Layout</B></FONT><BR/><FONT FACE="Comic Mono" POINT-SIZE="11">static Lua scripts keep bitmap and config checks atomic</FONT>>
+];
+node [
+  shape=box,
+  style="rounded,filled",
+  penwidth=1.8,
+  margin="0.13,0.10",
+  fontname="Comic Mono",
+  fontsize=12,
+  color="#CBD5E1",
+  fillcolor="white",
+  fontcolor="#1E293B"
+];
+edge [
+  color="#475569",
+  penwidth=2.0,
+  arrowsize=0.8,
+  fontname="Comic Mono",
+  fontsize=11,
+  fontcolor="#334155"
+];
+
+client [label=<<FONT FACE="Architects Daughter" POINT-SIZE="18"><B>Client</B></FONT><BR/><FONT FACE="Comic Mono" POINT-SIZE="11">context.Context</FONT><BR/><FONT FACE="Comic Mono" POINT-SIZE="11">caller deadlines</FONT>> fillcolor="#DBEAFE" color="#93C5FD"];
+api [label=<<FONT FACE="Architects Daughter" POINT-SIZE="18"><B>Redis Bloom API</B></FONT><BR/><FONT FACE="Comic Mono" POINT-SIZE="11">Put / MightContain / Clear</FONT><BR/><FONT FACE="Comic Mono" POINT-SIZE="11">BitCount diagnostics</FONT>> fillcolor="#F3E8FF" color="#C4B5FD"];
+lua [label=<<FONT FACE="Architects Daughter" POINT-SIZE="18"><B>Static Lua Scripts</B></FONT><BR/><FONT FACE="Comic Mono" POINT-SIZE="11">fingerprint guard</FONT><BR/><FONT FACE="Comic Mono" POINT-SIZE="11">one EVALSHA</FONT>> fillcolor="#FEF3C7" color="#FCD34D"];
+bits [label=<<FONT FACE="Architects Daughter" POINT-SIZE="18"><B>{namespace}:bits</B></FONT><BR/><FONT FACE="Comic Mono" POINT-SIZE="11">Redis bitmap</FONT><BR/><FONT FACE="Comic Mono" POINT-SIZE="11">GETBIT / SETBIT</FONT>> fillcolor="#DCFCE7" color="#86EFAC"];
+config [label=<<FONT FACE="Architects Daughter" POINT-SIZE="18"><B>{namespace}:config</B></FONT><BR/><FONT FACE="Comic Mono" POINT-SIZE="11">metadata hash</FONT><BR/><FONT FACE="Comic Mono" POINT-SIZE="11">immutable config</FONT>> fillcolor="#D1FAE5" color="#6EE7B7"];
+operator [label=<<FONT FACE="Architects Daughter" POINT-SIZE="18"><B>Operator Runbook</B></FONT><BR/><FONT FACE="Comic Mono" POINT-SIZE="11">admin Clear only</FONT><BR/><FONT FACE="Comic Mono" POINT-SIZE="11">rebuild namespace</FONT>> fillcolor="#FFE4E6" color="#FDA4AF"];
+
+client -> api;
+api -> lua [color="#7C3AED" fontcolor="#5B21B6"];
+lua -> bits [color="#16A34A" fontcolor="#166534"];
+lua -> config [color="#16A34A" fontcolor="#166534"];
+}

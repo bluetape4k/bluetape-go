@@ -7,6 +7,14 @@ and this project uses semantic versioning once the first tag is published.
 
 ## [Unreleased]
 
+### Added
+
+- `probabilistic/redis` package with Redis-backed shared Bloom filters,
+  Cluster-safe hash-tagged key pairs, immutable config metadata, static Lua
+  bitmap operations, cancellation/race/stress coverage, runnable examples, and
+  bilingual README/runbook documentation. Redis-backed Cuckoo and
+  HLL/HyperLogLog constructors remain follow-up scope after #182.
+
 ### Changed
 
 - Documented the #174 JWT compression/JOSE decision: signed JWT compression is
