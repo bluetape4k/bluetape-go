@@ -30,8 +30,8 @@ const colors = {
   error: "#DC2626",
 };
 
-const canvas = { w: 2100, h: 1180 };
-const frame = { x: 48, y: 48, w: 2004, h: 1084 };
+const canvas = { w: 2100, h: 1080 };
+const frame = { x: 48, y: 48, w: 2004, h: 984 };
 const titleGap = 58;
 
 const panels = [
@@ -324,7 +324,7 @@ ${nodes.map(card).join("\n")}
 ${routes.map(route).join("\n")}
 
 <rect x="150" y="962" width="1800" height="48" rx="12" fill="#F8FAFC" stroke="#E2E8F0"/>
-${text(1050, 986, "Evidence: source model from money/provider.go, money/ecb_provider.go, money/exchange_rate.go, and issue #178 acceptance criteria.", "footer", 'text-anchor="middle" dominant-baseline="middle"')}
+${text(1050, 986, "ECB reference rates are informational; callers own accounting, trading, tax, and settlement policy.", "footer", 'text-anchor="middle" dominant-baseline="middle"')}
 </svg>
 `;
   writeFileSync(paths.svg, svg);
