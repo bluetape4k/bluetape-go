@@ -1,7 +1,7 @@
 # Lessons Learned - JWT Provider Cache Adapters (2026-06-14)
 
 **Related issue**: #175
-**Related PR**: N/A - pending creation
+**Related PR**: #230
 **Affected modules**: `jwt`, `jwt/redis`, `testing/concurrency`
 
 ## L1: Cached JWT readers need stale-hit revalidation tests

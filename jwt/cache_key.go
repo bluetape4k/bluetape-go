@@ -19,15 +19,11 @@ func buildCacheProfile(providerAlgorithm Algorithm, cfg cacheConfig, parse parse
 	tokenDigest := sha256.Sum256([]byte(token))
 	profileDigest := sha256.Sum256(cacheProfileBytes(parse))
 	var buf []byte
-	buf = append(buf, cfg.keyPrefix...)
-	buf = append(buf, "|scope:"...)
-	buf = append(buf, cfg.trustScope...)
-	buf = append(buf, "|alg:"...)
-	buf = append(buf, string(providerAlgorithm)...)
-	buf = append(buf, "|token:"...)
-	buf = hex.AppendEncode(buf, tokenDigest[:])
-	buf = append(buf, "|profile:"...)
-	buf = hex.AppendEncode(buf, profileDigest[:])
+	buf = appendField(buf, "prefix", cfg.keyPrefix)
+	buf = appendField(buf, "scope", cfg.trustScope)
+	buf = appendField(buf, "alg", string(providerAlgorithm))
+	buf = appendHexField(buf, "token", tokenDigest[:])
+	buf = appendHexField(buf, "profile", profileDigest[:])
 	return cacheProfile{cacheable: true, key: string(buf)}
 }
 
@@ -49,6 +45,16 @@ func appendField(buf []byte, name string, value string) []byte {
 	buf = strconv.AppendInt(buf, int64(len(value)), 10)
 	buf = append(buf, ':')
 	buf = append(buf, value...)
+	buf = append(buf, ';')
+	return buf
+}
+
+func appendHexField(buf []byte, name string, value []byte) []byte {
+	buf = append(buf, name...)
+	buf = append(buf, '=')
+	buf = strconv.AppendInt(buf, int64(hex.EncodedLen(len(value))), 10)
+	buf = append(buf, ':')
+	buf = hex.AppendEncode(buf, value)
 	buf = append(buf, ';')
 	return buf
 }

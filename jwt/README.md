@@ -74,6 +74,9 @@ of the same token is a hot path. The adapter stores only successful
 `*jwt.Reader` results in a trusted cache backend, keys entries by token digest,
 parse profile, provider algorithm, key prefix, and trust scope, and revalidates
 warm hits against the wrapped provider's current key state before returning.
+Warm-hit revalidation depends on the provider contract that `kid` values are not
+reused for different key material; rotate to a new `kid` instead of replacing
+material under the same `kid`.
 
 ![JWT provider cache adapter flow](../docs/images/readme-diagrams/jwt-provider-cache-adapter-flow.png)
 
@@ -108,7 +111,8 @@ Distributed providers use the same cache contract while preserving explicit
 contexts for repository I/O:
 
 ```go
-opCtx := context.Background()
+opCtx, cancelOp := context.WithTimeout(context.Background(), time.Second)
+defer cancelOp()
 repo, err := redisjwt.New(redisjwt.Options{
     Client:    redisClient,
     Namespace: "service-auth",
@@ -143,7 +147,9 @@ slice because a Reader value is already a validated-token result.
 
 `WithParseClock` bypasses caching. Cache hits still verify that the cached
 Reader is non-nil, the algorithm matches, the `kid` resolves to a live key, and
-the key algorithm still matches. Adapter-owned `ForcedRotate`,
+the key algorithm still matches. They do not re-run token signature validation
+on every warm hit or fingerprint key material, so cache safety relies on
+non-reused `kid` values. Adapter-owned `ForcedRotate`,
 `ForcedRotateContext`, and `DeleteKeyChainsContext` clear the configured cache
 after the wrapped operation succeeds. `ClearCache` affects only the supplied
 cache backend scope; with `cache.Memory`, that means process-local state.

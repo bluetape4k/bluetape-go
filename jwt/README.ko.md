@@ -73,7 +73,9 @@ role, ok := reader.ClaimString("role")
 사용합니다. Adapter는 성공한 `*jwt.Reader` 결과만 trusted cache backend에
 저장하고, token digest, parse profile, provider algorithm, key prefix, trust
 scope로 cache key를 만듭니다. Warm hit도 반환 전에 wrapped provider의 현재 key
-상태로 다시 검증합니다.
+상태로 다시 검증합니다. Warm-hit 재검증은 provider가 서로 다른 key material에
+같은 `kid`를 재사용하지 않는다는 contract에 의존합니다. 같은 `kid` 아래 key
+material을 교체하지 말고 새 `kid`로 rotate하세요.
 
 ![JWT provider cache adapter flow](../docs/images/readme-diagrams/jwt-provider-cache-adapter-flow.png)
 
@@ -108,7 +110,8 @@ Distributed provider는 같은 cache contract를 쓰되 repository I/O에 대한
 context를 유지합니다.
 
 ```go
-opCtx := context.Background()
+opCtx, cancelOp := context.WithTimeout(context.Background(), time.Second)
+defer cancelOp()
 repo, err := redisjwt.New(redisjwt.Options{
     Client:    redisClient,
     Namespace: "service-auth",
@@ -143,7 +146,9 @@ backend만 사용하세요. Untrusted shared/external cache backend는 이번 �
 
 `WithParseClock`을 쓰는 parse는 cache를 우회합니다. Cache hit도 cached Reader가
 nil이 아닌지, algorithm이 일치하는지, `kid`가 live key로 해석되는지, key
-algorithm이 여전히 일치하는지 확인합니다. Adapter를 통해 실행한 `ForcedRotate`,
+algorithm이 여전히 일치하는지 확인합니다. Warm hit마다 token signature validation을
+다시 실행하거나 key material fingerprint를 비교하지는 않으므로 cache safety는
+`kid`를 재사용하지 않는다는 전제에 의존합니다. Adapter를 통해 실행한 `ForcedRotate`,
 `ForcedRotateContext`, `DeleteKeyChainsContext`는 wrapped operation 성공 후 설정된
 cache를 clear합니다. `ClearCache` 범위는 supplied cache backend에 한정됩니다.
 `cache.Memory`라면 process-local state만 지웁니다.
