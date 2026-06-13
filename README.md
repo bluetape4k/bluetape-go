@@ -30,7 +30,8 @@ KSUID, and Snowflake identifiers, the `jwt` package for explicit-algorithm JWT
 signing, parsing, validation, and local key rotation, the `measure` package for
 typed units, measured values, compound units, parsing, formatting, and
 temperature helpers, the `money` package for ISO currency and decimal-backed
-amount operations, and the `probabilistic` package for in-memory Bloom filters.
+amount operations, and the `probabilistic` package family for in-memory and
+Redis-backed Bloom filters.
 
 ## Packages
 
@@ -66,10 +67,11 @@ amount operations, and the `probabilistic` package for in-memory Bloom filters.
 | [`measure`](measure/README.md) | active | Typed units, measured values, compound units, parsing, formatting, and affine temperature helpers. |
 | [`money`](money/README.md) | active | ISO 4217 currency values, decimal-backed money amounts, aggregation, serialization, and caller-supplied exchange-rate conversion. |
 | [`probabilistic`](probabilistic/README.md) | active | Goroutine-safe in-memory Bloom filters with deterministic config, merge compatibility checks, and stress/race coverage. |
+| [`probabilistic/redis`](probabilistic/README.md#redis-backed-bloom-filter) | active | Redis-backed shared Bloom filters with static Lua scripts, immutable config metadata, and operator runbook boundaries. |
 
 Next planned package families include relational SQL helpers, AWS/Floci helper
-examples, text, audit, and graph packages. Redis-backed Bloom/Cuckoo/HyperLogLog
-support is tracked separately for `0.6.1`.
+examples, text, audit, and graph packages. Redis-backed Cuckoo and
+HyperLogLog/HLL support is tracked separately after the Redis Bloom scope.
 
 ## Install
 
@@ -99,7 +101,8 @@ benchmarks live next to each package:
   [`workflow`](workflow/README.md).
 - Portable utilities: [`id`](id/README.md), [`jwt`](jwt/README.md),
   [`measure`](measure/README.md), [`money`](money/README.md), and
-  [`probabilistic`](probabilistic/README.md).
+  [`probabilistic`](probabilistic/README.md), including
+  [`probabilistic/redis`](probabilistic/README.md#redis-backed-bloom-filter).
 
 ## Roadmap
 

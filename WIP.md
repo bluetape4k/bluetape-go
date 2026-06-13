@@ -52,8 +52,9 @@ in-memory Bloom filters.
 - Provider-backed money exchange rates (#178), full locale-to-currency mapping
   (#179), and long-backed FastMoney evaluation (#180) remain deferred outside
   #35.
-- Redis-backed Bloom/Cuckoo/HyperLogLog support (#182) remains deferred outside
-  #36 and is tracked for `0.6.1`.
+- Redis-backed Bloom support (#182) is tracked in `0.6.1`; Redis-backed
+  Cuckoo/HyperLogLog constructors remain separate follow-up scope after the
+  Bloom API.
 
 ## Release Checklist
 
@@ -62,8 +63,8 @@ in-memory Bloom filters.
 2. Keep Flake, Hashids, distributed JWT repositories (#173), future JWE
    compression scope after #174, provider cache adapters (#175),
    provider-backed money exchange rates (#178), full locale mapping (#179),
-   FastMoney evaluation (#180), and Redis-backed probabilistic filters (#182)
-   deferred in docs and issue tracking.
+   FastMoney evaluation (#180), and Redis-backed Cuckoo/HyperLogLog filters
+   after the Bloom subset of #182 deferred in docs and issue tracking.
 3. Local `make ci`, PR review, and GitHub CI passed for the final #36 merge.
 4. Recheck GitHub milestone state, close epic #6, close milestone `0.6.0`, then
    promote `develop` to `main` and tag `v0.6.0`.

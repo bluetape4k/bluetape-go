@@ -1,0 +1,94 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1900" height="1060" viewBox="0 0 1900 1060">
+<defs>
+  <style>
+    @font-face { font-family: 'Architects Daughter'; src: url('/Users/debop/Library/Fonts/ArchitectsDaughter-Regular.ttf'); }
+    @font-face { font-family: 'Comic Mono'; src: url('/Users/debop/Library/Fonts/ComicMono.ttf'); font-weight: 400; }
+    @font-face { font-family: 'Comic Mono'; src: url('/Users/debop/Library/Fonts/ComicMono-Bold.ttf'); font-weight: 700; }
+    .title { font-family: 'Architects Daughter'; font-size: 34px; font-weight: 700; fill: #1E293B; }
+    .subtitle { font-family: 'Comic Mono'; font-size: 16px; fill: #64748B; }
+    .panel-label { font-family: 'Architects Daughter'; font-size: 20px; font-weight: 700; fill: #1E293B; }
+    .card-title { font-family: 'Architects Daughter'; font-size: 22px; font-weight: 700; fill: #1E293B; }
+    .detail { font-family: 'Comic Mono'; font-size: 14px; fill: #1E293B; }
+    .footer { font-family: 'Comic Mono'; font-size: 14px; fill: #1E293B; }
+  </style>
+  <filter id="shadow" x="-10%" y="-10%" width="120%" height="120%">
+    <feDropShadow dx="0" dy="8" stdDeviation="8" flood-color="#94A3B8" flood-opacity="0.22"/>
+  </filter>
+  <marker id="475569" viewBox="0 0 5 5" refX="4.5" refY="2.5" markerWidth="5" markerHeight="5" orient="auto">
+    <path d="M 0.5 0.5 L 4.5 2.5 L 0.5 4.5 Z" fill="#475569"/>
+  </marker>
+<marker id="7C3AED" viewBox="0 0 5 5" refX="4.5" refY="2.5" markerWidth="5" markerHeight="5" orient="auto">
+    <path d="M 0.5 0.5 L 4.5 2.5 L 0.5 4.5 Z" fill="#7C3AED"/>
+  </marker>
+<marker id="16A34A" viewBox="0 0 5 5" refX="4.5" refY="2.5" markerWidth="5" markerHeight="5" orient="auto">
+    <path d="M 0.5 0.5 L 4.5 2.5 L 0.5 4.5 Z" fill="#16A34A"/>
+  </marker>
+<marker id="EF4444" viewBox="0 0 5 5" refX="4.5" refY="2.5" markerWidth="5" markerHeight="5" orient="auto">
+    <path d="M 0.5 0.5 L 4.5 2.5 L 0.5 4.5 Z" fill="#EF4444"/>
+  </marker>
+</defs>
+<rect width="1900" height="1060" fill="#F8FAFC"/>
+<rect x="44" y="44" width="1812" height="972" rx="30" fill="#FFFFFF" stroke="#CBD5E1" stroke-width="2" filter="url(#shadow)"/>
+<text x="950" y="94" class="title" text-anchor="middle" dominant-baseline="middle">probabilistic/redis - Redis Bloom Key Layout</text>
+<text x="950" y="128" class="subtitle" text-anchor="middle" dominant-baseline="middle">Cluster-safe key pair with static Lua checks for shared Bloom filter state</text>
+
+<rect x="90" y="180" width="250" height="470" rx="18" fill="#EFF6FF" stroke="#BFDBFE" stroke-width="2" />
+<text x="215" y="214" class="panel-label" text-anchor="middle" dominant-baseline="middle">Caller</text>
+<rect x="400" y="180" width="420" height="470" rx="18" fill="#F5F3FF" stroke="#DDD6FE" stroke-width="2" />
+<text x="610" y="214" class="panel-label" text-anchor="middle" dominant-baseline="middle">Go Package</text>
+<rect x="880" y="180" width="380" height="470" rx="18" fill="#FFF7ED" stroke="#FED7AA" stroke-width="2" />
+<text x="1070" y="214" class="panel-label" text-anchor="middle" dominant-baseline="middle">Atomic Lua</text>
+<rect x="1320" y="180" width="490" height="470" rx="18" fill="#F0FDF4" stroke="#BBF7D0" stroke-width="2" />
+<text x="1565" y="214" class="panel-label" text-anchor="middle" dominant-baseline="middle">Redis Key Pair</text>
+<rect x="90" y="700" width="1720" height="190" rx="18" fill="#F8FAFC" stroke="#E2E8F0" stroke-width="2" />
+<text x="950" y="734" class="panel-label" text-anchor="middle" dominant-baseline="middle">Operational Boundary</text>
+
+<rect x="125" y="342" width="180" height="128" rx="18" fill="#DBEAFE" stroke="#93C5FD" stroke-width="2" />
+<text x="215" y="385" class="card-title" text-anchor="middle" dominant-baseline="middle">Client</text>
+<text x="215" y="415" class="detail" text-anchor="middle" dominant-baseline="middle">context.Context</text>
+<text x="215" y="437" class="detail" text-anchor="middle" dominant-baseline="middle">caller deadlines</text>
+<rect x="440" y="310" width="300" height="160" rx="18" fill="#F3E8FF" stroke="#C4B5FD" stroke-width="2" />
+<text x="590" y="358" class="card-title" text-anchor="middle" dominant-baseline="middle">Redis Bloom API</text>
+<text x="590" y="388" class="detail" text-anchor="middle" dominant-baseline="middle">probabilistic/redis</text>
+<text x="590" y="410" class="detail" text-anchor="middle" dominant-baseline="middle">Put / MightContain / Clear</text>
+<text x="590" y="432" class="detail" text-anchor="middle" dominant-baseline="middle">BitCount diagnostics</text>
+<rect x="930" y="302" width="280" height="176" rx="18" fill="#FEF3C7" stroke="#FCD34D" stroke-width="2" />
+<text x="1070" y="358" class="card-title" text-anchor="middle" dominant-baseline="middle">Static Lua Scripts</text>
+<text x="1070" y="388" class="detail" text-anchor="middle" dominant-baseline="middle">metadata fingerprint guard</text>
+<text x="1070" y="410" class="detail" text-anchor="middle" dominant-baseline="middle">one EVALSHA round trip</text>
+<text x="1070" y="432" class="detail" text-anchor="middle" dominant-baseline="middle">KEYS + ARGV only</text>
+<rect x="1375" y="254" width="360" height="132" rx="18" fill="#DCFCE7" stroke="#86EFAC" stroke-width="2" />
+<text x="1555" y="288" class="card-title" text-anchor="middle" dominant-baseline="middle">{namespace}:bits</text>
+<text x="1555" y="318" class="detail" text-anchor="middle" dominant-baseline="middle">Redis bitmap</text>
+<text x="1555" y="340" class="detail" text-anchor="middle" dominant-baseline="middle">GETBIT / SETBIT / BITCOUNT</text>
+<text x="1555" y="362" class="detail" text-anchor="middle" dominant-baseline="middle">no TTL by default</text>
+<rect x="1375" y="440" width="360" height="132" rx="18" fill="#D1FAE5" stroke="#6EE7B7" stroke-width="2" />
+<text x="1555" y="474" class="card-title" text-anchor="middle" dominant-baseline="middle">{namespace}:config</text>
+<text x="1555" y="504" class="detail" text-anchor="middle" dominant-baseline="middle">immutable metadata hash</text>
+<text x="1555" y="526" class="detail" text-anchor="middle" dominant-baseline="middle">ErrConfigMismatch</text>
+<text x="1555" y="548" class="detail" text-anchor="middle" dominant-baseline="middle">ErrConfigCorrupt</text>
+<rect x="130" y="752" width="360" height="100" rx="18" fill="#E0F2FE" stroke="#7DD3FC" stroke-width="2" />
+<text x="310" y="781" class="card-title" text-anchor="middle" dominant-baseline="middle">Namespace Guard</text>
+<text x="310" y="811" class="detail" text-anchor="middle" dominant-baseline="middle">no raw user IDs, emails, tokens</text>
+<text x="310" y="833" class="detail" text-anchor="middle" dominant-baseline="middle">Redis Cluster hash tag</text>
+<rect x="585" y="752" width="360" height="100" rx="18" fill="#FFE4E6" stroke="#FDA4AF" stroke-width="2" />
+<text x="765" y="781" class="card-title" text-anchor="middle" dominant-baseline="middle">Operator Runbook</text>
+<text x="765" y="811" class="detail" text-anchor="middle" dominant-baseline="middle">Clear requires approval</text>
+<text x="765" y="833" class="detail" text-anchor="middle" dominant-baseline="middle">rebuild into new namespace</text>
+<rect x="1040" y="752" width="320" height="100" rx="18" fill="#FEE2E2" stroke="#FCA5A5" stroke-width="2" />
+<text x="1200" y="781" class="card-title" text-anchor="middle" dominant-baseline="middle">Redis Security</text>
+<text x="1200" y="811" class="detail" text-anchor="middle" dominant-baseline="middle">TLS / AUTH / ACL</text>
+<text x="1200" y="833" class="detail" text-anchor="middle" dominant-baseline="middle">minimum command set</text>
+<rect x="1455" y="752" width="310" height="100" rx="18" fill="#F0FDF4" stroke="#BBF7D0" stroke-width="2" />
+<text x="1610" y="781" class="card-title" text-anchor="middle" dominant-baseline="middle">Diagnostics</text>
+<text x="1610" y="811" class="detail" text-anchor="middle" dominant-baseline="middle">HGETALL / STRLEN / BITCOUNT</text>
+<text x="1610" y="833" class="detail" text-anchor="middle" dominant-baseline="middle">PTTL confirms no expiry</text>
+
+<path d="M 305 406 L 440 406" fill="none" stroke="#475569" stroke-width="3" marker-end="url(#475569)"/>
+<path d="M 740 390 L 930 390" fill="none" stroke="#7C3AED" stroke-width="3" marker-end="url(#7C3AED)"/>
+<path d="M 1210 350 L 1375 350" fill="none" stroke="#16A34A" stroke-width="3" marker-end="url(#16A34A)"/>
+<path d="M 1210 430 L 1290 430 L 1290 506 L 1375 506" fill="none" stroke="#16A34A" stroke-width="3" marker-end="url(#16A34A)"/>
+
+<rect x="125" y="930" width="1650" height="42" rx="12" fill="#F8FAFC" stroke="#E2E8F0"/>
+<text x="950" y="951" class="footer" text-anchor="middle" dominant-baseline="middle">Evidence: DOT/plain/sketch PNG retained; final PNG uses decorated frame, layer bands, 5x5 arrows, and source-grounded labels.</text>
+</svg>
