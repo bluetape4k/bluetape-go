@@ -124,6 +124,9 @@ func (p *DistributedProvider) FindKeyChainContext(ctx context.Context, kid strin
 	if err := p.validateReady(ctx); err != nil {
 		return nil, err
 	}
+	if err := validateLookupKID(kid); err != nil {
+		return nil, err
+	}
 	key, err := p.repo.Find(ctx, kid, p.provider.now())
 	if err != nil {
 		return nil, err

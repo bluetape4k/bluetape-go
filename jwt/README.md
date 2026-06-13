@@ -8,7 +8,15 @@ rotating JSON Web Tokens with explicit algorithms and repo-owned errors.
 ## Import
 
 ```go
-import "github.com/bluetape4k/bluetape-go/jwt"
+import (
+    "context"
+    "errors"
+    "time"
+
+    "github.com/bluetape4k/bluetape-go/jwt"
+    redisjwt "github.com/bluetape4k/bluetape-go/jwt/redis"
+    "github.com/redis/go-redis/v9"
+)
 ```
 
 ## Selection Guide
@@ -93,6 +101,12 @@ if err != nil {
     return err
 }
 reader, err := provider.ParseContext(opCtx, token, jwt.WithExpectedSubject("account-42"))
+if err != nil {
+    return err
+}
+if subject, ok := reader.Subject(); !ok || subject != "account-42" {
+    return errors.New("subject missing")
+}
 ```
 
 All distributed operations require an explicit `context.Context`:
@@ -105,6 +119,26 @@ If `redisjwt.Options.KeyTTL` is configured, it must cover the provider key
 lifetime plus `RetentionLeeway`; otherwise bootstrap and rotation reject the
 candidate key to avoid losing retained signing keys before token validation
 leeway expires.
+
+The provider default key lifetime is 365 days. When you shorten it, configure
+the provider and Redis repository together:
+
+```go
+keyTTL := 24 * time.Hour
+retention := 10 * time.Minute
+
+repo, err := redisjwt.New(redisjwt.Options{
+    Client:          client,
+    Namespace:       "service-auth",
+    Capacity:        8,
+    KeyTTL:          keyTTL + retention,
+    RetentionLeeway: retention,
+})
+if err != nil {
+    return err
+}
+provider, err := jwt.NewDistributedHMACProvider(setupCtx, repo, jwt.HS256, jwt.WithKeyTTL(keyTTL))
+```
 
 `RotateContext` returns the current live key when one exists. If the current key
 is missing or expired, Redis performs an atomic compare-and-store so concurrent

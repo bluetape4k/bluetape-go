@@ -390,6 +390,28 @@ func TestDistributedProviderParseRejectsInvalidKIDBeforeRepositoryLookup(t *test
 	}
 }
 
+func TestDistributedProviderFindRejectsInvalidKIDBeforeRepositoryLookup(t *testing.T) {
+	now := time.Date(2026, 6, 12, 10, 0, 0, 0, time.UTC)
+	repo := &fakeDistributedRepository{}
+	provider, err := NewDistributedHMACProvider(context.Background(), repo, HS256,
+		WithClock(func() time.Time { return now }),
+		WithKeyIDGenerator(staticKID("known")),
+		WithEntropy(repeatingReader('w')),
+	)
+	if err != nil {
+		t.Fatalf("constructor error = %v", err)
+	}
+
+	for _, kid := range []string{"", strings.Repeat("a", maxKIDBytes+1), "bad\nkid"} {
+		if _, err := provider.FindKeyChainContext(context.Background(), kid); !errors.Is(err, ErrKeyNotFound) {
+			t.Fatalf("FindKeyChainContext(%q) error = %v, want ErrKeyNotFound", kid, err)
+		}
+	}
+	if repo.findHits != 0 {
+		t.Fatalf("repo Find calls = %d, want 0 for invalid kid", repo.findHits)
+	}
+}
+
 func TestDistributedProviderParseExpiredRetainedKeyReturnsInvalidKey(t *testing.T) {
 	now := time.Date(2026, 6, 12, 10, 0, 0, 0, time.UTC)
 	key, err := newHMACKeyChain("expired", HS256, bytesOf('e', 32), now.Add(-2*time.Hour), time.Hour)
