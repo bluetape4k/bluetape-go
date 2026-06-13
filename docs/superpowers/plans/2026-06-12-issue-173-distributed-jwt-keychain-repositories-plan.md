@@ -1131,7 +1131,7 @@ Tested: go test -p 1 -count=1 ./jwt ./jwt/redis; go test -race -p 1 -count=1 ./j
 Not-tested: Production Redis ACL/TLS deployment; MongoDB backend
 ```
 
-- [ ] **Step 2: Push and create PR**
+- [x] **Step 2: Push and create PR**
 
 Run:
 
@@ -1144,7 +1144,7 @@ gh pr view --json url,number,title,body,assignees,labels,milestone,state
 
 PR body must include `Fixes #173`, link #198 as follow-up, summarize validation, and end with `## DoD Status`.
 
-- [ ] **Step 3: Run Step 7-R as 6 independent subagent lanes plus main integration**
+- [x] **Step 3: Run Step 7-R as 6 independent subagent lanes plus main integration**
 
 Use the same fixed lane split:
 
@@ -1157,7 +1157,7 @@ Use the same fixed lane split:
 
 Main session integrates PR metadata, live PR body, issue linkage, CI state, docs/release evidence, and final P0/P1 verdict. Do not spawn a seventh subagent for integration.
 
-- [ ] **Step 4: Verify PR and CI**
+- [x] **Step 4: Verify PR and CI**
 
 Run:
 
@@ -1170,7 +1170,7 @@ rg -n "## DoD Status" /tmp/issue-173-pr-body.md
 
 Expected: PR metadata matches issue #173 where applicable, PR body has final `## DoD Status`, checks are passing or exact failures are recorded.
 
-- [ ] **Step 5: Stop at merge gate**
+- [x] **Step 5: Stop at merge gate**
 
 Do not run `gh pr merge` until the user explicitly approves merge after reviewing the PR and evidence.
 

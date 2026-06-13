@@ -1,7 +1,7 @@
 # Lessons Learned — Distributed JWT Redis Key Rotation (2026-06-13)
 
 **Related issue**: #173
-**Related PR**: pending
+**Related PR**: #226
 **Affected modules**: `jwt`, `jwt/redis`
 
 ## L1: Distributed JWT storage is a signing authority boundary

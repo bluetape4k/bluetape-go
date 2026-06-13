@@ -8,7 +8,15 @@
 ## Import
 
 ```go
-import "github.com/bluetape4k/bluetape-go/jwt"
+import (
+    "context"
+    "errors"
+    "time"
+
+    "github.com/bluetape4k/bluetape-go/jwt"
+    redisjwt "github.com/bluetape4k/bluetape-go/jwt/redis"
+    "github.com/redis/go-redis/v9"
+)
 ```
 
 ## 선택 가이드
@@ -93,6 +101,12 @@ if err != nil {
     return err
 }
 reader, err := provider.ParseContext(opCtx, token, jwt.WithExpectedSubject("account-42"))
+if err != nil {
+    return err
+}
+if subject, ok := reader.Subject(); !ok || subject != "account-42" {
+    return errors.New("subject missing")
+}
 ```
 
 Distributed operation은 모두 명시적인 `context.Context`를 요구합니다:
@@ -105,6 +119,26 @@ Distributed operation은 모두 명시적인 `context.Context`를 요구합니�
 `RetentionLeeway`를 모두 포함해야 합니다. 그렇지 않으면 token validation leeway가
 끝나기 전에 retained signing key가 사라지는 상황을 막기 위해 bootstrap과 rotation이
 candidate key를 거부합니다.
+
+Provider의 기본 key lifetime은 365일입니다. 이 값을 줄일 때는 provider와 Redis
+repository를 함께 설정합니다.
+
+```go
+keyTTL := 24 * time.Hour
+retention := 10 * time.Minute
+
+repo, err := redisjwt.New(redisjwt.Options{
+    Client:          client,
+    Namespace:       "service-auth",
+    Capacity:        8,
+    KeyTTL:          keyTTL + retention,
+    RetentionLeeway: retention,
+})
+if err != nil {
+    return err
+}
+provider, err := jwt.NewDistributedHMACProvider(setupCtx, repo, jwt.HS256, jwt.WithKeyTTL(keyTTL))
+```
 
 `RotateContext`는 살아 있는 current key가 있으면 그대로 반환합니다. Current key가
 없거나 만료된 경우 Redis atomic compare-and-store로 concurrent instance가 하나의
