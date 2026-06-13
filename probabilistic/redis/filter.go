@@ -2,8 +2,11 @@ package redisbloom
 
 import (
 	"context"
+	"math"
+	"strconv"
 
 	"github.com/bluetape4k/bluetape-go/probabilistic"
+	"github.com/bluetape4k/bluetape-go/probabilistic/internal/bloomhash"
 	"github.com/redis/go-redis/v9"
 )
 
@@ -19,6 +22,13 @@ type BloomFilter[T any] interface {
 	BitSize() uint64
 	HashFunctionCount() uint64
 	HasherKey() string
+	BitCount(ctx context.Context) (uint64, error)
+	IsEmpty(ctx context.Context) (bool, error)
+	MightContain(ctx context.Context, value T) (bool, error)
+	Put(ctx context.Context, value T) (bool, error)
+	ApproximateElementCount(ctx context.Context) (uint64, error)
+	ExpectedFPP(ctx context.Context) (float64, error)
+	Clear(ctx context.Context) error
 }
 
 type bloomFilter[T any] struct {
@@ -100,4 +110,105 @@ func (f *bloomFilter[T]) HashFunctionCount() uint64 {
 
 func (f *bloomFilter[T]) HasherKey() string {
 	return f.hasher.Key()
+}
+
+func (f *bloomFilter[T]) offsets(value T) ([]any, error) {
+	bytes, err := f.hasher.Bytes(value)
+	if err != nil {
+		return nil, err
+	}
+	indexes := bloomhash.Indexes(bytes, f.config.HashFunctionCount(), f.config.BitSize())
+	args := make([]any, 0, len(indexes)+1)
+	args = append(args, f.meta.fingerprint)
+	for _, index := range indexes {
+		args = append(args, strconv.FormatUint(index, 10))
+	}
+	return args, nil
+}
+
+func (f *bloomFilter[T]) Put(ctx context.Context, value T) (bool, error) {
+	args, err := f.offsets(value)
+	if err != nil {
+		return false, err
+	}
+	result, err := putScript.Run(normalizeContext(ctx), f.client, []string{f.keys.bits, f.keys.config}, args...).Int()
+	if err != nil {
+		return false, mapScriptError("put", f.keys.redactedID, err)
+	}
+	return result == 1, nil
+}
+
+func (f *bloomFilter[T]) MightContain(ctx context.Context, value T) (bool, error) {
+	args, err := f.offsets(value)
+	if err != nil {
+		return false, err
+	}
+	result, err := mightContainScript.Run(normalizeContext(ctx), f.client, []string{f.keys.bits, f.keys.config}, args...).Int()
+	if err != nil {
+		return false, mapScriptError("might contain", f.keys.redactedID, err)
+	}
+	return result == 1, nil
+}
+
+func (f *bloomFilter[T]) Clear(ctx context.Context) error {
+	if err := clearScript.Run(normalizeContext(ctx), f.client, []string{f.keys.bits, f.keys.config}, f.meta.fingerprint).Err(); err != nil {
+		return mapScriptError("clear", f.keys.redactedID, err)
+	}
+	return nil
+}
+
+func (f *bloomFilter[T]) BitCount(ctx context.Context) (uint64, error) {
+	lastByte := strconv.FormatUint((f.config.BitSize()-1)/8, 10)
+	result, err := bitCountScript.Run(normalizeContext(ctx), f.client, []string{f.keys.bits, f.keys.config}, f.meta.fingerprint, lastByte).Int64()
+	if err != nil {
+		return 0, mapScriptError("bit count", f.keys.redactedID, err)
+	}
+	return uint64(result), nil
+}
+
+func (f *bloomFilter[T]) IsEmpty(ctx context.Context) (bool, error) {
+	result, err := isEmptyScript.Run(normalizeContext(ctx), f.client, []string{f.keys.bits, f.keys.config}, f.meta.fingerprint).Int64()
+	if err != nil {
+		return false, mapScriptError("is empty", f.keys.redactedID, err)
+	}
+	return result == 0, nil
+}
+
+func (f *bloomFilter[T]) ApproximateElementCount(ctx context.Context) (uint64, error) {
+	bitCount, err := f.BitCount(ctx)
+	if err != nil {
+		return 0, err
+	}
+	return approximateElementCount(bitCount, f.config.BitSize(), f.config.HashFunctionCount()), nil
+}
+
+func (f *bloomFilter[T]) ExpectedFPP(ctx context.Context) (float64, error) {
+	bitCount, err := f.BitCount(ctx)
+	if err != nil {
+		return 0, err
+	}
+	return expectedFPP(bitCount, f.config.BitSize(), f.config.HashFunctionCount()), nil
+}
+
+func expectedFPP(bitCount uint64, bitSize uint64, hashFunctionCount uint64) float64 {
+	if bitCount == 0 || bitSize == 0 || hashFunctionCount == 0 {
+		return 0
+	}
+	fillRatio := float64(bitCount) / float64(bitSize)
+	return math.Pow(fillRatio, float64(hashFunctionCount))
+}
+
+func approximateElementCount(bitCount uint64, bitSize uint64, hashFunctionCount uint64) uint64 {
+	if bitCount == 0 || bitSize == 0 || hashFunctionCount == 0 {
+		return 0
+	}
+	if bitCount >= bitSize {
+		return math.MaxUint64
+	}
+	fraction := 1 - float64(bitCount)/float64(bitSize)
+	estimate := math.Ceil(-(float64(bitSize) / float64(hashFunctionCount)) * math.Log(fraction))
+	if math.IsInf(estimate, 0) || math.IsNaN(estimate) || estimate >= float64(math.MaxUint64) {
+		return math.MaxUint64
+	}
+	return uint64(estimate)
 }
