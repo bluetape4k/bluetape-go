@@ -3,7 +3,10 @@
 [English](README.md) | [한국어](README.ko.md)
 
 `money`는 ISO 4217 통화, decimal-backed 금액, 합산, 직렬화, caller-supplied
-환율 변환을 위한 Go-native value API를 제공합니다.
+환율 변환, context-aware provider-backed 환율 변환을 위한 Go-native value API를
+제공합니다.
+
+![money exchange-rate provider flow](../docs/images/readme-diagrams/money-exchange-rate-provider-flow.png)
 
 ## Import
 
@@ -20,7 +23,8 @@ import "github.com/bluetape4k/bluetape-go/money"
 | major-unit 정수 입력 | `NewFromInt64` | `NewFromInt64(12, USD)`는 `USD 12.00`, `NewFromInt64(12, KRW)`는 `KRW 12`입니다. |
 | minor-unit 정수 입력 | `NewMinor` | `NewMinor(12, USD)`는 `USD 0.12`, `NewMinor(12, JPY)`는 `JPY 12`입니다. |
 | 합산 | `Sum` | 입력이 비어 있으면 요청한 통화의 valid zero amount를 반환합니다. |
-| 환율 변환 | `NewExchangeRate`와 `Convert` | 환율은 caller가 제공합니다. provider-backed 조회는 #178에서 진행합니다. |
+| caller-supplied 환율 변환 | `NewExchangeRate`와 `Convert` | 순수 value 경로입니다. network, cache, provider IO를 수행하지 않습니다. |
+| provider-backed 환율 변환 | `ExchangeRateProvider`, `NewECBProvider`, `ConvertWithProvider` | source, freshness, stale fallback, refresh failure metadata를 드러내는 context-aware provider 경로입니다. |
 | 전체 locale mapping | Deferred | 현재는 제한된 common locale lookup만 제공하며 전체 mapping은 #179에서 추적합니다. |
 | Long-backed FastMoney | Deferred | benchmark 기반 평가는 #180에서 추적합니다. |
 
@@ -43,11 +47,59 @@ if err != nil {
 payload, err := json.Marshal(total)
 ```
 
+Provider-backed 환율 변환은 IO를 명시적으로 다룹니다.
+
+```go
+provider, err := money.NewECBProvider(money.ECBProviderOptions{
+    Timeout:           3 * time.Second,
+    CacheTTL:          24 * time.Hour,
+    MaxStale:          72 * time.Hour,
+    AllowStaleOnError: true,
+})
+if err != nil {
+    return err
+}
+
+usd, err := money.New("2.00", money.USD)
+if err != nil {
+    return err
+}
+krw, quote, err := money.ConvertWithProvider(ctx, usd, money.KRW, provider)
+if err != nil {
+    return err
+}
+if quote.Stale {
+    log.Printf("using stale %s quote observed at %s: %v",
+        quote.Source,
+        quote.ObservedAt.Format(time.DateOnly),
+        quote.RefreshError,
+    )
+}
+_ = krw
+```
+
 ## 동작
 
 - `money`는 전체 회계 시스템이 아닙니다. Ledger, posting rule, tax policy,
-  financial calendar, provider-backed FX lookup, jurisdiction-specific rounding
-  policy는 제공하지 않습니다.
+  financial calendar, trading rate, settlement rule, jurisdiction-specific
+  rounding policy는 제공하지 않습니다.
+- `NewExchangeRate`와 `Convert`는 순수 value API로 유지됩니다. 이 경로는
+  network나 cache IO를 수행하지 않습니다.
+- `NewECBProvider`는 ECB daily XML endpoint의 euro reference rate를
+  사용합니다. ECB reference rate는 정보 제공용입니다. Trading, accounting,
+  ledger, tax, settlement 권위로 취급하지 마십시오.
+- `ConvertWithProvider`는 `context.Context`를 받고 변환된 `Money`와 사용한
+  `ExchangeRateQuote`를 함께 반환합니다. Quote는 `Source`, `ObservedAt`,
+  `FetchedAt`, `ExpiresAt`, `Stale`, `RefreshError`를 드러냅니다.
+- ECB rate는 EUR 기준입니다. Provider는 같은 snapshot에서 EUR direct rate,
+  reverse rate, non-EUR cross rate를 계산하며 float math를 사용하지 않습니다.
+- 주말과 TARGET 휴장일에는 최신 ECB observation이 local fetch time보다 오래될 수
+  있습니다. Caller의 risk tolerance에 맞춰 `CacheTTL`, `MaxStale`,
+  `AllowStaleOnError`를 설정하십시오.
+- Provider failure는 caller에게 보입니다. Network, HTTP, XML, stale,
+  unsupported currency, cancellation, deadline failure는 `errors.Is`로 확인할 수
+  있는 sentinel error를 보존합니다.
+- IMF-backed 환율은 #231, Bloomberg-backed 환율은 #232에서 후속으로 추적합니다.
 - 정밀도 모델은 `github.com/govalues/money`와 `github.com/govalues/decimal`에
   기반합니다. 값은 immutable decimal-backed value지만 무제한 arbitrary precision
   숫자는 아닙니다.

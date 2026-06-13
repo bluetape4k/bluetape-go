@@ -1,0 +1,52 @@
+digraph G {
+graph [
+  bgcolor="#F8FAFC",
+  rankdir=LR,
+  pad="0.28",
+  nodesep="0.68",
+  ranksep="0.84",
+  splines=ortho,
+  fontname="Comic Mono",
+  fontsize=15,
+  labelloc=t,
+  label=<<FONT FACE="Architects Daughter" POINT-SIZE="18"><B>money - Exchange-Rate Provider Flow</B></FONT><BR/><FONT FACE="Comic Mono" POINT-SIZE="11">provider IO is explicit; value conversion remains pure</FONT>>
+];
+node [
+  shape=box,
+  style="rounded,filled",
+  penwidth=1.8,
+  margin="0.13,0.10",
+  fontname="Comic Mono",
+  fontsize=12,
+  color="#CBD5E1",
+  fillcolor="white",
+  fontcolor="#1E293B"
+];
+edge [
+  color="#475569",
+  penwidth=2.0,
+  arrowsize=0.8,
+  fontname="Comic Mono",
+  fontsize=11,
+  fontcolor="#334155"
+];
+
+caller [label=<<FONT FACE="Architects Daughter" POINT-SIZE="18"><B>Caller</B></FONT><BR/><FONT FACE="Comic Mono" POINT-SIZE="11">ctx + Money</FONT>> fillcolor="#DBEAFE" color="#93C5FD"];
+convert [label=<<FONT FACE="Architects Daughter" POINT-SIZE="18"><B>ConvertWithProvider</B></FONT><BR/><FONT FACE="Comic Mono" POINT-SIZE="11">Money + target</FONT>> fillcolor="#FFEDD5" color="#FDBA74"];
+provider [label=<<FONT FACE="Architects Daughter" POINT-SIZE="18"><B>ExchangeRateProvider</B></FONT><BR/><FONT FACE="Comic Mono" POINT-SIZE="11">Rate(ctx, base, target)</FONT>> fillcolor="#EDE9FE" color="#C4B5FD"];
+cache [label=<<FONT FACE="Architects Daughter" POINT-SIZE="18"><B>Snapshot Cache</B></FONT><BR/><FONT FACE="Comic Mono" POINT-SIZE="11">fresh or stale</FONT>> fillcolor="#DCFCE7" color="#86EFAC"];
+ecb [label=<<FONT FACE="Architects Daughter" POINT-SIZE="18"><B>ECB Daily XML</B></FONT><BR/><FONT FACE="Comic Mono" POINT-SIZE="11">EUR-base rates</FONT>> fillcolor="#F3E8FF" color="#C4B5FD"];
+core [label=<<FONT FACE="Architects Daughter" POINT-SIZE="18"><B>Value Core</B></FONT><BR/><FONT FACE="Comic Mono" POINT-SIZE="11">NewExchangeRate + Convert</FONT>> fillcolor="#FED7AA" color="#FDBA74"];
+result [label=<<FONT FACE="Architects Daughter" POINT-SIZE="18"><B>Result</B></FONT><BR/><FONT FACE="Comic Mono" POINT-SIZE="11">Money + Quote</FONT>> fillcolor="#DCFCE7" color="#86EFAC"];
+errors [label=<<FONT FACE="Architects Daughter" POINT-SIZE="18"><B>Typed Errors</B></FONT><BR/><FONT FACE="Comic Mono" POINT-SIZE="11">network, stale, unsupported</FONT>> fillcolor="#FEE2E2" color="#FCA5A5"];
+
+caller -> convert;
+convert -> provider [color="#2563EB"];
+provider -> cache [color="#16A34A"];
+cache -> provider [color="#16A34A"];
+provider -> ecb [color="#7C3AED"];
+ecb -> cache [color="#7C3AED"];
+provider -> core [color="#EA580C"];
+core -> result [color="#EA580C"];
+provider -> errors [color="#DC2626"];
+}

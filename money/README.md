@@ -3,8 +3,10 @@
 [English](README.md) | [한국어](README.ko.md)
 
 `money` provides Go-native value APIs for ISO 4217 currencies, decimal-backed
-money amounts, aggregation, serialization, and caller-supplied exchange-rate
-conversion.
+money amounts, aggregation, serialization, caller-supplied exchange-rate
+conversion, and context-aware provider-backed conversion.
+
+![money exchange-rate provider flow](../docs/images/readme-diagrams/money-exchange-rate-provider-flow.png)
 
 ## Import
 
@@ -21,7 +23,8 @@ import "github.com/bluetape4k/bluetape-go/money"
 | Major-unit integer input | `NewFromInt64` | `NewFromInt64(12, USD)` is `USD 12.00`; `NewFromInt64(12, KRW)` is `KRW 12`. |
 | Minor-unit integer input | `NewMinor` | `NewMinor(12, USD)` is `USD 0.12`; `NewMinor(12, JPY)` is `JPY 12`. |
 | Aggregation | `Sum` | Empty input returns the zero amount for the requested currency. |
-| Exchange conversion | `NewExchangeRate` and `Convert` | Rates are caller-supplied; provider-backed fetching is deferred to #178. |
+| Caller-supplied exchange conversion | `NewExchangeRate` and `Convert` | Pure value path. No network, cache, or provider IO. |
+| Provider-backed exchange conversion | `ExchangeRateProvider`, `NewECBProvider`, and `ConvertWithProvider` | Context-aware provider path with source, freshness, stale fallback, and refresh failure metadata. |
 | Full locale mapping | Deferred | Limited common locale lookup exists now; full mapping is tracked in #179. |
 | Long-backed FastMoney | Deferred | Benchmark-driven evaluation is tracked in #180. |
 
@@ -44,11 +47,60 @@ if err != nil {
 payload, err := json.Marshal(total)
 ```
 
+Provider-backed exchange conversion keeps IO explicit:
+
+```go
+provider, err := money.NewECBProvider(money.ECBProviderOptions{
+    Timeout:           3 * time.Second,
+    CacheTTL:          24 * time.Hour,
+    MaxStale:          72 * time.Hour,
+    AllowStaleOnError: true,
+})
+if err != nil {
+    return err
+}
+
+usd, err := money.New("2.00", money.USD)
+if err != nil {
+    return err
+}
+krw, quote, err := money.ConvertWithProvider(ctx, usd, money.KRW, provider)
+if err != nil {
+    return err
+}
+if quote.Stale {
+    log.Printf("using stale %s quote observed at %s: %v",
+        quote.Source,
+        quote.ObservedAt.Format(time.DateOnly),
+        quote.RefreshError,
+    )
+}
+_ = krw
+```
+
 ## Behavior
 
 - `money` is not a full accounting system. It does not provide ledgers,
-  posting rules, tax policy, financial calendars, provider-backed FX lookup, or
-  jurisdiction-specific rounding policies.
+  posting rules, tax policy, financial calendars, trading rates, settlement
+  rules, or jurisdiction-specific rounding policies.
+- `NewExchangeRate` and `Convert` remain pure value APIs. They never perform
+  network or cache IO.
+- `NewECBProvider` uses ECB euro reference rates from the daily XML endpoint.
+  ECB reference rates are informational. Do not treat them as a trading,
+  accounting, ledger, tax, or settlement authority.
+- `ConvertWithProvider` is context-aware and returns the converted `Money`
+  plus the `ExchangeRateQuote` used. The quote exposes `Source`, `ObservedAt`,
+  `FetchedAt`, `ExpiresAt`, `Stale`, and `RefreshError`.
+- ECB rates are EUR-base. The provider computes EUR direct rates, reverse
+  rates, and non-EUR cross rates from the same snapshot without float math.
+- Weekends and TARGET closing days can leave the latest ECB observation older
+  than the local fetch time. Configure `CacheTTL`, `MaxStale`, and
+  `AllowStaleOnError` according to your caller's risk tolerance.
+- Provider failures are caller-visible. Network, HTTP, XML, stale, unsupported
+  currency, cancellation, and deadline failures preserve sentinel errors for
+  `errors.Is` checks.
+- IMF-backed exchange rates are tracked in #231. Bloomberg-backed exchange
+  rates are tracked in #232.
 - The precision model is based on `github.com/govalues/money` and
   `github.com/govalues/decimal`. Values are immutable and decimal-backed, but
   they are not arbitrary-precision unbounded numbers.

@@ -1,12 +1,25 @@
 package money_test
 
 import (
+	"context"
 	"encoding/json"
 	"errors"
 	"fmt"
+	"time"
 
 	"github.com/bluetape4k/bluetape-go/money"
 )
+
+type exampleRateProvider struct {
+	quote money.ExchangeRateQuote
+}
+
+func (p exampleRateProvider) Rate(ctx context.Context, _ money.Currency, _ money.Currency) (money.ExchangeRateQuote, error) {
+	if err := ctx.Err(); err != nil {
+		return money.ExchangeRateQuote{}, err
+	}
+	return p.quote, nil
+}
 
 func ExampleNew() {
 	price, _ := money.New("12.34", money.USD)
@@ -80,4 +93,28 @@ func ExampleConvert() {
 
 	// Output:
 	// KRW 2600
+}
+
+func ExampleConvertWithProvider() {
+	rate, _ := money.NewExchangeRate(money.USD, money.KRW, "1300")
+	observedAt := time.Date(2026, 6, 12, 0, 0, 0, 0, time.UTC)
+	provider := exampleRateProvider{
+		quote: money.ExchangeRateQuote{
+			Rate:       rate,
+			Source:     money.ECBSource,
+			ObservedAt: observedAt,
+			FetchedAt:  observedAt.Add(16 * time.Hour),
+			ExpiresAt:  observedAt.Add(40 * time.Hour),
+		},
+	}
+
+	usd, _ := money.New("2.00", money.USD)
+	krw, quote, _ := money.ConvertWithProvider(context.Background(), usd, money.KRW, provider)
+
+	fmt.Println(krw)
+	fmt.Println(quote.Source)
+
+	// Output:
+	// KRW 2600
+	// ECB
 }
