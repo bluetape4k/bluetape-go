@@ -8,6 +8,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/bluetape4k/bluetape-go/cache"
 	"github.com/redis/go-redis/v9"
 	"github.com/testcontainers/testcontainers-go"
 	tcredis "github.com/testcontainers/testcontainers-go/modules/redis"
@@ -169,6 +170,49 @@ func BenchmarkRedisDistributedProviderParseContext(b *testing.B) {
 			b.Fatalf("ParseContext() error = %v", err)
 		}
 		if value, ok := reader.ClaimString("bench"); !ok || value != "parse" {
+			b.Fatal("ParseContext() claim mismatch")
+		}
+	}
+}
+
+func BenchmarkRedisCachedDistributedProviderParseContextWarmHit(b *testing.B) {
+	ctx := context.Background()
+	client := benchmarkJWTRedisClient(ctx, b)
+	now := time.Date(2026, 6, 12, 10, 0, 0, 0, time.UTC)
+	repo := benchmarkRedisRepository(b, client, "cached-parse", RedisRepositoryOptions{Capacity: 1000})
+	provider, err := NewDistributedHMACProvider(ctx, repo, HS256,
+		WithClock(func() time.Time { return now }),
+		WithKeyIDGenerator(staticKID("cached-parse")),
+		WithEntropy(repeatingReader('c')),
+	)
+	if err != nil {
+		b.Fatalf("NewDistributedHMACProvider() error = %v", err)
+	}
+	readerCache := cache.NewMemory[string, *Reader]()
+	cached, err := NewCachedDistributedProvider(provider, readerCache,
+		WithCacheClock(func() time.Time { return now }),
+		WithCacheTrustScope("redis-benchmark"),
+	)
+	if err != nil {
+		b.Fatalf("NewCachedDistributedProvider() error = %v", err)
+	}
+	token, err := cached.ComposeContext(ctx, WithClaim("bench", "cached-parse"), WithExpiresAfter(time.Hour))
+	if err != nil {
+		b.Fatalf("ComposeContext() error = %v", err)
+	}
+	if _, err := cached.ParseContext(ctx, token); err != nil {
+		b.Fatalf("warmup ParseContext() error = %v", err)
+	}
+
+	b.ReportAllocs()
+	b.ResetTimer()
+
+	for range b.N {
+		reader, err := cached.ParseContext(ctx, token)
+		if err != nil {
+			b.Fatalf("ParseContext() error = %v", err)
+		}
+		if value, ok := reader.ClaimString("bench"); !ok || value != "cached-parse" {
 			b.Fatal("ParseContext() claim mismatch")
 		}
 	}

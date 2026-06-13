@@ -4,6 +4,7 @@ import (
 	"context"
 	"time"
 
+	"github.com/bluetape4k/bluetape-go/cache"
 	"github.com/bluetape4k/bluetape-go/jwt"
 	redisjwt "github.com/bluetape4k/bluetape-go/jwt/redis"
 	"github.com/redis/go-redis/v9"
@@ -96,4 +97,42 @@ func ExampleRepository_contextTimeout() {
 	if _, err := provider.CurrentKeyChainContext(ctx); err != nil {
 		panic(err)
 	}
+}
+
+func ExampleRepository_cachedDistributedProvider() {
+	setupCtx, cancelSetup := context.WithTimeout(context.Background(), 2*time.Second)
+	defer cancelSetup()
+
+	client := redis.NewClient(&redis.Options{Addr: "127.0.0.1:6379"})
+	defer func() { _ = client.Close() }()
+
+	repo, err := redisjwt.New(redisjwt.Options{
+		Client:    client,
+		Namespace: "service-auth",
+	})
+	if err != nil {
+		panic(err)
+	}
+	provider, err := jwt.NewDistributedHMACProvider(setupCtx, repo, jwt.HS256)
+	if err != nil {
+		panic(err)
+	}
+	readerCache := cache.NewMemory[string, *jwt.Reader]()
+	cached, err := jwt.NewCachedDistributedProvider(provider, readerCache)
+	if err != nil {
+		panic(err)
+	}
+
+	opCtx, cancelOp := context.WithTimeout(context.Background(), time.Second)
+	defer cancelOp()
+
+	token, err := cached.ComposeContext(opCtx, jwt.WithSubject("account-42"), jwt.WithExpiresAfter(time.Hour))
+	if err != nil {
+		panic(err)
+	}
+	reader, err := cached.ParseContext(opCtx, token, jwt.WithExpectedSubject("account-42"))
+	if err != nil {
+		panic(err)
+	}
+	_ = reader
 }

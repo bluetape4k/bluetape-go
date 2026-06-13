@@ -14,6 +14,13 @@ and this project uses semantic versioning once the first tag is published.
   bitmap operations, cancellation/race/stress coverage, compile-checked
   examples, and bilingual README/runbook documentation. Redis-backed Cuckoo and
   HLL/HyperLogLog constructors remain follow-up scope after #182.
+- Optional JWT provider cache adapters with `NewCachedProvider` and
+  `NewCachedDistributedProvider`, scoped token-digest cache keys, trusted
+  `cache.Cache[string,*jwt.Reader]` backends, warm-hit key revalidation,
+  same-key miss coalescing, cancellation/race/stress coverage,
+  compile-checked examples, diagram-backed bilingual README documentation, and
+  operator caveats for process-local clear scope and unsupported untrusted
+  shared/external caches.
 
 ### Changed
 

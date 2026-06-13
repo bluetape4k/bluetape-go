@@ -13,6 +13,7 @@ import (
     "errors"
     "time"
 
+    "github.com/bluetape4k/bluetape-go/cache"
     "github.com/bluetape4k/bluetape-go/jwt"
     redisjwt "github.com/bluetape4k/bluetape-go/jwt/redis"
     "github.com/redis/go-redis/v9"
@@ -30,7 +31,7 @@ import (
 | MongoDB-backed distributed key rotation | Backlog | MongoDB storage is deferred to #198. |
 | Signed JWT compression | Non-goal | `zip` belongs to a JWE boundary, not to the signed JWT helper. |
 | JWE, JWK, JWKS | Deferred | JWE/JWKS can be added later as explicit optional JOSE boundaries if real use cases appear. |
-| External provider cache adapters | Deferred | Optional cache-backed provider adapters are tracked in #175. |
+| Provider cache adapters | `NewCachedProvider` or `NewCachedDistributedProvider` | Optional trusted `cache.Cache[string,*jwt.Reader]` wrappers reduce repeated parse and signature verification cost without bypassing provider validation. |
 
 ## Usage
 
@@ -64,6 +65,112 @@ if err != nil {
 }
 role, ok := reader.ClaimString("role")
 ```
+
+## Provider Cache Adapters
+
+Use `NewCachedProvider` for local providers and
+`NewCachedDistributedProvider` for distributed providers when repeated parsing
+of the same token is a hot path. The adapter stores only successful
+`*jwt.Reader` results in a trusted cache backend, keys entries by token digest,
+parse profile, provider algorithm, key prefix, and trust scope, and revalidates
+warm hits against the wrapped provider's current key state before returning.
+
+![JWT provider cache adapter flow](../docs/images/readme-diagrams/jwt-provider-cache-adapter-flow.png)
+
+```go
+provider, err := jwt.NewFixedHMACProvider(
+    jwt.HS256,
+    []byte("0123456789abcdef0123456789abcdef"),
+)
+if err != nil {
+    return err
+}
+readerCache := cache.NewMemory[string, *jwt.Reader]()
+cached, err := jwt.NewCachedProvider(provider, readerCache)
+if err != nil {
+    return err
+}
+
+token, err := cached.Compose(
+    jwt.WithSubject("account-42"),
+    jwt.WithExpiresAfter(time.Hour),
+)
+if err != nil {
+    return err
+}
+reader, err := cached.Parse(token, jwt.WithExpectedSubject("account-42"))
+if err != nil {
+    return err
+}
+```
+
+Distributed providers use the same cache contract while preserving explicit
+contexts for repository I/O:
+
+```go
+opCtx := context.Background()
+repo, err := redisjwt.New(redisjwt.Options{
+    Client:    redisClient,
+    Namespace: "service-auth",
+})
+if err != nil {
+    return err
+}
+provider, err := jwt.NewDistributedHMACProvider(opCtx, repo, jwt.HS256)
+if err != nil {
+    return err
+}
+token, err := provider.ComposeContext(opCtx,
+    jwt.WithSubject("account-42"),
+    jwt.WithExpiresAfter(time.Hour),
+)
+if err != nil {
+    return err
+}
+readerCache := cache.NewMemory[string, *jwt.Reader]()
+cached, err := jwt.NewCachedDistributedProvider(provider, readerCache)
+if err != nil {
+    return err
+}
+reader, err := cached.ParseContext(opCtx, token, jwt.WithExpectedSubject("account-42"))
+```
+
+Cache adapters are performance helpers only. They are not auth middleware,
+session storage, token revocation, authorization policy, JWKS, or an external
+trust service. Use only trusted application-process cache backends for
+`*jwt.Reader` values; untrusted shared/external caches are unsupported in this
+slice because a Reader value is already a validated-token result.
+
+`WithParseClock` bypasses caching. Cache hits still verify that the cached
+Reader is non-nil, the algorithm matches, the `kid` resolves to a live key, and
+the key algorithm still matches. Adapter-owned `ForcedRotate`,
+`ForcedRotateContext`, and `DeleteKeyChainsContext` clear the configured cache
+after the wrapped operation succeeds. `ClearCache` affects only the supplied
+cache backend scope; with `cache.Memory`, that means process-local state.
+
+Operator notes:
+
+- Treat `WithCacheTrustScope` as a private provider/tenant/key namespace. Do
+  not reuse it across tenants, algorithms, or key stores. The default scope is
+  randomly generated for each adapter construction; set a stable private scope
+  only when intentionally sharing a cache namespace across adapter instances.
+- Add diagnostics/monitoring for cache get/set/delete/clear failures at the
+  application boundary. Non-miss cache errors and stale-entry delete failures
+  are caller-visible.
+- Classify adapter metrics and logs by parse sentinel
+  (`ErrInvalidToken`, `ErrExpiredToken`, `ErrNotYetValid`, `ErrInvalidKey`,
+  `ErrKeyNotFound`), unknown `kid` and key revalidation failures,
+  timeout/cancellation, cache get/set/delete/clear failures, stale-entry delete
+  failures, and clear failures after rotation or reset.
+- If `ForcedRotate`, `ForcedRotateContext`, or `DeleteKeyChainsContext` returns
+  `jwt cache clear failed`, the wrapped key operation may already have
+  succeeded. Inspect key state, clear or recreate the affected process-local
+  cache, restart affected instances when needed, and roll forward instead of
+  treating the operation as rolled back.
+- In multi-instance deployments, each process-local cache clears independently.
+  Safety comes from hit revalidation, not global invalidation.
+- Do not log raw bearer tokens, cache keys, token digests, parse-profile
+  hashes, or any raw-token correlation value.
 
 ## Redis Distributed Provider
 
@@ -104,7 +211,7 @@ reader, err := provider.ParseContext(opCtx, token, jwt.WithExpectedSubject("acco
 if err != nil {
     return err
 }
-if subject, ok := reader.Subject(); !ok || subject != "account-42" {
+if reader.Subject() != "account-42" {
     return errors.New("subject missing")
 }
 ```
