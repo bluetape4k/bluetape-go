@@ -273,6 +273,91 @@ def count_plain_segments(plain: Path) -> tuple[int, int]:
     return routes, segments
 
 
+def svg_text(x: int, y: int, text: str, size: int = 18, family: str = DETAIL_FONT, weight: str = "400", anchor: str = "middle") -> str:
+    return (
+        f'<text x="{x}" y="{y}" text-anchor="{anchor}" dominant-baseline="middle" '
+        f'font-family="{escape(family)}" font-size="{size}" font-weight="{weight}" '
+        f'fill="#1E293B">{escape(text)}</text>'
+    )
+
+
+def card(x: int, y: int, w: int, h: int, title: str, details: list[str], fill: str, stroke: str) -> str:
+    lines = [
+        f'<rect x="{x}" y="{y}" width="{w}" height="{h}" rx="18" fill="{fill}" stroke="{stroke}" stroke-width="2.5"/>',
+        svg_text(x + w // 2, y + 28, title, 22, ARCH_FONT, "700"),
+    ]
+    first_detail_y = y + 56
+    for index, detail in enumerate(details):
+        lines.append(svg_text(x + w // 2, first_detail_y + index * 22, detail, 14, DETAIL_FONT))
+    return "\n".join(lines)
+
+
+def arrow(points: list[tuple[int, int]], color: str, label: str = "") -> str:
+    path = "M " + " L ".join(f"{x} {y}" for x, y in points)
+    return f'<path d="{path}" fill="none" stroke="{color}" stroke-width="3" marker-end="url(#{color[1:]})"/>'
+
+
+def render_redis_jwt_final(final_svg: Path, final_png: Path) -> None:
+    svg = f'''<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="900" viewBox="0 0 1600 900">
+<defs>
+  <filter id="shadow" x="-10%" y="-10%" width="120%" height="120%">
+    <feDropShadow dx="0" dy="8" stdDeviation="8" flood-color="#94A3B8" flood-opacity="0.22"/>
+  </filter>
+  <marker id="475569" viewBox="0 0 5 5" refX="4.5" refY="2.5" markerWidth="5" markerHeight="5" orient="auto">
+    <path d="M 0 0 L 5 2.5 L 0 5 z" fill="#475569"/>
+  </marker>
+  <marker id="7C3AED" viewBox="0 0 5 5" refX="4.5" refY="2.5" markerWidth="5" markerHeight="5" orient="auto">
+    <path d="M 0 0 L 5 2.5 L 0 5 z" fill="#7C3AED"/>
+  </marker>
+  <marker id="16A34A" viewBox="0 0 5 5" refX="4.5" refY="2.5" markerWidth="5" markerHeight="5" orient="auto">
+    <path d="M 0 0 L 5 2.5 L 0 5 z" fill="#16A34A"/>
+  </marker>
+  <marker id="0EA5E9" viewBox="0 0 5 5" refX="4.5" refY="2.5" markerWidth="5" markerHeight="5" orient="auto">
+    <path d="M 0 0 L 5 2.5 L 0 5 z" fill="#0EA5E9"/>
+  </marker>
+  <marker id="EF4444" viewBox="0 0 5 5" refX="4.5" refY="2.5" markerWidth="5" markerHeight="5" orient="auto">
+    <path d="M 0 0 L 5 2.5 L 0 5 z" fill="#EF4444"/>
+  </marker>
+</defs>
+<rect width="1600" height="900" fill="#F8FAFC"/>
+<rect x="44" y="44" width="1512" height="812" rx="30" fill="#FFFFFF" stroke="#CBD5E1" stroke-width="2.5" filter="url(#shadow)"/>
+{svg_text(800, 94, "jwt/redis - Distributed Key Rotation", 34, ARCH_FONT, "700")}
+{svg_text(800, 126, "context-aware Redis signing authority with retained-key validation", 16, DETAIL_FONT)}
+
+<rect x="90" y="180" width="290" height="590" rx="22" fill="#EFF6FF" stroke="#BFDBFE" stroke-width="2"/>
+{svg_text(235, 214, "Caller API", 20, ARCH_FONT, "700")}
+<rect x="420" y="180" width="500" height="590" rx="22" fill="#FAF5FF" stroke="#DDD6FE" stroke-width="2"/>
+{svg_text(670, 214, "Provider Boundary", 20, ARCH_FONT, "700")}
+<rect x="960" y="180" width="350" height="590" rx="22" fill="#F0FDF4" stroke="#BBF7D0" stroke-width="2"/>
+{svg_text(1135, 214, "Redis Authority", 20, ARCH_FONT, "700")}
+<rect x="1345" y="180" width="170" height="590" rx="22" fill="#F0F9FF" stroke="#BAE6FD" stroke-width="2"/>
+{svg_text(1430, 214, "Validation", 20, ARCH_FONT, "700")}
+
+{card(130, 350, 210, 112, "Service Instance", ["ComposeContext / ParseContext", "caller-owned deadlines"], "#DBEAFE", "#93C5FD")}
+{card(455, 335, 250, 142, "DistributedProvider", ["context-only API", "algorithm guard", "no context-free facade"], "#F3E8FF", "#C4B5FD")}
+{card(735, 335, 150, 142, "RedisRepository", ["namespace-isolated", "Go-owned payloads"], "#DCFCE7", "#86EFAC")}
+{card(982, 330, 235, 132, "Rotate CAS Script", ["current or winner", "atomic capacity trim"], "#FEF3C7", "#FCD34D")}
+{card(1020, 552, 235, 122, "Redis Keyspace", ["meta/current", "keys hash + order zset"], "#FEF9C3", "#FDE047")}
+{card(1355, 310, 145, 122, "Current Key", ["signs tokens", "kid header"], "#DCFCE7", "#6EE7B7")}
+{card(1355, 585, 145, 122, "Retained Keys", ["verify old tokens", "TTL + leeway"], "#E0F2FE", "#7DD3FC")}
+{card(1020, 690, 235, 92, "Operator Runbook", ["TLS + ACL", "diagnose before reset"], "#FFE4E6", "#FDA4AF")}
+
+{arrow([(340, 406), (455, 406)], "#475569")}
+{arrow([(705, 406), (735, 406)], "#475569")}
+{arrow([(885, 406), (982, 406)], "#7C3AED")}
+{arrow([(1100, 462), (1100, 552)], "#7C3AED")}
+{arrow([(1255, 610), (1355, 370)], "#16A34A")}
+{arrow([(1255, 632), (1355, 646)], "#0EA5E9")}
+{arrow([(1138, 690), (1138, 674)], "#EF4444")}
+
+<rect x="125" y="790" width="1350" height="34" rx="12" fill="#F8FAFC" stroke="#E2E8F0"/>
+{svg_text(800, 807, "Evidence: Graphviz .dot/.plain/-graphviz assets retained; final SVG/PNG hand-rendered with decorated frame and source-grounded labels.", 14, DETAIL_FONT)}
+</svg>
+'''
+    final_svg.write_text(svg)
+    subprocess.run(["rsvg-convert", "-o", str(final_png), str(final_svg)], check=True)
+
+
 def render(name: str, source: str) -> str:
     dot_path = OUT / f"{name}.dot"
     plain_path = OUT / f"{name}.plain"
@@ -285,8 +370,11 @@ def render(name: str, source: str) -> str:
     subprocess.run(["dot", "-Tplain", str(dot_path)], check=True, stdout=plain_path.open("w"))
     subprocess.run(["dot", "-Tsvg", str(dot_path)], check=True, stdout=graphviz_svg.open("w"))
     subprocess.run(["rsvg-convert", "-o", str(graphviz_png), str(graphviz_svg)], check=True)
-    shutil.copyfile(graphviz_svg, final_svg)
-    shutil.copyfile(graphviz_png, final_png)
+    if name == "redis-jwt-distributed-key-rotation":
+        render_redis_jwt_final(final_svg, final_png)
+    else:
+        shutil.copyfile(graphviz_svg, final_svg)
+        shutil.copyfile(graphviz_png, final_png)
 
     node_names = {
         line.split()[1]
