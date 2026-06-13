@@ -3,7 +3,6 @@ package redisbloom
 import (
 	"context"
 	"math"
-	"strconv"
 
 	"github.com/bluetape4k/bluetape-go/probabilistic"
 	"github.com/bluetape4k/bluetape-go/probabilistic/internal/bloomhash"
@@ -117,13 +116,9 @@ func (f *bloomFilter[T]) offsets(value T) ([]any, error) {
 	if err != nil {
 		return nil, err
 	}
-	indexes := bloomhash.Indexes(bytes, f.config.HashFunctionCount(), f.config.BitSize())
-	args := make([]any, 0, len(indexes)+1)
+	args := make([]any, 0, f.config.HashFunctionCount()+1)
 	args = append(args, f.meta.fingerprint)
-	for _, index := range indexes {
-		args = append(args, strconv.FormatUint(index, 10))
-	}
-	return args, nil
+	return bloomhash.AppendIndexes(args, bytes, f.config.HashFunctionCount(), f.config.BitSize()), nil
 }
 
 func (f *bloomFilter[T]) Put(ctx context.Context, value T) (bool, error) {
@@ -158,7 +153,7 @@ func (f *bloomFilter[T]) Clear(ctx context.Context) error {
 }
 
 func (f *bloomFilter[T]) BitCount(ctx context.Context) (uint64, error) {
-	lastByte := strconv.FormatUint((f.config.BitSize()-1)/8, 10)
+	lastByte := (f.config.BitSize() - 1) / 8
 	result, err := bitCountScript.Run(normalizeContext(ctx), f.client, []string{f.keys.bits, f.keys.config}, f.meta.fingerprint, lastByte).Int64()
 	if err != nil {
 		return 0, mapScriptError("bit count", f.keys.redactedID, err)

@@ -44,10 +44,9 @@ if stored == false then return redis.error_reply("config_corrupt") end
 if stored ~= ARGV[1] then return redis.error_reply("config_mismatch") end
 local changed = 0
 for i = 2, #ARGV do
-	if redis.call("GETBIT", KEYS[1], ARGV[i]) == 0 then
+	if redis.call("SETBIT", KEYS[1], ARGV[i], 1) == 0 then
 		changed = 1
 	end
-	redis.call("SETBIT", KEYS[1], ARGV[i], 1)
 end
 return changed
 `

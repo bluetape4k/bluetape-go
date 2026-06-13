@@ -30,8 +30,8 @@ KSUID, and Snowflake identifiers, the `jwt` package for explicit-algorithm JWT
 signing, parsing, validation, and local key rotation, the `measure` package for
 typed units, measured values, compound units, parsing, formatting, and
 temperature helpers, the `money` package for ISO currency and decimal-backed
-amount operations, and the `probabilistic` package family for in-memory and
-Redis-backed Bloom filters.
+amount operations, and the `probabilistic` package for in-memory Bloom filters.
+The Unreleased `0.6.1` line adds the Redis-backed Bloom package.
 
 ## Packages
 
