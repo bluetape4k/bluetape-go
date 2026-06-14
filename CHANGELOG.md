@@ -29,6 +29,9 @@ and this project uses semantic versioning once the first tag is published.
 - `money.CurrencyByLocale` CLDR-backed locale currency mapping for
   explicit-region BCP47 tags, with missing/no-tender/multi-tender rejection,
   stress/race coverage, and diagram-backed bilingual README documentation.
+- `money` FastMoney evaluation benchmark evidence, with raw benchmark output,
+  chart-backed bilingual README guidance, and a documented decision to keep
+  `Money`, `NewMinor`, and `MinorUnits` as the public minor-unit path.
 
 ### Changed
 
