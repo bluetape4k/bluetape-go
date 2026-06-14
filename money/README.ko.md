@@ -26,7 +26,18 @@ import "github.com/bluetape4k/bluetape-go/money"
 | caller-supplied 환율 변환 | `NewExchangeRate`와 `Convert` | 순수 value 경로입니다. network, cache, provider IO를 수행하지 않습니다. |
 | provider-backed 환율 변환 | `ExchangeRateProvider`, `NewECBProvider`, `ConvertWithProvider` | source, freshness, stale fallback, refresh failure metadata를 드러내는 context-aware provider 경로입니다. |
 | locale-to-currency convenience | `CurrencyByLocale` | 명시적 region이 있는 BCP47 tag와 CLDR current legal tender data를 사용합니다. Ambiguous 또는 no-tender region은 거부합니다. |
-| Long-backed FastMoney | Deferred | benchmark 기반 평가는 #180에서 추적합니다. |
+| Long-backed FastMoney | 추가하지 않음 | #180 benchmark 근거에 따라 `Money`를 public API로 유지합니다. minor-unit 경로는 `NewMinor`와 `MinorUnits`를 사용하십시오. |
+
+## Money vs FastMoney
+
+`Money`를 public 금액 타입으로 유지합니다. #180은 minor-unit 및 대표 hot path를
+측정했고 별도 long-backed `FastMoney` 타입을 추가하지 않았습니다. 정수 minor-unit
+입력은 `NewMinor`, 정수 추출은 `MinorUnits`를 사용하십시오.
+
+![money FastMoney evaluation benchmark](../docs/images/readme-charts/money-fastmoney-evaluation-benchmark.png)
+
+이 benchmark snapshot은 local 비교 근거이며 production ranking이 아닙니다. Raw output은
+`docs/research/outputs/issue-180/money-fastmoney-evaluation-bench.txt`에 보관합니다.
 
 ## 사용법
 
@@ -142,6 +153,9 @@ _ = currency // GBP
 - Money value는 immutable하며 goroutine 사이에 전달해도 안전합니다. #35는
   대표 연산을 `testing/concurrency.GoroutineStressTester`와 `go test -race`로
   검증합니다.
+- #180 benchmark 근거에 따라 `Money`를 public 금액 타입으로 유지합니다. 향후
+  `FastMoney` 이슈는 `NewMinor`와 `MinorUnits`로 해결할 수 없는 measured hot-path
+  gap과 public caller contract가 함께 있을 때만 열어야 합니다.
 
 ## Test
 

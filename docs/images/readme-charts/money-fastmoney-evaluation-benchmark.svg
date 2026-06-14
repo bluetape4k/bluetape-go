@@ -1,0 +1,170 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1800" height="1630" viewBox="0 0 1800 1630">
+  <defs>
+    <style>
+      @font-face {
+        font-family: 'Architects Daughter';
+        src: url('/Users/debop/Library/Fonts/ArchitectsDaughter-Regular.ttf');
+      }
+      @font-face {
+        font-family: 'Comic Mono';
+        src: url('/Users/debop/Library/Fonts/ComicMono.ttf');
+        font-weight: normal;
+      }
+      @font-face {
+        font-family: 'Comic Mono';
+        src: url('/Users/debop/Library/Fonts/ComicMono-Bold.ttf');
+        font-weight: bold;
+      }
+      .title { font-family: 'Architects Daughter'; font-size: 44px; fill: #1E293B; font-weight: bold; }
+      .subtitle { font-family: 'Comic Mono'; font-size: 16px; fill: #475569; }
+      .section { font-family: 'Architects Daughter'; font-size: 28px; fill: #1E293B; font-weight: bold; }
+      .bar-label { font-family: 'Architects Daughter'; font-size: 21px; fill: #1E293B; }
+      .axis-title { font-family: 'Comic Mono'; font-size: 14px; fill: #475569; font-weight: bold; }
+      .axis { font-family: 'Comic Mono'; font-size: 12px; fill: #64748B; }
+      .value { font-family: 'Comic Mono'; font-size: 15px; fill: #334155; font-weight: bold; }
+      .legend { font-family: 'Comic Mono'; font-size: 14px; fill: #334155; }
+      .callout-title { font-family: 'Architects Daughter'; font-size: 23px; fill: #1E293B; font-weight: bold; }
+      .callout { font-family: 'Comic Mono'; font-size: 13px; fill: #334155; }
+      .footer { font-family: 'Comic Mono'; font-size: 12px; fill: #64748B; }
+    </style>
+  </defs>
+
+  <rect x="0" y="0" width="1800" height="1630" fill="#F8FAFC"/>
+  <rect x="40" y="40" width="1720" height="1550" fill="#F8FAFC" stroke="#CBD5E1" stroke-width="2" rx="24"/>
+  <text x="900" y="82" text-anchor="middle" dominant-baseline="middle" class="title">Money FastMoney Evaluation Benchmark</text>
+  <text x="900" y="122" text-anchor="middle" dominant-baseline="middle" class="subtitle">Issue #180 · Apple M4 Pro · darwin/arm64 · commit 3ec2844</text>
+
+  <g>
+    <rect x="1180" y="121" width="24" height="16" fill="#BFDBFE" stroke="#2563EB" stroke-width="1.1" rx="5"/>
+<text x="1214" y="131" class="legend" dominant-baseline="middle">Money public API</text>
+    <rect x="1418" y="121" width="24" height="16" fill="#FDE68A" stroke="#D97706" stroke-width="1.1" rx="5"/>
+<text x="1452" y="131" class="legend" dominant-baseline="middle">Reference</text>
+  </g>
+
+  <g>
+<rect x="80" y="180" width="1640" height="410" fill="#FFFFFF" stroke="#CBD5E1" stroke-width="1.5" rx="16"/>
+<text x="114" y="216" class="section" dominant-baseline="middle">Latency</text>
+<text x="114" y="246" class="axis-title" dominant-baseline="middle">ns/op - lower is better</text>
+<line x1="450.0" y1="250" x2="450.0" y2="564" stroke="#E2E8F0"/>
+<text x="450.0" y="238" class="axis" text-anchor="middle">0</text>
+<line x1="720.0" y1="250" x2="720.0" y2="564" stroke="#E2E8F0"/>
+<text x="720.0" y="238" class="axis" text-anchor="middle">125</text>
+<line x1="990.0" y1="250" x2="990.0" y2="564" stroke="#E2E8F0"/>
+<text x="990.0" y="238" class="axis" text-anchor="middle">250</text>
+<line x1="1260.0" y1="250" x2="1260.0" y2="564" stroke="#E2E8F0"/>
+<text x="1260.0" y="238" class="axis" text-anchor="middle">375</text>
+<line x1="1530.0" y1="250" x2="1530.0" y2="564" stroke="#E2E8F0"/>
+<text x="1530.0" y="238" class="axis" text-anchor="middle">500</text>
+<text x="116" y="282.5" class="bar-label" dominant-baseline="middle">NewMinor USD</text>
+<rect x="450" y="270" width="20.0" height="25" fill="#BFDBFE" stroke="#2563EB" stroke-width="1.2" rx="7"/>
+<text x="1558" y="282.5" class="value" dominant-baseline="middle">9.249 ns/op</text>
+<text x="116" y="319.5" class="bar-label" dominant-baseline="middle">NewMinor JPY</text>
+<rect x="450" y="307" width="19.9" height="25" fill="#BFDBFE" stroke="#2563EB" stroke-width="1.2" rx="7"/>
+<text x="1558" y="319.5" class="value" dominant-baseline="middle">9.236 ns/op</text>
+<text x="116" y="356.5" class="bar-label" dominant-baseline="middle">MinorUnits USD</text>
+<rect x="450" y="344" width="12.6" height="25" fill="#BFDBFE" stroke="#2563EB" stroke-width="1.2" rx="7"/>
+<text x="1558" y="356.5" class="value" dominant-baseline="middle">5.833 ns/op</text>
+<text x="116" y="393.5" class="bar-label" dominant-baseline="middle">Add USD</text>
+<rect x="450" y="381" width="19.5" height="25" fill="#BFDBFE" stroke="#2563EB" stroke-width="1.2" rx="7"/>
+<text x="1558" y="393.5" class="value" dominant-baseline="middle">9.027 ns/op</text>
+<text x="116" y="430.5" class="bar-label" dominant-baseline="middle">Sum USD x10</text>
+<rect x="450" y="418" width="242.8" height="25" fill="#BFDBFE" stroke="#2563EB" stroke-width="1.2" rx="7"/>
+<text x="1558" y="430.5" class="value" dominant-baseline="middle">112.4 ns/op</text>
+<text x="116" y="467.5" class="bar-label" dominant-baseline="middle">Parse USD text</text>
+<rect x="450" y="455" width="128.3" height="25" fill="#BFDBFE" stroke="#2563EB" stroke-width="1.2" rx="7"/>
+<text x="1558" y="467.5" class="value" dominant-baseline="middle">59.42 ns/op</text>
+<text x="116" y="504.5" class="bar-label" dominant-baseline="middle">Marshal JSON</text>
+<rect x="450" y="492" width="585.8" height="25" fill="#BFDBFE" stroke="#2563EB" stroke-width="1.2" rx="7"/>
+<text x="1558" y="504.5" class="value" dominant-baseline="middle">271.2 ns/op</text>
+<text x="116" y="541.5" class="bar-label" dominant-baseline="middle">Direct govalues minor</text>
+<rect x="450" y="529" width="17.3" height="25" fill="#FDE68A" stroke="#D97706" stroke-width="1.2" rx="7"/>
+<text x="1558" y="541.5" class="value" dominant-baseline="middle">8.021 ns/op</text>
+</g>
+
+  <g>
+<rect x="80" y="620" width="1640" height="410" fill="#FFFFFF" stroke="#CBD5E1" stroke-width="1.5" rx="16"/>
+<text x="114" y="656" class="section" dominant-baseline="middle">Heap bytes</text>
+<text x="114" y="686" class="axis-title" dominant-baseline="middle">B/op - lower is better</text>
+<line x1="450.0" y1="690" x2="450.0" y2="1004" stroke="#E2E8F0"/>
+<text x="450.0" y="678" class="axis" text-anchor="middle">0</text>
+<line x1="720.0" y1="690" x2="720.0" y2="1004" stroke="#E2E8F0"/>
+<text x="720.0" y="678" class="axis" text-anchor="middle">62.5</text>
+<line x1="990.0" y1="690" x2="990.0" y2="1004" stroke="#E2E8F0"/>
+<text x="990.0" y="678" class="axis" text-anchor="middle">125</text>
+<line x1="1260.0" y1="690" x2="1260.0" y2="1004" stroke="#E2E8F0"/>
+<text x="1260.0" y="678" class="axis" text-anchor="middle">187.5</text>
+<line x1="1530.0" y1="690" x2="1530.0" y2="1004" stroke="#E2E8F0"/>
+<text x="1530.0" y="678" class="axis" text-anchor="middle">250</text>
+<text x="116" y="722.5" class="bar-label" dominant-baseline="middle">NewMinor USD</text>
+<rect x="450" y="710" width="4.0" height="25" fill="#BFDBFE" stroke="#2563EB" stroke-width="1.2" rx="7"/>
+<text x="1558" y="722.5" class="value" dominant-baseline="middle">0 B/op</text>
+<text x="116" y="759.5" class="bar-label" dominant-baseline="middle">NewMinor JPY</text>
+<rect x="450" y="747" width="4.0" height="25" fill="#BFDBFE" stroke="#2563EB" stroke-width="1.2" rx="7"/>
+<text x="1558" y="759.5" class="value" dominant-baseline="middle">0 B/op</text>
+<text x="116" y="796.5" class="bar-label" dominant-baseline="middle">MinorUnits USD</text>
+<rect x="450" y="784" width="4.0" height="25" fill="#BFDBFE" stroke="#2563EB" stroke-width="1.2" rx="7"/>
+<text x="1558" y="796.5" class="value" dominant-baseline="middle">0 B/op</text>
+<text x="116" y="833.5" class="bar-label" dominant-baseline="middle">Add USD</text>
+<rect x="450" y="821" width="4.0" height="25" fill="#BFDBFE" stroke="#2563EB" stroke-width="1.2" rx="7"/>
+<text x="1558" y="833.5" class="value" dominant-baseline="middle">0 B/op</text>
+<text x="116" y="870.5" class="bar-label" dominant-baseline="middle">Sum USD x10</text>
+<rect x="450" y="858" width="4.0" height="25" fill="#BFDBFE" stroke="#2563EB" stroke-width="1.2" rx="7"/>
+<text x="1558" y="870.5" class="value" dominant-baseline="middle">0 B/op</text>
+<text x="116" y="907.5" class="bar-label" dominant-baseline="middle">Parse USD text</text>
+<rect x="450" y="895" width="138.2" height="25" fill="#BFDBFE" stroke="#2563EB" stroke-width="1.2" rx="7"/>
+<text x="1558" y="907.5" class="value" dominant-baseline="middle">32 B/op</text>
+<text x="116" y="944.5" class="bar-label" dominant-baseline="middle">Marshal JSON</text>
+<rect x="450" y="932" width="725.8" height="25" fill="#BFDBFE" stroke="#2563EB" stroke-width="1.2" rx="7"/>
+<text x="1558" y="944.5" class="value" dominant-baseline="middle">168 B/op</text>
+<text x="116" y="981.5" class="bar-label" dominant-baseline="middle">Direct govalues minor</text>
+<rect x="450" y="969" width="4.0" height="25" fill="#FDE68A" stroke="#D97706" stroke-width="1.2" rx="7"/>
+<text x="1558" y="981.5" class="value" dominant-baseline="middle">0 B/op</text>
+</g>
+
+  <g>
+<rect x="80" y="1060" width="1640" height="410" fill="#FFFFFF" stroke="#CBD5E1" stroke-width="1.5" rx="16"/>
+<text x="114" y="1096" class="section" dominant-baseline="middle">Allocations</text>
+<text x="114" y="1126" class="axis-title" dominant-baseline="middle">allocs/op - lower is better</text>
+<line x1="450.0" y1="1130" x2="450.0" y2="1444" stroke="#E2E8F0"/>
+<text x="450.0" y="1118" class="axis" text-anchor="middle">0</text>
+<line x1="720.0" y1="1130" x2="720.0" y2="1444" stroke="#E2E8F0"/>
+<text x="720.0" y="1118" class="axis" text-anchor="middle">2.5</text>
+<line x1="990.0" y1="1130" x2="990.0" y2="1444" stroke="#E2E8F0"/>
+<text x="990.0" y="1118" class="axis" text-anchor="middle">5</text>
+<line x1="1260.0" y1="1130" x2="1260.0" y2="1444" stroke="#E2E8F0"/>
+<text x="1260.0" y="1118" class="axis" text-anchor="middle">7.5</text>
+<line x1="1530.0" y1="1130" x2="1530.0" y2="1444" stroke="#E2E8F0"/>
+<text x="1530.0" y="1118" class="axis" text-anchor="middle">10</text>
+<text x="116" y="1162.5" class="bar-label" dominant-baseline="middle">NewMinor USD</text>
+<rect x="450" y="1150" width="4.0" height="25" fill="#BFDBFE" stroke="#2563EB" stroke-width="1.2" rx="7"/>
+<text x="1558" y="1162.5" class="value" dominant-baseline="middle">0 allocs/op</text>
+<text x="116" y="1199.5" class="bar-label" dominant-baseline="middle">NewMinor JPY</text>
+<rect x="450" y="1187" width="4.0" height="25" fill="#BFDBFE" stroke="#2563EB" stroke-width="1.2" rx="7"/>
+<text x="1558" y="1199.5" class="value" dominant-baseline="middle">0 allocs/op</text>
+<text x="116" y="1236.5" class="bar-label" dominant-baseline="middle">MinorUnits USD</text>
+<rect x="450" y="1224" width="4.0" height="25" fill="#BFDBFE" stroke="#2563EB" stroke-width="1.2" rx="7"/>
+<text x="1558" y="1236.5" class="value" dominant-baseline="middle">0 allocs/op</text>
+<text x="116" y="1273.5" class="bar-label" dominant-baseline="middle">Add USD</text>
+<rect x="450" y="1261" width="4.0" height="25" fill="#BFDBFE" stroke="#2563EB" stroke-width="1.2" rx="7"/>
+<text x="1558" y="1273.5" class="value" dominant-baseline="middle">0 allocs/op</text>
+<text x="116" y="1310.5" class="bar-label" dominant-baseline="middle">Sum USD x10</text>
+<rect x="450" y="1298" width="4.0" height="25" fill="#BFDBFE" stroke="#2563EB" stroke-width="1.2" rx="7"/>
+<text x="1558" y="1310.5" class="value" dominant-baseline="middle">0 allocs/op</text>
+<text x="116" y="1347.5" class="bar-label" dominant-baseline="middle">Parse USD text</text>
+<rect x="450" y="1335" width="108.0" height="25" fill="#BFDBFE" stroke="#2563EB" stroke-width="1.2" rx="7"/>
+<text x="1558" y="1347.5" class="value" dominant-baseline="middle">1 allocs/op</text>
+<text x="116" y="1384.5" class="bar-label" dominant-baseline="middle">Marshal JSON</text>
+<rect x="450" y="1372" width="540.0" height="25" fill="#BFDBFE" stroke="#2563EB" stroke-width="1.2" rx="7"/>
+<text x="1558" y="1384.5" class="value" dominant-baseline="middle">5 allocs/op</text>
+<text x="116" y="1421.5" class="bar-label" dominant-baseline="middle">Direct govalues minor</text>
+<rect x="450" y="1409" width="4.0" height="25" fill="#FDE68A" stroke="#D97706" stroke-width="1.2" rx="7"/>
+<text x="1558" y="1421.5" class="value" dominant-baseline="middle">0 allocs/op</text>
+</g>
+
+  <g>
+    <rect x="80" y="1510" width="1640" height="72" fill="#FFFBEB" stroke="#F59E0B" stroke-width="1.5" rx="16"/>
+    <text x="114" y="1538" dominant-baseline="middle" class="callout-title">Interpretation boundary</text>
+    <text x="400" y="1535" dominant-baseline="middle" class="callout">One local benchmark snapshot; lower bars are better. Use raw benchmark output as the numeric source of truth.</text>
+    <text x="400" y="1560" dominant-baseline="middle" class="footer">go test -run '^$' -bench '^BenchmarkMoney' -benchmem ./money · go version go1.26.4 darwin/arm64</text>
+  </g>
+</svg>

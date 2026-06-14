@@ -26,7 +26,19 @@ import "github.com/bluetape4k/bluetape-go/money"
 | Caller-supplied exchange conversion | `NewExchangeRate` and `Convert` | Pure value path. No network, cache, or provider IO. |
 | Provider-backed exchange conversion | `ExchangeRateProvider`, `NewECBProvider`, and `ConvertWithProvider` | Context-aware provider path with source, freshness, stale fallback, and refresh failure metadata. |
 | Locale-to-currency convenience | `CurrencyByLocale` | Uses explicit-region BCP47 tags and CLDR current legal tender data. Ambiguous or no-tender regions are rejected. |
-| Long-backed FastMoney | Deferred | Benchmark-driven evaluation is tracked in #180. |
+| Long-backed FastMoney | Not added | #180 benchmark evidence keeps `Money` as the public API; use `NewMinor` and `MinorUnits` for minor-unit paths. |
+
+## Money vs FastMoney
+
+`Money` remains the public amount type. #180 measured the minor-unit and
+representative hot paths and did not add a separate long-backed `FastMoney`
+type. Use `NewMinor` for integer minor-unit input and `MinorUnits` for integer
+extraction.
+
+![money FastMoney evaluation benchmark](../docs/images/readme-charts/money-fastmoney-evaluation-benchmark.png)
+
+The benchmark snapshot is local evidence, not a production ranking. The raw
+output is stored in `docs/research/outputs/issue-180/money-fastmoney-evaluation-bench.txt`.
 
 ## Usage
 
@@ -144,6 +156,9 @@ _ = currency // GBP
 - Money values are immutable and safe to pass between goroutines. #35 validates
   representative operations with `testing/concurrency.GoroutineStressTester`
   and `go test -race`.
+- #180 benchmark evidence keeps `Money` as the public amount type. A future
+  `FastMoney` issue should require a measured hot-path gap plus a public caller
+  contract that cannot be served by `NewMinor` and `MinorUnits`.
 
 ## Test
 
