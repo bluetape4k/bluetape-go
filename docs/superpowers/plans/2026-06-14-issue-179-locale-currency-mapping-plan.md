@@ -619,7 +619,7 @@ Verify:
 
 Record Step 7-R with `P0=0 P1=0`.
 
-- [ ] **Step 6: Wait for CI within bounded SLA**
+- [x] **Step 6: Wait for CI within bounded SLA**
 
 Use:
 
