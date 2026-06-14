@@ -58,6 +58,37 @@ func TestCachedDistributedProviderCachesWarmHitWithKeyRevalidation(t *testing.T)
 	}
 }
 
+func TestCachedDistributedProviderDefaultCacheClockUsesProviderClock(t *testing.T) {
+	ctx := context.Background()
+	now := time.Date(2000, 1, 1, 1, 0, 0, 0, time.UTC)
+	repo := &fakeDistributedRepository{}
+	provider, err := NewDistributedHMACProvider(ctx, repo, HS256,
+		WithClock(func() time.Time { return now }),
+		WithKeyIDGenerator(staticKID("distributed-provider-clock")),
+		WithEntropy(repeatingReader('d')),
+	)
+	if err != nil {
+		t.Fatalf("NewDistributedHMACProvider() error = %v", err)
+	}
+	cache := newSpyReaderCache(time.Now)
+	cached, err := NewCachedDistributedProvider(provider, cache, WithCacheTrustScope("distributed-provider-clock-scope"))
+	if err != nil {
+		t.Fatalf("NewCachedDistributedProvider() error = %v", err)
+	}
+	token, err := provider.ComposeContext(ctx, WithExpiresAfter(time.Hour))
+	if err != nil {
+		t.Fatalf("ComposeContext() error = %v", err)
+	}
+
+	if _, err := cached.ParseContext(ctx, token); err != nil {
+		t.Fatalf("ParseContext() error = %v", err)
+	}
+	_, sets, _, _ := cache.snapshot()
+	if sets != 1 {
+		t.Fatalf("default cache clock should follow provider clock, sets=%d", sets)
+	}
+}
+
 func TestNewCachedDistributedProviderValidation(t *testing.T) {
 	ctx := context.Background()
 	repo := &fakeDistributedRepository{}

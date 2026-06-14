@@ -196,6 +196,28 @@ func TestCachedProviderCachesWarmHit(t *testing.T) {
 	}
 }
 
+func TestCachedProviderDefaultCacheClockUsesProviderClock(t *testing.T) {
+	now := time.Date(2000, 1, 1, 1, 0, 0, 0, time.UTC)
+	provider := newTestFixedHMACProviderAt(t, now)
+	cache := newSpyReaderCache(time.Now)
+	cached, err := NewCachedProvider(provider, cache, WithCacheTrustScope("provider-clock-scope"))
+	if err != nil {
+		t.Fatalf("NewCachedProvider() error = %v", err)
+	}
+	token, err := provider.Compose(WithExpiresAfter(time.Hour))
+	if err != nil {
+		t.Fatalf("Compose() error = %v", err)
+	}
+
+	if _, err := cached.Parse(token); err != nil {
+		t.Fatalf("Parse() error = %v", err)
+	}
+	_, sets, _, _ := cache.snapshot()
+	if sets != 1 {
+		t.Fatalf("default cache clock should follow provider clock, sets=%d", sets)
+	}
+}
+
 func TestCachedProviderWithParseClockBypassesCache(t *testing.T) {
 	now := time.Date(2026, 6, 14, 1, 0, 0, 0, time.UTC)
 	provider := newTestFixedHMACProviderAt(t, now)
