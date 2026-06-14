@@ -1,0 +1,14 @@
+graph 1 18.501 2.0097
+node inventory 1.13 0.58333 2.26 0.60278 <<FONT FACE="Architects Daughter" POINT-SIZE="18"><B>1. Inventory</B></FONT><BR/><FONT FACE="Comic Mono" POINT-SIZE="11">milestones, issues, APIs</FONT>> rounded,filled box #93C5FD #DBEAFE
+node slice 4.3206 0.58333 2.26 0.60278 <<FONT FACE="Architects Daughter" POINT-SIZE="18"><B>2. Evidence Slice</B></FONT><BR/><FONT FACE="Comic Mono" POINT-SIZE="11">source, tests, docs, PRs</FONT>> rounded,filled box #7DD3FC #E0F2FE
+node review 7.5944 0.58333 2.4267 0.60278 <<FONT FACE="Architects Daughter" POINT-SIZE="18"><B>3. 7-Tier Gate</B></FONT><BR/><FONT FACE="Comic Mono" POINT-SIZE="11">six lanes plus integration</FONT>> rounded,filled box #C4B5FD #EDE9FE
+node ledger 10.972 0.58333 2.4683 0.60278 <<FONT FACE="Architects Daughter" POINT-SIZE="18"><B>4. Severity Ledger</B></FONT><BR/><FONT FACE="Comic Mono" POINT-SIZE="11">P0/P1/P2/P3 findings</FONT>> rounded,filled box #FED7AA #FFF7ED
+node followup 14.634 1.1944 2.1871 0.60278 <<FONT FACE="Architects Daughter" POINT-SIZE="18"><B>P0/P1 Follow-ups</B></FONT><BR/><FONT FACE="Comic Mono" POINT-SIZE="11">issues before close</FONT>> rounded,filled box #FCA5A5 #FEE2E2
+node close 17.579 0.40278 1.8433 0.60278 <<FONT FACE="Architects Daughter" POINT-SIZE="18"><B>Closure Gate</B></FONT><BR/><FONT FACE="Comic Mono" POINT-SIZE="11">exact P0=&lt;n&gt; P1=&lt;n&gt;</FONT>> rounded,filled box #86EFAC #DCFCE7
+edge inventory slice 4 2.2684 0.58333 2.2684 0.58333 3.0295 0.58333 3.0295 0.58333 solid #2563EB
+edge slice review 4 5.461 0.58333 5.461 0.58333 6.2157 0.58333 6.2157 0.58333 solid #2563EB
+edge review ledger 4 8.8188 0.58333 8.8188 0.58333 9.5765 0.58333 9.5765 0.58333 solid #7C3AED
+edge ledger followup 7 12.214 0.79444 13.278 0.79444 14.64 0.79444 14.64 0.79444 14.64 0.79444 14.64 0.80332 14.64 0.80332 "P0/P1" 12.873 1.2691 solid #DC2626
+edge ledger close 4 12.219 0.49306 12.219 0.49306 16.494 0.49306 16.494 0.49306 "P2/P3 or zero" 14.634 0.088542 dashed #D97706
+edge followup close 7 15.736 1.1944 16.575 1.1944 17.584 1.1944 17.584 1.1944 17.584 1.1944 17.584 0.86882 17.584 0.86882 solid #16A34A
+stop
