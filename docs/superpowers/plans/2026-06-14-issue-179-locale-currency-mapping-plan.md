@@ -41,7 +41,7 @@
 **Files:**
 - Modify: `money/currency_test.go`
 
-- [ ] **Step 1: Replace `TestCurrencyByLocale` table with current-region coverage**
+- [x] **Step 1: Replace `TestCurrencyByLocale` table with current-region coverage**
 
 Use this test shape:
 
@@ -90,7 +90,7 @@ func TestCurrencyByLocale(t *testing.T) {
 }
 ```
 
-- [ ] **Step 2: Replace unsupported test with explicit policy cases**
+- [x] **Step 2: Replace unsupported test with explicit policy cases**
 
 Use this test shape:
 
@@ -101,7 +101,7 @@ func TestCurrencyByLocaleRejectsUnsupportedTags(t *testing.T) {
 		"",
 		"und",
 		"en-001",
-		"aa-BB",
+		"en-QM",
 		"en-AQ",
 		"es-PA",
 		"en-u-cu-usd",
@@ -116,7 +116,7 @@ func TestCurrencyByLocaleRejectsUnsupportedTags(t *testing.T) {
 }
 ```
 
-- [ ] **Step 3: Run failing targeted tests**
+- [x] **Step 3: Run failing targeted tests**
 
 Run:
 
@@ -134,12 +134,13 @@ Expected before implementation:
 **Files:**
 - Modify: `money/currency.go`
 
-- [ ] **Step 1: Update imports**
+- [x] **Step 1: Update imports**
 
 Change the import block to include x/text packages:
 
 ```go
 import (
+	"errors"
 	"fmt"
 	"strings"
 
@@ -149,7 +150,7 @@ import (
 )
 ```
 
-- [ ] **Step 2: Replace `CurrencyByLocale` implementation**
+- [x] **Step 2: Replace `CurrencyByLocale` implementation**
 
 Use this implementation:
 
@@ -160,18 +161,21 @@ func CurrencyByLocale(tag string) (Currency, error) {
 	if normalized == "" {
 		return Currency{}, fmt.Errorf("%w: %q", ErrInvalidCurrency, tag)
 	}
-	if _, err := language.Parse(normalized); err != nil {
-		return Currency{}, fmt.Errorf("%w: invalid locale %q: %w", ErrInvalidCurrency, tag, err)
-	}
 	region, ok := explicitLocaleRegion(normalized)
 	if !ok {
 		return Currency{}, fmt.Errorf("%w: locale %q has no explicit region", ErrInvalidCurrency, tag)
+	}
+	if _, err := language.Parse(normalized); err != nil {
+		var valueErr language.ValueError
+		if !errors.As(err, &valueErr) {
+			return Currency{}, fmt.Errorf("%w: invalid locale %q: %w", ErrInvalidCurrency, tag, err)
+		}
 	}
 	return currencyByRegion(region, tag)
 }
 ```
 
-- [ ] **Step 3: Add helper functions under `CurrencyByLocale`**
+- [x] **Step 3: Add helper functions under `CurrencyByLocale`**
 
 Use these helpers:
 
@@ -224,7 +228,7 @@ func currencyByRegion(region language.Region, originalTag string) (Currency, err
 }
 ```
 
-- [ ] **Step 4: Remove old helper and map**
+- [x] **Step 4: Remove old helper and map**
 
 Delete:
 
@@ -234,7 +238,7 @@ func localeRegion(tag string) (string, bool) { ... }
 var regionCurrencies = map[string]string{ ... }
 ```
 
-- [ ] **Step 5: Run targeted tests**
+- [x] **Step 5: Run targeted tests**
 
 Run:
 
@@ -249,7 +253,7 @@ Expected: PASS.
 **Files:**
 - Create: `money/currency_concurrency_test.go`
 
-- [ ] **Step 1: Create stress test file**
+- [x] **Step 1: Create stress test file**
 
 Use this file:
 
@@ -326,7 +330,7 @@ func TestCurrencyByLocaleUsesGoroutineStressTester(t *testing.T) {
 }
 ```
 
-- [ ] **Step 2: Run stress and race tests**
+- [x] **Step 2: Run stress and race tests**
 
 Run:
 
@@ -344,7 +348,7 @@ Expected: PASS.
 - Modify: `money/README.ko.md`
 - Modify: `CHANGELOG.md`
 
-- [ ] **Step 1: Update `money/README.md` selection guide**
+- [x] **Step 1: Update `money/README.md` selection guide**
 
 Replace the locale row with:
 
@@ -352,7 +356,7 @@ Replace the locale row with:
 | Locale-to-currency convenience | `CurrencyByLocale` | Uses explicit-region BCP47 tags and CLDR current legal tender data. Ambiguous or no-tender regions are rejected. |
 ```
 
-- [ ] **Step 2: Add locale section to `money/README.md` after the exchange-rate provider example**
+- [x] **Step 2: Add locale section to `money/README.md` after the exchange-rate provider example**
 
 Use this section:
 
@@ -370,7 +374,7 @@ _ = currency // GBP
 ```
 ````
 
-- [ ] **Step 3: Update English behavior bullets**
+- [x] **Step 3: Update English behavior bullets**
 
 Add these bullets near existing currency behavior:
 
@@ -383,7 +387,7 @@ Add these bullets near existing currency behavior:
   choose explicitly.
 ```
 
-- [ ] **Step 4: Mirror the same content in `money/README.ko.md`**
+- [x] **Step 4: Mirror the same content in `money/README.ko.md`**
 
 Use Korean prose but keep code and diagram label in English:
 
@@ -412,7 +416,7 @@ Add Korean behavior bullets:
   합니다.
 ```
 
-- [ ] **Step 5: Update `CHANGELOG.md`**
+- [x] **Step 5: Update `CHANGELOG.md`**
 
 Add under `[Unreleased]` / `### Added`:
 
@@ -430,7 +434,7 @@ Add under `[Unreleased]` / `### Added`:
 - Modify: `go.sum`
 - Modify touched Go files
 
-- [ ] **Step 1: Format Go files**
+- [x] **Step 1: Format Go files**
 
 Run:
 
@@ -438,7 +442,7 @@ Run:
 gofmt -w money/currency.go money/currency_test.go money/currency_concurrency_test.go
 ```
 
-- [ ] **Step 2: Tidy module metadata**
+- [x] **Step 2: Tidy module metadata**
 
 Run:
 
@@ -451,7 +455,7 @@ Expected:
 - `golang.org/x/text` may move from indirect to direct in `go.mod`.
 - No unexpected dependency additions beyond required direct import metadata.
 
-- [ ] **Step 3: Run whitespace check**
+- [x] **Step 3: Run whitespace check**
 
 Run:
 
@@ -466,7 +470,7 @@ Expected: PASS.
 **Files:**
 - All changed files
 
-- [ ] **Step 1: Diagram validation**
+- [x] **Step 1: Diagram validation**
 
 Run:
 
@@ -482,7 +486,7 @@ Expected:
 money-locale-currency-resolution-flow: nodes=9 routes=8 segments=10 badEndpointAngle=0 badBends=0 interiorCrossings=0 nodeOverlaps=0 laneClearance=0 marginImbalance=0 margins=L48/R48/T48/B48 titleGap=58
 ```
 
-- [ ] **Step 2: Targeted tests**
+- [x] **Step 2: Targeted tests**
 
 Run:
 
@@ -493,7 +497,7 @@ go test -race -count=1 ./money ./testing/concurrency
 
 Expected: PASS.
 
-- [ ] **Step 3: Full repository tests**
+- [x] **Step 3: Full repository tests**
 
 Run:
 
@@ -506,7 +510,11 @@ make lint
 make ci
 ```
 
-Expected: PASS.
+Observed:
+
+- `make fmt-check`, `make vet`, and `make lint` passed.
+- `go test -count=1 -timeout=2m ./...` failed only in unchanged `jwt` cached-provider tests under local `go1.26.4 darwin/arm64`; PR CI remains the full-suite gate.
+- `make tidy-check` must be run after the implementation commit because it compares module metadata against `HEAD`.
 
 ## Task 7: Review, Lessons, PR
 
@@ -515,7 +523,7 @@ Expected: PASS.
 - Create: `docs/lessons/2026-06-14-issue-179-locale-currency-mapping.md`
 - Create after PR: `docs/superpowers/reviews/2026-06-14-issue-179-locale-currency-mapping-step-7r-pr-review.md`
 
-- [ ] **Step 1: Run Step 6-R local 7-Tier review**
+- [x] **Step 1: Run Step 6-R local 7-Tier review**
 
 Review perspectives:
 
@@ -533,7 +541,7 @@ Expected review verdict:
 P0=0 P1=0
 ```
 
-- [ ] **Step 2: Add lessons file**
+- [x] **Step 2: Add lessons file**
 
 Use this shape:
 
