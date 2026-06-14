@@ -19,8 +19,8 @@ help:
 		'  tidy-check  Run go mod tidy and fail on go.mod/go.sum drift' \
 		'  vet         Run go vet ./...' \
 		'  lint        Run golangci-lint' \
-		'  test        Run uncached go test ./... including Testcontainers tests' \
-		'  race        Run uncached go test -race ./... including Testcontainers tests' \
+		'  test        Run uncached go test ./... with serial package execution for Testcontainers safety' \
+		'  race        Run uncached go test -race ./... with serial package execution for Testcontainers safety' \
 		'  coverage    Generate Go coverage profile, package summary, and HTML report' \
 		'  bench-cache Run opt-in cache, Redis NearCache, and Redis coordinator benchmarks' \
 		'  bench-ratelimit Run opt-in local rate limiter benchmarks' \
@@ -47,14 +47,14 @@ lint:
 	@$(GOLANGCI_LINT) run ./...
 
 test:
-	@$(GO) test -count=1 ./...
+	@$(GO) test -p 1 -count=1 ./...
 
 race:
-	@$(GO) test -race -count=1 ./...
+	@$(GO) test -race -p 1 -count=1 ./...
 
 coverage:
 	@mkdir -p $(COVERAGE_DIR)
-	@$(GO) test -count=1 -covermode=atomic -coverpkg=./... -coverprofile=$(COVERAGE_PROFILE) ./...
+	@$(GO) test -p 1 -count=1 -covermode=atomic -coverpkg=./... -coverprofile=$(COVERAGE_PROFILE) ./...
 	@$(GO) tool cover -func=$(COVERAGE_PROFILE) | tee $(COVERAGE_TEXT)
 	@{ \
 		printf '%s\n' '| Package | Coverage | Covered | Statements |'; \

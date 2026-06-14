@@ -164,7 +164,7 @@ func TestStampedeCacheCollapsesNearCacheLoadsAfterInvalidation(t *testing.T) {
 		resultB <- loadResult[string]{value: value, err: err}
 	}()
 
-	bttesting.Eventually(t, 2*time.Second, func() bool {
+	bttesting.Eventually(t, 5*time.Second, func() bool {
 		return atomic.LoadInt32(&loads) == 1
 	})
 	time.Sleep(50 * time.Millisecond)
@@ -310,7 +310,7 @@ func redisClients(ctx context.Context, t *testing.T) (*redis.Client, *redis.Clie
 func waitForRedis(t *testing.T, client *redis.Client) {
 	t.Helper()
 
-	bttesting.Eventually(t, 2*time.Second, func() bool {
+	bttesting.Eventually(t, 5*time.Second, func() bool {
 		return client.Ping(context.Background()).Err() == nil
 	})
 }
@@ -403,7 +403,7 @@ func primeNearCaches(
 func assertEventuallyMiss(t *testing.T, near *redisnear.NearCache[string], key string) {
 	t.Helper()
 
-	bttesting.Eventually(t, 2*time.Second, func() bool {
+	bttesting.Eventually(t, 5*time.Second, func() bool {
 		_, err := near.Get(context.Background(), key)
 		return errors.Is(err, cache.ErrCacheMiss)
 	})
@@ -412,7 +412,7 @@ func assertEventuallyMiss(t *testing.T, near *redisnear.NearCache[string], key s
 func assertEventuallyValue(t *testing.T, near *redisnear.NearCache[string], key string, expected string) {
 	t.Helper()
 
-	bttesting.Eventually(t, 2*time.Second, func() bool {
+	bttesting.Eventually(t, 5*time.Second, func() bool {
 		value, err := near.Get(context.Background(), key)
 		return err == nil && value == expected
 	})

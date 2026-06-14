@@ -2,17 +2,15 @@ package jwt
 
 import (
 	"context"
-	"errors"
 	"strconv"
 	"strings"
 	"testing"
 	"time"
 
 	"github.com/bluetape4k/bluetape-go/cache"
+	"github.com/bluetape4k/bluetape-go/internal/testcleanup"
 	"github.com/redis/go-redis/v9"
-	"github.com/testcontainers/testcontainers-go"
 	tcredis "github.com/testcontainers/testcontainers-go/modules/redis"
-	"github.com/testcontainers/testcontainers-go/wait"
 )
 
 func BenchmarkRedisRepositoryFind(b *testing.B) {
@@ -235,26 +233,16 @@ func benchmarkRedisRepository(b *testing.B, client redis.Cmdable, namespace stri
 
 func benchmarkJWTRedisClient(ctx context.Context, b *testing.B) *redis.Client {
 	b.Helper()
-	container, err := tcredis.Run(ctx, "redis:7.4-alpine", testcontainers.WithWaitStrategy(
-		wait.ForLog("Ready to accept connections"),
-	))
+	container, err := tcredis.Run(ctx, "redis:7.4-alpine")
 	if err != nil {
 		b.Fatalf("start redis container: %v", err)
 	}
-	b.Cleanup(func() {
-		if err := container.Terminate(context.Background()); err != nil && !errors.Is(err, context.Canceled) {
-			b.Fatalf("terminate redis container: %v", err)
-		}
-	})
-	host, err := container.Host(ctx)
+	testcleanup.Register(ctx, b, "redis", container)
+	addr, err := container.PortEndpoint(ctx, "6379/tcp", "")
 	if err != nil {
-		b.Fatalf("redis container host: %v", err)
+		b.Fatalf("redis container endpoint: %v", err)
 	}
-	port, err := container.MappedPort(ctx, "6379/tcp")
-	if err != nil {
-		b.Fatalf("redis container port: %v", err)
-	}
-	client := redis.NewClient(&redis.Options{Addr: host + ":" + port.Port()})
+	client := redis.NewClient(&redis.Options{Addr: addr})
 	b.Cleanup(func() { _ = client.Close() })
 	waitBenchmarkJWTRedis(ctx, b, client)
 	return client
@@ -262,14 +250,17 @@ func benchmarkJWTRedisClient(ctx context.Context, b *testing.B) *redis.Client {
 
 func waitBenchmarkJWTRedis(ctx context.Context, b *testing.B, client *redis.Client) {
 	b.Helper()
-	deadline := time.Now().Add(2 * time.Second)
+	deadline := time.Now().Add(10 * time.Second)
+	var lastErr error
 	for time.Now().Before(deadline) {
-		if client.Ping(ctx).Err() == nil {
+		err := client.Ping(ctx).Err()
+		if err == nil {
 			return
 		}
+		lastErr = err
 		time.Sleep(10 * time.Millisecond)
 	}
-	b.Fatal("redis did not become ready")
+	b.Fatalf("redis did not become ready: %v", lastErr)
 }
 
 func benchmarkRedisNamespace(b *testing.B, namespace string) string {

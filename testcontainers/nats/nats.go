@@ -4,6 +4,7 @@ import (
 	"context"
 	"testing"
 
+	"github.com/bluetape4k/bluetape-go/internal/testcleanup"
 	tcnats "github.com/testcontainers/testcontainers-go/modules/nats"
 )
 
@@ -18,11 +19,7 @@ func Start(ctx context.Context, t *testing.T) string {
 		t.Fatalf("start nats container: %v", err)
 	}
 
-	t.Cleanup(func() {
-		if err := container.Terminate(context.Background()); err != nil {
-			t.Fatalf("terminate nats container: %v", err)
-		}
-	})
+	testcleanup.Register(ctx, t, "nats", container)
 
 	url, err := container.ConnectionString(ctx)
 	if err != nil {

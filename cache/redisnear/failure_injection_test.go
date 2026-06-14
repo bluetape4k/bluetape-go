@@ -8,11 +8,10 @@ import (
 	"testing"
 	"time"
 
+	"github.com/bluetape4k/bluetape-go/internal/testcleanup"
 	bttesting "github.com/bluetape4k/bluetape-go/testing"
 	"github.com/redis/go-redis/v9"
-	"github.com/testcontainers/testcontainers-go"
 	tcredis "github.com/testcontainers/testcontainers-go/modules/redis"
-	"github.com/testcontainers/testcontainers-go/wait"
 )
 
 func TestNearCacheClearsLocalOnRedisOutage(t *testing.T) {
@@ -144,30 +143,24 @@ func TestNearCacheRecreateAfterRedisOutageRestoresPeerInvalidation(t *testing.T)
 func redisServer(ctx context.Context, t *testing.T) (string, func()) {
 	t.Helper()
 
-	container, err := tcredis.Run(ctx, "redis:7.4-alpine", testcontainers.WithWaitStrategy(
-		wait.ForLog("Ready to accept connections"),
-	))
+	container, err := tcredis.Run(ctx, "redis:7.4-alpine")
 	if err != nil {
 		t.Fatalf("start redis container: %v", err)
 	}
 
-	host, err := container.Host(ctx)
+	addr, err := container.PortEndpoint(ctx, "6379/tcp", "")
 	if err != nil {
-		t.Fatalf("redis container host: %v", err)
-	}
-	port, err := container.MappedPort(ctx, "6379/tcp")
-	if err != nil {
-		t.Fatalf("redis container port: %v", err)
+		t.Fatalf("redis container endpoint: %v", err)
 	}
 
 	var once sync.Once
 	terminate := func() {
 		once.Do(func() {
-			if err := container.Terminate(context.Background()); err != nil && !errors.Is(err, context.Canceled) {
+			if err := testcleanup.Terminate(ctx, 0, container); err != nil && !errors.Is(err, context.Canceled) {
 				t.Fatalf("terminate redis container: %v", err)
 			}
 		})
 	}
 	t.Cleanup(terminate)
-	return host + ":" + port.Port(), terminate
+	return addr, terminate
 }
