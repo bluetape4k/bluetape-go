@@ -1,0 +1,14 @@
+graph 1 20.015 2.2181
+node inventory 1.3383 0.58333 2.6767 0.60278 <<FONT FACE="Architects Daughter" POINT-SIZE="18"><B>1. Gap Inventory</B></FONT><BR/><FONT FACE="Comic Mono" POINT-SIZE="11">#200 audit plus current tests</FONT>> rounded,filled box #93C5FD #DBEAFE
+node red 4.9872 0.58333 2.76 0.60278 <<FONT FACE="Architects Daughter" POINT-SIZE="18"><B>2. RED Tests</B></FONT><BR/><FONT FACE="Comic Mono" POINT-SIZE="11">failure, cancellation, cleanup</FONT>> rounded,filled box #FCA5A5 #FEE2E2
+node green 8.591 0.58333 2.1142 0.60278 <<FONT FACE="Architects Daughter" POINT-SIZE="18"><B>3. Minimal Green</B></FONT><BR/><FONT FACE="Comic Mono" POINT-SIZE="11">small code/test fixes</FONT>> rounded,filled box #86EFAC #DCFCE7
+node stress 12.403 1.4028 2.8433 0.60278 <<FONT FACE="Architects Daughter" POINT-SIZE="18"><B>4. Stress/Race</B></FONT><BR/><FONT FACE="Comic Mono" POINT-SIZE="11">GoroutineStressTester plus race</FONT>> rounded,filled box #C4B5FD #EDE9FE
+node ci 16.455 1.4028 2.0933 0.60278 <<FONT FACE="Architects Daughter" POINT-SIZE="18"><B>5. Repo Gate</B></FONT><BR/><FONT FACE="Comic Mono" POINT-SIZE="11">make ci and diff check</FONT>> rounded,filled box #FED7AA #FFF7ED
+node dod 19.223 0.40278 1.5829 0.60278 <<FONT FACE="Architects Daughter" POINT-SIZE="18"><B>DoD Status</B></FONT><BR/><FONT FACE="Comic Mono" POINT-SIZE="11">P0=0 P1=0</FONT>> rounded,filled box #A7F3D0 #ECFDF5
+edge inventory red 4 2.6867 0.58333 2.6867 0.58333 3.4424 0.58333 3.4424 0.58333 solid #2563EB
+edge red green 4 6.3754 0.58333 6.3754 0.58333 7.3694 0.58333 7.3694 0.58333 RED 6.9506 0.67188 solid #DC2626
+edge green stress 7 8.5843 0.89313 8.5843 1.1252 8.5843 1.4028 8.5843 1.4028 8.5843 1.4028 10.817 1.4028 10.817 1.4028 GREEN 10.315 1.3663 solid #16A34A
+edge stress ci 4 13.832 1.4028 13.832 1.4028 15.242 1.4028 15.242 1.4028 race 14.616 1.4913 solid #7C3AED
+edge ci dod 7 17.513 1.4028 18.295 1.4028 19.223 1.4028 19.223 1.4028 19.223 1.4028 19.223 0.86686 19.223 0.86686 solid #16A34A
+edge dod green 4 18.42 0.49306 18.42 0.49306 9.8105 0.49306 9.8105 0.49306 "fix loop" 14.616 0.088542 dashed #D97706
+stop
