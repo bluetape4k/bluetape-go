@@ -25,7 +25,7 @@ import "github.com/bluetape4k/bluetape-go/money"
 | Aggregation | `Sum` | Empty input returns the zero amount for the requested currency. |
 | Caller-supplied exchange conversion | `NewExchangeRate` and `Convert` | Pure value path. No network, cache, or provider IO. |
 | Provider-backed exchange conversion | `ExchangeRateProvider`, `NewECBProvider`, and `ConvertWithProvider` | Context-aware provider path with source, freshness, stale fallback, and refresh failure metadata. |
-| Full locale mapping | Deferred | Limited common locale lookup exists now; full mapping is tracked in #179. |
+| Locale-to-currency convenience | `CurrencyByLocale` | Uses explicit-region BCP47 tags and CLDR current legal tender data. Ambiguous or no-tender regions are rejected. |
 | Long-backed FastMoney | Deferred | Benchmark-driven evaluation is tracked in #180. |
 
 ## Usage
@@ -78,6 +78,18 @@ if quote.Stale {
 _ = krw
 ```
 
+Locale currency mapping is a current-region convenience:
+
+![money locale currency resolution flow](../docs/images/readme-diagrams/money-locale-currency-resolution-flow.png)
+
+```go
+currency, err := money.CurrencyByLocale("en-GB")
+if err != nil {
+    return err
+}
+_ = currency // GBP
+```
+
 ## Behavior
 
 - `money` is not a full accounting system. It does not provide ledgers,
@@ -110,6 +122,12 @@ _ = krw
   values. Use `Zero(currency)` when a valid zero money amount is needed.
 - `ParseCurrency("XXX")`, `ParseCurrency("999")`, and construction with
   no-currency values return `ErrInvalidCurrency`.
+- `CurrencyByLocale` requires an explicit BCP47 region and uses CLDR current
+  legal tender data through `golang.org/x/text/currency`.
+- Locale mapping is a current-region convenience, not an accounting, trading,
+  tax, settlement, or legal-tender authority. Regions with no current tender or
+  multiple current tender currencies return `ErrInvalidCurrency` so callers can
+  choose explicitly.
 - Arithmetic requires matching currencies. Currency mismatch returns
   `ErrCurrencyMismatch` for `errors.Is` checks.
 - `Round` uses currency-scale half-even rounding. `RoundTo` uses half-even

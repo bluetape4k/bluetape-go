@@ -81,6 +81,7 @@ Contract details:
 
 - Accepts BCP47 tags using hyphen or underscore separators.
 - Requires an explicit two-letter or three-letter region subtag.
+- Tolerates a well-formed but unknown language subtag only after an explicit valid region is present, preserving existing BCP47-like compatibility such as `at-AT`; malformed syntax is still rejected.
 - Uses current CLDR legal tender data.
 - Returns `ErrInvalidCurrency` for invalid syntax, missing region, unsupported/no-tender region, multi-tender ambiguity, and no-currency results.
 - Does not return historical currencies by default.
@@ -102,7 +103,7 @@ Expected rejected cases:
 - `ko` -> missing explicit region
 - `und` -> missing explicit region
 - `en-001` -> world region / no direct tender
-- `aa-BB` -> unknown region
+- `en-QM` -> no current legal tender
 - `es-PA` -> multi-tender region, caller must choose `PAB` or `USD`
 - `en-AQ` -> no current legal tender
 

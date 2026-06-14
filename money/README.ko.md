@@ -25,7 +25,7 @@ import "github.com/bluetape4k/bluetape-go/money"
 | 합산 | `Sum` | 입력이 비어 있으면 요청한 통화의 valid zero amount를 반환합니다. |
 | caller-supplied 환율 변환 | `NewExchangeRate`와 `Convert` | 순수 value 경로입니다. network, cache, provider IO를 수행하지 않습니다. |
 | provider-backed 환율 변환 | `ExchangeRateProvider`, `NewECBProvider`, `ConvertWithProvider` | source, freshness, stale fallback, refresh failure metadata를 드러내는 context-aware provider 경로입니다. |
-| 전체 locale mapping | Deferred | 현재는 제한된 common locale lookup만 제공하며 전체 mapping은 #179에서 추적합니다. |
+| locale-to-currency convenience | `CurrencyByLocale` | 명시적 region이 있는 BCP47 tag와 CLDR current legal tender data를 사용합니다. Ambiguous 또는 no-tender region은 거부합니다. |
 | Long-backed FastMoney | Deferred | benchmark 기반 평가는 #180에서 추적합니다. |
 
 ## 사용법
@@ -78,6 +78,18 @@ if quote.Stale {
 _ = krw
 ```
 
+Locale currency mapping은 current-region convenience입니다.
+
+![money locale currency resolution flow](../docs/images/readme-diagrams/money-locale-currency-resolution-flow.png)
+
+```go
+currency, err := money.CurrencyByLocale("en-GB")
+if err != nil {
+    return err
+}
+_ = currency // GBP
+```
+
 ## 동작
 
 - `money`는 전체 회계 시스템이 아닙니다. Ledger, posting rule, tax policy,
@@ -109,6 +121,12 @@ _ = krw
   value입니다. 유효한 0 금액은 `Zero(currency)`를 사용합니다.
 - `ParseCurrency("XXX")`, `ParseCurrency("999")`, no-currency 값으로 생성하는
   작업은 `ErrInvalidCurrency`를 반환합니다.
+- `CurrencyByLocale`는 명시적 BCP47 region을 요구하고
+  `golang.org/x/text/currency`의 CLDR current legal tender data를 사용합니다.
+- Locale mapping은 current-region convenience이며 accounting, trading, tax,
+  settlement, legal-tender 권위를 대체하지 않습니다. 현재 tender가 없거나 current
+  tender가 여러 개인 region은 `ErrInvalidCurrency`를 반환하므로 caller가
+  명시적으로 선택해야 합니다.
 - 산술은 같은 통화끼리만 허용합니다. 통화 불일치는 `errors.Is`로 확인 가능한
   `ErrCurrencyMismatch`를 반환합니다.
 - `Round`는 통화 scale 기준 half-even 반올림을 사용합니다. `RoundTo`는 요청한

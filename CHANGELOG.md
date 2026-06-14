@@ -26,6 +26,9 @@ and this project uses semantic versioning once the first tag is published.
   fallback metadata, cancellation/retry/cache coverage, stress/race tests, and
   diagram-backed bilingual README documentation. IMF and Bloomberg providers
   remain follow-up issues #231 and #232.
+- `money.CurrencyByLocale` CLDR-backed locale currency mapping for
+  explicit-region BCP47 tags, with missing/no-tender/multi-tender rejection,
+  stress/race coverage, and diagram-backed bilingual README documentation.
 
 ### Changed
 
