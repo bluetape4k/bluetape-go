@@ -1,0 +1,118 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="2240" height="1360" viewBox="0 0 2240 1360">
+  <defs>
+    <style>
+      @font-face { font-family: 'Architects Daughter'; src: url('/Users/debop/Library/Fonts/ArchitectsDaughter-Regular.ttf'); }
+      @font-face { font-family: 'Comic Mono'; src: url('/Users/debop/Library/Fonts/ComicMono.ttf'); font-weight: normal; }
+      @font-face { font-family: 'Comic Mono'; src: url('/Users/debop/Library/Fonts/ComicMono-Bold.ttf'); font-weight: bold; }
+      .title { font-family: 'Architects Daughter'; font-size: 44px; fill: #1E293B; font-weight: bold; }
+      .subtitle { font-family: 'Comic Mono'; font-size: 17px; fill: #64748B; }
+      .panel-label { font-family: 'Architects Daughter'; font-size: 25px; fill: #1E293B; font-weight: bold; }
+      .card-title { font-family: 'Architects Daughter'; font-size: 25px; fill: #1E293B; font-weight: bold; }
+      .card-detail { font-family: 'Comic Mono'; font-size: 15px; fill: #334155; }
+      .route-label { font-family: 'Comic Mono'; font-size: 13px; fill: #334155; font-weight: bold; }
+      .footer-note { font-family: 'Comic Mono'; font-size: 14px; fill: #334155; }
+    </style>
+    <marker id="1E293B" viewBox="0 0 5 5" refX="4.5" refY="2.5" markerWidth="5" markerHeight="5" orient="auto">
+    <path d="M 0.5 0.5 L 4.5 2.5 L 0.5 4.5 Z" fill="#1E293B"/>
+  </marker>
+<marker id="64748B" viewBox="0 0 5 5" refX="4.5" refY="2.5" markerWidth="5" markerHeight="5" orient="auto">
+    <path d="M 0.5 0.5 L 4.5 2.5 L 0.5 4.5 Z" fill="#64748B"/>
+  </marker>
+<marker id="2563EB" viewBox="0 0 5 5" refX="4.5" refY="2.5" markerWidth="5" markerHeight="5" orient="auto">
+    <path d="M 0.5 0.5 L 4.5 2.5 L 0.5 4.5 Z" fill="#2563EB"/>
+  </marker>
+<marker id="7C3AED" viewBox="0 0 5 5" refX="4.5" refY="2.5" markerWidth="5" markerHeight="5" orient="auto">
+    <path d="M 0.5 0.5 L 4.5 2.5 L 0.5 4.5 Z" fill="#7C3AED"/>
+  </marker>
+<marker id="16A34A" viewBox="0 0 5 5" refX="4.5" refY="2.5" markerWidth="5" markerHeight="5" orient="auto">
+    <path d="M 0.5 0.5 L 4.5 2.5 L 0.5 4.5 Z" fill="#16A34A"/>
+  </marker>
+<marker id="D97706" viewBox="0 0 5 5" refX="4.5" refY="2.5" markerWidth="5" markerHeight="5" orient="auto">
+    <path d="M 0.5 0.5 L 4.5 2.5 L 0.5 4.5 Z" fill="#D97706"/>
+  </marker>
+<marker id="DC2626" viewBox="0 0 5 5" refX="4.5" refY="2.5" markerWidth="5" markerHeight="5" orient="auto">
+    <path d="M 0.5 0.5 L 4.5 2.5 L 0.5 4.5 Z" fill="#DC2626"/>
+  </marker>
+<marker id="475569" viewBox="0 0 5 5" refX="4.5" refY="2.5" markerWidth="5" markerHeight="5" orient="auto">
+    <path d="M 0.5 0.5 L 4.5 2.5 L 0.5 4.5 Z" fill="#475569"/>
+  </marker>
+    <filter id="shadow" x="-10%" y="-10%" width="120%" height="120%">
+      <feDropShadow dx="0" dy="10" stdDeviation="12" flood-color="#CBD5E1" flood-opacity="0.42"/>
+    </filter>
+  </defs>
+
+  <rect x="0" y="0" width="2240" height="1360" fill="#F8FAFC"/>
+  <rect x="48" y="48" width="2144" height="1264" rx="34" fill="#FFFFFF" stroke="#CBD5E1" stroke-width="2.4" filter="url(#shadow)"/>
+  <text x="1120" y="96" class="title" text-anchor="middle" dominant-baseline="middle">Issue #201 Test Gate Upgrade</text>
+  <text x="1120" y="140" class="subtitle" text-anchor="middle" dominant-baseline="middle">Turn audit gaps into failure, cancellation, cleanup, stress, race, and CI evidence before parity expansion.</text>
+
+  <g>
+    <rect x="92" y="190" width="2056" height="568" rx="22" fill="#F8FAFC" stroke="#E2E8F0" stroke-width="2" opacity="0.92"/>
+    <text x="120" y="226" class="panel-label" dominant-baseline="middle">Issue #201 Verification Upgrade Path</text>
+  </g>
+<g>
+    <rect x="92" y="804" width="2056" height="332" rx="22" fill="#F5F3FF" stroke="#DDD6FE" stroke-width="2" opacity="0.92"/>
+    <text x="120" y="840" class="panel-label" dominant-baseline="middle">Required Review And Evidence Lanes</text>
+  </g>
+  <path d="M 476 400 L 560 400" fill="none" stroke="#2563EB" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" marker-end="url(#2563EB)" />
+<path d="M 904 400 L 988 400" fill="none" stroke="#DC2626" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" marker-end="url(#DC2626)" />
+<text x="922" y="386" class="route-label" dominant-baseline="middle">RED</text>
+<path d="M 1348 400 L 1432 400" fill="none" stroke="#16A34A" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" marker-end="url(#16A34A)" />
+<text x="1366" y="386" class="route-label" dominant-baseline="middle">GREEN</text>
+<path d="M 1618 516 L 1618 584" fill="none" stroke="#7C3AED" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" marker-end="url(#7C3AED)" />
+<text x="1636" y="502" class="route-label" dominant-baseline="middle">race</text>
+<path d="M 1432 642 L 1336 642" fill="none" stroke="#16A34A" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" marker-end="url(#16A34A)" />
+<path d="M 1168 592 L 1168 484 L 1180 484" fill="none" stroke="#D97706" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" marker-end="url(#D97706)" stroke-dasharray="9 10"/>
+<text x="1186" y="578" class="route-label" dominant-baseline="middle">fix loop</text>
+  <rect x="132" y="316" width="344" height="168" rx="18" fill="#DBEAFE" stroke="#93C5FD" stroke-width="2" />
+<text x="304" y="377" class="card-title" text-anchor="middle" dominant-baseline="middle">1. Gap Inventory</text>
+<text x="304" y="408" class="card-detail" text-anchor="middle" dominant-baseline="middle">#200 audit plus current tests</text>
+<text x="304" y="432" class="card-detail" text-anchor="middle" dominant-baseline="middle">failure, cancel, cleanup, stress</text>
+<rect x="560" y="316" width="344" height="168" rx="18" fill="#FEE2E2" stroke="#FCA5A5" stroke-width="2" />
+<text x="732" y="377" class="card-title" text-anchor="middle" dominant-baseline="middle">2. RED Tests</text>
+<text x="732" y="408" class="card-detail" text-anchor="middle" dominant-baseline="middle">write missing contract tests</text>
+<text x="732" y="432" class="card-detail" text-anchor="middle" dominant-baseline="middle">watch targeted failures first</text>
+<rect x="988" y="316" width="360" height="168" rx="18" fill="#DCFCE7" stroke="#86EFAC" stroke-width="2" />
+<text x="1168" y="377" class="card-title" text-anchor="middle" dominant-baseline="middle">3. Minimal Green</text>
+<text x="1168" y="408" class="card-detail" text-anchor="middle" dominant-baseline="middle">bounded cleanup contexts</text>
+<text x="1168" y="432" class="card-detail" text-anchor="middle" dominant-baseline="middle">no broad API expansion</text>
+<rect x="1432" y="284" width="372" height="232" rx="18" fill="#EDE9FE" stroke="#C4B5FD" stroke-width="2" />
+<text x="1618" y="370.5" class="card-title" text-anchor="middle" dominant-baseline="middle">4. Stress/Race Gate</text>
+<text x="1618" y="401.5" class="card-detail" text-anchor="middle" dominant-baseline="middle">GoroutineStressTester</text>
+<text x="1618" y="425.5" class="card-detail" text-anchor="middle" dominant-baseline="middle">AsyncJobTester where context matters</text>
+<text x="1618" y="449.5" class="card-detail" text-anchor="middle" dominant-baseline="middle">targeted go test -race</text>
+<rect x="1432" y="584" width="372" height="118" rx="18" fill="#FFF7ED" stroke="#FED7AA" stroke-width="2" />
+<text x="1618" y="620" class="card-title" text-anchor="middle" dominant-baseline="middle">5. Repo Gate</text>
+<text x="1618" y="651" class="card-detail" text-anchor="middle" dominant-baseline="middle">make ci</text>
+<text x="1618" y="675" class="card-detail" text-anchor="middle" dominant-baseline="middle">git diff --check</text>
+<rect x="1000" y="592" width="336" height="110" rx="18" fill="#ECFDF5" stroke="#A7F3D0" stroke-width="2" />
+<text x="1168" y="624" class="card-title" text-anchor="middle" dominant-baseline="middle">DoD Status</text>
+<text x="1168" y="655" class="card-detail" text-anchor="middle" dominant-baseline="middle">P0=0 P1=0</text>
+<text x="1168" y="679" class="card-detail" text-anchor="middle" dominant-baseline="middle">PR body live verified</text>
+  <rect x="132" y="900" width="300" height="118" rx="18" fill="#EFF6FF" stroke="#BFDBFE" stroke-width="2" />
+<text x="282" y="936" class="card-title" text-anchor="middle" dominant-baseline="middle">Performance</text>
+<text x="282" y="967" class="card-detail" text-anchor="middle" dominant-baseline="middle">stress stays bounded</text>
+<text x="282" y="991" class="card-detail" text-anchor="middle" dominant-baseline="middle">no slow global suites</text>
+<rect x="464" y="900" width="300" height="118" rx="18" fill="#ECFEFF" stroke="#A5F3FC" stroke-width="2" />
+<text x="614" y="936" class="card-title" text-anchor="middle" dominant-baseline="middle">Stability</text>
+<text x="614" y="967" class="card-detail" text-anchor="middle" dominant-baseline="middle">cancellation</text>
+<text x="614" y="991" class="card-detail" text-anchor="middle" dominant-baseline="middle">cleanup timeout</text>
+<rect x="796" y="900" width="300" height="118" rx="18" fill="#FEF2F2" stroke="#FECACA" stroke-width="2" />
+<text x="946" y="936" class="card-title" text-anchor="middle" dominant-baseline="middle">Security</text>
+<text x="946" y="967" class="card-detail" text-anchor="middle" dominant-baseline="middle">no weaker auth/cache</text>
+<text x="946" y="991" class="card-detail" text-anchor="middle" dominant-baseline="middle">no secret leakage</text>
+<rect x="1128" y="900" width="300" height="118" rx="18" fill="#FFF7ED" stroke="#FED7AA" stroke-width="2" />
+<text x="1278" y="936" class="card-title" text-anchor="middle" dominant-baseline="middle">Operator/Ops</text>
+<text x="1278" y="967" class="card-detail" text-anchor="middle" dominant-baseline="middle">Docker cleanup</text>
+<text x="1278" y="991" class="card-detail" text-anchor="middle" dominant-baseline="middle">serial Testcontainers</text>
+<rect x="1460" y="900" width="300" height="118" rx="18" fill="#F0FDF4" stroke="#BBF7D0" stroke-width="2" />
+<text x="1610" y="936" class="card-title" text-anchor="middle" dominant-baseline="middle">Developer/API</text>
+<text x="1610" y="967" class="card-detail" text-anchor="middle" dominant-baseline="middle">Go-shaped tests</text>
+<text x="1610" y="991" class="card-detail" text-anchor="middle" dominant-baseline="middle">errors.Is/As</text>
+<rect x="1792" y="900" width="300" height="118" rx="18" fill="#FDF4FF" stroke="#F5D0FE" stroke-width="2" />
+<text x="1942" y="936" class="card-title" text-anchor="middle" dominant-baseline="middle">User/Caller</text>
+<text x="1942" y="967" class="card-detail" text-anchor="middle" dominant-baseline="middle">document gaps</text>
+<text x="1942" y="991" class="card-detail" text-anchor="middle" dominant-baseline="middle">future issue links</text>
+  <text x="1120" y="1200" class="footer-note" text-anchor="middle" dominant-baseline="middle">Diagram baseline: flow-retry-workflow plus workflow-image-upload; no grid layout for the relationship-heavy verification path.</text>
+  <text x="1120" y="1238" class="footer-note" text-anchor="middle" dominant-baseline="middle">Evidence must include RED failure, GoroutineStressTester coverage, targeted race, make ci, git diff check, and live PR DoD verification.</text>
+</svg>

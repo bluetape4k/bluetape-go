@@ -4,15 +4,17 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"os"
 	"reflect"
 	"strings"
 	"sync"
 	"testing"
 	"time"
 
-	redistestcontainer "github.com/bluetape4k/bluetape-go/testcontainers/redis"
+	"github.com/bluetape4k/bluetape-go/internal/testcleanup"
 	concurrencytest "github.com/bluetape4k/bluetape-go/testing/concurrency"
 	"github.com/redis/go-redis/v9"
+	tcredis "github.com/testcontainers/testcontainers-go/modules/redis"
 )
 
 func TestRepositoryCurrentReturnsNewestNonExpiredKey(t *testing.T) {
@@ -528,22 +530,63 @@ func TestRepositoryRotateCurrentHitCommandBudget(t *testing.T) {
 
 func jwtRedisClient(ctx context.Context, t *testing.T) *redis.Client {
 	t.Helper()
-	client := redis.NewClient(&redis.Options{Addr: redistestcontainer.Start(ctx, t)})
+	addr, err := jwtRedisAddr(ctx)
+	if err != nil {
+		t.Fatalf("start redis container: %v", err)
+	}
+	client := redis.NewClient(&redis.Options{Addr: addr})
 	t.Cleanup(func() { _ = client.Close() })
 	waitForJWTRedis(t, client)
 	return client
 }
 
-func waitForJWTRedis(t *testing.T, client *redis.Client) {
-	t.Helper()
-	deadline := time.Now().Add(2 * time.Second)
-	for time.Now().Before(deadline) {
-		if client.Ping(context.Background()).Err() == nil {
+var jwtRedisFixture struct {
+	once      sync.Once
+	container *tcredis.RedisContainer
+	addr      string
+	err       error
+}
+
+func jwtRedisAddr(ctx context.Context) (string, error) {
+	jwtRedisFixture.once.Do(func() {
+		container, err := tcredis.Run(ctx, "redis:7.4-alpine")
+		if err != nil {
+			jwtRedisFixture.err = err
 			return
 		}
+		addr, err := container.PortEndpoint(ctx, "6379/tcp", "")
+		if err != nil {
+			jwtRedisFixture.err = err
+			_ = testcleanup.Terminate(ctx, 0, container)
+			return
+		}
+		jwtRedisFixture.container = container
+		jwtRedisFixture.addr = addr
+	})
+	return jwtRedisFixture.addr, jwtRedisFixture.err
+}
+
+func TestMain(m *testing.M) {
+	code := m.Run()
+	if jwtRedisFixture.container != nil {
+		_ = testcleanup.Terminate(context.Background(), 0, jwtRedisFixture.container)
+	}
+	os.Exit(code)
+}
+
+func waitForJWTRedis(t *testing.T, client *redis.Client) {
+	t.Helper()
+	deadline := time.Now().Add(10 * time.Second)
+	var lastErr error
+	for time.Now().Before(deadline) {
+		err := client.Ping(context.Background()).Err()
+		if err == nil {
+			return
+		}
+		lastErr = err
 		time.Sleep(25 * time.Millisecond)
 	}
-	t.Fatalf("redis did not become ready: %v", client.Ping(context.Background()).Err())
+	t.Fatalf("redis did not become ready: %v", lastErr)
 }
 
 func newTestRedisRepository(t *testing.T, client redis.Cmdable, namespace string, options RedisRepositoryOptions) *RedisRepository {

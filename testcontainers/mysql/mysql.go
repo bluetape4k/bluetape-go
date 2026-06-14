@@ -4,6 +4,7 @@ import (
 	"context"
 	"testing"
 
+	"github.com/bluetape4k/bluetape-go/internal/testcleanup"
 	tcmysql "github.com/testcontainers/testcontainers-go/modules/mysql"
 )
 
@@ -29,11 +30,7 @@ func Start(ctx context.Context, t *testing.T) string {
 		t.Fatalf("start mysql container: %v", err)
 	}
 
-	t.Cleanup(func() {
-		if err := container.Terminate(context.Background()); err != nil {
-			t.Fatalf("terminate mysql container: %v", err)
-		}
-	})
+	testcleanup.Register(ctx, t, "mysql", container)
 
 	dsn, err := container.ConnectionString(ctx, "parseTime=true")
 	if err != nil {

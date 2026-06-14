@@ -4,6 +4,7 @@ import (
 	"context"
 	"testing"
 
+	"github.com/bluetape4k/bluetape-go/internal/testcleanup"
 	tcpostgres "github.com/testcontainers/testcontainers-go/modules/postgres"
 )
 
@@ -30,11 +31,7 @@ func Start(ctx context.Context, t *testing.T) string {
 		t.Fatalf("start postgres container: %v", err)
 	}
 
-	t.Cleanup(func() {
-		if err := container.Terminate(context.Background()); err != nil {
-			t.Fatalf("terminate postgres container: %v", err)
-		}
-	})
+	testcleanup.Register(ctx, t, "postgres", container)
 
 	connString, err := container.ConnectionString(ctx, "sslmode=disable")
 	if err != nil {

@@ -140,8 +140,8 @@ make ci
 | `make tidy-check` | `go mod tidy` 후 `go.mod`/`go.sum` 변경이 있으면 실패합니다. |
 | `make vet` | `go vet ./...`를 실행합니다. |
 | `make lint` | `golangci-lint run ./...`를 실행합니다. |
-| `make test` | Testcontainers 테스트가 실제 실행되도록 `go test -count=1 ./...`를 실행합니다. |
-| `make race` | Testcontainers 테스트가 race detector에서도 실제 실행되도록 `go test -race -count=1 ./...`를 실행합니다. |
+| `make test` | Testcontainers 테스트가 package 단위로 직렬 실행되도록 `go test -p 1 -count=1 ./...`를 실행합니다. |
+| `make race` | Testcontainers 테스트가 race detector에서도 package 단위로 직렬 실행되도록 `go test -race -p 1 -count=1 ./...`를 실행합니다. |
 | `make coverage` | `coverage/` 아래에 Go coverage profile, package 소계 table, text summary, HTML report를 생성합니다. |
 | `make bench-cache` | opt-in cache, Redis NearCache, Redis coordinator benchmark를 실행합니다. |
 | `make bench-ratelimit` | opt-in local rate limiter benchmark를 실행합니다. |

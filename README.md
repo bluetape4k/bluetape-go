@@ -144,8 +144,8 @@ Common commands:
 | `make tidy-check` | Fail when `go.mod` or `go.sum` drift after `go mod tidy`. |
 | `make vet` | Run `go vet ./...`. |
 | `make lint` | Run `golangci-lint run ./...`. |
-| `make test` | Run `go test -count=1 ./...` so Testcontainers tests execute. |
-| `make race` | Run `go test -race -count=1 ./...` so Testcontainers tests execute under the race detector. |
+| `make test` | Run `go test -p 1 -count=1 ./...` so Testcontainers tests execute with serial package scheduling. |
+| `make race` | Run `go test -race -p 1 -count=1 ./...` so Testcontainers tests execute under the race detector with serial package scheduling. |
 | `make coverage` | Generate Go coverage profile, package subtotal table, text summary, and HTML report under `coverage/`. |
 | `make bench-cache` | Run opt-in cache, Redis NearCache, and Redis coordinator benchmarks. |
 | `make bench-ratelimit` | Run opt-in local rate limiter benchmarks. |
