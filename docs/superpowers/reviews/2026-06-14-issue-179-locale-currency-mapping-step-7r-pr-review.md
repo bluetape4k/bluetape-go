@@ -30,6 +30,23 @@ Observed:
 - `mergeStateStatus=BLOCKED` while CI is pending.
 - `statusCheckRollup`: `ci` is `IN_PROGRESS`.
 
+## CI Wait Result
+
+Command:
+
+```bash
+gh pr checks 234 --watch --interval 10
+```
+
+Observed:
+
+- Waited until the 10-minute SLA was exceeded.
+- Watcher was stopped after the SLA rather than blocking indefinitely.
+- `gh run view 27485860605 --json status,conclusion,updatedAt,jobs,url` showed the workflow still `in_progress`.
+- Completed CI steps at timeout: setup, checkout, Go setup, Docker check, formatting, module tidiness, vet, lint.
+- Current in-progress CI step at timeout: `Test with Testcontainers and coverage`.
+- Pending CI steps at timeout: coverage summary/upload and race test.
+
 ## Lane 1: Performance
 
 Verdict: PASS.
@@ -74,7 +91,7 @@ P1 findings: 0.
 
 P2 findings:
 
-- CI was still `IN_PROGRESS` at Step 7-R creation. Wait for CI before merge approval.
+- CI was still `IN_PROGRESS` after the bounded 10-minute wait. Wait for CI before merge approval.
 
 P3 findings: 0.
 
