@@ -1,0 +1,17 @@
+graph 1 15.581 2.6306
+node money 1.0727 1.7042 2.01 0.75556 <<FONT FACE="Architects Daughter" POINT-SIZE="18"><B>Money</B></FONT><BR/><FONT FACE="Comic Mono" POINT-SIZE="11">decimal-backed</FONT><BR/><FONT FACE="Comic Mono" POINT-SIZE="11">NewMinor / MinorUnits</FONT>> rounded,filled box #93C5FD #DBEAFE
+node jvm 1.0727 0.30139 2.1454 0.60278 <<FONT FACE="Architects Daughter" POINT-SIZE="18"><B>JVM FastMoney</B></FONT><BR/><FONT FACE="Comic Mono" POINT-SIZE="11">Long-backed reference</FONT>> rounded,filled box #FCD34D #FEF3C7
+node bench 4.2476 1.6903 2.1454 0.60278 <<FONT FACE="Architects Daughter" POINT-SIZE="18"><B>Go Benchmarks</B></FONT><BR/><FONT FACE="Comic Mono" POINT-SIZE="11">minor unit hot paths</FONT>> rounded,filled box #C4B5FD #EDE9FE
+node research 4.2476 0.32917 2.3433 0.60278 <<FONT FACE="Architects Daughter" POINT-SIZE="18"><B>Alternatives</B></FONT><BR/><FONT FACE="Comic Mono" POINT-SIZE="11">direct engine and Go libs</FONT>> rounded,filled box #C4B5FD #F3E8FF
+node gate 7.4278 0.98194 2.1558 0.60278 <<FONT FACE="Architects Daughter" POINT-SIZE="18"><B>Measured Need?</B></FONT><BR/><FONT FACE="Comic Mono" POINT-SIZE="11">real use case plus gap</FONT>> rounded,filled box #FDBA74 #FFEDD5
+node defer 10.844 1.8153 1.9267 0.60278 <<FONT FACE="Architects Daughter" POINT-SIZE="18"><B>Keep Money</B></FONT><BR/><FONT FACE="Comic Mono" POINT-SIZE="11">document no new type</FONT>> rounded,filled box #86EFAC #DCFCE7
+node fastmoney 10.844 0.49583 2.3433 0.60278 <<FONT FACE="Architects Daughter" POINT-SIZE="18"><B>Open FastMoney</B></FONT><BR/><FONT FACE="Comic Mono" POINT-SIZE="11">only with strong evidence</FONT>> rounded,filled box #FCA5A5 #FEE2E2
+node chart 14.264 1.8153 2.635 0.60278 <<FONT FACE="Architects Daughter" POINT-SIZE="18"><B>Chart + Raw Output</B></FONT><BR/><FONT FACE="Comic Mono" POINT-SIZE="11">lower is better</FONT>> rounded,filled box #CBD5E1 #FFFFFF
+edge money bench 4 2.086 1.6903 2.086 1.6903 3.0141 1.6903 3.0141 1.6903 solid #2563EB
+edge jvm research 4 2.1565 0.31528 2.1565 0.31528 2.9123 0.31528 2.9123 0.31528 solid #7C3AED
+edge bench gate 7 5.329 1.4514 6.2511 1.4514 7.4285 1.4514 7.4285 1.4514 7.4285 1.4514 7.4285 1.4355 7.4285 1.4355 solid #2563EB
+edge research gate 7 5.3729 0.64026 5.3729 0.80839 5.3729 0.98194 5.3729 0.98194 5.3729 0.98194 6.187 0.98194 6.187 0.98194 solid #7C3AED
+edge gate defer 7 8.5137 1.0403 9.5144 1.0403 10.845 1.0403 10.845 1.0403 10.845 1.0403 10.845 1.3514 10.845 1.3514 no 9.089 1.7233 solid #16A34A
+edge gate fastmoney 4 8.5181 0.73889 8.5181 0.73889 9.5105 0.73889 9.5105 0.73889 yes 9.089 0.58438 solid #DC2626
+edge defer chart 4 11.819 1.8153 11.819 1.8153 12.783 1.8153 12.783 1.8153 dashed #D97706
+stop
