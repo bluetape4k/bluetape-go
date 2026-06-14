@@ -1,0 +1,10 @@
+ok  	github.com/bluetape4k/bluetape-go/testing/concurrency	0.433s
+ok  	github.com/bluetape4k/bluetape-go/concurrency	0.313s
+ok  	github.com/bluetape4k/bluetape-go/cache/rediscoord	4.732s
+ok  	github.com/bluetape4k/bluetape-go/cache/redisnear	6.714s
+ok  	github.com/bluetape4k/bluetape-go/leader/redis	36.858s
+ok  	github.com/bluetape4k/bluetape-go/lock/redis	6.243s
+ok  	github.com/bluetape4k/bluetape-go/ratelimit/redis	7.269s
+ok  	github.com/bluetape4k/bluetape-go/probabilistic/redis	11.597s
+ok  	github.com/bluetape4k/bluetape-go/jwt	35.649s
+ok  	github.com/bluetape4k/bluetape-go/jwt/redis	2.414s
