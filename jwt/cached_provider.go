@@ -38,6 +38,9 @@ func NewCachedProvider(provider *Provider, c cache.Cache[string, *Reader], optio
 	if err != nil {
 		return nil, err
 	}
+	if !cfg.customNow {
+		cfg.now = provider.cfg.now
+	}
 	return &CachedProvider{provider: provider, cache: c, cfg: cfg}, nil
 }
 

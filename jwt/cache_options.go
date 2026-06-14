@@ -23,6 +23,7 @@ type cacheConfig struct {
 	keyPrefix  string
 	trustScope string
 	now        func() time.Time
+	customNow  bool
 }
 
 func normalizeCacheConfig(options []CacheOption) (cacheConfig, error) {
@@ -87,6 +88,7 @@ func WithCacheClock(now func() time.Time) CacheOption {
 			return OptionError{Option: "cache_clock", Err: errorsNew("must not be nil")}
 		}
 		cfg.now = now
+		cfg.customNow = true
 		return nil
 	}
 }

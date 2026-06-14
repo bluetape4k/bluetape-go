@@ -37,6 +37,9 @@ func NewCachedDistributedProvider(provider *DistributedProvider, c cache.Cache[s
 	if err != nil {
 		return nil, err
 	}
+	if !cfg.customNow {
+		cfg.now = provider.provider.cfg.now
+	}
 	return &CachedDistributedProvider{provider: provider, cache: c, cfg: cfg}, nil
 }
 
