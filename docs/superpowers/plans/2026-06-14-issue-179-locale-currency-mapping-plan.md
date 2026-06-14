@@ -566,7 +566,7 @@ Use this shape:
 - `make ci`
 ```
 
-- [ ] **Step 3: Commit implementation**
+- [x] **Step 3: Commit implementation**
 
 Use a Lore commit:
 
@@ -583,7 +583,7 @@ git commit -m "Resolve locale currencies from CLDR tender data" \
   -m "Not-tested: live production locale data beyond the bundled golang.org/x/text CLDR snapshot"
 ```
 
-- [ ] **Step 4: Push and create PR**
+- [x] **Step 4: Push and create PR**
 
 Use `--body-file` and make the final section `## DoD Status`.
 
@@ -603,7 +603,7 @@ PR body must include:
 - Validation command list.
 - Final `## DoD Status` section.
 
-- [ ] **Step 5: Run Step 7-R PR review**
+- [x] **Step 5: Run Step 7-R PR review**
 
 After PR creation:
 
