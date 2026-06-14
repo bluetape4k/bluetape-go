@@ -69,4 +69,4 @@ Several Redis/Testcontainers-backed packages were individually healthy but unsta
 | Step 7 - Lessons | PASS | `docs/lessons/2026-06-14-issue-201-test-gates.md`. |
 | Step 7-P - PR creation | PASS | PR #237 created against `develop`; milestone `0.6.2`, assignee `debop`; live body verified. |
 | Step 7-R - Post-PR review | PASS | `docs/superpowers/reviews/2026-06-14-issue-201-test-gates-step-7r-pr-review.md`, P0=0 P1=0; PR comment and formal review posted. |
-| Step 8 - CI gate | PENDING | GitHub CI pending PR push. |
+| Step 8 - CI gate | PASS | GitHub Actions `ci` passed: https://github.com/bluetape4k/bluetape-go/actions/runs/27494105916/job/81264830021. |
