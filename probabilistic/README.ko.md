@@ -2,8 +2,9 @@
 
 [English](README.md) | [한국어](README.ko.md)
 
-`probabilistic`는 first-party 확률적 자료구조를 제공합니다. 인메모리 Bloom
-filter와 분산 공유 상태를 위한 Redis-backed Bloom filter를 포함합니다.
+`probabilistic`는 bluetape-go에서 직접 제공하는 확률적 자료구조 패키지입니다.
+인메모리 Bloom filter와 분산 공유 상태를 위한 Redis-backed Bloom filter를
+포함합니다.
 
 ## 가져오기
 
@@ -30,8 +31,8 @@ if filter.MightContain("user:42") {
 }
 ```
 
-string이나 `[]byte`가 아닌 값은 stable compatibility key를 가진 명시적 hasher를
-제공합니다.
+string이나 `[]byte`가 아닌 값은 안정적인 compatibility key를 가진 hasher를
+명시적으로 제공합니다.
 
 ```go
 hasher, err := probabilistic.NewHasher("int-decimal", func(v int) []byte {
@@ -39,9 +40,9 @@ hasher, err := probabilistic.NewHasher("int-decimal", func(v int) []byte {
 })
 ```
 
-패키지 생성 filter 병합은 config와 hasher key가 모두 같은 경우에만 허용됩니다.
+패키지가 생성한 filter는 config와 hasher key가 모두 같을 때만 병합할 수 있습니다.
 Custom hasher 함수는 deterministic하고 goroutine-safe해야 합니다. 같은 key를 가진
-두 filter는 merge-compatible로 간주되므로 compatibility key 안정성은 caller가
+두 filter는 merge-compatible로 간주되므로, compatibility key의 안정성은 caller가
 보장합니다.
 
 ## 동작
@@ -54,13 +55,13 @@ Custom hasher 함수는 deterministic하고 goroutine-safe해야 합니다. 같�
 - `Put`은 하나 이상의 bit가 새로 켜졌는지 반환합니다. `false`가 값의 기존 존재를
   증명하지는 않습니다.
 - 삭제는 지원하지 않습니다.
-- 구현은 concurrent `Put`, `MightContain`, `PutAll`, `Clear`, metadata read에
-  대해 hasher가 goroutine-safe일 때 goroutine-safe입니다.
-- 패키지는 context-aware I/O나 background job 경계를 갖지 않습니다.
+- 구현은 hasher가 goroutine-safe일 때 concurrent `Put`, `MightContain`,
+  `PutAll`, `Clear`, metadata read에 대해 goroutine-safe입니다.
+- 이 패키지 자체에는 context-aware I/O나 background job 경계가 없습니다.
 
 ## Redis-backed Bloom Filter
 
-Redis-backed package는 다음 import path를 사용합니다.
+Redis-backed package는 다음 import path로 사용할 수 있습니다.
 
 ```go
 import redisbloom "github.com/bluetape4k/bluetape-go/probabilistic/redis"
@@ -101,13 +102,13 @@ Redis Bloom은 namespace마다 Redis Cluster-safe hash-tagged key pair 하나를
 | `bluetape:probabilistic:bloom:v1:{namespace}:bits` | bitmap string | `GETBIT`, `SETBIT`, `BITCOUNT`를 쓰는 static Lua script가 읽고 쓰는 Bloom bitset. |
 | `bluetape:probabilistic:bloom:v1:{namespace}:config` | hash | 모든 공유 상태 연산 전에 확인하는 immutable config metadata. |
 
-`{namespace}` segment는 두 key를 Redis Cluster의 같은 hash slot에 둡니다.
+`{namespace}` segment는 두 key를 Redis Cluster의 같은 hash slot에 배치합니다.
 Namespace는 안정적인 운영 식별자여야 합니다. Raw user ID, email, secret,
-token 같은 민감한 값을 namespace에 넣지 마세요.
+token 같은 민감한 값은 namespace에 넣지 마세요.
 
 저장 wire layout은 Go 구현이 소유하며 이전 Kotlin Lettuce 실험과 호환되지
-않습니다. Migration은 새 namespace를 만들고, source data에서 rebuild하거나
-verification window 동안 dual-write한 뒤, reader를 전환하고 rollback이 필요
+않습니다. Migration은 새 namespace를 만들고 source data에서 rebuild하거나
+verification window 동안 dual-write한 뒤 reader를 전환하고, rollback이 필요
 없어진 뒤 old keys를 retire하는 방식으로 진행합니다.
 
 ### 운영 경계
@@ -120,7 +121,7 @@ verification window 동안 dual-write한 뒤, reader를 전환하고 rollback이
   Operator/admin 작업으로 취급하고 caller-side approval과 authorization을
   요구해야 하며 ordinary request path에서는 사용하지 않습니다.
 - 실수로 `Clear`했거나 key를 삭제한 경우 source data에서 새 namespace로
-  rebuild하고 reader를 검증한 뒤 rollback 지점을 결정하고, 새 namespace를
+  rebuild하고 reader를 검증한 뒤 rollback 지점을 결정합니다. 새 namespace를
   수용한 후 old keys를 retire합니다.
 - Redis persistence와 eviction policy는 caller 책임입니다. 이 package는 TTL을
   설정하지 않습니다. 공유 filter에는 `noeviction`이나 충분한 reserved memory를
