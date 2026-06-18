@@ -6,7 +6,7 @@
 제공합니다. Local cache-aside 코드와 `LoadingCache`가 필요한 Redis coordination
 wrapper가 이 패키지의 계약을 기반으로 동작합니다.
 
-## Diagram
+## 다이어그램
 
 ![cache local loading flow](../docs/images/readme-diagrams/cache-local-loading-flow.png)
 

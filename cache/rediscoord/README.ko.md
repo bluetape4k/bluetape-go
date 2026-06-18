@@ -9,7 +9,7 @@ loader의 결과를 재사용하게 합니다.
 
 이 패키지는 durable Redis L2 cache가 아닙니다. Redis에는 active load attempt를 위한 짧은 수명의 owner-token result envelope만 저장됩니다.
 
-## Diagram
+## 다이어그램
 
 ![Redis cache stampede coordination flow](../../docs/images/readme-diagrams/rediscoord-cold-burst-coordination.png)
 

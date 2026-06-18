@@ -2,7 +2,9 @@
 
 [English](README.md) | [한국어](README.ko.md)
 
-`resilience`는 service call을 위한 자체 retry, timeout, circuit breaker, bulkhead policy를 제공합니다. Policy는 typed operation 주변에 compose되며 logging, metrics, tracing bridge를 위한 synchronous event hook을 노출합니다.
+`resilience`는 service call을 위한 자체 retry, timeout, circuit breaker, bulkhead
+policy를 제공합니다. Policy는 typed operation 주변에 compose되며 logging, metrics,
+tracing bridge를 위한 synchronous event hook을 노출합니다.
 
 ## 가져오기
 
@@ -45,7 +47,9 @@ client := http.Client{
 }
 ```
 
-Server handler는 admission 또는 timeout policy를 위해 `NewHandler`로 감쌀 수 있습니다. Request body를 replay할 수 있는 outbound client call에 retry를 우선 적용하세요.
+Server handler는 admission 또는 timeout policy를 위해 `NewHandler`로 감쌀 수
+있습니다. Request body를 replay할 수 있는 outbound client call에 retry를 우선
+적용하세요.
 
 ## 동작
 
@@ -53,7 +57,8 @@ Server handler는 admission 또는 timeout policy를 위해 `NewHandler`로 감�
 - Retry predicate는 retry하면 안 되는 error를 거부할 수 있습니다.
 - Timeout은 자신의 deadline과 parent context cancellation을 구분합니다.
 - Circuit breaker는 closed, open, half-open state 사이를 전환합니다.
-- Bulkhead는 concurrent admission을 제한하고 option에 따라 reject 또는 wait할 수 있습니다.
+- Bulkhead는 concurrent admission을 제한하고 option에 따라 reject 또는 wait할 수
+  있습니다.
 - `OnEvent` handler는 protected call path에서 synchronous로 실행됩니다.
 
 ## 운영 경계

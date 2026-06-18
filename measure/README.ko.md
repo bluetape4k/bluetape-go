@@ -2,8 +2,8 @@
 
 [English](README.md) | [한국어](README.ko.md)
 
-`measure`는 `bluetape4k-measured`에서 가져온 typed unit, measured value, parsing,
-formatting, compound unit, affine temperature helper를 제공합니다.
+`measure`는 `bluetape4k-measured`의 방향을 Go에 맞게 옮긴 typed unit, measured
+value, parsing, formatting, compound unit, affine temperature helper를 제공합니다.
 
 ## Import
 
@@ -20,7 +20,7 @@ import "github.com/bluetape4k/bluetape-go/measure"
 | 사용자 문자열 파싱 | `Parse*` 또는 generic `Parse` | Registry를 명시하고 suffix scope를 family별로 나눕니다. |
 | 복합 단위 | `ProductUnit`, `RatioUnit`, `Mul`, `Div` | velocity와 acceleration built-in을 포함합니다. |
 | 절대 온도 | `Temperature` | Kelvin/Celsius/Fahrenheit affine 변환은 `Measure`로 모델링하지 않습니다. |
-| money/decimal 정밀도 | Deferred | `measure`는 `float64`를 사용하므로 future money package를 사용해야 합니다. |
+| money/decimal 정밀도 | `money` package | `measure`는 `float64`를 사용하므로 currency와 decimal-oriented amount는 `money`를 사용하세요. |
 
 ## 사용법
 
@@ -62,7 +62,8 @@ metersPerSecond, err := speed.In(measure.VelocityMeterPerSecond())
 - Temperature는 affine 값입니다. `Temperature`는 Kelvin 절대값을 저장하고
   `TemperatureDelta`는 Kelvin delta를 저장합니다.
 - `measure`는 `github.com/docker/go-units`를 import하지 않습니다. Compound unit,
-  typed dimension, registry parsing, temperature 계약을 module-owned API로 유지합니다.
+  typed dimension, registry parsing, temperature 계약은 이 module의 API 안에서
+  유지합니다.
 
 ## Test
 

@@ -2,7 +2,8 @@
 
 [English](README.md) | [한국어](README.ko.md)
 
-`testcontainers/redis`는 integration test를 위해 Redis container를 시작하고 mapped `host:port` address를 반환합니다.
+`testcontainers/redis`는 integration test용 Redis container를 시작하고 mapped
+`host:port` address를 반환합니다.
 
 ## 가져오기
 
