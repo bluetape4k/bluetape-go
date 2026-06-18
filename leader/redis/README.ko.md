@@ -6,7 +6,7 @@
 `leader.StrategicElector`를 구현합니다. 하나의 replica, 제한된 수의 replica, 또는
 strategy로 선출된 하나의 candidate만 coordination lane을 실행해야 할 때 사용합니다.
 
-## Diagram
+## 다이어그램
 
 ![Redis leader election lifecycle](../../docs/images/readme-diagrams/redis-leader-election-lifecycle.png)
 

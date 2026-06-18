@@ -20,7 +20,7 @@ import "github.com/bluetape4k/bluetape-go/measure"
 | Parse user-facing text | `Parse*` or generic `Parse` | Registries are explicit and suffix-scoped. |
 | Compound units | `ProductUnit`, `RatioUnit`, `Mul`, `Div` | Includes velocity and acceleration built-ins. |
 | Absolute temperature | `Temperature` | Affine Kelvin/Celsius/Fahrenheit conversion is not modeled as `Measure`. |
-| Money or decimal exactness | Deferred | Use the future money package; `measure` uses `float64`. |
+| Money or decimal exactness | `money` package | `measure` uses `float64`; use `money` for currency and decimal-oriented amounts. |
 
 ## Usage
 

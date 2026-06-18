@@ -6,7 +6,7 @@
 invalidation을 더합니다. Redis는 invalidation bus로만 사용되고, 값은 각
 process-local cache 안에 남습니다.
 
-## Diagram
+## 다이어그램
 
 ![Redis near-cache invalidation sequence](../../docs/images/readme-diagrams/redisnear-invalidation-sequence.png)
 
