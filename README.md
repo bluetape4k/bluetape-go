@@ -4,13 +4,13 @@
 
 ![bluetape-go hero](docs/assets/bluetape-go-hero.png)
 
-Go backend utilities and distributed infrastructure packages for the bluetape
-ecosystem.
+Idiomatic Go backend utilities and distributed infrastructure packages for the
+bluetape ecosystem.
 
-`bluetape-go` complements the Kotlin/JVM bluetape4k libraries. It is not a
-rewrite of bluetape4k. It provides idiomatic Go packages for teams that prefer
-Go for backend infrastructure, service coordination, test fixtures, resilience,
-caching, workflow, batch, graph, text, audit, and AWS-adjacent service code.
+`bluetape-go` complements the Kotlin/JVM bluetape4k libraries without trying to
+mirror their API surface. It gives Go teams small, focused packages for service
+infrastructure, coordination, test fixtures, resilience, caching, workflows,
+batch processing, portable values, and Redis-backed adapters.
 
 ## Architecture
 
@@ -18,21 +18,19 @@ caching, workflow, batch, graph, text, audit, and AWS-adjacent service code.
 
 ## Current Status
 
-`bluetape-go` has published the `v0.6.0` release line. The repository contains
-foundation utilities, codecs, compression, concurrency helpers, serialization
-contracts, Redis-backed leader election, resilience policies, cache and Redis
-coordination packages, token-bucket rate limiting, finite state machine
-primitives, workflow reports, lightweight workflow runners, checkpointed batch
-processing, and portable service utilities.
+`bluetape-go` has published the `v0.6.0` release line. The repository now covers
+foundation helpers, codecs, compression, context-aware concurrency, serializer
+contracts, Redis-backed leader election and locks, resilience policies, cache
+coordination, token-bucket rate limiting, finite state machines, workflow
+reports, lightweight workflow runners, checkpointed batch jobs, and portable
+service values.
 
-The `v0.6.0` portable utilities scope includes the `id` package for UUID, ULID,
-KSUID, and Snowflake identifiers, the `jwt` package for explicit-algorithm JWT
-signing, parsing, validation, and local key rotation, the `measure` package for
-typed units, measured values, compound units, parsing, formatting, and
-temperature helpers, the `money` package for ISO currency and decimal-backed
-amount operations, and the `probabilistic` package for in-memory Bloom filters.
-The Unreleased `0.6.1` line adds the Redis-backed Bloom package, optional JWT
-provider cache adapters, and ECB-backed money exchange-rate provider support.
+The `v0.6.0` portable utilities scope includes UUID, ULID, KSUID, and Snowflake
+ID generation; explicit-algorithm JWT signing, parsing, validation, and local
+key rotation; typed units and measured values; ISO currency and decimal-backed
+money operations; and in-memory Bloom filters. The Unreleased `0.6.1` line adds
+Redis-backed Bloom filters, optional JWT provider cache adapters, and an
+ECB-backed money exchange-rate provider.
 
 ## Packages
 
@@ -82,8 +80,9 @@ go get github.com/bluetape4k/bluetape-go
 
 ## Package Documentation
 
-Detailed usage examples, operational boundaries, and package-specific
-benchmarks live next to each package:
+Package-level READMEs contain the practical details: usage examples, operational
+boundaries, benchmark notes, and the constraints that do not belong in a root
+overview.
 
 - Foundation: [`core`](core/README.md), [`collections`](collections/README.md),
   [`concurrency`](concurrency/README.md), [`codec`](codec/README.md),
