@@ -1,0 +1,43 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1300" height="730" viewBox="0 0 1300 730">
+<defs>
+<marker id="arrow" markerWidth="12" markerHeight="10" refX="10" refY="5" orient="auto" markerUnits="userSpaceOnUse"><path d="M0,0 L10,5 L0,10 z" fill="#2563eb"/></marker>
+<marker id="arrow-gray" markerWidth="12" markerHeight="10" refX="10" refY="5" orient="auto" markerUnits="userSpaceOnUse"><path d="M0,0 L10,5 L0,10 z" fill="#64748b"/></marker>
+<filter id="shadow" x="-10%" y="-10%" width="120%" height="125%"><feDropShadow dx="0" dy="3" stdDeviation="4" flood-color="#94a3b8" flood-opacity=".22"/></filter>
+</defs>
+
+<style>
+@font-face{font-family:'Architects Daughter';src:local('Architects Daughter');}
+@font-face{font-family:'Comic Mono';src:local('Comic Mono');}
+.bg{fill:#f8fafc}.title{font:44px 'Architects Daughter','Comic Sans MS',cursive;fill:#111827}.sub{font:22px 'Comic Mono','Courier New',monospace;fill:#475569}.card-title{font:25px 'Comic Mono','Courier New',monospace;font-weight:700;fill:#111827}.body{font:18px 'Comic Mono','Courier New',monospace;fill:#334155}.small{font:15px 'Comic Mono','Courier New',monospace;fill:#475569}.label{font:17px 'Comic Mono','Courier New',monospace;fill:#2563eb;font-weight:700}.note{font:16px 'Comic Mono','Courier New',monospace;fill:#475569}.arrow{stroke:#2563eb;stroke-width:3.5;fill:none;marker-end:url(#arrow)}.dashed{stroke:#64748b;stroke-width:3;stroke-dasharray:10 9;fill:none;marker-end:url(#arrow-gray)}.card{fill:#fff;stroke-width:4}.alt{fill:#f59e0b;fill-opacity:.12;stroke:#f59e0b;stroke-opacity:.55;stroke-dasharray:10 8;stroke-width:3}.footer{fill:#ffffff;stroke:#cbd5e1;stroke-width:2}
+</style>
+
+<rect class="bg" width="1300" height="730"/>
+<text class="title" x="52" y="74">cache Local Loading Flow</text>
+<text class="sub" x="56" y="116">Memory keeps TTL state local and collapses same-key loader bursts inside one process.</text>
+<rect class="card" x="70" y="180" width="300" height="180" rx="16" fill="#eff6ff" stroke="#2563eb" filter="url(#shadow)"/>
+<text class="card-title" x="92" y="218">Caller</text>
+<text class="body" x="94" y="254">Get(key)</text>
+<text class="body" x="94" y="282">GetOrLoad(key, ttl)</text>
+<text class="body" x="94" y="310">Delete / Clear</text>
+<rect class="card" x="470" y="165" width="360" height="210" rx="16" fill="#ecfdf5" stroke="#059669" filter="url(#shadow)"/>
+<text class="card-title" x="492" y="203">Memory cache</text>
+<text class="body" x="494" y="239">map[K]entry[V]</text>
+<text class="body" x="494" y="267">expiry checked on read</text>
+<text class="body" x="494" y="295">TTL 0 means no expiry</text>
+<text class="body" x="494" y="323">negative TTL rejected</text>
+<rect class="card" x="930" y="180" width="310" height="180" rx="16" fill="#fff7ed" stroke="#f97316" filter="url(#shadow)"/>
+<text class="card-title" x="952" y="218">Loader</text>
+<text class="body" x="954" y="254">called only on miss</text>
+<text class="body" x="954" y="282">context checked</text>
+<text class="body" x="954" y="310">result stored with TTL</text>
+<rect class="card" x="470" y="450" width="360" height="130" rx="16" fill="#f5f3ff" stroke="#7c3aed" filter="url(#shadow)"/>
+<text class="card-title" x="492" y="488">singleflight group</text>
+<text class="body" x="494" y="524">same-key in-flight load</text>
+<text class="body" x="494" y="552">waiters share result</text>
+<path class="arrow" d="M370 250 L470 250"/><text class="label" x="395" y="232">read</text>
+<path class="arrow" d="M830 250 L930 250"/><text class="label" x="850" y="232">miss</text>
+<path class="arrow" d="M930 320 C820 430 720 450 650 450"/><text class="label" x="770" y="420">context guard</text>
+<path class="dashed" d="M470 505 C325 505 285 380 310 360"/><text class="label" x="312" y="496">shared result</text>
+<path class="dashed" d="M647 450 C708 390 778 365 930 315"/>
+<rect class="footer" x="54" y="645" width="1190" height="46" rx="12"/><text class="note" x="78" y="675">Boundary: this package does not publish invalidations or coordinate across processes; Redis wrappers own those concerns.</text>
+</svg>
