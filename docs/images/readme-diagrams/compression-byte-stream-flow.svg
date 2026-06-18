@@ -23,7 +23,7 @@
 <rect class="card" x="628" y="262" width="230" height="90" fill="#f8fafc" stroke="#64748b"/>
 <text class="cardTitle" x="646" y="294">Stream boundary</text>
 <text class="cardText" x="646" y="322">nil reader rejected</text>
-<text class="cardText" x="646" y="342">close/read errors wrapped</text>
+<text class="cardText" x="646" y="342">read/close errors wrap</text>
 <rect class="card" x="920" y="150" width="200" height="110" fill="#fdf2f8" stroke="#db2777"/>
 <text class="cardTitle" x="938" y="182">Output payload</text>
 <text class="cardText" x="938" y="210">compressed bytes</text>

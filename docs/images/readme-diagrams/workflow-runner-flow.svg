@@ -18,17 +18,17 @@
 <text class="body" x="88" y="256">Runner.Run(ctx)</text>
 <text class="body" x="88" y="283">nil ctx -> Background</text>
 <text class="body" x="88" y="310">Work returns Report</text>
-<text class="body" x="88" y="337">ordinary closures own data</text>
+<text class="body" x="88" y="337">closures own data</text>
 <rect class="card" x="455" y="145" width="300" height="220" rx="16" fill="#ecfdf5" stroke="#059669" filter="url(#shadow)"/>
 <text class="card-title" x="482" y="185">Sequential</text>
 <text class="body" x="484" y="222">run input order</text>
 <text class="body" x="484" y="249">aggregate child reports</text>
 <text class="body" x="484" y="276">StopOnFailure stops early</text>
-<text class="body" x="484" y="303">aborted/cancelled always stop</text>
+<text class="body" x="484" y="303">terminal reports stop</text>
 <rect class="card" x="455" y="455" width="300" height="205" rx="16" fill="#fff7ed" stroke="#ea580c" filter="url(#shadow)"/>
 <text class="card-title" x="482" y="495">Conditional</text>
 <text class="body" x="484" y="532">predicate evaluated once</text>
-<text class="body" x="484" y="559">true branch or false branch</text>
+<text class="body" x="484" y="559">one selected branch</text>
 <text class="body" x="484" y="586">no false branch -> completed</text>
 <text class="body" x="484" y="613">context errors -> cancelled</text>
 <rect class="card" x="880" y="145" width="330" height="220" rx="16" fill="#f5f3ff" stroke="#7c3aed" filter="url(#shadow)"/>
@@ -42,7 +42,7 @@
 <text class="card-title" x="908" y="495">Report boundary</text>
 <text class="body" x="910" y="532">unknown status -> failed</text>
 <text class="body" x="910" y="559">nil work -> failed report</text>
-<text class="body" x="910" y="586">invalid policy -> failed report</text>
+<text class="body" x="910" y="586">invalid policy -> failed</text>
 <text class="body" x="910" y="613">Aggregate copies children</text>
 <path class="line" d="M335 270 L455 255"/><text class="label" x="365" y="248">sequence</text>
 <path class="line" d="M335 300 C380 420 420 510 455 555"/><text class="label" x="355" y="455">branch</text>
