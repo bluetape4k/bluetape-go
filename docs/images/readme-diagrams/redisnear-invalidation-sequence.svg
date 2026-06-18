@@ -8,7 +8,7 @@
 <style>
 @font-face{font-family:'Architects Daughter';src:local('Architects Daughter');}
 @font-face{font-family:'Comic Mono';src:local('Comic Mono');}
-.bg{fill:#f8fafc}.title{font:44px 'Architects Daughter','Comic Sans MS',cursive;fill:#111827}.sub{font:22px 'Comic Mono','Courier New',monospace;fill:#475569}.card-title{font:25px 'Comic Mono','Courier New',monospace;font-weight:700;fill:#111827}.body{font:18px 'Comic Mono','Courier New',monospace;fill:#334155}.small{font:15px 'Comic Mono','Courier New',monospace;fill:#475569}.label{font:17px 'Comic Mono','Courier New',monospace;fill:#2563eb;font-weight:700}.note{font:16px 'Comic Mono','Courier New',monospace;fill:#475569}.arrow{stroke:#2563eb;stroke-width:3.5;fill:none;marker-end:url(#arrow)}.dashed{stroke:#64748b;stroke-width:3;stroke-dasharray:10 9;fill:none;marker-end:url(#arrow-gray)}.card{fill:#fff;stroke-width:4}.alt{fill:#f59e0b;fill-opacity:.12;stroke:#f59e0b;stroke-opacity:.55;stroke-dasharray:10 8;stroke-width:3}.footer{fill:#ffffff;stroke:#cbd5e1;stroke-width:2}
+.bg{fill:#f8fafc}.title{font:44px 'Architects Daughter';fill:#111827}.sub{font:22px 'Comic Mono';fill:#475569}.card-title{font:25px 'Comic Mono';font-weight:700;fill:#111827}.body{font:18px 'Comic Mono';fill:#334155}.small{font:15px 'Comic Mono';fill:#475569}.label{font:17px 'Comic Mono';fill:#2563eb;font-weight:700}.note{font:16px 'Comic Mono';fill:#475569}.arrow{stroke:#2563eb;stroke-width:3.5;fill:none;marker-end:url(#arrow)}.dashed{stroke:#64748b;stroke-width:3;stroke-dasharray:10 9;fill:none;marker-end:url(#arrow-gray)}.card{fill:#fff;stroke-width:4}.alt{fill:#f59e0b;fill-opacity:.12;stroke:#f59e0b;stroke-opacity:.55;stroke-dasharray:10 8;stroke-width:3}.footer{fill:#ffffff;stroke:#cbd5e1;stroke-width:2}
 </style>
 
 <rect class="bg" width="1300" height="840"/>
@@ -32,8 +32,9 @@
 <path class="arrow" d="M745 610 L1050 610"/><text class="label" x="830" y="598">next miss loads</text>
 <path class="dashed" d="M1050 675 L745 675"/><text class="label" x="850" y="663">fill only local</text>
 <rect class="alt" x="82" y="492" width="690" height="112" rx="18"/>
-<text class="small" x="104" y="520">alt: malformed payload, receive error, or foreign namespace</text>
-<text class="small" x="104" y="548">OnError observes malformed messages.</text>
-<text class="small" x="104" y="573">Receive errors clear local values before retry.</text>
+<text class="small" x="150" y="516">alt: malformed payload</text>
+<text class="small" x="150" y="541">receive error or foreign ns</text>
+<text class="small" x="150" y="566">OnError observes failures</text>
+<text class="small" x="150" y="591">retry clears local values</text>
 <rect class="footer" x="54" y="760" width="1195" height="46" rx="12"/><text class="note" x="78" y="790">Contract: GetOrLoad never publishes invalidation, so peer caches refill on demand after a mutation command.</text>
 </svg>
