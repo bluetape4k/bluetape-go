@@ -2,11 +2,11 @@
 
 [English](README.md) | [한국어](README.ko.md)
 
-`workreport`는 lightweight workflow code를 위한 status, failure-policy,
+`workreport`는 lightweight workflow code에서 쓰는 status, failure-policy,
 report-tree value를 제공합니다. Runner 실행과 분리되어 ordinary Go function과
 향후 `workflow` runner가 같은 result model을 공유할 수 있습니다.
 
-## Diagram
+## 다이어그램
 
 ![workreport failure policy flow](../docs/images/readme-diagrams/workreport-failure-policy-flow.png)
 
@@ -56,7 +56,8 @@ aborted, cancelled, terminal로 간주하지 않습니다.
 - `ContinueOnFailure`는 모든 child report를 보존하고 child 중 하나라도 completed가
   아니면 `StatusPartial`을 반환합니다.
 
-Unknown policy value는 `Aggregate`에서 `ErrUnknownFailurePolicy`와 호환되는 error를 반환합니다.
+Unknown policy value는 `Aggregate`에서 `ErrUnknownFailurePolicy`와 호환되는 error를
+반환합니다.
 
 ## 계약
 
