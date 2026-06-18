@@ -1,0 +1,45 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1180" height="560" viewBox="0 0 1180 560" role="img" aria-labelledby="title desc">
+<title id="title">compression Byte and Stream Flow</title><desc id="desc">One compressor contract covers byte helpers and streaming adapters.</desc>
+<defs><marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="13" markerHeight="13" markerUnits="userSpaceOnUse" orient="auto"><path d="M 0 0 L 10 5 L 0 10 Z" fill="#2563eb"/></marker>
+<style><![CDATA[
+.bg{fill:#f8fafc}.title{font-family:'Architects Daughter','Comic Mono',sans-serif;font-size:30px;fill:#111827}.sub{font-family:'Comic Mono','Architects Daughter',monospace;font-size:15px;fill:#475569}.card{rx:14;stroke-width:2.2}.cardTitle{font-family:'Comic Mono','Architects Daughter',monospace;font-size:17px;font-weight:700;fill:#111827}.cardText{font-family:'Comic Mono','Architects Daughter',monospace;font-size:12px;fill:#374151}.arrow{fill:none;stroke:#2563eb;stroke-width:4.4;marker-end:url(#arrow)}.dash{fill:none;stroke:#64748b;stroke-width:2.8;stroke-dasharray:8 6;marker-end:url(#arrow)}.label{font-family:'Comic Mono','Architects Daughter',monospace;font-size:12px;fill:#1d4ed8}.footer{font-family:'Comic Mono','Architects Daughter',monospace;font-size:12px;fill:#475569}
+]]></style></defs>
+<rect class="bg" x="0" y="0" width="1180" height="560"/>
+<text class="title" x="48" y="54">compression Byte and Stream Flow</text>
+<text class="sub" x="50" y="84">One compressor contract covers byte helpers and streaming adapters.</text>
+<rect class="card" x="64" y="150" width="210" height="110" fill="#eff6ff" stroke="#2563eb"/>
+<text class="cardTitle" x="82" y="182">Input payload</text>
+<text class="cardText" x="82" y="210">[]byte, Reader</text>
+<text class="cardText" x="82" y="230">caller-owned data</text>
+<rect class="card" x="336" y="138" width="230" height="134" fill="#ecfdf5" stroke="#059669"/>
+<text class="cardTitle" x="354" y="170">Compressor</text>
+<text class="cardText" x="354" y="198">Name()</text>
+<text class="cardText" x="354" y="218">Compress/Decompress</text>
+<text class="cardText" x="354" y="238">NewWriter/NewReader</text>
+<rect class="card" x="628" y="118" width="230" height="90" fill="#fff7ed" stroke="#f97316"/>
+<text class="cardTitle" x="646" y="150">Algorithm set</text>
+<text class="cardText" x="646" y="178">gzip zlib deflate</text>
+<text class="cardText" x="646" y="198">zstd lz4 snappy</text>
+<rect class="card" x="628" y="262" width="230" height="90" fill="#f8fafc" stroke="#64748b"/>
+<text class="cardTitle" x="646" y="294">Stream boundary</text>
+<text class="cardText" x="646" y="322">nil reader rejected</text>
+<text class="cardText" x="646" y="342">close/read errors wrapped</text>
+<rect class="card" x="920" y="150" width="200" height="110" fill="#fdf2f8" stroke="#db2777"/>
+<text class="cardTitle" x="938" y="182">Output payload</text>
+<text class="cardText" x="938" y="210">compressed bytes</text>
+<text class="cardText" x="938" y="230">or decompressed bytes</text>
+<path class="arrow" d="M 274 205 L 336 205"/>
+<text class="label" x="286" y="194">byte API</text>
+<path class="arrow" d="M 566 188 L 628 164"/>
+<text class="label" x="575" y="160">select</text>
+<path class="arrow" d="M 566 226 L 628 307"/>
+<text class="label" x="575" y="278">stream</text>
+<path class="arrow" d="M 858 164 L 920 190"/>
+<text class="label" x="868" y="160">encode</text>
+<path class="arrow" d="M 858 307 L 920 230"/>
+<text class="label" x="868" y="300">decode</text>
+<path class="dash" d="M 1020 260 C 1020 390 400 392 400 272"/>
+<text class="label" x="620" y="386">errors stay explicit</text>
+<rect x="48" y="500" width="1084" height="34" rx="9" fill="#ffffff" stroke="#cbd5e1"/>
+<text class="footer" x="66" y="522">Reader contract: choose the compressor explicitly; use Default() for current general-purpose zstd behavior.</text>
+</svg>
