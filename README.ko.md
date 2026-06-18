@@ -4,12 +4,12 @@
 
 ![bluetape-go 대표 이미지](docs/assets/bluetape-go-hero.png)
 
-bluetape 생태계를 위한 Go 백엔드 유틸리티와 분산 인프라 패키지입니다.
+bluetape 생태계를 위한 Go다운 백엔드 유틸리티와 분산 인프라 패키지입니다.
 
-`bluetape-go`는 Kotlin/JVM 기반 bluetape4k 라이브러리를 대체하는 프로젝트가
-아닙니다. Go를 선호하는 백엔드 팀을 위해 서비스 인프라, 분산 조정, 테스트
-fixture, resilience, cache, workflow, batch, graph, text, audit, AWS 관련
-반복 코드를 Go답게 제공하는 별도 구현입니다.
+`bluetape-go`는 Kotlin/JVM 기반 bluetape4k 라이브러리를 대체하거나 API 형태를
+그대로 옮기는 프로젝트가 아닙니다. Go를 쓰는 팀이 서비스 인프라, 분산 조정,
+테스트 fixture, resilience, cache, workflow, batch 처리, portable value, Redis
+adapter를 작은 패키지로 가져다 쓸 수 있게 만든 별도 구현입니다.
 
 ## 아키텍처
 
@@ -17,21 +17,19 @@ fixture, resilience, cache, workflow, batch, graph, text, audit, AWS 관련
 
 ## 현재 상태
 
-`bluetape-go`는 `v0.6.0` 릴리스 선을 배포했습니다. Repository에는 foundation
-utility, codec, compression, concurrency helper, serialization contract,
-Redis 기반 leader election, resilience policy, cache/Redis coordination package,
-token-bucket rate limiting, finite state machine primitive, workflow report,
-lightweight workflow runner, checkpoint 기반 batch processing, portable service
-utility가 들어 있습니다.
+`bluetape-go`는 `v0.6.0` 릴리스 선을 배포했습니다. 현재 repository에는
+foundation helper, codec, compression, context-aware concurrency, serializer
+contract, Redis 기반 leader election과 lock, resilience policy, cache
+coordination, token-bucket rate limiting, finite state machine, workflow report,
+lightweight workflow runner, checkpoint 기반 batch job, portable service value가
+들어 있습니다.
 
-`v0.6.0` portable utility scope는 UUID, ULID, KSUID, Snowflake identifier를
-제공하는 `id` package, 명시적 algorithm 기반 JWT signing, parsing, validation,
-local key rotation을 제공하는 `jwt` package, typed unit/measured value,
-compound unit, parsing, formatting, temperature helper를 제공하는 `measure`
-package, ISO 통화와 decimal-backed 금액 연산을 제공하는 `money` package,
-인메모리 Bloom filter를 제공하는 `probabilistic` package를 포함합니다.
-Unreleased `0.6.1` 선에서 Redis-backed Bloom package, optional JWT provider
-cache adapter, ECB-backed money exchange-rate provider를 추가합니다.
+`v0.6.0` portable utility 범위에는 UUID, ULID, KSUID, Snowflake ID 생성,
+명시적 algorithm 기반 JWT signing/parsing/validation/local key rotation, typed
+unit과 measured value, ISO currency와 decimal-backed money 연산, 인메모리 Bloom
+filter가 포함됩니다. Unreleased `0.6.1` 선에서는 Redis-backed Bloom filter,
+optional JWT provider cache adapter, ECB-backed money exchange-rate provider를
+추가합니다.
 
 ## 패키지
 
@@ -81,7 +79,8 @@ go get github.com/bluetape4k/bluetape-go
 
 ## 패키지 문서
 
-상세 사용법, 운영 경계, package별 benchmark는 각 package README에 둡니다.
+각 package README에는 실제 사용 예제, 운영 경계, benchmark 메모, root 개요에
+넣기에는 너무 구체적인 제약을 정리합니다.
 
 - Foundation: [`core`](core/README.ko.md), [`collections`](collections/README.ko.md),
   [`concurrency`](concurrency/README.ko.md), [`codec`](codec/README.ko.md),
