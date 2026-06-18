@@ -1,116 +1,39 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="1880" height="1080" viewBox="0 0 1880 1080">
-  <defs>
-    <style>
-      @font-face { font-family: 'Architects Daughter'; src: url('/Users/debop/Library/Fonts/ArchitectsDaughter-Regular.ttf'); }
-      @font-face { font-family: 'Comic Mono'; src: url('/Users/debop/Library/Fonts/ComicMono.ttf'); font-weight: normal; }
-      @font-face { font-family: 'Comic Mono'; src: url('/Users/debop/Library/Fonts/ComicMono-Bold.ttf'); font-weight: bold; }
-      .title { font-family: 'Architects Daughter'; font-size: 42px; fill: #1E293B; font-weight: bold; }
-      .subtitle { font-family: 'Comic Mono'; font-size: 16px; fill: #64748B; }
-      .panel-label { font-family: 'Architects Daughter'; font-size: 24px; fill: #1E293B; font-weight: bold; }
-      .card-title { font-family: 'Architects Daughter'; font-size: 25px; fill: #1E293B; font-weight: bold; }
-      .card-detail { font-family: 'Comic Mono'; font-size: 15px; fill: #334155; }
-      .footer-title { font-family: 'Architects Daughter'; font-size: 21px; fill: #1E293B; font-weight: bold; }
-      .footer-detail { font-family: 'Comic Mono'; font-size: 11px; fill: #475569; }
-      .footer-note { font-family: 'Comic Mono'; font-size: 14px; fill: #334155; }
-    </style>
-    <marker id="1E293B" viewBox="0 0 5 5" refX="4.5" refY="2.5" markerWidth="5" markerHeight="5" orient="auto">
-    <path d="M 0.5 0.5 L 4.5 2.5 L 0.5 4.5 Z" fill="#1E293B"/>
-  </marker>
-<marker id="64748B" viewBox="0 0 5 5" refX="4.5" refY="2.5" markerWidth="5" markerHeight="5" orient="auto">
-    <path d="M 0.5 0.5 L 4.5 2.5 L 0.5 4.5 Z" fill="#64748B"/>
-  </marker>
-<marker id="475569" viewBox="0 0 5 5" refX="4.5" refY="2.5" markerWidth="5" markerHeight="5" orient="auto">
-    <path d="M 0.5 0.5 L 4.5 2.5 L 0.5 4.5 Z" fill="#475569"/>
-  </marker>
-<marker id="2563EB" viewBox="0 0 5 5" refX="4.5" refY="2.5" markerWidth="5" markerHeight="5" orient="auto">
-    <path d="M 0.5 0.5 L 4.5 2.5 L 0.5 4.5 Z" fill="#2563EB"/>
-  </marker>
-<marker id="7C3AED" viewBox="0 0 5 5" refX="4.5" refY="2.5" markerWidth="5" markerHeight="5" orient="auto">
-    <path d="M 0.5 0.5 L 4.5 2.5 L 0.5 4.5 Z" fill="#7C3AED"/>
-  </marker>
-<marker id="16A34A" viewBox="0 0 5 5" refX="4.5" refY="2.5" markerWidth="5" markerHeight="5" orient="auto">
-    <path d="M 0.5 0.5 L 4.5 2.5 L 0.5 4.5 Z" fill="#16A34A"/>
-  </marker>
-<marker id="DC2626" viewBox="0 0 5 5" refX="4.5" refY="2.5" markerWidth="5" markerHeight="5" orient="auto">
-    <path d="M 0.5 0.5 L 4.5 2.5 L 0.5 4.5 Z" fill="#DC2626"/>
-  </marker>
-<marker id="D97706" viewBox="0 0 5 5" refX="4.5" refY="2.5" markerWidth="5" markerHeight="5" orient="auto">
-    <path d="M 0.5 0.5 L 4.5 2.5 L 0.5 4.5 Z" fill="#D97706"/>
-  </marker>
-    <filter id="shadow" x="-10%" y="-10%" width="120%" height="120%">
-      <feDropShadow dx="0" dy="10" stdDeviation="12" flood-color="#CBD5E1" flood-opacity="0.42"/>
-    </filter>
-  </defs>
+<svg xmlns="http://www.w3.org/2000/svg" width="1285" height="760" viewBox="0 0 1285 760">
+<defs><marker id="arrow" markerWidth="12" markerHeight="10" refX="10" refY="5" orient="auto" markerUnits="userSpaceOnUse"><path d="M0,0 L10,5 L0,10 z" fill="#2563eb"/></marker><marker id="arrow-gray" markerWidth="12" markerHeight="10" refX="10" refY="5" orient="auto" markerUnits="userSpaceOnUse"><path d="M0,0 L10,5 L0,10 z" fill="#64748b"/></marker><filter id="shadow" x="-10%" y="-10%" width="120%" height="125%"><feDropShadow dx="0" dy="3" stdDeviation="4" flood-color="#94a3b8" flood-opacity=".22"/></filter></defs>
 
-  <rect x="0" y="0" width="1880" height="1080" fill="#F8FAFC"/>
-  <rect x="48" y="48" width="1784" height="984" rx="34" fill="#FFFFFF" stroke="#CBD5E1" stroke-width="2.4" filter="url(#shadow)"/>
-  <text x="940" y="94" class="title" text-anchor="middle" dominant-baseline="middle">money - FastMoney Evaluation</text>
-  <text x="940" y="136" class="subtitle" text-anchor="middle" dominant-baseline="middle">Benchmark evidence decides whether a long-backed public type is worth the duplicated API surface.</text>
+<style>
+@font-face{font-family:'Architects Daughter';src:local('Architects Daughter');}
+@font-face{font-family:'Comic Mono';src:local('Comic Mono');}
+.bg{fill:#f8fafc}.title{font:42px 'Architects Daughter','Comic Sans MS',cursive;fill:#111827}.sub{font:21px 'Comic Mono','Courier New',monospace;fill:#475569}.card-title{font:24px 'Comic Mono','Courier New',monospace;font-weight:700;fill:#111827}.body{font:17px 'Comic Mono','Courier New',monospace;fill:#334155}.small{font:15px 'Comic Mono','Courier New',monospace;fill:#475569}.label{font:16px 'Comic Mono','Courier New',monospace;fill:#2563eb;font-weight:700}.arrow{stroke:#2563eb;stroke-width:3.5;fill:none;marker-end:url(#arrow)}.dashed{stroke:#64748b;stroke-width:3;stroke-dasharray:10 9;fill:none;marker-end:url(#arrow-gray)}.card{fill:#fff;stroke-width:4}.alt{fill:#f59e0b;fill-opacity:.12;stroke:#f59e0b;stroke-opacity:.55;stroke-dasharray:10 8;stroke-width:3}
+</style>
 
-  <g>
-    <rect x="92" y="198" width="372" height="638" rx="22" fill="#EFF6FF" stroke="#BFDBFE" stroke-width="2" opacity="0.92"/>
-    <text x="116" y="234" class="panel-label" dominant-baseline="middle">Current Go Money</text>
-  </g>
-<g>
-    <rect x="510" y="198" width="440" height="638" rx="22" fill="#F5F3FF" stroke="#DDD6FE" stroke-width="2" opacity="0.92"/>
-    <text x="534" y="234" class="panel-label" dominant-baseline="middle">Benchmark Evidence</text>
-  </g>
-<g>
-    <rect x="996" y="198" width="350" height="638" rx="22" fill="#FFF7ED" stroke="#FED7AA" stroke-width="2" opacity="0.92"/>
-    <text x="1020" y="234" class="panel-label" dominant-baseline="middle">Decision Gate</text>
-  </g>
-<g>
-    <rect x="1392" y="198" width="394" height="638" rx="22" fill="#ECFDF5" stroke="#BBF7D0" stroke-width="2" opacity="0.92"/>
-    <text x="1416" y="234" class="panel-label" dominant-baseline="middle">Public Contract</text>
-  </g>
-<g>
-    <rect x="92" y="872" width="1694" height="96" rx="22" fill="#F8FAFC" stroke="#E2E8F0" stroke-width="2" opacity="0.92"/>
-    
-  </g>
-  <path d="M 432 431 L 550 431" fill="none" stroke="#2563EB" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" marker-end="url(#2563EB)" />
-<path d="M 432 670 L 490 670 L 490 659 L 550 659" fill="none" stroke="#7C3AED" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" marker-end="url(#7C3AED)" />
-<path d="M 910 365 L 976 365 L 976 482 L 1040 482" fill="none" stroke="#2563EB" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" marker-end="url(#2563EB)" />
-<path d="M 910 659 L 976 659 L 976 482 L 1040 482" fill="none" stroke="#7C3AED" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" marker-end="url(#7C3AED)" />
-<path d="M 1302 440 L 1362 440 L 1362 365 L 1428 365" fill="none" stroke="#16A34A" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" marker-end="url(#16A34A)" />
-<path d="M 1302 522 L 1362 522 L 1362 669 L 1428 669" fill="none" stroke="#DC2626" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" marker-end="url(#DC2626)" />
-<path d="M 1588 438 L 1588 540 L 1190 540 L 1190 872" fill="none" stroke="#D97706" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" marker-end="url(#D97706)" stroke-dasharray="8 9"/>
-  <rect x="124" y="354" width="308" height="154" rx="18" fill="#DBEAFE" stroke="#93C5FD" stroke-width="2" />
-<text x="278" y="410" class="card-title" text-anchor="middle" dominant-baseline="middle">Money</text>
-<text x="278" y="438" class="card-detail" text-anchor="middle" dominant-baseline="middle">decimal-backed wrapper</text>
-<text x="278" y="460" class="card-detail" text-anchor="middle" dominant-baseline="middle">NewMinor + MinorUnits</text>
-<rect x="124" y="604" width="308" height="132" rx="18" fill="#FEF3C7" stroke="#FCD34D" stroke-width="2" />
-<text x="278" y="649" class="card-title" text-anchor="middle" dominant-baseline="middle">JVM FastMoney</text>
-<text x="278" y="677" class="card-detail" text-anchor="middle" dominant-baseline="middle">Long-backed Moneta type</text>
-<text x="278" y="699" class="card-detail" text-anchor="middle" dominant-baseline="middle">minor-unit oriented</text>
-<rect x="550" y="288" width="360" height="154" rx="18" fill="#EDE9FE" stroke="#C4B5FD" stroke-width="2" />
-<text x="730" y="344" class="card-title" text-anchor="middle" dominant-baseline="middle">Go Benchmarks</text>
-<text x="730" y="372" class="card-detail" text-anchor="middle" dominant-baseline="middle">minor constructors</text>
-<text x="730" y="394" class="card-detail" text-anchor="middle" dominant-baseline="middle">arithmetic, parse, JSON</text>
-<rect x="550" y="582" width="360" height="154" rx="18" fill="#F3E8FF" stroke="#C4B5FD" stroke-width="2" />
-<text x="730" y="638" class="card-title" text-anchor="middle" dominant-baseline="middle">Alternatives</text>
-<text x="730" y="666" class="card-detail" text-anchor="middle" dominant-baseline="middle">govalues direct path</text>
-<text x="730" y="688" class="card-detail" text-anchor="middle" dominant-baseline="middle">Rhymond/go-money notes</text>
-<rect x="1040" y="396" width="262" height="172" rx="18" fill="#FFEDD5" stroke="#FDBA74" stroke-width="2" />
-<text x="1171" y="461" class="card-title" text-anchor="middle" dominant-baseline="middle">Measured Need?</text>
-<text x="1171" y="489" class="card-detail" text-anchor="middle" dominant-baseline="middle">latency or alloc gap</text>
-<text x="1171" y="511" class="card-detail" text-anchor="middle" dominant-baseline="middle">real caller use case</text>
-<rect x="1428" y="292" width="320" height="146" rx="18" fill="#DCFCE7" stroke="#86EFAC" stroke-width="2" />
-<text x="1588" y="344" class="card-title" text-anchor="middle" dominant-baseline="middle">Keep Money</text>
-<text x="1588" y="372" class="card-detail" text-anchor="middle" dominant-baseline="middle">no new public type</text>
-<text x="1588" y="394" class="card-detail" text-anchor="middle" dominant-baseline="middle">document rationale</text>
-<rect x="1428" y="596" width="320" height="146" rx="18" fill="#FEE2E2" stroke="#FCA5A5" stroke-width="2" />
-<text x="1588" y="648" class="card-title" text-anchor="middle" dominant-baseline="middle">Open FastMoney</text>
-<text x="1588" y="676" class="card-detail" text-anchor="middle" dominant-baseline="middle">new issue or PR only</text>
-<text x="1588" y="698" class="card-detail" text-anchor="middle" dominant-baseline="middle">if evidence is strong</text>
-  <rect x="186" y="896" width="426" height="48" rx="16" fill="#FFFFFF" stroke="#CBD5E1" stroke-width="2" />
-<rect x="728" y="896" width="426" height="48" rx="16" fill="#FFFFFF" stroke="#CBD5E1" stroke-width="2" />
-<rect x="1270" y="896" width="426" height="48" rx="16" fill="#FFFFFF" stroke="#CBD5E1" stroke-width="2" />
-
-  <text x="402" y="926" class="footer-title" text-anchor="middle" dominant-baseline="middle">Raw output + bar chart</text>
-  <text x="402" y="946" class="footer-detail" text-anchor="middle" dominant-baseline="middle">table is source; chart is visual scan</text>
-  <text x="944" y="926" class="footer-title" text-anchor="middle" dominant-baseline="middle">README decision matrix</text>
-  <text x="944" y="946" class="footer-detail" text-anchor="middle" dominant-baseline="middle">when Money is enough, and when it is not</text>
-  <text x="1486" y="926" class="footer-title" text-anchor="middle" dominant-baseline="middle">7-Tier review evidence</text>
-  <text x="1486" y="946" class="footer-detail" text-anchor="middle" dominant-baseline="middle">P0/P1 must be zero before PR</text>
-  <text x="940" y="1004" class="footer-note" text-anchor="middle" dominant-baseline="middle">Issue #180 scope: measure first; add public FastMoney only if the benchmark and caller-use evidence justify the API cost.</text>
+<rect class="bg" width="1285" height="760"/>
+<text class="title" x="52" y="72">money FastMoney Evaluation Decision Flow</text>
+<text class="sub" x="56" y="112">Issue #180 kept one public Money type after benchmark and API-boundary review.</text>
+<rect class="card" x="65" y="180" width="300" height="160" rx="16" fill="#eff6ff" stroke="#2563eb" filter="url(#shadow)"/>
+<text class="card-title" x="87" y="218">Candidate API</text>
+<text class="body" x="89" y="252">long-backed FastMoney</text>
+<text class="body" x="89" y="279">minor-unit hot paths</text>
+<text class="body" x="89" y="306">new public type cost</text>
+<rect class="card" x="470" y="150" width="350" height="215" rx="16" fill="#ecfdf5" stroke="#059669" filter="url(#shadow)"/>
+<text class="card-title" x="492" y="188">Benchmark evidence</text>
+<text class="body" x="494" y="222">minor-unit paths measured</text>
+<text class="body" x="494" y="249">representative operations</text>
+<text class="body" x="494" y="276">raw output preserved</text>
+<text class="body" x="494" y="303">no broad gap found</text>
+<rect class="card" x="925" y="180" width="310" height="160" rx="16" fill="#fef2f2" stroke="#dc2626" filter="url(#shadow)"/>
+<text class="card-title" x="947" y="218">Decision</text>
+<text class="body" x="949" y="252">do not add FastMoney</text>
+<text class="body" x="949" y="279">keep Money public</text>
+<text class="body" x="949" y="306">use NewMinor/MinorUnits</text>
+<rect class="card" x="470" y="470" width="350" height="135" rx="16" fill="#f5f3ff" stroke="#7c3aed" filter="url(#shadow)"/>
+<text class="card-title" x="492" y="508">Future gate</text>
+<text class="body" x="494" y="542">measured hot-path gap</text>
+<text class="body" x="494" y="569">caller contract unmet</text>
+<text class="body" x="494" y="596">clear migration story</text>
+<path class="arrow" d="M365 255 L470 255"/><text class="label" x="388" y="243">measure</text>
+<path class="arrow" d="M820 255 L925 255"/><text class="label" x="846" y="243">decide</text>
+<path class="dashed" d="M645 365 L645 470"/><text class="label" x="660" y="420">reopen only if</text>
+<rect class="alt" x="58" y="650" width="1172" height="70" rx="16"/><text class="small" x="82" y="680">Boundary: benchmark charts are local evidence, not production rankings.</text>
+<text class="small" x="82" y="705">A future FastMoney proposal must prove value beyond existing NewMinor and MinorUnits paths.</text>
 </svg>

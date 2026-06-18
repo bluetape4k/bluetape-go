@@ -1,108 +1,38 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="2050" height="1120" viewBox="0 0 2050 1120">
-<defs>
-  <style>
-    .title { font-family: 'Architects Daughter'; font-size: 34px; font-weight: 700; fill: #1E293B; }
-    .subtitle { font-family: 'Comic Mono'; font-size: 16px; fill: #64748B; }
-    .panel-label { font-family: 'Architects Daughter'; font-size: 20px; font-weight: 700; fill: #1E293B; }
-    .card-title { font-family: 'Architects Daughter'; font-size: 22px; font-weight: 700; fill: #1E293B; }
-    .detail { font-family: 'Comic Mono'; font-size: 14px; fill: #1E293B; }
-    .route-label { font-family: 'Comic Mono'; font-size: 13px; font-weight: 700; }
-    .footer { font-family: 'Comic Mono'; font-size: 14px; fill: #1E293B; }
-  </style>
-  <filter id="shadow" x="-10%" y="-10%" width="120%" height="120%">
-    <feDropShadow dx="0" dy="8" stdDeviation="8" flood-color="#94A3B8" flood-opacity="0.22"/>
-  </filter>
-  <marker id="2563EB" viewBox="0 0 5 5" refX="4.5" refY="2.5" markerWidth="5" markerHeight="5" orient="auto">
-    <path d="M 0.5 0.5 L 4.5 2.5 L 0.5 4.5 Z" fill="#2563EB"/>
-  </marker>
-<marker id="7C3AED" viewBox="0 0 5 5" refX="4.5" refY="2.5" markerWidth="5" markerHeight="5" orient="auto">
-    <path d="M 0.5 0.5 L 4.5 2.5 L 0.5 4.5 Z" fill="#7C3AED"/>
-  </marker>
-<marker id="16A34A" viewBox="0 0 5 5" refX="4.5" refY="2.5" markerWidth="5" markerHeight="5" orient="auto">
-    <path d="M 0.5 0.5 L 4.5 2.5 L 0.5 4.5 Z" fill="#16A34A"/>
-  </marker>
-<marker id="D97706" viewBox="0 0 5 5" refX="4.5" refY="2.5" markerWidth="5" markerHeight="5" orient="auto">
-    <path d="M 0.5 0.5 L 4.5 2.5 L 0.5 4.5 Z" fill="#D97706"/>
-  </marker>
-<marker id="DC2626" viewBox="0 0 5 5" refX="4.5" refY="2.5" markerWidth="5" markerHeight="5" orient="auto">
-    <path d="M 0.5 0.5 L 4.5 2.5 L 0.5 4.5 Z" fill="#DC2626"/>
-  </marker>
-</defs>
-<rect width="2050" height="1120" fill="#F8FAFC"/>
-<rect x="48" y="48" width="1954" height="1024" rx="30" fill="#FFFFFF" stroke="#CBD5E1" stroke-width="2" filter="url(#shadow)"/>
-<text x="1025" y="96" class="title" text-anchor="middle" dominant-baseline="middle">money - Locale Currency Resolution</text>
-<text x="1025" y="130" class="subtitle" text-anchor="middle" dominant-baseline="middle">Explicit region tags plus CLDR tender data prevent hidden currency guesses</text>
+<svg xmlns="http://www.w3.org/2000/svg" width="1285" height="760" viewBox="0 0 1285 760">
+<defs><marker id="arrow" markerWidth="12" markerHeight="10" refX="10" refY="5" orient="auto" markerUnits="userSpaceOnUse"><path d="M0,0 L10,5 L0,10 z" fill="#2563eb"/></marker><marker id="arrow-gray" markerWidth="12" markerHeight="10" refX="10" refY="5" orient="auto" markerUnits="userSpaceOnUse"><path d="M0,0 L10,5 L0,10 z" fill="#64748b"/></marker><filter id="shadow" x="-10%" y="-10%" width="120%" height="125%"><feDropShadow dx="0" dy="3" stdDeviation="4" flood-color="#94a3b8" flood-opacity=".22"/></filter></defs>
 
-<rect x="92" y="190" width="330" height="740" rx="18" fill="#EFF6FF" stroke="#BFDBFE" stroke-width="2" />
-<text x="257" y="224" class="panel-label" text-anchor="middle" dominant-baseline="middle">Caller Input</text>
-<rect x="462" y="190" width="700" height="740" rx="18" fill="#F5F3FF" stroke="#DDD6FE" stroke-width="2" />
-<text x="812" y="224" class="panel-label" text-anchor="middle" dominant-baseline="middle">BCP47 Region Policy</text>
-<rect x="1202" y="190" width="390" height="740" rx="18" fill="#ECFDF5" stroke="#A7F3D0" stroke-width="2" />
-<text x="1397" y="224" class="panel-label" text-anchor="middle" dominant-baseline="middle">CLDR Tender Query</text>
-<rect x="1632" y="190" width="326" height="740" rx="18" fill="#FFF7ED" stroke="#FED7AA" stroke-width="2" />
-<text x="1795" y="224" class="panel-label" text-anchor="middle" dominant-baseline="middle">Caller Outcome</text>
+<style>
+@font-face{font-family:'Architects Daughter';src:local('Architects Daughter');}
+@font-face{font-family:'Comic Mono';src:local('Comic Mono');}
+.bg{fill:#f8fafc}.title{font:42px 'Architects Daughter','Comic Sans MS',cursive;fill:#111827}.sub{font:21px 'Comic Mono','Courier New',monospace;fill:#475569}.card-title{font:24px 'Comic Mono','Courier New',monospace;font-weight:700;fill:#111827}.body{font:17px 'Comic Mono','Courier New',monospace;fill:#334155}.small{font:15px 'Comic Mono','Courier New',monospace;fill:#475569}.label{font:16px 'Comic Mono','Courier New',monospace;fill:#2563eb;font-weight:700}.arrow{stroke:#2563eb;stroke-width:3.5;fill:none;marker-end:url(#arrow)}.dashed{stroke:#64748b;stroke-width:3;stroke-dasharray:10 9;fill:none;marker-end:url(#arrow-gray)}.card{fill:#fff;stroke-width:4}.alt{fill:#f59e0b;fill-opacity:.12;stroke:#f59e0b;stroke-opacity:.55;stroke-dasharray:10 8;stroke-width:3}
+</style>
 
-<rect x="120" y="350" width="260" height="130" rx="18" fill="#DBEAFE" stroke="#93C5FD" stroke-width="2" />
-<text x="250" y="394" class="card-title" text-anchor="middle" dominant-baseline="middle">Locale Tag</text>
-<text x="250" y="424" class="detail" text-anchor="middle" dominant-baseline="middle">ko-KR, en_US</text>
-<text x="250" y="446" class="detail" text-anchor="middle" dominant-baseline="middle">must name region</text>
-<rect x="500" y="270" width="270" height="150" rx="18" fill="#EDE9FE" stroke="#C4B5FD" stroke-width="2" />
-<text x="635" y="324" class="card-title" text-anchor="middle" dominant-baseline="middle">language.Parse</text>
-<text x="635" y="354" class="detail" text-anchor="middle" dominant-baseline="middle">BCP47 syntax</text>
-<text x="635" y="376" class="detail" text-anchor="middle" dominant-baseline="middle">canonical tag</text>
-<rect x="850" y="255" width="280" height="170" rx="18" fill="#F3E8FF" stroke="#C4B5FD" stroke-width="2" />
-<text x="990" y="319" class="card-title" text-anchor="middle" dominant-baseline="middle">Explicit Region?</text>
-<text x="990" y="349" class="detail" text-anchor="middle" dominant-baseline="middle">use tag region only</text>
-<text x="990" y="371" class="detail" text-anchor="middle" dominant-baseline="middle">no likely-region guess</text>
-<rect x="850" y="560" width="280" height="132" rx="18" fill="#FEE2E2" stroke="#FCA5A5" stroke-width="2" />
-<text x="990" y="605" class="card-title" text-anchor="middle" dominant-baseline="middle">Unsupported</text>
-<text x="990" y="635" class="detail" text-anchor="middle" dominant-baseline="middle">missing or invalid</text>
-<text x="990" y="657" class="detail" text-anchor="middle" dominant-baseline="middle">ErrInvalidCurrency</text>
-<rect x="1240" y="270" width="310" height="150" rx="18" fill="#DCFCE7" stroke="#86EFAC" stroke-width="2" />
-<text x="1395" y="324" class="card-title" text-anchor="middle" dominant-baseline="middle">currency.Query</text>
-<text x="1395" y="354" class="detail" text-anchor="middle" dominant-baseline="middle">Region(region)</text>
-<text x="1395" y="376" class="detail" text-anchor="middle" dominant-baseline="middle">current legal tender</text>
-<rect x="1240" y="520" width="310" height="170" rx="18" fill="#FEF3C7" stroke="#FCD34D" stroke-width="2" />
-<text x="1395" y="584" class="card-title" text-anchor="middle" dominant-baseline="middle">Tender Count</text>
-<text x="1395" y="614" class="detail" text-anchor="middle" dominant-baseline="middle">1 = deterministic</text>
-<text x="1395" y="636" class="detail" text-anchor="middle" dominant-baseline="middle">0 or many = reject</text>
-<rect x="1660" y="330" width="270" height="150" rx="18" fill="#DCFCE7" stroke="#86EFAC" stroke-width="2" />
-<text x="1795" y="384" class="card-title" text-anchor="middle" dominant-baseline="middle">Currency</text>
-<text x="1795" y="414" class="detail" text-anchor="middle" dominant-baseline="middle">ParseCurrency</text>
-<text x="1795" y="436" class="detail" text-anchor="middle" dominant-baseline="middle">ISO 4217 wrapper</text>
-<rect x="1660" y="560" width="270" height="132" rx="18" fill="#FEF3C7" stroke="#FCD34D" stroke-width="2" />
-<text x="1795" y="605" class="card-title" text-anchor="middle" dominant-baseline="middle">Ambiguous</text>
-<text x="1795" y="635" class="detail" text-anchor="middle" dominant-baseline="middle">multiple tender units</text>
-<text x="1795" y="657" class="detail" text-anchor="middle" dominant-baseline="middle">caller must choose</text>
-<rect x="1240" y="790" width="310" height="112" rx="18" fill="#FEE2E2" stroke="#FCA5A5" stroke-width="2" />
-<text x="1395" y="836" class="card-title" text-anchor="middle" dominant-baseline="middle">No Tender</text>
-<text x="1395" y="866" class="detail" text-anchor="middle" dominant-baseline="middle">no current legal tender</text>
-
-<path d="M 380 415 L 500 415" fill="none" stroke="#2563EB" stroke-width="3" marker-end="url(#2563EB)"/>
-<path d="M 770 345 L 850 345" fill="none" stroke="#7C3AED" stroke-width="3" marker-end="url(#7C3AED)"/>
-<path d="M 1130 345 L 1240 345" fill="none" stroke="#16A34A" stroke-width="3" marker-end="url(#16A34A)"/>
-<path d="M 990 425 L 990 560" fill="none" stroke="#DC2626" stroke-width="3" marker-end="url(#DC2626)"/>
-<path d="M 1395 420 L 1395 520" fill="none" stroke="#16A34A" stroke-width="3" marker-end="url(#16A34A)"/>
-<path d="M 1550 575 L 1600 575 L 1600 405 L 1660 405" fill="none" stroke="#16A34A" stroke-width="3" marker-end="url(#16A34A)"/>
-<path d="M 1550 625 L 1660 625" fill="none" stroke="#D97706" stroke-width="3" marker-end="url(#D97706)"/>
-<path d="M 1395 690 L 1395 790" fill="none" stroke="#DC2626" stroke-width="3" marker-end="url(#DC2626)"/>
-<rect x="425" y="384" width="73" height="30" rx="10" fill="#FFFFFF" stroke="#2563EB" stroke-width="2" />
-<text x="461.5" y="399" class="route-label" fill="#2563EB" text-anchor="middle" dominant-baseline="middle">parse</text>
-<rect x="787" y="314" width="91" height="30" rx="10" fill="#FFFFFF" stroke="#7C3AED" stroke-width="2" />
-<text x="832.5" y="329" class="route-label" fill="#7C3AED" text-anchor="middle" dominant-baseline="middle">extract</text>
-<rect x="1142" y="314" width="82" height="30" rx="10" fill="#FFFFFF" stroke="#16A34A" stroke-width="2" />
-<text x="1183" y="329" class="route-label" fill="#16A34A" text-anchor="middle" dominant-baseline="middle">region</text>
-<rect x="1006" y="492" width="91" height="30" rx="10" fill="#FFFFFF" stroke="#DC2626" stroke-width="2" />
-<text x="1051.5" y="507" class="route-label" fill="#DC2626" text-anchor="middle" dominant-baseline="middle">missing</text>
-<rect x="1412" y="470" width="154" height="30" rx="10" fill="#FFFFFF" stroke="#16A34A" stroke-width="2" />
-<text x="1489" y="485" class="route-label" fill="#16A34A" text-anchor="middle" dominant-baseline="middle">current tender</text>
-<rect x="1574" y="498" width="82" height="30" rx="10" fill="#FFFFFF" stroke="#16A34A" stroke-width="2" />
-<text x="1615" y="513" class="route-label" fill="#16A34A" text-anchor="middle" dominant-baseline="middle">single</text>
-<rect x="1588" y="594" width="109" height="30" rx="10" fill="#FFFFFF" stroke="#D97706" stroke-width="2" />
-<text x="1642.5" y="609" class="route-label" fill="#D97706" text-anchor="middle" dominant-baseline="middle">ambiguous</text>
-<rect x="1412" y="740" width="68" height="30" rx="10" fill="#FFFFFF" stroke="#DC2626" stroke-width="2" />
-<text x="1446" y="755" class="route-label" fill="#DC2626" text-anchor="middle" dominant-baseline="middle">none</text>
-
-<rect x="150" y="978" width="1750" height="52" rx="12" fill="#F8FAFC" stroke="#E2E8F0"/>
-<text x="1025" y="1004" class="footer" text-anchor="middle" dominant-baseline="middle">Locale mapping is a current-region convenience, not an accounting or legal-tender authority.</text>
+<rect class="bg" width="1285" height="760"/>
+<text class="title" x="52" y="72">money Locale Currency Resolution Flow</text>
+<text class="sub" x="56" y="112">Locale mapping is a convenience for explicit current-region tender only.</text>
+<rect class="card" x="70" y="185" width="300" height="160" rx="16" fill="#eff6ff" stroke="#2563eb" filter="url(#shadow)"/>
+<text class="card-title" x="92" y="223">BCP47 tag</text>
+<text class="body" x="94" y="257">trim and normalize</text>
+<text class="body" x="94" y="284">requires explicit region</text>
+<text class="body" x="94" y="311">language.Parse guard</text>
+<rect class="card" x="480" y="165" width="340" height="205" rx="16" fill="#ecfdf5" stroke="#059669" filter="url(#shadow)"/>
+<text class="card-title" x="502" y="203">Region lookup</text>
+<text class="body" x="504" y="237">golang.org/x/text</text>
+<text class="body" x="504" y="264">CLDR current tender</text>
+<text class="body" x="504" y="291">count tender currencies</text>
+<rect class="card" x="930" y="185" width="300" height="160" rx="16" fill="#f5f3ff" stroke="#7c3aed" filter="url(#shadow)"/>
+<text class="card-title" x="952" y="223">Currency</text>
+<text class="body" x="954" y="257">ParseCurrency(code)</text>
+<text class="body" x="954" y="284">reject XXX / 999</text>
+<text class="body" x="954" y="311">return wrapper value</text>
+<rect class="card" x="480" y="470" width="340" height="140" rx="16" fill="#fef2f2" stroke="#dc2626" filter="url(#shadow)"/>
+<text class="card-title" x="502" y="508">Reject cases</text>
+<text class="body" x="504" y="542">no explicit region</text>
+<text class="body" x="504" y="569">zero current tender</text>
+<text class="body" x="504" y="596">multiple current tenders</text>
+<path class="arrow" d="M370 260 L480 260"/><text class="label" x="395" y="248">region</text>
+<path class="arrow" d="M820 260 L930 260"/><text class="label" x="850" y="248">one tender</text>
+<path class="dashed" d="M650 370 L650 470"/><text class="label" x="665" y="425">otherwise</text>
+<rect class="alt" x="58" y="650" width="1172" height="70" rx="16"/><text class="small" x="82" y="680">alt: this is not accounting, trading, tax, settlement, or legal-tender authority.</text>
+<text class="small" x="82" y="705">Ambiguous regions return ErrInvalidCurrency so callers choose the currency explicitly.</text>
 </svg>
