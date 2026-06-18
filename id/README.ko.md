@@ -2,11 +2,12 @@
 
 [English](README.md) | [한국어](README.ko.md)
 
-`id`는 서비스 식별자를 위한 Go-native generator를 제공합니다. 범위는 UUID v4,
-UUID v7, random ULID, monotonic ULID, standard seconds-precision KSUID,
-Kotlin-compatible millisecond KSUID, Snowflake int64 ID입니다.
+`id`는 서비스 식별자를 위한 Go-native generator를 제공합니다. UUID v4, UUID v7,
+random ULID, monotonic ULID, standard seconds-precision KSUID,
+Kotlin-compatible millisecond KSUID, Snowflake int64 ID를 한 패키지에서 선택할 수
+있습니다.
 
-## Import
+## 가져오기
 
 ```go
 import (
@@ -20,11 +21,11 @@ import (
 
 | 필요 | 사용 | 메모 |
 |---|---|---|
-| request/correlation ID | UUID v4 또는 UUID v7 | UUID v4는 random이고 UUID v7은 time ordering을 포함합니다. |
-| UUID 저장 DB primary key | UUID v7 | clock 동작을 받아들일 수 있으면 UUID v4보다 정렬성이 좋습니다. |
+| request/correlation ID | UUID v4 또는 UUID v7 | UUID v4는 random ID이고 UUID v7은 time ordering을 포함합니다. |
+| UUID 저장 DB primary key | UUID v7 | wall-clock 특성을 받아들일 수 있으면 UUID v4보다 정렬성이 좋습니다. |
 | monotonic string ID | ULID | 표준 26자 Crockford Base32 문자열입니다. |
 | 분산 numeric entity ID | Snowflake | timestamp, machine ID, sequence field를 가진 63-bit non-negative int64입니다. |
-| URL-safe string ID | ULID 또는 KSUID | ULID는 26-character Crockford Base32이고 KSUID variants는 27-character Base62 string입니다. |
+| URL-safe string ID | ULID 또는 KSUID | ULID는 26-character Crockford Base32이고 KSUID 계열은 27-character Base62 string입니다. |
 | second-level time sorting이 필요한 log/event ID | KSUID | Segment-compatible canonical 27-character string입니다. |
 | Kotlin-compatible millisecond KSUID | KSUID millis | `NewKSUIDMillisGenerator`, `ParseKSUIDMillis`, `KSUIDMillisTime`은 bluetape4k `Ksuid.Millis`의 8-byte millisecond timestamp + 12-byte payload format을 사용합니다. source-compatible이며 Segment-sortable format은 아닙니다. |
 | deterministic/name-based UUID | Deferred | UUID v5/name-based helper는 0.6.0 범위가 아닙니다. |

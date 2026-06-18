@@ -2,8 +2,9 @@
 
 [English](README.md) | [한국어](README.ko.md)
 
-`jwt`는 명시적 algorithm과 repo-owned error를 사용하는 JSON Web Token 생성,
-검증, claim 읽기, local key rotation helper를 제공합니다.
+`jwt`는 명시적인 algorithm과 repo-owned error를 사용하는 JSON Web Token 생성,
+검증, claim 읽기, key rotation helper를 제공합니다. Local in-memory rotation과
+Redis-backed distributed rotation을 모두 다룹니다.
 
 ## Import
 
@@ -31,7 +32,7 @@ import (
 | MongoDB-backed distributed key rotation | Backlog | MongoDB storage는 #198로 이관했습니다. |
 | signed JWT compression | Non-goal | `zip`은 signed JWT helper가 아니라 JWE 경계에 속합니다. |
 | JWE, JWK, JWKS | Deferred | 실제 사용 사례가 생기면 JWE/JWKS를 명시적인 optional JOSE 경계로 추가할 수 있습니다. |
-| provider cache adapter | `NewCachedProvider` 또는 `NewCachedDistributedProvider` | optional trusted `cache.Cache[string,*jwt.Reader]` wrapper로 provider validation을 우회하지 않고 반복 parse/signature verification 비용을 줄입니다. |
+| provider cache adapter | `NewCachedProvider` 또는 `NewCachedDistributedProvider` | trusted `cache.Cache[string,*jwt.Reader]` wrapper로 provider validation을 우회하지 않고 반복 parse/signature verification 비용을 줄입니다. |
 
 ## 사용법
 
