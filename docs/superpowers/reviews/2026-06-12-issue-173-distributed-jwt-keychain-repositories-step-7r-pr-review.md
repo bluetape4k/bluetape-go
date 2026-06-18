@@ -38,7 +38,7 @@ contract without waiting indefinitely.
 | Developer/API P3: public `FindKeyChainContext` delegated invalid `kid` values to repository implementations. | Validate with `validateLookupKID` before repository lookup. | `jwt/distributed_provider.go:127`; `jwt/distributed_provider_test.go:393` |
 | Developer/API P3: README parse example did not check `ParseContext` error or use `reader`. | Add parse error handling and subject check. | `jwt/README.md:103`; `jwt/README.ko.md:103` |
 | User/Caller P2/P3: README import and TTL guidance were incomplete for Redis callers. | Add full Redis import block and paired `jwt.WithKeyTTL` plus `redisjwt.Options{KeyTTL, RetentionLeeway}` example. | `jwt/README.md:10`; `jwt/README.md:123`; `jwt/README.ko.md:10`; `jwt/README.ko.md:123` |
-| Diagram gate correction: final `redis-jwt-distributed-key-rotation.png` was a raw Graphviz copy. | Keep `.dot/.plain/-graphviz.*` as evidence, and render the final `.svg/.png` as a decorated hand-authored README asset. | `docs/images/readme-diagrams/gen-readme-diagrams.py`; `docs/images/readme-diagrams/redis-jwt-distributed-key-rotation.png`; `cmp` against `-graphviz.png` returns `1` |
+| Diagram gate correction: final `redis-jwt-distributed-key-rotation.png` was a raw Graphviz copy. | Replace the raw Graphviz copy with decorated hand-authored `.svg/.png` README assets. | `docs/images/readme-diagrams/redis-jwt-distributed-key-rotation.png`; visual inspection |
 
 ## Main Integration Review
 

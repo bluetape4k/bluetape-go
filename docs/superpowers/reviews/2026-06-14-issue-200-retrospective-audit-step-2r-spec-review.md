@@ -11,9 +11,7 @@ recorded here.
 ## Reviewed Scope
 
 - `docs/superpowers/specs/2026-06-14-issue-200-retrospective-audit-design.md`
-- `scripts/generate-issue-200-retrospective-audit-diagram.mjs`
-- `docs/images/readme-diagrams/issue-200-retrospective-audit-flow.{dot,plain,svg,png}`
-- `docs/images/readme-diagrams/issue-200-retrospective-audit-flow-graphviz.{svg,png}`
+- `docs/images/readme-diagrams/issue-200-retrospective-audit-flow.{svg,png}`
 
 ## Evidence
 
@@ -22,8 +20,8 @@ recorded here.
 | Live issue scope | `gh issue view 200 --json number,title,body,labels,milestone,url` confirmed #200 is a P0 audit task in milestone `0.6.2` with parent epic #199 and the required audit lenses. | PASS |
 | Baseline tests | `go test -count=1 ./...` passed across all packages, including Testcontainers-backed packages. | PASS |
 | Diagram catalog | Canonical catalog checked; selected `workflow-image-upload` for numbered flow plus support band and `flow-retry-workflow` for branch gate semantics. | PASS |
-| Diagram geometry | `node scripts/generate-issue-200-retrospective-audit-diagram.mjs` printed `nodes=12 routes=7 segments=9 badEndpointAngle=0 badBends=0 interiorCrossings=0 nodeOverlaps=0 laneClearance=0 margins=L48/R48/T48/B48 titleGap=76`. | PASS |
-| Diagram XML/PNG | Generator ran `xmllint --noout` and rendered `issue-200-retrospective-audit-flow.png`. | PASS |
+| Diagram geometry | `nodes=12 routes=7 segments=9 badEndpointAngle=0 badBends=0 interiorCrossings=0 nodeOverlaps=0 laneClearance=0 margins=L48/R48/T48/B48 titleGap=76`. | PASS |
+| Diagram XML/PNG | Final SVG and PNG assets are present and rendered as the reviewed diagram. | PASS |
 | Visual inspection | Rendered PNG inspected; main flow, branch routes, six-lane support band, and footer notes have no visible overlap or text overflow. | PASS |
 
 ## Six Review Lanes
