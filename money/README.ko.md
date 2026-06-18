@@ -32,7 +32,9 @@ import "github.com/bluetape4k/bluetape-go/money"
 
 `Money`를 public 금액 타입으로 유지합니다. #180은 minor-unit 및 대표 hot path를
 측정했고 별도 long-backed `FastMoney` 타입을 추가하지 않았습니다. 정수 minor-unit
-입력은 `NewMinor`, 정수 추출은 `MinorUnits`를 사용하십시오.
+입력은 `NewMinor`, 정수 추출은 `MinorUnits`를 사용하세요.
+
+![money FastMoney evaluation decision flow](../docs/images/readme-diagrams/money-fastmoney-evaluation-decision-flow.png)
 
 ![money FastMoney evaluation benchmark](../docs/images/readme-charts/money-fastmoney-evaluation-benchmark.png)
 

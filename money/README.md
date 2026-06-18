@@ -35,6 +35,8 @@ representative hot paths and did not add a separate long-backed `FastMoney`
 type. Use `NewMinor` for integer minor-unit input and `MinorUnits` for integer
 extraction.
 
+![money FastMoney evaluation decision flow](../docs/images/readme-diagrams/money-fastmoney-evaluation-decision-flow.png)
+
 ![money FastMoney evaluation benchmark](../docs/images/readme-charts/money-fastmoney-evaluation-benchmark.png)
 
 The benchmark snapshot is local evidence, not a production ranking. The raw
