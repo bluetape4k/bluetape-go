@@ -80,15 +80,9 @@ meaningful gap:
 
 Diagram assets:
 
-- Generator: `scripts/generate-issue-201-test-gates-diagram.mjs`
 - Final assets:
   - `docs/images/readme-diagrams/issue-201-test-gates-flow.svg`
   - `docs/images/readme-diagrams/issue-201-test-gates-flow.png`
-- Graphviz evidence:
-  - `docs/images/readme-diagrams/issue-201-test-gates-flow.dot`
-  - `docs/images/readme-diagrams/issue-201-test-gates-flow.plain`
-  - `docs/images/readme-diagrams/issue-201-test-gates-flow-graphviz.svg`
-  - `docs/images/readme-diagrams/issue-201-test-gates-flow-graphviz.png`
 - Catalog baseline:
   - `workflow-image-upload` for the numbered execution flow.
   - `flow-retry-workflow` for the RED/GREEN/fix-loop gate.

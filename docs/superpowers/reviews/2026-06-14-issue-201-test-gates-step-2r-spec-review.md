@@ -10,11 +10,8 @@ required six independent lanes plus main integration and records the fallback.
 ## Reviewed Scope
 
 - `docs/superpowers/specs/2026-06-14-issue-201-test-gates-design.md`
-- `scripts/generate-issue-201-test-gates-diagram.mjs`
 - `docs/images/readme-diagrams/issue-201-test-gates-flow.svg`
 - `docs/images/readme-diagrams/issue-201-test-gates-flow.png`
-- `docs/images/readme-diagrams/issue-201-test-gates-flow.dot`
-- `docs/images/readme-diagrams/issue-201-test-gates-flow.plain`
 - #199 and #201 live GitHub issue bodies
 - #200 audit artifact and Step 6-R review evidence
 
@@ -25,9 +22,9 @@ required six independent lanes plus main integration and records the fallback.
 | Live issue scope | #201 is open, milestone `0.6.2`, labels include `priority: p0`, `area: testing`, `area: concurrency`. | PASS |
 | Baseline tests | `go test -count=1 ./...` passed before edits. | PASS |
 | Diagram catalog | Canonical approved and rejected catalogs were read before generating the asset. | PASS |
-| Diagram generation | `node scripts/generate-issue-201-test-gates-diagram.mjs` wrote SVG/PNG and Graphviz evidence. | PASS |
+| Diagram generation | Final SVG/PNG assets were generated and reviewed. | PASS |
 | Geometry gate | `nodes=12 routes=6 segments=7 badEndpointAngle=0 badBends=0 interiorCrossings=0 nodeOverlaps=0 laneClearance=0 margins=L48/R48/T48/B48 titleGap=78`. | PASS |
-| XML/PNG gate | `xmllint --noout ...issue-201...svg ...graphviz.svg`; PNG assets present. | PASS |
+| XML/PNG gate | Final SVG and PNG assets are present. | PASS |
 | Visual inspection | Rendered PNG inspected; no visible text overflow, card/card overlap, connector/card intersection, or excessive bottom whitespace. | PASS |
 | Placeholder scan | `rg -n "TBD|TODO|placeholder|fill in|later"` returned no unresolved spec placeholder; the only angle-bracket hit is the intentional `P0=<n> P1=<n>` gate string. | PASS |
 

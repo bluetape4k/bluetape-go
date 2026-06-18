@@ -88,15 +88,9 @@ The artifact must include:
 
 Diagram assets:
 
-- Generator: `scripts/generate-issue-200-retrospective-audit-diagram.mjs`
 - Final assets:
   - `docs/images/readme-diagrams/issue-200-retrospective-audit-flow.svg`
   - `docs/images/readme-diagrams/issue-200-retrospective-audit-flow.png`
-- Graphviz evidence:
-  - `docs/images/readme-diagrams/issue-200-retrospective-audit-flow.dot`
-  - `docs/images/readme-diagrams/issue-200-retrospective-audit-flow.plain`
-  - `docs/images/readme-diagrams/issue-200-retrospective-audit-flow-graphviz.svg`
-  - `docs/images/readme-diagrams/issue-200-retrospective-audit-flow-graphviz.png`
 - Catalog baseline:
   - `workflow-image-upload` for numbered main flow plus lower support band.
   - `flow-retry-workflow` for branch-heavy severity and closure gates.
