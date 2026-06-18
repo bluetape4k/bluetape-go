@@ -2,7 +2,8 @@
 
 [English](README.md) | [한국어](README.ko.md)
 
-`lock/redis`는 TTL cleanup과 owner-safe unlock semantic이 필요한 coordination 작업을 위해 작은 single-Redis-instance owner-token lock을 제공합니다.
+`lock/redis`는 TTL cleanup과 owner-safe unlock semantic이 필요한 coordination
+작업을 위해 single-Redis-instance owner-token lock을 제공합니다.
 
 ## Diagram
 
@@ -46,7 +47,7 @@ defer lease.Unlock(context.Background())
 
 - 이 구현은 Redlock quorum이 아니며 fencing token을 제공하지 않습니다.
 - TTL renewal과 blocking retry loop는 의도적으로 포함하지 않았습니다.
-- Protected operation을 안전하게 덮는 TTL을 선택하거나 higher layer에서 renewal을 조합하세요.
+- 보호하려는 작업 시간을 안전하게 덮는 TTL을 선택하거나 higher layer에서 renewal을 조합하세요.
 
 ## 테스트
 

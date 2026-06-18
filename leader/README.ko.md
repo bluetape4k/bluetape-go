@@ -2,7 +2,9 @@
 
 [English](README.md) | [한국어](README.ko.md)
 
-`leader`는 bluetape-go backend에서 사용하는 leader-election contract를 정의합니다. 이 패키지는 option validation, sentinel error, shared API shape를 소유하며 backend-specific Redis 동작은 `leader/redis`에 있습니다.
+`leader`는 bluetape-go backend에서 사용하는 leader-election contract를 정의합니다.
+이 패키지는 option validation, sentinel error, shared API shape를 제공하고,
+Redis에 특화된 동작은 `leader/redis`가 담당합니다.
 
 ## 가져오기
 
@@ -27,7 +29,7 @@ if err != nil {
 ## 동작
 
 - `Elector`는 하나의 leader group 안에 있는 하나의 member를 나타냅니다.
-- `Campaign`은 leadership acquisition을 시도하고, `Resign`은 caller의 current ownership만 해제합니다.
+- `Campaign`은 leadership 획득을 시도하고, `Resign`은 caller의 current ownership만 해제합니다.
 - `GroupElector`는 하나의 group 안에서 최대 `MaxLeaders`개의 live member를 허용합니다.
 - `StrategicElector`는 candidate registry와 deterministic `ElectionStrategy`를 사용해 모든 node가 같은 live candidate list에서 같은 winner를 계산할 수 있게 합니다.
 - Built-in strategy에는 FIFO, seed-stable random, scored election이 포함됩니다.
