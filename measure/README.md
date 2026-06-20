@@ -5,6 +5,8 @@
 `measure` provides typed units, measured values, parsing, formatting, compound
 units, and affine temperature helpers inspired by `bluetape4k-measured`.
 
+![measure unit runtime map](../docs/images/readme-diagrams/measure-unit-runtime-map.png)
+
 ## Import
 
 ```go

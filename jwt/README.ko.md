@@ -266,6 +266,8 @@ service owner가 token invalidation 여부를 명시적으로 결정해야 합�
 
 ![Redis distributed JWT key rotation](../docs/images/readme-diagrams/redis-jwt-distributed-key-rotation.png)
 
+![Redis distributed JWT rotation sequence](../docs/images/readme-diagrams/redis-jwt-distributed-key-rotation-sequence.png)
+
 ## 동작
 
 - `jwt`는 auth framework가 아닙니다. HTTP middleware, session, OIDC, JWKS,

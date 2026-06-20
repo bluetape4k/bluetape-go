@@ -8,6 +8,8 @@ wrapper가 이 패키지의 계약을 기반으로 동작합니다.
 
 ## 다이어그램
 
+![cache contract overview](../docs/images/readme-diagrams/cache-contract-overview.png)
+
 ![cache local loading flow](../docs/images/readme-diagrams/cache-local-loading-flow.png)
 
 ## 가져오기

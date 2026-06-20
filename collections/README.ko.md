@@ -4,6 +4,8 @@
 
 `collections`는 chunking, grouping, distinct-by-key, counting, error-aware map/filter pipeline 같은 일반적인 slice/map 변환을 위한 focused generic helper를 제공합니다.
 
+![collections transform pipeline](../docs/images/readme-diagrams/collections-transform-pipeline.png)
+
 ## 가져오기
 
 ```go

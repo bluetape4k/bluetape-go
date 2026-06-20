@@ -6,6 +6,8 @@
 Use it when a condition should become true eventually or should remain true for
 a short observation window.
 
+![testing concurrency harness map](../docs/images/readme-diagrams/testing-concurrency-harness-map.png)
+
 ## Import
 
 ```go

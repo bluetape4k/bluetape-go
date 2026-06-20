@@ -4,6 +4,8 @@
 
 `codec`은 bluetape-go 패키지에서 사용하는 작은 string/byte encoder를 제공합니다. Base64와 hex는 Go standard library를 감싸고, Base58과 Base62는 standard library가 제공하지 않는 identifier/key format을 다룹니다.
 
+![codec encoding surface map](../docs/images/readme-diagrams/codec-encoding-surface-map.png)
+
 ## 가져오기
 
 ```go

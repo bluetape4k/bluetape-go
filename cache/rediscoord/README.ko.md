@@ -13,6 +13,8 @@ loader의 결과를 재사용하게 합니다.
 
 ![Redis cache stampede coordination flow](../../docs/images/readme-diagrams/rediscoord-cold-burst-coordination.png)
 
+![rediscoord cold burst sequence](../../docs/images/readme-diagrams/rediscoord-cold-burst-sequence.png)
+
 ## 가져오기
 
 ```go

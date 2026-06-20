@@ -92,6 +92,8 @@ if !changed {
 
 ![Redis Bloom key layout](../docs/images/readme-diagrams/redis-bloom-key-layout-01.png)
 
+![Redis Bloom operation sequence](../docs/images/readme-diagrams/redis-bloom-operation-sequence.png)
+
 ### Redis State
 
 Redis Bloom uses one Cluster-safe hash-tagged key pair per namespace.

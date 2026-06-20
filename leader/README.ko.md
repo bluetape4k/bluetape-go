@@ -6,6 +6,10 @@
 이 패키지는 option validation, sentinel error, shared API shape를 제공하고,
 Redis에 특화된 동작은 `leader/redis`가 담당합니다.
 
+## 다이어그램
+
+![leader contract overview](../docs/images/readme-diagrams/leader-contract-overview.png)
+
 ## 가져오기
 
 ```go

@@ -5,6 +5,8 @@
 `testcontainers/kafka` starts a Kafka container for integration tests and
 returns at least one broker address.
 
+![testcontainers helper flow](../../docs/images/readme-diagrams/testcontainers-helper-flow.png)
+
 ## Import
 
 ```go

@@ -268,6 +268,8 @@ decision.
 
 ![Redis distributed JWT key rotation](../docs/images/readme-diagrams/redis-jwt-distributed-key-rotation.png)
 
+![Redis distributed JWT rotation sequence](../docs/images/readme-diagrams/redis-jwt-distributed-key-rotation-sequence.png)
+
 ## Behavior
 
 - `jwt` is not an auth framework. It does not provide HTTP middleware,

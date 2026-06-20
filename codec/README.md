@@ -6,6 +6,8 @@
 Base64 and hex wrap the Go standard library, while Base58 and Base62 cover
 identifier and key formats that are not provided by the standard library.
 
+![codec encoding surface map](../docs/images/readme-diagrams/codec-encoding-surface-map.png)
+
 ## Import
 
 ```go

@@ -6,6 +6,8 @@
 `golang.org/x/sync/errgroup`: task groups, bounded parallel map/for-each, a
 simple worker pool, and panic-to-error conversion.
 
+![concurrency package map](../docs/images/readme-diagrams/concurrency-package-map.png)
+
 ## Import
 
 ```go

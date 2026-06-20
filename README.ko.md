@@ -60,12 +60,14 @@ optional JWT provider cache adapter, ECB-backed money exchange-rate provider를
 | [`state`](state/README.ko.md) | active | typed transition, guard, final state, sentinel error를 제공하는 작은 finite state machine primitive. |
 | [`workreport`](workreport/README.ko.md) | active | lightweight workflow code를 위한 status, failure-policy, report-tree value. |
 | [`workflow`](workflow/README.ko.md) | active | `context.Context`와 `workreport` 기반 sequential, conditional, all-branches parallel runner. |
+| [`batch`](batch/README.ko.md) | active | Chunk-oriented batch step, sequential job, retry/skip policy, report, checkpoint. |
 | [`id`](id/README.ko.md) | active | UUID v4/v7, random/monotonic ULID, standard KSUID, Kotlin-compatible KSUID millis, Snowflake ID generator. |
 | [`jwt`](jwt/README.ko.md) | active | 명시적 algorithm을 사용하는 JWT signing, parsing, validation, typed claim reading, in-memory/distributed `kid` key rotation, optional provider cache adapter. |
+| [`jwt/redis`](jwt/redis/README.ko.md) | active | Distributed JWT key-chain repository 생성을 위한 Redis 전용 facade. |
 | [`measure`](measure/README.ko.md) | active | Typed unit, measured value, compound unit, parsing, formatting, affine temperature helper. |
 | [`money`](money/README.ko.md) | active | ISO 4217 통화 값, CLDR-backed locale currency lookup, decimal-backed 금액, 합산, 직렬화, caller-supplied 환율 변환, ECB-backed provider 변환. |
 | [`probabilistic`](probabilistic/README.ko.md) | active | deterministic config, merge compatibility check, stress/race coverage를 갖춘 goroutine-safe 인메모리 Bloom filter. |
-| [`probabilistic/redis`](probabilistic/README.ko.md#redis-backed-bloom-filter) | active | Static Lua script, immutable config metadata, operator runbook 경계를 갖춘 Redis-backed shared Bloom filter. |
+| [`probabilistic/redis`](probabilistic/redis/README.ko.md) | active | Static Lua script, immutable config metadata, operator runbook 경계를 갖춘 Redis-backed shared Bloom filter. |
 
 다음 계획 패키지군은 relational SQL helper, AWS/Floci helper example, text,
 audit, graph 패키지입니다. Redis-backed Cuckoo와 HyperLogLog/HLL 지원은 Redis
@@ -94,11 +96,12 @@ go get github.com/bluetape4k/bluetape-go
   [`cache`](cache/README.ko.md), [`cache/redisnear`](cache/redisnear/README.ko.md),
   [`cache/rediscoord`](cache/rediscoord/README.ko.md), [`ratelimit`](ratelimit/README.ko.md),
   [`state`](state/README.ko.md), [`workreport`](workreport/README.ko.md),
-  [`workflow`](workflow/README.ko.md).
+  [`workflow`](workflow/README.ko.md), [`batch`](batch/README.ko.md).
 - Portable utility: [`id`](id/README.ko.md), [`jwt`](jwt/README.ko.md),
+  [`jwt/redis`](jwt/redis/README.ko.md),
   [`measure`](measure/README.ko.md), [`money`](money/README.ko.md),
   [`probabilistic`](probabilistic/README.ko.md) 및
-  [`probabilistic/redis`](probabilistic/README.ko.md#redis-backed-bloom-filter).
+  [`probabilistic/redis`](probabilistic/redis/README.ko.md).
 
 ## Roadmap
 

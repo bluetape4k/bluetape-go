@@ -5,6 +5,8 @@
 `testcontainers/kafka`는 integration test용 Kafka container를 시작하고 하나 이상의
 broker address를 반환합니다.
 
+![testcontainers helper flow](../../docs/images/readme-diagrams/testcontainers-helper-flow.png)
+
 ## 가져오기
 
 ```go
