@@ -1,0 +1,96 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1500" height="920" viewBox="0 0 1500 920" role="img" aria-labelledby="title desc">
+  <title id="title">cache Package Contract Map</title>
+  <desc id="desc">Process-local TTL storage owns values; Redis wrappers add cross-process coordination when needed.</desc>
+  <defs>
+    <filter id="softShadow" x="-8%" y="-10%" width="116%" height="124%"><feDropShadow dx="0" dy="5" stdDeviation="5" flood-color="#0F172A" flood-opacity="0.10"/></filter>
+    <marker id="arrow-blue" markerWidth="14" markerHeight="14" refX="13" refY="7" orient="auto" markerUnits="userSpaceOnUse"><path d="M 0 0 L 14 7 L 0 14 Z" fill="#4f77c9"/></marker>
+    <marker id="arrow-green" markerWidth="14" markerHeight="14" refX="13" refY="7" orient="auto" markerUnits="userSpaceOnUse"><path d="M 0 0 L 14 7 L 0 14 Z" fill="#319873"/></marker>
+    <marker id="arrow-amber" markerWidth="14" markerHeight="14" refX="13" refY="7" orient="auto" markerUnits="userSpaceOnUse"><path d="M 0 0 L 14 7 L 0 14 Z" fill="#cf8428"/></marker>
+    <marker id="arrow-red" markerWidth="14" markerHeight="14" refX="13" refY="7" orient="auto" markerUnits="userSpaceOnUse"><path d="M 0 0 L 14 7 L 0 14 Z" fill="#c85d73"/></marker>
+    <marker id="arrow-purple" markerWidth="14" markerHeight="14" refX="13" refY="7" orient="auto" markerUnits="userSpaceOnUse"><path d="M 0 0 L 14 7 L 0 14 Z" fill="#7e62d9"/></marker>
+    <marker id="arrow-teal" markerWidth="14" markerHeight="14" refX="13" refY="7" orient="auto" markerUnits="userSpaceOnUse"><path d="M 0 0 L 14 7 L 0 14 Z" fill="#3f7d9c"/></marker>
+    <marker id="arrow-gray" markerWidth="14" markerHeight="14" refX="13" refY="7" orient="auto" markerUnits="userSpaceOnUse"><path d="M 0 0 L 14 7 L 0 14 Z" fill="#64748b"/></marker>
+    <style>
+      .canvas { fill: #f8fafc; }
+      .frame { fill: #ffffff; stroke: #cbd5e1; stroke-width: 1.5; filter: url(#softShadow); }
+      .title, .part-title, .card-title, .panel-title { font-family: "Architects Daughter"; fill: #263a57; }
+      .title { font-size: 42px; }
+      .subtitle, .body, .small, .msg, .region, .footer { font-family: "Comic Mono"; fill: #526276; }
+      .subtitle { font-size: 17px; }
+      .panel-title { font-size: 24px; }
+      .card-title { font-size: 22px; }
+      .body { font-size: 14px; }
+      .small { font-size: 12px; }
+      .msg { font-size: 13px; font-weight: 700; }
+      .region { font-size: 12px; font-weight: 700; }
+      .footer { font-size: 14px; }
+      .panel { stroke: #d0deeb; stroke-width: 1.8; rx: 8; filter: url(#softShadow); }
+      .card { stroke-width: 1.8; rx: 8; filter: url(#softShadow); }
+      .card-divider { stroke-width: 1.1; opacity: .45; }
+      .participant { stroke-width: 2.2; rx: 12; }
+      .lifeline { stroke: #c5d4e3; stroke-width: 2; stroke-dasharray: 8 8; }
+      .activation { fill: #f3eeff; stroke: #8a65d8; stroke-width: 1.7; rx: 7; opacity: .88; }
+      .route { fill: none; stroke-width: 3; stroke-linecap: round; stroke-linejoin: round; }
+      .return { fill: none; stroke-width: 2.6; stroke-linecap: round; stroke-linejoin: round; stroke-dasharray: 9 8; }
+      .alt { fill: #f7f2ff; fill-opacity: .22; stroke: #78909c; stroke-width: 2.4; stroke-dasharray: 12 7; rx: 16; }
+      .alt-label { fill: #ffffff; stroke: #d7e0e4; stroke-width: 1.5; rx: 15; }
+      .else-line { stroke: #78909c; stroke-width: 2.2; stroke-dasharray: 12 8; }
+      .pill { fill: #ffffff; stroke: #cbd9e7; stroke-width: 1.5; rx: 14; }
+      .badge { stroke-width: 1.6; }
+      .badge-text { font-family: "Comic Mono"; font-size: 10px; font-weight: 700; fill: #ffffff; }
+      .legend { fill: #ffffff; stroke: #d4e0ec; stroke-width: 1.5; rx: 12; }
+    </style>
+  </defs>
+  <rect class="canvas" width="1500" height="920"/>
+  <rect class="frame" x="34" y="30" width="1432" height="856" rx="8"/>
+  <text class="title" x="72" y="88">cache Package Contract Map</text>
+  <text class="subtitle" x="76" y="120">Process-local TTL storage owns values; Redis wrappers add cross-process coordination when needed.</text>
+  <rect class="card" x="92" y="210" width="330" height="180" rx="8" fill="#eaf2ff" stroke="#6d9df0"/>
+  <text class="card-title" x="257" y="252" text-anchor="middle">Caller</text>
+  <path class="card-divider" d="M92 272H422" stroke="#6d9df0"/>
+  <path class="card-divider" d="M92 342H422" stroke="#6d9df0"/>
+  <text class="body" x="116" y="300">Get / Set / Delete</text>
+  <text class="body" x="116" y="324">GetOrLoad(ctx, key)</text>
+  <text class="body" x="116" y="366">explicit TTL per value</text>
+  <rect class="card" x="520" y="180" width="390" height="230" rx="8" fill="#edf9f4" stroke="#63b891"/>
+  <text class="card-title" x="715" y="222" text-anchor="middle">Memory cache</text>
+  <path class="card-divider" d="M520 242H910" stroke="#63b891"/>
+  <path class="card-divider" d="M520 312H910" stroke="#63b891"/>
+  <text class="body" x="544" y="270">map guarded by mutex</text>
+  <text class="body" x="544" y="294">expired values miss</text>
+  <text class="body" x="544" y="336">same-key loader collapse</text>
+  <text class="body" x="544" y="360">no external invalidation</text>
+  <rect class="card" x="1028" y="170" width="370" height="235" rx="8" fill="#fff4de" stroke="#d59c3f"/>
+  <text class="card-title" x="1213" y="212" text-anchor="middle">LoadingCache contract</text>
+  <path class="card-divider" d="M1028 232H1398" stroke="#d59c3f"/>
+  <path class="card-divider" d="M1028 302H1398" stroke="#d59c3f"/>
+  <text class="body" x="1052" y="260">loader receives context</text>
+  <text class="body" x="1052" y="284">loader errors are returned</text>
+  <text class="body" x="1052" y="326">ErrCacheMiss is sentinel</text>
+  <text class="body" x="1052" y="350">negative TTL rejected</text>
+  <rect class="card" x="320" y="545" width="360" height="165" rx="8" fill="#f3efff" stroke="#9b7aec"/>
+  <text class="card-title" x="500" y="587" text-anchor="middle">redisnear</text>
+  <path class="card-divider" d="M320 607H680" stroke="#9b7aec"/>
+  <path class="card-divider" d="M320 674H680" stroke="#9b7aec"/>
+  <text class="body" x="344" y="635">local values stay local</text>
+  <text class="body" x="344" y="659">Pub/Sub invalidates peers</text>
+  <text class="body" x="344" y="701">no shared value store</text>
+  <rect class="card" x="865" y="545" width="380" height="165" rx="8" fill="#fff0f0" stroke="#dc2626"/>
+  <image href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHhtbG5zOnhsaW5rPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5L3hsaW5rIiBoZWlnaHQ9IjY0IiB2aWV3Qm94PSIwIDAgMzIgMzIiIHdpZHRoPSI2NCI+PGcgdHJhbnNmb3JtPSJtYXRyaXgoLjg0ODMyNyAwIDAgLjg0ODMyNyAtNy44ODM1NzMgLTkuNDQ5NjkxKSI+PHVzZSB4bGluazpocmVmPSIjQiIgZmlsbD0iI2E0MWUxMSIvPjxwYXRoIGQ9Ik00NS41MzYgMzQuOTVjLTIuMDEzIDEuMDUtMTIuNDQgNS4zMzctMTQuNjYgNi40OTRzLTMuNDUzIDEuMTQ2LTUuMjA3LjMwOC0xMi44NS01LjMyLTE0Ljg1LTYuMjc2LTIuMDQtMS42MTMtLjA3Ny0yLjM4MmwxNS4zMzItNS45MzZjMi4zMzItLjgzNiAzLjE0LS44NjcgNS4xMjYtLjE0UzQzLjU1IDMxLjg3IDQ1LjUxIDMyLjZzMi4wMzcgMS4zMS4wMjQgMi4zNnoiIGZpbGw9IiNkODJjMjAiLz48dXNlIHhsaW5rOmhyZWY9IiNCIiB5PSItNi4yMTgiIGZpbGw9IiNhNDFlMTEiLz48dXNlIHhsaW5rOmhyZWY9IiNDIiBmaWxsPSIjZDgyYzIwIi8+PHBhdGggZD0iTTQ1LjUzNiAyNi4wOThjLTIuMDEzIDEuMDUtMTIuNDQgNS4zMzctMTQuNjYgNi40OTVzLTMuNDUzIDEuMTQ2LTUuMjA3LjMwOC0xMi44NS01LjMyLTE0Ljg1LTYuMjc2Yy0xLS40NzgtMS41MjQtLjg4LTEuNTI0LTEuMjZWMjEuNTVzMTQuNDQ3LTMuMTQ1IDE2Ljc4LTMuOTgyIDMuMTQtLjg2NyA1LjEyNi0uMTQgMTMuODUzIDIuODY4IDE1LjgxNCAzLjU4N3YzLjc2YzAgLjM3Ny0uNDUyLjgtMS40NzcgMS4zMjR6IiBmaWxsPSIjYTQxZTExIi8+PHVzZSB4bGluazpocmVmPSIjQyIgeT0iLTYuNDQ5IiBmaWxsPSIjZDgyYzIwIi8+PGcgZmlsbD0iI2ZmZiI+PHBhdGggZD0iTTI5LjA5NiAyMC43MTJsLTEuMTgyLTEuOTY1LTMuNzc0LS4zNCAyLjgxNi0xLjAxNi0uODQ1LTEuNTYgMi42MzYgMS4wMyAyLjQ4Ni0uODE0LS42NzIgMS42MTIgMi41MzQuOTUtMy4yNjguMzR6TTIyLjggMjQuNjI0bDguNzQtMS4zNDItMi42NCAzLjg3MnoiLz48ZWxsaXBzZSBjeD0iMjAuNDQ0IiByeD0iNC42NzIiIHJ5PSIxLjgxMSIgY3k9IjIxLjQwMiIvPjwvZz48cGF0aCBkPSJNNDIuMTMyIDIxLjEzOGwtNS4xNyAyLjA0Mi0uMDA0LTQuMDg3eiIgZmlsbD0iIzdhMGMwMCIvPjxwYXRoIGQ9Ik0zNi45NjMgMjMuMThsLS41Ni4yMi01LjE2Ni0yLjA0MiA1LjcyMy0yLjI2NHoiIGZpbGw9IiNhZDIxMTUiLz48L2c+PGRlZnMgPjxwYXRoIGlkPSJCIiBkPSJNNDUuNTM2IDM4Ljc2NGMtMi4wMTMgMS4wNS0xMi40NCA1LjMzNy0xNC42NiA2LjQ5NHMtMy40NTMgMS4xNDYtNS4yMDcuMzA4LTEyLjg1LTUuMzItMTQuODUtNi4yNzZjLTEtLjQ3OC0xLjUyNC0uODgtMS41MjQtMS4yNnYtMy44MTNzMTQuNDQ3LTMuMTQ1IDE2Ljc4LTMuOTgyIDMuMTQtLjg2NyA1LjEyNi0uMTQgMTMuODUzIDIuODY4IDE1LjgxNCAzLjU4N3YzLjc2YzAgLjM3Ny0uNDUyLjgtMS40NzcgMS4zMjR6Ii8+PHBhdGggaWQ9IkMiIGQ9Ik00NS41MzYgMjguNzMzYy0yLjAxMyAxLjA1LTEyLjQ0IDUuMzM3LTE0LjY2IDYuNDk0cy0zLjQ1MyAxLjE0Ni01LjIwNy4zMDgtMTIuODUtNS4zMi0xNC44NS02LjI3Ni0yLjA0LTEuNjEzLS4wNzctMi4zODJsMTUuMzMyLTUuOTM1YzIuMzMyLS44MzcgMy4xNC0uODY3IDUuMTI2LS4xNHMxMi4zNSA0Ljg1MyAxNC4zMTIgNS41NyAyLjAzNyAxLjMxLjAyNCAyLjM2eiIvPjwvZGVmcz48L3N2Zz4=" x="885" y="563" width="46" height="46"/>
+  <text class="card-title" x="1075" y="587" text-anchor="middle">rediscoord</text>
+  <path class="card-divider" d="M865 607H1245" stroke="#dc2626"/>
+  <path class="card-divider" d="M865 674H1245" stroke="#dc2626"/>
+  <text class="body" x="889" y="635">load token suppresses bursts</text>
+  <text class="body" x="889" y="659">short result envelope</text>
+  <text class="body" x="889" y="701">not a durable L2 cache</text>
+  <path class="route" d="M422 300H520" stroke="#4f77c9" marker-end="url(#arrow-blue)"/>
+  <text class="msg" x="470" y="282" text-anchor="middle" fill="#4f77c9">local ops</text>
+  <path class="route" d="M910 292H1028" stroke="#319873" marker-end="url(#arrow-green)"/>
+  <text class="msg" x="969" y="274" text-anchor="middle" fill="#319873">contract</text>
+  <path class="route" d="M590 410C560 475 500 520 430 545" stroke="#7e62d9" marker-end="url(#arrow-purple)"/>
+  <text class="msg" x="522" y="486" text-anchor="middle" fill="#7e62d9">invalidation</text>
+  <path class="route" d="M745 410C785 475 855 520 955 545" stroke="#c85d73" marker-end="url(#arrow-red)"/>
+  <text class="msg" x="828" y="486" text-anchor="middle" fill="#c85d73">stampede guard</text>
+  <rect class="legend" x="82" y="842" width="1336" height="40" rx="8"/>
+  <text class="footer" x="750" y="868" text-anchor="middle">Use the base cache when one process owns the value; add Redis wrappers only for cross-process coordination.</text>
+</svg>

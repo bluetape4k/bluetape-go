@@ -8,6 +8,10 @@ rejection diagnostic이 필요한 test에 적합합니다.
 
 여러 process가 하나의 bucket을 공유해야 하면 [`ratelimit/redis`](redis/README.ko.md)를 사용하세요.
 
+## 다이어그램
+
+![ratelimit local runtime flow](../docs/images/readme-diagrams/ratelimit-local-runtime-flow.png)
+
 ## 설치
 
 ```go

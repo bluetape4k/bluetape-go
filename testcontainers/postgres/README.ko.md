@@ -5,6 +5,8 @@
 `testcontainers/postgres`는 integration test용 PostgreSQL container를 시작하고
 `sslmode=disable`이 포함된 connection string을 반환합니다.
 
+![testcontainers helper flow](../../docs/images/readme-diagrams/testcontainers-helper-flow.png)
+
 ## 가져오기
 
 ```go

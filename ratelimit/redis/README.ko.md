@@ -10,6 +10,8 @@ consume, bucket state 저장, key expiration 갱신을 atomically 수행합니�
 
 ![Redis token-bucket rate limit flow](../../docs/images/readme-diagrams/redis-ratelimit-token-bucket-flow.png)
 
+![Redis token-bucket sequence](../../docs/images/readme-diagrams/redis-ratelimit-token-bucket-sequence.png)
+
 ## 설치
 
 ```go

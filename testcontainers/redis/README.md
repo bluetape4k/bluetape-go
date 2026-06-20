@@ -5,6 +5,8 @@
 `testcontainers/redis` starts a Redis container for integration tests and
 returns the mapped `host:port` address.
 
+![testcontainers helper flow](../../docs/images/readme-diagrams/testcontainers-helper-flow.png)
+
 ## Import
 
 ```go

@@ -8,6 +8,8 @@ coordination wrappers that need a `LoadingCache`.
 
 ## Diagram
 
+![cache contract overview](../docs/images/readme-diagrams/cache-contract-overview.png)
+
 ![cache local loading flow](../docs/images/readme-diagrams/cache-local-loading-flow.png)
 
 ## Import

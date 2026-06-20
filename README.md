@@ -61,12 +61,14 @@ ECB-backed money exchange-rate provider.
 | [`state`](state/README.md) | active | Small finite state machine primitives with typed transitions, guards, final states, and sentinel errors. |
 | [`workreport`](workreport/README.md) | active | Status, failure-policy, and report-tree values for lightweight workflow code. |
 | [`workflow`](workflow/README.md) | active | Sequential, conditional, and all-branches parallel runners built on `context.Context` and `workreport`. |
+| [`batch`](batch/README.md) | active | Chunk-oriented batch steps, sequential jobs, retry/skip policies, reports, and checkpoints. |
 | [`id`](id/README.md) | active | UUID v4/v7, random and monotonic ULID, standard KSUID, Kotlin-compatible KSUID millis, and Snowflake ID generators. |
 | [`jwt`](jwt/README.md) | active | JWT signing, parsing, validation, typed claim reading, in-memory/distributed `kid` key rotation, and optional provider cache adapters with explicit algorithms. |
+| [`jwt/redis`](jwt/redis/README.md) | active | Redis-specific facade for distributed JWT key-chain repository construction. |
 | [`measure`](measure/README.md) | active | Typed units, measured values, compound units, parsing, formatting, and affine temperature helpers. |
 | [`money`](money/README.md) | active | ISO 4217 currency values, CLDR-backed locale currency lookup, decimal-backed money amounts, aggregation, serialization, caller-supplied exchange-rate conversion, and ECB-backed provider conversion. |
 | [`probabilistic`](probabilistic/README.md) | active | Goroutine-safe in-memory Bloom filters with deterministic config, merge compatibility checks, and stress/race coverage. |
-| [`probabilistic/redis`](probabilistic/README.md#redis-backed-bloom-filter) | active | Redis-backed shared Bloom filters with static Lua scripts, immutable config metadata, and operator runbook boundaries. |
+| [`probabilistic/redis`](probabilistic/redis/README.md) | active | Redis-backed shared Bloom filters with static Lua scripts, immutable config metadata, and operator runbook boundaries. |
 
 Next planned package families include relational SQL helpers, AWS/Floci helper
 examples, text, audit, and graph packages. Redis-backed Cuckoo and
@@ -98,11 +100,12 @@ overview.
   [`cache`](cache/README.md), [`cache/redisnear`](cache/redisnear/README.md),
   [`cache/rediscoord`](cache/rediscoord/README.md), [`ratelimit`](ratelimit/README.md),
   [`state`](state/README.md), [`workreport`](workreport/README.md), and
-  [`workflow`](workflow/README.md).
+  [`workflow`](workflow/README.md), and [`batch`](batch/README.md).
 - Portable utilities: [`id`](id/README.md), [`jwt`](jwt/README.md),
+  [`jwt/redis`](jwt/redis/README.md),
   [`measure`](measure/README.md), [`money`](money/README.md), and
   [`probabilistic`](probabilistic/README.md), including
-  [`probabilistic/redis`](probabilistic/README.md#redis-backed-bloom-filter).
+  [`probabilistic/redis`](probabilistic/redis/README.md).
 
 ## Roadmap
 

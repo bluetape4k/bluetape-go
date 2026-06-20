@@ -6,6 +6,8 @@
 제공합니다. 조건이 eventually true가 되어야 하거나 짧은 observation window 동안
 true로 유지되어야 할 때 사용합니다.
 
+![testing concurrency harness map](../docs/images/readme-diagrams/testing-concurrency-harness-map.png)
+
 ## 가져오기
 
 ```go

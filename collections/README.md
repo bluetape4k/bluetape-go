@@ -6,6 +6,8 @@
 transformations such as chunking, grouping, distinct-by-key, counting, and
 error-aware map/filter pipelines.
 
+![collections transform pipeline](../docs/images/readme-diagrams/collections-transform-pipeline.png)
+
 ## Import
 
 ```go

@@ -4,6 +4,8 @@
 
 `core`는 bluetape-go 패키지에서 사용하는 좁은 shared helper를 담습니다. Go standard library가 이미 작업을 명확히 표현한다면 standard library를 우선하세요. 이 패키지는 반복되는 validation, pointer, zero/default, string, 작은 numeric check를 위한 것입니다.
 
+![core helper boundary map](../docs/images/readme-diagrams/core-helper-boundary-map.png)
+
 ## 가져오기
 
 ```go

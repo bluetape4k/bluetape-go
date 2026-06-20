@@ -9,6 +9,8 @@
 
 ![Redis lock owner-token lifecycle](../../docs/images/readme-diagrams/redis-lock-owner-token-lifecycle.png)
 
+![Redis lock owner-token sequence](../../docs/images/readme-diagrams/redis-lock-owner-token-sequence.png)
+
 ## 가져오기
 
 ```go

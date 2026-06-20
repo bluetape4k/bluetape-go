@@ -92,6 +92,8 @@ if !changed {
 
 ![Redis Bloom key layout](../docs/images/readme-diagrams/redis-bloom-key-layout-01.png)
 
+![Redis Bloom operation sequence](../docs/images/readme-diagrams/redis-bloom-operation-sequence.png)
+
 ### Redis 상태
 
 Redis Bloom은 namespace마다 Redis Cluster-safe hash-tagged key pair 하나를

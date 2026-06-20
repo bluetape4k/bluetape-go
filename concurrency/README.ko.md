@@ -6,6 +6,8 @@
 제공합니다. Task group, bounded parallel map/for-each, 간단한 worker pool,
 panic-to-error conversion을 포함합니다.
 
+![concurrency package map](../docs/images/readme-diagrams/concurrency-package-map.png)
+
 ## 가져오기
 
 ```go

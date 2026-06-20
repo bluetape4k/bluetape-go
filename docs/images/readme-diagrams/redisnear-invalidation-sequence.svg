@@ -1,40 +1,107 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="1300" height="840" viewBox="0 0 1300 840">
-<defs>
-<marker id="arrow" markerWidth="12" markerHeight="10" refX="10" refY="5" orient="auto" markerUnits="userSpaceOnUse"><path d="M0,0 L10,5 L0,10 z" fill="#2563eb"/></marker>
-<marker id="arrow-gray" markerWidth="12" markerHeight="10" refX="10" refY="5" orient="auto" markerUnits="userSpaceOnUse"><path d="M0,0 L10,5 L0,10 z" fill="#64748b"/></marker>
-<filter id="shadow" x="-10%" y="-10%" width="120%" height="125%"><feDropShadow dx="0" dy="3" stdDeviation="4" flood-color="#94a3b8" flood-opacity=".22"/></filter>
-</defs>
-
-<style>
-@font-face{font-family:'Architects Daughter';src:local('Architects Daughter');}
-@font-face{font-family:'Comic Mono';src:local('Comic Mono');}
-.bg{fill:#f8fafc}.title{font:44px 'Architects Daughter';fill:#111827}.sub{font:22px 'Comic Mono';fill:#475569}.card-title{font:25px 'Comic Mono';font-weight:700;fill:#111827}.body{font:18px 'Comic Mono';fill:#334155}.small{font:15px 'Comic Mono';fill:#475569}.label{font:17px 'Comic Mono';fill:#2563eb;font-weight:700}.note{font:16px 'Comic Mono';fill:#475569}.arrow{stroke:#2563eb;stroke-width:3.5;fill:none;marker-end:url(#arrow)}.dashed{stroke:#64748b;stroke-width:3;stroke-dasharray:10 9;fill:none;marker-end:url(#arrow-gray)}.card{fill:#fff;stroke-width:4}.alt{fill:#f59e0b;fill-opacity:.12;stroke:#f59e0b;stroke-opacity:.55;stroke-dasharray:10 8;stroke-width:3}.footer{fill:#ffffff;stroke:#cbd5e1;stroke-width:2}
-</style>
-
-<rect class="bg" width="1300" height="840"/>
-<text class="title" x="52" y="72">redisnear Invalidation Sequence</text>
-<text class="sub" x="56" y="112">Values stay local; Redis Pub/Sub carries only versioned invalidation commands.</text>
-<rect x="35" y="160" width="170" height="58" rx="14" fill="#fff" stroke="#2563eb" stroke-width="4" filter="url(#shadow)"/>
-<text class="card-title" x="55" y="197">Process A</text>
-<line x1="120" y1="218" x2="120" y2="720" stroke="#2563eb" stroke-width="3" stroke-dasharray="8 8" opacity=".55"/>
-<rect x="320" y="160" width="220" height="58" rx="14" fill="#fff" stroke="#dc2626" stroke-width="4" filter="url(#shadow)"/>
-<text class="card-title" x="340" y="197">Redis Pub/Sub</text>
-<line x1="430" y1="218" x2="430" y2="720" stroke="#dc2626" stroke-width="3" stroke-dasharray="8 8" opacity=".55"/>
-<rect x="660" y="160" width="170" height="58" rx="14" fill="#fff" stroke="#7c3aed" stroke-width="4" filter="url(#shadow)"/>
-<text class="card-title" x="680" y="197">Process B</text>
-<line x1="745" y1="218" x2="745" y2="720" stroke="#7c3aed" stroke-width="3" stroke-dasharray="8 8" opacity=".55"/>
-<rect x="910" y="160" width="280" height="58" rx="14" fill="#fff" stroke="#f97316" stroke-width="4" filter="url(#shadow)"/>
-<text class="card-title" x="940" y="197">Local loader</text>
-<line x1="1050" y1="218" x2="1050" y2="720" stroke="#f97316" stroke-width="3" stroke-dasharray="8 8" opacity=".55"/>
-<path class="arrow" d="M120 270 L430 270"/><text class="label" x="230" y="258">Set/Delete/Clear</text>
-<path class="arrow" d="M430 340 L745 340"/><text class="label" x="520" y="328">versioned message</text>
-<path class="dashed" d="M745 410 L745 470"/><text class="label" x="765" y="444">delete local entry</text>
-<path class="arrow" d="M745 610 L1050 610"/><text class="label" x="830" y="598">next miss loads</text>
-<path class="dashed" d="M1050 675 L745 675"/><text class="label" x="850" y="663">fill only local</text>
-<rect class="alt" x="82" y="492" width="690" height="112" rx="18"/>
-<text class="small" x="150" y="516">alt: malformed payload</text>
-<text class="small" x="150" y="541">receive error or foreign ns</text>
-<text class="small" x="150" y="566">OnError observes failures</text>
-<text class="small" x="150" y="591">retry clears local values</text>
-<rect class="footer" x="54" y="760" width="1195" height="46" rx="12"/><text class="note" x="78" y="790">Contract: GetOrLoad never publishes invalidation, so peer caches refill on demand after a mutation command.</text>
+<svg xmlns="http://www.w3.org/2000/svg" width="1500" height="920" viewBox="0 0 1500 920" role="img" aria-labelledby="title desc">
+  <title id="title">redisnear Invalidation Sequence</title>
+  <desc id="desc">Values stay local; Redis Pub/Sub carries only versioned invalidation commands.</desc>
+  <defs>
+    <filter id="softShadow" x="-8%" y="-10%" width="116%" height="124%"><feDropShadow dx="0" dy="5" stdDeviation="5" flood-color="#0F172A" flood-opacity="0.10"/></filter>
+    <marker id="arrow-blue" markerWidth="14" markerHeight="14" refX="13" refY="7" orient="auto" markerUnits="userSpaceOnUse"><path d="M 0 0 L 14 7 L 0 14 Z" fill="#4f77c9"/></marker>
+    <marker id="arrow-green" markerWidth="14" markerHeight="14" refX="13" refY="7" orient="auto" markerUnits="userSpaceOnUse"><path d="M 0 0 L 14 7 L 0 14 Z" fill="#319873"/></marker>
+    <marker id="arrow-amber" markerWidth="14" markerHeight="14" refX="13" refY="7" orient="auto" markerUnits="userSpaceOnUse"><path d="M 0 0 L 14 7 L 0 14 Z" fill="#cf8428"/></marker>
+    <marker id="arrow-red" markerWidth="14" markerHeight="14" refX="13" refY="7" orient="auto" markerUnits="userSpaceOnUse"><path d="M 0 0 L 14 7 L 0 14 Z" fill="#c85d73"/></marker>
+    <marker id="arrow-purple" markerWidth="14" markerHeight="14" refX="13" refY="7" orient="auto" markerUnits="userSpaceOnUse"><path d="M 0 0 L 14 7 L 0 14 Z" fill="#7e62d9"/></marker>
+    <marker id="arrow-teal" markerWidth="14" markerHeight="14" refX="13" refY="7" orient="auto" markerUnits="userSpaceOnUse"><path d="M 0 0 L 14 7 L 0 14 Z" fill="#3f7d9c"/></marker>
+    <marker id="arrow-gray" markerWidth="14" markerHeight="14" refX="13" refY="7" orient="auto" markerUnits="userSpaceOnUse"><path d="M 0 0 L 14 7 L 0 14 Z" fill="#64748b"/></marker>
+    <style>
+      .canvas { fill: #f8fafc; }
+      .frame { fill: #ffffff; stroke: #cbd5e1; stroke-width: 1.5; filter: url(#softShadow); }
+      .title, .part-title, .card-title, .panel-title { font-family: "Architects Daughter"; fill: #263a57; }
+      .title { font-size: 42px; }
+      .subtitle, .body, .small, .msg, .region, .footer { font-family: "Comic Mono"; fill: #526276; }
+      .subtitle { font-size: 17px; }
+      .panel-title { font-size: 24px; }
+      .card-title { font-size: 22px; }
+      .body { font-size: 14px; }
+      .small { font-size: 12px; }
+      .msg { font-size: 13px; font-weight: 700; }
+      .region { font-size: 12px; font-weight: 700; }
+      .footer { font-size: 14px; }
+      .panel { stroke: #d0deeb; stroke-width: 1.8; rx: 8; filter: url(#softShadow); }
+      .card { stroke-width: 1.8; rx: 8; filter: url(#softShadow); }
+      .card-divider { stroke-width: 1.1; opacity: .45; }
+      .participant { stroke-width: 2.2; rx: 12; }
+      .lifeline { stroke: #c5d4e3; stroke-width: 2; stroke-dasharray: 8 8; }
+      .activation { fill: #f3eeff; stroke: #8a65d8; stroke-width: 1.7; rx: 7; opacity: .88; }
+      .route { fill: none; stroke-width: 3; stroke-linecap: round; stroke-linejoin: round; }
+      .return { fill: none; stroke-width: 2.6; stroke-linecap: round; stroke-linejoin: round; stroke-dasharray: 9 8; }
+      .alt { fill: #f7f2ff; fill-opacity: .22; stroke: #78909c; stroke-width: 2.4; stroke-dasharray: 12 7; rx: 16; }
+      .alt-label { fill: #ffffff; stroke: #d7e0e4; stroke-width: 1.5; rx: 15; }
+      .else-line { stroke: #78909c; stroke-width: 2.2; stroke-dasharray: 12 8; }
+      .pill { fill: #ffffff; stroke: #cbd9e7; stroke-width: 1.5; rx: 14; }
+      .badge { stroke-width: 1.6; }
+      .badge-text { font-family: "Comic Mono"; font-size: 10px; font-weight: 700; fill: #ffffff; }
+      .legend { fill: #ffffff; stroke: #d4e0ec; stroke-width: 1.5; rx: 12; }
+    </style>
+  </defs>
+  <rect class="canvas" width="1500" height="920"/>
+  <rect class="frame" x="34" y="30" width="1432" height="856" rx="8"/>
+  <text class="title" x="72" y="88">redisnear Invalidation Sequence</text>
+  <text class="subtitle" x="76" y="120">Values stay local; Redis Pub/Sub carries only versioned invalidation commands.</text>
+  <rect class="participant" x="70" y="174" width="160" height="68" fill="#eaf2ff" stroke="#6d9df0"/>
+  <text class="part-title" x="150" y="202" text-anchor="middle">Writer cache</text>
+  <text class="small" x="150" y="224" text-anchor="middle">process A</text>
+  <line class="lifeline" x1="150" y1="242" x2="150" y2="794"/>
+  <rect class="participant" x="310" y="174" width="160" height="68" fill="#edf9f4" stroke="#63b891"/>
+  <text class="part-title" x="390" y="202" text-anchor="middle">Local cache A</text>
+  <text class="small" x="390" y="224" text-anchor="middle">value store</text>
+  <line class="lifeline" x1="390" y1="242" x2="390" y2="794"/>
+  <rect class="participant" x="580" y="174" width="160" height="68" fill="#fff0f0" stroke="#dc2626"/>
+  <text class="part-title" x="660" y="202" text-anchor="middle">Redis Pub/Sub</text>
+  <text class="small" x="660" y="224" text-anchor="middle">invalidation bus</text>
+  <line class="lifeline" x1="660" y1="242" x2="660" y2="794"/>
+  <rect class="participant" x="850" y="174" width="160" height="68" fill="#f3efff" stroke="#9b7aec"/>
+  <text class="part-title" x="930" y="202" text-anchor="middle">Subscriber</text>
+  <text class="small" x="930" y="224" text-anchor="middle">process B</text>
+  <line class="lifeline" x1="930" y1="242" x2="930" y2="794"/>
+  <rect class="participant" x="1110" y="174" width="160" height="68" fill="#fff4de" stroke="#d59c3f"/>
+  <text class="part-title" x="1190" y="202" text-anchor="middle">Local cache B</text>
+  <text class="small" x="1190" y="224" text-anchor="middle">peer value</text>
+  <line class="lifeline" x1="1190" y1="242" x2="1190" y2="794"/>
+  <rect class="activation" x="383" y="298" width="14" height="104" rx="7"/>
+  <rect class="activation" x="653" y="358" width="14" height="104" rx="7"/>
+  <rect class="activation" x="923" y="418" width="14" height="284" rx="7"/>
+  <rect class="activation" x="1183" y="478" width="14" height="224" rx="7"/>
+  <rect class="alt" x="78" y="540" width="1276" height="170" rx="16"/>
+  <rect class="alt-label" x="96" y="558" width="183" height="30" rx="15"/>
+  <text class="region" x="118" y="578">later read path</text>
+  <path class="route" d="M150 310 L390 310" stroke="#4f77c9" marker-end="url(#arrow-blue)"/>
+  <rect class="pill" x="183" y="268" width="174" height="30" rx="15"/>
+  <circle class="badge" cx="201" cy="283" r="13" fill="#4f77c9"/>
+  <text class="badge-text" x="201" y="287" text-anchor="middle">1</text>
+  <text class="msg" x="285" y="288" text-anchor="middle" fill="#4f77c9">Set/Delete/Clear</text>
+  <path class="route" d="M390 370 L660 370" stroke="#7e62d9" marker-end="url(#arrow-purple)"/>
+  <rect class="pill" x="442" y="328" width="166" height="30" rx="15"/>
+  <circle class="badge" cx="460" cy="343" r="13" fill="#7e62d9"/>
+  <text class="badge-text" x="460" y="347" text-anchor="middle">2</text>
+  <text class="msg" x="540" y="348" text-anchor="middle" fill="#7e62d9">publish command</text>
+  <path class="route" d="M660 430 L930 430" stroke="#7e62d9" marker-end="url(#arrow-purple)"/>
+  <rect class="pill" x="692" y="388" width="206" height="30" rx="15"/>
+  <circle class="badge" cx="710" cy="403" r="13" fill="#7e62d9"/>
+  <text class="badge-text" x="710" y="407" text-anchor="middle">3</text>
+  <text class="msg" x="810" y="408" text-anchor="middle" fill="#7e62d9">receive invalidation</text>
+  <path class="route" d="M930 490 L1190 490" stroke="#c85d73" marker-end="url(#arrow-red)"/>
+  <rect class="pill" x="961" y="448" width="198" height="30" rx="15"/>
+  <circle class="badge" cx="979" cy="463" r="13" fill="#c85d73"/>
+  <text class="badge-text" x="979" y="467" text-anchor="middle">4</text>
+  <text class="msg" x="1075" y="468" text-anchor="middle" fill="#c85d73">delete affected key</text>
+  <path class="return" d="M1190 610 L930 610" stroke="#64748b" marker-end="url(#arrow-gray)"/>
+  <rect class="pill" x="994" y="568" width="132" height="30" rx="15"/>
+  <circle class="badge" cx="1012" cy="583" r="13" fill="#64748b"/>
+  <text class="badge-text" x="1012" y="587" text-anchor="middle">5</text>
+  <text class="msg" x="1075" y="588" text-anchor="middle" fill="#64748b">next miss</text>
+  <path class="route" d="M930 670 L1190 670" stroke="#319873" marker-end="url(#arrow-green)"/>
+  <rect class="pill" x="957" y="628" width="206" height="30" rx="15"/>
+  <circle class="badge" cx="975" cy="643" r="13" fill="#319873"/>
+  <text class="badge-text" x="975" y="647" text-anchor="middle">6</text>
+  <text class="msg" x="1075" y="648" text-anchor="middle" fill="#319873">local loader refills</text>
+  <rect class="legend" x="82" y="842" width="1336" height="40" rx="8"/>
+  <text class="footer" x="750" y="868" text-anchor="middle">GetOrLoad fills only the local cache and does not publish invalidation.</text>
 </svg>

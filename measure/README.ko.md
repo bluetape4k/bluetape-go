@@ -5,7 +5,9 @@
 `measure`는 `bluetape4k-measured`의 방향을 Go에 맞게 옮긴 typed unit, measured
 value, parsing, formatting, compound unit, affine temperature helper를 제공합니다.
 
-## Import
+![measure unit runtime map](../docs/images/readme-diagrams/measure-unit-runtime-map.png)
+
+## 가져오기
 
 ```go
 import "github.com/bluetape4k/bluetape-go/measure"

@@ -6,6 +6,8 @@
 제공합니다. Package가 repeated bounded goroutine execution, panic capture,
 cancellation check, timeout report를 필요로 할 때 유용합니다.
 
+![testing concurrency harness map](../../docs/images/readme-diagrams/testing-concurrency-harness-map.png)
+
 ## 가져오기
 
 ```go

@@ -5,6 +5,8 @@
 `testcontainers/postgres` starts a PostgreSQL container for integration tests
 and returns a connection string with `sslmode=disable`.
 
+![testcontainers helper flow](../../docs/images/readme-diagrams/testcontainers-helper-flow.png)
+
 ## Import
 
 ```go

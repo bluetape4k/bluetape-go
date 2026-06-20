@@ -11,6 +11,8 @@ run a coordination lane.
 
 ![Redis leader election lifecycle](../../docs/images/readme-diagrams/redis-leader-election-lifecycle.png)
 
+![Redis leader election sequence](../../docs/images/readme-diagrams/redis-leader-election-sequence.png)
+
 ## Import
 
 ```go

@@ -6,6 +6,10 @@
 policies for service calls. Policies compose around typed operations and expose
 synchronous event hooks for logging, metrics, or tracing bridges.
 
+## Diagram
+
+![resilience policy chain flow](../docs/images/readme-diagrams/resilience-policy-chain-flow.png)
+
 ## Import
 
 ```go

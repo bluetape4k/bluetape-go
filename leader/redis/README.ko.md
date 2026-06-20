@@ -10,6 +10,8 @@ strategy로 선출된 하나의 candidate만 coordination lane을 실행해야 �
 
 ![Redis leader election lifecycle](../../docs/images/readme-diagrams/redis-leader-election-lifecycle.png)
 
+![Redis leader election sequence](../../docs/images/readme-diagrams/redis-leader-election-sequence.png)
+
 ## 가져오기
 
 ```go

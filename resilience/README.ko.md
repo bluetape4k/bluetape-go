@@ -6,6 +6,10 @@
 policy를 제공합니다. Policy는 typed operation 주변에 compose되며 logging, metrics,
 tracing bridge를 위한 synchronous event hook을 노출합니다.
 
+## 다이어그램
+
+![resilience policy chain flow](../docs/images/readme-diagrams/resilience-policy-chain-flow.png)
+
 ## 가져오기
 
 ```go
