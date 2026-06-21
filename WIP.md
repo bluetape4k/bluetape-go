@@ -1,24 +1,22 @@
 # WIP
 
 Snapshot: 2026-06-21 KST
-Scope: `0.6.1` portable utility hardening after the `v0.6.0` release.
+Scope: `0.6.2` corrective source-parity planning after the `v0.6.1` release.
 
 ## Current Target Release
 
-`v0.6.1` - Patch release for portable utility hardening after the `v0.6.0`
-foundation. The release includes Redis-backed probabilistic Bloom filters,
-distributed JWT KeyChain repositories, optional JWT provider cache adapters,
-provider-backed money exchange rates, CLDR-backed locale currency lookup,
-FastMoney benchmark evidence, ID generator performance evidence, codec
-compatibility hardening, JWT compression/JWE boundary documentation, and the
-0.1.0-0.6.1 retrospective audit gate.
+`v0.6.2` - Corrective planning milestone for source-parity evidence and
+implementation hardening after the `v0.6.1` release. The milestone does not add
+broad public APIs directly; it records the parity matrix for `core`,
+`testing/junit5`, and `testing/testcontainers`, then routes high-value gaps to
+the existing `0.6.3` through `0.6.6` epics.
 
 ## Current State
 
-- `0.1.0`, `0.1.1`, `0.2.0`, `0.3.0`, `0.4.0`, `0.5.0`, `v0.5.1`, and
-  `v0.6.0` are tagged and released.
-- Milestone `0.6.1` has zero open issues and is ready for release promotion
-  after local CI and GitHub release-PR CI pass.
+- `0.1.0`, `0.1.1`, `0.2.0`, `0.3.0`, `0.4.0`, `0.5.0`, `v0.5.1`,
+  `v0.6.0`, and `v0.6.1` are tagged and released.
+- Milestone `0.6.1` is closed. Milestone `0.6.2` is open and is focused on
+  retrospective hardening, source-parity evidence, and routing follow-up work.
 - Issue #29 delivered the `batch` reader/processor/writer core and sequential
   job model.
 - Issue #30 delivered retry/skip policies, checkpoint storage, restart
@@ -57,24 +55,26 @@ compatibility hardening, JWT compression/JWE boundary documentation, and the
   Bloom API.
 - Issue #200 completed the retrospective audit gate for `0.1.0` through
   `0.6.1` and recorded the final blocker state before release.
+- Issue #201 completed the test-gate hardening lesson for Testcontainers and
+  Redis-backed packages.
+- Issue #202 is the shared source-parity matrix for the corrective `0.6.x`
+  series.
 
 ## Release Checklist
 
-1. Verify milestone `0.6.1` has zero open issues and no open PRs.
-2. Keep Redis-backed Cuckoo/HyperLogLog constructors, IMF and Bloomberg money
-   providers, and any future explicit JWE compression scope deferred in docs and
-   issue tracking.
-3. Run local `make ci` on `develop`.
-4. Close milestone `0.6.1`.
-5. Promote `develop` to `main` through a release PR, then tag `main` as
-   `v0.6.1` and create the GitHub Release.
+1. Keep `0.6.2` work on `develop` and require issue-linked PRs.
+2. Finish #202 before starting the `0.6.3` core parity expansion.
+3. Keep high-value parity gaps mapped to #204, #209, #215, or #221 unless a
+   narrower follow-up issue is required.
+4. Run `git diff --check` and `make ci` before merging milestone PRs.
+5. Close `0.6.2` only after open P0/P1 issues are resolved or explicitly
+   tracked in later milestones.
 
 ## Next Milestone Queue
 
-Milestone `0.7.0` is the next planned line after `v0.6.1` release promotion.
-
-The planned portable-utilities scope is represented in the roadmap and should
-be rechecked against current GitHub issues before each new package starts.
+Milestones `0.6.3` through `0.6.6` form the corrective implementation series
+after `0.6.2`: core foundation parity, testing helper parity, Testcontainers
+contract expansion, and integration/developer-experience closure.
 
 From `0.8.0` onward, the roadmap order is relational SQL, AWS/Floci, text,
 audit, then graph. SQL moved earlier because repository/database ergonomics are
