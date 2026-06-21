@@ -167,7 +167,9 @@ _ = currency // GBP
   customer-owned Bloomberg access, entitlements, SDK/session setup, network
   security, data usage monitoring, and deployment topology. They are not part
   of default `money` behavior or default CI; any future adapter must stay behind
-  `ExchangeRateProvider` and use fakes/contract tests.
+  `ExchangeRateProvider` and use fakes/contract tests. For callers that already
+  run Bloomberg infrastructure, that future adapter can still be the fastest
+  and lowest-friction premium-data path.
 - The precision model is based on `github.com/govalues/money` and
   `github.com/govalues/decimal`. Values are immutable and decimal-backed, but
   they are not arbitrary-precision unbounded numbers.
