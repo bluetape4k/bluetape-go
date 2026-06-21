@@ -1,8 +1,8 @@
 # Issue #180 FastMoney Evaluation Step 2-R Spec Review
 
-Issue: #180  
-Spec: `docs/superpowers/specs/2026-06-14-issue-180-fastmoney-evaluation-design.md`  
-Gate: Step 2-R, 7-Tier spec/design review  
+Issue: #180
+Spec: `docs/superpowers/specs/2026-06-14-issue-180-fastmoney-evaluation-design.md`
+Gate: Step 2-R, 7-Tier spec/design review
 Method: main-session role switching. Native subagents were not used in this session because prior lane waits have been unreliable; the main integration review performed the required six independent lenses plus synthesis.
 
 ## Reviewed Scope
