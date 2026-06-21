@@ -1,7 +1,7 @@
 # Issue #202 Source Parity Matrix
 
-Issue: [#202](https://github.com/bluetape4k/bluetape-go/issues/202)  
-Milestone: `0.6.2`  
+Issue: [#202](https://github.com/bluetape4k/bluetape-go/issues/202)
+Milestone: `0.6.2`
 Date: 2026-06-21
 
 ## Decision
