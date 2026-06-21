@@ -61,6 +61,9 @@ the existing `0.6.3` through `0.6.6` epics.
   series.
 - Issue #203 records the public API and error-contract audit for packages
   created or materially changed in `0.1.0` through `0.6.1`.
+- Issue #231 adds the IMF Exchange Rates provider slice for `money`, limited to
+  USD/EUR domestic pivot pairs with caller-visible source, freshness, stale,
+  and failure metadata.
 
 ## Release Checklist
 
