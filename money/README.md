@@ -163,7 +163,11 @@ _ = currency // GBP
 - IMF provider retries apply only to HTTP `429` and `5xx` responses when
   `RetryCount` is set. Caller cancellation, caller-owned deadlines, `4xx`
   responses, malformed XML, and invalid observation values are not retried.
-- Bloomberg-backed exchange rates are tracked in #232.
+- Bloomberg-backed exchange rates were evaluated in #232. They require
+  customer-owned Bloomberg access, entitlements, SDK/session setup, network
+  security, data usage monitoring, and deployment topology. They are not part
+  of default `money` behavior or default CI; any future adapter must stay behind
+  `ExchangeRateProvider` and use fakes/contract tests.
 - The precision model is based on `github.com/govalues/money` and
   `github.com/govalues/decimal`. Values are immutable and decimal-backed, but
   they are not arbitrary-precision unbounded numbers.

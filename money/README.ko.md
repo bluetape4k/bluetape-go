@@ -162,7 +162,11 @@ _ = currency // GBP
 - IMF provider retry는 `RetryCount`가 설정된 경우 HTTP `429`와 `5xx` response에만
   적용됩니다. Caller cancellation, caller-owned deadline, `4xx` response,
   malformed XML, invalid observation value는 retry하지 않습니다.
-- Bloomberg-backed 환율은 #232에서 후속으로 추적합니다.
+- Bloomberg-backed 환율은 #232에서 평가했습니다. 이 경로는 customer-owned
+  Bloomberg access, entitlement, SDK/session setup, network security, data usage
+  monitoring, deployment topology를 요구합니다. Default `money` 동작이나 기본
+  CI에는 포함하지 않으며, 향후 adapter는 `ExchangeRateProvider` 뒤에 두고
+  fake/contract test로 검증해야 합니다.
 - 정밀도 모델은 `github.com/govalues/money`와 `github.com/govalues/decimal`에
   기반합니다. 값은 immutable decimal-backed value지만 무제한 arbitrary precision
   숫자는 아닙니다.
