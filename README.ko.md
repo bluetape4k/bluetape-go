@@ -17,19 +17,19 @@ adapter를 작은 패키지로 가져다 쓸 수 있게 만든 별도 구현입�
 
 ## 현재 상태
 
-`bluetape-go`는 `v0.6.0` 릴리스 선을 배포했습니다. 현재 repository에는
+`bluetape-go`는 `v0.6.1` 릴리스 선을 배포했습니다. 현재 repository에는
 foundation helper, codec, compression, context-aware concurrency, serializer
 contract, Redis 기반 leader election과 lock, resilience policy, cache
 coordination, token-bucket rate limiting, finite state machine, workflow report,
 lightweight workflow runner, checkpoint 기반 batch job, portable service value가
 들어 있습니다.
 
-`v0.6.0` portable utility 범위에는 UUID, ULID, KSUID, Snowflake ID 생성,
+`v0.6.x` portable utility 범위에는 UUID, ULID, KSUID, Snowflake ID 생성,
 명시적 algorithm 기반 JWT signing/parsing/validation/local key rotation, typed
 unit과 measured value, ISO currency와 decimal-backed money 연산, 인메모리 Bloom
-filter가 포함됩니다. Unreleased `0.6.1` 선에서는 Redis-backed Bloom filter,
-optional JWT provider cache adapter, ECB-backed money exchange-rate provider를
-추가합니다.
+또는 Redis-backed Bloom filter가 포함됩니다. 현재 `0.6.2` 선은 corrective
+`0.6.3`부터 `0.6.6` 구현 series 전에 core helper, testing helper,
+Testcontainers source-parity evidence를 기록합니다.
 
 ## 패키지
 
@@ -113,6 +113,12 @@ go get github.com/bluetape4k/bluetape-go
 | `0.4.0` | State machine과 lightweight workflow primitive. |
 | `0.5.0` | Checkpoint 기반 batch processing과 leader-guarded example. |
 | `0.6.0` | ID generation, JWT, measured value, money, probabilistic structure. |
+| `0.6.1` | Redis Bloom filter, provider cache, exchange-rate provider, locale currency mapping, compatibility evidence를 포함한 portable utility hardening. |
+| `0.6.2` | Core, testing, Testcontainers corrective source-parity matrix와 hardening plan. |
+| `0.6.3` | Core foundation parity와 hardening. |
+| `0.6.4` | JUnit5-inspired Go testing helper parity. |
+| `0.6.5` | Testcontainers contract hardening과 service coverage expansion. |
+| `0.6.6` | Developer-experience parity, integration example, corrective-series closure. |
 | `0.7.0` | Encryption/Tink utility와 큰 도메인에 대한 research gate. |
 | `0.8.0` | Relational SQL DSL과 repository helper. |
 | `0.9.0` | AWS helper package와 Floci-backed example. |
