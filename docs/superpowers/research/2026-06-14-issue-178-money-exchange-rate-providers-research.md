@@ -97,4 +97,3 @@ Implement a first-party provider contract and a first-party ECB reference-rate p
 | Retry loops ignore caller cancellation. | P1 | Retry stops on caller `context.Canceled` and `context.DeadlineExceeded`; tests use `AsyncJobTester`. |
 | Cross-rate math produces invalid same-currency or no-currency rates. | P1 | Reuse `NewExchangeRate`; synthesize same-currency rate `1`; reject invalid `Currency{}`/`XXX`. |
 | New dependency expands public maintenance burden. | P2 | Do not add a provider dependency for the first implementation. |
-
