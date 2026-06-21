@@ -1,8 +1,8 @@
 # Issue #203 Public API and Error Contract Audit
 
-Issue: [#203](https://github.com/bluetape4k/bluetape-go/issues/203)  
-Parent: [#199](https://github.com/bluetape4k/bluetape-go/issues/199)  
-Milestone: `0.6.2`  
+Issue: [#203](https://github.com/bluetape4k/bluetape-go/issues/203)
+Parent: [#199](https://github.com/bluetape4k/bluetape-go/issues/199)
+Milestone: `0.6.2`
 Date: 2026-06-21
 
 ## Verdict

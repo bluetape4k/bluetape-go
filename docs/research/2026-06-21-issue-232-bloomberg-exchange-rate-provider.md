@@ -1,7 +1,7 @@
 # Issue #232 Bloomberg Exchange-Rate Provider Evaluation
 
-Issue: #232  
-Milestone: `0.6.2`  
+Issue: #232
+Milestone: `0.6.2`
 Date: 2026-06-21
 
 ## Decision
