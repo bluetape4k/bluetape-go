@@ -24,7 +24,7 @@ import "github.com/bluetape4k/bluetape-go/money"
 | minor-unit 정수 입력 | `NewMinor` | `NewMinor(12, USD)`는 `USD 0.12`, `NewMinor(12, JPY)`는 `JPY 12`입니다. |
 | 합산 | `Sum` | 입력이 비어 있으면 요청한 통화의 valid zero amount를 반환합니다. |
 | caller-supplied 환율 변환 | `NewExchangeRate`와 `Convert` | 순수 value 경로입니다. network, cache, provider IO를 수행하지 않습니다. |
-| provider-backed 환율 변환 | `ExchangeRateProvider`, `NewECBProvider`, `ConvertWithProvider` | source, freshness, stale fallback, refresh failure metadata를 드러내는 context-aware provider 경로입니다. |
+| provider-backed 환율 변환 | `ExchangeRateProvider`, `NewECBProvider`, `NewIMFProvider`, `ConvertWithProvider` | source, freshness, stale fallback, refresh failure metadata를 드러내는 context-aware provider 경로입니다. |
 | locale-to-currency convenience | `CurrencyByLocale` | 명시적 region이 있는 BCP47 tag와 CLDR current legal tender data를 사용합니다. Ambiguous 또는 no-tender region은 거부합니다. |
 | Long-backed FastMoney | 추가하지 않음 | #180 benchmark 근거에 따라 `Money`를 public API로 유지합니다. minor-unit 경로는 `NewMinor`와 `MinorUnits`를 사용하십시오. |
 
@@ -91,6 +91,23 @@ if quote.Stale {
 _ = krw
 ```
 
+IMF-backed rate도 같은 provider contract를 사용합니다.
+
+```go
+provider, err := money.NewIMFProvider(money.IMFProviderOptions{
+    RateFamily:        money.IMFRateEndOfPeriod,
+    Frequency:         money.IMFFrequencyMonthly,
+    Timeout:           3 * time.Second,
+    CacheTTL:          24 * time.Hour,
+    MaxStale:          72 * time.Hour,
+    AllowStaleOnError: true,
+})
+if err != nil {
+    return err
+}
+_ = provider
+```
+
 Locale currency mapping은 current-region convenience입니다.
 
 ![money locale currency resolution flow](../docs/images/readme-diagrams/money-locale-currency-resolution-flow.png)
@@ -113,18 +130,39 @@ _ = currency // GBP
 - `NewECBProvider`는 ECB daily XML endpoint의 euro reference rate를
   사용합니다. ECB reference rate는 정보 제공용입니다. Trading, accounting,
   ledger, tax, settlement 권위로 취급하지 마십시오.
+- `NewIMFProvider`는 IMF Exchange Rates SDMX API의 configured period-average
+  또는 end-of-period reference data를 사용합니다. IMF data는 provider-backed
+  reference data이며 전체 accounting, trading-rate, tax, settlement system이
+  아닙니다.
 - `ConvertWithProvider`는 `context.Context`를 받고 변환된 `Money`와 사용한
   `ExchangeRateQuote`를 함께 반환합니다. Quote는 `Source`, `ObservedAt`,
   `FetchedAt`, `ExpiresAt`, `Stale`, `RefreshError`를 드러냅니다.
 - ECB rate는 EUR 기준입니다. Provider는 같은 snapshot에서 EUR direct rate,
   reverse rate, non-EUR cross rate를 계산하며 float math를 사용하지 않습니다.
+- IMF rate는 request마다 domestic currency 한쪽과 USD/EUR pivot 한쪽만
+  지원합니다. Quote `Source`는 `IMF ER:XDC_USD:EOP_RT:M`처럼 IMF indicator,
+  rate family, frequency를 포함합니다. Domestic-to-domestic cross rate는 이번
+  provider slice의 non-goal입니다.
+- 기본 IMF domestic-currency map은 `AUD`, `CAD`, `CHF`, `CNY`, `GBP`, `JPY`,
+  `KRW`를 포함합니다. Caller가 다른 IMF country code mapping을 필요로 하면
+  `IMFProviderOptions.CountryCodes`를 확장하십시오.
+- 기본 IMF request는 `Now` 기준 18개월 monthly lookback window를 사용합니다.
+  Caller가 고정 IMF period window를 필요로 하면 `StartPeriod`와 `EndPeriod`를
+  함께 설정하십시오.
+- IMF ER은 SDR/XDR family도 publish하지만 현재 package의 `Currency` backend는
+  `XDR`을 거부합니다. SDR 노출은 currency backend가 XDR 값을 안전하게 생성하고
+  변환할 수 있을 때까지 deferred scope입니다.
 - 주말과 TARGET 휴장일에는 최신 ECB observation이 local fetch time보다 오래될 수
-  있습니다. Caller의 risk tolerance에 맞춰 `CacheTTL`, `MaxStale`,
-  `AllowStaleOnError`를 설정하십시오.
+  있습니다. IMF publication cadence도 local fetch time보다 늦을 수 있습니다.
+  Caller의 risk tolerance에 맞춰 `CacheTTL`, `MaxStale`, `AllowStaleOnError`를
+  설정하십시오.
 - Provider failure는 caller에게 보입니다. Network, HTTP, XML, stale,
   unsupported currency, cancellation, deadline failure는 `errors.Is`로 확인할 수
   있는 sentinel error를 보존합니다.
-- IMF-backed 환율은 #231, Bloomberg-backed 환율은 #232에서 후속으로 추적합니다.
+- IMF provider retry는 `RetryCount`가 설정된 경우 HTTP `429`와 `5xx` response에만
+  적용됩니다. Caller cancellation, caller-owned deadline, `4xx` response,
+  malformed XML, invalid observation value는 retry하지 않습니다.
+- Bloomberg-backed 환율은 #232에서 후속으로 추적합니다.
 - 정밀도 모델은 `github.com/govalues/money`와 `github.com/govalues/decimal`에
   기반합니다. 값은 immutable decimal-backed value지만 무제한 arbitrary precision
   숫자는 아닙니다.

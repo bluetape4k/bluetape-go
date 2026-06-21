@@ -24,7 +24,7 @@ import "github.com/bluetape4k/bluetape-go/money"
 | Minor-unit integer input | `NewMinor` | `NewMinor(12, USD)` is `USD 0.12`; `NewMinor(12, JPY)` is `JPY 12`. |
 | Aggregation | `Sum` | Empty input returns the zero amount for the requested currency. |
 | Caller-supplied exchange conversion | `NewExchangeRate` and `Convert` | Pure value path. No network, cache, or provider IO. |
-| Provider-backed exchange conversion | `ExchangeRateProvider`, `NewECBProvider`, and `ConvertWithProvider` | Context-aware provider path with source, freshness, stale fallback, and refresh failure metadata. |
+| Provider-backed exchange conversion | `ExchangeRateProvider`, `NewECBProvider`, `NewIMFProvider`, and `ConvertWithProvider` | Context-aware provider path with source, freshness, stale fallback, and refresh failure metadata. |
 | Locale-to-currency convenience | `CurrencyByLocale` | Uses explicit-region BCP47 tags and CLDR current legal tender data. Ambiguous or no-tender regions are rejected. |
 | Long-backed FastMoney | Not added | #180 benchmark evidence keeps `Money` as the public API; use `NewMinor` and `MinorUnits` for minor-unit paths. |
 
@@ -92,6 +92,23 @@ if quote.Stale {
 _ = krw
 ```
 
+IMF-backed rates use the same provider contract:
+
+```go
+provider, err := money.NewIMFProvider(money.IMFProviderOptions{
+    RateFamily:        money.IMFRateEndOfPeriod,
+    Frequency:         money.IMFFrequencyMonthly,
+    Timeout:           3 * time.Second,
+    CacheTTL:          24 * time.Hour,
+    MaxStale:          72 * time.Hour,
+    AllowStaleOnError: true,
+})
+if err != nil {
+    return err
+}
+_ = provider
+```
+
 Locale currency mapping is a current-region convenience:
 
 ![money locale currency resolution flow](../docs/images/readme-diagrams/money-locale-currency-resolution-flow.png)
@@ -114,19 +131,39 @@ _ = currency // GBP
 - `NewECBProvider` uses ECB euro reference rates from the daily XML endpoint.
   ECB reference rates are informational. Do not treat them as a trading,
   accounting, ledger, tax, or settlement authority.
+- `NewIMFProvider` uses the IMF Exchange Rates SDMX API for configured
+  period-average or end-of-period reference data. IMF data is provider-backed
+  reference data, not a full accounting, trading-rate, tax, or settlement
+  system.
 - `ConvertWithProvider` is context-aware and returns the converted `Money`
   plus the `ExchangeRateQuote` used. The quote exposes `Source`, `ObservedAt`,
   `FetchedAt`, `ExpiresAt`, `Stale`, and `RefreshError`.
 - ECB rates are EUR-base. The provider computes EUR direct rates, reverse
   rates, and non-EUR cross rates from the same snapshot without float math.
+- IMF rates support one domestic currency and one USD/EUR pivot per request.
+  The quote `Source` includes the IMF indicator, rate family, and frequency
+  such as `IMF ER:XDC_USD:EOP_RT:M`. Domestic-to-domestic cross rates are a
+  non-goal for this provider slice.
+- The default IMF domestic-currency map covers `AUD`, `CAD`, `CHF`, `CNY`,
+  `GBP`, `JPY`, and `KRW`. Extend `IMFProviderOptions.CountryCodes` when your
+  caller needs another IMF country code mapping.
+- By default, IMF requests use an 18-month monthly lookback window ending at
+  `Now`. Set `StartPeriod` and `EndPeriod` together when callers need a fixed
+  IMF period window.
+- IMF ER also publishes SDR/XDR families, but this package's current
+  `Currency` backend rejects `XDR`; SDR exposure is deferred until the currency
+  backend can construct and convert XDR values safely.
 - Weekends and TARGET closing days can leave the latest ECB observation older
-  than the local fetch time. Configure `CacheTTL`, `MaxStale`, and
-  `AllowStaleOnError` according to your caller's risk tolerance.
+  than the local fetch time. IMF publication cadence can also lag the local
+  fetch time. Configure `CacheTTL`, `MaxStale`, and `AllowStaleOnError`
+  according to your caller's risk tolerance.
 - Provider failures are caller-visible. Network, HTTP, XML, stale, unsupported
   currency, cancellation, and deadline failures preserve sentinel errors for
   `errors.Is` checks.
-- IMF-backed exchange rates are tracked in #231. Bloomberg-backed exchange
-  rates are tracked in #232.
+- IMF provider retries apply only to HTTP `429` and `5xx` responses when
+  `RetryCount` is set. Caller cancellation, caller-owned deadlines, `4xx`
+  responses, malformed XML, and invalid observation values are not retried.
+- Bloomberg-backed exchange rates are tracked in #232.
 - The precision model is based on `github.com/govalues/money` and
   `github.com/govalues/decimal`. Values are immutable and decimal-backed, but
   they are not arbitrary-precision unbounded numbers.
