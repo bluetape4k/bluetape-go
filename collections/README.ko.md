@@ -34,8 +34,10 @@ _ = chunks
 ## 동작
 
 - `Chunk`는 0 이하 size를 거부합니다.
-- `ChunkBy`, `DistinctBy`, `GroupBy`, `CountBy`는 nil key function을 거부합니다.
-- `MapErr`와 `FilterErr`는 mapper 또는 predicate의 첫 error에서 중단합니다.
+- `ChunkBy`, `DistinctBy`, `GroupBy`, `CountBy`는 nil key/predicate function을
+  거부합니다.
+- `MapErr`, `FilterErr`, `FilterMap`은 nil mapper/predicate function을
+  거부합니다.
 - `Distinct`는 comparable value에 대해 first-seen order를 보존합니다.
 
 ## 테스트

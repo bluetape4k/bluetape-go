@@ -28,9 +28,14 @@ func BlankToDefault(value, fallback string) string {
 }
 
 // TruncateUTF8Bytes truncates value to at most maxBytes without splitting a UTF-8 rune.
+//
+// It returns an error wrapping ErrInvalidUTF8 when value is not valid UTF-8.
 func TruncateUTF8Bytes(value string, maxBytes int) (string, error) {
 	if maxBytes < 0 {
 		return "", fmt.Errorf("maxBytes[%d] must be non-negative", maxBytes)
+	}
+	if !utf8.ValidString(value) {
+		return "", fmt.Errorf("truncate UTF-8 bytes: %w", ErrInvalidUTF8)
 	}
 	if len(value) <= maxBytes {
 		return value, nil

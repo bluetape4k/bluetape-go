@@ -1,8 +1,10 @@
 package serialization_test
 
 import (
+	"errors"
 	"fmt"
 
+	"github.com/bluetape4k/bluetape-go/core"
 	"github.com/bluetape4k/bluetape-go/serialization"
 )
 
@@ -75,4 +77,20 @@ func ExampleStringSerializer() {
 	// Output:
 	// string
 	// 안녕, bluetape-go
+}
+
+func ExampleStringSerializer_invalidUTF8() {
+	if _, err := (serialization.StringSerializer{}).Unmarshal([]byte{0xff}); errors.Is(err, core.ErrInvalidUTF8) {
+		fmt.Println("invalid text")
+	}
+
+	decoded, err := (serialization.BytesSerializer{}).Unmarshal([]byte{0xff})
+	if err != nil {
+		panic(err)
+	}
+	fmt.Println(len(decoded))
+
+	// Output:
+	// invalid text
+	// 1
 }

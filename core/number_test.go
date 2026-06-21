@@ -50,7 +50,7 @@ func TestHexHelpers(t *testing.T) {
 			t.Fatalf("%q should be hex format", value)
 		}
 	}
-	for _, value := range []string{"1234", "0x", "#", "0xxyz"} {
+	for _, value := range []string{"1234", "0x", "#", "0xxyz", "+0xff", "0x 12"} {
 		if core.IsHexFormat(value) {
 			t.Fatalf("%q should not be hex format", value)
 		}

@@ -36,8 +36,10 @@ _ = chunks
 ## Behavior
 
 - `Chunk` rejects non-positive sizes.
-- `ChunkBy`, `DistinctBy`, `GroupBy`, and `CountBy` reject nil key functions.
-- `MapErr` and `FilterErr` stop at the first mapper or predicate error.
+- `ChunkBy`, `DistinctBy`, `GroupBy`, and `CountBy` reject nil key or predicate
+  functions.
+- `MapErr`, `FilterErr`, and `FilterMap` reject nil mapper or predicate
+  functions.
 - `Distinct` preserves first-seen order for comparable values.
 
 ## Test
