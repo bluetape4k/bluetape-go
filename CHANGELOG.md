@@ -7,6 +7,8 @@ and this project uses semantic versioning once the first tag is published.
 
 ## [Unreleased]
 
+## [v0.6.2] - 2026-06-21
+
 ### Added
 
 - `money.NewIMFProvider` for IMF Exchange Rates SDMX-backed reference rates,

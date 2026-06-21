@@ -1,22 +1,24 @@
 # WIP
 
 Snapshot: 2026-06-21 KST
-Scope: `0.6.2` corrective source-parity planning after the `v0.6.1` release.
+Scope: `0.6.2` release closure after the `v0.6.1` release.
 
 ## Current Target Release
 
-`v0.6.2` - Corrective planning milestone for source-parity evidence and
-implementation hardening after the `v0.6.1` release. The milestone does not add
-broad public APIs directly; it records the parity matrix for `core`,
-`testing/junit5`, and `testing/testcontainers`, then routes high-value gaps to
-the existing `0.6.3` through `0.6.6` epics.
+`v0.6.2` - Release-ready corrective milestone for source-parity evidence and
+implementation hardening after the `v0.6.1` release. The milestone records the
+parity matrix for `core`, `testing/junit5`, and `testing/testcontainers`,
+normalizes public API/error-contract evidence, adds the IMF provider slice, and
+documents the Bloomberg provider boundary before the `0.6.3` through `0.6.6`
+corrective implementation series.
 
 ## Current State
 
 - `0.1.0`, `0.1.1`, `0.2.0`, `0.3.0`, `0.4.0`, `0.5.0`, `v0.5.1`,
-  `v0.6.0`, and `v0.6.1` are tagged and released.
-- Milestone `0.6.1` is closed. Milestone `0.6.2` is open and is focused on
-  retrospective hardening, source-parity evidence, and routing follow-up work.
+  `v0.6.0`, and `v0.6.1` are tagged and released. `v0.6.2` is prepared for
+  release tagging after `develop` is promoted to `main`.
+- Milestone `0.6.1` is closed. Milestone `0.6.2` child work is complete and is
+  ready for epic and milestone closure.
 - Issue #29 delivered the `batch` reader/processor/writer core and sequential
   job model.
 - Issue #30 delivered retry/skip policies, checkpoint storage, restart
@@ -70,13 +72,13 @@ the existing `0.6.3` through `0.6.6` epics.
 
 ## Release Checklist
 
-1. Keep `0.6.2` work on `develop` and require issue-linked PRs.
-2. Finish #202 before starting the `0.6.3` core parity expansion.
-3. Keep high-value parity gaps mapped to #204, #209, #215, or #221 unless a
+1. `0.6.2` issue-linked PRs are merged on `develop`.
+2. #202 is complete before the `0.6.3` core parity expansion.
+3. High-value parity gaps are mapped to #204, #209, #215, or #221 unless a
    narrower follow-up issue is required.
-4. Run `git diff --check` and `make ci` before merging milestone PRs.
-5. Close `0.6.2` only after open P0/P1 issues are resolved or explicitly
-   tracked in later milestones.
+4. `git diff --check`, local `make ci`, and GitHub CI are release gates.
+5. Close `0.6.2` after epic #199 records the closed child issues and release
+   validation evidence.
 
 ## Next Milestone Queue
 
