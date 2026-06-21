@@ -7,6 +7,8 @@ and this project uses semantic versioning once the first tag is published.
 
 ## [Unreleased]
 
+## [v0.6.1] - 2026-06-21
+
 ### Added
 
 - `probabilistic/redis` package with Redis-backed shared Bloom filters,
