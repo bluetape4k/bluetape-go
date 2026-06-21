@@ -18,19 +18,20 @@ batch processing, portable values, and Redis-backed adapters.
 
 ## Current Status
 
-`bluetape-go` has published the `v0.6.0` release line. The repository now covers
+`bluetape-go` has published the `v0.6.1` release line. The repository now covers
 foundation helpers, codecs, compression, context-aware concurrency, serializer
 contracts, Redis-backed leader election and locks, resilience policies, cache
 coordination, token-bucket rate limiting, finite state machines, workflow
 reports, lightweight workflow runners, checkpointed batch jobs, and portable
 service values.
 
-The `v0.6.0` portable utilities scope includes UUID, ULID, KSUID, and Snowflake
+The `v0.6.x` portable utilities scope includes UUID, ULID, KSUID, and Snowflake
 ID generation; explicit-algorithm JWT signing, parsing, validation, and local
 key rotation; typed units and measured values; ISO currency and decimal-backed
-money operations; and in-memory Bloom filters. The Unreleased `0.6.1` line adds
-Redis-backed Bloom filters, optional JWT provider cache adapters, and an
-ECB-backed money exchange-rate provider.
+money operations; and in-memory or Redis-backed Bloom filters. The current
+`0.6.2` line records source-parity evidence for core helpers, testing helpers,
+and Testcontainers before the corrective `0.6.3` through `0.6.6`
+implementation series.
 
 ## Packages
 
@@ -117,6 +118,12 @@ overview.
 | `0.4.0` | State machine and lightweight workflow primitives. |
 | `0.5.0` | Batch processing with checkpoints and leader-guarded examples. |
 | `0.6.0` | Portable utilities: ID generation, JWT, measured values, money, probabilistic structures. |
+| `0.6.1` | Portable utility hardening: Redis Bloom filters, provider caches, exchange-rate providers, locale currency mapping, and compatibility evidence. |
+| `0.6.2` | Corrective source-parity matrix and hardening plan for core, testing, and Testcontainers. |
+| `0.6.3` | Core foundation parity and hardening. |
+| `0.6.4` | JUnit5-inspired Go testing helper parity. |
+| `0.6.5` | Testcontainers contract hardening and service coverage expansion. |
+| `0.6.6` | Developer-experience parity, integration examples, and corrective-series closure. |
 | `0.7.0` | Encryption/Tink utilities and research gate for larger domains. |
 | `0.8.0` | Relational SQL DSL and repository helpers. |
 | `0.9.0` | AWS helper packages and Floci-backed examples. |
