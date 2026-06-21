@@ -14,7 +14,7 @@ dependency candidate, GitHub issue와 연결합니다.
 | `0.5.0` | [Batch](2026-06-01-milestone-0.5.0-batch-research.md) |
 | `0.6.0` | [Utilities](2026-06-01-milestone-0.6.0-utilities-research.md) |
 | `0.6.1` | [Issue #168 id generator benchmark comparison](2026-06-10-issue-168-id-generator-benchmark.md), [Issue #192 id generator performance optimization](2026-06-11-issue-192-id-generator-performance.md), [Issue #192 id generator third comparison](2026-06-11-issue-192-id-generator-third-comparison.md), [Issue #195 compression benchmark matrix](2026-06-12-issue-195-compression-benchmark-matrix.md) |
-| `0.6.2` | [Issue #202 source parity matrix](2026-06-21-issue-202-source-parity-matrix.md), [Issue #231 IMF exchange-rate provider](2026-06-21-issue-231-imf-exchange-rate-provider.md) |
+| `0.6.2` | [Issue #202 source parity matrix](2026-06-21-issue-202-source-parity-matrix.md), [Issue #231 IMF exchange-rate provider](2026-06-21-issue-231-imf-exchange-rate-provider.md), [Issue #232 Bloomberg exchange-rate provider evaluation](2026-06-21-issue-232-bloomberg-exchange-rate-provider.md) |
 | `0.7.0` | [Next tracks](2026-06-01-milestone-0.7.0-next-tracks-research.md) |
 | `0.8.0` | [Relational SQL](2026-06-01-milestone-0.8.0-sql-research.md) |
 | `0.9.0` | [AWS and Floci](2026-06-01-milestone-0.9.0-aws-research.md) |

@@ -14,6 +14,10 @@ and this project uses semantic versioning once the first tag is published.
   stale fallback metadata, USD/EUR domestic pivot support, cancellation tests,
   and bilingual README/research documentation. SDR/XDR exposure remains deferred
   until the currency backend can construct XDR values safely.
+- Bloomberg-backed exchange-rate provider evaluation for `money`, documenting
+  SAPI, B-PIPE, Data License, BLPAPI, entitlement, credential, freshness,
+  failure-mapping, and test-strategy boundaries while keeping Bloomberg
+  dependencies and paid access out of default `money` behavior and CI.
 
 ## [v0.6.1] - 2026-06-21
 

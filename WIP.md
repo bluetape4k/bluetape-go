@@ -64,6 +64,9 @@ the existing `0.6.3` through `0.6.6` epics.
 - Issue #231 adds the IMF Exchange Rates provider slice for `money`, limited to
   USD/EUR domestic pivot pairs with caller-visible source, freshness, stale,
   and failure metadata.
+- Issue #232 evaluates Bloomberg-backed exchange rates as a licensed
+  customer-owned integration boundary. No default `money` provider, Bloomberg
+  dependency, credential path, or paid-access CI path is added in `0.6.2`.
 
 ## Release Checklist
 
