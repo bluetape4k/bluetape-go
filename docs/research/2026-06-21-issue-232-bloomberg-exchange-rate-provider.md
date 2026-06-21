@@ -15,6 +15,13 @@ customer application or a separate optional integration boundary that accepts a
 customer-provided Bloomberg session/client/fetcher and proves behavior with
 fakes and contract tests in CI.
 
+For teams that already have Bloomberg Professional or enterprise data access,
+the Bloomberg path is still the most practical premium-data option: it can be
+faster operationally than onboarding a new public data source because the
+organization already owns the entitlements, field conventions, monitoring, and
+support channel. This decision keeps that path viable while preventing licensed
+customer infrastructure from becoming default package behavior.
+
 ## Official Source Evidence
 
 - Bloomberg Server API (SAPI):
@@ -45,7 +52,7 @@ fakes and contract tests in CI.
 
 | Access model | Fit for `ExchangeRateProvider` | Notes |
 |---|---|---|
-| SAPI / BLPAPI | Best conceptual fit for a request/response provider in licensed server applications. | Requires customer-owned Bloomberg product access, entitlements, authenticated network/session setup, and operational monitoring. |
+| SAPI / BLPAPI | Best conceptual fit for a request/response provider in licensed server applications; preferred when the caller already operates Bloomberg access. | Requires customer-owned Bloomberg product access, entitlements, authenticated network/session setup, and operational monitoring. |
 | B-PIPE | Fit only when the caller already operates a real-time feed and maintains a local snapshot/cache. | Streaming feed semantics are broader than a simple exchange-rate lookup and require entitlement and usage-reporting ownership. |
 | Data License | Fit for scheduled reference or historical datasets, not low-latency request-time conversion. | REST/SFTP/cloud delivery can populate caller-owned reference tables that a separate provider reads. |
 
