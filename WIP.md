@@ -59,6 +59,8 @@ the existing `0.6.3` through `0.6.6` epics.
   Redis-backed packages.
 - Issue #202 is the shared source-parity matrix for the corrective `0.6.x`
   series.
+- Issue #203 records the public API and error-contract audit for packages
+  created or materially changed in `0.1.0` through `0.6.1`.
 
 ## Release Checklist
 
