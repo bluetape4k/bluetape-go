@@ -1,9 +1,11 @@
 package codec_test
 
 import (
+	"errors"
 	"fmt"
 
 	"github.com/bluetape4k/bluetape-go/codec"
+	"github.com/bluetape4k/bluetape-go/core"
 )
 
 func ExampleEncodeBase58String() {
@@ -64,4 +66,21 @@ func ExampleEncodeHexString() {
 	// Output:
 	// 48656c6c6f2c20576f726c6421
 	// Hello, World!
+}
+
+func ExampleDecodeBase64String_invalidUTF8() {
+	encoded := codec.EncodeBase64([]byte{0xff, 0xfe})
+	if _, err := codec.DecodeBase64String(encoded); errors.Is(err, core.ErrInvalidUTF8) {
+		fmt.Println("invalid text")
+	}
+
+	decoded, err := codec.DecodeBase64(encoded)
+	if err != nil {
+		panic(err)
+	}
+	fmt.Println(len(decoded))
+
+	// Output:
+	// invalid text
+	// 2
 }

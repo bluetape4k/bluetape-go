@@ -33,7 +33,8 @@ _ = core.ValueOr(owner, "fallback")
 - Validation helpers return errors instead of panicking.
 - `Zero`, `IsZero`, `DefaultIfZero`, and `FirstNonZero` keep generic fallback
   behavior explicit.
-- `TruncateUTF8Bytes` truncates at rune boundaries and rejects negative limits.
+- `TruncateUTF8Bytes` truncates at rune boundaries and rejects negative limits
+  or invalid UTF-8 input.
 - Hex helpers validate prefixed `0x` / `0X` strings without decoding them.
 
 ## Test

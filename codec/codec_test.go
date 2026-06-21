@@ -3,10 +3,12 @@ package codec_test
 import (
 	"bytes"
 	"context"
+	"errors"
 	"fmt"
 	"testing"
 
 	"github.com/bluetape4k/bluetape-go/codec"
+	"github.com/bluetape4k/bluetape-go/core"
 	concurrencytest "github.com/bluetape4k/bluetape-go/testing/concurrency"
 )
 
@@ -377,6 +379,88 @@ func TestHexRoundTrip(t *testing.T) {
 func TestHexRejectsInvalidInput(t *testing.T) {
 	if _, err := codec.DecodeHex("abc"); err == nil {
 		t.Fatal("expected odd-length Hex input to fail")
+	}
+}
+
+func TestStringDecodersRejectInvalidUTF8(t *testing.T) {
+	invalidBytes := []byte{0xff, 0xfe}
+	tests := map[string]struct {
+		encoded string
+		decode  func(string) (string, error)
+	}{
+		"base58": {encoded: codec.EncodeBase58(invalidBytes), decode: codec.DecodeBase58String},
+		"base62": {encoded: codec.EncodeBase62(invalidBytes), decode: codec.DecodeBase62String},
+		"base64": {encoded: codec.EncodeBase64(invalidBytes), decode: codec.DecodeBase64String},
+		"hex":    {encoded: codec.EncodeHex(invalidBytes), decode: codec.DecodeHexString},
+	}
+
+	for name, tt := range tests {
+		t.Run(name, func(t *testing.T) {
+			if _, err := tt.decode(tt.encoded); !errors.Is(err, core.ErrInvalidUTF8) {
+				t.Fatalf("decode invalid UTF-8 error = %v, want ErrInvalidUTF8", err)
+			}
+		})
+	}
+}
+
+func TestByteDecodersAcceptArbitraryBinary(t *testing.T) {
+	input := []byte{0xff, 0xfe, 0x00, 0x61}
+	tests := map[string]struct {
+		encoded string
+		decode  func(string) ([]byte, error)
+	}{
+		"base58":    {encoded: codec.EncodeBase58(input), decode: codec.DecodeBase58},
+		"base62":    {encoded: codec.EncodeBase62(input), decode: codec.DecodeBase62},
+		"url62":     {encoded: codec.EncodeURL62(input), decode: codec.DecodeURL62},
+		"base64":    {encoded: codec.EncodeBase64(input), decode: codec.DecodeBase64},
+		"base64url": {encoded: codec.EncodeBase64URL(input), decode: codec.DecodeBase64URL},
+		"hex":       {encoded: codec.EncodeHex(input), decode: codec.DecodeHex},
+	}
+
+	for name, tt := range tests {
+		t.Run(name, func(t *testing.T) {
+			got, err := tt.decode(tt.encoded)
+			if err != nil {
+				t.Fatalf("byte decoder returned error: %v", err)
+			}
+			if !bytes.Equal(got, input) {
+				t.Fatalf("%s byte decode = %v, want %v", name, got, input)
+			}
+		})
+	}
+}
+
+func TestBase64URLRejectsMalformedInput(t *testing.T) {
+	for _, value := range []string{"++", "__=", "abc="} {
+		if _, err := codec.DecodeBase64URL(value); err == nil || errors.Is(err, core.ErrInvalidUTF8) {
+			t.Fatalf("malformed Base64URL error = %v, want non-UTF8 codec error", err)
+		}
+	}
+}
+
+func TestHexRejectsInvalidCharacters(t *testing.T) {
+	if _, err := codec.DecodeHex("zz"); err == nil || errors.Is(err, core.ErrInvalidUTF8) {
+		t.Fatalf("invalid Hex error = %v, want non-UTF8 codec error", err)
+	}
+}
+
+func TestMalformedStringDecodersDoNotUseInvalidUTF8Sentinel(t *testing.T) {
+	tests := map[string]struct {
+		input  string
+		decode func(string) (string, error)
+	}{
+		"base58": {input: "0", decode: codec.DecodeBase58String},
+		"base62": {input: "abc-123", decode: codec.DecodeBase62String},
+		"base64": {input: "not valid base64", decode: codec.DecodeBase64String},
+		"hex":    {input: "zz", decode: codec.DecodeHexString},
+	}
+
+	for name, tt := range tests {
+		t.Run(name, func(t *testing.T) {
+			if _, err := tt.decode(tt.input); err == nil || errors.Is(err, core.ErrInvalidUTF8) {
+				t.Fatalf("%s malformed input error = %v, want non-UTF8 codec error", name, err)
+			}
+		})
 	}
 }
 

@@ -40,6 +40,9 @@ value, err := versioned.Unmarshal(data)
 - `JSONSerializer`는 `encoding/json`을 사용하며 뒤따르는 JSON 값을 거부합니다.
 - `WithDisallowUnknownFields`는 엄격한 object decoding을 활성화합니다.
 - `BytesSerializer`는 marshal/unmarshal 시 byte slice를 복사합니다.
+- `StringSerializer`는 UTF-8 text serializer이며 invalid UTF-8 input에는
+  `core.ErrInvalidUTF8`을 wrapping한 error를 반환합니다.
+- Binary payload는 `BytesSerializer`를 사용해야 합니다.
 - `VersionedSerializer`는 payload를 format/version metadata가 있는 `BTGS` envelope로 감쌉니다.
 
 ## 테스트

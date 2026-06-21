@@ -58,3 +58,27 @@ func TestCountBy(t *testing.T) {
 		t.Fatal("CountBy should reject nil key function")
 	}
 }
+
+func TestMapHelpersNilEmptyAndCallbackContracts(t *testing.T) {
+	if _, err := collections.GroupBy[string, int]([]string{"a"}, nil); err == nil {
+		t.Fatal("GroupBy should reject nil key function")
+	}
+	if _, err := collections.GroupBy[string, int](nil, nil); err == nil {
+		t.Fatal("GroupBy should reject nil key function before nil input")
+	}
+	if _, err := collections.GroupBy[string, int]([]string{}, nil); err == nil {
+		t.Fatal("GroupBy should reject nil key function before empty input")
+	}
+	if got, err := collections.CountBy[string, int](nil, func(value string) int { return len(value) }); err != nil || got != nil {
+		t.Fatalf("CountBy nil = %#v, %v; want nil, nil", got, err)
+	}
+	if got, err := collections.CountBy([]string{}, func(value string) int { return len(value) }); err != nil || got == nil || len(got) != 0 {
+		t.Fatalf("CountBy empty = %#v, %v; want empty map, nil", got, err)
+	}
+	if _, err := collections.CountBy[string, int](nil, nil); err == nil {
+		t.Fatal("CountBy should reject nil key function before nil input")
+	}
+	if _, err := collections.CountBy[string, int]([]string{}, nil); err == nil {
+		t.Fatal("CountBy should reject nil key function before empty input")
+	}
+}

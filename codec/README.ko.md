@@ -39,6 +39,13 @@ payload, err := codec.DecodeBase64URL(token)
   vector와 호환됩니다. High-order zero UUID byte는 Go byte API가 보존하므로
   Kotlin numeric helper와 다른 Go-specific 동작입니다.
 - String helper는 UTF-8 string과 byte encoding 사이를 변환하며 serialization metadata를 추가하지 않습니다.
+- Decode string helper는 UTF-8 text helper이며 decoded byte가 valid UTF-8이
+  아니면 `core.ErrInvalidUTF8`을 wrapping한 error를 반환합니다.
+- Error를 반환하지 않는 encode string helper는 string을 byte로 변환한 뒤
+  encoding하며 invalid UTF-8을 보고할 수 없습니다.
+- Binary payload는 `DecodeBase64`, `DecodeBase64URL`, `DecodeHex`,
+  `DecodeBase58`, `DecodeBase62`, `DecodeURL62` 같은 byte helper를 사용해야
+  합니다.
 
 ## bluetape4k-core 호환성
 

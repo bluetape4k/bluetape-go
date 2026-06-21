@@ -1,6 +1,11 @@
 package serialization
 
-import "fmt"
+import (
+	"fmt"
+	"unicode/utf8"
+
+	"github.com/bluetape4k/bluetape-go/core"
+)
 
 // BytesSerializer copies byte slices without transforming them.
 type BytesSerializer struct{}
@@ -36,14 +41,24 @@ func (StringSerializer) Format() string {
 }
 
 // Marshal serializes value as UTF-8 bytes.
+//
+// It returns an error wrapping core.ErrInvalidUTF8 when value is not valid UTF-8.
 func (StringSerializer) Marshal(value string) ([]byte, error) {
+	if !utf8.ValidString(value) {
+		return nil, fmt.Errorf("marshal string: %w", core.ErrInvalidUTF8)
+	}
 	return []byte(value), nil
 }
 
 // Unmarshal deserializes UTF-8 bytes into a string.
+//
+// It returns an error wrapping core.ErrInvalidUTF8 when data is not valid UTF-8.
 func (StringSerializer) Unmarshal(data []byte) (string, error) {
 	if data == nil {
 		return "", fmt.Errorf("unmarshal string: input must not be nil")
+	}
+	if !utf8.Valid(data) {
+		return "", fmt.Errorf("unmarshal string: %w", core.ErrInvalidUTF8)
 	}
 	return string(data), nil
 }
