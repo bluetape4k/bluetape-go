@@ -3,8 +3,10 @@
 [English](README.md) | [한국어](README.ko.md)
 
 `money` provides Go-native value APIs for ISO 4217 currencies, decimal-backed
-money amounts, aggregation, serialization, and caller-supplied exchange-rate
-conversion.
+money amounts, aggregation, serialization, caller-supplied exchange-rate
+conversion, and context-aware provider-backed conversion.
+
+![money exchange-rate provider flow](../docs/images/readme-diagrams/money-exchange-rate-provider-flow.png)
 
 ## Import
 
@@ -21,9 +23,24 @@ import "github.com/bluetape4k/bluetape-go/money"
 | Major-unit integer input | `NewFromInt64` | `NewFromInt64(12, USD)` is `USD 12.00`; `NewFromInt64(12, KRW)` is `KRW 12`. |
 | Minor-unit integer input | `NewMinor` | `NewMinor(12, USD)` is `USD 0.12`; `NewMinor(12, JPY)` is `JPY 12`. |
 | Aggregation | `Sum` | Empty input returns the zero amount for the requested currency. |
-| Exchange conversion | `NewExchangeRate` and `Convert` | Rates are caller-supplied; provider-backed fetching is deferred to #178. |
-| Full locale mapping | Deferred | Limited common locale lookup exists now; full mapping is tracked in #179. |
-| Long-backed FastMoney | Deferred | Benchmark-driven evaluation is tracked in #180. |
+| Caller-supplied exchange conversion | `NewExchangeRate` and `Convert` | Pure value path. No network, cache, or provider IO. |
+| Provider-backed exchange conversion | `ExchangeRateProvider`, `NewECBProvider`, and `ConvertWithProvider` | Context-aware provider path with source, freshness, stale fallback, and refresh failure metadata. |
+| Locale-to-currency convenience | `CurrencyByLocale` | Uses explicit-region BCP47 tags and CLDR current legal tender data. Ambiguous or no-tender regions are rejected. |
+| Long-backed FastMoney | Not added | #180 benchmark evidence keeps `Money` as the public API; use `NewMinor` and `MinorUnits` for minor-unit paths. |
+
+## Money vs FastMoney
+
+`Money` remains the public amount type. #180 measured the minor-unit and
+representative hot paths and did not add a separate long-backed `FastMoney`
+type. Use `NewMinor` for integer minor-unit input and `MinorUnits` for integer
+extraction.
+
+![money FastMoney evaluation decision flow](../docs/images/readme-diagrams/money-fastmoney-evaluation-decision-flow.png)
+
+![money FastMoney evaluation benchmark](../docs/images/readme-charts/money-fastmoney-evaluation-benchmark.png)
+
+The benchmark snapshot is local evidence, not a production ranking. The raw
+output is stored in `docs/research/outputs/issue-180/money-fastmoney-evaluation-bench.txt`.
 
 ## Usage
 
@@ -44,11 +61,72 @@ if err != nil {
 payload, err := json.Marshal(total)
 ```
 
+Provider-backed exchange conversion keeps IO explicit:
+
+```go
+provider, err := money.NewECBProvider(money.ECBProviderOptions{
+    Timeout:           3 * time.Second,
+    CacheTTL:          24 * time.Hour,
+    MaxStale:          72 * time.Hour,
+    AllowStaleOnError: true,
+})
+if err != nil {
+    return err
+}
+
+usd, err := money.New("2.00", money.USD)
+if err != nil {
+    return err
+}
+krw, quote, err := money.ConvertWithProvider(ctx, usd, money.KRW, provider)
+if err != nil {
+    return err
+}
+if quote.Stale {
+    log.Printf("using stale %s quote observed at %s: %v",
+        quote.Source,
+        quote.ObservedAt.Format(time.DateOnly),
+        quote.RefreshError,
+    )
+}
+_ = krw
+```
+
+Locale currency mapping is a current-region convenience:
+
+![money locale currency resolution flow](../docs/images/readme-diagrams/money-locale-currency-resolution-flow.png)
+
+```go
+currency, err := money.CurrencyByLocale("en-GB")
+if err != nil {
+    return err
+}
+_ = currency // GBP
+```
+
 ## Behavior
 
 - `money` is not a full accounting system. It does not provide ledgers,
-  posting rules, tax policy, financial calendars, provider-backed FX lookup, or
-  jurisdiction-specific rounding policies.
+  posting rules, tax policy, financial calendars, trading rates, settlement
+  rules, or jurisdiction-specific rounding policies.
+- `NewExchangeRate` and `Convert` remain pure value APIs. They never perform
+  network or cache IO.
+- `NewECBProvider` uses ECB euro reference rates from the daily XML endpoint.
+  ECB reference rates are informational. Do not treat them as a trading,
+  accounting, ledger, tax, or settlement authority.
+- `ConvertWithProvider` is context-aware and returns the converted `Money`
+  plus the `ExchangeRateQuote` used. The quote exposes `Source`, `ObservedAt`,
+  `FetchedAt`, `ExpiresAt`, `Stale`, and `RefreshError`.
+- ECB rates are EUR-base. The provider computes EUR direct rates, reverse
+  rates, and non-EUR cross rates from the same snapshot without float math.
+- Weekends and TARGET closing days can leave the latest ECB observation older
+  than the local fetch time. Configure `CacheTTL`, `MaxStale`, and
+  `AllowStaleOnError` according to your caller's risk tolerance.
+- Provider failures are caller-visible. Network, HTTP, XML, stale, unsupported
+  currency, cancellation, and deadline failures preserve sentinel errors for
+  `errors.Is` checks.
+- IMF-backed exchange rates are tracked in #231. Bloomberg-backed exchange
+  rates are tracked in #232.
 - The precision model is based on `github.com/govalues/money` and
   `github.com/govalues/decimal`. Values are immutable and decimal-backed, but
   they are not arbitrary-precision unbounded numbers.
@@ -58,6 +136,12 @@ payload, err := json.Marshal(total)
   values. Use `Zero(currency)` when a valid zero money amount is needed.
 - `ParseCurrency("XXX")`, `ParseCurrency("999")`, and construction with
   no-currency values return `ErrInvalidCurrency`.
+- `CurrencyByLocale` requires an explicit BCP47 region and uses CLDR current
+  legal tender data through `golang.org/x/text/currency`.
+- Locale mapping is a current-region convenience, not an accounting, trading,
+  tax, settlement, or legal-tender authority. Regions with no current tender or
+  multiple current tender currencies return `ErrInvalidCurrency` so callers can
+  choose explicitly.
 - Arithmetic requires matching currencies. Currency mismatch returns
   `ErrCurrencyMismatch` for `errors.Is` checks.
 - `Round` uses currency-scale half-even rounding. `RoundTo` uses half-even
@@ -74,6 +158,9 @@ payload, err := json.Marshal(total)
 - Money values are immutable and safe to pass between goroutines. #35 validates
   representative operations with `testing/concurrency.GoroutineStressTester`
   and `go test -race`.
+- #180 benchmark evidence keeps `Money` as the public amount type. A future
+  `FastMoney` issue should require a measured hot-path gap plus a public caller
+  contract that cannot be served by `NewMinor` and `MinorUnits`.
 
 ## Test
 

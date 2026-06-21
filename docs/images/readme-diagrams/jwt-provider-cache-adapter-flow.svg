@@ -1,0 +1,53 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1245" height="775" viewBox="0 0 1245 775">
+<defs>
+<marker id="arrow" markerWidth="12" markerHeight="10" refX="10" refY="5" orient="auto" markerUnits="userSpaceOnUse"><path d="M0,0 L10,5 L0,10 z" fill="#2563eb"/></marker>
+<marker id="arrow-gray" markerWidth="12" markerHeight="10" refX="10" refY="5" orient="auto" markerUnits="userSpaceOnUse"><path d="M0,0 L10,5 L0,10 z" fill="#64748b"/></marker>
+<filter id="shadow" x="-10%" y="-10%" width="120%" height="125%"><feDropShadow dx="0" dy="3" stdDeviation="4" flood-color="#94a3b8" flood-opacity=".22"/></filter>
+</defs>
+
+<style>
+@font-face{font-family:'Architects Daughter';src:local('Architects Daughter');}
+@font-face{font-family:'Comic Mono';src:local('Comic Mono');}
+.bg{fill:#f8fafc}.title{font:43px 'Architects Daughter';fill:#111827}.sub{font:21px 'Comic Mono';fill:#475569}.card-title{font:24px 'Comic Mono';font-weight:700;fill:#111827}.body{font:17px 'Comic Mono';fill:#334155}.small{font:15px 'Comic Mono';fill:#475569}.label{font:16px 'Comic Mono';fill:#2563eb;font-weight:700}.note{font:16px 'Comic Mono';fill:#475569}.arrow{stroke:#2563eb;stroke-width:3.5;fill:none;marker-end:url(#arrow)}.dashed{stroke:#64748b;stroke-width:3;stroke-dasharray:10 9;fill:none;marker-end:url(#arrow-gray)}.card{fill:#fff;stroke-width:4}.guard{fill:#f59e0b;fill-opacity:.12;stroke:#f59e0b;stroke-opacity:.55;stroke-dasharray:10 8;stroke-width:3}.footer{fill:#fff;stroke:#cbd5e1;stroke-width:2}
+</style>
+
+<rect class="bg" width="1245" height="775"/>
+<text class="title" x="52" y="72">JWT Provider Cache Adapter Flow</text>
+<text class="sub" x="56" y="112">Warm hits are trusted only after current provider key revalidation.</text>
+<rect class="card" x="60" y="176" width="270" height="160" rx="16" fill="#eff6ff" stroke="#2563eb" filter="url(#shadow)"/>
+<text class="card-title" x="82" y="214">Caller</text>
+<text class="body" x="84" y="248">Parse(token)</text>
+<text class="body" x="84" y="275">parse options</text>
+<text class="body" x="84" y="302">context deadline</text>
+<rect class="card" x="420" y="145" width="330" height="210" rx="16" fill="#f5f3ff" stroke="#7c3aed" filter="url(#shadow)"/>
+<text class="card-title" x="442" y="183">Cache profile</text>
+<text class="body" x="444" y="217">token SHA-256 digest</text>
+<text class="body" x="444" y="244">parse-profile digest</text>
+<text class="body" x="444" y="271">algorithm + key prefix</text>
+<text class="body" x="444" y="298">private trust scope</text>
+<rect class="card" x="845" y="150" width="340" height="205" rx="16" fill="#ecfdf5" stroke="#059669" filter="url(#shadow)"/>
+<text class="card-title" x="867" y="188">Reader cache</text>
+<text class="body" x="869" y="222">process-local backend</text>
+<text class="body" x="869" y="249">stores successful Reader</text>
+<text class="body" x="869" y="276">TTL bounded by token/key</text>
+<text class="body" x="869" y="303">cache errors visible</text>
+<rect class="card" x="420" y="455" width="330" height="155" rx="16" fill="#fff7ed" stroke="#f97316" filter="url(#shadow)"/>
+<text class="card-title" x="442" y="493">Wrapped provider</text>
+<text class="body" x="444" y="527">signature validation</text>
+<text class="body" x="444" y="554">claim checks</text>
+<text class="body" x="444" y="581">kid lookup</text>
+<rect class="card" x="845" y="455" width="340" height="155" rx="16" fill="#fef2f2" stroke="#dc2626" filter="url(#shadow)"/>
+<text class="card-title" x="867" y="493">Freshness guard</text>
+<text class="body" x="869" y="527">Reader non-nil</text>
+<text class="body" x="869" y="554">algorithm matches</text>
+<text class="body" x="869" y="581">kid resolves to live key</text>
+<path class="arrow" d="M330 250 L420 250"/><text class="label" x="350" y="238">build key</text>
+<path class="arrow" d="M750 238 L845 238"/><text class="label" x="768" y="226">cache get</text>
+<path class="arrow" d="M1015 355 L1015 455"/><text class="label" x="1030" y="407">warm hit</text>
+<path class="dashed" d="M845 530 L750 530"/><text class="label" x="760" y="505">stale delete</text>
+<path class="arrow" d="M585 355 L585 455"/><text class="label" x="600" y="407">miss</text>
+<path class="arrow" d="M750 530 L845 530"/><text class="label" x="780" y="558">set TTL</text>
+<path class="dashed" d="M845 588 C690 680 280 615 220 336"/><text class="label" x="420" y="646">return Reader</text>
+<rect class="guard" x="58" y="665" width="1128" height="70" rx="16"/><text class="small" x="82" y="695">alt: WithParseClock bypasses cache; ForcedRotate/DeleteKeyChains clear the supplied cache after wrapped key operation succeeds.</text>
+<text class="small" x="82" y="720">Safety boundary: warm hits do not re-run signature validation, so key material must never be replaced under the same kid.</text>
+</svg>

@@ -2,7 +2,9 @@
 
 [English](README.md) | [한국어](README.ko.md)
 
-`serialization`은 storage, cache, message payload를 위한 작은 serializer contract를 정의합니다. 이 패키지는 unsafe object deserialization보다 명시적인 format과 safe decoding을 선호합니다.
+`serialization`은 storage, cache, message 경계를 지나는 값을 위한 작은
+serializer 계약을 정의합니다. 디코딩된 값을 신뢰하기 전에 format과 version을
+명시적으로 확인하는 흐름을 유지합니다.
 
 ## 가져오기
 
@@ -11,6 +13,8 @@ import "github.com/bluetape4k/bluetape-go/serialization"
 ```
 
 ## 사용 예
+
+![serialization envelope 흐름](../docs/images/readme-diagrams/serialization-envelope-flow.png)
 
 ```go
 type Account struct {
@@ -33,8 +37,8 @@ value, err := versioned.Unmarshal(data)
 
 ## 동작
 
-- `JSONSerializer`는 `encoding/json`을 사용하고 trailing JSON value를 거부합니다.
-- `WithDisallowUnknownFields`는 strict object decoding을 활성화합니다.
+- `JSONSerializer`는 `encoding/json`을 사용하며 뒤따르는 JSON 값을 거부합니다.
+- `WithDisallowUnknownFields`는 엄격한 object decoding을 활성화합니다.
 - `BytesSerializer`는 marshal/unmarshal 시 byte slice를 복사합니다.
 - `VersionedSerializer`는 payload를 format/version metadata가 있는 `BTGS` envelope로 감쌉니다.
 

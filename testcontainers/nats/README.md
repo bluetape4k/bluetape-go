@@ -5,6 +5,8 @@
 `testcontainers/nats` starts a NATS container for integration tests and returns
 the client connection URL.
 
+![testcontainers helper flow](../../docs/images/readme-diagrams/testcontainers-helper-flow.png)
+
 ## Import
 
 ```go

@@ -33,8 +33,8 @@ func (r *keyChainRepository) current(now time.Time) (*KeyChain, error) {
 }
 
 func (r *keyChainRepository) find(kid string, now time.Time) (*KeyChain, error) {
-	if kid == "" {
-		return nil, KeyError{Kind: ErrKeyNotFound, Err: errorsNew("kid is required")}
+	if err := validateLookupKID(kid); err != nil {
+		return nil, err
 	}
 	r.mu.RLock()
 	defer r.mu.RUnlock()

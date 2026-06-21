@@ -1,0 +1,24 @@
+File: id.test
+Type: alloc_space
+Time: 2026-06-11 00:24:41 KST
+Showing nodes accounting for 15119.99MB, 100% of 15125.26MB total
+Dropped 27 nodes (cum <= 75.63MB)
+      flat  flat%   sum%        cum   cum%
+ 5787.26MB 38.26% 38.26%  5787.26MB 38.26%  github.com/google/uuid.UUID.String (inline)
+ 3404.60MB 22.51% 60.77%  5102.13MB 33.73%  github.com/bluetape4k/bluetape-go/id.(*ulidGenerator).NextString
+ 1697.53MB 11.22% 71.99%  1697.53MB 11.22%  github.com/oklog/ulid/v2.New
+ 1166.02MB  7.71% 79.70%  1166.02MB  7.71%  github.com/google/uuid.NewRandomFromReader
+  859.53MB  5.68% 85.39%   859.53MB  5.68%  github.com/bluetape4k/bluetape-go/id.encodeKSUIDMillisBase62Prefix
+  774.01MB  5.12% 90.50%   774.01MB  5.12%  github.com/bluetape4k/bluetape-go/id.(*uuidGenerator).nextV7
+  671.52MB  4.44% 94.94%  1531.04MB 10.12%  github.com/bluetape4k/bluetape-go/id.(*ksuidMillisGenerator).NextString
+  508.02MB  3.36% 98.30%   508.02MB  3.36%  github.com/segmentio/ksuid.KSUID.String (inline)
+  251.50MB  1.66%   100%   759.52MB  5.02%  github.com/bluetape4k/bluetape-go/id.(*ksuidGenerator).NextString
+         0     0%   100%  7727.29MB 51.09%  github.com/bluetape4k/bluetape-go/id.(*uuidGenerator).NextString
+         0     0%   100%  1531.04MB 10.12%  github.com/bluetape4k/bluetape-go/id.BenchmarkKSUIDMillisNextString
+         0     0%   100%   759.52MB  5.02%  github.com/bluetape4k/bluetape-go/id.BenchmarkKSUIDNextString
+         0     0%   100%  2545.06MB 16.83%  github.com/bluetape4k/bluetape-go/id.BenchmarkULIDMonotonic
+         0     0%   100%  2557.06MB 16.91%  github.com/bluetape4k/bluetape-go/id.BenchmarkULIDRandom
+         0     0%   100%  4692.18MB 31.02%  github.com/bluetape4k/bluetape-go/id.BenchmarkUUIDV4ReuseGenerator
+         0     0%   100%  3035.12MB 20.07%  github.com/bluetape4k/bluetape-go/id.BenchmarkUUIDV7ReuseGenerator
+         0     0%   100% 15120.49MB   100%  testing.(*B).run1.func1
+         0     0%   100% 15120.49MB   100%  testing.(*B).runN

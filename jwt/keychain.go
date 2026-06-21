@@ -16,6 +16,7 @@ const (
 	maxRepositorySize     = 1000
 	defaultRSAKeyBits     = 2048
 	defaultKIDBytes       = 16
+	maxKIDBytes           = 128
 )
 
 // KeyChain 은 하나의 JWT 서명/검증 key와 kid metadata를 나타낸다.
@@ -86,8 +87,8 @@ func newHMACKeyChain(kid string, algorithm Algorithm, secret []byte, createdAt t
 	if err := validateHMACSecret(algorithm, secret); err != nil {
 		return nil, err
 	}
-	if kid == "" {
-		return nil, KeyError{Kind: ErrInvalidKey, Err: errorsNew("kid must not be empty")}
+	if err := validateKID(kid); err != nil {
+		return nil, err
 	}
 	copied := append([]byte(nil), secret...)
 	return &KeyChain{
@@ -117,8 +118,8 @@ func newRSAKeyChain(kid string, algorithm Algorithm, privateKey *rsa.PrivateKey,
 	if err != nil {
 		return nil, err
 	}
-	if kid == "" {
-		return nil, KeyError{Kind: ErrInvalidKey, Err: errorsNew("kid must not be empty")}
+	if err := validateKID(kid); err != nil {
+		return nil, err
 	}
 	return &KeyChain{
 		kid:             kid,
@@ -148,6 +149,31 @@ func generateKID(entropy io.Reader) (string, error) {
 		return "", KeyError{Kind: ErrInvalidKey, Err: err}
 	}
 	return hex.EncodeToString(buf), nil
+}
+
+func validateKID(kid string) error {
+	if kid == "" {
+		return KeyError{Kind: ErrInvalidKey, Err: errorsNew("kid must not be empty")}
+	}
+	if len([]byte(kid)) > maxKIDBytes {
+		return KeyError{Kind: ErrInvalidKey, Err: errorsNew("kid is too long")}
+	}
+	for _, r := range kid {
+		if r < 0x21 || r > 0x7e {
+			return KeyError{Kind: ErrInvalidKey, Err: errorsNew("kid must contain only printable ASCII without spaces")}
+		}
+	}
+	return nil
+}
+
+func validateLookupKID(kid string) error {
+	if kid == "" {
+		return KeyError{Kind: ErrKeyNotFound, Err: errorsNew("kid is required")}
+	}
+	if err := validateKID(kid); err != nil {
+		return KeyError{Kind: ErrKeyNotFound, Err: err}
+	}
+	return nil
 }
 
 func generateHMACSecret(algorithm Algorithm, entropy io.Reader) ([]byte, error) {

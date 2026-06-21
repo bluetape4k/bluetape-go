@@ -2,7 +2,8 @@
 
 [English](README.md) | [한국어](README.ko.md)
 
-Milestone research note는 bluetape4k source capability를 Go package scope, dependency candidate, GitHub issue와 연결합니다.
+Milestone research note는 bluetape4k source capability를 Go package scope,
+dependency candidate, GitHub issue와 연결합니다.
 
 | Milestone | Research |
 |---|---|
@@ -12,6 +13,7 @@ Milestone research note는 bluetape4k source capability를 Go package scope, dep
 | `0.4.0` | [State and workflow](2026-06-01-milestone-0.4.0-state-workflow-research.md) |
 | `0.5.0` | [Batch](2026-06-01-milestone-0.5.0-batch-research.md) |
 | `0.6.0` | [Utilities](2026-06-01-milestone-0.6.0-utilities-research.md) |
+| `0.6.1` | [Issue #168 id generator benchmark comparison](2026-06-10-issue-168-id-generator-benchmark.md), [Issue #192 id generator performance optimization](2026-06-11-issue-192-id-generator-performance.md), [Issue #192 id generator third comparison](2026-06-11-issue-192-id-generator-third-comparison.md), [Issue #195 compression benchmark matrix](2026-06-12-issue-195-compression-benchmark-matrix.md) |
 | `0.7.0` | [Next tracks](2026-06-01-milestone-0.7.0-next-tracks-research.md) |
 | `0.8.0` | [Relational SQL](2026-06-01-milestone-0.8.0-sql-research.md) |
 | `0.9.0` | [AWS and Floci](2026-06-01-milestone-0.9.0-aws-research.md) |
@@ -21,4 +23,6 @@ Milestone research note는 bluetape4k source capability를 Go package scope, dep
 
 ## 갱신 규칙
 
-Broad implementation issue를 추가하거나 milestone scope를 바꾸기 전에 matching research note를 먼저 갱신합니다. 각 note는 bluetape4k source module, Go package direction, candidate dependency, linked issue, current decision을 명시해야 합니다.
+Broad implementation issue를 추가하거나 milestone scope를 바꾸기 전에 matching
+research note를 먼저 갱신합니다. 각 note는 bluetape4k source module, Go package
+direction, candidate dependency, linked issue, current decision을 명시해야 합니다.

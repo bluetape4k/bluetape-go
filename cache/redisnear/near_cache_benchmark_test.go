@@ -9,10 +9,9 @@ import (
 	"time"
 
 	"github.com/bluetape4k/bluetape-go/cache"
+	"github.com/bluetape4k/bluetape-go/internal/testcleanup"
 	"github.com/redis/go-redis/v9"
-	"github.com/testcontainers/testcontainers-go"
 	tcredis "github.com/testcontainers/testcontainers-go/modules/redis"
-	"github.com/testcontainers/testcontainers-go/wait"
 )
 
 func BenchmarkNearCacheGetLocalHit(b *testing.B) {
@@ -207,28 +206,18 @@ func benchmarkRedisClientAt(ctx context.Context, b *testing.B, addr string) *red
 func benchmarkRedisServer(ctx context.Context, b *testing.B) string {
 	b.Helper()
 
-	container, err := tcredis.Run(ctx, "redis:7.4-alpine", testcontainers.WithWaitStrategy(
-		wait.ForLog("Ready to accept connections"),
-	))
+	container, err := tcredis.Run(ctx, "redis:7.4-alpine")
 	if err != nil {
 		b.Fatalf("start redis container: %v", err)
 	}
 
-	b.Cleanup(func() {
-		if err := container.Terminate(context.Background()); err != nil && !errors.Is(err, context.Canceled) {
-			b.Fatalf("terminate redis container: %v", err)
-		}
-	})
+	testcleanup.Register(ctx, b, "redis", container)
 
-	host, err := container.Host(ctx)
+	addr, err := container.PortEndpoint(ctx, "6379/tcp", "")
 	if err != nil {
-		b.Fatalf("redis container host: %v", err)
+		b.Fatalf("redis container endpoint: %v", err)
 	}
-	port, err := container.MappedPort(ctx, "6379/tcp")
-	if err != nil {
-		b.Fatalf("redis container port: %v", err)
-	}
-	return host + ":" + port.Port()
+	return addr
 }
 
 func benchmarkNearCache[V any](

@@ -18,4 +18,12 @@ var (
 	ErrOverflow = errors.New("money: overflow")
 	// ErrInvalidExchangeRate 는 환율 값이 유효하지 않을 때 반환됩니다.
 	ErrInvalidExchangeRate = errors.New("money: invalid exchange rate")
+	// ErrExchangeRateProvider 는 환율 provider 설정이나 실행 오류에서 반환됩니다.
+	ErrExchangeRateProvider = errors.New("money: exchange rate provider")
+	// ErrExchangeRateUnavailable 은 provider 환율을 가져올 수 없을 때 반환됩니다.
+	ErrExchangeRateUnavailable = errors.New("money: exchange rate unavailable")
+	// ErrExchangeRateStale 은 허용되지 않는 오래된 환율 snapshot에서 반환됩니다.
+	ErrExchangeRateStale = errors.New("money: exchange rate stale")
+	// ErrUnsupportedExchangeRate 는 provider가 통화쌍을 지원하지 않을 때 반환됩니다.
+	ErrUnsupportedExchangeRate = errors.New("money: unsupported exchange rate")
 )

@@ -6,6 +6,10 @@
 The package owns option validation, sentinel errors, and the shared API shape;
 backend-specific Redis behavior lives in `leader/redis`.
 
+## Diagram
+
+![leader contract overview](../docs/images/readme-diagrams/leader-contract-overview.png)
+
 ## Import
 
 ```go

@@ -2,7 +2,10 @@
 
 [English](README.md) | [한국어](README.ko.md)
 
-`testcontainers/mysql`은 integration test를 위해 MySQL container를 시작하고 MySQL driver와 함께 `database/sql`에서 사용할 수 있는 DSN을 반환합니다.
+`testcontainers/mysql`은 integration test용 MySQL container를 시작하고 MySQL
+driver와 함께 `database/sql`에서 사용할 수 있는 DSN을 반환합니다.
+
+![testcontainers helper flow](../../docs/images/readme-diagrams/testcontainers-helper-flow.png)
 
 ## 가져오기
 

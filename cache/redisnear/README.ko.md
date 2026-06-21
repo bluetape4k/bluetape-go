@@ -2,9 +2,11 @@
 
 [English](README.md) | [한국어](README.ko.md)
 
-`cache/redisnear`는 process-local `cache.LoadingCache[string,V]` 주변에 Redis Pub/Sub invalidation을 추가합니다. Redis는 invalidation bus로만 사용되며 값은 각 process-local cache 안에 남습니다.
+`cache/redisnear`는 process-local `cache.LoadingCache[string,V]`에 Redis Pub/Sub
+invalidation을 더합니다. Redis는 invalidation bus로만 사용되고, 값은 각
+process-local cache 안에 남습니다.
 
-## Diagram
+## 다이어그램
 
 ![Redis near-cache invalidation sequence](../../docs/images/readme-diagrams/redisnear-invalidation-sequence.png)
 
@@ -40,7 +42,7 @@ value, err := near.GetOrLoad(ctx, "item:1", time.Minute,
 - `Set`, `Delete`, `Clear`는 local cache를 변경하고 peer invalidation을 게시합니다.
 - Peer cache는 영향을 받은 entry를 삭제하고 다음 miss에서 자신의 loader로 다시 채웁니다.
 - `GetOrLoad`는 local cache만 채우며 invalidation을 게시하지 않습니다.
-- Receive error는 local value를 clear하고 optional `OnError` hook으로 보고됩니다.
+- Receive error는 local value를 지우고 optional `OnError` hook으로 보고됩니다.
 - `Close`는 idempotent입니다. Close 이후 operation은 `ErrClosed`를 반환합니다.
 
 ## 운영 경계

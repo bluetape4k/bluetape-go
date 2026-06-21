@@ -1,152 +1,120 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="1320" height="1100" viewBox="0 0 1320 1100">
-
-  <defs>
-    <style>
-      @font-face {
-        font-family: 'Architects Daughter';
-        src: url('/Users/debop/Library/Fonts/ArchitectsDaughter-Regular.ttf');
-      }
-      @font-face {
-        font-family: 'Comic Mono';
-        src: url('/Users/debop/Library/Fonts/ComicMono.ttf');
-        font-weight: normal;
-      }
-      @font-face {
-        font-family: 'Comic Mono';
-        src: url('/Users/debop/Library/Fonts/ComicMono-Bold.ttf');
-        font-weight: bold;
-      }
-    </style>
-    <marker id="arrowhead" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto">
-      <path d="M 1 1 L 7 4 L 1 7 Z" fill="#475569"/>
-    </marker>
-    <marker id="arrowhead-dashed" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto">
-      <path d="M 1 1 L 7 4 L 1 7 Z" fill="#94A3B8"/>
-    </marker>
-  </defs>
-
-<rect x="0" y="0" width="1320" height="1100" fill="#F8FAFC" stroke="#E2E8F0" stroke-width="1.5" rx="16"/>
-<text x="660" y="50" font-family="Architects Daughter" font-size="28" fill="#1E293B" font-weight="bold" text-anchor="middle" dominant-baseline="middle">bluetape-go — Architecture Overview</text>
-<text x="660" y="74" font-family="Comic Mono" font-size="12" fill="#64748B" text-anchor="middle" dominant-baseline="middle">Go backend utilities · Roadmap v0.1 → v0.11</text>
-<rect x="30" y="85" width="706" height="200" fill="#EBF4FF" stroke="#93C5FD" stroke-width="1.5" rx="12"/>
-<text x="383.0" y="103" font-family="Architects Daughter" font-size="13" fill="#1E293B" font-weight="bold" text-anchor="middle" dominant-baseline="middle">v0.1.0 — Foundation</text>
-<rect x="48.0" y="121" width="105" height="115" fill="white" stroke="#93C5FD" stroke-width="1.5" rx="8"/>
-<text x="100.5" y="162.4" font-family="Architects Daughter" font-size="13" fill="#1E293B" font-weight="bold" text-anchor="middle" dominant-baseline="middle">core</text>
-<text x="100.5" y="185.7" font-family="Comic Mono" font-size="10" fill="#334155" font-weight="normal" text-anchor="middle" dominant-baseline="middle">validation</text>
-<text x="100.5" y="199.2" font-family="Comic Mono" font-size="10" fill="#334155" font-weight="normal" text-anchor="middle" dominant-baseline="middle">zero/default</text>
-<text x="100.5" y="212.7" font-family="Comic Mono" font-size="10" fill="#334155" font-weight="normal" text-anchor="middle" dominant-baseline="middle">pointers, strings</text>
-<rect x="161.0" y="121" width="105" height="115" fill="white" stroke="#93C5FD" stroke-width="1.5" rx="8"/>
-<text x="213.5" y="162.4" font-family="Architects Daughter" font-size="13" fill="#1E293B" font-weight="bold" text-anchor="middle" dominant-baseline="middle">collections</text>
-<text x="213.5" y="185.7" font-family="Comic Mono" font-size="10" fill="#334155" font-weight="normal" text-anchor="middle" dominant-baseline="middle">chunk, group</text>
-<text x="213.5" y="199.2" font-family="Comic Mono" font-size="10" fill="#334155" font-weight="normal" text-anchor="middle" dominant-baseline="middle">distinct</text>
-<text x="213.5" y="212.7" font-family="Comic Mono" font-size="10" fill="#334155" font-weight="normal" text-anchor="middle" dominant-baseline="middle">error-aware</text>
-<rect x="274.0" y="121" width="105" height="115" fill="white" stroke="#93C5FD" stroke-width="1.5" rx="8"/>
-<text x="326.5" y="162.4" font-family="Architects Daughter" font-size="13" fill="#1E293B" font-weight="bold" text-anchor="middle" dominant-baseline="middle">codec</text>
-<text x="326.5" y="192.45" font-family="Comic Mono" font-size="10" fill="#334155" font-weight="normal" text-anchor="middle" dominant-baseline="middle">binary</text>
-<text x="326.5" y="205.95" font-family="Comic Mono" font-size="10" fill="#334155" font-weight="normal" text-anchor="middle" dominant-baseline="middle">encoding</text>
-<rect x="387.0" y="121" width="105" height="115" fill="white" stroke="#93C5FD" stroke-width="1.5" rx="8"/>
-<text x="439.5" y="162.4" font-family="Architects Daughter" font-size="13" fill="#1E293B" font-weight="bold" text-anchor="middle" dominant-baseline="middle">compression</text>
-<text x="439.5" y="192.45" font-family="Comic Mono" font-size="10" fill="#334155" font-weight="normal" text-anchor="middle" dominant-baseline="middle">gzip/snappy</text>
-<text x="439.5" y="205.95" font-family="Comic Mono" font-size="10" fill="#334155" font-weight="normal" text-anchor="middle" dominant-baseline="middle">/zstd</text>
-<rect x="500.0" y="121" width="105" height="115" fill="white" stroke="#93C5FD" stroke-width="1.5" rx="8"/>
-<text x="552.5" y="162.4" font-family="Architects Daughter" font-size="13" fill="#1E293B" font-weight="bold" text-anchor="middle" dominant-baseline="middle">concurrency</text>
-<text x="552.5" y="192.45" font-family="Comic Mono" font-size="10" fill="#334155" font-weight="normal" text-anchor="middle" dominant-baseline="middle">goroutine</text>
-<text x="552.5" y="205.95" font-family="Comic Mono" font-size="10" fill="#334155" font-weight="normal" text-anchor="middle" dominant-baseline="middle">helpers</text>
-<rect x="613.0" y="121" width="105" height="115" fill="white" stroke="#93C5FD" stroke-width="1.5" rx="8"/>
-<text x="665.5" y="162.4" font-family="Architects Daughter" font-size="13" fill="#1E293B" font-weight="bold" text-anchor="middle" dominant-baseline="middle">serialization</text>
-<text x="665.5" y="192.45" font-family="Comic Mono" font-size="10" fill="#334155" font-weight="normal" text-anchor="middle" dominant-baseline="middle">json/msgpack</text>
-<text x="665.5" y="205.95" font-family="Comic Mono" font-size="10" fill="#334155" font-weight="normal" text-anchor="middle" dominant-baseline="middle">/gob</text>
-<rect x="754" y="85" width="360" height="200" fill="#F0FFF4" stroke="#6EE7B7" stroke-width="1.5" rx="12"/>
-<text x="934.0" y="103" font-family="Architects Daughter" font-size="13" fill="#1E293B" font-weight="bold" text-anchor="middle" dominant-baseline="middle">Testing Infrastructure</text>
-<rect x="762.0" y="121" width="64" height="50" fill="white" stroke="#6EE7B7" stroke-width="1.5" rx="6"/>
-<text x="794.0" y="146.0" font-family="Architects Daughter" font-size="13" fill="#1E293B" font-weight="bold" text-anchor="middle" dominant-baseline="middle">redis</text>
-<rect x="832.0" y="121" width="64" height="50" fill="white" stroke="#6EE7B7" stroke-width="1.5" rx="6"/>
-<text x="864.0" y="146.0" font-family="Architects Daughter" font-size="13" fill="#1E293B" font-weight="bold" text-anchor="middle" dominant-baseline="middle">postgres</text>
-<rect x="902.0" y="121" width="64" height="50" fill="white" stroke="#6EE7B7" stroke-width="1.5" rx="6"/>
-<text x="934.0" y="146.0" font-family="Architects Daughter" font-size="13" fill="#1E293B" font-weight="bold" text-anchor="middle" dominant-baseline="middle">mysql</text>
-<rect x="972.0" y="121" width="64" height="50" fill="white" stroke="#6EE7B7" stroke-width="1.5" rx="6"/>
-<text x="1004.0" y="146.0" font-family="Architects Daughter" font-size="13" fill="#1E293B" font-weight="bold" text-anchor="middle" dominant-baseline="middle">nats</text>
-<rect x="1042.0" y="121" width="64" height="50" fill="white" stroke="#6EE7B7" stroke-width="1.5" rx="6"/>
-<text x="1074.0" y="146.0" font-family="Architects Daughter" font-size="13" fill="#1E293B" font-weight="bold" text-anchor="middle" dominant-baseline="middle">kafka</text>
-<rect x="844.0" y="185" width="180" height="70" fill="white" stroke="#6EE7B7" stroke-width="1.5" rx="8"/>
-<text x="934.0" y="210.2" font-family="Architects Daughter" font-size="13" fill="#1E293B" font-weight="bold" text-anchor="middle" dominant-baseline="middle">testing</text>
-<text x="934.0" y="225.85" font-family="Comic Mono" font-size="10" fill="#334155" font-weight="normal" text-anchor="middle" dominant-baseline="middle">Eventually/Consistently</text>
-<text x="934.0" y="239.35" font-family="Comic Mono" font-size="10" fill="#334155" font-weight="normal" text-anchor="middle" dominant-baseline="middle">Gomega helpers</text>
-<rect x="1132" y="85" width="158" height="200" fill="#FFF7ED" stroke="#FCD34D" stroke-width="1.5" rx="12"/>
-<text x="1211.0" y="103" font-family="Architects Daughter" font-size="13" fill="#1E293B" font-weight="bold" text-anchor="middle" dominant-baseline="middle">Leader Election</text>
-<rect x="1150.0" y="127" width="122" height="65" fill="white" stroke="#FCD34D" stroke-width="1.5" rx="8"/>
-<text x="1211.0" y="150.4" font-family="Architects Daughter" font-size="13" fill="#1E293B" font-weight="bold" text-anchor="middle" dominant-baseline="middle">leader</text>
-<text x="1211.0" y="164.45" font-family="Comic Mono" font-size="10" fill="#334155" font-weight="normal" text-anchor="middle" dominant-baseline="middle">API interface</text>
-<text x="1211.0" y="177.95" font-family="Comic Mono" font-size="10" fill="#334155" font-weight="normal" text-anchor="middle" dominant-baseline="middle">campaign / resign</text>
-<rect x="1150.0" y="205" width="122" height="65" fill="white" stroke="#FCD34D" stroke-width="1.5" rx="8"/>
-<text x="1211.0" y="228.4" font-family="Architects Daughter" font-size="13" fill="#1E293B" font-weight="bold" text-anchor="middle" dominant-baseline="middle">leader/redis</text>
-<text x="1211.0" y="242.45" font-family="Comic Mono" font-size="10" fill="#334155" font-weight="normal" text-anchor="middle" dominant-baseline="middle">SET NX PX</text>
-<text x="1211.0" y="255.95" font-family="Comic Mono" font-size="10" fill="#334155" font-weight="normal" text-anchor="middle" dominant-baseline="middle">+ TTL renewal</text>
-<line x1="1211.0" y1="192" x2="1211.0" y2="205" stroke="#FCD34D" stroke-width="1.8" marker-end="url(#arrowhead)"/>
-<rect x="30" y="310" width="1260" height="95" fill="#FEF9C3" stroke="#FDE047" stroke-width="1.5" rx="12"/>
-<text x="660.0" y="326" font-family="Architects Daughter" font-size="13" fill="#1E293B" font-weight="bold" text-anchor="middle" dominant-baseline="middle">v0.2.0 — Resilience</text>
-<rect x="500.0" y="340" width="320" height="60" fill="white" stroke="#FDE047" stroke-width="1.5" rx="8"/>
-<text x="660.0" y="361.6" font-family="Architects Daughter" font-size="13" fill="#1E293B" font-weight="bold" text-anchor="middle" dominant-baseline="middle">resilience</text>
-<text x="660.0" y="380.8" font-family="Comic Mono" font-size="10" fill="#334155" font-weight="normal" text-anchor="middle" dominant-baseline="middle">retry · timeout · circuit breaker · bulkhead · HTTP middleware</text>
-<rect x="30" y="430" width="1260" height="95" fill="#F0FDF4" stroke="#86EFAC" stroke-width="1.5" rx="12"/>
-<text x="660.0" y="446" font-family="Architects Daughter" font-size="13" fill="#1E293B" font-weight="bold" text-anchor="middle" dominant-baseline="middle">v0.3.0 — Cache &amp; Coordination</text>
-<rect x="490.0" y="460" width="340" height="60" fill="white" stroke="#86EFAC" stroke-width="1.5" rx="8"/>
-<text x="660.0" y="481.6" font-family="Architects Daughter" font-size="13" fill="#1E293B" font-weight="bold" text-anchor="middle" dominant-baseline="middle">cache</text>
-<text x="660.0" y="500.8" font-family="Comic Mono" font-size="10" fill="#334155" font-weight="normal" text-anchor="middle" dominant-baseline="middle">near cache · Redis locks · token-bucket rate limiting</text>
-<rect x="30" y="545" width="1260" height="110" fill="#FAF5FF" stroke="#C4B5FD" stroke-width="1.5" rx="12"/>
-<text x="660.0" y="561" font-family="Architects Daughter" font-size="13" fill="#1E293B" font-weight="bold" text-anchor="middle" dominant-baseline="middle">v0.4-0.5 — Workflow &amp; Batch Recovery</text>
-<rect x="400.0" y="575" width="240" height="70" fill="white" stroke="#C4B5FD" stroke-width="1.5" rx="8"/>
-<text x="520.0" y="600.2" font-family="Architects Daughter" font-size="13" fill="#1E293B" font-weight="bold" text-anchor="middle" dominant-baseline="middle">workflow</text>
-<text x="520.0" y="615.85" font-family="Comic Mono" font-size="10" fill="#334155" font-weight="normal" text-anchor="middle" dominant-baseline="middle">state machine</text>
-<text x="520.0" y="629.35" font-family="Comic Mono" font-size="10" fill="#334155" font-weight="normal" text-anchor="middle" dominant-baseline="middle">lightweight workflows</text>
-<rect x="680.0" y="575" width="240" height="70" fill="white" stroke="#E879F9" stroke-width="1.5" rx="8"/>
-<text x="800.0" y="600.2" font-family="Architects Daughter" font-size="13" fill="#1E293B" font-weight="bold" text-anchor="middle" dominant-baseline="middle">batch</text>
-<text x="800.0" y="615.85" font-family="Comic Mono" font-size="10" fill="#334155" font-weight="normal" text-anchor="middle" dominant-baseline="middle">retry / skip policies</text>
-<text x="800.0" y="629.35" font-family="Comic Mono" font-size="10" fill="#334155" font-weight="normal" text-anchor="middle" dominant-baseline="middle">checkpoint restart</text>
-<rect x="30" y="670" width="1260" height="90" fill="#FFF1F2" stroke="#FDA4AF" stroke-width="1.5" rx="12"/>
-<text x="660.0" y="686" font-family="Architects Daughter" font-size="13" fill="#1E293B" font-weight="bold" text-anchor="middle" dominant-baseline="middle">v0.6 — Portable Utilities</text>
-<rect x="460.0" y="696" width="400" height="55" fill="white" stroke="#FDA4AF" stroke-width="1.5" rx="8"/>
-<text x="660.0" y="723.5" font-family="Architects Daughter" font-size="13" fill="#1E293B" font-weight="bold" text-anchor="middle" dominant-baseline="middle">id · jwt · money · probabilistic · rule engine</text>
-<rect x="30" y="780" width="1260" height="105" fill="#F0F9FF" stroke="#7DD3FC" stroke-width="1.5" rx="12"/>
-<text x="660.0" y="797" font-family="Architects Daughter" font-size="13" fill="#1E293B" font-weight="bold" text-anchor="middle" dominant-baseline="middle">v0.8-0.11 — Domain Packages</text>
-<rect x="156.0" y="808" width="240" height="68" fill="white" stroke="#7DD3FC" stroke-width="1.5" rx="8"/>
-<text x="276.0" y="832.48" font-family="Architects Daughter" font-size="13" fill="#1E293B" font-weight="bold" text-anchor="middle" dominant-baseline="middle">graph</text>
-<text x="276.0" y="854.24" font-family="Comic Mono" font-size="10" fill="#334155" font-weight="normal" text-anchor="middle" dominant-baseline="middle">Neo4j / Memgraph</text>
-<rect x="412.0" y="808" width="240" height="68" fill="white" stroke="#7DD3FC" stroke-width="1.5" rx="8"/>
-<text x="532.0" y="832.48" font-family="Architects Daughter" font-size="13" fill="#1E293B" font-weight="bold" text-anchor="middle" dominant-baseline="middle">text</text>
-<text x="532.0" y="847.49" font-family="Comic Mono" font-size="10" fill="#334155" font-weight="normal" text-anchor="middle" dominant-baseline="middle">search · blockword</text>
-<text x="532.0" y="860.99" font-family="Comic Mono" font-size="10" fill="#334155" font-weight="normal" text-anchor="middle" dominant-baseline="middle">tokenizer</text>
-<rect x="668.0" y="808" width="240" height="68" fill="white" stroke="#7DD3FC" stroke-width="1.5" rx="8"/>
-<text x="788.0" y="832.48" font-family="Architects Daughter" font-size="13" fill="#1E293B" font-weight="bold" text-anchor="middle" dominant-baseline="middle">audit</text>
-<text x="788.0" y="854.24" font-family="Comic Mono" font-size="10" fill="#334155" font-weight="normal" text-anchor="middle" dominant-baseline="middle">event packages</text>
-<rect x="924.0" y="808" width="240" height="68" fill="white" stroke="#7DD3FC" stroke-width="1.5" rx="8"/>
-<text x="1044.0" y="832.48" font-family="Architects Daughter" font-size="13" fill="#1E293B" font-weight="bold" text-anchor="middle" dominant-baseline="middle">aws</text>
-<text x="1044.0" y="847.49" font-family="Comic Mono" font-size="10" fill="#334155" font-weight="normal" text-anchor="middle" dominant-baseline="middle">helpers</text>
-<text x="1044.0" y="860.99" font-family="Comic Mono" font-size="10" fill="#334155" font-weight="normal" text-anchor="middle" dominant-baseline="middle">LocalStack examples</text>
-<line x1="100.5" y1="236" x2="100.5" y2="340" stroke="#93C5FD" stroke-width="1.8" marker-end="url(#arrowhead)"/>
-<path d="M 552.5 236 L 552.5 288.0 L 560.0 288.0 L 560.0 340" fill="none" stroke="#93C5FD" stroke-width="1.8" marker-end="url(#arrowhead)"/>
-<path d="M 213.5 236 L 213.5 405.5 L 800.0 405.5 L 800.0 575" fill="none" stroke="#93C5FD" stroke-width="1.8" stroke-dasharray="6,4" marker-end="url(#arrowhead-dashed)"/>
-<path d="M 665.5 236 L 665.5 348.0 L 770.0 348.0 L 770.0 460" fill="none" stroke="#93C5FD" stroke-width="1.8" marker-end="url(#arrowhead)"/>
-<path d="M 1211.0 270 L 1211.0 380.0 L 860.0 380.0 L 860.0 490.0" fill="none" stroke="#FCD34D" stroke-width="1.8" stroke-dasharray="6,4" marker-end="url(#arrowhead-dashed)"/>
-<path d="M 1211.0 270 L 1211.0 422.5 L 880.0 422.5 L 880.0 575" fill="none" stroke="#FCD34D" stroke-width="1.8" stroke-dasharray="6,4" marker-end="url(#arrowhead-dashed)"/>
-<line x1="660.0" y1="400" x2="660.0" y2="460" stroke="#FDE047" stroke-width="1.8" marker-end="url(#arrowhead)"/>
-<path d="M 560.0 400 L 560.0 487.5 L 520.0 487.5 L 520.0 575" fill="none" stroke="#FDE047" stroke-width="1.8" marker-end="url(#arrowhead)"/>
-<path d="M 660.0 520 L 660.0 547.5 L 520.0 547.5 L 520.0 575" fill="none" stroke="#86EFAC" stroke-width="1.8" marker-end="url(#arrowhead)"/>
-<line x1="640.0" y1="610.0" x2="680.0" y2="610.0" stroke="#C4B5FD" stroke-width="1.8" marker-end="url(#arrowhead)"/>
-<path d="M 520.0 645 L 520.0 670.5 L 540.0 670.5 L 540.0 696" fill="none" stroke="#C4B5FD" stroke-width="1.8" stroke-dasharray="6,4" marker-end="url(#arrowhead-dashed)"/>
-<path d="M 800.0 645 L 800.0 670.5 L 780.0 670.5 L 780.0 696" fill="none" stroke="#E879F9" stroke-width="1.8" stroke-dasharray="6,4" marker-end="url(#arrowhead-dashed)"/>
-<path d="M 540.0 751 L 540.0 779.5 L 276.0 779.5 L 276.0 808" fill="none" stroke="#FDA4AF" stroke-width="1.8" stroke-dasharray="6,4" marker-end="url(#arrowhead-dashed)"/>
-<path d="M 620.0 751 L 620.0 779.5 L 532.0 779.5 L 532.0 808" fill="none" stroke="#FDA4AF" stroke-width="1.8" stroke-dasharray="6,4" marker-end="url(#arrowhead-dashed)"/>
-<path d="M 700.0 751 L 700.0 779.5 L 788.0 779.5 L 788.0 808" fill="none" stroke="#FDA4AF" stroke-width="1.8" stroke-dasharray="6,4" marker-end="url(#arrowhead-dashed)"/>
-<path d="M 780.0 751 L 780.0 779.5 L 1044.0 779.5 L 1044.0 808" fill="none" stroke="#FDA4AF" stroke-width="1.8" stroke-dasharray="6,4" marker-end="url(#arrowhead-dashed)"/>
-<rect x="1100" y="990" width="200" height="90" fill="white" stroke="#E2E8F0" stroke-width="1.5" rx="8"/>
-<text x="1200" y="1006" font-family="Architects Daughter" font-size="11" fill="#1E293B" text-anchor="middle" dominant-baseline="middle">Legend</text>
-<line x1="1116" y1="1026" x2="1160" y2="1026" stroke="#475569" stroke-width="1.8" marker-end="url(#arrowhead)"/>
-<text x="1168" y="1026" font-family="Comic Mono" font-size="10" fill="#334155" dominant-baseline="middle">depends on</text>
-<line x1="1116" y1="1050" x2="1160" y2="1050" stroke="#94A3B8" stroke-width="1.8" stroke-dasharray="6,4" marker-end="url(#arrowhead-dashed)"/>
-<text x="1168" y="1050" font-family="Comic Mono" font-size="10" fill="#334155" dominant-baseline="middle">used by / planned</text>
-<rect x="1116" y="1066" width="44" height="16" fill="#EBF4FF" stroke="#93C5FD" stroke-width="1.5" rx="4"/>
-<text x="1138" y="1074" font-family="Comic Mono" font-size="9" fill="#1E293B" text-anchor="middle" dominant-baseline="middle">active</text>
-<rect x="1170" y="1066" width="44" height="16" fill="#FEF9C3" stroke="#FDE047" stroke-width="1.5" rx="4"/>
-<text x="1192" y="1074" font-family="Comic Mono" font-size="9" fill="#1E293B" text-anchor="middle" dominant-baseline="middle">roadmap</text>
+<svg xmlns="http://www.w3.org/2000/svg" width="1440" height="1040" viewBox="0 0 1440 1040" role="img" aria-labelledby="title desc">
+<title id="title">bluetape-go Architecture Overview</title>
+<desc id="desc">Static package ownership map for bluetape-go modules and infrastructure adapters.</desc>
+<defs>
+<marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="10" markerHeight="10" markerUnits="userSpaceOnUse" orient="auto-start-reverse"><path d="M 0 0 L 10 5 L 0 10 Z" fill="#2563eb" stroke-dasharray="none"/></marker>
+<style><![CDATA[
+.bg{fill:#f7fafc}.title{font-family:'Architects Daughter','Comic Mono',sans-serif;font-size:34px;fill:#111827}.sub{font-family:'Comic Mono','Architects Daughter',monospace;font-size:16px;fill:#4b5563}.layer{fill:#ffffff;stroke:#cbd5e1;stroke-width:2;rx:18}.layerTitle{font-family:'Architects Daughter','Comic Mono',sans-serif;font-size:20px;fill:#0f172a}.card{stroke-width:2;rx:12}.cardTitle{font-family:'Comic Mono','Architects Daughter',monospace;font-size:16px;font-weight:700;fill:#111827}.cardText{font-family:'Comic Mono','Architects Daughter',monospace;font-size:12px;fill:#374151}.arrow{fill:none;stroke:#2563eb;stroke-width:3.4;marker-end:url(#arrow)}.dash{fill:none;stroke:#64748b;stroke-width:2.6;stroke-dasharray:8 6;marker-end:url(#arrow)}.label{font-family:'Comic Mono','Architects Daughter',monospace;font-size:12px;fill:#1e40af}.legend{font-family:'Comic Mono','Architects Daughter',monospace;font-size:12px;fill:#475569}
+]]></style>
+</defs>
+<rect class="bg" x="0" y="0" width="1440" height="1040"/>
+<text class="title" x="56" y="62">bluetape-go Architecture Overview</text>
+<text class="sub" x="58" y="92">Idiomatic Go packages for service utilities, coordination, resilience, data contracts, and test infrastructure.</text>
+<rect class="layer" x="48" y="124" width="1328" height="168"/>
+<text class="layerTitle" x="70" y="158">Foundation and data contracts</text>
+<rect class="layer" x="48" y="326" width="1328" height="188"/>
+<text class="layerTitle" x="70" y="360">Runtime policy and coordination APIs</text>
+<rect class="layer" x="48" y="548" width="1328" height="188"/>
+<text class="layerTitle" x="70" y="582">Distributed infrastructure adapters</text>
+<rect class="layer" x="48" y="770" width="1328" height="168"/>
+<text class="layerTitle" x="70" y="804">Verification and delivery support</text>
+<rect class="card" x="78" y="182" width="175" height="86" fill="#ecfeff" stroke="#0891b2"/>
+<text class="cardTitle" x="96" y="213">core</text>
+<text class="cardText" x="96" y="240">validation</text>
+<text class="cardText" x="96" y="259">zero/default</text>
+<rect class="card" x="273" y="182" width="205" height="86" fill="#eff6ff" stroke="#2563eb"/>
+<text class="cardTitle" x="291" y="213">collections</text>
+<text class="cardText" x="291" y="240">slice/map helpers</text>
+<text class="cardText" x="291" y="259">error-aware transforms</text>
+<rect class="card" x="498" y="182" width="185" height="86" fill="#f0fdf4" stroke="#16a34a"/>
+<text class="cardTitle" x="516" y="213">codec</text>
+<text class="cardText" x="516" y="240">base encodings</text>
+<text class="cardText" x="516" y="259">URL-safe forms</text>
+<rect class="card" x="703" y="182" width="200" height="86" fill="#fff7ed" stroke="#f97316"/>
+<text class="cardTitle" x="721" y="213">compression</text>
+<text class="cardText" x="721" y="240">gzip zstd lz4</text>
+<text class="cardText" x="721" y="259">registry selection</text>
+<rect class="card" x="923" y="182" width="195" height="86" fill="#f5f3ff" stroke="#7c3aed"/>
+<text class="cardTitle" x="941" y="213">serialization</text>
+<text class="cardText" x="941" y="240">JSON/binary</text>
+<text class="cardText" x="941" y="259">serializer contracts</text>
+<rect class="card" x="1138" y="182" width="205" height="86" fill="#fdf2f8" stroke="#db2777"/>
+<text class="cardTitle" x="1156" y="213">portable values</text>
+<text class="cardText" x="1156" y="240">id measure money</text>
+<text class="cardText" x="1156" y="259">probabilistic</text>
+<rect class="card" x="78" y="384" width="210" height="94" fill="#eef2ff" stroke="#4f46e5"/>
+<text class="cardTitle" x="96" y="415">concurrency</text>
+<text class="cardText" x="96" y="442">groups pools</text>
+<text class="cardText" x="96" y="461">bounded parallelism</text>
+<rect class="card" x="312" y="384" width="210" height="94" fill="#fefce8" stroke="#ca8a04"/>
+<text class="cardTitle" x="330" y="415">resilience</text>
+<text class="cardText" x="330" y="442">retry timeout</text>
+<text class="cardText" x="330" y="461">breaker bulkhead</text>
+<rect class="card" x="546" y="384" width="200" height="94" fill="#ecfdf5" stroke="#059669"/>
+<text class="cardTitle" x="564" y="415">cache</text>
+<text class="cardText" x="564" y="442">TTL loader cache</text>
+<text class="cardText" x="564" y="461">stampede guard</text>
+<rect class="card" x="770" y="384" width="205" height="94" fill="#f0f9ff" stroke="#0284c7"/>
+<text class="cardTitle" x="788" y="415">leader / lock</text>
+<text class="cardText" x="788" y="442">election contracts</text>
+<text class="cardText" x="788" y="461">owner-token locks</text>
+<rect class="card" x="999" y="384" width="205" height="94" fill="#f8fafc" stroke="#64748b"/>
+<text class="cardTitle" x="1017" y="415">state / workflow</text>
+<text class="cardText" x="1017" y="442">typed transitions</text>
+<text class="cardText" x="1017" y="461">branch runners</text>
+<rect class="card" x="78" y="606" width="215" height="94" fill="#fff1f2" stroke="#e11d48"/>
+<image href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHhtbG5zOnhsaW5rPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5L3hsaW5rIiBoZWlnaHQ9IjY0IiB2aWV3Qm94PSIwIDAgMzIgMzIiIHdpZHRoPSI2NCI+PGcgdHJhbnNmb3JtPSJtYXRyaXgoLjg0ODMyNyAwIDAgLjg0ODMyNyAtNy44ODM1NzMgLTkuNDQ5NjkxKSI+PHVzZSB4bGluazpocmVmPSIjQiIgZmlsbD0iI2E0MWUxMSIvPjxwYXRoIGQ9Ik00NS41MzYgMzQuOTVjLTIuMDEzIDEuMDUtMTIuNDQgNS4zMzctMTQuNjYgNi40OTRzLTMuNDUzIDEuMTQ2LTUuMjA3LjMwOC0xMi44NS01LjMyLTE0Ljg1LTYuMjc2LTIuMDQtMS42MTMtLjA3Ny0yLjM4MmwxNS4zMzItNS45MzZjMi4zMzItLjgzNiAzLjE0LS44NjcgNS4xMjYtLjE0UzQzLjU1IDMxLjg3IDQ1LjUxIDMyLjZzMi4wMzcgMS4zMS4wMjQgMi4zNnoiIGZpbGw9IiNkODJjMjAiLz48dXNlIHhsaW5rOmhyZWY9IiNCIiB5PSItNi4yMTgiIGZpbGw9IiNhNDFlMTEiLz48dXNlIHhsaW5rOmhyZWY9IiNDIiBmaWxsPSIjZDgyYzIwIi8+PHBhdGggZD0iTTQ1LjUzNiAyNi4wOThjLTIuMDEzIDEuMDUtMTIuNDQgNS4zMzctMTQuNjYgNi40OTVzLTMuNDUzIDEuMTQ2LTUuMjA3LjMwOC0xMi44NS01LjMyLTE0Ljg1LTYuMjc2Yy0xLS40NzgtMS41MjQtLjg4LTEuNTI0LTEuMjZWMjEuNTVzMTQuNDQ3LTMuMTQ1IDE2Ljc4LTMuOTgyIDMuMTQtLjg2NyA1LjEyNi0uMTQgMTMuODUzIDIuODY4IDE1LjgxNCAzLjU4N3YzLjc2YzAgLjM3Ny0uNDUyLjgtMS40NzcgMS4zMjR6IiBmaWxsPSIjYTQxZTExIi8+PHVzZSB4bGluazpocmVmPSIjQyIgeT0iLTYuNDQ5IiBmaWxsPSIjZDgyYzIwIi8+PGcgZmlsbD0iI2ZmZiI+PHBhdGggZD0iTTI5LjA5NiAyMC43MTJsLTEuMTgyLTEuOTY1LTMuNzc0LS4zNCAyLjgxNi0xLjAxNi0uODQ1LTEuNTYgMi42MzYgMS4wMyAyLjQ4Ni0uODE0LS42NzIgMS42MTIgMi41MzQuOTUtMy4yNjguMzR6TTIyLjggMjQuNjI0bDguNzQtMS4zNDItMi42NCAzLjg3MnoiLz48ZWxsaXBzZSBjeD0iMjAuNDQ0IiByeD0iNC42NzIiIHJ5PSIxLjgxMSIgY3k9IjIxLjQwMiIvPjwvZz48cGF0aCBkPSJNNDIuMTMyIDIxLjEzOGwtNS4xNyAyLjA0Mi0uMDA0LTQuMDg3eiIgZmlsbD0iIzdhMGMwMCIvPjxwYXRoIGQ9Ik0zNi45NjMgMjMuMThsLS41Ni4yMi01LjE2Ni0yLjA0MiA1LjcyMy0yLjI2NHoiIGZpbGw9IiNhZDIxMTUiLz48L2c+PGRlZnMgPjxwYXRoIGlkPSJCIiBkPSJNNDUuNTM2IDM4Ljc2NGMtMi4wMTMgMS4wNS0xMi40NCA1LjMzNy0xNC42NiA2LjQ5NHMtMy40NTMgMS4xNDYtNS4yMDcuMzA4LTEyLjg1LTUuMzItMTQuODUtNi4yNzZjLTEtLjQ3OC0xLjUyNC0uODgtMS41MjQtMS4yNnYtMy44MTNzMTQuNDQ3LTMuMTQ1IDE2Ljc4LTMuOTgyIDMuMTQtLjg2NyA1LjEyNi0uMTQgMTMuODUzIDIuODY4IDE1LjgxNCAzLjU4N3YzLjc2YzAgLjM3Ny0uNDUyLjgtMS40NzcgMS4zMjR6Ii8+PHBhdGggaWQ9IkMiIGQ9Ik00NS41MzYgMjguNzMzYy0yLjAxMyAxLjA1LTEyLjQ0IDUuMzM3LTE0LjY2IDYuNDk0cy0zLjQ1MyAxLjE0Ni01LjIwNy4zMDgtMTIuODUtNS4zMi0xNC44NS02LjI3Ni0yLjA0LTEuNjEzLS4wNzctMi4zODJsMTUuMzMyLTUuOTM1YzIuMzMyLS44MzcgMy4xNC0uODY3IDUuMTI2LS4xNHMxMi4zNSA0Ljg1MyAxNC4zMTIgNS41NyAyLjAzNyAxLjMxLjAyNCAyLjM2eiIvPjwvZGVmcz48L3N2Zz4=" x="92" y="626" width="34" height="34" preserveAspectRatio="xMidYMid meet"/>
+<text class="cardTitle" x="136" y="637">Redis adapters</text>
+<text class="cardText" x="136" y="664">leader, lock</text>
+<text class="cardText" x="136" y="683">cache, JWT, rate</text>
+<rect class="card" x="317" y="606" width="215" height="94" fill="#f0fdf4" stroke="#16a34a"/>
+<text class="cardTitle" x="335" y="637">Rate limit</text>
+<text class="cardText" x="335" y="664">local bucket</text>
+<text class="cardText" x="335" y="683">Redis Lua bucket</text>
+<rect class="card" x="556" y="606" width="225" height="94" fill="#fef2f2" stroke="#dc2626"/>
+<text class="cardTitle" x="574" y="637">JWT repositories</text>
+<text class="cardText" x="574" y="664">in-memory keys</text>
+<text class="cardText" x="574" y="683">distributed kid rotation</text>
+<rect class="card" x="805" y="606" width="235" height="94" fill="#f8fafc" stroke="#475569"/>
+<image href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxMjgiIGhlaWdodD0iMTI4IiB2aWV3Qm94PSIwIDAgMTI4IDEyOCIgcm9sZT0iaW1nIiBhcmlhLWxhYmVsbGVkYnk9InRpdGxlIGRlc2MiPgogIDx0aXRsZSBpZD0idGl0bGUiPkdlbmVyaWMgZGF0YWJhc2Ugc2VydmVyIGljb248L3RpdGxlPgogIDxkZXNjIGlkPSJkZXNjIj5HZW5lcmljIGRhdGFiYXNlIHNlcnZlciBpY29uIGZvciBibHVldGFwZTRrIGRpYWdyYW1zLjwvZGVzYz4KICA8cmVjdCB4PSIxMCIgeT0iOCIgd2lkdGg9IjEwOCIgaGVpZ2h0PSIxMTIiIHJ4PSIxOCIgZmlsbD0iI2ZmZmFmMiIgc3Ryb2tlPSIjMjg0ODVhIiBzdHJva2Utd2lkdGg9IjYiLz4KICA8ZWxsaXBzZSBjeD0iNjQiIGN5PSIzNiIgcng9IjM0IiByeT0iMTMiIGZpbGw9IiNmZmYwZDgiIHN0cm9rZT0iIzhjNmYzMyIgc3Ryb2tlLXdpZHRoPSI2Ii8+CiAgPHBhdGggZD0iTTMwIDM2djQ0YzAgOCAxNSAxNCAzNCAxNHMzNC02IDM0LTE0VjM2IiBmaWxsPSIjZmZmMGQ4IiBzdHJva2U9IiM4YzZmMzMiIHN0cm9rZS13aWR0aD0iNiIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCIvPgogIDxwYXRoIGQ9Ik0zMCA1OGMwIDggMTUgMTQgMzQgMTRzMzQtNiAzNC0xNCIgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjOGM2ZjMzIiBzdHJva2Utd2lkdGg9IjUiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIvPgogIDxwYXRoIGQ9Ik0zMCA4MGMwIDggMTUgMTQgMzQgMTRzMzQtNiAzNC0xNCIgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjOGM2ZjMzIiBzdHJva2Utd2lkdGg9IjUiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIvPgo8L3N2Zz4K" x="819" y="626" width="34" height="34" preserveAspectRatio="xMidYMid meet"/>
+<text class="cardTitle" x="863" y="637">Testcontainers</text>
+<text class="cardText" x="863" y="664">Redis MySQL</text>
+<text class="cardText" x="863" y="683">Postgres NATS Kafka</text>
+<rect class="card" x="1064" y="606" width="235" height="94" fill="#fff7ed" stroke="#ea580c"/>
+<text class="cardTitle" x="1082" y="637">Batch and reports</text>
+<text class="cardText" x="1082" y="664">checkpointed jobs</text>
+<text class="cardText" x="1082" y="683">failure policy trees</text>
+<rect class="card" x="78" y="828" width="230" height="86" fill="#f0fdf4" stroke="#059669"/>
+<text class="cardTitle" x="96" y="859">testing</text>
+<text class="cardText" x="96" y="886">eventual checks</text>
+<text class="cardText" x="96" y="905">fixture ergonomics</text>
+<rect class="card" x="332" y="828" width="250" height="86" fill="#eef2ff" stroke="#4f46e5"/>
+<text class="cardTitle" x="350" y="859">testing/concurrency</text>
+<text class="cardText" x="350" y="886">stress tester</text>
+<text class="cardText" x="350" y="905">async job tester</text>
+<rect class="card" x="606" y="828" width="230" height="86" fill="#f8fafc" stroke="#64748b"/>
+<text class="cardTitle" x="624" y="859">Makefile gates</text>
+<text class="cardText" x="624" y="886">fmt tidy vet lint</text>
+<text class="cardText" x="624" y="905">test race coverage</text>
+<rect class="card" x="860" y="828" width="230" height="86" fill="#fdf2f8" stroke="#db2777"/>
+<text class="cardTitle" x="878" y="859">docs/research</text>
+<text class="cardText" x="878" y="886">milestones</text>
+<text class="cardText" x="878" y="905">source-backed plans</text>
+<rect class="card" x="1114" y="828" width="230" height="86" fill="#fff7ed" stroke="#ea580c"/>
+<text class="cardTitle" x="1132" y="859">release discipline</text>
+<text class="cardText" x="1132" y="886">CHANGELOG</text>
+<text class="cardText" x="1132" y="905">develop -> main</text>
+<path class="arrow" d="M 675 292 L 675 356"/>
+<text class="label" x="695" y="326">foundation feeds runtime APIs</text>
+<path class="arrow" d="M 675 514 L 675 578"/>
+<text class="label" x="695" y="548">runtime contracts gain adapters</text>
+<path class="dash" d="M 675 736 L 675 800"/>
+<text class="label" x="695" y="770">docs and gates verify behavior</text>
+<path class="arrow" d="M 288 431 L 312 431"/>
+<path class="arrow" d="M 746 431 L 770 431"/>
+<path class="arrow" d="M 975 431 L 999 431"/>
+<path class="arrow" d="M 293 653 L 317 653"/>
+<path class="arrow" d="M 781 653 L 805 653"/>
+<rect x="56" y="966" width="1320" height="42" rx="10" fill="#ffffff" stroke="#cbd5e1"/>
+<text class="legend" x="76" y="991">Reader contract: use foundation packages directly; add runtime policies where calls need control; use Redis/Testcontainers adapters only at infrastructure boundaries.</text>
 </svg>

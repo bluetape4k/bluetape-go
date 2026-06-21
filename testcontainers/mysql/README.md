@@ -5,6 +5,8 @@
 `testcontainers/mysql` starts a MySQL container for integration tests and
 returns a DSN suitable for `database/sql` with the MySQL driver.
 
+![testcontainers helper flow](../../docs/images/readme-diagrams/testcontainers-helper-flow.png)
+
 ## Import
 
 ```go

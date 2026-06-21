@@ -1,0 +1,443 @@
+Calculating task graph as no cached configuration is available for tasks: :bluetape4k-idgenerators:singleThreadBenchmark
+> Task :buildSrc:checkKotlinGradlePluginConfigurationErrors SKIPPED
+> Task :buildSrc:compileKotlin UP-TO-DATE
+> Task :buildSrc:compileJava NO-SOURCE
+> Task :buildSrc:compileGroovy NO-SOURCE
+> Task :buildSrc:pluginDescriptors UP-TO-DATE
+> Task :buildSrc:processResources NO-SOURCE
+> Task :buildSrc:classes UP-TO-DATE
+> Task :buildSrc:jar UP-TO-DATE
+> Task :bluetape4k-virtualthread-api:checkKotlinGradlePluginConfigurationErrors SKIPPED
+> Task :bluetape4k-coroutines:checkKotlinGradlePluginConfigurationErrors SKIPPED
+> Task :bluetape4k-assertions:checkKotlinGradlePluginConfigurationErrors SKIPPED
+> Task :bluetape4k-logging:checkKotlinGradlePluginConfigurationErrors SKIPPED
+> Task :bluetape4k-virtualthread-jdk21:checkKotlinGradlePluginConfigurationErrors SKIPPED
+> Task :bluetape4k-core:checkKotlinGradlePluginConfigurationErrors SKIPPED
+> Task :bluetape4k-idgenerators:checkKotlinGradlePluginConfigurationErrors SKIPPED
+> Task :bluetape4k-junit5:checkKotlinGradlePluginConfigurationErrors SKIPPED
+> Task :bluetape4k-junit5:processResources UP-TO-DATE
+> Task :bluetape4k-core:processResources NO-SOURCE
+> Task :bluetape4k-coroutines:processResources NO-SOURCE
+> Task :bluetape4k-idgenerators:processResources NO-SOURCE
+> Task :bluetape4k-idgenerators:processBenchmarkResources NO-SOURCE
+> Task :bluetape4k-logging:processResources NO-SOURCE
+> Task :bluetape4k-assertions:processResources NO-SOURCE
+> Task :bluetape4k-virtualthread-api:processResources NO-SOURCE
+> Task :bluetape4k-virtualthread-jdk21:processResources UP-TO-DATE
+> Task :bluetape4k-logging:compileKotlin
+> Task :bluetape4k-assertions:compileKotlin
+> Task :bluetape4k-logging:compileJava NO-SOURCE
+> Task :bluetape4k-assertions:compileJava NO-SOURCE
+> Task :bluetape4k-logging:classes UP-TO-DATE
+> Task :bluetape4k-assertions:classes UP-TO-DATE
+> Task :bluetape4k-logging:jar
+> Task :bluetape4k-assertions:jar
+> Task :bluetape4k-virtualthread-api:compileKotlin
+> Task :bluetape4k-virtualthread-api:compileJava NO-SOURCE
+> Task :bluetape4k-virtualthread-api:classes UP-TO-DATE
+> Task :bluetape4k-virtualthread-api:jar
+> Task :bluetape4k-virtualthread-jdk21:compileKotlin
+> Task :bluetape4k-virtualthread-jdk21:compileJava UP-TO-DATE
+> Task :bluetape4k-virtualthread-jdk21:classes UP-TO-DATE
+> Task :bluetape4k-virtualthread-jdk21:jar
+> Task :bluetape4k-junit5:compileKotlin
+> Task :bluetape4k-junit5:compileJava NO-SOURCE
+> Task :bluetape4k-junit5:classes UP-TO-DATE
+> Task :bluetape4k-junit5:jar
+
+> Task :bluetape4k-core:compileKotlin
+w: file:///Users/debop/work/bluetape4k/bluetape4k-projects/bluetape4k/core/src/main/kotlin/io/bluetape4k/collections/eclipse/multi/MultimapSupport.kt:82:54 Type arguments are not allowed when static member is accessed. This will become an error in language version 2.5. See https://youtrack.jetbrains.com/issue/KTLC-390.
+w: file:///Users/debop/work/bluetape4k/bluetape4k-projects/bluetape4k/core/src/main/kotlin/io/bluetape4k/collections/eclipse/multi/MultimapSupport.kt:99:54 Type arguments are not allowed when static member is accessed. This will become an error in language version 2.5. See https://youtrack.jetbrains.com/issue/KTLC-390.
+
+> Task :bluetape4k-core:compileJava NO-SOURCE
+> Task :bluetape4k-core:classes UP-TO-DATE
+> Task :bluetape4k-core:jar
+> Task :bluetape4k-coroutines:compileKotlin
+> Task :bluetape4k-coroutines:compileJava NO-SOURCE
+> Task :bluetape4k-coroutines:classes UP-TO-DATE
+> Task :bluetape4k-coroutines:jar
+> Task :bluetape4k-idgenerators:compileKotlin
+> Task :bluetape4k-idgenerators:compileJava NO-SOURCE
+> Task :bluetape4k-idgenerators:classes UP-TO-DATE
+> Task :bluetape4k-idgenerators:jar
+> Task :bluetape4k-idgenerators:compileBenchmarkKotlin
+> Task :bluetape4k-idgenerators:compileBenchmarkJava NO-SOURCE
+> Task :bluetape4k-idgenerators:benchmarkClasses UP-TO-DATE
+
+> Task :bluetape4k-idgenerators:benchmarkBenchmarkGenerate
+Analyzing 2 files from /Users/debop/work/bluetape4k/bluetape4k-projects/utils/idgenerators/build/classes/kotlin/benchmark
+Analyzing 0 files from /Users/debop/work/bluetape4k/bluetape4k-projects/utils/idgenerators/build/resources/benchmark
+Analyzing 0 files from /Users/debop/work/bluetape4k/bluetape4k-projects/utils/idgenerators/build/classes/java/benchmark
+Writing out Java source to /Users/debop/work/bluetape4k/bluetape4k-projects/utils/idgenerators/build/benchmarks/benchmark/sources and resources to /Users/debop/work/bluetape4k/bluetape4k-projects/utils/idgenerators/build/benchmarks/benchmark/resources
+
+> Task :bluetape4k-idgenerators:benchmarkBenchmarkCompile
+
+> Task :bluetape4k-idgenerators:benchmarkBenchmarkJar
+zip entry '/Volumes/SS980/.gradle/caches/modules-2/files-2.1/io.mockk/mockk-jvm/1.14.9/4eb489953dee964371c015facfd859117e970e9a/mockk-jvm-1.14.9.jar!META-INF/services/org.junit.jupiter.api.extension.Extension' will be copied to 'META-INF/services/org.junit.jupiter.api.extension.Extension', overwriting zip entry '/Users/debop/work/bluetape4k/bluetape4k-projects/testing/junit5/build/libs/bluetape4k-junit5-1.11.0.jar!META-INF/services/org.junit.jupiter.api.extension.Extension', which has already been copied there.
+zip entry '/Volumes/SS980/.gradle/caches/modules-2/files-2.1/org.jetbrains.kotlin/kotlin-reflect/2.4.0/532cc727c0960d12f4c9acb6a6c2c4a3e08187b/kotlin-reflect-2.4.0.jar!META-INF/versions/9/module-info.class' will be copied to 'META-INF/versions/9/module-info.class', overwriting zip entry '/Volumes/SS980/.gradle/caches/modules-2/files-2.1/org.jetbrains.kotlinx/atomicfu-jvm/0.32.1/766417c1430c117100e14af193c4fdbe6034b5e6/atomicfu-jvm-0.32.1.jar!META-INF/versions/9/module-info.class', which has already been copied there.
+zip entry '/Volumes/SS980/.gradle/caches/modules-2/files-2.1/org.jetbrains.kotlin/kotlin-test-junit5/2.4.0/3a25dcc853e90ef0ee264b0f532791966bea9cb6/kotlin-test-junit5-2.4.0.jar!META-INF/versions/9/module-info.class' will be copied to 'META-INF/versions/9/module-info.class', overwriting zip entry '/Volumes/SS980/.gradle/caches/modules-2/files-2.1/org.jetbrains.kotlinx/atomicfu-jvm/0.32.1/766417c1430c117100e14af193c4fdbe6034b5e6/atomicfu-jvm-0.32.1.jar!META-INF/versions/9/module-info.class', which has already been copied there.
+zip entry '/Volumes/SS980/.gradle/caches/modules-2/files-2.1/org.jetbrains.kotlin/kotlin-test/2.4.0/c9a0c254adade886172cb021c0b099d8be1a5fc4/kotlin-test-2.4.0.jar!META-INF/versions/9/module-info.class' will be copied to 'META-INF/versions/9/module-info.class', overwriting zip entry '/Volumes/SS980/.gradle/caches/modules-2/files-2.1/org.jetbrains.kotlinx/atomicfu-jvm/0.32.1/766417c1430c117100e14af193c4fdbe6034b5e6/atomicfu-jvm-0.32.1.jar!META-INF/versions/9/module-info.class', which has already been copied there.
+zip entry '/Volumes/SS980/.gradle/caches/modules-2/files-2.1/org.jetbrains.kotlinx/kotlinx-coroutines-slf4j/1.11.0/556153d93573d016dd4e5df37e3d03d07d8d303/kotlinx-coroutines-slf4j-1.11.0.jar!META-INF/versions/9/module-info.class' will be copied to 'META-INF/versions/9/module-info.class', overwriting zip entry '/Volumes/SS980/.gradle/caches/modules-2/files-2.1/org.jetbrains.kotlinx/atomicfu-jvm/0.32.1/766417c1430c117100e14af193c4fdbe6034b5e6/atomicfu-jvm-0.32.1.jar!META-INF/versions/9/module-info.class', which has already been copied there.
+zip entry '/Volumes/SS980/.gradle/caches/modules-2/files-2.1/org.jetbrains.kotlinx/kotlinx-coroutines-test-jvm/1.11.0/1dfe8ce2b805d913922f283b386895bd0979dfcb/kotlinx-coroutines-test-jvm-1.11.0.jar!META-INF/versions/9/module-info.class' will be copied to 'META-INF/versions/9/module-info.class', overwriting zip entry '/Volumes/SS980/.gradle/caches/modules-2/files-2.1/org.jetbrains.kotlinx/atomicfu-jvm/0.32.1/766417c1430c117100e14af193c4fdbe6034b5e6/atomicfu-jvm-0.32.1.jar!META-INF/versions/9/module-info.class', which has already been copied there.
+zip entry '/Volumes/SS980/.gradle/caches/modules-2/files-2.1/org.jetbrains.kotlinx/kotlinx-coroutines-core-jvm/1.11.0/3d57dc678bd8d72a60e7adf0eca5c54e3f4f4b79/kotlinx-coroutines-core-jvm-1.11.0.jar!META-INF/proguard/coroutines.pro' will be copied to 'META-INF/proguard/coroutines.pro', overwriting zip entry '/Volumes/SS980/.gradle/caches/modules-2/files-2.1/org.jetbrains.kotlinx/kotlinx-coroutines-test-jvm/1.11.0/1dfe8ce2b805d913922f283b386895bd0979dfcb/kotlinx-coroutines-test-jvm-1.11.0.jar!META-INF/proguard/coroutines.pro', which has already been copied there.
+zip entry '/Volumes/SS980/.gradle/caches/modules-2/files-2.1/org.jetbrains.kotlinx/kotlinx-coroutines-core-jvm/1.11.0/3d57dc678bd8d72a60e7adf0eca5c54e3f4f4b79/kotlinx-coroutines-core-jvm-1.11.0.jar!META-INF/versions/9/module-info.class' will be copied to 'META-INF/versions/9/module-info.class', overwriting zip entry '/Volumes/SS980/.gradle/caches/modules-2/files-2.1/org.jetbrains.kotlinx/atomicfu-jvm/0.32.1/766417c1430c117100e14af193c4fdbe6034b5e6/atomicfu-jvm-0.32.1.jar!META-INF/versions/9/module-info.class', which has already been copied there.
+zip entry '/Volumes/SS980/.gradle/caches/modules-2/files-2.1/org.jetbrains.kotlin/kotlin-stdlib/2.4.0/4e9f4b531dce5c7dee58ed2de9a8b9a763c8dc6c/kotlin-stdlib-2.4.0.jar!META-INF/versions/9/module-info.class' will be copied to 'META-INF/versions/9/module-info.class', overwriting zip entry '/Volumes/SS980/.gradle/caches/modules-2/files-2.1/org.jetbrains.kotlinx/atomicfu-jvm/0.32.1/766417c1430c117100e14af193c4fdbe6034b5e6/atomicfu-jvm-0.32.1.jar!META-INF/versions/9/module-info.class', which has already been copied there.
+zip entry '/Volumes/SS980/.gradle/caches/modules-2/files-2.1/org.jetbrains/annotations/26.1.0/c1e9226d7ca6661020c58c94397da0cc3673d5e4/annotations-26.1.0.jar!META-INF/versions/9/module-info.class' will be copied to 'META-INF/versions/9/module-info.class', overwriting zip entry '/Volumes/SS980/.gradle/caches/modules-2/files-2.1/org.jetbrains.kotlinx/atomicfu-jvm/0.32.1/766417c1430c117100e14af193c4fdbe6034b5e6/atomicfu-jvm-0.32.1.jar!META-INF/versions/9/module-info.class', which has already been copied there.
+zip entry '/Volumes/SS980/.gradle/caches/modules-2/files-2.1/ch.qos.logback/logback-classic/1.5.32/2b1042c50f508f2eb402bd4d22ccbdf94cc37d2e/logback-classic-1.5.32.jar!module-info.class' will be copied to 'module-info.class', overwriting zip entry '/Volumes/SS980/.gradle/caches/modules-2/files-2.1/com.fasterxml.uuid/java-uuid-generator/5.2.0/3ca5091c87cd327880f09447e62b86b8b93db256/java-uuid-generator-5.2.0.jar!module-info.class', which has already been copied there.
+zip entry '/Volumes/SS980/.gradle/caches/modules-2/files-2.1/org.slf4j/jcl-over-slf4j/2.0.18/fb36c10c70e27bb427bb3cec86ac30bb83f667c7/jcl-over-slf4j-2.0.18.jar!META-INF/versions/9/module-info.class' will be copied to 'META-INF/versions/9/module-info.class', overwriting zip entry '/Volumes/SS980/.gradle/caches/modules-2/files-2.1/org.jetbrains.kotlinx/atomicfu-jvm/0.32.1/766417c1430c117100e14af193c4fdbe6034b5e6/atomicfu-jvm-0.32.1.jar!META-INF/versions/9/module-info.class', which has already been copied there.
+zip entry '/Volumes/SS980/.gradle/caches/modules-2/files-2.1/org.slf4j/jul-to-slf4j/2.0.18/79739c98001d5c9d078d087d5a348ec9e474ec8f/jul-to-slf4j-2.0.18.jar!META-INF/LICENSE.txt' will be copied to 'META-INF/LICENSE.txt', overwriting zip entry '/Volumes/SS980/.gradle/caches/modules-2/files-2.1/org.slf4j/jcl-over-slf4j/2.0.18/fb36c10c70e27bb427bb3cec86ac30bb83f667c7/jcl-over-slf4j-2.0.18.jar!META-INF/LICENSE.txt', which has already been copied there.
+zip entry '/Volumes/SS980/.gradle/caches/modules-2/files-2.1/org.slf4j/jul-to-slf4j/2.0.18/79739c98001d5c9d078d087d5a348ec9e474ec8f/jul-to-slf4j-2.0.18.jar!META-INF/versions/9/module-info.class' will be copied to 'META-INF/versions/9/module-info.class', overwriting zip entry '/Volumes/SS980/.gradle/caches/modules-2/files-2.1/org.jetbrains.kotlinx/atomicfu-jvm/0.32.1/766417c1430c117100e14af193c4fdbe6034b5e6/atomicfu-jvm-0.32.1.jar!META-INF/versions/9/module-info.class', which has already been copied there.
+zip entry '/Volumes/SS980/.gradle/caches/modules-2/files-2.1/org.slf4j/log4j-over-slf4j/2.0.18/9346cfcbbe1cd58c8f80ca04de4c709fba22052c/log4j-over-slf4j-2.0.18.jar!META-INF/LICENSE.txt' will be copied to 'META-INF/LICENSE.txt', overwriting zip entry '/Volumes/SS980/.gradle/caches/modules-2/files-2.1/org.slf4j/jcl-over-slf4j/2.0.18/fb36c10c70e27bb427bb3cec86ac30bb83f667c7/jcl-over-slf4j-2.0.18.jar!META-INF/LICENSE.txt', which has already been copied there.
+zip entry '/Volumes/SS980/.gradle/caches/modules-2/files-2.1/org.slf4j/log4j-over-slf4j/2.0.18/9346cfcbbe1cd58c8f80ca04de4c709fba22052c/log4j-over-slf4j-2.0.18.jar!META-INF/versions/9/module-info.class' will be copied to 'META-INF/versions/9/module-info.class', overwriting zip entry '/Volumes/SS980/.gradle/caches/modules-2/files-2.1/org.jetbrains.kotlinx/atomicfu-jvm/0.32.1/766417c1430c117100e14af193c4fdbe6034b5e6/atomicfu-jvm-0.32.1.jar!META-INF/versions/9/module-info.class', which has already been copied there.
+zip entry '/Volumes/SS980/.gradle/caches/modules-2/files-2.1/org.slf4j/slf4j-api/2.0.18/78a9e7a37cd6360e0b818e86341b24123d28d4df/slf4j-api-2.0.18.jar!META-INF/LICENSE.txt' will be copied to 'META-INF/LICENSE.txt', overwriting zip entry '/Volumes/SS980/.gradle/caches/modules-2/files-2.1/org.slf4j/jcl-over-slf4j/2.0.18/fb36c10c70e27bb427bb3cec86ac30bb83f667c7/jcl-over-slf4j-2.0.18.jar!META-INF/LICENSE.txt', which has already been copied there.
+zip entry '/Volumes/SS980/.gradle/caches/modules-2/files-2.1/org.slf4j/slf4j-api/2.0.18/78a9e7a37cd6360e0b818e86341b24123d28d4df/slf4j-api-2.0.18.jar!META-INF/versions/9/module-info.class' will be copied to 'META-INF/versions/9/module-info.class', overwriting zip entry '/Volumes/SS980/.gradle/caches/modules-2/files-2.1/org.jetbrains.kotlinx/atomicfu-jvm/0.32.1/766417c1430c117100e14af193c4fdbe6034b5e6/atomicfu-jvm-0.32.1.jar!META-INF/versions/9/module-info.class', which has already been copied there.
+zip entry '/Volumes/SS980/.gradle/caches/modules-2/files-2.1/org.junit.jupiter/junit-jupiter-migrationsupport/6.0.3/ef32e813500144481af6f57156be2292cfe4b15d/junit-jupiter-migrationsupport-6.0.3.jar!module-info.class' will be copied to 'module-info.class', overwriting zip entry '/Volumes/SS980/.gradle/caches/modules-2/files-2.1/com.fasterxml.uuid/java-uuid-generator/5.2.0/3ca5091c87cd327880f09447e62b86b8b93db256/java-uuid-generator-5.2.0.jar!module-info.class', which has already been copied there.
+zip entry '/Volumes/SS980/.gradle/caches/modules-2/files-2.1/org.junit.jupiter/junit-jupiter-engine/6.0.3/e26f7e17d06cfc85ba7643b5ad00c87d5f2084dd/junit-jupiter-engine-6.0.3.jar!META-INF/LICENSE-notice.md' will be copied to 'META-INF/LICENSE-notice.md', overwriting zip entry '/Volumes/SS980/.gradle/caches/modules-2/files-2.1/org.junit.jupiter/junit-jupiter-migrationsupport/6.0.3/ef32e813500144481af6f57156be2292cfe4b15d/junit-jupiter-migrationsupport-6.0.3.jar!META-INF/LICENSE-notice.md', which has already been copied there.
+zip entry '/Volumes/SS980/.gradle/caches/modules-2/files-2.1/org.junit.jupiter/junit-jupiter-engine/6.0.3/e26f7e17d06cfc85ba7643b5ad00c87d5f2084dd/junit-jupiter-engine-6.0.3.jar!META-INF/LICENSE.md' will be copied to 'META-INF/LICENSE.md', overwriting zip entry '/Volumes/SS980/.gradle/caches/modules-2/files-2.1/org.junit.jupiter/junit-jupiter-migrationsupport/6.0.3/ef32e813500144481af6f57156be2292cfe4b15d/junit-jupiter-migrationsupport-6.0.3.jar!META-INF/LICENSE.md', which has already been copied there.
+zip entry '/Volumes/SS980/.gradle/caches/modules-2/files-2.1/org.junit.jupiter/junit-jupiter-engine/6.0.3/e26f7e17d06cfc85ba7643b5ad00c87d5f2084dd/junit-jupiter-engine-6.0.3.jar!module-info.class' will be copied to 'module-info.class', overwriting zip entry '/Volumes/SS980/.gradle/caches/modules-2/files-2.1/com.fasterxml.uuid/java-uuid-generator/5.2.0/3ca5091c87cd327880f09447e62b86b8b93db256/java-uuid-generator-5.2.0.jar!module-info.class', which has already been copied there.
+zip entry '/Volumes/SS980/.gradle/caches/modules-2/files-2.1/org.junit.platform/junit-platform-launcher/6.0.3/4a721cdd640ebdaa4c6850f5eee0b0377cf698b0/junit-platform-launcher-6.0.3.jar!META-INF/LICENSE-notice.md' will be copied to 'META-INF/LICENSE-notice.md', overwriting zip entry '/Volumes/SS980/.gradle/caches/modules-2/files-2.1/org.junit.jupiter/junit-jupiter-migrationsupport/6.0.3/ef32e813500144481af6f57156be2292cfe4b15d/junit-jupiter-migrationsupport-6.0.3.jar!META-INF/LICENSE-notice.md', which has already been copied there.
+zip entry '/Volumes/SS980/.gradle/caches/modules-2/files-2.1/org.junit.platform/junit-platform-launcher/6.0.3/4a721cdd640ebdaa4c6850f5eee0b0377cf698b0/junit-platform-launcher-6.0.3.jar!META-INF/LICENSE.md' will be copied to 'META-INF/LICENSE.md', overwriting zip entry '/Volumes/SS980/.gradle/caches/modules-2/files-2.1/org.junit.jupiter/junit-jupiter-migrationsupport/6.0.3/ef32e813500144481af6f57156be2292cfe4b15d/junit-jupiter-migrationsupport-6.0.3.jar!META-INF/LICENSE.md', which has already been copied there.
+zip entry '/Volumes/SS980/.gradle/caches/modules-2/files-2.1/org.junit.platform/junit-platform-launcher/6.0.3/4a721cdd640ebdaa4c6850f5eee0b0377cf698b0/junit-platform-launcher-6.0.3.jar!META-INF/services/org.junit.platform.launcher.TestExecutionListener' will be copied to 'META-INF/services/org.junit.platform.launcher.TestExecutionListener', overwriting zip entry '/Users/debop/work/bluetape4k/bluetape4k-projects/testing/junit5/build/libs/bluetape4k-junit5-1.11.0.jar!META-INF/services/org.junit.platform.launcher.TestExecutionListener', which has already been copied there.
+zip entry '/Volumes/SS980/.gradle/caches/modules-2/files-2.1/org.junit.platform/junit-platform-launcher/6.0.3/4a721cdd640ebdaa4c6850f5eee0b0377cf698b0/junit-platform-launcher-6.0.3.jar!module-info.class' will be copied to 'module-info.class', overwriting zip entry '/Volumes/SS980/.gradle/caches/modules-2/files-2.1/com.fasterxml.uuid/java-uuid-generator/5.2.0/3ca5091c87cd327880f09447e62b86b8b93db256/java-uuid-generator-5.2.0.jar!module-info.class', which has already been copied there.
+zip entry '/Volumes/SS980/.gradle/caches/modules-2/files-2.1/org.junit.platform/junit-platform-engine/6.0.3/101305612e7daa4ce978d3ba73fd02dd4a5f22d9/junit-platform-engine-6.0.3.jar!META-INF/LICENSE-notice.md' will be copied to 'META-INF/LICENSE-notice.md', overwriting zip entry '/Volumes/SS980/.gradle/caches/modules-2/files-2.1/org.junit.jupiter/junit-jupiter-migrationsupport/6.0.3/ef32e813500144481af6f57156be2292cfe4b15d/junit-jupiter-migrationsupport-6.0.3.jar!META-INF/LICENSE-notice.md', which has already been copied there.
+zip entry '/Volumes/SS980/.gradle/caches/modules-2/files-2.1/org.junit.platform/junit-platform-engine/6.0.3/101305612e7daa4ce978d3ba73fd02dd4a5f22d9/junit-platform-engine-6.0.3.jar!META-INF/LICENSE.md' will be copied to 'META-INF/LICENSE.md', overwriting zip entry '/Volumes/SS980/.gradle/caches/modules-2/files-2.1/org.junit.jupiter/junit-jupiter-migrationsupport/6.0.3/ef32e813500144481af6f57156be2292cfe4b15d/junit-jupiter-migrationsupport-6.0.3.jar!META-INF/LICENSE.md', which has already been copied there.
+zip entry '/Volumes/SS980/.gradle/caches/modules-2/files-2.1/org.junit.platform/junit-platform-engine/6.0.3/101305612e7daa4ce978d3ba73fd02dd4a5f22d9/junit-platform-engine-6.0.3.jar!module-info.class' will be copied to 'module-info.class', overwriting zip entry '/Volumes/SS980/.gradle/caches/modules-2/files-2.1/com.fasterxml.uuid/java-uuid-generator/5.2.0/3ca5091c87cd327880f09447e62b86b8b93db256/java-uuid-generator-5.2.0.jar!module-info.class', which has already been copied there.
+zip entry '/Volumes/SS980/.gradle/caches/modules-2/files-2.1/org.junit.jupiter/junit-jupiter-params/6.0.3/6cd3efadd171a3ddd70413868a9c3af988a45907/junit-jupiter-params-6.0.3.jar!META-INF/LICENSE-notice.md' will be copied to 'META-INF/LICENSE-notice.md', overwriting zip entry '/Volumes/SS980/.gradle/caches/modules-2/files-2.1/org.junit.jupiter/junit-jupiter-migrationsupport/6.0.3/ef32e813500144481af6f57156be2292cfe4b15d/junit-jupiter-migrationsupport-6.0.3.jar!META-INF/LICENSE-notice.md', which has already been copied there.
+zip entry '/Volumes/SS980/.gradle/caches/modules-2/files-2.1/org.junit.jupiter/junit-jupiter-params/6.0.3/6cd3efadd171a3ddd70413868a9c3af988a45907/junit-jupiter-params-6.0.3.jar!META-INF/LICENSE.md' will be copied to 'META-INF/LICENSE.md', overwriting zip entry '/Volumes/SS980/.gradle/caches/modules-2/files-2.1/org.junit.jupiter/junit-jupiter-migrationsupport/6.0.3/ef32e813500144481af6f57156be2292cfe4b15d/junit-jupiter-migrationsupport-6.0.3.jar!META-INF/LICENSE.md', which has already been copied there.
+zip entry '/Volumes/SS980/.gradle/caches/modules-2/files-2.1/org.junit.jupiter/junit-jupiter-params/6.0.3/6cd3efadd171a3ddd70413868a9c3af988a45907/junit-jupiter-params-6.0.3.jar!module-info.class' will be copied to 'module-info.class', overwriting zip entry '/Volumes/SS980/.gradle/caches/modules-2/files-2.1/com.fasterxml.uuid/java-uuid-generator/5.2.0/3ca5091c87cd327880f09447e62b86b8b93db256/java-uuid-generator-5.2.0.jar!module-info.class', which has already been copied there.
+zip entry '/Volumes/SS980/.gradle/caches/modules-2/files-2.1/org.junit.jupiter/junit-jupiter-api/6.0.3/2e6cfb62db85350179f0408ed5270f7cdf8cefda/junit-jupiter-api-6.0.3.jar!META-INF/LICENSE-notice.md' will be copied to 'META-INF/LICENSE-notice.md', overwriting zip entry '/Volumes/SS980/.gradle/caches/modules-2/files-2.1/org.junit.jupiter/junit-jupiter-migrationsupport/6.0.3/ef32e813500144481af6f57156be2292cfe4b15d/junit-jupiter-migrationsupport-6.0.3.jar!META-INF/LICENSE-notice.md', which has already been copied there.
+zip entry '/Volumes/SS980/.gradle/caches/modules-2/files-2.1/org.junit.jupiter/junit-jupiter-api/6.0.3/2e6cfb62db85350179f0408ed5270f7cdf8cefda/junit-jupiter-api-6.0.3.jar!META-INF/LICENSE.md' will be copied to 'META-INF/LICENSE.md', overwriting zip entry '/Volumes/SS980/.gradle/caches/modules-2/files-2.1/org.junit.jupiter/junit-jupiter-migrationsupport/6.0.3/ef32e813500144481af6f57156be2292cfe4b15d/junit-jupiter-migrationsupport-6.0.3.jar!META-INF/LICENSE.md', which has already been copied there.
+zip entry '/Volumes/SS980/.gradle/caches/modules-2/files-2.1/org.junit.jupiter/junit-jupiter-api/6.0.3/2e6cfb62db85350179f0408ed5270f7cdf8cefda/junit-jupiter-api-6.0.3.jar!module-info.class' will be copied to 'module-info.class', overwriting zip entry '/Volumes/SS980/.gradle/caches/modules-2/files-2.1/com.fasterxml.uuid/java-uuid-generator/5.2.0/3ca5091c87cd327880f09447e62b86b8b93db256/java-uuid-generator-5.2.0.jar!module-info.class', which has already been copied there.
+zip entry '/Volumes/SS980/.gradle/caches/modules-2/files-2.1/org.junit.platform/junit-platform-commons/6.0.3/1093a7faa2ba47c28aa83f378d9a2083463bb20c/junit-platform-commons-6.0.3.jar!META-INF/LICENSE-notice.md' will be copied to 'META-INF/LICENSE-notice.md', overwriting zip entry '/Volumes/SS980/.gradle/caches/modules-2/files-2.1/org.junit.jupiter/junit-jupiter-migrationsupport/6.0.3/ef32e813500144481af6f57156be2292cfe4b15d/junit-jupiter-migrationsupport-6.0.3.jar!META-INF/LICENSE-notice.md', which has already been copied there.
+zip entry '/Volumes/SS980/.gradle/caches/modules-2/files-2.1/org.junit.platform/junit-platform-commons/6.0.3/1093a7faa2ba47c28aa83f378d9a2083463bb20c/junit-platform-commons-6.0.3.jar!META-INF/LICENSE.md' will be copied to 'META-INF/LICENSE.md', overwriting zip entry '/Volumes/SS980/.gradle/caches/modules-2/files-2.1/org.junit.jupiter/junit-jupiter-migrationsupport/6.0.3/ef32e813500144481af6f57156be2292cfe4b15d/junit-jupiter-migrationsupport-6.0.3.jar!META-INF/LICENSE.md', which has already been copied there.
+zip entry '/Volumes/SS980/.gradle/caches/modules-2/files-2.1/org.junit.platform/junit-platform-commons/6.0.3/1093a7faa2ba47c28aa83f378d9a2083463bb20c/junit-platform-commons-6.0.3.jar!module-info.class' will be copied to 'module-info.class', overwriting zip entry '/Volumes/SS980/.gradle/caches/modules-2/files-2.1/com.fasterxml.uuid/java-uuid-generator/5.2.0/3ca5091c87cd327880f09447e62b86b8b93db256/java-uuid-generator-5.2.0.jar!module-info.class', which has already been copied there.
+zip entry '/Volumes/SS980/.gradle/caches/modules-2/files-2.1/org.junit.jupiter/junit-jupiter/6.0.3/da72f4bc0feccbca639b901ace26e3a62512ebec/junit-jupiter-6.0.3.jar!META-INF/LICENSE-notice.md' will be copied to 'META-INF/LICENSE-notice.md', overwriting zip entry '/Volumes/SS980/.gradle/caches/modules-2/files-2.1/org.junit.jupiter/junit-jupiter-migrationsupport/6.0.3/ef32e813500144481af6f57156be2292cfe4b15d/junit-jupiter-migrationsupport-6.0.3.jar!META-INF/LICENSE-notice.md', which has already been copied there.
+zip entry '/Volumes/SS980/.gradle/caches/modules-2/files-2.1/org.junit.jupiter/junit-jupiter/6.0.3/da72f4bc0feccbca639b901ace26e3a62512ebec/junit-jupiter-6.0.3.jar!META-INF/LICENSE.md' will be copied to 'META-INF/LICENSE.md', overwriting zip entry '/Volumes/SS980/.gradle/caches/modules-2/files-2.1/org.junit.jupiter/junit-jupiter-migrationsupport/6.0.3/ef32e813500144481af6f57156be2292cfe4b15d/junit-jupiter-migrationsupport-6.0.3.jar!META-INF/LICENSE.md', which has already been copied there.
+zip entry '/Volumes/SS980/.gradle/caches/modules-2/files-2.1/org.junit.jupiter/junit-jupiter/6.0.3/da72f4bc0feccbca639b901ace26e3a62512ebec/junit-jupiter-6.0.3.jar!module-info.class' will be copied to 'module-info.class', overwriting zip entry '/Volumes/SS980/.gradle/caches/modules-2/files-2.1/com.fasterxml.uuid/java-uuid-generator/5.2.0/3ca5091c87cd327880f09447e62b86b8b93db256/java-uuid-generator-5.2.0.jar!module-info.class', which has already been copied there.
+zip entry '/Volumes/SS980/.gradle/caches/modules-2/files-2.1/net.datafaker/datafaker/2.5.4/afc8b76b45ae67ae7d7007fb5eb141934b5dd72b/datafaker-2.5.4.jar!module-info.class' will be copied to 'module-info.class', overwriting zip entry '/Volumes/SS980/.gradle/caches/modules-2/files-2.1/com.fasterxml.uuid/java-uuid-generator/5.2.0/3ca5091c87cd327880f09447e62b86b8b93db256/java-uuid-generator-5.2.0.jar!module-info.class', which has already been copied there.
+zip entry '/Volumes/SS980/.gradle/caches/modules-2/files-2.1/org.apache.commons/commons-lang3/3.20.0/65897b3e5731220962e659e001904af3c3cbeba9/commons-lang3-3.20.0.jar!META-INF/LICENSE.txt' will be copied to 'META-INF/LICENSE.txt', overwriting zip entry '/Volumes/SS980/.gradle/caches/modules-2/files-2.1/org.slf4j/jcl-over-slf4j/2.0.18/fb36c10c70e27bb427bb3cec86ac30bb83f667c7/jcl-over-slf4j-2.0.18.jar!META-INF/LICENSE.txt', which has already been copied there.
+zip entry '/Volumes/SS980/.gradle/caches/modules-2/files-2.1/org.apache.commons/commons-lang3/3.20.0/65897b3e5731220962e659e001904af3c3cbeba9/commons-lang3-3.20.0.jar!META-INF/versions/9/module-info.class' will be copied to 'META-INF/versions/9/module-info.class', overwriting zip entry '/Volumes/SS980/.gradle/caches/modules-2/files-2.1/org.jetbrains.kotlinx/atomicfu-jvm/0.32.1/766417c1430c117100e14af193c4fdbe6034b5e6/atomicfu-jvm-0.32.1.jar!META-INF/versions/9/module-info.class', which has already been copied there.
+zip entry '/Volumes/SS980/.gradle/caches/modules-2/files-2.1/org.apache.commons/commons-math3/3.6.1/e4ba98f1d4b3c80ec46392f25e094a6a2e58fcbf/commons-math3-3.6.1.jar!META-INF/LICENSE.txt' will be copied to 'META-INF/LICENSE.txt', overwriting zip entry '/Volumes/SS980/.gradle/caches/modules-2/files-2.1/org.slf4j/jcl-over-slf4j/2.0.18/fb36c10c70e27bb427bb3cec86ac30bb83f667c7/jcl-over-slf4j-2.0.18.jar!META-INF/LICENSE.txt', which has already been copied there.
+zip entry '/Volumes/SS980/.gradle/caches/modules-2/files-2.1/org.apache.commons/commons-math3/3.6.1/e4ba98f1d4b3c80ec46392f25e094a6a2e58fcbf/commons-math3-3.6.1.jar!META-INF/NOTICE.txt' will be copied to 'META-INF/NOTICE.txt', overwriting zip entry '/Volumes/SS980/.gradle/caches/modules-2/files-2.1/org.apache.commons/commons-lang3/3.20.0/65897b3e5731220962e659e001904af3c3cbeba9/commons-lang3-3.20.0.jar!META-INF/NOTICE.txt', which has already been copied there.
+zip entry '/Volumes/SS980/.gradle/caches/modules-2/files-2.1/ch.qos.logback/logback-core/1.5.32/fdfb3ff9a842303d4a95207294a6c6bc64e2605d/logback-core-1.5.32.jar!META-INF/INDEX.LIST' will be copied to 'META-INF/INDEX.LIST', overwriting zip entry '/Volumes/SS980/.gradle/caches/modules-2/files-2.1/ch.qos.logback/logback-classic/1.5.32/2b1042c50f508f2eb402bd4d22ccbdf94cc37d2e/logback-classic-1.5.32.jar!META-INF/INDEX.LIST', which has already been copied there.
+zip entry '/Volumes/SS980/.gradle/caches/modules-2/files-2.1/ch.qos.logback/logback-core/1.5.32/fdfb3ff9a842303d4a95207294a6c6bc64e2605d/logback-core-1.5.32.jar!module-info.class' will be copied to 'module-info.class', overwriting zip entry '/Volumes/SS980/.gradle/caches/modules-2/files-2.1/com.fasterxml.uuid/java-uuid-generator/5.2.0/3ca5091c87cd327880f09447e62b86b8b93db256/java-uuid-generator-5.2.0.jar!module-info.class', which has already been copied there.
+zip entry '/Volumes/SS980/.gradle/caches/modules-2/files-2.1/org.yaml/snakeyaml/2.6/2bc14918a2f8d5414749ab12d0c590cd3198b8c1/snakeyaml-2.6.jar!META-INF/maven/org.yaml/snakeyaml/pom.properties' will be copied to 'META-INF/maven/org.yaml/snakeyaml/pom.properties', overwriting zip entry '/Volumes/SS980/.gradle/caches/modules-2/files-2.1/net.datafaker/datafaker/2.5.4/afc8b76b45ae67ae7d7007fb5eb141934b5dd72b/datafaker-2.5.4.jar!META-INF/maven/org.yaml/snakeyaml/pom.properties', which has already been copied there.
+zip entry '/Volumes/SS980/.gradle/caches/modules-2/files-2.1/org.yaml/snakeyaml/2.6/2bc14918a2f8d5414749ab12d0c590cd3198b8c1/snakeyaml-2.6.jar!META-INF/maven/org.yaml/snakeyaml/pom.xml' will be copied to 'META-INF/maven/org.yaml/snakeyaml/pom.xml', overwriting zip entry '/Volumes/SS980/.gradle/caches/modules-2/files-2.1/net.datafaker/datafaker/2.5.4/afc8b76b45ae67ae7d7007fb5eb141934b5dd72b/datafaker-2.5.4.jar!META-INF/maven/org.yaml/snakeyaml/pom.xml', which has already been copied there.
+zip entry '/Volumes/SS980/.gradle/caches/modules-2/files-2.1/org.yaml/snakeyaml/2.6/2bc14918a2f8d5414749ab12d0c590cd3198b8c1/snakeyaml-2.6.jar!META-INF/versions/9/module-info.class' will be copied to 'META-INF/versions/9/module-info.class', overwriting zip entry '/Volumes/SS980/.gradle/caches/modules-2/files-2.1/org.jetbrains.kotlinx/atomicfu-jvm/0.32.1/766417c1430c117100e14af193c4fdbe6034b5e6/atomicfu-jvm-0.32.1.jar!META-INF/versions/9/module-info.class', which has already been copied there.
+zip entry '/Volumes/SS980/.gradle/caches/modules-2/files-2.1/com.github.curious-odd-man/rgxgen/3.1/59e5610dfd89af7a04894cf2578318a9d3e5c52c/rgxgen-3.1.jar!META-INF/maven/com.github.curious-odd-man/rgxgen/pom.properties' will be copied to 'META-INF/maven/com.github.curious-odd-man/rgxgen/pom.properties', overwriting zip entry '/Volumes/SS980/.gradle/caches/modules-2/files-2.1/net.datafaker/datafaker/2.5.4/afc8b76b45ae67ae7d7007fb5eb141934b5dd72b/datafaker-2.5.4.jar!META-INF/maven/com.github.curious-odd-man/rgxgen/pom.properties', which has already been copied there.
+zip entry '/Volumes/SS980/.gradle/caches/modules-2/files-2.1/com.github.curious-odd-man/rgxgen/3.1/59e5610dfd89af7a04894cf2578318a9d3e5c52c/rgxgen-3.1.jar!META-INF/maven/com.github.curious-odd-man/rgxgen/pom.xml' will be copied to 'META-INF/maven/com.github.curious-odd-man/rgxgen/pom.xml', overwriting zip entry '/Volumes/SS980/.gradle/caches/modules-2/files-2.1/net.datafaker/datafaker/2.5.4/afc8b76b45ae67ae7d7007fb5eb141934b5dd72b/datafaker-2.5.4.jar!META-INF/maven/com.github.curious-odd-man/rgxgen/pom.xml', which has already been copied there.
+zip entry '/Volumes/SS980/.gradle/caches/modules-2/files-2.1/org.opentest4j/opentest4j/1.3.0/152ea56b3a72f655d4fd677fc0ef2596c3dd5e6e/opentest4j-1.3.0.jar!META-INF/LICENSE' will be copied to 'META-INF/LICENSE', overwriting zip entry '/Volumes/SS980/.gradle/caches/modules-2/files-2.1/com.fasterxml.uuid/java-uuid-generator/5.2.0/3ca5091c87cd327880f09447e62b86b8b93db256/java-uuid-generator-5.2.0.jar!META-INF/LICENSE', which has already been copied there.
+zip entry '/Volumes/SS980/.gradle/caches/modules-2/files-2.1/org.opentest4j/opentest4j/1.3.0/152ea56b3a72f655d4fd677fc0ef2596c3dd5e6e/opentest4j-1.3.0.jar!module-info.class' will be copied to 'module-info.class', overwriting zip entry '/Volumes/SS980/.gradle/caches/modules-2/files-2.1/com.fasterxml.uuid/java-uuid-generator/5.2.0/3ca5091c87cd327880f09447e62b86b8b93db256/java-uuid-generator-5.2.0.jar!module-info.class', which has already been copied there.
+zip entry '/Volumes/SS980/.gradle/caches/modules-2/files-2.1/org.hamcrest/hamcrest/2.1/9420ba32c29217b54eebd26ff7f9234d31c3fbb2/hamcrest-2.1.jar!org/hamcrest/BaseDescription.class' will be copied to 'org/hamcrest/BaseDescription.class', overwriting zip entry '/Volumes/SS980/.gradle/caches/modules-2/files-2.1/org.hamcrest/hamcrest-core/1.3/42a25dc3219429f0e5d060061f71acb49bf010a0/hamcrest-core-1.3.jar!org/hamcrest/BaseDescription.class', which has already been copied there.
+zip entry '/Volumes/SS980/.gradle/caches/modules-2/files-2.1/org.hamcrest/hamcrest/2.1/9420ba32c29217b54eebd26ff7f9234d31c3fbb2/hamcrest-2.1.jar!org/hamcrest/BaseMatcher.class' will be copied to 'org/hamcrest/BaseMatcher.class', overwriting zip entry '/Volumes/SS980/.gradle/caches/modules-2/files-2.1/org.hamcrest/hamcrest-core/1.3/42a25dc3219429f0e5d060061f71acb49bf010a0/hamcrest-core-1.3.jar!org/hamcrest/BaseMatcher.class', which has already been copied there.
+zip entry '/Volumes/SS980/.gradle/caches/modules-2/files-2.1/org.hamcrest/hamcrest/2.1/9420ba32c29217b54eebd26ff7f9234d31c3fbb2/hamcrest-2.1.jar!org/hamcrest/Condition$1.class' will be copied to 'org/hamcrest/Condition$1.class', overwriting zip entry '/Volumes/SS980/.gradle/caches/modules-2/files-2.1/org.hamcrest/hamcrest-core/1.3/42a25dc3219429f0e5d060061f71acb49bf010a0/hamcrest-core-1.3.jar!org/hamcrest/Condition$1.class', which has already been copied there.
+zip entry '/Volumes/SS980/.gradle/caches/modules-2/files-2.1/org.hamcrest/hamcrest/2.1/9420ba32c29217b54eebd26ff7f9234d31c3fbb2/hamcrest-2.1.jar!org/hamcrest/Condition$Matched.class' will be copied to 'org/hamcrest/Condition$Matched.class', overwriting zip entry '/Volumes/SS980/.gradle/caches/modules-2/files-2.1/org.hamcrest/hamcrest-core/1.3/42a25dc3219429f0e5d060061f71acb49bf010a0/hamcrest-core-1.3.jar!org/hamcrest/Condition$Matched.class', which has already been copied there.
+zip entry '/Volumes/SS980/.gradle/caches/modules-2/files-2.1/org.hamcrest/hamcrest/2.1/9420ba32c29217b54eebd26ff7f9234d31c3fbb2/hamcrest-2.1.jar!org/hamcrest/Condition$NotMatched.class' will be copied to 'org/hamcrest/Condition$NotMatched.class', overwriting zip entry '/Volumes/SS980/.gradle/caches/modules-2/files-2.1/org.hamcrest/hamcrest-core/1.3/42a25dc3219429f0e5d060061f71acb49bf010a0/hamcrest-core-1.3.jar!org/hamcrest/Condition$NotMatched.class', which has already been copied there.
+zip entry '/Volumes/SS980/.gradle/caches/modules-2/files-2.1/org.hamcrest/hamcrest/2.1/9420ba32c29217b54eebd26ff7f9234d31c3fbb2/hamcrest-2.1.jar!org/hamcrest/Condition$Step.class' will be copied to 'org/hamcrest/Condition$Step.class', overwriting zip entry '/Volumes/SS980/.gradle/caches/modules-2/files-2.1/org.hamcrest/hamcrest-core/1.3/42a25dc3219429f0e5d060061f71acb49bf010a0/hamcrest-core-1.3.jar!org/hamcrest/Condition$Step.class', which has already been copied there.
+zip entry '/Volumes/SS980/.gradle/caches/modules-2/files-2.1/org.hamcrest/hamcrest/2.1/9420ba32c29217b54eebd26ff7f9234d31c3fbb2/hamcrest-2.1.jar!org/hamcrest/Condition.class' will be copied to 'org/hamcrest/Condition.class', overwriting zip entry '/Volumes/SS980/.gradle/caches/modules-2/files-2.1/org.hamcrest/hamcrest-core/1.3/42a25dc3219429f0e5d060061f71acb49bf010a0/hamcrest-core-1.3.jar!org/hamcrest/Condition.class', which has already been copied there.
+zip entry '/Volumes/SS980/.gradle/caches/modules-2/files-2.1/org.hamcrest/hamcrest/2.1/9420ba32c29217b54eebd26ff7f9234d31c3fbb2/hamcrest-2.1.jar!org/hamcrest/CoreMatchers.class' will be copied to 'org/hamcrest/CoreMatchers.class', overwriting zip entry '/Volumes/SS980/.gradle/caches/modules-2/files-2.1/org.hamcrest/hamcrest-core/1.3/42a25dc3219429f0e5d060061f71acb49bf010a0/hamcrest-core-1.3.jar!org/hamcrest/CoreMatchers.class', which has already been copied there.
+zip entry '/Volumes/SS980/.gradle/caches/modules-2/files-2.1/org.hamcrest/hamcrest/2.1/9420ba32c29217b54eebd26ff7f9234d31c3fbb2/hamcrest-2.1.jar!org/hamcrest/CustomMatcher.class' will be copied to 'org/hamcrest/CustomMatcher.class', overwriting zip entry '/Volumes/SS980/.gradle/caches/modules-2/files-2.1/org.hamcrest/hamcrest-core/1.3/42a25dc3219429f0e5d060061f71acb49bf010a0/hamcrest-core-1.3.jar!org/hamcrest/CustomMatcher.class', which has already been copied there.
+zip entry '/Volumes/SS980/.gradle/caches/modules-2/files-2.1/org.hamcrest/hamcrest/2.1/9420ba32c29217b54eebd26ff7f9234d31c3fbb2/hamcrest-2.1.jar!org/hamcrest/CustomTypeSafeMatcher.class' will be copied to 'org/hamcrest/CustomTypeSafeMatcher.class', overwriting zip entry '/Volumes/SS980/.gradle/caches/modules-2/files-2.1/org.hamcrest/hamcrest-core/1.3/42a25dc3219429f0e5d060061f71acb49bf010a0/hamcrest-core-1.3.jar!org/hamcrest/CustomTypeSafeMatcher.class', which has already been copied there.
+zip entry '/Volumes/SS980/.gradle/caches/modules-2/files-2.1/org.hamcrest/hamcrest/2.1/9420ba32c29217b54eebd26ff7f9234d31c3fbb2/hamcrest-2.1.jar!org/hamcrest/Description$NullDescription.class' will be copied to 'org/hamcrest/Description$NullDescription.class', overwriting zip entry '/Volumes/SS980/.gradle/caches/modules-2/files-2.1/org.hamcrest/hamcrest-core/1.3/42a25dc3219429f0e5d060061f71acb49bf010a0/hamcrest-core-1.3.jar!org/hamcrest/Description$NullDescription.class', which has already been copied there.
+zip entry '/Volumes/SS980/.gradle/caches/modules-2/files-2.1/org.hamcrest/hamcrest/2.1/9420ba32c29217b54eebd26ff7f9234d31c3fbb2/hamcrest-2.1.jar!org/hamcrest/Description.class' will be copied to 'org/hamcrest/Description.class', overwriting zip entry '/Volumes/SS980/.gradle/caches/modules-2/files-2.1/org.hamcrest/hamcrest-core/1.3/42a25dc3219429f0e5d060061f71acb49bf010a0/hamcrest-core-1.3.jar!org/hamcrest/Description.class', which has already been copied there.
+zip entry '/Volumes/SS980/.gradle/caches/modules-2/files-2.1/org.hamcrest/hamcrest/2.1/9420ba32c29217b54eebd26ff7f9234d31c3fbb2/hamcrest-2.1.jar!org/hamcrest/DiagnosingMatcher.class' will be copied to 'org/hamcrest/DiagnosingMatcher.class', overwriting zip entry '/Volumes/SS980/.gradle/caches/modules-2/files-2.1/org.hamcrest/hamcrest-core/1.3/42a25dc3219429f0e5d060061f71acb49bf010a0/hamcrest-core-1.3.jar!org/hamcrest/DiagnosingMatcher.class', which has already been copied there.
+zip entry '/Volumes/SS980/.gradle/caches/modules-2/files-2.1/org.hamcrest/hamcrest/2.1/9420ba32c29217b54eebd26ff7f9234d31c3fbb2/hamcrest-2.1.jar!org/hamcrest/FeatureMatcher.class' will be copied to 'org/hamcrest/FeatureMatcher.class', overwriting zip entry '/Volumes/SS980/.gradle/caches/modules-2/files-2.1/org.hamcrest/hamcrest-core/1.3/42a25dc3219429f0e5d060061f71acb49bf010a0/hamcrest-core-1.3.jar!org/hamcrest/FeatureMatcher.class', which has already been copied there.
+zip entry '/Volumes/SS980/.gradle/caches/modules-2/files-2.1/org.hamcrest/hamcrest/2.1/9420ba32c29217b54eebd26ff7f9234d31c3fbb2/hamcrest-2.1.jar!org/hamcrest/Matcher.class' will be copied to 'org/hamcrest/Matcher.class', overwriting zip entry '/Volumes/SS980/.gradle/caches/modules-2/files-2.1/org.hamcrest/hamcrest-core/1.3/42a25dc3219429f0e5d060061f71acb49bf010a0/hamcrest-core-1.3.jar!org/hamcrest/Matcher.class', which has already been copied there.
+zip entry '/Volumes/SS980/.gradle/caches/modules-2/files-2.1/org.hamcrest/hamcrest/2.1/9420ba32c29217b54eebd26ff7f9234d31c3fbb2/hamcrest-2.1.jar!org/hamcrest/MatcherAssert.class' will be copied to 'org/hamcrest/MatcherAssert.class', overwriting zip entry '/Volumes/SS980/.gradle/caches/modules-2/files-2.1/org.hamcrest/hamcrest-core/1.3/42a25dc3219429f0e5d060061f71acb49bf010a0/hamcrest-core-1.3.jar!org/hamcrest/MatcherAssert.class', which has already been copied there.
+zip entry '/Volumes/SS980/.gradle/caches/modules-2/files-2.1/org.hamcrest/hamcrest/2.1/9420ba32c29217b54eebd26ff7f9234d31c3fbb2/hamcrest-2.1.jar!org/hamcrest/SelfDescribing.class' will be copied to 'org/hamcrest/SelfDescribing.class', overwriting zip entry '/Volumes/SS980/.gradle/caches/modules-2/files-2.1/org.hamcrest/hamcrest-core/1.3/42a25dc3219429f0e5d060061f71acb49bf010a0/hamcrest-core-1.3.jar!org/hamcrest/SelfDescribing.class', which has already been copied there.
+zip entry '/Volumes/SS980/.gradle/caches/modules-2/files-2.1/org.hamcrest/hamcrest/2.1/9420ba32c29217b54eebd26ff7f9234d31c3fbb2/hamcrest-2.1.jar!org/hamcrest/StringDescription.class' will be copied to 'org/hamcrest/StringDescription.class', overwriting zip entry '/Volumes/SS980/.gradle/caches/modules-2/files-2.1/org.hamcrest/hamcrest-core/1.3/42a25dc3219429f0e5d060061f71acb49bf010a0/hamcrest-core-1.3.jar!org/hamcrest/StringDescription.class', which has already been copied there.
+zip entry '/Volumes/SS980/.gradle/caches/modules-2/files-2.1/org.hamcrest/hamcrest/2.1/9420ba32c29217b54eebd26ff7f9234d31c3fbb2/hamcrest-2.1.jar!org/hamcrest/TypeSafeDiagnosingMatcher.class' will be copied to 'org/hamcrest/TypeSafeDiagnosingMatcher.class', overwriting zip entry '/Volumes/SS980/.gradle/caches/modules-2/files-2.1/org.hamcrest/hamcrest-core/1.3/42a25dc3219429f0e5d060061f71acb49bf010a0/hamcrest-core-1.3.jar!org/hamcrest/TypeSafeDiagnosingMatcher.class', which has already been copied there.
+zip entry '/Volumes/SS980/.gradle/caches/modules-2/files-2.1/org.hamcrest/hamcrest/2.1/9420ba32c29217b54eebd26ff7f9234d31c3fbb2/hamcrest-2.1.jar!org/hamcrest/TypeSafeMatcher.class' will be copied to 'org/hamcrest/TypeSafeMatcher.class', overwriting zip entry '/Volumes/SS980/.gradle/caches/modules-2/files-2.1/org.hamcrest/hamcrest-core/1.3/42a25dc3219429f0e5d060061f71acb49bf010a0/hamcrest-core-1.3.jar!org/hamcrest/TypeSafeMatcher.class', which has already been copied there.
+zip entry '/Volumes/SS980/.gradle/caches/modules-2/files-2.1/org.hamcrest/hamcrest/2.1/9420ba32c29217b54eebd26ff7f9234d31c3fbb2/hamcrest-2.1.jar!org/hamcrest/core/AllOf.class' will be copied to 'org/hamcrest/core/AllOf.class', overwriting zip entry '/Volumes/SS980/.gradle/caches/modules-2/files-2.1/org.hamcrest/hamcrest-core/1.3/42a25dc3219429f0e5d060061f71acb49bf010a0/hamcrest-core-1.3.jar!org/hamcrest/core/AllOf.class', which has already been copied there.
+zip entry '/Volumes/SS980/.gradle/caches/modules-2/files-2.1/org.hamcrest/hamcrest/2.1/9420ba32c29217b54eebd26ff7f9234d31c3fbb2/hamcrest-2.1.jar!org/hamcrest/core/AnyOf.class' will be copied to 'org/hamcrest/core/AnyOf.class', overwriting zip entry '/Volumes/SS980/.gradle/caches/modules-2/files-2.1/org.hamcrest/hamcrest-core/1.3/42a25dc3219429f0e5d060061f71acb49bf010a0/hamcrest-core-1.3.jar!org/hamcrest/core/AnyOf.class', which has already been copied there.
+zip entry '/Volumes/SS980/.gradle/caches/modules-2/files-2.1/org.hamcrest/hamcrest/2.1/9420ba32c29217b54eebd26ff7f9234d31c3fbb2/hamcrest-2.1.jar!org/hamcrest/core/CombinableMatcher$CombinableBothMatcher.class' will be copied to 'org/hamcrest/core/CombinableMatcher$CombinableBothMatcher.class', overwriting zip entry '/Volumes/SS980/.gradle/caches/modules-2/files-2.1/org.hamcrest/hamcrest-core/1.3/42a25dc3219429f0e5d060061f71acb49bf010a0/hamcrest-core-1.3.jar!org/hamcrest/core/CombinableMatcher$CombinableBothMatcher.class', which has already been copied there.
+zip entry '/Volumes/SS980/.gradle/caches/modules-2/files-2.1/org.hamcrest/hamcrest/2.1/9420ba32c29217b54eebd26ff7f9234d31c3fbb2/hamcrest-2.1.jar!org/hamcrest/core/CombinableMatcher$CombinableEitherMatcher.class' will be copied to 'org/hamcrest/core/CombinableMatcher$CombinableEitherMatcher.class', overwriting zip entry '/Volumes/SS980/.gradle/caches/modules-2/files-2.1/org.hamcrest/hamcrest-core/1.3/42a25dc3219429f0e5d060061f71acb49bf010a0/hamcrest-core-1.3.jar!org/hamcrest/core/CombinableMatcher$CombinableEitherMatcher.class', which has already been copied there.
+zip entry '/Volumes/SS980/.gradle/caches/modules-2/files-2.1/org.hamcrest/hamcrest/2.1/9420ba32c29217b54eebd26ff7f9234d31c3fbb2/hamcrest-2.1.jar!org/hamcrest/core/CombinableMatcher.class' will be copied to 'org/hamcrest/core/CombinableMatcher.class', overwriting zip entry '/Volumes/SS980/.gradle/caches/modules-2/files-2.1/org.hamcrest/hamcrest-core/1.3/42a25dc3219429f0e5d060061f71acb49bf010a0/hamcrest-core-1.3.jar!org/hamcrest/core/CombinableMatcher.class', which has already been copied there.
+zip entry '/Volumes/SS980/.gradle/caches/modules-2/files-2.1/org.hamcrest/hamcrest/2.1/9420ba32c29217b54eebd26ff7f9234d31c3fbb2/hamcrest-2.1.jar!org/hamcrest/core/DescribedAs.class' will be copied to 'org/hamcrest/core/DescribedAs.class', overwriting zip entry '/Volumes/SS980/.gradle/caches/modules-2/files-2.1/org.hamcrest/hamcrest-core/1.3/42a25dc3219429f0e5d060061f71acb49bf010a0/hamcrest-core-1.3.jar!org/hamcrest/core/DescribedAs.class', which has already been copied there.
+zip entry '/Volumes/SS980/.gradle/caches/modules-2/files-2.1/org.hamcrest/hamcrest/2.1/9420ba32c29217b54eebd26ff7f9234d31c3fbb2/hamcrest-2.1.jar!org/hamcrest/core/Every.class' will be copied to 'org/hamcrest/core/Every.class', overwriting zip entry '/Volumes/SS980/.gradle/caches/modules-2/files-2.1/org.hamcrest/hamcrest-core/1.3/42a25dc3219429f0e5d060061f71acb49bf010a0/hamcrest-core-1.3.jar!org/hamcrest/core/Every.class', which has already been copied there.
+zip entry '/Volumes/SS980/.gradle/caches/modules-2/files-2.1/org.hamcrest/hamcrest/2.1/9420ba32c29217b54eebd26ff7f9234d31c3fbb2/hamcrest-2.1.jar!org/hamcrest/core/Is.class' will be copied to 'org/hamcrest/core/Is.class', overwriting zip entry '/Volumes/SS980/.gradle/caches/modules-2/files-2.1/org.hamcrest/hamcrest-core/1.3/42a25dc3219429f0e5d060061f71acb49bf010a0/hamcrest-core-1.3.jar!org/hamcrest/core/Is.class', which has already been copied there.
+zip entry '/Volumes/SS980/.gradle/caches/modules-2/files-2.1/org.hamcrest/hamcrest/2.1/9420ba32c29217b54eebd26ff7f9234d31c3fbb2/hamcrest-2.1.jar!org/hamcrest/core/IsAnything.class' will be copied to 'org/hamcrest/core/IsAnything.class', overwriting zip entry '/Volumes/SS980/.gradle/caches/modules-2/files-2.1/org.hamcrest/hamcrest-core/1.3/42a25dc3219429f0e5d060061f71acb49bf010a0/hamcrest-core-1.3.jar!org/hamcrest/core/IsAnything.class', which has already been copied there.
+zip entry '/Volumes/SS980/.gradle/caches/modules-2/files-2.1/org.hamcrest/hamcrest/2.1/9420ba32c29217b54eebd26ff7f9234d31c3fbb2/hamcrest-2.1.jar!org/hamcrest/core/IsCollectionContaining.class' will be copied to 'org/hamcrest/core/IsCollectionContaining.class', overwriting zip entry '/Volumes/SS980/.gradle/caches/modules-2/files-2.1/org.hamcrest/hamcrest-core/1.3/42a25dc3219429f0e5d060061f71acb49bf010a0/hamcrest-core-1.3.jar!org/hamcrest/core/IsCollectionContaining.class', which has already been copied there.
+zip entry '/Volumes/SS980/.gradle/caches/modules-2/files-2.1/org.hamcrest/hamcrest/2.1/9420ba32c29217b54eebd26ff7f9234d31c3fbb2/hamcrest-2.1.jar!org/hamcrest/core/IsEqual.class' will be copied to 'org/hamcrest/core/IsEqual.class', overwriting zip entry '/Volumes/SS980/.gradle/caches/modules-2/files-2.1/org.hamcrest/hamcrest-core/1.3/42a25dc3219429f0e5d060061f71acb49bf010a0/hamcrest-core-1.3.jar!org/hamcrest/core/IsEqual.class', which has already been copied there.
+zip entry '/Volumes/SS980/.gradle/caches/modules-2/files-2.1/org.hamcrest/hamcrest/2.1/9420ba32c29217b54eebd26ff7f9234d31c3fbb2/hamcrest-2.1.jar!org/hamcrest/core/IsInstanceOf.class' will be copied to 'org/hamcrest/core/IsInstanceOf.class', overwriting zip entry '/Volumes/SS980/.gradle/caches/modules-2/files-2.1/org.hamcrest/hamcrest-core/1.3/42a25dc3219429f0e5d060061f71acb49bf010a0/hamcrest-core-1.3.jar!org/hamcrest/core/IsInstanceOf.class', which has already been copied there.
+zip entry '/Volumes/SS980/.gradle/caches/modules-2/files-2.1/org.hamcrest/hamcrest/2.1/9420ba32c29217b54eebd26ff7f9234d31c3fbb2/hamcrest-2.1.jar!org/hamcrest/core/IsNot.class' will be copied to 'org/hamcrest/core/IsNot.class', overwriting zip entry '/Volumes/SS980/.gradle/caches/modules-2/files-2.1/org.hamcrest/hamcrest-core/1.3/42a25dc3219429f0e5d060061f71acb49bf010a0/hamcrest-core-1.3.jar!org/hamcrest/core/IsNot.class', which has already been copied there.
+zip entry '/Volumes/SS980/.gradle/caches/modules-2/files-2.1/org.hamcrest/hamcrest/2.1/9420ba32c29217b54eebd26ff7f9234d31c3fbb2/hamcrest-2.1.jar!org/hamcrest/core/IsNull.class' will be copied to 'org/hamcrest/core/IsNull.class', overwriting zip entry '/Volumes/SS980/.gradle/caches/modules-2/files-2.1/org.hamcrest/hamcrest-core/1.3/42a25dc3219429f0e5d060061f71acb49bf010a0/hamcrest-core-1.3.jar!org/hamcrest/core/IsNull.class', which has already been copied there.
+zip entry '/Volumes/SS980/.gradle/caches/modules-2/files-2.1/org.hamcrest/hamcrest/2.1/9420ba32c29217b54eebd26ff7f9234d31c3fbb2/hamcrest-2.1.jar!org/hamcrest/core/IsSame.class' will be copied to 'org/hamcrest/core/IsSame.class', overwriting zip entry '/Volumes/SS980/.gradle/caches/modules-2/files-2.1/org.hamcrest/hamcrest-core/1.3/42a25dc3219429f0e5d060061f71acb49bf010a0/hamcrest-core-1.3.jar!org/hamcrest/core/IsSame.class', which has already been copied there.
+zip entry '/Volumes/SS980/.gradle/caches/modules-2/files-2.1/org.hamcrest/hamcrest/2.1/9420ba32c29217b54eebd26ff7f9234d31c3fbb2/hamcrest-2.1.jar!org/hamcrest/core/ShortcutCombination.class' will be copied to 'org/hamcrest/core/ShortcutCombination.class', overwriting zip entry '/Volumes/SS980/.gradle/caches/modules-2/files-2.1/org.hamcrest/hamcrest-core/1.3/42a25dc3219429f0e5d060061f71acb49bf010a0/hamcrest-core-1.3.jar!org/hamcrest/core/ShortcutCombination.class', which has already been copied there.
+zip entry '/Volumes/SS980/.gradle/caches/modules-2/files-2.1/org.hamcrest/hamcrest/2.1/9420ba32c29217b54eebd26ff7f9234d31c3fbb2/hamcrest-2.1.jar!org/hamcrest/core/StringContains.class' will be copied to 'org/hamcrest/core/StringContains.class', overwriting zip entry '/Volumes/SS980/.gradle/caches/modules-2/files-2.1/org.hamcrest/hamcrest-core/1.3/42a25dc3219429f0e5d060061f71acb49bf010a0/hamcrest-core-1.3.jar!org/hamcrest/core/StringContains.class', which has already been copied there.
+zip entry '/Volumes/SS980/.gradle/caches/modules-2/files-2.1/org.hamcrest/hamcrest/2.1/9420ba32c29217b54eebd26ff7f9234d31c3fbb2/hamcrest-2.1.jar!org/hamcrest/core/StringEndsWith.class' will be copied to 'org/hamcrest/core/StringEndsWith.class', overwriting zip entry '/Volumes/SS980/.gradle/caches/modules-2/files-2.1/org.hamcrest/hamcrest-core/1.3/42a25dc3219429f0e5d060061f71acb49bf010a0/hamcrest-core-1.3.jar!org/hamcrest/core/StringEndsWith.class', which has already been copied there.
+zip entry '/Volumes/SS980/.gradle/caches/modules-2/files-2.1/org.hamcrest/hamcrest/2.1/9420ba32c29217b54eebd26ff7f9234d31c3fbb2/hamcrest-2.1.jar!org/hamcrest/core/StringStartsWith.class' will be copied to 'org/hamcrest/core/StringStartsWith.class', overwriting zip entry '/Volumes/SS980/.gradle/caches/modules-2/files-2.1/org.hamcrest/hamcrest-core/1.3/42a25dc3219429f0e5d060061f71acb49bf010a0/hamcrest-core-1.3.jar!org/hamcrest/core/StringStartsWith.class', which has already been copied there.
+zip entry '/Volumes/SS980/.gradle/caches/modules-2/files-2.1/org.hamcrest/hamcrest/2.1/9420ba32c29217b54eebd26ff7f9234d31c3fbb2/hamcrest-2.1.jar!org/hamcrest/core/SubstringMatcher.class' will be copied to 'org/hamcrest/core/SubstringMatcher.class', overwriting zip entry '/Volumes/SS980/.gradle/caches/modules-2/files-2.1/org.hamcrest/hamcrest-core/1.3/42a25dc3219429f0e5d060061f71acb49bf010a0/hamcrest-core-1.3.jar!org/hamcrest/core/SubstringMatcher.class', which has already been copied there.
+zip entry '/Volumes/SS980/.gradle/caches/modules-2/files-2.1/org.hamcrest/hamcrest/2.1/9420ba32c29217b54eebd26ff7f9234d31c3fbb2/hamcrest-2.1.jar!org/hamcrest/internal/ArrayIterator.class' will be copied to 'org/hamcrest/internal/ArrayIterator.class', overwriting zip entry '/Volumes/SS980/.gradle/caches/modules-2/files-2.1/org.hamcrest/hamcrest-core/1.3/42a25dc3219429f0e5d060061f71acb49bf010a0/hamcrest-core-1.3.jar!org/hamcrest/internal/ArrayIterator.class', which has already been copied there.
+zip entry '/Volumes/SS980/.gradle/caches/modules-2/files-2.1/org.hamcrest/hamcrest/2.1/9420ba32c29217b54eebd26ff7f9234d31c3fbb2/hamcrest-2.1.jar!org/hamcrest/internal/ReflectiveTypeFinder.class' will be copied to 'org/hamcrest/internal/ReflectiveTypeFinder.class', overwriting zip entry '/Volumes/SS980/.gradle/caches/modules-2/files-2.1/org.hamcrest/hamcrest-core/1.3/42a25dc3219429f0e5d060061f71acb49bf010a0/hamcrest-core-1.3.jar!org/hamcrest/internal/ReflectiveTypeFinder.class', which has already been copied there.
+zip entry '/Volumes/SS980/.gradle/caches/modules-2/files-2.1/org.hamcrest/hamcrest/2.1/9420ba32c29217b54eebd26ff7f9234d31c3fbb2/hamcrest-2.1.jar!org/hamcrest/internal/SelfDescribingValue.class' will be copied to 'org/hamcrest/internal/SelfDescribingValue.class', overwriting zip entry '/Volumes/SS980/.gradle/caches/modules-2/files-2.1/org.hamcrest/hamcrest-core/1.3/42a25dc3219429f0e5d060061f71acb49bf010a0/hamcrest-core-1.3.jar!org/hamcrest/internal/SelfDescribingValue.class', which has already been copied there.
+zip entry '/Volumes/SS980/.gradle/caches/modules-2/files-2.1/org.hamcrest/hamcrest/2.1/9420ba32c29217b54eebd26ff7f9234d31c3fbb2/hamcrest-2.1.jar!org/hamcrest/internal/SelfDescribingValueIterator.class' will be copied to 'org/hamcrest/internal/SelfDescribingValueIterator.class', overwriting zip entry '/Volumes/SS980/.gradle/caches/modules-2/files-2.1/org.hamcrest/hamcrest-core/1.3/42a25dc3219429f0e5d060061f71acb49bf010a0/hamcrest-core-1.3.jar!org/hamcrest/internal/SelfDescribingValueIterator.class', which has already been copied there.
+zip entry '/Volumes/SS980/.gradle/caches/modules-2/files-2.1/org.objenesis/objenesis/3.5/848ebc672f1e42d62c9357bd0882374c4e21895f/objenesis-3.5.jar!META-INF/LICENSE' will be copied to 'META-INF/LICENSE', overwriting zip entry '/Volumes/SS980/.gradle/caches/modules-2/files-2.1/com.fasterxml.uuid/java-uuid-generator/5.2.0/3ca5091c87cd327880f09447e62b86b8b93db256/java-uuid-generator-5.2.0.jar!META-INF/LICENSE', which has already been copied there.
+zip entry '/Volumes/SS980/.gradle/caches/modules-2/files-2.1/org.objenesis/objenesis/3.5/848ebc672f1e42d62c9357bd0882374c4e21895f/objenesis-3.5.jar!META-INF/NOTICE' will be copied to 'META-INF/NOTICE', overwriting zip entry '/Volumes/SS980/.gradle/caches/modules-2/files-2.1/com.fasterxml.uuid/java-uuid-generator/5.2.0/3ca5091c87cd327880f09447e62b86b8b93db256/java-uuid-generator-5.2.0.jar!META-INF/NOTICE', which has already been copied there.
+zip entry '/Volumes/SS980/.gradle/caches/modules-2/files-2.1/io.github.classgraph/classgraph/4.6.18/c9e805b7b2d84a087f53814352e46d934ddb524b/classgraph-4.6.18.jar!META-INF/versions/9/module-info.class' will be copied to 'META-INF/versions/9/module-info.class', overwriting zip entry '/Volumes/SS980/.gradle/caches/modules-2/files-2.1/org.jetbrains.kotlinx/atomicfu-jvm/0.32.1/766417c1430c117100e14af193c4fdbe6034b5e6/atomicfu-jvm-0.32.1.jar!META-INF/versions/9/module-info.class', which has already been copied there.
+zip entry '/Volumes/SS980/.gradle/caches/modules-2/files-2.1/com.fasterxml.jackson.core/jackson-core/2.21.4/56a503ba45016714394807ea89f95f5093760089/jackson-core-2.21.4.jar!META-INF/LICENSE' will be copied to 'META-INF/LICENSE', overwriting zip entry '/Volumes/SS980/.gradle/caches/modules-2/files-2.1/com.fasterxml.uuid/java-uuid-generator/5.2.0/3ca5091c87cd327880f09447e62b86b8b93db256/java-uuid-generator-5.2.0.jar!META-INF/LICENSE', which has already been copied there.
+zip entry '/Volumes/SS980/.gradle/caches/modules-2/files-2.1/com.fasterxml.jackson.core/jackson-core/2.21.4/56a503ba45016714394807ea89f95f5093760089/jackson-core-2.21.4.jar!META-INF/NOTICE' will be copied to 'META-INF/NOTICE', overwriting zip entry '/Volumes/SS980/.gradle/caches/modules-2/files-2.1/com.fasterxml.uuid/java-uuid-generator/5.2.0/3ca5091c87cd327880f09447e62b86b8b93db256/java-uuid-generator-5.2.0.jar!META-INF/NOTICE', which has already been copied there.
+zip entry '/Volumes/SS980/.gradle/caches/modules-2/files-2.1/com.fasterxml.jackson.core/jackson-core/2.21.4/56a503ba45016714394807ea89f95f5093760089/jackson-core-2.21.4.jar!META-INF/versions/9/module-info.class' will be copied to 'META-INF/versions/9/module-info.class', overwriting zip entry '/Volumes/SS980/.gradle/caches/modules-2/files-2.1/org.jetbrains.kotlinx/atomicfu-jvm/0.32.1/766417c1430c117100e14af193c4fdbe6034b5e6/atomicfu-jvm-0.32.1.jar!META-INF/versions/9/module-info.class', which has already been copied there.
+zip entry '/Volumes/SS980/.gradle/caches/modules-2/files-2.1/com.fasterxml.jackson.core/jackson-databind/2.21.4/9e495680be707d466527d734368ebf36e464da2/jackson-databind-2.21.4.jar!META-INF/LICENSE' will be copied to 'META-INF/LICENSE', overwriting zip entry '/Volumes/SS980/.gradle/caches/modules-2/files-2.1/com.fasterxml.uuid/java-uuid-generator/5.2.0/3ca5091c87cd327880f09447e62b86b8b93db256/java-uuid-generator-5.2.0.jar!META-INF/LICENSE', which has already been copied there.
+zip entry '/Volumes/SS980/.gradle/caches/modules-2/files-2.1/com.fasterxml.jackson.core/jackson-databind/2.21.4/9e495680be707d466527d734368ebf36e464da2/jackson-databind-2.21.4.jar!META-INF/NOTICE' will be copied to 'META-INF/NOTICE', overwriting zip entry '/Volumes/SS980/.gradle/caches/modules-2/files-2.1/com.fasterxml.uuid/java-uuid-generator/5.2.0/3ca5091c87cd327880f09447e62b86b8b93db256/java-uuid-generator-5.2.0.jar!META-INF/NOTICE', which has already been copied there.
+zip entry '/Volumes/SS980/.gradle/caches/modules-2/files-2.1/com.fasterxml.jackson.core/jackson-databind/2.21.4/9e495680be707d466527d734368ebf36e464da2/jackson-databind-2.21.4.jar!META-INF/versions/9/module-info.class' will be copied to 'META-INF/versions/9/module-info.class', overwriting zip entry '/Volumes/SS980/.gradle/caches/modules-2/files-2.1/org.jetbrains.kotlinx/atomicfu-jvm/0.32.1/766417c1430c117100e14af193c4fdbe6034b5e6/atomicfu-jvm-0.32.1.jar!META-INF/versions/9/module-info.class', which has already been copied there.
+zip entry '/Volumes/SS980/.gradle/caches/modules-2/files-2.1/com.fasterxml.jackson.core/jackson-annotations/2.21/b1bc1868bf02dc0bd6c7836257a036a331005309/jackson-annotations-2.21.jar!META-INF/LICENSE' will be copied to 'META-INF/LICENSE', overwriting zip entry '/Volumes/SS980/.gradle/caches/modules-2/files-2.1/com.fasterxml.uuid/java-uuid-generator/5.2.0/3ca5091c87cd327880f09447e62b86b8b93db256/java-uuid-generator-5.2.0.jar!META-INF/LICENSE', which has already been copied there.
+zip entry '/Volumes/SS980/.gradle/caches/modules-2/files-2.1/com.fasterxml.jackson.core/jackson-annotations/2.21/b1bc1868bf02dc0bd6c7836257a036a331005309/jackson-annotations-2.21.jar!META-INF/NOTICE' will be copied to 'META-INF/NOTICE', overwriting zip entry '/Volumes/SS980/.gradle/caches/modules-2/files-2.1/com.fasterxml.uuid/java-uuid-generator/5.2.0/3ca5091c87cd327880f09447e62b86b8b93db256/java-uuid-generator-5.2.0.jar!META-INF/NOTICE', which has already been copied there.
+zip entry '/Volumes/SS980/.gradle/caches/modules-2/files-2.1/com.fasterxml.jackson.core/jackson-annotations/2.21/b1bc1868bf02dc0bd6c7836257a036a331005309/jackson-annotations-2.21.jar!module-info.class' will be copied to 'module-info.class', overwriting zip entry '/Volumes/SS980/.gradle/caches/modules-2/files-2.1/com.fasterxml.uuid/java-uuid-generator/5.2.0/3ca5091c87cd327880f09447e62b86b8b93db256/java-uuid-generator-5.2.0.jar!module-info.class', which has already been copied there.
+zip entry '/Volumes/SS980/.gradle/caches/modules-2/files-2.1/net.bytebuddy/byte-buddy/1.18.4/663e2e22268f372e3209f9e212a43ca1c150ab43/byte-buddy-1.18.4.jar!META-INF/LICENSE' will be copied to 'META-INF/LICENSE', overwriting zip entry '/Volumes/SS980/.gradle/caches/modules-2/files-2.1/com.fasterxml.uuid/java-uuid-generator/5.2.0/3ca5091c87cd327880f09447e62b86b8b93db256/java-uuid-generator-5.2.0.jar!META-INF/LICENSE', which has already been copied there.
+zip entry '/Volumes/SS980/.gradle/caches/modules-2/files-2.1/net.bytebuddy/byte-buddy/1.18.4/663e2e22268f372e3209f9e212a43ca1c150ab43/byte-buddy-1.18.4.jar!META-INF/NOTICE' will be copied to 'META-INF/NOTICE', overwriting zip entry '/Volumes/SS980/.gradle/caches/modules-2/files-2.1/com.fasterxml.uuid/java-uuid-generator/5.2.0/3ca5091c87cd327880f09447e62b86b8b93db256/java-uuid-generator-5.2.0.jar!META-INF/NOTICE', which has already been copied there.
+zip entry '/Volumes/SS980/.gradle/caches/modules-2/files-2.1/net.bytebuddy/byte-buddy/1.18.4/663e2e22268f372e3209f9e212a43ca1c150ab43/byte-buddy-1.18.4.jar!META-INF/versions/9/module-info.class' will be copied to 'META-INF/versions/9/module-info.class', overwriting zip entry '/Volumes/SS980/.gradle/caches/modules-2/files-2.1/org.jetbrains.kotlinx/atomicfu-jvm/0.32.1/766417c1430c117100e14af193c4fdbe6034b5e6/atomicfu-jvm-0.32.1.jar!META-INF/versions/9/module-info.class', which has already been copied there.
+zip entry '/Volumes/SS980/.gradle/caches/modules-2/files-2.1/net.bytebuddy/byte-buddy-agent/1.18.4/7ef8cd821c4a69426fa7c99a6070b8b1b02e3abf/byte-buddy-agent-1.18.4.jar!META-INF/LICENSE' will be copied to 'META-INF/LICENSE', overwriting zip entry '/Volumes/SS980/.gradle/caches/modules-2/files-2.1/com.fasterxml.uuid/java-uuid-generator/5.2.0/3ca5091c87cd327880f09447e62b86b8b93db256/java-uuid-generator-5.2.0.jar!META-INF/LICENSE', which has already been copied there.
+zip entry '/Volumes/SS980/.gradle/caches/modules-2/files-2.1/net.bytebuddy/byte-buddy-agent/1.18.4/7ef8cd821c4a69426fa7c99a6070b8b1b02e3abf/byte-buddy-agent-1.18.4.jar!META-INF/NOTICE' will be copied to 'META-INF/NOTICE', overwriting zip entry '/Volumes/SS980/.gradle/caches/modules-2/files-2.1/com.fasterxml.uuid/java-uuid-generator/5.2.0/3ca5091c87cd327880f09447e62b86b8b93db256/java-uuid-generator-5.2.0.jar!META-INF/NOTICE', which has already been copied there.
+zip entry '/Volumes/SS980/.gradle/caches/modules-2/files-2.1/net.bytebuddy/byte-buddy-agent/1.18.4/7ef8cd821c4a69426fa7c99a6070b8b1b02e3abf/byte-buddy-agent-1.18.4.jar!META-INF/versions/9/module-info.class' will be copied to 'META-INF/versions/9/module-info.class', overwriting zip entry '/Volumes/SS980/.gradle/caches/modules-2/files-2.1/org.jetbrains.kotlinx/atomicfu-jvm/0.32.1/766417c1430c117100e14af193c4fdbe6034b5e6/atomicfu-jvm-0.32.1.jar!META-INF/versions/9/module-info.class', which has already been copied there.
+
+> Task :bluetape4k-idgenerators:assembleBenchmarks
+
+> Task :bluetape4k-idgenerators:benchmarkSingleThreadBenchmark
+Running 'singleThread' benchmarks for 'benchmark'
+
+… io.bluetape4k.idgenerators.benchmark.SingleThreadIdGeneratorBenchmark.flake | batchSize=100
+
+749711897327211111683112111116408477413254524566105116328310111411810111432867732119971141101051101035832458888588410411410197100801141051111141051161218011110810599121614932109971213211410111311710511410132115121115116101109321081011181011083211210111410910511511510511111044321014610346443298101105110103321161041013211411111111632117115101114463273102321161041013211010199101115115971141213211210111410910511511510511111032105115321101111163211211111511510111511510110044329910497110103101115321161113211211410511111410511612132119105108108329810132115105108101110116108121321051031101111141011004610Warm-up 1: 33309.601 ops/s
+Warm-up 2: 42538.436 ops/s
+Warm-up 3: 42029.179 ops/s
+Iteration 1: 36848.514 ops/s
+Iteration 2: 36927.924 ops/s
+Iteration 3: 36868.053 ops/s
+Iteration 4: 36980.654 ops/s
+Iteration 5: 36959.588 ops/s
+
+  Success: 36916.947 ±(99.9%) 220.119 ops/s [Average]
+  (min, avg, max) = (36848.514, 36916.947, 36980.654), stdev = 57.164
+  CI (99.9%): [36696.828, 37137.065] (assumes normal distribution)
+
+… io.bluetape4k.idgenerators.benchmark.SingleThreadIdGeneratorBenchmark.flake | batchSize=10000
+
+749711897327211111683112111116408477413254524566105116328310111411810111432867732119971141101051101035832458888588410411410197100801141051111141051161218011110810599121614932109971213211410111311710511410132115121115116101109321081011181011083211210111410910511511510511111044321014610346443298101105110103321161041013211411111111632117115101114463273102321161041013211010199101115115971141213211210111410910511511510511111032105115321101111163211211111511510111511510110044329910497110103101115321161113211211410511111410511612132119105108108329810132115105108101110116108121321051031101111141011004610Warm-up 1: 267.801 ops/s
+Warm-up 2: 354.169 ops/s
+Warm-up 3: 352.942 ops/s
+Iteration 1: 346.201 ops/s
+Iteration 2: 354.305 ops/s
+Iteration 3: 354.525 ops/s
+Iteration 4: 355.736 ops/s
+Iteration 5: 345.819 ops/s
+
+  Success: 351.317 ±(99.9%) 18.779 ops/s [Average]
+  (min, avg, max) = (345.819, 351.317, 355.736), stdev = 4.877
+  CI (99.9%): [332.538, 370.097] (assumes normal distribution)
+
+… io.bluetape4k.idgenerators.benchmark.SingleThreadIdGeneratorBenchmark.ksuidMillis | batchSize=100
+
+749711897327211111683112111116408477413254524566105116328310111411810111432867732119971141101051101035832458888588410411410197100801141051111141051161218011110810599121614932109971213211410111311710511410132115121115116101109321081011181011083211210111410910511511510511111044321014610346443298101105110103321161041013211411111111632117115101114463273102321161041013211010199101115115971141213211210111410910511511510511111032105115321101111163211211111511510111511510110044329910497110103101115321161113211211410511111410511612132119105108108329810132115105108101110116108121321051031101111141011004610Warm-up 1: 50145.924 ops/s
+Warm-up 2: 59467.096 ops/s
+Warm-up 3: 57215.344 ops/s
+Iteration 1: 59746.778 ops/s
+Iteration 2: 59704.816 ops/s
+Iteration 3: 59106.007 ops/s
+Iteration 4: 59716.221 ops/s
+Iteration 5: 59693.619 ops/s
+
+  Success: 59593.488 ±(99.9%) 1052.112 ops/s [Average]
+  (min, avg, max) = (59106.007, 59593.488, 59746.778), stdev = 273.230
+  CI (99.9%): [58541.376, 60645.601] (assumes normal distribution)
+
+… io.bluetape4k.idgenerators.benchmark.SingleThreadIdGeneratorBenchmark.ksuidMillis | batchSize=10000
+
+749711897327211111683112111116408477413254524566105116328310111411810111432867732119971141101051101035832458888588410411410197100801141051111141051161218011110810599121614932109971213211410111311710511410132115121115116101109321081011181011083211210111410910511511510511111044321014610346443298101105110103321161041013211411111111632117115101114463273102321161041013211010199101115115971141213211210111410910511511510511111032105115321101111163211211111511510111511510110044329910497110103101115321161113211211410511111410511612132119105108108329810132115105108101110116108121321051031101111141011004610Warm-up 1: 460.813 ops/s
+Warm-up 2: 576.813 ops/s
+Warm-up 3: 572.628 ops/s
+Iteration 1: 572.501 ops/s
+Iteration 2: 570.219 ops/s
+Iteration 3: 572.666 ops/s
+Iteration 4: 576.276 ops/s
+Iteration 5: 576.334 ops/s
+
+  Success: 573.599 ±(99.9%) 10.215 ops/s [Average]
+  (min, avg, max) = (570.219, 573.599, 576.334), stdev = 2.653
+  CI (99.9%): [563.385, 583.814] (assumes normal distribution)
+
+… io.bluetape4k.idgenerators.benchmark.SingleThreadIdGeneratorBenchmark.ksuidSeconds | batchSize=100
+
+749711897327211111683112111116408477413254524566105116328310111411810111432867732119971141101051101035832458888588410411410197100801141051111141051161218011110810599121614932109971213211410111311710511410132115121115116101109321081011181011083211210111410910511511510511111044321014610346443298101105110103321161041013211411111111632117115101114463273102321161041013211010199101115115971141213211210111410910511511510511111032105115321101111163211211111511510111511510110044329910497110103101115321161113211211410511111410511612132119105108108329810132115105108101110116108121321051031101111141011004610Warm-up 1: 44783.205 ops/s
+Warm-up 2: 52198.409 ops/s
+Warm-up 3: 53074.088 ops/s
+Iteration 1: 53121.775 ops/s
+Iteration 2: 53245.610 ops/s
+Iteration 3: 53324.547 ops/s
+Iteration 4: 53169.702 ops/s
+Iteration 5: 53189.042 ops/s
+
+  Success: 53210.135 ±(99.9%) 299.732 ops/s [Average]
+  (min, avg, max) = (53121.775, 53210.135, 53324.547), stdev = 77.840
+  CI (99.9%): [52910.403, 53509.867] (assumes normal distribution)
+
+… io.bluetape4k.idgenerators.benchmark.SingleThreadIdGeneratorBenchmark.ksuidSeconds | batchSize=10000
+
+749711897327211111683112111116408477413254524566105116328310111411810111432867732119971141101051101035832458888588410411410197100801141051111141051161218011110810599121614932109971213211410111311710511410132115121115116101109321081011181011083211210111410910511511510511111044321014610346443298101105110103321161041013211411111111632117115101114463273102321161041013211010199101115115971141213211210111410910511511510511111032105115321101111163211211111511510111511510110044329910497110103101115321161113211211410511111410511612132119105108108329810132115105108101110116108121321051031101111141011004610Warm-up 1: 406.632 ops/s
+Warm-up 2: 512.563 ops/s
+Warm-up 3: 515.754 ops/s
+Iteration 1: 513.956 ops/s
+Iteration 2: 516.477 ops/s
+Iteration 3: 515.352 ops/s
+Iteration 4: 510.059 ops/s
+Iteration 5: 507.549 ops/s
+
+  Success: 512.679 ±(99.9%) 14.456 ops/s [Average]
+  (min, avg, max) = (507.549, 512.679, 516.477), stdev = 3.754
+  CI (99.9%): [498.222, 527.135] (assumes normal distribution)
+
+… io.bluetape4k.idgenerators.benchmark.SingleThreadIdGeneratorBenchmark.snowflake | batchSize=100
+
+749711897327211111683112111116408477413254524566105116328310111411810111432867732119971141101051101035832458888588410411410197100801141051111141051161218011110810599121614932109971213211410111311710511410132115121115116101109321081011181011083211210111410910511511510511111044321014610346443298101105110103321161041013211411111111632117115101114463273102321161041013211010199101115115971141213211210111410910511511510511111032105115321101111163211211111511510111511510110044329910497110103101115321161113211211410511111410511612132119105108108329810132115105108101110116108121321051031101111141011004610Warm-up 1: 40765.801 ops/s
+Warm-up 2: 40978.627 ops/s
+Warm-up 3: 40957.281 ops/s
+Iteration 1: 40971.385 ops/s
+Iteration 2: 40972.136 ops/s
+Iteration 3: 40971.180 ops/s
+Iteration 4: 40978.012 ops/s
+Iteration 5: 40972.918 ops/s
+
+  Success: 40973.126 ±(99.9%) 10.842 ops/s [Average]
+  (min, avg, max) = (40971.180, 40973.126, 40978.012), stdev = 2.816
+  CI (99.9%): [40962.284, 40983.969] (assumes normal distribution)
+
+… io.bluetape4k.idgenerators.benchmark.SingleThreadIdGeneratorBenchmark.snowflake | batchSize=10000
+
+749711897327211111683112111116408477413254524566105116328310111411810111432867732119971141101051101035832458888588410411410197100801141051111141051161218011110810599121614932109971213211410111311710511410132115121115116101109321081011181011083211210111410910511511510511111044321014610346443298101105110103321161041013211411111111632117115101114463273102321161041013211010199101115115971141213211210111410910511511510511111032105115321101111163211211111511510111511510110044329910497110103101115321161113211211410511111410511612132119105108108329810132115105108101110116108121321051031101111141011004610Warm-up 1: 407.453 ops/s
+Warm-up 2: 410.116 ops/s
+Warm-up 3: 409.708 ops/s
+Iteration 1: 409.871 ops/s
+Iteration 2: 409.733 ops/s
+Iteration 3: 409.863 ops/s
+Iteration 4: 409.654 ops/s
+Iteration 5: 409.878 ops/s
+
+  Success: 409.800 ±(99.9%) 0.390 ops/s [Average]
+  (min, avg, max) = (409.654, 409.800, 409.878), stdev = 0.101
+  CI (99.9%): [409.410, 410.190] (assumes normal distribution)
+
+… io.bluetape4k.idgenerators.benchmark.SingleThreadIdGeneratorBenchmark.ulid | batchSize=100
+
+749711897327211111683112111116408477413254524566105116328310111411810111432867732119971141101051101035832458888588410411410197100801141051111141051161218011110810599121614932109971213211410111311710511410132115121115116101109321081011181011083211210111410910511511510511111044321014610346443298101105110103321161041013211411111111632117115101114463273102321161041013211010199101115115971141213211210111410910511511510511111032105115321101111163211211111511510111511510110044329910497110103101115321161113211211410511111410511612132119105108108329810132115105108101110116108121321051031101111141011004610Warm-up 1: 221873.871 ops/s
+Warm-up 2: 260503.429 ops/s
+Warm-up 3: 269448.480 ops/s
+Iteration 1: 270016.116 ops/s
+Iteration 2: 268920.752 ops/s
+Iteration 3: 270750.843 ops/s
+Iteration 4: 270637.986 ops/s
+Iteration 5: 270695.164 ops/s
+
+  Success: 270204.172 ±(99.9%) 2989.305 ops/s [Average]
+  (min, avg, max) = (268920.752, 270204.172, 270750.843), stdev = 776.313
+  CI (99.9%): [267214.867, 273193.477] (assumes normal distribution)
+
+… io.bluetape4k.idgenerators.benchmark.SingleThreadIdGeneratorBenchmark.ulid | batchSize=10000
+
+749711897327211111683112111116408477413254524566105116328310111411810111432867732119971141101051101035832458888588410411410197100801141051111141051161218011110810599121614932109971213211410111311710511410132115121115116101109321081011181011083211210111410910511511510511111044321014610346443298101105110103321161041013211411111111632117115101114463273102321161041013211010199101115115971141213211210111410910511511510511111032105115321101111163211211111511510111511510110044329910497110103101115321161113211211410511111410511612132119105108108329810132115105108101110116108121321051031101111141011004610Warm-up 1: 2186.411 ops/s
+Warm-up 2: 2454.937 ops/s
+Warm-up 3: 2544.620 ops/s
+Iteration 1: 2542.254 ops/s
+Iteration 2: 2549.291 ops/s
+Iteration 3: 2549.789 ops/s
+Iteration 4: 2542.674 ops/s
+Iteration 5: 2547.677 ops/s
+
+  Success: 2546.337 ±(99.9%) 13.954 ops/s [Average]
+  (min, avg, max) = (2542.254, 2546.337, 2549.789), stdev = 3.624
+  CI (99.9%): [2532.383, 2560.291] (assumes normal distribution)
+
+… io.bluetape4k.idgenerators.benchmark.SingleThreadIdGeneratorBenchmark.uuidV4 | batchSize=100
+
+749711897327211111683112111116408477413254524566105116328310111411810111432867732119971141101051101035832458888588410411410197100801141051111141051161218011110810599121614932109971213211410111311710511410132115121115116101109321081011181011083211210111410910511511510511111044321014610346443298101105110103321161041013211411111111632117115101114463273102321161041013211010199101115115971141213211210111410910511511510511111032105115321101111163211211111511510111511510110044329910497110103101115321161113211211410511111410511612132119105108108329810132115105108101110116108121321051031101111141011004610Warm-up 1: 91680.008 ops/s
+Warm-up 2: 104949.030 ops/s
+Warm-up 3: 104682.929 ops/s
+Iteration 1: 105140.759 ops/s
+Iteration 2: 105424.954 ops/s
+Iteration 3: 105047.003 ops/s
+Iteration 4: 105428.622 ops/s
+Iteration 5: 104752.300 ops/s
+
+  Success: 105158.728 ±(99.9%) 1092.031 ops/s [Average]
+  (min, avg, max) = (104752.300, 105158.728, 105428.622), stdev = 283.597
+  CI (99.9%): [104066.697, 106250.758] (assumes normal distribution)
+
+… io.bluetape4k.idgenerators.benchmark.SingleThreadIdGeneratorBenchmark.uuidV4 | batchSize=10000
+
+749711897327211111683112111116408477413254524566105116328310111411810111432867732119971141101051101035832458888588410411410197100801141051111141051161218011110810599121614932109971213211410111311710511410132115121115116101109321081011181011083211210111410910511511510511111044321014610346443298101105110103321161041013211411111111632117115101114463273102321161041013211010199101115115971141213211210111410910511511510511111032105115321101111163211211111511510111511510110044329910497110103101115321161113211211410511111410511612132119105108108329810132115105108101110116108121321051031101111141011004610Warm-up 1: 875.083 ops/s
+Warm-up 2: 1032.486 ops/s
+Warm-up 3: 1029.823 ops/s
+Iteration 1: 1031.010 ops/s
+Iteration 2: 1033.085 ops/s
+Iteration 3: 1027.293 ops/s
+Iteration 4: 1034.344 ops/s
+Iteration 5: 1033.729 ops/s
+
+  Success: 1031.892 ±(99.9%) 11.015 ops/s [Average]
+  (min, avg, max) = (1027.293, 1031.892, 1034.344), stdev = 2.861
+  CI (99.9%): [1020.877, 1042.907] (assumes normal distribution)
+
+… io.bluetape4k.idgenerators.benchmark.SingleThreadIdGeneratorBenchmark.uuidV7 | batchSize=100
+
+749711897327211111683112111116408477413254524566105116328310111411810111432867732119971141101051101035832458888588410411410197100801141051111141051161218011110810599121614932109971213211410111311710511410132115121115116101109321081011181011083211210111410910511511510511111044321014610346443298101105110103321161041013211411111111632117115101114463273102321161041013211010199101115115971141213211210111410910511511510511111032105115321101111163211211111511510111511510110044329910497110103101115321161113211211410511111410511612132119105108108329810132115105108101110116108121321051031101111141011004610Warm-up 1: 398219.835 ops/s
+Warm-up 2: 421826.500 ops/s
+Warm-up 3: 420835.660 ops/s
+Iteration 1: 423198.030 ops/s
+Iteration 2: 423408.728 ops/s
+Iteration 3: 423921.770 ops/s
+Iteration 4: 424531.857 ops/s
+Iteration 5: 424092.946 ops/s
+
+  Success: 423830.666 ±(99.9%) 2062.000 ops/s [Average]
+  (min, avg, max) = (423198.030, 423830.666, 424531.857), stdev = 535.495
+  CI (99.9%): [421768.666, 425892.666] (assumes normal distribution)
+
+… io.bluetape4k.idgenerators.benchmark.SingleThreadIdGeneratorBenchmark.uuidV7 | batchSize=10000
+
+749711897327211111683112111116408477413254524566105116328310111411810111432867732119971141101051101035832458888588410411410197100801141051111141051161218011110810599121614932109971213211410111311710511410132115121115116101109321081011181011083211210111410910511511510511111044321014610346443298101105110103321161041013211411111111632117115101114463273102321161041013211010199101115115971141213211210111410910511511510511111032105115321101111163211211111511510111511510110044329910497110103101115321161113211211410511111410511612132119105108108329810132115105108101110116108121321051031101111141011004610Warm-up 1: 3936.226 ops/s
+Warm-up 2: 4188.477 ops/s
+Warm-up 3: 4190.530 ops/s
+Iteration 1: 4061.295 ops/s
+Iteration 2: 4173.205 ops/s
+Iteration 3: 4184.221 ops/s
+Iteration 4: 4200.111 ops/s
+Iteration 5: 4200.890 ops/s
+
+  Success: 4163.944 ±(99.9%) 225.409 ops/s [Average]
+  (min, avg, max) = (4061.295, 4163.944, 4200.890), stdev = 58.538
+  CI (99.9%): [3938.535, 4389.354] (assumes normal distribution)
+
+
+benchmark summary:
+Benchmark                                      (batchSize)   Mode  Cnt       Score      Error  Units
+SingleThreadIdGeneratorBenchmark.flake                 100  thrpt    5   36916.947 ±  220.119  ops/s
+SingleThreadIdGeneratorBenchmark.flake               10000  thrpt    5     351.317 ±   18.779  ops/s
+SingleThreadIdGeneratorBenchmark.ksuidMillis           100  thrpt    5   59593.488 ± 1052.112  ops/s
+SingleThreadIdGeneratorBenchmark.ksuidMillis         10000  thrpt    5     573.599 ±   10.215  ops/s
+SingleThreadIdGeneratorBenchmark.ksuidSeconds          100  thrpt    5   53210.135 ±  299.732  ops/s
+SingleThreadIdGeneratorBenchmark.ksuidSeconds        10000  thrpt    5     512.679 ±   14.456  ops/s
+SingleThreadIdGeneratorBenchmark.snowflake             100  thrpt    5   40973.126 ±   10.842  ops/s
+SingleThreadIdGeneratorBenchmark.snowflake           10000  thrpt    5     409.800 ±    0.390  ops/s
+SingleThreadIdGeneratorBenchmark.ulid                  100  thrpt    5  270204.172 ± 2989.305  ops/s
+SingleThreadIdGeneratorBenchmark.ulid                10000  thrpt    5    2546.337 ±   13.954  ops/s
+SingleThreadIdGeneratorBenchmark.uuidV4                100  thrpt    5  105158.728 ± 1092.031  ops/s
+SingleThreadIdGeneratorBenchmark.uuidV4              10000  thrpt    5    1031.892 ±   11.015  ops/s
+SingleThreadIdGeneratorBenchmark.uuidV7                100  thrpt    5  423830.666 ± 2062.000  ops/s
+SingleThreadIdGeneratorBenchmark.uuidV7              10000  thrpt    5    4163.944 ±  225.409  ops/s
+
+Analysing benchmark results is not always trivial,
+please refer to https://github.com/Kotlin/kotlinx-benchmark/tree/master?tab=readme-ov-file#analyzing-results for details.
+
+
+> Task :bluetape4k-idgenerators:singleThreadBenchmark
+
+[Incubating] Problems report is available at: file:///Users/debop/work/bluetape4k/bluetape4k-projects/build/reports/problems/problems-report.html
+
+Deprecated Gradle features were used in this build, making it incompatible with Gradle 10.
+
+You can use '--warning-mode all' to show the individual deprecation warnings and determine if they come from your own scripts or plugins.
+
+For more on this, please refer to https://docs.gradle.org/9.5.0/userguide/command_line_interface.html#sec:command_line_warnings in the Gradle documentation.
+
+BUILD SUCCESSFUL in 2m 13s
+27 actionable tasks: 21 executed, 6 up-to-date
+Configuration cache entry stored.

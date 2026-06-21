@@ -11,7 +11,6 @@ import (
 
 	"github.com/bluetape4k/bluetape-go/leader"
 	redisleader "github.com/bluetape4k/bluetape-go/leader/redis"
-	redistestcontainer "github.com/bluetape4k/bluetape-go/testcontainers/redis"
 	bttesting "github.com/bluetape4k/bluetape-go/testing"
 	concurrencytest "github.com/bluetape4k/bluetape-go/testing/concurrency"
 	"github.com/redis/go-redis/v9"
@@ -307,15 +306,6 @@ func TestRedisStrategicElectorStressRegistersAndElectsOneWinner(t *testing.T) {
 	if candidates[0].NodeID != "node-a" || candidates[0].SuccessCount == 0 {
 		t.Fatalf("fifo winner should be node-a with successes, got %+v", candidates[0])
 	}
-}
-
-func newRedisClient(ctx context.Context, t *testing.T) *redis.Client {
-	t.Helper()
-	client := redis.NewClient(&redis.Options{Addr: redistestcontainer.Start(ctx, t)})
-	t.Cleanup(func() {
-		_ = client.Close()
-	})
-	return client
 }
 
 func newStrategicElector[T any](

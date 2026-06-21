@@ -1,0 +1,26 @@
+goos: darwin
+goarch: arm64
+pkg: github.com/bluetape4k/bluetape-go/id
+cpu: Apple M4 Pro
+BenchmarkKSUIDMillisNextString-12            	 3905892	       308.4 ns/op	      56 B/op	       2 allocs/op
+BenchmarkKSUIDMillisNextString-12            	 3886669	       311.7 ns/op	      56 B/op	       2 allocs/op
+BenchmarkKSUIDMillisNextString-12            	 3844281	       309.1 ns/op	      56 B/op	       2 allocs/op
+BenchmarkKSUIDMillisNextString-12            	 3881592	       308.2 ns/op	      56 B/op	       2 allocs/op
+BenchmarkKSUIDMillisNextString-12            	 3907638	       308.5 ns/op	      56 B/op	       2 allocs/op
+BenchmarkKSUIDMillisNextString-12            	 3913878	       308.1 ns/op	      56 B/op	       2 allocs/op
+BenchmarkKSUIDMillisNextString-12            	 3886297	       308.2 ns/op	      56 B/op	       2 allocs/op
+BenchmarkKSUIDMillisNextString-12            	 3854798	       308.1 ns/op	      56 B/op	       2 allocs/op
+BenchmarkKSUIDMillisNextString-12            	 3919273	       308.0 ns/op	      56 B/op	       2 allocs/op
+BenchmarkKSUIDMillisNextString-12            	 3888849	       309.4 ns/op	      56 B/op	       2 allocs/op
+BenchmarkKSUIDMillisNextStringParallel-12    	 1940632	       616.0 ns/op	      56 B/op	       2 allocs/op
+BenchmarkKSUIDMillisNextStringParallel-12    	 1932165	       603.0 ns/op	      56 B/op	       2 allocs/op
+BenchmarkKSUIDMillisNextStringParallel-12    	 2069599	       600.9 ns/op	      56 B/op	       2 allocs/op
+BenchmarkKSUIDMillisNextStringParallel-12    	 2024140	       601.1 ns/op	      56 B/op	       2 allocs/op
+BenchmarkKSUIDMillisNextStringParallel-12    	 1944627	       618.4 ns/op	      56 B/op	       2 allocs/op
+BenchmarkKSUIDMillisNextStringParallel-12    	 1956316	       622.2 ns/op	      56 B/op	       2 allocs/op
+BenchmarkKSUIDMillisNextStringParallel-12    	 1953004	       617.2 ns/op	      56 B/op	       2 allocs/op
+BenchmarkKSUIDMillisNextStringParallel-12    	 1938294	       609.5 ns/op	      56 B/op	       2 allocs/op
+BenchmarkKSUIDMillisNextStringParallel-12    	 1968900	       614.0 ns/op	      56 B/op	       2 allocs/op
+BenchmarkKSUIDMillisNextStringParallel-12    	 1951725	       631.2 ns/op	      56 B/op	       2 allocs/op
+PASS
+ok  	github.com/bluetape4k/bluetape-go/id	30.969s

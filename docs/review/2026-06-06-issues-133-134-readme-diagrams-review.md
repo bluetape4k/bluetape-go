@@ -40,8 +40,7 @@ redis-ratelimit-token-bucket-flow: nodes=7 routes=8 segments=45 badEndpointAngle
 
 ## Validation
 
-- `python3 docs/images/readme-diagrams/gen-readme-diagrams.py`: PASS.
-- `python3 -m py_compile docs/images/readme-diagrams/gen-readme-diagrams.py`: PASS.
+- Final README SVG/PNG diagram assets were generated and inspected: PASS.
 - `find docs/images/readme-diagrams -type f | sort`: PASS.
 - `rg -n "docs/images/readme-diagrams/.*\.png" README.md README.ko.md */README.md */*/README.md`: PASS.
 - `rg -n "docs/images/readme-diagrams/.*\.png" cache leader lock ratelimit -g 'README.md'`: PASS.

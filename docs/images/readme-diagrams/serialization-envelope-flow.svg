@@ -1,0 +1,51 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1180" height="560" viewBox="0 0 1180 560" role="img" aria-labelledby="title desc">
+<title id="title">serialization Envelope Flow</title><desc id="desc">Named serializers keep format and version checks visible before storage or cache use.</desc>
+<defs><marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="13" markerHeight="13" markerUnits="userSpaceOnUse" orient="auto"><path d="M 0 0 L 10 5 L 0 10 Z" fill="#2563eb"/></marker>
+<style>@font-face{font-family:'Architects Daughter';src:url('/Users/debop/Library/Fonts/ArchitectsDaughter-Regular.ttf');}@font-face{font-family:'Comic Mono';src:url('/Users/debop/Library/Fonts/ComicMono.ttf');font-weight:400;}@font-face{font-family:'Comic Mono';src:url('/Users/debop/Library/Fonts/ComicMono-Bold.ttf');font-weight:700;}<![CDATA[
+.bg{fill:#f8fafc}.title{font-family:'Architects Daughter','Comic Mono';font-size:30px;fill:#111827}.sub{font-family:'Comic Mono','Architects Daughter';font-size:15px;fill:#475569}.card{rx:14;stroke-width:2.2}.cardTitle{font-family:'Comic Mono','Architects Daughter';font-size:17px;font-weight:700;fill:#111827}.cardText{font-family:'Comic Mono','Architects Daughter';font-size:12px;fill:#374151}.arrow{fill:none;stroke:#2563eb;stroke-width:4.4;marker-end:url(#arrow)}.dash{fill:none;stroke:#64748b;stroke-width:2.8;stroke-dasharray:8 6;marker-end:url(#arrow)}.label{font-family:'Comic Mono','Architects Daughter';font-size:12px;fill:#1d4ed8}.footer{font-family:'Comic Mono','Architects Daughter';font-size:12px;fill:#475569}
+]]></style></defs>
+<rect class="bg" x="0" y="0" width="1180" height="560"/>
+<text class="title" x="48" y="54">serialization Envelope Flow</text>
+<text class="sub" x="50" y="84">Named serializers keep format and version checks visible before storage or cache use.</text>
+<rect class="card" x="64" y="150" width="210" height="110" fill="#eff6ff" stroke="#2563eb"/>
+<text class="cardTitle" x="82" y="182">Domain value</text>
+<text class="cardText" x="82" y="210">typed Go value</text>
+<text class="cardText" x="82" y="230">caller owns schema</text>
+<rect class="card" x="326" y="132" width="225" height="146" fill="#ecfdf5" stroke="#059669"/>
+<text class="cardTitle" x="344" y="164">NamedSerializer</text>
+<text class="cardText" x="344" y="192">Marshal / Unmarshal</text>
+<text class="cardText" x="344" y="212">Format() metadata</text>
+<text class="cardText" x="344" y="232">JSON strict option</text>
+<rect class="card" x="612" y="132" width="235" height="146" fill="#fff7ed" stroke="#f97316"/>
+<text class="cardTitle" x="630" y="164">BTGS envelope</text>
+<text class="cardText" x="630" y="192">magic BTGS</text>
+<text class="cardText" x="630" y="212">version &lt;= reader</text>
+<text class="cardText" x="630" y="232">format match</text>
+<rect class="card" x="908" y="150" width="210" height="110" fill="#fdf2f8" stroke="#db2777"/>
+<text class="cardTitle" x="926" y="182">Byte payload</text>
+<text class="cardText" x="926" y="210">safe persistence</text>
+<text class="cardText" x="926" y="230">cache/message body</text>
+<rect class="card" x="326" y="332" width="225" height="90" fill="#f8fafc" stroke="#64748b"/>
+<text class="cardTitle" x="344" y="364">BytesSerializer</text>
+<text class="cardText" x="344" y="392">copies byte slices</text>
+<text class="cardText" x="344" y="412">no alias leakage</text>
+<rect class="card" x="612" y="316" width="235" height="118" fill="#fef2f2" stroke="#dc2626"/>
+<text class="cardTitle" x="630" y="348">Decode guard</text>
+<text class="cardText" x="630" y="376">bad magic</text>
+<text class="cardText" x="630" y="396">newer version</text>
+<text class="cardText" x="630" y="416">format mismatch</text>
+<path class="arrow" d="M 274 205 L 326 205"/>
+<text class="label" x="284" y="194">marshal</text>
+<path class="arrow" d="M 551 205 L 612 205"/>
+<text class="label" x="565" y="194">wrap</text>
+<path class="arrow" d="M 847 205 L 908 205"/>
+<text class="label" x="858" y="194">store</text>
+<path class="dash" d="M 908 260 L 908 325 L 847 325"/>
+<text class="label" x="858" y="315">read path validates</text>
+<path class="dash" d="M 612 377 L 551 377"/>
+<text class="label" x="560" y="368">raw bytes</text>
+<path class="dash" d="M 326 377 C 208 368 156 302 156 260"/>
+<text class="label" x="190" y="352">unmarshal</text>
+<rect x="48" y="500" width="1084" height="34" rx="9" fill="#ffffff" stroke="#cbd5e1"/>
+<text class="footer" x="66" y="522">Reader contract: deserialize only after envelope checks pass; strict JSON is opt-in through decoder options.</text>
+</svg>

@@ -1,0 +1,46 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1285" height="760" viewBox="0 0 1285 760">
+<defs><marker id="arrow" markerWidth="12" markerHeight="10" refX="10" refY="5" orient="auto" markerUnits="userSpaceOnUse"><path d="M0,0 L10,5 L0,10 z" fill="#2563eb"/></marker><marker id="arrow-gray" markerWidth="12" markerHeight="10" refX="10" refY="5" orient="auto" markerUnits="userSpaceOnUse"><path d="M0,0 L10,5 L0,10 z" fill="#64748b"/></marker><filter id="shadow" x="-10%" y="-10%" width="120%" height="125%"><feDropShadow dx="0" dy="3" stdDeviation="4" flood-color="#94a3b8" flood-opacity=".22"/></filter></defs>
+
+<style>
+@font-face{font-family:'Architects Daughter';src:local('Architects Daughter');}
+@font-face{font-family:'Comic Mono';src:local('Comic Mono');}
+.bg{fill:#f8fafc}.title{font:42px 'Architects Daughter';fill:#111827}.sub{font:21px 'Comic Mono';fill:#475569}.card-title{font:24px 'Comic Mono';font-weight:700;fill:#111827}.body{font:17px 'Comic Mono';fill:#334155}.small{font:15px 'Comic Mono';fill:#475569}.label{font:16px 'Comic Mono';fill:#2563eb;font-weight:700}.arrow{stroke:#2563eb;stroke-width:3.5;fill:none;marker-end:url(#arrow)}.dashed{stroke:#64748b;stroke-width:3;stroke-dasharray:10 9;fill:none;marker-end:url(#arrow-gray)}.card{fill:#fff;stroke-width:4}.alt{fill:#f59e0b;fill-opacity:.12;stroke:#f59e0b;stroke-opacity:.55;stroke-dasharray:10 8;stroke-width:3}
+</style>
+
+<rect class="bg" width="1285" height="760"/>
+<text class="title" x="52" y="72">money Exchange-Rate Provider Flow</text>
+<text class="sub" x="56" y="112">Pure value conversion stays separate from context-aware provider IO.</text>
+<rect class="card" x="60" y="175" width="275" height="165" rx="16" fill="#eff6ff" stroke="#2563eb" filter="url(#shadow)"/>
+<text class="card-title" x="82" y="213">Money value</text>
+<text class="body" x="84" y="247">decimal-backed amount</text>
+<text class="body" x="84" y="274">validated currency</text>
+<text class="body" x="84" y="301">immutable value</text>
+<rect class="card" x="430" y="150" width="345" height="215" rx="16" fill="#ecfdf5" stroke="#059669" filter="url(#shadow)"/>
+<text class="card-title" x="452" y="188">ConvertWithProvider</text>
+<text class="body" x="454" y="222">requires context</text>
+<text class="body" x="454" y="249">asks provider Rate</text>
+<text class="body" x="454" y="276">validates returned quote</text>
+<text class="body" x="454" y="303">uses Convert internally</text>
+<rect class="card" x="890" y="155" width="340" height="205" rx="16" fill="#fff7ed" stroke="#f97316" filter="url(#shadow)"/>
+<text class="card-title" x="912" y="193">ExchangeRateProvider</text>
+<text class="body" x="914" y="227">ECB snapshot cache</text>
+<text class="body" x="914" y="254">source metadata</text>
+<text class="body" x="914" y="281">stale fallback option</text>
+<text class="body" x="914" y="308">caller-visible errors</text>
+<rect class="card" x="430" y="465" width="345" height="145" rx="16" fill="#f5f3ff" stroke="#7c3aed" filter="url(#shadow)"/>
+<text class="card-title" x="452" y="503">ExchangeRateQuote</text>
+<text class="body" x="454" y="537">Rate + Source</text>
+<text class="body" x="454" y="564">Observed/Fetched/Expires</text>
+<text class="body" x="454" y="591">Stale + RefreshError</text>
+<rect class="card" x="890" y="465" width="340" height="145" rx="16" fill="#fef2f2" stroke="#dc2626" filter="url(#shadow)"/>
+<text class="card-title" x="912" y="503">Converted Money</text>
+<text class="body" x="914" y="537">target currency required</text>
+<text class="body" x="914" y="564">no float math</text>
+<text class="body" x="914" y="591">rounds to currency scale</text>
+<path class="arrow" d="M335 250 L430 250"/><text class="label" x="350" y="238">amount</text>
+<path class="arrow" d="M775 250 L890 250"/><text class="label" x="805" y="238">Rate</text>
+<path class="dashed" d="M890 330 C775 405 685 465 600 465"/><text class="label" x="742" y="415">quote</text>
+<path class="arrow" d="M775 535 L890 535"/><text class="label" x="805" y="523">Convert</text>
+<rect class="alt" x="58" y="650" width="1170" height="70" rx="16"/><text class="small" x="82" y="680">alt: provider failure, stale snapshot, unsupported currency, cancellation, and deadline errors stay visible to callers.</text>
+<text class="small" x="82" y="705">Boundary: ECB rates are informational; trading, ledger, tax, and settlement policy remain caller-owned.</text>
+</svg>

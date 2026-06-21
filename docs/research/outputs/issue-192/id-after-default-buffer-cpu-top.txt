@@ -1,0 +1,92 @@
+File: id.test
+Type: cpu
+Time: 2026-06-11 00:24:19 KST
+Duration: 21.76s, Total samples = 21.13s (97.11%)
+Showing nodes accounting for 20.14s, 95.31% of 21.13s total
+Dropped 87 nodes (cum <= 0.11s)
+      flat  flat%   sum%        cum   cum%
+     9.93s 46.99% 46.99%      9.93s 46.99%  runtime.kevent
+     2.15s 10.18% 57.17%      2.18s 10.32%  github.com/segmentio/ksuid.fastEncodeBase62
+     1.54s  7.29% 64.46%      1.61s  7.62%  runtime.walltime
+     1.32s  6.25% 70.71%      1.32s  6.25%  runtime.madvise
+     0.69s  3.27% 73.97%      0.80s  3.79%  runtime.nanotime1
+     0.45s  2.13% 76.10%      0.45s  2.13%  encoding/hex.Encode (inline)
+     0.44s  2.08% 78.18%      0.44s  2.08%  github.com/bluetape4k/bluetape-go/id.(*bitInput).readBits
+     0.44s  2.08% 80.27%      0.44s  2.08%  runtime.usleep
+     0.39s  1.85% 82.11%      0.39s  1.85%  runtime.pthread_cond_wait
+     0.38s  1.80% 83.91%      0.80s  3.79%  runtime.mallocgcSmallNoscan
+     0.27s  1.28% 85.19%      0.28s  1.33%  syscall.rawsyscalln
+     0.25s  1.18% 86.37%      0.78s  3.69%  github.com/bluetape4k/bluetape-go/id.encodeKSUIDMillisBase62Prefix
+     0.25s  1.18% 87.55%      0.83s  3.93%  io.ReadAtLeast
+     0.21s  0.99% 88.55%      0.21s  0.99%  github.com/oklog/ulid/v2.ULID.MarshalTextTo
+     0.19s   0.9% 89.45%      0.19s   0.9%  runtime.libcCall
+     0.19s   0.9% 90.35%      0.99s  4.69%  runtime.mallocgc
+     0.18s  0.85% 91.20%      0.18s  0.85%  runtime.pthread_kill
+     0.13s  0.62% 91.81%      0.43s  2.04%  bufio.(*Reader).Read
+     0.13s  0.62% 92.43%      0.67s  3.17%  github.com/bluetape4k/bluetape-go/id.(*lockedBufferedEntropy).Read
+     0.09s  0.43% 92.85%      2.60s 12.30%  github.com/bluetape4k/bluetape-go/id.(*uuidGenerator).NextString
+     0.09s  0.43% 93.28%      0.71s  3.36%  runtime.slicebytetostring
+     0.05s  0.24% 93.52%      1.05s  4.97%  github.com/bluetape4k/bluetape-go/id.(*uuidGenerator).nextV7
+     0.05s  0.24% 93.75%      0.48s  2.27%  github.com/google/uuid.NewRandomFromReader
+     0.05s  0.24% 93.99%      0.50s  2.37%  github.com/google/uuid.encodeHex
+     0.04s  0.19% 94.18%      0.98s  4.64%  github.com/google/uuid.UUID.String (inline)
+     0.03s  0.14% 94.32%      1.32s  6.25%  github.com/bluetape4k/bluetape-go/id.(*ulidGenerator).NextString
+     0.03s  0.14% 94.46%      0.28s  1.33%  github.com/oklog/ulid/v2.New
+     0.03s  0.14% 94.60%      0.45s  2.13%  runtime.newobject
+     0.03s  0.14% 94.75%      2.46s 11.64%  time.Now
+     0.03s  0.14% 94.89%      2.42s 11.45%  time.now
+     0.02s 0.095% 94.98%      1.45s  6.86%  github.com/bluetape4k/bluetape-go/id.(*ksuidMillisGenerator).NextString
+     0.01s 0.047% 95.03%      0.89s  4.21%  github.com/bluetape4k/bluetape-go/id.BenchmarkULIDMonotonic
+     0.01s 0.047% 95.08%      1.13s  5.35%  github.com/bluetape4k/bluetape-go/id.BenchmarkUUIDV4ReuseGenerator
+     0.01s 0.047% 95.13%      2.32s 10.98%  github.com/segmentio/ksuid.KSUID.String (inline)
+     0.01s 0.047% 95.17%      2.19s 10.36%  github.com/segmentio/ksuid.fastAppendEncodeBase62
+     0.01s 0.047% 95.22%      1.33s  6.29%  runtime.(*mheap).allocSpan
+     0.01s 0.047% 95.27%      0.14s  0.66%  runtime.gcDrain
+     0.01s 0.047% 95.31%      2.43s 11.50%  time.runtimeNow
+         0     0% 95.31%      0.28s  1.33%  crypto/internal/fips140/drbg.Read
+         0     0% 95.31%      0.28s  1.33%  crypto/internal/rand.reader.Read
+         0     0% 95.31%      0.28s  1.33%  crypto/internal/sysrand.Read
+         0     0% 95.31%      0.28s  1.33%  crypto/internal/sysrand.read (inline)
+         0     0% 95.31%      3.26s 15.43%  github.com/bluetape4k/bluetape-go/id.(*ksuidGenerator).NextString
+         0     0% 95.31%      1.45s  6.86%  github.com/bluetape4k/bluetape-go/id.BenchmarkKSUIDMillisNextString
+         0     0% 95.31%      3.26s 15.43%  github.com/bluetape4k/bluetape-go/id.BenchmarkKSUIDNextString
+         0     0% 95.31%      0.44s  2.08%  github.com/bluetape4k/bluetape-go/id.BenchmarkULIDRandom
+         0     0% 95.31%      1.48s  7.00%  github.com/bluetape4k/bluetape-go/id.BenchmarkUUIDV7ReuseGenerator
+         0     0% 95.31%      2.19s 10.36%  github.com/segmentio/ksuid.KSUID.Append (inline)
+         0     0% 95.31%      0.28s  1.33%  internal/syscall/unix.ARC4Random
+         0     0% 95.31%      0.83s  3.93%  io.ReadFull (inline)
+         0     0% 95.31%      1.33s  6.29%  runtime.(*mheap).alloc.func1
+         0     0% 95.31%      0.50s  2.37%  runtime.findRunnable
+         0     0% 95.31%      0.19s   0.9%  runtime.forEachPInternal
+         0     0% 95.31%      0.14s  0.66%  runtime.gcBgMarkWorker.func2
+         0     0% 95.31%      0.17s   0.8%  runtime.gcMarkDone.forEachP.func5
+         0     0% 95.31%      9.92s 46.95%  runtime.gcStart.func4
+         0     0% 95.31%      0.29s  1.37%  runtime.gopreempt_m (inline)
+         0     0% 95.31%      0.29s  1.37%  runtime.goschedImpl
+         0     0% 95.31%      0.36s  1.70%  runtime.lock (inline)
+         0     0% 95.31%      0.36s  1.70%  runtime.lock2
+         0     0% 95.31%      0.36s  1.70%  runtime.lockWithRank (inline)
+         0     0% 95.31%      0.39s  1.85%  runtime.mPark (inline)
+         0     0% 95.31%      0.50s  2.37%  runtime.mcall
+         0     0% 95.31%      0.29s  1.37%  runtime.morestack
+         0     0% 95.31%      0.80s  3.79%  runtime.nanotime (inline)
+         0     0% 95.31%      9.93s 46.99%  runtime.netpoll
+         0     0% 95.31%      0.29s  1.37%  runtime.newstack
+         0     0% 95.31%      0.39s  1.85%  runtime.notesleep
+         0     0% 95.31%      0.36s  1.70%  runtime.osyield (inline)
+         0     0% 95.31%      0.50s  2.37%  runtime.park_m
+         0     0% 95.31%      0.18s  0.85%  runtime.preemptM
+         0     0% 95.31%      0.14s  0.66%  runtime.preemptall
+         0     0% 95.31%      0.16s  0.76%  runtime.preemptone
+         0     0% 95.31%      0.52s  2.46%  runtime.schedule
+         0     0% 95.31%      0.44s  2.08%  runtime.semasleep
+         0     0% 95.31%      0.18s  0.85%  runtime.signalM (inline)
+         0     0% 95.31%      9.93s 46.99%  runtime.startTheWorldWithSema
+         0     0% 95.31%      0.39s  1.85%  runtime.stopm
+         0     0% 95.31%      1.31s  6.20%  runtime.sysUsed (inline)
+         0     0% 95.31%      1.31s  6.20%  runtime.sysUsedOS (inline)
+         0     0% 95.31%     11.69s 55.32%  runtime.systemstack
+         0     0% 95.31%      0.28s  1.33%  syscall.syscall
+         0     0% 95.31%      0.28s  1.33%  syscall.syscalln
+         0     0% 95.31%      8.65s 40.94%  testing.(*B).run1.func1
+         0     0% 95.31%      8.65s 40.94%  testing.(*B).runN

@@ -4,13 +4,13 @@
 
 ![bluetape-go hero](docs/assets/bluetape-go-hero.png)
 
-Go backend utilities and distributed infrastructure packages for the bluetape
-ecosystem.
+Idiomatic Go backend utilities and distributed infrastructure packages for the
+bluetape ecosystem.
 
-`bluetape-go` complements the Kotlin/JVM bluetape4k libraries. It is not a
-rewrite of bluetape4k. It provides idiomatic Go packages for teams that prefer
-Go for backend infrastructure, service coordination, test fixtures, resilience,
-caching, workflow, batch, graph, text, audit, and AWS-adjacent service code.
+`bluetape-go` complements the Kotlin/JVM bluetape4k libraries without trying to
+mirror their API surface. It gives Go teams small, focused packages for service
+infrastructure, coordination, test fixtures, resilience, caching, workflows,
+batch processing, portable values, and Redis-backed adapters.
 
 ## Architecture
 
@@ -18,19 +18,19 @@ caching, workflow, batch, graph, text, audit, and AWS-adjacent service code.
 
 ## Current Status
 
-`bluetape-go` has published the `v0.6.0` release line. The repository contains
-foundation utilities, codecs, compression, concurrency helpers, serialization
-contracts, Redis-backed leader election, resilience policies, cache and Redis
-coordination packages, token-bucket rate limiting, finite state machine
-primitives, workflow reports, lightweight workflow runners, checkpointed batch
-processing, and portable service utilities.
+`bluetape-go` has published the `v0.6.0` release line. The repository now covers
+foundation helpers, codecs, compression, context-aware concurrency, serializer
+contracts, Redis-backed leader election and locks, resilience policies, cache
+coordination, token-bucket rate limiting, finite state machines, workflow
+reports, lightweight workflow runners, checkpointed batch jobs, and portable
+service values.
 
-The `v0.6.0` portable utilities scope includes the `id` package for UUID, ULID,
-KSUID, and Snowflake identifiers, the `jwt` package for explicit-algorithm JWT
-signing, parsing, validation, and local key rotation, the `measure` package for
-typed units, measured values, compound units, parsing, formatting, and
-temperature helpers, the `money` package for ISO currency and decimal-backed
-amount operations, and the `probabilistic` package for in-memory Bloom filters.
+The `v0.6.0` portable utilities scope includes UUID, ULID, KSUID, and Snowflake
+ID generation; explicit-algorithm JWT signing, parsing, validation, and local
+key rotation; typed units and measured values; ISO currency and decimal-backed
+money operations; and in-memory Bloom filters. The Unreleased `0.6.1` line adds
+Redis-backed Bloom filters, optional JWT provider cache adapters, and an
+ECB-backed money exchange-rate provider.
 
 ## Packages
 
@@ -61,15 +61,18 @@ amount operations, and the `probabilistic` package for in-memory Bloom filters.
 | [`state`](state/README.md) | active | Small finite state machine primitives with typed transitions, guards, final states, and sentinel errors. |
 | [`workreport`](workreport/README.md) | active | Status, failure-policy, and report-tree values for lightweight workflow code. |
 | [`workflow`](workflow/README.md) | active | Sequential, conditional, and all-branches parallel runners built on `context.Context` and `workreport`. |
-| [`id`](id/README.md) | active | UUID v4/v7, random and monotonic ULID, standard KSUID, and Snowflake ID generators. |
-| [`jwt`](jwt/README.md) | active | JWT signing, parsing, validation, typed claim reading, and in-memory `kid` key rotation with explicit algorithms. |
+| [`batch`](batch/README.md) | active | Chunk-oriented batch steps, sequential jobs, retry/skip policies, reports, and checkpoints. |
+| [`id`](id/README.md) | active | UUID v4/v7, random and monotonic ULID, standard KSUID, Kotlin-compatible KSUID millis, and Snowflake ID generators. |
+| [`jwt`](jwt/README.md) | active | JWT signing, parsing, validation, typed claim reading, in-memory/distributed `kid` key rotation, and optional provider cache adapters with explicit algorithms. |
+| [`jwt/redis`](jwt/redis/README.md) | active | Redis-specific facade for distributed JWT key-chain repository construction. |
 | [`measure`](measure/README.md) | active | Typed units, measured values, compound units, parsing, formatting, and affine temperature helpers. |
-| [`money`](money/README.md) | active | ISO 4217 currency values, decimal-backed money amounts, aggregation, serialization, and caller-supplied exchange-rate conversion. |
+| [`money`](money/README.md) | active | ISO 4217 currency values, CLDR-backed locale currency lookup, decimal-backed money amounts, aggregation, serialization, caller-supplied exchange-rate conversion, and ECB-backed provider conversion. |
 | [`probabilistic`](probabilistic/README.md) | active | Goroutine-safe in-memory Bloom filters with deterministic config, merge compatibility checks, and stress/race coverage. |
+| [`probabilistic/redis`](probabilistic/redis/README.md) | active | Redis-backed shared Bloom filters with static Lua scripts, immutable config metadata, and operator runbook boundaries. |
 
 Next planned package families include relational SQL helpers, AWS/Floci helper
-examples, text, audit, and graph packages. Redis-backed Bloom/Cuckoo/HyperLogLog
-support is tracked separately for `0.6.1`.
+examples, text, audit, and graph packages. Redis-backed Cuckoo and
+HyperLogLog/HLL support is tracked separately after the Redis Bloom scope.
 
 ## Install
 
@@ -79,8 +82,9 @@ go get github.com/bluetape4k/bluetape-go
 
 ## Package Documentation
 
-Detailed usage examples, operational boundaries, and package-specific
-benchmarks live next to each package:
+Package-level READMEs contain the practical details: usage examples, operational
+boundaries, benchmark notes, and the constraints that do not belong in a root
+overview.
 
 - Foundation: [`core`](core/README.md), [`collections`](collections/README.md),
   [`concurrency`](concurrency/README.md), [`codec`](codec/README.md),
@@ -96,10 +100,12 @@ benchmarks live next to each package:
   [`cache`](cache/README.md), [`cache/redisnear`](cache/redisnear/README.md),
   [`cache/rediscoord`](cache/rediscoord/README.md), [`ratelimit`](ratelimit/README.md),
   [`state`](state/README.md), [`workreport`](workreport/README.md), and
-  [`workflow`](workflow/README.md).
+  [`workflow`](workflow/README.md), and [`batch`](batch/README.md).
 - Portable utilities: [`id`](id/README.md), [`jwt`](jwt/README.md),
+  [`jwt/redis`](jwt/redis/README.md),
   [`measure`](measure/README.md), [`money`](money/README.md), and
-  [`probabilistic`](probabilistic/README.md).
+  [`probabilistic`](probabilistic/README.md), including
+  [`probabilistic/redis`](probabilistic/redis/README.md).
 
 ## Roadmap
 
@@ -140,11 +146,12 @@ Common commands:
 | `make tidy-check` | Fail when `go.mod` or `go.sum` drift after `go mod tidy`. |
 | `make vet` | Run `go vet ./...`. |
 | `make lint` | Run `golangci-lint run ./...`. |
-| `make test` | Run `go test -count=1 ./...` so Testcontainers tests execute. |
-| `make race` | Run `go test -race -count=1 ./...` so Testcontainers tests execute under the race detector. |
+| `make test` | Run `go test -p 1 -count=1 ./...` so Testcontainers tests execute with serial package scheduling. |
+| `make race` | Run `go test -race -p 1 -count=1 ./...` so Testcontainers tests execute under the race detector with serial package scheduling. |
 | `make coverage` | Generate Go coverage profile, package subtotal table, text summary, and HTML report under `coverage/`. |
 | `make bench-cache` | Run opt-in cache, Redis NearCache, and Redis coordinator benchmarks. |
 | `make bench-ratelimit` | Run opt-in local rate limiter benchmarks. |
+| `make bench-id` | Run opt-in id generator benchmarks. |
 | `make ci` | Run the local CI gate. |
 
 Redis integration tests use Testcontainers and require Docker. The regular CI

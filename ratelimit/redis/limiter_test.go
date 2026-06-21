@@ -275,7 +275,7 @@ func redisClient(ctx context.Context, t *testing.T) *redis.Client {
 func waitForRedis(t *testing.T, client *redis.Client) {
 	t.Helper()
 
-	bttesting.Eventually(t, 2*time.Second, func() bool {
+	bttesting.Eventually(t, 5*time.Second, func() bool {
 		return client.Ping(context.Background()).Err() == nil
 	})
 }

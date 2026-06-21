@@ -1,0 +1,120 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1500" height="1000" viewBox="0 0 1500 1000" role="img" aria-labelledby="title desc">
+  <title id="title">Redis Token Bucket Sequence</title>
+  <desc id="desc">Allow validates input, evaluates one Lua script, and returns either allowed, rejected, or Redis error.</desc>
+  <defs>
+    <filter id="softShadow" x="-8%" y="-10%" width="116%" height="124%"><feDropShadow dx="0" dy="5" stdDeviation="5" flood-color="#0F172A" flood-opacity="0.10"/></filter>
+    <marker id="arrow-blue" markerWidth="14" markerHeight="14" refX="13" refY="7" orient="auto" markerUnits="userSpaceOnUse"><path d="M 0 0 L 14 7 L 0 14 Z" fill="#4f77c9"/></marker>
+    <marker id="arrow-green" markerWidth="14" markerHeight="14" refX="13" refY="7" orient="auto" markerUnits="userSpaceOnUse"><path d="M 0 0 L 14 7 L 0 14 Z" fill="#319873"/></marker>
+    <marker id="arrow-amber" markerWidth="14" markerHeight="14" refX="13" refY="7" orient="auto" markerUnits="userSpaceOnUse"><path d="M 0 0 L 14 7 L 0 14 Z" fill="#cf8428"/></marker>
+    <marker id="arrow-red" markerWidth="14" markerHeight="14" refX="13" refY="7" orient="auto" markerUnits="userSpaceOnUse"><path d="M 0 0 L 14 7 L 0 14 Z" fill="#c85d73"/></marker>
+    <marker id="arrow-purple" markerWidth="14" markerHeight="14" refX="13" refY="7" orient="auto" markerUnits="userSpaceOnUse"><path d="M 0 0 L 14 7 L 0 14 Z" fill="#7e62d9"/></marker>
+    <marker id="arrow-teal" markerWidth="14" markerHeight="14" refX="13" refY="7" orient="auto" markerUnits="userSpaceOnUse"><path d="M 0 0 L 14 7 L 0 14 Z" fill="#3f7d9c"/></marker>
+    <marker id="arrow-gray" markerWidth="14" markerHeight="14" refX="13" refY="7" orient="auto" markerUnits="userSpaceOnUse"><path d="M 0 0 L 14 7 L 0 14 Z" fill="#64748b"/></marker>
+    <style>
+      .canvas { fill: #f8fafc; }
+      .frame { fill: #ffffff; stroke: #cbd5e1; stroke-width: 1.5; filter: url(#softShadow); }
+      .title, .part-title, .card-title, .panel-title { font-family: "Architects Daughter"; fill: #263a57; }
+      .title { font-size: 42px; }
+      .subtitle, .body, .small, .msg, .region, .footer { font-family: "Comic Mono"; fill: #526276; }
+      .subtitle { font-size: 17px; }
+      .panel-title { font-size: 24px; }
+      .card-title { font-size: 22px; }
+      .body { font-size: 14px; }
+      .small { font-size: 12px; }
+      .msg { font-size: 13px; font-weight: 700; }
+      .region { font-size: 12px; font-weight: 700; }
+      .footer { font-size: 14px; }
+      .panel { stroke: #d0deeb; stroke-width: 1.8; rx: 8; filter: url(#softShadow); }
+      .card { stroke-width: 1.8; rx: 8; filter: url(#softShadow); }
+      .card-divider { stroke-width: 1.1; opacity: .45; }
+      .participant { stroke-width: 2.2; rx: 12; }
+      .lifeline { stroke: #c5d4e3; stroke-width: 2; stroke-dasharray: 8 8; }
+      .activation { fill: #f3eeff; stroke: #8a65d8; stroke-width: 1.7; rx: 7; opacity: .88; }
+      .route { fill: none; stroke-width: 3; stroke-linecap: round; stroke-linejoin: round; }
+      .return { fill: none; stroke-width: 2.6; stroke-linecap: round; stroke-linejoin: round; stroke-dasharray: 9 8; }
+      .alt { fill: #f7f2ff; fill-opacity: .22; stroke: #78909c; stroke-width: 2.4; stroke-dasharray: 12 7; rx: 16; }
+      .alt-label { fill: #ffffff; stroke: #d7e0e4; stroke-width: 1.5; rx: 15; }
+      .else-line { stroke: #78909c; stroke-width: 2.2; stroke-dasharray: 12 8; }
+      .pill { fill: #ffffff; stroke: #cbd9e7; stroke-width: 1.5; rx: 14; }
+      .badge { stroke-width: 1.6; }
+      .badge-text { font-family: "Comic Mono"; font-size: 10px; font-weight: 700; fill: #ffffff; }
+      .legend { fill: #ffffff; stroke: #d4e0ec; stroke-width: 1.5; rx: 12; }
+    </style>
+  </defs>
+  <rect class="canvas" width="1500" height="1000"/>
+  <rect class="frame" x="34" y="30" width="1432" height="936" rx="8"/>
+  <text class="title" x="72" y="88">Redis Token Bucket Sequence</text>
+  <text class="subtitle" x="76" y="120">Allow validates input, evaluates one Lua script, and returns either allowed, rejected, or Redis error.</text>
+  <rect class="participant" x="80" y="174" width="160" height="68" fill="#eaf2ff" stroke="#6d9df0"/>
+  <text class="part-title" x="160" y="202" text-anchor="middle">Caller</text>
+  <text class="small" x="160" y="224" text-anchor="middle">tenant key</text>
+  <line class="lifeline" x1="160" y1="242" x2="160" y2="874"/>
+  <rect class="participant" x="310" y="174" width="160" height="68" fill="#edf9f4" stroke="#63b891"/>
+  <text class="part-title" x="390" y="202" text-anchor="middle">Limiter</text>
+  <text class="small" x="390" y="224" text-anchor="middle">Go guard</text>
+  <line class="lifeline" x1="390" y1="242" x2="390" y2="874"/>
+  <rect class="participant" x="570" y="174" width="160" height="68" fill="#f3efff" stroke="#9b7aec"/>
+  <text class="part-title" x="650" y="202" text-anchor="middle">Redis Lua</text>
+  <text class="small" x="650" y="224" text-anchor="middle">atomic script</text>
+  <line class="lifeline" x1="650" y1="242" x2="650" y2="874"/>
+  <rect class="participant" x="830" y="174" width="160" height="68" fill="#fff4de" stroke="#d59c3f"/>
+  <text class="part-title" x="910" y="202" text-anchor="middle">Redis TIME</text>
+  <text class="small" x="910" y="224" text-anchor="middle">server clock</text>
+  <line class="lifeline" x1="910" y1="242" x2="910" y2="874"/>
+  <rect class="participant" x="1080" y="174" width="160" height="68" fill="#fff0f0" stroke="#dc2626"/>
+  <text class="part-title" x="1160" y="202" text-anchor="middle">Hash bucket</text>
+  <text class="small" x="1160" y="224" text-anchor="middle">tokens/updated_ms</text>
+  <line class="lifeline" x1="1160" y1="242" x2="1160" y2="874"/>
+  <rect class="activation" x="153" y="298" width="14" height="554" rx="7"/>
+  <rect class="activation" x="383" y="298" width="14" height="554" rx="7"/>
+  <rect class="activation" x="643" y="358" width="14" height="434" rx="7"/>
+  <rect class="activation" x="1153" y="478" width="14" height="104" rx="7"/>
+  <rect class="alt" x="78" y="610" width="1276" height="240" rx="16"/>
+  <rect class="alt-label" x="96" y="628" width="201" height="30" rx="15"/>
+  <text class="region" x="118" y="648">alt script result</text>
+  <line class="else-line" x1="92" y1="720" x2="1340" y2="720"/>
+  <rect class="alt-label" x="96" y="738" width="264" height="30" rx="15"/>
+  <text class="region" x="118" y="758">else insufficient tokens</text>
+  <path class="route" d="M160 310 L390 310" stroke="#4f77c9" marker-end="url(#arrow-blue)"/>
+  <rect class="pill" x="180" y="268" width="190" height="30" rx="15"/>
+  <circle class="badge" cx="198" cy="283" r="13" fill="#4f77c9"/>
+  <text class="badge-text" x="198" y="287" text-anchor="middle">1</text>
+  <text class="msg" x="290" y="288" text-anchor="middle" fill="#4f77c9">Allow(ctx, key, n)</text>
+  <path class="route" d="M390 370 L650 370" stroke="#7e62d9" marker-end="url(#arrow-purple)"/>
+  <rect class="pill" x="429" y="328" width="182" height="30" rx="15"/>
+  <circle class="badge" cx="447" cy="343" r="13" fill="#7e62d9"/>
+  <text class="badge-text" x="447" y="347" text-anchor="middle">2</text>
+  <text class="msg" x="535" y="348" text-anchor="middle" fill="#7e62d9">EVAL allow script</text>
+  <path class="route" d="M650 430 L910 430" stroke="#cf8428" marker-end="url(#arrow-amber)"/>
+  <rect class="pill" x="714" y="388" width="132" height="30" rx="15"/>
+  <circle class="badge" cx="732" cy="403" r="13" fill="#cf8428"/>
+  <text class="badge-text" x="732" y="407" text-anchor="middle">3</text>
+  <text class="msg" x="795" y="408" text-anchor="middle" fill="#cf8428">TIME</text>
+  <path class="route" d="M650 490 L1160 490" stroke="#319873" marker-end="url(#arrow-green)"/>
+  <rect class="pill" x="786" y="448" width="238" height="30" rx="15"/>
+  <circle class="badge" cx="804" cy="463" r="13" fill="#319873"/>
+  <text class="badge-text" x="804" y="467" text-anchor="middle">4</text>
+  <text class="msg" x="920" y="468" text-anchor="middle" fill="#319873">HMGET + refill + consume</text>
+  <path class="route" d="M650 550 L1160 550" stroke="#319873" marker-end="url(#arrow-green)"/>
+  <rect class="pill" x="826" y="508" width="158" height="30" rx="15"/>
+  <circle class="badge" cx="844" cy="523" r="13" fill="#319873"/>
+  <text class="badge-text" x="844" y="527" text-anchor="middle">5</text>
+  <text class="msg" x="920" y="528" text-anchor="middle" fill="#319873">HSET + PEXPIRE</text>
+  <path class="return" d="M650 650 L390 650" stroke="#319873" marker-end="url(#arrow-green)"/>
+  <rect class="pill" x="421" y="608" width="198" height="30" rx="15"/>
+  <circle class="badge" cx="439" cy="623" r="13" fill="#319873"/>
+  <text class="badge-text" x="439" y="627" text-anchor="middle">6a</text>
+  <text class="msg" x="535" y="628" text-anchor="middle" fill="#319873">allowed + remaining</text>
+  <path class="return" d="M650 760 L390 760" stroke="#cf8428" marker-end="url(#arrow-amber)"/>
+  <rect class="pill" x="409" y="718" width="222" height="30" rx="15"/>
+  <circle class="badge" cx="427" cy="733" r="13" fill="#cf8428"/>
+  <text class="badge-text" x="427" y="737" text-anchor="middle">6b</text>
+  <text class="msg" x="535" y="738" text-anchor="middle" fill="#cf8428">rejected + retry-after</text>
+  <path class="return" d="M390 820 L160 820" stroke="#4f77c9" marker-end="url(#arrow-blue)"/>
+  <rect class="pill" x="188" y="778" width="174" height="30" rx="15"/>
+  <circle class="badge" cx="206" cy="793" r="13" fill="#4f77c9"/>
+  <text class="badge-text" x="206" y="797" text-anchor="middle">7</text>
+  <text class="msg" x="290" y="798" text-anchor="middle" fill="#4f77c9">ratelimit.Result</text>
+  <rect class="legend" x="82" y="922" width="1336" height="40" rx="8"/>
+  <text class="footer" x="750" y="948" text-anchor="middle">Concurrent clients for one key serialize inside Redis script execution.</text>
+</svg>

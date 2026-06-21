@@ -2,7 +2,10 @@
 
 [English](README.md) | [한국어](README.ko.md)
 
-`testcontainers/nats`는 integration test를 위해 NATS container를 시작하고 client connection URL을 반환합니다.
+`testcontainers/nats`는 integration test용 NATS container를 시작하고 client
+connection URL을 반환합니다.
+
+![testcontainers helper flow](../../docs/images/readme-diagrams/testcontainers-helper-flow.png)
 
 ## 가져오기
 

@@ -1,0 +1,66 @@
+goos: darwin
+goarch: arm64
+pkg: github.com/bluetape4k/bluetape-go/id
+cpu: Apple M4 Pro
+                                 │ docs/research/outputs/issue-192/go-id-baseline-count10.txt │ docs/research/outputs/issue-192/go-id-ksuid-millis-fixed-buffer-count10.txt │
+                                 │                           sec/op                           │                       sec/op                        vs base                 │
+UUIDV4NewString-12                                                                238.5n ± 2%
+UUIDV4NewStringParallel-12                                                        533.2n ± 6%
+UUIDV4ReuseGenerator-12                                                           224.1n ± 0%
+UUIDV4ReuseGeneratorParallel-12                                                   500.2n ± 0%
+UUIDV7NewString-12                                                                267.6n ± 1%
+UUIDV7NewStringParallel-12                                                        562.9n ± 1%
+UUIDV7ReuseGenerator-12                                                           255.6n ± 0%
+UUIDV7ReuseGeneratorParallel-12                                                   343.6n ± 0%
+ULIDRandom-12                                                                     104.5n ± 0%
+ULIDRandomParallel-12                                                             278.5n ± 1%
+ULIDMonotonic-12                                                                  65.80n ± 0%
+ULIDMonotonicParallel-12                                                          181.5n ± 1%
+KSUIDNextString-12                                                                393.1n ± 0%
+KSUIDNextStringParallel-12                                                        668.2n ± 0%
+KSUIDMillisNextString-12                                                          316.8n ± 0%                                          308.3n ± 0%  -2.67% (p=0.000 n=10)
+KSUIDMillisNextStringParallel-12                                                  621.0n ± 1%                                          615.0n ± 2%       ~ (p=0.055 n=10)
+geomean                                                                           295.5n                                               435.4n       -1.82%                ¹
+¹ benchmark set differs from baseline; geomeans may not be comparable
+
+                                 │ docs/research/outputs/issue-192/go-id-baseline-count10.txt │ docs/research/outputs/issue-192/go-id-ksuid-millis-fixed-buffer-count10.txt │
+                                 │                            B/op                            │                       B/op                         vs base                  │
+UUIDV4NewString-12                                                                 112.0 ± 0%
+UUIDV4NewStringParallel-12                                                         112.0 ± 0%
+UUIDV4ReuseGenerator-12                                                            64.00 ± 0%
+UUIDV4ReuseGeneratorParallel-12                                                    64.00 ± 0%
+UUIDV7NewString-12                                                                 112.0 ± 0%
+UUIDV7NewStringParallel-12                                                         112.0 ± 0%
+UUIDV7ReuseGenerator-12                                                            64.00 ± 0%
+UUIDV7ReuseGeneratorParallel-12                                                    64.00 ± 0%
+ULIDRandom-12                                                                      48.00 ± 0%
+ULIDRandomParallel-12                                                              48.00 ± 0%
+ULIDMonotonic-12                                                                   48.00 ± 0%
+ULIDMonotonicParallel-12                                                           48.00 ± 0%
+KSUIDNextString-12                                                                 48.00 ± 0%
+KSUIDNextStringParallel-12                                                         48.00 ± 0%
+KSUIDMillisNextString-12                                                          104.00 ± 0%                                          56.00 ± 0%  -46.15% (p=0.000 n=10)
+KSUIDMillisNextStringParallel-12                                                  104.00 ± 0%                                          56.00 ± 0%  -46.15% (p=0.000 n=10)
+geomean                                                                            70.22                                               56.00       -46.15%                ¹
+¹ benchmark set differs from baseline; geomeans may not be comparable
+
+                                 │ docs/research/outputs/issue-192/go-id-baseline-count10.txt │ docs/research/outputs/issue-192/go-id-ksuid-millis-fixed-buffer-count10.txt │
+                                 │                         allocs/op                          │                     allocs/op                      vs base                  │
+UUIDV4NewString-12                                                                 3.000 ± 0%
+UUIDV4NewStringParallel-12                                                         3.000 ± 0%
+UUIDV4ReuseGenerator-12                                                            2.000 ± 0%
+UUIDV4ReuseGeneratorParallel-12                                                    2.000 ± 0%
+UUIDV7NewString-12                                                                 3.000 ± 0%
+UUIDV7NewStringParallel-12                                                         3.000 ± 0%
+UUIDV7ReuseGenerator-12                                                            2.000 ± 0%
+UUIDV7ReuseGeneratorParallel-12                                                    2.000 ± 0%
+ULIDRandom-12                                                                      2.000 ± 0%
+ULIDRandomParallel-12                                                              2.000 ± 0%
+ULIDMonotonic-12                                                                   2.000 ± 0%
+ULIDMonotonicParallel-12                                                           2.000 ± 0%
+KSUIDNextString-12                                                                 2.000 ± 0%
+KSUIDNextStringParallel-12                                                         2.000 ± 0%
+KSUIDMillisNextString-12                                                           3.000 ± 0%                                          2.000 ± 0%  -33.33% (p=0.000 n=10)
+KSUIDMillisNextStringParallel-12                                                   3.000 ± 0%                                          2.000 ± 0%  -33.33% (p=0.000 n=10)
+geomean                                                                            2.328                                               2.000       -33.33%                ¹
+¹ benchmark set differs from baseline; geomeans may not be comparable

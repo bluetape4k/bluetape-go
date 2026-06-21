@@ -3,13 +3,17 @@
 [English](README.md) | [한국어](README.ko.md)
 
 `id` provides Go-native generators for service identifiers: UUID v4, UUID v7,
-random ULID, monotonic ULID, standard seconds-precision KSUID, and Snowflake
-int64 IDs.
+random ULID, monotonic ULID, standard seconds-precision KSUID,
+Kotlin-compatible millisecond KSUID, and Snowflake int64 IDs.
 
 ## Import
 
 ```go
-import "github.com/bluetape4k/bluetape-go/id"
+import (
+    "time"
+
+    "github.com/bluetape4k/bluetape-go/id"
+)
 ```
 
 ## Selection Guide
@@ -20,10 +24,10 @@ import "github.com/bluetape4k/bluetape-go/id"
 | Database primary key with UUID storage | UUID v7 | Sorts better than UUID v4 when wall-clock behavior is acceptable. |
 | Monotonic string ID | ULID | Canonical 26-character Crockford Base32 string. |
 | Distributed numeric entity ID | Snowflake | 63-bit non-negative int64 with timestamp, machine ID, and sequence fields. |
-| URL-safe string ID | ULID or KSUID | ULID is 26-character Crockford Base32. KSUID is 27-character Base62 with a seconds timestamp. |
+| URL-safe string ID | ULID or KSUID | ULID is 26-character Crockford Base32. KSUID variants are 27-character Base62 strings. |
 | Log/event ID with second-level time sorting | KSUID | Canonical Segment-compatible 27-character string. |
+| Kotlin-compatible millisecond KSUID | KSUID millis | `NewKSUIDMillisGenerator`, `ParseKSUIDMillis`, and `KSUIDMillisTime` use the bluetape4k `Ksuid.Millis` 8-byte millisecond timestamp plus 12-byte payload format. It is source-compatible, not Segment-sortable. |
 | Deterministic or name-based UUID | Deferred | UUID v5/name-based helpers are not part of 0.6.0. |
-| Millisecond KSUID compatibility | Deferred | Kotlin-compatible millis KSUID format is tracked separately in #171. |
 | Future compact UUID string | Base62 deferred | Use `codec/base62` directly until an explicit ID rendering API is scoped. |
 | Future 128-bit sortable byte/string ID | Flake deferred | Follow-up source-parity candidate. |
 | Future short obfuscation | Hashids deferred | Obfuscation is not security. |
@@ -66,31 +70,85 @@ eventTime, err := id.KSUIDTime(eventID)
 if err != nil {
     return err
 }
+
+ksuidMillis, err := id.NewKSUIDMillisGenerator()
+if err != nil {
+    return err
+}
+millisID, err := ksuidMillis.NextString()
+if err != nil {
+    return err
+}
+millisTime, err := id.KSUIDMillisTime(millisID)
+if err != nil {
+    return err
+}
+
+fixed := time.Date(2026, 6, 8, 1, 2, 3, 0, time.UTC)
+deterministicUUIDs, err := id.NewUUIDV7Generator(
+    id.WithUUIDTime(func() time.Time { return fixed }),
+)
+if err != nil {
+    return err
+}
+testID, err := deterministicUUIDs.NextString()
+if err != nil {
+    return err
+}
 ```
 
 ## Behavior
 
-- UUID v4 and UUID v7 generation use crypto-grade default entropy.
-- UUID v7 and ULID ordering may degrade during wall-clock rollback;
-  generation must not be treated as a clock-monotonicity guarantee.
-- Random and monotonic ULID defaults use `crypto/rand`; this package does not
-  use the `oklog/ulid` `math/rand` default entropy.
-- KSUID generation uses crypto-grade default entropy and the standard Segment
-  seconds-precision format. Lexical ordering follows the encoded timestamp, but
-  same-second ordering is entropy-dependent and not monotonic.
-- Custom KSUID entropy readers and clock functions must be safe for concurrent
+- UUID v4 and UUID v7 generation use crypto-grade default entropy. The default
+  entropy path batches `crypto/rand` reads behind a package-local lock to reduce
+  per-ID randomness overhead; generated IDs remain identifiers, not
+  authentication or authorization secrets.
+- UUID v7 encodes the current Unix Epoch millisecond timestamp by default.
+  `WithUUIDTime` may inject a deterministic clock for UUID v7 generators and is
+  ignored by UUID v4 generators.
+- The UUID clock option is public so callers can write deterministic boundary
+  and ordering tests without changing production defaults.
+- UUID v7 same-tick and rollback generation advances a per-generator logical
+  tick so values from the same shared generator keep lexical order. This does
+  not coordinate ordering across separate generator instances or processes.
+  When a supplied millisecond exhausts its available 12-bit logical ticks, the
+  encoded timestamp may advance logically to preserve order; at the maximum
+  UUID v7 timestamp, overflow returns an invalid time option error.
+- Custom UUID entropy readers and clock functions must be safe for concurrent
   use when a generator instance is shared across goroutines.
+- Random and monotonic ULID defaults use the same buffered `crypto/rand` entropy
+  path; this package does not use the `oklog/ulid` `math/rand` default entropy.
+- KSUID generation uses buffered crypto-grade default entropy and the standard
+  Segment seconds-precision format. Lexical ordering follows the encoded
+  timestamp, but same-second ordering is entropy-dependent and not monotonic.
+- KSUID millis generation uses the Kotlin `Ksuid.Millis` compatibility format:
+  20 bytes as 8-byte big-endian milliseconds since `1400000000000` plus a
+  12-byte payload, encoded with bluetape4k's bit-stream Base62 alphabet.
+- KSUID millis is not a Segment KSUID and does not claim lexicographic timestamp
+  ordering. The compatibility alphabet is `A-Z a-z 0-9`, not Segment's
+  sortable `0-9 A-Z a-z` encoding.
+- Segment KSUID seconds and bluetape4k KSUID millis are both bare 27-character
+  Base62 strings, so the string alone does not identify the family. Use
+  `KSUIDTime` only for Segment seconds strings and `KSUIDMillisTime` only for
+  millis strings; cross-family parsing may succeed but returns the other
+  family's timestamp interpretation.
+- Custom KSUID and KSUID millis entropy readers and clock functions must be safe
+  for concurrent use when a generator instance is shared across goroutines.
 - KSUID clocks must stay within the standard KSUID timestamp range, from the
   KSUID epoch through the maximum 32-bit seconds offset.
 - Public APIs return strings or repo-owned values. Dependency UUID/ULID/KSUID
   concrete types are not part of the stable bluetape-go API.
 - Concrete generator implementations are unexported. Callers do not depend on a
   zero-value concrete generator contract.
-- Public parse helpers return canonical strings and wrap invalid input so callers
-  can use `errors.Is(err, id.ErrInvalidID)`. UUID parsing accepts only canonical
-  36-character lowercase UUID strings.
+- Public parse helpers wrap invalid input so callers can use
+  `errors.Is(err, id.ErrInvalidID)`. UUID and Segment KSUID helpers return
+  canonical strings; KSUID millis validates and returns the supplied
+  Kotlin-compatible string because Kotlin truncates the encoded bit stream to 27
+  characters.
 - KSUID parsing accepts canonical 27-character Segment-compatible strings and
   exposes timestamp extraction through `KSUIDTime`.
+- KSUID millis parsing accepts 27-character Kotlin-compatible strings and
+  exposes timestamp extraction through `KSUIDMillisTime`.
 - Generated IDs are identifiers, not authentication tokens, authorization
   secrets, or a standalone security boundary.
 
@@ -110,5 +168,82 @@ Valid machine IDs are `0..1023`.
 ```bash
 go test -count=1 ./id
 go test -race -count=1 ./id
-go test -run '^$' -bench . -benchmem ./id
+make bench-id
 ```
+
+## Benchmark Snapshot
+
+Issue #168 records a local Go-vs-JVM comparison against
+`bluetape4k-idgenerators`. The durable report and raw outputs are in
+[`docs/research/2026-06-10-issue-168-id-generator-benchmark.md`](../docs/research/2026-06-10-issue-168-id-generator-benchmark.md).
+This section intentionally preserves that pre-optimization snapshot and chart.
+The Issue #192 before/after optimization results are recorded separately in
+[`docs/research/2026-06-11-issue-192-id-generator-performance.md`](../docs/research/2026-06-11-issue-192-id-generator-performance.md).
+
+Local Go command:
+
+```bash
+make bench-id
+```
+
+Environment: macOS arm64, Apple M4 Pro, Go 1.26.4.
+
+![ID generator benchmark summary](../docs/images/readme-charts/id-generator-benchmark-summary.png)
+
+The chart normalizes Kotlin `kotlinx-benchmark` throughput to `ns/id` with
+`1e9 / (ops/s * 100)`, so Go and Kotlin can be read on the same axis. Lower is
+better. Kotlin benchmark rows include batch uniqueness checks.
+
+Result reading: the Go Snowflake synthetic-clock row has the lowest measured
+`ns/id` in both single-thread and concurrent runs. That row is not a
+production-equivalent Go-vs-Kotlin Snowflake verdict because the Go benchmark
+injects deterministic clock hooks. Kotlin rows have lower `ns/id` for UUID
+v4/v7 and KSUID families in this local snapshot even when Go UUID rows reuse
+generators. ULID is mixed: Kotlin is lower in the single-thread monotonic row,
+while Go monotonic ULID is lower under the concurrent comparison.
+
+| Benchmark | ns/op | B/op | allocs/op |
+|---|---:|---:|---:|
+| `BenchmarkSnowflakeNextInt64-12` | 11.98 | 0 | 0 |
+| `BenchmarkSnowflakeNextInt64SameMillisecond-12` | 12.23 | 0 | 0 |
+| `BenchmarkULIDMonotonic-12` | 65.45 | 48 | 2 |
+| `BenchmarkSnowflakeNextInt64Parallel-12` | 92.37 | 0 | 0 |
+| `BenchmarkULIDRandom-12` | 104.5 | 48 | 2 |
+| `BenchmarkULIDMonotonicParallel-12` | 190.5 | 48 | 2 |
+| `BenchmarkUUIDV4ReuseGenerator-12` | 225.8 | 64 | 2 |
+| `BenchmarkUUIDV4NewString-12` | 230.1 | 112 | 3 |
+| `BenchmarkUUIDV7ReuseGenerator-12` | 251.2 | 64 | 2 |
+| `BenchmarkUUIDV7NewString-12` | 271.7 | 112 | 3 |
+| `BenchmarkULIDRandomParallel-12` | 280.9 | 48 | 2 |
+| `BenchmarkKSUIDMillisNextString-12` | 320.6 | 104 | 3 |
+| `BenchmarkUUIDV7ReuseGeneratorParallel-12` | 376.4 | 64 | 2 |
+| `BenchmarkKSUIDNextString-12` | 389.7 | 48 | 2 |
+| `BenchmarkUUIDV4NewStringParallel-12` | 549.2 | 112 | 3 |
+| `BenchmarkUUIDV4ReuseGeneratorParallel-12` | 557.5 | 64 | 2 |
+| `BenchmarkUUIDV7NewStringParallel-12` | 569.6 | 112 | 3 |
+| `BenchmarkKSUIDMillisNextStringParallel-12` | 632.3 | 104 | 3 |
+| `BenchmarkKSUIDNextStringParallel-12` | 656.3 | 48 | 2 |
+
+### Post-Optimization Comparison
+
+Issue #192 keeps the Issue #168 chart as the pre-optimization baseline and adds
+an updated Kotlin-vs-Go comparison using the optimized Go UUID, ULID, and KSUID
+rows. Snowflake is unchanged by Issue #192, so that row keeps the Issue #168
+synthetic-clock Go measurement.
+
+![Kotlin vs Go optimized ID generator comparison](../docs/images/readme-charts/id-generator-kotlin-go-optimized-comparison.png)
+
+After buffering Go entropy, the local snapshot changes materially: Go now leads
+UUID v4, KSUID millis, and the concurrent ULID/KSUID rows. Kotlin still leads
+UUID v7 and the single-thread monotonic ULID row. UUID v7 is the clearest
+remaining Go optimization target because ordering/lock cost remains visible
+after entropy overhead is reduced.
+
+Interpretation boundary: Go rows measure per-ID generation directly. Kotlin
+rows in the chart are normalized from `kotlinx-benchmark` batch throughput, so
+they are comparable as a local snapshot but still include Kotlin benchmark
+batch uniqueness-check work. UUID chart rows use reused Go generators; the
+`NewString` rows show convenience function overhead and are not used for the
+cross-runtime chart. Snowflake chart rows use synthetic Go clock hooks and must
+be remeasured under equivalent clock/batch conditions before making a
+production-equivalent Go-vs-Kotlin Snowflake claim.

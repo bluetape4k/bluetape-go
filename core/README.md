@@ -7,6 +7,8 @@ Go standard library when it already expresses the operation clearly; this
 package is for repeated validation, pointer, zero/default, string, and small
 numeric checks.
 
+![core helper boundary map](../docs/images/readme-diagrams/core-helper-boundary-map.png)
+
 ## Import
 
 ```go

@@ -1,0 +1,207 @@
+{
+  "$schema": "https://vega.github.io/schema/vega-lite/v5.json",
+  "title": "Money FastMoney Evaluation Benchmark",
+  "source": "docs/research/outputs/issue-180/money-fastmoney-evaluation-bench.txt",
+  "metadata": {
+    "commit": "3ec2844",
+    "goVersion": "go version go1.26.4 darwin/arm64",
+    "goos": "darwin",
+    "goarch": "arm64",
+    "cpu": "Apple M4 Pro",
+    "command": "go test -run '^$' -bench '^BenchmarkMoney' -benchmem ./money"
+  },
+  "rows": [
+    {
+      "id": "NewMinorUSD",
+      "label": "NewMinor USD",
+      "group": "Money",
+      "nsPerOp": 9.249,
+      "bytesPerOp": 0,
+      "allocsPerOp": 0
+    },
+    {
+      "id": "NewMinorJPY",
+      "label": "NewMinor JPY",
+      "group": "Money",
+      "nsPerOp": 9.236,
+      "bytesPerOp": 0,
+      "allocsPerOp": 0
+    },
+    {
+      "id": "MinorUnitsUSD",
+      "label": "MinorUnits USD",
+      "group": "Money",
+      "nsPerOp": 5.833,
+      "bytesPerOp": 0,
+      "allocsPerOp": 0
+    },
+    {
+      "id": "AddUSD",
+      "label": "Add USD",
+      "group": "Money",
+      "nsPerOp": 9.027,
+      "bytesPerOp": 0,
+      "allocsPerOp": 0
+    },
+    {
+      "id": "SumUSD10",
+      "label": "Sum USD x10",
+      "group": "Money",
+      "nsPerOp": 112.4,
+      "bytesPerOp": 0,
+      "allocsPerOp": 0
+    },
+    {
+      "id": "ParseUSD",
+      "label": "Parse USD text",
+      "group": "Money",
+      "nsPerOp": 59.42,
+      "bytesPerOp": 32,
+      "allocsPerOp": 1
+    },
+    {
+      "id": "MarshalJSON",
+      "label": "Marshal JSON",
+      "group": "Money",
+      "nsPerOp": 271.2,
+      "bytesPerOp": 168,
+      "allocsPerOp": 5
+    },
+    {
+      "id": "DirectGovaluesNewAmountFromMinorUnits",
+      "label": "Direct govalues minor",
+      "group": "Reference",
+      "nsPerOp": 8.021,
+      "bytesPerOp": 0,
+      "allocsPerOp": 0
+    }
+  ],
+  "vconcat": [
+    {
+      "width": 800,
+      "height": 240,
+      "mark": {
+        "type": "bar",
+        "cornerRadiusEnd": 5
+      },
+      "encoding": {
+        "y": {
+          "field": "label",
+          "type": "nominal",
+          "sort": null,
+          "title": null
+        },
+        "x": {
+          "field": "nsPerOp",
+          "type": "quantitative",
+          "title": "Latency (ns/op) - lower is better"
+        },
+        "color": {
+          "field": "group",
+          "type": "nominal",
+          "scale": {
+            "range": [
+              "#2563EB",
+              "#D97706"
+            ]
+          }
+        },
+        "tooltip": [
+          {
+            "field": "label",
+            "type": "nominal"
+          },
+          {
+            "field": "nsPerOp",
+            "type": "quantitative"
+          }
+        ]
+      },
+      "title": "Latency (ns/op) - lower is better"
+    },
+    {
+      "width": 800,
+      "height": 240,
+      "mark": {
+        "type": "bar",
+        "cornerRadiusEnd": 5
+      },
+      "encoding": {
+        "y": {
+          "field": "label",
+          "type": "nominal",
+          "sort": null,
+          "title": null
+        },
+        "x": {
+          "field": "bytesPerOp",
+          "type": "quantitative",
+          "title": "Heap bytes (B/op) - lower is better"
+        },
+        "color": {
+          "field": "group",
+          "type": "nominal",
+          "scale": {
+            "range": [
+              "#2563EB",
+              "#D97706"
+            ]
+          }
+        },
+        "tooltip": [
+          {
+            "field": "label",
+            "type": "nominal"
+          },
+          {
+            "field": "bytesPerOp",
+            "type": "quantitative"
+          }
+        ]
+      },
+      "title": "Heap bytes (B/op) - lower is better"
+    },
+    {
+      "width": 800,
+      "height": 240,
+      "mark": {
+        "type": "bar",
+        "cornerRadiusEnd": 5
+      },
+      "encoding": {
+        "y": {
+          "field": "label",
+          "type": "nominal",
+          "sort": null,
+          "title": null
+        },
+        "x": {
+          "field": "allocsPerOp",
+          "type": "quantitative",
+          "title": "Allocations (allocs/op) - lower is better"
+        },
+        "color": {
+          "field": "group",
+          "type": "nominal",
+          "scale": {
+            "range": [
+              "#2563EB",
+              "#D97706"
+            ]
+          }
+        },
+        "tooltip": [
+          {
+            "field": "label",
+            "type": "nominal"
+          },
+          {
+            "field": "allocsPerOp",
+            "type": "quantitative"
+          }
+        ]
+      },
+      "title": "Allocations (allocs/op) - lower is better"
+    }
+  ]
+}

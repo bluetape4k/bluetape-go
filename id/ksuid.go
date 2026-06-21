@@ -1,7 +1,6 @@
 package id
 
 import (
-	"crypto/rand"
 	"io"
 	"time"
 
@@ -48,7 +47,7 @@ func WithKSUIDTime(now func() time.Time) KSUIDOption {
 
 // NewKSUIDGenerator creates a standard seconds-precision KSUID string generator.
 func NewKSUIDGenerator(options ...KSUIDOption) (StringGenerator, error) {
-	return newKSUIDGenerator(rand.Reader, time.Now, options...)
+	return newKSUIDGenerator(defaultEntropyReader(), time.Now, options...)
 }
 
 func newKSUIDGenerator(entropy io.Reader, now func() time.Time, options ...KSUIDOption) (*ksuidGenerator, error) {
@@ -112,6 +111,10 @@ func NewKSUID() (string, error) {
 }
 
 // ParseKSUID validates and canonicalizes a standard seconds-precision KSUID string.
+//
+// Bare 27-character KSUID strings are not self-describing. This validates the
+// Segment-compatible shape only; callers must know they are handling the
+// seconds family, not the Kotlin-compatible millisecond family.
 func ParseKSUID(value string) (string, error) {
 	parsed, err := segmentioksuid.Parse(value)
 	if err != nil {
@@ -125,6 +128,10 @@ func ParseKSUID(value string) (string, error) {
 }
 
 // KSUIDTime extracts the timestamp encoded in a standard seconds-precision KSUID string.
+//
+// Bare 27-character KSUID strings are not self-describing. Call this only for
+// caller-known Segment seconds strings; millis strings may parse but produce the
+// wrong family interpretation.
 func KSUIDTime(value string) (time.Time, error) {
 	parsed, err := segmentioksuid.Parse(value)
 	if err != nil {

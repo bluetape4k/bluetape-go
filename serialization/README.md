@@ -2,9 +2,9 @@
 
 [English](README.md) | [한국어](README.ko.md)
 
-`serialization` defines small serializer contracts for storage, cache, and
-message payloads. The package favors explicit formats and safe decoding over
-unsafe object deserialization.
+`serialization` defines small serializer contracts for values that cross
+storage, cache, or message boundaries. It keeps format and version checks
+explicit before callers trust decoded values.
 
 ## Import
 
@@ -13,6 +13,8 @@ import "github.com/bluetape4k/bluetape-go/serialization"
 ```
 
 ## Usage
+
+![serialization envelope flow](../docs/images/readme-diagrams/serialization-envelope-flow.png)
 
 ```go
 type Account struct {

@@ -87,6 +87,13 @@ func TestCurrencyByLocale(t *testing.T) {
 		{tag: "ie-IE", want: EUR},
 		{tag: "at-AT", want: EUR},
 		{tag: "be-BE", want: EUR},
+		{tag: "en-GB", want: MustParseCurrency("GBP")},
+		{tag: "fr-CA", want: MustParseCurrency("CAD")},
+		{tag: "en-AU", want: MustParseCurrency("AUD")},
+		{tag: "pt-BR", want: MustParseCurrency("BRL")},
+		{tag: "hi-IN", want: MustParseCurrency("INR")},
+		{tag: "es-MX", want: MustParseCurrency("MXN")},
+		{tag: "zh-Hant-TW", want: MustParseCurrency("TWD")},
 	}
 
 	for _, tt := range tests {
@@ -103,7 +110,16 @@ func TestCurrencyByLocale(t *testing.T) {
 }
 
 func TestCurrencyByLocaleRejectsUnsupportedTags(t *testing.T) {
-	for _, tag := range []string{"ko", "", "und", "en-001", "aa-BB"} {
+	for _, tag := range []string{
+		"ko",
+		"",
+		"und",
+		"en-001",
+		"en-QM",
+		"en-AQ",
+		"es-PA",
+		"en-u-cu-usd",
+	} {
 		t.Run(tag, func(t *testing.T) {
 			_, err := CurrencyByLocale(tag)
 			if !errors.Is(err, ErrInvalidCurrency) {

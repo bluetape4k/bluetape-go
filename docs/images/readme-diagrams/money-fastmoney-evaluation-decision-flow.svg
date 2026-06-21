@@ -1,0 +1,39 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1285" height="760" viewBox="0 0 1285 760">
+<defs><marker id="arrow" markerWidth="12" markerHeight="10" refX="10" refY="5" orient="auto" markerUnits="userSpaceOnUse"><path d="M0,0 L10,5 L0,10 z" fill="#2563eb"/></marker><marker id="arrow-gray" markerWidth="12" markerHeight="10" refX="10" refY="5" orient="auto" markerUnits="userSpaceOnUse"><path d="M0,0 L10,5 L0,10 z" fill="#64748b"/></marker><filter id="shadow" x="-10%" y="-10%" width="120%" height="125%"><feDropShadow dx="0" dy="3" stdDeviation="4" flood-color="#94a3b8" flood-opacity=".22"/></filter></defs>
+
+<style>
+@font-face{font-family:'Architects Daughter';src:local('Architects Daughter');}
+@font-face{font-family:'Comic Mono';src:local('Comic Mono');}
+.bg{fill:#f8fafc}.title{font:42px 'Architects Daughter';fill:#111827}.sub{font:21px 'Comic Mono';fill:#475569}.card-title{font:24px 'Comic Mono';font-weight:700;fill:#111827}.body{font:17px 'Comic Mono';fill:#334155}.small{font:15px 'Comic Mono';fill:#475569}.label{font:16px 'Comic Mono';fill:#2563eb;font-weight:700}.arrow{stroke:#2563eb;stroke-width:3.5;fill:none;marker-end:url(#arrow)}.dashed{stroke:#64748b;stroke-width:3;stroke-dasharray:10 9;fill:none;marker-end:url(#arrow-gray)}.card{fill:#fff;stroke-width:4}.alt{fill:#f59e0b;fill-opacity:.12;stroke:#f59e0b;stroke-opacity:.55;stroke-dasharray:10 8;stroke-width:3}
+</style>
+
+<rect class="bg" width="1285" height="760"/>
+<text class="title" x="52" y="72">money FastMoney Evaluation Decision Flow</text>
+<text class="sub" x="56" y="112">Issue #180 kept one public Money type after benchmark and API-boundary review.</text>
+<rect class="card" x="65" y="180" width="300" height="160" rx="16" fill="#eff6ff" stroke="#2563eb" filter="url(#shadow)"/>
+<text class="card-title" x="87" y="218">Candidate API</text>
+<text class="body" x="89" y="252">long-backed FastMoney</text>
+<text class="body" x="89" y="279">minor-unit hot paths</text>
+<text class="body" x="89" y="306">new public type cost</text>
+<rect class="card" x="470" y="150" width="350" height="215" rx="16" fill="#ecfdf5" stroke="#059669" filter="url(#shadow)"/>
+<text class="card-title" x="492" y="188">Benchmark evidence</text>
+<text class="body" x="494" y="222">minor-unit paths measured</text>
+<text class="body" x="494" y="249">representative operations</text>
+<text class="body" x="494" y="276">raw output preserved</text>
+<text class="body" x="494" y="303">no broad gap found</text>
+<rect class="card" x="925" y="180" width="310" height="160" rx="16" fill="#fef2f2" stroke="#dc2626" filter="url(#shadow)"/>
+<text class="card-title" x="947" y="218">Decision</text>
+<text class="body" x="949" y="252">do not add FastMoney</text>
+<text class="body" x="949" y="279">keep Money public</text>
+<text class="body" x="949" y="306">use NewMinor/MinorUnits</text>
+<rect class="card" x="470" y="470" width="350" height="135" rx="16" fill="#f5f3ff" stroke="#7c3aed" filter="url(#shadow)"/>
+<text class="card-title" x="492" y="508">Future gate</text>
+<text class="body" x="494" y="542">measured hot-path gap</text>
+<text class="body" x="494" y="569">caller contract unmet</text>
+<text class="body" x="494" y="596">clear migration story</text>
+<path class="arrow" d="M365 255 L470 255"/><text class="label" x="388" y="243">measure</text>
+<path class="arrow" d="M820 255 L925 255"/><text class="label" x="846" y="243">decide</text>
+<path class="dashed" d="M645 365 L645 470"/><text class="label" x="660" y="420">reopen only if</text>
+<rect class="alt" x="58" y="650" width="1172" height="70" rx="16"/><text class="small" x="82" y="680">Boundary: benchmark charts are local evidence, not production rankings.</text>
+<text class="small" x="82" y="705">A future FastMoney proposal must prove value beyond existing NewMinor and MinorUnits paths.</text>
+</svg>

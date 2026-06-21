@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="128" height="128" viewBox="0 0 128 128" role="img" aria-labelledby="title desc">
+  <title id="title">Generic message queue icon</title>
+  <desc id="desc">Generic message queue icon for bluetape4k diagrams.</desc>
+  <rect x="10" y="8" width="108" height="112" rx="18" fill="#fffaf2" stroke="#28485a" stroke-width="6"/>
+  <rect x="28" y="34" width="72" height="48" rx="10" fill="#e7f1f4" stroke="#327d91" stroke-width="6"/>
+  <path d="M30 42l34 25 34-25" fill="none" stroke="#327d91" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M26 94h76" fill="none" stroke="#7d6ab0" stroke-width="6" stroke-linecap="round"/>
+  <path d="M36 106h56" fill="none" stroke="#7d6ab0" stroke-width="6" stroke-linecap="round"/>
+</svg>

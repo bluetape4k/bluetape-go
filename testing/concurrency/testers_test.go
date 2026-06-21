@@ -103,6 +103,61 @@ func TestAsyncJobTesterPropagatesCallerCancellation(t *testing.T) {
 	}
 }
 
+func TestGoroutineStressTesterRejectsInvalidOptionsAndTasks(t *testing.T) {
+	t.Run("missing task", func(t *testing.T) {
+		tester := concurrencytest.NewGoroutineStressTester(concurrencytest.Options{})
+		if _, err := tester.Run(context.Background()); err == nil {
+			t.Fatal("expected missing task error")
+		}
+	})
+
+	t.Run("nil task", func(t *testing.T) {
+		tester := concurrencytest.NewGoroutineStressTester(concurrencytest.Options{})
+		if _, err := tester.Run(context.Background(), nil); err == nil {
+			t.Fatal("expected nil task error")
+		}
+	})
+
+	t.Run("negative workers", func(t *testing.T) {
+		tester := concurrencytest.NewGoroutineStressTester(concurrencytest.Options{Workers: -1})
+		if _, err := tester.Run(context.Background(), func(context.Context) error { return nil }); err == nil {
+			t.Fatal("expected negative workers error")
+		}
+	})
+
+	t.Run("negative rounds", func(t *testing.T) {
+		tester := concurrencytest.NewGoroutineStressTester(concurrencytest.Options{RoundsPerTask: -1})
+		if _, err := tester.Run(context.Background(), func(context.Context) error { return nil }); err == nil {
+			t.Fatal("expected negative rounds error")
+		}
+	})
+
+	t.Run("negative timeout", func(t *testing.T) {
+		tester := concurrencytest.NewGoroutineStressTester(concurrencytest.Options{Timeout: -time.Second})
+		if _, err := tester.Run(context.Background(), func(context.Context) error { return nil }); err == nil {
+			t.Fatal("expected negative timeout error")
+		}
+	})
+}
+
+func TestGoroutineStressTesterPropagatesCallerCancellation(t *testing.T) {
+	ctx, cancel := context.WithCancel(context.Background())
+	cancel()
+
+	tester := concurrencytest.NewGoroutineStressTester(concurrencytest.Options{Workers: 1})
+	report, err := tester.Run(ctx, func(context.Context) error {
+		t.Fatal("task should not run after caller cancellation")
+		return nil
+	})
+
+	if !errors.Is(err, context.Canceled) {
+		t.Fatalf("expected context.Canceled, got %v", err)
+	}
+	if report.Started != 0 {
+		t.Fatalf("expected no started tasks, got %+v", report)
+	}
+}
+
 func TestRunTReportsSuccess(t *testing.T) {
 	tester := concurrencytest.NewGoroutineStressTester(concurrencytest.Options{
 		Workers:       2,
