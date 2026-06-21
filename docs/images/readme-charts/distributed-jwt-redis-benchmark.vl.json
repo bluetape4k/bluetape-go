@@ -1,0 +1,184 @@
+{
+  "$schema": "https://vega.github.io/schema/vega-lite/v5.json",
+  "title": "Distributed JWT Redis Benchmark",
+  "data": {
+    "values": [
+      {
+        "name": "RepositoryFind",
+        "label": "Repository Find",
+        "group": "Repository",
+        "nsPerOp": 239841,
+        "bytesPerOp": 1224,
+        "allocsPerOp": 24
+      },
+      {
+        "name": "RepositoryRotateCurrentHit",
+        "label": "Rotate current hit",
+        "group": "Repository",
+        "nsPerOp": 243367,
+        "bytesPerOp": 1840,
+        "allocsPerOp": 35
+      },
+      {
+        "name": "RepositoryRotateExpired",
+        "label": "Rotate expired",
+        "group": "Repository",
+        "nsPerOp": 479239,
+        "bytesPerOp": 5507,
+        "allocsPerOp": 96
+      },
+      {
+        "name": "RepositoryForcedRotate",
+        "label": "Forced rotate",
+        "group": "Repository",
+        "nsPerOp": 311732,
+        "bytesPerOp": 3621,
+        "allocsPerOp": 60
+      },
+      {
+        "name": "DistributedProviderComposeContext",
+        "label": "Provider Compose",
+        "group": "Provider",
+        "nsPerOp": 248355,
+        "bytesPerOp": 5580,
+        "allocsPerOp": 88
+      },
+      {
+        "name": "DistributedProviderParseContext",
+        "label": "Provider Parse",
+        "group": "Provider",
+        "nsPerOp": 242631,
+        "bytesPerOp": 4880,
+        "allocsPerOp": 91
+      }
+    ]
+  },
+  "vconcat": [
+    {
+      "width": 620,
+      "height": 170,
+      "mark": {
+        "type": "bar",
+        "cornerRadiusEnd": 4
+      },
+      "encoding": {
+        "y": {
+          "field": "label",
+          "type": "nominal",
+          "sort": null,
+          "title": null
+        },
+        "x": {
+          "field": "nsPerOp",
+          "type": "quantitative",
+          "title": "ns/op; lower is better"
+        },
+        "color": {
+          "field": "group",
+          "type": "nominal",
+          "scale": {
+            "range": [
+              "#2563EB",
+              "#059669"
+            ]
+          }
+        },
+        "tooltip": [
+          {
+            "field": "label",
+            "type": "nominal"
+          },
+          {
+            "field": "nsPerOp",
+            "type": "quantitative"
+          }
+        ]
+      },
+      "title": "ns/op"
+    },
+    {
+      "width": 620,
+      "height": 170,
+      "mark": {
+        "type": "bar",
+        "cornerRadiusEnd": 4
+      },
+      "encoding": {
+        "y": {
+          "field": "label",
+          "type": "nominal",
+          "sort": null,
+          "title": null
+        },
+        "x": {
+          "field": "bytesPerOp",
+          "type": "quantitative",
+          "title": "B/op; lower is better"
+        },
+        "color": {
+          "field": "group",
+          "type": "nominal",
+          "scale": {
+            "range": [
+              "#2563EB",
+              "#059669"
+            ]
+          }
+        },
+        "tooltip": [
+          {
+            "field": "label",
+            "type": "nominal"
+          },
+          {
+            "field": "bytesPerOp",
+            "type": "quantitative"
+          }
+        ]
+      },
+      "title": "B/op"
+    },
+    {
+      "width": 620,
+      "height": 170,
+      "mark": {
+        "type": "bar",
+        "cornerRadiusEnd": 4
+      },
+      "encoding": {
+        "y": {
+          "field": "label",
+          "type": "nominal",
+          "sort": null,
+          "title": null
+        },
+        "x": {
+          "field": "allocsPerOp",
+          "type": "quantitative",
+          "title": "allocs/op; lower is better"
+        },
+        "color": {
+          "field": "group",
+          "type": "nominal",
+          "scale": {
+            "range": [
+              "#2563EB",
+              "#059669"
+            ]
+          }
+        },
+        "tooltip": [
+          {
+            "field": "label",
+            "type": "nominal"
+          },
+          {
+            "field": "allocsPerOp",
+            "type": "quantitative"
+          }
+        ]
+      },
+      "title": "allocs/op"
+    }
+  ]
+}

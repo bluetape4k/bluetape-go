@@ -9,6 +9,7 @@ type parseConfig struct {
 	expectedSubject    string
 	expirationRequired bool
 	now                func() time.Time
+	customClock        bool
 }
 
 // ParseOption 은 JWT parse와 claim 검증 option이다.
@@ -64,6 +65,7 @@ func WithParseClock(now func() time.Time) ParseOption {
 			return OptionError{Option: "parse_clock", Err: errorsNew("must not be nil")}
 		}
 		cfg.now = now
+		cfg.customClock = true
 		return nil
 	}
 }

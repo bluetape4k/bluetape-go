@@ -1,96 +1,52 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="1240" height="760" viewBox="0 0 1240 760">
-  <defs>
-    <style>
-      @font-face { font-family: 'Architects Daughter'; src: url('/Users/debop/Library/Fonts/ArchitectsDaughter-Regular.ttf'); }
-      @font-face { font-family: 'Comic Mono'; src: url('/Users/debop/Library/Fonts/ComicMono.ttf'); font-weight: normal; }
-      @font-face { font-family: 'Comic Mono'; src: url('/Users/debop/Library/Fonts/ComicMono-Bold.ttf'); font-weight: bold; }
-    </style>
-    <marker id="arrowhead" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto">
-      <path d="M 1 1 L 7 4 L 1 7 Z" fill="#475569"/>
-    </marker>
-    <marker id="arrowhead-error" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto">
-      <path d="M 1 1 L 7 4 L 1 7 Z" fill="#F87171"/>
-    </marker>
-  </defs>
-
-  <rect x="0" y="0" width="1240" height="760" fill="#F8FAFC" stroke="#E2E8F0" stroke-width="1.5" rx="16"/>
-  <text x="620" y="48" font-family="Architects Daughter" font-size="28" fill="#1E293B" font-weight="bold" text-anchor="middle" dominant-baseline="middle">state — Guarded Transition Flow</text>
-  <text x="620" y="76" font-family="Comic Mono" font-size="13" fill="#64748B" text-anchor="middle" dominant-baseline="middle">Guards run outside the lock; commit rechecks state so concurrent callers get deterministic conflicts</text>
-
-  <rect x="42" y="140" width="145" height="90" fill="#EBF4FF" stroke="#93C5FD" stroke-width="1.7" rx="10"/>
-  <text x="114.5" y="174" font-family="Architects Daughter" font-size="18" fill="#1E293B" font-weight="bold" text-anchor="middle" dominant-baseline="middle">Caller</text>
-  <text x="114.5" y="201" font-family="Comic Mono" font-size="11" fill="#334155" text-anchor="middle" dominant-baseline="middle">Transition(ctx,event)</text>
-
-  <rect x="232" y="140" width="145" height="90" fill="white" stroke="#93C5FD" stroke-width="1.7" rx="10"/>
-  <text x="304.5" y="170" font-family="Architects Daughter" font-size="17" fill="#1E293B" font-weight="bold" text-anchor="middle" dominant-baseline="middle">Context</text>
-  <text x="304.5" y="196" font-family="Comic Mono" font-size="11" fill="#334155" text-anchor="middle" dominant-baseline="middle">normalize nil</text>
-  <text x="304.5" y="214" font-family="Comic Mono" font-size="11" fill="#334155" text-anchor="middle" dominant-baseline="middle">check cancel</text>
-
-  <rect x="422" y="140" width="145" height="90" fill="white" stroke="#93C5FD" stroke-width="1.7" rx="10"/>
-  <text x="494.5" y="170" font-family="Architects Daughter" font-size="17" fill="#1E293B" font-weight="bold" text-anchor="middle" dominant-baseline="middle">Lookup</text>
-  <text x="494.5" y="196" font-family="Comic Mono" font-size="11" fill="#334155" text-anchor="middle" dominant-baseline="middle">current state</text>
-  <text x="494.5" y="214" font-family="Comic Mono" font-size="11" fill="#334155" text-anchor="middle" dominant-baseline="middle">from + event</text>
-
-  <rect x="612" y="140" width="150" height="90" fill="#FAF5FF" stroke="#C4B5FD" stroke-width="1.7" rx="10"/>
-  <text x="687" y="170" font-family="Architects Daughter" font-size="17" fill="#1E293B" font-weight="bold" text-anchor="middle" dominant-baseline="middle">Guard</text>
-  <text x="687" y="196" font-family="Comic Mono" font-size="11" fill="#334155" text-anchor="middle" dominant-baseline="middle">caller code</text>
-  <text x="687" y="214" font-family="Comic Mono" font-size="11" fill="#334155" text-anchor="middle" dominant-baseline="middle">outside lock</text>
-
-  <rect x="812" y="140" width="145" height="90" fill="white" stroke="#93C5FD" stroke-width="1.7" rx="10"/>
-  <text x="884.5" y="170" font-family="Architects Daughter" font-size="17" fill="#1E293B" font-weight="bold" text-anchor="middle" dominant-baseline="middle">Pre-commit</text>
-  <text x="884.5" y="196" font-family="Comic Mono" font-size="11" fill="#334155" text-anchor="middle" dominant-baseline="middle">check ctx</text>
-  <text x="884.5" y="214" font-family="Comic Mono" font-size="11" fill="#334155" text-anchor="middle" dominant-baseline="middle">no mutation yet</text>
-
-  <rect x="1002" y="140" width="150" height="90" fill="#F0FFF4" stroke="#6EE7B7" stroke-width="1.7" rx="10"/>
-  <text x="1077" y="170" font-family="Architects Daughter" font-size="17" fill="#1E293B" font-weight="bold" text-anchor="middle" dominant-baseline="middle">Commit</text>
-  <text x="1077" y="196" font-family="Comic Mono" font-size="11" fill="#334155" text-anchor="middle" dominant-baseline="middle">lock + recheck</text>
-  <text x="1077" y="214" font-family="Comic Mono" font-size="11" fill="#334155" text-anchor="middle" dominant-baseline="middle">return Result</text>
-
-  <path d="M 187 185 L 232 185" fill="none" stroke="#475569" stroke-width="2" marker-end="url(#arrowhead)"/>
-  <path d="M 377 185 L 422 185" fill="none" stroke="#475569" stroke-width="2" marker-end="url(#arrowhead)"/>
-  <path d="M 567 185 L 612 185" fill="none" stroke="#475569" stroke-width="2" marker-end="url(#arrowhead)"/>
-  <path d="M 762 185 L 812 185" fill="none" stroke="#475569" stroke-width="2" marker-end="url(#arrowhead)"/>
-  <path d="M 957 185 L 1002 185" fill="none" stroke="#475569" stroke-width="2" marker-end="url(#arrowhead)"/>
-
-  <rect x="420" y="358" width="220" height="96" fill="#FFF1F2" stroke="#FDA4AF" stroke-width="1.7" rx="10"/>
-  <text x="530" y="389" font-family="Architects Daughter" font-size="17" fill="#1E293B" font-weight="bold" text-anchor="middle" dominant-baseline="middle">Invalid / Final</text>
-  <text x="530" y="416" font-family="Comic Mono" font-size="11" fill="#334155" text-anchor="middle" dominant-baseline="middle">ErrInvalidTransition</text>
-  <text x="530" y="435" font-family="Comic Mono" font-size="11" fill="#334155" text-anchor="middle" dominant-baseline="middle">ErrFinalState</text>
-
-  <rect x="680" y="358" width="220" height="96" fill="#FFF1F2" stroke="#FDA4AF" stroke-width="1.7" rx="10"/>
-  <text x="790" y="389" font-family="Architects Daughter" font-size="17" fill="#1E293B" font-weight="bold" text-anchor="middle" dominant-baseline="middle">Guard Rejects</text>
-  <text x="790" y="416" font-family="Comic Mono" font-size="11" fill="#334155" text-anchor="middle" dominant-baseline="middle">ErrGuardRejected</text>
-  <text x="790" y="435" font-family="Comic Mono" font-size="11" fill="#334155" text-anchor="middle" dominant-baseline="middle">cause is wrapped</text>
-
-  <rect x="940" y="358" width="220" height="96" fill="#FFF1F2" stroke="#FDA4AF" stroke-width="1.7" rx="10"/>
-  <text x="1050" y="389" font-family="Architects Daughter" font-size="17" fill="#1E293B" font-weight="bold" text-anchor="middle" dominant-baseline="middle">No Commit</text>
-  <text x="1050" y="416" font-family="Comic Mono" font-size="11" fill="#334155" text-anchor="middle" dominant-baseline="middle">context error</text>
-  <text x="1050" y="435" font-family="Comic Mono" font-size="11" fill="#334155" text-anchor="middle" dominant-baseline="middle">or concurrent state</text>
-
-  <path d="M 494.5 230 L 494.5 358" fill="none" stroke="#F87171" stroke-width="2" stroke-dasharray="7,5" marker-end="url(#arrowhead-error)"/>
-  <text x="548" y="303" font-family="Comic Mono" font-size="12" fill="#64748B" text-anchor="middle" dominant-baseline="middle">missing / final</text>
-
-  <path d="M 687 230 L 730 358" fill="none" stroke="#F87171" stroke-width="2" stroke-dasharray="7,5" marker-end="url(#arrowhead-error)"/>
-  <text x="736" y="299" font-family="Comic Mono" font-size="12" fill="#64748B" text-anchor="middle" dominant-baseline="middle">error</text>
-
-  <path d="M 884.5 230 L 975 358" fill="none" stroke="#F87171" stroke-width="2" stroke-dasharray="7,5" marker-end="url(#arrowhead-error)"/>
-  <text x="958" y="295" font-family="Comic Mono" font-size="12" fill="#64748B" text-anchor="middle" dominant-baseline="middle">canceled</text>
-
-  <path d="M 1077 230 L 1077 358" fill="none" stroke="#F87171" stroke-width="2" stroke-dasharray="7,5" marker-end="url(#arrowhead-error)"/>
-  <text x="1120" y="302" font-family="Comic Mono" font-size="12" fill="#64748B" text-anchor="middle" dominant-baseline="middle">state changed</text>
-
-  <rect x="80" y="560" width="330" height="88" fill="white" stroke="#E2E8F0" stroke-width="1.4" rx="8"/>
-  <text x="245" y="585" font-family="Architects Daughter" font-size="15" fill="#1E293B" text-anchor="middle" dominant-baseline="middle">Lock Discipline</text>
-  <text x="245" y="612" font-family="Comic Mono" font-size="12" fill="#334155" text-anchor="middle" dominant-baseline="middle">guards can call State() safely</text>
-  <text x="245" y="635" font-family="Comic Mono" font-size="12" fill="#334155" text-anchor="middle" dominant-baseline="middle">commit is the only mutation point</text>
-
-  <rect x="470" y="560" width="330" height="88" fill="white" stroke="#E2E8F0" stroke-width="1.4" rx="8"/>
-  <text x="635" y="585" font-family="Architects Daughter" font-size="15" fill="#1E293B" text-anchor="middle" dominant-baseline="middle">Context Contract</text>
-  <text x="635" y="612" font-family="Comic Mono" font-size="12" fill="#334155" text-anchor="middle" dominant-baseline="middle">nil context normalizes to Background</text>
-  <text x="635" y="635" font-family="Comic Mono" font-size="12" fill="#334155" text-anchor="middle" dominant-baseline="middle">cancellation prevents commit</text>
-
-  <rect x="860" y="560" width="330" height="88" fill="white" stroke="#E2E8F0" stroke-width="1.4" rx="8"/>
-  <text x="1025" y="585" font-family="Architects Daughter" font-size="15" fill="#1E293B" text-anchor="middle" dominant-baseline="middle">Concurrency Result</text>
-  <text x="1025" y="612" font-family="Comic Mono" font-size="12" fill="#334155" text-anchor="middle" dominant-baseline="middle">one caller commits</text>
-  <text x="1025" y="635" font-family="Comic Mono" font-size="12" fill="#334155" text-anchor="middle" dominant-baseline="middle">losers get ErrConcurrentTransition</text>
+<svg xmlns="http://www.w3.org/2000/svg" width="1440" height="820" viewBox="0 0 1440 820">
+<defs>
+  <marker id="arrow" markerWidth="12" markerHeight="10" refX="10" refY="5" orient="auto" markerUnits="userSpaceOnUse"><path d="M0,0 L10,5 L0,10 z" fill="#2563eb"/></marker>
+  <marker id="arrow-green" markerWidth="12" markerHeight="10" refX="10" refY="5" orient="auto" markerUnits="userSpaceOnUse"><path d="M0,0 L10,5 L0,10 z" fill="#059669"/></marker>
+  <marker id="arrow-red" markerWidth="12" markerHeight="10" refX="10" refY="5" orient="auto" markerUnits="userSpaceOnUse"><path d="M0,0 L10,5 L0,10 z" fill="#dc2626"/></marker>
+  <filter id="shadow" x="-10%" y="-10%" width="120%" height="125%"><feDropShadow dx="0" dy="3" stdDeviation="4" flood-color="#94a3b8" flood-opacity=".22"/></filter>
+</defs>
+<style>
+  @font-face{font-family:'Architects Daughter';src:local('Architects Daughter');}
+  @font-face{font-family:'Comic Mono';src:local('Comic Mono');}
+  .bg{fill:#f8fafc}.title{font:42px 'Architects Daughter';fill:#111827}.sub{font:20px 'Comic Mono';fill:#475569}.card-title{font:24px 'Comic Mono';font-weight:700;fill:#111827}.body{font:17px 'Comic Mono';fill:#334155}.small{font:15px 'Comic Mono';fill:#475569}.label{font:16px 'Comic Mono';fill:#2563eb;font-weight:700}.line{stroke:#2563eb;stroke-width:3.5;fill:none;marker-end:url(#arrow)}.line-green{stroke:#059669;stroke-width:3.5;fill:none;marker-end:url(#arrow-green)}.line-red{stroke:#dc2626;stroke-width:3.5;fill:none;marker-end:url(#arrow-red)}.dash{stroke:#64748b;stroke-width:3;stroke-dasharray:9 8;fill:none;marker-end:url(#arrow)}.card{fill:#fff;stroke-width:4}.alt{fill:#f59e0b;fill-opacity:.12;stroke:#f59e0b;stroke-opacity:.55;stroke-dasharray:10 8;stroke-width:3}
+</style>
+<rect class="bg" width="1440" height="820"/>
+<text class="title" x="56" y="72">Guarded Transition Flow</text>
+<text class="sub" x="60" y="112">Transition looks up the edge under read lock, runs guards outside the lock, then rechecks state before commit.</text>
+<rect class="card" x="70" y="180" width="280" height="170" rx="16" fill="#eff6ff" stroke="#2563eb" filter="url(#shadow)"/>
+<text class="card-title" x="96" y="220">Transition</text>
+<text class="body" x="98" y="256">normalize context</text>
+<text class="body" x="98" y="283">check ctx.Err()</text>
+<text class="body" x="98" y="310">event request</text>
+<rect class="card" x="455" y="145" width="300" height="230" rx="16" fill="#ecfdf5" stroke="#059669" filter="url(#shadow)"/>
+<text class="card-title" x="482" y="185">lookup(event)</text>
+<text class="body" x="484" y="222">RLock current</text>
+<text class="body" x="484" y="249">reject final state</text>
+<text class="body" x="484" y="276">find from+event</text>
+<text class="body" x="484" y="303">return from,target</text>
+<text class="body" x="484" y="330">release lock</text>
+<rect class="card" x="860" y="145" width="305" height="230" rx="16" fill="#fff7ed" stroke="#ea580c" filter="url(#shadow)"/>
+<text class="card-title" x="888" y="185">optional guard</text>
+<text class="body" x="890" y="222">runs outside lock</text>
+<text class="body" x="890" y="249">receives ctx/from/event</text>
+<text class="body" x="890" y="276">error becomes guard rejected</text>
+<text class="body" x="890" y="303">ctx checked again</text>
+<rect class="card" x="455" y="500" width="330" height="160" rx="16" fill="#f5f3ff" stroke="#7c3aed" filter="url(#shadow)"/>
+<text class="card-title" x="482" y="540">commit lock</text>
+<text class="body" x="484" y="576">Lock current state</text>
+<text class="body" x="484" y="603">must still equal from</text>
+<text class="body" x="484" y="630">set current = target.to</text>
+<rect class="card" x="920" y="500" width="330" height="160" rx="16" fill="#fef2f2" stroke="#dc2626" filter="url(#shadow)"/>
+<text class="card-title" x="948" y="540">Result / errors</text>
+<text class="body" x="950" y="576">Result Previous/Event/Current</text>
+<text class="body" x="950" y="603">ErrConcurrentTransition</text>
+<text class="body" x="950" y="630">context or guard cause</text>
+<path class="line" d="M350 265 L455 265"/><text class="label" x="378" y="252">read</text>
+<path class="line-green" d="M755 265 L860 265"/><text class="label" x="787" y="252">guard?</text>
+<path class="line-green" d="M1010 375 C980 470 800 545 785 580"/><text class="label" x="900" y="475">ok</text>
+<path class="line" d="M785 580 L920 580"/><text class="label" x="820" y="567">commit result</text>
+<path class="line-red" d="M620 500 C650 430 520 390 420 340"/><text class="label" x="485" y="445">conflict if state moved</text>
+<rect class="alt" x="70" y="710" width="1280" height="72" rx="16"/>
+<text class="small" x="96" y="740">alt: invalid event, final state, guard rejection, context cancellation, or concurrent state movement returns an error without mutating state.</text>
+<text class="small" x="96" y="765">Guard note: CanTransition can also execute guard code, so inquiry guards should avoid irreversible side effects.</text>
 </svg>

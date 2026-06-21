@@ -1,87 +1,57 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="1180" height="820" viewBox="0 0 1180 820">
-  <defs>
-    <style>
-      @font-face { font-family: 'Architects Daughter'; src: url('/Users/debop/Library/Fonts/ArchitectsDaughter-Regular.ttf'); }
-      @font-face { font-family: 'Comic Mono'; src: url('/Users/debop/Library/Fonts/ComicMono.ttf'); font-weight: normal; }
-      @font-face { font-family: 'Comic Mono'; src: url('/Users/debop/Library/Fonts/ComicMono-Bold.ttf'); font-weight: bold; }
-    </style>
-    <marker id="arrowhead" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto">
-      <path d="M 1 1 L 7 4 L 1 7 Z" fill="#475569"/>
-    </marker>
-    <marker id="arrowhead-soft" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto">
-      <path d="M 1 1 L 7 4 L 1 7 Z" fill="#94A3B8"/>
-    </marker>
-  </defs>
-
-  <rect x="0" y="0" width="1180" height="820" fill="#F8FAFC" stroke="#E2E8F0" stroke-width="1.5" rx="16"/>
-  <text x="590" y="48" font-family="Architects Daughter" font-size="28" fill="#1E293B" font-weight="bold" text-anchor="middle" dominant-baseline="middle">state — Transition Model</text>
-  <text x="590" y="76" font-family="Comic Mono" font-size="13" fill="#64748B" text-anchor="middle" dominant-baseline="middle">Framework-free finite state machine primitives for comparable Go state and event values</text>
-
-  <rect x="50" y="120" width="250" height="180" fill="#EBF4FF" stroke="#93C5FD" stroke-width="1.7" rx="12"/>
-  <text x="175" y="151" font-family="Architects Daughter" font-size="20" fill="#1E293B" font-weight="bold" text-anchor="middle" dominant-baseline="middle">Machine[S, E]</text>
-  <text x="175" y="192" font-family="Comic Mono" font-size="13" fill="#334155" text-anchor="middle" dominant-baseline="middle">current state</text>
-  <text x="175" y="216" font-family="Comic Mono" font-size="13" fill="#334155" text-anchor="middle" dominant-baseline="middle">transition registry</text>
-  <text x="175" y="240" font-family="Comic Mono" font-size="13" fill="#334155" text-anchor="middle" dominant-baseline="middle">final state set</text>
-  <text x="175" y="264" font-family="Comic Mono" font-size="13" fill="#334155" text-anchor="middle" dominant-baseline="middle">RWMutex protected</text>
-
-  <rect x="390" y="118" width="150" height="92" fill="white" stroke="#93C5FD" stroke-width="1.7" rx="10"/>
-  <text x="465" y="154" font-family="Architects Daughter" font-size="20" fill="#1E293B" font-weight="bold" text-anchor="middle" dominant-baseline="middle">created</text>
-  <text x="465" y="180" font-family="Comic Mono" font-size="12" fill="#334155" text-anchor="middle" dominant-baseline="middle">initial</text>
-
-  <rect x="660" y="118" width="150" height="92" fill="white" stroke="#93C5FD" stroke-width="1.7" rx="10"/>
-  <text x="735" y="165" font-family="Architects Daughter" font-size="20" fill="#1E293B" font-weight="bold" text-anchor="middle" dominant-baseline="middle">paid</text>
-
-  <rect x="930" y="95" width="150" height="92" fill="#F0FFF4" stroke="#6EE7B7" stroke-width="1.7" rx="10"/>
-  <text x="1005" y="131" font-family="Architects Daughter" font-size="20" fill="#1E293B" font-weight="bold" text-anchor="middle" dominant-baseline="middle">shipped</text>
-  <text x="1005" y="157" font-family="Comic Mono" font-size="12" fill="#334155" text-anchor="middle" dominant-baseline="middle">final</text>
-
-  <rect x="660" y="420" width="150" height="92" fill="#FFF7ED" stroke="#FCD34D" stroke-width="1.7" rx="10"/>
-  <text x="735" y="456" font-family="Architects Daughter" font-size="20" fill="#1E293B" font-weight="bold" text-anchor="middle" dominant-baseline="middle">cancelled</text>
-  <text x="735" y="482" font-family="Comic Mono" font-size="12" fill="#334155" text-anchor="middle" dominant-baseline="middle">final</text>
-
-  <rect x="395" y="320" width="205" height="118" fill="#FAF5FF" stroke="#C4B5FD" stroke-width="1.7" rx="12"/>
-  <text x="497.5" y="351" font-family="Architects Daughter" font-size="19" fill="#1E293B" font-weight="bold" text-anchor="middle" dominant-baseline="middle">optional Guard</text>
-  <text x="497.5" y="382" font-family="Comic Mono" font-size="12" fill="#334155" text-anchor="middle" dominant-baseline="middle">func(ctx, from, event)</text>
-  <text x="497.5" y="406" font-family="Comic Mono" font-size="12" fill="#334155" text-anchor="middle" dominant-baseline="middle">runs outside lock</text>
-
-  <rect x="900" y="445" width="230" height="130" fill="#FFF1F2" stroke="#FDA4AF" stroke-width="1.7" rx="12"/>
-  <text x="1015" y="478" font-family="Architects Daughter" font-size="19" fill="#1E293B" font-weight="bold" text-anchor="middle" dominant-baseline="middle">TransitionError</text>
-  <text x="1015" y="510" font-family="Comic Mono" font-size="12" fill="#334155" text-anchor="middle" dominant-baseline="middle">ErrInvalidTransition</text>
-  <text x="1015" y="534" font-family="Comic Mono" font-size="12" fill="#334155" text-anchor="middle" dominant-baseline="middle">ErrGuardRejected</text>
-  <text x="1015" y="558" font-family="Comic Mono" font-size="12" fill="#334155" text-anchor="middle" dominant-baseline="middle">ErrFinalState / conflicts</text>
-
-  <path d="M 300 172 L 390 172" fill="none" stroke="#475569" stroke-width="2" marker-end="url(#arrowhead)"/>
-  <text x="345" y="152" font-family="Comic Mono" font-size="12" fill="#334155" text-anchor="middle" dominant-baseline="middle">State()</text>
-
-  <path d="M 540 164 L 660 164" fill="none" stroke="#475569" stroke-width="2" marker-end="url(#arrowhead)"/>
-  <text x="600" y="139" font-family="Comic Mono" font-size="12" fill="#334155" text-anchor="middle" dominant-baseline="middle">pay</text>
-
-  <path d="M 810 164 L 930 141" fill="none" stroke="#475569" stroke-width="2" marker-end="url(#arrowhead)"/>
-  <text x="868" y="127" font-family="Comic Mono" font-size="12" fill="#334155" text-anchor="middle" dominant-baseline="middle">ship</text>
-
-  <path d="M 515 210 L 515 320" fill="none" stroke="#C4B5FD" stroke-width="2" marker-end="url(#arrowhead)"/>
-  <text x="550" y="267" font-family="Comic Mono" font-size="12" fill="#334155" text-anchor="middle" dominant-baseline="middle">guarded</text>
-
-  <path d="M 600 379 L 660 210" fill="none" stroke="#C4B5FD" stroke-width="2" marker-end="url(#arrowhead)"/>
-  <text x="652" y="317" font-family="Comic Mono" font-size="12" fill="#334155" text-anchor="middle" dominant-baseline="middle">allow</text>
-
-  <path d="M 540 188 L 735 420" fill="none" stroke="#FCD34D" stroke-width="2" marker-end="url(#arrowhead)"/>
-  <text x="644" y="268" font-family="Comic Mono" font-size="12" fill="#334155" text-anchor="middle" dominant-baseline="middle">cancel</text>
-
-  <path d="M 600 410 L 630 410 L 630 535 L 900 535" fill="none" stroke="#94A3B8" stroke-width="2" stroke-dasharray="7,5" marker-end="url(#arrowhead-soft)"/>
-  <text x="760" y="526" font-family="Comic Mono" font-size="12" fill="#64748B" text-anchor="middle" dominant-baseline="middle">guard rejects</text>
-
-  <path d="M 430 210 L 430 286 L 350 286 L 350 560 L 900 560" fill="none" stroke="#94A3B8" stroke-width="2" stroke-dasharray="7,5" marker-end="url(#arrowhead-soft)"/>
-  <text x="574" y="542" font-family="Comic Mono" font-size="12" fill="#64748B" text-anchor="middle" dominant-baseline="middle">unknown event</text>
-
-  <path d="M 1005 187 L 1005 445" fill="none" stroke="#94A3B8" stroke-width="2" stroke-dasharray="7,5" marker-end="url(#arrowhead-soft)"/>
-  <text x="1054" y="330" font-family="Comic Mono" font-size="12" fill="#64748B" text-anchor="middle" dominant-baseline="middle">final state</text>
-
-  <rect x="55" y="680" width="480" height="58" fill="white" stroke="#E2E8F0" stroke-width="1.4" rx="8"/>
-  <text x="295" y="701" font-family="Architects Daughter" font-size="14" fill="#1E293B" text-anchor="middle" dominant-baseline="middle">Inquiry APIs</text>
-  <text x="295" y="725" font-family="Comic Mono" font-size="12" fill="#334155" text-anchor="middle" dominant-baseline="middle">CanTransition may run guards · AllowedEvents is structural only</text>
-
-  <rect x="620" y="680" width="330" height="58" fill="white" stroke="#E2E8F0" stroke-width="1.4" rx="8"/>
-  <text x="785" y="701" font-family="Architects Daughter" font-size="14" fill="#1E293B" text-anchor="middle" dominant-baseline="middle">Error Contract</text>
-  <text x="785" y="725" font-family="Comic Mono" font-size="12" fill="#334155" text-anchor="middle" dominant-baseline="middle">sentinel + cause preserved for errors.Is</text>
+<svg xmlns="http://www.w3.org/2000/svg" width="1440" height="820" viewBox="0 0 1440 820">
+<defs>
+  <marker id="arrow" markerWidth="12" markerHeight="10" refX="10" refY="5" orient="auto" markerUnits="userSpaceOnUse"><path d="M0,0 L10,5 L0,10 z" fill="#2563eb"/></marker>
+  <marker id="arrow-green" markerWidth="12" markerHeight="10" refX="10" refY="5" orient="auto" markerUnits="userSpaceOnUse"><path d="M0,0 L10,5 L0,10 z" fill="#059669"/></marker>
+  <marker id="arrow-red" markerWidth="12" markerHeight="10" refX="10" refY="5" orient="auto" markerUnits="userSpaceOnUse"><path d="M0,0 L10,5 L0,10 z" fill="#dc2626"/></marker>
+  <filter id="shadow" x="-10%" y="-10%" width="120%" height="125%"><feDropShadow dx="0" dy="3" stdDeviation="4" flood-color="#94a3b8" flood-opacity=".22"/></filter>
+</defs>
+<style>
+  @font-face{font-family:'Architects Daughter';src:local('Architects Daughter');}
+  @font-face{font-family:'Comic Mono';src:local('Comic Mono');}
+  .bg{fill:#f8fafc}.title{font:42px 'Architects Daughter';fill:#111827}.sub{font:20px 'Comic Mono';fill:#475569}.card-title{font:24px 'Comic Mono';font-weight:700;fill:#111827}.body{font:17px 'Comic Mono';fill:#334155}.small{font:15px 'Comic Mono';fill:#475569}.label{font:16px 'Comic Mono';fill:#2563eb;font-weight:700}.line{stroke:#2563eb;stroke-width:3.5;fill:none;marker-end:url(#arrow)}.line-green{stroke:#059669;stroke-width:3.5;fill:none;marker-end:url(#arrow-green)}.line-red{stroke:#dc2626;stroke-width:3.5;fill:none;marker-end:url(#arrow-red)}.dash{stroke:#64748b;stroke-width:3;stroke-dasharray:9 8;fill:none;marker-end:url(#arrow)}.card{fill:#fff;stroke-width:4}.alt{fill:#f59e0b;fill-opacity:.12;stroke:#f59e0b;stroke-opacity:.55;stroke-dasharray:10 8;stroke-width:3}
+</style>
+<rect class="bg" width="1440" height="820"/>
+<text class="title" x="56" y="72">State Transition Model</text>
+<text class="sub" x="60" y="112">Comparable states and events become an explicit transition table with optional guards and final states.</text>
+<rect class="card" x="70" y="175" width="310" height="185" rx="16" fill="#eff6ff" stroke="#2563eb" filter="url(#shadow)"/>
+<text class="card-title" x="96" y="215">Caller types</text>
+<text class="body" x="98" y="252">S comparable state</text>
+<text class="body" x="98" y="279">E comparable event</text>
+<text class="body" x="98" y="306">context.Context</text>
+<text class="body" x="98" y="333">optional Guard[S,E]</text>
+<rect class="card" x="500" y="145" width="380" height="245" rx="16" fill="#ecfdf5" stroke="#059669" filter="url(#shadow)"/>
+<text class="card-title" x="526" y="185">NewMachine</text>
+<text class="body" x="528" y="222">register transitions</text>
+<text class="body" x="528" y="249">reject duplicate from+event</text>
+<text class="body" x="528" y="276">build allowed event order</text>
+<text class="body" x="528" y="303">collect known states</text>
+<text class="body" x="528" y="330">verify initial state exists</text>
+<rect class="card" x="1000" y="175" width="350" height="185" rx="16" fill="#f5f3ff" stroke="#7c3aed" filter="url(#shadow)"/>
+<text class="card-title" x="1026" y="215">Machine</text>
+<text class="body" x="1028" y="252">current state</text>
+<text class="body" x="1028" y="279">transition map</text>
+<text class="body" x="1028" y="306">allowed events</text>
+<text class="body" x="1028" y="333">final state set</text>
+<rect class="card" x="150" y="500" width="270" height="140" rx="16" fill="#fefce8" stroke="#ca8a04" filter="url(#shadow)"/>
+<text class="card-title" x="176" y="540">AllowedEvents</text>
+<text class="body" x="178" y="576">read current state</text>
+<text class="body" x="178" y="603">return copy only</text>
+<text class="body" x="178" y="630">no guard execution</text>
+<rect class="card" x="570" y="500" width="270" height="140" rx="16" fill="#fff7ed" stroke="#ea580c" filter="url(#shadow)"/>
+<text class="card-title" x="596" y="540">CanTransition</text>
+<text class="body" x="598" y="576">lookup current edge</text>
+<text class="body" x="598" y="603">may execute guard</text>
+<text class="body" x="598" y="630">never mutates state</text>
+<rect class="card" x="990" y="500" width="300" height="140" rx="16" fill="#fef2f2" stroke="#dc2626" filter="url(#shadow)"/>
+<text class="card-title" x="1016" y="540">Sentinel errors</text>
+<text class="body" x="1018" y="576">invalid/final/guard</text>
+<text class="body" x="1018" y="603">duplicate/unknown initial</text>
+<text class="body" x="1018" y="630">concurrent conflict</text>
+<path class="line" d="M380 268 L500 268"/><text class="label" x="410" y="255">transitions</text>
+<path class="line-green" d="M880 268 L1000 268"/><text class="label" x="913" y="255">validated</text>
+<path class="dash" d="M1090 360 C830 455 430 450 285 500"/><text class="label" x="625" y="439">read APIs</text>
+<path class="dash" d="M705 390 L705 500"/><text class="label" x="723" y="448">inquiry</text>
+<path class="dash" d="M1170 360 L1140 500"/><text class="label" x="1180" y="440">errors.Is</text>
+<rect class="alt" x="70" y="710" width="1280" height="58" rx="16"/>
+<text class="small" x="96" y="745">Boundary: final states reject further events; TransitionError preserves the package sentinel for errors.Is checks.</text>
 </svg>

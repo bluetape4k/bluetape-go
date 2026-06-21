@@ -9,17 +9,12 @@ import (
 
 	"github.com/bluetape4k/bluetape-go/leader"
 	redisleader "github.com/bluetape4k/bluetape-go/leader/redis"
-	redistestcontainer "github.com/bluetape4k/bluetape-go/testcontainers/redis"
 	bttesting "github.com/bluetape4k/bluetape-go/testing"
-	"github.com/redis/go-redis/v9"
 )
 
 func TestRedisElectorCampaignAndResign(t *testing.T) {
 	ctx := context.Background()
-	client := redis.NewClient(&redis.Options{Addr: redistestcontainer.Start(ctx, t)})
-	t.Cleanup(func() {
-		_ = client.Close()
-	})
+	client := newRedisClient(ctx, t)
 
 	elector, err := redisleader.New(client, leader.Options{
 		Group:         "campaign-and-resign",
@@ -66,10 +61,7 @@ func TestRedisElectorCampaignAndResign(t *testing.T) {
 
 func TestRedisElectorRejectsDuplicateCampaign(t *testing.T) {
 	ctx := context.Background()
-	client := redis.NewClient(&redis.Options{Addr: redistestcontainer.Start(ctx, t)})
-	t.Cleanup(func() {
-		_ = client.Close()
-	})
+	client := newRedisClient(ctx, t)
 
 	elector, err := redisleader.New(client, leader.Options{
 		Group:    "rejects-duplicate-campaign",
@@ -96,10 +88,7 @@ func TestRedisElectorRejectsDuplicateCampaign(t *testing.T) {
 
 func TestRedisElectorRejectsSecondLeader(t *testing.T) {
 	ctx := context.Background()
-	client := redis.NewClient(&redis.Options{Addr: redistestcontainer.Start(ctx, t)})
-	t.Cleanup(func() {
-		_ = client.Close()
-	})
+	client := newRedisClient(ctx, t)
 
 	first, err := redisleader.New(client, leader.Options{
 		Group:    "rejects-second-leader",
@@ -130,10 +119,7 @@ func TestRedisElectorRejectsSecondLeader(t *testing.T) {
 
 func TestRedisElectorRepeatedResignIsIdempotent(t *testing.T) {
 	ctx := context.Background()
-	client := redis.NewClient(&redis.Options{Addr: redistestcontainer.Start(ctx, t)})
-	t.Cleanup(func() {
-		_ = client.Close()
-	})
+	client := newRedisClient(ctx, t)
 
 	elector, err := redisleader.New(client, leader.Options{
 		Group:    "repeated-resign",
@@ -161,10 +147,7 @@ func TestRedisElectorRepeatedResignIsIdempotent(t *testing.T) {
 
 func TestRedisElectorLosesLeadershipWhenTokenChanges(t *testing.T) {
 	ctx := context.Background()
-	client := redis.NewClient(&redis.Options{Addr: redistestcontainer.Start(ctx, t)})
-	t.Cleanup(func() {
-		_ = client.Close()
-	})
+	client := newRedisClient(ctx, t)
 
 	const (
 		group    = "renewal-loss-token-change"
@@ -207,10 +190,7 @@ func TestRedisElectorLosesLeadershipWhenTokenChanges(t *testing.T) {
 
 func TestRedisElectorLosesLeadershipWhenRenewalFails(t *testing.T) {
 	ctx := context.Background()
-	client := redis.NewClient(&redis.Options{Addr: redistestcontainer.Start(ctx, t)})
-	t.Cleanup(func() {
-		_ = client.Close()
-	})
+	client := newRedisClient(ctx, t)
 
 	elector, err := redisleader.New(client, leader.Options{
 		Group:         "renewal-fails",
@@ -236,10 +216,7 @@ func TestRedisElectorLosesLeadershipWhenRenewalFails(t *testing.T) {
 
 func TestRedisElectorPreservesWrappedContextError(t *testing.T) {
 	ctx := context.Background()
-	client := redis.NewClient(&redis.Options{Addr: redistestcontainer.Start(ctx, t)})
-	t.Cleanup(func() {
-		_ = client.Close()
-	})
+	client := newRedisClient(ctx, t)
 
 	elector, err := redisleader.New(client, leader.Options{
 		Group:    "wrapped-context-error",

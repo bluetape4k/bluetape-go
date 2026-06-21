@@ -1,0 +1,147 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1360" height="1120" viewBox="0 0 1360 1120">
+  <defs>
+    <style>
+      @font-face { font-family: 'Architects Daughter'; src: url('/Users/debop/Library/Fonts/ArchitectsDaughter-Regular.ttf'); }
+      @font-face { font-family: 'Comic Mono'; src: url('/Users/debop/Library/Fonts/ComicMono.ttf'); font-weight: normal; }
+      @font-face { font-family: 'Comic Mono'; src: url('/Users/debop/Library/Fonts/ComicMono-Bold.ttf'); font-weight: bold; }
+      .title { font-family: 'Architects Daughter'; font-size: 34px; fill: #1E293B; font-weight: bold; }
+      .subtitle { font-family: 'Comic Mono'; font-size: 14px; fill: #64748B; }
+      .section { font-family: 'Architects Daughter'; font-size: 24px; fill: #1E293B; font-weight: bold; }
+      .label { font-family: 'Comic Mono'; font-size: 13px; fill: #334155; }
+      .value { font-family: 'Comic Mono'; font-size: 12px; fill: #0F172A; font-weight: bold; }
+      .axis { font-family: 'Comic Mono'; font-size: 11px; fill: #64748B; }
+      .legend { font-family: 'Comic Mono'; font-size: 12px; fill: #334155; }
+      .tag { font-family: 'Comic Mono'; font-size: 11px; fill: #475569; font-weight: bold; }
+      .callout-title { font-family: 'Architects Daughter'; font-size: 20px; fill: #1E293B; font-weight: bold; }
+      .callout { font-family: 'Comic Mono'; font-size: 12px; fill: #334155; }
+    </style>
+  </defs>
+<rect x="0" y="0" width="1360" height="1120" fill="#F8FAFC" stroke="#E2E8F0" stroke-width="1.5" rx="18"/>
+<text x="680" y="42" text-anchor="middle" dominant-baseline="middle" class="title">Kotlin vs Go ID Generator Performance</text>
+<text x="680" y="72" text-anchor="middle" dominant-baseline="middle" class="subtitle">Issue #192 post-optimization · ns/id · lower is better · Apple M4 Pro local snapshot</text>
+<rect x="300" y="88" width="760" height="30" fill="#EFF6FF" stroke="#2563EB" stroke-width="1.2" rx="15"/>
+<text x="680" y="104" text-anchor="middle" dominant-baseline="middle" class="tag">Go uses #192 optimized UUID/ULID/KSUID results; Snowflake keeps #168 synthetic-clock row</text>
+<rect x="1040" y="124" width="18" height="12" fill="#FDBA74" stroke="#F97316" stroke-width="1" rx="4"/>
+<text x="1066" y="130" text-anchor="start" dominant-baseline="middle" class="legend">Go</text>
+<rect x="1118" y="124" width="18" height="12" fill="#93C5FD" stroke="#2563EB" stroke-width="1" rx="4"/>
+<text x="1144" y="130" text-anchor="start" dominant-baseline="middle" class="legend">Kotlin</text>
+<rect x="56" y="150" width="1248" height="390" fill="#FFFFFF" stroke="#CBD5E1" stroke-width="1.5" rx="14"/>
+<text x="88" y="184" text-anchor="start" dominant-baseline="middle" class="section">Single-thread comparison</text>
+<text x="1268" y="184" text-anchor="end" dominant-baseline="middle" class="axis">0 to 260 ns/id</text>
+<line x1="390.0" y1="204" x2="390.0" y2="499" stroke="#E2E8F0" stroke-width="1"/>
+<text x="390.0" y="526" text-anchor="middle" dominant-baseline="middle" class="axis">0</text>
+<line x1="524.6" y1="204" x2="524.6" y2="499" stroke="#E2E8F0" stroke-width="1"/>
+<line x1="659.2" y1="204" x2="659.2" y2="499" stroke="#E2E8F0" stroke-width="1"/>
+<text x="659.2" y="526" text-anchor="middle" dominant-baseline="middle" class="axis">100</text>
+<line x1="793.8" y1="204" x2="793.8" y2="499" stroke="#E2E8F0" stroke-width="1"/>
+<line x1="928.5" y1="204" x2="928.5" y2="499" stroke="#E2E8F0" stroke-width="1"/>
+<text x="928.5" y="526" text-anchor="middle" dominant-baseline="middle" class="axis">200</text>
+<line x1="1063.1" y1="204" x2="1063.1" y2="499" stroke="#E2E8F0" stroke-width="1"/>
+<text x="1090" y="526" text-anchor="start" dominant-baseline="middle" class="axis">ns/id</text>
+<text x="88" y="235" text-anchor="start" dominant-baseline="middle" class="label">Snowflake synth clock</text>
+<rect x="390" y="219" width="32.3" height="12" fill="#FDBA74" stroke="#F97316" stroke-width="1" rx="4"/>
+<rect x="390" y="236" width="657.1" height="12" fill="#93C5FD" stroke="#2563EB" stroke-width="1" rx="4"/>
+<text x="432.3" y="225" text-anchor="start" dominant-baseline="middle" class="value">Go 11.98</text>
+<text x="1057.1" y="242" text-anchor="start" dominant-baseline="middle" class="value">Kotlin 244.06</text>
+<rect x="1180" y="216" width="104" height="25" fill="#FEF3C7" stroke="#F59E0B" stroke-width="1" rx="12"/>
+<text x="1232.0" y="229" text-anchor="middle" dominant-baseline="middle" class="axis">Go unchanged</text>
+<text x="88" y="281" text-anchor="start" dominant-baseline="middle" class="label">ULID monotonic</text>
+<rect x="390" y="265" width="175.8" height="12" fill="#FDBA74" stroke="#F97316" stroke-width="1" rx="4"/>
+<rect x="390" y="282" width="99.6" height="12" fill="#93C5FD" stroke="#2563EB" stroke-width="1" rx="4"/>
+<text x="575.8" y="271" text-anchor="start" dominant-baseline="middle" class="value">Go 65.31</text>
+<text x="499.6" y="288" text-anchor="start" dominant-baseline="middle" class="value">Kotlin 37.01</text>
+<rect x="1180" y="262" width="104" height="25" fill="#DBEAFE" stroke="#2563EB" stroke-width="1" rx="12"/>
+<text x="1232.0" y="275" text-anchor="middle" dominant-baseline="middle" class="axis">Kotlin leads</text>
+<text x="88" y="327" text-anchor="start" dominant-baseline="middle" class="label">UUID v4 reused</text>
+<rect x="390" y="311" width="122.7" height="12" fill="#FDBA74" stroke="#F97316" stroke-width="1" rx="4"/>
+<rect x="390" y="328" width="256.0" height="12" fill="#93C5FD" stroke="#2563EB" stroke-width="1" rx="4"/>
+<text x="522.7" y="317" text-anchor="start" dominant-baseline="middle" class="value">Go 45.57</text>
+<text x="656.0" y="334" text-anchor="start" dominant-baseline="middle" class="value">Kotlin 95.09</text>
+<rect x="1180" y="308" width="104" height="25" fill="#DCFCE7" stroke="#16A34A" stroke-width="1" rx="12"/>
+<text x="1232.0" y="321" text-anchor="middle" dominant-baseline="middle" class="axis">Go leads</text>
+<text x="88" y="373" text-anchor="start" dominant-baseline="middle" class="label">UUID v7 reused</text>
+<rect x="390" y="357" width="199.1" height="12" fill="#FDBA74" stroke="#F97316" stroke-width="1" rx="4"/>
+<rect x="390" y="374" width="63.5" height="12" fill="#93C5FD" stroke="#2563EB" stroke-width="1" rx="4"/>
+<text x="599.1" y="363" text-anchor="start" dominant-baseline="middle" class="value">Go 73.95</text>
+<text x="463.5" y="380" text-anchor="start" dominant-baseline="middle" class="value">Kotlin 23.59</text>
+<rect x="1180" y="354" width="104" height="25" fill="#DBEAFE" stroke="#2563EB" stroke-width="1" rx="12"/>
+<text x="1232.0" y="367" text-anchor="middle" dominant-baseline="middle" class="axis">Kotlin leads</text>
+<text x="88" y="419" text-anchor="start" dominant-baseline="middle" class="label">KSUID millis</text>
+<rect x="390" y="403" width="330.6" height="12" fill="#FDBA74" stroke="#F97316" stroke-width="1" rx="4"/>
+<rect x="390" y="420" width="451.8" height="12" fill="#93C5FD" stroke="#2563EB" stroke-width="1" rx="4"/>
+<text x="730.6" y="409" text-anchor="start" dominant-baseline="middle" class="value">Go 122.80</text>
+<text x="851.8" y="426" text-anchor="start" dominant-baseline="middle" class="value">Kotlin 167.80</text>
+<rect x="1180" y="400" width="104" height="25" fill="#DCFCE7" stroke="#16A34A" stroke-width="1" rx="12"/>
+<text x="1232.0" y="413" text-anchor="middle" dominant-baseline="middle" class="axis">Go leads</text>
+<text x="88" y="465" text-anchor="start" dominant-baseline="middle" class="label">KSUID seconds</text>
+<rect x="390" y="449" width="586.7" height="12" fill="#FDBA74" stroke="#F97316" stroke-width="1" rx="4"/>
+<rect x="390" y="466" width="506.0" height="12" fill="#93C5FD" stroke="#2563EB" stroke-width="1" rx="4"/>
+<text x="986.7" y="455" text-anchor="start" dominant-baseline="middle" class="value">Go 217.90</text>
+<text x="906.0" y="472" text-anchor="start" dominant-baseline="middle" class="value">Kotlin 187.93</text>
+<rect x="1180" y="446" width="104" height="25" fill="#DBEAFE" stroke="#2563EB" stroke-width="1" rx="12"/>
+<text x="1232.0" y="459" text-anchor="middle" dominant-baseline="middle" class="axis">Kotlin lead</text>
+<rect x="56" y="575" width="1248" height="390" fill="#FFFFFF" stroke="#CBD5E1" stroke-width="1.5" rx="14"/>
+<text x="88" y="609" text-anchor="start" dominant-baseline="middle" class="section">Concurrent comparison</text>
+<text x="1268" y="609" text-anchor="end" dominant-baseline="middle" class="axis">0 to 430 ns/id</text>
+<line x1="390.0" y1="629" x2="390.0" y2="924" stroke="#E2E8F0" stroke-width="1"/>
+<text x="390.0" y="951" text-anchor="middle" dominant-baseline="middle" class="axis">0</text>
+<line x1="471.4" y1="629" x2="471.4" y2="924" stroke="#E2E8F0" stroke-width="1"/>
+<line x1="552.8" y1="629" x2="552.8" y2="924" stroke="#E2E8F0" stroke-width="1"/>
+<text x="552.8" y="951" text-anchor="middle" dominant-baseline="middle" class="axis">100</text>
+<line x1="634.2" y1="629" x2="634.2" y2="924" stroke="#E2E8F0" stroke-width="1"/>
+<line x1="715.6" y1="629" x2="715.6" y2="924" stroke="#E2E8F0" stroke-width="1"/>
+<text x="715.6" y="951" text-anchor="middle" dominant-baseline="middle" class="axis">200</text>
+<line x1="797.0" y1="629" x2="797.0" y2="924" stroke="#E2E8F0" stroke-width="1"/>
+<line x1="878.4" y1="629" x2="878.4" y2="924" stroke="#E2E8F0" stroke-width="1"/>
+<text x="878.4" y="951" text-anchor="middle" dominant-baseline="middle" class="axis">300</text>
+<line x1="959.8" y1="629" x2="959.8" y2="924" stroke="#E2E8F0" stroke-width="1"/>
+<line x1="1041.2" y1="629" x2="1041.2" y2="924" stroke="#E2E8F0" stroke-width="1"/>
+<text x="1041.2" y="951" text-anchor="middle" dominant-baseline="middle" class="axis">400</text>
+<text x="1090" y="951" text-anchor="start" dominant-baseline="middle" class="axis">ns/id</text>
+<text x="88" y="660" text-anchor="start" dominant-baseline="middle" class="label">Snowflake synth clock</text>
+<rect x="390" y="644" width="150.4" height="12" fill="#FDBA74" stroke="#F97316" stroke-width="1" rx="4"/>
+<rect x="390" y="661" width="608.7" height="12" fill="#93C5FD" stroke="#2563EB" stroke-width="1" rx="4"/>
+<text x="550.4" y="650" text-anchor="start" dominant-baseline="middle" class="value">Go 92.37</text>
+<text x="1008.7" y="667" text-anchor="start" dominant-baseline="middle" class="value">Kotlin 373.89</text>
+<rect x="1180" y="641" width="104" height="25" fill="#FEF3C7" stroke="#F59E0B" stroke-width="1" rx="12"/>
+<text x="1232.0" y="654" text-anchor="middle" dominant-baseline="middle" class="axis">Go unchanged</text>
+<text x="88" y="706" text-anchor="start" dominant-baseline="middle" class="label">ULID monotonic</text>
+<rect x="390" y="690" width="293.3" height="12" fill="#FDBA74" stroke="#F97316" stroke-width="1" rx="4"/>
+<rect x="390" y="707" width="665.1" height="12" fill="#93C5FD" stroke="#2563EB" stroke-width="1" rx="4"/>
+<text x="693.3" y="696" text-anchor="start" dominant-baseline="middle" class="value">Go 180.20</text>
+<text x="1065.1" y="713" text-anchor="start" dominant-baseline="middle" class="value">Kotlin 408.56</text>
+<rect x="1180" y="687" width="104" height="25" fill="#DCFCE7" stroke="#16A34A" stroke-width="1" rx="12"/>
+<text x="1232.0" y="700" text-anchor="middle" dominant-baseline="middle" class="axis">Go leads</text>
+<text x="88" y="752" text-anchor="start" dominant-baseline="middle" class="label">UUID v4 reused</text>
+<rect x="390" y="736" width="236.0" height="12" fill="#FDBA74" stroke="#F97316" stroke-width="1" rx="4"/>
+<rect x="390" y="753" width="536.7" height="12" fill="#93C5FD" stroke="#2563EB" stroke-width="1" rx="4"/>
+<text x="636.0" y="742" text-anchor="start" dominant-baseline="middle" class="value">Go 145.00</text>
+<text x="936.7" y="759" text-anchor="start" dominant-baseline="middle" class="value">Kotlin 329.69</text>
+<rect x="1180" y="733" width="104" height="25" fill="#DCFCE7" stroke="#16A34A" stroke-width="1" rx="12"/>
+<text x="1232.0" y="746" text-anchor="middle" dominant-baseline="middle" class="axis">Go leads</text>
+<text x="88" y="798" text-anchor="start" dominant-baseline="middle" class="label">UUID v7 reused</text>
+<rect x="390" y="782" width="330.1" height="12" fill="#FDBA74" stroke="#F97316" stroke-width="1" rx="4"/>
+<rect x="390" y="799" width="187.9" height="12" fill="#93C5FD" stroke="#2563EB" stroke-width="1" rx="4"/>
+<text x="730.1" y="788" text-anchor="start" dominant-baseline="middle" class="value">Go 202.80</text>
+<text x="587.9" y="805" text-anchor="start" dominant-baseline="middle" class="value">Kotlin 115.42</text>
+<rect x="1180" y="779" width="104" height="25" fill="#DBEAFE" stroke="#2563EB" stroke-width="1" rx="12"/>
+<text x="1232.0" y="792" text-anchor="middle" dominant-baseline="middle" class="axis">Kotlin leads</text>
+<text x="88" y="844" text-anchor="start" dominant-baseline="middle" class="label">KSUID millis</text>
+<rect x="390" y="828" width="340.2" height="12" fill="#FDBA74" stroke="#F97316" stroke-width="1" rx="4"/>
+<rect x="390" y="845" width="645.5" height="12" fill="#93C5FD" stroke="#2563EB" stroke-width="1" rx="4"/>
+<text x="740.2" y="834" text-anchor="start" dominant-baseline="middle" class="value">Go 209.00</text>
+<text x="1045.5" y="851" text-anchor="start" dominant-baseline="middle" class="value">Kotlin 396.50</text>
+<rect x="1180" y="825" width="104" height="25" fill="#DCFCE7" stroke="#16A34A" stroke-width="1" rx="12"/>
+<text x="1232.0" y="838" text-anchor="middle" dominant-baseline="middle" class="axis">Go leads</text>
+<text x="88" y="890" text-anchor="start" dominant-baseline="middle" class="label">KSUID seconds</text>
+<rect x="390" y="874" width="397.5" height="12" fill="#FDBA74" stroke="#F97316" stroke-width="1" rx="4"/>
+<rect x="390" y="891" width="632.8" height="12" fill="#93C5FD" stroke="#2563EB" stroke-width="1" rx="4"/>
+<text x="797.5" y="880" text-anchor="start" dominant-baseline="middle" class="value">Go 244.20</text>
+<text x="1032.8" y="897" text-anchor="start" dominant-baseline="middle" class="value">Kotlin 388.70</text>
+<rect x="1180" y="871" width="104" height="25" fill="#DCFCE7" stroke="#16A34A" stroke-width="1" rx="12"/>
+<text x="1232.0" y="884" text-anchor="middle" dominant-baseline="middle" class="axis">Go leads</text>
+<rect x="56" y="994" width="1248" height="78" fill="#F8FAFC" stroke="#CBD5E1" stroke-width="1.2" rx="14"/>
+<text x="84" y="1020" text-anchor="start" dominant-baseline="middle" class="callout-title">Interpretation boundary</text>
+<text x="84" y="1046" text-anchor="start" dominant-baseline="middle" class="callout">Kotlin rows are normalized from kotlinx-benchmark throughput: 1e9 / (ops/s * 100). Kotlin rows include batch uniqueness checks.</text>
+<text x="84" y="1064" text-anchor="start" dominant-baseline="middle" class="callout">Go rows are per-ID benchmarks. UUID rows use reused generators; convenience NewString overhead stays in the research table.</text>
+</svg>

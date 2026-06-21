@@ -1,0 +1,413 @@
+Calculating task graph as no cached configuration is available for tasks: :bluetape4k-idgenerators:concurrentBenchmark
+> Task :buildSrc:checkKotlinGradlePluginConfigurationErrors SKIPPED
+> Task :buildSrc:compileKotlin UP-TO-DATE
+> Task :buildSrc:compileJava NO-SOURCE
+> Task :buildSrc:compileGroovy NO-SOURCE
+> Task :buildSrc:pluginDescriptors UP-TO-DATE
+> Task :buildSrc:processResources NO-SOURCE
+> Task :buildSrc:classes UP-TO-DATE
+> Task :buildSrc:jar UP-TO-DATE
+> Task :bluetape4k-logging:checkKotlinGradlePluginConfigurationErrors SKIPPED
+> Task :bluetape4k-assertions:checkKotlinGradlePluginConfigurationErrors SKIPPED
+> Task :bluetape4k-virtualthread-api:checkKotlinGradlePluginConfigurationErrors SKIPPED
+> Task :bluetape4k-coroutines:checkKotlinGradlePluginConfigurationErrors SKIPPED
+> Task :bluetape4k-core:checkKotlinGradlePluginConfigurationErrors SKIPPED
+> Task :bluetape4k-virtualthread-jdk21:checkKotlinGradlePluginConfigurationErrors SKIPPED
+> Task :bluetape4k-core:processResources NO-SOURCE
+> Task :bluetape4k-assertions:processResources NO-SOURCE
+> Task :bluetape4k-coroutines:processResources NO-SOURCE
+> Task :bluetape4k-idgenerators:processResources NO-SOURCE
+> Task :bluetape4k-idgenerators:checkKotlinGradlePluginConfigurationErrors SKIPPED
+> Task :bluetape4k-junit5:checkKotlinGradlePluginConfigurationErrors SKIPPED
+> Task :bluetape4k-junit5:processResources UP-TO-DATE
+> Task :bluetape4k-virtualthread-api:processResources NO-SOURCE
+> Task :bluetape4k-idgenerators:processBenchmarkResources NO-SOURCE
+> Task :bluetape4k-logging:processResources NO-SOURCE
+> Task :bluetape4k-virtualthread-jdk21:processResources UP-TO-DATE
+> Task :bluetape4k-logging:compileKotlin UP-TO-DATE
+> Task :bluetape4k-assertions:compileKotlin UP-TO-DATE
+> Task :bluetape4k-assertions:compileJava NO-SOURCE
+> Task :bluetape4k-logging:compileJava NO-SOURCE
+> Task :bluetape4k-assertions:classes UP-TO-DATE
+> Task :bluetape4k-logging:classes UP-TO-DATE
+> Task :bluetape4k-logging:jar UP-TO-DATE
+> Task :bluetape4k-assertions:jar UP-TO-DATE
+> Task :bluetape4k-virtualthread-api:compileKotlin UP-TO-DATE
+> Task :bluetape4k-virtualthread-api:compileJava NO-SOURCE
+> Task :bluetape4k-virtualthread-api:classes UP-TO-DATE
+> Task :bluetape4k-virtualthread-api:jar UP-TO-DATE
+> Task :bluetape4k-virtualthread-jdk21:compileKotlin UP-TO-DATE
+> Task :bluetape4k-core:compileKotlin UP-TO-DATE
+> Task :bluetape4k-junit5:compileKotlin UP-TO-DATE
+> Task :bluetape4k-virtualthread-jdk21:compileJava UP-TO-DATE
+> Task :bluetape4k-core:compileJava NO-SOURCE
+> Task :bluetape4k-virtualthread-jdk21:classes UP-TO-DATE
+> Task :bluetape4k-junit5:compileJava NO-SOURCE
+> Task :bluetape4k-core:classes UP-TO-DATE
+> Task :bluetape4k-junit5:classes UP-TO-DATE
+> Task :bluetape4k-virtualthread-jdk21:jar UP-TO-DATE
+> Task :bluetape4k-junit5:jar UP-TO-DATE
+> Task :bluetape4k-core:jar UP-TO-DATE
+> Task :bluetape4k-coroutines:compileKotlin UP-TO-DATE
+> Task :bluetape4k-coroutines:compileJava NO-SOURCE
+> Task :bluetape4k-coroutines:classes UP-TO-DATE
+> Task :bluetape4k-coroutines:jar UP-TO-DATE
+> Task :bluetape4k-idgenerators:compileKotlin UP-TO-DATE
+> Task :bluetape4k-idgenerators:compileJava NO-SOURCE
+> Task :bluetape4k-idgenerators:classes UP-TO-DATE
+> Task :bluetape4k-idgenerators:jar UP-TO-DATE
+> Task :bluetape4k-idgenerators:compileBenchmarkKotlin UP-TO-DATE
+> Task :bluetape4k-idgenerators:compileBenchmarkJava NO-SOURCE
+> Task :bluetape4k-idgenerators:benchmarkClasses UP-TO-DATE
+> Task :bluetape4k-idgenerators:benchmarkBenchmarkGenerate UP-TO-DATE
+> Task :bluetape4k-idgenerators:benchmarkBenchmarkCompile UP-TO-DATE
+> Task :bluetape4k-idgenerators:benchmarkBenchmarkJar UP-TO-DATE
+> Task :bluetape4k-idgenerators:assembleBenchmarks UP-TO-DATE
+
+> Task :bluetape4k-idgenerators:benchmarkConcurrentBenchmark
+Running 'concurrent' benchmarks for 'benchmark'
+# Detecting actual CPU count: 12 detected
+
+… io.bluetape4k.idgenerators.benchmark.ConcurrentIdGeneratorBenchmark.flake | batchSize=100
+
+749711897327211111683112111116408477413254524566105116328310111411810111432867732119971141101051101035832458888588410411410197100801141051111141051161218011110810599121614932109971213211410111311710511410132115121115116101109321081011181011083211210111410910511511510511111044321014610346443298101105110103321161041013211411111111632117115101114463273102321161041013211010199101115115971141213211210111410910511511510511111032105115321101111163211211111511510111511510110044329910497110103101115321161113211211410511111410511612132119105108108329810132115105108101110116108121321051031101111141011004610Warm-up 1: 26077.433 ops/s
+Warm-up 2: 29762.925 ops/s
+Warm-up 3: 31649.372 ops/s
+Iteration 1: 34540.486 ops/s
+Iteration 2: 27432.006 ops/s
+Iteration 3: 29002.508 ops/s
+Iteration 4: 38694.219 ops/s
+[Concurrent] Snowflake total unique IDs: 0
+[Concurrent] UUID V4 total unique IDs: 0
+[Concurrent] UUID V7 total unique IDs: 0
+[Concurrent] ULID total unique IDs: 0
+[Concurrent] KSUID(seconds) total unique IDs: 0
+[Concurrent] KSUID(millis) total unique IDs: 0
+[Concurrent] Flake total unique IDs: 24957400
+Iteration 5: 30220.207 ops/s
+
+  Success: 31977.885 ±(99.9%) 17675.607 ops/s [Average]
+  (min, avg, max) = (27432.006, 31977.885, 38694.219), stdev = 4590.299
+  CI (99.9%): [14302.278, 49653.493] (assumes normal distribution)
+
+… io.bluetape4k.idgenerators.benchmark.ConcurrentIdGeneratorBenchmark.flake | batchSize=10000
+
+749711897327211111683112111116408477413254524566105116328310111411810111432867732119971141101051101035832458888588410411410197100801141051111141051161218011110810599121614932109971213211410111311710511410132115121115116101109321081011181011083211210111410910511511510511111044321014610346443298101105110103321161041013211411111111632117115101114463273102321161041013211010199101115115971141213211210111410910511511510511111032105115321101111163211211111511510111511510110044329910497110103101115321161113211211410511111410511612132119105108108329810132115105108101110116108121321051031101111141011004610Warm-up 1: 244.916 ops/s
+Warm-up 2: 317.314 ops/s
+Warm-up 3: 318.657 ops/s
+Iteration 1: 332.399 ops/s
+Iteration 2: 352.602 ops/s
+Iteration 3: 395.320 ops/s
+Iteration 4: 369.584 ops/s
+[Concurrent] Snowflake total unique IDs: 0
+[Concurrent] UUID V4 total unique IDs: 0
+[Concurrent] UUID V7 total unique IDs: 0
+[Concurrent] ULID total unique IDs: 0
+[Concurrent] KSUID(seconds) total unique IDs: 0
+[Concurrent] KSUID(millis) total unique IDs: 0
+[Concurrent] Flake total unique IDs: 27750000
+Iteration 5: 346.941 ops/s
+
+  Success: 359.369 ±(99.9%) 92.826 ops/s [Average]
+  (min, avg, max) = (332.399, 359.369, 395.320), stdev = 24.107
+  CI (99.9%): [266.544, 452.195] (assumes normal distribution)
+
+… io.bluetape4k.idgenerators.benchmark.ConcurrentIdGeneratorBenchmark.ksuidMillis | batchSize=100
+
+749711897327211111683112111116408477413254524566105116328310111411810111432867732119971141101051101035832458888588410411410197100801141051111141051161218011110810599121614932109971213211410111311710511410132115121115116101109321081011181011083211210111410910511511510511111044321014610346443298101105110103321161041013211411111111632117115101114463273102321161041013211010199101115115971141213211210111410910511511510511111032105115321101111163211211111511510111511510110044329910497110103101115321161113211211410511111410511612132119105108108329810132115105108101110116108121321051031101111141011004610Warm-up 1: 22048.878 ops/s
+Warm-up 2: 27649.495 ops/s
+Warm-up 3: 26933.779 ops/s
+Iteration 1: 28863.869 ops/s
+Iteration 2: 21512.979 ops/s
+Iteration 3: 26125.340 ops/s
+Iteration 4: 26300.538 ops/s
+[Concurrent] Snowflake total unique IDs: 0
+[Concurrent] UUID V4 total unique IDs: 0
+[Concurrent] UUID V7 total unique IDs: 0
+[Concurrent] ULID total unique IDs: 0
+[Concurrent] KSUID(seconds) total unique IDs: 0
+[Concurrent] KSUID(millis) total unique IDs: 20317300
+[Concurrent] Flake total unique IDs: 0
+Iteration 5: 23301.357 ops/s
+
+  Success: 25220.817 ±(99.9%) 11007.754 ops/s [Average]
+  (min, avg, max) = (21512.979, 25220.817, 28863.869), stdev = 2858.679
+  CI (99.9%): [14213.063, 36228.571] (assumes normal distribution)
+
+… io.bluetape4k.idgenerators.benchmark.ConcurrentIdGeneratorBenchmark.ksuidMillis | batchSize=10000
+
+749711897327211111683112111116408477413254524566105116328310111411810111432867732119971141101051101035832458888588410411410197100801141051111141051161218011110810599121614932109971213211410111311710511410132115121115116101109321081011181011083211210111410910511511510511111044321014610346443298101105110103321161041013211411111111632117115101114463273102321161041013211010199101115115971141213211210111410910511511510511111032105115321101111163211211111511510111511510110044329910497110103101115321161113211211410511111410511612132119105108108329810132115105108101110116108121321051031101111141011004610Warm-up 1: 236.309 ops/s
+Warm-up 2: 282.672 ops/s
+Warm-up 3: 281.997 ops/s
+Iteration 1: 284.621 ops/s
+Iteration 2: 262.229 ops/s
+Iteration 3: 264.810 ops/s
+Iteration 4: 277.706 ops/s
+[Concurrent] Snowflake total unique IDs: 0
+[Concurrent] UUID V4 total unique IDs: 0
+[Concurrent] UUID V7 total unique IDs: 0
+[Concurrent] ULID total unique IDs: 0
+[Concurrent] KSUID(seconds) total unique IDs: 0
+[Concurrent] KSUID(millis) total unique IDs: 22810000
+[Concurrent] Flake total unique IDs: 0
+Iteration 5: 249.352 ops/s
+
+  Success: 267.744 ±(99.9%) 53.125 ops/s [Average]
+  (min, avg, max) = (249.352, 267.744, 284.621), stdev = 13.796
+  CI (99.9%): [214.619, 320.869] (assumes normal distribution)
+
+… io.bluetape4k.idgenerators.benchmark.ConcurrentIdGeneratorBenchmark.ksuidSeconds | batchSize=100
+
+749711897327211111683112111116408477413254524566105116328310111411810111432867732119971141101051101035832458888588410411410197100801141051111141051161218011110810599121614932109971213211410111311710511410132115121115116101109321081011181011083211210111410910511511510511111044321014610346443298101105110103321161041013211411111111632117115101114463273102321161041013211010199101115115971141213211210111410910511511510511111032105115321101111163211211111511510111511510110044329910497110103101115321161113211211410511111410511612132119105108108329810132115105108101110116108121321051031101111141011004610Warm-up 1: 19974.887 ops/s
+Warm-up 2: 27393.409 ops/s
+Warm-up 3: 26017.384 ops/s
+Iteration 1: 28574.130 ops/s
+Iteration 2: 21379.449 ops/s
+Iteration 3: 27054.892 ops/s
+Iteration 4: 26367.962 ops/s
+[Concurrent] Snowflake total unique IDs: 0
+[Concurrent] UUID V4 total unique IDs: 0
+[Concurrent] UUID V7 total unique IDs: 0
+[Concurrent] ULID total unique IDs: 0
+[Concurrent] KSUID(seconds) total unique IDs: 20551200
+[Concurrent] KSUID(millis) total unique IDs: 0
+[Concurrent] Flake total unique IDs: 0
+Iteration 5: 25256.498 ops/s
+
+  Success: 25726.586 ±(99.9%) 10439.942 ops/s [Average]
+  (min, avg, max) = (21379.449, 25726.586, 28574.130), stdev = 2711.220
+  CI (99.9%): [15286.644, 36166.528] (assumes normal distribution)
+
+… io.bluetape4k.idgenerators.benchmark.ConcurrentIdGeneratorBenchmark.ksuidSeconds | batchSize=10000
+
+749711897327211111683112111116408477413254524566105116328310111411810111432867732119971141101051101035832458888588410411410197100801141051111141051161218011110810599121614932109971213211410111311710511410132115121115116101109321081011181011083211210111410910511511510511111044321014610346443298101105110103321161041013211411111111632117115101114463273102321161041013211010199101115115971141213211210111410910511511510511111032105115321101111163211211111511510111511510110044329910497110103101115321161113211211410511111410511612132119105108108329810132115105108101110116108121321051031101111141011004610Warm-up 1: 227.747 ops/s
+Warm-up 2: 277.064 ops/s
+Warm-up 3: 270.030 ops/s
+Iteration 1: 272.622 ops/s
+Iteration 2: 246.205 ops/s
+Iteration 3: 271.931 ops/s
+Iteration 4: 249.057 ops/s
+[Concurrent] Snowflake total unique IDs: 0
+[Concurrent] UUID V4 total unique IDs: 0
+[Concurrent] UUID V7 total unique IDs: 0
+[Concurrent] ULID total unique IDs: 0
+[Concurrent] KSUID(seconds) total unique IDs: 22270000
+[Concurrent] KSUID(millis) total unique IDs: 0
+[Concurrent] Flake total unique IDs: 0
+Iteration 5: 249.688 ops/s
+
+  Success: 257.901 ±(99.9%) 50.795 ops/s [Average]
+  (min, avg, max) = (246.205, 257.901, 272.622), stdev = 13.191
+  CI (99.9%): [207.106, 308.695] (assumes normal distribution)
+
+… io.bluetape4k.idgenerators.benchmark.ConcurrentIdGeneratorBenchmark.snowflake | batchSize=100
+
+749711897327211111683112111116408477413254524566105116328310111411810111432867732119971141101051101035832458888588410411410197100801141051111141051161218011110810599121614932109971213211410111311710511410132115121115116101109321081011181011083211210111410910511511510511111044321014610346443298101105110103321161041013211411111111632117115101114463273102321161041013211010199101115115971141213211210111410910511511510511111032105115321101111163211211111511510111511510110044329910497110103101115321161113211211410511111410511612132119105108108329810132115105108101110116108121321051031101111141011004610Warm-up 1: 33340.913 ops/s
+Warm-up 2: 28653.855 ops/s
+Warm-up 3: 33349.405 ops/s
+Iteration 1: 30746.404 ops/s
+Iteration 2: 33346.457 ops/s
+Iteration 3: 30147.572 ops/s
+Iteration 4: 23792.071 ops/s
+[Concurrent] Snowflake total unique IDs: 25781600
+[Concurrent] UUID V4 total unique IDs: 0
+[Concurrent] UUID V7 total unique IDs: 0
+[Concurrent] ULID total unique IDs: 0
+[Concurrent] KSUID(seconds) total unique IDs: 0
+[Concurrent] KSUID(millis) total unique IDs: 0
+[Concurrent] Flake total unique IDs: 0
+Iteration 5: 15698.301 ops/s
+
+  Success: 26746.161 ±(99.9%) 27358.365 ops/s [Average]
+  (min, avg, max) = (15698.301, 26746.161, 33346.457), stdev = 7104.881
+  CI (99.9%): [≈ 0, 54104.526] (assumes normal distribution)
+
+… io.bluetape4k.idgenerators.benchmark.ConcurrentIdGeneratorBenchmark.snowflake | batchSize=10000
+
+749711897327211111683112111116408477413254524566105116328310111411810111432867732119971141101051101035832458888588410411410197100801141051111141051161218011110810599121614932109971213211410111311710511410132115121115116101109321081011181011083211210111410910511511510511111044321014610346443298101105110103321161041013211411111111632117115101114463273102321161041013211010199101115115971141213211210111410910511511510511111032105115321101111163211211111511510111511510110044329910497110103101115321161113211211410511111410511612132119105108108329810132115105108101110116108121321051031101111141011004610Warm-up 1: 331.561 ops/s
+Warm-up 2: 326.116 ops/s
+Warm-up 3: 368.102 ops/s
+Iteration 1: 219.297 ops/s
+Iteration 2: 361.196 ops/s
+Iteration 3: 302.865 ops/s
+Iteration 4: 243.024 ops/s
+[Concurrent] Snowflake total unique IDs: 26250000
+[Concurrent] UUID V4 total unique IDs: 0
+[Concurrent] UUID V7 total unique IDs: 0
+[Concurrent] ULID total unique IDs: 0
+[Concurrent] KSUID(seconds) total unique IDs: 0
+[Concurrent] KSUID(millis) total unique IDs: 0
+[Concurrent] Flake total unique IDs: 0
+Iteration 5: 173.721 ops/s
+
+  Success: 260.021 ±(99.9%) 282.091 ops/s [Average]
+  (min, avg, max) = (173.721, 260.021, 361.196), stdev = 73.258
+  CI (99.9%): [≈ 0, 542.112] (assumes normal distribution)
+
+… io.bluetape4k.idgenerators.benchmark.ConcurrentIdGeneratorBenchmark.ulid | batchSize=100
+
+749711897327211111683112111116408477413254524566105116328310111411810111432867732119971141101051101035832458888588410411410197100801141051111141051161218011110810599121614932109971213211410111311710511410132115121115116101109321081011181011083211210111410910511511510511111044321014610346443298101105110103321161041013211411111111632117115101114463273102321161041013211010199101115115971141213211210111410910511511510511111032105115321101111163211211111511510111511510110044329910497110103101115321161113211211410511111410511612132119105108108329810132115105108101110116108121321051031101111141011004610Warm-up 1: 21110.061 ops/s
+Warm-up 2: 23484.833 ops/s
+Warm-up 3: 22807.307 ops/s
+Iteration 1: 23546.870 ops/s
+Iteration 2: 26438.908 ops/s
+Iteration 3: 25296.343 ops/s
+Iteration 4: 22755.761 ops/s
+[Concurrent] Snowflake total unique IDs: 0
+[Concurrent] UUID V4 total unique IDs: 0
+[Concurrent] UUID V7 total unique IDs: 0
+[Concurrent] ULID total unique IDs: 19090600
+[Concurrent] KSUID(seconds) total unique IDs: 0
+[Concurrent] KSUID(millis) total unique IDs: 0
+[Concurrent] Flake total unique IDs: 0
+Iteration 5: 24342.148 ops/s
+
+  Success: 24476.006 ±(99.9%) 5568.939 ops/s [Average]
+  (min, avg, max) = (22755.761, 24476.006, 26438.908), stdev = 1446.236
+  CI (99.9%): [18907.067, 30044.945] (assumes normal distribution)
+
+… io.bluetape4k.idgenerators.benchmark.ConcurrentIdGeneratorBenchmark.ulid | batchSize=10000
+
+749711897327211111683112111116408477413254524566105116328310111411810111432867732119971141101051101035832458888588410411410197100801141051111141051161218011110810599121614932109971213211410111311710511410132115121115116101109321081011181011083211210111410910511511510511111044321014610346443298101105110103321161041013211411111111632117115101114463273102321161041013211010199101115115971141213211210111410910511511510511111032105115321101111163211211111511510111511510110044329910497110103101115321161113211211410511111410511612132119105108108329810132115105108101110116108121321051031101111141011004610Warm-up 1: 217.292 ops/s
+Warm-up 2: 231.054 ops/s
+Warm-up 3: 224.740 ops/s
+Iteration 1: 234.101 ops/s
+Iteration 2: 242.524 ops/s
+Iteration 3: 231.143 ops/s
+Iteration 4: 252.219 ops/s
+[Concurrent] Snowflake total unique IDs: 0
+[Concurrent] UUID V4 total unique IDs: 0
+[Concurrent] UUID V7 total unique IDs: 0
+[Concurrent] ULID total unique IDs: 20240000
+[Concurrent] KSUID(seconds) total unique IDs: 0
+[Concurrent] KSUID(millis) total unique IDs: 0
+[Concurrent] Flake total unique IDs: 0
+Iteration 5: 256.511 ops/s
+
+  Success: 243.299 ±(99.9%) 42.492 ops/s [Average]
+  (min, avg, max) = (231.143, 243.299, 256.511), stdev = 11.035
+  CI (99.9%): [200.807, 285.792] (assumes normal distribution)
+
+… io.bluetape4k.idgenerators.benchmark.ConcurrentIdGeneratorBenchmark.uuidV4 | batchSize=100
+
+749711897327211111683112111116408477413254524566105116328310111411810111432867732119971141101051101035832458888588410411410197100801141051111141051161218011110810599121614932109971213211410111311710511410132115121115116101109321081011181011083211210111410910511511510511111044321014610346443298101105110103321161041013211411111111632117115101114463273102321161041013211010199101115115971141213211210111410910511511510511111032105115321101111163211211111511510111511510110044329910497110103101115321161113211211410511111410511612132119105108108329810132115105108101110116108121321051031101111141011004610Warm-up 1: 27168.989 ops/s
+Warm-up 2: 30979.249 ops/s
+Warm-up 3: 30366.257 ops/s
+Iteration 1: 30594.387 ops/s
+Iteration 2: 30167.890 ops/s
+Iteration 3: 31018.033 ops/s
+Iteration 4: 29532.274 ops/s
+[Concurrent] Snowflake total unique IDs: 0
+[Concurrent] UUID V4 total unique IDs: 24121300
+[Concurrent] UUID V7 total unique IDs: 0
+[Concurrent] ULID total unique IDs: 0
+[Concurrent] KSUID(seconds) total unique IDs: 0
+[Concurrent] KSUID(millis) total unique IDs: 0
+[Concurrent] Flake total unique IDs: 0
+Iteration 5: 30346.893 ops/s
+
+  Success: 30331.895 ±(99.9%) 2114.530 ops/s [Average]
+  (min, avg, max) = (29532.274, 30331.895, 31018.033), stdev = 549.137
+  CI (99.9%): [28217.366, 32446.425] (assumes normal distribution)
+
+… io.bluetape4k.idgenerators.benchmark.ConcurrentIdGeneratorBenchmark.uuidV4 | batchSize=10000
+
+749711897327211111683112111116408477413254524566105116328310111411810111432867732119971141101051101035832458888588410411410197100801141051111141051161218011110810599121614932109971213211410111311710511410132115121115116101109321081011181011083211210111410910511511510511111044321014610346443298101105110103321161041013211411111111632117115101114463273102321161041013211010199101115115971141213211210111410910511511510511111032105115321101111163211211111511510111511510110044329910497110103101115321161113211211410511111410511612132119105108108329810132115105108101110116108121321051031101111141011004610Warm-up 1: 287.943 ops/s
+Warm-up 2: 309.292 ops/s
+Warm-up 3: 310.554 ops/s
+Iteration 1: 306.290 ops/s
+Iteration 2: 293.261 ops/s
+Iteration 3: 313.384 ops/s
+Iteration 4: 312.931 ops/s
+[Concurrent] Snowflake total unique IDs: 0
+[Concurrent] UUID V4 total unique IDs: 25570000
+[Concurrent] UUID V7 total unique IDs: 0
+[Concurrent] ULID total unique IDs: 0
+[Concurrent] KSUID(seconds) total unique IDs: 0
+[Concurrent] KSUID(millis) total unique IDs: 0
+[Concurrent] Flake total unique IDs: 0
+Iteration 5: 266.566 ops/s
+
+  Success: 298.486 ±(99.9%) 75.499 ops/s [Average]
+  (min, avg, max) = (266.566, 298.486, 313.384), stdev = 19.607
+  CI (99.9%): [222.987, 373.985] (assumes normal distribution)
+
+… io.bluetape4k.idgenerators.benchmark.ConcurrentIdGeneratorBenchmark.uuidV7 | batchSize=100
+
+749711897327211111683112111116408477413254524566105116328310111411810111432867732119971141101051101035832458888588410411410197100801141051111141051161218011110810599121614932109971213211410111311710511410132115121115116101109321081011181011083211210111410910511511510511111044321014610346443298101105110103321161041013211411111111632117115101114463273102321161041013211010199101115115971141213211210111410910511511510511111032105115321101111163211211111511510111511510110044329910497110103101115321161113211211410511111410511612132119105108108329810132115105108101110116108121321051031101111141011004610Warm-up 1: 73746.080 ops/s
+Warm-up 2: 80288.268 ops/s
+Warm-up 3: 83884.322 ops/s
+Iteration 1: 74903.377 ops/s
+Iteration 2: 99902.877 ops/s
+Iteration 3: 83930.434 ops/s
+Iteration 4: 75229.920 ops/s
+[Concurrent] Snowflake total unique IDs: 0
+[Concurrent] UUID V4 total unique IDs: 0
+[Concurrent] UUID V7 total unique IDs: 67527100
+[Concurrent] ULID total unique IDs: 0
+[Concurrent] KSUID(seconds) total unique IDs: 0
+[Concurrent] KSUID(millis) total unique IDs: 0
+[Concurrent] Flake total unique IDs: 0
+Iteration 5: 99222.327 ops/s
+
+  Success: 86637.787 ±(99.9%) 47532.407 ops/s [Average]
+  (min, avg, max) = (74903.377, 86637.787, 99902.877), stdev = 12344.015
+  CI (99.9%): [39105.380, 134170.194] (assumes normal distribution)
+
+… io.bluetape4k.idgenerators.benchmark.ConcurrentIdGeneratorBenchmark.uuidV7 | batchSize=10000
+
+749711897327211111683112111116408477413254524566105116328310111411810111432867732119971141101051101035832458888588410411410197100801141051111141051161218011110810599121614932109971213211410111311710511410132115121115116101109321081011181011083211210111410910511511510511111044321014610346443298101105110103321161041013211411111111632117115101114463273102321161041013211010199101115115971141213211210111410910511511510511111032105115321101111163211211111511510111511510110044329910497110103101115321161113211211410511111410511612132119105108108329810132115105108101110116108121321051031101111141011004610Warm-up 1: 784.945 ops/s
+Warm-up 2: 811.357 ops/s
+Warm-up 3: 846.997 ops/s
+Iteration 1: 772.114 ops/s
+Iteration 2: 932.880 ops/s
+Iteration 3: 751.358 ops/s
+Iteration 4: 937.075 ops/s
+[Concurrent] Snowflake total unique IDs: 0
+[Concurrent] UUID V4 total unique IDs: 0
+[Concurrent] UUID V7 total unique IDs: 69810000
+[Concurrent] ULID total unique IDs: 0
+[Concurrent] KSUID(seconds) total unique IDs: 0
+[Concurrent] KSUID(millis) total unique IDs: 0
+[Concurrent] Flake total unique IDs: 0
+Iteration 5: 948.266 ops/s
+
+  Success: 868.339 ±(99.9%) 376.411 ops/s [Average]
+  (min, avg, max) = (751.358, 868.339, 948.266), stdev = 97.753
+  CI (99.9%): [491.928, 1244.750] (assumes normal distribution)
+
+
+benchmark summary:
+Benchmark                                    (batchSize)   Mode  Cnt      Score       Error  Units
+ConcurrentIdGeneratorBenchmark.flake                 100  thrpt    5  31977.885 ± 17675.607  ops/s
+ConcurrentIdGeneratorBenchmark.flake               10000  thrpt    5    359.369 ±    92.826  ops/s
+ConcurrentIdGeneratorBenchmark.ksuidMillis           100  thrpt    5  25220.817 ± 11007.754  ops/s
+ConcurrentIdGeneratorBenchmark.ksuidMillis         10000  thrpt    5    267.744 ±    53.125  ops/s
+ConcurrentIdGeneratorBenchmark.ksuidSeconds          100  thrpt    5  25726.586 ± 10439.942  ops/s
+ConcurrentIdGeneratorBenchmark.ksuidSeconds        10000  thrpt    5    257.901 ±    50.795  ops/s
+ConcurrentIdGeneratorBenchmark.snowflake             100  thrpt    5  26746.161 ± 27358.365  ops/s
+ConcurrentIdGeneratorBenchmark.snowflake           10000  thrpt    5    260.021 ±   282.091  ops/s
+ConcurrentIdGeneratorBenchmark.ulid                  100  thrpt    5  24476.006 ±  5568.939  ops/s
+ConcurrentIdGeneratorBenchmark.ulid                10000  thrpt    5    243.299 ±    42.492  ops/s
+ConcurrentIdGeneratorBenchmark.uuidV4                100  thrpt    5  30331.895 ±  2114.530  ops/s
+ConcurrentIdGeneratorBenchmark.uuidV4              10000  thrpt    5    298.486 ±    75.499  ops/s
+ConcurrentIdGeneratorBenchmark.uuidV7                100  thrpt    5  86637.787 ± 47532.407  ops/s
+ConcurrentIdGeneratorBenchmark.uuidV7              10000  thrpt    5    868.339 ±   376.411  ops/s
+
+Analysing benchmark results is not always trivial,
+please refer to https://github.com/Kotlin/kotlinx-benchmark/tree/master?tab=readme-ov-file#analyzing-results for details.
+
+
+> Task :bluetape4k-idgenerators:concurrentBenchmark
+
+[Incubating] Problems report is available at: file:///Users/debop/work/bluetape4k/bluetape4k-projects/build/reports/problems/problems-report.html
+
+Deprecated Gradle features were used in this build, making it incompatible with Gradle 10.
+
+You can use '--warning-mode all' to show the individual deprecation warnings and determine if they come from your own scripts or plugins.
+
+For more on this, please refer to https://docs.gradle.org/9.5.0/userguide/command_line_interface.html#sec:command_line_warnings in the Gradle documentation.
+
+BUILD SUCCESSFUL in 2m 18s
+27 actionable tasks: 1 executed, 26 up-to-date
+Configuration cache entry stored.

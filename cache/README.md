@@ -6,6 +6,12 @@
 implementation. It is the base package for local cache-aside code and for Redis
 coordination wrappers that need a `LoadingCache`.
 
+## Diagram
+
+![cache contract overview](../docs/images/readme-diagrams/cache-contract-overview.png)
+
+![cache local loading flow](../docs/images/readme-diagrams/cache-local-loading-flow.png)
+
 ## Import
 
 ```go

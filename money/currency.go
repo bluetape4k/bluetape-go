@@ -1,10 +1,13 @@
 package money
 
 import (
+	"errors"
 	"fmt"
 	"strings"
 
 	gmoney "github.com/govalues/money"
+	xcurrency "golang.org/x/text/currency"
+	"golang.org/x/text/language"
 )
 
 // Currency 는 ISO 4217 통화를 나타내는 값입니다.
@@ -56,17 +59,23 @@ func IsCurrency(code string) bool {
 	return err == nil
 }
 
-// CurrencyByLocale 은 제한된 BCP47-like locale tag에서 현재 지역 통화를 반환합니다.
+// CurrencyByLocale 은 BCP47 locale tag의 명시적 현재 지역 통화를 반환합니다.
 func CurrencyByLocale(tag string) (Currency, error) {
-	region, ok := localeRegion(tag)
-	if !ok {
+	normalized := normalizeLocaleTag(tag)
+	if normalized == "" {
 		return Currency{}, fmt.Errorf("%w: %q", ErrInvalidCurrency, tag)
 	}
-	code, ok := regionCurrencies[region]
+	region, ok := explicitLocaleRegion(normalized)
 	if !ok {
-		return Currency{}, fmt.Errorf("%w: unsupported locale %q", ErrInvalidCurrency, tag)
+		return Currency{}, fmt.Errorf("%w: locale %q has no explicit region", ErrInvalidCurrency, tag)
 	}
-	return ParseCurrency(code)
+	if _, err := language.Parse(normalized); err != nil {
+		var valueErr language.ValueError
+		if !errors.As(err, &valueErr) {
+			return Currency{}, fmt.Errorf("%w: invalid locale %q: %w", ErrInvalidCurrency, tag, err)
+		}
+	}
+	return currencyByRegion(region, tag)
 }
 
 // Code 는 3-letter ISO 4217 currency code를 반환합니다.
@@ -114,36 +123,49 @@ func (c Currency) raw() gmoney.Currency {
 	return c.curr
 }
 
-func localeRegion(tag string) (string, bool) {
-	normalized := strings.TrimSpace(tag)
-	if normalized == "" {
-		return "", false
-	}
-	normalized = strings.ReplaceAll(normalized, "_", "-")
-	parts := strings.Split(normalized, "-")
-	if len(parts) < 2 {
-		return "", false
-	}
-	region := strings.ToUpper(parts[len(parts)-1])
-	if len(region) != 2 {
-		return "", false
-	}
-	return region, true
+func normalizeLocaleTag(tag string) string {
+	return strings.ReplaceAll(strings.TrimSpace(tag), "_", "-")
 }
 
-var regionCurrencies = map[string]string{
-	"KR": "KRW",
-	"US": "USD",
-	"JP": "JPY",
-	"CN": "CNY",
-	"AT": "EUR",
-	"BE": "EUR",
-	"DE": "EUR",
-	"ES": "EUR",
-	"FI": "EUR",
-	"FR": "EUR",
-	"IE": "EUR",
-	"IT": "EUR",
-	"NL": "EUR",
-	"PT": "EUR",
+func explicitLocaleRegion(tag string) (language.Region, bool) {
+	parts := strings.Split(tag, "-")
+	if len(parts) < 2 {
+		return language.Region{}, false
+	}
+	for _, part := range parts[1:] {
+		if len(part) == 1 {
+			return language.Region{}, false
+		}
+		if len(part) != 2 && len(part) != 3 {
+			continue
+		}
+		region, err := language.ParseRegion(part)
+		if err == nil {
+			return region, true
+		}
+	}
+	return language.Region{}, false
+}
+
+func currencyByRegion(region language.Region, originalTag string) (Currency, error) {
+	iter := xcurrency.Query(xcurrency.Region(region))
+	var code string
+	count := 0
+	for iter.Next() {
+		if !iter.IsTender() {
+			continue
+		}
+		count++
+		if count == 1 {
+			code = iter.Unit().String()
+		}
+	}
+	if count != 1 {
+		return Currency{}, fmt.Errorf("%w: locale %q maps to %d current tender currencies", ErrInvalidCurrency, originalTag, count)
+	}
+	curr, err := ParseCurrency(code)
+	if err != nil {
+		return Currency{}, fmt.Errorf("%w: locale %q maps to invalid currency %q: %w", ErrInvalidCurrency, originalTag, code, err)
+	}
+	return curr, nil
 }

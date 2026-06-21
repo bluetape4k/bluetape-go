@@ -2,9 +2,9 @@
 
 [English](README.md) | [한국어](README.ko.md)
 
-`compression` provides explicit compressor adapters with byte and stream
-operations. Standard-library algorithms cover gzip, zlib, and raw deflate;
-focused Go dependencies provide zstd, lz4, and snappy.
+`compression` exposes one compressor contract for byte slices and streams.
+Gzip, zlib, and raw deflate use Go's standard library. Zstd, lz4, and snappy
+use focused Go dependencies behind the same interface.
 
 ## Import
 
@@ -13,6 +13,8 @@ import "github.com/bluetape4k/bluetape-go/compression"
 ```
 
 ## Usage
+
+![compression byte and stream flow](../docs/images/readme-diagrams/compression-byte-stream-flow.png)
 
 ```go
 compressor := compression.Default()

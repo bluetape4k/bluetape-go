@@ -2,7 +2,9 @@
 
 [English](README.md) | [한국어](README.ko.md)
 
-`compression`은 byte/stream operation을 제공하는 명시적인 compressor adapter를 제공합니다. Standard-library algorithm은 gzip, zlib, raw deflate를 담당하고, focused Go dependency는 zstd, lz4, snappy를 제공합니다.
+`compression`은 byte slice와 stream을 하나의 compressor 계약으로 다룹니다.
+gzip, zlib, raw deflate는 Go 표준 라이브러리를 사용하고, zstd, lz4, snappy는
+각 알고리즘에 맞는 Go dependency를 같은 인터페이스 뒤에 숨깁니다.
 
 ## 가져오기
 
@@ -11,6 +13,8 @@ import "github.com/bluetape4k/bluetape-go/compression"
 ```
 
 ## 사용 예
+
+![compression byte/stream 흐름](../docs/images/readme-diagrams/compression-byte-stream-flow.png)
 
 ```go
 compressor := compression.Default()
@@ -30,7 +34,7 @@ if err != nil {
 - `Default()`는 현재 zstd를 반환합니다.
 - `All()`은 gzip, zlib, deflate, zstd, lz4, snappy를 안정적인 순서로 반환합니다.
 - Stream API는 nil reader/writer를 거부합니다.
-- gzip, zlib, deflate, zstd에는 level-specific constructor가 있습니다.
+- gzip, zlib, deflate, zstd에는 압축 레벨을 지정하는 constructor가 있습니다.
 
 ## 테스트
 

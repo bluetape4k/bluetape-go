@@ -2,7 +2,10 @@
 
 [English](README.md) | [한국어](README.ko.md)
 
-`testcontainers/kafka`는 integration test를 위해 Kafka container를 시작하고 하나 이상의 broker address를 반환합니다.
+`testcontainers/kafka`는 integration test용 Kafka container를 시작하고 하나 이상의
+broker address를 반환합니다.
+
+![testcontainers helper flow](../../docs/images/readme-diagrams/testcontainers-helper-flow.png)
 
 ## 가져오기
 
@@ -37,7 +40,8 @@ t.Cleanup(func() {
 ## 운영 경계
 
 - Docker 또는 다른 Testcontainers-compatible runtime이 필요합니다.
-- Kafka startup은 작은 fixture보다 느릴 수 있으므로 start context에 explicit test timeout을 사용하세요.
+- Kafka startup은 작은 fixture보다 느릴 수 있으므로 start context에 explicit test
+  timeout을 사용하세요.
 
 ## 테스트
 

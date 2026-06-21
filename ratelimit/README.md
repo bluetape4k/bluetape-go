@@ -9,6 +9,10 @@ tenant throttles, and tests that need deterministic rejection diagnostics.
 Use [`ratelimit/redis`](redis/README.md) when multiple processes must share one
 bucket.
 
+## Diagram
+
+![ratelimit local runtime flow](../docs/images/readme-diagrams/ratelimit-local-runtime-flow.png)
+
 ## Install
 
 ```go

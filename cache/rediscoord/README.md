@@ -14,6 +14,8 @@ owner-token result envelope for the active load attempt.
 
 ![Redis cache stampede coordination flow](../../docs/images/readme-diagrams/rediscoord-cold-burst-coordination.png)
 
+![rediscoord cold burst sequence](../../docs/images/readme-diagrams/rediscoord-cold-burst-sequence.png)
+
 ## Import
 
 ```go

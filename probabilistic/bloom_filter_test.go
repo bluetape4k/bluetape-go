@@ -179,6 +179,28 @@ func TestNewBloomFilterRejectsInvalidHasher(t *testing.T) {
 	}
 }
 
+func TestHasherBytesExposesValidatedByteBoundary(t *testing.T) {
+	hasher, err := NewHasher("custom:v1", func(value string) []byte {
+		return []byte("prefix:" + value)
+	})
+	if err != nil {
+		t.Fatalf("NewHasher failed: %v", err)
+	}
+
+	bytes, err := hasher.Bytes("alpha")
+	if err != nil {
+		t.Fatalf("Bytes failed: %v", err)
+	}
+	if string(bytes) != "prefix:alpha" {
+		t.Fatalf("unexpected bytes: %q", string(bytes))
+	}
+
+	var zero Hasher[string]
+	if _, err := zero.Bytes("alpha"); !errors.Is(err, ErrEmptyHasherKey) {
+		t.Fatalf("expected ErrEmptyHasherKey, got %v", err)
+	}
+}
+
 func newStringFilterForTest(t *testing.T, expectedInsertions uint64, fpp float64) BloomFilter[string] {
 	t.Helper()
 	cfg, err := NewConfig(expectedInsertions, fpp)

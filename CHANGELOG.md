@@ -7,6 +7,41 @@ and this project uses semantic versioning once the first tag is published.
 
 ## [Unreleased]
 
+## [v0.6.1] - 2026-06-21
+
+### Added
+
+- `probabilistic/redis` package with Redis-backed shared Bloom filters,
+  Cluster-safe hash-tagged key pairs, immutable config metadata, static Lua
+  bitmap operations, cancellation/race/stress coverage, compile-checked
+  examples, and bilingual README/runbook documentation. Redis-backed Cuckoo and
+  HLL/HyperLogLog constructors remain follow-up scope after #182.
+- Optional JWT provider cache adapters with `NewCachedProvider` and
+  `NewCachedDistributedProvider`, scoped token-digest cache keys, trusted
+  `cache.Cache[string,*jwt.Reader]` backends, warm-hit key revalidation,
+  same-key miss coalescing, cancellation/race/stress coverage,
+  compile-checked examples, diagram-backed bilingual README documentation, and
+  operator caveats for process-local clear scope and unsupported untrusted
+  shared/external caches.
+- `money` provider-backed exchange-rate conversion with `ExchangeRateProvider`,
+  `ConvertWithProvider`, `NewECBProvider`, caller-visible source/freshness/stale
+  fallback metadata, cancellation/retry/cache coverage, stress/race tests, and
+  diagram-backed bilingual README documentation. IMF and Bloomberg providers
+  remain follow-up issues #231 and #232.
+- `money.CurrencyByLocale` CLDR-backed locale currency mapping for
+  explicit-region BCP47 tags, with missing/no-tender/multi-tender rejection,
+  stress/race coverage, and diagram-backed bilingual README documentation.
+- `money` FastMoney evaluation benchmark evidence, with raw benchmark output,
+  chart-backed bilingual README guidance, and a documented decision to keep
+  `Money`, `NewMinor`, and `MinorUnits` as the public minor-unit path.
+
+### Changed
+
+- Documented the #174 JWT compression/JOSE decision: signed JWT compression is
+  a non-goal for the current `jwt` helper, `zip=DEF` belongs to a future
+  explicit JWE boundary, and `go-jose/go-jose/v4` is the preferred candidate if
+  that optional JWE scope is ever implemented.
+
 ## [v0.6.0] - 2026-06-09
 
 ### Added

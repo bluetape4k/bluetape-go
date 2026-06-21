@@ -2,13 +2,18 @@
 
 [English](README.md) | [한국어](README.ko.md)
 
-`cache/rediscoord`는 cross-process cache stampede protection을 위한 opt-in Redis coordination wrapper입니다. `cache/redisnear.NearCache`를 포함한 기존 `cache.LoadingCache[string,V]`를 감싸고, cold burst 동안 waiter가 winning loader의 결과를 재사용하게 합니다.
+`cache/rediscoord`는 process 사이의 cache stampede를 막기 위해 선택적으로
+붙이는 Redis coordination wrapper입니다. `cache/redisnear.NearCache`를 포함한
+기존 `cache.LoadingCache[string,V]`를 감싸고, cold burst 동안 waiter가 winning
+loader의 결과를 재사용하게 합니다.
 
 이 패키지는 durable Redis L2 cache가 아닙니다. Redis에는 active load attempt를 위한 짧은 수명의 owner-token result envelope만 저장됩니다.
 
-## Diagram
+## 다이어그램
 
 ![Redis cache stampede coordination flow](../../docs/images/readme-diagrams/rediscoord-cold-burst-coordination.png)
+
+![rediscoord cold burst sequence](../../docs/images/readme-diagrams/rediscoord-cold-burst-sequence.png)
 
 ## 가져오기
 
@@ -49,17 +54,17 @@ value, err := coordinated.GetOrLoad(ctx, "sku:42", time.Minute,
 
 ## 동작
 
-- `Get`, `Set`, `Delete`, `Clear`는 wrapped cache로 위임합니다.
-- `GetOrLoad`는 먼저 wrapped cache를 확인합니다.
+- `Get`, `Set`, `Delete`, `Clear`는 감싼 cache로 위임합니다.
+- `GetOrLoad`는 먼저 감싼 cache를 확인합니다.
 - Cold miss에서는 한 process가 Redis owner-token load lease를 획득합니다.
-- Winner는 wrapped cache를 통해 user loader를 실행하고 짧은 수명의 result envelope를 게시합니다.
+- Winner는 감싼 cache를 통해 user loader를 실행하고 짧은 수명의 result envelope를 게시합니다.
 - Waiter는 관찰한 load owner와 token이 일치하는 envelope만 수락합니다.
-- Waiter는 `Set`이 아니라 wrapped `GetOrLoad`로 local cache를 채우므로 `redisnear`가 우발적인 invalidation을 게시하지 않습니다.
+- Waiter는 `Set`이 아니라 감싼 `GetOrLoad`로 local cache를 채우므로 `redisnear`가 우발적인 invalidation을 게시하지 않습니다.
 
 ## 운영 경계
 
 - Redis는 encoded payload byte를 볼 수 있습니다. 민감한 payload에는 ACL/TLS와 namespace isolation을 사용하세요.
-- Result envelope는 transient coordination metadata이며 durable cache value가 아닙니다.
+- Result envelope는 일시적인 coordination metadata이며 durable cache value가 아닙니다.
 - Mutual exclusion은 `LockTTL`로 제한됩니다. Loader가 lease보다 오래 실행되면 다른 process가 load lease를 획득해 loader를 실행할 수 있습니다.
 - Benchmark는 `make bench-cache`로 opt-in 실행합니다. 일반 `make ci`는 benchmark workload를 실행하지 않습니다.
 

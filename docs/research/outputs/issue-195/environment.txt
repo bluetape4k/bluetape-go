@@ -1,0 +1,18 @@
+Fri Jun 12 08:54:59 UTC 2026
+Darwin debop-m4-pro.local 25.5.0 Darwin Kernel Version 25.5.0: Mon Apr 27 20:41:15 PDT 2026; root:xnu-12377.121.6~2/RELEASE_ARM64_T6041 arm64
+go version go1.26.4 darwin/arm64
+Apple M4 Pro
+12
+branch: issue/195-compression-benchmark-matrix
+base_commit: aba437a50d0a2a2246e1dd0e2271c6672458143f
+tree_state:
+ M compression/compression_benchmark_test.go
+ M docs/research/README.ko.md
+ M docs/research/README.md
+?? docs/research/2026-06-12-issue-195-compression-benchmark-matrix.md
+?? docs/research/outputs/issue-195/
+diff_stat:
+ compression/compression_benchmark_test.go | 120 +++++++++++++++++++++++++-----
+ docs/research/README.ko.md                |   2 +-
+ docs/research/README.md                   |   2 +-
+ 3 files changed, 104 insertions(+), 20 deletions(-)

@@ -1,0 +1,65 @@
+goos: darwin
+goarch: arm64
+pkg: github.com/bluetape4k/bluetape-go/id
+cpu: Apple M4 Pro
+                                 │ docs/research/outputs/issue-192/go-id-baseline-count10.txt │ docs/research/outputs/issue-192/go-id-default-buffer-count10.txt │
+                                 │                           sec/op                           │                  sec/op                   vs base                │
+UUIDV4NewString-12                                                               238.45n ± 2%                                58.43n ± 0%  -75.50% (p=0.000 n=10)
+UUIDV4NewStringParallel-12                                                        533.2n ± 6%                                169.1n ± 2%  -68.29% (p=0.000 n=10)
+UUIDV4ReuseGenerator-12                                                          224.10n ± 0%                                45.57n ± 1%  -79.67% (p=0.000 n=10)
+UUIDV4ReuseGeneratorParallel-12                                                   500.2n ± 0%                                145.0n ± 1%  -71.01% (p=0.000 n=10)
+UUIDV7NewString-12                                                               267.60n ± 1%                                88.04n ± 0%  -67.10% (p=0.000 n=10)
+UUIDV7NewStringParallel-12                                                        562.9n ± 1%                                192.2n ± 0%  -65.86% (p=0.000 n=10)
+UUIDV7ReuseGenerator-12                                                          255.60n ± 0%                                73.95n ± 0%  -71.07% (p=0.000 n=10)
+UUIDV7ReuseGeneratorParallel-12                                                   343.6n ± 0%                                202.8n ± 1%  -40.98% (p=0.000 n=10)
+ULIDRandom-12                                                                    104.50n ± 0%                                63.12n ± 1%  -39.60% (p=0.000 n=10)
+ULIDRandomParallel-12                                                             278.5n ± 1%                                166.1n ± 0%  -40.36% (p=0.000 n=10)
+ULIDMonotonic-12                                                                  65.80n ± 0%                                65.31n ± 0%   -0.74% (p=0.001 n=10)
+ULIDMonotonicParallel-12                                                          181.5n ± 1%                                180.2n ± 0%   -0.74% (p=0.016 n=10)
+KSUIDNextString-12                                                                393.1n ± 0%                                217.9n ± 0%  -44.58% (p=0.000 n=10)
+KSUIDNextStringParallel-12                                                        668.2n ± 0%                                244.2n ± 0%  -63.46% (p=0.000 n=10)
+KSUIDMillisNextString-12                                                          316.8n ± 0%                                122.8n ± 1%  -61.23% (p=0.000 n=10)
+KSUIDMillisNextStringParallel-12                                                  621.0n ± 1%                                209.0n ± 0%  -66.35% (p=0.000 n=10)
+geomean                                                                           295.5n                                     123.1n       -58.34%
+
+                                 │ docs/research/outputs/issue-192/go-id-baseline-count10.txt │ docs/research/outputs/issue-192/go-id-default-buffer-count10.txt │
+                                 │                            B/op                            │                  B/op                   vs base                  │
+UUIDV4NewString-12                                                                 112.0 ± 0%                               112.0 ± 0%        ~ (p=1.000 n=10) ¹
+UUIDV4NewStringParallel-12                                                         112.0 ± 0%                               112.0 ± 0%        ~ (p=1.000 n=10) ¹
+UUIDV4ReuseGenerator-12                                                            64.00 ± 0%                               64.00 ± 0%        ~ (p=1.000 n=10) ¹
+UUIDV4ReuseGeneratorParallel-12                                                    64.00 ± 0%                               64.00 ± 0%        ~ (p=1.000 n=10) ¹
+UUIDV7NewString-12                                                                 112.0 ± 0%                               112.0 ± 0%        ~ (p=1.000 n=10) ¹
+UUIDV7NewStringParallel-12                                                         112.0 ± 0%                               112.0 ± 0%        ~ (p=1.000 n=10) ¹
+UUIDV7ReuseGenerator-12                                                            64.00 ± 0%                               64.00 ± 0%        ~ (p=1.000 n=10) ¹
+UUIDV7ReuseGeneratorParallel-12                                                    64.00 ± 0%                               64.00 ± 0%        ~ (p=1.000 n=10) ¹
+ULIDRandom-12                                                                      48.00 ± 0%                               48.00 ± 0%        ~ (p=1.000 n=10) ¹
+ULIDRandomParallel-12                                                              48.00 ± 0%                               48.00 ± 0%        ~ (p=1.000 n=10) ¹
+ULIDMonotonic-12                                                                   48.00 ± 0%                               48.00 ± 0%        ~ (p=1.000 n=10) ¹
+ULIDMonotonicParallel-12                                                           48.00 ± 0%                               48.00 ± 0%        ~ (p=1.000 n=10) ¹
+KSUIDNextString-12                                                                 48.00 ± 0%                               48.00 ± 0%        ~ (p=1.000 n=10) ¹
+KSUIDNextStringParallel-12                                                         48.00 ± 0%                               48.00 ± 0%        ~ (p=1.000 n=10) ¹
+KSUIDMillisNextString-12                                                          104.00 ± 0%                               56.00 ± 0%  -46.15% (p=0.000 n=10)
+KSUIDMillisNextStringParallel-12                                                  104.00 ± 0%                               56.00 ± 0%  -46.15% (p=0.000 n=10)
+geomean                                                                            70.22                                    64.99        -7.45%
+¹ all samples are equal
+
+                                 │ docs/research/outputs/issue-192/go-id-baseline-count10.txt │ docs/research/outputs/issue-192/go-id-default-buffer-count10.txt │
+                                 │                         allocs/op                          │               allocs/op                 vs base                  │
+UUIDV4NewString-12                                                                 3.000 ± 0%                               3.000 ± 0%        ~ (p=1.000 n=10) ¹
+UUIDV4NewStringParallel-12                                                         3.000 ± 0%                               3.000 ± 0%        ~ (p=1.000 n=10) ¹
+UUIDV4ReuseGenerator-12                                                            2.000 ± 0%                               2.000 ± 0%        ~ (p=1.000 n=10) ¹
+UUIDV4ReuseGeneratorParallel-12                                                    2.000 ± 0%                               2.000 ± 0%        ~ (p=1.000 n=10) ¹
+UUIDV7NewString-12                                                                 3.000 ± 0%                               3.000 ± 0%        ~ (p=1.000 n=10) ¹
+UUIDV7NewStringParallel-12                                                         3.000 ± 0%                               3.000 ± 0%        ~ (p=1.000 n=10) ¹
+UUIDV7ReuseGenerator-12                                                            2.000 ± 0%                               2.000 ± 0%        ~ (p=1.000 n=10) ¹
+UUIDV7ReuseGeneratorParallel-12                                                    2.000 ± 0%                               2.000 ± 0%        ~ (p=1.000 n=10) ¹
+ULIDRandom-12                                                                      2.000 ± 0%                               2.000 ± 0%        ~ (p=1.000 n=10) ¹
+ULIDRandomParallel-12                                                              2.000 ± 0%                               2.000 ± 0%        ~ (p=1.000 n=10) ¹
+ULIDMonotonic-12                                                                   2.000 ± 0%                               2.000 ± 0%        ~ (p=1.000 n=10) ¹
+ULIDMonotonicParallel-12                                                           2.000 ± 0%                               2.000 ± 0%        ~ (p=1.000 n=10) ¹
+KSUIDNextString-12                                                                 2.000 ± 0%                               2.000 ± 0%        ~ (p=1.000 n=10) ¹
+KSUIDNextStringParallel-12                                                         2.000 ± 0%                               2.000 ± 0%        ~ (p=1.000 n=10) ¹
+KSUIDMillisNextString-12                                                           3.000 ± 0%                               2.000 ± 0%  -33.33% (p=0.000 n=10)
+KSUIDMillisNextStringParallel-12                                                   3.000 ± 0%                               2.000 ± 0%  -33.33% (p=0.000 n=10)
+geomean                                                                            2.328                                    2.213        -4.94%
+¹ all samples are equal

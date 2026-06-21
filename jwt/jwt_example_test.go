@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/bluetape4k/bluetape-go/cache"
 	"github.com/bluetape4k/bluetape-go/jwt"
 )
 
@@ -81,4 +82,32 @@ func ExampleProvider_rotatingPS() {
 	// Output:
 	// PS256
 	// ps-2
+}
+
+func ExampleNewCachedProvider() {
+	provider, err := jwt.NewFixedHMACProvider(
+		jwt.HS256,
+		[]byte("0123456789abcdef0123456789abcdef"),
+	)
+	if err != nil {
+		panic(err)
+	}
+	readerCache := cache.NewMemory[string, *jwt.Reader]()
+	cached, err := jwt.NewCachedProvider(provider, readerCache)
+	if err != nil {
+		panic(err)
+	}
+
+	token, err := cached.Compose(jwt.WithSubject("account-42"), jwt.WithExpiresAfter(time.Hour))
+	if err != nil {
+		panic(err)
+	}
+	reader, err := cached.Parse(token, jwt.WithExpectedSubject("account-42"))
+	if err != nil {
+		panic(err)
+	}
+	fmt.Println(reader.Subject())
+
+	// Output:
+	// account-42
 }

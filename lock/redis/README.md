@@ -9,6 +9,8 @@ coordination work that needs TTL cleanup and owner-safe unlock semantics.
 
 ![Redis lock owner-token lifecycle](../../docs/images/readme-diagrams/redis-lock-owner-token-lifecycle.png)
 
+![Redis lock owner-token sequence](../../docs/images/readme-diagrams/redis-lock-owner-token-sequence.png)
+
 ## Import
 
 ```go

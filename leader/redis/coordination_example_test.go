@@ -13,7 +13,6 @@ import (
 	"github.com/bluetape4k/bluetape-go/batch"
 	"github.com/bluetape4k/bluetape-go/leader"
 	redisleader "github.com/bluetape4k/bluetape-go/leader/redis"
-	redistestcontainer "github.com/bluetape4k/bluetape-go/testcontainers/redis"
 	concurrencytest "github.com/bluetape4k/bluetape-go/testing/concurrency"
 	"github.com/redis/go-redis/v9"
 )
@@ -288,10 +287,7 @@ func TestLeaderGuardedBatchExecutionWithAsyncJobTesterCancellation(t *testing.T)
 func redisExampleClient(ctx context.Context, t *testing.T) *redis.Client {
 	t.Helper()
 
-	client := redis.NewClient(&redis.Options{Addr: redistestcontainer.Start(ctx, t)})
-	t.Cleanup(func() {
-		_ = client.Close()
-	})
+	client := newRedisClient(ctx, t)
 	return client
 }
 

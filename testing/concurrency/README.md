@@ -6,6 +6,8 @@
 tests. It is useful when a package needs repeated bounded goroutine execution,
 panic capture, cancellation checks, or timeout reports.
 
+![testing concurrency harness map](../../docs/images/readme-diagrams/testing-concurrency-harness-map.png)
+
 ## Import
 
 ```go

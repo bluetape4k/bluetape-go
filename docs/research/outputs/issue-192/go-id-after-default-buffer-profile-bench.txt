@@ -1,0 +1,12 @@
+goos: darwin
+goarch: arm64
+pkg: github.com/bluetape4k/bluetape-go/id
+cpu: Apple M4 Pro
+BenchmarkUUIDV4ReuseGenerator-12     	78412423	        45.84 ns/op	      64 B/op	       2 allocs/op
+BenchmarkUUIDV7ReuseGenerator-12     	48677208	        74.10 ns/op	      64 B/op	       2 allocs/op
+BenchmarkULIDRandom-12               	57045064	        63.34 ns/op	      48 B/op	       2 allocs/op
+BenchmarkULIDMonotonic-12            	54736652	        65.96 ns/op	      48 B/op	       2 allocs/op
+BenchmarkKSUIDNextString-12          	16680824	       216.5 ns/op	      48 B/op	       2 allocs/op
+BenchmarkKSUIDMillisNextString-12    	29003244	       123.5 ns/op	      56 B/op	       2 allocs/op
+PASS
+ok  	github.com/bluetape4k/bluetape-go/id	22.320s

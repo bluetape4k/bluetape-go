@@ -26,6 +26,33 @@ func ExampleNewUUIDV7() {
 	// true
 }
 
+func ExampleNewUUIDV7Generator_withClock() {
+	fixed := time.Date(2026, 6, 8, 1, 2, 3, 0, time.UTC)
+	generator, err := id.NewUUIDV7Generator(
+		id.WithUUIDTime(func() time.Time { return fixed }),
+		id.WithUUIDReader(strings.NewReader("abcdefghijklmnopqrstuvwxyzabcdef")),
+	)
+	if err != nil {
+		return
+	}
+
+	first, err := generator.NextString()
+	if err != nil {
+		return
+	}
+	second, err := generator.NextString()
+	if err != nil {
+		return
+	}
+
+	fmt.Println(len(first))
+	fmt.Println(first < second)
+
+	// Output:
+	// 36
+	// true
+}
+
 func ExampleNewMonotonicULIDGenerator() {
 	fixed := time.Date(2026, 6, 8, 1, 2, 3, 0, time.UTC)
 	generator, err := id.NewMonotonicULIDGenerator(
@@ -83,6 +110,33 @@ func ExampleNewKSUIDGenerator() {
 	// Output:
 	// 27
 	// true
+	// true
+}
+
+func ExampleNewKSUIDMillisGenerator() {
+	fixed := time.Date(2026, 6, 8, 1, 2, 3, 987_000_000, time.UTC)
+	generator, err := id.NewKSUIDMillisGenerator(
+		id.WithKSUIDMillisTime(func() time.Time { return fixed }),
+		id.WithKSUIDMillisEntropy(strings.NewReader("abcdefghijkl")),
+	)
+	if err != nil {
+		return
+	}
+
+	value, err := generator.NextString()
+	if err != nil {
+		return
+	}
+	createdAt, err := id.KSUIDMillisTime(value)
+	if err != nil {
+		return
+	}
+
+	fmt.Println(len(value))
+	fmt.Println(createdAt.Equal(fixed))
+
+	// Output:
+	// 27
 	// true
 }
 

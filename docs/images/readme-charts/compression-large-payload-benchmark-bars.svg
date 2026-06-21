@@ -1,0 +1,377 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1280" height="1760" viewBox="0 0 1280 1760">
+  <defs>
+    <style>
+      @font-face {
+        font-family: 'Architects Daughter';
+        src: url('/Users/debop/Library/Fonts/ArchitectsDaughter-Regular.ttf');
+      }
+      @font-face {
+        font-family: 'Comic Mono';
+        src: url('/Users/debop/Library/Fonts/ComicMono.ttf');
+        font-weight: normal;
+      }
+      @font-face {
+        font-family: 'Comic Mono';
+        src: url('/Users/debop/Library/Fonts/ComicMono-Bold.ttf');
+        font-weight: bold;
+      }
+      .title { font-family: 'Architects Daughter'; font-size: 36px; fill: #1E293B; font-weight: bold; }
+      .subtitle { font-family: 'Comic Mono'; font-size: 14px; fill: #64748B; }
+      .section { font-family: 'Architects Daughter'; font-size: 24px; fill: #1E293B; font-weight: bold; }
+      .payload { font-family: 'Architects Daughter'; font-size: 20px; fill: #1E293B; font-weight: bold; }
+      .bar-label { font-family: 'Comic Mono'; font-size: 12px; fill: #334155; font-weight: bold; }
+      .axis { font-family: 'Comic Mono'; font-size: 10.5px; fill: #64748B; }
+      .legend { font-family: 'Comic Mono'; font-size: 12px; fill: #334155; }
+      .note { font-family: 'Comic Mono'; font-size: 12px; fill: #475569; }
+      .callout-title { font-family: 'Architects Daughter'; font-size: 20px; fill: #1E293B; font-weight: bold; }
+      .callout { font-family: 'Comic Mono'; font-size: 12px; fill: #334155; }
+    </style>
+  </defs>
+
+  <rect x="0" y="0" width="1280" height="1760" fill="#F8FAFC" stroke="#E2E8F0" stroke-width="1.5" rx="18"/>
+  <text x="640" y="42" text-anchor="middle" dominant-baseline="middle" class="title">Compression Benchmark Bar Charts</text>
+  <text x="640" y="74" text-anchor="middle" dominant-baseline="middle" class="subtitle">Issue #195 · large payload rows · Apple M4 Pro local snapshot · bar length is the comparison signal</text>
+
+  <g>
+<rect x="56" y="112" width="1168" height="500" fill="#FFFFFF" stroke="#CBD5E1" stroke-width="1.5" rx="14"/>
+<text x="84" y="146" class="section" dominant-baseline="middle">Compression throughput</text>
+<text x="1196" y="146" class="axis" text-anchor="end" dominant-baseline="middle">Each payload card uses its own x-axis so bar length stays readable</text>
+<text x="1196" y="170" class="axis" text-anchor="end" dominant-baseline="middle">Higher throughput is better</text>
+<rect x="84" y="194" width="532" height="176" fill="#F8FAFC" stroke="#E2E8F0" stroke-width="1" rx="12"/>
+<text x="102" y="218" class="payload" dominant-baseline="middle">JSON</text>
+<line x1="180.0" y1="230" x2="180.0" y2="336" stroke="#E2E8F0"/>
+<text x="180.0" y="358" class="axis" text-anchor="middle">0</text>
+<line x1="275.5" y1="230" x2="275.5" y2="336" stroke="#E2E8F0"/>
+<text x="275.5" y="358" class="axis" text-anchor="middle">625</text>
+<line x1="371.0" y1="230" x2="371.0" y2="336" stroke="#E2E8F0"/>
+<text x="371.0" y="358" class="axis" text-anchor="middle">1,250</text>
+<line x1="466.5" y1="230" x2="466.5" y2="336" stroke="#E2E8F0"/>
+<text x="466.5" y="358" class="axis" text-anchor="middle">1,875</text>
+<line x1="562.0" y1="230" x2="562.0" y2="336" stroke="#E2E8F0"/>
+<text x="562.0" y="358" class="axis" text-anchor="middle">2,500</text>
+<text x="562" y="218" class="axis" text-anchor="end" dominant-baseline="middle">MB/s axis max 2,500</text>
+<text x="102" y="246" class="bar-label" dominant-baseline="middle">gzip</text>
+<rect x="180" y="240.0" width="34.5" height="12" fill="#FDBA74" stroke="#F97316" stroke-width="1" rx="4"/>
+<text x="102" y="266" class="bar-label" dominant-baseline="middle">zlib</text>
+<rect x="180" y="260.0" width="33.3" height="12" fill="#FDE68A" stroke="#D97706" stroke-width="1" rx="4"/>
+<text x="102" y="286" class="bar-label" dominant-baseline="middle">deflate</text>
+<rect x="180" y="280.0" width="35.4" height="12" fill="#C4B5FD" stroke="#7C3AED" stroke-width="1" rx="4"/>
+<text x="102" y="306" class="bar-label" dominant-baseline="middle">zstd</text>
+<rect x="180" y="300.0" width="184.4" height="12" fill="#93C5FD" stroke="#2563EB" stroke-width="1" rx="4"/>
+<text x="102" y="326" class="bar-label" dominant-baseline="middle">lz4</text>
+<rect x="180" y="320.0" width="237.4" height="12" fill="#86EFAC" stroke="#16A34A" stroke-width="1" rx="4"/>
+<text x="102" y="346" class="bar-label" dominant-baseline="middle">snappy</text>
+<rect x="180" y="340.0" width="328.0" height="12" fill="#F9A8D4" stroke="#DB2777" stroke-width="1" rx="4"/>
+<rect x="664" y="194" width="532" height="176" fill="#F8FAFC" stroke="#E2E8F0" stroke-width="1" rx="12"/>
+<text x="682" y="218" class="payload" dominant-baseline="middle">TEXT</text>
+<line x1="760.0" y1="230" x2="760.0" y2="336" stroke="#E2E8F0"/>
+<text x="760.0" y="358" class="axis" text-anchor="middle">0</text>
+<line x1="855.5" y1="230" x2="855.5" y2="336" stroke="#E2E8F0"/>
+<text x="855.5" y="358" class="axis" text-anchor="middle">1,500</text>
+<line x1="951.0" y1="230" x2="951.0" y2="336" stroke="#E2E8F0"/>
+<text x="951.0" y="358" class="axis" text-anchor="middle">3,000</text>
+<line x1="1046.5" y1="230" x2="1046.5" y2="336" stroke="#E2E8F0"/>
+<text x="1046.5" y="358" class="axis" text-anchor="middle">4,500</text>
+<line x1="1142.0" y1="230" x2="1142.0" y2="336" stroke="#E2E8F0"/>
+<text x="1142.0" y="358" class="axis" text-anchor="middle">6,000</text>
+<text x="1142" y="218" class="axis" text-anchor="end" dominant-baseline="middle">MB/s axis max 6,000</text>
+<text x="682" y="246" class="bar-label" dominant-baseline="middle">gzip</text>
+<rect x="760" y="240.0" width="43.6" height="12" fill="#FDBA74" stroke="#F97316" stroke-width="1" rx="4"/>
+<text x="682" y="266" class="bar-label" dominant-baseline="middle">zlib</text>
+<rect x="760" y="260.0" width="38.8" height="12" fill="#FDE68A" stroke="#D97706" stroke-width="1" rx="4"/>
+<text x="682" y="286" class="bar-label" dominant-baseline="middle">deflate</text>
+<rect x="760" y="280.0" width="46.8" height="12" fill="#C4B5FD" stroke="#7C3AED" stroke-width="1" rx="4"/>
+<text x="682" y="306" class="bar-label" dominant-baseline="middle">zstd</text>
+<rect x="760" y="300.0" width="136.8" height="12" fill="#93C5FD" stroke="#2563EB" stroke-width="1" rx="4"/>
+<text x="682" y="326" class="bar-label" dominant-baseline="middle">lz4</text>
+<rect x="760" y="320.0" width="225.5" height="12" fill="#86EFAC" stroke="#16A34A" stroke-width="1" rx="4"/>
+<text x="682" y="346" class="bar-label" dominant-baseline="middle">snappy</text>
+<rect x="760" y="340.0" width="273.7" height="12" fill="#F9A8D4" stroke="#DB2777" stroke-width="1" rx="4"/>
+<rect x="84" y="404" width="532" height="176" fill="#F8FAFC" stroke="#E2E8F0" stroke-width="1" rx="12"/>
+<text x="102" y="428" class="payload" dominant-baseline="middle">BINARY</text>
+<line x1="180.0" y1="440" x2="180.0" y2="546" stroke="#E2E8F0"/>
+<text x="180.0" y="568" class="axis" text-anchor="middle">0</text>
+<line x1="275.5" y1="440" x2="275.5" y2="546" stroke="#E2E8F0"/>
+<text x="275.5" y="568" class="axis" text-anchor="middle">625</text>
+<line x1="371.0" y1="440" x2="371.0" y2="546" stroke="#E2E8F0"/>
+<text x="371.0" y="568" class="axis" text-anchor="middle">1,250</text>
+<line x1="466.5" y1="440" x2="466.5" y2="546" stroke="#E2E8F0"/>
+<text x="466.5" y="568" class="axis" text-anchor="middle">1,875</text>
+<line x1="562.0" y1="440" x2="562.0" y2="546" stroke="#E2E8F0"/>
+<text x="562.0" y="568" class="axis" text-anchor="middle">2,500</text>
+<text x="562" y="428" class="axis" text-anchor="end" dominant-baseline="middle">MB/s axis max 2,500</text>
+<text x="102" y="456" class="bar-label" dominant-baseline="middle">gzip</text>
+<rect x="180" y="450.0" width="33.3" height="12" fill="#FDBA74" stroke="#F97316" stroke-width="1" rx="4"/>
+<text x="102" y="476" class="bar-label" dominant-baseline="middle">zlib</text>
+<rect x="180" y="470.0" width="32.7" height="12" fill="#FDE68A" stroke="#D97706" stroke-width="1" rx="4"/>
+<text x="102" y="496" class="bar-label" dominant-baseline="middle">deflate</text>
+<rect x="180" y="490.0" width="34.7" height="12" fill="#C4B5FD" stroke="#7C3AED" stroke-width="1" rx="4"/>
+<text x="102" y="516" class="bar-label" dominant-baseline="middle">zstd</text>
+<rect x="180" y="510.0" width="195.6" height="12" fill="#93C5FD" stroke="#2563EB" stroke-width="1" rx="4"/>
+<text x="102" y="536" class="bar-label" dominant-baseline="middle">lz4</text>
+<rect x="180" y="530.0" width="207.8" height="12" fill="#86EFAC" stroke="#16A34A" stroke-width="1" rx="4"/>
+<text x="102" y="556" class="bar-label" dominant-baseline="middle">snappy</text>
+<rect x="180" y="550.0" width="241.9" height="12" fill="#F9A8D4" stroke="#DB2777" stroke-width="1" rx="4"/>
+<rect x="664" y="404" width="532" height="176" fill="#F8FAFC" stroke="#E2E8F0" stroke-width="1" rx="12"/>
+<text x="682" y="428" class="payload" dominant-baseline="middle">RANDOM</text>
+<line x1="760.0" y1="440" x2="760.0" y2="546" stroke="#E2E8F0"/>
+<text x="760.0" y="568" class="axis" text-anchor="middle">0</text>
+<line x1="855.5" y1="440" x2="855.5" y2="546" stroke="#E2E8F0"/>
+<text x="855.5" y="568" class="axis" text-anchor="middle">2,000</text>
+<line x1="951.0" y1="440" x2="951.0" y2="546" stroke="#E2E8F0"/>
+<text x="951.0" y="568" class="axis" text-anchor="middle">4,000</text>
+<line x1="1046.5" y1="440" x2="1046.5" y2="546" stroke="#E2E8F0"/>
+<text x="1046.5" y="568" class="axis" text-anchor="middle">6,000</text>
+<line x1="1142.0" y1="440" x2="1142.0" y2="546" stroke="#E2E8F0"/>
+<text x="1142.0" y="568" class="axis" text-anchor="middle">8,000</text>
+<text x="1142" y="428" class="axis" text-anchor="end" dominant-baseline="middle">MB/s axis max 8,000</text>
+<text x="682" y="456" class="bar-label" dominant-baseline="middle">gzip</text>
+<rect x="760" y="450.0" width="5.5" height="12" fill="#FDBA74" stroke="#F97316" stroke-width="1" rx="4"/>
+<text x="682" y="476" class="bar-label" dominant-baseline="middle">zlib</text>
+<rect x="760" y="470.0" width="5.3" height="12" fill="#FDE68A" stroke="#D97706" stroke-width="1" rx="4"/>
+<text x="682" y="496" class="bar-label" dominant-baseline="middle">deflate</text>
+<rect x="760" y="490.0" width="5.6" height="12" fill="#C4B5FD" stroke="#7C3AED" stroke-width="1" rx="4"/>
+<text x="682" y="516" class="bar-label" dominant-baseline="middle">zstd</text>
+<rect x="760" y="510.0" width="92.6" height="12" fill="#93C5FD" stroke="#2563EB" stroke-width="1" rx="4"/>
+<text x="682" y="536" class="bar-label" dominant-baseline="middle">lz4</text>
+<rect x="760" y="530.0" width="346.5" height="12" fill="#86EFAC" stroke="#16A34A" stroke-width="1" rx="4"/>
+<text x="682" y="556" class="bar-label" dominant-baseline="middle">snappy</text>
+<rect x="760" y="550.0" width="198.2" height="12" fill="#F9A8D4" stroke="#DB2777" stroke-width="1" rx="4"/>
+</g>
+
+  <g>
+<rect x="56" y="636" width="1168" height="500" fill="#FFFFFF" stroke="#CBD5E1" stroke-width="1.5" rx="14"/>
+<text x="84" y="670" class="section" dominant-baseline="middle">Decompression throughput</text>
+<text x="1196" y="670" class="axis" text-anchor="end" dominant-baseline="middle">Each payload card uses its own x-axis so bar length stays readable</text>
+<text x="1196" y="694" class="axis" text-anchor="end" dominant-baseline="middle">Higher throughput is better</text>
+<rect x="84" y="718" width="532" height="176" fill="#F8FAFC" stroke="#E2E8F0" stroke-width="1" rx="12"/>
+<text x="102" y="742" class="payload" dominant-baseline="middle">JSON</text>
+<line x1="180.0" y1="754" x2="180.0" y2="860" stroke="#E2E8F0"/>
+<text x="180.0" y="882" class="axis" text-anchor="middle">0</text>
+<line x1="275.5" y1="754" x2="275.5" y2="860" stroke="#E2E8F0"/>
+<text x="275.5" y="882" class="axis" text-anchor="middle">1,000</text>
+<line x1="371.0" y1="754" x2="371.0" y2="860" stroke="#E2E8F0"/>
+<text x="371.0" y="882" class="axis" text-anchor="middle">2,000</text>
+<line x1="466.5" y1="754" x2="466.5" y2="860" stroke="#E2E8F0"/>
+<text x="466.5" y="882" class="axis" text-anchor="middle">3,000</text>
+<line x1="562.0" y1="754" x2="562.0" y2="860" stroke="#E2E8F0"/>
+<text x="562.0" y="882" class="axis" text-anchor="middle">4,000</text>
+<text x="562" y="742" class="axis" text-anchor="end" dominant-baseline="middle">MB/s axis max 4,000</text>
+<text x="102" y="770" class="bar-label" dominant-baseline="middle">gzip</text>
+<rect x="180" y="764.0" width="111.3" height="12" fill="#FDBA74" stroke="#F97316" stroke-width="1" rx="4"/>
+<text x="102" y="790" class="bar-label" dominant-baseline="middle">zlib</text>
+<rect x="180" y="784.0" width="93.7" height="12" fill="#FDE68A" stroke="#D97706" stroke-width="1" rx="4"/>
+<text x="102" y="810" class="bar-label" dominant-baseline="middle">deflate</text>
+<rect x="180" y="804.0" width="125.9" height="12" fill="#C4B5FD" stroke="#7C3AED" stroke-width="1" rx="4"/>
+<text x="102" y="830" class="bar-label" dominant-baseline="middle">zstd</text>
+<rect x="180" y="824.0" width="132.6" height="12" fill="#93C5FD" stroke="#2563EB" stroke-width="1" rx="4"/>
+<text x="102" y="850" class="bar-label" dominant-baseline="middle">lz4</text>
+<rect x="180" y="844.0" width="363.7" height="12" fill="#86EFAC" stroke="#16A34A" stroke-width="1" rx="4"/>
+<text x="102" y="870" class="bar-label" dominant-baseline="middle">snappy</text>
+<rect x="180" y="864.0" width="258.9" height="12" fill="#F9A8D4" stroke="#DB2777" stroke-width="1" rx="4"/>
+<rect x="664" y="718" width="532" height="176" fill="#F8FAFC" stroke="#E2E8F0" stroke-width="1" rx="12"/>
+<text x="682" y="742" class="payload" dominant-baseline="middle">TEXT</text>
+<line x1="760.0" y1="754" x2="760.0" y2="860" stroke="#E2E8F0"/>
+<text x="760.0" y="882" class="axis" text-anchor="middle">0</text>
+<line x1="855.5" y1="754" x2="855.5" y2="860" stroke="#E2E8F0"/>
+<text x="855.5" y="882" class="axis" text-anchor="middle">1,500</text>
+<line x1="951.0" y1="754" x2="951.0" y2="860" stroke="#E2E8F0"/>
+<text x="951.0" y="882" class="axis" text-anchor="middle">3,000</text>
+<line x1="1046.5" y1="754" x2="1046.5" y2="860" stroke="#E2E8F0"/>
+<text x="1046.5" y="882" class="axis" text-anchor="middle">4,500</text>
+<line x1="1142.0" y1="754" x2="1142.0" y2="860" stroke="#E2E8F0"/>
+<text x="1142.0" y="882" class="axis" text-anchor="middle">6,000</text>
+<text x="1142" y="742" class="axis" text-anchor="end" dominant-baseline="middle">MB/s axis max 6,000</text>
+<text x="682" y="770" class="bar-label" dominant-baseline="middle">gzip</text>
+<rect x="760" y="764.0" width="142.2" height="12" fill="#FDBA74" stroke="#F97316" stroke-width="1" rx="4"/>
+<text x="682" y="790" class="bar-label" dominant-baseline="middle">zlib</text>
+<rect x="760" y="784.0" width="103.0" height="12" fill="#FDE68A" stroke="#D97706" stroke-width="1" rx="4"/>
+<text x="682" y="810" class="bar-label" dominant-baseline="middle">deflate</text>
+<rect x="760" y="804.0" width="175.6" height="12" fill="#C4B5FD" stroke="#7C3AED" stroke-width="1" rx="4"/>
+<text x="682" y="830" class="bar-label" dominant-baseline="middle">zstd</text>
+<rect x="760" y="824.0" width="121.1" height="12" fill="#93C5FD" stroke="#2563EB" stroke-width="1" rx="4"/>
+<text x="682" y="850" class="bar-label" dominant-baseline="middle">lz4</text>
+<rect x="760" y="844.0" width="320.3" height="12" fill="#86EFAC" stroke="#16A34A" stroke-width="1" rx="4"/>
+<text x="682" y="870" class="bar-label" dominant-baseline="middle">snappy</text>
+<rect x="760" y="864.0" width="193.5" height="12" fill="#F9A8D4" stroke="#DB2777" stroke-width="1" rx="4"/>
+<rect x="84" y="928" width="532" height="176" fill="#F8FAFC" stroke="#E2E8F0" stroke-width="1" rx="12"/>
+<text x="102" y="952" class="payload" dominant-baseline="middle">BINARY</text>
+<line x1="180.0" y1="964" x2="180.0" y2="1070" stroke="#E2E8F0"/>
+<text x="180.0" y="1092" class="axis" text-anchor="middle">0</text>
+<line x1="275.5" y1="964" x2="275.5" y2="1070" stroke="#E2E8F0"/>
+<text x="275.5" y="1092" class="axis" text-anchor="middle">1,000</text>
+<line x1="371.0" y1="964" x2="371.0" y2="1070" stroke="#E2E8F0"/>
+<text x="371.0" y="1092" class="axis" text-anchor="middle">2,000</text>
+<line x1="466.5" y1="964" x2="466.5" y2="1070" stroke="#E2E8F0"/>
+<text x="466.5" y="1092" class="axis" text-anchor="middle">3,000</text>
+<line x1="562.0" y1="964" x2="562.0" y2="1070" stroke="#E2E8F0"/>
+<text x="562.0" y="1092" class="axis" text-anchor="middle">4,000</text>
+<text x="562" y="952" class="axis" text-anchor="end" dominant-baseline="middle">MB/s axis max 4,000</text>
+<text x="102" y="980" class="bar-label" dominant-baseline="middle">gzip</text>
+<rect x="180" y="974.0" width="111.8" height="12" fill="#FDBA74" stroke="#F97316" stroke-width="1" rx="4"/>
+<text x="102" y="1000" class="bar-label" dominant-baseline="middle">zlib</text>
+<rect x="180" y="994.0" width="93.1" height="12" fill="#FDE68A" stroke="#D97706" stroke-width="1" rx="4"/>
+<text x="102" y="1020" class="bar-label" dominant-baseline="middle">deflate</text>
+<rect x="180" y="1014.0" width="127.4" height="12" fill="#C4B5FD" stroke="#7C3AED" stroke-width="1" rx="4"/>
+<text x="102" y="1040" class="bar-label" dominant-baseline="middle">zstd</text>
+<rect x="180" y="1034.0" width="153.1" height="12" fill="#93C5FD" stroke="#2563EB" stroke-width="1" rx="4"/>
+<text x="102" y="1060" class="bar-label" dominant-baseline="middle">lz4</text>
+<rect x="180" y="1054.0" width="362.0" height="12" fill="#86EFAC" stroke="#16A34A" stroke-width="1" rx="4"/>
+<text x="102" y="1080" class="bar-label" dominant-baseline="middle">snappy</text>
+<rect x="180" y="1074.0" width="230.5" height="12" fill="#F9A8D4" stroke="#DB2777" stroke-width="1" rx="4"/>
+<rect x="664" y="928" width="532" height="176" fill="#F8FAFC" stroke="#E2E8F0" stroke-width="1" rx="12"/>
+<text x="682" y="952" class="payload" dominant-baseline="middle">RANDOM</text>
+<line x1="760.0" y1="964" x2="760.0" y2="1070" stroke="#E2E8F0"/>
+<text x="760.0" y="1092" class="axis" text-anchor="middle">0</text>
+<line x1="855.5" y1="964" x2="855.5" y2="1070" stroke="#E2E8F0"/>
+<text x="855.5" y="1092" class="axis" text-anchor="middle">2,000</text>
+<line x1="951.0" y1="964" x2="951.0" y2="1070" stroke="#E2E8F0"/>
+<text x="951.0" y="1092" class="axis" text-anchor="middle">4,000</text>
+<line x1="1046.5" y1="964" x2="1046.5" y2="1070" stroke="#E2E8F0"/>
+<text x="1046.5" y="1092" class="axis" text-anchor="middle">6,000</text>
+<line x1="1142.0" y1="964" x2="1142.0" y2="1070" stroke="#E2E8F0"/>
+<text x="1142.0" y="1092" class="axis" text-anchor="middle">8,000</text>
+<text x="1142" y="952" class="axis" text-anchor="end" dominant-baseline="middle">MB/s axis max 8,000</text>
+<text x="682" y="980" class="bar-label" dominant-baseline="middle">gzip</text>
+<rect x="760" y="974.0" width="199.5" height="12" fill="#FDBA74" stroke="#F97316" stroke-width="1" rx="4"/>
+<text x="682" y="1000" class="bar-label" dominant-baseline="middle">zlib</text>
+<rect x="760" y="994.0" width="114.9" height="12" fill="#FDE68A" stroke="#D97706" stroke-width="1" rx="4"/>
+<text x="682" y="1020" class="bar-label" dominant-baseline="middle">deflate</text>
+<rect x="760" y="1014.0" width="336.9" height="12" fill="#C4B5FD" stroke="#7C3AED" stroke-width="1" rx="4"/>
+<text x="682" y="1040" class="bar-label" dominant-baseline="middle">zstd</text>
+<rect x="760" y="1034.0" width="134.5" height="12" fill="#93C5FD" stroke="#2563EB" stroke-width="1" rx="4"/>
+<text x="682" y="1060" class="bar-label" dominant-baseline="middle">lz4</text>
+<rect x="760" y="1054.0" width="235.9" height="12" fill="#86EFAC" stroke="#16A34A" stroke-width="1" rx="4"/>
+<text x="682" y="1080" class="bar-label" dominant-baseline="middle">snappy</text>
+<rect x="760" y="1074.0" width="196.2" height="12" fill="#F9A8D4" stroke="#DB2777" stroke-width="1" rx="4"/>
+</g>
+
+  <g>
+<rect x="56" y="1160" width="1168" height="500" fill="#FFFFFF" stroke="#CBD5E1" stroke-width="1.5" rx="14"/>
+<text x="84" y="1194" class="section" dominant-baseline="middle">Compression density</text>
+<text x="1196" y="1194" class="axis" text-anchor="end" dominant-baseline="middle">Shared ratio axis · bar length is compressed/original size</text>
+<text x="1196" y="1218" class="axis" text-anchor="end" dominant-baseline="middle">Shorter bars are better; random payloads stay near 1.0</text>
+<rect x="84" y="1242" width="532" height="176" fill="#F8FAFC" stroke="#E2E8F0" stroke-width="1" rx="12"/>
+<text x="102" y="1266" class="payload" dominant-baseline="middle">JSON</text>
+<line x1="180.0" y1="1278" x2="180.0" y2="1384" stroke="#E2E8F0"/>
+<text x="180.0" y="1406" class="axis" text-anchor="middle">0</text>
+<line x1="275.5" y1="1278" x2="275.5" y2="1384" stroke="#E2E8F0"/>
+<text x="275.5" y="1406" class="axis" text-anchor="middle">0.06</text>
+<line x1="371.0" y1="1278" x2="371.0" y2="1384" stroke="#E2E8F0"/>
+<text x="371.0" y="1406" class="axis" text-anchor="middle">0.13</text>
+<line x1="466.5" y1="1278" x2="466.5" y2="1384" stroke="#E2E8F0"/>
+<text x="466.5" y="1406" class="axis" text-anchor="middle">0.19</text>
+<line x1="562.0" y1="1278" x2="562.0" y2="1384" stroke="#E2E8F0"/>
+<text x="562.0" y="1406" class="axis" text-anchor="middle">0.25</text>
+<text x="562" y="1266" class="axis" text-anchor="end" dominant-baseline="middle">ratio axis max 0.25</text>
+<text x="102" y="1294" class="bar-label" dominant-baseline="middle">gzip</text>
+<rect x="180" y="1288.0" width="108.9" height="12" fill="#FDBA74" stroke="#F97316" stroke-width="1" rx="4"/>
+<text x="102" y="1314" class="bar-label" dominant-baseline="middle">zlib</text>
+<rect x="180" y="1308.0" width="108.8" height="12" fill="#FDE68A" stroke="#D97706" stroke-width="1" rx="4"/>
+<text x="102" y="1334" class="bar-label" dominant-baseline="middle">deflate</text>
+<rect x="180" y="1328.0" width="108.8" height="12" fill="#C4B5FD" stroke="#7C3AED" stroke-width="1" rx="4"/>
+<text x="102" y="1354" class="bar-label" dominant-baseline="middle">zstd</text>
+<rect x="180" y="1348.0" width="87.2" height="12" fill="#93C5FD" stroke="#2563EB" stroke-width="1" rx="4"/>
+<text x="102" y="1374" class="bar-label" dominant-baseline="middle">lz4</text>
+<rect x="180" y="1368.0" width="246.3" height="12" fill="#86EFAC" stroke="#16A34A" stroke-width="1" rx="4"/>
+<text x="102" y="1394" class="bar-label" dominant-baseline="middle">snappy</text>
+<rect x="180" y="1388.0" width="210.6" height="12" fill="#F9A8D4" stroke="#DB2777" stroke-width="1" rx="4"/>
+<rect x="664" y="1242" width="532" height="176" fill="#F8FAFC" stroke="#E2E8F0" stroke-width="1" rx="12"/>
+<text x="682" y="1266" class="payload" dominant-baseline="middle">TEXT</text>
+<line x1="760.0" y1="1278" x2="760.0" y2="1384" stroke="#E2E8F0"/>
+<text x="760.0" y="1406" class="axis" text-anchor="middle">0</text>
+<line x1="855.5" y1="1278" x2="855.5" y2="1384" stroke="#E2E8F0"/>
+<text x="855.5" y="1406" class="axis" text-anchor="middle">0.06</text>
+<line x1="951.0" y1="1278" x2="951.0" y2="1384" stroke="#E2E8F0"/>
+<text x="951.0" y="1406" class="axis" text-anchor="middle">0.13</text>
+<line x1="1046.5" y1="1278" x2="1046.5" y2="1384" stroke="#E2E8F0"/>
+<text x="1046.5" y="1406" class="axis" text-anchor="middle">0.19</text>
+<line x1="1142.0" y1="1278" x2="1142.0" y2="1384" stroke="#E2E8F0"/>
+<text x="1142.0" y="1406" class="axis" text-anchor="middle">0.25</text>
+<text x="1142" y="1266" class="axis" text-anchor="end" dominant-baseline="middle">ratio axis max 0.25</text>
+<text x="682" y="1294" class="bar-label" dominant-baseline="middle">gzip</text>
+<rect x="760" y="1288.0" width="41.0" height="12" fill="#FDBA74" stroke="#F97316" stroke-width="1" rx="4"/>
+<text x="682" y="1314" class="bar-label" dominant-baseline="middle">zlib</text>
+<rect x="760" y="1308.0" width="40.9" height="12" fill="#FDE68A" stroke="#D97706" stroke-width="1" rx="4"/>
+<text x="682" y="1334" class="bar-label" dominant-baseline="middle">deflate</text>
+<rect x="760" y="1328.0" width="40.9" height="12" fill="#C4B5FD" stroke="#7C3AED" stroke-width="1" rx="4"/>
+<text x="682" y="1354" class="bar-label" dominant-baseline="middle">zstd</text>
+<rect x="760" y="1348.0" width="14.4" height="12" fill="#93C5FD" stroke="#2563EB" stroke-width="1" rx="4"/>
+<text x="682" y="1374" class="bar-label" dominant-baseline="middle">lz4</text>
+<rect x="760" y="1368.0" width="71.1" height="12" fill="#86EFAC" stroke="#16A34A" stroke-width="1" rx="4"/>
+<text x="682" y="1394" class="bar-label" dominant-baseline="middle">snappy</text>
+<rect x="760" y="1388.0" width="120.3" height="12" fill="#F9A8D4" stroke="#DB2777" stroke-width="1" rx="4"/>
+<rect x="84" y="1452" width="532" height="176" fill="#F8FAFC" stroke="#E2E8F0" stroke-width="1" rx="12"/>
+<text x="102" y="1476" class="payload" dominant-baseline="middle">BINARY</text>
+<line x1="180.0" y1="1488" x2="180.0" y2="1594" stroke="#E2E8F0"/>
+<text x="180.0" y="1616" class="axis" text-anchor="middle">0</text>
+<line x1="275.5" y1="1488" x2="275.5" y2="1594" stroke="#E2E8F0"/>
+<text x="275.5" y="1616" class="axis" text-anchor="middle">0.06</text>
+<line x1="371.0" y1="1488" x2="371.0" y2="1594" stroke="#E2E8F0"/>
+<text x="371.0" y="1616" class="axis" text-anchor="middle">0.13</text>
+<line x1="466.5" y1="1488" x2="466.5" y2="1594" stroke="#E2E8F0"/>
+<text x="466.5" y="1616" class="axis" text-anchor="middle">0.19</text>
+<line x1="562.0" y1="1488" x2="562.0" y2="1594" stroke="#E2E8F0"/>
+<text x="562.0" y="1616" class="axis" text-anchor="middle">0.25</text>
+<text x="562" y="1476" class="axis" text-anchor="end" dominant-baseline="middle">ratio axis max 0.25</text>
+<text x="102" y="1504" class="bar-label" dominant-baseline="middle">gzip</text>
+<rect x="180" y="1498.0" width="112.8" height="12" fill="#FDBA74" stroke="#F97316" stroke-width="1" rx="4"/>
+<text x="102" y="1524" class="bar-label" dominant-baseline="middle">zlib</text>
+<rect x="180" y="1518.0" width="112.7" height="12" fill="#FDE68A" stroke="#D97706" stroke-width="1" rx="4"/>
+<text x="102" y="1544" class="bar-label" dominant-baseline="middle">deflate</text>
+<rect x="180" y="1538.0" width="112.7" height="12" fill="#C4B5FD" stroke="#7C3AED" stroke-width="1" rx="4"/>
+<text x="102" y="1564" class="bar-label" dominant-baseline="middle">zstd</text>
+<rect x="180" y="1558.0" width="30.4" height="12" fill="#93C5FD" stroke="#2563EB" stroke-width="1" rx="4"/>
+<text x="102" y="1584" class="bar-label" dominant-baseline="middle">lz4</text>
+<rect x="180" y="1578.0" width="229.4" height="12" fill="#86EFAC" stroke="#16A34A" stroke-width="1" rx="4"/>
+<text x="102" y="1604" class="bar-label" dominant-baseline="middle">snappy</text>
+<rect x="180" y="1598.0" width="315.5" height="12" fill="#F9A8D4" stroke="#DB2777" stroke-width="1" rx="4"/>
+<rect x="664" y="1452" width="532" height="176" fill="#F8FAFC" stroke="#E2E8F0" stroke-width="1" rx="12"/>
+<text x="682" y="1476" class="payload" dominant-baseline="middle">RANDOM</text>
+<line x1="760.0" y1="1488" x2="760.0" y2="1594" stroke="#E2E8F0"/>
+<text x="760.0" y="1616" class="axis" text-anchor="middle">0</text>
+<line x1="855.5" y1="1488" x2="855.5" y2="1594" stroke="#E2E8F0"/>
+<text x="855.5" y="1616" class="axis" text-anchor="middle">0.25</text>
+<line x1="951.0" y1="1488" x2="951.0" y2="1594" stroke="#E2E8F0"/>
+<text x="951.0" y="1616" class="axis" text-anchor="middle">0.50</text>
+<line x1="1046.5" y1="1488" x2="1046.5" y2="1594" stroke="#E2E8F0"/>
+<text x="1046.5" y="1616" class="axis" text-anchor="middle">0.75</text>
+<line x1="1142.0" y1="1488" x2="1142.0" y2="1594" stroke="#E2E8F0"/>
+<text x="1142.0" y="1616" class="axis" text-anchor="middle">1</text>
+<text x="1142" y="1476" class="axis" text-anchor="end" dominant-baseline="middle">ratio axis max 1</text>
+<text x="682" y="1504" class="bar-label" dominant-baseline="middle">gzip</text>
+<rect x="760" y="1498.0" width="382.0" height="12" fill="#FDBA74" stroke="#F97316" stroke-width="1" rx="4"/>
+<text x="682" y="1524" class="bar-label" dominant-baseline="middle">zlib</text>
+<rect x="760" y="1518.0" width="382.0" height="12" fill="#FDE68A" stroke="#D97706" stroke-width="1" rx="4"/>
+<text x="682" y="1544" class="bar-label" dominant-baseline="middle">deflate</text>
+<rect x="760" y="1538.0" width="382.0" height="12" fill="#C4B5FD" stroke="#7C3AED" stroke-width="1" rx="4"/>
+<text x="682" y="1564" class="bar-label" dominant-baseline="middle">zstd</text>
+<rect x="760" y="1558.0" width="382.0" height="12" fill="#93C5FD" stroke="#2563EB" stroke-width="1" rx="4"/>
+<text x="682" y="1584" class="bar-label" dominant-baseline="middle">lz4</text>
+<rect x="760" y="1578.0" width="382.0" height="12" fill="#86EFAC" stroke="#16A34A" stroke-width="1" rx="4"/>
+<text x="682" y="1604" class="bar-label" dominant-baseline="middle">snappy</text>
+<rect x="760" y="1598.0" width="382.0" height="12" fill="#F9A8D4" stroke="#DB2777" stroke-width="1" rx="4"/>
+</g>
+
+  <g>
+    <rect x="56" y="1688" width="1168" height="44" fill="#FFFBEB" stroke="#F59E0B" stroke-width="1.4" rx="12"/>
+    <text x="84" y="1710" dominant-baseline="middle" class="callout-title">Interpretation boundary</text>
+    <text x="330" y="1709" dominant-baseline="middle" class="callout">One local same-condition run. Use the chart to scan patterns; keep raw output and tables as the numeric source of truth.</text>
+  </g>
+
+  <g>
+    <rect x="80" y="1744" width="12" height="12" fill="#FDBA74" stroke="#F97316" rx="2"/>
+    <text x="100" y="1755" class="legend">gzip</text>
+    <rect x="214" y="1744" width="12" height="12" fill="#FDE68A" stroke="#D97706" rx="2"/>
+    <text x="234" y="1755" class="legend">zlib</text>
+    <rect x="348" y="1744" width="12" height="12" fill="#C4B5FD" stroke="#7C3AED" rx="2"/>
+    <text x="368" y="1755" class="legend">deflate</text>
+    <rect x="482" y="1744" width="12" height="12" fill="#93C5FD" stroke="#2563EB" rx="2"/>
+    <text x="502" y="1755" class="legend">zstd</text>
+    <rect x="616" y="1744" width="12" height="12" fill="#86EFAC" stroke="#16A34A" rx="2"/>
+    <text x="636" y="1755" class="legend">lz4</text>
+    <rect x="750" y="1744" width="12" height="12" fill="#F9A8D4" stroke="#DB2777" rx="2"/>
+    <text x="770" y="1755" class="legend">snappy</text>
+    <text x="914" y="1755" class="note">Density panel intentionally rewards shorter bars.</text>
+  </g>
+</svg>

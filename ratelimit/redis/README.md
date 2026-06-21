@@ -10,6 +10,8 @@ stores bucket state, and refreshes key expiration atomically.
 
 ![Redis token-bucket rate limit flow](../../docs/images/readme-diagrams/redis-ratelimit-token-bucket-flow.png)
 
+![Redis token-bucket sequence](../../docs/images/readme-diagrams/redis-ratelimit-token-bucket-sequence.png)
+
 ## Install
 
 ```go

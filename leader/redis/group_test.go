@@ -12,7 +12,6 @@ import (
 
 	"github.com/bluetape4k/bluetape-go/leader"
 	redisleader "github.com/bluetape4k/bluetape-go/leader/redis"
-	redistestcontainer "github.com/bluetape4k/bluetape-go/testcontainers/redis"
 	bttesting "github.com/bluetape4k/bluetape-go/testing"
 	concurrencytest "github.com/bluetape4k/bluetape-go/testing/concurrency"
 	"github.com/redis/go-redis/v9"
@@ -20,10 +19,7 @@ import (
 
 func TestRedisGroupElectorAllowsMaxLeaders(t *testing.T) {
 	ctx := context.Background()
-	client := redis.NewClient(&redis.Options{Addr: redistestcontainer.Start(ctx, t)})
-	t.Cleanup(func() {
-		_ = client.Close()
-	})
+	client := newRedisClient(ctx, t)
 
 	first := newGroupElector(t, client, "allows-max-leaders", "member-1", 2)
 	second := newGroupElector(t, client, "allows-max-leaders", "member-2", 2)
@@ -59,10 +55,7 @@ func TestRedisGroupElectorAllowsMaxLeaders(t *testing.T) {
 
 func TestRedisGroupElectorWaitsUntilContextExpires(t *testing.T) {
 	ctx := context.Background()
-	client := redis.NewClient(&redis.Options{Addr: redistestcontainer.Start(ctx, t)})
-	t.Cleanup(func() {
-		_ = client.Close()
-	})
+	client := newRedisClient(ctx, t)
 
 	first := newGroupElector(t, client, "waits-until-context-expires", "member-1", 1)
 	second := newGroupElector(t, client, "waits-until-context-expires", "member-2", 1)
@@ -87,10 +80,7 @@ func TestRedisGroupElectorWaitsUntilContextExpires(t *testing.T) {
 
 func TestRedisGroupElectorRejectsDuplicateCampaign(t *testing.T) {
 	ctx := context.Background()
-	client := redis.NewClient(&redis.Options{Addr: redistestcontainer.Start(ctx, t)})
-	t.Cleanup(func() {
-		_ = client.Close()
-	})
+	client := newRedisClient(ctx, t)
 
 	elector := newGroupElector(t, client, "rejects-duplicate-group-campaign", "member-1", 2)
 	if err := elector.Campaign(ctx); err != nil {
@@ -107,10 +97,7 @@ func TestRedisGroupElectorRejectsDuplicateCampaign(t *testing.T) {
 
 func TestRedisGroupElectorRepeatedResignIsIdempotent(t *testing.T) {
 	ctx := context.Background()
-	client := redis.NewClient(&redis.Options{Addr: redistestcontainer.Start(ctx, t)})
-	t.Cleanup(func() {
-		_ = client.Close()
-	})
+	client := newRedisClient(ctx, t)
 
 	elector := newGroupElector(t, client, "group-repeated-resign", "member-1", 1)
 	if err := elector.Campaign(ctx); err != nil {
@@ -134,10 +121,7 @@ func TestRedisGroupElectorRepeatedResignIsIdempotent(t *testing.T) {
 
 func TestRedisGroupElectorKeepsOtherSlotsOnResign(t *testing.T) {
 	ctx := context.Background()
-	client := redis.NewClient(&redis.Options{Addr: redistestcontainer.Start(ctx, t)})
-	t.Cleanup(func() {
-		_ = client.Close()
-	})
+	client := newRedisClient(ctx, t)
 
 	first := newGroupElector(t, client, "keeps-other-slots-on-resign", "member-1", 2)
 	second := newGroupElector(t, client, "keeps-other-slots-on-resign", "member-2", 2)
@@ -165,10 +149,7 @@ func TestRedisGroupElectorKeepsOtherSlotsOnResign(t *testing.T) {
 
 func TestRedisGroupElectorReclaimsExpiredSlots(t *testing.T) {
 	ctx := context.Background()
-	client := redis.NewClient(&redis.Options{Addr: redistestcontainer.Start(ctx, t)})
-	t.Cleanup(func() {
-		_ = client.Close()
-	})
+	client := newRedisClient(ctx, t)
 
 	const (
 		group = "reclaims-expired-slots"
@@ -197,10 +178,7 @@ func TestRedisGroupElectorReclaimsExpiredSlots(t *testing.T) {
 
 func TestRedisGroupElectorLosesLeadershipWhenTokenRemoved(t *testing.T) {
 	ctx := context.Background()
-	client := redis.NewClient(&redis.Options{Addr: redistestcontainer.Start(ctx, t)})
-	t.Cleanup(func() {
-		_ = client.Close()
-	})
+	client := newRedisClient(ctx, t)
 
 	const (
 		group = "group-renewal-loss-token-removed"
@@ -240,10 +218,7 @@ func TestRedisGroupElectorLosesLeadershipWhenTokenRemoved(t *testing.T) {
 
 func TestRedisGroupElectorUsesGoOwnedKeyFormat(t *testing.T) {
 	ctx := context.Background()
-	client := redis.NewClient(&redis.Options{Addr: redistestcontainer.Start(ctx, t)})
-	t.Cleanup(func() {
-		_ = client.Close()
-	})
+	client := newRedisClient(ctx, t)
 
 	elector := newGroupElector(t, client, "compatibility-group", "go-node", 2)
 	if err := elector.Campaign(ctx); err != nil {
@@ -270,10 +245,7 @@ func TestRedisGroupElectorUsesGoOwnedKeyFormat(t *testing.T) {
 
 func TestRedisGroupElectorStressBoundsConcurrentLeaders(t *testing.T) {
 	ctx := context.Background()
-	client := redis.NewClient(&redis.Options{Addr: redistestcontainer.Start(ctx, t)})
-	t.Cleanup(func() {
-		_ = client.Close()
-	})
+	client := newRedisClient(ctx, t)
 
 	const (
 		group      = "stress-bounds-concurrent-leaders"
@@ -354,10 +326,7 @@ func TestRedisGroupElectorStressBoundsConcurrentLeaders(t *testing.T) {
 
 func TestRedisGroupElectorConcurrentCampaignOnSameInstanceIsSingleOwner(t *testing.T) {
 	ctx := context.Background()
-	client := redis.NewClient(&redis.Options{Addr: redistestcontainer.Start(ctx, t)})
-	t.Cleanup(func() {
-		_ = client.Close()
-	})
+	client := newRedisClient(ctx, t)
 
 	elector := newGroupElector(t, client, "same-instance-concurrent-campaign", "member-1", 5)
 	const goroutines = 16
