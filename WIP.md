@@ -1,24 +1,24 @@
 # WIP
 
-Snapshot: 2026-06-09 KST
-Scope: `0.6.0` portable utilities after the `v0.5.1` patch release.
+Snapshot: 2026-06-21 KST
+Scope: `0.6.1` portable utility hardening after the `v0.6.0` release.
 
 ## Current Target Release
 
-`v0.6.0` - Portable service utilities, including the `id` package for UUID, ULID,
-standard KSUID, and Snowflake identifiers, the `jwt` package for
-explicit-algorithm JWT signing, parsing, validation, and local key rotation, and
-the `measure` package for typed units, measured values, compound units, parsing,
-formatting, and temperature helpers, and the `money` package for ISO currency
-and decimal-backed amount operations, and the `probabilistic` package for
-in-memory Bloom filters.
+`v0.6.1` - Patch release for portable utility hardening after the `v0.6.0`
+foundation. The release includes Redis-backed probabilistic Bloom filters,
+distributed JWT KeyChain repositories, optional JWT provider cache adapters,
+provider-backed money exchange rates, CLDR-backed locale currency lookup,
+FastMoney benchmark evidence, ID generator performance evidence, codec
+compatibility hardening, JWT compression/JWE boundary documentation, and the
+0.1.0-0.6.1 retrospective audit gate.
 
 ## Current State
 
-- `0.1.0`, `0.1.1`, `0.2.0`, `0.3.0`, `0.4.0`, `0.5.0`, and `v0.5.1` are
-  tagged and released.
-- Milestone `0.6.0` implementation is complete; release promotion is in
-  progress.
+- `0.1.0`, `0.1.1`, `0.2.0`, `0.3.0`, `0.4.0`, `0.5.0`, `v0.5.1`, and
+  `v0.6.0` are tagged and released.
+- Milestone `0.6.1` has zero open issues and is ready for release promotion
+  after local CI and GitHub release-PR CI pass.
 - Issue #29 delivered the `batch` reader/processor/writer core and sequential
   job model.
 - Issue #30 delivered retry/skip policies, checkpoint storage, restart
@@ -55,23 +55,23 @@ in-memory Bloom filters.
 - Redis-backed Bloom support is delivered by #182 / PR #229; Redis-backed
   Cuckoo/HyperLogLog constructors remain separate follow-up scope after the
   Bloom API.
+- Issue #200 completed the retrospective audit gate for `0.1.0` through
+  `0.6.1` and recorded the final blocker state before release.
 
 ## Release Checklist
 
-1. Issue #36 is complete with implementation, tests, docs, and Step 6-R subagent
-   7-Tier code review.
-2. Keep Flake, Hashids, distributed JWT repositories (#173), future JWE
-   compression scope after #174, provider cache adapters (#175),
-   provider-backed money exchange rates (#178), full locale mapping (#179),
-   FastMoney evaluation (#180), and Redis-backed Cuckoo/HyperLogLog filters
-   after the Bloom subset of #182 deferred in docs and issue tracking.
-3. Local `make ci`, PR review, and GitHub CI passed for the final #36 merge.
-4. Recheck GitHub milestone state, close epic #6, close milestone `0.6.0`, then
-   promote `develop` to `main` and tag `v0.6.0`.
+1. Verify milestone `0.6.1` has zero open issues and no open PRs.
+2. Keep Redis-backed Cuckoo/HyperLogLog constructors, IMF and Bloomberg money
+   providers, and any future explicit JWE compression scope deferred in docs and
+   issue tracking.
+3. Run local `make ci` on `develop`.
+4. Close milestone `0.6.1`.
+5. Promote `develop` to `main` through a release PR, then tag `main` as
+   `v0.6.1` and create the GitHub Release.
 
 ## Next Milestone Queue
 
-Milestone `0.6.1` is the next patch queue after `v0.6.0` release promotion.
+Milestone `0.7.0` is the next planned line after `v0.6.1` release promotion.
 
 The planned portable-utilities scope is represented in the roadmap and should
 be rechecked against current GitHub issues before each new package starts.
