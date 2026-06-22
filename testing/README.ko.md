@@ -27,6 +27,22 @@ go func() {
 bttesting.Eventually(t, time.Second, ready.Load)
 bttesting.Consistently(t, 100*time.Millisecond, ready.Load)
 
+bttesting.RequireAwaitValue(context.Background(), t, time.Second, 10*time.Millisecond, func(ctx context.Context) (string, error) {
+    return cache.Get(ctx, "customer:42")
+}, "fresh")
+
+bttesting.RequireAwait(context.Background(), t, time.Second, 10*time.Millisecond, func(ctx context.Context) (bool, error) {
+    return lock.TryAcquire(ctx, "invoice:42")
+}, func(acquired bool, err error) bttesting.AwaitStatus {
+    if err != nil {
+        return bttesting.AwaitFailure
+    }
+    if acquired {
+        return bttesting.AwaitSuccess
+    }
+    return bttesting.AwaitContinue
+})
+
 bttesting.RequireContextCanceled(t, func(ctx context.Context) error {
     return ctx.Err()
 })
@@ -45,15 +61,25 @@ bttesting.RequireCleanupOnCancel(t, 50*time.Millisecond, func(ctx context.Contex
   `*testing.T`를 실패시킵니다.
 - `EventuallyWithPolling`과 `ConsistentlyWithPolling`은 explicit polling interval을
   허용합니다.
+- `CheckAwait`와 `RequireAwait`는 context-aware probe를 polling하고 supplied
+  check가 `AwaitSuccess` 또는 `AwaitFailure`를 반환할 때 멈춥니다. Diagnostic에는
+  final observed value/error와 attempt count가 포함됩니다.
+- `CheckAwaitValue`/`RequireAwaitValue`는 eventually expected value를 기다리고,
+  `CheckAwaitError`/`RequireAwaitError`는 expected non-context error state를
+  기다립니다.
 - `CheckContextCanceled`와 `CheckDeadlineExceeded`는 operation이
   `context.Canceled` 또는 `context.DeadlineExceeded`를 숨기는 경우 diagnostic을
   반환합니다.
 - `CheckWaiterReleased`와 `CheckCleanupOnCancel`은 cancellation 이후 cooperative
   waiter release와 cleanup을 증명합니다. 대응하는 `Require*` helper는 supplied
   `testing.TB`를 실패시킵니다.
-- Cancellation helper는 cooperative contract입니다. 테스트 대상 operation은
+- Await/cancellation helper는 cooperative contract입니다. 테스트 대상 operation은
   `ctx.Done()`을 관찰하거나 반환해야 합니다. Go는 context를 영원히 무시하는
-  goroutine을 안전하게 중지할 수 없습니다.
+  goroutine을 안전하게 중지할 수 없습니다. Helper는 caller-owned
+  `context.Canceled` 또는 `context.DeadlineExceeded`를 retry하지 않습니다.
+- Await helper는 eventual cache invalidation, lock acquisition, Testcontainers
+  readiness, workflow status, HTTP mock verification 같은 bounded test observation에
+  사용하세요.
 - 반복되는 bounded goroutine execution, panic aggregation, stress reporting까지
   필요하면 `testing/concurrency`를 사용하세요.
 - 이 패키지는 test 전용입니다. Production retry/timeout behavior는 `resilience`에
