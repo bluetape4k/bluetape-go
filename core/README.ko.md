@@ -3,7 +3,7 @@
 [English](README.md) | [한국어](README.ko.md)
 
 `core`는 bluetape-go 패키지에서 사용하는 좁은 shared helper를 담습니다. Go standard library가 이미 작업을 명확히 표현한다면 standard library를 우선하세요. 이 패키지는 반복되는 validation, pointer, zero/default, string, 작은 numeric check를 위한 것입니다. 명시적인 open/closed boundary가 필요할 때 쓰는 작은 ordered range value도 제공합니다.
-반복되는 filter/key 용도를 위한 wildcard 및 XXH64 helper도 포함합니다.
+반복되는 filter/key 용도를 위한 wildcard 및 XXH64 helper, quarter/date-iteration workflow를 위한 작은 calendar helper도 포함합니다.
 
 ![core helper boundary map](../docs/images/readme-diagrams/core-helper-boundary-map.png)
 
@@ -45,6 +45,24 @@ _ = pathMatched // true
 
 cacheKeyHash := core.XXH64String("customer:42")
 _ = cacheKeyHash
+
+reportingQuarter, err := core.ParseYearQuarter("2026-Q3")
+if err != nil {
+    return err
+}
+periodStart, err := reportingQuarter.Start(time.UTC)
+if err != nil {
+    return err
+}
+periodEnd, err := reportingQuarter.End(time.UTC)
+if err != nil {
+    return err
+}
+
+for reportDate := range core.DatesUntil(periodStart, periodStart.AddDate(0, 0, 3)) {
+    _ = reportDate.Format(time.DateOnly)
+}
+_ = periodEnd
 ```
 
 ## 동작
@@ -69,10 +87,20 @@ _ = cacheKeyHash
 - `XXH64Bytes`와 `XXH64String`은 seed 0의 deterministic XXH64 값을 반환합니다.
   XXH64는 non-cryptographic hash입니다. signature, password, token,
   attacker-resistant integrity check에는 `crypto/*` 또는 keyed MAC을 사용하세요.
+- `Quarter`와 `YearQuarter` helper는 quarter 값을 validation하고 year `0`을
+  거부합니다. Quarter end는 exclusive라서 reporting window를 `[start, end)`
+  형태로 표현할 수 있습니다.
+- `DatesUntil`과 `DatesInclusive`는 start location 기준의 calendar date를
+  순회하고 midnight 값을 반환합니다. End boundary는 date 비교 전에 start
+  location으로 변환합니다.
+- Date iteration은 `time.Time.AddDate`로 진행하므로 daylight-saving 전환에서도
+  하루를 항상 24시간으로 가정하지 않고 calendar date를 보존합니다.
 - Kotlin operator overload와 DSL-style range constructor는 Go API에 포함하지 않습니다.
-- JVM classpath resource loading, system-property wrapper, shutdown hook,
-  generic object hashing, temp/output/env helper, broad string/byte alias는
-  의도적으로 제외합니다. Go caller는 `os`, `io/fs`, `runtime`, `context`,
+- Kotlin numeric duration DSL, broad duration parser/formatter wrapper,
+  Java-time temporal type mirror, period/calendar framework, JVM classpath
+  resource loading, system-property wrapper, shutdown hook, generic object
+  hashing, temp/output/env helper, broad string/byte alias는 의도적으로
+  제외합니다. Go caller는 `time`, `os`, `io/fs`, `runtime`, `context`,
   명시적 encoding을 직접 사용해야 합니다.
 
 ## 테스트
