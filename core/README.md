@@ -6,7 +6,8 @@
 Go standard library when it already expresses the operation clearly; this
 package is for repeated validation, pointer, zero/default, string, and small
 numeric checks. It also contains small ordered range values when callers need
-explicit open/closed boundary semantics.
+explicit open/closed boundary semantics, plus wildcard and XXH64 helpers for
+repeated filter/key use cases.
 
 ![core helper boundary map](../docs/images/readme-diagrams/core-helper-boundary-map.png)
 
@@ -33,6 +34,21 @@ if err != nil {
     return err
 }
 _ = window.Contains(10) // true
+
+matched, err := core.MatchWildcard("order-*.json", "order-2026.json")
+if err != nil {
+    return err
+}
+_ = matched // true
+
+pathMatched, err := core.MatchWildcardPath("configs/**/*.yaml", `configs\prod\app.yaml`)
+if err != nil {
+    return err
+}
+_ = pathMatched // true
+
+cacheKeyHash := core.XXH64String("customer:42")
+_ = cacheKeyHash
 ```
 
 ## Behavior
@@ -48,8 +64,22 @@ _ = window.Contains(10) // true
 - `TruncateUTF8Bytes` truncates at rune boundaries and rejects negative limits
   or invalid UTF-8 input.
 - Hex helpers validate prefixed `0x` / `0X` strings without decoding them.
+- `MatchWildcard` is case-sensitive and supports `*`, `?`, consecutive stars,
+  and escaped literals such as `\*`, `\?`, and `\\`. A trailing escape returns
+  `ErrMalformedWildcardPattern`.
+- `MatchWildcardPath` is lexical and portable: it accepts `/` and `\` as input
+  separators, treats a full `**` segment as zero or more path segments, supports
+  escaped `*`, `?`, and `\` inside slash-separated pattern segments, stays
+  case-sensitive on every OS, and never reads or cleans the filesystem.
+- `XXH64Bytes` and `XXH64String` return deterministic XXH64 values with seed 0.
+  XXH64 is non-cryptographic; use `crypto/*` or a keyed MAC for signatures,
+  passwords, tokens, or attacker-resistant integrity checks.
 - Kotlin operator overloads and DSL-style range constructors are intentionally
   not part of this Go API.
+- JVM classpath resource loading, system-property wrappers, shutdown hooks,
+  generic object hashing, temp/output/env helpers, and broad string/byte aliases
+  are intentionally excluded; Go callers should use `os`, `io/fs`, `runtime`,
+  `context`, and explicit encodings directly.
 
 ## Test
 

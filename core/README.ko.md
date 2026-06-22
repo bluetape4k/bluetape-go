@@ -3,6 +3,7 @@
 [English](README.md) | [한국어](README.ko.md)
 
 `core`는 bluetape-go 패키지에서 사용하는 좁은 shared helper를 담습니다. Go standard library가 이미 작업을 명확히 표현한다면 standard library를 우선하세요. 이 패키지는 반복되는 validation, pointer, zero/default, string, 작은 numeric check를 위한 것입니다. 명시적인 open/closed boundary가 필요할 때 쓰는 작은 ordered range value도 제공합니다.
+반복되는 filter/key 용도를 위한 wildcard 및 XXH64 helper도 포함합니다.
 
 ![core helper boundary map](../docs/images/readme-diagrams/core-helper-boundary-map.png)
 
@@ -29,6 +30,21 @@ if err != nil {
     return err
 }
 _ = window.Contains(10) // true
+
+matched, err := core.MatchWildcard("order-*.json", "order-2026.json")
+if err != nil {
+    return err
+}
+_ = matched // true
+
+pathMatched, err := core.MatchWildcardPath("configs/**/*.yaml", `configs\prod\app.yaml`)
+if err != nil {
+    return err
+}
+_ = pathMatched // true
+
+cacheKeyHash := core.XXH64String("customer:42")
+_ = cacheKeyHash
 ```
 
 ## 동작
@@ -43,7 +59,21 @@ _ = window.Contains(10) // true
 - `TruncateUTF8Bytes`는 rune boundary에서 자르고 negative limit 또는 invalid
   UTF-8 input을 거부합니다.
 - Hex helper는 prefixed `0x` / `0X` string을 decode하지 않고 validation합니다.
+- `MatchWildcard`는 case-sensitive이며 `*`, `?`, consecutive star,
+  `\*`, `\?`, `\\` 같은 escaped literal을 지원합니다. trailing escape는
+  `ErrMalformedWildcardPattern`을 반환합니다.
+- `MatchWildcardPath`는 lexical matching입니다. `/`와 `\`를 input separator로
+  받고, full segment `**`를 zero-or-more path segment로 처리합니다.
+  slash-separated pattern segment 안에서는 `*`, `?`, `\` escaped literal도
+  지원합니다. 모든 OS에서 case-sensitive이며 filesystem을 읽거나 path를 clean하지 않습니다.
+- `XXH64Bytes`와 `XXH64String`은 seed 0의 deterministic XXH64 값을 반환합니다.
+  XXH64는 non-cryptographic hash입니다. signature, password, token,
+  attacker-resistant integrity check에는 `crypto/*` 또는 keyed MAC을 사용하세요.
 - Kotlin operator overload와 DSL-style range constructor는 Go API에 포함하지 않습니다.
+- JVM classpath resource loading, system-property wrapper, shutdown hook,
+  generic object hashing, temp/output/env helper, broad string/byte alias는
+  의도적으로 제외합니다. Go caller는 `os`, `io/fs`, `runtime`, `context`,
+  명시적 encoding을 직접 사용해야 합니다.
 
 ## 테스트
 
