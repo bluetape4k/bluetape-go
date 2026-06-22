@@ -37,8 +37,42 @@ func TestGoroutineStressTesterCollectsCompletionsAndBoundsParallelism(t *testing
 	if report.Completed != 5 || atomic.LoadInt32(&total) != 5 {
 		t.Fatalf("expected 5 completions, got report=%+v total=%d", report, total)
 	}
+	if report.Scheduled != 5 || report.Skipped != 0 {
+		t.Fatalf("unexpected schedule accounting: %+v", report)
+	}
 	if report.MaxConcurrent > 3 {
 		t.Fatalf("expected max concurrency <= 3, got %d", report.MaxConcurrent)
+	}
+}
+
+func TestGoroutineStressTesterRunsEachTaskForEachRound(t *testing.T) {
+	var first int32
+	var second int32
+
+	tester := concurrencytest.NewGoroutineStressTester(concurrencytest.Options{
+		Workers:       2,
+		RoundsPerTask: 7,
+	})
+
+	report, err := tester.Run(
+		context.Background(),
+		func(context.Context) error {
+			atomic.AddInt32(&first, 1)
+			return nil
+		},
+		func(context.Context) error {
+			atomic.AddInt32(&second, 1)
+			return nil
+		},
+	)
+	if err != nil {
+		t.Fatalf("Run failed: %v", err)
+	}
+	if first != 7 || second != 7 {
+		t.Fatalf("task counts = first %d second %d, want 7 each", first, second)
+	}
+	if report.Scheduled != 14 || report.Started != 14 || report.Completed != 14 || report.Skipped != 0 {
+		t.Fatalf("unexpected report: %+v", report)
 	}
 }
 
@@ -67,12 +101,14 @@ func TestGoroutineStressTesterCapturesErrorsAndPanics(t *testing.T) {
 }
 
 func TestAsyncJobTesterReportsTimeout(t *testing.T) {
+	done := make(chan struct{})
 	tester := concurrencytest.NewAsyncJobTester(concurrencytest.Options{
 		Workers: 1,
 		Timeout: 25 * time.Millisecond,
 	})
 
 	report, err := tester.Run(context.Background(), func(ctx context.Context) error {
+		defer close(done)
 		<-ctx.Done()
 		return ctx.Err()
 	})
@@ -82,6 +118,41 @@ func TestAsyncJobTesterReportsTimeout(t *testing.T) {
 	}
 	if report.Failures != 1 {
 		t.Fatalf("expected one timeout failure, got %+v", report)
+	}
+	if report.Scheduled != 1 || report.Skipped != 0 {
+		t.Fatalf("unexpected timeout accounting: %+v", report)
+	}
+	select {
+	case <-done:
+	case <-time.After(100 * time.Millisecond):
+		t.Fatal("cooperative timeout task did not exit")
+	}
+}
+
+func TestAsyncJobTesterReportsSkippedWorkOnCancellation(t *testing.T) {
+	done := make(chan struct{})
+	tester := concurrencytest.NewAsyncJobTester(concurrencytest.Options{
+		Workers:       1,
+		RoundsPerTask: 3,
+		Timeout:       25 * time.Millisecond,
+	})
+
+	report, err := tester.Run(context.Background(), func(ctx context.Context) error {
+		defer close(done)
+		<-ctx.Done()
+		return ctx.Err()
+	})
+
+	if !errors.Is(err, context.DeadlineExceeded) {
+		t.Fatalf("expected deadline exceeded, got %v", err)
+	}
+	if report.Scheduled != 3 || report.Started != 1 || report.Skipped != 2 {
+		t.Fatalf("unexpected skipped-work accounting: %+v", report)
+	}
+	select {
+	case <-done:
+	case <-time.After(100 * time.Millisecond):
+		t.Fatal("cooperative cancellation task did not exit")
 	}
 }
 

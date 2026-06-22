@@ -59,12 +59,29 @@ func withTimeout(ctx context.Context, timeout time.Duration) (context.Context, c
 
 // Report summarizes a tester run.
 type Report struct {
-	Started       int
-	Completed     int
-	Failures      int
-	Panics        int
+	// Scheduled is the total number of task executions planned for the run.
+	Scheduled int
+
+	// Started is the number of task executions that began running.
+	Started int
+
+	// Completed is the number of task executions that returned nil.
+	Completed int
+
+	// Failures is the number of task, panic, or run-level errors captured.
+	Failures int
+
+	// Panics is the number of captured panics.
+	Panics int
+
+	// Skipped is the number of scheduled executions not started before cancellation.
+	Skipped int
+
+	// MaxConcurrent is the highest observed number of concurrently running tasks.
 	MaxConcurrent int
-	Duration      time.Duration
+
+	// Duration is the elapsed wall-clock time for the run.
+	Duration time.Duration
 }
 
 // RunError contains one or more task failures captured during a tester run.
