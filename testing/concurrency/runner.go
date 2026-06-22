@@ -68,12 +68,19 @@ func (r *recorder) addError(err error) {
 	r.mu.Unlock()
 }
 
-func (r *recorder) report(duration time.Duration) Report {
+func (r *recorder) report(duration time.Duration, scheduled int) Report {
+	started := int(atomic.LoadInt32(&r.started))
+	skipped := scheduled - started
+	if skipped < 0 {
+		skipped = 0
+	}
 	return Report{
-		Started:       int(atomic.LoadInt32(&r.started)),
+		Scheduled:     scheduled,
+		Started:       started,
 		Completed:     int(atomic.LoadInt32(&r.completed)),
 		Failures:      int(atomic.LoadInt32(&r.failures)),
 		Panics:        int(atomic.LoadInt32(&r.panics)),
+		Skipped:       skipped,
 		MaxConcurrent: int(atomic.LoadInt32(&r.maxConcurrent)),
 		Duration:      duration,
 	}
@@ -174,12 +181,12 @@ func runAll(ctx context.Context, opts Options, tasks []Task) (Report, error) {
 			record.addError(runCtx.Err())
 			close(jobs)
 			wg.Wait()
-			return record.report(time.Since(startedAt)), record.err()
+			return record.report(time.Since(startedAt), len(units)), record.err()
 		case jobs <- job:
 		}
 	}
 
 	close(jobs)
 	wg.Wait()
-	return record.report(time.Since(startedAt)), record.err()
+	return record.report(time.Since(startedAt), len(units)), record.err()
 }
