@@ -65,8 +65,7 @@ func MatchWildcardPath(pattern, path string) (bool, error) {
 
 // FirstWildcardPathMatch returns the index of the first wildcard path pattern matching path.
 //
-// It returns -1 when no pattern matches. If a pattern is malformed, its error is
-// returned before later patterns are evaluated.
+// It returns -1 when no pattern matches.
 func FirstWildcardPathMatch(path string, patterns ...string) (int, error) {
 	for i, pattern := range patterns {
 		matched, err := MatchWildcardPath(pattern, path)
