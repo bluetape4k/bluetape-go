@@ -56,7 +56,7 @@ Rationale:
 - Create: `core/range_example_test.go`
 - Modify: `core/README.md`, `core/README.ko.md`
 
-- [ ] **Step 1: Write RED range tests**
+- [x] **Step 1: Write RED range tests**
 
 Cover:
 
@@ -80,7 +80,7 @@ go test -count=1 ./core
 
 Expected: FAIL because range symbols do not exist.
 
-- [ ] **Step 2: Implement `core/range.go`**
+- [x] **Step 2: Implement `core/range.go`**
 
 Implementation notes:
 
@@ -93,7 +93,7 @@ Implementation notes:
 - Implement `ContainsRange` and `Overlaps` using boundary-aware comparisons,
   not string notation.
 
-- [ ] **Step 3: Add range examples and README docs**
+- [x] **Step 3: Add range examples and README docs**
 
 Docs must state:
 
@@ -103,7 +103,7 @@ Docs must state:
 - zero-value range is empty and constructors are preferred;
 - Kotlin operator overloads and DSL constructors are excluded.
 
-- [ ] **Step 4: Run GREEN range gate**
+- [x] **Step 4: Run GREEN range gate**
 
 Run:
 
@@ -119,7 +119,7 @@ Expected: PASS.
 - Create: `collections/bounded_stack_test.go`
 - Create: `collections/bounded_stack.go`
 
-- [ ] **Step 1: Write RED stack tests**
+- [x] **Step 1: Write RED stack tests**
 
 Cover:
 
@@ -140,7 +140,7 @@ go test -count=1 ./collections
 
 Expected: FAIL because stack symbols do not exist.
 
-- [ ] **Step 2: Implement `BoundedStack`**
+- [x] **Step 2: Implement `BoundedStack`**
 
 Implementation notes:
 
@@ -149,7 +149,7 @@ Implementation notes:
 - Trim overflow without panics when `PushAll` exceeds capacity.
 - Add Go doc comments that the type is not goroutine-safe.
 
-- [ ] **Step 3: Run GREEN stack gate**
+- [x] **Step 3: Run GREEN stack gate**
 
 Run:
 
@@ -165,7 +165,7 @@ Expected: PASS for stack tests.
 - Create: `collections/ring_buffer_test.go`
 - Create: `collections/ring_buffer.go`
 
-- [ ] **Step 1: Write RED ring tests**
+- [x] **Step 1: Write RED ring tests**
 
 Cover:
 
@@ -186,7 +186,7 @@ go test -count=1 ./collections
 
 Expected: FAIL because ring buffer symbols do not exist.
 
-- [ ] **Step 2: Implement `RingBuffer`**
+- [x] **Step 2: Implement `RingBuffer`**
 
 Implementation notes:
 
@@ -196,7 +196,7 @@ Implementation notes:
 - Add Go doc comments that the type is not goroutine-safe and is not a
   blocking queue.
 
-- [ ] **Step 3: Run GREEN ring gate**
+- [x] **Step 3: Run GREEN ring gate**
 
 Run:
 
@@ -212,7 +212,7 @@ Expected: PASS for ring tests.
 - Create: `collections/page_test.go`
 - Create: `collections/page.go`
 
-- [ ] **Step 1: Write RED page tests**
+- [x] **Step 1: Write RED page tests**
 
 Cover:
 
@@ -233,7 +233,7 @@ go test -count=1 ./collections
 
 Expected: FAIL because page symbols do not exist.
 
-- [ ] **Step 2: Implement `Page`**
+- [x] **Step 2: Implement `Page`**
 
 Implementation notes:
 
@@ -242,7 +242,7 @@ Implementation notes:
 - Compute total pages with division/modulo instead of `total + size - 1`.
 - `Items` should return nil for nil pages and a fresh shallow copy otherwise.
 
-- [ ] **Step 3: Run GREEN page gate**
+- [x] **Step 3: Run GREEN page gate**
 
 Run:
 
@@ -258,7 +258,7 @@ Expected: PASS for page tests.
 - Create: `collections/permutations_test.go`
 - Create: `collections/permutations.go`
 
-- [ ] **Step 1: Write RED permutation tests**
+- [x] **Step 1: Write RED permutation tests**
 
 Cover:
 
@@ -279,7 +279,7 @@ go test -count=1 ./collections
 
 Expected: FAIL because permutation symbols do not exist.
 
-- [ ] **Step 2: Implement `Permutations`**
+- [x] **Step 2: Implement `Permutations`**
 
 Implementation notes:
 
@@ -290,7 +290,7 @@ Implementation notes:
 - Yield fresh snapshots and stop immediately when `yield` returns false.
 - Do not add an all-permutations materializing helper.
 
-- [ ] **Step 3: Run GREEN permutation gate**
+- [x] **Step 3: Run GREEN permutation gate**
 
 Run:
 
@@ -308,7 +308,7 @@ Expected: PASS for permutation tests.
 - Modify: `core/README.md`, `core/README.ko.md`
 - Modify: `collections/README.md`, `collections/README.ko.md`
 
-- [ ] **Step 1: Add compile-tested examples**
+- [x] **Step 1: Add compile-tested examples**
 
 Examples:
 
@@ -318,7 +318,7 @@ Examples:
 - page metadata;
 - permutation early stop.
 
-- [ ] **Step 2: Update English and Korean README files**
+- [x] **Step 2: Update English and Korean README files**
 
 Both language files must document:
 
@@ -330,7 +330,7 @@ Both language files must document:
 - factorial permutation growth;
 - excluded Kotlin/JVM parity shapes.
 
-- [ ] **Step 3: Run doc/example gate**
+- [x] **Step 3: Run doc/example gate**
 
 Run:
 
@@ -342,31 +342,31 @@ Expected: PASS.
 
 ## Task 7: Required Validation
 
-- [ ] **Step 1: Targeted tests**
+- [x] **Step 1: Targeted tests**
 
 ```bash
 go test -count=1 ./core ./collections
 ```
 
-- [ ] **Step 2: Race gate**
+- [x] **Step 2: Race gate**
 
 ```bash
 go test -race -count=1 ./core ./collections
 ```
 
-- [ ] **Step 3: Full test suite**
+- [x] **Step 3: Full test suite**
 
 ```bash
 go test ./...
 ```
 
-- [ ] **Step 4: Whitespace gate**
+- [x] **Step 4: Whitespace gate**
 
 ```bash
 git diff --check
 ```
 
-- [ ] **Step 5: Full CI gate**
+- [x] **Step 5: Full CI gate**
 
 ```bash
 make ci
@@ -374,9 +374,9 @@ make ci
 
 ## Review Gates
 
-- [ ] Step 3-R: Run 7-tier plan review. Required verdict: `P0=0 P1=0`.
-- [ ] Step 4: Execute tasks with RED/GREEN evidence.
-- [ ] Step 5: Verify implementation against spec and plan.
-- [ ] Step 6-R: Run 7-tier code review. Required verdict: `P0=0 P1=0`.
+- [x] Step 3-R: Run 7-tier plan review. Required verdict: `P0=0 P1=0`.
+- [x] Step 4: Execute tasks with RED/GREEN evidence.
+- [x] Step 5: Verify implementation against spec and plan.
+- [x] Step 6-R: Run 7-tier code review. Required verdict: `P0=0 P1=0`.
 - [ ] Step 7+: Commit lessons before PR, create PR with final `## DoD Status`
   section, verify PR body, run Step 7-R PR review, and wait for CI.

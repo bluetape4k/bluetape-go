@@ -83,3 +83,56 @@ func ExampleMapErr() {
 	// Output:
 	// [1 4 9]
 }
+
+func ExampleBoundedStack() {
+	stack, err := collections.NewBoundedStack[string](2)
+	if err != nil {
+		return
+	}
+	stack.PushAll("old", "new", "latest")
+
+	fmt.Println(stack.Values())
+
+	// Output:
+	// [latest new]
+}
+
+func ExampleRingBuffer() {
+	ring, err := collections.NewRingBuffer[int](3)
+	if err != nil {
+		return
+	}
+	ring.AddAll(1, 2, 3, 4)
+
+	fmt.Println(ring.Values())
+
+	// Output:
+	// [2 3 4]
+}
+
+func ExamplePageOf() {
+	page, err := collections.PageOf([]string{"b", "c"}, 1, 2, 5)
+	if err != nil {
+		return
+	}
+
+	fmt.Println(page.Offset(), page.TotalPages(), page.HasPrevious(), page.HasNext())
+
+	// Output:
+	// 2 3 true true
+}
+
+func ExamplePermutations() {
+	count := 0
+	for value := range collections.Permutations([]string{"a", "b", "c"}) {
+		fmt.Println(value)
+		count++
+		if count == 2 {
+			break
+		}
+	}
+
+	// Output:
+	// [a b c]
+	// [a c b]
+}

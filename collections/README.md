@@ -4,7 +4,8 @@
 
 `collections` provides focused generic helpers for common slice and map
 transformations such as chunking, grouping, distinct-by-key, counting, and
-error-aware map/filter pipelines.
+error-aware map/filter pipelines. It also includes small collection primitives
+for bounded stacks, ring buffers, page metadata, and lazy permutations.
 
 ![collections transform pipeline](../docs/images/readme-diagrams/collections-transform-pipeline.png)
 
@@ -31,6 +32,13 @@ if err != nil {
 
 _ = groups
 _ = chunks
+
+stack, err := collections.NewBoundedStack[string](2)
+if err != nil {
+    return err
+}
+stack.PushAll("old", "new", "latest")
+_ = stack.Values() // []string{"latest", "new"}
 ```
 
 ## Behavior
@@ -41,6 +49,17 @@ _ = chunks
 - `MapErr`, `FilterErr`, and `FilterMap` reject nil mapper or predicate
   functions.
 - `Distinct` preserves first-seen order for comparable values.
+- `BoundedStack` keeps the most recent values and returns snapshots
+  top-to-bottom. `RingBuffer` overwrites the oldest values and returns snapshots
+  oldest-to-newest.
+- `PageOf` uses 0-based page numbers, snapshots items, and returns shallow
+  copies from `Items`.
+- `Permutations` is lazy, copies input when called, yields fresh shallow
+  snapshots, and grows factorially with input size. Stop iteration early for
+  large inputs.
+- Mutable containers are not goroutine-safe and are not blocking queues.
+- Kotlin/JVM collection extension parity, Java streams, and broad sequence DSLs
+  are intentionally excluded.
 
 ## Test
 
