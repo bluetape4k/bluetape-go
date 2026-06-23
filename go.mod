@@ -22,6 +22,7 @@ require (
 	github.com/segmentio/ksuid v1.0.4
 	github.com/testcontainers/testcontainers-go v0.42.0
 	github.com/testcontainers/testcontainers-go/modules/kafka v0.42.0
+	github.com/testcontainers/testcontainers-go/modules/mariadb v0.42.0
 	github.com/testcontainers/testcontainers-go/modules/mysql v0.42.0
 	github.com/testcontainers/testcontainers-go/modules/nats v0.42.0
 	github.com/testcontainers/testcontainers-go/modules/postgres v0.42.0

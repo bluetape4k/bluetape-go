@@ -175,6 +175,8 @@ github.com/testcontainers/testcontainers-go v0.42.0 h1:He3IhTzTZOygSXLJPMX7n44Xt
 github.com/testcontainers/testcontainers-go v0.42.0/go.mod h1:vZjdY1YmUA1qEForxOIOazfsrdyORJAbhi0bp8plN30=
 github.com/testcontainers/testcontainers-go/modules/kafka v0.42.0 h1:b3plW+MUoF6ZaVOAlLjNQMJsigPLsJFIOqHdzMFv/w4=
 github.com/testcontainers/testcontainers-go/modules/kafka v0.42.0/go.mod h1:U0K+PapjOOVJrQCpvRYe6gKk0Oqh+ffl+J80Ln4EKzg=
+github.com/testcontainers/testcontainers-go/modules/mariadb v0.42.0 h1:ZfWUJSIDnbNgoLAXMV1fc7lqcxBIX3zdnhwjaVUo7N0=
+github.com/testcontainers/testcontainers-go/modules/mariadb v0.42.0/go.mod h1:0kV+yHee7zAgp0yccydxjNnHvlC1EOavTLCeg/lnRBY=
 github.com/testcontainers/testcontainers-go/modules/mysql v0.42.0 h1:Yhv1k7vDpyzZePntg5R5Oj4ZMCyWpAfpJeRu1ROsgiU=
 github.com/testcontainers/testcontainers-go/modules/mysql v0.42.0/go.mod h1:Z7SCTuiZlghAdRjkv3Ir0iXJKC2T2avbtxLR0DRe+ng=
 github.com/testcontainers/testcontainers-go/modules/nats v0.42.0 h1:WQR0+1r4GkM5QgOBoLxlP41empovt5PxtaiDpC0G7ow=
