@@ -10,7 +10,15 @@ import (
 
 func TestStartPostgres(t *testing.T) {
 	ctx := context.Background()
-	connString := postgrestestcontainer.Start(ctx, t)
+	srv := postgrestestcontainer.StartServer(ctx, t)
+	details, err := srv.ConnectionDetails(ctx)
+	if err != nil {
+		t.Fatalf("postgres server details: %v", err)
+	}
+	connString, err := details.Require(postgrestestcontainer.ConnectionStringKey)
+	if err != nil {
+		t.Fatalf("postgres connection detail: %v", err)
+	}
 
 	conn, err := pgx.Connect(ctx, connString)
 	if err != nil {
