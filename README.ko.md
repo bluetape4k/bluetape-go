@@ -49,6 +49,7 @@ Testcontainers source-parity evidence를 기록합니다.
 | [`testcontainers/nats`](testcontainers/nats/README.ko.md) | active | Testcontainers for Go 기반 NATS fixture. |
 | [`testcontainers/kafka`](testcontainers/kafka/README.ko.md) | active | Testcontainers for Go 기반 Kafka fixture. |
 | [`examples/s3`](examples/s3/README.ko.md) | example | Floci fixture 기반 compile-checked AWS SDK for Go v2 S3 예제. |
+| [`examples/sqs-sns`](examples/sqs-sns/README.ko.md) | example | Floci fixture 기반 compile-checked AWS SDK for Go v2 SQS/SNS 예제. |
 | [`leader`](leader/README.ko.md) | active | 단일, group, strategy 기반 계약을 포함한 leader election API. |
 | [`leader/redis`](leader/redis/README.ko.md) | active | TTL renewal, ZSET slot token, candidate registry 기반 Redis 단일/group/strategic leader election 구현. |
 | [`resilience`](resilience/README.ko.md) | active | service call을 위한 자체 composable retry, timeout, circuit breaker, bulkhead policy, synchronous observability hook, `net/http` adapter. |
