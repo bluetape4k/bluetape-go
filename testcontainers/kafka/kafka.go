@@ -2,9 +2,12 @@ package kafkatestcontainer
 
 import (
 	"context"
+	"errors"
+	"strings"
 	"testing"
 
 	"github.com/bluetape4k/bluetape-go/internal/testcleanup"
+	tcserver "github.com/bluetape4k/bluetape-go/testcontainers/server"
 	tckafka "github.com/testcontainers/testcontainers-go/modules/kafka"
 )
 
@@ -16,8 +19,21 @@ const (
 	BrokersKey = "kafka.brokers"
 )
 
+var errEmptyBrokers = errors.New("empty broker list")
+
 // Start launches a Kafka test container and returns broker addresses.
 func Start(ctx context.Context, tb testing.TB) []string {
+	tb.Helper()
+
+	brokers := strings.Split(mustDetail(ctx, tb, StartServer(ctx, tb), BrokersKey), ",")
+	if len(brokers) == 0 || brokers[0] == "" {
+		tb.Fatalf("%s: empty broker list", BrokersKey)
+	}
+	return brokers
+}
+
+// StartServer launches a Kafka test container and returns the shared server view.
+func StartServer(ctx context.Context, tb testing.TB) *tcserver.Started {
 	tb.Helper()
 
 	container, err := tckafka.Run(
@@ -29,14 +45,37 @@ func Start(ctx context.Context, tb testing.TB) []string {
 		tb.Fatal(testcleanup.FormatStartError("kafka", defaultImage, err))
 	}
 
-	testcleanup.Register(ctx, tb, "kafka", container)
-
-	brokers, err := container.Brokers(ctx)
+	srv, err := tcserver.New("kafka", container, tcserver.WithConnectionDetails(func(ctx context.Context, _ *tcserver.Started) (tcserver.ConnectionDetails, error) {
+		brokers, err := container.Brokers(ctx)
+		if err != nil {
+			return nil, err
+		}
+		if len(brokers) == 0 {
+			return nil, errEmptyBrokers
+		}
+		return tcserver.ConnectionDetails{BrokersKey: strings.Join(brokers, ",")}, nil
+	}))
 	if err != nil {
-		tb.Fatalf("%s: %v", BrokersKey, err)
+		if terminateErr := testcleanup.Terminate(ctx, testcleanup.DefaultTerminateTimeout, container); terminateErr != nil {
+			tb.Fatalf("kafka server: %v; terminate after construction failure: %v", err, terminateErr)
+		}
+		tb.Fatalf("kafka server: %v", err)
 	}
-	if len(brokers) == 0 {
-		tb.Fatalf("%s: empty broker list", BrokersKey)
+
+	srv.RegisterCleanup(ctx, tb)
+	return srv
+}
+
+func mustDetail(ctx context.Context, tb testing.TB, srv *tcserver.Started, key string) string {
+	tb.Helper()
+
+	details, err := srv.ConnectionDetails(ctx)
+	if err != nil {
+		tb.Fatalf("%s: %v", key, err)
 	}
-	return brokers
+	value, err := details.Require(key)
+	if err != nil {
+		tb.Fatalf("%s: %v", key, err)
+	}
+	return value
 }

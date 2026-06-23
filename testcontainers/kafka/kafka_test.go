@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"net"
 	"strconv"
+	"strings"
 	"testing"
 	"time"
 
@@ -17,7 +18,16 @@ func TestStartKafka(t *testing.T) {
 	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 	t.Cleanup(cancel)
 
-	brokers := kafkatestcontainer.Start(ctx, t)
+	srv := kafkatestcontainer.StartServer(ctx, t)
+	details, err := srv.ConnectionDetails(ctx)
+	if err != nil {
+		t.Fatalf("kafka server details: %v", err)
+	}
+	brokersValue, err := details.Require(kafkatestcontainer.BrokersKey)
+	if err != nil {
+		t.Fatalf("kafka brokers detail: %v", err)
+	}
+	brokers := strings.Split(brokersValue, ",")
 	topic := fmt.Sprintf("bluetape-test-%d", time.Now().UnixNano())
 	createTopic(ctx, t, brokers[0], topic)
 
