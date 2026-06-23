@@ -49,6 +49,7 @@ Testcontainers source-parity evidence를 기록합니다.
 | [`testcontainers/nats`](testcontainers/nats/README.ko.md) | active | Testcontainers for Go 기반 NATS fixture. |
 | [`testcontainers/kafka`](testcontainers/kafka/README.ko.md) | active | Testcontainers for Go 기반 Kafka fixture. |
 | [`dynamodb/batchwrite`](dynamodb/batchwrite/README.ko.md) | active | AWS SDK for Go v2 BatchWriteItem 25개 chunking과 unprocessed-item retry helper. |
+| [`examples/integration`](examples/integration/README.ko.md) | example | 수정된 `0.6.x` package를 묶는 compile-checked end-to-end recipe. |
 | [`examples/s3`](examples/s3/README.ko.md) | example | Floci fixture 기반 compile-checked AWS SDK for Go v2 S3 예제. |
 | [`examples/sqs-sns`](examples/sqs-sns/README.ko.md) | example | Floci fixture 기반 compile-checked AWS SDK for Go v2 SQS/SNS 예제. |
 | [`leader`](leader/README.ko.md) | active | 단일, group, strategy 기반 계약을 포함한 leader election API. |
@@ -96,6 +97,7 @@ go get github.com/bluetape4k/bluetape-go
   table-driven test, package-local builder, golden file, deterministic random data,
   cancellation assertion을 다룹니다.
 - AWS/Floci: [`dynamodb/batchwrite`](dynamodb/batchwrite/README.ko.md),
+  [`examples/integration`](examples/integration/README.ko.md),
   [`examples/s3`](examples/s3/README.ko.md),
   [`examples/sqs-sns`](examples/sqs-sns/README.ko.md).
 - Coordination: [`leader`](leader/README.ko.md),
