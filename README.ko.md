@@ -92,7 +92,9 @@ go get github.com/bluetape4k/bluetape-go
   [`compression`](compression/README.ko.md), [`serialization`](serialization/README.ko.md).
 - Test support: [`testing`](testing/README.ko.md),
   [`testing/concurrency`](testing/concurrency/README.ko.md), 위 표의 Testcontainers
-  fixture package README.
+  fixture package README. `testing`의 focused example은 assertion DSL 추가 없이
+  table-driven test, package-local builder, golden file, deterministic random data,
+  cancellation assertion을 다룹니다.
 - AWS/Floci: [`dynamodb/batchwrite`](dynamodb/batchwrite/README.ko.md),
   [`examples/s3`](examples/s3/README.ko.md),
   [`examples/sqs-sns`](examples/sqs-sns/README.ko.md).

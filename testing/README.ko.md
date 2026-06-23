@@ -64,6 +64,29 @@ _ = output
 _ = captured.Stdout
 ```
 
+## Focused Test-Data Patterns
+
+Table test, package-local builder, golden file, seeded random data, cancellation
+assertion의 compile-checked 예제는
+[`patterns_example_test.go`](patterns_example_test.go)에 있습니다. 다른 생태계에서
+assertion DSL 또는 parameter source로 풀 수 있는 아이디어를 Go에서는 다음 형태로
+유지합니다.
+
+- table-driven test는 이름 있는 subtest와 평범한 `[]struct{...}` literal로 둡니다.
+- 구조화된 값은 readable diff가 필요할 때 `cmp.Diff`로 비교합니다.
+- Domain fixture는 reflection faker tag 대신 explicit package-local builder를
+  사용합니다.
+- Canonical golden file은 package-local `testdata`에 두고, generated output에는
+  `TempOutputPath`를 사용합니다.
+- 다양한 test data가 필요해도 CI 재현성을 위해 `math/rand/v2`를 local seed로
+  생성합니다.
+- Context contract는 caller-owned cancellation error를 retry하지 말고 cancellation
+  helper로 검증합니다.
+
+이 package는 general assertion DSL, faker dependency, JUnit-style parameter-source
+API를 의도적으로 추가하지 않습니다. 이런 API는 여러 package에서 반복 필요성이
+입증된 뒤 별도 issue로 추가하세요.
+
 ## 동작
 
 - Helper는 condition이 expected timing contract를 만족하지 않으면 supplied

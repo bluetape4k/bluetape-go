@@ -63,6 +63,29 @@ _ = output
 _ = captured.Stdout
 ```
 
+## Focused Test-Data Patterns
+
+Compile-checked examples for table tests, package-local builders, golden files,
+seeded random data, and cancellation assertions live in
+[`patterns_example_test.go`](patterns_example_test.go). They show the preferred
+Go shape for ideas that would be assertion DSLs or parameter sources in other
+ecosystems:
+
+- keep table-driven tests as ordinary `[]struct{...}` literals with named
+  subtests;
+- compare structured values with `cmp.Diff` when a readable diff matters;
+- use explicit package-local builders for domain fixtures instead of reflection
+  faker tags;
+- keep canonical golden files under package-local `testdata` and use
+  `TempOutputPath` only for generated output;
+- seed `math/rand/v2` locally when varied data must stay reproducible in CI;
+- use the cancellation helpers for context contracts instead of retrying
+  caller-owned cancellation errors.
+
+The package intentionally does not add a general assertion DSL, faker
+dependency, or JUnit-style parameter-source API. Add those only after repeated
+package-level need is proven by a later issue.
+
 ## Behavior
 
 - Helpers fail the supplied `*testing.T` when the condition does not satisfy the

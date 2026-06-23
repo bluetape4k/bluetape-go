@@ -96,7 +96,9 @@ overview.
   [`serialization`](serialization/README.md).
 - Test support: [`testing`](testing/README.md),
   [`testing/concurrency`](testing/concurrency/README.md), and the fixture
-  package READMEs listed above.
+  package READMEs listed above. Focused examples in `testing` cover
+  table-driven tests, package-local builders, golden files, deterministic random
+  data, and cancellation assertions without adding an assertion DSL.
 - AWS/Floci: [`dynamodb/batchwrite`](dynamodb/batchwrite/README.md) and
   compile-checked examples under [`examples/s3`](examples/s3/README.md) and
   [`examples/sqs-sns`](examples/sqs-sns/README.md).
