@@ -13,11 +13,14 @@ const (
 	defaultDatabase = "bluetape"
 	defaultUsername = "bluetape"
 	defaultPassword = "bluetape"
+
+	// ConnectionStringKey is the documented key for a PostgreSQL connection string.
+	ConnectionStringKey = "postgres.connection-string"
 )
 
-// Start 는 PostgreSQL test container를 시작하고 connection string을 반환한다.
-func Start(ctx context.Context, t *testing.T) string {
-	t.Helper()
+// Start launches a PostgreSQL test container and returns its connection string.
+func Start(ctx context.Context, tb testing.TB) string {
+	tb.Helper()
 
 	container, err := tcpostgres.Run(
 		ctx,
@@ -28,14 +31,14 @@ func Start(ctx context.Context, t *testing.T) string {
 		tcpostgres.BasicWaitStrategies(),
 	)
 	if err != nil {
-		t.Fatalf("start postgres container: %v", err)
+		tb.Fatal(testcleanup.FormatStartError("postgres", defaultImage, err))
 	}
 
-	testcleanup.Register(ctx, t, "postgres", container)
+	testcleanup.Register(ctx, tb, "postgres", container)
 
 	connString, err := container.ConnectionString(ctx, "sslmode=disable")
 	if err != nil {
-		t.Fatalf("postgres connection string: %v", err)
+		tb.Fatalf("%s: %v", ConnectionStringKey, err)
 	}
 	return connString
 }

@@ -8,20 +8,27 @@ import (
 	tcredis "github.com/testcontainers/testcontainers-go/modules/redis"
 )
 
+const (
+	defaultImage = "redis:7.4-alpine"
+
+	// AddressKey is the documented key for a Redis host:port address.
+	AddressKey = "redis.address"
+)
+
 // Start launches a Redis test container and returns its connection address.
 func Start(ctx context.Context, tb testing.TB) string {
 	tb.Helper()
 
-	container, err := tcredis.Run(ctx, "redis:7.4-alpine")
+	container, err := tcredis.Run(ctx, defaultImage)
 	if err != nil {
-		tb.Fatalf("start redis container: %v", err)
+		tb.Fatal(testcleanup.FormatStartError("redis", defaultImage, err))
 	}
 
 	testcleanup.Register(ctx, tb, "redis", container)
 
 	addr, err := container.PortEndpoint(ctx, "6379/tcp", "")
 	if err != nil {
-		tb.Fatalf("redis container endpoint: %v", err)
+		tb.Fatalf("%s: %v", AddressKey, err)
 	}
 	return addr
 }

@@ -16,8 +16,14 @@ import natstestcontainer "github.com/bluetape4k/bluetape-go/testcontainers/nats"
 ## 사용 예
 
 ```go
-url := natstestcontainer.Start(context.Background(), t)
-client, err := nats.Connect(url, nats.Timeout(5*time.Second))
+ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+t.Cleanup(cancel)
+
+url := natstestcontainer.Start(ctx, t)
+details := map[string]string{
+    natstestcontainer.URLKey: url,
+}
+client, err := nats.Connect(details[natstestcontainer.URLKey], nats.Timeout(5*time.Second))
 if err != nil {
     t.Fatalf("connect nats: %v", err)
 }
@@ -29,15 +35,21 @@ t.Cleanup(client.Close)
 - `nats:2.10-alpine`을 사용합니다.
 - Module-provided connection string을 반환합니다.
 - Container termination을 `t.Cleanup`에 등록합니다.
-- Fatal test failure는 supplied `testing.T`로 보고됩니다.
+- URL key는 `natstestcontainer.URLKey` (`nats.url`)로 노출합니다.
+- Start failure는 Docker unavailable, image pull failure, readiness timeout,
+  context cancellation, wrapper failure로 구분해 보고합니다.
 
 ## 운영 경계
 
 - Docker 또는 다른 Testcontainers-compatible runtime이 필요합니다.
 - Fixture는 test용이며 production NATS configuration을 노출하지 않습니다.
+- Docker resource나 port를 공유하는 Testcontainers package는 serial로
+  실행하세요.
+- Docker가 없는 CI job은 `./testcontainers/...`를 제외하고, 이 helper를 검증하는
+  CI job은 `-p 1`로 실행하세요.
 
 ## 테스트
 
 ```bash
-go test -count=1 ./testcontainers/nats
+go test -p 1 -count=1 ./testcontainers/nats
 ```

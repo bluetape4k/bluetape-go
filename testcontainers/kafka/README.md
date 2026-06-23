@@ -20,8 +20,11 @@ ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 t.Cleanup(cancel)
 
 brokers := kafkatestcontainer.Start(ctx, t)
+details := map[string][]string{
+    kafkatestcontainer.BrokersKey: brokers,
+}
 writer := &kafka.Writer{
-    Addr:  kafka.TCP(brokers...),
+    Addr:  kafka.TCP(details[kafkatestcontainer.BrokersKey]...),
     Topic: "bluetape-test",
 }
 t.Cleanup(func() {
@@ -36,15 +39,23 @@ t.Cleanup(func() {
 - Returns the broker list from the Testcontainers Kafka module.
 - Fails the test if no broker address is returned.
 - Registers container termination with `t.Cleanup`.
+- Exposes the broker list key as `kafkatestcontainer.BrokersKey`
+  (`kafka.brokers`).
+- Start failures are categorized as Docker unavailable, image pull failure,
+  readiness timeout, context cancellation, or wrapper failure.
 
 ## Operational Boundaries
 
 - Docker or another Testcontainers-compatible runtime must be available.
 - Kafka startup can be slower than smaller fixtures; use an explicit test
   timeout around the start context.
+- Run Docker-backed Testcontainers packages serially when resources or ports are
+  shared.
+- CI jobs without Docker should skip `./testcontainers/...`; CI jobs that cover
+  these helpers should run the packages with `-p 1`.
 
 ## Test
 
 ```bash
-go test -count=1 ./testcontainers/kafka
+go test -p 1 -count=1 ./testcontainers/kafka
 ```

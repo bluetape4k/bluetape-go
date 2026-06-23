@@ -10,8 +10,6 @@ import (
 )
 
 func TestStartMySQL(t *testing.T) {
-	t.Parallel()
-
 	ctx := context.Background()
 	dsn := mysqltestcontainer.Start(ctx, t)
 
@@ -31,5 +29,11 @@ func TestStartMySQL(t *testing.T) {
 	}
 	if value != 1 {
 		t.Fatalf("expected mysql query result 1, got %d", value)
+	}
+}
+
+func TestConnectionDetailKey(t *testing.T) {
+	if mysqltestcontainer.DSNKey != "mysql.dsn" {
+		t.Fatalf("DSNKey = %q", mysqltestcontainer.DSNKey)
 	}
 }

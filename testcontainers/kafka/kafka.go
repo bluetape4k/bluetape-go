@@ -11,11 +11,14 @@ import (
 const (
 	defaultImage     = "confluentinc/confluent-local:7.5.0"
 	defaultClusterID = "bluetape-test-cluster"
+
+	// BrokersKey is the documented key for the Kafka broker address list.
+	BrokersKey = "kafka.brokers"
 )
 
-// Start 는 Kafka test container를 시작하고 broker 주소 목록을 반환한다.
-func Start(ctx context.Context, t *testing.T) []string {
-	t.Helper()
+// Start launches a Kafka test container and returns broker addresses.
+func Start(ctx context.Context, tb testing.TB) []string {
+	tb.Helper()
 
 	container, err := tckafka.Run(
 		ctx,
@@ -23,17 +26,17 @@ func Start(ctx context.Context, t *testing.T) []string {
 		tckafka.WithClusterID(defaultClusterID),
 	)
 	if err != nil {
-		t.Fatalf("start kafka container: %v", err)
+		tb.Fatal(testcleanup.FormatStartError("kafka", defaultImage, err))
 	}
 
-	testcleanup.Register(ctx, t, "kafka", container)
+	testcleanup.Register(ctx, tb, "kafka", container)
 
 	brokers, err := container.Brokers(ctx)
 	if err != nil {
-		t.Fatalf("kafka brokers: %v", err)
+		tb.Fatalf("%s: %v", BrokersKey, err)
 	}
 	if len(brokers) == 0 {
-		t.Fatal("kafka brokers: empty broker list")
+		tb.Fatalf("%s: empty broker list", BrokersKey)
 	}
 	return brokers
 }
