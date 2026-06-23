@@ -14,8 +14,6 @@ import (
 )
 
 func TestStartKafka(t *testing.T) {
-	t.Parallel()
-
 	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 	t.Cleanup(cancel)
 
@@ -63,6 +61,12 @@ func TestStartKafka(t *testing.T) {
 	}
 	if !bytes.Equal(message.Value, value) {
 		t.Fatalf("expected kafka message %q, got %q", value, message.Value)
+	}
+}
+
+func TestConnectionDetailKey(t *testing.T) {
+	if kafkatestcontainer.BrokersKey != "kafka.brokers" {
+		t.Fatalf("BrokersKey = %q", kafkatestcontainer.BrokersKey)
 	}
 }
 

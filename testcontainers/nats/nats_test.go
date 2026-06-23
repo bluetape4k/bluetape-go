@@ -10,8 +10,6 @@ import (
 )
 
 func TestStartNATS(t *testing.T) {
-	t.Parallel()
-
 	url := natstestcontainer.Start(context.Background(), t)
 	client, err := nats.Connect(url, nats.Timeout(5*time.Second))
 	if err != nil {
@@ -24,5 +22,11 @@ func TestStartNATS(t *testing.T) {
 	}
 	if err := client.FlushTimeout(5 * time.Second); err != nil {
 		t.Fatalf("flush nats message: %v", err)
+	}
+}
+
+func TestConnectionDetailKey(t *testing.T) {
+	if natstestcontainer.URLKey != "nats.url" {
+		t.Fatalf("URLKey = %q", natstestcontainer.URLKey)
 	}
 }

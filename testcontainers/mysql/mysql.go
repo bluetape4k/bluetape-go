@@ -13,11 +13,14 @@ const (
 	defaultDatabase = "bluetape"
 	defaultUsername = "bluetape"
 	defaultPassword = "bluetape"
+
+	// DSNKey is the documented key for a MySQL data source name.
+	DSNKey = "mysql.dsn"
 )
 
-// Start 는 MySQL test container를 시작하고 DSN을 반환한다.
-func Start(ctx context.Context, t *testing.T) string {
-	t.Helper()
+// Start launches a MySQL test container and returns its data source name.
+func Start(ctx context.Context, tb testing.TB) string {
+	tb.Helper()
 
 	container, err := tcmysql.Run(
 		ctx,
@@ -27,14 +30,14 @@ func Start(ctx context.Context, t *testing.T) string {
 		tcmysql.WithPassword(defaultPassword),
 	)
 	if err != nil {
-		t.Fatalf("start mysql container: %v", err)
+		tb.Fatal(testcleanup.FormatStartError("mysql", defaultImage, err))
 	}
 
-	testcleanup.Register(ctx, t, "mysql", container)
+	testcleanup.Register(ctx, tb, "mysql", container)
 
 	dsn, err := container.ConnectionString(ctx, "parseTime=true")
 	if err != nil {
-		t.Fatalf("mysql connection string: %v", err)
+		tb.Fatalf("%s: %v", DSNKey, err)
 	}
 	return dsn
 }

@@ -9,8 +9,6 @@ import (
 )
 
 func TestStartPostgres(t *testing.T) {
-	t.Parallel()
-
 	ctx := context.Background()
 	connString := postgrestestcontainer.Start(ctx, t)
 
@@ -30,5 +28,11 @@ func TestStartPostgres(t *testing.T) {
 	}
 	if value != 1 {
 		t.Fatalf("expected postgres query result 1, got %d", value)
+	}
+}
+
+func TestConnectionDetailKey(t *testing.T) {
+	if postgrestestcontainer.ConnectionStringKey != "postgres.connection-string" {
+		t.Fatalf("ConnectionStringKey = %q", postgrestestcontainer.ConnectionStringKey)
 	}
 }

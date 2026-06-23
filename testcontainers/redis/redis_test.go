@@ -10,8 +10,6 @@ import (
 )
 
 func TestStartRedis(t *testing.T) {
-	t.Parallel()
-
 	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 	t.Cleanup(cancel)
 
@@ -38,5 +36,11 @@ func TestStartRedis(t *testing.T) {
 	}
 	if got != value {
 		t.Fatalf("redis value = %q, want %q", got, value)
+	}
+}
+
+func TestConnectionDetailKey(t *testing.T) {
+	if redistestcontainer.AddressKey != "redis.address" {
+		t.Fatalf("AddressKey = %q", redistestcontainer.AddressKey)
 	}
 }

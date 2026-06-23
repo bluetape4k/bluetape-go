@@ -20,7 +20,10 @@ ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 t.Cleanup(cancel)
 
 addr := redistestcontainer.Start(ctx, t)
-client := redis.NewClient(&redis.Options{Addr: addr})
+details := map[string]string{
+    redistestcontainer.AddressKey: addr,
+}
+client := redis.NewClient(&redis.Options{Addr: details[redistestcontainer.AddressKey]})
 t.Cleanup(func() {
     _ = client.Close()
 })
@@ -31,15 +34,22 @@ t.Cleanup(func() {
 - `redis:7.4-alpine`을 사용합니다.
 - Redis readiness를 기다린 뒤 반환합니다.
 - Container termination을 `t.Cleanup`에 등록합니다.
-- Fatal test failure는 supplied `testing.T`로 보고됩니다.
+- Address key는 `redistestcontainer.AddressKey` (`redis.address`)로
+  노출합니다.
+- Start failure는 Docker unavailable, image pull failure, readiness timeout,
+  context cancellation, wrapper failure로 구분해 보고합니다.
 
 ## 운영 경계
 
 - Docker 또는 다른 Testcontainers-compatible runtime이 필요합니다.
 - Helper는 test용이며 production Redis configuration을 노출하지 않습니다.
+- Docker resource나 port를 공유하는 Testcontainers package는 serial로
+  실행하세요.
+- Docker가 없는 CI job은 `./testcontainers/...`를 제외하고, 이 helper를 검증하는
+  CI job은 `-p 1`로 실행하세요.
 
 ## 테스트
 
 ```bash
-go test -count=1 ./testcontainers/redis
+go test -p 1 -count=1 ./testcontainers/redis
 ```
