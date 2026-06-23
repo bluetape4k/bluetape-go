@@ -51,6 +51,8 @@ Implement `testcontainers/toxiproxy` only:
 - exposes `Start(ctx, testing.TB, opts...)` and
   `StartServer(ctx, testing.TB, opts...)` with the shared
   `testcontainers/server` contract and upstream Testcontainers customizers;
+- exposes `StartContainer(ctx, testing.TB, opts...)` for tests that need the
+  upstream Toxiproxy container to read configured proxy endpoints;
 - documents `ControlURIKey = "toxiproxy.control_uri"`;
 - provides a helper to read a configured proxied endpoint as `host:port`;
 - proves readiness through a live control API/proxy scenario;

@@ -45,6 +45,10 @@ Public functions:
   - starts Toxiproxy and returns the control URI.
 - `StartServer(ctx context.Context, tb testing.TB, opts ...testcontainers.ContainerCustomizer) *tcserver.Started`
   - starts Toxiproxy and returns the shared server adapter.
+- `StartContainer(ctx context.Context, tb testing.TB, opts ...testcontainers.ContainerCustomizer) *tctoxiproxy.Container`
+  - starts Toxiproxy, registers bounded cleanup, and returns the upstream
+    container for tests that need configured proxy endpoint lookup or toxic
+    client operations.
 - `ProxiedEndpoint(ctx context.Context, tb testing.TB, container *tctoxiproxy.Container, port int) string`
   - returns the proxied endpoint for a configured proxy as `host:port`.
   - fails the test with a clear message when the proxy port is not configured.
@@ -56,7 +60,11 @@ directly when they need toxic controls.
 ## Implementation Shape
 
 - Default image: `ghcr.io/shopify/toxiproxy:2.12.0`.
-- `StartServer` calls `tctoxiproxy.Run(ctx, defaultImage, opts...)`.
+- `StartServer` calls `tctoxiproxy.Run(ctx, defaultImage, opts...)`, adapts the
+  returned container to `tcserver.Started`, and terminates the container if
+  server construction fails before cleanup is registered.
+- `StartContainer` calls `tctoxiproxy.Run(ctx, defaultImage, opts...)` and
+  registers cleanup for advanced tests that need the upstream container.
 - Callers pass upstream customizers such as `tctoxiproxy.WithProxy(...)` and
   `network.WithNetwork(...)`; the wrapper does not invent a second proxy DSL.
 - `StartServer` stores `toxiproxy.control_uri` by calling `container.URI(ctx)`.
