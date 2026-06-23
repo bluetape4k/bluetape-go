@@ -1,0 +1,15 @@
+{
+  "id": "order-golden",
+  "customer": "customer-001",
+  "created_at": "2026-06-24T12:00:00Z",
+  "lines": [
+    {
+      "sku": "sku-001",
+      "quantity": 1
+    },
+    {
+      "sku": "sku-002",
+      "quantity": 2
+    }
+  ]
+}
