@@ -34,6 +34,18 @@ const (
 // ContainerOption customizes the upstream Floci container builder before start.
 type ContainerOption func(*upstreamfloci.FlociContainer)
 
+// S3Config aliases the upstream Floci S3 service configuration.
+type S3Config = upstreamfloci.S3Config
+
+// SQSConfig aliases the upstream Floci SQS service configuration.
+type SQSConfig = upstreamfloci.SqsConfig
+
+// SNSConfig aliases the upstream Floci SNS service configuration.
+type SNSConfig = upstreamfloci.SnsConfig
+
+// DynamoDBConfig aliases the upstream Floci DynamoDB service configuration.
+type DynamoDBConfig = upstreamfloci.DynamoDbConfig
+
 // Details contains the connection values needed by AWS SDK for Go v2 clients.
 type Details struct {
 	Endpoint             string
@@ -43,6 +55,54 @@ type Details struct {
 	AccountID            string
 	AvailabilityZone     string
 	DedicatedNetworkName string
+}
+
+// DefaultS3Config returns the upstream default Floci S3 service configuration.
+func DefaultS3Config() S3Config {
+	return upstreamfloci.DefaultS3Config()
+}
+
+// DefaultSQSConfig returns the upstream default Floci SQS service configuration.
+func DefaultSQSConfig() SQSConfig {
+	return upstreamfloci.DefaultSqsConfig()
+}
+
+// DefaultSNSConfig returns the upstream default Floci SNS service configuration.
+func DefaultSNSConfig() SNSConfig {
+	return upstreamfloci.DefaultSnsConfig()
+}
+
+// DefaultDynamoDBConfig returns the upstream default Floci DynamoDB service configuration.
+func DefaultDynamoDBConfig() DynamoDBConfig {
+	return upstreamfloci.DefaultDynamoDbConfig()
+}
+
+// WithS3Config applies the Floci S3 service configuration before start.
+func WithS3Config(cfg S3Config) ContainerOption {
+	return func(container *upstreamfloci.FlociContainer) {
+		container.WithS3Config(cfg)
+	}
+}
+
+// WithSQSConfig applies the Floci SQS service configuration before start.
+func WithSQSConfig(cfg SQSConfig) ContainerOption {
+	return func(container *upstreamfloci.FlociContainer) {
+		container.WithSqsConfig(cfg)
+	}
+}
+
+// WithSNSConfig applies the Floci SNS service configuration before start.
+func WithSNSConfig(cfg SNSConfig) ContainerOption {
+	return func(container *upstreamfloci.FlociContainer) {
+		container.WithSnsConfig(cfg)
+	}
+}
+
+// WithDynamoDBConfig applies the Floci DynamoDB service configuration before start.
+func WithDynamoDBConfig(cfg DynamoDBConfig) ContainerOption {
+	return func(container *upstreamfloci.FlociContainer) {
+		container.WithDynamoDbConfig(cfg)
+	}
 }
 
 // Start launches a Floci test container and returns its AWS SDK details.

@@ -30,6 +30,31 @@ S3 clients need `UsePathStyle` for local endpoints. Keep service-specific AWS
 client behavior in the test or package that owns the service; this helper only
 starts Floci and builds the shared AWS config.
 
+## Service Configuration
+
+Floci enables broad AWS service coverage by default. This package exposes the
+upstream service config types for the first roadmap services so tests can tune
+them without importing the upstream Testcontainers module directly.
+
+```go
+details := flocitestcontainer.Start(ctx, t,
+    flocitestcontainer.WithS3Config(flocitestcontainer.DefaultS3Config()),
+    flocitestcontainer.WithSQSConfig(flocitestcontainer.DefaultSQSConfig()),
+    flocitestcontainer.WithSNSConfig(flocitestcontainer.DefaultSNSConfig()),
+    flocitestcontainer.WithDynamoDBConfig(flocitestcontainer.DefaultDynamoDBConfig()),
+)
+```
+
+Supported first-slice config aliases:
+
+- `S3Config`
+- `SQSConfig`
+- `SNSConfig`
+- `DynamoDBConfig`
+
+These are Floci emulator settings, not bluetape service wrappers. Use AWS SDK
+for Go v2 clients directly for service operations.
+
 ## Connection Details
 
 `Details.ConnectionDetails()` returns the shared map used by
@@ -69,8 +94,9 @@ use `t.Parallel` or have parallel ancestors.
 ## Scope
 
 This is the #220 first slice and the base fixture for #61. It includes one
-opt-in S3 smoke test so normal `go test ./...` remains stable while local and
-CI Docker lanes can still prove the emulator contract explicitly.
+opt-in smoke test for S3, SQS, SNS fanout through SQS, and DynamoDB so normal
+`go test ./...` remains stable while local and CI Docker lanes can still prove
+the emulator contract explicitly.
 
 - S3 example expansion stays in #62.
 - SQS/SNS producer-consumer examples stay in #63.
