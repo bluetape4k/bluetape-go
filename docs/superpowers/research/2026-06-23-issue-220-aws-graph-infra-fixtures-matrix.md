@@ -64,3 +64,29 @@ The package should expose:
 - The wrapper should not duplicate AWS SDK service helpers; it should make
   emulator setup and local AWS config construction repeatable.
 
+## Closure Update - 2026-06-24
+
+The first #220 slice is complete:
+
+- PR #265 added `testcontainers/floci` and passed GitHub CI run 28031615786.
+- PR #266 added Floci service config smoke coverage and passed GitHub CI run
+  28038766214.
+- PR #268 added direct S3 examples on the Floci fixture.
+- PR #269 added direct SQS/SNS examples on the Floci fixture.
+- PR #271 closed the DynamoDB helper evaluation and selected only one narrow
+  package follow-up.
+- PR #272 added `dynamodb/batchwrite` and passed GitHub CI run 28043143621.
+
+No additional #220 fixture implementation should be added before the consumer
+issues select it:
+
+- LocalStack, DynamoDB Local, and ElasticMQ remain fallback-only because Floci
+  covered S3, SQS, SNS, and DynamoDB smoke paths for the accepted 0.9.0 scope.
+- Neo4j, Memgraph, FalkorDB, and PostgreSQL AGE remain owned by graph research
+  #50 and graph epic #44.
+- Keycloak, Vault, Consul, observability, K3s, ChromaDB, and Ollama remain
+  deferred until a concrete package, example, or integration recipe consumes
+  them.
+
+This closes #220 as a completed first-slice implementation plus roadmap routing
+decision, not as blanket approval to add every listed container.
