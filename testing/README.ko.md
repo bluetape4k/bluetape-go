@@ -53,6 +53,15 @@ bttesting.RequireCleanupOnCancel(t, 50*time.Millisecond, func(ctx context.Contex
     cleaned()
     return ctx.Err()
 })
+
+output := bttesting.TempOutputPath(t, "reports", "daily.json")
+bttesting.SetEnv(t, "BT_TEST_MODE", "golden")
+
+captured := bttesting.CaptureOutput(t, func() {
+    fmt.Fprint(os.Stdout, "ready")
+})
+_ = output
+_ = captured.Stdout
 ```
 
 ## 동작
@@ -80,6 +89,17 @@ bttesting.RequireCleanupOnCancel(t, 50*time.Millisecond, func(ctx context.Contex
 - Await helper는 eventual cache invalidation, lock acquisition, Testcontainers
   readiness, workflow status, HTTP mock verification 같은 bounded test observation에
   사용하세요.
+- `TempOutputDir`와 `TempOutputPath`는 `t.TempDir` 아래에서 validated path를 만들고
+  요청한 directory 또는 parent directory를 생성합니다. 반복 가능한 nested output
+  path나 traversal validation이 필요한 경우가 아니면 `t.TempDir`를 직접 쓰세요.
+- `SetEnv`와 `UnsetEnv`는 `testing.TB.Cleanup`으로 이전 environment state를
+  복원합니다. 단순 set-only case는 `t.Setenv`를 우선하고, explicit unset behavior나
+  shared package style이 필요할 때 이 helper를 사용하세요. Environment variable은
+  process-global이므로 parallel test에서는 사용하지 마세요.
+- `CaptureOutput`과 `CheckCaptureOutput`은 process-global `os.Stdout`/`os.Stderr`를
+  capture하고 반환 또는 re-panic 전에 복원합니다. Capture call 자체는 serialize하지만
+  parallel test나 stdout/stderr에 쓰는 unrelated goroutine과 함께 쓰면 안전하지
+  않습니다.
 - 반복되는 bounded goroutine execution, panic aggregation, stress reporting까지
   필요하면 `testing/concurrency`를 사용하세요.
 - 이 패키지는 test 전용입니다. Production retry/timeout behavior는 `resilience`에

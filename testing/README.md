@@ -52,6 +52,15 @@ bttesting.RequireCleanupOnCancel(t, 50*time.Millisecond, func(ctx context.Contex
     cleaned()
     return ctx.Err()
 })
+
+output := bttesting.TempOutputPath(t, "reports", "daily.json")
+bttesting.SetEnv(t, "BT_TEST_MODE", "golden")
+
+captured := bttesting.CaptureOutput(t, func() {
+    fmt.Fprint(os.Stdout, "ready")
+})
+_ = output
+_ = captured.Stdout
 ```
 
 ## Behavior
@@ -78,6 +87,19 @@ bttesting.RequireCleanupOnCancel(t, 50*time.Millisecond, func(ctx context.Contex
 - Use await helpers for eventual cache invalidation, lock acquisition,
   Testcontainers readiness, workflow status, HTTP mock verification, and similar
   bounded test observations.
+- `TempOutputDir` and `TempOutputPath` build validated paths under `t.TempDir`
+  and create the requested directory or parent directory. Prefer `t.TempDir`
+  directly unless the test needs repeatable nested output paths or traversal
+  validation.
+- `SetEnv` and `UnsetEnv` restore the previous environment state with
+  `testing.TB.Cleanup`. Prefer `t.Setenv` for simple set-only cases; use these
+  helpers when tests also need explicit unset behavior or shared package style.
+  Environment variables are process-global, so do not use these helpers from
+  parallel tests.
+- `CaptureOutput` and `CheckCaptureOutput` capture process-global
+  `os.Stdout`/`os.Stderr` and restore them before returning or re-panicking.
+  They serialize capture calls but are not safe for parallel tests or unrelated
+  goroutines writing to stdout/stderr.
 - Use `testing/concurrency` when the test also needs repeated bounded
   goroutine execution, panic aggregation, or stress reporting.
 - The package is intended for tests only; production retry or timeout behavior
