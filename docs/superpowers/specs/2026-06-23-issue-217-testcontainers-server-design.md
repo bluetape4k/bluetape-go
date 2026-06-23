@@ -33,8 +33,8 @@ This is selective parity with bluetape4k's `GenericServer` and
   Testcontainers module `Run` helpers, register bounded cleanup through
   `internal/testcleanup.Register`, and return service-specific values.
 - Testcontainers-Go v0.42.0 exposes the needed primitives through
-  `testcontainers.Container`: `Host`, `MappedPort`, `PortEndpoint`, `Endpoint`,
-  and `Terminate`.
+  `testcontainers.Container`: `Host`, `MappedPort`, `PortEndpoint`, and
+  `Terminate`.
 
 ## Non-Goals
 
@@ -129,6 +129,13 @@ type Port struct {
     Scheme        string
 }
 
+type Container interface {
+    Host(context.Context) (string, error)
+    MappedPort(context.Context, string) (network.Port, error)
+    PortEndpoint(context.Context, string, string) (string, error)
+    Terminate(context.Context, ...testcontainers.TerminateOption) error
+}
+
 type Server interface {
     Name() string
     Host(context.Context) (string, error)
@@ -147,7 +154,7 @@ type Started struct {
 ### Constructor Shape
 
 ```go
-func New(name string, container testcontainers.Container, options ...Option) *Started
+func New(name string, container Container, options ...Option) (*Started, error)
 
 func WithPort(name, containerPort, scheme string) Option
 
@@ -157,6 +164,11 @@ func WithConnectionDetails(func(context.Context, *Started) (ConnectionDetails, e
 The constructor validates and stores metadata only. It does not start a
 container and does not register cleanup by itself. The owning wrapper keeps
 start and cleanup ordering explicit.
+
+The `Container` interface is intentionally narrower than
+`testcontainers.Container` so core contract tests can use fake containers
+without implementing unrelated Docker operations. Testcontainers-Go module
+containers satisfy this interface.
 
 ### ConnectionDetails Behavior
 
@@ -210,15 +222,17 @@ No package-level cleanup registry is introduced.
 Add:
 
 ```go
-func ExportEnv(tb testing.TB, details ConnectionDetails, names map[string]string)
+func ExportEnv(tb testing.TB, details ConnectionDetails, names map[string]string) error
 ```
 
 `names` maps connection-detail keys to environment variable names:
 
 ```go
-tcserver.ExportEnv(t, details, map[string]string{
+if err := tcserver.ExportEnv(t, details, map[string]string{
     redistestcontainer.AddressKey: "BLUETAPE_REDIS_ADDR",
-})
+}); err != nil {
+    t.Fatal(err)
+}
 ```
 
 `ExportEnv` uses `tb.Setenv`, so Go owns cleanup and previous values are
@@ -227,16 +241,14 @@ restored after the test. It must call `tb.Helper()`.
 Rules:
 
 - Export is opt-in.
-- Missing detail keys are test failures. Returning an error variant would be
-  tempting but would make existing `testing.TB` helper usage verbose.
-- To keep failures visible, choose:
-
-```go
-func ExportEnv(tb testing.TB, details ConnectionDetails, names map[string]string)
-```
-
-and fail the test with `tb.Fatalf` when `names` refers to a missing key or blank
-env name. This matches existing wrappers' `testing.TB` style.
+- The function validates the full mapping before mutating the environment.
+- Missing detail keys and blank env names return errors that wrap package
+  sentinel errors so callers can test them.
+- Callers that want existing wrapper-style failures should use
+  `if err := tcserver.ExportEnv(...); err != nil { t.Fatal(err) }`.
+- Because `ExportEnv` uses `tb.Setenv`, it must not be used in tests that call
+  `t.Parallel` or have parallel ancestors. Testcontainers wrapper tests remain
+  serial.
 
 No global export happens by default.
 
@@ -261,6 +273,10 @@ service-specific connection lookup:
 The wrapper-specific connection detail functions should populate the generic
 details map by calling the same module APIs used today.
 
+Wrappers must fail the test if `server.New` rejects invalid configuration. This
+keeps public `StartServer(ctx, tb)` ergonomic while preserving a normal Go error
+contract for the reusable constructor.
+
 ### Fixed-Port vs Dynamic-Port Documentation
 
 The default contract is dynamic host port mapping. `MappedPort` and `Endpoint`
@@ -282,7 +298,7 @@ README files must document:
 |---|---:|---|
 | Generic abstraction becomes a framework larger than the wrappers. | P1 | Keep `testcontainers/server` to adapter, details, cleanup, and env export only. No builders for every Testcontainers option. |
 | Existing callers break. | P1 | Preserve all current `Start(ctx, testing.TB)` signatures and return values. Add `StartServer` as an opt-in API. |
-| Env export creates hidden global state. | P1 | Use `testing.TB.Setenv` only, require explicit key-to-env mapping, and document serial test limits. |
+| Env export creates hidden global state. | P1 | Use `testing.TB.Setenv` only, require explicit key-to-env mapping, validate before mutation, and document `t.Parallel` limits. |
 | Connection detail maps become mutable shared state. | P2 | Return cloned maps from `ConnectionDetails(ctx)` and add `Clone` tests. |
 | Kafka loses typed broker list ergonomics. | P2 | Keep `Start` returning `[]string`; generic map uses comma-separated `kafka.brokers` only for export/reporting. |
 | Docker contract tests slow the suite. | P2 | Core server package tests use fake containers; existing wrapper smoke tests remain serial Docker tests. |
@@ -292,7 +308,7 @@ README files must document:
 | #217 Criterion | Design Answer |
 |---|---|
 | Common interface exposes host, mapped ports, URLs, connection details, cleanup without global state. | `testcontainers/server.Server` plus `Started` adapter. |
-| Optional environment/property export is explicit, reversible, documented. | `ExportEnv(tb, details, names)` uses `tb.Setenv`; no default global export. |
+| Optional environment/property export is explicit, reversible, documented. | `ExportEnv(tb, details, names)` validates input, uses `tb.Setenv`, returns errors, and does no default global export. |
 | Existing wrappers migrate/adapt without breaking current users. | Add `StartServer`; preserve `Start`. |
 | Add contract tests reused by all wrappers. | Add fake-container tests for `server.Started`; wrapper tests assert `StartServer` details and existing `Start` behavior. |
 | Document fixed-port vs dynamic-port behavior and collision risks. | Update `testcontainers/*/README.md` and `.ko.md` plus new package docs. |
@@ -309,7 +325,8 @@ README files must document:
   - connection detail clone/require behavior;
   - cleanup registration on skipped tests;
   - manual terminate path;
-  - env export and missing key failure behavior.
+  - env export, missing key, blank env name, and validate-before-mutate
+    behavior.
 - Docker smoke tests for existing wrappers still pass serially.
 - README locale sets document dynamic mapping, env export, cleanup, and fixed
   port collision risk.
