@@ -30,6 +30,32 @@ client := s3.NewFromConfig(cfg, func(options *s3.Options) {
 서비스별 AWS client 동작은 해당 서비스 테스트나 package에 남기고, 이
 helper는 Floci 시작과 공통 AWS config 생성만 담당합니다.
 
+## Service Configuration
+
+Floci는 기본적으로 넓은 AWS service coverage를 활성화합니다. 이 package는
+첫 roadmap service의 upstream service config type을 노출해서, 테스트가
+upstream Testcontainers module을 직접 import하지 않고도 설정을 조정할 수
+있게 합니다.
+
+```go
+details := flocitestcontainer.Start(ctx, t,
+    flocitestcontainer.WithS3Config(flocitestcontainer.DefaultS3Config()),
+    flocitestcontainer.WithSQSConfig(flocitestcontainer.DefaultSQSConfig()),
+    flocitestcontainer.WithSNSConfig(flocitestcontainer.DefaultSNSConfig()),
+    flocitestcontainer.WithDynamoDBConfig(flocitestcontainer.DefaultDynamoDBConfig()),
+)
+```
+
+첫 slice에서 지원하는 config alias는 다음과 같습니다.
+
+- `S3Config`
+- `SQSConfig`
+- `SNSConfig`
+- `DynamoDBConfig`
+
+이 type들은 Floci emulator 설정이며 bluetape service wrapper가 아닙니다.
+서비스 작업은 AWS SDK for Go v2 client를 직접 사용하세요.
+
 ## Connection Details
 
 `Details.ConnectionDetails()`는 `testcontainers/server` env export helper와
@@ -69,8 +95,9 @@ if err := tcserver.ExportEnv(t, details.ConnectionDetails(), map[string]string{
 ## Scope
 
 이 작업은 #220의 첫 slice이며 #61의 기반 fixture입니다. 기본
-`go test ./...` 안정성을 위해 S3 smoke test는 opt-in으로 두고, local 및 CI
-Docker lane에서 명시적으로 emulator contract를 검증할 수 있게 합니다.
+`go test ./...` 안정성을 위해 S3, SQS, SQS를 통한 SNS fanout, DynamoDB
+smoke test는 opt-in으로 두고, local 및 CI Docker lane에서 명시적으로
+emulator contract를 검증할 수 있게 합니다.
 
 - S3 예제 확장은 #62에 남깁니다.
 - SQS/SNS producer-consumer 예제는 #63에 남깁니다.
