@@ -29,6 +29,31 @@ t.Cleanup(func() {
 })
 ```
 
+## Shared Server API
+
+Use `Start(ctx, t)` when a Redis address string is enough. Use
+`StartServer(ctx, t)` when a test needs the shared Testcontainers server
+contract: host lookup, mapped ports, endpoints, connection details, cleanup,
+manual termination, or explicit env export.
+
+The example assumes `tcserver` aliases `github.com/bluetape4k/bluetape-go/testcontainers/server`.
+
+```go
+srv := redistestcontainer.StartServer(ctx, t)
+details, err := srv.ConnectionDetails(ctx)
+if err != nil {
+    t.Fatalf("redis details: %v", err)
+}
+if err := tcserver.ExportEnv(t, details, map[string]string{
+    redistestcontainer.AddressKey: "BLUETAPE_REDIS_ADDR",
+}); err != nil {
+    t.Fatal(err)
+}
+```
+
+`tcserver.ExportEnv` uses `testing.TB.Setenv`; do not call it from tests that
+use `t.Parallel` or have parallel ancestors.
+
 ## Behavior
 
 - Uses `redis:7.4-alpine`.
@@ -44,6 +69,11 @@ t.Cleanup(func() {
 - Docker or another Testcontainers-compatible runtime must be available.
 - The helper is intended for tests and does not expose production Redis
   configuration.
+- Dynamic host port mapping is the default. Read mapped ports and exported env
+  values after the container starts; they point to host ports, not
+  container-internal ports.
+- Fixed host ports are not exposed by this helper because they can collide in
+  parallel local runs and CI jobs.
 - Run Docker-backed Testcontainers packages serially when resources or ports are
   shared.
 - CI jobs without Docker should skip `./testcontainers/...`; CI jobs that cover

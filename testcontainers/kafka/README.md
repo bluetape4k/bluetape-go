@@ -32,6 +32,34 @@ t.Cleanup(func() {
 })
 ```
 
+## Shared Server API
+
+Use `Start(ctx, t)` when a broker slice is enough. Use `StartServer(ctx, t)`
+when a test needs the shared Testcontainers server contract: host lookup, mapped
+ports, endpoints, connection details, cleanup, manual termination, or explicit
+env export.
+
+The example assumes `tcserver` aliases `github.com/bluetape4k/bluetape-go/testcontainers/server`.
+
+```go
+srv := kafkatestcontainer.StartServer(ctx, t)
+details, err := srv.ConnectionDetails(ctx)
+if err != nil {
+    t.Fatalf("kafka details: %v", err)
+}
+if err := tcserver.ExportEnv(t, details, map[string]string{
+    kafkatestcontainer.BrokersKey: "BLUETAPE_KAFKA_BROKERS",
+}); err != nil {
+    t.Fatal(err)
+}
+```
+
+The generic `kafka.brokers` connection detail is a comma-separated string for
+env export and reporting. `Start(ctx, t)` still returns `[]string`.
+
+`tcserver.ExportEnv` uses `testing.TB.Setenv`; do not call it from tests that
+use `t.Parallel` or have parallel ancestors.
+
 ## Behavior
 
 - Uses `confluentinc/confluent-local:7.5.0`.
@@ -49,6 +77,11 @@ t.Cleanup(func() {
 - Docker or another Testcontainers-compatible runtime must be available.
 - Kafka startup can be slower than smaller fixtures; use an explicit test
   timeout around the start context.
+- Dynamic host port mapping is the default. Read mapped ports and exported env
+  values after the container starts; they point to host ports, not
+  container-internal ports.
+- Fixed host ports are not exposed by this helper because they can collide in
+  parallel local runs and CI jobs.
 - Run Docker-backed Testcontainers packages serially when resources or ports are
   shared.
 - CI jobs without Docker should skip `./testcontainers/...`; CI jobs that cover
