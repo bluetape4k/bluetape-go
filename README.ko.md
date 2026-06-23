@@ -48,6 +48,7 @@ Testcontainers source-parity evidence를 기록합니다.
 | [`testcontainers/mysql`](testcontainers/mysql/README.ko.md) | active | Testcontainers for Go 기반 MySQL 8.4 fixture. |
 | [`testcontainers/nats`](testcontainers/nats/README.ko.md) | active | Testcontainers for Go 기반 NATS fixture. |
 | [`testcontainers/kafka`](testcontainers/kafka/README.ko.md) | active | Testcontainers for Go 기반 Kafka fixture. |
+| [`examples/s3`](examples/s3/README.ko.md) | example | Floci fixture 기반 compile-checked AWS SDK for Go v2 S3 예제. |
 | [`leader`](leader/README.ko.md) | active | 단일, group, strategy 기반 계약을 포함한 leader election API. |
 | [`leader/redis`](leader/redis/README.ko.md) | active | TTL renewal, ZSET slot token, candidate registry 기반 Redis 단일/group/strategic leader election 구현. |
 | [`resilience`](resilience/README.ko.md) | active | service call을 위한 자체 composable retry, timeout, circuit breaker, bulkhead policy, synchronous observability hook, `net/http` adapter. |
@@ -69,9 +70,9 @@ Testcontainers source-parity evidence를 기록합니다.
 | [`probabilistic`](probabilistic/README.ko.md) | active | deterministic config, merge compatibility check, stress/race coverage를 갖춘 goroutine-safe 인메모리 Bloom filter. |
 | [`probabilistic/redis`](probabilistic/redis/README.ko.md) | active | Static Lua script, immutable config metadata, operator runbook 경계를 갖춘 Redis-backed shared Bloom filter. |
 
-다음 계획 패키지군은 relational SQL helper, AWS/Floci helper example, text,
-audit, graph 패키지입니다. Redis-backed Cuckoo와 HyperLogLog/HLL 지원은 Redis
-Bloom 범위 이후 별도로 추적합니다.
+다음 계획 패키지군은 relational SQL helper, 추가 AWS/Floci example, text, audit,
+graph 패키지입니다. Redis-backed Cuckoo와 HyperLogLog/HLL 지원은 Redis Bloom
+범위 이후 별도로 추적합니다.
 
 ## 설치
 
