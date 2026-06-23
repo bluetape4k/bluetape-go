@@ -48,6 +48,7 @@ Testcontainers source-parity evidence를 기록합니다.
 | [`testcontainers/mysql`](testcontainers/mysql/README.ko.md) | active | Testcontainers for Go 기반 MySQL 8.4 fixture. |
 | [`testcontainers/nats`](testcontainers/nats/README.ko.md) | active | Testcontainers for Go 기반 NATS fixture. |
 | [`testcontainers/kafka`](testcontainers/kafka/README.ko.md) | active | Testcontainers for Go 기반 Kafka fixture. |
+| [`dynamodb/batchwrite`](dynamodb/batchwrite/README.ko.md) | active | AWS SDK for Go v2 BatchWriteItem 25개 chunking과 unprocessed-item retry helper. |
 | [`examples/s3`](examples/s3/README.ko.md) | example | Floci fixture 기반 compile-checked AWS SDK for Go v2 S3 예제. |
 | [`examples/sqs-sns`](examples/sqs-sns/README.ko.md) | example | Floci fixture 기반 compile-checked AWS SDK for Go v2 SQS/SNS 예제. |
 | [`leader`](leader/README.ko.md) | active | 단일, group, strategy 기반 계약을 포함한 leader election API. |
@@ -92,6 +93,9 @@ go get github.com/bluetape4k/bluetape-go
 - Test support: [`testing`](testing/README.ko.md),
   [`testing/concurrency`](testing/concurrency/README.ko.md), 위 표의 Testcontainers
   fixture package README.
+- AWS/Floci: [`dynamodb/batchwrite`](dynamodb/batchwrite/README.ko.md),
+  [`examples/s3`](examples/s3/README.ko.md),
+  [`examples/sqs-sns`](examples/sqs-sns/README.ko.md).
 - Coordination: [`leader`](leader/README.ko.md),
   [`leader/redis`](leader/redis/README.ko.md), [`lock/redis`](lock/redis/README.ko.md).
 - Runtime policy/cache/state/workflow: [`resilience`](resilience/README.ko.md),

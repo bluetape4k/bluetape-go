@@ -50,6 +50,7 @@ implementation series.
 | [`testcontainers/mysql`](testcontainers/mysql/README.md) | active | MySQL 8.4 fixture helpers based on Testcontainers for Go. |
 | [`testcontainers/nats`](testcontainers/nats/README.md) | active | NATS fixture helpers based on Testcontainers for Go. |
 | [`testcontainers/kafka`](testcontainers/kafka/README.md) | active | Kafka fixture helpers based on Testcontainers for Go. |
+| [`dynamodb/batchwrite`](dynamodb/batchwrite/README.md) | active | Narrow AWS SDK for Go v2 BatchWriteItem chunking and unprocessed-item retry helper. |
 | [`examples/s3`](examples/s3/README.md) | example | Compile-checked AWS SDK for Go v2 S3 examples backed by the Floci fixture. |
 | [`examples/sqs-sns`](examples/sqs-sns/README.md) | example | Compile-checked AWS SDK for Go v2 SQS/SNS examples backed by the Floci fixture. |
 | [`leader`](leader/README.md) | active | Leader election API, including single, group, and strategy-based contracts. |
@@ -96,6 +97,9 @@ overview.
 - Test support: [`testing`](testing/README.md),
   [`testing/concurrency`](testing/concurrency/README.md), and the fixture
   package READMEs listed above.
+- AWS/Floci: [`dynamodb/batchwrite`](dynamodb/batchwrite/README.md) and
+  compile-checked examples under [`examples/s3`](examples/s3/README.md) and
+  [`examples/sqs-sns`](examples/sqs-sns/README.md).
 - Coordination: [`leader`](leader/README.md),
   [`leader/redis`](leader/redis/README.md), and
   [`lock/redis`](lock/redis/README.md).
