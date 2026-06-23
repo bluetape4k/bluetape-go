@@ -3,6 +3,7 @@ module github.com/bluetape4k/bluetape-go
 go 1.26.3
 
 require (
+	github.com/Shopify/toxiproxy/v2 v2.12.0
 	github.com/cespare/xxhash/v2 v2.3.0
 	github.com/go-sql-driver/mysql v1.10.0
 	github.com/golang-jwt/jwt/v5 v5.3.1
@@ -27,6 +28,7 @@ require (
 	github.com/testcontainers/testcontainers-go/modules/nats v0.42.0
 	github.com/testcontainers/testcontainers-go/modules/postgres v0.42.0
 	github.com/testcontainers/testcontainers-go/modules/redis v0.42.0
+	github.com/testcontainers/testcontainers-go/modules/toxiproxy v0.42.0
 	golang.org/x/sync v0.20.0
 	golang.org/x/text v0.35.0
 )
