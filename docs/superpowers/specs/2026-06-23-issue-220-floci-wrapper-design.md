@@ -45,19 +45,19 @@ Functions:
 
 - `Start(ctx context.Context, tb testing.TB, opts ...ContainerOption) Details`
 - `StartContainer(ctx context.Context, tb testing.TB, opts ...ContainerOption) *floci.StartedFlociContainer`
-- `DetailsFromContainer(container *floci.StartedFlociContainer) Details`
+- `DetailsFromContainer(tb testing.TB, container *floci.StartedFlociContainer) Details`
 - `LoadConfig(ctx context.Context, tb testing.TB, details Details, opts ...func(*config.LoadOptions) error) aws.Config`
 - `(Details) ConnectionDetails() tcserver.ConnectionDetails`
 
 ## Behavior
 
-- `StartContainer` builds `floci.NewFlociContainer()`, applies all
+- `StartContainer` builds `floci.NewFlociContainer()`, applies all caller
   `ContainerOption` values in order, starts the upstream Floci container, and
   registers cleanup with `testing.TB.Cleanup`.
-- Cleanup calls upstream `Stop(ctx)` so dedicated networks are removed when
-  callers enable them.
+- Cleanup calls upstream `Stop` with a bounded cleanup context derived from the
+  test context values but not cancelled by the parent test deadline.
 - `Start` returns `DetailsFromContainer(StartContainer(...))`.
-- `DetailsFromContainer` fails fast on nil container and extracts endpoint,
+- `DetailsFromContainer` fails fast through `testing.TB` on nil container and extracts endpoint,
   region, access key, secret key, account ID, availability zone, and dedicated
   network name.
 - `LoadConfig` calls AWS SDK for Go v2 `config.LoadDefaultConfig` with region,
@@ -69,6 +69,8 @@ Functions:
 ## Tests
 
 - `TestStartFlociS3Smoke`:
+  - opt-in with `BLUETAPE_FLOCI_SMOKE=1` so normal `go test ./...` remains
+    stable while targeted Docker lanes still prove the emulator contract;
   - bounded context timeout;
   - start Floci with only S3 enabled when upstream config supports it;
   - call `LoadConfig`;
@@ -85,6 +87,8 @@ Functions:
 
 - `go test -p 1 -count=1 ./testcontainers/floci`
 - `go test -race -p 1 -count=1 ./testcontainers/floci`
+- `BLUETAPE_FLOCI_SMOKE=1 go test -p 1 -count=1 ./testcontainers/floci`
+- `BLUETAPE_FLOCI_SMOKE=1 go test -race -p 1 -count=1 ./testcontainers/floci`
 - `go test -p 1 -count=1 ./testcontainers/server ./testcontainers/floci`
 - `go test -race -p 1 -count=1 ./testcontainers/server ./testcontainers/floci`
 - `rg -n "floci.endpoint|BLUETAPE_FLOCI_ENDPOINT|UsePathStyle|S3|#61|#62|#63|#64" testcontainers/floci/README.md testcontainers/floci/README.ko.md`
@@ -109,4 +113,3 @@ prove the changed Floci package with targeted serial/race tests.
 | LocalStack/MiniStack/Floci choice records risk. | Planned: matrix and spec. |
 | Graph fixtures not implemented before #50. | Planned deferral. |
 | Infrastructure fixtures require concrete consumer. | Planned deferral. |
-

@@ -26,9 +26,9 @@ Create `testcontainers/floci/floci_test.go`.
 
 Cases:
 
-- `TestStartFlociS3Smoke` starts Floci with S3 enabled, loads AWS config,
-  creates a bucket, puts one object, gets it back, closes the response body, and
-  asserts the body text.
+- `TestStartFlociS3Smoke` is gated by `BLUETAPE_FLOCI_SMOKE=1`, starts Floci,
+  loads AWS config, creates a bucket, puts one object, gets it back, closes the
+  response body, and asserts the body text.
 - `TestDetailsConnectionDetails` checks all exported detail keys.
 - `TestDetailsFromNilContainerFails` uses a fake `testing.TB` helper only if
   the package needs to prove nil failure behavior without Docker; otherwise
@@ -62,7 +62,8 @@ Create:
 Implementation notes:
 
 - Use upstream `floci.NewFlociContainer()` and apply `ContainerOption` values.
-- Register cleanup through `tb.Cleanup(func() { ... Stop(ctx) ... })`.
+- Register cleanup through `tb.Cleanup` with a bounded cleanup context for
+  upstream `Stop`.
 - Convert upstream start errors through `testcleanup.FormatStartError` where
   possible; otherwise preserve the causal error.
 - Return test credentials only as Floci-local details; do not read production
@@ -94,6 +95,8 @@ Run:
 ```bash
 go test -p 1 -count=1 ./testcontainers/floci
 go test -race -p 1 -count=1 ./testcontainers/floci
+BLUETAPE_FLOCI_SMOKE=1 go test -p 1 -count=1 ./testcontainers/floci
+BLUETAPE_FLOCI_SMOKE=1 go test -race -p 1 -count=1 ./testcontainers/floci
 go test -p 1 -count=1 ./testcontainers/server ./testcontainers/floci
 go test -race -p 1 -count=1 ./testcontainers/server ./testcontainers/floci
 rg -n "floci.endpoint|BLUETAPE_FLOCI_ENDPOINT|UsePathStyle|S3|#61|#62|#63|#64" testcontainers/floci/README.md testcontainers/floci/README.ko.md
@@ -117,4 +120,3 @@ record the exact package/test and proceed with targeted Floci evidence.
 - Upstream `testcontainers-floci-go` currently has no semantic version tag.
   Use the observed pseudo-version and record it in PR evidence.
 - Floci S3 local endpoints require path-style S3 clients.
-
