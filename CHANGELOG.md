@@ -7,6 +7,78 @@ and this project uses semantic versioning once the first tag is published.
 
 ## [Unreleased]
 
+## [v0.6.6] - 2026-06-25
+
+### Added
+
+- Focused testing fixture examples, assertion patterns, golden-file data, and
+  bilingual testing README updates for developer experience parity.
+- Utility parity boundary documentation for logging, time, and math helpers,
+  keeping Go standard-library behavior preferred where it is clearer.
+- `examples/integration` recipes across batch, workflow, cache, resilience, id,
+  JWT, Redis lock/leader, and Testcontainers Redis with service-free, race, and
+  Docker-backed smoke commands.
+- Corrective-series closure audit documenting the rechecked 0.6.x parity matrix,
+  `P0=0 P1=0` state, deferred follow-ups, and explicit Go non-goals.
+
+### Changed
+
+- Root README release roadmap now reflects the completed corrective 0.6.3
+  through 0.6.6 series and separates later roadmap work from closed parity
+  hardening.
+
+## [v0.6.5] - 2026-06-25
+
+### Added
+
+- Shared Testcontainers server/property export abstraction with bounded
+  startup error reporting and service connection metadata helpers.
+- Testcontainers wrappers for MariaDB, Toxiproxy, and Floci, including
+  service config smoke coverage for S3, SQS, SNS, and DynamoDB.
+- Direct AWS SDK for Go examples for S3, SQS/SNS, and DynamoDB batch write
+  retry helpers, with bilingual README coverage and explicit wrapper
+  boundary decisions.
+
+### Changed
+
+- Hardened existing Testcontainers lifecycle and connection contracts before
+  adding more service fixtures, including serial execution guidance and
+  cleanup/startup diagnostics.
+
+## [v0.6.4] - 2026-06-25
+
+### Added
+
+- `testing` async await/polling helpers with context-aware timeout behavior,
+  interval control, examples, and focused tests.
+- `testing` cancellation contract assertions for context-aware APIs, including
+  success/failure helpers and examples for caller-owned cancellation behavior.
+- Scoped temporary output and environment helpers for tests, with cleanup
+  coverage and bilingual README documentation.
+- Research notes for random data parameter sources and test reporting helpers,
+  rejecting broad fixture dependencies for the current milestone.
+
+### Changed
+
+- Hardened `testing/concurrency` helper reporting so stress failures preserve
+  useful caller-visible evidence without weakening race-compatible execution.
+
+## [v0.6.3] - 2026-06-25
+
+### Added
+
+- `collections` bounded stack, ring buffer, pagination, and permutation helpers
+  with Go-native APIs, table-driven tests, and bilingual README coverage.
+- `core` range helpers, wildcard matching, XXH64 hashing, resource-style
+  helper documentation, and quarter/time helpers inspired by bluetape4k-core
+  where the Go standard library does not already provide the simpler contract.
+
+### Changed
+
+- Hardened `core`, `collections`, `codec`, and `serialization` text/binary
+  contracts, including invalid UTF-8, nil/empty, malformed input, and
+  documentation boundaries before adding more foundation parity APIs.
+
 ## [v0.6.2] - 2026-06-21
 
 ### Added
