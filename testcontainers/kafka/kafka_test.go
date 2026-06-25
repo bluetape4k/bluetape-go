@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"net"
 	"strconv"
+	"strings"
 	"testing"
 	"time"
 
@@ -14,12 +15,19 @@ import (
 )
 
 func TestStartKafka(t *testing.T) {
-	t.Parallel()
-
 	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 	t.Cleanup(cancel)
 
-	brokers := kafkatestcontainer.Start(ctx, t)
+	srv := kafkatestcontainer.StartServer(ctx, t)
+	details, err := srv.ConnectionDetails(ctx)
+	if err != nil {
+		t.Fatalf("kafka server details: %v", err)
+	}
+	brokersValue, err := details.Require(kafkatestcontainer.BrokersKey)
+	if err != nil {
+		t.Fatalf("kafka brokers detail: %v", err)
+	}
+	brokers := strings.Split(brokersValue, ",")
 	topic := fmt.Sprintf("bluetape-test-%d", time.Now().UnixNano())
 	createTopic(ctx, t, brokers[0], topic)
 
@@ -63,6 +71,12 @@ func TestStartKafka(t *testing.T) {
 	}
 	if !bytes.Equal(message.Value, value) {
 		t.Fatalf("expected kafka message %q, got %q", value, message.Value)
+	}
+}
+
+func TestConnectionDetailKey(t *testing.T) {
+	if kafkatestcontainer.BrokersKey != "kafka.brokers" {
+		t.Fatalf("BrokersKey = %q", kafkatestcontainer.BrokersKey)
 	}
 }
 

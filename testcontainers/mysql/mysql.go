@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	"github.com/bluetape4k/bluetape-go/internal/testcleanup"
+	tcserver "github.com/bluetape4k/bluetape-go/testcontainers/server"
 	tcmysql "github.com/testcontainers/testcontainers-go/modules/mysql"
 )
 
@@ -13,11 +14,21 @@ const (
 	defaultDatabase = "bluetape"
 	defaultUsername = "bluetape"
 	defaultPassword = "bluetape"
+
+	// DSNKey is the documented key for a MySQL data source name.
+	DSNKey = "mysql.dsn"
 )
 
-// Start 는 MySQL test container를 시작하고 DSN을 반환한다.
-func Start(ctx context.Context, t *testing.T) string {
-	t.Helper()
+// Start launches a MySQL test container and returns its data source name.
+func Start(ctx context.Context, tb testing.TB) string {
+	tb.Helper()
+
+	return mustDetail(ctx, tb, StartServer(ctx, tb), DSNKey)
+}
+
+// StartServer launches a MySQL test container and returns the shared server view.
+func StartServer(ctx context.Context, tb testing.TB) *tcserver.Started {
+	tb.Helper()
 
 	container, err := tcmysql.Run(
 		ctx,
@@ -27,14 +38,37 @@ func Start(ctx context.Context, t *testing.T) string {
 		tcmysql.WithPassword(defaultPassword),
 	)
 	if err != nil {
-		t.Fatalf("start mysql container: %v", err)
+		tb.Fatal(testcleanup.FormatStartError("mysql", defaultImage, err))
 	}
 
-	testcleanup.Register(ctx, t, "mysql", container)
-
-	dsn, err := container.ConnectionString(ctx, "parseTime=true")
+	srv, err := tcserver.New("mysql", container, tcserver.WithConnectionDetails(func(ctx context.Context, _ *tcserver.Started) (tcserver.ConnectionDetails, error) {
+		dsn, err := container.ConnectionString(ctx, "parseTime=true")
+		if err != nil {
+			return nil, err
+		}
+		return tcserver.ConnectionDetails{DSNKey: dsn}, nil
+	}))
 	if err != nil {
-		t.Fatalf("mysql connection string: %v", err)
+		if terminateErr := testcleanup.Terminate(ctx, testcleanup.DefaultTerminateTimeout, container); terminateErr != nil {
+			tb.Fatalf("mysql server: %v; terminate after construction failure: %v", err, terminateErr)
+		}
+		tb.Fatalf("mysql server: %v", err)
 	}
-	return dsn
+
+	srv.RegisterCleanup(ctx, tb)
+	return srv
+}
+
+func mustDetail(ctx context.Context, tb testing.TB, srv *tcserver.Started, key string) string {
+	tb.Helper()
+
+	details, err := srv.ConnectionDetails(ctx)
+	if err != nil {
+		tb.Fatalf("%s: %v", key, err)
+	}
+	value, err := details.Require(key)
+	if err != nil {
+		tb.Fatalf("%s: %v", key, err)
+	}
+	return value
 }

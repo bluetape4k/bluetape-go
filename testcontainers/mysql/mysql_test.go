@@ -10,10 +10,16 @@ import (
 )
 
 func TestStartMySQL(t *testing.T) {
-	t.Parallel()
-
 	ctx := context.Background()
-	dsn := mysqltestcontainer.Start(ctx, t)
+	srv := mysqltestcontainer.StartServer(ctx, t)
+	details, err := srv.ConnectionDetails(ctx)
+	if err != nil {
+		t.Fatalf("mysql server details: %v", err)
+	}
+	dsn, err := details.Require(mysqltestcontainer.DSNKey)
+	if err != nil {
+		t.Fatalf("mysql dsn detail: %v", err)
+	}
 
 	db, err := sql.Open("mysql", dsn)
 	if err != nil {
@@ -31,5 +37,11 @@ func TestStartMySQL(t *testing.T) {
 	}
 	if value != 1 {
 		t.Fatalf("expected mysql query result 1, got %d", value)
+	}
+}
+
+func TestConnectionDetailKey(t *testing.T) {
+	if mysqltestcontainer.DSNKey != "mysql.dsn" {
+		t.Fatalf("DSNKey = %q", mysqltestcontainer.DSNKey)
 	}
 }
