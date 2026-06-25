@@ -70,6 +70,7 @@ implementation series.
 | [`id`](id/README.md) | active | UUID v4/v7, random and monotonic ULID, standard KSUID, Kotlin-compatible KSUID millis, and Snowflake ID generators. |
 | [`jwt`](jwt/README.md) | active | JWT signing, parsing, validation, typed claim reading, in-memory/distributed `kid` key rotation, and optional provider cache adapters with explicit algorithms. |
 | [`jwt/redis`](jwt/redis/README.md) | active | Redis-specific facade for distributed JWT key-chain repository construction. |
+| [`jwt/mongo`](jwt/mongo/README.md) | active | MongoDB-specific facade for distributed JWT key-chain repository construction. |
 | [`measure`](measure/README.md) | active | Typed units, measured values, compound units, parsing, formatting, and affine temperature helpers. |
 | [`money`](money/README.md) | active | ISO 4217 currency values, CLDR-backed locale currency lookup, decimal-backed money amounts, aggregation, serialization, caller-supplied exchange-rate conversion, and ECB-backed provider conversion. |
 | [`probabilistic`](probabilistic/README.md) | active | Goroutine-safe in-memory Bloom filters with deterministic config, merge compatibility checks, and stress/race coverage. |
@@ -113,7 +114,7 @@ overview.
   [`state`](state/README.md), [`workreport`](workreport/README.md), and
   [`workflow`](workflow/README.md), and [`batch`](batch/README.md).
 - Portable utilities: [`id`](id/README.md), [`jwt`](jwt/README.md),
-  [`jwt/redis`](jwt/redis/README.md),
+  [`jwt/redis`](jwt/redis/README.md), [`jwt/mongo`](jwt/mongo/README.md),
   [`measure`](measure/README.md), [`money`](money/README.md), and
   [`probabilistic`](probabilistic/README.md), including
   [`probabilistic/redis`](probabilistic/redis/README.md).

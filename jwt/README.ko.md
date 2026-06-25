@@ -16,8 +16,11 @@ import (
 
     "github.com/bluetape4k/bluetape-go/cache"
     "github.com/bluetape4k/bluetape-go/jwt"
+    mongojwt "github.com/bluetape4k/bluetape-go/jwt/mongo"
     redisjwt "github.com/bluetape4k/bluetape-go/jwt/redis"
     "github.com/redis/go-redis/v9"
+    mongodriver "go.mongodb.org/mongo-driver/v2/mongo"
+    "go.mongodb.org/mongo-driver/v2/mongo/options"
 )
 ```
 
@@ -29,7 +32,7 @@ import (
 | 고정 asymmetric signing key | `NewFixedRSAProvider` | 검증된 2048-bit 이상 RSA private key로 RS256/384/512, PS256/384/512를 지원합니다. |
 | local in-memory key rotation | `NewHMACProvider` 또는 `NewRSAProvider` | in-memory KeyChain repository, `kid` header, TTL, retained key를 사용합니다. |
 | Redis-backed distributed key rotation | `jwt/redis.New`와 `NewDistributedHMACProvider` 또는 `NewDistributedRSAProvider` | context-aware Redis I/O로 여러 process instance가 signing key를 공유합니다. |
-| MongoDB-backed distributed key rotation | Backlog | MongoDB storage는 #198로 이관했습니다. |
+| MongoDB-backed distributed key rotation | `jwt/mongo.New`와 `NewDistributedHMACProvider` 또는 `NewDistributedRSAProvider` | service가 이미 MongoDB를 trusted state로 운영할 때 MongoDB로 signing key를 공유합니다. |
 | signed JWT compression | Non-goal | `zip`은 signed JWT helper가 아니라 JWE 경계에 속합니다. |
 | JWE, JWK, JWKS | Deferred | 실제 사용 사례가 생기면 JWE/JWKS를 명시적인 optional JOSE 경계로 추가할 수 있습니다. |
 | provider cache adapter | `NewCachedProvider` 또는 `NewCachedDistributedProvider` | trusted `cache.Cache[string,*jwt.Reader]` wrapper로 provider validation을 우회하지 않고 반복 parse/signature verification 비용을 줄입니다. |
@@ -268,6 +271,47 @@ service owner가 token invalidation 여부를 명시적으로 결정해야 합�
 
 ![Redis distributed JWT rotation sequence](../docs/images/readme-diagrams/redis-jwt-distributed-key-rotation-sequence.png)
 
+## MongoDB Distributed Provider
+
+여러 service instance가 같은 signing authority를 공유해야 하고 MongoDB가 이미
+trusted operational store라면 `github.com/bluetape4k/bluetape-go/jwt/mongo`를
+사용합니다. MongoDB repository는 `kid`별 Go-owned KeyChain payload를 저장합니다.
+Kotlin/JVM wire-compatible format이 아니고 cross-language storage contract로
+취급하면 안 됩니다.
+
+```go
+setupCtx, cancelSetup := context.WithTimeout(context.Background(), 2*time.Second)
+defer cancelSetup()
+
+client, err := mongodriver.Connect(options.Client().ApplyURI("mongodb://127.0.0.1:27017"))
+if err != nil {
+    return err
+}
+defer client.Disconnect(context.Background())
+
+repo, err := mongojwt.New(mongojwt.Options{
+    Client:    client,
+    Database:  "service_auth",
+    Namespace: "service-auth",
+    Capacity:  8,
+})
+if err != nil {
+    return err
+}
+provider, err := jwt.NewDistributedHMACProvider(setupCtx, repo, jwt.HS256)
+```
+
+`RotateContext`는 살아 있는 current key가 있으면 그대로 반환합니다. Current key가
+없거나 만료된 경우 MongoDB conditional current-pointer update로 concurrent
+instance가 하나의 winner에 수렴합니다. `ForcedRotateContext`는 항상 새 current key를
+저장하고, retained key는 만료 또는 repository capacity trim 전까지 검증에 사용할 수
+있습니다.
+
+Built-in key TTL과 좁은 low-latency signing state boundary가 필요하면 Redis를
+우선하세요. Service가 이미 MongoDB를 trusted replicated store로 운영하고 key-chain
+state를 관련 service data와 함께 두고 싶다면 MongoDB를 선택하세요. 두 repository는
+같은 `DistributedKeyChainRepository` provider contract를 사용합니다.
+
 ## 동작
 
 - `jwt`는 auth framework가 아닙니다. HTTP middleware, session, OIDC, JWKS,
@@ -296,8 +340,8 @@ service owner가 token invalidation 여부를 명시적으로 결정해야 합�
   `x5c`를 포함한 inbound signed token은 거부합니다. #174 결론에 따라 signed
   JWT compression은 non-goal이며, 표준 호환 compression은 future explicit JWE
   API 경계에 속합니다.
-- Redis-backed context-aware distributed key storage를 제공합니다. MongoDB는
-  #198로 이관했습니다.
+- Redis-backed와 MongoDB-backed context-aware distributed key storage를
+  `jwt/redis`, `jwt/mongo`를 통해 제공합니다.
 
 ## Rotation 계약
 
@@ -371,6 +415,7 @@ source는 `docs/images/readme-charts/distributed-jwt-redis-benchmark.vl.json`입
 ```bash
 go test -count=1 ./jwt
 go test -count=1 ./jwt/redis
+go test -count=1 ./jwt/mongo
 go test -race -count=1 ./jwt
-go test -race -count=1 ./jwt ./jwt/redis
+go test -race -count=1 ./jwt ./jwt/redis ./jwt/mongo
 ```
