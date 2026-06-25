@@ -7,6 +7,13 @@ and this project uses semantic versioning once the first tag is published.
 
 ## [Unreleased]
 
+### Added
+
+- `jwt.MongoRepository` and `jwt/mongo` facade for MongoDB-backed distributed
+  JWT key-chain storage, including shared-provider rotation, `kid` lookup,
+  capacity trimming, expiry handling, cancellation, and Testcontainers MongoDB
+  coverage.
+
 ## [v0.6.6] - 2026-06-25
 
 ### Added
