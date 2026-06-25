@@ -571,6 +571,9 @@ func TestMain(m *testing.M) {
 	if jwtRedisFixture.container != nil {
 		_ = testcleanup.Terminate(context.Background(), 0, jwtRedisFixture.container)
 	}
+	if jwtMongoFixture.container != nil {
+		_ = testcleanup.Terminate(context.Background(), 0, jwtMongoFixture.container)
+	}
 	os.Exit(code)
 }
 

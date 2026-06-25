@@ -15,8 +15,11 @@ import (
 
     "github.com/bluetape4k/bluetape-go/cache"
     "github.com/bluetape4k/bluetape-go/jwt"
+    mongojwt "github.com/bluetape4k/bluetape-go/jwt/mongo"
     redisjwt "github.com/bluetape4k/bluetape-go/jwt/redis"
     "github.com/redis/go-redis/v9"
+    mongodriver "go.mongodb.org/mongo-driver/v2/mongo"
+    "go.mongodb.org/mongo-driver/v2/mongo/options"
 )
 ```
 
@@ -28,7 +31,7 @@ import (
 | Fixed asymmetric signing key | `NewFixedRSAProvider` | Supports RS256/384/512 and PS256/384/512 with validated 2048-bit-or-larger RSA private keys. |
 | Local in-memory key rotation | `NewHMACProvider` or `NewRSAProvider` | Uses an in-memory KeyChain repository, `kid` headers, TTL, and retained keys. |
 | Redis-backed distributed key rotation | `jwt/redis.New` with `NewDistributedHMACProvider` or `NewDistributedRSAProvider` | Shares signing keys across process instances with context-aware Redis I/O. |
-| MongoDB-backed distributed key rotation | Backlog | MongoDB storage is deferred to #198. |
+| MongoDB-backed distributed key rotation | `jwt/mongo.New` with `NewDistributedHMACProvider` or `NewDistributedRSAProvider` | Shares signing keys through MongoDB when the service already operates MongoDB as trusted state. |
 | Signed JWT compression | Non-goal | `zip` belongs to a JWE boundary, not to the signed JWT helper. |
 | JWE, JWK, JWKS | Deferred | JWE/JWKS can be added later as explicit optional JOSE boundaries if real use cases appear. |
 | Provider cache adapters | `NewCachedProvider` or `NewCachedDistributedProvider` | Optional trusted `cache.Cache[string,*jwt.Reader]` wrappers reduce repeated parse and signature verification cost without bypassing provider validation. |
@@ -270,6 +273,48 @@ decision.
 
 ![Redis distributed JWT rotation sequence](../docs/images/readme-diagrams/redis-jwt-distributed-key-rotation-sequence.png)
 
+## MongoDB Distributed Provider
+
+Use `github.com/bluetape4k/bluetape-go/jwt/mongo` when multiple service
+instances must share signing authority and MongoDB is already the trusted
+operational store. The MongoDB repository stores Go-owned KeyChain payloads by
+`kid`; it is not a Kotlin/JVM wire-compatible format and must not be treated as
+a cross-language storage contract.
+
+```go
+setupCtx, cancelSetup := context.WithTimeout(context.Background(), 2*time.Second)
+defer cancelSetup()
+
+client, err := mongodriver.Connect(options.Client().ApplyURI("mongodb://127.0.0.1:27017"))
+if err != nil {
+    return err
+}
+defer client.Disconnect(context.Background())
+
+repo, err := mongojwt.New(mongojwt.Options{
+    Client:    client,
+    Database:  "service_auth",
+    Namespace: "service-auth",
+    Capacity:  8,
+})
+if err != nil {
+    return err
+}
+provider, err := jwt.NewDistributedHMACProvider(setupCtx, repo, jwt.HS256)
+```
+
+`RotateContext` returns the current live key when one exists. If the current key
+is missing or expired, MongoDB performs a conditional current-pointer update so
+concurrent instances converge on one winner. `ForcedRotateContext` always
+stores a fresh current key and retained keys remain available until they expire
+or are trimmed by repository capacity.
+
+Prefer Redis when you need built-in key TTL and a narrow low-latency signing
+state boundary. Prefer MongoDB when your service already operates MongoDB as a
+trusted replicated store and wants key-chain state alongside related service
+data. Both repositories use the same `DistributedKeyChainRepository` provider
+contract.
+
 ## Behavior
 
 - `jwt` is not an auth framework. It does not provide HTTP middleware,
@@ -299,8 +344,8 @@ decision.
   `zip`, `crit`, `jku`, `jwk`, `x5u`, or `x5c` are rejected. Issue #174
   concluded that signed JWT compression is a non-goal; standards-compatible
   compression belongs to a future explicit JWE API.
-- Redis-backed context-aware distributed key storage is available; MongoDB
-  remains deferred to #198.
+- Redis-backed and MongoDB-backed context-aware distributed key storage are
+  available through `jwt/redis` and `jwt/mongo`.
 
 ## Rotation Contract
 
@@ -375,6 +420,7 @@ source is `docs/images/readme-charts/distributed-jwt-redis-benchmark.vl.json`.
 ```bash
 go test -count=1 ./jwt
 go test -count=1 ./jwt/redis
+go test -count=1 ./jwt/mongo
 go test -race -count=1 ./jwt
-go test -race -count=1 ./jwt ./jwt/redis
+go test -race -count=1 ./jwt ./jwt/redis ./jwt/mongo
 ```

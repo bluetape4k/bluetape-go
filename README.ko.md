@@ -68,6 +68,7 @@ Testcontainers source-parity evidence를 기록합니다.
 | [`id`](id/README.ko.md) | active | UUID v4/v7, random/monotonic ULID, standard KSUID, Kotlin-compatible KSUID millis, Snowflake ID generator. |
 | [`jwt`](jwt/README.ko.md) | active | 명시적 algorithm을 사용하는 JWT signing, parsing, validation, typed claim reading, in-memory/distributed `kid` key rotation, optional provider cache adapter. |
 | [`jwt/redis`](jwt/redis/README.ko.md) | active | Distributed JWT key-chain repository 생성을 위한 Redis 전용 facade. |
+| [`jwt/mongo`](jwt/mongo/README.ko.md) | active | Distributed JWT key-chain repository 생성을 위한 MongoDB 전용 facade. |
 | [`measure`](measure/README.ko.md) | active | Typed unit, measured value, compound unit, parsing, formatting, affine temperature helper. |
 | [`money`](money/README.ko.md) | active | ISO 4217 통화 값, CLDR-backed locale currency lookup, decimal-backed 금액, 합산, 직렬화, caller-supplied 환율 변환, ECB-backed provider 변환. |
 | [`probabilistic`](probabilistic/README.ko.md) | active | deterministic config, merge compatibility check, stress/race coverage를 갖춘 goroutine-safe 인메모리 Bloom filter. |
@@ -108,7 +109,7 @@ go get github.com/bluetape4k/bluetape-go
   [`state`](state/README.ko.md), [`workreport`](workreport/README.ko.md),
   [`workflow`](workflow/README.ko.md), [`batch`](batch/README.ko.md).
 - Portable utility: [`id`](id/README.ko.md), [`jwt`](jwt/README.ko.md),
-  [`jwt/redis`](jwt/redis/README.ko.md),
+  [`jwt/redis`](jwt/redis/README.ko.md), [`jwt/mongo`](jwt/mongo/README.ko.md),
   [`measure`](measure/README.ko.md), [`money`](money/README.ko.md),
   [`probabilistic`](probabilistic/README.ko.md) 및
   [`probabilistic/redis`](probabilistic/redis/README.ko.md).
