@@ -8,7 +8,7 @@ import "fmt"
 // non-nil input returns an empty non-nil slice.
 func Chunk[T any](values []T, size int) ([][]T, error) {
 	if size <= 0 {
-		return nil, fmt.Errorf("chunk size[%d] must be positive", size)
+		return nil, fmt.Errorf("%w: chunk size[%d] must be positive", ErrInvalidArgument, size)
 	}
 	if values == nil {
 		return nil, nil
@@ -34,7 +34,7 @@ func Chunk[T any](values []T, size int) ([][]T, error) {
 // empty leading chunk.
 func ChunkBy[T any](values []T, startsNew func(T) bool) ([][]T, error) {
 	if startsNew == nil {
-		return nil, fmt.Errorf("startsNew must not be nil")
+		return nil, fmt.Errorf("%w: startsNew must not be nil", ErrInvalidArgument)
 	}
 	if values == nil {
 		return nil, nil
@@ -83,7 +83,7 @@ func Distinct[T comparable](values []T) []T {
 // The first occurrence for each key is kept and input order is preserved.
 func DistinctBy[T any, K comparable](values []T, key func(T) K) ([]T, error) {
 	if key == nil {
-		return nil, fmt.Errorf("key must not be nil")
+		return nil, fmt.Errorf("%w: key must not be nil", ErrInvalidArgument)
 	}
 	if values == nil {
 		return nil, nil
@@ -108,7 +108,7 @@ func DistinctBy[T any, K comparable](values []T, key func(T) K) ([]T, error) {
 // MapErr maps values and stops at the first mapper error.
 func MapErr[T any, R any](values []T, mapper func(T) (R, error)) ([]R, error) {
 	if mapper == nil {
-		return nil, fmt.Errorf("mapper must not be nil")
+		return nil, fmt.Errorf("%w: mapper must not be nil", ErrInvalidArgument)
 	}
 	if values == nil {
 		return nil, nil
@@ -128,7 +128,7 @@ func MapErr[T any, R any](values []T, mapper func(T) (R, error)) ([]R, error) {
 // FilterErr keeps values whose predicate result is true and stops at the first predicate error.
 func FilterErr[T any](values []T, predicate func(T) (bool, error)) ([]T, error) {
 	if predicate == nil {
-		return nil, fmt.Errorf("predicate must not be nil")
+		return nil, fmt.Errorf("%w: predicate must not be nil", ErrInvalidArgument)
 	}
 	if values == nil {
 		return nil, nil
@@ -150,7 +150,7 @@ func FilterErr[T any](values []T, predicate func(T) (bool, error)) ([]T, error) 
 // FilterMap maps values and keeps only mapped results whose ok flag is true.
 func FilterMap[T any, R any](values []T, mapper func(T) (R, bool)) ([]R, error) {
 	if mapper == nil {
-		return nil, fmt.Errorf("mapper must not be nil")
+		return nil, fmt.Errorf("%w: mapper must not be nil", ErrInvalidArgument)
 	}
 	if values == nil {
 		return nil, nil

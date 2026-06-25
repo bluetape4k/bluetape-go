@@ -29,10 +29,21 @@ if err != nil {
 }
 ```
 
+For externally supplied compressed bytes, bound the expanded output:
+
+```go
+decompressed, err := compression.DecompressLimit(compressor, compressed, 8<<20)
+if err != nil {
+    return err
+}
+```
+
 ## Behavior
 
 - `Default()` currently returns zstd.
 - `All()` returns gzip, zlib, deflate, zstd, lz4, and snappy in a stable order.
+- `Decompress` is for already-bounded or trusted payloads; use
+  `DecompressLimit` for untrusted byte-slice input.
 - Stream APIs reject nil readers or writers.
 - Level-specific constructors are available for gzip, zlib, deflate, and zstd.
 

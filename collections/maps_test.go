@@ -1,6 +1,7 @@
 package collections_test
 
 import (
+	"errors"
 	"reflect"
 	"testing"
 
@@ -54,20 +55,20 @@ func TestCountBy(t *testing.T) {
 	if !reflect.DeepEqual(got, want) {
 		t.Fatalf("CountBy returned %#v", got)
 	}
-	if _, err := collections.CountBy[string, int]([]string{"a"}, nil); err == nil {
-		t.Fatal("CountBy should reject nil key function")
+	if _, err := collections.CountBy[string, int]([]string{"a"}, nil); !errors.Is(err, collections.ErrInvalidArgument) {
+		t.Fatalf("CountBy nil key error = %v, want ErrInvalidArgument", err)
 	}
 }
 
 func TestMapHelpersNilEmptyAndCallbackContracts(t *testing.T) {
-	if _, err := collections.GroupBy[string, int]([]string{"a"}, nil); err == nil {
-		t.Fatal("GroupBy should reject nil key function")
+	if _, err := collections.GroupBy[string, int]([]string{"a"}, nil); !errors.Is(err, collections.ErrInvalidArgument) {
+		t.Fatalf("GroupBy nil key error = %v, want ErrInvalidArgument", err)
 	}
-	if _, err := collections.GroupBy[string, int](nil, nil); err == nil {
-		t.Fatal("GroupBy should reject nil key function before nil input")
+	if _, err := collections.GroupBy[string, int](nil, nil); !errors.Is(err, collections.ErrInvalidArgument) {
+		t.Fatalf("GroupBy nil input/key error = %v, want ErrInvalidArgument", err)
 	}
-	if _, err := collections.GroupBy[string, int]([]string{}, nil); err == nil {
-		t.Fatal("GroupBy should reject nil key function before empty input")
+	if _, err := collections.GroupBy[string, int]([]string{}, nil); !errors.Is(err, collections.ErrInvalidArgument) {
+		t.Fatalf("GroupBy empty input nil key error = %v, want ErrInvalidArgument", err)
 	}
 	if got, err := collections.CountBy[string, int](nil, func(value string) int { return len(value) }); err != nil || got != nil {
 		t.Fatalf("CountBy nil = %#v, %v; want nil, nil", got, err)
@@ -75,10 +76,10 @@ func TestMapHelpersNilEmptyAndCallbackContracts(t *testing.T) {
 	if got, err := collections.CountBy([]string{}, func(value string) int { return len(value) }); err != nil || got == nil || len(got) != 0 {
 		t.Fatalf("CountBy empty = %#v, %v; want empty map, nil", got, err)
 	}
-	if _, err := collections.CountBy[string, int](nil, nil); err == nil {
-		t.Fatal("CountBy should reject nil key function before nil input")
+	if _, err := collections.CountBy[string, int](nil, nil); !errors.Is(err, collections.ErrInvalidArgument) {
+		t.Fatalf("CountBy nil input/key error = %v, want ErrInvalidArgument", err)
 	}
-	if _, err := collections.CountBy[string, int]([]string{}, nil); err == nil {
-		t.Fatal("CountBy should reject nil key function before empty input")
+	if _, err := collections.CountBy[string, int]([]string{}, nil); !errors.Is(err, collections.ErrInvalidArgument) {
+		t.Fatalf("CountBy empty input nil key error = %v, want ErrInvalidArgument", err)
 	}
 }

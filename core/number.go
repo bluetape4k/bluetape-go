@@ -9,7 +9,7 @@ import (
 func Clamp[T Number](value, lower, upper T) (T, error) {
 	if lower > upper {
 		var zero T
-		return zero, fmt.Errorf("invalid range: lower %v must be <= upper %v", lower, upper)
+		return zero, fmt.Errorf("%w: invalid range: lower %v must be <= upper %v", ErrInvalidArgument, lower, upper)
 	}
 	if value < lower {
 		return lower, nil

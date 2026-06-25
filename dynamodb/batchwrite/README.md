@@ -17,7 +17,8 @@ general DynamoDB client facade.
 ## Usage
 
 ```go
-ctx := context.Background()
+ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+defer cancel()
 client := dynamodb.NewFromConfig(cfg)
 
 items := map[string][]types.WriteRequest{

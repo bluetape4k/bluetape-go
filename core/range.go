@@ -41,13 +41,13 @@ func OpenOpenRange[T cmp.Ordered](lower, upper T) (Range[T], error) {
 func newRange[T cmp.Ordered](lower, upper T, lowerInclusive, upperInclusive bool) (Range[T], error) {
 	var zero Range[T]
 	if isOrderedNaN(lower) || isOrderedNaN(upper) {
-		return zero, fmt.Errorf("range bounds must not be NaN")
+		return zero, fmt.Errorf("%w: range bounds must not be NaN", ErrInvalidArgument)
 	}
 	if lower > upper {
-		return zero, fmt.Errorf("invalid range: lower %v must be <= upper %v", lower, upper)
+		return zero, fmt.Errorf("%w: invalid range: lower %v must be <= upper %v", ErrInvalidArgument, lower, upper)
 	}
 	if lower == upper && (!lowerInclusive || !upperInclusive) {
-		return zero, fmt.Errorf("invalid empty range: equal bounds require closed endpoints")
+		return zero, fmt.Errorf("%w: invalid empty range: equal bounds require closed endpoints", ErrInvalidArgument)
 	}
 	return Range[T]{
 		lower:          lower,

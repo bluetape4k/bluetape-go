@@ -77,6 +77,25 @@ func TestMongoRepositoryFindRejectsMissingUnknownAndExpiredKID(t *testing.T) {
 	}
 }
 
+func TestMongoCleanupContextIsBoundedAndIndependentFromCallerCancellation(t *testing.T) {
+	parent, cancelParent := context.WithCancel(context.Background())
+	cancelParent()
+
+	cleanupCtx, cleanupCancel := mongoCleanupContext(parent)
+	defer cleanupCancel()
+
+	if err := cleanupCtx.Err(); err != nil {
+		t.Fatalf("cleanup context should not inherit caller cancellation immediately, got %v", err)
+	}
+	deadline, ok := cleanupCtx.Deadline()
+	if !ok {
+		t.Fatal("cleanup context should have a deadline")
+	}
+	if remaining := time.Until(deadline); remaining <= 0 || remaining > mongoCursorCloseTimeout {
+		t.Fatalf("cleanup deadline remaining = %s, want within %s", remaining, mongoCursorCloseTimeout)
+	}
+}
+
 func TestMongoRepositoryRotateCASReturnsConcurrentWinner(t *testing.T) {
 	ctx := context.Background()
 	client := jwtMongoClient(ctx, t)
@@ -271,7 +290,9 @@ func TestMongoRepositoryContextCancellationPreserved(t *testing.T) {
 
 func jwtMongoClient(ctx context.Context, t *testing.T) *mongo.Client {
 	t.Helper()
-	uri, err := jwtMongoURI(ctx)
+	startCtx, cancel := context.WithTimeout(ctx, 90*time.Second)
+	t.Cleanup(cancel)
+	uri, err := jwtMongoURI(startCtx)
 	if err != nil {
 		t.Fatalf("start mongodb container: %v", err)
 	}

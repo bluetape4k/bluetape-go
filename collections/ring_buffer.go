@@ -16,7 +16,7 @@ type RingBuffer[T any] struct {
 // NewRingBuffer creates a fixed-capacity ring buffer.
 func NewRingBuffer[T any](capacity int) (*RingBuffer[T], error) {
 	if capacity <= 0 {
-		return nil, fmt.Errorf("ring buffer capacity[%d] must be positive", capacity)
+		return nil, fmt.Errorf("%w: ring buffer capacity[%d] must be positive", ErrInvalidArgument, capacity)
 	}
 	return &RingBuffer[T]{
 		values:   make([]T, capacity),
@@ -91,7 +91,7 @@ func (r *RingBuffer[T]) Values() []T {
 // Drop removes n oldest values.
 func (r *RingBuffer[T]) Drop(n int) error {
 	if n < 0 {
-		return fmt.Errorf("drop count[%d] must be non-negative", n)
+		return fmt.Errorf("%w: drop count[%d] must be non-negative", ErrInvalidArgument, n)
 	}
 	if r == nil || n == 0 {
 		return nil

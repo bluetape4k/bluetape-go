@@ -131,6 +131,9 @@ func (e *GroupElector) Campaign(ctx context.Context) error {
 
 // Resign 은 이 elector가 아직 소유한 leader slot만 해제한다.
 func (e *GroupElector) Resign(ctx context.Context) error {
+	if ctx == nil {
+		ctx = context.Background()
+	}
 	e.mu.Lock()
 	if !e.owned {
 		e.mu.Unlock()
@@ -148,7 +151,11 @@ func (e *GroupElector) Resign(ctx context.Context) error {
 		cancel()
 	}
 	if done != nil {
-		<-done
+		select {
+		case <-done:
+		case <-ctx.Done():
+			return ctx.Err()
+		}
 	}
 
 	if _, err := e.client.Eval(ctx, groupReleaseScript, []string{e.key}, e.token).Result(); err != nil {
@@ -236,8 +243,11 @@ func (e *GroupElector) clearCampaigning() {
 }
 
 func (e *GroupElector) renew(ctx context.Context) (bool, error) {
+	renewCtx, cancel := context.WithTimeout(ctx, e.opts.RenewInterval)
+	defer cancel()
+
 	ttlMillis := int64(e.opts.Lease / time.Millisecond)
-	result, err := e.client.Eval(ctx, groupRenewScript, []string{e.key}, e.token, ttlMillis).Int()
+	result, err := e.client.Eval(renewCtx, groupRenewScript, []string{e.key}, e.token, ttlMillis).Int()
 	if err != nil {
 		return false, err
 	}

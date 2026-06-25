@@ -1,6 +1,7 @@
 package collections_test
 
 import (
+	"errors"
 	"reflect"
 	"testing"
 
@@ -43,8 +44,8 @@ func TestRingBuffer(t *testing.T) {
 	if err := ring.Drop(0); err != nil {
 		t.Fatalf("Drop(0) returned error: %v", err)
 	}
-	if err := ring.Drop(-1); err == nil {
-		t.Fatal("Drop(-1) should reject negative n")
+	if err := ring.Drop(-1); !errors.Is(err, collections.ErrInvalidArgument) {
+		t.Fatalf("Drop(-1) error = %v, want ErrInvalidArgument", err)
 	}
 	if err := ring.Drop(2); err != nil {
 		t.Fatalf("Drop(2) returned error: %v", err)
@@ -66,10 +67,10 @@ func TestRingBuffer(t *testing.T) {
 }
 
 func TestRingBufferRejectsInvalidCapacity(t *testing.T) {
-	if _, err := collections.NewRingBuffer[int](0); err == nil {
-		t.Fatal("NewRingBuffer should reject zero capacity")
+	if _, err := collections.NewRingBuffer[int](0); !errors.Is(err, collections.ErrInvalidArgument) {
+		t.Fatalf("NewRingBuffer zero capacity error = %v, want ErrInvalidArgument", err)
 	}
-	if _, err := collections.NewRingBuffer[int](-1); err == nil {
-		t.Fatal("NewRingBuffer should reject negative capacity")
+	if _, err := collections.NewRingBuffer[int](-1); !errors.Is(err, collections.ErrInvalidArgument) {
+		t.Fatalf("NewRingBuffer negative capacity error = %v, want ErrInvalidArgument", err)
 	}
 }

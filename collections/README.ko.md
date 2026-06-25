@@ -40,6 +40,7 @@ _ = stack.Values() // []string{"latest", "new"}
 
 ## 동작
 
+- Helper 입력 validation error는 `ErrInvalidArgument`를 감쌉니다.
 - `Chunk`는 0 이하 size를 거부합니다.
 - `ChunkBy`, `DistinctBy`, `GroupBy`, `CountBy`는 nil key/predicate function을
   거부합니다.

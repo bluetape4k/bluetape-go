@@ -43,7 +43,8 @@ func redisAddr(ctx context.Context) (string, error) {
 
 func newRedisClient(tb testing.TB) *redis.Client {
 	tb.Helper()
-	ctx := context.Background()
+	ctx, cancel := context.WithTimeout(context.Background(), 90*time.Second)
+	tb.Cleanup(cancel)
 	addr, err := redisAddr(ctx)
 	if err != nil {
 		tb.Fatalf("start redis container: %v", err)
@@ -79,7 +80,9 @@ func waitForRedis(tb testing.TB, client *redis.Client) {
 func TestMain(m *testing.M) {
 	code := m.Run()
 	if redisFixture.container != nil {
-		_ = testcleanup.Terminate(context.Background(), 0, redisFixture.container)
+		ctx, cancel := context.WithTimeout(context.Background(), testcleanup.DefaultTerminateTimeout)
+		_ = testcleanup.Terminate(ctx, 0, redisFixture.container)
+		cancel()
 	}
 	os.Exit(code)
 }

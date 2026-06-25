@@ -43,6 +43,7 @@ _ = stack.Values() // []string{"latest", "new"}
 
 ## Behavior
 
+- Validation errors from helper inputs wrap `ErrInvalidArgument`.
 - `Chunk` rejects non-positive sizes.
 - `ChunkBy`, `DistinctBy`, `GroupBy`, and `CountBy` reject nil key or predicate
   functions.

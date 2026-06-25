@@ -3,13 +3,15 @@ package postgrestestcontainer_test
 import (
 	"context"
 	"testing"
+	"time"
 
 	postgrestestcontainer "github.com/bluetape4k/bluetape-go/testcontainers/postgres"
 	"github.com/jackc/pgx/v5"
 )
 
 func TestStartPostgres(t *testing.T) {
-	ctx := context.Background()
+	ctx, cancel := context.WithTimeout(context.Background(), 90*time.Second)
+	t.Cleanup(cancel)
 	srv := postgrestestcontainer.StartServer(ctx, t)
 	details, err := srv.ConnectionDetails(ctx)
 	if err != nil {
