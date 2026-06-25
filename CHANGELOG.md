@@ -7,6 +7,8 @@ and this project uses semantic versioning once the first tag is published.
 
 ## [Unreleased]
 
+## [v0.6.7] - 2026-06-25
+
 ### Added
 
 - `jwt.MongoRepository` and `jwt/mongo` facade for MongoDB-backed distributed
