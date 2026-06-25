@@ -16,10 +16,10 @@ scope, dependency candidates, and GitHub issues.
 | `0.6.1` | [Issue #168 id generator benchmark comparison](2026-06-10-issue-168-id-generator-benchmark.md), [Issue #192 id generator performance optimization](2026-06-11-issue-192-id-generator-performance.md), [Issue #192 id generator third comparison](2026-06-11-issue-192-id-generator-third-comparison.md), [Issue #195 compression benchmark matrix](2026-06-12-issue-195-compression-benchmark-matrix.md) |
 | `0.6.2` | [Issue #202 source parity matrix](2026-06-21-issue-202-source-parity-matrix.md), [Issue #231 IMF exchange-rate provider](2026-06-21-issue-231-imf-exchange-rate-provider.md), [Issue #232 Bloomberg exchange-rate provider evaluation](2026-06-21-issue-232-bloomberg-exchange-rate-provider.md) |
 | `0.6.4` | [Issue #214 testing data and reporting research](2026-06-23-issue-214-testing-data-reporting.md) |
-| `0.7.0` | [Next tracks](2026-06-01-milestone-0.7.0-next-tracks-research.md) |
+| `0.7.0` | [Next tracks](2026-06-01-milestone-0.7.0-next-tracks-research.md), [Issue #39 text scope](2026-06-25-issue-39-text-scope.md) |
 | `0.8.0` | [Relational SQL](2026-06-01-milestone-0.8.0-sql-research.md) |
 | `0.9.0` | [AWS and Floci](2026-06-01-milestone-0.9.0-aws-research.md) |
-| `0.10.0` | [Text](2026-06-01-milestone-0.10.0-text-research.md) |
+| `0.10.0` | [Text](2026-06-01-milestone-0.10.0-text-research.md), [Issue #39 text scope](2026-06-25-issue-39-text-scope.md) |
 | `0.11.0` | [Audit and JaVers patterns](2026-06-01-milestone-0.11.0-audit-javers-research.md) |
 | `0.12.0` | [Graph](2026-06-01-milestone-0.12.0-graph-research.md) |
 
