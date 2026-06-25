@@ -7,6 +7,26 @@ and this project uses semantic versioning once the first tag is published.
 
 ## [Unreleased]
 
+## [v0.6.6] - 2026-06-25
+
+### Added
+
+- Focused testing fixture examples, assertion patterns, golden-file data, and
+  bilingual testing README updates for developer experience parity.
+- Utility parity boundary documentation for logging, time, and math helpers,
+  keeping Go standard-library behavior preferred where it is clearer.
+- `examples/integration` recipes across batch, workflow, cache, resilience, id,
+  JWT, Redis lock/leader, and Testcontainers Redis with service-free, race, and
+  Docker-backed smoke commands.
+- Corrective-series closure audit documenting the rechecked 0.6.x parity matrix,
+  `P0=0 P1=0` state, deferred follow-ups, and explicit Go non-goals.
+
+### Changed
+
+- Root README release roadmap now reflects the completed corrective 0.6.3
+  through 0.6.6 series and separates later roadmap work from closed parity
+  hardening.
+
 ## [v0.6.5] - 2026-06-25
 
 ### Added
