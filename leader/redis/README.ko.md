@@ -31,10 +31,17 @@ if err != nil {
     return err
 }
 
-if err := elector.Campaign(ctx); err != nil {
+campaignCtx, campaignCancel := context.WithTimeout(ctx, 15*time.Second)
+defer campaignCancel()
+
+if err := elector.Campaign(campaignCtx); err != nil {
     return err
 }
-defer elector.Resign(context.Background())
+defer func() {
+    cleanupCtx, cleanupCancel := context.WithTimeout(context.Background(), 5*time.Second)
+    defer cleanupCancel()
+    _ = elector.Resign(cleanupCtx)
+}()
 ```
 
 최대 `MaxLeaders`개의 worker가 동시에 실행될 수 있으면 `NewGroup`을 사용합니다.
@@ -89,6 +96,8 @@ _ = ran
 
 - Redis key format은 Go-owned이며 Kotlin/JVM bluetape4k-leader Lettuce 또는 Redisson participant와 호환되지 않습니다.
 - Campaign은 leadership을 획득하거나 caller context가 cancel될 때까지 대기합니다.
+- Cleanup은 request context보다 오래 걸릴 수 있지만, 복사 가능한 예제에서는
+  `Resign`에도 명시적인 cleanup timeout을 둡니다.
 
 ## 실행 가능한 Batch 예제
 

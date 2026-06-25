@@ -24,6 +24,7 @@ const (
 	defaultECBCacheTTL     = 24 * time.Hour
 	defaultECBMaxStale     = 72 * time.Hour
 	defaultECBRetryBackoff = 100 * time.Millisecond
+	defaultECBMaxBodyBytes = 4 << 20
 )
 
 // ECBProviderOptions 는 ECBProvider 동작을 설정합니다.
@@ -44,6 +45,8 @@ type ECBProviderOptions struct {
 	RetryBackoff time.Duration
 	// AllowStaleOnError 는 refresh 실패 시 stale snapshot 반환을 허용합니다.
 	AllowStaleOnError bool
+	// MaxBodyBytes 는 XML decode 전에 읽을 수 있는 최대 ECB response body 크기입니다.
+	MaxBodyBytes int64
 	// Now 는 freshness test를 위한 시간 provider입니다.
 	Now func() time.Time
 }
@@ -59,6 +62,7 @@ type ECBProvider struct {
 	retryCount        int
 	retryBackoff      time.Duration
 	allowStaleOnError bool
+	maxBodyBytes      int64
 	now               func() time.Time
 
 	mu       sync.RWMutex
@@ -109,6 +113,7 @@ func NewECBProvider(options ECBProviderOptions) (*ECBProvider, error) {
 		retryCount:        options.RetryCount,
 		retryBackoff:      options.RetryBackoff,
 		allowStaleOnError: options.AllowStaleOnError,
+		maxBodyBytes:      options.MaxBodyBytes,
 		now:               options.Now,
 	}, nil
 }
@@ -175,6 +180,9 @@ func normalizeECBOptions(options ECBProviderOptions) ECBProviderOptions {
 	if options.RetryBackoff == 0 {
 		options.RetryBackoff = defaultECBRetryBackoff
 	}
+	if options.MaxBodyBytes == 0 {
+		options.MaxBodyBytes = defaultECBMaxBodyBytes
+	}
 	if options.Now == nil {
 		options.Now = time.Now
 	}
@@ -196,6 +204,9 @@ func validateECBOptions(options ECBProviderOptions) error {
 	}
 	if options.RetryBackoff < 0 {
 		return fmt.Errorf("%w: negative retry backoff %s", ErrExchangeRateProvider, options.RetryBackoff)
+	}
+	if options.MaxBodyBytes < 0 {
+		return fmt.Errorf("%w: negative max body bytes %d", ErrExchangeRateProvider, options.MaxBodyBytes)
 	}
 	parsed, err := url.Parse(strings.TrimSpace(options.Endpoint))
 	if err != nil || parsed.Scheme == "" || parsed.Host == "" {
@@ -297,7 +308,11 @@ func (p *ECBProvider) fetch(ctx context.Context) (*ecbSnapshot, error) {
 		_, _ = io.Copy(io.Discard, response.Body)
 		return nil, fmt.Errorf("%w: ECB HTTP status %d", ErrExchangeRateProvider, response.StatusCode)
 	}
-	snapshot, err := parseECBSnapshot(response.Body, p.currentTime(), p.cacheTTL)
+	body, err := readLimitedECBBody(response.Body, p.maxBodyBytes)
+	if err != nil {
+		return nil, err
+	}
+	snapshot, err := parseECBSnapshot(strings.NewReader(body), p.currentTime(), p.cacheTTL)
 	if err != nil {
 		return nil, err
 	}
@@ -313,6 +328,21 @@ func (p *ECBProvider) contextWithTimeout(ctx context.Context) (context.Context, 
 		return ctx, func() {}
 	}
 	return context.WithTimeout(ctx, p.timeout)
+}
+
+func readLimitedECBBody(reader io.Reader, maxBytes int64) (string, error) {
+	if maxBytes <= 0 {
+		return "", fmt.Errorf("%w: ECB max body bytes must be positive", ErrExchangeRateProvider)
+	}
+	limited := io.LimitReader(reader, maxBytes+1)
+	body, err := io.ReadAll(limited)
+	if err != nil {
+		return "", fmt.Errorf("%w: %w", ErrExchangeRateProvider, err)
+	}
+	if int64(len(body)) > maxBytes {
+		return "", fmt.Errorf("%w: ECB response body exceeds %d bytes", ErrExchangeRateProvider, maxBytes)
+	}
+	return string(body), nil
 }
 
 func parseECBSnapshot(reader io.Reader, fetchedAt time.Time, cacheTTL time.Duration) (*ecbSnapshot, error) {

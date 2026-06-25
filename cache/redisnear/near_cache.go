@@ -66,11 +66,12 @@ type errorReport struct {
 
 // NearCache 는 Redis invalidation을 local LoadingCache에 적용한다.
 type NearCache[V any] struct {
-	cfg     config[V]
-	pubsub  *redis.PubSub
-	cancel  context.CancelFunc
-	done    chan struct{}
-	errorCh chan errorReport
+	cfg       config[V]
+	pubsub    *redis.PubSub
+	cancel    context.CancelFunc
+	done      chan struct{}
+	errorCh   chan errorReport
+	errorDone chan struct{}
 
 	mu       sync.Mutex
 	closed   bool
@@ -106,6 +107,7 @@ func NewPubSub[V any](ctx context.Context, options Options[V]) (*NearCache[V], e
 		errorCh: newErrorChannel[V](cfg),
 	}
 	if near.errorCh != nil {
+		near.errorDone = make(chan struct{})
 		go near.reportErrors(runCtx)
 	}
 	go near.receive(runCtx)
@@ -213,6 +215,7 @@ func (c *NearCache[V]) Close() error {
 	cancel := c.cancel
 	pubsub := c.pubsub
 	done := c.done
+	errorDone := c.errorDone
 	c.mu.Unlock()
 
 	if cancel != nil {
@@ -230,7 +233,8 @@ func (c *NearCache[V]) Close() error {
 			return errors.Join(closeErr, inflightErr, fmt.Errorf("near cache subscriber did not stop"))
 		}
 	}
-	return errors.Join(closeErr, inflightErr)
+	errorReporterErr := waitForShutdown(errorDone, "near cache error reporter")
+	return errors.Join(closeErr, inflightErr, errorReporterErr)
 }
 
 func normalizeOptions[V any](options Options[V]) (config[V], error) {
@@ -364,11 +368,15 @@ func (c *NearCache[V]) reportError(ctx context.Context, err error) {
 }
 
 func (c *NearCache[V]) reportErrors(ctx context.Context) {
+	defer close(c.errorDone)
 	for {
 		select {
 		case <-ctx.Done():
 			return
-		case report := <-c.errorCh:
+		case report, ok := <-c.errorCh:
+			if !ok {
+				return
+			}
 			c.callOnError(report.ctx, report.err)
 		}
 	}
@@ -433,5 +441,17 @@ func (c *NearCache[V]) waitInflight() error {
 		return nil
 	case <-time.After(receiverShutdownBudget):
 		return fmt.Errorf("near cache operations did not stop")
+	}
+}
+
+func waitForShutdown(done <-chan struct{}, name string) error {
+	if done == nil {
+		return nil
+	}
+	select {
+	case <-done:
+		return nil
+	case <-time.After(receiverShutdownBudget):
+		return fmt.Errorf("%s did not stop", name)
 	}
 }

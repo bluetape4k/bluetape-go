@@ -4,13 +4,15 @@ import (
 	"context"
 	"database/sql"
 	"testing"
+	"time"
 
 	mariadbtestcontainer "github.com/bluetape4k/bluetape-go/testcontainers/mariadb"
 	_ "github.com/go-sql-driver/mysql"
 )
 
 func TestStartMariaDB(t *testing.T) {
-	ctx := context.Background()
+	ctx, cancel := context.WithTimeout(context.Background(), 90*time.Second)
+	t.Cleanup(cancel)
 	srv := mariadbtestcontainer.StartServer(ctx, t)
 	details, err := srv.ConnectionDetails(ctx)
 	if err != nil {

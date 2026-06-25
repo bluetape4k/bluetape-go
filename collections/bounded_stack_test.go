@@ -1,6 +1,7 @@
 package collections_test
 
 import (
+	"errors"
 	"reflect"
 	"testing"
 
@@ -59,11 +60,11 @@ func TestBoundedStack(t *testing.T) {
 }
 
 func TestBoundedStackRejectsInvalidCapacity(t *testing.T) {
-	if _, err := collections.NewBoundedStack[int](0); err == nil {
-		t.Fatal("NewBoundedStack should reject zero capacity")
+	if _, err := collections.NewBoundedStack[int](0); !errors.Is(err, collections.ErrInvalidArgument) {
+		t.Fatalf("NewBoundedStack zero capacity error = %v, want ErrInvalidArgument", err)
 	}
-	if _, err := collections.NewBoundedStack[int](-1); err == nil {
-		t.Fatal("NewBoundedStack should reject negative capacity")
+	if _, err := collections.NewBoundedStack[int](-1); !errors.Is(err, collections.ErrInvalidArgument) {
+		t.Fatalf("NewBoundedStack negative capacity error = %v, want ErrInvalidArgument", err)
 	}
 }
 

@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"strings"
 	"sync"
 	"sync/atomic"
 	"testing"
@@ -217,6 +218,46 @@ func TestNearCacheOnErrorPanicIsRecovered(t *testing.T) {
 	if atomic.LoadInt32(&reports) != 2 {
 		t.Fatalf("panic should not stop later error reporting, got %d reports", reports)
 	}
+}
+
+func TestNearCacheCloseSurfacesBlockedErrorReporter(t *testing.T) {
+	started := make(chan struct{})
+	release := make(chan struct{})
+	near := &NearCache[string]{
+		cfg: config[string]{
+			onError: func(context.Context, error) {
+				close(started)
+				<-release
+			},
+		},
+		cancel:    func() {},
+		errorCh:   make(chan errorReport, 1),
+		errorDone: make(chan struct{}),
+	}
+	runCtx, cancel := context.WithCancel(context.Background())
+	near.cancel = cancel
+	go near.reportErrors(runCtx)
+	near.errorCh <- errorReport{ctx: context.Background(), err: errors.New("boom")}
+
+	<-started
+	startedAt := time.Now()
+	err := near.Close()
+	if err == nil || !strings.Contains(err.Error(), "near cache error reporter did not stop") {
+		t.Fatalf("Close error = %v, want blocked reporter error", err)
+	}
+	if elapsed := time.Since(startedAt); elapsed > receiverShutdownBudget+500*time.Millisecond {
+		t.Fatalf("Close waited too long for blocked reporter: %s", elapsed)
+	}
+	close(release)
+
+	bttesting.Eventually(t, 2*time.Second, func() bool {
+		select {
+		case <-near.errorDone:
+			return true
+		default:
+			return false
+		}
+	})
 }
 
 func TestNearCacheClearsLocalOnReceiveError(t *testing.T) {

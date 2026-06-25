@@ -96,6 +96,9 @@ func (e *Elector) Campaign(ctx context.Context) error {
 
 // Resign 은 이 elector가 아직 소유한 leadership만 해제한다.
 func (e *Elector) Resign(ctx context.Context) error {
+	if ctx == nil {
+		ctx = context.Background()
+	}
 	e.mu.Lock()
 	if !e.owned {
 		e.mu.Unlock()
@@ -112,7 +115,11 @@ func (e *Elector) Resign(ctx context.Context) error {
 		cancel()
 	}
 	if done != nil {
-		<-done
+		select {
+		case <-done:
+		case <-ctx.Done():
+			return ctx.Err()
+		}
 	}
 
 	_, err := e.client.Eval(ctx, releaseScript, []string{e.key}, e.token).Result()
@@ -166,8 +173,11 @@ func (e *Elector) renewLoop(ctx context.Context, done chan<- struct{}) {
 }
 
 func (e *Elector) renew(ctx context.Context) (bool, error) {
+	renewCtx, cancel := context.WithTimeout(ctx, e.opts.RenewInterval)
+	defer cancel()
+
 	ttlMillis := int64(e.opts.Lease / time.Millisecond)
-	result, err := e.client.Eval(ctx, renewScript, []string{e.key}, e.token, ttlMillis).Int()
+	result, err := e.client.Eval(renewCtx, renewScript, []string{e.key}, e.token, ttlMillis).Int()
 	if err != nil {
 		return false, err
 	}

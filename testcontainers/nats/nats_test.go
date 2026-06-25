@@ -10,7 +10,8 @@ import (
 )
 
 func TestStartNATS(t *testing.T) {
-	ctx := context.Background()
+	ctx, cancel := context.WithTimeout(context.Background(), 90*time.Second)
+	t.Cleanup(cancel)
 	srv := natstestcontainer.StartServer(ctx, t)
 	details, err := srv.ConnectionDetails(ctx)
 	if err != nil {

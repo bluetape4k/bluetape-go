@@ -28,14 +28,21 @@ if err != nil {
     return err
 }
 
-lease, err := mutex.TryLock(ctx)
+lockCtx, lockCancel := context.WithTimeout(ctx, 5*time.Second)
+defer lockCancel()
+
+lease, err := mutex.TryLock(lockCtx)
 if errors.Is(err, redislock.ErrNotAcquired) {
     return nil
 }
 if err != nil {
     return err
 }
-defer lease.Unlock(context.Background())
+defer func() {
+    cleanupCtx, cleanupCancel := context.WithTimeout(context.Background(), 5*time.Second)
+    defer cleanupCancel()
+    _, _ = lease.Unlock(cleanupCtx)
+}()
 ```
 
 ## Behavior
@@ -47,6 +54,8 @@ defer lease.Unlock(context.Background())
 - A custom token may be supplied through `Options.Token`; otherwise each
   acquire generates a random owner token.
 - Context cancellation is preserved for Redis commands.
+- Cleanup may use a fresh context after request cancellation, but it should be
+  bounded with an explicit timeout.
 
 ## Operational Boundaries
 

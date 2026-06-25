@@ -22,72 +22,122 @@ type orderMessage struct {
 }
 
 func Example_sendReceiveAndManualAck() {
-	ctx := context.Background()
+	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+	defer cancel()
 	cfg := aws.Config{} // Load with config.LoadDefaultConfig in application code.
 	client := sqs.NewFromConfig(cfg)
 
-	queueURL, _ := createQueue(ctx, client, "orders", nil)
-	payload, _ := encodeJSONMessage(orderMessage{ID: "order-1", Status: "created"})
+	queueURL, err := createQueue(ctx, client, "orders", nil)
+	if err != nil {
+		return
+	}
+	payload, err := encodeJSONMessage(orderMessage{ID: "order-1", Status: "created"})
+	if err != nil {
+		return
+	}
 
-	_, _ = client.SendMessage(ctx, &sqs.SendMessageInput{
+	if _, err := client.SendMessage(ctx, &sqs.SendMessageInput{
 		QueueUrl:    aws.String(queueURL),
 		MessageBody: aws.String(payload),
-	})
+	}); err != nil {
+		return
+	}
 
-	messages, _ := receiveMessages(ctx, client, queueURL, 1, 10, 30)
+	messages, err := receiveMessages(ctx, client, queueURL, 1, 10, 30)
+	if err != nil {
+		return
+	}
 	for _, message := range messages {
-		_, _ = decodeJSONMessage[orderMessage](message)
-		_ = deleteMessage(ctx, client, queueURL, aws.ToString(message.ReceiptHandle))
+		if _, err := decodeJSONMessage[orderMessage](message); err != nil {
+			return
+		}
+		if err := deleteMessage(ctx, client, queueURL, aws.ToString(message.ReceiptHandle)); err != nil {
+			return
+		}
 	}
 }
 
 func Example_visibilityTimeoutAndDeadLetterNotes() {
-	ctx := context.Background()
+	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+	defer cancel()
 	cfg := aws.Config{}
 	client := sqs.NewFromConfig(cfg)
 
-	dlqURL, _ := createQueue(ctx, client, "orders-dlq", nil)
-	dlqARN, _ := queueARN(ctx, client, dlqURL)
-	policy, _ := redrivePolicy(dlqARN, 5)
+	dlqURL, err := createQueue(ctx, client, "orders-dlq", nil)
+	if err != nil {
+		return
+	}
+	dlqARN, err := queueARN(ctx, client, dlqURL)
+	if err != nil {
+		return
+	}
+	policy, err := redrivePolicy(dlqARN, 5)
+	if err != nil {
+		return
+	}
 
-	queueURL, _ := createQueue(ctx, client, "orders", map[string]string{
+	queueURL, err := createQueue(ctx, client, "orders", map[string]string{
 		string(sqstypes.QueueAttributeNameRedrivePolicy):     policy,
 		string(sqstypes.QueueAttributeNameVisibilityTimeout): "30",
 	})
+	if err != nil {
+		return
+	}
 
-	messages, _ := receiveMessages(ctx, client, queueURL, 1, 10, 30)
+	messages, err := receiveMessages(ctx, client, queueURL, 1, 10, 30)
+	if err != nil {
+		return
+	}
 	if len(messages) == 0 {
 		return
 	}
 
 	receiptHandle := aws.ToString(messages[0].ReceiptHandle)
-	_ = changeMessageVisibility(ctx, client, queueURL, receiptHandle, 60)
-	_ = deleteMessage(ctx, client, queueURL, receiptHandle)
+	if err := changeMessageVisibility(ctx, client, queueURL, receiptHandle, 60); err != nil {
+		return
+	}
+	if err := deleteMessage(ctx, client, queueURL, receiptHandle); err != nil {
+		return
+	}
 }
 
 func Example_snsFanoutToSQS() {
-	ctx := context.Background()
+	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+	defer cancel()
 	cfg := aws.Config{}
 	snsClient := sns.NewFromConfig(cfg)
 	sqsClient := sqs.NewFromConfig(cfg)
 
-	topic, _ := snsClient.CreateTopic(ctx, &sns.CreateTopicInput{
+	topic, err := snsClient.CreateTopic(ctx, &sns.CreateTopicInput{
 		Name: aws.String("orders"),
 	})
-	queueURL, _ := createQueue(ctx, sqsClient, "orders-fanout", nil)
-	queueARN, _ := queueARN(ctx, sqsClient, queueURL)
+	if err != nil {
+		return
+	}
+	queueURL, err := createQueue(ctx, sqsClient, "orders-fanout", nil)
+	if err != nil {
+		return
+	}
+	queueARN, err := queueARN(ctx, sqsClient, queueURL)
+	if err != nil {
+		return
+	}
 
-	_, _ = snsClient.Subscribe(ctx, &sns.SubscribeInput{
+	if _, err := snsClient.Subscribe(ctx, &sns.SubscribeInput{
 		TopicArn:              topic.TopicArn,
 		Protocol:              aws.String("sqs"),
 		Endpoint:              aws.String(queueARN),
 		ReturnSubscriptionArn: true,
-	})
+	}); err != nil {
+		return
+	}
 
-	_, _ = snsClient.Publish(ctx, &sns.PublishInput{
+	if _, err := snsClient.Publish(ctx, &sns.PublishInput{
 		TopicArn: topic.TopicArn,
 		Message:  aws.String(`{"id":"order-1","status":"created"}`),
-	})
+	}); err != nil {
+		return
+	}
 }
 
 func TestSQSSNSExampleSmoke(t *testing.T) {

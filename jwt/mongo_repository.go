@@ -14,6 +14,7 @@ import (
 const (
 	mongoDocumentKindCurrent = "current"
 	mongoDocumentKindKey     = "key"
+	mongoCursorCloseTimeout  = 5 * time.Second
 )
 
 // MongoRepository stores distributed JWT KeyChains in MongoDB.
@@ -340,7 +341,11 @@ func (r *MongoRepository) trim(ctx context.Context, keepKID string) error {
 	if err != nil {
 		return fmt.Errorf("mongo jwt trim list: %w", err)
 	}
-	defer func() { _ = cursor.Close(context.Background()) }()
+	defer func() {
+		closeCtx, cancel := mongoCleanupContext(ctx)
+		defer cancel()
+		_ = cursor.Close(closeCtx)
+	}()
 
 	retainedOthers := 0
 	otherCapacity := r.opts.capacity
@@ -372,6 +377,13 @@ func (r *MongoRepository) trim(ctx context.Context, keepKID string) error {
 		return fmt.Errorf("mongo jwt trim delete: %w", err)
 	}
 	return nil
+}
+
+func mongoCleanupContext(parent context.Context) (context.Context, context.CancelFunc) {
+	if parent == nil {
+		parent = context.Background()
+	}
+	return context.WithTimeout(context.WithoutCancel(parent), mongoCursorCloseTimeout)
 }
 
 func (r *MongoRepository) keysCollection() *mongo.Collection {

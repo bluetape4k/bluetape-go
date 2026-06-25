@@ -28,14 +28,21 @@ if err != nil {
     return err
 }
 
-lease, err := mutex.TryLock(ctx)
+lockCtx, lockCancel := context.WithTimeout(ctx, 5*time.Second)
+defer lockCancel()
+
+lease, err := mutex.TryLock(lockCtx)
 if errors.Is(err, redislock.ErrNotAcquired) {
     return nil
 }
 if err != nil {
     return err
 }
-defer lease.Unlock(context.Background())
+defer func() {
+    cleanupCtx, cleanupCancel := context.WithTimeout(context.Background(), 5*time.Second)
+    defer cleanupCancel()
+    _, _ = lease.Unlock(cleanupCtx)
+}()
 ```
 
 ## 동작
@@ -44,6 +51,8 @@ defer lease.Unlock(context.Background())
 - `Lease.Unlock`은 저장된 token이 lease token과 여전히 일치할 때만 Redis key를 삭제합니다.
 - `Options.Token`으로 custom token을 제공할 수 있습니다. 제공하지 않으면 acquire마다 random owner token을 생성합니다.
 - Redis command의 context cancellation은 보존됩니다.
+- Cleanup은 request cancellation 뒤의 fresh context를 사용할 수 있지만,
+  명시적인 timeout으로 제한해야 합니다.
 
 ## 운영 경계
 

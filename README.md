@@ -18,7 +18,7 @@ batch processing, portable values, and Redis-backed adapters.
 
 ## Current Status
 
-`bluetape-go` has published the `v0.6.1` release line. The repository now covers
+`bluetape-go` has published the `v0.6.7` release line. The repository now covers
 foundation helpers, codecs, compression, context-aware concurrency, serializer
 contracts, Redis-backed leader election and locks, resilience policies, cache
 coordination, token-bucket rate limiting, finite state machines, workflow
@@ -27,11 +27,11 @@ service values.
 
 The `v0.6.x` portable utilities scope includes UUID, ULID, KSUID, and Snowflake
 ID generation; explicit-algorithm JWT signing, parsing, validation, and local
-key rotation; typed units and measured values; ISO currency and decimal-backed
+or distributed key rotation backed by in-memory, Redis, or MongoDB KeyChain
+repositories; typed units and measured values; ISO currency and decimal-backed
 money operations; and in-memory or Redis-backed Bloom filters. The current
-`0.6.2` line records source-parity evidence for core helpers, testing helpers,
-and Testcontainers before the corrective `0.6.3` through `0.6.6`
-implementation series.
+`0.6.7` line includes the corrective `0.6.3` through `0.6.6` implementation
+series plus MongoDB-backed JWT KeyChain storage.
 
 ## Packages
 

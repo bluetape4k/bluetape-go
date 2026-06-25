@@ -2,9 +2,13 @@ package compression
 
 import (
 	"bytes"
+	"errors"
 	"fmt"
 	"io"
 )
+
+// ErrDecompressedSizeExceeded reports that decompressed output crossed the caller-provided limit.
+var ErrDecompressedSizeExceeded = errors.New("decompressed size exceeded")
 
 // Compressor compresses and decompresses byte slices and streams.
 type Compressor interface {
@@ -53,6 +57,36 @@ func (c streamCompressor) Decompress(data []byte) ([]byte, error) {
 	decompressed, err := io.ReadAll(reader)
 	if err != nil {
 		return nil, fmt.Errorf("%s decompress: %w", c.name, err)
+	}
+	return decompressed, nil
+}
+
+// DecompressLimit decompresses data while retaining at most maxBytes bytes.
+//
+// Use this helper for untrusted or externally supplied compressed payloads. It
+// returns ErrDecompressedSizeExceeded when the expanded stream exceeds maxBytes.
+func DecompressLimit(compressor Compressor, data []byte, maxBytes int64) ([]byte, error) {
+	if compressor == nil {
+		return nil, fmt.Errorf("compressor must not be nil")
+	}
+	if maxBytes < 0 {
+		return nil, fmt.Errorf("maxBytes[%d] must be non-negative", maxBytes)
+	}
+	reader, err := compressor.NewReader(bytes.NewReader(data))
+	if err != nil {
+		return nil, err
+	}
+	defer func() {
+		_ = reader.Close()
+	}()
+
+	limited := io.LimitReader(reader, maxBytes+1)
+	decompressed, err := io.ReadAll(limited)
+	if err != nil {
+		return nil, fmt.Errorf("%s decompress: %w", compressor.Name(), err)
+	}
+	if int64(len(decompressed)) > maxBytes {
+		return nil, fmt.Errorf("%w: max %d bytes", ErrDecompressedSizeExceeded, maxBytes)
 	}
 	return decompressed, nil
 }

@@ -22,7 +22,8 @@ import (
 )
 
 func Example_putGetMetadataAndPresign() {
-	ctx := context.Background()
+	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+	defer cancel()
 	cfg := aws.Config{} // Load with config.LoadDefaultConfig in application code.
 
 	client := s3.NewFromConfig(cfg, func(options *s3.Options) {
@@ -35,7 +36,7 @@ func Example_putGetMetadataAndPresign() {
 	body := "hello from bluetape-go"
 	contentType := contentTypeForKey(key, []byte(body))
 
-	_, _ = client.PutObject(ctx, &s3.PutObjectInput{
+	if _, err := client.PutObject(ctx, &s3.PutObjectInput{
 		Bucket:      aws.String(bucket),
 		Key:         aws.String(key),
 		Body:        strings.NewReader(body),
@@ -43,61 +44,83 @@ func Example_putGetMetadataAndPresign() {
 		Metadata: map[string]string{
 			"source": "bluetape-go",
 		},
-	})
+	}); err != nil {
+		return
+	}
 
-	_, _ = client.HeadObject(ctx, &s3.HeadObjectInput{
+	if _, err := client.HeadObject(ctx, &s3.HeadObjectInput{
+		Bucket: aws.String(bucket),
+		Key:    aws.String(key),
+	}); err != nil {
+		return
+	}
+
+	out, err := client.GetObject(ctx, &s3.GetObjectInput{
 		Bucket: aws.String(bucket),
 		Key:    aws.String(key),
 	})
-
-	out, _ := client.GetObject(ctx, &s3.GetObjectInput{
-		Bucket: aws.String(bucket),
-		Key:    aws.String(key),
-	})
+	if err != nil {
+		return
+	}
 	if out != nil && out.Body != nil {
 		defer func() {
 			_ = out.Body.Close()
 		}()
-		_, _ = io.ReadAll(out.Body)
+		if _, err := io.ReadAll(out.Body); err != nil {
+			return
+		}
 	}
 
-	_, _ = presigner.PresignGetObject(ctx, &s3.GetObjectInput{
+	if _, err := presigner.PresignGetObject(ctx, &s3.GetObjectInput{
 		Bucket: aws.String(bucket),
 		Key:    aws.String(key),
 	}, func(options *s3.PresignOptions) {
 		options.Expires = 15 * time.Minute
-	})
+	}); err != nil {
+		return
+	}
 }
 
 func Example_streamingUploadDownload() {
-	ctx := context.Background()
+	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+	defer cancel()
 	cfg := aws.Config{}
 
 	client := s3.NewFromConfig(cfg, func(options *s3.Options) {
 		options.UsePathStyle = true
 	})
 
-	_, _ = client.PutObject(ctx, &s3.PutObjectInput{
+	if _, err := client.PutObject(ctx, &s3.PutObjectInput{
 		Bucket: aws.String("example-bucket"),
 		Key:    aws.String("streamed.txt"),
 		Body:   strings.NewReader("chunk-1\nchunk-2\n"),
-	})
+	}); err != nil {
+		return
+	}
 
-	out, _ := client.GetObject(ctx, &s3.GetObjectInput{
+	out, err := client.GetObject(ctx, &s3.GetObjectInput{
 		Bucket: aws.String("example-bucket"),
 		Key:    aws.String("streamed.txt"),
 	})
+	if err != nil {
+		return
+	}
 	if out != nil && out.Body != nil {
 		defer func() {
 			_ = out.Body.Close()
 		}()
 		var downloaded bytes.Buffer
-		_, _ = io.Copy(&downloaded, out.Body)
+		if _, err := io.Copy(&downloaded, out.Body); err != nil {
+			return
+		}
 	}
 }
 
 func Example_errorMapping() {
-	err := getMissingS3Object(context.Background(), nil, "example-bucket", "missing.txt")
+	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+	defer cancel()
+
+	err := getMissingS3Object(ctx, nil, "example-bucket", "missing.txt")
 	if isS3NotFound(err) {
 		fmt.Println("not found")
 		return

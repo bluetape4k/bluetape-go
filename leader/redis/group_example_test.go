@@ -10,7 +10,8 @@ import (
 )
 
 func ExampleNewGroup() {
-	ctx := context.Background()
+	ctx, cancel := context.WithTimeout(context.Background(), 15*time.Second)
+	defer cancel()
 	client := redis.NewClient(&redis.Options{Addr: "localhost:6379"})
 	defer func() {
 		_ = client.Close()
@@ -33,7 +34,9 @@ func ExampleNewGroup() {
 		return
 	}
 	defer func() {
-		_ = elector.Resign(context.Background())
+		cleanupCtx, cleanupCancel := context.WithTimeout(context.Background(), 5*time.Second)
+		defer cleanupCancel()
+		_ = elector.Resign(cleanupCtx)
 	}()
 
 	_ = elector.IsLeader()

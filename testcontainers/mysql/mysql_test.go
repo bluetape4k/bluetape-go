@@ -4,13 +4,15 @@ import (
 	"context"
 	"database/sql"
 	"testing"
+	"time"
 
 	mysqltestcontainer "github.com/bluetape4k/bluetape-go/testcontainers/mysql"
 	_ "github.com/go-sql-driver/mysql"
 )
 
 func TestStartMySQL(t *testing.T) {
-	ctx := context.Background()
+	ctx, cancel := context.WithTimeout(context.Background(), 90*time.Second)
+	t.Cleanup(cancel)
 	srv := mysqltestcontainer.StartServer(ctx, t)
 	details, err := srv.ConnectionDetails(ctx)
 	if err != nil {

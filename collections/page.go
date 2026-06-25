@@ -18,19 +18,19 @@ type Page[T any] struct {
 func PageOf[T any](items []T, page, size int, total int64) (Page[T], error) {
 	var zero Page[T]
 	if page < 0 {
-		return zero, fmt.Errorf("page[%d] must be non-negative", page)
+		return zero, fmt.Errorf("%w: page[%d] must be non-negative", ErrInvalidArgument, page)
 	}
 	if size <= 0 {
-		return zero, fmt.Errorf("page size[%d] must be positive", size)
+		return zero, fmt.Errorf("%w: page size[%d] must be positive", ErrInvalidArgument, size)
 	}
 	if total < 0 {
-		return zero, fmt.Errorf("total[%d] must be non-negative", total)
+		return zero, fmt.Errorf("%w: total[%d] must be non-negative", ErrInvalidArgument, total)
 	}
 
 	page64 := int64(page)
 	size64 := int64(size)
 	if page64 > math.MaxInt64/size64 {
-		return zero, fmt.Errorf("page offset overflows int64")
+		return zero, fmt.Errorf("%w: page offset overflows int64", ErrInvalidArgument)
 	}
 
 	var snapshot []T

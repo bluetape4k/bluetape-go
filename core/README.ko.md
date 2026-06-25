@@ -67,7 +67,8 @@ _ = periodEnd
 
 ## 동작
 
-- Validation helper는 panic 대신 error를 반환합니다.
+- Validation helper는 panic 대신 `ErrInvalidArgument`를 감싼 error를 반환합니다.
+  specialized helper는 `ErrInvalidTime`, `ErrInvalidUTF8` 같은 sentinel도 유지합니다.
 - `Range` constructor는 `ClosedRange`, `ClosedOpenRange`, `OpenClosedRange`,
   `OpenOpenRange`로 `[lower, upper]`, `[lower, upper)`, `(lower, upper]`,
   `(lower, upper)` 표기를 지원합니다.

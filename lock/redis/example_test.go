@@ -9,7 +9,8 @@ import (
 )
 
 func ExampleNew() {
-	ctx := context.Background()
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
 	client := redis.NewClient(&redis.Options{Addr: "localhost:6379"})
 	defer func() {
 		_ = client.Close()
@@ -28,7 +29,9 @@ func ExampleNew() {
 		return
 	}
 	defer func() {
-		_, _ = lease.Unlock(context.Background())
+		cleanupCtx, cleanupCancel := context.WithTimeout(context.Background(), 5*time.Second)
+		defer cleanupCancel()
+		_, _ = lease.Unlock(cleanupCtx)
 	}()
 
 	// protected work runs here

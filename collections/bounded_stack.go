@@ -15,7 +15,7 @@ type BoundedStack[T any] struct {
 // NewBoundedStack creates a stack that keeps at most capacity values.
 func NewBoundedStack[T any](capacity int) (*BoundedStack[T], error) {
 	if capacity <= 0 {
-		return nil, fmt.Errorf("bounded stack capacity[%d] must be positive", capacity)
+		return nil, fmt.Errorf("%w: bounded stack capacity[%d] must be positive", ErrInvalidArgument, capacity)
 	}
 	return &BoundedStack[T]{
 		values:   make([]T, 0, capacity),

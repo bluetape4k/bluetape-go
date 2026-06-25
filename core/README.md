@@ -72,7 +72,9 @@ _ = periodEnd
 
 ## Behavior
 
-- Validation helpers return errors instead of panicking.
+- Validation helpers return errors wrapping `ErrInvalidArgument` instead of
+  panicking; specialized helpers also keep sentinels such as `ErrInvalidTime`
+  and `ErrInvalidUTF8`.
 - `Range` constructors support `[lower, upper]`, `[lower, upper)`,
   `(lower, upper]`, and `(lower, upper)` notation through `ClosedRange`,
   `ClosedOpenRange`, `OpenClosedRange`, and `OpenOpenRange`.

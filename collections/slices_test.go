@@ -35,8 +35,8 @@ func TestChunk(t *testing.T) {
 		t.Fatalf("Chunk empty returned %#v", got)
 	}
 
-	if _, err := collections.Chunk([]int{1}, 0); err == nil {
-		t.Fatal("Chunk should reject non-positive size")
+	if _, err := collections.Chunk([]int{1}, 0); !errors.Is(err, collections.ErrInvalidArgument) {
+		t.Fatalf("Chunk invalid size error = %v, want ErrInvalidArgument", err)
 	}
 }
 
@@ -69,8 +69,27 @@ func TestChunkBy(t *testing.T) {
 	if !reflect.DeepEqual(got, want) {
 		t.Fatalf("ChunkBy returned %#v", got)
 	}
-	if _, err := collections.ChunkBy([]int{1}, nil); err == nil {
-		t.Fatal("ChunkBy should reject nil predicate")
+	if _, err := collections.ChunkBy([]int{1}, nil); !errors.Is(err, collections.ErrInvalidArgument) {
+		t.Fatalf("ChunkBy nil predicate error = %v, want ErrInvalidArgument", err)
+	}
+}
+
+func TestCollectionSliceHelpersWrapInvalidArgument(t *testing.T) {
+	checks := []struct {
+		name string
+		err  error
+	}{
+		{name: "distinct by nil key", err: func() error { _, err := collections.DistinctBy[int, int]([]int{1}, nil); return err }()},
+		{name: "map nil mapper", err: func() error { _, err := collections.MapErr[int, int]([]int{1}, nil); return err }()},
+		{name: "filter nil predicate", err: func() error { _, err := collections.FilterErr([]int{1}, nil); return err }()},
+		{name: "filter map nil mapper", err: func() error { _, err := collections.FilterMap[int, int]([]int{1}, nil); return err }()},
+	}
+	for _, check := range checks {
+		t.Run(check.name, func(t *testing.T) {
+			if !errors.Is(check.err, collections.ErrInvalidArgument) {
+				t.Fatalf("error = %v, want ErrInvalidArgument", check.err)
+			}
+		})
 	}
 }
 
