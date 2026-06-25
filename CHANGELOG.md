@@ -7,6 +7,24 @@ and this project uses semantic versioning once the first tag is published.
 
 ## [Unreleased]
 
+## [v0.6.5] - 2026-06-25
+
+### Added
+
+- Shared Testcontainers server/property export abstraction with bounded
+  startup error reporting and service connection metadata helpers.
+- Testcontainers wrappers for MariaDB, Toxiproxy, and Floci, including
+  service config smoke coverage for S3, SQS, SNS, and DynamoDB.
+- Direct AWS SDK for Go examples for S3, SQS/SNS, and DynamoDB batch write
+  retry helpers, with bilingual README coverage and explicit wrapper
+  boundary decisions.
+
+### Changed
+
+- Hardened existing Testcontainers lifecycle and connection contracts before
+  adding more service fixtures, including serial execution guidance and
+  cleanup/startup diagnostics.
+
 ## [v0.6.4] - 2026-06-25
 
 ### Added

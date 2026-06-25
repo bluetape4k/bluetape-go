@@ -9,10 +9,16 @@ import (
 )
 
 func TestStartPostgres(t *testing.T) {
-	t.Parallel()
-
 	ctx := context.Background()
-	connString := postgrestestcontainer.Start(ctx, t)
+	srv := postgrestestcontainer.StartServer(ctx, t)
+	details, err := srv.ConnectionDetails(ctx)
+	if err != nil {
+		t.Fatalf("postgres server details: %v", err)
+	}
+	connString, err := details.Require(postgrestestcontainer.ConnectionStringKey)
+	if err != nil {
+		t.Fatalf("postgres connection detail: %v", err)
+	}
 
 	conn, err := pgx.Connect(ctx, connString)
 	if err != nil {
@@ -30,5 +36,11 @@ func TestStartPostgres(t *testing.T) {
 	}
 	if value != 1 {
 		t.Fatalf("expected postgres query result 1, got %d", value)
+	}
+}
+
+func TestConnectionDetailKey(t *testing.T) {
+	if postgrestestcontainer.ConnectionStringKey != "postgres.connection-string" {
+		t.Fatalf("ConnectionStringKey = %q", postgrestestcontainer.ConnectionStringKey)
 	}
 }

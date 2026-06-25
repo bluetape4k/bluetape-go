@@ -53,6 +53,33 @@ func TestTerminateRejectsNilTerminator(t *testing.T) {
 	}
 }
 
+func TestRegisterTerminatesWhenSubtestSkips(t *testing.T) {
+	terminator := &countingTerminator{}
+
+	t.Run("skipped", func(t *testing.T) {
+		Register(context.Background(), t, "redis", terminator)
+		t.Skip("exercise cleanup after skip")
+	})
+
+	if terminator.calls != 1 {
+		t.Fatalf("expected one cleanup call after skip, got %d", terminator.calls)
+	}
+}
+
+func TestTerminateCanRunRepeatedly(t *testing.T) {
+	terminator := &countingTerminator{}
+
+	for range 2 {
+		if err := Terminate(context.Background(), time.Second, terminator); err != nil {
+			t.Fatalf("Terminate failed: %v", err)
+		}
+	}
+
+	if terminator.calls != 2 {
+		t.Fatalf("expected two cleanup calls, got %d", terminator.calls)
+	}
+}
+
 type contextKey struct{}
 
 type capturingTerminator struct {
@@ -76,4 +103,13 @@ type blockingTerminator struct{}
 func (blockingTerminator) Terminate(ctx context.Context, _ ...testcontainers.TerminateOption) error {
 	<-ctx.Done()
 	return ctx.Err()
+}
+
+type countingTerminator struct {
+	calls int
+}
+
+func (t *countingTerminator) Terminate(context.Context, ...testcontainers.TerminateOption) error {
+	t.calls++
+	return nil
 }

@@ -10,12 +10,20 @@ import (
 )
 
 func TestStartRedis(t *testing.T) {
-	t.Parallel()
-
 	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 	t.Cleanup(cancel)
 
-	client := redis.NewClient(&redis.Options{Addr: redistestcontainer.Start(ctx, t)})
+	srv := redistestcontainer.StartServer(ctx, t)
+	details, err := srv.ConnectionDetails(ctx)
+	if err != nil {
+		t.Fatalf("redis server details: %v", err)
+	}
+	addr, err := details.Require(redistestcontainer.AddressKey)
+	if err != nil {
+		t.Fatalf("redis address detail: %v", err)
+	}
+
+	client := redis.NewClient(&redis.Options{Addr: addr})
 	t.Cleanup(func() {
 		if err := client.Close(); err != nil {
 			t.Fatalf("close redis client: %v", err)
@@ -38,5 +46,11 @@ func TestStartRedis(t *testing.T) {
 	}
 	if got != value {
 		t.Fatalf("redis value = %q, want %q", got, value)
+	}
+}
+
+func TestConnectionDetailKey(t *testing.T) {
+	if redistestcontainer.AddressKey != "redis.address" {
+		t.Fatalf("AddressKey = %q", redistestcontainer.AddressKey)
 	}
 }
