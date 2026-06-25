@@ -7,6 +7,37 @@ and this project uses semantic versioning once the first tag is published.
 
 ## [Unreleased]
 
+## [v0.6.8] - 2026-06-25
+
+### Added
+
+- `compression.DecompressLimit` and `ErrDecompressedSizeExceeded` for callers
+  that handle untrusted compressed payloads and need a hard expanded-output
+  limit without changing the existing `Compressor` interface.
+- `core.ErrInvalidArgument` and `collections.ErrInvalidArgument` sentinel
+  contracts for caller-input validation failures in public helper APIs.
+
+### Changed
+
+- Root README release status now reflects the published `v0.6.7` line and the
+  MongoDB-backed JWT KeyChain repository scope.
+- Redis leader and lock examples now use bounded campaign/acquire contexts and
+  separate bounded cleanup contexts.
+- AWS S3, SQS/SNS, and DynamoDB batchwrite examples now show bounded contexts
+  and preserve SDK errors instead of discarding them.
+- Docker-backed tests now use explicit startup contexts in PostgreSQL, MySQL,
+  MariaDB, NATS, Redis Bloom, and JWT Redis/Mongo fixtures.
+
+### Fixed
+
+- ECB exchange-rate XML fetches now cap response bodies before XML decoding.
+- MongoDB JWT repository trim cursor cleanup now uses a bounded cleanup context.
+- Redis leader and group elector `Resign` now honor caller cancellation while
+  waiting for renewal workers, and renewal Redis calls are bounded per
+  operation.
+- Redis near-cache `Close` now tracks the `OnError` reporter goroutine and
+  surfaces bounded shutdown failures.
+
 ## [v0.6.7] - 2026-06-25
 
 ### Added
