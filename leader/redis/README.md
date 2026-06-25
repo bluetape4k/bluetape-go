@@ -32,10 +32,17 @@ if err != nil {
     return err
 }
 
-if err := elector.Campaign(ctx); err != nil {
+campaignCtx, campaignCancel := context.WithTimeout(ctx, 15*time.Second)
+defer campaignCancel()
+
+if err := elector.Campaign(campaignCtx); err != nil {
     return err
 }
-defer elector.Resign(context.Background())
+defer func() {
+    cleanupCtx, cleanupCancel := context.WithTimeout(context.Background(), 5*time.Second)
+    defer cleanupCancel()
+    _ = elector.Resign(cleanupCtx)
+}()
 ```
 
 Use `NewGroup` when up to `MaxLeaders` workers may run concurrently:
@@ -97,6 +104,8 @@ _ = ran
   bluetape4k-leader Lettuce or Redisson participants.
 - Campaign waits until leadership is acquired or the caller context is
   cancelled.
+- Cleanup may outlive a request context, but copied examples should still bound
+  `Resign` with an explicit cleanup timeout.
 
 ## Runnable Batch Examples
 

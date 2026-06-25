@@ -1,6 +1,7 @@
 package core_test
 
 import (
+	"errors"
 	"testing"
 
 	"github.com/bluetape4k/bluetape-go/core"
@@ -28,8 +29,8 @@ func TestClamp(t *testing.T) {
 	if got != 10 {
 		t.Fatalf("Clamp above range returned %d", got)
 	}
-	if _, err := core.Clamp(1, 10, 1); err == nil {
-		t.Fatal("Clamp should reject invalid ranges")
+	if _, err := core.Clamp(1, 10, 1); !errors.Is(err, core.ErrInvalidArgument) {
+		t.Fatalf("Clamp invalid range error = %v, want ErrInvalidArgument", err)
 	}
 }
 

@@ -17,7 +17,8 @@ client facade가 아닙니다.
 ## 사용
 
 ```go
-ctx := context.Background()
+ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+defer cancel()
 client := dynamodb.NewFromConfig(cfg)
 
 items := map[string][]types.WriteRequest{

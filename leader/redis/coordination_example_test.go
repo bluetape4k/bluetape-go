@@ -33,7 +33,7 @@ func TestBatchSchedulerExample(t *testing.T) {
 		t.Fatalf("primary campaign: %v", err)
 	}
 	t.Cleanup(func() {
-		_ = primary.Resign(context.Background())
+		resignExample(t, primary)
 	})
 
 	if err := secondary.Campaign(ctx); !errors.Is(err, leader.ErrNotLeader) {
@@ -80,7 +80,7 @@ func TestBatchSchedulerExample(t *testing.T) {
 		t.Fatalf("secondary campaign after resign: %v", err)
 	}
 	t.Cleanup(func() {
-		_ = secondary.Resign(context.Background())
+		resignExample(t, secondary)
 	})
 }
 
@@ -102,7 +102,7 @@ func TestGroupBatchWorkersExample(t *testing.T) {
 			t.Fatalf("worker %d campaign: %v", i, err)
 		}
 		t.Cleanup(func() {
-			_ = worker.Resign(context.Background())
+			resignGroupExample(t, worker)
 		})
 		if err := client.Incr(ctx, "example:group-batch:running").Err(); err != nil {
 			t.Fatalf("count running worker: %v", err)
@@ -140,7 +140,7 @@ func TestMigrationGateExample(t *testing.T) {
 		t.Fatalf("first campaign: %v", err)
 	}
 	t.Cleanup(func() {
-		_ = first.Resign(context.Background())
+		resignExample(t, first)
 	})
 
 	job, err := migrationBatchJob("schema-v20260603", migrationKey, client)
@@ -170,7 +170,7 @@ func TestMigrationGateExample(t *testing.T) {
 		t.Fatalf("second campaign: %v", err)
 	}
 	t.Cleanup(func() {
-		_ = second.Resign(context.Background())
+		resignExample(t, second)
 	})
 
 	job, err = migrationBatchJob("schema-v20260603", migrationKey, client)
@@ -206,7 +206,7 @@ func TestLeaderGuardedBatchExecutionWithGoroutineStressTester(t *testing.T) {
 		t.Fatalf("campaign: %v", err)
 	}
 	t.Cleanup(func() {
-		_ = elector.Resign(context.Background())
+		resignExample(t, elector)
 	})
 
 	tester := concurrencytest.NewGoroutineStressTester(concurrencytest.Options{
@@ -254,7 +254,7 @@ func TestLeaderGuardedBatchExecutionWithAsyncJobTesterCancellation(t *testing.T)
 		t.Fatalf("campaign: %v", err)
 	}
 	t.Cleanup(func() {
-		_ = elector.Resign(context.Background())
+		resignExample(t, elector)
 	})
 
 	tester := concurrencytest.NewAsyncJobTester(concurrencytest.Options{
@@ -328,6 +328,24 @@ func redisExampleGroupElector(
 		t.Fatalf("new group elector: %v", err)
 	}
 	return elector
+}
+
+func resignExample(t *testing.T, elector *redisleader.Elector) {
+	t.Helper()
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+	if err := elector.Resign(ctx); err != nil {
+		t.Fatalf("resign example elector: %v", err)
+	}
+}
+
+func resignGroupExample(t *testing.T, elector *redisleader.GroupElector) {
+	t.Helper()
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+	if err := elector.Resign(ctx); err != nil {
+		t.Fatalf("resign example group elector: %v", err)
+	}
 }
 
 func runBatchIfLeader(ctx context.Context, elector leader.Elector, runner batch.Runner) (batch.Report, bool, error) {

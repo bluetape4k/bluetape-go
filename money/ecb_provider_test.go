@@ -33,6 +33,7 @@ func TestNewECBProviderValidatesOptions(t *testing.T) {
 		{name: "negative max stale", options: ECBProviderOptions{Endpoint: "https://example.com/ecb.xml", MaxStale: -time.Second}},
 		{name: "negative retry count", options: ECBProviderOptions{Endpoint: "https://example.com/ecb.xml", RetryCount: -1}},
 		{name: "negative retry backoff", options: ECBProviderOptions{Endpoint: "https://example.com/ecb.xml", RetryBackoff: -time.Second}},
+		{name: "negative max body bytes", options: ECBProviderOptions{Endpoint: "https://example.com/ecb.xml", MaxBodyBytes: -1}},
 		{name: "empty endpoint", options: ECBProviderOptions{Endpoint: "   "}},
 		{name: "bad scheme", options: ECBProviderOptions{Endpoint: "file:///tmp/ecb.xml"}},
 	}
@@ -55,6 +56,9 @@ func TestNewECBProviderAppliesSafeDefaults(t *testing.T) {
 	}
 	if provider.timeout <= 0 || provider.cacheTTL <= 0 || provider.maxStale <= 0 || provider.retryBackoff <= 0 {
 		t.Fatalf("duration defaults should be positive")
+	}
+	if provider.maxBodyBytes != defaultECBMaxBodyBytes {
+		t.Fatalf("max body bytes = %d, want %d", provider.maxBodyBytes, defaultECBMaxBodyBytes)
 	}
 }
 
@@ -179,6 +183,21 @@ func TestECBProviderHTTPAndParseFailures(t *testing.T) {
 				t.Fatalf("expected provider/unavailable error, got %v", err)
 			}
 		})
+	}
+}
+
+func TestECBProviderRejectsOversizedResponseBody(t *testing.T) {
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+		_, _ = w.Write([]byte(ecbXML + strings.Repeat(" ", 64)))
+	}))
+	defer server.Close()
+
+	provider := newTestECBProvider(t, ECBProviderOptions{
+		Endpoint:     server.URL,
+		MaxBodyBytes: int64(len(ecbXML)),
+	})
+	if _, err := provider.Rate(context.Background(), EUR, USD); !errors.Is(err, ErrExchangeRateUnavailable) {
+		t.Fatalf("expected unavailable error wrapping oversized body, got %v", err)
 	}
 }
 

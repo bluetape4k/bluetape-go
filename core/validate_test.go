@@ -73,12 +73,12 @@ func TestRequireNumbers(t *testing.T) {
 	}
 }
 
-func TestValidationErrorsArePlainErrors(t *testing.T) {
+func TestValidationErrorsWrapInvalidArgument(t *testing.T) {
 	err := core.RequireNotBlank("name", "")
 	if err == nil {
 		t.Fatal("expected validation error")
 	}
-	if errors.Unwrap(err) != nil {
-		t.Fatalf("validation error should not wrap another error: %v", err)
+	if !errors.Is(err, core.ErrInvalidArgument) {
+		t.Fatalf("validation error = %v, want ErrInvalidArgument", err)
 	}
 }

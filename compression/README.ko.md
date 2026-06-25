@@ -29,10 +29,21 @@ if err != nil {
 }
 ```
 
+외부에서 받은 compressed byte는 expanded output을 제한하세요:
+
+```go
+decompressed, err := compression.DecompressLimit(compressor, compressed, 8<<20)
+if err != nil {
+    return err
+}
+```
+
 ## 동작
 
 - `Default()`는 현재 zstd를 반환합니다.
 - `All()`은 gzip, zlib, deflate, zstd, lz4, snappy를 안정적인 순서로 반환합니다.
+- `Decompress`는 이미 크기가 제한된 payload 또는 신뢰할 수 있는 payload용입니다.
+  신뢰할 수 없는 byte-slice 입력에는 `DecompressLimit`를 사용하세요.
 - Stream API는 nil reader/writer를 거부합니다.
 - gzip, zlib, deflate, zstd에는 압축 레벨을 지정하는 constructor가 있습니다.
 

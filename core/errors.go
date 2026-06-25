@@ -11,4 +11,7 @@ var (
 
 	// ErrInvalidUTF8 reports text input that is not valid UTF-8.
 	ErrInvalidUTF8 = errors.New("invalid UTF-8 text")
+
+	// ErrInvalidArgument reports invalid caller-provided helper input.
+	ErrInvalidArgument = errors.New("core: invalid argument")
 )

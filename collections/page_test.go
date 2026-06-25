@@ -1,6 +1,7 @@
 package collections_test
 
 import (
+	"errors"
 	"math"
 	"strconv"
 	"testing"
@@ -74,16 +75,16 @@ func TestPageOfRejectsInvalidInput(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if _, err := collections.PageOf([]int{1}, tt.page, tt.size, tt.total); err == nil {
-				t.Fatal("PageOf should reject invalid input")
+			if _, err := collections.PageOf([]int{1}, tt.page, tt.size, tt.total); !errors.Is(err, collections.ErrInvalidArgument) {
+				t.Fatalf("PageOf invalid input error = %v, want ErrInvalidArgument", err)
 			}
 		})
 	}
 
 	if strconv.IntSize == 64 {
 		maxInt := int(^uint(0) >> 1)
-		if _, err := collections.PageOf([]int{1}, maxInt, 2, math.MaxInt64); err == nil {
-			t.Fatal("PageOf should reject offset overflow")
+		if _, err := collections.PageOf([]int{1}, maxInt, 2, math.MaxInt64); !errors.Is(err, collections.ErrInvalidArgument) {
+			t.Fatalf("PageOf overflow error = %v, want ErrInvalidArgument", err)
 		}
 	}
 }

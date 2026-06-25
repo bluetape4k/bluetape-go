@@ -2,6 +2,7 @@ package compression_test
 
 import (
 	"bytes"
+	"errors"
 	"io"
 	"strings"
 	"testing"
@@ -84,6 +85,41 @@ func TestCompressorsRejectCorruptInput(t *testing.T) {
 				t.Fatal("expected corrupt input to fail")
 			}
 		})
+	}
+}
+
+func TestDecompressLimitRejectsOversizedOutput(t *testing.T) {
+	payload := testPayload()
+
+	for _, compressor := range compression.All() {
+		t.Run(compressor.Name(), func(t *testing.T) {
+			compressed, err := compressor.Compress(payload)
+			if err != nil {
+				t.Fatalf("Compress failed: %v", err)
+			}
+
+			decompressed, err := compression.DecompressLimit(compressor, compressed, int64(len(payload)))
+			if err != nil {
+				t.Fatalf("DecompressLimit exact limit failed: %v", err)
+			}
+			if !bytes.Equal(decompressed, payload) {
+				t.Fatalf("got %q, want %q", decompressed, payload)
+			}
+
+			_, err = compression.DecompressLimit(compressor, compressed, int64(len(payload)-1))
+			if !errors.Is(err, compression.ErrDecompressedSizeExceeded) {
+				t.Fatalf("DecompressLimit oversized error = %v, want ErrDecompressedSizeExceeded", err)
+			}
+		})
+	}
+}
+
+func TestDecompressLimitRejectsInvalidArguments(t *testing.T) {
+	if _, err := compression.DecompressLimit(nil, nil, 0); err == nil {
+		t.Fatal("nil compressor should fail")
+	}
+	if _, err := compression.DecompressLimit(compression.Gzip(), nil, -1); err == nil {
+		t.Fatal("negative maxBytes should fail")
 	}
 }
 

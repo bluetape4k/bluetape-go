@@ -530,7 +530,9 @@ func TestRepositoryRotateCurrentHitCommandBudget(t *testing.T) {
 
 func jwtRedisClient(ctx context.Context, t *testing.T) *redis.Client {
 	t.Helper()
-	addr, err := jwtRedisAddr(ctx)
+	startCtx, cancel := context.WithTimeout(ctx, 90*time.Second)
+	t.Cleanup(cancel)
+	addr, err := jwtRedisAddr(startCtx)
 	if err != nil {
 		t.Fatalf("start redis container: %v", err)
 	}
@@ -569,10 +571,14 @@ func jwtRedisAddr(ctx context.Context) (string, error) {
 func TestMain(m *testing.M) {
 	code := m.Run()
 	if jwtRedisFixture.container != nil {
-		_ = testcleanup.Terminate(context.Background(), 0, jwtRedisFixture.container)
+		ctx, cancel := context.WithTimeout(context.Background(), testcleanup.DefaultTerminateTimeout)
+		_ = testcleanup.Terminate(ctx, 0, jwtRedisFixture.container)
+		cancel()
 	}
 	if jwtMongoFixture.container != nil {
-		_ = testcleanup.Terminate(context.Background(), 0, jwtMongoFixture.container)
+		ctx, cancel := context.WithTimeout(context.Background(), testcleanup.DefaultTerminateTimeout)
+		_ = testcleanup.Terminate(ctx, 0, jwtMongoFixture.container)
+		cancel()
 	}
 	os.Exit(code)
 }

@@ -17,7 +17,7 @@ adapter를 작은 패키지로 가져다 쓸 수 있게 만든 별도 구현입�
 
 ## 현재 상태
 
-`bluetape-go`는 `v0.6.1` 릴리스 선을 배포했습니다. 현재 repository에는
+`bluetape-go`는 `v0.6.7` 릴리스 선을 배포했습니다. 현재 repository에는
 foundation helper, codec, compression, context-aware concurrency, serializer
 contract, Redis 기반 leader election과 lock, resilience policy, cache
 coordination, token-bucket rate limiting, finite state machine, workflow report,
@@ -25,11 +25,11 @@ lightweight workflow runner, checkpoint 기반 batch job, portable service value
 들어 있습니다.
 
 `v0.6.x` portable utility 범위에는 UUID, ULID, KSUID, Snowflake ID 생성,
-명시적 algorithm 기반 JWT signing/parsing/validation/local key rotation, typed
-unit과 measured value, ISO currency와 decimal-backed money 연산, 인메모리 Bloom
-또는 Redis-backed Bloom filter가 포함됩니다. 현재 `0.6.2` 선은 corrective
-`0.6.3`부터 `0.6.6` 구현 series 전에 core helper, testing helper,
-Testcontainers source-parity evidence를 기록합니다.
+명시적 algorithm 기반 JWT signing/parsing/validation, 인메모리/Redis/MongoDB
+KeyChain repository 기반 distributed key rotation, typed unit과 measured value,
+ISO currency와 decimal-backed money 연산, 인메모리 Bloom 또는 Redis-backed Bloom
+filter가 포함됩니다. 현재 `0.6.7` 선에는 corrective `0.6.3`부터 `0.6.6` 구현
+series와 MongoDB-backed JWT KeyChain storage가 포함됩니다.
 
 ## 패키지
 
