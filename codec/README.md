@@ -42,6 +42,13 @@ payload, err := codec.DecodeBase64URL(token)
   because Go preserves those bytes.
 - String helpers convert between UTF-8 strings and byte encodings without
   adding serialization metadata.
+- Decode string helpers are UTF-8 text helpers and return an error wrapping
+  `core.ErrInvalidUTF8` when the decoded bytes are not valid UTF-8.
+- No-error encode string helpers convert strings to bytes before encoding and
+  cannot report invalid UTF-8.
+- Binary payloads should use byte helpers such as `DecodeBase64`,
+  `DecodeBase64URL`, `DecodeHex`, `DecodeBase58`, `DecodeBase62`, or
+  `DecodeURL62`.
 
 ## bluetape4k-core compatibility
 

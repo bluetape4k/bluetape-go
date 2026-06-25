@@ -153,3 +153,81 @@ func TestFilterMap(t *testing.T) {
 		t.Fatalf("FilterMap returned %#v", got)
 	}
 }
+
+func TestCollectionSliceHelpersNilAndEmptyContracts(t *testing.T) {
+	if got, err := collections.ChunkBy[int](nil, func(int) bool { return false }); err != nil || got != nil {
+		t.Fatalf("ChunkBy nil = %#v, %v; want nil, nil", got, err)
+	}
+	if got, err := collections.ChunkBy([]int{}, func(int) bool { return false }); err != nil || got == nil || len(got) != 0 {
+		t.Fatalf("ChunkBy empty = %#v, %v; want empty slice, nil", got, err)
+	}
+	if got, err := collections.DistinctBy[int, int](nil, func(value int) int { return value }); err != nil || got != nil {
+		t.Fatalf("DistinctBy nil = %#v, %v; want nil, nil", got, err)
+	}
+	if got, err := collections.DistinctBy([]int{}, func(value int) int { return value }); err != nil || got == nil || len(got) != 0 {
+		t.Fatalf("DistinctBy empty = %#v, %v; want empty slice, nil", got, err)
+	}
+	if got, err := collections.MapErr[int, int](nil, func(value int) (int, error) { return value, nil }); err != nil || got != nil {
+		t.Fatalf("MapErr nil = %#v, %v; want nil, nil", got, err)
+	}
+	if got, err := collections.MapErr([]int{}, func(value int) (int, error) { return value, nil }); err != nil || got == nil || len(got) != 0 {
+		t.Fatalf("MapErr empty = %#v, %v; want empty slice, nil", got, err)
+	}
+	if got, err := collections.FilterErr[int](nil, func(_ int) (bool, error) { return true, nil }); err != nil || got != nil {
+		t.Fatalf("FilterErr nil = %#v, %v; want nil, nil", got, err)
+	}
+	if got, err := collections.FilterErr([]int{}, func(_ int) (bool, error) { return true, nil }); err != nil || got == nil || len(got) != 0 {
+		t.Fatalf("FilterErr empty = %#v, %v; want empty slice, nil", got, err)
+	}
+	if got, err := collections.FilterMap[int, int](nil, func(value int) (int, bool) { return value, true }); err != nil || got != nil {
+		t.Fatalf("FilterMap nil = %#v, %v; want nil, nil", got, err)
+	}
+	if got, err := collections.FilterMap([]int{}, func(value int) (int, bool) { return value, true }); err != nil || got == nil || len(got) != 0 {
+		t.Fatalf("FilterMap empty = %#v, %v; want empty slice, nil", got, err)
+	}
+}
+
+func TestCollectionSliceHelpersRejectNilCallbacks(t *testing.T) {
+	if _, err := collections.ChunkBy[int](nil, nil); err == nil {
+		t.Fatal("ChunkBy should reject nil predicate before nil input")
+	}
+	if _, err := collections.ChunkBy([]int{}, nil); err == nil {
+		t.Fatal("ChunkBy should reject nil predicate before empty input")
+	}
+	if _, err := collections.DistinctBy[int, int]([]int{1}, nil); err == nil {
+		t.Fatal("DistinctBy should reject nil key function")
+	}
+	if _, err := collections.DistinctBy[int, int](nil, nil); err == nil {
+		t.Fatal("DistinctBy should reject nil key function before nil input")
+	}
+	if _, err := collections.DistinctBy[int, int]([]int{}, nil); err == nil {
+		t.Fatal("DistinctBy should reject nil key function before empty input")
+	}
+	if _, err := collections.MapErr[int, int]([]int{1}, nil); err == nil {
+		t.Fatal("MapErr should reject nil mapper")
+	}
+	if _, err := collections.MapErr[int, int](nil, nil); err == nil {
+		t.Fatal("MapErr should reject nil mapper before nil input")
+	}
+	if _, err := collections.MapErr[int, int]([]int{}, nil); err == nil {
+		t.Fatal("MapErr should reject nil mapper before empty input")
+	}
+	if _, err := collections.FilterErr[int]([]int{1}, nil); err == nil {
+		t.Fatal("FilterErr should reject nil predicate")
+	}
+	if _, err := collections.FilterErr[int](nil, nil); err == nil {
+		t.Fatal("FilterErr should reject nil predicate before nil input")
+	}
+	if _, err := collections.FilterErr[int]([]int{}, nil); err == nil {
+		t.Fatal("FilterErr should reject nil predicate before empty input")
+	}
+	if _, err := collections.FilterMap[int, int]([]int{1}, nil); err == nil {
+		t.Fatal("FilterMap should reject nil mapper")
+	}
+	if _, err := collections.FilterMap[int, int](nil, nil); err == nil {
+		t.Fatal("FilterMap should reject nil mapper before nil input")
+	}
+	if _, err := collections.FilterMap[int, int]([]int{}, nil); err == nil {
+		t.Fatal("FilterMap should reject nil mapper before empty input")
+	}
+}

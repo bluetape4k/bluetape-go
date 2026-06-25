@@ -15,17 +15,22 @@ func DecodeBase62(input string) ([]byte, error) {
 }
 
 // EncodeBase62String encodes a UTF-8 string with Base62.
+//
+// It converts the string to bytes before encoding and cannot report invalid UTF-8.
 func EncodeBase62String(input string) string {
 	return EncodeBase62([]byte(input))
 }
 
 // DecodeBase62String decodes Base62 bytes into a UTF-8 string.
+//
+// It returns an error wrapping core.ErrInvalidUTF8 when decoded bytes are not valid UTF-8.
+// Use DecodeBase62 for binary payloads.
 func DecodeBase62String(input string) (string, error) {
 	decoded, err := DecodeBase62(input)
 	if err != nil {
 		return "", err
 	}
-	return string(decoded), nil
+	return stringFromUTF8Bytes("decode Base62 string", decoded)
 }
 
 // EncodeURL62 is an alias for EncodeBase62.

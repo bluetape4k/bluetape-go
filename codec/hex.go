@@ -13,15 +13,20 @@ func DecodeHex(input string) ([]byte, error) {
 }
 
 // EncodeHexString encodes a UTF-8 string as lowercase hexadecimal.
+//
+// It converts the string to bytes before encoding and cannot report invalid UTF-8.
 func EncodeHexString(input string) string {
 	return EncodeHex([]byte(input))
 }
 
 // DecodeHexString decodes hexadecimal bytes into a UTF-8 string.
+//
+// It returns an error wrapping core.ErrInvalidUTF8 when decoded bytes are not valid UTF-8.
+// Use DecodeHex for binary payloads.
 func DecodeHexString(input string) (string, error) {
 	decoded, err := DecodeHex(input)
 	if err != nil {
 		return "", err
 	}
-	return string(decoded), nil
+	return stringFromUTF8Bytes("decode Hex string", decoded)
 }

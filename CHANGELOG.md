@@ -7,6 +7,22 @@ and this project uses semantic versioning once the first tag is published.
 
 ## [Unreleased]
 
+## [v0.6.3] - 2026-06-25
+
+### Added
+
+- `collections` bounded stack, ring buffer, pagination, and permutation helpers
+  with Go-native APIs, table-driven tests, and bilingual README coverage.
+- `core` range helpers, wildcard matching, XXH64 hashing, resource-style
+  helper documentation, and quarter/time helpers inspired by bluetape4k-core
+  where the Go standard library does not already provide the simpler contract.
+
+### Changed
+
+- Hardened `core`, `collections`, `codec`, and `serialization` text/binary
+  contracts, including invalid UTF-8, nil/empty, malformed input, and
+  documentation boundaries before adding more foundation parity APIs.
+
 ## [v0.6.2] - 2026-06-21
 
 ### Added

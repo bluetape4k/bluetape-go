@@ -3,14 +3,29 @@ package serialization_test
 import (
 	"bytes"
 	"errors"
+	"strings"
 	"testing"
 
+	"github.com/bluetape4k/bluetape-go/core"
 	"github.com/bluetape4k/bluetape-go/serialization"
 )
 
 type account struct {
 	ID     string `json:"id"`
 	Active bool   `json:"active"`
+}
+
+type formatSerializer[T any] struct {
+	format string
+}
+
+func (s formatSerializer[T]) Format() string { return s.format }
+func (s formatSerializer[T]) Marshal(_ T) ([]byte, error) {
+	return nil, nil
+}
+func (s formatSerializer[T]) Unmarshal(_ []byte) (T, error) {
+	var zero T
+	return zero, nil
 }
 
 func TestJSONSerializerRoundTrip(t *testing.T) {
@@ -98,6 +113,71 @@ func TestStringSerializerRoundTrip(t *testing.T) {
 	}
 }
 
+func TestStringSerializerRejectsInvalidUTF8(t *testing.T) {
+	serializer := serialization.StringSerializer{}
+	invalid := string([]byte{0xff})
+
+	if _, err := serializer.Marshal(invalid); !errors.Is(err, core.ErrInvalidUTF8) {
+		t.Fatalf("Marshal invalid UTF-8 error = %v, want ErrInvalidUTF8", err)
+	}
+	if _, err := serializer.Unmarshal([]byte{0xff}); !errors.Is(err, core.ErrInvalidUTF8) {
+		t.Fatalf("Unmarshal invalid UTF-8 error = %v, want ErrInvalidUTF8", err)
+	}
+}
+
+func TestBytesSerializerAcceptsArbitraryBinary(t *testing.T) {
+	serializer := serialization.BytesSerializer{}
+	input := []byte{0xff, 0xfe, 0x00}
+
+	data, err := serializer.Marshal(input)
+	if err != nil {
+		t.Fatalf("Marshal binary failed: %v", err)
+	}
+	got, err := serializer.Unmarshal(data)
+	if err != nil {
+		t.Fatalf("Unmarshal binary failed: %v", err)
+	}
+	if !bytes.Equal(got, input) {
+		t.Fatalf("BytesSerializer binary = %v, want %v", got, input)
+	}
+}
+
+func TestRawSerializersAcceptEmptyNonNilInput(t *testing.T) {
+	emptyBytes := []byte{}
+	bytesValue, err := (serialization.BytesSerializer{}).Unmarshal(emptyBytes)
+	if err != nil {
+		t.Fatalf("BytesSerializer empty input failed: %v", err)
+	}
+	if bytesValue == nil || len(bytesValue) != 0 {
+		t.Fatalf("BytesSerializer empty input = %#v, want empty non-nil slice", bytesValue)
+	}
+
+	stringValue, err := (serialization.StringSerializer{}).Unmarshal([]byte{})
+	if err != nil {
+		t.Fatalf("StringSerializer empty input failed: %v", err)
+	}
+	if stringValue != "" {
+		t.Fatalf("StringSerializer empty input = %q, want empty string", stringValue)
+	}
+
+	data, err := (serialization.StringSerializer{}).Marshal("")
+	if err != nil {
+		t.Fatalf("StringSerializer empty string marshal failed: %v", err)
+	}
+	if data == nil || len(data) != 0 {
+		t.Fatalf("StringSerializer empty string marshal = %#v, want empty non-nil bytes", data)
+	}
+}
+
+func TestRawSerializersRejectNilUnmarshalInput(t *testing.T) {
+	if _, err := (serialization.BytesSerializer{}).Unmarshal(nil); err == nil || errors.Is(err, core.ErrInvalidUTF8) {
+		t.Fatalf("BytesSerializer nil input error = %v, want non-UTF8 error", err)
+	}
+	if _, err := (serialization.StringSerializer{}).Unmarshal(nil); err == nil || errors.Is(err, core.ErrInvalidUTF8) {
+		t.Fatalf("StringSerializer nil input error = %v, want non-UTF8 error", err)
+	}
+}
+
 func TestVersionedSerializerRoundTrip(t *testing.T) {
 	jsonSerializer := serialization.NewJSONSerializer[account]()
 	serializer, err := serialization.NewVersionedSerializer[account](jsonSerializer, 1)
@@ -173,5 +253,16 @@ func TestVersionedSerializerRequiresValidMetadata(t *testing.T) {
 	}
 	if _, err := serialization.NewVersionedSerializer[account](serialization.NewJSONSerializer[account](), 0); err == nil {
 		t.Fatal("expected zero version to fail")
+	}
+}
+
+func TestVersionedSerializerRejectsInvalidFormatMetadata(t *testing.T) {
+	if _, err := serialization.NewVersionedSerializer[string](formatSerializer[string]{format: ""}, 1); err == nil {
+		t.Fatal("expected empty format to fail")
+	}
+
+	tooLong := strings.Repeat("x", 256)
+	if _, err := serialization.NewVersionedSerializer[string](formatSerializer[string]{format: tooLong}, 1); err == nil {
+		t.Fatal("expected overlong format to fail")
 	}
 }
