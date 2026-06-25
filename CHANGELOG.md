@@ -7,6 +7,24 @@ and this project uses semantic versioning once the first tag is published.
 
 ## [Unreleased]
 
+## [v0.6.4] - 2026-06-25
+
+### Added
+
+- `testing` async await/polling helpers with context-aware timeout behavior,
+  interval control, examples, and focused tests.
+- `testing` cancellation contract assertions for context-aware APIs, including
+  success/failure helpers and examples for caller-owned cancellation behavior.
+- Scoped temporary output and environment helpers for tests, with cleanup
+  coverage and bilingual README documentation.
+- Research notes for random data parameter sources and test reporting helpers,
+  rejecting broad fixture dependencies for the current milestone.
+
+### Changed
+
+- Hardened `testing/concurrency` helper reporting so stress failures preserve
+  useful caller-visible evidence without weakening race-compatible execution.
+
 ## [v0.6.3] - 2026-06-25
 
 ### Added
