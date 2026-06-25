@@ -40,6 +40,9 @@ value, err := versioned.Unmarshal(data)
 - `JSONSerializer` uses `encoding/json` and rejects trailing JSON values.
 - `WithDisallowUnknownFields` enables strict object decoding.
 - `BytesSerializer` copies byte slices on marshal and unmarshal.
+- `StringSerializer` is a UTF-8 text serializer and returns an error wrapping
+  `core.ErrInvalidUTF8` for invalid UTF-8 input.
+- Binary payloads should use `BytesSerializer`.
 - `VersionedSerializer` wraps payloads in a `BTGS` envelope with format and
   version metadata.
 

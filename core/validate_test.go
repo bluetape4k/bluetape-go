@@ -40,6 +40,24 @@ func TestRequireRanges(t *testing.T) {
 	}
 }
 
+func TestRequireRangeBoundaries(t *testing.T) {
+	if err := core.RequireInRange("value", 1, 1, 5); err != nil {
+		t.Fatalf("RequireInRange lower boundary returned error: %v", err)
+	}
+	if err := core.RequireInRange("value", 5, 1, 5); err != nil {
+		t.Fatalf("RequireInRange upper boundary returned error: %v", err)
+	}
+	if err := core.RequireInRange("value", 1, 5, 1); err == nil {
+		t.Fatal("RequireInRange should reject invalid range")
+	}
+	if err := core.RequireInOpenRange("value", 1, 1, 5); err != nil {
+		t.Fatalf("RequireInOpenRange lower boundary returned error: %v", err)
+	}
+	if err := core.RequireInOpenRange("value", 1, 5, 5); err == nil {
+		t.Fatal("RequireInOpenRange should reject empty range")
+	}
+}
+
 func TestRequireNumbers(t *testing.T) {
 	if err := core.RequirePositive("count", 1); err != nil {
 		t.Fatalf("RequirePositive returned error: %v", err)

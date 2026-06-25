@@ -1,6 +1,7 @@
 package core_test
 
 import (
+	"errors"
 	"testing"
 
 	"github.com/bluetape4k/bluetape-go/core"
@@ -43,5 +44,35 @@ func TestTruncateUTF8Bytes(t *testing.T) {
 
 	if _, err := core.TruncateUTF8Bytes("abc", -1); err == nil {
 		t.Fatal("TruncateUTF8Bytes should reject negative maxBytes")
+	}
+}
+
+func TestTruncateUTF8BytesRejectsInvalidUTF8(t *testing.T) {
+	invalidShort := string([]byte{0xff})
+	if _, err := core.TruncateUTF8Bytes(invalidShort, len(invalidShort)); !errors.Is(err, core.ErrInvalidUTF8) {
+		t.Fatalf("TruncateUTF8Bytes invalid short error = %v, want ErrInvalidUTF8", err)
+	}
+
+	invalidAroundBoundary := "ok" + string([]byte{0xff}) + "tail"
+	if _, err := core.TruncateUTF8Bytes(invalidAroundBoundary, 3); !errors.Is(err, core.ErrInvalidUTF8) {
+		t.Fatalf("TruncateUTF8Bytes invalid boundary error = %v, want ErrInvalidUTF8", err)
+	}
+}
+
+func TestTruncateUTF8BytesBoundaries(t *testing.T) {
+	got, err := core.TruncateUTF8Bytes("세계", 0)
+	if err != nil {
+		t.Fatalf("TruncateUTF8Bytes zero limit returned error: %v", err)
+	}
+	if got != "" {
+		t.Fatalf("TruncateUTF8Bytes zero limit = %q, want empty", got)
+	}
+
+	got, err = core.TruncateUTF8Bytes("세계", len("세"))
+	if err != nil {
+		t.Fatalf("TruncateUTF8Bytes exact rune boundary returned error: %v", err)
+	}
+	if got != "세" {
+		t.Fatalf("TruncateUTF8Bytes exact rune boundary = %q, want %q", got, "세")
 	}
 }
