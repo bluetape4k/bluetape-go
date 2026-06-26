@@ -23,12 +23,12 @@ Relevant source capabilities:
 - `data/r2dbc` provides coroutine/Flow data access, pool tuning, transaction
   support, query helpers, and Spring auto-configuration.
 - `data/mongodb` and `data/cassandra` are comparison evidence only; they are not
-  part of the relational 0.8.0 scope.
+  part of the relational 0.7.0 scope.
 
 Current bluetape-go evidence:
 
 - Existing Testcontainers fixtures cover PostgreSQL, MySQL, and MariaDB.
-- The 0.8.0 research note already rejects a Kotlin Exposed clone, full ORM
+- The 0.7.0 research note already rejects a Kotlin Exposed clone, full ORM
   layer, and mandatory generated code by default.
 - Existing Go packages use explicit `context.Context`, visible errors, and
   caller-owned resource lifecycles.
@@ -83,7 +83,7 @@ Sources:
 
 ## Implement
 
-Create three 0.8.0 child issues:
+Create three 0.7.0 child issues:
 
 - #317: runtime SQL transaction and row mapping foundation.
 - #318: inspectable SQL builder and repository prototype.
@@ -123,7 +123,7 @@ Create three 0.8.0 child issues:
 - #100 should record this outcome and close through the research PR.
 - #101 should list #317, #318, and #319 as the first implementation children.
 - #7 should record that SQL research completed and moved implementation to
-  #101 / 0.8.0.
+  #101 / 0.7.0.
 
 ## Validation Plan
 
@@ -137,5 +137,5 @@ Create three 0.8.0 child issues:
 
 ## Follow-up Recommendation
 
-Work #317 first in 0.8.0. Do not start the SQL builder until transaction and row
+Work #317 first in 0.7.0. Do not start the SQL builder until transaction and row
 mapping contracts are tested against a real PostgreSQL container.

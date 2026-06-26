@@ -126,6 +126,6 @@ AEAD, Redis keysets, MAC, or digest in this pass.
 
 ## Follow-up Recommendation
 
-Close #71 through this research PR, then implement #315 in a later 0.13.0
+Close #71 through this research PR, then implement #315 in a later 0.12.0
 delivery slice. Keep the default package dependency-free unless #315 discovers
 that the standard-library envelope cannot satisfy the documented tests.

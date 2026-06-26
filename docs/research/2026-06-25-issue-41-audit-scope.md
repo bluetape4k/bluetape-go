@@ -35,7 +35,7 @@ Source repository: `/Users/debop/work/bluetape4k/bluetape4k-javers`
 - `bluetape-go` already has Redis, Kafka, NATS, PostgreSQL/MySQL, MongoDB, AWS,
   testcontainers, and eventual consistency testing dependencies, but the audit
   package does not exist yet.
-- The 0.11.0 placeholder already says the track should become a Go audit/event
+- The 0.10.0 placeholder already says the track should become a Go audit/event
   package without depending on JaVers.
 - Issue #46 and #56-#59 already exist, so #41 should update those issues rather
   than create another broad implementation issue.
@@ -52,7 +52,7 @@ Source repository: `/Users/debop/work/bluetape4k/bluetape4k-javers`
 | Redis audit store | Medium | High | Defer direct durable Redis store until repository semantics and replay are proven. |
 | JaVers-style object diff | Low | High | Defer; use explicit event/audit payloads first. |
 | Ktor/Spring/Exposed example parity | Low | Medium | Translate to Go runnable examples, not framework auto-configuration. |
-| Full event sourcing framework | Low | High | Non-goal for 0.11.0. |
+| Full event sourcing framework | Low | High | Non-goal for 0.10.0. |
 
 ## Implement
 

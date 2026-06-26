@@ -130,13 +130,15 @@ go get github.com/bluetape4k/bluetape-go
 | `0.6.4` | JUnit5-inspired Go testing helper parity. |
 | `0.6.5` | Testcontainers contract hardening과 service coverage expansion. |
 | `0.6.6` | Developer-experience parity, integration example, corrective-series closure. |
-| `0.7.0` | Encryption/Tink utility와 큰 도메인에 대한 research gate. |
-| `0.8.0` | Relational SQL DSL과 repository helper. |
-| `0.9.0` | AWS helper package와 Floci-backed example. |
-| `0.10.0` | Text search, blockword masking, tokenizer research. |
-| `0.11.0` | bluetape4k-javers 패턴 기반 audit/event package. |
-| `0.12.0` | Graph package와 example. |
-| `0.13.0` | Rule engine research와 구현. |
+| `0.7.0` | Relational SQL DSL과 repository helper. |
+| `0.8.0` | AWS helper package와 Floci-backed example. |
+| `0.9.0` | Text search, blockword masking, tokenizer research. |
+| `0.10.0` | bluetape4k-javers 패턴 기반 audit/event package. |
+| `0.11.0` | Graph package와 example. |
+| `0.12.0` | Rule engine research와 구현. |
+
+닫힌 `0.7.0 Research Gate` milestone은 큰 도메인 범위 결정을 기록한
+research milestone이며 release tag를 만들지 않았습니다.
 
 현재 계획은 [GitHub milestones](https://github.com/bluetape4k/bluetape-go/milestones)
 와 [`docs/research`](docs/research/)에서 확인할 수 있습니다.

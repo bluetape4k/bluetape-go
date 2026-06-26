@@ -1,7 +1,7 @@
 # Issue 39 Text Research Scope
 
 Issue #39 is the 0.7.0 research gate for deciding how much of
-`bluetape4k-text` should become Go packages in the 0.10.0 text milestone.
+`bluetape4k-text` should become Go packages in the 0.9.0 text milestone.
 This note supersedes the broad June 1 placeholder for concrete scope decisions
 on #45 and #52-#55.
 
