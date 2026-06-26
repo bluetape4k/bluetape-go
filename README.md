@@ -73,12 +73,14 @@ series plus MongoDB-backed JWT KeyChain storage.
 | [`jwt/mongo`](jwt/mongo/README.md) | active | MongoDB-specific facade for distributed JWT key-chain repository construction. |
 | [`measure`](measure/README.md) | active | Typed units, measured values, compound units, parsing, formatting, and affine temperature helpers. |
 | [`money`](money/README.md) | active | ISO 4217 currency values, CLDR-backed locale currency lookup, decimal-backed money amounts, aggregation, serialization, caller-supplied exchange-rate conversion, and ECB-backed provider conversion. |
+| [`sqlkit`](sqlkit/README.md) | active | Runtime-first `database/sql` transaction helpers, explicit row mapping/cardinality helpers, and PostgreSQL-first inspectable SQL builders. |
 | [`probabilistic`](probabilistic/README.md) | active | Goroutine-safe in-memory Bloom filters with deterministic config, merge compatibility checks, and stress/race coverage. |
 | [`probabilistic/redis`](probabilistic/redis/README.md) | active | Redis-backed shared Bloom filters with static Lua scripts, immutable config metadata, and operator runbook boundaries. |
 
-Next planned package families include relational SQL helpers, additional
-AWS/Floci examples, text, audit, and graph packages. Redis-backed Cuckoo and
-HyperLogLog/HLL support is tracked separately after the Redis Bloom scope.
+Next planned package families include SQL generator/migration guidance,
+additional AWS/Floci examples, text, audit, and graph packages. Redis-backed
+Cuckoo and HyperLogLog/HLL support is tracked separately after the Redis Bloom
+scope.
 
 ## Install
 
@@ -118,6 +120,8 @@ overview.
   [`measure`](measure/README.md), [`money`](money/README.md), and
   [`probabilistic`](probabilistic/README.md), including
   [`probabilistic/redis`](probabilistic/redis/README.md).
+- Data access: [`sqlkit`](sqlkit/README.md) and the optional
+  [SQL generator/migration guide](docs/sql-generator-migration-guidance.md).
 
 ## Roadmap
 
@@ -135,13 +139,15 @@ overview.
 | `0.6.4` | JUnit5-inspired Go testing helper parity. |
 | `0.6.5` | Testcontainers contract hardening and service coverage expansion. |
 | `0.6.6` | Developer-experience parity, integration examples, and corrective-series closure. |
-| `0.7.0` | Encryption/Tink utilities and research gate for larger domains. |
-| `0.8.0` | Relational SQL DSL and repository helpers. |
-| `0.9.0` | AWS helper packages and Floci-backed examples. |
-| `0.10.0` | Text search, blockword masking, tokenizer research. |
-| `0.11.0` | Audit and event packages inspired by bluetape4k-javers patterns. |
-| `0.12.0` | Graph packages and examples. |
-| `0.13.0` | Rule engine research and implementation. |
+| `0.7.0` | Relational SQL DSL and repository helpers. |
+| `0.8.0` | AWS helper packages and Floci-backed examples. |
+| `0.9.0` | Text search, blockword masking, tokenizer research. |
+| `0.10.0` | Audit and event packages inspired by bluetape4k-javers patterns. |
+| `0.11.0` | Graph packages and examples. |
+| `0.12.0` | Rule engine research and implementation. |
+
+The closed `0.7.0 Research Gate` milestone recorded the larger-domain scope
+decisions and was not tagged as a release.
 
 See the [GitHub milestones](https://github.com/bluetape4k/bluetape-go/milestones)
 and [`docs/research`](docs/research/) for the current planning record.

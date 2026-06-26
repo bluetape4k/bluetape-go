@@ -78,9 +78,9 @@ existing `0.6.3` through `0.6.6` epics.
 | Ktor / Spring Boot testing | `ktor/*`, `spring-boot/*`, mock web server modules | Use as recipe evidence for #221 / #224; do not port framework-specific APIs. |
 | Data / SQL / repository | `data/*`, SQL/repository examples | Defer to later SQL roadmap issues; Testcontainers support routes through #215. |
 | AWS / IO | `aws/*`, `io/*` | Defer to existing AWS/IO roadmap issues; emulator fixtures route through #215. |
-| Text / tokenizer | `text/*`, tokenizer examples | Defer to `0.10.0` text roadmap; only shared test helpers route through #209/#221. |
-| Audit / outbox | `audit/*`, messaging examples | Defer to `0.11.0`; messaging fixtures route through #215. |
-| Graph | `graph/*` | Defer to `0.12.0`; graph fixtures route through #215. |
+| Text / tokenizer | `text/*`, tokenizer examples | Defer to `0.9.0` text roadmap; only shared test helpers route through #209/#221. |
+| Audit / outbox | `audit/*`, messaging examples | Defer to `0.10.0`; messaging fixtures route through #215. |
+| Graph | `graph/*` | Defer to `0.11.0`; graph fixtures route through #215. |
 
 ## Acceptance Check
 
