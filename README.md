@@ -73,13 +73,14 @@ series plus MongoDB-backed JWT KeyChain storage.
 | [`jwt/mongo`](jwt/mongo/README.md) | active | MongoDB-specific facade for distributed JWT key-chain repository construction. |
 | [`measure`](measure/README.md) | active | Typed units, measured values, compound units, parsing, formatting, and affine temperature helpers. |
 | [`money`](money/README.md) | active | ISO 4217 currency values, CLDR-backed locale currency lookup, decimal-backed money amounts, aggregation, serialization, caller-supplied exchange-rate conversion, and ECB-backed provider conversion. |
-| [`sqlkit`](sqlkit/README.md) | active | Runtime-first `database/sql` transaction helpers and explicit row mapping/cardinality helpers. |
+| [`sqlkit`](sqlkit/README.md) | active | Runtime-first `database/sql` transaction helpers, explicit row mapping/cardinality helpers, and PostgreSQL-first inspectable SQL builders. |
 | [`probabilistic`](probabilistic/README.md) | active | Goroutine-safe in-memory Bloom filters with deterministic config, merge compatibility checks, and stress/race coverage. |
 | [`probabilistic/redis`](probabilistic/redis/README.md) | active | Redis-backed shared Bloom filters with static Lua scripts, immutable config metadata, and operator runbook boundaries. |
 
-Next planned package families include relational SQL helpers, additional
-AWS/Floci examples, text, audit, and graph packages. Redis-backed Cuckoo and
-HyperLogLog/HLL support is tracked separately after the Redis Bloom scope.
+Next planned package families include SQL generator/migration guidance,
+additional AWS/Floci examples, text, audit, and graph packages. Redis-backed
+Cuckoo and HyperLogLog/HLL support is tracked separately after the Redis Bloom
+scope.
 
 ## Install
 

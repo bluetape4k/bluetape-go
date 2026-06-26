@@ -2,8 +2,9 @@
 
 [English](README.md) | [한국어](README.ko.md)
 
-`sqlkit` provides small `database/sql` helpers for context-aware transactions
-and explicit row mapping. It keeps SQL caller-owned and visible.
+`sqlkit` provides small `database/sql` helpers for context-aware transactions,
+explicit row mapping, and PostgreSQL-first inspectable SQL statement builders.
+It keeps SQL caller-owned and visible.
 
 ## Import
 
@@ -15,28 +16,43 @@ import "github.com/bluetape4k/bluetape-go/sqlkit"
 
 ```go
 err := sqlkit.WithTx(ctx, db, nil, func(ctx context.Context, tx *sql.Tx) error {
-    _, err := tx.ExecContext(ctx, `
-        insert into accounts (id, name) values ($1, $2)
-    `, id, name)
+    stmt, err := sqlkit.InsertInto("accounts").
+        Columns("id", "name").
+        Values(id, name).
+        Build()
+    if err != nil {
+        return err
+    }
+    _, err = stmt.Exec(ctx, tx)
     return err
 })
 if err != nil {
     return err
 }
 
-name, err := sqlkit.QueryOne(ctx, db, `
-    select name from accounts where id = $1
-`, func(rows *sql.Rows) (string, error) {
+stmt, err := sqlkit.SelectFrom("accounts").
+    Columns("name").
+    Where("id = ?", id).
+    Build()
+if err != nil {
+    return err
+}
+
+name, err := sqlkit.QueryOne(ctx, db, stmt.SQL, func(rows *sql.Rows) (string, error) {
     var value string
     if err := rows.Scan(&value); err != nil {
         return "", err
     }
     return value, nil
-}, id)
+}, stmt.Args...)
 if err != nil {
     return err
 }
 _ = name
+
+// stmt.SQL is inspectable:
+// select "name" from "accounts" where id = $1
+// stmt.Args is []any{id}.
 ```
 
 ## Selection Guide
@@ -49,10 +65,18 @@ _ = name
 | Map zero or one row | `QueryOptional` | Returns `(value, false, nil)` for no rows. |
 | Require exactly one row | `QueryOne` | Returns `ErrNoRows` or `ErrTooManyRows` for cardinality failures. |
 | Scan one column | `ScanOne` | Convenience mapper for a single destination pointer. |
+| Build simple SQL | `SelectFrom`, `InsertInto`, `Update`, `DeleteFrom` | Produces explicit PostgreSQL-style SQL and copied args. |
+| Execute a built mutation | `Statement.Exec` | Context-aware wrapper around `ExecContext`. |
 
 ## Behavior
 
-- `sqlkit` does not build SQL. Pass SQL strings and args explicitly.
+- Builder output is PostgreSQL-first and uses `$1`, `$2`, ... placeholders.
+  There is no broad dialect abstraction in this first slice.
+- Builders validate and double-quote table/column identifiers. `Where`
+  fragments are caller-owned SQL; their `?` value placeholders are rewritten to
+  PostgreSQL placeholders.
+- `Update` and `DeleteFrom` require a `Where` clause by default to avoid
+  accidental full-table mutations.
 - `sqlkit` does not manage pool lifecycle, migrations, schema metadata,
   generated code, model hooks, cache invalidation, or ORM state.
 - `WithTx` commits only when the callback returns nil. Callback errors trigger
@@ -62,7 +86,8 @@ _ = name
 - Query helpers preserve driver and context errors with `%w`.
 - Use direct `database/sql`, `pgx`, sqlc, Jet, ent, Bun, GORM, or goqu when
   callers need driver-native APIs, generated type-safe query code, entity
-  modeling, migration orchestration, or a larger query builder/ORM surface.
+  modeling, migration orchestration, non-PostgreSQL placeholder generation,
+  joins as first-class builder nodes, or a larger query builder/ORM surface.
 
 ## Test
 
