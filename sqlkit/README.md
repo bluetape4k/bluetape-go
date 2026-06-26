@@ -57,6 +57,10 @@ _ = name
 
 ## Selection Guide
 
+See the [SQL generator/migration guide](../docs/sql-generator-migration-guidance.md)
+for when to use direct `database/sql`, `sqlkit`, sqlc, Jet, ent, Bun, GORM,
+goqu, or Atlas.
+
 | Need | Use | Notes |
 |---|---|---|
 | Run one transaction | `WithTx` | Caller owns `*sql.DB`; `sqlkit` owns only the started transaction. |
@@ -88,6 +92,8 @@ _ = name
   callers need driver-native APIs, generated type-safe query code, entity
   modeling, migration orchestration, non-PostgreSQL placeholder generation,
   joins as first-class builder nodes, or a larger query builder/ORM surface.
+- Keep sqlc, Jet, and Atlas at the application workflow boundary; `sqlkit`
+  intentionally adds no runtime dependency on those tools.
 
 ## Test
 

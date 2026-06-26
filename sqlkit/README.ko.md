@@ -58,6 +58,10 @@ _ = name
 
 ## 선택 가이드
 
+[SQL generator/migration guide](../docs/sql-generator-migration-guidance.ko.md)는
+direct `database/sql`, `sqlkit`, sqlc, Jet, ent, Bun, GORM, goqu, Atlas를 언제
+선택할지 정리합니다.
+
 | 필요 | 사용 | 비고 |
 |---|---|---|
 | 하나의 transaction 실행 | `WithTx` | caller가 `*sql.DB` lifecycle을 소유하고 `sqlkit`은 시작한 transaction만 소유합니다. |
@@ -90,6 +94,8 @@ _ = name
   migration orchestration, non-PostgreSQL placeholder generation, first-class
   join builder node, 큰 query builder/ORM surface가 필요하면 direct
   `database/sql`, `pgx`, sqlc, Jet, ent, Bun, GORM, goqu를 사용하세요.
+- sqlc, Jet, Atlas는 application workflow boundary에 둡니다. `sqlkit`은 이
+  도구들에 대한 runtime dependency를 의도적으로 추가하지 않습니다.
 
 ## Test
 
