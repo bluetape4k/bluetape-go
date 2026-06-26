@@ -106,26 +106,28 @@ go test ./...
    - Commit `go.mod` and `go.sum` changes.
    - Open a PR in the consumer repository.
 
-## `v0.5.0` Release Plan
+## `v0.7.0` Release Plan
 
-`v0.5.0` contains batch processing with checkpoints and leader-guarded
-examples:
+`v0.7.0` contains the first relational SQL package family:
 
-- `batch` reader/processor/writer chunk steps, sequential jobs, reports,
-  filtering, cancellation, and resource cleanup.
-- Retry/skip policies for processor/write failures with context cancellation
-  preserved as a caller-owned stop signal.
-- Pluggable checkpoint storage and restart behavior for readers that implement
-  `CheckpointReader`.
-- Leader-guarded Redis examples for scheduled batch jobs and migration workloads
-  that must run only under the current leader.
-- README and architecture diagram refreshes for the completed batch recovery
-  scope.
+- `sqlkit` transaction helpers around caller-owned `*sql.DB` and `*sql.Tx`
+  values.
+- Small `Session`, `Queryer`, and `Execer` interfaces matching
+  `database/sql` execution methods.
+- Explicit row mapping and cardinality helpers: `QueryAll`, `QueryOptional`,
+  `QueryOne`, and `ScanOne`.
+- PostgreSQL-first inspectable builders for `SELECT`, `INSERT`, `UPDATE`, and
+  `DELETE`, with validated identifiers, copied args, and safe update/delete
+  guards.
+- Testcontainers-backed PostgreSQL repository examples for CRUD, rollback, and
+  relational query behavior.
+- Optional sqlc/Jet generator guidance and Atlas migration boundary docs,
+  without adding those tools as `sqlkit` runtime dependencies.
 
 Release sequence:
 
-1. Verify milestone `0.5.0` is closed with zero open issues.
+1. Verify milestone `0.7.0` is closed with zero open issues.
 2. Merge `develop` into `main` through a release PR.
-3. Tag `main` as `v0.5.0`.
-4. Create GitHub Release `v0.5.0`.
-5. Update downstream consumers that should require `github.com/bluetape4k/bluetape-go v0.5.0`.
+3. Tag `main` as `v0.7.0`.
+4. Create GitHub Release `v0.7.0`.
+5. Update downstream consumers that should require `github.com/bluetape4k/bluetape-go v0.7.0`.

@@ -40,9 +40,9 @@ surface after the `0.6.3`, `0.6.4`, and `0.6.5` work landed.
 | Functional/Result helpers | Explicitly excluded in #202. | Keep explicit Go values/errors unless a future concrete call site proves repeated boilerplate. |
 | JUnit5 await/stress/cancellation/temp/output/env helpers | Closed through #210-#214 and #222. | Reflection-heavy parameter-source and reporting frameworks remain non-goals unless a future issue proves value. |
 | Testcontainers lifecycle/server/property export | Closed through #216 and #217. | Continue using typed connection maps and env export; JVM system-property export is excluded. |
-| Database/storage fixtures | First slice closed through #218. | SQL package work is tracked by #100/#101 in `0.7.0`/`0.8.0`. |
+| Database/storage fixtures | First slice closed through #218. | SQL package work is tracked by #100/#101 in `0.7.0 Research Gate`/`0.7.0`. |
 | Messaging/HTTP/fault fixtures | Closed through #219. | Additional brokers or HTTP mock services need future consumer evidence. |
-| AWS/emulator fixtures and examples | Closed through #220 and the `0.9.0` AWS slice: #47, #60-#64, #270. | Direct AWS SDK usage remains default; broader AWS config/signing helpers are deferred. |
+| AWS/emulator fixtures and examples | Closed through #220 and the `0.8.0` AWS slice: #47, #60-#64, #270. | Direct AWS SDK usage remains default; broader AWS config/signing helpers are deferred. |
 | Infrastructure/graph fixtures | First roadmap-driven fixture slice closed through #220. | Graph package work remains tracked by #38/#44/#48-#51. |
 | Logging, observability, geo, statistics, and math utilities | #223 closed implementation/non-goal decisions. | Follow-up research issues #275, #276, and #277 track non-blocking scope decisions. |
 | Ktor/Spring Boot source examples | Represented as integration-recipe evidence in #224. | Framework-specific APIs are non-goals for this Go core repo. |
@@ -64,9 +64,9 @@ Tracked non-blocking follow-ups:
 | Issue | Target | Reason |
 |---|---|---|
 | [#198](https://github.com/bluetape4k/bluetape-go/issues/198) | `0.6.7` | Optional MongoDB JWT KeyChain repository after Redis/local providers proved the core model. |
-| [#275](https://github.com/bluetape4k/bluetape-go/issues/275) | `0.7.0` | Decide `slog` and observability hook boundaries without adding a framework wrapper prematurely. |
-| [#276](https://github.com/bluetape4k/bluetape-go/issues/276) | `0.7.0` | Decide geo/coordinate utility scope from actual Go demand. |
-| [#277](https://github.com/bluetape4k/bluetape-go/issues/277) | `0.7.0` | Decide focused statistics/math utility scope after #223 rejected broad parity. |
+| [#275](https://github.com/bluetape4k/bluetape-go/issues/275) | `0.7.0 Research Gate` | Decide `slog` and observability hook boundaries without adding a framework wrapper prematurely. |
+| [#276](https://github.com/bluetape4k/bluetape-go/issues/276) | `0.7.0 Research Gate` | Decide geo/coordinate utility scope from actual Go demand. |
+| [#277](https://github.com/bluetape4k/bluetape-go/issues/277) | `0.7.0 Research Gate` | Decide focused statistics/math utility scope after #223 rejected broad parity. |
 
 Future roadmap work already has owning issues and is not a corrective-series
 blocker:
