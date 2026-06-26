@@ -7,6 +7,30 @@ and this project uses semantic versioning once the first tag is published.
 
 ## [Unreleased]
 
+## [v0.7.0] - 2026-06-26
+
+### Added
+
+- `sqlkit` package with runtime-first `database/sql` transaction helpers,
+  small `Session`/`Queryer`/`Execer` interfaces, explicit row mapping helpers,
+  and cardinality-aware `QueryAll`, `QueryOptional`, and `QueryOne` functions.
+- PostgreSQL-first inspectable SQL builders for `SELECT`, `INSERT`, `UPDATE`,
+  and `DELETE`, including copied argument slices, validated quoted identifiers,
+  full-table update/delete guards, and context-aware `Statement.Exec`.
+- Testcontainers-backed PostgreSQL repository examples covering create, read,
+  update, delete, rollback, and relational query behavior through `sqlkit`.
+- SQL generator and migration guidance documenting when to choose direct
+  `database/sql`, `sqlkit`, sqlc, Jet, ent, Bun, GORM, goqu, and Atlas while
+  keeping sqlc, Jet, and Atlas outside the core runtime dependency boundary.
+
+### Changed
+
+- Root README and Korean README now list `sqlkit` as an active data-access
+  package and link the optional SQL generator/migration guide.
+- The 0.7.0 relational SQL epic records the runtime-first direction from #100,
+  with mandatory code generation, broad ORM behavior, hidden migrations, and
+  cross-database abstraction kept out of the first package slice.
+
 ## [v0.6.8] - 2026-06-25
 
 ### Added
