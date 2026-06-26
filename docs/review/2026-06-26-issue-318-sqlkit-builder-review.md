@@ -1,7 +1,7 @@
 # Issue #318 SQLKit Builder 7-Tier Review
 
-Reviewed branch: `feat/issue-318-sqlkit-builder`  
-Baseline: `8832940 feat: add runtime SQL transaction and row mapping foundation (#325)`  
+Reviewed branch: `feat/issue-318-sqlkit-builder`
+Baseline: `8832940 feat: add runtime SQL transaction and row mapping foundation (#325)`
 Scope: `sqlkit` builder implementation, PostgreSQL repository prototype tests,
 and README locale updates.
 
