@@ -1,38 +1,34 @@
 # WIP
 
 Snapshot: 2026-06-26 KST
-Scope: `0.7.0` release preparation for relational SQL DSL and repository helpers.
+Scope: `0.8.0` no-op release preflight and `0.9.0` text package planning.
 
 ## Current Target Release
 
-`v0.7.0` - runtime-first relational SQL support for Go callers.
+`v0.9.0` - first text package slice for Go callers.
 
-The milestone introduces `sqlkit` as a small `database/sql` helper package:
-context-aware transaction ownership, explicit row mapping/cardinality helpers,
-PostgreSQL-first inspectable SQL builders, Testcontainers-backed repository
-examples, and optional sqlc/Jet/Atlas guidance without adding those tools as
-core runtime dependencies.
+The next active milestone is `0.9.0`, covering text search and tokenizer
+foundation work. The first slice should stay Go-native and narrow: multi-pattern
+search, blockword detection and masking, tokenizer interfaces, and tokenizer or
+language-detection research before any optional dependency is adopted.
 
 ## Current State
 
 - `0.1.0`, `0.1.1`, `0.2.0`, `0.3.0`, `0.4.0`, `0.5.0`, `v0.5.1`,
-  `v0.6.0`, and `v0.6.1` through `v0.6.8` are tagged and released.
-- Milestone `0.7.0` has no open issues after #317, #318, #319, and epic #101
-  were closed.
-- Issue #100 recorded the runtime-first SQL direction and deferred broad ORM,
-  hidden migration, and mandatory generation behavior.
-- Issue #317 added the `sqlkit` transaction and row mapping foundation.
-- Issue #318 added inspectable PostgreSQL-first builders and repository
-  examples.
-- Issue #319 documented optional sqlc/Jet generator workflows and Atlas as an
-  external migration boundary.
+  `v0.6.0`, `v0.6.1` through `v0.6.8`, and `v0.7.0` are tagged and
+  released.
+- Milestone `0.8.0` has no open issues, but its develop tree is byte-for-byte
+  identical to the `v0.7.0` tag target tree. Its AWS and Floci work was already
+  shipped by the broad `v0.7.0` protected-branch promotion.
+- `v0.8.0` should not be tagged unless new commits land after `v0.7.0`; a tag
+  on the same tree would be a no-op release with no Go module content delta.
+- Issue #52, issue #53, issue #54, issue #55, and epic #45 are the active
+  `0.9.0` text milestone candidates.
 
 ## Release Checklist
 
-1. `0.7.0` issue-linked PRs are merged on `develop`.
-2. Milestone `0.7.0` is closed with `open_issues=0`.
-3. `CHANGELOG.md` has a `v0.7.0` section dated `2026-06-26`.
-4. `git diff --check`, local `make ci`, GitHub CI on `develop`, and Nightly
-   Testcontainers evidence are release gates.
-5. Promote `develop` to `main`, tag `v0.7.0` on `main`, and publish the GitHub
-   Release.
+1. Close milestone `0.8.0` as already shipped in `v0.7.0`.
+2. Do not create `v0.8.0` unless `git diff v0.7.0^{}..origin/develop` becomes
+   non-empty.
+3. Start `0.9.0` from the text milestone, beginning with the P0 implementation
+   issues before the P1 research/design follow-ups.

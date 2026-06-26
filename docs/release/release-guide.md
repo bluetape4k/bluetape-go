@@ -106,28 +106,17 @@ go test ./...
    - Commit `go.mod` and `go.sum` changes.
    - Open a PR in the consumer repository.
 
-## `v0.7.0` Release Plan
+## Current Release Notes
 
-`v0.7.0` contains the first relational SQL package family:
+`v0.7.0` is the current published release. Its protected-branch promotion
+projected the full `origin/develop` tree onto `main`, so later milestone
+bookkeeping must verify tree deltas before creating additional tags.
 
-- `sqlkit` transaction helpers around caller-owned `*sql.DB` and `*sql.Tx`
-  values.
-- Small `Session`, `Queryer`, and `Execer` interfaces matching
-  `database/sql` execution methods.
-- Explicit row mapping and cardinality helpers: `QueryAll`, `QueryOptional`,
-  `QueryOne`, and `ScanOne`.
-- PostgreSQL-first inspectable builders for `SELECT`, `INSERT`, `UPDATE`, and
-  `DELETE`, with validated identifiers, copied args, and safe update/delete
-  guards.
-- Testcontainers-backed PostgreSQL repository examples for CRUD, rollback, and
-  relational query behavior.
-- Optional sqlc/Jet generator guidance and Atlas migration boundary docs,
-  without adding those tools as `sqlkit` runtime dependencies.
+Milestone `0.8.0` currently has zero open issues, but
+`git diff v0.7.0^{}..origin/develop` is empty and both refs resolve to the same
+tree object. Do not publish `v0.8.0` unless new commits land after `v0.7.0`.
+Close `0.8.0` as already shipped by `v0.7.0` and continue with the next
+milestone that has an actual content delta.
 
-Release sequence:
-
-1. Verify milestone `0.7.0` is closed with zero open issues.
-2. Merge `develop` into `main` through a release PR.
-3. Tag `main` as `v0.7.0`.
-4. Create GitHub Release `v0.7.0`.
-5. Update downstream consumers that should require `github.com/bluetape4k/bluetape-go v0.7.0`.
+The next active work target is milestone `0.9.0`, currently scoped to text
+search and tokenizer packages.
