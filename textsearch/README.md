@@ -97,9 +97,10 @@ _ = response.MaskedText // "** 그리고 **"
   input.
 - `Token` spans also use byte offsets in the original input. `Token.Normalized`
   may have a different length from `Token.Text`.
-- `Tokenizer` and `TokenizerFunc` are the core extension points. Korean,
-  Japanese, language detection, and morphological analyzer dependencies stay
-  outside the core package unless a later research issue justifies an adapter.
+- `Tokenizer` and `TokenizerFunc` are the core extension points. Optional
+  language-specific dependencies stay outside the core package; import
+  [`textsearch/japanese`](japanese/README.md) when callers explicitly need the
+  Kagome-backed Japanese tokenizer.
 - `SimpleTokenizer` is deterministic and dependency-free. It groups Unicode
   letters/marks, digits, whitespace, punctuation, and symbols for tests and
   simple lexical workflows; it is not a language-aware POS tagger.
@@ -133,4 +134,6 @@ _ = response.MaskedText // "** 그리고 **"
 ```bash
 go test -count=1 ./textsearch
 go test -race -count=1 ./textsearch
+go test -count=1 ./textsearch/japanese
+go test -race -count=1 ./textsearch/japanese
 ```

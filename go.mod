@@ -20,6 +20,9 @@ require (
 	github.com/google/uuid v1.6.0
 	github.com/govalues/decimal v0.1.36
 	github.com/govalues/money v0.2.4
+	github.com/ikawaha/kagome-dict v1.1.7
+	github.com/ikawaha/kagome-dict/ipa v1.2.6
+	github.com/ikawaha/kagome/v2 v2.11.0
 	github.com/jackc/pgx/v5 v5.9.2
 	github.com/klauspost/compress v1.18.6
 	github.com/moby/moby/api v1.54.1

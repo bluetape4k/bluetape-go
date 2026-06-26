@@ -18,6 +18,9 @@ and this project uses semantic versioning once the first tag is published.
 - `textsearch` tokenizer core interfaces with byte-span tokens, normalized text
   helpers, coarse POS extension points, dictionary providers, and a
   dependency-free deterministic tokenizer for tests and simple lexical flows.
+- Optional `textsearch/japanese` Kagome v2 adapter with IPA dictionary defaults,
+  byte-span preservation, Kagome POS metadata, noun/verb filters, blockword
+  examples, and goroutine stress coverage.
 
 ## [v0.7.0] - 2026-06-26
 
