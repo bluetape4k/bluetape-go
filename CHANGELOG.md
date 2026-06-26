@@ -21,6 +21,9 @@ and this project uses semantic versioning once the first tag is published.
 - Optional `textsearch/japanese` Kagome v2 adapter with IPA dictionary defaults,
   byte-span preservation, Kagome POS metadata, noun/verb filters, blockword
   examples, and goroutine stress coverage.
+- Optional `textsearch/language` Lingua-Go adapter with all/subset detector
+  builders, lazy/preloaded and low-accuracy modes, mixed-language sections,
+  Unicode script helpers, and goroutine stress coverage.
 
 ## [v0.7.0] - 2026-06-26
 

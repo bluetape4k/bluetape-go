@@ -110,7 +110,8 @@ overview.
 - Text: [`textsearch`](textsearch/README.md) for deterministic multi-pattern
   search, tokenizer core interfaces, blockword detection/masking, severity
   metadata, normalization, boundary-aware matching, and the optional
-  [`textsearch/japanese`](textsearch/japanese/README.md) Kagome adapter.
+  [`textsearch/japanese`](textsearch/japanese/README.md) Kagome adapter plus
+  [`textsearch/language`](textsearch/language/README.md) Lingua-Go detector.
 - Coordination: [`leader`](leader/README.md),
   [`leader/redis`](leader/redis/README.md), and
   [`lock/redis`](lock/redis/README.md).

@@ -100,7 +100,8 @@ _ = response.MaskedText // "** 그리고 **"
 - `Tokenizer` and `TokenizerFunc` are the core extension points. Optional
   language-specific dependencies stay outside the core package; import
   [`textsearch/japanese`](japanese/README.md) when callers explicitly need the
-  Kagome-backed Japanese tokenizer.
+  Kagome-backed Japanese tokenizer, or [`textsearch/language`](language/README.md)
+  when callers explicitly need Lingua-Go language detection.
 - `SimpleTokenizer` is deterministic and dependency-free. It groups Unicode
   letters/marks, digits, whitespace, punctuation, and symbols for tests and
   simple lexical workflows; it is not a language-aware POS tagger.
@@ -136,4 +137,6 @@ go test -count=1 ./textsearch
 go test -race -count=1 ./textsearch
 go test -count=1 ./textsearch/japanese
 go test -race -count=1 ./textsearch/japanese
+go test -count=1 ./textsearch/language
+go test -race -count=1 ./textsearch/language
 ```

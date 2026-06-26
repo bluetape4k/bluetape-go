@@ -98,7 +98,8 @@ _ = response.MaskedText // "** 그리고 **"
   `Token.Normalized`는 `Token.Text`와 길이가 다를 수 있습니다.
 - `Tokenizer`와 `TokenizerFunc`는 core extension point입니다. 언어별 optional
   dependency는 core package 밖에 둡니다. Kagome 기반 일본어 tokenizer가 필요하면
-  [`textsearch/japanese`](japanese/README.ko.md)를 명시적으로 import하세요.
+  [`textsearch/japanese`](japanese/README.ko.md)를, Lingua-Go language detection이
+  필요하면 [`textsearch/language`](language/README.ko.md)를 명시적으로 import하세요.
 - `SimpleTokenizer`는 deterministic dependency-free tokenizer입니다. Test와
   simple lexical workflow를 위해 Unicode letter/mark, digit, whitespace,
   punctuation, symbol을 묶으며, language-aware POS tagger가 아닙니다.
@@ -135,4 +136,6 @@ go test -count=1 ./textsearch
 go test -race -count=1 ./textsearch
 go test -count=1 ./textsearch/japanese
 go test -race -count=1 ./textsearch/japanese
+go test -count=1 ./textsearch/language
+go test -race -count=1 ./textsearch/language
 ```

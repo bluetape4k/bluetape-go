@@ -106,7 +106,8 @@ go get github.com/bluetape4k/bluetape-go
   blockword detection/masking, severity metadata, normalization,
   boundary-aware matching을 위한
   [`textsearch`](textsearch/README.ko.md) 및 optional Kagome adapter인
-  [`textsearch/japanese`](textsearch/japanese/README.ko.md).
+  [`textsearch/japanese`](textsearch/japanese/README.ko.md), Lingua-Go detector인
+  [`textsearch/language`](textsearch/language/README.ko.md).
 - Coordination: [`leader`](leader/README.ko.md),
   [`leader/redis`](leader/redis/README.ko.md), [`lock/redis`](lock/redis/README.ko.md).
 - Runtime policy/cache/state/workflow: [`resilience`](resilience/README.ko.md),
