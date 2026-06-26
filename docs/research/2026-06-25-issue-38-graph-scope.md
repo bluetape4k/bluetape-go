@@ -4,7 +4,7 @@
 
 Issue #38 is the 0.7.0 research gate for deciding whether the
 `bluetape4k-graph` ecosystem should become Go packages, examples, or be
-deferred before milestone 0.12.0 implementation starts.
+deferred before milestone 0.11.0 implementation starts.
 
 This note supersedes the broad June 1 graph placeholder with source-backed
 scope decisions for #44, #48, #49, #50, and #51.
@@ -117,7 +117,7 @@ External sources checked on 2026-06-25:
 
 ## Issue Updates Required
 
-- #44: Make 0.12.0 graph epic implementation order explicit: examples and
+- #44: Make 0.11.0 graph epic implementation order explicit: examples and
   NDJSON/CSV before adapters, adapter work only after #50 proves local test
   maturity, and no Spring/Ktor parity port.
 - #48: Narrow base abstraction to models plus optional capability follow-ups.

@@ -1,7 +1,7 @@
 # Issue 42 AWS Helper And Examples Research Scope
 
 Issue #42 is the 0.7.0 research gate for reconciling the full
-`bluetape4k-aws` source surface with the already-completed 0.9.0 Go AWS work.
+`bluetape4k-aws` source surface with the already-completed 0.8.0 Go AWS work.
 The outcome is conservative: keep AWS SDK for Go v2 clients caller-owned,
 provide Floci-backed tests/examples, and add package code only where repeated
 Go-specific service mechanics are proven.
