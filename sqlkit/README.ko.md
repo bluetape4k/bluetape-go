@@ -2,9 +2,10 @@
 
 [English](README.md) | [한국어](README.ko.md)
 
-`sqlkit`은 context-aware transaction과 명시적 row mapping을 위한 작은
-`database/sql` helper를 제공합니다. SQL 문자열과 args는 caller가 소유하며
-숨겨진 SQL을 만들지 않습니다.
+`sqlkit`은 context-aware transaction, 명시적 row mapping, PostgreSQL 우선
+inspectable SQL statement builder를 위한 작은 `database/sql` helper를
+제공합니다. SQL 문자열과 args는 caller가 소유하며 숨겨진 SQL을 만들지
+않습니다.
 
 ## Import
 
@@ -16,28 +17,43 @@ import "github.com/bluetape4k/bluetape-go/sqlkit"
 
 ```go
 err := sqlkit.WithTx(ctx, db, nil, func(ctx context.Context, tx *sql.Tx) error {
-    _, err := tx.ExecContext(ctx, `
-        insert into accounts (id, name) values ($1, $2)
-    `, id, name)
+    stmt, err := sqlkit.InsertInto("accounts").
+        Columns("id", "name").
+        Values(id, name).
+        Build()
+    if err != nil {
+        return err
+    }
+    _, err = stmt.Exec(ctx, tx)
     return err
 })
 if err != nil {
     return err
 }
 
-name, err := sqlkit.QueryOne(ctx, db, `
-    select name from accounts where id = $1
-`, func(rows *sql.Rows) (string, error) {
+stmt, err := sqlkit.SelectFrom("accounts").
+    Columns("name").
+    Where("id = ?", id).
+    Build()
+if err != nil {
+    return err
+}
+
+name, err := sqlkit.QueryOne(ctx, db, stmt.SQL, func(rows *sql.Rows) (string, error) {
     var value string
     if err := rows.Scan(&value); err != nil {
         return "", err
     }
     return value, nil
-}, id)
+}, stmt.Args...)
 if err != nil {
     return err
 }
 _ = name
+
+// stmt.SQL은 inspectable합니다:
+// select "name" from "accounts" where id = $1
+// stmt.Args는 []any{id}입니다.
 ```
 
 ## 선택 가이드
@@ -50,11 +66,18 @@ _ = name
 | 0 또는 1개 row mapping | `QueryOptional` | row가 없으면 `(value, false, nil)`을 반환합니다. |
 | 정확히 1개 row 요구 | `QueryOne` | cardinality 실패 시 `ErrNoRows` 또는 `ErrTooManyRows`를 반환합니다. |
 | 단일 column scan | `ScanOne` | destination pointer를 위한 convenience mapper입니다. |
+| 간단한 SQL 생성 | `SelectFrom`, `InsertInto`, `Update`, `DeleteFrom` | 명시적인 PostgreSQL-style SQL과 복사된 args를 생성합니다. |
+| 생성된 mutation 실행 | `Statement.Exec` | `ExecContext`를 감싼 context-aware wrapper입니다. |
 
 ## 동작
 
-- `sqlkit`은 SQL을 생성하지 않습니다. SQL 문자열과 args를 명시적으로
-  전달합니다.
+- Builder output은 PostgreSQL 우선이며 `$1`, `$2`, ... placeholder를
+  사용합니다. 첫 builder slice에는 broad dialect abstraction이 없습니다.
+- Builder는 table/column identifier를 검증하고 double quote 처리합니다.
+  `Where` fragment는 caller-owned SQL이며, 그 안의 `?` value placeholder만
+  PostgreSQL placeholder로 변환합니다.
+- `Update`와 `DeleteFrom`은 accidental full-table mutation을 피하기 위해
+  기본적으로 `Where` clause를 요구합니다.
 - `sqlkit`은 pool lifecycle, migration, schema metadata, generated code,
   model hook, cache invalidation, ORM state를 관리하지 않습니다.
 - `WithTx`는 callback이 nil을 반환할 때만 commit합니다. callback error는
@@ -64,7 +87,8 @@ _ = name
   `*sql.Rows`를 닫습니다.
 - Query helper는 driver error와 context error를 `%w`로 보존합니다.
 - driver-native API, generated type-safe query code, entity modeling,
-  migration orchestration, 큰 query builder/ORM surface가 필요하면 direct
+  migration orchestration, non-PostgreSQL placeholder generation, first-class
+  join builder node, 큰 query builder/ORM surface가 필요하면 direct
   `database/sql`, `pgx`, sqlc, Jet, ent, Bun, GORM, goqu를 사용하세요.
 
 ## Test

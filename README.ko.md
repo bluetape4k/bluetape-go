@@ -71,13 +71,13 @@ series와 MongoDB-backed JWT KeyChain storage가 포함됩니다.
 | [`jwt/mongo`](jwt/mongo/README.ko.md) | active | Distributed JWT key-chain repository 생성을 위한 MongoDB 전용 facade. |
 | [`measure`](measure/README.ko.md) | active | Typed unit, measured value, compound unit, parsing, formatting, affine temperature helper. |
 | [`money`](money/README.ko.md) | active | ISO 4217 통화 값, CLDR-backed locale currency lookup, decimal-backed 금액, 합산, 직렬화, caller-supplied 환율 변환, ECB-backed provider 변환. |
-| [`sqlkit`](sqlkit/README.ko.md) | active | Runtime-first `database/sql` transaction helper와 명시적 row mapping/cardinality helper. |
+| [`sqlkit`](sqlkit/README.ko.md) | active | Runtime-first `database/sql` transaction helper, 명시적 row mapping/cardinality helper, PostgreSQL 우선 inspectable SQL builder. |
 | [`probabilistic`](probabilistic/README.ko.md) | active | deterministic config, merge compatibility check, stress/race coverage를 갖춘 goroutine-safe 인메모리 Bloom filter. |
 | [`probabilistic/redis`](probabilistic/redis/README.ko.md) | active | Static Lua script, immutable config metadata, operator runbook 경계를 갖춘 Redis-backed shared Bloom filter. |
 
-다음 계획 패키지군은 relational SQL helper, 추가 AWS/Floci example, text, audit,
-graph 패키지입니다. Redis-backed Cuckoo와 HyperLogLog/HLL 지원은 Redis Bloom
-범위 이후 별도로 추적합니다.
+다음 계획 패키지군은 SQL generator/migration guidance, 추가 AWS/Floci example,
+text, audit, graph 패키지입니다. Redis-backed Cuckoo와 HyperLogLog/HLL 지원은
+Redis Bloom 범위 이후 별도로 추적합니다.
 
 ## 설치
 
