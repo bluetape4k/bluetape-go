@@ -109,7 +109,8 @@ overview.
   [`examples/sqs-sns`](examples/sqs-sns/README.md).
 - Text: [`textsearch`](textsearch/README.md) for deterministic multi-pattern
   search, tokenizer core interfaces, blockword detection/masking, severity
-  metadata, normalization, and boundary-aware matching.
+  metadata, normalization, boundary-aware matching, and the optional
+  [`textsearch/japanese`](textsearch/japanese/README.md) Kagome adapter.
 - Coordination: [`leader`](leader/README.md),
   [`leader/redis`](leader/redis/README.md), and
   [`lock/redis`](lock/redis/README.md).
@@ -143,7 +144,7 @@ overview.
 | `0.6.5` | Testcontainers contract hardening and service coverage expansion. |
 | `0.6.6` | Developer-experience parity, integration examples, and corrective-series closure. |
 | `0.7.0` | Relational SQL DSL and repository helpers. |
-| `0.8.0` | Text search, blockword masking, tokenizer research. |
+| `0.8.0` | Text search, blockword masking, tokenizer adapters. |
 | `0.9.0` | Audit and event packages inspired by bluetape4k-javers patterns. |
 | `0.10.0` | Graph packages and examples. |
 | `0.11.0` | Image, encryption, and utility follow-ups. |

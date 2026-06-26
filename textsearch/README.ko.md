@@ -96,9 +96,9 @@ _ = response.MaskedText // "** 그리고 **"
   normalize합니다. `Start`와 `End`는 여전히 original input의 byte offset입니다.
 - `Token` span도 original input의 byte offset을 사용합니다.
   `Token.Normalized`는 `Token.Text`와 길이가 다를 수 있습니다.
-- `Tokenizer`와 `TokenizerFunc`는 core extension point입니다. Korean,
-  Japanese, language detection, morphological analyzer dependency는 후속
-  research issue가 adapter 필요성을 증명하기 전까지 core package 밖에 둡니다.
+- `Tokenizer`와 `TokenizerFunc`는 core extension point입니다. 언어별 optional
+  dependency는 core package 밖에 둡니다. Kagome 기반 일본어 tokenizer가 필요하면
+  [`textsearch/japanese`](japanese/README.ko.md)를 명시적으로 import하세요.
 - `SimpleTokenizer`는 deterministic dependency-free tokenizer입니다. Test와
   simple lexical workflow를 위해 Unicode letter/mark, digit, whitespace,
   punctuation, symbol을 묶으며, language-aware POS tagger가 아닙니다.
@@ -133,4 +133,6 @@ _ = response.MaskedText // "** 그리고 **"
 ```bash
 go test -count=1 ./textsearch
 go test -race -count=1 ./textsearch
+go test -count=1 ./textsearch/japanese
+go test -race -count=1 ./textsearch/japanese
 ```
