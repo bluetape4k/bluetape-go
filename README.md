@@ -108,7 +108,8 @@ overview.
   [`examples/s3`](examples/s3/README.md), and
   [`examples/sqs-sns`](examples/sqs-sns/README.md).
 - Text: [`textsearch`](textsearch/README.md) for deterministic multi-pattern
-  search, replacement, masking, normalization, and boundary-aware matching.
+  search, blockword detection/masking, severity metadata, normalization, and
+  boundary-aware matching.
 - Coordination: [`leader`](leader/README.md),
   [`leader/redis`](leader/redis/README.md), and
   [`lock/redis`](lock/redis/README.md).

@@ -102,8 +102,9 @@ go get github.com/bluetape4k/bluetape-go
   [`examples/integration`](examples/integration/README.ko.md),
   [`examples/s3`](examples/s3/README.ko.md),
   [`examples/sqs-sns`](examples/sqs-sns/README.ko.md).
-- Text: deterministic multi-pattern search, replacement, masking, normalization,
-  boundary-aware matching을 위한 [`textsearch`](textsearch/README.ko.md).
+- Text: deterministic multi-pattern search, blockword detection/masking,
+  severity metadata, normalization, boundary-aware matching을 위한
+  [`textsearch`](textsearch/README.ko.md).
 - Coordination: [`leader`](leader/README.ko.md),
   [`leader/redis`](leader/redis/README.ko.md), [`lock/redis`](lock/redis/README.ko.md).
 - Runtime policy/cache/state/workflow: [`resilience`](resilience/README.ko.md),

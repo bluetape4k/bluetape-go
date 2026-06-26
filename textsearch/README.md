@@ -2,9 +2,10 @@
 
 [English](README.md) | [한국어](README.ko.md)
 
-`textsearch` provides deterministic multi-pattern search for Go callers. It
-compiles a dictionary into an immutable Aho-Corasick matcher and exposes
-contains, first-match, all-match, replacement, and masking helpers.
+`textsearch` provides deterministic multi-pattern search and blockword masking
+for Go callers. It compiles dictionaries into immutable Aho-Corasick matchers
+and exposes contains, first-match, all-match, replacement, masking, and
+blockword response helpers.
 
 ## Import
 
@@ -34,6 +35,33 @@ masked := matcher.Mask("Hello, world!", '*')
 _ = masked
 ```
 
+For moderation-like blockword processing, compile a static dictionary and
+rebuild a new dictionary when entries change:
+
+```go
+dictionary, err := textsearch.NewBlockwordDictionary([]textsearch.BlockwordEntry{
+    {ID: "ko", Text: "욕설", Severity: textsearch.SeverityHigh},
+    {ID: "ja", Text: "ホモ", Severity: textsearch.SeverityMiddle},
+}, textsearch.Config{Normalize: textsearch.NormalizeNFC})
+if err != nil {
+    return err
+}
+
+request, err := textsearch.NewBlockwordRequest("욕설 그리고 ホモ", textsearch.BlockwordOptions{
+    Mask:        "*",
+    MinSeverity: textsearch.SeverityMiddle,
+})
+if err != nil {
+    return err
+}
+
+response, err := dictionary.Process(request)
+if err != nil {
+    return err
+}
+_ = response.MaskedText // "** 그리고 **"
+```
+
 ## Behavior
 
 - `Matcher` is immutable after `Compile` returns and is safe for concurrent
@@ -59,6 +87,15 @@ _ = masked
   construction.
 - Replacement and masking use leftmost-longest non-overlapping matches even
   when the matcher is configured to report all overlaps.
+- `BlockwordDictionary` is immutable after `NewBlockwordDictionary` returns and
+  is safe for concurrent readers. Runtime dictionary mutation is intentionally
+  represented as a rebuild/swap workflow.
+- `BlockwordEntry` carries severity and caller-owned metadata. `BlockwordOptions`
+  can filter by minimum severity before deterministic non-overlapping masking.
+- `NewBlockwordRequest` rejects blank input and inputs above
+  `MaxBlockwordTextLength` runes. Error messages report lengths, not raw input.
+- Blockword masking is a helper transform for service code. It is not a
+  complete moderation policy, authorization check, or security boundary.
 
 ## Test
 

@@ -2,9 +2,10 @@
 
 [English](README.md) | [한국어](README.ko.md)
 
-`textsearch`는 Go caller를 위한 deterministic multi-pattern search package입니다.
-Dictionary를 immutable Aho-Corasick matcher로 compile하고 contains, first match,
-all match, replacement, masking helper를 제공합니다.
+`textsearch`는 Go caller를 위한 deterministic multi-pattern search와 blockword
+masking package입니다. Dictionary를 immutable Aho-Corasick matcher로 compile하고
+contains, first match, all match, replacement, masking, blockword response helper를
+제공합니다.
 
 ## 가져오기
 
@@ -34,6 +35,33 @@ masked := matcher.Mask("Hello, world!", '*')
 _ = masked
 ```
 
+Moderation-like blockword processing에는 static dictionary를 compile하고, entry가
+바뀔 때 새 dictionary를 rebuild해 교체합니다.
+
+```go
+dictionary, err := textsearch.NewBlockwordDictionary([]textsearch.BlockwordEntry{
+    {ID: "ko", Text: "욕설", Severity: textsearch.SeverityHigh},
+    {ID: "ja", Text: "ホモ", Severity: textsearch.SeverityMiddle},
+}, textsearch.Config{Normalize: textsearch.NormalizeNFC})
+if err != nil {
+    return err
+}
+
+request, err := textsearch.NewBlockwordRequest("욕설 그리고 ホモ", textsearch.BlockwordOptions{
+    Mask:        "*",
+    MinSeverity: textsearch.SeverityMiddle,
+})
+if err != nil {
+    return err
+}
+
+response, err := dictionary.Process(request)
+if err != nil {
+    return err
+}
+_ = response.MaskedText // "** 그리고 **"
+```
+
 ## 동작
 
 - `Matcher`는 `Compile` 이후 immutable이며 concurrent reader에 안전합니다.
@@ -58,6 +86,16 @@ _ = masked
   선형입니다.
 - Replacement와 masking은 matcher가 overlap 전체 보고로 설정되어 있어도
   leftmost-longest non-overlapping match를 사용합니다.
+- `BlockwordDictionary`는 `NewBlockwordDictionary` 이후 immutable이며 concurrent
+  reader에 안전합니다. Runtime dictionary mutation은 의도적으로 rebuild/swap
+  workflow로 표현합니다.
+- `BlockwordEntry`는 severity와 caller-owned metadata를 보존합니다.
+  `BlockwordOptions`는 deterministic non-overlapping masking 전에 minimum severity
+  기준으로 match를 필터링합니다.
+- `NewBlockwordRequest`는 blank input과 `MaxBlockwordTextLength`보다 긴 입력을
+  거부합니다. Error message에는 raw input을 넣지 않고 길이만 보고합니다.
+- Blockword masking은 service code를 위한 helper transform입니다. 완전한
+  moderation policy, authorization check, security boundary가 아닙니다.
 
 ## 테스트
 
