@@ -13,4 +13,10 @@ var (
 	ErrBlockwordTextTooLong = errors.New("textsearch: blockword text too long")
 	// ErrBlankBlockwordText reports a blank blockword request.
 	ErrBlankBlockwordText = errors.New("textsearch: blockword text must not be blank")
+	// ErrTokenizeTextTooLong reports tokenizer input above MaxTokenizeTextLength.
+	ErrTokenizeTextTooLong = errors.New("textsearch: tokenize text too long")
+	// ErrBlankTokenizeText reports a blank tokenizer request.
+	ErrBlankTokenizeText = errors.New("textsearch: tokenize text must not be blank")
+	// ErrDuplicateDictionaryText reports duplicate dictionary surface text.
+	ErrDuplicateDictionaryText = errors.New("textsearch: duplicate dictionary text")
 )

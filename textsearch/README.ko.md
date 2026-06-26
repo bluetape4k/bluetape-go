@@ -2,10 +2,10 @@
 
 [English](README.md) | [한국어](README.ko.md)
 
-`textsearch`는 Go caller를 위한 deterministic multi-pattern search와 blockword
-masking package입니다. Dictionary를 immutable Aho-Corasick matcher로 compile하고
-contains, first match, all match, replacement, masking, blockword response helper를
-제공합니다.
+`textsearch`는 Go caller를 위한 deterministic multi-pattern search, tokenizer
+core interface, blockword masking package입니다. Dictionary를 immutable
+Aho-Corasick matcher로 compile하고 contains, first match, all match, replacement,
+masking, tokenization, dictionary, blockword response helper를 제공합니다.
 
 ## 가져오기
 
@@ -33,6 +33,24 @@ Deterministic replacement에는 다음 helper를 사용합니다.
 ```go
 masked := matcher.Mask("Hello, world!", '*')
 _ = masked
+```
+
+Dependency-free lexical tokenization에는 다음 helper를 사용합니다.
+
+```go
+tokenizer := textsearch.NewSimpleTokenizer()
+request, err := textsearch.NewTokenizeRequest("Hello 세계 123!", textsearch.TokenizeOptions{
+    Normalize: textsearch.NormalizeNFC,
+})
+if err != nil {
+    return err
+}
+
+response, err := tokenizer.Tokenize(request)
+if err != nil {
+    return err
+}
+_ = response.Tokens[0].Span.Start // original input의 byte offset
 ```
 
 Moderation-like blockword processing에는 static dictionary를 compile하고, entry가
@@ -76,6 +94,17 @@ _ = response.MaskedText // "** 그리고 **"
   metadata는 `Pattern.ID`로 보존합니다.
 - `NormalizeNFC`와 `NormalizeNFKC`는 matching 전에 pattern과 input을
   normalize합니다. `Start`와 `End`는 여전히 original input의 byte offset입니다.
+- `Token` span도 original input의 byte offset을 사용합니다.
+  `Token.Normalized`는 `Token.Text`와 길이가 다를 수 있습니다.
+- `Tokenizer`와 `TokenizerFunc`는 core extension point입니다. Korean,
+  Japanese, language detection, morphological analyzer dependency는 후속
+  research issue가 adapter 필요성을 증명하기 전까지 core package 밖에 둡니다.
+- `SimpleTokenizer`는 deterministic dependency-free tokenizer입니다. Test와
+  simple lexical workflow를 위해 Unicode letter/mark, digit, whitespace,
+  punctuation, symbol을 묶으며, language-aware POS tagger가 아닙니다.
+- `DictionaryProvider`, `StaticDictionaryProvider`, `DictionarySet`은 storage,
+  tokenizer model size, runtime reload policy를 강제하지 않고 dictionary loading과
+  immutable lookup을 모델링합니다.
 - `IgnoreCase`는 Go `strings.ToLower`를 사용합니다. Locale-specific casing은
   이 package의 범위 밖입니다.
 - `BoundaryASCIIWord`와 `BoundaryUnicodeWord`는 word boundary match만
@@ -93,6 +122,8 @@ _ = response.MaskedText // "** 그리고 **"
   `BlockwordOptions`는 deterministic non-overlapping masking 전에 minimum severity
   기준으로 match를 필터링합니다.
 - `NewBlockwordRequest`는 blank input과 `MaxBlockwordTextLength`보다 긴 입력을
+  거부합니다. Error message에는 raw input을 넣지 않고 길이만 보고합니다.
+- `NewTokenizeRequest`는 blank input과 `MaxTokenizeTextLength`보다 긴 입력을
   거부합니다. Error message에는 raw input을 넣지 않고 길이만 보고합니다.
 - Blockword masking은 service code를 위한 helper transform입니다. 완전한
   moderation policy, authorization check, security boundary가 아닙니다.

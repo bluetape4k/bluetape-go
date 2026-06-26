@@ -2,10 +2,10 @@
 
 [English](README.md) | [한국어](README.ko.md)
 
-`textsearch` provides deterministic multi-pattern search and blockword masking
-for Go callers. It compiles dictionaries into immutable Aho-Corasick matchers
-and exposes contains, first-match, all-match, replacement, masking, and
-blockword response helpers.
+`textsearch` provides deterministic multi-pattern search, tokenizer core
+interfaces, and blockword masking for Go callers. It compiles dictionaries into
+immutable Aho-Corasick matchers and exposes contains, first-match, all-match,
+replacement, masking, tokenization, dictionary, and blockword response helpers.
 
 ## Import
 
@@ -33,6 +33,24 @@ For deterministic replacement:
 ```go
 masked := matcher.Mask("Hello, world!", '*')
 _ = masked
+```
+
+For dependency-free lexical tokenization:
+
+```go
+tokenizer := textsearch.NewSimpleTokenizer()
+request, err := textsearch.NewTokenizeRequest("Hello 세계 123!", textsearch.TokenizeOptions{
+    Normalize: textsearch.NormalizeNFC,
+})
+if err != nil {
+    return err
+}
+
+response, err := tokenizer.Tokenize(request)
+if err != nil {
+    return err
+}
+_ = response.Tokens[0].Span.Start // byte offset in the original input
 ```
 
 For moderation-like blockword processing, compile a static dictionary and
@@ -77,6 +95,17 @@ _ = response.MaskedText // "** 그리고 **"
 - `NormalizeNFC` and `NormalizeNFKC` normalize patterns and input before
   matching. Match `Start` and `End` still refer to byte offsets in the original
   input.
+- `Token` spans also use byte offsets in the original input. `Token.Normalized`
+  may have a different length from `Token.Text`.
+- `Tokenizer` and `TokenizerFunc` are the core extension points. Korean,
+  Japanese, language detection, and morphological analyzer dependencies stay
+  outside the core package unless a later research issue justifies an adapter.
+- `SimpleTokenizer` is deterministic and dependency-free. It groups Unicode
+  letters/marks, digits, whitespace, punctuation, and symbols for tests and
+  simple lexical workflows; it is not a language-aware POS tagger.
+- `DictionaryProvider`, `StaticDictionaryProvider`, and `DictionarySet` model
+  dictionary loading and immutable lookup without prescribing storage,
+  tokenizer model size, or runtime reload policy.
 - `IgnoreCase` uses Go's `strings.ToLower`; locale-specific casing is outside
   this package's scope.
 - `BoundaryASCIIWord` and `BoundaryUnicodeWord` filter matches to word
@@ -94,6 +123,8 @@ _ = response.MaskedText // "** 그리고 **"
   can filter by minimum severity before deterministic non-overlapping masking.
 - `NewBlockwordRequest` rejects blank input and inputs above
   `MaxBlockwordTextLength` runes. Error messages report lengths, not raw input.
+- `NewTokenizeRequest` rejects blank input and inputs above
+  `MaxTokenizeTextLength` runes. Error messages report lengths, not raw input.
 - Blockword masking is a helper transform for service code. It is not a
   complete moderation policy, authorization check, or security boundary.
 

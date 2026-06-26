@@ -15,6 +15,9 @@ and this project uses semantic versioning once the first tag is published.
 - `textsearch` blockword dictionaries with severity metadata, deterministic
   detection/masking responses, static rebuild semantics, and Korean/Japanese/
   ASCII stress coverage.
+- `textsearch` tokenizer core interfaces with byte-span tokens, normalized text
+  helpers, coarse POS extension points, dictionary providers, and a
+  dependency-free deterministic tokenizer for tests and simple lexical flows.
 
 ## [v0.7.0] - 2026-06-26
 
