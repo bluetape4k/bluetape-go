@@ -1,6 +1,6 @@
 # Lessons Learned - SQLKit Builder Boundary (2026-06-26)
 
-Related issue: #318  
+Related issue: #318
 Affected module: `sqlkit`
 
 ## L1: Keep the first builder inspectable before making it expressive
