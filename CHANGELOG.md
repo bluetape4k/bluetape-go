@@ -12,6 +12,9 @@ and this project uses semantic versioning once the first tag is published.
 - `textsearch` package with immutable Aho-Corasick multi-pattern matchers,
   first/all match modes, overlap policy, Unicode normalization, word-boundary
   filtering, replacement, masking, and concurrency stress coverage.
+- `textsearch` blockword dictionaries with severity metadata, deterministic
+  detection/masking responses, static rebuild semantics, and Korean/Japanese/
+  ASCII stress coverage.
 
 ## [v0.7.0] - 2026-06-26
 

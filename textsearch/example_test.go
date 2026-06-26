@@ -39,3 +39,31 @@ func ExampleMatcher_Replace() {
 	// Output:
 	// [secret] [token]
 }
+
+func ExampleBlockwordDictionary_Process() {
+	dictionary, err := textsearch.NewBlockwordDictionary([]textsearch.BlockwordEntry{
+		{ID: "ko", Text: "욕설", Severity: textsearch.SeverityHigh},
+		{ID: "ja", Text: "ホモ", Severity: textsearch.SeverityMiddle},
+	}, textsearch.Config{Normalize: textsearch.NormalizeNFC})
+	if err != nil {
+		return
+	}
+	request, err := textsearch.NewBlockwordRequest("욕설 그리고 ホモ", textsearch.BlockwordOptions{
+		Mask:        "*",
+		MinSeverity: textsearch.SeverityMiddle,
+	})
+	if err != nil {
+		return
+	}
+
+	response, err := dictionary.Process(request)
+	if err != nil {
+		return
+	}
+	fmt.Println(response.MaskedText)
+	fmt.Println(response.BlockwordExists())
+
+	// Output:
+	// ** 그리고 **
+	// true
+}
