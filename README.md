@@ -120,7 +120,8 @@ overview.
   [`measure`](measure/README.md), [`money`](money/README.md), and
   [`probabilistic`](probabilistic/README.md), including
   [`probabilistic/redis`](probabilistic/redis/README.md).
-- Data access: [`sqlkit`](sqlkit/README.md).
+- Data access: [`sqlkit`](sqlkit/README.md) and the optional
+  [SQL generator/migration guide](docs/sql-generator-migration-guidance.md).
 
 ## Roadmap
 

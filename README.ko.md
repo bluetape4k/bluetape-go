@@ -114,7 +114,8 @@ go get github.com/bluetape4k/bluetape-go
   [`measure`](measure/README.ko.md), [`money`](money/README.ko.md),
   [`probabilistic`](probabilistic/README.ko.md) 및
   [`probabilistic/redis`](probabilistic/redis/README.ko.md).
-- Data access: [`sqlkit`](sqlkit/README.ko.md).
+- Data access: [`sqlkit`](sqlkit/README.ko.md) 및 optional
+  [SQL generator/migration guide](docs/sql-generator-migration-guidance.ko.md).
 
 ## Roadmap
 
