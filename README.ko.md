@@ -71,6 +71,7 @@ series와 MongoDB-backed JWT KeyChain storage가 포함됩니다.
 | [`jwt/mongo`](jwt/mongo/README.ko.md) | active | Distributed JWT key-chain repository 생성을 위한 MongoDB 전용 facade. |
 | [`measure`](measure/README.ko.md) | active | Typed unit, measured value, compound unit, parsing, formatting, affine temperature helper. |
 | [`money`](money/README.ko.md) | active | ISO 4217 통화 값, CLDR-backed locale currency lookup, decimal-backed 금액, 합산, 직렬화, caller-supplied 환율 변환, ECB-backed provider 변환. |
+| [`sqlkit`](sqlkit/README.ko.md) | active | Runtime-first `database/sql` transaction helper와 명시적 row mapping/cardinality helper. |
 | [`probabilistic`](probabilistic/README.ko.md) | active | deterministic config, merge compatibility check, stress/race coverage를 갖춘 goroutine-safe 인메모리 Bloom filter. |
 | [`probabilistic/redis`](probabilistic/redis/README.ko.md) | active | Static Lua script, immutable config metadata, operator runbook 경계를 갖춘 Redis-backed shared Bloom filter. |
 
@@ -113,6 +114,7 @@ go get github.com/bluetape4k/bluetape-go
   [`measure`](measure/README.ko.md), [`money`](money/README.ko.md),
   [`probabilistic`](probabilistic/README.ko.md) 및
   [`probabilistic/redis`](probabilistic/redis/README.ko.md).
+- Data access: [`sqlkit`](sqlkit/README.ko.md).
 
 ## Roadmap
 

@@ -1,6 +1,6 @@
 # Issue 100 SQL DSL And Repository Research Scope
 
-Issue #100 decides the Go relational data-access direction before the 0.8.0
+Issue #100 decides the Go relational data-access direction before the 0.7.0
 implementation epic #101. The outcome is runtime-first: implement small
 `database/sql` transaction, row mapping, and inspectable SQL builder helpers,
 while keeping code generation optional and external.
