@@ -97,7 +97,7 @@ The new `audit` package will include:
   `OccurredAt`, `RecordedAt`, `IdempotencyKey`, `Metadata`, and raw JSON
   `Payload`. Event IDs and idempotency keys are required caller-supplied opaque
   values; the recorder does not generate either value.
-- `AuditEntry` with schema version, aggregate identity, revision, author,
+- `Entry` with schema version, aggregate identity, revision, author,
   optional `SnapshotMetadata`, optional `ChangeMetadata`, and the recorded
   event. Validation must reject entries where the entry aggregate/revision does
   not match the nested event aggregate/revision.
@@ -131,7 +131,7 @@ The package will expose sentinel errors compatible with `errors.Is`:
 - `ErrInvalidAggregateID`
 - `ErrInvalidRevision`
 - `ErrInvalidEvent`
-- `ErrInvalidAuditEntry`
+- `ErrInvalidEntry`
 - `ErrMixedAggregate`
 - `ErrRevisionConflict`
 
@@ -156,7 +156,7 @@ idempotency keys, malformed payload JSON, mixed aggregate identity, and
 duplicate revisions before they can be used for history reconstruction.
 
 Unknown JSON fields are ignored for forward compatibility, but unsupported
-`schema_version` values are rejected with an `ErrInvalidAuditEntry`-compatible
+`schema_version` values are rejected with an `ErrInvalidEntry`-compatible
 error. Missing required fields are rejected instead of defaulting to zero
 values. This gives rolled-back v1 readers a deterministic failure mode when
 future producers write incompatible versions.
@@ -248,7 +248,7 @@ does not unnecessarily serialize independent callers.
 
 | Issue #56 requirement | Design coverage |
 |---|---|
-| Aggregate ID/root/domain event/revision/audit entry/metadata | `AggregateID`, `AggregateRecorder`, `DomainEvent`, `Revision`, `AuditEntry`, `SnapshotMetadata`, `ChangeMetadata` |
+| Aggregate ID/root/domain event/revision/audit entry/metadata | `AggregateID`, `AggregateRecorder`, `DomainEvent`, `Revision`, `Entry`, `SnapshotMetadata`, `ChangeMetadata` |
 | Serialization compatibility expectations | Schema version 1, explicit JSON tags, raw JSON payload validation, validated decode, and copy behavior |
 | Diffing decision | Explicit non-goal; callers may record changed fields only |
 | Event recording | `AggregateRecorder` with monotonic revisions, head restart, peek-plus-ack pending-event lifecycle |

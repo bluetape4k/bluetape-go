@@ -16,7 +16,7 @@
 - Create `audit/errors.go`: sentinel errors and typed validation error.
 - Create `audit/types.go`: `AggregateID`, `Revision`, `Metadata`, constructors, validation helpers.
 - Create `audit/event.go`: `DomainEvent`, event options, payload copy/validation, event validation.
-- Create `audit/entry.go`: `AuditEntry`, `SnapshotMetadata`, `ChangeMetadata`, JSON decode validation.
+- Create `audit/entry.go`: `Entry`, `SnapshotMetadata`, `ChangeMetadata`, JSON decode validation.
 - Create `audit/recorder.go`: goroutine-safe recorder with pending snapshot plus explicit ack.
 - Create `audit/history.go`: history reconstruction, sort/contiguous validation, duplicate event/idempotency validation.
 - Create `audit/*_test.go`: unit, JSON, history, recorder, and concurrency tests.
@@ -133,7 +133,7 @@ Expected: FAIL because package `audit` or symbols are undefined.
 
 Implement:
 
-- `ErrInvalidAggregateID`, `ErrInvalidRevision`, `ErrInvalidEvent`, `ErrInvalidAuditEntry`, `ErrMixedAggregate`, `ErrRevisionConflict`.
+- `ErrInvalidAggregateID`, `ErrInvalidRevision`, `ErrInvalidEvent`, `ErrInvalidEntry`, `ErrMixedAggregate`, `ErrRevisionConflict`.
 - `ValidationError` with `Kind`, `Field`, `Value`, `Cause`, `Error`, `Unwrap`, and `Is`.
 - `AggregateID{Type string, ID string}` with `NewAggregateID`, `Validate`, `String`.
 - `Revision uint64` with `InitialRevision`, `Validate`, and `Next() (Revision, error)`.
@@ -195,44 +195,44 @@ Implement:
 Add tests covering:
 
 - `SnapshotMetadata{format, schema_version, payload}` requires non-blank format/schema version and valid copied JSON payload.
-- `SnapshotMetadata{}` and decoded `{"snapshot":{}}` reject with an `ErrInvalidAuditEntry`-compatible error when snapshot metadata is present.
+- `SnapshotMetadata{}` and decoded `{"snapshot":{}}` reject with an `ErrInvalidEntry`-compatible error when snapshot metadata is present.
 - `ChangeMetadata{changed_fields, summary, attributes}` removes duplicates, rejects blank field names, sorts fields, copies attributes, and rejects an empty `changed_fields` set when change metadata is present.
-- `ChangeMetadata{}` and decoded `{"change":{}}` reject with an `ErrInvalidAuditEntry`-compatible error when change metadata is present.
-- `AuditEntry` validates schema version `1`, entry/event aggregate and revision match, author is non-blank, and nested event is valid.
+- `ChangeMetadata{}` and decoded `{"change":{}}` reject with an `ErrInvalidEntry`-compatible error when change metadata is present.
+- `Entry` validates schema version `1`, entry/event aggregate and revision match, author is non-blank, and nested event is valid.
 - JSON round trip preserves `schema_version`, `aggregate`, `revision`, `event`, `snapshot`, and `change`.
 - Decode rejects unsupported `schema_version`, missing required fields, zero values, malformed payloads, entry/event mismatch, and invalid nested metadata while ignoring unknown fields.
-- Direct `json.Unmarshal` into `AuditEntry` rejects the same invalid payloads as `DecodeAuditEntryJSON`; invalid decoded structs must not rely on callers remembering to call `Validate`.
+- Direct `json.Unmarshal` into `Entry` rejects the same invalid payloads as `DecodeEntryJSON`; invalid decoded structs must not rely on callers remembering to call `Validate`.
 
 Run:
 
 ```bash
-go test -count=1 ./audit -run 'Test(SnapshotMetadata|ChangeMetadata|AuditEntry)'
+go test -count=1 ./audit -run 'Test(SnapshotMetadata|ChangeMetadata|Entry)'
 ```
 
 Expected: FAIL because entry APIs are missing.
 
-- [ ] **Step 4: Implement metadata shapes, `AuditEntry`, validation, and JSON decode helper**
+- [ ] **Step 4: Implement metadata shapes, `Entry`, validation, and JSON decode helper**
 
 Implement:
 
 - `const SchemaVersion = 1`
 - `SnapshotMetadata` constructor/validation.
 - `ChangeMetadata` constructor/validation with sorted changed fields.
-- `AuditEntry` constructor/validation.
-- `DecodeAuditEntryJSON([]byte) (AuditEntry, error)` that unmarshals, validates, and rejects unsupported schema versions or missing required fields.
-- Validating `UnmarshalJSON` for `AuditEntry` and nested metadata value types where direct struct unmarshal would otherwise bypass invariants.
-- A documented precondition that `DecodeAuditEntryJSON` accepts already bounded bytes only; #57/#58 repository/API/outbox adapters must enforce byte/depth limits before reading or decoding untrusted input.
+- `Entry` constructor/validation.
+- `DecodeEntryJSON([]byte) (Entry, error)` that unmarshals, validates, and rejects unsupported schema versions or missing required fields.
+- Validating `UnmarshalJSON` for `Entry` and nested metadata value types where direct struct unmarshal would otherwise bypass invariants.
+- A documented precondition that `DecodeEntryJSON` accepts already bounded bytes only; #57/#58 repository/API/outbox adapters must enforce byte/depth limits before reading or decoding untrusted input.
 - Single-entry validation covers only per-record invariants. Duplicate
   revisions, duplicate event IDs, and duplicate idempotency keys are batch
   invariants checked by `NewHistory` or future batch decode helpers, not hidden
-  mutable state in `AuditEntry.Validate`.
+  mutable state in `Entry.Validate`.
 
 - [ ] **Step 5: Verify Task 2**
 
 Run:
 
 ```bash
-go test -count=1 ./audit -run 'Test(DomainEvent|SnapshotMetadata|ChangeMetadata|AuditEntry)'
+go test -count=1 ./audit -run 'Test(DomainEvent|SnapshotMetadata|ChangeMetadata|Entry)'
 ```
 
 Expected: PASS.
@@ -358,8 +358,8 @@ Add tests covering:
 
 - unsorted valid entries are sorted ascending by revision;
 - `HeadRevision` returns the newest revision;
-- `NewHistory(nil)` and `NewHistory([]AuditEntry{})` reject with an
-  `ErrInvalidAuditEntry`-compatible error. Empty histories require a future
+- `NewHistory(nil)` and `NewHistory([]Entry{})` reject with an
+  `ErrInvalidEntry`-compatible error. Empty histories require a future
   explicit constructor that includes an aggregate ID.
 - mixed aggregate IDs reject with `ErrMixedAggregate`;
 - zero, duplicate, non-contiguous revisions reject with `ErrRevisionConflict` or `ErrInvalidRevision`;
@@ -382,8 +382,8 @@ Expected: FAIL because history APIs are missing.
 Implement:
 
 - `History` with aggregate ID, sorted entries, and head revision.
-- `NewHistory(entries []AuditEntry) (History, error)`.
-- Immutable `Entries() []AuditEntry`, `AggregateID() AggregateID`, and `HeadRevision() Revision`.
+- `NewHistory(entries []Entry) (History, error)`.
+- Immutable `Entries() []Entry`, `AggregateID() AggregateID`, and `HeadRevision() Revision`.
 - Sorting and validation without replaying domain state.
 
 - [ ] **Step 3: Verify Task 4**
@@ -418,7 +418,7 @@ Add examples for:
   same pending events, then acknowledging through revision only after simulated
   durable audit commit succeeds;
 - validated JSON decode with direct `json.Unmarshal` rejection for invalid
-  records and `DecodeAuditEntryJSON` usage for bounded trusted bytes;
+  records and `DecodeEntryJSON` usage for bounded trusted bytes;
 - constructing history from audit entries.
 
 Run:
@@ -548,5 +548,5 @@ record the result before asking for merge.
 ## Rollback / Re-run Points
 
 - If recorder lifecycle tests show ambiguous ack semantics, stop before implementation commit and revise Task 3 plus docs.
-- If JSON decode validation requires custom unmarshal recursion that becomes fragile, prefer an explicit `DecodeAuditEntryJSON` helper and document that repository/outbox code must use it.
+- If JSON decode validation requires custom unmarshal recursion that becomes fragile, prefer an explicit `DecodeEntryJSON` helper and document that repository/outbox code must use it.
 - If race tests are flaky, reduce stress concurrency but keep `go test -race -count=1 ./audit` mandatory.

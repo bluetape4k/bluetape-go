@@ -7,6 +7,12 @@ and this project uses semantic versioning once the first tag is published.
 
 ## [Unreleased]
 
+### Added
+
+- `audit` package with aggregate IDs, monotonic revisions, caller-owned domain
+  event IDs, idempotency keys, validated JSON audit entries, pending event
+  recorders, and storage-neutral history reconstruction.
+
 ## [v0.8.0] - 2026-06-27
 
 ### Added
