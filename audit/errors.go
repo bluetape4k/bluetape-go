@@ -11,6 +11,7 @@ var (
 	ErrInvalidRevision    = errors.New("invalid revision")
 	ErrInvalidEvent       = errors.New("invalid audit event")
 	ErrInvalidEntry       = errors.New("invalid audit entry")
+	ErrInvalidQuery       = errors.New("invalid audit query")
 	ErrMixedAggregate     = errors.New("mixed aggregate")
 	ErrRevisionConflict   = errors.New("revision conflict")
 )

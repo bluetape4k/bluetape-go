@@ -11,7 +11,9 @@ and this project uses semantic versioning once the first tag is published.
 
 - `audit` package with aggregate IDs, monotonic revisions, caller-owned domain
   event IDs, idempotency keys, validated JSON audit entries, pending event
-  recorders, and storage-neutral history reconstruction.
+  recorders, storage-neutral history reconstruction, repository/query
+  interfaces, reusable adapter conformance tests, and a goroutine-safe
+  non-durable in-memory repository.
 
 ## [v0.8.0] - 2026-06-27
 
