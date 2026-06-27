@@ -6,8 +6,10 @@ Service package에서 사용할 storage-neutral aggregate event와 audit model �
 
 이 package는 검증된 aggregate ID, positive revision, caller-owned event ID,
 idempotency key, audit entry, snapshot/change metadata, goroutine-safe pending
-event recorder, deterministic history reconstruction을 제공합니다. Record 저장,
-outbox publish, JaVers식 object diff 계산은 맡지 않습니다.
+event recorder, deterministic history reconstruction, storage-neutral
+repository interface, test/example용 non-durable in-memory repository를
+제공합니다. Outbox publish, SQL/Redis/Kafka/NATS adapter 정의, JaVers식 object
+diff 계산은 맡지 않습니다.
 
 ## Import
 
@@ -94,6 +96,59 @@ pending event를 보존하고, durable audit commit 성공만 acknowledgment bou
 outbox/reconciliation mechanism으로 복구되어야 합니다. In-memory pending event는
 crash recovery가 아닙니다.
 
+## Repository Queries
+
+`Repository`는 all-or-nothing append와 `HistoryReader` query를 함께 제공합니다.
+모든 method는 `context.Context`를 받으며, 취소된 context는 caller-owned context
+error를 반환합니다.
+
+```go
+repo := audit.NewMemoryRepository()
+if err := repo.Append(ctx, entry); err != nil {
+	return err
+}
+
+history, ok, err := repo.LoadHistory(ctx, aggregate)
+if err != nil {
+	return err
+}
+if !ok {
+	return nil
+}
+_ = history.HeadRevision()
+```
+
+`Find`는 기본적으로 append order를 사용하고 `NewestFirst`가 true이면 그 순서를
+뒤집습니다. `Limit`은 filter와 ordering 뒤에 적용됩니다. Revision과 recorded-time
+bound는 inclusive입니다.
+
+```go
+entries, err := repo.Find(ctx, audit.Query{
+	Aggregate:     &aggregate,
+	FromRevision:  audit.Revision(2),
+	ToRevision:    audit.Revision(4),
+	NewestFirst:   true,
+	Limit:         10,
+})
+if err != nil {
+	return err
+}
+```
+
+`Latest`, `LatestSnapshot`, `PreviousSnapshot`은 `(Entry, bool, error)`를
+반환하므로 missing history는 예외가 아닙니다.
+
+`MemoryRepository`는 goroutine-safe이며 write/read 시 entry를 복사합니다. Durable
+store가 아니며 test, example, adapter conformance 용도입니다.
+
+Adapter package는 repository contract를 다음 helper로 재사용할 수 있습니다.
+
+```go
+audittest.RunRepositoryConformance(t, func(testing.TB) audit.Repository {
+	return audit.NewMemoryRepository()
+})
+```
+
 ## JaVers Migration Notes
 
 | JaVers/Kotlin 개념 | Go package 형태 | 경계 |
@@ -102,7 +157,8 @@ crash recovery가 아닙니다.
 | Domain event | `DomainEvent` | Event ID와 idempotency key는 caller가 제공합니다. |
 | Audit entry/snapshot | `Entry`, `SnapshotMetadata`, `ChangeMetadata` | JSON 검증은 local contract이고 storage schema는 외부 책임입니다. |
 | Event recording | `AggregateRecorder` | Pending event는 명시적 ack 뒤에만 정리됩니다. |
-| Repository event publishing | 이후 repository/outbox issue | #56은 SQL, Redis, Kafka, NATS, transaction choreography를 맡지 않습니다. |
+| Repository history query | `Repository`, `HistoryReader`, `Query` | #57은 storage-neutral contract와 in-memory conformance만 맡습니다. |
+| Repository event publishing | 이후 outbox issue | SQL, Redis, Kafka, NATS, transaction choreography는 범위 밖입니다. |
 | Object diffing | 범위 밖 | Caller는 change metadata를 저장할 수 있지만 이 package는 object diff를 계산하지 않습니다. |
 
 ## Boundaries
@@ -110,16 +166,20 @@ crash recovery가 아닙니다.
 - Revision은 positive이고 `InitialRevision()`에서 시작합니다.
 - `NewHistory`는 empty, mixed-aggregate, duplicate, non-contiguous,
   non-initial history를 거부합니다.
+- `Append`는 mixed aggregate batch, non-contiguous continuation, duplicate event
+  ID, duplicate idempotency key를 거부합니다.
+- `Find`는 partial `[]Entry` 결과를 반환합니다. `History`는 initial revision부터
+  이어지는 full contiguous history로 유지됩니다.
 - Constructor와 JSON decode 경로는 metadata와 payload를 복사한 값을 반환합니다.
 - Redaction, PII 정책, payload size limit, persistence transaction boundary는
   caller 책임입니다.
-- Repository interface, history query API, outbox publisher, SQL DDL, Redis,
-  Kafka, NATS, example은 이후 `0.9.0` issue에서 다룹니다.
+- Outbox publisher, SQL DDL, Redis, Kafka, NATS, example은 이후 `0.9.0`
+  issue에서 다룹니다.
 
 ## Tests
 
 ```bash
 go test -count=1 ./audit
-go test -race -count=1 ./audit
+go test -race -count=1 ./audit ./audit/audittest
 go test -run '^$' -bench 'BenchmarkAggregateRecorder(Record|PendingEvents|AckThrough)' -benchmem ./audit
 ```

@@ -6,9 +6,10 @@ Storage-neutral aggregate event and audit model values for service packages.
 
 The package defines validated aggregate IDs, positive revisions, caller-owned
 event IDs, idempotency keys, audit entries, snapshot/change metadata, a
-goroutine-safe pending-event recorder, and deterministic history reconstruction.
-It does not persist records, publish outbox messages, or compute JaVers-style
-object diffs.
+goroutine-safe pending-event recorder, deterministic history reconstruction,
+storage-neutral repository interfaces, and a non-durable in-memory repository
+for tests and examples. It does not publish outbox messages, define SQL/Redis/
+Kafka/NATS adapters, or compute JaVers-style object diffs.
 
 ## Import
 
@@ -95,6 +96,59 @@ be transactionally coupled, rolled back on audit failure, or recovered through a
 durable outbox/reconciliation mechanism. In-memory pending events are not crash
 recovery.
 
+## Repository Queries
+
+`Repository` combines all-or-nothing append with `HistoryReader` queries. All
+methods accept `context.Context`; canceled contexts return the caller-owned
+context error.
+
+```go
+repo := audit.NewMemoryRepository()
+if err := repo.Append(ctx, entry); err != nil {
+	return err
+}
+
+history, ok, err := repo.LoadHistory(ctx, aggregate)
+if err != nil {
+	return err
+}
+if !ok {
+	return nil
+}
+_ = history.HeadRevision()
+```
+
+`Find` uses append order by default and reverses that order with
+`NewestFirst`. `Limit` is applied after filtering and ordering. Revision and
+recorded-time bounds are inclusive.
+
+```go
+entries, err := repo.Find(ctx, audit.Query{
+	Aggregate:     &aggregate,
+	FromRevision:  audit.Revision(2),
+	ToRevision:    audit.Revision(4),
+	NewestFirst:   true,
+	Limit:         10,
+})
+if err != nil {
+	return err
+}
+```
+
+`Latest`, `LatestSnapshot`, and `PreviousSnapshot` return `(Entry, bool, error)`
+so missing history remains non-exceptional.
+
+`MemoryRepository` is goroutine-safe and copies entries on write and read. It is
+not durable and is intended for tests, examples, and adapter conformance.
+
+Adapter packages can reuse the repository contract through:
+
+```go
+audittest.RunRepositoryConformance(t, func(testing.TB) audit.Repository {
+	return audit.NewMemoryRepository()
+})
+```
+
 ## JaVers Migration Notes
 
 | JaVers/Kotlin concept | Go package shape | Boundary |
@@ -103,7 +157,8 @@ recovery.
 | Domain event | `DomainEvent` | Event IDs and idempotency keys are caller supplied. |
 | Audit entry/snapshot | `Entry`, `SnapshotMetadata`, `ChangeMetadata` | JSON validation is local; storage schema is external. |
 | Event recording | `AggregateRecorder` | Pending events clear only after explicit ack. |
-| Repository event publishing | Later repository/outbox issues | #56 does not own SQL, Redis, Kafka, NATS, or transaction choreography. |
+| Repository history queries | `Repository`, `HistoryReader`, `Query` | #57 owns storage-neutral contracts and in-memory conformance only. |
+| Repository event publishing | Later outbox issues | SQL, Redis, Kafka, NATS, and transaction choreography remain out of scope. |
 | Object diffing | Out of scope | Callers may store change metadata, but this package does not diff objects. |
 
 ## Boundaries
@@ -111,17 +166,21 @@ recovery.
 - Revisions are positive and start at `InitialRevision()`.
 - `NewHistory` rejects empty, mixed-aggregate, duplicated, non-contiguous, or
   non-initial histories.
+- `Append` rejects mixed aggregate batches, non-contiguous continuations,
+  duplicate event IDs, and duplicate idempotency keys.
+- `Find` returns partial `[]Entry` results; `History` remains full and
+  contiguous from the initial revision.
 - Constructors and JSON decode paths copy metadata and payloads before
   returning values.
 - Callers own redaction, PII policy, payload size limits, and persistence
   transaction boundaries.
-- Repository interfaces, history query APIs, outbox publishers, SQL DDL, Redis,
-  Kafka, NATS, and examples are tracked by later `0.9.0` issues.
+- Outbox publishers, SQL DDL, Redis, Kafka, NATS, and examples are tracked by
+  later `0.9.0` issues.
 
 ## Tests
 
 ```bash
 go test -count=1 ./audit
-go test -race -count=1 ./audit
+go test -race -count=1 ./audit ./audit/audittest
 go test -run '^$' -bench 'BenchmarkAggregateRecorder(Record|PendingEvents|AckThrough)' -benchmem ./audit
 ```
