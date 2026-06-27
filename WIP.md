@@ -16,6 +16,10 @@ reconstruction. Issue #57 adds repository/history query contracts, reusable
 adapter conformance tests, and a goroutine-safe non-durable in-memory
 repository. Outbox, SQL/Redis/Kafka/NATS adapters, and example services remain
 tracked by later `0.9.0` issues.
+Issue #58 selects SQL outbox store plus relay contracts as the first durable
+publisher target, with implementation tracked by #346; Kafka, NATS, and Redis
+Streams stay deferred publisher/projection adapters until that contract is
+proven.
 
 ## Current State
 
@@ -23,7 +27,8 @@ tracked by later `0.9.0` issues.
   `v0.6.0`, `v0.6.1` through `v0.6.8`, `v0.7.0`, and `v0.8.0` are tagged and
   released.
 - Milestone `0.9.0` is open. Issues #56 and #57 are the first implementation
-  slices.
+  slices; #58 records the outbox design and #346 tracks the SQL outbox
+  implementation.
 - `CHANGELOG.md` contains the `[Unreleased]` audit package entry required before
   tagging a future `v0.9.0`.
 
