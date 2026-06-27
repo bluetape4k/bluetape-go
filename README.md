@@ -78,7 +78,7 @@ series plus MongoDB-backed JWT KeyChain storage.
 | [`probabilistic/redis`](probabilistic/redis/README.md) | active | Redis-backed shared Bloom filters with static Lua scripts, immutable config metadata, and operator runbook boundaries. |
 
 Next planned package families include SQL generator/migration guidance,
-additional AWS/Floci examples, text, audit, and graph packages. Redis-backed
+blockword masking, tokenizer research, audit, and graph packages. Redis-backed
 Cuckoo and HyperLogLog/HLL support is tracked separately after the Redis Bloom
 scope.
 
@@ -107,6 +107,11 @@ overview.
   compile-checked examples under [`examples/integration`](examples/integration/README.md),
   [`examples/s3`](examples/s3/README.md), and
   [`examples/sqs-sns`](examples/sqs-sns/README.md).
+- Text: [`textsearch`](textsearch/README.md) for deterministic multi-pattern
+  search, tokenizer core interfaces, blockword detection/masking, severity
+  metadata, normalization, boundary-aware matching, and the optional
+  [`textsearch/japanese`](textsearch/japanese/README.md) Kagome adapter plus
+  [`textsearch/language`](textsearch/language/README.md) Lingua-Go detector.
 - Coordination: [`leader`](leader/README.md),
   [`leader/redis`](leader/redis/README.md), and
   [`lock/redis`](lock/redis/README.md).
@@ -140,11 +145,10 @@ overview.
 | `0.6.5` | Testcontainers contract hardening and service coverage expansion. |
 | `0.6.6` | Developer-experience parity, integration examples, and corrective-series closure. |
 | `0.7.0` | Relational SQL DSL and repository helpers. |
-| `0.8.0` | AWS helper packages and Floci-backed examples. |
-| `0.9.0` | Text search, blockword masking, tokenizer research. |
-| `0.10.0` | Audit and event packages inspired by bluetape4k-javers patterns. |
-| `0.11.0` | Graph packages and examples. |
-| `0.12.0` | Rule engine research and implementation. |
+| `0.8.0` | Text search, blockword masking, tokenizer adapters. |
+| `0.9.0` | Audit and event packages inspired by bluetape4k-javers patterns. |
+| `0.10.0` | Graph packages and examples. |
+| `0.11.0` | Image, encryption, and utility follow-ups. |
 
 The closed `0.7.0 Research Gate` milestone recorded the larger-domain scope
 decisions and was not tagged as a release.

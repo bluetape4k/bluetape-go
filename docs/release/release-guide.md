@@ -106,28 +106,28 @@ go test ./...
    - Commit `go.mod` and `go.sum` changes.
    - Open a PR in the consumer repository.
 
-## `v0.7.0` Release Plan
+## `v0.8.0` Release Plan
 
-`v0.7.0` contains the first relational SQL package family:
+`v0.8.0` contains the text search and tokenizer package family:
 
-- `sqlkit` transaction helpers around caller-owned `*sql.DB` and `*sql.Tx`
-  values.
-- Small `Session`, `Queryer`, and `Execer` interfaces matching
-  `database/sql` execution methods.
-- Explicit row mapping and cardinality helpers: `QueryAll`, `QueryOptional`,
-  `QueryOne`, and `ScanOne`.
-- PostgreSQL-first inspectable builders for `SELECT`, `INSERT`, `UPDATE`, and
-  `DELETE`, with validated identifiers, copied args, and safe update/delete
-  guards.
-- Testcontainers-backed PostgreSQL repository examples for CRUD, rollback, and
-  relational query behavior.
-- Optional sqlc/Jet generator guidance and Atlas migration boundary docs,
-  without adding those tools as `sqlkit` runtime dependencies.
+- `textsearch` immutable Aho-Corasick matchers with first/all match modes,
+  overlap policy, Unicode normalization, word-boundary filtering, replacement,
+  masking, and stress coverage.
+- `textsearch` blockword dictionaries with severity metadata, deterministic
+  detection and masking responses, and static rebuild semantics.
+- Dependency-free tokenizer core interfaces with byte-span tokens, normalized
+  text helpers, coarse POS extension points, dictionary providers, and a simple
+  deterministic tokenizer.
+- Optional `textsearch/japanese` Kagome v2 adapter with IPA dictionary defaults,
+  Kagome POS metadata, noun/verb filters, examples, and stress coverage.
+- Optional `textsearch/language` Lingua-Go adapter with all/subset detector
+  builders, lazy/preloaded and low-accuracy modes, mixed-language sections,
+  Unicode script helpers, and stress coverage.
 
 Release sequence:
 
-1. Verify milestone `0.7.0` is closed with zero open issues.
+1. Verify milestone `0.8.0` is closed with zero open issues.
 2. Merge `develop` into `main` through a release PR.
-3. Tag `main` as `v0.7.0`.
-4. Create GitHub Release `v0.7.0`.
-5. Update downstream consumers that should require `github.com/bluetape4k/bluetape-go v0.7.0`.
+3. Tag `main` as `v0.8.0`.
+4. Create GitHub Release `v0.8.0`.
+5. Update downstream consumers that should require `github.com/bluetape4k/bluetape-go v0.8.0`.
