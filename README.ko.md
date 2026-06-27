@@ -102,6 +102,12 @@ go get github.com/bluetape4k/bluetape-go
   [`examples/integration`](examples/integration/README.ko.md),
   [`examples/s3`](examples/s3/README.ko.md),
   [`examples/sqs-sns`](examples/sqs-sns/README.ko.md).
+- Text: deterministic multi-pattern search, tokenizer core interface,
+  blockword detection/masking, severity metadata, normalization,
+  boundary-aware matching을 위한
+  [`textsearch`](textsearch/README.ko.md) 및 optional Kagome adapter인
+  [`textsearch/japanese`](textsearch/japanese/README.ko.md), Lingua-Go detector인
+  [`textsearch/language`](textsearch/language/README.ko.md).
 - Coordination: [`leader`](leader/README.ko.md),
   [`leader/redis`](leader/redis/README.ko.md), [`lock/redis`](lock/redis/README.ko.md).
 - Runtime policy/cache/state/workflow: [`resilience`](resilience/README.ko.md),
@@ -134,11 +140,10 @@ go get github.com/bluetape4k/bluetape-go
 | `0.6.5` | Testcontainers contract hardening과 service coverage expansion. |
 | `0.6.6` | Developer-experience parity, integration example, corrective-series closure. |
 | `0.7.0` | Relational SQL DSL과 repository helper. |
-| `0.8.0` | AWS helper package와 Floci-backed example. |
-| `0.9.0` | Text search, blockword masking, tokenizer research. |
-| `0.10.0` | bluetape4k-javers 패턴 기반 audit/event package. |
-| `0.11.0` | Graph package와 example. |
-| `0.12.0` | Rule engine research와 구현. |
+| `0.8.0` | Text search, blockword masking, tokenizer adapter. |
+| `0.9.0` | bluetape4k-javers 패턴 기반 audit/event package. |
+| `0.10.0` | Graph package와 example. |
+| `0.11.0` | Image, encryption, utility follow-up. |
 
 닫힌 `0.7.0 Research Gate` milestone은 큰 도메인 범위 결정을 기록한
 research milestone이며 release tag를 만들지 않았습니다.
