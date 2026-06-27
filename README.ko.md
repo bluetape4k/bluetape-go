@@ -17,12 +17,12 @@ adapter를 작은 패키지로 가져다 쓸 수 있게 만든 별도 구현입�
 
 ## 현재 상태
 
-`bluetape-go`는 `v0.6.7` 릴리스 선을 배포했습니다. 현재 repository에는
+`bluetape-go`는 `v0.8.0` 릴리스 선을 배포했습니다. 현재 repository에는
 foundation helper, codec, compression, context-aware concurrency, serializer
 contract, Redis 기반 leader election과 lock, resilience policy, cache
 coordination, token-bucket rate limiting, finite state machine, workflow report,
-lightweight workflow runner, checkpoint 기반 batch job, portable service value가
-들어 있습니다.
+lightweight workflow runner, checkpoint 기반 batch job, portable service value,
+SQL helper, text search primitive가 들어 있습니다.
 
 `v0.6.x` portable utility 범위에는 UUID, ULID, KSUID, Snowflake ID 생성,
 명시적 algorithm 기반 JWT signing/parsing/validation, 인메모리/Redis/MongoDB
@@ -72,12 +72,13 @@ series와 MongoDB-backed JWT KeyChain storage가 포함됩니다.
 | [`measure`](measure/README.ko.md) | active | Typed unit, measured value, compound unit, parsing, formatting, affine temperature helper. |
 | [`money`](money/README.ko.md) | active | ISO 4217 통화 값, CLDR-backed locale currency lookup, decimal-backed 금액, 합산, 직렬화, caller-supplied 환율 변환, ECB-backed provider 변환. |
 | [`sqlkit`](sqlkit/README.ko.md) | active | Runtime-first `database/sql` transaction helper, 명시적 row mapping/cardinality helper, PostgreSQL 우선 inspectable SQL builder. |
+| [`audit`](audit/README.ko.md) | active | validated JSON entry, pending event recording, history reconstruction을 제공하는 storage-neutral aggregate event/audit model. |
 | [`probabilistic`](probabilistic/README.ko.md) | active | deterministic config, merge compatibility check, stress/race coverage를 갖춘 goroutine-safe 인메모리 Bloom filter. |
 | [`probabilistic/redis`](probabilistic/redis/README.ko.md) | active | Static Lua script, immutable config metadata, operator runbook 경계를 갖춘 Redis-backed shared Bloom filter. |
 
-다음 계획 패키지군은 SQL generator/migration guidance, 추가 AWS/Floci example,
-text, audit, graph 패키지입니다. Redis-backed Cuckoo와 HyperLogLog/HLL 지원은
-Redis Bloom 범위 이후 별도로 추적합니다.
+다음 계획 패키지군은 audit repository/outbox adapter, example service, graph
+패키지입니다. Redis-backed Cuckoo와 HyperLogLog/HLL 지원은 Redis Bloom 범위 이후
+별도로 추적합니다.
 
 ## 설치
 
@@ -122,6 +123,8 @@ go get github.com/bluetape4k/bluetape-go
   [`probabilistic/redis`](probabilistic/redis/README.ko.md).
 - Data access: [`sqlkit`](sqlkit/README.ko.md) 및 optional
   [SQL generator/migration guide](docs/sql-generator-migration-guidance.ko.md).
+- Audit: storage-neutral aggregate event value, pending event handoff, validated
+  audit entry JSON, history reconstruction을 위한 [`audit`](audit/README.ko.md).
 
 ## Roadmap
 

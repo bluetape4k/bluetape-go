@@ -18,12 +18,12 @@ batch processing, portable values, and Redis-backed adapters.
 
 ## Current Status
 
-`bluetape-go` has published the `v0.6.7` release line. The repository now covers
+`bluetape-go` has published the `v0.8.0` release line. The repository now covers
 foundation helpers, codecs, compression, context-aware concurrency, serializer
 contracts, Redis-backed leader election and locks, resilience policies, cache
 coordination, token-bucket rate limiting, finite state machines, workflow
 reports, lightweight workflow runners, checkpointed batch jobs, and portable
-service values.
+service values, SQL helpers, and text search primitives.
 
 The `v0.6.x` portable utilities scope includes UUID, ULID, KSUID, and Snowflake
 ID generation; explicit-algorithm JWT signing, parsing, validation, and local
@@ -74,13 +74,14 @@ series plus MongoDB-backed JWT KeyChain storage.
 | [`measure`](measure/README.md) | active | Typed units, measured values, compound units, parsing, formatting, and affine temperature helpers. |
 | [`money`](money/README.md) | active | ISO 4217 currency values, CLDR-backed locale currency lookup, decimal-backed money amounts, aggregation, serialization, caller-supplied exchange-rate conversion, and ECB-backed provider conversion. |
 | [`sqlkit`](sqlkit/README.md) | active | Runtime-first `database/sql` transaction helpers, explicit row mapping/cardinality helpers, and PostgreSQL-first inspectable SQL builders. |
+| [`audit`](audit/README.md) | active | Storage-neutral aggregate event and audit model with validated JSON entries, pending-event recording, and history reconstruction. |
 | [`probabilistic`](probabilistic/README.md) | active | Goroutine-safe in-memory Bloom filters with deterministic config, merge compatibility checks, and stress/race coverage. |
 | [`probabilistic/redis`](probabilistic/redis/README.md) | active | Redis-backed shared Bloom filters with static Lua scripts, immutable config metadata, and operator runbook boundaries. |
 
 Next planned package families include SQL generator/migration guidance,
-blockword masking, tokenizer research, audit, and graph packages. Redis-backed
-Cuckoo and HyperLogLog/HLL support is tracked separately after the Redis Bloom
-scope.
+audit repository/outbox adapters, example services, and graph packages.
+Redis-backed Cuckoo and HyperLogLog/HLL support is tracked separately after the
+Redis Bloom scope.
 
 ## Install
 
@@ -127,6 +128,9 @@ overview.
   [`probabilistic/redis`](probabilistic/redis/README.md).
 - Data access: [`sqlkit`](sqlkit/README.md) and the optional
   [SQL generator/migration guide](docs/sql-generator-migration-guidance.md).
+- Audit: [`audit`](audit/README.md) for storage-neutral aggregate event values,
+  pending event handoff, validated audit entry JSON, and history
+  reconstruction.
 
 ## Roadmap
 
