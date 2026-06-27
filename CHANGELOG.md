@@ -7,6 +7,8 @@ and this project uses semantic versioning once the first tag is published.
 
 ## [Unreleased]
 
+## [v0.8.0] - 2026-06-27
+
 ### Added
 
 - `textsearch` package with immutable Aho-Corasick multi-pattern matchers,
