@@ -14,6 +14,10 @@ and this project uses semantic versioning once the first tag is published.
   recorders, storage-neutral history reconstruction, repository/query
   interfaces, reusable adapter conformance tests, and a goroutine-safe
   non-durable in-memory repository.
+- Audit outbox design selecting a SQL outbox store and relay contract as the
+  first durable publisher target, with Kafka, NATS, Redis Streams, RabbitMQ,
+  Redpanda, Pulsar, and direct Redis audit storage deferred until the durable
+  outbox boundary is proven.
 
 ## [v0.8.0] - 2026-06-27
 
