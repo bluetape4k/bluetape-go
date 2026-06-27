@@ -161,12 +161,13 @@ audittest.RunRepositoryConformance(t, func(testing.TB) audit.Repository {
 | Repository event publishing | Later outbox issues | SQL, Redis, Kafka, NATS, and transaction choreography remain out of scope. |
 | Object diffing | Out of scope | Callers may store change metadata, but this package does not diff objects. |
 
-## Outbox Design Status
+## Durable Outbox
 
 Issue #58 selects a SQL outbox store and relay contract as the first durable
 publisher target. The design is recorded in
-[`docs/research/2026-06-27-issue-58-audit-outbox-design.md`](../docs/research/2026-06-27-issue-58-audit-outbox-design.md),
-and implementation is tracked by #346.
+[`docs/research/2026-06-27-issue-58-audit-outbox-design.md`](../docs/research/2026-06-27-issue-58-audit-outbox-design.md).
+The first implementation lives in
+[`audit/sqloutbox`](sqloutbox/README.md).
 
 Kafka, NATS, Redis Streams, RabbitMQ, Redpanda, and Pulsar remain deferred
 publisher/projection adapters until the durable SQL outbox contract is proven.
@@ -186,14 +187,14 @@ topology, redaction, PII policy, and consumer idempotency.
   returning values.
 - Callers own redaction, PII policy, payload size limits, and persistence
   transaction boundaries.
-- SQL outbox implementation is tracked by #346. Kafka, NATS, Redis Streams,
-  direct Redis audit storage, and examples remain later `0.9.0` or follow-up
-  issues.
+- Kafka, NATS, Redis Streams, direct Redis audit storage, and examples remain
+  later `0.9.0` or follow-up issues.
 
 ## Tests
 
 ```bash
 go test -count=1 ./audit
+go test -count=1 ./audit/sqloutbox
 go test -race -count=1 ./audit ./audit/audittest
 go test -run '^$' -bench 'BenchmarkAggregateRecorder(Record|PendingEvents|AckThrough)' -benchmem ./audit
 ```

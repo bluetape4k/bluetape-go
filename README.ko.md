@@ -73,12 +73,13 @@ series와 MongoDB-backed JWT KeyChain storage가 포함됩니다.
 | [`money`](money/README.ko.md) | active | ISO 4217 통화 값, CLDR-backed locale currency lookup, decimal-backed 금액, 합산, 직렬화, caller-supplied 환율 변환, ECB-backed provider 변환. |
 | [`sqlkit`](sqlkit/README.ko.md) | active | Runtime-first `database/sql` transaction helper, 명시적 row mapping/cardinality helper, PostgreSQL 우선 inspectable SQL builder. |
 | [`audit`](audit/README.ko.md) | active | validated JSON entry, pending event recording, history reconstruction을 제공하는 storage-neutral aggregate event/audit model. |
+| [`audit/sqloutbox`](audit/sqloutbox/README.ko.md) | active | Caller-owned transaction choreography를 유지하는 PostgreSQL-backed audit outbox store와 relay. |
 | [`probabilistic`](probabilistic/README.ko.md) | active | deterministic config, merge compatibility check, stress/race coverage를 갖춘 goroutine-safe 인메모리 Bloom filter. |
 | [`probabilistic/redis`](probabilistic/redis/README.ko.md) | active | Static Lua script, immutable config metadata, operator runbook 경계를 갖춘 Redis-backed shared Bloom filter. |
 
-다음 계획 패키지군은 audit repository/outbox adapter, example service, graph
-패키지입니다. Redis-backed Cuckoo와 HyperLogLog/HLL 지원은 Redis Bloom 범위 이후
-별도로 추적합니다.
+다음 계획 패키지군은 audit publisher adapter, example service, graph package입니다.
+Redis-backed Cuckoo와 HyperLogLog/HLL 지원은 Redis Bloom 범위 이후 별도로
+추적합니다.
 
 ## 설치
 
@@ -124,7 +125,9 @@ go get github.com/bluetape4k/bluetape-go
 - Data access: [`sqlkit`](sqlkit/README.ko.md) 및 optional
   [SQL generator/migration guide](docs/sql-generator-migration-guidance.ko.md).
 - Audit: storage-neutral aggregate event value, pending event handoff, validated
-  audit entry JSON, history reconstruction을 위한 [`audit`](audit/README.ko.md).
+  audit entry JSON, history reconstruction을 위한 [`audit`](audit/README.ko.md)와
+  PostgreSQL-backed at-least-once outbox delivery를 위한
+  [`audit/sqloutbox`](audit/sqloutbox/README.ko.md).
 
 ## Roadmap
 
