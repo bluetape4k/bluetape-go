@@ -14,14 +14,17 @@ Closes #59.
 - `go test -race -count=1 ./examples/audit`
 - `go vet ./examples/audit ./audit ./audit/audittest ./audit/sqloutbox`
 - `make ci`
+- Best-practices baseline: `bluetape4k-wiki/docs/diagrams/best-practices/assets/workflow-image-upload.png`
+- `ruby scripts/validate-diagram-best-practices.rb` in `bluetape4k-wiki`
 - `python3 -c "import xml.etree.ElementTree as ET; ET.parse('docs/images/readme-diagrams/audit-example-service-flow.svg')"`
+- `/Users/debop/.codex/skills/fireworks-tech-graph/scripts/validate-svg.sh docs/images/readme-diagrams/audit-example-service-flow.svg`
 - `~/.local/bin/cairosvg docs/images/readme-diagrams/audit-example-service-flow.svg -o docs/images/readme-diagrams/audit-example-service-flow.png -s 2`
-- rendered PNG inspection and marker-color audit
+- rendered PNG inspection, marker-color audit, endpoint/crossing review, and Unicode fallback scan
 - `git diff --check`
 
 ## DoD Status
 
 - [x] Tests-first coverage exists for history queries, repository-boundary rollback, concurrent commands, and cancellation-aware outbox replay.
 - [x] `GoroutineStressTester` and `AsyncJobTester` are used in the example tests.
-- [x] Public example behavior is documented in English and Korean README files with a source-backed SVG/PNG diagram.
+- [x] Public example behavior is documented in English and Korean README files with a source-backed SVG/PNG diagram reviewed against the bluetape4k-wiki Scenario Workflow best-practice baseline.
 - [x] Lesson, spec, plan, and review artifacts were added for the issue.

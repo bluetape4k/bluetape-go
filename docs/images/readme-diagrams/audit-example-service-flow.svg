@@ -1,138 +1,114 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1180 840" width="1180" height="840" role="img" aria-labelledby="title desc">
+<svg xmlns="http://www.w3.org/2000/svg" width="1180" height="660" viewBox="0 0 1180 660" role="img" aria-labelledby="title desc">
   <title id="title">Audit Example Service Flow</title>
-  <desc id="desc">Order commands are written through an audit repository before the example mutates source state; history queries and outbox replay read from the same repository boundary.</desc>
+  <desc id="desc">Order commands append audit entries before source state changes; history reads and outbox replay stay behind explicit repository and sink boundaries.</desc>
   <defs>
-    <marker id="arrow-blue" markerUnits="userSpaceOnUse" markerWidth="14" markerHeight="14" refX="13" refY="7" orient="auto">
+    <filter id="softShadow" x="-8%" y="-12%" width="116%" height="128%">
+      <feDropShadow dx="0" dy="5" stdDeviation="5" flood-color="#0f172a" flood-opacity="0.10"/>
+    </filter>
+    <marker id="arrow-blue" markerUnits="userSpaceOnUse" markerWidth="14" markerHeight="14" viewBox="0 0 14 14" refX="13" refY="7" orient="auto">
       <path d="M 0 0 L 14 7 L 0 14 Z" fill="#2563eb" stroke="#2563eb" stroke-width="1" stroke-dasharray="none" style="stroke-dasharray:none"/>
     </marker>
-    <marker id="arrow-green" markerUnits="userSpaceOnUse" markerWidth="14" markerHeight="14" refX="13" refY="7" orient="auto">
+    <marker id="arrow-green" markerUnits="userSpaceOnUse" markerWidth="14" markerHeight="14" viewBox="0 0 14 14" refX="13" refY="7" orient="auto">
       <path d="M 0 0 L 14 7 L 0 14 Z" fill="#16a34a" stroke="#16a34a" stroke-width="1" stroke-dasharray="none" style="stroke-dasharray:none"/>
     </marker>
-    <marker id="arrow-purple" markerUnits="userSpaceOnUse" markerWidth="14" markerHeight="14" refX="13" refY="7" orient="auto">
+    <marker id="arrow-purple" markerUnits="userSpaceOnUse" markerWidth="14" markerHeight="14" viewBox="0 0 14 14" refX="13" refY="7" orient="auto">
       <path d="M 0 0 L 14 7 L 0 14 Z" fill="#9333ea" stroke="#9333ea" stroke-width="1" stroke-dasharray="none" style="stroke-dasharray:none"/>
     </marker>
-    <filter id="softShadow" x="-8%" y="-8%" width="116%" height="124%">
-      <feDropShadow dx="0" dy="6" stdDeviation="6" flood-color="#0f172a" flood-opacity="0.10"/>
-    </filter>
   </defs>
   <style>
-    text { font-family: 'Architects Daughter', 'Comic Mono', 'Comic Sans MS', sans-serif; letter-spacing: 0; }
-    .title { fill: #111827; font-size: 30px; font-weight: 700; }
-    .subtitle { fill: #4b5563; font-size: 15px; }
-    .lane-title { fill: #374151; font-size: 14px; font-weight: 700; }
-    .card-title { fill: #111827; font-size: 17px; font-weight: 700; }
-    .card-sub { fill: #4b5563; font-size: 13px; }
-    .label { fill: #1f2937; font-size: 13px; font-weight: 700; }
-    .small { fill: #6b7280; font-size: 12px; }
-    .note-title { fill: #111827; font-size: 15px; font-weight: 700; }
-    .note { fill: #4b5563; font-size: 13px; }
-    .flow { fill: none; stroke-linecap: round; stroke-linejoin: round; stroke-width: 3.2; }
-    .soft-dash { stroke-dasharray: 8 6; }
+    text { font-family: "Architects Daughter", "Comic Mono", "Comic Sans MS", ui-sans-serif, system-ui, sans-serif; letter-spacing: 0; }
+    .canvas { fill:#f8fafc; }
+    .frame { fill:#ffffff; stroke:#cbd5e1; stroke-width:1.5; filter:url(#softShadow); }
+    .title { font-family:"Architects Daughter"; font-size:36px; fill:#0f172a; }
+    .subtitle { font-family:"Comic Mono"; font-size:15px; fill:#475569; }
+    .step { filter:url(#softShadow); stroke-width:1.8; }
+    .stepTitle { font-family:"Architects Daughter"; font-size:20px; fill:#111827; }
+    .detail { font-family:"Comic Mono"; font-size:12.5px; fill:#475569; }
+    .numText { font-family:"Comic Mono"; font-size:14px; fill:#ffffff; font-weight:700; }
+    .edge { fill:none; stroke-width:3; stroke-linecap:round; stroke-linejoin:round; }
+    .label { font-family:"Comic Mono"; font-size:12px; fill:#334155; }
+    .bandLabel { font-family:"Architects Daughter"; font-size:18px; fill:#0f172a; }
+    .note { font-family:"Comic Mono"; font-size:13px; fill:#475569; }
   </style>
 
-  <rect width="1180" height="840" fill="#f8fafc"/>
-  <rect x="26" y="24" width="1128" height="792" rx="18" fill="#ffffff" stroke="#d1d5db" stroke-width="1.5"/>
+  <rect class="canvas" width="1180" height="660"/>
+  <rect class="frame" x="28" y="28" width="1124" height="604" rx="18"/>
 
-  <text x="590" y="70" text-anchor="middle" class="title">Audit Example Service</text>
-  <text x="590" y="100" text-anchor="middle" class="subtitle">A small order service keeps source state separate from audit history and optional outbox delivery.</text>
+  <text id="heading" class="title" x="58" y="78">Audit Example Service Flow</text>
+  <text class="subtitle" x="60" y="104">Command -> audit entry -> repository append -> source state update, with history and outbox boundaries kept explicit.</text>
 
-  <rect x="72" y="132" width="1036" height="138" rx="12" fill="#eff6ff" stroke="#bfdbfe" stroke-width="1.5"/>
-  <text x="94" y="160" class="lane-title">Command path: write audit first, then mutate source state</text>
+  <g id="main-flow">
+    <circle cx="154" cy="148" r="22" fill="#2563eb"/>
+    <text class="numText" x="154" y="153" text-anchor="middle">1</text>
+    <rect class="step" x="58" y="178" width="192" height="84" rx="10" fill="#eff6ff" stroke="#2563eb"/>
+    <text class="stepTitle" x="154" y="213" text-anchor="middle">Order command</text>
+    <text class="detail" x="154" y="235" text-anchor="middle">Create / Add item</text>
+    <text class="detail" x="154" y="252" text-anchor="middle">Complete</text>
 
-  <rect x="72" y="306" width="1036" height="132" rx="12" fill="#f0fdf4" stroke="#bbf7d0" stroke-width="1.5"/>
-  <text x="94" y="334" class="lane-title">Read path: history is reconstructed through audit.Repository</text>
+    <circle cx="370" cy="148" r="22" fill="#16a34a"/>
+    <text class="numText" x="370" y="153" text-anchor="middle">2</text>
+    <rect class="step" x="274" y="178" width="192" height="84" rx="10" fill="#f0fdf4" stroke="#16a34a"/>
+    <text class="stepTitle" x="370" y="213" text-anchor="middle">Build audit.Entry</text>
+    <text class="detail" x="370" y="235" text-anchor="middle">event type + payload</text>
+    <text class="detail" x="370" y="252" text-anchor="middle">changed fields</text>
 
-  <rect x="72" y="474" width="1036" height="204" rx="12" fill="#faf5ff" stroke="#e9d5ff" stroke-width="1.5"/>
-  <text x="94" y="502" class="lane-title">Delivery path: replay history into an outbox-like boundary</text>
+    <circle cx="586" cy="148" r="22" fill="#0d9488"/>
+    <text class="numText" x="586" y="153" text-anchor="middle">3</text>
+    <rect class="step" x="490" y="178" width="192" height="84" rx="10" fill="#f0fdfa" stroke="#0d9488"/>
+    <text class="stepTitle" x="586" y="213" text-anchor="middle">Append repository</text>
+    <text class="detail" x="586" y="240" text-anchor="middle">audit.Repository.Append</text>
 
-  <g filter="url(#softShadow)">
-    <rect x="102" y="183" width="190" height="72" rx="10" fill="#ffffff" stroke="#93c5fd" stroke-width="1.5"/>
-    <text x="197" y="211" text-anchor="middle" class="card-title">Order command</text>
-    <text x="197" y="234" text-anchor="middle" class="card-sub">Create / Add item / Complete</text>
+    <circle cx="802" cy="148" r="22" fill="#f59e0b"/>
+    <text class="numText" x="802" y="153" text-anchor="middle">4</text>
+    <rect class="step" x="706" y="178" width="192" height="84" rx="10" fill="#fffbeb" stroke="#f59e0b"/>
+    <text class="stepTitle" x="802" y="213" text-anchor="middle">Mutate source</text>
+    <text class="detail" x="802" y="240" text-anchor="middle">in-memory Order state</text>
 
-    <rect x="378" y="178" width="224" height="82" rx="10" fill="#ffffff" stroke="#60a5fa" stroke-width="1.5"/>
-    <text x="490" y="207" text-anchor="middle" class="card-title">OrderService</text>
-    <text x="490" y="230" text-anchor="middle" class="card-sub">validates command and</text>
-    <text x="490" y="248" text-anchor="middle" class="card-sub">builds audit.Entry</text>
+    <circle cx="1018" cy="148" r="22" fill="#e11d48"/>
+    <text class="numText" x="1018" y="153" text-anchor="middle">5</text>
+    <rect class="step" x="922" y="178" width="192" height="84" rx="10" fill="#fff1f2" stroke="#e11d48"/>
+    <text class="stepTitle" x="1018" y="213" text-anchor="middle">Return result</text>
+    <text class="detail" x="1018" y="240" text-anchor="middle">updated order copy</text>
 
-    <rect x="704" y="160" width="220" height="70" rx="10" fill="#ffffff" stroke="#60a5fa" stroke-width="1.5"/>
-    <text x="814" y="188" text-anchor="middle" class="card-title">audit.Repository</text>
-    <text x="814" y="211" text-anchor="middle" class="card-sub">append validated entries</text>
-
-    <rect x="704" y="246" width="220" height="70" rx="10" fill="#ffffff" stroke="#60a5fa" stroke-width="1.5"/>
-    <text x="814" y="274" text-anchor="middle" class="card-title">Source model</text>
-    <text x="814" y="297" text-anchor="middle" class="card-sub">in-memory order state</text>
-
-    <rect x="960" y="183" width="120" height="72" rx="10" fill="#ffffff" stroke="#93c5fd" stroke-width="1.5"/>
-    <text x="1020" y="211" text-anchor="middle" class="card-title">Result</text>
-    <text x="1020" y="234" text-anchor="middle" class="card-sub">updated order</text>
-
-    <rect x="102" y="352" width="190" height="66" rx="10" fill="#ffffff" stroke="#86efac" stroke-width="1.5"/>
-    <text x="197" y="379" text-anchor="middle" class="card-title">History query</text>
-    <text x="197" y="402" text-anchor="middle" class="card-sub">service.History(order)</text>
-
-    <rect x="378" y="348" width="224" height="74" rx="10" fill="#ffffff" stroke="#4ade80" stroke-width="1.5"/>
-    <text x="490" y="376" text-anchor="middle" class="card-title">HistoryReader</text>
-    <text x="490" y="399" text-anchor="middle" class="card-sub">LoadHistory aggregate</text>
-
-    <rect x="704" y="348" width="220" height="74" rx="10" fill="#ffffff" stroke="#4ade80" stroke-width="1.5"/>
-    <text x="814" y="376" text-anchor="middle" class="card-title">audit.History</text>
-    <text x="814" y="399" text-anchor="middle" class="card-sub">revisions + event types</text>
-
-    <rect x="102" y="524" width="210" height="72" rx="10" fill="#ffffff" stroke="#d8b4fe" stroke-width="1.5"/>
-    <text x="207" y="552" text-anchor="middle" class="card-title">ReplayHistory</text>
-    <text x="207" y="575" text-anchor="middle" class="card-sub">copies one aggregate</text>
-
-    <rect x="390" y="524" width="210" height="72" rx="10" fill="#ffffff" stroke="#c084fc" stroke-width="1.5"/>
-    <text x="495" y="552" text-anchor="middle" class="card-title">EntrySink</text>
-    <text x="495" y="575" text-anchor="middle" class="card-sub">minimal outbox contract</text>
-
-    <rect x="690" y="506" width="234" height="72" rx="10" fill="#ffffff" stroke="#c084fc" stroke-width="1.5"/>
-    <text x="807" y="534" text-anchor="middle" class="card-title">MemoryOutbox</text>
-    <text x="807" y="557" text-anchor="middle" class="card-sub">test fixture, not durable</text>
-
-    <rect x="690" y="592" width="234" height="72" rx="10" fill="#ffffff" stroke="#c084fc" stroke-width="1.5"/>
-    <text x="807" y="620" text-anchor="middle" class="card-title">audit/sqloutbox</text>
-    <text x="807" y="643" text-anchor="middle" class="card-sub">production durable boundary</text>
+    <line class="edge" x1="250" y1="220" x2="274" y2="220" stroke="#2563eb" marker-end="url(#arrow-blue)"/>
+    <line class="edge" x1="466" y1="220" x2="490" y2="220" stroke="#2563eb" marker-end="url(#arrow-blue)"/>
+    <line class="edge" x1="682" y1="220" x2="706" y2="220" stroke="#2563eb" marker-end="url(#arrow-blue)"/>
+    <line class="edge" x1="898" y1="220" x2="922" y2="220" stroke="#2563eb" marker-end="url(#arrow-blue)"/>
   </g>
 
-  <path class="flow" d="M 292 219 H 365" stroke="#2563eb" marker-end="url(#arrow-blue)"/>
-  <text x="328" y="206" text-anchor="middle" class="label">command</text>
+  <g id="context-band">
+    <rect x="58" y="310" width="1056" height="194" rx="14" fill="#f8fafc" stroke="#cbd5e1" stroke-width="1.4"/>
+    <text class="bandLabel" x="84" y="344">Supporting boundaries</text>
+    <text class="note" x="84" y="372">These paths reuse the same audit repository contract instead of turning the example into event sourcing or a durable database.</text>
 
-  <path class="flow" d="M 602 208 H 691" stroke="#2563eb" marker-end="url(#arrow-blue)"/>
-  <text x="646" y="195" text-anchor="middle" class="label">Append(entry)</text>
+    <rect class="step" x="84" y="402" width="244" height="70" rx="10" fill="#f0fdf4" stroke="#16a34a"/>
+    <text class="stepTitle" x="206" y="430" text-anchor="middle">History query</text>
+    <text class="detail" x="206" y="452" text-anchor="middle">HistoryReader.LoadHistory</text>
 
-  <path class="flow" d="M 602 235 C 640 235 640 281 691 281" stroke="#2563eb" marker-end="url(#arrow-blue)"/>
-  <text x="650" y="267" text-anchor="middle" class="label">only after append</text>
+    <rect class="step" x="468" y="402" width="244" height="70" rx="10" fill="#faf5ff" stroke="#9333ea"/>
+    <text class="stepTitle" x="590" y="430" text-anchor="middle">ReplayHistory</text>
+    <text class="detail" x="590" y="452" text-anchor="middle">copies one aggregate</text>
 
-  <path class="flow" d="M 924 219 H 947" stroke="#2563eb" marker-end="url(#arrow-blue)"/>
-  <text x="939" y="206" text-anchor="middle" class="small">return</text>
+    <rect class="step" x="844" y="388" width="244" height="54" rx="10" fill="#faf5ff" stroke="#9333ea"/>
+    <text class="stepTitle" x="966" y="418" text-anchor="middle">MemoryOutbox</text>
+    <text class="detail" x="966" y="436" text-anchor="middle">test fixture only</text>
 
-  <path class="flow" d="M 292 385 H 365" stroke="#16a34a" marker-end="url(#arrow-green)"/>
-  <text x="328" y="372" text-anchor="middle" class="label">read</text>
+    <rect class="step" x="844" y="456" width="244" height="54" rx="10" fill="#fff7ed" stroke="#f59e0b"/>
+    <text class="stepTitle" x="966" y="486" text-anchor="middle">audit/sqloutbox</text>
+    <text class="detail" x="966" y="504" text-anchor="middle">production durable sink</text>
 
-  <path class="flow" d="M 602 385 H 691" stroke="#16a34a" marker-end="url(#arrow-green)"/>
-  <text x="646" y="372" text-anchor="middle" class="label">LoadHistory</text>
+    <line class="edge" x1="328" y1="437" x2="468" y2="437" stroke="#16a34a" marker-end="url(#arrow-green)"/>
+    <text class="label" x="398" y="423" text-anchor="middle">reads revisions</text>
+    <line class="edge" x1="712" y1="424" x2="844" y2="424" stroke="#9333ea" marker-end="url(#arrow-purple)"/>
+    <text class="label" x="778" y="410" text-anchor="middle">enqueue fixture</text>
+    <path class="edge" d="M 712 454 H 790 Q 804 454 804 468 L 804 483 Q 804 497 830 497" stroke="#9333ea" stroke-dasharray="8 6"/>
+    <polygon points="844,497 830,490 830,504" fill="#9333ea" stroke="#9333ea" stroke-width="1" stroke-dasharray="none" style="stroke-dasharray:none"/>
+    <text class="label" x="770" y="478" text-anchor="middle">swap in prod</text>
+  </g>
 
-  <path class="flow" d="M 312 560 H 377" stroke="#9333ea" marker-end="url(#arrow-purple)"/>
-  <text x="344" y="547" text-anchor="middle" class="label">history entries</text>
-
-  <path class="flow" d="M 600 548 H 677" stroke="#9333ea" marker-end="url(#arrow-purple)"/>
-  <text x="638" y="535" text-anchor="middle" class="label">Enqueue</text>
-
-  <path class="flow soft-dash" d="M 600 572 C 640 572 638 628 677 628" stroke="#9333ea" marker-end="url(#arrow-purple)"/>
-  <rect x="588" y="636" width="96" height="22" rx="6" fill="#faf5ff" opacity="0.95"/>
-  <text x="636" y="652" text-anchor="middle" class="label">swap in prod</text>
-
-  <rect x="970" y="344" width="96" height="88" rx="10" fill="#f9fafb" stroke="#d1d5db" stroke-width="1.2"/>
-  <line x1="988" y1="366" x2="1026" y2="366" class="flow" stroke="#2563eb" marker-end="url(#arrow-blue)"/>
-  <text x="1038" y="370" class="small">write</text>
-  <line x1="988" y1="389" x2="1026" y2="389" class="flow" stroke="#16a34a" marker-end="url(#arrow-green)"/>
-  <text x="1038" y="393" class="small">read</text>
-  <line x1="988" y1="412" x2="1026" y2="412" class="flow" stroke="#9333ea" marker-end="url(#arrow-purple)"/>
-  <text x="1038" y="416" class="small">replay</text>
-
-  <rect x="94" y="720" width="1014" height="52" rx="10" fill="#fff7ed" stroke="#fed7aa" stroke-width="1.2"/>
-  <text x="116" y="752" class="note-title">Reader rule:</text>
-  <text x="228" y="752" class="note">audit history explains what changed; the source model still owns current state; durable delivery belongs behind an outbox boundary.</text>
+  <g id="reader-rule">
+    <rect x="58" y="544" width="1056" height="52" rx="10" fill="#fff7ed" stroke="#fed7aa" stroke-width="1.3"/>
+    <text class="bandLabel" x="84" y="576">Reader rule:</text>
+    <text class="note" x="196" y="576">audit history explains what changed; source state owns the current order; durable delivery belongs behind an outbox boundary.</text>
+  </g>
 </svg>
