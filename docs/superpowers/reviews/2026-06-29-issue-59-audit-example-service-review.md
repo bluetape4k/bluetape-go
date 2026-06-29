@@ -21,6 +21,10 @@
   diffing, or durable storage, and the diagram shows the source-state,
   audit-history, and outbox boundaries for new readers.
 - Integration: P0=0 P1=0. Root README and changelog link the runnable example.
+- Visual/Docs: P0=0 P1=0. The diagram now follows the bluetape4k-wiki
+  `Flow And State` / `Scenario Workflow` baseline
+  `workflow-image-upload.png`: numbered primary path, lower supporting-boundary
+  band, route labels, visible outer frame, and footer reader rule.
 
 ## Evidence
 
@@ -30,7 +34,15 @@
 - `git diff --check`
 - `make ci`
 - `python3 -c "import xml.etree.ElementTree as ET; ET.parse('docs/images/readme-diagrams/audit-example-service-flow.svg')"`
+- `/Users/debop/.codex/skills/fireworks-tech-graph/scripts/validate-svg.sh docs/images/readme-diagrams/audit-example-service-flow.svg`
 - `~/.local/bin/cairosvg docs/images/readme-diagrams/audit-example-service-flow.svg -o docs/images/readme-diagrams/audit-example-service-flow.png -s 2`
-- Manual PNG inspection plus marker-color audit. The skill-referenced diagram
-  helper scripts were absent from the installed skill directory, so those helper
-  checks were replaced with XML, marker, and rendered-PNG evidence.
+- `ruby scripts/validate-diagram-best-practices.rb` in `bluetape4k-wiki`
+- Best-practices baseline read:
+  `/Users/debop/work/bluetape4k/bluetape4k-wiki/docs/diagrams/best-practices/assets/workflow-image-upload.png`
+- Marker-color audit: no `context-stroke`, no `markerUnits="strokeWidth"`,
+  and marker fill/stroke colors match connector strokes.
+- Manual PNG inspection: no clipped text/cards, connector-card intersections,
+  tangent endpoints, label overlap, duplicate/legacy icons, or Unicode fallback
+  boxes. The skill-referenced helper scripts were absent from the installed
+  skill directory, so XML, `fireworks-tech-graph` validation, marker,
+  best-practices, and rendered-PNG evidence were used as fallback checks.
