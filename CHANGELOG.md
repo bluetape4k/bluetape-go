@@ -7,6 +7,27 @@ and this project uses semantic versioning once the first tag is published.
 
 ## [Unreleased]
 
+## [v0.9.0] - 2026-06-29
+
+### Added
+
+- `audit` package with aggregate IDs, monotonic revisions, caller-owned domain
+  event IDs, idempotency keys, validated JSON audit entries, pending event
+  recorders, storage-neutral history reconstruction, repository/query
+  interfaces, reusable adapter conformance tests, and a goroutine-safe
+  non-durable in-memory repository.
+- Audit outbox design selecting a SQL outbox store and relay contract as the
+  first durable publisher target, with Kafka, NATS, Redis Streams, RabbitMQ,
+  Redpanda, Pulsar, and direct Redis audit storage deferred until the durable
+  outbox boundary is proven.
+- `audit/sqloutbox` package with PostgreSQL-backed enqueue, claim,
+  claim-attempt-guarded publish/failure marking, claim leases,
+  retry/dead-letter state, per-aggregate claim ordering, and a
+  context-cancellable at-least-once relay.
+- `examples/audit` runnable order-service recipe demonstrating aggregate
+  changes, audit repository history queries, and in-memory outbox replay
+  boundaries.
+
 ## [v0.8.0] - 2026-06-27
 
 ### Added
