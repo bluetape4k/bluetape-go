@@ -7,6 +7,8 @@ and this project uses semantic versioning once the first tag is published.
 
 ## [Unreleased]
 
+## [v0.9.0] - 2026-06-29
+
 ### Added
 
 - `audit` package with aggregate IDs, monotonic revisions, caller-owned domain
