@@ -22,6 +22,9 @@ and this project uses semantic versioning once the first tag is published.
   claim-attempt-guarded publish/failure marking, claim leases,
   retry/dead-letter state, per-aggregate claim ordering, and a
   context-cancellable at-least-once relay.
+- `examples/audit` runnable order-service recipe demonstrating aggregate
+  changes, audit repository history queries, and in-memory outbox replay
+  boundaries.
 
 ## [v0.8.0] - 2026-06-27
 
