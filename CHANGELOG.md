@@ -7,6 +7,13 @@ and this project uses semantic versioning once the first tag is published.
 
 ## [Unreleased]
 
+### Added
+
+- `graph` package with model-only vertex, edge, path, label, ID, shallow
+  property, and validated JSON values for graph I/O helpers and examples. Graph
+  repository/session/schema/query/transaction/backend contracts remain deferred
+  until follow-up I/O, backend, and example issues prove shared behavior.
+
 ## [v0.9.0] - 2026-06-29
 
 ### Added

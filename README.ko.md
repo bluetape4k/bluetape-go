@@ -17,12 +17,12 @@ adapter를 작은 패키지로 가져다 쓸 수 있게 만든 별도 구현입�
 
 ## 현재 상태
 
-`bluetape-go`는 `v0.8.0` 릴리스 선을 배포했습니다. 현재 repository에는
+`bluetape-go`는 `v0.9.0` 릴리스 선을 배포했습니다. 현재 repository에는
 foundation helper, codec, compression, context-aware concurrency, serializer
 contract, Redis 기반 leader election과 lock, resilience policy, cache
 coordination, token-bucket rate limiting, finite state machine, workflow report,
 lightweight workflow runner, checkpoint 기반 batch job, portable service value,
-SQL helper, text search primitive가 들어 있습니다.
+SQL helper, text search primitive, audit/event package가 들어 있습니다.
 
 `v0.6.x` portable utility 범위에는 UUID, ULID, KSUID, Snowflake ID 생성,
 명시적 algorithm 기반 JWT signing/parsing/validation, 인메모리/Redis/MongoDB
@@ -30,6 +30,9 @@ KeyChain repository 기반 distributed key rotation, typed unit과 measured valu
 ISO currency와 decimal-backed money 연산, 인메모리 Bloom 또는 Redis-backed Bloom
 filter가 포함됩니다. 현재 `0.6.7` 선에는 corrective `0.6.3`부터 `0.6.6` 구현
 series와 MongoDB-backed JWT KeyChain storage가 포함됩니다.
+
+활성 `0.10.0` milestone은 graph I/O helper, backend adapter evaluation, domain
+example로 표면을 넓히기 전에 model-only graph value부터 시작합니다.
 
 ## 패키지
 
@@ -75,10 +78,11 @@ series와 MongoDB-backed JWT KeyChain storage가 포함됩니다.
 | [`sqlkit`](sqlkit/README.ko.md) | active | Runtime-first `database/sql` transaction helper, 명시적 row mapping/cardinality helper, PostgreSQL 우선 inspectable SQL builder. |
 | [`audit`](audit/README.ko.md) | active | validated JSON entry, pending event recording, history reconstruction을 제공하는 storage-neutral aggregate event/audit model. |
 | [`audit/sqloutbox`](audit/sqloutbox/README.ko.md) | active | Caller-owned transaction choreography를 유지하는 PostgreSQL-backed audit outbox store와 relay. |
+| [`graph`](graph/README.ko.md) | active | Vertex, edge, path, label, ID, shallow property, validated JSON을 제공하는 model-only graph value. |
 | [`probabilistic`](probabilistic/README.ko.md) | active | deterministic config, merge compatibility check, stress/race coverage를 갖춘 goroutine-safe 인메모리 Bloom filter. |
 | [`probabilistic/redis`](probabilistic/redis/README.ko.md) | active | Static Lua script, immutable config metadata, operator runbook 경계를 갖춘 Redis-backed shared Bloom filter. |
 
-다음 계획 패키지군은 audit publisher adapter, example service, graph package입니다.
+다음 계획 패키지군은 audit publisher adapter와 example service입니다.
 Redis-backed Cuckoo와 HyperLogLog/HLL 지원은 Redis Bloom 범위 이후 별도로
 추적합니다.
 
@@ -130,6 +134,10 @@ go get github.com/bluetape4k/bluetape-go
   PostgreSQL-backed at-least-once outbox delivery를 위한
   [`audit/sqloutbox`](audit/sqloutbox/README.ko.md), runnable audit-backed order
   service인 [`examples/audit`](examples/audit/README.ko.md).
+- Graph: model-only vertex, edge, path, label, ID, shallow property, validated
+  JSON value를 제공하는 [`graph`](graph/README.ko.md). Graph I/O helpers,
+  backend adapter evaluation, domain examples는 follow-up issue #49, #50, #51에서
+  추적합니다.
 
 ### Audit Example 한눈에 보기
 
