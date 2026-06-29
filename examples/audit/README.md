@@ -6,16 +6,24 @@ This package is a runnable order-service example for the `audit` package. It
 shows command-side aggregate changes, audit repository writes, history queries,
 and optional outbox replay without introducing a framework or public helper API.
 
+![Audit Example Service Flow](../../docs/images/readme-diagrams/audit-example-service-flow.png)
+
 ## Flow
 
-- `OrderService.CreateOrder`, `AddItem`, and `CompleteOrder` mutate an
-  in-memory source model only after an `audit.Entry` is appended through the
-  injected `audit.Repository`.
-- `OrderService.History` reads reconstructed aggregate history through the
-  repository boundary.
-- `ReplayHistoryToOutbox` copies one aggregate history into an `EntrySink`.
-  `MemoryOutbox` is a fixture; production code can adapt this boundary to
-  `audit/sqloutbox.Store.Enqueue` inside an application-owned transaction.
+Think of the example as three small boundaries, not one framework:
+
+1. `OrderService.CreateOrder`, `AddItem`, and `CompleteOrder` validate a
+   command and build an `audit.Entry`.
+2. The service appends that entry through the injected `audit.Repository`.
+   Only after the append succeeds does it mutate the in-memory `Order` source
+   model. If the repository fails, the source model is left unchanged.
+3. `OrderService.History` reads reconstructed aggregate history through the
+   same repository boundary, while `ReplayHistoryToOutbox` copies one
+   aggregate history into an `EntrySink`.
+
+`MemoryOutbox` is only a fixture for the replay boundary. Production code can
+adapt `EntrySink` to `audit/sqloutbox.Store.Enqueue` inside an
+application-owned transaction.
 
 ## Non-Goals
 
@@ -37,3 +45,5 @@ go test -race -count=1 ./examples/audit
 - [`audit`](../../audit/README.md)
 - [`audit/sqloutbox`](../../audit/sqloutbox/README.md)
 - [`testing/concurrency`](../../testing/concurrency/README.md)
+
+Diagram source: [`audit-example-service-flow.svg`](../../docs/images/readme-diagrams/audit-example-service-flow.svg)

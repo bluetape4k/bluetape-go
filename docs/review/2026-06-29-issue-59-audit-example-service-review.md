@@ -11,8 +11,9 @@ P0=0 P1=0
   outbox replay explicit instead of hiding a framework or transaction boundary.
 - `GoroutineStressTester` covers concurrent command execution and
   `AsyncJobTester` covers cancellation behavior.
-- README files document that `MemoryOutbox` is not durable and point durable
-  delivery to `audit/sqloutbox`.
+- README files document that `MemoryOutbox` is not durable, point durable
+  delivery to `audit/sqloutbox`, and include a beginner-oriented diagram for
+  the source-state, audit-history, and outbox boundaries.
 
 ## Residual Risks
 
@@ -28,3 +29,9 @@ P0=0 P1=0
 - `go vet ./examples/audit ./audit ./audit/audittest ./audit/sqloutbox`
 - `git diff --check`
 - `make ci`
+- `python3 -c "import xml.etree.ElementTree as ET; ET.parse('docs/images/readme-diagrams/audit-example-service-flow.svg')"`
+- `~/.local/bin/cairosvg docs/images/readme-diagrams/audit-example-service-flow.svg -o docs/images/readme-diagrams/audit-example-service-flow.png -s 2`
+- Manual PNG inspection: no clipped text/cards, marker color mismatch, or
+  duplicate/legacy icons. The installed diagram helper audit scripts referenced
+  by the skill were not present, so XML parsing, marker-color audit, and
+  rendered-PNG inspection were used as fallback evidence.

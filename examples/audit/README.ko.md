@@ -6,16 +6,24 @@
 Framework나 public helper API를 추가하지 않고 command-side aggregate 변경,
 audit repository write, history query, optional outbox replay를 보여줍니다.
 
+![Audit Example Service Flow](../../docs/images/readme-diagrams/audit-example-service-flow.png)
+
 ## Flow
 
-- `OrderService.CreateOrder`, `AddItem`, `CompleteOrder`는 주입된
-  `audit.Repository`에 `audit.Entry`를 append한 뒤 in-memory source model을
-  변경합니다.
-- `OrderService.History`는 repository boundary를 통해 aggregate history를
-  재구성해 읽습니다.
-- `ReplayHistoryToOutbox`는 한 aggregate history를 `EntrySink`로 복사합니다.
-  `MemoryOutbox`는 fixture입니다. 운영 code는 application-owned transaction 안에서
-  이 boundary를 `audit/sqloutbox.Store.Enqueue`로 바꿀 수 있습니다.
+이 예제는 framework가 아니라 세 개의 경계를 보여줍니다.
+
+1. `OrderService.CreateOrder`, `AddItem`, `CompleteOrder`가 command를 검증하고
+   `audit.Entry`를 만듭니다.
+2. Service는 주입된 `audit.Repository`에 entry를 append합니다. Append가 성공한
+   뒤에만 in-memory `Order` source model을 바꿉니다. Repository write가 실패하면
+   source model은 그대로 둡니다.
+3. `OrderService.History`는 같은 repository boundary로 aggregate history를
+   재구성해 읽고, `ReplayHistoryToOutbox`는 한 aggregate history를 `EntrySink`로
+   복사합니다.
+
+`MemoryOutbox`는 replay boundary를 테스트하기 위한 fixture입니다. 운영 code에서는
+application-owned transaction 안에서 `EntrySink`를
+`audit/sqloutbox.Store.Enqueue`로 연결하면 됩니다.
 
 ## Non-Goals
 
@@ -37,3 +45,5 @@ go test -race -count=1 ./examples/audit
 - [`audit`](../../audit/README.ko.md)
 - [`audit/sqloutbox`](../../audit/sqloutbox/README.ko.md)
 - [`testing/concurrency`](../../testing/concurrency/README.ko.md)
+
+Diagram source: [`audit-example-service-flow.svg`](../../docs/images/readme-diagrams/audit-example-service-flow.svg)

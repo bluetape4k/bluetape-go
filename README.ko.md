@@ -131,6 +131,17 @@ go get github.com/bluetape4k/bluetape-go
   [`audit/sqloutbox`](audit/sqloutbox/README.ko.md), runnable audit-backed order
   service인 [`examples/audit`](examples/audit/README.ko.md).
 
+### Audit Example 한눈에 보기
+
+![Audit Example Service Flow](docs/images/readme-diagrams/audit-example-service-flow.png)
+
+Audit 예제는 일부러 작게 만들었습니다. 현재 상태를 가진 source model과 변경 이력을
+담는 audit history를 분리합니다. Command는 `audit.Repository`를 통해
+`audit.Entry`를 append하고, append가 성공한 뒤에만 예제 order state를 바꿉니다.
+History query도 같은 repository boundary를 읽습니다. Outbox replay는 최소
+`EntrySink`만 사용하므로 운영 code에서는 in-memory fixture 대신 `audit/sqloutbox`를
+연결하면 됩니다. 예제를 framework로 키우지 않고 boundary만 드러내려는 의도입니다.
+
 ## Roadmap
 
 | Milestone | 주제 |
