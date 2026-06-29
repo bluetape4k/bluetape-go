@@ -106,28 +106,25 @@ go test ./...
    - Commit `go.mod` and `go.sum` changes.
    - Open a PR in the consumer repository.
 
-## `v0.8.0` Release Plan
+## `v0.9.0` Release Plan
 
-`v0.8.0` contains the text search and tokenizer package family:
+`v0.9.0` contains the audit and event package family:
 
-- `textsearch` immutable Aho-Corasick matchers with first/all match modes,
-  overlap policy, Unicode normalization, word-boundary filtering, replacement,
-  masking, and stress coverage.
-- `textsearch` blockword dictionaries with severity metadata, deterministic
-  detection and masking responses, and static rebuild semantics.
-- Dependency-free tokenizer core interfaces with byte-span tokens, normalized
-  text helpers, coarse POS extension points, dictionary providers, and a simple
-  deterministic tokenizer.
-- Optional `textsearch/japanese` Kagome v2 adapter with IPA dictionary defaults,
-  Kagome POS metadata, noun/verb filters, examples, and stress coverage.
-- Optional `textsearch/language` Lingua-Go adapter with all/subset detector
-  builders, lazy/preloaded and low-accuracy modes, mixed-language sections,
-  Unicode script helpers, and stress coverage.
+- `audit` aggregate IDs, revisions, domain events, idempotency keys, validated
+  JSON audit entries, pending-event recorders, history reconstruction, and
+  repository/query contracts.
+- Reusable audit adapter conformance tests plus a goroutine-safe non-durable
+  in-memory repository.
+- `audit/sqloutbox` PostgreSQL-backed enqueue, claim, retry, dead-letter, and
+  context-cancellable at-least-once relay contracts.
+- `examples/audit` runnable order-service recipe showing source-state,
+  audit-history, and outbox boundaries without becoming a JaVers clone or full
+  event-sourcing framework.
 
 Release sequence:
 
-1. Verify milestone `0.8.0` is closed with zero open issues.
+1. Verify milestone `0.9.0` is closed with zero open issues.
 2. Merge `develop` into `main` through a release PR.
-3. Tag `main` as `v0.8.0`.
-4. Create GitHub Release `v0.8.0`.
-5. Update downstream consumers that should require `github.com/bluetape4k/bluetape-go v0.8.0`.
+3. Tag `main` as `v0.9.0`.
+4. Create GitHub Release `v0.9.0`.
+5. Update downstream consumers that should require `github.com/bluetape4k/bluetape-go v0.9.0`.

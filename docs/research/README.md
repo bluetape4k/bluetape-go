@@ -19,9 +19,9 @@ scope, dependency candidates, and GitHub issues.
 | `0.7.0 Research Gate` | [Next tracks](2026-06-01-milestone-0.7.0-next-tracks-research.md), [Issue #39 text scope](2026-06-25-issue-39-text-scope.md), [Issue #40 image scope](2026-06-25-issue-40-image-scope.md), [Issue #41 audit scope](2026-06-25-issue-41-audit-scope.md), [Issue #42 AWS scope](2026-06-25-issue-42-aws-scope.md), [Issue #43 I/O scope](2026-06-25-issue-43-io-codec-protocol-scope.md), [Issue #71 encryption facade scope](2026-06-26-issue-71-encryption-facade-scope.md), [Issue #100 SQL repository scope](2026-06-26-issue-100-sql-repository-scope.md), [Issue #275 observability scope](2026-06-26-issue-275-observability-scope.md), [Issue #276 geo/coordinate scope](2026-06-26-issue-276-geo-coordinate-scope.md), [Issue #277 statistics/math scope](2026-06-26-issue-277-statistics-math-scope.md) |
 | `0.7.0` | [Relational SQL](2026-06-01-milestone-0.8.0-sql-research.md), [Issue #100 SQL repository scope](2026-06-26-issue-100-sql-repository-scope.md) |
 | `0.8.0` | [Text tokenizer/language options](2026-06-26-issue-55-tokenizer-language-options.md), [AWS and Floci](2026-06-01-milestone-0.9.0-aws-research.md), [Issue #42 AWS scope](2026-06-25-issue-42-aws-scope.md) |
-| `0.9.0` | [Text](2026-06-01-milestone-0.10.0-text-research.md), [Issue #39 text scope](2026-06-25-issue-39-text-scope.md) |
-| `0.10.0` | [Audit and JaVers patterns](2026-06-01-milestone-0.11.0-audit-javers-research.md), [Issue #41 audit scope](2026-06-25-issue-41-audit-scope.md) |
-| `0.11.0` | [Graph](2026-06-01-milestone-0.12.0-graph-research.md) |
+| `0.9.0` | [Audit and JaVers patterns](2026-06-01-milestone-0.11.0-audit-javers-research.md), [Issue #41 audit scope](2026-06-25-issue-41-audit-scope.md), [Issue #58 audit outbox design](2026-06-27-issue-58-audit-outbox-design.md) |
+| `0.10.0` | [Graph](2026-06-01-milestone-0.12.0-graph-research.md), [Issue #38 graph scope](2026-06-25-issue-38-graph-scope.md) |
+| `0.11.0` | [Issue #40 image scope](2026-06-25-issue-40-image-scope.md), [Issue #71 encryption facade scope](2026-06-26-issue-71-encryption-facade-scope.md) |
 
 ## Update Rule
 

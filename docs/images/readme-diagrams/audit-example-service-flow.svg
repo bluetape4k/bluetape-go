@@ -1,0 +1,114 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1180" height="660" viewBox="0 0 1180 660" role="img" aria-labelledby="title desc">
+  <title id="title">Audit Example Service Flow</title>
+  <desc id="desc">Order commands append audit entries before source state changes; history reads and outbox replay stay behind explicit repository and sink boundaries.</desc>
+  <defs>
+    <filter id="softShadow" x="-8%" y="-12%" width="116%" height="128%">
+      <feDropShadow dx="0" dy="5" stdDeviation="5" flood-color="#0f172a" flood-opacity="0.10"/>
+    </filter>
+    <marker id="arrow-blue" markerUnits="userSpaceOnUse" markerWidth="14" markerHeight="14" viewBox="0 0 14 14" refX="13" refY="7" orient="auto">
+      <path d="M 0 0 L 14 7 L 0 14 Z" fill="#2563eb" stroke="#2563eb" stroke-width="1" stroke-dasharray="none" style="stroke-dasharray:none"/>
+    </marker>
+    <marker id="arrow-green" markerUnits="userSpaceOnUse" markerWidth="14" markerHeight="14" viewBox="0 0 14 14" refX="13" refY="7" orient="auto">
+      <path d="M 0 0 L 14 7 L 0 14 Z" fill="#16a34a" stroke="#16a34a" stroke-width="1" stroke-dasharray="none" style="stroke-dasharray:none"/>
+    </marker>
+    <marker id="arrow-purple" markerUnits="userSpaceOnUse" markerWidth="14" markerHeight="14" viewBox="0 0 14 14" refX="13" refY="7" orient="auto">
+      <path d="M 0 0 L 14 7 L 0 14 Z" fill="#9333ea" stroke="#9333ea" stroke-width="1" stroke-dasharray="none" style="stroke-dasharray:none"/>
+    </marker>
+  </defs>
+  <style>
+    text { font-family: "Architects Daughter", "Comic Mono", "Comic Sans MS", ui-sans-serif, system-ui, sans-serif; letter-spacing: 0; }
+    .canvas { fill:#f8fafc; }
+    .frame { fill:#ffffff; stroke:#cbd5e1; stroke-width:1.5; filter:url(#softShadow); }
+    .title { font-family:"Architects Daughter"; font-size:36px; fill:#0f172a; }
+    .subtitle { font-family:"Comic Mono"; font-size:15px; fill:#475569; }
+    .step { filter:url(#softShadow); stroke-width:1.8; }
+    .stepTitle { font-family:"Architects Daughter"; font-size:20px; fill:#111827; }
+    .detail { font-family:"Comic Mono"; font-size:12.5px; fill:#475569; }
+    .numText { font-family:"Comic Mono"; font-size:14px; fill:#ffffff; font-weight:700; }
+    .edge { fill:none; stroke-width:3; stroke-linecap:round; stroke-linejoin:round; }
+    .label { font-family:"Comic Mono"; font-size:12px; fill:#334155; }
+    .bandLabel { font-family:"Architects Daughter"; font-size:18px; fill:#0f172a; }
+    .note { font-family:"Comic Mono"; font-size:13px; fill:#475569; }
+  </style>
+
+  <rect class="canvas" width="1180" height="660"/>
+  <rect class="frame" x="28" y="28" width="1124" height="604" rx="18"/>
+
+  <text id="heading" class="title" x="58" y="78">Audit Example Service Flow</text>
+  <text class="subtitle" x="60" y="104">Command -> audit entry -> repository append -> source state update, with history and outbox boundaries kept explicit.</text>
+
+  <g id="main-flow">
+    <circle cx="154" cy="148" r="22" fill="#2563eb"/>
+    <text class="numText" x="154" y="153" text-anchor="middle">1</text>
+    <rect class="step" x="58" y="178" width="192" height="84" rx="10" fill="#eff6ff" stroke="#2563eb"/>
+    <text class="stepTitle" x="154" y="213" text-anchor="middle">Order command</text>
+    <text class="detail" x="154" y="235" text-anchor="middle">Create / Add item</text>
+    <text class="detail" x="154" y="252" text-anchor="middle">Complete</text>
+
+    <circle cx="370" cy="148" r="22" fill="#16a34a"/>
+    <text class="numText" x="370" y="153" text-anchor="middle">2</text>
+    <rect class="step" x="274" y="178" width="192" height="84" rx="10" fill="#f0fdf4" stroke="#16a34a"/>
+    <text class="stepTitle" x="370" y="213" text-anchor="middle">Build audit.Entry</text>
+    <text class="detail" x="370" y="235" text-anchor="middle">event type + payload</text>
+    <text class="detail" x="370" y="252" text-anchor="middle">changed fields</text>
+
+    <circle cx="586" cy="148" r="22" fill="#0d9488"/>
+    <text class="numText" x="586" y="153" text-anchor="middle">3</text>
+    <rect class="step" x="490" y="178" width="192" height="84" rx="10" fill="#f0fdfa" stroke="#0d9488"/>
+    <text class="stepTitle" x="586" y="213" text-anchor="middle">Append repository</text>
+    <text class="detail" x="586" y="240" text-anchor="middle">audit.Repository.Append</text>
+
+    <circle cx="802" cy="148" r="22" fill="#f59e0b"/>
+    <text class="numText" x="802" y="153" text-anchor="middle">4</text>
+    <rect class="step" x="706" y="178" width="192" height="84" rx="10" fill="#fffbeb" stroke="#f59e0b"/>
+    <text class="stepTitle" x="802" y="213" text-anchor="middle">Mutate source</text>
+    <text class="detail" x="802" y="240" text-anchor="middle">in-memory Order state</text>
+
+    <circle cx="1018" cy="148" r="22" fill="#e11d48"/>
+    <text class="numText" x="1018" y="153" text-anchor="middle">5</text>
+    <rect class="step" x="922" y="178" width="192" height="84" rx="10" fill="#fff1f2" stroke="#e11d48"/>
+    <text class="stepTitle" x="1018" y="213" text-anchor="middle">Return result</text>
+    <text class="detail" x="1018" y="240" text-anchor="middle">updated order copy</text>
+
+    <line class="edge" x1="250" y1="220" x2="274" y2="220" stroke="#2563eb" marker-end="url(#arrow-blue)"/>
+    <line class="edge" x1="466" y1="220" x2="490" y2="220" stroke="#2563eb" marker-end="url(#arrow-blue)"/>
+    <line class="edge" x1="682" y1="220" x2="706" y2="220" stroke="#2563eb" marker-end="url(#arrow-blue)"/>
+    <line class="edge" x1="898" y1="220" x2="922" y2="220" stroke="#2563eb" marker-end="url(#arrow-blue)"/>
+  </g>
+
+  <g id="context-band">
+    <rect x="58" y="310" width="1056" height="194" rx="14" fill="#f8fafc" stroke="#cbd5e1" stroke-width="1.4"/>
+    <text class="bandLabel" x="84" y="344">Supporting boundaries</text>
+    <text class="note" x="84" y="372">These paths reuse the same audit repository contract instead of turning the example into event sourcing or a durable database.</text>
+
+    <rect class="step" x="84" y="402" width="244" height="70" rx="10" fill="#f0fdf4" stroke="#16a34a"/>
+    <text class="stepTitle" x="206" y="430" text-anchor="middle">History query</text>
+    <text class="detail" x="206" y="452" text-anchor="middle">HistoryReader.LoadHistory</text>
+
+    <rect class="step" x="468" y="402" width="244" height="70" rx="10" fill="#faf5ff" stroke="#9333ea"/>
+    <text class="stepTitle" x="590" y="430" text-anchor="middle">ReplayHistory</text>
+    <text class="detail" x="590" y="452" text-anchor="middle">copies one aggregate</text>
+
+    <rect class="step" x="844" y="388" width="244" height="54" rx="10" fill="#faf5ff" stroke="#9333ea"/>
+    <text class="stepTitle" x="966" y="418" text-anchor="middle">MemoryOutbox</text>
+    <text class="detail" x="966" y="436" text-anchor="middle">test fixture only</text>
+
+    <rect class="step" x="844" y="456" width="244" height="54" rx="10" fill="#fff7ed" stroke="#f59e0b"/>
+    <text class="stepTitle" x="966" y="486" text-anchor="middle">audit/sqloutbox</text>
+    <text class="detail" x="966" y="504" text-anchor="middle">production durable sink</text>
+
+    <line class="edge" x1="328" y1="437" x2="468" y2="437" stroke="#16a34a" marker-end="url(#arrow-green)"/>
+    <text class="label" x="398" y="423" text-anchor="middle">reads revisions</text>
+    <line class="edge" x1="712" y1="424" x2="844" y2="424" stroke="#9333ea" marker-end="url(#arrow-purple)"/>
+    <text class="label" x="778" y="410" text-anchor="middle">enqueue fixture</text>
+    <path class="edge" d="M 712 454 H 790 Q 804 454 804 468 L 804 483 Q 804 497 830 497" stroke="#9333ea" stroke-dasharray="8 6"/>
+    <polygon points="844,497 830,490 830,504" fill="#9333ea" stroke="#9333ea" stroke-width="1" stroke-dasharray="none" style="stroke-dasharray:none"/>
+    <text class="label" x="770" y="478" text-anchor="middle">swap in prod</text>
+  </g>
+
+  <g id="reader-rule">
+    <rect x="58" y="544" width="1056" height="52" rx="10" fill="#fff7ed" stroke="#fed7aa" stroke-width="1.3"/>
+    <text class="bandLabel" x="84" y="576">Reader rule:</text>
+    <text class="note" x="196" y="576">audit history explains what changed; source state owns the current order; durable delivery belongs behind an outbox boundary.</text>
+  </g>
+</svg>
