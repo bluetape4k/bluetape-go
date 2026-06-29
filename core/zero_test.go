@@ -19,6 +19,12 @@ func TestZeroHelpers(t *testing.T) {
 	if got := core.DefaultIfZero("value", "fallback"); got != "value" {
 		t.Fatalf("DefaultIfZero returned %q", got)
 	}
+	if got := core.IfZeroOrDefault("value", "fallback"); got != "value" {
+		t.Fatalf("IfZeroOrDefault returned %q", got)
+	}
+	if got := core.IfZeroOrDefault("", "fallback"); got != "fallback" {
+		t.Fatalf("IfZeroOrDefault returned %q", got)
+	}
 	if got := core.FirstNonZero("", "", "blue", "green"); got != "blue" {
 		t.Fatalf("FirstNonZero returned %q", got)
 	}
