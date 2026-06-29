@@ -136,6 +136,17 @@ overview.
   [`examples/audit`](examples/audit/README.md) for a runnable audit-backed
   order service.
 
+### Audit Example At A Glance
+
+![Audit Example Service Flow](docs/images/readme-diagrams/audit-example-service-flow.png)
+
+The audit example is intentionally small. It separates the current source model
+from the audit history: commands append `audit.Entry` values through an
+`audit.Repository`, then mutate the example order state only after the append
+succeeds. History queries read the same repository boundary, and outbox replay
+uses a minimal `EntrySink` so production code can swap the in-memory fixture for
+`audit/sqloutbox` without turning the example into a framework.
+
 ## Roadmap
 
 | Milestone | Theme |
