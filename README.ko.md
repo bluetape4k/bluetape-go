@@ -50,6 +50,7 @@ series와 MongoDB-backed JWT KeyChain storage가 포함됩니다.
 | [`testcontainers/kafka`](testcontainers/kafka/README.ko.md) | active | Testcontainers for Go 기반 Kafka fixture. |
 | [`dynamodb/batchwrite`](dynamodb/batchwrite/README.ko.md) | active | AWS SDK for Go v2 BatchWriteItem 25개 chunking과 unprocessed-item retry helper. |
 | [`examples/integration`](examples/integration/README.ko.md) | example | 수정된 `0.6.x` package를 묶는 compile-checked end-to-end recipe. |
+| [`examples/audit`](examples/audit/README.ko.md) | example | Repository history와 outbox replay boundary를 보여주는 runnable audit-backed order service. |
 | [`examples/s3`](examples/s3/README.ko.md) | example | Floci fixture 기반 compile-checked AWS SDK for Go v2 S3 예제. |
 | [`examples/sqs-sns`](examples/sqs-sns/README.ko.md) | example | Floci fixture 기반 compile-checked AWS SDK for Go v2 SQS/SNS 예제. |
 | [`leader`](leader/README.ko.md) | active | 단일, group, strategy 기반 계약을 포함한 leader election API. |
@@ -127,7 +128,8 @@ go get github.com/bluetape4k/bluetape-go
 - Audit: storage-neutral aggregate event value, pending event handoff, validated
   audit entry JSON, history reconstruction을 위한 [`audit`](audit/README.ko.md)와
   PostgreSQL-backed at-least-once outbox delivery를 위한
-  [`audit/sqloutbox`](audit/sqloutbox/README.ko.md).
+  [`audit/sqloutbox`](audit/sqloutbox/README.ko.md), runnable audit-backed order
+  service인 [`examples/audit`](examples/audit/README.ko.md).
 
 ## Roadmap
 

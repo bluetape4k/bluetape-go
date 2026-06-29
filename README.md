@@ -52,6 +52,7 @@ series plus MongoDB-backed JWT KeyChain storage.
 | [`testcontainers/kafka`](testcontainers/kafka/README.md) | active | Kafka fixture helpers based on Testcontainers for Go. |
 | [`dynamodb/batchwrite`](dynamodb/batchwrite/README.md) | active | Narrow AWS SDK for Go v2 BatchWriteItem chunking and unprocessed-item retry helper. |
 | [`examples/integration`](examples/integration/README.md) | example | Compile-checked end-to-end recipes across corrected `0.6.x` packages. |
+| [`examples/audit`](examples/audit/README.md) | example | Runnable audit-backed order service demonstrating repository history and outbox replay boundaries. |
 | [`examples/s3`](examples/s3/README.md) | example | Compile-checked AWS SDK for Go v2 S3 examples backed by the Floci fixture. |
 | [`examples/sqs-sns`](examples/sqs-sns/README.md) | example | Compile-checked AWS SDK for Go v2 SQS/SNS examples backed by the Floci fixture. |
 | [`leader`](leader/README.md) | active | Leader election API, including single, group, and strategy-based contracts. |
@@ -131,7 +132,9 @@ overview.
 - Audit: [`audit`](audit/README.md) for storage-neutral aggregate event values,
   pending event handoff, validated audit entry JSON, and history
   reconstruction, plus [`audit/sqloutbox`](audit/sqloutbox/README.md) for
-  PostgreSQL-backed at-least-once outbox delivery.
+  PostgreSQL-backed at-least-once outbox delivery and
+  [`examples/audit`](examples/audit/README.md) for a runnable audit-backed
+  order service.
 
 ## Roadmap
 
