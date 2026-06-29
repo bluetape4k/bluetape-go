@@ -18,6 +18,10 @@ and this project uses semantic versioning once the first tag is published.
   first durable publisher target, with Kafka, NATS, Redis Streams, RabbitMQ,
   Redpanda, Pulsar, and direct Redis audit storage deferred until the durable
   outbox boundary is proven.
+- `audit/sqloutbox` package with PostgreSQL-backed enqueue, claim,
+  claim-attempt-guarded publish/failure marking, claim leases,
+  retry/dead-letter state, per-aggregate claim ordering, and a
+  context-cancellable at-least-once relay.
 
 ## [v0.8.0] - 2026-06-27
 

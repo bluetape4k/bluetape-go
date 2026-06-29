@@ -1,0 +1,90 @@
+# audit/sqloutbox
+
+[English](README.md) | [한국어](README.ko.md)
+
+`audit.Entry` 값을 위한 PostgreSQL-backed audit outbox store와 relay입니다.
+
+이 package는 transaction ownership을 숨기지 않습니다. 각 operation마다 호출자가
+`database/sql` session을 넘기므로, source write와 `Store.Enqueue`를 같은
+`*sql.Tx` 안에서 명시적으로 묶을 수 있습니다.
+
+## Import
+
+```go
+import "github.com/bluetape4k/bluetape-go/audit/sqloutbox"
+```
+
+## Store
+
+```go
+store, err := sqloutbox.NewStore(sqloutbox.Options{})
+if err != nil {
+	return err
+}
+
+// 운영 환경에서는 명시적 migration을 권장합니다. CreateSchema는 local setup,
+// test, package-owned DDL을 선택한 application을 위해 제공합니다.
+if err := store.CreateSchema(ctx, db); err != nil {
+	return err
+}
+
+err = sqlkit.WithTx(ctx, db, nil, func(ctx context.Context, tx *sql.Tx) error {
+	if err := writeSource(ctx, tx, aggregate, command); err != nil {
+		return err
+	}
+	return store.Enqueue(ctx, tx, auditEntry)
+})
+```
+
+`Claim`은 PostgreSQL `FOR UPDATE SKIP LOCKED`를 사용하고 bounded claim lease를
+설정하며, 만료된 claimed row를 다시 claim할 수 있습니다. 같은 aggregate에서 더
+낮은 revision이 pending 또는 claimed 상태이면 이후 revision을 claim하지 않습니다.
+이 방식은 global ordering을 약속하지 않으면서 store가 강제할 수 있는
+per-aggregate ordering을 보존합니다.
+
+## Relay
+
+```go
+relay, err := sqloutbox.NewRelay(store, publisher, sqloutbox.RelayOptions{
+	ClaimLimit:  10,
+	MaxAttempts: 3,
+	RetryDelay:  time.Second,
+})
+if err != nil {
+	return err
+}
+
+result, err := relay.RunOnce(ctx, db)
+```
+
+`RunOnce`는 scheduler가 polling을 소유할 때 사용하기 좋습니다. `Run`은 context가
+취소될 때까지 반복하며 service-owned worker lifecycle에 맞춥니다.
+
+Delivery는 at-least-once입니다. Publisher와 consumer는 duplicate publish attempt가
+가능하다고 보고, 안정적인 audit event ID 또는 idempotency key로 deduplication해야
+합니다.
+
+## Boundaries
+
+- PostgreSQL이 첫 concrete SQL target입니다.
+- `Store`는 검증된 audit entry JSON과 event ID, idempotency key, aggregate
+  identity, revision, event type, timestamp, schema version, attempt state,
+  bounded failure text를 저장합니다.
+- Claimed row는 `available_at`을 lease deadline으로 사용하며
+  `ClaimOptions.LeaseDuration` 이후 다시 claim될 수 있습니다.
+- Publish/failure mark는 반환된 `Record`의 현재 claim attempt가 맞을 때만
+  성공하므로 stale worker가 재획득된 row를 덮어쓰지 못합니다.
+- 저장된 byte를 package가 제한한 뒤에만 `audit.DecodeEntryJSON`을 사용합니다.
+- `CreateSchema`는 명시적이고 선택적입니다. 이 package는 migration을 숨기지
+  않습니다.
+- Source transaction choreography, PII 정책, redaction, schema migration rollout,
+  publisher idempotency, operator replay tooling은 caller 책임입니다.
+- Kafka, NATS, Redis Streams, RabbitMQ, Redpanda, Pulsar, direct Redis audit
+  storage는 이후 adapter 범위입니다.
+
+## Tests
+
+```bash
+go test -count=1 ./audit/sqloutbox
+go test -race -count=1 ./audit/sqloutbox
+```

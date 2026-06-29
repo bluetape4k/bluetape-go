@@ -161,12 +161,12 @@ audittest.RunRepositoryConformance(t, func(testing.TB) audit.Repository {
 | Repository event publishing | 이후 outbox issue | SQL, Redis, Kafka, NATS, transaction choreography는 범위 밖입니다. |
 | Object diffing | 범위 밖 | Caller는 change metadata를 저장할 수 있지만 이 package는 object diff를 계산하지 않습니다. |
 
-## Outbox Design Status
+## Durable Outbox
 
 Issue #58은 첫 durable publisher target으로 SQL outbox store와 relay contract를
 선택했습니다. 설계는
 [`docs/research/2026-06-27-issue-58-audit-outbox-design.md`](../docs/research/2026-06-27-issue-58-audit-outbox-design.md)에
-기록했고, 구현은 #346에서 추적합니다.
+기록했습니다. 첫 구현은 [`audit/sqloutbox`](sqloutbox/README.ko.md)에 있습니다.
 
 Kafka, NATS, Redis Streams, RabbitMQ, Redpanda, Pulsar는 durable SQL outbox
 contract가 검증된 뒤 붙일 publisher/projection adapter로 남깁니다. Source
@@ -185,14 +185,14 @@ consumer idempotency는 계속 application 책임입니다.
 - Constructor와 JSON decode 경로는 metadata와 payload를 복사한 값을 반환합니다.
 - Redaction, PII 정책, payload size limit, persistence transaction boundary는
   caller 책임입니다.
-- SQL outbox 구현은 #346에서 추적합니다. Kafka, NATS, Redis Streams, direct
-  Redis audit storage, example은 이후 `0.9.0` 또는 follow-up issue에서
-  다룹니다.
+- Kafka, NATS, Redis Streams, direct Redis audit storage, example은 이후
+  `0.9.0` 또는 follow-up issue에서 다룹니다.
 
 ## Tests
 
 ```bash
 go test -count=1 ./audit
+go test -count=1 ./audit/sqloutbox
 go test -race -count=1 ./audit ./audit/audittest
 go test -run '^$' -bench 'BenchmarkAggregateRecorder(Record|PendingEvents|AckThrough)' -benchmem ./audit
 ```
