@@ -80,8 +80,8 @@ _ = periodEnd
   `ClosedOpenRange`, `OpenClosedRange`, and `OpenOpenRange`.
 - Invalid ranges and NaN float endpoints are rejected. The zero-value `Range`
   is safe and empty; use constructors for non-empty ranges.
-- `Zero`, `IsZero`, `DefaultIfZero`, and `FirstNonZero` keep generic fallback
-  behavior explicit.
+- `Zero`, `IsZero`, `DefaultIfZero`, `IfZeroOrDefault`, and `FirstNonZero` keep
+  generic fallback behavior explicit.
 - `TruncateUTF8Bytes` truncates at rune boundaries and rejects negative limits
   or invalid UTF-8 input.
 - Hex helpers validate prefixed `0x` / `0X` strings without decoding them.
