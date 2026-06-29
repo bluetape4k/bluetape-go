@@ -18,12 +18,12 @@ batch processing, portable values, and Redis-backed adapters.
 
 ## Current Status
 
-`bluetape-go` has published the `v0.8.0` release line. The repository now covers
+`bluetape-go` has published the `v0.9.0` release line. The repository now covers
 foundation helpers, codecs, compression, context-aware concurrency, serializer
 contracts, Redis-backed leader election and locks, resilience policies, cache
 coordination, token-bucket rate limiting, finite state machines, workflow
 reports, lightweight workflow runners, checkpointed batch jobs, and portable
-service values, SQL helpers, and text search primitives.
+service values, SQL helpers, text search primitives, and audit/event packages.
 
 The `v0.6.x` portable utilities scope includes UUID, ULID, KSUID, and Snowflake
 ID generation; explicit-algorithm JWT signing, parsing, validation, and local
@@ -32,6 +32,10 @@ repositories; typed units and measured values; ISO currency and decimal-backed
 money operations; and in-memory or Redis-backed Bloom filters. The current
 `0.6.7` line includes the corrective `0.6.3` through `0.6.6` implementation
 series plus MongoDB-backed JWT KeyChain storage.
+
+The active `0.10.0` milestone starts the graph package family with model-only
+values before graph I/O helpers, backend adapter evaluation, and domain examples
+expand the surface.
 
 ## Packages
 
@@ -77,12 +81,13 @@ series plus MongoDB-backed JWT KeyChain storage.
 | [`sqlkit`](sqlkit/README.md) | active | Runtime-first `database/sql` transaction helpers, explicit row mapping/cardinality helpers, and PostgreSQL-first inspectable SQL builders. |
 | [`audit`](audit/README.md) | active | Storage-neutral aggregate event and audit model with validated JSON entries, pending-event recording, and history reconstruction. |
 | [`audit/sqloutbox`](audit/sqloutbox/README.md) | active | PostgreSQL-backed audit outbox store and relay with caller-owned transaction choreography. |
+| [`graph`](graph/README.md) | active | Model-only graph values for vertices, edges, paths, labels, IDs, shallow properties, and validated JSON. |
 | [`probabilistic`](probabilistic/README.md) | active | Goroutine-safe in-memory Bloom filters with deterministic config, merge compatibility checks, and stress/race coverage. |
 | [`probabilistic/redis`](probabilistic/redis/README.md) | active | Redis-backed shared Bloom filters with static Lua scripts, immutable config metadata, and operator runbook boundaries. |
 
-Next planned package families include audit publisher adapters, example
-services, and graph packages. Redis-backed Cuckoo and HyperLogLog/HLL support
-is tracked separately after the Redis Bloom scope.
+Next planned package families include audit publisher adapters and example
+services. Redis-backed Cuckoo and HyperLogLog/HLL support is tracked separately
+after the Redis Bloom scope.
 
 ## Install
 
@@ -135,6 +140,10 @@ overview.
   PostgreSQL-backed at-least-once outbox delivery and
   [`examples/audit`](examples/audit/README.md) for a runnable audit-backed
   order service.
+- Graph: [`graph`](graph/README.md) for model-only vertex, edge, path, label,
+  ID, shallow property, and validated JSON values. Graph I/O helpers, backend
+  adapter evaluation, and domain examples are tracked by follow-up issues #49,
+  #50, and #51.
 
 ### Audit Example At A Glance
 
