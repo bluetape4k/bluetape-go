@@ -10,6 +10,10 @@ helper입니다.
 schema DSL, query DSL, compression, encryption, path ownership, atomic file
 replacement, backend adapter는 제공하지 않습니다.
 
+## Record Flow
+
+![Graph I/O Record Flow](../../docs/images/readme-diagrams/graph-io-record-flow.png)
+
 ## Import
 
 ```go

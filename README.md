@@ -147,6 +147,15 @@ overview.
   import/export helpers. Backend adapter evaluation and domain examples remain
   tracked by #50 and #51.
 
+### Graph I/O At A Glance
+
+![Graph I/O Record Flow](docs/images/readme-diagrams/graph-io-record-flow.png)
+
+`graph/graphio` keeps import/export at the record-stream boundary. Readers apply
+byte, column, record-count, duplicate-vertex, and missing-endpoint checks before
+returning `graph.Vertex` and `graph.Edge`; writers emit deterministic NDJSON or
+paired CSV records without claiming GraphML, filesystem, or backend ownership.
+
 ### Audit Example At A Glance
 
 ![Audit Example Service Flow](docs/images/readme-diagrams/audit-example-service-flow.png)
