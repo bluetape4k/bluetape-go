@@ -10,6 +10,10 @@ paired CSV streams without introducing a graph database client, GraphML parser,
 repository/session contract, schema DSL, query DSL, compression, encryption,
 path ownership, atomic file replacement, or backend adapter.
 
+## Record Flow
+
+![Graph I/O Record Flow](../../docs/images/readme-diagrams/graph-io-record-flow.png)
+
 ## Import
 
 ```go

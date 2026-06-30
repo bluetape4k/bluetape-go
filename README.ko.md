@@ -140,6 +140,16 @@ go get github.com/bluetape4k/bluetape-go
   import/export helper를 제공하는 [`graph/graphio`](graph/graphio/README.ko.md).
   Backend adapter evaluation과 domain example은 #50, #51에서 계속 추적합니다.
 
+### Graph I/O 한눈에 보기
+
+![Graph I/O Record Flow](docs/images/readme-diagrams/graph-io-record-flow.png)
+
+`graph/graphio`는 import/export를 record-stream boundary에 고정합니다. Reader는
+`graph.Vertex`와 `graph.Edge`를 반환하기 전에 byte, column, record count,
+duplicate vertex, missing endpoint를 검사합니다. Writer는 deterministic NDJSON
+또는 paired CSV record를 내보내지만 GraphML, filesystem, backend ownership은
+주장하지 않습니다.
+
 ### Audit Example 한눈에 보기
 
 ![Audit Example Service Flow](docs/images/readme-diagrams/audit-example-service-flow.png)
