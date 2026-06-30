@@ -11,10 +11,12 @@ domain examples.
 Issue #48 introduced the first `graph` package as model-only values: stable
 element IDs, labels, vertices, directed edges, paths, shallow properties,
 redacted validation errors, and validated JSON. Issue #49 adds `graph/graphio`
-for bounded NDJSON and paired CSV import/export helpers. Repository, session,
-schema, query, transaction, backend, and algorithm contracts remain out of
-scope until #50 and #51 prove shared behavior through backend evaluation and
-examples.
+for bounded NDJSON and paired CSV import/export helpers. Issue #50 selects a
+Neo4j adapter proof first and Memgraph compatibility second, while AGE,
+FalkorDB, TinkerPop/TinkerGraph, and Neptune remain deferred or research-only.
+Repository, session, schema, query, transaction, backend, and algorithm
+contracts remain out of scope until #51 examples and the follow-up adapter
+proofs show shared behavior.
 
 ## Current State
 
@@ -23,13 +25,14 @@ examples.
   released.
 - Milestone `0.9.0` has been released as `v0.9.0`.
 - Milestone `0.10.0` is active. Issues #48 and #49 cover graph values and
-  graph I/O helpers; #50 and #51 remain the next graph slices.
+  graph I/O helpers; #50 documents backend adapter ordering and created #365
+  plus #366 as selected follow-ups; #51 remains the next graph slice.
 - `CHANGELOG.md` contains Unreleased graph and graphio entries for `v0.10.0`.
 
 ## Release Checklist
 
-1. Finish issue #49 with Step 6-R P0=0/P1=0 and PR DoD evidence.
-2. Continue #50 backend adapter evaluation and #51 domain examples.
+1. Merge issue #50 backend adapter evaluation with PR DoD evidence.
+2. Continue #51 domain examples using the #50 backend decision.
 3. Verify `make ci` on the release-prep branch when milestone `0.10.0` closes.
 4. Close milestone `0.10.0`, promote `develop` to `main`, tag `v0.10.0`, and
    create the GitHub Release from `CHANGELOG.md`.
