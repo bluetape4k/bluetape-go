@@ -21,6 +21,10 @@ and this project uses semantic versioning once the first tag is published.
   first, routes Memgraph through Neo4j-driver compatibility coverage, and
   defers AGE, FalkorDB, TinkerPop/TinkerGraph, and Neptune until their Go driver
   or local-test boundaries are proven.
+- `examples/graph/observability` runnable incident-response graph example with
+  seed data, blast-radius queries, alert-boundary and ownership lookups,
+  NDJSON graph I/O round-trip coverage, bilingual README docs, and a topology
+  diagram.
 
 ## [v0.9.0] - 2026-06-29
 
