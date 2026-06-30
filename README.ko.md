@@ -31,8 +31,8 @@ ISO currency와 decimal-backed money 연산, 인메모리 Bloom 또는 Redis-bac
 filter가 포함됩니다. 현재 `0.6.7` 선에는 corrective `0.6.3`부터 `0.6.6` 구현
 series와 MongoDB-backed JWT KeyChain storage가 포함됩니다.
 
-활성 `0.10.0` milestone은 graph value와 NDJSON/CSV graph I/O helper부터 시작한
-뒤 backend adapter evaluation과 domain example로 표면을 넓힙니다.
+활성 `0.10.0` milestone은 graph value, NDJSON/CSV graph I/O helper, backend
+adapter evaluation, backend-neutral observability incident graph 예제를 포함합니다.
 
 ## 패키지
 
@@ -54,6 +54,7 @@ series와 MongoDB-backed JWT KeyChain storage가 포함됩니다.
 | [`dynamodb/batchwrite`](dynamodb/batchwrite/README.ko.md) | active | AWS SDK for Go v2 BatchWriteItem 25개 chunking과 unprocessed-item retry helper. |
 | [`examples/integration`](examples/integration/README.ko.md) | example | 수정된 `0.6.x` package를 묶는 compile-checked end-to-end recipe. |
 | [`examples/audit`](examples/audit/README.ko.md) | example | Repository history와 outbox replay boundary를 보여주는 runnable audit-backed order service. |
+| [`examples/graph/observability`](examples/graph/observability/README.ko.md) | example | Blast radius, alert boundary, ownership, NDJSON graph I/O 경계를 보여주는 runnable observability incident graph. |
 | [`examples/s3`](examples/s3/README.ko.md) | example | Floci fixture 기반 compile-checked AWS SDK for Go v2 S3 예제. |
 | [`examples/sqs-sns`](examples/sqs-sns/README.ko.md) | example | Floci fixture 기반 compile-checked AWS SDK for Go v2 SQS/SNS 예제. |
 | [`leader`](leader/README.ko.md) | active | 단일, group, strategy 기반 계약을 포함한 leader election API. |
@@ -137,8 +138,9 @@ go get github.com/bluetape4k/bluetape-go
   service인 [`examples/audit`](examples/audit/README.ko.md).
 - Graph: model-only vertex, edge, path, label, ID, shallow property, validated
   JSON value를 제공하는 [`graph`](graph/README.ko.md), bounded NDJSON/paired CSV
-  import/export helper를 제공하는 [`graph/graphio`](graph/graphio/README.ko.md).
-  Backend adapter evaluation과 domain example은 #50, #51에서 계속 추적합니다.
+  import/export helper를 제공하는 [`graph/graphio`](graph/graphio/README.ko.md),
+  runnable incident-response graph 예제인
+  [`examples/graph/observability`](examples/graph/observability/README.ko.md).
 
 ### Graph I/O 한눈에 보기
 
@@ -149,6 +151,15 @@ go get github.com/bluetape4k/bluetape-go
 duplicate vertex, missing endpoint를 검사합니다. Writer는 deterministic NDJSON
 또는 paired CSV record를 내보내지만 GraphML, filesystem, backend ownership은
 주장하지 않습니다.
+
+### Observability Graph 예제
+
+![Observability Incident Graph](docs/images/readme-diagrams/graph-observability-incident-topology.png)
+
+Observability 예제는 checkout API, service dependency, alert, incident root
+cause, owning team을 seed로 구성합니다. Backend adapter는 follow-up으로 남겨두고,
+upstream impact, affected API, alert boundary, ownership, NDJSON round-trip을
+compile-checked query로 증명합니다.
 
 ### Audit Example 한눈에 보기
 

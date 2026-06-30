@@ -33,9 +33,9 @@ money operations; and in-memory or Redis-backed Bloom filters. The current
 `0.6.7` line includes the corrective `0.6.3` through `0.6.6` implementation
 series plus MongoDB-backed JWT KeyChain storage.
 
-The active `0.10.0` milestone starts the graph package family with model values
-and NDJSON/CSV graph I/O helpers before backend adapter evaluation and domain
-examples expand the surface.
+The active `0.10.0` milestone starts the graph package family with model values,
+NDJSON/CSV graph I/O helpers, backend adapter evaluation, and a backend-neutral
+observability incident graph example.
 
 ## Packages
 
@@ -57,6 +57,7 @@ examples expand the surface.
 | [`dynamodb/batchwrite`](dynamodb/batchwrite/README.md) | active | Narrow AWS SDK for Go v2 BatchWriteItem chunking and unprocessed-item retry helper. |
 | [`examples/integration`](examples/integration/README.md) | example | Compile-checked end-to-end recipes across corrected `0.6.x` packages. |
 | [`examples/audit`](examples/audit/README.md) | example | Runnable audit-backed order service demonstrating repository history and outbox replay boundaries. |
+| [`examples/graph/observability`](examples/graph/observability/README.md) | example | Runnable observability incident graph showing blast-radius, alert-boundary, ownership, and NDJSON graph I/O boundaries. |
 | [`examples/s3`](examples/s3/README.md) | example | Compile-checked AWS SDK for Go v2 S3 examples backed by the Floci fixture. |
 | [`examples/sqs-sns`](examples/sqs-sns/README.md) | example | Compile-checked AWS SDK for Go v2 SQS/SNS examples backed by the Floci fixture. |
 | [`leader`](leader/README.md) | active | Leader election API, including single, group, and strategy-based contracts. |
@@ -144,8 +145,9 @@ overview.
 - Graph: [`graph`](graph/README.md) for model-only vertex, edge, path, label,
   ID, shallow property, and validated JSON values, plus
   [`graph/graphio`](graph/graphio/README.md) for bounded NDJSON and paired CSV
-  import/export helpers. Backend adapter evaluation and domain examples remain
-  tracked by #50 and #51.
+  import/export helpers, and
+  [`examples/graph/observability`](examples/graph/observability/README.md) for
+  a runnable incident-response graph example.
 
 ### Graph I/O At A Glance
 
@@ -155,6 +157,16 @@ overview.
 byte, column, record-count, duplicate-vertex, and missing-endpoint checks before
 returning `graph.Vertex` and `graph.Edge`; writers emit deterministic NDJSON or
 paired CSV records without claiming GraphML, filesystem, or backend ownership.
+
+### Observability Graph Example
+
+![Observability Incident Graph](docs/images/readme-diagrams/graph-observability-incident-topology.png)
+
+The observability example seeds checkout APIs, service dependencies, alerts, an
+incident root cause, and the owning team. It proves graph caller value with
+compile-checked queries for upstream impact, affected APIs, alert boundaries,
+ownership, and NDJSON round-trip behavior while backend adapters remain
+follow-up work.
 
 ### Audit Example At A Glance
 
