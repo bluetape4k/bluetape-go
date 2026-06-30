@@ -72,7 +72,8 @@ labels.
 
 JSON decoding validates required graph values, required `Path` fields, and
 path-step shape. It is not a strict schema validator for untrusted I/O records;
-future I/O helpers define unknown-field, size-limit, and duplicate-field policy.
+The [`graph/graphio`](graphio/README.md) package owns stream-level size-limit,
+duplicate-vertex, and missing-endpoint policy for NDJSON and paired CSV records.
 
 ## Path Scope
 
@@ -119,7 +120,8 @@ must copy or sanitize nested values before crossing trust boundaries.
 
 | Capability | Owner |
 |---|---|
-| Graph I/O helpers and file/record formats | #49 |
+| Graph I/O helpers for NDJSON and paired CSV | [`graph/graphio`](graphio/README.md) |
+| GraphML import/export | Deferred follow-up after NDJSON/CSV adoption evidence |
 | Backend adapter evaluation | #50 |
 | Domain examples | #51 |
 | Repository/session/schema/query/transaction contracts | Deferred until #49/#50/#51 prove a shared contract |
@@ -129,13 +131,16 @@ public API in this package returns it yet.
 
 ## Release Support
 
-The package has no service or runtime dependency. Before a release tag, rollback
-is deleting `graph` plus README and release bookkeeping. After a release tag,
-changes should preserve the Go API or be deferred to a breaking release.
+The graph package family has no service or runtime dependency. Before a release
+tag, rollback is deleting `graph`, `graph/graphio`, README updates, and release
+bookkeeping. After a release tag, changes should preserve the Go API or be
+deferred to a breaking release.
 
 ## Test
 
 ```bash
 go test -count=1 ./graph
+go test -count=1 ./graph/graphio
 go test -race -count=1 ./graph
+go test -race -count=1 ./graph/graphio
 ```

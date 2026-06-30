@@ -33,9 +33,9 @@ money operations; and in-memory or Redis-backed Bloom filters. The current
 `0.6.7` line includes the corrective `0.6.3` through `0.6.6` implementation
 series plus MongoDB-backed JWT KeyChain storage.
 
-The active `0.10.0` milestone starts the graph package family with model-only
-values before graph I/O helpers, backend adapter evaluation, and domain examples
-expand the surface.
+The active `0.10.0` milestone starts the graph package family with model values
+and NDJSON/CSV graph I/O helpers before backend adapter evaluation and domain
+examples expand the surface.
 
 ## Packages
 
@@ -82,6 +82,7 @@ expand the surface.
 | [`audit`](audit/README.md) | active | Storage-neutral aggregate event and audit model with validated JSON entries, pending-event recording, and history reconstruction. |
 | [`audit/sqloutbox`](audit/sqloutbox/README.md) | active | PostgreSQL-backed audit outbox store and relay with caller-owned transaction choreography. |
 | [`graph`](graph/README.md) | active | Model-only graph values for vertices, edges, paths, labels, IDs, shallow properties, and validated JSON. |
+| [`graph/graphio`](graph/graphio/README.md) | active | Stream-oriented NDJSON and paired CSV import/export helpers for graph vertices and edges. |
 | [`probabilistic`](probabilistic/README.md) | active | Goroutine-safe in-memory Bloom filters with deterministic config, merge compatibility checks, and stress/race coverage. |
 | [`probabilistic/redis`](probabilistic/redis/README.md) | active | Redis-backed shared Bloom filters with static Lua scripts, immutable config metadata, and operator runbook boundaries. |
 
@@ -141,9 +142,10 @@ overview.
   [`examples/audit`](examples/audit/README.md) for a runnable audit-backed
   order service.
 - Graph: [`graph`](graph/README.md) for model-only vertex, edge, path, label,
-  ID, shallow property, and validated JSON values. Graph I/O helpers, backend
-  adapter evaluation, and domain examples are tracked by follow-up issues #49,
-  #50, and #51.
+  ID, shallow property, and validated JSON values, plus
+  [`graph/graphio`](graph/graphio/README.md) for bounded NDJSON and paired CSV
+  import/export helpers. Backend adapter evaluation and domain examples remain
+  tracked by #50 and #51.
 
 ### Audit Example At A Glance
 
