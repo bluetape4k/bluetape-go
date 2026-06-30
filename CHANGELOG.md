@@ -13,6 +13,10 @@ and this project uses semantic versioning once the first tag is published.
   property, and validated JSON values for graph I/O helpers and examples. Graph
   repository/session/schema/query/transaction/backend contracts remain deferred
   until follow-up I/O, backend, and example issues prove shared behavior.
+- `graph/graphio` package with stream-oriented NDJSON and paired CSV
+  import/export helpers for graph vertices and edges, bounded read defaults,
+  duplicate/missing endpoint policies, CSV formula escaping, redacted errors,
+  and stateful reader/writer APIs.
 
 ## [v0.9.0] - 2026-06-29
 

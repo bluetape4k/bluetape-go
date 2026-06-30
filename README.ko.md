@@ -31,8 +31,8 @@ ISO currency와 decimal-backed money 연산, 인메모리 Bloom 또는 Redis-bac
 filter가 포함됩니다. 현재 `0.6.7` 선에는 corrective `0.6.3`부터 `0.6.6` 구현
 series와 MongoDB-backed JWT KeyChain storage가 포함됩니다.
 
-활성 `0.10.0` milestone은 graph I/O helper, backend adapter evaluation, domain
-example로 표면을 넓히기 전에 model-only graph value부터 시작합니다.
+활성 `0.10.0` milestone은 graph value와 NDJSON/CSV graph I/O helper부터 시작한
+뒤 backend adapter evaluation과 domain example로 표면을 넓힙니다.
 
 ## 패키지
 
@@ -79,6 +79,7 @@ example로 표면을 넓히기 전에 model-only graph value부터 시작합니�
 | [`audit`](audit/README.ko.md) | active | validated JSON entry, pending event recording, history reconstruction을 제공하는 storage-neutral aggregate event/audit model. |
 | [`audit/sqloutbox`](audit/sqloutbox/README.ko.md) | active | Caller-owned transaction choreography를 유지하는 PostgreSQL-backed audit outbox store와 relay. |
 | [`graph`](graph/README.ko.md) | active | Vertex, edge, path, label, ID, shallow property, validated JSON을 제공하는 model-only graph value. |
+| [`graph/graphio`](graph/graphio/README.ko.md) | active | Graph vertex/edge를 위한 bounded NDJSON 및 paired CSV import/export helper. |
 | [`probabilistic`](probabilistic/README.ko.md) | active | deterministic config, merge compatibility check, stress/race coverage를 갖춘 goroutine-safe 인메모리 Bloom filter. |
 | [`probabilistic/redis`](probabilistic/redis/README.ko.md) | active | Static Lua script, immutable config metadata, operator runbook 경계를 갖춘 Redis-backed shared Bloom filter. |
 
@@ -135,9 +136,9 @@ go get github.com/bluetape4k/bluetape-go
   [`audit/sqloutbox`](audit/sqloutbox/README.ko.md), runnable audit-backed order
   service인 [`examples/audit`](examples/audit/README.ko.md).
 - Graph: model-only vertex, edge, path, label, ID, shallow property, validated
-  JSON value를 제공하는 [`graph`](graph/README.ko.md). Graph I/O helpers,
-  backend adapter evaluation, domain examples는 follow-up issue #49, #50, #51에서
-  추적합니다.
+  JSON value를 제공하는 [`graph`](graph/README.ko.md), bounded NDJSON/paired CSV
+  import/export helper를 제공하는 [`graph/graphio`](graph/graphio/README.ko.md).
+  Backend adapter evaluation과 domain example은 #50, #51에서 계속 추적합니다.
 
 ### Audit Example 한눈에 보기
 

@@ -70,8 +70,9 @@ if errors.As(err, &validation) {
 노출합니다. Raw property value, raw ID, raw label은 보관하지 않습니다.
 
 JSON decode는 필수 graph value, 필수 `Path` field, path-step shape를 검증합니다.
-하지만 untrusted I/O record를 위한 strict schema validator는 아닙니다. Unknown
-field, size limit, duplicate-field 정책은 이후 I/O helper가 정의합니다.
+하지만 untrusted I/O record를 위한 strict schema validator는 아닙니다.
+[`graph/graphio`](graphio/README.ko.md) package가 NDJSON과 paired CSV record의
+stream-level size-limit, duplicate-vertex, missing-endpoint 정책을 담당합니다.
 
 ## Path Scope
 
@@ -118,7 +119,8 @@ trust boundary를 넘기 전에 nested value를 직접 복사하거나 정제해
 
 | Capability | Owner |
 |---|---|
-| Graph I/O helpers와 file/record formats | #49 |
+| NDJSON/paired CSV Graph I/O helper | [`graph/graphio`](graphio/README.ko.md) |
+| GraphML import/export | NDJSON/CSV adoption evidence 이후 follow-up |
 | Backend adapter evaluation | #50 |
 | Domain examples | #51 |
 | Repository/session/schema/query/transaction contracts | #49/#50/#51에서 shared contract가 증명된 뒤 결정 |
@@ -128,13 +130,16 @@ trust boundary를 넘기 전에 nested value를 직접 복사하거나 정제해
 
 ## Release Support
 
-이 패키지는 service/runtime dependency가 없습니다. Release tag 전 rollback은
-`graph`와 README, release bookkeeping을 제거하는 것입니다. Release tag 이후에는
-Go API 호환성을 유지하거나 breaking release로 미뤄야 합니다.
+Graph package family는 service/runtime dependency가 없습니다. Release tag 전
+rollback은 `graph`, `graph/graphio`, README update, release bookkeeping을 제거하는
+것입니다. Release tag 이후에는 Go API 호환성을 유지하거나 breaking release로
+미뤄야 합니다.
 
 ## Test
 
 ```bash
 go test -count=1 ./graph
+go test -count=1 ./graph/graphio
 go test -race -count=1 ./graph
+go test -race -count=1 ./graph/graphio
 ```
