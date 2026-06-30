@@ -17,6 +17,10 @@ and this project uses semantic versioning once the first tag is published.
   import/export helpers for graph vertices and edges, bounded read defaults,
   duplicate/missing endpoint policies, CSV formula escaping, redacted errors,
   and stateful reader/writer APIs.
+- Graph backend adapter feasibility research that selects a Neo4j adapter proof
+  first, routes Memgraph through Neo4j-driver compatibility coverage, and
+  defers AGE, FalkorDB, TinkerPop/TinkerGraph, and Neptune until their Go driver
+  or local-test boundaries are proven.
 
 ## [v0.9.0] - 2026-06-29
 
