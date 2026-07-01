@@ -7,6 +7,27 @@ and this project uses semantic versioning once the first tag is published.
 
 ## [Unreleased]
 
+## [v0.10.0] - 2026-07-01
+
+### Added
+
+- `graph` package with model-only vertex, edge, path, label, ID, shallow
+  property, and validated JSON values for graph I/O helpers and examples. Graph
+  repository/session/schema/query/transaction/backend contracts remain deferred
+  until follow-up I/O, backend, and example issues prove shared behavior.
+- `graph/graphio` package with stream-oriented NDJSON and paired CSV
+  import/export helpers for graph vertices and edges, bounded read defaults,
+  duplicate/missing endpoint policies, CSV formula escaping, redacted errors,
+  and stateful reader/writer APIs.
+- Graph backend adapter feasibility research that selects a Neo4j adapter proof
+  first, routes Memgraph through Neo4j-driver compatibility coverage, and
+  defers AGE, FalkorDB, TinkerPop/TinkerGraph, and Neptune until their Go driver
+  or local-test boundaries are proven.
+- `examples/graph/observability` runnable incident-response graph example with
+  seed data, blast-radius queries, alert-boundary and ownership lookups,
+  NDJSON graph I/O round-trip coverage, bilingual README docs, and a topology
+  diagram.
+
 ## [v0.9.0] - 2026-06-29
 
 ### Added

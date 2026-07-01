@@ -74,7 +74,7 @@ _ = periodEnd
   `(lower, upper)` 표기를 지원합니다.
 - Invalid range와 NaN float endpoint는 거부합니다. zero-value `Range`는
   안전한 empty range이며, non-empty range는 constructor로 만듭니다.
-- `Zero`, `IsZero`, `DefaultIfZero`, `FirstNonZero`는 generic fallback 동작을 명시적으로 유지합니다.
+- `Zero`, `IsZero`, `DefaultIfZero`, `IfZeroOrDefault`, `FirstNonZero`는 generic fallback 동작을 명시적으로 유지합니다.
 - `TruncateUTF8Bytes`는 rune boundary에서 자르고 negative limit 또는 invalid
   UTF-8 input을 거부합니다.
 - Hex helper는 prefixed `0x` / `0X` string을 decode하지 않고 validation합니다.

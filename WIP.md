@@ -1,38 +1,48 @@
 # WIP
 
-Snapshot: 2026-06-29 KST
-Scope: `0.9.0` audit and event package release.
+Snapshot: 2026-07-01 KST
+Scope: `0.10.0` graph package milestone.
 
 ## Current Target Release
 
-`v0.9.0` - audit/event model, history query contracts, SQL outbox adapter, and
-runnable audit example.
+`v0.10.0` - graph model values, graph I/O helpers, backend evaluation, and a
+domain example.
 
-The milestone implementation is complete. Issue #56 introduced the
-storage-neutral aggregate event and audit model: stable aggregate identity,
-positive revisions, caller-owned event IDs, idempotency keys, validated JSON
-audit entries, non-destructive pending-event handoff, and history
-reconstruction. Issue #57 added repository/history query contracts, reusable
-adapter conformance tests, and a goroutine-safe non-durable in-memory
-repository. Issue #58 selected SQL outbox store plus relay contracts as the
-first durable publisher target, and #346 implemented the PostgreSQL-backed
-store and relay. Issue #59 added the runnable audit example service and README
-diagram that shows the source-state, audit-history, and outbox boundaries.
+Issue #48 introduced the first `graph` package as model-only values: stable
+element IDs, labels, vertices, directed edges, paths, shallow properties,
+redacted validation errors, and validated JSON. Issue #49 adds `graph/graphio`
+for bounded NDJSON and paired CSV import/export helpers. Issue #50 selects a
+Neo4j adapter proof first and Memgraph compatibility second, while AGE,
+FalkorDB, TinkerPop/TinkerGraph, and Neptune remain deferred or research-only.
+Issue #51 adds the first backend-neutral domain example under
+`examples/graph/observability`, using seed data, graph queries, README docs,
+and NDJSON round-trip tests to prove caller value before adapter abstractions.
+Repository, session, schema, query, transaction, backend, and algorithm
+contracts remain out of scope until the follow-up adapter proofs show shared
+behavior.
 
 ## Current State
 
-- `0.1.0`, `0.1.1`, `0.2.0`, `0.3.0`, `0.4.0`, `0.5.0`, `v0.5.1`,
+- `v0.1.0`, `v0.1.1`, `v0.2.0`, `v0.3.0`, `v0.4.0`, `v0.5.0`, `v0.5.1`,
   `v0.6.0`, `v0.6.1` through `v0.6.8`, `v0.7.0`, and `v0.8.0` are tagged and
   released.
-- Milestone `0.9.0` has zero open issues. Child issues #56, #57, #58, and #59
-  are closed, and the epic #46 is closed.
-- `CHANGELOG.md` contains the `## [v0.9.0] - 2026-06-29` section required
-  before tagging `v0.9.0`.
+- Milestone `0.9.0` has been released as `v0.9.0`.
+- Milestone `0.10.0` has zero open issues; #44 and child issues #48 through
+  #51 are closed.
+- `CHANGELOG.md` contains the `v0.10.0` release section dated 2026-07-01.
+- `v0.10.0` tag and GitHub Release are not created yet.
 
 ## Release Checklist
 
-1. Verify `make ci` locally on the release-prep branch.
-2. Merge release-prep into `develop` through a PR.
-3. Close milestone `0.9.0`.
-4. Promote `develop` to `main` through a release PR.
-5. Tag `main` as `v0.9.0` and create the GitHub Release from `CHANGELOG.md`.
+1. Merge this release-history PR to satisfy the changelog gate.
+2. Close milestone `0.10.0`.
+3. Verify `make ci` on the release-prep branch.
+4. Promote `develop` to `main`, tag `v0.10.0`, and
+   create the GitHub Release from `CHANGELOG.md`.
+
+## Release Support Notes
+
+The `graph` and `graph/graphio` packages have no service or runtime dependency.
+Before `v0.10.0` is tagged, rollback is removing those packages plus docs and
+release bookkeeping. After a tag, public API changes must preserve Go
+compatibility or be deferred to a breaking release.

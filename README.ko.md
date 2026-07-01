@@ -17,12 +17,12 @@ adapter를 작은 패키지로 가져다 쓸 수 있게 만든 별도 구현입�
 
 ## 현재 상태
 
-`bluetape-go`는 `v0.8.0` 릴리스 선을 배포했습니다. 현재 repository에는
+`bluetape-go`는 `v0.9.0` 릴리스 선을 배포했습니다. 현재 repository에는
 foundation helper, codec, compression, context-aware concurrency, serializer
 contract, Redis 기반 leader election과 lock, resilience policy, cache
 coordination, token-bucket rate limiting, finite state machine, workflow report,
 lightweight workflow runner, checkpoint 기반 batch job, portable service value,
-SQL helper, text search primitive가 들어 있습니다.
+SQL helper, text search primitive, audit/event package가 들어 있습니다.
 
 `v0.6.x` portable utility 범위에는 UUID, ULID, KSUID, Snowflake ID 생성,
 명시적 algorithm 기반 JWT signing/parsing/validation, 인메모리/Redis/MongoDB
@@ -30,6 +30,9 @@ KeyChain repository 기반 distributed key rotation, typed unit과 measured valu
 ISO currency와 decimal-backed money 연산, 인메모리 Bloom 또는 Redis-backed Bloom
 filter가 포함됩니다. 현재 `0.6.7` 선에는 corrective `0.6.3`부터 `0.6.6` 구현
 series와 MongoDB-backed JWT KeyChain storage가 포함됩니다.
+
+활성 `0.10.0` milestone은 graph value, NDJSON/CSV graph I/O helper, backend
+adapter evaluation, backend-neutral observability incident graph 예제를 포함합니다.
 
 ## 패키지
 
@@ -51,6 +54,7 @@ series와 MongoDB-backed JWT KeyChain storage가 포함됩니다.
 | [`dynamodb/batchwrite`](dynamodb/batchwrite/README.ko.md) | active | AWS SDK for Go v2 BatchWriteItem 25개 chunking과 unprocessed-item retry helper. |
 | [`examples/integration`](examples/integration/README.ko.md) | example | 수정된 `0.6.x` package를 묶는 compile-checked end-to-end recipe. |
 | [`examples/audit`](examples/audit/README.ko.md) | example | Repository history와 outbox replay boundary를 보여주는 runnable audit-backed order service. |
+| [`examples/graph/observability`](examples/graph/observability/README.ko.md) | example | Blast radius, alert boundary, ownership, NDJSON graph I/O 경계를 보여주는 runnable observability incident graph. |
 | [`examples/s3`](examples/s3/README.ko.md) | example | Floci fixture 기반 compile-checked AWS SDK for Go v2 S3 예제. |
 | [`examples/sqs-sns`](examples/sqs-sns/README.ko.md) | example | Floci fixture 기반 compile-checked AWS SDK for Go v2 SQS/SNS 예제. |
 | [`leader`](leader/README.ko.md) | active | 단일, group, strategy 기반 계약을 포함한 leader election API. |
@@ -75,10 +79,12 @@ series와 MongoDB-backed JWT KeyChain storage가 포함됩니다.
 | [`sqlkit`](sqlkit/README.ko.md) | active | Runtime-first `database/sql` transaction helper, 명시적 row mapping/cardinality helper, PostgreSQL 우선 inspectable SQL builder. |
 | [`audit`](audit/README.ko.md) | active | validated JSON entry, pending event recording, history reconstruction을 제공하는 storage-neutral aggregate event/audit model. |
 | [`audit/sqloutbox`](audit/sqloutbox/README.ko.md) | active | Caller-owned transaction choreography를 유지하는 PostgreSQL-backed audit outbox store와 relay. |
+| [`graph`](graph/README.ko.md) | active | Vertex, edge, path, label, ID, shallow property, validated JSON을 제공하는 model-only graph value. |
+| [`graph/graphio`](graph/graphio/README.ko.md) | active | Graph vertex/edge를 위한 bounded NDJSON 및 paired CSV import/export helper. |
 | [`probabilistic`](probabilistic/README.ko.md) | active | deterministic config, merge compatibility check, stress/race coverage를 갖춘 goroutine-safe 인메모리 Bloom filter. |
 | [`probabilistic/redis`](probabilistic/redis/README.ko.md) | active | Static Lua script, immutable config metadata, operator runbook 경계를 갖춘 Redis-backed shared Bloom filter. |
 
-다음 계획 패키지군은 audit publisher adapter, example service, graph package입니다.
+다음 계획 패키지군은 audit publisher adapter와 example service입니다.
 Redis-backed Cuckoo와 HyperLogLog/HLL 지원은 Redis Bloom 범위 이후 별도로
 추적합니다.
 
@@ -130,6 +136,30 @@ go get github.com/bluetape4k/bluetape-go
   PostgreSQL-backed at-least-once outbox delivery를 위한
   [`audit/sqloutbox`](audit/sqloutbox/README.ko.md), runnable audit-backed order
   service인 [`examples/audit`](examples/audit/README.ko.md).
+- Graph: model-only vertex, edge, path, label, ID, shallow property, validated
+  JSON value를 제공하는 [`graph`](graph/README.ko.md), bounded NDJSON/paired CSV
+  import/export helper를 제공하는 [`graph/graphio`](graph/graphio/README.ko.md),
+  runnable incident-response graph 예제인
+  [`examples/graph/observability`](examples/graph/observability/README.ko.md).
+
+### Graph I/O 한눈에 보기
+
+![Graph I/O Record Flow](docs/images/readme-diagrams/graph-io-record-flow.png)
+
+`graph/graphio`는 import/export를 record-stream boundary에 고정합니다. Reader는
+`graph.Vertex`와 `graph.Edge`를 반환하기 전에 byte, column, record count,
+duplicate vertex, missing endpoint를 검사합니다. Writer는 deterministic NDJSON
+또는 paired CSV record를 내보내지만 GraphML, filesystem, backend ownership은
+주장하지 않습니다.
+
+### Observability Graph 예제
+
+![Observability Incident Graph](docs/images/readme-diagrams/graph-observability-incident-topology.png)
+
+Observability 예제는 checkout API, service dependency, alert, incident root
+cause, owning team을 seed로 구성합니다. Backend adapter는 follow-up으로 남겨두고,
+upstream impact, affected API, alert boundary, ownership, NDJSON round-trip을
+compile-checked query로 증명합니다.
 
 ### Audit Example 한눈에 보기
 
