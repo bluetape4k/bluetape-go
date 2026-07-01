@@ -43,6 +43,7 @@ adapter evaluation, backend-neutral observability incident graph 예제를 포�
 | [`concurrency`](concurrency/README.ko.md) | active | context-aware goroutine group, worker pool, bounded parallel helper. |
 | [`codec`](codec/README.ko.md) | active | Base58, Base62, Base64, hex, URL-safe encoding helper. |
 | [`compression`](compression/README.ko.md) | active | gzip, deflate, zstd, lz4, snappy, registry 기반 compression helper. |
+| [`imagekit`](imagekit/README.ko.md) | active | 서비스 입력을 위한 bounded pure-Go thumbnail, resize, JPEG/PNG conversion helper. |
 | [`serialization`](serialization/README.ko.md) | active | 안전한 기본값을 가진 JSON/binary serializer interface. |
 | [`testing`](testing/README.ko.md) | active | eventual consistency 테스트용 공용 helper. |
 | [`testing/concurrency`](testing/concurrency/README.ko.md) | active | concurrent test를 위한 stress/async job helper. |
@@ -117,6 +118,8 @@ go get github.com/bluetape4k/bluetape-go
   [`textsearch`](textsearch/README.ko.md) 및 optional Kagome adapter인
   [`textsearch/japanese`](textsearch/japanese/README.ko.md), Lingua-Go detector인
   [`textsearch/language`](textsearch/language/README.ko.md).
+- Image: 명시적 format과 memory boundary를 가진 bounded pure-Go resize,
+  thumbnail, JPEG/PNG conversion helper인 [`imagekit`](imagekit/README.ko.md).
 - Coordination: [`leader`](leader/README.ko.md),
   [`leader/redis`](leader/redis/README.ko.md), [`lock/redis`](lock/redis/README.ko.md).
 - Runtime policy/cache/state/workflow: [`resilience`](resilience/README.ko.md),
