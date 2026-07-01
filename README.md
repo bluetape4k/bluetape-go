@@ -46,6 +46,7 @@ observability incident graph example.
 | [`concurrency`](concurrency/README.md) | active | Context-aware goroutine groups, worker pools, and bounded parallel helpers. |
 | [`codec`](codec/README.md) | active | Base58, Base62, Base64, hex, and URL-safe encoding helpers. |
 | [`compression`](compression/README.md) | active | gzip, deflate, zstd, lz4, snappy, and registry-backed compression helpers. |
+| [`imagekit`](imagekit/README.md) | active | Bounded pure-Go thumbnail, resize, and JPEG/PNG conversion helpers for service inputs. |
 | [`serialization`](serialization/README.md) | active | JSON and binary serializer interfaces with safe defaults. |
 | [`testing`](testing/README.md) | active | Common test helpers for eventual consistency checks. |
 | [`testing/concurrency`](testing/concurrency/README.md) | active | Stress and async job helpers for concurrent tests. |
@@ -121,6 +122,9 @@ overview.
   metadata, normalization, boundary-aware matching, and the optional
   [`textsearch/japanese`](textsearch/japanese/README.md) Kagome adapter plus
   [`textsearch/language`](textsearch/language/README.md) Lingua-Go detector.
+- Image: [`imagekit`](imagekit/README.md) for bounded pure-Go resize,
+  thumbnail, and JPEG/PNG conversion helpers with explicit format and memory
+  boundaries.
 - Coordination: [`leader`](leader/README.md),
   [`leader/redis`](leader/redis/README.md), and
   [`lock/redis`](lock/redis/README.md).
