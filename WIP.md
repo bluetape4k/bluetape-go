@@ -1,6 +1,6 @@
 # WIP
 
-Snapshot: 2026-06-30 KST
+Snapshot: 2026-07-01 KST
 Scope: `0.10.0` graph package milestone.
 
 ## Current Target Release
@@ -23,22 +23,21 @@ behavior.
 
 ## Current State
 
-- `0.1.0`, `0.1.1`, `0.2.0`, `0.3.0`, `0.4.0`, `0.5.0`, `v0.5.1`,
+- `v0.1.0`, `v0.1.1`, `v0.2.0`, `v0.3.0`, `v0.4.0`, `v0.5.0`, `v0.5.1`,
   `v0.6.0`, `v0.6.1` through `v0.6.8`, `v0.7.0`, and `v0.8.0` are tagged and
   released.
 - Milestone `0.9.0` has been released as `v0.9.0`.
-- Milestone `0.10.0` is active. Issues #48 and #49 cover graph values and
-  graph I/O helpers; #50 documents backend adapter ordering and created #365
-  plus #366 as selected follow-ups. #51 ports the observability incident graph
-  example and creates #368 for the next IAM/access graph example.
-- `CHANGELOG.md` contains Unreleased graph and graphio entries for `v0.10.0`.
+- Milestone `0.10.0` has zero open issues; #44 and child issues #48 through
+  #51 are closed.
+- `CHANGELOG.md` contains the `v0.10.0` release section dated 2026-07-01.
+- `v0.10.0` tag and GitHub Release are not created yet.
 
 ## Release Checklist
 
-1. Merge issue #51 domain example with PR DoD evidence.
-2. Close issue #44 after all child issues are closed.
-3. Verify `make ci` on the release-prep branch when milestone `0.10.0` closes.
-4. Close milestone `0.10.0`, promote `develop` to `main`, tag `v0.10.0`, and
+1. Merge this release-history PR to satisfy the changelog gate.
+2. Close milestone `0.10.0`.
+3. Verify `make ci` on the release-prep branch.
+4. Promote `develop` to `main`, tag `v0.10.0`, and
    create the GitHub Release from `CHANGELOG.md`.
 
 ## Release Support Notes

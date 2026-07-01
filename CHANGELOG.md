@@ -7,6 +7,8 @@ and this project uses semantic versioning once the first tag is published.
 
 ## [Unreleased]
 
+## [v0.10.0] - 2026-07-01
+
 ### Added
 
 - `graph` package with model-only vertex, edge, path, label, ID, shallow
