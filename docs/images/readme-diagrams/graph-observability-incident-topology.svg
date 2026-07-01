@@ -1,0 +1,116 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 720" role="img" aria-labelledby="title desc">
+  <title id="title">Observability Incident Graph Topology</title>
+  <desc id="desc">A backend-neutral graph fixture linking public APIs, services, alerts, an incident, and an owning team.</desc>
+  <defs>
+    <marker id="arrow-blue" markerUnits="userSpaceOnUse" markerWidth="14" markerHeight="14" refX="12" refY="7" orient="auto">
+      <path d="M 0 0 L 14 7 L 0 14 Z" fill="#2563eb" stroke="#2563eb" stroke-dasharray="none" style="stroke-dasharray:none"/>
+    </marker>
+    <marker id="arrow-orange" markerUnits="userSpaceOnUse" markerWidth="14" markerHeight="14" refX="12" refY="7" orient="auto">
+      <path d="M 0 0 L 14 7 L 0 14 Z" fill="#ea580c" stroke="#ea580c" stroke-dasharray="none" style="stroke-dasharray:none"/>
+    </marker>
+    <marker id="arrow-green" markerUnits="userSpaceOnUse" markerWidth="14" markerHeight="14" refX="12" refY="7" orient="auto">
+      <path d="M 0 0 L 14 7 L 0 14 Z" fill="#059669" stroke="#059669" stroke-dasharray="none" style="stroke-dasharray:none"/>
+    </marker>
+    <marker id="arrow-red" markerUnits="userSpaceOnUse" markerWidth="14" markerHeight="14" refX="12" refY="7" orient="auto">
+      <path d="M 0 0 L 14 7 L 0 14 Z" fill="#dc2626" stroke="#dc2626" stroke-dasharray="none" style="stroke-dasharray:none"/>
+    </marker>
+    <style>
+      text { font-family: "Architects Daughter", "Comic Mono", "Comic Sans MS", sans-serif; fill: #111827; }
+      .canvas { fill: #f8fafc; }
+      .title { font-size: 30px; font-weight: 700; }
+      .subtitle { font-size: 15px; fill: #475569; }
+      .card { stroke: #334155; stroke-width: 2; rx: 10; }
+      .api { fill: #dbeafe; }
+      .service { fill: #ecfeff; }
+      .storage { fill: #f1f5f9; }
+      .alert { fill: #ffedd5; }
+      .incident { fill: #fee2e2; }
+      .team { fill: #dcfce7; }
+      .card-title { font-size: 17px; font-weight: 700; }
+      .card-subtitle { font-size: 13px; fill: #475569; }
+      .edge { fill: none; stroke-width: 3; stroke-linecap: round; stroke-linejoin: round; }
+      .depends { stroke: #2563eb; marker-end: url(#arrow-blue); }
+      .alerts { stroke: #ea580c; marker-end: url(#arrow-orange); }
+      .owns { stroke: #059669; marker-end: url(#arrow-green); }
+      .root { stroke: #dc2626; marker-end: url(#arrow-red); }
+      .legend { font-size: 13px; fill: #334155; }
+    </style>
+  </defs>
+
+  <rect class="canvas" x="0" y="0" width="1200" height="720"/>
+  <text class="title" x="60" y="48">Observability Incident Graph</text>
+  <text class="subtitle" x="60" y="76">Seed fixture for answering blast-radius, alert-boundary, ownership, and graph I/O questions.</text>
+
+  <path class="edge depends" d="M 250 185 L 285 185 Q 295 185 295 195 L 295 235 Q 295 245 305 245 L 320 245"/>
+  <path class="edge depends" d="M 250 335 L 285 335 Q 295 335 295 325 L 295 295 Q 295 285 305 285 L 320 285"/>
+  <path class="edge depends" d="M 500 265 L 560 265"/>
+  <path class="edge depends" d="M 750 265 L 810 265"/>
+  <path class="edge depends" d="M 1000 265 L 1040 265"/>
+  <path class="edge alerts" d="M 655 150 L 655 225"/>
+  <path class="edge alerts" d="M 905 150 L 905 225"/>
+  <path class="edge root" d="M 1015 425 L 980 425 Q 970 425 970 415 L 970 305"/>
+  <path class="edge owns" d="M 655 305 L 655 520"/>
+  <path class="edge owns" d="M 910 305 L 910 520"/>
+
+  <g>
+    <rect class="card api" x="60" y="150" width="190" height="70"/>
+    <text class="card-title" x="78" y="180">Checkout API</text>
+    <text class="card-subtitle" x="78" y="202">apiId: checkout-api</text>
+  </g>
+  <g>
+    <rect class="card api" x="60" y="300" width="190" height="70"/>
+    <text class="card-title" x="78" y="330">Mobile Checkout</text>
+    <text class="card-subtitle" x="78" y="352">apiId: mobile-checkout-api</text>
+  </g>
+  <g>
+    <rect class="card service" x="320" y="225" width="180" height="80"/>
+    <text class="card-title" x="340" y="256">Edge API</text>
+    <text class="card-subtitle" x="340" y="279">serviceId: edge-api</text>
+  </g>
+  <g>
+    <rect class="card service" x="560" y="225" width="190" height="80"/>
+    <text class="card-title" x="580" y="256">Checkout Service</text>
+    <text class="card-subtitle" x="580" y="279">status: degraded</text>
+  </g>
+  <g>
+    <rect class="card service" x="810" y="225" width="190" height="80"/>
+    <text class="card-title" x="830" y="256">Payment Service</text>
+    <text class="card-subtitle" x="830" y="279">status: failing</text>
+  </g>
+  <g>
+    <rect class="card storage" x="1040" y="225" width="140" height="80"/>
+    <text class="card-title" x="1060" y="256">Postgres</text>
+    <text class="card-subtitle" x="1060" y="279">primary</text>
+  </g>
+  <g>
+    <rect class="card alert" x="560" y="80" width="190" height="70"/>
+    <text class="card-title" x="580" y="109">Checkout errors</text>
+    <text class="card-subtitle" x="580" y="132">warning, open</text>
+  </g>
+  <g>
+    <rect class="card alert" x="810" y="80" width="190" height="70"/>
+    <text class="card-title" x="830" y="109">Payment latency</text>
+    <text class="card-subtitle" x="830" y="132">critical, open</text>
+  </g>
+  <g>
+    <rect class="card incident" x="1015" y="390" width="165" height="70"/>
+    <text class="card-title" x="1032" y="419">Incident 1001</text>
+    <text class="card-subtitle" x="1032" y="442">root: payment</text>
+  </g>
+  <g>
+    <rect class="card team" x="560" y="520" width="440" height="70"/>
+    <text class="card-title" x="580" y="550">Payments Team</text>
+    <text class="card-subtitle" x="580" y="572">Owns checkout-service and payment-service escalation</text>
+  </g>
+
+  <g>
+    <line x1="60" y1="650" x2="106" y2="650" class="edge depends"/>
+    <text class="legend" x="118" y="655">DEPENDS_ON</text>
+    <line x1="250" y1="650" x2="296" y2="650" class="edge alerts"/>
+    <text class="legend" x="308" y="655">ALERTS_ON</text>
+    <line x1="430" y1="650" x2="476" y2="650" class="edge owns"/>
+    <text class="legend" x="488" y="655">OWNED_BY</text>
+    <line x1="610" y1="650" x2="656" y2="650" class="edge root"/>
+    <text class="legend" x="668" y="655">ROOT_CAUSE</text>
+  </g>
+</svg>
