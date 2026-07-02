@@ -42,7 +42,9 @@ adapter evaluation, backend-neutral observability incident graph 예제를 포�
 | [`collections`](collections/README.ko.md) | active | chunking, grouping, distinct, error-aware transform용 작은 generic slice/map helper. |
 | [`concurrency`](concurrency/README.ko.md) | active | context-aware goroutine group, worker pool, bounded parallel helper. |
 | [`codec`](codec/README.ko.md) | active | Base58, Base62, Base64, hex, URL-safe encoding helper. |
+| [`encrypt`](encrypt/README.ko.md) | active | Versioned envelope와 associated data를 지원하는 stdlib AES-GCM byte/string facade. |
 | [`compression`](compression/README.ko.md) | active | gzip, deflate, zstd, lz4, snappy, registry 기반 compression helper. |
+| [`imagekit`](imagekit/README.ko.md) | active | 서비스 입력을 위한 bounded pure-Go thumbnail, resize, JPEG/PNG conversion helper. |
 | [`serialization`](serialization/README.ko.md) | active | 안전한 기본값을 가진 JSON/binary serializer interface. |
 | [`testing`](testing/README.ko.md) | active | eventual consistency 테스트용 공용 helper. |
 | [`testing/concurrency`](testing/concurrency/README.ko.md) | active | concurrent test를 위한 stress/async job helper. |
@@ -55,6 +57,7 @@ adapter evaluation, backend-neutral observability incident graph 예제를 포�
 | [`examples/integration`](examples/integration/README.ko.md) | example | 수정된 `0.6.x` package를 묶는 compile-checked end-to-end recipe. |
 | [`examples/audit`](examples/audit/README.ko.md) | example | Repository history와 outbox replay boundary를 보여주는 runnable audit-backed order service. |
 | [`examples/graph/observability`](examples/graph/observability/README.ko.md) | example | Blast radius, alert boundary, ownership, NDJSON graph I/O 경계를 보여주는 runnable observability incident graph. |
+| [`examples/graph/iamaccess`](examples/graph/iamaccess/README.ko.md) | example | Effective access, deny path, risky privilege chain, least-privilege drift, NDJSON graph I/O 경계를 보여주는 runnable IAM access graph. |
 | [`examples/s3`](examples/s3/README.ko.md) | example | Floci fixture 기반 compile-checked AWS SDK for Go v2 S3 예제. |
 | [`examples/sqs-sns`](examples/sqs-sns/README.ko.md) | example | Floci fixture 기반 compile-checked AWS SDK for Go v2 SQS/SNS 예제. |
 | [`leader`](leader/README.ko.md) | active | 단일, group, strategy 기반 계약을 포함한 leader election API. |
@@ -81,6 +84,7 @@ adapter evaluation, backend-neutral observability incident graph 예제를 포�
 | [`audit/sqloutbox`](audit/sqloutbox/README.ko.md) | active | Caller-owned transaction choreography를 유지하는 PostgreSQL-backed audit outbox store와 relay. |
 | [`graph`](graph/README.ko.md) | active | Vertex, edge, path, label, ID, shallow property, validated JSON을 제공하는 model-only graph value. |
 | [`graph/graphio`](graph/graphio/README.ko.md) | active | Graph vertex/edge를 위한 bounded NDJSON 및 paired CSV import/export helper. |
+| [`graph/neo4j`](graph/neo4j/README.ko.md) | active | 공식 Neo4j Go driver 결과를 graph vertex/edge로 변환하는 proof adapter. |
 | [`probabilistic`](probabilistic/README.ko.md) | active | deterministic config, merge compatibility check, stress/race coverage를 갖춘 goroutine-safe 인메모리 Bloom filter. |
 | [`probabilistic/redis`](probabilistic/redis/README.ko.md) | active | Static Lua script, immutable config metadata, operator runbook 경계를 갖춘 Redis-backed shared Bloom filter. |
 
@@ -101,7 +105,8 @@ go get github.com/bluetape4k/bluetape-go
 
 - Foundation: [`core`](core/README.ko.md), [`collections`](collections/README.ko.md),
   [`concurrency`](concurrency/README.ko.md), [`codec`](codec/README.ko.md),
-  [`compression`](compression/README.ko.md), [`serialization`](serialization/README.ko.md).
+  [`encrypt`](encrypt/README.ko.md), [`compression`](compression/README.ko.md),
+  [`serialization`](serialization/README.ko.md).
 - Test support: [`testing`](testing/README.ko.md),
   [`testing/concurrency`](testing/concurrency/README.ko.md), 위 표의 Testcontainers
   fixture package README. `testing`의 focused example은 assertion DSL 추가 없이
@@ -117,6 +122,8 @@ go get github.com/bluetape4k/bluetape-go
   [`textsearch`](textsearch/README.ko.md) 및 optional Kagome adapter인
   [`textsearch/japanese`](textsearch/japanese/README.ko.md), Lingua-Go detector인
   [`textsearch/language`](textsearch/language/README.ko.md).
+- Image: 명시적 format과 memory boundary를 가진 bounded pure-Go resize,
+  thumbnail, JPEG/PNG conversion helper인 [`imagekit`](imagekit/README.ko.md).
 - Coordination: [`leader`](leader/README.ko.md),
   [`leader/redis`](leader/redis/README.ko.md), [`lock/redis`](lock/redis/README.ko.md).
 - Runtime policy/cache/state/workflow: [`resilience`](resilience/README.ko.md),
@@ -139,8 +146,11 @@ go get github.com/bluetape4k/bluetape-go
 - Graph: model-only vertex, edge, path, label, ID, shallow property, validated
   JSON value를 제공하는 [`graph`](graph/README.ko.md), bounded NDJSON/paired CSV
   import/export helper를 제공하는 [`graph/graphio`](graph/graphio/README.ko.md),
+  첫 Neo4j backend proof인 [`graph/neo4j`](graph/neo4j/README.ko.md),
   runnable incident-response graph 예제인
-  [`examples/graph/observability`](examples/graph/observability/README.ko.md).
+  [`examples/graph/observability`](examples/graph/observability/README.ko.md),
+  IAM access-path review 예제인
+  [`examples/graph/iamaccess`](examples/graph/iamaccess/README.ko.md).
 
 ### Graph I/O 한눈에 보기
 
@@ -160,6 +170,15 @@ Observability 예제는 checkout API, service dependency, alert, incident root
 cause, owning team을 seed로 구성합니다. Backend adapter는 follow-up으로 남겨두고,
 upstream impact, affected API, alert boundary, ownership, NDJSON round-trip을
 compile-checked query로 증명합니다.
+
+### IAM Access Graph 예제
+
+![IAM Access Graph Paths](docs/images/readme-diagrams/graph-iam-access-paths.png)
+
+IAM 예제는 user, group, role, policy, permission, resource, break-glass grant를
+seed로 구성합니다. Backend adapter 없이 effective access, explicit deny path,
+risky nested admin inheritance, least-privilege drift, temporary access, NDJSON
+round-trip을 compile-checked query로 증명합니다.
 
 ### Audit Example 한눈에 보기
 
@@ -192,7 +211,7 @@ History query도 같은 repository boundary를 읽습니다. Outbox replay는 �
 | `0.8.0` | Text search, blockword masking, tokenizer adapter. |
 | `0.9.0` | bluetape4k-javers 패턴 기반 audit/event package. |
 | `0.10.0` | Graph package와 example. |
-| `0.11.0` | Image, encryption, utility follow-up. |
+| `0.11.0` | Image, encryption, rule-engine research, utility follow-up. |
 
 닫힌 `0.7.0 Research Gate` milestone은 큰 도메인 범위 결정을 기록한
 research milestone이며 release tag를 만들지 않았습니다.

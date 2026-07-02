@@ -1,0 +1,178 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1450 860" role="img" aria-labelledby="title desc">
+  <title id="title">IAM Access Graph Paths</title>
+  <desc id="desc">A backend-neutral IAM access graph fixture linking users, groups, roles, policies, permissions, resources, and temporary grants.</desc>
+  <defs>
+    <marker id="arrow-member" markerUnits="userSpaceOnUse" markerWidth="14" markerHeight="14" refX="12" refY="7" orient="auto">
+      <path d="M 0 0 L 14 7 L 0 14 Z" fill="#4f46e5" stroke="#4f46e5" stroke-dasharray="none" style="stroke-dasharray:none"/>
+    </marker>
+    <marker id="arrow-allow" markerUnits="userSpaceOnUse" markerWidth="14" markerHeight="14" refX="12" refY="7" orient="auto">
+      <path d="M 0 0 L 14 7 L 0 14 Z" fill="#059669" stroke="#059669" stroke-dasharray="none" style="stroke-dasharray:none"/>
+    </marker>
+    <marker id="arrow-deny" markerUnits="userSpaceOnUse" markerWidth="14" markerHeight="14" refX="12" refY="7" orient="auto">
+      <path d="M 0 0 L 14 7 L 0 14 Z" fill="#dc2626" stroke="#dc2626" stroke-dasharray="none" style="stroke-dasharray:none"/>
+    </marker>
+    <marker id="arrow-temp" markerUnits="userSpaceOnUse" markerWidth="14" markerHeight="14" refX="12" refY="7" orient="auto">
+      <path d="M 0 0 L 14 7 L 0 14 Z" fill="#d97706" stroke="#d97706" stroke-dasharray="none" style="stroke-dasharray:none"/>
+    </marker>
+    <style>
+      text { font-family: "Architects Daughter", "Comic Mono", "Comic Sans MS", sans-serif; fill: #111827; }
+      .canvas { fill: #f8fafc; }
+      .title { font-size: 31px; font-weight: 700; }
+      .subtitle { font-size: 15px; fill: #475569; }
+      .lane-title { font-size: 16px; font-weight: 700; fill: #334155; }
+      .card { stroke: #334155; stroke-width: 2; rx: 10; }
+      .user { fill: #e0f2fe; }
+      .group { fill: #ede9fe; }
+      .role { fill: #ecfdf5; }
+      .policy { fill: #fef3c7; }
+      .deny-policy { fill: #fee2e2; }
+      .permission { fill: #f0fdfa; }
+      .resource { fill: #f1f5f9; }
+      .grant { fill: #ffedd5; }
+      .card-title { font-size: 16px; font-weight: 700; }
+      .card-subtitle { font-size: 12px; fill: #475569; }
+      .edge { fill: none; stroke-width: 3; stroke-linecap: round; stroke-linejoin: round; }
+      .member { stroke: #4f46e5; marker-end: url(#arrow-member); }
+      .allow { stroke: #059669; marker-end: url(#arrow-allow); }
+      .allow-line { stroke: #059669; }
+      .deny { stroke: #dc2626; marker-end: url(#arrow-deny); }
+      .temp { stroke: #d97706; marker-end: url(#arrow-temp); }
+      .legend { font-size: 13px; fill: #334155; }
+    </style>
+  </defs>
+
+  <rect class="canvas" x="0" y="0" width="1450" height="860"/>
+  <text class="title" x="56" y="50">IAM Access Graph</text>
+  <text class="subtitle" x="56" y="78">Seed fixture for explaining effective access, explicit deny paths, risky nested admin inheritance, and temporary grants.</text>
+
+  <text class="lane-title" x="84" y="116">Users</text>
+  <text class="lane-title" x="306" y="116">Groups / Grants</text>
+  <text class="lane-title" x="556" y="116">Roles</text>
+  <text class="lane-title" x="794" y="116">Policies</text>
+  <text class="lane-title" x="1026" y="116">Permissions</text>
+  <text class="lane-title" x="1260" y="116">Resources</text>
+
+  <path id="edge-alice-engineering" class="edge member" d="M 250 170 L 300 170"/>
+  <path id="edge-engineering-platform" class="edge member" d="M 400 210 L 400 240"/>
+  <path id="edge-engineering-deployer" class="edge allow" d="M 500 170 L 550 170"/>
+  <path id="edge-platform-admin" class="edge allow" d="M 500 280 L 550 280"/>
+  <path id="edge-eve-contractor" class="edge deny" d="M 250 500 L 550 500"/>
+  <path id="edge-carol-grant" class="edge temp" d="M 250 650 L 300 650"/>
+
+  <path id="edge-deployer-policy" class="edge allow" d="M 750 170 L 790 170"/>
+  <path id="edge-admin-policy" class="edge allow" d="M 750 280 L 790 280"/>
+  <path id="edge-contractor-deny-policy" class="edge deny" d="M 750 500 L 790 500"/>
+
+  <path id="edge-deploy-permission" class="edge allow" d="M 990 170 L 1020 170"/>
+  <path id="edge-delete-permission-route" class="edge allow-line" d="M 990 280 L 1005 280 Q 1015 280 1015 290 L 1015 445 Q 1015 455 1025 455 L 1120 455"/>
+  <path id="edge-delete-permission-head" class="edge allow" d="M 1120 455 L 1120 465"/>
+  <path id="edge-deny-delete-permission" class="edge deny" d="M 990 500 L 1020 500"/>
+  <path id="edge-grant-read-prod" class="edge temp" d="M 500 650 L 1020 650"/>
+
+  <path id="edge-deploy-staging" class="edge allow" d="M 1220 170 L 1250 170"/>
+  <path id="edge-delete-prod" class="edge allow" d="M 1220 500 L 1250 500"/>
+  <path id="edge-read-prod-temp" class="edge temp" d="M 1220 650 L 1250 650"/>
+
+  <g>
+    <rect class="card user" x="60" y="135" width="190" height="70"/>
+    <text class="card-title" x="78" y="164">Alice Kim</text>
+    <text class="card-subtitle" x="78" y="187">userId: alice</text>
+  </g>
+  <g>
+    <rect class="card user" x="60" y="465" width="190" height="70"/>
+    <text class="card-title" x="78" y="494">Eve Contractor</text>
+    <text class="card-subtitle" x="78" y="517">userId: eve</text>
+  </g>
+  <g>
+    <rect class="card user" x="60" y="615" width="190" height="70"/>
+    <text class="card-title" x="78" y="644">Carol Park</text>
+    <text class="card-subtitle" x="78" y="667">userId: carol</text>
+  </g>
+
+  <g>
+    <rect class="card group" x="300" y="135" width="200" height="70"/>
+    <text class="card-title" x="318" y="164">Engineering</text>
+    <text class="card-subtitle" x="318" y="187">risk: standard</text>
+  </g>
+  <g>
+    <rect class="card group" x="300" y="245" width="200" height="70"/>
+    <text class="card-title" x="318" y="274">Platform Admins</text>
+    <text class="card-subtitle" x="318" y="297">risk: privileged</text>
+  </g>
+  <g>
+    <rect class="card grant" x="300" y="615" width="200" height="70"/>
+    <text class="card-title" x="318" y="644">Break Glass 1001</text>
+    <text class="card-subtitle" x="318" y="667">state: active</text>
+  </g>
+
+  <g>
+    <rect class="card role" x="550" y="135" width="200" height="70"/>
+    <text class="card-title" x="568" y="164">Deployer Role</text>
+    <text class="card-subtitle" x="568" y="187">privilege: write</text>
+  </g>
+  <g>
+    <rect class="card role" x="550" y="245" width="200" height="70"/>
+    <text class="card-title" x="568" y="274">Prod Admin Role</text>
+    <text class="card-subtitle" x="568" y="297">privilege: admin</text>
+  </g>
+  <g>
+    <rect class="card role" x="550" y="465" width="200" height="70"/>
+    <text class="card-title" x="568" y="494">Contractor Role</text>
+    <text class="card-subtitle" x="568" y="517">privilege: restricted</text>
+  </g>
+
+  <g>
+    <rect class="card policy" x="790" y="135" width="200" height="70"/>
+    <text class="card-title" x="808" y="164">Deploy Staging</text>
+    <text class="card-subtitle" x="808" y="187">effect: allow</text>
+  </g>
+  <g>
+    <rect class="card policy" x="790" y="245" width="200" height="70"/>
+    <text class="card-title" x="808" y="274">Prod Admin</text>
+    <text class="card-subtitle" x="808" y="297">effect: allow</text>
+  </g>
+  <g>
+    <rect class="card deny-policy" x="790" y="465" width="200" height="70"/>
+    <text class="card-title" x="808" y="494">Deny Prod Delete</text>
+    <text class="card-subtitle" x="808" y="517">effect: deny</text>
+  </g>
+
+  <g>
+    <rect class="card permission" x="1020" y="135" width="200" height="70"/>
+    <text class="card-title" x="1038" y="164">Deploy</text>
+    <text class="card-subtitle" x="1038" y="187">permissionId: staging</text>
+  </g>
+  <g>
+    <rect class="card permission" x="1020" y="465" width="200" height="70"/>
+    <text class="card-title" x="1038" y="494">Delete Prod DB</text>
+    <text class="card-subtitle" x="1038" y="517">permissionId: prod-db</text>
+  </g>
+  <g>
+    <rect class="card permission" x="1020" y="615" width="200" height="70"/>
+    <text class="card-title" x="1038" y="644">Read Prod DB</text>
+    <text class="card-subtitle" x="1038" y="667">temporary permission</text>
+  </g>
+
+  <g>
+    <rect class="card resource" x="1250" y="135" width="150" height="70"/>
+    <text class="card-title" x="1268" y="164">Staging</text>
+    <text class="card-subtitle" x="1268" y="187">service</text>
+  </g>
+  <g>
+    <rect class="card resource" x="1250" y="465" width="150" height="220"/>
+    <text class="card-title" x="1268" y="498">Prod DB</text>
+    <text class="card-subtitle" x="1268" y="522">restricted</text>
+    <text class="card-subtitle" x="1268" y="647">delete + read</text>
+  </g>
+
+  <g>
+    <line x1="60" y1="775" x2="106" y2="775" class="edge member"/>
+    <text class="legend" x="118" y="780">MEMBER_OF / nested group</text>
+    <line x1="320" y1="775" x2="366" y2="775" class="edge allow"/>
+    <text class="legend" x="378" y="780">allow path: role → policy → permission → resource</text>
+    <line x1="760" y1="775" x2="806" y2="775" class="edge deny"/>
+    <text class="legend" x="818" y="780">explicit deny path wins before allow</text>
+    <line x1="1080" y1="775" x2="1126" y2="775" class="edge temp"/>
+    <text class="legend" x="1138" y="780">temporary break-glass grant</text>
+  </g>
+</svg>

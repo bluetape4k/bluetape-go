@@ -45,7 +45,9 @@ observability incident graph example.
 | [`collections`](collections/README.md) | active | Focused generic slice/map helpers for chunking, grouping, distinct, and error-aware transforms. |
 | [`concurrency`](concurrency/README.md) | active | Context-aware goroutine groups, worker pools, and bounded parallel helpers. |
 | [`codec`](codec/README.md) | active | Base58, Base62, Base64, hex, and URL-safe encoding helpers. |
+| [`encrypt`](encrypt/README.md) | active | Stdlib AES-GCM byte/string facade with versioned envelopes and associated data. |
 | [`compression`](compression/README.md) | active | gzip, deflate, zstd, lz4, snappy, and registry-backed compression helpers. |
+| [`imagekit`](imagekit/README.md) | active | Bounded pure-Go thumbnail, resize, and JPEG/PNG conversion helpers for service inputs. |
 | [`serialization`](serialization/README.md) | active | JSON and binary serializer interfaces with safe defaults. |
 | [`testing`](testing/README.md) | active | Common test helpers for eventual consistency checks. |
 | [`testing/concurrency`](testing/concurrency/README.md) | active | Stress and async job helpers for concurrent tests. |
@@ -58,6 +60,7 @@ observability incident graph example.
 | [`examples/integration`](examples/integration/README.md) | example | Compile-checked end-to-end recipes across corrected `0.6.x` packages. |
 | [`examples/audit`](examples/audit/README.md) | example | Runnable audit-backed order service demonstrating repository history and outbox replay boundaries. |
 | [`examples/graph/observability`](examples/graph/observability/README.md) | example | Runnable observability incident graph showing blast-radius, alert-boundary, ownership, and NDJSON graph I/O boundaries. |
+| [`examples/graph/iamaccess`](examples/graph/iamaccess/README.md) | example | Runnable IAM access graph showing effective access, deny paths, risky privilege chains, least-privilege drift, and NDJSON graph I/O boundaries. |
 | [`examples/s3`](examples/s3/README.md) | example | Compile-checked AWS SDK for Go v2 S3 examples backed by the Floci fixture. |
 | [`examples/sqs-sns`](examples/sqs-sns/README.md) | example | Compile-checked AWS SDK for Go v2 SQS/SNS examples backed by the Floci fixture. |
 | [`leader`](leader/README.md) | active | Leader election API, including single, group, and strategy-based contracts. |
@@ -84,6 +87,7 @@ observability incident graph example.
 | [`audit/sqloutbox`](audit/sqloutbox/README.md) | active | PostgreSQL-backed audit outbox store and relay with caller-owned transaction choreography. |
 | [`graph`](graph/README.md) | active | Model-only graph values for vertices, edges, paths, labels, IDs, shallow properties, and validated JSON. |
 | [`graph/graphio`](graph/graphio/README.md) | active | Stream-oriented NDJSON and paired CSV import/export helpers for graph vertices and edges. |
+| [`graph/neo4j`](graph/neo4j/README.md) | active | Proof adapter from the official Neo4j Go driver to graph vertices and edges. |
 | [`probabilistic`](probabilistic/README.md) | active | Goroutine-safe in-memory Bloom filters with deterministic config, merge compatibility checks, and stress/race coverage. |
 | [`probabilistic/redis`](probabilistic/redis/README.md) | active | Redis-backed shared Bloom filters with static Lua scripts, immutable config metadata, and operator runbook boundaries. |
 
@@ -105,7 +109,7 @@ overview.
 
 - Foundation: [`core`](core/README.md), [`collections`](collections/README.md),
   [`concurrency`](concurrency/README.md), [`codec`](codec/README.md),
-  [`compression`](compression/README.md), and
+  [`encrypt`](encrypt/README.md), [`compression`](compression/README.md), and
   [`serialization`](serialization/README.md).
 - Test support: [`testing`](testing/README.md),
   [`testing/concurrency`](testing/concurrency/README.md), and the fixture
@@ -121,6 +125,9 @@ overview.
   metadata, normalization, boundary-aware matching, and the optional
   [`textsearch/japanese`](textsearch/japanese/README.md) Kagome adapter plus
   [`textsearch/language`](textsearch/language/README.md) Lingua-Go detector.
+- Image: [`imagekit`](imagekit/README.md) for bounded pure-Go resize,
+  thumbnail, and JPEG/PNG conversion helpers with explicit format and memory
+  boundaries.
 - Coordination: [`leader`](leader/README.md),
   [`leader/redis`](leader/redis/README.md), and
   [`lock/redis`](lock/redis/README.md).
@@ -145,9 +152,12 @@ overview.
 - Graph: [`graph`](graph/README.md) for model-only vertex, edge, path, label,
   ID, shallow property, and validated JSON values, plus
   [`graph/graphio`](graph/graphio/README.md) for bounded NDJSON and paired CSV
-  import/export helpers, and
+  import/export helpers, [`graph/neo4j`](graph/neo4j/README.md) for the first
+  Neo4j backend proof, and
   [`examples/graph/observability`](examples/graph/observability/README.md) for
-  a runnable incident-response graph example.
+  a runnable incident-response graph example plus
+  [`examples/graph/iamaccess`](examples/graph/iamaccess/README.md) for IAM
+  access-path review.
 
 ### Graph I/O At A Glance
 
@@ -167,6 +177,16 @@ incident root cause, and the owning team. It proves graph caller value with
 compile-checked queries for upstream impact, affected APIs, alert boundaries,
 ownership, and NDJSON round-trip behavior while backend adapters remain
 follow-up work.
+
+### IAM Access Graph Example
+
+![IAM Access Graph Paths](docs/images/readme-diagrams/graph-iam-access-paths.png)
+
+The IAM example seeds users, groups, roles, policies, permissions, resources,
+and a break-glass grant. It proves caller-valued graph questions for effective
+access, explicit deny paths, risky nested admin inheritance, least-privilege
+drift, temporary access, and NDJSON round-trip behavior without requiring a
+backend adapter.
 
 ### Audit Example At A Glance
 
@@ -199,7 +219,7 @@ uses a minimal `EntrySink` so production code can swap the in-memory fixture for
 | `0.8.0` | Text search, blockword masking, tokenizer adapters. |
 | `0.9.0` | Audit and event packages inspired by bluetape4k-javers patterns. |
 | `0.10.0` | Graph packages and examples. |
-| `0.11.0` | Image, encryption, and utility follow-ups. |
+| `0.11.0` | Image, encryption, rule-engine research, and utility follow-ups. |
 
 The closed `0.7.0 Research Gate` milestone recorded the larger-domain scope
 decisions and was not tagged as a release.
