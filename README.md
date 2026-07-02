@@ -203,7 +203,7 @@ uses a minimal `EntrySink` so production code can swap the in-memory fixture for
 | `0.8.0` | Text search, blockword masking, tokenizer adapters. |
 | `0.9.0` | Audit and event packages inspired by bluetape4k-javers patterns. |
 | `0.10.0` | Graph packages and examples. |
-| `0.11.0` | Image, encryption, and utility follow-ups. |
+| `0.11.0` | Image, encryption, rule-engine research, and utility follow-ups. |
 
 The closed `0.7.0 Research Gate` milestone recorded the larger-domain scope
 decisions and was not tagged as a release.
