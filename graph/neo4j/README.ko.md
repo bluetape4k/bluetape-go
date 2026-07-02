@@ -97,11 +97,34 @@ go test -p 1 -race -count=1 ./graph/neo4j
 Package test는 node/relationship mapping, bad record, query failure, context
 cancellation, resource cleanup을 검증합니다.
 
+## Memgraph Compatibility
+
+Memgraph는 이 package에서 별도 `graph/memgraph` backend abstraction이 아니라
+Neo4j-driver compatibility로 시작합니다. Memgraph는 공식 Neo4j Go driver로 접근할
+수 있는 Bolt/Cypher compatibility를 제공하므로 proof는 같은 `Client`,
+`VertexFromNode`, `EdgeFromRelationship`, `ReadVertices`, `ReadEdges` surface에
+머무릅니다.
+
+Testcontainers for Go에는 아직 전용 Memgraph module이 없으므로 package에는 generic
+Testcontainers 기반 Memgraph matrix를 포함합니다.
+
+| Runtime | Image | 검증 동작 |
+|---|---|---|
+| Neo4j | `neo4j:5.26.0` | node/relationship create/read, result mapping, bad query, cancellation, driver cleanup |
+| Memgraph | `memgraph/memgraph:3.5.0` | 같은 Neo4j-driver adapter surface: node/relationship create/read, result mapping, bad query, cancellation, driver cleanup |
+
+Guardrail:
+
+- 두 runtime이 공유하는 Cypher subset 안에서 query를 유지합니다.
+- Bolt가 반환하는 `ElementId` 값을 요구합니다. Deprecated numeric ID는 adapter
+  contract에 포함하지 않습니다.
+- 향후 compatibility test가 Neo4j-driver surface로 부족하다는 것을 증명할 때만
+  전용 `graph/memgraph` package를 추가합니다.
+
 ## Deferred Scope
 
 | 기능 | Owner |
 |---|---|
-| 이 surface에 대한 Memgraph compatibility | #366 |
 | IAM access graph example | #368 |
 | Backend-neutral repository/session/schema/transaction abstraction | 여러 adapter가 common contract를 증명할 때까지 deferred |
 | GraphML, AGE, FalkorDB, TinkerPop, Neptune, broad Cypher DSL | 이 proof 범위 밖 |
