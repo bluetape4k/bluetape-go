@@ -60,6 +60,7 @@ observability incident graph example.
 | [`examples/integration`](examples/integration/README.md) | example | Compile-checked end-to-end recipes across corrected `0.6.x` packages. |
 | [`examples/audit`](examples/audit/README.md) | example | Runnable audit-backed order service demonstrating repository history and outbox replay boundaries. |
 | [`examples/graph/observability`](examples/graph/observability/README.md) | example | Runnable observability incident graph showing blast-radius, alert-boundary, ownership, and NDJSON graph I/O boundaries. |
+| [`examples/graph/iamaccess`](examples/graph/iamaccess/README.md) | example | Runnable IAM access graph showing effective access, deny paths, risky privilege chains, least-privilege drift, and NDJSON graph I/O boundaries. |
 | [`examples/s3`](examples/s3/README.md) | example | Compile-checked AWS SDK for Go v2 S3 examples backed by the Floci fixture. |
 | [`examples/sqs-sns`](examples/sqs-sns/README.md) | example | Compile-checked AWS SDK for Go v2 SQS/SNS examples backed by the Floci fixture. |
 | [`leader`](leader/README.md) | active | Leader election API, including single, group, and strategy-based contracts. |
@@ -154,7 +155,9 @@ overview.
   import/export helpers, [`graph/neo4j`](graph/neo4j/README.md) for the first
   Neo4j backend proof, and
   [`examples/graph/observability`](examples/graph/observability/README.md) for
-  a runnable incident-response graph example.
+  a runnable incident-response graph example plus
+  [`examples/graph/iamaccess`](examples/graph/iamaccess/README.md) for IAM
+  access-path review.
 
 ### Graph I/O At A Glance
 
@@ -174,6 +177,16 @@ incident root cause, and the owning team. It proves graph caller value with
 compile-checked queries for upstream impact, affected APIs, alert boundaries,
 ownership, and NDJSON round-trip behavior while backend adapters remain
 follow-up work.
+
+### IAM Access Graph Example
+
+![IAM Access Graph Paths](docs/images/readme-diagrams/graph-iam-access-paths.png)
+
+The IAM example seeds users, groups, roles, policies, permissions, resources,
+and a break-glass grant. It proves caller-valued graph questions for effective
+access, explicit deny paths, risky nested admin inheritance, least-privilege
+drift, temporary access, and NDJSON round-trip behavior without requiring a
+backend adapter.
 
 ### Audit Example At A Glance
 
