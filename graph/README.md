@@ -121,10 +121,11 @@ must copy or sanitize nested values before crossing trust boundaries.
 | Capability | Owner |
 |---|---|
 | Graph I/O helpers for NDJSON and paired CSV | [`graph/graphio`](graphio/README.md) |
+| Neo4j backend proof | [`graph/neo4j`](neo4j/README.md) |
 | GraphML import/export | Deferred follow-up after NDJSON/CSV adoption evidence |
-| Backend adapter evaluation | #50 |
+| Memgraph compatibility with the Neo4j surface | #366 |
 | Domain examples | #51 |
-| Repository/session/schema/query/transaction contracts | Deferred until #49/#50/#51 prove a shared contract |
+| Repository/session/schema/query/transaction contracts | Deferred until multiple backend packages prove a shared contract |
 
 `ErrUnsupportedCapability` is reserved for future capability boundaries. No
 public API in this package returns it yet.
@@ -141,6 +142,8 @@ deferred to a breaking release.
 ```bash
 go test -count=1 ./graph
 go test -count=1 ./graph/graphio
+go test -p 1 -count=1 ./graph/neo4j
 go test -race -count=1 ./graph
 go test -race -count=1 ./graph/graphio
+go test -p 1 -race -count=1 ./graph/neo4j
 ```

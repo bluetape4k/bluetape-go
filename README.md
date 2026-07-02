@@ -86,6 +86,7 @@ observability incident graph example.
 | [`audit/sqloutbox`](audit/sqloutbox/README.md) | active | PostgreSQL-backed audit outbox store and relay with caller-owned transaction choreography. |
 | [`graph`](graph/README.md) | active | Model-only graph values for vertices, edges, paths, labels, IDs, shallow properties, and validated JSON. |
 | [`graph/graphio`](graph/graphio/README.md) | active | Stream-oriented NDJSON and paired CSV import/export helpers for graph vertices and edges. |
+| [`graph/neo4j`](graph/neo4j/README.md) | active | Proof adapter from the official Neo4j Go driver to graph vertices and edges. |
 | [`probabilistic`](probabilistic/README.md) | active | Goroutine-safe in-memory Bloom filters with deterministic config, merge compatibility checks, and stress/race coverage. |
 | [`probabilistic/redis`](probabilistic/redis/README.md) | active | Redis-backed shared Bloom filters with static Lua scripts, immutable config metadata, and operator runbook boundaries. |
 
@@ -150,7 +151,8 @@ overview.
 - Graph: [`graph`](graph/README.md) for model-only vertex, edge, path, label,
   ID, shallow property, and validated JSON values, plus
   [`graph/graphio`](graph/graphio/README.md) for bounded NDJSON and paired CSV
-  import/export helpers, and
+  import/export helpers, [`graph/neo4j`](graph/neo4j/README.md) for the first
+  Neo4j backend proof, and
   [`examples/graph/observability`](examples/graph/observability/README.md) for
   a runnable incident-response graph example.
 

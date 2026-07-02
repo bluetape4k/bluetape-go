@@ -27,6 +27,7 @@ require (
 	github.com/klauspost/compress v1.18.6
 	github.com/moby/moby/api v1.54.1
 	github.com/nats-io/nats.go v1.52.0
+	github.com/neo4j/neo4j-go-driver/v6 v6.1.0
 	github.com/oklog/ulid/v2 v2.1.1
 	github.com/onsi/gomega v1.41.0
 	github.com/pemistahl/lingua-go v1.4.0
@@ -40,6 +41,7 @@ require (
 	github.com/testcontainers/testcontainers-go/modules/mongodb v0.42.0
 	github.com/testcontainers/testcontainers-go/modules/mysql v0.42.0
 	github.com/testcontainers/testcontainers-go/modules/nats v0.42.0
+	github.com/testcontainers/testcontainers-go/modules/neo4j v0.42.0
 	github.com/testcontainers/testcontainers-go/modules/postgres v0.42.0
 	github.com/testcontainers/testcontainers-go/modules/redis v0.42.0
 	github.com/testcontainers/testcontainers-go/modules/toxiproxy v0.42.0

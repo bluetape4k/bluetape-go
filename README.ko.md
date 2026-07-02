@@ -83,6 +83,7 @@ adapter evaluation, backend-neutral observability incident graph 예제를 포�
 | [`audit/sqloutbox`](audit/sqloutbox/README.ko.md) | active | Caller-owned transaction choreography를 유지하는 PostgreSQL-backed audit outbox store와 relay. |
 | [`graph`](graph/README.ko.md) | active | Vertex, edge, path, label, ID, shallow property, validated JSON을 제공하는 model-only graph value. |
 | [`graph/graphio`](graph/graphio/README.ko.md) | active | Graph vertex/edge를 위한 bounded NDJSON 및 paired CSV import/export helper. |
+| [`graph/neo4j`](graph/neo4j/README.ko.md) | active | 공식 Neo4j Go driver 결과를 graph vertex/edge로 변환하는 proof adapter. |
 | [`probabilistic`](probabilistic/README.ko.md) | active | deterministic config, merge compatibility check, stress/race coverage를 갖춘 goroutine-safe 인메모리 Bloom filter. |
 | [`probabilistic/redis`](probabilistic/redis/README.ko.md) | active | Static Lua script, immutable config metadata, operator runbook 경계를 갖춘 Redis-backed shared Bloom filter. |
 
@@ -144,6 +145,7 @@ go get github.com/bluetape4k/bluetape-go
 - Graph: model-only vertex, edge, path, label, ID, shallow property, validated
   JSON value를 제공하는 [`graph`](graph/README.ko.md), bounded NDJSON/paired CSV
   import/export helper를 제공하는 [`graph/graphio`](graph/graphio/README.ko.md),
+  첫 Neo4j backend proof인 [`graph/neo4j`](graph/neo4j/README.ko.md),
   runnable incident-response graph 예제인
   [`examples/graph/observability`](examples/graph/observability/README.ko.md).
 
