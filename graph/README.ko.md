@@ -123,7 +123,7 @@ trust boundary를 넘기 전에 nested value를 직접 복사하거나 정제해
 | Neo4j backend proof | [`graph/neo4j`](neo4j/README.ko.md) |
 | GraphML import/export | NDJSON/CSV adoption evidence 이후 follow-up |
 | Neo4j surface 기반 Memgraph compatibility | [`graph/neo4j`](neo4j/README.ko.md) |
-| Domain examples | #51 |
+| Domain examples | [`examples/graph/observability`](../examples/graph/observability/README.ko.md), [`examples/graph/iamaccess`](../examples/graph/iamaccess/README.ko.md) |
 | Repository/session/schema/query/transaction contracts | 여러 backend package가 shared contract를 증명한 뒤 결정 |
 
 `ErrUnsupportedCapability`는 이후 capability boundary를 위해 예약되어 있습니다.

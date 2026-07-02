@@ -124,7 +124,7 @@ must copy or sanitize nested values before crossing trust boundaries.
 | Neo4j backend proof | [`graph/neo4j`](neo4j/README.md) |
 | GraphML import/export | Deferred follow-up after NDJSON/CSV adoption evidence |
 | Memgraph compatibility with the Neo4j surface | [`graph/neo4j`](neo4j/README.md) |
-| Domain examples | #51 |
+| Domain examples | [`examples/graph/observability`](../examples/graph/observability/README.md), [`examples/graph/iamaccess`](../examples/graph/iamaccess/README.md) |
 | Repository/session/schema/query/transaction contracts | Deferred until multiple backend packages prove a shared contract |
 
 `ErrUnsupportedCapability` is reserved for future capability boundaries. No

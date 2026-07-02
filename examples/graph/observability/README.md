@@ -53,9 +53,8 @@ online schema migration, alert ingestion, incident lifecycle state machines,
 authorization, metrics, and traversal-performance claims. Those belong in
 adapter-backed follow-ups after the first Neo4j proof is implemented.
 
-Only this observability example is ported for `0.10.0`. Code dependency, fraud,
-knowledge, social, recommendation, and Ktor examples remain deferred because
-they either need a backend traversal contract, a larger domain model, or a
-JVM/Ktor shape that should not be copied into Go. The next high-value follow-up
-is tracked by [#368](https://github.com/bluetape4k/bluetape-go/issues/368) for
-an IAM/access graph example.
+Code dependency, fraud, knowledge, social, recommendation, and Ktor examples
+remain deferred because they either need a backend traversal contract, a larger
+domain model, or a JVM/Ktor shape that should not be copied into Go. The next
+ported domain example is the
+[`iamaccess`](../iamaccess/README.md) package for IAM access-path review.

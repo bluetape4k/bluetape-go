@@ -52,8 +52,7 @@ alert ingestion, incident lifecycle state machine, authorization, metrics,
 traversal 성능 주장을 의도적으로 제외합니다. 이런 범위는 첫 Neo4j proof가 들어간
 뒤 adapter-backed follow-up에서 다룹니다.
 
-`0.10.0`에서는 이 observability 예제 하나만 port합니다. Code dependency, fraud,
-knowledge, social, recommendation, Ktor 예제는 backend traversal contract, 더 큰
-domain model, 또는 Go로 그대로 옮기면 안 되는 JVM/Ktor shape가 필요하므로
-defer합니다. 다음으로 가치가 큰 IAM/access graph 예제는
-[#368](https://github.com/bluetape4k/bluetape-go/issues/368)에서 추적합니다.
+Code dependency, fraud, knowledge, social, recommendation, Ktor 예제는 backend
+traversal contract, 더 큰 domain model, 또는 Go로 그대로 옮기면 안 되는 JVM/Ktor
+shape가 필요하므로 defer합니다. 다음으로 port한 domain 예제는 IAM access-path
+review를 다루는 [`iamaccess`](../iamaccess/README.ko.md) package입니다.

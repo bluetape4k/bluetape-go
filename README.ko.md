@@ -57,6 +57,7 @@ adapter evaluation, backend-neutral observability incident graph 예제를 포�
 | [`examples/integration`](examples/integration/README.ko.md) | example | 수정된 `0.6.x` package를 묶는 compile-checked end-to-end recipe. |
 | [`examples/audit`](examples/audit/README.ko.md) | example | Repository history와 outbox replay boundary를 보여주는 runnable audit-backed order service. |
 | [`examples/graph/observability`](examples/graph/observability/README.ko.md) | example | Blast radius, alert boundary, ownership, NDJSON graph I/O 경계를 보여주는 runnable observability incident graph. |
+| [`examples/graph/iamaccess`](examples/graph/iamaccess/README.ko.md) | example | Effective access, deny path, risky privilege chain, least-privilege drift, NDJSON graph I/O 경계를 보여주는 runnable IAM access graph. |
 | [`examples/s3`](examples/s3/README.ko.md) | example | Floci fixture 기반 compile-checked AWS SDK for Go v2 S3 예제. |
 | [`examples/sqs-sns`](examples/sqs-sns/README.ko.md) | example | Floci fixture 기반 compile-checked AWS SDK for Go v2 SQS/SNS 예제. |
 | [`leader`](leader/README.ko.md) | active | 단일, group, strategy 기반 계약을 포함한 leader election API. |
@@ -147,7 +148,9 @@ go get github.com/bluetape4k/bluetape-go
   import/export helper를 제공하는 [`graph/graphio`](graph/graphio/README.ko.md),
   첫 Neo4j backend proof인 [`graph/neo4j`](graph/neo4j/README.ko.md),
   runnable incident-response graph 예제인
-  [`examples/graph/observability`](examples/graph/observability/README.ko.md).
+  [`examples/graph/observability`](examples/graph/observability/README.ko.md),
+  IAM access-path review 예제인
+  [`examples/graph/iamaccess`](examples/graph/iamaccess/README.ko.md).
 
 ### Graph I/O 한눈에 보기
 
@@ -167,6 +170,15 @@ Observability 예제는 checkout API, service dependency, alert, incident root
 cause, owning team을 seed로 구성합니다. Backend adapter는 follow-up으로 남겨두고,
 upstream impact, affected API, alert boundary, ownership, NDJSON round-trip을
 compile-checked query로 증명합니다.
+
+### IAM Access Graph 예제
+
+![IAM Access Graph Paths](docs/images/readme-diagrams/graph-iam-access-paths.png)
+
+IAM 예제는 user, group, role, policy, permission, resource, break-glass grant를
+seed로 구성합니다. Backend adapter 없이 effective access, explicit deny path,
+risky nested admin inheritance, least-privilege drift, temporary access, NDJSON
+round-trip을 compile-checked query로 증명합니다.
 
 ### Audit Example 한눈에 보기
 
