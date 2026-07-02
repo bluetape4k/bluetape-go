@@ -7,6 +7,28 @@ and this project uses semantic versioning once the first tag is published.
 
 ## [Unreleased]
 
+## [v0.11.0] - 2026-07-03
+
+### Added
+
+- `imagekit` package with dependency-light pure-Go resize, thumbnail, format
+  conversion, bounded image decode/encode limits, explicit option validation,
+  benchmark evidence, README usage docs, and checked transform-flow diagrams.
+- Optional `examples/imagekit-govips` adapter proving where callers can place
+  libvips-backed image processing without making `govips` a core module
+  dependency.
+- `encrypt` package with a stdlib AES-GCM facade for random nonce generation,
+  AAD-bound authenticated encryption, nonce/ciphertext framing, key-size
+  validation, and tamper/error coverage.
+- `graph/neo4j` adapter proof with Neo4j-driver client options, graph value
+  conversion, redacted connection/query errors, bilingual package docs, and
+  Memgraph compatibility tests.
+- `examples/graph/iamaccess` runnable IAM access graph example with principal,
+  role, policy, and resource edges, bounded path analysis, root README links,
+  and a source-backed architecture diagram.
+- Rule-engine primitive research that keeps rule execution out of core until
+  a Go-style evaluation boundary can be proven without importing JVM shapes.
+
 ## [v0.10.0] - 2026-07-01
 
 ### Added
