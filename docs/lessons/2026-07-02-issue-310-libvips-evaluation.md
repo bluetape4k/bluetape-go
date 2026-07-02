@@ -1,6 +1,6 @@
 # Lessons Learned - Issue #310 Libvips Evaluation (2026-07-02)
 
-**Related PR**: TBD
+**Related PR**: #374
 **Affected modules**: `examples/imagekit-govips`, `imagekit` docs/research
 
 ## L1: Keep native image adapters outside the default Go module until CI owns them
