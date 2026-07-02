@@ -7,6 +7,8 @@
 `github.com/bluetape4k/bluetape-go` 모듈과 기본 `imagekit` 패키지는 pure Go
 상태를 유지하며 native libvips를 요구하지 않는다.
 
+![imagekit-govips 선택형 native 경계](../../docs/images/readme-diagrams/imagekit-govips-optional-boundary.png)
+
 ## 요구 사항
 
 - libvips 8.14 이상
