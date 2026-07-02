@@ -27,6 +27,7 @@ require (
 	github.com/klauspost/compress v1.18.6
 	github.com/moby/moby/api v1.54.1
 	github.com/nats-io/nats.go v1.52.0
+	github.com/neo4j/neo4j-go-driver/v6 v6.1.0
 	github.com/oklog/ulid/v2 v2.1.1
 	github.com/onsi/gomega v1.41.0
 	github.com/pemistahl/lingua-go v1.4.0
@@ -40,12 +41,14 @@ require (
 	github.com/testcontainers/testcontainers-go/modules/mongodb v0.42.0
 	github.com/testcontainers/testcontainers-go/modules/mysql v0.42.0
 	github.com/testcontainers/testcontainers-go/modules/nats v0.42.0
+	github.com/testcontainers/testcontainers-go/modules/neo4j v0.42.0
 	github.com/testcontainers/testcontainers-go/modules/postgres v0.42.0
 	github.com/testcontainers/testcontainers-go/modules/redis v0.42.0
 	github.com/testcontainers/testcontainers-go/modules/toxiproxy v0.42.0
 	go.mongodb.org/mongo-driver/v2 v2.7.0
-	golang.org/x/sync v0.20.0
-	golang.org/x/text v0.35.0
+	golang.org/x/image v0.43.0
+	golang.org/x/sync v0.21.0
+	golang.org/x/text v0.38.0
 )
 
 require (
@@ -123,7 +126,7 @@ require (
 	go.yaml.in/yaml/v3 v3.0.4 // indirect
 	golang.org/x/crypto v0.49.0 // indirect
 	golang.org/x/exp v0.0.0-20221106115401-f9659909a136 // indirect
-	golang.org/x/mod v0.33.0 // indirect
+	golang.org/x/mod v0.36.0 // indirect
 	golang.org/x/net v0.51.0 // indirect
 	golang.org/x/sys v0.42.0 // indirect
 	google.golang.org/protobuf v1.36.7 // indirect

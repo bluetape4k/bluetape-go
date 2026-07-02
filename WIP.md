@@ -1,48 +1,49 @@
 # WIP
 
-Snapshot: 2026-07-01 KST
-Scope: `0.10.0` graph package milestone.
+Snapshot: 2026-07-03 KST
+Scope: `0.11.0` image, encryption, and graph adapter milestone.
 
 ## Current Target Release
 
-`v0.10.0` - graph model values, graph I/O helpers, backend evaluation, and a
-domain example.
+`v0.11.0` - bounded image helpers, optional libvips example boundary,
+stdlib-backed authenticated encryption, Neo4j/Memgraph graph adapter proofs,
+IAM access graph example, and rule-engine boundary research.
 
-Issue #48 introduced the first `graph` package as model-only values: stable
-element IDs, labels, vertices, directed edges, paths, shallow properties,
-redacted validation errors, and validated JSON. Issue #49 adds `graph/graphio`
-for bounded NDJSON and paired CSV import/export helpers. Issue #50 selects a
-Neo4j adapter proof first and Memgraph compatibility second, while AGE,
-FalkorDB, TinkerPop/TinkerGraph, and Neptune remain deferred or research-only.
-Issue #51 adds the first backend-neutral domain example under
-`examples/graph/observability`, using seed data, graph queries, README docs,
-and NDJSON round-trip tests to prove caller value before adapter abstractions.
-Repository, session, schema, query, transaction, backend, and algorithm
-contracts remain out of scope until the follow-up adapter proofs show shared
-behavior.
+Issue #309 adds `imagekit` as a dependency-light pure-Go helper package for
+bounded image decode, resize, thumbnail, conversion, and encode workflows.
+Issue #310 keeps libvips integration as an optional example module under
+`examples/imagekit-govips` instead of promoting `govips` into the core module
+dependency graph. Issue #315 adds the first `encrypt` package slice around
+stdlib AES-GCM framing, validation, AAD binding, and tamper coverage. Issues
+#365 and #366 prove a Neo4j-driver adapter boundary plus Memgraph
+compatibility tests before broader graph backend abstractions. Issue #368 adds
+`examples/graph/iamaccess` as the second runnable graph example, showing
+identity, role, policy, and resource access path analysis. Issue #37 records
+that rule-engine primitives need a Go-native boundary before any public runtime
+package is added.
 
 ## Current State
 
 - `v0.1.0`, `v0.1.1`, `v0.2.0`, `v0.3.0`, `v0.4.0`, `v0.5.0`, `v0.5.1`,
-  `v0.6.0`, `v0.6.1` through `v0.6.8`, `v0.7.0`, and `v0.8.0` are tagged and
-  released.
-- Milestone `0.9.0` has been released as `v0.9.0`.
-- Milestone `0.10.0` has zero open issues; #44 and child issues #48 through
-  #51 are closed.
-- `CHANGELOG.md` contains the `v0.10.0` release section dated 2026-07-01.
-- `v0.10.0` tag and GitHub Release are not created yet.
+  `v0.6.0`, `v0.6.1` through `v0.6.8`, `v0.7.0`, `v0.8.0`, `v0.9.0`, and
+  `v0.10.0` are tagged and released.
+- Milestone `0.11.0` has zero open issues; #37, #309, #310, #315, #365,
+  #366, and #368 are closed.
+- `CHANGELOG.md` contains the `v0.11.0` release section dated 2026-07-03.
+- `v0.11.0` tag and GitHub Release are not created yet.
 
 ## Release Checklist
 
 1. Merge this release-history PR to satisfy the changelog gate.
-2. Close milestone `0.10.0`.
+2. Close milestone `0.11.0`.
 3. Verify `make ci` on the release-prep branch.
-4. Promote `develop` to `main`, tag `v0.10.0`, and
+4. Promote `develop` to `main`, tag `v0.11.0`, and
    create the GitHub Release from `CHANGELOG.md`.
 
 ## Release Support Notes
 
-The `graph` and `graph/graphio` packages have no service or runtime dependency.
-Before `v0.10.0` is tagged, rollback is removing those packages plus docs and
-release bookkeeping. After a tag, public API changes must preserve Go
-compatibility or be deferred to a breaking release.
+The `imagekit`, `encrypt`, `graph/neo4j`, and runnable example additions do not
+start background services. Before `v0.11.0` is tagged, rollback is removing the
+0.11.0 packages, examples, docs, and release bookkeeping. After a tag, public
+API changes must preserve Go compatibility or be deferred to a breaking
+release.

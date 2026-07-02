@@ -1,0 +1,112 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1460" height="620" viewBox="0 0 1460 620" role="img" aria-labelledby="title desc">
+  <title id="title">imagekit-govips optional native boundary</title>
+  <desc id="desc">The default imagekit path remains pure Go while the nested imagekit-govips example opts into govips, cgo, and native libvips.</desc>
+  <defs>
+    <marker id="arrow-blue" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="14" markerHeight="14" markerUnits="userSpaceOnUse" orient="auto">
+      <path d="M 0 0 L 10 5 L 0 10 Z" fill="#2563eb" stroke="#2563eb"/>
+    </marker>
+    <marker id="arrow-amber" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="14" markerHeight="14" markerUnits="userSpaceOnUse" orient="auto">
+      <path d="M 0 0 L 10 5 L 0 10 Z" fill="#b45309" stroke="#b45309"/>
+    </marker>
+    <style>
+      @font-face{font-family:'Architects Daughter';src:url('/Users/debop/Library/Fonts/ArchitectsDaughter-Regular.ttf');}
+      @font-face{font-family:'Comic Mono';src:url('/Users/debop/Library/Fonts/ComicMono.ttf');font-weight:400;}
+      @font-face{font-family:'Comic Mono';src:url('/Users/debop/Library/Fonts/ComicMono-Bold.ttf');font-weight:700;}
+      <![CDATA[
+      .bg{fill:#f8fafc}
+      .title{font-family:'Architects Daughter','Comic Mono';font-size:32px;fill:#111827}
+      .sub{font-family:'Comic Mono','Architects Daughter';font-size:15px;fill:#475569}
+      .lane{rx:18;stroke-width:2.2}
+      .laneTitle{font-family:'Comic Mono','Architects Daughter';font-size:18px;font-weight:700;fill:#111827}
+      .laneText{font-family:'Comic Mono','Architects Daughter';font-size:12px;fill:#475569}
+      .card{rx:14;stroke-width:2.1}
+      .cardTitle{font-family:'Comic Mono','Architects Daughter';font-size:16px;font-weight:700;fill:#111827}
+      .cardText{font-family:'Comic Mono','Architects Daughter';font-size:12px;fill:#374151}
+      .badge{font-family:'Comic Mono','Architects Daughter';font-size:11px;font-weight:700}
+      .arrowPure{fill:none;stroke:#2563eb;stroke-width:4.2;marker-end:url(#arrow-blue);stroke-linecap:round}
+      .arrowNative{fill:none;stroke:#b45309;stroke-width:4.2;marker-end:url(#arrow-amber);stroke-linecap:round}
+      .labelBlue{font-family:'Comic Mono','Architects Daughter';font-size:11px;fill:#1d4ed8}
+      .labelAmber{font-family:'Comic Mono','Architects Daughter';font-size:11px;fill:#92400e}
+      .boundary{stroke:#64748b;stroke-width:2.2;stroke-dasharray:8 7;stroke-linecap:round}
+      .note{font-family:'Comic Mono','Architects Daughter';font-size:12px;fill:#475569}
+      .legendText{font-family:'Comic Mono','Architects Daughter';font-size:12px;fill:#334155}
+      ]]>
+    </style>
+  </defs>
+
+  <rect class="bg" x="0" y="0" width="1460" height="620"/>
+  <text class="title" x="48" y="54">imagekit-govips optional native boundary</text>
+  <text class="sub" x="50" y="84">Default callers use pure-Go imagekit; native libvips is opt-in through a nested example module.</text>
+
+  <rect class="lane" x="48" y="128" width="574" height="344" fill="#eff6ff" stroke="#93c5fd"/>
+  <text class="laneTitle" x="78" y="166">Root module / default path</text>
+  <text class="laneText" x="80" y="190">Runs in normal `go test ./...` and `make ci` without cgo or libvips.</text>
+
+  <rect class="lane" x="698" y="128" width="714" height="344" fill="#fff7ed" stroke="#fdba74"/>
+  <text class="laneTitle" x="728" y="166">examples/imagekit-govips</text>
+  <text class="laneText" x="730" y="190">Nested module: caller explicitly opts into govips, cgo, and native libvips.</text>
+
+  <line class="boundary" x1="660" y1="132" x2="660" y2="470"/>
+  <rect x="594" y="286" width="132" height="52" rx="12" fill="#ffffff" stroke="#cbd5e1"/>
+  <text class="note" x="616" y="308">native</text>
+  <text class="note" x="606" y="328">boundary</text>
+
+  <rect class="card" x="86" y="250" width="142" height="108" fill="#ffffff" stroke="#2563eb"/>
+  <text class="cardTitle" x="110" y="282">Caller</text>
+  <text class="cardText" x="106" y="310">io.Reader</text>
+  <text class="cardText" x="106" y="330">Request</text>
+
+  <rect class="card" x="286" y="230" width="188" height="148" fill="#dbeafe" stroke="#2563eb"/>
+  <text class="cardTitle" x="314" y="262">imagekit</text>
+  <text class="cardText" x="312" y="292">pure-Go resize</text>
+  <text class="cardText" x="312" y="314">JPEG, PNG, GIF in</text>
+  <text class="cardText" x="312" y="336">JPEG or PNG out</text>
+  <text class="badge" x="312" y="360" fill="#1d4ed8">no native deps</text>
+
+  <rect class="card" x="516" y="250" width="78" height="108" fill="#ffffff" stroke="#64748b"/>
+  <text class="cardTitle" x="532" y="282">Result</text>
+  <text class="cardText" x="532" y="310">Bytes</text>
+  <text class="cardText" x="532" y="330">meta</text>
+
+  <rect class="card" x="736" y="250" width="142" height="108" fill="#ffffff" stroke="#b45309"/>
+  <text class="cardTitle" x="760" y="282">Caller</text>
+  <text class="cardText" x="756" y="310">explicit import</text>
+  <text class="cardText" x="756" y="330">native setup</text>
+
+  <rect class="card" x="946" y="230" width="210" height="148" fill="#ffedd5" stroke="#b45309"/>
+  <text class="cardTitle" x="980" y="262">govips adapter</text>
+  <text class="cardText" x="980" y="292">Startup once</text>
+  <text class="cardText" x="980" y="314">bounded read</text>
+  <text class="cardText" x="980" y="336">ImageRef.Close</text>
+  <text class="badge" x="980" y="360" fill="#92400e">cgo module</text>
+
+  <rect class="card" x="1228" y="230" width="140" height="148" fill="#ffffff" stroke="#b45309"/>
+  <text class="cardTitle" x="1262" y="262">libvips</text>
+  <text class="cardText" x="1262" y="292">native</text>
+  <text class="cardText" x="1262" y="314">codec</text>
+  <text class="cardText" x="1262" y="336">plugins</text>
+
+  <path class="connector arrowPure" d="M 228 304 L 286 304"/>
+  <text class="labelBlue" x="242" y="292">default</text>
+  <path class="connector arrowPure" d="M 474 304 L 516 304"/>
+  <text class="labelBlue" x="484" y="292">safe</text>
+
+  <path class="connector arrowNative" d="M 878 304 L 946 304"/>
+  <text class="labelAmber" x="888" y="292">opt in</text>
+  <path class="connector arrowNative" d="M 1156 304 L 1228 304"/>
+  <text class="labelAmber" x="1174" y="292">native</text>
+
+  <rect x="78" y="410" width="486" height="38" rx="10" fill="#ffffff" stroke="#cbd5e1"/>
+  <text class="note" x="98" y="434">Root CI proves default callers are not linked to libvips.</text>
+
+  <rect x="728" y="410" width="626" height="38" rx="10" fill="#ffffff" stroke="#cbd5e1"/>
+  <text class="note" x="748" y="434">Native tests run separately with CGO_CFLAGS_ALLOW and libvips installed.</text>
+
+  <rect x="82" y="512" width="1296" height="58" rx="12" fill="#ffffff" stroke="#cbd5e1"/>
+  <line x1="112" y1="542" x2="172" y2="542" class="arrowPure"/>
+  <text class="legendText" x="190" y="546">Pure-Go default request path</text>
+  <line x1="428" y1="542" x2="488" y2="542" class="arrowNative"/>
+  <text class="legendText" x="506" y="546">Optional native request path</text>
+  <line x1="780" y1="542" x2="840" y2="542" class="boundary"/>
+  <text class="legendText" x="858" y="546">Module boundary: root does not import govips</text>
+</svg>
