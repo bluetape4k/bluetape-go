@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"testing"
+	"time"
 
 	neo4jadapter "github.com/bluetape4k/bluetape-go/graph/neo4j"
 	"github.com/bluetape4k/bluetape-go/internal/testcleanup"
@@ -105,5 +106,33 @@ func startMemgraphDriver(ctx context.Context, t *testing.T) neo4jdriver.Driver {
 	if err != nil {
 		t.Fatalf("new memgraph driver: %v", err)
 	}
+	verifyCtx, cancel := context.WithTimeout(ctx, 30*time.Second)
+	defer cancel()
+	if err := waitForMemgraphConnectivity(verifyCtx, driver); err != nil {
+		_ = driver.Close(ctx)
+		t.Fatalf("memgraph verify connectivity: %v", err)
+	}
 	return driver
+}
+
+func waitForMemgraphConnectivity(ctx context.Context, driver neo4jdriver.Driver) error {
+	ticker := time.NewTicker(250 * time.Millisecond)
+	defer ticker.Stop()
+
+	var lastErr error
+	for {
+		attemptCtx, cancel := context.WithTimeout(ctx, 2*time.Second)
+		err := driver.VerifyConnectivity(attemptCtx)
+		cancel()
+		if err == nil {
+			return nil
+		}
+		lastErr = err
+
+		select {
+		case <-ctx.Done():
+			return errors.Join(ctx.Err(), lastErr)
+		case <-ticker.C:
+		}
+	}
 }
