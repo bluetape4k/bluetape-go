@@ -8,6 +8,8 @@ It is intentionally a nested module. The root `github.com/bluetape4k/bluetape-go
 module and the default `imagekit` package remain pure Go and do not require
 native libvips.
 
+![imagekit-govips optional native boundary](../../docs/images/readme-diagrams/imagekit-govips-optional-boundary.png)
+
 ## Requirements
 
 - libvips 8.14 or newer
