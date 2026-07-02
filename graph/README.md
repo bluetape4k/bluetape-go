@@ -123,7 +123,7 @@ must copy or sanitize nested values before crossing trust boundaries.
 | Graph I/O helpers for NDJSON and paired CSV | [`graph/graphio`](graphio/README.md) |
 | Neo4j backend proof | [`graph/neo4j`](neo4j/README.md) |
 | GraphML import/export | Deferred follow-up after NDJSON/CSV adoption evidence |
-| Memgraph compatibility with the Neo4j surface | #366 |
+| Memgraph compatibility with the Neo4j surface | [`graph/neo4j`](neo4j/README.md) |
 | Domain examples | #51 |
 | Repository/session/schema/query/transaction contracts | Deferred until multiple backend packages prove a shared contract |
 

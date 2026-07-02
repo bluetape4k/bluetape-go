@@ -99,11 +99,34 @@ go test -p 1 -race -count=1 ./graph/neo4j
 The package test covers node/relationship mapping, bad records, query failure,
 context cancellation, and resource cleanup.
 
+## Memgraph Compatibility
+
+Memgraph starts as Neo4j-driver compatibility for this package, not as a
+separate `graph/memgraph` backend abstraction. Memgraph exposes Bolt and Cypher
+compatibility for the official Neo4j Go driver, so the proof stays on the same
+`Client`, `VertexFromNode`, `EdgeFromRelationship`, `ReadVertices`, and
+`ReadEdges` surface.
+
+The package includes a generic Testcontainers-backed Memgraph matrix because
+Testcontainers for Go does not publish a dedicated Memgraph module yet.
+
+| Runtime | Image | Covered behavior |
+|---|---|---|
+| Neo4j | `neo4j:5.26.0` | create/read node and relationship, result mapping, bad query, cancellation, driver cleanup |
+| Memgraph | `memgraph/memgraph:3.5.0` | same Neo4j-driver adapter surface: create/read node and relationship, result mapping, bad query, cancellation, driver cleanup |
+
+Observed guardrails:
+
+- Keep queries in the shared Cypher subset used by both runtimes.
+- Require Bolt-returned `ElementId` values; deprecated numeric IDs remain out of
+  the adapter contract.
+- Add a dedicated `graph/memgraph` package only if a future compatibility test
+  proves the Neo4j-driver surface is insufficient.
+
 ## Deferred Scope
 
 | Capability | Owner |
 |---|---|
-| Memgraph compatibility against this surface | #366 |
 | IAM access graph example | #368 |
 | Backend-neutral repository/session/schema/transaction abstraction | Deferred until multiple adapters prove a common contract |
 | GraphML, AGE, FalkorDB, TinkerPop, Neptune, broad Cypher DSL | Out of scope for this proof |
