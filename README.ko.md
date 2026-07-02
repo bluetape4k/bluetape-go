@@ -195,7 +195,7 @@ History query도 같은 repository boundary를 읽습니다. Outbox replay는 �
 | `0.8.0` | Text search, blockword masking, tokenizer adapter. |
 | `0.9.0` | bluetape4k-javers 패턴 기반 audit/event package. |
 | `0.10.0` | Graph package와 example. |
-| `0.11.0` | Image, encryption, utility follow-up. |
+| `0.11.0` | Image, encryption, rule-engine research, utility follow-up. |
 
 닫힌 `0.7.0 Research Gate` milestone은 큰 도메인 범위 결정을 기록한
 research milestone이며 release tag를 만들지 않았습니다.
