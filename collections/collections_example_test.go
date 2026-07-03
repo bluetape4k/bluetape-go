@@ -84,6 +84,28 @@ func ExampleMapErr() {
 	// [1 4 9]
 }
 
+func ExampleSliding() {
+	windows, err := collections.Sliding([]int{1, 2, 3, 4}, 3, true)
+	if err != nil {
+		return
+	}
+
+	fmt.Println(windows)
+
+	// Output:
+	// [[1 2 3] [2 3 4] [3 4] [4]]
+}
+
+func ExampleZipWithIndex() {
+	for _, value := range collections.ZipWithIndex([]string{"a", "b"}) {
+		fmt.Println(value.Index, value.Value)
+	}
+
+	// Output:
+	// 0 a
+	// 1 b
+}
+
 func ExampleBoundedStack() {
 	stack, err := collections.NewBoundedStack[string](2)
 	if err != nil {

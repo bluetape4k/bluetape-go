@@ -2,6 +2,12 @@ package collections
 
 import "fmt"
 
+// Indexed is a value paired with its 0-based index.
+type Indexed[T any] struct {
+	Index int
+	Value T
+}
+
 // Chunk splits values into fixed-size chunks.
 //
 // The final chunk may be smaller than size. A nil input returns nil; an empty
@@ -26,6 +32,35 @@ func Chunk[T any](values []T, size int) ([][]T, error) {
 		chunks = append(chunks, values[start:end])
 	}
 	return chunks, nil
+}
+
+// Sliding returns one-step windows over values.
+//
+// When partialWindows is true, trailing partial windows are included. A nil
+// input returns nil; an empty non-nil input returns an empty non-nil slice.
+func Sliding[T any](values []T, size int, partialWindows bool) ([][]T, error) {
+	if size <= 0 {
+		return nil, fmt.Errorf("%w: sliding size[%d] must be positive", ErrInvalidArgument, size)
+	}
+	if values == nil {
+		return nil, nil
+	}
+	if len(values) == 0 {
+		return [][]T{}, nil
+	}
+
+	windows := make([][]T, 0, len(values))
+	for start := range values {
+		end := start + size
+		if end > len(values) {
+			if !partialWindows {
+				break
+			}
+			end = len(values)
+		}
+		windows = append(windows, values[start:end])
+	}
+	return windows, nil
 }
 
 // ChunkBy splits values whenever startsNew returns true for the next value.
@@ -55,6 +90,43 @@ func ChunkBy[T any](values []T, startsNew func(T) bool) ([][]T, error) {
 	return chunks, nil
 }
 
+// SafeSubslice returns values[from:to] after clamping indexes to valid bounds.
+func SafeSubslice[T any](values []T, from, to int) []T {
+	if values == nil {
+		return nil
+	}
+	if from < 0 {
+		from = 0
+	}
+	if from > len(values) {
+		from = len(values)
+	}
+	if to < from {
+		to = from
+	}
+	if to > len(values) {
+		to = len(values)
+	}
+	return values[from:to]
+}
+
+// PadTo returns values padded with item until it reaches newSize.
+func PadTo[T any](values []T, newSize int, item T) ([]T, error) {
+	if newSize < 0 {
+		return nil, fmt.Errorf("%w: pad size[%d] must be non-negative", ErrInvalidArgument, newSize)
+	}
+	if len(values) >= newSize {
+		return values, nil
+	}
+
+	padded := make([]T, newSize)
+	copy(padded, values)
+	for index := len(values); index < newSize; index++ {
+		padded[index] = item
+	}
+	return padded, nil
+}
+
 // Distinct returns values with duplicate comparable elements removed.
 //
 // The first occurrence is kept and input order is preserved.
@@ -76,6 +148,18 @@ func Distinct[T comparable](values []T) []T {
 		result = append(result, value)
 	}
 	return result
+}
+
+// Count returns the number of occurrences for each comparable value.
+func Count[T comparable](values []T) map[T]int {
+	if values == nil {
+		return nil
+	}
+	counts := make(map[T]int, len(values))
+	for _, value := range values {
+		counts[value]++
+	}
+	return counts
 }
 
 // DistinctBy returns values with duplicate keys removed.
@@ -105,6 +189,21 @@ func DistinctBy[T any, K comparable](values []T, key func(T) K) ([]T, error) {
 	return result, nil
 }
 
+// ZipWithIndex returns values paired with their 0-based indexes.
+func ZipWithIndex[T any](values []T) []Indexed[T] {
+	if values == nil {
+		return nil
+	}
+	indexed := make([]Indexed[T], len(values))
+	for index, value := range values {
+		indexed[index] = Indexed[T]{
+			Index: index,
+			Value: value,
+		}
+	}
+	return indexed
+}
+
 // MapErr maps values and stops at the first mapper error.
 func MapErr[T any, R any](values []T, mapper func(T) (R, error)) ([]R, error) {
 	if mapper == nil {
@@ -123,6 +222,19 @@ func MapErr[T any, R any](values []T, mapper func(T) (R, error)) ([]R, error) {
 		result = append(result, mapped)
 	}
 	return result, nil
+}
+
+// ForEachErr calls action for each value and stops at the first action error.
+func ForEachErr[T any](values []T, action func(T) error) error {
+	if action == nil {
+		return fmt.Errorf("%w: action must not be nil", ErrInvalidArgument)
+	}
+	for _, value := range values {
+		if err := action(value); err != nil {
+			return err
+		}
+	}
+	return nil
 }
 
 // FilterErr keeps values whose predicate result is true and stops at the first predicate error.
