@@ -18,10 +18,12 @@ func ExamplePtr() {
 func ExampleBlankToDefault() {
 	fmt.Println(core.BlankToDefault("  ", "fallback"))
 	fmt.Println(core.EmptyToDefault("", "fallback"))
+	fmt.Println(core.NoText("  "))
 
 	// Output:
 	// fallback
 	// fallback
+	// true
 }
 
 func ExampleClamp() {
@@ -46,6 +48,29 @@ func ExampleTruncateUTF8Bytes() {
 
 	// Output:
 	// 안녕
+}
+
+func ExampleMask() {
+	fmt.Println(core.Mask("secret", '#'))
+	fmt.Println(core.CommonPrefix("안녕-blue", "안녕-red"))
+
+	// Output:
+	// ######
+	// 안녕-
+}
+
+func ExampleCanonicalUUID() {
+	value, err := core.CanonicalUUID("24738134-9D88-6645-4EC8-D63AA2031015")
+	if err != nil {
+		return
+	}
+
+	fmt.Println(value)
+	fmt.Println(core.IsZeroUUID(core.ZeroUUID))
+
+	// Output:
+	// 24738134-9d88-6645-4ec8-d63aa2031015
+	// true
 }
 
 func ExampleFirstNonZero() {

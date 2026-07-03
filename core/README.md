@@ -22,6 +22,19 @@ import "github.com/bluetape4k/bluetape-go/core"
 
 ```go
 name := core.BlankToDefault(input.Name, "anonymous")
+
+redacted := core.Mask("secret", '#')
+_ = redacted
+
+sharedPrefix := core.CommonPrefix("tenant-prod-a", "tenant-prod-b")
+_ = sharedPrefix
+
+normalizedID, err := core.CanonicalUUID("24738134-9D88-6645-4EC8-D63AA2031015")
+if err != nil {
+    return err
+}
+_ = normalizedID
+
 limit, err := core.Clamp(input.Limit, 1, 100)
 if err != nil {
     return err
@@ -75,6 +88,15 @@ _ = periodEnd
 - Validation helpers return errors wrapping `ErrInvalidArgument` instead of
   panicking; specialized helpers also keep sentinels such as `ErrInvalidTime`
   and `ErrInvalidUTF8`.
+- `HasLength` and `NoLength` check empty string only. `HasText` and `NoText`
+  also treat whitespace-only strings as blank.
+- `EmptyToNil` and `BlankToNil` keep optional string conversion explicit when
+  callers need to distinguish nil, empty, blank, and defaulted values.
+- `Mask`, `CommonPrefix`, and `CommonSuffix` operate on runes so multi-byte
+  UTF-8 text is not split by byte offset.
+- `IsUUID`, `CanonicalUUID`, `RequireUUID`, `IsZeroUUID`, and `ZeroUUID` cover
+  hyphenated UUID text validation and lowercase canonicalization without
+  exposing a UUID dependency type from `core`.
 - `Range` constructors support `[lower, upper]`, `[lower, upper)`,
   `(lower, upper]`, and `(lower, upper)` notation through `ClosedRange`,
   `ClosedOpenRange`, `OpenClosedRange`, and `OpenOpenRange`.
@@ -109,9 +131,10 @@ _ = periodEnd
 - Kotlin numeric duration DSLs, broad duration parser/formatter wrappers,
   Java-time temporal type mirrors, period/calendar frameworks, JVM classpath
   resource loading, system-property wrappers, shutdown hooks, generic object
-  hashing, temp/output/env helpers, and broad string/byte aliases are
-  intentionally excluded. Go callers should use `time`, `os`, `io/fs`,
-  `runtime`, `context`, and explicit encodings directly.
+  hashing, temp/output/env helpers, broad string/byte aliases, UUID numeric
+  conversions, and UUID concrete-type facades are intentionally excluded. Go
+  callers should use `time`, `os`, `io/fs`, `runtime`, `context`, explicit
+  encodings, and domain-specific UUID packages directly.
 
 ## Test
 
