@@ -220,6 +220,7 @@ uses a minimal `EntrySink` so production code can swap the in-memory fixture for
 | `0.9.0` | Audit and event packages inspired by bluetape4k-javers patterns. |
 | `0.10.0` | Graph packages and examples. |
 | `0.11.0` | Image, encryption, rule-engine research, and utility follow-ups. |
+| `0.12.0` | Core foundation parity: source-backed replacements for core, collections, codec, concurrency, and logging conventions. |
 
 The closed `0.7.0 Research Gate` milestone recorded the larger-domain scope
 decisions and was not tagged as a release.
