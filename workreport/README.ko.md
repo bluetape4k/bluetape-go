@@ -12,6 +12,10 @@ report-tree value를 제공합니다. Runner 실행과 분리되어 ordinary Go 
 
 ## 예제
 
+아래 snippet은 `errors`, `log/slog` 같은 standard import를 가정합니다.
+Compile-checked 버전은 [`workreport_example_test.go`](workreport_example_test.go)에
+있습니다.
+
 ```go
 report, err := workreport.Aggregate(
     "import",
@@ -24,7 +28,10 @@ if err != nil {
 }
 
 if report.IsPartial() {
-    log.Printf("%s finished with %d child reports", report.Name, len(report.Children))
+    slog.Info("workreport produced partial report",
+        slog.String("report", report.Name),
+        slog.Int("children", len(report.Children)),
+    )
 }
 ```
 

@@ -11,7 +11,11 @@
 ## Import
 
 ```go
-import "github.com/bluetape4k/bluetape-go/money"
+import (
+    "log/slog"
+
+    "github.com/bluetape4k/bluetape-go/money"
+)
 ```
 
 ## 선택 가이드
@@ -62,6 +66,9 @@ payload, err := json.Marshal(total)
 
 Provider-backed 환율 변환은 IO를 명시적으로 다룹니다.
 
+아래 snippet은 surrounding function이 `context.Context`를 이미 소유하고 `time`을
+import한다고 가정합니다.
+
 ```go
 provider, err := money.NewECBProvider(money.ECBProviderOptions{
     Timeout:           3 * time.Second,
@@ -82,10 +89,14 @@ if err != nil {
     return err
 }
 if quote.Stale {
-    log.Printf("using stale %s quote observed at %s: %v",
-        quote.Source,
-        quote.ObservedAt.Format(time.DateOnly),
-        quote.RefreshError,
+    refreshStatus := "none"
+    if quote.RefreshError != nil {
+        refreshStatus = "failed"
+    }
+    slog.InfoContext(ctx, "using stale exchange-rate quote",
+        slog.String("source", quote.Source),
+        slog.Time("observed_at", quote.ObservedAt),
+        slog.String("refresh_status", refreshStatus),
     )
 }
 _ = krw

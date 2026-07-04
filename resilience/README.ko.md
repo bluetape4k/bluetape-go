@@ -65,10 +65,44 @@ Server handler는 admission 또는 timeout policy를 위해 `NewHandler`로 감�
   있습니다.
 - `OnEvent` handler는 protected call path에서 synchronous로 실행됩니다.
 
+## slog Bridge
+
+Application이 `log/slog` handler를 설정하고 package-local bridge를 `OnEvent`에
+전달합니다. 이 library는 global logging default를 바꾸거나 logger registry를
+소유하지 않습니다.
+
+아래 snippet은 `context`, `log/slog`, `time` 같은 standard import를 가정합니다.
+Compile-checked 버전은 [`resilience_example_test.go`](resilience_example_test.go)에
+있습니다.
+
+```go
+logger := slog.Default()
+retry, err := resilience.NewRetry[string](resilience.RetryOptions{
+    Name:        "catalog",
+    MaxAttempts: 3,
+    Backoff:     resilience.ConstantBackoff(50 * time.Millisecond),
+    OnEvent: func(ctx context.Context, event resilience.Event) {
+        logger.LogAttrs(ctx, slog.LevelInfo, "resilience event",
+            slog.String("policy", event.PolicyName),
+            slog.String("policy_type", event.PolicyType),
+            slog.String("kind", string(event.Kind)),
+            slog.String("category", string(event.Category)),
+            slog.Int("attempt", event.Attempt),
+            slog.Duration("delay", event.Delay),
+            slog.String("error_category", string(event.ErrorCategory)),
+        )
+    },
+})
+```
+
 ## 운영 경계
 
 - 이 패키지는 OpenTelemetry exporter를 포함하지 않습니다.
 - Event handler는 빠르고 non-blocking하게 유지하세요.
+- High-volume success event는 synchronous hook에서 log로 내보내기 전에 filter
+  또는 sample하세요.
+- Application이 `slog` handler 설정을 소유합니다. 이 package는 caller-owned
+  synchronous event만 전달합니다.
 - HTTP retry에는 replayable request body가 필요합니다.
 
 ## 테스트
