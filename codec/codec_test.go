@@ -5,6 +5,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"strings"
 	"testing"
 
 	"github.com/bluetape4k/bluetape-go/codec"
@@ -250,6 +251,80 @@ func TestURL62IsBase62Alias(t *testing.T) {
 	}
 	if !bytes.Equal(decoded, input) {
 		t.Fatalf("got %q, want %q", decoded, input)
+	}
+}
+
+func TestUUIDURL62KotlinCompatibilityVector(t *testing.T) {
+	const uuidText = "24738134-9d88-6645-4ec8-d63aa2031015"
+	const encodedText = "16mVan3wbAXR6tQwIbfS5d"
+
+	encoded, err := codec.EncodeUUIDURL62(uuidText)
+	if err != nil {
+		t.Fatalf("EncodeUUIDURL62 failed: %v", err)
+	}
+	if encoded != encodedText {
+		t.Fatalf("EncodeUUIDURL62() = %q, want %q", encoded, encodedText)
+	}
+
+	decoded, err := codec.DecodeUUIDURL62(encodedText)
+	if err != nil {
+		t.Fatalf("DecodeUUIDURL62 failed: %v", err)
+	}
+	if decoded != uuidText {
+		t.Fatalf("DecodeUUIDURL62() = %q, want %q", decoded, uuidText)
+	}
+}
+
+func TestUUIDURL62NormalizesNumericUUIDBytes(t *testing.T) {
+	tests := []struct {
+		name    string
+		uuid    string
+		encoded string
+	}{
+		{
+			name:    "zero UUID",
+			uuid:    core.ZeroUUID,
+			encoded: "0",
+		},
+		{
+			name:    "high-order zero UUID",
+			uuid:    "00000000-0000-0000-0000-000000000001",
+			encoded: "1",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			encoded, err := codec.EncodeUUIDURL62(tt.uuid)
+			if err != nil {
+				t.Fatalf("EncodeUUIDURL62 failed: %v", err)
+			}
+			if encoded != tt.encoded {
+				t.Fatalf("EncodeUUIDURL62() = %q, want %q", encoded, tt.encoded)
+			}
+
+			decoded, err := codec.DecodeUUIDURL62(tt.encoded)
+			if err != nil {
+				t.Fatalf("DecodeUUIDURL62 failed: %v", err)
+			}
+			if decoded != tt.uuid {
+				t.Fatalf("DecodeUUIDURL62() = %q, want %q", decoded, tt.uuid)
+			}
+		})
+	}
+}
+
+func TestUUIDURL62RejectsInvalidInput(t *testing.T) {
+	for _, value := range []string{"", " \t ", "not-a-uuid"} {
+		if _, err := codec.EncodeUUIDURL62(value); !errors.Is(err, core.ErrInvalidArgument) {
+			t.Fatalf("EncodeUUIDURL62(%q) error = %v, want ErrInvalidArgument", value, err)
+		}
+	}
+
+	for _, value := range []string{"", " \t ", "abc-123", "00", "01", strings.Repeat("1", 23), codec.EncodeBase62([]byte{1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0})} {
+		if _, err := codec.DecodeUUIDURL62(value); !errors.Is(err, core.ErrInvalidArgument) {
+			t.Fatalf("DecodeUUIDURL62(%q) error = %v, want ErrInvalidArgument", value, err)
+		}
 	}
 }
 

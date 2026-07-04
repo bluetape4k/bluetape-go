@@ -28,7 +28,7 @@ import (
 | Log/event ID with second-level time sorting | KSUID | Canonical Segment-compatible 27-character string. |
 | Kotlin-compatible millisecond KSUID | KSUID millis | `NewKSUIDMillisGenerator`, `ParseKSUIDMillis`, and `KSUIDMillisTime` use the bluetape4k `Ksuid.Millis` 8-byte millisecond timestamp plus 12-byte payload format. It is source-compatible, not Segment-sortable. |
 | Deterministic or name-based UUID | Deferred | UUID v5/name-based helpers are not part of 0.6.0. |
-| Future compact UUID string | Base62 deferred | Use `codec/base62` directly until an explicit ID rendering API is scoped. |
+| Compact UUID string | `codec.EncodeUUIDURL62` | `id` owns UUID generation; `codec` owns Kotlin `Url62`-compatible compact rendering. |
 | Future 128-bit sortable byte/string ID | Flake deferred | Follow-up source-parity candidate. |
 | Future short obfuscation | Hashids deferred | Obfuscation is not security. |
 
