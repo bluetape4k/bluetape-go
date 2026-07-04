@@ -47,3 +47,21 @@ func ExampleWorkerPool() {
 	// Output:
 	// 6
 }
+
+func ExampleRoundRobin() {
+	roundRobin, err := concurrency.NewRoundRobin(3)
+	if err != nil {
+		return
+	}
+
+	fmt.Println(roundRobin.Get())
+	fmt.Println(roundRobin.Next())
+	fmt.Println(roundRobin.Next())
+	fmt.Println(roundRobin.Next())
+
+	// Output:
+	// 0
+	// 1
+	// 2
+	// 0
+}
