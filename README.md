@@ -16,6 +16,15 @@ batch processing, portable values, and Redis-backed adapters.
 
 ![bluetape-go Architecture Overview](docs/assets/bluetape-go-architecture-overview.png)
 
+## Logging
+
+`bluetape-go` examples use the standard-library `log/slog` contract for
+structured logging. Applications configure handlers and levels; library
+packages expose caller-owned hooks such as `resilience.OnEvent` instead of
+mutating global logging defaults or installing a bluetape-go logger registry.
+Guard expensive debug attributes with `logger.Enabled(ctx, slog.LevelDebug)`
+before computing them.
+
 ## Current Status
 
 `bluetape-go` has published the `v0.9.0` release line. The repository now covers

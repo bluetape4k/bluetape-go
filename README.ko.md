@@ -15,6 +15,14 @@ adapter를 작은 패키지로 가져다 쓸 수 있게 만든 별도 구현입�
 
 ![bluetape-go Architecture Overview](docs/assets/bluetape-go-architecture-overview.png)
 
+## 로깅
+
+`bluetape-go` 예제는 structured logging에 standard-library `log/slog` 계약을
+사용합니다. Application이 handler와 level을 설정하고, library package는 global
+logging default를 바꾸거나 bluetape-go logger registry를 설치하지 않습니다.
+대신 `resilience.OnEvent` 같은 caller-owned hook을 노출합니다. 비용이 큰 debug
+attribute는 계산 전에 `logger.Enabled(ctx, slog.LevelDebug)`로 guard하세요.
+
 ## 현재 상태
 
 `bluetape-go`는 `v0.9.0` 릴리스 선을 배포했습니다. 현재 repository에는
