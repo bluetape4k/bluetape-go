@@ -25,6 +25,9 @@ if err != nil {
 
 token := codec.EncodeBase64URL([]byte{251, 255, 255})
 payload, err := codec.DecodeBase64URL(token)
+
+compactID, err := codec.EncodeUUIDURL62("24738134-9d88-6645-4ec8-d63aa2031015")
+uuidText, err := codec.DecodeUUIDURL62(compactID)
 ```
 
 ## Behavior
@@ -37,9 +40,12 @@ payload, err := codec.DecodeBase64URL(token)
   `Base62`/`Url62` helpers are `BigInteger`/UUID-oriented and do not carry
   extra byte-array leading zeros.
 - `EncodeURL62` uses the same alphabet as Base62 because it is already URL-safe.
-  Kotlin `Url62` UUID vectors are compatible for minimal big-endian numeric UUID
-  bytes. UUIDs with high-order zero bytes remain a Go byte-API divergence
-  because Go preserves those bytes.
+  It remains a byte-oriented alias and preserves leading zero bytes.
+- `EncodeUUIDURL62` and `DecodeUUIDURL62` provide Kotlin `Url62`-compatible
+  compact UUID text rendering. They normalize UUID bytes as a 128-bit big-endian
+  number, so high-order zero bytes are not carried in the compact string.
+- UUID URL62 rendering belongs to `codec`. UUID generation belongs to `id`, and
+  UUID text validation belongs to `core`.
 - String helpers convert between UTF-8 strings and byte encodings without
   adding serialization metadata.
 - Decode string helpers are UTF-8 text helpers and return an error wrapping
@@ -58,7 +64,8 @@ payload, err := codec.DecodeBase64URL(token)
 | Base58 leading zeros | Yes | Leading zero bytes encode as leading `1` characters. |
 | Base62 alphabet | Yes | Uses `0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz`. |
 | Base62 numeric vectors | Yes | Big-endian numeric bytes match Kotlin `BigInteger` vectors, for example `123456789 -> 8M0kX`. |
-| URL62 UUID vectors | Conditional | Minimal big-endian numeric UUID bytes match Kotlin `Url62`; high-order zero UUID bytes are preserved by Go but normalized by Kotlin numeric helpers. |
+| URL62 UUID helpers | Yes | `EncodeUUIDURL62`/`DecodeUUIDURL62` match Kotlin `Url62` numeric UUID behavior, including high-order zero normalization. |
+| URL62 byte helpers | Go-specific | `EncodeURL62`/`DecodeURL62` are Base62 byte aliases and preserve leading zero bytes. |
 | Extra byte-array leading zeros | Go-specific | Go preserves them because the API is byte-oriented; Kotlin `BigInteger`/UUID helpers normalize them away. |
 | Empty input decode | Go-specific | Go decodes `""` to empty bytes for byte round trips; Kotlin rejects blank text inputs. |
 | Base62 decode bit limit | Go-specific | Go decodes arbitrary byte payloads and does not enforce Kotlin's default 128-bit `BigInteger`/UUID limit. |

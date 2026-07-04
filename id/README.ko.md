@@ -29,7 +29,7 @@ import (
 | second-level time sorting이 필요한 log/event ID | KSUID | Segment-compatible canonical 27-character string입니다. |
 | Kotlin-compatible millisecond KSUID | KSUID millis | `NewKSUIDMillisGenerator`, `ParseKSUIDMillis`, `KSUIDMillisTime`은 bluetape4k `Ksuid.Millis`의 8-byte millisecond timestamp + 12-byte payload format을 사용합니다. source-compatible이며 Segment-sortable format은 아닙니다. |
 | deterministic/name-based UUID | Deferred | UUID v5/name-based helper는 0.6.0 범위가 아닙니다. |
-| future compact UUID string | Base62 deferred | 명시적인 ID rendering API 범위가 정해지기 전까지는 `codec/base62`를 직접 사용합니다. |
+| compact UUID string | `codec.EncodeUUIDURL62` | `id`는 UUID generation을, `codec`은 Kotlin `Url62` 호환 compact rendering을 소유합니다. |
 | future 128-bit sortable byte/string ID | Flake deferred | 후속 source-parity 후보입니다. |
 | future short obfuscation | Hashids deferred | obfuscation은 security가 아닙니다. |
 
