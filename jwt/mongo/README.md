@@ -31,6 +31,21 @@ if err != nil {
 token, err := provider.ComposeContext(ctx, jwt.WithSubject("account-42"))
 ```
 
+## Diagram
+
+![jwt/mongo facade contract map](../../docs/images/readme-diagrams/jwt-mongo-facade-contract-map.png)
+
+The contract map shows that `jwt/mongo` is a MongoDB-specific import facade:
+it exposes aliases, delegates construction to the parent `jwt` package, keeps
+the Mongo client lifecycle caller-owned, and leaves provider policy and
+operational authorization outside the facade.
+
+![jwt/mongo provider sequence](../../docs/images/readme-diagrams/jwt-mongo-provider-sequence.png)
+
+The sequence follows caller-owned Mongo setup, `mongojwt.New`, parent
+`jwt.NewMongoRepository`, distributed provider creation, repository-backed
+compose/parse behavior, and external disconnect/operations ownership.
+
 ## Behavior
 
 - `Options` aliases `jwt.MongoRepositoryOptions`.

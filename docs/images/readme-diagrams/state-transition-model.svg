@@ -3,12 +3,13 @@
   <marker id="arrow" markerWidth="12" markerHeight="10" refX="10" refY="5" orient="auto" markerUnits="userSpaceOnUse"><path d="M0,0 L10,5 L0,10 z" fill="#2563eb"/></marker>
   <marker id="arrow-green" markerWidth="12" markerHeight="10" refX="10" refY="5" orient="auto" markerUnits="userSpaceOnUse"><path d="M0,0 L10,5 L0,10 z" fill="#059669"/></marker>
   <marker id="arrow-red" markerWidth="12" markerHeight="10" refX="10" refY="5" orient="auto" markerUnits="userSpaceOnUse"><path d="M0,0 L10,5 L0,10 z" fill="#dc2626"/></marker>
+  <marker id="arrow-gray" markerWidth="12" markerHeight="10" refX="10" refY="5" orient="auto" markerUnits="userSpaceOnUse"><path d="M0,0 L10,5 L0,10 z" fill="#64748b"/></marker>
   <filter id="shadow" x="-10%" y="-10%" width="120%" height="125%"><feDropShadow dx="0" dy="3" stdDeviation="4" flood-color="#94a3b8" flood-opacity=".22"/></filter>
 </defs>
 <style>
   @font-face{font-family:'Architects Daughter';src:local('Architects Daughter');}
   @font-face{font-family:'Comic Mono';src:local('Comic Mono');}
-  .bg{fill:#f8fafc}.title{font:42px 'Architects Daughter';fill:#111827}.sub{font:20px 'Comic Mono';fill:#475569}.card-title{font:24px 'Comic Mono';font-weight:700;fill:#111827}.body{font:17px 'Comic Mono';fill:#334155}.small{font:15px 'Comic Mono';fill:#475569}.label{font:16px 'Comic Mono';fill:#2563eb;font-weight:700}.line{stroke:#2563eb;stroke-width:3.5;fill:none;marker-end:url(#arrow)}.line-green{stroke:#059669;stroke-width:3.5;fill:none;marker-end:url(#arrow-green)}.line-red{stroke:#dc2626;stroke-width:3.5;fill:none;marker-end:url(#arrow-red)}.dash{stroke:#64748b;stroke-width:3;stroke-dasharray:9 8;fill:none;marker-end:url(#arrow)}.card{fill:#fff;stroke-width:4}.alt{fill:#f59e0b;fill-opacity:.12;stroke:#f59e0b;stroke-opacity:.55;stroke-dasharray:10 8;stroke-width:3}
+  .bg{fill:#f8fafc}.title{font:42px 'Architects Daughter';fill:#111827}.sub{font:20px 'Comic Mono';fill:#475569}.card-title{font:24px 'Comic Mono';font-weight:700;fill:#111827}.body{font:17px 'Comic Mono';fill:#334155}.small{font:15px 'Comic Mono';fill:#475569}.label{font:16px 'Comic Mono';fill:#2563eb;font-weight:700}.line{stroke:#2563eb;stroke-width:3.5;fill:none;marker-end:url(#arrow);stroke-linecap:round;stroke-linejoin:round}.line-green{stroke:#059669;stroke-width:3.5;fill:none;marker-end:url(#arrow-green);stroke-linecap:round;stroke-linejoin:round}.line-red{stroke:#dc2626;stroke-width:3.5;fill:none;marker-end:url(#arrow-red);stroke-linecap:round;stroke-linejoin:round}.dash{stroke:#64748b;stroke-width:3;stroke-dasharray:9 8;fill:none;marker-end:url(#arrow-gray);stroke-linecap:round;stroke-linejoin:round}.card{fill:#fff;stroke-width:4}.alt{fill:#f59e0b;fill-opacity:.12;stroke:#f59e0b;stroke-opacity:.55;stroke-dasharray:10 8;stroke-width:3}
 </style>
 <rect class="bg" width="1440" height="820"/>
 <text class="title" x="56" y="72">State Transition Model</text>
@@ -47,11 +48,11 @@
 <text class="body" x="1018" y="576">invalid/final/guard</text>
 <text class="body" x="1018" y="603">duplicate/unknown initial</text>
 <text class="body" x="1018" y="630">concurrent conflict</text>
-<path class="line" d="M380 268 L500 268"/><text class="label" x="410" y="255">transitions</text>
-<path class="line-green" d="M880 268 L1000 268"/><text class="label" x="913" y="255">validated</text>
-<path class="dash" d="M1090 360 C830 455 430 450 285 500"/><text class="label" x="625" y="439">read APIs</text>
-<path class="dash" d="M705 390 L705 500"/><text class="label" x="723" y="448">inquiry</text>
-<path class="dash" d="M1170 360 L1140 500"/><text class="label" x="1180" y="440">errors.Is</text>
+<path class="line" d="M380 268H500" marker-end="url(#arrow)"/><text class="label" x="410" y="255">transitions</text>
+<path class="line-green" d="M880 268H1000" marker-end="url(#arrow-green)"/><text class="label" x="913" y="255">validated</text>
+<path class="dash" d="M610 390V430Q610 455 580 455H315Q285 455 285 485V500" marker-end="url(#arrow-gray)"/><text class="label" x="410" y="445">allowed order</text>
+<path class="dash" d="M705 390V500" marker-end="url(#arrow-gray)"/><text class="label" x="723" y="448">inquiry</text>
+<path class="dash" d="M1170 360V500" marker-end="url(#arrow-gray)"/><text class="label" x="1180" y="440">errors.Is</text>
 <rect class="alt" x="70" y="710" width="1280" height="58" rx="16"/>
 <text class="small" x="96" y="745">Boundary: final states reject further events; TransitionError preserves the package sentinel for errors.Is checks.</text>
 </svg>

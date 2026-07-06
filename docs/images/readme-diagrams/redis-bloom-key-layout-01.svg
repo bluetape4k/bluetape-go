@@ -79,10 +79,10 @@
   <text class="msg" x="487" y="302" text-anchor="middle" fill="#4f77c9">operation</text>
   <path class="route" d="M932 300 L1058 300" stroke="#4f77c9" marker-end="url(#arrow-blue)"/>
   <text class="msg" x="995" y="280" text-anchor="middle" fill="#4f77c9">check</text>
-  <path class="return" d="M932 360 C1010 445 1035 500 1058 600" stroke="#64748b" marker-end="url(#arrow-gray)"/>
-  <text class="msg" x="1000" y="475" text-anchor="middle" fill="#64748b">hash slot</text>
-  <path class="route" d="M742 420 C825 525 945 605 1058 635" stroke="#4f77c9" marker-end="url(#arrow-blue)"/>
-  <text class="msg" x="850" y="550" text-anchor="middle" fill="#4f77c9">read/write bits</text>
+  <path class="return" d="M932 360H985Q1015 360 1015 390V520Q1015 550 1045 550H1160Q1180 550 1180 540V560" stroke="#64748b" marker-end="url(#arrow-gray)"/>
+  <text class="msg" x="955" y="487" text-anchor="middle" fill="#64748b">hash slot</text>
+  <path class="route" d="M742 420V600Q742 630 772 630H1018Q1038 630 1038 650Q1038 670 1050 670H1058" stroke="#4f77c9" marker-end="url(#arrow-blue)"/>
+  <text class="msg" x="880" y="610" text-anchor="middle" fill="#4f77c9">read/write bits</text>
   <rect class="legend" x="82" y="842" width="1336" height="40" rx="8"/>
   <text class="footer" x="750" y="868" text-anchor="middle">Namespaces are operational identifiers; do not put raw users, emails, secrets, or bearer tokens in them.</text>
 </svg>

@@ -1,0 +1,195 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1800" height="1520" viewBox="0 0 1800 1520" role="img" aria-labelledby="title desc">
+  <title id="title">textsearch/japanese Tokenize Sequence</title>
+  <desc id="desc">Sequence diagram for textsearch/japanese showing NewTokenizer defaults, option application, Kagome tokenizer construction, core TokenizeRequest validation, Kagome analysis, span validation, metadata mapping, noun filtering, and optional BlockwordDictionary composition.</desc>
+  <defs>
+    <filter id="softShadow" x="-8%" y="-10%" width="116%" height="124%">
+      <feDropShadow dx="0" dy="5" stdDeviation="5" flood-color="#0f172a" flood-opacity="0.10"/>
+    </filter>
+    <marker id="seqArrow-blue" markerWidth="16" markerHeight="16" refX="9" refY="5" orient="auto" markerUnits="userSpaceOnUse" viewBox="0 0 10 10">
+      <path d="M 0 0 L 10 5 L 0 10 Z" fill="#4f86c6" stroke="#4f86c6"/>
+    </marker>
+    <marker id="seqArrow-green" markerWidth="16" markerHeight="16" refX="9" refY="5" orient="auto" markerUnits="userSpaceOnUse" viewBox="0 0 10 10">
+      <path d="M 0 0 L 10 5 L 0 10 Z" fill="#5f8d3e" stroke="#5f8d3e"/>
+    </marker>
+    <marker id="seqArrow-amber" markerWidth="16" markerHeight="16" refX="9" refY="5" orient="auto" markerUnits="userSpaceOnUse" viewBox="0 0 10 10">
+      <path d="M 0 0 L 10 5 L 0 10 Z" fill="#c1842f" stroke="#c1842f"/>
+    </marker>
+    <marker id="seqArrow-teal" markerWidth="16" markerHeight="16" refX="9" refY="5" orient="auto" markerUnits="userSpaceOnUse" viewBox="0 0 10 10">
+      <path d="M 0 0 L 10 5 L 0 10 Z" fill="#2f8f8a" stroke="#2f8f8a"/>
+    </marker>
+    <marker id="seqArrow-red" markerWidth="16" markerHeight="16" refX="9" refY="5" orient="auto" markerUnits="userSpaceOnUse" viewBox="0 0 10 10">
+      <path d="M 0 0 L 10 5 L 0 10 Z" fill="#b65b67" stroke="#b65b67"/>
+    </marker>
+    <style>
+      .canvas { fill: #f8fafc; }
+      .frame { fill: #ffffff; stroke: #cbd5e1; stroke-width: 1.5; filter: url(#softShadow); }
+      .title, .participant-title { font-family: "Architects Daughter", "Comic Sans MS", cursive; fill: #263a57; }
+      .title { font-size: 42px; }
+      .subtitle, .role, .msg, .region, .footer { font-family: "Comic Mono", "SFMono-Regular", monospace; fill: #526276; }
+      .subtitle { font-size: 17px; }
+      .participant-title { font-size: 21px; }
+      .role { font-size: 13px; }
+      .msg { font-size: 13px; font-weight: 700; }
+      .region { font-size: 13px; font-weight: 700; }
+      .footer { font-size: 14px; }
+      .participant { stroke-width: 2.2; rx: 12; }
+      .lifeline { stroke: #c5d4e3; stroke-width: 2; stroke-dasharray: 8 8; }
+      .activation { fill: #f3eeff; stroke: #8a65d8; stroke-width: 1.7; rx: 7; opacity: 0.88; }
+      .call, .return, .error { fill: none; stroke-linecap: round; stroke-linejoin: round; }
+      .call { stroke-width: 3; }
+      .return, .error { stroke-width: 2.7; stroke-dasharray: 9 8; }
+      .phase { fill: none; stroke: #78909c; stroke-width: 2.4; stroke-dasharray: 12 7; rx: 16; }
+      .phase-label { fill: #ffffff; stroke: #d7e0e4; stroke-width: 1.5; rx: 15; }
+      .pill { fill: #ffffff; stroke: #cbd9e7; stroke-width: 1.5; rx: 15; }
+      .badge { stroke-width: 1.6; }
+      .badgeText { font-family: "Comic Mono", "SFMono-Regular", monospace; font-size: 10px; font-weight: 700; fill: #ffffff; }
+    </style>
+  </defs>
+
+  <rect class="canvas" width="1800" height="1520"/>
+  <rect class="frame" x="34" y="30" width="1732" height="1456" rx="8"/>
+  <text class="title" x="72" y="88">textsearch/japanese Tokenize Sequence</text>
+  <text class="subtitle" x="76" y="120">Kagome is constructed only when callers import the adapter; responses remain textsearch.Token values with original byte spans.</text>
+
+  <rect class="participant" x="72" y="174" width="184" height="72" fill="#eaf2ff" stroke="#6d9df0"/>
+  <text class="participant-title" x="164" y="202" text-anchor="middle">Caller</text>
+  <text class="role" x="164" y="224" text-anchor="middle">opt-in package</text>
+  <line class="lifeline" x1="164" y1="246" x2="164" y2="1412"/>
+
+  <rect class="participant" x="324" y="174" width="204" height="72" fill="#edf9f4" stroke="#63b891"/>
+  <text class="participant-title" x="426" y="202" text-anchor="middle">Japanese adapter</text>
+  <text class="role" x="426" y="224" text-anchor="middle">Tokenizer</text>
+  <line class="lifeline" x1="426" y1="246" x2="426" y2="1412"/>
+
+  <rect class="participant" x="588" y="174" width="204" height="72" fill="#fff4de" stroke="#d59c3f"/>
+  <text class="participant-title" x="690" y="202" text-anchor="middle">Options</text>
+  <text class="role" x="690" y="224" text-anchor="middle">dictionary + mode</text>
+  <line class="lifeline" x1="690" y1="246" x2="690" y2="1412"/>
+
+  <rect class="participant" x="850" y="174" width="204" height="72" fill="#f3efff" stroke="#9b7aec"/>
+  <text class="participant-title" x="952" y="202" text-anchor="middle">Kagome</text>
+  <text class="role" x="952" y="224" text-anchor="middle">v2 tokenizer</text>
+  <line class="lifeline" x1="952" y1="246" x2="952" y2="1412"/>
+
+  <rect class="participant" x="1112" y="174" width="206" height="72" fill="#eaf2ff" stroke="#6d9df0"/>
+  <text class="participant-title" x="1215" y="202" text-anchor="middle">textsearch core</text>
+  <text class="role" x="1215" y="224" text-anchor="middle">request + token</text>
+  <line class="lifeline" x1="1215" y1="246" x2="1215" y2="1412"/>
+
+  <rect class="participant" x="1378" y="174" width="198" height="72" fill="#f8fafc" stroke="#94a3b8"/>
+  <text class="participant-title" x="1477" y="202" text-anchor="middle">Token mapper</text>
+  <text class="role" x="1477" y="224" text-anchor="middle">span + metadata</text>
+  <line class="lifeline" x1="1477" y1="246" x2="1477" y2="1412"/>
+
+  <rect class="participant" x="1632" y="174" width="136" height="72" fill="#fff0f0" stroke="#d56b7d"/>
+  <text class="participant-title" x="1700" y="202" text-anchor="middle">Blockword</text>
+  <text class="role" x="1700" y="224" text-anchor="middle">optional</text>
+  <line class="lifeline" x1="1700" y1="246" x2="1700" y2="1412"/>
+
+  <rect class="activation" x="157" y="304" width="14" height="1032" rx="7"/>
+  <rect class="activation" x="419" y="318" width="14" height="714" rx="7"/>
+  <rect class="activation" x="683" y="398" width="14" height="190" rx="7"/>
+  <rect class="activation" x="945" y="558" width="14" height="374" rx="7"/>
+  <rect class="activation" x="1208" y="700" width="14" height="172" rx="7"/>
+  <rect class="activation" x="1470" y="878" width="14" height="234" rx="7"/>
+  <rect class="activation" x="1693" y="1238" width="14" height="98" rx="7"/>
+
+  <rect class="phase" x="302" y="292" width="684" height="336" rx="16"/>
+  <rect class="phase-label" x="324" y="254" width="210" height="30" rx="15"/>
+  <text class="region" x="348" y="274">construction</text>
+
+  <rect class="phase" x="398" y="668" width="1110" height="466" rx="16"/>
+  <rect class="phase-label" x="420" y="630" width="220" height="30" rx="15"/>
+  <text class="region" x="444" y="650">tokenize request</text>
+
+  <rect class="phase" x="1396" y="1168" width="330" height="194" rx="16"/>
+  <rect class="phase-label" x="1418" y="1130" width="238" height="30" rx="15"/>
+  <text class="region" x="1442" y="1150">optional masking</text>
+
+  <path class="call" d="M164 320H426" stroke="#4f86c6" marker-end="url(#seqArrow-blue)"/>
+  <rect class="pill" x="214" y="278" width="160" height="30" rx="15"/>
+  <circle class="badge" cx="234" cy="293" r="13" fill="#4f86c6" stroke="#4f86c6"/>
+  <text class="badgeText" x="234" y="297" text-anchor="middle">1</text>
+  <text class="msg" x="300" y="298" text-anchor="middle" fill="#4f86c6">NewTokenizer</text>
+
+  <path class="call" d="M426 400H690" stroke="#c1842f" marker-end="url(#seqArrow-amber)"/>
+  <rect class="pill" x="478" y="358" width="164" height="30" rx="15"/>
+  <circle class="badge" cx="498" cy="373" r="13" fill="#c1842f" stroke="#c1842f"/>
+  <text class="badgeText" x="498" y="377" text-anchor="middle">2</text>
+  <text class="msg" x="566" y="378" text-anchor="middle" fill="#c1842f">default IPA</text>
+
+  <path class="call" d="M426 480H690" stroke="#8a65d6" marker-end="url(#seqArrow-blue)"/>
+  <rect class="pill" x="468" y="438" width="186" height="30" rx="15"/>
+  <circle class="badge" cx="490" cy="453" r="13" fill="#4f86c6" stroke="#4f86c6"/>
+  <text class="badgeText" x="490" y="457" text-anchor="middle">3</text>
+  <text class="msg" x="566" y="458" text-anchor="middle" fill="#4f86c6">apply options</text>
+
+  <path class="call" d="M426 560H952" stroke="#8a65d6" marker-end="url(#seqArrow-blue)"/>
+  <rect class="pill" x="588" y="518" width="204" height="30" rx="15"/>
+  <circle class="badge" cx="610" cy="533" r="13" fill="#4f86c6" stroke="#4f86c6"/>
+  <text class="badgeText" x="610" y="537" text-anchor="middle">4</text>
+  <text class="msg" x="696" y="538" text-anchor="middle" fill="#4f86c6">ktokenizer.New</text>
+
+  <path class="return" d="M952 640H164" stroke="#5f8d3e" marker-end="url(#seqArrow-green)"/>
+  <rect class="pill" x="460" y="598" width="196" height="30" rx="15"/>
+  <circle class="badge" cx="482" cy="613" r="13" fill="#5f8d3e" stroke="#5f8d3e"/>
+  <text class="badgeText" x="482" y="617" text-anchor="middle">5</text>
+  <text class="msg" x="564" y="618" text-anchor="middle" fill="#5f8d3e">Tokenizer ready</text>
+
+  <path class="call" d="M164 720H1215" stroke="#4f86c6" marker-end="url(#seqArrow-blue)"/>
+  <rect class="pill" x="560" y="678" width="260" height="30" rx="15"/>
+  <circle class="badge" cx="582" cy="693" r="13" fill="#4f86c6" stroke="#4f86c6"/>
+  <text class="badgeText" x="582" y="697" text-anchor="middle">6</text>
+  <text class="msg" x="696" y="698" text-anchor="middle" fill="#4f86c6">NewTokenizeRequest</text>
+
+  <path class="call" d="M164 800H426" stroke="#4f86c6" marker-end="url(#seqArrow-blue)"/>
+  <rect class="pill" x="222" y="758" width="148" height="30" rx="15"/>
+  <circle class="badge" cx="242" cy="773" r="13" fill="#4f86c6" stroke="#4f86c6"/>
+  <text class="badgeText" x="242" y="777" text-anchor="middle">7</text>
+  <text class="msg" x="304" y="778" text-anchor="middle" fill="#4f86c6">Tokenize</text>
+
+  <path class="call" d="M426 880H1215" stroke="#2f8f8a" marker-end="url(#seqArrow-teal)"/>
+  <rect class="pill" x="702" y="838" width="238" height="30" rx="15"/>
+  <circle class="badge" cx="724" cy="853" r="13" fill="#2f8f8a" stroke="#2f8f8a"/>
+  <text class="badgeText" x="724" y="857" text-anchor="middle">8</text>
+  <text class="msg" x="826" y="858" text-anchor="middle" fill="#2f8f8a">validate request</text>
+
+  <path class="call" d="M426 960H952" stroke="#8a65d6" marker-end="url(#seqArrow-blue)"/>
+  <rect class="pill" x="610" y="918" width="164" height="30" rx="15"/>
+  <circle class="badge" cx="630" cy="933" r="13" fill="#4f86c6" stroke="#4f86c6"/>
+  <text class="badgeText" x="630" y="937" text-anchor="middle">9</text>
+  <text class="msg" x="696" y="938" text-anchor="middle" fill="#4f86c6">Analyze</text>
+
+  <path class="return" d="M952 1040H1477" stroke="#5f8d3e" marker-end="url(#seqArrow-green)"/>
+  <rect class="pill" x="1116" y="998" width="194" height="30" rx="15"/>
+  <circle class="badge" cx="1138" cy="1013" r="13" fill="#5f8d3e" stroke="#5f8d3e"/>
+  <text class="badgeText" x="1138" y="1017" text-anchor="middle">10</text>
+  <text class="msg" x="1220" y="1018" text-anchor="middle" fill="#5f8d3e">Kagome tokens</text>
+
+  <path class="call" d="M1477 1120H1215" stroke="#64748b" marker-end="url(#seqArrow-teal)"/>
+  <rect class="pill" x="1260" y="1078" width="176" height="30" rx="15"/>
+  <circle class="badge" cx="1282" cy="1093" r="13" fill="#2f8f8a" stroke="#2f8f8a"/>
+  <text class="badgeText" x="1282" y="1097" text-anchor="middle">11</text>
+  <text class="msg" x="1354" y="1098" text-anchor="middle" fill="#2f8f8a">span + metadata</text>
+
+  <path class="return" d="M1215 1200H164" stroke="#5f8d3e" marker-end="url(#seqArrow-green)"/>
+  <rect class="pill" x="560" y="1158" width="262" height="30" rx="15"/>
+  <circle class="badge" cx="582" cy="1173" r="13" fill="#5f8d3e" stroke="#5f8d3e"/>
+  <text class="badgeText" x="582" y="1177" text-anchor="middle">12</text>
+  <text class="msg" x="696" y="1178" text-anchor="middle" fill="#5f8d3e">TokenizeResponse</text>
+
+  <path class="call" d="M164 1280H426" stroke="#4f86c6" marker-end="url(#seqArrow-blue)"/>
+  <rect class="pill" x="214" y="1238" width="166" height="30" rx="15"/>
+  <circle class="badge" cx="236" cy="1253" r="13" fill="#4f86c6" stroke="#4f86c6"/>
+  <text class="badgeText" x="236" y="1257" text-anchor="middle">13</text>
+  <text class="msg" x="304" y="1258" text-anchor="middle" fill="#4f86c6">FilterNouns</text>
+
+  <path class="call" d="M164 1360H1700" stroke="#b65b67" marker-end="url(#seqArrow-red)"/>
+  <rect class="pill" x="792" y="1318" width="270" height="30" rx="15"/>
+  <circle class="badge" cx="814" cy="1333" r="13" fill="#b65b67" stroke="#b65b67"/>
+  <text class="badgeText" x="814" y="1337" text-anchor="middle">14</text>
+  <text class="msg" x="932" y="1338" text-anchor="middle" fill="#b65b67">optional dictionary mask</text>
+
+  <rect class="pill" x="330" y="1438" width="1140" height="34" rx="17"/>
+  <text class="footer" x="900" y="1460" text-anchor="middle">Kagome dictionary choice affects module size and metadata; caller-owned service policy remains outside this adapter.</text>
+</svg>

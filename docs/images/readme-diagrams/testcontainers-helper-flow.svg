@@ -97,11 +97,11 @@
   <text class="msg" x="452" y="274" text-anchor="middle" fill="#4f77c9">Start(ctx,t)</text>
   <path class="route" d="M890 300H1010" stroke="#319873" marker-end="url(#arrow-green)"/>
   <text class="msg" x="950" y="282" text-anchor="middle" fill="#319873">launch</text>
-  <path class="route" d="M630 410C560 490 450 525 360 545" stroke="#7e62d9" marker-end="url(#arrow-purple)"/>
+  <path class="route" d="M630 410V438Q630 468 600 468H390Q360 468 360 498V545" stroke="#7e62d9" marker-end="url(#arrow-purple)"/>
   <text class="msg" x="500" y="492" text-anchor="middle" fill="#7e62d9">mq</text>
   <path class="route" d="M695 410V545" stroke="#c85d73" marker-end="url(#arrow-red)"/>
   <text class="msg" x="742" y="492" text-anchor="middle" fill="#c85d73">sql</text>
-  <path class="route" d="M760 410C835 490 945 525 1105 545" stroke="#c85d73" marker-end="url(#arrow-red)"/>
+  <path class="route" d="M760 410V438Q760 468 790 468H1075Q1105 468 1105 498V545" stroke="#c85d73" marker-end="url(#arrow-red)"/>
   <text class="msg" x="920" y="492" text-anchor="middle" fill="#c85d73">cache</text>
   <rect class="legend" x="82" y="842" width="1336" height="40" rx="8"/>
   <text class="footer" x="750" y="868" text-anchor="middle">The helpers own container lifecycle; tests should consume returned endpoints and avoid global ports.</text>

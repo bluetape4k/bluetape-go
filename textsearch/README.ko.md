@@ -80,6 +80,20 @@ if err != nil {
 _ = response.MaskedText // "** 그리고 **"
 ```
 
+## Diagram
+
+![textsearch core contract map](../docs/images/readme-diagrams/textsearch-core-contract-map.png)
+
+Contract map은 immutable Aho-Corasick matcher, deterministic match transform,
+tokenizer extension point, blockword dictionary rebuild boundary를 분리해
+보여줍니다. 언어별 optional package는 core package 밖에 둡니다.
+
+![textsearch compile and search sequence](../docs/images/readme-diagrams/textsearch-search-sequence.png)
+
+Sequence는 dictionary compilation, original byte offset mapping을 유지하는
+normalization, automaton scanning, deterministic ranking, replacement/masking,
+blockword/tokenizer response helper 흐름을 보여줍니다.
+
 ## 동작
 
 - `Matcher`는 `Compile` 이후 immutable이며 concurrent reader에 안전합니다.

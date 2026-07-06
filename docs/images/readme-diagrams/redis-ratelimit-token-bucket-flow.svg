@@ -81,10 +81,10 @@
   <text class="msg" x="945" y="270" text-anchor="middle" fill="#319873">EVAL</text>
   <path class="route" d="M1198 425 L1198 560" stroke="#319873" marker-end="url(#arrow-green)"/>
   <text class="msg" x="1270" y="500" text-anchor="middle" fill="#319873">HSET + PEXPIRE</text>
-  <path class="return" d="M1018 635 C850 690 625 570 692 415" stroke="#64748b" marker-end="url(#arrow-gray)"/>
-  <text class="msg" x="760" y="585" text-anchor="middle" fill="#64748b">Result</text>
-  <path class="return" d="M512 370 C405 435 305 420 240 375" stroke="#64748b" marker-end="url(#arrow-gray)"/>
-  <text class="msg" x="420" y="455" text-anchor="middle" fill="#64748b">allowed or retry-after</text>
+  <path class="return" d="M1018 635H930Q900 635 900 605V465Q900 435 870 435H722Q692 435 692 425V415" stroke="#64748b" marker-end="url(#arrow-gray)"/>
+  <text class="msg" x="810" y="475" text-anchor="middle" fill="#64748b">Result</text>
+  <path class="return" d="M512 370H450Q420 370 420 400V420Q420 450 390 450H270Q240 450 240 420V375" stroke="#64748b" marker-end="url(#arrow-gray)"/>
+  <text class="msg" x="360" y="482" text-anchor="middle" fill="#64748b">allowed or retry-after</text>
   <rect class="legend" x="82" y="842" width="1336" height="40" rx="8"/>
   <text class="footer" x="750" y="868" text-anchor="middle">Rejected attempts are normal Result values; script failures return errors.</text>
 </svg>

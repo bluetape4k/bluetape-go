@@ -14,6 +14,12 @@ maps and only handles the DynamoDB operational contract:
 It is not a repository abstraction, mapper, transaction layer, DAX wrapper, or
 general DynamoDB client facade.
 
+## Diagrams
+
+![dynamodb batchwrite class contract map](../../docs/images/readme-diagrams/dynamodb-batchwrite-class-contract-map.png)
+
+![dynamodb batchwrite writeall sequence](../../docs/images/readme-diagrams/dynamodb-batchwrite-writeall-sequence.png)
+
 ## Usage
 
 ```go

@@ -1,0 +1,166 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1800" height="1320" viewBox="0 0 1800 1320" role="img" aria-labelledby="title desc">
+  <title id="title">Integration Recipe Sequence</title>
+  <desc id="desc">Sequence diagram for Example_batchWorkflowJWTCacheAndResilienceRecipe: request ID, JWT compose and parse, profile cache loading through resilience policies, workflow execution, and batch report aggregation.</desc>
+  <defs>
+    <filter id="softShadow" x="-8%" y="-10%" width="116%" height="124%">
+      <feDropShadow dx="0" dy="5" stdDeviation="5" flood-color="#0f172a" flood-opacity="0.10"/>
+    </filter>
+    <marker id="seqArrow-blue" markerWidth="16" markerHeight="16" refX="9" refY="5" orient="auto" markerUnits="userSpaceOnUse" viewBox="0 0 10 10">
+      <path d="M 0 0 L 10 5 L 0 10 Z" fill="#4f86c6" stroke="#4f86c6"/>
+    </marker>
+    <marker id="seqArrow-amber" markerWidth="16" markerHeight="16" refX="9" refY="5" orient="auto" markerUnits="userSpaceOnUse" viewBox="0 0 10 10">
+      <path d="M 0 0 L 10 5 L 0 10 Z" fill="#c1842f" stroke="#c1842f"/>
+    </marker>
+    <marker id="seqArrow-green" markerWidth="16" markerHeight="16" refX="9" refY="5" orient="auto" markerUnits="userSpaceOnUse" viewBox="0 0 10 10">
+      <path d="M 0 0 L 10 5 L 0 10 Z" fill="#5f8d3e" stroke="#5f8d3e"/>
+    </marker>
+    <marker id="seqArrow-teal" markerWidth="16" markerHeight="16" refX="9" refY="5" orient="auto" markerUnits="userSpaceOnUse" viewBox="0 0 10 10">
+      <path d="M 0 0 L 10 5 L 0 10 Z" fill="#2f8f8a" stroke="#2f8f8a"/>
+    </marker>
+    <marker id="seqArrow-red" markerWidth="16" markerHeight="16" refX="9" refY="5" orient="auto" markerUnits="userSpaceOnUse" viewBox="0 0 10 10">
+      <path d="M 0 0 L 10 5 L 0 10 Z" fill="#b65b67" stroke="#b65b67"/>
+    </marker>
+    <style>
+      .canvas { fill: #f8fafc; }
+      .frame { fill: #ffffff; stroke: #cbd5e1; stroke-width: 1.5; filter: url(#softShadow); }
+      .title, .participant-title { font-family: "Architects Daughter", "Comic Sans MS", cursive; fill: #263a57; }
+      .title { font-size: 42px; }
+      .subtitle, .role, .msg, .region, .footer { font-family: "Comic Mono", "SFMono-Regular", monospace; fill: #526276; }
+      .subtitle { font-size: 17px; }
+      .participant-title { font-size: 22px; }
+      .role { font-size: 13px; }
+      .msg { font-size: 13px; font-weight: 700; }
+      .region { font-size: 13px; font-weight: 700; }
+      .footer { font-size: 14px; }
+      .participant { stroke-width: 2.2; rx: 12; }
+      .lifeline { stroke: #c5d4e3; stroke-width: 2; stroke-dasharray: 8 8; }
+      .activation { fill: #f3eeff; stroke: #8a65d8; stroke-width: 1.7; rx: 7; opacity: 0.88; }
+      .call, .return, .error { fill: none; stroke-linecap: round; stroke-linejoin: round; }
+      .call { stroke-width: 3; }
+      .return, .error { stroke-width: 2.7; stroke-dasharray: 9 8; }
+      .phase { fill: none; stroke: #78909c; stroke-width: 2.4; stroke-dasharray: 12 7; rx: 16; }
+      .phase-label { fill: #ffffff; stroke: #d7e0e4; stroke-width: 1.5; rx: 15; }
+      .pill { fill: #ffffff; stroke: #cbd9e7; stroke-width: 1.5; rx: 15; }
+      .badge { stroke-width: 1.6; }
+      .badgeText { font-family: "Comic Mono", "SFMono-Regular", monospace; font-size: 10px; font-weight: 700; fill: #ffffff; }
+    </style>
+  </defs>
+
+  <rect class="canvas" width="1800" height="1320"/>
+  <rect class="frame" x="34" y="30" width="1732" height="1256" rx="8"/>
+  <text class="title" x="72" y="88">Integration Recipe Sequence</text>
+  <text class="subtitle" x="76" y="120">The service-free recipe composes ID, JWT, cache/resilience, workflow, and batch without a new integration API.</text>
+
+  <rect class="participant" x="72" y="174" width="220" height="72" fill="#eaf2ff" stroke="#6d9df0"/>
+  <text class="participant-title" x="182" y="202" text-anchor="middle">Example</text>
+  <text class="role" x="182" y="224" text-anchor="middle">compile-checked caller</text>
+  <line class="lifeline" x1="182" y1="246" x2="182" y2="1210"/>
+
+  <rect class="participant" x="382" y="174" width="250" height="72" fill="#edf9f4" stroke="#63b891"/>
+  <text class="participant-title" x="507" y="202" text-anchor="middle">Recipe body</text>
+  <text class="role" x="507" y="224" text-anchor="middle">context + orchestration</text>
+  <line class="lifeline" x1="507" y1="246" x2="507" y2="1210"/>
+
+  <rect class="participant" x="730" y="174" width="230" height="72" fill="#f3efff" stroke="#9b7aec"/>
+  <text class="participant-title" x="845" y="202" text-anchor="middle">ID + JWT</text>
+  <text class="role" x="845" y="224" text-anchor="middle">UUID v7, HMAC</text>
+  <line class="lifeline" x1="845" y1="246" x2="845" y2="1210"/>
+
+  <rect class="participant" x="1068" y="174" width="260" height="72" fill="#fff4de" stroke="#d59c3f"/>
+  <text class="participant-title" x="1198" y="202" text-anchor="middle">Cache + policies</text>
+  <text class="role" x="1198" y="224" text-anchor="middle">GetOrLoad + retry/timeout</text>
+  <line class="lifeline" x1="1198" y1="246" x2="1198" y2="1210"/>
+
+  <rect class="participant" x="1420" y="174" width="210" height="72" fill="#fff0f0" stroke="#d56b7d"/>
+  <text class="participant-title" x="1525" y="202" text-anchor="middle">Workflow</text>
+  <text class="role" x="1525" y="224" text-anchor="middle">Sequential runner</text>
+  <line class="lifeline" x1="1525" y1="246" x2="1525" y2="1210"/>
+
+  <rect class="participant" x="1658" y="174" width="110" height="72" fill="#f8fafc" stroke="#94a3b8"/>
+  <text class="participant-title" x="1713" y="202" text-anchor="middle">Batch</text>
+  <text class="role" x="1713" y="224" text-anchor="middle">Step</text>
+  <line class="lifeline" x1="1713" y1="246" x2="1713" y2="1210"/>
+
+  <rect class="activation" x="500" y="296" width="14" height="872" rx="7"/>
+  <rect class="activation" x="838" y="380" width="14" height="206" rx="7"/>
+  <rect class="activation" x="1191" y="678" width="14" height="126" rx="7"/>
+  <rect class="activation" x="1518" y="618" width="14" height="434" rx="7"/>
+  <rect class="activation" x="1706" y="880" width="14" height="128" rx="7"/>
+
+  <rect class="phase" x="1034" y="642" width="334" height="188" rx="16"/>
+  <rect class="phase-label" x="1056" y="660" width="186" height="30" rx="15"/>
+  <text class="region" x="1080" y="680">retry + timeout</text>
+
+  <rect class="phase" x="1400" y="842" width="346" height="206" rx="16"/>
+  <rect class="phase-label" x="1422" y="860" width="226" height="30" rx="15"/>
+  <text class="region" x="1446" y="880">batch retry / skip</text>
+
+  <path class="call" d="M182 310H507" stroke="#4f86c6" marker-end="url(#seqArrow-blue)"/>
+  <rect class="pill" x="246" y="268" width="196" height="30" rx="15"/>
+  <circle class="badge" cx="266" cy="283" r="13" fill="#4f86c6" stroke="#4f86c6"/>
+  <text class="badgeText" x="266" y="287" text-anchor="middle">1</text>
+  <text class="msg" x="350" y="288" text-anchor="middle" fill="#4f86c6">run recipe</text>
+
+  <path class="call" d="M507 390H845" stroke="#8a65d6" marker-end="url(#seqArrow-blue)"/>
+  <rect class="pill" x="586" y="348" width="182" height="30" rx="15"/>
+  <circle class="badge" cx="606" cy="363" r="13" fill="#4f86c6" stroke="#4f86c6"/>
+  <text class="badgeText" x="606" y="367" text-anchor="middle">2</text>
+  <text class="msg" x="686" y="368" text-anchor="middle" fill="#4f86c6">NextString()</text>
+
+  <path class="call" d="M507 470H845" stroke="#4f86c6" marker-end="url(#seqArrow-blue)"/>
+  <rect class="pill" x="572" y="428" width="210" height="30" rx="15"/>
+  <circle class="badge" cx="592" cy="443" r="13" fill="#4f86c6" stroke="#4f86c6"/>
+  <text class="badgeText" x="592" y="447" text-anchor="middle">3</text>
+  <text class="msg" x="686" y="448" text-anchor="middle" fill="#4f86c6">Compose(token)</text>
+
+  <path class="return" d="M845 550H507" stroke="#2f8f8a" marker-end="url(#seqArrow-teal)"/>
+  <rect class="pill" x="554" y="508" width="244" height="30" rx="15"/>
+  <circle class="badge" cx="574" cy="523" r="13" fill="#2f8f8a" stroke="#2f8f8a"/>
+  <text class="badgeText" x="574" y="527" text-anchor="middle">4</text>
+  <text class="msg" x="686" y="528" text-anchor="middle" fill="#2f8f8a">Parse validates claims</text>
+
+  <path class="call" d="M507 630H1525" stroke="#b65b67" marker-end="url(#seqArrow-red)"/>
+  <rect class="pill" x="876" y="588" width="282" height="30" rx="15"/>
+  <circle class="badge" cx="898" cy="603" r="13" fill="#b65b67" stroke="#b65b67"/>
+  <text class="badgeText" x="898" y="607" text-anchor="middle">5</text>
+  <text class="msg" x="1016" y="608" text-anchor="middle" fill="#b65b67">Sequential(...).Run</text>
+
+  <path class="call" d="M1525 710H1198" stroke="#c1842f" marker-end="url(#seqArrow-amber)"/>
+  <rect class="pill" x="1264" y="668" width="196" height="30" rx="15"/>
+  <circle class="badge" cx="1284" cy="683" r="13" fill="#c1842f" stroke="#c1842f"/>
+  <text class="badgeText" x="1284" y="687" text-anchor="middle">6</text>
+  <text class="msg" x="1362" y="688" text-anchor="middle" fill="#c1842f">profile-cache</text>
+
+  <path class="return" d="M1198 790H1525" stroke="#2f8f8a" marker-end="url(#seqArrow-teal)"/>
+  <rect class="pill" x="1274" y="748" width="178" height="30" rx="15"/>
+  <circle class="badge" cx="1294" cy="763" r="13" fill="#2f8f8a" stroke="#2f8f8a"/>
+  <text class="badgeText" x="1294" y="767" text-anchor="middle">7</text>
+  <text class="msg" x="1364" y="768" text-anchor="middle" fill="#2f8f8a">profile</text>
+
+  <path class="call" d="M1525 920H1713" stroke="#c1842f" marker-end="url(#seqArrow-amber)"/>
+  <rect class="pill" x="1552" y="898" width="146" height="30" rx="15"/>
+  <circle class="badge" cx="1572" cy="913" r="13" fill="#c1842f" stroke="#c1842f"/>
+  <text class="badgeText" x="1572" y="917" text-anchor="middle">8</text>
+  <text class="msg" x="1628" y="918" text-anchor="middle" fill="#c1842f">Run step</text>
+
+  <path class="return" d="M1713 1000H1525" stroke="#2f8f8a" marker-end="url(#seqArrow-teal)"/>
+  <rect class="pill" x="1544" y="958" width="164" height="30" rx="15"/>
+  <circle class="badge" cx="1564" cy="973" r="13" fill="#2f8f8a" stroke="#2f8f8a"/>
+  <text class="badgeText" x="1564" y="977" text-anchor="middle">9</text>
+  <text class="msg" x="1628" y="978" text-anchor="middle" fill="#2f8f8a">Report 2/1/1</text>
+
+  <path class="return" d="M1525 1090H507" stroke="#5f8d3e" marker-end="url(#seqArrow-green)"/>
+  <rect class="pill" x="896" y="1048" width="244" height="30" rx="15"/>
+  <circle class="badge" cx="918" cy="1063" r="13" fill="#5f8d3e" stroke="#5f8d3e"/>
+  <text class="badgeText" x="918" y="1067" text-anchor="middle">10</text>
+  <text class="msg" x="1022" y="1068" text-anchor="middle" fill="#5f8d3e">completed report</text>
+
+  <path class="return" d="M507 1160H182" stroke="#5f8d3e" marker-end="url(#seqArrow-green)"/>
+  <rect class="pill" x="246" y="1118" width="196" height="30" rx="15"/>
+  <circle class="badge" cx="268" cy="1133" r="13" fill="#5f8d3e" stroke="#5f8d3e"/>
+  <text class="badgeText" x="268" y="1137" text-anchor="middle">11</text>
+  <text class="msg" x="350" y="1138" text-anchor="middle" fill="#5f8d3e">output contract</text>
+
+  <rect class="pill" x="364" y="1234" width="1072" height="34" rx="17"/>
+  <text class="footer" x="900" y="1256" text-anchor="middle">Failure proof is local to the example: profile retry succeeds, batch skips one invalid order, and one temporary write is retried.</text>
+</svg>

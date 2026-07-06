@@ -1,0 +1,121 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="1000" viewBox="0 0 1600 1000" role="img" aria-labelledby="title desc">
+  <title id="title">textsearch Core Contract Map</title>
+  <desc id="desc">Class-style contract map for textsearch showing Pattern and Config input, immutable Aho-Corasick matcher compilation, Matcher search APIs, deterministic Match result transforms, Tokenizer extension contracts, and immutable BlockwordDictionary rebuild boundaries.</desc>
+  <defs>
+    <filter id="softShadow" x="-6%" y="-8%" width="112%" height="120%">
+      <feDropShadow dx="0" dy="5" stdDeviation="5" flood-color="#0f172a" flood-opacity="0.10"/>
+    </filter>
+    <style>
+      .canvas { fill: #f8fafc; }
+      .frame { fill: #ffffff; stroke: #cbd5e1; stroke-width: 1.5; filter: url(#softShadow); }
+      .title, .card-title { font-family: "Architects Daughter", "Comic Sans MS", cursive; fill: #24364f; }
+      .title { font-size: 42px; }
+      .subtitle, .section, .member, .label, .legend { font-family: "Comic Mono", "SFMono-Regular", monospace; fill: #526276; }
+      .subtitle { font-size: 17px; }
+      .section { font-size: 13px; font-weight: 700; text-transform: uppercase; letter-spacing: 0; }
+      .card-title { font-size: 25px; }
+      .member { font-size: 14px; }
+      .label { font-size: 13px; font-weight: 700; }
+      .legend { font-size: 13px; }
+      .card { stroke-width: 2.2; rx: 12; filter: url(#softShadow); }
+      .rule { stroke-width: 1.2; opacity: 0.42; }
+      .connector { fill: none; stroke-linecap: round; stroke-linejoin: round; stroke-width: 3.1; }
+      .dependency { stroke-dasharray: 10 8; }
+      .head { stroke-linejoin: round; stroke-dasharray: none; }
+      .legendBox { fill: #ffffff; stroke: #d7e0ea; stroke-width: 1.4; rx: 12; }
+    </style>
+  </defs>
+
+  <rect class="canvas" width="1600" height="1000"/>
+  <rect class="frame" x="34" y="30" width="1532" height="932" rx="8"/>
+  <text class="title" x="72" y="88">textsearch Core Contract Map</text>
+  <text class="subtitle" x="76" y="120">Compile dictionaries once, search immutably, keep byte offsets in the original input, and put optional language dependencies outside core.</text>
+
+  <rect class="card" x="86" y="178" width="396" height="220" fill="#eaf2ff" stroke="#6d9df0"/>
+  <text class="card-title" x="284" y="216" text-anchor="middle">Pattern + Config</text>
+  <text class="section" x="116" y="246">caller-owned input</text>
+  <line class="rule" x1="116" y1="256" x2="452" y2="256" stroke="#6d9df0"/>
+  <text class="member" x="116" y="284">Pattern{ID, Text}</text>
+  <text class="member" x="116" y="312">IgnoreCase + Normalize</text>
+  <text class="member" x="116" y="340">BoundaryASCII/UnicodeWord</text>
+  <text class="member" x="116" y="368">OverlapAll or LeftmostLongest</text>
+
+  <rect class="card" x="590" y="150" width="420" height="244" fill="#edf9f4" stroke="#63b891"/>
+  <text class="card-title" x="800" y="188" text-anchor="middle">Compile automaton</text>
+  <text class="section" x="622" y="218">Aho-Corasick build</text>
+  <line class="rule" x1="622" y1="228" x2="978" y2="228" stroke="#63b891"/>
+  <text class="member" x="622" y="256">Compile / CompileStrings</text>
+  <text class="member" x="622" y="284">normalized pattern runes</text>
+  <text class="member" x="622" y="312">trie nodes + fail links</text>
+  <text class="member" x="622" y="340">stable dictionary order</text>
+  <text class="member" x="622" y="368">rejects empty pattern sets</text>
+
+  <rect class="card" x="1118" y="178" width="396" height="220" fill="#f3efff" stroke="#9b7aec"/>
+  <text class="card-title" x="1316" y="216" text-anchor="middle">Matcher</text>
+  <text class="section" x="1148" y="246">immutable reader</text>
+  <line class="rule" x1="1148" y1="256" x2="1484" y2="256" stroke="#9b7aec"/>
+  <text class="member" x="1148" y="284">Contains / First / FindAll</text>
+  <text class="member" x="1148" y="312">linear scan after compilation</text>
+  <text class="member" x="1148" y="340">boundary filtering helpers</text>
+  <text class="member" x="1148" y="368">concurrent readers are safe</text>
+
+  <rect class="card" x="86" y="588" width="396" height="210" fill="#fff4de" stroke="#d59c3f"/>
+  <text class="card-title" x="284" y="626" text-anchor="middle">Tokenizer core</text>
+  <text class="section" x="116" y="656">extension contract</text>
+  <line class="rule" x1="116" y1="666" x2="452" y2="666" stroke="#d59c3f"/>
+  <text class="member" x="116" y="694">Tokenizer / TokenizerFunc</text>
+  <text class="member" x="116" y="722">SimpleTokenizer dependency-free</text>
+  <text class="member" x="116" y="750">Token span uses original bytes</text>
+  <text class="member" x="116" y="778">japanese/language stay opt-in</text>
+
+  <rect class="card" x="590" y="588" width="420" height="210" fill="#f8fafc" stroke="#94a3b8"/>
+  <text class="card-title" x="800" y="626" text-anchor="middle">BlockwordDictionary</text>
+  <text class="section" x="622" y="656">moderation helper</text>
+  <line class="rule" x1="622" y1="666" x2="978" y2="666" stroke="#94a3b8"/>
+  <text class="member" x="622" y="694">BlockwordEntry severity + metadata</text>
+  <text class="member" x="622" y="722">NewBlockwordDictionary compiles</text>
+  <text class="member" x="622" y="750">Detect / Process / Mask</text>
+  <text class="member" x="622" y="778">runtime mutation = rebuild/swap</text>
+
+  <rect class="card" x="1118" y="588" width="396" height="210" fill="#fff0f0" stroke="#d56b7d"/>
+  <text class="card-title" x="1316" y="626" text-anchor="middle">Results + transforms</text>
+  <text class="section" x="1148" y="656">caller-visible output</text>
+  <line class="rule" x1="1148" y1="666" x2="1484" y2="666" stroke="#d56b7d"/>
+  <text class="member" x="1148" y="694">Match{Pattern, Start, End, Text}</text>
+  <text class="member" x="1148" y="722">byte offsets into original input</text>
+  <text class="member" x="1148" y="750">Replace uses Replacer callback</text>
+  <text class="member" x="1148" y="778">Mask uses leftmost-longest output</text>
+
+  <path class="connector" d="M482 288H590" stroke="#4f86c6"/>
+  <polygon class="head" points="590,288 572,278 572,298" fill="#4f86c6" stroke="#4f86c6"/>
+  <rect class="legendBox" x="498" y="252" width="82" height="28"/>
+  <text class="label" x="539" y="271" text-anchor="middle" fill="#4f86c6">feeds</text>
+
+  <path class="connector" d="M1010 288H1118" stroke="#8a65d6"/>
+  <polygon class="head" points="1118,288 1100,278 1100,298" fill="#8a65d6" stroke="#8a65d6"/>
+  <rect class="legendBox" x="1022" y="252" width="96" height="28"/>
+  <text class="label" x="1070" y="271" text-anchor="middle" fill="#8a65d6">returns</text>
+
+  <path class="connector" d="M1316 398V588" stroke="#b65b67"/>
+  <polygon class="head" points="1316,588 1306,570 1326,570" fill="#b65b67" stroke="#b65b67"/>
+  <rect class="legendBox" x="1338" y="478" width="106" height="28"/>
+  <text class="label" x="1391" y="497" text-anchor="middle" fill="#b65b67">emits</text>
+
+  <path class="connector" d="M1010 693H1118" stroke="#64748b"/>
+  <polygon class="head" points="1118,693 1100,683 1100,703" fill="#64748b" stroke="#64748b"/>
+  <rect class="legendBox" x="1024" y="657" width="86" height="28"/>
+  <text class="label" x="1067" y="676" text-anchor="middle" fill="#64748b">uses</text>
+
+  <path class="connector" d="M800 588V394" stroke="#64748b"/>
+  <polygon class="head" points="800,394 790,412 810,412" fill="#64748b" stroke="#64748b"/>
+  <rect class="legendBox" x="826" y="478" width="108" height="28"/>
+  <text class="label" x="880" y="497" text-anchor="middle" fill="#64748b">compiles</text>
+
+  <rect class="legendBox" x="94" y="858" width="1134" height="64"/>
+  <path class="connector" d="M126 884H196" stroke="#4f86c6"/>
+  <polygon class="head" points="196,884 178,874 178,894" fill="#4f86c6" stroke="#4f86c6"/>
+  <text class="legend" x="216" y="889">solid = core compile, immutable search, and deterministic transform flow</text>
+  <path class="connector dependency" d="M766 884H836" stroke="#d59c3f"/>
+  <polygon class="head" points="836,884 818,874 818,894" fill="#ffffff" stroke="#d59c3f" stroke-width="3.1"/>
+  <text class="legend" x="856" y="889">dashed = optional tokenizer/language dependency boundary</text>
+</svg>

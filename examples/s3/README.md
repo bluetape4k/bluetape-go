@@ -21,6 +21,20 @@ KMS and client-side encryption are out of scope for this package. Add a focused
 KMS/encryption issue only when a concrete Go consumer needs envelope encryption,
 key policy, or metadata compatibility.
 
+## Diagram
+
+![S3 example contract map](../../docs/images/readme-diagrams/examples-s3-contract-map.png)
+
+The contract map shows that the examples keep AWS SDK clients caller-owned and
+only document helper boundaries for content type detection, streaming, Floci
+local endpoints, and error mapping.
+
+![S3 object operation sequence](../../docs/images/readme-diagrams/examples-s3-object-sequence.png)
+
+The sequence follows the smoke/example flow from local endpoint configuration
+through upload, metadata verification, download, presigned URLs, and modeled
+not-found handling.
+
 ## Local Endpoint
 
 Floci and other local S3-compatible endpoints need path-style addressing:

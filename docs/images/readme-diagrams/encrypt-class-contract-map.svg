@@ -1,0 +1,139 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="1020" viewBox="0 0 1600 1020" role="img" aria-labelledby="title desc">
+  <title id="title">encrypt Class Contract Map</title>
+  <desc id="desc">Encryptor wraps AES-GCM random-nonce AEAD, emits a versioned BTENC envelope, and reports safe sentinel errors without exposing sensitive material.</desc>
+  <defs>
+    <filter id="softShadow" x="-6%" y="-8%" width="112%" height="120%">
+      <feDropShadow dx="0" dy="5" stdDeviation="5" flood-color="#0f172a" flood-opacity="0.10"/>
+    </filter>
+    <style>
+      .canvas { fill: #f8fafc; }
+      .frame { fill: #ffffff; stroke: #cbd5e1; stroke-width: 1.5; filter: url(#softShadow); }
+      .title, .card-title { font-family: "Architects Daughter", "Comic Sans MS", cursive; fill: #24364f; }
+      .title { font-size: 42px; }
+      .subtitle, .section, .member, .label, .legend { font-family: "Comic Mono", "SFMono-Regular", monospace; fill: #526276; }
+      .subtitle { font-size: 17px; }
+      .section { font-size: 13px; font-weight: 700; text-transform: uppercase; letter-spacing: 0; }
+      .card-title { font-size: 25px; }
+      .member { font-size: 14px; }
+      .label { font-size: 13px; font-weight: 700; }
+      .legend { font-size: 13px; }
+      .card { stroke-width: 2.2; rx: 12; filter: url(#softShadow); }
+      .rule { stroke-width: 1.2; opacity: 0.42; }
+      .connector { fill: none; stroke-linecap: round; stroke-linejoin: round; stroke-width: 3.1; }
+      .dependency { stroke-dasharray: 10 8; }
+      .arrow { stroke-linejoin: round; }
+      .legendBox { fill: #ffffff; stroke: #d7e0ea; stroke-width: 1.4; rx: 12; }
+    </style>
+  </defs>
+
+  <rect class="canvas" width="1600" height="1020"/>
+  <rect class="frame" x="34" y="30" width="1532" height="956" rx="8"/>
+  <text class="title" x="74" y="88">encrypt Class Contract Map</text>
+  <text class="subtitle" x="78" y="120">Small AES-GCM facade: copied caller key, associated data binding, versioned BTENC envelope.</text>
+
+  <rect class="card" x="86" y="186" width="342" height="168" fill="#eaf2ff" stroke="#6d9df0"/>
+  <text class="card-title" x="257" y="224" text-anchor="middle">Caller inputs</text>
+  <line class="rule" x1="116" y1="242" x2="398" y2="242" stroke="#6d9df0"/>
+  <text class="member" x="116" y="272">+ AES key: 16, 24, or 32 bytes</text>
+  <text class="member" x="116" y="300">+ plaintext bytes or UTF-8 text</text>
+  <text class="member" x="116" y="328">+ associated data context</text>
+
+  <rect class="card" x="86" y="424" width="342" height="164" fill="#edf9f4" stroke="#63b891"/>
+  <text class="card-title" x="257" y="462" text-anchor="middle">Package helpers</text>
+  <line class="rule" x1="116" y1="480" x2="398" y2="480" stroke="#63b891"/>
+  <text class="member" x="116" y="510">+ Encrypt(key, plaintext, ad)</text>
+  <text class="member" x="116" y="538">+ Decrypt(key, ciphertext, ad)</text>
+  <text class="member" x="116" y="566">construct short-lived Encryptor</text>
+
+  <rect class="card" x="610" y="184" width="390" height="298" fill="#f3efff" stroke="#9b7aec"/>
+  <text class="card-title" x="805" y="222" text-anchor="middle">Encryptor</text>
+  <text class="section" x="642" y="252">state</text>
+  <line class="rule" x1="642" y1="262" x2="968" y2="262" stroke="#9b7aec"/>
+  <text class="member" x="642" y="292">- aead cipher.AEAD</text>
+  <text class="member" x="642" y="320">immutable after New(key)</text>
+  <text class="section" x="642" y="358">methods</text>
+  <line class="rule" x1="642" y1="368" x2="968" y2="368" stroke="#9b7aec"/>
+  <text class="member" x="642" y="398">+ Encrypt / Decrypt bytes</text>
+  <text class="member" x="642" y="426">+ EncryptString / DecryptString</text>
+  <text class="member" x="642" y="454">safe for concurrent use</text>
+
+  <rect class="card" x="610" y="538" width="390" height="162" fill="#fff4de" stroke="#d59c3f"/>
+  <text class="card-title" x="805" y="576" text-anchor="middle">String helpers</text>
+  <line class="rule" x1="642" y1="594" x2="968" y2="594" stroke="#d59c3f"/>
+  <text class="member" x="642" y="624">UTF-8 only</text>
+  <text class="member" x="642" y="652">base64.RawURLEncoding</text>
+  <text class="member" x="642" y="680">malformed text maps to safe errors</text>
+
+  <rect class="card" x="1170" y="184" width="342" height="166" fill="#eaf2ff" stroke="#6d9df0"/>
+  <text class="card-title" x="1341" y="222" text-anchor="middle">AES-GCM AEAD</text>
+  <line class="rule" x1="1200" y1="240" x2="1482" y2="240" stroke="#6d9df0"/>
+  <text class="member" x="1200" y="270">cipher.NewGCMWithRandomNonce</text>
+  <text class="member" x="1200" y="298">Seal/Open bind associated data</text>
+  <text class="member" x="1200" y="326">stdlib owns nonce prefix</text>
+
+  <rect class="card" x="1170" y="420" width="342" height="158" fill="#edf9f4" stroke="#63b891"/>
+  <text class="card-title" x="1341" y="458" text-anchor="middle">Envelope</text>
+  <line class="rule" x1="1200" y1="476" x2="1482" y2="476" stroke="#63b891"/>
+  <text class="member" x="1200" y="506">BTENC magic</text>
+  <text class="member" x="1200" y="534">version=0x01, algorithm=0x01</text>
+  <text class="member" x="1200" y="562">random-nonce AEAD payload</text>
+
+  <rect class="card" x="1170" y="648" width="342" height="190" fill="#fff0f0" stroke="#d56b7d"/>
+  <text class="card-title" x="1341" y="686" text-anchor="middle">Error</text>
+  <line class="rule" x1="1200" y1="704" x2="1482" y2="704" stroke="#d56b7d"/>
+  <text class="member" x="1200" y="734">+ Kind sentinel error</text>
+  <text class="member" x="1200" y="762">+ Operation string</text>
+  <text class="member" x="1200" y="790">+ Cause error</text>
+  <text class="member" x="1200" y="818">no sensitive material in Error()</text>
+
+  <rect class="card" x="86" y="664" width="342" height="204" fill="#f8fafc" stroke="#94a3b8"/>
+  <text class="card-title" x="257" y="702" text-anchor="middle">Sentinels</text>
+  <line class="rule" x1="116" y1="720" x2="398" y2="720" stroke="#94a3b8"/>
+  <text class="member" x="116" y="750">ErrInvalidKey</text>
+  <text class="member" x="116" y="778">ErrMalformedCiphertext</text>
+  <text class="member" x="116" y="806">ErrAuthenticationFailed</text>
+  <text class="member" x="116" y="834">ErrInvalidOptions</text>
+
+  <path class="connector dependency" d="M428 270 L610 270" stroke="#4f86c6"/>
+  <polygon class="arrow" points="610,270 596,262 596,278" fill="#4f86c6" stroke="#4f86c6"/>
+  <rect class="legendBox" x="470" y="232" width="102" height="28" rx="14"/>
+  <text class="label" x="521" y="251" text-anchor="middle" fill="#4f86c6">New(key)</text>
+
+  <path class="connector" d="M428 506 L506 506 Q526 506 526 486 L526 418 Q526 398 546 398 L610 398" stroke="#5f8d3e"/>
+  <polygon class="arrow" points="610,398 596,390 596,406" fill="#5f8d3e" stroke="#5f8d3e"/>
+  <rect class="legendBox" x="462" y="432" width="124" height="28" rx="14"/>
+  <text class="label" x="524" y="451" text-anchor="middle" fill="#5f8d3e">delegates</text>
+
+  <path class="connector" d="M1000 282 L1170 282" stroke="#4f86c6"/>
+  <polygon class="arrow" points="1170,282 1156,274 1156,290" fill="#4f86c6" stroke="#4f86c6"/>
+  <rect class="legendBox" x="1036" y="244" width="96" height="28" rx="14"/>
+  <text class="label" x="1084" y="263" text-anchor="middle" fill="#4f86c6">wraps</text>
+
+  <path class="connector" d="M1000 430 L1088 430 Q1108 430 1108 450 L1108 479 Q1108 499 1128 499 L1170 499" stroke="#5f8d3e"/>
+  <polygon class="arrow" points="1170,499 1156,491 1156,507" fill="#5f8d3e" stroke="#5f8d3e"/>
+  <rect class="legendBox" x="1032" y="448" width="116" height="28" rx="14"/>
+  <text class="label" x="1090" y="467" text-anchor="middle" fill="#5f8d3e">emits/parses</text>
+
+  <path class="connector" d="M805 538 L805 482" stroke="#c1842f"/>
+  <polygon class="arrow" points="805,482 797,496 813,496" fill="#c1842f" stroke="#c1842f"/>
+  <rect class="legendBox" x="830" y="492" width="104" height="28" rx="14"/>
+  <text class="label" x="882" y="511" text-anchor="middle" fill="#c1842f">uses bytes</text>
+
+  <path class="connector" d="M1000 664 L1086 664 Q1106 664 1106 684 L1106 722 Q1106 742 1126 742 L1170 742" stroke="#b65b67"/>
+  <polygon class="arrow" points="1170,742 1156,734 1156,750" fill="#b65b67" stroke="#b65b67"/>
+  <rect class="legendBox" x="1022" y="688" width="128" height="28" rx="14"/>
+  <text class="label" x="1086" y="707" text-anchor="middle" fill="#b65b67">returns safe</text>
+
+  <path class="connector dependency" d="M428 750 L1170 750" stroke="#64748b"/>
+  <polygon class="arrow" points="1170,750 1156,742 1156,758" fill="#64748b" stroke="#64748b"/>
+  <rect class="legendBox" x="718" y="712" width="150" height="28" rx="14"/>
+  <text class="label" x="793" y="731" text-anchor="middle" fill="#64748b">errors.Is kind</text>
+
+  <rect class="legendBox" x="104" y="900" width="720" height="44" rx="12"/>
+  <path class="connector" d="M136 922 L206 922" stroke="#5f8d3e"/>
+  <polygon class="arrow" points="206,922 192,914 192,930" fill="#5f8d3e" stroke="#5f8d3e"/>
+  <text class="legend" x="226" y="927">solid = runtime data/control contract</text>
+  <path class="connector dependency" d="M494 922 L564 922" stroke="#64748b"/>
+  <polygon class="arrow" points="564,922 550,914 550,930" fill="#64748b" stroke="#64748b"/>
+  <text class="legend" x="584" y="927">dashed = caller-owned key/error dependency</text>
+</svg>

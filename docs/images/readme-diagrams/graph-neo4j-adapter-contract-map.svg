@@ -1,0 +1,126 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="1000" viewBox="0 0 1600 1000" role="img" aria-labelledby="title desc">
+  <title id="title">graph/neo4j Adapter Contract Map</title>
+  <desc id="desc">Class-style contract map for graph/neo4j showing caller-owned Neo4j driver, small Client helpers, record adapters, graph core values, redacted errors, Memgraph compatibility, and deferred backend-neutral abstractions.</desc>
+  <defs>
+    <filter id="softShadow" x="-6%" y="-8%" width="112%" height="120%">
+      <feDropShadow dx="0" dy="5" stdDeviation="5" flood-color="#0f172a" flood-opacity="0.10"/>
+    </filter>
+    <style>
+      .canvas { fill: #f8fafc; }
+      .frame { fill: #ffffff; stroke: #cbd5e1; stroke-width: 1.5; filter: url(#softShadow); }
+      .title, .card-title { font-family: "Architects Daughter", "Comic Sans MS", cursive; fill: #24364f; }
+      .title { font-size: 42px; }
+      .subtitle, .section, .member, .label, .legend { font-family: "Comic Mono", "SFMono-Regular", monospace; fill: #526276; }
+      .subtitle { font-size: 17px; }
+      .section { font-size: 13px; font-weight: 700; text-transform: uppercase; letter-spacing: 0; }
+      .card-title { font-size: 25px; }
+      .member { font-size: 14px; }
+      .label { font-size: 13px; font-weight: 700; }
+      .legend { font-size: 13px; }
+      .card { stroke-width: 2.2; rx: 12; filter: url(#softShadow); }
+      .rule { stroke-width: 1.2; opacity: 0.42; }
+      .connector { fill: none; stroke-linecap: round; stroke-linejoin: round; stroke-width: 3.1; }
+      .dependency { stroke-dasharray: 10 8; }
+      .head { stroke-linejoin: round; stroke-dasharray: none; }
+      .legendBox { fill: #ffffff; stroke: #d7e0ea; stroke-width: 1.4; rx: 12; }
+    </style>
+  </defs>
+
+  <rect class="canvas" width="1600" height="1000"/>
+  <rect class="frame" x="34" y="30" width="1532" height="932" rx="8"/>
+  <text class="title" x="72" y="88">graph/neo4j Adapter Contract Map</text>
+  <text class="subtitle" x="76" y="120">A proof adapter over the official Neo4j driver: minimal query helpers, deterministic record mapping, no backend-neutral repository.</text>
+
+  <rect class="card" x="590" y="150" width="420" height="250" fill="#edf9f4" stroke="#63b891"/>
+  <text class="card-title" x="800" y="188" text-anchor="middle">Client</text>
+  <text class="section" x="622" y="218">small helper surface</text>
+  <line class="rule" x1="622" y1="228" x2="978" y2="228" stroke="#63b891"/>
+  <text class="member" x="622" y="256">NewClient(driver, options...)</text>
+  <text class="member" x="622" y="284">VerifyConnectivity(ctx)</text>
+  <text class="member" x="622" y="312">ExecuteWrite(ctx, cypher, params)</text>
+  <text class="member" x="622" y="340">ReadVertices / ReadEdges(column)</text>
+  <text class="member" x="622" y="368">Close(ctx) closes wrapped driver</text>
+
+  <rect class="card" x="86" y="178" width="396" height="220" fill="#f3efff" stroke="#9b7aec"/>
+  <text class="card-title" x="284" y="216" text-anchor="middle">Neo4j driver</text>
+  <text class="section" x="116" y="246">caller-owned lifecycle</text>
+  <line class="rule" x1="116" y1="256" x2="452" y2="256" stroke="#9b7aec"/>
+  <text class="member" x="116" y="284">neo4j.Driver</text>
+  <text class="member" x="116" y="312">auth, TLS, routing, cluster config</text>
+  <text class="member" x="116" y="340">driver retry defaults</text>
+  <text class="member" x="116" y="368">caller avoids close during operations</text>
+
+  <rect class="card" x="1118" y="178" width="396" height="220" fill="#eaf2ff" stroke="#6d9df0"/>
+  <text class="card-title" x="1316" y="216" text-anchor="middle">Neo4j records</text>
+  <text class="section" x="1148" y="246">driver result values</text>
+  <line class="rule" x1="1148" y1="256" x2="1484" y2="256" stroke="#6d9df0"/>
+  <text class="member" x="1148" y="284">dbtype.Node</text>
+  <text class="member" x="1148" y="312">dbtype.Relationship</text>
+  <text class="member" x="1148" y="340">Record.Get(column)</text>
+  <text class="member" x="1148" y="368">Collect(ctx) before adaptation</text>
+
+  <rect class="card" x="86" y="588" width="396" height="210" fill="#fff4de" stroke="#d59c3f"/>
+  <text class="card-title" x="284" y="626" text-anchor="middle">Options + errors</text>
+  <text class="section" x="116" y="656">redacted boundary</text>
+  <line class="rule" x1="116" y1="666" x2="452" y2="666" stroke="#d59c3f"/>
+  <text class="member" x="116" y="694">WithDatabase(name)</text>
+  <text class="member" x="116" y="722">ErrInvalidOptions / ErrInvalidRecord</text>
+  <text class="member" x="116" y="750">ErrDriver wraps driver failures</text>
+  <text class="member" x="116" y="778">no raw Cypher, params, properties retained</text>
+
+  <rect class="card" x="590" y="588" width="420" height="210" fill="#f8fafc" stroke="#94a3b8"/>
+  <text class="card-title" x="800" y="626" text-anchor="middle">Record adapters</text>
+  <text class="section" x="622" y="656">deterministic mapping</text>
+  <line class="rule" x1="622" y1="666" x2="978" y2="666" stroke="#94a3b8"/>
+  <text class="member" x="622" y="694">VertexFromNode(node)</text>
+  <text class="member" x="622" y="722">EdgeFromRelationship(rel)</text>
+  <text class="member" x="622" y="750">labels trim/dedupe/sort then first</text>
+  <text class="member" x="622" y="778">ElementId required; numeric IDs excluded</text>
+
+  <rect class="card" x="1118" y="588" width="396" height="210" fill="#fff0f0" stroke="#d56b7d"/>
+  <text class="card-title" x="1316" y="626" text-anchor="middle">graph core + scope</text>
+  <text class="section" x="1148" y="656">output and guardrails</text>
+  <line class="rule" x1="1148" y1="666" x2="1484" y2="666" stroke="#d56b7d"/>
+  <text class="member" x="1148" y="694">graph.Vertex / graph.Edge</text>
+  <text class="member" x="1148" y="722">Properties shallow-copy boundary</text>
+  <text class="member" x="1148" y="750">Memgraph uses same driver surface</text>
+  <text class="member" x="1148" y="778">no repository, schema, or Cypher DSL</text>
+
+  <path class="connector" d="M482 288H590" stroke="#8a65d6"/>
+  <polygon class="head" points="590,288 572,278 572,298" fill="#8a65d6" stroke="#8a65d6"/>
+  <rect class="legendBox" x="500" y="252" width="68" height="28"/>
+  <text class="label" x="534" y="271" text-anchor="middle" fill="#8a65d6">wraps</text>
+
+  <path class="connector" d="M1010 288H1118" stroke="#4f86c6"/>
+  <polygon class="head" points="1118,288 1100,278 1100,298" fill="#4f86c6" stroke="#4f86c6"/>
+  <rect class="legendBox" x="1030" y="252" width="72" height="28"/>
+  <text class="label" x="1066" y="271" text-anchor="middle" fill="#4f86c6">reads</text>
+
+  <path class="connector" d="M1316 398V478Q1316 498 1296 498H820Q800 498 800 518V588" stroke="#64748b"/>
+  <polygon class="head" points="800,588 790,570 810,570" fill="#64748b" stroke="#64748b"/>
+  <rect class="legendBox" x="1032" y="482" width="92" height="28"/>
+  <text class="label" x="1078" y="501" text-anchor="middle" fill="#64748b">adapts</text>
+
+  <path class="connector" d="M1010 696H1118" stroke="#b65b67"/>
+  <polygon class="head" points="1118,696 1100,686 1100,706" fill="#b65b67" stroke="#b65b67"/>
+  <rect class="legendBox" x="1030" y="660" width="74" height="28"/>
+  <text class="label" x="1067" y="679" text-anchor="middle" fill="#b65b67">returns</text>
+
+  <path class="connector" d="M590 696H482" stroke="#c1842f"/>
+  <polygon class="head" points="482,696 500,686 500,706" fill="#c1842f" stroke="#c1842f"/>
+  <rect class="legendBox" x="502" y="660" width="72" height="28"/>
+  <text class="label" x="538" y="679" text-anchor="middle" fill="#c1842f">wraps</text>
+
+  <path class="connector dependency" d="M1316 798V836Q1316 856 1296 856H304Q284 856 284 836V798" stroke="#d56b7d"/>
+  <polygon class="head" points="284,798 274,816 294,816" fill="#ffffff" stroke="#d56b7d" stroke-width="3.1"/>
+  <rect class="legendBox" x="690" y="820" width="220" height="28"/>
+  <text class="label" x="800" y="839" text-anchor="middle" fill="#d56b7d">deferred shared abstraction</text>
+
+  <rect class="legendBox" x="94" y="902" width="990" height="44"/>
+  <path class="connector" d="M126 924H196" stroke="#4f86c6"/>
+  <polygon class="head" points="196,924 178,914 178,934" fill="#4f86c6" stroke="#4f86c6"/>
+  <text class="legend" x="216" y="929">solid = minimal driver helper and adaptation contract</text>
+  <path class="connector dependency" d="M644 924H714" stroke="#d56b7d"/>
+  <polygon class="head" points="714,924 696,914 696,934" fill="#ffffff" stroke="#d56b7d" stroke-width="3.1"/>
+  <text class="legend" x="734" y="929">dashed = intentionally deferred backend-neutral abstraction</text>
+</svg>

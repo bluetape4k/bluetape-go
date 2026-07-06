@@ -45,6 +45,21 @@ Use `WithLowAccuracyMode` when memory matters more than short-text accuracy.
 - `ContainsKorean`, `ContainsJapanese`, `ContainsChinese`, `ContainsThai`, and
   `ContainsLatin` are small Unicode script helpers.
 
+## Diagram
+
+![textsearch/language contract map](../../docs/images/readme-diagrams/textsearch-language-contract-map.png)
+
+The contract map shows `textsearch/language` as an optional Lingua-Go adapter.
+Callers choose the language subset and model-loading tradeoffs, then reuse a
+detector that returns caller-visible results, confidences, sections, and script
+hints.
+
+![textsearch/language detect sequence](../../docs/images/readme-diagrams/textsearch-language-detect-sequence.png)
+
+The sequence follows detector construction, option application, Lingua builder
+setup, `Detect`, `Confidences`, `DetectMultiple`, byte-offset section mapping,
+and Unicode script helper checks.
+
 ## Boundaries
 
 - Language detection is a preprocessing hint, not a security, moderation,

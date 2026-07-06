@@ -21,6 +21,16 @@ also respect the context they receive.
 import "github.com/bluetape4k/bluetape-go/rules"
 ```
 
+## Architecture
+
+The diagram follows the same core rule-engine vocabulary as the bluetape4k
+`utils/rule-engine` README diagrams, but it is intentionally scoped to this Go
+package. Kotlin DSLs, annotation adapters, script readers, suspend engines, and
+parallel execution are not part of this package; Go callers compose ordinary
+`Rule` values and run them through deterministic sequential engines.
+
+![rules class contract map](../docs/images/readme-diagrams/rules-class-contract-map.png)
+
 ## Example
 
 Compile-checked examples live in [`rules_example_test.go`](rules_example_test.go).

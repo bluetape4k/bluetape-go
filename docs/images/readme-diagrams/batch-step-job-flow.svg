@@ -86,9 +86,9 @@
   <text class="msg" x="470" y="282" text-anchor="middle" fill="#4f77c9">Run(ctx)</text>
   <path class="route" d="M910 300H1030" stroke="#319873" marker-end="url(#arrow-green)"/>
   <text class="msg" x="970" y="282" text-anchor="middle" fill="#319873">finish</text>
-  <path class="route" d="M690 415C645 475 570 520 490 545" stroke="#7e62d9" marker-end="url(#arrow-purple)"/>
+  <path class="route" d="M690 415 V430 Q640 500 490 530 V545" stroke="#7e62d9" marker-end="url(#arrow-purple)"/>
   <text class="msg" x="595" y="494" text-anchor="middle" fill="#7e62d9">restore/save</text>
-  <path class="route" d="M720 415C760 475 835 520 955 545" stroke="#c85d73" marker-end="url(#arrow-red)"/>
+  <path class="route" d="M720 415 V430 Q780 500 955 530 V545" stroke="#c85d73" marker-end="url(#arrow-red)"/>
   <text class="msg" x="820" y="494" text-anchor="middle" fill="#c85d73">defer close</text>
   <rect class="legend" x="82" y="842" width="1336" height="40" rx="8"/>
   <text class="footer" x="750" y="868" text-anchor="middle">Use batch for deterministic chunk-oriented work; reports explain exactly where execution stopped.</text>

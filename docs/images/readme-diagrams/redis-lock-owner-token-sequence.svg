@@ -3,13 +3,13 @@
   <desc id="desc">TryLock is one non-blocking SET NX attempt; Unlock deletes only the matching owner token.</desc>
   <defs>
     <filter id="softShadow" x="-8%" y="-10%" width="116%" height="124%"><feDropShadow dx="0" dy="5" stdDeviation="5" flood-color="#0F172A" flood-opacity="0.10"/></filter>
-    <marker id="arrow-blue" markerWidth="14" markerHeight="14" refX="13" refY="7" orient="auto" markerUnits="userSpaceOnUse"><path d="M 0 0 L 14 7 L 0 14 Z" fill="#4f77c9"/></marker>
-    <marker id="arrow-green" markerWidth="14" markerHeight="14" refX="13" refY="7" orient="auto" markerUnits="userSpaceOnUse"><path d="M 0 0 L 14 7 L 0 14 Z" fill="#319873"/></marker>
-    <marker id="arrow-amber" markerWidth="14" markerHeight="14" refX="13" refY="7" orient="auto" markerUnits="userSpaceOnUse"><path d="M 0 0 L 14 7 L 0 14 Z" fill="#cf8428"/></marker>
-    <marker id="arrow-red" markerWidth="14" markerHeight="14" refX="13" refY="7" orient="auto" markerUnits="userSpaceOnUse"><path d="M 0 0 L 14 7 L 0 14 Z" fill="#c85d73"/></marker>
-    <marker id="arrow-purple" markerWidth="14" markerHeight="14" refX="13" refY="7" orient="auto" markerUnits="userSpaceOnUse"><path d="M 0 0 L 14 7 L 0 14 Z" fill="#7e62d9"/></marker>
-    <marker id="arrow-teal" markerWidth="14" markerHeight="14" refX="13" refY="7" orient="auto" markerUnits="userSpaceOnUse"><path d="M 0 0 L 14 7 L 0 14 Z" fill="#3f7d9c"/></marker>
-    <marker id="arrow-gray" markerWidth="14" markerHeight="14" refX="13" refY="7" orient="auto" markerUnits="userSpaceOnUse"><path d="M 0 0 L 14 7 L 0 14 Z" fill="#64748b"/></marker>
+    <marker id="arrow-blue" markerWidth="16" markerHeight="16" viewBox="0 0 10 10" refX="9" refY="5" orient="auto" markerUnits="userSpaceOnUse"><path d="M 0 0 L 10 5 L 0 10 Z" fill="#4f77c9"/></marker>
+    <marker id="arrow-green" markerWidth="16" markerHeight="16" viewBox="0 0 10 10" refX="9" refY="5" orient="auto" markerUnits="userSpaceOnUse"><path d="M 0 0 L 10 5 L 0 10 Z" fill="#319873"/></marker>
+    <marker id="arrow-amber" markerWidth="16" markerHeight="16" viewBox="0 0 10 10" refX="9" refY="5" orient="auto" markerUnits="userSpaceOnUse"><path d="M 0 0 L 10 5 L 0 10 Z" fill="#cf8428"/></marker>
+    <marker id="arrow-red" markerWidth="16" markerHeight="16" viewBox="0 0 10 10" refX="9" refY="5" orient="auto" markerUnits="userSpaceOnUse"><path d="M 0 0 L 10 5 L 0 10 Z" fill="#c85d73"/></marker>
+    <marker id="arrow-purple" markerWidth="16" markerHeight="16" viewBox="0 0 10 10" refX="9" refY="5" orient="auto" markerUnits="userSpaceOnUse"><path d="M 0 0 L 10 5 L 0 10 Z" fill="#7e62d9"/></marker>
+    <marker id="arrow-teal" markerWidth="16" markerHeight="16" viewBox="0 0 10 10" refX="9" refY="5" orient="auto" markerUnits="userSpaceOnUse"><path d="M 0 0 L 10 5 L 0 10 Z" fill="#3f7d9c"/></marker>
+    <marker id="arrow-gray" markerWidth="16" markerHeight="16" viewBox="0 0 10 10" refX="9" refY="5" orient="auto" markerUnits="userSpaceOnUse"><path d="M 0 0 L 10 5 L 0 10 Z" fill="#64748b"/></marker>
     <style>
       .canvas { fill: #f8fafc; }
       .frame { fill: #ffffff; stroke: #cbd5e1; stroke-width: 1.5; filter: url(#softShadow); }
@@ -46,23 +46,23 @@
   <text class="title" x="72" y="88">Redis Lock Owner-Token Sequence</text>
   <text class="subtitle" x="76" y="120">TryLock is one non-blocking SET NX attempt; Unlock deletes only the matching owner token.</text>
   <rect class="participant" x="100" y="174" width="160" height="68" fill="#eaf2ff" stroke="#6d9df0"/>
-  <text class="part-title" x="180" y="202" text-anchor="middle">Caller</text>
+  <text class="part-title participant-title" x="180" y="202" text-anchor="middle">Caller</text>
   <text class="small" x="180" y="224" text-anchor="middle">protected work</text>
   <line class="lifeline" x1="180" y1="242" x2="180" y2="914"/>
   <rect class="participant" x="350" y="174" width="160" height="68" fill="#edf9f4" stroke="#63b891"/>
-  <text class="part-title" x="430" y="202" text-anchor="middle">Mutex</text>
+  <text class="part-title participant-title" x="430" y="202" text-anchor="middle">Mutex</text>
   <text class="small" x="430" y="224" text-anchor="middle">TryLock</text>
   <line class="lifeline" x1="430" y1="242" x2="430" y2="914"/>
   <rect class="participant" x="640" y="174" width="160" height="68" fill="#fff0f0" stroke="#dc2626"/>
-  <text class="part-title" x="720" y="202" text-anchor="middle">Redis key</text>
+  <text class="part-title participant-title" x="720" y="202" text-anchor="middle">Redis key</text>
   <text class="small" x="720" y="224" text-anchor="middle">token + TTL</text>
   <line class="lifeline" x1="720" y1="242" x2="720" y2="914"/>
   <rect class="participant" x="930" y="174" width="160" height="68" fill="#f3efff" stroke="#9b7aec"/>
-  <text class="part-title" x="1010" y="202" text-anchor="middle">Lease</text>
+  <text class="part-title participant-title" x="1010" y="202" text-anchor="middle">Lease</text>
   <text class="small" x="1010" y="224" text-anchor="middle">owner token</text>
   <line class="lifeline" x1="1010" y1="242" x2="1010" y2="914"/>
   <rect class="participant" x="1180" y="174" width="160" height="68" fill="#f8fafc" stroke="#64748b"/>
-  <text class="part-title" x="1260" y="202" text-anchor="middle">Other owner</text>
+  <text class="part-title participant-title" x="1260" y="202" text-anchor="middle">Other owner</text>
   <text class="small" x="1260" y="224" text-anchor="middle">conflict</text>
   <line class="lifeline" x1="1260" y1="242" x2="1260" y2="914"/>
   <rect class="activation" x="423" y="298" width="14" height="224" rx="7"/>
@@ -80,42 +80,42 @@
   <path class="route" d="M180 310 L430 310" stroke="#4f77c9" marker-end="url(#arrow-blue)"/>
   <rect class="pill" x="234" y="268" width="142" height="30" rx="15"/>
   <circle class="badge" cx="252" cy="283" r="13" fill="#4f77c9"/>
-  <text class="badge-text" x="252" y="287" text-anchor="middle">1</text>
+  <text class="badge-text badgeText" x="252" y="287" text-anchor="middle">1</text>
   <text class="msg" x="320" y="288" text-anchor="middle" fill="#4f77c9">TryLock(ctx)</text>
   <path class="route" d="M430 370 L720 370" stroke="#319873" marker-end="url(#arrow-green)"/>
   <rect class="pill" x="460" y="328" width="230" height="30" rx="15"/>
   <circle class="badge" cx="478" cy="343" r="13" fill="#319873"/>
-  <text class="badge-text" x="478" y="347" text-anchor="middle">2</text>
+  <text class="badge-text badgeText" x="478" y="347" text-anchor="middle">2</text>
   <text class="msg" x="590" y="348" text-anchor="middle" fill="#319873">SET NX key token PX ttl</text>
   <path class="return" d="M720 430 L430 430" stroke="#319873" marker-end="url(#arrow-green)"/>
   <rect class="pill" x="509" y="388" width="132" height="30" rx="15"/>
   <circle class="badge" cx="527" cy="403" r="13" fill="#319873"/>
-  <text class="badge-text" x="527" y="407" text-anchor="middle">3a</text>
+  <text class="badge-text badgeText" x="527" y="407" text-anchor="middle">3</text>
   <text class="msg" x="590" y="408" text-anchor="middle" fill="#319873">OK</text>
   <path class="route" d="M430 490 L1010 490" stroke="#319873" marker-end="url(#arrow-green)"/>
   <rect class="pill" x="649" y="448" width="142" height="30" rx="15"/>
   <circle class="badge" cx="667" cy="463" r="13" fill="#319873"/>
-  <text class="badge-text" x="667" y="467" text-anchor="middle">4a</text>
+  <text class="badge-text badgeText" x="667" y="467" text-anchor="middle">4</text>
   <text class="msg" x="735" y="468" text-anchor="middle" fill="#319873">return Lease</text>
   <path class="route" d="M1010 610 L720 610" stroke="#cf8428" marker-end="url(#arrow-amber)"/>
   <rect class="pill" x="754" y="568" width="222" height="30" rx="15"/>
   <circle class="badge" cx="772" cy="583" r="13" fill="#cf8428"/>
-  <text class="badge-text" x="772" y="587" text-anchor="middle">5</text>
+  <text class="badge-text badgeText" x="772" y="587" text-anchor="middle">5</text>
   <text class="msg" x="880" y="588" text-anchor="middle" fill="#cf8428">Lua GET token then DEL</text>
   <path class="return" d="M720 670 L1010 670" stroke="#cf8428" marker-end="url(#arrow-amber)"/>
   <rect class="pill" x="770" y="628" width="190" height="30" rx="15"/>
   <circle class="badge" cx="788" cy="643" r="13" fill="#cf8428"/>
-  <text class="badge-text" x="788" y="647" text-anchor="middle">6</text>
+  <text class="badge-text badgeText" x="788" y="647" text-anchor="middle">6</text>
   <text class="msg" x="880" y="648" text-anchor="middle" fill="#cf8428">deleted true/false</text>
   <path class="route" d="M1260 790 L720 790" stroke="#c85d73" marker-end="url(#arrow-red)"/>
   <rect class="pill" x="875" y="748" width="230" height="30" rx="15"/>
   <circle class="badge" cx="893" cy="763" r="13" fill="#c85d73"/>
-  <text class="badge-text" x="893" y="767" text-anchor="middle">7</text>
+  <text class="badge-text badgeText" x="893" y="767" text-anchor="middle">7</text>
   <text class="msg" x="1005" y="768" text-anchor="middle" fill="#c85d73">different token appears</text>
   <path class="return" d="M1010 850 L720 850" stroke="#c85d73" marker-end="url(#arrow-red)"/>
   <rect class="pill" x="750" y="808" width="230" height="30" rx="15"/>
   <circle class="badge" cx="768" cy="823" r="13" fill="#c85d73"/>
-  <text class="badge-text" x="768" y="827" text-anchor="middle">8</text>
+  <text class="badge-text badgeText" x="768" y="827" text-anchor="middle">8</text>
   <text class="msg" x="880" y="828" text-anchor="middle" fill="#c85d73">stale unlock leaves key</text>
   <rect class="legend" x="82" y="962" width="1336" height="40" rx="8"/>
   <text class="footer" x="750" y="988" text-anchor="middle">No renewal or blocking retry loop is hidden in this package.</text>

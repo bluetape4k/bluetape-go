@@ -1,0 +1,167 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1800" height="1320" viewBox="0 0 1800 1320" role="img" aria-labelledby="title desc">
+  <title id="title">graph/neo4j Read Write Sequence</title>
+  <desc id="desc">Sequence diagram for graph/neo4j showing NewClient around a caller-owned driver, ExecuteWrite session and transaction flow, ReadVertices result collection, record adaptation to graph values, and redacted error wrapping.</desc>
+  <defs>
+    <filter id="softShadow" x="-8%" y="-10%" width="116%" height="124%">
+      <feDropShadow dx="0" dy="5" stdDeviation="5" flood-color="#0f172a" flood-opacity="0.10"/>
+    </filter>
+    <marker id="seqArrow-blue" markerWidth="16" markerHeight="16" refX="9" refY="5" orient="auto" markerUnits="userSpaceOnUse" viewBox="0 0 10 10">
+      <path d="M 0 0 L 10 5 L 0 10 Z" fill="#4f86c6" stroke="#4f86c6"/>
+    </marker>
+    <marker id="seqArrow-amber" markerWidth="16" markerHeight="16" refX="9" refY="5" orient="auto" markerUnits="userSpaceOnUse" viewBox="0 0 10 10">
+      <path d="M 0 0 L 10 5 L 0 10 Z" fill="#c1842f" stroke="#c1842f"/>
+    </marker>
+    <marker id="seqArrow-green" markerWidth="16" markerHeight="16" refX="9" refY="5" orient="auto" markerUnits="userSpaceOnUse" viewBox="0 0 10 10">
+      <path d="M 0 0 L 10 5 L 0 10 Z" fill="#5f8d3e" stroke="#5f8d3e"/>
+    </marker>
+    <marker id="seqArrow-teal" markerWidth="16" markerHeight="16" refX="9" refY="5" orient="auto" markerUnits="userSpaceOnUse" viewBox="0 0 10 10">
+      <path d="M 0 0 L 10 5 L 0 10 Z" fill="#2f8f8a" stroke="#2f8f8a"/>
+    </marker>
+    <marker id="seqArrow-red" markerWidth="16" markerHeight="16" refX="9" refY="5" orient="auto" markerUnits="userSpaceOnUse" viewBox="0 0 10 10">
+      <path d="M 0 0 L 10 5 L 0 10 Z" fill="#b65b67" stroke="#b65b67"/>
+    </marker>
+    <style>
+      .canvas { fill: #f8fafc; }
+      .frame { fill: #ffffff; stroke: #cbd5e1; stroke-width: 1.5; filter: url(#softShadow); }
+      .title, .participant-title { font-family: "Architects Daughter", "Comic Sans MS", cursive; fill: #263a57; }
+      .title { font-size: 42px; }
+      .subtitle, .role, .msg, .region, .footer { font-family: "Comic Mono", "SFMono-Regular", monospace; fill: #526276; }
+      .subtitle { font-size: 17px; }
+      .participant-title { font-size: 22px; }
+      .role { font-size: 13px; }
+      .msg { font-size: 13px; font-weight: 700; }
+      .region { font-size: 13px; font-weight: 700; }
+      .footer { font-size: 14px; }
+      .participant { stroke-width: 2.2; rx: 12; }
+      .lifeline { stroke: #c5d4e3; stroke-width: 2; stroke-dasharray: 8 8; }
+      .activation { fill: #f3eeff; stroke: #8a65d8; stroke-width: 1.7; rx: 7; opacity: 0.88; }
+      .call, .return, .error { fill: none; stroke-linecap: round; stroke-linejoin: round; }
+      .call { stroke-width: 3; }
+      .return, .error { stroke-width: 2.7; stroke-dasharray: 9 8; }
+      .phase { fill: none; stroke: #78909c; stroke-width: 2.4; stroke-dasharray: 12 7; rx: 16; }
+      .phase-label { fill: #ffffff; stroke: #d7e0e4; stroke-width: 1.5; rx: 15; }
+      .pill { fill: #ffffff; stroke: #cbd9e7; stroke-width: 1.5; rx: 15; }
+      .badge { stroke-width: 1.6; }
+      .badgeText { font-family: "Comic Mono", "SFMono-Regular", monospace; font-size: 10px; font-weight: 700; fill: #ffffff; }
+    </style>
+  </defs>
+
+  <rect class="canvas" width="1800" height="1320"/>
+  <rect class="frame" x="34" y="30" width="1732" height="1256" rx="8"/>
+  <text class="title" x="72" y="88">graph/neo4j Read Write Sequence</text>
+  <text class="subtitle" x="76" y="120">Client wraps a caller-owned driver, runs small query helpers, adapts one named result column, and redacts raw Cypher and parameters from errors.</text>
+
+  <rect class="participant" x="72" y="174" width="202" height="72" fill="#eaf2ff" stroke="#6d9df0"/>
+  <text class="participant-title" x="173" y="202" text-anchor="middle">Caller</text>
+  <text class="role" x="173" y="224" text-anchor="middle">owns driver</text>
+  <line class="lifeline" x1="173" y1="246" x2="173" y2="1210"/>
+
+  <rect class="participant" x="358" y="174" width="202" height="72" fill="#edf9f4" stroke="#63b891"/>
+  <text class="participant-title" x="459" y="202" text-anchor="middle">Client</text>
+  <text class="role" x="459" y="224" text-anchor="middle">helper wrapper</text>
+  <line class="lifeline" x1="459" y1="246" x2="459" y2="1210"/>
+
+  <rect class="participant" x="642" y="174" width="226" height="72" fill="#f3efff" stroke="#9b7aec"/>
+  <text class="participant-title" x="755" y="202" text-anchor="middle">Driver/session</text>
+  <text class="role" x="755" y="224" text-anchor="middle">official driver</text>
+  <line class="lifeline" x1="755" y1="246" x2="755" y2="1210"/>
+
+  <rect class="participant" x="950" y="174" width="214" height="72" fill="#fff4de" stroke="#d59c3f"/>
+  <text class="participant-title" x="1057" y="202" text-anchor="middle">Tx/result</text>
+  <text class="role" x="1057" y="224" text-anchor="middle">Run/Collect</text>
+  <line class="lifeline" x1="1057" y1="246" x2="1057" y2="1210"/>
+
+  <rect class="participant" x="1240" y="174" width="218" height="72" fill="#f8fafc" stroke="#94a3b8"/>
+  <text class="participant-title" x="1349" y="202" text-anchor="middle">Adapters</text>
+  <text class="role" x="1349" y="224" text-anchor="middle">records to graph</text>
+  <line class="lifeline" x1="1349" y1="246" x2="1349" y2="1210"/>
+
+  <rect class="participant" x="1518" y="174" width="160" height="72" fill="#fff0f0" stroke="#d56b7d"/>
+  <text class="participant-title" x="1598" y="202" text-anchor="middle">graph</text>
+  <text class="role" x="1598" y="224" text-anchor="middle">Vertex/Edge</text>
+  <line class="lifeline" x1="1598" y1="246" x2="1598" y2="1210"/>
+
+  <rect class="activation" x="166" y="296" width="14" height="872" rx="7"/>
+  <rect class="activation" x="452" y="310" width="14" height="790" rx="7"/>
+  <rect class="activation" x="748" y="470" width="14" height="430" rx="7"/>
+  <rect class="activation" x="1050" y="550" width="14" height="350" rx="7"/>
+  <rect class="activation" x="1342" y="790" width="14" height="230" rx="7"/>
+  <rect class="activation" x="1591" y="870" width="14" height="150" rx="7"/>
+
+  <rect class="phase" x="620" y="436" width="486" height="240" rx="16"/>
+  <rect class="phase-label" x="642" y="454" width="162" height="30" rx="15"/>
+  <text class="region" x="666" y="474">write helper</text>
+
+  <rect class="phase" x="620" y="704" width="1016" height="344" rx="16"/>
+  <rect class="phase-label" x="642" y="722" width="152" height="30" rx="15"/>
+  <text class="region" x="666" y="742">read helper</text>
+
+  <path class="call" d="M173 320H459" stroke="#4f86c6" marker-end="url(#seqArrow-blue)"/>
+  <rect class="pill" x="238" y="278" width="160" height="30" rx="15"/>
+  <circle class="badge" cx="258" cy="293" r="13" fill="#4f86c6" stroke="#4f86c6"/>
+  <text class="badgeText" x="258" y="297" text-anchor="middle">1</text>
+  <text class="msg" x="322" y="298" text-anchor="middle" fill="#4f86c6">NewClient</text>
+
+  <path class="return" d="M459 400H173" stroke="#5f8d3e" marker-end="url(#seqArrow-green)"/>
+  <rect class="pill" x="222" y="358" width="188" height="30" rx="15"/>
+  <circle class="badge" cx="244" cy="373" r="13" fill="#5f8d3e" stroke="#5f8d3e"/>
+  <text class="badgeText" x="244" y="377" text-anchor="middle">2</text>
+  <text class="msg" x="322" y="378" text-anchor="middle" fill="#5f8d3e">stores driver</text>
+
+  <path class="call" d="M173 480H459" stroke="#4f86c6" marker-end="url(#seqArrow-blue)"/>
+  <rect class="pill" x="218" y="438" width="196" height="30" rx="15"/>
+  <circle class="badge" cx="240" cy="453" r="13" fill="#4f86c6" stroke="#4f86c6"/>
+  <text class="badgeText" x="240" y="457" text-anchor="middle">3</text>
+  <text class="msg" x="322" y="458" text-anchor="middle" fill="#4f86c6">ExecuteWrite</text>
+
+  <path class="call" d="M459 560H755" stroke="#8a65d6" marker-end="url(#seqArrow-blue)"/>
+  <rect class="pill" x="526" y="518" width="162" height="30" rx="15"/>
+  <circle class="badge" cx="546" cy="533" r="13" fill="#4f86c6" stroke="#4f86c6"/>
+  <text class="badgeText" x="546" y="537" text-anchor="middle">4</text>
+  <text class="msg" x="612" y="538" text-anchor="middle" fill="#4f86c6">NewSession</text>
+
+  <path class="call" d="M755 640H1057" stroke="#c1842f" marker-end="url(#seqArrow-amber)"/>
+  <rect class="pill" x="820" y="598" width="176" height="30" rx="15"/>
+  <circle class="badge" cx="840" cy="613" r="13" fill="#c1842f" stroke="#c1842f"/>
+  <text class="badgeText" x="840" y="617" text-anchor="middle">5</text>
+  <text class="msg" x="912" y="618" text-anchor="middle" fill="#c1842f">Run + Consume</text>
+
+  <path class="call" d="M173 760H459" stroke="#4f86c6" marker-end="url(#seqArrow-blue)"/>
+  <rect class="pill" x="212" y="718" width="208" height="30" rx="15"/>
+  <circle class="badge" cx="234" cy="733" r="13" fill="#4f86c6" stroke="#4f86c6"/>
+  <text class="badgeText" x="234" y="737" text-anchor="middle">6</text>
+  <text class="msg" x="322" y="738" text-anchor="middle" fill="#4f86c6">ReadVertices</text>
+
+  <path class="call" d="M459 820H1057" stroke="#c1842f" marker-end="url(#seqArrow-amber)"/>
+  <rect class="pill" x="638" y="778" width="242" height="30" rx="15"/>
+  <circle class="badge" cx="660" cy="793" r="13" fill="#c1842f" stroke="#c1842f"/>
+  <text class="badgeText" x="660" y="797" text-anchor="middle">7</text>
+  <text class="msg" x="766" y="798" text-anchor="middle" fill="#c1842f">ExecuteRead/Collect</text>
+
+  <path class="call" d="M459 900H1349" stroke="#64748b" marker-end="url(#seqArrow-teal)"/>
+  <rect class="pill" x="778" y="858" width="260" height="30" rx="15"/>
+  <circle class="badge" cx="800" cy="873" r="13" fill="#2f8f8a" stroke="#2f8f8a"/>
+  <text class="badgeText" x="800" y="877" text-anchor="middle">8</text>
+  <text class="msg" x="914" y="878" text-anchor="middle" fill="#2f8f8a">VerticesFromRecords</text>
+
+  <path class="call" d="M1349 980H1598" stroke="#b65b67" marker-end="url(#seqArrow-red)"/>
+  <rect class="pill" x="1404" y="938" width="146" height="30" rx="15"/>
+  <circle class="badge" cx="1424" cy="953" r="13" fill="#b65b67" stroke="#b65b67"/>
+  <text class="badgeText" x="1424" y="957" text-anchor="middle">9</text>
+  <text class="msg" x="1480" y="958" text-anchor="middle" fill="#b65b67">NewVertex</text>
+
+  <path class="return" d="M1598 1040H459" stroke="#5f8d3e" marker-end="url(#seqArrow-green)"/>
+  <rect class="pill" x="872" y="998" width="312" height="30" rx="15"/>
+  <circle class="badge" cx="894" cy="1013" r="13" fill="#5f8d3e" stroke="#5f8d3e"/>
+  <text class="badgeText" x="894" y="1017" text-anchor="middle">10</text>
+  <text class="msg" x="1032" y="1018" text-anchor="middle" fill="#5f8d3e">[]graph.Vertex / []graph.Edge</text>
+
+  <path class="error" d="M459 1120H173" stroke="#b65b67" marker-end="url(#seqArrow-red)"/>
+  <rect class="pill" x="188" y="1078" width="258" height="30" rx="15"/>
+  <circle class="badge" cx="210" cy="1093" r="13" fill="#b65b67" stroke="#b65b67"/>
+  <text class="badgeText" x="210" y="1097" text-anchor="middle">11</text>
+  <text class="msg" x="322" y="1098" text-anchor="middle" fill="#b65b67">redacted Error</text>
+
+  <rect class="pill" x="388" y="1234" width="1024" height="34" rx="17"/>
+  <text class="footer" x="900" y="1256" text-anchor="middle">The helper surface collects one named column; mixed columns, streaming results, and custom transaction behavior stay with the Neo4j driver API.</text>
+</svg>

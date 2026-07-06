@@ -21,6 +21,16 @@ context를 존중해야 합니다.
 import "github.com/bluetape4k/bluetape-go/rules"
 ```
 
+## 아키텍처
+
+이 diagram은 bluetape4k `utils/rule-engine` README diagram의 core rule-engine
+용어를 따르되, 현재 Go package의 범위로 의도적으로 좁혔습니다. Kotlin DSL,
+annotation adapter, script reader, suspend engine, parallel execution은 이
+package의 일부가 아닙니다. Go caller는 ordinary `Rule` value를 조합하고
+deterministic sequential engine으로 실행합니다.
+
+![rules class contract map](../docs/images/readme-diagrams/rules-class-contract-map.png)
+
 ## 예제
 
 Compile-checked 예제는 [`rules_example_test.go`](rules_example_test.go)에

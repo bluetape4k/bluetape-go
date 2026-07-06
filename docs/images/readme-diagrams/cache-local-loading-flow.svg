@@ -35,9 +35,8 @@
 <text class="body" x="494" y="524">same-key in-flight load</text>
 <text class="body" x="494" y="552">waiters share result</text>
 <path class="arrow" d="M370 250 L470 250"/><text class="label" x="395" y="232">read</text>
-<path class="arrow" d="M830 250 L930 250"/><text class="label" x="850" y="232">miss</text>
-<path class="arrow" d="M930 320 C820 430 720 450 650 450"/><text class="label" x="770" y="420">context guard</text>
-<path class="dashed" d="M470 505 C325 505 285 380 310 360"/><text class="label" x="312" y="496">shared result</text>
-<path class="dashed" d="M647 450 C708 390 778 365 930 315"/>
+<path class="arrow" d="M650 375 V450"/><text class="label" x="668" y="414">ErrCacheMiss / DoChan</text>
+<path class="arrow" d="M830 515 H1050 Q1070 515 1070 495 V360"/><text class="label" x="884" y="497">load once + ctx</text>
+<path class="dashed" d="M470 505 H380 Q310 505 310 380 V360"/><text class="label" x="338" y="482">shared result</text>
 <rect class="footer" x="54" y="645" width="1190" height="46" rx="12"/><text class="note" x="78" y="675">Boundary: this package does not publish invalidations or coordinate across processes; Redis wrappers own those concerns.</text>
 </svg>

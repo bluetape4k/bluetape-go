@@ -91,8 +91,8 @@
   <text class="msg" x="735" y="485" text-anchor="middle" fill="#4f77c9">parse</text>
   <path class="route" d="M892 620 L1018 620" stroke="#7e62d9" marker-end="url(#arrow-purple)"/>
   <text class="msg" x="955" y="600" text-anchor="middle" fill="#7e62d9">find kid</text>
-  <path class="return" d="M512 655 C360 625 270 505 257 385" stroke="#64748b" marker-end="url(#arrow-gray)"/>
-  <text class="msg" x="550" y="744" text-anchor="middle" fill="#64748b">signed token / Reader</text>
+  <path class="return" d="M512 655H450Q430 655 430 635V440Q430 410 400 410H287Q257 410 257 400V385" stroke="#64748b" marker-end="url(#arrow-gray)"/>
+  <text class="msg" x="410" y="528" text-anchor="end" fill="#64748b">signed token / Reader</text>
   <rect class="legend" x="82" y="842" width="1336" height="40" rx="8"/>
   <text class="footer" x="750" y="868" text-anchor="middle">Reset is explicit only; DeleteKeyChainsContext is for tests/operator reset, not normal rollback.</text>
 </svg>
