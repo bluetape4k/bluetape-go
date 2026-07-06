@@ -51,3 +51,14 @@ value, err := versioned.Unmarshal(data)
 ```bash
 go test -count=1 ./serialization
 ```
+
+## Benchmark
+
+```bash
+go test -run '^$' -bench '^BenchmarkSerialization' -benchmem ./serialization
+```
+
+The benchmark runners use deterministic SerDe fixtures for JSON, raw bytes,
+raw strings, `BTGS` versioned envelopes, and serialize-then-compress scenarios.
+Use `docs/benchmarks/2026-07-07-issue-400-go-serde-runners.md` when collecting
+raw output artifacts for the 0.14.0 cross-repo baseline.
