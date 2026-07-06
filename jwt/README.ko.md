@@ -193,7 +193,7 @@ setupCtx, cancelSetup := context.WithTimeout(context.Background(), 2*time.Second
 defer cancelSetup()
 
 client := redis.NewClient(&redis.Options{Addr: "127.0.0.1:6379"})
-defer client.Close()
+defer func() { _ = client.Close() }()
 
 repo, err := redisjwt.New(redisjwt.Options{
     Client:    client,
