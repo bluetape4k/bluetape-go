@@ -75,3 +75,16 @@ uuidText, err := codec.DecodeUUIDURL62(compactID)
 ```bash
 go test -count=1 ./codec
 ```
+
+## Benchmark
+
+```bash
+go test -run '^$' -bench '^BenchmarkCodec' -benchmem ./codec
+```
+
+Base64, Base64URL, and hex runners cover the object, binary, and repeated
+SerDe fixture shapes. Base58, Base62, and URL62 runners are intentionally
+bounded to small and UUID-sized payloads because those encoders are ID/key
+surfaces rather than large binary transport codecs. Use
+`docs/benchmarks/2026-07-07-issue-400-go-serde-runners.md` when collecting raw
+output artifacts.

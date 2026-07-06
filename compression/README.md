@@ -52,3 +52,14 @@ if err != nil {
 ```bash
 go test -count=1 ./compression
 ```
+
+## Benchmark
+
+```bash
+go test -run '^$' -bench '^BenchmarkCompressors' -benchmem ./compression
+```
+
+The benchmark runners cover deterministic JSON, text, binary, and random byte
+payloads across the compressors returned by `All()`. Use
+`docs/benchmarks/2026-07-07-issue-400-go-serde-runners.md` when collecting raw
+output artifacts for the 0.14.0 SerDe baseline.

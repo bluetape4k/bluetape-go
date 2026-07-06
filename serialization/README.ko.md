@@ -50,3 +50,14 @@ value, err := versioned.Unmarshal(data)
 ```bash
 go test -count=1 ./serialization
 ```
+
+## 벤치마크
+
+```bash
+go test -run '^$' -bench '^BenchmarkSerialization' -benchmem ./serialization
+```
+
+Benchmark runner는 JSON, raw bytes, raw strings, `BTGS` versioned envelope,
+serialize-then-compress scenario에 결정적 SerDe fixture를 사용합니다. 0.14.0
+cross-repo baseline의 raw output artifact를 수집할 때는
+`docs/benchmarks/2026-07-07-issue-400-go-serde-runners.md`를 기준으로 삼으세요.
