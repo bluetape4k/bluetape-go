@@ -7,9 +7,9 @@ primitive를 제공합니다. Scope는 의도적으로 작습니다. Facts, rule
 set, composite group, bounded inference, sequential execution, result detail,
 typed error, context cancellation을 다룹니다.
 
-Expression language, YAML/JSON reader, annotation-style registration, parallel
-execution, unbounded forward chaining은 포함하지 않습니다. YAML/JSON reader는 이
-core 위에 쌓는 후속 범위입니다.
+Root package는 expression language, YAML/JSON reader, annotation-style
+registration, parallel execution, unbounded forward chaining을 포함하지
+않습니다. YAML/JSON reader는 이 core 위에 쌓는 optional subpackage에 둡니다.
 
 Rule은 trusted Go code입니다. Context cancellation은 cooperative합니다. Engine은
 각 evaluation과 execution 전에 context를 확인하며, rule body도 전달받은
@@ -132,6 +132,52 @@ true이면 run을 중단하고 `ErrRuleEvaluation` 또는 `ErrRuleExecution`과 
 계속 실행하지만 rule failure가 하나라도 있으면 joined error를 반환합니다. Rule별
 failure는 `Result.Details`에서 확인하세요.
 
+## Expr YAML/JSON Reader
+
+`rules/exprreader`는 YAML 또는 JSON 문서를 기존 `rules.RuleSet`과
+`rules.EngineConfig` contract로 compile하는 optional package입니다.
+
+```go
+import "github.com/bluetape4k/bluetape-go/rules/exprreader"
+```
+
+Schema version `1`은 `rules[].name`과 `rules[].when`을 요구합니다. 각 `when`
+expression은 `expr.AsBool()`, 보수적인 `MaxNodes` 제한, undefined fact variable
+허용, `WarnOnAny`, builtin 기본 비활성화 정책으로 compile합니다. Function/builtin
+call node도 거부하므로 fact를 통해 전달된 callback을 expression에서 호출할 수
+없습니다. 첫 action whitelist는 declarative `set`만 지원합니다.
+
+```yaml
+version: 1
+rules:
+  - name: high-value-discount
+    priority: 10
+    when: amount >= 100 && tier in ["gold", "platinum"]
+    then:
+      - set:
+          key: discount
+          value: 10
+engine:
+  stopOnFirstFailed: true
+```
+
+Reader loading은 decode, validation, expression compile, rule construction
+전에 `context.Context`를 확인합니다. 생성된 rule은 expression evaluation과 action
+execution 전에 context를 확인합니다. Predicate runtime error는 `Rule.Evaluate`로,
+action error는 `Rule.Execute`로 반환하며, engine wrapping은 기존 `rules.Engine`이
+담당합니다.
+
+Typed reader error는 `errors.Is` / `errors.As`와 호환됩니다.
+
+- `exprreader.ErrInvalidRuleDocument`
+- `exprreader.ErrInvalidRuleExpression`
+- `exprreader.ErrInvalidRuleAction`
+- `exprreader.ReaderError`
+
+Non-goal은 명시적으로 유지합니다. YAML/JSON에서 arbitrary Go callback 선언,
+expression-backed side-effectful action, annotation/reflection registration,
+HOCON, 별도 inference engine, unbounded forward chaining은 지원하지 않습니다.
+
 ## Composite Groups
 
 Composite group은 ordinary `Rule` value입니다.
@@ -167,6 +213,6 @@ non-convergence 또는 rule error 전에 기록된 fact는 그대로 남습니�
 ## 테스트
 
 ```bash
-go test -count=1 ./rules
-go test -race -count=1 ./rules
+go test -count=1 ./rules ./rules/...
+go test -race -count=1 ./rules ./rules/...
 ```
