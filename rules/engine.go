@@ -49,6 +49,8 @@ const (
 	StatusEvaluationFailed DetailStatus = "evaluation_failed"
 	// StatusExecutionFailed means Execute returned an error.
 	StatusExecutionFailed DetailStatus = "execution_failed"
+	// StatusNonConverged means bounded inference exceeded its cycle limit.
+	StatusNonConverged DetailStatus = "non_converged"
 	// StatusSkipped means the rule did not run because of engine configuration.
 	StatusSkipped DetailStatus = "skipped"
 )
