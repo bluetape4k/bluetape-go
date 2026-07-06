@@ -11,6 +11,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/dynamodb"
 	"github.com/aws/aws-sdk-go-v2/service/dynamodb/types"
+	concurrencytest "github.com/bluetape4k/bluetape-go/testing/concurrency"
 )
 
 func TestWriteAllChunksRequests(t *testing.T) {
@@ -128,6 +129,62 @@ func TestWriteAllStopsOnContextCancellationBeforeRetry(t *testing.T) {
 	if !errors.Is(err, context.Canceled) {
 		t.Fatalf("error = %v, want context.Canceled", err)
 	}
+}
+
+func TestWriteAllCancellationUsesAsyncJobTester(t *testing.T) {
+	tester := concurrencytest.NewAsyncJobTester(concurrencytest.Options{
+		Workers:       2,
+		RoundsPerTask: 32,
+		Timeout:       time.Second,
+	})
+
+	tester.RunT(t, func(context.Context) error {
+		ctx, cancel := context.WithCancel(context.Background())
+		cancel()
+
+		client := &fakeClient{}
+		_, err := WriteAll(ctx, client, map[string][]types.WriteRequest{
+			"orders": writeRequests(1),
+		})
+		if !errors.Is(err, context.Canceled) {
+			return fmt.Errorf("WriteAll error = %w, want context.Canceled", err)
+		}
+		if len(client.calls) != 0 {
+			return fmt.Errorf("canceled WriteAll made %d calls", len(client.calls))
+		}
+		return nil
+	})
+}
+
+func TestWriteAllBackoffDeadlineUsesAsyncJobTester(t *testing.T) {
+	tester := concurrencytest.NewAsyncJobTester(concurrencytest.Options{
+		Workers:       2,
+		RoundsPerTask: 16,
+		Timeout:       2 * time.Second,
+	})
+
+	tester.RunT(t, func(context.Context) error {
+		client := &fakeClient{
+			outputs: []*dynamodb.BatchWriteItemOutput{
+				{UnprocessedItems: map[string][]types.WriteRequest{"orders": writeRequests(1)}},
+			},
+		}
+		ctx, cancel := context.WithTimeout(context.Background(), time.Millisecond)
+		defer cancel()
+
+		result, err := WriteAll(ctx, client, map[string][]types.WriteRequest{
+			"orders": writeRequests(1),
+		}, WithMaxAttempts(2), WithBackoff(func(int) time.Duration {
+			return time.Second
+		}))
+		if !errors.Is(err, context.DeadlineExceeded) {
+			return fmt.Errorf("WriteAll error = %w, want context.DeadlineExceeded", err)
+		}
+		if result.Attempts != 1 {
+			return fmt.Errorf("attempts = %d, want 1", result.Attempts)
+		}
+		return nil
+	})
 }
 
 func TestWriteAllWrapsClientError(t *testing.T) {

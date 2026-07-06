@@ -3,12 +3,14 @@ package bttesting_test
 import (
 	"context"
 	"errors"
+	"fmt"
 	"strings"
 	"sync/atomic"
 	"testing"
 	"time"
 
 	bttesting "github.com/bluetape4k/bluetape-go/testing"
+	concurrencytest "github.com/bluetape4k/bluetape-go/testing/concurrency"
 )
 
 func TestCheckAwaitImmediateSuccess(t *testing.T) {
@@ -199,6 +201,38 @@ func TestCheckAwaitProbeCancellationIsNotRetried(t *testing.T) {
 	if result.Attempts != 1 || attempts.Load() != 1 {
 		t.Fatalf("expected one attempt before cancellation, got result=%+v attempts=%d", result, attempts.Load())
 	}
+}
+
+func TestCheckAwaitCancellationUsesAsyncJobTester(t *testing.T) {
+	tester := concurrencytest.NewAsyncJobTester(concurrencytest.Options{
+		Workers:       2,
+		RoundsPerTask: 32,
+		Timeout:       time.Second,
+	})
+
+	tester.RunT(t, func(context.Context) error {
+		ctx, cancel := context.WithCancel(context.Background())
+		cancel()
+
+		result, err := bttesting.CheckAwait(
+			ctx,
+			50*time.Millisecond,
+			time.Millisecond,
+			func(context.Context) (int, error) {
+				return 0, errors.New("probe should not run after caller cancellation")
+			},
+			func(int, error) bttesting.AwaitStatus {
+				return bttesting.AwaitContinue
+			},
+		)
+		if !errors.Is(err, context.Canceled) {
+			return fmt.Errorf("CheckAwait error = %w, want context.Canceled", err)
+		}
+		if result.Attempts != 0 {
+			return errors.New("cancelled await should not retry")
+		}
+		return nil
+	})
 }
 
 func TestCheckAwaitDiagnostics(t *testing.T) {

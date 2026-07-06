@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/bluetape4k/bluetape-go/resilience"
+	concurrencytest "github.com/bluetape4k/bluetape-go/testing/concurrency"
 )
 
 func TestCircuitBreakerOpensAndRejectsCalls(t *testing.T) {
@@ -202,6 +203,35 @@ func TestCircuitBreakerConcurrentCallsAreRaceSafe(t *testing.T) {
 	}
 	wg.Wait()
 
+	if breaker.State() != resilience.CircuitStateClosed {
+		t.Fatalf("state = %s, want closed", breaker.State())
+	}
+}
+
+func TestCircuitBreakerConcurrentCallsUseGoroutineStressTester(t *testing.T) {
+	breaker, err := resilience.NewCircuitBreaker[int](resilience.CircuitBreakerOptions{
+		FailureThreshold: 1000,
+		OpenTimeout:      time.Second,
+	})
+	if err != nil {
+		t.Fatalf("NewCircuitBreaker failed: %v", err)
+	}
+
+	tester := concurrencytest.NewGoroutineStressTester(concurrencytest.Options{
+		Workers:       20,
+		RoundsPerTask: 200,
+		Timeout:       2 * time.Second,
+	})
+
+	report := tester.RunT(t, func(context.Context) error {
+		_, err := resilience.Run(context.Background(), func(context.Context) (int, error) {
+			return 1, nil
+		}, breaker)
+		return err
+	})
+	if report.Completed != 200 {
+		t.Fatalf("completed = %d, want 200", report.Completed)
+	}
 	if breaker.State() != resilience.CircuitStateClosed {
 		t.Fatalf("state = %s, want closed", breaker.State())
 	}
