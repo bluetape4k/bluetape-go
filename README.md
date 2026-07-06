@@ -110,6 +110,15 @@ Next planned package families include audit publisher adapters and example
 services. Redis-backed Cuckoo and HyperLogLog/HLL support is tracked separately
 after the Redis Bloom scope.
 
+## SerDe Baseline Guidance
+
+The 0.14.0 cross-repo SerDe matrix keeps defaults conservative. Go
+serialization uses JSON, raw bytes/strings, and the Go-local `BTGS` envelope;
+`compression.Default()` remains zstd; lz4/snappy are throughput candidates;
+gzip/deflate are compatibility choices; and Base58/Base62/URL62 stay ID/key
+surfaces rather than large binary transport codecs. See
+[`docs/research/2026-07-07-issue-402-cross-repo-serde-recommendation.md`](docs/research/2026-07-07-issue-402-cross-repo-serde-recommendation.md).
+
 ## Install
 
 ```bash
