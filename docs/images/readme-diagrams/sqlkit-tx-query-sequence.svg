@@ -1,0 +1,195 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1800" height="1600" viewBox="0 0 1800 1600" role="img" aria-labelledby="title desc">
+  <title id="title">sqlkit Transaction and Query Sequence</title>
+  <desc id="desc">Sequence diagram for sqlkit showing statement builder validation, copied Statement output, WithTx transaction boundaries, Statement.Exec delegation to database/sql, QueryOne row mapping, row closing, and cardinality errors.</desc>
+  <defs>
+    <filter id="softShadow" x="-8%" y="-10%" width="116%" height="124%">
+      <feDropShadow dx="0" dy="5" stdDeviation="5" flood-color="#0f172a" flood-opacity="0.10"/>
+    </filter>
+    <marker id="seqArrow-blue" markerWidth="16" markerHeight="16" refX="9" refY="5" orient="auto" markerUnits="userSpaceOnUse" viewBox="0 0 10 10">
+      <path d="M 0 0 L 10 5 L 0 10 Z" fill="#4f86c6" stroke="#4f86c6"/>
+    </marker>
+    <marker id="seqArrow-green" markerWidth="16" markerHeight="16" refX="9" refY="5" orient="auto" markerUnits="userSpaceOnUse" viewBox="0 0 10 10">
+      <path d="M 0 0 L 10 5 L 0 10 Z" fill="#5f8d3e" stroke="#5f8d3e"/>
+    </marker>
+    <marker id="seqArrow-amber" markerWidth="16" markerHeight="16" refX="9" refY="5" orient="auto" markerUnits="userSpaceOnUse" viewBox="0 0 10 10">
+      <path d="M 0 0 L 10 5 L 0 10 Z" fill="#c1842f" stroke="#c1842f"/>
+    </marker>
+    <marker id="seqArrow-teal" markerWidth="16" markerHeight="16" refX="9" refY="5" orient="auto" markerUnits="userSpaceOnUse" viewBox="0 0 10 10">
+      <path d="M 0 0 L 10 5 L 0 10 Z" fill="#2f8f8a" stroke="#2f8f8a"/>
+    </marker>
+    <marker id="seqArrow-red" markerWidth="16" markerHeight="16" refX="9" refY="5" orient="auto" markerUnits="userSpaceOnUse" viewBox="0 0 10 10">
+      <path d="M 0 0 L 10 5 L 0 10 Z" fill="#b65b67" stroke="#b65b67"/>
+    </marker>
+    <style>
+      .canvas { fill: #f8fafc; }
+      .frame { fill: #ffffff; stroke: #cbd5e1; stroke-width: 1.5; filter: url(#softShadow); }
+      .title, .participant-title { font-family: "Architects Daughter", "Comic Sans MS", cursive; fill: #263a57; }
+      .title { font-size: 42px; }
+      .subtitle, .role, .msg, .region, .footer { font-family: "Comic Mono", "SFMono-Regular", monospace; fill: #526276; }
+      .subtitle { font-size: 17px; }
+      .participant-title { font-size: 21px; }
+      .role { font-size: 13px; }
+      .msg { font-size: 13px; font-weight: 700; }
+      .region { font-size: 13px; font-weight: 700; }
+      .footer { font-size: 14px; }
+      .participant { stroke-width: 2.2; rx: 12; }
+      .lifeline { stroke: #c5d4e3; stroke-width: 2; stroke-dasharray: 8 8; }
+      .activation { fill: #f3eeff; stroke: #8a65d8; stroke-width: 1.7; rx: 7; opacity: 0.88; }
+      .call, .return, .error { fill: none; stroke-linecap: round; stroke-linejoin: round; }
+      .call { stroke-width: 3; }
+      .return, .error { stroke-width: 2.7; stroke-dasharray: 9 8; }
+      .phase { fill: none; stroke: #78909c; stroke-width: 2.4; stroke-dasharray: 12 7; rx: 16; }
+      .phase-label { fill: #ffffff; stroke: #d7e0e4; stroke-width: 1.5; rx: 15; }
+      .pill { fill: #ffffff; stroke: #cbd9e7; stroke-width: 1.5; rx: 15; }
+      .badge { stroke-width: 1.6; }
+      .badgeText { font-family: "Comic Mono", "SFMono-Regular", monospace; font-size: 10px; font-weight: 700; fill: #ffffff; }
+    </style>
+  </defs>
+
+  <rect class="canvas" width="1800" height="1600"/>
+  <rect class="frame" x="34" y="30" width="1732" height="1536" rx="8"/>
+  <text class="title" x="72" y="88">sqlkit Transaction and Query Sequence</text>
+  <text class="subtitle" x="76" y="120">Builders produce visible SQL; WithTx owns only the transaction boundary; query helpers close rows and enforce cardinality.</text>
+
+  <rect class="participant" x="72" y="174" width="184" height="72" fill="#eaf2ff" stroke="#6d9df0"/>
+  <text class="participant-title" x="164" y="202" text-anchor="middle">Caller</text>
+  <text class="role" x="164" y="224" text-anchor="middle">owns db + SQL</text>
+  <line class="lifeline" x1="164" y1="246" x2="164" y2="1492"/>
+
+  <rect class="participant" x="302" y="174" width="194" height="72" fill="#f3efff" stroke="#9b7aec"/>
+  <text class="participant-title" x="399" y="202" text-anchor="middle">Builder</text>
+  <text class="role" x="399" y="224" text-anchor="middle">PostgreSQL-first</text>
+  <line class="lifeline" x1="399" y1="246" x2="399" y2="1492"/>
+
+  <rect class="participant" x="542" y="174" width="194" height="72" fill="#fff4de" stroke="#d59c3f"/>
+  <text class="participant-title" x="639" y="202" text-anchor="middle">Statement</text>
+  <text class="role" x="639" y="224" text-anchor="middle">SQL + Args</text>
+  <line class="lifeline" x1="639" y1="246" x2="639" y2="1492"/>
+
+  <rect class="participant" x="782" y="174" width="206" height="72" fill="#edf9f4" stroke="#63b891"/>
+  <text class="participant-title" x="885" y="202" text-anchor="middle">WithTx / Tx</text>
+  <text class="role" x="885" y="224" text-anchor="middle">commit guard</text>
+  <line class="lifeline" x1="885" y1="246" x2="885" y2="1492"/>
+
+  <rect class="participant" x="1034" y="174" width="216" height="72" fill="#f8fafc" stroke="#94a3b8"/>
+  <text class="participant-title" x="1142" y="202" text-anchor="middle">Query helpers</text>
+  <text class="role" x="1142" y="224" text-anchor="middle">QueryOne family</text>
+  <line class="lifeline" x1="1142" y1="246" x2="1142" y2="1492"/>
+
+  <rect class="participant" x="1300" y="174" width="202" height="72" fill="#eaf2ff" stroke="#6d9df0"/>
+  <text class="participant-title" x="1401" y="202" text-anchor="middle">database/sql</text>
+  <text class="role" x="1401" y="224" text-anchor="middle">DB or Tx</text>
+  <line class="lifeline" x1="1401" y1="246" x2="1401" y2="1492"/>
+
+  <rect class="participant" x="1534" y="174" width="210" height="72" fill="#fff0f0" stroke="#d56b7d"/>
+  <text class="participant-title" x="1639" y="202" text-anchor="middle">Rows / Mapper</text>
+  <text class="role" x="1639" y="224" text-anchor="middle">Scan + close</text>
+  <line class="lifeline" x1="1639" y1="246" x2="1639" y2="1492"/>
+
+  <rect class="activation" x="157" y="304" width="14" height="1132" rx="7"/>
+  <rect class="activation" x="392" y="318" width="14" height="120" rx="7"/>
+  <rect class="activation" x="632" y="398" width="14" height="520" rx="7"/>
+  <rect class="activation" x="878" y="588" width="14" height="448" rx="7"/>
+  <rect class="activation" x="1135" y="1108" width="14" height="290" rx="7"/>
+  <rect class="activation" x="1394" y="668" width="14" height="626" rx="7"/>
+  <rect class="activation" x="1632" y="1268" width="14" height="126" rx="7"/>
+
+  <rect class="phase" x="276" y="286" width="486" height="242" rx="16"/>
+  <rect class="phase-label" x="298" y="248" width="250" height="30" rx="15"/>
+  <text class="region" x="322" y="268">build visible statement</text>
+
+  <rect class="phase" x="754" y="558" width="682" height="502" rx="16"/>
+  <rect class="phase-label" x="776" y="520" width="236" height="30" rx="15"/>
+  <text class="region" x="800" y="540">transaction boundary</text>
+
+  <rect class="phase" x="1012" y="1088" width="666" height="346" rx="16"/>
+  <rect class="phase-label" x="1034" y="1050" width="224" height="30" rx="15"/>
+  <text class="region" x="1058" y="1070">query mapping path</text>
+
+  <path class="call" d="M164 320H399" stroke="#4f86c6" marker-end="url(#seqArrow-blue)"/>
+  <rect class="pill" x="212" y="278" width="140" height="30" rx="15"/>
+  <circle class="badge" cx="232" cy="293" r="13" fill="#4f86c6" stroke="#4f86c6"/>
+  <text class="badgeText" x="232" y="297" text-anchor="middle">1</text>
+  <text class="msg" x="286" y="298" text-anchor="middle" fill="#4f86c6">Build()</text>
+
+  <path class="call" d="M399 400H639" stroke="#c1842f" marker-end="url(#seqArrow-amber)"/>
+  <rect class="pill" x="446" y="358" width="160" height="30" rx="15"/>
+  <circle class="badge" cx="466" cy="373" r="13" fill="#c1842f" stroke="#c1842f"/>
+  <text class="badgeText" x="466" y="377" text-anchor="middle">2</text>
+  <text class="msg" x="526" y="378" text-anchor="middle" fill="#c1842f">validate + $n</text>
+
+  <path class="return" d="M639 500H164" stroke="#5f8d3e" marker-end="url(#seqArrow-green)"/>
+  <rect class="pill" x="296" y="458" width="206" height="30" rx="15"/>
+  <circle class="badge" cx="318" cy="473" r="13" fill="#5f8d3e" stroke="#5f8d3e"/>
+  <text class="badgeText" x="318" y="477" text-anchor="middle">3</text>
+  <text class="msg" x="406" y="478" text-anchor="middle" fill="#5f8d3e">SQL + copied Args</text>
+
+  <path class="call" d="M164 600H885" stroke="#4f86c6" marker-end="url(#seqArrow-blue)"/>
+  <rect class="pill" x="424" y="558" width="210" height="30" rx="15"/>
+  <circle class="badge" cx="446" cy="573" r="13" fill="#4f86c6" stroke="#4f86c6"/>
+  <text class="badgeText" x="446" y="577" text-anchor="middle">4</text>
+  <text class="msg" x="536" y="578" text-anchor="middle" fill="#4f86c6">WithTx(ctx, db, fn)</text>
+
+  <path class="call" d="M885 680H1401" stroke="#2f8f8a" marker-end="url(#seqArrow-teal)"/>
+  <rect class="pill" x="1052" y="638" width="178" height="30" rx="15"/>
+  <circle class="badge" cx="1074" cy="653" r="13" fill="#2f8f8a" stroke="#2f8f8a"/>
+  <text class="badgeText" x="1074" y="657" text-anchor="middle">5</text>
+  <text class="msg" x="1148" y="658" text-anchor="middle" fill="#2f8f8a">BeginTx(opts)</text>
+
+  <path class="return" d="M1401 760H885" stroke="#5f8d3e" marker-end="url(#seqArrow-green)"/>
+  <rect class="pill" x="1084" y="718" width="120" height="30" rx="15"/>
+  <circle class="badge" cx="1104" cy="733" r="13" fill="#5f8d3e" stroke="#5f8d3e"/>
+  <text class="badgeText" x="1104" y="737" text-anchor="middle">6</text>
+  <text class="msg" x="1148" y="738" text-anchor="middle" fill="#5f8d3e">*sql.Tx</text>
+
+  <path class="call" d="M164 860H639" stroke="#4f86c6" marker-end="url(#seqArrow-blue)"/>
+  <rect class="pill" x="298" y="818" width="200" height="30" rx="15"/>
+  <circle class="badge" cx="320" cy="833" r="13" fill="#4f86c6" stroke="#4f86c6"/>
+  <text class="badgeText" x="320" y="837" text-anchor="middle">7</text>
+  <text class="msg" x="406" y="838" text-anchor="middle" fill="#4f86c6">Exec(ctx, tx)</text>
+
+  <path class="call" d="M639 940H1401" stroke="#c1842f" marker-end="url(#seqArrow-amber)"/>
+  <rect class="pill" x="894" y="898" width="250" height="30" rx="15"/>
+  <circle class="badge" cx="916" cy="913" r="13" fill="#c1842f" stroke="#c1842f"/>
+  <text class="badgeText" x="916" y="917" text-anchor="middle">8</text>
+  <text class="msg" x="1024" y="918" text-anchor="middle" fill="#c1842f">ExecContext(SQL,args)</text>
+
+  <path class="call" d="M885 1020H1401" stroke="#64748b" marker-end="url(#seqArrow-teal)"/>
+  <rect class="pill" x="1028" y="978" width="228" height="30" rx="15"/>
+  <circle class="badge" cx="1050" cy="993" r="13" fill="#2f8f8a" stroke="#2f8f8a"/>
+  <text class="badgeText" x="1050" y="997" text-anchor="middle">9</text>
+  <text class="msg" x="1148" y="998" text-anchor="middle" fill="#2f8f8a">commit/rollback guard</text>
+
+  <path class="call" d="M164 1120H1142" stroke="#4f86c6" marker-end="url(#seqArrow-blue)"/>
+  <rect class="pill" x="512" y="1078" width="282" height="30" rx="15"/>
+  <circle class="badge" cx="534" cy="1093" r="13" fill="#4f86c6" stroke="#4f86c6"/>
+  <text class="badgeText" x="534" y="1097" text-anchor="middle">10</text>
+  <text class="msg" x="658" y="1098" text-anchor="middle" fill="#4f86c6">QueryOne(ctx, SQL, mapper)</text>
+
+  <path class="call" d="M1142 1200H1401" stroke="#2f8f8a" marker-end="url(#seqArrow-teal)"/>
+  <rect class="pill" x="1208" y="1158" width="134" height="30" rx="15"/>
+  <circle class="badge" cx="1228" cy="1173" r="13" fill="#2f8f8a" stroke="#2f8f8a"/>
+  <text class="badgeText" x="1228" y="1177" text-anchor="middle">11</text>
+  <text class="msg" x="1280" y="1178" text-anchor="middle" fill="#2f8f8a">QueryContext</text>
+
+  <path class="return" d="M1401 1280H1639" stroke="#5f8d3e" marker-end="url(#seqArrow-green)"/>
+  <rect class="pill" x="1460" y="1238" width="120" height="30" rx="15"/>
+  <circle class="badge" cx="1480" cy="1253" r="13" fill="#5f8d3e" stroke="#5f8d3e"/>
+  <text class="badgeText" x="1480" y="1257" text-anchor="middle">12</text>
+  <text class="msg" x="1524" y="1258" text-anchor="middle" fill="#5f8d3e">*Rows</text>
+
+  <path class="call" d="M1639 1360H1142" stroke="#b65b67" marker-end="url(#seqArrow-red)"/>
+  <rect class="pill" x="1306" y="1318" width="170" height="30" rx="15"/>
+  <circle class="badge" cx="1328" cy="1333" r="13" fill="#b65b67" stroke="#b65b67"/>
+  <text class="badgeText" x="1328" y="1337" text-anchor="middle">13</text>
+  <text class="msg" x="1396" y="1338" text-anchor="middle" fill="#b65b67">Scan + Close</text>
+
+  <path class="return" d="M1142 1440H164" stroke="#5f8d3e" marker-end="url(#seqArrow-green)"/>
+  <rect class="pill" x="506" y="1398" width="294" height="30" rx="15"/>
+  <circle class="badge" cx="528" cy="1413" r="13" fill="#5f8d3e" stroke="#5f8d3e"/>
+  <text class="badgeText" x="528" y="1417" text-anchor="middle">14</text>
+  <text class="msg" x="658" y="1418" text-anchor="middle" fill="#5f8d3e">value or cardinality error</text>
+
+  <rect class="pill" x="318" y="1506" width="1164" height="34" rx="17"/>
+  <text class="footer" x="900" y="1528" text-anchor="middle">Where fragments remain caller-owned SQL; pool lifecycle, migrations, schema metadata, and ORM state stay outside sqlkit.</text>
+</svg>

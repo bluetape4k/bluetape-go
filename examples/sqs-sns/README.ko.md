@@ -29,6 +29,20 @@ bluetape helper를 추가합니다.
 enforcement를 요구하지 않지만, production code는 queue를 subscribe하기 전에 queue
 policy를 설정해야 합니다.
 
+## Diagram
+
+![SQS/SNS example contract map](../../docs/images/readme-diagrams/examples-sqs-sns-contract-map.png)
+
+Contract map은 example-only 경계를 보여줍니다. SQS/SNS client는 caller-owned로
+유지하고, local helper는 JSON payload, queue 호출, Floci smoke setup, fanout payload
+unwrap, retry/dead-letter note만 담당합니다.
+
+![SQS/SNS message sequence](../../docs/images/readme-diagrams/examples-sqs-sns-message-sequence.png)
+
+Sequence는 JSON encoding에서 SQS send, long-poll receive,
+visibility/delete acknowledgement, SNS publish, SQS fanout receive,
+`snsPayload` unwrap까지 이어지는 smoke 흐름을 보여줍니다.
+
 ## Retry와 Dead Letter 메모
 
 SQS retry는 receive count 기반입니다. 메시지를 receive한 뒤 delete하지 않으면

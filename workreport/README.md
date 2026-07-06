@@ -12,6 +12,9 @@ Go functions and future `workflow` runners can share the same result model.
 
 ## Example
 
+The snippet assumes standard imports such as `errors` and `log/slog`. The
+compile-checked version lives in [`workreport_example_test.go`](workreport_example_test.go).
+
 ```go
 report, err := workreport.Aggregate(
     "import",
@@ -24,7 +27,10 @@ if err != nil {
 }
 
 if report.IsPartial() {
-    log.Printf("%s finished with %d child reports", report.Name, len(report.Children))
+    slog.Info("workreport produced partial report",
+        slog.String("report", report.Name),
+        slog.Int("children", len(report.Children)),
+    )
 }
 ```
 

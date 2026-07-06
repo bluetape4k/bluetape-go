@@ -1,0 +1,181 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1760" height="1200" viewBox="0 0 1760 1200" role="img" aria-labelledby="title desc">
+  <title id="title">audit/sqloutbox Class Contract Map</title>
+  <desc id="desc">Store owns PostgreSQL outbox state transitions, Relay claims records and delegates delivery to a Publisher, and callers keep transaction ownership explicit.</desc>
+  <defs>
+    <filter id="softShadow" x="-6%" y="-8%" width="112%" height="120%">
+      <feDropShadow dx="0" dy="5" stdDeviation="5" flood-color="#0f172a" flood-opacity="0.10"/>
+    </filter>
+    <style>
+      .canvas { fill: #f8fafc; }
+      .frame { fill: #ffffff; stroke: #cbd5e1; stroke-width: 1.5; filter: url(#softShadow); }
+      .title, .card-title { font-family: "Architects Daughter", "Comic Sans MS", cursive; fill: #24364f; }
+      .title { font-size: 42px; }
+      .subtitle, .section, .member, .label, .legend { font-family: "Comic Mono", "SFMono-Regular", monospace; fill: #526276; }
+      .subtitle { font-size: 17px; }
+      .section { font-size: 13px; font-weight: 700; text-transform: uppercase; letter-spacing: 0; }
+      .card-title { font-size: 25px; }
+      .member { font-size: 14px; }
+      .label { font-size: 13px; font-weight: 700; }
+      .legend { font-size: 13px; }
+      .card { stroke-width: 2.2; rx: 12; filter: url(#softShadow); }
+      .rule { stroke-width: 1.2; opacity: 0.42; }
+      .connector { fill: none; stroke-linecap: round; stroke-linejoin: round; stroke-width: 3.1; }
+      .dependency { stroke-dasharray: 10 8; }
+      .arrow { stroke-linejoin: round; }
+      .legendBox { fill: #ffffff; stroke: #d7e0ea; stroke-width: 1.4; rx: 12; }
+    </style>
+  </defs>
+
+  <rect class="canvas" width="1760" height="1200"/>
+  <rect class="frame" x="34" y="30" width="1692" height="1136" rx="8"/>
+  <text class="title" x="74" y="88">audit/sqloutbox Class Contract Map</text>
+  <text class="subtitle" x="78" y="120">PostgreSQL outbox contracts keep transaction ownership explicit and make retry state visible.</text>
+
+  <rect class="card" x="84" y="186" width="342" height="158" fill="#eaf2ff" stroke="#6d9df0"/>
+  <text class="card-title" x="255" y="224" text-anchor="middle">Options</text>
+  <line class="rule" x1="110" y1="242" x2="400" y2="242" stroke="#6d9df0"/>
+  <text class="member" x="116" y="272">+ Table string</text>
+  <text class="member" x="116" y="300">+ Now func() time.Time</text>
+  <text class="member" x="116" y="328">+ MaxEntryBytes / MaxErrorBytes</text>
+
+  <rect class="card" x="84" y="396" width="342" height="156" fill="#edf9f4" stroke="#63b891"/>
+  <text class="card-title" x="255" y="434" text-anchor="middle">ClaimOptions</text>
+  <line class="rule" x1="110" y1="452" x2="400" y2="452" stroke="#63b891"/>
+  <text class="member" x="116" y="482">+ Limit int</text>
+  <text class="member" x="116" y="510">+ Now time.Time</text>
+  <text class="member" x="116" y="538">+ LeaseDuration time.Duration</text>
+
+  <rect class="card" x="84" y="606" width="342" height="152" fill="#fff0f0" stroke="#d56b7d"/>
+  <text class="card-title" x="255" y="644" text-anchor="middle">Failure</text>
+  <line class="rule" x1="110" y1="662" x2="400" y2="662" stroke="#d56b7d"/>
+  <text class="member" x="116" y="692">+ ID RecordID</text>
+  <text class="member" x="116" y="720">+ Attempt / MaxAttempts</text>
+  <text class="member" x="116" y="748">+ Err, RetryAt, Now</text>
+
+  <rect class="card" x="84" y="818" width="342" height="168" fill="#fff4de" stroke="#d59c3f"/>
+  <text class="card-title" x="255" y="856" text-anchor="middle">RelayOptions</text>
+  <line class="rule" x1="110" y1="874" x2="400" y2="874" stroke="#d59c3f"/>
+  <text class="member" x="116" y="904">+ ClaimLimit int</text>
+  <text class="member" x="116" y="932">+ MaxAttempts int</text>
+  <text class="member" x="116" y="960">+ RetryDelay / IdleDelay</text>
+
+  <rect class="card" x="610" y="186" width="390" height="286" fill="#f3efff" stroke="#9b7aec"/>
+  <text class="card-title" x="805" y="224" text-anchor="middle">Store</text>
+  <text class="section" x="642" y="254">state</text>
+  <line class="rule" x1="642" y1="264" x2="968" y2="264" stroke="#9b7aec"/>
+  <text class="member" x="642" y="294">- table, quotedTable, claimIndex</text>
+  <text class="member" x="642" y="322">- now, maxEntryBytes, maxErrorBytes</text>
+  <text class="section" x="642" y="360">operations</text>
+  <line class="rule" x1="642" y1="370" x2="968" y2="370" stroke="#9b7aec"/>
+  <text class="member" x="642" y="400">+ Enqueue(ctx, Execer, ...audit.Entry)</text>
+  <text class="member" x="642" y="428">+ Claim(ctx, Session, ClaimOptions)</text>
+  <text class="member" x="642" y="456">+ MarkPublished / MarkFailed</text>
+
+  <rect class="card" x="610" y="628" width="390" height="244" fill="#eaf2ff" stroke="#6d9df0"/>
+  <text class="card-title" x="805" y="666" text-anchor="middle">Relay</text>
+  <text class="section" x="642" y="696">state</text>
+  <line class="rule" x1="642" y1="706" x2="968" y2="706" stroke="#6d9df0"/>
+  <text class="member" x="642" y="736">- store *Store</text>
+  <text class="member" x="642" y="764">- publisher Publisher</text>
+  <text class="member" x="642" y="792">- claim/retry/idle policy</text>
+  <text class="section" x="642" y="830">operations</text>
+  <line class="rule" x1="642" y1="840" x2="968" y2="840" stroke="#6d9df0"/>
+  <text class="member" x="642" y="860">+ RunOnce(ctx, Session) RelayResult</text>
+
+  <rect class="card" x="610" y="948" width="390" height="132" fill="#f8fafc" stroke="#94a3b8"/>
+  <text class="card-title" x="805" y="986" text-anchor="middle">sqlkit.Session</text>
+  <line class="rule" x1="642" y1="1004" x2="968" y2="1004" stroke="#94a3b8"/>
+  <text class="member" x="642" y="1034">caller-supplied DB or Tx</text>
+  <text class="member" x="642" y="1062">QueryContext + ExecContext</text>
+
+  <rect class="card" x="1262" y="186" width="392" height="258" fill="#edf9f4" stroke="#63b891"/>
+  <text class="card-title" x="1458" y="224" text-anchor="middle">Record</text>
+  <line class="rule" x1="1294" y1="242" x2="1622" y2="242" stroke="#63b891"/>
+  <text class="member" x="1294" y="272">+ ID, Status, Attempts</text>
+  <text class="member" x="1294" y="300">+ Aggregate, Revision</text>
+  <text class="member" x="1294" y="328">+ EventID, IdempotencyKey</text>
+  <text class="member" x="1294" y="356">+ EventType, timestamps</text>
+  <text class="member" x="1294" y="384">+ Entry audit.Entry</text>
+  <text class="member" x="1294" y="412">claimed row + decoded payload</text>
+
+  <rect class="card" x="1262" y="514" width="392" height="144" fill="#fff4de" stroke="#d59c3f"/>
+  <text class="card-title" x="1458" y="552" text-anchor="middle">Publisher</text>
+  <line class="rule" x1="1294" y1="570" x2="1622" y2="570" stroke="#d59c3f"/>
+  <text class="member" x="1294" y="600">&lt;&lt;interface&gt;&gt;</text>
+  <text class="member" x="1294" y="628">+ Publish(ctx, Record) error</text>
+
+  <rect class="card" x="1262" y="728" width="392" height="146" fill="#fff0f0" stroke="#d56b7d"/>
+  <text class="card-title" x="1458" y="766" text-anchor="middle">RelayResult</text>
+  <line class="rule" x1="1294" y1="784" x2="1622" y2="784" stroke="#d56b7d"/>
+  <text class="member" x="1294" y="814">+ Claimed / Published</text>
+  <text class="member" x="1294" y="842">+ Failed / DeadLettered</text>
+
+  <rect class="card" x="1262" y="944" width="392" height="134" fill="#f3efff" stroke="#9b7aec"/>
+  <text class="card-title" x="1458" y="982" text-anchor="middle">audit.Entry</text>
+  <line class="rule" x1="1294" y1="1000" x2="1622" y2="1000" stroke="#9b7aec"/>
+  <text class="member" x="1294" y="1030">validated domain audit payload</text>
+  <text class="member" x="1294" y="1058">stored as bounded JSON</text>
+
+  <path class="connector dependency" d="M426 265 L610 265" stroke="#4f86c6"/>
+  <polygon class="arrow" points="610,265 596,257 596,273" fill="#4f86c6" stroke="#4f86c6"/>
+  <rect class="legendBox" x="468" y="228" width="104" height="28" rx="14"/>
+  <text class="label" x="520" y="247" text-anchor="middle" fill="#4f86c6">config</text>
+
+  <path class="connector dependency" d="M426 468 L506 468 Q520 468 520 454 L520 442 Q520 428 534 428 L610 428" stroke="#5f8d3e"/>
+  <polygon class="arrow" points="610,428 596,420 596,436" fill="#5f8d3e" stroke="#5f8d3e"/>
+  <rect class="legendBox" x="464" y="426" width="112" height="28" rx="14"/>
+  <text class="label" x="520" y="445" text-anchor="middle" fill="#5f8d3e">claim</text>
+
+  <path class="connector" d="M426 682 L514 682 Q528 682 528 668 L528 468 Q528 454 542 454 L610 454" stroke="#b65b67"/>
+  <polygon class="arrow" points="610,454 596,446 596,462" fill="#b65b67" stroke="#b65b67"/>
+  <rect class="legendBox" x="470" y="596" width="116" height="28" rx="14"/>
+  <text class="label" x="528" y="615" text-anchor="middle" fill="#b65b67">failure</text>
+
+  <path class="connector dependency" d="M426 902 L520 902 Q540 902 540 882 L540 840 Q540 820 560 820 L610 820" stroke="#c1842f"/>
+  <polygon class="arrow" points="610,820 596,812 596,828" fill="#c1842f" stroke="#c1842f"/>
+  <rect class="legendBox" x="472" y="864" width="120" height="28" rx="14"/>
+  <text class="label" x="532" y="883" text-anchor="middle" fill="#c1842f">relay opts</text>
+
+  <path class="connector" d="M1000 302 L1262 302" stroke="#2f8f8a"/>
+  <polygon class="arrow" points="1262,302 1248,294 1248,310" fill="#2f8f8a" stroke="#2f8f8a"/>
+  <rect class="legendBox" x="1082" y="264" width="104" height="28" rx="14"/>
+  <text class="label" x="1134" y="283" text-anchor="middle" fill="#2f8f8a">returns</text>
+
+  <path class="connector" d="M805 628 L805 472" stroke="#6d9df0"/>
+  <polygon class="arrow" points="805,472 797,486 813,486" fill="#6d9df0" stroke="#6d9df0"/>
+  <rect class="legendBox" x="830" y="540" width="100" height="28" rx="14"/>
+  <text class="label" x="880" y="559" text-anchor="middle" fill="#6d9df0">claims</text>
+
+  <path class="connector" d="M1000 704 L1104 704 Q1124 704 1124 684 L1124 606 Q1124 586 1144 586 L1262 586" stroke="#c1842f"/>
+  <polygon class="arrow" points="1262,586 1248,578 1248,594" fill="#c1842f" stroke="#c1842f"/>
+  <rect class="legendBox" x="1052" y="660" width="126" height="28" rx="14"/>
+  <text class="label" x="1115" y="679" text-anchor="middle" fill="#c1842f">publishes</text>
+
+  <path class="connector" d="M1458 514 L1458 444" stroke="#c1842f"/>
+  <polygon class="arrow" points="1458,444 1450,458 1466,458" fill="#c1842f" stroke="#c1842f"/>
+  <rect class="legendBox" x="1484" y="470" width="118" height="28" rx="14"/>
+  <text class="label" x="1543" y="489" text-anchor="middle" fill="#c1842f">gets row</text>
+
+  <path class="connector" d="M1000 802 L1262 802" stroke="#b65b67"/>
+  <polygon class="arrow" points="1262,802 1248,794 1248,810" fill="#b65b67" stroke="#b65b67"/>
+  <rect class="legendBox" x="1068" y="764" width="132" height="28" rx="14"/>
+  <text class="label" x="1134" y="783" text-anchor="middle" fill="#b65b67">summarizes</text>
+
+  <path class="connector dependency" d="M805 948 L805 872" stroke="#64748b"/>
+  <polygon class="arrow" points="805,872 797,886 813,886" fill="#64748b" stroke="#64748b"/>
+  <rect class="legendBox" x="830" y="906" width="124" height="28" rx="14"/>
+  <text class="label" x="892" y="925" text-anchor="middle" fill="#64748b">caller DB/Tx</text>
+
+  <path class="connector" d="M1262 1011 L1036 1011 Q1016 1011 1016 991 L1016 450 Q1016 430 1036 430 L1000 430" stroke="#8a65d8"/>
+  <polygon class="arrow" points="1000,430 1014,422 1014,438" fill="#8a65d8" stroke="#8a65d8"/>
+  <rect class="legendBox" x="1078" y="974" width="144" height="28" rx="14"/>
+  <text class="label" x="1150" y="993" text-anchor="middle" fill="#8a65d8">enqueue JSON</text>
+
+  <rect class="legendBox" x="102" y="1080" width="706" height="44" rx="12"/>
+  <path class="connector" d="M134 1102 L204 1102" stroke="#2f8f8a"/>
+  <polygon class="arrow" points="204,1102 190,1094 190,1110" fill="#2f8f8a" stroke="#2f8f8a"/>
+  <text class="legend" x="224" y="1107">solid = runtime data/control contract</text>
+  <path class="connector dependency" d="M498 1102 L568 1102" stroke="#64748b"/>
+  <polygon class="arrow" points="568,1102 554,1094 554,1110" fill="#64748b" stroke="#64748b"/>
+  <text class="legend" x="588" y="1107">dashed = configuration or caller-owned dependency</text>
+</svg>

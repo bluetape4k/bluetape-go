@@ -8,6 +8,12 @@ The package keeps transaction ownership explicit. Callers pass the
 `database/sql` session for each operation, so source writes can use the same
 `*sql.Tx` as `Store.Enqueue` without hidden transaction hooks.
 
+## Diagrams
+
+![audit sqloutbox class contract map](../../docs/images/readme-diagrams/audit-sqloutbox-class-contract-map.png)
+
+![audit sqloutbox relay sequence](../../docs/images/readme-diagrams/audit-sqloutbox-relay-sequence.png)
+
 ## Import
 
 ```go

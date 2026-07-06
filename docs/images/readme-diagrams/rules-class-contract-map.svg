@@ -1,0 +1,158 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1700" height="1160" viewBox="0 0 1700 1160" role="img" aria-labelledby="title desc">
+  <title id="title">rules Class Contract Map</title>
+  <desc id="desc">Class-style contract map for the Go rules package: Facts, Rule, RuleSet, Engine, Result, composite groups, and bounded inference.</desc>
+  <defs>
+    <filter id="softShadow" x="-6%" y="-8%" width="112%" height="120%">
+      <feDropShadow dx="0" dy="5" stdDeviation="5" flood-color="#0f172a" flood-opacity="0.10"/>
+    </filter>
+    <style>
+      .canvas { fill: #f8fafc; }
+      .frame { fill: #ffffff; stroke: #cbd5e1; stroke-width: 1.5; filter: url(#softShadow); }
+      .title, .card-title { font-family: "Architects Daughter", "Comic Sans MS", cursive; fill: #24364f; }
+      .title { font-size: 42px; }
+      .subtitle, .section, .member, .label, .legend { font-family: "Comic Mono", "SFMono-Regular", monospace; fill: #526276; }
+      .subtitle { font-size: 17px; }
+      .section { font-size: 13px; font-weight: 700; text-transform: uppercase; letter-spacing: 0; }
+      .card-title { font-size: 25px; }
+      .member { font-size: 14px; }
+      .label { font-size: 13px; font-weight: 700; }
+      .legend { font-size: 13px; }
+      .card { stroke-width: 2.2; rx: 12; filter: url(#softShadow); }
+      .rule { stroke-width: 1.2; opacity: 0.42; }
+      .connector { fill: none; stroke-linecap: round; stroke-linejoin: round; stroke-width: 3.1; }
+      .dependency { stroke-dasharray: 10 8; }
+      .head { stroke-linejoin: round; stroke-dasharray: none; }
+      .legendBox { fill: #ffffff; stroke: #d7e0ea; stroke-width: 1.4; rx: 12; }
+    </style>
+  </defs>
+
+  <rect class="canvas" width="1700" height="1160"/>
+  <rect class="frame" x="34" y="30" width="1632" height="1094" rx="8"/>
+  <text class="title" x="74" y="88">rules Class Contract Map</text>
+  <text class="subtitle" x="78" y="120">Dependency-free Go rule engine core: trusted Go predicates, deterministic ordering, sequential execution, and bounded inference.</text>
+
+  <rect class="card" x="78" y="176" width="330" height="218" fill="#edf9f4" stroke="#63b891"/>
+  <text class="card-title" x="243" y="214" text-anchor="middle">Facts</text>
+  <text class="section" x="108" y="244">state</text>
+  <line class="rule" x1="108" y1="254" x2="378" y2="254" stroke="#63b891"/>
+  <text class="member" x="108" y="282">- values map[string]any</text>
+  <text class="member" x="108" y="310">- sync.RWMutex</text>
+  <text class="section" x="108" y="344">contract</text>
+  <line class="rule" x1="108" y1="354" x2="378" y2="354" stroke="#63b891"/>
+  <text class="member" x="108" y="382">Set/Get/Delete/Keys</text>
+
+  <rect class="card" x="520" y="172" width="350" height="230" fill="#f3efff" stroke="#9b7aec"/>
+  <text class="card-title" x="695" y="210" text-anchor="middle">Rule interface</text>
+  <text class="section" x="552" y="240">identity</text>
+  <line class="rule" x1="552" y1="250" x2="838" y2="250" stroke="#9b7aec"/>
+  <text class="member" x="552" y="278">Name / Description / Priority</text>
+  <text class="section" x="552" y="312">behavior</text>
+  <line class="rule" x1="552" y1="322" x2="838" y2="322" stroke="#9b7aec"/>
+  <text class="member" x="552" y="350">Evaluate(ctx, facts) bool,error</text>
+  <text class="member" x="552" y="378">Execute(ctx, facts) error</text>
+
+  <rect class="card" x="1040" y="172" width="390" height="230" fill="#eaf2ff" stroke="#6d9df0"/>
+  <text class="card-title" x="1235" y="210" text-anchor="middle">Engine</text>
+  <text class="section" x="1072" y="240">state</text>
+  <line class="rule" x1="1072" y1="250" x2="1398" y2="250" stroke="#6d9df0"/>
+  <text class="member" x="1072" y="278">- rules *RuleSet</text>
+  <text class="member" x="1072" y="306">- config EngineConfig</text>
+  <text class="section" x="1072" y="340">run loop</text>
+  <line class="rule" x1="1072" y1="350" x2="1398" y2="350" stroke="#6d9df0"/>
+  <text class="member" x="1072" y="378">Run(ctx, facts) Result,error</text>
+
+  <rect class="card" x="78" y="500" width="330" height="190" fill="#fff4de" stroke="#d59c3f"/>
+  <text class="card-title" x="243" y="538" text-anchor="middle">functionalRule</text>
+  <line class="rule" x1="108" y1="556" x2="378" y2="556" stroke="#d59c3f"/>
+  <text class="member" x="108" y="586">NewRule(name, evaluate, execute)</text>
+  <text class="member" x="108" y="614">WithPriority / WithDescription</text>
+  <text class="member" x="108" y="642">no reflection, no annotation DSL</text>
+  <text class="member" x="108" y="670">nil execute is a no-op</text>
+
+  <rect class="card" x="520" y="500" width="350" height="190" fill="#f8fafc" stroke="#94a3b8"/>
+  <text class="card-title" x="695" y="538" text-anchor="middle">RuleSet</text>
+  <line class="rule" x1="552" y1="556" x2="838" y2="556" stroke="#94a3b8"/>
+  <text class="member" x="552" y="586">Add / Remove / Get / Len</text>
+  <text class="member" x="552" y="614">reject duplicate rule names</text>
+  <text class="member" x="552" y="642">order by priority, name, seq</text>
+  <text class="member" x="552" y="670">container access is locked</text>
+
+  <rect class="card" x="1040" y="500" width="390" height="218" fill="#edf9f4" stroke="#63b891"/>
+  <text class="card-title" x="1235" y="538" text-anchor="middle">Result + Detail</text>
+  <text class="section" x="1072" y="568">statuses</text>
+  <line class="rule" x1="1072" y1="578" x2="1398" y2="578" stroke="#63b891"/>
+  <text class="member" x="1072" y="606">applied / not_triggered / skipped</text>
+  <text class="member" x="1072" y="634">evaluation_failed / execution_failed</text>
+  <text class="member" x="1072" y="662">cancelled / non_converged</text>
+  <text class="member" x="1072" y="690">joined errors preserve phase details</text>
+
+  <rect class="card" x="78" y="790" width="500" height="216" fill="#fff0f0" stroke="#d56b7d"/>
+  <text class="card-title" x="328" y="828" text-anchor="middle">Composite groups</text>
+  <line class="rule" x1="108" y1="846" x2="548" y2="846" stroke="#d56b7d"/>
+  <text class="member" x="108" y="876">NewActivationGroup: first matching child</text>
+  <text class="member" x="108" y="904">NewConditionalGroup: guard then dependents</text>
+  <text class="member" x="108" y="932">NewUnitGroup: all match before execution</text>
+  <text class="member" x="108" y="960">re-evaluates children; no per-run state</text>
+  <text class="member" x="108" y="988">ordinary Rule value returned to RuleSet</text>
+
+  <rect class="card" x="760" y="790" width="500" height="216" fill="#f3efff" stroke="#9b7aec"/>
+  <text class="card-title" x="1010" y="828" text-anchor="middle">InferenceEngine</text>
+  <line class="rule" x1="792" y1="846" x2="1228" y2="846" stroke="#9b7aec"/>
+  <text class="member" x="792" y="876">MaxCycles must be positive</text>
+  <text class="member" x="792" y="904">runs Engine cycles until no rule applies</text>
+  <text class="member" x="792" y="932">non-convergence returns InferenceError</text>
+  <text class="member" x="792" y="960">mutates Facts in place, not transactional</text>
+  <text class="member" x="792" y="988">StopOnFirstNotTriggered is rejected</text>
+
+  <rect class="card" x="1342" y="790" width="230" height="216" fill="#f8fafc" stroke="#94a3b8"/>
+  <text class="card-title" x="1457" y="828" text-anchor="middle">Out of scope</text>
+  <line class="rule" x1="1372" y1="846" x2="1542" y2="846" stroke="#94a3b8"/>
+  <text class="member" x="1372" y="876">expression languages</text>
+  <text class="member" x="1372" y="904">YAML/JSON readers</text>
+  <text class="member" x="1372" y="932">annotation registration</text>
+  <text class="member" x="1372" y="960">parallel execution</text>
+  <text class="member" x="1372" y="988">unbounded chaining</text>
+
+  <path class="connector" d="M520 250 L408 250" stroke="#3f8d65"/>
+  <polygon class="head" points="408,250 422,242 422,258" fill="#3f8d65" stroke="#3f8d65"/>
+  <rect class="legendBox" x="424" y="212" width="92" height="28"/>
+  <text class="label" x="470" y="231" text-anchor="middle" fill="#3f8d65">reads/writes</text>
+
+  <path class="connector dependency" d="M408 595 L462 595 Q482 595 482 575 L482 300 Q482 280 502 280 L520 280" stroke="#a2652f"/>
+  <polygon class="head" points="520,280 502,270 502,290" fill="#ffffff" stroke="#a2652f" stroke-width="3.1"/>
+  <rect class="legendBox" x="344" y="424" width="98" height="28"/>
+  <text class="label" x="393" y="443" text-anchor="middle" fill="#a2652f">implements</text>
+
+  <path class="connector" d="M695 500 L695 420" stroke="#64748b"/>
+  <polygon class="head" points="695,402 685,420 705,420" fill="#64748b" stroke="#64748b"/>
+  <rect class="legendBox" x="720" y="448" width="86" height="28"/>
+  <text class="label" x="763" y="467" text-anchor="middle" fill="#64748b">orders</text>
+
+  <path class="connector" d="M1040 286 L930 286 Q910 286 910 306 L910 595 Q910 615 890 615 L870 615" stroke="#4f86c6"/>
+  <polygon class="head" points="870,615 884,607 884,623" fill="#4f86c6" stroke="#4f86c6"/>
+  <rect class="legendBox" x="878" y="432" width="104" height="28"/>
+  <text class="label" x="930" y="451" text-anchor="middle" fill="#4f86c6">iterates set</text>
+
+  <path class="connector" d="M1235 402 L1235 500" stroke="#5f8d3e"/>
+  <polygon class="head" points="1235,500 1227,486 1243,486" fill="#5f8d3e" stroke="#5f8d3e"/>
+  <rect class="legendBox" x="1260" y="438" width="98" height="28"/>
+  <text class="label" x="1309" y="457" text-anchor="middle" fill="#5f8d3e">records</text>
+
+  <path class="connector dependency" d="M328 790 L328 730 Q328 710 348 710 L462 710 Q482 710 482 690 L482 370 Q482 350 502 350 L520 350" stroke="#b65b67"/>
+  <polygon class="head" points="520,350 502,340 502,360" fill="#ffffff" stroke="#b65b67" stroke-width="3.1"/>
+  <rect class="legendBox" x="360" y="724" width="110" height="28"/>
+  <text class="label" x="415" y="743" text-anchor="middle" fill="#b65b67">also Rule</text>
+
+  <path class="connector" d="M1010 790 L1010 750 Q1010 730 1030 730 L1460 730 Q1480 730 1480 710 L1480 362 Q1480 342 1460 342 L1430 342" stroke="#8a65d6"/>
+  <polygon class="head" points="1430,342 1444,334 1444,350" fill="#8a65d6" stroke="#8a65d6"/>
+  <rect class="legendBox" x="1184" y="736" width="112" height="28"/>
+  <text class="label" x="1240" y="755" text-anchor="middle" fill="#8a65d6">cycles Run</text>
+
+  <rect class="legendBox" x="92" y="1044" width="772" height="44"/>
+  <path class="connector" d="M124 1066 L194 1066" stroke="#4f86c6"/>
+  <polygon class="head" points="194,1066 180,1058 180,1074" fill="#4f86c6" stroke="#4f86c6"/>
+  <text class="legend" x="214" y="1071">solid = runtime data/control contract</text>
+  <path class="connector dependency" d="M492 1066 L562 1066" stroke="#b65b67"/>
+  <polygon class="head" points="562,1066 544,1056 544,1076" fill="#ffffff" stroke="#b65b67" stroke-width="3.1"/>
+  <text class="legend" x="582" y="1071">dashed = implementation of the Rule interface</text>
+</svg>

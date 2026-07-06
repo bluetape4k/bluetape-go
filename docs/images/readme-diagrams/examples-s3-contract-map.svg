@@ -1,0 +1,125 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="1000" viewBox="0 0 1600 1000" role="img" aria-labelledby="title desc">
+  <title id="title">S3 Example Contract Map</title>
+  <desc id="desc">Class-style contract map for examples/s3 showing caller-owned AWS SDK S3 clients, content type detection, streaming helpers, S3 error mapping, and the Floci smoke fixture.</desc>
+  <defs>
+    <filter id="softShadow" x="-6%" y="-8%" width="112%" height="120%">
+      <feDropShadow dx="0" dy="5" stdDeviation="5" flood-color="#0f172a" flood-opacity="0.10"/>
+    </filter>
+    <style>
+      .canvas { fill: #f8fafc; }
+      .frame { fill: #ffffff; stroke: #cbd5e1; stroke-width: 1.5; filter: url(#softShadow); }
+      .title, .card-title { font-family: "Architects Daughter", "Comic Sans MS", cursive; fill: #24364f; }
+      .title { font-size: 42px; }
+      .subtitle, .section, .member, .label, .legend { font-family: "Comic Mono", "SFMono-Regular", monospace; fill: #526276; }
+      .subtitle { font-size: 17px; }
+      .section { font-size: 13px; font-weight: 700; text-transform: uppercase; letter-spacing: 0; }
+      .card-title { font-size: 25px; }
+      .member { font-size: 14px; }
+      .label { font-size: 13px; font-weight: 700; }
+      .legend { font-size: 13px; }
+      .card { stroke-width: 2.2; rx: 12; filter: url(#softShadow); }
+      .rule { stroke-width: 1.2; opacity: 0.42; }
+      .connector { fill: none; stroke-linecap: round; stroke-linejoin: round; stroke-width: 3.1; }
+      .dependency { stroke-dasharray: 10 8; }
+      .head { stroke-linejoin: round; stroke-dasharray: none; }
+      .legendBox { fill: #ffffff; stroke: #d7e0ea; stroke-width: 1.4; rx: 12; }
+    </style>
+  </defs>
+
+  <rect class="canvas" width="1600" height="1000"/>
+  <rect class="frame" x="34" y="30" width="1532" height="932" rx="8"/>
+  <text class="title" x="72" y="88">S3 Example Contract Map</text>
+  <text class="subtitle" x="76" y="120">Compile-checked examples keep AWS SDK request/response types caller-owned; bluetape adds no S3 wrapper.</text>
+
+  <rect class="card" x="584" y="160" width="432" height="224" fill="#edf9f4" stroke="#63b891"/>
+  <text class="card-title" x="800" y="198" text-anchor="middle">examples/s3 package</text>
+  <text class="section" x="616" y="228">entrypoints</text>
+  <line class="rule" x1="616" y1="238" x2="984" y2="238" stroke="#63b891"/>
+  <text class="member" x="616" y="266">Example_putGetMetadataAndPresign</text>
+  <text class="member" x="616" y="294">Example_streamingUploadDownload</text>
+  <text class="member" x="616" y="322">Example_errorMapping</text>
+  <text class="member" x="616" y="350">TestS3ExampleSmoke</text>
+
+  <rect class="card" x="86" y="178" width="386" height="210" fill="#f3efff" stroke="#9b7aec"/>
+  <text class="card-title" x="279" y="216" text-anchor="middle">AWS SDK clients</text>
+  <text class="section" x="116" y="246">caller-owned</text>
+  <line class="rule" x1="116" y1="256" x2="442" y2="256" stroke="#9b7aec"/>
+  <text class="member" x="116" y="284">*s3.Client</text>
+  <text class="member" x="116" y="312">*s3.PresignClient</text>
+  <text class="member" x="116" y="340">PutObject / HeadObject / GetObject</text>
+  <text class="member" x="116" y="368">PresignGetObject / PresignPutObject</text>
+
+  <rect class="card" x="1150" y="178" width="360" height="210" fill="#eaf2ff" stroke="#6d9df0"/>
+  <text class="card-title" x="1330" y="216" text-anchor="middle">Content type helper</text>
+  <text class="section" x="1180" y="246">standard library</text>
+  <line class="rule" x1="1180" y1="256" x2="1480" y2="256" stroke="#6d9df0"/>
+  <text class="member" x="1180" y="284">mime.TypeByExtension</text>
+  <text class="member" x="1180" y="312">http.DetectContentType(sample)</text>
+  <text class="member" x="1180" y="340">512 byte sample cap</text>
+  <text class="member" x="1180" y="368">empty -> application/octet-stream</text>
+
+  <rect class="card" x="86" y="560" width="386" height="210" fill="#fff4de" stroke="#d59c3f"/>
+  <text class="card-title" x="279" y="598" text-anchor="middle">Streaming helpers</text>
+  <text class="section" x="116" y="628">io contracts</text>
+  <line class="rule" x1="116" y1="638" x2="442" y2="638" stroke="#d59c3f"/>
+  <text class="member" x="116" y="666">putStreamingObject(ctx, client,...)</text>
+  <text class="member" x="116" y="694">downloadObject(ctx, client, dst)</text>
+  <text class="member" x="116" y="722">io.Copy then Body.Close</text>
+  <text class="member" x="116" y="750">wrap copy/close failures</text>
+
+  <rect class="card" x="594" y="560" width="412" height="210" fill="#f8fafc" stroke="#94a3b8"/>
+  <text class="card-title" x="800" y="598" text-anchor="middle">Floci smoke fixture</text>
+  <text class="section" x="626" y="628">local endpoint</text>
+  <line class="rule" x1="626" y1="638" x2="974" y2="638" stroke="#94a3b8"/>
+  <text class="member" x="626" y="666">testcontainers/floci.Start</text>
+  <text class="member" x="626" y="694">LoadConfig(ctx, t, details)</text>
+  <text class="member" x="626" y="722">UsePathStyle = true</text>
+  <text class="member" x="626" y="750">bucket namespace uses UnixNano</text>
+
+  <rect class="card" x="1150" y="560" width="360" height="210" fill="#fff0f0" stroke="#d56b7d"/>
+  <text class="card-title" x="1330" y="598" text-anchor="middle">S3 error mapping</text>
+  <text class="section" x="1180" y="628">not found predicate</text>
+  <line class="rule" x1="1180" y1="638" x2="1480" y2="638" stroke="#d56b7d"/>
+  <text class="member" x="1180" y="666">errors.As(*types.NoSuchKey)</text>
+  <text class="member" x="1180" y="694">Smithy ErrorCode() == NoSuchKey</text>
+  <text class="member" x="1180" y="722">nil client returns modeled NoSuchKey</text>
+  <text class="member" x="1180" y="750">no bluetape error wrapper</text>
+
+  <path class="connector" d="M472 280H584" stroke="#8a65d6"/>
+  <polygon class="head" points="584,280 566,270 566,290" fill="#8a65d6" stroke="#8a65d6"/>
+  <rect class="legendBox" x="492" y="244" width="72" height="28"/>
+  <text class="label" x="528" y="263" text-anchor="middle" fill="#8a65d6">uses</text>
+
+  <path class="connector" d="M1016 280H1150" stroke="#4f86c6"/>
+  <polygon class="head" points="1150,280 1132,270 1132,290" fill="#4f86c6" stroke="#4f86c6"/>
+  <rect class="legendBox" x="1046" y="244" width="76" height="28"/>
+  <text class="label" x="1084" y="263" text-anchor="middle" fill="#4f86c6">detects</text>
+
+  <path class="connector" d="M704 384V432Q704 452 684 452H300Q280 452 280 472V560" stroke="#c1842f"/>
+  <polygon class="head" points="280,560 270,542 290,542" fill="#c1842f" stroke="#c1842f"/>
+  <rect class="legendBox" x="426" y="416" width="98" height="28"/>
+  <text class="label" x="475" y="435" text-anchor="middle" fill="#c1842f">streams</text>
+
+  <path class="connector" d="M800 384V560" stroke="#64748b"/>
+  <polygon class="head" points="800,560 790,542 810,542" fill="#64748b" stroke="#64748b"/>
+  <rect class="legendBox" x="826" y="456" width="74" height="28"/>
+  <text class="label" x="863" y="475" text-anchor="middle" fill="#64748b">smoke</text>
+
+  <path class="connector" d="M914 384V432Q914 452 934 452H1310Q1330 452 1330 472V560" stroke="#b65b67"/>
+  <polygon class="head" points="1330,560 1320,542 1340,542" fill="#b65b67" stroke="#b65b67"/>
+  <rect class="legendBox" x="1072" y="416" width="104" height="28"/>
+  <text class="label" x="1124" y="435" text-anchor="middle" fill="#b65b67">maps errors</text>
+
+  <path class="connector dependency" d="M800 770V798Q800 818 820 818H1512Q1532 818 1532 798V160Q1532 140 1512 140H299Q279 140 279 160V178" stroke="#64748b"/>
+  <polygon class="head" points="279,178 269,196 289,196" fill="#ffffff" stroke="#64748b" stroke-width="3.1"/>
+  <rect class="legendBox" x="1070" y="784" width="116" height="28"/>
+  <text class="label" x="1128" y="803" text-anchor="middle" fill="#64748b">configures</text>
+
+  <rect class="legendBox" x="94" y="858" width="910" height="44"/>
+  <path class="connector" d="M126 880H196" stroke="#4f86c6"/>
+  <polygon class="head" points="196,880 178,870 178,890" fill="#4f86c6" stroke="#4f86c6"/>
+  <text class="legend" x="216" y="885">solid = example composes SDK operations directly</text>
+  <path class="connector dependency" d="M602 880H672" stroke="#64748b"/>
+  <polygon class="head" points="672,880 654,870 654,890" fill="#ffffff" stroke="#64748b" stroke-width="3.1"/>
+  <text class="legend" x="692" y="885">dashed = Floci endpoint config supports the same SDK client</text>
+</svg>

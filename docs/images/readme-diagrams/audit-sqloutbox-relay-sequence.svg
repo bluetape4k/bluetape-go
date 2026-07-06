@@ -1,0 +1,184 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1800" height="1420" viewBox="0 0 1800 1420" role="img" aria-labelledby="title desc">
+  <title id="title">audit/sqloutbox Relay Sequence</title>
+  <desc id="desc">Source writes and Store.Enqueue share the caller transaction; the relay later claims rows, publishes records, and updates status with the current attempt guard.</desc>
+  <defs>
+    <filter id="softShadow" x="-8%" y="-10%" width="116%" height="124%">
+      <feDropShadow dx="0" dy="5" stdDeviation="5" flood-color="#0f172a" flood-opacity="0.10"/>
+    </filter>
+    <marker id="seqArrow-blue" markerWidth="16" markerHeight="16" refX="9" refY="5" orient="auto" markerUnits="userSpaceOnUse" viewBox="0 0 10 10">
+      <path d="M 0 0 L 10 5 L 0 10 Z" fill="#4f86c6" stroke="#4f86c6"/>
+    </marker>
+    <marker id="seqArrow-green" markerWidth="16" markerHeight="16" refX="9" refY="5" orient="auto" markerUnits="userSpaceOnUse" viewBox="0 0 10 10">
+      <path d="M 0 0 L 10 5 L 0 10 Z" fill="#5f8d3e" stroke="#5f8d3e"/>
+    </marker>
+    <marker id="seqArrow-amber" markerWidth="16" markerHeight="16" refX="9" refY="5" orient="auto" markerUnits="userSpaceOnUse" viewBox="0 0 10 10">
+      <path d="M 0 0 L 10 5 L 0 10 Z" fill="#c1842f" stroke="#c1842f"/>
+    </marker>
+    <marker id="seqArrow-teal" markerWidth="16" markerHeight="16" refX="9" refY="5" orient="auto" markerUnits="userSpaceOnUse" viewBox="0 0 10 10">
+      <path d="M 0 0 L 10 5 L 0 10 Z" fill="#2f8f8a" stroke="#2f8f8a"/>
+    </marker>
+    <marker id="seqArrow-red" markerWidth="16" markerHeight="16" refX="9" refY="5" orient="auto" markerUnits="userSpaceOnUse" viewBox="0 0 10 10">
+      <path d="M 0 0 L 10 5 L 0 10 Z" fill="#b65b67" stroke="#b65b67"/>
+    </marker>
+    <style>
+      .canvas { fill: #f8fafc; }
+      .frame { fill: #ffffff; stroke: #cbd5e1; stroke-width: 1.5; filter: url(#softShadow); }
+      .title, .participant-title { font-family: "Architects Daughter", "Comic Sans MS", cursive; fill: #263a57; }
+      .title { font-size: 42px; }
+      .subtitle, .role, .msg, .region, .footer { font-family: "Comic Mono", "SFMono-Regular", monospace; fill: #526276; }
+      .subtitle { font-size: 17px; }
+      .participant-title { font-size: 22px; }
+      .role { font-size: 13px; }
+      .msg { font-size: 13px; font-weight: 700; }
+      .region { font-size: 13px; font-weight: 700; }
+      .footer { font-size: 14px; }
+      .participant { stroke-width: 2.2; rx: 12; }
+      .lifeline { stroke: #c5d4e3; stroke-width: 2; stroke-dasharray: 8 8; }
+      .activation { fill: #f3eeff; stroke: #8a65d8; stroke-width: 1.7; rx: 7; opacity: 0.88; }
+      .call, .return, .error, .state { fill: none; stroke-linecap: round; stroke-linejoin: round; }
+      .call, .state { stroke-width: 3; }
+      .return, .error { stroke-width: 2.7; stroke-dasharray: 9 8; }
+      .alt { fill: none; stroke: #78909c; stroke-width: 2.4; stroke-dasharray: 12 7; rx: 16; }
+      .alt-label { fill: #ffffff; stroke: #d7e0e4; stroke-width: 1.5; rx: 15; }
+      .branchDivider { stroke: #78909c; stroke-width: 2.2; stroke-dasharray: 12 8; }
+      .pill { fill: #ffffff; stroke: #cbd9e7; stroke-width: 1.5; rx: 15; }
+      .badge { stroke-width: 1.6; }
+      .badgeText { font-family: "Comic Mono", "SFMono-Regular", monospace; font-size: 10px; font-weight: 700; fill: #ffffff; }
+    </style>
+  </defs>
+
+  <rect class="canvas" width="1800" height="1420"/>
+  <rect class="frame" x="34" y="30" width="1732" height="1356" rx="8"/>
+  <text class="title" x="72" y="88">audit/sqloutbox Relay Sequence</text>
+  <text class="subtitle" x="76" y="120">Source writes and audit enqueue share the caller transaction; relay updates use the current claim attempt.</text>
+
+  <rect class="participant" x="76" y="176" width="190" height="68" fill="#eaf2ff" stroke="#6d9df0"/>
+  <text class="participant-title" x="171" y="204" text-anchor="middle">Service</text>
+  <text class="role" x="171" y="226" text-anchor="middle">caller</text>
+  <line class="lifeline" x1="171" y1="244" x2="171" y2="1308"/>
+
+  <rect class="participant" x="336" y="176" width="210" height="68" fill="#edf9f4" stroke="#63b891"/>
+  <text class="participant-title" x="441" y="204" text-anchor="middle">Source Tx</text>
+  <text class="role" x="441" y="226" text-anchor="middle">*sql.Tx owner</text>
+  <line class="lifeline" x1="441" y1="244" x2="441" y2="1308"/>
+
+  <rect class="participant" x="636" y="176" width="190" height="68" fill="#f3efff" stroke="#9b7aec"/>
+  <text class="participant-title" x="731" y="204" text-anchor="middle">Store</text>
+  <text class="role" x="731" y="226" text-anchor="middle">state machine</text>
+  <line class="lifeline" x1="731" y1="244" x2="731" y2="1308"/>
+
+  <rect class="participant" x="928" y="176" width="224" height="68" fill="#fff4de" stroke="#d59c3f"/>
+  <text class="participant-title" x="1040" y="204" text-anchor="middle">Outbox row</text>
+  <text class="role" x="1040" y="226" text-anchor="middle">PostgreSQL</text>
+  <line class="lifeline" x1="1040" y1="244" x2="1040" y2="1308"/>
+
+  <rect class="participant" x="1232" y="176" width="190" height="68" fill="#eaf2ff" stroke="#6d9df0"/>
+  <text class="participant-title" x="1327" y="204" text-anchor="middle">Relay</text>
+  <text class="role" x="1327" y="226" text-anchor="middle">poller</text>
+  <line class="lifeline" x1="1327" y1="244" x2="1327" y2="1308"/>
+
+  <rect class="participant" x="1510" y="176" width="210" height="68" fill="#fff0f0" stroke="#d56b7d"/>
+  <text class="participant-title" x="1615" y="204" text-anchor="middle">Publisher</text>
+  <text class="role" x="1615" y="226" text-anchor="middle">idempotent sink</text>
+  <line class="lifeline" x1="1615" y1="244" x2="1615" y2="1308"/>
+
+  <rect class="activation" x="434" y="300" width="14" height="262" rx="7"/>
+  <rect class="activation" x="724" y="378" width="14" height="772" rx="7"/>
+  <rect class="activation" x="1033" y="458" width="14" height="436" rx="7"/>
+  <rect class="activation" x="1320" y="638" width="14" height="646" rx="7"/>
+  <rect class="activation" x="1608" y="938" width="14" height="326" rx="7"/>
+
+  <rect class="alt" x="90" y="1000" width="1626" height="296" rx="16"/>
+  <rect class="alt-label" x="112" y="1018" width="184" height="30" rx="15"/>
+  <text class="region" x="136" y="1038">alt publish error</text>
+  <line class="branchDivider" x1="112" y1="1146" x2="1694" y2="1146"/>
+  <rect class="alt-label" x="112" y="1164" width="168" height="30" rx="15"/>
+  <text class="region" x="136" y="1184">else publish ok</text>
+
+  <path class="call" d="M171 310 L441 310" stroke="#4f86c6" marker-end="url(#seqArrow-blue)"/>
+  <rect class="pill" x="222" y="268" width="168" height="30" rx="15"/>
+  <circle class="badge" cx="242" cy="283" r="13" fill="#4f86c6" stroke="#4f86c6"/>
+  <text class="badgeText" x="242" y="287" text-anchor="middle">1</text>
+  <text class="msg" x="314" y="288" text-anchor="middle" fill="#4f86c6">begin Tx</text>
+
+  <path class="call" d="M171 390 L441 390" stroke="#5f8d3e" marker-end="url(#seqArrow-green)"/>
+  <rect class="pill" x="206" y="348" width="200" height="30" rx="15"/>
+  <circle class="badge" cx="226" cy="363" r="13" fill="#5f8d3e" stroke="#5f8d3e"/>
+  <text class="badgeText" x="226" y="367" text-anchor="middle">2</text>
+  <text class="msg" x="314" y="368" text-anchor="middle" fill="#5f8d3e">write source</text>
+
+  <path class="call" d="M441 470 L731 470" stroke="#2f8f8a" marker-end="url(#seqArrow-teal)"/>
+  <rect class="pill" x="494" y="428" width="184" height="30" rx="15"/>
+  <circle class="badge" cx="514" cy="443" r="13" fill="#2f8f8a" stroke="#2f8f8a"/>
+  <text class="badgeText" x="514" y="447" text-anchor="middle">3</text>
+  <text class="msg" x="590" y="448" text-anchor="middle" fill="#2f8f8a">Enqueue(entry)</text>
+
+  <path class="call" d="M731 550 L1040 550" stroke="#c1842f" marker-end="url(#seqArrow-amber)"/>
+  <rect class="pill" x="798" y="508" width="178" height="30" rx="15"/>
+  <circle class="badge" cx="818" cy="523" r="13" fill="#c1842f" stroke="#c1842f"/>
+  <text class="badgeText" x="818" y="527" text-anchor="middle">4</text>
+  <text class="msg" x="890" y="528" text-anchor="middle" fill="#c1842f">insert pending</text>
+
+  <path class="return" d="M441 630 L171 630" stroke="#2f8f8a" marker-end="url(#seqArrow-teal)"/>
+  <rect class="pill" x="214" y="588" width="186" height="30" rx="15"/>
+  <circle class="badge" cx="234" cy="603" r="13" fill="#2f8f8a" stroke="#2f8f8a"/>
+  <text class="badgeText" x="234" y="607" text-anchor="middle">5</text>
+  <text class="msg" x="314" y="608" text-anchor="middle" fill="#2f8f8a">commit both</text>
+
+  <path class="call" d="M1327 710 L731 710" stroke="#4f86c6" marker-end="url(#seqArrow-blue)"/>
+  <rect class="pill" x="914" y="668" width="232" height="30" rx="15"/>
+  <circle class="badge" cx="934" cy="683" r="13" fill="#4f86c6" stroke="#4f86c6"/>
+  <text class="badgeText" x="934" y="687" text-anchor="middle">6</text>
+  <text class="msg" x="1038" y="688" text-anchor="middle" fill="#4f86c6">Claim(limit, now)</text>
+
+  <path class="call" d="M731 790 L1040 790" stroke="#c1842f" marker-end="url(#seqArrow-amber)"/>
+  <rect class="pill" x="764" y="748" width="244" height="30" rx="15"/>
+  <circle class="badge" cx="784" cy="763" r="13" fill="#c1842f" stroke="#c1842f"/>
+  <text class="badgeText" x="784" y="767" text-anchor="middle">7</text>
+  <text class="msg" x="894" y="768" text-anchor="middle" fill="#c1842f">FOR UPDATE SKIP LOCKED</text>
+
+  <path class="return" d="M1040 870 L731 870" stroke="#2f8f8a" marker-end="url(#seqArrow-teal)"/>
+  <rect class="pill" x="798" y="828" width="176" height="30" rx="15"/>
+  <circle class="badge" cx="818" cy="843" r="13" fill="#2f8f8a" stroke="#2f8f8a"/>
+  <text class="badgeText" x="818" y="847" text-anchor="middle">8</text>
+  <text class="msg" x="890" y="848" text-anchor="middle" fill="#2f8f8a">Record(attempt)</text>
+
+  <path class="return" d="M731 930 L1327 930" stroke="#2f8f8a" marker-end="url(#seqArrow-teal)"/>
+  <rect class="pill" x="938" y="888" width="182" height="30" rx="15"/>
+  <circle class="badge" cx="958" cy="903" r="13" fill="#2f8f8a" stroke="#2f8f8a"/>
+  <text class="badgeText" x="958" y="907" text-anchor="middle">9</text>
+  <text class="msg" x="1032" y="908" text-anchor="middle" fill="#2f8f8a">claimed batch</text>
+
+  <path class="call" d="M1327 990 L1615 990" stroke="#c1842f" marker-end="url(#seqArrow-amber)"/>
+  <rect class="pill" x="1388" y="948" width="168" height="30" rx="15"/>
+  <circle class="badge" cx="1410" cy="963" r="13" fill="#c1842f" stroke="#c1842f"/>
+  <text class="badgeText" x="1410" y="967" text-anchor="middle">10</text>
+  <text class="msg" x="1480" y="968" text-anchor="middle" fill="#c1842f">Publish(record)</text>
+
+  <path class="error" d="M1615 1072 L1327 1072" stroke="#b65b67" marker-end="url(#seqArrow-red)"/>
+  <rect class="pill" x="1406" y="1030" width="132" height="30" rx="15"/>
+  <circle class="badge" cx="1428" cy="1045" r="13" fill="#b65b67" stroke="#b65b67"/>
+  <text class="badgeText" x="1428" y="1049" text-anchor="middle">11</text>
+  <text class="msg" x="1480" y="1050" text-anchor="middle" fill="#b65b67">error</text>
+
+  <path class="state" d="M1327 1130 L731 1130" stroke="#b65b67" marker-end="url(#seqArrow-red)"/>
+  <rect class="pill" x="892" y="1088" width="274" height="30" rx="15"/>
+  <circle class="badge" cx="914" cy="1103" r="13" fill="#b65b67" stroke="#b65b67"/>
+  <text class="badgeText" x="914" y="1107" text-anchor="middle">12</text>
+  <text class="msg" x="1036" y="1108" text-anchor="middle" fill="#b65b67">MarkFailed(id, attempt)</text>
+
+  <path class="return" d="M1615 1212 L1327 1212" stroke="#5f8d3e" marker-end="url(#seqArrow-green)"/>
+  <rect class="pill" x="1416" y="1170" width="112" height="30" rx="15"/>
+  <circle class="badge" cx="1438" cy="1185" r="13" fill="#5f8d3e" stroke="#5f8d3e"/>
+  <text class="badgeText" x="1438" y="1189" text-anchor="middle">13</text>
+  <text class="msg" x="1480" y="1190" text-anchor="middle" fill="#5f8d3e">ok</text>
+
+  <path class="state" d="M1327 1272 L731 1272" stroke="#5f8d3e" marker-end="url(#seqArrow-green)"/>
+  <rect class="pill" x="874" y="1230" width="310" height="30" rx="15"/>
+  <circle class="badge" cx="896" cy="1245" r="13" fill="#5f8d3e" stroke="#5f8d3e"/>
+  <text class="badgeText" x="896" y="1249" text-anchor="middle">14</text>
+  <text class="msg" x="1038" y="1250" text-anchor="middle" fill="#5f8d3e">MarkPublished(id, attempt)</text>
+
+  <rect class="pill" x="372" y="1330" width="1056" height="34" rx="17"/>
+  <text class="footer" x="900" y="1352" text-anchor="middle">At-least-once delivery is intentional; consumers deduplicate by event ID or idempotency key.</text>
+</svg>

@@ -1,0 +1,146 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1800" height="1410" viewBox="0 0 1800 1410" role="img" aria-labelledby="title desc">
+  <title id="title">id Generator Format Layout</title>
+  <desc id="desc">Source-backed bit and byte layouts for bluetape-go id generators: Snowflake, UUID v7, ULID, Segment KSUID, and Kotlin-compatible KSUID millis.</desc>
+  <defs>
+    <filter id="softShadow" x="-6%" y="-8%" width="112%" height="120%">
+      <feDropShadow dx="0" dy="5" stdDeviation="5" flood-color="#0f172a" flood-opacity="0.10"/>
+    </filter>
+    <style>
+      .canvas { fill: #f8fafc; }
+      .frame { fill: #ffffff; stroke: #cbd5e1; stroke-width: 1.5; filter: url(#softShadow); }
+      .title, .row-title, .segment-title, .callout-title { font-family: "Architects Daughter", "Comic Sans MS", cursive; fill: #24364f; }
+      .title { font-size: 44px; }
+      .subtitle, .mono, .tick, .legend, .note { font-family: "Comic Mono", "SFMono-Regular", monospace; fill: #526276; }
+      .subtitle { font-size: 18px; }
+      .mono { font-size: 15px; }
+      .tick { font-size: 13px; fill: #64748b; }
+      .row-title { font-size: 25px; }
+      .segment-title { font-size: 24px; }
+      .segment-subtitle { font-family: "Comic Mono", "SFMono-Regular", monospace; font-size: 15px; fill: #36465c; }
+      .bar { stroke-width: 2.3; rx: 8; filter: url(#softShadow); }
+      .barline { stroke-width: 1.2; stroke-dasharray: 4 7; opacity: 0.46; }
+      .note-card { fill: #ffffff; stroke: #d7e0ea; stroke-width: 1.5; rx: 8; filter: url(#softShadow); }
+      .callout-title { font-size: 22px; }
+      .note { font-size: 15px; }
+      .legend { font-size: 14px; }
+    </style>
+  </defs>
+
+  <rect class="canvas" width="1800" height="1410"/>
+  <rect class="frame" x="34" y="30" width="1732" height="1344" rx="8"/>
+  <text class="title" x="76" y="88">id Generator Format Layout</text>
+  <text class="subtitle" x="80" y="122">Go package formats aligned to the implemented APIs. The Snowflake row differs from the sibling JVM diagram: Go uses a non-negative 63-bit int64 payload.</text>
+
+  <rect class="note-card" x="80" y="152" width="1640" height="68"/>
+  <text class="callout-title" x="110" y="192">Read this with the package boundary</text>
+  <text class="note" x="520" y="190">Flake, Hashids, and UUID v5 are deferred in this repo; compact UUID rendering lives in codec.</text>
+
+  <g id="snowflake">
+    <text class="row-title" x="92" y="274">Snowflake int64</text>
+    <text class="mono" x="328" y="270">63-bit non-negative integer: epoch millis + caller-owned machine ID + same-ms sequence</text>
+    <text class="tick" x="112" y="306">bit 63</text>
+    <text class="tick" x="1696" y="306" text-anchor="end">bit 0</text>
+    <line class="barline" x1="112" y1="314" x2="112" y2="400" stroke="#64748b"/>
+    <line class="barline" x1="193" y1="314" x2="193" y2="400" stroke="#64748b"/>
+    <line class="barline" x1="1181" y1="314" x2="1181" y2="400" stroke="#64748b"/>
+    <line class="barline" x1="1422" y1="314" x2="1422" y2="400" stroke="#64748b"/>
+    <line class="barline" x1="1696" y1="314" x2="1696" y2="400" stroke="#64748b"/>
+    <rect class="bar" x="112" y="330" width="81" height="86" fill="#f1f5f9" stroke="#94a3b8"/>
+    <rect class="bar" x="193" y="330" width="988" height="86" fill="#eaf2ff" stroke="#4f86c6"/>
+    <rect class="bar" x="1181" y="330" width="241" height="86" fill="#edf9f4" stroke="#51a67a"/>
+    <rect class="bar" x="1422" y="330" width="274" height="86" fill="#fff4de" stroke="#d59c3f"/>
+    <text class="segment-subtitle" x="152" y="363" text-anchor="middle">1 bit</text>
+    <text class="segment-title" x="152" y="391" text-anchor="middle">sign</text>
+    <text class="segment-subtitle" x="687" y="358" text-anchor="middle">41 bits</text>
+    <text class="segment-title" x="687" y="388" text-anchor="middle">timestamp</text>
+    <text class="segment-subtitle" x="1302" y="358" text-anchor="middle">10 bits</text>
+    <text class="segment-title" x="1302" y="388" text-anchor="middle">machine</text>
+    <text class="segment-subtitle" x="1559" y="358" text-anchor="middle">12 bits</text>
+    <text class="segment-title" x="1559" y="388" text-anchor="middle">sequence</text>
+    <text class="tick" x="193" y="434">62</text>
+    <text class="tick" x="1181" y="434" text-anchor="end">22</text>
+    <text class="tick" x="1422" y="434" text-anchor="end">12</text>
+    <text class="tick" x="1696" y="434" text-anchor="end">0</text>
+  </g>
+
+  <g id="uuidv7">
+    <text class="row-title" x="92" y="504">UUID v7</text>
+    <text class="mono" x="244" y="500">128-bit UUID string. Same generator advances a 12-bit logical tick for lexical order.</text>
+    <text class="tick" x="112" y="536">bit 127</text>
+    <text class="tick" x="1696" y="536" text-anchor="end">bit 0</text>
+    <line class="barline" x1="112" y1="544" x2="112" y2="630" stroke="#64748b"/>
+    <line class="barline" x1="705" y1="544" x2="705" y2="630" stroke="#64748b"/>
+    <line class="barline" x1="768" y1="544" x2="768" y2="630" stroke="#64748b"/>
+    <line class="barline" x1="916" y1="544" x2="916" y2="630" stroke="#64748b"/>
+    <line class="barline" x1="978" y1="544" x2="978" y2="630" stroke="#64748b"/>
+    <line class="barline" x1="1696" y1="544" x2="1696" y2="630" stroke="#64748b"/>
+    <rect class="bar" x="112" y="560" width="593" height="86" fill="#eaf2ff" stroke="#4f86c6"/>
+    <rect class="bar" x="705" y="560" width="63" height="86" fill="#f3efff" stroke="#9b7aec"/>
+    <rect class="bar" x="768" y="560" width="148" height="86" fill="#edf9f4" stroke="#51a67a"/>
+    <rect class="bar" x="916" y="560" width="62" height="86" fill="#fff0f0" stroke="#d56b7d"/>
+    <rect class="bar" x="978" y="560" width="718" height="86" fill="#fff4de" stroke="#d59c3f"/>
+    <text class="segment-subtitle" x="409" y="588" text-anchor="middle">48 bits</text>
+    <text class="segment-title" x="409" y="618" text-anchor="middle">unix millis</text>
+    <text class="segment-subtitle" x="736" y="588" text-anchor="middle">4</text>
+    <text class="segment-title" x="736" y="618" text-anchor="middle">ver</text>
+    <text class="segment-subtitle" x="842" y="588" text-anchor="middle">12 bits</text>
+    <text class="segment-title" x="842" y="618" text-anchor="middle">tick</text>
+    <text class="segment-subtitle" x="947" y="588" text-anchor="middle">2</text>
+    <text class="segment-title" x="947" y="618" text-anchor="middle">var</text>
+    <text class="segment-subtitle" x="1337" y="588" text-anchor="middle">62 bits</text>
+    <text class="segment-title" x="1337" y="618" text-anchor="middle">entropy</text>
+    <text class="tick" x="705" y="664" text-anchor="end">80</text>
+    <text class="tick" x="768" y="664" text-anchor="end">76</text>
+    <text class="tick" x="916" y="664" text-anchor="end">64</text>
+  </g>
+
+  <g id="ulid">
+    <text class="row-title" x="92" y="734">ULID</text>
+    <text class="mono" x="202" y="730">128-bit value rendered as 26 Crockford Base32 characters: 10 time chars + 16 random chars.</text>
+    <text class="tick" x="112" y="766">bit 127</text>
+    <text class="tick" x="1696" y="766" text-anchor="end">bit 0</text>
+    <line class="barline" x1="112" y1="774" x2="112" y2="860" stroke="#64748b"/>
+    <line class="barline" x1="705" y1="774" x2="705" y2="860" stroke="#64748b"/>
+    <line class="barline" x1="1696" y1="774" x2="1696" y2="860" stroke="#64748b"/>
+    <rect class="bar" x="112" y="790" width="593" height="86" fill="#eaf2ff" stroke="#4f86c6"/>
+    <rect class="bar" x="705" y="790" width="991" height="86" fill="#fff4de" stroke="#d59c3f"/>
+    <text class="segment-subtitle" x="409" y="818" text-anchor="middle">48 bits</text>
+    <text class="segment-title" x="409" y="848" text-anchor="middle">timestamp</text>
+    <text class="segment-subtitle" x="1200" y="818" text-anchor="middle">80 bits</text>
+    <text class="segment-title" x="1200" y="848" text-anchor="middle">entropy</text>
+    <text class="tick" x="705" y="894" text-anchor="end">80</text>
+  </g>
+
+  <g id="ksuid-seconds">
+    <text class="row-title" x="92" y="964">Segment KSUID</text>
+    <text class="mono" x="342" y="960">20 bytes rendered as a sortable 27-character Base62 string; same-second order is random.</text>
+    <text class="tick" x="112" y="996">bit 159</text>
+    <text class="tick" x="1696" y="996" text-anchor="end">bit 0</text>
+    <line class="barline" x1="112" y1="1004" x2="112" y2="1090" stroke="#64748b"/>
+    <line class="barline" x1="428" y1="1004" x2="428" y2="1090" stroke="#64748b"/>
+    <line class="barline" x1="1696" y1="1004" x2="1696" y2="1090" stroke="#64748b"/>
+    <rect class="bar" x="112" y="1020" width="316" height="86" fill="#eaf2ff" stroke="#4f86c6"/>
+    <rect class="bar" x="428" y="1020" width="1268" height="86" fill="#fff4de" stroke="#d59c3f"/>
+    <text class="segment-subtitle" x="270" y="1048" text-anchor="middle">32 bits</text>
+    <text class="segment-title" x="270" y="1078" text-anchor="middle">seconds</text>
+    <text class="segment-subtitle" x="1062" y="1048" text-anchor="middle">128 bits</text>
+    <text class="segment-title" x="1062" y="1078" text-anchor="middle">payload</text>
+    <text class="tick" x="428" y="1124" text-anchor="end">128</text>
+  </g>
+
+  <g id="ksuid-millis">
+    <text class="row-title" x="92" y="1194">KSUID millis</text>
+    <text class="mono" x="316" y="1190">Kotlin-compatible 20-byte layout. Uses bluetape4k bit-stream Base62, not Segment-sortable encoding.</text>
+    <text class="tick" x="112" y="1226">bit 159</text>
+    <text class="tick" x="1696" y="1226" text-anchor="end">bit 0</text>
+    <line class="barline" x1="112" y1="1234" x2="112" y2="1264" stroke="#64748b"/>
+    <line class="barline" x1="744" y1="1234" x2="744" y2="1264" stroke="#64748b"/>
+    <line class="barline" x1="1696" y1="1234" x2="1696" y2="1264" stroke="#64748b"/>
+    <rect class="bar" x="112" y="1250" width="632" height="86" fill="#f3efff" stroke="#9b7aec"/>
+    <rect class="bar" x="744" y="1250" width="952" height="86" fill="#edf9f4" stroke="#51a67a"/>
+    <text class="segment-subtitle" x="428" y="1278" text-anchor="middle">64 bits</text>
+    <text class="segment-title" x="428" y="1308" text-anchor="middle">millis</text>
+    <text class="segment-subtitle" x="1220" y="1278" text-anchor="middle">96 bits</text>
+    <text class="segment-title" x="1220" y="1308" text-anchor="middle">payload</text>
+  </g>
+</svg>

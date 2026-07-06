@@ -29,6 +29,18 @@ Profile loader는 retry와 timeout policy를 함께 씁니다. Production caller
 `context.Context` deadline을 request budget보다 좁게 잡고, policy event hook을
 metrics나 log로 연결하는 것이 좋습니다.
 
+## Diagram
+
+![Integration recipe contract map](../../docs/images/readme-diagrams/examples-integration-contract-map.png)
+
+Contract map은 이 package가 compile-checked recipe harness임을 보여줍니다.
+기존 package 계약을 조합하고, local reader/writer fixture는 test-only로 둡니다.
+
+![Integration recipe sequence](../../docs/images/readme-diagrams/examples-integration-recipe-sequence.png)
+
+Sequence는 service-free recipe가 request ID와 JWT 처리에서 cache/resilience,
+workflow 실행, batch report 계약까지 이어지는 순서를 보여줍니다.
+
 ## Cleanup and Timeout
 
 각 recipe는 명시적인 timeout context를 만듭니다. Redis smoke test는 Redis client,

@@ -38,6 +38,24 @@ func ExampleEncodeBase62String() {
 	// bluetape-go
 }
 
+func ExampleEncodeUUIDURL62() {
+	encoded, err := codec.EncodeUUIDURL62("24738134-9d88-6645-4ec8-d63aa2031015")
+	if err != nil {
+		return
+	}
+	decoded, err := codec.DecodeUUIDURL62(encoded)
+	if err != nil {
+		return
+	}
+
+	fmt.Println(encoded)
+	fmt.Println(decoded)
+
+	// Output:
+	// 16mVan3wbAXR6tQwIbfS5d
+	// 24738134-9d88-6645-4ec8-d63aa2031015
+}
+
 func ExampleEncodeBase64URL() {
 	encoded := codec.EncodeBase64URL([]byte{251, 255, 255})
 	decoded, err := codec.DecodeBase64URL(encoded)

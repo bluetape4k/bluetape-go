@@ -1,0 +1,195 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1800" height="1520" viewBox="0 0 1800 1520" role="img" aria-labelledby="title desc">
+  <title id="title">testcontainers/floci Start Sequence</title>
+  <desc id="desc">Sequence diagram for testcontainers/floci showing Start, upstream Floci builder creation, service config application, container start and readiness, Details extraction, AWS SDK config loading, service client smoke tests, optional env export, and cleanup Stop.</desc>
+  <defs>
+    <filter id="softShadow" x="-8%" y="-10%" width="116%" height="124%">
+      <feDropShadow dx="0" dy="5" stdDeviation="5" flood-color="#0f172a" flood-opacity="0.10"/>
+    </filter>
+    <marker id="seqArrow-blue" markerWidth="16" markerHeight="16" refX="9" refY="5" orient="auto" markerUnits="userSpaceOnUse" viewBox="0 0 10 10">
+      <path d="M 0 0 L 10 5 L 0 10 Z" fill="#4f86c6" stroke="#4f86c6"/>
+    </marker>
+    <marker id="seqArrow-green" markerWidth="16" markerHeight="16" refX="9" refY="5" orient="auto" markerUnits="userSpaceOnUse" viewBox="0 0 10 10">
+      <path d="M 0 0 L 10 5 L 0 10 Z" fill="#5f8d3e" stroke="#5f8d3e"/>
+    </marker>
+    <marker id="seqArrow-amber" markerWidth="16" markerHeight="16" refX="9" refY="5" orient="auto" markerUnits="userSpaceOnUse" viewBox="0 0 10 10">
+      <path d="M 0 0 L 10 5 L 0 10 Z" fill="#c1842f" stroke="#c1842f"/>
+    </marker>
+    <marker id="seqArrow-teal" markerWidth="16" markerHeight="16" refX="9" refY="5" orient="auto" markerUnits="userSpaceOnUse" viewBox="0 0 10 10">
+      <path d="M 0 0 L 10 5 L 0 10 Z" fill="#2f8f8a" stroke="#2f8f8a"/>
+    </marker>
+    <marker id="seqArrow-red" markerWidth="16" markerHeight="16" refX="9" refY="5" orient="auto" markerUnits="userSpaceOnUse" viewBox="0 0 10 10">
+      <path d="M 0 0 L 10 5 L 0 10 Z" fill="#b65b67" stroke="#b65b67"/>
+    </marker>
+    <style>
+      .canvas { fill: #f8fafc; }
+      .frame { fill: #ffffff; stroke: #cbd5e1; stroke-width: 1.5; filter: url(#softShadow); }
+      .title, .participant-title { font-family: "Architects Daughter", "Comic Sans MS", cursive; fill: #263a57; }
+      .title { font-size: 42px; }
+      .subtitle, .role, .msg, .region, .footer { font-family: "Comic Mono", "SFMono-Regular", monospace; fill: #526276; }
+      .subtitle { font-size: 17px; }
+      .participant-title { font-size: 21px; }
+      .role { font-size: 13px; }
+      .msg { font-size: 13px; font-weight: 700; }
+      .region { font-size: 13px; font-weight: 700; }
+      .footer { font-size: 14px; }
+      .participant { stroke-width: 2.2; rx: 12; }
+      .lifeline { stroke: #c5d4e3; stroke-width: 2; stroke-dasharray: 8 8; }
+      .activation { fill: #f3eeff; stroke: #8a65d8; stroke-width: 1.7; rx: 7; opacity: 0.88; }
+      .call, .return, .error { fill: none; stroke-linecap: round; stroke-linejoin: round; }
+      .call { stroke-width: 3; }
+      .return, .error { stroke-width: 2.7; stroke-dasharray: 9 8; }
+      .phase { fill: none; stroke: #78909c; stroke-width: 2.4; stroke-dasharray: 12 7; rx: 16; }
+      .phase-label { fill: #ffffff; stroke: #d7e0e4; stroke-width: 1.5; rx: 15; }
+      .pill { fill: #ffffff; stroke: #cbd9e7; stroke-width: 1.5; rx: 15; }
+      .badge { stroke-width: 1.6; }
+      .badgeText { font-family: "Comic Mono", "SFMono-Regular", monospace; font-size: 10px; font-weight: 700; fill: #ffffff; }
+    </style>
+  </defs>
+
+  <rect class="canvas" width="1800" height="1520"/>
+  <rect class="frame" x="34" y="30" width="1732" height="1456" rx="8"/>
+  <text class="title" x="72" y="88">testcontainers/floci Start Sequence</text>
+  <text class="subtitle" x="76" y="120">The helper owns startup/config extraction; tests own clients, service assertions, optional env export, and Docker-lane execution policy.</text>
+
+  <rect class="participant" x="72" y="174" width="184" height="72" fill="#eaf2ff" stroke="#6d9df0"/>
+  <text class="participant-title" x="164" y="202" text-anchor="middle">Test</text>
+  <text class="role" x="164" y="224" text-anchor="middle">ctx + testing.TB</text>
+  <line class="lifeline" x1="164" y1="246" x2="164" y2="1412"/>
+
+  <rect class="participant" x="314" y="174" width="216" height="72" fill="#edf9f4" stroke="#63b891"/>
+  <text class="participant-title" x="422" y="202" text-anchor="middle">flocitestcontainer</text>
+  <text class="role" x="422" y="224" text-anchor="middle">Start / LoadConfig</text>
+  <line class="lifeline" x1="422" y1="246" x2="422" y2="1412"/>
+
+  <rect class="participant" x="588" y="174" width="204" height="72" fill="#f3efff" stroke="#9b7aec"/>
+  <text class="participant-title" x="690" y="202" text-anchor="middle">Floci builder</text>
+  <text class="role" x="690" y="224" text-anchor="middle">service config</text>
+  <line class="lifeline" x1="690" y1="246" x2="690" y2="1412"/>
+
+  <rect class="participant" x="846" y="174" width="210" height="72" fill="#fff4de" stroke="#d59c3f"/>
+  <text class="participant-title" x="951" y="202" text-anchor="middle">Floci container</text>
+  <text class="role" x="951" y="224" text-anchor="middle">endpoint + Stop</text>
+  <line class="lifeline" x1="951" y1="246" x2="951" y2="1412"/>
+
+  <rect class="participant" x="1112" y="174" width="178" height="72" fill="#f8fafc" stroke="#94a3b8"/>
+  <text class="participant-title" x="1201" y="202" text-anchor="middle">Details</text>
+  <text class="role" x="1201" y="224" text-anchor="middle">connection map</text>
+  <line class="lifeline" x1="1201" y1="246" x2="1201" y2="1412"/>
+
+  <rect class="participant" x="1350" y="174" width="194" height="72" fill="#eaf2ff" stroke="#6d9df0"/>
+  <text class="participant-title" x="1447" y="202" text-anchor="middle">AWS config</text>
+  <text class="role" x="1447" y="224" text-anchor="middle">SDK v2 loader</text>
+  <line class="lifeline" x1="1447" y1="246" x2="1447" y2="1412"/>
+
+  <rect class="participant" x="1594" y="174" width="174" height="72" fill="#fff0f0" stroke="#d56b7d"/>
+  <text class="participant-title" x="1681" y="202" text-anchor="middle">Client / env</text>
+  <text class="role" x="1681" y="224" text-anchor="middle">smoke boundary</text>
+  <line class="lifeline" x1="1681" y1="246" x2="1681" y2="1412"/>
+
+  <rect class="activation" x="157" y="304" width="14" height="1032" rx="7"/>
+  <rect class="activation" x="415" y="330" width="14" height="706" rx="7"/>
+  <rect class="activation" x="683" y="408" width="14" height="210" rx="7"/>
+  <rect class="activation" x="944" y="568" width="14" height="742" rx="7"/>
+  <rect class="activation" x="1194" y="730" width="14" height="154" rx="7"/>
+  <rect class="activation" x="1440" y="962" width="14" height="130" rx="7"/>
+  <rect class="activation" x="1674" y="1128" width="14" height="138" rx="7"/>
+
+  <rect class="phase" x="292" y="292" width="790" height="444" rx="16"/>
+  <rect class="phase-label" x="314" y="254" width="212" height="30" rx="15"/>
+  <text class="region" x="338" y="274">container startup</text>
+
+  <rect class="phase" x="1100" y="752" width="474" height="368" rx="16"/>
+  <rect class="phase-label" x="1122" y="714" width="226" height="30" rx="15"/>
+  <text class="region" x="1146" y="734">config extraction</text>
+
+  <rect class="phase" x="1558" y="1100" width="156" height="196" rx="16"/>
+  <rect class="phase-label" x="1396" y="1062" width="276" height="30" rx="15"/>
+  <text class="region" x="1420" y="1082">caller-owned service use</text>
+
+  <path class="call" d="M164 340H422" stroke="#4f86c6" marker-end="url(#seqArrow-blue)"/>
+  <rect class="pill" x="224" y="298" width="148" height="30" rx="15"/>
+  <circle class="badge" cx="244" cy="313" r="13" fill="#4f86c6" stroke="#4f86c6"/>
+  <text class="badgeText" x="244" y="317" text-anchor="middle">1</text>
+  <text class="msg" x="304" y="318" text-anchor="middle" fill="#4f86c6">Start</text>
+
+  <path class="call" d="M422 420H690" stroke="#2f8f8a" marker-end="url(#seqArrow-teal)"/>
+  <rect class="pill" x="474" y="378" width="168" height="30" rx="15"/>
+  <circle class="badge" cx="494" cy="393" r="13" fill="#2f8f8a" stroke="#2f8f8a"/>
+  <text class="badgeText" x="494" y="397" text-anchor="middle">2</text>
+  <text class="msg" x="562" y="398" text-anchor="middle" fill="#2f8f8a">New builder</text>
+
+  <path class="call" d="M422 500H690" stroke="#8a65d6" marker-end="url(#seqArrow-blue)"/>
+  <rect class="pill" x="450" y="458" width="224" height="30" rx="15"/>
+  <circle class="badge" cx="472" cy="473" r="13" fill="#4f86c6" stroke="#4f86c6"/>
+  <text class="badgeText" x="472" y="477" text-anchor="middle">3</text>
+  <text class="msg" x="566" y="478" text-anchor="middle" fill="#4f86c6">apply service config</text>
+
+  <path class="call" d="M690 580H951" stroke="#c1842f" marker-end="url(#seqArrow-amber)"/>
+  <rect class="pill" x="756" y="538" width="128" height="30" rx="15"/>
+  <circle class="badge" cx="776" cy="553" r="13" fill="#c1842f" stroke="#c1842f"/>
+  <text class="badgeText" x="776" y="557" text-anchor="middle">4</text>
+  <text class="msg" x="826" y="558" text-anchor="middle" fill="#c1842f">Start</text>
+
+  <path class="return" d="M951 660H422" stroke="#5f8d3e" marker-end="url(#seqArrow-green)"/>
+  <rect class="pill" x="596" y="618" width="184" height="30" rx="15"/>
+  <circle class="badge" cx="618" cy="633" r="13" fill="#5f8d3e" stroke="#5f8d3e"/>
+  <text class="badgeText" x="618" y="637" text-anchor="middle">5</text>
+  <text class="msg" x="692" y="638" text-anchor="middle" fill="#5f8d3e">ready handle</text>
+
+  <path class="call" d="M422 760H1201" stroke="#64748b" marker-end="url(#seqArrow-teal)"/>
+  <rect class="pill" x="704" y="718" width="216" height="30" rx="15"/>
+  <circle class="badge" cx="726" cy="733" r="13" fill="#2f8f8a" stroke="#2f8f8a"/>
+  <text class="badgeText" x="726" y="737" text-anchor="middle">6</text>
+  <text class="msg" x="816" y="738" text-anchor="middle" fill="#2f8f8a">extract Details</text>
+
+  <path class="return" d="M1201 860H164" stroke="#5f8d3e" marker-end="url(#seqArrow-green)"/>
+  <rect class="pill" x="562" y="818" width="246" height="30" rx="15"/>
+  <circle class="badge" cx="584" cy="833" r="13" fill="#5f8d3e" stroke="#5f8d3e"/>
+  <text class="badgeText" x="584" y="837" text-anchor="middle">7</text>
+  <text class="msg" x="690" y="838" text-anchor="middle" fill="#5f8d3e">Details + cleanup</text>
+
+  <path class="call" d="M164 940H422" stroke="#4f86c6" marker-end="url(#seqArrow-blue)"/>
+  <rect class="pill" x="210" y="898" width="168" height="30" rx="15"/>
+  <circle class="badge" cx="232" cy="913" r="13" fill="#4f86c6" stroke="#4f86c6"/>
+  <text class="badgeText" x="232" y="917" text-anchor="middle">8</text>
+  <text class="msg" x="300" y="918" text-anchor="middle" fill="#4f86c6">LoadConfig</text>
+
+  <path class="call" d="M422 1020H1447" stroke="#2f8f8a" marker-end="url(#seqArrow-teal)"/>
+  <rect class="pill" x="794" y="978" width="278" height="30" rx="15"/>
+  <circle class="badge" cx="816" cy="993" r="13" fill="#2f8f8a" stroke="#2f8f8a"/>
+  <text class="badgeText" x="816" y="997" text-anchor="middle">9</text>
+  <text class="msg" x="940" y="998" text-anchor="middle" fill="#2f8f8a">region endpoint credentials</text>
+
+  <path class="return" d="M1447 1100H164" stroke="#5f8d3e" marker-end="url(#seqArrow-green)"/>
+  <rect class="pill" x="716" y="1058" width="174" height="30" rx="15"/>
+  <circle class="badge" cx="738" cy="1073" r="13" fill="#5f8d3e" stroke="#5f8d3e"/>
+  <text class="badgeText" x="738" y="1077" text-anchor="middle">10</text>
+  <text class="msg" x="808" y="1078" text-anchor="middle" fill="#5f8d3e">aws.Config</text>
+
+  <path class="call" d="M164 1160H1681" stroke="#4f86c6" marker-end="url(#seqArrow-blue)"/>
+  <rect class="pill" x="772" y="1118" width="300" height="30" rx="15"/>
+  <circle class="badge" cx="794" cy="1133" r="13" fill="#4f86c6" stroke="#4f86c6"/>
+  <text class="badgeText" x="794" y="1137" text-anchor="middle">11</text>
+  <text class="msg" x="928" y="1138" text-anchor="middle" fill="#4f86c6">NewFromConfig + client opts</text>
+
+  <path class="call" d="M1681 1240H951" stroke="#c1842f" marker-end="url(#seqArrow-amber)"/>
+  <rect class="pill" x="1204" y="1198" width="226" height="30" rx="15"/>
+  <circle class="badge" cx="1226" cy="1213" r="13" fill="#c1842f" stroke="#c1842f"/>
+  <text class="badgeText" x="1226" y="1217" text-anchor="middle">12</text>
+  <text class="msg" x="1322" y="1218" text-anchor="middle" fill="#c1842f">S3/SQS/SNS/DynamoDB</text>
+
+  <path class="error" d="M164 1320H1681" stroke="#b65b67" marker-end="url(#seqArrow-red)"/>
+  <rect class="pill" x="800" y="1278" width="244" height="30" rx="15"/>
+  <circle class="badge" cx="822" cy="1293" r="13" fill="#b65b67" stroke="#b65b67"/>
+  <text class="badgeText" x="822" y="1297" text-anchor="middle">13</text>
+  <text class="msg" x="928" y="1298" text-anchor="middle" fill="#b65b67">optional ExportEnv</text>
+
+  <path class="error" d="M164 1380H951" stroke="#b65b67" marker-end="url(#seqArrow-red)"/>
+  <rect class="pill" x="456" y="1338" width="206" height="30" rx="15"/>
+  <circle class="badge" cx="478" cy="1353" r="13" fill="#b65b67" stroke="#b65b67"/>
+  <text class="badgeText" x="478" y="1357" text-anchor="middle">14</text>
+  <text class="msg" x="566" y="1358" text-anchor="middle" fill="#b65b67">t.Cleanup Stop</text>
+
+  <rect class="pill" x="254" y="1438" width="1292" height="34" rx="17"/>
+  <text class="footer" x="900" y="1460" text-anchor="middle">Run Docker-backed Floci packages serially; enable the smoke lane with BLUETAPE_FLOCI_SMOKE=1.</text>
+</svg>

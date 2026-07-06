@@ -91,7 +91,7 @@
   <text class="msg" x="750" y="492" text-anchor="middle" fill="#7e62d9">ServeHTTP</text>
   <path class="route" d="M890 620H1010" stroke="#c85d73" marker-end="url(#arrow-red)"/>
   <text class="msg" x="950" y="602" text-anchor="middle" fill="#c85d73">when shared</text>
-  <path class="return" d="M310 385C355 470 430 535 500 585" stroke="#64748b" marker-end="url(#arrow-gray)"/>
+  <path class="return" d="M310 385V438Q310 458 330 458H455Q485 458 485 488V565Q485 585 495 585H500" stroke="#64748b" marker-end="url(#arrow-gray)"/>
   <text class="msg" x="382" y="496" text-anchor="middle" fill="#64748b">middleware path</text>
   <rect class="legend" x="82" y="842" width="1336" height="40" rx="8"/>
   <text class="footer" x="750" y="868" text-anchor="middle">Rejected attempts are normal Result values; errors mean invalid input, context cancellation, or backend failure.</text>

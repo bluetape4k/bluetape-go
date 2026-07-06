@@ -89,7 +89,7 @@
   <text class="msg" x="748" y="482" text-anchor="middle" fill="#cf8428">runtime</text>
   <path class="route" d="M905 615H1020" stroke="#c85d73" marker-end="url(#arrow-red)"/>
   <text class="msg" x="962" y="598" text-anchor="middle" fill="#c85d73">Redis backend</text>
-  <path class="return" d="M1210 535C1210 470 1210 445 1210 420" stroke="#64748b" marker-end="url(#arrow-gray)"/>
+  <path class="return" d="M1210 535V420" stroke="#64748b" marker-end="url(#arrow-gray)"/>
   <text class="msg" x="1262" y="480" text-anchor="middle" fill="#64748b">strategy state</text>
   <rect class="legend" x="82" y="842" width="1336" height="40" rx="8"/>
   <text class="footer" x="750" y="868" text-anchor="middle">Keep core leader code backend-neutral; choose leader/redis when ownership must survive process boundaries.</text>

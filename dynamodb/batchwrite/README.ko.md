@@ -14,6 +14,12 @@
 Repository abstraction, mapper, transaction layer, DAX wrapper, 범용 DynamoDB
 client facade가 아닙니다.
 
+## Diagrams
+
+![dynamodb batchwrite class contract map](../../docs/images/readme-diagrams/dynamodb-batchwrite-class-contract-map.png)
+
+![dynamodb batchwrite writeall sequence](../../docs/images/readme-diagrams/dynamodb-batchwrite-writeall-sequence.png)
+
 ## 사용
 
 ```go

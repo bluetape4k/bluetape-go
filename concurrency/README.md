@@ -4,7 +4,8 @@
 
 `concurrency` provides context-aware goroutine helpers built around
 `golang.org/x/sync/errgroup`: task groups, bounded parallel map/for-each, a
-simple worker pool, and panic-to-error conversion.
+simple worker pool, a goroutine-safe round-robin counter, and panic-to-error
+conversion.
 
 ![concurrency package map](../docs/images/readme-diagrams/concurrency-package-map.png)
 
@@ -33,6 +34,9 @@ if err != nil {
     return err
 }
 err = pool.Run(ctx, jobs)
+
+roundRobin, err := concurrency.NewRoundRobin(4)
+nextShard := roundRobin.Next()
 ```
 
 ## Behavior
@@ -42,9 +46,16 @@ err = pool.Run(ctx, jobs)
   failures through the same error path.
 - Parallel helpers require a positive limit or worker count.
 - `Map` preserves input order in the returned result slice.
+- `RoundRobin` is a small goroutine-safe cyclic counter for sharding, slot
+  selection, and retry target rotation. It does not schedule goroutines or own
+  resources.
+- Java `Future`/`CompletableFuture`, virtual-thread, coroutine, Reactor,
+  thread-factory, and latch wrappers are intentionally not mirrored. Use
+  `context`, channels, `Group`, `ForEach`, `Map`, and `WorkerPool` directly.
 
 ## Test
 
 ```bash
 go test -count=1 ./concurrency
+go test -race -count=1 ./concurrency
 ```

@@ -1,0 +1,127 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="1000" viewBox="0 0 1600 1000" role="img" aria-labelledby="title desc">
+  <title id="title">graph Model Contract Map</title>
+  <desc id="desc">Class-style contract map for the graph package showing scalar graph values, vertex and edge values, shallow properties, path containers, validation errors, and unsupported capability boundaries.</desc>
+  <defs>
+    <filter id="softShadow" x="-6%" y="-8%" width="112%" height="120%">
+      <feDropShadow dx="0" dy="5" stdDeviation="5" flood-color="#0f172a" flood-opacity="0.10"/>
+    </filter>
+    <style>
+      .canvas { fill: #f8fafc; }
+      .frame { fill: #ffffff; stroke: #cbd5e1; stroke-width: 1.5; filter: url(#softShadow); }
+      .title, .card-title { font-family: "Architects Daughter", "Comic Sans MS", cursive; fill: #24364f; }
+      .title { font-size: 42px; }
+      .subtitle, .section, .member, .label, .legend { font-family: "Comic Mono", "SFMono-Regular", monospace; fill: #526276; }
+      .subtitle { font-size: 17px; }
+      .section { font-size: 13px; font-weight: 700; text-transform: uppercase; letter-spacing: 0; }
+      .card-title { font-size: 25px; }
+      .member { font-size: 14px; }
+      .label { font-size: 13px; font-weight: 700; }
+      .legend { font-size: 13px; }
+      .card { stroke-width: 2.2; rx: 12; filter: url(#softShadow); }
+      .rule { stroke-width: 1.2; opacity: 0.42; }
+      .connector { fill: none; stroke-linecap: round; stroke-linejoin: round; stroke-width: 3.1; }
+      .dependency { stroke-dasharray: 10 8; }
+      .head { stroke-linejoin: round; stroke-dasharray: none; }
+      .legendBox { fill: #ffffff; stroke: #d7e0ea; stroke-width: 1.4; rx: 12; }
+    </style>
+  </defs>
+
+  <rect class="canvas" width="1600" height="1000"/>
+  <rect class="frame" x="34" y="30" width="1532" height="932" rx="8"/>
+  <text class="title" x="72" y="88">graph Model Contract Map</text>
+  <text class="subtitle" x="76" y="120">The core package is model-only: validated values, redacted errors, and path containers without backend or traversal contracts.</text>
+
+  <rect class="card" x="86" y="178" width="396" height="220" fill="#f3efff" stroke="#9b7aec"/>
+  <text class="card-title" x="284" y="216" text-anchor="middle">Scalar values</text>
+  <text class="section" x="116" y="246">typed primitives</text>
+  <line class="rule" x1="116" y1="256" x2="452" y2="256" stroke="#9b7aec"/>
+  <text class="member" x="116" y="284">ElementID string</text>
+  <text class="member" x="116" y="312">Label string</text>
+  <text class="member" x="116" y="340">NewElementID / NewLabel</text>
+  <text class="member" x="116" y="368">ElementIDFromInt for numeric backend IDs</text>
+
+  <rect class="card" x="590" y="150" width="420" height="276" fill="#edf9f4" stroke="#63b891"/>
+  <text class="card-title" x="800" y="188" text-anchor="middle">Vertex / Edge values</text>
+  <text class="section" x="622" y="218">element model</text>
+  <line class="rule" x1="622" y1="228" x2="978" y2="228" stroke="#63b891"/>
+  <text class="member" x="622" y="256">Vertex{id,label,properties}</text>
+  <text class="member" x="622" y="284">Edge{id,label,start,end,properties}</text>
+  <text class="member" x="622" y="312">ParseVertex / ParseEdge for raw input</text>
+  <text class="member" x="622" y="340">NewVertex / NewEdge for typed input</text>
+  <text class="member" x="622" y="368">JSON decode revalidates required fields</text>
+  <text class="member" x="622" y="396">no repository, query, schema, or session API</text>
+
+  <rect class="card" x="1118" y="178" width="396" height="220" fill="#eaf2ff" stroke="#6d9df0"/>
+  <text class="card-title" x="1316" y="216" text-anchor="middle">Path values</text>
+  <text class="section" x="1148" y="246">container scope</text>
+  <line class="rule" x1="1148" y1="256" x2="1484" y2="256" stroke="#6d9df0"/>
+  <text class="member" x="1148" y="284">PathStep: vertex or edge</text>
+  <text class="member" x="1148" y="312">NewPath / NewWeightedPath</text>
+  <text class="member" x="1148" y="340">Steps / Vertices / Edges defensive copies</text>
+  <text class="member" x="1148" y="368">no endpoint continuity proof</text>
+
+  <rect class="card" x="86" y="588" width="396" height="210" fill="#fff4de" stroke="#d59c3f"/>
+  <text class="card-title" x="284" y="626" text-anchor="middle">Properties</text>
+  <text class="section" x="116" y="656">map boundary only</text>
+  <line class="rule" x1="116" y1="666" x2="452" y2="666" stroke="#d59c3f"/>
+  <text class="member" x="116" y="694">type Properties map[string]any</text>
+  <text class="member" x="116" y="722">Clone is shallow</text>
+  <text class="member" x="116" y="750">nested mutable values stay caller-owned</text>
+  <text class="member" x="116" y="778">not a trust-boundary sanitizer</text>
+
+  <rect class="card" x="590" y="588" width="420" height="210" fill="#f8fafc" stroke="#94a3b8"/>
+  <text class="card-title" x="800" y="626" text-anchor="middle">ValidationError</text>
+  <text class="section" x="622" y="656">redacted failure contract</text>
+  <line class="rule" x1="622" y1="666" x2="978" y2="666" stroke="#94a3b8"/>
+  <text class="member" x="622" y="694">Kind: sentinel error</text>
+  <text class="member" x="622" y="722">Field + Summary only</text>
+  <text class="member" x="622" y="750">Unwrap exposes kind and cause</text>
+  <text class="member" x="622" y="778">raw IDs, labels, properties are not stored</text>
+
+  <rect class="card" x="1118" y="588" width="396" height="210" fill="#fff0f0" stroke="#d56b7d"/>
+  <text class="card-title" x="1316" y="626" text-anchor="middle">Unsupported boundary</text>
+  <text class="section" x="1148" y="656">deferred owners</text>
+  <line class="rule" x1="1148" y1="666" x2="1484" y2="666" stroke="#d56b7d"/>
+  <text class="member" x="1148" y="694">graph/graphio owns stream policy</text>
+  <text class="member" x="1148" y="722">graph/neo4j owns backend proof</text>
+  <text class="member" x="1148" y="750">algorithms own traversal correctness</text>
+  <text class="member" x="1148" y="778">ErrUnsupportedCapability reserved</text>
+
+  <path class="connector" d="M482 288H590" stroke="#8a65d6"/>
+  <polygon class="head" points="590,288 572,278 572,298" fill="#8a65d6" stroke="#8a65d6"/>
+  <rect class="legendBox" x="506" y="252" width="60" height="28"/>
+  <text class="label" x="536" y="271" text-anchor="middle" fill="#8a65d6">types</text>
+
+  <path class="connector" d="M1010 288H1118" stroke="#4f86c6"/>
+  <polygon class="head" points="1118,288 1100,278 1100,298" fill="#4f86c6" stroke="#4f86c6"/>
+  <rect class="legendBox" x="1032" y="252" width="70" height="28"/>
+  <text class="label" x="1067" y="271" text-anchor="middle" fill="#4f86c6">steps</text>
+
+  <path class="connector" d="M482 694H536Q556 694 556 674V380Q556 360 576 360H590" stroke="#c1842f"/>
+  <polygon class="head" points="590,360 572,350 572,370" fill="#c1842f" stroke="#c1842f"/>
+  <rect class="legendBox" x="500" y="512" width="92" height="28"/>
+  <text class="label" x="546" y="531" text-anchor="middle" fill="#c1842f">shallow</text>
+
+  <path class="connector" d="M800 426V588" stroke="#64748b"/>
+  <polygon class="head" points="800,588 790,570 810,570" fill="#64748b" stroke="#64748b"/>
+  <rect class="legendBox" x="826" y="494" width="90" height="28"/>
+  <text class="label" x="871" y="513" text-anchor="middle" fill="#64748b">validates</text>
+
+  <path class="connector" d="M1218 398V492Q1218 512 1198 512H930Q910 512 910 532V588" stroke="#64748b"/>
+  <polygon class="head" points="910,588 900,570 920,570" fill="#64748b" stroke="#64748b"/>
+  <rect class="legendBox" x="1080" y="480" width="86" height="28"/>
+  <text class="label" x="1123" y="499" text-anchor="middle" fill="#64748b">shape</text>
+
+  <path class="connector dependency" d="M1316 398V588" stroke="#b65b67"/>
+  <polygon class="head" points="1316,588 1306,570 1326,570" fill="#ffffff" stroke="#b65b67" stroke-width="3.1"/>
+  <rect class="legendBox" x="1338" y="480" width="108" height="28"/>
+  <text class="label" x="1392" y="499" text-anchor="middle" fill="#b65b67">does not own</text>
+
+  <rect class="legendBox" x="94" y="858" width="972" height="44"/>
+  <path class="connector" d="M126 880H196" stroke="#4f86c6"/>
+  <polygon class="head" points="196,880 178,870 178,890" fill="#4f86c6" stroke="#4f86c6"/>
+  <text class="legend" x="216" y="885">solid = value construction and validation contract</text>
+  <path class="connector dependency" d="M630 880H700" stroke="#b65b67"/>
+  <polygon class="head" points="700,880 682,870 682,890" fill="#ffffff" stroke="#b65b67" stroke-width="3.1"/>
+  <text class="legend" x="720" y="885">dashed = reserved or explicitly unsupported package boundary</text>
+</svg>

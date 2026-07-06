@@ -81,12 +81,12 @@
   <text class="msg" x="462" y="265" text-anchor="middle" fill="#4f77c9">try</text>
   <path class="route" d="M912 285 L1038 285" stroke="#319873" marker-end="url(#arrow-green)"/>
   <text class="msg" x="975" y="265" text-anchor="middle" fill="#319873">SET NX</text>
-  <path class="return" d="M1203 380 C1070 455 912 485 717 530" stroke="#64748b" marker-end="url(#arrow-gray)"/>
-  <text class="msg" x="900" y="485" text-anchor="middle" fill="#64748b">lease token</text>
+  <path class="return" d="M1203 380V420Q1203 450 1173 450H747Q717 450 717 480V530" stroke="#64748b" marker-end="url(#arrow-gray)"/>
+  <text class="msg" x="960" y="438" text-anchor="middle" fill="#64748b">lease token</text>
   <path class="route" d="M912 602 L1038 602" stroke="#4f77c9" marker-end="url(#arrow-blue)"/>
   <text class="msg" x="975" y="582" text-anchor="middle" fill="#4f77c9">Lua unlock</text>
-  <path class="return" d="M522 628 C360 690 238 540 247 360" stroke="#64748b" marker-end="url(#arrow-gray)"/>
-  <text class="msg" x="520" y="730" text-anchor="middle" fill="#64748b">released or not owner</text>
+  <path class="return" d="M522 628H450Q420 628 420 598V410Q420 380 390 380H277Q247 380 247 370V360" stroke="#64748b" marker-end="url(#arrow-gray)"/>
+  <text class="msg" x="390" y="520" text-anchor="end" fill="#64748b">released or not owner</text>
   <rect class="legend" x="82" y="842" width="1336" height="40" rx="8"/>
   <text class="footer" x="750" y="868" text-anchor="middle">This is not Redlock and does not issue fencing tokens; choose TTL or compose renewal above the package.</text>
 </svg>

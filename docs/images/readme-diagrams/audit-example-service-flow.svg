@@ -77,7 +77,7 @@
   </g>
 
   <g id="context-band">
-    <rect x="58" y="310" width="1056" height="194" rx="14" fill="#f8fafc" stroke="#cbd5e1" stroke-width="1.4"/>
+    <rect x="58" y="310" width="1056" height="214" rx="14" fill="#f8fafc" stroke="#cbd5e1" stroke-width="1.4"/>
     <text class="bandLabel" x="84" y="344">Supporting boundaries</text>
     <text class="note" x="84" y="372">These paths reuse the same audit repository contract instead of turning the example into event sourcing or a durable database.</text>
 

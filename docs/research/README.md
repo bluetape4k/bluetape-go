@@ -22,6 +22,7 @@ scope, dependency candidates, and GitHub issues.
 | `0.9.0` | [Audit and JaVers patterns](2026-06-01-milestone-0.11.0-audit-javers-research.md), [Issue #41 audit scope](2026-06-25-issue-41-audit-scope.md), [Issue #58 audit outbox design](2026-06-27-issue-58-audit-outbox-design.md) |
 | `0.10.0` | [Graph](2026-06-01-milestone-0.12.0-graph-research.md), [Issue #38 graph scope](2026-06-25-issue-38-graph-scope.md) |
 | `0.11.0` | [Issue #37 rule engine primitives](2026-07-02-issue-37-rule-engine-primitives.md), [Issue #40 image scope](2026-06-25-issue-40-image-scope.md), [Issue #71 encryption facade scope](2026-06-26-issue-71-encryption-facade-scope.md), [Issue #310 libvips evaluation](2026-07-02-issue-310-libvips-evaluation.md) |
+| `0.12.0` | [Issue #354 core parity matrix](2026-07-03-issue-354-core-parity-matrix.md) |
 
 ## Update Rule
 

@@ -17,6 +17,19 @@ import "github.com/bluetape4k/bluetape-go/core"
 
 ```go
 name := core.BlankToDefault(input.Name, "anonymous")
+
+redacted := core.Mask("secret", '#')
+_ = redacted
+
+sharedPrefix := core.CommonPrefix("tenant-prod-a", "tenant-prod-b")
+_ = sharedPrefix
+
+normalizedID, err := core.CanonicalUUID("24738134-9D88-6645-4EC8-D63AA2031015")
+if err != nil {
+    return err
+}
+_ = normalizedID
+
 limit, err := core.Clamp(input.Limit, 1, 100)
 if err != nil {
     return err
@@ -69,6 +82,15 @@ _ = periodEnd
 
 - Validation helper는 panic 대신 `ErrInvalidArgument`를 감싼 error를 반환합니다.
   specialized helper는 `ErrInvalidTime`, `ErrInvalidUTF8` 같은 sentinel도 유지합니다.
+- `HasLength`와 `NoLength`는 empty string만 검사합니다. `HasText`와 `NoText`는
+  whitespace-only string도 blank로 처리합니다.
+- `EmptyToNil`과 `BlankToNil`은 caller가 nil, empty, blank, defaulted value를
+  구분해야 할 때 optional string 변환을 명시적으로 표현합니다.
+- `Mask`, `CommonPrefix`, `CommonSuffix`는 rune 기준으로 동작하므로 multi-byte
+  UTF-8 text를 byte offset으로 쪼개지 않습니다.
+- `IsUUID`, `CanonicalUUID`, `RequireUUID`, `IsZeroUUID`, `ZeroUUID`는
+  hyphenated UUID text validation과 lowercase canonicalization을 제공하지만
+  `core` public API에서 UUID dependency concrete type을 노출하지 않습니다.
 - `Range` constructor는 `ClosedRange`, `ClosedOpenRange`, `OpenClosedRange`,
   `OpenOpenRange`로 `[lower, upper]`, `[lower, upper)`, `(lower, upper]`,
   `(lower, upper)` 표기를 지원합니다.
@@ -100,9 +122,10 @@ _ = periodEnd
 - Kotlin numeric duration DSL, broad duration parser/formatter wrapper,
   Java-time temporal type mirror, period/calendar framework, JVM classpath
   resource loading, system-property wrapper, shutdown hook, generic object
-  hashing, temp/output/env helper, broad string/byte alias는 의도적으로
-  제외합니다. Go caller는 `time`, `os`, `io/fs`, `runtime`, `context`,
-  명시적 encoding을 직접 사용해야 합니다.
+  hashing, temp/output/env helper, broad string/byte alias, UUID numeric
+  conversion, UUID concrete-type facade는 의도적으로 제외합니다. Go caller는
+  `time`, `os`, `io/fs`, `runtime`, `context`, 명시적 encoding,
+  domain-specific UUID package를 직접 사용해야 합니다.
 
 ## 테스트
 

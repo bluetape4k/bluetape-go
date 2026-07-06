@@ -3,13 +3,13 @@
   <desc id="desc">Each operation validates immutable config before touching shared bitmap bits.</desc>
   <defs>
     <filter id="softShadow" x="-8%" y="-10%" width="116%" height="124%"><feDropShadow dx="0" dy="5" stdDeviation="5" flood-color="#0F172A" flood-opacity="0.10"/></filter>
-    <marker id="arrow-blue" markerWidth="14" markerHeight="14" refX="13" refY="7" orient="auto" markerUnits="userSpaceOnUse"><path d="M 0 0 L 14 7 L 0 14 Z" fill="#4f77c9"/></marker>
-    <marker id="arrow-green" markerWidth="14" markerHeight="14" refX="13" refY="7" orient="auto" markerUnits="userSpaceOnUse"><path d="M 0 0 L 14 7 L 0 14 Z" fill="#319873"/></marker>
-    <marker id="arrow-amber" markerWidth="14" markerHeight="14" refX="13" refY="7" orient="auto" markerUnits="userSpaceOnUse"><path d="M 0 0 L 14 7 L 0 14 Z" fill="#cf8428"/></marker>
-    <marker id="arrow-red" markerWidth="14" markerHeight="14" refX="13" refY="7" orient="auto" markerUnits="userSpaceOnUse"><path d="M 0 0 L 14 7 L 0 14 Z" fill="#c85d73"/></marker>
-    <marker id="arrow-purple" markerWidth="14" markerHeight="14" refX="13" refY="7" orient="auto" markerUnits="userSpaceOnUse"><path d="M 0 0 L 14 7 L 0 14 Z" fill="#7e62d9"/></marker>
-    <marker id="arrow-teal" markerWidth="14" markerHeight="14" refX="13" refY="7" orient="auto" markerUnits="userSpaceOnUse"><path d="M 0 0 L 14 7 L 0 14 Z" fill="#3f7d9c"/></marker>
-    <marker id="arrow-gray" markerWidth="14" markerHeight="14" refX="13" refY="7" orient="auto" markerUnits="userSpaceOnUse"><path d="M 0 0 L 14 7 L 0 14 Z" fill="#64748b"/></marker>
+    <marker id="arrow-blue" markerWidth="16" markerHeight="16" viewBox="0 0 10 10" refX="9" refY="5" orient="auto" markerUnits="userSpaceOnUse"><path d="M 0 0 L 10 5 L 0 10 Z" fill="#4f77c9"/></marker>
+    <marker id="arrow-green" markerWidth="16" markerHeight="16" viewBox="0 0 10 10" refX="9" refY="5" orient="auto" markerUnits="userSpaceOnUse"><path d="M 0 0 L 10 5 L 0 10 Z" fill="#319873"/></marker>
+    <marker id="arrow-amber" markerWidth="16" markerHeight="16" viewBox="0 0 10 10" refX="9" refY="5" orient="auto" markerUnits="userSpaceOnUse"><path d="M 0 0 L 10 5 L 0 10 Z" fill="#cf8428"/></marker>
+    <marker id="arrow-red" markerWidth="16" markerHeight="16" viewBox="0 0 10 10" refX="9" refY="5" orient="auto" markerUnits="userSpaceOnUse"><path d="M 0 0 L 10 5 L 0 10 Z" fill="#c85d73"/></marker>
+    <marker id="arrow-purple" markerWidth="16" markerHeight="16" viewBox="0 0 10 10" refX="9" refY="5" orient="auto" markerUnits="userSpaceOnUse"><path d="M 0 0 L 10 5 L 0 10 Z" fill="#7e62d9"/></marker>
+    <marker id="arrow-teal" markerWidth="16" markerHeight="16" viewBox="0 0 10 10" refX="9" refY="5" orient="auto" markerUnits="userSpaceOnUse"><path d="M 0 0 L 10 5 L 0 10 Z" fill="#3f7d9c"/></marker>
+    <marker id="arrow-gray" markerWidth="16" markerHeight="16" viewBox="0 0 10 10" refX="9" refY="5" orient="auto" markerUnits="userSpaceOnUse"><path d="M 0 0 L 10 5 L 0 10 Z" fill="#64748b"/></marker>
     <style>
       .canvas { fill: #f8fafc; }
       .frame { fill: #ffffff; stroke: #cbd5e1; stroke-width: 1.5; filter: url(#softShadow); }
@@ -46,23 +46,23 @@
   <text class="title" x="72" y="88">Redis Bloom Operation Sequence</text>
   <text class="subtitle" x="76" y="120">Each operation validates immutable config before touching shared bitmap bits.</text>
   <rect class="participant" x="70" y="174" width="160" height="68" fill="#eaf2ff" stroke="#6d9df0"/>
-  <text class="part-title" x="150" y="202" text-anchor="middle">Caller</text>
+  <text class="part-title participant-title" x="150" y="202" text-anchor="middle">Caller</text>
   <text class="small" x="150" y="224" text-anchor="middle">Put/MightContain</text>
   <line class="lifeline" x1="150" y1="242" x2="150" y2="804"/>
   <rect class="participant" x="330" y="174" width="160" height="68" fill="#edf9f4" stroke="#63b891"/>
-  <text class="part-title" x="410" y="202" text-anchor="middle">Bloom filter</text>
+  <text class="part-title participant-title" x="410" y="202" text-anchor="middle">Bloom filter</text>
   <text class="small" x="410" y="224" text-anchor="middle">hash offsets</text>
   <line class="lifeline" x1="410" y1="242" x2="410" y2="804"/>
   <rect class="participant" x="610" y="174" width="160" height="68" fill="#f3efff" stroke="#9b7aec"/>
-  <text class="part-title" x="690" y="202" text-anchor="middle">Lua script</text>
+  <text class="part-title participant-title" x="690" y="202" text-anchor="middle">Lua script</text>
   <text class="small" x="690" y="224" text-anchor="middle">guarded operation</text>
   <line class="lifeline" x1="690" y1="242" x2="690" y2="804"/>
   <rect class="participant" x="880" y="174" width="160" height="68" fill="#fff4de" stroke="#d59c3f"/>
-  <text class="part-title" x="960" y="202" text-anchor="middle">:config hash</text>
+  <text class="part-title participant-title" x="960" y="202" text-anchor="middle">:config hash</text>
   <text class="small" x="960" y="224" text-anchor="middle">metadata</text>
   <line class="lifeline" x1="960" y1="242" x2="960" y2="804"/>
   <rect class="participant" x="1150" y="174" width="160" height="68" fill="#fff0f0" stroke="#dc2626"/>
-  <text class="part-title" x="1230" y="202" text-anchor="middle">:bits string</text>
+  <text class="part-title participant-title" x="1230" y="202" text-anchor="middle">:bits string</text>
   <text class="small" x="1230" y="224" text-anchor="middle">bitmap</text>
   <line class="lifeline" x1="1230" y1="242" x2="1230" y2="804"/>
   <rect class="activation" x="403" y="298" width="14" height="494" rx="7"/>
@@ -77,37 +77,37 @@
   <path class="route" d="M150 310 L410 310" stroke="#4f77c9" marker-end="url(#arrow-blue)"/>
   <rect class="pill" x="181" y="268" width="198" height="30" rx="15"/>
   <circle class="badge" cx="199" cy="283" r="13" fill="#4f77c9"/>
-  <text class="badge-text" x="199" y="287" text-anchor="middle">1</text>
+  <text class="badge-text badgeText" x="199" y="287" text-anchor="middle">1</text>
   <text class="msg" x="295" y="288" text-anchor="middle" fill="#4f77c9">Put or MightContain</text>
   <path class="route" d="M410 370 L690 370" stroke="#7e62d9" marker-end="url(#arrow-purple)"/>
   <rect class="pill" x="443" y="328" width="214" height="30" rx="15"/>
   <circle class="badge" cx="461" cy="343" r="13" fill="#7e62d9"/>
-  <text class="badge-text" x="461" y="347" text-anchor="middle">2</text>
+  <text class="badge-text badgeText" x="461" y="347" text-anchor="middle">2</text>
   <text class="msg" x="565" y="348" text-anchor="middle" fill="#7e62d9">offsets + fingerprint</text>
   <path class="route" d="M690 430 L960 430" stroke="#cf8428" marker-end="url(#arrow-amber)"/>
   <rect class="pill" x="746" y="388" width="158" height="30" rx="15"/>
   <circle class="badge" cx="764" cy="403" r="13" fill="#cf8428"/>
-  <text class="badge-text" x="764" y="407" text-anchor="middle">3</text>
+  <text class="badge-text badgeText" x="764" y="407" text-anchor="middle">3</text>
   <text class="msg" x="840" y="408" text-anchor="middle" fill="#cf8428">HGETALL config</text>
   <path class="return" d="M960 490 L690 490" stroke="#cf8428" marker-end="url(#arrow-amber)"/>
   <rect class="pill" x="746" y="448" width="158" height="30" rx="15"/>
   <circle class="badge" cx="764" cy="463" r="13" fill="#cf8428"/>
-  <text class="badge-text" x="764" y="467" text-anchor="middle">4</text>
+  <text class="badge-text badgeText" x="764" y="467" text-anchor="middle">4</text>
   <text class="msg" x="840" y="468" text-anchor="middle" fill="#cf8428">metadata match</text>
   <path class="route" d="M690 570 L1230 570" stroke="#319873" marker-end="url(#arrow-green)"/>
   <rect class="pill" x="833" y="528" width="254" height="30" rx="15"/>
   <circle class="badge" cx="851" cy="543" r="13" fill="#319873"/>
-  <text class="badge-text" x="851" y="547" text-anchor="middle">5a</text>
+  <text class="badge-text badgeText" x="851" y="547" text-anchor="middle">5a</text>
   <text class="msg" x="975" y="548" text-anchor="middle" fill="#319873">SETBIT / GETBIT / BITCOUNT</text>
   <path class="return" d="M690 650 L410 650" stroke="#319873" marker-end="url(#arrow-green)"/>
   <rect class="pill" x="431" y="608" width="238" height="30" rx="15"/>
   <circle class="badge" cx="449" cy="623" r="13" fill="#319873"/>
-  <text class="badge-text" x="449" y="627" text-anchor="middle">6a</text>
+  <text class="badge-text badgeText" x="449" y="627" text-anchor="middle">6a</text>
   <text class="msg" x="565" y="628" text-anchor="middle" fill="#319873">changed or maybe-present</text>
   <path class="return" d="M690 760 L410 760" stroke="#c85d73" marker-end="url(#arrow-red)"/>
   <rect class="pill" x="427" y="718" width="246" height="30" rx="15"/>
   <circle class="badge" cx="445" cy="733" r="13" fill="#c85d73"/>
-  <text class="badge-text" x="445" y="737" text-anchor="middle">5b</text>
+  <text class="badge-text badgeText" x="445" y="737" text-anchor="middle">5b</text>
   <text class="msg" x="565" y="738" text-anchor="middle" fill="#c85d73">ErrConfigMismatch/Corrupt</text>
   <rect class="legend" x="82" y="852" width="1336" height="40" rx="8"/>
   <text class="footer" x="750" y="878" text-anchor="middle">Clear deletes shared bitmap state but preserves config metadata; treat it as operator action.</text>
