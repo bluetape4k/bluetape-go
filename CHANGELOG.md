@@ -7,6 +7,35 @@ and this project uses semantic versioning once the first tag is published.
 
 ## [Unreleased]
 
+## [v0.13.0] - 2026-07-07
+
+### Added
+
+- Retrospective 0.1.0 through 0.12.0 release-readiness audit with tracked
+  7-tier review evidence, final P0/P1 counts, deferred P2/P3 routing, and
+  release preflight state.
+- Missing stress and async cancellation coverage for existing concurrency,
+  resilience, DynamoDB batchwrite, and testing-helper contracts, including
+  race-detector validation.
+- `testcontainers/mongodb` package for reusable MongoDB integration fixtures
+  based on Testcontainers for Go, with caller-owned MongoDB clients and
+  environment-exportable connection details.
+
+### Changed
+
+- Cumulative lesson hardening now records bounded cleanup contexts and
+  errcheck-shaped cleanup examples across Testcontainers, cache, Redis
+  coordination, and JWT documentation.
+- Feature-gap triage now classifies later audit, probabilistic, messaging,
+  AWS, SQL, graph, and HTTP fixture ideas without blocking the 0.13.0 line.
+
+### Fixed
+
+- `cache.Memory.GetOrLoad` now preserves same-key caller cancellation isolation
+  without writing late canceled loader results into the cache.
+- `ratelimit/redis` now preserves caller-owned keys instead of normalizing
+  distinct keys into the same Redis storage key.
+
 ## [v0.12.0] - 2026-07-06
 
 ### Added
