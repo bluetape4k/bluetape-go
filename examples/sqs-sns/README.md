@@ -30,6 +30,20 @@ the topic ARN to call `sqs:SendMessage`. Floci does not require IAM policy
 enforcement for the smoke test, but production code should attach the queue
 policy before subscribing the queue.
 
+## Diagram
+
+![SQS/SNS example contract map](../../docs/images/readme-diagrams/examples-sqs-sns-contract-map.png)
+
+The contract map shows the example-only boundary: SQS and SNS clients stay
+caller-owned, while local helpers cover JSON payloads, queue calls, Floci smoke
+setup, fanout payload unwrapping, and retry/dead-letter notes.
+
+![SQS/SNS message sequence](../../docs/images/readme-diagrams/examples-sqs-sns-message-sequence.png)
+
+The sequence follows the smoke flow from JSON encoding through SQS send,
+long-poll receive, visibility/delete acknowledgement, SNS publish, SQS fanout
+receive, and `snsPayload` unwrapping.
+
 ## Retry And Dead Letter Notes
 
 SQS retry is receive-count based: if a message is received and not deleted, it

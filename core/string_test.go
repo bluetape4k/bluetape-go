@@ -8,11 +8,29 @@ import (
 )
 
 func TestStringDefaults(t *testing.T) {
+	if !core.HasLength(" ") {
+		t.Fatal("HasLength should accept whitespace because length is non-zero")
+	}
+	if core.HasLength("") {
+		t.Fatal("HasLength should reject empty text")
+	}
+	if !core.NoLength("") {
+		t.Fatal("NoLength should accept empty text")
+	}
+	if core.NoLength(" ") {
+		t.Fatal("NoLength should reject whitespace because length is non-zero")
+	}
 	if !core.HasText(" blue ") {
 		t.Fatal("HasText should accept visible text")
 	}
 	if core.HasText(" \t ") {
 		t.Fatal("HasText should reject whitespace-only text")
+	}
+	if !core.NoText(" \t ") {
+		t.Fatal("NoText should accept whitespace-only text")
+	}
+	if core.NoText("blue") {
+		t.Fatal("NoText should reject visible text")
 	}
 	if got := core.EmptyToDefault("", "fallback"); got != "fallback" {
 		t.Fatalf("EmptyToDefault returned %q", got)
@@ -22,6 +40,45 @@ func TestStringDefaults(t *testing.T) {
 	}
 	if got := core.BlankToDefault(" ", "fallback"); got != "fallback" {
 		t.Fatalf("BlankToDefault returned %q", got)
+	}
+}
+
+func TestStringNilConversions(t *testing.T) {
+	if got := core.EmptyToNil(""); got != nil {
+		t.Fatalf("EmptyToNil(empty) = %v, want nil", *got)
+	}
+	if got := core.EmptyToNil(" "); got == nil || *got != " " {
+		t.Fatalf("EmptyToNil(space) = %v, want pointer to space", got)
+	}
+	if got := core.BlankToNil(" \t "); got != nil {
+		t.Fatalf("BlankToNil(blank) = %v, want nil", *got)
+	}
+	if got := core.BlankToNil("blue"); got == nil || *got != "blue" {
+		t.Fatalf("BlankToNil(text) = %v, want pointer to text", got)
+	}
+}
+
+func TestStringMaskAndCommonAffixes(t *testing.T) {
+	if got := core.Mask("secret", '#'); got != "######" {
+		t.Fatalf("Mask returned %q", got)
+	}
+	if got := core.Mask("비밀", '*'); got != "**" {
+		t.Fatalf("Mask should be rune-aware, got %q", got)
+	}
+	if got := core.Mask("", '*'); got != "" {
+		t.Fatalf("Mask(empty) = %q, want empty", got)
+	}
+	if got := core.CommonPrefix("안녕-blue", "안녕-red"); got != "안녕-" {
+		t.Fatalf("CommonPrefix returned %q", got)
+	}
+	if got := core.CommonPrefix("abc", "xyz"); got != "" {
+		t.Fatalf("CommonPrefix mismatch returned %q", got)
+	}
+	if got := core.CommonSuffix("blue-세계", "red-세계"); got != "-세계" {
+		t.Fatalf("CommonSuffix returned %q", got)
+	}
+	if got := core.CommonSuffix("abc", "xyz"); got != "" {
+		t.Fatalf("CommonSuffix mismatch returned %q", got)
 	}
 }
 

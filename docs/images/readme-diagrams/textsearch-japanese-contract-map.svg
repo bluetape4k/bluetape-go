@@ -1,0 +1,126 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="1000" viewBox="0 0 1600 1000" role="img" aria-labelledby="title desc">
+  <title id="title">textsearch/japanese Contract Map</title>
+  <desc id="desc">Class-style contract map for textsearch/japanese showing optional Kagome adapter ownership, textsearch.Tokenizer contract, default IPA dictionary, WithDictionary and WithMode options, Kagome token analysis, metadata preservation, noun and verb filtering, byte spans, and blockword composition boundaries.</desc>
+  <defs>
+    <filter id="softShadow" x="-6%" y="-8%" width="112%" height="120%">
+      <feDropShadow dx="0" dy="5" stdDeviation="5" flood-color="#0f172a" flood-opacity="0.10"/>
+    </filter>
+    <style>
+      .canvas { fill: #f8fafc; }
+      .frame { fill: #ffffff; stroke: #cbd5e1; stroke-width: 1.5; filter: url(#softShadow); }
+      .title, .card-title { font-family: "Architects Daughter", "Comic Sans MS", cursive; fill: #24364f; }
+      .title { font-size: 42px; }
+      .subtitle, .section, .member, .label, .legend { font-family: "Comic Mono", "SFMono-Regular", monospace; fill: #526276; }
+      .subtitle { font-size: 17px; }
+      .section { font-size: 13px; font-weight: 700; text-transform: uppercase; letter-spacing: 0; }
+      .card-title { font-size: 25px; }
+      .member { font-size: 14px; }
+      .label { font-size: 13px; font-weight: 700; }
+      .legend { font-size: 13px; }
+      .card { stroke-width: 2.2; rx: 12; filter: url(#softShadow); }
+      .rule { stroke-width: 1.2; opacity: 0.42; }
+      .connector { fill: none; stroke-linecap: round; stroke-linejoin: round; stroke-width: 3.1; }
+      .dependency { stroke-dasharray: 10 8; }
+      .head { stroke-linejoin: round; stroke-dasharray: none; }
+      .legendBox { fill: #ffffff; stroke: #d7e0ea; stroke-width: 1.4; rx: 12; }
+    </style>
+  </defs>
+
+  <rect class="canvas" width="1600" height="1000"/>
+  <rect class="frame" x="34" y="30" width="1532" height="932" rx="8"/>
+  <text class="title" x="72" y="88">textsearch/japanese Contract Map</text>
+  <text class="subtitle" x="76" y="120">The Japanese package is an opt-in Kagome adapter that keeps core textsearch dependency-free while preserving byte spans and POS metadata.</text>
+
+  <rect class="card" x="86" y="178" width="396" height="220" fill="#eaf2ff" stroke="#6d9df0"/>
+  <text class="card-title" x="284" y="216" text-anchor="middle">Caller</text>
+  <text class="section" x="116" y="246">opt-in import</text>
+  <line class="rule" x1="116" y1="256" x2="452" y2="256" stroke="#6d9df0"/>
+  <text class="member" x="116" y="284">imports textsearch/japanese</text>
+  <text class="member" x="116" y="312">creates TokenizeRequest in core</text>
+  <text class="member" x="116" y="340">chooses dictionary/mode deliberately</text>
+  <text class="member" x="116" y="368">owns search and policy decisions</text>
+
+  <rect class="card" x="590" y="150" width="420" height="244" fill="#edf9f4" stroke="#63b891"/>
+  <text class="card-title" x="800" y="188" text-anchor="middle">japanese.Tokenizer</text>
+  <text class="section" x="622" y="218">textsearch.Tokenizer adapter</text>
+  <line class="rule" x1="622" y1="228" x2="978" y2="228" stroke="#63b891"/>
+  <text class="member" x="622" y="256">NewTokenizer(options...)</text>
+  <text class="member" x="622" y="284">Tokenize(TokenizeRequest)</text>
+  <text class="member" x="622" y="312">validates request via textsearch core</text>
+  <text class="member" x="622" y="340">maps Kagome POS to coarse POS</text>
+  <text class="member" x="622" y="368">FilterNouns / FilterVerbs helpers</text>
+
+  <rect class="card" x="1118" y="178" width="396" height="220" fill="#f3efff" stroke="#9b7aec"/>
+  <text class="card-title" x="1316" y="216" text-anchor="middle">Kagome v2</text>
+  <text class="section" x="1148" y="246">optional dependency</text>
+  <line class="rule" x1="1148" y1="256" x2="1484" y2="256" stroke="#9b7aec"/>
+  <text class="member" x="1148" y="284">ipa.Dict is default</text>
+  <text class="member" x="1148" y="312">WithDictionary accepts dict.Dict</text>
+  <text class="member" x="1148" y="340">Normal / Search / Extended modes</text>
+  <text class="member" x="1148" y="368">OmitBosEos default option</text>
+
+  <rect class="card" x="86" y="588" width="396" height="210" fill="#fff4de" stroke="#d59c3f"/>
+  <text class="card-title" x="284" y="626" text-anchor="middle">Dictionary options</text>
+  <text class="section" x="116" y="656">deployment footprint</text>
+  <line class="rule" x1="116" y1="666" x2="452" y2="666" stroke="#d59c3f"/>
+  <text class="member" x="116" y="694">WithDictionary(name, dict)</text>
+  <text class="member" x="116" y="722">nil dictionary is rejected</text>
+  <text class="member" x="116" y="750">blank name is rejected</text>
+  <text class="member" x="116" y="778">UniDic is opt-in/future path</text>
+
+  <rect class="card" x="590" y="588" width="420" height="210" fill="#f8fafc" stroke="#94a3b8"/>
+  <text class="card-title" x="800" y="626" text-anchor="middle">Token response</text>
+  <text class="section" x="622" y="656">core token shape</text>
+  <line class="rule" x1="622" y1="666" x2="978" y2="666" stroke="#94a3b8"/>
+  <text class="member" x="622" y="694">Text + Span byte offsets</text>
+  <text class="member" x="622" y="722">Normalized per request options</text>
+  <text class="member" x="622" y="750">MetadataLanguage = ja</text>
+  <text class="member" x="622" y="778">MetadataPOS/base/reading preserved</text>
+
+  <rect class="card" x="1118" y="588" width="396" height="210" fill="#fff0f0" stroke="#d56b7d"/>
+  <text class="card-title" x="1316" y="626" text-anchor="middle">Boundary</text>
+  <text class="section" x="1148" y="656">not a classifier</text>
+  <line class="rule" x1="1148" y1="666" x2="1484" y2="666" stroke="#d56b7d"/>
+  <text class="member" x="1148" y="694">tokenization/search preparation only</text>
+  <text class="member" x="1148" y="722">use BlockwordDictionary separately</text>
+  <text class="member" x="1148" y="750">dictionary size affects deployment</text>
+  <text class="member" x="1148" y="778">security policy stays with caller</text>
+
+  <path class="connector" d="M482 288H590" stroke="#4f86c6"/>
+  <polygon class="head" points="590,288 572,278 572,298" fill="#4f86c6" stroke="#4f86c6"/>
+  <rect class="legendBox" x="498" y="252" width="82" height="28"/>
+  <text class="label" x="539" y="271" text-anchor="middle" fill="#4f86c6">calls</text>
+
+  <path class="connector dependency" d="M1010 288H1118" stroke="#8a65d6"/>
+  <polygon class="head" points="1118,288 1100,278 1100,298" fill="#ffffff" stroke="#8a65d6" stroke-width="3.1"/>
+  <rect class="legendBox" x="1022" y="252" width="96" height="28"/>
+  <text class="label" x="1070" y="271" text-anchor="middle" fill="#8a65d6">wraps</text>
+
+  <path class="connector dependency" d="M284 588V514Q284 494 304 494H690Q710 494 710 474V394" stroke="#d59c3f"/>
+  <polygon class="head" points="710,394 700,412 720,412" fill="#ffffff" stroke="#d59c3f" stroke-width="3.1"/>
+  <rect class="legendBox" x="420" y="478" width="112" height="28"/>
+  <text class="label" x="476" y="497" text-anchor="middle" fill="#d59c3f">configures</text>
+
+  <path class="connector" d="M800 394V588" stroke="#64748b"/>
+  <polygon class="head" points="800,588 790,570 810,570" fill="#64748b" stroke="#64748b"/>
+  <rect class="legendBox" x="826" y="478" width="106" height="28"/>
+  <text class="label" x="879" y="497" text-anchor="middle" fill="#64748b">returns</text>
+
+  <path class="connector" d="M1010 693H1118" stroke="#b65b67"/>
+  <polygon class="head" points="1118,693 1100,683 1100,703" fill="#b65b67" stroke="#b65b67"/>
+  <rect class="legendBox" x="1024" y="657" width="86" height="28"/>
+  <text class="label" x="1067" y="676" text-anchor="middle" fill="#b65b67">feeds</text>
+
+  <path class="connector dependency" d="M1316 398V588" stroke="#d56b7d"/>
+  <polygon class="head" points="1316,588 1306,570 1326,570" fill="#ffffff" stroke="#d56b7d" stroke-width="3.1"/>
+  <rect class="legendBox" x="1338" y="478" width="108" height="28"/>
+  <text class="label" x="1392" y="497" text-anchor="middle" fill="#d56b7d">costs</text>
+
+  <rect class="legendBox" x="94" y="858" width="1140" height="64"/>
+  <path class="connector" d="M126 884H196" stroke="#4f86c6"/>
+  <polygon class="head" points="196,884 178,874 178,894" fill="#4f86c6" stroke="#4f86c6"/>
+  <text class="legend" x="216" y="889">solid = Tokenizer contract and token response flow</text>
+  <path class="connector dependency" d="M632 884H702" stroke="#8a65d6"/>
+  <polygon class="head" points="702,884 684,874 684,894" fill="#ffffff" stroke="#8a65d6" stroke-width="3.1"/>
+  <text class="legend" x="722" y="889">dashed = optional Kagome dictionary dependency and caller policy boundary</text>
+</svg>

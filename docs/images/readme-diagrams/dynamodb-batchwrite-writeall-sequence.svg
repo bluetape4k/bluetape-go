@@ -1,0 +1,160 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1700" height="1360" viewBox="0 0 1700 1360" role="img" aria-labelledby="title desc">
+  <title id="title">dynamodb/batchwrite WriteAll Sequence</title>
+  <desc id="desc">WriteAll chunks SDK-native write requests, calls BatchWriteItem, retries only returned UnprocessedItems, and stops on context cancellation or retry exhaustion.</desc>
+  <defs>
+    <filter id="softShadow" x="-8%" y="-10%" width="116%" height="124%">
+      <feDropShadow dx="0" dy="5" stdDeviation="5" flood-color="#0f172a" flood-opacity="0.10"/>
+    </filter>
+    <marker id="seqArrow-blue" markerWidth="16" markerHeight="16" refX="9" refY="5" orient="auto" markerUnits="userSpaceOnUse" viewBox="0 0 10 10">
+      <path d="M 0 0 L 10 5 L 0 10 Z" fill="#4f86c6" stroke="#4f86c6"/>
+    </marker>
+    <marker id="seqArrow-amber" markerWidth="16" markerHeight="16" refX="9" refY="5" orient="auto" markerUnits="userSpaceOnUse" viewBox="0 0 10 10">
+      <path d="M 0 0 L 10 5 L 0 10 Z" fill="#c1842f" stroke="#c1842f"/>
+    </marker>
+    <marker id="seqArrow-green" markerWidth="16" markerHeight="16" refX="9" refY="5" orient="auto" markerUnits="userSpaceOnUse" viewBox="0 0 10 10">
+      <path d="M 0 0 L 10 5 L 0 10 Z" fill="#5f8d3e" stroke="#5f8d3e"/>
+    </marker>
+    <marker id="seqArrow-teal" markerWidth="16" markerHeight="16" refX="9" refY="5" orient="auto" markerUnits="userSpaceOnUse" viewBox="0 0 10 10">
+      <path d="M 0 0 L 10 5 L 0 10 Z" fill="#2f8f8a" stroke="#2f8f8a"/>
+    </marker>
+    <marker id="seqArrow-red" markerWidth="16" markerHeight="16" refX="9" refY="5" orient="auto" markerUnits="userSpaceOnUse" viewBox="0 0 10 10">
+      <path d="M 0 0 L 10 5 L 0 10 Z" fill="#b65b67" stroke="#b65b67"/>
+    </marker>
+    <style>
+      .canvas { fill: #f8fafc; }
+      .frame { fill: #ffffff; stroke: #cbd5e1; stroke-width: 1.5; filter: url(#softShadow); }
+      .title, .participant-title { font-family: "Architects Daughter", "Comic Sans MS", cursive; fill: #263a57; }
+      .title { font-size: 42px; }
+      .subtitle, .role, .msg, .region, .footer { font-family: "Comic Mono", "SFMono-Regular", monospace; fill: #526276; }
+      .subtitle { font-size: 17px; }
+      .participant-title { font-size: 22px; }
+      .role { font-size: 13px; }
+      .msg { font-size: 13px; font-weight: 700; }
+      .region { font-size: 13px; font-weight: 700; }
+      .footer { font-size: 14px; }
+      .participant { stroke-width: 2.2; rx: 12; }
+      .lifeline { stroke: #c5d4e3; stroke-width: 2; stroke-dasharray: 8 8; }
+      .activation { fill: #f3eeff; stroke: #8a65d8; stroke-width: 1.7; rx: 7; opacity: 0.88; }
+      .call, .return, .error, .state { fill: none; stroke-linecap: round; stroke-linejoin: round; }
+      .call, .state { stroke-width: 3; }
+      .return, .error { stroke-width: 2.7; stroke-dasharray: 9 8; }
+      .alt { fill: none; stroke: #78909c; stroke-width: 2.4; stroke-dasharray: 12 7; rx: 16; }
+      .alt-label { fill: #ffffff; stroke: #d7e0e4; stroke-width: 1.5; rx: 15; }
+      .branchDivider { stroke: #78909c; stroke-width: 2.2; stroke-dasharray: 12 8; }
+      .pill { fill: #ffffff; stroke: #cbd9e7; stroke-width: 1.5; rx: 15; }
+      .badge { stroke-width: 1.6; }
+      .badgeText { font-family: "Comic Mono", "SFMono-Regular", monospace; font-size: 10px; font-weight: 700; fill: #ffffff; }
+    </style>
+  </defs>
+
+  <rect class="canvas" width="1700" height="1360"/>
+  <rect class="frame" x="34" y="30" width="1632" height="1296" rx="8"/>
+  <text class="title" x="72" y="88">dynamodb/batchwrite WriteAll Sequence</text>
+  <text class="subtitle" x="76" y="120">WriteAll sends 25-item chunks, retries only UnprocessedItems, and keeps AWS SDK errors typed.</text>
+
+  <rect class="participant" x="82" y="174" width="190" height="68" fill="#eaf2ff" stroke="#6d9df0"/>
+  <text class="participant-title" x="177" y="202" text-anchor="middle">Caller</text>
+  <text class="role" x="177" y="224" text-anchor="middle">owns requests</text>
+  <line class="lifeline" x1="177" y1="242" x2="177" y2="1248"/>
+
+  <rect class="participant" x="382" y="174" width="210" height="68" fill="#f3efff" stroke="#9b7aec"/>
+  <text class="participant-title" x="487" y="202" text-anchor="middle">WriteAll</text>
+  <text class="role" x="487" y="224" text-anchor="middle">batch loop</text>
+  <line class="lifeline" x1="487" y1="242" x2="487" y2="1248"/>
+
+  <rect class="participant" x="700" y="174" width="190" height="68" fill="#edf9f4" stroke="#63b891"/>
+  <text class="participant-title" x="795" y="202" text-anchor="middle">Context</text>
+  <text class="role" x="795" y="224" text-anchor="middle">cancel/deadline</text>
+  <line class="lifeline" x1="795" y1="242" x2="795" y2="1248"/>
+
+  <rect class="participant" x="1000" y="174" width="190" height="68" fill="#fff4de" stroke="#d59c3f"/>
+  <text class="participant-title" x="1095" y="202" text-anchor="middle">Client</text>
+  <text class="role" x="1095" y="224" text-anchor="middle">BatchWriteItem</text>
+  <line class="lifeline" x1="1095" y1="242" x2="1095" y2="1248"/>
+
+  <rect class="participant" x="1286" y="174" width="230" height="68" fill="#fff0f0" stroke="#d56b7d"/>
+  <text class="participant-title" x="1401" y="202" text-anchor="middle">DynamoDB</text>
+  <text class="role" x="1401" y="224" text-anchor="middle">service response</text>
+  <line class="lifeline" x1="1401" y1="242" x2="1401" y2="1248"/>
+
+  <rect class="activation" x="480" y="300" width="14" height="934" rx="7"/>
+  <rect class="activation" x="788" y="382" width="14" height="800" rx="7"/>
+  <rect class="activation" x="1088" y="462" width="14" height="222" rx="7"/>
+  <rect class="activation" x="1394" y="542" width="14" height="142" rx="7"/>
+
+  <rect class="alt" x="84" y="768" width="1492" height="438" rx="16"/>
+  <rect class="alt-label" x="106" y="786" width="172" height="30" rx="15"/>
+  <text class="region" x="130" y="806">alt chunk done</text>
+  <line class="branchDivider" x1="106" y1="908" x2="1554" y2="908"/>
+  <rect class="alt-label" x="106" y="926" width="188" height="30" rx="15"/>
+  <text class="region" x="130" y="946">else retry path</text>
+
+  <path class="call" d="M177 310 L487 310" stroke="#4f86c6" marker-end="url(#seqArrow-blue)"/>
+  <rect class="pill" x="244" y="268" width="178" height="30" rx="15"/>
+  <circle class="badge" cx="264" cy="283" r="13" fill="#4f86c6" stroke="#4f86c6"/>
+  <text class="badgeText" x="264" y="287" text-anchor="middle">1</text>
+  <text class="msg" x="336" y="288" text-anchor="middle" fill="#4f86c6">WriteAll(...)</text>
+
+  <path class="call" d="M487 390 L795 390" stroke="#2f8f8a" marker-end="url(#seqArrow-teal)"/>
+  <rect class="pill" x="548" y="348" width="186" height="30" rx="15"/>
+  <circle class="badge" cx="568" cy="363" r="13" fill="#2f8f8a" stroke="#2f8f8a"/>
+  <text class="badgeText" x="568" y="367" text-anchor="middle">2</text>
+  <text class="msg" x="646" y="368" text-anchor="middle" fill="#2f8f8a">ctx.Err()</text>
+
+  <path class="call" d="M487 470 L1095 470" stroke="#c1842f" marker-end="url(#seqArrow-amber)"/>
+  <rect class="pill" x="666" y="428" width="250" height="30" rx="15"/>
+  <circle class="badge" cx="686" cy="443" r="13" fill="#c1842f" stroke="#c1842f"/>
+  <text class="badgeText" x="686" y="447" text-anchor="middle">3</text>
+  <text class="msg" x="800" y="448" text-anchor="middle" fill="#c1842f">BatchWriteItem(&lt;=25)</text>
+
+  <path class="call" d="M1095 550 L1401 550" stroke="#c1842f" marker-end="url(#seqArrow-amber)"/>
+  <rect class="pill" x="1148" y="508" width="202" height="30" rx="15"/>
+  <circle class="badge" cx="1168" cy="523" r="13" fill="#c1842f" stroke="#c1842f"/>
+  <text class="badgeText" x="1168" y="527" text-anchor="middle">4</text>
+  <text class="msg" x="1254" y="528" text-anchor="middle" fill="#c1842f">service call</text>
+
+  <path class="return" d="M1401 630 L1095 630" stroke="#2f8f8a" marker-end="url(#seqArrow-teal)"/>
+  <rect class="pill" x="1138" y="588" width="220" height="30" rx="15"/>
+  <circle class="badge" cx="1158" cy="603" r="13" fill="#2f8f8a" stroke="#2f8f8a"/>
+  <text class="badgeText" x="1158" y="607" text-anchor="middle">5</text>
+  <text class="msg" x="1252" y="608" text-anchor="middle" fill="#2f8f8a">output/error</text>
+
+  <path class="return" d="M1095 710 L487 710" stroke="#2f8f8a" marker-end="url(#seqArrow-teal)"/>
+  <rect class="pill" x="660" y="668" width="260" height="30" rx="15"/>
+  <circle class="badge" cx="680" cy="683" r="13" fill="#2f8f8a" stroke="#2f8f8a"/>
+  <text class="badgeText" x="680" y="687" text-anchor="middle">6</text>
+  <text class="msg" x="798" y="688" text-anchor="middle" fill="#2f8f8a">UnprocessedItems map</text>
+
+  <path class="return" d="M487 860 L177 860" stroke="#5f8d3e" marker-end="url(#seqArrow-green)"/>
+  <rect class="pill" x="244" y="818" width="178" height="30" rx="15"/>
+  <circle class="badge" cx="264" cy="833" r="13" fill="#5f8d3e" stroke="#5f8d3e"/>
+  <text class="badgeText" x="264" y="837" text-anchor="middle">7</text>
+  <text class="msg" x="336" y="838" text-anchor="middle" fill="#5f8d3e">Result</text>
+
+  <path class="call" d="M487 1000 L795 1000" stroke="#b65b67" marker-end="url(#seqArrow-red)"/>
+  <rect class="pill" x="534" y="958" width="214" height="30" rx="15"/>
+  <circle class="badge" cx="554" cy="973" r="13" fill="#b65b67" stroke="#b65b67"/>
+  <text class="badgeText" x="554" y="977" text-anchor="middle">8</text>
+  <text class="msg" x="648" y="978" text-anchor="middle" fill="#b65b67">Backoff(attempt)</text>
+
+  <path class="return" d="M795 1060 L487 1060" stroke="#b65b67" marker-end="url(#seqArrow-red)"/>
+  <rect class="pill" x="568" y="1018" width="150" height="30" rx="15"/>
+  <circle class="badge" cx="588" cy="1033" r="13" fill="#b65b67" stroke="#b65b67"/>
+  <text class="badgeText" x="588" y="1037" text-anchor="middle">9</text>
+  <text class="msg" x="648" y="1038" text-anchor="middle" fill="#b65b67">delay</text>
+
+  <path class="call" d="M487 1120 L795 1120" stroke="#b65b67" marker-end="url(#seqArrow-red)"/>
+  <rect class="pill" x="542" y="1078" width="202" height="30" rx="15"/>
+  <circle class="badge" cx="564" cy="1093" r="13" fill="#b65b67" stroke="#b65b67"/>
+  <text class="badgeText" x="564" y="1097" text-anchor="middle">10</text>
+  <text class="msg" x="648" y="1098" text-anchor="middle" fill="#b65b67">sleep(ctx, delay)</text>
+
+  <path class="error" d="M487 1180 L177 1180" stroke="#b65b67" marker-end="url(#seqArrow-red)"/>
+  <rect class="pill" x="206" y="1138" width="254" height="30" rx="15"/>
+  <circle class="badge" cx="228" cy="1153" r="13" fill="#b65b67" stroke="#b65b67"/>
+  <text class="badgeText" x="228" y="1157" text-anchor="middle">11</text>
+  <text class="msg" x="340" y="1158" text-anchor="middle" fill="#b65b67">ErrUnprocessedItems</text>
+
+  <rect class="pill" x="370" y="1268" width="960" height="34" rx="17"/>
+  <text class="footer" x="850" y="1290" text-anchor="middle">Service errors return immediately with %w wrapping; retries only resubmit DynamoDB UnprocessedItems.</text>
+</svg>

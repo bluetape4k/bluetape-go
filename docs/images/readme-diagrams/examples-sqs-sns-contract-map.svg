@@ -1,0 +1,118 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="1000" viewBox="0 0 1600 1000" role="img" aria-labelledby="title desc">
+  <title id="title">SQS/SNS Example Contract Map</title>
+  <desc id="desc">Class-style contract map for examples/sqs-sns showing caller-owned AWS SDK clients, queue helpers, JSON message codec, SNS fanout, retry and dead-letter notes, and the Floci smoke fixture.</desc>
+  <defs>
+    <filter id="softShadow" x="-6%" y="-8%" width="112%" height="120%">
+      <feDropShadow dx="0" dy="5" stdDeviation="5" flood-color="#0f172a" flood-opacity="0.10"/>
+    </filter>
+    <style>
+      .canvas { fill: #f8fafc; }
+      .frame { fill: #ffffff; stroke: #cbd5e1; stroke-width: 1.5; filter: url(#softShadow); }
+      .title, .card-title { font-family: "Architects Daughter", "Comic Sans MS", cursive; fill: #24364f; }
+      .title { font-size: 42px; }
+      .subtitle, .section, .member, .label, .legend { font-family: "Comic Mono", "SFMono-Regular", monospace; fill: #526276; }
+      .subtitle { font-size: 17px; }
+      .section { font-size: 13px; font-weight: 700; text-transform: uppercase; letter-spacing: 0; }
+      .card-title { font-size: 25px; }
+      .member { font-size: 14px; }
+      .label { font-size: 13px; font-weight: 700; }
+      .legend { font-size: 13px; }
+      .card { stroke-width: 2.2; rx: 12; filter: url(#softShadow); }
+      .rule { stroke-width: 1.2; opacity: 0.42; }
+      .connector { fill: none; stroke-linecap: round; stroke-linejoin: round; stroke-width: 3.1; }
+      .dependency { stroke-dasharray: 10 8; }
+      .head { stroke-linejoin: round; stroke-dasharray: none; }
+      .legendBox { fill: #ffffff; stroke: #d7e0ea; stroke-width: 1.4; rx: 12; }
+    </style>
+  </defs>
+
+  <rect class="canvas" width="1600" height="1000"/>
+  <rect class="frame" x="34" y="30" width="1532" height="932" rx="8"/>
+  <text class="title" x="72" y="88">SQS/SNS Example Contract Map</text>
+  <text class="subtitle" x="76" y="120">Compile-checked examples keep SQS/SNS SDK request types visible; bluetape adds no messaging client wrapper.</text>
+
+  <rect class="card" x="584" y="150" width="432" height="244" fill="#edf9f4" stroke="#63b891"/>
+  <text class="card-title" x="800" y="188" text-anchor="middle">examples/sqs-sns package</text>
+  <text class="section" x="616" y="218">entrypoints</text>
+  <line class="rule" x1="616" y1="228" x2="984" y2="228" stroke="#63b891"/>
+  <text class="member" x="616" y="256">Example_sendReceiveAndManualAck</text>
+  <text class="member" x="616" y="284">Example_visibilityTimeoutAndDeadLetterNotes</text>
+  <text class="member" x="616" y="312">Example_snsFanoutToSQS</text>
+  <text class="member" x="616" y="340">TestSQSSNSExampleSmoke</text>
+  <text class="member" x="616" y="368">example-only boundary</text>
+
+  <rect class="card" x="86" y="170" width="394" height="220" fill="#f3efff" stroke="#9b7aec"/>
+  <text class="card-title" x="283" y="208" text-anchor="middle">AWS SDK clients</text>
+  <text class="section" x="116" y="238">caller-owned</text>
+  <line class="rule" x1="116" y1="248" x2="450" y2="248" stroke="#9b7aec"/>
+  <text class="member" x="116" y="276">*sqs.Client</text>
+  <text class="member" x="116" y="304">*sns.Client</text>
+  <text class="member" x="116" y="332">sqs.Send/Receive/Delete</text>
+  <text class="member" x="116" y="360">sns.CreateTopic/Subscribe/Publish</text>
+
+  <rect class="card" x="1120" y="170" width="394" height="220" fill="#eaf2ff" stroke="#6d9df0"/>
+  <text class="card-title" x="1317" y="208" text-anchor="middle">SQS queue helpers</text>
+  <text class="section" x="1150" y="238">thin SDK calls</text>
+  <line class="rule" x1="1150" y1="248" x2="1484" y2="248" stroke="#6d9df0"/>
+  <text class="member" x="1150" y="276">createQueue / queueARN</text>
+  <text class="member" x="1150" y="304">receiveMessages / receiveUntil</text>
+  <text class="member" x="1150" y="332">changeMessageVisibility</text>
+  <text class="member" x="1150" y="360">deleteMessage</text>
+
+  <rect class="card" x="86" y="588" width="394" height="210" fill="#fff4de" stroke="#d59c3f"/>
+  <text class="card-title" x="283" y="626" text-anchor="middle">JSON message codec</text>
+  <text class="section" x="116" y="656">example payload</text>
+  <line class="rule" x1="116" y1="666" x2="450" y2="666" stroke="#d59c3f"/>
+  <text class="member" x="116" y="694">orderMessage{id,status}</text>
+  <text class="member" x="116" y="722">encodeJSONMessage(any)</text>
+  <text class="member" x="116" y="750">decodeJSONMessage[T](Message)</text>
+  <text class="member" x="116" y="778">empty body is an error</text>
+
+  <rect class="card" x="594" y="588" width="412" height="210" fill="#f8fafc" stroke="#94a3b8"/>
+  <text class="card-title" x="800" y="626" text-anchor="middle">Floci smoke fixture</text>
+  <text class="section" x="626" y="656">local SQS + SNS</text>
+  <line class="rule" x1="626" y1="666" x2="974" y2="666" stroke="#94a3b8"/>
+  <text class="member" x="626" y="694">WithSQSConfig + WithSNSConfig</text>
+  <text class="member" x="626" y="722">LoadConfig(ctx, t, details)</text>
+  <text class="member" x="626" y="750">UnixNano suffix namespace</text>
+  <text class="member" x="626" y="778">Docker smoke is opt-in</text>
+
+  <rect class="card" x="1120" y="588" width="394" height="210" fill="#fff0f0" stroke="#d56b7d"/>
+  <text class="card-title" x="1317" y="626" text-anchor="middle">Fanout + retry notes</text>
+  <text class="section" x="1150" y="656">operational boundary</text>
+  <line class="rule" x1="1150" y1="666" x2="1484" y2="666" stroke="#d56b7d"/>
+  <text class="member" x="1150" y="694">snsPayload unwraps Notification</text>
+  <text class="member" x="1150" y="722">redrivePolicy(dlqARN, count)</text>
+  <text class="member" x="1150" y="750">visibility timeout drives retry</text>
+  <text class="member" x="1150" y="778">AWS queue policy is production-only</text>
+
+  <path class="connector" d="M480 280H584" stroke="#8a65d6"/>
+  <polygon class="head" points="584,280 566,270 566,290" fill="#8a65d6" stroke="#8a65d6"/>
+  <rect class="legendBox" x="500" y="244" width="64" height="28"/>
+  <text class="label" x="532" y="263" text-anchor="middle" fill="#8a65d6">uses</text>
+
+  <path class="connector" d="M1016 280H1120" stroke="#4f86c6"/>
+  <polygon class="head" points="1120,280 1102,270 1102,290" fill="#4f86c6" stroke="#4f86c6"/>
+  <rect class="legendBox" x="1034" y="244" width="70" height="28"/>
+  <text class="label" x="1069" y="263" text-anchor="middle" fill="#4f86c6">queues</text>
+
+  <path class="connector" d="M694 394V444Q694 464 674 464H303Q283 464 283 484V588" stroke="#c1842f"/>
+  <polygon class="head" points="283,588 273,570 293,570" fill="#c1842f" stroke="#c1842f"/>
+  <rect class="legendBox" x="426" y="428" width="112" height="28"/>
+  <text class="label" x="482" y="447" text-anchor="middle" fill="#c1842f">encodes</text>
+
+  <path class="connector" d="M800 394V588" stroke="#64748b"/>
+  <polygon class="head" points="800,588 790,570 810,570" fill="#64748b" stroke="#64748b"/>
+  <rect class="legendBox" x="826" y="478" width="74" height="28"/>
+  <text class="label" x="863" y="497" text-anchor="middle" fill="#64748b">smoke</text>
+
+  <path class="connector" d="M914 394V444Q914 464 934 464H1317Q1337 464 1337 484V588" stroke="#b65b67"/>
+  <polygon class="head" points="1337,588 1327,570 1347,570" fill="#b65b67" stroke="#b65b67"/>
+  <rect class="legendBox" x="1070" y="428" width="116" height="28"/>
+  <text class="label" x="1128" y="447" text-anchor="middle" fill="#b65b67">fanout notes</text>
+
+  <rect class="legendBox" x="94" y="858" width="560" height="44"/>
+  <path class="connector" d="M126 880H196" stroke="#4f86c6"/>
+  <polygon class="head" points="196,880 178,870 178,890" fill="#4f86c6" stroke="#4f86c6"/>
+  <text class="legend" x="216" y="885">solid = examples compose SDK operations directly</text>
+</svg>

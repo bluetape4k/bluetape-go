@@ -90,7 +90,7 @@
   <text class="msg" x="742" y="492" text-anchor="middle" fill="#cf8428">adapters</text>
   <path class="route" d="M890 620H1010" stroke="#c85d73" marker-end="url(#arrow-red)"/>
   <text class="msg" x="950" y="602" text-anchor="middle" fill="#c85d73">events</text>
-  <path class="return" d="M1205 545C1205 480 1205 455 1205 420" stroke="#64748b" marker-end="url(#arrow-gray)"/>
+  <path class="return" d="M1205 545V420" stroke="#64748b" marker-end="url(#arrow-gray)"/>
   <text class="msg" x="1255" y="486" text-anchor="middle" fill="#64748b">call path</text>
   <rect class="legend" x="82" y="842" width="1336" height="40" rx="8"/>
   <text class="footer" x="750" y="868" text-anchor="middle">Composition protects one operation; observability hooks must not become the slowest policy.</text>

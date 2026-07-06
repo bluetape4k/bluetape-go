@@ -85,14 +85,14 @@
   <text class="msg" x="945" y="240" text-anchor="middle" fill="#319873">lock</text>
   <path class="route" d="M1198 415 L1198 540" stroke="#4f77c9" marker-end="url(#arrow-blue)"/>
   <text class="msg" x="1260" y="485" text-anchor="middle" fill="#4f77c9">owner</text>
-  <path class="route" d="M1018 610 C800 690 640 520 805 395" stroke="#4f77c9" marker-end="url(#arrow-blue)"/>
-  <text class="msg" x="820" y="720" text-anchor="middle" fill="#4f77c9">store value</text>
+  <path class="route" d="M1120 540 V415" stroke="#4f77c9" marker-end="url(#arrow-blue)"/>
+  <text class="msg" x="1060" y="485" text-anchor="middle" fill="#4f77c9">store value</text>
   <path class="route" d="M872 338 L1018 338" stroke="#4f77c9" marker-end="url(#arrow-blue)"/>
   <text class="msg" x="945" y="318" text-anchor="middle" fill="#4f77c9">publish envelope</text>
-  <path class="return" d="M392 592 C635 592 755 455 1018 338" stroke="#64748b" marker-end="url(#arrow-gray)"/>
-  <text class="msg" x="610" y="545" text-anchor="middle" fill="#64748b">poll token result</text>
-  <path class="return" d="M1018 300 C825 410 650 485 512 592" stroke="#64748b" marker-end="url(#arrow-gray)"/>
-  <text class="msg" x="760" y="468" text-anchor="middle" fill="#64748b">accept matching token</text>
+  <path class="return" d="M392 650 H910 Q940 650 940 620 V420 Q940 390 970 390 H1018" stroke="#64748b" marker-end="url(#arrow-gray)"/>
+  <text class="msg" x="630" y="628" text-anchor="middle" fill="#64748b">poll token result</text>
+  <path class="return" d="M1018 405 H930 Q900 405 900 435 V510 Q900 540 870 540 H430 Q400 540 400 570 V600 Q400 630 430 630 H392" stroke="#64748b" marker-end="url(#arrow-gray)"/>
+  <text class="msg" x="690" y="520" text-anchor="middle" fill="#64748b">accept matching token</text>
   <rect class="legend" x="82" y="842" width="1336" height="40" rx="8"/>
   <text class="footer" x="750" y="868" text-anchor="middle">If LockTTL expires before publication, another owner may run; waiters never trust mismatched tokens.</text>
 </svg>

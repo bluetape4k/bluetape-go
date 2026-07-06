@@ -46,6 +46,20 @@ Lingua는 기본적으로 language model을 lazy-load합니다.
 - `ContainsKorean`, `ContainsJapanese`, `ContainsChinese`, `ContainsThai`,
   `ContainsLatin`은 작은 Unicode script helper입니다.
 
+## Diagram
+
+![textsearch/language contract map](../../docs/images/readme-diagrams/textsearch-language-contract-map.png)
+
+Contract map은 `textsearch/language`를 optional Lingua-Go adapter로 보여줍니다.
+Caller가 language subset과 model-loading tradeoff를 선택하고, 재사용 가능한
+detector가 caller-visible result, confidence, section, script hint를 반환합니다.
+
+![textsearch/language detect sequence](../../docs/images/readme-diagrams/textsearch-language-detect-sequence.png)
+
+Sequence는 detector construction, option application, Lingua builder setup,
+`Detect`, `Confidences`, `DetectMultiple`, byte-offset section mapping, Unicode
+script helper check 흐름을 보여줍니다.
+
 ## 경계
 
 - Language detection은 preprocessing hint이며 security, moderation,

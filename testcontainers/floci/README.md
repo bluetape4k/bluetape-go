@@ -30,6 +30,20 @@ S3 clients need `UsePathStyle` for local endpoints. Keep service-specific AWS
 client behavior in the test or package that owns the service; this helper only
 starts Floci and builds the shared AWS config.
 
+## Diagram
+
+![testcontainers/floci contract map](../../docs/images/readme-diagrams/testcontainers-floci-contract-map.png)
+
+The contract map shows the package boundary: integration tests own AWS SDK
+clients and assertions, `flocitestcontainer` owns Floci startup and detail
+extraction, and Docker/runtime policy stays outside the helper.
+
+![testcontainers/floci start sequence](../../docs/images/readme-diagrams/testcontainers-floci-start-sequence.png)
+
+The sequence follows `Start` through upstream builder setup, readiness, `Details`
+extraction, `LoadConfig`, caller-owned service smoke calls, optional env export,
+and bounded cleanup.
+
 ## Service Configuration
 
 Floci enables broad AWS service coverage by default. This package exposes the

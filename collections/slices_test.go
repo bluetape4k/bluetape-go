@@ -173,6 +173,158 @@ func TestFilterMap(t *testing.T) {
 	}
 }
 
+func TestCount(t *testing.T) {
+	got := collections.Count([]string{"api", "job", "api", "worker", "job", "api"})
+	want := map[string]int{"api": 3, "job": 2, "worker": 1}
+	if !reflect.DeepEqual(got, want) {
+		t.Fatalf("Count returned %#v, want %#v", got, want)
+	}
+	if got := collections.Count[string](nil); got != nil {
+		t.Fatalf("Count nil returned %#v, want nil", got)
+	}
+	if got := collections.Count([]string{}); got == nil || len(got) != 0 {
+		t.Fatalf("Count empty returned %#v, want empty map", got)
+	}
+}
+
+func TestPadTo(t *testing.T) {
+	got, err := collections.PadTo([]int{1, 2}, 5, 0)
+	if err != nil {
+		t.Fatalf("PadTo returned error: %v", err)
+	}
+	if !reflect.DeepEqual(got, []int{1, 2, 0, 0, 0}) {
+		t.Fatalf("PadTo returned %#v", got)
+	}
+	got, err = collections.PadTo([]int{1, 2, 3}, 2, 0)
+	if err != nil {
+		t.Fatalf("PadTo shrink returned error: %v", err)
+	}
+	if !reflect.DeepEqual(got, []int{1, 2, 3}) {
+		t.Fatalf("PadTo shrink returned %#v", got)
+	}
+	got, err = collections.PadTo[int](nil, 3, 9)
+	if err != nil {
+		t.Fatalf("PadTo nil returned error: %v", err)
+	}
+	if !reflect.DeepEqual(got, []int{9, 9, 9}) {
+		t.Fatalf("PadTo nil returned %#v", got)
+	}
+	if _, err := collections.PadTo([]int{1}, -1, 0); !errors.Is(err, collections.ErrInvalidArgument) {
+		t.Fatalf("PadTo negative size error = %v, want ErrInvalidArgument", err)
+	}
+}
+
+func TestSafeSubslice(t *testing.T) {
+	values := []int{1, 2, 3, 4, 5}
+	if got := collections.SafeSubslice(values, -10, 100); !reflect.DeepEqual(got, values) {
+		t.Fatalf("SafeSubslice wide returned %#v", got)
+	}
+	if got := collections.SafeSubslice(values, 1, 3); !reflect.DeepEqual(got, []int{2, 3}) {
+		t.Fatalf("SafeSubslice middle returned %#v", got)
+	}
+	if got := collections.SafeSubslice(values, 3, 1); len(got) != 0 {
+		t.Fatalf("SafeSubslice reversed returned %#v, want empty", got)
+	}
+	if got := collections.SafeSubslice[int](nil, 0, 3); got != nil {
+		t.Fatalf("SafeSubslice nil returned %#v, want nil", got)
+	}
+	if got := collections.SafeSubslice([]int{}, -1, 3); got == nil || len(got) != 0 {
+		t.Fatalf("SafeSubslice empty returned %#v, want empty slice", got)
+	}
+}
+
+func TestZipWithIndex(t *testing.T) {
+	got := collections.ZipWithIndex([]string{"a", "b"})
+	want := []collections.Indexed[string]{
+		{Index: 0, Value: "a"},
+		{Index: 1, Value: "b"},
+	}
+	if !reflect.DeepEqual(got, want) {
+		t.Fatalf("ZipWithIndex returned %#v, want %#v", got, want)
+	}
+	if got := collections.ZipWithIndex[string](nil); got != nil {
+		t.Fatalf("ZipWithIndex nil returned %#v, want nil", got)
+	}
+	if got := collections.ZipWithIndex([]string{}); got == nil || len(got) != 0 {
+		t.Fatalf("ZipWithIndex empty returned %#v, want empty slice", got)
+	}
+}
+
+func TestSliding(t *testing.T) {
+	got, err := collections.Sliding([]int{1, 2, 3, 4}, 3, true)
+	if err != nil {
+		t.Fatalf("Sliding returned error: %v", err)
+	}
+	want := [][]int{{1, 2, 3}, {2, 3, 4}, {3, 4}, {4}}
+	if !reflect.DeepEqual(got, want) {
+		t.Fatalf("Sliding returned %#v, want %#v", got, want)
+	}
+	got, err = collections.Sliding([]int{1, 2, 3, 4}, 3, false)
+	if err != nil {
+		t.Fatalf("Sliding full-only returned error: %v", err)
+	}
+	want = [][]int{{1, 2, 3}, {2, 3, 4}}
+	if !reflect.DeepEqual(got, want) {
+		t.Fatalf("Sliding full-only returned %#v, want %#v", got, want)
+	}
+	got, err = collections.Sliding[int](nil, 2, true)
+	if err != nil {
+		t.Fatalf("Sliding nil returned error: %v", err)
+	}
+	if got != nil {
+		t.Fatalf("Sliding nil returned %#v, want nil", got)
+	}
+	got, err = collections.Sliding([]int{}, 2, true)
+	if err != nil {
+		t.Fatalf("Sliding empty returned error: %v", err)
+	}
+	if got == nil || len(got) != 0 {
+		t.Fatalf("Sliding empty returned %#v, want empty slice", got)
+	}
+	if _, err := collections.Sliding([]int{1}, 0, true); !errors.Is(err, collections.ErrInvalidArgument) {
+		t.Fatalf("Sliding invalid size error = %v, want ErrInvalidArgument", err)
+	}
+}
+
+func TestForEachErr(t *testing.T) {
+	var visited []int
+	err := collections.ForEachErr([]int{1, 2, 3}, func(value int) error {
+		visited = append(visited, value)
+		return nil
+	})
+	if err != nil {
+		t.Fatalf("ForEachErr returned error: %v", err)
+	}
+	if !reflect.DeepEqual(visited, []int{1, 2, 3}) {
+		t.Fatalf("ForEachErr visited %#v", visited)
+	}
+
+	expected := errors.New("stop")
+	visited = nil
+	err = collections.ForEachErr([]int{1, 2, 3}, func(value int) error {
+		visited = append(visited, value)
+		if value == 2 {
+			return expected
+		}
+		return nil
+	})
+	if !errors.Is(err, expected) {
+		t.Fatalf("ForEachErr error = %v, want expected", err)
+	}
+	if !reflect.DeepEqual(visited, []int{1, 2}) {
+		t.Fatalf("ForEachErr should stop at first error, visited %#v", visited)
+	}
+	if err := collections.ForEachErr[int](nil, func(int) error { return nil }); err != nil {
+		t.Fatalf("ForEachErr nil returned error: %v", err)
+	}
+	if err := collections.ForEachErr([]int{}, func(int) error { return nil }); err != nil {
+		t.Fatalf("ForEachErr empty returned error: %v", err)
+	}
+	if err := collections.ForEachErr([]int{1}, nil); !errors.Is(err, collections.ErrInvalidArgument) {
+		t.Fatalf("ForEachErr nil action error = %v, want ErrInvalidArgument", err)
+	}
+}
+
 func TestCollectionSliceHelpersNilAndEmptyContracts(t *testing.T) {
 	if got, err := collections.ChunkBy[int](nil, func(int) bool { return false }); err != nil || got != nil {
 		t.Fatalf("ChunkBy nil = %#v, %v; want nil, nil", got, err)
@@ -248,5 +400,11 @@ func TestCollectionSliceHelpersRejectNilCallbacks(t *testing.T) {
 	}
 	if _, err := collections.FilterMap[int, int]([]int{}, nil); err == nil {
 		t.Fatal("FilterMap should reject nil mapper before empty input")
+	}
+	if err := collections.ForEachErr[int](nil, nil); err == nil {
+		t.Fatal("ForEachErr should reject nil action before nil input")
+	}
+	if err := collections.ForEachErr[int]([]int{}, nil); err == nil {
+		t.Fatal("ForEachErr should reject nil action before empty input")
 	}
 }

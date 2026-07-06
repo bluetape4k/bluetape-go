@@ -1,0 +1,126 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="1000" viewBox="0 0 1600 1000" role="img" aria-labelledby="title desc">
+  <title id="title">jwt/mongo Facade Contract Map</title>
+  <desc id="desc">Class-style contract map for jwt/mongo showing MongoDB-specific import boundary aliases, caller-owned Mongo client lifecycle, parent jwt repository construction, distributed provider ownership, Mongo collection storage, and operational boundaries.</desc>
+  <defs>
+    <filter id="softShadow" x="-6%" y="-8%" width="112%" height="120%">
+      <feDropShadow dx="0" dy="5" stdDeviation="5" flood-color="#0f172a" flood-opacity="0.10"/>
+    </filter>
+    <style>
+      .canvas { fill: #f8fafc; }
+      .frame { fill: #ffffff; stroke: #cbd5e1; stroke-width: 1.5; filter: url(#softShadow); }
+      .title, .card-title { font-family: "Architects Daughter", "Comic Sans MS", cursive; fill: #24364f; }
+      .title { font-size: 42px; }
+      .subtitle, .section, .member, .label, .legend { font-family: "Comic Mono", "SFMono-Regular", monospace; fill: #526276; }
+      .subtitle { font-size: 17px; }
+      .section { font-size: 13px; font-weight: 700; text-transform: uppercase; letter-spacing: 0; }
+      .card-title { font-size: 25px; }
+      .member { font-size: 14px; }
+      .label { font-size: 13px; font-weight: 700; }
+      .legend { font-size: 13px; }
+      .card { stroke-width: 2.2; rx: 12; filter: url(#softShadow); }
+      .rule { stroke-width: 1.2; opacity: 0.42; }
+      .connector { fill: none; stroke-linecap: round; stroke-linejoin: round; stroke-width: 3.1; }
+      .dependency { stroke-dasharray: 10 8; }
+      .head { stroke-linejoin: round; stroke-dasharray: none; }
+      .legendBox { fill: #ffffff; stroke: #d7e0ea; stroke-width: 1.4; rx: 12; }
+    </style>
+  </defs>
+
+  <rect class="canvas" width="1600" height="1000"/>
+  <rect class="frame" x="34" y="30" width="1532" height="932" rx="8"/>
+  <text class="title" x="72" y="88">jwt/mongo Facade Contract Map</text>
+  <text class="subtitle" x="76" y="120">Mongo-specific import boundary for distributed JWT key-chain repositories; the parent jwt package owns provider behavior.</text>
+
+  <rect class="card" x="590" y="150" width="420" height="244" fill="#edf9f4" stroke="#63b891"/>
+  <text class="card-title" x="800" y="188" text-anchor="middle">jwt/mongo facade</text>
+  <text class="section" x="622" y="218">import boundary</text>
+  <line class="rule" x1="622" y1="228" x2="978" y2="228" stroke="#63b891"/>
+  <text class="member" x="622" y="256">type Options = jwt.MongoRepositoryOptions</text>
+  <text class="member" x="622" y="284">type Repository = jwt.MongoRepository</text>
+  <text class="member" x="622" y="312">New(options) delegates to parent jwt</text>
+  <text class="member" x="622" y="340">no duplicate repository implementation</text>
+  <text class="member" x="622" y="368">no signing/parsing policy here</text>
+
+  <rect class="card" x="86" y="178" width="396" height="220" fill="#f3efff" stroke="#9b7aec"/>
+  <text class="card-title" x="284" y="216" text-anchor="middle">Mongo client</text>
+  <text class="section" x="116" y="246">caller-owned runtime</text>
+  <line class="rule" x1="116" y1="256" x2="452" y2="256" stroke="#9b7aec"/>
+  <text class="member" x="116" y="284">*mongo.Client</text>
+  <text class="member" x="116" y="312">connect/disconnect outside helper</text>
+  <text class="member" x="116" y="340">auth, TLS, backup, least privilege</text>
+  <text class="member" x="116" y="368">caller chooses Database + Namespace</text>
+
+  <rect class="card" x="1118" y="178" width="396" height="220" fill="#eaf2ff" stroke="#6d9df0"/>
+  <text class="card-title" x="1316" y="216" text-anchor="middle">parent jwt package</text>
+  <text class="section" x="1148" y="246">behavior owner</text>
+  <line class="rule" x1="1148" y1="256" x2="1484" y2="256" stroke="#6d9df0"/>
+  <text class="member" x="1148" y="284">NewMongoRepository(options)</text>
+  <text class="member" x="1148" y="312">NewDistributedHMACProvider(ctx,...)</text>
+  <text class="member" x="1148" y="340">ComposeContext / ParseContext</text>
+  <text class="member" x="1148" y="368">rotation, retention, provider cache</text>
+
+  <rect class="card" x="86" y="588" width="396" height="210" fill="#fff4de" stroke="#d59c3f"/>
+  <text class="card-title" x="284" y="626" text-anchor="middle">Mongo collection</text>
+  <text class="section" x="116" y="656">key-chain storage</text>
+  <line class="rule" x1="116" y1="666" x2="452" y2="666" stroke="#d59c3f"/>
+  <text class="member" x="116" y="694">signing key material</text>
+  <text class="member" x="116" y="722">retained key payloads</text>
+  <text class="member" x="116" y="750">current kid metadata</text>
+  <text class="member" x="116" y="778">one caller-selected collection</text>
+
+  <rect class="card" x="590" y="588" width="420" height="210" fill="#f8fafc" stroke="#94a3b8"/>
+  <text class="card-title" x="800" y="626" text-anchor="middle">Repository alias</text>
+  <text class="section" x="622" y="656">distributed key-chain</text>
+  <line class="rule" x1="622" y1="666" x2="978" y2="666" stroke="#94a3b8"/>
+  <text class="member" x="622" y="694">*jwt.MongoRepository</text>
+  <text class="member" x="622" y="722">used by distributed JWT providers</text>
+  <text class="member" x="622" y="750">reset and retention are explicit ops</text>
+  <text class="member" x="622" y="778">admin authorization stays external</text>
+
+  <rect class="card" x="1118" y="588" width="396" height="210" fill="#fff0f0" stroke="#d56b7d"/>
+  <text class="card-title" x="1316" y="626" text-anchor="middle">Operational boundary</text>
+  <text class="section" x="1148" y="656">not owned here</text>
+  <line class="rule" x1="1148" y1="666" x2="1484" y2="666" stroke="#d56b7d"/>
+  <text class="member" x="1148" y="694">no Mongo client lifecycle ownership</text>
+  <text class="member" x="1148" y="722">no token policy or cache behavior</text>
+  <text class="member" x="1148" y="750">no storage admin authorization</text>
+  <text class="member" x="1148" y="778">facade exists for stable import path</text>
+
+  <path class="connector" d="M482 288H590" stroke="#8a65d6"/>
+  <polygon class="head" points="590,288 572,278 572,298" fill="#8a65d6" stroke="#8a65d6"/>
+  <rect class="legendBox" x="500" y="252" width="66" height="28"/>
+  <text class="label" x="533" y="271" text-anchor="middle" fill="#8a65d6">passes</text>
+
+  <path class="connector" d="M1010 288H1118" stroke="#4f86c6"/>
+  <polygon class="head" points="1118,288 1100,278 1100,298" fill="#4f86c6" stroke="#4f86c6"/>
+  <rect class="legendBox" x="1030" y="252" width="88" height="28"/>
+  <text class="label" x="1074" y="271" text-anchor="middle" fill="#4f86c6">delegates</text>
+
+  <path class="connector" d="M800 394V588" stroke="#64748b"/>
+  <polygon class="head" points="800,588 790,570 810,570" fill="#64748b" stroke="#64748b"/>
+  <rect class="legendBox" x="826" y="478" width="76" height="28"/>
+  <text class="label" x="864" y="497" text-anchor="middle" fill="#64748b">returns</text>
+
+  <path class="connector" d="M590 696H482" stroke="#c1842f"/>
+  <polygon class="head" points="482,696 500,686 500,706" fill="#c1842f" stroke="#c1842f"/>
+  <rect class="legendBox" x="496" y="660" width="82" height="28"/>
+  <text class="label" x="537" y="679" text-anchor="middle" fill="#c1842f">persists</text>
+
+  <path class="connector" d="M1010 696H1118" stroke="#b65b67"/>
+  <polygon class="head" points="1118,696 1100,686 1100,706" fill="#b65b67" stroke="#b65b67"/>
+  <rect class="legendBox" x="1024" y="660" width="92" height="28"/>
+  <text class="label" x="1070" y="679" text-anchor="middle" fill="#b65b67">guardrails</text>
+
+  <path class="connector dependency" d="M1316 398V588" stroke="#d56b7d"/>
+  <polygon class="head" points="1316,588 1306,570 1326,570" fill="#ffffff" stroke="#d56b7d" stroke-width="3.1"/>
+  <rect class="legendBox" x="1338" y="478" width="104" height="28"/>
+  <text class="label" x="1390" y="497" text-anchor="middle" fill="#d56b7d">not owned</text>
+
+  <rect class="legendBox" x="94" y="858" width="950" height="44"/>
+  <path class="connector" d="M126 880H196" stroke="#4f86c6"/>
+  <polygon class="head" points="196,880 178,870 178,890" fill="#4f86c6" stroke="#4f86c6"/>
+  <text class="legend" x="216" y="885">solid = facade delegation and repository storage contract</text>
+  <path class="connector dependency" d="M644 880H714" stroke="#d56b7d"/>
+  <polygon class="head" points="714,880 696,870 696,890" fill="#ffffff" stroke="#d56b7d" stroke-width="3.1"/>
+  <text class="legend" x="734" y="885">dashed = behavior or operations intentionally owned elsewhere</text>
+</svg>

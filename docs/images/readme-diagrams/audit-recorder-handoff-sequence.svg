@@ -1,0 +1,160 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1500" height="1160" viewBox="0 0 1500 1160" role="img" aria-labelledby="title desc">
+  <title id="title">audit Recorder Handoff Sequence</title>
+  <desc id="desc">PendingEvents is a defensive snapshot; AckThrough happens only after source write and durable audit commit both succeed.</desc>
+  <defs>
+    <filter id="softShadow" x="-8%" y="-10%" width="116%" height="124%">
+      <feDropShadow dx="0" dy="5" stdDeviation="5" flood-color="#0f172a" flood-opacity="0.10"/>
+    </filter>
+    <marker id="seqArrow-blue" markerWidth="16" markerHeight="16" refX="9" refY="5" orient="auto" markerUnits="userSpaceOnUse" viewBox="0 0 10 10">
+      <path d="M 0 0 L 10 5 L 0 10 Z" fill="#4f86c6" stroke="#4f86c6"/>
+    </marker>
+    <marker id="seqArrow-amber" markerWidth="16" markerHeight="16" refX="9" refY="5" orient="auto" markerUnits="userSpaceOnUse" viewBox="0 0 10 10">
+      <path d="M 0 0 L 10 5 L 0 10 Z" fill="#c1842f" stroke="#c1842f"/>
+    </marker>
+    <marker id="seqArrow-green" markerWidth="16" markerHeight="16" refX="9" refY="5" orient="auto" markerUnits="userSpaceOnUse" viewBox="0 0 10 10">
+      <path d="M 0 0 L 10 5 L 0 10 Z" fill="#5f8d3e" stroke="#5f8d3e"/>
+    </marker>
+    <marker id="seqArrow-teal" markerWidth="16" markerHeight="16" refX="9" refY="5" orient="auto" markerUnits="userSpaceOnUse" viewBox="0 0 10 10">
+      <path d="M 0 0 L 10 5 L 0 10 Z" fill="#2f8f8a" stroke="#2f8f8a"/>
+    </marker>
+    <marker id="seqArrow-red" markerWidth="16" markerHeight="16" refX="9" refY="5" orient="auto" markerUnits="userSpaceOnUse" viewBox="0 0 10 10">
+      <path d="M 0 0 L 10 5 L 0 10 Z" fill="#b65b67" stroke="#b65b67"/>
+    </marker>
+    <style>
+      .canvas { fill: #f8fafc; }
+      .frame { fill: #ffffff; stroke: #cbd5e1; stroke-width: 1.5; filter: url(#softShadow); }
+      .title, .participant-title { font-family: "Architects Daughter", "Comic Sans MS", cursive; fill: #263a57; }
+      .title { font-size: 42px; }
+      .subtitle, .role, .msg, .region, .footer { font-family: "Comic Mono", "SFMono-Regular", monospace; fill: #526276; }
+      .subtitle { font-size: 17px; }
+      .participant-title { font-size: 22px; }
+      .role { font-size: 13px; }
+      .msg { font-size: 13px; font-weight: 700; }
+      .region { font-size: 13px; font-weight: 700; }
+      .footer { font-size: 14px; }
+      .participant { stroke-width: 2.2; rx: 12; }
+      .lifeline { stroke: #c5d4e3; stroke-width: 2; stroke-dasharray: 8 8; }
+      .activation { fill: #f3eeff; stroke: #8a65d8; stroke-width: 1.7; rx: 7; opacity: 0.88; }
+      .call, .return, .error, .state { fill: none; stroke-linecap: round; stroke-linejoin: round; }
+      .call, .state { stroke-width: 3; }
+      .return, .error { stroke-width: 2.7; stroke-dasharray: 9 8; }
+      .alt { fill: none; stroke: #78909c; stroke-width: 2.4; stroke-dasharray: 12 7; rx: 16; }
+      .alt-label { fill: #ffffff; stroke: #d7e0e4; stroke-width: 1.5; rx: 15; }
+      .branchDivider { stroke: #78909c; stroke-width: 2.2; stroke-dasharray: 12 8; }
+      .pill { fill: #ffffff; stroke: #cbd9e7; stroke-width: 1.5; rx: 15; }
+      .badge { stroke-width: 1.6; }
+      .badgeText { font-family: "Comic Mono", "SFMono-Regular", monospace; font-size: 10px; font-weight: 700; fill: #ffffff; }
+    </style>
+  </defs>
+
+  <rect class="canvas" width="1500" height="1160"/>
+  <rect class="frame" x="34" y="30" width="1432" height="1096" rx="8"/>
+  <text class="title" x="72" y="88">audit Recorder Handoff Sequence</text>
+  <text class="subtitle" x="76" y="120">PendingEvents survives failed persistence; AckThrough follows only a successful durable audit commit.</text>
+
+  <rect class="participant" x="92" y="174" width="190" height="68" fill="#eaf2ff" stroke="#6d9df0"/>
+  <text class="participant-title" x="187" y="202" text-anchor="middle">Service</text>
+  <text class="role" x="187" y="224" text-anchor="middle">caller-owned</text>
+  <line class="lifeline" x1="187" y1="242" x2="187" y2="1048"/>
+
+  <rect class="participant" x="378" y="174" width="220" height="68" fill="#f3efff" stroke="#9b7aec"/>
+  <text class="participant-title" x="488" y="202" text-anchor="middle">Recorder</text>
+  <text class="role" x="488" y="224" text-anchor="middle">pending events</text>
+  <line class="lifeline" x1="488" y1="242" x2="488" y2="1048"/>
+
+  <rect class="participant" x="686" y="174" width="220" height="68" fill="#edf9f4" stroke="#63b891"/>
+  <text class="participant-title" x="796" y="202" text-anchor="middle">DomainEvent</text>
+  <text class="role" x="796" y="224" text-anchor="middle">validated value</text>
+  <line class="lifeline" x1="796" y1="242" x2="796" y2="1048"/>
+
+  <rect class="participant" x="990" y="174" width="220" height="68" fill="#fff4de" stroke="#d59c3f"/>
+  <text class="participant-title" x="1100" y="202" text-anchor="middle">Source write</text>
+  <text class="role" x="1100" y="224" text-anchor="middle">application DB</text>
+  <line class="lifeline" x1="1100" y1="242" x2="1100" y2="1048"/>
+
+  <rect class="participant" x="1260" y="174" width="190" height="68" fill="#fff0f0" stroke="#d56b7d"/>
+  <text class="participant-title" x="1355" y="202" text-anchor="middle">Audit commit</text>
+  <text class="role" x="1355" y="224" text-anchor="middle">durable boundary</text>
+  <line class="lifeline" x1="1355" y1="242" x2="1355" y2="1048"/>
+
+  <rect class="activation" x="481" y="300" width="14" height="660" rx="7"/>
+  <rect class="activation" x="789" y="380" width="14" height="100" rx="7"/>
+  <rect class="activation" x="1093" y="620" width="14" height="72" rx="7"/>
+  <rect class="activation" x="1348" y="700" width="14" height="226" rx="7"/>
+
+  <rect class="alt" x="96" y="738" width="1322" height="238" rx="16"/>
+  <rect class="alt-label" x="118" y="756" width="178" height="30" rx="15"/>
+  <text class="region" x="142" y="776">alt audit failure</text>
+  <line class="branchDivider" x1="118" y1="858" x2="1396" y2="858"/>
+  <rect class="alt-label" x="118" y="876" width="174" height="30" rx="15"/>
+  <text class="region" x="142" y="896">else audit success</text>
+
+  <path class="call" d="M187 310 L488 310" stroke="#4f86c6" marker-end="url(#seqArrow-blue)"/>
+  <rect class="pill" x="258" y="268" width="158" height="30" rx="15"/>
+  <circle class="badge" cx="278" cy="283" r="13" fill="#4f86c6" stroke="#4f86c6"/>
+  <text class="badgeText" x="278" y="287" text-anchor="middle">1</text>
+  <text class="msg" x="350" y="288" text-anchor="middle" fill="#4f86c6">Record(event)</text>
+
+  <path class="call" d="M488 390 L796 390" stroke="#c1842f" marker-end="url(#seqArrow-amber)"/>
+  <rect class="pill" x="538" y="348" width="208" height="30" rx="15"/>
+  <circle class="badge" cx="558" cy="363" r="13" fill="#c1842f" stroke="#c1842f"/>
+  <text class="badgeText" x="558" y="367" text-anchor="middle">2</text>
+  <text class="msg" x="642" y="368" text-anchor="middle" fill="#c1842f">next revision</text>
+
+  <path class="return" d="M796 470 L488 470" stroke="#2f8f8a" marker-end="url(#seqArrow-teal)"/>
+  <rect class="pill" x="576" y="428" width="132" height="30" rx="15"/>
+  <circle class="badge" cx="596" cy="443" r="13" fill="#2f8f8a" stroke="#2f8f8a"/>
+  <text class="badgeText" x="596" y="447" text-anchor="middle">3</text>
+  <text class="msg" x="660" y="448" text-anchor="middle" fill="#2f8f8a">validated</text>
+
+  <path class="call" d="M187 550 L488 550" stroke="#4f86c6" marker-end="url(#seqArrow-blue)"/>
+  <rect class="pill" x="240" y="508" width="196" height="30" rx="15"/>
+  <circle class="badge" cx="260" cy="523" r="13" fill="#4f86c6" stroke="#4f86c6"/>
+  <text class="badgeText" x="260" y="527" text-anchor="middle">4</text>
+  <text class="msg" x="346" y="528" text-anchor="middle" fill="#4f86c6">PendingEvents()</text>
+
+  <path class="return" d="M488 610 L187 610" stroke="#2f8f8a" marker-end="url(#seqArrow-teal)"/>
+  <rect class="pill" x="260" y="568" width="156" height="30" rx="15"/>
+  <circle class="badge" cx="280" cy="583" r="13" fill="#2f8f8a" stroke="#2f8f8a"/>
+  <text class="badgeText" x="280" y="587" text-anchor="middle">5</text>
+  <text class="msg" x="350" y="588" text-anchor="middle" fill="#2f8f8a">snapshot</text>
+
+  <path class="call" d="M187 670 L1100 670" stroke="#5f8d3e" marker-end="url(#seqArrow-green)"/>
+  <rect class="pill" x="508" y="628" width="270" height="30" rx="15"/>
+  <circle class="badge" cx="528" cy="643" r="13" fill="#5f8d3e" stroke="#5f8d3e"/>
+  <text class="badgeText" x="528" y="647" text-anchor="middle">6</text>
+  <text class="msg" x="648" y="648" text-anchor="middle" fill="#5f8d3e">write source state</text>
+
+  <path class="call" d="M187 730 L1355 730" stroke="#c1842f" marker-end="url(#seqArrow-amber)"/>
+  <rect class="pill" x="648" y="688" width="246" height="30" rx="15"/>
+  <circle class="badge" cx="668" cy="703" r="13" fill="#c1842f" stroke="#c1842f"/>
+  <text class="badgeText" x="668" y="707" text-anchor="middle">7</text>
+  <text class="msg" x="778" y="708" text-anchor="middle" fill="#c1842f">writeAudit(pending)</text>
+
+  <path class="error" d="M1355 820 L187 820" stroke="#b65b67" marker-end="url(#seqArrow-red)"/>
+  <rect class="pill" x="596" y="778" width="308" height="30" rx="15"/>
+  <circle class="badge" cx="616" cy="793" r="13" fill="#b65b67" stroke="#b65b67"/>
+  <text class="badgeText" x="616" y="797" text-anchor="middle">8</text>
+  <text class="msg" x="752" y="798" text-anchor="middle" fill="#b65b67">error; pending retained</text>
+
+  <path class="return" d="M1355 912 L187 912" stroke="#5f8d3e" marker-end="url(#seqArrow-green)"/>
+  <rect class="pill" x="662" y="870" width="170" height="30" rx="15"/>
+  <circle class="badge" cx="682" cy="885" r="13" fill="#5f8d3e" stroke="#5f8d3e"/>
+  <text class="badgeText" x="682" y="889" text-anchor="middle">9</text>
+  <text class="msg" x="750" y="890" text-anchor="middle" fill="#5f8d3e">commit ok</text>
+
+  <path class="state" d="M187 950 L488 950" stroke="#5f8d3e" marker-end="url(#seqArrow-green)"/>
+  <rect class="pill" x="232" y="908" width="212" height="30" rx="15"/>
+  <circle class="badge" cx="254" cy="923" r="13" fill="#5f8d3e" stroke="#5f8d3e"/>
+  <text class="badgeText" x="254" y="927" text-anchor="middle">10</text>
+  <text class="msg" x="346" y="928" text-anchor="middle" fill="#5f8d3e">AckThrough(last)</text>
+
+  <path class="return" d="M488 1030 L187 1030" stroke="#2f8f8a" marker-end="url(#seqArrow-teal)"/>
+  <rect class="pill" x="246" y="988" width="184" height="30" rx="15"/>
+  <circle class="badge" cx="268" cy="1003" r="13" fill="#2f8f8a" stroke="#2f8f8a"/>
+  <text class="badgeText" x="268" y="1007" text-anchor="middle">11</text>
+  <text class="msg" x="354" y="1008" text-anchor="middle" fill="#2f8f8a">pending compacted</text>
+
+  <rect class="pill" x="320" y="1068" width="860" height="34" rx="17"/>
+  <text class="footer" x="750" y="1090" text-anchor="middle">Crash recovery remains outside this in-process recorder; pair it with a durable transaction or outbox.</text>
+</svg>

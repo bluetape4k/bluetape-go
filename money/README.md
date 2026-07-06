@@ -11,7 +11,11 @@ conversion, and context-aware provider-backed conversion.
 ## Import
 
 ```go
-import "github.com/bluetape4k/bluetape-go/money"
+import (
+    "log/slog"
+
+    "github.com/bluetape4k/bluetape-go/money"
+)
 ```
 
 ## Selection Guide
@@ -63,6 +67,9 @@ payload, err := json.Marshal(total)
 
 Provider-backed exchange conversion keeps IO explicit:
 
+The snippet assumes the surrounding function already owns a `context.Context`
+and imports `time`.
+
 ```go
 provider, err := money.NewECBProvider(money.ECBProviderOptions{
     Timeout:           3 * time.Second,
@@ -83,10 +90,14 @@ if err != nil {
     return err
 }
 if quote.Stale {
-    log.Printf("using stale %s quote observed at %s: %v",
-        quote.Source,
-        quote.ObservedAt.Format(time.DateOnly),
-        quote.RefreshError,
+    refreshStatus := "none"
+    if quote.RefreshError != nil {
+        refreshStatus = "failed"
+    }
+    slog.InfoContext(ctx, "using stale exchange-rate quote",
+        slog.String("source", quote.Source),
+        slog.Time("observed_at", quote.ObservedAt),
+        slog.String("refresh_status", refreshStatus),
     )
 }
 _ = krw

@@ -15,6 +15,9 @@ retry scheduler, Kotlin-style DSL, or mutable shared `WorkContext` map.
 
 ## Example
 
+The snippet assumes standard imports such as `context` and `log/slog`. The
+compile-checked version lives in [`workflow_example_test.go`](workflow_example_test.go).
+
 ```go
 runner := workflow.Sequential(
     "import",
@@ -25,7 +28,10 @@ runner := workflow.Sequential(
 
 report := runner.Run(ctx)
 if report.IsPartial() {
-    log.Printf("%s produced %d child reports", report.Name, len(report.Children))
+    slog.InfoContext(ctx, "workflow produced partial report",
+        slog.String("report", report.Name),
+        slog.Int("children", len(report.Children)),
+    )
 }
 ```
 

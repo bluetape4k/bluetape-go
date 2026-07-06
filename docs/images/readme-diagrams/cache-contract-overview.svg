@@ -87,9 +87,9 @@
   <text class="msg" x="470" y="282" text-anchor="middle" fill="#4f77c9">local ops</text>
   <path class="route" d="M910 292H1028" stroke="#319873" marker-end="url(#arrow-green)"/>
   <text class="msg" x="969" y="274" text-anchor="middle" fill="#319873">contract</text>
-  <path class="route" d="M590 410C560 475 500 520 430 545" stroke="#7e62d9" marker-end="url(#arrow-purple)"/>
+  <path class="route" d="M590 410 V430 Q548 500 430 530 V545" stroke="#7e62d9" marker-end="url(#arrow-purple)"/>
   <text class="msg" x="522" y="486" text-anchor="middle" fill="#7e62d9">invalidation</text>
-  <path class="route" d="M745 410C785 475 855 520 955 545" stroke="#c85d73" marker-end="url(#arrow-red)"/>
+  <path class="route" d="M745 410 V430 Q812 500 955 530 V545" stroke="#c85d73" marker-end="url(#arrow-red)"/>
   <text class="msg" x="828" y="486" text-anchor="middle" fill="#c85d73">stampede guard</text>
   <rect class="legend" x="82" y="842" width="1336" height="40" rx="8"/>
   <text class="footer" x="750" y="868" text-anchor="middle">Use the base cache when one process owns the value; add Redis wrappers only for cross-process coordination.</text>

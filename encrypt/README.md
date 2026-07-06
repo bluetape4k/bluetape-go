@@ -6,6 +6,12 @@
 data. It hides nonce management by using Go's random-nonce GCM AEAD and wraps
 ciphertext in a versioned envelope.
 
+## Diagrams
+
+![encrypt class contract map](../docs/images/readme-diagrams/encrypt-class-contract-map.png)
+
+![encrypt envelope sequence](../docs/images/readme-diagrams/encrypt-envelope-sequence.png)
+
 ## Import
 
 ```go

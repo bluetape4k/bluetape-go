@@ -12,6 +12,7 @@ require (
 	github.com/aws/aws-sdk-go-v2/service/sns v1.39.17
 	github.com/aws/aws-sdk-go-v2/service/sqs v1.42.27
 	github.com/cespare/xxhash/v2 v2.3.0
+	github.com/expr-lang/expr v1.17.8
 	github.com/floci-io/testcontainers-floci-go v0.0.0-20260513220955-f6077bc13ae6
 	github.com/go-sql-driver/mysql v1.10.0
 	github.com/golang-jwt/jwt/v5 v5.3.1
@@ -46,6 +47,7 @@ require (
 	github.com/testcontainers/testcontainers-go/modules/redis v0.42.0
 	github.com/testcontainers/testcontainers-go/modules/toxiproxy v0.42.0
 	go.mongodb.org/mongo-driver/v2 v2.7.0
+	go.yaml.in/yaml/v3 v3.0.4
 	golang.org/x/image v0.43.0
 	golang.org/x/sync v0.21.0
 	golang.org/x/text v0.38.0
@@ -123,7 +125,6 @@ require (
 	go.opentelemetry.io/otel/metric v1.41.0 // indirect
 	go.opentelemetry.io/otel/trace v1.41.0 // indirect
 	go.uber.org/atomic v1.11.0 // indirect
-	go.yaml.in/yaml/v3 v3.0.4 // indirect
 	golang.org/x/crypto v0.49.0 // indirect
 	golang.org/x/exp v0.0.0-20221106115401-f9659909a136 // indirect
 	golang.org/x/mod v0.36.0 // indirect

@@ -1,0 +1,124 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1500" height="900" viewBox="0 0 1500 900" role="img" aria-labelledby="title desc">
+  <title id="title">audit Package Class Contract Map</title>
+  <desc id="desc">Storage-neutral audit values, recorder, repository interfaces, and in-memory conformance repository.</desc>
+  <defs>
+    <filter id="softShadow" x="-8%" y="-10%" width="116%" height="124%">
+      <feDropShadow dx="0" dy="5" stdDeviation="5" flood-color="#0f172a" flood-opacity="0.10"/>
+    </filter>
+    <style>
+      .canvas { fill: #f8fafc; }
+      .frame { fill: #ffffff; stroke: #cbd5e1; stroke-width: 1.5; filter: url(#softShadow); }
+      .title, .card-title, .legend-title { font-family: "Architects Daughter", "Comic Sans MS", cursive; fill: #263a57; }
+      .title { font-size: 42px; }
+      .subtitle, .body, .small, .legend-text, .footer { font-family: "Comic Mono", "SFMono-Regular", monospace; fill: #526276; }
+      .subtitle { font-size: 17px; }
+      .card-title { font-size: 21px; }
+      .body { font-size: 14px; }
+      .small { font-size: 12px; }
+      .legend-title { font-size: 18px; }
+      .legend-text { font-size: 13px; }
+      .footer { font-size: 14px; }
+      .uml-card { stroke-width: 1.8; rx: 8; filter: url(#softShadow); }
+      .card-divider { stroke-width: 1.1; opacity: 0.48; }
+      .route, .dependency { fill: none; stroke-linecap: round; stroke-linejoin: round; }
+      .route { stroke-width: 3; }
+      .dependency { stroke-width: 2.7; stroke-dasharray: 10 8; }
+      .head-solid, .head-hollow, .head-open { stroke-linecap: round; stroke-linejoin: round; stroke-dasharray: none; }
+      .legend-box { fill: #ffffff; stroke: #d4e0ec; stroke-width: 1.5; rx: 12; }
+    </style>
+  </defs>
+
+  <rect class="canvas" width="1500" height="900"/>
+  <rect class="frame" x="34" y="30" width="1432" height="836" rx="8"/>
+  <text class="title" x="72" y="88">audit Package Class Contract Map</text>
+  <text class="subtitle" x="76" y="120">Validated aggregate events stay storage-neutral; durable publish adapters live outside this package.</text>
+
+  <rect id="card-aggregate-recorder" class="uml-card" x="82" y="178" width="315" height="226" rx="8" fill="#eaf2ff" stroke="#6d9df0"/>
+  <text class="card-title" x="239" y="216" text-anchor="middle">AggregateRecorder</text>
+  <line class="card-divider" x1="82" y1="238" x2="397" y2="238" stroke="#6d9df0"/>
+  <text class="body" x="108" y="270">- aggregate AggregateID</text>
+  <text class="body" x="108" y="296">- pending []DomainEvent</text>
+  <text class="body" x="108" y="322">- head Revision</text>
+  <line class="card-divider" x1="82" y1="344" x2="397" y2="344" stroke="#6d9df0"/>
+  <text class="body" x="108" y="374">+ Record(EventRecord)</text>
+  <text class="body" x="108" y="398">+ PendingEvents()</text>
+
+  <rect id="card-domain-event" class="uml-card" x="500" y="166" width="330" height="250" rx="8" fill="#edf9f4" stroke="#63b891"/>
+  <text class="card-title" x="665" y="204" text-anchor="middle">DomainEvent</text>
+  <line class="card-divider" x1="500" y1="226" x2="830" y2="226" stroke="#63b891"/>
+  <text class="body" x="526" y="258">+ EventID, EventType</text>
+  <text class="body" x="526" y="284">+ Aggregate, Revision</text>
+  <text class="body" x="526" y="310">+ IdempotencyKey</text>
+  <text class="body" x="526" y="336">+ Metadata, Payload</text>
+  <line class="card-divider" x1="500" y1="358" x2="830" y2="358" stroke="#63b891"/>
+  <text class="body" x="526" y="388">+ Validate(), Clone()</text>
+
+  <rect id="card-entry" class="uml-card" x="1015" y="166" width="340" height="250" rx="8" fill="#fff4de" stroke="#d59c3f"/>
+  <text class="card-title" x="1185" y="204" text-anchor="middle">Entry</text>
+  <line class="card-divider" x1="1015" y1="226" x2="1355" y2="226" stroke="#d59c3f"/>
+  <text class="body" x="1041" y="258">+ SchemaVersion</text>
+  <text class="body" x="1041" y="284">+ Aggregate, Revision</text>
+  <text class="body" x="1041" y="310">+ Event DomainEvent</text>
+  <text class="body" x="1041" y="336">+ Snapshot / Change</text>
+  <line class="card-divider" x1="1015" y1="358" x2="1355" y2="358" stroke="#d59c3f"/>
+  <text class="body" x="1041" y="388">+ Validate(), Clone()</text>
+
+  <rect id="card-history" class="uml-card" x="88" y="572" width="310" height="168" rx="8" fill="#f3efff" stroke="#9b7aec"/>
+  <text class="card-title" x="243" y="610" text-anchor="middle">History</text>
+  <line class="card-divider" x1="88" y1="632" x2="398" y2="632" stroke="#9b7aec"/>
+  <text class="body" x="114" y="664">- entries []Entry</text>
+  <line class="card-divider" x1="88" y1="686" x2="398" y2="686" stroke="#9b7aec"/>
+  <text class="body" x="114" y="716">+ HeadRevision()</text>
+
+  <rect id="card-repository" class="uml-card" x="575" y="548" width="350" height="210" rx="8" fill="#f8fafc" stroke="#64748b"/>
+  <text class="small" x="750" y="584" text-anchor="middle">&lt;&lt;interface&gt;&gt;</text>
+  <text class="card-title" x="750" y="614" text-anchor="middle">Repository</text>
+  <line class="card-divider" x1="575" y1="636" x2="925" y2="636" stroke="#64748b"/>
+  <text class="body" x="601" y="668">+ Append(ctx, entries...)</text>
+  <text class="body" x="601" y="694">+ Find(ctx, Query)</text>
+  <text class="body" x="601" y="720">+ LoadHistory(ctx, AggregateID)</text>
+
+  <rect id="card-memory-repository" class="uml-card" x="1034" y="548" width="340" height="210" rx="8" fill="#fff0f0" stroke="#d56b7d"/>
+  <text class="card-title" x="1204" y="586" text-anchor="middle">MemoryRepository</text>
+  <line class="card-divider" x1="1034" y1="608" x2="1374" y2="608" stroke="#d56b7d"/>
+  <text class="body" x="1060" y="640">- entries []Entry</text>
+  <text class="body" x="1060" y="666">- mu sync.RWMutex</text>
+  <line class="card-divider" x1="1034" y1="688" x2="1374" y2="688" stroke="#d56b7d"/>
+  <text class="body" x="1060" y="718">+ copies on write/read</text>
+
+  <path id="edge-records-events" class="route" data-connector="records events" d="M397 291 L500 291" stroke="#4f77c9"/>
+  <polygon class="head-solid" points="500,291 486,284 486,298" fill="#4f77c9" stroke="#4f77c9"/>
+  <text class="small" x="448" y="272" text-anchor="middle" fill="#4f77c9">records</text>
+
+  <path id="edge-entry-composes-event" class="route" data-connector="entry composes event" d="M830 291 L1015 291" stroke="#319873"/>
+  <polygon class="head-solid" points="840,291 852,283 864,291 852,299" fill="#319873" stroke="#319873"/>
+  <polygon class="head-solid" points="1015,291 1001,284 1001,298" fill="#319873" stroke="#319873"/>
+  <text class="small" x="922" y="272" text-anchor="middle" fill="#319873">owns event copy</text>
+
+  <path id="edge-history-aggregates-entry" class="route" data-connector="history aggregates entry" d="M398 656 L452 656 Q470 656 470 638 L470 472 Q470 454 488 454 L1087 454 Q1105 454 1105 436 L1105 416" stroke="#7e62d9"/>
+  <polygon class="head-hollow" points="408,656 420,648 432,656 420,664" fill="#ffffff" stroke="#7e62d9" stroke-width="2.4"/>
+  <polyline class="head-open" points="1095,430 1105,416 1115,430" fill="none" stroke="#7e62d9" stroke-width="2.4" stroke-dasharray="none" style="stroke-dasharray:none!important"/>
+  <text class="small" x="710" y="438" text-anchor="middle" fill="#7e62d9">contiguous entries</text>
+
+  <path id="edge-repository-uses-entry" class="dependency" data-connector="repository uses entry" d="M820 548 L820 508 Q820 490 838 490 L1288 490 Q1306 490 1306 472 L1306 416" stroke="#cf8428"/>
+  <polyline class="head-open" points="1296,430 1306,416 1316,430" fill="none" stroke="#cf8428" stroke-width="2.4" stroke-dasharray="none" style="stroke-dasharray:none!important"/>
+  <text class="small" x="1092" y="506" text-anchor="middle" fill="#cf8428">append/find</text>
+
+  <path id="edge-repository-loads-history" class="route" data-connector="repository loads history" d="M575 684 L398 684" stroke="#3f7d9c"/>
+  <polygon class="head-solid" points="398,684 412,677 412,691" fill="#3f7d9c" stroke="#3f7d9c"/>
+  <text class="small" x="486" y="664" text-anchor="middle" fill="#3f7d9c">reconstructs</text>
+
+  <path id="edge-memory-implements-repository" class="dependency" data-connector="memory implements repository" d="M1034 653 L943 653" stroke="#64748b"/>
+  <polygon class="head-hollow" points="925,653 943,643 943,663" fill="#ffffff" stroke="#64748b" stroke-width="2.6" stroke-dasharray="none" style="stroke-dasharray:none!important"/>
+  <text class="small" x="982" y="633" text-anchor="middle" fill="#64748b">implements</text>
+
+  <rect class="legend-box" x="92" y="784" width="676" height="48" rx="12"/>
+  <text class="legend-title" x="118" y="815">Legend</text>
+  <line x1="214" y1="808" x2="264" y2="808" stroke="#319873" stroke-width="3" stroke-linecap="round"/>
+  <polygon points="264,808 250,801 250,815" fill="#319873"/>
+  <text class="legend-text" x="284" y="813">solid = value ownership / query result</text>
+  <line x1="548" y1="808" x2="598" y2="808" stroke="#64748b" stroke-width="2.7" stroke-dasharray="10 8" stroke-linecap="round"/>
+  <polygon points="616,808 598,798 598,818" fill="#ffffff" stroke="#64748b" stroke-width="2.4" stroke-dasharray="none" style="stroke-dasharray:none!important"/>
+  <text class="legend-text" x="636" y="813">dashed = interface/dependency</text>
+  <text class="footer" x="1398" y="830" text-anchor="end">No outbox broker or object-diff responsibility is owned here.</text>
+</svg>

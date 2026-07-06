@@ -56,6 +56,20 @@ _ = name
 // stmt.Args는 []any{id}입니다.
 ```
 
+## Diagram
+
+![sqlkit helper contract map](../docs/images/readme-diagrams/sqlkit-helper-contract-map.png)
+
+Contract map은 `sqlkit`이 `database/sql` boundary에 머문다는 점을 보여줍니다.
+Caller가 handle과 SQL을 소유하고, helper는 transaction control, row mapping,
+inspectable PostgreSQL-first statement, 작은 safety check만 제공합니다.
+
+![sqlkit transaction and query sequence](../docs/images/readme-diagrams/sqlkit-tx-query-sequence.png)
+
+Sequence는 builder output이 `WithTx`, `Statement.Exec`, commit/rollback
+handling, `QueryOne`, explicit mapper scanning, row closing, cardinality
+error로 이어지는 흐름을 보여줍니다.
+
 ## 선택 가이드
 
 [SQL generator/migration guide](../docs/sql-generator-migration-guidance.ko.md)는

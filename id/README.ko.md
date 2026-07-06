@@ -29,9 +29,32 @@ import (
 | second-level time sorting이 필요한 log/event ID | KSUID | Segment-compatible canonical 27-character string입니다. |
 | Kotlin-compatible millisecond KSUID | KSUID millis | `NewKSUIDMillisGenerator`, `ParseKSUIDMillis`, `KSUIDMillisTime`은 bluetape4k `Ksuid.Millis`의 8-byte millisecond timestamp + 12-byte payload format을 사용합니다. source-compatible이며 Segment-sortable format은 아닙니다. |
 | deterministic/name-based UUID | Deferred | UUID v5/name-based helper는 0.6.0 범위가 아닙니다. |
-| future compact UUID string | Base62 deferred | 명시적인 ID rendering API 범위가 정해지기 전까지는 `codec/base62`를 직접 사용합니다. |
+| compact UUID string | `codec.EncodeUUIDURL62` | `id`는 UUID generation을, `codec`은 Kotlin `Url62` 호환 compact rendering을 소유합니다. |
 | future 128-bit sortable byte/string ID | Flake deferred | 후속 source-parity 후보입니다. |
 | future short obfuscation | Hashids deferred | obfuscation은 security가 아닙니다. |
+
+## 포맷 레이아웃
+
+이 패키지는 bluetape4k `idgenerators` README diagram과 같은 layout 용어를
+사용하되, 현재 Go 패키지에 구현된 format만 문서화합니다. 가장 큰 차이는
+Snowflake입니다. `bluetape-go/id`는 non-negative `int64`를 반환하므로 최상위 sign
+bit는 비워 두고, 실제 payload는 `41-bit timestamp + 10-bit machine ID + 12-bit
+sequence`로 packing합니다.
+
+![ID generator format layout](../docs/images/readme-diagrams/id-generator-format-layout.png)
+
+- Snowflake는 configured epoch 이후 millisecond, caller-owned machine ID
+  `0..1023`, per-millisecond sequence `0..4095`를 저장합니다.
+- UUID v7은 48-bit Unix millisecond, version/variant bit, same-tick ordering을
+  위해 이 generator가 사용하는 12-bit logical tick, 그리고 나머지 random payload를
+  저장합니다.
+- ULID는 48-bit millisecond timestamp와 80-bit entropy를 저장하고 26-character
+  Crockford Base32 string으로 렌더링합니다.
+- Segment KSUID는 KSUID epoch 이후 32-bit seconds offset과 128-bit payload를
+  저장하고 sortable 27-character Base62 string으로 렌더링합니다.
+- KSUID millis는 `1400000000000` 이후 8-byte big-endian millisecond offset과
+  12-byte payload를 저장합니다. Kotlin `Ksuid.Millis` compatible format이지만
+  Segment-sortable format은 아닙니다.
 
 ## 사용법
 

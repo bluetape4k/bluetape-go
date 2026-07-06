@@ -20,6 +20,19 @@ KMS와 client-side encryption은 이 package 범위가 아닙니다. 실제 Go c
 envelope encryption, key policy, metadata compatibility를 필요로 할 때 별도
 KMS/encryption issue로 다룹니다.
 
+## Diagram
+
+![S3 example contract map](../../docs/images/readme-diagrams/examples-s3-contract-map.png)
+
+Contract map은 예제가 AWS SDK client를 caller-owned로 유지하고, content type
+detection, streaming, Floci local endpoint, error mapping helper 경계만 문서화한다는
+점을 보여줍니다.
+
+![S3 object operation sequence](../../docs/images/readme-diagrams/examples-s3-object-sequence.png)
+
+Sequence는 local endpoint 설정에서 upload, metadata 검증, download, presigned URL,
+modeled not-found 처리까지 이어지는 smoke/example 흐름을 보여줍니다.
+
 ## Local Endpoint
 
 Floci와 다른 로컬 S3-compatible endpoint에는 path-style addressing이 필요합니다.

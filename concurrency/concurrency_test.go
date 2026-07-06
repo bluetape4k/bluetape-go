@@ -3,6 +3,7 @@ package concurrency_test
 import (
 	"context"
 	"errors"
+	"sync"
 	"sync/atomic"
 	"testing"
 	"time"
@@ -136,5 +137,83 @@ func TestWorkerPoolProcessesJobsAndStopsOnError(t *testing.T) {
 	}
 	if atomic.LoadInt32(&processed) == 0 {
 		t.Fatal("expected at least one processed job before error")
+	}
+}
+
+func TestRoundRobinCyclesAndValidatesState(t *testing.T) {
+	if _, err := concurrency.NewRoundRobin(0); err == nil {
+		t.Fatal("expected invalid maximum to fail")
+	}
+
+	roundRobin, err := concurrency.NewRoundRobin(3)
+	if err != nil {
+		t.Fatalf("NewRoundRobin failed: %v", err)
+	}
+	if got := roundRobin.Get(); got != 0 {
+		t.Fatalf("initial Get() = %d, want 0", got)
+	}
+
+	for _, want := range []int{1, 2, 0, 1} {
+		if got := roundRobin.Next(); got != want {
+			t.Fatalf("Next() = %d, want %d", got, want)
+		}
+	}
+
+	if err := roundRobin.Set(2); err != nil {
+		t.Fatalf("Set failed: %v", err)
+	}
+	if got := roundRobin.Get(); got != 2 {
+		t.Fatalf("Get() after Set = %d, want 2", got)
+	}
+	if got := roundRobin.Next(); got != 0 {
+		t.Fatalf("Next() after Set = %d, want 0", got)
+	}
+
+	for _, value := range []int{-1, 3} {
+		if err := roundRobin.Set(value); err == nil {
+			t.Fatalf("expected Set(%d) to fail", value)
+		}
+	}
+}
+
+func TestRoundRobinConcurrentNextStaysInRange(t *testing.T) {
+	const (
+		maximum = 4
+		workers = 16
+		rounds  = 500
+	)
+
+	roundRobin, err := concurrency.NewRoundRobin(maximum)
+	if err != nil {
+		t.Fatalf("NewRoundRobin failed: %v", err)
+	}
+
+	var counts [maximum]int64
+	var wg sync.WaitGroup
+	for range workers {
+		wg.Add(1)
+		go func() {
+			defer wg.Done()
+			for range rounds {
+				value := roundRobin.Next()
+				if value < 0 || value >= maximum {
+					t.Errorf("Next() = %d, want value in [0,%d)", value, maximum)
+					return
+				}
+				atomic.AddInt64(&counts[value], 1)
+			}
+		}()
+	}
+	wg.Wait()
+
+	var total int64
+	for value, count := range counts {
+		total += count
+		if count != workers*rounds/maximum {
+			t.Fatalf("value %d returned %d times, want %d; counts=%v", value, count, workers*rounds/maximum, counts)
+		}
+	}
+	if total != workers*rounds {
+		t.Fatalf("total returned values = %d, want %d; counts=%v", total, workers*rounds, counts)
 	}
 }

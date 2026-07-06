@@ -1,0 +1,169 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1800" height="1320" viewBox="0 0 1800 1320" role="img" aria-labelledby="title desc">
+  <title id="title">S3 Example Object Sequence</title>
+  <desc id="desc">Sequence diagram for examples/s3 showing Floci local endpoint setup, content type detection, object upload, metadata verification, download, streaming helpers, presigned URLs, and modeled not-found handling.</desc>
+  <defs>
+    <filter id="softShadow" x="-8%" y="-10%" width="116%" height="124%">
+      <feDropShadow dx="0" dy="5" stdDeviation="5" flood-color="#0f172a" flood-opacity="0.10"/>
+    </filter>
+    <marker id="seqArrow-blue" markerWidth="16" markerHeight="16" refX="9" refY="5" orient="auto" markerUnits="userSpaceOnUse" viewBox="0 0 10 10">
+      <path d="M 0 0 L 10 5 L 0 10 Z" fill="#4f86c6" stroke="#4f86c6"/>
+    </marker>
+    <marker id="seqArrow-amber" markerWidth="16" markerHeight="16" refX="9" refY="5" orient="auto" markerUnits="userSpaceOnUse" viewBox="0 0 10 10">
+      <path d="M 0 0 L 10 5 L 0 10 Z" fill="#c1842f" stroke="#c1842f"/>
+    </marker>
+    <marker id="seqArrow-green" markerWidth="16" markerHeight="16" refX="9" refY="5" orient="auto" markerUnits="userSpaceOnUse" viewBox="0 0 10 10">
+      <path d="M 0 0 L 10 5 L 0 10 Z" fill="#5f8d3e" stroke="#5f8d3e"/>
+    </marker>
+    <marker id="seqArrow-teal" markerWidth="16" markerHeight="16" refX="9" refY="5" orient="auto" markerUnits="userSpaceOnUse" viewBox="0 0 10 10">
+      <path d="M 0 0 L 10 5 L 0 10 Z" fill="#2f8f8a" stroke="#2f8f8a"/>
+    </marker>
+    <marker id="seqArrow-red" markerWidth="16" markerHeight="16" refX="9" refY="5" orient="auto" markerUnits="userSpaceOnUse" viewBox="0 0 10 10">
+      <path d="M 0 0 L 10 5 L 0 10 Z" fill="#b65b67" stroke="#b65b67"/>
+    </marker>
+    <style>
+      .canvas { fill: #f8fafc; }
+      .frame { fill: #ffffff; stroke: #cbd5e1; stroke-width: 1.5; filter: url(#softShadow); }
+      .title, .participant-title { font-family: "Architects Daughter", "Comic Sans MS", cursive; fill: #263a57; }
+      .title { font-size: 42px; }
+      .subtitle, .role, .msg, .region, .footer { font-family: "Comic Mono", "SFMono-Regular", monospace; fill: #526276; }
+      .subtitle { font-size: 17px; }
+      .participant-title { font-size: 22px; }
+      .role { font-size: 13px; }
+      .msg { font-size: 13px; font-weight: 700; }
+      .region { font-size: 13px; font-weight: 700; }
+      .footer { font-size: 14px; }
+      .participant { stroke-width: 2.2; rx: 12; }
+      .lifeline { stroke: #c5d4e3; stroke-width: 2; stroke-dasharray: 8 8; }
+      .activation { fill: #f3eeff; stroke: #8a65d8; stroke-width: 1.7; rx: 7; opacity: 0.88; }
+      .call, .return, .error { fill: none; stroke-linecap: round; stroke-linejoin: round; }
+      .call { stroke-width: 3; }
+      .return, .error { stroke-width: 2.7; stroke-dasharray: 9 8; }
+      .phase { fill: none; stroke: #78909c; stroke-width: 2.4; stroke-dasharray: 12 7; rx: 16; }
+      .phase-label { fill: #ffffff; stroke: #d7e0e4; stroke-width: 1.5; rx: 15; }
+      .pill { fill: #ffffff; stroke: #cbd9e7; stroke-width: 1.5; rx: 15; }
+      .badge { stroke-width: 1.6; }
+      .badgeText { font-family: "Comic Mono", "SFMono-Regular", monospace; font-size: 10px; font-weight: 700; fill: #ffffff; }
+    </style>
+  </defs>
+
+  <rect class="canvas" width="1800" height="1320"/>
+  <rect class="frame" x="34" y="30" width="1732" height="1256" rx="8"/>
+  <text class="title" x="72" y="88">S3 Example Object Sequence</text>
+  <text class="subtitle" x="76" y="120">The examples compose AWS SDK S3 calls directly, with local helpers only for MIME, streaming, presign checks, and not-found detection.</text>
+
+  <rect class="participant" x="72" y="174" width="220" height="72" fill="#eaf2ff" stroke="#6d9df0"/>
+  <text class="participant-title" x="182" y="202" text-anchor="middle">Example/Test</text>
+  <text class="role" x="182" y="224" text-anchor="middle">caller owns ctx</text>
+  <line class="lifeline" x1="182" y1="246" x2="182" y2="1210"/>
+
+  <rect class="participant" x="374" y="174" width="228" height="72" fill="#f8fafc" stroke="#94a3b8"/>
+  <text class="participant-title" x="488" y="202" text-anchor="middle">Floci config</text>
+  <text class="role" x="488" y="224" text-anchor="middle">endpoint + path style</text>
+  <line class="lifeline" x1="488" y1="246" x2="488" y2="1210"/>
+
+  <rect class="participant" x="684" y="174" width="238" height="72" fill="#eaf2ff" stroke="#6d9df0"/>
+  <text class="participant-title" x="803" y="202" text-anchor="middle">Content helper</text>
+  <text class="role" x="803" y="224" text-anchor="middle">mime + 512 byte cap</text>
+  <line class="lifeline" x1="803" y1="246" x2="803" y2="1210"/>
+
+  <rect class="participant" x="1004" y="174" width="224" height="72" fill="#f3efff" stroke="#9b7aec"/>
+  <text class="participant-title" x="1116" y="202" text-anchor="middle">S3 client</text>
+  <text class="role" x="1116" y="224" text-anchor="middle">AWS SDK v2</text>
+  <line class="lifeline" x1="1116" y1="246" x2="1116" y2="1210"/>
+
+  <rect class="participant" x="1312" y="174" width="216" height="72" fill="#fff4de" stroke="#d59c3f"/>
+  <text class="participant-title" x="1420" y="202" text-anchor="middle">Floci/S3</text>
+  <text class="role" x="1420" y="224" text-anchor="middle">bucket + object</text>
+  <line class="lifeline" x1="1420" y1="246" x2="1420" y2="1210"/>
+
+  <rect class="participant" x="1584" y="174" width="176" height="72" fill="#fff0f0" stroke="#d56b7d"/>
+  <text class="participant-title" x="1672" y="202" text-anchor="middle">Helpers</text>
+  <text class="role" x="1672" y="224" text-anchor="middle">presign + error</text>
+  <line class="lifeline" x1="1672" y1="246" x2="1672" y2="1210"/>
+
+  <rect class="activation" x="175" y="292" width="14" height="878" rx="7"/>
+  <rect class="activation" x="481" y="310" width="14" height="102" rx="7"/>
+  <rect class="activation" x="796" y="450" width="14" height="126" rx="7"/>
+  <rect class="activation" x="1109" y="630" width="14" height="390" rx="7"/>
+  <rect class="activation" x="1413" y="710" width="14" height="310" rx="7"/>
+  <rect class="activation" x="1665" y="1038" width="14" height="102" rx="7"/>
+
+  <rect class="phase" x="952" y="596" width="512" height="454" rx="16"/>
+  <rect class="phase-label" x="974" y="614" width="188" height="30" rx="15"/>
+  <text class="region" x="998" y="634">SDK object calls</text>
+
+  <path class="call" d="M182 320H488" stroke="#64748b" marker-end="url(#seqArrow-teal)"/>
+  <rect class="pill" x="244" y="278" width="182" height="30" rx="15"/>
+  <circle class="badge" cx="264" cy="293" r="13" fill="#2f8f8a" stroke="#2f8f8a"/>
+  <text class="badgeText" x="264" y="297" text-anchor="middle">1</text>
+  <text class="msg" x="340" y="298" text-anchor="middle" fill="#2f8f8a">Start/LoadConfig</text>
+
+  <path class="return" d="M488 400H182" stroke="#64748b" marker-end="url(#seqArrow-teal)"/>
+  <rect class="pill" x="232" y="358" width="206" height="30" rx="15"/>
+  <circle class="badge" cx="252" cy="373" r="13" fill="#2f8f8a" stroke="#2f8f8a"/>
+  <text class="badgeText" x="252" y="377" text-anchor="middle">2</text>
+  <text class="msg" x="340" y="378" text-anchor="middle" fill="#2f8f8a">UsePathStyle=true</text>
+
+  <path class="call" d="M182 460H803" stroke="#4f86c6" marker-end="url(#seqArrow-blue)"/>
+  <rect class="pill" x="370" y="418" width="246" height="30" rx="15"/>
+  <circle class="badge" cx="392" cy="433" r="13" fill="#4f86c6" stroke="#4f86c6"/>
+  <text class="badgeText" x="392" y="437" text-anchor="middle">3</text>
+  <text class="msg" x="498" y="438" text-anchor="middle" fill="#4f86c6">contentTypeForKey</text>
+
+  <path class="return" d="M803 560H182" stroke="#5f8d3e" marker-end="url(#seqArrow-green)"/>
+  <rect class="pill" x="328" y="518" width="330" height="30" rx="15"/>
+  <circle class="badge" cx="350" cy="533" r="13" fill="#5f8d3e" stroke="#5f8d3e"/>
+  <text class="badgeText" x="350" y="537" text-anchor="middle">4</text>
+  <text class="msg" x="500" y="538" text-anchor="middle" fill="#5f8d3e">extension or DetectContentType</text>
+
+  <path class="call" d="M182 650H1116" stroke="#8a65d6" marker-end="url(#seqArrow-blue)"/>
+  <rect class="pill" x="518" y="608" width="266" height="30" rx="15"/>
+  <circle class="badge" cx="540" cy="623" r="13" fill="#4f86c6" stroke="#4f86c6"/>
+  <text class="badgeText" x="540" y="627" text-anchor="middle">5</text>
+  <text class="msg" x="656" y="628" text-anchor="middle" fill="#4f86c6">PutObject metadata</text>
+
+  <path class="call" d="M1116 730H1420" stroke="#c1842f" marker-end="url(#seqArrow-amber)"/>
+  <rect class="pill" x="1176" y="688" width="184" height="30" rx="15"/>
+  <circle class="badge" cx="1196" cy="703" r="13" fill="#c1842f" stroke="#c1842f"/>
+  <text class="badgeText" x="1196" y="707" text-anchor="middle">6</text>
+  <text class="msg" x="1272" y="708" text-anchor="middle" fill="#c1842f">store object</text>
+
+  <path class="return" d="M1420 810H1116" stroke="#2f8f8a" marker-end="url(#seqArrow-teal)"/>
+  <rect class="pill" x="1172" y="768" width="192" height="30" rx="15"/>
+  <circle class="badge" cx="1192" cy="783" r="13" fill="#2f8f8a" stroke="#2f8f8a"/>
+  <text class="badgeText" x="1192" y="787" text-anchor="middle">7</text>
+  <text class="msg" x="1272" y="788" text-anchor="middle" fill="#2f8f8a">ETag/status</text>
+
+  <path class="call" d="M182 890H1116" stroke="#8a65d6" marker-end="url(#seqArrow-blue)"/>
+  <rect class="pill" x="486" y="848" width="328" height="30" rx="15"/>
+  <circle class="badge" cx="508" cy="863" r="13" fill="#4f86c6" stroke="#4f86c6"/>
+  <text class="badgeText" x="508" y="867" text-anchor="middle">8</text>
+  <text class="msg" x="656" y="868" text-anchor="middle" fill="#4f86c6">HeadObject + GetObject</text>
+
+  <path class="call" d="M1116 970H1420" stroke="#c1842f" marker-end="url(#seqArrow-amber)"/>
+  <rect class="pill" x="1138" y="928" width="260" height="30" rx="15"/>
+  <circle class="badge" cx="1160" cy="943" r="13" fill="#c1842f" stroke="#c1842f"/>
+  <text class="badgeText" x="1160" y="947" text-anchor="middle">9</text>
+  <text class="msg" x="1272" y="948" text-anchor="middle" fill="#c1842f">read metadata/body</text>
+
+  <path class="return" d="M1420 1030H182" stroke="#5f8d3e" marker-end="url(#seqArrow-green)"/>
+  <rect class="pill" x="644" y="988" width="314" height="30" rx="15"/>
+  <circle class="badge" cx="666" cy="1003" r="13" fill="#5f8d3e" stroke="#5f8d3e"/>
+  <text class="badgeText" x="666" y="1007" text-anchor="middle">10</text>
+  <text class="msg" x="806" y="1008" text-anchor="middle" fill="#5f8d3e">Body read then Close</text>
+
+  <path class="call" d="M182 1100H1672" stroke="#b65b67" marker-end="url(#seqArrow-red)"/>
+  <rect class="pill" x="782" y="1058" width="294" height="30" rx="15"/>
+  <circle class="badge" cx="804" cy="1073" r="13" fill="#b65b67" stroke="#b65b67"/>
+  <text class="badgeText" x="804" y="1077" text-anchor="middle">11</text>
+  <text class="msg" x="932" y="1078" text-anchor="middle" fill="#b65b67">Presign GET/PUT URLs</text>
+
+  <path class="return" d="M1672 1160H182" stroke="#b65b67" marker-end="url(#seqArrow-red)"/>
+  <rect class="pill" x="762" y="1118" width="334" height="30" rx="15"/>
+  <circle class="badge" cx="784" cy="1133" r="13" fill="#b65b67" stroke="#b65b67"/>
+  <text class="badgeText" x="784" y="1137" text-anchor="middle">12</text>
+  <text class="msg" x="932" y="1138" text-anchor="middle" fill="#b65b67">NoSuchKey maps to true</text>
+
+  <rect class="pill" x="356" y="1234" width="1088" height="34" rx="17"/>
+  <text class="footer" x="900" y="1256" text-anchor="middle">The sequence documents example composition only: AWS SDK request/response types remain visible to the caller.</text>
+</svg>

@@ -1,0 +1,127 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1620" height="980" viewBox="0 0 1620 980" role="img" aria-labelledby="title desc">
+  <title id="title">dynamodb/batchwrite Class Contract Map</title>
+  <desc id="desc">WriteAll accepts SDK-native WriteRequest maps, applies functional options, calls the BatchWriteItem client subset, and returns a Result or UnprocessedItemsError.</desc>
+  <defs>
+    <filter id="softShadow" x="-6%" y="-8%" width="112%" height="120%">
+      <feDropShadow dx="0" dy="5" stdDeviation="5" flood-color="#0f172a" flood-opacity="0.10"/>
+    </filter>
+    <style>
+      .canvas { fill: #f8fafc; }
+      .frame { fill: #ffffff; stroke: #cbd5e1; stroke-width: 1.5; filter: url(#softShadow); }
+      .title, .card-title { font-family: "Architects Daughter", "Comic Sans MS", cursive; fill: #24364f; }
+      .title { font-size: 42px; }
+      .subtitle, .section, .member, .label, .legend { font-family: "Comic Mono", "SFMono-Regular", monospace; fill: #526276; }
+      .subtitle { font-size: 17px; }
+      .section { font-size: 13px; font-weight: 700; text-transform: uppercase; letter-spacing: 0; }
+      .card-title { font-size: 25px; }
+      .member { font-size: 14px; }
+      .label { font-size: 13px; font-weight: 700; }
+      .legend { font-size: 13px; }
+      .card { stroke-width: 2.2; rx: 12; filter: url(#softShadow); }
+      .rule { stroke-width: 1.2; opacity: 0.42; }
+      .connector { fill: none; stroke-linecap: round; stroke-linejoin: round; stroke-width: 3.1; }
+      .dependency { stroke-dasharray: 10 8; }
+      .arrow { stroke-linejoin: round; }
+      .legendBox { fill: #ffffff; stroke: #d7e0ea; stroke-width: 1.4; rx: 12; }
+    </style>
+  </defs>
+
+  <rect class="canvas" width="1620" height="980"/>
+  <rect class="frame" x="34" y="30" width="1552" height="916" rx="8"/>
+  <text class="title" x="74" y="88">dynamodb/batchwrite Class Contract Map</text>
+  <text class="subtitle" x="78" y="120">A narrow SDK-native BatchWriteItem loop: chunk, retry UnprocessedItems, preserve typed SDK errors.</text>
+
+  <rect class="card" x="86" y="178" width="340" height="178" fill="#eaf2ff" stroke="#6d9df0"/>
+  <text class="card-title" x="256" y="216" text-anchor="middle">Options</text>
+  <line class="rule" x1="116" y1="234" x2="396" y2="234" stroke="#6d9df0"/>
+  <text class="member" x="116" y="264">+ MaxAttempts int</text>
+  <text class="member" x="116" y="292">+ Backoff func(attempt)</text>
+  <text class="member" x="116" y="320">+ ReturnConsumedCapacity</text>
+  <text class="member" x="116" y="348">+ ItemCollectionMetrics</text>
+
+  <rect class="card" x="86" y="420" width="340" height="160" fill="#edf9f4" stroke="#63b891"/>
+  <text class="card-title" x="256" y="458" text-anchor="middle">Option / Backoff</text>
+  <line class="rule" x1="116" y1="476" x2="396" y2="476" stroke="#63b891"/>
+  <text class="member" x="116" y="506">type Option func(*Options)</text>
+  <text class="member" x="116" y="534">type Backoff func(int) time.Duration</text>
+  <text class="member" x="116" y="562">WithMaxAttempts, WithBackoff</text>
+
+  <rect class="card" x="86" y="632" width="340" height="138" fill="#fff4de" stroke="#d59c3f"/>
+  <text class="card-title" x="256" y="670" text-anchor="middle">types.WriteRequest</text>
+  <line class="rule" x1="116" y1="688" x2="396" y2="688" stroke="#d59c3f"/>
+  <text class="member" x="116" y="718">map[string][]types.WriteRequest</text>
+  <text class="member" x="116" y="746">caller owns item marshalling</text>
+
+  <rect class="card" x="602" y="226" width="424" height="338" fill="#f3efff" stroke="#9b7aec"/>
+  <text class="card-title" x="814" y="264" text-anchor="middle">WriteAll</text>
+  <text class="section" x="634" y="294">inputs</text>
+  <line class="rule" x1="634" y1="304" x2="994" y2="304" stroke="#9b7aec"/>
+  <text class="member" x="634" y="334">+ context.Context</text>
+  <text class="member" x="634" y="362">+ Client</text>
+  <text class="member" x="634" y="390">+ table-to-WriteRequest map</text>
+  <text class="section" x="634" y="428">owned loop</text>
+  <line class="rule" x1="634" y1="438" x2="994" y2="438" stroke="#9b7aec"/>
+  <text class="member" x="634" y="468">split chunks at MaxItemsPerBatch</text>
+  <text class="member" x="634" y="496">retry only UnprocessedItems</text>
+  <text class="member" x="634" y="524">stop on context or service error</text>
+  <text class="member" x="634" y="552">merge capacity + item metrics</text>
+
+  <rect class="card" x="1188" y="178" width="348" height="170" fill="#eaf2ff" stroke="#6d9df0"/>
+  <text class="card-title" x="1362" y="216" text-anchor="middle">Client</text>
+  <line class="rule" x1="1218" y1="234" x2="1506" y2="234" stroke="#6d9df0"/>
+  <text class="member" x="1218" y="264">&lt;&lt;interface&gt;&gt;</text>
+  <text class="member" x="1218" y="292">BatchWriteItem(ctx, input, opts...)</text>
+  <text class="member" x="1218" y="320">AWS SDK for Go v2 subset</text>
+
+  <rect class="card" x="1188" y="412" width="348" height="150" fill="#edf9f4" stroke="#63b891"/>
+  <text class="card-title" x="1362" y="450" text-anchor="middle">Result</text>
+  <line class="rule" x1="1218" y1="468" x2="1506" y2="468" stroke="#63b891"/>
+  <text class="member" x="1218" y="498">+ Attempts, Processed</text>
+  <text class="member" x="1218" y="526">+ ConsumedCapacity</text>
+  <text class="member" x="1218" y="554">+ ItemCollectionMetrics</text>
+
+  <rect class="card" x="1188" y="626" width="348" height="158" fill="#fff0f0" stroke="#d56b7d"/>
+  <text class="card-title" x="1362" y="664" text-anchor="middle">UnprocessedItemsError</text>
+  <line class="rule" x1="1218" y1="682" x2="1506" y2="682" stroke="#d56b7d"/>
+  <text class="member" x="1218" y="712">+ Attempts int</text>
+  <text class="member" x="1218" y="740">+ UnprocessedItems map</text>
+  <text class="member" x="1218" y="768">Is(ErrUnprocessedItems)</text>
+
+  <path class="connector dependency" d="M426 267 L602 267" stroke="#4f86c6"/>
+  <polygon class="arrow" points="602,267 588,259 588,275" fill="#4f86c6" stroke="#4f86c6"/>
+  <rect class="legendBox" x="466" y="230" width="96" height="28" rx="14"/>
+  <text class="label" x="514" y="249" text-anchor="middle" fill="#4f86c6">config</text>
+
+  <path class="connector dependency" d="M426 494 L500 494 Q514 494 514 480 L514 374 Q514 360 528 360 L602 360" stroke="#5f8d3e"/>
+  <polygon class="arrow" points="602,360 588,352 588,368" fill="#5f8d3e" stroke="#5f8d3e"/>
+  <rect class="legendBox" x="456" y="452" width="116" height="28" rx="14"/>
+  <text class="label" x="514" y="471" text-anchor="middle" fill="#5f8d3e">mutates opts</text>
+
+  <path class="connector" d="M426 701 L500 701 Q514 701 514 687 L514 404 Q514 390 528 390 L602 390" stroke="#c1842f"/>
+  <polygon class="arrow" points="602,390 588,382 588,398" fill="#c1842f" stroke="#c1842f"/>
+  <rect class="legendBox" x="452" y="666" width="124" height="28" rx="14"/>
+  <text class="label" x="514" y="685" text-anchor="middle" fill="#c1842f">request map</text>
+
+  <path class="connector" d="M1026 290 L1188 290" stroke="#4f86c6"/>
+  <polygon class="arrow" points="1188,290 1174,282 1174,298" fill="#4f86c6" stroke="#4f86c6"/>
+  <rect class="legendBox" x="1054" y="252" width="100" height="28" rx="14"/>
+  <text class="label" x="1104" y="271" text-anchor="middle" fill="#4f86c6">calls</text>
+
+  <path class="connector" d="M1026 487 L1188 487" stroke="#5f8d3e"/>
+  <polygon class="arrow" points="1188,487 1174,479 1174,495" fill="#5f8d3e" stroke="#5f8d3e"/>
+  <rect class="legendBox" x="1052" y="450" width="106" height="28" rx="14"/>
+  <text class="label" x="1105" y="469" text-anchor="middle" fill="#5f8d3e">returns</text>
+
+  <path class="connector" d="M1026 706 L1188 706" stroke="#b65b67"/>
+  <polygon class="arrow" points="1188,706 1174,698 1174,714" fill="#b65b67" stroke="#b65b67"/>
+  <rect class="legendBox" x="1042" y="668" width="128" height="28" rx="14"/>
+  <text class="label" x="1106" y="687" text-anchor="middle" fill="#b65b67">retry exhaust</text>
+
+  <rect class="legendBox" x="104" y="848" width="784" height="44" rx="12"/>
+  <path class="connector" d="M136 870 L206 870" stroke="#5f8d3e"/>
+  <polygon class="arrow" points="206,870 192,862 192,878" fill="#5f8d3e" stroke="#5f8d3e"/>
+  <text class="legend" x="226" y="875">solid = runtime data/control contract</text>
+  <path class="connector dependency" d="M494 870 L564 870" stroke="#64748b"/>
+  <polygon class="arrow" points="564,870 550,862 550,878" fill="#64748b" stroke="#64748b"/>
+  <text class="legend" x="584" y="875">dashed = caller-provided option contract</text>
+</svg>

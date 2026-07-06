@@ -15,6 +15,10 @@ Kotlin-style DSL, mutable shared `WorkContext` map은 제공하지 않습니다.
 
 ## 예제
 
+아래 snippet은 `context`, `log/slog` 같은 standard import를 가정합니다.
+Compile-checked 버전은 [`workflow_example_test.go`](workflow_example_test.go)에
+있습니다.
+
 ```go
 runner := workflow.Sequential(
     "import",
@@ -25,7 +29,10 @@ runner := workflow.Sequential(
 
 report := runner.Run(ctx)
 if report.IsPartial() {
-    log.Printf("%s produced %d child reports", report.Name, len(report.Children))
+    slog.InfoContext(ctx, "workflow produced partial report",
+        slog.String("report", report.Name),
+        slog.Int("children", len(report.Children)),
+    )
 }
 ```
 

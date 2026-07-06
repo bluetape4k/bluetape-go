@@ -65,10 +65,44 @@ replayable.
   options.
 - `OnEvent` handlers run synchronously on the protected call path.
 
+## slog Bridge
+
+Applications configure `log/slog` handlers and pass package-local bridges
+through `OnEvent`. The library does not mutate global logging defaults or own a
+logger registry.
+
+The snippet assumes standard imports such as `context`, `log/slog`, and `time`.
+The compile-checked version lives in
+[`resilience_example_test.go`](resilience_example_test.go).
+
+```go
+logger := slog.Default()
+retry, err := resilience.NewRetry[string](resilience.RetryOptions{
+    Name:        "catalog",
+    MaxAttempts: 3,
+    Backoff:     resilience.ConstantBackoff(50 * time.Millisecond),
+    OnEvent: func(ctx context.Context, event resilience.Event) {
+        logger.LogAttrs(ctx, slog.LevelInfo, "resilience event",
+            slog.String("policy", event.PolicyName),
+            slog.String("policy_type", event.PolicyType),
+            slog.String("kind", string(event.Kind)),
+            slog.String("category", string(event.Category)),
+            slog.Int("attempt", event.Attempt),
+            slog.Duration("delay", event.Delay),
+            slog.String("error_category", string(event.ErrorCategory)),
+        )
+    },
+})
+```
+
 ## Operational Boundaries
 
 - The package does not include an OpenTelemetry exporter.
 - Keep event handlers fast and non-blocking.
+- Filter or sample high-volume success events before logging them from
+  synchronous hooks.
+- Applications own `slog` handler configuration. This package only emits
+  caller-owned synchronous events.
 - HTTP retry requires replayable request bodies.
 
 ## Test

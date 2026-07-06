@@ -39,6 +39,20 @@ for _, token := range japanese.FilterNouns(response.Tokens) {
 반환되는 span은 원본 요청 문자열의 byte offset입니다. 따라서 Go 문자열을
 `token.Span.Start:token.Span.End`로 안전하게 slice할 수 있습니다.
 
+## Diagram
+
+![textsearch/japanese contract map](../../docs/images/readme-diagrams/textsearch-japanese-contract-map.png)
+
+Contract map은 `textsearch/japanese`를 core `textsearch.Tokenizer` contract의
+opt-in Kagome adapter로 보여줍니다. Dictionary 선택, 배포 footprint, metadata
+해석, policy decision은 caller가 소유합니다.
+
+![textsearch/japanese tokenize sequence](../../docs/images/readme-diagrams/textsearch-japanese-tokenize-sequence.png)
+
+Sequence는 `NewTokenizer`, IPA/default option setup, Kagome analysis, core
+request validation, span/metadata mapping, noun filtering, optional
+`BlockwordDictionary` 조합 흐름을 보여줍니다.
+
 ## 경계
 
 - 이 패키지는 tokenization과 검색 준비용이며 보안 classifier가 아닙니다.

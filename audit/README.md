@@ -11,6 +11,12 @@ storage-neutral repository interfaces, and a non-durable in-memory repository
 for tests and examples. It does not publish outbox messages, define SQL/Redis/
 Kafka/NATS adapters, or compute JaVers-style object diffs.
 
+## Diagrams
+
+![audit package class contract map](../docs/images/readme-diagrams/audit-class-contract-map.png)
+
+![audit recorder handoff sequence](../docs/images/readme-diagrams/audit-recorder-handoff-sequence.png)
+
 ## Import
 
 ```go
