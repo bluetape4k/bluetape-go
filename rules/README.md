@@ -7,9 +7,9 @@ ordinary Go applications. It is intentionally small: facts, rule contracts, rule
 sets, composite groups, bounded inference, sequential execution, result details,
 typed errors, and context cancellation.
 
-The package does not include expression languages, YAML/JSON readers,
+The root package does not include expression languages, YAML/JSON readers,
 annotation-style registration, parallel execution, or unbounded forward
-chaining. YAML/JSON readers are separate follow-up concerns built on this core.
+chaining. YAML/JSON readers live in optional subpackages built on this core.
 
 Rules are trusted Go code. Context cancellation is cooperative: the engine
 checks the context before each evaluation and execution, and rule bodies should
@@ -131,6 +131,54 @@ with `ErrRuleEvaluation` or `ErrRuleExecution`. When `StopOnFirstFailed` is
 false, the engine continues through later rules but still returns a joined
 error when any rule fails; inspect `Result.Details` for per-rule failures.
 
+## Expr YAML/JSON Reader
+
+`rules/exprreader` is an optional package that compiles YAML or JSON documents
+into the existing `rules.RuleSet` and `rules.EngineConfig` contracts.
+
+```go
+import "github.com/bluetape4k/bluetape-go/rules/exprreader"
+```
+
+Schema version `1` requires `rules[].name` and `rules[].when`. Each `when`
+expression is compiled with `expr.AsBool()`, a conservative `MaxNodes` limit,
+undefined fact variables allowed, `WarnOnAny`, and all builtins disabled by
+default. Function and builtin call nodes are rejected so expressions cannot
+invoke callbacks supplied through facts. The first action whitelist supports
+only declarative `set` actions:
+
+```yaml
+version: 1
+rules:
+  - name: high-value-discount
+    priority: 10
+    when: amount >= 100 && tier in ["gold", "platinum"]
+    then:
+      - set:
+          key: discount
+          value: 10
+engine:
+  stopOnFirstFailed: true
+```
+
+Reader loading checks `context.Context` before decode, validation, expression
+compile, and rule construction. Generated rules check the context before
+expression evaluation and action execution. Predicate runtime errors return
+through `Rule.Evaluate`; action errors return through `Rule.Execute`; engine
+wrapping stays owned by `rules.Engine`.
+
+Typed reader errors are compatible with `errors.Is` / `errors.As`:
+
+- `exprreader.ErrInvalidRuleDocument`
+- `exprreader.ErrInvalidRuleExpression`
+- `exprreader.ErrInvalidRuleAction`
+- `exprreader.ReaderError`
+
+Non-goals remain explicit: no arbitrary Go callbacks from YAML/JSON, no
+expression-backed side-effectful actions, no annotation/reflection
+registration, no HOCON, no separate inference engine, and no unbounded forward
+chaining.
+
 ## Composite Groups
 
 Composite groups are ordinary `Rule` values:
@@ -168,6 +216,6 @@ facts unless the run succeeds.
 ## Test
 
 ```bash
-go test -count=1 ./rules
-go test -race -count=1 ./rules
+go test -count=1 ./rules ./rules/...
+go test -race -count=1 ./rules ./rules/...
 ```
