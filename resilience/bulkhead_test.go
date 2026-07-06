@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/bluetape4k/bluetape-go/resilience"
+	concurrencytest "github.com/bluetape4k/bluetape-go/testing/concurrency"
 )
 
 func TestBulkheadRejectsBeyondMaxConcurrent(t *testing.T) {
@@ -262,6 +263,49 @@ func TestBulkheadWaitStressCyclesPermitsWithoutLeaks(t *testing.T) {
 
 	if got := entered.Load(); got != workers {
 		t.Fatalf("entered operations = %d, want %d", got, workers)
+	}
+	if got := maxObserved.Load(); got > maxConcurrent {
+		t.Fatalf("max concurrent = %d, want <= %d", got, maxConcurrent)
+	}
+	if got := current.Load(); got != 0 {
+		t.Fatalf("current operations = %d, want 0", got)
+	}
+	if got := bulkhead.InFlight(); got != 0 {
+		t.Fatalf("in flight = %d, want 0", got)
+	}
+}
+
+func TestBulkheadWaitStressUsesGoroutineStressTester(t *testing.T) {
+	const maxConcurrent = int32(8)
+
+	bulkhead, err := resilience.NewBulkhead[int](resilience.BulkheadOptions{
+		MaxConcurrent: int(maxConcurrent),
+		Wait:          true,
+	})
+	if err != nil {
+		t.Fatalf("NewBulkhead failed: %v", err)
+	}
+
+	var current atomic.Int32
+	var maxObserved atomic.Int32
+	tester := concurrencytest.NewGoroutineStressTester(concurrencytest.Options{
+		Workers:       32,
+		RoundsPerTask: 256,
+		Timeout:       3 * time.Second,
+	})
+
+	report := tester.RunT(t, func(context.Context) error {
+		_, err := resilience.Run(context.Background(), func(context.Context) (int, error) {
+			inFlight := current.Add(1)
+			recordAtomicMax(&maxObserved, inFlight)
+			time.Sleep(time.Millisecond)
+			current.Add(-1)
+			return 1, nil
+		}, bulkhead)
+		return err
+	})
+	if report.Completed != 256 {
+		t.Fatalf("completed = %d, want 256", report.Completed)
 	}
 	if got := maxObserved.Load(); got > maxConcurrent {
 		t.Fatalf("max concurrent = %d, want <= %d", got, maxConcurrent)

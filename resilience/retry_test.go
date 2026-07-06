@@ -3,10 +3,12 @@ package resilience_test
 import (
 	"context"
 	"errors"
+	"fmt"
 	"testing"
 	"time"
 
 	"github.com/bluetape4k/bluetape-go/resilience"
+	concurrencytest "github.com/bluetape4k/bluetape-go/testing/concurrency"
 )
 
 type fakeSleeper struct {
@@ -140,6 +142,35 @@ func TestRetryStopsWhenBackoffContextIsCanceled(t *testing.T) {
 	if !errors.Is(err, context.Canceled) {
 		t.Fatalf("expected context.Canceled, got %v", err)
 	}
+}
+
+func TestRetryBackoffCancellationUsesAsyncJobTester(t *testing.T) {
+	tester := concurrencytest.NewAsyncJobTester(concurrencytest.Options{
+		Workers:       2,
+		RoundsPerTask: 32,
+		Timeout:       time.Second,
+	})
+
+	tester.RunT(t, func(context.Context) error {
+		retry, err := resilience.NewRetry[int](resilience.RetryOptions{
+			MaxAttempts: 3,
+			Backoff:     resilience.ConstantBackoff(time.Second),
+			Sleeper: &fakeSleeper{
+				err: context.Canceled,
+			},
+		})
+		if err != nil {
+			return err
+		}
+
+		_, err = resilience.Run(context.Background(), func(context.Context) (int, error) {
+			return 0, errors.New("temporary")
+		}, retry)
+		if !errors.Is(err, context.Canceled) {
+			return fmt.Errorf("Run error = %w, want context.Canceled", err)
+		}
+		return nil
+	})
 }
 
 func TestRetryDoesNotRetryBareContextDeadline(t *testing.T) {
