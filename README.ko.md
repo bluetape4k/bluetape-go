@@ -25,14 +25,15 @@ attribute는 계산 전에 `logger.Enabled(ctx, slog.LevelDebug)`로 guard하세
 
 ## 현재 상태
 
-`bluetape-go`는 `v0.9.0` 릴리스 선을 배포했습니다. 현재 repository에는
+`bluetape-go`는 `v0.11.0` 릴리스 선을 배포했습니다. 현재 repository에는
 foundation helper, codec, compression, context-aware concurrency, serializer
 contract, Redis 기반 leader election과 lock, resilience policy, cache
 coordination, token-bucket rate limiting, finite state machine, workflow report,
 lightweight workflow runner, checkpoint 기반 batch job, portable service value,
-SQL helper, text search primitive, audit/event package가 들어 있습니다.
-`0.12.0` 선은 dependency-free facts, deterministic rule set, sequential
-execution을 포함한 first-party rule-engine core primitive를 시작합니다.
+SQL helper, text search primitive, audit/event package, graph helper, bounded
+image helper, encryption helper, first-party rule primitive가 들어 있습니다.
+`0.12.0` 선은 Go-native core, collection, codec, concurrency, logging,
+rule-engine boundary로 core-foundation parity pass를 마무리합니다.
 
 `v0.6.x` portable utility 범위에는 UUID, ULID, KSUID, Snowflake ID 생성,
 명시적 algorithm 기반 JWT signing/parsing/validation, 인메모리/Redis/MongoDB
@@ -41,8 +42,10 @@ ISO currency와 decimal-backed money 연산, 인메모리 Bloom 또는 Redis-bac
 filter가 포함됩니다. 현재 `0.6.7` 선에는 corrective `0.6.3`부터 `0.6.6` 구현
 series와 MongoDB-backed JWT KeyChain storage가 포함됩니다.
 
-활성 `0.10.0` milestone은 graph value, NDJSON/CSV graph I/O helper, backend
-adapter evaluation, backend-neutral observability incident graph 예제를 포함합니다.
+활성 `0.12.0` milestone은 source-backed core replacement, UUID URL62
+compatibility helper, goroutine-safe round-robin selection, `log/slog` 예제
+convention, bounded rule inference, expression-backed rule reader, 감사된
+package README diagram을 포함합니다.
 
 ## 패키지
 

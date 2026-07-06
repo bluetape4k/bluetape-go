@@ -27,14 +27,16 @@ before computing them.
 
 ## Current Status
 
-`bluetape-go` has published the `v0.9.0` release line. The repository now covers
+`bluetape-go` has published the `v0.11.0` release line. The repository now covers
 foundation helpers, codecs, compression, context-aware concurrency, serializer
 contracts, Redis-backed leader election and locks, resilience policies, cache
 coordination, token-bucket rate limiting, finite state machines, workflow
 reports, lightweight workflow runners, checkpointed batch jobs, and portable
-service values, SQL helpers, text search primitives, and audit/event packages.
-The `0.12.0` line starts first-party rule-engine core primitives with
-dependency-free facts, deterministic rule sets, and sequential execution.
+service values, SQL helpers, text search primitives, audit/event packages,
+graph helpers, bounded image helpers, encryption helpers, and first-party rule
+primitives. The `0.12.0` line completes the core-foundation parity pass with
+Go-native core, collection, codec, concurrency, logging, and rule-engine
+boundaries.
 
 The `v0.6.x` portable utilities scope includes UUID, ULID, KSUID, and Snowflake
 ID generation; explicit-algorithm JWT signing, parsing, validation, and local
@@ -44,9 +46,10 @@ money operations; and in-memory or Redis-backed Bloom filters. The current
 `0.6.7` line includes the corrective `0.6.3` through `0.6.6` implementation
 series plus MongoDB-backed JWT KeyChain storage.
 
-The active `0.10.0` milestone starts the graph package family with model values,
-NDJSON/CSV graph I/O helpers, backend adapter evaluation, and a backend-neutral
-observability incident graph example.
+The active `0.12.0` milestone adds source-backed core replacements, UUID URL62
+compatibility helpers, goroutine-safe round-robin selection, `log/slog` example
+conventions, bounded rule inference, expression-backed rule readers, and
+audited package README diagrams.
 
 ## Packages
 
