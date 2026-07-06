@@ -31,6 +31,8 @@ contract, Redis 기반 leader election과 lock, resilience policy, cache
 coordination, token-bucket rate limiting, finite state machine, workflow report,
 lightweight workflow runner, checkpoint 기반 batch job, portable service value,
 SQL helper, text search primitive, audit/event package가 들어 있습니다.
+`0.12.0` 선은 dependency-free facts, deterministic rule set, sequential
+execution을 포함한 first-party rule-engine core primitive를 시작합니다.
 
 `v0.6.x` portable utility 범위에는 UUID, ULID, KSUID, Snowflake ID 생성,
 명시적 algorithm 기반 JWT signing/parsing/validation, 인메모리/Redis/MongoDB
@@ -87,6 +89,7 @@ adapter evaluation, backend-neutral observability incident graph 예제를 포�
 | [`jwt/mongo`](jwt/mongo/README.ko.md) | active | Distributed JWT key-chain repository 생성을 위한 MongoDB 전용 facade. |
 | [`measure`](measure/README.ko.md) | active | Typed unit, measured value, compound unit, parsing, formatting, affine temperature helper. |
 | [`money`](money/README.ko.md) | active | ISO 4217 통화 값, CLDR-backed locale currency lookup, decimal-backed 금액, 합산, 직렬화, caller-supplied 환율 변환, ECB-backed provider 변환. |
+| [`rules`](rules/README.ko.md) | active | Dependency-free facts, functional rule, deterministic rule set, sequential engine execution, result detail, context cancellation. |
 | [`sqlkit`](sqlkit/README.ko.md) | active | Runtime-first `database/sql` transaction helper, 명시적 row mapping/cardinality helper, PostgreSQL 우선 inspectable SQL builder. |
 | [`audit`](audit/README.ko.md) | active | validated JSON entry, pending event recording, history reconstruction을 제공하는 storage-neutral aggregate event/audit model. |
 | [`audit/sqloutbox`](audit/sqloutbox/README.ko.md) | active | Caller-owned transaction choreography를 유지하는 PostgreSQL-backed audit outbox store와 relay. |
@@ -142,6 +145,7 @@ go get github.com/bluetape4k/bluetape-go
 - Portable utility: [`id`](id/README.ko.md), [`jwt`](jwt/README.ko.md),
   [`jwt/redis`](jwt/redis/README.ko.md), [`jwt/mongo`](jwt/mongo/README.ko.md),
   [`measure`](measure/README.ko.md), [`money`](money/README.ko.md),
+  [`rules`](rules/README.ko.md),
   [`probabilistic`](probabilistic/README.ko.md) 및
   [`probabilistic/redis`](probabilistic/redis/README.ko.md).
 - Data access: [`sqlkit`](sqlkit/README.ko.md) 및 optional
@@ -220,7 +224,7 @@ History query도 같은 repository boundary를 읽습니다. Outbox replay는 �
 | `0.9.0` | bluetape4k-javers 패턴 기반 audit/event package. |
 | `0.10.0` | Graph package와 example. |
 | `0.11.0` | Image, encryption, rule-engine research, utility follow-up. |
-| `0.12.0` | Core foundation parity: core, collections, codec, concurrency, logging convention을 source-backed replacement로 보강. |
+| `0.12.0` | Core foundation parity: core, collections, codec, concurrency, logging convention, first-party rules primitive를 source-backed replacement로 보강. |
 
 닫힌 `0.7.0 Research Gate` milestone은 큰 도메인 범위 결정을 기록한
 research milestone이며 release tag를 만들지 않았습니다.

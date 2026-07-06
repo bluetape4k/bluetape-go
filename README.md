@@ -33,6 +33,8 @@ contracts, Redis-backed leader election and locks, resilience policies, cache
 coordination, token-bucket rate limiting, finite state machines, workflow
 reports, lightweight workflow runners, checkpointed batch jobs, and portable
 service values, SQL helpers, text search primitives, and audit/event packages.
+The `0.12.0` line starts first-party rule-engine core primitives with
+dependency-free facts, deterministic rule sets, and sequential execution.
 
 The `v0.6.x` portable utilities scope includes UUID, ULID, KSUID, and Snowflake
 ID generation; explicit-algorithm JWT signing, parsing, validation, and local
@@ -91,6 +93,7 @@ observability incident graph example.
 | [`jwt/mongo`](jwt/mongo/README.md) | active | MongoDB-specific facade for distributed JWT key-chain repository construction. |
 | [`measure`](measure/README.md) | active | Typed units, measured values, compound units, parsing, formatting, and affine temperature helpers. |
 | [`money`](money/README.md) | active | ISO 4217 currency values, CLDR-backed locale currency lookup, decimal-backed money amounts, aggregation, serialization, caller-supplied exchange-rate conversion, and ECB-backed provider conversion. |
+| [`rules`](rules/README.md) | active | Dependency-free facts, functional rules, deterministic rule sets, sequential engine execution, result details, and context cancellation. |
 | [`sqlkit`](sqlkit/README.md) | active | Runtime-first `database/sql` transaction helpers, explicit row mapping/cardinality helpers, and PostgreSQL-first inspectable SQL builders. |
 | [`audit`](audit/README.md) | active | Storage-neutral aggregate event and audit model with validated JSON entries, pending-event recording, and history reconstruction. |
 | [`audit/sqloutbox`](audit/sqloutbox/README.md) | active | PostgreSQL-backed audit outbox store and relay with caller-owned transaction choreography. |
@@ -147,8 +150,8 @@ overview.
   [`workflow`](workflow/README.md), and [`batch`](batch/README.md).
 - Portable utilities: [`id`](id/README.md), [`jwt`](jwt/README.md),
   [`jwt/redis`](jwt/redis/README.md), [`jwt/mongo`](jwt/mongo/README.md),
-  [`measure`](measure/README.md), [`money`](money/README.md), and
-  [`probabilistic`](probabilistic/README.md), including
+  [`measure`](measure/README.md), [`money`](money/README.md),
+  [`rules`](rules/README.md), and [`probabilistic`](probabilistic/README.md), including
   [`probabilistic/redis`](probabilistic/redis/README.md).
 - Data access: [`sqlkit`](sqlkit/README.md) and the optional
   [SQL generator/migration guide](docs/sql-generator-migration-guidance.md).
@@ -229,7 +232,7 @@ uses a minimal `EntrySink` so production code can swap the in-memory fixture for
 | `0.9.0` | Audit and event packages inspired by bluetape4k-javers patterns. |
 | `0.10.0` | Graph packages and examples. |
 | `0.11.0` | Image, encryption, rule-engine research, and utility follow-ups. |
-| `0.12.0` | Core foundation parity: source-backed replacements for core, collections, codec, concurrency, and logging conventions. |
+| `0.12.0` | Core foundation parity: source-backed replacements for core, collections, codec, concurrency, logging conventions, and first-party rules primitives. |
 
 The closed `0.7.0 Research Gate` milestone recorded the larger-domain scope
 decisions and was not tagged as a release.
