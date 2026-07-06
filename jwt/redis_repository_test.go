@@ -575,11 +575,6 @@ func TestMain(m *testing.M) {
 		_ = testcleanup.Terminate(ctx, 0, jwtRedisFixture.container)
 		cancel()
 	}
-	if jwtMongoFixture.container != nil {
-		ctx, cancel := context.WithTimeout(context.Background(), testcleanup.DefaultTerminateTimeout)
-		_ = testcleanup.Terminate(ctx, 0, jwtMongoFixture.container)
-		cancel()
-	}
 	os.Exit(code)
 }
 
