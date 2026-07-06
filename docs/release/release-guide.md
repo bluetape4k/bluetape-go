@@ -106,30 +106,28 @@ go test ./...
    - Commit `go.mod` and `go.sum` changes.
    - Open a PR in the consumer repository.
 
-## `v0.12.0` Release Plan
+## `v0.13.0` Release Plan
 
-`v0.12.0` contains the core-foundation parity and first-party rules package
-family:
+`v0.13.0` contains the retrospective hardening pass for all work completed
+through `v0.12.0`:
 
-- Source-backed Go-native decisions for `core`, `collections`, `codec`,
-  `concurrency`, and observability conventions, with JVM-specific broad helper
-  surfaces kept out of the module.
-- Narrow text, UUID, collection, UUID URL62, and round-robin helpers with
-  package-local examples, stress/race evidence where concurrency is claimed,
-  and bilingual README coverage.
-- First-party `rules` primitives, bounded inference, composite rules, and
-  expression-backed YAML/JSON readers.
-- Package README diagrams with paired SVG/PNG assets and tracked audit
-  evidence.
+- 7-tier retrospective review over `0.1.0` through `0.12.0`, with confirmed
+  P0/P1 findings routed to fixes.
+- Missing stress and async cancellation coverage for existing concurrency,
+  resilience, DynamoDB batchwrite, and testing-helper contracts.
+- Cumulative lesson hardening for bounded cleanup contexts, caller-owned key
+  preservation, and README cleanup examples.
+- Feature-gap triage that implemented only the evidence-backed MongoDB
+  Testcontainers fixture and deferred or rejected broader package ideas.
 
 Release sequence:
 
-1. Verify milestone `0.12.0` has zero open issues.
-2. Merge the release-history PR so `CHANGELOG.md` and `WIP.md` reflect
-   `v0.12.0`.
-3. Close milestone `0.12.0`.
+1. Verify milestone `0.13.0` has zero open issues.
+2. Merge the release-readiness PR so `CHANGELOG.md`, `WIP.md`, README locale
+   files, and this release guide reflect `v0.13.0`.
+3. Close milestone `0.13.0`.
 4. Merge `develop` into `main` through a release PR.
-5. Tag `main` as `v0.12.0`.
-6. Create GitHub Release `v0.12.0`.
+5. Tag `main` as `v0.13.0`.
+6. Create GitHub Release `v0.13.0`.
 7. Update downstream consumers that should require
-   `github.com/bluetape4k/bluetape-go v0.12.0`.
+   `github.com/bluetape4k/bluetape-go v0.13.0`.
