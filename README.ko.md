@@ -107,6 +107,15 @@ release-readiness bookkeeping을 기록합니다. 유일한 must-have feature ad
 Redis-backed Cuckoo와 HyperLogLog/HLL 지원은 Redis Bloom 범위 이후 별도로
 추적합니다.
 
+## SerDe Baseline Guidance
+
+0.14.0 cross-repo SerDe matrix는 default를 보수적으로 유지합니다. Go
+serialization은 JSON, raw bytes/strings, Go-local `BTGS` envelope를 사용하고,
+`compression.Default()`는 zstd로 유지합니다. lz4/snappy는 throughput 후보,
+gzip/deflate는 compatibility 선택지이며, Base58/Base62/URL62는 large binary
+transport codec이 아니라 ID/key surface입니다.
+[`docs/research/2026-07-07-issue-402-cross-repo-serde-recommendation.md`](docs/research/2026-07-07-issue-402-cross-repo-serde-recommendation.md)를 참고하세요.
+
 ## 설치
 
 ```bash

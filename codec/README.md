@@ -88,3 +88,8 @@ bounded to small and UUID-sized payloads because those encoders are ID/key
 surfaces rather than large binary transport codecs. Use
 `docs/benchmarks/2026-07-07-issue-400-go-serde-runners.md` when collecting raw
 output artifacts.
+
+The 0.14.0 recommendation matrix keeps that boundary: use Base64, Base64URL, or
+hex for general byte transport; keep Base58, Base62, and URL62 for compact
+ID/key-sized values and UUID rendering. See
+`docs/research/2026-07-07-issue-402-cross-repo-serde-recommendation.md`.
