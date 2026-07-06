@@ -50,8 +50,9 @@ go test -run '^$' -bench '^BenchmarkCompressors' -benchmem -benchtime=1x ./compr
 ## Artifact Boundary
 
 #400 makes the commands produce raw output files through `tee`. #401 owns the
-durable retention format, environment metadata, revision capture, and links from
-recommendations back to accepted output files.
+durable retention format at `docs/research/outputs/issue-401/`, environment
+metadata, revision capture, and links from recommendations back to accepted
+output files.
 
 ## Interpretation Limits
 
