@@ -31,6 +31,20 @@ if err != nil {
 token, err := provider.ComposeContext(ctx, jwt.WithSubject("account-42"))
 ```
 
+## Diagram
+
+![jwt/mongo facade contract map](../../docs/images/readme-diagrams/jwt-mongo-facade-contract-map.png)
+
+Contract map은 `jwt/mongo`가 MongoDB-specific import facade임을 보여줍니다.
+Alias를 노출하고 생성은 parent `jwt` package로 위임하며, Mongo client lifecycle은
+caller-owned로 유지하고 provider policy와 운영 authorization은 facade 밖에 둡니다.
+
+![jwt/mongo provider sequence](../../docs/images/readme-diagrams/jwt-mongo-provider-sequence.png)
+
+Sequence는 caller-owned Mongo setup, `mongojwt.New`, parent
+`jwt.NewMongoRepository`, distributed provider 생성, repository-backed compose/parse
+동작, 외부 disconnect/operations ownership 흐름을 보여줍니다.
+
 ## 동작
 
 - `Options`는 `jwt.MongoRepositoryOptions`의 alias입니다.

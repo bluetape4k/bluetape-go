@@ -49,6 +49,21 @@ if err != nil {
 _ = vertices
 ```
 
+## Diagram
+
+![graph/neo4j adapter contract map](../../docs/images/readme-diagrams/graph-neo4j-adapter-contract-map.png)
+
+The contract map shows the adapter boundary: `Client` wraps a caller-owned
+Neo4j driver, reads one named result column, adapts Neo4j records into
+`graph.Vertex` / `graph.Edge`, and keeps backend-neutral repository, schema, and
+Cypher DSL contracts deferred.
+
+![graph/neo4j read write sequence](../../docs/images/readme-diagrams/graph-neo4j-read-write-sequence.png)
+
+The sequence follows `NewClient`, `ExecuteWrite`, `ReadVertices`/`ReadEdges`,
+record collection, deterministic mapping, and redacted error wrapping without
+retaining raw Cypher, parameters, or property values.
+
 ## Mapping Rules
 
 - Neo4j `ElementId` is required. Deprecated numeric IDs are not used.

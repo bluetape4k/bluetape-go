@@ -41,11 +41,11 @@
 <text class="body" x="950" y="576">Result Previous/Event/Current</text>
 <text class="body" x="950" y="603">ErrConcurrentTransition</text>
 <text class="body" x="950" y="630">context or guard cause</text>
-<path class="line" d="M350 265 L455 265"/><text class="label" x="378" y="252">read</text>
-<path class="line-green" d="M755 265 L860 265"/><text class="label" x="787" y="252">guard?</text>
-<path class="line-green" d="M1010 375 C980 470 800 545 785 580"/><text class="label" x="900" y="475">ok</text>
-<path class="line" d="M785 580 L920 580"/><text class="label" x="820" y="567">commit result</text>
-<path class="line-red" d="M620 500 C650 430 520 390 420 340"/><text class="label" x="485" y="445">conflict if state moved</text>
+<path class="line" d="M350 265H455" marker-end="url(#arrow)"/><text class="label" x="378" y="252">read</text>
+<path class="line-green" d="M755 265H860" marker-end="url(#arrow-green)"/><text class="label" x="787" y="252">guard?</text>
+<path class="line-green" d="M1010 375V420Q1010 450 980 450H735Q705 450 705 480V500" marker-end="url(#arrow-green)"/><text class="label" x="900" y="438">ok</text>
+<path class="line" d="M785 580H920" marker-end="url(#arrow)"/><text class="label" x="820" y="567">commit result</text>
+<path class="line-red" d="M620 500V455Q620 435 600 435H450Q420 435 420 405V340" marker-end="url(#arrow-red)"/><text class="label" x="485" y="425">conflict if state moved</text>
 <rect class="alt" x="70" y="710" width="1280" height="72" rx="16"/>
 <text class="small" x="96" y="740">alt: invalid event, final state, guard rejection, context cancellation, or concurrent state movement returns an error without mutating state.</text>
 <text class="small" x="96" y="765">Guard note: CanTransition can also execute guard code, so inquiry guards should avoid irreversible side effects.</text>

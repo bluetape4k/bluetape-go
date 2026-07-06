@@ -33,6 +33,29 @@ import (
 | future 128-bit sortable byte/string ID | Flake deferred | 후속 source-parity 후보입니다. |
 | future short obfuscation | Hashids deferred | obfuscation은 security가 아닙니다. |
 
+## 포맷 레이아웃
+
+이 패키지는 bluetape4k `idgenerators` README diagram과 같은 layout 용어를
+사용하되, 현재 Go 패키지에 구현된 format만 문서화합니다. 가장 큰 차이는
+Snowflake입니다. `bluetape-go/id`는 non-negative `int64`를 반환하므로 최상위 sign
+bit는 비워 두고, 실제 payload는 `41-bit timestamp + 10-bit machine ID + 12-bit
+sequence`로 packing합니다.
+
+![ID generator format layout](../docs/images/readme-diagrams/id-generator-format-layout.png)
+
+- Snowflake는 configured epoch 이후 millisecond, caller-owned machine ID
+  `0..1023`, per-millisecond sequence `0..4095`를 저장합니다.
+- UUID v7은 48-bit Unix millisecond, version/variant bit, same-tick ordering을
+  위해 이 generator가 사용하는 12-bit logical tick, 그리고 나머지 random payload를
+  저장합니다.
+- ULID는 48-bit millisecond timestamp와 80-bit entropy를 저장하고 26-character
+  Crockford Base32 string으로 렌더링합니다.
+- Segment KSUID는 KSUID epoch 이후 32-bit seconds offset과 128-bit payload를
+  저장하고 sortable 27-character Base62 string으로 렌더링합니다.
+- KSUID millis는 `1400000000000` 이후 8-byte big-endian millisecond offset과
+  12-byte payload를 저장합니다. Kotlin `Ksuid.Millis` compatible format이지만
+  Segment-sortable format은 아닙니다.
+
 ## 사용법
 
 ```go

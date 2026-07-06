@@ -30,6 +30,19 @@ The profile loader is protected by both retry and timeout policies. Production
 callers should keep the parent `context.Context` deadline narrower than the
 request budget and use policy event hooks for metrics or logs.
 
+## Diagram
+
+![Integration recipe contract map](../../docs/images/readme-diagrams/examples-integration-contract-map.png)
+
+The contract map shows that this package is a compile-checked recipe harness:
+it composes existing package contracts and keeps the local reader/writer
+fixtures test-only.
+
+![Integration recipe sequence](../../docs/images/readme-diagrams/examples-integration-recipe-sequence.png)
+
+The sequence follows the service-free recipe from request ID and JWT handling
+through cache/resilience, workflow execution, and the batch report contract.
+
 ## Cleanup and Timeouts
 
 Each recipe creates an explicit timeout context. The Redis smoke test registers

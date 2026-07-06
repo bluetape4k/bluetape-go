@@ -30,13 +30,13 @@
 <text class="cardText" x="938" y="230">or decompressed bytes</text>
 <path class="arrow" d="M 274 205 L 336 205"/>
 <text class="label" x="286" y="194">byte API</text>
-<path class="arrow" d="M 566 188 L 628 164"/>
-<text class="label" x="575" y="160">select</text>
-<path class="arrow" d="M 566 226 L 628 307"/>
+<path class="arrow" d="M 566 188 H 628"/>
+<text class="label" x="575" y="178">select</text>
+<path class="arrow" d="M 566 226 H 606 Q 650 226 650 248 V 262"/>
 <text class="label" x="575" y="278">stream</text>
-<path class="arrow" d="M 858 164 L 920 190"/>
-<text class="label" x="868" y="160">encode</text>
-<path class="arrow" d="M 858 307 L 920 230"/>
+<path class="arrow" d="M 858 164 H 920"/>
+<text class="label" x="868" y="154">encode</text>
+<path class="arrow" d="M 858 307 H 895 Q 940 307 940 282 V 260"/>
 <text class="label" x="868" y="300">decode</text>
 <path class="dash" d="M 1020 260 C 1020 390 400 392 400 272"/>
 <text class="label" x="620" y="386">errors stay explicit</text>

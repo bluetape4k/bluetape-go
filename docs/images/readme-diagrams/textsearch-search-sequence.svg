@@ -1,0 +1,201 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1800" height="1600" viewBox="0 0 1800 1600" role="img" aria-labelledby="title desc">
+  <title id="title">textsearch Compile and Search Sequence</title>
+  <desc id="desc">Sequence diagram for textsearch showing pattern compilation, normalization with original byte offsets, Aho-Corasick automaton scanning, deterministic match sorting and overlap filtering, replacement and masking helpers, blockword processing, and tokenizer response helpers.</desc>
+  <defs>
+    <filter id="softShadow" x="-8%" y="-10%" width="116%" height="124%">
+      <feDropShadow dx="0" dy="5" stdDeviation="5" flood-color="#0f172a" flood-opacity="0.10"/>
+    </filter>
+    <marker id="seqArrow-blue" markerWidth="16" markerHeight="16" refX="9" refY="5" orient="auto" markerUnits="userSpaceOnUse" viewBox="0 0 10 10">
+      <path d="M 0 0 L 10 5 L 0 10 Z" fill="#4f86c6" stroke="#4f86c6"/>
+    </marker>
+    <marker id="seqArrow-green" markerWidth="16" markerHeight="16" refX="9" refY="5" orient="auto" markerUnits="userSpaceOnUse" viewBox="0 0 10 10">
+      <path d="M 0 0 L 10 5 L 0 10 Z" fill="#5f8d3e" stroke="#5f8d3e"/>
+    </marker>
+    <marker id="seqArrow-amber" markerWidth="16" markerHeight="16" refX="9" refY="5" orient="auto" markerUnits="userSpaceOnUse" viewBox="0 0 10 10">
+      <path d="M 0 0 L 10 5 L 0 10 Z" fill="#c1842f" stroke="#c1842f"/>
+    </marker>
+    <marker id="seqArrow-teal" markerWidth="16" markerHeight="16" refX="9" refY="5" orient="auto" markerUnits="userSpaceOnUse" viewBox="0 0 10 10">
+      <path d="M 0 0 L 10 5 L 0 10 Z" fill="#2f8f8a" stroke="#2f8f8a"/>
+    </marker>
+    <marker id="seqArrow-red" markerWidth="16" markerHeight="16" refX="9" refY="5" orient="auto" markerUnits="userSpaceOnUse" viewBox="0 0 10 10">
+      <path d="M 0 0 L 10 5 L 0 10 Z" fill="#b65b67" stroke="#b65b67"/>
+    </marker>
+    <style>
+      .canvas { fill: #f8fafc; }
+      .frame { fill: #ffffff; stroke: #cbd5e1; stroke-width: 1.5; filter: url(#softShadow); }
+      .title, .participant-title { font-family: "Architects Daughter", "Comic Sans MS", cursive; fill: #263a57; }
+      .title { font-size: 42px; }
+      .subtitle, .role, .msg, .region, .footer { font-family: "Comic Mono", "SFMono-Regular", monospace; fill: #526276; }
+      .subtitle { font-size: 17px; }
+      .participant-title { font-size: 21px; }
+      .role { font-size: 13px; }
+      .msg { font-size: 13px; font-weight: 700; }
+      .region { font-size: 13px; font-weight: 700; }
+      .footer { font-size: 14px; }
+      .participant { stroke-width: 2.2; rx: 12; }
+      .lifeline { stroke: #c5d4e3; stroke-width: 2; stroke-dasharray: 8 8; }
+      .activation { fill: #f3eeff; stroke: #8a65d8; stroke-width: 1.7; rx: 7; opacity: 0.88; }
+      .call, .return, .error { fill: none; stroke-linecap: round; stroke-linejoin: round; }
+      .call { stroke-width: 3; }
+      .return, .error { stroke-width: 2.7; stroke-dasharray: 9 8; }
+      .phase { fill: none; stroke: #78909c; stroke-width: 2.4; stroke-dasharray: 12 7; rx: 16; }
+      .phase-label { fill: #ffffff; stroke: #d7e0e4; stroke-width: 1.5; rx: 15; }
+      .pill { fill: #ffffff; stroke: #cbd9e7; stroke-width: 1.5; rx: 15; }
+      .badge { stroke-width: 1.6; }
+      .badgeText { font-family: "Comic Mono", "SFMono-Regular", monospace; font-size: 10px; font-weight: 700; fill: #ffffff; }
+    </style>
+  </defs>
+
+  <rect class="canvas" width="1800" height="1600"/>
+  <rect class="frame" x="34" y="30" width="1732" height="1536" rx="8"/>
+  <text class="title" x="72" y="88">textsearch Compile and Search Sequence</text>
+  <text class="subtitle" x="76" y="120">Compilation builds immutable state; matching normalizes with byte-span mapping, ranks results, then helper APIs transform or wrap output.</text>
+
+  <rect class="participant" x="72" y="174" width="184" height="72" fill="#eaf2ff" stroke="#6d9df0"/>
+  <text class="participant-title" x="164" y="202" text-anchor="middle">Caller</text>
+  <text class="role" x="164" y="224" text-anchor="middle">patterns + input</text>
+  <line class="lifeline" x1="164" y1="246" x2="164" y2="1492"/>
+
+  <rect class="participant" x="314" y="174" width="182" height="72" fill="#edf9f4" stroke="#63b891"/>
+  <text class="participant-title" x="405" y="202" text-anchor="middle">Compile</text>
+  <text class="role" x="405" y="224" text-anchor="middle">builder API</text>
+  <line class="lifeline" x1="405" y1="246" x2="405" y2="1492"/>
+
+  <rect class="participant" x="560" y="174" width="192" height="72" fill="#fff4de" stroke="#d59c3f"/>
+  <text class="participant-title" x="656" y="202" text-anchor="middle">Normalizer</text>
+  <text class="role" x="656" y="224" text-anchor="middle">NFC/NFKC/case</text>
+  <line class="lifeline" x1="656" y1="246" x2="656" y2="1492"/>
+
+  <rect class="participant" x="814" y="174" width="190" height="72" fill="#f3efff" stroke="#9b7aec"/>
+  <text class="participant-title" x="909" y="202" text-anchor="middle">Automaton</text>
+  <text class="role" x="909" y="224" text-anchor="middle">trie + fail links</text>
+  <line class="lifeline" x1="909" y1="246" x2="909" y2="1492"/>
+
+  <rect class="participant" x="1066" y="174" width="190" height="72" fill="#eaf2ff" stroke="#6d9df0"/>
+  <text class="participant-title" x="1161" y="202" text-anchor="middle">Matcher</text>
+  <text class="role" x="1161" y="224" text-anchor="middle">immutable search</text>
+  <line class="lifeline" x1="1161" y1="246" x2="1161" y2="1492"/>
+
+  <rect class="participant" x="1318" y="174" width="198" height="72" fill="#f8fafc" stroke="#94a3b8"/>
+  <text class="participant-title" x="1417" y="202" text-anchor="middle">Result helpers</text>
+  <text class="role" x="1417" y="224" text-anchor="middle">rank + transform</text>
+  <line class="lifeline" x1="1417" y1="246" x2="1417" y2="1492"/>
+
+  <rect class="participant" x="1572" y="174" width="196" height="72" fill="#fff0f0" stroke="#d56b7d"/>
+  <text class="participant-title" x="1670" y="202" text-anchor="middle">Block/token APIs</text>
+  <text class="role" x="1670" y="224" text-anchor="middle">request wrappers</text>
+  <line class="lifeline" x1="1670" y1="246" x2="1670" y2="1492"/>
+
+  <rect class="activation" x="157" y="304" width="14" height="1110" rx="7"/>
+  <rect class="activation" x="398" y="300" width="14" height="288" rx="7"/>
+  <rect class="activation" x="649" y="398" width="14" height="448" rx="7"/>
+  <rect class="activation" x="902" y="460" width="14" height="446" rx="7"/>
+  <rect class="activation" x="1154" y="620" width="14" height="432" rx="7"/>
+  <rect class="activation" x="1410" y="922" width="14" height="286" rx="7"/>
+  <rect class="activation" x="1663" y="1288" width="14" height="126" rx="7"/>
+
+  <rect class="phase" x="292" y="292" width="742" height="318" rx="16"/>
+  <rect class="phase-label" x="314" y="254" width="184" height="30" rx="15"/>
+  <text class="region" x="338" y="274">compile phase</text>
+
+  <rect class="phase" x="1036" y="632" width="510" height="404" rx="16"/>
+  <rect class="phase-label" x="1058" y="594" width="174" height="30" rx="15"/>
+  <text class="region" x="1082" y="614">search phase</text>
+
+  <rect class="phase" x="1294" y="1078" width="404" height="356" rx="16"/>
+  <rect class="phase-label" x="1316" y="1048" width="178" height="30" rx="15"/>
+  <text class="region" x="1340" y="1068">helper APIs</text>
+
+  <path class="call" d="M164 320H405" stroke="#4f86c6" marker-end="url(#seqArrow-blue)"/>
+  <rect class="pill" x="212" y="278" width="146" height="30" rx="15"/>
+  <circle class="badge" cx="232" cy="293" r="13" fill="#4f86c6" stroke="#4f86c6"/>
+  <text class="badgeText" x="232" y="297" text-anchor="middle">1</text>
+  <text class="msg" x="292" y="298" text-anchor="middle" fill="#4f86c6">Compile</text>
+
+  <path class="call" d="M405 400H656" stroke="#c1842f" marker-end="url(#seqArrow-amber)"/>
+  <rect class="pill" x="470" y="358" width="126" height="30" rx="15"/>
+  <circle class="badge" cx="490" cy="373" r="13" fill="#c1842f" stroke="#c1842f"/>
+  <text class="badgeText" x="490" y="377" text-anchor="middle">2</text>
+  <text class="msg" x="538" y="378" text-anchor="middle" fill="#c1842f">patterns</text>
+
+  <path class="call" d="M405 480H909" stroke="#8a65d6" marker-end="url(#seqArrow-blue)"/>
+  <rect class="pill" x="564" y="438" width="188" height="30" rx="15"/>
+  <circle class="badge" cx="586" cy="453" r="13" fill="#4f86c6" stroke="#4f86c6"/>
+  <text class="badgeText" x="586" y="457" text-anchor="middle">3</text>
+  <text class="msg" x="664" y="458" text-anchor="middle" fill="#4f86c6">trie + fail links</text>
+
+  <path class="call" d="M405 560H1161" stroke="#2f8f8a" marker-end="url(#seqArrow-teal)"/>
+  <rect class="pill" x="670" y="518" width="226" height="30" rx="15"/>
+  <circle class="badge" cx="692" cy="533" r="13" fill="#2f8f8a" stroke="#2f8f8a"/>
+  <text class="badgeText" x="692" y="537" text-anchor="middle">4</text>
+  <text class="msg" x="790" y="538" text-anchor="middle" fill="#2f8f8a">immutable Matcher</text>
+
+  <path class="return" d="M1161 640H164" stroke="#5f8d3e" marker-end="url(#seqArrow-green)"/>
+  <rect class="pill" x="558" y="598" width="210" height="30" rx="15"/>
+  <circle class="badge" cx="580" cy="613" r="13" fill="#5f8d3e" stroke="#5f8d3e"/>
+  <text class="badgeText" x="580" y="617" text-anchor="middle">5</text>
+  <text class="msg" x="668" y="618" text-anchor="middle" fill="#5f8d3e">safe for readers</text>
+
+  <path class="call" d="M164 720H1161" stroke="#4f86c6" marker-end="url(#seqArrow-blue)"/>
+  <rect class="pill" x="550" y="678" width="226" height="30" rx="15"/>
+  <circle class="badge" cx="572" cy="693" r="13" fill="#4f86c6" stroke="#4f86c6"/>
+  <text class="badgeText" x="572" y="697" text-anchor="middle">6</text>
+  <text class="msg" x="670" y="698" text-anchor="middle" fill="#4f86c6">FindAll / First</text>
+
+  <path class="call" d="M1161 800H656" stroke="#c1842f" marker-end="url(#seqArrow-amber)"/>
+  <rect class="pill" x="790" y="758" width="236" height="30" rx="15"/>
+  <circle class="badge" cx="812" cy="773" r="13" fill="#c1842f" stroke="#c1842f"/>
+  <text class="badgeText" x="812" y="777" text-anchor="middle">7</text>
+  <text class="msg" x="914" y="778" text-anchor="middle" fill="#c1842f">input + byte map</text>
+
+  <path class="call" d="M1161 880H909" stroke="#8a65d6" marker-end="url(#seqArrow-blue)"/>
+  <rect class="pill" x="970" y="838" width="132" height="30" rx="15"/>
+  <circle class="badge" cx="990" cy="853" r="13" fill="#4f86c6" stroke="#4f86c6"/>
+  <text class="badgeText" x="990" y="857" text-anchor="middle">8</text>
+  <text class="msg" x="1040" y="858" text-anchor="middle" fill="#4f86c6">scan</text>
+
+  <path class="return" d="M909 960H1161" stroke="#5f8d3e" marker-end="url(#seqArrow-green)"/>
+  <rect class="pill" x="974" y="918" width="124" height="30" rx="15"/>
+  <circle class="badge" cx="994" cy="933" r="13" fill="#5f8d3e" stroke="#5f8d3e"/>
+  <text class="badgeText" x="994" y="937" text-anchor="middle">9</text>
+  <text class="msg" x="1040" y="938" text-anchor="middle" fill="#5f8d3e">outputs</text>
+
+  <path class="call" d="M1161 1040H1417" stroke="#64748b" marker-end="url(#seqArrow-teal)"/>
+  <rect class="pill" x="1210" y="998" width="160" height="30" rx="15"/>
+  <circle class="badge" cx="1232" cy="1013" r="13" fill="#2f8f8a" stroke="#2f8f8a"/>
+  <text class="badgeText" x="1232" y="1017" text-anchor="middle">10</text>
+  <text class="msg" x="1296" y="1018" text-anchor="middle" fill="#2f8f8a">rank/filter</text>
+
+  <path class="return" d="M1417 1120H164" stroke="#5f8d3e" marker-end="url(#seqArrow-green)"/>
+  <rect class="pill" x="668" y="1078" width="246" height="30" rx="15"/>
+  <circle class="badge" cx="690" cy="1093" r="13" fill="#5f8d3e" stroke="#5f8d3e"/>
+  <text class="badgeText" x="690" y="1097" text-anchor="middle">11</text>
+  <text class="msg" x="796" y="1098" text-anchor="middle" fill="#5f8d3e">Match byte spans</text>
+
+  <path class="call" d="M164 1200H1417" stroke="#4f86c6" marker-end="url(#seqArrow-blue)"/>
+  <rect class="pill" x="672" y="1158" width="238" height="30" rx="15"/>
+  <circle class="badge" cx="694" cy="1173" r="13" fill="#4f86c6" stroke="#4f86c6"/>
+  <text class="badgeText" x="694" y="1177" text-anchor="middle">12</text>
+  <text class="msg" x="796" y="1178" text-anchor="middle" fill="#4f86c6">Replace / Mask</text>
+
+  <path class="return" d="M1417 1280H164" stroke="#5f8d3e" marker-end="url(#seqArrow-green)"/>
+  <rect class="pill" x="650" y="1238" width="282" height="30" rx="15"/>
+  <circle class="badge" cx="672" cy="1253" r="13" fill="#5f8d3e" stroke="#5f8d3e"/>
+  <text class="badgeText" x="672" y="1257" text-anchor="middle">13</text>
+  <text class="msg" x="798" y="1258" text-anchor="middle" fill="#5f8d3e">deterministic output</text>
+
+  <path class="call" d="M164 1360H1670" stroke="#b65b67" marker-end="url(#seqArrow-red)"/>
+  <rect class="pill" x="756" y="1318" width="330" height="30" rx="15"/>
+  <circle class="badge" cx="778" cy="1333" r="13" fill="#b65b67" stroke="#b65b67"/>
+  <text class="badgeText" x="778" y="1337" text-anchor="middle">14</text>
+  <text class="msg" x="926" y="1338" text-anchor="middle" fill="#b65b67">Blockword / Tokenize request</text>
+
+  <path class="return" d="M1670 1440H164" stroke="#5f8d3e" marker-end="url(#seqArrow-green)"/>
+  <rect class="pill" x="782" y="1398" width="280" height="30" rx="15"/>
+  <circle class="badge" cx="804" cy="1413" r="13" fill="#5f8d3e" stroke="#5f8d3e"/>
+  <text class="badgeText" x="804" y="1417" text-anchor="middle">15</text>
+  <text class="msg" x="928" y="1418" text-anchor="middle" fill="#5f8d3e">response with spans</text>
+
+  <rect class="pill" x="316" y="1506" width="1168" height="34" rx="17"/>
+  <text class="footer" x="900" y="1528" text-anchor="middle">Offsets always point back to the original Go string; blockword masking is a helper transform, not a policy boundary.</text>
+</svg>

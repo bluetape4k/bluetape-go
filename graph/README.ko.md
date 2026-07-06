@@ -52,6 +52,21 @@ if err != nil {
 Caller 입력이나 backend 입력에는 `NewElementID` 또는 `ParseVertex`/`ParseEdge`를
 사용합니다. `MustElementID`는 constant와 static test fixture 전용입니다.
 
+## Diagram
+
+![graph model contract map](../docs/images/readme-diagrams/graph-model-contract-map.png)
+
+Contract map은 model-only 경계를 보여줍니다. Scalar ID와 label은 validated
+vertex/edge value로 들어가고, properties는 shallow copy만 수행하며, path value는
+container로 남습니다. Backend, I/O, query, schema, traversal 책임은 이 package
+밖에 있습니다.
+
+![graph parse and path sequence](../docs/images/readme-diagrams/graph-parse-path-sequence.png)
+
+Sequence는 raw input이 scalar construction, vertex/edge 생성, property clone,
+path-step construction, `NewPath`, redacted `ValidationError` reporting으로 이어지는
+흐름을 보여줍니다.
+
 ## Validation Errors
 
 ```go

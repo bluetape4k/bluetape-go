@@ -40,6 +40,20 @@ for _, token := range japanese.FilterNouns(response.Tokens) {
 Returned spans are byte offsets into the original request text, so callers can
 slice the original Go string with `token.Span.Start:token.Span.End`.
 
+## Diagram
+
+![textsearch/japanese contract map](../../docs/images/readme-diagrams/textsearch-japanese-contract-map.png)
+
+The contract map shows `textsearch/japanese` as an opt-in Kagome adapter for the
+core `textsearch.Tokenizer` contract. It keeps dictionary choice, deployment
+footprint, metadata interpretation, and policy decisions caller-owned.
+
+![textsearch/japanese tokenize sequence](../../docs/images/readme-diagrams/textsearch-japanese-tokenize-sequence.png)
+
+The sequence follows `NewTokenizer`, IPA/default option setup, Kagome analysis,
+core request validation, span/metadata mapping, noun filtering, and optional
+`BlockwordDictionary` composition.
+
 ## Boundaries
 
 - The package is for tokenization and search preparation, not a security

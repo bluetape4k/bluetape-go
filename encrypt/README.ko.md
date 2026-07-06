@@ -6,6 +6,12 @@
 Go random-nonce GCM AEAD를 사용해 nonce 관리를 숨기고, ciphertext를 versioned
 envelope로 감쌉니다.
 
+## Diagrams
+
+![encrypt class contract map](../docs/images/readme-diagrams/encrypt-class-contract-map.png)
+
+![encrypt envelope sequence](../docs/images/readme-diagrams/encrypt-envelope-sequence.png)
+
 ## 가져오기
 
 ```go

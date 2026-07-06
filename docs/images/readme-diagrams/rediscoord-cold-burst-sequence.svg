@@ -3,13 +3,13 @@
   <desc id="desc">The winner owns the load token; waiters accept only the matching result envelope.</desc>
   <defs>
     <filter id="softShadow" x="-8%" y="-10%" width="116%" height="124%"><feDropShadow dx="0" dy="5" stdDeviation="5" flood-color="#0F172A" flood-opacity="0.10"/></filter>
-    <marker id="arrow-blue" markerWidth="14" markerHeight="14" refX="13" refY="7" orient="auto" markerUnits="userSpaceOnUse"><path d="M 0 0 L 14 7 L 0 14 Z" fill="#4f77c9"/></marker>
-    <marker id="arrow-green" markerWidth="14" markerHeight="14" refX="13" refY="7" orient="auto" markerUnits="userSpaceOnUse"><path d="M 0 0 L 14 7 L 0 14 Z" fill="#319873"/></marker>
-    <marker id="arrow-amber" markerWidth="14" markerHeight="14" refX="13" refY="7" orient="auto" markerUnits="userSpaceOnUse"><path d="M 0 0 L 14 7 L 0 14 Z" fill="#cf8428"/></marker>
-    <marker id="arrow-red" markerWidth="14" markerHeight="14" refX="13" refY="7" orient="auto" markerUnits="userSpaceOnUse"><path d="M 0 0 L 14 7 L 0 14 Z" fill="#c85d73"/></marker>
-    <marker id="arrow-purple" markerWidth="14" markerHeight="14" refX="13" refY="7" orient="auto" markerUnits="userSpaceOnUse"><path d="M 0 0 L 14 7 L 0 14 Z" fill="#7e62d9"/></marker>
-    <marker id="arrow-teal" markerWidth="14" markerHeight="14" refX="13" refY="7" orient="auto" markerUnits="userSpaceOnUse"><path d="M 0 0 L 14 7 L 0 14 Z" fill="#3f7d9c"/></marker>
-    <marker id="arrow-gray" markerWidth="14" markerHeight="14" refX="13" refY="7" orient="auto" markerUnits="userSpaceOnUse"><path d="M 0 0 L 14 7 L 0 14 Z" fill="#64748b"/></marker>
+    <marker id="arrow-blue" markerWidth="16" markerHeight="16" viewBox="0 0 10 10" refX="9" refY="5" orient="auto" markerUnits="userSpaceOnUse"><path d="M 0 0 L 10 5 L 0 10 Z" fill="#4f77c9" stroke="#4f77c9"/></marker>
+    <marker id="arrow-green" markerWidth="16" markerHeight="16" viewBox="0 0 10 10" refX="9" refY="5" orient="auto" markerUnits="userSpaceOnUse"><path d="M 0 0 L 10 5 L 0 10 Z" fill="#319873" stroke="#319873"/></marker>
+    <marker id="arrow-amber" markerWidth="16" markerHeight="16" viewBox="0 0 10 10" refX="9" refY="5" orient="auto" markerUnits="userSpaceOnUse"><path d="M 0 0 L 10 5 L 0 10 Z" fill="#cf8428" stroke="#cf8428"/></marker>
+    <marker id="arrow-red" markerWidth="16" markerHeight="16" viewBox="0 0 10 10" refX="9" refY="5" orient="auto" markerUnits="userSpaceOnUse"><path d="M 0 0 L 10 5 L 0 10 Z" fill="#c85d73" stroke="#c85d73"/></marker>
+    <marker id="arrow-purple" markerWidth="16" markerHeight="16" viewBox="0 0 10 10" refX="9" refY="5" orient="auto" markerUnits="userSpaceOnUse"><path d="M 0 0 L 10 5 L 0 10 Z" fill="#7e62d9" stroke="#7e62d9"/></marker>
+    <marker id="arrow-teal" markerWidth="16" markerHeight="16" viewBox="0 0 10 10" refX="9" refY="5" orient="auto" markerUnits="userSpaceOnUse"><path d="M 0 0 L 10 5 L 0 10 Z" fill="#3f7d9c" stroke="#3f7d9c"/></marker>
+    <marker id="arrow-gray" markerWidth="16" markerHeight="16" viewBox="0 0 10 10" refX="9" refY="5" orient="auto" markerUnits="userSpaceOnUse"><path d="M 0 0 L 10 5 L 0 10 Z" fill="#64748b" stroke="#64748b"/></marker>
     <style>
       .canvas { fill: #f8fafc; }
       .frame { fill: #ffffff; stroke: #cbd5e1; stroke-width: 1.5; filter: url(#softShadow); }
@@ -46,27 +46,27 @@
   <text class="title" x="72" y="88">rediscoord Cold Burst Sequence</text>
   <text class="subtitle" x="76" y="120">The winner owns the load token; waiters accept only the matching result envelope.</text>
   <rect class="participant" x="55" y="174" width="160" height="68" fill="#eaf2ff" stroke="#6d9df0"/>
-  <text class="part-title" x="135" y="202" text-anchor="middle">Process A</text>
+  <text class="part-title participant-title" x="135" y="202" text-anchor="middle">Process A</text>
   <text class="small" x="135" y="224" text-anchor="middle">winner</text>
   <line class="lifeline" x1="135" y1="242" x2="135" y2="954"/>
   <rect class="participant" x="255" y="174" width="160" height="68" fill="#f3efff" stroke="#9b7aec"/>
-  <text class="part-title" x="335" y="202" text-anchor="middle">Process B</text>
+  <text class="part-title participant-title" x="335" y="202" text-anchor="middle">Process B</text>
   <text class="small" x="335" y="224" text-anchor="middle">waiter</text>
   <line class="lifeline" x1="335" y1="242" x2="335" y2="954"/>
   <rect class="participant" x="490" y="174" width="160" height="68" fill="#edf9f4" stroke="#63b891"/>
-  <text class="part-title" x="570" y="202" text-anchor="middle">StampedeCache</text>
+  <text class="part-title participant-title" x="570" y="202" text-anchor="middle">StampedeCache</text>
   <text class="small" x="570" y="224" text-anchor="middle">wrapper</text>
   <line class="lifeline" x1="570" y1="242" x2="570" y2="954"/>
   <rect class="participant" x="740" y="174" width="160" height="68" fill="#fff0f0" stroke="#dc2626"/>
-  <text class="part-title" x="820" y="202" text-anchor="middle">Redis</text>
+  <text class="part-title participant-title" x="820" y="202" text-anchor="middle">Redis</text>
   <text class="small" x="820" y="224" text-anchor="middle">lock/result</text>
   <line class="lifeline" x1="820" y1="242" x2="820" y2="954"/>
   <rect class="participant" x="1000" y="174" width="160" height="68" fill="#fff4de" stroke="#d59c3f"/>
-  <text class="part-title" x="1080" y="202" text-anchor="middle">Local cache</text>
+  <text class="part-title participant-title" x="1080" y="202" text-anchor="middle">Local cache</text>
   <text class="small" x="1080" y="224" text-anchor="middle">wrapped</text>
   <line class="lifeline" x1="1080" y1="242" x2="1080" y2="954"/>
   <rect class="participant" x="1205" y="174" width="160" height="68" fill="#f8fafc" stroke="#64748b"/>
-  <text class="part-title" x="1285" y="202" text-anchor="middle">Loader</text>
+  <text class="part-title participant-title" x="1285" y="202" text-anchor="middle">Loader</text>
   <text class="small" x="1285" y="224" text-anchor="middle">user func</text>
   <line class="lifeline" x1="1285" y1="242" x2="1285" y2="954"/>
   <rect class="activation" x="563" y="298" width="14" height="644" rx="7"/>
@@ -81,52 +81,52 @@
   <path class="route" d="M135 310 L570 310" stroke="#4f77c9" marker-end="url(#arrow-blue)"/>
   <rect class="pill" x="257" y="268" width="190" height="30" rx="15"/>
   <circle class="badge" cx="275" cy="283" r="13" fill="#4f77c9"/>
-  <text class="badge-text" x="275" y="287" text-anchor="middle">1</text>
+  <text class="badge-text badgeText" x="275" y="287" text-anchor="middle">1</text>
   <text class="msg" x="367" y="288" text-anchor="middle" fill="#4f77c9">GetOrLoad cold key</text>
   <path class="route" d="M570 370 L820 370" stroke="#319873" marker-end="url(#arrow-green)"/>
   <rect class="pill" x="600" y="328" width="190" height="30" rx="15"/>
   <circle class="badge" cx="618" cy="343" r="13" fill="#319873"/>
-  <text class="badge-text" x="618" y="347" text-anchor="middle">2</text>
+  <text class="badge-text badgeText" x="618" y="347" text-anchor="middle">2</text>
   <text class="msg" x="710" y="348" text-anchor="middle" fill="#319873">acquire load token</text>
   <path class="return" d="M820 430 L570 430" stroke="#319873" marker-end="url(#arrow-green)"/>
   <rect class="pill" x="624" y="388" width="142" height="30" rx="15"/>
   <circle class="badge" cx="642" cy="403" r="13" fill="#319873"/>
-  <text class="badge-text" x="642" y="407" text-anchor="middle">3a</text>
+  <text class="badge-text badgeText" x="642" y="407" text-anchor="middle">3</text>
   <text class="msg" x="710" y="408" text-anchor="middle" fill="#319873">winner token</text>
   <path class="route" d="M570 490 L1080 490" stroke="#4f77c9" marker-end="url(#arrow-blue)"/>
   <rect class="pill" x="734" y="448" width="182" height="30" rx="15"/>
   <circle class="badge" cx="752" cy="463" r="13" fill="#4f77c9"/>
-  <text class="badge-text" x="752" y="467" text-anchor="middle">4a</text>
+  <text class="badge-text badgeText" x="752" y="467" text-anchor="middle">4</text>
   <text class="msg" x="840" y="468" text-anchor="middle" fill="#4f77c9">wrapped GetOrLoad</text>
   <path class="route" d="M1080 550 L1285 550" stroke="#4f77c9" marker-end="url(#arrow-blue)"/>
   <rect class="pill" x="1099" y="508" width="166" height="30" rx="15"/>
   <circle class="badge" cx="1117" cy="523" r="13" fill="#4f77c9"/>
-  <text class="badge-text" x="1117" y="527" text-anchor="middle">5a</text>
+  <text class="badge-text badgeText" x="1117" y="527" text-anchor="middle">5</text>
   <text class="msg" x="1197" y="528" text-anchor="middle" fill="#4f77c9">run loader once</text>
   <path class="route" d="M570 610 L820 610" stroke="#7e62d9" marker-end="url(#arrow-purple)"/>
   <rect class="pill" x="608" y="568" width="174" height="30" rx="15"/>
   <circle class="badge" cx="626" cy="583" r="13" fill="#7e62d9"/>
-  <text class="badge-text" x="626" y="587" text-anchor="middle">6a</text>
+  <text class="badge-text badgeText" x="626" y="587" text-anchor="middle">6</text>
   <text class="msg" x="710" y="588" text-anchor="middle" fill="#7e62d9">publish envelope</text>
   <path class="route" d="M335 730 L570 730" stroke="#cf8428" marker-end="url(#arrow-amber)"/>
   <rect class="pill" x="377" y="688" width="150" height="30" rx="15"/>
   <circle class="badge" cx="395" cy="703" r="13" fill="#cf8428"/>
-  <text class="badge-text" x="395" y="707" text-anchor="middle">1b</text>
+  <text class="badge-text badgeText" x="395" y="707" text-anchor="middle">7</text>
   <text class="msg" x="467" y="708" text-anchor="middle" fill="#cf8428">same cold key</text>
   <path class="route" d="M570 790 L820 790" stroke="#cf8428" marker-end="url(#arrow-amber)"/>
   <rect class="pill" x="604" y="748" width="182" height="30" rx="15"/>
   <circle class="badge" cx="622" cy="763" r="13" fill="#cf8428"/>
-  <text class="badge-text" x="622" y="767" text-anchor="middle">2b</text>
+  <text class="badge-text badgeText" x="622" y="767" text-anchor="middle">8</text>
   <text class="msg" x="710" y="768" text-anchor="middle" fill="#cf8428">poll token result</text>
   <path class="return" d="M820 850 L570 850" stroke="#cf8428" marker-end="url(#arrow-amber)"/>
   <rect class="pill" x="604" y="808" width="182" height="30" rx="15"/>
   <circle class="badge" cx="622" cy="823" r="13" fill="#cf8428"/>
-  <text class="badge-text" x="622" y="827" text-anchor="middle">3b</text>
+  <text class="badge-text badgeText" x="622" y="827" text-anchor="middle">9</text>
   <text class="msg" x="710" y="828" text-anchor="middle" fill="#cf8428">matching envelope</text>
   <path class="route" d="M570 910 L1080 910" stroke="#319873" marker-end="url(#arrow-green)"/>
   <rect class="pill" x="706" y="868" width="238" height="30" rx="15"/>
   <circle class="badge" cx="724" cy="883" r="13" fill="#319873"/>
-  <text class="badge-text" x="724" y="887" text-anchor="middle">4b</text>
+  <text class="badge-text badgeText" x="724" y="887" text-anchor="middle">10</text>
   <text class="msg" x="840" y="888" text-anchor="middle" fill="#319873">fill local via GetOrLoad</text>
   <rect class="legend" x="82" y="1002" width="1336" height="40" rx="8"/>
   <text class="footer" x="750" y="1028" text-anchor="middle">Redis envelope is transient coordination metadata, not a durable cache value.</text>

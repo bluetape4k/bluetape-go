@@ -32,6 +32,29 @@ import (
 | Future 128-bit sortable byte/string ID | Flake deferred | Follow-up source-parity candidate. |
 | Future short obfuscation | Hashids deferred | Obfuscation is not security. |
 
+## Format Layout
+
+The package follows the same layout vocabulary as the bluetape4k
+`idgenerators` README diagrams, but this Go package documents only the formats
+implemented here. The most visible difference is Snowflake: `bluetape-go/id`
+emits a non-negative `int64`, so the high sign bit stays unused and the packed
+payload is `41-bit timestamp + 10-bit machine ID + 12-bit sequence`.
+
+![ID generator format layout](../docs/images/readme-diagrams/id-generator-format-layout.png)
+
+- Snowflake stores milliseconds since the configured epoch, a caller-owned
+  machine ID in `0..1023`, and a per-millisecond sequence in `0..4095`.
+- UUID v7 stores 48 bits of Unix milliseconds, version/variant bits, a
+  12-bit logical tick used by this generator for same-tick ordering, and the
+  remaining random payload.
+- ULID stores a 48-bit millisecond timestamp plus 80 bits of entropy and renders
+  as 26 Crockford Base32 characters.
+- Segment KSUID stores a 32-bit seconds offset from the KSUID epoch plus a
+  128-bit payload and renders as a sortable 27-character Base62 string.
+- KSUID millis stores an 8-byte big-endian millisecond offset from
+  `1400000000000` plus a 12-byte payload. It is Kotlin `Ksuid.Millis`
+  compatible, but it is not Segment-sortable.
+
 ## Usage
 
 ```go

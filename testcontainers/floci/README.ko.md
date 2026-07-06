@@ -30,6 +30,20 @@ client := s3.NewFromConfig(cfg, func(options *s3.Options) {
 서비스별 AWS client 동작은 해당 서비스 테스트나 package에 남기고, 이
 helper는 Floci 시작과 공통 AWS config 생성만 담당합니다.
 
+## Diagram
+
+![testcontainers/floci contract map](../../docs/images/readme-diagrams/testcontainers-floci-contract-map.png)
+
+Contract map은 package boundary를 보여줍니다. Integration test가 AWS SDK
+client와 assertion을 소유하고, `flocitestcontainer`는 Floci startup과 detail
+extraction만 담당하며, Docker/runtime policy는 helper 밖에 둡니다.
+
+![testcontainers/floci start sequence](../../docs/images/readme-diagrams/testcontainers-floci-start-sequence.png)
+
+Sequence는 `Start`가 upstream builder 설정, readiness, `Details` extraction,
+`LoadConfig`, caller-owned service smoke call, optional env export, bounded
+cleanup으로 이어지는 흐름을 보여줍니다.
+
 ## Service Configuration
 
 Floci는 기본적으로 넓은 AWS service coverage를 활성화합니다. 이 package는

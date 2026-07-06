@@ -3,12 +3,13 @@
   <marker id="arrow" markerWidth="12" markerHeight="10" refX="10" refY="5" orient="auto" markerUnits="userSpaceOnUse"><path d="M0,0 L10,5 L0,10 z" fill="#2563eb"/></marker>
   <marker id="arrow-green" markerWidth="12" markerHeight="10" refX="10" refY="5" orient="auto" markerUnits="userSpaceOnUse"><path d="M0,0 L10,5 L0,10 z" fill="#059669"/></marker>
   <marker id="arrow-red" markerWidth="12" markerHeight="10" refX="10" refY="5" orient="auto" markerUnits="userSpaceOnUse"><path d="M0,0 L10,5 L0,10 z" fill="#dc2626"/></marker>
+  <marker id="arrow-gray" markerWidth="12" markerHeight="10" refX="10" refY="5" orient="auto" markerUnits="userSpaceOnUse"><path d="M0,0 L10,5 L0,10 z" fill="#64748b"/></marker>
   <filter id="shadow" x="-10%" y="-10%" width="120%" height="125%"><feDropShadow dx="0" dy="3" stdDeviation="4" flood-color="#94a3b8" flood-opacity=".22"/></filter>
 </defs>
 <style>
   @font-face{font-family:'Architects Daughter';src:local('Architects Daughter');}
   @font-face{font-family:'Comic Mono';src:local('Comic Mono');}
-  .bg{fill:#f8fafc}.title{font:42px 'Architects Daughter';fill:#111827}.sub{font:20px 'Comic Mono';fill:#475569}.card-title{font:24px 'Comic Mono';font-weight:700;fill:#111827}.body{font:17px 'Comic Mono';fill:#334155}.small{font:15px 'Comic Mono';fill:#475569}.label{font:16px 'Comic Mono';fill:#2563eb;font-weight:700}.line{stroke:#2563eb;stroke-width:3.5;fill:none;marker-end:url(#arrow)}.line-green{stroke:#059669;stroke-width:3.5;fill:none;marker-end:url(#arrow-green)}.line-red{stroke:#dc2626;stroke-width:3.5;fill:none;marker-end:url(#arrow-red)}.dash{stroke:#64748b;stroke-width:3;stroke-dasharray:9 8;fill:none;marker-end:url(#arrow)}.card{fill:#fff;stroke-width:4}.alt{fill:#f59e0b;fill-opacity:.12;stroke:#f59e0b;stroke-opacity:.55;stroke-dasharray:10 8;stroke-width:3}
+  .bg{fill:#f8fafc}.title{font:42px 'Architects Daughter';fill:#111827}.sub{font:20px 'Comic Mono';fill:#475569}.card-title{font:24px 'Comic Mono';font-weight:700;fill:#111827}.body{font:17px 'Comic Mono';fill:#334155}.small{font:15px 'Comic Mono';fill:#475569}.label{font:16px 'Comic Mono';fill:#2563eb;font-weight:700}.line{stroke:#2563eb;stroke-width:3.5;fill:none;marker-end:url(#arrow);stroke-linecap:round;stroke-linejoin:round}.line-green{stroke:#059669;stroke-width:3.5;fill:none;marker-end:url(#arrow-green);stroke-linecap:round;stroke-linejoin:round}.line-red{stroke:#dc2626;stroke-width:3.5;fill:none;marker-end:url(#arrow-red);stroke-linecap:round;stroke-linejoin:round}.dash{stroke:#64748b;stroke-width:3;stroke-dasharray:9 8;fill:none;marker-end:url(#arrow-gray);stroke-linecap:round;stroke-linejoin:round}.card{fill:#fff;stroke-width:4}.alt{fill:#f59e0b;fill-opacity:.12;stroke:#f59e0b;stroke-opacity:.55;stroke-dasharray:10 8;stroke-width:3}
 </style>
 <rect class="bg" width="1440" height="840"/>
 <text class="title" x="56" y="72">Workflow Runner Flow</text>
@@ -44,12 +45,12 @@
 <text class="body" x="910" y="559">nil work -> failed report</text>
 <text class="body" x="910" y="586">invalid policy -> failed</text>
 <text class="body" x="910" y="613">Aggregate copies children</text>
-<path class="line" d="M335 270 L455 255"/><text class="label" x="365" y="248">sequence</text>
-<path class="line" d="M335 300 C380 420 420 510 455 555"/><text class="label" x="355" y="455">branch</text>
-<path class="line-green" d="M755 255 L880 255"/><text class="label" x="785" y="242">fan out</text>
-<path class="dash" d="M605 365 C690 430 815 480 880 530"/><text class="label" x="705" y="445">reports</text>
-<path class="dash" d="M1045 365 L1045 455"/><text class="label" x="1065" y="416">aggregate</text>
-<path class="line-red" d="M1210 275 C1305 355 1300 525 1210 555"/><text class="label" x="1245" y="430">cancel on terminal</text>
+<path class="line" d="M335 270H455" marker-end="url(#arrow)"/><text class="label" x="365" y="258">sequence</text>
+<path class="line" d="M335 300H390Q410 300 410 320V535Q410 555 430 555H455" marker-end="url(#arrow)"/><text class="label" x="355" y="455">branch</text>
+<path class="line-green" d="M755 255H880" marker-end="url(#arrow-green)"/><text class="label" x="785" y="242">fan out</text>
+<path class="dash" d="M605 365V410Q605 430 625 430H820Q840 430 840 450V510Q840 530 860 530H880" marker-end="url(#arrow-gray)"/><text class="label" x="705" y="420">reports</text>
+<path class="dash" d="M1045 365V455" marker-end="url(#arrow-gray)"/><text class="label" x="1065" y="416">aggregate</text>
+<path class="line-red" d="M1210 275H1260Q1280 275 1280 295V535Q1280 555 1260 555H1210" marker-end="url(#arrow-red)"/><text class="label" x="1245" y="430">cancel on terminal</text>
 <rect class="alt" x="70" y="735" width="1240" height="58" rx="16"/>
 <text class="small" x="96" y="770">alt: no durable engine, retry scheduler, Kotlin-style DSL, mutable WorkContext map, FIFO fairness, or hidden shared state is provided.</text>
 </svg>

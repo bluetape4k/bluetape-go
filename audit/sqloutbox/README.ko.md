@@ -8,6 +8,12 @@
 `database/sql` session을 넘기므로, source write와 `Store.Enqueue`를 같은
 `*sql.Tx` 안에서 명시적으로 묶을 수 있습니다.
 
+## Diagrams
+
+![audit sqloutbox class contract map](../../docs/images/readme-diagrams/audit-sqloutbox-class-contract-map.png)
+
+![audit sqloutbox relay sequence](../../docs/images/readme-diagrams/audit-sqloutbox-relay-sequence.png)
+
 ## Import
 
 ```go

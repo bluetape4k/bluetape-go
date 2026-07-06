@@ -49,6 +49,21 @@ if err != nil {
 _ = vertices
 ```
 
+## Diagram
+
+![graph/neo4j adapter contract map](../../docs/images/readme-diagrams/graph-neo4j-adapter-contract-map.png)
+
+Contract map은 adapter 경계를 보여줍니다. `Client`는 caller-owned Neo4j driver를
+감싸고, 이름이 지정된 result column 하나를 읽어 Neo4j record를 `graph.Vertex` /
+`graph.Edge`로 변환합니다. Backend-neutral repository, schema, Cypher DSL contract는
+deferred 상태로 유지합니다.
+
+![graph/neo4j read write sequence](../../docs/images/readme-diagrams/graph-neo4j-read-write-sequence.png)
+
+Sequence는 `NewClient`, `ExecuteWrite`, `ReadVertices`/`ReadEdges`, record
+collection, deterministic mapping, raw Cypher/parameter/property value를 보관하지
+않는 redacted error wrapping 흐름을 보여줍니다.
+
 ## Mapping 규칙
 
 - Neo4j `ElementId`가 필요합니다. Deprecated numeric ID는 사용하지 않습니다.

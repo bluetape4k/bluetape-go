@@ -11,6 +11,12 @@ repository interface, test/example용 non-durable in-memory repository를
 제공합니다. Outbox publish, SQL/Redis/Kafka/NATS adapter 정의, JaVers식 object
 diff 계산은 맡지 않습니다.
 
+## Diagrams
+
+![audit package class contract map](../docs/images/readme-diagrams/audit-class-contract-map.png)
+
+![audit recorder handoff sequence](../docs/images/readme-diagrams/audit-recorder-handoff-sequence.png)
+
 ## Import
 
 ```go

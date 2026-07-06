@@ -3,12 +3,13 @@
   <marker id="arrow" markerWidth="12" markerHeight="10" refX="10" refY="5" orient="auto" markerUnits="userSpaceOnUse"><path d="M0,0 L10,5 L0,10 z" fill="#2563eb"/></marker>
   <marker id="arrow-green" markerWidth="12" markerHeight="10" refX="10" refY="5" orient="auto" markerUnits="userSpaceOnUse"><path d="M0,0 L10,5 L0,10 z" fill="#059669"/></marker>
   <marker id="arrow-red" markerWidth="12" markerHeight="10" refX="10" refY="5" orient="auto" markerUnits="userSpaceOnUse"><path d="M0,0 L10,5 L0,10 z" fill="#dc2626"/></marker>
+  <marker id="arrow-gray" markerWidth="12" markerHeight="10" refX="10" refY="5" orient="auto" markerUnits="userSpaceOnUse"><path d="M0,0 L10,5 L0,10 z" fill="#64748b"/></marker>
   <filter id="shadow" x="-10%" y="-10%" width="120%" height="125%"><feDropShadow dx="0" dy="3" stdDeviation="4" flood-color="#94a3b8" flood-opacity=".22"/></filter>
 </defs>
 <style>
   @font-face{font-family:'Architects Daughter';src:local('Architects Daughter');}
   @font-face{font-family:'Comic Mono';src:local('Comic Mono');}
-  .bg{fill:#f8fafc}.title{font:42px 'Architects Daughter';fill:#111827}.sub{font:20px 'Comic Mono';fill:#475569}.card-title{font:24px 'Comic Mono';font-weight:700;fill:#111827}.body{font:17px 'Comic Mono';fill:#334155}.small{font:15px 'Comic Mono';fill:#475569}.label{font:16px 'Comic Mono';fill:#2563eb;font-weight:700}.line{stroke:#2563eb;stroke-width:3.5;fill:none;marker-end:url(#arrow)}.line-green{stroke:#059669;stroke-width:3.5;fill:none;marker-end:url(#arrow-green)}.line-red{stroke:#dc2626;stroke-width:3.5;fill:none;marker-end:url(#arrow-red)}.dash{stroke:#64748b;stroke-width:3;stroke-dasharray:9 8;fill:none;marker-end:url(#arrow)}.card{fill:#fff;stroke-width:4}.alt{fill:#f59e0b;fill-opacity:.12;stroke:#f59e0b;stroke-opacity:.55;stroke-dasharray:10 8;stroke-width:3}
+  .bg{fill:#f8fafc}.title{font:42px 'Architects Daughter';fill:#111827}.sub{font:20px 'Comic Mono';fill:#475569}.card-title{font:24px 'Comic Mono';font-weight:700;fill:#111827}.body{font:17px 'Comic Mono';fill:#334155}.small{font:15px 'Comic Mono';fill:#475569}.label{font:16px 'Comic Mono';fill:#2563eb;font-weight:700}.line{stroke:#2563eb;stroke-width:3.5;fill:none;marker-end:url(#arrow);stroke-linecap:round;stroke-linejoin:round}.line-green{stroke:#059669;stroke-width:3.5;fill:none;marker-end:url(#arrow-green);stroke-linecap:round;stroke-linejoin:round}.line-red{stroke:#dc2626;stroke-width:3.5;fill:none;marker-end:url(#arrow-red);stroke-linecap:round;stroke-linejoin:round}.dash{stroke:#64748b;stroke-width:3;stroke-dasharray:9 8;fill:none;marker-end:url(#arrow-gray);stroke-linecap:round;stroke-linejoin:round}.card{fill:#fff;stroke-width:4}.alt{fill:#f59e0b;fill-opacity:.12;stroke:#f59e0b;stroke-opacity:.55;stroke-dasharray:10 8;stroke-width:3}
 </style>
 <rect class="bg" width="1440" height="820"/>
 <text class="title" x="56" y="72">Workreport Failure Policy Flow</text>
@@ -42,12 +43,12 @@
 <text class="card-title" x="998" y="560">Invalid policy</text>
 <text class="body" x="1000" y="596">FailurePolicyError</text>
 <text class="body" x="1000" y="623">errors.Is unknown policy</text>
-<path class="line" d="M360 258 L500 245"/><text class="label" x="393" y="238">stop path</text>
-<path class="line" d="M360 305 C420 430 455 520 500 550"/><text class="label" x="385" y="460">continue path</text>
-<path class="line-green" d="M830 245 L970 295"/><text class="label" x="862" y="255">inherit status</text>
-<path class="line-green" d="M830 555 L970 345"/><text class="label" x="845" y="470">partial or complete</text>
-<path class="line-red" d="M830 615 L970 590"/><text class="label" x="850" y="632">policy error</text>
-<path class="dash" d="M1110 410 L1110 520"/><text class="label" x="1128" y="470">errors.Is</text>
+<path class="line" d="M360 258H500" marker-end="url(#arrow)"/><text class="label" x="393" y="245">stop path</text>
+<path class="line" d="M360 305H420Q440 305 440 325V530Q440 550 460 550H500" marker-end="url(#arrow)"/><text class="label" x="385" y="460">continue path</text>
+<path class="line-green" d="M830 245H920Q940 245 940 265V275Q940 295 960 295H970" marker-end="url(#arrow-green)"/><text class="label" x="860" y="225">inherits</text>
+<path class="line-green" d="M830 555H900Q930 555 930 525V365Q930 345 950 345H970" marker-end="url(#arrow-green)"/><text class="label" x="920" y="430" text-anchor="end">partial / complete</text>
+<path class="line-red" d="M830 615H970" marker-end="url(#arrow-red)"/><text class="label" x="850" y="632">policy error</text>
+<path class="dash" d="M1110 410V520" marker-end="url(#arrow-gray)"/><text class="label" x="1128" y="470">errors.Is</text>
 <rect class="alt" x="70" y="720" width="1240" height="58" rx="16"/>
 <text class="small" x="96" y="755">Boundary: workreport does not start goroutines, retry work, own cancellation, or run workflow branches; workflow owns runner behavior.</text>
 </svg>

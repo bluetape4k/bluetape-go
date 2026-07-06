@@ -55,6 +55,20 @@ _ = name
 // stmt.Args is []any{id}.
 ```
 
+## Diagram
+
+![sqlkit helper contract map](../docs/images/readme-diagrams/sqlkit-helper-contract-map.png)
+
+The contract map shows that `sqlkit` stays at the `database/sql` boundary:
+callers own handles and SQL, while helpers provide transaction control, row
+mapping, inspectable PostgreSQL-first statements, and small safety checks.
+
+![sqlkit transaction and query sequence](../docs/images/readme-diagrams/sqlkit-tx-query-sequence.png)
+
+The sequence follows builder output through `WithTx`, `Statement.Exec`,
+commit/rollback handling, `QueryOne`, explicit mapper scanning, row closing,
+and cardinality errors.
+
 ## Selection Guide
 
 See the [SQL generator/migration guide](../docs/sql-generator-migration-guidance.md)

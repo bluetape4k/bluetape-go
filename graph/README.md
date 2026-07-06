@@ -52,6 +52,21 @@ if err != nil {
 Use `NewElementID` or `ParseVertex`/`ParseEdge` for caller or backend input.
 `MustElementID` is only for constants and static test fixtures.
 
+## Diagram
+
+![graph model contract map](../docs/images/readme-diagrams/graph-model-contract-map.png)
+
+The contract map shows the model-only boundary: scalar IDs and labels feed
+validated vertex/edge values, properties are shallow-copied, path values stay
+containers, and backend, I/O, query, schema, and traversal responsibilities are
+outside this package.
+
+![graph parse and path sequence](../docs/images/readme-diagrams/graph-parse-path-sequence.png)
+
+The sequence follows raw input through scalar construction, vertex/edge
+creation, property cloning, path-step construction, `NewPath`, and redacted
+`ValidationError` reporting.
+
 ## Validation Errors
 
 ```go

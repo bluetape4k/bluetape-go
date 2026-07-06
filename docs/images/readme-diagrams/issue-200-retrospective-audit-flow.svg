@@ -12,28 +12,28 @@
       .route-label { font-family: 'Comic Mono'; font-size: 13px; fill: #334155; font-weight: bold; }
       .footer-note { font-family: 'Comic Mono'; font-size: 14px; fill: #334155; }
     </style>
-    <marker id="1E293B" viewBox="0 0 5 5" refX="4.5" refY="2.5" markerWidth="5" markerHeight="5" orient="auto">
+    <marker id="1E293B" viewBox="0 0 5 5" refX="4.5" refY="2.5" markerWidth="5" markerHeight="5" markerUnits="userSpaceOnUse" orient="auto">
     <path d="M 0.5 0.5 L 4.5 2.5 L 0.5 4.5 Z" fill="#1E293B"/>
   </marker>
-<marker id="64748B" viewBox="0 0 5 5" refX="4.5" refY="2.5" markerWidth="5" markerHeight="5" orient="auto">
+	<marker id="64748B" viewBox="0 0 5 5" refX="4.5" refY="2.5" markerWidth="5" markerHeight="5" markerUnits="userSpaceOnUse" orient="auto">
     <path d="M 0.5 0.5 L 4.5 2.5 L 0.5 4.5 Z" fill="#64748B"/>
   </marker>
-<marker id="2563EB" viewBox="0 0 5 5" refX="4.5" refY="2.5" markerWidth="5" markerHeight="5" orient="auto">
+	<marker id="2563EB" viewBox="0 0 5 5" refX="4.5" refY="2.5" markerWidth="5" markerHeight="5" markerUnits="userSpaceOnUse" orient="auto">
     <path d="M 0.5 0.5 L 4.5 2.5 L 0.5 4.5 Z" fill="#2563EB"/>
   </marker>
-<marker id="7C3AED" viewBox="0 0 5 5" refX="4.5" refY="2.5" markerWidth="5" markerHeight="5" orient="auto">
+	<marker id="7C3AED" viewBox="0 0 5 5" refX="4.5" refY="2.5" markerWidth="5" markerHeight="5" markerUnits="userSpaceOnUse" orient="auto">
     <path d="M 0.5 0.5 L 4.5 2.5 L 0.5 4.5 Z" fill="#7C3AED"/>
   </marker>
-<marker id="16A34A" viewBox="0 0 5 5" refX="4.5" refY="2.5" markerWidth="5" markerHeight="5" orient="auto">
+	<marker id="16A34A" viewBox="0 0 5 5" refX="4.5" refY="2.5" markerWidth="5" markerHeight="5" markerUnits="userSpaceOnUse" orient="auto">
     <path d="M 0.5 0.5 L 4.5 2.5 L 0.5 4.5 Z" fill="#16A34A"/>
   </marker>
-<marker id="D97706" viewBox="0 0 5 5" refX="4.5" refY="2.5" markerWidth="5" markerHeight="5" orient="auto">
+	<marker id="D97706" viewBox="0 0 5 5" refX="4.5" refY="2.5" markerWidth="5" markerHeight="5" markerUnits="userSpaceOnUse" orient="auto">
     <path d="M 0.5 0.5 L 4.5 2.5 L 0.5 4.5 Z" fill="#D97706"/>
   </marker>
-<marker id="DC2626" viewBox="0 0 5 5" refX="4.5" refY="2.5" markerWidth="5" markerHeight="5" orient="auto">
+	<marker id="DC2626" viewBox="0 0 5 5" refX="4.5" refY="2.5" markerWidth="5" markerHeight="5" markerUnits="userSpaceOnUse" orient="auto">
     <path d="M 0.5 0.5 L 4.5 2.5 L 0.5 4.5 Z" fill="#DC2626"/>
   </marker>
-<marker id="475569" viewBox="0 0 5 5" refX="4.5" refY="2.5" markerWidth="5" markerHeight="5" orient="auto">
+	<marker id="475569" viewBox="0 0 5 5" refX="4.5" refY="2.5" markerWidth="5" markerHeight="5" markerUnits="userSpaceOnUse" orient="auto">
     <path d="M 0.5 0.5 L 4.5 2.5 L 0.5 4.5 Z" fill="#475569"/>
   </marker>
     <filter id="shadow" x="-10%" y="-10%" width="120%" height="120%">
@@ -60,7 +60,7 @@
 <path d="M 1682 476 L 1682 560" fill="none" stroke="#DC2626" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" marker-end="url(#DC2626)" />
 <text x="1700" y="462" class="route-label" dominant-baseline="middle">P0/P1</text>
 <path d="M 1502 625 L 1388 625" fill="none" stroke="#16A34A" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" marker-end="url(#16A34A)" />
-<path d="M 1502 432 L 1444 432 L 1444 635 L 1388 635" fill="none" stroke="#D97706" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" marker-end="url(#D97706)" stroke-dasharray="9 10"/>
+	<path d="M 1502 432 H 1464 Q 1444 432 1444 452 V 540 Q 1444 560 1424 560 H 1300 Q 1280 560 1280 570 V 580" fill="none" stroke="#D97706" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" marker-end="url(#D97706)" stroke-dasharray="9 10"/>
 <text x="1462" y="418" class="route-label" dominant-baseline="middle">P2/P3</text>
 <path d="M 1216 580 L 1216 508" fill="none" stroke="#16A34A" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" marker-end="url(#16A34A)" stroke-dasharray="9 10"/>
   <rect x="132" y="308" width="336" height="168" rx="18" fill="#DBEAFE" stroke="#93C5FD" stroke-width="2" />
