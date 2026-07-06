@@ -1,0 +1,62 @@
+goos: darwin
+goarch: arm64
+pkg: github.com/bluetape4k/bluetape-go/codec
+cpu: Apple M5
+BenchmarkCodecEncode/Base64/serde-small-object-v1-10         	 2883904	       406.8 ns/op	2089.41 MB/s	      1136 encoded_bytes	    2304 B/op	       2 allocs/op
+BenchmarkCodecEncode/Base64URL/serde-small-object-v1-10      	 2952604	       410.0 ns/op	2073.34 MB/s	      1134 encoded_bytes	    2304 B/op	       2 allocs/op
+BenchmarkCodecEncode/Hex/serde-small-object-v1-10            	 2002768	       600.1 ns/op	1416.39 MB/s	      1700 encoded_bytes	    3584 B/op	       2 allocs/op
+BenchmarkCodecEncode/Base64/serde-medium-nested-v1-10        	   56328	     21414 ns/op	2314.05 MB/s	     66072 encoded_bytes	  147456 B/op	       2 allocs/op
+BenchmarkCodecEncode/Base64URL/serde-medium-nested-v1-10     	   55936	     21636 ns/op	2290.40 MB/s	     66072 encoded_bytes	  147456 B/op	       2 allocs/op
+BenchmarkCodecEncode/Hex/serde-medium-nested-v1-10           	   37315	     31969 ns/op	1550.08 MB/s	     99108 encoded_bytes	  212992 B/op	       2 allocs/op
+BenchmarkCodecEncode/Base64/serde-binary-payload-v1-10       	   29809	     40263 ns/op	2441.55 MB/s	    131072 encoded_bytes	  262146 B/op	       2 allocs/op
+BenchmarkCodecEncode/Base64URL/serde-binary-payload-v1-10    	   29484	     40288 ns/op	2440.01 MB/s	    131072 encoded_bytes	  262146 B/op	       2 allocs/op
+BenchmarkCodecEncode/Hex/serde-binary-payload-v1-10          	   19546	     61689 ns/op	1593.55 MB/s	    196608 encoded_bytes	  393217 B/op	       2 allocs/op
+BenchmarkCodecEncode/Base64/serde-repeated-collection-v1-10  	   17868	     67504 ns/op	2427.13 MB/s	    218456 encoded_bytes	  442368 B/op	       2 allocs/op
+BenchmarkCodecEncode/Base64URL/serde-repeated-collection-v1-10         	   17814	     67323 ns/op	2433.66 MB/s	    218454 encoded_bytes	  442368 B/op	       2 allocs/op
+BenchmarkCodecEncode/Hex/serde-repeated-collection-v1-10               	   10000	    102387 ns/op	1600.20 MB/s	    327680 encoded_bytes	  655361 B/op	       2 allocs/op
+BenchmarkCodecEncode/Base58/serde-small-object-v1-10                   	     727	   1632453 ns/op	   0.52 MB/s	      1161 encoded_bytes	    3456 B/op	       3 allocs/op
+BenchmarkCodecEncode/Base62/serde-small-object-v1-10                   	     748	   1603359 ns/op	   0.53 MB/s	      1142 encoded_bytes	    3328 B/op	       3 allocs/op
+BenchmarkCodecEncode/URL62/serde-small-object-v1-10                    	     750	   1597266 ns/op	   0.53 MB/s	      1142 encoded_bytes	    3328 B/op	       3 allocs/op
+BenchmarkCodecEncode/Base58/serde-uuid-url62-v1-10                     	 4053493	       296.8 ns/op	  53.90 MB/s	        22.00 encoded_bytes	      24 B/op	       1 allocs/op
+BenchmarkCodecEncode/Base62/serde-uuid-url62-v1-10                     	 4100198	       292.7 ns/op	  54.65 MB/s	        22.00 encoded_bytes	      24 B/op	       1 allocs/op
+BenchmarkCodecEncode/URL62/serde-uuid-url62-v1-10                      	 4097408	       292.5 ns/op	  54.71 MB/s	        22.00 encoded_bytes	      24 B/op	       1 allocs/op
+BenchmarkCodecDecode/Base64/serde-small-object-v1-10                   	 4360032	       273.9 ns/op	3103.15 MB/s	      1136 encoded_bytes	     896 B/op	       1 allocs/op
+BenchmarkCodecDecode/Base64URL/serde-small-object-v1-10                	 4345562	       273.3 ns/op	3109.59 MB/s	      1134 encoded_bytes	     896 B/op	       1 allocs/op
+BenchmarkCodecDecode/Hex/serde-small-object-v1-10                      	 2384966	       500.7 ns/op	1697.61 MB/s	      1700 encoded_bytes	     896 B/op	       1 allocs/op
+BenchmarkCodecDecode/Base64/serde-medium-nested-v1-10                  	   82820	     14477 ns/op	3423.02 MB/s	     66072 encoded_bytes	   57344 B/op	       1 allocs/op
+BenchmarkCodecDecode/Base64URL/serde-medium-nested-v1-10               	   83251	     14492 ns/op	3419.48 MB/s	     66072 encoded_bytes	   57344 B/op	       1 allocs/op
+BenchmarkCodecDecode/Hex/serde-medium-nested-v1-10                     	   43534	     27597 ns/op	1795.62 MB/s	     99108 encoded_bytes	   57344 B/op	       1 allocs/op
+BenchmarkCodecDecode/Base64/serde-binary-payload-v1-10                 	   42766	     28010 ns/op	3509.66 MB/s	    131072 encoded_bytes	   98305 B/op	       1 allocs/op
+BenchmarkCodecDecode/Base64URL/serde-binary-payload-v1-10              	   42757	     27918 ns/op	3521.22 MB/s	    131072 encoded_bytes	   98304 B/op	       1 allocs/op
+BenchmarkCodecDecode/Hex/serde-binary-payload-v1-10                    	   22195	     54124 ns/op	1816.28 MB/s	    196608 encoded_bytes	   98304 B/op	       1 allocs/op
+BenchmarkCodecDecode/Base64/serde-repeated-collection-v1-10            	   25466	     47231 ns/op	3468.94 MB/s	    218456 encoded_bytes	  172033 B/op	       1 allocs/op
+BenchmarkCodecDecode/Base64URL/serde-repeated-collection-v1-10         	   25622	     46846 ns/op	3497.43 MB/s	    218454 encoded_bytes	  163841 B/op	       1 allocs/op
+BenchmarkCodecDecode/Hex/serde-repeated-collection-v1-10               	   13317	     90229 ns/op	1815.83 MB/s	    327680 encoded_bytes	  163840 B/op	       1 allocs/op
+BenchmarkCodecDecode/Base58/serde-small-object-v1-10                   	     782	   1523797 ns/op	   0.56 MB/s	      1161 encoded_bytes	    3456 B/op	       3 allocs/op
+BenchmarkCodecDecode/Base62/serde-small-object-v1-10                   	     811	   1473793 ns/op	   0.58 MB/s	      1142 encoded_bytes	    3200 B/op	       3 allocs/op
+BenchmarkCodecDecode/URL62/serde-small-object-v1-10                    	     817	   1477148 ns/op	   0.58 MB/s	      1142 encoded_bytes	    3200 B/op	       3 allocs/op
+BenchmarkCodecDecode/Base58/serde-uuid-url62-v1-10                     	 3734850	       325.1 ns/op	  49.21 MB/s	        22.00 encoded_bytes	      16 B/op	       1 allocs/op
+BenchmarkCodecDecode/Base62/serde-uuid-url62-v1-10                     	 3657621	       333.8 ns/op	  47.93 MB/s	        22.00 encoded_bytes	      16 B/op	       1 allocs/op
+BenchmarkCodecDecode/URL62/serde-uuid-url62-v1-10                      	 3677204	       329.0 ns/op	  48.64 MB/s	        22.00 encoded_bytes	      16 B/op	       1 allocs/op
+BenchmarkCodecRoundTrip/Base64/serde-small-object-v1-10                	 1743871	       685.1 ns/op	1240.68 MB/s	      1136 encoded_bytes	    3200 B/op	       3 allocs/op
+BenchmarkCodecRoundTrip/Base64URL/serde-small-object-v1-10             	 1744788	       683.9 ns/op	1242.84 MB/s	      1134 encoded_bytes	    3200 B/op	       3 allocs/op
+BenchmarkCodecRoundTrip/Hex/serde-small-object-v1-10                   	 1000000	      1109 ns/op	 766.69 MB/s	      1700 encoded_bytes	    4480 B/op	       3 allocs/op
+BenchmarkCodecRoundTrip/Base64/serde-medium-nested-v1-10               	   33291	     36124 ns/op	1371.77 MB/s	     66072 encoded_bytes	  204800 B/op	       3 allocs/op
+BenchmarkCodecRoundTrip/Base64URL/serde-medium-nested-v1-10            	   33160	     35868 ns/op	1381.55 MB/s	     66072 encoded_bytes	  204800 B/op	       3 allocs/op
+BenchmarkCodecRoundTrip/Hex/serde-medium-nested-v1-10                  	   19999	     60028 ns/op	 825.51 MB/s	     99108 encoded_bytes	  270337 B/op	       3 allocs/op
+BenchmarkCodecRoundTrip/Base64/serde-binary-payload-v1-10              	   17191	     69847 ns/op	1407.43 MB/s	    131072 encoded_bytes	  360451 B/op	       3 allocs/op
+BenchmarkCodecRoundTrip/Base64URL/serde-binary-payload-v1-10           	   17258	     69720 ns/op	1409.97 MB/s	    131072 encoded_bytes	  360451 B/op	       3 allocs/op
+BenchmarkCodecRoundTrip/Hex/serde-binary-payload-v1-10                 	    9903	    118108 ns/op	 832.33 MB/s	    196608 encoded_bytes	  491522 B/op	       3 allocs/op
+BenchmarkCodecRoundTrip/Base64/serde-repeated-collection-v1-10         	   10000	    116512 ns/op	1406.21 MB/s	    218456 encoded_bytes	  614403 B/op	       3 allocs/op
+BenchmarkCodecRoundTrip/Base64URL/serde-repeated-collection-v1-10      	   10000	    117108 ns/op	1399.06 MB/s	    218454 encoded_bytes	  606211 B/op	       3 allocs/op
+BenchmarkCodecRoundTrip/Hex/serde-repeated-collection-v1-10            	    6063	    194875 ns/op	 840.74 MB/s	    327680 encoded_bytes	  819201 B/op	       3 allocs/op
+BenchmarkCodecRoundTrip/Base58/serde-small-object-v1-10                	     378	   3148968 ns/op	   0.27 MB/s	      1161 encoded_bytes	    6912 B/op	       6 allocs/op
+BenchmarkCodecRoundTrip/Base62/serde-small-object-v1-10                	     390	   3048650 ns/op	   0.28 MB/s	      1142 encoded_bytes	    6528 B/op	       6 allocs/op
+BenchmarkCodecRoundTrip/URL62/serde-small-object-v1-10                 	     392	   3039390 ns/op	   0.28 MB/s	      1142 encoded_bytes	    6528 B/op	       6 allocs/op
+BenchmarkCodecRoundTrip/Base58/serde-uuid-url62-v1-10                  	 1927748	       623.2 ns/op	  25.68 MB/s	        22.00 encoded_bytes	      40 B/op	       2 allocs/op
+BenchmarkCodecRoundTrip/Base62/serde-uuid-url62-v1-10                  	 1915539	       625.1 ns/op	  25.60 MB/s	        22.00 encoded_bytes	      40 B/op	       2 allocs/op
+BenchmarkCodecRoundTrip/URL62/serde-uuid-url62-v1-10                   	 1928025	       623.6 ns/op	  25.66 MB/s	        22.00 encoded_bytes	      40 B/op	       2 allocs/op
+BenchmarkCodecUUIDURL62/Encode/serde-uuid-url62-v1-10                  	 2449437	       490.5 ns/op	  32.62 MB/s	        22.00 encoded_bytes	      72 B/op	       2 allocs/op
+BenchmarkCodecUUIDURL62/Decode/serde-uuid-url62-v1-10                  	 2002087	       601.6 ns/op	  26.60 MB/s	        22.00 encoded_bytes	      88 B/op	       3 allocs/op
+PASS
+ok  	github.com/bluetape4k/bluetape-go/codec	87.936s
