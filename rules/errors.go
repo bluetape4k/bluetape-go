@@ -1,6 +1,9 @@
 package rules
 
-import "errors"
+import (
+	"errors"
+	"strconv"
+)
 
 var (
 	// ErrBlankKey reports a blank Facts key or rule name.
@@ -19,6 +22,18 @@ var (
 	ErrRuleEvaluation = errors.New("rules evaluation failed")
 	// ErrRuleExecution reports a rule execution failure.
 	ErrRuleExecution = errors.New("rules execution failed")
+	// ErrEmptyRuleGroup reports a composite group without child rules.
+	ErrEmptyRuleGroup = errors.New("rules group must contain at least one rule")
+	// ErrCompositeNotTriggered reports a composite Execute with no executable child.
+	ErrCompositeNotTriggered = errors.New("rules composite did not trigger")
+	// ErrGuardRuleMissing reports a conditional group without its guard rule.
+	ErrGuardRuleMissing = errors.New("rules guard rule not found")
+	// ErrInvalidMaxCycles reports an invalid inference max-cycle limit.
+	ErrInvalidMaxCycles = errors.New("rules inference max cycles must be positive")
+	// ErrInvalidInferenceConfig reports an inference option that breaks convergence checks.
+	ErrInvalidInferenceConfig = errors.New("rules inference config is invalid")
+	// ErrInferenceNonConverged reports inference that exceeded its cycle limit.
+	ErrInferenceNonConverged = errors.New("rules inference did not converge")
 )
 
 // RulePhase identifies which engine phase produced an error.
@@ -61,4 +76,23 @@ func (e RuleError) Unwrap() error {
 func (e RuleError) Is(target error) bool {
 	return e.Phase == PhaseEvaluate && target == ErrRuleEvaluation ||
 		e.Phase == PhaseExecute && target == ErrRuleExecution
+}
+
+// InferenceError reports bounded inference failure details.
+type InferenceError struct {
+	Cycles int
+	Err    error
+}
+
+// Error returns a human-readable inference error message.
+func (e InferenceError) Error() string {
+	if e.Err == nil {
+		return "rules inference failed"
+	}
+	return "rules inference failed after " + strconv.Itoa(e.Cycles) + " cycles: " + e.Err.Error()
+}
+
+// Unwrap returns the underlying inference cause.
+func (e InferenceError) Unwrap() error {
+	return e.Err
 }

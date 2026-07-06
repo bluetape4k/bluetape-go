@@ -3,13 +3,13 @@
 [English](README.md) | [한국어](README.ko.md)
 
 `rules`는 일반 Go application을 위한 dependency-free deterministic rule-engine
-core를 제공합니다. Scope는 의도적으로 작습니다. Facts, rule contract, rule set,
-engine config, sequential execution, result detail, typed error, context
-cancellation만 다룹니다.
+primitive를 제공합니다. Scope는 의도적으로 작습니다. Facts, rule contract, rule
+set, composite group, bounded inference, sequential execution, result detail,
+typed error, context cancellation을 다룹니다.
 
-Expression language, YAML/JSON reader, annotation-style registration, composite
-rule group, forward chaining은 포함하지 않습니다. 이 기능들은 이 core 위에 쌓는
-후속 범위입니다.
+Expression language, YAML/JSON reader, annotation-style registration, parallel
+execution, unbounded forward chaining은 포함하지 않습니다. YAML/JSON reader는 이
+core 위에 쌓는 후속 범위입니다.
 
 Rule은 trusted Go code입니다. Context cancellation은 cooperative합니다. Engine은
 각 evaluation과 execution 전에 context를 확인하며, rule body도 전달받은
@@ -131,6 +131,38 @@ true이면 run을 중단하고 `ErrRuleEvaluation` 또는 `ErrRuleExecution`과 
 `RuleError`를 반환합니다. `StopOnFirstFailed`가 false이면 engine은 이후 rule을
 계속 실행하지만 rule failure가 하나라도 있으면 joined error를 반환합니다. Rule별
 failure는 `Result.Details`에서 확인하세요.
+
+## Composite Groups
+
+Composite group은 ordinary `Rule` value입니다.
+
+- `NewActivationGroup`은 child를 deterministic order로 평가하고 첫 번째 matching
+  child만 실행합니다.
+- `NewConditionalGroup`은 named guard rule을 요구하고, guard가 match될 때만
+  dependent를 평가합니다. Missing 또는 duplicate guard는 거부합니다.
+- `NewUnitGroup`은 모든 child가 match되어야 child execution을 시작합니다.
+
+Child ordering은 `RuleSet`과 같습니다. Priority ascending, rule name ascending,
+완전히 같은 tie에서는 registration sequence입니다. Group execution은 sequential이며
+child evaluation/execution 전에 context를 확인합니다. Child predicate는
+side-effect-free여야 합니다. Composite `Execute`는 group에 per-run selection
+state를 저장하지 않고 child를 다시 평가합니다. 재평가에서 실행 가능한 child가 없으면
+group이 적용된 것처럼 처리하지 않고 `ErrCompositeNotTriggered`를 반환합니다.
+
+## Bounded Inference
+
+`InferenceEngine`은 rule이 적용되지 않는 cycle에 도달하거나, context가 취소되거나,
+rule이 실패하거나, `InferenceConfig.MaxCycles`를 초과할 때까지 `RuleSet`을 반복
+실행합니다. `MaxCycles`는 양수여야 합니다. Non-convergence는
+`ErrInferenceNonConverged`와 호환되는 `InferenceError`를 반환하고, 반환된 result의
+stop reason은 `StatusNonConverged`입니다. 성공적인 최종 convergence 판단에는 rule이
+적용되지 않는 추가 cycle이 필요하므로, `MaxCycles`는 최대 mutation cycle 수에
+convergence 확인 1회를 더해 산정하세요. `StopOnFirstNotTriggered`는 뒤쪽 matching
+rule을 숨길 수 있어 inference에서는 거부됩니다.
+
+Inference는 전달받은 `Facts`를 in-place로 변경합니다. Transactional하지 않으므로
+non-convergence 또는 rule error 전에 기록된 fact는 그대로 남습니다. 성공한 경우에만
+원본 fact를 반영해야 하는 speculative run에는 `Facts.Clone`을 사용하세요.
 
 ## 테스트
 

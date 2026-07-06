@@ -2,14 +2,14 @@
 
 [English](README.md) | [한국어](README.ko.md)
 
-`rules` provides a dependency-free, deterministic rule-engine core for ordinary
-Go applications. It is intentionally small: facts, rule contracts, rule sets,
-engine configuration, sequential execution, result details, typed errors, and
-context cancellation.
+`rules` provides dependency-free, deterministic rule-engine primitives for
+ordinary Go applications. It is intentionally small: facts, rule contracts, rule
+sets, composite groups, bounded inference, sequential execution, result details,
+typed errors, and context cancellation.
 
 The package does not include expression languages, YAML/JSON readers,
-annotation-style registration, composite rule groups, or forward chaining.
-Those surfaces are separate follow-up concerns built on this core.
+annotation-style registration, parallel execution, or unbounded forward
+chaining. YAML/JSON readers are separate follow-up concerns built on this core.
 
 Rules are trusted Go code. Context cancellation is cooperative: the engine
 checks the context before each evaluation and execution, and rule bodies should
@@ -130,6 +130,40 @@ Evaluation and execution failures are recorded in result details. When
 with `ErrRuleEvaluation` or `ErrRuleExecution`. When `StopOnFirstFailed` is
 false, the engine continues through later rules but still returns a joined
 error when any rule fails; inspect `Result.Details` for per-rule failures.
+
+## Composite Groups
+
+Composite groups are ordinary `Rule` values:
+
+- `NewActivationGroup` evaluates children in deterministic order and executes
+  only the first matching child.
+- `NewConditionalGroup` requires a named guard rule and evaluates dependents
+  only when the guard matches. Missing or duplicate guards are rejected.
+- `NewUnitGroup` requires all children to match before any child executes.
+
+Child ordering follows `RuleSet`: priority ascending, rule name ascending, and
+registration sequence for exact ties. Group execution is sequential and checks
+context before child evaluation and execution. Child predicates should be
+side-effect-free: composite `Execute` re-evaluates children instead of storing
+per-run selection state on the group. If the re-evaluation finds no executable
+child, `Execute` returns `ErrCompositeNotTriggered` instead of pretending the
+group applied.
+
+## Bounded Inference
+
+`InferenceEngine` repeatedly runs a `RuleSet` until a cycle applies no rules,
+the context is cancelled, a rule fails, or `InferenceConfig.MaxCycles` is
+exceeded. `MaxCycles` must be positive. Non-convergence returns an
+`InferenceError` compatible with `ErrInferenceNonConverged`, and the returned
+result uses `StatusNonConverged` as its stop reason. The final successful
+convergence check is an extra cycle where no rule applies, so size `MaxCycles`
+for the maximum mutation cycles plus one convergence check. `StopOnFirstNotTriggered`
+is rejected for inference because it can hide later matching rules.
+
+Inference mutates the provided `Facts` in place. It is not transactional:
+facts written before non-convergence or another rule error remain visible. Use
+`Facts.Clone` for speculative runs that should not mutate the caller's original
+facts unless the run succeeds.
 
 ## Test
 
