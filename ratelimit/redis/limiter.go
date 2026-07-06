@@ -121,14 +121,13 @@ func (l *Limiter) Allow(ctx context.Context, key string, tokens int64) (ratelimi
 }
 
 func (l *Limiter) normalizeKey(key string) (string, error) {
-	trimmed := strings.TrimSpace(key)
-	if trimmed == "" {
+	if strings.TrimSpace(key) == "" {
 		return "", fmt.Errorf("key must not be empty")
 	}
-	if len([]byte(trimmed)) > l.opts.maxKeyBytes {
+	if len([]byte(key)) > l.opts.maxKeyBytes {
 		return "", fmt.Errorf("key exceeds max key bytes")
 	}
-	return trimmed, nil
+	return key, nil
 }
 
 func (l *Limiter) bucketKey(key string) string {
