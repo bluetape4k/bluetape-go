@@ -1,0 +1,48 @@
+goos: darwin
+goarch: arm64
+pkg: github.com/bluetape4k/bluetape-go/serialization
+cpu: Apple M5
+BenchmarkSerializationEncode/JSON/serde-small-object-v1-10         	 1539351	       776.0 ns/op	1095.36 MB/s	       850.0 encoded_bytes	    1360 B/op	      13 allocs/op
+BenchmarkSerializationEncode/JSON/serde-medium-nested-v1-10        	   24034	     49019 ns/op	1223.56 MB/s	     59978 encoded_bytes	   82114 B/op	     506 allocs/op
+BenchmarkSerializationEncode/JSON/serde-repeated-collection-v1-10  	    2706	    440766 ns/op	 744.37 MB/s	    328091 encoded_bytes	  626774 B/op	    8403 allocs/op
+BenchmarkSerializationEncode/Versioned/serde-versioned-envelope-v1-10         	 1390263	       863.8 ns/op	 996.76 MB/s	       861.0 encoded_bytes	    2257 B/op	      14 allocs/op
+BenchmarkSerializationEncode/Bytes/serde-binary-payload-v1-10                 	  259814	      4773 ns/op	20597.97 MB/s	     98304 encoded_bytes	   98305 B/op	       1 allocs/op
+BenchmarkSerializationEncode/String/serde-text-payload-v1-10                  	  312457	      3757 ns/op	17444.70 MB/s	     65536 encoded_bytes	   65536 B/op	       1 allocs/op
+BenchmarkSerializationDecode/JSON/serde-small-object-v1-10                    	  335689	      3529 ns/op	 240.88 MB/s	       850.0 encoded_bytes	    3848 B/op	      34 allocs/op
+BenchmarkSerializationDecode/JSON/serde-medium-nested-v1-10                   	    4862	    247500 ns/op	 242.34 MB/s	     59978 encoded_bytes	  242288 B/op	    1756 allocs/op
+BenchmarkSerializationDecode/JSON/serde-repeated-collection-v1-10             	     662	   1738963 ns/op	 188.67 MB/s	    328091 encoded_bytes	 2062641 B/op	   19234 allocs/op
+BenchmarkSerializationDecode/Versioned/serde-versioned-envelope-v1-10         	  337423	      3564 ns/op	 241.56 MB/s	       861.0 encoded_bytes	    3848 B/op	      35 allocs/op
+BenchmarkSerializationDecode/Bytes/serde-binary-payload-v1-10                 	  242762	      5080 ns/op	19352.22 MB/s	     98304 encoded_bytes	   98304 B/op	       1 allocs/op
+BenchmarkSerializationDecode/String/serde-text-payload-v1-10                  	  305552	      3815 ns/op	17178.18 MB/s	     65536 encoded_bytes	   65536 B/op	       1 allocs/op
+BenchmarkSerializationRoundTrip/JSON/serde-small-object-v1-10                 	  267993	      4488 ns/op	 189.40 MB/s	       850.0 encoded_bytes	    5212 B/op	      47 allocs/op
+BenchmarkSerializationRoundTrip/JSON/serde-medium-nested-v1-10                	    3932	    303152 ns/op	 197.85 MB/s	     59978 encoded_bytes	  334489 B/op	    2263 allocs/op
+BenchmarkSerializationRoundTrip/JSON/serde-repeated-collection-v1-10          	     525	   2304882 ns/op	 142.35 MB/s	    328091 encoded_bytes	 3510457 B/op	   27658 allocs/op
+BenchmarkSerializationRoundTrip/Versioned/serde-versioned-envelope-v1-10      	  257866	      4600 ns/op	 187.16 MB/s	       861.0 encoded_bytes	    6109 B/op	      49 allocs/op
+BenchmarkSerializationRoundTrip/Bytes/serde-binary-payload-v1-10              	  116988	     10328 ns/op	9518.52 MB/s	     98304 encoded_bytes	  196609 B/op	       2 allocs/op
+BenchmarkSerializationRoundTrip/String/serde-text-payload-v1-10               	  154936	      7558 ns/op	8670.52 MB/s	     65536 encoded_bytes	  131072 B/op	       2 allocs/op
+BenchmarkSerializationSerializeThenCompress/JSON/serde-small-object-v1/gzip-10         	   23155	     52889 ns/op	  16.07 MB/s	         0.2682 compressed/serialized	       228.0 compressed_bytes	       850.0 serialized_bytes	  814644 B/op	      21 allocs/op
+BenchmarkSerializationSerializeThenCompress/JSON/serde-small-object-v1/zlib-10         	   22650	     51815 ns/op	  16.40 MB/s	         0.2541 compressed/serialized	       216.0 compressed_bytes	       850.0 serialized_bytes	  814556 B/op	      23 allocs/op
+BenchmarkSerializationSerializeThenCompress/JSON/serde-small-object-v1/deflate-10      	   24336	     49371 ns/op	  17.22 MB/s	         0.2471 compressed/serialized	       210.0 compressed_bytes	       850.0 serialized_bytes	  814372 B/op	      19 allocs/op
+BenchmarkSerializationSerializeThenCompress/JSON/serde-small-object-v1/zstd-10         	   10000	    105427 ns/op	   8.06 MB/s	         0.2518 compressed/serialized	       214.0 compressed_bytes	       850.0 serialized_bytes	 2345080 B/op	      48 allocs/op
+BenchmarkSerializationSerializeThenCompress/JSON/serde-small-object-v1/lz4-10          	 1664644	       726.2 ns/op	1170.49 MB/s	         0.3482 compressed/serialized	       296.0 compressed_bytes	       850.0 serialized_bytes	    1613 B/op	       7 allocs/op
+BenchmarkSerializationSerializeThenCompress/JSON/serde-small-object-v1/snappy-10       	  136068	      8761 ns/op	  97.02 MB/s	         0.3659 compressed/serialized	       311.0 compressed_bytes	       850.0 serialized_bytes	  147921 B/op	       5 allocs/op
+BenchmarkSerializationSerializeThenCompress/JSON/serde-medium-nested-v1/gzip-10        	    6224	    185396 ns/op	 323.51 MB/s	         0.05482 compressed/serialized	      3288 compressed_bytes	     59978 serialized_bytes	  821905 B/op	      24 allocs/op
+BenchmarkSerializationSerializeThenCompress/JSON/serde-medium-nested-v1/zlib-10        	    6114	    197749 ns/op	 303.30 MB/s	         0.05462 compressed/serialized	      3276 compressed_bytes	     59978 serialized_bytes	  821863 B/op	      26 allocs/op
+BenchmarkSerializationSerializeThenCompress/JSON/serde-medium-nested-v1/deflate-10     	    6639	    181479 ns/op	 330.50 MB/s	         0.05452 compressed/serialized	      3270 compressed_bytes	     59978 serialized_bytes	  821633 B/op	      22 allocs/op
+BenchmarkSerializationSerializeThenCompress/JSON/serde-medium-nested-v1/zstd-10        	    9154	    140786 ns/op	 426.02 MB/s	         0.04927 compressed/serialized	      2955 compressed_bytes	     59978 serialized_bytes	 2351986 B/op	      48 allocs/op
+BenchmarkSerializationSerializeThenCompress/JSON/serde-medium-nested-v1/lz4-10         	   56185	     21094 ns/op	2843.38 MB/s	         0.08707 compressed/serialized	      5222 compressed_bytes	     59978 serialized_bytes	    6056 B/op	       6 allocs/op
+BenchmarkSerializationSerializeThenCompress/JSON/serde-medium-nested-v1/snappy-10      	   46287	     25964 ns/op	2310.05 MB/s	         0.1129 compressed/serialized	      6770 compressed_bytes	     59978 serialized_bytes	  154384 B/op	       5 allocs/op
+BenchmarkSerializationSerializeThenCompress/JSON/serde-repeated-collection-v1/gzip-10  	    1449	    825116 ns/op	 397.63 MB/s	         0.06138 compressed/serialized	     20138 compressed_bytes	    328091 serialized_bytes	  879250 B/op	      27 allocs/op
+BenchmarkSerializationSerializeThenCompress/JSON/serde-repeated-collection-v1/zlib-10  	    1358	    877947 ns/op	 373.70 MB/s	         0.06134 compressed/serialized	     20126 compressed_bytes	    328091 serialized_bytes	  879209 B/op	      29 allocs/op
+BenchmarkSerializationSerializeThenCompress/JSON/serde-repeated-collection-v1/deflate-10         	    1508	    795242 ns/op	 412.57 MB/s	         0.06132 compressed/serialized	     20120 compressed_bytes	    328091 serialized_bytes	  878978 B/op	      25 allocs/op
+BenchmarkSerializationSerializeThenCompress/JSON/serde-repeated-collection-v1/zstd-10            	    2742	    426336 ns/op	 769.56 MB/s	         0.06491 compressed/serialized	     21297 compressed_bytes	    328091 serialized_bytes	19616414 B/op	      79 allocs/op
+BenchmarkSerializationSerializeThenCompress/JSON/serde-repeated-collection-v1/lz4-10             	    8040	    149766 ns/op	2190.69 MB/s	         0.1175 compressed/serialized	     38567 compressed_bytes	    328091 serialized_bytes	   42181 B/op	       6 allocs/op
+BenchmarkSerializationSerializeThenCompress/JSON/serde-repeated-collection-v1/snappy-10          	    8320	    139161 ns/op	2357.64 MB/s	         0.1302 compressed/serialized	     42706 compressed_bytes	    328091 serialized_bytes	  299024 B/op	       8 allocs/op
+BenchmarkSerializationSerializeThenCompress/Versioned/serde-versioned-envelope-v1/gzip-10        	   23042	     55478 ns/op	  15.52 MB/s	         0.2811 compressed/serialized	       242.0 compressed_bytes	       861.0 serialized_bytes	  814694 B/op	      21 allocs/op
+BenchmarkSerializationSerializeThenCompress/Versioned/serde-versioned-envelope-v1/zlib-10        	   20853	     57091 ns/op	  15.08 MB/s	         0.2671 compressed/serialized	       230.0 compressed_bytes	       861.0 serialized_bytes	  814609 B/op	      23 allocs/op
+BenchmarkSerializationSerializeThenCompress/Versioned/serde-versioned-envelope-v1/deflate-10     	   21564	     55739 ns/op	  15.45 MB/s	         0.2602 compressed/serialized	       224.0 compressed_bytes	       861.0 serialized_bytes	  813973 B/op	      18 allocs/op
+BenchmarkSerializationSerializeThenCompress/Versioned/serde-versioned-envelope-v1/zstd-10        	   10000	    122368 ns/op	   7.04 MB/s	         0.2636 compressed/serialized	       227.0 compressed_bytes	       861.0 serialized_bytes	 2345099 B/op	      48 allocs/op
+BenchmarkSerializationSerializeThenCompress/Versioned/serde-versioned-envelope-v1/lz4-10         	 1772392	       676.8 ns/op	1272.15 MB/s	         0.3566 compressed/serialized	       307.0 compressed_bytes	       861.0 serialized_bytes	     950 B/op	       6 allocs/op
+BenchmarkSerializationSerializeThenCompress/Versioned/serde-versioned-envelope-v1/snappy-10      	  120814	      9751 ns/op	  88.30 MB/s	         0.3740 compressed/serialized	       322.0 compressed_bytes	       861.0 serialized_bytes	  147953 B/op	       5 allocs/op
+PASS
+ok  	github.com/bluetape4k/bluetape-go/serialization	59.624s

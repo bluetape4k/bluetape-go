@@ -23,6 +23,7 @@ scope, dependency candidates, and GitHub issues.
 | `0.10.0` | [Graph](2026-06-01-milestone-0.12.0-graph-research.md), [Issue #38 graph scope](2026-06-25-issue-38-graph-scope.md) |
 | `0.11.0` | [Issue #37 rule engine primitives](2026-07-02-issue-37-rule-engine-primitives.md), [Issue #40 image scope](2026-06-25-issue-40-image-scope.md), [Issue #71 encryption facade scope](2026-06-26-issue-71-encryption-facade-scope.md), [Issue #310 libvips evaluation](2026-07-02-issue-310-libvips-evaluation.md) |
 | `0.12.0` | [Issue #354 core parity matrix](2026-07-03-issue-354-core-parity-matrix.md) |
+| `0.14.0` | [Issue #401 benchmark artifact retention](2026-07-07-issue-401-benchmark-artifact-retention.md) |
 
 ## Update Rule
 
