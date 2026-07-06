@@ -7,6 +7,36 @@ and this project uses semantic versioning once the first tag is published.
 
 ## [Unreleased]
 
+## [v0.12.0] - 2026-07-06
+
+### Added
+
+- Core foundation parity pass with source-backed Go-native decisions for
+  `core`, `collections`, `codec`, `concurrency`, observability conventions,
+  and rule-engine boundaries, explicitly rejecting JVM-shaped broad helper
+  surfaces.
+- `core` string validation and UUID helper additions for blank checks,
+  string predicates, canonical UUID parsing/rendering, and narrow caller-owned
+  text utility behavior.
+- `collections` helper additions for small slice-oriented primitives with
+  copied-output behavior, deterministic examples, and table-driven coverage.
+- `codec` canonical UUID URL62 helpers that reject non-canonical or oversized
+  aliases and preserve round-trip compatibility evidence.
+- `concurrency` round-robin primitive with goroutine-safe selection behavior,
+  deterministic examples, stress coverage, and race validation.
+- First-party `rules` package primitives with immutable facts, deterministic
+  rule execution, composite rules, bounded inference, typed non-convergence
+  errors, YAML/JSON expression-backed readers, and bilingual README diagrams.
+- Package README diagram coverage for previously missing package docs, with
+  paired SVG/PNG assets and visual/audit review evidence.
+
+### Changed
+
+- Public examples and package-local hooks now use caller-owned `log/slog`
+  patterns without adding a global bluetape-go logger registry.
+- Root and package READMEs now describe the 0.12.0 rule/core foundation scope
+  and keep Korean docs aligned with English package behavior.
+
 ## [v0.11.0] - 2026-07-03
 
 ### Added
