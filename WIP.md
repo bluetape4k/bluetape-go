@@ -1,44 +1,46 @@
 # WIP
 
-Snapshot: 2026-07-06 KST
-Scope: `0.12.0` core foundation parity, rule primitives, and README diagram coverage.
+Snapshot: 2026-07-08 KST
+Scope: `0.15.0` audit publisher adoption, sqloutbox test publishers, and
+SerDe allocation follow-up hardening.
 
 ## Current Target Release
 
-`v0.12.0` - source-backed Go-native core, collection, codec, concurrency,
-observability, and rules primitives without importing broad Kotlin/JVM helper
-surfaces.
+`v0.15.0` - deterministic audit publisher test/adoption helpers plus focused
+JSON and zstd allocation reductions, without selecting Kafka, NATS, Redis
+Streams, or another durable broker adapter before a concrete consumer needs it.
 
-Issues #354, #359, #360, #357, #355, and #361 close the core-foundation parity
-epic with narrow replacements for useful `bluetape4k-core` behavior. Issues
-#375, #376, and #377 add first-party rule primitives, bounded inference, and
-expression-backed YAML/JSON readers. PR #432 completes README diagram coverage
-for packages that lacked visual contract evidence and repairs existing diagram
-geometry.
+Issues #405 through #408 close the audit publisher adoption slice under epic
+#404. Issues #455 and #456 close the SerDe follow-up profiling slice by
+preserving evidence and reducing allocation pressure in zstd byte-slice
+compression and default JSON decoding.
 
 ## Current State
 
 - `v0.1.0`, `v0.1.1`, `v0.2.0`, `v0.3.0`, `v0.4.0`, `v0.5.0`, `v0.5.1`,
   `v0.6.0`, `v0.6.1` through `v0.6.8`, `v0.7.0`, `v0.8.0`, `v0.9.0`,
-  `v0.10.0`, and `v0.11.0` are tagged and released.
-- Milestone `0.12.0` has zero open issues; #353, #354, #355, #357, #359,
-  #360, #361, #375, #376, and #377 are closed.
-- `CHANGELOG.md` contains the `v0.12.0` release section dated 2026-07-06.
-- `v0.12.0` tag and GitHub Release are not created yet.
+  `v0.10.0`, `v0.11.0`, `v0.12.0`, `v0.13.0`, and `v0.14.0` are tagged and
+  released.
+- Milestone `0.15.0` has zero open issues; #404, #405, #406, #407, #408,
+  #455, and #456 are closed.
+- `CHANGELOG.md` contains the `v0.15.0` release section dated 2026-07-08 and
+  carries forward the `v0.13.0` and `v0.14.0` release sections from `main`.
+- `v0.15.0` tag and GitHub Release are not created yet.
 
 ## Release Checklist
 
-1. Merge this release-history PR to satisfy the changelog gate.
-2. Close milestone `0.12.0`.
-3. Verify `make ci` on the release-prep branch.
-4. Promote `develop` to `main`, tag `v0.12.0`, and create the GitHub Release
+1. Merge this release-history PR to satisfy the changelog gate on `develop`.
+2. Close milestone `0.15.0`.
+3. Verify `make ci` locally and GitHub CI on the release-prep branch.
+4. Promote `develop` to `main`, tag `v0.15.0`, and create the GitHub Release
    from `CHANGELOG.md`.
 
 ## Release Support Notes
 
-The 0.12.0 core helpers, rules primitives, observability docs, and README
-diagram assets do not introduce external service requirements beyond existing
-Testcontainers-backed CI coverage. Before `v0.12.0` is tagged, rollback is
-removing the 0.12.0 packages, docs, and release bookkeeping. After a tag,
-public API changes must preserve Go compatibility or be deferred to a breaking
-release.
+The 0.15.0 audit publisher slice adds deterministic test/example publishers
+and adoption documentation, not a durable broker adapter or new external
+runtime dependency. The SerDe follow-up slice changes local JSON/zstd hot paths
+while preserving existing public APIs. Before `v0.15.0` is tagged, rollback is
+closing the release-history PR or reverting the release-prep commit. After a
+tag, release corrections should use a patch release unless an explicit retag
+plan is approved.

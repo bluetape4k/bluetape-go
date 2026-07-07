@@ -7,6 +7,85 @@ and this project uses semantic versioning once the first tag is published.
 
 ## [Unreleased]
 
+## [v0.15.0] - 2026-07-08
+
+### Added
+
+- Audit publisher adoption track for `audit/sqloutbox`, including a
+  documented `Publisher` retry contract, stable `Record.EventID` and
+  `Record.IdempotencyKey` handoff guidance, and duplicate-safe at-least-once
+  delivery examples.
+- `audit/sqloutbox/sqloutboxtest` with deterministic `DiscardPublisher`,
+  `PublisherFunc`, and goroutine-safe `RecordingPublisher` helpers for relay
+  tests, examples, retry assertions, and duplicate-delivery evidence.
+- Research and lessons for the first audit publisher adapter target, selecting
+  a standard-library test/example helper before Kafka, NATS, Redis Streams, or
+  other durable transport adapters.
+- Retained profiling evidence for JSON repeated-collection decoding and zstd
+  compression allocation cost under the 0.15.0 SerDe follow-up track.
+
+### Changed
+
+- `serialization.JSONSerializer` now uses `json.Unmarshal` on the default
+  decode path while preserving strict trailing-payload rejection and
+  `WithDisallowUnknownFields` behavior through the decoder path.
+- `compression.Zstd().Compress` now reuses internal zstd stream encoders for
+  byte-slice compression while keeping `NewWriter` caller-owned and
+  independent.
+- Root and package README guidance now links sqloutbox test publishers and
+  records the audit publisher adoption boundary without promising durable
+  broker topology.
+
+## [v0.14.0] - 2026-07-07
+
+### Added
+
+- Cross-repo SerDe and compression benchmark baseline for `serialization`,
+  `codec`, and `compression`, including shared fixture/scenario definitions,
+  Go benchmark runners, raw `-benchmem` outputs, and environment metadata.
+- Evidence-scoped recommendation matrix comparing Go, Rust, and JVM
+  serialization/compression behavior while separating measured evidence from
+  follow-up hypotheses.
+- Benchmark artifact retention template and issue-specific output directory for
+  reproducible future benchmark reports.
+
+### Changed
+
+- Root, serialization, codec, compression, and research READMEs now point to
+  the 0.14.0 benchmark snapshot and raw evidence instead of making production
+  ranking claims.
+- Benchmark runners validate round-trip behavior before timing and include
+  deterministic scenario names for stable downstream analysis.
+
+## [v0.13.0] - 2026-07-07
+
+### Added
+
+- Retrospective 0.1.0 through 0.12.0 release-readiness audit with tracked
+  7-tier review evidence, final P0/P1 counts, deferred P2/P3 routing, and
+  release preflight state.
+- Missing stress and async cancellation coverage for existing concurrency,
+  resilience, DynamoDB batchwrite, and testing-helper contracts, including
+  race-detector validation.
+- `testcontainers/mongodb` package for reusable MongoDB integration fixtures
+  based on Testcontainers for Go, with caller-owned MongoDB clients and
+  environment-exportable connection details.
+
+### Changed
+
+- Cumulative lesson hardening now records bounded cleanup contexts and
+  errcheck-shaped cleanup examples across Testcontainers, cache, Redis
+  coordination, and JWT documentation.
+- Feature-gap triage now classifies later audit, probabilistic, messaging,
+  AWS, SQL, graph, and HTTP fixture ideas without blocking the 0.13.0 line.
+
+### Fixed
+
+- `cache.Memory.GetOrLoad` now preserves same-key caller cancellation isolation
+  without writing late canceled loader results into the cache.
+- `ratelimit/redis` now preserves caller-owned keys instead of normalizing
+  distinct keys into the same Redis storage key.
+
 ## [v0.12.0] - 2026-07-06
 
 ### Added
