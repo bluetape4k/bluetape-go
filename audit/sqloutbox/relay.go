@@ -2,6 +2,7 @@ package sqloutbox
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"time"
 
@@ -16,6 +17,16 @@ const (
 )
 
 // Publisher publishes one claimed outbox record.
+//
+// Delivery is at-least-once: the same Record can be passed to Publish more
+// than once after a retry or an expired claim lease. Implementations and
+// downstream consumers must use Record.EventID or Record.IdempotencyKey for
+// idempotency.
+//
+// If the caller-owned context is cancelled or reaches its deadline, Publish
+// should return that context error, possibly wrapped. Relay treats caller
+// cancellation as shutdown and does not convert it into retry or dead-letter
+// state.
 type Publisher interface {
 	Publish(context.Context, Record) error
 }
@@ -121,6 +132,9 @@ func (r *Relay) RunOnce(ctx context.Context, db sqlkit.Session) (RelayResult, er
 			return result, err
 		}
 		if err := r.publisher.Publish(ctx, record); err != nil {
+			if isCallerCancellation(ctx, err) {
+				return result, err
+			}
 			deadLetter := record.Attempts >= r.maxAttempt
 			if markErr := r.store.MarkFailed(ctx, db, Failure{
 				ID:          record.ID,
@@ -145,6 +159,20 @@ func (r *Relay) RunOnce(ctx context.Context, db sqlkit.Session) (RelayResult, er
 		result.Published++
 	}
 	return result, nil
+}
+
+func isCallerCancellation(ctx context.Context, err error) bool {
+	if err == nil {
+		return false
+	}
+	if ctx == nil {
+		return false
+	}
+	ctxErr := ctx.Err()
+	if ctxErr == nil {
+		return false
+	}
+	return errors.Is(err, ctxErr)
 }
 
 // Run keeps publishing batches until the context is cancelled or an internal

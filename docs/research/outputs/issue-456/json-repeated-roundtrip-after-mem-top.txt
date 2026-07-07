@@ -1,0 +1,43 @@
+File: serialization.test
+Type: alloc_space
+Time: 2026-07-07 19:12:01 KST
+Showing nodes accounting for 1303.49MB, 99.57% of 1309.07MB total
+Dropped 55 nodes (cum <= 6.55MB)
+      flat  flat%   sum%        cum   cum%
+  310.28MB 23.70% 23.70%   310.28MB 23.70%  bytes.growSlice
+  217.56MB 16.62% 40.32%   217.56MB 16.62%  reflect.mapassign_faststr0
+  212.62MB 16.24% 56.56%   693.41MB 52.97%  encoding/json.Marshal
+  186.01MB 14.21% 70.77%   186.01MB 14.21%  reflect.growslice
+     117MB  8.94% 79.71%      117MB  8.94%  reflect.unsafe_New
+  112.51MB  8.59% 88.31%   112.51MB  8.59%  encoding/json.(*decodeState).literalStore
+   95.51MB  7.30% 95.60%   246.53MB 18.83%  encoding/json.mapEncoder.encode
+   34.50MB  2.64% 98.24%    34.50MB  2.64%  reflect.makemap
+   17.50MB  1.34% 99.57%   424.07MB 32.39%  encoding/json.(*decodeState).object
+         0     0% 99.57%   248.21MB 18.96%  bytes.(*Buffer).Write
+         0     0% 99.57%    62.07MB  4.74%  bytes.(*Buffer).WriteString
+         0     0% 99.57%   310.28MB 23.70%  bytes.(*Buffer).grow
+         0     0% 99.57%   610.08MB 46.60%  encoding/json.(*decodeState).array
+         0     0% 99.57%   610.08MB 46.60%  encoding/json.(*decodeState).unmarshal
+         0     0% 99.57%   610.08MB 46.60%  encoding/json.(*decodeState).value
+         0     0% 99.57%   479.29MB 36.61%  encoding/json.(*encodeState).marshal
+         0     0% 99.57%   479.29MB 36.61%  encoding/json.(*encodeState).reflectValue
+         0     0% 99.57%   610.08MB 46.60%  encoding/json.Unmarshal
+         0     0% 99.57%   479.29MB 36.61%  encoding/json.arrayEncoder.encode
+         0     0% 99.57%   479.29MB 36.61%  encoding/json.sliceEncoder.encode
+         0     0% 99.57%   170.69MB 13.04%  encoding/json.stringEncoder
+         0     0% 99.57%   479.29MB 36.61%  encoding/json.structEncoder.encode
+         0     0% 99.57%   692.91MB 52.93%  github.com/bluetape4k/bluetape-go/serialization.JSONSerializer[go.shape.[]github.com/bluetape4k/bluetape-go/serialization_test.benchmarkEvent].Marshal
+         0     0% 99.57%   610.08MB 46.60%  github.com/bluetape4k/bluetape-go/serialization.JSONSerializer[go.shape.[]github.com/bluetape4k/bluetape-go/serialization_test.benchmarkEvent].Unmarshal
+         0     0% 99.57%  1302.71MB 99.51%  github.com/bluetape4k/bluetape-go/serialization_test.BenchmarkSerializationRoundTrip.runSerializationRoundTripBenchmark[go.shape.[]github.com/bluetape4k/bluetape-go/serialization_test.benchmarkEvent].func3
+         0     0% 99.57%    36.50MB  2.79%  reflect.(*MapIter).Key
+         0     0% 99.57%       38MB  2.90%  reflect.(*MapIter).Value
+         0     0% 99.57%    34.50MB  2.64%  reflect.MakeMap (inline)
+         0     0% 99.57%    34.50MB  2.64%  reflect.MakeMapWithSize
+         0     0% 99.57%       42MB  3.21%  reflect.New
+         0     0% 99.57%   186.01MB 14.21%  reflect.Value.Grow
+         0     0% 99.57%   217.56MB 16.62%  reflect.Value.SetMapIndex
+         0     0% 99.57%   186.01MB 14.21%  reflect.Value.grow
+         0     0% 99.57%       75MB  5.73%  reflect.copyVal
+         0     0% 99.57%   217.56MB 16.62%  reflect.mapassign_faststr
+         0     0% 99.57%  1302.21MB 99.48%  testing.(*B).launch
+         0     0% 99.57%  1307.05MB 99.85%  testing.(*B).runN

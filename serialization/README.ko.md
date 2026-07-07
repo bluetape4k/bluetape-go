@@ -38,6 +38,9 @@ value, err := versioned.Unmarshal(data)
 ## 동작
 
 - `JSONSerializer`는 `encoding/json`을 사용하며 뒤따르는 JSON 값을 거부합니다.
+  기본 decode path는 `json.Unmarshal`을 사용하고,
+  `WithDisallowUnknownFields`는 unknown object field를 거부하기 위해 decoder를
+  사용합니다.
 - `WithDisallowUnknownFields`는 엄격한 object decoding을 활성화합니다.
 - `BytesSerializer`는 marshal/unmarshal 시 byte slice를 복사합니다.
 - `StringSerializer`는 UTF-8 text serializer이며 invalid UTF-8 input에는
@@ -67,3 +70,8 @@ cross-repo baseline의 raw output artifact를 수집할 때는
 Go package 선택지이지만, JVM Fory/Kryo와 future Rust adapter는 각자의 trust
 boundary를 가진 별도 wire format입니다.
 `docs/research/2026-07-07-issue-402-cross-repo-serde-recommendation.md`를 참고하세요.
+
+Issue #456은 repeated-collection JSON decode allocation profile을
+`docs/research/outputs/issue-456/` 아래에 보존합니다. 좁은 기본 decode 최적화는
+strict trailing-value rejection을 유지하면서 unknown-field rejection을 요청하지
+않은 경우 추가 `json.Decoder` buffer copy를 피합니다.

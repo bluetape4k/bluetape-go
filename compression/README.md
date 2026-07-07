@@ -69,3 +69,8 @@ results as local evidence: evaluate zstd first for density, lz4 or snappy first
 for throughput-sensitive paths, gzip or deflate for interoperability, and avoid
 compressing random or already-compressed payloads without measuring. See
 `docs/research/2026-07-07-issue-402-cross-repo-serde-recommendation.md`.
+
+Issue #455 retains zstd allocation profiles under
+`docs/research/outputs/issue-455/`. `Compress` reuses zstd stream encoders
+internally, while `NewWriter` still returns an independent stream writer for
+callers that manage their own lifecycle.

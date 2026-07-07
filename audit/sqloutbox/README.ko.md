@@ -70,6 +70,36 @@ Delivery는 at-least-once입니다. Publisher와 consumer는 duplicate publish a
 가능하다고 보고, 안정적인 audit event ID 또는 idempotency key로 deduplication해야
 합니다.
 
+Publisher error는 retry contract의 일부입니다.
+
+- `Publisher.Publish`가 caller-owned context cancellation 또는 deadline error를
+  반환하면 `RunOnce`는 그 error를 반환하고 claimed row를 건드리지 않습니다. Row는
+  lease 기반 recovery에 맡기며, shutdown이 retry/dead-letter 상태를 만들면 안
+  됩니다.
+- Cancellation이 아닌 publish error는 bounded failure text와 함께 `MarkFailed`로
+  저장합니다. Row는 `MaxAttempts`에 따라 retryable 또는 dead-letter 상태가
+  됩니다.
+- Retry 또는 expired claim은 같은 audit envelope를 다시 publish할 수 있습니다.
+  Publisher adapter는 안정적인 `Record.EventID`와 `Record.IdempotencyKey` handoff를
+  유지하고 downstream idempotency에 의존해야 합니다.
+- Adapter는 caller-owned logging, metric, hook을 사용할 수 있지만 이 package는
+  global logger를 제공하지 않습니다. Failure text가 operator를 위해 저장되므로
+  반환 error는 bounded/redacted여야 합니다.
+
+## Test Publishers
+
+Test, local example, workshop adoption에서는 deterministic publisher helper인
+[`sqloutboxtest`](sqloutboxtest/README.ko.md)를 사용합니다.
+
+- `DiscardPublisher`는 record를 보관하거나 전송하지 않고 accept합니다.
+- `PublisherFunc`는 function을 `Publisher` interface로 adapter합니다.
+- `RecordingPublisher`는 모든 publish attempt를 기록하고 retry/dead-letter
+  assertion을 위해 event별 deterministic failure를 주입할 수 있습니다.
+
+Helper package는 broker topology를 추가하지 않습니다. Kafka, NATS, Redis
+Streams, RabbitMQ, Redpanda, Pulsar 같은 durable transport는 이후 adapter 범위로
+남깁니다.
+
 ## Boundaries
 
 - PostgreSQL이 첫 concrete SQL target입니다.
@@ -85,6 +115,8 @@ Delivery는 at-least-once입니다. Publisher와 consumer는 duplicate publish a
   않습니다.
 - Source transaction choreography, PII 정책, redaction, schema migration rollout,
   publisher idempotency, operator replay tooling은 caller 책임입니다.
+- Publisher는 external transport topology, authentication, TLS, retention,
+  consumer replay, idempotent duplicate handling을 책임집니다.
 - Kafka, NATS, Redis Streams, RabbitMQ, Redpanda, Pulsar, direct Redis audit
   storage는 이후 adapter 범위입니다.
 
@@ -93,4 +125,9 @@ Delivery는 at-least-once입니다. Publisher와 consumer는 duplicate publish a
 ```bash
 go test -count=1 ./audit/sqloutbox
 go test -race -count=1 ./audit/sqloutbox
+go test -count=1 ./audit/sqloutbox -run 'RelayRunOnce(PublisherContextCancellationDoesNotRetry|RetriesDuplicatePublishWithStableEnvelope|ConcurrentStressPublishesEachRecordOnce)'
 ```
+
+Relay test는 cancellation-driven worker lifecycle coverage에 `AsyncJobTester`를
+사용하고, concurrent `RunOnce` claim/publish coverage에 `GoroutineStressTester`를
+사용합니다.

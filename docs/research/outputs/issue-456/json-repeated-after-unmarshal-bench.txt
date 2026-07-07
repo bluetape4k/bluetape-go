@@ -1,0 +1,16 @@
+goos: darwin
+goarch: arm64
+pkg: github.com/bluetape4k/bluetape-go/serialization
+cpu: Apple M5
+BenchmarkSerializationDecode/JSON/serde-repeated-collection-v1-10         	     692	   1673801 ns/op	 196.02 MB/s	    328091 encoded_bytes	 1015804 B/op	   19219 allocs/op
+BenchmarkSerializationDecode/JSON/serde-repeated-collection-v1-10         	     756	   1589553 ns/op	 206.40 MB/s	    328091 encoded_bytes	 1015805 B/op	   19219 allocs/op
+BenchmarkSerializationDecode/JSON/serde-repeated-collection-v1-10         	     752	   1597920 ns/op	 205.32 MB/s	    328091 encoded_bytes	 1015803 B/op	   19219 allocs/op
+BenchmarkSerializationDecode/JSON/serde-repeated-collection-v1-10         	     750	   1641784 ns/op	 199.84 MB/s	    328091 encoded_bytes	 1015804 B/op	   19219 allocs/op
+BenchmarkSerializationDecode/JSON/serde-repeated-collection-v1-10         	     740	   1622088 ns/op	 202.26 MB/s	    328091 encoded_bytes	 1015803 B/op	   19219 allocs/op
+BenchmarkSerializationRoundTrip/JSON/serde-repeated-collection-v1-10      	     570	   2106407 ns/op	 155.76 MB/s	    328091 encoded_bytes	 2140871 B/op	   27635 allocs/op
+BenchmarkSerializationRoundTrip/JSON/serde-repeated-collection-v1-10      	     568	   2152292 ns/op	 152.44 MB/s	    328091 encoded_bytes	 2146397 B/op	   27635 allocs/op
+BenchmarkSerializationRoundTrip/JSON/serde-repeated-collection-v1-10      	     571	   2099026 ns/op	 156.31 MB/s	    328091 encoded_bytes	 2141793 B/op	   27635 allocs/op
+BenchmarkSerializationRoundTrip/JSON/serde-repeated-collection-v1-10      	     567	   2109387 ns/op	 155.54 MB/s	    328091 encoded_bytes	 2169519 B/op	   27636 allocs/op
+BenchmarkSerializationRoundTrip/JSON/serde-repeated-collection-v1-10      	     568	   2100132 ns/op	 156.22 MB/s	    328091 encoded_bytes	 2144544 B/op	   27635 allocs/op
+PASS
+ok  	github.com/bluetape4k/bluetape-go/serialization	14.500s

@@ -37,7 +37,9 @@ value, err := versioned.Unmarshal(data)
 
 ## Behavior
 
-- `JSONSerializer` uses `encoding/json` and rejects trailing JSON values.
+- `JSONSerializer` uses `encoding/json` and rejects trailing JSON values. The
+  default decode path uses `json.Unmarshal`; `WithDisallowUnknownFields` uses a
+  decoder so unknown object fields can be rejected.
 - `WithDisallowUnknownFields` enables strict object decoding.
 - `BytesSerializer` copies byte slices on marshal and unmarshal.
 - `StringSerializer` is a UTF-8 text serializer and returns an error wrapping
@@ -68,3 +70,8 @@ small and wire-format explicit: JSON and the Go-local `BTGS` envelope are safe
 Go package choices, while JVM Fory/Kryo and future Rust adapters remain separate
 wire formats with their own trust boundaries. See
 `docs/research/2026-07-07-issue-402-cross-repo-serde-recommendation.md`.
+
+Issue #456 retains repeated-collection JSON decode allocation profiles under
+`docs/research/outputs/issue-456/`. The narrow default decode optimization keeps
+strict trailing-value rejection while avoiding the extra `json.Decoder` buffer
+copy when unknown-field rejection is not requested.

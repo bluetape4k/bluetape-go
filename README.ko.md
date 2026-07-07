@@ -97,15 +97,16 @@ release-readiness bookkeeping을 기록합니다. 유일한 must-have feature ad
 | [`sqlkit`](sqlkit/README.ko.md) | active | Runtime-first `database/sql` transaction helper, 명시적 row mapping/cardinality helper, PostgreSQL 우선 inspectable SQL builder. |
 | [`audit`](audit/README.ko.md) | active | validated JSON entry, pending event recording, history reconstruction을 제공하는 storage-neutral aggregate event/audit model. |
 | [`audit/sqloutbox`](audit/sqloutbox/README.ko.md) | active | Caller-owned transaction choreography를 유지하는 PostgreSQL-backed audit outbox store와 relay. |
+| [`audit/sqloutbox/sqloutboxtest`](audit/sqloutbox/sqloutboxtest/README.ko.md) | active | sqloutbox test, example, retry, duplicate-delivery assertion을 위한 deterministic publisher helper. |
 | [`graph`](graph/README.ko.md) | active | Vertex, edge, path, label, ID, shallow property, validated JSON을 제공하는 model-only graph value. |
 | [`graph/graphio`](graph/graphio/README.ko.md) | active | Graph vertex/edge를 위한 bounded NDJSON 및 paired CSV import/export helper. |
 | [`graph/neo4j`](graph/neo4j/README.ko.md) | active | 공식 Neo4j Go driver 결과를 graph vertex/edge로 변환하는 proof adapter. |
 | [`probabilistic`](probabilistic/README.ko.md) | active | deterministic config, merge compatibility check, stress/race coverage를 갖춘 goroutine-safe 인메모리 Bloom filter. |
 | [`probabilistic/redis`](probabilistic/redis/README.ko.md) | active | Static Lua script, immutable config metadata, operator runbook 경계를 갖춘 Redis-backed shared Bloom filter. |
 
-다음 계획 패키지군은 audit publisher adapter와 example service입니다.
-Redis-backed Cuckoo와 HyperLogLog/HLL 지원은 Redis Bloom 범위 이후 별도로
-추적합니다.
+다음 계획 패키지군은 durable audit transport publisher adapter와 example
+service입니다. Redis-backed Cuckoo와 HyperLogLog/HLL 지원은 Redis Bloom 범위 이후
+별도로 추적합니다.
 
 ## SerDe Baseline Guidance
 
@@ -164,10 +165,11 @@ go get github.com/bluetape4k/bluetape-go
 - Data access: [`sqlkit`](sqlkit/README.ko.md) 및 optional
   [SQL generator/migration guide](docs/sql-generator-migration-guidance.ko.md).
 - Audit: storage-neutral aggregate event value, pending event handoff, validated
-  audit entry JSON, history reconstruction을 위한 [`audit`](audit/README.ko.md)와
+  audit entry JSON, history reconstruction을 위한 [`audit`](audit/README.ko.md),
   PostgreSQL-backed at-least-once outbox delivery를 위한
-  [`audit/sqloutbox`](audit/sqloutbox/README.ko.md), runnable audit-backed order
-  service인 [`examples/audit`](examples/audit/README.ko.md).
+  [`audit/sqloutbox`](audit/sqloutbox/README.ko.md), deterministic publisher
+  helper인 [`audit/sqloutbox/sqloutboxtest`](audit/sqloutbox/sqloutboxtest/README.ko.md),
+  runnable audit-backed order service인 [`examples/audit`](examples/audit/README.ko.md).
 - Graph: model-only vertex, edge, path, label, ID, shallow property, validated
   JSON value를 제공하는 [`graph`](graph/README.ko.md), bounded NDJSON/paired CSV
   import/export helper를 제공하는 [`graph/graphio`](graph/graphio/README.ko.md),
@@ -214,7 +216,11 @@ Audit 예제는 일부러 작게 만들었습니다. 현재 상태를 가진 sou
 `audit.Entry`를 append하고, append가 성공한 뒤에만 예제 order state를 바꿉니다.
 History query도 같은 repository boundary를 읽습니다. Outbox replay는 최소
 `EntrySink`만 사용하므로 운영 code에서는 in-memory fixture 대신 `audit/sqloutbox`를
-연결하면 됩니다. 예제를 framework로 키우지 않고 boundary만 드러내려는 의도입니다.
+연결하면 됩니다. Adoption path도 명시적으로 유지합니다. `Store.Enqueue`가 durable
+row를 쓰고, `Relay.RunOnce` 또는 `Relay.Run`이 claim하며,
+`sqloutbox.Publisher` adapter가 duplicate-safe consumer를 위해 `Record.EventID` /
+`Record.IdempotencyKey`를 보존합니다. 예제를 framework로 키우지 않고 boundary만
+드러내려는 의도입니다.
 
 ## Roadmap
 

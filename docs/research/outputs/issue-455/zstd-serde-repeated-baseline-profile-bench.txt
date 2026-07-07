@@ -1,0 +1,7 @@
+goos: darwin
+goarch: arm64
+pkg: github.com/bluetape4k/bluetape-go/serialization
+cpu: Apple M5
+BenchmarkSerializationSerializeThenCompress/JSON/serde-repeated-collection-v1/zstd-10    	    2534	    429436 ns/op	 764.00 MB/s	         0.06491 compressed/serialized	     21297 compressed_bytes	    328091 serialized_bytes	19616418 B/op	      79 allocs/op
+PASS
+ok  	github.com/bluetape4k/bluetape-go/serialization	1.580s

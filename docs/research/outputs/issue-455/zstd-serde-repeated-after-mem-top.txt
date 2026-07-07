@@ -1,0 +1,26 @@
+File: serialization.test
+Type: alloc_space
+Time: 2026-07-08 01:06:23 KST
+Showing nodes accounting for 759.48MB, 98.26% of 772.94MB total
+Dropped 60 nodes (cum <= 3.86MB)
+      flat  flat%   sum%        cum   cum%
+  724.35MB 93.71% 93.71%   724.35MB 93.71%  bytes.growSlice
+      32MB  4.14% 97.85%       32MB  4.14%  github.com/klauspost/compress/zstd.(*fastBase).ensureHist (inline)
+    1.07MB  0.14% 97.99%    33.07MB  4.28%  github.com/klauspost/compress/zstd.(*doubleFastEncoder).Encode
+       1MB  0.13% 98.12%    34.07MB  4.41%  github.com/klauspost/compress/zstd.(*Encoder).nextBlock.func1
+    0.57MB 0.073% 98.19%     4.43MB  0.57%  github.com/klauspost/compress/zstd.(*Encoder).Reset
+    0.50MB 0.065% 98.26%   724.85MB 93.78%  bytes.(*Buffer).grow
+         0     0% 98.26%   724.85MB 93.78%  bytes.(*Buffer).Write
+         0     0% 98.26%     6.43MB  0.83%  github.com/bluetape4k/bluetape-go/compression.(*zstdCompressor).Compress
+         0     0% 98.26%     4.43MB  0.57%  github.com/bluetape4k/bluetape-go/compression.(*zstdCompressor).encoder
+         0     0% 98.26%     4.43MB  0.57%  github.com/bluetape4k/bluetape-go/compression.All.Zstd.ZstdLevel.func11
+         0     0% 98.26%     4.72MB  0.61%  github.com/bluetape4k/bluetape-go/serialization_test.BenchmarkSerializationSerializeThenCompress
+         0     0% 98.26%     6.43MB  0.83%  github.com/bluetape4k/bluetape-go/serialization_test.BenchmarkSerializationSerializeThenCompress.func1.1
+         0     0% 98.26%     4.72MB  0.61%  github.com/bluetape4k/bluetape-go/serialization_test.serializationCompressionPayloads
+         0     0% 98.26%   724.72MB 93.76%  github.com/klauspost/compress/zstd.(*Encoder).nextBlock.func1.2
+         0     0% 98.26%       32MB  4.14%  github.com/klauspost/compress/zstd.(*fastBase).addBlock
+         0     0% 98.26%     4.43MB  0.57%  github.com/klauspost/compress/zstd.NewWriter
+         0     0% 98.26%     4.43MB  0.57%  sync.(*Pool).Get
+         0     0% 98.26%     4.50MB  0.58%  testing.(*B).launch
+         0     0% 98.26%     7.15MB  0.92%  testing.(*B).run1.func1
+         0     0% 98.26%    11.65MB  1.51%  testing.(*B).runN
