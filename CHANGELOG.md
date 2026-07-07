@@ -7,6 +7,27 @@ and this project uses semantic versioning once the first tag is published.
 
 ## [Unreleased]
 
+## [v0.14.0] - 2026-07-07
+
+### Added
+
+- Cross-repo SerDe and compression benchmark baseline for `serialization`,
+  `codec`, and `compression`, including shared fixture/scenario definitions,
+  Go benchmark runners, raw `-benchmem` outputs, and environment metadata.
+- Evidence-scoped recommendation matrix comparing Go, Rust, and JVM
+  serialization/compression behavior while separating measured evidence from
+  follow-up hypotheses.
+- Benchmark artifact retention template and issue-specific output directory for
+  reproducible future benchmark reports.
+
+### Changed
+
+- Root, serialization, codec, compression, and research READMEs now point to
+  the 0.14.0 benchmark snapshot and raw evidence instead of making production
+  ranking claims.
+- Benchmark runners validate round-trip behavior before timing and include
+  deterministic scenario names for stable downstream analysis.
+
 ## [v0.13.0] - 2026-07-07
 
 ### Added
