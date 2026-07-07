@@ -216,7 +216,11 @@ Audit 예제는 일부러 작게 만들었습니다. 현재 상태를 가진 sou
 `audit.Entry`를 append하고, append가 성공한 뒤에만 예제 order state를 바꿉니다.
 History query도 같은 repository boundary를 읽습니다. Outbox replay는 최소
 `EntrySink`만 사용하므로 운영 code에서는 in-memory fixture 대신 `audit/sqloutbox`를
-연결하면 됩니다. 예제를 framework로 키우지 않고 boundary만 드러내려는 의도입니다.
+연결하면 됩니다. Adoption path도 명시적으로 유지합니다. `Store.Enqueue`가 durable
+row를 쓰고, `Relay.RunOnce` 또는 `Relay.Run`이 claim하며,
+`sqloutbox.Publisher` adapter가 duplicate-safe consumer를 위해 `Record.EventID` /
+`Record.IdempotencyKey`를 보존합니다. 예제를 framework로 키우지 않고 boundary만
+드러내려는 의도입니다.
 
 ## Roadmap
 

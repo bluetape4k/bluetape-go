@@ -225,7 +225,10 @@ from the audit history: commands append `audit.Entry` values through an
 `audit.Repository`, then mutate the example order state only after the append
 succeeds. History queries read the same repository boundary, and outbox replay
 uses a minimal `EntrySink` so production code can swap the in-memory fixture for
-`audit/sqloutbox` without turning the example into a framework.
+`audit/sqloutbox` without turning the example into a framework. The adoption
+path stays explicit: `Store.Enqueue` writes durable rows, `Relay.RunOnce` or
+`Relay.Run` claims them, and a `sqloutbox.Publisher` adapter preserves
+`Record.EventID` / `Record.IdempotencyKey` for duplicate-safe consumers.
 
 ## Roadmap
 
