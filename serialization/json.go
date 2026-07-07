@@ -59,10 +59,15 @@ func (s JSONSerializer[T]) Unmarshal(data []byte) (T, error) {
 		return value, fmt.Errorf("unmarshal json: input must not be empty")
 	}
 
-	decoder := json.NewDecoder(bytes.NewReader(data))
-	if s.options.DisallowUnknownFields {
-		decoder.DisallowUnknownFields()
+	if !s.options.DisallowUnknownFields {
+		if err := json.Unmarshal(data, &value); err != nil {
+			return value, fmt.Errorf("unmarshal json: %w", err)
+		}
+		return value, nil
 	}
+
+	decoder := json.NewDecoder(bytes.NewReader(data))
+	decoder.DisallowUnknownFields()
 	if err := decoder.Decode(&value); err != nil {
 		return value, fmt.Errorf("unmarshal json: %w", err)
 	}
