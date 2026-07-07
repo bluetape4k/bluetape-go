@@ -8,6 +8,7 @@ import (
 	"time"
 
 	bttesting "github.com/bluetape4k/bluetape-go/testing"
+	concurrencytest "github.com/bluetape4k/bluetape-go/testing/concurrency"
 )
 
 func TestCheckContextCanceled(t *testing.T) {
@@ -60,6 +61,36 @@ func TestCheckDeadlineExceeded(t *testing.T) {
 	if err != nil {
 		t.Fatalf("CheckDeadlineExceeded error = %v", err)
 	}
+}
+
+func TestCancellationHelpersUseAsyncJobTester(t *testing.T) {
+	tester := concurrencytest.NewAsyncJobTester(concurrencytest.Options{
+		Workers:       2,
+		RoundsPerTask: 16,
+		Timeout:       2 * time.Second,
+	})
+
+	tester.RunT(t, func(context.Context) error {
+		if err := bttesting.CheckDeadlineExceeded(5*time.Millisecond, func(ctx context.Context) error {
+			<-ctx.Done()
+			return ctx.Err()
+		}); err != nil {
+			return err
+		}
+		if err := bttesting.CheckWaiterReleased(50*time.Millisecond, func(ctx context.Context, ready func()) error {
+			ready()
+			<-ctx.Done()
+			return ctx.Err()
+		}); err != nil {
+			return err
+		}
+		return bttesting.CheckCleanupOnCancel(50*time.Millisecond, func(ctx context.Context, ready func(), cleaned func()) error {
+			ready()
+			<-ctx.Done()
+			cleaned()
+			return ctx.Err()
+		})
+	})
 }
 
 func TestCheckDeadlineExceededDiagnostics(t *testing.T) {

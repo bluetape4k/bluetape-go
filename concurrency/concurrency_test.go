@@ -3,12 +3,13 @@ package concurrency_test
 import (
 	"context"
 	"errors"
-	"sync"
+	"fmt"
 	"sync/atomic"
 	"testing"
 	"time"
 
 	"github.com/bluetape4k/bluetape-go/concurrency"
+	concurrencytest "github.com/bluetape4k/bluetape-go/testing/concurrency"
 )
 
 func TestGoCapturesPanicAsError(t *testing.T) {
@@ -109,6 +110,27 @@ func TestMapPropagatesCancellation(t *testing.T) {
 	}
 }
 
+func TestMapCancellationUsesAsyncJobTester(t *testing.T) {
+	tester := concurrencytest.NewAsyncJobTester(concurrencytest.Options{
+		Workers:       2,
+		RoundsPerTask: 32,
+		Timeout:       time.Second,
+	})
+
+	tester.RunT(t, func(context.Context) error {
+		ctx, cancel := context.WithCancel(context.Background())
+		cancel()
+
+		_, err := concurrency.Map(ctx, []int{1}, 1, func(context.Context, int) (int, error) {
+			return 0, errors.New("mapper should not run for a cancelled context")
+		})
+		if !errors.Is(err, context.Canceled) {
+			return fmt.Errorf("Map error = %w, want context.Canceled", err)
+		}
+		return nil
+	})
+}
+
 func TestWorkerPoolProcessesJobsAndStopsOnError(t *testing.T) {
 	expected := errors.New("bad job")
 	var processed int32
@@ -138,6 +160,44 @@ func TestWorkerPoolProcessesJobsAndStopsOnError(t *testing.T) {
 	if atomic.LoadInt32(&processed) == 0 {
 		t.Fatal("expected at least one processed job before error")
 	}
+}
+
+func TestGroupCancellationUsesAsyncJobTester(t *testing.T) {
+	expected := errors.New("stop")
+	tester := concurrencytest.NewAsyncJobTester(concurrencytest.Options{
+		Workers:       2,
+		RoundsPerTask: 32,
+		Timeout:       2 * time.Second,
+	})
+
+	tester.RunT(t, func(context.Context) error {
+		group := concurrency.NewGroup(context.Background())
+
+		ready := make(chan struct{})
+		cancelled := make(chan struct{})
+		group.Go(func(ctx context.Context) error {
+			close(ready)
+			<-ctx.Done()
+			close(cancelled)
+			return nil
+		})
+
+		<-ready
+		group.Go(func(context.Context) error {
+			return expected
+		})
+
+		if err := group.Wait(); !errors.Is(err, expected) {
+			return fmt.Errorf("Group.Wait error = %w, want %q", err, expected.Error())
+		}
+
+		select {
+		case <-cancelled:
+			return nil
+		case <-time.After(100 * time.Millisecond):
+			return errors.New("group context was not cancelled")
+		}
+	})
 }
 
 func TestRoundRobinCyclesAndValidatesState(t *testing.T) {
@@ -179,8 +239,7 @@ func TestRoundRobinCyclesAndValidatesState(t *testing.T) {
 func TestRoundRobinConcurrentNextStaysInRange(t *testing.T) {
 	const (
 		maximum = 4
-		workers = 16
-		rounds  = 500
+		runs    = 8000
 	)
 
 	roundRobin, err := concurrency.NewRoundRobin(maximum)
@@ -189,31 +248,77 @@ func TestRoundRobinConcurrentNextStaysInRange(t *testing.T) {
 	}
 
 	var counts [maximum]int64
-	var wg sync.WaitGroup
-	for range workers {
-		wg.Add(1)
-		go func() {
-			defer wg.Done()
-			for range rounds {
-				value := roundRobin.Next()
-				if value < 0 || value >= maximum {
-					t.Errorf("Next() = %d, want value in [0,%d)", value, maximum)
-					return
-				}
-				atomic.AddInt64(&counts[value], 1)
-			}
-		}()
+	tester := concurrencytest.NewGoroutineStressTester(concurrencytest.Options{
+		Workers:       16,
+		RoundsPerTask: runs,
+		Timeout:       2 * time.Second,
+	})
+	report := tester.RunT(t, func(context.Context) error {
+		value := roundRobin.Next()
+		if value < 0 || value >= maximum {
+			return errors.New("round robin returned value out of range")
+		}
+		atomic.AddInt64(&counts[value], 1)
+		return nil
+	})
+	if report.Completed != runs {
+		t.Fatalf("completed = %d, want %d", report.Completed, runs)
 	}
-	wg.Wait()
+	if report.MaxConcurrent > 16 {
+		t.Fatalf("max concurrent = %d, want <= 16", report.MaxConcurrent)
+	}
 
 	var total int64
 	for value, count := range counts {
 		total += count
-		if count != workers*rounds/maximum {
-			t.Fatalf("value %d returned %d times, want %d; counts=%v", value, count, workers*rounds/maximum, counts)
+		if count != runs/maximum {
+			t.Fatalf("value %d returned %d times, want %d; counts=%v", value, count, runs/maximum, counts)
 		}
 	}
-	if total != workers*rounds {
-		t.Fatalf("total returned values = %d, want %d; counts=%v", total, workers*rounds, counts)
+	if total != runs {
+		t.Fatalf("total returned values = %d, want %d; counts=%v", total, runs, counts)
 	}
+}
+
+func TestParallelHelpersUseGoroutineStressTester(t *testing.T) {
+	tester := concurrencytest.NewGoroutineStressTester(concurrencytest.Options{
+		Workers:       4,
+		RoundsPerTask: 64,
+		Timeout:       2 * time.Second,
+	})
+
+	tester.RunT(t, func(context.Context) error {
+		var running int32
+		var maxRunning int32
+		if err := concurrency.ForEach(context.Background(), []int{1, 2, 3, 4, 5, 6}, 2, func(context.Context, int) error {
+			current := atomic.AddInt32(&running, 1)
+			defer atomic.AddInt32(&running, -1)
+			for {
+				observed := atomic.LoadInt32(&maxRunning)
+				if current <= observed || atomic.CompareAndSwapInt32(&maxRunning, observed, current) {
+					break
+				}
+			}
+			time.Sleep(time.Millisecond)
+			return nil
+		}); err != nil {
+			return err
+		}
+		if maxRunning > 2 {
+			return errors.New("ForEach exceeded concurrency limit")
+		}
+
+		values, err := concurrency.Map(context.Background(), []int{1, 2, 3, 4}, 2, func(_ context.Context, value int) (int, error) {
+			return value * value, nil
+		})
+		if err != nil {
+			return err
+		}
+		for index, want := range []int{1, 4, 9, 16} {
+			if values[index] != want {
+				return errors.New("Map did not preserve input order")
+			}
+		}
+		return nil
+	})
 }

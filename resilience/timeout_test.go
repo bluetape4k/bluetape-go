@@ -3,10 +3,12 @@ package resilience_test
 import (
 	"context"
 	"errors"
+	"fmt"
 	"testing"
 	"time"
 
 	"github.com/bluetape4k/bluetape-go/resilience"
+	concurrencytest "github.com/bluetape4k/bluetape-go/testing/concurrency"
 )
 
 func TestTimeoutWrapsOwnDeadline(t *testing.T) {
@@ -66,4 +68,35 @@ func TestTimeoutReturnsParentCancellation(t *testing.T) {
 	if errors.Is(err, resilience.ErrTimeout) {
 		t.Fatalf("parent cancellation should not be reported as timeout: %v", err)
 	}
+}
+
+func TestTimeoutParentCancellationUsesAsyncJobTester(t *testing.T) {
+	timeout, err := resilience.NewTimeout[int](resilience.TimeoutOptions{
+		Timeout: time.Second,
+	})
+	if err != nil {
+		t.Fatalf("NewTimeout failed: %v", err)
+	}
+
+	tester := concurrencytest.NewAsyncJobTester(concurrencytest.Options{
+		Workers:       2,
+		RoundsPerTask: 32,
+		Timeout:       time.Second,
+	})
+
+	tester.RunT(t, func(context.Context) error {
+		ctx, cancel := context.WithCancel(context.Background())
+		cancel()
+
+		_, err := resilience.Run(ctx, func(context.Context) (int, error) {
+			return 0, errors.New("operation should not run for a cancelled context")
+		}, timeout)
+		if !errors.Is(err, context.Canceled) {
+			return fmt.Errorf("Run error = %w, want context.Canceled", err)
+		}
+		if errors.Is(err, resilience.ErrTimeout) {
+			return fmt.Errorf("Run error = %w, should not wrap ErrTimeout", err)
+		}
+		return nil
+	})
 }

@@ -8,7 +8,6 @@ import (
 	toxiproxyclient "github.com/Shopify/toxiproxy/v2/client"
 	toxiproxytestcontainer "github.com/bluetape4k/bluetape-go/testcontainers/toxiproxy"
 	"github.com/redis/go-redis/v9"
-	"github.com/testcontainers/testcontainers-go"
 	tcredis "github.com/testcontainers/testcontainers-go/modules/redis"
 	tctoxiproxy "github.com/testcontainers/testcontainers-go/modules/toxiproxy"
 	"github.com/testcontainers/testcontainers-go/network"
@@ -23,7 +22,9 @@ func TestStartToxiproxyWithRedisProxy(t *testing.T) {
 		t.Fatalf("create network: %v", err)
 	}
 	t.Cleanup(func() {
-		if err := nw.Remove(ctx); err != nil {
+		cleanupCtx, cleanupCancel := context.WithTimeout(context.WithoutCancel(ctx), 30*time.Second)
+		defer cleanupCancel()
+		if err := nw.Remove(cleanupCtx); err != nil {
 			t.Fatalf("remove network: %v", err)
 		}
 	})
@@ -33,7 +34,9 @@ func TestStartToxiproxyWithRedisProxy(t *testing.T) {
 		t.Fatalf("start redis: %v", err)
 	}
 	t.Cleanup(func() {
-		if err := testcontainers.TerminateContainer(redisContainer); err != nil {
+		cleanupCtx, cleanupCancel := context.WithTimeout(context.WithoutCancel(ctx), 30*time.Second)
+		defer cleanupCancel()
+		if err := redisContainer.Terminate(cleanupCtx); err != nil {
 			t.Fatalf("terminate redis: %v", err)
 		}
 	})

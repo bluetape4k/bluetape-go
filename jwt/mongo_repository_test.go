@@ -9,9 +9,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/bluetape4k/bluetape-go/internal/testcleanup"
+	mongodbtestcontainer "github.com/bluetape4k/bluetape-go/testcontainers/mongodb"
 	concurrencytest "github.com/bluetape4k/bluetape-go/testing/concurrency"
-	tcmongodb "github.com/testcontainers/testcontainers-go/modules/mongodb"
 	"go.mongodb.org/mongo-driver/v2/mongo"
 	"go.mongodb.org/mongo-driver/v2/mongo/options"
 )
@@ -292,42 +291,17 @@ func jwtMongoClient(ctx context.Context, t *testing.T) *mongo.Client {
 	t.Helper()
 	startCtx, cancel := context.WithTimeout(ctx, 90*time.Second)
 	t.Cleanup(cancel)
-	uri, err := jwtMongoURI(startCtx)
-	if err != nil {
-		t.Fatalf("start mongodb container: %v", err)
-	}
+	uri := mongodbtestcontainer.Start(startCtx, t)
 	client, err := mongo.Connect(options.Client().ApplyURI(uri))
 	if err != nil {
 		t.Fatalf("connect mongodb: %v", err)
 	}
-	t.Cleanup(func() { _ = client.Disconnect(context.Background()) })
-	return client
-}
-
-var jwtMongoFixture struct {
-	once      sync.Once
-	container *tcmongodb.MongoDBContainer
-	uri       string
-	err       error
-}
-
-func jwtMongoURI(ctx context.Context) (string, error) {
-	jwtMongoFixture.once.Do(func() {
-		container, err := tcmongodb.Run(ctx, "mongo:7.0")
-		if err != nil {
-			jwtMongoFixture.err = err
-			return
-		}
-		uri, err := container.ConnectionString(ctx)
-		if err != nil {
-			jwtMongoFixture.err = err
-			_ = testcleanup.Terminate(ctx, 0, container)
-			return
-		}
-		jwtMongoFixture.container = container
-		jwtMongoFixture.uri = uri
+	t.Cleanup(func() {
+		cleanupCtx, cleanupCancel := context.WithTimeout(context.WithoutCancel(ctx), 5*time.Second)
+		defer cleanupCancel()
+		_ = client.Disconnect(cleanupCtx)
 	})
-	return jwtMongoFixture.uri, jwtMongoFixture.err
+	return client
 }
 
 func newTestMongoRepository(t *testing.T, client *mongo.Client, namespace string, options MongoRepositoryOptions) *MongoRepository {
