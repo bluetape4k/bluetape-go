@@ -1,0 +1,11 @@
+goos: darwin
+goarch: arm64
+pkg: github.com/bluetape4k/bluetape-go/compression
+cpu: Apple M5
+BenchmarkCompressorsCompress/json/large/zstd-10    	    1700	    653114 ns/op	1204.55 MB/s	         0.05706 compressed/original	     44889 compressed_bytes	19670400 B/op	      92 allocs/op
+BenchmarkCompressorsCompress/json/large/zstd-10    	    1802	    667241 ns/op	1179.05 MB/s	         0.05706 compressed/original	     44889 compressed_bytes	19670369 B/op	      92 allocs/op
+BenchmarkCompressorsCompress/json/large/zstd-10    	    1796	    666605 ns/op	1180.17 MB/s	         0.05706 compressed/original	     44889 compressed_bytes	19670351 B/op	      92 allocs/op
+BenchmarkCompressorsCompress/json/large/zstd-10    	    1782	    669702 ns/op	1174.71 MB/s	         0.05706 compressed/original	     44889 compressed_bytes	19670354 B/op	      92 allocs/op
+BenchmarkCompressorsCompress/json/large/zstd-10    	    1798	    657350 ns/op	1196.79 MB/s	         0.05706 compressed/original	     44889 compressed_bytes	19670346 B/op	      92 allocs/op
+PASS
+ok  	github.com/bluetape4k/bluetape-go/compression	6.836s
