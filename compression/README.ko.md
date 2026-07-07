@@ -70,3 +70,8 @@ throughput-sensitive path는 lz4 또는 snappy를 먼저 평가하세요. Intero
 gzip 또는 deflate를 사용하고, random 또는 이미 압축된 payload는 측정 없이
 압축하지 마세요.
 `docs/research/2026-07-07-issue-402-cross-repo-serde-recommendation.md`를 참고하세요.
+
+Issue #455는 zstd allocation profile을 `docs/research/outputs/issue-455/`
+아래에 보존합니다. `Compress`는 내부적으로 zstd stream encoder를 재사용하지만,
+caller가 lifecycle을 직접 관리하는 `NewWriter`는 독립 stream writer를 계속
+반환합니다.
