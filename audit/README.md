@@ -174,6 +174,8 @@ publisher target. The design is recorded in
 [`docs/research/2026-06-27-issue-58-audit-outbox-design.md`](../docs/research/2026-06-27-issue-58-audit-outbox-design.md).
 The first implementation lives in
 [`audit/sqloutbox`](sqloutbox/README.md).
+Its publisher contract covers at-least-once retry, caller context cancellation,
+stable event/idempotency-key handoff, and duplicate-safe adapter behavior.
 
 Kafka, NATS, Redis Streams, RabbitMQ, Redpanda, and Pulsar remain deferred
 publisher/projection adapters until the durable SQL outbox contract is proven.

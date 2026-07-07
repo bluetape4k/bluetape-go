@@ -240,6 +240,105 @@ func TestRelayRunOncePublishesAndRetriesFailures(t *testing.T) {
 	}
 }
 
+func TestRelayRunOncePublisherContextCancellationDoesNotRetry(t *testing.T) {
+	ctx, cancel := context.WithTimeout(context.Background(), 90*time.Second)
+	t.Cleanup(cancel)
+
+	db := openPostgresDB(ctx, t)
+	store := newTestStore(ctx, t, db)
+	if err := store.Enqueue(ctx, db, mustEntry(t, 1, "event-cancel", "idem-cancel")); err != nil {
+		t.Fatalf("Enqueue: %v", err)
+	}
+
+	runCtx, cancelRun := context.WithCancel(ctx)
+	publisher := publisherFunc(func(context.Context, Record) error {
+		cancelRun()
+		return fmt.Errorf("publisher shutdown: %w", context.Canceled)
+	})
+	relay, err := NewRelay(store, publisher, RelayOptions{
+		ClaimLimit:  1,
+		MaxAttempts: 2,
+		RetryDelay:  time.Minute,
+		Now:         func() time.Time { return testClock.Add(20 * time.Minute) },
+	})
+	if err != nil {
+		t.Fatalf("NewRelay: %v", err)
+	}
+
+	result, err := relay.RunOnce(runCtx, db)
+	if !errors.Is(err, context.Canceled) {
+		t.Fatalf("RunOnce error = %v, want context.Canceled", err)
+	}
+	if result.Claimed != 1 || result.Published != 0 || result.Failed != 0 || result.DeadLettered != 0 {
+		t.Fatalf("RunOnce result = %#v, want claimed-only cancellation", result)
+	}
+	if got := statusForEvent(ctx, t, db, "event-cancel"); got != StatusClaimed {
+		t.Fatalf("status after cancellation = %q, want %q", got, StatusClaimed)
+	}
+	if got := lastErrorForEvent(ctx, t, db, "event-cancel"); got != "" {
+		t.Fatalf("last_error after cancellation = %q, want empty", got)
+	}
+}
+
+func TestRelayRunOnceRetriesDuplicatePublishWithStableEnvelope(t *testing.T) {
+	ctx, cancel := context.WithTimeout(context.Background(), 90*time.Second)
+	t.Cleanup(cancel)
+
+	db := openPostgresDB(ctx, t)
+	store := newTestStore(ctx, t, db)
+	if err := store.Enqueue(ctx, db, mustEntry(t, 1, "event-duplicate-publish", "idem-duplicate-publish")); err != nil {
+		t.Fatalf("Enqueue: %v", err)
+	}
+
+	publisher := &recordingPublisher{
+		failures: map[audit.EventID]int{"event-duplicate-publish": 1},
+	}
+	relay, err := NewRelay(store, publisher, RelayOptions{
+		ClaimLimit:  1,
+		MaxAttempts: 3,
+		RetryDelay:  time.Minute,
+		Now:         func() time.Time { return testClock.Add(30 * time.Minute) },
+	})
+	if err != nil {
+		t.Fatalf("NewRelay: %v", err)
+	}
+
+	result, err := relay.RunOnce(ctx, db)
+	if err != nil {
+		t.Fatalf("RunOnce first attempt: %v", err)
+	}
+	if result.Claimed != 1 || result.Published != 0 || result.Failed != 1 || result.DeadLettered != 0 {
+		t.Fatalf("first RunOnce result = %#v, want one retry failure", result)
+	}
+
+	relay.now = func() time.Time { return testClock.Add(31 * time.Minute) }
+	result, err = relay.RunOnce(ctx, db)
+	if err != nil {
+		t.Fatalf("RunOnce retry: %v", err)
+	}
+	if result.Claimed != 1 || result.Published != 1 || result.Failed != 0 || result.DeadLettered != 0 {
+		t.Fatalf("retry RunOnce result = %#v, want one publish", result)
+	}
+
+	records := publisher.records()
+	if len(records) != 2 {
+		t.Fatalf("publish attempts = %d, want 2", len(records))
+	}
+	first, second := records[0], records[1]
+	if first.Entry.Event.EventID != second.Entry.Event.EventID {
+		t.Fatalf("event ID changed across retry: %q vs %q", first.Entry.Event.EventID, second.Entry.Event.EventID)
+	}
+	if first.Entry.Event.IdempotencyKey != second.Entry.Event.IdempotencyKey {
+		t.Fatalf("idempotency key changed across retry: %q vs %q", first.Entry.Event.IdempotencyKey, second.Entry.Event.IdempotencyKey)
+	}
+	if first.Attempts != 1 || second.Attempts != 2 {
+		t.Fatalf("attempts = %d, %d; want 1, 2", first.Attempts, second.Attempts)
+	}
+	if got := statusForEvent(ctx, t, db, "event-duplicate-publish"); got != StatusPublished {
+		t.Fatalf("status after retry = %q, want %q", got, StatusPublished)
+	}
+}
+
 func TestRelayRunStopsOnContextCancellation(t *testing.T) {
 	ctx, cancel := context.WithTimeout(context.Background(), 90*time.Second)
 	t.Cleanup(cancel)
@@ -271,6 +370,56 @@ func TestRelayRunStopsOnContextCancellation(t *testing.T) {
 		}
 		return fmt.Errorf("Run returned unexpected error, want context cancellation: %w", err)
 	})
+}
+
+func TestRelayRunOnceConcurrentStressPublishesEachRecordOnce(t *testing.T) {
+	ctx, cancel := context.WithTimeout(context.Background(), 90*time.Second)
+	t.Cleanup(cancel)
+
+	db := openPostgresDB(ctx, t)
+	store := newTestStore(ctx, t, db)
+
+	const entries = 12
+	toEnqueue := make([]audit.Entry, 0, entries)
+	for i := 1; i <= entries; i++ {
+		toEnqueue = append(toEnqueue, mustEntryForAggregate(t, fmt.Sprintf("stress-%02d", i), 1, fmt.Sprintf("event-stress-%02d", i), fmt.Sprintf("idem-stress-%02d", i)))
+	}
+	if err := store.Enqueue(ctx, db, toEnqueue...); err != nil {
+		t.Fatalf("Enqueue: %v", err)
+	}
+
+	var seen sync.Map
+	publisher := publisherFunc(func(ctx context.Context, record Record) error {
+		if err := ctx.Err(); err != nil {
+			return err
+		}
+		eventID := record.Entry.Event.EventID
+		if _, loaded := seen.LoadOrStore(eventID, record.Attempts); loaded {
+			return fmt.Errorf("duplicate publish attempt for %s", eventID)
+		}
+		return nil
+	})
+	relay, err := NewRelay(store, publisher, RelayOptions{
+		ClaimLimit: 1,
+		Now:        func() time.Time { return testClock.Add(40 * time.Minute) },
+	})
+	if err != nil {
+		t.Fatalf("NewRelay: %v", err)
+	}
+
+	tester := concurrencytest.NewGoroutineStressTester(concurrencytest.Options{
+		Workers:       4,
+		RoundsPerTask: entries * 2,
+		Timeout:       10 * time.Second,
+	})
+	tester.RunT(t, func(ctx context.Context) error {
+		_, err := relay.RunOnce(ctx, db)
+		return err
+	})
+
+	if got := countStatus(ctx, t, db, StatusPublished); got != entries {
+		t.Fatalf("published count = %d, want %d", got, entries)
+	}
 }
 
 func TestStoreConcurrentClaimsDoNotDuplicateRecords(t *testing.T) {
@@ -407,6 +556,29 @@ func countStatus(ctx context.Context, t *testing.T, db *sql.DB, status Status) i
 	return count
 }
 
+func statusForEvent(ctx context.Context, t *testing.T, db *sql.DB, eventID audit.EventID) Status {
+	t.Helper()
+
+	var status string
+	if err := db.QueryRowContext(ctx, `select status from audit_outbox where event_id = $1`, string(eventID)).Scan(&status); err != nil {
+		t.Fatalf("status for event %q: %v", eventID, err)
+	}
+	return Status(status)
+}
+
+func lastErrorForEvent(ctx context.Context, t *testing.T, db *sql.DB, eventID audit.EventID) string {
+	t.Helper()
+
+	var lastError sql.NullString
+	if err := db.QueryRowContext(ctx, `select last_error from audit_outbox where event_id = $1`, string(eventID)).Scan(&lastError); err != nil {
+		t.Fatalf("last_error for event %q: %v", eventID, err)
+	}
+	if !lastError.Valid {
+		return ""
+	}
+	return lastError.String
+}
+
 func mustEntry(t *testing.T, revision uint64, eventID string, idempotencyKey string) audit.Entry {
 	t.Helper()
 	return mustEntryForAggregate(t, "42", revision, eventID, idempotencyKey)
@@ -446,7 +618,13 @@ func mustEntryForAggregate(t *testing.T, aggregateID string, revision uint64, ev
 type recordingPublisher struct {
 	mu        sync.Mutex
 	failures  map[audit.EventID]int
-	published []audit.EventID
+	published []Record
+}
+
+type publisherFunc func(context.Context, Record) error
+
+func (fn publisherFunc) Publish(ctx context.Context, record Record) error {
+	return fn(ctx, record)
 }
 
 type stubSession struct{}
@@ -471,7 +649,7 @@ func (p *recordingPublisher) Publish(ctx context.Context, record Record) error {
 	p.mu.Lock()
 	defer p.mu.Unlock()
 
-	p.published = append(p.published, record.Entry.Event.EventID)
+	p.published = append(p.published, record)
 	if p.failures != nil && p.failures[record.Entry.Event.EventID] > 0 {
 		p.failures[record.Entry.Event.EventID]--
 		return errors.New("temporary publisher failure")
@@ -484,6 +662,17 @@ func (p *recordingPublisher) eventIDs() []audit.EventID {
 	defer p.mu.Unlock()
 
 	ids := make([]audit.EventID, len(p.published))
-	copy(ids, p.published)
+	for i, record := range p.published {
+		ids[i] = record.Entry.Event.EventID
+	}
 	return ids
+}
+
+func (p *recordingPublisher) records() []Record {
+	p.mu.Lock()
+	defer p.mu.Unlock()
+
+	records := make([]Record, len(p.published))
+	copy(records, p.published)
+	return records
 }
