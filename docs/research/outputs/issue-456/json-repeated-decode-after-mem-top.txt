@@ -1,0 +1,29 @@
+File: serialization.test
+Type: alloc_space
+Time: 2026-07-07 19:11:59 KST
+Showing nodes accounting for 799.73MB, 98.97% of 808.03MB total
+Dropped 41 nodes (cum <= 4.04MB)
+      flat  flat%   sum%        cum   cum%
+  273.07MB 33.79% 33.79%   273.07MB 33.79%  reflect.mapassign_faststr0
+  243.14MB 30.09% 63.89%   243.14MB 30.09%  reflect.growslice
+  159.51MB 19.74% 83.63%   159.51MB 19.74%  encoding/json.(*decodeState).literalStore
+   58.50MB  7.24% 90.87%    58.50MB  7.24%  reflect.unsafe_New
+      44MB  5.45% 96.31%       44MB  5.45%  reflect.makemap
+   21.50MB  2.66% 98.97%   556.59MB 68.88%  encoding/json.(*decodeState).object
+         0     0% 98.97%   799.73MB 98.97%  encoding/json.(*decodeState).array
+         0     0% 98.97%   799.73MB 98.97%  encoding/json.(*decodeState).unmarshal
+         0     0% 98.97%   799.73MB 98.97%  encoding/json.(*decodeState).value
+         0     0% 98.97%   799.73MB 98.97%  encoding/json.Unmarshal
+         0     0% 98.97%   799.23MB 98.91%  github.com/bluetape4k/bluetape-go/serialization.JSONSerializer[go.shape.[]github.com/bluetape4k/bluetape-go/serialization_test.benchmarkEvent].Unmarshal
+         0     0% 98.97%     6.80MB  0.84%  github.com/bluetape4k/bluetape-go/serialization_test.BenchmarkSerializationDecode
+         0     0% 98.97%   798.23MB 98.79%  github.com/bluetape4k/bluetape-go/serialization_test.runSerializationDecodeBenchmark[go.shape.[]github.com/bluetape4k/bluetape-go/serialization_test.benchmarkEvent].func1
+         0     0% 98.97%       44MB  5.45%  reflect.MakeMap (inline)
+         0     0% 98.97%       44MB  5.45%  reflect.MakeMapWithSize
+         0     0% 98.97%    58.50MB  7.24%  reflect.New
+         0     0% 98.97%   243.14MB 30.09%  reflect.Value.Grow
+         0     0% 98.97%   273.07MB 33.79%  reflect.Value.SetMapIndex
+         0     0% 98.97%   243.14MB 30.09%  reflect.Value.grow
+         0     0% 98.97%   273.07MB 33.79%  reflect.mapassign_faststr
+         0     0% 98.97%   797.73MB 98.72%  testing.(*B).launch
+         0     0% 98.97%     7.80MB  0.97%  testing.(*B).run1.func1
+         0     0% 98.97%   805.53MB 99.69%  testing.(*B).runN
