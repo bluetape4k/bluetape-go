@@ -70,6 +70,22 @@ Delivery is at-least-once. Publishers and consumers must treat duplicate
 publish attempts as possible and use the stable audit event ID or idempotency
 key for deduplication.
 
+Publisher errors are part of the retry contract:
+
+- If `Publisher.Publish` returns the caller-owned context cancellation or
+  deadline error, `RunOnce` returns that error and leaves the claimed row
+  untouched for lease-based recovery. Shutdown must not create retry or
+  dead-letter state.
+- Non-cancellation publish errors are stored through `MarkFailed` with bounded
+  failure text. The row becomes retryable or dead-lettered according to
+  `MaxAttempts`.
+- A retry or expired claim can publish the same audit envelope again. Publisher
+  adapters must preserve the stable `Record.EventID` and
+  `Record.IdempotencyKey` handoff and rely on downstream idempotency.
+- Adapters may use caller-owned logging, metrics, or hooks, but this package
+  does not provide a global logger. Returned errors should be bounded and
+  redacted because failure text is persisted for operators.
+
 ## Boundaries
 
 - PostgreSQL is the first concrete SQL target.
@@ -84,6 +100,8 @@ key for deduplication.
 - `CreateSchema` is explicit and optional; the package does not hide migrations.
 - Callers own source transaction choreography, PII policy, redaction, schema
   migration rollout, publisher idempotency, and operator replay tooling.
+- Publishers own external transport topology, authentication, TLS, retention,
+  consumer replay, and idempotent duplicate handling.
 - Kafka, NATS, Redis Streams, RabbitMQ, Redpanda, Pulsar, and direct Redis audit
   storage remain later adapter scopes.
 
@@ -92,4 +110,9 @@ key for deduplication.
 ```bash
 go test -count=1 ./audit/sqloutbox
 go test -race -count=1 ./audit/sqloutbox
+go test -count=1 ./audit/sqloutbox -run 'RelayRunOnce(PublisherContextCancellationDoesNotRetry|RetriesDuplicatePublishWithStableEnvelope|ConcurrentStressPublishesEachRecordOnce)'
 ```
+
+The relay tests use `AsyncJobTester` for cancellation-driven worker lifecycle
+coverage and `GoroutineStressTester` for concurrent `RunOnce` claim/publish
+coverage.
