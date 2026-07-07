@@ -7,6 +7,35 @@ and this project uses semantic versioning once the first tag is published.
 
 ## [Unreleased]
 
+## [v0.15.0] - 2026-07-08
+
+### Added
+
+- Audit publisher adoption track for `audit/sqloutbox`, including a
+  documented `Publisher` retry contract, stable `Record.EventID` and
+  `Record.IdempotencyKey` handoff guidance, and duplicate-safe at-least-once
+  delivery examples.
+- `audit/sqloutbox/sqloutboxtest` with deterministic `DiscardPublisher`,
+  `PublisherFunc`, and goroutine-safe `RecordingPublisher` helpers for relay
+  tests, examples, retry assertions, and duplicate-delivery evidence.
+- Research and lessons for the first audit publisher adapter target, selecting
+  a standard-library test/example helper before Kafka, NATS, Redis Streams, or
+  other durable transport adapters.
+- Retained profiling evidence for JSON repeated-collection decoding and zstd
+  compression allocation cost under the 0.15.0 SerDe follow-up track.
+
+### Changed
+
+- `serialization.JSONSerializer` now uses `json.Unmarshal` on the default
+  decode path while preserving strict trailing-payload rejection and
+  `WithDisallowUnknownFields` behavior through the decoder path.
+- `compression.Zstd().Compress` now reuses internal zstd stream encoders for
+  byte-slice compression while keeping `NewWriter` caller-owned and
+  independent.
+- Root and package README guidance now links sqloutbox test publishers and
+  records the audit publisher adoption boundary without promising durable
+  broker topology.
+
 ## [v0.14.0] - 2026-07-07
 
 ### Added

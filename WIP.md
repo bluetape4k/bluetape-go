@@ -1,44 +1,45 @@
 # WIP
 
-Snapshot: 2026-07-07 KST
-Scope: `0.14.0` cross-repo SerDe and compression benchmark baseline.
+Snapshot: 2026-07-08 KST
+Scope: `0.15.0` audit publisher adoption, sqloutbox test publishers, and
+SerDe allocation follow-up hardening.
 
 ## Current Target Release
 
-`v0.14.0` - reproducible serialization, codec, and compression benchmark
-baseline across Go, Rust, and JVM bluetape modules, with raw evidence retained
-before recommendation claims.
+`v0.15.0` - deterministic audit publisher test/adoption helpers plus focused
+JSON and zstd allocation reductions, without selecting Kafka, NATS, Redis
+Streams, or another durable broker adapter before a concrete consumer needs it.
 
-Issues #399, #400, #401, #402, and #403 close the 0.14.0 benchmark baseline
-track under epic #398. Follow-up profiling candidates from #403 were filed as
-#455 and #456 for a later milestone; they are not release blockers for
-`v0.14.0`.
+Issues #405 through #408 close the audit publisher adoption slice under epic
+#404. Issues #455 and #456 close the SerDe follow-up profiling slice by
+preserving evidence and reducing allocation pressure in zstd byte-slice
+compression and default JSON decoding.
 
 ## Current State
 
 - `v0.1.0`, `v0.1.1`, `v0.2.0`, `v0.3.0`, `v0.4.0`, `v0.5.0`, `v0.5.1`,
   `v0.6.0`, `v0.6.1` through `v0.6.8`, `v0.7.0`, `v0.8.0`, `v0.9.0`,
-  `v0.10.0`, `v0.11.0`, `v0.12.0`, and `v0.13.0` are tagged and released.
-- Milestone `0.14.0` is closed with zero open issues; #398 through #403 are
-  closed.
-- `CHANGELOG.md` contains the `v0.14.0` release section dated 2026-07-07.
-- `v0.14.0` tag and GitHub Release are not created yet.
-- The 0.15.0 #405 release-target research commit
-  `47d9860ef88a5ed1f5b52bcfeb7f3a47a08aa696` is intentionally excluded from
-  this release branch.
+  `v0.10.0`, `v0.11.0`, `v0.12.0`, `v0.13.0`, and `v0.14.0` are tagged and
+  released.
+- Milestone `0.15.0` is closed with zero open issues; #404, #405, #406, #407,
+  #408, #455, and #456 are closed.
+- `CHANGELOG.md` contains the `v0.15.0` release section dated 2026-07-08.
+- `v0.15.0` tag and GitHub Release are not created yet.
 
 ## Release Checklist
 
-1. Merge this release branch to `main` so `CHANGELOG.md`, `WIP.md`, raw
-   benchmark outputs, and README evidence links reflect `v0.14.0`.
+1. Merge this release branch to `main` so `CHANGELOG.md`, `WIP.md`, audit
+   publisher docs, and SerDe allocation evidence reflect `v0.15.0`.
 2. Verify `make ci` locally and GitHub CI on the release PR.
-3. Tag `v0.14.0` on `main`.
+3. Tag `v0.15.0` on `main`.
 4. Create the GitHub Release from `CHANGELOG.md` with validation evidence.
 
 ## Release Support Notes
 
-The 0.14.0 line is a benchmark and documentation release. It adds benchmark
-test files and preserved raw outputs, but it does not change runtime public API
-contracts. Before `v0.14.0` is tagged, rollback is closing the release PR and
-deleting the release branch. After a tag, release corrections should use a
-patch release unless a named retag plan is explicitly approved.
+The 0.15.0 audit publisher slice adds deterministic test/example publishers
+and adoption documentation, not a durable broker adapter or new external
+runtime dependency. The SerDe follow-up slice changes local JSON/zstd hot paths
+while preserving existing public APIs. Before `v0.15.0` is tagged, rollback is
+closing the release PR and deleting the release branch. After a tag, release
+corrections should use a patch release unless an explicit retag plan is
+approved.
