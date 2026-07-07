@@ -175,6 +175,8 @@ Issue #58은 첫 durable publisher target으로 SQL outbox store와 relay contra
 기록했습니다. 첫 구현은 [`audit/sqloutbox`](sqloutbox/README.ko.md)에 있습니다.
 Publisher contract는 at-least-once retry, caller context cancellation, 안정적인
 event/idempotency-key handoff, duplicate-safe adapter behavior를 다룹니다.
+Test와 local example을 위한 deterministic publisher helper는
+[`audit/sqloutbox/sqloutboxtest`](sqloutbox/sqloutboxtest/README.ko.md)에 있습니다.
 
 Kafka, NATS, Redis Streams, RabbitMQ, Redpanda, Pulsar는 durable SQL outbox
 contract가 검증된 뒤 붙일 publisher/projection adapter로 남깁니다. Source

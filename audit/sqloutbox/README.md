@@ -86,6 +86,20 @@ Publisher errors are part of the retry contract:
   does not provide a global logger. Returned errors should be bounded and
   redacted because failure text is persisted for operators.
 
+## Test Publishers
+
+Use [`sqloutboxtest`](sqloutboxtest/README.md) for deterministic publisher
+helpers in tests, local examples, and workshop adoption:
+
+- `DiscardPublisher` accepts records without retaining or transporting them.
+- `PublisherFunc` adapts a function to the `Publisher` interface.
+- `RecordingPublisher` records every publish attempt and can inject
+  deterministic per-event failures for retry/dead-letter assertions.
+
+The helper package intentionally adds no broker topology. Durable transports
+such as Kafka, NATS, Redis Streams, RabbitMQ, Redpanda, and Pulsar remain later
+adapter scopes.
+
 ## Boundaries
 
 - PostgreSQL is the first concrete SQL target.
