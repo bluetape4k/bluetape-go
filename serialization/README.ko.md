@@ -50,3 +50,20 @@ value, err := versioned.Unmarshal(data)
 ```bash
 go test -count=1 ./serialization
 ```
+
+## 벤치마크
+
+```bash
+go test -run '^$' -bench '^BenchmarkSerialization' -benchmem ./serialization
+```
+
+Benchmark runner는 JSON, raw bytes, raw strings, `BTGS` versioned envelope,
+serialize-then-compress scenario에 결정적 SerDe fixture를 사용합니다. 0.14.0
+cross-repo baseline의 raw output artifact를 수집할 때는
+`docs/benchmarks/2026-07-07-issue-400-go-serde-runners.md`를 기준으로 삼으세요.
+
+0.14.0 cross-repo recommendation matrix 기준으로 Go serialization guidance는
+작고 wire format이 명확해야 합니다. JSON과 Go-local `BTGS` envelope는 안전한
+Go package 선택지이지만, JVM Fory/Kryo와 future Rust adapter는 각자의 trust
+boundary를 가진 별도 wire format입니다.
+`docs/research/2026-07-07-issue-402-cross-repo-serde-recommendation.md`를 참고하세요.

@@ -52,3 +52,20 @@ if err != nil {
 ```bash
 go test -count=1 ./compression
 ```
+
+## Benchmark
+
+```bash
+go test -run '^$' -bench '^BenchmarkCompressors' -benchmem ./compression
+```
+
+The benchmark runners cover deterministic JSON, text, binary, and random byte
+payloads across the compressors returned by `All()`. Use
+`docs/benchmarks/2026-07-07-issue-400-go-serde-runners.md` when collecting raw
+output artifacts for the 0.14.0 SerDe baseline.
+
+The 0.14.0 recommendation matrix keeps `Default()` on zstd and treats benchmark
+results as local evidence: evaluate zstd first for density, lz4 or snappy first
+for throughput-sensitive paths, gzip or deflate for interoperability, and avoid
+compressing random or already-compressed payloads without measuring. See
+`docs/research/2026-07-07-issue-402-cross-repo-serde-recommendation.md`.
