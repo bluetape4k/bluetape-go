@@ -86,6 +86,20 @@ Publisher error는 retry contract의 일부입니다.
   global logger를 제공하지 않습니다. Failure text가 operator를 위해 저장되므로
   반환 error는 bounded/redacted여야 합니다.
 
+## Test Publishers
+
+Test, local example, workshop adoption에서는 deterministic publisher helper인
+[`sqloutboxtest`](sqloutboxtest/README.ko.md)를 사용합니다.
+
+- `DiscardPublisher`는 record를 보관하거나 전송하지 않고 accept합니다.
+- `PublisherFunc`는 function을 `Publisher` interface로 adapter합니다.
+- `RecordingPublisher`는 모든 publish attempt를 기록하고 retry/dead-letter
+  assertion을 위해 event별 deterministic failure를 주입할 수 있습니다.
+
+Helper package는 broker topology를 추가하지 않습니다. Kafka, NATS, Redis
+Streams, RabbitMQ, Redpanda, Pulsar 같은 durable transport는 이후 adapter 범위로
+남깁니다.
+
 ## Boundaries
 
 - PostgreSQL이 첫 concrete SQL target입니다.

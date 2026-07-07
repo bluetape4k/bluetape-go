@@ -176,6 +176,8 @@ The first implementation lives in
 [`audit/sqloutbox`](sqloutbox/README.md).
 Its publisher contract covers at-least-once retry, caller context cancellation,
 stable event/idempotency-key handoff, and duplicate-safe adapter behavior.
+Deterministic publisher helpers for tests and local examples live in
+[`audit/sqloutbox/sqloutboxtest`](sqloutbox/sqloutboxtest/README.md).
 
 Kafka, NATS, Redis Streams, RabbitMQ, Redpanda, and Pulsar remain deferred
 publisher/projection adapters until the durable SQL outbox contract is proven.

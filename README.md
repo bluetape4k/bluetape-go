@@ -101,15 +101,16 @@ existing JWT Mongo tests.
 | [`sqlkit`](sqlkit/README.md) | active | Runtime-first `database/sql` transaction helpers, explicit row mapping/cardinality helpers, and PostgreSQL-first inspectable SQL builders. |
 | [`audit`](audit/README.md) | active | Storage-neutral aggregate event and audit model with validated JSON entries, pending-event recording, and history reconstruction. |
 | [`audit/sqloutbox`](audit/sqloutbox/README.md) | active | PostgreSQL-backed audit outbox store and relay with caller-owned transaction choreography. |
+| [`audit/sqloutbox/sqloutboxtest`](audit/sqloutbox/sqloutboxtest/README.md) | active | Deterministic publisher helpers for sqloutbox tests, examples, retries, and duplicate-delivery assertions. |
 | [`graph`](graph/README.md) | active | Model-only graph values for vertices, edges, paths, labels, IDs, shallow properties, and validated JSON. |
 | [`graph/graphio`](graph/graphio/README.md) | active | Stream-oriented NDJSON and paired CSV import/export helpers for graph vertices and edges. |
 | [`graph/neo4j`](graph/neo4j/README.md) | active | Proof adapter from the official Neo4j Go driver to graph vertices and edges. |
 | [`probabilistic`](probabilistic/README.md) | active | Goroutine-safe in-memory Bloom filters with deterministic config, merge compatibility checks, and stress/race coverage. |
 | [`probabilistic/redis`](probabilistic/redis/README.md) | active | Redis-backed shared Bloom filters with static Lua scripts, immutable config metadata, and operator runbook boundaries. |
 
-Next planned package families include audit publisher adapters and example
-services. Redis-backed Cuckoo and HyperLogLog/HLL support is tracked separately
-after the Redis Bloom scope.
+Next planned package families include durable audit transport publisher adapters
+and example services. Redis-backed Cuckoo and HyperLogLog/HLL support is tracked
+separately after the Redis Bloom scope.
 
 ## SerDe Baseline Guidance
 
@@ -171,7 +172,9 @@ overview.
 - Audit: [`audit`](audit/README.md) for storage-neutral aggregate event values,
   pending event handoff, validated audit entry JSON, and history
   reconstruction, plus [`audit/sqloutbox`](audit/sqloutbox/README.md) for
-  PostgreSQL-backed at-least-once outbox delivery and
+  PostgreSQL-backed at-least-once outbox delivery,
+  [`audit/sqloutbox/sqloutboxtest`](audit/sqloutbox/sqloutboxtest/README.md) for
+  deterministic publisher helpers, and
   [`examples/audit`](examples/audit/README.md) for a runnable audit-backed
   order service.
 - Graph: [`graph`](graph/README.md) for model-only vertex, edge, path, label,
