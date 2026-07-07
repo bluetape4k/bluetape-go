@@ -1,0 +1,27 @@
+File: compression.test
+Type: alloc_space
+Time: 2026-07-08 01:03:52 KST
+Showing nodes accounting for 31855.77MB, 99.82% of 31914.31MB total
+Dropped 59 nodes (cum <= 159.57MB)
+      flat  flat%   sum%        cum   cum%
+   27184MB 85.18% 85.18%    27184MB 85.18%  github.com/klauspost/compress/zstd.(*fastBase).ensureHist (inline)
+ 2137.43MB  6.70% 91.88%  2137.43MB  6.70%  github.com/klauspost/compress/zstd.encoderOptions.encoder
+  991.68MB  3.11% 94.98%   991.68MB  3.11%  github.com/klauspost/compress/zstd.(*blockEnc).init
+  713.24MB  2.23% 97.22% 27897.24MB 87.41%  github.com/klauspost/compress/zstd.(*doubleFastEncoder).Encode
+  623.24MB  1.95% 99.17%  3752.85MB 11.76%  github.com/klauspost/compress/zstd.(*Encoder).Reset
+  203.67MB  0.64% 99.81%   203.67MB  0.64%  bytes.growSlice
+    1.50MB 0.0047% 99.81% 27898.74MB 87.42%  github.com/klauspost/compress/zstd.(*Encoder).nextBlock.func1
+    0.50MB 0.0016% 99.81%   483.51MB  1.52%  github.com/klauspost/compress/zstd.(*fastBase).resetBase
+    0.50MB 0.0016% 99.82%  3754.85MB 11.77%  github.com/bluetape4k/bluetape-go/compression.streamCompressor.Compress
+         0     0% 99.82%   203.67MB  0.64%  bytes.(*Buffer).Write
+         0     0% 99.82%   203.67MB  0.64%  bytes.(*Buffer).grow
+         0     0% 99.82%  3752.85MB 11.76%  github.com/bluetape4k/bluetape-go/compression.All.Zstd.ZstdLevel.func11
+         0     0% 99.82%  3752.85MB 11.76%  github.com/bluetape4k/bluetape-go/compression.streamCompressor.NewWriter
+         0     0% 99.82%  3754.85MB 11.77%  github.com/bluetape4k/bluetape-go/compression_test.BenchmarkCompressorsCompress.func1.1
+         0     0% 99.82%   253.28MB  0.79%  github.com/klauspost/compress/zstd.(*Encoder).nextBlock.func1.2
+         0     0% 99.82%   483.51MB  1.52%  github.com/klauspost/compress/zstd.(*doubleFastEncoder).Reset
+         0     0% 99.82%    27184MB 85.18%  github.com/klauspost/compress/zstd.(*fastBase).addBlock
+         0     0% 99.82%   483.51MB  1.52%  github.com/klauspost/compress/zstd.(*fastEncoder).Reset (inline)
+         0     0% 99.82%  3752.85MB 11.76%  github.com/klauspost/compress/zstd.NewWriter
+         0     0% 99.82%  3753.49MB 11.76%  testing.(*B).launch
+         0     0% 99.82%  3758.78MB 11.78%  testing.(*B).runN

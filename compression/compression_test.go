@@ -2,12 +2,15 @@ package compression_test
 
 import (
 	"bytes"
+	"context"
 	"errors"
 	"io"
 	"strings"
 	"testing"
+	"time"
 
 	"github.com/bluetape4k/bluetape-go/compression"
+	concurrencytest "github.com/bluetape4k/bluetape-go/testing/concurrency"
 )
 
 func testPayload() []byte {
@@ -74,6 +77,77 @@ func TestCompressorsRoundTripStreams(t *testing.T) {
 			}
 		})
 	}
+}
+
+func TestZstdCompressMatchesStreamWriter(t *testing.T) {
+	compressor := compression.Zstd()
+	payloads := [][]byte{
+		{},
+		[]byte("bluetape-go zstd payload"),
+		[]byte(strings.Repeat(`{"service":"bluetape-go","kind":"compression","region":"region-01"}`, 4096)),
+	}
+
+	for _, payload := range payloads {
+		compressed, err := compressor.Compress(payload)
+		if err != nil {
+			t.Fatalf("Compress failed: %v", err)
+		}
+
+		var streamed bytes.Buffer
+		writer, err := compressor.NewWriter(&streamed)
+		if err != nil {
+			t.Fatalf("NewWriter failed: %v", err)
+		}
+		if _, err := writer.Write(payload); err != nil {
+			t.Fatalf("Write failed: %v", err)
+		}
+		if err := writer.Close(); err != nil {
+			t.Fatalf("Close failed: %v", err)
+		}
+
+		if !bytes.Equal(compressed, streamed.Bytes()) {
+			t.Fatalf("Compress output differs from stream writer for payload length %d", len(payload))
+		}
+	}
+}
+
+func TestZstdCompressConcurrentStress(t *testing.T) {
+	compressor := compression.Zstd()
+	payload := []byte(strings.Repeat(`{"service":"bluetape-go","kind":"compression","region":"region-01"}`, 512))
+	expected, err := compressor.Compress(payload)
+	if err != nil {
+		t.Fatalf("Compress failed: %v", err)
+	}
+
+	tester := concurrencytest.NewGoroutineStressTester(concurrencytest.Options{
+		Workers:       8,
+		RoundsPerTask: 32,
+		Timeout:       5 * time.Second,
+	})
+	tester.RunT(t, func(ctx context.Context) error {
+		select {
+		case <-ctx.Done():
+			return ctx.Err()
+		default:
+		}
+
+		compressed, err := compressor.Compress(payload)
+		if err != nil {
+			return err
+		}
+		if !bytes.Equal(compressed, expected) {
+			return errors.New("concurrent zstd compress output differs from baseline")
+		}
+
+		decompressed, err := compressor.Decompress(compressed)
+		if err != nil {
+			return err
+		}
+		if !bytes.Equal(decompressed, payload) {
+			return errors.New("concurrent zstd round-trip mismatch")
+		}
+		return nil
+	})
 }
 
 func TestCompressorsRejectCorruptInput(t *testing.T) {

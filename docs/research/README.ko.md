@@ -24,7 +24,7 @@ dependency candidate, GitHub issue와 연결합니다.
 | `0.11.0` | [Issue #37 rule engine primitives](2026-07-02-issue-37-rule-engine-primitives.md), [Issue #40 image scope](2026-06-25-issue-40-image-scope.md), [Issue #71 encryption facade scope](2026-06-26-issue-71-encryption-facade-scope.md), [Issue #310 libvips evaluation](2026-07-02-issue-310-libvips-evaluation.md) |
 | `0.12.0` | [Issue #354 core parity matrix](2026-07-03-issue-354-core-parity-matrix.md) |
 | `0.14.0` | [Issue #401 benchmark artifact retention](2026-07-07-issue-401-benchmark-artifact-retention.md), [Issue #402 cross-repo SerDe recommendation matrix](2026-07-07-issue-402-cross-repo-serde-recommendation.md) |
-| `0.15.0` | [Issue #405 audit publisher adapter target](2026-07-07-issue-405-audit-publisher-target.md), [Issue #407 audit publisher adapter](2026-07-07-issue-407-audit-publisher-adapter.md), [Issue #456 JSON repeated collection profile](2026-07-07-issue-456-json-repeated-profile.md) |
+| `0.15.0` | [Issue #405 audit publisher adapter target](2026-07-07-issue-405-audit-publisher-target.md), [Issue #407 audit publisher adapter](2026-07-07-issue-407-audit-publisher-adapter.md), [Issue #455 zstd allocation profile](2026-07-08-issue-455-zstd-allocation-profile.md), [Issue #456 JSON repeated collection profile](2026-07-07-issue-456-json-repeated-profile.md) |
 
 ## 갱신 규칙
 
