@@ -129,6 +129,153 @@ func BenchmarkCachedDistributedProviderParseHMACWarmHit(b *testing.B) {
 	}
 }
 
+func BenchmarkProviderFindKeyChainParallel(b *testing.B) {
+	provider := newBenchmarkRotatingHMACProvider(b, "find-parallel")
+	key, err := provider.CurrentKeyChain()
+	if err != nil {
+		b.Fatalf("CurrentKeyChain() error = %v", err)
+	}
+	kid := key.KID()
+
+	b.ReportAllocs()
+	b.ResetTimer()
+	b.RunParallel(func(pb *testing.PB) {
+		for pb.Next() {
+			found, err := provider.FindKeyChain(kid)
+			if err != nil {
+				b.Fatalf("FindKeyChain() error = %v", err)
+			}
+			if found.KID() != kid {
+				b.Fatalf("FindKeyChain() kid = %q, want %q", found.KID(), kid)
+			}
+		}
+	})
+}
+
+func BenchmarkProviderFindRetainedKeyParallel(b *testing.B) {
+	provider := newBenchmarkRotatingHMACProvider(b, "retained-parallel")
+	retained, err := provider.CurrentKeyChain()
+	if err != nil {
+		b.Fatalf("CurrentKeyChain() error = %v", err)
+	}
+	for range 8 {
+		if _, err := provider.ForcedRotate(); err != nil {
+			b.Fatalf("ForcedRotate() error = %v", err)
+		}
+	}
+	retainedKID := retained.KID()
+
+	b.ReportAllocs()
+	b.ResetTimer()
+	b.RunParallel(func(pb *testing.PB) {
+		for pb.Next() {
+			found, err := provider.FindKeyChain(retainedKID)
+			if err != nil {
+				b.Fatalf("FindKeyChain() error = %v", err)
+			}
+			if found.KID() != retainedKID {
+				b.Fatalf("FindKeyChain() kid = %q, want %q", found.KID(), retainedKID)
+			}
+		}
+	})
+}
+
+func BenchmarkProviderComposeParseHMACParallel(b *testing.B) {
+	provider := newBenchmarkRotatingHMACProvider(b, "compose-parse-parallel")
+
+	b.ReportAllocs()
+	b.ResetTimer()
+	b.RunParallel(func(pb *testing.PB) {
+		for pb.Next() {
+			token, err := provider.Compose(WithClaim("bench", "compose-parse"), WithExpiresAfter(time.Hour))
+			if err != nil {
+				b.Fatalf("Compose() error = %v", err)
+			}
+			reader, err := provider.Parse(token)
+			if err != nil {
+				b.Fatalf("Parse() error = %v", err)
+			}
+			if value, ok := reader.ClaimString("bench"); !ok || value != "compose-parse" {
+				b.Fatal("Parse() claim mismatch")
+			}
+		}
+	})
+}
+
+func BenchmarkProviderForcedRotateParallel(b *testing.B) {
+	provider := newBenchmarkRotatingHMACProvider(b, "forced-rotate-parallel")
+
+	b.ReportAllocs()
+	b.ResetTimer()
+	b.RunParallel(func(pb *testing.PB) {
+		for pb.Next() {
+			if _, err := provider.ForcedRotate(); err != nil {
+				b.Fatalf("ForcedRotate() error = %v", err)
+			}
+		}
+	})
+}
+
+func BenchmarkCachedProviderParseHMACWarmHitParallel(b *testing.B) {
+	now := time.Date(2026, 6, 14, 1, 0, 0, 0, time.UTC)
+	provider := newBenchmarkFixedHMACProvider(b, now)
+	token := newBenchmarkToken(b, provider)
+	cache := newSpyReaderCache(func() time.Time { return now })
+	cached, err := NewCachedProvider(provider, cache, WithCacheClock(func() time.Time { return now }))
+	if err != nil {
+		b.Fatalf("NewCachedProvider() error = %v", err)
+	}
+	if _, err := cached.Parse(token); err != nil {
+		b.Fatalf("warmup Parse() error = %v", err)
+	}
+
+	b.ReportAllocs()
+	b.ResetTimer()
+	b.RunParallel(func(pb *testing.PB) {
+		for pb.Next() {
+			if _, err := cached.Parse(token); err != nil {
+				b.Fatalf("Parse() error = %v", err)
+			}
+		}
+	})
+}
+
+func BenchmarkCachedDistributedProviderParseHMACWarmHitParallel(b *testing.B) {
+	ctx := context.Background()
+	now := time.Date(2026, 6, 14, 1, 0, 0, 0, time.UTC)
+	repo := &fakeDistributedRepository{}
+	provider, err := NewDistributedHMACProvider(ctx, repo, HS256,
+		WithClock(func() time.Time { return now }),
+		WithKeyIDGenerator(staticKID("bench-distributed-parallel")),
+		WithEntropy(repeatingReader('d')),
+	)
+	if err != nil {
+		b.Fatalf("NewDistributedHMACProvider() error = %v", err)
+	}
+	token, err := provider.ComposeContext(ctx, WithSubject("subject"), WithExpiresAfter(time.Hour))
+	if err != nil {
+		b.Fatalf("ComposeContext() error = %v", err)
+	}
+	cache := newSpyReaderCache(func() time.Time { return now })
+	cached, err := NewCachedDistributedProvider(provider, cache, WithCacheClock(func() time.Time { return now }))
+	if err != nil {
+		b.Fatalf("NewCachedDistributedProvider() error = %v", err)
+	}
+	if _, err := cached.ParseContext(ctx, token, WithExpectedSubject("subject")); err != nil {
+		b.Fatalf("warmup ParseContext() error = %v", err)
+	}
+
+	b.ReportAllocs()
+	b.ResetTimer()
+	b.RunParallel(func(pb *testing.PB) {
+		for pb.Next() {
+			if _, err := cached.ParseContext(ctx, token, WithExpectedSubject("subject")); err != nil {
+				b.Fatalf("ParseContext() error = %v", err)
+			}
+		}
+	})
+}
+
 func BenchmarkCacheKeyProfile(b *testing.B) {
 	now := time.Date(2026, 6, 14, 1, 0, 0, 0, time.UTC)
 	parse, err := normalizeParseConfig(func() time.Time { return now }, []ParseOption{
@@ -153,6 +300,20 @@ func BenchmarkCacheKeyProfile(b *testing.B) {
 			b.Fatalf("profile should be cacheable")
 		}
 	}
+}
+
+func newBenchmarkRotatingHMACProvider(b *testing.B, kidPrefix string) *Provider {
+	b.Helper()
+	nextKID := sequenceKID(kidPrefix)
+	provider, err := NewHMACProvider(HS256,
+		WithRepositoryCapacity(maxRepositorySize),
+		WithKeyIDGenerator(nextKID),
+		WithEntropy(repeatingReader('b')),
+	)
+	if err != nil {
+		b.Fatalf("NewHMACProvider() error = %v", err)
+	}
+	return provider
 }
 
 func newBenchmarkFixedHMACProvider(b *testing.B, now time.Time) *Provider {

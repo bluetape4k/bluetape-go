@@ -1,0 +1,18 @@
+goos: darwin
+goarch: arm64
+pkg: github.com/bluetape4k/bluetape-go/jwt
+cpu: Apple M5
+BenchmarkProviderParseHMAC-10                                            	  574125	      2061 ns/op	    3632 B/op	      66 allocs/op
+BenchmarkCachedProviderParseHMACColdMiss-10                              	  183754	      6560 ns/op	    6576 B/op	     100 allocs/op
+BenchmarkCachedProviderParseHMACWarmHit-10                               	 2461196	       460.5 ns/op	    1176 B/op	      15 allocs/op
+BenchmarkCachedProviderParseRSAWarmHit-10                                	 2091793	       578.4 ns/op	    1480 B/op	      15 allocs/op
+BenchmarkCachedDistributedProviderParseHMACWarmHit-10                    	 2260394	       528.0 ns/op	    1319 B/op	      17 allocs/op
+BenchmarkProviderFindKeyChainParallel-10                                 	12147802	        98.95 ns/op	       0 B/op	       0 allocs/op
+BenchmarkProviderFindRetainedKeyParallel-10                              	12139563	        98.44 ns/op	       0 B/op	       0 allocs/op
+BenchmarkProviderComposeParseHMACParallel-10                             	  467125	      2513 ns/op	    7619 B/op	     117 allocs/op
+BenchmarkProviderForcedRotateParallel-10                                 	  766603	      1618 ns/op	    8482 B/op	       9 allocs/op
+BenchmarkCachedProviderParseHMACWarmHitParallel-10                       	 3488072	       353.5 ns/op	    1176 B/op	      15 allocs/op
+BenchmarkCachedDistributedProviderParseHMACWarmHitParallel-10            	 3203864	       367.7 ns/op	    1324 B/op	      17 allocs/op
+BenchmarkCacheKeyProfile-10                                              	 3295072	       361.3 ns/op	     976 B/op	      12 allocs/op
+PASS
+ok  	github.com/bluetape4k/bluetape-go/jwt	18.858s
