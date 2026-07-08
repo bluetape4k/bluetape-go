@@ -29,6 +29,27 @@ func ExampleNewStringBloomFilter() {
 	_ = filter
 }
 
+func ExampleNewStringHyperLogLog() {
+	ctx := context.Background()
+	client := redis.NewClient(&redis.Options{Addr: "127.0.0.1:6379"})
+	defer func() {
+		_ = client.Close()
+	}()
+
+	hll, err := redisbloom.NewStringHyperLogLog(client, "auth:tenant-a:active-users")
+	if err != nil {
+		panic(err)
+	}
+	if _, err := hll.Add(ctx, "user-1", "user-2"); err != nil {
+		panic(err)
+	}
+	estimate, err := hll.Count(ctx)
+	if err != nil {
+		panic(err)
+	}
+	_ = estimate
+}
+
 func ExampleBloomFilter_Put_falseNotDuplicate() {
 	ctx := context.Background()
 	filter := exampleFilter()

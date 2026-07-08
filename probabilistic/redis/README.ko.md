@@ -2,11 +2,13 @@
 
 [English](README.md) | 한국어
 
-`probabilistic/redis`는 Redis-backed shared Bloom filter를 제공합니다. Bloom
-configuration을 Redis metadata에 immutable하게 보관하고, 모든 read/mutation 전에
-Lua script로 metadata를 검증하며, shared bit는 Redis bitmap string에 저장합니다.
+`probabilistic/redis`는 Redis-backed shared Bloom filter와 HyperLogLog
+cardinality estimate를 제공합니다. Bloom filter는 configuration을 Redis
+metadata에 immutable하게 보관하고, 모든 read/mutation 전에 Lua script로 metadata를
+검증하며, shared bit는 Redis bitmap string에 저장합니다. HyperLogLog는 core Redis
+`PFADD`, `PFCOUNT`, `PFMERGE` command를 사용합니다.
 
-![probabilistic redis bloom runtime](../../docs/images/readme-diagrams/probabilistic-redis-bloom-runtime.png)
+![probabilistic redis runtime map](../../docs/images/readme-diagrams/probabilistic-redis-bloom-runtime.png)
 
 ## 가져오기
 
@@ -41,6 +43,33 @@ mayExist, err := filter.MightContain(ctx, "candidate-key")
 `[]byte` 값에는 `NewBytesBloomFilter`를 사용하고, custom value type에는 deterministic
 `probabilistic.Hasher[T]`를 명시해 `NewBloomFilter`를 사용합니다.
 
+## HyperLogLog
+
+Membership check가 아니라 approximate distinct count가 필요할 때 HyperLogLog를
+사용합니다.
+
+```go
+hll, err := redisbloom.NewStringHyperLogLog(redisClient, "auth:tenant-a:active-users")
+if err != nil {
+    return err
+}
+
+changed, err := hll.Add(ctx, "user-1", "user-2")
+if err != nil {
+    return err
+}
+
+estimate, err := hll.Count(ctx)
+```
+
+`NewBytesHyperLogLog`는 `[]byte` 값을 지원합니다. `NewHyperLogLog`는 custom
+deterministic `probabilistic.Hasher[T]`를 받습니다. 값은 hasher를 거친 뒤 SHA-256
+hex digest로 저장되므로 Redis에는 raw caller value가 아니라 stable identifier가
+전달됩니다.
+
+`Merge(ctx, sourceNamespaces...)`는 `PFMERGE`로 source HLL namespace를 receiver
+namespace에 병합하며, receiver의 기존 estimate도 보존합니다.
+
 ## Redis 상태
 
 Redis Bloom은 namespace마다 Redis Cluster-safe hash-tag key pair 하나를 사용합니다.
@@ -50,8 +79,33 @@ Redis Bloom은 namespace마다 Redis Cluster-safe hash-tag key pair 하나를 �
 | `:bits` | bitmap string | `GETBIT`, `SETBIT`, `BITCOUNT`, `STRLEN`으로 읽고 쓰는 Bloom bit. |
 | `:config` | hash | 모든 shared-state operation 전에 확인하는 immutable metadata. |
 
+Redis HyperLogLog는 namespace마다 Redis Cluster-safe hash-tag key 하나를 사용합니다.
+
+```text
+bluetape:probabilistic:hll:v1:{namespace}
+```
+
 Namespace는 안정적인 운영 식별자여야 합니다. Raw user ID, email, token, secret,
 password, credential, API key를 namespace에 넣지 마세요.
+
+## Redis 가정
+
+- 현재 Bloom과 HyperLogLog surface는 ordinary Redis command만 사용합니다.
+  `NewStringBloomFilter`, `NewBytesBloomFilter`, `NewHyperLogLog`,
+  `NewStringHyperLogLog`, `NewBytesHyperLogLog`에는 RedisBloom module이
+  필요하지 않습니다.
+- Testcontainers suite는 Redis `redis:7.4-alpine`에서 실행합니다. Production
+  Redis도 여기서 쓰는 core command family를 제공해야 합니다. Lua script 실행,
+  hash/string bitmap command, HyperLogLog command가 필요합니다.
+- `CF.ADD`, `CF.EXISTS` 같은 RedisBloom module `CF*` Cuckoo command는 아직
+  이 package 범위가 아닙니다. Module availability, ACL, persistence,
+  Testcontainers coverage가 명확해질 때까지 후속 범위로 둡니다.
+- Bloom capacity는 `probabilistic.Config`가 고정합니다.
+  `ExpectedInsertions`, `FalsePositiveProbability`, bit size, hash count,
+  hasher key는 namespace의 immutable Redis metadata가 됩니다. 값을 바꾸려면
+  새 namespace와 rebuild가 필요합니다.
+- HyperLogLog capacity와 error rate는 Redis가 소유합니다. Membership check나
+  duplicate certainty가 아니라 approximate distinct count가 필요할 때 선택하세요.
 
 ## 동작
 
@@ -65,6 +119,10 @@ password, credential, API key를 namespace에 넣지 마세요.
   운영 metadata를 읽습니다.
 - Config 또는 hasher mismatch는 shared state를 읽거나 변경하기 전에 error로
   처리됩니다.
+- HyperLogLog `Count(ctx)`는 approximate cardinality입니다. 값이 삽입되었는지
+  확인하는 membership query가 아닙니다.
+- HyperLogLog `Add(ctx, values...)`의 반환값은 Redis `PFADD` state change이며,
+  중복 확정이 아닙니다.
 
 ## 운영 경계
 
@@ -75,9 +133,41 @@ password, credential, API key를 namespace에 넣지 마세요.
   기대가 깨질 수 있습니다.
 - `Clear`는 administrative action으로 취급하세요. 실수로 삭제했다면 새 namespace로
   rebuild하고 reader를 검증한 뒤, 새 namespace가 승인된 후에만 old key를 정리합니다.
+- HyperLogLog key도 ordinary Redis key입니다. Persistence, eviction, ACL, backup
+  policy는 caller 책임입니다.
+
+Diagnostic check는 보통 관련 key family에서 시작합니다.
+
+```text
+HGETALL bluetape:probabilistic:bloom:v1:{namespace}:config
+STRLEN  bluetape:probabilistic:bloom:v1:{namespace}:bits
+BITCOUNT bluetape:probabilistic:bloom:v1:{namespace}:bits
+PFCOUNT bluetape:probabilistic:hll:v1:{namespace}
+EXISTS  bluetape:probabilistic:hll:v1:{namespace}
+PTTL    bluetape:probabilistic:hll:v1:{namespace}
+```
 
 ## 테스트
 
+Package 테스트는 Testcontainers for Go로 Redis `redis:7.4-alpine`을 시작합니다.
+Container startup은 90초로 제한하고, readiness ping은 10초 window 안에서 짧은
+bounded context를 사용하며, live Redis operation과 cleanup도 package-local operation
+timeout을 사용합니다.
+
+Coverage 범위:
+
+- Bloom filter configuration reuse, mismatch/corrupt metadata handling, clear,
+  false-negative protection, Lua command shape, cancellation, concurrent call.
+- HyperLogLog add/count/merge, byte/custom hasher value, invalid option,
+  cancelled context, redacted Redis error, raw value non-disclosure, concurrent
+  call.
+- Concurrent Redis operation과 cancellation behavior에는 `GoroutineStressTester`,
+  `AsyncJobTester`를 사용합니다.
+
 ```bash
 go test -count=1 ./probabilistic/redis
+go test -race -count=1 ./probabilistic/redis
 ```
+
+다른 Testcontainers package와 함께 실행할 때는 package를 직렬로 실행하세요.
+Repository의 `make test`, `make race` target은 이 이유로 이미 `-p 1`을 사용합니다.
