@@ -1,0 +1,29 @@
+goos: darwin
+goarch: arm64
+pkg: github.com/bluetape4k/bluetape-go/id
+cpu: Apple M5
+                                │ docs/research/outputs/issue-434/uuid-v7-baseline-count10.txt │ docs/research/outputs/issue-434/uuid-v7-atomic-count10.txt │
+                                │                            sec/op                            │               sec/op                 vs base               │
+UUIDV7NewString-10                                                                 82.02n ± 4%                           79.52n ± 6%       ~ (p=0.481 n=10)
+UUIDV7NewStringParallel-10                                                         200.1n ± 1%                           200.5n ± 1%       ~ (p=0.985 n=10)
+UUIDV7ReuseGenerator-10                                                            68.00n ± 0%                           68.04n ± 0%       ~ (p=0.362 n=10)
+UUIDV7ReuseGeneratorParallel-10                                                    192.6n ± 1%                           193.2n ± 1%       ~ (p=0.147 n=10)
+geomean                                                                            121.1n                                120.3n       -0.62%
+
+                                │ docs/research/outputs/issue-434/uuid-v7-baseline-count10.txt │ docs/research/outputs/issue-434/uuid-v7-atomic-count10.txt │
+                                │                             B/op                             │               B/op                 vs base                 │
+UUIDV7NewString-10                                                                  112.0 ± 0%                          112.0 ± 0%       ~ (p=1.000 n=10) ¹
+UUIDV7NewStringParallel-10                                                          112.0 ± 0%                          112.0 ± 0%       ~ (p=1.000 n=10) ¹
+UUIDV7ReuseGenerator-10                                                             64.00 ± 0%                          64.00 ± 0%       ~ (p=1.000 n=10) ¹
+UUIDV7ReuseGeneratorParallel-10                                                     64.00 ± 0%                          64.00 ± 0%       ~ (p=1.000 n=10) ¹
+geomean                                                                             84.66                               84.66       +0.00%
+¹ all samples are equal
+
+                                │ docs/research/outputs/issue-434/uuid-v7-baseline-count10.txt │ docs/research/outputs/issue-434/uuid-v7-atomic-count10.txt │
+                                │                          allocs/op                           │             allocs/op              vs base                 │
+UUIDV7NewString-10                                                                  3.000 ± 0%                          3.000 ± 0%       ~ (p=1.000 n=10) ¹
+UUIDV7NewStringParallel-10                                                          3.000 ± 0%                          3.000 ± 0%       ~ (p=1.000 n=10) ¹
+UUIDV7ReuseGenerator-10                                                             2.000 ± 0%                          2.000 ± 0%       ~ (p=1.000 n=10) ¹
+UUIDV7ReuseGeneratorParallel-10                                                     2.000 ± 0%                          2.000 ± 0%       ~ (p=1.000 n=10) ¹
+geomean                                                                             2.449                               2.449       +0.00%
+¹ all samples are equal
