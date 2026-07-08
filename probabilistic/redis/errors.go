@@ -7,8 +7,8 @@ import (
 )
 
 var (
-	// ErrInvalidOptions is returned when Redis Bloom options are invalid.
-	ErrInvalidOptions = errors.New("redis bloom: invalid options")
+	// ErrInvalidOptions is returned when Redis probabilistic options are invalid.
+	ErrInvalidOptions = errors.New("redis probabilistic: invalid options")
 	// ErrConfigMismatch is returned when stored metadata does not match caller config.
 	ErrConfigMismatch = errors.New("redis bloom: config mismatch")
 	// ErrConfigCorrupt is returned when stored metadata is missing or incomplete.
@@ -17,16 +17,21 @@ var (
 
 // RedisError wraps an operational Redis failure with a redacted key id.
 type RedisError struct {
+	Family    string
 	Operation string
 	KeyID     string
 	Err       error
 }
 
 func (e RedisError) Error() string {
-	if e.KeyID == "" {
-		return fmt.Sprintf("redis bloom %s: %v", e.Operation, e.Err)
+	family := e.Family
+	if family == "" {
+		family = "redis probabilistic"
 	}
-	return fmt.Sprintf("redis bloom %s %s: %v", e.Operation, e.KeyID, e.Err)
+	if e.KeyID == "" {
+		return fmt.Sprintf("%s %s: %v", family, e.Operation, e.Err)
+	}
+	return fmt.Sprintf("%s %s %s: %v", family, e.Operation, e.KeyID, e.Err)
 }
 
 func (e RedisError) Unwrap() error {
@@ -43,8 +48,15 @@ func mapScriptError(operation string, keyID string, err error) error {
 	case "config_corrupt":
 		return fmt.Errorf("%w: %s", ErrConfigCorrupt, keyID)
 	default:
-		return RedisError{Operation: operation, KeyID: keyID, Err: err}
+		return mapRedisError("redis bloom", operation, keyID, err)
 	}
+}
+
+func mapRedisError(family string, operation string, keyID string, err error) error {
+	if err == nil {
+		return nil
+	}
+	return RedisError{Family: family, Operation: operation, KeyID: keyID, Err: err}
 }
 
 func scriptErrorMarker(err error) string {
