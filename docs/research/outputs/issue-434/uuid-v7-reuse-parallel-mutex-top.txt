@@ -1,0 +1,24 @@
+File: id.test
+Type: delay
+Time: 2026-07-08 21:11:47 KST
+Showing nodes accounting for 31.38s, 100% of 31.38s total
+Dropped 79 nodes (cum <= 0.16s)
+      flat  flat%   sum%        cum   cum%
+    25.70s 81.88% 81.88%     27.62s 88.02%  sync.(*Mutex).Unlock
+     5.68s 18.10%   100%      5.68s 18.10%  runtime.unlock (inline)
+         0     0%   100%     29.22s 93.11%  github.com/bluetape4k/bluetape-go/id.(*uuidGenerator).NextString
+         0     0%   100%     29.21s 93.09%  github.com/bluetape4k/bluetape-go/id.(*uuidGenerator).nextV7
+         0     0%   100%     29.22s 93.11%  github.com/bluetape4k/bluetape-go/id.BenchmarkUUIDV7ReuseGeneratorParallel.func1
+         0     0%   100%      1.59s  5.08%  internal/sync.(*Mutex).Lock (inline)
+         0     0%   100%      1.92s  6.13%  internal/sync.(*Mutex).Unlock (inline)
+         0     0%   100%      1.59s  5.08%  internal/sync.(*Mutex).lockSlow
+         0     0%   100%      1.92s  6.13%  internal/sync.(*Mutex).unlockSlow
+         0     0%   100%      1.59s  5.08%  internal/sync.runtime_SemacquireMutex
+         0     0%   100%      1.92s  6.13%  internal/sync.runtime_Semrelease
+         0     0%   100%      2.13s  6.80%  runtime.mcall
+         0     0%   100%      2.13s  6.80%  runtime.park_m
+         0     0%   100%      2.12s  6.76%  runtime.parkunlock_c
+         0     0%   100%      1.59s  5.08%  runtime.semacquire1
+         0     0%   100%      1.92s  6.13%  runtime.semrelease1
+         0     0%   100%      1.59s  5.08%  sync.(*Mutex).Lock (inline)
+         0     0%   100%     29.22s 93.11%  testing.(*B).RunParallel.func1

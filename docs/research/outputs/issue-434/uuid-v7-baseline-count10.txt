@@ -1,0 +1,46 @@
+goos: darwin
+goarch: arm64
+pkg: github.com/bluetape4k/bluetape-go/id
+cpu: Apple M5
+BenchmarkUUIDV7NewString-10                 	13261921	        84.21 ns/op	     112 B/op	       3 allocs/op
+BenchmarkUUIDV7NewString-10                 	14106361	        85.07 ns/op	     112 B/op	       3 allocs/op
+BenchmarkUUIDV7NewString-10                 	14043511	        85.03 ns/op	     112 B/op	       3 allocs/op
+BenchmarkUUIDV7NewString-10                 	14177798	        85.21 ns/op	     112 B/op	       3 allocs/op
+BenchmarkUUIDV7NewString-10                 	14146285	        86.07 ns/op	     112 B/op	       3 allocs/op
+BenchmarkUUIDV7NewString-10                 	14074663	        79.84 ns/op	     112 B/op	       3 allocs/op
+BenchmarkUUIDV7NewString-10                 	15202341	        78.85 ns/op	     112 B/op	       3 allocs/op
+BenchmarkUUIDV7NewString-10                 	15293368	        78.79 ns/op	     112 B/op	       3 allocs/op
+BenchmarkUUIDV7NewString-10                 	15043304	        79.46 ns/op	     112 B/op	       3 allocs/op
+BenchmarkUUIDV7NewString-10                 	14482033	        79.24 ns/op	     112 B/op	       3 allocs/op
+BenchmarkUUIDV7NewStringParallel-10         	 5998207	       199.7 ns/op	     112 B/op	       3 allocs/op
+BenchmarkUUIDV7NewStringParallel-10         	 6012548	       200.3 ns/op	     112 B/op	       3 allocs/op
+BenchmarkUUIDV7NewStringParallel-10         	 5984694	       223.3 ns/op	     112 B/op	       3 allocs/op
+BenchmarkUUIDV7NewStringParallel-10         	 5991622	       200.2 ns/op	     112 B/op	       3 allocs/op
+BenchmarkUUIDV7NewStringParallel-10         	 6033774	       199.9 ns/op	     112 B/op	       3 allocs/op
+BenchmarkUUIDV7NewStringParallel-10         	 6007396	       199.7 ns/op	     112 B/op	       3 allocs/op
+BenchmarkUUIDV7NewStringParallel-10         	 5867776	       202.1 ns/op	     112 B/op	       3 allocs/op
+BenchmarkUUIDV7NewStringParallel-10         	 6014803	       199.8 ns/op	     112 B/op	       3 allocs/op
+BenchmarkUUIDV7NewStringParallel-10         	 5990737	       200.0 ns/op	     112 B/op	       3 allocs/op
+BenchmarkUUIDV7NewStringParallel-10         	 5974833	       201.2 ns/op	     112 B/op	       3 allocs/op
+BenchmarkUUIDV7ReuseGenerator-10            	17525677	        68.25 ns/op	      64 B/op	       2 allocs/op
+BenchmarkUUIDV7ReuseGenerator-10            	17706568	        67.81 ns/op	      64 B/op	       2 allocs/op
+BenchmarkUUIDV7ReuseGenerator-10            	17665816	        67.86 ns/op	      64 B/op	       2 allocs/op
+BenchmarkUUIDV7ReuseGenerator-10            	17693666	        68.05 ns/op	      64 B/op	       2 allocs/op
+BenchmarkUUIDV7ReuseGenerator-10            	17661386	        68.22 ns/op	      64 B/op	       2 allocs/op
+BenchmarkUUIDV7ReuseGenerator-10            	17608044	        67.93 ns/op	      64 B/op	       2 allocs/op
+BenchmarkUUIDV7ReuseGenerator-10            	17580302	        67.99 ns/op	      64 B/op	       2 allocs/op
+BenchmarkUUIDV7ReuseGenerator-10            	17665178	        68.26 ns/op	      64 B/op	       2 allocs/op
+BenchmarkUUIDV7ReuseGenerator-10            	17651893	        68.01 ns/op	      64 B/op	       2 allocs/op
+BenchmarkUUIDV7ReuseGenerator-10            	17666510	        67.95 ns/op	      64 B/op	       2 allocs/op
+BenchmarkUUIDV7ReuseGeneratorParallel-10    	 6237716	       191.5 ns/op	      64 B/op	       2 allocs/op
+BenchmarkUUIDV7ReuseGeneratorParallel-10    	 6286518	       193.5 ns/op	      64 B/op	       2 allocs/op
+BenchmarkUUIDV7ReuseGeneratorParallel-10    	 6288714	       194.4 ns/op	      64 B/op	       2 allocs/op
+BenchmarkUUIDV7ReuseGeneratorParallel-10    	 6253968	       191.2 ns/op	      64 B/op	       2 allocs/op
+BenchmarkUUIDV7ReuseGeneratorParallel-10    	 6235615	       191.9 ns/op	      64 B/op	       2 allocs/op
+BenchmarkUUIDV7ReuseGeneratorParallel-10    	 6235324	       193.3 ns/op	      64 B/op	       2 allocs/op
+BenchmarkUUIDV7ReuseGeneratorParallel-10    	 6002535	       191.6 ns/op	      64 B/op	       2 allocs/op
+BenchmarkUUIDV7ReuseGeneratorParallel-10    	 6254251	       191.6 ns/op	      64 B/op	       2 allocs/op
+BenchmarkUUIDV7ReuseGeneratorParallel-10    	 6233349	       193.3 ns/op	      64 B/op	       2 allocs/op
+BenchmarkUUIDV7ReuseGeneratorParallel-10    	 6253640	       194.0 ns/op	      64 B/op	       2 allocs/op
+PASS
+ok  	github.com/bluetape4k/bluetape-go/id	52.209s
