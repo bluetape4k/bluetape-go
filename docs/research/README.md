@@ -25,6 +25,7 @@ scope, dependency candidates, and GitHub issues.
 | `0.12.0` | [Issue #354 core parity matrix](2026-07-03-issue-354-core-parity-matrix.md) |
 | `0.14.0` | [Issue #401 benchmark artifact retention](2026-07-07-issue-401-benchmark-artifact-retention.md), [Issue #402 cross-repo SerDe recommendation matrix](2026-07-07-issue-402-cross-repo-serde-recommendation.md) |
 | `0.15.0` | [Issue #405 audit publisher adapter target](2026-07-07-issue-405-audit-publisher-target.md), [Issue #407 audit publisher adapter](2026-07-07-issue-407-audit-publisher-adapter.md), [Issue #455 zstd allocation profile](2026-07-08-issue-455-zstd-allocation-profile.md), [Issue #456 JSON repeated collection profile](2026-07-07-issue-456-json-repeated-profile.md) |
+| `0.17.0` | [Issue #415 workshop adoption matrix](2026-07-08-issue-415-workshop-adoption-matrix.md) |
 
 ## Update Rule
 
