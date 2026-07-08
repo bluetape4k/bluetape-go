@@ -22,6 +22,20 @@ var redisFixture struct {
 	err       error
 }
 
+const (
+	redisContainerStartupTimeout = 90 * time.Second
+	redisOperationTimeout        = 60 * time.Second
+	redisReadyTimeout            = 10 * time.Second
+	redisReadyPingTimeout        = 250 * time.Millisecond
+)
+
+func redisTestContext(tb testing.TB) context.Context {
+	tb.Helper()
+	ctx, cancel := context.WithTimeout(context.Background(), redisOperationTimeout)
+	tb.Cleanup(cancel)
+	return ctx
+}
+
 func redisAddr(ctx context.Context) (string, error) {
 	redisFixture.once.Do(func() {
 		container, err := tcredis.Run(ctx, "redis:7.4-alpine")
@@ -43,7 +57,7 @@ func redisAddr(ctx context.Context) (string, error) {
 
 func newRedisClient(tb testing.TB) *redis.Client {
 	tb.Helper()
-	ctx, cancel := context.WithTimeout(context.Background(), 90*time.Second)
+	ctx, cancel := context.WithTimeout(context.Background(), redisContainerStartupTimeout)
 	tb.Cleanup(cancel)
 	addr, err := redisAddr(ctx)
 	if err != nil {
@@ -64,10 +78,12 @@ func newRedisClient(tb testing.TB) *redis.Client {
 
 func waitForRedis(tb testing.TB, client *redis.Client) {
 	tb.Helper()
-	deadline := time.Now().Add(10 * time.Second)
+	deadline := time.Now().Add(redisReadyTimeout)
 	var lastErr error
 	for time.Now().Before(deadline) {
-		err := client.Ping(context.Background()).Err()
+		ctx, cancel := context.WithTimeout(context.Background(), redisReadyPingTimeout)
+		err := client.Ping(ctx).Err()
+		cancel()
 		if err == nil {
 			return
 		}
@@ -112,14 +128,16 @@ func cleanupNamespace(tb testing.TB, client redis.Cmdable, namespace string) {
 		tb.Fatalf("buildHyperLogLogKey failed: %v", err)
 	}
 	tb.Cleanup(func() {
-		if err := client.Del(context.Background(), keys.bits, keys.config, hllKey.key).Err(); err != nil {
+		ctx, cancel := context.WithTimeout(context.Background(), redisOperationTimeout)
+		defer cancel()
+		if err := client.Del(ctx, keys.bits, keys.config, hllKey.key).Err(); err != nil {
 			tb.Fatalf("cleanup redis keys: %v", err)
 		}
 	})
 }
 
 func TestNewBloomFilterInitializesAndReusesConfig(t *testing.T) {
-	ctx := context.Background()
+	ctx := redisTestContext(t)
 	client := newRedisClient(t)
 	namespace := testNamespace(t)
 	cleanupNamespace(t, client, namespace)
@@ -142,7 +160,7 @@ func TestNewBloomFilterInitializesAndReusesConfig(t *testing.T) {
 }
 
 func TestNewBloomFilterRejectsChangedConfig(t *testing.T) {
-	ctx := context.Background()
+	ctx := redisTestContext(t)
 	client := newRedisClient(t)
 	namespace := testNamespace(t)
 	cleanupNamespace(t, client, namespace)
@@ -158,7 +176,7 @@ func TestNewBloomFilterRejectsChangedConfig(t *testing.T) {
 }
 
 func TestNewBloomFilterRejectsCorruptMetadataWithBitmap(t *testing.T) {
-	ctx := context.Background()
+	ctx := redisTestContext(t)
 	client := newRedisClient(t)
 	namespace := testNamespace(t)
 	cleanupNamespace(t, client, namespace)
@@ -184,7 +202,7 @@ func TestNewBloomFilterRejectsCorruptMetadataWithBitmap(t *testing.T) {
 }
 
 func TestNewBloomFilterRejectsMissingConfigWithBitmap(t *testing.T) {
-	ctx := context.Background()
+	ctx := redisTestContext(t)
 	client := newRedisClient(t)
 	namespace := testNamespace(t)
 	cleanupNamespace(t, client, namespace)
@@ -210,7 +228,7 @@ func TestNewBloomFilterRejectsMissingConfigWithBitmap(t *testing.T) {
 }
 
 func TestNewBloomFilterRejectsPartialMetadataEvenWithFingerprint(t *testing.T) {
-	ctx := context.Background()
+	ctx := redisTestContext(t)
 	client := newRedisClient(t)
 	namespace := testNamespace(t)
 	cleanupNamespace(t, client, namespace)
@@ -242,7 +260,7 @@ func TestNewBloomFilterRejectsPartialMetadataEvenWithFingerprint(t *testing.T) {
 }
 
 func TestConcurrentIncompatibleConstructorsLeaveOneConfig(t *testing.T) {
-	ctx := context.Background()
+	ctx := redisTestContext(t)
 	client := newRedisClient(t)
 	namespace := testNamespace(t)
 	cleanupNamespace(t, client, namespace)

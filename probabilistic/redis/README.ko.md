@@ -119,7 +119,25 @@ password, credential, API key를 namespace에 넣지 마세요.
 
 ## 테스트
 
+Package 테스트는 Testcontainers for Go로 Redis `redis:7.4-alpine`을 시작합니다.
+Container startup은 90초로 제한하고, readiness ping은 10초 window 안에서 짧은
+bounded context를 사용하며, live Redis operation과 cleanup도 package-local operation
+timeout을 사용합니다.
+
+Coverage 범위:
+
+- Bloom filter configuration reuse, mismatch/corrupt metadata handling, clear,
+  false-negative protection, Lua command shape, cancellation, concurrent call.
+- HyperLogLog add/count/merge, byte/custom hasher value, invalid option,
+  cancelled context, redacted Redis error, raw value non-disclosure, concurrent
+  call.
+- Concurrent Redis operation과 cancellation behavior에는 `GoroutineStressTester`,
+  `AsyncJobTester`를 사용합니다.
+
 ```bash
 go test -count=1 ./probabilistic/redis
 go test -race -count=1 ./probabilistic/redis
 ```
+
+다른 Testcontainers package와 함께 실행할 때는 package를 직렬로 실행하세요.
+Repository의 `make test`, `make race` target은 이 이유로 이미 `-p 1`을 사용합니다.

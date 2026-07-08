@@ -120,7 +120,26 @@ emails, tokens, secrets, passwords, credentials, or API keys in namespaces.
 
 ## Test
 
+The package tests start Redis `redis:7.4-alpine` through Testcontainers for Go.
+Container startup is bounded to 90 seconds, readiness pings use short bounded
+contexts inside a 10 second window, and live Redis operations plus cleanup use
+package-local operation timeouts.
+
+Coverage includes:
+
+- Bloom filter configuration reuse, mismatch/corrupt metadata handling, clear,
+  false-negative protection, Lua command shape, cancellation, and concurrent
+  calls.
+- HyperLogLog add/count/merge, byte and custom hasher values, invalid options,
+  cancelled contexts, redacted Redis errors, raw value non-disclosure, and
+  concurrent calls.
+- `GoroutineStressTester` and `AsyncJobTester` coverage for concurrent Redis
+  operations and cancellation behavior.
+
 ```bash
 go test -count=1 ./probabilistic/redis
 go test -race -count=1 ./probabilistic/redis
 ```
+
+Run this package serially with other Testcontainers packages. The repository
+`make test` and `make race` targets already use `-p 1` for that reason.

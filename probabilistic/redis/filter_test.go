@@ -13,7 +13,7 @@ import (
 )
 
 func TestPutAndMightContainHaveNoFalseNegative(t *testing.T) {
-	ctx := context.Background()
+	ctx := redisTestContext(t)
 	client := newRedisClient(t)
 	namespace := testNamespace(t)
 	cleanupNamespace(t, client, namespace)
@@ -55,7 +55,7 @@ func TestPutAndMightContainHaveNoFalseNegative(t *testing.T) {
 }
 
 func TestClearPreservesConfigAndClearsBitmap(t *testing.T) {
-	ctx := context.Background()
+	ctx := redisTestContext(t)
 	client := newRedisClient(t)
 	namespace := testNamespace(t)
 	cleanupNamespace(t, client, namespace)
@@ -93,7 +93,7 @@ func TestClearPreservesConfigAndClearsBitmap(t *testing.T) {
 }
 
 func TestExternalBitmapDeletionCreatesEmptyState(t *testing.T) {
-	ctx := context.Background()
+	ctx := redisTestContext(t)
 	client := newRedisClient(t)
 	namespace := testNamespace(t)
 	cleanupNamespace(t, client, namespace)
@@ -127,7 +127,7 @@ func TestExternalBitmapDeletionCreatesEmptyState(t *testing.T) {
 }
 
 func TestOperationsRejectChangedConfigBeforeBitmapTouch(t *testing.T) {
-	ctx := context.Background()
+	ctx := redisTestContext(t)
 	client := newRedisClient(t)
 	namespace := testNamespace(t)
 	cleanupNamespace(t, client, namespace)
@@ -182,7 +182,7 @@ func TestOperationsRejectMissingOrCorruptConfig(t *testing.T) {
 		},
 	} {
 		t.Run(tc.name, func(t *testing.T) {
-			ctx := context.Background()
+			ctx := redisTestContext(t)
 			client := newRedisClient(t)
 			namespace := testNamespace(t)
 			cleanupNamespace(t, client, namespace)
@@ -226,7 +226,7 @@ func TestOperationsRejectMissingOrCorruptConfig(t *testing.T) {
 }
 
 func TestConcurrentPutAndMightContain(t *testing.T) {
-	ctx := context.Background()
+	ctx := redisTestContext(t)
 	client := newRedisClient(t)
 	namespace := testNamespace(t)
 	cleanupNamespace(t, client, namespace)
@@ -267,7 +267,7 @@ func TestContextCancellationVisible(t *testing.T) {
 	client := newRedisClient(t)
 	namespace := testNamespace(t)
 	cleanupNamespace(t, client, namespace)
-	filter, err := NewStringBloomFilter(context.Background(), client, namespace, testConfig(t, 1000))
+	filter, err := NewStringBloomFilter(redisTestContext(t), client, namespace, testConfig(t, 1000))
 	if err != nil {
 		t.Fatalf("NewStringBloomFilter failed: %v", err)
 	}
@@ -282,7 +282,7 @@ func TestDeadlineExceededVisible(t *testing.T) {
 	client := newRedisClient(t)
 	namespace := testNamespace(t)
 	cleanupNamespace(t, client, namespace)
-	filter, err := NewStringBloomFilter(context.Background(), client, namespace, testConfig(t, 1000))
+	filter, err := NewStringBloomFilter(redisTestContext(t), client, namespace, testConfig(t, 1000))
 	if err != nil {
 		t.Fatalf("NewStringBloomFilter failed: %v", err)
 	}
@@ -350,7 +350,7 @@ func (r *commandRecorder) ScriptDelta() int {
 }
 
 func TestHotPathUsesOneScriptRoundTripPerCall(t *testing.T) {
-	ctx := context.Background()
+	ctx := redisTestContext(t)
 	client := newRedisClient(t)
 	recorder := newCommandRecorder()
 	client.AddHook(recorder)

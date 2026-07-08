@@ -13,7 +13,7 @@ import (
 )
 
 func TestGoroutineStressTesterCoversConcurrentRedisBloomCalls(t *testing.T) {
-	ctx := context.Background()
+	ctx := redisTestContext(t)
 	client := newRedisClient(t)
 	namespace := testNamespace(t)
 	cleanupNamespace(t, client, namespace)
@@ -62,7 +62,7 @@ func TestGoroutineStressTesterCoversConcurrentRedisBloomCalls(t *testing.T) {
 }
 
 func TestAsyncJobTesterCoversCancellationAndLiveRedisCalls(t *testing.T) {
-	ctx := context.Background()
+	ctx := redisTestContext(t)
 	client := newRedisClient(t)
 	namespace := testNamespace(t)
 	cleanupNamespace(t, client, namespace)
@@ -137,7 +137,7 @@ func TestGoroutineStressTesterCoversConcurrentHyperLogLogCalls(t *testing.T) {
 }
 
 func TestAsyncJobTesterCoversHyperLogLogCancellation(t *testing.T) {
-	ctx := context.Background()
+	ctx := redisTestContext(t)
 	client := newRedisClient(t)
 	namespace := testNamespace(t)
 	cleanupNamespace(t, client, namespace)

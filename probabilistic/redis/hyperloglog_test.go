@@ -14,7 +14,7 @@ import (
 )
 
 func TestHyperLogLogAddCountAndMerge(t *testing.T) {
-	ctx := context.Background()
+	ctx := redisTestContext(t)
 	client := newRedisClient(t)
 	destinationNamespace := testNamespace(t) + ":dest"
 	sourceNamespace := testNamespace(t) + ":source"
@@ -69,7 +69,7 @@ func TestHyperLogLogAddCountAndMerge(t *testing.T) {
 }
 
 func TestHyperLogLogBytesAndCustomHasher(t *testing.T) {
-	ctx := context.Background()
+	ctx := redisTestContext(t)
 	client := newRedisClient(t)
 	bytesNamespace := testNamespace(t) + ":bytes"
 	customNamespace := testNamespace(t) + ":custom"
@@ -176,7 +176,7 @@ func TestHyperLogLogRejectsInvalidOptions(t *testing.T) {
 }
 
 func TestHyperLogLogRejectsInvalidMergeSources(t *testing.T) {
-	ctx := context.Background()
+	ctx := redisTestContext(t)
 	client := newRedisClient(t)
 	namespace := testNamespace(t)
 	cleanupNamespace(t, client, namespace)
@@ -219,7 +219,7 @@ func TestHyperLogLogContextCancellationVisible(t *testing.T) {
 }
 
 func TestHyperLogLogRedisErrorsAreWrappedAndRedacted(t *testing.T) {
-	ctx := context.Background()
+	ctx := redisTestContext(t)
 	client := newRedisClient(t)
 	namespace := testNamespace(t)
 	cleanupNamespace(t, client, namespace)
@@ -251,7 +251,7 @@ func TestHyperLogLogRedisErrorsAreWrappedAndRedacted(t *testing.T) {
 }
 
 func TestHyperLogLogDoesNotSendRawValuesToRedis(t *testing.T) {
-	ctx := context.Background()
+	ctx := redisTestContext(t)
 	client := newRedisClient(t)
 	recorder := newCommandPayloadRecorder()
 	client.AddHook(recorder)
@@ -273,7 +273,7 @@ func TestHyperLogLogDoesNotSendRawValuesToRedis(t *testing.T) {
 }
 
 func TestHyperLogLogConcurrentAddAndCount(t *testing.T) {
-	ctx := context.Background()
+	ctx := redisTestContext(t)
 	client := newRedisClient(t)
 	namespace := testNamespace(t)
 	cleanupNamespace(t, client, namespace)
