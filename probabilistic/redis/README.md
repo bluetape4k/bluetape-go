@@ -8,7 +8,7 @@ Redis metadata, validate that metadata through Lua scripts before every read or
 mutation, and store shared bits in a Redis bitmap string. HyperLogLog uses core
 Redis `PFADD`, `PFCOUNT`, and `PFMERGE` commands.
 
-![probabilistic redis bloom runtime](../../docs/images/readme-diagrams/probabilistic-redis-bloom-runtime.png)
+![probabilistic redis runtime map](../../docs/images/readme-diagrams/probabilistic-redis-bloom-runtime.png)
 
 ## Import
 
@@ -88,6 +88,26 @@ bluetape:probabilistic:hll:v1:{namespace}
 Namespaces must be stable operational identifiers. Do not place raw user IDs,
 emails, tokens, secrets, passwords, credentials, or API keys in namespaces.
 
+## Redis Assumptions
+
+- The current Bloom and HyperLogLog surfaces use ordinary Redis commands only.
+  No RedisBloom module is required for `NewStringBloomFilter`,
+  `NewBytesBloomFilter`, `NewHyperLogLog`, `NewStringHyperLogLog`, or
+  `NewBytesHyperLogLog`.
+- The Testcontainers suite runs against Redis `redis:7.4-alpine`; production
+  deployments should provide the same core command families used here: Lua
+  script execution, hash/string bitmap commands, and HyperLogLog commands.
+- RedisBloom module commands such as `CF.ADD`, `CF.EXISTS`, and other `CF*`
+  Cuckoo operations are intentionally not part of this package yet. They remain
+  follow-up scope until module availability, ACL, persistence, and
+  Testcontainers coverage are explicit.
+- Bloom capacity is fixed by `probabilistic.Config`: `ExpectedInsertions`,
+  `FalsePositiveProbability`, bit size, hash count, and the hasher key become
+  immutable Redis metadata for the namespace. Changing those values requires a
+  new namespace and rebuild.
+- HyperLogLog capacity and error rate are Redis-owned. Callers choose it for
+  approximate distinct counts, not membership checks or duplicate certainty.
+
 ## Behavior
 
 - `MightContain(ctx, value) == false` means the value is definitely absent.
@@ -117,6 +137,17 @@ emails, tokens, secrets, passwords, credentials, or API keys in namespaces.
   after the new namespace is accepted.
 - HyperLogLog keys are ordinary Redis keys. Caller-owned persistence, eviction,
   ACL, and backup policy still apply.
+
+Diagnostic checks normally start with the concrete key family involved:
+
+```text
+HGETALL bluetape:probabilistic:bloom:v1:{namespace}:config
+STRLEN  bluetape:probabilistic:bloom:v1:{namespace}:bits
+BITCOUNT bluetape:probabilistic:bloom:v1:{namespace}:bits
+PFCOUNT bluetape:probabilistic:hll:v1:{namespace}
+EXISTS  bluetape:probabilistic:hll:v1:{namespace}
+PTTL    bluetape:probabilistic:hll:v1:{namespace}
+```
 
 ## Test
 

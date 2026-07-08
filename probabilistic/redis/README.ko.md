@@ -8,7 +8,7 @@ metadata에 immutable하게 보관하고, 모든 read/mutation 전에 Lua script
 검증하며, shared bit는 Redis bitmap string에 저장합니다. HyperLogLog는 core Redis
 `PFADD`, `PFCOUNT`, `PFMERGE` command를 사용합니다.
 
-![probabilistic redis bloom runtime](../../docs/images/readme-diagrams/probabilistic-redis-bloom-runtime.png)
+![probabilistic redis runtime map](../../docs/images/readme-diagrams/probabilistic-redis-bloom-runtime.png)
 
 ## 가져오기
 
@@ -88,6 +88,25 @@ bluetape:probabilistic:hll:v1:{namespace}
 Namespace는 안정적인 운영 식별자여야 합니다. Raw user ID, email, token, secret,
 password, credential, API key를 namespace에 넣지 마세요.
 
+## Redis 가정
+
+- 현재 Bloom과 HyperLogLog surface는 ordinary Redis command만 사용합니다.
+  `NewStringBloomFilter`, `NewBytesBloomFilter`, `NewHyperLogLog`,
+  `NewStringHyperLogLog`, `NewBytesHyperLogLog`에는 RedisBloom module이
+  필요하지 않습니다.
+- Testcontainers suite는 Redis `redis:7.4-alpine`에서 실행합니다. Production
+  Redis도 여기서 쓰는 core command family를 제공해야 합니다. Lua script 실행,
+  hash/string bitmap command, HyperLogLog command가 필요합니다.
+- `CF.ADD`, `CF.EXISTS` 같은 RedisBloom module `CF*` Cuckoo command는 아직
+  이 package 범위가 아닙니다. Module availability, ACL, persistence,
+  Testcontainers coverage가 명확해질 때까지 후속 범위로 둡니다.
+- Bloom capacity는 `probabilistic.Config`가 고정합니다.
+  `ExpectedInsertions`, `FalsePositiveProbability`, bit size, hash count,
+  hasher key는 namespace의 immutable Redis metadata가 됩니다. 값을 바꾸려면
+  새 namespace와 rebuild가 필요합니다.
+- HyperLogLog capacity와 error rate는 Redis가 소유합니다. Membership check나
+  duplicate certainty가 아니라 approximate distinct count가 필요할 때 선택하세요.
+
 ## 동작
 
 - `MightContain(ctx, value) == false`는 값이 확실히 없다는 뜻입니다.
@@ -116,6 +135,17 @@ password, credential, API key를 namespace에 넣지 마세요.
   rebuild하고 reader를 검증한 뒤, 새 namespace가 승인된 후에만 old key를 정리합니다.
 - HyperLogLog key도 ordinary Redis key입니다. Persistence, eviction, ACL, backup
   policy는 caller 책임입니다.
+
+Diagnostic check는 보통 관련 key family에서 시작합니다.
+
+```text
+HGETALL bluetape:probabilistic:bloom:v1:{namespace}:config
+STRLEN  bluetape:probabilistic:bloom:v1:{namespace}:bits
+BITCOUNT bluetape:probabilistic:bloom:v1:{namespace}:bits
+PFCOUNT bluetape:probabilistic:hll:v1:{namespace}
+EXISTS  bluetape:probabilistic:hll:v1:{namespace}
+PTTL    bluetape:probabilistic:hll:v1:{namespace}
+```
 
 ## 테스트
 

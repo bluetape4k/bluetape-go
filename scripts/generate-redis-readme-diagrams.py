@@ -511,22 +511,25 @@ def build_static() -> None:
     )
     static_diagram(
         "probabilistic-redis-bloom-runtime",
-        "probabilistic/redis Bloom Runtime Map",
-        "Lua scripts validate immutable config before reading or mutating shared Redis bitmap state.",
+        "probabilistic/redis Runtime Map",
+        "Bloom filters and HyperLogLog use core Redis commands; Cuckoo remains RedisBloom-module follow-up scope.",
         [
-            dict(x=92, y=210, w=330, h=175, title="Caller", body=["Put / MightContain", "BitCount / IsEmpty", "ExpectedFPP"], fill="#eaf2ff", stroke="#6d9df0"),
-            dict(x=500, y=180, w=390, h=230, title="BloomFilter", body=["normalizes namespace", "hashes value to offsets", "keeps config fingerprint", "maps script errors"], fill="#edf9f4", stroke="#63b891"),
-            dict(x=1010, y=170, w=390, h=250, title="Redis Lua scripts", body=["Put / MightContain", "Clear", "BitCount / IsEmpty", "metadata guard first"], fill="#fff0f0", stroke="#dc2626", icon="redis"),
-            dict(x=500, y=545, w=390, h=165, title="Config hash", body=["expected insertions", "false positive probability", "bit/hash sizing"], fill="#f3efff", stroke="#9b7aec"),
-            dict(x=1010, y=545, w=390, h=165, title="Bitmap string", body=["GETBIT / SETBIT", "BITCOUNT / STRLEN", "shared by processes"], fill="#fff4de", stroke="#d59c3f"),
+            dict(x=92, y=235, w=330, h=185, title="Caller", body=["Bloom membership", "HLL distinct count", "context-owned calls"], fill="#eaf2ff", stroke="#6d9df0"),
+            dict(x=500, y=170, w=390, h=215, title="BloomFilter", body=["NewStringBloomFilter", "hashes values to offsets", "checks config fingerprint", "maps script errors"], fill="#edf9f4", stroke="#63b891"),
+            dict(x=500, y=520, w=390, h=180, title="HyperLogLog", body=["NewStringHyperLogLog", "SHA-256 value digests", "Add / Count / Merge"], fill="#f3efff", stroke="#9b7aec"),
+            dict(x=1010, y=160, w=390, h=220, title="Redis core commands", body=["Lua EVAL / EVALSHA", "PFADD / PFCOUNT / PFMERGE", "no RedisBloom module"], fill="#fff0f0", stroke="#dc2626", icon="redis"),
+            dict(x=1010, y=455, w=390, h=165, title="Bloom keys", body=[":config hash metadata", ":bits bitmap string", "Cluster hash-tag slot"], fill="#fff4de", stroke="#d59c3f"),
+            dict(x=1010, y=690, w=390, h=120, title="HLL key", body=["one HyperLogLog string", "approximate cardinality"], fill="#edf7ff", stroke="#3f7d9c"),
         ],
         [
-            dict(d="M422 300H500", color=COLORS["blue"], marker="arrow-blue", label="operation", lx=460, ly=282),
-            dict(d="M890 300H1010", color=COLORS["red"], marker="arrow-red", label="EVAL", lx=950, ly=282),
-            dict(d="M695 410V545", color=COLORS["purple"], marker="arrow-purple", label="metadata", lx=748, ly=492),
-            dict(d="M890 620H1010", color=COLORS["amber"], marker="arrow-amber", label="bits", lx=950, ly=602),
+            dict(d="M422 300H500", color=COLORS["blue"], marker="arrow-blue", label="Bloom API", lx=460, ly=282),
+            dict(d="M422 360H462Q482 360 482 380V590Q482 610 492 610H500", color=COLORS["purple"], marker="arrow-purple", label="HLL API", lx=452, ly=538),
+            dict(d="M890 280H1010", color=COLORS["red"], marker="arrow-red", label="scripts", lx=950, ly=262),
+            dict(d="M890 610H950Q970 610 970 590V325Q970 305 990 305H1010", color=COLORS["green"], marker="arrow-green", label="PF*", lx=940, ly=520),
+            dict(d="M890 315H950Q970 315 970 335V535Q970 555 990 555H1010", color=COLORS["amber"], marker="arrow-amber", label="metadata + bits", lx=830, ly=435),
+            dict(d="M890 676H950Q970 676 970 696V742Q970 762 990 762H1010", color=COLORS["teal"], marker="arrow-teal", label="estimate key", lx=950, ly=724),
         ],
-        "Config mismatch is treated as an incident; Clear deletes shared bits but preserves configuration metadata.",
+        "Bloom and HLL require only core Redis; RedisBloom CF* Cuckoo support is intentionally outside this scope.",
     )
     static_diagram(
         "redis-leader-election-lifecycle",
