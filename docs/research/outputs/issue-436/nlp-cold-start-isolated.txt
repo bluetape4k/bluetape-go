@@ -1,0 +1,184 @@
+# Issue 436 isolated cold-start benchmark snapshots
+# Date: 2026-07-08
+# Each case runs in a separate go test process to avoid benchmark order/cache contamination.
+
+
+## japanese tokenizer normal construction
+
+Command: /usr/bin/time -l go test -run '^$' -bench '^BenchmarkTokenizerConstruction$/^normal$' -benchtime=1x -benchmem ./textsearch/japanese
+
+goos: darwin
+goarch: arm64
+pkg: github.com/bluetape4k/bluetape-go/textsearch/japanese
+cpu: Apple M5
+BenchmarkTokenizerConstruction/normal-10         	       1	 281207666 ns/op	221170304 B/op	 5594008 allocs/op
+PASS
+ok  	github.com/bluetape4k/bluetape-go/textsearch/japanese	0.575s
+        0.71 real         0.44 user         0.30 sys
+           154714112  maximum resident set size
+                   0  average shared memory size
+                   0  average unshared data size
+                   0  average unshared stack size
+               25566  page reclaims
+                 946  page faults
+                   0  swaps
+                   0  block input operations
+                   0  block output operations
+                   0  messages sent
+                   0  messages received
+                 859  signals received
+                 167  voluntary context switches
+                5703  involuntary context switches
+          1532179787  instructions retired
+          1212223014  cycles elapsed
+            19825336  peak memory footprint
+
+## japanese tokenizer construction plus first large use
+
+Command: /usr/bin/time -l go test -run '^$' -bench '^BenchmarkTokenizerConstructionAndFirstUse$/^large$' -benchtime=1x -benchmem ./textsearch/japanese
+
+goos: darwin
+goarch: arm64
+pkg: github.com/bluetape4k/bluetape-go/textsearch/japanese
+cpu: Apple M5
+BenchmarkTokenizerConstructionAndFirstUse/large-10         	       1	 284994834 ns/op	222528032 B/op	 5609775 allocs/op
+PASS
+ok  	github.com/bluetape4k/bluetape-go/textsearch/japanese	0.813s
+        0.95 real         0.44 user         0.30 sys
+           156368896  maximum resident set size
+                   0  average shared memory size
+                   0  average unshared data size
+                   0  average unshared stack size
+               26110  page reclaims
+                 946  page faults
+                   0  swaps
+                   0  block input operations
+                   0  block output operations
+                   0  messages sent
+                   0  messages received
+                 375  signals received
+                 181  voluntary context switches
+                5431  involuntary context switches
+          1546040409  instructions retired
+          1216098793  cycles elapsed
+            20579048  peak memory footprint
+
+## language subset high accuracy construction plus first use
+
+Command: /usr/bin/time -l go test -run '^$' -bench '^BenchmarkDetectorConstructionAndFirstUse$/^subset_lazy_high_accuracy$' -benchtime=1x -benchmem ./textsearch/language
+
+goos: darwin
+goarch: arm64
+pkg: github.com/bluetape4k/bluetape-go/textsearch/language
+cpu: Apple M5
+BenchmarkDetectorConstructionAndFirstUse/subset_lazy_high_accuracy-10         	       1	  90440000 ns/op	132146368 B/op	 1490291 allocs/op
+PASS
+ok  	github.com/bluetape4k/bluetape-go/textsearch/language	1.045s
+        1.45 real         0.53 user         0.53 sys
+           386465792  maximum resident set size
+                   0  average shared memory size
+                   0  average unshared data size
+                   0  average unshared stack size
+               38281  page reclaims
+                8262  page faults
+                   0  swaps
+                   0  block input operations
+                   0  block output operations
+                   0  messages sent
+                   0  messages received
+                 535  signals received
+                 393  voluntary context switches
+                7344  involuntary context switches
+          2936958982  instructions retired
+          2057267179  cycles elapsed
+            19956432  peak memory footprint
+
+## language subset low accuracy construction plus first use
+
+Command: /usr/bin/time -l go test -run '^$' -bench '^BenchmarkDetectorConstructionAndFirstUse$/^subset_lazy_low_accuracy$' -benchtime=1x -benchmem ./textsearch/language
+
+goos: darwin
+goarch: arm64
+pkg: github.com/bluetape4k/bluetape-go/textsearch/language
+cpu: Apple M5
+BenchmarkDetectorConstructionAndFirstUse/subset_lazy_low_accuracy-10         	       1	  15611667 ns/op	 7321296 B/op	   96071 allocs/op
+PASS
+ok  	github.com/bluetape4k/bluetape-go/textsearch/language	1.107s
+        1.51 real         0.36 user         0.56 sys
+           386875392  maximum resident set size
+                   0  average shared memory size
+                   0  average unshared data size
+                   0  average unshared stack size
+               33302  page reclaims
+                8262  page faults
+                   0  swaps
+                   0  block input operations
+                   0  block output operations
+                   0  messages sent
+                   0  messages received
+                 427  signals received
+                 348  voluntary context switches
+                6953  involuntary context switches
+          2924323063  instructions retired
+          2025849949  cycles elapsed
+            20824712  peak memory footprint
+
+## language subset preloaded low accuracy construction
+
+Command: /usr/bin/time -l go test -run '^$' -bench '^BenchmarkDetectorConstruction$/^subset_preloaded_low_accuracy$' -benchtime=1x -benchmem ./textsearch/language
+
+goos: darwin
+goarch: arm64
+pkg: github.com/bluetape4k/bluetape-go/textsearch/language
+cpu: Apple M5
+BenchmarkDetectorConstruction/subset_preloaded_low_accuracy-10         	       1	   7975500 ns/op	 7229128 B/op	   95419 allocs/op
+PASS
+ok  	github.com/bluetape4k/bluetape-go/textsearch/language	1.132s
+        1.55 real         0.37 user         0.58 sys
+           387448832  maximum resident set size
+                   0  average shared memory size
+                   0  average unshared data size
+                   0  average unshared stack size
+               33851  page reclaims
+                8262  page faults
+                   0  swaps
+                   0  block input operations
+                   0  block output operations
+                   0  messages sent
+                   0  messages received
+                 430  signals received
+                 360  voluntary context switches
+                7323  involuntary context switches
+          2928183534  instructions retired
+          2062764408  cycles elapsed
+            21774984  peak memory footprint
+
+## language all lazy low accuracy construction plus first use
+
+Command: /usr/bin/time -l go test -run '^$' -bench '^BenchmarkDetectorConstructionAndFirstUse$/^all_lazy_low_accuracy$' -benchtime=1x -benchmem ./textsearch/language
+
+goos: darwin
+goarch: arm64
+pkg: github.com/bluetape4k/bluetape-go/textsearch/language
+cpu: Apple M5
+BenchmarkDetectorConstructionAndFirstUse/all_lazy_low_accuracy-10         	       1	 130951875 ns/op	146485976 B/op	 1967005 allocs/op
+PASS
+ok  	github.com/bluetape4k/bluetape-go/textsearch/language	1.060s
+        1.47 real         0.55 user         0.60 sys
+           386514944  maximum resident set size
+                   0  average shared memory size
+                   0  average unshared data size
+                   0  average unshared stack size
+               37131  page reclaims
+                8262  page faults
+                   0  swaps
+                   0  block input operations
+                   0  block output operations
+                   0  messages sent
+                   0  messages received
+                 552  signals received
+                 383  voluntary context switches
+                8052  involuntary context switches
+          2905662485  instructions retired
+          2127812050  cycles elapsed
+            21922488  peak memory footprint
