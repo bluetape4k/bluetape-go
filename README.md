@@ -27,29 +27,24 @@ before computing them.
 
 ## Current Status
 
-`bluetape-go` has published the `v0.12.0` release line. The repository now covers
+`bluetape-go` has published the `v0.15.0` release line. The repository now covers
 foundation helpers, codecs, compression, context-aware concurrency, serializer
 contracts, Redis-backed leader election and locks, resilience policies, cache
 coordination, token-bucket rate limiting, finite state machines, workflow
 reports, lightweight workflow runners, checkpointed batch jobs, and portable
 service values, SQL helpers, text search primitives, audit/event packages,
 graph helpers, bounded image helpers, encryption helpers, and first-party rule
-primitives. The `0.13.0` line is a retrospective hardening track over work
-completed through `0.12.0`, not a broad API expansion.
+primitives. The `0.16.0` line expands Redis probabilistic structures with core
+Redis HyperLogLog support, live Redis Testcontainers coverage, and explicit
+RedisBloom module boundaries.
 
 The `v0.6.x` portable utilities scope includes UUID, ULID, KSUID, and Snowflake
 ID generation; explicit-algorithm JWT signing, parsing, validation, and local
 or distributed key rotation backed by in-memory, Redis, or MongoDB KeyChain
 repositories; typed units and measured values; ISO currency and decimal-backed
 money operations; and in-memory Bloom filters plus Redis-backed Bloom and
-HyperLogLog helpers. The current `0.6.7` line includes the corrective `0.6.3`
-through `0.6.6` implementation series plus MongoDB-backed JWT KeyChain storage.
-
-The active `0.13.0` milestone records fresh 7-tier review evidence, missing
-stress/race coverage, confirmed P0/P1 fixes, cumulative lesson hardening,
-feature-gap triage, and release-readiness bookkeeping. Its only must-have
-feature addition is the reusable MongoDB Testcontainers fixture needed by
-existing JWT Mongo tests.
+HyperLogLog helpers. RedisBloom `CF*` Cuckoo support remains a module-gated
+future scope, not part of the current public API.
 
 ## Packages
 
@@ -253,6 +248,9 @@ path stays explicit: `Store.Enqueue` writes durable rows, `Relay.RunOnce` or
 | `0.11.0` | Image, encryption, rule-engine research, and utility follow-ups. |
 | `0.12.0` | Core foundation parity: source-backed replacements for core, collections, codec, concurrency, logging conventions, and first-party rules primitives. |
 | `0.13.0` | Retrospective hardening: 7-tier review, stress/race coverage, P0/P1 fixes, cumulative lesson cleanup, MongoDB Testcontainers fixture, feature-gap triage, and release-readiness audit. |
+| `0.14.0` | Cross-repo SerDe/compression benchmark evidence, raw artifact retention, and evidence-scoped recommendation matrix. |
+| `0.15.0` | Audit sqloutbox publisher adoption helpers plus focused JSON/zstd allocation reductions. |
+| `0.16.0` | Redis probabilistic follow-up: HyperLogLog support, Testcontainers/stress/race coverage, and explicit RedisBloom Cuckoo deferral. |
 
 The closed `0.7.0 Research Gate` milestone recorded the larger-domain scope
 decisions and was not tagged as a release.

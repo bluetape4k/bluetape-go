@@ -25,27 +25,23 @@ attribute는 계산 전에 `logger.Enabled(ctx, slog.LevelDebug)`로 guard하세
 
 ## 현재 상태
 
-`bluetape-go`는 `v0.12.0` 릴리스 선을 배포했습니다. 현재 repository에는
+`bluetape-go`는 `v0.15.0` 릴리스 선을 배포했습니다. 현재 repository에는
 foundation helper, codec, compression, context-aware concurrency, serializer
 contract, Redis 기반 leader election과 lock, resilience policy, cache
 coordination, token-bucket rate limiting, finite state machine, workflow report,
 lightweight workflow runner, checkpoint 기반 batch job, portable service value,
 SQL helper, text search primitive, audit/event package, graph helper, bounded
 image helper, encryption helper, first-party rule primitive가 들어 있습니다.
-`0.13.0` 선은 `0.12.0`까지 완료된 작업을 대상으로 하는 retrospective
-hardening track이며, 넓은 API 확장이 아닙니다.
+`0.16.0` 선은 Redis probabilistic 구조를 core Redis HyperLogLog 지원,
+live Redis Testcontainers coverage, 명시적인 RedisBloom module boundary로
+확장합니다.
 
 `v0.6.x` portable utility 범위에는 UUID, ULID, KSUID, Snowflake ID 생성,
 명시적 algorithm 기반 JWT signing/parsing/validation, 인메모리/Redis/MongoDB
 KeyChain repository 기반 distributed key rotation, typed unit과 measured value,
 ISO currency와 decimal-backed money 연산, 인메모리 Bloom 및 Redis-backed Bloom과
-HyperLogLog helper가 포함됩니다. 현재 `0.6.7` 선에는 corrective `0.6.3`부터
-`0.6.6` 구현 series와 MongoDB-backed JWT KeyChain storage가 포함됩니다.
-
-활성 `0.13.0` milestone은 fresh 7-tier review evidence, 누락된 stress/race
-coverage, 확인된 P0/P1 fix, cumulative lesson hardening, feature-gap triage,
-release-readiness bookkeeping을 기록합니다. 유일한 must-have feature addition은
-기존 JWT Mongo 테스트에 필요했던 reusable MongoDB Testcontainers fixture입니다.
+HyperLogLog helper가 포함됩니다. RedisBloom `CF*` Cuckoo 지원은 현재 public
+API가 아니라 module-gated future scope입니다.
 
 ## 패키지
 
@@ -245,6 +241,9 @@ row를 쓰고, `Relay.RunOnce` 또는 `Relay.Run`이 claim하며,
 | `0.11.0` | Image, encryption, rule-engine research, utility follow-up. |
 | `0.12.0` | Core foundation parity: core, collections, codec, concurrency, logging convention, first-party rules primitive를 source-backed replacement로 보강. |
 | `0.13.0` | Retrospective hardening: 7-tier review, stress/race coverage, P0/P1 fix, cumulative lesson cleanup, MongoDB Testcontainers fixture, feature-gap triage, release-readiness audit. |
+| `0.14.0` | Cross-repo SerDe/compression benchmark evidence, raw artifact retention, evidence-scoped recommendation matrix. |
+| `0.15.0` | Audit sqloutbox publisher adoption helper와 focused JSON/zstd allocation reduction. |
+| `0.16.0` | Redis probabilistic follow-up: HyperLogLog support, Testcontainers/stress/race coverage, 명시적인 RedisBloom Cuckoo deferral. |
 
 닫힌 `0.7.0 Research Gate` milestone은 큰 도메인 범위 결정을 기록한
 research milestone이며 release tag를 만들지 않았습니다.
