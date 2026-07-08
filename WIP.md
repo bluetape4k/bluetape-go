@@ -21,19 +21,18 @@ compression and default JSON decoding.
   `v0.6.0`, `v0.6.1` through `v0.6.8`, `v0.7.0`, `v0.8.0`, `v0.9.0`,
   `v0.10.0`, `v0.11.0`, `v0.12.0`, `v0.13.0`, and `v0.14.0` are tagged and
   released.
-- Milestone `0.15.0` has zero open issues; #404, #405, #406, #407, #408,
-  #455, and #456 are closed.
-- `CHANGELOG.md` contains the `v0.15.0` release section dated 2026-07-08 and
-  carries forward the `v0.13.0` and `v0.14.0` release sections from `main`.
+- Milestone `0.15.0` is closed with zero open issues; #404, #405, #406, #407,
+  #408, #455, and #456 are closed.
+- `CHANGELOG.md` contains the `v0.15.0` release section dated 2026-07-08.
 - `v0.15.0` tag and GitHub Release are not created yet.
 
 ## Release Checklist
 
-1. Merge this release-history PR to satisfy the changelog gate on `develop`.
-2. Close milestone `0.15.0`.
-3. Verify `make ci` locally and GitHub CI on the release-prep branch.
-4. Promote `develop` to `main`, tag `v0.15.0`, and create the GitHub Release
-   from `CHANGELOG.md`.
+1. Merge this release branch to `main` so `CHANGELOG.md`, `WIP.md`, audit
+   publisher docs, and SerDe allocation evidence reflect `v0.15.0`.
+2. Verify `make ci` locally and GitHub CI on the release PR.
+3. Tag `v0.15.0` on `main`.
+4. Create the GitHub Release from `CHANGELOG.md` with validation evidence.
 
 ## Release Support Notes
 
@@ -41,6 +40,6 @@ The 0.15.0 audit publisher slice adds deterministic test/example publishers
 and adoption documentation, not a durable broker adapter or new external
 runtime dependency. The SerDe follow-up slice changes local JSON/zstd hot paths
 while preserving existing public APIs. Before `v0.15.0` is tagged, rollback is
-closing the release-history PR or reverting the release-prep commit. After a
-tag, release corrections should use a patch release unless an explicit retag
-plan is approved.
+closing the release PR and deleting the release branch. After a tag, release
+corrections should use a patch release unless an explicit retag plan is
+approved.

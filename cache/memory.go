@@ -148,48 +148,62 @@ func (m *Memory[K, V]) GetOrLoad(ctx context.Context, key K, ttl time.Duration, 
 		return zero, err
 	}
 
-	flightKey := m.flightKey(key)
-	result := m.flights.DoChan(flightKey, func() (any, error) {
-		loaded, err := m.Get(ctx, key)
-		if err == nil {
+	for {
+		flightKey := m.flightKey(key)
+		result := m.flights.DoChan(flightKey, func() (any, error) {
+			loaded, err := m.Get(ctx, key)
+			if err == nil {
+				return loaded, nil
+			}
+			if !errors.Is(err, ErrCacheMiss) {
+				if isContextError(err) {
+					m.deleteFlightKey(key)
+				}
+				return nil, err
+			}
+			if err := ctx.Err(); err != nil {
+				m.deleteFlightKey(key)
+				return nil, err
+			}
+
+			loaded, err = loader(ctx, key)
+			if err != nil {
+				m.deleteFlightKey(key)
+				return nil, err
+			}
+			if err := ctx.Err(); err != nil {
+				m.deleteFlightKey(key)
+				return nil, err
+			}
+			if err := m.Set(ctx, key, loaded, ttl); err != nil {
+				m.deleteFlightKey(key)
+				return nil, err
+			}
 			return loaded, nil
-		}
-		if !errors.Is(err, ErrCacheMiss) {
-			return nil, err
-		}
-		if err := ctx.Err(); err != nil {
-			return nil, err
-		}
+		})
 
-		loaded, err = loader(ctx, key)
-		if err != nil {
-			m.deleteFlightKey(key)
-			return nil, err
+		select {
+		case call := <-result:
+			if call.Err != nil {
+				if call.Shared && isContextError(call.Err) && ctx.Err() == nil {
+					m.flights.Forget(flightKey)
+					continue
+				}
+				return zero, call.Err
+			}
+			loaded, ok := call.Val.(V)
+			if !ok {
+				return zero, fmt.Errorf("loader returned incompatible value")
+			}
+			return loaded, nil
+		case <-ctx.Done():
+			return zero, ctx.Err()
 		}
-		if err := ctx.Err(); err != nil {
-			m.deleteFlightKey(key)
-			return nil, err
-		}
-		if err := m.Set(ctx, key, loaded, ttl); err != nil {
-			m.deleteFlightKey(key)
-			return nil, err
-		}
-		return loaded, nil
-	})
-
-	select {
-	case call := <-result:
-		if call.Err != nil {
-			return zero, call.Err
-		}
-		loaded, ok := call.Val.(V)
-		if !ok {
-			return zero, fmt.Errorf("loader returned incompatible value")
-		}
-		return loaded, nil
-	case <-ctx.Done():
-		return zero, ctx.Err()
 	}
+}
+
+func isContextError(err error) bool {
+	return errors.Is(err, context.Canceled) || errors.Is(err, context.DeadlineExceeded)
 }
 
 func (m *Memory[K, V]) flightKey(key K) string {

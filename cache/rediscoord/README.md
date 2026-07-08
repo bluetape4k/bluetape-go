@@ -34,7 +34,7 @@ near, err := redisnear.NewPubSub[string](ctx, redisnear.Options[string]{
 if err != nil {
     return err
 }
-defer near.Close()
+defer func() { _ = near.Close() }()
 
 coordinated, err := rediscoord.NewStampedeCache[string](rediscoord.Options[string]{
     Client:    client,

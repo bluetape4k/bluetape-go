@@ -28,7 +28,7 @@ near, err := redisnear.NewPubSub[string](ctx, redisnear.Options[string]{
 if err != nil {
     return err
 }
-defer near.Close()
+defer func() { _ = near.Close() }()
 
 value, err := near.GetOrLoad(ctx, "item:1", time.Minute,
     func(ctx context.Context, key string) (string, error) {

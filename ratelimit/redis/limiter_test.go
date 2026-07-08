@@ -133,6 +133,30 @@ func TestLimiterNamespacesAreIsolated(t *testing.T) {
 	}
 }
 
+func TestLimiterPreservesCallerOwnedKeys(t *testing.T) {
+	ctx := context.Background()
+	client := redisClient(ctx, t)
+	limiter := newLimiter(t, client, "preserve-key", Options{RatePerSecond: 0.001, Burst: 1})
+
+	first, err := limiter.Allow(ctx, "tenant:blue", 1)
+	if err != nil {
+		t.Fatalf("first allow: %v", err)
+	}
+	if !first.Allowed {
+		t.Fatalf("first key should consume its own bucket: %+v", first)
+	}
+	second, err := limiter.Allow(ctx, " tenant:blue ", 1)
+	if err != nil {
+		t.Fatalf("spaced allow: %v", err)
+	}
+	if !second.Allowed {
+		t.Fatalf("spaced key should use a distinct bucket, got %+v", second)
+	}
+	if exists := client.Exists(ctx, limiter.bucketKey("tenant:blue"), limiter.bucketKey(" tenant:blue ")).Val(); exists != 2 {
+		t.Fatalf("expected both exact Redis bucket keys to exist, got %d", exists)
+	}
+}
+
 func TestLimiterExpiresIdleBucketKey(t *testing.T) {
 	ctx := context.Background()
 	client := redisClient(ctx, t)

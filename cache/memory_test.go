@@ -244,6 +244,77 @@ func TestMemorySameKeyStressRunsOneLoader(t *testing.T) {
 	}
 }
 
+func TestMemorySameKeyCanceledOwnerDoesNotCancelLiveWaiter(t *testing.T) {
+	cache := NewMemory[string, string]()
+	ownerLoaderStarted := make(chan struct{})
+	releaseOwnerLoader := make(chan struct{})
+
+	ownerCtx, ownerCancel := context.WithCancel(context.Background())
+	defer ownerCancel()
+	ownerErr := make(chan error, 1)
+	go func() {
+		_, err := cache.GetOrLoad(ownerCtx, "shared", time.Minute, func(ctx context.Context, _ string) (string, error) {
+			close(ownerLoaderStarted)
+			<-releaseOwnerLoader
+			return "", ctx.Err()
+		})
+		ownerErr <- err
+	}()
+
+	select {
+	case <-ownerLoaderStarted:
+	case <-time.After(time.Second):
+		t.Fatal("owner loader did not start")
+	}
+
+	waiterDone := make(chan struct {
+		value string
+		err   error
+	}, 1)
+	waiterLoaderStarted := make(chan struct{}, 1)
+	go func() {
+		value, err := cache.GetOrLoad(context.Background(), "shared", time.Minute, func(context.Context, string) (string, error) {
+			waiterLoaderStarted <- struct{}{}
+			return "waiter-value", nil
+		})
+		waiterDone <- struct {
+			value string
+			err   error
+		}{value: value, err: err}
+	}()
+
+	select {
+	case result := <-waiterDone:
+		t.Fatalf("waiter returned before owner loader was released: value=%q err=%v", result.value, result.err)
+	case <-waiterLoaderStarted:
+		t.Fatal("waiter started an independent loader while owner loader was in flight")
+	case <-time.After(100 * time.Millisecond):
+	}
+
+	ownerCancel()
+	close(releaseOwnerLoader)
+
+	select {
+	case err := <-ownerErr:
+		if !errors.Is(err, context.Canceled) {
+			t.Fatalf("owner should observe its cancellation, got %v", err)
+		}
+	case <-time.After(time.Second):
+		t.Fatal("owner did not finish")
+	}
+	select {
+	case result := <-waiterDone:
+		if result.err != nil {
+			t.Fatalf("live waiter should retry after owner cancellation, got %v", result.err)
+		}
+		if result.value != "waiter-value" {
+			t.Fatalf("waiter value = %q, want waiter-value", result.value)
+		}
+	case <-time.After(time.Second):
+		t.Fatal("waiter did not finish")
+	}
+}
+
 type collisionKey struct {
 	id int
 }

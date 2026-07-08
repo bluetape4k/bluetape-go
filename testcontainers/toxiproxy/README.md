@@ -62,13 +62,25 @@ nw, err := network.New(ctx)
 if err != nil {
     t.Fatalf("create network: %v", err)
 }
-t.Cleanup(func() { _ = nw.Remove(ctx) })
+t.Cleanup(func() {
+    cleanupCtx, cleanupCancel := context.WithTimeout(context.WithoutCancel(ctx), 30*time.Second)
+    defer cleanupCancel()
+    if err := nw.Remove(cleanupCtx); err != nil {
+        t.Fatalf("remove network: %v", err)
+    }
+})
 
 redisContainer, err := redis.Run(ctx, "redis:7.4-alpine", network.WithNetwork([]string{"redis"}, nw))
 if err != nil {
     t.Fatalf("start redis: %v", err)
 }
-t.Cleanup(func() { _ = testcontainers.TerminateContainer(redisContainer) })
+t.Cleanup(func() {
+    cleanupCtx, cleanupCancel := context.WithTimeout(context.WithoutCancel(ctx), 30*time.Second)
+    defer cleanupCancel()
+    if err := redisContainer.Terminate(cleanupCtx); err != nil {
+        t.Fatalf("terminate redis: %v", err)
+    }
+})
 
 toxiproxyContainer := toxiproxytestcontainer.StartContainer(
     ctx,
