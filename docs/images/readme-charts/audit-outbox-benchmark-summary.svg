@@ -1,0 +1,124 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1800" height="1700" viewBox="0 0 1800 1700">
+  <defs>
+    <style>
+      @font-face {
+        font-family: 'Architects Daughter';
+        src: local('Architects Daughter');
+      }
+      @font-face {
+        font-family: 'Comic Mono';
+        src: local('Comic Mono');
+      }
+      .title { font-family: 'Architects Daughter', 'Comic Sans MS', cursive; font-size: 38px; font-weight: 700; fill: #0F172A; }
+      .subtitle { font-family: 'Comic Mono', ui-monospace, monospace; font-size: 20px; fill: #475569; }
+      .section { font-family: 'Architects Daughter', 'Comic Sans MS', cursive; font-size: 26px; font-weight: 700; fill: #0F172A; }
+      .axis-title { font-family: 'Comic Mono', ui-monospace, monospace; font-size: 16px; fill: #64748B; }
+      .axis { font-family: 'Comic Mono', ui-monospace, monospace; font-size: 14px; fill: #64748B; }
+      .bar-label { font-family: 'Comic Mono', ui-monospace, monospace; font-size: 15px; fill: #1E293B; }
+      .value { font-family: 'Comic Mono', ui-monospace, monospace; font-size: 15px; font-weight: 700; fill: #0F172A; }
+      .callout { font-family: 'Comic Mono', ui-monospace, monospace; font-size: 18px; fill: #334155; }
+      .footer { font-family: 'Comic Mono', ui-monospace, monospace; font-size: 14px; fill: #64748B; }
+    </style>
+  </defs>
+  <rect x="0" y="0" width="1800" height="1700" fill="#F8FAFC"/>
+  <rect x="40" y="40" width="1720" height="1620" fill="#F8FAFC" stroke="#94A3B8" stroke-width="2" rx="24"/>
+  <text x="900" y="82" class="title" text-anchor="middle" dominant-baseline="middle">audit + sqloutbox Benchmark Summary</text>
+  <text x="900" y="118" class="subtitle" text-anchor="middle" dominant-baseline="middle">Issue #439 | darwin/arm64 | Apple M5</text>
+  <g>
+<rect x="80" y="184" width="1640" height="510" fill="#FFFFFF" stroke="#CBD5E1" stroke-width="1.5" rx="16"/>
+<text x="114" y="220" class="section" dominant-baseline="middle">In-memory audit repository latency</text>
+<text x="114" y="250" class="axis-title" dominant-baseline="middle">ns/op - lower is better; append/find/load/json rows stay separate</text>
+<line x1="600.0" y1="256" x2="600.0" y2="594" stroke="#E2E8F0"/>
+<text x="600.0" y="242" class="axis" text-anchor="middle">0</text>
+<line x1="812.5" y1="256" x2="812.5" y2="594" stroke="#E2E8F0"/>
+<text x="812.5" y="242" class="axis" text-anchor="middle">235,750</text>
+<line x1="1025.0" y1="256" x2="1025.0" y2="594" stroke="#E2E8F0"/>
+<text x="1025.0" y="242" class="axis" text-anchor="middle">471,500</text>
+<line x1="1237.5" y1="256" x2="1237.5" y2="594" stroke="#E2E8F0"/>
+<text x="1237.5" y="242" class="axis" text-anchor="middle">707,250</text>
+<line x1="1450.0" y1="256" x2="1450.0" y2="594" stroke="#E2E8F0"/>
+<text x="1450.0" y="242" class="axis" text-anchor="middle">943,000</text>
+<text x="116" y="290" class="bar-label" dominant-baseline="middle">Append history 16, batch 1</text>
+<rect x="600" y="278" width="15.5" height="24" fill="#FDE68A" stroke="#D97706" stroke-width="1.2" rx="7"/>
+<text x="1480" y="290" class="value" dominant-baseline="middle">17,189 ns/op</text>
+<text x="116" y="330" class="bar-label" dominant-baseline="middle">Append history 256, batch 8</text>
+<rect x="600" y="318" width="773.2" height="24" fill="#FDE68A" stroke="#D97706" stroke-width="1.2" rx="7"/>
+<text x="1480" y="330" class="value" dominant-baseline="middle">857,813 ns/op</text>
+<text x="116" y="370" class="bar-label" dominant-baseline="middle">Find one aggregate, 16 rows</text>
+<rect x="600" y="358" width="4.0" height="24" fill="#FDE68A" stroke="#D97706" stroke-width="1.2" rx="7"/>
+<text x="1480" y="370" class="value" dominant-baseline="middle">2,770 ns/op</text>
+<text x="116" y="410" class="bar-label" dominant-baseline="middle">Find account type, 64x16 limit 32</text>
+<rect x="600" y="398" width="255.6" height="24" fill="#FDE68A" stroke="#D97706" stroke-width="1.2" rx="7"/>
+<text x="1480" y="410" class="value" dominant-baseline="middle">283,617 ns/op</text>
+<text x="116" y="450" class="bar-label" dominant-baseline="middle">Load history 16</text>
+<rect x="600" y="438" width="12.9" height="24" fill="#FDE68A" stroke="#D97706" stroke-width="1.2" rx="7"/>
+<text x="1480" y="450" class="value" dominant-baseline="middle">14,296 ns/op</text>
+<text x="116" y="490" class="bar-label" dominant-baseline="middle">Load history 256</text>
+<rect x="600" y="478" width="849.3" height="24" fill="#FDE68A" stroke="#D97706" stroke-width="1.2" rx="7"/>
+<text x="1480" y="490" class="value" dominant-baseline="middle">942,250 ns/op</text>
+<text x="116" y="530" class="bar-label" dominant-baseline="middle">JSON round-trip 256 B</text>
+<rect x="600" y="518" width="9.1" height="24" fill="#FDE68A" stroke="#D97706" stroke-width="1.2" rx="7"/>
+<text x="1480" y="530" class="value" dominant-baseline="middle">10,054 ns/op</text>
+<text x="116" y="570" class="bar-label" dominant-baseline="middle">JSON round-trip 2 KiB</text>
+<rect x="600" y="558" width="30.9" height="24" fill="#FDE68A" stroke="#D97706" stroke-width="1.2" rx="7"/>
+<text x="1480" y="570" class="value" dominant-baseline="middle">34,231 ns/op</text>
+</g>
+  <g>
+<rect x="80" y="760" width="1640" height="360" fill="#FFFFFF" stroke="#CBD5E1" stroke-width="1.5" rx="16"/>
+<text x="114" y="796" class="section" dominant-baseline="middle">PostgreSQL outbox relay latency</text>
+<text x="114" y="826" class="axis-title" dominant-baseline="middle">ms/op - lower is better; opt-in PostgreSQL</text>
+<line x1="600.0" y1="832" x2="600.0" y2="1049" stroke="#E2E8F0"/>
+<text x="600.0" y="818" class="axis" text-anchor="middle">0.00</text>
+<line x1="812.5" y1="832" x2="812.5" y2="1049" stroke="#E2E8F0"/>
+<text x="812.5" y="818" class="axis" text-anchor="middle">1.25</text>
+<line x1="1025.0" y1="832" x2="1025.0" y2="1049" stroke="#E2E8F0"/>
+<text x="1025.0" y="818" class="axis" text-anchor="middle">2.50</text>
+<line x1="1237.5" y1="832" x2="1237.5" y2="1049" stroke="#E2E8F0"/>
+<text x="1237.5" y="818" class="axis" text-anchor="middle">3.75</text>
+<line x1="1450.0" y1="832" x2="1450.0" y2="1049" stroke="#E2E8F0"/>
+<text x="1450.0" y="818" class="axis" text-anchor="middle">5.00</text>
+<text x="116" y="869" class="bar-label" dominant-baseline="middle">Enqueue batch 10</text>
+<rect x="600" y="854" width="448.5" height="30" fill="#BFDBFE" stroke="#2563EB" stroke-width="1.2" rx="7"/>
+<text x="1480" y="869" class="value" dominant-baseline="middle">2.64 ms/op</text>
+<text x="116" y="920" class="bar-label" dominant-baseline="middle">Claim 10 of 100</text>
+<rect x="600" y="905" width="289.2" height="30" fill="#BFDBFE" stroke="#2563EB" stroke-width="1.2" rx="7"/>
+<text x="1480" y="920" class="value" dominant-baseline="middle">1.70 ms/op</text>
+<text x="116" y="971" class="bar-label" dominant-baseline="middle">RunOnce publish 10</text>
+<rect x="600" y="956" width="462.2" height="30" fill="#BFDBFE" stroke="#2563EB" stroke-width="1.2" rx="7"/>
+<text x="1480" y="971" class="value" dominant-baseline="middle">2.72 ms/op</text>
+<text x="116" y="1022" class="bar-label" dominant-baseline="middle">RunOnce dead-letter 10</text>
+<rect x="600" y="1007" width="498.6" height="30" fill="#BFDBFE" stroke="#2563EB" stroke-width="1.2" rx="7"/>
+<text x="1480" y="1022" class="value" dominant-baseline="middle">2.93 ms/op</text>
+</g>
+  <g>
+<rect x="80" y="1190" width="1640" height="300" fill="#FFFFFF" stroke="#CBD5E1" stroke-width="1.5" rx="16"/>
+<text x="114" y="1226" class="section" dominant-baseline="middle">Heap bytes by benchmark row</text>
+<text x="114" y="1256" class="axis-title" dominant-baseline="middle">KiB/op - lower is better; largest rows</text>
+<line x1="600.0" y1="1262" x2="600.0" y2="1479" stroke="#E2E8F0"/>
+<text x="600.0" y="1248" class="axis" text-anchor="middle">0</text>
+<line x1="812.5" y1="1262" x2="812.5" y2="1479" stroke="#E2E8F0"/>
+<text x="812.5" y="1248" class="axis" text-anchor="middle">750</text>
+<line x1="1025.0" y1="1262" x2="1025.0" y2="1479" stroke="#E2E8F0"/>
+<text x="1025.0" y="1248" class="axis" text-anchor="middle">1,500</text>
+<line x1="1237.5" y1="1262" x2="1237.5" y2="1479" stroke="#E2E8F0"/>
+<text x="1237.5" y="1248" class="axis" text-anchor="middle">2,250</text>
+<line x1="1450.0" y1="1262" x2="1450.0" y2="1479" stroke="#E2E8F0"/>
+<text x="1450.0" y="1248" class="axis" text-anchor="middle">3,000</text>
+<text x="116" y="1299" class="bar-label" dominant-baseline="middle">Load history 256</text>
+<rect x="600" y="1284" width="588.5" height="30" fill="#A7F3D0" stroke="#059669" stroke-width="1.2" rx="7"/>
+<text x="1480" y="1299" class="value" dominant-baseline="middle">2,077 KiB/op</text>
+<text x="116" y="1350" class="bar-label" dominant-baseline="middle">Append history 256, batch 8</text>
+<rect x="600" y="1335" width="421.4" height="30" fill="#A7F3D0" stroke="#059669" stroke-width="1.2" rx="7"/>
+<text x="1480" y="1350" class="value" dominant-baseline="middle">1,487 KiB/op</text>
+<text x="116" y="1401" class="bar-label" dominant-baseline="middle">Find account type, 64x16 limit 32</text>
+<rect x="600" y="1386" width="387.5" height="30" fill="#A7F3D0" stroke="#059669" stroke-width="1.2" rx="7"/>
+<text x="1480" y="1401" class="value" dominant-baseline="middle">1,368 KiB/op</text>
+<text x="116" y="1452" class="bar-label" dominant-baseline="middle">RunOnce dead-letter 10</text>
+<rect x="600" y="1437" width="30.7" height="30" fill="#A7F3D0" stroke="#059669" stroke-width="1.2" rx="7"/>
+<text x="1480" y="1452" class="value" dominant-baseline="middle">109 KiB/op</text>
+</g>
+  <rect x="80" y="1562" width="1640" height="72" fill="#ECFEFF" stroke="#0891B2" stroke-width="1.5" rx="16"/>
+  <text x="108" y="1589" class="callout" dominant-baseline="middle">Raw go benchmark output is the numeric source of truth; bars summarize one local snapshot, not a production ranking.</text>
+  <text x="108" y="1615" class="callout" dominant-baseline="middle">PostgreSQL rows use postgres:16-alpine via Testcontainers and 10 second per-operation contexts.</text>
+  <text x="900" y="1682" class="footer" text-anchor="middle">docs/research/outputs/issue-439/audit-memory-bench.txt | docs/research/outputs/issue-439/audit-sqloutbox-postgres-bench.txt</text>
+</svg>

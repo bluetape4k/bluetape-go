@@ -211,6 +211,24 @@ repository 안에서 library contract를 증명합니다. Workshop scenario adop
 - Kafka, NATS, Redis Streams, direct Redis audit storage, example은 이후
   `0.9.0` 또는 follow-up issue에서 다룹니다.
 
+## Benchmark
+
+![audit + sqloutbox benchmark summary](../docs/images/readme-charts/audit-outbox-benchmark-summary.png)
+
+Issue [#439](https://github.com/bluetape4k/bluetape-go/issues/439)는 in-memory
+repository operation과 PostgreSQL-backed outbox relay path의 현재 local
+benchmark snapshot을 기록합니다. 상세 결과 표, raw output 경로, 해석은
+[`docs/research/2026-07-09-issue-439-audit-outbox-benchmark.md`](../docs/research/2026-07-09-issue-439-audit-outbox-benchmark.md)에
+있습니다.
+
+`ns/op`, `ms/op`, `B/op`, `allocs/op`는 낮을수록 좋습니다. PostgreSQL row는
+Testcontainers를 시작하므로 serial opt-in으로 실행합니다.
+
+```bash
+go test -run '^$' -bench 'Benchmark(MemoryRepository|AuditEntryJSONRoundTrip)' -benchmem ./audit
+BLUETAPE_AUDIT_SQL_OUTBOX_BENCH=1 go test -p 1 -run '^$' -bench '^BenchmarkAuditSQLOutboxPostgres' -benchtime=100x -benchmem ./audit/sqloutbox
+```
+
 ## Tests
 
 ```bash
@@ -218,4 +236,5 @@ go test -count=1 ./audit
 go test -count=1 ./audit/sqloutbox
 go test -race -count=1 ./audit ./audit/audittest
 go test -run '^$' -bench 'BenchmarkAggregateRecorder(Record|PendingEvents|AckThrough)' -benchmem ./audit
+go test -run '^$' -bench 'Benchmark(MemoryRepository|AuditEntryJSONRoundTrip)' -benchmem ./audit
 ```
