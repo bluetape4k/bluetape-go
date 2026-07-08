@@ -1,0 +1,22 @@
+goos: darwin
+goarch: arm64
+pkg: github.com/bluetape4k/bluetape-go/graph/neo4j
+cpu: Apple M5
+BenchmarkGraphNeo4jContainers/Neo4j/neo4j:5.26.0/WriteNode-10         	     100	   6333185 ns/op	   11820 B/op	     228 allocs/op
+BenchmarkGraphNeo4jContainers/Neo4j/neo4j:5.26.0/WriteRelationship-10 	     100	   3396142 ns/op	   11799 B/op	     226 allocs/op
+BenchmarkGraphNeo4jContainers/Neo4j/neo4j:5.26.0/ReadVertices/Small10-10         	     100	   2727240 ns/op	   46024 B/op	     691 allocs/op
+BenchmarkGraphNeo4jContainers/Neo4j/neo4j:5.26.0/ReadVertices/Medium100-10       	     100	   2478667 ns/op	  271583 B/op	    4921 allocs/op
+BenchmarkGraphNeo4jContainers/Neo4j/neo4j:5.26.0/ReadEdges/Small10-10            	     100	   2451548 ns/op	   47312 B/op	     681 allocs/op
+BenchmarkGraphNeo4jContainers/Neo4j/neo4j:5.26.0/ReadEdges/Medium100-10          	     100	   2454960 ns/op	  285177 B/op	    4821 allocs/op
+BenchmarkGraphNeo4jContainers/Neo4j/neo4j:5.26.0/ReadEmptyResult-10              	     100	   1507954 ns/op	   23192 B/op	     255 allocs/op
+BenchmarkGraphNeo4jContainers/Neo4j/neo4j:5.26.0/WriteSyntaxError-10             	     100	   1360984 ns/op	   11009 B/op	     212 allocs/op
+BenchmarkGraphNeo4jContainers/Memgraph/memgraph:3.5.0/WriteNode-10               	     100	    579592 ns/op	    8403 B/op	     180 allocs/op
+BenchmarkGraphNeo4jContainers/Memgraph/memgraph:3.5.0/WriteRelationship-10       	     100	    518462 ns/op	    9821 B/op	     207 allocs/op
+BenchmarkGraphNeo4jContainers/Memgraph/memgraph:3.5.0/ReadVertices/Small10-10    	     100	    594059 ns/op	   36621 B/op	     566 allocs/op
+BenchmarkGraphNeo4jContainers/Memgraph/memgraph:3.5.0/ReadVertices/Medium100-10  	     100	    824707 ns/op	  203936 B/op	    3986 allocs/op
+BenchmarkGraphNeo4jContainers/Memgraph/memgraph:3.5.0/ReadEdges/Small10-10       	     100	    574915 ns/op	   36973 B/op	     556 allocs/op
+BenchmarkGraphNeo4jContainers/Memgraph/memgraph:3.5.0/ReadEdges/Medium100-10     	     100	    840016 ns/op	  206407 B/op	    3886 allocs/op
+BenchmarkGraphNeo4jContainers/Memgraph/memgraph:3.5.0/ReadEmptyResult-10         	     100	    491485 ns/op	   18204 B/op	     185 allocs/op
+BenchmarkGraphNeo4jContainers/Memgraph/memgraph:3.5.0/WriteSyntaxError-10        	     100	    478611 ns/op	    7976 B/op	     165 allocs/op
+PASS
+ok  	github.com/bluetape4k/bluetape-go/graph/neo4j	18.725s
