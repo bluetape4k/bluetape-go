@@ -182,6 +182,52 @@ overview.
   [`examples/graph/iamaccess`](examples/graph/iamaccess/README.md) for IAM
   access-path review.
 
+## Workshop Adoption
+
+The companion
+[`bluetape-go-workshop`](https://github.com/bluetape4k/bluetape-go-workshop)
+repository owns runnable scenario tutorials. This library README points to
+matching workshop examples and active backlog items without duplicating the
+tutorial text. The source-checked adoption matrix is tracked in
+[`docs/research/2026-07-08-issue-415-workshop-adoption-matrix.md`](docs/research/2026-07-08-issue-415-workshop-adoption-matrix.md)
+and issue [#415](https://github.com/bluetape4k/bluetape-go/issues/415).
+
+- SQL adoption: [`sql-access-strategy-decision`](https://github.com/bluetape4k/bluetape-go-workshop/tree/develop/examples/sql-access-strategy-decision),
+  [`sql-order-repository`](https://github.com/bluetape4k/bluetape-go-workshop/tree/develop/examples/sql-order-repository),
+  [`sql-transaction-boundary`](https://github.com/bluetape4k/bluetape-go-workshop/tree/develop/examples/sql-transaction-boundary),
+  [`gin-sql-crud-api`](https://github.com/bluetape4k/bluetape-go-workshop/tree/develop/examples/gin-sql-crud-api), and
+  [`gin-sql-order-service`](https://github.com/bluetape4k/bluetape-go-workshop/tree/develop/examples/gin-sql-order-service).
+- AWS/Floci adoption: [`s3-floci-storage`](https://github.com/bluetape4k/bluetape-go-workshop/tree/develop/examples/s3-floci-storage),
+  [`sqs-floci-worker`](https://github.com/bluetape4k/bluetape-go-workshop/tree/develop/examples/sqs-floci-worker),
+  [`dynamodb-batchwrite-materializer`](https://github.com/bluetape4k/bluetape-go-workshop/tree/develop/examples/dynamodb-batchwrite-materializer),
+  [`dynamodb-conditional-repository`](https://github.com/bluetape4k/bluetape-go-workshop/tree/develop/examples/dynamodb-conditional-repository), and
+  [`s3-sqs-dynamodb-document-workflow`](https://github.com/bluetape4k/bluetape-go-workshop/tree/develop/examples/s3-sqs-dynamodb-document-workflow).
+- Probabilistic adoption: [`probabilistic-dedupe-admission`](https://github.com/bluetape4k/bluetape-go-workshop/tree/develop/examples/probabilistic-dedupe-admission),
+  [`shared-redis-bloom-admission`](https://github.com/bluetape4k/bluetape-go-workshop/tree/develop/examples/shared-redis-bloom-admission), and the planned
+  [Redis HyperLogLog workflow](https://github.com/bluetape4k/bluetape-go-workshop/issues/151).
+- Text adoption: [`text-moderation-masking`](https://github.com/bluetape4k/bluetape-go-workshop/tree/develop/examples/text-moderation-masking),
+  [`gin-text-search-service`](https://github.com/bluetape4k/bluetape-go-workshop/tree/develop/examples/gin-text-search-service),
+  plus follow-up issues
+  [#34](https://github.com/bluetape4k/bluetape-go-workshop/issues/34),
+  [#55](https://github.com/bluetape4k/bluetape-go-workshop/issues/55),
+  [#67](https://github.com/bluetape4k/bluetape-go-workshop/issues/67),
+  [#118](https://github.com/bluetape4k/bluetape-go-workshop/issues/118),
+  [#119](https://github.com/bluetape4k/bluetape-go-workshop/issues/119).
+- Audit, graph, and logging adoption remain issue-tracked workshop scope:
+  audit [#35](https://github.com/bluetape4k/bluetape-go-workshop/issues/35),
+  [#56](https://github.com/bluetape4k/bluetape-go-workshop/issues/56),
+  [#57](https://github.com/bluetape4k/bluetape-go-workshop/issues/57),
+  [#58](https://github.com/bluetape4k/bluetape-go-workshop/issues/58),
+  [#68](https://github.com/bluetape4k/bluetape-go-workshop/issues/68),
+  [#150](https://github.com/bluetape4k/bluetape-go-workshop/issues/150);
+  graph [#36](https://github.com/bluetape4k/bluetape-go-workshop/issues/36),
+  [#50](https://github.com/bluetape4k/bluetape-go-workshop/issues/50),
+  [#51](https://github.com/bluetape4k/bluetape-go-workshop/issues/51),
+  [#52](https://github.com/bluetape4k/bluetape-go-workshop/issues/52),
+  [#69](https://github.com/bluetape4k/bluetape-go-workshop/issues/69); and
+  slog [#139](https://github.com/bluetape4k/bluetape-go-workshop/issues/139).
+  Workshop backlog does not block this library release line.
+
 ### Graph I/O At A Glance
 
 ![Graph I/O Record Flow](docs/images/readme-diagrams/graph-io-record-flow.png)
@@ -251,6 +297,7 @@ path stays explicit: `Store.Enqueue` writes durable rows, `Relay.RunOnce` or
 | `0.14.0` | Cross-repo SerDe/compression benchmark evidence, raw artifact retention, and evidence-scoped recommendation matrix. |
 | `0.15.0` | Audit sqloutbox publisher adoption helpers plus focused JSON/zstd allocation reductions. |
 | `0.16.0` | Redis probabilistic follow-up: HyperLogLog support, Testcontainers/stress/race coverage, and explicit RedisBloom Cuckoo deferral. |
+| `0.17.0` | Workshop adoption sync: library-side pointers, cross-repo issue links, and release-readiness notes that separate library readiness from workshop backlog. |
 
 The closed `0.7.0 Research Gate` milestone recorded the larger-domain scope
 decisions and was not tagged as a release.

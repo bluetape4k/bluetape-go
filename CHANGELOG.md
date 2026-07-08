@@ -7,6 +7,12 @@ and this project uses semantic versioning once the first tag is published.
 
 ## [Unreleased]
 
+### Changed
+
+- Root and package README documentation now links source-checked workshop
+  adoption examples, active cross-repo workshop issues, and the 0.17.0
+  workshop adoption release-readiness note.
+
 ## [v0.16.0] - 2026-07-08
 
 ### Added

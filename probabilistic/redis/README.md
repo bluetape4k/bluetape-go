@@ -70,6 +70,16 @@ identifiers rather than raw caller values.
 `Merge(ctx, sourceNamespaces...)` merges source HLL namespaces into the receiver
 namespace with `PFMERGE` while preserving the receiver's existing estimate.
 
+## Workshop Adoption
+
+Workshop examples demonstrate application-level use outside this package:
+[`probabilistic-dedupe-admission`](https://github.com/bluetape4k/bluetape-go-workshop/tree/develop/examples/probabilistic-dedupe-admission)
+uses probabilistic admission control, and
+[`shared-redis-bloom-admission`](https://github.com/bluetape4k/bluetape-go-workshop/tree/develop/examples/shared-redis-bloom-admission)
+uses this Redis-backed Bloom surface. Redis HyperLogLog adoption is tracked in
+workshop issue
+[#151](https://github.com/bluetape4k/bluetape-go-workshop/issues/151).
+
 ## Redis State
 
 Redis Bloom uses one Cluster-safe hash-tagged key pair per namespace.

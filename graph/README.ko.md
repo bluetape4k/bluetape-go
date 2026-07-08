@@ -144,6 +144,18 @@ trust boundary를 넘기 전에 nested value를 직접 복사하거나 정제해
 `ErrUnsupportedCapability`는 이후 capability boundary를 위해 예약되어 있습니다.
 이 패키지의 public API는 아직 이 error를 반환하지 않습니다.
 
+## Workshop Adoption
+
+Package-local graph 예제는
+[`examples/graph/observability`](../examples/graph/observability/README.ko.md)와
+[`examples/graph/iamaccess`](../examples/graph/iamaccess/README.ko.md)에 둡니다.
+Workshop scenario adoption은 issue
+[#36](https://github.com/bluetape4k/bluetape-go-workshop/issues/36),
+[#50](https://github.com/bluetape4k/bluetape-go-workshop/issues/50),
+[#51](https://github.com/bluetape4k/bluetape-go-workshop/issues/51),
+[#52](https://github.com/bluetape4k/bluetape-go-workshop/issues/52),
+[#69](https://github.com/bluetape4k/bluetape-go-workshop/issues/69)에 추적합니다.
+
 ## Release Support
 
 Graph package family는 service/runtime dependency가 없습니다. Release tag 전

@@ -175,6 +175,53 @@ go get github.com/bluetape4k/bluetape-go
   IAM access-path review 예제인
   [`examples/graph/iamaccess`](examples/graph/iamaccess/README.ko.md).
 
+## Workshop Adoption
+
+동반
+[`bluetape-go-workshop`](https://github.com/bluetape4k/bluetape-go-workshop)
+repository가 runnable scenario tutorial을 소유합니다. 이 library README는 tutorial
+본문을 중복하지 않고 matching workshop example과 active backlog만 연결합니다.
+Source-checked adoption matrix는
+[`docs/research/2026-07-08-issue-415-workshop-adoption-matrix.md`](docs/research/2026-07-08-issue-415-workshop-adoption-matrix.md)
+및 issue [#415](https://github.com/bluetape4k/bluetape-go/issues/415)에
+기록했습니다.
+
+- SQL adoption: [`sql-access-strategy-decision`](https://github.com/bluetape4k/bluetape-go-workshop/tree/develop/examples/sql-access-strategy-decision),
+  [`sql-order-repository`](https://github.com/bluetape4k/bluetape-go-workshop/tree/develop/examples/sql-order-repository),
+  [`sql-transaction-boundary`](https://github.com/bluetape4k/bluetape-go-workshop/tree/develop/examples/sql-transaction-boundary),
+  [`gin-sql-crud-api`](https://github.com/bluetape4k/bluetape-go-workshop/tree/develop/examples/gin-sql-crud-api),
+  [`gin-sql-order-service`](https://github.com/bluetape4k/bluetape-go-workshop/tree/develop/examples/gin-sql-order-service).
+- AWS/Floci adoption: [`s3-floci-storage`](https://github.com/bluetape4k/bluetape-go-workshop/tree/develop/examples/s3-floci-storage),
+  [`sqs-floci-worker`](https://github.com/bluetape4k/bluetape-go-workshop/tree/develop/examples/sqs-floci-worker),
+  [`dynamodb-batchwrite-materializer`](https://github.com/bluetape4k/bluetape-go-workshop/tree/develop/examples/dynamodb-batchwrite-materializer),
+  [`dynamodb-conditional-repository`](https://github.com/bluetape4k/bluetape-go-workshop/tree/develop/examples/dynamodb-conditional-repository),
+  [`s3-sqs-dynamodb-document-workflow`](https://github.com/bluetape4k/bluetape-go-workshop/tree/develop/examples/s3-sqs-dynamodb-document-workflow).
+- Probabilistic adoption: [`probabilistic-dedupe-admission`](https://github.com/bluetape4k/bluetape-go-workshop/tree/develop/examples/probabilistic-dedupe-admission),
+  [`shared-redis-bloom-admission`](https://github.com/bluetape4k/bluetape-go-workshop/tree/develop/examples/shared-redis-bloom-admission), planned
+  [Redis HyperLogLog workflow](https://github.com/bluetape4k/bluetape-go-workshop/issues/151).
+- Text adoption: [`text-moderation-masking`](https://github.com/bluetape4k/bluetape-go-workshop/tree/develop/examples/text-moderation-masking),
+  [`gin-text-search-service`](https://github.com/bluetape4k/bluetape-go-workshop/tree/develop/examples/gin-text-search-service),
+  follow-up issue
+  [#34](https://github.com/bluetape4k/bluetape-go-workshop/issues/34),
+  [#55](https://github.com/bluetape4k/bluetape-go-workshop/issues/55),
+  [#67](https://github.com/bluetape4k/bluetape-go-workshop/issues/67),
+  [#118](https://github.com/bluetape4k/bluetape-go-workshop/issues/118),
+  [#119](https://github.com/bluetape4k/bluetape-go-workshop/issues/119).
+- Audit, graph, logging adoption은 issue-tracked workshop scope로 남깁니다.
+  Audit [#35](https://github.com/bluetape4k/bluetape-go-workshop/issues/35),
+  [#56](https://github.com/bluetape4k/bluetape-go-workshop/issues/56),
+  [#57](https://github.com/bluetape4k/bluetape-go-workshop/issues/57),
+  [#58](https://github.com/bluetape4k/bluetape-go-workshop/issues/58),
+  [#68](https://github.com/bluetape4k/bluetape-go-workshop/issues/68),
+  [#150](https://github.com/bluetape4k/bluetape-go-workshop/issues/150);
+  graph [#36](https://github.com/bluetape4k/bluetape-go-workshop/issues/36),
+  [#50](https://github.com/bluetape4k/bluetape-go-workshop/issues/50),
+  [#51](https://github.com/bluetape4k/bluetape-go-workshop/issues/51),
+  [#52](https://github.com/bluetape4k/bluetape-go-workshop/issues/52),
+  [#69](https://github.com/bluetape4k/bluetape-go-workshop/issues/69);
+  slog [#139](https://github.com/bluetape4k/bluetape-go-workshop/issues/139).
+  Workshop backlog은 이 library release line을 block하지 않습니다.
+
 ### Graph I/O 한눈에 보기
 
 ![Graph I/O Record Flow](docs/images/readme-diagrams/graph-io-record-flow.png)
@@ -244,6 +291,7 @@ row를 쓰고, `Relay.RunOnce` 또는 `Relay.Run`이 claim하며,
 | `0.14.0` | Cross-repo SerDe/compression benchmark evidence, raw artifact retention, evidence-scoped recommendation matrix. |
 | `0.15.0` | Audit sqloutbox publisher adoption helper와 focused JSON/zstd allocation reduction. |
 | `0.16.0` | Redis probabilistic follow-up: HyperLogLog support, Testcontainers/stress/race coverage, 명시적인 RedisBloom Cuckoo deferral. |
+| `0.17.0` | Workshop adoption sync: library-side pointer, cross-repo issue link, library readiness와 workshop backlog를 분리한 release-readiness note. |
 
 닫힌 `0.7.0 Research Gate` milestone은 큰 도메인 범위 결정을 기록한
 research milestone이며 release tag를 만들지 않았습니다.
