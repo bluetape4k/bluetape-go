@@ -7,6 +7,29 @@ and this project uses semantic versioning once the first tag is published.
 
 ## [Unreleased]
 
+## [v0.16.0] - 2026-07-08
+
+### Added
+
+- Redis HyperLogLog support in `probabilistic/redis`, including
+  `NewHyperLogLog`, `NewStringHyperLogLog`, and `NewBytesHyperLogLog`
+  constructors, SHA-256 value digests, `Add`, `Count`, and `Merge`
+  operations, examples, and bilingual README coverage.
+- Testcontainers-backed Redis probabilistic coverage for Bloom filters and
+  HyperLogLog, including bounded container startup, live Redis cleanup,
+  cancellation checks, stress coverage, and race validation evidence.
+- Research and release lessons for Redis Cuckoo and HyperLogLog support,
+  selecting core Redis HLL as the first follow-up structure while keeping
+  RedisBloom `CF*` Cuckoo support module-gated.
+
+### Changed
+
+- `probabilistic/redis` README documentation and runtime diagrams now separate
+  current core Redis Bloom/HLL assumptions from future RedisBloom module
+  Cuckoo support.
+- Root release state was reconciled with the `v0.15.0` main release tree before
+  the 0.16.0 Redis probabilistic work continued.
+
 ## [v0.15.0] - 2026-07-08
 
 ### Added
