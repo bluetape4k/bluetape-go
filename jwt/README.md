@@ -414,6 +414,9 @@ distributed repository and provider paths.
 Raw benchmark output is stored at
 `docs/research/outputs/issue-173/distributed-jwt-redis-bench.txt`; the chart
 source is `docs/images/readme-charts/distributed-jwt-redis-benchmark.vl.json`.
+Redis/Testcontainers benchmark rows are opt-in so normal local benchmark runs
+do not start Docker. Run them serially with
+`BLUETAPE_JWT_REDIS_BENCH=1 go test -p 1 -run '^$' -bench '^BenchmarkRedis' -benchmem ./jwt`.
 
 ## Test
 

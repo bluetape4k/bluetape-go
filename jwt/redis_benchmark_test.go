@@ -2,8 +2,10 @@ package jwt
 
 import (
 	"context"
+	"os"
 	"strconv"
 	"strings"
+	"sync/atomic"
 	"testing"
 	"time"
 
@@ -11,6 +13,11 @@ import (
 	"github.com/bluetape4k/bluetape-go/internal/testcleanup"
 	"github.com/redis/go-redis/v9"
 	tcredis "github.com/testcontainers/testcontainers-go/modules/redis"
+)
+
+const (
+	benchmarkJWTRedisEnv   = "BLUETAPE_JWT_REDIS_BENCH"
+	benchmarkJWTRedisImage = "redis:7.4-alpine"
 )
 
 func BenchmarkRedisRepositoryFind(b *testing.B) {
@@ -33,6 +40,53 @@ func BenchmarkRedisRepositoryFind(b *testing.B) {
 			b.Fatalf("Find() kid = %q, want find", found.KID())
 		}
 	}
+}
+
+func BenchmarkRedisRepositoryFindParallel(b *testing.B) {
+	ctx := context.Background()
+	client := benchmarkJWTRedisClient(ctx, b)
+	repo := benchmarkRedisRepository(b, client, "find-parallel", RedisRepositoryOptions{})
+	now := time.Date(2026, 6, 12, 10, 0, 0, 0, time.UTC)
+	key := benchmarkHMACKey(b, "find-parallel", now, time.Hour)
+	benchmarkSeedRedisKeyChain(ctx, b, repo, key, true)
+
+	b.ReportAllocs()
+	b.ResetTimer()
+	b.RunParallel(func(pb *testing.PB) {
+		for pb.Next() {
+			found, err := repo.Find(ctx, "find-parallel", now)
+			if err != nil {
+				b.Fatalf("Find() error = %v", err)
+			}
+			if found.KID() != "find-parallel" {
+				b.Fatalf("Find() kid = %q, want find-parallel", found.KID())
+			}
+		}
+	})
+}
+
+func BenchmarkRedisRepositoryFindRetainedParallel(b *testing.B) {
+	ctx := context.Background()
+	client := benchmarkJWTRedisClient(ctx, b)
+	repo := benchmarkRedisRepository(b, client, "find-retained-parallel", RedisRepositoryOptions{Capacity: 1000})
+	now := time.Date(2026, 6, 12, 10, 0, 0, 0, time.UTC)
+	retained := benchmarkHMACKey(b, "retained", now.Add(-time.Minute), time.Hour)
+	benchmarkSeedRedisKeyChain(ctx, b, repo, retained, false)
+	benchmarkSeedRedisKeyChain(ctx, b, repo, benchmarkHMACKey(b, "current", now, time.Hour), true)
+
+	b.ReportAllocs()
+	b.ResetTimer()
+	b.RunParallel(func(pb *testing.PB) {
+		for pb.Next() {
+			found, err := repo.Find(ctx, "retained", now)
+			if err != nil {
+				b.Fatalf("Find() error = %v", err)
+			}
+			if found.KID() != "retained" {
+				b.Fatalf("Find() kid = %q, want retained", found.KID())
+			}
+		}
+	})
 }
 
 func BenchmarkRedisRepositoryRotateCurrentHit(b *testing.B) {
@@ -113,6 +167,32 @@ func BenchmarkRedisRepositoryForcedRotate(b *testing.B) {
 	}
 }
 
+func BenchmarkRedisRepositoryForcedRotateParallel(b *testing.B) {
+	ctx := context.Background()
+	client := benchmarkJWTRedisClient(ctx, b)
+	repo := benchmarkRedisRepository(b, client, "forced-rotate-parallel", RedisRepositoryOptions{Capacity: 1000})
+	now := time.Date(2026, 6, 12, 10, 0, 0, 0, time.UTC)
+	var next atomic.Int64
+
+	b.ReportAllocs()
+	b.ResetTimer()
+	b.RunParallel(func(pb *testing.PB) {
+		for pb.Next() {
+			id := next.Add(1)
+			kid := "forced-parallel-" + strconv.FormatInt(id, 10)
+			key, err := repo.ForcedRotate(ctx, func() (*KeyChain, error) {
+				return benchmarkHMACKey(b, kid, now.Add(time.Duration(id)*time.Nanosecond), time.Hour), nil
+			}, now)
+			if err != nil {
+				b.Fatalf("ForcedRotate() error = %v", err)
+			}
+			if key.KID() != kid {
+				b.Fatalf("ForcedRotate() kid = %q, want %q", key.KID(), kid)
+			}
+		}
+	})
+}
+
 func BenchmarkRedisDistributedProviderComposeContext(b *testing.B) {
 	ctx := context.Background()
 	client := benchmarkJWTRedisClient(ctx, b)
@@ -139,6 +219,35 @@ func BenchmarkRedisDistributedProviderComposeContext(b *testing.B) {
 			b.Fatal("ComposeContext() returned empty token")
 		}
 	}
+}
+
+func BenchmarkRedisDistributedProviderComposeContextParallel(b *testing.B) {
+	ctx := context.Background()
+	client := benchmarkJWTRedisClient(ctx, b)
+	now := time.Date(2026, 6, 12, 10, 0, 0, 0, time.UTC)
+	repo := benchmarkRedisRepository(b, client, "compose-parallel", RedisRepositoryOptions{Capacity: 1000})
+	provider, err := NewDistributedHMACProvider(ctx, repo, HS256,
+		WithClock(func() time.Time { return now }),
+		WithKeyIDGenerator(sequenceKID("compose-parallel")),
+		WithEntropy(repeatingReader('c')),
+	)
+	if err != nil {
+		b.Fatalf("NewDistributedHMACProvider() error = %v", err)
+	}
+
+	b.ReportAllocs()
+	b.ResetTimer()
+	b.RunParallel(func(pb *testing.PB) {
+		for pb.Next() {
+			token, err := provider.ComposeContext(ctx, WithClaim("bench", "compose-parallel"), WithExpiresAfter(time.Hour))
+			if err != nil {
+				b.Fatalf("ComposeContext() error = %v", err)
+			}
+			if token == "" {
+				b.Fatal("ComposeContext() returned empty token")
+			}
+		}
+	})
 }
 
 func BenchmarkRedisDistributedProviderParseContext(b *testing.B) {
@@ -171,6 +280,39 @@ func BenchmarkRedisDistributedProviderParseContext(b *testing.B) {
 			b.Fatal("ParseContext() claim mismatch")
 		}
 	}
+}
+
+func BenchmarkRedisDistributedProviderParseContextParallel(b *testing.B) {
+	ctx := context.Background()
+	client := benchmarkJWTRedisClient(ctx, b)
+	now := time.Date(2026, 6, 12, 10, 0, 0, 0, time.UTC)
+	repo := benchmarkRedisRepository(b, client, "parse-parallel", RedisRepositoryOptions{Capacity: 1000})
+	provider, err := NewDistributedHMACProvider(ctx, repo, HS256,
+		WithClock(func() time.Time { return now }),
+		WithKeyIDGenerator(staticKID("parse-parallel")),
+		WithEntropy(repeatingReader('p')),
+	)
+	if err != nil {
+		b.Fatalf("NewDistributedHMACProvider() error = %v", err)
+	}
+	token, err := provider.ComposeContext(ctx, WithClaim("bench", "parse-parallel"), WithExpiresAfter(time.Hour))
+	if err != nil {
+		b.Fatalf("ComposeContext() error = %v", err)
+	}
+
+	b.ReportAllocs()
+	b.ResetTimer()
+	b.RunParallel(func(pb *testing.PB) {
+		for pb.Next() {
+			reader, err := provider.ParseContext(ctx, token, WithParseClock(func() time.Time { return now }))
+			if err != nil {
+				b.Fatalf("ParseContext() error = %v", err)
+			}
+			if value, ok := reader.ClaimString("bench"); !ok || value != "parse-parallel" {
+				b.Fatal("ParseContext() claim mismatch")
+			}
+		}
+	})
 }
 
 func BenchmarkRedisCachedDistributedProviderParseContextWarmHit(b *testing.B) {
@@ -216,6 +358,50 @@ func BenchmarkRedisCachedDistributedProviderParseContextWarmHit(b *testing.B) {
 	}
 }
 
+func BenchmarkRedisCachedDistributedProviderParseContextWarmHitParallel(b *testing.B) {
+	ctx := context.Background()
+	client := benchmarkJWTRedisClient(ctx, b)
+	now := time.Date(2026, 6, 12, 10, 0, 0, 0, time.UTC)
+	repo := benchmarkRedisRepository(b, client, "cached-parse-parallel", RedisRepositoryOptions{Capacity: 1000})
+	provider, err := NewDistributedHMACProvider(ctx, repo, HS256,
+		WithClock(func() time.Time { return now }),
+		WithKeyIDGenerator(staticKID("cached-parse-parallel")),
+		WithEntropy(repeatingReader('c')),
+	)
+	if err != nil {
+		b.Fatalf("NewDistributedHMACProvider() error = %v", err)
+	}
+	readerCache := cache.NewMemory[string, *Reader]()
+	cached, err := NewCachedDistributedProvider(provider, readerCache,
+		WithCacheClock(func() time.Time { return now }),
+		WithCacheTrustScope("redis-benchmark-parallel"),
+	)
+	if err != nil {
+		b.Fatalf("NewCachedDistributedProvider() error = %v", err)
+	}
+	token, err := cached.ComposeContext(ctx, WithClaim("bench", "cached-parse-parallel"), WithExpiresAfter(time.Hour))
+	if err != nil {
+		b.Fatalf("ComposeContext() error = %v", err)
+	}
+	if _, err := cached.ParseContext(ctx, token); err != nil {
+		b.Fatalf("warmup ParseContext() error = %v", err)
+	}
+
+	b.ReportAllocs()
+	b.ResetTimer()
+	b.RunParallel(func(pb *testing.PB) {
+		for pb.Next() {
+			reader, err := cached.ParseContext(ctx, token)
+			if err != nil {
+				b.Fatalf("ParseContext() error = %v", err)
+			}
+			if value, ok := reader.ClaimString("bench"); !ok || value != "cached-parse-parallel" {
+				b.Fatal("ParseContext() claim mismatch")
+			}
+		}
+	})
+}
+
 func benchmarkRedisRepository(b *testing.B, client redis.Cmdable, namespace string, options RedisRepositoryOptions) *RedisRepository {
 	b.Helper()
 	if options.Client == nil {
@@ -233,7 +419,8 @@ func benchmarkRedisRepository(b *testing.B, client redis.Cmdable, namespace stri
 
 func benchmarkJWTRedisClient(ctx context.Context, b *testing.B) *redis.Client {
 	b.Helper()
-	container, err := tcredis.Run(ctx, "redis:7.4-alpine")
+	requireJWTRedisBenchmark(b)
+	container, err := tcredis.Run(ctx, benchmarkJWTRedisImage)
 	if err != nil {
 		b.Fatalf("start redis container: %v", err)
 	}
@@ -246,6 +433,13 @@ func benchmarkJWTRedisClient(ctx context.Context, b *testing.B) *redis.Client {
 	b.Cleanup(func() { _ = client.Close() })
 	waitBenchmarkJWTRedis(ctx, b, client)
 	return client
+}
+
+func requireJWTRedisBenchmark(b *testing.B) {
+	b.Helper()
+	if os.Getenv(benchmarkJWTRedisEnv) != "1" {
+		b.Skipf("set %s=1 to run Redis/Testcontainers JWT benchmarks serially", benchmarkJWTRedisEnv)
+	}
 }
 
 func waitBenchmarkJWTRedis(ctx context.Context, b *testing.B, client *redis.Client) {
