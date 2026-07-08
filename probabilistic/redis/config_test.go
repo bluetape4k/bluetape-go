@@ -107,8 +107,12 @@ func cleanupNamespace(tb testing.TB, client redis.Cmdable, namespace string) {
 	if err != nil {
 		tb.Fatalf("buildKeys failed: %v", err)
 	}
+	hllKey, err := buildHyperLogLogKey(namespace)
+	if err != nil {
+		tb.Fatalf("buildHyperLogLogKey failed: %v", err)
+	}
 	tb.Cleanup(func() {
-		if err := client.Del(context.Background(), keys.bits, keys.config).Err(); err != nil {
+		if err := client.Del(context.Background(), keys.bits, keys.config, hllKey.key).Err(); err != nil {
 			tb.Fatalf("cleanup redis keys: %v", err)
 		}
 	})

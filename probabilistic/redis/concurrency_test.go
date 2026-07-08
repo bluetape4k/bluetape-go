@@ -105,3 +105,78 @@ func TestAsyncJobTesterCoversCancellationAndLiveRedisCalls(t *testing.T) {
 		t.Fatalf("MaxConcurrent = %d, want concurrent execution", report.MaxConcurrent)
 	}
 }
+
+func TestGoroutineStressTesterCoversConcurrentHyperLogLogCalls(t *testing.T) {
+	client := newRedisClient(t)
+	namespace := testNamespace(t)
+	cleanupNamespace(t, client, namespace)
+	hll, err := NewStringHyperLogLog(client, namespace)
+	if err != nil {
+		t.Fatalf("NewStringHyperLogLog failed: %v", err)
+	}
+
+	var sequence atomic.Uint64
+	tester := concurrencytest.NewGoroutineStressTester(concurrencytest.Options{
+		Workers:       max(32, runtime.GOMAXPROCS(0)*4),
+		RoundsPerTask: 100,
+		Timeout:       20 * time.Second,
+	})
+	report := tester.RunT(t,
+		func(ctx context.Context) error {
+			_, err := hll.Add(ctx, "hll-stress:"+strconv.FormatUint(sequence.Add(1), 10))
+			return err
+		},
+		func(ctx context.Context) error {
+			_, err := hll.Count(ctx)
+			return err
+		},
+	)
+	if report.MaxConcurrent <= 1 {
+		t.Fatalf("MaxConcurrent = %d, want concurrent execution", report.MaxConcurrent)
+	}
+}
+
+func TestAsyncJobTesterCoversHyperLogLogCancellation(t *testing.T) {
+	ctx := context.Background()
+	client := newRedisClient(t)
+	namespace := testNamespace(t)
+	cleanupNamespace(t, client, namespace)
+	hll, err := NewStringHyperLogLog(client, namespace)
+	if err != nil {
+		t.Fatalf("NewStringHyperLogLog failed: %v", err)
+	}
+
+	cancelled, cancel := context.WithCancel(context.Background())
+	cancel()
+	tester := concurrencytest.NewAsyncJobTester(concurrencytest.Options{
+		Workers:       12,
+		RoundsPerTask: 40,
+		Timeout:       15 * time.Second,
+	})
+	report, err := tester.Run(ctx,
+		func(ctx context.Context) error {
+			_, err := hll.Add(ctx, "live:"+strconv.FormatInt(time.Now().UnixNano(), 10))
+			return err
+		},
+		func(ctx context.Context) error {
+			_, err := hll.Count(ctx)
+			return err
+		},
+		func(context.Context) error {
+			_, err := hll.Add(cancelled, "cancelled")
+			if errors.Is(err, context.Canceled) {
+				return nil
+			}
+			if err == nil {
+				return errors.New("cancelled context unexpectedly succeeded")
+			}
+			return err
+		},
+	)
+	if err != nil {
+		t.Fatalf("AsyncJobTester failed after %d/%d completions: %v", report.Completed, report.Started, err)
+	}
+	if report.MaxConcurrent <= 1 {
+		t.Fatalf("MaxConcurrent = %d, want concurrent execution", report.MaxConcurrent)
+	}
+}
