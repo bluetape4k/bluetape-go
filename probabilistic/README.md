@@ -3,8 +3,8 @@
 [English](README.md) | [한국어](README.ko.md)
 
 `probabilistic` provides first-party probabilistic data structures. It includes
-an in-memory Bloom filter and a Redis-backed Bloom filter for shared
-distributed state.
+an in-memory Bloom filter plus Redis-backed Bloom filter and HyperLogLog support
+for shared distributed state.
 
 ## Import
 
@@ -59,7 +59,7 @@ as merge-compatible.
   `PutAll`, `Clear`, and metadata reads when the hasher is goroutine-safe.
 - The package has no context-aware I/O or background job boundary.
 
-## Redis-backed Bloom Filter
+## Redis-backed Bloom Filter and HyperLogLog
 
 The Redis-backed package lives at:
 
@@ -90,6 +90,23 @@ if !changed {
 }
 ```
 
+Use Redis HyperLogLog when multiple Go processes need an approximate distinct
+count:
+
+```go
+hll, err := redisbloom.NewStringHyperLogLog(redisClient, "auth:tenant-a:active-users")
+if err != nil {
+    return err
+}
+
+_, err = hll.Add(ctx, "user-1", "user-2")
+if err != nil {
+    return err
+}
+
+estimate, err := hll.Count(ctx)
+```
+
 ![Redis Bloom key layout](../docs/images/readme-diagrams/redis-bloom-key-layout-01.png)
 
 ![Redis Bloom operation sequence](../docs/images/readme-diagrams/redis-bloom-operation-sequence.png)
@@ -102,6 +119,7 @@ Redis Bloom uses one Cluster-safe hash-tagged key pair per namespace.
 |---|---|---|
 | `bluetape:probabilistic:bloom:v1:{namespace}:bits` | bitmap string | Bloom bits read and written by static Lua scripts with `GETBIT`, `SETBIT`, and `BITCOUNT`. |
 | `bluetape:probabilistic:bloom:v1:{namespace}:config` | hash | Immutable config metadata checked before every shared-state operation. |
+| `bluetape:probabilistic:hll:v1:{namespace}` | HyperLogLog string | Cardinality estimate managed with `PFADD`, `PFCOUNT`, and `PFMERGE`. |
 
 The `{namespace}` segment keeps both keys in the same Redis Cluster hash slot.
 Namespaces must be stable operational identifiers. Do not put raw user IDs,
@@ -136,6 +154,8 @@ retiring old keys after rollback is no longer needed.
   minimum command set used by the scripts and runbooks: `EVALSHA`, `EVAL`,
   `HSET`, `HGET`, `HGETALL`, `HLEN`, `GETBIT`, `SETBIT`, `BITCOUNT`, `STRLEN`,
   `DEL`, and `PTTL`.
+- HyperLogLog is approximate cardinality only. It does not answer membership
+  questions, and `Add(ctx, values...) == false` is not duplicate certainty.
 
 Diagnostics usually start with metadata and size checks:
 
@@ -180,9 +200,9 @@ Sentinel errors support `errors.Is`:
 
 ## Follow-up Scope
 
-Redis Bloom is the only Redis-backed probabilistic structure exposed here.
-Cuckoo and HLL/HyperLogLog constructors remain follow-up scope; they are not
-part of this Redis Bloom API.
+Redis Bloom and Redis HyperLogLog are exposed here. Cuckoo remains follow-up
+scope until RedisBloom `CF*` runtime assumptions and Testcontainers coverage are
+explicit.
 
 ## Test
 

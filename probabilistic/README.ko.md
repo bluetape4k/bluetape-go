@@ -3,8 +3,8 @@
 [English](README.md) | [한국어](README.ko.md)
 
 `probabilistic`는 bluetape-go에서 직접 제공하는 확률적 자료구조 패키지입니다.
-인메모리 Bloom filter와 분산 공유 상태를 위한 Redis-backed Bloom filter를
-포함합니다.
+인메모리 Bloom filter와 분산 공유 상태를 위한 Redis-backed Bloom filter 및
+HyperLogLog를 포함합니다.
 
 ## 가져오기
 
@@ -59,7 +59,7 @@ Custom hasher 함수는 deterministic하고 goroutine-safe해야 합니다. 같�
   `PutAll`, `Clear`, metadata read에 대해 goroutine-safe입니다.
 - 이 패키지 자체에는 context-aware I/O나 background job 경계가 없습니다.
 
-## Redis-backed Bloom Filter
+## Redis-backed Bloom Filter and HyperLogLog
 
 Redis-backed package는 다음 import path로 사용할 수 있습니다.
 
@@ -90,6 +90,23 @@ if !changed {
 }
 ```
 
+여러 Go process가 approximate distinct count를 공유해야 할 때는 Redis
+HyperLogLog를 사용합니다.
+
+```go
+hll, err := redisbloom.NewStringHyperLogLog(redisClient, "auth:tenant-a:active-users")
+if err != nil {
+    return err
+}
+
+_, err = hll.Add(ctx, "user-1", "user-2")
+if err != nil {
+    return err
+}
+
+estimate, err := hll.Count(ctx)
+```
+
 ![Redis Bloom key layout](../docs/images/readme-diagrams/redis-bloom-key-layout-01.png)
 
 ![Redis Bloom operation sequence](../docs/images/readme-diagrams/redis-bloom-operation-sequence.png)
@@ -103,6 +120,7 @@ Redis Bloom은 namespace마다 Redis Cluster-safe hash-tagged key pair 하나를
 |---|---|---|
 | `bluetape:probabilistic:bloom:v1:{namespace}:bits` | bitmap string | `GETBIT`, `SETBIT`, `BITCOUNT`를 쓰는 static Lua script가 읽고 쓰는 Bloom bitset. |
 | `bluetape:probabilistic:bloom:v1:{namespace}:config` | hash | 모든 공유 상태 연산 전에 확인하는 immutable config metadata. |
+| `bluetape:probabilistic:hll:v1:{namespace}` | HyperLogLog string | `PFADD`, `PFCOUNT`, `PFMERGE`로 관리하는 cardinality estimate. |
 
 `{namespace}` segment는 두 key를 Redis Cluster의 같은 hash slot에 배치합니다.
 Namespace는 안정적인 운영 식별자여야 합니다. Raw user ID, email, secret,
@@ -136,6 +154,8 @@ verification window 동안 dual-write한 뒤 reader를 전환하고, rollback이
 - TLS, AUTH, ACL을 사용하세요. Application access에는 script 실행과 script/runbook이
   쓰는 최소 command set이 필요합니다. `EVALSHA`, `EVAL`, `HSET`, `HGET`,
   `HGETALL`, `HLEN`, `GETBIT`, `SETBIT`, `BITCOUNT`, `STRLEN`, `DEL`, `PTTL`.
+- HyperLogLog는 approximate cardinality 전용입니다. Membership query가 아니며
+  `Add(ctx, values...) == false`가 중복 확정을 의미하지 않습니다.
 
 Diagnostics는 보통 metadata와 size 확인에서 시작합니다.
 
@@ -180,9 +200,8 @@ Sentinel error는 `errors.Is`를 지원합니다.
 
 ## 후속 범위
 
-여기서 공개하는 Redis-backed 확률적 자료구조는 Redis Bloom뿐입니다. Cuckoo와
-HLL/HyperLogLog constructor는 후속 범위이며 이 Redis Bloom API에 포함되지
-않습니다.
+여기서는 Redis Bloom과 Redis HyperLogLog를 공개합니다. Cuckoo는 RedisBloom `CF*`
+runtime assumption과 Testcontainers coverage가 명확해질 때까지 후속 범위로 둡니다.
 
 ## 테스트
 

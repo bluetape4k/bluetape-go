@@ -41,9 +41,9 @@ The `v0.6.x` portable utilities scope includes UUID, ULID, KSUID, and Snowflake
 ID generation; explicit-algorithm JWT signing, parsing, validation, and local
 or distributed key rotation backed by in-memory, Redis, or MongoDB KeyChain
 repositories; typed units and measured values; ISO currency and decimal-backed
-money operations; and in-memory or Redis-backed Bloom filters. The current
-`0.6.7` line includes the corrective `0.6.3` through `0.6.6` implementation
-series plus MongoDB-backed JWT KeyChain storage.
+money operations; and in-memory Bloom filters plus Redis-backed Bloom and
+HyperLogLog helpers. The current `0.6.7` line includes the corrective `0.6.3`
+through `0.6.6` implementation series plus MongoDB-backed JWT KeyChain storage.
 
 The active `0.13.0` milestone records fresh 7-tier review evidence, missing
 stress/race coverage, confirmed P0/P1 fixes, cumulative lesson hardening,
@@ -106,11 +106,11 @@ existing JWT Mongo tests.
 | [`graph/graphio`](graph/graphio/README.md) | active | Stream-oriented NDJSON and paired CSV import/export helpers for graph vertices and edges. |
 | [`graph/neo4j`](graph/neo4j/README.md) | active | Proof adapter from the official Neo4j Go driver to graph vertices and edges. |
 | [`probabilistic`](probabilistic/README.md) | active | Goroutine-safe in-memory Bloom filters with deterministic config, merge compatibility checks, and stress/race coverage. |
-| [`probabilistic/redis`](probabilistic/redis/README.md) | active | Redis-backed shared Bloom filters with static Lua scripts, immutable config metadata, and operator runbook boundaries. |
+| [`probabilistic/redis`](probabilistic/redis/README.md) | active | Redis-backed shared Bloom filters and HyperLogLog estimates with static Lua Bloom scripts, immutable config metadata, and operator runbook boundaries. |
 
 Next planned package families include durable audit transport publisher adapters
-and example services. Redis-backed Cuckoo and HyperLogLog/HLL support is tracked
-separately after the Redis Bloom scope.
+and example services. Redis-backed Cuckoo support is tracked separately after
+the Redis Bloom and HyperLogLog scope.
 
 ## SerDe Baseline Guidance
 

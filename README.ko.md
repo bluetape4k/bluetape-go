@@ -38,9 +38,9 @@ hardening track이며, 넓은 API 확장이 아닙니다.
 `v0.6.x` portable utility 범위에는 UUID, ULID, KSUID, Snowflake ID 생성,
 명시적 algorithm 기반 JWT signing/parsing/validation, 인메모리/Redis/MongoDB
 KeyChain repository 기반 distributed key rotation, typed unit과 measured value,
-ISO currency와 decimal-backed money 연산, 인메모리 Bloom 또는 Redis-backed Bloom
-filter가 포함됩니다. 현재 `0.6.7` 선에는 corrective `0.6.3`부터 `0.6.6` 구현
-series와 MongoDB-backed JWT KeyChain storage가 포함됩니다.
+ISO currency와 decimal-backed money 연산, 인메모리 Bloom 및 Redis-backed Bloom과
+HyperLogLog helper가 포함됩니다. 현재 `0.6.7` 선에는 corrective `0.6.3`부터
+`0.6.6` 구현 series와 MongoDB-backed JWT KeyChain storage가 포함됩니다.
 
 활성 `0.13.0` milestone은 fresh 7-tier review evidence, 누락된 stress/race
 coverage, 확인된 P0/P1 fix, cumulative lesson hardening, feature-gap triage,
@@ -102,10 +102,10 @@ release-readiness bookkeeping을 기록합니다. 유일한 must-have feature ad
 | [`graph/graphio`](graph/graphio/README.ko.md) | active | Graph vertex/edge를 위한 bounded NDJSON 및 paired CSV import/export helper. |
 | [`graph/neo4j`](graph/neo4j/README.ko.md) | active | 공식 Neo4j Go driver 결과를 graph vertex/edge로 변환하는 proof adapter. |
 | [`probabilistic`](probabilistic/README.ko.md) | active | deterministic config, merge compatibility check, stress/race coverage를 갖춘 goroutine-safe 인메모리 Bloom filter. |
-| [`probabilistic/redis`](probabilistic/redis/README.ko.md) | active | Static Lua script, immutable config metadata, operator runbook 경계를 갖춘 Redis-backed shared Bloom filter. |
+| [`probabilistic/redis`](probabilistic/redis/README.ko.md) | active | Static Lua Bloom script, immutable config metadata, operator runbook 경계를 갖춘 Redis-backed shared Bloom filter와 HyperLogLog estimate. |
 
 다음 계획 패키지군은 durable audit transport publisher adapter와 example
-service입니다. Redis-backed Cuckoo와 HyperLogLog/HLL 지원은 Redis Bloom 범위 이후
+service입니다. Redis-backed Cuckoo 지원은 Redis Bloom과 HyperLogLog 범위 이후
 별도로 추적합니다.
 
 ## SerDe Baseline Guidance
