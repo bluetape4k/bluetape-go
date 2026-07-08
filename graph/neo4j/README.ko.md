@@ -112,6 +112,27 @@ go test -p 1 -race -count=1 ./graph/neo4j
 Package test는 node/relationship mapping, bad record, query failure, context
 cancellation, resource cleanup을 검증합니다.
 
+## Benchmark
+
+기본 benchmark는 Docker를 시작하지 않고 pure mapping 및 in-memory record adaptation
+비용만 측정합니다.
+
+```bash
+go test -run '^$' -bench . -benchmem ./graph/neo4j
+```
+
+Neo4j와 Memgraph read/write benchmark는 Testcontainers 기반 database를 시작하므로
+serial, opt-in으로 실행합니다.
+
+```bash
+BLUETAPE_GRAPH_NEO4J_BENCH=1 go test -p 1 -run '^$' -bench '^BenchmarkGraphNeo4jContainers' -benchtime=100x -benchmem ./graph/neo4j
+```
+
+이 행들은 `neo4j:5.26.0` 및 `memgraph/memgraph:3.5.0`을 사용합니다. 측정 범위는
+node create/read, relationship create/read, empty read, syntax-error overhead입니다.
+결과는 local Testcontainers regression evidence이지 production database ranking이
+아닙니다.
+
 ## Memgraph Compatibility
 
 Memgraph는 이 package에서 별도 `graph/memgraph` backend abstraction이 아니라
