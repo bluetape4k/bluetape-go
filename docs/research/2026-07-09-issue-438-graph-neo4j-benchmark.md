@@ -13,6 +13,17 @@ unchanged.
   `docs/research/outputs/issue-438/graph-neo4j-containers-bench.txt`
 - Environment and Docker metadata:
   `docs/research/outputs/issue-438/environment.md`
+- Scan-friendly benchmark chart:
+  `docs/images/readme-charts/graph-neo4j-benchmark-summary.png`
+
+![graph/neo4j benchmark summary](../images/readme-charts/graph-neo4j-benchmark-summary.png)
+
+Chart source files:
+
+- SVG: `docs/images/readme-charts/graph-neo4j-benchmark-summary.svg`
+- PNG: `docs/images/readme-charts/graph-neo4j-benchmark-summary.png`
+- Vega-Lite data source: `docs/images/readme-charts/graph-neo4j-benchmark-summary.vl.json`
+- Generator: `docs/images/readme-charts/generate-graph-neo4j-benchmark-summary.mjs`
 
 ## Commands
 
