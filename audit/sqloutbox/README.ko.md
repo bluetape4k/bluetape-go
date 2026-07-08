@@ -131,3 +131,17 @@ go test -count=1 ./audit/sqloutbox -run 'RelayRunOnce(PublisherContextCancellati
 Relay test는 cancellation-driven worker lifecycle coverage에 `AsyncJobTester`를
 사용하고, concurrent `RunOnce` claim/publish coverage에 `GoroutineStressTester`를
 사용합니다.
+
+## Benchmark
+
+![audit + sqloutbox benchmark summary](../../docs/images/readme-charts/audit-outbox-benchmark-summary.png)
+
+Issue [#439](https://github.com/bluetape4k/bluetape-go/issues/439)는 PostgreSQL
+outbox `Enqueue`, `Claim`, `RunOnce` publish, dead-letter raw benchmark output을
+in-memory `audit` row와 분리해서 보관합니다. 상세 결과 표와 해석은
+[`docs/research/2026-07-09-issue-439-audit-outbox-benchmark.md`](../../docs/research/2026-07-09-issue-439-audit-outbox-benchmark.md)에
+있습니다.
+
+```bash
+BLUETAPE_AUDIT_SQL_OUTBOX_BENCH=1 go test -p 1 -run '^$' -bench '^BenchmarkAuditSQLOutboxPostgres' -benchtime=100x -benchmem ./audit/sqloutbox
+```

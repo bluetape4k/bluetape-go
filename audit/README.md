@@ -212,6 +212,24 @@ separately in issues
 - Kafka, NATS, Redis Streams, direct Redis audit storage, and examples remain
   later `0.9.0` or follow-up issues.
 
+## Benchmark
+
+![audit + sqloutbox benchmark summary](../docs/images/readme-charts/audit-outbox-benchmark-summary.png)
+
+Issue [#439](https://github.com/bluetape4k/bluetape-go/issues/439) records the
+current local benchmark snapshot for in-memory repository operations and
+PostgreSQL-backed outbox relay paths. Detailed tables, raw output paths, and
+interpretation notes are in
+[`docs/research/2026-07-09-issue-439-audit-outbox-benchmark.md`](../docs/research/2026-07-09-issue-439-audit-outbox-benchmark.md).
+
+Lower `ns/op`, `ms/op`, `B/op`, and `allocs/op` are better. PostgreSQL rows are
+serial and opt-in because they start Testcontainers.
+
+```bash
+go test -run '^$' -bench 'Benchmark(MemoryRepository|AuditEntryJSONRoundTrip)' -benchmem ./audit
+BLUETAPE_AUDIT_SQL_OUTBOX_BENCH=1 go test -p 1 -run '^$' -bench '^BenchmarkAuditSQLOutboxPostgres' -benchtime=100x -benchmem ./audit/sqloutbox
+```
+
 ## Tests
 
 ```bash
@@ -219,4 +237,5 @@ go test -count=1 ./audit
 go test -count=1 ./audit/sqloutbox
 go test -race -count=1 ./audit ./audit/audittest
 go test -run '^$' -bench 'BenchmarkAggregateRecorder(Record|PendingEvents|AckThrough)' -benchmem ./audit
+go test -run '^$' -bench 'Benchmark(MemoryRepository|AuditEntryJSONRoundTrip)' -benchmem ./audit
 ```
