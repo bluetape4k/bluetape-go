@@ -116,6 +116,8 @@ context cancellation, and resource cleanup.
 
 ## Benchmark
 
+![graph/neo4j benchmark summary](../../docs/images/readme-charts/graph-neo4j-benchmark-summary.png)
+
 Default benchmarks cover pure mapping and in-memory record adaptation without
 starting Docker:
 

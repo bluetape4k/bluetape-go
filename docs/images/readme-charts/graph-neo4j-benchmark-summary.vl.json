@@ -1,0 +1,207 @@
+{
+  "$schema": "https://vega.github.io/schema/vega-lite/v5.json",
+  "title": "graph/neo4j Benchmark Summary",
+  "source": [
+    "docs/research/outputs/issue-438/graph-neo4j-mapping-bench.txt",
+    "docs/research/outputs/issue-438/graph-neo4j-containers-bench.txt"
+  ],
+  "metadata": {
+    "cpu": "Apple M5",
+    "goos": "darwin",
+    "goarch": "arm64",
+    "mappingSource": "docs/research/outputs/issue-438/graph-neo4j-mapping-bench.txt",
+    "containerSource": "docs/research/outputs/issue-438/graph-neo4j-containers-bench.txt"
+  },
+  "mappingRows": [
+    {
+      "id": "VertexFromNode",
+      "label": "Vertex from node",
+      "nsPerOp": 198.3,
+      "bytesPerOp": 400,
+      "allocsPerOp": 3
+    },
+    {
+      "id": "EdgeFromRelationship",
+      "label": "Edge from relationship",
+      "nsPerOp": 128.3,
+      "bytesPerOp": 336,
+      "allocsPerOp": 2
+    },
+    {
+      "id": "VerticesFromRecords",
+      "label": "Vertices from 100 records",
+      "nsPerOp": 16971,
+      "bytesPerOp": 37696,
+      "allocsPerOp": 201
+    },
+    {
+      "id": "EdgesFromRecords",
+      "label": "Edges from 100 records",
+      "nsPerOp": 14386,
+      "bytesPerOp": 41792,
+      "allocsPerOp": 201
+    }
+  ],
+  "containerRows": [
+    {
+      "id": "WriteNode",
+      "label": "Write node",
+      "runtime": "Neo4j",
+      "nsPerOp": 6333185,
+      "msPerOp": 6.333185,
+      "bytesPerOp": 11820,
+      "kibPerOp": 11.54296875,
+      "allocsPerOp": 228
+    },
+    {
+      "id": "WriteRelationship",
+      "label": "Write relationship",
+      "runtime": "Neo4j",
+      "nsPerOp": 3396142,
+      "msPerOp": 3.396142,
+      "bytesPerOp": 11799,
+      "kibPerOp": 11.5224609375,
+      "allocsPerOp": 226
+    },
+    {
+      "id": "ReadVertices/Small10",
+      "label": "Read vertices 10",
+      "runtime": "Neo4j",
+      "nsPerOp": 2727240,
+      "msPerOp": 2.72724,
+      "bytesPerOp": 46024,
+      "kibPerOp": 44.9453125,
+      "allocsPerOp": 691
+    },
+    {
+      "id": "ReadVertices/Medium100",
+      "label": "Read vertices 100",
+      "runtime": "Neo4j",
+      "nsPerOp": 2478667,
+      "msPerOp": 2.478667,
+      "bytesPerOp": 271583,
+      "kibPerOp": 265.2177734375,
+      "allocsPerOp": 4921
+    },
+    {
+      "id": "ReadEdges/Small10",
+      "label": "Read edges 10",
+      "runtime": "Neo4j",
+      "nsPerOp": 2451548,
+      "msPerOp": 2.451548,
+      "bytesPerOp": 47312,
+      "kibPerOp": 46.203125,
+      "allocsPerOp": 681
+    },
+    {
+      "id": "ReadEdges/Medium100",
+      "label": "Read edges 100",
+      "runtime": "Neo4j",
+      "nsPerOp": 2454960,
+      "msPerOp": 2.45496,
+      "bytesPerOp": 285177,
+      "kibPerOp": 278.4931640625,
+      "allocsPerOp": 4821
+    },
+    {
+      "id": "ReadEmptyResult",
+      "label": "Read empty",
+      "runtime": "Neo4j",
+      "nsPerOp": 1507954,
+      "msPerOp": 1.507954,
+      "bytesPerOp": 23192,
+      "kibPerOp": 22.6484375,
+      "allocsPerOp": 255
+    },
+    {
+      "id": "WriteSyntaxError",
+      "label": "Write syntax error",
+      "runtime": "Neo4j",
+      "nsPerOp": 1360984,
+      "msPerOp": 1.360984,
+      "bytesPerOp": 11009,
+      "kibPerOp": 10.7509765625,
+      "allocsPerOp": 212
+    },
+    {
+      "id": "WriteNode",
+      "label": "Write node",
+      "runtime": "Memgraph",
+      "nsPerOp": 579592,
+      "msPerOp": 0.579592,
+      "bytesPerOp": 8403,
+      "kibPerOp": 8.2060546875,
+      "allocsPerOp": 180
+    },
+    {
+      "id": "WriteRelationship",
+      "label": "Write relationship",
+      "runtime": "Memgraph",
+      "nsPerOp": 518462,
+      "msPerOp": 0.518462,
+      "bytesPerOp": 9821,
+      "kibPerOp": 9.5908203125,
+      "allocsPerOp": 207
+    },
+    {
+      "id": "ReadVertices/Small10",
+      "label": "Read vertices 10",
+      "runtime": "Memgraph",
+      "nsPerOp": 594059,
+      "msPerOp": 0.594059,
+      "bytesPerOp": 36621,
+      "kibPerOp": 35.7626953125,
+      "allocsPerOp": 566
+    },
+    {
+      "id": "ReadVertices/Medium100",
+      "label": "Read vertices 100",
+      "runtime": "Memgraph",
+      "nsPerOp": 824707,
+      "msPerOp": 0.824707,
+      "bytesPerOp": 203936,
+      "kibPerOp": 199.15625,
+      "allocsPerOp": 3986
+    },
+    {
+      "id": "ReadEdges/Small10",
+      "label": "Read edges 10",
+      "runtime": "Memgraph",
+      "nsPerOp": 574915,
+      "msPerOp": 0.574915,
+      "bytesPerOp": 36973,
+      "kibPerOp": 36.1064453125,
+      "allocsPerOp": 556
+    },
+    {
+      "id": "ReadEdges/Medium100",
+      "label": "Read edges 100",
+      "runtime": "Memgraph",
+      "nsPerOp": 840016,
+      "msPerOp": 0.840016,
+      "bytesPerOp": 206407,
+      "kibPerOp": 201.5693359375,
+      "allocsPerOp": 3886
+    },
+    {
+      "id": "ReadEmptyResult",
+      "label": "Read empty",
+      "runtime": "Memgraph",
+      "nsPerOp": 491485,
+      "msPerOp": 0.491485,
+      "bytesPerOp": 18204,
+      "kibPerOp": 17.77734375,
+      "allocsPerOp": 185
+    },
+    {
+      "id": "WriteSyntaxError",
+      "label": "Write syntax error",
+      "runtime": "Memgraph",
+      "nsPerOp": 478611,
+      "msPerOp": 0.478611,
+      "bytesPerOp": 7976,
+      "kibPerOp": 7.7890625,
+      "allocsPerOp": 165
+    }
+  ]
+}

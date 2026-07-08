@@ -114,6 +114,8 @@ cancellation, resource cleanup을 검증합니다.
 
 ## Benchmark
 
+![graph/neo4j benchmark summary](../../docs/images/readme-charts/graph-neo4j-benchmark-summary.png)
+
 기본 benchmark는 Docker를 시작하지 않고 pure mapping 및 in-memory record adaptation
 비용만 측정합니다.
 
