@@ -94,6 +94,21 @@ Sequence는 dictionary compilation, original byte offset mapping을 유지하는
 normalization, automaton scanning, deterministic ranking, replacement/masking,
 blockword/tokenizer response helper 흐름을 보여줍니다.
 
+## Workshop Adoption
+
+Runnable application scenario는 workshop이 소유합니다. 기존
+[`text-moderation-masking`](https://github.com/bluetape4k/bluetape-go-workshop/tree/develop/examples/text-moderation-masking)
+예제는 moderation masking을 다루고,
+[`gin-text-search-service`](https://github.com/bluetape4k/bluetape-go-workshop/tree/develop/examples/gin-text-search-service)는
+HTTP search/masking service 형태를 다룹니다. 나머지 text adoption 작업은 workshop
+issue
+[#34](https://github.com/bluetape4k/bluetape-go-workshop/issues/34),
+[#55](https://github.com/bluetape4k/bluetape-go-workshop/issues/55),
+[#67](https://github.com/bluetape4k/bluetape-go-workshop/issues/67),
+[#118](https://github.com/bluetape4k/bluetape-go-workshop/issues/118),
+[#119](https://github.com/bluetape4k/bluetape-go-workshop/issues/119)에
+추적합니다.
+
 ## 동작
 
 - `Matcher`는 `Compile` 이후 immutable이며 concurrent reader에 안전합니다.

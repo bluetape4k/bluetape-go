@@ -70,6 +70,17 @@ hex digest로 저장되므로 Redis에는 raw caller value가 아니라 stable i
 `Merge(ctx, sourceNamespaces...)`는 `PFMERGE`로 source HLL namespace를 receiver
 namespace에 병합하며, receiver의 기존 estimate도 보존합니다.
 
+## Workshop Adoption
+
+Application-level 사용 예제는 이 package 밖의 workshop에 둡니다.
+[`probabilistic-dedupe-admission`](https://github.com/bluetape4k/bluetape-go-workshop/tree/develop/examples/probabilistic-dedupe-admission)은
+probabilistic admission control을 보여주고,
+[`shared-redis-bloom-admission`](https://github.com/bluetape4k/bluetape-go-workshop/tree/develop/examples/shared-redis-bloom-admission)은
+이 Redis-backed Bloom surface를 사용합니다. Redis HyperLogLog adoption은
+workshop issue
+[#151](https://github.com/bluetape4k/bluetape-go-workshop/issues/151)에
+추적합니다.
+
 ## Redis 상태
 
 Redis Bloom은 namespace마다 Redis Cluster-safe hash-tag key pair 하나를 사용합니다.

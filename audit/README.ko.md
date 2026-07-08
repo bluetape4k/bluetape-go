@@ -183,6 +183,19 @@ contract가 검증된 뒤 붙일 publisher/projection adapter로 남깁니다. S
 transaction choreography, migration, broker topology, redaction, PII 정책,
 consumer idempotency는 계속 application 책임입니다.
 
+## Workshop Adoption
+
+Package-local [`examples/audit`](../examples/audit/README.ko.md) service는 이
+repository 안에서 library contract를 증명합니다. Workshop scenario adoption은
+별도 issue
+[#35](https://github.com/bluetape4k/bluetape-go-workshop/issues/35),
+[#56](https://github.com/bluetape4k/bluetape-go-workshop/issues/56),
+[#57](https://github.com/bluetape4k/bluetape-go-workshop/issues/57),
+[#58](https://github.com/bluetape4k/bluetape-go-workshop/issues/58),
+[#68](https://github.com/bluetape4k/bluetape-go-workshop/issues/68),
+[#150](https://github.com/bluetape4k/bluetape-go-workshop/issues/150)에
+추적합니다.
+
 ## Boundaries
 
 - Revision은 positive이고 `InitialRevision()`에서 시작합니다.

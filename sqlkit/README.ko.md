@@ -87,6 +87,18 @@ direct `database/sql`, `sqlkit`, sqlc, Jet, ent, Bun, GORM, goqu, Atlas를 언�
 | 간단한 SQL 생성 | `SelectFrom`, `InsertInto`, `Update`, `DeleteFrom` | 명시적인 PostgreSQL-style SQL과 복사된 args를 생성합니다. |
 | 생성된 mutation 실행 | `Statement.Exec` | `ExecContext`를 감싼 context-aware wrapper입니다. |
 
+## Workshop Adoption
+
+Runnable workshop example은 이 package README가 아니라
+[`bluetape-go-workshop`](https://github.com/bluetape4k/bluetape-go-workshop)에
+둡니다.
+[`sql-access-strategy-decision`](https://github.com/bluetape4k/bluetape-go-workshop/tree/develop/examples/sql-access-strategy-decision),
+[`sql-order-repository`](https://github.com/bluetape4k/bluetape-go-workshop/tree/develop/examples/sql-order-repository),
+[`sql-transaction-boundary`](https://github.com/bluetape4k/bluetape-go-workshop/tree/develop/examples/sql-transaction-boundary),
+[`gin-sql-crud-api`](https://github.com/bluetape4k/bluetape-go-workshop/tree/develop/examples/gin-sql-crud-api),
+[`gin-sql-order-service`](https://github.com/bluetape4k/bluetape-go-workshop/tree/develop/examples/gin-sql-order-service)를
+참조하세요.
+
 ## 동작
 
 - Builder output은 PostgreSQL 우선이며 `$1`, `$2`, ... placeholder를

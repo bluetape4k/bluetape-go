@@ -184,6 +184,18 @@ publisher/projection adapters until the durable SQL outbox contract is proven.
 Applications still own source transaction choreography, migrations, broker
 topology, redaction, PII policy, and consumer idempotency.
 
+## Workshop Adoption
+
+The package-local [`examples/audit`](../examples/audit/README.md) service proves
+the library contract in this repository. Workshop scenario adoption is tracked
+separately in issues
+[#35](https://github.com/bluetape4k/bluetape-go-workshop/issues/35),
+[#56](https://github.com/bluetape4k/bluetape-go-workshop/issues/56),
+[#57](https://github.com/bluetape4k/bluetape-go-workshop/issues/57),
+[#58](https://github.com/bluetape4k/bluetape-go-workshop/issues/58),
+[#68](https://github.com/bluetape4k/bluetape-go-workshop/issues/68), and
+[#150](https://github.com/bluetape4k/bluetape-go-workshop/issues/150).
+
 ## Boundaries
 
 - Revisions are positive and start at `InitialRevision()`.
