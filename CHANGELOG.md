@@ -7,6 +7,11 @@ and this project uses semantic versioning once the first tag is published.
 
 ## [Unreleased]
 
+### Added
+
+- Add `redis` foundation package with key, owner-token, lease script, TTL, and
+  redacted Redis operation error primitives.
+
 ## [v0.18.0] - 2026-07-10
 
 ### Added
