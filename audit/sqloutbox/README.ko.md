@@ -96,9 +96,11 @@ Test, local example, workshop adoption에서는 deterministic publisher helper�
 - `RecordingPublisher`는 모든 publish attempt를 기록하고 retry/dead-letter
   assertion을 위해 event별 deterministic failure를 주입할 수 있습니다.
 
-Helper package는 broker topology를 추가하지 않습니다. Kafka, NATS, Redis
-Streams, RabbitMQ, Redpanda, Pulsar 같은 durable transport는 이후 adapter 범위로
-남깁니다.
+Helper package는 broker topology를 추가하지 않습니다. Kafka, NATS, RabbitMQ,
+Redpanda, Pulsar 같은 durable transport는 이후 adapter 범위로 남깁니다. 첫
+broker-backed provider는 [`redisstreams`](redisstreams/README.ko.md)이며, Redis
+Streams에 record를 append하되 stream topology와 consumer replay policy는 caller에
+맡깁니다.
 
 ## Boundaries
 
@@ -117,7 +119,8 @@ Streams, RabbitMQ, Redpanda, Pulsar 같은 durable transport는 이후 adapter �
   publisher idempotency, operator replay tooling은 caller 책임입니다.
 - Publisher는 external transport topology, authentication, TLS, retention,
   consumer replay, idempotent duplicate handling을 책임집니다.
-- Kafka, NATS, Redis Streams, RabbitMQ, Redpanda, Pulsar, direct Redis audit
+- [`redisstreams`](redisstreams/README.ko.md)는 좁은 Redis Streams publisher를
+  제공합니다. Kafka, NATS, RabbitMQ, Redpanda, Pulsar, direct Redis audit
   storage는 이후 adapter 범위입니다.
 
 ## Tests
@@ -125,6 +128,7 @@ Streams, RabbitMQ, Redpanda, Pulsar 같은 durable transport는 이후 adapter �
 ```bash
 go test -count=1 ./audit/sqloutbox
 go test -race -count=1 ./audit/sqloutbox
+go test -count=1 ./audit/sqloutbox/redisstreams
 go test -count=1 ./audit/sqloutbox -run 'RelayRunOnce(PublisherContextCancellationDoesNotRetry|RetriesDuplicatePublishWithStableEnvelope|ConcurrentStressPublishesEachRecordOnce)'
 ```
 
