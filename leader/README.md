@@ -45,6 +45,15 @@ if err != nil {
 - Public errors are sentinel errors and should be compared with `errors.Is`.
 - Backend renewal failures should cause `IsLeader` to return false.
 
+## Backend Notes
+
+- `leader/redis` is the current storage backend.
+- MongoDB storage is planned as a separate `leader/mongo` follow-up. Issue
+  [#431](../docs/research/2026-07-09-issue-431-leader-mongodb-storage.md)
+  recommends implementing only the single `Elector` first, with
+  `GroupElector` and `StrategicElector` deferred until their contention models
+  are designed separately.
+
 ## Test
 
 ```bash
