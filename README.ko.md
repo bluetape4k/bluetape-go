@@ -72,6 +72,7 @@ API가 아니라 module-gated future scope입니다.
 | [`examples/sqs-sns`](examples/sqs-sns/README.ko.md) | example | Floci fixture 기반 compile-checked AWS SDK for Go v2 SQS/SNS 예제. |
 | [`leader`](leader/README.ko.md) | active | 단일, group, strategy 기반 계약을 포함한 leader election API. |
 | [`leader/redis`](leader/redis/README.ko.md) | active | TTL renewal, ZSET slot token, candidate registry 기반 Redis 단일/group/strategic leader election 구현. |
+| [`leader/mongo`](leader/mongo/README.ko.md) | active | Owner-token lease document와 TTL cleanup index를 사용하는 MongoDB 단일 leader election 구현. |
 | [`resilience`](resilience/README.ko.md) | active | service call을 위한 자체 composable retry, timeout, circuit breaker, bulkhead policy, synchronous observability hook, `net/http` adapter. |
 | [`cache`](cache/README.ko.md) | active | context-aware loader와 same-key stampede protection을 제공하는 generic in-process TTL cache interface. |
 | [`cache/redisnear`](cache/redisnear/README.ko.md) | active | process-local loading cache를 위한 Redis Pub/Sub near-cache invalidation. |
@@ -146,7 +147,8 @@ go get github.com/bluetape4k/bluetape-go
 - Image: 명시적 format과 memory boundary를 가진 bounded pure-Go resize,
   thumbnail, JPEG/PNG conversion helper인 [`imagekit`](imagekit/README.ko.md).
 - Coordination: [`leader`](leader/README.ko.md),
-  [`leader/redis`](leader/redis/README.ko.md), [`lock/redis`](lock/redis/README.ko.md).
+  [`leader/redis`](leader/redis/README.ko.md),
+  [`leader/mongo`](leader/mongo/README.ko.md), [`lock/redis`](lock/redis/README.ko.md).
 - Runtime policy/cache/state/workflow: [`resilience`](resilience/README.ko.md),
   [`cache`](cache/README.ko.md), [`cache/redisnear`](cache/redisnear/README.ko.md),
   [`cache/rediscoord`](cache/rediscoord/README.ko.md), [`ratelimit`](ratelimit/README.ko.md),

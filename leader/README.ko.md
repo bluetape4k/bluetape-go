@@ -43,15 +43,16 @@ if err != nil {
 
 ## Backend 참고
 
-- 현재 storage backend는 `leader/redis`입니다.
-- MongoDB storage는 별도 `leader/mongo` follow-up으로 다룹니다. Issue
+- `leader/redis`는 단일, group, strategic leader election을 지원합니다.
+- `leader/mongo`는 단일 `Elector` contract만 지원합니다. MongoDB group마다 하나의
+  lease document를 저장하고 TTL index는 cleanup 용도로만 취급합니다. Issue
   [#431](../docs/research/2026-07-09-issue-431-leader-mongodb-storage.md)
-  연구는 먼저 단일 `Elector`만 구현하고, `GroupElector`와
-  `StrategicElector`는 각자의 contention model을 별도로 설계한 뒤
-  진행하라고 권장합니다.
+  연구는 `GroupElector`와 `StrategicElector`를 각자의 contention model이
+  설계될 때까지 deferred로 남기는 이유를 기록합니다.
 
 ## 테스트
 
 ```bash
 go test -count=1 ./leader
+go test -count=1 ./leader/mongo
 ```

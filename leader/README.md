@@ -47,15 +47,17 @@ if err != nil {
 
 ## Backend Notes
 
-- `leader/redis` is the current storage backend.
-- MongoDB storage is planned as a separate `leader/mongo` follow-up. Issue
+- `leader/redis` supports single, group, and strategic leader election.
+- `leader/mongo` supports only the single `Elector` contract. It stores one
+  MongoDB lease document per group and treats TTL indexes as cleanup only.
+  Issue
   [#431](../docs/research/2026-07-09-issue-431-leader-mongodb-storage.md)
-  recommends implementing only the single `Elector` first, with
-  `GroupElector` and `StrategicElector` deferred until their contention models
-  are designed separately.
+  records why `GroupElector` and `StrategicElector` stay deferred until their
+  contention models are designed separately.
 
 ## Test
 
 ```bash
 go test -count=1 ./leader
+go test -count=1 ./leader/mongo
 ```

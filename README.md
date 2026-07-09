@@ -75,6 +75,7 @@ future scope, not part of the current public API.
 | [`examples/sqs-sns`](examples/sqs-sns/README.md) | example | Compile-checked AWS SDK for Go v2 SQS/SNS examples backed by the Floci fixture. |
 | [`leader`](leader/README.md) | active | Leader election API, including single, group, and strategy-based contracts. |
 | [`leader/redis`](leader/redis/README.md) | active | Redis-backed single, group, and strategic leader election using TTL renewal, ZSET slot tokens, and candidate registries. |
+| [`leader/mongo`](leader/mongo/README.md) | active | MongoDB-backed single leader election using owner-token lease documents and TTL cleanup indexes. |
 | [`resilience`](resilience/README.md) | active | First-party composable retry, timeout, circuit breaker, and bulkhead policies with synchronous observability hooks and `net/http` adapters. |
 | [`cache`](cache/README.md) | active | Generic in-process TTL cache interfaces with context-aware loaders and same-key stampede protection. |
 | [`cache/redisnear`](cache/redisnear/README.md) | active | Redis Pub/Sub near-cache invalidation for process-local loading caches. |
@@ -150,7 +151,8 @@ overview.
   thumbnail, and JPEG/PNG conversion helpers with explicit format and memory
   boundaries.
 - Coordination: [`leader`](leader/README.md),
-  [`leader/redis`](leader/redis/README.md), and
+  [`leader/redis`](leader/redis/README.md),
+  [`leader/mongo`](leader/mongo/README.md), and
   [`lock/redis`](lock/redis/README.md).
 - Runtime policies, cache, state, and workflow: [`resilience`](resilience/README.md),
   [`cache`](cache/README.md), [`cache/redisnear`](cache/redisnear/README.md),
