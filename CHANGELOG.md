@@ -7,6 +7,12 @@ and this project uses semantic versioning once the first tag is published.
 
 ## [Unreleased]
 
+### Added
+
+- `leader/mongo` single leader elector backend with caller-owned MongoDB
+  collections, owner-token lease documents, optional TTL cleanup index support,
+  renewal-loss detection, contention tests, and bilingual README coverage.
+
 ### Changed
 
 - Root and package README documentation now links source-checked workshop
