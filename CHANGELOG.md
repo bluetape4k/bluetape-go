@@ -13,6 +13,10 @@ and this project uses semantic versioning once the first tag is published.
   documents, exact `MaxLeaders` admission under concurrent acquisition,
   renewal-loss detection, Testcontainers stress coverage, and bilingual README
   documentation.
+- `leader/mongo` strategic leader elector backend with MongoDB candidate
+  registry documents, FIFO/random/scored strategy execution, atomic result
+  updates, stale-candidate pruning, Testcontainers stress coverage, and
+  bilingual README documentation.
 
 ## [v0.17.0] - 2026-07-09
 

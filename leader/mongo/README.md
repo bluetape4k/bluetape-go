@@ -2,13 +2,13 @@
 
 [English](README.md) | [한국어](README.ko.md)
 
-`leader/mongo` provides MongoDB-backed implementations of `leader.Elector` and
-`leader.GroupElector`. The single elector uses one lease document per leader key.
-The group elector uses one lease document per bounded slot, so MongoDB
-single-document atomicity enforces the exact `MaxLeaders` cap under concurrent
-acquisition.
-
-This package does not implement `leader.StrategicElector`.
+`leader/mongo` provides MongoDB-backed implementations of `leader.Elector`,
+`leader.GroupElector`, and `leader.StrategicElector`. The single elector uses
+one lease document per leader key. The group elector uses one lease document per
+bounded slot, so MongoDB single-document atomicity enforces the exact
+`MaxLeaders` cap under concurrent acquisition. The strategic elector stores one
+leased candidate document per node and lets the caller choose FIFO, random, or
+scored strategy execution.
 
 ## Diagram
 
@@ -66,6 +66,35 @@ if err := group.Campaign(ctx); err != nil {
 defer group.Resign(context.Background())
 ```
 
+Use `NewStrategic` when candidates should be ranked by metadata instead of
+competing for a lock:
+
+```go
+strategic, err := mongoleader.NewStrategic[string](collection, leader.Options{
+    Group:    "nightly-jobs",
+    MemberID: "worker-1",
+})
+if err != nil {
+    return err
+}
+
+err = strategic.RegisterCandidate(ctx, "nightly-jobs", leader.CandidateInfo{
+    NodeID:   "worker-1",
+    Weight:   10,
+    Metadata: map[string]string{"zone": "a"},
+}, 30*time.Second)
+if err != nil {
+    return err
+}
+
+strategy := leader.ScoredStrategy{Scorer: leader.WeightScorer{}}
+result, ran, err := strategic.RunIfLeader(ctx, "nightly-jobs", strategy, func(context.Context) (string, error) {
+    return "report-created", nil
+})
+_ = result
+_ = ran
+```
+
 ## Storage Contract
 
 Each leader group stores one document keyed by `_id`:
@@ -101,6 +130,26 @@ token. `ActiveCount` counts documents with the same `group_key` and
 `lease_until > now`; `AvailableSlots` clamps negative values to zero so lowering
 `MaxLeaders` does not over-admit new owners while older active slots drain.
 
+Each strategic elector stores one document per candidate:
+
+| Field | Purpose |
+|---|---|
+| `_id` | Normalized candidate key, `<keyPrefix>:<group>:candidate:<nodeID>`. |
+| `group_key` | Shared group key for live-candidate scans. |
+| `group` | Strategy group name. |
+| `node_id` | Candidate node ID. |
+| `registered_at` | Strategy ordering timestamp supplied by the caller or defaulted at registration. |
+| `last_started_at` / `last_completed_at` | Diagnostic action timestamps. |
+| `success_count` / `failure_count` | Atomic action outcome counters. |
+| `weight` / `metadata` | Strategy input copied from `leader.CandidateInfo`. |
+| `lease_until` | Authoritative candidate expiry. |
+| `created_at` / `updated_at` | Diagnostic timestamps. |
+
+`ListCandidates` prunes expired candidate documents before returning live
+documents sorted by `node_id`. `UpdateResult` updates counters only while the
+candidate lease is live and returns `leader.ErrNotLeader` for missing or expired
+candidates.
+
 ## Operational Boundaries
 
 - The MongoDB client, database, collection, indexes, write concern, and cleanup
@@ -116,6 +165,11 @@ token. `ActiveCount` counts documents with the same `group_key` and
 - `GroupElector` guarantees at most `MaxLeaders` live local owners for a group
   when contenders use the same key prefix, group name, collection, and bounded
   clock-skew assumptions.
+- `StrategicElector` provides a live candidate registry and result counters; it
+  is not a distributed mutex and relies on all contenders using the same
+  strategy, group, key prefix, collection, and clock-skew assumptions.
+- `EnsureIndexes` also creates a `group_key, lease_until` index used by group
+  active-slot checks and strategic live-candidate scans.
 
 ## Test
 

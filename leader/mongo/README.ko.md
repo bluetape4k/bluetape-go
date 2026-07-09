@@ -2,13 +2,13 @@
 
 [English](README.md) | [한국어](README.ko.md)
 
-`leader/mongo`는 `leader.Elector`와 `leader.GroupElector`를 구현하는 MongoDB
-backend입니다. 단일 elector는 leader key마다 하나의 lease document를 저장합니다.
-Group elector는 bounded slot마다 하나의 lease document를 사용하므로 MongoDB
-single-document atomicity만으로 concurrent acquisition 중에도 정확한
-`MaxLeaders` 상한을 지킵니다.
-
-이 package는 `leader.StrategicElector`를 구현하지 않습니다.
+`leader/mongo`는 `leader.Elector`, `leader.GroupElector`,
+`leader.StrategicElector`를 구현하는 MongoDB backend입니다. 단일 elector는
+leader key마다 하나의 lease document를 저장합니다. Group elector는 bounded
+slot마다 하나의 lease document를 사용하므로 MongoDB single-document
+atomicity만으로 concurrent acquisition 중에도 정확한 `MaxLeaders` 상한을
+지킵니다. Strategic elector는 node마다 하나의 leased candidate document를
+저장하고 caller가 FIFO, random, scored strategy 실행 방식을 선택하게 합니다.
 
 ## 다이어그램
 
@@ -67,6 +67,35 @@ if err := group.Campaign(ctx); err != nil {
 defer group.Resign(context.Background())
 ```
 
+Candidate들이 lock 경합 대신 metadata 기반으로 순위화되어야 한다면
+`NewStrategic`을 사용합니다.
+
+```go
+strategic, err := mongoleader.NewStrategic[string](collection, leader.Options{
+    Group:    "nightly-jobs",
+    MemberID: "worker-1",
+})
+if err != nil {
+    return err
+}
+
+err = strategic.RegisterCandidate(ctx, "nightly-jobs", leader.CandidateInfo{
+    NodeID:   "worker-1",
+    Weight:   10,
+    Metadata: map[string]string{"zone": "a"},
+}, 30*time.Second)
+if err != nil {
+    return err
+}
+
+strategy := leader.ScoredStrategy{Scorer: leader.WeightScorer{}}
+result, ran, err := strategic.RunIfLeader(ctx, "nightly-jobs", strategy, func(context.Context) (string, error) {
+    return "report-created", nil
+})
+_ = result
+_ = ran
+```
+
 ## 저장소 계약
 
 각 leader group은 `_id`로 식별되는 하나의 document를 사용합니다.
@@ -103,6 +132,26 @@ token으로 보호합니다. `ActiveCount`는 같은 `group_key`와 `lease_until
 `MaxLeaders`를 낮춘 경우에도 기존 active slot이 drain되기 전 새 owner를
 over-admit하지 않습니다.
 
+Strategic elector는 candidate마다 하나의 document를 저장합니다.
+
+| Field | 목적 |
+|---|---|
+| `_id` | 정규화된 candidate key, `<keyPrefix>:<group>:candidate:<nodeID>`. |
+| `group_key` | Live candidate scan을 위한 shared group key. |
+| `group` | Strategy group name. |
+| `node_id` | Candidate node ID. |
+| `registered_at` | Caller가 지정하거나 registration 시 기본값으로 채워지는 strategy ordering timestamp. |
+| `last_started_at` / `last_completed_at` | 진단용 action timestamp. |
+| `success_count` / `failure_count` | Atomic action outcome counter. |
+| `weight` / `metadata` | `leader.CandidateInfo`에서 복사한 strategy input. |
+| `lease_until` | 권위 있는 candidate expiry. |
+| `created_at` / `updated_at` | 진단용 timestamp. |
+
+`ListCandidates`는 live document를 반환하기 전에 expired candidate document를
+prune하고 `node_id` 순으로 정렬합니다. `UpdateResult`는 candidate lease가 live일
+때만 counter를 갱신하며, 누락되었거나 만료된 candidate에는 `leader.ErrNotLeader`를
+반환합니다.
+
 ## 운영 경계
 
 - MongoDB client, database, collection, index, write concern, cleanup은 caller가
@@ -118,6 +167,11 @@ over-admit하지 않습니다.
 - `GroupElector`는 contender들이 같은 key prefix, group name, collection, bounded
   clock-skew assumption을 사용할 때 group당 최대 `MaxLeaders`개의 live local owner만
   허용합니다.
+- `StrategicElector`는 live candidate registry와 result counter를 제공합니다. 이는
+  distributed mutex가 아니며 모든 contender가 같은 strategy, group, key prefix,
+  collection, clock-skew assumption을 사용해야 합니다.
+- `EnsureIndexes`는 group active-slot check와 strategic live-candidate scan에
+  사용하는 `group_key, lease_until` index도 생성합니다.
 
 ## 테스트
 
