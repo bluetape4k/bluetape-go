@@ -1,0 +1,105 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1500" height="920" viewBox="0 0 1500 920" role="img" aria-labelledby="title desc">
+  <title id="title">MongoDB Leader Election Runtime Map</title>
+  <desc id="desc">One MongoDB lease document controls campaign, renewal, release, observation, and asynchronous TTL cleanup.</desc>
+  <defs>
+    <filter id="softShadow" x="-8%" y="-10%" width="116%" height="124%"><feDropShadow dx="0" dy="5" stdDeviation="5" flood-color="#0F172A" flood-opacity="0.10"/></filter>
+    <marker id="arrow-blue" markerWidth="14" markerHeight="14" refX="13" refY="7" orient="auto" markerUnits="userSpaceOnUse"><path d="M 0 0 L 14 7 L 0 14 Z" fill="#4f77c9"/></marker>
+    <marker id="arrow-green" markerWidth="14" markerHeight="14" refX="13" refY="7" orient="auto" markerUnits="userSpaceOnUse"><path d="M 0 0 L 14 7 L 0 14 Z" fill="#319873"/></marker>
+    <marker id="arrow-amber" markerWidth="14" markerHeight="14" refX="13" refY="7" orient="auto" markerUnits="userSpaceOnUse"><path d="M 0 0 L 14 7 L 0 14 Z" fill="#cf8428"/></marker>
+    <marker id="arrow-purple" markerWidth="14" markerHeight="14" refX="13" refY="7" orient="auto" markerUnits="userSpaceOnUse"><path d="M 0 0 L 14 7 L 0 14 Z" fill="#7e62d9"/></marker>
+    <marker id="arrow-teal" markerWidth="14" markerHeight="14" refX="13" refY="7" orient="auto" markerUnits="userSpaceOnUse"><path d="M 0 0 L 14 7 L 0 14 Z" fill="#3f7d9c"/></marker>
+    <marker id="arrow-gray" markerWidth="14" markerHeight="14" refX="13" refY="7" orient="auto" markerUnits="userSpaceOnUse"><path d="M 0 0 L 14 7 L 0 14 Z" fill="#64748b"/></marker>
+    <style>
+      .canvas { fill: #f8fafc; }
+      .frame { fill: #ffffff; stroke: #cbd5e1; stroke-width: 1.5; filter: url(#softShadow); }
+      .title, .card-title { font-family: "Architects Daughter"; fill: #263a57; }
+      .title { font-size: 42px; }
+      .subtitle, .body, .msg, .footer { font-family: "Comic Mono"; fill: #526276; }
+      .subtitle { font-size: 17px; }
+      .card-title { font-size: 22px; }
+      .body { font-size: 14px; }
+      .msg { font-size: 13px; font-weight: 700; }
+      .footer { font-size: 14px; }
+      .card { stroke-width: 1.8; rx: 8; filter: url(#softShadow); }
+      .card-divider { stroke-width: 1.1; opacity: .45; }
+      .route { fill: none; stroke-width: 3; stroke-linecap: round; stroke-linejoin: round; }
+      .return { fill: none; stroke-width: 2.6; stroke-linecap: round; stroke-linejoin: round; stroke-dasharray: 9 8; }
+      .legend { fill: #ffffff; stroke: #d4e0ec; stroke-width: 1.5; rx: 12; }
+      .field { fill: #ffffff; stroke: #d6e0eb; stroke-width: 1.2; rx: 6; }
+      .field-key { font-weight: 700; fill: #263a57; }
+    </style>
+  </defs>
+  <rect class="canvas" width="1500" height="920"/>
+  <rect class="frame" x="34" y="30" width="1432" height="856" rx="8"/>
+  <text class="title" x="72" y="88">MongoDB Leader Election Runtime Map</text>
+  <text class="subtitle" x="76" y="120">A single lease document, owner token, and lease_until predicate decide ownership; TTL only cleans up later.</text>
+
+  <rect class="card" x="92" y="190" width="310" height="178" rx="8" fill="#eaf2ff" stroke="#6d9df0"/>
+  <text class="card-title" x="247" y="232" text-anchor="middle">Member instance</text>
+  <path class="card-divider" d="M92 252H402" stroke="#6d9df0"/>
+  <path class="card-divider" d="M92 322H402" stroke="#6d9df0"/>
+  <text class="body" x="116" y="280">Campaign(ctx)</text>
+  <text class="body" x="116" y="304">memberID:random token</text>
+  <text class="body" x="116" y="350">Resign deletes by token</text>
+
+  <rect class="card" x="500" y="170" width="440" height="258" rx="8" fill="#fff8ed" stroke="#cf8428"/>
+  <text class="card-title" x="720" y="212" text-anchor="middle">MongoDB lease document</text>
+  <path class="card-divider" d="M500 232H940" stroke="#cf8428"/>
+  <rect class="field" x="526" y="254" width="182" height="36" rx="6"/>
+  <text class="body field-key" x="546" y="277">_id</text>
+  <text class="body" x="600" y="277">prefix:group</text>
+  <rect class="field" x="732" y="254" width="182" height="36" rx="6"/>
+  <text class="body field-key" x="752" y="277">token</text>
+  <text class="body" x="820" y="277">owner guard</text>
+  <rect class="field" x="526" y="306" width="182" height="36" rx="6"/>
+  <text class="body field-key" x="546" y="329">member_id</text>
+  <rect class="field" x="732" y="306" width="182" height="36" rx="6"/>
+  <text class="body field-key" x="752" y="329">lease_until</text>
+  <rect class="field" x="526" y="358" width="388" height="42" rx="6"/>
+  <text class="body" x="546" y="383">created_at / updated_at for diagnostics</text>
+
+  <rect class="card" x="1056" y="190" width="330" height="178" rx="8" fill="#edf9f4" stroke="#63b891"/>
+  <text class="card-title" x="1221" y="232" text-anchor="middle">Renew loop</text>
+  <path class="card-divider" d="M1056 252H1386" stroke="#63b891"/>
+  <path class="card-divider" d="M1056 322H1386" stroke="#63b891"/>
+  <text class="body" x="1080" y="280">UpdateOne token match</text>
+  <text class="body" x="1080" y="304">lease_until &gt; now</text>
+  <text class="body" x="1080" y="350">lost owner clears state</text>
+
+  <rect class="card" x="92" y="532" width="330" height="160" rx="8" fill="#f3efff" stroke="#9b7aec"/>
+  <text class="card-title" x="257" y="574" text-anchor="middle">Observation</text>
+  <path class="card-divider" d="M92 594H422" stroke="#9b7aec"/>
+  <path class="card-divider" d="M92 650H422" stroke="#9b7aec"/>
+  <text class="body" x="116" y="622">Leader(ctx)</text>
+  <text class="body" x="116" y="678">reads only live leases</text>
+
+  <rect class="card" x="500" y="532" width="440" height="160" rx="8" fill="#f8fafc" stroke="#64748b"/>
+  <text class="card-title" x="720" y="574" text-anchor="middle">Caller-owned boundary</text>
+  <path class="card-divider" d="M500 594H940" stroke="#64748b"/>
+  <path class="card-divider" d="M500 650H940" stroke="#64748b"/>
+  <text class="body" x="526" y="622">client, collection, write concern</text>
+  <text class="body" x="526" y="678">clock skew budget stays operational</text>
+
+  <rect class="card" x="1056" y="532" width="330" height="160" rx="8" fill="#fff4de" stroke="#d59c3f"/>
+  <text class="card-title" x="1221" y="574" text-anchor="middle">TTL cleanup</text>
+  <path class="card-divider" d="M1056 594H1386" stroke="#d59c3f"/>
+  <path class="card-divider" d="M1056 650H1386" stroke="#d59c3f"/>
+  <text class="body" x="1080" y="622">EnsureIndexes adds TTL</text>
+  <text class="body" x="1080" y="678">correctness never waits for delete</text>
+
+  <path class="route" d="M402 280 L500 280" stroke="#4f77c9" marker-end="url(#arrow-blue)"/>
+  <text class="msg" x="451" y="260" text-anchor="middle" fill="#4f77c9">acquire</text>
+  <path class="route" d="M940 280 L1056 280" stroke="#319873" marker-end="url(#arrow-green)"/>
+  <text class="msg" x="998" y="260" text-anchor="middle" fill="#319873">renew</text>
+  <path class="return" d="M1056 348 L940 348" stroke="#64748b" marker-end="url(#arrow-gray)"/>
+  <text class="msg" x="998" y="376" text-anchor="middle" fill="#64748b">loss</text>
+  <path class="route" d="M422 612 L500 612" stroke="#7e62d9" marker-end="url(#arrow-purple)"/>
+  <text class="msg" x="461" y="592" text-anchor="middle" fill="#7e62d9">query</text>
+  <path class="route" d="M720 428 L720 532" stroke="#3f7d9c" marker-end="url(#arrow-teal)"/>
+  <text class="msg" x="762" y="484" text-anchor="middle" fill="#3f7d9c">options</text>
+  <path class="route" d="M940 612 L1056 612" stroke="#cf8428" marker-end="url(#arrow-amber)"/>
+  <text class="msg" x="998" y="592" text-anchor="middle" fill="#cf8428">cleanup</text>
+
+  <rect class="legend" x="82" y="842" width="1336" height="40" rx="8"/>
+  <text class="footer" x="750" y="868" text-anchor="middle">Acquire, renew, release, and Leader(ctx) all depend on token or lease_until predicates, not TTL timing.</text>
+</svg>

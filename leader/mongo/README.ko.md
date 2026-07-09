@@ -8,6 +8,12 @@ release, observation 모두 owner-token predicate로 보호합니다.
 
 이 package는 `leader.GroupElector`나 `leader.StrategicElector`를 구현하지 않습니다.
 
+## 다이어그램
+
+![MongoDB leader election runtime map](../../docs/images/readme-diagrams/mongo-leader-election-lifecycle.png)
+
+![MongoDB leader election sequence](../../docs/images/readme-diagrams/mongo-leader-election-sequence.png)
+
 ## 가져오기
 
 ```go
@@ -74,4 +80,3 @@ go test -count=1 ./leader ./leader/mongo
 go test -race -count=1 ./leader ./leader/mongo
 go test -p 1 -count=1 ./leader/mongo ./testcontainers/mongodb
 ```
-
