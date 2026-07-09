@@ -88,7 +88,8 @@ labels.
 JSON decoding validates required graph values, required `Path` fields, and
 path-step shape. It is not a strict schema validator for untrusted I/O records;
 The [`graph/graphio`](graphio/README.md) package owns stream-level size-limit,
-duplicate-vertex, and missing-endpoint policy for NDJSON and paired CSV records.
+duplicate-vertex, and missing-endpoint policy for NDJSON, paired CSV records,
+and the optional bounded GraphML subset.
 
 ## Path Scope
 
@@ -135,9 +136,9 @@ must copy or sanitize nested values before crossing trust boundaries.
 
 | Capability | Owner |
 |---|---|
-| Graph I/O helpers for NDJSON and paired CSV | [`graph/graphio`](graphio/README.md) |
+| Graph I/O helpers for NDJSON, paired CSV, and bounded GraphML | [`graph/graphio`](graphio/README.md), [`graph/graphio/graphml`](graphio/graphml) |
 | Neo4j backend proof | [`graph/neo4j`](neo4j/README.md) |
-| GraphML import/export | Deferred follow-up after NDJSON/CSV adoption evidence; see [issue #433 research](../docs/research/2026-07-09-issue-433-graphml-graphio-evaluation.md) |
+| Broad GraphML/yEd/yFiles compatibility | Deferred beyond the bounded `graphio/graphml` subset; see [issue #433 research](../docs/research/2026-07-09-issue-433-graphml-graphio-evaluation.md) |
 | Memgraph compatibility with the Neo4j surface | [`graph/neo4j`](neo4j/README.md) |
 | Domain examples | [`examples/graph/observability`](../examples/graph/observability/README.md), [`examples/graph/iamaccess`](../examples/graph/iamaccess/README.md) |
 | Repository/session/schema/query/transaction contracts | Deferred until multiple backend packages prove a shared contract |
@@ -169,8 +170,10 @@ deferred to a breaking release.
 ```bash
 go test -count=1 ./graph
 go test -count=1 ./graph/graphio
+go test -count=1 ./graph/graphio/graphml
 go test -p 1 -count=1 ./graph/neo4j
 go test -race -count=1 ./graph
 go test -race -count=1 ./graph/graphio
+go test -race -count=1 ./graph/graphio/graphml
 go test -p 1 -race -count=1 ./graph/neo4j
 ```
