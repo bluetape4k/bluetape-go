@@ -18,11 +18,18 @@ func EnsureIndexes(ctx context.Context, collection *mongo.Collection) error {
 	if err := requireCollection(collection); err != nil {
 		return err
 	}
-	_, err := collection.Indexes().CreateOne(ctx, mongo.IndexModel{
-		Keys: bson.D{{Key: "lease_until", Value: 1}},
-		Options: options.Index().
-			SetName("leader_mongo_lease_until_ttl").
-			SetExpireAfterSeconds(0),
+	_, err := collection.Indexes().CreateMany(ctx, []mongo.IndexModel{
+		{
+			Keys: bson.D{{Key: "lease_until", Value: 1}},
+			Options: options.Index().
+				SetName("leader_mongo_lease_until_ttl").
+				SetExpireAfterSeconds(0),
+		},
+		{
+			Keys: bson.D{{Key: "group_key", Value: 1}, {Key: "lease_until", Value: 1}},
+			Options: options.Index().
+				SetName("leader_mongo_group_active"),
+		},
 	})
 	if err != nil {
 		return fmt.Errorf("mongo leader ensure indexes: %w", err)

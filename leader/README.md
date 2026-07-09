@@ -48,12 +48,14 @@ if err != nil {
 ## Backend Notes
 
 - `leader/redis` supports single, group, and strategic leader election.
-- `leader/mongo` supports only the single `Elector` contract. It stores one
-  MongoDB lease document per group and treats TTL indexes as cleanup only.
+- `leader/mongo` supports single `Elector` and bounded-slot `GroupElector`.
+  Single electors store one MongoDB lease document per group; group electors
+  store one lease document per slot to preserve exact `MaxLeaders`. TTL indexes
+  are cleanup only.
   Issue
   [#431](../docs/research/2026-07-09-issue-431-leader-mongodb-storage.md)
-  records why `GroupElector` and `StrategicElector` stay deferred until their
-  contention models are designed separately.
+  records why `StrategicElector` stays deferred until its candidate registry and
+  failover model are designed separately.
 
 ## Test
 

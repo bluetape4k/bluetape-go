@@ -2,11 +2,13 @@
 
 [English](README.md) | [한국어](README.ko.md)
 
-`leader/mongo`는 단일 `leader.Elector` contract를 구현하는 MongoDB backend입니다.
-하나의 leader key마다 하나의 lease document를 저장하고, acquire, renew,
-release, observation 모두 owner-token predicate로 보호합니다.
+`leader/mongo`는 `leader.Elector`와 `leader.GroupElector`를 구현하는 MongoDB
+backend입니다. 단일 elector는 leader key마다 하나의 lease document를 저장합니다.
+Group elector는 bounded slot마다 하나의 lease document를 사용하므로 MongoDB
+single-document atomicity만으로 concurrent acquisition 중에도 정확한
+`MaxLeaders` 상한을 지킵니다.
 
-이 package는 `leader.GroupElector`나 `leader.StrategicElector`를 구현하지 않습니다.
+이 package는 `leader.StrategicElector`를 구현하지 않습니다.
 
 ## 다이어그램
 
@@ -43,6 +45,28 @@ if err := elector.Campaign(ctx); err != nil {
 defer elector.Resign(context.Background())
 ```
 
+최대 `MaxLeaders`개의 worker가 동시에 실행될 수 있어야 한다면 `NewGroup`을
+사용합니다.
+
+```go
+group, err := mongoleader.NewGroup(collection, leader.GroupOptions{
+    Options: leader.Options{
+        Group:         "billing-workers",
+        MemberID:      "worker-1",
+        Lease:         30 * time.Second,
+        RenewInterval: 10 * time.Second,
+    },
+    MaxLeaders: 3,
+})
+if err != nil {
+    return err
+}
+if err := group.Campaign(ctx); err != nil {
+    return err
+}
+defer group.Resign(context.Background())
+```
+
 ## 저장소 계약
 
 각 leader group은 `_id`로 식별되는 하나의 document를 사용합니다.
@@ -60,6 +84,25 @@ defer elector.Resign(context.Background())
 monitor는 비동기이므로 leadership correctness는 TTL 삭제 timing에 의존하지
 않습니다. `Campaign`과 `Leader`는 일반 `lease_until` predicate로 판단합니다.
 
+Group elector는 slot마다 하나의 document를 저장합니다.
+
+| Field | 목적 |
+|---|---|
+| `_id` | 정규화된 slot key, `<keyPrefix>:<group>:slot:<slot>`. |
+| `group_key` | Active slot count를 위한 shared group key. |
+| `group` | Leader group name. |
+| `slot` | `[0, MaxLeaders)` 범위의 zero-based slot number. |
+| `member_id` | 현재 slot owner member ID. |
+| `token` | 이 slot의 opaque owner token. |
+| `lease_until` | 권위 있는 slot lease expiry. |
+| `created_at` / `updated_at` | 진단용 timestamp. |
+
+`NewGroup`은 bounded slot set 안에서만 slot을 획득하고, renew/delete는 owner
+token으로 보호합니다. `ActiveCount`는 같은 `group_key`와 `lease_until > now`를
+만족하는 document를 세고, `AvailableSlots`는 음수를 0으로 clamp합니다. 따라서
+`MaxLeaders`를 낮춘 경우에도 기존 active slot이 drain되기 전 새 owner를
+over-admit하지 않습니다.
+
 ## 운영 경계
 
 - MongoDB client, database, collection, index, write concern, cleanup은 caller가
@@ -72,6 +115,9 @@ monitor는 비동기이므로 leadership correctness는 TTL 삭제 timing에 의
 - `Campaign(ctx)`은 leadership을 얻거나 context가 취소될 때까지 대기합니다.
 - Renewal 실패, token 교체, backend renewal error가 발생하면 `IsLeader`는 false가
   됩니다.
+- `GroupElector`는 contender들이 같은 key prefix, group name, collection, bounded
+  clock-skew assumption을 사용할 때 group당 최대 `MaxLeaders`개의 live local owner만
+  허용합니다.
 
 ## 테스트
 
