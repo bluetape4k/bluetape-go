@@ -7,6 +7,8 @@ and this project uses semantic versioning once the first tag is published.
 
 ## [Unreleased]
 
+## [v0.17.0] - 2026-07-09
+
 ### Added
 
 - `leader/mongo` single leader elector backend with caller-owned MongoDB
