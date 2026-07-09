@@ -6,9 +6,10 @@ Stream-oriented graph import and export helpers for `graph.Vertex` and
 `graph.Edge` values.
 
 This package deliberately stays at the record boundary. It supports NDJSON and
-paired CSV streams without introducing a graph database client, GraphML parser,
+paired CSV streams without introducing a graph database client,
 repository/session contract, schema DSL, query DSL, compression, encryption,
-path ownership, atomic file replacement, or backend adapter.
+path ownership, atomic file replacement, or backend adapter. The optional
+`graph/graphio/graphml` subpackage owns the bounded GraphML subset.
 
 ## Record Flow
 
@@ -62,6 +63,25 @@ columns from the provided records. Streaming readers require callers to consume
 all vertices before edges so missing endpoints are caught without buffering an
 unbounded input.
 
+## GraphML
+
+```go
+var output bytes.Buffer
+report, err := graphml.Write(ctx, &output, records, graphml.WriteOptions{})
+if err != nil {
+	return err
+}
+
+records, report, err = graphml.Read(ctx, strings.NewReader(output.String()), graphml.ReadOptions{})
+```
+
+Import GraphML through
+`github.com/bluetape4k/bluetape-go/graph/graphio/graphml` when a named producer
+or workshop example needs XML interoperability. The first slice supports only a
+directed property graph subset: `graphml`, `key`, `graph`, `node`, `edge`, and
+scalar `data` values. `label` data keys become graph labels; other key/data
+pairs become `graph.Properties`.
+
 ## Safety Defaults
 
 - `ReadOptions` defaults to fail-closed duplicate vertex and missing endpoint
@@ -80,12 +100,16 @@ unbounded input.
 - NDJSON unknown fields and CSV non-reserved, non-property columns are ignored
   in this first package slice; strict schema rejection is deferred until another
   importer needs that compatibility contract.
+- GraphML reads require bounded whole-document input, reject XML directives and
+  non-declaration processing instructions, and fail closed for unknown keys,
+  nested graphs, mixed directed/undirected graphs, hyperedges, ports, yFiles
+  visual payloads, and arbitrary XML extensions.
 
 ## Unsupported Capabilities
 
 | Capability | Owner |
 |---|---|
-| GraphML import/export | Deferred follow-up after NDJSON/CSV adoption evidence; see [issue #433 research](../../docs/research/2026-07-09-issue-433-graphml-graphio-evaluation.md) |
+| Broad GraphML/yEd/yFiles compatibility | Deferred beyond the bounded [`graph/graphio/graphml`](graphml) subset; see [issue #433 research](../../docs/research/2026-07-09-issue-433-graphml-graphio-evaluation.md) |
 | Compression/encryption wrappers | Deferred to cross-package I/O policy |
 | Path import/export semantics | Deferred until graph algorithms or backend adapters define traversal contracts |
 | Atomic file replacement and filesystem ownership | Caller-owned for now |
@@ -96,5 +120,7 @@ unbounded input.
 
 ```bash
 go test -count=1 ./graph/graphio
+go test -count=1 ./graph/graphio/graphml
 go test -race -count=1 ./graph/graphio
+go test -race -count=1 ./graph/graphio/graphml
 ```

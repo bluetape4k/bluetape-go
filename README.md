@@ -237,7 +237,9 @@ and issue [#415](https://github.com/bluetape4k/bluetape-go/issues/415).
 `graph/graphio` keeps import/export at the record-stream boundary. Readers apply
 byte, column, record-count, duplicate-vertex, and missing-endpoint checks before
 returning `graph.Vertex` and `graph.Edge`; writers emit deterministic NDJSON or
-paired CSV records without claiming GraphML, filesystem, or backend ownership.
+paired CSV records. Optional `graph/graphio/graphml` covers a bounded directed
+GraphML subset without claiming broad yEd/yFiles, filesystem, or backend
+ownership.
 
 ### Observability Graph Example
 

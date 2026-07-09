@@ -231,8 +231,9 @@ Source-checked adoption matrix는
 `graph/graphio`는 import/export를 record-stream boundary에 고정합니다. Reader는
 `graph.Vertex`와 `graph.Edge`를 반환하기 전에 byte, column, record count,
 duplicate vertex, missing endpoint를 검사합니다. Writer는 deterministic NDJSON
-또는 paired CSV record를 내보내지만 GraphML, filesystem, backend ownership은
-주장하지 않습니다.
+또는 paired CSV record를 내보냅니다. Optional `graph/graphio/graphml`은 bounded
+directed GraphML subset을 담당하며 broad yEd/yFiles, filesystem, backend
+ownership은 주장하지 않습니다.
 
 ### Observability Graph 예제
 
