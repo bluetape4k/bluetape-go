@@ -27,16 +27,17 @@ before computing them.
 
 ## Current Status
 
-`bluetape-go` has published the `v0.15.0` release line. The repository now covers
+`bluetape-go` has published the `v0.17.0` release line. The repository now covers
 foundation helpers, codecs, compression, context-aware concurrency, serializer
 contracts, Redis-backed leader election and locks, resilience policies, cache
 coordination, token-bucket rate limiting, finite state machines, workflow
 reports, lightweight workflow runners, checkpointed batch jobs, and portable
 service values, SQL helpers, text search primitives, audit/event packages,
 graph helpers, bounded image helpers, encryption helpers, and first-party rule
-primitives. The `0.16.0` line expands Redis probabilistic structures with core
-Redis HyperLogLog support, live Redis Testcontainers coverage, and explicit
-RedisBloom module boundaries.
+primitives. The `0.18.0` development line is release-prepared with MongoDB
+group and strategic leader electors, bounded GraphML graph I/O, and a Redis
+Streams sqloutbox publisher provider; the `v0.18.0` tag is still pending until
+the release PR, main promotion, tag, and GitHub Release gates complete.
 
 The `v0.6.x` portable utilities scope includes UUID, ULID, KSUID, and Snowflake
 ID generation; explicit-algorithm JWT signing, parsing, validation, and local
@@ -75,7 +76,7 @@ future scope, not part of the current public API.
 | [`examples/sqs-sns`](examples/sqs-sns/README.md) | example | Compile-checked AWS SDK for Go v2 SQS/SNS examples backed by the Floci fixture. |
 | [`leader`](leader/README.md) | active | Leader election API, including single, group, and strategy-based contracts. |
 | [`leader/redis`](leader/redis/README.md) | active | Redis-backed single, group, and strategic leader election using TTL renewal, ZSET slot tokens, and candidate registries. |
-| [`leader/mongo`](leader/mongo/README.md) | active | MongoDB-backed single leader election using owner-token lease documents and TTL cleanup indexes. |
+| [`leader/mongo`](leader/mongo/README.md) | active | MongoDB-backed single, group, and strategic leader election using owner-token leases, bounded slots, candidate registries, and TTL cleanup indexes. |
 | [`resilience`](resilience/README.md) | active | First-party composable retry, timeout, circuit breaker, and bulkhead policies with synchronous observability hooks and `net/http` adapters. |
 | [`cache`](cache/README.md) | active | Generic in-process TTL cache interfaces with context-aware loaders and same-key stampede protection. |
 | [`cache/redisnear`](cache/redisnear/README.md) | active | Redis Pub/Sub near-cache invalidation for process-local loading caches. |
@@ -97,6 +98,7 @@ future scope, not part of the current public API.
 | [`sqlkit`](sqlkit/README.md) | active | Runtime-first `database/sql` transaction helpers, explicit row mapping/cardinality helpers, and PostgreSQL-first inspectable SQL builders. |
 | [`audit`](audit/README.md) | active | Storage-neutral aggregate event and audit model with validated JSON entries, pending-event recording, and history reconstruction. |
 | [`audit/sqloutbox`](audit/sqloutbox/README.md) | active | PostgreSQL-backed audit outbox store and relay with caller-owned transaction choreography. |
+| [`audit/sqloutbox/redisstreams`](audit/sqloutbox/redisstreams/README.md) | active | Redis Streams sqloutbox publisher that preserves stable event and idempotency metadata. |
 | [`audit/sqloutbox/sqloutboxtest`](audit/sqloutbox/sqloutboxtest/README.md) | active | Deterministic publisher helpers for sqloutbox tests, examples, retries, and duplicate-delivery assertions. |
 | [`graph`](graph/README.md) | active | Model-only graph values for vertices, edges, paths, labels, IDs, shallow properties, and validated JSON. |
 | [`graph/graphio`](graph/graphio/README.md) | active | Stream-oriented NDJSON and paired CSV import/export helpers for graph vertices and edges. |
@@ -104,9 +106,9 @@ future scope, not part of the current public API.
 | [`probabilistic`](probabilistic/README.md) | active | Goroutine-safe in-memory Bloom filters with deterministic config, merge compatibility checks, and stress/race coverage. |
 | [`probabilistic/redis`](probabilistic/redis/README.md) | active | Redis-backed shared Bloom filters and HyperLogLog estimates with static Lua Bloom scripts, immutable config metadata, and operator runbook boundaries. |
 
-Next planned package families include durable audit transport publisher adapters
-and example services. Redis-backed Cuckoo support is tracked separately after
-the Redis Bloom and HyperLogLog scope.
+Next planned package families include additional durable audit transport
+publisher adapters and example services. Redis-backed Cuckoo support is tracked
+separately after the Redis Bloom and HyperLogLog scope.
 
 ## SerDe Baseline Guidance
 
@@ -170,6 +172,8 @@ overview.
   pending event handoff, validated audit entry JSON, and history
   reconstruction, plus [`audit/sqloutbox`](audit/sqloutbox/README.md) for
   PostgreSQL-backed at-least-once outbox delivery,
+  [`audit/sqloutbox/redisstreams`](audit/sqloutbox/redisstreams/README.md) for
+  Redis Streams publish attempts,
   [`audit/sqloutbox/sqloutboxtest`](audit/sqloutbox/sqloutboxtest/README.md) for
   deterministic publisher helpers, and
   [`examples/audit`](examples/audit/README.md) for a runnable audit-backed
@@ -237,7 +241,9 @@ and issue [#415](https://github.com/bluetape4k/bluetape-go/issues/415).
 `graph/graphio` keeps import/export at the record-stream boundary. Readers apply
 byte, column, record-count, duplicate-vertex, and missing-endpoint checks before
 returning `graph.Vertex` and `graph.Edge`; writers emit deterministic NDJSON or
-paired CSV records without claiming GraphML, filesystem, or backend ownership.
+paired CSV records. Optional `graph/graphio/graphml` covers a bounded directed
+GraphML subset without claiming broad yEd/yFiles, filesystem, or backend
+ownership.
 
 ### Observability Graph Example
 
@@ -300,6 +306,7 @@ path stays explicit: `Store.Enqueue` writes durable rows, `Relay.RunOnce` or
 | `0.15.0` | Audit sqloutbox publisher adoption helpers plus focused JSON/zstd allocation reductions. |
 | `0.16.0` | Redis probabilistic follow-up: HyperLogLog support, Testcontainers/stress/race coverage, and explicit RedisBloom Cuckoo deferral. |
 | `0.17.0` | Workshop adoption sync: library-side pointers, cross-repo issue links, and release-readiness notes that separate library readiness from workshop backlog. |
+| `0.18.0` | Ecosystem follow-up: MongoDB group/strategic leader electors, bounded GraphML graph I/O, and Redis Streams sqloutbox publisher provider. |
 
 The closed `0.7.0 Research Gate` milestone recorded the larger-domain scope
 decisions and was not tagged as a release.

@@ -6,9 +6,10 @@
 helper입니다.
 
 이 패키지는 record boundary에만 집중합니다. NDJSON과 paired CSV stream은
-지원하지만 graph database client, GraphML parser, repository/session contract,
-schema DSL, query DSL, compression, encryption, path ownership, atomic file
-replacement, backend adapter는 제공하지 않습니다.
+지원하지만 graph database client, repository/session contract, schema DSL,
+query DSL, compression, encryption, path ownership, atomic file replacement,
+backend adapter는 제공하지 않습니다. Optional `graph/graphio/graphml`
+subpackage가 bounded GraphML subset을 담당합니다.
 
 ## Record Flow
 
@@ -61,6 +62,24 @@ CSV는 vertex stream과 edge stream을 나눠 사용합니다. Streaming writer�
 column을 찾을 수 있습니다. Streaming reader는 무제한 buffering 없이 missing
 endpoint를 잡기 위해 vertex를 모두 읽은 뒤 edge를 읽도록 강제합니다.
 
+## GraphML
+
+```go
+var output bytes.Buffer
+report, err := graphml.Write(ctx, &output, records, graphml.WriteOptions{})
+if err != nil {
+	return err
+}
+
+records, report, err = graphml.Read(ctx, strings.NewReader(output.String()), graphml.ReadOptions{})
+```
+
+Named producer나 workshop example에서 XML interoperability가 필요할 때
+`github.com/bluetape4k/bluetape-go/graph/graphio/graphml`로 GraphML을 import합니다.
+첫 slice는 directed property graph subset만 지원합니다. 지원 element는
+`graphml`, `key`, `graph`, `node`, `edge`, scalar `data` 값입니다. `label` data
+key는 graph label이 되고, 나머지 key/data pair는 `graph.Properties`가 됩니다.
+
 ## 안전 기본값
 
 - `ReadOptions`는 duplicate vertex와 missing endpoint를 기본적으로 실패 처리합니다.
@@ -78,12 +97,16 @@ endpoint를 잡기 위해 vertex를 모두 읽은 뒤 edge를 읽도록 강제�
 - NDJSON unknown field와 CSV의 reserved/property가 아닌 column은 첫 package
   slice에서 무시합니다. Strict schema rejection은 그 호환 계약을 필요로 하는
   importer가 생긴 뒤로 미룹니다.
+- GraphML read는 bounded whole-document input을 요구하고, XML directive와
+  declaration이 아닌 processing instruction을 거부합니다. Unknown key, nested
+  graph, directed/undirected 혼합, hyperedge, port, yFiles visual payload,
+  arbitrary XML extension은 fail-closed 처리합니다.
 
 ## 미지원 범위
 
 | Capability | Owner |
 |---|---|
-| GraphML import/export | NDJSON/CSV adoption evidence 이후 follow-up; [issue #433 research](../../docs/research/2026-07-09-issue-433-graphml-graphio-evaluation.md) 참고 |
+| Broad GraphML/yEd/yFiles compatibility | Bounded [`graph/graphio/graphml`](graphml) subset 이후로 이관; [issue #433 research](../../docs/research/2026-07-09-issue-433-graphml-graphio-evaluation.md) 참고 |
 | Compression/encryption wrapper | Cross-package I/O policy로 이관 |
 | Path import/export semantics | Graph algorithm 또는 backend adapter가 traversal contract를 정한 뒤 |
 | Atomic file replacement와 filesystem ownership | 현재는 caller-owned |
@@ -94,5 +117,7 @@ endpoint를 잡기 위해 vertex를 모두 읽은 뒤 edge를 읽도록 강제�
 
 ```bash
 go test -count=1 ./graph/graphio
+go test -count=1 ./graph/graphio/graphml
 go test -race -count=1 ./graph/graphio
+go test -race -count=1 ./graph/graphio/graphml
 ```

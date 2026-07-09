@@ -178,11 +178,15 @@ Its publisher contract covers at-least-once retry, caller context cancellation,
 stable event/idempotency-key handoff, and duplicate-safe adapter behavior.
 Deterministic publisher helpers for tests and local examples live in
 [`audit/sqloutbox/sqloutboxtest`](sqloutbox/sqloutboxtest/README.md).
+The first broker-backed publisher provider is
+[`audit/sqloutbox/redisstreams`](sqloutbox/redisstreams/README.md), which
+appends publish attempts to Redis Streams while preserving stable event and
+idempotency metadata.
 
-Kafka, NATS, Redis Streams, RabbitMQ, Redpanda, and Pulsar remain deferred
-publisher/projection adapters until the durable SQL outbox contract is proven.
-Applications still own source transaction choreography, migrations, broker
-topology, redaction, PII policy, and consumer idempotency.
+Kafka, NATS, RabbitMQ, Redpanda, and Pulsar remain deferred
+publisher/projection adapters. Applications still own source transaction
+choreography, migrations, broker topology, redaction, PII policy, and consumer
+idempotency.
 
 ## Workshop Adoption
 
@@ -209,8 +213,8 @@ separately in issues
   returning values.
 - Callers own redaction, PII policy, payload size limits, and persistence
   transaction boundaries.
-- Kafka, NATS, Redis Streams, direct Redis audit storage, and examples remain
-  later `0.9.0` or follow-up issues.
+- Redis Streams publish is covered by `audit/sqloutbox/redisstreams`; Kafka,
+  NATS, direct Redis audit storage, and examples remain follow-up issues.
 
 ## Benchmark
 
@@ -235,6 +239,7 @@ BLUETAPE_AUDIT_SQL_OUTBOX_BENCH=1 go test -p 1 -run '^$' -bench '^BenchmarkAudit
 ```bash
 go test -count=1 ./audit
 go test -count=1 ./audit/sqloutbox
+go test -count=1 ./audit/sqloutbox/redisstreams
 go test -race -count=1 ./audit ./audit/audittest
 go test -run '^$' -bench 'BenchmarkAggregateRecorder(Record|PendingEvents|AckThrough)' -benchmem ./audit
 go test -run '^$' -bench 'Benchmark(MemoryRepository|AuditEntryJSONRoundTrip)' -benchmem ./audit

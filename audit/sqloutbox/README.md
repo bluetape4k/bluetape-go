@@ -97,8 +97,10 @@ helpers in tests, local examples, and workshop adoption:
   deterministic per-event failures for retry/dead-letter assertions.
 
 The helper package intentionally adds no broker topology. Durable transports
-such as Kafka, NATS, Redis Streams, RabbitMQ, Redpanda, and Pulsar remain later
-adapter scopes.
+such as Kafka, NATS, RabbitMQ, Redpanda, and Pulsar remain later adapter
+scopes. The first broker-backed provider is
+[`redisstreams`](redisstreams/README.md), which appends records to Redis
+Streams while leaving stream topology and consumer replay policy to callers.
 
 ## Boundaries
 
@@ -116,7 +118,8 @@ adapter scopes.
   migration rollout, publisher idempotency, and operator replay tooling.
 - Publishers own external transport topology, authentication, TLS, retention,
   consumer replay, and idempotent duplicate handling.
-- Kafka, NATS, Redis Streams, RabbitMQ, Redpanda, Pulsar, and direct Redis audit
+- [`redisstreams`](redisstreams/README.md) provides a narrow Redis Streams
+  publisher; Kafka, NATS, RabbitMQ, Redpanda, Pulsar, and direct Redis audit
   storage remain later adapter scopes.
 
 ## Tests
@@ -124,6 +127,7 @@ adapter scopes.
 ```bash
 go test -count=1 ./audit/sqloutbox
 go test -race -count=1 ./audit/sqloutbox
+go test -count=1 ./audit/sqloutbox/redisstreams
 go test -count=1 ./audit/sqloutbox -run 'RelayRunOnce(PublisherContextCancellationDoesNotRetry|RetriesDuplicatePublishWithStableEnvelope|ConcurrentStressPublishesEachRecordOnce)'
 ```
 

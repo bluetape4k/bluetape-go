@@ -7,6 +7,27 @@ and this project uses semantic versioning once the first tag is published.
 
 ## [Unreleased]
 
+## [v0.18.0] - 2026-07-10
+
+### Added
+
+- `leader/mongo` group leader elector backend with bounded slot lease
+  documents, exact `MaxLeaders` admission under concurrent acquisition,
+  renewal-loss detection, Testcontainers stress coverage, and bilingual README
+  documentation.
+- `leader/mongo` strategic leader elector backend with MongoDB candidate
+  registry documents, FIFO/random/scored strategy execution, atomic result
+  updates, stale-candidate pruning, Testcontainers stress coverage, and
+  bilingual README documentation.
+- `graph/graphio/graphml` optional bounded GraphML import/export package for a
+  directed property graph subset, including scalar key/data attributes, explicit
+  XML input limits, fail-closed unsupported construct tests, and bilingual
+  README documentation.
+- `audit/sqloutbox/redisstreams` Redis Streams publisher provider with a narrow
+  `XADD` client surface, stable sqloutbox event/idempotency metadata,
+  Testcontainers-backed duplicate attempt and relay retry coverage, and
+  bilingual README documentation.
+
 ## [v0.17.0] - 2026-07-09
 
 ### Added

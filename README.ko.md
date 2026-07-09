@@ -25,16 +25,17 @@ attribute는 계산 전에 `logger.Enabled(ctx, slog.LevelDebug)`로 guard하세
 
 ## 현재 상태
 
-`bluetape-go`는 `v0.15.0` 릴리스 선을 배포했습니다. 현재 repository에는
+`bluetape-go`는 `v0.17.0` 릴리스 선을 배포했습니다. 현재 repository에는
 foundation helper, codec, compression, context-aware concurrency, serializer
 contract, Redis 기반 leader election과 lock, resilience policy, cache
 coordination, token-bucket rate limiting, finite state machine, workflow report,
 lightweight workflow runner, checkpoint 기반 batch job, portable service value,
 SQL helper, text search primitive, audit/event package, graph helper, bounded
 image helper, encryption helper, first-party rule primitive가 들어 있습니다.
-`0.16.0` 선은 Redis probabilistic 구조를 core Redis HyperLogLog 지원,
-live Redis Testcontainers coverage, 명시적인 RedisBloom module boundary로
-확장합니다.
+`0.18.0` 개발 선은 MongoDB group/strategic leader elector, bounded GraphML
+graph I/O, Redis Streams sqloutbox publisher provider까지 release-prep 상태로
+정리되었습니다. `v0.18.0` tag는 release PR, main promotion, tag, GitHub
+Release gate가 끝난 뒤 생성합니다.
 
 `v0.6.x` portable utility 범위에는 UUID, ULID, KSUID, Snowflake ID 생성,
 명시적 algorithm 기반 JWT signing/parsing/validation, 인메모리/Redis/MongoDB
@@ -72,7 +73,7 @@ API가 아니라 module-gated future scope입니다.
 | [`examples/sqs-sns`](examples/sqs-sns/README.ko.md) | example | Floci fixture 기반 compile-checked AWS SDK for Go v2 SQS/SNS 예제. |
 | [`leader`](leader/README.ko.md) | active | 단일, group, strategy 기반 계약을 포함한 leader election API. |
 | [`leader/redis`](leader/redis/README.ko.md) | active | TTL renewal, ZSET slot token, candidate registry 기반 Redis 단일/group/strategic leader election 구현. |
-| [`leader/mongo`](leader/mongo/README.ko.md) | active | Owner-token lease document와 TTL cleanup index를 사용하는 MongoDB 단일 leader election 구현. |
+| [`leader/mongo`](leader/mongo/README.ko.md) | active | Owner-token lease, bounded slot, candidate registry, TTL cleanup index를 사용하는 MongoDB 단일/group/strategic leader election 구현. |
 | [`resilience`](resilience/README.ko.md) | active | service call을 위한 자체 composable retry, timeout, circuit breaker, bulkhead policy, synchronous observability hook, `net/http` adapter. |
 | [`cache`](cache/README.ko.md) | active | context-aware loader와 same-key stampede protection을 제공하는 generic in-process TTL cache interface. |
 | [`cache/redisnear`](cache/redisnear/README.ko.md) | active | process-local loading cache를 위한 Redis Pub/Sub near-cache invalidation. |
@@ -94,6 +95,7 @@ API가 아니라 module-gated future scope입니다.
 | [`sqlkit`](sqlkit/README.ko.md) | active | Runtime-first `database/sql` transaction helper, 명시적 row mapping/cardinality helper, PostgreSQL 우선 inspectable SQL builder. |
 | [`audit`](audit/README.ko.md) | active | validated JSON entry, pending event recording, history reconstruction을 제공하는 storage-neutral aggregate event/audit model. |
 | [`audit/sqloutbox`](audit/sqloutbox/README.ko.md) | active | Caller-owned transaction choreography를 유지하는 PostgreSQL-backed audit outbox store와 relay. |
+| [`audit/sqloutbox/redisstreams`](audit/sqloutbox/redisstreams/README.ko.md) | active | 안정적인 event/idempotency metadata를 보존하는 Redis Streams sqloutbox publisher. |
 | [`audit/sqloutbox/sqloutboxtest`](audit/sqloutbox/sqloutboxtest/README.ko.md) | active | sqloutbox test, example, retry, duplicate-delivery assertion을 위한 deterministic publisher helper. |
 | [`graph`](graph/README.ko.md) | active | Vertex, edge, path, label, ID, shallow property, validated JSON을 제공하는 model-only graph value. |
 | [`graph/graphio`](graph/graphio/README.ko.md) | active | Graph vertex/edge를 위한 bounded NDJSON 및 paired CSV import/export helper. |
@@ -101,7 +103,7 @@ API가 아니라 module-gated future scope입니다.
 | [`probabilistic`](probabilistic/README.ko.md) | active | deterministic config, merge compatibility check, stress/race coverage를 갖춘 goroutine-safe 인메모리 Bloom filter. |
 | [`probabilistic/redis`](probabilistic/redis/README.ko.md) | active | Static Lua Bloom script, immutable config metadata, operator runbook 경계를 갖춘 Redis-backed shared Bloom filter와 HyperLogLog estimate. |
 
-다음 계획 패키지군은 durable audit transport publisher adapter와 example
+다음 계획 패키지군은 추가 durable audit transport publisher adapter와 example
 service입니다. Redis-backed Cuckoo 지원은 Redis Bloom과 HyperLogLog 범위 이후
 별도로 추적합니다.
 
@@ -165,8 +167,10 @@ go get github.com/bluetape4k/bluetape-go
 - Audit: storage-neutral aggregate event value, pending event handoff, validated
   audit entry JSON, history reconstruction을 위한 [`audit`](audit/README.ko.md),
   PostgreSQL-backed at-least-once outbox delivery를 위한
-  [`audit/sqloutbox`](audit/sqloutbox/README.ko.md), deterministic publisher
-  helper인 [`audit/sqloutbox/sqloutboxtest`](audit/sqloutbox/sqloutboxtest/README.ko.md),
+  [`audit/sqloutbox`](audit/sqloutbox/README.ko.md), Redis Streams publish
+  attempt를 위한
+  [`audit/sqloutbox/redisstreams`](audit/sqloutbox/redisstreams/README.ko.md),
+  deterministic publisher helper인 [`audit/sqloutbox/sqloutboxtest`](audit/sqloutbox/sqloutboxtest/README.ko.md),
   runnable audit-backed order service인 [`examples/audit`](examples/audit/README.ko.md).
 - Graph: model-only vertex, edge, path, label, ID, shallow property, validated
   JSON value를 제공하는 [`graph`](graph/README.ko.md), bounded NDJSON/paired CSV
@@ -231,8 +235,9 @@ Source-checked adoption matrix는
 `graph/graphio`는 import/export를 record-stream boundary에 고정합니다. Reader는
 `graph.Vertex`와 `graph.Edge`를 반환하기 전에 byte, column, record count,
 duplicate vertex, missing endpoint를 검사합니다. Writer는 deterministic NDJSON
-또는 paired CSV record를 내보내지만 GraphML, filesystem, backend ownership은
-주장하지 않습니다.
+또는 paired CSV record를 내보냅니다. Optional `graph/graphio/graphml`은 bounded
+directed GraphML subset을 담당하며 broad yEd/yFiles, filesystem, backend
+ownership은 주장하지 않습니다.
 
 ### Observability Graph 예제
 
@@ -294,6 +299,7 @@ row를 쓰고, `Relay.RunOnce` 또는 `Relay.Run`이 claim하며,
 | `0.15.0` | Audit sqloutbox publisher adoption helper와 focused JSON/zstd allocation reduction. |
 | `0.16.0` | Redis probabilistic follow-up: HyperLogLog support, Testcontainers/stress/race coverage, 명시적인 RedisBloom Cuckoo deferral. |
 | `0.17.0` | Workshop adoption sync: library-side pointer, cross-repo issue link, library readiness와 workshop backlog를 분리한 release-readiness note. |
+| `0.18.0` | Ecosystem follow-up: MongoDB group/strategic leader elector, bounded GraphML graph I/O, Redis Streams sqloutbox publisher provider. |
 
 닫힌 `0.7.0 Research Gate` milestone은 큰 도메인 범위 결정을 기록한
 research milestone이며 release tag를 만들지 않았습니다.
