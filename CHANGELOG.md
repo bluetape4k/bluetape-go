@@ -18,6 +18,9 @@ and this project uses semantic versioning once the first tag is published.
 - Root and package README documentation now links source-checked workshop
   adoption examples, active cross-repo workshop issues, and the 0.17.0
   workshop adoption release-readiness note.
+- `resilience` README guidance now names the official application-level
+  `otelslog` bridge path while keeping OpenTelemetry exporters out of
+  `bluetape-go` library packages.
 
 ## [v0.16.0] - 2026-07-08
 

@@ -98,6 +98,9 @@ retry, err := resilience.NewRetry[string](resilience.RetryOptions{
 ## Operational Boundaries
 
 - The package does not include an OpenTelemetry exporter.
+- If an application wants `slog` records exported through OpenTelemetry, wire
+  the official `go.opentelemetry.io/contrib/bridges/otelslog` handler in
+  application setup and pass the resulting `slog.Logger` through `OnEvent`.
 - Keep event handlers fast and non-blocking.
 - Filter or sample high-volume success events before logging them from
   synchronous hooks.
