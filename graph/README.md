@@ -137,7 +137,7 @@ must copy or sanitize nested values before crossing trust boundaries.
 |---|---|
 | Graph I/O helpers for NDJSON and paired CSV | [`graph/graphio`](graphio/README.md) |
 | Neo4j backend proof | [`graph/neo4j`](neo4j/README.md) |
-| GraphML import/export | Deferred follow-up after NDJSON/CSV adoption evidence |
+| GraphML import/export | Deferred follow-up after NDJSON/CSV adoption evidence; see [issue #433 research](../docs/research/2026-07-09-issue-433-graphml-graphio-evaluation.md) |
 | Memgraph compatibility with the Neo4j surface | [`graph/neo4j`](neo4j/README.md) |
 | Domain examples | [`examples/graph/observability`](../examples/graph/observability/README.md), [`examples/graph/iamaccess`](../examples/graph/iamaccess/README.md) |
 | Repository/session/schema/query/transaction contracts | Deferred until multiple backend packages prove a shared contract |

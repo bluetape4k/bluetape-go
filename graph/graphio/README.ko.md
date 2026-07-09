@@ -83,7 +83,7 @@ endpoint를 잡기 위해 vertex를 모두 읽은 뒤 edge를 읽도록 강제�
 
 | Capability | Owner |
 |---|---|
-| GraphML import/export | NDJSON/CSV adoption evidence 이후 follow-up |
+| GraphML import/export | NDJSON/CSV adoption evidence 이후 follow-up; [issue #433 research](../../docs/research/2026-07-09-issue-433-graphml-graphio-evaluation.md) 참고 |
 | Compression/encryption wrapper | Cross-package I/O policy로 이관 |
 | Path import/export semantics | Graph algorithm 또는 backend adapter가 traversal contract를 정한 뒤 |
 | Atomic file replacement와 filesystem ownership | 현재는 caller-owned |

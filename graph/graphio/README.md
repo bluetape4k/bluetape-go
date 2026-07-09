@@ -85,7 +85,7 @@ unbounded input.
 
 | Capability | Owner |
 |---|---|
-| GraphML import/export | Deferred follow-up after NDJSON/CSV adoption evidence |
+| GraphML import/export | Deferred follow-up after NDJSON/CSV adoption evidence; see [issue #433 research](../../docs/research/2026-07-09-issue-433-graphml-graphio-evaluation.md) |
 | Compression/encryption wrappers | Deferred to cross-package I/O policy |
 | Path import/export semantics | Deferred until graph algorithms or backend adapters define traversal contracts |
 | Atomic file replacement and filesystem ownership | Caller-owned for now |
