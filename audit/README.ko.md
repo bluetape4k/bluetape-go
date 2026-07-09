@@ -177,11 +177,14 @@ Publisher contract는 at-least-once retry, caller context cancellation, 안정�
 event/idempotency-key handoff, duplicate-safe adapter behavior를 다룹니다.
 Test와 local example을 위한 deterministic publisher helper는
 [`audit/sqloutbox/sqloutboxtest`](sqloutbox/sqloutboxtest/README.ko.md)에 있습니다.
+첫 broker-backed publisher provider는
+[`audit/sqloutbox/redisstreams`](sqloutbox/redisstreams/README.ko.md)이며,
+안정적인 event/idempotency metadata를 보존하면서 publish attempt를 Redis Streams에
+append합니다.
 
-Kafka, NATS, Redis Streams, RabbitMQ, Redpanda, Pulsar는 durable SQL outbox
-contract가 검증된 뒤 붙일 publisher/projection adapter로 남깁니다. Source
-transaction choreography, migration, broker topology, redaction, PII 정책,
-consumer idempotency는 계속 application 책임입니다.
+Kafka, NATS, RabbitMQ, Redpanda, Pulsar는 이후 publisher/projection adapter로
+남깁니다. Source transaction choreography, migration, broker topology,
+redaction, PII 정책, consumer idempotency는 계속 application 책임입니다.
 
 ## Workshop Adoption
 
@@ -208,8 +211,8 @@ repository 안에서 library contract를 증명합니다. Workshop scenario adop
 - Constructor와 JSON decode 경로는 metadata와 payload를 복사한 값을 반환합니다.
 - Redaction, PII 정책, payload size limit, persistence transaction boundary는
   caller 책임입니다.
-- Kafka, NATS, Redis Streams, direct Redis audit storage, example은 이후
-  `0.9.0` 또는 follow-up issue에서 다룹니다.
+- Redis Streams publish는 `audit/sqloutbox/redisstreams`가 다룹니다. Kafka, NATS,
+  direct Redis audit storage, example은 follow-up issue에서 다룹니다.
 
 ## Benchmark
 
@@ -234,6 +237,7 @@ BLUETAPE_AUDIT_SQL_OUTBOX_BENCH=1 go test -p 1 -run '^$' -bench '^BenchmarkAudit
 ```bash
 go test -count=1 ./audit
 go test -count=1 ./audit/sqloutbox
+go test -count=1 ./audit/sqloutbox/redisstreams
 go test -race -count=1 ./audit ./audit/audittest
 go test -run '^$' -bench 'BenchmarkAggregateRecorder(Record|PendingEvents|AckThrough)' -benchmem ./audit
 go test -run '^$' -bench 'Benchmark(MemoryRepository|AuditEntryJSONRoundTrip)' -benchmem ./audit

@@ -94,6 +94,7 @@ API가 아니라 module-gated future scope입니다.
 | [`sqlkit`](sqlkit/README.ko.md) | active | Runtime-first `database/sql` transaction helper, 명시적 row mapping/cardinality helper, PostgreSQL 우선 inspectable SQL builder. |
 | [`audit`](audit/README.ko.md) | active | validated JSON entry, pending event recording, history reconstruction을 제공하는 storage-neutral aggregate event/audit model. |
 | [`audit/sqloutbox`](audit/sqloutbox/README.ko.md) | active | Caller-owned transaction choreography를 유지하는 PostgreSQL-backed audit outbox store와 relay. |
+| [`audit/sqloutbox/redisstreams`](audit/sqloutbox/redisstreams/README.ko.md) | active | 안정적인 event/idempotency metadata를 보존하는 Redis Streams sqloutbox publisher. |
 | [`audit/sqloutbox/sqloutboxtest`](audit/sqloutbox/sqloutboxtest/README.ko.md) | active | sqloutbox test, example, retry, duplicate-delivery assertion을 위한 deterministic publisher helper. |
 | [`graph`](graph/README.ko.md) | active | Vertex, edge, path, label, ID, shallow property, validated JSON을 제공하는 model-only graph value. |
 | [`graph/graphio`](graph/graphio/README.ko.md) | active | Graph vertex/edge를 위한 bounded NDJSON 및 paired CSV import/export helper. |
@@ -101,7 +102,7 @@ API가 아니라 module-gated future scope입니다.
 | [`probabilistic`](probabilistic/README.ko.md) | active | deterministic config, merge compatibility check, stress/race coverage를 갖춘 goroutine-safe 인메모리 Bloom filter. |
 | [`probabilistic/redis`](probabilistic/redis/README.ko.md) | active | Static Lua Bloom script, immutable config metadata, operator runbook 경계를 갖춘 Redis-backed shared Bloom filter와 HyperLogLog estimate. |
 
-다음 계획 패키지군은 durable audit transport publisher adapter와 example
+다음 계획 패키지군은 추가 durable audit transport publisher adapter와 example
 service입니다. Redis-backed Cuckoo 지원은 Redis Bloom과 HyperLogLog 범위 이후
 별도로 추적합니다.
 
@@ -165,8 +166,10 @@ go get github.com/bluetape4k/bluetape-go
 - Audit: storage-neutral aggregate event value, pending event handoff, validated
   audit entry JSON, history reconstruction을 위한 [`audit`](audit/README.ko.md),
   PostgreSQL-backed at-least-once outbox delivery를 위한
-  [`audit/sqloutbox`](audit/sqloutbox/README.ko.md), deterministic publisher
-  helper인 [`audit/sqloutbox/sqloutboxtest`](audit/sqloutbox/sqloutboxtest/README.ko.md),
+  [`audit/sqloutbox`](audit/sqloutbox/README.ko.md), Redis Streams publish
+  attempt를 위한
+  [`audit/sqloutbox/redisstreams`](audit/sqloutbox/redisstreams/README.ko.md),
+  deterministic publisher helper인 [`audit/sqloutbox/sqloutboxtest`](audit/sqloutbox/sqloutboxtest/README.ko.md),
   runnable audit-backed order service인 [`examples/audit`](examples/audit/README.ko.md).
 - Graph: model-only vertex, edge, path, label, ID, shallow property, validated
   JSON value를 제공하는 [`graph`](graph/README.ko.md), bounded NDJSON/paired CSV
