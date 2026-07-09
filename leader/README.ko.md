@@ -41,6 +41,15 @@ if err != nil {
 - Public error는 sentinel error이며 `errors.Is`로 비교해야 합니다.
 - Backend renewal failure가 발생하면 `IsLeader`는 false를 반환해야 합니다.
 
+## Backend 참고
+
+- 현재 storage backend는 `leader/redis`입니다.
+- MongoDB storage는 별도 `leader/mongo` follow-up으로 다룹니다. Issue
+  [#431](../docs/research/2026-07-09-issue-431-leader-mongodb-storage.md)
+  연구는 먼저 단일 `Elector`만 구현하고, `GroupElector`와
+  `StrategicElector`는 각자의 contention model을 별도로 설계한 뒤
+  진행하라고 권장합니다.
+
 ## 테스트
 
 ```bash
