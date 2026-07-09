@@ -2,11 +2,13 @@
 
 [English](README.md) | [한국어](README.ko.md)
 
-`leader/mongo`는 단일 `leader.Elector` contract를 구현하는 MongoDB backend입니다.
-하나의 leader key마다 하나의 lease document를 저장하고, acquire, renew,
-release, observation 모두 owner-token predicate로 보호합니다.
-
-이 package는 `leader.GroupElector`나 `leader.StrategicElector`를 구현하지 않습니다.
+`leader/mongo`는 `leader.Elector`, `leader.GroupElector`,
+`leader.StrategicElector`를 구현하는 MongoDB backend입니다. 단일 elector는
+leader key마다 하나의 lease document를 저장합니다. Group elector는 bounded
+slot마다 하나의 lease document를 사용하므로 MongoDB single-document
+atomicity만으로 concurrent acquisition 중에도 정확한 `MaxLeaders` 상한을
+지킵니다. Strategic elector는 node마다 하나의 leased candidate document를
+저장하고 caller가 FIFO, random, scored strategy 실행 방식을 선택하게 합니다.
 
 ## 다이어그램
 
@@ -43,6 +45,57 @@ if err := elector.Campaign(ctx); err != nil {
 defer elector.Resign(context.Background())
 ```
 
+최대 `MaxLeaders`개의 worker가 동시에 실행될 수 있어야 한다면 `NewGroup`을
+사용합니다.
+
+```go
+group, err := mongoleader.NewGroup(collection, leader.GroupOptions{
+    Options: leader.Options{
+        Group:         "billing-workers",
+        MemberID:      "worker-1",
+        Lease:         30 * time.Second,
+        RenewInterval: 10 * time.Second,
+    },
+    MaxLeaders: 3,
+})
+if err != nil {
+    return err
+}
+if err := group.Campaign(ctx); err != nil {
+    return err
+}
+defer group.Resign(context.Background())
+```
+
+Candidate들이 lock 경합 대신 metadata 기반으로 순위화되어야 한다면
+`NewStrategic`을 사용합니다.
+
+```go
+strategic, err := mongoleader.NewStrategic[string](collection, leader.Options{
+    Group:    "nightly-jobs",
+    MemberID: "worker-1",
+})
+if err != nil {
+    return err
+}
+
+err = strategic.RegisterCandidate(ctx, "nightly-jobs", leader.CandidateInfo{
+    NodeID:   "worker-1",
+    Weight:   10,
+    Metadata: map[string]string{"zone": "a"},
+}, 30*time.Second)
+if err != nil {
+    return err
+}
+
+strategy := leader.ScoredStrategy{Scorer: leader.WeightScorer{}}
+result, ran, err := strategic.RunIfLeader(ctx, "nightly-jobs", strategy, func(context.Context) (string, error) {
+    return "report-created", nil
+})
+_ = result
+_ = ran
+```
+
 ## 저장소 계약
 
 각 leader group은 `_id`로 식별되는 하나의 document를 사용합니다.
@@ -60,6 +113,45 @@ defer elector.Resign(context.Background())
 monitor는 비동기이므로 leadership correctness는 TTL 삭제 timing에 의존하지
 않습니다. `Campaign`과 `Leader`는 일반 `lease_until` predicate로 판단합니다.
 
+Group elector는 slot마다 하나의 document를 저장합니다.
+
+| Field | 목적 |
+|---|---|
+| `_id` | 정규화된 slot key, `<keyPrefix>:<group>:slot:<slot>`. |
+| `group_key` | Active slot count를 위한 shared group key. |
+| `group` | Leader group name. |
+| `slot` | `[0, MaxLeaders)` 범위의 zero-based slot number. |
+| `member_id` | 현재 slot owner member ID. |
+| `token` | 이 slot의 opaque owner token. |
+| `lease_until` | 권위 있는 slot lease expiry. |
+| `created_at` / `updated_at` | 진단용 timestamp. |
+
+`NewGroup`은 bounded slot set 안에서만 slot을 획득하고, renew/delete는 owner
+token으로 보호합니다. `ActiveCount`는 같은 `group_key`와 `lease_until > now`를
+만족하는 document를 세고, `AvailableSlots`는 음수를 0으로 clamp합니다. 따라서
+`MaxLeaders`를 낮춘 경우에도 기존 active slot이 drain되기 전 새 owner를
+over-admit하지 않습니다.
+
+Strategic elector는 candidate마다 하나의 document를 저장합니다.
+
+| Field | 목적 |
+|---|---|
+| `_id` | 정규화된 candidate key, `<keyPrefix>:<group>:candidate:<nodeID>`. |
+| `group_key` | Live candidate scan을 위한 shared group key. |
+| `group` | Strategy group name. |
+| `node_id` | Candidate node ID. |
+| `registered_at` | Caller가 지정하거나 registration 시 기본값으로 채워지는 strategy ordering timestamp. |
+| `last_started_at` / `last_completed_at` | 진단용 action timestamp. |
+| `success_count` / `failure_count` | Atomic action outcome counter. |
+| `weight` / `metadata` | `leader.CandidateInfo`에서 복사한 strategy input. |
+| `lease_until` | 권위 있는 candidate expiry. |
+| `created_at` / `updated_at` | 진단용 timestamp. |
+
+`ListCandidates`는 live document를 반환하기 전에 expired candidate document를
+prune하고 `node_id` 순으로 정렬합니다. `UpdateResult`는 candidate lease가 live일
+때만 counter를 갱신하며, 누락되었거나 만료된 candidate에는 `leader.ErrNotLeader`를
+반환합니다.
+
 ## 운영 경계
 
 - MongoDB client, database, collection, index, write concern, cleanup은 caller가
@@ -72,6 +164,14 @@ monitor는 비동기이므로 leadership correctness는 TTL 삭제 timing에 의
 - `Campaign(ctx)`은 leadership을 얻거나 context가 취소될 때까지 대기합니다.
 - Renewal 실패, token 교체, backend renewal error가 발생하면 `IsLeader`는 false가
   됩니다.
+- `GroupElector`는 contender들이 같은 key prefix, group name, collection, bounded
+  clock-skew assumption을 사용할 때 group당 최대 `MaxLeaders`개의 live local owner만
+  허용합니다.
+- `StrategicElector`는 live candidate registry와 result counter를 제공합니다. 이는
+  distributed mutex가 아니며 모든 contender가 같은 strategy, group, key prefix,
+  collection, clock-skew assumption을 사용해야 합니다.
+- `EnsureIndexes`는 group active-slot check와 strategic live-candidate scan에
+  사용하는 `group_key, lease_until` index도 생성합니다.
 
 ## 테스트
 

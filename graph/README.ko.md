@@ -86,8 +86,9 @@ if errors.As(err, &validation) {
 
 JSON decode는 필수 graph value, 필수 `Path` field, path-step shape를 검증합니다.
 하지만 untrusted I/O record를 위한 strict schema validator는 아닙니다.
-[`graph/graphio`](graphio/README.ko.md) package가 NDJSON과 paired CSV record의
-stream-level size-limit, duplicate-vertex, missing-endpoint 정책을 담당합니다.
+[`graph/graphio`](graphio/README.ko.md) package가 NDJSON, paired CSV record,
+optional bounded GraphML subset의 stream-level size-limit, duplicate-vertex,
+missing-endpoint 정책을 담당합니다.
 
 ## Path Scope
 
@@ -134,9 +135,9 @@ trust boundary를 넘기 전에 nested value를 직접 복사하거나 정제해
 
 | Capability | Owner |
 |---|---|
-| NDJSON/paired CSV Graph I/O helper | [`graph/graphio`](graphio/README.ko.md) |
+| NDJSON, paired CSV, bounded GraphML Graph I/O helper | [`graph/graphio`](graphio/README.ko.md), [`graph/graphio/graphml`](graphio/graphml) |
 | Neo4j backend proof | [`graph/neo4j`](neo4j/README.ko.md) |
-| GraphML import/export | NDJSON/CSV adoption evidence 이후 follow-up; [issue #433 research](../docs/research/2026-07-09-issue-433-graphml-graphio-evaluation.md) 참고 |
+| Broad GraphML/yEd/yFiles compatibility | Bounded `graphio/graphml` subset 이후로 이관; [issue #433 research](../docs/research/2026-07-09-issue-433-graphml-graphio-evaluation.md) 참고 |
 | Neo4j surface 기반 Memgraph compatibility | [`graph/neo4j`](neo4j/README.ko.md) |
 | Domain examples | [`examples/graph/observability`](../examples/graph/observability/README.ko.md), [`examples/graph/iamaccess`](../examples/graph/iamaccess/README.ko.md) |
 | Repository/session/schema/query/transaction contracts | 여러 backend package가 shared contract를 증명한 뒤 결정 |
@@ -168,8 +169,10 @@ rollback은 `graph`, `graph/graphio`, README update, release bookkeeping을 제�
 ```bash
 go test -count=1 ./graph
 go test -count=1 ./graph/graphio
+go test -count=1 ./graph/graphio/graphml
 go test -p 1 -count=1 ./graph/neo4j
 go test -race -count=1 ./graph
 go test -race -count=1 ./graph/graphio
+go test -race -count=1 ./graph/graphio/graphml
 go test -p 1 -race -count=1 ./graph/neo4j
 ```

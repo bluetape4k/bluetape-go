@@ -263,6 +263,252 @@ func TestMongoElectorIntegration(t *testing.T) {
 			t.Fatalf("campaign error = %v, want context canceled", err)
 		}
 	})
+
+	t.Run("group allows max leaders and rejects extra contender", func(t *testing.T) {
+		collection := newTestCollection(ctx, t, client)
+		first := newTestGroupElector(t, collection, "group-allows-max", "member-1", 2)
+		second := newTestGroupElector(t, collection, "group-allows-max", "member-2", 2)
+		third := newTestGroupElector(t, collection, "group-allows-max", "member-3", 2)
+
+		if err := first.Campaign(ctx); err != nil {
+			t.Fatalf("first group campaign: %v", err)
+		}
+		t.Cleanup(func() {
+			_ = first.Resign(context.Background())
+		})
+		if err := second.Campaign(ctx); err != nil {
+			t.Fatalf("second group campaign: %v", err)
+		}
+		t.Cleanup(func() {
+			_ = second.Resign(context.Background())
+		})
+
+		active, err := first.ActiveCount(ctx)
+		if err != nil {
+			t.Fatalf("group active count: %v", err)
+		}
+		if active != 2 {
+			t.Fatalf("active count = %d, want 2", active)
+		}
+		available, err := first.AvailableSlots(ctx)
+		if err != nil {
+			t.Fatalf("group available slots: %v", err)
+		}
+		if available != 0 {
+			t.Fatalf("available slots = %d, want 0", available)
+		}
+
+		waitCtx, cancel := context.WithTimeout(context.Background(), 100*time.Millisecond)
+		defer cancel()
+		if err := third.Campaign(waitCtx); !errors.Is(err, context.DeadlineExceeded) {
+			t.Fatalf("third campaign error = %v, want deadline exceeded", err)
+		}
+		if third.IsLeader() {
+			t.Fatal("third elector should not own a slot")
+		}
+	})
+
+	t.Run("group resign frees one slot", func(t *testing.T) {
+		collection := newTestCollection(ctx, t, client)
+		first := newTestGroupElector(t, collection, "group-resign-frees-slot", "member-1", 2)
+		second := newTestGroupElector(t, collection, "group-resign-frees-slot", "member-2", 2)
+		third := newTestGroupElector(t, collection, "group-resign-frees-slot", "member-3", 2)
+
+		if err := first.Campaign(ctx); err != nil {
+			t.Fatalf("first group campaign: %v", err)
+		}
+		if err := second.Campaign(ctx); err != nil {
+			t.Fatalf("second group campaign: %v", err)
+		}
+		t.Cleanup(func() {
+			_ = second.Resign(context.Background())
+			_ = third.Resign(context.Background())
+		})
+
+		if err := first.Resign(ctx); err != nil {
+			t.Fatalf("first group resign: %v", err)
+		}
+		if err := third.Campaign(ctx); err != nil {
+			t.Fatalf("third campaign after resign: %v", err)
+		}
+		active, err := third.ActiveCount(ctx)
+		if err != nil {
+			t.Fatalf("group active count after resign: %v", err)
+		}
+		if active != 2 {
+			t.Fatalf("active count after reclaim = %d, want 2", active)
+		}
+	})
+
+	t.Run("group expired slot can be taken over before ttl cleanup", func(t *testing.T) {
+		collection := newTestCollection(ctx, t, client)
+		now := time.Date(2026, 7, 9, 1, 0, 0, 0, time.UTC)
+		clockValue := atomic.Value{}
+		clockValue.Store(now)
+		clock := func() time.Time {
+			return clockValue.Load().(time.Time)
+		}
+		first, err := NewGroup(collection, leader.GroupOptions{
+			Options: leader.Options{
+				Group:         "group-expired-takeover",
+				MemberID:      "member-1",
+				Lease:         50 * time.Millisecond,
+				RenewInterval: 10 * time.Second,
+			},
+			MaxLeaders: 1,
+		}, WithClock(clock))
+		if err != nil {
+			t.Fatalf("new first group elector: %v", err)
+		}
+		second, err := NewGroup(collection, leader.GroupOptions{
+			Options: leader.Options{
+				Group:         "group-expired-takeover",
+				MemberID:      "member-2",
+				Lease:         time.Second,
+				RenewInterval: 10 * time.Second,
+			},
+			MaxLeaders: 1,
+		}, WithClock(clock))
+		if err != nil {
+			t.Fatalf("new second group elector: %v", err)
+		}
+
+		if err := first.Campaign(ctx); err != nil {
+			t.Fatalf("first group campaign: %v", err)
+		}
+		clockValue.Store(now.Add(time.Second))
+		if err := second.Campaign(ctx); err != nil {
+			t.Fatalf("second group campaign after expiry: %v", err)
+		}
+		t.Cleanup(func() {
+			_ = first.Resign(context.Background())
+			_ = second.Resign(context.Background())
+		})
+
+		active, err := second.ActiveCount(ctx)
+		if err != nil {
+			t.Fatalf("group active count after expiry: %v", err)
+		}
+		if active != 1 {
+			t.Fatalf("active count after expired takeover = %d, want 1", active)
+		}
+	})
+
+	t.Run("group renewal loss flips local state", func(t *testing.T) {
+		collection := newTestCollection(ctx, t, client)
+		elector, err := NewGroup(collection, leader.GroupOptions{
+			Options: leader.Options{
+				Group:         "group-renewal-loss-token-change",
+				MemberID:      "member-1",
+				Lease:         time.Second,
+				RenewInterval: 25 * time.Millisecond,
+			},
+			MaxLeaders: 2,
+		})
+		if err != nil {
+			t.Fatalf("new group elector: %v", err)
+		}
+		if err := elector.Campaign(ctx); err != nil {
+			t.Fatalf("group campaign: %v", err)
+		}
+		elector.mu.RLock()
+		slotID := elector.slotID(elector.slot)
+		elector.mu.RUnlock()
+		_, err = collection.UpdateOne(
+			ctx,
+			bson.M{"_id": slotID},
+			bson.M{"$set": bson.M{"token": "member-2:stolen", "lease_until": time.Now().Add(time.Second).UTC()}},
+		)
+		if err != nil {
+			t.Fatalf("steal group slot: %v", err)
+		}
+
+		bttesting.Eventually(t, time.Second, func() bool {
+			return !elector.IsLeader()
+		})
+		if err := elector.Resign(ctx); err != nil {
+			t.Fatalf("group resign after lost leadership: %v", err)
+		}
+	})
+
+	t.Run("group stress bounds concurrent leaders", func(t *testing.T) {
+		collection := newTestCollection(ctx, t, client)
+		const (
+			group      = "group-stress-bounds-concurrent-leaders"
+			maxLeaders = 3
+			members    = 10
+		)
+		var running int32
+		var maxRunning int32
+		var sequence int32
+
+		tasks := make([]concurrencytest.Task, 0, members)
+		for i := 0; i < members; i++ {
+			taskIndex := i
+			tasks = append(tasks, func(ctx context.Context) error {
+				memberID := fmt.Sprintf("member-%02d-%04d", taskIndex, atomic.AddInt32(&sequence, 1))
+				elector, err := NewGroup(collection, leader.GroupOptions{
+					Options: leader.Options{
+						Group:         group,
+						MemberID:      memberID,
+						Lease:         2 * time.Second,
+						RenewInterval: 100 * time.Millisecond,
+					},
+					MaxLeaders: maxLeaders,
+				}, WithRetryDelay(10*time.Millisecond))
+				if err != nil {
+					return fmt.Errorf("new group elector %s: %w", memberID, err)
+				}
+
+				campaignCtx, cancel := context.WithTimeout(ctx, 2*time.Second)
+				defer cancel()
+				if err := elector.Campaign(campaignCtx); err != nil {
+					return fmt.Errorf("%s group campaign: %w", memberID, err)
+				}
+				defer func() {
+					resignCtx, resignCancel := context.WithTimeout(context.Background(), time.Second)
+					defer resignCancel()
+					_ = elector.Resign(resignCtx)
+				}()
+
+				current := atomic.AddInt32(&running, 1)
+				defer atomic.AddInt32(&running, -1)
+				for {
+					observed := atomic.LoadInt32(&maxRunning)
+					if current <= observed || atomic.CompareAndSwapInt32(&maxRunning, observed, current) {
+						break
+					}
+				}
+				if current > maxLeaders {
+					return fmt.Errorf("running group leaders exceeded max: %d > %d", current, maxLeaders)
+				}
+
+				active, err := elector.ActiveCount(ctx)
+				if err != nil {
+					return fmt.Errorf("%s group active count: %w", memberID, err)
+				}
+				if active > maxLeaders {
+					return fmt.Errorf("mongo group active count exceeded max: %d > %d", active, maxLeaders)
+				}
+
+				time.Sleep(10 * time.Millisecond)
+				return nil
+			})
+		}
+
+		tester := concurrencytest.NewGoroutineStressTester(concurrencytest.Options{
+			Workers:       members,
+			RoundsPerTask: 3,
+			Timeout:       10 * time.Second,
+		})
+		report := tester.RunT(t, tasks...)
+		if report.Completed != members*3 {
+			t.Fatalf("group stress should complete every campaign, got %+v", report)
+		}
+		if atomic.LoadInt32(&maxRunning) > maxLeaders {
+			t.Fatalf("max running group leaders exceeded max: %d > %d", maxRunning, maxLeaders)
+		}
+	})
 }
 
 func TestNewRejectsInvalidInputs(t *testing.T) {
@@ -277,6 +523,15 @@ func TestNewRejectsInvalidInputs(t *testing.T) {
 	}
 	if _, err := New(&mongo.Collection{}, leader.Options{Group: "g", MemberID: "m"}, WithClock(nil)); err == nil {
 		t.Fatal("expected nil clock error")
+	}
+	if _, err := NewGroup(nil, leader.GroupOptions{Options: leader.Options{Group: "g", MemberID: "m"}, MaxLeaders: 1}); err == nil {
+		t.Fatal("expected nil collection error for group")
+	}
+	if _, err := NewGroup(&mongo.Collection{}, leader.GroupOptions{Options: leader.Options{Group: "g", MemberID: "m"}}); err == nil {
+		t.Fatal("expected invalid max leaders error")
+	}
+	if _, err := NewGroup(&mongo.Collection{}, leader.GroupOptions{Options: leader.Options{Group: "g", MemberID: "m"}, MaxLeaders: 1}, nil); err == nil {
+		t.Fatal("expected nil group option error")
 	}
 }
 
@@ -331,6 +586,24 @@ func newTestElector(t *testing.T, collection *mongo.Collection, group string, me
 	}, WithRetryDelay(10*time.Millisecond))
 	if err != nil {
 		t.Fatalf("new elector: %v", err)
+	}
+	return elector
+}
+
+func newTestGroupElector(t *testing.T, collection *mongo.Collection, group string, memberID string, maxLeaders int) *GroupElector {
+	t.Helper()
+
+	elector, err := NewGroup(collection, leader.GroupOptions{
+		Options: leader.Options{
+			Group:         group,
+			MemberID:      memberID,
+			Lease:         time.Second,
+			RenewInterval: 50 * time.Millisecond,
+		},
+		MaxLeaders: maxLeaders,
+	}, WithRetryDelay(10*time.Millisecond))
+	if err != nil {
+		t.Fatalf("new group elector: %v", err)
 	}
 	return elector
 }

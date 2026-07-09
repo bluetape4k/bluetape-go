@@ -44,11 +44,11 @@ if err != nil {
 ## Backend 참고
 
 - `leader/redis`는 단일, group, strategic leader election을 지원합니다.
-- `leader/mongo`는 단일 `Elector` contract만 지원합니다. MongoDB group마다 하나의
-  lease document를 저장하고 TTL index는 cleanup 용도로만 취급합니다. Issue
-  [#431](../docs/research/2026-07-09-issue-431-leader-mongodb-storage.md)
-  연구는 `GroupElector`와 `StrategicElector`를 각자의 contention model이
-  설계될 때까지 deferred로 남기는 이유를 기록합니다.
+- `leader/mongo`는 단일 `Elector`, bounded-slot `GroupElector`, candidate-registry
+  `StrategicElector`를 지원합니다. 단일 elector는 MongoDB group마다 하나의 lease
+  document를 저장하고, group elector는 정확한 `MaxLeaders` 보장을 위해 slot마다
+  하나의 lease document를 저장하며, strategic elector는 node마다 하나의 candidate
+  document를 저장합니다. TTL index는 cleanup 용도로만 취급합니다.
 
 ## 테스트
 
