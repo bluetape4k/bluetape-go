@@ -27,16 +27,17 @@ before computing them.
 
 ## Current Status
 
-`bluetape-go` has published the `v0.15.0` release line. The repository now covers
+`bluetape-go` has published the `v0.17.0` release line. The repository now covers
 foundation helpers, codecs, compression, context-aware concurrency, serializer
 contracts, Redis-backed leader election and locks, resilience policies, cache
 coordination, token-bucket rate limiting, finite state machines, workflow
 reports, lightweight workflow runners, checkpointed batch jobs, and portable
 service values, SQL helpers, text search primitives, audit/event packages,
 graph helpers, bounded image helpers, encryption helpers, and first-party rule
-primitives. The `0.16.0` line expands Redis probabilistic structures with core
-Redis HyperLogLog support, live Redis Testcontainers coverage, and explicit
-RedisBloom module boundaries.
+primitives. The `0.18.0` development line is release-prepared with MongoDB
+group and strategic leader electors, bounded GraphML graph I/O, and a Redis
+Streams sqloutbox publisher provider; the `v0.18.0` tag is still pending until
+the release PR, main promotion, tag, and GitHub Release gates complete.
 
 The `v0.6.x` portable utilities scope includes UUID, ULID, KSUID, and Snowflake
 ID generation; explicit-algorithm JWT signing, parsing, validation, and local
@@ -305,6 +306,7 @@ path stays explicit: `Store.Enqueue` writes durable rows, `Relay.RunOnce` or
 | `0.15.0` | Audit sqloutbox publisher adoption helpers plus focused JSON/zstd allocation reductions. |
 | `0.16.0` | Redis probabilistic follow-up: HyperLogLog support, Testcontainers/stress/race coverage, and explicit RedisBloom Cuckoo deferral. |
 | `0.17.0` | Workshop adoption sync: library-side pointers, cross-repo issue links, and release-readiness notes that separate library readiness from workshop backlog. |
+| `0.18.0` | Ecosystem follow-up: MongoDB group/strategic leader electors, bounded GraphML graph I/O, and Redis Streams sqloutbox publisher provider. |
 
 The closed `0.7.0 Research Gate` milestone recorded the larger-domain scope
 decisions and was not tagged as a release.

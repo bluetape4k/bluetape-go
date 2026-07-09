@@ -7,6 +7,8 @@ and this project uses semantic versioning once the first tag is published.
 
 ## [Unreleased]
 
+## [v0.18.0] - 2026-07-10
+
 ### Added
 
 - `leader/mongo` group leader elector backend with bounded slot lease

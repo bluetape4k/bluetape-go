@@ -25,16 +25,17 @@ attribute는 계산 전에 `logger.Enabled(ctx, slog.LevelDebug)`로 guard하세
 
 ## 현재 상태
 
-`bluetape-go`는 `v0.15.0` 릴리스 선을 배포했습니다. 현재 repository에는
+`bluetape-go`는 `v0.17.0` 릴리스 선을 배포했습니다. 현재 repository에는
 foundation helper, codec, compression, context-aware concurrency, serializer
 contract, Redis 기반 leader election과 lock, resilience policy, cache
 coordination, token-bucket rate limiting, finite state machine, workflow report,
 lightweight workflow runner, checkpoint 기반 batch job, portable service value,
 SQL helper, text search primitive, audit/event package, graph helper, bounded
 image helper, encryption helper, first-party rule primitive가 들어 있습니다.
-`0.16.0` 선은 Redis probabilistic 구조를 core Redis HyperLogLog 지원,
-live Redis Testcontainers coverage, 명시적인 RedisBloom module boundary로
-확장합니다.
+`0.18.0` 개발 선은 MongoDB group/strategic leader elector, bounded GraphML
+graph I/O, Redis Streams sqloutbox publisher provider까지 release-prep 상태로
+정리되었습니다. `v0.18.0` tag는 release PR, main promotion, tag, GitHub
+Release gate가 끝난 뒤 생성합니다.
 
 `v0.6.x` portable utility 범위에는 UUID, ULID, KSUID, Snowflake ID 생성,
 명시적 algorithm 기반 JWT signing/parsing/validation, 인메모리/Redis/MongoDB
@@ -298,6 +299,7 @@ row를 쓰고, `Relay.RunOnce` 또는 `Relay.Run`이 claim하며,
 | `0.15.0` | Audit sqloutbox publisher adoption helper와 focused JSON/zstd allocation reduction. |
 | `0.16.0` | Redis probabilistic follow-up: HyperLogLog support, Testcontainers/stress/race coverage, 명시적인 RedisBloom Cuckoo deferral. |
 | `0.17.0` | Workshop adoption sync: library-side pointer, cross-repo issue link, library readiness와 workshop backlog를 분리한 release-readiness note. |
+| `0.18.0` | Ecosystem follow-up: MongoDB group/strategic leader elector, bounded GraphML graph I/O, Redis Streams sqloutbox publisher provider. |
 
 닫힌 `0.7.0 Research Gate` milestone은 큰 도메인 범위 결정을 기록한
 research milestone이며 release tag를 만들지 않았습니다.
