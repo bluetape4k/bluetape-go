@@ -98,6 +98,9 @@ retry, err := resilience.NewRetry[string](resilience.RetryOptions{
 ## 운영 경계
 
 - 이 패키지는 OpenTelemetry exporter를 포함하지 않습니다.
+- Application이 `slog` record를 OpenTelemetry로 내보내야 한다면 application
+  setup에서 공식 `go.opentelemetry.io/contrib/bridges/otelslog` handler를
+  연결하고, 만들어진 `slog.Logger`를 `OnEvent`로 전달하세요.
 - Event handler는 빠르고 non-blocking하게 유지하세요.
 - High-volume success event는 synchronous hook에서 log로 내보내기 전에 filter
   또는 sample하세요.
