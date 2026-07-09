@@ -2,12 +2,13 @@
 
 [English](README.md) | [한국어](README.ko.md)
 
-`leader/mongo` provides a MongoDB-backed implementation of the single
-`leader.Elector` contract. It uses one lease document per leader key and
-owner-token predicates for acquire, renew, release, and observation.
+`leader/mongo` provides MongoDB-backed implementations of `leader.Elector` and
+`leader.GroupElector`. The single elector uses one lease document per leader key.
+The group elector uses one lease document per bounded slot, so MongoDB
+single-document atomicity enforces the exact `MaxLeaders` cap under concurrent
+acquisition.
 
-This package does not implement `leader.GroupElector` or
-`leader.StrategicElector`.
+This package does not implement `leader.StrategicElector`.
 
 ## Diagram
 
@@ -44,6 +45,27 @@ if err := elector.Campaign(ctx); err != nil {
 defer elector.Resign(context.Background())
 ```
 
+Use `NewGroup` when up to `MaxLeaders` workers may run concurrently:
+
+```go
+group, err := mongoleader.NewGroup(collection, leader.GroupOptions{
+    Options: leader.Options{
+        Group:         "billing-workers",
+        MemberID:      "worker-1",
+        Lease:         30 * time.Second,
+        RenewInterval: 10 * time.Second,
+    },
+    MaxLeaders: 3,
+})
+if err != nil {
+    return err
+}
+if err := group.Campaign(ctx); err != nil {
+    return err
+}
+defer group.Resign(context.Background())
+```
+
 ## Storage Contract
 
 Each leader group stores one document keyed by `_id`:
@@ -61,6 +83,24 @@ Each leader group stores one document keyed by `_id`:
 TTL monitor is asynchronous, so leadership correctness never depends on the TTL
 delete timing. `Campaign` and `Leader` use normal `lease_until` predicates.
 
+Each group elector stores one document per slot:
+
+| Field | Purpose |
+|---|---|
+| `_id` | Normalized slot key, `<keyPrefix>:<group>:slot:<slot>`. |
+| `group_key` | Shared group key for counting active slots. |
+| `group` | Leader group name. |
+| `slot` | Zero-based slot number in `[0, MaxLeaders)`. |
+| `member_id` | Current slot owner member ID. |
+| `token` | Opaque owner token for this slot. |
+| `lease_until` | Authoritative slot lease expiry. |
+| `created_at` / `updated_at` | Diagnostic timestamps. |
+
+`NewGroup` only acquires from the bounded slot set and renews/deletes by owner
+token. `ActiveCount` counts documents with the same `group_key` and
+`lease_until > now`; `AvailableSlots` clamps negative values to zero so lowering
+`MaxLeaders` does not over-admit new owners while older active slots drain.
+
 ## Operational Boundaries
 
 - The MongoDB client, database, collection, indexes, write concern, and cleanup
@@ -73,6 +113,9 @@ delete timing. `Campaign` and `Leader` use normal `lease_until` predicates.
 - `Campaign(ctx)` waits until leadership is acquired or the context is canceled.
 - Failed renewal, token replacement, or backend renewal errors make `IsLeader`
   false.
+- `GroupElector` guarantees at most `MaxLeaders` live local owners for a group
+  when contenders use the same key prefix, group name, collection, and bounded
+  clock-skew assumptions.
 
 ## Test
 
