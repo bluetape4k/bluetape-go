@@ -94,6 +94,20 @@ The sequence follows dictionary compilation, normalization with original byte
 offset mapping, automaton scanning, deterministic ranking, replacement/masking,
 and blockword/tokenizer response helpers.
 
+## Workshop Adoption
+
+The workshop owns runnable application scenarios. The existing
+[`text-moderation-masking`](https://github.com/bluetape4k/bluetape-go-workshop/tree/develop/examples/text-moderation-masking)
+example covers moderation masking, and
+[`gin-text-search-service`](https://github.com/bluetape4k/bluetape-go-workshop/tree/develop/examples/gin-text-search-service)
+covers the HTTP search/masking service shape. Remaining text adoption work is
+tracked in workshop issues
+[#34](https://github.com/bluetape4k/bluetape-go-workshop/issues/34),
+[#55](https://github.com/bluetape4k/bluetape-go-workshop/issues/55),
+[#67](https://github.com/bluetape4k/bluetape-go-workshop/issues/67),
+[#118](https://github.com/bluetape4k/bluetape-go-workshop/issues/118), and
+[#119](https://github.com/bluetape4k/bluetape-go-workshop/issues/119).
+
 ## Behavior
 
 - `Matcher` is immutable after `Compile` returns and is safe for concurrent

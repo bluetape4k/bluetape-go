@@ -114,6 +114,29 @@ go test -p 1 -race -count=1 ./graph/neo4j
 The package test covers node/relationship mapping, bad records, query failure,
 context cancellation, and resource cleanup.
 
+## Benchmark
+
+![graph/neo4j benchmark summary](../../docs/images/readme-charts/graph-neo4j-benchmark-summary.png)
+
+Default benchmarks cover pure mapping and in-memory record adaptation without
+starting Docker:
+
+```bash
+go test -run '^$' -bench . -benchmem ./graph/neo4j
+```
+
+Neo4j and Memgraph read/write benchmarks are serial and opt-in because they
+start Testcontainers-backed databases:
+
+```bash
+BLUETAPE_GRAPH_NEO4J_BENCH=1 go test -p 1 -run '^$' -bench '^BenchmarkGraphNeo4jContainers' -benchtime=100x -benchmem ./graph/neo4j
+```
+
+Those rows use `neo4j:5.26.0` and `memgraph/memgraph:3.5.0`. They measure local
+Testcontainers latency for create/read nodes, create/read relationships, empty
+reads, and syntax-error overhead. Treat them as local regression evidence, not
+production database ranking.
+
 ## Memgraph Compatibility
 
 Memgraph starts as Neo4j-driver compatibility for this package, not as a

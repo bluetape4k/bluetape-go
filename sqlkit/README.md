@@ -86,6 +86,17 @@ goqu, or Atlas.
 | Build simple SQL | `SelectFrom`, `InsertInto`, `Update`, `DeleteFrom` | Produces explicit PostgreSQL-style SQL and copied args. |
 | Execute a built mutation | `Statement.Exec` | Context-aware wrapper around `ExecContext`. |
 
+## Workshop Adoption
+
+Runnable workshop examples live in
+[`bluetape-go-workshop`](https://github.com/bluetape4k/bluetape-go-workshop)
+instead of this package README:
+[`sql-access-strategy-decision`](https://github.com/bluetape4k/bluetape-go-workshop/tree/develop/examples/sql-access-strategy-decision),
+[`sql-order-repository`](https://github.com/bluetape4k/bluetape-go-workshop/tree/develop/examples/sql-order-repository),
+[`sql-transaction-boundary`](https://github.com/bluetape4k/bluetape-go-workshop/tree/develop/examples/sql-transaction-boundary),
+[`gin-sql-crud-api`](https://github.com/bluetape4k/bluetape-go-workshop/tree/develop/examples/gin-sql-crud-api), and
+[`gin-sql-order-service`](https://github.com/bluetape4k/bluetape-go-workshop/tree/develop/examples/gin-sql-order-service).
+
 ## Behavior
 
 - Builder output is PostgreSQL-first and uses `$1`, `$2`, ... placeholders.

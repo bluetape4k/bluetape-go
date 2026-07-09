@@ -7,6 +7,23 @@ and this project uses semantic versioning once the first tag is published.
 
 ## [Unreleased]
 
+## [v0.17.0] - 2026-07-09
+
+### Added
+
+- `leader/mongo` single leader elector backend with caller-owned MongoDB
+  collections, owner-token lease documents, optional TTL cleanup index support,
+  renewal-loss detection, contention tests, and bilingual README coverage.
+
+### Changed
+
+- Root and package README documentation now links source-checked workshop
+  adoption examples, active cross-repo workshop issues, and the 0.17.0
+  workshop adoption release-readiness note.
+- `resilience` README guidance now names the official application-level
+  `otelslog` bridge path while keeping OpenTelemetry exporters out of
+  `bluetape-go` library packages.
+
 ## [v0.16.0] - 2026-07-08
 
 ### Added

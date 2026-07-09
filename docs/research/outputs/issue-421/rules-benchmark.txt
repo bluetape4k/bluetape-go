@@ -1,0 +1,36 @@
+goos: darwin
+goarch: arm64
+pkg: github.com/bluetape4k/bluetape-go/rules
+cpu: Apple M5
+BenchmarkRulesCompositeActivationFirstMatch-10     	 7695012	       147.1 ns/op	     264 B/op	       4 allocs/op
+BenchmarkRulesCompositeActivationFirstMatch-10     	 8189998	       146.9 ns/op	     264 B/op	       4 allocs/op
+BenchmarkRulesCompositeActivationFirstMatch-10     	 8124462	       147.5 ns/op	     264 B/op	       4 allocs/op
+BenchmarkRulesCompositeActivationFirstMatch-10     	 8247927	       148.0 ns/op	     264 B/op	       4 allocs/op
+BenchmarkRulesCompositeActivationFirstMatch-10     	 8103184	       146.8 ns/op	     264 B/op	       4 allocs/op
+BenchmarkRulesCompositeUnitAllMatch-10             	 7866834	       153.1 ns/op	     216 B/op	       4 allocs/op
+BenchmarkRulesCompositeUnitAllMatch-10             	 7817882	       153.5 ns/op	     216 B/op	       4 allocs/op
+BenchmarkRulesCompositeUnitAllMatch-10             	 7833436	       154.1 ns/op	     216 B/op	       4 allocs/op
+BenchmarkRulesCompositeUnitAllMatch-10             	 7816930	       153.0 ns/op	     216 B/op	       4 allocs/op
+BenchmarkRulesCompositeUnitAllMatch-10             	 7868613	       153.0 ns/op	     216 B/op	       4 allocs/op
+BenchmarkRulesCompositeConditionalDependents-10    	 7178973	       169.1 ns/op	     264 B/op	       4 allocs/op
+BenchmarkRulesCompositeConditionalDependents-10    	 6923700	       169.2 ns/op	     264 B/op	       4 allocs/op
+BenchmarkRulesCompositeConditionalDependents-10    	 7136498	       167.8 ns/op	     264 B/op	       4 allocs/op
+BenchmarkRulesCompositeConditionalDependents-10    	 7129689	       168.1 ns/op	     264 B/op	       4 allocs/op
+BenchmarkRulesCompositeConditionalDependents-10    	 7021366	       169.6 ns/op	     264 B/op	       4 allocs/op
+BenchmarkRulesInferenceConverges/Count0-10         	 1280295	       935.3 ns/op	    2560 B/op	      30 allocs/op
+BenchmarkRulesInferenceConverges/Count0-10         	 1279440	       946.1 ns/op	    2560 B/op	      30 allocs/op
+BenchmarkRulesInferenceConverges/Count0-10         	 1260402	       937.7 ns/op	    2560 B/op	      30 allocs/op
+BenchmarkRulesInferenceConverges/Count0-10         	 1280965	       937.6 ns/op	    2560 B/op	      30 allocs/op
+BenchmarkRulesInferenceConverges/Count0-10         	 1268298	       941.2 ns/op	    2560 B/op	      30 allocs/op
+BenchmarkRulesInferenceConverges/Count1-10         	 1584553	       758.6 ns/op	    2152 B/op	      24 allocs/op
+BenchmarkRulesInferenceConverges/Count1-10         	 1580142	       765.6 ns/op	    2152 B/op	      24 allocs/op
+BenchmarkRulesInferenceConverges/Count1-10         	 1567447	       761.3 ns/op	    2152 B/op	      24 allocs/op
+BenchmarkRulesInferenceConverges/Count1-10         	 1578882	       759.2 ns/op	    2152 B/op	      24 allocs/op
+BenchmarkRulesInferenceConverges/Count1-10         	 1575643	       765.7 ns/op	    2152 B/op	      24 allocs/op
+BenchmarkRulesEngineSequentialRun-10               	  748095	      1600 ns/op	    3496 B/op	      12 allocs/op
+BenchmarkRulesEngineSequentialRun-10               	  738453	      1601 ns/op	    3496 B/op	      12 allocs/op
+BenchmarkRulesEngineSequentialRun-10               	  741254	      1653 ns/op	    3496 B/op	      12 allocs/op
+BenchmarkRulesEngineSequentialRun-10               	  729633	      1624 ns/op	    3496 B/op	      12 allocs/op
+BenchmarkRulesEngineSequentialRun-10               	  725736	      1638 ns/op	    3496 B/op	      12 allocs/op
+PASS
+ok  	github.com/bluetape4k/bluetape-go/rules	47.183s

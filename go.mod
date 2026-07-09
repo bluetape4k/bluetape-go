@@ -12,6 +12,7 @@ require (
 	github.com/aws/aws-sdk-go-v2/service/sns v1.39.17
 	github.com/aws/aws-sdk-go-v2/service/sqs v1.42.27
 	github.com/cespare/xxhash/v2 v2.3.0
+	github.com/cloudflare/ahocorasick v0.0.0-20240916140611-054963ec9396
 	github.com/expr-lang/expr v1.17.8
 	github.com/floci-io/testcontainers-floci-go v0.0.0-20260513220955-f6077bc13ae6
 	github.com/go-sql-driver/mysql v1.10.0
@@ -34,6 +35,7 @@ require (
 	github.com/pemistahl/lingua-go v1.4.0
 	github.com/pierrec/lz4/v4 v4.1.27
 	github.com/redis/go-redis/v9 v9.20.0
+	github.com/rrethy/ahocorasick v1.0.0
 	github.com/segmentio/kafka-go v0.4.51
 	github.com/segmentio/ksuid v1.0.4
 	github.com/testcontainers/testcontainers-go v0.42.0

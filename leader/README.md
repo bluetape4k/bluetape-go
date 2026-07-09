@@ -45,8 +45,19 @@ if err != nil {
 - Public errors are sentinel errors and should be compared with `errors.Is`.
 - Backend renewal failures should cause `IsLeader` to return false.
 
+## Backend Notes
+
+- `leader/redis` supports single, group, and strategic leader election.
+- `leader/mongo` supports only the single `Elector` contract. It stores one
+  MongoDB lease document per group and treats TTL indexes as cleanup only.
+  Issue
+  [#431](../docs/research/2026-07-09-issue-431-leader-mongodb-storage.md)
+  records why `GroupElector` and `StrategicElector` stay deferred until their
+  contention models are designed separately.
+
 ## Test
 
 ```bash
 go test -count=1 ./leader
+go test -count=1 ./leader/mongo
 ```

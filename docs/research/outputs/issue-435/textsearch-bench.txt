@@ -1,0 +1,45 @@
+goos: darwin
+goarch: arm64
+pkg: github.com/bluetape4k/bluetape-go/textsearch
+cpu: Apple M5
+BenchmarkMatcherCompile/small_success_contains-10         	  586504	      2051 ns/op	    7192 B/op	      66 allocs/op
+BenchmarkMatcherCompile/medium_no_match_heavy-10          	   40101	     30157 ns/op	   66872 B/op	     889 allocs/op
+BenchmarkMatcherCompile/large_success_tail-10             	    2264	    531083 ns/op	 1225960 B/op	   15400 allocs/op
+BenchmarkMatcherCompile/overlap_leftmost_longest-10       	  789520	      1494 ns/op	    4296 B/op	      58 allocs/op
+BenchmarkMatcherCompile/unicode_nfkc_case-10              	  554835	      2188 ns/op	    7784 B/op	      75 allocs/op
+BenchmarkMatcherContains/small_success_contains-10        	   28836	     41914 ns/op	  111952 B/op	     411 allocs/op
+BenchmarkMatcherContains/medium_no_match_heavy-10         	   31357	     38511 ns/op	   94456 B/op	      15 allocs/op
+BenchmarkMatcherContains/large_success_tail-10            	  146492	      8191 ns/op	   18352 B/op	      14 allocs/op
+BenchmarkMatcherContains/overlap_leftmost_longest-10      	   19348	     62166 ns/op	  432339 B/op	      30 allocs/op
+BenchmarkMatcherContains/unicode_nfkc_case-10             	   21548	     55857 ns/op	  162105 B/op	     495 allocs/op
+BenchmarkMatcherFirst/small_success_contains-10           	   28491	     42113 ns/op	  111952 B/op	     411 allocs/op
+BenchmarkMatcherFirst/medium_no_match_heavy-10            	   31242	     38266 ns/op	   94456 B/op	      15 allocs/op
+BenchmarkMatcherFirst/large_success_tail-10               	  145933	      8230 ns/op	   18352 B/op	      14 allocs/op
+BenchmarkMatcherFirst/overlap_leftmost_longest-10         	   19701	     61333 ns/op	  432337 B/op	      30 allocs/op
+BenchmarkMatcherFirst/unicode_nfkc_case-10                	   21469	     56236 ns/op	  162105 B/op	     495 allocs/op
+BenchmarkMatcherFindAll/small_success_contains-10         	   27463	     43713 ns/op	  125456 B/op	     411 allocs/op
+BenchmarkMatcherFindAll/medium_no_match_heavy-10          	   31620	     38118 ns/op	   94456 B/op	      15 allocs/op
+BenchmarkMatcherFindAll/large_success_tail-10             	  147104	      8181 ns/op	   18352 B/op	      14 allocs/op
+BenchmarkMatcherFindAll/overlap_leftmost_longest-10       	   18580	     64510 ns/op	  451346 B/op	      30 allocs/op
+BenchmarkMatcherFindAll/unicode_nfkc_case-10              	   20979	     56999 ns/op	  171513 B/op	     495 allocs/op
+BenchmarkMatcherReplace-10                                	   16406	     74204 ns/op	  253585 B/op	     895 allocs/op
+BenchmarkMatcherMask-10                                   	   16028	     74440 ns/op	  242193 B/op	    1183 allocs/op
+BenchmarkBlockwordDictionaryProcess-10                    	   15703	     76405 ns/op	  261777 B/op	     896 allocs/op
+BenchmarkAhoCorasickCandidateCompile/cloudflare/small_success_contains-10         	  101524	     11998 ns/op	   91504 B/op	      51 allocs/op
+BenchmarkAhoCorasickCandidateCompile/rrethy/small_success_contains-10             	  163750	      7414 ns/op	   98776 B/op	      32 allocs/op
+BenchmarkAhoCorasickCandidateCompile/cloudflare/medium_no_match_heavy-10          	    5882	    201332 ns/op	 4294234 B/op	     562 allocs/op
+BenchmarkAhoCorasickCandidateCompile/rrethy/medium_no_match_heavy-10              	  102279	     11828 ns/op	  108368 B/op	     303 allocs/op
+BenchmarkAhoCorasickCandidateCompile/cloudflare/large_success_tail-10             	     438	   2771014 ns/op	68615036 B/op	    8673 allocs/op
+BenchmarkAhoCorasickCandidateCompile/rrethy/large_success_tail-10                 	   10000	    100642 ns/op	  523720 B/op	    4579 allocs/op
+BenchmarkAhoCorasickCandidateCompile/cloudflare/overlap_raw-10                    	  122893	      9834 ns/op	   91248 B/op	      38 allocs/op
+BenchmarkAhoCorasickCandidateCompile/rrethy/overlap_raw-10                        	  158196	      7397 ns/op	   98944 B/op	      29 allocs/op
+BenchmarkAhoCorasickCandidateFindAll/cloudflare/small_success_contains-10         	  563488	      2087 ns/op	      24 B/op	       1 allocs/op
+BenchmarkAhoCorasickCandidateFindAll/rrethy/small_success_contains-10             	  190129	      6314 ns/op	   13248 B/op	     199 allocs/op
+BenchmarkAhoCorasickCandidateFindAll/cloudflare/medium_no_match_heavy-10          	  617709	      1930 ns/op	       0 B/op	       0 allocs/op
+BenchmarkAhoCorasickCandidateFindAll/rrethy/medium_no_match_heavy-10              	  251510	      4711 ns/op	    4096 B/op	       1 allocs/op
+BenchmarkAhoCorasickCandidateFindAll/cloudflare/large_success_tail-10             	 2711914	       443.1 ns/op	       8 B/op	       1 allocs/op
+BenchmarkAhoCorasickCandidateFindAll/rrethy/large_success_tail-10                 	 1410106	       857.0 ns/op	     936 B/op	       3 allocs/op
+BenchmarkAhoCorasickCandidateFindAll/cloudflare/overlap_raw-10                    	  454784	      2620 ns/op	      64 B/op	       1 allocs/op
+BenchmarkAhoCorasickCandidateFindAll/rrethy/overlap_raw-10                        	   77030	     15491 ns/op	   49984 B/op	     969 allocs/op
+PASS
+ok  	github.com/bluetape4k/bluetape-go/textsearch	59.219s
