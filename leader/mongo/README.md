@@ -9,6 +9,12 @@ owner-token predicates for acquire, renew, release, and observation.
 This package does not implement `leader.GroupElector` or
 `leader.StrategicElector`.
 
+## Diagram
+
+![MongoDB leader election runtime map](../../docs/images/readme-diagrams/mongo-leader-election-lifecycle.png)
+
+![MongoDB leader election sequence](../../docs/images/readme-diagrams/mongo-leader-election-sequence.png)
+
 ## Import
 
 ```go
@@ -75,4 +81,3 @@ go test -count=1 ./leader ./leader/mongo
 go test -race -count=1 ./leader ./leader/mongo
 go test -p 1 -count=1 ./leader/mongo ./testcontainers/mongodb
 ```
-

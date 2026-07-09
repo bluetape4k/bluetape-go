@@ -13,6 +13,10 @@ Date: 2026-07-09
 - `docs/superpowers/specs/2026-07-09-issue-485-leader-mongo-elector-design.md`
 - `docs/superpowers/plans/2026-07-09-issue-485-leader-mongo-elector-plan.md`
 - `docs/lessons/2026-07-09-issue-485-leader-mongo-elector.md`
+- `docs/images/readme-diagrams/mongo-leader-election-lifecycle.svg`
+- `docs/images/readme-diagrams/mongo-leader-election-lifecycle.png`
+- `docs/images/readme-diagrams/mongo-leader-election-sequence.svg`
+- `docs/images/readme-diagrams/mongo-leader-election-sequence.png`
 
 ## 7-Tier Review
 
@@ -39,6 +43,10 @@ Date: 2026-07-09
 | `make vet` | PASS | Vet passed. |
 | `make lint` | PASS | Passed with `0 issues` after clearing stale golangci-lint cache entries from an already removed worktree. |
 | `make ci` | PASS | Full local CI passed, including lint, test, and race gates. |
+| `xmllint --noout docs/images/readme-diagrams/mongo-leader-election-lifecycle.svg docs/images/readme-diagrams/mongo-leader-election-sequence.svg` | PASS | README diagram SVGs are valid XML. |
+| `/Users/debop/.local/bin/cairosvg ... -s 2` | PASS | README diagram PNGs rendered from SVG sources. |
+| `diagram-connector-audit.py`, `diagram-geometry-audit.py`, `diagram-endpoint-audit.py`, `diagram-mixed-corner-audit.py`, and `diagram-sequence-style-audit.py` | PASS | Runtime map and sequence diagram connector, endpoint, mixed-corner, diagonal, and sequence-style checks passed. |
+| `view_image` | PASS | Full-size runtime map and sequence PNGs inspected; text, lanes, labels, and connectors are readable. |
 
 ## Findings
 
