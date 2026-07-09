@@ -199,17 +199,17 @@ type OpLabels struct {
 }
 
 type OpError struct {
-    Family    string
-    Operation string
-    KeyID     string // redacted key id only
-    Err       error
+    // unexported fields; use constructor plus accessors
 }
 
 func NewOpError(labels OpLabels, rawKey string, err error) error
 func NewOpErrorWithRedactedKey(labels OpLabels, redactedKeyID string, err error) error
-func (e OpError) Error() string
-func (e OpError) Unwrap() error
-func (e OpError) Is(target error) bool
+func (e *OpError) Error() string
+func (e *OpError) Unwrap() error
+func (e *OpError) Is(target error) bool
+func (e *OpError) Family() string
+func (e *OpError) Operation() string
+func (e *OpError) KeyID() string
 
 func CompareAndDelete(ctx context.Context, client redis.Scripter, lease Lease, family string) (bool, error)
 func CompareAndExtend(ctx context.Context, client redis.Scripter, lease Lease, ttl time.Duration, family string) (bool, error)
@@ -342,20 +342,19 @@ Rules:
 - Validation errors wrap the relevant sentinel with `%w`.
 - Redis operation errors return `OpError` so callers can use `errors.As`.
 - `OpError.Unwrap()` returns the underlying Redis/context error.
-- `OpError.Is(target)` delegates to `errors.Is(e.Err, target)` so callers can
+- `OpError.Is(target)` delegates to the wrapped cause so callers can
   match `context.Canceled`, `context.DeadlineExceeded`, or Redis sentinel errors
   when applicable.
 - `OpError.Error()` must not print raw Redis keys, owner tokens, or the wrapped
   cause string. It may include low-cardinality family/operation labels, the
   redacted key id, and the cause type/category. Callers can still inspect the
   original cause through `errors.Unwrap` / `errors.Is` / `errors.As`.
-- `OpError.KeyID` is a redacted key id only. Normal construction uses
-  `NewOpError`, which accepts a raw Redis key and stores only `RedactedKeyID`.
-  `NewOpErrorWithRedactedKey` exists only for callers that already have a
-  redacted key id and must validate the exact `redis-key:<24 lowercase hex>`
-  shape. Manual `OpError` literals are documented as advanced/testing use and
-  must never use raw Redis keys. Tests must prove raw keys/tokens do not appear
-  in error strings, including when the wrapped cause text contains those values.
+- `OpError` state is constructor-owned. `NewOpError` accepts a raw Redis key and
+  stores only `RedactedKeyID`; `NewOpErrorWithRedactedKey` exists only for
+  callers that already have a redacted key id and must validate the exact
+  `redis-key:<24 lowercase hex>` shape. Tests must prove raw keys/tokens do not
+  appear in error strings, including when the wrapped cause text contains those
+  values.
 - `OpLabels` groups low-cardinality `Family` and `Operation` labels so public
   constructors do not use adjacent positional string parameters for family,
   operation, and key material. Label validation rejects empty, overlong, and

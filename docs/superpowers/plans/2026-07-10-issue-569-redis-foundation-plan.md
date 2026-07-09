@@ -358,8 +358,8 @@ Implementation constraints:
 - `OpLabels` groups low-cardinality `Family` and `Operation` values to avoid adjacent positional key/label strings. Label validation rejects empty, overlong, colon/braces, and whitespace-only values.
 - `NewOpError` computes `RedactedKeyID(rawKey)` and never stores raw key.
 - `NewOpErrorWithRedactedKey` validates the redacted key id before storing it.
-- `OpError.Error()` prints family, operation, redacted key id, and cause type/category only; it must not include `e.Err.Error()` because provider errors may contain raw keys or tokens.
-- `OpError.Is` delegates to `errors.Is(e.Err, target)`.
+- `OpError.Error()` prints family, operation, redacted key id, and cause type/category only; it must not include the wrapped cause text because provider errors may contain raw keys or tokens.
+- `OpError.Is` delegates to the wrapped cause.
 
 - [ ] **Step 3: Verify key, TTL, and error tests pass**
 
