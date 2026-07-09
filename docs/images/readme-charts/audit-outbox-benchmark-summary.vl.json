@@ -1,0 +1,126 @@
+{
+  "title": "audit + sqloutbox Benchmark Summary",
+  "source": [
+    "docs/research/outputs/issue-439/audit-memory-bench.txt",
+    "docs/research/outputs/issue-439/audit-sqloutbox-postgres-bench.txt"
+  ],
+  "metricDirection": {
+    "ns/op": "lower is better",
+    "ms/op": "lower is better",
+    "KiB/op": "lower is better"
+  },
+  "rows": [
+    {
+      "scope": "audit memory",
+      "id": "MemoryRepositoryAppend/History16/Batch1/Payload256",
+      "label": "Append history 16, batch 1",
+      "nsPerOp": 17189,
+      "bytesPerOp": 45226,
+      "kibPerOp": 44.166015625,
+      "allocsPerOp": 125
+    },
+    {
+      "scope": "audit memory",
+      "id": "MemoryRepositoryAppend/History256/Batch8/Payload2048",
+      "label": "Append history 256, batch 8",
+      "nsPerOp": 857813,
+      "bytesPerOp": 1522878,
+      "kibPerOp": 1487.185546875,
+      "allocsPerOp": 1612
+    },
+    {
+      "scope": "audit memory",
+      "id": "MemoryRepositoryFind/SingleAggregateHistory16",
+      "label": "Find one aggregate, 16 rows",
+      "nsPerOp": 2770,
+      "bytesPerOp": 17440,
+      "kibPerOp": 17.03125,
+      "allocsPerOp": 54
+    },
+    {
+      "scope": "audit memory",
+      "id": "MemoryRepositoryFind/TypeScan64AggregatesLimit32",
+      "label": "Find account type, 64x16 limit 32",
+      "nsPerOp": 283617,
+      "bytesPerOp": 1400594,
+      "kibPerOp": 1367.767578125,
+      "allocsPerOp": 3084
+    },
+    {
+      "scope": "audit memory",
+      "id": "MemoryRepositoryLoadHistory/Small16/Payload256",
+      "label": "Load history 16",
+      "nsPerOp": 14296,
+      "bytesPerOp": 47084,
+      "kibPerOp": 45.98046875,
+      "allocsPerOp": 162
+    },
+    {
+      "scope": "audit memory",
+      "id": "MemoryRepositoryLoadHistory/Medium256/Payload2048",
+      "label": "Load history 256",
+      "nsPerOp": 942250,
+      "bytesPerOp": 2126793,
+      "kibPerOp": 2076.9462890625,
+      "allocsPerOp": 2329
+    },
+    {
+      "scope": "audit memory",
+      "id": "AuditEntryJSONRoundTrip/Payload256",
+      "label": "JSON round-trip 256 B",
+      "nsPerOp": 10054,
+      "bytesPerOp": 4974,
+      "kibPerOp": 4.857421875,
+      "allocsPerOp": 56
+    },
+    {
+      "scope": "audit memory",
+      "id": "AuditEntryJSONRoundTrip/Payload2048",
+      "label": "JSON round-trip 2 KiB",
+      "nsPerOp": 34231,
+      "bytesPerOp": 12345,
+      "kibPerOp": 12.0556640625,
+      "allocsPerOp": 56
+    },
+    {
+      "scope": "sqloutbox postgres",
+      "id": "AuditSQLOutboxPostgres/Enqueue/Batch10/Payload512",
+      "label": "Enqueue batch 10",
+      "nsPerOp": 2638305,
+      "bytesPerOp": 86278,
+      "kibPerOp": 84.255859375,
+      "allocsPerOp": 366,
+      "msPerOp": 2.638305
+    },
+    {
+      "scope": "sqloutbox postgres",
+      "id": "AuditSQLOutboxPostgres/Claim/Limit10/Pending100/Payload512",
+      "label": "Claim 10 of 100",
+      "nsPerOp": 1701315,
+      "bytesPerOp": 96471,
+      "kibPerOp": 94.2099609375,
+      "allocsPerOp": 819,
+      "msPerOp": 1.701315
+    },
+    {
+      "scope": "sqloutbox postgres",
+      "id": "AuditSQLOutboxPostgres/RunOnce/Publish10/Payload512",
+      "label": "RunOnce publish 10",
+      "nsPerOp": 2718956,
+      "bytesPerOp": 104983,
+      "kibPerOp": 102.5224609375,
+      "allocsPerOp": 957,
+      "msPerOp": 2.718956
+    },
+    {
+      "scope": "sqloutbox postgres",
+      "id": "AuditSQLOutboxPostgres/RunOnce/DeadLetter10/Payload512",
+      "label": "RunOnce dead-letter 10",
+      "nsPerOp": 2932703,
+      "bytesPerOp": 111107,
+      "kibPerOp": 108.5029296875,
+      "allocsPerOp": 987,
+      "msPerOp": 2.932703
+    }
+  ]
+}

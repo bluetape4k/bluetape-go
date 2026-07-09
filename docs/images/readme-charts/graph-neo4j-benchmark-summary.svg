@@ -1,0 +1,191 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1800" height="1840" viewBox="0 0 1800 1840">
+  <defs>
+    <style>
+      @font-face {
+        font-family: 'Architects Daughter';
+        src: url('/Users/debop/Library/Fonts/ArchitectsDaughter-Regular.ttf');
+      }
+      @font-face {
+        font-family: 'Comic Mono';
+        src: url('/Users/debop/Library/Fonts/ComicMono.ttf');
+        font-weight: normal;
+      }
+      @font-face {
+        font-family: 'Comic Mono';
+        src: url('/Users/debop/Library/Fonts/ComicMono-Bold.ttf');
+        font-weight: bold;
+      }
+      .title { font-family: 'Architects Daughter'; font-size: 44px; fill: #1E293B; font-weight: bold; }
+      .subtitle { font-family: 'Comic Mono'; font-size: 16px; fill: #475569; }
+      .section { font-family: 'Architects Daughter'; font-size: 28px; fill: #1E293B; font-weight: bold; }
+      .bar-label { font-family: 'Architects Daughter'; font-size: 20px; fill: #1E293B; }
+      .axis-title { font-family: 'Comic Mono'; font-size: 14px; fill: #475569; font-weight: bold; }
+      .axis { font-family: 'Comic Mono'; font-size: 12px; fill: #64748B; }
+      .value { font-family: 'Comic Mono'; font-size: 14px; fill: #334155; font-weight: bold; }
+      .legend { font-family: 'Comic Mono'; font-size: 14px; fill: #334155; }
+      .callout-title { font-family: 'Architects Daughter'; font-size: 23px; fill: #1E293B; font-weight: bold; }
+      .callout { font-family: 'Comic Mono'; font-size: 13px; fill: #334155; }
+      .footer { font-family: 'Comic Mono'; font-size: 12px; fill: #64748B; }
+    </style>
+  </defs>
+
+  <rect x="0" y="0" width="1800" height="1840" fill="#F8FAFC"/>
+  <rect x="40" y="40" width="1720" height="1760" fill="#F8FAFC" stroke="#CBD5E1" stroke-width="2" rx="24"/>
+  <text x="900" y="82" text-anchor="middle" dominant-baseline="middle" class="title">graph/neo4j Benchmark Summary</text>
+  <text x="900" y="122" text-anchor="middle" dominant-baseline="middle" class="subtitle">Issue #438 · Apple M5 · darwin/arm64 · Neo4j/Memgraph rows are opt-in Testcontainers evidence</text>
+
+  <g>
+<rect x="80" y="184" width="1640" height="278" fill="#FFFFFF" stroke="#CBD5E1" stroke-width="1.5" rx="16"/>
+<text x="114" y="220" class="section" dominant-baseline="middle">Pure mapping latency</text>
+<text x="114" y="250" class="axis-title" dominant-baseline="middle">ns/op - lower is better; no Docker startup</text>
+<line x1="510.0" y1="256" x2="510.0" y2="462" stroke="#E2E8F0"/>
+<text x="510.0" y="242" class="axis" text-anchor="middle">0</text>
+<line x1="752.5" y1="256" x2="752.5" y2="462" stroke="#E2E8F0"/>
+<text x="752.5" y="242" class="axis" text-anchor="middle">4,250</text>
+<line x1="995.0" y1="256" x2="995.0" y2="462" stroke="#E2E8F0"/>
+<text x="995.0" y="242" class="axis" text-anchor="middle">8,500</text>
+<line x1="1237.5" y1="256" x2="1237.5" y2="462" stroke="#E2E8F0"/>
+<text x="1237.5" y="242" class="axis" text-anchor="middle">12,750</text>
+<line x1="1480.0" y1="256" x2="1480.0" y2="462" stroke="#E2E8F0"/>
+<text x="1480.0" y="242" class="axis" text-anchor="middle">17,000</text>
+<text x="118" y="292" class="bar-label" dominant-baseline="middle">Vertex from node</text>
+<rect x="510" y="278" width="11.3" height="28" fill="#FDE68A" stroke="#D97706" stroke-width="1.2" rx="7"/>
+<text x="1510" y="292" class="value" dominant-baseline="middle">198.3 ns/op</text>
+<text x="118" y="340" class="bar-label" dominant-baseline="middle">Edge from relationship</text>
+<rect x="510" y="326" width="7.3" height="28" fill="#FDE68A" stroke="#D97706" stroke-width="1.2" rx="7"/>
+<text x="1510" y="340" class="value" dominant-baseline="middle">128.3 ns/op</text>
+<text x="118" y="388" class="bar-label" dominant-baseline="middle">Vertices from 100 records</text>
+<rect x="510" y="374" width="968.3" height="28" fill="#FDE68A" stroke="#D97706" stroke-width="1.2" rx="7"/>
+<text x="1510" y="388" class="value" dominant-baseline="middle">16,971 ns/op</text>
+<text x="118" y="436" class="bar-label" dominant-baseline="middle">Edges from 100 records</text>
+<rect x="510" y="422" width="820.8" height="28" fill="#FDE68A" stroke="#D97706" stroke-width="1.2" rx="7"/>
+<text x="1510" y="436" class="value" dominant-baseline="middle">14,386 ns/op</text>
+</g>
+
+  <g>
+<rect x="80" y="526" width="1640" height="560" fill="#FFFFFF" stroke="#CBD5E1" stroke-width="1.5" rx="16"/>
+<text x="114" y="564" class="section" dominant-baseline="middle">Container adapter latency</text>
+<text x="114" y="596" class="axis-title" dominant-baseline="middle">ms/op - lower is better; local Testcontainers snapshot</text>
+<rect x="1330" y="559" width="28" height="18" fill="#BFDBFE" stroke="#2563EB" stroke-width="1.2" rx="5"/>
+<text x="1370" y="569" class="legend" dominant-baseline="middle">Neo4j 5.26.0</text>
+<rect x="1516" y="559" width="28" height="18" fill="#A7F3D0" stroke="#059669" stroke-width="1.2" rx="5"/>
+<text x="1556" y="569" class="legend" dominant-baseline="middle">Memgraph 3.5.0</text>
+<line x1="512.0" y1="602" x2="512.0" y2="1096" stroke="#E2E8F0"/>
+<text x="512.0" y="588" class="axis" text-anchor="middle">0.00</text>
+<line x1="749.5" y1="602" x2="749.5" y2="1096" stroke="#E2E8F0"/>
+<text x="749.5" y="588" class="axis" text-anchor="middle">2.50</text>
+<line x1="987.0" y1="602" x2="987.0" y2="1096" stroke="#E2E8F0"/>
+<text x="987.0" y="588" class="axis" text-anchor="middle">5.00</text>
+<line x1="1224.5" y1="602" x2="1224.5" y2="1096" stroke="#E2E8F0"/>
+<text x="1224.5" y="588" class="axis" text-anchor="middle">7.50</text>
+<line x1="1462.0" y1="602" x2="1462.0" y2="1096" stroke="#E2E8F0"/>
+<text x="1462.0" y="588" class="axis" text-anchor="middle">10.00</text>
+<text x="116" y="644" class="bar-label" dominant-baseline="middle">Write node</text>
+<rect x="512" y="624" width="601.7" height="17" fill="#BFDBFE" stroke="#2563EB" stroke-width="1.1" rx="5"/>
+<text x="1492" y="632.5" class="value" dominant-baseline="middle">6.33 ms/op</text>
+<rect x="512" y="647" width="55.1" height="17" fill="#A7F3D0" stroke="#059669" stroke-width="1.1" rx="5"/>
+<text x="1492" y="655.5" class="value" dominant-baseline="middle">0.58 ms/op</text>
+<text x="116" y="704" class="bar-label" dominant-baseline="middle">Write relationship</text>
+<rect x="512" y="684" width="322.6" height="17" fill="#BFDBFE" stroke="#2563EB" stroke-width="1.1" rx="5"/>
+<text x="1492" y="692.5" class="value" dominant-baseline="middle">3.40 ms/op</text>
+<rect x="512" y="707" width="49.3" height="17" fill="#A7F3D0" stroke="#059669" stroke-width="1.1" rx="5"/>
+<text x="1492" y="715.5" class="value" dominant-baseline="middle">0.52 ms/op</text>
+<text x="116" y="764" class="bar-label" dominant-baseline="middle">Read vertices 10</text>
+<rect x="512" y="744" width="259.1" height="17" fill="#BFDBFE" stroke="#2563EB" stroke-width="1.1" rx="5"/>
+<text x="1492" y="752.5" class="value" dominant-baseline="middle">2.73 ms/op</text>
+<rect x="512" y="767" width="56.4" height="17" fill="#A7F3D0" stroke="#059669" stroke-width="1.1" rx="5"/>
+<text x="1492" y="775.5" class="value" dominant-baseline="middle">0.59 ms/op</text>
+<text x="116" y="824" class="bar-label" dominant-baseline="middle">Read vertices 100</text>
+<rect x="512" y="804" width="235.5" height="17" fill="#BFDBFE" stroke="#2563EB" stroke-width="1.1" rx="5"/>
+<text x="1492" y="812.5" class="value" dominant-baseline="middle">2.48 ms/op</text>
+<rect x="512" y="827" width="78.3" height="17" fill="#A7F3D0" stroke="#059669" stroke-width="1.1" rx="5"/>
+<text x="1492" y="835.5" class="value" dominant-baseline="middle">0.82 ms/op</text>
+<text x="116" y="884" class="bar-label" dominant-baseline="middle">Read edges 10</text>
+<rect x="512" y="864" width="232.9" height="17" fill="#BFDBFE" stroke="#2563EB" stroke-width="1.1" rx="5"/>
+<text x="1492" y="872.5" class="value" dominant-baseline="middle">2.45 ms/op</text>
+<rect x="512" y="887" width="54.6" height="17" fill="#A7F3D0" stroke="#059669" stroke-width="1.1" rx="5"/>
+<text x="1492" y="895.5" class="value" dominant-baseline="middle">0.57 ms/op</text>
+<text x="116" y="944" class="bar-label" dominant-baseline="middle">Read edges 100</text>
+<rect x="512" y="924" width="233.2" height="17" fill="#BFDBFE" stroke="#2563EB" stroke-width="1.1" rx="5"/>
+<text x="1492" y="932.5" class="value" dominant-baseline="middle">2.45 ms/op</text>
+<rect x="512" y="947" width="79.8" height="17" fill="#A7F3D0" stroke="#059669" stroke-width="1.1" rx="5"/>
+<text x="1492" y="955.5" class="value" dominant-baseline="middle">0.84 ms/op</text>
+<text x="116" y="1004" class="bar-label" dominant-baseline="middle">Read empty</text>
+<rect x="512" y="984" width="143.3" height="17" fill="#BFDBFE" stroke="#2563EB" stroke-width="1.1" rx="5"/>
+<text x="1492" y="992.5" class="value" dominant-baseline="middle">1.51 ms/op</text>
+<rect x="512" y="1007" width="46.7" height="17" fill="#A7F3D0" stroke="#059669" stroke-width="1.1" rx="5"/>
+<text x="1492" y="1015.5" class="value" dominant-baseline="middle">0.49 ms/op</text>
+<text x="116" y="1064" class="bar-label" dominant-baseline="middle">Write syntax error</text>
+<rect x="512" y="1044" width="129.3" height="17" fill="#BFDBFE" stroke="#2563EB" stroke-width="1.1" rx="5"/>
+<text x="1492" y="1052.5" class="value" dominant-baseline="middle">1.36 ms/op</text>
+<rect x="512" y="1067" width="45.5" height="17" fill="#A7F3D0" stroke="#059669" stroke-width="1.1" rx="5"/>
+<text x="1492" y="1075.5" class="value" dominant-baseline="middle">0.48 ms/op</text>
+</g>
+
+  <g>
+<rect x="80" y="1130" width="1640" height="560" fill="#FFFFFF" stroke="#CBD5E1" stroke-width="1.5" rx="16"/>
+<text x="114" y="1168" class="section" dominant-baseline="middle">Container heap bytes</text>
+<text x="114" y="1200" class="axis-title" dominant-baseline="middle">KiB/op - lower is better; local Testcontainers snapshot</text>
+<rect x="1330" y="1163" width="28" height="18" fill="#BFDBFE" stroke="#2563EB" stroke-width="1.2" rx="5"/>
+<text x="1370" y="1173" class="legend" dominant-baseline="middle">Neo4j 5.26.0</text>
+<rect x="1516" y="1163" width="28" height="18" fill="#A7F3D0" stroke="#059669" stroke-width="1.2" rx="5"/>
+<text x="1556" y="1173" class="legend" dominant-baseline="middle">Memgraph 3.5.0</text>
+<line x1="512.0" y1="1206" x2="512.0" y2="1700" stroke="#E2E8F0"/>
+<text x="512.0" y="1192" class="axis" text-anchor="middle">0.0</text>
+<line x1="749.5" y1="1206" x2="749.5" y2="1700" stroke="#E2E8F0"/>
+<text x="749.5" y="1192" class="axis" text-anchor="middle">125.0</text>
+<line x1="987.0" y1="1206" x2="987.0" y2="1700" stroke="#E2E8F0"/>
+<text x="987.0" y="1192" class="axis" text-anchor="middle">250.0</text>
+<line x1="1224.5" y1="1206" x2="1224.5" y2="1700" stroke="#E2E8F0"/>
+<text x="1224.5" y="1192" class="axis" text-anchor="middle">375.0</text>
+<line x1="1462.0" y1="1206" x2="1462.0" y2="1700" stroke="#E2E8F0"/>
+<text x="1462.0" y="1192" class="axis" text-anchor="middle">500.0</text>
+<text x="116" y="1248" class="bar-label" dominant-baseline="middle">Write node</text>
+<rect x="512" y="1228" width="21.9" height="17" fill="#BFDBFE" stroke="#2563EB" stroke-width="1.1" rx="5"/>
+<text x="1492" y="1236.5" class="value" dominant-baseline="middle">11.5 KiB/op</text>
+<rect x="512" y="1251" width="15.6" height="17" fill="#A7F3D0" stroke="#059669" stroke-width="1.1" rx="5"/>
+<text x="1492" y="1259.5" class="value" dominant-baseline="middle">8.2 KiB/op</text>
+<text x="116" y="1308" class="bar-label" dominant-baseline="middle">Write relationship</text>
+<rect x="512" y="1288" width="21.9" height="17" fill="#BFDBFE" stroke="#2563EB" stroke-width="1.1" rx="5"/>
+<text x="1492" y="1296.5" class="value" dominant-baseline="middle">11.5 KiB/op</text>
+<rect x="512" y="1311" width="18.2" height="17" fill="#A7F3D0" stroke="#059669" stroke-width="1.1" rx="5"/>
+<text x="1492" y="1319.5" class="value" dominant-baseline="middle">9.6 KiB/op</text>
+<text x="116" y="1368" class="bar-label" dominant-baseline="middle">Read vertices 10</text>
+<rect x="512" y="1348" width="85.4" height="17" fill="#BFDBFE" stroke="#2563EB" stroke-width="1.1" rx="5"/>
+<text x="1492" y="1356.5" class="value" dominant-baseline="middle">44.9 KiB/op</text>
+<rect x="512" y="1371" width="67.9" height="17" fill="#A7F3D0" stroke="#059669" stroke-width="1.1" rx="5"/>
+<text x="1492" y="1379.5" class="value" dominant-baseline="middle">35.8 KiB/op</text>
+<text x="116" y="1428" class="bar-label" dominant-baseline="middle">Read vertices 100</text>
+<rect x="512" y="1408" width="503.9" height="17" fill="#BFDBFE" stroke="#2563EB" stroke-width="1.1" rx="5"/>
+<text x="1492" y="1416.5" class="value" dominant-baseline="middle">265.2 KiB/op</text>
+<rect x="512" y="1431" width="378.4" height="17" fill="#A7F3D0" stroke="#059669" stroke-width="1.1" rx="5"/>
+<text x="1492" y="1439.5" class="value" dominant-baseline="middle">199.2 KiB/op</text>
+<text x="116" y="1488" class="bar-label" dominant-baseline="middle">Read edges 10</text>
+<rect x="512" y="1468" width="87.8" height="17" fill="#BFDBFE" stroke="#2563EB" stroke-width="1.1" rx="5"/>
+<text x="1492" y="1476.5" class="value" dominant-baseline="middle">46.2 KiB/op</text>
+<rect x="512" y="1491" width="68.6" height="17" fill="#A7F3D0" stroke="#059669" stroke-width="1.1" rx="5"/>
+<text x="1492" y="1499.5" class="value" dominant-baseline="middle">36.1 KiB/op</text>
+<text x="116" y="1548" class="bar-label" dominant-baseline="middle">Read edges 100</text>
+<rect x="512" y="1528" width="529.1" height="17" fill="#BFDBFE" stroke="#2563EB" stroke-width="1.1" rx="5"/>
+<text x="1492" y="1536.5" class="value" dominant-baseline="middle">278.5 KiB/op</text>
+<rect x="512" y="1551" width="383.0" height="17" fill="#A7F3D0" stroke="#059669" stroke-width="1.1" rx="5"/>
+<text x="1492" y="1559.5" class="value" dominant-baseline="middle">201.6 KiB/op</text>
+<text x="116" y="1608" class="bar-label" dominant-baseline="middle">Read empty</text>
+<rect x="512" y="1588" width="43.0" height="17" fill="#BFDBFE" stroke="#2563EB" stroke-width="1.1" rx="5"/>
+<text x="1492" y="1596.5" class="value" dominant-baseline="middle">22.6 KiB/op</text>
+<rect x="512" y="1611" width="33.8" height="17" fill="#A7F3D0" stroke="#059669" stroke-width="1.1" rx="5"/>
+<text x="1492" y="1619.5" class="value" dominant-baseline="middle">17.8 KiB/op</text>
+<text x="116" y="1668" class="bar-label" dominant-baseline="middle">Write syntax error</text>
+<rect x="512" y="1648" width="20.4" height="17" fill="#BFDBFE" stroke="#2563EB" stroke-width="1.1" rx="5"/>
+<text x="1492" y="1656.5" class="value" dominant-baseline="middle">10.8 KiB/op</text>
+<rect x="512" y="1671" width="14.8" height="17" fill="#A7F3D0" stroke="#059669" stroke-width="1.1" rx="5"/>
+<text x="1492" y="1679.5" class="value" dominant-baseline="middle">7.8 KiB/op</text>
+</g>
+
+  <g>
+    <rect x="80" y="1720" width="1640" height="74" fill="#FFFBEB" stroke="#F59E0B" stroke-width="1.5" rx="16"/>
+    <text x="114" y="1748" dominant-baseline="middle" class="callout-title">Interpretation boundary</text>
+    <text x="400" y="1745" dominant-baseline="middle" class="callout">Raw benchmark output is the numeric source of truth. Bars compare one local snapshot, not production database ranking.</text>
+    <text x="400" y="1770" dominant-baseline="middle" class="footer">Container rows include caller-side params and 10s bounded operation contexts.</text>
+  </g>
+</svg>

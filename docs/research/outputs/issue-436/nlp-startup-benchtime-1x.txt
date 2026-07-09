@@ -1,0 +1,66 @@
+goos: darwin
+goarch: arm64
+pkg: github.com/bluetape4k/bluetape-go/textsearch/japanese
+cpu: Apple M5
+BenchmarkTokenizerConstruction/normal-10        	       1	 288968250 ns/op	221163184 B/op	 5593998 allocs/op
+BenchmarkTokenizerConstruction/search-10        	       1	      1416 ns/op	     128 B/op	       4 allocs/op
+BenchmarkTokenizerConstruction/extended-10      	       1	      1167 ns/op	     128 B/op	       4 allocs/op
+BenchmarkTokenizerConstructionAndFirstUse/short-10         	       1	     40834 ns/op	   19456 B/op	     205 allocs/op
+BenchmarkTokenizerConstructionAndFirstUse/medium-10        	       1	     80083 ns/op	   56576 B/op	     645 allocs/op
+BenchmarkTokenizerConstructionAndFirstUse/large-10         	       1	    670667 ns/op	 1339256 B/op	   15525 allocs/op
+BenchmarkTokenizerConstructionAndFirstUse/nfkc_whitespace-10         	       1	    145459 ns/op	   88632 B/op	     614 allocs/op
+BenchmarkTokenizerTokenize/normal/short-10                           	       1	     30833 ns/op	   15456 B/op	     153 allocs/op
+BenchmarkTokenizerTokenize/normal/medium-10                          	       1	     61833 ns/op	   40976 B/op	     448 allocs/op
+BenchmarkTokenizerTokenize/normal/large-10                           	       1	    663416 ns/op	  903664 B/op	   10077 allocs/op
+BenchmarkTokenizerTokenize/normal/nfkc_whitespace-10                 	       1	     63500 ns/op	   69240 B/op	     602 allocs/op
+BenchmarkTokenizerTokenize/search/short-10                           	       1	     17541 ns/op	   13728 B/op	     110 allocs/op
+BenchmarkTokenizerTokenize/search/medium-10                          	       1	     60750 ns/op	   44848 B/op	     493 allocs/op
+BenchmarkTokenizerTokenize/search/large-10                           	       1	    787166 ns/op	  995936 B/op	   11157 allocs/op
+BenchmarkTokenizerTokenize/search/nfkc_whitespace-10                 	       1	     68584 ns/op	   75360 B/op	     645 allocs/op
+BenchmarkTokenizerFilterPOS/nouns-10                                 	       1	      5750 ns/op	    1536 B/op	       1 allocs/op
+BenchmarkTokenizerFilterPOS/verbs-10                                 	       1	      5250 ns/op	    1536 B/op	       1 allocs/op
+PASS
+ok  	github.com/bluetape4k/bluetape-go/textsearch/japanese	0.859s
+goos: darwin
+goarch: arm64
+pkg: github.com/bluetape4k/bluetape-go/textsearch/language
+cpu: Apple M5
+BenchmarkDetectorConstruction/subset_lazy_high_accuracy-10         	       1	    155958 ns/op	   13280 B/op	    1385 allocs/op
+BenchmarkDetectorConstruction/subset_lazy_low_accuracy-10          	       1	    114791 ns/op	   13280 B/op	    1385 allocs/op
+BenchmarkDetectorConstruction/subset_preloaded_low_accuracy-10     	       1	   9730625 ns/op	 7218184 B/op	   95403 allocs/op
+BenchmarkDetectorConstruction/latin_script_lazy_low_accuracy-10    	       1	     81708 ns/op	   19368 B/op	    1550 allocs/op
+BenchmarkDetectorConstruction/spoken_lazy_low_accuracy-10          	       1	     57584 ns/op	   21712 B/op	    1404 allocs/op
+BenchmarkDetectorConstruction/all_lazy_low_accuracy-10             	       1	     57458 ns/op	   19728 B/op	    1399 allocs/op
+BenchmarkDetectorConstructionAndFirstUse/subset_lazy_high_accuracy-10         	       1	  91680333 ns/op	124873800 B/op	 1396284 allocs/op
+BenchmarkDetectorConstructionAndFirstUse/subset_lazy_low_accuracy-10          	       1	    140125 ns/op	   39384 B/op	    2064 allocs/op
+BenchmarkDetectorConstructionAndFirstUse/subset_preloaded_low_accuracy-10     	       1	    143917 ns/op	   81008 B/op	    2100 allocs/op
+BenchmarkDetectorConstructionAndFirstUse/latin_script_lazy_low_accuracy-10    	       1	 103911208 ns/op	138792920 B/op	 1872883 allocs/op
+BenchmarkDetectorConstructionAndFirstUse/spoken_lazy_low_accuracy-10          	       1	    567166 ns/op	  199520 B/op	    5445 allocs/op
+BenchmarkDetectorConstructionAndFirstUse/all_lazy_low_accuracy-10             	       1	    557250 ns/op	  198000 B/op	    5456 allocs/op
+BenchmarkDetectorDetect/subset_low_accuracy_english_short-10                  	       1	    116625 ns/op	   63648 B/op	     684 allocs/op
+BenchmarkDetectorDetect/subset_low_accuracy_japanese_short-10                 	       1	     20875 ns/op	   41832 B/op	      80 allocs/op
+BenchmarkDetectorDetect/subset_low_accuracy_english_medium-10                 	       1	   1188792 ns/op	   81368 B/op	    5146 allocs/op
+BenchmarkDetectorDetect/latin_script_low_accuracy_english-10                  	       1	    510833 ns/op	  178160 B/op	    4005 allocs/op
+BenchmarkDetectorDetect/all_low_accuracy_english-10                           	       1	    562334 ns/op	  179392 B/op	    4090 allocs/op
+BenchmarkDetectorConfidences-10                                               	       1	     46375 ns/op	   10992 B/op	     335 allocs/op
+BenchmarkDetectorDetectMultiple-10                                            	       1	    857958 ns/op	  318128 B/op	   10262 allocs/op
+PASS
+ok  	github.com/bluetape4k/bluetape-go/textsearch/language	1.198s
+        2.47 real         1.84 user         0.65 sys
+           386023424  maximum resident set size
+                   0  average shared memory size
+                   0  average unshared data size
+                   0  average unshared stack size
+               60456  page reclaims
+                9208  page faults
+                   0  swaps
+                   0  block input operations
+                   0  block output operations
+                   0  messages sent
+                   0  messages received
+                 950  signals received
+                 507  voluntary context switches
+               18717  involuntary context switches
+          3162258116  instructions retired
+          2229712402  cycles elapsed
+            22282936  peak memory footprint

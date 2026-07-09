@@ -8,7 +8,7 @@ COVERAGE_TEXT ?= $(COVERAGE_DIR)/coverage.txt
 COVERAGE_PACKAGES ?= $(COVERAGE_DIR)/coverage-packages.md
 COVERAGE_HTML ?= $(COVERAGE_DIR)/coverage.html
 
-.PHONY: help fmt fmt-check tidy tidy-check vet lint test race coverage bench-cache bench-ratelimit bench-compression bench-id ci
+.PHONY: help fmt fmt-check tidy tidy-check vet lint test race coverage bench-cache bench-ratelimit bench-compression bench-id bench-rules ci
 
 help:
 	@printf '%s\n' \
@@ -25,6 +25,7 @@ help:
 		'  bench-cache Run opt-in cache, Redis NearCache, and Redis coordinator benchmarks' \
 		'  bench-ratelimit Run opt-in local rate limiter benchmarks' \
 		'  bench-id    Run opt-in id generator benchmarks' \
+		'  bench-rules Run opt-in rules composite and inference benchmarks' \
 		'  ci          Run the local CI gate'
 
 fmt:
@@ -77,5 +78,8 @@ bench-compression:
 
 bench-id:
 	@$(GO) test -run '^$$' -bench '^Benchmark(UUIDV4NewString|UUIDV4NewStringParallel|UUIDV4ReuseGenerator|UUIDV4ReuseGeneratorParallel|UUIDV7NewString|UUIDV7NewStringParallel|UUIDV7ReuseGenerator|UUIDV7ReuseGeneratorParallel|ULIDRandom|ULIDRandomParallel|ULIDMonotonic|ULIDMonotonicParallel|KSUIDNextString|KSUIDNextStringParallel|KSUIDMillisNextString|KSUIDMillisNextStringParallel|SnowflakeNextInt64|SnowflakeNextInt64SameMillisecond|SnowflakeNextInt64Parallel)$$' -benchmem ./id
+
+bench-rules:
+	@$(GO) test -run '^$$' -bench '^BenchmarkRules' -benchmem -count=5 ./rules
 
 ci: tidy-check fmt-check vet lint test race

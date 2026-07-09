@@ -1,0 +1,10 @@
+goos: darwin
+goarch: arm64
+pkg: github.com/bluetape4k/bluetape-go/graph/neo4j
+cpu: Apple M5
+BenchmarkVertexFromNode-10          	 6127984	       198.3 ns/op	     400 B/op	       3 allocs/op
+BenchmarkEdgeFromRelationship-10    	 9110983	       128.3 ns/op	     336 B/op	       2 allocs/op
+BenchmarkVerticesFromRecords-10     	   70990	     16971 ns/op	   37696 B/op	     201 allocs/op
+BenchmarkEdgesFromRecords-10        	   80739	     14386 ns/op	   41792 B/op	     201 allocs/op
+PASS
+ok  	github.com/bluetape4k/bluetape-go/graph/neo4j	5.372s

@@ -409,6 +409,10 @@ repository와 provider path의 근거입니다.
 Raw benchmark output은
 `docs/research/outputs/issue-173/distributed-jwt-redis-bench.txt`에 있고, chart
 source는 `docs/images/readme-charts/distributed-jwt-redis-benchmark.vl.json`입니다.
+Redis/Testcontainers benchmark row는 opt-in입니다. 일반 local benchmark가 Docker를
+시작하지 않도록, Redis row는
+`BLUETAPE_JWT_REDIS_BENCH=1 go test -p 1 -run '^$' -bench '^BenchmarkRedis' -benchmem ./jwt`
+처럼 serial로 실행하세요.
 
 ## Test
 

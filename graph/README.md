@@ -137,13 +137,25 @@ must copy or sanitize nested values before crossing trust boundaries.
 |---|---|
 | Graph I/O helpers for NDJSON and paired CSV | [`graph/graphio`](graphio/README.md) |
 | Neo4j backend proof | [`graph/neo4j`](neo4j/README.md) |
-| GraphML import/export | Deferred follow-up after NDJSON/CSV adoption evidence |
+| GraphML import/export | Deferred follow-up after NDJSON/CSV adoption evidence; see [issue #433 research](../docs/research/2026-07-09-issue-433-graphml-graphio-evaluation.md) |
 | Memgraph compatibility with the Neo4j surface | [`graph/neo4j`](neo4j/README.md) |
 | Domain examples | [`examples/graph/observability`](../examples/graph/observability/README.md), [`examples/graph/iamaccess`](../examples/graph/iamaccess/README.md) |
 | Repository/session/schema/query/transaction contracts | Deferred until multiple backend packages prove a shared contract |
 
 `ErrUnsupportedCapability` is reserved for future capability boundaries. No
 public API in this package returns it yet.
+
+## Workshop Adoption
+
+Package-local graph examples stay under
+[`examples/graph/observability`](../examples/graph/observability/README.md) and
+[`examples/graph/iamaccess`](../examples/graph/iamaccess/README.md). Workshop
+scenario adoption remains issue-tracked in
+[#36](https://github.com/bluetape4k/bluetape-go-workshop/issues/36),
+[#50](https://github.com/bluetape4k/bluetape-go-workshop/issues/50),
+[#51](https://github.com/bluetape4k/bluetape-go-workshop/issues/51),
+[#52](https://github.com/bluetape4k/bluetape-go-workshop/issues/52), and
+[#69](https://github.com/bluetape4k/bluetape-go-workshop/issues/69).
 
 ## Release Support
 

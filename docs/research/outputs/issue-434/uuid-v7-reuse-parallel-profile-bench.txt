@@ -1,0 +1,7 @@
+goos: darwin
+goarch: arm64
+pkg: github.com/bluetape4k/bluetape-go/id
+cpu: Apple M5
+BenchmarkUUIDV7ReuseGeneratorParallel-10    	23998815	       228.1 ns/op	      64 B/op	       2 allocs/op
+PASS
+ok  	github.com/bluetape4k/bluetape-go/id	6.502s

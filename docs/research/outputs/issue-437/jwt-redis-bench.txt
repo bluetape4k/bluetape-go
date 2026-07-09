@@ -1,0 +1,19 @@
+goos: darwin
+goarch: arm64
+pkg: github.com/bluetape4k/bluetape-go/jwt
+cpu: Apple M5
+BenchmarkRedisRepositoryFind-10                                          	     100	    316522 ns/op	    1224 B/op	      24 allocs/op
+BenchmarkRedisRepositoryFindParallel-10                                  	     100	     68205 ns/op	    8101 B/op	      39 allocs/op
+BenchmarkRedisRepositoryFindRetainedParallel-10                          	     100	     64362 ns/op	    8020 B/op	      38 allocs/op
+BenchmarkRedisRepositoryRotateCurrentHit-10                              	     100	    235857 ns/op	    1840 B/op	      35 allocs/op
+BenchmarkRedisRepositoryRotateExpired-10                                 	     100	    448067 ns/op	    5489 B/op	      96 allocs/op
+BenchmarkRedisRepositoryForcedRotate-10                                  	     100	    340209 ns/op	    3628 B/op	      60 allocs/op
+BenchmarkRedisRepositoryForcedRotateParallel-10                          	     100	    110602 ns/op	   10546 B/op	      75 allocs/op
+BenchmarkRedisDistributedProviderComposeContext-10                       	     100	    375530 ns/op	    5560 B/op	      88 allocs/op
+BenchmarkRedisDistributedProviderComposeContextParallel-10               	     100	     92150 ns/op	   12514 B/op	     103 allocs/op
+BenchmarkRedisDistributedProviderParseContext-10                         	     100	    257676 ns/op	    4896 B/op	      91 allocs/op
+BenchmarkRedisDistributedProviderParseContextParallel-10                 	     100	     55988 ns/op	   11698 B/op	     105 allocs/op
+BenchmarkRedisCachedDistributedProviderParseContextWarmHit-10            	     100	    308584 ns/op	    2488 B/op	      39 allocs/op
+BenchmarkRedisCachedDistributedProviderParseContextWarmHitParallel-10    	     100	     74058 ns/op	    9274 B/op	      53 allocs/op
+PASS
+ok  	github.com/bluetape4k/bluetape-go/jwt	12.060s

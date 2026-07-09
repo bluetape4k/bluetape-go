@@ -1,0 +1,14 @@
+goos: darwin
+goarch: arm64
+pkg: github.com/bluetape4k/bluetape-go/audit
+cpu: Apple M5
+BenchmarkMemoryRepositoryAppend/History16/Batch1/Payload256-10         	   73882	     17189 ns/op	   45226 B/op	     125 allocs/op
+BenchmarkMemoryRepositoryAppend/History256/Batch8/Payload2048-10       	    1342	    857813 ns/op	 1522878 B/op	    1612 allocs/op
+BenchmarkMemoryRepositoryFind/SingleAggregateHistory16-10              	  423285	      2770 ns/op	   17440 B/op	      54 allocs/op
+BenchmarkMemoryRepositoryFind/TypeScan64AggregatesLimit32-10           	    4256	    283617 ns/op	 1400594 B/op	    3084 allocs/op
+BenchmarkMemoryRepositoryLoadHistory/Small16/Payload256-10             	   83924	     14296 ns/op	   47084 B/op	     162 allocs/op
+BenchmarkMemoryRepositoryLoadHistory/Medium256/Payload2048-10          	    1268	    942250 ns/op	 2126793 B/op	    2329 allocs/op
+BenchmarkAuditEntryJSONRoundTrip/Payload256-10                         	  120286	     10054 ns/op	    4974 B/op	      56 allocs/op
+BenchmarkAuditEntryJSONRoundTrip/Payload2048-10                        	   35264	     34231 ns/op	   12345 B/op	      56 allocs/op
+PASS
+ok  	github.com/bluetape4k/bluetape-go/audit	15.639s

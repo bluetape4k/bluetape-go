@@ -1,0 +1,10 @@
+goos: darwin
+goarch: arm64
+pkg: github.com/bluetape4k/bluetape-go/audit/sqloutbox
+cpu: Apple M5
+BenchmarkAuditSQLOutboxPostgres/Enqueue/Batch10/Payload512-10         	     100	   2638305 ns/op	   86278 B/op	     366 allocs/op
+BenchmarkAuditSQLOutboxPostgres/Claim/Limit10/Pending100/Payload512-10         	     100	   1701315 ns/op	   96471 B/op	     819 allocs/op
+BenchmarkAuditSQLOutboxPostgres/RunOnce/Publish10/Payload512-10                	     100	   2718956 ns/op	  104983 B/op	     957 allocs/op
+BenchmarkAuditSQLOutboxPostgres/RunOnce/DeadLetter10/Payload512-10             	     100	   2932703 ns/op	  111107 B/op	     987 allocs/op
+PASS
+ok  	github.com/bluetape4k/bluetape-go/audit/sqloutbox	5.613s

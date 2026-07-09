@@ -1,0 +1,145 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1500" height="1130" viewBox="0 0 1500 1130" role="img" aria-labelledby="title desc">
+  <title id="title">MongoDB Leader Election Sequence</title>
+  <desc id="desc">Campaign, renewal, observation, release, retry, and TTL cleanup in the MongoDB single leader elector.</desc>
+  <defs>
+    <filter id="softShadow" x="-8%" y="-10%" width="116%" height="124%"><feDropShadow dx="0" dy="5" stdDeviation="5" flood-color="#0F172A" flood-opacity="0.10"/></filter>
+    <marker id="arrow-blue" markerWidth="16" markerHeight="16" viewBox="0 0 10 10" refX="9" refY="5" orient="auto" markerUnits="userSpaceOnUse"><path d="M 0 0 L 10 5 L 0 10 Z" fill="#4f77c9"/></marker>
+    <marker id="arrow-green" markerWidth="16" markerHeight="16" viewBox="0 0 10 10" refX="9" refY="5" orient="auto" markerUnits="userSpaceOnUse"><path d="M 0 0 L 10 5 L 0 10 Z" fill="#319873"/></marker>
+    <marker id="arrow-amber" markerWidth="16" markerHeight="16" viewBox="0 0 10 10" refX="9" refY="5" orient="auto" markerUnits="userSpaceOnUse"><path d="M 0 0 L 10 5 L 0 10 Z" fill="#cf8428"/></marker>
+    <marker id="arrow-red" markerWidth="16" markerHeight="16" viewBox="0 0 10 10" refX="9" refY="5" orient="auto" markerUnits="userSpaceOnUse"><path d="M 0 0 L 10 5 L 0 10 Z" fill="#c85d73"/></marker>
+    <marker id="arrow-purple" markerWidth="16" markerHeight="16" viewBox="0 0 10 10" refX="9" refY="5" orient="auto" markerUnits="userSpaceOnUse"><path d="M 0 0 L 10 5 L 0 10 Z" fill="#7e62d9"/></marker>
+    <marker id="arrow-teal" markerWidth="16" markerHeight="16" viewBox="0 0 10 10" refX="9" refY="5" orient="auto" markerUnits="userSpaceOnUse"><path d="M 0 0 L 10 5 L 0 10 Z" fill="#3f7d9c"/></marker>
+    <marker id="arrow-gray" markerWidth="16" markerHeight="16" viewBox="0 0 10 10" refX="9" refY="5" orient="auto" markerUnits="userSpaceOnUse"><path d="M 0 0 L 10 5 L 0 10 Z" fill="#64748b"/></marker>
+    <style>
+      .canvas { fill: #f8fafc; }
+      .frame { fill: #ffffff; stroke: #cbd5e1; stroke-width: 1.5; filter: url(#softShadow); }
+      .title, .part-title { font-family: "Architects Daughter"; fill: #263a57; }
+      .title { font-size: 42px; }
+      .subtitle, .small, .msg, .region, .footer { font-family: "Comic Mono"; fill: #526276; }
+      .subtitle { font-size: 17px; }
+      .small { font-size: 12px; }
+      .msg { font-size: 13px; font-weight: 700; }
+      .region { font-size: 12px; font-weight: 700; }
+      .footer { font-size: 14px; }
+      .participant { stroke-width: 2.2; rx: 12; }
+      .lifeline { stroke: #c5d4e3; stroke-width: 2; stroke-dasharray: 8 8; }
+      .activation { fill: #f3eeff; stroke: #8a65d8; stroke-width: 1.7; rx: 7; opacity: .88; }
+      .route { fill: none; stroke-width: 3; stroke-linecap: round; stroke-linejoin: round; }
+      .return { fill: none; stroke-width: 2.6; stroke-linecap: round; stroke-linejoin: round; stroke-dasharray: 9 8; }
+      .alt { fill: none; stroke: #78909c; stroke-width: 2.4; stroke-dasharray: 12 7; rx: 16; }
+      .alt-label { fill: #ffffff; stroke: #d7e0e4; stroke-width: 1.5; rx: 15; }
+      .else-line { stroke: #78909c; stroke-width: 2.2; stroke-dasharray: 12 8; }
+      .pill { fill: #ffffff; stroke: #cbd9e7; stroke-width: 1.5; rx: 14; }
+      .badge { stroke-width: 1.6; }
+      .badge-text { font-family: "Comic Mono"; font-size: 10px; font-weight: 700; fill: #ffffff; }
+      .legend { fill: #ffffff; stroke: #d4e0ec; stroke-width: 1.5; rx: 12; }
+    </style>
+  </defs>
+  <rect class="canvas" width="1500" height="1130"/>
+  <rect class="frame" x="34" y="30" width="1432" height="1070" rx="8"/>
+  <text class="title" x="72" y="88">MongoDB Leader Election Sequence</text>
+  <text class="subtitle" x="76" y="120">Campaign, renew, release, and observe use conditional MongoDB predicates; TTL cleanup is asynchronous.</text>
+
+  <rect class="participant" x="70" y="174" width="160" height="68" fill="#eaf2ff" stroke="#6d9df0"/>
+  <text class="part-title participant-title" x="150" y="202" text-anchor="middle">Member</text>
+  <text class="small" x="150" y="224" text-anchor="middle">caller</text>
+  <line class="lifeline" x1="150" y1="242" x2="150" y2="1034"/>
+  <rect class="participant" x="280" y="174" width="160" height="68" fill="#fff4de" stroke="#d59c3f"/>
+  <text class="part-title participant-title" x="360" y="202" text-anchor="middle">Elector</text>
+  <text class="small" x="360" y="224" text-anchor="middle">Go API</text>
+  <line class="lifeline" x1="360" y1="242" x2="360" y2="1034"/>
+  <rect class="participant" x="510" y="174" width="160" height="68" fill="#f8fafc" stroke="#64748b"/>
+  <text class="part-title participant-title" x="590" y="202" text-anchor="middle">MongoDB</text>
+  <text class="small" x="590" y="224" text-anchor="middle">collection</text>
+  <line class="lifeline" x1="590" y1="242" x2="590" y2="1034"/>
+  <rect class="participant" x="750" y="174" width="160" height="68" fill="#f3efff" stroke="#9b7aec"/>
+  <text class="part-title participant-title" x="830" y="202" text-anchor="middle">Lease doc</text>
+  <text class="small" x="830" y="224" text-anchor="middle">_id prefix:group</text>
+  <line class="lifeline" x1="830" y1="242" x2="830" y2="1034"/>
+  <rect class="participant" x="980" y="174" width="160" height="68" fill="#edf9f4" stroke="#63b891"/>
+  <text class="part-title participant-title" x="1060" y="202" text-anchor="middle">Renew loop</text>
+  <text class="small" x="1060" y="224" text-anchor="middle">worker</text>
+  <line class="lifeline" x1="1060" y1="242" x2="1060" y2="1034"/>
+  <rect class="participant" x="1200" y="174" width="160" height="68" fill="#fff0f0" stroke="#c85d73"/>
+  <text class="part-title participant-title" x="1280" y="202" text-anchor="middle">Contender</text>
+  <text class="small" x="1280" y="224" text-anchor="middle">same group</text>
+  <line class="lifeline" x1="1280" y1="242" x2="1280" y2="1034"/>
+
+  <rect class="activation" x="353" y="298" width="14" height="444" rx="7"/>
+  <rect class="activation" x="583" y="358" width="14" height="332" rx="7"/>
+  <rect class="activation" x="823" y="418" width="14" height="524" rx="7"/>
+  <rect class="activation" x="1053" y="568" width="14" height="126" rx="7"/>
+
+  <rect class="alt" x="78" y="330" width="1276" height="420" rx="16"/>
+  <rect class="alt-label" x="96" y="348" width="176" height="30" rx="15"/>
+  <text class="region" x="118" y="368">alt acquired</text>
+  <line class="else-line" x1="92" y1="690" x2="1340" y2="690"/>
+  <rect class="alt-label" x="96" y="708" width="238" height="30" rx="15"/>
+  <text class="region" x="118" y="728">else conflict or wait</text>
+  <rect class="alt" x="78" y="840" width="1276" height="160" rx="16"/>
+  <rect class="alt-label" x="96" y="858" width="196" height="30" rx="15"/>
+  <text class="region" x="118" y="878">async cleanup</text>
+
+  <path class="route" d="M150 310 L360 310" stroke="#4f77c9" marker-end="url(#arrow-blue)"/>
+  <rect class="pill" x="180" y="268" width="150" height="30" rx="15"/>
+  <circle class="badge" cx="198" cy="283" r="13" fill="#4f77c9"/>
+  <text class="badge-text badgeText" x="198" y="287" text-anchor="middle">1</text>
+  <text class="msg" x="270" y="288" text-anchor="middle" fill="#4f77c9">Campaign(ctx)</text>
+
+  <path class="route" d="M360 370 L590 370" stroke="#cf8428" marker-end="url(#arrow-amber)"/>
+  <rect class="pill" x="344" y="328" width="272" height="30" rx="15"/>
+  <circle class="badge" cx="362" cy="343" r="13" fill="#cf8428"/>
+  <text class="badge-text badgeText" x="362" y="347" text-anchor="middle">2</text>
+  <text class="msg" x="490" y="348" text-anchor="middle" fill="#cf8428">FindOneAndUpdate upsert</text>
+
+  <path class="route" d="M590 430 L830 430" stroke="#319873" marker-end="url(#arrow-green)"/>
+  <rect class="pill" x="602" y="388" width="216" height="30" rx="15"/>
+  <circle class="badge" cx="620" cy="403" r="13" fill="#319873"/>
+  <text class="badge-text badgeText" x="620" y="407" text-anchor="middle">3</text>
+  <text class="msg" x="725" y="408" text-anchor="middle" fill="#319873">store token + lease_until</text>
+
+  <path class="return" d="M590 490 L360 490" stroke="#319873" marker-end="url(#arrow-green)"/>
+  <rect class="pill" x="392" y="448" width="166" height="30" rx="15"/>
+  <circle class="badge" cx="410" cy="463" r="13" fill="#319873"/>
+  <text class="badge-text badgeText" x="410" y="467" text-anchor="middle">4</text>
+  <text class="msg" x="490" y="468" text-anchor="middle" fill="#319873">acquired token</text>
+
+  <path class="route" d="M360 550 L1060 550" stroke="#319873" marker-end="url(#arrow-green)"/>
+  <rect class="pill" x="606" y="508" width="238" height="30" rx="15"/>
+  <circle class="badge" cx="624" cy="523" r="13" fill="#319873"/>
+  <text class="badge-text badgeText" x="624" y="527" text-anchor="middle">5</text>
+  <text class="msg" x="725" y="528" text-anchor="middle" fill="#319873">start renew loop</text>
+
+  <path class="route" d="M1060 610 L590 610" stroke="#cf8428" marker-end="url(#arrow-amber)"/>
+  <rect class="pill" x="676" y="568" width="298" height="30" rx="15"/>
+  <circle class="badge" cx="694" cy="583" r="13" fill="#cf8428"/>
+  <text class="badge-text badgeText" x="694" y="587" text-anchor="middle">6</text>
+  <text class="msg" x="825" y="588" text-anchor="middle" fill="#cf8428">UpdateOne token + live lease</text>
+
+  <path class="route" d="M1280 730 L590 730" stroke="#c85d73" marker-end="url(#arrow-red)"/>
+  <rect class="pill" x="812" y="688" width="246" height="30" rx="15"/>
+  <circle class="badge" cx="830" cy="703" r="13" fill="#c85d73"/>
+  <text class="badge-text badgeText" x="830" y="707" text-anchor="middle">7</text>
+  <text class="msg" x="950" y="708" text-anchor="middle" fill="#c85d73">retry until resign or expiry</text>
+
+  <path class="route" d="M360 790 L590 790" stroke="#7e62d9" marker-end="url(#arrow-purple)"/>
+  <rect class="pill" x="348" y="748" width="254" height="30" rx="15"/>
+  <circle class="badge" cx="366" cy="763" r="13" fill="#7e62d9"/>
+  <text class="badge-text badgeText" x="366" y="767" text-anchor="middle">8</text>
+  <text class="msg" x="482" y="768" text-anchor="middle" fill="#7e62d9">DeleteOne matching token</text>
+
+  <path class="route" d="M590 910 L830 910" stroke="#cf8428" marker-end="url(#arrow-amber)"/>
+  <rect class="pill" x="594" y="868" width="232" height="30" rx="15"/>
+  <circle class="badge" cx="612" cy="883" r="13" fill="#cf8428"/>
+  <text class="badge-text badgeText" x="612" y="887" text-anchor="middle">9</text>
+  <text class="msg" x="725" y="888" text-anchor="middle" fill="#cf8428">TTL may remove expired doc</text>
+
+  <path class="route" d="M360 970 L590 970" stroke="#3f7d9c" marker-end="url(#arrow-teal)"/>
+  <rect class="pill" x="382" y="928" width="206" height="30" rx="15"/>
+  <circle class="badge" cx="378" cy="943" r="13" fill="#3f7d9c"/>
+  <text class="badge-text badgeText" x="378" y="947" text-anchor="middle">10</text>
+  <text class="msg" x="494" y="948" text-anchor="middle" fill="#3f7d9c">Leader reads live lease</text>
+
+  <rect class="legend" x="82" y="1056" width="1336" height="40" rx="8"/>
+  <text class="footer" x="750" y="1082" text-anchor="middle">The TTL index is an operational cleanup path; live leadership is decided by token and lease_until predicates.</text>
+</svg>
