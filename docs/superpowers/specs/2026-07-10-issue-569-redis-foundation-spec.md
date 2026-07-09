@@ -189,8 +189,14 @@ type Key struct {
 }
 
 func RedactedKeyID(key string) string
+func ValidateRedactedKeyID(id string) error
 func ValidateTTL(name string, ttl time.Duration) error
 func TTLMillis(name string, ttl time.Duration) (int64, error)
+
+type OpLabels struct {
+    Family    string
+    Operation string
+}
 
 type OpError struct {
     Family    string
@@ -199,8 +205,8 @@ type OpError struct {
     Err       error
 }
 
-func NewOpError(family string, operation string, rawKey string, err error) error
-func NewOpErrorWithRedactedKey(family string, operation string, redactedKeyID string, err error) error
+func NewOpError(labels OpLabels, rawKey string, err error) error
+func NewOpErrorWithRedactedKey(labels OpLabels, redactedKeyID string, err error) error
 func (e OpError) Error() string
 func (e OpError) Unwrap() error
 func (e OpError) Is(target error) bool
@@ -214,8 +220,13 @@ contract, but the API must stay within this boundary.
 
 ## Key Contract
 
-- Prefix and structural key segments are low-cardinality package-owned segments.
-  They may be trimmed for validation and must be joined with `:`.
+- Prefix is a low-cardinality package-owned prefix string. It may contain `:`
+  delimiters to preserve existing package families such as
+  `bluetape:probabilistic:bloom:v1`, but each prefix part between delimiters is
+  validated as a structural segment.
+- Structural key segments added after the prefix are low-cardinality
+  package-owned segments. They may be trimmed for validation and must be joined
+  with `:`.
 - Structural segments reject empty values, embedded braces, and `:` delimiters.
 - `LogicalKey(logicalKey string)` accepts exactly one caller-owned logical key
   segment and appends it verbatim after the structural prefix.
@@ -232,7 +243,9 @@ contract, but the API must stay within this boundary.
 - Hash-tags are opt-in via an explicit tag argument. The foundation must not
   silently hash-tag all keys.
 - Hash-tags must reject empty tags and braces that would produce ambiguous Redis
-  Cluster slot behavior.
+  Cluster slot behavior. They must not reject `:` because existing
+  `probabilistic/redis` namespaces use colon-bearing values inside Redis Cluster
+  hash tags and #570 parity must preserve those key strings.
 - Hash-tags are not tenant isolation or authorization boundaries. Multi-tenant
   packages must include tenant scope in their own namespace/key contract and
   enforce access control outside this package.
@@ -259,6 +272,9 @@ contract, but the API must stay within this boundary.
   characters; no global PRNG.
 - Tokens are opaque values for Redis comparison. The default `String()` form is
   redacted and must not return the Redis comparison value.
+- `GoString()` and `slog.LogValuer` formatting must also redact the token so
+  debug formatting and structured logging do not expose the Redis comparison
+  value.
 - `RedisValue()` returns the raw comparison value for Redis command arguments
   only. Docs and examples must call it sensitive and must not log it.
 - Validation rejects empty, whitespace-only, undersized, oversized, or
@@ -291,6 +307,9 @@ Rules:
 - Script helpers reject `ctx == nil` with a sentinel-compatible validation
   error. Existing packages may normalize nil contexts internally, but this
   public foundation should make external Redis IO timeout ownership explicit.
+- Script helpers reject a nil `redis.Scripter` with a sentinel-compatible
+  validation error before script dispatch. A typed nil client should also return
+  a validation error when it is detectable without unsafe reflection.
 - Docs and examples must use `context.WithTimeout` or a caller-owned deadline
   around Redis script helpers.
 - `ctx.Err()` is checked before script execution.
@@ -326,13 +345,21 @@ Rules:
 - `OpError.Is(target)` delegates to `errors.Is(e.Err, target)` so callers can
   match `context.Canceled`, `context.DeadlineExceeded`, or Redis sentinel errors
   when applicable.
-- `OpError.Error()` must not print raw Redis keys or owner tokens.
+- `OpError.Error()` must not print raw Redis keys, owner tokens, or the wrapped
+  cause string. It may include low-cardinality family/operation labels, the
+  redacted key id, and the cause type/category. Callers can still inspect the
+  original cause through `errors.Unwrap` / `errors.Is` / `errors.As`.
 - `OpError.KeyID` is a redacted key id only. Normal construction uses
   `NewOpError`, which accepts a raw Redis key and stores only `RedactedKeyID`.
   `NewOpErrorWithRedactedKey` exists only for callers that already have a
-  redacted key id. Manual `OpError` literals are documented as advanced/testing
-  use and must never use raw Redis keys. Tests must prove raw keys/tokens do not
-  appear in error strings.
+  redacted key id and must validate the exact `redis-key:<24 lowercase hex>`
+  shape. Manual `OpError` literals are documented as advanced/testing use and
+  must never use raw Redis keys. Tests must prove raw keys/tokens do not appear
+  in error strings, including when the wrapped cause text contains those values.
+- `OpLabels` groups low-cardinality `Family` and `Operation` labels so public
+  constructors do not use adjacent positional string parameters for family,
+  operation, and key material. Label validation rejects empty, overlong, and
+  delimiter-heavy values without echoing rejected label text.
 - TTL validation label parameters are low-cardinality public labels such as
   `"lease ttl"` or `"idle ttl"`, not Redis keys, tenant IDs, or user input.
   Validation errors must avoid echoing arbitrary high-cardinality labels.
@@ -348,18 +375,22 @@ Unit tests:
   verbatim;
 - invalid prefix/tag/key segments return sentinel-compatible errors;
 - redacted key ID is deterministic and does not include the raw key;
+- redacted key ID validates as `redis-key:<24 lowercase hex>` and rejects raw
+  keys passed to the already-redacted constructor path without echoing them;
 - redacted key ID uses the longer stable correlation prefix and tests state it
   is not a privacy boundary;
 - owner token generation returns canonical 64-character lowercase hex values
   backed by 256 bits of randomness;
 - owner token parsing rejects empty, blank, undersized, oversized, mixed-case,
   and non-hex values and redacts errors;
-- default token formatting is redacted; tests cover `fmt.Sprint(token)` and
-  examples must not log `RedisValue()`;
+- default token formatting is redacted; tests cover `fmt.Sprint(token)`,
+  `%#v`, `%+v`, `GoString()`, and structured `slog.Any`; examples must not log
+  `RedisValue()`;
 - lease validation rejects missing key/token;
-- script helpers reject nil contexts and invalid leases before Redis IO;
-- fake `redis.Scripter` tests prove nil context, pre-canceled context, invalid
-  lease, and invalid TTL do not dispatch Redis IO;
+- script helpers reject nil contexts, nil clients, and invalid leases before
+  Redis IO;
+- fake `redis.Scripter` tests prove nil context, nil client, pre-canceled
+  context, invalid lease, and invalid TTL do not dispatch Redis IO;
 - TTL validation rejects zero, negative, and sub-millisecond TTLs for script
   helpers;
 - `OpError` supports `errors.As`, `errors.Is`, `Unwrap`, and redacted strings;
@@ -373,6 +404,8 @@ Integration tests with Redis Testcontainers:
 - compare-extend updates TTL only for the matching owner token;
 - compare-extend returns false without updating TTL after token drift;
 - canceled/deadline context returns caller-visible context error;
+- first-run script execution against a real client succeeds through go-redis
+  `EVALSHA`/`EVAL` behavior; the foundation does not reimplement that fallback;
 - in-flight cancellation after script dispatch is documented as an indeterminate
   commit-state case; tests should prove pre-dispatch canceled contexts do not
   call Redis and integration docs should describe post-dispatch inspection;
@@ -381,20 +414,20 @@ Integration tests with Redis Testcontainers:
 
 Race/stress tests:
 
-- `go test -race -count=1 ./redis` is mandatory.
+- `go test -p 1 -race -count=1 ./redis` is mandatory for Redis-backed tests.
 - Owner token generation gets a bounded concurrent uniqueness/stability test
   because it claims reusable safe generation. The test must use a bounded sample
   and phrase duplicate failures as unexpected probabilistic collisions, not as a
   mathematical impossibility.
 - Lease script helpers get bounded Redis-backed concurrent stress tests proving
   interleaved owners cannot delete or extend a later owner, and the same stress
-  coverage must pass under `go test -race -count=1 ./redis`.
+  coverage must pass under `go test -p 1 -race -count=1 ./redis`.
 
 Validation commands:
 
 ```bash
-go test -count=1 ./redis
-go test -race -count=1 ./redis
+go test -p 1 -count=1 ./redis
+go test -p 1 -race -count=1 ./redis
 go test -run Example -count=1 ./redis
 git diff --check
 make ci
@@ -451,8 +484,8 @@ can be added under #570.
   cancellation contracts.
 - Lease script stress tests prove interleaved owners cannot delete or extend a
   later owner and pass under race.
-- `go test -count=1 ./redis`, `go test -race -count=1 ./redis`, and `make ci`
-  pass.
+- `go test -p 1 -count=1 ./redis`, `go test -p 1 -race -count=1 ./redis`,
+  and `make ci` pass.
 - Existing Redis packages have no behavioral changes in this issue.
 - README locale set and changelog are updated; README examples are
   compile-checked or linked to compile-checked examples.
