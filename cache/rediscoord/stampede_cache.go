@@ -8,6 +8,7 @@ import (
 
 	"github.com/bluetape4k/bluetape-go/cache"
 	redislock "github.com/bluetape4k/bluetape-go/lock/redis"
+	btredis "github.com/bluetape4k/bluetape-go/redis"
 	"github.com/redis/go-redis/v9"
 )
 
@@ -208,7 +209,7 @@ func (c *StampedeCache[V]) readOwnerResult(
 		return zero, false, nil
 	}
 	if err != nil {
-		return zero, false, fmt.Errorf("redis load result get: %w", err)
+		return zero, false, operationError(ctx, "result-get", c.resultKey(key), err)
 	}
 
 	payload, ok, err := decodeResult(encoded, ownerToken)
@@ -234,7 +235,7 @@ func (c *StampedeCache[V]) ownerToken(ctx context.Context, key string) (string, 
 		return "", false, nil
 	}
 	if err != nil {
-		return "", false, fmt.Errorf("redis load lock owner get: %w", err)
+		return "", false, operationError(ctx, "owner-get", c.lockKey(key), err)
 	}
 	return token, true, nil
 }
@@ -248,7 +249,7 @@ func (c *StampedeCache[V]) ensureOwner(ctx context.Context, lease *redislock.Lea
 		return fmt.Errorf("redis load lock expired before result publication")
 	}
 	if err != nil {
-		return fmt.Errorf("redis load lock owner get: %w", err)
+		return operationError(ctx, "owner-check", lease.Key(), err)
 	}
 	if token != lease.Token() {
 		return fmt.Errorf("redis load lock expired before result publication")
@@ -262,7 +263,7 @@ func (c *StampedeCache[V]) storeResult(ctx context.Context, key string, token st
 		return err
 	}
 	if err := c.cfg.client.Set(ctx, c.resultKey(key), encoded, c.cfg.resultTTL).Err(); err != nil {
-		return fmt.Errorf("redis load result set: %w", err)
+		return operationError(ctx, "result-set", c.resultKey(key), err)
 	}
 	return nil
 }
@@ -297,4 +298,15 @@ func normalizeContext(ctx context.Context) context.Context {
 		return context.Background()
 	}
 	return ctx
+}
+
+func operationError(ctx context.Context, operation string, rawKey string, err error) error {
+	if ctx != nil && ctx.Err() != nil {
+		err = errors.Join(err, ctx.Err())
+	}
+	return btredis.NewOpError(
+		btredis.OpLabels{Family: "cache coordination", Operation: operation},
+		rawKey,
+		err,
+	)
 }
