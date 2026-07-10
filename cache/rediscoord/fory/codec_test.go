@@ -1,6 +1,7 @@
 package rediscoordfory
 
 import (
+	"encoding/binary"
 	"errors"
 	"fmt"
 	"strconv"
@@ -11,6 +12,26 @@ import (
 
 	"github.com/apache/fory/go/fory"
 )
+
+func TestBTFYV1LayoutRemainsStable(t *testing.T) {
+	codec, err := NewNativeFast[string](Options{Register: func(*fory.Fory) error { return nil }})
+	if err != nil {
+		t.Fatal(err)
+	}
+	encoded, err := codec.Marshal("value")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(encoded) < 10 {
+		t.Fatalf("encoded length = %d", len(encoded))
+	}
+	if string(encoded[:4]) != "BTFY" || encoded[4] != 1 || encoded[5] != 1 {
+		t.Fatalf("header = %x", encoded[:10])
+	}
+	if binary.BigEndian.Uint32(encoded[6:10]) != uint32(len(encoded)-10) {
+		t.Fatalf("length = %d", binary.BigEndian.Uint32(encoded[6:10]))
+	}
+}
 
 type testValue struct {
 	Name  string
