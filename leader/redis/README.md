@@ -106,6 +106,10 @@ _ = ran
   cancelled.
 - Cleanup may outlive a request context, but copied examples should still bound
   `Resign` with an explicit cleanup timeout.
+- Single-elector values retain the `memberID:<random>` layout; the random
+  suffix is an internal canonical owner token, not a caller-visible lease API.
+- Redis provider failures preserve their cause for `errors.Is` / `errors.As`
+  while diagnostic text redacts raw Redis keys and owner-token values.
 
 ## Runnable Batch Examples
 

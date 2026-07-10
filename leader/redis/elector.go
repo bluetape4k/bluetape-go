@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"github.com/bluetape4k/bluetape-go/leader"
+	btredis "github.com/bluetape4k/bluetape-go/redis"
 	"github.com/redis/go-redis/v9"
 )
 
@@ -51,7 +52,7 @@ func New(client redis.Cmdable, opts leader.Options) (*Elector, error) {
 		return nil, err
 	}
 
-	token, err := randomToken()
+	token, err := newElectorToken(normalized.MemberID)
 	if err != nil {
 		return nil, err
 	}
@@ -60,7 +61,7 @@ func New(client redis.Cmdable, opts leader.Options) (*Elector, error) {
 		client: client,
 		opts:   normalized,
 		key:    fmt.Sprintf("%s:%s", normalized.KeyPrefix, normalized.Group),
-		token:  normalized.MemberID + ":" + token,
+		token:  token,
 	}, nil
 }
 
@@ -75,7 +76,7 @@ func (e *Elector) Campaign(ctx context.Context) error {
 
 	ok, err := e.client.SetNX(ctx, e.key, e.token, e.opts.Lease).Result()
 	if err != nil {
-		return fmt.Errorf("redis leader campaign: %w", err)
+		return btredis.NewOpError(btredis.OpLabels{Family: "leader redis", Operation: "campaign"}, e.key, err)
 	}
 	if !ok {
 		return leader.ErrNotLeader
@@ -124,7 +125,7 @@ func (e *Elector) Resign(ctx context.Context) error {
 
 	_, err := e.client.Eval(ctx, releaseScript, []string{e.key}, e.token).Result()
 	if err != nil {
-		return fmt.Errorf("redis leader resign: %w", err)
+		return btredis.NewOpError(btredis.OpLabels{Family: "leader redis", Operation: "resign"}, e.key, err)
 	}
 	return nil
 }
@@ -143,7 +144,7 @@ func (e *Elector) Leader(ctx context.Context) (string, error) {
 		return "", nil
 	}
 	if err != nil {
-		return "", fmt.Errorf("redis leader lookup: %w", err)
+		return "", btredis.NewOpError(btredis.OpLabels{Family: "leader redis", Operation: "lookup"}, e.key, err)
 	}
 	return value, nil
 }
@@ -179,9 +180,17 @@ func (e *Elector) renew(ctx context.Context) (bool, error) {
 	ttlMillis := int64(e.opts.Lease / time.Millisecond)
 	result, err := e.client.Eval(renewCtx, renewScript, []string{e.key}, e.token, ttlMillis).Int()
 	if err != nil {
-		return false, err
+		return false, btredis.NewOpError(btredis.OpLabels{Family: "leader redis", Operation: "renew"}, e.key, err)
 	}
 	return result == 1, nil
+}
+
+func newElectorToken(memberID string) (string, error) {
+	token, err := btredis.NewOwnerToken()
+	if err != nil {
+		return "", err
+	}
+	return memberID + ":" + token.RedisValue(), nil
 }
 
 func randomToken() (string, error) {

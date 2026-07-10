@@ -9,7 +9,9 @@ import (
 
 	"github.com/bluetape4k/bluetape-go/leader"
 	redisleader "github.com/bluetape4k/bluetape-go/leader/redis"
+	btredis "github.com/bluetape4k/bluetape-go/redis"
 	bttesting "github.com/bluetape4k/bluetape-go/testing"
+	goredis "github.com/redis/go-redis/v9"
 )
 
 func TestRedisElectorCampaignAndResign(t *testing.T) {
@@ -234,5 +236,70 @@ func TestRedisElectorPreservesWrappedContextError(t *testing.T) {
 	}
 	if _, err := elector.Leader(cancelled); !errors.Is(err, context.Canceled) {
 		t.Fatalf("leader lookup should preserve context.Canceled, got %v", err)
+	}
+}
+
+func TestRedisElectorCampaignProviderErrorIsRedactedAndWrapped(t *testing.T) {
+	ctx := context.Background()
+	client := newRedisClient(ctx, t)
+
+	const (
+		group  = "redacted-campaign-error"
+		prefix = "tenant:leader"
+	)
+	elector, err := redisleader.New(client, leader.Options{
+		Group:     group,
+		MemberID:  "member-1",
+		KeyPrefix: prefix,
+	})
+	if err != nil {
+		t.Fatalf("new elector: %v", err)
+	}
+	if err := client.Close(); err != nil {
+		t.Fatalf("close redis client: %v", err)
+	}
+
+	err = elector.Campaign(ctx)
+	if !errors.Is(err, goredis.ErrClosed) {
+		t.Fatalf("campaign error should preserve redis.ErrClosed, got %v", err)
+	}
+	var opErr *btredis.OpError
+	if !errors.As(err, &opErr) {
+		t.Fatalf("campaign error = %T, want *redis.OpError", err)
+	}
+	if strings.Contains(err.Error(), prefix+":"+group) {
+		t.Fatalf("campaign error leaked raw Redis key: %v", err)
+	}
+}
+
+func TestRedisElectorStoresCanonicalOwnerTokenSuffix(t *testing.T) {
+	ctx := context.Background()
+	client := newRedisClient(ctx, t)
+
+	const memberID = "member-1"
+	elector, err := redisleader.New(client, leader.Options{
+		Group:    "canonical-owner-token",
+		MemberID: memberID,
+	})
+	if err != nil {
+		t.Fatalf("new elector: %v", err)
+	}
+	if err := elector.Campaign(ctx); err != nil {
+		t.Fatalf("campaign: %v", err)
+	}
+	t.Cleanup(func() {
+		_ = elector.Resign(context.Background())
+	})
+
+	value, err := elector.Leader(ctx)
+	if err != nil {
+		t.Fatalf("leader: %v", err)
+	}
+	suffix, ok := strings.CutPrefix(value, memberID+":")
+	if !ok {
+		t.Fatalf("leader value = %q, want %q prefix", value, memberID+":")
+	}
+	if _, err := btredis.ParseOwnerToken(suffix); err != nil {
+		t.Fatalf("leader token suffix should be canonical shared owner token: %v", err)
 	}
 }
