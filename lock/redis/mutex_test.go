@@ -10,6 +10,7 @@ import (
 	"time"
 
 	redislock "github.com/bluetape4k/bluetape-go/lock/redis"
+	btredis "github.com/bluetape4k/bluetape-go/redis"
 	redistestcontainer "github.com/bluetape4k/bluetape-go/testcontainers/redis"
 	bttesting "github.com/bluetape4k/bluetape-go/testing"
 	concurrencytest "github.com/bluetape4k/bluetape-go/testing/concurrency"
@@ -106,6 +107,83 @@ func TestMutexAcquiresAndUnlocksOwner(t *testing.T) {
 		t.Fatal("owner unlock should release key")
 	}
 	assertRedisKeyMissing(t, client, key)
+}
+
+func TestMutexGeneratedTokenUsesSharedOwnerToken(t *testing.T) {
+	ctx := context.Background()
+	client := redisClient(ctx, t)
+	mutex := newMutex(t, client, testLockKey(t), "", time.Second)
+
+	lease, err := mutex.TryLock(ctx)
+	if err != nil {
+		t.Fatalf("try lock: %v", err)
+	}
+	if _, err := btredis.ParseOwnerToken(lease.Token()); err != nil {
+		t.Fatalf("generated token should be a shared owner token: %v", err)
+	}
+
+	released, err := lease.Unlock(ctx)
+	if err != nil || !released {
+		t.Fatalf("unlock generated lease: released=%t err=%v", released, err)
+	}
+}
+
+func TestMutexCustomTokenPreservesLegacyNormalization(t *testing.T) {
+	ctx := context.Background()
+	client := redisClient(ctx, t)
+	key := testLockKey(t)
+	mutex := newMutex(t, client, key, " owner-a ", time.Second)
+
+	lease, err := mutex.TryLock(ctx)
+	if err != nil {
+		t.Fatalf("try lock: %v", err)
+	}
+	if lease.Token() != "owner-a" {
+		t.Fatalf("custom token = %q, want owner-a", lease.Token())
+	}
+	value, err := client.Get(ctx, key).Result()
+	if err != nil {
+		t.Fatalf("read lock token: %v", err)
+	}
+	if value != lease.Token() {
+		t.Fatalf("redis custom token = %q, want %q", value, lease.Token())
+	}
+
+	released, err := lease.Unlock(ctx)
+	if err != nil || !released {
+		t.Fatalf("unlock custom lease: released=%t err=%v", released, err)
+	}
+}
+
+func TestMutexRedactsRedisProviderErrors(t *testing.T) {
+	ctx := context.Background()
+	key := "secret-lock-key"
+	token := "secret-custom-token"
+
+	closed := redis.NewClient(&redis.Options{Addr: "127.0.0.1:0"})
+	if err := closed.Close(); err != nil {
+		t.Fatalf("close acquire client: %v", err)
+	}
+	mutex := newMutex(t, closed, key, token, time.Second)
+	if _, err := mutex.TryLock(ctx); err == nil {
+		t.Fatal("closed client acquire should fail")
+	} else {
+		assertRedactedRedisOpError(t, err, key, token)
+	}
+
+	client := redisClient(ctx, t)
+	lease, err := newMutex(t, client, key, token, time.Second).TryLock(ctx)
+	if err != nil {
+		t.Fatalf("acquire lease for unlock failure: %v", err)
+	}
+	if err := client.Close(); err != nil {
+		t.Fatalf("close unlock client: %v", err)
+	}
+	if _, err := lease.Unlock(ctx); err == nil {
+		t.Fatal("closed client unlock should fail")
+	} else {
+		assertRedactedRedisOpError(t, err, key, token)
+	}
 }
 
 func TestMutexRejectsContention(t *testing.T) {
@@ -354,4 +432,19 @@ func assertRedisKeyMissing(t *testing.T, client *redis.Client, key string) {
 	bttesting.Eventually(t, time.Second, func() bool {
 		return client.Exists(context.Background(), key).Val() == 0
 	})
+}
+
+func assertRedactedRedisOpError(t *testing.T, err error, key string, token string) {
+	t.Helper()
+
+	if !errors.Is(err, redis.ErrClosed) {
+		t.Fatalf("error should preserve redis.ErrClosed, got %v", err)
+	}
+	var opErr *btredis.OpError
+	if !errors.As(err, &opErr) {
+		t.Fatalf("error should be a redacted redis operation error, got %T", err)
+	}
+	if strings.Contains(err.Error(), key) || strings.Contains(err.Error(), token) {
+		t.Fatalf("error leaked key or token: %v", err)
+	}
 }

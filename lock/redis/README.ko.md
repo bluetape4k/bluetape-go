@@ -51,6 +51,8 @@ defer func() {
 - `Lease.Unlock`은 저장된 token이 lease token과 여전히 일치할 때만 Redis key를 삭제합니다.
 - `Options.Token`으로 custom token을 제공할 수 있습니다. 제공하지 않으면 acquire마다 random owner token을 생성합니다.
 - Redis command의 context cancellation은 보존됩니다.
+- Redis command failure는 `errors.Is`, `errors.As`를 위한 cause를 보존하고,
+  diagnostic message에서는 raw lock key와 owner token을 redacted 처리합니다.
 - Cleanup은 request cancellation 뒤의 fresh context를 사용할 수 있지만,
   명시적인 timeout으로 제한해야 합니다.
 
