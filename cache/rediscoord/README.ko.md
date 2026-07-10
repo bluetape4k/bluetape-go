@@ -77,9 +77,10 @@ coordinated, err := rediscoord.NewStampedeCache[CatalogValue](rediscoord.Options
 `NewNativeFast`는 schema가 고정된 값에 사용합니다.
 `NewNativeCompatible`은 Fory가 지원하는 field 호환 진화를 허용하지만 semantic
 변경이나 incompatible type 변경까지 안전하게 만들지는 않습니다. 두 constructor
-모두 xlang과 reference tracking을 끕니다. Non-pointer primitive, struct, string,
-byte slice를 지원하며 pointer, interface, function, channel, unsafe-pointer root는
-거부합니다.
+모두 xlang과 reference tracking을 끕니다. Bool, integer, unsigned integer,
+floating-point, struct, string, `[]byte` root를
+지원하며 pointer, complex, map, array, non-byte slice, interface, function,
+channel, unsafe-pointer root는 거부합니다.
 
 기본 제한값은 payload 1 MiB, depth 20, field 512개, type metadata 4096 bytes,
 type별 schema version 10개, 평균 schema version 3개입니다. `CodecError`는 payload나
