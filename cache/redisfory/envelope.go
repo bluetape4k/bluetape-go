@@ -1,6 +1,9 @@
 package redisfory
 
-import "encoding/binary"
+import (
+	"bytes"
+	"encoding/binary"
+)
 
 const (
 	envelopeHeaderSize = 14
@@ -24,7 +27,7 @@ func unwrap(profile Profile, generation uint32, encoded []byte, maxPayload int) 
 	if len(encoded) > envelopeHeaderSize+maxPayload {
 		return nil, newCacheError("decode", profile, ReasonPayloadTooLarge, nil)
 	}
-	if len(encoded) < envelopeHeaderSize || string(encoded[:4]) != string(envelopeMagic[:]) {
+	if len(encoded) < envelopeHeaderSize || !bytes.Equal(encoded[:4], envelopeMagic[:]) {
 		return nil, newCacheError("decode", profile, ReasonInvalidMagic, nil)
 	}
 	if encoded[4] != envelopeVersion {

@@ -21,7 +21,14 @@ import "github.com/bluetape4k/bluetape-go/cache/redisfory"
 ## Usage
 
 ```go
-client := redis.NewClient(&redis.Options{Addr: "localhost:6379"})
+ctx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
+defer cancel()
+client := redis.NewClient(&redis.Options{
+    Addr:         "localhost:6379",
+    DialTimeout:  2 * time.Second,
+    ReadTimeout:  2 * time.Second,
+    WriteTimeout: 2 * time.Second,
+})
 defer client.Close() // client lifecycle은 caller가 소유합니다
 
 values, err := redisfory.NewNativeFast[CatalogValue](redisfory.Options{
@@ -137,6 +144,11 @@ cancellation과 deadline은 `errors.Is`로 계속 검사할 수 있습니다. Te
 operation/profile/reason과 redacted Redis key ID만 low-cardinality label로
 사용하고 logical key나 payload를 label로 사용하지 마세요.
 
+Raw provider failure는 cause로 보존하지 않고 의도적으로 교체합니다. Caller-owned
+go-redis hook을 client boundary에 설치해 authentication, topology, network, TLS
+failure를 sanitized metric으로 분류하세요. Hook에서도 raw provider error text를
+log하지 마세요.
+
 ## Security And Operations
 
 - 필요한 `GET`, `SET`, `DEL` key만 허용하는 Redis ACL을 적용합니다.
@@ -144,7 +156,8 @@ operation/profile/reason과 redacted Redis key ID만 low-cardinality label로
 - Fory registration과 cached byte를 신뢰된 Go service input으로 취급하며 범용
   untrusted deserialization protocol로 사용하지 않습니다.
 - TTL을 유한하게 유지하고 Redis memory policy에 맞는 size limit을 사용합니다.
-- Redis client 생성, 설정, monitoring, close는 caller가 담당합니다.
+- Redis client 생성, 설정, monitoring, close는 caller가 담당합니다. Bounded command
+  context와 finite dial/read/write timeout을 사용합니다.
 
 ## Rollout And Rollback
 

@@ -52,10 +52,9 @@ func TestConstructorsExposeProfilesAndBoundedDefaults(t *testing.T) {
 		name    string
 		new     func(Options) (*ValueCache[testValue], error)
 		profile Profile
-		format  byte
 	}{
-		{name: "fast", new: NewNativeFast[testValue], profile: ProfileNativeFast, format: 1},
-		{name: "compatible", new: NewNativeCompatible[testValue], profile: ProfileNativeCompatible, format: 2},
+		{name: "fast", new: NewNativeFast[testValue], profile: ProfileNativeFast},
+		{name: "compatible", new: NewNativeCompatible[testValue], profile: ProfileNativeCompatible},
 	}
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
@@ -63,8 +62,8 @@ func TestConstructorsExposeProfilesAndBoundedDefaults(t *testing.T) {
 			if err != nil {
 				t.Fatal(err)
 			}
-			if cache.profile != tc.profile || cache.format != tc.format {
-				t.Fatalf("profile/format = %q/%d", cache.profile, cache.format)
+			if cache.profile != tc.profile {
+				t.Fatalf("profile = %q", cache.profile)
 			}
 			if cache.maxPayload != 1<<20 {
 				t.Fatalf("max payload = %d", cache.maxPayload)
@@ -295,7 +294,7 @@ func unitCache[V any](client commandClient, codec valueCodec[V]) *ValueCache[V] 
 	}
 	return &ValueCache[V]{
 		client: client, keys: builder, state: &cacheState[V]{codec: codec},
-		profile: ProfileNativeFast, format: 1, generation: 1, maxPayload: 64,
+		profile: ProfileNativeFast, generation: 1, maxPayload: 64,
 	}
 }
 
@@ -424,13 +423,14 @@ func TestValueCacheMethodsNormalizeNilContext(t *testing.T) {
 	}
 	codec := fakeValueCodec[string]{serialize: func(string) ([]byte, error) { return []byte("x"), nil }, deserialize: func([]byte) (string, error) { return "x", nil }}
 	c := unitCache[string](client, codec)
-	if err := c.Set(nil, "key", "value", time.Second); err != nil { //nolint:staticcheck // nil context normalization is the contract under test.
+	var nilCtx context.Context
+	if err := c.Set(nilCtx, "key", "value", time.Second); err != nil {
 		t.Fatal(err)
 	}
-	if _, err := c.Get(nil, "missing"); !errors.Is(err, cache.ErrCacheMiss) { //nolint:staticcheck // nil context normalization is the contract under test.
+	if _, err := c.Get(nilCtx, "missing"); !errors.Is(err, cache.ErrCacheMiss) {
 		t.Fatal(err)
 	}
-	if err := c.Delete(nil, "key"); err != nil { //nolint:staticcheck // nil context normalization is the contract under test.
+	if err := c.Delete(nilCtx, "key"); err != nil {
 		t.Fatal(err)
 	}
 }

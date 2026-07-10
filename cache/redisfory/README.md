@@ -21,7 +21,14 @@ import "github.com/bluetape4k/bluetape-go/cache/redisfory"
 ## Usage
 
 ```go
-client := redis.NewClient(&redis.Options{Addr: "localhost:6379"})
+ctx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
+defer cancel()
+client := redis.NewClient(&redis.Options{
+    Addr:         "localhost:6379",
+    DialTimeout:  2 * time.Second,
+    ReadTimeout:  2 * time.Second,
+    WriteTimeout: 2 * time.Second,
+})
 defer client.Close() // the caller owns the client
 
 values, err := redisfory.NewNativeFast[CatalogValue](redisfory.Options{
@@ -138,6 +145,11 @@ Caller cancellation and deadlines remain inspectable with `errors.Is`. Use
 operation/profile/reason and the redacted Redis key ID as low-cardinality
 telemetry labels. Never use logical keys or payloads as labels.
 
+Raw provider failures are deliberately replaced instead of retained as causes.
+Install caller-owned go-redis hooks at the client boundary to classify
+authentication, topology, network, and TLS failures into sanitized metrics. Do
+not log raw provider error text from those hooks.
+
 ## Security And Operations
 
 - Require Redis ACLs that permit only the needed `GET`, `SET`, and `DEL` keys.
@@ -145,7 +157,8 @@ telemetry labels. Never use logical keys or payloads as labels.
 - Treat Fory registration and cached bytes as trusted Go-service inputs, not a
   general untrusted deserialization protocol.
 - Keep TTLs finite and size limits appropriate for Redis memory policy.
-- The caller creates, configures, monitors, and closes the Redis client.
+- The caller creates, configures, monitors, and closes the Redis client. Use
+  bounded command contexts and finite dial, read, and write timeouts.
 
 ## Rollout And Rollback
 

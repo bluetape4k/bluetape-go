@@ -19,8 +19,14 @@ func registerExampleValue(runtime *fory.Fory) error {
 }
 
 func ExampleNewNativeFast() {
-	ctx := context.Background()
-	client := redis.NewClient(&redis.Options{Addr: "localhost:6379"})
+	ctx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
+	defer cancel()
+	client := redis.NewClient(&redis.Options{
+		Addr:         "localhost:6379",
+		DialTimeout:  2 * time.Second,
+		ReadTimeout:  2 * time.Second,
+		WriteTimeout: 2 * time.Second,
+	})
 	defer func() { _ = client.Close() }()
 
 	valueCache, err := redisfory.NewNativeFast[exampleValue](redisfory.Options{
@@ -39,8 +45,14 @@ func ExampleNewNativeFast() {
 }
 
 func ExampleNewNativeCompatible() {
-	ctx := context.Background()
-	client := redis.NewClient(&redis.Options{Addr: "localhost:6379"})
+	ctx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
+	defer cancel()
+	client := redis.NewClient(&redis.Options{
+		Addr:         "localhost:6379",
+		DialTimeout:  2 * time.Second,
+		ReadTimeout:  2 * time.Second,
+		WriteTimeout: 2 * time.Second,
+	})
 	defer func() { _ = client.Close() }()
 
 	valueCache, err := redisfory.NewNativeCompatible[exampleValue](redisfory.Options{

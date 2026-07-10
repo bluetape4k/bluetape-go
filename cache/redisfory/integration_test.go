@@ -136,6 +136,36 @@ func TestValueCacheRedisIntegration(t *testing.T) {
 		assertErrorRedacted(t, err, "redis: client is closed", "private-logical-key", addr)
 	})
 
+	t.Run("canceled-after-serialization-leaves-no-write", func(t *testing.T) {
+		writeCtx, cancelWrite := context.WithCancel(ctx)
+		codec := fakeValueCodec[integrationValue]{
+			serialize: func(integrationValue) ([]byte, error) {
+				cancelWrite()
+				return []byte("encoded"), nil
+			},
+			deserialize: func([]byte) (integrationValue, error) { return integrationValue{}, nil },
+		}
+		c := unitCache[integrationValue](client, codec)
+		key, err := c.key("late-write")
+		if err != nil {
+			t.Fatalf("build physical key: %v", err)
+		}
+		if err := client.Del(ctx, key.Value).Err(); err != nil {
+			t.Fatalf("remove preexisting key: %v", err)
+		}
+		err = c.Set(writeCtx, "late-write", integrationValue{Name: "cancel"}, time.Minute)
+		if !errors.Is(err, context.Canceled) {
+			t.Fatalf("set after cancellation = %v", err)
+		}
+		exists, err := client.Exists(ctx, key.Value).Result()
+		if err != nil {
+			t.Fatalf("check canceled write: %v", err)
+		}
+		if exists != 0 {
+			t.Fatalf("canceled write created %d key", exists)
+		}
+	})
+
 	t.Run("concurrent-round-trips", func(t *testing.T) {
 		c := mustIntegrationCache(t, client, "concurrent", 1)
 		const workers = 16

@@ -119,8 +119,9 @@ func (l Limits) withDefaults() Limits {
 // Runtime serializes one supported root type through a synchronized Fory instance.
 // Copies share the same runtime and lock.
 type Runtime[V any] struct {
-	state  *runtimeState
-	limits Limits
+	state        *runtimeState
+	limits       Limits
+	rootIsStruct bool
 }
 
 type runtimeState struct {
@@ -160,8 +161,9 @@ func New[V any](profile Profile, limits Limits, register Registration) (*Runtime
 		return nil, newError("register", ReasonRegistration, errRegistrationFailed)
 	}
 	return &Runtime[V]{
-		state:  &runtimeState{runtime: runtime},
-		limits: resolved,
+		state:        &runtimeState{runtime: runtime},
+		limits:       resolved,
+		rootIsStruct: root.Kind() == reflect.Struct,
 	}, nil
 }
 
@@ -171,7 +173,7 @@ func (r *Runtime[V]) Serialize(value V) ([]byte, error) {
 		return nil, newError("serialize", ReasonUninitialized, nil)
 	}
 	var input any = value
-	if reflect.TypeOf((*V)(nil)).Elem().Kind() == reflect.Struct {
+	if r.rootIsStruct {
 		input = &value
 	}
 
