@@ -98,6 +98,10 @@ _ = ran
 - Campaign은 leadership을 획득하거나 caller context가 cancel될 때까지 대기합니다.
 - Cleanup은 request context보다 오래 걸릴 수 있지만, 복사 가능한 예제에서는
   `Resign`에도 명시적인 cleanup timeout을 둡니다.
+- Single-elector value는 `memberID:<random>` layout을 유지합니다. random suffix는
+  내부 canonical owner token이며 caller-visible lease API가 아닙니다.
+- Redis provider failure는 `errors.Is` / `errors.As`용 cause를 유지하면서
+  diagnostic text에서는 raw Redis key와 owner-token value를 redaction합니다.
 
 ## 실행 가능한 Batch 예제
 
