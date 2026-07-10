@@ -78,7 +78,7 @@ func newCodec[V any](profile Profile, options Options) (*Codec[V], error) {
 		}
 	}
 	t := reflect.TypeOf((*V)(nil)).Elem()
-	if t.Kind() == reflect.Pointer || t.Kind() == reflect.Interface || t.Kind() == reflect.Func || t.Kind() == reflect.Chan || t.Kind() == reflect.UnsafePointer {
+	if !supportedRoot(t) {
 		return nil, &CodecError{operation: "configure", profile: profile, reason: ReasonUnsupportedValue}
 	}
 	if o.Register == nil {
@@ -92,6 +92,21 @@ func newCodec[V any](profile Profile, options Options) (*Codec[V], error) {
 	return &Codec[V]{runtime: r, profile: profile, maxPayload: o.MaxPayloadBytes}, nil
 }
 
+func supportedRoot(t reflect.Type) bool {
+	switch t.Kind() {
+	case reflect.Bool,
+		reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64,
+		reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64, reflect.Uintptr,
+		reflect.Float32, reflect.Float64,
+		reflect.String, reflect.Struct:
+		return true
+	case reflect.Slice:
+		return t.Elem().Kind() == reflect.Uint8
+	default:
+		return false
+	}
+}
+
 // Marshal serializes a value and wraps it in the profile envelope.
 func (c *Codec[V]) Marshal(value V) ([]byte, error) {
 	if c == nil || c.runtime == nil {
@@ -103,14 +118,15 @@ func (c *Codec[V]) Marshal(value V) ([]byte, error) {
 		input = &value
 	}
 	raw, err := c.runtime.Serialize(input)
-	if err == nil {
+	tooLarge := err == nil && len(raw) > c.maxPayload
+	if err == nil && !tooLarge {
 		raw = append([]byte(nil), raw...)
 	}
 	c.mu.Unlock()
 	if err != nil {
 		return nil, &CodecError{operation: "marshal", profile: c.profile, reason: ReasonForyFailure, cause: err}
 	}
-	if len(raw) > c.maxPayload {
+	if tooLarge {
 		return nil, &CodecError{operation: "marshal", profile: c.profile, reason: ReasonPayloadTooLarge}
 	}
 	return wrap(c.profile, raw), nil

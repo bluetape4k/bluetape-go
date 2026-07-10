@@ -18,21 +18,21 @@ const (
 	unlockTimeout       = time.Second
 )
 
-// Options 는 StampedeCache 생성 설정이다.
+// Options configures a StampedeCache.
 type Options[V any] struct {
-	// Client는 Redis coordination backend다. 필수다.
+	// Client is the required Redis coordination backend.
 	Client redis.Cmdable
-	// Cache는 감쌀 local 또는 near LoadingCache다. 필수다.
+	// Cache is the required local or near LoadingCache to wrap.
 	Cache cache.LoadingCache[string, V]
-	// Namespace는 coordination key scope다.
+	// Namespace scopes coordination keys.
 	Namespace string
-	// Codec은 loader 결과 payload codec이다. 필수다.
+	// Codec is the required loader-result payload codec.
 	Codec Codec[V]
-	// LockTTL은 load owner lease 기간이다.
+	// LockTTL is the load-owner lease duration.
 	LockTTL time.Duration
-	// ResultTTL은 shared result envelope 보관 기간이다.
+	// ResultTTL is the shared result-envelope retention duration.
 	ResultTTL time.Duration
-	// PollInterval은 waiter polling 간격이다.
+	// PollInterval is the waiter polling interval.
 	PollInterval time.Duration
 	// MaxResultBytes bounds the encoded Redis result envelope. Zero is unlimited.
 	MaxResultBytes int

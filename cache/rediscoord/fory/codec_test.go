@@ -38,10 +38,26 @@ func TestNewNativeFastRejectsInvalidOptions(t *testing.T) {
 }
 
 func TestNewNativeFastRejectsUnsupportedRootShapes(t *testing.T) {
-	_, err := NewNativeFast[*testValue](Options{Register: registerTestValue})
-	var ce *CodecError
-	if !errors.As(err, &ce) || ce.Reason() != ReasonUnsupportedValue {
-		t.Fatalf("error = %v", err)
+	for _, test := range []struct {
+		name      string
+		construct func() error
+	}{
+		{name: "pointer", construct: func() error { _, err := NewNativeFast[*testValue](Options{Register: registerTestValue}); return err }},
+		{name: "map", construct: func() error {
+			_, err := NewNativeFast[map[string]string](Options{Register: func(*fory.Fory) error { return nil }})
+			return err
+		}},
+		{name: "non-byte-slice", construct: func() error {
+			_, err := NewNativeFast[[]int](Options{Register: func(*fory.Fory) error { return nil }})
+			return err
+		}},
+	} {
+		t.Run(test.name, func(t *testing.T) {
+			var ce *CodecError
+			if err := test.construct(); !errors.As(err, &ce) || ce.Reason() != ReasonUnsupportedValue {
+				t.Fatalf("error = %v", err)
+			}
+		})
 	}
 }
 
@@ -193,6 +209,22 @@ func TestEnvelopeRejectsWrongVersionProfileAndLength(t *testing.T) {
 				t.Fatalf("error = %v", err)
 			}
 		})
+	}
+}
+
+func TestUnmarshalWrapsMalformedForyPayload(t *testing.T) {
+	codec, err := NewNativeFast[string](Options{Register: func(*fory.Fory) error { return nil }})
+	if err != nil {
+		t.Fatal(err)
+	}
+	marker := "malformed-provider-payload-marker"
+	_, err = codec.Unmarshal(wrap(ProfileNativeFast, []byte(marker)))
+	var ce *CodecError
+	if !errors.As(err, &ce) || ce.Reason() != ReasonForyFailure {
+		t.Fatalf("error = %v", err)
+	}
+	if strings.Contains(err.Error(), marker) {
+		t.Fatalf("error leaked payload: %v", err)
 	}
 }
 

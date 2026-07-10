@@ -204,15 +204,25 @@ func (c *StampedeCache[V]) readOwnerResult(
 	ownerToken string,
 ) (V, bool, error) {
 	var zero V
-	encoded, err := c.cfg.client.Get(ctx, c.resultKey(key)).Bytes()
+	resultKey := c.resultKey(key)
+	var encoded []byte
+	var err error
+	if c.cfg.maxResultBytes > 0 {
+		encoded, err = c.cfg.client.GetRange(ctx, resultKey, 0, int64(c.cfg.maxResultBytes)).Bytes()
+		if err == nil && len(encoded) == 0 {
+			return zero, false, nil
+		}
+	} else {
+		encoded, err = c.cfg.client.Get(ctx, resultKey).Bytes()
+	}
 	if errors.Is(err, redis.Nil) {
 		return zero, false, nil
 	}
 	if err != nil {
-		return zero, false, operationError(ctx, "result-get", c.resultKey(key), err)
+		return zero, false, operationError(ctx, "result-get", resultKey, err)
 	}
 	if c.cfg.maxResultBytes > 0 && len(encoded) > c.cfg.maxResultBytes {
-		return zero, false, operationError(ctx, "result-get", c.resultKey(key), ErrResultTooLarge)
+		return zero, false, operationError(ctx, "result-get", resultKey, ErrResultTooLarge)
 	}
 
 	payload, ok, err := decodeResult(encoded, ownerToken)
