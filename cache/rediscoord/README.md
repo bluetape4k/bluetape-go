@@ -19,7 +19,11 @@ owner-token result envelope for the active load attempt.
 ## Import
 
 ```go
-import "github.com/bluetape4k/bluetape-go/cache/rediscoord"
+import (
+    "github.com/apache/fory/go/fory"
+    "github.com/bluetape4k/bluetape-go/cache/rediscoord"
+    rediscoordfory "github.com/bluetape4k/bluetape-go/cache/rediscoord/fory"
+)
 ```
 
 ## Usage

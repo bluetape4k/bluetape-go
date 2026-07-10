@@ -271,6 +271,15 @@ func (c *StampedeCache[V]) ensureOwner(ctx context.Context, lease *redislock.Lea
 }
 
 func (c *StampedeCache[V]) storeResult(ctx context.Context, key string, token string, payload []byte) error {
+	if c.cfg.maxResultBytes > 0 {
+		size, err := encodedResultSize(token, payload)
+		if err != nil {
+			return err
+		}
+		if size > c.cfg.maxResultBytes {
+			return operationError(ctx, "result-set", c.resultKey(key), ErrResultTooLarge)
+		}
+	}
 	encoded, err := encodeResult(token, payload)
 	if err != nil {
 		return err

@@ -3,6 +3,7 @@ package rediscoordfory
 import (
 	"errors"
 	"fmt"
+	"strconv"
 	"strings"
 	"sync"
 	"testing"
@@ -34,6 +35,13 @@ func TestNewNativeFastRejectsInvalidOptions(t *testing.T) {
 	_, err = NewNativeFast[testValue](Options{})
 	if !errors.As(err, &ce) || ce.Reason() != ReasonRegistration {
 		t.Fatalf("registration error = %v", err)
+	}
+	if strconv.IntSize > 32 {
+		overWireLimit := uint64(^uint32(0)) + 1
+		_, err = NewNativeFast[testValue](Options{Register: registerTestValue, MaxPayloadBytes: int(overWireLimit)})
+		if !errors.As(err, &ce) || ce.Reason() != ReasonConfiguration {
+			t.Fatalf("uint32 bound error = %v", err)
+		}
 	}
 }
 
