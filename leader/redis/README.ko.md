@@ -103,6 +103,8 @@ _ = ran
 - Single-Elector Redis provider failure는 `errors.Is` / `errors.As`용 cause를
   유지하면서 diagnostic text에서는 raw Redis key와 owner-token value를
   redaction합니다.
+- Group-Elector ZSET member도 `memberID:<random>` 값을 유지하며 random suffix는
+  canonical이고 provider diagnostic은 같은 typed/redacted contract를 따릅니다.
 
 ## 실행 가능한 Batch 예제
 

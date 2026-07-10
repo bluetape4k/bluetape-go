@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/bluetape4k/bluetape-go/leader"
+	btredis "github.com/bluetape4k/bluetape-go/redis"
 	"github.com/redis/go-redis/v9"
 )
 
@@ -74,7 +75,7 @@ func NewGroup(client redis.Cmdable, opts leader.GroupOptions) (*GroupElector, er
 		return nil, err
 	}
 
-	token, err := randomToken()
+	token, err := newElectorToken(normalized.MemberID)
 	if err != nil {
 		return nil, err
 	}
@@ -83,7 +84,7 @@ func NewGroup(client redis.Cmdable, opts leader.GroupOptions) (*GroupElector, er
 		client: client,
 		opts:   normalized,
 		key:    fmt.Sprintf("%s:%s", normalized.KeyPrefix, normalized.Group),
-		token:  normalized.MemberID + ":" + token,
+		token:  token,
 	}, nil
 }
 
@@ -104,7 +105,7 @@ func (e *GroupElector) Campaign(ctx context.Context) error {
 	for {
 		ok, err := e.acquire(ctx)
 		if err != nil {
-			return fmt.Errorf("redis leader group campaign: %w", err)
+			return btredis.NewOpError(btredis.OpLabels{Family: "leader redis group", Operation: "campaign"}, e.key, err)
 		}
 		if ok {
 			renewCtx, cancel := context.WithCancel(context.Background())
@@ -159,7 +160,7 @@ func (e *GroupElector) Resign(ctx context.Context) error {
 	}
 
 	if _, err := e.client.Eval(ctx, groupReleaseScript, []string{e.key}, e.token).Result(); err != nil {
-		return fmt.Errorf("redis leader group resign: %w", err)
+		return btredis.NewOpError(btredis.OpLabels{Family: "leader redis group", Operation: "resign"}, e.key, err)
 	}
 	return nil
 }
@@ -175,7 +176,7 @@ func (e *GroupElector) IsLeader() bool {
 func (e *GroupElector) ActiveCount(ctx context.Context) (int, error) {
 	active, err := e.activeCount(ctx)
 	if err != nil {
-		return 0, fmt.Errorf("redis leader group active count: %w", err)
+		return 0, btredis.NewOpError(btredis.OpLabels{Family: "leader redis group", Operation: "active_count"}, e.key, err)
 	}
 	return active, nil
 }
@@ -184,7 +185,7 @@ func (e *GroupElector) ActiveCount(ctx context.Context) (int, error) {
 func (e *GroupElector) AvailableSlots(ctx context.Context) (int, error) {
 	active, err := e.activeCount(ctx)
 	if err != nil {
-		return 0, fmt.Errorf("redis leader group available slots: %w", err)
+		return 0, btredis.NewOpError(btredis.OpLabels{Family: "leader redis group", Operation: "available_slots"}, e.key, err)
 	}
 	available := e.opts.MaxLeaders - active
 	if available < 0 {
@@ -249,7 +250,7 @@ func (e *GroupElector) renew(ctx context.Context) (bool, error) {
 	ttlMillis := int64(e.opts.Lease / time.Millisecond)
 	result, err := e.client.Eval(renewCtx, groupRenewScript, []string{e.key}, e.token, ttlMillis).Int()
 	if err != nil {
-		return false, err
+		return false, btredis.NewOpError(btredis.OpLabels{Family: "leader redis group", Operation: "renew"}, e.key, err)
 	}
 	return result == 1, nil
 }

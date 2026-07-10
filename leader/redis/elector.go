@@ -2,8 +2,6 @@ package redisleader
 
 import (
 	"context"
-	"crypto/rand"
-	"encoding/hex"
 	"errors"
 	"fmt"
 	"sync"
@@ -191,12 +189,4 @@ func newElectorToken(memberID string) (string, error) {
 		return "", err
 	}
 	return memberID + ":" + token.RedisValue(), nil
-}
-
-func randomToken() (string, error) {
-	var data [16]byte
-	if _, err := rand.Read(data[:]); err != nil {
-		return "", err
-	}
-	return hex.EncodeToString(data[:]), nil
 }
