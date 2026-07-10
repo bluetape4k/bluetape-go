@@ -122,6 +122,10 @@ and exact trailing length are validated before Fory decoding. Stored values
 are binary, not JSON or base64. Fory is not encryption: Redis operators can
 observe keys and bytes.
 
+`Get` bounds the Redis response to the configured payload plus the envelope
+header and one overflow-detection byte. Oversized stored values are rejected
+before the client materializes the full value.
+
 ## Errors And Telemetry
 
 `CacheError` exposes `Operation`, `Profile`, and `Reason` accessors. Stable
@@ -139,10 +143,11 @@ reason values are:
 - `unsupported-value`
 - `fory-failure`
 
-Redis command failures use `redis.OpError`; formatted and unwrapped errors do
-not expose raw logical keys, payloads, server addresses, or provider messages.
+Redis command failures use `*btredis.OpError` from
+`github.com/bluetape4k/bluetape-go/redis`; formatted and unwrapped errors do not
+expose raw logical keys, payloads, server addresses, or provider messages.
 Caller cancellation and deadlines remain inspectable with `errors.Is`. Use
-operation/profile/reason and the redacted Redis key ID as low-cardinality
+operation/profile/reason and `(*btredis.OpError).KeyID()` as low-cardinality
 telemetry labels. Never use logical keys or payloads as labels.
 
 Raw provider failures are deliberately replaced instead of retained as causes.

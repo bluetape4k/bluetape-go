@@ -121,6 +121,10 @@ length, 정확한 trailing length를 모두 검사합니다. 저장 value는 JSO
 아닌 binary입니다. Fory는 encryption이 아니므로 Redis operator가 key와 byte를
 관찰할 수 있습니다.
 
+`Get`은 Redis response를 configured payload, envelope header, overflow detection
+1 byte로 제한합니다. Oversized stored value는 client가 전체 value를 materialize하기
+전에 거부합니다.
+
 ## Errors And Telemetry
 
 `CacheError`는 `Operation`, `Profile`, `Reason` accessor를 제공합니다. Stable
@@ -138,10 +142,11 @@ reason value는 다음과 같습니다.
 - `unsupported-value`
 - `fory-failure`
 
-Redis command failure는 `redis.OpError`를 사용하며 formatted/unwrapped error에 raw
-logical key, payload, server address, provider message를 노출하지 않습니다. Caller
-cancellation과 deadline은 `errors.Is`로 계속 검사할 수 있습니다. Telemetry에는
-operation/profile/reason과 redacted Redis key ID만 low-cardinality label로
+Redis command failure는 `github.com/bluetape4k/bluetape-go/redis`의
+`*btredis.OpError`를 사용하며 formatted/unwrapped error에 raw logical key, payload,
+server address, provider message를 노출하지 않습니다. Caller cancellation과
+deadline은 `errors.Is`로 계속 검사할 수 있습니다. Telemetry에는
+operation/profile/reason과 `(*btredis.OpError).KeyID()`만 low-cardinality label로
 사용하고 logical key나 payload를 label로 사용하지 마세요.
 
 Raw provider failure는 cause로 보존하지 않고 의도적으로 교체합니다. Caller-owned
