@@ -64,6 +64,14 @@ codec, err := rediscoordfory.NewNativeFast[CatalogValue](rediscoordfory.Options{
         return runtime.RegisterStructByName(CatalogValue{}, "catalog.ValueV1")
     },
 })
+if err != nil {
+    return err
+}
+
+coordinated, err := rediscoord.NewStampedeCache[CatalogValue](rediscoord.Options[CatalogValue]{
+    Client: client, Cache: localCache, Namespace: "catalog:fory-native-fast:schema-v1",
+    Codec: codec, MaxResultBytes: 2 << 20,
+})
 ```
 
 `NewNativeFast`는 schema가 고정된 값에 사용합니다.
@@ -85,13 +93,16 @@ Fory는 암호화가 아닙니다. Redis operator는 byte를 관찰할 수 있�
 
 ### Rollout과 rollback
 
-같은 namespace를 공유하는 모든 process는 동일한 codec profile과 registration
-set을 사용해야 합니다. `catalog:fory-native-fast:schema-v1` 같은 namespace를
+같은 namespace를 공유하는 모든 process는 동일한 codec profile, registration
+set, `MaxResultBytes`, Fory resource limit을 사용해야 합니다.
+`catalog:fory-native-fast:schema-v1` 같은 namespace를
 사용하고 JSON, native-fast, native-compatible 값을 한 namespace에 섞지 마세요.
 Reader와 writer를 함께 전환한 뒤 이전 namespace를 최소
 `LockTTL + ResultTTL + safety margin` 동안 유지합니다. Rollback은 이전
 codec/namespace pair로 되돌립니다. Cleanup은 TTL을 고려한 bounded `SCAN MATCH`를
-사용하고 `KEYS`는 사용하지 않습니다.
+사용하고 `KEYS`는 사용하지 않습니다. Lock과 result key는 각각
+`bluetape:cache:coord:<namespace>:lock:*`와
+`bluetape:cache:coord:<namespace>:result:*` pattern으로 scan합니다.
 
 ## 동작
 

@@ -65,6 +65,14 @@ codec, err := rediscoordfory.NewNativeFast[CatalogValue](rediscoordfory.Options{
         return runtime.RegisterStructByName(CatalogValue{}, "catalog.ValueV1")
     },
 })
+if err != nil {
+    return err
+}
+
+coordinated, err := rediscoord.NewStampedeCache[CatalogValue](rediscoord.Options[CatalogValue]{
+    Client: client, Cache: localCache, Namespace: "catalog:fory-native-fast:schema-v1",
+    Codec: codec, MaxResultBytes: 2 << 20,
+})
 ```
 
 `NewNativeFast` is for fixed schemas. `NewNativeCompatible` permits Fory's
@@ -86,13 +94,15 @@ TLS, and namespace isolation for sensitive values.
 
 ### Rollout And Rollback
 
-Every process sharing a namespace must use the same codec profile and
-registration set. Use a namespace such as
+Every process sharing a namespace must use the same codec profile,
+registration set, `MaxResultBytes`, and Fory resource limits. Use a namespace such as
 `catalog:fory-native-fast:schema-v1`; never mix JSON, native-fast, or
 native-compatible values in one namespace. Switch readers and writers together,
 then retain the old namespace for at least `LockTTL + ResultTTL + safety
 margin`. Rollback switches back to the prior codec/namespace pair. Cleanup must
-use bounded, TTL-aware `SCAN MATCH`, never `KEYS`.
+use bounded, TTL-aware `SCAN MATCH`, never `KEYS`. Scan lock and result keys
+separately with `bluetape:cache:coord:<namespace>:lock:*` and
+`bluetape:cache:coord:<namespace>:result:*`.
 
 ## Behavior
 

@@ -17,8 +17,8 @@ func wrap(profile Profile, payload []byte) []byte {
 	copy(out[10:], payload)
 	return out
 }
-func unwrap(profile Profile, data []byte, max int) ([]byte, error) {
-	if len(data) > 10+max {
+func unwrap(profile Profile, data []byte, maxPayload int) ([]byte, error) {
+	if len(data) > 10+maxPayload {
 		return nil, &CodecError{operation: "unmarshal", profile: profile, reason: ReasonPayloadTooLarge}
 	}
 	if len(data) < 10 || string(data[:4]) != string(magic[:]) {
@@ -35,7 +35,7 @@ func unwrap(profile Profile, data []byte, max int) ([]byte, error) {
 		return nil, &CodecError{operation: "unmarshal", profile: profile, reason: ReasonProfileMismatch}
 	}
 	n := binary.BigEndian.Uint32(data[6:10])
-	if n > uint32(max) {
+	if n > uint32(maxPayload) {
 		return nil, &CodecError{operation: "unmarshal", profile: profile, reason: ReasonPayloadTooLarge}
 	}
 	if int(n) != len(data)-10 {

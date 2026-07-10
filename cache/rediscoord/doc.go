@@ -1,8 +1,7 @@
-// Package rediscoord 는 Redis 기반 cache load 조정을 제공한다.
+// Package rediscoord coordinates cache loads through Redis.
 //
-// 이 패키지는 durable Redis cache가 아니다. 기존 LoadingCache를 감싸고,
-// cold miss burst 동안 한 process의 loader 결과를 짧게 공유해 다른 process가
-// 같은 loader를 동시에 실행하지 않게 한다.
+// The package is not a durable Redis cache. It wraps an existing LoadingCache
+// and briefly shares one process's loader result during a cold-miss burst.
 // Options.MaxResultBytes can bound the transient encoded result envelope.
 // Go-native Apache Fory codecs are available from the opt-in fory child package.
 package rediscoord

@@ -16,16 +16,26 @@ const (
 type Reason string
 
 const (
-	ReasonConfiguration      Reason = "configuration"
-	ReasonUninitialized      Reason = "uninitialized"
-	ReasonRegistration       Reason = "registration"
-	ReasonPayloadTooLarge    Reason = "payload-too-large"
-	ReasonInvalidMagic       Reason = "invalid-magic"
+	// ReasonConfiguration identifies invalid codec configuration.
+	ReasonConfiguration Reason = "configuration"
+	// ReasonUninitialized identifies use of a zero-value codec.
+	ReasonUninitialized Reason = "uninitialized"
+	// ReasonRegistration identifies deterministic type registration failure.
+	ReasonRegistration Reason = "registration"
+	// ReasonPayloadTooLarge identifies a configured payload bound violation.
+	ReasonPayloadTooLarge Reason = "payload-too-large"
+	// ReasonInvalidMagic identifies a non-BTFY payload.
+	ReasonInvalidMagic Reason = "invalid-magic"
+	// ReasonUnsupportedVersion identifies an unknown BTFY wrapper version.
 	ReasonUnsupportedVersion Reason = "unsupported-version"
-	ReasonProfileMismatch    Reason = "profile-mismatch"
-	ReasonLengthMismatch     Reason = "length-mismatch"
-	ReasonUnsupportedValue   Reason = "unsupported-value"
-	ReasonForyFailure        Reason = "fory-failure"
+	// ReasonProfileMismatch identifies a wrapper from another Fory profile.
+	ReasonProfileMismatch Reason = "profile-mismatch"
+	// ReasonLengthMismatch identifies truncated or trailing wrapper bytes.
+	ReasonLengthMismatch Reason = "length-mismatch"
+	// ReasonUnsupportedValue identifies an unsupported generic root shape.
+	ReasonUnsupportedValue Reason = "unsupported-value"
+	// ReasonForyFailure identifies a provider marshal or unmarshal failure.
+	ReasonForyFailure Reason = "fory-failure"
 )
 
 // CodecError describes a codec failure without formatting payload or provider details.
