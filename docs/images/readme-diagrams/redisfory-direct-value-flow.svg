@@ -1,0 +1,127 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1500" height="820" viewBox="0 0 1500 820" role="img" aria-labelledby="title desc">
+  <title id="title">redisfory Direct Value Architecture</title>
+  <desc id="desc">Caller-owned Redis access stores bounded BTFV binary values through redisfory, separate from rediscoord coordination data.</desc>
+  <defs>
+    <filter id="shadow" x="-8%" y="-10%" width="116%" height="124%">
+      <feDropShadow dx="0" dy="4" stdDeviation="5" flood-color="#243247" flood-opacity="0.11"/>
+    </filter>
+    <marker id="arrow-teal" markerWidth="14" markerHeight="14" refX="13" refY="7" orient="auto" markerUnits="userSpaceOnUse">
+      <path d="M0 0L14 7L0 14Z" fill="#238b7b"/>
+    </marker>
+    <marker id="arrow-gray" markerWidth="10" markerHeight="10" refX="9" refY="5" orient="auto" markerUnits="userSpaceOnUse">
+      <path d="M0 0L10 5L0 10Z" fill="#66758a"/>
+    </marker>
+    <path id="redis-b" d="M45.536 38.764c-2.013 1.05-12.44 5.337-14.66 6.494s-3.453 1.146-5.207.308-12.85-5.32-14.85-6.276c-1-.478-1.524-.88-1.524-1.26v-3.813s14.447-3.145 16.78-3.982 3.14-.867 5.126-.14 13.853 2.868 15.814 3.587v3.76c0 .377-.452.8-1.477 1.324z"/>
+    <path id="redis-c" d="M45.536 28.733c-2.013 1.05-12.44 5.337-14.66 6.494s-3.453 1.146-5.207.308-12.85-5.32-14.85-6.276-2.04-1.613-.077-2.382l15.332-5.935c2.332-.837 3.14-.867 5.126-.14s12.35 4.853 14.312 5.57 2.037 1.31.024 2.36z"/>
+    <g id="redis-icon" transform="matrix(.848327 0 0 .848327 -7.883573 -9.449691)">
+      <use href="#redis-b" fill="#a41e11"/>
+      <path d="M45.536 34.95c-2.013 1.05-12.44 5.337-14.66 6.494s-3.453 1.146-5.207.308-12.85-5.32-14.85-6.276-2.04-1.613-.077-2.382l15.332-5.936c2.332-.836 3.14-.867 5.126-.14S43.55 31.87 45.51 32.6s2.037 1.31.024 2.36z" fill="#d82c20"/>
+      <use href="#redis-b" y="-6.218" fill="#a41e11"/>
+      <use href="#redis-c" fill="#d82c20"/>
+      <path d="M45.536 26.098c-2.013 1.05-12.44 5.337-14.66 6.495s-3.453 1.146-5.207.308-12.85-5.32-14.85-6.276c-1-.478-1.524-.88-1.524-1.26V21.55s14.447-3.145 16.78-3.982 3.14-.867 5.126-.14 13.853 2.868 15.814 3.587v3.76c0 .377-.452.8-1.477 1.324z" fill="#a41e11"/>
+      <use href="#redis-c" y="-6.449" fill="#d82c20"/>
+      <g fill="#fff">
+        <path d="M29.096 20.712l-1.182-1.965-3.774-.34 2.816-1.016-.845-1.56 2.636 1.03 2.486-.814-.672 1.612 2.534.95-3.268.34zM22.8 24.624l8.74-1.342-2.64 3.872z"/>
+        <ellipse cx="20.444" cy="21.402" rx="4.672" ry="1.811"/>
+      </g>
+      <path d="M42.132 21.138l-5.17 2.042-.004-4.087z" fill="#7a0c00"/>
+      <path d="M36.963 23.18l-.56.22-5.166-2.042 5.723-2.264z" fill="#ad2115"/>
+    </g>
+    <style>
+      .canvas { fill: #f7fafc; }
+      .frame { fill: #ffffff; stroke: #cad5e2; stroke-width: 1.5; }
+      .lane { fill: #f8fbfd; stroke: #d5e0ea; stroke-width: 1.5; }
+      .lane-alt { fill: #f7f7f8; stroke: #d7dce3; stroke-width: 1.5; }
+      .card { stroke-width: 1.8; filter: url(#shadow); }
+      .title, .lane-title, .card-title { font-family: "Architects Daughter"; fill: #263a57; }
+      .title { font-size: 40px; }
+      .lane-title { font-size: 22px; }
+      .card-title { font-size: 22px; }
+      .subtitle, .body, .small, .label, .badge { font-family: "Comic Mono"; fill: #506176; }
+      .subtitle { font-size: 17px; }
+      .body { font-size: 14px; }
+      .small { font-size: 12px; }
+      .label { font-size: 12px; font-weight: 700; }
+      .badge { font-size: 11px; font-weight: 700; }
+      .divider { stroke-width: 1.1; opacity: .55; }
+      .route { fill: none; stroke: #238b7b; stroke-width: 3; stroke-linecap: round; stroke-linejoin: round; marker-end: url(#arrow-teal); }
+      .separate { fill: none; stroke: #66758a; stroke-width: 2.4; stroke-dasharray: 9 7; stroke-linecap: round; stroke-linejoin: round; marker-end: url(#arrow-gray); }
+      .pill { fill: #ffffff; stroke: #cbd7e3; stroke-width: 1.2; }
+    </style>
+  </defs>
+
+  <rect class="canvas" width="1500" height="820"/>
+  <rect class="frame" x="32" y="28" width="1436" height="764" rx="8"/>
+  <text class="title" x="72" y="82">redisfory Direct Value Architecture</text>
+  <text class="subtitle" x="74" y="114">Bounded Go-native Fory values use an inspectable path; coordination data remains separate.</text>
+
+  <rect class="lane" x="66" y="145" width="1368" height="405" rx="8"/>
+  <text class="lane-title" x="92" y="182">Direct Redis value path</text>
+
+  <rect class="card" x="96" y="230" width="245" height="220" rx="8" fill="#eaf2ff" stroke="#6f98d8"/>
+  <text class="card-title" x="218" y="270" text-anchor="middle">Go caller</text>
+  <path class="divider" d="M96 290H341" stroke="#6f98d8"/>
+  <text class="body" x="120" y="322">Set / Get / Delete</text>
+  <text class="body" x="120" y="350">logical key + TTL</text>
+  <text class="body" x="120" y="378">registered value type</text>
+  <rect class="pill" x="120" y="402" width="197" height="28" rx="8"/>
+  <text class="badge" x="218" y="421" text-anchor="middle">owns Redis client lifecycle</text>
+
+  <rect class="card" x="430" y="205" width="390" height="295" rx="8" fill="#edf9f5" stroke="#55a78f"/>
+  <text class="card-title" x="625" y="246" text-anchor="middle">ValueCache[V]</text>
+  <path class="divider" d="M430 268H820" stroke="#55a78f"/>
+  <text class="body" x="458" y="300">KeyBuilder</text>
+  <text class="small" x="580" y="300">namespace / generation / logical key</text>
+  <path class="divider" d="M454 319H796" stroke="#55a78f"/>
+  <text class="body" x="458" y="350">BTFV v1</text>
+  <text class="small" x="580" y="350">magic / profile / schema / length</text>
+  <path class="divider" d="M454 369H796" stroke="#55a78f"/>
+  <text class="body" x="458" y="400">Fory runtime</text>
+  <text class="small" x="580" y="400">bounded + synchronized + Go-only</text>
+  <path class="divider" d="M454 419H796" stroke="#55a78f"/>
+  <text class="body" x="458" y="450">Error boundary</text>
+  <text class="small" x="580" y="450">typed reason / redacted failure</text>
+  <rect class="pill" x="458" y="466" width="338" height="24" rx="8"/>
+  <text class="badge" x="627" y="483" text-anchor="middle">no fallback / Clear / compression / migration</text>
+
+  <rect class="card" x="910" y="230" width="210" height="220" rx="8" fill="#fff5df" stroke="#d6a044"/>
+  <text class="card-title" x="1015" y="270" text-anchor="middle">redis.Cmdable</text>
+  <path class="divider" d="M910 290H1120" stroke="#d6a044"/>
+  <text class="body" x="938" y="322">caller configured</text>
+  <text class="body" x="938" y="350">ACL / TLS / pool</text>
+  <text class="body" x="938" y="378">context per command</text>
+  <text class="body" x="938" y="406">never closed by cache</text>
+
+  <rect class="card" x="1210" y="230" width="190" height="220" rx="8" fill="#fff0f0" stroke="#cf625b"/>
+  <use href="#redis-icon" transform="translate(1238 246) scale(1.45)"/>
+  <text class="card-title" x="1318" y="278">Redis</text>
+  <path class="divider" d="M1210 300H1400" stroke="#cf625b"/>
+  <text class="body" x="1234" y="334">visible key</text>
+  <text class="body" x="1234" y="362">BTFV binary value</text>
+  <text class="body" x="1234" y="390">finite TTL</text>
+  <text class="body" x="1234" y="418">single-key commands</text>
+
+  <path class="route" d="M341 320H430"/>
+  <text class="label" x="385" y="305" text-anchor="middle">value API</text>
+  <path class="route" d="M820 320H910"/>
+  <text class="label" x="865" y="305" text-anchor="middle">encoded</text>
+  <path class="route" d="M1120 320H1210"/>
+  <text class="label" x="1165" y="305" text-anchor="middle">GET/SET/DEL</text>
+
+  <rect class="lane-alt" x="66" y="578" width="1368" height="170" rx="8"/>
+  <text class="lane-title" x="92" y="614">Separate coordination path</text>
+  <rect class="card" x="430" y="634" width="390" height="82" rx="8" fill="#f1eef8" stroke="#8d79ac"/>
+  <text class="card-title" x="625" y="669" text-anchor="middle">cache/rediscoord</text>
+  <text class="small" x="625" y="695" text-anchor="middle">loader owner token + transient JSON/base64 result envelope</text>
+  <rect class="card" x="1210" y="634" width="190" height="82" rx="8" fill="#f3f4f6" stroke="#7a8798"/>
+  <text class="card-title" x="1305" y="662" text-anchor="middle">Coordination</text>
+  <text class="card-title" x="1305" y="687" text-anchor="middle">keys</text>
+  <text class="small" x="1305" y="707" text-anchor="middle">not durable L2 values</text>
+  <path class="separate" d="M820 675H1210"/>
+  <text class="label" x="1015" y="659" text-anchor="middle">different namespace and wire contract</text>
+
+  <line x1="92" y1="772" x2="126" y2="772" stroke="#238b7b" stroke-width="3"/>
+  <text class="small" x="136" y="776">direct binary value responsibility</text>
+  <line x1="390" y1="772" x2="424" y2="772" stroke="#66758a" stroke-width="2.4" stroke-dasharray="9 7"/>
+  <text class="small" x="434" y="776">separate coordination responsibility</text>
+</svg>

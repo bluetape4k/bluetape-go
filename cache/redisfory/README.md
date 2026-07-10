@@ -8,6 +8,10 @@ profiles, an inspectable `BTFV` envelope, schema-generation key isolation, and
 sanitized errors. It is independent from `cache/rediscoord`, whose Redis data
 is transient load-coordination state.
 
+## Diagram
+
+![redisfory direct value architecture](../../docs/images/readme-diagrams/redisfory-direct-value-flow.png)
+
 ## Import
 
 ```go

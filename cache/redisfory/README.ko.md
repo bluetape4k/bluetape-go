@@ -8,6 +8,10 @@ binary value를 Redis에 직접 저장합니다. 명시적인 fast/compatible pr
 제공합니다. Redis에 일시적인 load coordination state를 저장하는
 `cache/rediscoord`와는 독립된 패키지입니다.
 
+## Diagram
+
+![redisfory direct value architecture](../../docs/images/readme-diagrams/redisfory-direct-value-flow.png)
+
 ## Import
 
 ```go
