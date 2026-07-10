@@ -48,9 +48,16 @@ if err := values.Set(ctx, "sku:42", value, time.Minute); err != nil {
 }
 loaded, err := values.Get(ctx, "sku:42")
 if errors.Is(err, cache.ErrCacheMiss) {
-    // application policy로 load합니다
+	// application policy로 load합니다
+	return err
 }
-err = values.Delete(ctx, "sku:42")
+if err != nil {
+	return err
+}
+_ = loaded // cached value를 사용합니다
+if err := values.Delete(ctx, "sku:42"); err != nil {
+	return err
+}
 ```
 
 `Set`은 최소 1 millisecond의 TTL을 요구합니다. Redis가 key 부재 또는 만료를
@@ -187,6 +194,9 @@ written analysis를 보존하고 mutex와 pool contention도 분석해야 합니
 benchmark 결과를 주장하지 않습니다.
 
 ## Test
+
+Package test는 Testcontainers로 Redis 7.4를 시작하므로 Docker가 필요합니다.
+Docker resource를 공유하므로 아래 command를 직렬로 실행합니다.
 
 ```bash
 go test -p 1 -count=1 ./cache/redisfory

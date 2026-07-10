@@ -2,9 +2,11 @@ package redisfory_test
 
 import (
 	"context"
+	"errors"
 	"time"
 
 	"github.com/apache/fory/go/fory"
+	"github.com/bluetape4k/bluetape-go/cache"
 	"github.com/bluetape4k/bluetape-go/cache/redisfory"
 	"github.com/redis/go-redis/v9"
 )
@@ -39,9 +41,20 @@ func ExampleNewNativeFast() {
 		return
 	}
 
-	_ = valueCache.Set(ctx, "sku:42", exampleValue{Name: "keyboard", Count: 2}, time.Minute)
-	_, _ = valueCache.Get(ctx, "sku:42")
-	_ = valueCache.Delete(ctx, "sku:42")
+	if err := valueCache.Set(ctx, "sku:42", exampleValue{Name: "keyboard", Count: 2}, time.Minute); err != nil {
+		return
+	}
+	loaded, err := valueCache.Get(ctx, "sku:42")
+	if errors.Is(err, cache.ErrCacheMiss) {
+		return
+	}
+	if err != nil {
+		return
+	}
+	_ = loaded
+	if err := valueCache.Delete(ctx, "sku:42"); err != nil {
+		return
+	}
 }
 
 func ExampleNewNativeCompatible() {
@@ -65,7 +78,18 @@ func ExampleNewNativeCompatible() {
 		return
 	}
 
-	_ = valueCache.Set(ctx, "sku:42", exampleValue{Name: "keyboard", Count: 2}, time.Minute)
-	_, _ = valueCache.Get(ctx, "sku:42")
-	_ = valueCache.Delete(ctx, "sku:42")
+	if err := valueCache.Set(ctx, "sku:42", exampleValue{Name: "keyboard", Count: 2}, time.Minute); err != nil {
+		return
+	}
+	loaded, err := valueCache.Get(ctx, "sku:42")
+	if errors.Is(err, cache.ErrCacheMiss) {
+		return
+	}
+	if err != nil {
+		return
+	}
+	_ = loaded
+	if err := valueCache.Delete(ctx, "sku:42"); err != nil {
+		return
+	}
 }
