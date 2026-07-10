@@ -1,10 +1,10 @@
 package rediscoordfory
 
 import (
-	"reflect"
-	"sync"
+	"errors"
 
 	"github.com/apache/fory/go/fory"
+	"github.com/bluetape4k/bluetape-go/cache/internal/forynative"
 )
 
 // Registration registers every Fory struct, enum, and extension type used by a codec.
@@ -54,14 +54,13 @@ func (o Options) withDefaults() Options {
 // Codec implements rediscoord's Marshal/Unmarshal contract. Copies share the
 // same internal Fory runtime and synchronization state.
 type Codec[V any] struct {
-	state      *codecState
+	state      *codecState[V]
 	profile    Profile
 	maxPayload int
 }
 
-type codecState struct {
-	mu      sync.Mutex
-	runtime *fory.Fory
+type codecState[V any] struct {
+	runtime *forynative.Runtime[V]
 }
 
 // NewNativeFast creates a native, non-compatible Fory codec.
@@ -76,57 +75,22 @@ func NewNativeCompatible[V any](options Options) (*Codec[V], error) {
 
 func newCodec[V any](profile Profile, options Options) (*Codec[V], error) {
 	o := options.withDefaults()
-	vals := []int{o.MaxPayloadBytes, o.MaxDepth, o.MaxTypeFields, o.MaxTypeMetaBytes, o.MaxSchemaVersionsPerType, o.MaxAverageSchemaVersionsPerType}
-	for _, v := range vals {
-		if v <= 0 {
-			return nil, &CodecError{operation: "configure", profile: profile, reason: ReasonConfiguration}
-		}
+	nativeProfile := forynative.ProfileNativeFast
+	if profile == ProfileNativeCompatible {
+		nativeProfile = forynative.ProfileNativeCompatible
 	}
-	if uint64(o.MaxPayloadBytes) > uint64(^uint32(0)) {
-		return nil, &CodecError{operation: "configure", profile: profile, reason: ReasonConfiguration}
-	}
-	t := reflect.TypeOf((*V)(nil)).Elem()
-	if !supportedRoot(t) {
-		return nil, &CodecError{operation: "configure", profile: profile, reason: ReasonUnsupportedValue}
-	}
-	if o.Register == nil {
-		return nil, &CodecError{operation: "configure", profile: profile, reason: ReasonRegistration}
-	}
-	optionsList := []fory.Option{fory.WithXlang(false), fory.WithCompatible(profile == ProfileNativeCompatible), fory.WithTrackRef(false), fory.WithMaxDepth(o.MaxDepth), fory.WithMaxTypeFields(o.MaxTypeFields), fory.WithMaxTypeMetaBytes(o.MaxTypeMetaBytes), fory.WithMaxSchemaVersionsPerType(o.MaxSchemaVersionsPerType), fory.WithMaxAverageSchemaVersionsPerType(o.MaxAverageSchemaVersionsPerType)}
-	r, err := newRuntime(optionsList, o.Register)
+	runtime, err := forynative.New[V](nativeProfile, forynative.Limits{
+		MaxPayloadBytes:                 o.MaxPayloadBytes,
+		MaxDepth:                        o.MaxDepth,
+		MaxTypeFields:                   o.MaxTypeFields,
+		MaxTypeMetaBytes:                o.MaxTypeMetaBytes,
+		MaxSchemaVersionsPerType:        o.MaxSchemaVersionsPerType,
+		MaxAverageSchemaVersionsPerType: o.MaxAverageSchemaVersionsPerType,
+	}, forynative.Registration(o.Register))
 	if err != nil {
-		return nil, &CodecError{operation: "register", profile: profile, reason: ReasonRegistration, cause: errRegistrationFailed}
+		return nil, mapRuntimeError("configure", profile, err)
 	}
-	return &Codec[V]{state: &codecState{runtime: r}, profile: profile, maxPayload: o.MaxPayloadBytes}, nil
-}
-
-func newRuntime(options []fory.Option, register Registration) (runtime *fory.Fory, err error) {
-	defer func() {
-		if recover() != nil {
-			runtime = nil
-			err = errRegistrationFailed
-		}
-	}()
-	runtime = fory.New(options...)
-	if err := register(runtime); err != nil {
-		return nil, errRegistrationFailed
-	}
-	return runtime, nil
-}
-
-func supportedRoot(t reflect.Type) bool {
-	switch t.Kind() {
-	case reflect.Bool,
-		reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64,
-		reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64, reflect.Uintptr,
-		reflect.Float32, reflect.Float64,
-		reflect.String, reflect.Struct:
-		return true
-	case reflect.Slice:
-		return t.Elem().Kind() == reflect.Uint8
-	default:
-		return false
-	}
+	return &Codec[V]{state: &codecState[V]{runtime: runtime}, profile: profile, maxPayload: o.MaxPayloadBytes}, nil
 }
 
 // Marshal serializes a value and wraps it in the profile envelope.
@@ -134,32 +98,11 @@ func (c *Codec[V]) Marshal(value V) ([]byte, error) {
 	if c == nil || c.state == nil || c.state.runtime == nil {
 		return nil, &CodecError{operation: "marshal", reason: ReasonUninitialized}
 	}
-	var input any = value
-	if reflect.TypeOf(value).Kind() == reflect.Struct {
-		input = &value
-	}
-	raw, tooLarge, err := c.serialize(input)
+	raw, err := c.state.runtime.Serialize(value)
 	if err != nil {
-		return nil, &CodecError{operation: "marshal", profile: c.profile, reason: ReasonForyFailure, cause: errProviderFailed}
-	}
-	if tooLarge {
-		return nil, &CodecError{operation: "marshal", profile: c.profile, reason: ReasonPayloadTooLarge}
+		return nil, mapRuntimeError("marshal", c.profile, err)
 	}
 	return wrap(c.profile, raw), nil
-}
-
-func (c *Codec[V]) serialize(input any) (raw []byte, tooLarge bool, err error) {
-	c.state.mu.Lock()
-	defer c.state.mu.Unlock()
-	defer recoverProviderPanic(&err)
-	raw, err = c.state.runtime.Serialize(input)
-	if err != nil {
-		return nil, false, err
-	}
-	if len(raw) > c.maxPayload {
-		return nil, true, nil
-	}
-	return append([]byte(nil), raw...), false, nil
 }
 
 // Unmarshal decodes a profile envelope into a value.
@@ -172,18 +115,32 @@ func (c *Codec[V]) Unmarshal(data []byte) (V, error) {
 	if err != nil {
 		return value, err
 	}
-	err = c.deserialize(raw, &value)
+	value, err = c.state.runtime.Deserialize(raw)
 	if err != nil {
-		return value, &CodecError{operation: "unmarshal", profile: c.profile, reason: ReasonForyFailure, cause: errProviderFailed}
+		return value, mapRuntimeError("unmarshal", c.profile, err)
 	}
 	return value, nil
 }
 
-func (c *Codec[V]) deserialize(raw []byte, value *V) (err error) {
-	c.state.mu.Lock()
-	defer c.state.mu.Unlock()
-	defer recoverProviderPanic(&err)
-	return c.state.runtime.Deserialize(raw, value)
+func mapRuntimeError(operation string, profile Profile, err error) error {
+	var runtimeErr *forynative.Error
+	if !errors.As(err, &runtimeErr) {
+		return &CodecError{operation: operation, profile: profile, reason: ReasonForyFailure, cause: errProviderFailed}
+	}
+	switch runtimeErr.Reason() {
+	case forynative.ReasonConfiguration:
+		return &CodecError{operation: operation, profile: profile, reason: ReasonConfiguration}
+	case forynative.ReasonUninitialized:
+		return &CodecError{operation: operation, profile: profile, reason: ReasonUninitialized}
+	case forynative.ReasonRegistration:
+		return &CodecError{operation: "register", profile: profile, reason: ReasonRegistration, cause: errRegistrationFailed}
+	case forynative.ReasonPayloadTooLarge:
+		return &CodecError{operation: operation, profile: profile, reason: ReasonPayloadTooLarge}
+	case forynative.ReasonUnsupportedValue:
+		return &CodecError{operation: operation, profile: profile, reason: ReasonUnsupportedValue}
+	default:
+		return &CodecError{operation: operation, profile: profile, reason: ReasonForyFailure, cause: errProviderFailed}
+	}
 }
 
 func recoverProviderPanic(err *error) {
