@@ -131,7 +131,7 @@ func (c *ValueCache[V]) validateInitialized(operation string) error {
 }
 
 func (c *ValueCache[V]) operationError(ctx context.Context, operation, rawKey string) error {
-	cause := error(errProviderFailed)
+	cause := errProviderFailed
 	if contextErr := ctx.Err(); contextErr != nil {
 		cause = errors.Join(errProviderFailed, contextErr)
 	}

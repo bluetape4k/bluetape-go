@@ -301,7 +301,7 @@ func unitCache[V any](client commandClient, codec valueCodec[V]) *ValueCache[V] 
 
 func TestValueCacheSetStoresBTFVWithTTL(t *testing.T) {
 	var calls int
-	client := &fakeCommandClient{set: func(ctx context.Context, key string, value any, ttl time.Duration) *redis.StatusCmd {
+	client := &fakeCommandClient{set: func(_ context.Context, key string, value any, ttl time.Duration) *redis.StatusCmd {
 		calls++
 		if key != "bluetape:cache:fory:unit:g1:item:42" || ttl != time.Minute {
 			t.Fatalf("key/ttl = %q/%s", key, ttl)
@@ -387,7 +387,7 @@ func TestValueCacheGetRechecksContextAfterRedisReadBeforeDecode(t *testing.T) {
 
 func TestValueCacheDeleteValidatesKeyAndIsIdempotent(t *testing.T) {
 	var calls int
-	client := &fakeCommandClient{del: func(_ context.Context, keys ...string) *redis.IntCmd {
+	client := &fakeCommandClient{del: func(_ context.Context, _ ...string) *redis.IntCmd {
 		calls++
 		return redis.NewIntResult(0, nil)
 	}}
@@ -424,13 +424,13 @@ func TestValueCacheMethodsNormalizeNilContext(t *testing.T) {
 	}
 	codec := fakeValueCodec[string]{serialize: func(string) ([]byte, error) { return []byte("x"), nil }, deserialize: func([]byte) (string, error) { return "x", nil }}
 	c := unitCache[string](client, codec)
-	if err := c.Set(nil, "key", "value", time.Second); err != nil {
+	if err := c.Set(nil, "key", "value", time.Second); err != nil { //nolint:staticcheck // nil context normalization is the contract under test.
 		t.Fatal(err)
 	}
-	if _, err := c.Get(nil, "missing"); !errors.Is(err, cache.ErrCacheMiss) {
+	if _, err := c.Get(nil, "missing"); !errors.Is(err, cache.ErrCacheMiss) { //nolint:staticcheck // nil context normalization is the contract under test.
 		t.Fatal(err)
 	}
-	if err := c.Delete(nil, "key"); err != nil {
+	if err := c.Delete(nil, "key"); err != nil { //nolint:staticcheck // nil context normalization is the contract under test.
 		t.Fatal(err)
 	}
 }
