@@ -156,7 +156,8 @@ overview.
 - Coordination: [`leader`](leader/README.md),
   [`leader/redis`](leader/redis/README.md),
   [`leader/mongo`](leader/mongo/README.md),
-  [`redis`](redis/README.md), and [`lock/redis`](lock/redis/README.md).
+  [`redis`](redis/README.md), [`redis/stream`](redis/stream/README.md), and
+  [`lock/redis`](lock/redis/README.md).
 - Runtime policies, cache, state, and workflow: [`resilience`](resilience/README.md),
   [`cache`](cache/README.md), [`cache/redisnear`](cache/redisnear/README.md),
   [`cache/rediscoord`](cache/rediscoord/README.md), [`ratelimit`](ratelimit/README.md),

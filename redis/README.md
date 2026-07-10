@@ -10,6 +10,11 @@ This package is not a generic Redis client facade. It does not own Redis
 connections, retries, logging, metrics, tenant isolation, or package-specific
 key authorization. Callers keep their `go-redis` clients and deadlines.
 
+For direct Redis Streams operations, use the sibling
+[`redis/stream`](stream/README.md) package. It owns only command validation and
+sanitized errors; callers still own stream topology, payload encoding,
+consumer-group policy, replay, and retention.
+
 Issue #569 only adds the foundation package. Existing packages such as
 `lock/redis`, `leader/redis`, `ratelimit/redis`, and `probabilistic/redis` are
 not migrated here. Follow-up migrations must add old/new key parity tests and

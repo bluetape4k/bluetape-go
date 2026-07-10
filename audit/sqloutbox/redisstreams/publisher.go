@@ -9,15 +9,14 @@ import (
 	"strings"
 
 	"github.com/bluetape4k/bluetape-go/audit/sqloutbox"
+	redisstream "github.com/bluetape4k/bluetape-go/redis/stream"
 	"github.com/redis/go-redis/v9"
 )
 
 const defaultStream = "audit:sqloutbox"
 
-// Client is the narrow go-redis surface used by Publisher.
-type Client interface {
-	XAdd(context.Context, *redis.XAddArgs) *redis.StringCmd
-}
+// Client is the narrow Redis Streams append surface used by Publisher.
+type Client = redisstream.Appender
 
 // Options configures a Redis Streams sqloutbox publisher.
 type Options struct {
@@ -75,10 +74,10 @@ func (p *Publisher) Publish(ctx context.Context, record sqloutbox.Record) error 
 	if err := ctx.Err(); err != nil {
 		return err
 	}
-	if _, err := p.client.XAdd(ctx, &redis.XAddArgs{
+	if _, err := redisstream.Append(ctx, p.client, redis.XAddArgs{
 		Stream: p.stream,
 		Values: values,
-	}).Result(); err != nil {
+	}); err != nil {
 		return fmt.Errorf("redis streams publish: %w", err)
 	}
 	return nil

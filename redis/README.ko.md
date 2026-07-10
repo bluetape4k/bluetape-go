@@ -9,6 +9,11 @@
 logging, metrics, tenant isolation, package-specific key authorization을 소유하지
 않습니다. Caller가 `go-redis` client와 deadline을 소유합니다.
 
+직접 Redis Streams operation은 sibling [`redis/stream`](stream/README.ko.md)
+package를 사용하세요. 이 package는 command validation과 sanitized error만
+소유하며 stream topology, payload encoding, consumer-group policy, replay,
+retention은 caller-owned입니다.
+
 Issue #569는 foundation package만 추가합니다. `lock/redis`, `leader/redis`,
 `ratelimit/redis`, `probabilistic/redis` 같은 기존 package는 여기서 migration하지
 않습니다. 후속 migration은 package-local helper를 교체하기 전에 old/new key parity
