@@ -111,6 +111,8 @@ _ = ran
 - Single-Elector Redis provider failures preserve their cause for
   `errors.Is` / `errors.As` while diagnostic text redacts raw Redis keys and
   owner-token values.
+- Group-Elector ZSET members retain `memberID:<random>` values; its random
+  suffix is canonical and provider diagnostics follow the same typed, redacted contract.
 
 ## Runnable Batch Examples
 

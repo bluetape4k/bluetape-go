@@ -12,10 +12,70 @@ import (
 
 	"github.com/bluetape4k/bluetape-go/leader"
 	redisleader "github.com/bluetape4k/bluetape-go/leader/redis"
+	btredis "github.com/bluetape4k/bluetape-go/redis"
 	bttesting "github.com/bluetape4k/bluetape-go/testing"
 	concurrencytest "github.com/bluetape4k/bluetape-go/testing/concurrency"
 	"github.com/redis/go-redis/v9"
 )
+
+func TestRedisGroupElectorCampaignProviderErrorIsRedactedAndWrapped(t *testing.T) {
+	ctx := context.Background()
+	client := newRedisClient(ctx, t)
+
+	const (
+		group  = "redacted-group-error"
+		prefix = "tenant:leader"
+	)
+	elector, err := redisleader.NewGroup(client, leader.GroupOptions{
+		Options: leader.Options{
+			Group:     group,
+			MemberID:  "member-1",
+			KeyPrefix: prefix,
+		},
+		MaxLeaders: 1,
+	})
+	if err != nil {
+		t.Fatalf("new group elector: %v", err)
+	}
+	if err := client.Close(); err != nil {
+		t.Fatalf("close redis client: %v", err)
+	}
+	err = elector.Campaign(ctx)
+	if !errors.Is(err, redis.ErrClosed) {
+		t.Fatalf("campaign cause = %v", err)
+	}
+	var opErr *btredis.OpError
+	if !errors.As(err, &opErr) {
+		t.Fatalf("campaign error = %T, want *redis.OpError", err)
+	}
+	if opErr.Operation() != "campaign" {
+		t.Fatalf("operation = %q, want campaign", opErr.Operation())
+	}
+	if strings.Contains(err.Error(), prefix+":"+group) {
+		t.Fatalf("campaign error leaked raw key: %v", err)
+	}
+}
+
+func TestRedisGroupElectorStoresCanonicalOwnerTokenSuffix(t *testing.T) {
+	ctx := context.Background()
+	client := newRedisClient(ctx, t)
+	elector := newGroupElector(t, client, "canonical-group-token", "member-1", 1)
+	if err := elector.Campaign(ctx); err != nil {
+		t.Fatalf("campaign: %v", err)
+	}
+	t.Cleanup(func() { _ = elector.Resign(context.Background()) })
+	values, err := client.ZRange(ctx, "bluetape:leader-group:canonical-group-token", 0, -1).Result()
+	if err != nil || len(values) != 1 {
+		t.Fatalf("group members = %v, %v", values, err)
+	}
+	suffix, ok := strings.CutPrefix(values[0], "member-1:")
+	if !ok {
+		t.Fatalf("member = %q", values[0])
+	}
+	if _, err := btredis.ParseOwnerToken(suffix); err != nil {
+		t.Fatalf("canonical suffix: %v", err)
+	}
+}
 
 func TestRedisGroupElectorAllowsMaxLeaders(t *testing.T) {
 	ctx := context.Background()
