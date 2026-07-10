@@ -136,10 +136,11 @@ func (c *Codec[V]) Marshal(value V) ([]byte, error) {
 	return wrap(c.profile, raw), nil
 }
 
-func (c *Codec[V]) serialize(input any) ([]byte, bool, error) {
+func (c *Codec[V]) serialize(input any) (raw []byte, tooLarge bool, err error) {
 	c.mu.Lock()
 	defer c.mu.Unlock()
-	raw, err := c.runtime.Serialize(input)
+	defer recoverProviderPanic(&err)
+	raw, err = c.runtime.Serialize(input)
 	if err != nil {
 		return nil, false, err
 	}
@@ -166,8 +167,15 @@ func (c *Codec[V]) Unmarshal(data []byte) (V, error) {
 	return value, nil
 }
 
-func (c *Codec[V]) deserialize(raw []byte, value *V) error {
+func (c *Codec[V]) deserialize(raw []byte, value *V) (err error) {
 	c.mu.Lock()
 	defer c.mu.Unlock()
+	defer recoverProviderPanic(&err)
 	return c.runtime.Deserialize(raw, value)
+}
+
+func recoverProviderPanic(err *error) {
+	if recover() != nil {
+		*err = errProviderFailed
+	}
 }

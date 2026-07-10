@@ -308,6 +308,20 @@ func TestUnmarshalWrapsMalformedForyPayload(t *testing.T) {
 	}
 }
 
+func TestRecoverProviderPanicReturnsSanitizedCause(t *testing.T) {
+	marker := "provider-panic-payload-marker"
+	err := func() (err error) {
+		defer recoverProviderPanic(&err)
+		panic(marker)
+	}()
+	if !errors.Is(err, errProviderFailed) {
+		t.Fatalf("error = %v", err)
+	}
+	if strings.Contains(err.Error(), marker) {
+		t.Fatalf("panic marker leaked: %v", err)
+	}
+}
+
 func TestCodecConcurrentRoundTrip(t *testing.T) {
 	codec, err := NewNativeFast[testValue](Options{Register: registerTestValue})
 	if err != nil {
