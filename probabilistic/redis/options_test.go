@@ -2,12 +2,51 @@ package redisbloom
 
 import (
 	"errors"
+	"regexp"
 	"strings"
 	"testing"
 
 	"github.com/bluetape4k/bluetape-go/probabilistic"
 	"github.com/redis/go-redis/v9"
 )
+
+var redactedRedisKeyIDPattern = regexp.MustCompile(`^redis-key:[0-9a-f]{12}$`)
+
+func TestKeyBuilderForNamespaceKeepsClusterHashTag(t *testing.T) {
+	t.Parallel()
+
+	builder, err := keyBuilderForNamespace(keyPrefix, "tenant-a:emails")
+	if err != nil {
+		t.Fatalf("keyBuilderForNamespace failed: %v", err)
+	}
+	key, err := builder.StructuralKey("bits")
+	if err != nil {
+		t.Fatalf("StructuralKey failed: %v", err)
+	}
+	if got, want := key.Value, "bluetape:probabilistic:bloom:v1:{tenant-a:emails}:bits"; got != want {
+		t.Fatalf("key = %q, want %q", got, want)
+	}
+}
+
+func TestKeyBuilderForNamespaceRetainsLocalValidation(t *testing.T) {
+	t.Parallel()
+
+	for _, namespace := range []string{"tenant:{bad}", "   ", "tenant-secret"} {
+		t.Run(namespace, func(t *testing.T) {
+			t.Parallel()
+
+			_, err := keyBuilderForNamespace(keyPrefix, namespace)
+			if err == nil {
+				t.Fatal("expected invalid namespace error")
+			}
+			for _, sharedError := range []string{"redis: invalid key", "invalid hash tag"} {
+				if strings.Contains(err.Error(), sharedError) {
+					t.Fatalf("shared key validation escaped: %v", err)
+				}
+			}
+		})
+	}
+}
 
 func TestBuildKeysUsesClusterHashTag(t *testing.T) {
 	t.Parallel()
@@ -28,6 +67,32 @@ func TestBuildKeysUsesClusterHashTag(t *testing.T) {
 	}
 	if strings.Contains(keys.redactedID, "tenant-a") {
 		t.Fatalf("redacted id leaked namespace: %q", keys.redactedID)
+	}
+}
+
+func TestBuildHyperLogLogKeyKeepsSharedBuilderCompatibleLayout(t *testing.T) {
+	t.Parallel()
+
+	key, err := buildHyperLogLogKey("tenant-a:emails")
+	if err != nil {
+		t.Fatalf("buildHyperLogLogKey failed: %v", err)
+	}
+	if got, want := key.key, "bluetape:probabilistic:hll:v1:{tenant-a:emails}"; got != want {
+		t.Fatalf("key = %q, want %q", got, want)
+	}
+
+	markerNamespace := "tenant-marker"
+	markerKey, err := buildHyperLogLogKey(markerNamespace)
+	if err != nil {
+		t.Fatalf("buildHyperLogLogKey marker failed: %v", err)
+	}
+	if !redactedRedisKeyIDPattern.MatchString(markerKey.redactedID) {
+		t.Fatalf("redacted ID = %q, want redis-key plus 12 lowercase hex chars", markerKey.redactedID)
+	}
+	for _, sensitive := range []string{markerNamespace, markerKey.key} {
+		if strings.Contains(markerKey.redactedID, sensitive) {
+			t.Fatalf("redacted ID leaked %q: %q", sensitive, markerKey.redactedID)
+		}
 	}
 }
 
