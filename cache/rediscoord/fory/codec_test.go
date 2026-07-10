@@ -1,0 +1,236 @@
+package rediscoordfory
+
+import (
+	"errors"
+	"fmt"
+	"strings"
+	"sync"
+	"testing"
+
+	"github.com/apache/fory/go/fory"
+)
+
+type testValue struct {
+	Name  string
+	Count int
+}
+
+type compatibleV1 struct{ Name string }
+type compatibleV2 struct {
+	Name  string
+	Count int
+}
+
+func registerTestValue(f *fory.Fory) error {
+	return f.RegisterStructByName(testValue{}, "rediscoordfory.testValue")
+}
+
+func TestNewNativeFastRejectsInvalidOptions(t *testing.T) {
+	_, err := NewNativeFast[testValue](Options{Register: registerTestValue, MaxDepth: -1})
+	var ce *CodecError
+	if !errors.As(err, &ce) || ce.Reason() != ReasonConfiguration {
+		t.Fatalf("error = %v", err)
+	}
+	_, err = NewNativeFast[testValue](Options{})
+	if !errors.As(err, &ce) || ce.Reason() != ReasonRegistration {
+		t.Fatalf("registration error = %v", err)
+	}
+}
+
+func TestNewNativeFastRejectsUnsupportedRootShapes(t *testing.T) {
+	_, err := NewNativeFast[*testValue](Options{Register: registerTestValue})
+	var ce *CodecError
+	if !errors.As(err, &ce) || ce.Reason() != ReasonUnsupportedValue {
+		t.Fatalf("error = %v", err)
+	}
+}
+
+func TestZeroCodecReturnsUninitializedError(t *testing.T) {
+	var codec Codec[testValue]
+	_, err := codec.Marshal(testValue{})
+	var ce *CodecError
+	if !errors.As(err, &ce) || ce.Reason() != ReasonUninitialized {
+		t.Fatalf("marshal error = %v", err)
+	}
+}
+
+func TestCodecErrorRedactsPayloadCauseAndRegistrationText(t *testing.T) {
+	secret := "secret-registration-payload-owner-token"
+	_, err := NewNativeFast[testValue](Options{Register: func(*fory.Fory) error { return errors.New(secret) }})
+	if strings.Contains(err.Error(), secret) {
+		t.Fatalf("error leaked secret: %s", err)
+	}
+	var ce *CodecError
+	if !errors.As(err, &ce) || ce.Reason() != ReasonRegistration {
+		t.Fatalf("error = %v", err)
+	}
+}
+
+func TestNativeProfilesRoundTrip(t *testing.T) {
+	for _, tc := range []struct {
+		name string
+		make func(Options) (*Codec[testValue], error)
+	}{
+		{"fast", NewNativeFast[testValue]}, {"compatible", NewNativeCompatible[testValue]},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			codec, err := tc.make(Options{Register: registerTestValue})
+			if err != nil {
+				t.Fatal(err)
+			}
+			encoded, err := codec.Marshal(testValue{Name: "ok", Count: 7})
+			if err != nil {
+				t.Fatal(err)
+			}
+			if string(encoded[:4]) != "BTFY" {
+				t.Fatalf("magic = %q", encoded[:4])
+			}
+			decoded, err := codec.Unmarshal(encoded)
+			if err != nil {
+				t.Fatal(err)
+			}
+			if decoded != (testValue{Name: "ok", Count: 7}) {
+				t.Fatalf("decoded = %#v", decoded)
+			}
+		})
+	}
+}
+
+func TestNativeCompatibleReadsAddedFieldSchema(t *testing.T) {
+	writer, err := NewNativeCompatible[compatibleV1](Options{Register: func(f *fory.Fory) error {
+		return f.RegisterStructByName(compatibleV1{}, "rediscoordfory.compatibleValue")
+	}})
+	if err != nil {
+		t.Fatal(err)
+	}
+	reader, err := NewNativeCompatible[compatibleV2](Options{Register: func(f *fory.Fory) error {
+		return f.RegisterStructByName(compatibleV2{}, "rediscoordfory.compatibleValue")
+	}})
+	if err != nil {
+		t.Fatal(err)
+	}
+	encoded, err := writer.Marshal(compatibleV1{Name: "old"})
+	if err != nil {
+		t.Fatal(err)
+	}
+	got, err := reader.Unmarshal(encoded)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if got.Name != "old" || got.Count != 0 {
+		t.Fatalf("decoded = %#v", got)
+	}
+}
+
+func TestEnvelopeRejectsMalformedInput(t *testing.T) {
+	codec, err := NewNativeFast[testValue](Options{Register: registerTestValue, MaxPayloadBytes: 1})
+	if err != nil {
+		t.Fatal(err)
+	}
+	_, err = codec.Unmarshal([]byte("JSON"))
+	var ce *CodecError
+	if !errors.As(err, &ce) || ce.Reason() != ReasonInvalidMagic {
+		t.Fatalf("error = %v", err)
+	}
+	_, err = codec.Marshal(testValue{Name: "too-large"})
+	if !errors.As(err, &ce) || ce.Reason() != ReasonPayloadTooLarge {
+		t.Fatalf("oversize error = %v", err)
+	}
+}
+
+func TestNativeValueShapes(t *testing.T) {
+	codec, err := NewNativeFast[string](Options{Register: func(*fory.Fory) error { return nil }})
+	if err != nil {
+		t.Fatal(err)
+	}
+	b, err := codec.Marshal("hello")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if got, err := codec.Unmarshal(b); err != nil || got != "hello" {
+		t.Fatalf("string round trip = %q, %v", got, err)
+	}
+	bytesCodec, err := NewNativeFast[[]byte](Options{Register: func(*fory.Fory) error { return nil }})
+	if err != nil {
+		t.Fatal(err)
+	}
+	b, err = bytesCodec.Marshal([]byte("bytes"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	got, err := bytesCodec.Unmarshal(b)
+	if err != nil || string(got) != "bytes" {
+		t.Fatalf("bytes round trip = %q, %v", got, err)
+	}
+}
+
+func TestEnvelopeRejectsWrongVersionProfileAndLength(t *testing.T) {
+	codec, err := NewNativeFast[string](Options{Register: func(*fory.Fory) error { return nil }})
+	if err != nil {
+		t.Fatal(err)
+	}
+	encoded, err := codec.Marshal("value")
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	tests := []struct {
+		name   string
+		mutate func([]byte)
+		reason Reason
+	}{
+		{name: "version", mutate: func(b []byte) { b[4]++ }, reason: ReasonUnsupportedVersion},
+		{name: "profile", mutate: func(b []byte) { b[5] = 2 }, reason: ReasonProfileMismatch},
+		{name: "length", mutate: func(b []byte) { b[9]++ }, reason: ReasonLengthMismatch},
+	}
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			bad := append([]byte(nil), encoded...)
+			tc.mutate(bad)
+			_, err := codec.Unmarshal(bad)
+			var ce *CodecError
+			if !errors.As(err, &ce) || ce.Reason() != tc.reason {
+				t.Fatalf("error = %v", err)
+			}
+		})
+	}
+}
+
+func TestCodecConcurrentRoundTrip(t *testing.T) {
+	codec, err := NewNativeFast[testValue](Options{Register: registerTestValue})
+	if err != nil {
+		t.Fatal(err)
+	}
+	const workers = 16
+	const iterations = 100
+	var wg sync.WaitGroup
+	errs := make(chan error, workers)
+	for worker := range workers {
+		wg.Add(1)
+		go func() {
+			defer wg.Done()
+			for i := range iterations {
+				want := testValue{Name: fmt.Sprintf("worker-%d-%d", worker, i), Count: worker*iterations + i}
+				encoded, err := codec.Marshal(want)
+				if err != nil {
+					errs <- err
+					return
+				}
+				got, err := codec.Unmarshal(encoded)
+				if err != nil {
+					errs <- err
+					return
+				}
+				if got != want {
+					errs <- fmt.Errorf("got %#v, want %#v", got, want)
+					return
+				}
+			}
+		}()
+	}
+	wg.Wait()
+	close(errs)
+	for err := range errs {
+		t.Error(err)
+	}
+}
