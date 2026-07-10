@@ -23,8 +23,9 @@ preserving the existing single-instance owner-token lock contract.
 
 Migrate only `lock/redis`. Keep `Mutex`, `Lease`, `Options`, `ErrNotAcquired`,
 and their public method signatures unchanged. Internally, use the shared
-substrate for generated tokens, script dispatch, lease ownership, TTL
-validation, and sanitized operational errors.
+substrate for generated tokens, script dispatch, lease ownership, and
+sanitized operational errors. It retains local TTL validation because the
+shared millisecond minimum would change the existing option contract.
 
 `Options.Token` remains a caller-visible `string` and may remain any non-blank
 value. Its existing `strings.TrimSpace` normalization is retained: leading and
@@ -66,8 +67,9 @@ private compatibility script with the same error-redaction rule.
 
 ## Test Plan
 
-- Add unit coverage for generated-token canonicality and redacted operation
-  errors without requiring a Redis server.
+- Add package coverage for generated-token canonicality and redacted operation
+  errors using the existing Redis Testcontainers fixture where lock acquisition
+  is required.
 - Keep Testcontainers coverage serial for acquire, unlock, contention, expiry,
   owner drift, canceled context, and caller-owned key/token compatibility.
 - Run `go test -p 1 -count=1 ./lock/redis` and
