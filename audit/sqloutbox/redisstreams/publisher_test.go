@@ -12,6 +12,7 @@ import (
 
 	"github.com/bluetape4k/bluetape-go/audit"
 	"github.com/bluetape4k/bluetape-go/audit/sqloutbox"
+	btredis "github.com/bluetape4k/bluetape-go/redis"
 	postgrestestcontainer "github.com/bluetape4k/bluetape-go/testcontainers/postgres"
 	redistestcontainer "github.com/bluetape4k/bluetape-go/testcontainers/redis"
 	bttesting "github.com/bluetape4k/bluetape-go/testing"
@@ -116,15 +117,25 @@ func TestPublishPreservesContextCancellation(t *testing.T) {
 }
 
 func TestPublishSurfacesRedisError(t *testing.T) {
-	injected := errors.New("redis unavailable")
+	const rawStream = "audit:secret-customer-42"
+	const providerText = "redis provider secret"
+	injected := errors.New(providerText)
 	client := &fakeClient{err: injected}
-	publisher, err := New(Options{Client: client, Stream: "audit:test"})
+	publisher, err := New(Options{Client: client, Stream: rawStream})
 	if err != nil {
 		t.Fatalf("New: %v", err)
 	}
 
-	if err := publisher.Publish(context.Background(), testRecord(t, 1, "event-error", "idem-error", 1)); !errors.Is(err, injected) {
+	err = publisher.Publish(context.Background(), testRecord(t, 1, "event-error", "idem-error", 1))
+	if !errors.Is(err, injected) {
 		t.Fatalf("Publish error = %v, want injected error", err)
+	}
+	var opErr *btredis.OpError
+	if !errors.As(err, &opErr) {
+		t.Fatalf("Publish error = %T, want *btredis.OpError", err)
+	}
+	if strings.Contains(err.Error(), rawStream) || strings.Contains(err.Error(), providerText) {
+		t.Fatalf("Publish error leaked sensitive text: %q", err)
 	}
 }
 

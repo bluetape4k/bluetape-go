@@ -152,7 +152,7 @@ go get github.com/bluetape4k/bluetape-go
 - Coordination: [`leader`](leader/README.ko.md),
   [`leader/redis`](leader/redis/README.ko.md),
   [`leader/mongo`](leader/mongo/README.ko.md), [`redis`](redis/README.ko.md),
-  [`lock/redis`](lock/redis/README.ko.md).
+  [`redis/stream`](redis/stream/README.ko.md), [`lock/redis`](lock/redis/README.ko.md).
 - Runtime policy/cache/state/workflow: [`resilience`](resilience/README.ko.md),
   [`cache`](cache/README.ko.md), [`cache/redisnear`](cache/redisnear/README.ko.md),
   [`cache/rediscoord`](cache/rediscoord/README.ko.md), [`ratelimit`](ratelimit/README.ko.md),
