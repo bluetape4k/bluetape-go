@@ -34,17 +34,20 @@ type Options[V any] struct {
 	ResultTTL time.Duration
 	// PollInterval은 waiter polling 간격이다.
 	PollInterval time.Duration
+	// MaxResultBytes bounds the encoded Redis result envelope. Zero is unlimited.
+	MaxResultBytes int
 }
 
 type config[V any] struct {
-	client       redis.Cmdable
-	cache        cache.LoadingCache[string, V]
-	namespace    string
-	codec        Codec[V]
-	lockTTL      time.Duration
-	resultTTL    time.Duration
-	pollInterval time.Duration
-	keyPrefix    string
+	client         redis.Cmdable
+	cache          cache.LoadingCache[string, V]
+	namespace      string
+	codec          Codec[V]
+	lockTTL        time.Duration
+	resultTTL      time.Duration
+	pollInterval   time.Duration
+	maxResultBytes int
+	keyPrefix      string
 }
 
 func normalizeOptions[V any](options Options[V]) (config[V], error) {
@@ -56,6 +59,9 @@ func normalizeOptions[V any](options Options[V]) (config[V], error) {
 	}
 	if options.Codec == nil {
 		return config[V]{}, fmt.Errorf("codec must not be nil")
+	}
+	if options.MaxResultBytes < 0 {
+		return config[V]{}, fmt.Errorf("max result bytes must not be negative")
 	}
 
 	namespace := options.Namespace
@@ -79,14 +85,15 @@ func normalizeOptions[V any](options Options[V]) (config[V], error) {
 	}
 
 	return config[V]{
-		client:       options.Client,
-		cache:        options.Cache,
-		namespace:    namespace,
-		codec:        options.Codec,
-		lockTTL:      lockTTL,
-		resultTTL:    resultTTL,
-		pollInterval: pollInterval,
-		keyPrefix:    defaultKeyPrefix + ":" + namespace,
+		client:         options.Client,
+		cache:          options.Cache,
+		namespace:      namespace,
+		codec:          options.Codec,
+		lockTTL:        lockTTL,
+		resultTTL:      resultTTL,
+		pollInterval:   pollInterval,
+		maxResultBytes: options.MaxResultBytes,
+		keyPrefix:      defaultKeyPrefix + ":" + namespace,
 	}, nil
 }
 

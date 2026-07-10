@@ -2,10 +2,14 @@ package rediscoord
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 )
 
 const resultVersion = 1
+
+// ErrResultTooLarge reports that an encoded coordination result exceeded its configured bound.
+var ErrResultTooLarge = errors.New("coordination result exceeds maximum size")
 
 type resultEnvelope struct {
 	Version int    `json:"version"`

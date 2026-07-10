@@ -211,6 +211,9 @@ func (c *StampedeCache[V]) readOwnerResult(
 	if err != nil {
 		return zero, false, operationError(ctx, "result-get", c.resultKey(key), err)
 	}
+	if c.cfg.maxResultBytes > 0 && len(encoded) > c.cfg.maxResultBytes {
+		return zero, false, operationError(ctx, "result-get", c.resultKey(key), ErrResultTooLarge)
+	}
 
 	payload, ok, err := decodeResult(encoded, ownerToken)
 	if err != nil || !ok {
@@ -261,6 +264,9 @@ func (c *StampedeCache[V]) storeResult(ctx context.Context, key string, token st
 	encoded, err := encodeResult(token, payload)
 	if err != nil {
 		return err
+	}
+	if c.cfg.maxResultBytes > 0 && len(encoded) > c.cfg.maxResultBytes {
+		return operationError(ctx, "result-set", c.resultKey(key), ErrResultTooLarge)
 	}
 	if err := c.cfg.client.Set(ctx, c.resultKey(key), encoded, c.cfg.resultTTL).Err(); err != nil {
 		return operationError(ctx, "result-set", c.resultKey(key), err)
