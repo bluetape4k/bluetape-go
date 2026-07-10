@@ -78,8 +78,9 @@ coordinated, err := rediscoord.NewStampedeCache[CatalogValue](rediscoord.Options
 `NewNativeFast` is for fixed schemas. `NewNativeCompatible` permits Fory's
 compatible field evolution, but does not make semantic or incompatible type
 changes safe. Both constructors disable xlang and reference tracking. They
-accept non-pointer primitives, structs, strings, and byte slices; pointer,
-interface, function, channel, and unsafe-pointer roots are rejected.
+accept bool, integer, unsigned integer, floating-point, struct, string, and
+`[]byte` roots; pointer, complex, map, array, non-byte slice, interface,
+function, channel, and unsafe-pointer roots are rejected.
 
 The bounded defaults are 1 MiB payloads, depth 20, 512 fields, 4096 bytes of
 type metadata, 10 schema versions per type, and 3 average schema versions per

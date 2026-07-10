@@ -87,7 +87,7 @@ func newCodec[V any](profile Profile, options Options) (*Codec[V], error) {
 	optionsList := []fory.Option{fory.WithXlang(false), fory.WithCompatible(profile == ProfileNativeCompatible), fory.WithTrackRef(false), fory.WithMaxDepth(o.MaxDepth), fory.WithMaxTypeFields(o.MaxTypeFields), fory.WithMaxTypeMetaBytes(o.MaxTypeMetaBytes), fory.WithMaxSchemaVersionsPerType(o.MaxSchemaVersionsPerType), fory.WithMaxAverageSchemaVersionsPerType(o.MaxAverageSchemaVersionsPerType)}
 	r := fory.New(optionsList...)
 	if err := o.Register(r); err != nil {
-		return nil, &CodecError{operation: "register", profile: profile, reason: ReasonRegistration, cause: err}
+		return nil, &CodecError{operation: "register", profile: profile, reason: ReasonRegistration, cause: errRegistrationFailed}
 	}
 	return &Codec[V]{runtime: r, profile: profile, maxPayload: o.MaxPayloadBytes}, nil
 }
@@ -124,7 +124,7 @@ func (c *Codec[V]) Marshal(value V) ([]byte, error) {
 	}
 	c.mu.Unlock()
 	if err != nil {
-		return nil, &CodecError{operation: "marshal", profile: c.profile, reason: ReasonForyFailure, cause: err}
+		return nil, &CodecError{operation: "marshal", profile: c.profile, reason: ReasonForyFailure, cause: errProviderFailed}
 	}
 	if tooLarge {
 		return nil, &CodecError{operation: "marshal", profile: c.profile, reason: ReasonPayloadTooLarge}
@@ -146,7 +146,7 @@ func (c *Codec[V]) Unmarshal(data []byte) (V, error) {
 	err = c.runtime.Deserialize(raw, &value)
 	c.mu.Unlock()
 	if err != nil {
-		return value, &CodecError{operation: "unmarshal", profile: c.profile, reason: ReasonForyFailure, cause: err}
+		return value, &CodecError{operation: "unmarshal", profile: c.profile, reason: ReasonForyFailure, cause: errProviderFailed}
 	}
 	return value, nil
 }

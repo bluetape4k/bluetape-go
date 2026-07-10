@@ -12,14 +12,14 @@ import (
 	"github.com/redis/go-redis/v9"
 )
 
-// StampedeCache 는 Redis로 cross-process load burst를 조정한다.
+// StampedeCache coordinates cross-process load bursts through Redis.
 type StampedeCache[V any] struct {
 	cfg config[V]
 }
 
 var _ cache.LoadingCache[string, string] = (*StampedeCache[string])(nil)
 
-// NewStampedeCache 는 Redis coordination wrapper를 만든다.
+// NewStampedeCache creates a Redis coordination wrapper.
 func NewStampedeCache[V any](options Options[V]) (*StampedeCache[V], error) {
 	cfg, err := normalizeOptions(options)
 	if err != nil {
@@ -28,27 +28,27 @@ func NewStampedeCache[V any](options Options[V]) (*StampedeCache[V], error) {
 	return &StampedeCache[V]{cfg: cfg}, nil
 }
 
-// Get 은 감싼 cache에서 값을 읽는다.
+// Get reads a value from the wrapped cache.
 func (c *StampedeCache[V]) Get(ctx context.Context, key string) (V, error) {
 	return c.cfg.cache.Get(normalizeContext(ctx), key)
 }
 
-// Set 은 감싼 cache에 값을 쓴다.
+// Set writes a value to the wrapped cache.
 func (c *StampedeCache[V]) Set(ctx context.Context, key string, value V, ttl time.Duration) error {
 	return c.cfg.cache.Set(normalizeContext(ctx), key, value, ttl)
 }
 
-// Delete 는 감싼 cache에서 key를 제거한다.
+// Delete removes a key from the wrapped cache.
 func (c *StampedeCache[V]) Delete(ctx context.Context, key string) error {
 	return c.cfg.cache.Delete(normalizeContext(ctx), key)
 }
 
-// Clear 는 감싼 cache를 비운다.
+// Clear empties the wrapped cache.
 func (c *StampedeCache[V]) Clear(ctx context.Context) error {
 	return c.cfg.cache.Clear(normalizeContext(ctx))
 }
 
-// GetOrLoad 는 cold miss burst에서 한 process의 loader 결과를 공유한다.
+// GetOrLoad shares one process's loader result during a cold-miss burst.
 func (c *StampedeCache[V]) GetOrLoad(
 	ctx context.Context,
 	key string,

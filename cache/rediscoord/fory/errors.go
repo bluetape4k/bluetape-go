@@ -1,6 +1,14 @@
 package rediscoordfory
 
-import "fmt"
+import (
+	"errors"
+	"fmt"
+)
+
+var (
+	errRegistrationFailed = errors.New("fory codec registration failed")
+	errProviderFailed     = errors.New("fory codec provider failed")
+)
 
 // Profile identifies the wire profile used by a codec.
 type Profile string

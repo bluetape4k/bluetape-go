@@ -72,13 +72,17 @@ func TestZeroCodecReturnsUninitializedError(t *testing.T) {
 
 func TestCodecErrorRedactsPayloadCauseAndRegistrationText(t *testing.T) {
 	secret := "secret-registration-payload-owner-token"
-	_, err := NewNativeFast[testValue](Options{Register: func(*fory.Fory) error { return errors.New(secret) }})
+	rawCause := errors.New(secret)
+	_, err := NewNativeFast[testValue](Options{Register: func(*fory.Fory) error { return rawCause }})
 	if strings.Contains(err.Error(), secret) {
 		t.Fatalf("error leaked secret: %s", err)
 	}
 	var ce *CodecError
 	if !errors.As(err, &ce) || ce.Reason() != ReasonRegistration {
 		t.Fatalf("error = %v", err)
+	}
+	if errors.Is(err, rawCause) || strings.Contains(errors.Unwrap(err).Error(), secret) {
+		t.Fatalf("unwrapped error leaked registration cause: %v", errors.Unwrap(err))
 	}
 }
 
@@ -180,6 +184,71 @@ func TestNativeValueShapes(t *testing.T) {
 	}
 }
 
+func TestNativeProfilesPreserveZeroAndEmptyValues(t *testing.T) {
+	profiles := []struct {
+		name  string
+		bytes func(Options) (*Codec[[]byte], error)
+		text  func(Options) (*Codec[string], error)
+		value func(Options) (*Codec[testValue], error)
+	}{
+		{name: "fast", bytes: NewNativeFast[[]byte], text: NewNativeFast[string], value: NewNativeFast[testValue]},
+		{name: "compatible", bytes: NewNativeCompatible[[]byte], text: NewNativeCompatible[string], value: NewNativeCompatible[testValue]},
+	}
+	for _, profile := range profiles {
+		t.Run(profile.name, func(t *testing.T) {
+			noRegistration := Options{Register: func(*fory.Fory) error { return nil }}
+			bytesCodec, err := profile.bytes(noRegistration)
+			if err != nil {
+				t.Fatal(err)
+			}
+			for _, tc := range []struct {
+				name    string
+				value   []byte
+				wantNil bool
+			}{
+				{name: "nil", value: nil, wantNil: true},
+				{name: "empty", value: []byte{}, wantNil: false},
+			} {
+				t.Run(tc.name+"-bytes", func(t *testing.T) {
+					encoded, err := bytesCodec.Marshal(tc.value)
+					if err != nil {
+						t.Fatal(err)
+					}
+					got, err := bytesCodec.Unmarshal(encoded)
+					if err != nil {
+						t.Fatal(err)
+					}
+					if (got == nil) != tc.wantNil || len(got) != 0 {
+						t.Fatalf("decoded = %#v", got)
+					}
+				})
+			}
+			textCodec, err := profile.text(noRegistration)
+			if err != nil {
+				t.Fatal(err)
+			}
+			encoded, err := textCodec.Marshal("")
+			if err != nil {
+				t.Fatal(err)
+			}
+			if got, err := textCodec.Unmarshal(encoded); err != nil || got != "" {
+				t.Fatalf("empty string = %q, %v", got, err)
+			}
+			valueCodec, err := profile.value(Options{Register: registerTestValue})
+			if err != nil {
+				t.Fatal(err)
+			}
+			encoded, err = valueCodec.Marshal(testValue{})
+			if err != nil {
+				t.Fatal(err)
+			}
+			if got, err := valueCodec.Unmarshal(encoded); err != nil || got != (testValue{}) {
+				t.Fatalf("zero struct = %#v, %v", got, err)
+			}
+		})
+	}
+}
+
 func TestEnvelopeRejectsWrongVersionProfileAndLength(t *testing.T) {
 	codec, err := NewNativeFast[string](Options{Register: func(*fory.Fory) error { return nil }})
 	if err != nil {
@@ -225,6 +294,9 @@ func TestUnmarshalWrapsMalformedForyPayload(t *testing.T) {
 	}
 	if strings.Contains(err.Error(), marker) {
 		t.Fatalf("error leaked payload: %v", err)
+	}
+	if strings.Contains(errors.Unwrap(err).Error(), marker) {
+		t.Fatalf("unwrapped error leaked payload: %v", errors.Unwrap(err))
 	}
 }
 
