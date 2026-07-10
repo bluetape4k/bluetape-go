@@ -449,6 +449,21 @@ func TestValueCacheCommandContextErrorsRemainInspectable(t *testing.T) {
 	assertErrorRedacted(t, err, "provider canceled request", "secret-key")
 }
 
+func TestValueCacheCommandDeadlineErrorsRemainInspectable(t *testing.T) {
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Millisecond)
+	defer cancel()
+	client := &fakeCommandClient{get: func(ctx context.Context, _ string) *redis.StringCmd {
+		<-ctx.Done()
+		return redis.NewStringResult("", errors.New("provider deadline detail"))
+	}}
+	codec := fakeValueCodec[string]{serialize: func(string) ([]byte, error) { return nil, nil }, deserialize: func([]byte) (string, error) { return "", nil }}
+	_, err := unitCache[string](client, codec).Get(ctx, "deadline-secret-key")
+	if !errors.Is(err, context.DeadlineExceeded) {
+		t.Fatalf("error = %v", err)
+	}
+	assertErrorRedacted(t, err, "provider deadline detail", "deadline-secret-key")
+}
+
 func TestValueCacheMethodsSanitizeRedisProviderErrors(t *testing.T) {
 	const marker = "redis-provider-secret"
 	providerErr := errors.New(marker)

@@ -43,7 +43,7 @@ func unwrap(profile Profile, generation uint32, encoded []byte, maxPayload int) 
 	if uint64(len(encoded)) != uint64(envelopeHeaderSize)+uint64(declared) {
 		return nil, newCacheError("decode", profile, ReasonLengthMismatch, nil)
 	}
-	return append([]byte(nil), encoded[envelopeHeaderSize:]...), nil
+	return encoded[envelopeHeaderSize:], nil
 }
 
 func profileFormat(profile Profile) byte {

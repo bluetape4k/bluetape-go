@@ -13,6 +13,7 @@ import (
 	"github.com/apache/fory/go/fory"
 	"github.com/bluetape4k/bluetape-go/cache"
 	redistestcontainer "github.com/bluetape4k/bluetape-go/testcontainers/redis"
+	bttesting "github.com/bluetape4k/bluetape-go/testing"
 	"github.com/redis/go-redis/v9"
 )
 
@@ -35,9 +36,9 @@ func TestValueCacheRedisIntegration(t *testing.T) {
 			t.Errorf("close caller-owned Redis client: %v", err)
 		}
 	})
-	if err := client.Ping(ctx).Err(); err != nil {
-		t.Fatalf("Redis readiness: %v", err)
-	}
+	bttesting.Eventually(t, 2*time.Second, func() bool {
+		return client.Ping(ctx).Err() == nil
+	})
 
 	t.Run("profiles-store-btfv", func(t *testing.T) {
 		constructors := []struct {
