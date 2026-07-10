@@ -40,6 +40,7 @@ coordinated, err := rediscoord.NewStampedeCache[string](rediscoord.Options[strin
     Cache:     near,
     Namespace: "catalog",
     Codec:     rediscoord.JSONCodec[string]{},
+    MaxResultBytes: 2 << 20,
 })
 if err != nil {
     return err
@@ -51,6 +52,46 @@ value, err := coordinated.GetOrLoad(ctx, "sku:42", time.Minute,
     },
 )
 ```
+
+## Go-native Apache Fory Codec
+
+신뢰할 수 있는 내부 Go-only coordination payload에는
+`cache/rediscoord/fory`를 import하고 profile을 명시적으로 선택합니다.
+
+```go
+codec, err := rediscoordfory.NewNativeFast[CatalogValue](rediscoordfory.Options{
+    Register: func(runtime *fory.Fory) error {
+        return runtime.RegisterStructByName(CatalogValue{}, "catalog.ValueV1")
+    },
+})
+```
+
+`NewNativeFast`는 schema가 고정된 값에 사용합니다.
+`NewNativeCompatible`은 Fory가 지원하는 field 호환 진화를 허용하지만 semantic
+변경이나 incompatible type 변경까지 안전하게 만들지는 않습니다. 두 constructor
+모두 xlang과 reference tracking을 끕니다. Non-pointer primitive, struct, string,
+byte slice를 지원하며 pointer, interface, function, channel, unsafe-pointer root는
+거부합니다.
+
+기본 제한값은 payload 1 MiB, depth 20, field 512개, type metadata 4096 bytes,
+type별 schema version 10개, 평균 schema version 3개입니다. `CodecError`는 payload나
+provider 상세를 형식화하지 않고 안정적인 operation, profile, reason label을
+제공합니다. Reason은 `configuration`, `uninitialized`, `registration`,
+`payload-too-large`, `invalid-magic`, `unsupported-version`, `profile-mismatch`,
+`length-mismatch`, `unsupported-value`, `fory-failure`입니다.
+
+Fory는 암호화가 아닙니다. Redis operator는 byte를 관찰할 수 있습니다. 민감한
+값에는 Redis ACL, TLS, namespace isolation을 사용하세요.
+
+### Rollout과 rollback
+
+같은 namespace를 공유하는 모든 process는 동일한 codec profile과 registration
+set을 사용해야 합니다. `catalog:fory-native-fast:schema-v1` 같은 namespace를
+사용하고 JSON, native-fast, native-compatible 값을 한 namespace에 섞지 마세요.
+Reader와 writer를 함께 전환한 뒤 이전 namespace를 최소
+`LockTTL + ResultTTL + safety margin` 동안 유지합니다. Rollback은 이전
+codec/namespace pair로 되돌립니다. Cleanup은 TTL을 고려한 bounded `SCAN MATCH`를
+사용하고 `KEYS`는 사용하지 않습니다.
 
 ## 동작
 
@@ -69,6 +110,8 @@ value, err := coordinated.GetOrLoad(ctx, "sku:42", time.Minute,
 - 직접 Redis command 실패는 `errors.Is`로 원인을 유지하고 `errors.As`로 typed
   `redis.OpError`를 제공합니다. 형식화된 진단에는 raw Redis key, owner token,
   payload, provider text가 노출되지 않습니다.
+- `MaxResultBytes`는 encoded JSON/base64 owner-result envelope를 Redis 게시 전과
+  JSON decode 전에 제한합니다. 0은 기존 unlimited 동작을 유지합니다.
 - Benchmark는 `make bench-cache`로 opt-in 실행합니다. 일반 `make ci`는 benchmark workload를 실행하지 않습니다.
 
 ## 테스트
