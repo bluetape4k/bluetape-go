@@ -179,7 +179,8 @@ constructor에서 `unsupported-value`로 거절한다.
 
 `SchemaGeneration`은 0을 허용하지 않는다. 자동 default는 incompatible rollout을
 숨길 수 있으므로 제공하지 않는다. `Namespace`는 colon-separated structural segments로
-검증하고 caller logical key는 `KeyBuilder.LogicalKey` 규칙대로 보존한다.
+검증하고 각 segment는 cleanup pattern에 안전한 ASCII `[A-Za-z0-9._-]+`만 허용한다.
+Caller logical key는 `KeyBuilder.LogicalKey` 규칙대로 보존한다.
 
 Redis key의 conceptual shape는 다음과 같다.
 
@@ -235,8 +236,9 @@ remaining length가 다르면 truncation과 trailing bytes를 모두 `length-mis
 3. Redis `GET(...).Bytes()`를 수행한다.
 4. `redis.Nil`은 `cache.ErrCacheMiss`로 반환한다.
 5. 다른 Redis 실패는 `btredis.OpError`로 반환한다.
-6. envelope와 size invariants를 모두 검증한다.
-7. 검증된 raw payload만 internal runtime mutex 안에서 decode한다.
+6. Redis read 이후 cancellation/deadline을 다시 검사해 envelope/Fory work 전에 반환한다.
+7. envelope와 size invariants를 모두 검증한다.
+8. 검증된 raw payload만 internal runtime mutex 안에서 decode한다.
 
 Redis `GET` 자체가 response bytes를 materialize하므로 package limit는 Redis client의
 최초 allocation을 막지는 못한다. 대신 추가 envelope/Fory allocation 전에 즉시
@@ -280,7 +282,9 @@ Stable reasons:
 - `fory-failure`
 
 Context cancellation/deadline은 Redis 호출 전이면 직접 반환하고, Redis command 중
-발생하면 `btredis.OpError`의 cause로 `errors.Is` 가능하게 유지한다.
+발생하면 `btredis.OpError`의 sanitized cause에 join해 `errors.Is` 가능하게 유지한다.
+그 외 Redis provider error 원문은 key/payload/command text를 포함할 수 있으므로 package
+sentinel로 교체한다.
 
 ## Concurrency And Ownership
 
@@ -328,7 +332,8 @@ generation은 최대 TTL과 safety margin 이후 operator가 별도 bounded tool
 정리한다. Runbook은 먼저 dry-run으로
 `SCAN MATCH 'bluetape:cache:fory:<namespace>:g<old>:*' COUNT <bounded>`의 후보 수를
 기록하고, 같은 bounded batches를 `UNLINK` 또는 `DEL`로 삭제한 뒤 재-scan한다.
-Production cleanup에 `KEYS`를 사용하지 않는다.
+Redis Cluster는 모든 primary를 각각 dry-run/scan/delete/re-scan한다. Production cleanup에
+`KEYS`를 사용하지 않는다.
 
 ### Observability
 
@@ -346,6 +351,7 @@ Implementation은 production code보다 failing test를 먼저 작성하고 expe
 
 - internal runtime option defaults/invalid values
 - nil/typed-nil Redis client와 nil registration 거절
+- cleanup glob/control 문자를 포함한 namespace 거절
 - missing registration, registration error/panic sanitization
 - supported/unsupported generic root shapes
 - fast/compatible same-profile round trip
@@ -358,6 +364,8 @@ Implementation은 production code보다 failing test를 먼저 작성하고 expe
 - zero-value `ValueCache` safety
 - all-method nil/pre-canceled context와 invalid-key preflight
 - serialization 뒤 cancellation이 Redis `SET`을 dispatch하지 않는 회귀
+- Redis read 뒤 cancellation이 envelope/Fory decode를 실행하지 않는 회귀
+- command-time cancellation/deadline `errors.Is`와 Redis provider text sanitization
 - typed error `errors.As`/accessor와 payload/key/provider text redaction
 
 ### Testcontainers Redis integration tests
