@@ -53,11 +53,18 @@ func (o Options) withDefaults() Options {
 
 // Codec implements rediscoord's Marshal/Unmarshal contract.
 type Codec[V any] struct {
+	noCopy     noCopy
 	mu         sync.Mutex
 	runtime    *fory.Fory
 	profile    Profile
 	maxPayload int
 }
+
+// noCopy makes accidental Codec value copies visible to go vet -copylocks.
+type noCopy struct{}
+
+func (*noCopy) Lock()   {}
+func (*noCopy) Unlock() {}
 
 // NewNativeFast creates a native, non-compatible Fory codec.
 func NewNativeFast[V any](options Options) (*Codec[V], error) {
@@ -76,6 +83,9 @@ func newCodec[V any](profile Profile, options Options) (*Codec[V], error) {
 		if v <= 0 {
 			return nil, &CodecError{operation: "configure", profile: profile, reason: ReasonConfiguration}
 		}
+	}
+	if uint64(o.MaxPayloadBytes) > uint64(^uint32(0)) {
+		return nil, &CodecError{operation: "configure", profile: profile, reason: ReasonConfiguration}
 	}
 	t := reflect.TypeOf((*V)(nil)).Elem()
 	if !supportedRoot(t) {
@@ -112,17 +122,11 @@ func (c *Codec[V]) Marshal(value V) ([]byte, error) {
 	if c == nil || c.runtime == nil {
 		return nil, &CodecError{operation: "marshal", reason: ReasonUninitialized}
 	}
-	c.mu.Lock()
 	var input any = value
 	if reflect.TypeOf(value).Kind() == reflect.Struct {
 		input = &value
 	}
-	raw, err := c.runtime.Serialize(input)
-	tooLarge := err == nil && len(raw) > c.maxPayload
-	if err == nil && !tooLarge {
-		raw = append([]byte(nil), raw...)
-	}
-	c.mu.Unlock()
+	raw, tooLarge, err := c.serialize(input)
 	if err != nil {
 		return nil, &CodecError{operation: "marshal", profile: c.profile, reason: ReasonForyFailure, cause: errProviderFailed}
 	}
@@ -130,6 +134,19 @@ func (c *Codec[V]) Marshal(value V) ([]byte, error) {
 		return nil, &CodecError{operation: "marshal", profile: c.profile, reason: ReasonPayloadTooLarge}
 	}
 	return wrap(c.profile, raw), nil
+}
+
+func (c *Codec[V]) serialize(input any) ([]byte, bool, error) {
+	c.mu.Lock()
+	defer c.mu.Unlock()
+	raw, err := c.runtime.Serialize(input)
+	if err != nil {
+		return nil, false, err
+	}
+	if len(raw) > c.maxPayload {
+		return nil, true, nil
+	}
+	return append([]byte(nil), raw...), false, nil
 }
 
 // Unmarshal decodes a profile envelope into a value.
@@ -142,11 +159,15 @@ func (c *Codec[V]) Unmarshal(data []byte) (V, error) {
 	if err != nil {
 		return value, err
 	}
-	c.mu.Lock()
-	err = c.runtime.Deserialize(raw, &value)
-	c.mu.Unlock()
+	err = c.deserialize(raw, &value)
 	if err != nil {
 		return value, &CodecError{operation: "unmarshal", profile: c.profile, reason: ReasonForyFailure, cause: errProviderFailed}
 	}
 	return value, nil
+}
+
+func (c *Codec[V]) deserialize(raw []byte, value *V) error {
+	c.mu.Lock()
+	defer c.mu.Unlock()
+	return c.runtime.Deserialize(raw, value)
 }

@@ -144,6 +144,28 @@ func TestResultEnvelopeRequiresMatchingToken(t *testing.T) {
 	}
 }
 
+func TestEncodedResultSizeMatchesJSONEnvelope(t *testing.T) {
+	for _, tc := range []struct {
+		token   string
+		payload []byte
+	}{
+		{token: "owner", payload: []byte("value")},
+		{token: "owner<>&\u2028", payload: []byte{}},
+	} {
+		encoded, err := encodeResult(tc.token, tc.payload)
+		if err != nil {
+			t.Fatal(err)
+		}
+		size, err := encodedResultSize(tc.token, tc.payload)
+		if err != nil {
+			t.Fatal(err)
+		}
+		if size != len(encoded) {
+			t.Fatalf("size = %d, encoded = %d", size, len(encoded))
+		}
+	}
+}
+
 func TestStampedeCacheRejectsInvalidGetOrLoadInput(t *testing.T) {
 	ctx := context.Background()
 	client := redisClient(ctx, t)

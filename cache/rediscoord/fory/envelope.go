@@ -1,6 +1,9 @@
 package rediscoordfory
 
-import "encoding/binary"
+import (
+	"bytes"
+	"encoding/binary"
+)
 
 var magic = [4]byte{'B', 'T', 'F', 'Y'}
 
@@ -21,7 +24,7 @@ func unwrap(profile Profile, data []byte, maxPayload int) ([]byte, error) {
 	if len(data) > 10+maxPayload {
 		return nil, &CodecError{operation: "unmarshal", profile: profile, reason: ReasonPayloadTooLarge}
 	}
-	if len(data) < 10 || string(data[:4]) != string(magic[:]) {
+	if len(data) < 10 || !bytes.Equal(data[:4], magic[:]) {
 		return nil, &CodecError{operation: "unmarshal", profile: profile, reason: ReasonInvalidMagic}
 	}
 	if data[4] != 1 {

@@ -18,7 +18,11 @@ loader의 결과를 재사용하게 합니다.
 ## 가져오기
 
 ```go
-import "github.com/bluetape4k/bluetape-go/cache/rediscoord"
+import (
+    "github.com/apache/fory/go/fory"
+    "github.com/bluetape4k/bluetape-go/cache/rediscoord"
+    rediscoordfory "github.com/bluetape4k/bluetape-go/cache/rediscoord/fory"
+)
 ```
 
 ## 사용 예
