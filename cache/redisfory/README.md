@@ -48,9 +48,16 @@ if err := values.Set(ctx, "sku:42", value, time.Minute); err != nil {
 }
 loaded, err := values.Get(ctx, "sku:42")
 if errors.Is(err, cache.ErrCacheMiss) {
-    // load through application policy
+	// load through application policy
+	return err
 }
-err = values.Delete(ctx, "sku:42")
+if err != nil {
+	return err
+}
+_ = loaded // consume the cached value
+if err := values.Delete(ctx, "sku:42"); err != nil {
+	return err
+}
 ```
 
 `Set` requires a TTL of at least one millisecond. `Get` returns
@@ -188,6 +195,9 @@ metadata, a result table, a chart, and written analysis, including mutex versus
 pool contention. This feature does not claim benchmark results.
 
 ## Test
+
+The package test starts Redis 7.4 through Testcontainers, so Docker must be
+available. Run the commands serially because they share Docker resources.
 
 ```bash
 go test -p 1 -count=1 ./cache/redisfory
