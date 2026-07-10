@@ -1,14 +1,18 @@
 package redisfory
 
 import (
+	"context"
 	"encoding/binary"
 	"errors"
 	"strconv"
 	"strings"
+	"sync/atomic"
 	"testing"
+	"time"
 	"unsafe"
 
 	"github.com/apache/fory/go/fory"
+	"github.com/bluetape4k/bluetape-go/cache"
 	btredis "github.com/bluetape4k/bluetape-go/redis"
 	"github.com/redis/go-redis/v9"
 )
@@ -251,6 +255,233 @@ func TestInvalidLogicalKeyUsesRedisSentinel(t *testing.T) {
 	_, err = cache.key(" ")
 	if !errors.Is(err, btredis.ErrInvalidKey) {
 		t.Fatalf("error = %v", err)
+	}
+}
+
+type fakeCommandClient struct {
+	get func(context.Context, string) *redis.StringCmd
+	set func(context.Context, string, any, time.Duration) *redis.StatusCmd
+	del func(context.Context, ...string) *redis.IntCmd
+}
+
+func (f *fakeCommandClient) Get(ctx context.Context, key string) *redis.StringCmd {
+	return f.get(ctx, key)
+}
+
+func (f *fakeCommandClient) Set(ctx context.Context, key string, value any, ttl time.Duration) *redis.StatusCmd {
+	return f.set(ctx, key, value, ttl)
+}
+
+func (f *fakeCommandClient) Del(ctx context.Context, keys ...string) *redis.IntCmd {
+	return f.del(ctx, keys...)
+}
+
+type fakeValueCodec[V any] struct {
+	serialize   func(V) ([]byte, error)
+	deserialize func([]byte) (V, error)
+}
+
+func (f fakeValueCodec[V]) Serialize(value V) ([]byte, error) { return f.serialize(value) }
+func (f fakeValueCodec[V]) Deserialize(raw []byte) (V, error) { return f.deserialize(raw) }
+
+func unitCache[V any](client commandClient, codec valueCodec[V]) *ValueCache[V] {
+	builder, err := btredis.NewKeyBuilder("bluetape:cache:fory")
+	if err != nil {
+		panic(err)
+	}
+	builder, err = builder.Structural("unit", "g1")
+	if err != nil {
+		panic(err)
+	}
+	return &ValueCache[V]{
+		client: client, keys: builder, state: &cacheState[V]{codec: codec},
+		profile: ProfileNativeFast, format: 1, generation: 1, maxPayload: 64,
+	}
+}
+
+func TestValueCacheSetStoresBTFVWithTTL(t *testing.T) {
+	var calls int
+	client := &fakeCommandClient{set: func(ctx context.Context, key string, value any, ttl time.Duration) *redis.StatusCmd {
+		calls++
+		if key != "bluetape:cache:fory:unit:g1:item:42" || ttl != time.Minute {
+			t.Fatalf("key/ttl = %q/%s", key, ttl)
+		}
+		raw, ok := value.([]byte)
+		if !ok || string(raw[:4]) != "BTFV" || string(raw[14:]) != "encoded" {
+			t.Fatalf("value = %T %x", value, value)
+		}
+		return redis.NewStatusResult("OK", nil)
+	}}
+	codec := fakeValueCodec[string]{
+		serialize:   func(string) ([]byte, error) { return []byte("encoded"), nil },
+		deserialize: func([]byte) (string, error) { return "", nil },
+	}
+	if err := unitCache[string](client, codec).Set(context.Background(), "item:42", "value", time.Minute); err != nil {
+		t.Fatal(err)
+	}
+	if calls != 1 {
+		t.Fatalf("SET calls = %d", calls)
+	}
+}
+
+func TestValueCacheSetRechecksContextAfterSerialization(t *testing.T) {
+	ctx, cancel := context.WithCancel(context.Background())
+	var calls int
+	client := &fakeCommandClient{set: func(context.Context, string, any, time.Duration) *redis.StatusCmd {
+		calls++
+		return redis.NewStatusResult("OK", nil)
+	}}
+	codec := fakeValueCodec[string]{
+		serialize:   func(string) ([]byte, error) { cancel(); return []byte("encoded"), nil },
+		deserialize: func([]byte) (string, error) { return "", nil },
+	}
+	err := unitCache[string](client, codec).Set(ctx, "key", "value", time.Second)
+	if !errors.Is(err, context.Canceled) || calls != 0 {
+		t.Fatalf("error/calls = %v/%d", err, calls)
+	}
+}
+
+func TestValueCacheGetMapsRedisNilToCacheMiss(t *testing.T) {
+	client := &fakeCommandClient{get: func(context.Context, string) *redis.StringCmd {
+		return redis.NewStringResult("", redis.Nil)
+	}}
+	codec := fakeValueCodec[string]{serialize: func(string) ([]byte, error) { return nil, nil }, deserialize: func([]byte) (string, error) { return "", nil }}
+	_, err := unitCache[string](client, codec).Get(context.Background(), "missing")
+	if !errors.Is(err, cache.ErrCacheMiss) {
+		t.Fatalf("error = %v", err)
+	}
+}
+
+func TestValueCacheGetValidatesBeforeDecode(t *testing.T) {
+	var decodes atomic.Int32
+	client := &fakeCommandClient{get: func(context.Context, string) *redis.StringCmd {
+		return redis.NewStringResult("not-btfv", nil)
+	}}
+	codec := fakeValueCodec[string]{
+		serialize:   func(string) ([]byte, error) { return nil, nil },
+		deserialize: func([]byte) (string, error) { decodes.Add(1); return "", nil },
+	}
+	_, err := unitCache[string](client, codec).Get(context.Background(), "key")
+	assertCacheReason(t, err, ReasonInvalidMagic)
+	if decodes.Load() != 0 {
+		t.Fatalf("deserialize calls = %d", decodes.Load())
+	}
+}
+
+func TestValueCacheGetRechecksContextAfterRedisReadBeforeDecode(t *testing.T) {
+	ctx, cancel := context.WithCancel(context.Background())
+	var decodes atomic.Int32
+	client := &fakeCommandClient{get: func(context.Context, string) *redis.StringCmd {
+		cancel()
+		return redis.NewStringResult(string(wrap(ProfileNativeFast, 1, []byte("encoded"))), nil)
+	}}
+	codec := fakeValueCodec[string]{
+		serialize:   func(string) ([]byte, error) { return nil, nil },
+		deserialize: func([]byte) (string, error) { decodes.Add(1); return "", nil },
+	}
+	_, err := unitCache[string](client, codec).Get(ctx, "key")
+	if !errors.Is(err, context.Canceled) || decodes.Load() != 0 {
+		t.Fatalf("error/decodes = %v/%d", err, decodes.Load())
+	}
+}
+
+func TestValueCacheDeleteValidatesKeyAndIsIdempotent(t *testing.T) {
+	var calls int
+	client := &fakeCommandClient{del: func(_ context.Context, keys ...string) *redis.IntCmd {
+		calls++
+		return redis.NewIntResult(0, nil)
+	}}
+	codec := fakeValueCodec[string]{serialize: func(string) ([]byte, error) { return nil, nil }, deserialize: func([]byte) (string, error) { return "", nil }}
+	c := unitCache[string](client, codec)
+	if err := c.Delete(context.Background(), " "); !errors.Is(err, btredis.ErrInvalidKey) {
+		t.Fatalf("invalid key error = %v", err)
+	}
+	if err := c.Delete(context.Background(), "key"); err != nil || calls != 1 {
+		t.Fatalf("delete error/calls = %v/%d", err, calls)
+	}
+}
+
+func TestValueCacheMethodsNormalizeNilContext(t *testing.T) {
+	client := &fakeCommandClient{
+		get: func(ctx context.Context, _ string) *redis.StringCmd {
+			if ctx == nil {
+				t.Fatal("nil GET context")
+			}
+			return redis.NewStringResult("", redis.Nil)
+		},
+		set: func(ctx context.Context, _ string, _ any, _ time.Duration) *redis.StatusCmd {
+			if ctx == nil {
+				t.Fatal("nil SET context")
+			}
+			return redis.NewStatusResult("OK", nil)
+		},
+		del: func(ctx context.Context, _ ...string) *redis.IntCmd {
+			if ctx == nil {
+				t.Fatal("nil DEL context")
+			}
+			return redis.NewIntResult(0, nil)
+		},
+	}
+	codec := fakeValueCodec[string]{serialize: func(string) ([]byte, error) { return []byte("x"), nil }, deserialize: func([]byte) (string, error) { return "x", nil }}
+	c := unitCache[string](client, codec)
+	if err := c.Set(nil, "key", "value", time.Second); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := c.Get(nil, "missing"); !errors.Is(err, cache.ErrCacheMiss) {
+		t.Fatal(err)
+	}
+	if err := c.Delete(nil, "key"); err != nil {
+		t.Fatal(err)
+	}
+}
+
+func TestValueCacheCommandContextErrorsRemainInspectable(t *testing.T) {
+	ctx, cancel := context.WithCancel(context.Background())
+	client := &fakeCommandClient{get: func(context.Context, string) *redis.StringCmd {
+		cancel()
+		return redis.NewStringResult("", errors.New("provider canceled request"))
+	}}
+	codec := fakeValueCodec[string]{serialize: func(string) ([]byte, error) { return nil, nil }, deserialize: func([]byte) (string, error) { return "", nil }}
+	_, err := unitCache[string](client, codec).Get(ctx, "secret-key")
+	if !errors.Is(err, context.Canceled) {
+		t.Fatalf("error = %v", err)
+	}
+	assertErrorRedacted(t, err, "provider canceled request", "secret-key")
+}
+
+func TestValueCacheMethodsSanitizeRedisProviderErrors(t *testing.T) {
+	const marker = "redis-provider-secret"
+	providerErr := errors.New(marker)
+	client := &fakeCommandClient{
+		get: func(context.Context, string) *redis.StringCmd { return redis.NewStringResult("", providerErr) },
+		set: func(context.Context, string, any, time.Duration) *redis.StatusCmd {
+			return redis.NewStatusResult("", providerErr)
+		},
+		del: func(context.Context, ...string) *redis.IntCmd { return redis.NewIntResult(0, providerErr) },
+	}
+	codec := fakeValueCodec[string]{serialize: func(string) ([]byte, error) { return []byte("x"), nil }, deserialize: func([]byte) (string, error) { return "", nil }}
+	c := unitCache[string](client, codec)
+	setErr := c.Set(context.Background(), "secret-key", "value", time.Second)
+	_, getErr := c.Get(context.Background(), "secret-key")
+	delErr := c.Delete(context.Background(), "secret-key")
+	for _, err := range []error{setErr, getErr, delErr} {
+		assertErrorRedacted(t, err, marker, "secret-key")
+		if !errors.Is(err, errProviderFailed) {
+			t.Fatalf("error = %v", err)
+		}
+	}
+}
+
+func TestZeroValueCacheReturnsUninitialized(t *testing.T) {
+	var c ValueCache[string]
+	if err := c.Set(context.Background(), "key", "value", time.Second); err == nil {
+		t.Fatal("Set succeeded")
+	}
+	if _, err := c.Get(context.Background(), "key"); err == nil {
+		t.Fatal("Get succeeded")
+	}
+	if err := c.Delete(context.Background(), "key"); err == nil {
+		t.Fatal("Delete succeeded")
 	}
 }
 

@@ -54,9 +54,9 @@ type Options struct {
 
 // ValueCache stores one bounded Fory value type in Redis.
 type ValueCache[V any] struct {
-	client     redis.Cmdable
+	client     commandClient
 	keys       btredis.KeyBuilder
-	runtime    *forynative.Runtime[V]
+	state      *cacheState[V]
 	profile    Profile
 	format     byte
 	generation uint32
@@ -114,7 +114,7 @@ func newValueCache[V any](profile Profile, format byte, options Options) (*Value
 	return &ValueCache[V]{
 		client:     options.Client,
 		keys:       builder,
-		runtime:    runtime,
+		state:      &cacheState[V]{codec: runtime},
 		profile:    profile,
 		format:     format,
 		generation: options.SchemaGeneration,
