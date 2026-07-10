@@ -258,13 +258,22 @@ func TestInvalidLogicalKeyUsesRedisSentinel(t *testing.T) {
 }
 
 type fakeCommandClient struct {
-	get func(context.Context, string) *redis.StringCmd
-	set func(context.Context, string, any, time.Duration) *redis.StatusCmd
-	del func(context.Context, ...string) *redis.IntCmd
+	getRange func(context.Context, string, int64, int64) *redis.StringCmd
+	get      func(context.Context, string) *redis.StringCmd
+	exists   func(context.Context, ...string) *redis.IntCmd
+	set      func(context.Context, string, any, time.Duration) *redis.StatusCmd
+	del      func(context.Context, ...string) *redis.IntCmd
 }
 
-func (f *fakeCommandClient) Get(ctx context.Context, key string) *redis.StringCmd {
+func (f *fakeCommandClient) GetRange(ctx context.Context, key string, start, end int64) *redis.StringCmd {
+	if f.getRange != nil {
+		return f.getRange(ctx, key, start, end)
+	}
 	return f.get(ctx, key)
+}
+
+func (f *fakeCommandClient) Exists(ctx context.Context, keys ...string) *redis.IntCmd {
+	return f.exists(ctx, keys...)
 }
 
 func (f *fakeCommandClient) Set(ctx context.Context, key string, value any, ttl time.Duration) *redis.StatusCmd {
@@ -362,6 +371,25 @@ func TestValueCacheGetValidatesBeforeDecode(t *testing.T) {
 	}
 	_, err := unitCache[string](client, codec).Get(context.Background(), "key")
 	assertCacheReason(t, err, ReasonInvalidMagic)
+	if decodes.Load() != 0 {
+		t.Fatalf("deserialize calls = %d", decodes.Load())
+	}
+}
+
+func TestValueCacheGetBoundsRedisReadBeforeDecode(t *testing.T) {
+	var decodes atomic.Int32
+	client := &fakeCommandClient{getRange: func(_ context.Context, _ string, start, end int64) *redis.StringCmd {
+		if start != 0 || end != envelopeHeaderSize+64 {
+			t.Fatalf("GETRANGE bounds = %d..%d", start, end)
+		}
+		return redis.NewStringResult(string(make([]byte, envelopeHeaderSize+65)), nil)
+	}}
+	codec := fakeValueCodec[string]{
+		serialize:   func(string) ([]byte, error) { return nil, nil },
+		deserialize: func([]byte) (string, error) { decodes.Add(1); return "", nil },
+	}
+	_, err := unitCache[string](client, codec).Get(context.Background(), "key")
+	assertCacheReason(t, err, ReasonPayloadTooLarge)
 	if decodes.Load() != 0 {
 		t.Fatalf("deserialize calls = %d", decodes.Load())
 	}

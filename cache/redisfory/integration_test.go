@@ -36,7 +36,7 @@ func TestValueCacheRedisIntegration(t *testing.T) {
 			t.Errorf("close caller-owned Redis client: %v", err)
 		}
 	})
-	bttesting.Eventually(t, 2*time.Second, func() bool {
+	bttesting.Eventually(t, 5*time.Second, func() bool {
 		return client.Ping(ctx).Err() == nil
 	})
 
@@ -105,6 +105,29 @@ func TestValueCacheRedisIntegration(t *testing.T) {
 			}
 			time.Sleep(10 * time.Millisecond)
 		}
+	})
+
+	t.Run("oversized-value-is-bounded-before-decode", func(t *testing.T) {
+		options := integrationOptions(client, "oversized", 1)
+		options.MaxPayloadBytes = 16
+		c, err := NewNativeFast[integrationValue](options)
+		if err != nil {
+			t.Fatalf("construct bounded cache: %v", err)
+		}
+		key, err := c.key("large")
+		if err != nil {
+			t.Fatalf("build physical key: %v", err)
+		}
+		if err := client.Set(ctx, key.Value, []byte{}, time.Minute).Err(); err != nil {
+			t.Fatalf("seed empty corrupt value: %v", err)
+		}
+		_, err = c.Get(ctx, "large")
+		assertCacheReason(t, err, ReasonInvalidMagic)
+		if err := client.Set(ctx, key.Value, make([]byte, envelopeHeaderSize+17), time.Minute).Err(); err != nil {
+			t.Fatalf("seed oversized value: %v", err)
+		}
+		_, err = c.Get(ctx, "large")
+		assertCacheReason(t, err, ReasonPayloadTooLarge)
 	})
 
 	t.Run("schema-generations-are-key-isolated", func(t *testing.T) {

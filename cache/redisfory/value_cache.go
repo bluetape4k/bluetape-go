@@ -20,7 +20,8 @@ type cacheState[V any] struct {
 }
 
 type commandClient interface {
-	Get(context.Context, string) *redis.StringCmd
+	GetRange(context.Context, string, int64, int64) *redis.StringCmd
+	Exists(context.Context, ...string) *redis.IntCmd
 	Set(context.Context, string, any, time.Duration) *redis.StatusCmd
 	Del(context.Context, ...string) *redis.IntCmd
 }
@@ -72,12 +73,25 @@ func (c *ValueCache[V]) Get(ctx context.Context, logicalKey string) (V, error) {
 	if err != nil {
 		return value, err
 	}
-	encoded, err := c.client.Get(ctx, key.Value).Bytes()
+	maxEnvelope := envelopeHeaderSize + c.maxPayload
+	encoded, err := c.client.GetRange(ctx, key.Value, 0, int64(maxEnvelope)).Bytes()
 	if errors.Is(err, redis.Nil) {
 		return value, cache.ErrCacheMiss
 	}
 	if err != nil {
 		return value, c.operationError(ctx, "get", key.Value)
+	}
+	if len(encoded) == 0 {
+		exists, existsErr := c.client.Exists(ctx, key.Value).Result()
+		if existsErr != nil {
+			return value, c.operationError(ctx, "get", key.Value)
+		}
+		if exists == 0 {
+			return value, cache.ErrCacheMiss
+		}
+	}
+	if len(encoded) > maxEnvelope {
+		return value, newCacheError("get", c.profile, ReasonPayloadTooLarge, nil)
 	}
 	if err := ctx.Err(); err != nil {
 		return value, err
