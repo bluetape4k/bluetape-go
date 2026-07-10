@@ -233,17 +233,18 @@ remaining length가 다르면 truncation과 trailing bytes를 모두 `length-mis
 
 1. nil context를 정규화하고 pre-canceled/deadline context를 반환한다.
 2. logical key를 검증하고 schema generation을 포함한 Redis key를 생성한다.
-3. Redis `GET(...).Bytes()`를 수행한다.
-4. `redis.Nil`은 `cache.ErrCacheMiss`로 반환한다.
+3. Redis `GETRANGE`로 envelope header, configured payload, overflow detection
+   1 byte까지만 읽는다.
+4. Empty response는 `EXISTS`로 확인해 absent/expired key만 `cache.ErrCacheMiss`로
+   반환하고, existing empty value는 corrupt envelope로 처리한다.
 5. 다른 Redis 실패는 `btredis.OpError`로 반환한다.
 6. Redis read 이후 cancellation/deadline을 다시 검사해 envelope/Fory work 전에 반환한다.
 7. envelope와 size invariants를 모두 검증한다.
 8. 검증된 raw payload만 internal runtime mutex 안에서 decode한다.
 
-Redis `GET` 자체가 response bytes를 materialize하므로 package limit는 Redis client의
-최초 allocation을 막지는 못한다. 대신 추가 envelope/Fory allocation 전에 즉시
-거절한다. 더 강한 network-level 제한은 caller-owned Redis client와 infrastructure
-policy의 책임이다.
+Redis response는 package limit, envelope header, overflow detection 1 byte로
+제한한다. Oversized value는 Redis client가 전체 value를 materialize하기 전에
+거절한다.
 
 ### Delete
 
@@ -340,7 +341,7 @@ Redis Cluster는 모든 primary를 각각 dry-run/scan/delete/re-scan한다. Pro
 Package는 metric backend를 소유하지 않는다. Caller는 operation, profile, stable reason,
 hit/miss/error status처럼 low-cardinality field만 metric/log에 기록한다. Raw logical/Redis
 key, payload, provider text는 기록하지 않으며 correlation이 필요하면
-`Key.RedactedID`만 사용한다.
+`(*btredis.OpError).KeyID()`만 사용한다.
 
 ## Testing Strategy
 
