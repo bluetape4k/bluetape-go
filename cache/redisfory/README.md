@@ -157,7 +157,8 @@ not log raw provider error text from those hooks.
 
 ## Security And Operations
 
-- Require Redis ACLs that permit only the needed `GET`, `SET`, and `DEL` keys.
+- Require Redis ACLs that permit only `GETRANGE`, `EXISTS`, `SET`, and `DEL`
+  for this cache's key prefix.
 - Use TLS and authenticated connections outside a trusted local network.
 - Treat Fory registration and cached bytes as trusted Go-service inputs, not a
   general untrusted deserialization protocol.

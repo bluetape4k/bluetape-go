@@ -80,6 +80,44 @@ func TestValueCacheRedisIntegration(t *testing.T) {
 		}
 	})
 
+	t.Run("documented-minimum-acl-supports-cache-lifecycle", func(t *testing.T) {
+		const username = "redisfory-integration"
+		const password = "redisfory-integration-password"
+		if err := client.Do(ctx,
+			"ACL", "SETUSER", username, "reset", "on", ">"+password,
+			"~bluetape:cache:fory:acl:g1:*", "+getrange", "+exists", "+set", "+del",
+		).Err(); err != nil {
+			t.Fatalf("configure minimum ACL: %v", err)
+		}
+		t.Cleanup(func() {
+			if err := client.Do(context.Background(), "ACL", "DELUSER", username).Err(); err != nil {
+				t.Errorf("delete ACL user: %v", err)
+			}
+		})
+
+		aclClient := redis.NewClient(&redis.Options{Addr: addr, Username: username, Password: password})
+		t.Cleanup(func() {
+			if err := aclClient.Close(); err != nil {
+				t.Errorf("close ACL Redis client: %v", err)
+			}
+		})
+		c := mustIntegrationCache(t, aclClient, "acl", 1)
+		want := integrationValue{Name: "least-privilege", Count: 1}
+		if err := c.Set(ctx, "item", want, time.Minute); err != nil {
+			t.Fatalf("ACL set: %v", err)
+		}
+		got, err := c.Get(ctx, "item")
+		if err != nil || got != want {
+			t.Fatalf("ACL get = %+v, %v", got, err)
+		}
+		if _, err := c.Get(ctx, "missing"); !errors.Is(err, cache.ErrCacheMiss) {
+			t.Fatalf("ACL miss = %v", err)
+		}
+		if err := c.Delete(ctx, "item"); err != nil {
+			t.Fatalf("ACL delete: %v", err)
+		}
+	})
+
 	t.Run("ttl-miss-and-idempotent-delete", func(t *testing.T) {
 		c := mustIntegrationCache(t, client, "lifecycle", 1)
 		if _, err := c.Get(ctx, "missing"); !errors.Is(err, cache.ErrCacheMiss) {
