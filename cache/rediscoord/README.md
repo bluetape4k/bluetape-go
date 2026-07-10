@@ -41,6 +41,7 @@ coordinated, err := rediscoord.NewStampedeCache[string](rediscoord.Options[strin
     Cache:     near,
     Namespace: "catalog",
     Codec:     rediscoord.JSONCodec[string]{},
+    MaxResultBytes: 2 << 20,
 })
 if err != nil {
     return err
@@ -52,6 +53,46 @@ value, err := coordinated.GetOrLoad(ctx, "sku:42", time.Minute,
     },
 )
 ```
+
+## Go-native Apache Fory Codec
+
+For trusted internal Go-only coordination payloads, import
+`cache/rediscoord/fory` and select a profile explicitly:
+
+```go
+codec, err := rediscoordfory.NewNativeFast[CatalogValue](rediscoordfory.Options{
+    Register: func(runtime *fory.Fory) error {
+        return runtime.RegisterStructByName(CatalogValue{}, "catalog.ValueV1")
+    },
+})
+```
+
+`NewNativeFast` is for fixed schemas. `NewNativeCompatible` permits Fory's
+compatible field evolution, but does not make semantic or incompatible type
+changes safe. Both constructors disable xlang and reference tracking. They
+accept non-pointer primitives, structs, strings, and byte slices; pointer,
+interface, function, channel, and unsafe-pointer roots are rejected.
+
+The bounded defaults are 1 MiB payloads, depth 20, 512 fields, 4096 bytes of
+type metadata, 10 schema versions per type, and 3 average schema versions per
+type. `CodecError` exposes stable operation, profile, and reason labels without
+formatting payload or provider details. Reasons include `configuration`,
+`uninitialized`, `registration`, `payload-too-large`, `invalid-magic`,
+`unsupported-version`, `profile-mismatch`, `length-mismatch`,
+`unsupported-value`, and `fory-failure`.
+
+Fory is not encryption. Redis operators can observe the bytes. Use Redis ACL,
+TLS, and namespace isolation for sensitive values.
+
+### Rollout And Rollback
+
+Every process sharing a namespace must use the same codec profile and
+registration set. Use a namespace such as
+`catalog:fory-native-fast:schema-v1`; never mix JSON, native-fast, or
+native-compatible values in one namespace. Switch readers and writers together,
+then retain the old namespace for at least `LockTTL + ResultTTL + safety
+margin`. Rollback switches back to the prior codec/namespace pair. Cleanup must
+use bounded, TTL-aware `SCAN MATCH`, never `KEYS`.
 
 ## Behavior
 
@@ -75,6 +116,9 @@ value, err := coordinated.GetOrLoad(ctx, "sku:42", time.Minute,
 - Direct Redis command failures retain their cause for `errors.Is` and expose
   a typed `redis.OpError` for `errors.As`; formatted diagnostics redact raw
   Redis keys, owner tokens, payloads, and provider text.
+- `MaxResultBytes` bounds the encoded JSON/base64 owner-result envelope before
+  Redis publication and before JSON decoding. Zero preserves unlimited legacy
+  behavior.
 - Benchmarks are opt-in through `make bench-cache`; normal `make ci` does not
   run benchmark workloads.
 
