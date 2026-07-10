@@ -156,7 +156,8 @@ log하지 마세요.
 
 ## Security And Operations
 
-- 필요한 `GET`, `SET`, `DEL` key만 허용하는 Redis ACL을 적용합니다.
+- 이 cache key prefix에 `GETRANGE`, `EXISTS`, `SET`, `DEL`만 허용하는 Redis
+  ACL을 적용합니다.
 - 신뢰된 local network 밖에서는 TLS와 authenticated connection을 사용합니다.
 - Fory registration과 cached byte를 신뢰된 Go service input으로 취급하며 범용
   untrusted deserialization protocol로 사용하지 않습니다.
