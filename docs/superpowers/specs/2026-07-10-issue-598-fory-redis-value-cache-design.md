@@ -340,7 +340,7 @@ Redis Cluster는 모든 primary를 각각 dry-run/scan/delete/re-scan한다. Pro
 Package는 metric backend를 소유하지 않는다. Caller는 operation, profile, stable reason,
 hit/miss/error status처럼 low-cardinality field만 metric/log에 기록한다. Raw logical/Redis
 key, payload, provider text는 기록하지 않으며 correlation이 필요하면
-`Key.RedactedID()`만 사용한다.
+`Key.RedactedID`만 사용한다.
 
 ## Testing Strategy
 

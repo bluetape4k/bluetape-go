@@ -142,9 +142,3 @@ func mapRuntimeError(operation string, profile Profile, err error) error {
 		return &CodecError{operation: operation, profile: profile, reason: ReasonForyFailure, cause: errProviderFailed}
 	}
 }
-
-func recoverProviderPanic(err *error) {
-	if recover() != nil {
-		*err = errProviderFailed
-	}
-}

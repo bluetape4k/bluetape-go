@@ -58,22 +58,21 @@ type ValueCache[V any] struct {
 	keys       btredis.KeyBuilder
 	state      *cacheState[V]
 	profile    Profile
-	format     byte
 	generation uint32
 	maxPayload int
 }
 
 // NewNativeFast creates a cache using fixed-schema Go-native Fory serialization.
 func NewNativeFast[V any](options Options) (*ValueCache[V], error) {
-	return newValueCache[V](ProfileNativeFast, 1, options)
+	return newValueCache[V](ProfileNativeFast, options)
 }
 
 // NewNativeCompatible creates a cache using schema-compatible Go-native Fory serialization.
 func NewNativeCompatible[V any](options Options) (*ValueCache[V], error) {
-	return newValueCache[V](ProfileNativeCompatible, 2, options)
+	return newValueCache[V](ProfileNativeCompatible, options)
 }
 
-func newValueCache[V any](profile Profile, format byte, options Options) (*ValueCache[V], error) {
+func newValueCache[V any](profile Profile, options Options) (*ValueCache[V], error) {
 	if nilInterface(options.Client) {
 		return nil, newCacheError("configure", profile, ReasonConfiguration, nil)
 	}
@@ -116,7 +115,6 @@ func newValueCache[V any](profile Profile, format byte, options Options) (*Value
 		keys:       builder,
 		state:      &cacheState[V]{codec: runtime},
 		profile:    profile,
-		format:     format,
 		generation: options.SchemaGeneration,
 		maxPayload: maxPayload,
 	}, nil
