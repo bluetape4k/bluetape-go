@@ -64,6 +64,9 @@ machine clocks. `PEXPIRE` keeps inactive bucket keys bounded by `IdleTTL`.
 - Concurrent clients for one key are serialized by Redis script execution.
 - Rejected attempts are normal `ratelimit.Result` values, not errors.
 - Redis command/script failures are returned as errors.
+- Redis command/script failures retain their original cause for `errors.Is`,
+  expose typed diagnostics through `errors.As`, and redact raw Redis key and
+  provider details.
 - No FIFO fairness, waiting, reservations, adaptive limits, or Redis Cluster
   multi-key behavior is provided.
 - `MaxKeyBytes` bounds untrusted logical key length; default is 512 bytes.

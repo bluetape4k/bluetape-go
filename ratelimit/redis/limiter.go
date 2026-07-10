@@ -2,12 +2,14 @@ package redisratelimit
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"strconv"
 	"strings"
 	"time"
 
 	"github.com/bluetape4k/bluetape-go/ratelimit"
+	btredis "github.com/bluetape4k/bluetape-go/redis"
 	"github.com/redis/go-redis/v9"
 )
 
@@ -100,10 +102,11 @@ func (l *Limiter) Allow(ctx context.Context, key string, tokens int64) (ratelimi
 		return ratelimit.Result{}, err
 	}
 
+	bucketKey := l.bucketKey(key)
 	values, err := l.client.Eval(
 		ctx,
 		consumeScript,
-		[]string{l.bucketKey(key)},
+		[]string{bucketKey},
 		requestedMicros,
 		l.opts.burstMicros,
 		l.opts.rateMicrosPerSecond,
@@ -111,7 +114,7 @@ func (l *Limiter) Allow(ctx context.Context, key string, tokens int64) (ratelimi
 		tokenScale,
 	).Slice()
 	if err != nil {
-		return ratelimit.Result{}, fmt.Errorf("redis rate limit allow: %w", err)
+		return ratelimit.Result{}, operationError(ctx, "consume", bucketKey, err)
 	}
 	result, err := parseResult(tokens, values)
 	if err != nil {
@@ -183,4 +186,15 @@ func normalizeContext(ctx context.Context) context.Context {
 		return context.Background()
 	}
 	return ctx
+}
+
+func operationError(ctx context.Context, operation string, rawKey string, err error) error {
+	if ctx != nil && ctx.Err() != nil {
+		err = errors.Join(err, ctx.Err())
+	}
+	return btredis.NewOpError(
+		btredis.OpLabels{Family: "rate limiter", Operation: operation},
+		rawKey,
+		err,
+	)
 }
