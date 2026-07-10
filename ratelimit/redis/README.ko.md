@@ -65,6 +65,9 @@ Script는 Redis `TIME`을 사용하므로 distributed caller는 local machine cl
 - 하나의 key에 대한 concurrent client는 Redis script execution으로 serialize됩니다.
 - Rejected attempt는 error가 아니라 정상 `ratelimit.Result` value입니다.
 - Redis command/script failure는 error로 반환됩니다.
+- Redis command/script failure는 `errors.Is`로 원래 cause를 유지하고,
+  `errors.As`를 통한 typed diagnostics를 제공하며 raw Redis key와 provider
+  detail은 redaction합니다.
 - FIFO fairness, waiting, reservation, adaptive limit, Redis Cluster multi-key
   behavior는 제공하지 않습니다.
 - `MaxKeyBytes`는 untrusted logical key 길이를 제한합니다. 기본값은 512 bytes입니다.
