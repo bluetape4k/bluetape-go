@@ -54,6 +54,8 @@ defer func() {
 - A custom token may be supplied through `Options.Token`; otherwise each
   acquire generates a random owner token.
 - Context cancellation is preserved for Redis commands.
+- Redis command failures preserve their cause for `errors.Is` and `errors.As`,
+  while diagnostic messages redact raw lock keys and owner tokens.
 - Cleanup may use a fresh context after request cancellation, but it should be
   bounded with an explicit timeout.
 

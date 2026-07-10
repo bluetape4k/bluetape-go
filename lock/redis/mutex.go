@@ -2,10 +2,9 @@ package redislock
 
 import (
 	"context"
-	"crypto/rand"
-	"encoding/hex"
 	"fmt"
 
+	btredis "github.com/bluetape4k/bluetape-go/redis"
 	"github.com/redis/go-redis/v9"
 )
 
@@ -24,9 +23,10 @@ type Mutex struct {
 
 // Lease 는 성공적으로 획득한 Redis lock 소유권이다.
 type Lease struct {
-	mutex *Mutex
-	key   string
-	token string
+	mutex       *Mutex
+	key         string
+	token       string
+	sharedLease *btredis.Lease
 }
 
 // New 는 Redis lock mutex를 만든다.
@@ -50,21 +50,26 @@ func (m *Mutex) TryLock(ctx context.Context) (*Lease, error) {
 
 	token := m.opts.token
 	if token == "" {
-		generated, err := randomToken()
+		generated, err := btredis.NewOwnerToken()
 		if err != nil {
 			return nil, fmt.Errorf("generate redis lock token: %w", err)
 		}
-		token = generated
+		token = generated.RedisValue()
 	}
+	sharedLease := sharedLeaseFor(m.opts.key, token)
 
 	ok, err := m.client.SetNX(ctx, m.opts.key, token, m.opts.ttl).Result()
 	if err != nil {
-		return nil, fmt.Errorf("redis lock acquire: %w", err)
+		return nil, btredis.NewOpError(
+			btredis.OpLabels{Family: "lock", Operation: "acquire"},
+			m.opts.key,
+			err,
+		)
 	}
 	if !ok {
 		return nil, ErrNotAcquired
 	}
-	return &Lease{mutex: m, key: m.opts.key, token: token}, nil
+	return &Lease{mutex: m, key: m.opts.key, token: token, sharedLease: sharedLease}, nil
 }
 
 // Key 는 Redis lock key를 반환한다.
@@ -97,10 +102,17 @@ func (l *Lease) Unlock(ctx context.Context) (bool, error) {
 	if err := ctx.Err(); err != nil {
 		return false, err
 	}
+	if l.sharedLease != nil {
+		return btredis.CompareAndDelete(ctx, l.mutex.client, *l.sharedLease, "lock")
+	}
 
 	result, err := l.mutex.client.Eval(ctx, unlockScript, []string{l.key}, l.token).Int()
 	if err != nil {
-		return false, fmt.Errorf("redis lock unlock: %w", err)
+		return false, btredis.NewOpError(
+			btredis.OpLabels{Family: "lock", Operation: "compare-delete"},
+			l.key,
+			err,
+		)
 	}
 	return result == 1, nil
 }
@@ -112,10 +124,14 @@ func normalizeContext(ctx context.Context) context.Context {
 	return ctx
 }
 
-func randomToken() (string, error) {
-	var data [16]byte
-	if _, err := rand.Read(data[:]); err != nil {
-		return "", err
+func sharedLeaseFor(key string, token string) *btredis.Lease {
+	ownerToken, parseErr := btredis.ParseOwnerToken(token)
+	if parseErr != nil {
+		return nil
 	}
-	return hex.EncodeToString(data[:]), nil
+	lease, err := btredis.NewLease(key, ownerToken)
+	if err != nil {
+		return nil
+	}
+	return &lease
 }
