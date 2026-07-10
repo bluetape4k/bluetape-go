@@ -7,6 +7,7 @@ import (
 	"strings"
 	"sync"
 	"testing"
+	"unsafe"
 
 	"github.com/apache/fory/go/fory"
 )
@@ -59,6 +60,30 @@ func TestNewNativeFastRejectsUnsupportedRootShapes(t *testing.T) {
 			_, err := NewNativeFast[[]int](Options{Register: func(*fory.Fory) error { return nil }})
 			return err
 		}},
+		{name: "array", construct: func() error {
+			_, err := NewNativeFast[[1]byte](Options{Register: func(*fory.Fory) error { return nil }})
+			return err
+		}},
+		{name: "complex", construct: func() error {
+			_, err := NewNativeFast[complex64](Options{Register: func(*fory.Fory) error { return nil }})
+			return err
+		}},
+		{name: "interface", construct: func() error {
+			_, err := NewNativeFast[any](Options{Register: func(*fory.Fory) error { return nil }})
+			return err
+		}},
+		{name: "function", construct: func() error {
+			_, err := NewNativeFast[func()](Options{Register: func(*fory.Fory) error { return nil }})
+			return err
+		}},
+		{name: "channel", construct: func() error {
+			_, err := NewNativeFast[chan int](Options{Register: func(*fory.Fory) error { return nil }})
+			return err
+		}},
+		{name: "unsafe-pointer", construct: func() error {
+			_, err := NewNativeFast[unsafe.Pointer](Options{Register: func(*fory.Fory) error { return nil }})
+			return err
+		}},
 	} {
 		t.Run(test.name, func(t *testing.T) {
 			var ce *CodecError
@@ -75,6 +100,22 @@ func TestZeroCodecReturnsUninitializedError(t *testing.T) {
 	var ce *CodecError
 	if !errors.As(err, &ce) || ce.Reason() != ReasonUninitialized {
 		t.Fatalf("marshal error = %v", err)
+	}
+	_, err = codec.Unmarshal(nil)
+	if !errors.As(err, &ce) || ce.Reason() != ReasonUninitialized {
+		t.Fatalf("unmarshal error = %v", err)
+	}
+}
+
+func TestNewNativeFastRecoversRegistrationPanic(t *testing.T) {
+	marker := "registration-panic-secret"
+	_, err := NewNativeFast[testValue](Options{Register: func(*fory.Fory) error { panic(marker) }})
+	var ce *CodecError
+	if !errors.As(err, &ce) || ce.Reason() != ReasonRegistration {
+		t.Fatalf("error = %v", err)
+	}
+	if strings.Contains(err.Error(), marker) || strings.Contains(errors.Unwrap(err).Error(), marker) {
+		t.Fatalf("registration panic leaked: %v", err)
 	}
 }
 
@@ -343,6 +384,48 @@ func TestCodecConcurrentRoundTrip(t *testing.T) {
 					return
 				}
 				got, err := codec.Unmarshal(encoded)
+				if err != nil {
+					errs <- err
+					return
+				}
+				if got != want {
+					errs <- fmt.Errorf("got %#v, want %#v", got, want)
+					return
+				}
+			}
+		}()
+	}
+	wg.Wait()
+	close(errs)
+	for err := range errs {
+		t.Error(err)
+	}
+}
+
+func TestCopiedCodecSharesRuntimeLock(t *testing.T) {
+	codec, err := NewNativeFast[testValue](Options{Register: registerTestValue})
+	if err != nil {
+		t.Fatal(err)
+	}
+	copied := *codec
+	codecs := []*Codec[testValue]{codec, &copied}
+	const workers = 8
+	const iterations = 50
+	var wg sync.WaitGroup
+	errs := make(chan error, workers)
+	for worker := range workers {
+		wg.Add(1)
+		go func() {
+			defer wg.Done()
+			selected := codecs[worker%len(codecs)]
+			for i := range iterations {
+				want := testValue{Name: fmt.Sprintf("copy-%d-%d", worker, i), Count: i}
+				encoded, err := selected.Marshal(want)
+				if err != nil {
+					errs <- err
+					return
+				}
+				got, err := selected.Unmarshal(encoded)
 				if err != nil {
 					errs <- err
 					return
