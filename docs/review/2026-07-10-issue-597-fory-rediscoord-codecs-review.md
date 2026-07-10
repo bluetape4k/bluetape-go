@@ -12,18 +12,19 @@ Baseline: `origin/develop` at `21f402b2d83559268f399a4f2f02c86fa2c59af8`
   reference tracking, apply bounded metadata options, and wrap payloads in the
   fail-closed `BTFY` envelope.
 - The codec copies Fory's runtime-owned marshal bytes while holding its mutex;
-  mutex release is defer-based and accidental codec copies are visible to
-  `go vet -copylocks`.
+  mutex release is defer-based and codec copies share one internal runtime and
+  synchronization state.
 - `MaxPayloadBytes` is enforced before wrapper allocation. Positive
   `MaxResultBytes` uses an exact JSON/base64 size preflight before encoding,
   bounds Redis reads with `GETRANGE max+1`, and checks again before publication.
 - Provider and registration causes are replaced by sanitized sentinel causes;
   `CodecError.Error()` and `Unwrap()` do not expose payload/provider text.
-- Provider panics, including Fory's optional panic-on-error mode, are recovered
-  at the mutex boundary and converted to the sanitized provider sentinel.
+- Registration and provider panics, including Fory's optional panic-on-error
+  mode, are recovered at their package boundaries and converted to sanitized
+  sentinels.
 - Both profiles prove nil and empty `[]byte`, empty string, zero struct,
-  compatible added-field, malformed envelope/provider, and concurrent
-  round-trip behavior.
+  compatible added-field, malformed envelope/provider, constructor panic,
+  copied-codec concurrency, and concurrent round-trip behavior.
 - `go test -count=1 ./cache/rediscoord/fory` passed.
 - `go test -race -count=1 ./cache/rediscoord/fory` passed.
 - `go test -p 1 -count=1 ./cache/rediscoord` passed.
@@ -44,9 +45,23 @@ Baseline: `origin/develop` at `21f402b2d83559268f399a4f2f02c86fa2c59af8`
 | Stability | 0 | 0 | Changed-package normal/race evidence is green. |
 | Security | 0 | 0 | Trusted-internal boundary, bounds, and redaction are explicit. |
 | Operator/Ops | 0 | 0 | Rollout tuple, rollback, and bounded cleanup are documented. |
-| Developer/API | 0 | 0 | Root whitelist, no-copy guard, wire limit, and zero semantics are explicit. |
+| Developer/API | 0 | 0 | Root whitelist, copy-safe shared state, wire limit, and zero semantics are explicit. |
 | User/Caller | 0 | 0 | Compile-checked examples and EN/KO usage/runbook are aligned. |
 | Main integration | 0 | 0 | Scope remains #597; direct Redis cache and benchmarks remain separate. |
+
+## Post-PR Review
+
+PR #600 Step 7-R initially found one P1: a panic from `Options.Register`
+escaped codec construction. The correction adds a constructor panic boundary,
+returns a redacted registration `CodecError`, and proves panic text is not
+formatted or unwrapped.
+
+The same correction closes the Developer/API copy-safety P2 by moving the Fory
+runtime and mutex into one shared internal state. A copied `Codec` therefore
+uses the same lock, with race-tested concurrent round trips. The review also
+expanded unsupported-root and zero-value negative paths, clarified that
+`CodecError.Unwrap()` exposes only a sanitized package cause, and added a
+compile-checked Fory `StampedeCache` integration example.
 
 ## Deferred Work
 

@@ -61,7 +61,7 @@ func (e *CodecError) Error() string {
 	return fmt.Sprintf("fory codec %s failed (%s): %s", e.operation, e.profile, e.reason)
 }
 
-// Unwrap returns the underlying cause for errors.Is and errors.As.
+// Unwrap returns a sanitized package cause for errors.Is and errors.As.
 func (e *CodecError) Unwrap() error {
 	if e == nil {
 		return nil

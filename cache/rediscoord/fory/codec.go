@@ -51,20 +51,18 @@ func (o Options) withDefaults() Options {
 	return o
 }
 
-// Codec implements rediscoord's Marshal/Unmarshal contract.
+// Codec implements rediscoord's Marshal/Unmarshal contract. Copies share the
+// same internal Fory runtime and synchronization state.
 type Codec[V any] struct {
-	noCopy     noCopy
-	mu         sync.Mutex
-	runtime    *fory.Fory
+	state      *codecState
 	profile    Profile
 	maxPayload int
 }
 
-// noCopy makes accidental Codec value copies visible to go vet -copylocks.
-type noCopy struct{}
-
-func (*noCopy) Lock()   {}
-func (*noCopy) Unlock() {}
+type codecState struct {
+	mu      sync.Mutex
+	runtime *fory.Fory
+}
 
 // NewNativeFast creates a native, non-compatible Fory codec.
 func NewNativeFast[V any](options Options) (*Codec[V], error) {
@@ -95,11 +93,25 @@ func newCodec[V any](profile Profile, options Options) (*Codec[V], error) {
 		return nil, &CodecError{operation: "configure", profile: profile, reason: ReasonRegistration}
 	}
 	optionsList := []fory.Option{fory.WithXlang(false), fory.WithCompatible(profile == ProfileNativeCompatible), fory.WithTrackRef(false), fory.WithMaxDepth(o.MaxDepth), fory.WithMaxTypeFields(o.MaxTypeFields), fory.WithMaxTypeMetaBytes(o.MaxTypeMetaBytes), fory.WithMaxSchemaVersionsPerType(o.MaxSchemaVersionsPerType), fory.WithMaxAverageSchemaVersionsPerType(o.MaxAverageSchemaVersionsPerType)}
-	r := fory.New(optionsList...)
-	if err := o.Register(r); err != nil {
+	r, err := newRuntime(optionsList, o.Register)
+	if err != nil {
 		return nil, &CodecError{operation: "register", profile: profile, reason: ReasonRegistration, cause: errRegistrationFailed}
 	}
-	return &Codec[V]{runtime: r, profile: profile, maxPayload: o.MaxPayloadBytes}, nil
+	return &Codec[V]{state: &codecState{runtime: r}, profile: profile, maxPayload: o.MaxPayloadBytes}, nil
+}
+
+func newRuntime(options []fory.Option, register Registration) (runtime *fory.Fory, err error) {
+	defer func() {
+		if recover() != nil {
+			runtime = nil
+			err = errRegistrationFailed
+		}
+	}()
+	runtime = fory.New(options...)
+	if err := register(runtime); err != nil {
+		return nil, errRegistrationFailed
+	}
+	return runtime, nil
 }
 
 func supportedRoot(t reflect.Type) bool {
@@ -119,7 +131,7 @@ func supportedRoot(t reflect.Type) bool {
 
 // Marshal serializes a value and wraps it in the profile envelope.
 func (c *Codec[V]) Marshal(value V) ([]byte, error) {
-	if c == nil || c.runtime == nil {
+	if c == nil || c.state == nil || c.state.runtime == nil {
 		return nil, &CodecError{operation: "marshal", reason: ReasonUninitialized}
 	}
 	var input any = value
@@ -137,10 +149,10 @@ func (c *Codec[V]) Marshal(value V) ([]byte, error) {
 }
 
 func (c *Codec[V]) serialize(input any) (raw []byte, tooLarge bool, err error) {
-	c.mu.Lock()
-	defer c.mu.Unlock()
+	c.state.mu.Lock()
+	defer c.state.mu.Unlock()
 	defer recoverProviderPanic(&err)
-	raw, err = c.runtime.Serialize(input)
+	raw, err = c.state.runtime.Serialize(input)
 	if err != nil {
 		return nil, false, err
 	}
@@ -153,7 +165,7 @@ func (c *Codec[V]) serialize(input any) (raw []byte, tooLarge bool, err error) {
 // Unmarshal decodes a profile envelope into a value.
 func (c *Codec[V]) Unmarshal(data []byte) (V, error) {
 	var value V
-	if c == nil || c.runtime == nil {
+	if c == nil || c.state == nil || c.state.runtime == nil {
 		return value, &CodecError{operation: "unmarshal", reason: ReasonUninitialized}
 	}
 	raw, err := unwrap(c.profile, data, c.maxPayload)
@@ -168,10 +180,10 @@ func (c *Codec[V]) Unmarshal(data []byte) (V, error) {
 }
 
 func (c *Codec[V]) deserialize(raw []byte, value *V) (err error) {
-	c.mu.Lock()
-	defer c.mu.Unlock()
+	c.state.mu.Lock()
+	defer c.state.mu.Unlock()
 	defer recoverProviderPanic(&err)
-	return c.runtime.Deserialize(raw, value)
+	return c.state.runtime.Deserialize(raw, value)
 }
 
 func recoverProviderPanic(err *error) {
