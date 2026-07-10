@@ -81,6 +81,7 @@ future scope, not part of the current public API.
 | [`cache`](cache/README.md) | active | Generic in-process TTL cache interfaces with context-aware loaders and same-key stampede protection. |
 | [`cache/redisnear`](cache/redisnear/README.md) | active | Redis Pub/Sub near-cache invalidation for process-local loading caches. |
 | [`cache/rediscoord`](cache/rediscoord/README.md) | active | Opt-in Redis coordination wrapper that shares one loader result across process-local caches during a cold burst. |
+| [`cache/redisfory`](cache/redisfory/README.md) | active | Bounded Go-native Apache Fory binary values stored directly in Redis with explicit schema generations. |
 | [`redis`](redis/README.md) | active | Shared Redis key, owner-token, lease script, TTL, and redacted operation error primitives. |
 | [`lock/redis`](lock/redis/README.md) | active | Redis single-instance owner-token lock with TTL acquisition and owner-safe Lua unlock. |
 | [`ratelimit`](ratelimit/README.md) | active | Process-local keyed token-bucket limiter and `net/http` middleware. |
@@ -160,7 +161,8 @@ overview.
   [`lock/redis`](lock/redis/README.md).
 - Runtime policies, cache, state, and workflow: [`resilience`](resilience/README.md),
   [`cache`](cache/README.md), [`cache/redisnear`](cache/redisnear/README.md),
-  [`cache/rediscoord`](cache/rediscoord/README.md), [`ratelimit`](ratelimit/README.md),
+  [`cache/rediscoord`](cache/rediscoord/README.md), [`cache/redisfory`](cache/redisfory/README.md),
+  [`ratelimit`](ratelimit/README.md),
   [`state`](state/README.md), [`workreport`](workreport/README.md),
   [`workflow`](workflow/README.md), and [`batch`](batch/README.md).
 - Portable utilities: [`id`](id/README.md), [`jwt`](jwt/README.md),

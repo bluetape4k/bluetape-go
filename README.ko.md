@@ -78,6 +78,7 @@ API가 아니라 module-gated future scope입니다.
 | [`cache`](cache/README.ko.md) | active | context-aware loader와 same-key stampede protection을 제공하는 generic in-process TTL cache interface. |
 | [`cache/redisnear`](cache/redisnear/README.ko.md) | active | process-local loading cache를 위한 Redis Pub/Sub near-cache invalidation. |
 | [`cache/rediscoord`](cache/rediscoord/README.ko.md) | active | cold burst 동안 하나의 loader 결과를 process-local cache 사이에서 공유하는 opt-in Redis coordination wrapper. |
+| [`cache/redisfory`](cache/redisfory/README.ko.md) | active | 명시적인 schema generation으로 Redis에 직접 저장하는 bounded Go-native Apache Fory binary value cache. |
 | [`redis`](redis/README.ko.md) | active | Redis key, owner-token, lease script, TTL, redacted operation error를 위한 공유 primitive. |
 | [`lock/redis`](lock/redis/README.ko.md) | active | TTL acquire와 owner-safe Lua unlock을 제공하는 Redis 단일 인스턴스 owner-token lock. |
 | [`ratelimit`](ratelimit/README.ko.md) | active | process-local keyed token-bucket limiter와 `net/http` middleware. |
@@ -155,7 +156,8 @@ go get github.com/bluetape4k/bluetape-go
   [`redis/stream`](redis/stream/README.ko.md), [`lock/redis`](lock/redis/README.ko.md).
 - Runtime policy/cache/state/workflow: [`resilience`](resilience/README.ko.md),
   [`cache`](cache/README.ko.md), [`cache/redisnear`](cache/redisnear/README.ko.md),
-  [`cache/rediscoord`](cache/rediscoord/README.ko.md), [`ratelimit`](ratelimit/README.ko.md),
+  [`cache/rediscoord`](cache/rediscoord/README.ko.md), [`cache/redisfory`](cache/redisfory/README.ko.md),
+  [`ratelimit`](ratelimit/README.ko.md),
   [`state`](state/README.ko.md), [`workreport`](workreport/README.ko.md),
   [`workflow`](workflow/README.ko.md), [`batch`](batch/README.ko.md).
 - Portable utility: [`id`](id/README.ko.md), [`jwt`](jwt/README.ko.md),
