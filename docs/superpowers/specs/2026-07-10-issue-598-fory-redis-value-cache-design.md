@@ -92,6 +92,8 @@ generation을 추가하면 #597의 wire format을 변경한다. 두 변형 모�
 - `WithXlang(false)`를 항상 명시한다.
 - fast profile은 `WithCompatible(false)`, compatible profile은
   `WithCompatible(true)`를 사용한다.
+- 두 profile 모두 `WithTrackRef(false)`를 사용한다. Profile identity는 이 세 option의
+  완전한 tuple이며 일부만 다르게 구성한 runtime을 같은 profile로 취급하지 않는다.
 - registration은 constructor 중 단 한 번 수행하며 concurrency 시작 후 변경하지
   않는다.
 - root type과 resource limits를 검증한다.
@@ -128,6 +130,8 @@ zero-value method 호출은 panic 대신 typed `uninitialized` 오류를 반환�
 다음 shape를 따른다.
 
 ```go
+type Registration func(*fory.Fory) error
+
 type Options struct {
     Client           redis.Cmdable
     Namespace        string
@@ -149,6 +153,30 @@ func (c *ValueCache[V]) Set(ctx context.Context, key string, value V, ttl time.D
 func (c *ValueCache[V]) Delete(ctx context.Context, key string) error
 ```
 
+`Registration`은 `cache/redisfory`가 직접 소유한다. 이 type을 공유하기 위해
+`cache/rediscoord/fory`를 import하지 않으며 internal package도 public caller API를
+노출하지 않는다.
+
+모든 resource limit의 zero 값은 기존 Fory codec과 같은 bounded default를 사용한다.
+negative 값은 configuration error다.
+
+| Option | Zero-value default | Additional bound |
+|---|---:|---|
+| `MaxPayloadBytes` | 1 MiB | raw Fory payload 기준, `math.MaxUint32` 이하 |
+| `MaxDepth` | 20 | positive |
+| `MaxTypeFields` | 512 | positive |
+| `MaxTypeMetaBytes` | 4096 | positive |
+| `MaxSchemaVersionsPerType` | 10 | positive |
+| `MaxAverageSchemaVersionsPerType` | 3 | positive |
+
+따라서 total `BTFV` value bound는 `14 + MaxPayloadBytes`다. Constructor는 nil 및
+typed-nil `redis.Cmdable`, nil registration, invalid namespace/generation, negative limit,
+payload limit overflow를 Redis I/O 전에 deterministic configuration error로 거절한다.
+
+지원 root shape는 bool, signed/unsigned integer, float, string, struct, `[]byte`다.
+pointer, complex, map, array, non-byte slice, interface, func, chan, unsafe pointer는
+constructor에서 `unsupported-value`로 거절한다.
+
 `SchemaGeneration`은 0을 허용하지 않는다. 자동 default는 incompatible rollout을
 숨길 수 있으므로 제공하지 않는다. `Namespace`는 colon-separated structural segments로
 검증하고 caller logical key는 `KeyBuilder.LogicalKey` 규칙대로 보존한다.
@@ -158,6 +186,12 @@ Redis key의 conceptual shape는 다음과 같다.
 ```text
 bluetape:cache:fory:<namespace>:g<schema-generation>:<logical-key>
 ```
+
+Package는 Redis Cluster hash tag를 주입하거나 같은 slot을 보장하지 않는다. 각 public
+operation은 single-key command이므로 multi-key co-location이 필요하지 않다. Caller key의
+brace는 logical key 일부로 보존되며 caller가 선택한 hash-tag 효과도 그대로 적용된다.
+Logical key는 Redis에 평문으로 보이는 material이므로 secret boundary가 아니며 secret을
+넣지 않는다.
 
 `Clear`와 loading behavior는 제공하지 않는다. 호출자가 필요하면 기존 memory/near
 cache와 명시적으로 조합한다.
@@ -185,21 +219,24 @@ remaining length가 다르면 truncation과 trailing bytes를 모두 `length-mis
 ### Set
 
 1. nil context는 기존 cache package 관례대로 `context.Background()`로 정규화한다.
-2. canceled/deadline context는 serialization과 Redis write 전에 반환한다.
+2. canceled/deadline context는 serialization 전에 반환한다.
 3. logical key와 1ms 이상의 positive TTL을 검증한다.
 4. internal runtime mutex 안에서 value를 serialize하고 bytes를 복사한다.
 5. payload limit를 검사한 뒤 `BTFV v1` envelope를 할당한다.
-6. Redis `SET`에 binary bytes와 caller TTL을 전달한다.
-7. Redis 실패는 raw key를 노출하지 않는 `btredis.OpError`로 반환한다.
+6. serialization/envelope 생성 중 cancellation이 발생할 수 있으므로 Redis dispatch
+   직전에 `ctx.Err()`를 다시 검사한다.
+7. Redis `SET`에 binary bytes와 caller TTL을 전달한다.
+8. Redis 실패는 raw key를 노출하지 않는 `btredis.OpError`로 반환한다.
 
 ### Get
 
-1. schema generation을 포함한 Redis key를 생성한다.
-2. Redis `GET(...).Bytes()`를 수행한다.
-3. `redis.Nil`은 `cache.ErrCacheMiss`로 반환한다.
-4. 다른 Redis 실패는 `btredis.OpError`로 반환한다.
-5. envelope와 size invariants를 모두 검증한다.
-6. 검증된 raw payload만 internal runtime mutex 안에서 decode한다.
+1. nil context를 정규화하고 pre-canceled/deadline context를 반환한다.
+2. logical key를 검증하고 schema generation을 포함한 Redis key를 생성한다.
+3. Redis `GET(...).Bytes()`를 수행한다.
+4. `redis.Nil`은 `cache.ErrCacheMiss`로 반환한다.
+5. 다른 Redis 실패는 `btredis.OpError`로 반환한다.
+6. envelope와 size invariants를 모두 검증한다.
+7. 검증된 raw payload만 internal runtime mutex 안에서 decode한다.
 
 Redis `GET` 자체가 response bytes를 materialize하므로 package limit는 Redis client의
 최초 allocation을 막지는 못한다. 대신 추가 envelope/Fory allocation 전에 즉시
@@ -208,8 +245,9 @@ policy의 책임이다.
 
 ### Delete
 
-Redis `DEL`을 한 번 수행한다. 없는 key 삭제는 idempotent success다. 실패만
-`btredis.OpError`로 반환한다.
+nil context를 정규화하고 pre-canceled/deadline context와 invalid logical key를 Redis
+dispatch 전에 반환한 뒤 Redis `DEL`을 한 번 수행한다. 없는 key 삭제는 idempotent
+success다. 실패만 `btredis.OpError`로 반환한다.
 
 ## Error Contract
 
@@ -222,6 +260,10 @@ Redis `DEL`을 한 번 수행한다. 없는 key 삭제는 idempotent success다.
 `CacheError`는 operation, profile, stable reason만 formatting한다. Payload, raw key,
 registration text, Fory error text, panic value는 `Error()`와 `Unwrap()`에서 모두
 노출하지 않는다.
+
+`Profile`과 `Reason`은 exported low-cardinality string types다. `CacheError`는
+`Operation() string`, `Profile() Profile`, `Reason() Reason` accessor를 제공한다.
+Caller와 tests는 formatted string parsing 대신 `errors.As`와 accessor를 사용한다.
 
 Stable reasons:
 
@@ -283,7 +325,17 @@ Redis key는 deterministic redacted ID로만 진단하고 provider cause를 safe
 
 TTL은 positive로 강제하고 package는 namespace cleanup을 제공하지 않는다. 이전
 generation은 최대 TTL과 safety margin 이후 operator가 별도 bounded tooling으로
-정리한다.
+정리한다. Runbook은 먼저 dry-run으로
+`SCAN MATCH 'bluetape:cache:fory:<namespace>:g<old>:*' COUNT <bounded>`의 후보 수를
+기록하고, 같은 bounded batches를 `UNLINK` 또는 `DEL`로 삭제한 뒤 재-scan한다.
+Production cleanup에 `KEYS`를 사용하지 않는다.
+
+### Observability
+
+Package는 metric backend를 소유하지 않는다. Caller는 operation, profile, stable reason,
+hit/miss/error status처럼 low-cardinality field만 metric/log에 기록한다. Raw logical/Redis
+key, payload, provider text는 기록하지 않으며 correlation이 필요하면
+`Key.RedactedID()`만 사용한다.
 
 ## Testing Strategy
 
@@ -293,6 +345,7 @@ Implementation은 production code보다 failing test를 먼저 작성하고 expe
 ### Unit tests
 
 - internal runtime option defaults/invalid values
+- nil/typed-nil Redis client와 nil registration 거절
 - missing registration, registration error/panic sanitization
 - supported/unsupported generic root shapes
 - fast/compatible same-profile round trip
@@ -303,7 +356,9 @@ Implementation은 production code보다 failing test를 먼저 작성하고 expe
 - zero/empty/nil supported values
 - malformed Fory bytes와 type mismatch
 - zero-value `ValueCache` safety
-- typed error and payload/key/provider text redaction
+- all-method nil/pre-canceled context와 invalid-key preflight
+- serialization 뒤 cancellation이 Redis `SET`을 dispatch하지 않는 회귀
+- typed error `errors.As`/accessor와 payload/key/provider text redaction
 
 ### Testcontainers Redis integration tests
 
@@ -338,6 +393,8 @@ operation count, unexpected miss/error count를 검증한다. Testcontainers-bac
 - root README locale index와 CHANGELOG를 갱신한다.
 - trust boundary, ACL/TLS, volatility, profile compatibility, schema rotation, rollback,
   resource limits, no-fallback policy를 설명한다.
+- supported/unsupported root shapes, logical key가 Redis-visible material이며 secret을
+  포함하면 안 된다는 점, caller-owned low-cardinality observability를 설명한다.
 - direct cache와 `rediscoord`의 JSON/base64 coordination path 차이를 보여주는 flow-style
   architecture diagram을 paired SVG/PNG로 추가한다.
 - diagram은 `bluetape4k-diagram` architecture rules를 적용하고 CairoSVG로 render한 뒤
@@ -349,6 +406,7 @@ operation count, unexpected miss/error count를 검증한다. Testcontainers-bac
 
 - namespace
 - profile
+- complete Fory option tuple: xlang, compatible, track-ref
 - schema generation
 - registration set와 registered names
 - max payload/depth/type metadata/schema history limits
@@ -365,11 +423,13 @@ Issue #598은 성능 주장을 하지 않는다. 후속 issue #599에서 JSON, n
 native-compatible을 같은 조건으로 측정한다. Benchmark artifact에는 다음이 모두 있어야
 한다.
 
-- exact command와 environment
+- exact command와 OS, CPU, Go version, git SHA, dirty-tree state
 - raw output path
 - result table
 - Chart
 - written analysis와 use-case recommendation
+- serialize/decode-only local benchmark와 opt-in Redis-backed parallel benchmark
+- shared mutex와 pool/thread-safe runtime의 contention 비교 및 runtime 전략 결론
 
 짧은 local run은 production ranking이 아니라 comparable snapshot으로 표현한다.
 
@@ -377,9 +437,15 @@ native-compatible을 같은 조건으로 측정한다. Benchmark artifact에는 
 
 - [ ] `cache/redisfory`가 `Get`, `Set`, `Delete`만 제공한다.
 - [ ] fast/compatible constructor가 `WithXlang(false)`를 명시한다.
+- [ ] complete profile tuple이 `WithXlang(false)`, profile별 `WithCompatible`,
+      `WithTrackRef(false)`로 고정된다.
+- [ ] resource limit zero defaults와 payload/envelope upper bound가 고정되고 invalid
+      configuration이 Redis I/O 전에 거절된다.
 - [ ] schema generation이 public configuration, keyspace, envelope에 포함된다.
 - [ ] `BTFV v1`이 malformed/profile/schema/size/trailing input을 Fory decode 전에 거절한다.
 - [ ] miss, Redis operation error, cache/provider error가 각 typed contract를 따른다.
+- [ ] `Registration`, `Profile`, `Reason`, `CacheError` accessor가 독립 public API로
+      compile-checked된다.
 - [ ] caller-owned Redis client lifecycle, ACL/TLS, retries, deadlines를 변경하지 않는다.
 - [ ] 기존 `cache/rediscoord/fory` public API와 `BTFY v1` behavior가 유지된다.
 - [ ] Testcontainers integration과 race tests가 direct storage와 shared provider safety를 증명한다.
