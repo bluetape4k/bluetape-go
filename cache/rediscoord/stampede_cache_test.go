@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"strings"
 	"sync/atomic"
 	"testing"
 	"time"
@@ -34,6 +35,7 @@ func TestNewStampedeCacheRejectsInvalidOptions(t *testing.T) {
 		{name: "negative lock ttl", opts: Options[string]{Client: client, Cache: local, Codec: JSONCodec[string]{}, LockTTL: -time.Second}},
 		{name: "negative result ttl", opts: Options[string]{Client: client, Cache: local, Codec: JSONCodec[string]{}, ResultTTL: -time.Second}},
 		{name: "negative poll interval", opts: Options[string]{Client: client, Cache: local, Codec: JSONCodec[string]{}, PollInterval: -time.Second}},
+		{name: "negative max result bytes", opts: Options[string]{Client: client, Cache: local, Codec: JSONCodec[string]{}, MaxResultBytes: -1}},
 	}
 
 	for _, tt := range tests {
@@ -70,6 +72,38 @@ func TestNewStampedeCacheAppliesDefaults(t *testing.T) {
 	}
 	if coord.cfg.pollInterval != defaultPollInterval {
 		t.Fatalf("poll interval = %s, want %s", coord.cfg.pollInterval, defaultPollInterval)
+	}
+	if coord.cfg.maxResultBytes != 0 {
+		t.Fatalf("max result bytes = %d, want unlimited", coord.cfg.maxResultBytes)
+	}
+}
+
+func TestStampedeCacheMaxResultBytesBoundsWriteAndRead(t *testing.T) {
+	ctx := context.Background()
+	client := redisClient(ctx, t)
+	coord, err := NewStampedeCache[string](Options[string]{
+		Client: client, Cache: cache.NewMemory[string, string](), Namespace: "result-limit",
+		Codec: JSONCodec[string]{}, MaxResultBytes: 32,
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	err = coord.storeResult(ctx, "write-key", "owner-token", []byte("payload-too-large-for-envelope"))
+	if !errors.Is(err, ErrResultTooLarge) {
+		t.Fatalf("store error = %v", err)
+	}
+	if exists, err := client.Exists(ctx, coord.resultKey("write-key")).Result(); err != nil || exists != 0 {
+		t.Fatalf("oversized result published: exists=%d err=%v", exists, err)
+	}
+
+	readKey := coord.resultKey("read-key")
+	if err := client.Set(ctx, readKey, []byte(strings.Repeat("x", 33)), time.Minute).Err(); err != nil {
+		t.Fatal(err)
+	}
+	_, _, err = coord.readOwnerResult(ctx, "read-key", time.Minute, "owner-token")
+	if !errors.Is(err, ErrResultTooLarge) {
+		t.Fatalf("read error = %v", err)
 	}
 }
 
