@@ -66,6 +66,9 @@ value, err := coordinated.GetOrLoad(ctx, "sku:42", time.Minute,
 - Redis는 encoded payload byte를 볼 수 있습니다. 민감한 payload에는 ACL/TLS와 namespace isolation을 사용하세요.
 - Result envelope는 일시적인 coordination metadata이며 durable cache value가 아닙니다.
 - Mutual exclusion은 `LockTTL`로 제한됩니다. Loader가 lease보다 오래 실행되면 다른 process가 load lease를 획득해 loader를 실행할 수 있습니다.
+- 직접 Redis command 실패는 `errors.Is`로 원인을 유지하고 `errors.As`로 typed
+  `redis.OpError`를 제공합니다. 형식화된 진단에는 raw Redis key, owner token,
+  payload, provider text가 노출되지 않습니다.
 - Benchmark는 `make bench-cache`로 opt-in 실행합니다. 일반 `make ci`는 benchmark workload를 실행하지 않습니다.
 
 ## 테스트

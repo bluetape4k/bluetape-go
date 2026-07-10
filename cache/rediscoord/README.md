@@ -72,6 +72,9 @@ value, err := coordinated.GetOrLoad(ctx, "sku:42", time.Minute,
   value.
 - Mutual exclusion is bounded by `LockTTL`. If a loader runs past the lease,
   another process may acquire the load lease and run a loader.
+- Direct Redis command failures retain their cause for `errors.Is` and expose
+  a typed `redis.OpError` for `errors.As`; formatted diagnostics redact raw
+  Redis keys, owner tokens, payloads, and provider text.
 - Benchmarks are opt-in through `make bench-cache`; normal `make ci` does not
   run benchmark workloads.
 
