@@ -9,7 +9,7 @@ ecosystem. This is an idiomatic Go library line, not a mechanical Kotlin port.
 
 ## Skills
 
-- Use `bluetape4k-workflow` for task classification and issue/PR discipline.
+- Use `bluetape-workflow` for task classification and issue/PR discipline.
 - Use `bluetape-go-patterns` for Go implementation, tests, concurrency,
   package design, and review.
 
