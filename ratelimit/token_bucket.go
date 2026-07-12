@@ -19,11 +19,19 @@ type bucketState struct {
 
 // TokenBucket 은 process-local keyed rate limiter다.
 type TokenBucket struct {
-	mu      sync.Mutex
-	opts    options
-	now     clockFunc
-	buckets map[string]bucketState
+	mu       sync.Mutex
+	opts     options
+	now      clockFunc
+	buckets  map[string]bucketState
+	testHook func(context.Context, string, tokenBucketTestPhase) error
 }
+
+type tokenBucketTestPhase uint8
+
+const (
+	tokenBucketBeforeLinearize tokenBucketTestPhase = iota + 1
+	tokenBucketAfterLinearize
+)
 
 var _ Limiter = (*TokenBucket)(nil)
 
@@ -70,6 +78,11 @@ func (l *TokenBucket) Allow(ctx context.Context, key string, tokens int64) (Resu
 	now := l.now()
 	l.mu.Lock()
 	defer l.mu.Unlock()
+	if l.testHook != nil {
+		if err := l.testHook(ctx, key, tokenBucketBeforeLinearize); err != nil {
+			return Result{}, err
+		}
+	}
 
 	l.pruneIdle(now)
 
@@ -104,6 +117,11 @@ func (l *TokenBucket) Allow(ctx context.Context, key string, tokens int64) (Resu
 	}
 
 	l.buckets[key] = state
+	if l.testHook != nil {
+		if err := l.testHook(context.Background(), key, tokenBucketAfterLinearize); err != nil {
+			return Result{}, err
+		}
+	}
 	return result, nil
 }
 
