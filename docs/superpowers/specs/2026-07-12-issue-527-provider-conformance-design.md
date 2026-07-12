@@ -91,8 +91,9 @@ Public API를 만들지 않아도 되지만 SQL/etcd provider가 같은 contract
 계약을 실행한다.
 
 - empty state에서 acquire하고 `IsLeader` 및 `Leader` 관측값을 검증한다.
-- 동일 instance의 concurrent/duplicate `Campaign`은 `leader.ErrAlreadyLeader`로
-  거절되며 기존 ownership을 잃지 않는다.
+- 동일 instance가 이미 owner이면 duplicate `Campaign`은 `leader.ErrAlreadyLeader`, 아직
+  campaign 중이면 `leader.ErrCampaignInProgress`, cleanup pending이면
+  `leader.ErrCleanupPending`으로 거절되며 기존 state를 잃지 않는다.
 - 다른 owner가 살아 있는 동안 contender는 대기하고 context cancellation/deadline을
   `errors.Is`로 보존한다.
 - cancellation 반환 뒤 contender가 늦게 acquire하지 않는다.
@@ -181,6 +182,14 @@ type Factory func(t testing.TB, config Config) (AcquireFunc, error)
 
 type Operation string
 type Phase string
+
+const (
+    OperationAcquire Operation = "acquire"
+    OperationRelease Operation = "release"
+    PhaseBeforeLinearize Phase = "before-linearize"
+    PhaseAfterLinearize  Phase = "after-linearize"
+)
+
 type Gate interface {
     AwaitStarted(context.Context) error
     Resume()
@@ -205,6 +214,10 @@ func MemoryHarness() Harness
 `OperationCount`는 backend record와 traffic을 검증한다. 이 Control은 test-only이며 모든
 provider adapter에 필수다. Control context는 non-nil이어야 하며 nil/pre-canceled/deadline
 입력은 gate arming이나 backend mutation 전에 validation/context error를 반환한다.
+Invalid Config/operation/phase는 validation error이며 gate, count, owner side effect가 없다.
+`OperationCount`는 invalid input에 0을 반환한다. `GateNext`의 nil error에는 non-nil Gate가
+필수다. `Gate.AwaitStarted`는 nil context에 validation error, pre-canceled/deadline
+context에 해당 context error를 반환하며 gate state를 바꾸지 않는다.
 
 Factory는 같은 key와 다른 owner로 여러 mutex를 만들 수 있어야 한다. Runner는 acquire,
 contention rejection, owner release, repeated release, expiry takeover, pre-canceled acquire,
@@ -246,8 +259,9 @@ cleanup을 제공한다.
 
 ### `ratelimit/ratelimittest`
 
-Rate limiter는 이미 `ratelimit.Limiter`를 공유하므로 neutral configuration factory만
-필요하다.
+Rate limiter runner는 parent `ratelimit` package를 import하지 않는 neutral function/result
+contract를 사용한다. 따라서 `package ratelimit` internal test도 import cycle 없이 같은
+public runner를 호출할 수 있다.
 
 ```go
 type Config struct {
@@ -256,9 +270,24 @@ type Config struct {
     IdleTTL       time.Duration
 }
 
-type Factory func(t testing.TB, config Config) (ratelimit.Limiter, error)
+type Result struct {
+    Allowed    bool
+    Requested  int64
+    Remaining  int64
+    RetryAfter time.Duration
+    ResetAfter time.Duration
+}
+
+type AllowFunc func(context.Context, string, int64) (Result, error)
+type Factory func(t testing.TB, config Config) (AllowFunc, error)
 
 type Phase string
+
+const (
+    PhaseBeforeLinearize Phase = "before-linearize"
+    PhaseAfterLinearize  Phase = "after-linearize"
+)
+
 type Gate interface {
     AwaitStarted(context.Context) error
     Resume()
@@ -281,6 +310,18 @@ func MemoryHarness() Harness
 side effect를 증명한다. 이 test-only Control은 모든 provider adapter에 필수다. Control
 context는 non-nil이어야 하며 nil/pre-canceled/deadline 입력은 gate arming 전에
 validation/context error를 반환한다.
+Blank/invalid key 또는 phase는 validation error이며 gate/count/quota side effect가 없다.
+`OperationCount`는 invalid key에 0을 반환한다. `GateNext`의 nil error에는 non-nil Gate가
+필수다. `Gate.AwaitStarted`는 nil context에 validation error, pre-canceled/deadline
+context에 해당 context error를 반환하며 gate state를 바꾸지 않는다.
+
+각 adapter는 provider public result를 neutral `ratelimittest.Result`로 field-by-field
+변환한다. Local `TokenBucket` adapter는 `package ratelimit`의 `_test.go`에서 runner를
+호출하며, concrete bucket의 default-nil private hook field를 실제 token mutation의 바로
+전/후에 연결한다. Hook type과 field는 exported API나 option이 아니고 일반 caller가
+설정할 수 없으며 nil fast path 외 production behavior를 바꾸지 않는다. Redis adapter는
+command interceptor를 같은 phase에 연결한다. Public-call 전후만 막는 wrapper gate는 실제
+in-flight linearization 증거가 아니므로 금지한다.
 
 `RatePerSecond`는 positive finite, `Burst`는 positive, `IdleTTL`은 non-negative다.
 `IdleTTL==0`은 provider의 bounded default를 선택하고 positive 값은 full-refill duration
@@ -316,8 +357,9 @@ runner를 fake로 대체하지 않는다.
 5. context 종료를 반환한 뒤 acquire, renewal worker 또는 owner record가 남지 않는다.
    Acquire success가 먼저 linearize되면 nil을 반환하며, context error를 반환하는 path는
    contender token 부재를 control probe로 증명한다.
-6. 같은 elector instance가 이미 owner이거나 campaign 중이거나 cleanup pending이면 즉시
-   `leader.ErrAlreadyLeader`를 반환한다.
+6. 같은 elector instance가 이미 owner이면 즉시 `leader.ErrAlreadyLeader`, campaign
+   중이면 `leader.ErrCampaignInProgress`, cleanup pending이면 `leader.ErrCleanupPending`을
+   반환한다. 세 sentinel은 서로 다르며 `ErrAlreadyLeader`만 현재 ownership을 뜻한다.
 
 Redis single elector를 이 계약으로 변경한다. Mongo single 및 Redis/Mongo group의
 기존 context-wait 동작과 정렬되며 향후 etcd `Election.Campaign` 의미와도 일치한다.
@@ -370,7 +412,9 @@ contention의 정상 반환값으로는 사용하지 않으며 GoDoc과 README�
 
 ## Error Contract
 
-- Leader duplicate instance: `leader.ErrAlreadyLeader`
+- Leader duplicate call while owned: `leader.ErrAlreadyLeader`
+- Leader same-instance campaign in progress: `leader.ErrCampaignInProgress`
+- Leader failed-resign cleanup pending: `leader.ErrCleanupPending`
 - Leader waiting cancellation: `context.Canceled` 또는 `context.DeadlineExceeded`
 - Leader nil context: `leader.ErrInvalidContext`, backend side effect 없음
 - Lock contention: provider sentinel을 유지하되 release callback과 side effect는 nil
@@ -446,6 +490,11 @@ rendered error와 captured test output에 없음을 검증한다.
 
 Examples는 fixture/client 생성, 즉시 cleanup 등록, unique namespace, adapter 구성,
 bounded context, construction error 처리 및 `Run` 호출의 전체 흐름을 compile-check한다.
+각 helper의 GoDoc과 provider-adapter example은 before/after-linearize gate arming,
+started/resume handshake, cumulative baseline/delta count, invalid/nil/pre-canceled context,
+idempotent `Resume` 및 `t.Cleanup` failure-path 해제를 compile-check한다. SQL/etcd 같은 후속
+provider가 public-call wrapper가 아닌 실제 mutation boundary에 hook을 연결하는 기준도
+명시한다.
 
 `leader/README.md`와 `leader/README.ko.md`는 blocking `Campaign` semantics와 legacy
 `ErrNotLeader` 상태를 반영한다. 공개 behavior 변경은 `CHANGELOG.md`의 0.19.0 대상
@@ -483,6 +532,10 @@ bounded context, construction error 처리 및 `Run` 호출의 전체 흐름을 
 - 기존 public method와 constructor signature를 유지한다.
 - Redis single elector contention은 즉시 `ErrNotLeader`에서 context-controlled wait로
   변경된다. 이는 의도적인 behavior migration이며 README, GoDoc, CHANGELOG에 기록한다.
+- `ErrCampaignInProgress`와 `ErrCleanupPending`을 추가해 `ErrAlreadyLeader`는 실제 owned
+  state만 뜻하게 한다. Caller는 전자는 in-flight call 완료/자신의 context로 재시도하고,
+  후자는 bounded `Resign` retry 또는 TTL cleanup을 수행하며 leader-only work를 시작하지
+  않는다.
 - 기존 `Campaign(context.Background/TODO)`와 `errors.Is(err, ErrNotLeader)` caller를 release
   전에 audit한다. 새 caller는 업무 lease/latency보다 짧지 않고 서비스 shutdown보다 긴
   명시적 `context.WithTimeout`을 소유하고 cancel을 defer한다. README는 old/new code와
@@ -506,13 +559,18 @@ bounded context, construction error 처리 및 `Run` 호출의 전체 흐름을 
 
 ### Rollout and rollback
 
-- 0.19.0 배포 전에 모든 caller의 bounded context와 legacy `ErrNotLeader` branch audit을
-  완료한다.
+- 0.19.0 배포 전에 모든 caller의 bounded context, nil context, legacy `ErrNotLeader`/
+  `ErrAlreadyLeader` branch와 실제 `Group`, `MemberID`, `KeyPrefix` inventory를 audit한다.
+  Whitespace/delimiter/control/oversize identity는 새 structural contract로 정리하고 old/new
+  key mapping과 owner-aware migration 절차를 release 문서에 남긴다.
 - Canary는 caller-owned low-cardinality campaign wait duration, acquisition success,
-  timeout/cancellation 및 provider failure count를 관측한다. Library는 global logger/metric을
-  만들지 않으며 raw group/member/token/provider error를 기록하지 않는다.
+  timeout/cancellation, validation failure category 및 provider failure count를 관측한다.
+  Library는 global logger/metric을 만들지 않으며 raw group/member/token/provider error를
+  기록하지 않는다.
 - Mixed old/new binaries는 같은 key/token/TTL format을 사용하지만 old binary는 즉시
-  `ErrNotLeader`, new binary는 context까지 대기한다. 이 차이를 rollout window에 명시한다.
+  `ErrNotLeader`, new binary는 context까지 대기한다. New validation에 실패하지만 old
+  binary가 허용하는 identity는 rollout 전에 제거하며, 발견되면 해당 caller의 new binary
+  배포를 중지하고 identity를 교정한다. 이 차이를 rollout window에 명시한다.
 - Rollback 전 service shutdown context로 outstanding campaign을 취소한다. Binary rollback은
   storage format이 같아 안전하며 남은 lease는 owner-aware resign 또는 TTL로 정리된다.
 
