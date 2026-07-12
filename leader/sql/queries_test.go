@@ -11,6 +11,7 @@ import (
 
 	"github.com/bluetape4k/bluetape-go/leader"
 	postgrestestcontainer "github.com/bluetape4k/bluetape-go/testcontainers/postgres"
+	bttesting "github.com/bluetape4k/bluetape-go/testing"
 	_ "github.com/jackc/pgx/v5/stdlib"
 )
 
@@ -143,9 +144,14 @@ func testExpiryTakeover(ctx context.Context, t *testing.T, db *sql.DB) {
 	if acquired, err := owner.tryAcquire(ctx); err != nil || !acquired {
 		t.Fatalf("owner tryAcquire() acquired=%v err=%v", acquired, err)
 	}
-	time.Sleep(180 * time.Millisecond)
-	if acquired, err := contender.tryAcquire(ctx); err != nil || !acquired {
-		t.Fatalf("takeover tryAcquire() acquired=%v err=%v", acquired, err)
+	var takeoverErr error
+	bttesting.Eventually(t, time.Second, func() bool {
+		var acquired bool
+		acquired, takeoverErr = contender.tryAcquire(ctx)
+		return takeoverErr == nil && acquired
+	})
+	if takeoverErr != nil {
+		t.Fatalf("takeover tryAcquire(): %v", takeoverErr)
 	}
 }
 

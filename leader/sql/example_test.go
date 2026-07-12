@@ -12,64 +12,58 @@ import (
 )
 
 func ExampleNew() {
-	// runPostgresLeader is compile-checked but not executed by this example.
-	_ = runPostgresLeader
-}
+	run := func(ctx context.Context, startProtectedWork func(context.Context)) (resultErr error) {
+		runtimeDB, err := sql.Open("pgx", "postgres://app_runtime:password@primary/app")
+		if err != nil {
+			return err
+		}
+		defer func() { _ = runtimeDB.Close() }()
 
-func runPostgresLeader(ctx context.Context, dsn string, stopProtectedWork func()) error {
-	db, err := sql.Open("pgx", dsn)
-	if err != nil {
-		return err
-	}
-	defer db.Close()
-
-	// Development/bootstrap only. Production runs SchemaSQL as a migration.
-	if _, err := db.ExecContext(ctx, sqlleader.SchemaSQL); err != nil {
-		return err
-	}
-	opts := leader.Options{
-		Group:         "billing-workers",
-		MemberID:      "worker-1",
-		Lease:         30 * time.Second,
-		RenewInterval: 10 * time.Second,
-	}
-	elector, err := sqlleader.New(db, opts)
-	if err != nil {
-		return err
-	}
-
-	campaignCtx, campaignCancel := context.WithTimeout(ctx, 15*time.Second)
-	defer campaignCancel()
-	err = elector.Campaign(campaignCtx)
-	switch {
-	case err == nil:
-		// A confirmed owner-token probe may return success even after campaignCtx expired.
-		// From this point the caller owns cleanup and must not discard elector.
-		defer boundedResign(elector, opts.Lease)
+		// A migration owner must apply sqlleader.SchemaSQL before this runtime pool starts.
+		opts := leader.Options{
+			Group:         "billing-workers",
+			MemberID:      "worker-1",
+			Lease:         30 * time.Second,
+			RenewInterval: 10 * time.Second,
+		}
+		elector, err := sqlleader.New(runtimeDB, opts)
+		if err != nil {
+			return err
+		}
+		campaignCtx, cancelCampaign := context.WithTimeout(ctx, 15*time.Second)
+		defer cancelCampaign()
+		campaignErr := elector.Campaign(campaignCtx)
+		if campaignErr != nil {
+			if errors.Is(campaignErr, leader.ErrCommitUnknown) || errors.Is(campaignErr, leader.ErrCleanupPending) {
+				return errors.Join(campaignErr, boundedResign(elector, opts.Lease))
+			}
+			return campaignErr
+		}
+		defer func() { resultErr = errors.Join(resultErr, boundedResign(elector, opts.Lease)) }()
 		if campaignCtx.Err() != nil {
 			return campaignCtx.Err()
 		}
-	case errors.Is(err, leader.ErrCommitUnknown), errors.Is(err, leader.ErrCleanupPending):
-		stopProtectedWork()
-		return boundedResign(elector, opts.Lease)
-	default:
-		return err
-	}
 
-	poll := time.NewTicker(opts.RenewInterval / 2)
-	defer poll.Stop()
-	for {
-		select {
-		case <-ctx.Done():
-			stopProtectedWork()
-			return ctx.Err()
-		case <-poll.C:
-			if !elector.IsLeader() {
+		protectedCtx, stopProtectedWork := context.WithCancel(ctx)
+		defer stopProtectedWork()
+		startProtectedWork(protectedCtx)
+		poll := time.NewTicker(opts.RenewInterval / 2)
+		defer poll.Stop()
+		for {
+			select {
+			case <-ctx.Done():
 				stopProtectedWork()
-				return boundedResign(elector, opts.Lease)
+				return ctx.Err()
+			case <-poll.C:
+				if !elector.IsLeader() {
+					stopProtectedWork()
+					return leader.ErrNotLeader
+				}
 			}
 		}
 	}
+
+	_ = run(context.Background(), func(context.Context) {})
 }
 
 func boundedResign(elector leader.Elector, lease time.Duration) error {

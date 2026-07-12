@@ -22,6 +22,8 @@ type Elector struct {
 	owned       bool
 	campaigning bool
 	cleanup     bool
+	resigning   int
+	resolved    bool
 	generation  uint64
 	cancel      context.CancelFunc
 	done        chan struct{}
@@ -31,7 +33,8 @@ type Elector struct {
 // New creates a PostgreSQL-backed elector over the caller-owned database pool.
 //
 // The database must route every operation to the same writable primary. The
-// elector never executes migrations and never closes db.
+// elector never executes migrations and never closes db. After option
+// normalization, RenewInterval must be less than Lease.
 func New(db *sql.DB, opts leader.Options) (*Elector, error) {
 	if db == nil {
 		return nil, errors.New("postgres leader database must not be nil")

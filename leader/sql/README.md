@@ -11,7 +11,7 @@
 | Migration role | Can create and own the fixed protected `public` relation. |
 | Runtime role | Cannot create in `public`; has only schema usage and table DML. |
 | Endpoint | Reaches the intended writable primary for every mutation, lookup, and reconciliation probe. |
-| Timing | `Lease` and `RenewInterval` are both zero (normalized to 10s/3s), or `0 < RenewInterval < Lease`. Short custom leases set both explicitly. |
+| Timing | After independent defaults (`Lease=10s`, `RenewInterval=3s`) are applied, `0 < RenewInterval < Lease`. Short custom leases normally require an explicit shorter renewal interval. |
 | Unsupported topology | Stop before migration if a custom schema or replica-routed endpoint is required. |
 
 Do not continue when any preflight result differs.
@@ -44,6 +44,11 @@ from information_schema.columns
 where table_schema = 'public' and table_name = 'bluetape_leader_leases'
 order by ordinal_position;
 ```
+
+Expected rows are exactly: `leader_key text NO`, `group_name text NO`,
+`member_id text NO`, `owner_token text NO`, and `lease_until`, `created_at`,
+`updated_at` each `timestamp with time zone NO`. Automate this comparison;
+column names alone are insufficient.
 
 Verify the protected object, primary key, triggers, and runtime privileges:
 
@@ -105,11 +110,57 @@ elector, err := sqlleader.New(db, opts)
 if err != nil { return err }
 campaignCtx, cancel := context.WithTimeout(ctx, 15*time.Second)
 defer cancel()
-if err := elector.Campaign(campaignCtx); err != nil { return err }
-// Poll IsLeader more frequently than RenewInterval and stop protected work on loss.
+campaignErr := elector.Campaign(campaignCtx)
+if campaignErr != nil {
+    if errors.Is(campaignErr, leader.ErrCommitUnknown) ||
+       errors.Is(campaignErr, leader.ErrCleanupPending) {
+        return errors.Join(campaignErr, boundedResign(elector, opts.Lease))
+    }
+    return campaignErr
+}
+if campaignCtx.Err() != nil {
+    return errors.Join(campaignCtx.Err(), boundedResign(elector, opts.Lease))
+}
+protectedCtx, stopProtectedWork := context.WithCancel(ctx)
+startProtectedWork(protectedCtx)
+poll := time.NewTicker(opts.RenewInterval / 2)
+defer poll.Stop()
+var runErr error
+for runErr == nil {
+    select {
+    case <-ctx.Done():
+        runErr = ctx.Err()
+    case <-poll.C:
+        if !elector.IsLeader() { runErr = leader.ErrNotLeader }
+    }
+}
+stopProtectedWork()
+return errors.Join(runErr, boundedResign(elector, opts.Lease))
 ```
 
-`New` never migrates or closes the pool. Call `Resign` with a fresh bounded context before closing it.
+The cleanup helper retries the same elector and conservatively waits a full lease after the last failed mutation:
+
+```go
+func boundedResign(elector leader.Elector, lease time.Duration) error {
+    var lastErr error
+    var lastFailure time.Time
+    attemptTimeout := min(5*time.Second, max(100*time.Millisecond, lease/4))
+    for range 3 {
+        cleanupCtx, cancel := context.WithTimeout(context.Background(), attemptTimeout)
+        lastErr = elector.Resign(cleanupCtx)
+        cancel()
+        if lastErr == nil { return nil }
+        lastFailure = time.Now()
+    }
+    if wait := time.Until(lastFailure.Add(lease)); wait > 0 {
+        timer := time.NewTimer(wait)
+        <-timer.C
+    }
+    return lastErr
+}
+```
+
+`New` never migrates or closes the pool. Production code should surface both the initiating and cleanup errors and call bounded cleanup before closing the pool.
 
 ## Lease Semantics
 
@@ -134,9 +185,9 @@ Also record the HA controller's server identity and timeline before and after. S
 
 ## Pool and Timing
 
-Reserve connections for active renewals plus application work. Alert when `DBStats.WaitCount` or `DBStats.WaitDuration` grows, `DBStats.InUse` approaches `DBStats.MaxOpenConnections`, or p99 pool/statement latency consumes the `Lease-RenewInterval` margin. `RenewInterval < Lease` is validated, but callers must leave a practical latency margin.
+Reserve connections for active renewals plus application work. Alert when `DBStats.WaitCount` or `DBStats.WaitDuration` grows, when a positive `DBStats.MaxOpenConnections` cap is configured and `DBStats.InUse` approaches it, or when p99 pool/statement latency consumes the `Lease-RenewInterval` margin. `RenewInterval < Lease` is validated, but callers must leave a practical latency margin.
 
-Each campaign attempt is internally bounded. Each renewal has a `RenewInterval` deadline, so pool or row-lock starvation clears local leadership instead of overstaying the safety budget.
+Each campaign attempt is internally bounded. Each renewal uses at most half of the remaining `Lease-RenewInterval` margin (and never more than `RenewInterval`), so pool or row-lock starvation clears local leadership before server-time expiry. Very narrow margins therefore fail closed quickly.
 
 ## Failure Recovery
 
@@ -157,7 +208,10 @@ delete from public.bluetape_leader_leases
 where lease_until < pg_catalog.clock_timestamp() - interval '1 day';
 ```
 
-This is not the correctness TTL and must never delete a live row.
+This is not the correctness TTL and must never delete a live row. The statement
+is illustrative only. In production, delete bounded batches during a
+maintenance window with a statement timeout, monitor WAL/locks/dead tuples,
+and pause whenever cleanup consumes the renewal latency margin.
 
 ## Security Boundaries
 

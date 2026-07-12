@@ -11,6 +11,11 @@ import (
 var _ leader.Elector = (*Elector)(nil)
 
 // Campaign waits until the elector acquires leadership or ctx ends.
+//
+// It returns leader.ErrAlreadyLeader, leader.ErrCampaignInProgress, or
+// leader.ErrCleanupPending for conflicting local states. Reconciliation may
+// confirm ownership after ctx expires; callers must then retain the elector,
+// inspect ctx.Err before protected work, and perform bounded cleanup.
 func (e *Elector) Campaign(ctx context.Context) error {
 	if ctx == nil {
 		return leader.ErrInvalidContext
@@ -40,6 +45,10 @@ func (e *Elector) Campaign(ctx context.Context) error {
 }
 
 // Resign stops renewal and conditionally deletes this elector's owner token.
+//
+// An indeterminate delete returns leader.ErrCommitUnknown. Retry Resign on the
+// same elector with fresh bounded contexts, then use full-lease expiry as the
+// final fallback.
 func (e *Elector) Resign(ctx context.Context) error {
 	if ctx == nil {
 		return leader.ErrInvalidContext
@@ -51,6 +60,8 @@ func (e *Elector) Resign(ctx context.Context) error {
 	if !active {
 		return nil
 	}
+	resolved := false
+	defer func() { e.finishResign(generation, resolved) }()
 	if cancel != nil {
 		cancel()
 	}
@@ -70,14 +81,7 @@ func (e *Elector) Resign(ctx context.Context) error {
 	if err := e.runTestHook("resign", "after"); err != nil {
 		return errors.Join(err, leader.ErrCommitUnknown)
 	}
-
-	e.mu.Lock()
-	if e.generation == generation && e.done == done {
-		e.cleanup = false
-		e.cancel = nil
-		e.done = nil
-	}
-	e.mu.Unlock()
+	resolved = true
 	return nil
 }
 
@@ -103,12 +107,19 @@ func (e *Elector) acquireAttempt(ctx context.Context) (bool, error) {
 	if err := e.runTestHook("campaign", "before"); err != nil {
 		return false, err
 	}
+	if err := e.runTestHook("campaign", "attempt"); err != nil {
+		return false, err
+	}
 	attemptCtx, cancel := context.WithTimeout(ctx, e.attemptBudget())
 	defer cancel()
 	acquired, operationErr := e.tryAcquire(attemptCtx)
 	internalTimeout := attemptCtx.Err() != nil && ctx.Err() == nil
-	if operationErr == nil {
+	if operationErr == nil && acquired {
 		operationErr = e.runTestHook("campaign", "after")
+	}
+	if operationErr == nil && attemptCtx.Err() != nil {
+		operationErr = attemptCtx.Err()
+		internalTimeout = ctx.Err() == nil
 	}
 	if operationErr == nil {
 		return acquired, nil
@@ -135,7 +146,7 @@ func (e *Elector) acquireAttempt(ctx context.Context) (bool, error) {
 }
 
 func (e *Elector) attemptBudget() time.Duration {
-	return max(100*time.Millisecond, min(e.opts.RenewInterval, time.Second))
+	return min(min(e.opts.RenewInterval, e.opts.Lease/4), time.Second)
 }
 
 func (e *Elector) beginCampaign() error {
@@ -187,10 +198,10 @@ func (e *Elector) renewLoop(ctx context.Context, generation uint64, done chan st
 			return
 		case <-ticker.C:
 			if err := e.runTestHook("renew", "before"); err != nil {
-				e.clearOwnershipAfterLoss(generation, done, false)
+				e.clearOwnershipAfterLoss(generation, done, true)
 				return
 			}
-			renewCtx, cancel := context.WithTimeout(ctx, e.opts.RenewInterval)
+			renewCtx, cancel := context.WithTimeout(ctx, e.renewalBudget())
 			ok, err := e.renew(renewCtx)
 			cancel()
 			if err == nil && ok {
@@ -204,6 +215,11 @@ func (e *Elector) renewLoop(ctx context.Context, generation uint64, done chan st
 	}
 }
 
+func (e *Elector) renewalBudget() time.Duration {
+	remainingMargin := e.opts.Lease - e.opts.RenewInterval
+	return min(e.opts.RenewInterval, remainingMargin/2)
+}
+
 func (e *Elector) clearOwnership() (uint64, context.CancelFunc, chan struct{}, bool) {
 	e.mu.Lock()
 	defer e.mu.Unlock()
@@ -215,7 +231,26 @@ func (e *Elector) clearOwnership() (uint64, context.CancelFunc, chan struct{}, b
 	done := e.done
 	e.owned = false
 	e.cleanup = true
+	e.resigning++
 	return generation, cancel, done, true
+}
+
+func (e *Elector) finishResign(generation uint64, resolved bool) {
+	e.mu.Lock()
+	defer e.mu.Unlock()
+	if e.generation != generation || e.resigning == 0 {
+		return
+	}
+	if resolved {
+		e.resolved = true
+	}
+	e.resigning--
+	if e.resigning == 0 && e.resolved {
+		e.cleanup = false
+		e.resolved = false
+		e.cancel = nil
+		e.done = nil
+	}
 }
 
 func (e *Elector) clearOwnershipAfterLoss(generation uint64, done chan struct{}, cleanup bool) {
@@ -225,9 +260,11 @@ func (e *Elector) clearOwnershipAfterLoss(generation uint64, done chan struct{},
 		return
 	}
 	e.owned = false
-	e.cleanup = cleanup
-	e.cancel = nil
-	e.done = nil
+	e.cleanup = cleanup || e.resigning > 0
+	if e.resigning == 0 {
+		e.cancel = nil
+		e.done = nil
+	}
 }
 
 func (e *Elector) markCleanupPending() {

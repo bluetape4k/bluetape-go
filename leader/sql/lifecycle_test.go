@@ -21,6 +21,7 @@ func TestPostgresFaultRecovery(t *testing.T) {
 	db := openPostgresDB(ctx, t)
 
 	t.Run("acquire-lost-response", func(t *testing.T) { testAcquireLostResponseReconcilesOwnToken(t, db) })
+	t.Run("acquire-after-contention", func(t *testing.T) { testAcquireAfterHookWaitsForSuccessfulMutation(t, db) })
 	t.Run("acquire-probe-failure", func(t *testing.T) { testAcquireProbeFailureReturnsCommitUnknown(t, db) })
 	t.Run("attempt-timeout", func(t *testing.T) { testInternalAttemptTimeoutWithOtherOwnerRetries(t, db) })
 	t.Run("renew-lost-response", func(t *testing.T) { testRenewLostResponseClearsOwnedAndKeepsCleanup(t, db) })
@@ -41,13 +42,18 @@ func TestPostgresLifecycle(t *testing.T) {
 	t.Run("renewal-loss", func(t *testing.T) { testZeroRowRenewalClearsLeadership(t, db) })
 	t.Run("resign-token-safe", func(t *testing.T) { testResignIsIdempotentAndTokenSafe(t, db) })
 	t.Run("resign-timeout", func(t *testing.T) { testResignTimeoutRetainsCleanupForRetry(t, db) })
+	t.Run("resign-cancels-renewal", func(t *testing.T) { testResignClearsCleanupAfterCancelingBlockedRenewal(t, db) })
 	t.Run("generation", func(t *testing.T) { testOldGenerationCannotClearNewOwnership(t, db) })
 	t.Run("backoff", func(t *testing.T) { testContentionBackoffIsBoundedAndNotTightLoop(t, db) })
 	t.Run("leader-context", func(t *testing.T) { testLeaderRejectsNilAndCanceledContext(t, db) })
 	t.Run("leader-empty", func(t *testing.T) { testLeaderReturnsEmptyForMissingOrExpiredLease(t, db) })
 	t.Run("concurrent-resign", func(t *testing.T) { testConcurrentResignIsIdempotent(t, db) })
+	t.Run("concurrent-resign-reacquire", func(t *testing.T) { testConcurrentResignBlocksReacquireUntilAllExit(t, db) })
+	t.Run("renew-loss-during-resign", func(t *testing.T) { testConfirmedRenewLossCannotBypassResignGate(t, db) })
 	t.Run("canceled-campaign", func(t *testing.T) { testCanceledCampaignThenResignLeavesNoWorker(t, db) })
 	t.Run("constrained-pool", func(t *testing.T) { testConstrainedPoolTimesOutWithoutLeaseOverstay(t, db) })
+	t.Run("narrow-margin", func(t *testing.T) { testNarrowMarginLosesLocalLeadershipBeforeExpiry(t, db) })
+	t.Run("short-lease-acquire", func(t *testing.T) { testDelayedAcquireResponseDoesNotOverstateShortLease(t, db) })
 	t.Run("shared-pool", func(t *testing.T) { testSharedPoolMultiElectorShutdown(t, db) })
 }
 
@@ -201,6 +207,49 @@ func testResignTimeoutRetainsCleanupForRetry(t *testing.T, db *sql.DB) {
 	}
 }
 
+func testResignClearsCleanupAfterCancelingBlockedRenewal(t *testing.T, db *sql.DB) {
+	e := lifecycleElector(t, db, "resign-cancels-renewal", "member", time.Second, 100*time.Millisecond)
+	if err := e.Campaign(context.Background()); err != nil {
+		t.Fatal(err)
+	}
+	tx, err := db.BeginTx(context.Background(), nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+	rolledBack := false
+	t.Cleanup(func() {
+		if !rolledBack {
+			_ = tx.Rollback()
+		}
+	})
+	if _, err := tx.ExecContext(context.Background(), `update public.bluetape_leader_leases set updated_at=updated_at where leader_key=$1`, e.key); err != nil {
+		t.Fatal(err)
+	}
+	waitForBlockedQuery(t, db, "update public.bluetape_leader_leases")
+	resigned := make(chan error, 1)
+	go func() { resigned <- e.Resign(context.Background()) }()
+	bttesting.Eventually(t, time.Second, func() bool {
+		return blockedQueryCount(t, db, "update public.bluetape_leader_leases") == 0
+	})
+	if err := tx.Rollback(); err != nil {
+		t.Fatal(err)
+	}
+	rolledBack = true
+	if err := <-resigned; err != nil {
+		t.Fatalf("Resign(): %v", err)
+	}
+	owned, cleanup, cancelFn, done := lifecycleState(e)
+	if owned || cleanup || cancelFn != nil || done != nil {
+		t.Fatalf("successful Resign retained state: owned=%v cleanup=%v cancel=%v done=%v", owned, cleanup, cancelFn != nil, done != nil)
+	}
+	if err := e.Campaign(context.Background()); err != nil {
+		t.Fatalf("Campaign after one successful Resign: %v", err)
+	}
+	if err := e.Resign(context.Background()); err != nil {
+		t.Fatal(err)
+	}
+}
+
 func testOldGenerationCannotClearNewOwnership(t *testing.T, db *sql.DB) {
 	e := lifecycleElector(t, db, "old-generation", "member", time.Second, 250*time.Millisecond)
 	oldDone := make(chan struct{})
@@ -244,7 +293,7 @@ func testContentionBackoffIsBoundedAndNotTightLoop(t *testing.T, _ *sql.DB) {
 
 func testLeaderRejectsNilAndCanceledContext(t *testing.T, db *sql.DB) {
 	e := lifecycleElector(t, db, "leader-context", "member", time.Second, 250*time.Millisecond)
-	if _, err := e.Leader(nil); !errors.Is(err, leader.ErrInvalidContext) {
+	if _, err := e.Leader(nil); !errors.Is(err, leader.ErrInvalidContext) { //nolint:staticcheck // nil is the contract input under test.
 		t.Fatalf("Leader(nil) error=%v", err)
 	}
 	ctx, cancel := context.WithCancel(context.Background())
@@ -302,6 +351,90 @@ func testConcurrentResignIsIdempotent(t *testing.T, db *sql.DB) {
 	}
 }
 
+func testConcurrentResignBlocksReacquireUntilAllExit(t *testing.T, db *sql.DB) {
+	e := lifecycleElector(t, db, "concurrent-resign-reacquire", "member", time.Second, 100*time.Millisecond)
+	if err := e.Campaign(context.Background()); err != nil {
+		t.Fatal(err)
+	}
+	secondEntered := make(chan struct{})
+	releaseSecond := make(chan struct{})
+	var calls atomic.Int64
+	e.testHook = func(operation, phase string) error {
+		if operation != "resign" || phase != "before" {
+			return nil
+		}
+		switch calls.Add(1) {
+		case 1:
+			<-secondEntered
+		case 2:
+			close(secondEntered)
+			<-releaseSecond
+		}
+		return nil
+	}
+	results := make(chan error, 2)
+	go func() { results <- e.Resign(context.Background()) }()
+	go func() { results <- e.Resign(context.Background()) }()
+	if err := <-results; err != nil {
+		t.Fatalf("first Resign(): %v", err)
+	}
+	if err := e.Campaign(context.Background()); !errors.Is(err, leader.ErrCleanupPending) {
+		t.Fatalf("Campaign during stale Resign error=%v, want ErrCleanupPending", err)
+	}
+	close(releaseSecond)
+	if err := <-results; err != nil {
+		t.Fatalf("second Resign(): %v", err)
+	}
+	e.testHook = nil
+	if err := e.Campaign(context.Background()); err != nil {
+		t.Fatalf("Campaign after all Resign calls: %v", err)
+	}
+	if err := e.Resign(context.Background()); err != nil {
+		t.Fatal(err)
+	}
+}
+
+func testConfirmedRenewLossCannotBypassResignGate(t *testing.T, db *sql.DB) {
+	e := lifecycleElector(t, db, "renew-loss-during-resign", "member", time.Second, 100*time.Millisecond)
+	if err := e.Campaign(context.Background()); err != nil {
+		t.Fatal(err)
+	}
+	e.mu.RLock()
+	generation, done := e.generation, e.done
+	e.mu.RUnlock()
+	entered := make(chan struct{})
+	release := make(chan struct{})
+	e.testHook = func(operation, phase string) error {
+		if operation == "resign" && phase == "before" {
+			close(entered)
+			<-release
+		}
+		return nil
+	}
+	result := make(chan error, 1)
+	go func() { result <- e.Resign(context.Background()) }()
+	select {
+	case <-entered:
+	case <-time.After(time.Second):
+		t.Fatal("Resign hook was not reached")
+	}
+	e.clearOwnershipAfterLoss(generation, done, false)
+	if err := e.Campaign(context.Background()); !errors.Is(err, leader.ErrCleanupPending) {
+		t.Fatalf("Campaign after confirmed renewal loss error=%v, want ErrCleanupPending", err)
+	}
+	close(release)
+	if err := <-result; err != nil {
+		t.Fatalf("Resign(): %v", err)
+	}
+	e.testHook = nil
+	if err := e.Campaign(context.Background()); err != nil {
+		t.Fatalf("Campaign after Resign participant exit: %v", err)
+	}
+	if err := e.Resign(context.Background()); err != nil {
+		t.Fatal(err)
+	}
+}
+
 func testCanceledCampaignThenResignLeavesNoWorker(t *testing.T, db *sql.DB) {
 	holder := lifecycleElector(t, db, "canceled-campaign", "holder", time.Second, 200*time.Millisecond)
 	waiter := lifecycleElector(t, db, "canceled-campaign", "waiter", time.Second, 200*time.Millisecond)
@@ -351,12 +484,93 @@ func testConstrainedPoolTimesOutWithoutLeaseOverstay(t *testing.T, db *sql.DB) {
 	}
 }
 
+func testNarrowMarginLosesLocalLeadershipBeforeExpiry(t *testing.T, db *sql.DB) {
+	const (
+		lease = 3 * time.Second
+		renew = 2 * time.Second
+	)
+	e := lifecycleElector(t, db, "narrow-margin", "owner", lease, renew)
+	if err := e.Campaign(context.Background()); err != nil {
+		t.Fatal(err)
+	}
+	expiresAt := leaseUntil(t, db, e.key)
+	observer, err := db.Conn(context.Background())
+	if err != nil {
+		t.Fatal(err)
+	}
+	db.SetMaxOpenConns(1)
+	t.Cleanup(func() { db.SetMaxOpenConns(0) })
+	bttesting.Eventually(t, 4*time.Second, func() bool { return !e.IsLeader() })
+	var serverNow time.Time
+	if err := observer.QueryRowContext(context.Background(), `select pg_catalog.clock_timestamp()`).Scan(&serverNow); err != nil {
+		t.Fatal(err)
+	}
+	if !serverNow.Before(expiresAt) {
+		t.Fatalf("local leadership cleared after server expiry: now=%s expiry=%s", serverNow, expiresAt)
+	}
+	if err := observer.Close(); err != nil {
+		t.Fatal(err)
+	}
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
+	defer cancel()
+	if err := e.Resign(ctx); err != nil {
+		t.Fatal(err)
+	}
+}
+
+func testDelayedAcquireResponseDoesNotOverstateShortLease(t *testing.T, db *sql.DB) {
+	const (
+		lease = 200 * time.Millisecond
+		renew = 30 * time.Millisecond
+	)
+	owner := lifecycleElector(t, db, "short-lease-acquire", "delayed", lease, renew)
+	contender := lifecycleElector(t, db, "short-lease-acquire", "replacement", lease, renew)
+	responseReady := make(chan struct{})
+	releaseResponse := make(chan struct{})
+	var once sync.Once
+	owner.testHook = func(operation, phase string) error {
+		if operation == "campaign" && phase == "after" {
+			once.Do(func() { close(responseReady) })
+			<-releaseResponse
+		}
+		return nil
+	}
+	ownerCtx, ownerCancel := context.WithTimeout(context.Background(), 600*time.Millisecond)
+	defer ownerCancel()
+	ownerResult := make(chan error, 1)
+	go func() { ownerResult <- owner.Campaign(ownerCtx) }()
+	select {
+	case <-responseReady:
+	case <-time.After(3 * time.Second):
+		t.Fatal("acquire response hook was not reached")
+	}
+	expiresAt := leaseUntil(t, db, owner.key)
+	bttesting.Eventually(t, time.Second, func() bool {
+		var serverNow time.Time
+		return db.QueryRowContext(context.Background(), `select pg_catalog.clock_timestamp()`).Scan(&serverNow) == nil && !serverNow.Before(expiresAt)
+	})
+	if err := contender.Campaign(context.Background()); err != nil {
+		t.Fatalf("replacement Campaign(): %v", err)
+	}
+	ownerCancel()
+	close(releaseResponse)
+	if err := <-ownerResult; err == nil {
+		t.Fatal("delayed Campaign() succeeded after its lease expired")
+	}
+	if owner.IsLeader() {
+		t.Fatal("delayed acquisition reported local leadership after its lease expired")
+	}
+	if err := contender.Resign(context.Background()); err != nil {
+		t.Fatal(err)
+	}
+}
+
 func testSharedPoolMultiElectorShutdown(t *testing.T, db *sql.DB) {
 	const count = 3
 	electors := make([]*Elector, 0, count)
 	var renews atomic.Int64
 	for i := range count {
-		e := lifecycleElector(t, db, "shared-pool-"+string(rune('a'+i)), "member", 400*time.Millisecond, 70*time.Millisecond)
+		e := lifecycleElector(t, db, "shared-pool-"+string(rune('a'+i)), "member", 2*time.Second, 200*time.Millisecond)
 		e.testHook = func(operation, phase string) error {
 			if operation == "renew" && phase == "after" {
 				renews.Add(1)
@@ -368,7 +582,7 @@ func testSharedPoolMultiElectorShutdown(t *testing.T, db *sql.DB) {
 		}
 		electors = append(electors, e)
 	}
-	bttesting.Eventually(t, time.Second, func() bool { return renews.Load() >= count })
+	bttesting.Eventually(t, 3*time.Second, func() bool { return renews.Load() >= count })
 	var wg sync.WaitGroup
 	for _, e := range electors {
 		wg.Add(1)
@@ -406,6 +620,38 @@ func testAcquireLostResponseReconcilesOwnToken(t *testing.T, db *sql.DB) {
 		t.Fatalf("owned=%v reconcile=%d", e.IsLeader(), faults.count("campaign", "reconcile"))
 	}
 	if err := e.Resign(context.Background()); err != nil {
+		t.Fatal(err)
+	}
+}
+
+func testAcquireAfterHookWaitsForSuccessfulMutation(t *testing.T, db *sql.DB) {
+	owner := lifecycleElector(t, db, "fault-after-contention", "owner", time.Second, 100*time.Millisecond)
+	contender := lifecycleElector(t, db, "fault-after-contention", "contender", time.Second, 100*time.Millisecond)
+	if err := owner.Campaign(context.Background()); err != nil {
+		t.Fatal(err)
+	}
+	faults := newFaultController()
+	faults.failNext("campaign", "after", errors.New("lost successful response"))
+	contender.testHook = faults.hook
+	waitCtx, cancel := context.WithTimeout(context.Background(), 90*time.Millisecond)
+	err := contender.Campaign(waitCtx)
+	cancel()
+	if !errors.Is(err, context.DeadlineExceeded) {
+		t.Fatalf("contended Campaign() error=%v", err)
+	}
+	if got := faults.count("campaign", "after"); got != 0 {
+		t.Fatalf("campaign after hook consumed by contention: count=%d", got)
+	}
+	if err := owner.Resign(context.Background()); err != nil {
+		t.Fatal(err)
+	}
+	if err := contender.Campaign(context.Background()); err != nil {
+		t.Fatalf("successful Campaign did not reconcile hook: %v", err)
+	}
+	if got := faults.count("campaign", "after"); got != 1 {
+		t.Fatalf("campaign after hook count=%d, want 1", got)
+	}
+	if err := contender.Resign(context.Background()); err != nil {
 		t.Fatal(err)
 	}
 }
@@ -449,7 +695,7 @@ func testInternalAttemptTimeoutWithOtherOwnerRetries(t *testing.T, db *sql.DB) {
 			_ = tx.Rollback()
 		}
 	})
-	if _, err := tx.Exec(`update public.bluetape_leader_leases set updated_at=updated_at where leader_key=$1`, owner.key); err != nil {
+	if _, err := tx.ExecContext(context.Background(), `update public.bluetape_leader_leases set updated_at=updated_at where leader_key=$1`, owner.key); err != nil {
 		t.Fatal(err)
 	}
 	faults := newFaultController()
@@ -562,7 +808,7 @@ func testMutationFaultMatrix(t *testing.T, db *sql.DB) {
 	}{
 		{"campaign-before", "campaign", "before", false, false, false},
 		{"campaign-after", "campaign", "after", false, false, true},
-		{"renew-before", "renew", "before", false, false, true},
+		{"renew-before", "renew", "before", false, true, true},
 		{"renew-after", "renew", "after", false, true, true},
 		{"resign-before", "resign", "before", false, true, true},
 		{"resign-after", "resign", "after", true, true, true},
@@ -598,8 +844,20 @@ func testMutationFaultMatrix(t *testing.T, db *sql.DB) {
 					t.Fatalf("Campaign() error=%v, want cleanup pending", err)
 				}
 			}
+			if tt.operation == "renew" {
+				var rows int
+				if err := db.QueryRowContext(context.Background(), `select count(*) from public.bluetape_leader_leases where leader_key=$1`, e.key).Scan(&rows); err != nil || rows != 1 {
+					t.Fatalf("live lease rows=%d err=%v, want one cleanup target", rows, err)
+				}
+			}
 			if err := e.Resign(context.Background()); err != nil {
 				t.Fatalf("final Resign(): %v", err)
+			}
+			if tt.operation == "renew" {
+				var rows int
+				if err := db.QueryRowContext(context.Background(), `select count(*) from public.bluetape_leader_leases where leader_key=$1`, e.key).Scan(&rows); err != nil || rows != 0 {
+					t.Fatalf("lease rows after cleanup=%d err=%v", rows, err)
+				}
 			}
 		})
 	}
@@ -620,12 +878,12 @@ func testBackendTerminationRecoveryAndTakeover(t *testing.T, db *sql.DB) {
 			_ = tx.Rollback()
 		}
 	})
-	if _, err := tx.Exec(`update public.bluetape_leader_leases set updated_at=updated_at where leader_key=$1`, e.key); err != nil {
+	if _, err := tx.ExecContext(context.Background(), `update public.bluetape_leader_leases set updated_at=updated_at where leader_key=$1`, e.key); err != nil {
 		t.Fatal(err)
 	}
 	pid := waitForBlockedQuery(t, db, "update public.bluetape_leader_leases")
 	var terminated bool
-	if err := db.QueryRow(`select pg_catalog.pg_terminate_backend($1)`, pid).Scan(&terminated); err != nil || !terminated {
+	if err := db.QueryRowContext(context.Background(), `select pg_catalog.pg_terminate_backend($1)`, pid).Scan(&terminated); err != nil || !terminated {
 		t.Fatalf("terminate backend pid=%d terminated=%v err=%v", pid, terminated, err)
 	}
 	bttesting.Eventually(t, time.Second, func() bool { return !e.IsLeader() && cleanupPending(e) })
@@ -690,13 +948,24 @@ func waitForBlockedQuery(t *testing.T, db *sql.DB, prefix string) int {
 	t.Helper()
 	var pid int
 	bttesting.Eventually(t, time.Second, func() bool {
-		err := db.QueryRow(`select pid from pg_catalog.pg_stat_activity
+		err := db.QueryRowContext(context.Background(), `select pid from pg_catalog.pg_stat_activity
 where pid <> pg_catalog.pg_backend_pid() and state='active'
   and wait_event_type='Lock' and lower(query) like $1
 order by query_start desc limit 1`, strings.ToLower(prefix)+"%").Scan(&pid)
 		return err == nil
 	})
 	return pid
+}
+
+func blockedQueryCount(t *testing.T, db *sql.DB, prefix string) int {
+	t.Helper()
+	var count int
+	if err := db.QueryRowContext(context.Background(), `select count(*) from pg_catalog.pg_stat_activity
+where pid <> pg_catalog.pg_backend_pid() and state='active'
+  and wait_event_type='Lock' and lower(query) like $1`, strings.ToLower(prefix)+"%").Scan(&count); err != nil {
+		t.Fatal(err)
+	}
+	return count
 }
 
 func cleanupPending(e *Elector) bool {
@@ -719,7 +988,7 @@ func lifecycleElector(t *testing.T, db *sql.DB, group, member string, lease, ren
 func leaseUntil(t *testing.T, db *sql.DB, key string) time.Time {
 	t.Helper()
 	var value time.Time
-	if err := db.QueryRow(`select lease_until from public.bluetape_leader_leases where leader_key=$1`, key).Scan(&value); err != nil {
+	if err := db.QueryRowContext(context.Background(), `select lease_until from public.bluetape_leader_leases where leader_key=$1`, key).Scan(&value); err != nil {
 		t.Fatal(err)
 	}
 	return value

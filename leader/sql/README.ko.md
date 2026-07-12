@@ -11,7 +11,7 @@
 | Migration role | 보호된 고정 `public` relation을 생성하고 소유할 수 있습니다. |
 | Runtime role | `public`에 생성할 수 없고 schema usage와 table DML만 가집니다. |
 | Endpoint | 모든 mutation, lookup, reconciliation probe가 의도한 writable primary에 도달합니다. |
-| Timing | `Lease`와 `RenewInterval`이 모두 0(정규화 후 10s/3s)이거나 `0 < RenewInterval < Lease`입니다. 짧은 custom lease는 두 값을 모두 명시합니다. |
+| Timing | 독립적인 기본값(`Lease=10s`, `RenewInterval=3s`) 적용 후 `0 < RenewInterval < Lease`입니다. 짧은 custom lease는 보통 더 짧은 renewal interval을 명시해야 합니다. |
 | 미지원 topology | Custom schema나 replica-routed endpoint가 필요하면 migration 전에 중단합니다. |
 
 하나라도 다르면 진행하지 마세요.
@@ -44,6 +44,10 @@ from information_schema.columns
 where table_schema = 'public' and table_name = 'bluetape_leader_leases'
 order by ordinal_position;
 ```
+
+기대 row는 정확히 `leader_key text NO`, `group_name text NO`, `member_id text NO`,
+`owner_token text NO`, 그리고 `lease_until`, `created_at`, `updated_at` 각각
+`timestamp with time zone NO`입니다. Column name만 확인하지 말고 이 비교를 자동화합니다.
 
 보호 object, primary key, trigger, runtime 권한도 검증합니다.
 
@@ -105,11 +109,57 @@ elector, err := sqlleader.New(db, opts)
 if err != nil { return err }
 campaignCtx, cancel := context.WithTimeout(ctx, 15*time.Second)
 defer cancel()
-if err := elector.Campaign(campaignCtx); err != nil { return err }
-// RenewInterval보다 자주 IsLeader를 확인하고 loss 시 protected work를 중단합니다.
+campaignErr := elector.Campaign(campaignCtx)
+if campaignErr != nil {
+    if errors.Is(campaignErr, leader.ErrCommitUnknown) ||
+       errors.Is(campaignErr, leader.ErrCleanupPending) {
+        return errors.Join(campaignErr, boundedResign(elector, opts.Lease))
+    }
+    return campaignErr
+}
+if campaignCtx.Err() != nil {
+    return errors.Join(campaignCtx.Err(), boundedResign(elector, opts.Lease))
+}
+protectedCtx, stopProtectedWork := context.WithCancel(ctx)
+startProtectedWork(protectedCtx)
+poll := time.NewTicker(opts.RenewInterval / 2)
+defer poll.Stop()
+var runErr error
+for runErr == nil {
+    select {
+    case <-ctx.Done():
+        runErr = ctx.Err()
+    case <-poll.C:
+        if !elector.IsLeader() { runErr = leader.ErrNotLeader }
+    }
+}
+stopProtectedWork()
+return errors.Join(runErr, boundedResign(elector, opts.Lease))
 ```
 
-`New`는 migration이나 pool close를 하지 않습니다. Pool을 닫기 전에 fresh bounded context로 `Resign`합니다.
+Cleanup helper는 같은 elector를 재시도하고 마지막 mutation 실패 후 full lease를 보수적으로 기다립니다.
+
+```go
+func boundedResign(elector leader.Elector, lease time.Duration) error {
+    var lastErr error
+    var lastFailure time.Time
+    attemptTimeout := min(5*time.Second, max(100*time.Millisecond, lease/4))
+    for range 3 {
+        cleanupCtx, cancel := context.WithTimeout(context.Background(), attemptTimeout)
+        lastErr = elector.Resign(cleanupCtx)
+        cancel()
+        if lastErr == nil { return nil }
+        lastFailure = time.Now()
+    }
+    if wait := time.Until(lastFailure.Add(lease)); wait > 0 {
+        timer := time.NewTimer(wait)
+        <-timer.C
+    }
+    return lastErr
+}
+```
+
+`New`는 migration이나 pool close를 하지 않습니다. Production code는 최초 오류와 cleanup 오류를 모두 노출해야 하며 pool을 닫기 전에 bounded cleanup을 수행합니다.
 
 ## Lease Semantics
 
@@ -134,9 +184,9 @@ HA controller가 보고하는 server identity와 timeline도 전후에 기록합
 
 ## Pool and Timing
 
-Active renewal과 application work를 위한 connection을 확보합니다. `DBStats.WaitCount` 또는 `DBStats.WaitDuration`가 증가하거나, `DBStats.InUse`가 `DBStats.MaxOpenConnections`에 가까워지거나, p99 pool/statement latency가 `Lease-RenewInterval` margin을 소모하면 alert합니다. `RenewInterval < Lease`는 검증되지만 실용적인 latency margin은 caller가 확보해야 합니다.
+Active renewal과 application work를 위한 connection을 확보합니다. `DBStats.WaitCount` 또는 `DBStats.WaitDuration`가 증가하거나, 양수 `DBStats.MaxOpenConnections` cap이 설정된 상태에서 `DBStats.InUse`가 cap에 가까워지거나, p99 pool/statement latency가 `Lease-RenewInterval` margin을 소모하면 alert합니다. `RenewInterval < Lease`는 검증되지만 실용적인 latency margin은 caller가 확보해야 합니다.
 
-각 campaign attempt는 내부 deadline으로 제한됩니다. 각 renewal deadline은 `RenewInterval`이므로 pool/row-lock starvation 시 safety budget을 넘겨 leadership을 유지하지 않고 local leadership을 해제합니다.
+각 campaign attempt는 내부 deadline으로 제한됩니다. 각 renewal은 남은 `Lease-RenewInterval` margin의 절반 이하이면서 `RenewInterval` 이하인 deadline을 사용하므로, pool/row-lock starvation 시 server-time expiry 전에 local leadership을 해제합니다. Margin이 매우 좁으면 빠르게 fail-closed합니다.
 
 ## Failure Recovery
 
@@ -157,7 +207,10 @@ delete from public.bluetape_leader_leases
 where lease_until < pg_catalog.clock_timestamp() - interval '1 day';
 ```
 
-이는 correctness TTL이 아니며 live row를 삭제하면 안 됩니다.
+이는 correctness TTL이 아니며 live row를 삭제하면 안 됩니다. 위 statement는 예시일
+뿐입니다. Production에서는 statement timeout을 적용한 bounded batch를 maintenance
+window에 실행하고 WAL/lock/dead tuple을 관측하며 cleanup이 renewal latency margin을
+소모하면 중단합니다.
 
 ## Security Boundaries
 

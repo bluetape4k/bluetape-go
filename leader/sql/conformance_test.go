@@ -134,13 +134,22 @@ func (c *postgresConformanceControl) hook(opts leader.Options) func(string, stri
 			delete(c.probeFailures, key)
 			return err
 		}
+		if phase == "attempt" {
+			if c.counts[key] == nil {
+				c.counts[key] = make(map[leadertest.Operation]int64)
+			}
+			c.counts[key][operation]++
+			return nil
+		}
 		if phase != "after" {
 			return nil
 		}
 		if c.counts[key] == nil {
 			c.counts[key] = make(map[leadertest.Operation]int64)
 		}
-		c.counts[key][operation]++
+		if operation != leadertest.OperationCampaign {
+			c.counts[key][operation]++
+		}
 		err := c.failures[key][operation]
 		delete(c.failures[key], operation)
 		if err != nil && operation == leadertest.OperationCampaign {

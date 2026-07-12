@@ -29,7 +29,7 @@ func TestRuntimeRoleLeastPrivilege(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	defer adminConn.Close()
+	defer func() { _ = adminConn.Close() }()
 	setup := []string{
 		`create role leader_migration_owner nologin`,
 		`create role leader_runtime login password 'runtime-pass'`,
@@ -49,10 +49,12 @@ func TestRuntimeRoleLeastPrivilege(t *testing.T) {
 		}
 	}
 	t.Cleanup(func() {
-		_, _ = admin.Exec(`drop owned by leader_runtime`)
-		_, _ = admin.Exec(`drop owned by leader_migration_owner cascade`)
-		_, _ = admin.Exec(`drop role if exists leader_runtime`)
-		_, _ = admin.Exec(`drop role if exists leader_migration_owner`)
+		cleanupCtx, cleanupCancel := context.WithTimeout(context.Background(), 5*time.Second)
+		defer cleanupCancel()
+		_, _ = admin.ExecContext(cleanupCtx, `drop owned by leader_runtime`)
+		_, _ = admin.ExecContext(cleanupCtx, `drop owned by leader_migration_owner cascade`)
+		_, _ = admin.ExecContext(cleanupCtx, `drop role if exists leader_runtime`)
+		_, _ = admin.ExecContext(cleanupCtx, `drop role if exists leader_migration_owner`)
 	})
 
 	runtimeDSN := roleDSN(t, dsn, "leader_runtime", "runtime-pass")
@@ -90,7 +92,7 @@ for each row execute function public.leader_noop_trigger()`,
 		}
 	}
 
-	assertRuntimeRoleCatalog(t, ctx, admin)
+	assertRuntimeRoleCatalog(ctx, t, admin)
 }
 
 func roleDSN(t *testing.T, dsn, username, password string) string {
@@ -103,7 +105,7 @@ func roleDSN(t *testing.T, dsn, username, password string) string {
 	return parsed.String()
 }
 
-func assertRuntimeRoleCatalog(t *testing.T, ctx context.Context, db *sql.DB) {
+func assertRuntimeRoleCatalog(ctx context.Context, t *testing.T, db *sql.DB) {
 	t.Helper()
 	var usage, create, dml, dangerous, member, rls, forceRLS bool
 	var owner, primaryKey string
