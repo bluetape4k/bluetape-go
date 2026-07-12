@@ -19,7 +19,7 @@
 | Redis leader | `leader/elector.go`, `leader/redis/elector.go`, `leader/redis/elector_test.go`, `leader/redis/coordination_example_test.go`, `leader/redis/conformance_test.go`, `leader/redis/conformance_internal_test.go` | Blocking campaign GoDoc/examples, bounded retry, cleanup-pending resign state, real Redis adapter/control. |
 | Mongo leader | `leader/mongo/elector.go`, `leader/mongo/elector_test.go`, `leader/mongo/conformance_test.go` | Common state/error semantics and Mongo adapter/control. |
 | Lock helper | `lock/locktest/{doc.go,harness.go,memory.go,runner.go,harness_test.go,runner_test.go,example_test.go,README.md,README.ko.md}` | Function adapter contract, before/after gates, reference fixture and exact lock runner. |
-| Redis lock | `lock/redis/options.go`, `lock/redis/options_test.go`, `lock/redis/mutex.go`, `lock/redis/mutex_test.go`, `lock/redis/conformance_test.go` | Byte-preserving owner validation, cancellation linearization and mandatory Redis lock adapter. |
+| Redis lock | `lock/redis/options.go`, `lock/redis/options_test.go`, `lock/redis/mutex.go`, `lock/redis/mutex_test.go`, `lock/redis/example_test.go`, `lock/redis/conformance_test.go` | Byte-preserving owner validation, cancellation linearization, caller recovery example and mandatory Redis lock adapter. |
 | Rate helper | `ratelimit/ratelimittest/{doc.go,harness.go,memory.go,runner.go,harness_test.go,runner_test.go,example_test.go,README.md,README.ko.md}` | Parent-independent neutral result/function contract and exact token-bucket runner. |
 | Local rate limit | `ratelimit/token_bucket.go`, `ratelimit/token_bucket_test.go`, `ratelimit/conformance_test.go` | Private mutation hook, cancellation arbitration and local adapter. |
 | Redis rate limit | `ratelimit/redis/limiter.go`, `ratelimit/redis/limiter_test.go`, `ratelimit/redis/conformance_test.go` | Command-boundary cancellation arbitration and Redis adapter. |
@@ -355,7 +355,7 @@ Expected: reference harness PASS; every intentionally broken harness fails its i
 
 - [ ] **Step 1: Replace immediate-contention expectations with RED state-machine tests**
 
-Add tests asserting: contender blocks until deadline and returns `DeadlineExceeded`; owner resign permits takeover; concurrent same-instance call returns `ErrCampaignInProgress`; cleanup-pending returns `ErrCleanupPending`; nil contexts return `ErrInvalidContext` before Redis commands; injected delete failure is retryable; one already-linearized late renew is allowed after resign deadline and no later renew occurs; provider errors satisfy both `*leader.OperationError` and existing `*btredis.OpError` without marker leakage. Migrate `coordination_example_test.go` from `Campaign(context.Background())`/`ErrNotLeader` to a bounded context and `DeadlineExceeded`, and update `leader.Elector` GoDoc to say Campaign blocks until acquisition or context termination and document all local-state sentinels.
+Add tests asserting: contender blocks until deadline and returns `DeadlineExceeded`; owner resign permits takeover; concurrent same-instance call returns `ErrCampaignInProgress`; cleanup-pending returns `ErrCleanupPending`; nil contexts return `ErrInvalidContext` before Redis commands; injected delete failure is retryable; one already-linearized late renew is allowed after resign deadline and no later renew occurs; provider errors satisfy both `*leader.OperationError` and existing `*btredis.OpError` without marker leakage. Migrate `coordination_example_test.go` from `Campaign(context.Background())`/`ErrNotLeader` to a bounded context and `DeadlineExceeded`, and update `leader.Elector` plus Redis `Campaign` GoDoc to say Campaign blocks until acquisition or context termination, document all local-state sentinels, and require `ErrCommitUnknown` recovery through bounded `Resign`/TTL before another campaign.
 
 Add lost-response cases where SetNX commits the owner token and the test hook returns a context/transport error. Assert bounded GET reconciliation returns success when own token is visible; when the probe is unavailable it returns the typed wrapper matching both `leader.ErrCommitUnknown` and `btredis.ErrCommitUnknown` while retaining cleanup-pending/token state so bounded `Resign` can compare-delete or TTL cleanup. Confirmed absent/different owner errors match neither sentinel. It must never return a bare context error with an owner record.
 
@@ -479,6 +479,7 @@ var cases = []string{
 Before-linearize cancellation returns context error with nil/false and zero owner/count delta; after-linearize cancellation returns the successful release/result. Exact stress asserts one success, `workers-1` provider sentinels, `maxActive==1`, then one takeover.
 
 The lost-response case commits acquire/release then injects an error. It rejects a bare context error when an owner mutation occurred and requires either owner-token-confirmed success/cleanup or `IsProviderError(err)==true`. Acquire tuples are own token `(release,nil)`, absent/different `(nil,typed error)`, probe failure `(release,typed error)`. Release lost-response returns `(false,typed error)`; retrying the same callback returns `(false,nil)` after prior delete or owner replacement and never deletes the replacement.
+Add a broken adapter/classifier that includes `raw-key`, `raw-owner`, endpoint and injected-cause markers in its diagnostic; the evaluator must fail it without echoing any marker in captured runner output.
 
 - [ ] **Step 4: Add `ExampleRun` with a complete MemoryHarness adapter**
 
@@ -507,11 +508,12 @@ Expected: memory harness PASS; owner-ignorant release and wrapper-only fake adap
 - Create: `lock/redis/options_test.go`
 - Modify: `lock/redis/mutex.go`
 - Modify: `lock/redis/mutex_test.go`
+- Modify: `lock/redis/example_test.go`
 - Create: `lock/redis/conformance_test.go`
 
 - [ ] **Step 1: Add RED in-flight cancellation tests and harness invocation**
 
-Gate SetNX/Eval before and after server execution. Cancel before command dispatch and assert no key; cancel after successful server reply but before method return and assert a lease/`true,nil`; prove stale lease never deletes a replacement owner. Add leading/trailing-space and Unicode owner tokens and assert `Options.Token`, returned lease token, Redis value and owner probe are byte-identical rather than trimmed. Inject an acquire post-linearization lost response and assert bounded owner-token reconciliation returns confirmed success or a non-nil owner-aware lease plus typed `*btredis.OpError` matching `btredis.ErrCommitUnknown`, never a bare context error with a committed key. Confirmed absent/different owner errors do not match the sentinel. Inject an unlock lost response after delete: first call is `(false, typed error)` matching the sentinel, the same callback retry is `(false,nil)`, and a replacement owner is untouched. The error-path lease must compare-delete only its own token and be safe after takeover.
+Gate SetNX/Eval before and after server execution. Cancel before command dispatch and assert no key; cancel after successful server reply but before method return and assert a lease/`true,nil`; prove stale lease never deletes a replacement owner. Add leading/trailing-space and Unicode owner tokens and assert `Options.Token`, returned lease token, Redis value and owner probe are byte-identical rather than trimmed. Inject an acquire post-linearization lost response and assert bounded owner-token reconciliation returns confirmed success or a non-nil owner-aware lease plus typed `*btredis.OpError` matching `btredis.ErrCommitUnknown`, never a bare context error with a committed key. Confirmed absent/different owner errors do not match the sentinel. Inject an unlock lost response after delete: first call is `(false, typed error)` matching the sentinel, the same callback retry is `(false,nil)`, and a replacement owner is untouched. Use forbidden markers in cause/key/token/endpoint and assert `errors.As`/sentinel preservation while rendered errors and captured runner output contain none. The error-path lease must compare-delete only its own token and be safe after takeover.
 
 - [ ] **Step 2: Observe RED**
 
@@ -523,7 +525,7 @@ Expected: FAIL because post-command cancellation linearization is unproved and n
 
 - [ ] **Step 3: Implement context arbitration and Redis adapter**
 
-Preserve the existing lock nil-context compatibility. Change token validation to reject all-blank values without trimming valid bytes. Use a private helper that returns a bare context error only before dispatch. Once SetNX/Eval produced a successful result, return it even if cancellation races afterward. On a dispatched acquire error, probe with a short fresh context and the known owner token: own token confirms acquire success, absent/different owner confirms no acquire, and probe failure returns a constructed owner-aware `*Lease` together with typed `*btredis.OpError` as commit-indeterminate. On a dispatched unlock error, preserve the same Lease callback; retry compare-delete treats already-absent/owner-mismatch as `(false,nil)`. The test adapter converts an acquire error-path lease to a non-nil release callback, implements `IsProviderError` with `errors.As(*btredis.OpError)`, uses go-redis hooks on a dedicated client for gate/fail/count and a control client for GET/SET, and maps `ErrNotAcquired` unchanged. Add a failure-path cleanup test that closes the client, terminates the container independently, reports both errors, and verifies no fixture remains.
+Preserve the existing lock nil-context compatibility. Change token validation to reject all-blank values without trimming valid bytes. Use a private helper that returns a bare context error only before dispatch. Once SetNX/Eval produced a successful result, return it even if cancellation races afterward. On a dispatched acquire error, probe with a short fresh context and the known owner token: own token confirms acquire success, absent/different owner confirms no acquire, and probe failure returns a constructed owner-aware `*Lease` together with typed `*btredis.OpError` as commit-indeterminate. On a dispatched unlock error, preserve the same Lease callback; retry compare-delete treats already-absent/owner-mismatch as `(false,nil)`. Update `TryLock`/`Unlock` GoDoc and `example_test.go` with type-first `ErrCommitUnknown`, immediate bounded cleanup whenever Lease is non-nil, same-lease Unlock retry, and TTL fallback. The test adapter converts an acquire error-path lease to a non-nil release callback, implements `IsProviderError` with `errors.As(*btredis.OpError)`, uses go-redis hooks on a dedicated client for gate/fail/count and a control client for GET/SET, and maps `ErrNotAcquired` unchanged. Add a failure-path cleanup test that closes the client, terminates the container independently, reports both errors, and verifies no fixture remains.
 
 - [ ] **Step 4: Verify and commit**
 
@@ -579,6 +581,7 @@ var cases = []string{
 Exact concurrency uses a frozen/no-refill window and asserts `allowed==Burst`, `rejected==requests-Burst`, and admitted token sum `Burst`. Before cancellation leaves a full burst; after cancellation returns success and the next request observes the exact prior debit.
 
 `lost-response` debits once and injects an error after linearization. The memory fixture can confirm and return the result; a provider adapter that cannot replay returns zero `ratelimittest.Result` with `IsProviderError(err)==true`, and the evaluator verifies one debit rather than automatically retrying.
+Add a broken adapter that renders raw key/endpoint/injected-cause markers; the evaluator must reject it while its own captured diagnostic remains marker-free.
 
 - [ ] **Step 4: Add the compile-checked `ExampleRun`**
 
@@ -660,7 +663,7 @@ Expected: runner/race PASS; compare `after.txt` sample-by-sample with the commit
 
 - [ ] **Step 1: Add RED command-boundary cancellation and runner tests**
 
-Use a go-redis hook to pause before Eval dispatch and after successful Eval response. Before cancellation must leave no bucket key and permit a full burst; after cancellation must return the successful neutral result and the next request must observe the debit. Inject an error after the Lua script debits and assert exactly one debit plus zero `ratelimittest.Result` and typed `*btredis.OpError` matching `btredis.ErrCommitUnknown`; never automatically replay the non-idempotent request. Preserve existing server-time rounding tests.
+Use a go-redis hook to pause before Eval dispatch and after successful Eval response. Before cancellation must leave no bucket key and permit a full burst; after cancellation must return the successful neutral result and the next request must observe the debit. Inject an error after the Lua script debits and assert exactly one debit plus zero `ratelimittest.Result` and typed `*btredis.OpError` matching `btredis.ErrCommitUnknown`; never automatically replay the non-idempotent request. Put forbidden markers in cause/key/endpoint and assert wrapper/sentinel preservation while rendered error and captured runner output remain marker-free. Preserve existing server-time rounding tests.
 
 - [ ] **Step 2: Observe RED**
 
@@ -672,7 +675,7 @@ Expected: FAIL because cancellation/result arbitration at the Redis script bound
 
 - [ ] **Step 3: Implement minimal context arbitration and adapter conversion**
 
-Preserve the existing rate-limiter nil-context compatibility. Treat a parsed successful Lua result as linearized and return it even if cancellation arrives afterward; a bare context-error return must correspond to no script dispatch. Any error after Eval dispatch remains typed `*btredis.OpError` and commit-indeterminate even when `errors.Is` sees the context cause. Do not add idempotency fields, request replay, or a second Eval. Adapter converts fields explicitly:
+Preserve the existing rate-limiter nil-context compatibility. Treat a parsed successful Lua result as linearized and return it even if cancellation arrives afterward; a bare context-error return must correspond to no script dispatch. Any error after Eval dispatch remains typed `*btredis.OpError` and commit-indeterminate even when `errors.Is` sees the context cause. Update public `Limiter.Allow` GoDoc to specify zero Result, possible debit, type-first `ErrCommitUnknown`, no replay, and conservative full-refill wait. Do not add idempotency fields, request replay, or a second Eval. Adapter converts fields explicitly:
 
 ```go
 return ratelimittest.Result{
@@ -702,6 +705,7 @@ Expected: common runner PASS, exact burst totals, preserved Redis key/TTL/roundi
 **Patterns:** `bluetape-go-patterns`, `bluetape-writer`, `bluetape-maintenance`
 
 **Files:**
+- Create: `docs/superpowers/reviews/2026-07-12-issue-527-provider-conformance-caller-audit.md`
 - Create: helper README pairs listed in File Map
 - Modify: `leader/README.md`, `leader/README.ko.md`
 - Modify: `leader/redis/README.md`, `leader/redis/README.ko.md`
@@ -711,26 +715,46 @@ Expected: common runner PASS, exact burst totals, preserved Redis key/TTL/roundi
 - Modify: `ratelimit/redis/README.md`, `ratelimit/redis/README.ko.md`
 - Modify: `CHANGELOG.md`
 
-- [ ] **Step 1: Verify the helper-owned compile-checked examples and document them**
+- [ ] **Step 1: Execute and record the caller migration audit**
+
+Run the following searches against every first-party Go caller, inspect every hit, and record path, disposition and owner in the caller-audit artifact. A blocking `Campaign(context.Background())`/`Campaign(context.TODO())` call must gain a bounded caller-owned context unless it is a documented sole-owner lifecycle; legacy `ErrNotLeader` branches must migrate to deadline/new-state handling; nil contexts must become non-nil where the provider now rejects them; every `TryLock` caller must check the typed/commit-unknown error before bare context errors and clean up whenever the returned Lease is non-nil; custom whitespace-bearing tokens must be recorded as byte-identity-sensitive. Record external consumers as a release-migration owner/status rather than claiming they were scanned.
+
+```bash
+rg -n 'Campaign\((context\.)?(Background|TODO)\(' --glob '*.go'
+rg -n 'errors\.Is\([^,]+,\s*(leader\.)?ErrNotLeader|ErrNotLeader' --glob '*.go'
+rg -n '\.(Campaign|Resign|Leader)\(nil\)' --glob '*.go'
+rg -n 'TryLock\(' --glob '*.go'
+rg -n 'Token:\s*"[^"]*"' lock --glob '*.go'
+```
+
+Expected: every internal hit has an implemented migration or an explicit justified no-change disposition; the artifact assigns CHANGELOG/0.19.0 migration ownership for external callers.
+
+- [ ] **Step 2: Verify the helper-owned compile-checked examples and document them**
 
 Tasks 3, 6 and 8 own each `ExampleRun`. Verify they construct a caller-owned fixture, register cleanup immediately, call `Run`, and use unique identities/bounded contexts. Lock/rate examples include before/after gates, lost-response injection and counts; leader examples include `FailNext`, owner probes, counts and bounded resign cleanup. README snippets mirror those compiled examples, show contention/cancellation outcomes, and never print raw backend errors.
 
-- [ ] **Step 2: Document exact migration and provider caveat matrix in English/Korean**
+- [ ] **Step 3: Document exact migration and provider caveat matrix in English/Korean**
 
-Cover blocking `Campaign`, legacy `ErrNotLeader`, new state/commit-unknown sentinels, nil-context rejection, structural identity audit, Redis lock token byte-preservation/no-trim migration, common `OperationError`, caller timeout ownership, bare pre-dispatch context versus typed commit-indeterminate errors, owner-token reconciliation, rate-limit no-auto-replay and conservative full-refill wait (`Burst / RatePerSecond`), actual-mutation-boundary adapter rules, retry/clock precision non-guarantees, mixed-version generated-token compatibility and custom-token exception, telemetry labels, canary thresholds, resign/TTL rollback and Group/Strategic deferral. Error examples perform `errors.As`/`ErrCommitUnknown` checks before bare context `errors.Is`. Keep every README pair section-for-section equivalent.
+Cover blocking `Campaign`, legacy `ErrNotLeader`, new state/commit-unknown sentinels, nil-context rejection, structural identity audit, Redis lock token byte-preservation/no-trim migration, common `OperationError`, caller timeout ownership, bare pre-dispatch context versus typed commit-indeterminate errors, owner-token reconciliation, rate-limit no-auto-replay and conservative full-refill wait (`Burst / RatePerSecond`), actual-mutation-boundary adapter rules, retry/clock precision non-guarantees, mixed-version generated-token compatibility and custom-token exception, telemetry labels, canary thresholds, resign/TTL rollback and Group/Strategic deferral. Error examples perform `errors.As`/`ErrCommitUnknown` checks before bare context `errors.Is`. Keep every README pair section-for-section equivalent. In the caller-audit artifact, add a manual English/Korean section mapping for every README pair and explicitly map the leader bounded-Resign/TTL, lock non-nil-Lease/same-callback retry/TTL, and rate-limit no-replay/full-refill recovery snippets.
 
-- [ ] **Step 3: Add 0.19.0 Unreleased changelog entry and verify docs**
+- [ ] **Step 4: Add 0.19.0 Unreleased changelog entry and verify docs**
 
 ```bash
 go test -run 'Example' ./leader/... ./lock/... ./ratelimit/...
 rg -n 'ErrCampaignInProgress|ErrCleanupPending|ErrInvalidContext|ErrCommitUnknown|OperationError|commit-unknown' \
   leader lock ratelimit CHANGELOG.md -g 'README*.md' -g 'CHANGELOG.md'
+rg -n 'lease != nil|ErrCommitUnknown|full-refill|no replay|same callback|same lease' \
+  leader lock ratelimit -g 'README*.md'
+for base in leader/leadertest lock/locktest ratelimit/ratelimittest leader leader/redis leader/mongo lock/redis ratelimit ratelimit/redis; do
+  test "$(rg -c '^## ' "$base/README.md")" = "$(rg -c '^## ' "$base/README.ko.md")"
+done
 git diff --check
-git add leader lock ratelimit CHANGELOG.md
+git add leader lock ratelimit CHANGELOG.md \
+  docs/superpowers/reviews/2026-07-12-issue-527-provider-conformance-caller-audit.md
 git commit -m "docs: describe provider conformance contracts"
 ```
 
-Expected: examples compile/pass; English/Korean pairs contain the same contract headings. No diagram is required because this adds behavioral contracts, not a new architecture topology. No AGENTS/catalog/module/BOM/CI registration change is required because no module/dependency is added.
+Expected: examples compile/pass; automated heading counts agree and the committed manual mapping proves English/Korean pairs carry the same recovery contracts. No diagram is required because this adds behavioral contracts, not a new architecture topology. No AGENTS/catalog/module/BOM/CI registration change is required because no module/dependency is added.
 
 ### Task 12: Integrated Verification, Risk Evidence, And Review Readiness
 
