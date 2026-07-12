@@ -63,7 +63,7 @@ func runInitialBurst(t *testing.T, h Harness, config Config, key string) error {
 	allow, _ := makeAllow(t, h, config)
 	result, err := allow(context.Background(), key, config.Burst)
 	if err != nil || !result.Allowed || result.Remaining != 0 || result.Requested != config.Burst {
-		return fmt.Errorf("initial burst = %+v, %v", result, err)
+		return rateFailure(fmt.Sprintf("initial burst=%+v", result), err)
 	}
 	return nil
 }
@@ -73,7 +73,7 @@ func runOverBurst(t *testing.T, h Harness, config Config, key string) error {
 	before := h.Control.OperationCount(key)
 	result, err := allow(context.Background(), key, config.Burst+1)
 	if err == nil || result != (Result{}) || h.Control.OperationCount(key) != before {
-		return fmt.Errorf("over burst = %+v, %v", result, err)
+		return rateFailure(fmt.Sprintf("over burst=%+v", result), err)
 	}
 	return nil
 }
@@ -85,7 +85,7 @@ func runRejection(t *testing.T, h Harness, config Config, key string) error {
 	}
 	result, err := allow(context.Background(), key, 1)
 	if err != nil || result.Allowed || result.RetryAfter <= 0 || result.Requested != 1 {
-		return fmt.Errorf("rejection = %+v, %v", result, err)
+		return rateFailure(fmt.Sprintf("rejection=%+v", result), err)
 	}
 	return nil
 }
@@ -98,7 +98,7 @@ func runRefill(t *testing.T, h Harness, config Config, key string) error {
 	time.Sleep(2*time.Duration(float64(time.Second)/config.RatePerSecond) + 5*time.Millisecond)
 	result, err := allow(context.Background(), key, 1)
 	if err != nil || !result.Allowed {
-		return fmt.Errorf("refill = %+v, %v", result, err)
+		return rateFailure(fmt.Sprintf("refill=%+v", result), err)
 	}
 	return nil
 }
@@ -110,7 +110,7 @@ func runKeyIsolation(t *testing.T, h Harness, config Config, key string) error {
 	}
 	result, err := allow(context.Background(), key+"-other", config.Burst)
 	if err != nil || !result.Allowed || result.Remaining != 0 {
-		return fmt.Errorf("key isolation = %+v, %v", result, err)
+		return rateFailure(fmt.Sprintf("key isolation=%+v", result), err)
 	}
 	return nil
 }
@@ -121,7 +121,7 @@ func runPreCanceled(t *testing.T, h Harness, config Config, key string) error {
 	cancel()
 	result, err := allow(ctx, key, 1)
 	if result != (Result{}) || !errors.Is(err, context.Canceled) || h.Control.OperationCount(key) != 0 {
-		return fmt.Errorf("pre-canceled = %+v, %v", result, err)
+		return rateFailure(fmt.Sprintf("pre-canceled=%+v", result), err)
 	}
 	return nil
 }
@@ -130,7 +130,7 @@ func runCancelBefore(t *testing.T, h Harness, config Config, key string) error {
 	allow, _ := makeAllow(t, h, config)
 	gate, err := h.Control.GateNext(context.Background(), key, PhaseBeforeLinearize)
 	if err != nil || gate == nil {
-		return fmt.Errorf("gate = %v, %v", gate, err)
+		return rateFailure(fmt.Sprintf("gate=%v", gate), err)
 	}
 	defer gate.Resume()
 	ctx, cancel := context.WithCancel(context.Background())
@@ -142,11 +142,11 @@ func runCancelBefore(t *testing.T, h Harness, config Config, key string) error {
 	}
 	cancel()
 	if err := <-resultCh; !errors.Is(err, context.Canceled) {
-		return fmt.Errorf("before cancellation = %v", err)
+		return rateFailure("before cancellation mismatch", err)
 	}
 	result, err := allow(context.Background(), key, config.Burst)
 	if err != nil || !result.Allowed {
-		return fmt.Errorf("before cancellation consumed quota: %+v, %v", result, err)
+		return rateFailure(fmt.Sprintf("before cancellation consumed quota=%+v", result), err)
 	}
 	return nil
 }
@@ -173,11 +173,11 @@ func runCancelAfter(t *testing.T, h Harness, config Config, key string) error {
 	gate.Resume()
 	got := <-resultCh
 	if got.err != nil || !got.result.Allowed {
-		return fmt.Errorf("after cancellation = %+v, %v", got.result, got.err)
+		return rateFailure(fmt.Sprintf("after cancellation=%+v", got.result), got.err)
 	}
 	next, err := allow(context.Background(), key, config.Burst)
 	if err != nil || next.Allowed {
-		return fmt.Errorf("after cancellation debit missing: %+v, %v", next, err)
+		return rateFailure(fmt.Sprintf("after cancellation debit missing=%+v", next), err)
 	}
 	return nil
 }
@@ -193,16 +193,23 @@ func runLostResponse(t *testing.T, h Harness, config Config, key string) error {
 			return fmt.Errorf("confirmed lost response = %+v", result)
 		}
 	} else if result != (Result{}) || !h.IsProviderError(err) || !h.IsProviderError(fmt.Errorf("nested: %w", err)) {
-		return fmt.Errorf("indeterminate lost response = %+v, %v", result, err)
+		return rateFailure(fmt.Sprintf("indeterminate lost response=%+v", result), err)
 	}
 	if count := h.Control.OperationCount(key); count != 1 {
 		return fmt.Errorf("lost response count = %d", count)
 	}
 	next, err := allow(context.Background(), key, config.Burst)
 	if err != nil || next.Allowed {
-		return fmt.Errorf("lost response debit missing: %+v, %v", next, err)
+		return rateFailure(fmt.Sprintf("lost response debit missing=%+v", next), err)
 	}
 	return nil
+}
+
+func rateFailure(message string, err error) error {
+	if err != nil {
+		return fmt.Errorf("%s: %w", message, err)
+	}
+	return errors.New(message)
 }
 
 func runExactConcurrency(t *testing.T, h Harness, config Config, key string) error {

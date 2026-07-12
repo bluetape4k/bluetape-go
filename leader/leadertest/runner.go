@@ -86,7 +86,7 @@ func evaluateAcquireObserve(t *testing.T, h Harness, opts leader.Options) error 
 	if err := elector.Campaign(context.Background()); err != nil {
 		return fmt.Errorf("campaign: %w", err)
 	}
-	defer boundedResign(elector)
+	defer func() { _ = boundedResign(elector) }()
 	if !elector.IsLeader() {
 		return errors.New("elector did not report leadership")
 	}
@@ -105,9 +105,9 @@ func evaluateOwnedDuplicate(t *testing.T, h Harness, opts leader.Options) error 
 	if err := elector.Campaign(context.Background()); err != nil {
 		return err
 	}
-	defer boundedResign(elector)
+	defer func() { _ = boundedResign(elector) }()
 	if err := elector.Campaign(context.Background()); !errors.Is(err, leader.ErrAlreadyLeader) {
-		return fmt.Errorf("duplicate campaign error = %v", err)
+		return fmt.Errorf("duplicate campaign error: %w", err)
 	}
 	return nil
 }
@@ -130,10 +130,10 @@ func evaluateCampaignInProgress(t *testing.T, h Harness, opts leader.Options) er
 		return err
 	}
 	if err := elector.Campaign(context.Background()); !errors.Is(err, leader.ErrCampaignInProgress) {
-		return fmt.Errorf("concurrent campaign error = %v", err)
+		return fmt.Errorf("concurrent campaign error: %w", err)
 	}
 	if err := <-result; !errors.Is(err, context.DeadlineExceeded) {
-		return fmt.Errorf("blocked campaign error = %v", err)
+		return fmt.Errorf("blocked campaign error: %w", err)
 	}
 	return nil
 }
@@ -149,11 +149,14 @@ func evaluateContentionCancel(t *testing.T, h Harness, opts leader.Options) erro
 	ctx, cancel := context.WithTimeout(context.Background(), 45*time.Millisecond)
 	defer cancel()
 	if err := elector.Campaign(ctx); !errors.Is(err, context.DeadlineExceeded) {
-		return fmt.Errorf("contention error = %v", err)
+		return fmt.Errorf("contention error: %w", err)
 	}
 	owner, err := h.Control.Owner(context.Background(), opts)
-	if err != nil || owner != "live-owner" {
-		return fmt.Errorf("contention mutated owner: %q, %v", owner, err)
+	if err != nil {
+		return fmt.Errorf("observe contention owner: %w", err)
+	}
+	if owner != "live-owner" {
+		return fmt.Errorf("contention mutated owner: %q", owner)
 	}
 	return nil
 }
@@ -169,19 +172,22 @@ func evaluateCampaignLostResponse(t *testing.T, h Harness, opts leader.Options) 
 	}
 	err = elector.Campaign(context.Background())
 	owner, probeErr := h.Control.Owner(context.Background(), opts)
-	if probeErr != nil || owner == "" {
-		return fmt.Errorf("lost response did not commit owner: %q, %v", owner, probeErr)
+	if probeErr != nil {
+		return fmt.Errorf("probe lost-response owner: %w", probeErr)
+	}
+	if owner == "" {
+		return errors.New("lost response did not commit owner")
 	}
 	if err == nil {
-		defer boundedResign(elector)
+		defer func() { _ = boundedResign(elector) }()
 		return nil
 	}
 	var operationErr *leader.OperationError
 	if !errors.As(err, &operationErr) || !errors.Is(err, cause) {
-		return fmt.Errorf("lost response is not typed: %v", err)
+		return fmt.Errorf("lost response is not typed: %w", err)
 	}
 	if !errors.Is(err, leader.ErrCommitUnknown) {
-		return fmt.Errorf("probe-indeterminate response lacks ErrCommitUnknown: %v", err)
+		return fmt.Errorf("probe-indeterminate response lacks ErrCommitUnknown: %w", err)
 	}
 	if err := elector.Resign(context.Background()); err != nil {
 		return fmt.Errorf("cleanup after lost response: %w", err)
@@ -197,7 +203,7 @@ func evaluateRenewal(t *testing.T, h Harness, opts leader.Options) error {
 	if err := elector.Campaign(context.Background()); err != nil {
 		return err
 	}
-	defer boundedResign(elector)
+	defer func() { _ = boundedResign(elector) }()
 	baseline := h.Control.OperationCount(opts, OperationRenew)
 	return waitFor(3*opts.RenewInterval, func() bool {
 		return h.Control.OperationCount(opts, OperationRenew) > baseline && elector.IsLeader()
@@ -244,8 +250,11 @@ func evaluateOwnerLoss(t *testing.T, h Harness, opts leader.Options) error {
 		return err
 	}
 	owner, err := h.Control.Owner(context.Background(), opts)
-	if err != nil || owner != "replacement-owner" {
-		return fmt.Errorf("stale cleanup removed replacement: %q, %v", owner, err)
+	if err != nil {
+		return fmt.Errorf("observe replacement owner: %w", err)
+	}
+	if owner != "replacement-owner" {
+		return fmt.Errorf("stale cleanup removed replacement: %q", owner)
 	}
 	return nil
 }
@@ -296,7 +305,7 @@ func evaluateResignRetry(t *testing.T, h Harness, opts leader.Options) error {
 	}
 	err = elector.Resign(context.Background())
 	if err == nil || !errors.Is(err, leader.ErrCommitUnknown) {
-		return fmt.Errorf("first resign error = %v", err)
+		return fmt.Errorf("first resign error: %w", err)
 	}
 	if err := elector.Resign(context.Background()); err != nil {
 		return fmt.Errorf("retry resign: %w", err)
@@ -319,8 +328,11 @@ func evaluateStaleResign(t *testing.T, h Harness, opts leader.Options) error {
 		return err
 	}
 	owner, err := h.Control.Owner(context.Background(), opts)
-	if err != nil || owner != "new-owner" {
-		return fmt.Errorf("stale resign owner = %q, %v", owner, err)
+	if err != nil {
+		return fmt.Errorf("observe stale resign owner: %w", err)
+	}
+	if owner != "new-owner" {
+		return fmt.Errorf("stale resign owner = %q", owner)
 	}
 	return nil
 }
@@ -377,14 +389,14 @@ func evaluateNilContext(t *testing.T, h Harness, opts leader.Options) error {
 		return err
 	}
 	before := h.Control.OperationCount(opts, OperationCampaign)
-	if err := elector.Campaign(nil); !errors.Is(err, leader.ErrInvalidContext) {
-		return fmt.Errorf("Campaign(nil) error = %v", err)
+	if err := elector.Campaign(nil); !errors.Is(err, leader.ErrInvalidContext) { //nolint:staticcheck // nil is the contract input under test.
+		return fmt.Errorf("Campaign(nil) error: %w", err)
 	}
-	if _, err := elector.Leader(nil); !errors.Is(err, leader.ErrInvalidContext) {
-		return fmt.Errorf("Leader(nil) error = %v", err)
+	if _, err := elector.Leader(nil); !errors.Is(err, leader.ErrInvalidContext) { //nolint:staticcheck // nil is the contract input under test.
+		return fmt.Errorf("Leader(nil) error: %w", err)
 	}
-	if err := elector.Resign(nil); !errors.Is(err, leader.ErrInvalidContext) {
-		return fmt.Errorf("Resign(nil) error = %v", err)
+	if err := elector.Resign(nil); !errors.Is(err, leader.ErrInvalidContext) { //nolint:staticcheck // nil is the contract input under test.
+		return fmt.Errorf("Resign(nil) error: %w", err)
 	}
 	if after := h.Control.OperationCount(opts, OperationCampaign); after != before {
 		return fmt.Errorf("nil context dispatched operation: %d -> %d", before, after)
@@ -403,14 +415,14 @@ func evaluateRedaction(t *testing.T, h Harness, opts leader.Options) error {
 	}
 	err = elector.Campaign(context.Background())
 	if err == nil {
-		boundedResign(elector)
+		_ = boundedResign(elector)
 		return errors.New("redaction failure injection returned nil")
 	}
 	if strings.Contains(err.Error(), marker) || strings.Contains(err.Error(), opts.Group) {
 		return errors.New("provider error leaked a forbidden marker")
 	}
 	if !errors.Is(err, leader.ErrCommitUnknown) {
-		return fmt.Errorf("redaction error lacks commit-unknown: %v", err)
+		return fmt.Errorf("redaction error lacks commit-unknown: %w", err)
 	}
 	return boundedResign(elector)
 }

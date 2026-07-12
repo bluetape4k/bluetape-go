@@ -29,7 +29,9 @@ type Factory func(testing.TB, Config) (AcquireFunc, error)
 type Operation string
 
 const (
+	// OperationAcquire identifies one acquire mutation.
 	OperationAcquire Operation = "acquire"
+	// OperationRelease identifies one release mutation.
 	OperationRelease Operation = "release"
 )
 
@@ -37,8 +39,10 @@ const (
 type Phase string
 
 const (
+	// PhaseBeforeLinearize pauses before mutation dispatch.
 	PhaseBeforeLinearize Phase = "before-linearize"
-	PhaseAfterLinearize  Phase = "after-linearize"
+	// PhaseAfterLinearize pauses after the mutation commits.
+	PhaseAfterLinearize Phase = "after-linearize"
 )
 
 // Gate pauses one operation at a deterministic boundary.
@@ -134,7 +138,7 @@ func validatePositiveClassifier(t *testing.T, h Harness) error {
 	}
 	release, err := acquire(context.Background())
 	if release != nil {
-		defer release(context.Background())
+		defer func() { _, _ = release(context.Background()) }()
 	}
 	if err == nil {
 		return errors.New("locktest: classifier probe returned nil error")
