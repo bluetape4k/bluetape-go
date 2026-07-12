@@ -30,12 +30,16 @@ func TestRunRedactsAdapterDiagnostics(t *testing.T) {
 			h.New = func(testing.TB, leader.Options) (leader.Elector, error) {
 				return diagnosticElector{}, nil
 			}
+		case "blocking":
+			h.New = func(testing.TB, leader.Options) (leader.Elector, error) {
+				return blockingElector{}, nil
+			}
 		}
 		Run(t, h)
 		return
 	}
 
-	for _, mode := range []string{"factory", "control", "owner", "provider"} {
+	for _, mode := range []string{"factory", "control", "owner", "provider", "blocking"} {
 		t.Run(mode, func(t *testing.T) {
 			ctx, cancel := context.WithTimeout(context.Background(), 20*time.Second)
 			defer cancel()
@@ -86,6 +90,15 @@ func (diagnosticElector) Resign(context.Context) error   { return errors.New(dia
 func (diagnosticElector) IsLeader() bool                 { return false }
 func (diagnosticElector) Leader(context.Context) (string, error) {
 	return diagnosticMarker, errors.New(diagnosticMarker)
+}
+
+type blockingElector struct{}
+
+func (blockingElector) Campaign(context.Context) error { select {} }
+func (blockingElector) Resign(context.Context) error   { select {} }
+func (blockingElector) IsLeader() bool                 { return false }
+func (blockingElector) Leader(context.Context) (string, error) {
+	select {}
 }
 
 func TestRunMemoryHarness(t *testing.T) {

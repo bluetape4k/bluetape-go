@@ -5,7 +5,6 @@ import (
 	"errors"
 	"fmt"
 	"strings"
-	"sync"
 	"sync/atomic"
 	"testing"
 	"time"
@@ -14,6 +13,9 @@ import (
 )
 
 var runIdentity atomic.Uint64
+
+const conformanceCaseTimeout = 5 * time.Second
+const conformanceWaitTimeout = 2 * time.Second
 
 // Run executes every mandatory single-elector conformance case.
 func Run(t *testing.T, harness Harness) {
@@ -42,16 +44,26 @@ func Run(t *testing.T, harness Harness) {
 		{"redaction", evaluateRedaction},
 	}
 	for _, tc := range cases {
-		t.Run(tc.name, func(t *testing.T) {
+		passed := t.Run(tc.name, func(t *testing.T) {
 			opts := caseOptions(tc.name)
 			normalized, err := opts.Normalize()
 			if err != nil {
 				t.Fatal("leadertest: invalid case options")
 			}
-			if err := tc.run(t, harness, normalized); err != nil {
-				t.Fatalf("leadertest: conformance case failed: %s", conformanceFailureReason(err))
+			result := make(chan error, 1)
+			go func() { result <- tc.run(t, harness, normalized) }()
+			select {
+			case err := <-result:
+				if err != nil {
+					t.Fatalf("leadertest: conformance case failed: %s", conformanceFailureReason(err))
+				}
+			case <-time.After(conformanceCaseTimeout):
+				t.Fatal("leadertest: conformance case timed out")
 			}
 		})
+		if !passed {
+			return
+		}
 	}
 }
 
@@ -360,29 +372,35 @@ func evaluateExactContention(t *testing.T, h Harness, opts leader.Options) error
 	const workers = 6
 	ctx, cancel := context.WithTimeout(context.Background(), 3*opts.Lease)
 	defer cancel()
-	var wg sync.WaitGroup
-	var successes atomic.Int64
-	var winnerMu sync.Mutex
+	type campaignResult struct {
+		elector leader.Elector
+		err     error
+	}
+	results := make(chan campaignResult, workers)
 	var winner leader.Elector
 	for range workers {
 		elector, err := newElector(t, h, opts)
 		if err != nil {
 			return err
 		}
-		wg.Add(1)
 		go func() {
-			defer wg.Done()
-			if err := elector.Campaign(ctx); err == nil {
-				successes.Add(1)
-				winnerMu.Lock()
-				winner = elector
-				winnerMu.Unlock()
-			}
+			results <- campaignResult{elector: elector, err: elector.Campaign(ctx)}
 		}()
 	}
-	wg.Wait()
-	if successes.Load() != 1 {
-		return fmt.Errorf("contention winners = %d, want 1", successes.Load())
+	successes := 0
+	for range workers {
+		select {
+		case result := <-results:
+			if result.err == nil {
+				successes++
+				winner = result.elector
+			}
+		case <-time.After(conformanceWaitTimeout):
+			return errors.New("contention workers did not return")
+		}
+	}
+	if successes != 1 {
+		return fmt.Errorf("contention winners = %d, want 1", successes)
 	}
 	if winner == nil {
 		return errors.New("contention winner missing")

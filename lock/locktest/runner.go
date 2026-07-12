@@ -4,7 +4,6 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"sync"
 	"sync/atomic"
 	"testing"
 	"time"
@@ -13,6 +12,7 @@ import (
 var runnerID atomic.Uint64
 
 const conformanceWaitTimeout = 2 * time.Second
+const conformanceCaseTimeout = 5 * time.Second
 
 // Run executes all mandatory lock conformance cases.
 func Run(t *testing.T, harness Harness) {
@@ -20,8 +20,15 @@ func Run(t *testing.T, harness Harness) {
 	if err := validateHarness(harness); err != nil {
 		t.Fatal("locktest: invalid harness")
 	}
-	if err := validatePositiveClassifier(t, harness); err != nil {
-		t.Fatal("locktest: provider classifier probe failed")
+	classifierResult := make(chan error, 1)
+	go func() { classifierResult <- validatePositiveClassifier(t, harness) }()
+	select {
+	case err := <-classifierResult:
+		if err != nil {
+			t.Fatal("locktest: provider classifier probe failed")
+		}
+	case <-time.After(conformanceCaseTimeout):
+		t.Fatal("locktest: provider classifier probe timed out")
 	}
 	cases := []struct {
 		name string
@@ -40,13 +47,23 @@ func Run(t *testing.T, harness Harness) {
 		{"exact-contention", runExactContention},
 	}
 	for _, tc := range cases {
-		t.Run(tc.name, func(t *testing.T) {
+		passed := t.Run(tc.name, func(t *testing.T) {
 			id := runnerID.Add(1)
 			config := Config{Key: fmt.Sprintf("locktest-%s-%d", tc.name, id), Owner: fmt.Sprintf("owner-%d", id), TTL: 100 * time.Millisecond}
-			if err := tc.run(t, harness, config); err != nil {
-				t.Fatalf("locktest: conformance case failed: %s", conformanceFailureReason(harness, err))
+			result := make(chan error, 1)
+			go func() { result <- tc.run(t, harness, config) }()
+			select {
+			case err := <-result:
+				if err != nil {
+					t.Fatalf("locktest: conformance case failed: %s", conformanceFailureReason(harness, err))
+				}
+			case <-time.After(conformanceCaseTimeout):
+				t.Fatal("locktest: conformance case timed out")
 			}
 		})
+		if !passed {
+			return
+		}
 	}
 }
 
@@ -337,10 +354,15 @@ func lockFailure(message string, err error) error {
 
 func runExactContention(t *testing.T, h Harness, config Config) error {
 	const workers = 8
-	var wg sync.WaitGroup
-	var successes atomic.Int64
-	var providerErrors atomic.Int64
-	var winnerMu sync.Mutex
+	ctx, cancel := context.WithTimeout(context.Background(), conformanceWaitTimeout)
+	defer cancel()
+	type acquireResult struct {
+		release ReleaseFunc
+		err     error
+	}
+	results := make(chan acquireResult, workers)
+	successes := 0
+	providerErrors := 0
 	var winner ReleaseFunc
 	for i := range workers {
 		candidate := config
@@ -349,23 +371,26 @@ func runExactContention(t *testing.T, h Harness, config Config) error {
 		if err != nil {
 			return err
 		}
-		wg.Add(1)
 		go func() {
-			defer wg.Done()
-			release, err := acquire(context.Background())
-			if err == nil {
-				successes.Add(1)
-				winnerMu.Lock()
-				winner = release
-				winnerMu.Unlock()
-			} else if release == nil {
-				providerErrors.Add(1)
-			}
+			release, err := acquire(ctx)
+			results <- acquireResult{release: release, err: err}
 		}()
 	}
-	wg.Wait()
-	if successes.Load() != 1 || providerErrors.Load() != workers-1 || winner == nil {
-		return fmt.Errorf("contention totals success=%d provider=%d", successes.Load(), providerErrors.Load())
+	for range workers {
+		select {
+		case result := <-results:
+			if result.err == nil {
+				successes++
+				winner = result.release
+			} else if result.release == nil {
+				providerErrors++
+			}
+		case <-ctx.Done():
+			return errors.New("contention workers did not return")
+		}
+	}
+	if successes != 1 || providerErrors != workers-1 || winner == nil {
+		return fmt.Errorf("contention totals success=%d provider=%d", successes, providerErrors)
 	}
 	if _, err := winner(context.Background()); err != nil {
 		return err

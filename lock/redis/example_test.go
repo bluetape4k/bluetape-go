@@ -27,8 +27,10 @@ func ExampleNew() {
 	}
 
 	lease, err := mutex.TryLock(ctx)
-	if errors.Is(err, btredis.ErrCommitUnknown) && lease != nil {
-		_ = reconcileExampleLease(lease)
+	if lease != nil && err != nil {
+		cleanupErr := reconcileExampleLease(lease)
+		_ = errors.Is(err, btredis.ErrCommitUnknown) // classify the original error type-first
+		_ = cleanupErr                               // report or join it in production
 		return
 	}
 	if err != nil {
