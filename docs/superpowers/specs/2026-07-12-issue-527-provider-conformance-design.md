@@ -149,6 +149,10 @@ validation error를 반환하고 side effect를 만들지 않는다. `Owner`도 
 monotonic cumulative count이며 reset하지 않는다. Runner는 subtest 시작 baseline과 종료
 count의 delta만 비교한다.
 
+모든 leader Control context는 non-nil이어야 한다. Nil은 공통 validation error,
+pre-canceled/deadline context는 해당 context error를 backend mutation이나 failure injection
+arming 전에 반환한다. Runner는 owner와 operation count가 그대로임을 확인한다.
+
 `Run`은 개별 contract를 named subtest로 실행한다. Harness, factory, control 및 반환
 elector는 nil일 수 없다. Construction/control failure는 `t.Helper()` attribution으로 해당
 named subtest를 즉시 실패시킨다. Runner에는 skip/capability option을 제공하지 않는다.
@@ -175,15 +179,38 @@ type ReleaseFunc func(context.Context) (bool, error)
 type AcquireFunc func(context.Context) (ReleaseFunc, error)
 type Factory func(t testing.TB, config Config) (AcquireFunc, error)
 
-func Run(t *testing.T, factory Factory)
-func MemoryFactory() Factory
+type Operation string
+type Phase string
+type Gate interface {
+    AwaitStarted(context.Context) error
+    Resume()
+}
+type Control interface {
+    GateNext(context.Context, Config, Operation, Phase) (Gate, error)
+    Owner(context.Context, Config) (string, error)
+    OperationCount(Config, Operation) int64
+}
+type Harness struct {
+    New     Factory
+    Control Control
+}
+
+func Run(t *testing.T, harness Harness)
+func MemoryHarness() Harness
 ```
+
+`Operation`은 acquire/release, `Phase`는 before/after-linearize의 closed constants만
+허용한다. `GateNext`는 같은 identity의 다음 matching operation 하나를 해당 boundary에서
+멈추고 `Gate`로 started/resume handshake를 제공한다. `Owner`와 cumulative
+`OperationCount`는 backend record와 traffic을 검증한다. 이 Control은 test-only이며 모든
+provider adapter에 필수다. Control context는 non-nil이어야 하며 nil/pre-canceled/deadline
+입력은 gate arming이나 backend mutation 전에 validation/context error를 반환한다.
 
 Factory는 같은 key와 다른 owner로 여러 mutex를 만들 수 있어야 한다. Runner는 acquire,
 contention rejection, owner release, repeated release, expiry takeover, pre-canceled acquire,
-pre-canceled release, stale release 및 exact-one-owner stress를 모두 실행한다. Provider의
-공개 sentinel은 adapter에서 원형을 유지하고 runner는 공통 observable outcome과
-`context.Canceled`/`DeadlineExceeded`만 강제한다.
+pre-canceled release, in-flight cancellation, stale release 및 exact-one-owner stress를
+모두 실행한다. Provider의 공개 sentinel은 adapter에서 원형을 유지하고 runner는 공통
+observable outcome과 `context.Canceled`/`DeadlineExceeded`만 강제한다.
 
 `Config.Key`와 `Config.Owner`는 nonblank이며 byte-for-byte 보존되고 `TTL`은 positive다.
 Runner가 factory 호출 전에 이를 검증하며 zero/negative 값에는 factory를 호출하지 않고
@@ -206,6 +233,13 @@ Compile-checked examples는 성공뿐 아니라 contention, repeated release, st
 cancellation 결과를 보여준다. Nil factory, nil acquire/release function 및 factory error는
 leader helper와 같은 즉시 named-subtest failure 계약을 사용한다.
 
+Acquire/release의 context 결과는 side-effect linearization과 일치해야 한다. Before-linearize
+gate에서 context가 끝나면 context error, nil/false 결과를 반환하고 owner 및 operation
+side effect가 없어야 한다. After-linearize gate까지 성공한 뒤 context가 끝나면 acquire는
+non-nil release와 nil error, release는 실제 compare-and-delete 결과와 nil error를 반환한다.
+Runner는 두 phase를 deterministic gate로 재현하고 owner probe, operation-count delta 및
+takeover로 late side effect가 없음을 검증한다.
+
 Memory fixture는 owner와 expiry를 mutex로 보호하고 release 시 owner를 compare한다.
 Background goroutine은 사용하지 않으며 operation 시각에 expiry를 판정해 deterministic
 cleanup을 제공한다.
@@ -224,9 +258,29 @@ type Config struct {
 
 type Factory func(t testing.TB, config Config) (ratelimit.Limiter, error)
 
-func Run(t *testing.T, factory Factory)
-func MemoryFactory() Factory
+type Phase string
+type Gate interface {
+    AwaitStarted(context.Context) error
+    Resume()
+}
+type Control interface {
+    GateNext(context.Context, string, Phase) (Gate, error)
+    OperationCount(string) int64
+}
+type Harness struct {
+    New     Factory
+    Control Control
+}
+
+func Run(t *testing.T, harness Harness)
+func MemoryHarness() Harness
 ```
+
+`Phase`는 before/after-linearize의 closed constants다. `GateNext`는 key의 다음 `Allow` 하나를
+해당 boundary에서 멈추며, cumulative `OperationCount`와 이후 public `Allow` result가 quota
+side effect를 증명한다. 이 test-only Control은 모든 provider adapter에 필수다. Control
+context는 non-nil이어야 하며 nil/pre-canceled/deadline 입력은 gate arming 전에
+validation/context error를 반환한다.
 
 `RatePerSecond`는 positive finite, `Burst`는 positive, `IdleTTL`은 non-negative다.
 `IdleTTL==0`은 provider의 bounded default를 선택하고 positive 값은 full-refill duration
@@ -235,9 +289,14 @@ factory, nil limiter 및 factory error는 즉시 named-subtest failure다. Confi
 tokens/second, tokens 및 `time.Duration`이다.
 
 Runner는 initial burst, over-burst validation, rejection result, refill, key isolation,
-pre-canceled call 및 concurrent callers의 exact admission total을 검증한다. `Requested`,
-`Remaining`, `RetryAfter`, `ResetAfter`의 공통 invariants를 검사하되 provider clock의
-절대 timestamp나 millisecond rounding은 강제하지 않는다.
+pre-canceled call, in-flight cancellation 및 concurrent callers의 exact admission total을
+검증한다. Before-linearize gate에서 context가 끝나면 context error가 quota를 소비하지
+않고, 이어지는 full-burst request가 전부 허용되어야 한다. After-linearize gate까지 token
+소비가 성공한 뒤 context가 끝나면 successful `Result`와 nil error를 반환해야 하며 다음
+request가 정확히 그 소비량을 반영해야 한다. Runner는 operation-count delta와 refill이 없는
+bounded window에서 이를 검증한다. `Requested`, `Remaining`, `RetryAfter`, `ResetAfter`의
+공통 invariants를 검사하되 provider clock의 절대 timestamp나 millisecond rounding은
+강제하지 않는다.
 
 Local clock과 Redis server clock은 운영상 다른 source지만 observable token bucket
 contract는 같다. Refill test는 bounded duration과 eventual assertion을 사용한다. Fake
@@ -358,6 +417,8 @@ rendered error와 captured test output에 없음을 검증한다.
 
 - 모든 stress case는 bounded worker/round/timeout을 사용한다.
 - 모든 contention test는 start barrier로 caller를 동시에 release한다.
+- Test-only `Gate.Resume`은 idempotent/non-blocking이고 runner는 gate를 얻자마자
+  `t.Cleanup(gate.Resume)`을 등록해 실패 path에서도 blocked operation을 해제한다.
 - Leader는 `successes==1`, `maxActive==1`, 나머지 contender는 bounded context 종료이며
   release 뒤 정확히 한 contender가 takeover함을 검증한다.
 - Lock은 `successes==1`, contention sentinel 수 `workers-1`, `maxActive==1`, successful
