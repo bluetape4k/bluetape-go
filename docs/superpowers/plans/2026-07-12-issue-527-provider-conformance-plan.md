@@ -444,7 +444,7 @@ Expected: the same `leadertest.Run` cases pass for Redis and Mongo; BSON schema 
 
 - [ ] **Step 1: Write RED compile/validation/gate tests**
 
-Define the approved `Config`, `ReleaseFunc`, `AcquireFunc`, `Factory`, `OperationAcquire/Release`, `PhaseBefore/AfterLinearize`, `Gate`, `Control` including post-linearization `FailNext`, mandatory neutral `ErrorClassifier`, `Harness`, `Run`, and `MemoryHarness`. Test invalid config/operation/phase/cause, nil/pre-canceled contexts, nil returned gate/functions/classifier, idempotent non-blocking `Resume`, `AwaitStarted` cancellation, count fallback 0, exactly-one lost response, and cleanup auto-resume. The runner calls `IsProviderError(err)` instead of importing any concrete provider.
+Define the approved `Config`, `ReleaseFunc`, `AcquireFunc`, `Factory`, `OperationAcquire/Release`, `PhaseBefore/AfterLinearize`, `Gate`, `Control` including post-linearization `FailNext`, mandatory neutral `ErrorClassifier`, `Harness`, `Run`, and `MemoryHarness`. Test invalid config/operation/phase/cause, nil/pre-canceled contexts, nil returned gate/functions/classifier, idempotent non-blocking `Resume`, `AwaitStarted` cancellation, count fallback 0, exactly-one lost response, and cleanup auto-resume. The runner calls `IsProviderError(err)` instead of importing any concrete provider. Named harness-validation tests require false for nil/bare context/validation/raw cause and true for actual/nested typed wrappers; nil, always-true, always-false and panicking classifiers must fail under a recover boundary.
 
 - [ ] **Step 2: Observe RED**
 
@@ -544,7 +544,7 @@ Expected: `locktest.Run` PASS, exact contention totals, no key after before-line
 
 - [ ] **Step 1: Write RED API and import-cycle tests**
 
-The helper must not import `github.com/bluetape4k/bluetape-go/ratelimit`. Define its own field-identical `Result`, `AllowFunc`, `Factory`, before/after `Phase`, `Gate`, `Control` including post-linearization `FailNext`, mandatory neutral `ErrorClassifier`, `Harness`, `Run`, and `MemoryHarness`. Test positive finite rate, positive burst, IdleTTL ≥ full-refill duration when nonzero, invalid key/phase/cause/count behavior, nil functions/gates/classifier, and context behavior. Cover idempotent/non-blocking `Resume`, nil/pre-canceled `AwaitStarted`, automatic `t.Cleanup` resume, exactly-one fail injection, and a deterministic abandoned-gate test proving the operation goroutine exits. The runner uses `IsProviderError` and never imports Redis or the parent package.
+The helper must not import `github.com/bluetape4k/bluetape-go/ratelimit`. Define its own field-identical `Result`, `AllowFunc`, `Factory`, before/after `Phase`, `Gate`, `Control` including post-linearization `FailNext`, mandatory neutral `ErrorClassifier`, `Harness`, `Run`, and `MemoryHarness`. Test positive finite rate, positive burst, IdleTTL ≥ full-refill duration when nonzero, invalid key/phase/cause/count behavior, nil functions/gates/classifier, and context behavior. Cover idempotent/non-blocking `Resume`, nil/pre-canceled `AwaitStarted`, automatic `t.Cleanup` resume, exactly-one fail injection, and a deterministic abandoned-gate test proving the operation goroutine exits. The runner uses `IsProviderError` and never imports Redis or the parent package. Negative/positive classifier controls and nil/always-true/always-false/panic rejection match `locktest` exactly.
 
 - [ ] **Step 2: Observe RED**
 
