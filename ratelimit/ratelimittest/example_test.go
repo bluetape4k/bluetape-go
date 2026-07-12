@@ -1,24 +1,19 @@
 package ratelimittest_test
 
 import (
-	"context"
+	"fmt"
 	"testing"
-	"time"
 
 	"github.com/bluetape4k/bluetape-go/ratelimit/ratelimittest"
 )
 
-func ExampleRun() {
+func TestProviderConformance(t *testing.T) {
 	harness := ratelimittest.MemoryHarness()
-	_ = func(t *testing.T) {
-		ctx, cancel := context.WithTimeout(context.Background(), time.Second)
-		t.Cleanup(cancel)
-		gate, err := harness.Control.GateNext(ctx, "example", ratelimittest.PhaseBeforeLinearize)
-		if err != nil {
-			t.Fatal(err)
-		}
-		t.Cleanup(gate.Resume)
-		_ = harness.Control.FailNext(ctx, "example", context.DeadlineExceeded)
-		ratelimittest.Run(t, harness)
-	}
+	ratelimittest.Run(t, harness)
+}
+
+func ExampleMemoryHarness() {
+	harness := ratelimittest.MemoryHarness()
+	fmt.Println(harness.New != nil, harness.Control != nil, harness.IsProviderError != nil)
+	// Output: true true true
 }

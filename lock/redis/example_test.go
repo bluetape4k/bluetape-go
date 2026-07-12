@@ -28,19 +28,32 @@ func ExampleNew() {
 
 	lease, err := mutex.TryLock(ctx)
 	if errors.Is(err, btredis.ErrCommitUnknown) && lease != nil {
-		cleanupCtx, cleanupCancel := context.WithTimeout(context.Background(), 5*time.Second)
-		_, _ = lease.Unlock(cleanupCtx)
-		cleanupCancel()
+		_ = reconcileExampleLease(lease)
 		return
 	}
 	if err != nil {
 		return
 	}
 	defer func() {
-		cleanupCtx, cleanupCancel := context.WithTimeout(context.Background(), 5*time.Second)
-		defer cleanupCancel()
-		_, _ = lease.Unlock(cleanupCtx)
+		_ = reconcileExampleLease(lease)
 	}()
 
 	// protected work runs here
+}
+
+func reconcileExampleLease(lease *redislock.Lease) error {
+	var firstErr error
+	for range 2 {
+		cleanupCtx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+		_, err := lease.Unlock(cleanupCtx)
+		cancel()
+		if err == nil {
+			return nil // released or already absent after a lost response
+		}
+		if !errors.Is(err, btredis.ErrCommitUnknown) {
+			return errors.Join(firstErr, err)
+		}
+		firstErr = errors.Join(firstErr, err)
+	}
+	return firstErr // lease TTL is the final fallback
 }

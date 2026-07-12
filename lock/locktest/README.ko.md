@@ -10,6 +10,12 @@ cancellation, ownership, lost response, exact contention을 검증합니다.
 `Harness.New`는 owner-bound `AcquireFunc`를 반환합니다. `Control`은 실제 mutation
 boundary에 gate를 설치하고 하나의 mutation이 linearize된 뒤에만 실패를 주입해야 합니다.
 
+```go
+func TestProviderConformance(t *testing.T) {
+    locktest.Run(t, providerHarness(t))
+}
+```
+
 ## Commit-Unknown 복구
 
 Acquire는 non-nil release callback과 typed provider error를 함께 반환할 수 있습니다.
@@ -18,8 +24,8 @@ Acquire는 non-nil release callback과 typed provider error를 함께 반환할 
 
 ## 진단
 
-Gate와 result 대기는 bounded입니다. Runner 실패는 stable case name만 보고하며 adapter
-error, owner value, key, endpoint, token을 출력하지 않습니다.
+Gate와 result 대기는 bounded입니다. Runner 실패는 stable case name과 safe reason category를
+보고하며 adapter error, owner value, key, endpoint, token을 출력하지 않습니다.
 
 ## 테스트
 

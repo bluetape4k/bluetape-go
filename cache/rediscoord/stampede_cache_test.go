@@ -11,11 +11,43 @@ import (
 
 	"github.com/bluetape4k/bluetape-go/cache"
 	"github.com/bluetape4k/bluetape-go/cache/redisnear"
+	btredis "github.com/bluetape4k/bluetape-go/redis"
 	redistestcontainer "github.com/bluetape4k/bluetape-go/testcontainers/redis"
 	bttesting "github.com/bluetape4k/bluetape-go/testing"
 	concurrencytest "github.com/bluetape4k/bluetape-go/testing/concurrency"
 	"github.com/redis/go-redis/v9"
 )
+
+func TestReconcileUnlockRetriesCommitUnknownOnSameLease(t *testing.T) {
+	lease := &scriptedUnlocker{results: []unlockResult{
+		{err: errors.Join(errors.New("lost response"), btredis.ErrCommitUnknown)},
+		{released: false},
+	}}
+	coord := &StampedeCache[string]{}
+
+	if err := coord.reconcileUnlock(lease); err != nil {
+		t.Fatalf("reconcile unlock: %v", err)
+	}
+	if lease.calls != 2 {
+		t.Fatalf("unlock calls = %d, want 2", lease.calls)
+	}
+}
+
+type unlockResult struct {
+	released bool
+	err      error
+}
+
+type scriptedUnlocker struct {
+	results []unlockResult
+	calls   int
+}
+
+func (s *scriptedUnlocker) Unlock(context.Context) (bool, error) {
+	result := s.results[s.calls]
+	s.calls++
+	return result.released, result.err
+}
 
 func TestNewStampedeCacheRejectsInvalidOptions(t *testing.T) {
 	client := redis.NewClient(&redis.Options{Addr: "127.0.0.1:0"})

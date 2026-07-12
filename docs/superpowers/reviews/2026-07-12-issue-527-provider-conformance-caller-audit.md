@@ -42,9 +42,9 @@ Automated heading-count parity is supplemented by this manual contract mapping.
 
 | English/Korean pair | Mapped contract section | Required recovery content |
 |---|---|---|
-| `leader/leadertest/README*` | Contract / 계약; Usage / 사용법; Commit-Unknown Recovery / Commit-Unknown 복구; Test / 테스트 | typed `OperationError`, `ErrCommitUnknown`, bounded `Resign`, TTL |
-| `lock/locktest/README*` | Contract / 계약; Usage / 사용법; Commit-Unknown Recovery / Commit-Unknown 복구; Test / 테스트 | non-nil callback with error, same callback retry, owner comparison, TTL |
-| `ratelimit/ratelimittest/README*` | Contract / 계약; Usage / 사용법; Commit-Unknown Recovery / Commit-Unknown 복구; Test / 테스트 | zero result, one possible debit, no replay, full-refill wait |
+| `leader/leadertest/README*` | Contract / 계약; Usage / 사용법; Commit-Unknown Recovery / Commit-Unknown 복구; Diagnostics / 진단; Test / 테스트 | typed `OperationError`, `ErrCommitUnknown`, bounded `Resign`, TTL, redacted runner output |
+| `lock/locktest/README*` | Contract / 계약; Usage / 사용법; Commit-Unknown Recovery / Commit-Unknown 복구; Diagnostics / 진단; Test / 테스트 | non-nil callback with error, same callback retry, owner comparison, TTL, bounded/redacted diagnostics |
+| `ratelimit/ratelimittest/README*` | Contract / 계약; Usage / 사용법; Commit-Unknown Recovery / Commit-Unknown 복구; Diagnostics / 진단; Test / 테스트 | zero result, one possible debit, no replay, full-refill wait, bounded/redacted diagnostics |
 | `leader/README*` | Single-Elector Conformance | blocking campaign, distinct sentinels, type-first errors, bounded `Resign`/TTL |
 | `leader/redis/README*` | Conformance And Recovery / Conformance 및 복구 | dual commit-unknown sentinels, owner reconciliation, command-rate canary, bounded `Resign`/TTL |
 | `leader/mongo/README*` | Conformance And Recovery / Conformance 및 복구 | typed leader error, commit-unknown, same-elector bounded `Resign`, unchanged BSON schema |
