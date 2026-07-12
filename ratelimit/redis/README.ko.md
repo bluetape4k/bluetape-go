@@ -95,7 +95,11 @@ context cancellation, `GoroutineStressTester` 기반 concurrent-client stress를
 
 ## Conformance 및 Commit-Unknown 복구
 
+Mixed-version 제약, canary telemetry/threshold, cleanup/TTL rollback gate는 영·한
+[v0.19.0 rollout runbook](../../docs/release/v0.19.0-provider-conformance-runbook.md)을
+따릅니다.
+
 Provider는 Lua debit boundary에서 `ratelimittest.Run`을 실행합니다. Eval 응답 유실은
-zero `Result`와 `redis.ErrCommitUnknown`을 match하는 typed `redis.OpError`를 반환하며 한 번
+zero `Result`와 `btredis.ErrCommitUnknown`을 match하는 typed `btredis.OpError`를 반환하며 한 번
 debit됐을 수 있습니다. Replay하지 말고 최소 `Burst / RatePerSecond`를 기다리거나 caller
 budget에 한 번의 debit을 반영합니다.

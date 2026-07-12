@@ -94,7 +94,11 @@ expiration, context cancellation, and concurrent-client stress with
 
 ## Conformance And Commit-Unknown Recovery
 
+Use the bilingual [v0.19.0 rollout runbook](../../docs/release/v0.19.0-provider-conformance-runbook.md)
+for mixed-version constraints, canary telemetry and thresholds, and cleanup/TTL
+rollback gates.
+
 The provider runs `ratelimittest.Run` at the Lua debit boundary. An Eval response
-loss returns a zero `Result` and a typed `redis.OpError` matching
-`redis.ErrCommitUnknown`; it may represent one debit. Do not replay. Wait at least
+loss returns a zero `Result` and a typed `btredis.OpError` matching
+`btredis.ErrCommitUnknown`; it may represent one debit. Do not replay. Wait at least
 `Burst / RatePerSecond` or account for one debit in the caller's budget.

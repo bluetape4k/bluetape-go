@@ -199,6 +199,10 @@ go test -p 1 -count=1 ./leader/mongo ./testcontainers/mongodb
 
 ## Conformance And Recovery
 
+Use the bilingual [v0.19.0 rollout runbook](../../docs/release/v0.19.0-provider-conformance-runbook.md)
+for mixed-version constraints, canary telemetry and thresholds, and resign/TTL
+rollback gates.
+
 The single elector runs `leader/leadertest.Run`, uses distinct local-state
 sentinels, and wraps backend failures in `leader.OperationError`. A dispatched
 campaign or resign failure may match `leader.ErrCommitUnknown`; retry bounded

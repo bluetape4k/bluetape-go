@@ -144,6 +144,10 @@ go test -count=1 ./leader/redis
 
 ## Conformance And Recovery
 
+Use the bilingual [v0.19.0 rollout runbook](../../docs/release/v0.19.0-provider-conformance-runbook.md)
+for mixed-version constraints, canary telemetry and thresholds, and resign/TTL
+rollback gates.
+
 `Campaign` blocks with bounded retry until acquisition or context termination.
 A dispatched response loss is reconciled by owner token; probe failure matches
 both `leader.ErrCommitUnknown` and `redis.ErrCommitUnknown`. Keep the elector,
