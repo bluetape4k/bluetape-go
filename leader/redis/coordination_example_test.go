@@ -36,8 +36,10 @@ func TestBatchSchedulerExample(t *testing.T) {
 		resignExample(t, primary)
 	})
 
-	if err := secondary.Campaign(ctx); !errors.Is(err, leader.ErrNotLeader) {
-		t.Fatalf("secondary campaign should fail while primary is leader, got %v", err)
+	contenderCtx, cancelContender := context.WithTimeout(ctx, 150*time.Millisecond)
+	defer cancelContender()
+	if err := secondary.Campaign(contenderCtx); !errors.Is(err, context.DeadlineExceeded) {
+		t.Fatalf("secondary campaign should wait for its deadline, got %v", err)
 	}
 
 	job, err := redisListBatchJob(
