@@ -138,6 +138,12 @@ func MemoryHarness() Harness
 collection/failpoint처럼 backend에 맞는 구현을 사용한다. `OperationCount`는 failure 또는
 ownership loss 뒤 worker가 멈춰 추가 traffic이 없음을 bounded window에서 증명한다.
 
+Control은 normalized `leader.Options` identity를 그대로 사용한다. `ReplaceOwner`는
+nonblank structural owner만 허용한다. `FailNext`는 non-nil cause와 위 두 operation만
+허용하고 같은 options identity의 다음 matching operation 정확히 하나에 적용된다.
+`OperationCount`는 identity/operation별 concurrency-safe monotonic cumulative count이며
+reset하지 않는다. Runner는 subtest 시작 baseline과 종료 count의 delta만 비교한다.
+
 `Run`은 개별 contract를 named subtest로 실행한다. Harness, factory, control 및 반환
 elector는 nil일 수 없다. Construction/control failure는 `t.Helper()` attribution으로 해당
 named subtest를 즉시 실패시킨다. Runner에는 skip/capability option을 제공하지 않는다.
@@ -266,7 +272,8 @@ contention의 정상 반환값으로는 사용하지 않으며 GoDoc과 README�
 
 1. Runner가 test별 unique key/group/member를 만든다.
 2. Factory가 caller-owned backend fixture를 사용해 provider instance를 만든다.
-3. Runner가 public API만 호출해 동작을 관측한다.
+3. 정상 동작은 public API만 호출해 관측한다. Fault injection, operation count 및 backend
+   side-effect/owner probe만 필수 test-only `Control`을 사용한다.
 4. 각 획득 뒤 `t.Cleanup`에 bounded cleanup을 즉시 등록한다.
 5. Cancellation test는 operation 종료와 backend side effect 부재를 모두 확인한다.
 6. Container/client lifecycle은 provider test가 소유하며 runner는 닫지 않는다.
@@ -287,13 +294,15 @@ contention의 정상 반환값으로는 사용하지 않으며 GoDoc과 README�
 2. 유효한 resign이 시작되면 local `owned=false`, `cleanupPending=true`로 전환하고 renewal을
    취소한 뒤 bounded하게 worker 종료를 기다린다.
 3. Compare-and-delete 성공 또는 owner mismatch는 cleanup 완료이며 pending state를 지운다.
-4. Worker-stop deadline 또는 backend delete failure는 pending state와 owner token을
-   유지한다. 이후 `Resign`은 worker wait/delete를 재시도하고 성공 전까지 같은 instance의
-   `Campaign`을 거절한다.
-5. Resign이 error를 반환한 뒤 renewal traffic은 더 발생하지 않는다. Backend record는
-   retry 성공 또는 lease expiry로만 사라지며 새 owner의 record는 삭제하지 않는다.
-6. Runner는 pre-cancel, worker-stop deadline, injected delete failure, retry success,
-   no-renew-after-return 및 eventual takeover를 모두 검증한다.
+4. Worker-stop deadline 또는 backend delete failure는 pending state, in-flight renewal
+   state와 owner token을 유지한다. 이후 `Resign`은 worker wait/delete를 재시도하고 성공
+   전까지 같은 instance의 `Campaign`을 거절한다.
+5. Deadline 반환 뒤 새 renewal attempt는 schedule하지 않는다. 이미 linearize된 in-flight
+   renew는 owned `RenewInterval` timeout 안에 최대 한 번 완료해 lease를 연장할 수 있다.
+   Worker 종료 뒤 추가 renew는 0회이며 backend record는 retry 성공 또는 마지막 연장 lease
+   expiry로 사라진다. 새 owner의 record는 삭제하지 않는다.
+6. Runner는 pre-cancel, injected blocked/late renew, worker-stop deadline, injected delete
+   failure, retry success, exact late-renew upper bound 및 eventual takeover를 검증한다.
 
 ## Error Contract
 
@@ -304,6 +313,27 @@ contention의 정상 반환값으로는 사용하지 않으며 GoDoc과 README�
 - Rate-limit rejection: error가 아닌 `ratelimit.Result{Allowed:false}`
 - Invalid input: 기존 provider validation error 유지
 - Provider failure: 기존 typed/redacted wrapper와 `errors.Is`/`errors.As` 유지
+
+모든 single leader provider failure는 새 `*leader.OperationError`를 outer contract로
+사용한다.
+
+```go
+type OperationError struct { /* private state */ }
+
+func NewOperationError(backend string, operation string, cause error) error
+func (e *OperationError) Error() string
+func (e *OperationError) Unwrap() error
+func (e *OperationError) Backend() string
+func (e *OperationError) Operation() string
+```
+
+Valid input에서 constructor는 `*OperationError`를 `error`로 반환한다. `Error()`는 stable
+low-cardinality backend/operation만 출력하고 cause text를 호출하지
+않는다. `Unwrap()`은 `errors.Is`/`errors.As` inspection을 보존한다. Redis는 기존
+`*redis.OpError`를 cause로 감싸 기존 caller의 `errors.As`를 유지하고 Mongo는 driver
+cause를 감싸 raw command, namespace, endpoint 및 credential text를 숨긴다. Nil cause와
+blank/control/32-byte 초과 backend/operation에는 validation error를 반환하며 provider는
+package-owned constants만 전달한다.
 
 Conformance runner는 formatted provider error 문자열을 비교하지 않는다. Sentinel,
 context 원인, boolean/result state 및 backend-independent side effect만 검사한다. Runner
@@ -395,7 +425,9 @@ bounded context, construction error 처리 및 `Run` 호출의 전체 흐름을 
 - Redis key bytes, owner token, lease TTL, compare-and-delete 및 error redaction contract는
   valid input에 대해 변경하지 않는다. Collision/whitespace/control/delimiter/oversize case는
   backend call 전에 공통 rejection된다.
-- Mongo behavior와 storage schema는 변경하지 않고 새 shared runner를 적용한다.
+- Mongo storage schema와 success/sentinel semantics는 변경하지 않는다. Provider failure는
+  raw driver text wrapping에서 공통 sanitized `*leader.OperationError`로 migration하며
+  underlying `errors.Is`/`errors.As` inspection은 유지한다.
 - Rate limiter 결과 rounding의 기존 provider-specific 정밀도는 허용하되 공통 invariants는
   동일하게 강제한다.
 
