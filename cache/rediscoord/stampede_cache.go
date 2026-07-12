@@ -82,7 +82,7 @@ func (c *StampedeCache[V]) GetOrLoad(
 
 		lease, err := c.tryAcquire(ctx, key)
 		if lease != nil && err != nil {
-			return zero, errors.Join(err, c.unlock(lease))
+			return zero, errors.Join(err, c.reconcileUnlock(lease))
 		}
 		if err == nil {
 			return c.loadAsOwner(ctx, key, ttl, loader, lease)
@@ -296,7 +296,11 @@ func (c *StampedeCache[V]) storeResult(ctx context.Context, key string, token st
 	return nil
 }
 
-func (c *StampedeCache[V]) unlock(lease *redislock.Lease) error {
+type leaseUnlocker interface {
+	Unlock(context.Context) (bool, error)
+}
+
+func (c *StampedeCache[V]) unlock(lease leaseUnlocker) error {
 	if lease == nil {
 		return nil
 	}
@@ -311,6 +315,30 @@ func (c *StampedeCache[V]) unlock(lease *redislock.Lease) error {
 		return fmt.Errorf("redis load lock was not released by owner")
 	}
 	return nil
+}
+
+func (c *StampedeCache[V]) reconcileUnlock(lease leaseUnlocker) error {
+	if lease == nil {
+		return nil
+	}
+	_, err := unlockOnce(lease)
+	if err == nil {
+		return nil
+	}
+	if !errors.Is(err, btredis.ErrCommitUnknown) {
+		return err
+	}
+	_, retryErr := unlockOnce(lease)
+	if retryErr == nil {
+		return nil
+	}
+	return errors.Join(err, retryErr)
+}
+
+func unlockOnce(lease leaseUnlocker) (bool, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), unlockTimeout)
+	defer cancel()
+	return lease.Unlock(ctx)
 }
 
 func (c *StampedeCache[V]) lockKey(key string) string {

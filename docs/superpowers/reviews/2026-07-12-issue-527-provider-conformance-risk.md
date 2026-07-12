@@ -63,8 +63,8 @@ Task 9 must rerun the identical command. Any non-zero allocation is a stop condi
 |---|---|
 | late acquisition / response loss | All three runners distinguish before/after linearization. Redis leader/lock owner probes and Mongo retained cleanup state pass; Redis rate records exactly one debit and performs no replay. |
 | resign/renew overlap | Leader runner proves renew traffic stops after loss; bounded cleanup and TTL takeover pass for Redis and Mongo. Repository race gate reports no data race. |
-| retry storm | Redis single leader uses a 100 ms minimum contention delay, bounding attempts to 10 per second, below the 12/second canary threshold. |
-| false gate PASS | Reference fixtures pass while bare-context lost response, zero operation counts, invalid classifiers, and raw diagnostics are rejected by helper self-tests. |
+| retry storm | Redis single leader uses a 25 ms base exponential delay, a 250 ms cap, and token/attempt-derived deterministic +/-20% jitter. The twelve-delay regression budget exceeds one second, keeping attempts below the 12/second canary threshold. |
+| false gate PASS | Reference fixtures pass while bare-context lost response, zero operation counts, invalid classifiers, malformed factories, and raw diagnostics are rejected by helper self-tests. Gate/result waits are bounded at two seconds. |
 | import cycle | `ratelimit/ratelimittest` has no parent-package import and the full repository build succeeds. |
 | key/owner migration | Existing key/schema tests pass. Redis lock custom nonblank token bytes, including surrounding whitespace, are preserved and the caller audit records the migration. |
 | Testcontainers leak | Serial Redis/Mongo provider tests and the full CI Testcontainers suite complete with caller-owned client/container cleanup. |

@@ -1,25 +1,19 @@
 package locktest_test
 
 import (
-	"context"
+	"fmt"
 	"testing"
-	"time"
 
 	"github.com/bluetape4k/bluetape-go/lock/locktest"
 )
 
-func ExampleRun() {
+func TestProviderConformance(t *testing.T) {
 	harness := locktest.MemoryHarness()
-	_ = func(t *testing.T) {
-		ctx, cancel := context.WithTimeout(context.Background(), time.Second)
-		t.Cleanup(cancel)
-		config := locktest.Config{Key: "example", Owner: "owner", TTL: time.Second}
-		gate, err := harness.Control.GateNext(ctx, config, locktest.OperationAcquire, locktest.PhaseBeforeLinearize)
-		if err != nil {
-			t.Fatal(err)
-		}
-		t.Cleanup(gate.Resume)
-		_ = harness.Control.FailNext(ctx, config, locktest.OperationRelease, context.DeadlineExceeded)
-		locktest.Run(t, harness)
-	}
+	locktest.Run(t, harness)
+}
+
+func ExampleMemoryHarness() {
+	harness := locktest.MemoryHarness()
+	fmt.Println(harness.New != nil, harness.Control != nil, harness.IsProviderError != nil)
+	// Output: true true true
 }

@@ -49,9 +49,28 @@ func Run(t *testing.T, harness Harness) {
 				t.Fatal("leadertest: invalid case options")
 			}
 			if err := tc.run(t, harness, normalized); err != nil {
-				t.Fatal("leadertest: conformance case failed")
+				t.Fatalf("leadertest: conformance case failed: %s", conformanceFailureReason(err))
 			}
 		})
+	}
+}
+
+func conformanceFailureReason(err error) (reason string) {
+	reason = "contract"
+	defer func() { _ = recover() }()
+	switch {
+	case errors.Is(err, leader.ErrCommitUnknown):
+		return "commit-unknown"
+	case errors.Is(err, context.Canceled), errors.Is(err, context.DeadlineExceeded):
+		return "context"
+	case errors.Is(err, leader.ErrAlreadyLeader), errors.Is(err, leader.ErrCampaignInProgress), errors.Is(err, leader.ErrCleanupPending), errors.Is(err, leader.ErrInvalidContext):
+		return "state"
+	default:
+		var operationErr *leader.OperationError
+		if errors.As(err, &operationErr) {
+			return "provider"
+		}
+		return reason
 	}
 }
 

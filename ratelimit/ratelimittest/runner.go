@@ -43,9 +43,24 @@ func Run(t *testing.T, harness Harness) {
 			id := runnerID.Add(1)
 			config := Config{RatePerSecond: 100, Burst: 5, IdleTTL: time.Second}
 			if err := tc.run(t, harness, config, fmt.Sprintf("ratelimittest-%s-%d", tc.name, id)); err != nil {
-				t.Fatal("ratelimittest: conformance case failed")
+				t.Fatalf("ratelimittest: conformance case failed: %s", conformanceFailureReason(harness, err))
 			}
 		})
+	}
+}
+
+func conformanceFailureReason(h Harness, err error) (reason string) {
+	reason = "contract"
+	defer func() { _ = recover() }()
+	switch {
+	case errors.Is(err, context.Canceled), errors.Is(err, context.DeadlineExceeded):
+		return "context"
+	case errors.Is(err, errInvalidInput):
+		return "validation"
+	case h.IsProviderError(err):
+		return "provider"
+	default:
+		return reason
 	}
 }
 

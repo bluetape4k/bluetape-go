@@ -10,6 +10,12 @@ cancellation, one-debit lost response, exact concurrent admission을 검증합�
 Provider result를 field-by-field로 변환합니다. Gate와 failure injection은 실제 debit
 boundary에 연결해야 하며 public-call wrapper gate만으로는 충분하지 않습니다.
 
+```go
+func TestProviderConformance(t *testing.T) {
+    ratelimittest.Run(t, providerHarness(t))
+}
+```
+
 ## Commit-Unknown 복구
 
 Indeterminate provider는 zero `Result`와 typed error를 반환합니다. 요청이 한 번 debit됐을
@@ -18,8 +24,8 @@ Indeterminate provider는 zero `Result`와 typed error를 반환합니다. 요�
 
 ## 진단
 
-Gate와 result 대기는 bounded입니다. Runner 실패는 stable case name만 보고하며 adapter
-error, key, endpoint, provider response text를 출력하지 않습니다.
+Gate와 result 대기는 bounded입니다. Runner 실패는 stable case name과 safe reason category를
+보고하며 adapter error, key, endpoint, provider response text를 출력하지 않습니다.
 
 ## 테스트
 

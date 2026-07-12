@@ -11,6 +11,12 @@ Caller-owned backend fixture를 사용하고 하나의 `leader.Options` identity
 뒤 `Harness.New`에서 provider elector를 생성합니다. `Control`에는 deterministic owner
 probe, operation count, replacement, post-linearization failure injection만 노출합니다.
 
+```go
+func TestProviderConformance(t *testing.T) {
+    leadertest.Run(t, providerHarness(t))
+}
+```
+
 ## Commit-Unknown 복구
 
 Provider는 dispatch된 실패를 typed `leader.OperationError`로 반환해야 합니다. Commit을
@@ -19,8 +25,9 @@ Provider는 dispatch된 실패를 typed `leader.OperationError`로 반환해야 
 
 ## 진단
 
-Runner 실패는 stable case name만 보고하며 adapter error, owner value, key, endpoint,
-token을 출력하지 않습니다. Case가 실패하면 provider-local log를 별도로 확인하세요.
+Runner 실패는 stable case name과 `context`, `state`, `provider`, `contract` 같은 safe reason
+category를 보고합니다. Adapter error, owner value, key, endpoint, token은 출력하지 않으며
+provider-local log를 별도로 확인합니다.
 
 ## 테스트
 

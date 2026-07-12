@@ -44,9 +44,24 @@ func Run(t *testing.T, harness Harness) {
 			id := runnerID.Add(1)
 			config := Config{Key: fmt.Sprintf("locktest-%s-%d", tc.name, id), Owner: fmt.Sprintf("owner-%d", id), TTL: 100 * time.Millisecond}
 			if err := tc.run(t, harness, config); err != nil {
-				t.Fatal("locktest: conformance case failed")
+				t.Fatalf("locktest: conformance case failed: %s", conformanceFailureReason(harness, err))
 			}
 		})
+	}
+}
+
+func conformanceFailureReason(h Harness, err error) (reason string) {
+	reason = "contract"
+	defer func() { _ = recover() }()
+	switch {
+	case errors.Is(err, context.Canceled), errors.Is(err, context.DeadlineExceeded):
+		return "context"
+	case errors.Is(err, errInvalidInput):
+		return "validation"
+	case h.IsProviderError(err):
+		return "provider"
+	default:
+		return reason
 	}
 }
 
