@@ -23,6 +23,9 @@ and this project uses semantic versioning once the first tag is published.
 
 - Unify single-leader campaign waiting, local-state sentinels, typed provider
   failures, and commit-unknown cleanup across Redis and Mongo.
+- Publish the bilingual [v0.19.0 provider rollout runbook](docs/release/v0.19.0-provider-conformance-runbook.md)
+  with mixed-version constraints, telemetry labels, canary thresholds, and
+  resign/TTL rollback completion gates.
 - Preserve nonblank custom Redis lock token bytes without trimming. Lock callers
   must handle a non-nil lease together with `redis.ErrCommitUnknown`, retry the
   same release callback, and use TTL fallback. Redis rate-limit callers must not

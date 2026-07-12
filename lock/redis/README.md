@@ -96,8 +96,12 @@ go test -count=1 ./lock/redis
 
 ## Conformance And Commit-Unknown Recovery
 
+Use the bilingual [v0.19.0 rollout runbook](../../docs/release/v0.19.0-provider-conformance-runbook.md)
+for the custom-token mixed-version exception, canary telemetry and thresholds,
+and owner-aware resign/TTL rollback gates.
+
 `locktest.Run` validates the Redis provider at real SetNX/Eval boundaries. Check
-`redis.ErrCommitUnknown` before context errors. If `TryLock` returns `lease != nil`
+`btredis.ErrCommitUnknown` before context errors. If `TryLock` returns `lease != nil`
 with an error, immediately attempt bounded cleanup. A lost `Unlock` returns false
 and the typed error; retry the same lease callback. Compare-delete protects a
 replacement owner, and TTL is the final fallback. Custom nonblank token bytes,

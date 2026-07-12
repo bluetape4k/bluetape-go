@@ -92,8 +92,12 @@ go test -count=1 ./lock/redis
 
 ## Conformance 및 Commit-Unknown 복구
 
+Custom-token mixed-version 예외, canary telemetry/threshold, owner-aware
+resign/TTL rollback gate는 영·한 [v0.19.0 rollout runbook](../../docs/release/v0.19.0-provider-conformance-runbook.md)을
+따릅니다.
+
 `locktest.Run`은 실제 Redis SetNX/Eval boundary에서 provider를 검증합니다. Context
-error보다 `redis.ErrCommitUnknown`을 먼저 확인합니다. `TryLock`이 error와 함께
+error보다 `btredis.ErrCommitUnknown`을 먼저 확인합니다. `TryLock`이 error와 함께
 `lease != nil`을 반환하면 즉시 bounded cleanup을 시도합니다. `Unlock` 응답 유실은 false와
 typed error를 반환하므로 같은 lease callback을 재시도합니다. Compare-delete가 replacement
 owner를 보호하며 TTL이 최종 fallback입니다. 앞뒤 공백을 포함한 nonblank custom token

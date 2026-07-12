@@ -133,6 +133,10 @@ go test -count=1 ./leader/redis
 
 ## Conformance 및 복구
 
+Mixed-version 제약, canary telemetry/threshold, resign/TTL rollback gate는 영·한
+[v0.19.0 rollout runbook](../../docs/release/v0.19.0-provider-conformance-runbook.md)을
+따릅니다.
+
 `Campaign`은 bounded retry로 leadership 획득 또는 context 종료까지 기다립니다. Dispatch
 응답 유실은 owner token으로 reconcile하며 probe 실패는 `leader.ErrCommitUnknown`과
 `redis.ErrCommitUnknown`을 모두 match합니다. Elector를 유지하고 bounded `Resign`을
