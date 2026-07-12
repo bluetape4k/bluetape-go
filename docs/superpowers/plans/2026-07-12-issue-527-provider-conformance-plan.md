@@ -85,7 +85,11 @@ go test -run '^$' -bench 'TokenBucket' -benchmem -count=5 ./ratelimit \
 
 Expected: five successful samples with `allocs/op` recorded. Task 9 compares the same command after the private nil hook; any additional allocation blocks progression.
 
-- [ ] **Step 3: Commit the pre-implementation evidence**
+- [ ] **Step 3: Persist the baseline in the risk artifact**
+
+Under `## TokenBucket Baseline`, record `go version`, the exact benchmark command, and all five `ns/op`, `B/op`, and `allocs/op` rows from `/tmp/issue-527-token-bucket-before.txt`. The committed artifact, not `/tmp`, is the authoritative restart-safe baseline.
+
+- [ ] **Step 4: Commit the pre-implementation evidence**
 
 ```bash
 git add docs/superpowers/reviews/2026-07-12-issue-527-provider-conformance-risk.md
@@ -316,6 +320,7 @@ var cases = []string{
 Normalize options once per case; use public elector methods for normal observations and Control only for fault/probe/count. All waits use caller-owned deadlines and eventual assertions; exact contention asserts `successes==1`, `maxActive==1`, bounded losers, and one takeover after release. Register bounded resign cleanup immediately after acquire.
 
 `campaign-lost-response` injects a context/transport cause only after owner creation. It accepts only confirmed success from bounded owner-token reconciliation or a typed provider wrapper with the context/provider causes preserved; a bare context error while the owner remains is a deterministic failure.
+Probe failure must satisfy `errors.Is(err, leader.ErrCommitUnknown)`; confirmed absent/different-owner failure must not. Both remain `errors.As(*leader.OperationError)`.
 
 - [ ] **Step 4: Add the compile-checked helper example**
 
@@ -383,7 +388,7 @@ Use a dedicated ready/pinged Testcontainers client, unique prefix per subtest, c
 gofmt -w $(rg --files leader/redis -g '*.go') leader/elector.go
 go test -p 1 -count=1 ./leader/redis
 go test -p 1 -race -count=1 ./leader/redis
-git add leader/redis
+git add leader/elector.go leader/redis
 git commit -m "feat: conform redis leader election"
 ```
 
@@ -640,7 +645,7 @@ git add ratelimit/token_bucket.go ratelimit/token_bucket_test.go ratelimit/confo
 git commit -m "test: conform local token bucket"
 ```
 
-Expected: runner/race PASS; compare `/tmp/issue-527-token-bucket-before.txt` and `after.txt` sample-by-sample. Any allocation added to the nil-hook hot path blocks progression; latency regression above 10% requires investigation/rerun and cannot be claimed as noise without fresh samples.
+Expected: runner/race PASS; compare `after.txt` sample-by-sample with the committed `## TokenBucket Baseline` in the risk artifact. Any allocation added to the nil-hook hot path blocks progression; latency regression above 10% requires investigation/rerun and cannot be claimed as noise without fresh samples.
 
 ### Task 10: Redis Rate Limiter Real-Command Conformance
 
@@ -708,7 +713,7 @@ Expected: common runner PASS, exact burst totals, preserved Redis key/TTL/roundi
 
 - [ ] **Step 1: Verify the helper-owned compile-checked examples and document them**
 
-Tasks 3, 6 and 8 own each `ExampleRun`. Verify they construct a caller-owned fixture, register cleanup immediately, build the full mandatory Harness including before/after gates, lost-response injection and counts, call `Run`, and use unique identities/bounded contexts. README snippets mirror those compiled examples, show contention/cancellation outcomes, and never print raw backend errors.
+Tasks 3, 6 and 8 own each `ExampleRun`. Verify they construct a caller-owned fixture, register cleanup immediately, call `Run`, and use unique identities/bounded contexts. Lock/rate examples include before/after gates, lost-response injection and counts; leader examples include `FailNext`, owner probes, counts and bounded resign cleanup. README snippets mirror those compiled examples, show contention/cancellation outcomes, and never print raw backend errors.
 
 - [ ] **Step 2: Document exact migration and provider caveat matrix in English/Korean**
 
@@ -718,8 +723,8 @@ Cover blocking `Campaign`, legacy `ErrNotLeader`, new state/commit-unknown senti
 
 ```bash
 go test -run 'Example' ./leader/... ./lock/... ./ratelimit/...
-rg -n 'ErrCampaignInProgress|ErrCleanupPending|ErrInvalidContext|OperationError' \
-  leader/**/README*.md CHANGELOG.md
+rg -n 'ErrCampaignInProgress|ErrCleanupPending|ErrInvalidContext|ErrCommitUnknown|OperationError|commit-unknown' \
+  leader lock ratelimit CHANGELOG.md -g 'README*.md' -g 'CHANGELOG.md'
 git diff --check
 git add leader lock ratelimit CHANGELOG.md
 git commit -m "docs: describe provider conformance contracts"
