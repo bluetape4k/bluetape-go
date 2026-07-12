@@ -112,3 +112,11 @@ external Redis latency와 deployment topology에 의존하므로 별도로 유�
 | `BenchmarkTokenBucketAllowAllowed` | 116.4 | 0 | 0 |
 | `BenchmarkTokenBucketAllowRejected` | 76.76 | 0 | 0 |
 | `BenchmarkHandlerAllowed` | 51.26 | 160 | 3 |
+
+## Provider Conformance
+
+`ratelimit/ratelimittest.Run`은 local과 Redis provider에 같은 burst, refill,
+cancellation, exact-admission contract를 적용합니다. Redis commit-unknown은 zero result를
+반환하지만 한 번 debit됐을 수 있습니다. Typed error를 먼저 확인하고 자동 replay하지
+말며, 보수적인 full-refill interval을 기다리거나 caller budget에서 한 번의 debit을
+흡수합니다.

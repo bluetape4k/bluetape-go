@@ -56,3 +56,12 @@ if err != nil {
 go test -count=1 ./leader
 go test -count=1 ./leader/mongo
 ```
+
+## Single-Elector Conformance
+
+Single elector는 이제 leadership 획득 또는 caller context 종료까지 기다립니다. Local
+duplicate, in-progress, cleanup-pending, nil-context 상태는 서로 다른 sentinel을 사용합니다.
+Bare context error보다 typed `OperationError`와 `ErrCommitUnknown`을 먼저 확인하고,
+commit-indeterminate이면 bounded `Resign` 후 TTL fallback을 사용합니다.
+`leader/leadertest.Run`은 Redis와 Mongo에 같은 contract를 적용합니다. Group과 strategic
+elector는 이 single-elector suite 범위 밖입니다.

@@ -71,3 +71,12 @@ defer func() {
 ```bash
 go test -count=1 ./lock/redis
 ```
+
+## Conformance And Commit-Unknown Recovery
+
+`locktest.Run` validates the Redis provider at real SetNX/Eval boundaries. Check
+`redis.ErrCommitUnknown` before context errors. If `TryLock` returns `lease != nil`
+with an error, immediately attempt bounded cleanup. A lost `Unlock` returns false
+and the typed error; retry the same lease callback. Compare-delete protects a
+replacement owner, and TTL is the final fallback. Custom nonblank token bytes,
+including surrounding whitespace, are no longer trimmed.

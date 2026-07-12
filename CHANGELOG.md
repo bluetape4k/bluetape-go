@@ -9,11 +9,25 @@ and this project uses semantic versioning once the first tag is published.
 
 ### Added
 
+- Add mandatory public provider conformance runners in `leader/leadertest`,
+  `lock/locktest`, and `ratelimit/ratelimittest`, with in-memory reference
+  fixtures and Redis/Mongo/local provider adoption.
+
 - Add `cache/redisfory` for bounded Go-native Apache Fory values stored
   directly in Redis with explicit profiles, BTFV envelopes, TTLs, and schema
   generation key isolation.
 - Add `redis` foundation package with key, owner-token, lease script, TTL, and
   redacted Redis operation error primitives.
+
+### Changed
+
+- Unify single-leader campaign waiting, local-state sentinels, typed provider
+  failures, and commit-unknown cleanup across Redis and Mongo.
+- Preserve nonblank custom Redis lock token bytes without trimming. Lock callers
+  must handle a non-nil lease together with `redis.ErrCommitUnknown`, retry the
+  same release callback, and use TTL fallback. Redis rate-limit callers must not
+  replay commit-unknown requests and should wait a full refill interval or
+  account for one possible debit.
 
 ## [v0.18.0] - 2026-07-10
 

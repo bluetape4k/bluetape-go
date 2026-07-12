@@ -84,3 +84,10 @@ go test -race -count=1 ./ratelimit/redis
 Coverage includes burst/rejection, refill, namespace isolation, idle key
 expiration, context cancellation, and concurrent-client stress with
 `GoroutineStressTester`.
+
+## Conformance And Commit-Unknown Recovery
+
+The provider runs `ratelimittest.Run` at the Lua debit boundary. An Eval response
+loss returns a zero `Result` and a typed `redis.OpError` matching
+`redis.ErrCommitUnknown`; it may represent one debit. Do not replay. Wait at least
+`Burst / RatePerSecond` or account for one debit in the caller's budget.

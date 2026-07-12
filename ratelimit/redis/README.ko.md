@@ -85,3 +85,10 @@ go test -race -count=1 ./ratelimit/redis
 Coverage는 burst/rejection, refill, namespace isolation, idle key expiration,
 context cancellation, `GoroutineStressTester` 기반 concurrent-client stress를
 포함합니다.
+
+## Conformance 및 Commit-Unknown 복구
+
+Provider는 Lua debit boundary에서 `ratelimittest.Run`을 실행합니다. Eval 응답 유실은
+zero `Result`와 `redis.ErrCommitUnknown`을 match하는 typed `redis.OpError`를 반환하며 한 번
+debit됐을 수 있습니다. Replay하지 말고 최소 `Burst / RatePerSecond`를 기다리거나 caller
+budget에 한 번의 debit을 반영합니다.
