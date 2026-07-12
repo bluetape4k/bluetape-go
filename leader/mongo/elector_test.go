@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"github.com/bluetape4k/bluetape-go/leader"
+	"github.com/bluetape4k/bluetape-go/leader/leadertest"
 	mongodbtestcontainer "github.com/bluetape4k/bluetape-go/testcontainers/mongodb"
 	bttesting "github.com/bluetape4k/bluetape-go/testing"
 	concurrencytest "github.com/bluetape4k/bluetape-go/testing/concurrency"
@@ -33,6 +34,24 @@ func TestMongoElectorIntegration(t *testing.T) {
 		if err := client.Disconnect(cleanupCtx); err != nil {
 			t.Fatalf("disconnect mongodb client: %v", err)
 		}
+	})
+
+	t.Run("conformance", func(t *testing.T) {
+		collection := newTestCollection(ctx, t, client)
+		control := newMongoConformanceControl(collection)
+		leadertest.Run(t, leadertest.Harness{
+			New: func(tb testing.TB, opts leader.Options) (leader.Elector, error) {
+				elector, err := New(collection, opts, WithRetryDelay(10*time.Millisecond))
+				if err != nil {
+					return nil, err
+				}
+				elector.testHook = func(operation string) error {
+					return control.after(opts, operation)
+				}
+				return elector, nil
+			},
+			Control: control,
+		})
 	})
 
 	t.Run("campaign and resign", func(t *testing.T) {
