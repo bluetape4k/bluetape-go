@@ -17,6 +17,7 @@ import (
 	"github.com/bluetape4k/bluetape-go/leader"
 	redisleader "github.com/bluetape4k/bluetape-go/leader/redis"
 	redislock "github.com/bluetape4k/bluetape-go/lock/redis"
+	btredis "github.com/bluetape4k/bluetape-go/redis"
 	"github.com/bluetape4k/bluetape-go/resilience"
 	redistestcontainer "github.com/bluetape4k/bluetape-go/testcontainers/redis"
 	"github.com/bluetape4k/bluetape-go/workflow"
@@ -201,6 +202,12 @@ func TestRedisCoordinationRecipeSmoke(t *testing.T) {
 		t.Fatalf("redis lock: %v", err)
 	}
 	lease, err := mutex.TryLock(ctx)
+	if errors.Is(err, btredis.ErrCommitUnknown) && lease != nil {
+		cleanupCtx, cleanupCancel := context.WithTimeout(context.Background(), 5*time.Second)
+		_, cleanupErr := lease.Unlock(cleanupCtx)
+		cleanupCancel()
+		t.Fatalf("try lock commit unknown: %v", errors.Join(err, cleanupErr))
+	}
 	if err != nil {
 		t.Fatalf("try lock: %v", err)
 	}

@@ -81,6 +81,9 @@ func (c *StampedeCache[V]) GetOrLoad(
 		}
 
 		lease, err := c.tryAcquire(ctx, key)
+		if lease != nil && err != nil {
+			return zero, errors.Join(err, c.unlock(lease))
+		}
 		if err == nil {
 			return c.loadAsOwner(ctx, key, ttl, loader, lease)
 		}
