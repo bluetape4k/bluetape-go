@@ -15,7 +15,10 @@ stores bucket state, and refreshes key expiration atomically.
 ## Install
 
 ```go
-import redisratelimit "github.com/bluetape4k/bluetape-go/ratelimit/redis"
+import (
+    redisratelimit "github.com/bluetape4k/bluetape-go/ratelimit/redis"
+    btredis "github.com/bluetape4k/bluetape-go/redis"
+)
 ```
 
 ## Usage
@@ -32,6 +35,10 @@ if err != nil {
 }
 
 result, err := limiter.Allow(ctx, "tenant:blue", 1)
+if errors.Is(err, btredis.ErrCommitUnknown) {
+    fullRefill := 2 * time.Second // Burst / RatePerSecond
+    return fmt.Errorf("do not replay; wait at least %s or absorb one debit: %w", fullRefill, err)
+}
 if err != nil {
     return err
 }

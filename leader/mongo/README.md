@@ -39,10 +39,22 @@ elector, err := mongoleader.New(collection, leader.Options{
 if err != nil {
     return err
 }
-if err := elector.Campaign(ctx); err != nil {
+campaignCtx, campaignCancel := context.WithTimeout(ctx, 15*time.Second)
+defer campaignCancel()
+if err := elector.Campaign(campaignCtx); err != nil {
+    if errors.Is(err, leader.ErrCommitUnknown) {
+        cleanupCtx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+        cleanupErr := elector.Resign(cleanupCtx)
+        cancel()
+        return errors.Join(err, cleanupErr) // lease TTL is the final fallback
+    }
     return err
 }
-defer elector.Resign(context.Background())
+defer func() {
+    cleanupCtx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+    defer cancel()
+    _ = elector.Resign(cleanupCtx)
+}()
 ```
 
 Use `NewGroup` when up to `MaxLeaders` workers may run concurrently:
@@ -60,10 +72,16 @@ group, err := mongoleader.NewGroup(collection, leader.GroupOptions{
 if err != nil {
     return err
 }
-if err := group.Campaign(ctx); err != nil {
+groupCtx, groupCancel := context.WithTimeout(ctx, 15*time.Second)
+defer groupCancel()
+if err := group.Campaign(groupCtx); err != nil {
     return err
 }
-defer group.Resign(context.Background())
+defer func() {
+    cleanupCtx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+    defer cancel()
+    _ = group.Resign(cleanupCtx)
+}()
 ```
 
 Use `NewStrategic` when candidates should be ranked by metadata instead of

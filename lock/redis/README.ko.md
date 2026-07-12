@@ -14,7 +14,10 @@
 ## 가져오기
 
 ```go
-import redislock "github.com/bluetape4k/bluetape-go/lock/redis"
+import (
+    redislock "github.com/bluetape4k/bluetape-go/lock/redis"
+    btredis "github.com/bluetape4k/bluetape-go/redis"
+)
 ```
 
 ## 사용 예
@@ -31,7 +34,28 @@ if err != nil {
 lockCtx, lockCancel := context.WithTimeout(ctx, 5*time.Second)
 defer lockCancel()
 
+cleanupLease := func(lease *redislock.Lease) error {
+    var lastErr error
+    for range 2 {
+        cleanupCtx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+        _, cleanupErr := lease.Unlock(cleanupCtx)
+        cancel()
+        if cleanupErr == nil { // release됐거나 응답 유실 뒤 absence가 확인됨
+            return nil
+        }
+        lastErr = cleanupErr
+        if !errors.Is(cleanupErr, btredis.ErrCommitUnknown) {
+            break
+        }
+    }
+    return lastErr // TTL이 최종 fallback
+}
+
 lease, err := mutex.TryLock(lockCtx)
+if lease != nil && err != nil {
+    cleanupErr := cleanupLease(lease)
+    return errors.Join(err, cleanupErr) // bare context error보다 err type을 먼저 판별
+}
 if errors.Is(err, redislock.ErrNotAcquired) {
     return nil
 }
@@ -39,9 +63,7 @@ if err != nil {
     return err
 }
 defer func() {
-    cleanupCtx, cleanupCancel := context.WithTimeout(context.Background(), 5*time.Second)
-    defer cleanupCancel()
-    _, _ = lease.Unlock(cleanupCtx)
+    _ = cleanupLease(lease)
 }()
 ```
 

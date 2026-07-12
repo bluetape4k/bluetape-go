@@ -35,6 +35,12 @@ campaignCtx, campaignCancel := context.WithTimeout(ctx, 15*time.Second)
 defer campaignCancel()
 
 if err := elector.Campaign(campaignCtx); err != nil {
+    if errors.Is(err, leader.ErrCommitUnknown) {
+        cleanupCtx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+        cleanupErr := elector.Resign(cleanupCtx)
+        cancel()
+        return errors.Join(err, cleanupErr) // TTL이 최종 fallback
+    }
     return err
 }
 defer func() {
