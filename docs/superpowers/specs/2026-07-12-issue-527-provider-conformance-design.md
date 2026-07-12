@@ -466,6 +466,7 @@ contention의 정상 반환값으로는 사용하지 않으며 GoDoc과 README�
 - Leader duplicate call while owned: `leader.ErrAlreadyLeader`
 - Leader same-instance campaign in progress: `leader.ErrCampaignInProgress`
 - Leader failed-resign cleanup pending: `leader.ErrCleanupPending`
+- Leader indeterminate backend commit: `leader.ErrCommitUnknown`
 - Leader waiting cancellation: `context.Canceled` 또는 `context.DeadlineExceeded`
 - Leader nil context: `leader.ErrInvalidContext`, backend side effect 없음
 - Lock contention: provider sentinel을 유지하되 release callback과 side effect는 nil
@@ -482,6 +483,13 @@ wrapper를 bare context error처럼 자동 재시도하지 않고 provider state
 owner-aware cleanup/TTL/refill을 기다린다. Redis lock/rate-limit은 기존 `*redis.OpError`,
 single leader는 outer `*leader.OperationError`를 사용하므로 새 storage field나 idempotency
 request record를 추가하지 않는다.
+
+Probe/reconciliation도 실패해 commit을 확정할 수 없는 chain은 single leader에서
+`errors.Is(err, leader.ErrCommitUnknown)`, Redis lock/rate-limit에서
+`errors.Is(err, redis.ErrCommitUnknown)`이 true다. Redis single leader는 두 sentinel을 모두
+보존한다. Absence/different owner를 확인한 typed provider failure에는 commit-unknown sentinel을
+넣지 않는다. `ErrCommitUnknown`은 redacted constant sentinel이며 raw provider text를 담지
+않는다.
 
 모든 single leader provider failure는 새 `*leader.OperationError`를 outer contract로
 사용한다.
@@ -563,7 +571,10 @@ provider가 public-call wrapper가 아닌 실제 mutation boundary에 hook을 �
 Lock GoDoc/README/CHANGELOG는 commit-unknown acquire의 `release != nil && err != nil` tuple,
 즉시 bounded owner-aware cleanup, release lost-response 뒤 같은 callback retry와 replacement
 owner safety를 예제로 보여준다. 모든 helper는 bare context와 typed provider wrapper 판별을
-보여주며 rate-limit은 typed lost-response error 뒤 automatic replay를 금지한다.
+보여주며 `errors.As` typed wrapper와 `ErrCommitUnknown`을 bare context `errors.Is`보다 먼저
+검사한다. Rate-limit은 typed lost-response error 뒤 automatic replay를 금지하고 requested
+amount가 debit됐다고 보수적으로 계산해 caller budget으로 흡수하거나 최소 full-refill
+duration(`Burst / RatePerSecond`) 뒤 새 요청을 수행한다.
 
 `leader/README.md`와 `leader/README.ko.md`는 blocking `Campaign` semantics와 legacy
 `ErrNotLeader` 상태를 반영한다. 공개 behavior 변경은 `CHANGELOG.md`의 0.19.0 대상
@@ -648,10 +659,12 @@ owner safety를 예제로 보여준다. 모든 helper는 bare context와 typed p
   기록하지 않는다.
 - Caller telemetry는 `ErrCampaignInProgress`/`ErrCleanupPending` count, cleanup-pending
   duration, resign retry success/failure, TTL fallback count 및 takeover latency도 포함한다.
-  Bare context와 typed commit-unknown outcome을 별도 category로 집계한다.
+  Bare context, confirmed typed provider failure 및 typed commit-unknown outcome을 별도
+  category로 집계한다.
   Label은 package-owned backend, operation 및 outcome/sentinel category의 bounded set만
   허용하고 identity, endpoint, token 또는 rendered error를 label/log에 넣지 않는다.
-- Mixed old/new binaries는 같은 key/token/TTL format을 사용하지만 old binary는 즉시
+- Mixed old/new binaries는 같은 key, generated leader/lock token 및 TTL format을 사용하지만
+  custom lock token whitespace identity는 migration 예외다. Old binary는 즉시
   `ErrNotLeader`, new binary는 context까지 대기한다. New validation에 실패하지만 old
   binary가 허용하는 identity는 rollout 전에 제거하며, 발견되면 해당 caller의 new binary
   배포를 중지하고 identity를 교정한다. 이 차이를 rollout window에 명시한다.
@@ -697,7 +710,7 @@ owner safety를 예제로 보여준다. 모든 helper는 bare context와 typed p
 14. Release 문서에 caller audit, mixed-version canary, monitoring 및 storage-safe rollback
     절차가 있다.
 15. Leader/lock/rate-limit lost-response injection이 confirmed success, bare context 및 typed
-    commit-unknown을 구분하며 Redis storage schema나 automatic replay를 추가하지 않는다.
+    `ErrCommitUnknown`을 구분하며 Redis storage schema나 automatic replay를 추가하지 않는다.
 
 ## Definition Of Done
 
