@@ -17,6 +17,11 @@ Provider는 dispatch된 실패를 typed `leader.OperationError`로 반환해야 
 확인할 수 없으면 `leader.ErrCommitUnknown`도 함께 match합니다. Caller는 type-first로
 처리하고 bounded `Resign`, lease TTL fallback 후에 새 campaign을 시작합니다.
 
+## 진단
+
+Runner 실패는 stable case name만 보고하며 adapter error, owner value, key, endpoint,
+token을 출력하지 않습니다. Case가 실패하면 provider-local log를 별도로 확인하세요.
+
 ## 테스트
 
 ```bash

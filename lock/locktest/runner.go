@@ -12,14 +12,16 @@ import (
 
 var runnerID atomic.Uint64
 
+const conformanceWaitTimeout = 2 * time.Second
+
 // Run executes all mandatory lock conformance cases.
 func Run(t *testing.T, harness Harness) {
 	t.Helper()
 	if err := validateHarness(harness); err != nil {
-		t.Fatal(err)
+		t.Fatal("locktest: invalid harness")
 	}
 	if err := validatePositiveClassifier(t, harness); err != nil {
-		t.Fatal(err)
+		t.Fatal("locktest: provider classifier probe failed")
 	}
 	cases := []struct {
 		name string
@@ -42,7 +44,7 @@ func Run(t *testing.T, harness Harness) {
 			id := runnerID.Add(1)
 			config := Config{Key: fmt.Sprintf("locktest-%s-%d", tc.name, id), Owner: fmt.Sprintf("owner-%d", id), TTL: 100 * time.Millisecond}
 			if err := tc.run(t, harness, config); err != nil {
-				t.Fatal(err)
+				t.Fatal("locktest: conformance case failed")
 			}
 		})
 	}
@@ -118,7 +120,10 @@ func runRepeatedRelease(t *testing.T, h Harness, config Config) error {
 }
 
 func runExpiryTakeover(t *testing.T, h Harness, config Config) error {
-	first, _ := makeAcquire(t, h, config)
+	first, err := makeAcquire(t, h, config)
+	if err != nil {
+		return err
+	}
 	release, err := first(context.Background())
 	if err != nil {
 		return err
@@ -127,7 +132,10 @@ func runExpiryTakeover(t *testing.T, h Harness, config Config) error {
 	time.Sleep(config.TTL + 10*time.Millisecond)
 	other := config
 	other.Owner += "-other"
-	second, _ := makeAcquire(t, h, other)
+	second, err := makeAcquire(t, h, other)
+	if err != nil {
+		return err
+	}
 	secondRelease, err := second(context.Background())
 	if err != nil || secondRelease == nil {
 		return lockFailure(fmt.Sprintf("expiry takeover release=%v", secondRelease), err)
@@ -137,7 +145,10 @@ func runExpiryTakeover(t *testing.T, h Harness, config Config) error {
 }
 
 func runPreCanceledAcquire(t *testing.T, h Harness, config Config) error {
-	acquire, _ := makeAcquire(t, h, config)
+	acquire, err := makeAcquire(t, h, config)
+	if err != nil {
+		return err
+	}
 	ctx, cancel := context.WithCancel(context.Background())
 	cancel()
 	release, err := acquire(ctx)
@@ -148,7 +159,10 @@ func runPreCanceledAcquire(t *testing.T, h Harness, config Config) error {
 }
 
 func runPreCanceledRelease(t *testing.T, h Harness, config Config) error {
-	acquire, _ := makeAcquire(t, h, config)
+	acquire, err := makeAcquire(t, h, config)
+	if err != nil {
+		return err
+	}
 	release, err := acquire(context.Background())
 	if err != nil {
 		return err
@@ -164,7 +178,10 @@ func runPreCanceledRelease(t *testing.T, h Harness, config Config) error {
 }
 
 func runCancelBefore(t *testing.T, h Harness, config Config) error {
-	acquire, _ := makeAcquire(t, h, config)
+	acquire, err := makeAcquire(t, h, config)
+	if err != nil {
+		return err
+	}
 	gate, err := h.Control.GateNext(context.Background(), config, OperationAcquire, PhaseBeforeLinearize)
 	if err != nil || gate == nil {
 		return lockFailure(fmt.Sprintf("gate=%v", gate), err)
@@ -174,11 +191,22 @@ func runCancelBefore(t *testing.T, h Harness, config Config) error {
 	defer cancel()
 	result := make(chan error, 1)
 	go func() { _, err := acquire(ctx); result <- err }()
-	if err := gate.AwaitStarted(context.Background()); err != nil {
-		return err
+	waitCtx, waitCancel := context.WithTimeout(context.Background(), conformanceWaitTimeout)
+	err = gate.AwaitStarted(waitCtx)
+	waitCancel()
+	if err != nil {
+		cancel()
+		gate.Resume()
+		return errors.New("locktest: acquire gate did not start")
 	}
 	cancel()
-	if err := <-result; !errors.Is(err, context.Canceled) {
+	select {
+	case err = <-result:
+	case <-time.After(conformanceWaitTimeout):
+		gate.Resume()
+		return errors.New("locktest: canceled acquire did not return")
+	}
+	if !errors.Is(err, context.Canceled) {
 		return lockFailure("before-linearize cancellation mismatch", err)
 	}
 	owner, err := h.Control.Owner(context.Background(), config)
@@ -189,7 +217,10 @@ func runCancelBefore(t *testing.T, h Harness, config Config) error {
 }
 
 func runCancelAfter(t *testing.T, h Harness, config Config) error {
-	acquire, _ := makeAcquire(t, h, config)
+	acquire, err := makeAcquire(t, h, config)
+	if err != nil {
+		return err
+	}
 	gate, err := h.Control.GateNext(context.Background(), config, OperationAcquire, PhaseAfterLinearize)
 	if err != nil {
 		return err
@@ -203,12 +234,22 @@ func runCancelAfter(t *testing.T, h Harness, config Config) error {
 	}
 	resultCh := make(chan result, 1)
 	go func() { release, err := acquire(ctx); resultCh <- result{release, err} }()
-	if err := gate.AwaitStarted(context.Background()); err != nil {
-		return err
+	waitCtx, waitCancel := context.WithTimeout(context.Background(), conformanceWaitTimeout)
+	err = gate.AwaitStarted(waitCtx)
+	waitCancel()
+	if err != nil {
+		cancel()
+		gate.Resume()
+		return errors.New("locktest: acquire gate did not start")
 	}
 	cancel()
 	gate.Resume()
-	got := <-resultCh
+	var got result
+	select {
+	case got = <-resultCh:
+	case <-time.After(conformanceWaitTimeout):
+		return errors.New("locktest: linearized acquire did not return")
+	}
 	if got.err != nil || got.release == nil {
 		return lockFailure(fmt.Sprintf("after-linearize acquire release=%v", got.release), got.err)
 	}
@@ -217,7 +258,10 @@ func runCancelAfter(t *testing.T, h Harness, config Config) error {
 }
 
 func runLostResponse(t *testing.T, h Harness, config Config) error {
-	acquire, _ := makeAcquire(t, h, config)
+	acquire, err := makeAcquire(t, h, config)
+	if err != nil {
+		return err
+	}
 	if err := h.Control.FailNext(context.Background(), config, OperationAcquire, errors.New("injected-cause")); err != nil {
 		return err
 	}
@@ -239,7 +283,10 @@ func runLostResponse(t *testing.T, h Harness, config Config) error {
 }
 
 func runStaleRelease(t *testing.T, h Harness, config Config) error {
-	first, _ := makeAcquire(t, h, config)
+	first, err := makeAcquire(t, h, config)
+	if err != nil {
+		return err
+	}
 	staleRelease, err := first(context.Background())
 	if err != nil {
 		return err
@@ -247,7 +294,10 @@ func runStaleRelease(t *testing.T, h Harness, config Config) error {
 	time.Sleep(config.TTL + 10*time.Millisecond)
 	other := config
 	other.Owner += "-other"
-	second, _ := makeAcquire(t, h, other)
+	second, err := makeAcquire(t, h, other)
+	if err != nil {
+		return err
+	}
 	activeRelease, err := second(context.Background())
 	if err != nil {
 		return err
@@ -305,7 +355,10 @@ func runExactContention(t *testing.T, h Harness, config Config) error {
 	if _, err := winner(context.Background()); err != nil {
 		return err
 	}
-	takeover, _ := makeAcquire(t, h, config)
+	takeover, err := makeAcquire(t, h, config)
+	if err != nil {
+		return err
+	}
 	release, err := takeover(context.Background())
 	if err != nil {
 		return err

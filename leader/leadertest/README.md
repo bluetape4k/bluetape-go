@@ -19,6 +19,12 @@ When commit cannot be determined it also matches `leader.ErrCommitUnknown`.
 Callers use type-first handling, bounded `Resign`, and lease TTL fallback before
 starting another campaign.
 
+## Diagnostics
+
+Runner failures report only the stable case name and never render adapter errors,
+owner values, keys, endpoints, or tokens. Inspect provider-local logs separately
+when a case fails.
+
 ## Test
 
 ```bash

@@ -3,11 +3,90 @@ package leadertest
 import (
 	"context"
 	"errors"
+	"os"
+	"os/exec"
+	"strings"
 	"testing"
 	"time"
 
 	"github.com/bluetape4k/bluetape-go/leader"
 )
+
+const diagnosticMarker = "forbidden-runner-diagnostic-marker"
+
+func TestRunRedactsAdapterDiagnostics(t *testing.T) {
+	if mode := os.Getenv("LEADERTEST_DIAGNOSTIC_MODE"); mode != "" {
+		h := MemoryHarness()
+		switch mode {
+		case "factory":
+			h.New = func(testing.TB, leader.Options) (leader.Elector, error) {
+				return nil, errors.New(diagnosticMarker)
+			}
+		case "control":
+			h.Control = diagnosticControl{Control: h.Control, failControl: true}
+		case "owner":
+			h.Control = diagnosticControl{Control: h.Control, failOwner: true}
+		case "provider":
+			h.New = func(testing.TB, leader.Options) (leader.Elector, error) {
+				return diagnosticElector{}, nil
+			}
+		}
+		Run(t, h)
+		return
+	}
+
+	for _, mode := range []string{"factory", "control", "owner", "provider"} {
+		t.Run(mode, func(t *testing.T) {
+			ctx, cancel := context.WithTimeout(context.Background(), 20*time.Second)
+			defer cancel()
+			cmd := exec.CommandContext(ctx, os.Args[0], "-test.run=^TestRunRedactsAdapterDiagnostics$")
+			cmd.Env = append(os.Environ(), "LEADERTEST_DIAGNOSTIC_MODE="+mode)
+			output, err := cmd.CombinedOutput()
+			if err == nil {
+				t.Fatal("broken adapter unexpectedly passed conformance")
+			}
+			if strings.Contains(string(output), diagnosticMarker) {
+				t.Fatal("conformance diagnostics exposed an adapter marker")
+			}
+		})
+	}
+}
+
+type diagnosticControl struct {
+	Control
+	failControl bool
+	failOwner   bool
+}
+
+func (c diagnosticControl) ReplaceOwner(ctx context.Context, opts leader.Options, owner string) error {
+	if c.failControl {
+		return errors.New(diagnosticMarker)
+	}
+	return c.Control.ReplaceOwner(ctx, opts, owner)
+}
+
+func (c diagnosticControl) FailNext(ctx context.Context, opts leader.Options, operation Operation, cause error) error {
+	if c.failControl {
+		return errors.New(diagnosticMarker)
+	}
+	return c.Control.FailNext(ctx, opts, operation, cause)
+}
+
+func (c diagnosticControl) Owner(ctx context.Context, opts leader.Options) (string, error) {
+	if c.failOwner {
+		return diagnosticMarker, errors.New(diagnosticMarker)
+	}
+	return c.Control.Owner(ctx, opts)
+}
+
+type diagnosticElector struct{}
+
+func (diagnosticElector) Campaign(context.Context) error { return errors.New(diagnosticMarker) }
+func (diagnosticElector) Resign(context.Context) error   { return errors.New(diagnosticMarker) }
+func (diagnosticElector) IsLeader() bool                 { return false }
+func (diagnosticElector) Leader(context.Context) (string, error) {
+	return diagnosticMarker, errors.New(diagnosticMarker)
+}
 
 func TestRunMemoryHarness(t *testing.T) {
 	Run(t, MemoryHarness())

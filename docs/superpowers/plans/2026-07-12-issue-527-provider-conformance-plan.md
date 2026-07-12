@@ -33,8 +33,8 @@ Use `bttesting.Eventually`/`Consistently` for bounded eventual state and `testin
 
 ### Task 0: Freeze Approved Workflow Artifacts
 
-**Complexity:** low  
-**Depends on:** none  
+**Complexity:** low
+**Depends on:** none
 **Patterns:** `bluetape-workflow`, `bluetape-full-feature`
 
 **Files:**
@@ -65,8 +65,8 @@ Expected: the already committed plan is present. If Step 3-R amendments are unco
 
 ### Task 0A: Pre-Implementation Risk And Performance Baseline
 
-**Complexity:** medium  
-**Depends on:** Task 0  
+**Complexity:** medium
+**Depends on:** Task 0
 **Patterns:** `bluetape-full-feature` Step 3-P, `bluetape-go-patterns`
 
 **Files:**
@@ -213,8 +213,8 @@ Expected: PASS. Revert this commit if valid existing key bytes change in the pre
 
 ### Task 2: Public `leader/leadertest` Harness And Reference Fixture
 
-**Complexity:** high  
-**Depends on:** Task 1  
+**Complexity:** high
+**Depends on:** Task 1
 **Patterns:** `bluetape-go-patterns`, `test-driven-development`
 
 **Files:**
@@ -283,8 +283,8 @@ Expected: PASS with no race. If a goroutine remains after cleanup, stop and fix 
 
 ### Task 3: Leader Black-Box Runner And Self-Tests
 
-**Complexity:** high  
-**Depends on:** Task 2  
+**Complexity:** high
+**Depends on:** Task 2
 **Patterns:** `bluetape-go-patterns`, `test-driven-development`
 
 **Files:**
@@ -340,8 +340,8 @@ Expected: reference harness PASS; every intentionally broken harness fails its i
 
 ### Task 4: Redis Single-Leader State Machine And Conformance Adapter
 
-**Complexity:** high  
-**Depends on:** Task 3  
+**Complexity:** high
+**Depends on:** Task 3
 **Patterns:** `bluetape-go-patterns`, `test-driven-development`, `systematic-debugging` on any timing failure
 
 **Files:**
@@ -396,8 +396,8 @@ Expected: runner PASS, retry command budget ≤12/second, no late owner after ca
 
 ### Task 5: Mongo Single-Leader Conformance And Sanitized Errors
 
-**Complexity:** high  
-**Depends on:** Task 3  
+**Complexity:** high
+**Depends on:** Task 3
 **Patterns:** `bluetape-go-patterns`, `test-driven-development`
 
 **Files:**
@@ -439,7 +439,7 @@ Expected: the same `leadertest.Run` cases pass for Redis and Mongo; BSON schema 
 
 ### Task 6: Public `lock/locktest` Harness, Gates, And Reference Runner
 
-**Complexity:** high  
+**Complexity:** high
 **Depends on:** Task 0A
 **Patterns:** `bluetape-go-patterns`, `test-driven-development`
 
@@ -499,8 +499,8 @@ Expected: memory harness PASS; owner-ignorant release and wrapper-only fake adap
 
 ### Task 7: Redis Lock Linearization And Common Runner
 
-**Complexity:** medium  
-**Depends on:** Task 6  
+**Complexity:** medium
+**Depends on:** Task 6
 **Patterns:** `bluetape-go-patterns`, `test-driven-development`
 
 **Files:**
@@ -541,7 +541,7 @@ Expected: `locktest.Run` PASS, exact contention totals, no key after before-line
 
 ### Task 8: Parent-Independent `ratelimit/ratelimittest` Runner
 
-**Complexity:** high  
+**Complexity:** high
 **Depends on:** Task 0A
 **Patterns:** `bluetape-go-patterns`, `test-driven-development`
 
@@ -602,8 +602,8 @@ Expected: PASS and no import-cycle risk.
 
 ### Task 9: Local Token Bucket Real-Boundary Conformance
 
-**Complexity:** medium  
-**Depends on:** Task 8  
+**Complexity:** medium
+**Depends on:** Task 8
 **Patterns:** `bluetape-go-patterns`, `test-driven-development`
 
 **Files:**
@@ -652,8 +652,8 @@ Expected: runner/race PASS; compare `after.txt` sample-by-sample with the commit
 
 ### Task 10: Redis Rate Limiter Real-Command Conformance
 
-**Complexity:** medium  
-**Depends on:** Task 8  
+**Complexity:** medium
+**Depends on:** Task 8
 **Patterns:** `bluetape-go-patterns`, `test-driven-development`
 
 **Files:**
@@ -700,8 +700,8 @@ Expected: common runner PASS, exact burst totals, preserved Redis key/TTL/roundi
 
 ### Task 11: Public GoDoc, Examples, Locale Parity, And Release Migration
 
-**Complexity:** medium  
-**Depends on:** Tasks 4, 5, 7, 9, 10  
+**Complexity:** medium
+**Depends on:** Tasks 4, 5, 7, 9, 10
 **Patterns:** `bluetape-go-patterns`, `bluetape-writer`, `bluetape-maintenance`
 
 **Files:**
@@ -758,8 +758,8 @@ Expected: examples compile/pass; automated heading counts agree and the committe
 
 ### Task 12: Integrated Verification, Risk Evidence, And Review Readiness
 
-**Complexity:** high  
-**Depends on:** Task 11  
+**Complexity:** high
+**Depends on:** Task 11
 **Patterns:** `verification-before-completion`, `requesting-code-review`, `bluetape-workflow`
 
 **Files:**

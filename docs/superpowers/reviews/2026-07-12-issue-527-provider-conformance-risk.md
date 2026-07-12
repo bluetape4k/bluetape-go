@@ -1,7 +1,7 @@
 # Issue #527 Provider Conformance Pre-Implementation Risk Record
 
-**Milestone:** 0.19.0  
-**Plan commit:** `bf0afa92c31059350778252213e2debc18b0514e`  
+**Milestone:** 0.19.0
+**Plan commit:** `bf0afa92c31059350778252213e2debc18b0514e`
 **Recorded before source changes:** yes
 
 ## Step 3-R Gate
