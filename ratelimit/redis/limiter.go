@@ -82,6 +82,10 @@ func New(options Options) (*Limiter, error) {
 }
 
 // Allow 는 Redis bucket에서 token을 소비한다.
+//
+// ErrCommitUnknown이면 zero Result가 반환되지만 요청이 한 번 debit됐을 수 있다.
+// 자동 replay하지 말고 type-first로 오류를 판별한 뒤 보수적으로 full-refill
+// (Burst / RatePerSecond) 동안 기다리거나 caller budget에서 한 번의 debit을 흡수한다.
 func (l *Limiter) Allow(ctx context.Context, key string, tokens int64) (ratelimit.Result, error) {
 	ctx = normalizeContext(ctx)
 	if err := ctx.Err(); err != nil {
@@ -114,13 +118,30 @@ func (l *Limiter) Allow(ctx context.Context, key string, tokens int64) (ratelimi
 		tokenScale,
 	).Slice()
 	if err != nil {
-		return ratelimit.Result{}, operationError(ctx, "consume", bucketKey, err)
+		var before *notDispatchedError
+		if errors.As(err, &before) {
+			return ratelimit.Result{}, before.Unwrap()
+		}
+		return ratelimit.Result{}, errors.Join(
+			operationError(ctx, "consume", bucketKey, err),
+			btredis.ErrCommitUnknown,
+		)
 	}
 	result, err := parseResult(tokens, values)
 	if err != nil {
 		return ratelimit.Result{}, err
 	}
 	return result, nil
+}
+
+type notDispatchedError struct{ cause error }
+
+func (*notDispatchedError) Error() string { return "redis rate limiter: command not dispatched" }
+func (e *notDispatchedError) Unwrap() error {
+	if e == nil {
+		return nil
+	}
+	return e.cause
 }
 
 func (l *Limiter) normalizeKey(key string) (string, error) {
