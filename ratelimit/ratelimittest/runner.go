@@ -186,8 +186,12 @@ func runLostResponse(t *testing.T, h Harness, config Config, key string) error {
 		return err
 	}
 	result, err := allow(context.Background(), key, 1)
-	if result != (Result{}) || err == nil || !h.IsProviderError(err) || !h.IsProviderError(fmt.Errorf("nested: %w", err)) {
-		return fmt.Errorf("lost response = %+v, %v", result, err)
+	if err == nil {
+		if !result.Allowed || result.Requested != 1 {
+			return fmt.Errorf("confirmed lost response = %+v", result)
+		}
+	} else if result != (Result{}) || !h.IsProviderError(err) || !h.IsProviderError(fmt.Errorf("nested: %w", err)) {
+		return fmt.Errorf("indeterminate lost response = %+v, %v", result, err)
 	}
 	if count := h.Control.OperationCount(key); count != 1 {
 		return fmt.Errorf("lost response count = %d", count)
