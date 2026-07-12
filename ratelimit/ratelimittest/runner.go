@@ -4,7 +4,6 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"sync"
 	"sync/atomic"
 	"testing"
 	"time"
@@ -13,6 +12,7 @@ import (
 var runnerID atomic.Uint64
 
 const conformanceWaitTimeout = 2 * time.Second
+const conformanceCaseTimeout = 5 * time.Second
 
 // Run executes all mandatory token-bucket conformance cases.
 func Run(t *testing.T, harness Harness) {
@@ -20,8 +20,15 @@ func Run(t *testing.T, harness Harness) {
 	if err := validateHarness(harness); err != nil {
 		t.Fatal("ratelimittest: invalid harness")
 	}
-	if err := validatePositiveClassifier(t, harness); err != nil {
-		t.Fatal("ratelimittest: provider classifier probe failed")
+	classifierResult := make(chan error, 1)
+	go func() { classifierResult <- validatePositiveClassifier(t, harness) }()
+	select {
+	case err := <-classifierResult:
+		if err != nil {
+			t.Fatal("ratelimittest: provider classifier probe failed")
+		}
+	case <-time.After(conformanceCaseTimeout):
+		t.Fatal("ratelimittest: provider classifier probe timed out")
 	}
 	cases := []struct {
 		name string
@@ -39,13 +46,23 @@ func Run(t *testing.T, harness Harness) {
 		{"exact-concurrency", runExactConcurrency},
 	}
 	for _, tc := range cases {
-		t.Run(tc.name, func(t *testing.T) {
+		passed := t.Run(tc.name, func(t *testing.T) {
 			id := runnerID.Add(1)
 			config := Config{RatePerSecond: 100, Burst: 5, IdleTTL: time.Second}
-			if err := tc.run(t, harness, config, fmt.Sprintf("ratelimittest-%s-%d", tc.name, id)); err != nil {
-				t.Fatalf("ratelimittest: conformance case failed: %s", conformanceFailureReason(harness, err))
+			result := make(chan error, 1)
+			go func() { result <- tc.run(t, harness, config, fmt.Sprintf("ratelimittest-%s-%d", tc.name, id)) }()
+			select {
+			case err := <-result:
+				if err != nil {
+					t.Fatalf("ratelimittest: conformance case failed: %s", conformanceFailureReason(harness, err))
+				}
+			case <-time.After(conformanceCaseTimeout):
+				t.Fatal("ratelimittest: conformance case timed out")
 			}
 		})
+		if !passed {
+			return
+		}
 	}
 }
 
@@ -285,27 +302,35 @@ func runExactConcurrency(t *testing.T, h Harness, config Config, key string) err
 		return err
 	}
 	requests := int(config.Burst + 7)
-	var wg sync.WaitGroup
-	var allowed atomic.Int64
-	var rejected atomic.Int64
+	ctx, cancel := context.WithTimeout(context.Background(), conformanceWaitTimeout)
+	defer cancel()
+	type concurrencyResult struct {
+		result Result
+		err    error
+	}
+	results := make(chan concurrencyResult, requests)
 	for range requests {
-		wg.Add(1)
 		go func() {
-			defer wg.Done()
-			result, err := allow(context.Background(), key, 1)
-			if err != nil {
-				return
-			}
-			if result.Allowed {
-				allowed.Add(result.Requested)
-			} else {
-				rejected.Add(1)
-			}
+			result, err := allow(ctx, key, 1)
+			results <- concurrencyResult{result: result, err: err}
 		}()
 	}
-	wg.Wait()
-	if allowed.Load() != config.Burst || rejected.Load() != int64(requests)-config.Burst {
-		return fmt.Errorf("concurrency totals allowed=%d rejected=%d", allowed.Load(), rejected.Load())
+	var allowed int64
+	var rejected int64
+	for range requests {
+		select {
+		case got := <-results:
+			if got.err == nil && got.result.Allowed {
+				allowed += got.result.Requested
+			} else if got.err == nil {
+				rejected++
+			}
+		case <-ctx.Done():
+			return errors.New("concurrency workers did not return")
+		}
+	}
+	if allowed != config.Burst || rejected != int64(requests)-config.Burst {
+		return fmt.Errorf("concurrency totals allowed=%d rejected=%d", allowed, rejected)
 	}
 	return nil
 }

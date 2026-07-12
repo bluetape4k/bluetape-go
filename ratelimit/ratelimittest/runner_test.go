@@ -34,12 +34,16 @@ func TestRunRedactsAdapterDiagnostics(t *testing.T) {
 				var target *diagnosticProviderError
 				return errors.As(err, &target)
 			}
+		case "blocking":
+			h.New = func(testing.TB, Config) (AllowFunc, error) {
+				return func(context.Context, string, int64) (Result, error) { select {} }, nil
+			}
 		}
 		Run(t, h)
 		return
 	}
 
-	for _, mode := range []string{"factory", "control", "provider"} {
+	for _, mode := range []string{"factory", "control", "provider", "blocking"} {
 		t.Run(mode, func(t *testing.T) {
 			ctx, cancel := context.WithTimeout(context.Background(), 20*time.Second)
 			defer cancel()

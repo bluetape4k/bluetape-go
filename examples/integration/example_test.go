@@ -202,9 +202,12 @@ func TestRedisCoordinationRecipeSmoke(t *testing.T) {
 		t.Fatalf("redis lock: %v", err)
 	}
 	lease, err := mutex.TryLock(ctx)
-	if errors.Is(err, btredis.ErrCommitUnknown) && lease != nil {
+	if lease != nil && err != nil {
 		cleanupErr := reconcileRecipeLease(lease)
-		t.Fatalf("try lock commit unknown: %v", errors.Join(err, cleanupErr))
+		if errors.Is(err, btredis.ErrCommitUnknown) {
+			t.Fatalf("try lock commit unknown: %v", errors.Join(err, cleanupErr))
+		}
+		t.Fatalf("try lock failed after owner-aware cleanup: %v", errors.Join(err, cleanupErr))
 	}
 	if err != nil {
 		t.Fatalf("try lock: %v", err)
