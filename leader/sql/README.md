@@ -16,6 +16,10 @@
 
 Do not continue when any preflight result differs.
 
+## Diagram
+
+![PostgreSQL row-lease sequence](../../docs/images/readme-diagrams/postgres-leader-row-lease-sequence.png)
+
 ## Import
 
 ```go

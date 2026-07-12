@@ -16,6 +16,10 @@
 
 하나라도 다르면 진행하지 마세요.
 
+## Diagram
+
+![PostgreSQL row-lease sequence](../../docs/images/readme-diagrams/postgres-leader-row-lease-sequence.png)
+
 ## Import
 
 ```go
