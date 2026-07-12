@@ -19,6 +19,26 @@ import (
 	"go.mongodb.org/mongo-driver/v2/mongo/options"
 )
 
+func TestElectorIgnoresStaleRenewalWorkerState(t *testing.T) {
+	oldDone := make(chan struct{})
+	currentDone := make(chan struct{})
+	elector := &Elector{owned: true, generation: 2, done: currentDone}
+
+	elector.clearOwnershipAfterLoss(1, oldDone, true)
+
+	if !elector.owned || elector.cleanup || elector.done != currentDone {
+		t.Fatal("stale renewal worker changed current ownership state")
+	}
+}
+
+func TestElectorInactiveCleanupDoesNotChangeState(t *testing.T) {
+	elector := &Elector{}
+	_, _, _, active := elector.clearOwnership()
+	if active || elector.cleanup {
+		t.Fatal("inactive cleanup changed elector state")
+	}
+}
+
 func TestMongoElectorIntegration(t *testing.T) {
 	ctx, cancel := context.WithTimeout(context.Background(), 2*time.Minute)
 	t.Cleanup(cancel)
@@ -87,6 +107,26 @@ func TestMongoElectorIntegration(t *testing.T) {
 			current, err := elector.Leader(ctx)
 			return err == nil && current == ""
 		})
+	})
+
+	t.Run("repeated resign permits another campaign", func(t *testing.T) {
+		collection := newTestCollection(ctx, t, client)
+		elector := newTestElector(t, collection, "repeated-resign", "member-1")
+		if err := elector.Campaign(ctx); err != nil {
+			t.Fatalf("campaign: %v", err)
+		}
+		if err := elector.Resign(ctx); err != nil {
+			t.Fatalf("first resign: %v", err)
+		}
+		if err := elector.Resign(ctx); err != nil {
+			t.Fatalf("second resign: %v", err)
+		}
+		if err := elector.Campaign(ctx); err != nil {
+			t.Fatalf("campaign after repeated resign: %v", err)
+		}
+		if err := elector.Resign(ctx); err != nil {
+			t.Fatalf("final resign: %v", err)
+		}
 	})
 
 	t.Run("duplicate local campaign", func(t *testing.T) {

@@ -26,6 +26,7 @@ type Elector struct {
 	owned       bool
 	campaigning bool
 	cleanup     bool
+	generation  uint64
 	cancel      context.CancelFunc
 	done        chan struct{}
 	testHook    func(string) error
@@ -119,7 +120,7 @@ func (e *Elector) Resign(ctx context.Context) error {
 	if err := ctx.Err(); err != nil {
 		return err
 	}
-	cancel, done, active := e.clearOwnership()
+	generation, cancel, done, active := e.clearOwnership()
 	if !active {
 		return nil
 	}
@@ -146,7 +147,11 @@ func (e *Elector) Resign(ctx context.Context) error {
 		)
 	}
 	e.mu.Lock()
-	e.cleanup = false
+	if e.generation == generation {
+		e.cleanup = false
+		e.cancel = nil
+		e.done = nil
+	}
 	e.mu.Unlock()
 	return nil
 }
@@ -259,16 +264,18 @@ func (e *Elector) startRenewal() {
 	done := make(chan struct{})
 
 	e.mu.Lock()
+	e.generation++
+	generation := e.generation
 	e.owned = true
 	e.cleanup = false
 	e.cancel = cancel
 	e.done = done
 	e.mu.Unlock()
 
-	go e.renewLoop(renewCtx, done)
+	go e.renewLoop(renewCtx, generation, done)
 }
 
-func (e *Elector) renewLoop(ctx context.Context, done chan<- struct{}) {
+func (e *Elector) renewLoop(ctx context.Context, generation uint64, done chan struct{}) {
 	defer close(done)
 
 	ticker := time.NewTicker(e.opts.RenewInterval)
@@ -281,7 +288,7 @@ func (e *Elector) renewLoop(ctx context.Context, done chan<- struct{}) {
 		case <-ticker.C:
 			ok, err := e.renew(ctx)
 			if err != nil || !ok {
-				e.clearOwnershipAfterLoss(err != nil)
+				e.clearOwnershipAfterLoss(generation, done, err != nil)
 				return
 			}
 		}
@@ -310,26 +317,31 @@ func (e *Elector) renew(ctx context.Context) (bool, error) {
 	return matched, nil
 }
 
-func (e *Elector) clearOwnership() (context.CancelFunc, chan struct{}, bool) {
+func (e *Elector) clearOwnership() (uint64, context.CancelFunc, chan struct{}, bool) {
 	e.mu.Lock()
 	defer e.mu.Unlock()
 	active := e.owned || e.cleanup
+	if !active {
+		return e.generation, nil, nil, false
+	}
+	generation := e.generation
 	cancel := e.cancel
 	done := e.done
 	e.owned = false
 	e.cleanup = true
-	e.cancel = nil
-	e.done = nil
-	return cancel, done, active
+	return generation, cancel, done, true
 }
 
-func (e *Elector) clearOwnershipAfterLoss(cleanup bool) {
+func (e *Elector) clearOwnershipAfterLoss(generation uint64, done chan struct{}, cleanup bool) {
 	e.mu.Lock()
+	defer e.mu.Unlock()
+	if e.generation != generation || e.done != done {
+		return
+	}
 	e.owned = false
 	e.cleanup = cleanup
 	e.cancel = nil
 	e.done = nil
-	e.mu.Unlock()
 }
 
 func (e *Elector) afterMutation(operation string) error {

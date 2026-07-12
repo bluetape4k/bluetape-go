@@ -16,6 +16,11 @@ Indeterminate provider는 zero `Result`와 typed error를 반환합니다. 요�
 수 있으므로 자동 replay하지 않습니다. 보수적인 full-refill interval
 (`Burst / RatePerSecond`)을 기다리거나 caller budget에서 한 번의 debit을 흡수합니다.
 
+## 진단
+
+Gate와 result 대기는 bounded입니다. Runner 실패는 stable case name만 보고하며 adapter
+error, key, endpoint, provider response text를 출력하지 않습니다.
+
 ## 테스트
 
 ```bash

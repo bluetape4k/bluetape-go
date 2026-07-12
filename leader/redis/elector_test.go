@@ -142,6 +142,12 @@ func TestRedisElectorRepeatedResignIsIdempotent(t *testing.T) {
 	if err := elector.Resign(ctx); err != nil {
 		t.Fatalf("second resign: %v", err)
 	}
+	if err := elector.Campaign(ctx); err != nil {
+		t.Fatalf("campaign after repeated resign: %v", err)
+	}
+	if err := elector.Resign(ctx); err != nil {
+		t.Fatalf("final resign: %v", err)
+	}
 
 	bttesting.Eventually(t, time.Second, func() bool {
 		current, err := elector.Leader(ctx)

@@ -19,7 +19,7 @@ var runIdentity atomic.Uint64
 func Run(t *testing.T, harness Harness) {
 	t.Helper()
 	if err := validateHarness(harness); err != nil {
-		t.Fatal(err)
+		t.Fatal("leadertest: invalid harness")
 	}
 	cases := []struct {
 		name string
@@ -46,10 +46,10 @@ func Run(t *testing.T, harness Harness) {
 			opts := caseOptions(tc.name)
 			normalized, err := opts.Normalize()
 			if err != nil {
-				t.Fatalf("normalize case options: %v", err)
+				t.Fatal("leadertest: invalid case options")
 			}
 			if err := tc.run(t, harness, normalized); err != nil {
-				t.Fatal(err)
+				t.Fatal("leadertest: conformance case failed")
 			}
 		})
 	}
@@ -339,7 +339,7 @@ func evaluateStaleResign(t *testing.T, h Harness, opts leader.Options) error {
 
 func evaluateExactContention(t *testing.T, h Harness, opts leader.Options) error {
 	const workers = 6
-	ctx, cancel := context.WithTimeout(context.Background(), 100*time.Millisecond)
+	ctx, cancel := context.WithTimeout(context.Background(), 3*opts.Lease)
 	defer cancel()
 	var wg sync.WaitGroup
 	var successes atomic.Int64

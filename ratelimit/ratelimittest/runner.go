@@ -12,14 +12,16 @@ import (
 
 var runnerID atomic.Uint64
 
+const conformanceWaitTimeout = 2 * time.Second
+
 // Run executes all mandatory token-bucket conformance cases.
 func Run(t *testing.T, harness Harness) {
 	t.Helper()
 	if err := validateHarness(harness); err != nil {
-		t.Fatal(err)
+		t.Fatal("ratelimittest: invalid harness")
 	}
 	if err := validatePositiveClassifier(t, harness); err != nil {
-		t.Fatal(err)
+		t.Fatal("ratelimittest: provider classifier probe failed")
 	}
 	cases := []struct {
 		name string
@@ -41,7 +43,7 @@ func Run(t *testing.T, harness Harness) {
 			id := runnerID.Add(1)
 			config := Config{RatePerSecond: 100, Burst: 5, IdleTTL: time.Second}
 			if err := tc.run(t, harness, config, fmt.Sprintf("ratelimittest-%s-%d", tc.name, id)); err != nil {
-				t.Fatal(err)
+				t.Fatal("ratelimittest: conformance case failed")
 			}
 		})
 	}
@@ -60,7 +62,10 @@ func makeAllow(t *testing.T, h Harness, config Config) (AllowFunc, error) {
 }
 
 func runInitialBurst(t *testing.T, h Harness, config Config, key string) error {
-	allow, _ := makeAllow(t, h, config)
+	allow, err := makeAllow(t, h, config)
+	if err != nil {
+		return err
+	}
 	result, err := allow(context.Background(), key, config.Burst)
 	if err != nil || !result.Allowed || result.Remaining != 0 || result.Requested != config.Burst {
 		return rateFailure(fmt.Sprintf("initial burst=%+v", result), err)
@@ -69,7 +74,10 @@ func runInitialBurst(t *testing.T, h Harness, config Config, key string) error {
 }
 
 func runOverBurst(t *testing.T, h Harness, config Config, key string) error {
-	allow, _ := makeAllow(t, h, config)
+	allow, err := makeAllow(t, h, config)
+	if err != nil {
+		return err
+	}
 	before := h.Control.OperationCount(key)
 	result, err := allow(context.Background(), key, config.Burst+1)
 	if err == nil || result != (Result{}) || h.Control.OperationCount(key) != before {
@@ -79,7 +87,10 @@ func runOverBurst(t *testing.T, h Harness, config Config, key string) error {
 }
 
 func runRejection(t *testing.T, h Harness, config Config, key string) error {
-	allow, _ := makeAllow(t, h, config)
+	allow, err := makeAllow(t, h, config)
+	if err != nil {
+		return err
+	}
 	if _, err := allow(context.Background(), key, config.Burst); err != nil {
 		return err
 	}
@@ -91,7 +102,10 @@ func runRejection(t *testing.T, h Harness, config Config, key string) error {
 }
 
 func runRefill(t *testing.T, h Harness, config Config, key string) error {
-	allow, _ := makeAllow(t, h, config)
+	allow, err := makeAllow(t, h, config)
+	if err != nil {
+		return err
+	}
 	if _, err := allow(context.Background(), key, config.Burst); err != nil {
 		return err
 	}
@@ -104,7 +118,10 @@ func runRefill(t *testing.T, h Harness, config Config, key string) error {
 }
 
 func runKeyIsolation(t *testing.T, h Harness, config Config, key string) error {
-	allow, _ := makeAllow(t, h, config)
+	allow, err := makeAllow(t, h, config)
+	if err != nil {
+		return err
+	}
 	if _, err := allow(context.Background(), key, config.Burst); err != nil {
 		return err
 	}
@@ -116,7 +133,10 @@ func runKeyIsolation(t *testing.T, h Harness, config Config, key string) error {
 }
 
 func runPreCanceled(t *testing.T, h Harness, config Config, key string) error {
-	allow, _ := makeAllow(t, h, config)
+	allow, err := makeAllow(t, h, config)
+	if err != nil {
+		return err
+	}
 	ctx, cancel := context.WithCancel(context.Background())
 	cancel()
 	result, err := allow(ctx, key, 1)
@@ -127,7 +147,10 @@ func runPreCanceled(t *testing.T, h Harness, config Config, key string) error {
 }
 
 func runCancelBefore(t *testing.T, h Harness, config Config, key string) error {
-	allow, _ := makeAllow(t, h, config)
+	allow, err := makeAllow(t, h, config)
+	if err != nil {
+		return err
+	}
 	gate, err := h.Control.GateNext(context.Background(), key, PhaseBeforeLinearize)
 	if err != nil || gate == nil {
 		return rateFailure(fmt.Sprintf("gate=%v", gate), err)
@@ -137,11 +160,22 @@ func runCancelBefore(t *testing.T, h Harness, config Config, key string) error {
 	defer cancel()
 	resultCh := make(chan error, 1)
 	go func() { _, err := allow(ctx, key, 1); resultCh <- err }()
-	if err := gate.AwaitStarted(context.Background()); err != nil {
-		return err
+	waitCtx, waitCancel := context.WithTimeout(context.Background(), conformanceWaitTimeout)
+	err = gate.AwaitStarted(waitCtx)
+	waitCancel()
+	if err != nil {
+		cancel()
+		gate.Resume()
+		return errors.New("ratelimittest: allow gate did not start")
 	}
 	cancel()
-	if err := <-resultCh; !errors.Is(err, context.Canceled) {
+	select {
+	case err = <-resultCh:
+	case <-time.After(conformanceWaitTimeout):
+		gate.Resume()
+		return errors.New("ratelimittest: canceled allow did not return")
+	}
+	if !errors.Is(err, context.Canceled) {
 		return rateFailure("before cancellation mismatch", err)
 	}
 	result, err := allow(context.Background(), key, config.Burst)
@@ -152,7 +186,10 @@ func runCancelBefore(t *testing.T, h Harness, config Config, key string) error {
 }
 
 func runCancelAfter(t *testing.T, h Harness, config Config, key string) error {
-	allow, _ := makeAllow(t, h, config)
+	allow, err := makeAllow(t, h, config)
+	if err != nil {
+		return err
+	}
 	gate, err := h.Control.GateNext(context.Background(), key, PhaseAfterLinearize)
 	if err != nil {
 		return err
@@ -166,12 +203,22 @@ func runCancelAfter(t *testing.T, h Harness, config Config, key string) error {
 	}
 	resultCh := make(chan response, 1)
 	go func() { result, err := allow(ctx, key, 1); resultCh <- response{result, err} }()
-	if err := gate.AwaitStarted(context.Background()); err != nil {
-		return err
+	waitCtx, waitCancel := context.WithTimeout(context.Background(), conformanceWaitTimeout)
+	err = gate.AwaitStarted(waitCtx)
+	waitCancel()
+	if err != nil {
+		cancel()
+		gate.Resume()
+		return errors.New("ratelimittest: allow gate did not start")
 	}
 	cancel()
 	gate.Resume()
-	got := <-resultCh
+	var got response
+	select {
+	case got = <-resultCh:
+	case <-time.After(conformanceWaitTimeout):
+		return errors.New("ratelimittest: linearized allow did not return")
+	}
 	if got.err != nil || !got.result.Allowed {
 		return rateFailure(fmt.Sprintf("after cancellation=%+v", got.result), got.err)
 	}
@@ -183,7 +230,10 @@ func runCancelAfter(t *testing.T, h Harness, config Config, key string) error {
 }
 
 func runLostResponse(t *testing.T, h Harness, config Config, key string) error {
-	allow, _ := makeAllow(t, h, config)
+	allow, err := makeAllow(t, h, config)
+	if err != nil {
+		return err
+	}
 	if err := h.Control.FailNext(context.Background(), key, errors.New("injected-cause")); err != nil {
 		return err
 	}
@@ -215,7 +265,10 @@ func rateFailure(message string, err error) error {
 func runExactConcurrency(t *testing.T, h Harness, config Config, key string) error {
 	config.RatePerSecond = 1
 	config.IdleTTL = 10 * time.Second
-	allow, _ := makeAllow(t, h, config)
+	allow, err := makeAllow(t, h, config)
+	if err != nil {
+		return err
+	}
 	requests := int(config.Burst + 7)
 	var wg sync.WaitGroup
 	var allowed atomic.Int64

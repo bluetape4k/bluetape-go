@@ -26,6 +26,11 @@ end
 return 0
 `
 
+const (
+	campaignRetryBase = 25 * time.Millisecond
+	campaignRetryCap  = 250 * time.Millisecond
+)
+
 // Elector 는 Redis 기반 leader elector다.
 type Elector struct {
 	client redis.Cmdable
@@ -37,6 +42,7 @@ type Elector struct {
 	owned       bool
 	campaigning bool
 	cleanup     bool
+	generation  uint64
 	cancel      context.CancelFunc
 	done        chan struct{}
 }
@@ -81,6 +87,7 @@ func (e *Elector) Campaign(ctx context.Context) error {
 	}
 	defer e.endCampaign()
 
+	var retry uint
 	for {
 		ok, err := e.client.SetNX(ctx, e.key, e.token, e.opts.Lease).Result()
 		if err != nil {
@@ -102,9 +109,10 @@ func (e *Elector) Campaign(ctx context.Context) error {
 			e.startRenewal()
 			return nil
 		}
-		if err := sleepContext(ctx, max(e.opts.RenewInterval, 100*time.Millisecond)); err != nil {
+		if err := sleepContext(ctx, campaignRetryDelay(e.token, retry)); err != nil {
 			return err
 		}
+		retry++
 	}
 }
 
@@ -121,12 +129,11 @@ func (e *Elector) Resign(ctx context.Context) error {
 		e.mu.Unlock()
 		return nil
 	}
+	generation := e.generation
 	cancel := e.cancel
 	done := e.done
 	e.owned = false
 	e.cleanup = true
-	e.cancel = nil
-	e.done = nil
 	e.mu.Unlock()
 
 	if cancel != nil {
@@ -145,7 +152,11 @@ func (e *Elector) Resign(ctx context.Context) error {
 		return errors.Join(e.operationError("resign", err), leader.ErrCommitUnknown, btredis.ErrCommitUnknown)
 	}
 	e.mu.Lock()
-	e.cleanup = false
+	if e.generation == generation {
+		e.cleanup = false
+		e.cancel = nil
+		e.done = nil
+	}
 	e.mu.Unlock()
 	return nil
 }
@@ -175,7 +186,7 @@ func (e *Elector) Leader(ctx context.Context) (string, error) {
 	return value, nil
 }
 
-func (e *Elector) renewLoop(ctx context.Context, done chan<- struct{}) {
+func (e *Elector) renewLoop(ctx context.Context, generation uint64, done chan struct{}) {
 	defer close(done)
 
 	ticker := time.NewTicker(e.opts.RenewInterval)
@@ -188,12 +199,7 @@ func (e *Elector) renewLoop(ctx context.Context, done chan<- struct{}) {
 		case <-ticker.C:
 			ok, err := e.renew(ctx)
 			if err != nil || !ok {
-				e.mu.Lock()
-				e.owned = false
-				e.cleanup = err != nil
-				e.cancel = nil
-				e.done = nil
-				e.mu.Unlock()
+				e.clearOwnershipAfterLoss(generation, done, err != nil)
 				return
 			}
 		}
@@ -238,12 +244,26 @@ func (e *Elector) startRenewal() {
 	renewCtx, cancel := context.WithCancel(context.Background())
 	done := make(chan struct{})
 	e.mu.Lock()
+	e.generation++
+	generation := e.generation
 	e.owned = true
 	e.cleanup = false
 	e.cancel = cancel
 	e.done = done
 	e.mu.Unlock()
-	go e.renewLoop(renewCtx, done)
+	go e.renewLoop(renewCtx, generation, done)
+}
+
+func (e *Elector) clearOwnershipAfterLoss(generation uint64, done chan struct{}, cleanup bool) {
+	e.mu.Lock()
+	defer e.mu.Unlock()
+	if e.generation != generation || e.done != done {
+		return
+	}
+	e.owned = false
+	e.cleanup = cleanup
+	e.cancel = nil
+	e.done = nil
 }
 
 func (e *Elector) reconcileCampaign() (bool, error) {
@@ -277,6 +297,30 @@ func sleepContext(ctx context.Context, delay time.Duration) error {
 	case <-timer.C:
 		return nil
 	}
+}
+
+func campaignRetryDelay(token string, attempt uint) time.Duration {
+	shift := min(attempt, uint(4))
+	delay := campaignRetryBase << shift
+	if delay > campaignRetryCap {
+		delay = campaignRetryCap
+	}
+
+	const (
+		fnvOffset64 = uint64(14695981039346656037)
+		fnvPrime64  = uint64(1099511628211)
+	)
+	hash := fnvOffset64
+	for i := range len(token) {
+		hash ^= uint64(token[i])
+		hash *= fnvPrime64
+	}
+	for shift := range 8 {
+		hash ^= uint64(byte(uint64(attempt) >> (8 * shift)))
+		hash *= fnvPrime64
+	}
+	jitterPercent := time.Duration(80 + hash%41)
+	return delay * jitterPercent / 100
 }
 
 func newElectorToken(memberID string) (string, error) {

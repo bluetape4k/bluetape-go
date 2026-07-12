@@ -17,6 +17,11 @@ error. Clean it up immediately. A lost release returns false plus the typed
 error; retry the same callback. Owner comparison protects replacements and TTL
 is the final fallback.
 
+## Diagnostics
+
+Gate and result waits are bounded. Runner failures report only stable case names
+and never render adapter errors, owner values, keys, endpoints, or tokens.
+
 ## Test
 
 ```bash

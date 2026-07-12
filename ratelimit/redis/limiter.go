@@ -129,7 +129,10 @@ func (l *Limiter) Allow(ctx context.Context, key string, tokens int64) (ratelimi
 	}
 	result, err := parseResult(tokens, values)
 	if err != nil {
-		return ratelimit.Result{}, err
+		return ratelimit.Result{}, errors.Join(
+			operationError(ctx, "parse-result", bucketKey, err),
+			btredis.ErrCommitUnknown,
+		)
 	}
 	return result, nil
 }

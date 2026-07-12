@@ -16,6 +16,11 @@ An indeterminate provider returns a zero `Result` and a typed error. The request
 may have debited once, so never replay automatically. Wait a conservative full
 refill interval (`Burst / RatePerSecond`) or absorb one debit in the caller budget.
 
+## Diagnostics
+
+Gate and result waits are bounded. Runner failures report only stable case names
+and never render adapter errors, keys, endpoints, or provider response text.
+
 ## Test
 
 ```bash
