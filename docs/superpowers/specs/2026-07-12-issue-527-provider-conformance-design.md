@@ -138,11 +138,16 @@ func MemoryHarness() Harness
 collection/failpoint처럼 backend에 맞는 구현을 사용한다. `OperationCount`는 failure 또는
 ownership loss 뒤 worker가 멈춰 추가 traffic이 없음을 bounded window에서 증명한다.
 
-Control은 normalized `leader.Options` identity를 그대로 사용한다. `ReplaceOwner`는
-nonblank structural owner만 허용한다. `FailNext`는 non-nil cause와 위 두 operation만
-허용하고 같은 options identity의 다음 matching operation 정확히 하나에 적용된다.
-`OperationCount`는 identity/operation별 concurrency-safe monotonic cumulative count이며
-reset하지 않는다. Runner는 subtest 시작 baseline과 종료 count의 delta만 비교한다.
+`Run`은 각 case의 `leader.Options`를 한 번 normalize하고 factory와 Control에는 그
+normalized value만 전달한다. Control은 normalized `leader.Options` identity를 그대로
+사용한다. `ReplaceOwner`는 nonblank structural owner만 허용한다. `FailNext`는 non-nil
+cause와 위 두 operation만 허용하고 같은 options identity의 다음 matching operation
+정확히 하나에 적용된다. Direct invalid call에서 error-returning Control method는 공통
+validation error를 반환하고 side effect를 만들지 않는다. `Owner`도 invalid options를
+같이 거절한다. Error를 반환할 수 없는 `OperationCount`는 invalid options/operation에 0을
+반환한다. Valid identity의 `OperationCount`는 identity/operation별 concurrency-safe
+monotonic cumulative count이며 reset하지 않는다. Runner는 subtest 시작 baseline과 종료
+count의 delta만 비교한다.
 
 `Run`은 개별 contract를 named subtest로 실행한다. Harness, factory, control 및 반환
 elector는 nil일 수 없다. Construction/control failure는 `t.Helper()` attribution으로 해당
@@ -334,6 +339,13 @@ low-cardinality backend/operation만 출력하고 cause text를 호출하지
 cause를 감싸 raw command, namespace, endpoint 및 credential text를 숨긴다. Nil cause와
 blank/control/32-byte 초과 backend/operation에는 validation error를 반환하며 provider는
 package-owned constants만 전달한다.
+
+공개 concrete type의 constructor 우회를 안전하게 만들기 위해 zero value와 nil receiver도
+명시한다. `(*OperationError)(nil).Error()`와 zero-value `Error()`는 cause나 동적 값을
+포함하지 않는 generic `"leader operation failed"`를 반환한다. 두 경우 `Unwrap()`은 nil,
+`Backend()`와 `Operation()`은 각각 stable fallback `"unknown"`을 반환한다. 정상 생성된
+값의 accessor만 validated package-owned label을 반환한다. 이 동작과 cause의 `Error()`가
+호출되지 않는다는 사실을 unit test로 고정한다.
 
 Conformance runner는 formatted provider error 문자열을 비교하지 않는다. Sentinel,
 context 원인, boolean/result state 및 backend-independent side effect만 검사한다. Runner
