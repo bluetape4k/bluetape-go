@@ -128,7 +128,7 @@ func TestMutexGeneratedTokenUsesSharedOwnerToken(t *testing.T) {
 	}
 }
 
-func TestMutexCustomTokenPreservesLegacyNormalization(t *testing.T) {
+func TestMutexCustomTokenPreservesBytes(t *testing.T) {
 	ctx := context.Background()
 	client := redisClient(ctx, t)
 	key := testLockKey(t)
@@ -138,8 +138,8 @@ func TestMutexCustomTokenPreservesLegacyNormalization(t *testing.T) {
 	if err != nil {
 		t.Fatalf("try lock: %v", err)
 	}
-	if lease.Token() != "owner-a" {
-		t.Fatalf("custom token = %q, want owner-a", lease.Token())
+	if lease.Token() != " owner-a " {
+		t.Fatalf("custom token = %q, want byte-identical token", lease.Token())
 	}
 	value, err := client.Get(ctx, key).Result()
 	if err != nil {

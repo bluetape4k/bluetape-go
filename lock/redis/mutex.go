@@ -2,7 +2,9 @@ package redislock
 
 import (
 	"context"
+	"errors"
 	"fmt"
+	"time"
 
 	btredis "github.com/bluetape4k/bluetape-go/redis"
 	"github.com/redis/go-redis/v9"
@@ -42,6 +44,10 @@ func New(client redis.Cmdable, opts Options) (*Mutex, error) {
 }
 
 // TryLock 은 lock 획득을 한 번 시도한다.
+//
+// ErrCommitUnknown과 함께 non-nil Lease가 반환되면 type-first로 오류를 판별한 뒤
+// 그 Lease로 bounded Unlock을 즉시 시도해야 한다. 같은 Lease의 Unlock은 재시도할 수
+// 있으며 정리가 확인되지 않으면 TTL 만료를 기다려야 한다.
 func (m *Mutex) TryLock(ctx context.Context) (*Lease, error) {
 	ctx = normalizeContext(ctx)
 	if err := ctx.Err(); err != nil {
@@ -60,11 +66,23 @@ func (m *Mutex) TryLock(ctx context.Context) (*Lease, error) {
 
 	ok, err := m.client.SetNX(ctx, m.opts.key, token, m.opts.ttl).Result()
 	if err != nil {
-		return nil, btredis.NewOpError(
+		lease := &Lease{mutex: m, key: m.opts.key, token: token, sharedLease: sharedLease}
+		confirmed, probeErr := m.reconcileOwner(token)
+		if probeErr == nil && confirmed {
+			return lease, nil
+		}
+		wrapped := btredis.NewOpError(
 			btredis.OpLabels{Family: "lock", Operation: "acquire"},
 			m.opts.key,
 			err,
 		)
+		if probeErr != nil {
+			return lease, errors.Join(wrapped, btredis.ErrCommitUnknown)
+		}
+		if ctx.Err() != nil && errors.Is(err, ctx.Err()) {
+			return nil, ctx.Err()
+		}
+		return nil, wrapped
 	}
 	if !ok {
 		return nil, ErrNotAcquired
@@ -94,6 +112,9 @@ func (l *Lease) Token() string {
 }
 
 // Unlock 은 현재 token이 아직 owner일 때만 lock key를 제거한다.
+//
+// ErrCommitUnknown이면 동일 Lease로 bounded Unlock을 재시도한다. false와 nil은 이미
+// 삭제됐거나 owner가 교체됐음을 뜻하며 replacement owner는 삭제하지 않는다.
 func (l *Lease) Unlock(ctx context.Context) (bool, error) {
 	if l == nil || l.mutex == nil {
 		return false, nil
@@ -103,18 +124,49 @@ func (l *Lease) Unlock(ctx context.Context) (bool, error) {
 		return false, err
 	}
 	if l.sharedLease != nil {
-		return btredis.CompareAndDelete(ctx, l.mutex.client, *l.sharedLease, "lock")
+		deleted, err := btredis.CompareAndDelete(ctx, l.mutex.client, *l.sharedLease, "lock")
+		if err != nil {
+			if l.preDispatchCancellation(ctx) {
+				return false, ctx.Err()
+			}
+			return false, errors.Join(err, btredis.ErrCommitUnknown)
+		}
+		return deleted, nil
 	}
 
 	result, err := l.mutex.client.Eval(ctx, unlockScript, []string{l.key}, l.token).Int()
 	if err != nil {
-		return false, btredis.NewOpError(
+		if l.preDispatchCancellation(ctx) {
+			return false, ctx.Err()
+		}
+		return false, errors.Join(btredis.NewOpError(
 			btredis.OpLabels{Family: "lock", Operation: "compare-delete"},
 			l.key,
 			err,
-		)
+		), btredis.ErrCommitUnknown)
 	}
 	return result == 1, nil
+}
+
+func (l *Lease) preDispatchCancellation(ctx context.Context) bool {
+	if ctx == nil || ctx.Err() == nil || l == nil || l.mutex == nil {
+		return false
+	}
+	matched, err := l.mutex.reconcileOwner(l.token)
+	return err == nil && matched
+}
+
+func (m *Mutex) reconcileOwner(token string) (bool, error) {
+	probeCtx, cancel := context.WithTimeout(context.Background(), min(m.opts.ttl, 250*time.Millisecond))
+	defer cancel()
+	owner, err := m.client.Get(probeCtx, m.opts.key).Result()
+	if errors.Is(err, redis.Nil) {
+		return false, nil
+	}
+	if err != nil {
+		return false, err
+	}
+	return owner == token, nil
 }
 
 func normalizeContext(ctx context.Context) context.Context {
