@@ -56,3 +56,51 @@ Authoritative samples:
 | TokenBucketAllowRejected-12 | 77.16 | 0 | 0 |
 
 Task 9 must rerun the identical command. Any non-zero allocation is a stop condition. A latency regression above 10% must be investigated and rerun; it cannot be dismissed without fresh samples.
+
+## Post-Implementation Evidence
+
+| Predicted risk | Actual signal and disposition |
+|---|---|
+| late acquisition / response loss | All three runners distinguish before/after linearization. Redis leader/lock owner probes and Mongo retained cleanup state pass; Redis rate records exactly one debit and performs no replay. |
+| resign/renew overlap | Leader runner proves renew traffic stops after loss; bounded cleanup and TTL takeover pass for Redis and Mongo. Repository race gate reports no data race. |
+| retry storm | Redis single leader uses a 100 ms minimum contention delay, bounding attempts to 10 per second, below the 12/second canary threshold. |
+| false gate PASS | Reference fixtures pass while bare-context lost response, zero operation counts, invalid classifiers, and raw diagnostics are rejected by helper self-tests. |
+| import cycle | `ratelimit/ratelimittest` has no parent-package import and the full repository build succeeds. |
+| key/owner migration | Existing key/schema tests pass. Redis lock custom nonblank token bytes, including surrounding whitespace, are preserved and the caller audit records the migration. |
+| Testcontainers leak | Serial Redis/Mongo provider tests and the full CI Testcontainers suite complete with caller-owned client/container cleanup. |
+| hot-path allocation | All ten after samples remain `0 B/op` and `0 allocs/op`; no stop condition triggered. |
+| secret leakage | Provider-specific forbidden-marker tests preserve `errors.As`/sentinels while rendered and captured diagnostics omit key/token/endpoint/cause markers. |
+
+### TokenBucket After Samples
+
+The exact baseline command was rerun after the private nil hook:
+
+| Benchmark | ns/op | B/op | allocs/op |
+|---|---:|---:|---:|
+| TokenBucketAllowAllowed-12 | 115.8 | 0 | 0 |
+| TokenBucketAllowAllowed-12 | 115.5 | 0 | 0 |
+| TokenBucketAllowAllowed-12 | 115.5 | 0 | 0 |
+| TokenBucketAllowAllowed-12 | 115.0 | 0 | 0 |
+| TokenBucketAllowAllowed-12 | 115.1 | 0 | 0 |
+| TokenBucketAllowRejected-12 | 76.47 | 0 | 0 |
+| TokenBucketAllowRejected-12 | 76.87 | 0 | 0 |
+| TokenBucketAllowRejected-12 | 77.18 | 0 | 0 |
+| TokenBucketAllowRejected-12 | 76.66 | 0 | 0 |
+| TokenBucketAllowRejected-12 | 76.59 | 0 | 0 |
+
+Allowed-path median changed from 113.9 to 115.5 ns/op (about +1.4%). Rejected-path median changed from 76.30 to 76.66 ns/op (about +0.5%). Both remain below the 10% investigation threshold.
+
+### Verification Commands
+
+The following gates passed on the implementation diff:
+
+```bash
+go test -p 1 -count=1 ./leader/... ./lock/... ./ratelimit/...
+go test -p 1 -race -count=1 ./leader/leadertest ./leader/redis ./leader/mongo \
+  ./lock/locktest ./lock/redis ./ratelimit/ratelimittest ./ratelimit ./ratelimit/redis
+make fmt-check
+make tidy-check
+make vet
+make lint
+TESTCONTAINERS_REUSE_ENABLE=false TESTCONTAINERS_RYUK_DISABLED=false make ci
+```
