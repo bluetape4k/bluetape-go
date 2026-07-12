@@ -67,11 +67,11 @@ func runAcquireRelease(t *testing.T, h Harness, config Config) error {
 	}
 	release, err := acquire(context.Background())
 	if err != nil || release == nil {
-		return fmt.Errorf("acquire = %v, %w", release, err)
+		return lockFailure(fmt.Sprintf("acquire release=%v", release), err)
 	}
 	deleted, err := release(context.Background())
 	if err != nil || !deleted {
-		return fmt.Errorf("release = %v, %w", deleted, err)
+		return lockFailure(fmt.Sprintf("release deleted=%v", deleted), err)
 	}
 	return nil
 }
@@ -91,10 +91,10 @@ func runContention(t *testing.T, h Harness, config Config) error {
 	if err != nil {
 		return err
 	}
-	defer release(context.Background())
+	defer func() { _, _ = release(context.Background()) }()
 	otherRelease, err := second(context.Background())
 	if otherRelease != nil || err == nil {
-		return fmt.Errorf("contention tuple = %v, %v", otherRelease, err)
+		return lockFailure(fmt.Sprintf("contention tuple release=%v", otherRelease), err)
 	}
 	return nil
 }
@@ -109,10 +109,10 @@ func runRepeatedRelease(t *testing.T, h Harness, config Config) error {
 		return err
 	}
 	if deleted, err := release(context.Background()); err != nil || !deleted {
-		return fmt.Errorf("first release = %v, %v", deleted, err)
+		return lockFailure(fmt.Sprintf("first release deleted=%v", deleted), err)
 	}
 	if deleted, err := release(context.Background()); err != nil || deleted {
-		return fmt.Errorf("second release = %v, %v", deleted, err)
+		return lockFailure(fmt.Sprintf("second release deleted=%v", deleted), err)
 	}
 	return nil
 }
@@ -123,14 +123,14 @@ func runExpiryTakeover(t *testing.T, h Harness, config Config) error {
 	if err != nil {
 		return err
 	}
-	defer release(context.Background())
+	defer func() { _, _ = release(context.Background()) }()
 	time.Sleep(config.TTL + 10*time.Millisecond)
 	other := config
 	other.Owner += "-other"
 	second, _ := makeAcquire(t, h, other)
 	secondRelease, err := second(context.Background())
 	if err != nil || secondRelease == nil {
-		return fmt.Errorf("expiry takeover = %v, %v", secondRelease, err)
+		return lockFailure(fmt.Sprintf("expiry takeover release=%v", secondRelease), err)
 	}
 	_, err = secondRelease(context.Background())
 	return err
@@ -142,7 +142,7 @@ func runPreCanceledAcquire(t *testing.T, h Harness, config Config) error {
 	cancel()
 	release, err := acquire(ctx)
 	if release != nil || !errors.Is(err, context.Canceled) {
-		return fmt.Errorf("pre-canceled acquire = %v, %v", release, err)
+		return lockFailure(fmt.Sprintf("pre-canceled acquire release=%v", release), err)
 	}
 	return nil
 }
@@ -157,7 +157,7 @@ func runPreCanceledRelease(t *testing.T, h Harness, config Config) error {
 	cancel()
 	deleted, err := release(ctx)
 	if deleted || !errors.Is(err, context.Canceled) {
-		return fmt.Errorf("pre-canceled release = %v, %v", deleted, err)
+		return lockFailure(fmt.Sprintf("pre-canceled release deleted=%v", deleted), err)
 	}
 	_, cleanupErr := release(context.Background())
 	return cleanupErr
@@ -167,7 +167,7 @@ func runCancelBefore(t *testing.T, h Harness, config Config) error {
 	acquire, _ := makeAcquire(t, h, config)
 	gate, err := h.Control.GateNext(context.Background(), config, OperationAcquire, PhaseBeforeLinearize)
 	if err != nil || gate == nil {
-		return fmt.Errorf("gate = %v, %v", gate, err)
+		return lockFailure(fmt.Sprintf("gate=%v", gate), err)
 	}
 	defer gate.Resume()
 	ctx, cancel := context.WithCancel(context.Background())
@@ -179,11 +179,11 @@ func runCancelBefore(t *testing.T, h Harness, config Config) error {
 	}
 	cancel()
 	if err := <-result; !errors.Is(err, context.Canceled) {
-		return fmt.Errorf("before-linearize error = %v", err)
+		return lockFailure("before-linearize cancellation mismatch", err)
 	}
 	owner, err := h.Control.Owner(context.Background(), config)
 	if err != nil || owner != "" {
-		return fmt.Errorf("before-linearize owner = %q, %v", owner, err)
+		return lockFailure(fmt.Sprintf("before-linearize owner=%q", owner), err)
 	}
 	return nil
 }
@@ -210,7 +210,7 @@ func runCancelAfter(t *testing.T, h Harness, config Config) error {
 	gate.Resume()
 	got := <-resultCh
 	if got.err != nil || got.release == nil {
-		return fmt.Errorf("after-linearize acquire = %v, %v", got.release, got.err)
+		return lockFailure(fmt.Sprintf("after-linearize acquire release=%v", got.release), got.err)
 	}
 	_, err = got.release(context.Background())
 	return err
@@ -223,17 +223,17 @@ func runLostResponse(t *testing.T, h Harness, config Config) error {
 	}
 	release, err := acquire(context.Background())
 	if release == nil || err == nil || !h.IsProviderError(err) || !h.IsProviderError(fmt.Errorf("nested: %w", err)) {
-		return fmt.Errorf("lost acquire tuple = %v, %v", release, err)
+		return lockFailure(fmt.Sprintf("lost acquire tuple release=%v", release), err)
 	}
 	if err := h.Control.FailNext(context.Background(), config, OperationRelease, errors.New("injected-cause")); err != nil {
 		return err
 	}
 	deleted, err := release(context.Background())
 	if deleted || err == nil || !h.IsProviderError(err) {
-		return fmt.Errorf("lost release tuple = %v, %v", deleted, err)
+		return lockFailure(fmt.Sprintf("lost release tuple deleted=%v", deleted), err)
 	}
 	if deleted, err := release(context.Background()); err != nil || deleted {
-		return fmt.Errorf("release retry = %v, %v", deleted, err)
+		return lockFailure(fmt.Sprintf("release retry deleted=%v", deleted), err)
 	}
 	return nil
 }
@@ -253,14 +253,21 @@ func runStaleRelease(t *testing.T, h Harness, config Config) error {
 		return err
 	}
 	if deleted, err := staleRelease(context.Background()); err != nil || deleted {
-		return fmt.Errorf("stale release = %v, %v", deleted, err)
+		return lockFailure(fmt.Sprintf("stale release deleted=%v", deleted), err)
 	}
 	owner, err := h.Control.Owner(context.Background(), other)
 	if err != nil || owner != other.Owner {
-		return fmt.Errorf("replacement owner = %q, %v", owner, err)
+		return lockFailure(fmt.Sprintf("replacement owner=%q", owner), err)
 	}
 	_, err = activeRelease(context.Background())
 	return err
+}
+
+func lockFailure(message string, err error) error {
+	if err != nil {
+		return fmt.Errorf("%s: %w", message, err)
+	}
+	return errors.New(message)
 }
 
 func runExactContention(t *testing.T, h Harness, config Config) error {

@@ -36,8 +36,10 @@ type Factory func(testing.TB, Config) (AllowFunc, error)
 type Phase string
 
 const (
+	// PhaseBeforeLinearize pauses before debit dispatch.
 	PhaseBeforeLinearize Phase = "before-linearize"
-	PhaseAfterLinearize  Phase = "after-linearize"
+	// PhaseAfterLinearize pauses after the debit commits.
+	PhaseAfterLinearize Phase = "after-linearize"
 )
 
 // Gate pauses one Allow call at a deterministic boundary.

@@ -24,7 +24,7 @@ func TestMemoryControlRejectsInvalidCallsWithoutMutation(t *testing.T) {
 	opts := leader.Options{Group: "control", MemberID: "member", Lease: 50 * time.Millisecond, RenewInterval: 10 * time.Millisecond}
 	before := h.Control.OperationCount(opts, OperationCampaign)
 
-	if err := h.Control.ReplaceOwner(nil, opts, "owner"); !errors.Is(err, leader.ErrInvalidContext) {
+	if err := h.Control.ReplaceOwner(nil, opts, "owner"); !errors.Is(err, leader.ErrInvalidContext) { //nolint:staticcheck // nil is the contract input under test.
 		t.Fatalf("ReplaceOwner(nil) error = %v", err)
 	}
 	canceled, cancel := context.WithCancel(context.Background())

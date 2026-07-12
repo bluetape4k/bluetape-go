@@ -40,7 +40,7 @@ func TestMongoElectorIntegration(t *testing.T) {
 		collection := newTestCollection(ctx, t, client)
 		control := newMongoConformanceControl(collection)
 		leadertest.Run(t, leadertest.Harness{
-			New: func(tb testing.TB, opts leader.Options) (leader.Elector, error) {
+			New: func(_ testing.TB, opts leader.Options) (leader.Elector, error) {
 				elector, err := New(collection, opts, WithRetryDelay(10*time.Millisecond))
 				if err != nil {
 					return nil, err

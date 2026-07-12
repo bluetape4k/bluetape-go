@@ -54,11 +54,13 @@ func TestNewOperationErrorRejectsUnsafeMetadata(t *testing.T) {
 		{"mongo", strings.Repeat("c", 33)},
 	}
 	for _, tt := range invalid {
-		if _, ok := leader.NewOperationError(tt.backend, tt.operation, cause).(*leader.OperationError); ok {
+		var operationErr *leader.OperationError
+		if errors.As(leader.NewOperationError(tt.backend, tt.operation, cause), &operationErr) {
 			t.Fatalf("NewOperationError(%q, %q) returned OperationError", tt.backend, tt.operation)
 		}
 	}
-	if _, ok := leader.NewOperationError("mongo", "campaign", nil).(*leader.OperationError); ok {
+	var operationErr *leader.OperationError
+	if errors.As(leader.NewOperationError("mongo", "campaign", nil), &operationErr) {
 		t.Fatal("nil cause returned OperationError")
 	}
 }

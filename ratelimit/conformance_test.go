@@ -13,7 +13,7 @@ import (
 func TestTokenBucketConformance(t *testing.T) {
 	control := newTokenBucketControl()
 	harness := ratelimittest.Harness{
-		New: func(tb testing.TB, config ratelimittest.Config) (ratelimittest.AllowFunc, error) {
+		New: func(_ testing.TB, config ratelimittest.Config) (ratelimittest.AllowFunc, error) {
 			bucket, err := New(Options{
 				RatePerSecond: config.RatePerSecond,
 				Burst:         config.Burst,
