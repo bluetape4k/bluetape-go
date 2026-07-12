@@ -135,3 +135,11 @@ go test -count=1 ./leader/redis -run 'Test(BatchSchedulerExample|MigrationGateEx
 ```bash
 go test -count=1 ./leader/redis
 ```
+
+## Conformance And Recovery
+
+`Campaign` blocks with bounded retry until acquisition or context termination.
+A dispatched response loss is reconciled by owner token; probe failure matches
+both `leader.ErrCommitUnknown` and `redis.ErrCommitUnknown`. Keep the elector,
+run bounded `Resign`, and wait for lease TTL if cleanup cannot be confirmed.
+Canary command rate must stay at or below 12 acquisition commands per second.

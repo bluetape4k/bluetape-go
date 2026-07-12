@@ -115,3 +115,11 @@ macOS arm64 on Apple M4 Pro. Lower `ns/op`, `B/op`, and `allocs/op` are better.
 | `BenchmarkTokenBucketAllowAllowed` | 116.4 | 0 | 0 |
 | `BenchmarkTokenBucketAllowRejected` | 76.76 | 0 | 0 |
 | `BenchmarkHandlerAllowed` | 51.26 | 160 | 3 |
+
+## Provider Conformance
+
+`ratelimit/ratelimittest.Run` applies the same burst, refill, cancellation, and
+exact-admission contract to the local and Redis providers. A Redis commit-unknown
+returns a zero result but may have debited once: check the typed error first,
+never replay automatically, and wait a conservative full-refill interval or
+absorb one debit in the caller budget.

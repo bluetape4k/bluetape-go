@@ -180,3 +180,11 @@ go test -count=1 ./leader ./leader/mongo
 go test -race -count=1 ./leader ./leader/mongo
 go test -p 1 -count=1 ./leader/mongo ./testcontainers/mongodb
 ```
+
+## Conformance 및 복구
+
+Single elector는 `leader/leadertest.Run`을 실행하고 서로 다른 local-state sentinel을
+사용하며 backend 실패를 `leader.OperationError`로 감쌉니다. Dispatch된 campaign 또는
+resign 실패는 `leader.ErrCommitUnknown`을 match할 수 있습니다. 같은 elector로 bounded
+`Resign`을 재시도하고 새 campaign 전에는 lease TTL을 기다립니다. BSON lease schema와
+TTL cleanup index는 변경되지 않았습니다.

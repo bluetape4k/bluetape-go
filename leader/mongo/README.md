@@ -178,3 +178,11 @@ go test -count=1 ./leader ./leader/mongo
 go test -race -count=1 ./leader ./leader/mongo
 go test -p 1 -count=1 ./leader/mongo ./testcontainers/mongodb
 ```
+
+## Conformance And Recovery
+
+The single elector runs `leader/leadertest.Run`, uses distinct local-state
+sentinels, and wraps backend failures in `leader.OperationError`. A dispatched
+campaign or resign failure may match `leader.ErrCommitUnknown`; retry bounded
+`Resign` with the same elector, then rely on lease TTL before another campaign.
+The BSON lease schema and TTL cleanup index are unchanged.

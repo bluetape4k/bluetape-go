@@ -60,3 +60,12 @@ if err != nil {
 go test -count=1 ./leader
 go test -count=1 ./leader/mongo
 ```
+
+## Single-Elector Conformance
+
+Single electors now wait for acquisition or caller-context termination. Local
+duplicate, in-progress, cleanup-pending, and nil-context states have distinct
+sentinels. Check typed `OperationError` and `ErrCommitUnknown` before bare context
+errors; on an indeterminate commit, use bounded `Resign` and then TTL fallback.
+`leader/leadertest.Run` applies the same contract to Redis and Mongo. Group and
+strategic electors remain outside this single-elector suite.
