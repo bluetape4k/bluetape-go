@@ -475,7 +475,10 @@ rendered error와 captured test output에 없음을 검증한다.
   shared fixture subtest에서 `t.Parallel`을 금지한다. Startup/teardown context를 제한하고
   Redis `PING`/Mongo command probe가 성공한 뒤 runner를 시작한다. Allocation 직후 client
   cleanup을 등록하고 client를 container보다 먼저 닫는다. Factory/subtest failure를 포함해
-  unique namespace와 final owner/key absence를 검증한다.
+  unique namespace와 final owner/key absence를 검증한다. Teardown은 client close와 container
+  terminate를 각각 bounded context로 모두 시도하며 앞 단계 실패가 뒤 단계를 skip하지
+  않는다. Close/terminate error는 `t.Errorf`로 누적 보고하고 failure-path test 뒤에도 fixture
+  process/container가 남지 않았음을 확인한다.
 
 ## Public Documentation
 
@@ -568,12 +571,27 @@ provider가 public-call wrapper가 아닌 실제 mutation boundary에 hook을 �
   timeout/cancellation, validation failure category 및 provider failure count를 관측한다.
   Library는 global logger/metric을 만들지 않으며 raw group/member/token/provider error를
   기록하지 않는다.
+- Caller telemetry는 `ErrCampaignInProgress`/`ErrCleanupPending` count, cleanup-pending
+  duration, resign retry success/failure, TTL fallback count 및 takeover latency도 포함한다.
+  Label은 package-owned backend, operation 및 outcome/sentinel category의 bounded set만
+  허용하고 identity, endpoint, token 또는 rendered error를 label/log에 넣지 않는다.
 - Mixed old/new binaries는 같은 key/token/TTL format을 사용하지만 old binary는 즉시
   `ErrNotLeader`, new binary는 context까지 대기한다. New validation에 실패하지만 old
   binary가 허용하는 identity는 rollout 전에 제거하며, 발견되면 해당 caller의 new binary
   배포를 중지하고 identity를 교정한다. 이 차이를 rollout window에 명시한다.
-- Rollback 전 service shutdown context로 outstanding campaign을 취소한다. Binary rollback은
-  storage format이 같아 안전하며 남은 lease는 owner-aware resign 또는 TTL로 정리된다.
+- Canary는 최소 `max(15분, 10 * 최대 leader TTL)` 동안 정상 경합/갱신/resign/takeover를
+  포함해 직전 안정 버전의 같은 traffic window와 비교한다. Promotion 기본 gate는 새
+  validation failure 0, unresolved cleanup-pending 0, provider/resign failure와 campaign
+  timeout rate가 baseline 대비 상대 20% 및 절대 1 percentage point 이내, campaign wait와
+  takeover latency p95가 baseline의 1.2배 이내이며 모든 cleanup이 2 TTL 안에 retry 또는
+  TTL fallback으로 끝나는 것이다. Service owner는 더 엄격하게만 조정할 수 있다.
+- 위 gate 위반, raw identifier/error 노출, goroutine/container leak, 2 TTL을 넘긴 cleanup
+  pending 또는 새 owner를 막는 lease가 하나라도 있으면 promotion을 hold한다. 두 연속
+  5분 window에서 회복하지 않거나 safety/redaction 위반이면 rollback한다.
+- Rollback 전 service shutdown context로 outstanding campaign을 취소하고 bounded resign을
+  시도한다. 완료 gate는 campaign goroutine 0, cleanup-pending 0 또는 각 record의 남은 TTL이
+  관측·기록됨, 새 renew traffic 0, owner-aware resign/TTL 뒤 takeover probe 성공이다. Binary
+  rollback은 storage format이 같아 안전하며 이 gate 전에는 rollback 완료로 선언하지 않는다.
 
 ## Acceptance Criteria
 
