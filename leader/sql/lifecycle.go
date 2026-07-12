@@ -107,7 +107,7 @@ func (e *Elector) acquireAttempt(ctx context.Context) (bool, error) {
 	defer cancel()
 	acquired, operationErr := e.tryAcquire(attemptCtx)
 	internalTimeout := attemptCtx.Err() != nil && ctx.Err() == nil
-	if operationErr == nil && acquired {
+	if operationErr == nil {
 		operationErr = e.runTestHook("campaign", "after")
 	}
 	if operationErr == nil {
