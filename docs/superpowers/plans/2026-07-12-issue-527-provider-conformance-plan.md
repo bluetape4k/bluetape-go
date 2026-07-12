@@ -444,7 +444,7 @@ Expected: the same `leadertest.Run` cases pass for Redis and Mongo; BSON schema 
 
 - [ ] **Step 1: Write RED compile/validation/gate tests**
 
-Define the approved `Config`, `ReleaseFunc`, `AcquireFunc`, `Factory`, `OperationAcquire/Release`, `PhaseBefore/AfterLinearize`, `Gate`, `Control` including post-linearization `FailNext`, `Harness`, `Run`, and `MemoryHarness`. Test invalid config/operation/phase/cause, nil/pre-canceled contexts, nil returned gate/functions, idempotent non-blocking `Resume`, `AwaitStarted` cancellation, count fallback 0, exactly-one lost response, and cleanup auto-resume.
+Define the approved `Config`, `ReleaseFunc`, `AcquireFunc`, `Factory`, `OperationAcquire/Release`, `PhaseBefore/AfterLinearize`, `Gate`, `Control` including post-linearization `FailNext`, mandatory neutral `ErrorClassifier`, `Harness`, `Run`, and `MemoryHarness`. Test invalid config/operation/phase/cause, nil/pre-canceled contexts, nil returned gate/functions/classifier, idempotent non-blocking `Resume`, `AwaitStarted` cancellation, count fallback 0, exactly-one lost response, and cleanup auto-resume. The runner calls `IsProviderError(err)` instead of importing any concrete provider.
 
 - [ ] **Step 2: Observe RED**
 
@@ -468,7 +468,7 @@ var cases = []string{
 
 Before-linearize cancellation returns context error with nil/false and zero owner/count delta; after-linearize cancellation returns the successful release/result. Exact stress asserts one success, `workers-1` provider sentinels, `maxActive==1`, then one takeover.
 
-The lost-response case commits acquire/release then injects an error. It rejects a bare context error when an owner mutation occurred and requires either owner-token-confirmed success/cleanup or a typed provider error documenting indeterminate commit.
+The lost-response case commits acquire/release then injects an error. It rejects a bare context error when an owner mutation occurred and requires either owner-token-confirmed success/cleanup or `IsProviderError(err)==true`. Acquire tuples are own token `(release,nil)`, absent/different `(nil,typed error)`, probe failure `(release,typed error)`. Release lost-response returns `(false,typed error)`; retrying the same callback returns `(false,nil)` after prior delete or owner replacement and never deletes the replacement.
 
 - [ ] **Step 4: Add `ExampleRun` with a complete MemoryHarness adapter**
 
@@ -501,7 +501,7 @@ Expected: memory harness PASS; owner-ignorant release and wrapper-only fake adap
 
 - [ ] **Step 1: Add RED in-flight cancellation tests and harness invocation**
 
-Gate SetNX/Eval before and after server execution. Cancel before command dispatch and assert no key; cancel after successful server reply but before method return and assert a lease/`true,nil`; prove stale lease never deletes a replacement owner. Add leading/trailing-space and Unicode owner tokens and assert `Options.Token`, returned lease token, Redis value and owner probe are byte-identical rather than trimmed. Inject a post-linearization lost response and assert bounded owner-token reconciliation returns confirmed success or a non-nil owner-aware lease plus typed `*btredis.OpError`, never a bare context error with a committed key. The error-path lease must compare-delete only its own token and be safe after takeover.
+Gate SetNX/Eval before and after server execution. Cancel before command dispatch and assert no key; cancel after successful server reply but before method return and assert a lease/`true,nil`; prove stale lease never deletes a replacement owner. Add leading/trailing-space and Unicode owner tokens and assert `Options.Token`, returned lease token, Redis value and owner probe are byte-identical rather than trimmed. Inject an acquire post-linearization lost response and assert bounded owner-token reconciliation returns confirmed success or a non-nil owner-aware lease plus typed `*btredis.OpError`, never a bare context error with a committed key. Inject an unlock lost response after delete: first call is `(false, typed error)`, the same callback retry is `(false,nil)`, and a replacement owner is untouched. The error-path lease must compare-delete only its own token and be safe after takeover.
 
 - [ ] **Step 2: Observe RED**
 
@@ -513,7 +513,7 @@ Expected: FAIL because post-command cancellation linearization is unproved and n
 
 - [ ] **Step 3: Implement context arbitration and Redis adapter**
 
-Preserve the existing lock nil-context compatibility. Change token validation to reject all-blank values without trimming valid bytes. Use a private helper that returns a bare context error only before dispatch. Once SetNX/Eval produced a successful result, return it even if cancellation races afterward. On a dispatched error, probe with a short fresh context and the known owner token: own token confirms acquire success, absent/different owner confirms no acquire, and probe failure returns a constructed owner-aware `*Lease` together with typed `*btredis.OpError` as commit-indeterminate. The test adapter converts that lease to a non-nil release callback, uses go-redis hooks on a dedicated client for gate/fail/count and a control client for GET/SET, and maps `ErrNotAcquired` unchanged. Add a failure-path cleanup test that closes the client, terminates the container independently, reports both errors, and verifies no fixture remains.
+Preserve the existing lock nil-context compatibility. Change token validation to reject all-blank values without trimming valid bytes. Use a private helper that returns a bare context error only before dispatch. Once SetNX/Eval produced a successful result, return it even if cancellation races afterward. On a dispatched acquire error, probe with a short fresh context and the known owner token: own token confirms acquire success, absent/different owner confirms no acquire, and probe failure returns a constructed owner-aware `*Lease` together with typed `*btredis.OpError` as commit-indeterminate. On a dispatched unlock error, preserve the same Lease callback; retry compare-delete treats already-absent/owner-mismatch as `(false,nil)`. The test adapter converts an acquire error-path lease to a non-nil release callback, implements `IsProviderError` with `errors.As(*btredis.OpError)`, uses go-redis hooks on a dedicated client for gate/fail/count and a control client for GET/SET, and maps `ErrNotAcquired` unchanged. Add a failure-path cleanup test that closes the client, terminates the container independently, reports both errors, and verifies no fixture remains.
 
 - [ ] **Step 4: Verify and commit**
 
@@ -544,7 +544,7 @@ Expected: `locktest.Run` PASS, exact contention totals, no key after before-line
 
 - [ ] **Step 1: Write RED API and import-cycle tests**
 
-The helper must not import `github.com/bluetape4k/bluetape-go/ratelimit`. Define its own field-identical `Result`, `AllowFunc`, `Factory`, before/after `Phase`, `Gate`, `Control` including post-linearization `FailNext`, `Harness`, `Run`, and `MemoryHarness`. Test positive finite rate, positive burst, IdleTTL ≥ full-refill duration when nonzero, invalid key/phase/cause/count behavior, nil functions/gates, and context behavior. Cover idempotent/non-blocking `Resume`, nil/pre-canceled `AwaitStarted`, automatic `t.Cleanup` resume, exactly-one fail injection, and a deterministic abandoned-gate test proving the operation goroutine exits.
+The helper must not import `github.com/bluetape4k/bluetape-go/ratelimit`. Define its own field-identical `Result`, `AllowFunc`, `Factory`, before/after `Phase`, `Gate`, `Control` including post-linearization `FailNext`, mandatory neutral `ErrorClassifier`, `Harness`, `Run`, and `MemoryHarness`. Test positive finite rate, positive burst, IdleTTL ≥ full-refill duration when nonzero, invalid key/phase/cause/count behavior, nil functions/gates/classifier, and context behavior. Cover idempotent/non-blocking `Resume`, nil/pre-canceled `AwaitStarted`, automatic `t.Cleanup` resume, exactly-one fail injection, and a deterministic abandoned-gate test proving the operation goroutine exits. The runner uses `IsProviderError` and never imports Redis or the parent package.
 
 - [ ] **Step 2: Observe RED**
 
@@ -568,7 +568,7 @@ var cases = []string{
 
 Exact concurrency uses a frozen/no-refill window and asserts `allowed==Burst`, `rejected==requests-Burst`, and admitted token sum `Burst`. Before cancellation leaves a full burst; after cancellation returns success and the next request observes the exact prior debit.
 
-`lost-response` debits once and injects an error after linearization. The memory fixture can confirm and return the result; a provider adapter that cannot replay must return its typed provider wrapper and the evaluator verifies one debit rather than automatically retrying.
+`lost-response` debits once and injects an error after linearization. The memory fixture can confirm and return the result; a provider adapter that cannot replay returns zero `ratelimittest.Result` with `IsProviderError(err)==true`, and the evaluator verifies one debit rather than automatically retrying.
 
 - [ ] **Step 4: Add the compile-checked `ExampleRun`**
 
@@ -650,7 +650,7 @@ Expected: runner/race PASS; compare `/tmp/issue-527-token-bucket-before.txt` and
 
 - [ ] **Step 1: Add RED command-boundary cancellation and runner tests**
 
-Use a go-redis hook to pause before Eval dispatch and after successful Eval response. Before cancellation must leave no bucket key and permit a full burst; after cancellation must return the successful neutral result and the next request must observe the debit. Inject an error after the Lua script debits and assert one debit plus typed `*btredis.OpError`; never automatically replay the non-idempotent request. Preserve existing server-time rounding tests.
+Use a go-redis hook to pause before Eval dispatch and after successful Eval response. Before cancellation must leave no bucket key and permit a full burst; after cancellation must return the successful neutral result and the next request must observe the debit. Inject an error after the Lua script debits and assert exactly one debit plus zero `ratelimittest.Result` and typed `*btredis.OpError`; never automatically replay the non-idempotent request. Preserve existing server-time rounding tests.
 
 - [ ] **Step 2: Observe RED**
 
@@ -671,7 +671,7 @@ return ratelimittest.Result{
 }, err
 ```
 
-Use unique namespace/key, cumulative Eval counts, post-linearization fail injection, and no wrapper-only gate. Add a setup/subtest-failure cleanup test that independently closes the client, terminates the container, reports both failures, and verifies no fixture remains.
+Use unique namespace/key, cumulative Eval counts, post-linearization fail injection, `IsProviderError` implemented with `errors.As(*btredis.OpError)`, and no wrapper-only gate. Add a setup/subtest-failure cleanup test that independently closes the client, terminates the container, reports both failures, and verifies no fixture remains.
 
 - [ ] **Step 4: Verify and commit**
 

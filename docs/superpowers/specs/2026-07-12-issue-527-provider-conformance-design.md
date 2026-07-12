@@ -96,7 +96,8 @@ Public API를 만들지 않아도 되지만 SQL/etcd provider가 같은 contract
   `leader.ErrCleanupPending`으로 거절되며 기존 state를 잃지 않는다.
 - 다른 owner가 살아 있는 동안 contender는 대기하고 context cancellation/deadline을
   `errors.Is`로 보존한다.
-- cancellation 반환 뒤 contender가 늦게 acquire하지 않는다.
+- bare pre-dispatch context 반환 뒤 contender가 늦게 acquire하지 않는다. Post-dispatch
+  response loss는 typed commit-unknown과 reconciliation/cleanup path로 검증한다.
 - renewal이 원래 lease를 넘겨 active owner의 takeover를 막는다.
 - backend renew error와 owner-token mismatch 모두 `IsLeader=false`, renewal worker 종료,
   추가 renew traffic 부재 및 lease expiry 뒤 takeover로 이어진다.
@@ -203,9 +204,11 @@ type Control interface {
     Owner(context.Context, Config) (string, error)
     OperationCount(Config, Operation) int64
 }
+type ErrorClassifier func(error) bool
 type Harness struct {
-    New     Factory
-    Control Control
+    New             Factory
+    Control         Control
+    IsProviderError ErrorClassifier
 }
 
 func Run(t *testing.T, harness Harness)
@@ -223,6 +226,9 @@ Invalid Config/operation/phase는 validation error이며 gate, count, owner side
 `OperationCount`는 invalid input에 0을 반환한다. `GateNext`의 nil error에는 non-nil Gate가
 필수다. `Gate.AwaitStarted`는 nil context에 validation error, pre-canceled/deadline
 context에 해당 context error를 반환하며 gate state를 바꾸지 않는다.
+`IsProviderError`는 mandatory neutral classifier다. Memory harness는 자체 typed fixture
+error, Redis adapter는 `errors.As(*redis.OpError)`, 후속 provider는 자신의 typed wrapper를
+판별한다. Runner는 concrete provider package를 import하지 않는다.
 
 Factory는 같은 key와 다른 owner로 여러 mutex를 만들 수 있어야 한다. Runner는 acquire,
 contention rejection, owner release, repeated release, expiry takeover, pre-canceled acquire,
@@ -243,6 +249,7 @@ Acquire/release 결과 계약은 다음과 같다.
 | contention | nil release, provider sentinel | 해당 없음 |
 | validation/context/provider 실패 | nil release, non-nil error | 해당 없음 |
 | acquire commit-unknown | non-nil owner-aware release, typed provider error | bounded reconcile cleanup |
+| release commit-unknown | 해당 없음 | `false, typed provider error`; 같은 callback retry |
 | 현재 owner의 최초 release | 해당 없음 | `true, nil` |
 | 이미 release/expiry된 owner | 해당 없음 | `false, nil` |
 | stale owner mismatch | 해당 없음 | `false, nil` |
@@ -262,6 +269,13 @@ Redis adapter는 `*redis.OpError`와 non-nil owner-aware release를 반환하고
 probe로 success/absence를 reconcile한 경우에만 확정 결과를 반환한다. Probe도 실패하면
 commit state는 indeterminate이며 caller는 release callback을 bounded fresh context로
 호출해 compare-delete/TTL cleanup한다.
+
+Acquire lost-response의 exact tuple은 own token confirmed면 `(non-nil release, nil)`,
+absent/different owner confirmed면 `(nil, original typed error)`, probe failure면
+`(non-nil owner-aware release, typed error)`다. Release delete가 linearize된 뒤 응답을 잃으면
+첫 호출은 `(false, typed error)`이며 같은 callback을 bounded fresh context로 재호출한다.
+이미 삭제됐거나 owner가 교체됐으면 retry는 `(false, nil)`이고 replacement owner를 지우지
+않는다.
 
 Memory fixture는 owner와 expiry를 mutex로 보호하고 release 시 owner를 compare한다.
 Background goroutine은 사용하지 않으며 operation 시각에 expiry를 판정해 deterministic
@@ -307,9 +321,11 @@ type Control interface {
     FailNext(context.Context, string, error) error
     OperationCount(string) int64
 }
+type ErrorClassifier func(error) bool
 type Harness struct {
-    New     Factory
-    Control Control
+    New             Factory
+    Control         Control
+    IsProviderError ErrorClassifier
 }
 
 func Run(t *testing.T, harness Harness)
@@ -324,6 +340,8 @@ validation/context error를 반환한다.
 Blank/invalid key 또는 phase는 validation error이며 gate/count/quota side effect가 없다.
 `FailNext`는 next `Allow`가 linearize되어 quota를 반영한 뒤 non-nil cause를 응답으로
 주입한다.
+`IsProviderError`는 mandatory neutral classifier라 runner가 concrete provider package를
+import하지 않고 typed wrapper 여부를 검증한다.
 `OperationCount`는 invalid key에 0을 반환한다. `GateNext`의 nil error에는 non-nil Gate가
 필수다. `Gate.AwaitStarted`는 nil context에 validation error, pre-canceled/deadline
 context에 해당 context error를 반환하며 gate state를 바꾸지 않는다.
@@ -355,7 +373,8 @@ bounded window에서 이를 검증한다. `Requested`, `Remaining`, `RetryAfter`
 After-linearize `FailNext`는 quota를 반영한 뒤 응답만 잃는 경우를 재현한다. Local fixture는
 동기식 결과를 확정해 반환하고 Redis adapter는 기존 typed `*redis.OpError`를 반환한다.
 Redis error는 debit 여부가 indeterminate이므로 runner는 actual operation count/debit을
-관측하되 자동 replay나 두 번째 debit을 요구하지 않는다.
+관측하되 반환값은 zero `ratelimittest.Result`와 typed provider error로 고정하고 자동 replay나
+두 번째 debit을 요구하지 않는다.
 
 Local clock과 Redis server clock은 운영상 다른 source지만 observable token bucket
 contract는 같다. Refill test는 bounded duration과 eventual assertion을 사용한다. Fake
@@ -535,6 +554,11 @@ idempotent `Resume` 및 `t.Cleanup` failure-path 해제를 compile-check한다. 
 provider가 public-call wrapper가 아닌 실제 mutation boundary에 hook을 연결하는 기준도
 명시한다.
 
+Lock GoDoc/README/CHANGELOG는 commit-unknown acquire의 `release != nil && err != nil` tuple,
+즉시 bounded owner-aware cleanup, release lost-response 뒤 같은 callback retry와 replacement
+owner safety를 예제로 보여준다. 모든 helper는 bare context와 typed provider wrapper 판별을
+보여주며 rate-limit은 typed lost-response error 뒤 automatic replay를 금지한다.
+
 `leader/README.md`와 `leader/README.ko.md`는 blocking `Campaign` semantics와 legacy
 `ErrNotLeader` 상태를 반영한다. 공개 behavior 변경은 `CHANGELOG.md`의 0.19.0 대상
 `Unreleased` section에 old/new behavior, timeout migration 및 rollback compatibility와 함께
@@ -588,9 +612,10 @@ provider가 public-call wrapper가 아닌 실제 mutation boundary에 hook을 �
   control character를 포함하지 않으며 group/member는 각각 256 bytes, 최종 key는 512 bytes
   이하이다. Unicode bytes는 normalize하지 않아 canonically equivalent text도 서로 다른
   identity로 유지한다. Valid input의 기존 key bytes는 그대로다.
-- Redis key bytes, owner token, lease TTL, compare-and-delete 및 error redaction contract는
-  valid input에 대해 변경하지 않는다. Collision/whitespace/control/delimiter/oversize case는
-  backend call 전에 공통 rejection된다.
+- Redis key bytes, generated leader/lock owner token, lease TTL, compare-and-delete 및 error
+  redaction contract는 valid input에 대해 변경하지 않는다. Collision/whitespace/control/
+  delimiter/oversize leader identity는 backend call 전에 공통 rejection된다. Custom lock token은
+  아래 byte-preservation migration의 예외다.
 - Redis dispatch 뒤 typed provider failure는 기존 substrate와 같이 commit-indeterminate다.
   Leader/lock은 owner-token probe와 owner-aware cleanup을 우선하고 rate-limit은 quota debit
   가능성을 보존적으로 취급해 자동 재시도를 금지한다. Redis hash/key schema와 request replay
@@ -651,9 +676,10 @@ provider가 public-call wrapper가 아닌 실제 mutation boundary에 hook을 �
 6. Local 및 Redis rate limiter가 동일 `ratelimittest.Run`을 통과한다.
 7. Fake fixtures와 실제 provider에서 cancellation, expiry/stale ownership 및 bounded
    concurrency evidence가 있다.
-8. 승인된 Redis single contention, common state-sentinel split, Mongo `OperationError` 및
-   common input-validation migration을 제외하고 기존 provider typed/sentinel error, valid
-   key bytes, TTL 및 owner-token semantics가 유지된다.
+8. 승인된 Redis single contention, common state-sentinel split, Mongo `OperationError`,
+   common input-validation, Redis lock custom-token byte preservation 및 typed
+   commit-indeterminate migration을 제외하고 기존 provider typed/sentinel error, valid key
+   bytes, TTL 및 generated owner-token semantics가 유지된다.
 9. 모든 public helper에 GoDoc, compile-checked example, English/Korean README parity가 있다.
 10. `go test -p 1 -count=1 ./leader/... ./lock/... ./ratelimit/...`와 해당 package race tests,
     `make ci`가 통과한다.
