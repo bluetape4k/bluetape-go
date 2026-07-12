@@ -29,9 +29,8 @@ func (o Options) normalize() (options, error) {
 	if o.TTL <= 0 {
 		return options{}, fmt.Errorf("redis lock ttl must be positive")
 	}
-	token := strings.TrimSpace(o.Token)
-	if o.Token != "" && token == "" {
+	if o.Token != "" && strings.TrimSpace(o.Token) == "" {
 		return options{}, fmt.Errorf("redis lock token must not be blank")
 	}
-	return options{key: o.Key, ttl: o.TTL, token: token}, nil
+	return options{key: o.Key, ttl: o.TTL, token: o.Token}, nil
 }

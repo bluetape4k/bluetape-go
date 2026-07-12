@@ -2,9 +2,11 @@ package redislock_test
 
 import (
 	"context"
+	"errors"
 	"time"
 
 	redislock "github.com/bluetape4k/bluetape-go/lock/redis"
+	btredis "github.com/bluetape4k/bluetape-go/redis"
 	"github.com/redis/go-redis/v9"
 )
 
@@ -25,6 +27,12 @@ func ExampleNew() {
 	}
 
 	lease, err := mutex.TryLock(ctx)
+	if errors.Is(err, btredis.ErrCommitUnknown) && lease != nil {
+		cleanupCtx, cleanupCancel := context.WithTimeout(context.Background(), 5*time.Second)
+		_, _ = lease.Unlock(cleanupCtx)
+		cleanupCancel()
+		return
+	}
 	if err != nil {
 		return
 	}
