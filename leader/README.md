@@ -4,7 +4,8 @@
 
 `leader` defines the leader-election contracts used by bluetape-go backends.
 The package owns option validation, sentinel errors, and the shared API shape;
-backend-specific Redis behavior lives in `leader/redis`.
+backend-specific implementations live in `leader/redis`, `leader/mongo`, and
+`leader/sql`.
 
 ## Diagram
 
@@ -53,12 +54,16 @@ if err != nil {
   Single electors store one MongoDB lease document per group; group electors
   store one lease document per slot to preserve exact `MaxLeaders`; strategic
   electors store one candidate document per node. TTL indexes are cleanup only.
+- `leader/sql` is a PostgreSQL-only single `Elector` over caller-owned row
+  leases and a caller-owned `*sql.DB`. It does not provide group or strategic
+  election.
 
 ## Test
 
 ```bash
 go test -count=1 ./leader
 go test -count=1 ./leader/mongo
+go test -p 1 -count=1 ./leader/sql
 ```
 
 ## Single-Elector Conformance
@@ -67,5 +72,6 @@ Single electors now wait for acquisition or caller-context termination. Local
 duplicate, in-progress, cleanup-pending, and nil-context states have distinct
 sentinels. Check typed `OperationError` and `ErrCommitUnknown` before bare context
 errors; on an indeterminate commit, use bounded `Resign` and then TTL fallback.
-`leader/leadertest.Run` applies the same contract to Redis and Mongo. Group and
-strategic electors remain outside this single-elector suite.
+`leader/leadertest.Run` applies the same contract to Redis, Mongo, and
+PostgreSQL. Group and strategic electors remain outside this single-elector
+suite.
