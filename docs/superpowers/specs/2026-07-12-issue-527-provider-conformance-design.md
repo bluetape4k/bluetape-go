@@ -228,7 +228,10 @@ Invalid Config/operation/phase는 validation error이며 gate, count, owner side
 context에 해당 context error를 반환하며 gate state를 바꾸지 않는다.
 `IsProviderError`는 mandatory neutral classifier다. Memory harness는 자체 typed fixture
 error, Redis adapter는 `errors.As(*redis.OpError)`, 후속 provider는 자신의 typed wrapper를
-판별한다. Runner는 concrete provider package를 import하지 않는다.
+판별한다. Runner는 concrete provider package를 import하지 않는다. Harness validation은 nil,
+bare context, validation sentinel 및 raw injected cause에 false, 실제 FailNext typed wrapper와
+허용된 nested wrapper에 true를 요구한다. Nil/always-true/always-false/panic classifier는
+recover boundary 안의 named harness-validation failure다.
 
 Factory는 같은 key와 다른 owner로 여러 mutex를 만들 수 있어야 한다. Runner는 acquire,
 contention rejection, owner release, repeated release, expiry takeover, pre-canceled acquire,
@@ -341,7 +344,10 @@ Blank/invalid key 또는 phase는 validation error이며 gate/count/quota side e
 `FailNext`는 next `Allow`가 linearize되어 quota를 반영한 뒤 non-nil cause를 응답으로
 주입한다.
 `IsProviderError`는 mandatory neutral classifier라 runner가 concrete provider package를
-import하지 않고 typed wrapper 여부를 검증한다.
+import하지 않고 typed wrapper 여부를 검증한다. Harness validation은 nil, bare context,
+validation sentinel 및 raw injected cause에 false, 실제 FailNext typed wrapper와 허용된 nested
+wrapper에 true를 요구한다. Nil/always-true/always-false/panic classifier는 recover boundary
+안의 named harness-validation failure다.
 `OperationCount`는 invalid key에 0을 반환한다. `GateNext`의 nil error에는 non-nil Gate가
 필수다. `Gate.AwaitStarted`는 nil context에 validation error, pre-canceled/deadline
 context에 해당 context error를 반환하며 gate state를 바꾸지 않는다.
