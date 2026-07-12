@@ -15,7 +15,10 @@ consume, bucket state 저장, key expiration 갱신을 atomically 수행합니�
 ## 설치
 
 ```go
-import redisratelimit "github.com/bluetape4k/bluetape-go/ratelimit/redis"
+import (
+    redisratelimit "github.com/bluetape4k/bluetape-go/ratelimit/redis"
+    btredis "github.com/bluetape4k/bluetape-go/redis"
+)
 ```
 
 ## 사용 예
@@ -32,6 +35,10 @@ if err != nil {
 }
 
 result, err := limiter.Allow(ctx, "tenant:blue", 1)
+if errors.Is(err, btredis.ErrCommitUnknown) {
+    fullRefill := 2 * time.Second // Burst / RatePerSecond
+    return fmt.Errorf("자동 replay 금지; 최소 %s 대기하거나 한 debit을 budget에 반영: %w", fullRefill, err)
+}
 if err != nil {
     return err
 }
