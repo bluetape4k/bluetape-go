@@ -15,6 +15,8 @@ var (
 	ErrInvalidHashTag = errors.New("redis: invalid hash tag")
 	// ErrInvalidTTL is returned when a Redis TTL is invalid.
 	ErrInvalidTTL = errors.New("redis: invalid ttl")
+	// ErrCommitUnknown is returned when a dispatched Redis mutation may have committed.
+	ErrCommitUnknown = errors.New("redis: commit unknown")
 )
 
 // OpLabels are low-cardinality labels for Redis operation diagnostics.

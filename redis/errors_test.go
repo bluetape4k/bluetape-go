@@ -94,3 +94,11 @@ func TestOpLabelsValidation(t *testing.T) {
 		}
 	}
 }
+
+func TestErrCommitUnknownIsDistinctFromValidationSentinels(t *testing.T) {
+	for _, validationErr := range []error{ErrInvalidKey, ErrInvalidHashTag, ErrInvalidTTL} {
+		if errors.Is(ErrCommitUnknown, validationErr) || errors.Is(validationErr, ErrCommitUnknown) {
+			t.Fatalf("ErrCommitUnknown overlaps %v", validationErr)
+		}
+	}
+}
