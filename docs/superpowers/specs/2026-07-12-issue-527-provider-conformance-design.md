@@ -551,9 +551,10 @@ provider가 public-call wrapper가 아닌 실제 mutation boundary에 hook을 �
 - Redis key bytes, owner token, lease TTL, compare-and-delete 및 error redaction contract는
   valid input에 대해 변경하지 않는다. Collision/whitespace/control/delimiter/oversize case는
   backend call 전에 공통 rejection된다.
-- Mongo storage schema와 success/sentinel semantics는 변경하지 않는다. Provider failure는
-  raw driver text wrapping에서 공통 sanitized `*leader.OperationError`로 migration하며
-  underlying `errors.Is`/`errors.As` inspection은 유지한다.
+- Mongo storage schema와 acquisition success semantics는 변경하지 않는다. Campaigning과
+  cleanup-pending state는 공통 sentinel split을 적용하고 provider failure는 raw driver text
+  wrapping에서 공통 sanitized `*leader.OperationError`로 migration하며 underlying
+  `errors.Is`/`errors.As` inspection은 유지한다.
 - Rate limiter 결과 rounding의 기존 provider-specific 정밀도는 허용하되 공통 invariants는
   동일하게 강제한다.
 
@@ -586,8 +587,9 @@ provider가 public-call wrapper가 아닌 실제 mutation boundary에 hook을 �
 6. Local 및 Redis rate limiter가 동일 `ratelimittest.Run`을 통과한다.
 7. Fake fixtures와 실제 provider에서 cancellation, expiry/stale ownership 및 bounded
    concurrency evidence가 있다.
-8. 승인된 Redis single contention 및 common input-validation migration을 제외하고 기존
-   provider typed/sentinel error, valid key bytes, TTL 및 owner-token semantics가 유지된다.
+8. 승인된 Redis single contention, common state-sentinel split, Mongo `OperationError` 및
+   common input-validation migration을 제외하고 기존 provider typed/sentinel error, valid
+   key bytes, TTL 및 owner-token semantics가 유지된다.
 9. 모든 public helper에 GoDoc, compile-checked example, English/Korean README parity가 있다.
 10. `go test -p 1 -count=1 ./leader/... ./lock/... ./ratelimit/...`와 해당 package race tests,
     `make ci`가 통과한다.
