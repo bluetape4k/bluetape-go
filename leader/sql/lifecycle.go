@@ -61,7 +61,13 @@ func (e *Elector) Resign(ctx context.Context) error {
 			return ctx.Err()
 		}
 	}
+	if err := e.runTestHook("resign", "before"); err != nil {
+		return err
+	}
 	if err := e.deleteOwner(ctx); err != nil {
+		return errors.Join(err, leader.ErrCommitUnknown)
+	}
+	if err := e.runTestHook("resign", "after"); err != nil {
 		return errors.Join(err, leader.ErrCommitUnknown)
 	}
 
@@ -94,9 +100,38 @@ func (e *Elector) Leader(ctx context.Context) (string, error) {
 }
 
 func (e *Elector) acquireAttempt(ctx context.Context) (bool, error) {
+	if err := e.runTestHook("campaign", "before"); err != nil {
+		return false, err
+	}
 	attemptCtx, cancel := context.WithTimeout(ctx, e.attemptBudget())
 	defer cancel()
-	return e.tryAcquire(attemptCtx)
+	acquired, operationErr := e.tryAcquire(attemptCtx)
+	internalTimeout := attemptCtx.Err() != nil && ctx.Err() == nil
+	if operationErr == nil && acquired {
+		operationErr = e.runTestHook("campaign", "after")
+	}
+	if operationErr == nil {
+		return acquired, nil
+	}
+
+	reconcileCtx, reconcileCancel := context.WithTimeout(context.Background(), e.attemptBudget())
+	defer reconcileCancel()
+	var owner string
+	probeErr := e.runTestHook("campaign", "reconcile")
+	if probeErr == nil {
+		owner, probeErr = e.lookupOwner(reconcileCtx)
+	}
+	switch {
+	case probeErr == nil && owner == e.token:
+		return true, nil
+	case probeErr == nil && internalTimeout:
+		return false, nil
+	case probeErr == nil:
+		return false, operationErr
+	default:
+		e.markCleanupPending()
+		return false, errors.Join(operationErr, leader.ErrCommitUnknown)
+	}
 }
 
 func (e *Elector) attemptBudget() time.Duration {
@@ -151,6 +186,10 @@ func (e *Elector) renewLoop(ctx context.Context, generation uint64, done chan st
 		case <-ctx.Done():
 			return
 		case <-ticker.C:
+			if err := e.runTestHook("renew", "before"); err != nil {
+				e.clearOwnershipAfterLoss(generation, done, false)
+				return
+			}
 			renewCtx, cancel := context.WithTimeout(ctx, e.opts.RenewInterval)
 			ok, err := e.renew(renewCtx)
 			cancel()
@@ -191,9 +230,19 @@ func (e *Elector) clearOwnershipAfterLoss(generation uint64, done chan struct{},
 	e.done = nil
 }
 
+func (e *Elector) markCleanupPending() {
+	e.mu.Lock()
+	e.owned = false
+	e.cleanup = true
+	e.mu.Unlock()
+}
+
 func (e *Elector) runTestHook(operation, phase string) error {
 	if e.testHook == nil {
 		return nil
 	}
-	return e.testHook(operation, phase)
+	if err := e.testHook(operation, phase); err != nil {
+		return leader.NewOperationError("postgres", operation, err)
+	}
+	return nil
 }
