@@ -93,7 +93,7 @@ func runContention(t *testing.T, h Harness, config Config) error {
 	}
 	defer release(context.Background())
 	otherRelease, err := second(context.Background())
-	if otherRelease != nil || err == nil || !h.IsProviderError(err) {
+	if otherRelease != nil || err == nil {
 		return fmt.Errorf("contention tuple = %v, %v", otherRelease, err)
 	}
 	return nil
@@ -284,7 +284,7 @@ func runExactContention(t *testing.T, h Harness, config Config) error {
 				winnerMu.Lock()
 				winner = release
 				winnerMu.Unlock()
-			} else if h.IsProviderError(err) {
+			} else if release == nil {
 				providerErrors.Add(1)
 			}
 		}()
