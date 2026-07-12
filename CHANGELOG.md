@@ -12,6 +12,11 @@ and this project uses semantic versioning once the first tag is published.
 - Add mandatory public provider conformance runners in `leader/leadertest`,
   `lock/locktest`, and `ratelimit/ratelimittest`, with in-memory reference
   fixtures and Redis/Mongo/local provider adoption.
+- Add the PostgreSQL-only `leader/sql` single-elector provider over a
+  caller-owned `*sql.DB` and `public.bluetape_leader_leases` row leases, with
+  mandatory `leader/leadertest` conformance, Testcontainers fault recovery,
+  least-privilege role proof, bilingual operations guidance, and a verified
+  row-lease sequence diagram.
 
 - Add `cache/redisfory` for bounded Go-native Apache Fory values stored
   directly in Redis with explicit profiles, BTFV envelopes, TTLs, and schema
@@ -23,6 +28,11 @@ and this project uses semantic versioning once the first tag is published.
 
 - Unify single-leader campaign waiting, local-state sentinels, typed provider
   failures, and commit-unknown cleanup across Redis and Mongo.
+- Require the `leader/sql` migration on the fixed `public` relation and route
+  mutations, observations, and reconciliation probes to one writable primary.
+  Indeterminate cleanup retries bounded `Resign` on the same elector before
+  full-lease expiry fallback; the v0.19.0 provider does not support fencing,
+  custom schemas, group election, or strategic election.
 - Publish the bilingual [v0.19.0 provider rollout runbook](docs/release/v0.19.0-provider-conformance-runbook.md)
   with mixed-version constraints, telemetry labels, canary thresholds, and
   resign/TTL rollback completion gates.

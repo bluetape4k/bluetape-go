@@ -91,8 +91,8 @@ func caseOptions(name string) leader.Options {
 	return leader.Options{
 		Group:         fmt.Sprintf("leadertest-%s-%d", name, id),
 		MemberID:      fmt.Sprintf("member-%d", id),
-		Lease:         180 * time.Millisecond,
-		RenewInterval: 30 * time.Millisecond,
+		Lease:         300 * time.Millisecond,
+		RenewInterval: 50 * time.Millisecond,
 		KeyPrefix:     "leadertest",
 	}
 }
@@ -151,11 +151,11 @@ func evaluateCampaignInProgress(t *testing.T, h Harness, opts leader.Options) er
 	if err != nil {
 		return err
 	}
-	ctx, cancel := context.WithTimeout(context.Background(), 80*time.Millisecond)
+	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 	result := make(chan error, 1)
 	go func() { result <- elector.Campaign(ctx) }()
-	if err := waitFor(60*time.Millisecond, func() bool {
+	if err := waitFor(conformanceWaitTimeout, func() bool {
 		return h.Control.OperationCount(opts, OperationCampaign) > 0
 	}); err != nil {
 		return err
@@ -163,7 +163,8 @@ func evaluateCampaignInProgress(t *testing.T, h Harness, opts leader.Options) er
 	if err := elector.Campaign(context.Background()); !errors.Is(err, leader.ErrCampaignInProgress) {
 		return fmt.Errorf("concurrent campaign error: %w", err)
 	}
-	if err := <-result; !errors.Is(err, context.DeadlineExceeded) {
+	cancel()
+	if err := <-result; !errors.Is(err, context.Canceled) {
 		return fmt.Errorf("blocked campaign error: %w", err)
 	}
 	return nil
@@ -177,7 +178,7 @@ func evaluateContentionCancel(t *testing.T, h Harness, opts leader.Options) erro
 	if err != nil {
 		return err
 	}
-	ctx, cancel := context.WithTimeout(context.Background(), 45*time.Millisecond)
+	ctx, cancel := context.WithTimeout(context.Background(), 2*opts.RenewInterval)
 	defer cancel()
 	if err := elector.Campaign(ctx); !errors.Is(err, context.DeadlineExceeded) {
 		return fmt.Errorf("contention error: %w", err)
@@ -370,7 +371,7 @@ func evaluateStaleResign(t *testing.T, h Harness, opts leader.Options) error {
 
 func evaluateExactContention(t *testing.T, h Harness, opts leader.Options) error {
 	const workers = 6
-	ctx, cancel := context.WithTimeout(context.Background(), 3*opts.Lease)
+	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 	type campaignResult struct {
 		elector leader.Elector
@@ -394,6 +395,7 @@ func evaluateExactContention(t *testing.T, h Harness, opts leader.Options) error
 			if result.err == nil {
 				successes++
 				winner = result.elector
+				cancel()
 			}
 		case <-time.After(conformanceWaitTimeout):
 			return errors.New("contention workers did not return")

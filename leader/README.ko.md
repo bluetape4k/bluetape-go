@@ -4,7 +4,7 @@
 
 `leader`는 bluetape-go backend에서 사용하는 leader-election contract를 정의합니다.
 이 패키지는 option validation, sentinel error, shared API shape를 제공하고,
-Redis에 특화된 동작은 `leader/redis`가 담당합니다.
+backend 구현은 `leader/redis`, `leader/mongo`, `leader/sql`이 담당합니다.
 
 ## 다이어그램
 
@@ -49,12 +49,15 @@ if err != nil {
   document를 저장하고, group elector는 정확한 `MaxLeaders` 보장을 위해 slot마다
   하나의 lease document를 저장하며, strategic elector는 node마다 하나의 candidate
   document를 저장합니다. TTL index는 cleanup 용도로만 취급합니다.
+- `leader/sql`은 caller-owned row lease와 caller-owned `*sql.DB`를 사용하는 PostgreSQL
+  전용 단일 `Elector`입니다. Group/strategic election은 제공하지 않습니다.
 
 ## 테스트
 
 ```bash
 go test -count=1 ./leader
 go test -count=1 ./leader/mongo
+go test -p 1 -count=1 ./leader/sql
 ```
 
 ## Single-Elector Conformance
@@ -63,5 +66,5 @@ Single elector는 이제 leadership 획득 또는 caller context 종료까지 �
 duplicate, in-progress, cleanup-pending, nil-context 상태는 서로 다른 sentinel을 사용합니다.
 Bare context error보다 typed `OperationError`와 `ErrCommitUnknown`을 먼저 확인하고,
 commit-indeterminate이면 bounded `Resign` 후 TTL fallback을 사용합니다.
-`leader/leadertest.Run`은 Redis와 Mongo에 같은 contract를 적용합니다. Group과 strategic
-elector는 이 single-elector suite 범위 밖입니다.
+`leader/leadertest.Run`은 Redis, Mongo, PostgreSQL에 같은 contract를 적용합니다.
+Group과 strategic elector는 이 single-elector suite 범위 밖입니다.
