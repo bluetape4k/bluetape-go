@@ -114,8 +114,10 @@ func TestRedisElectorRejectsSecondLeader(t *testing.T) {
 		_ = first.Resign(context.Background())
 	})
 
-	if err := second.Campaign(ctx); !errors.Is(err, leader.ErrNotLeader) {
-		t.Fatalf("second campaign should fail with ErrNotLeader, got %v", err)
+	contenderCtx, cancel := context.WithTimeout(ctx, 150*time.Millisecond)
+	defer cancel()
+	if err := second.Campaign(contenderCtx); !errors.Is(err, context.DeadlineExceeded) {
+		t.Fatalf("second campaign should wait for its deadline, got %v", err)
 	}
 }
 

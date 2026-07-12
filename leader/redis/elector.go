@@ -33,10 +33,12 @@ type Elector struct {
 	key    string
 	token  string
 
-	mu     sync.RWMutex
-	owned  bool
-	cancel context.CancelFunc
-	done   chan struct{}
+	mu          sync.RWMutex
+	owned       bool
+	campaigning bool
+	cleanup     bool
+	cancel      context.CancelFunc
+	done        chan struct{}
 }
 
 // New 는 Redis 기반 leader elector를 만든다.
@@ -63,49 +65,66 @@ func New(client redis.Cmdable, opts leader.Options) (*Elector, error) {
 	}, nil
 }
 
-// Campaign 은 이 member의 leadership 획득을 시도한다.
+// Campaign 은 leadership을 얻거나 ctx가 끝날 때까지 대기한다.
+//
+// ErrCommitUnknown이면 bounded Resign으로 owner-token 정리를 재시도하고, 정리가
+// 확인되지 않으면 lease TTL 만료 뒤에 다시 campaign해야 한다.
 func (e *Elector) Campaign(ctx context.Context) error {
-	e.mu.Lock()
-	if e.owned {
-		e.mu.Unlock()
-		return leader.ErrAlreadyLeader
+	if ctx == nil {
+		return leader.ErrInvalidContext
 	}
-	e.mu.Unlock()
-
-	ok, err := e.client.SetNX(ctx, e.key, e.token, e.opts.Lease).Result()
-	if err != nil {
-		return btredis.NewOpError(btredis.OpLabels{Family: "leader redis", Operation: "campaign"}, e.key, err)
+	if err := ctx.Err(); err != nil {
+		return err
 	}
-	if !ok {
-		return leader.ErrNotLeader
+	if err := e.beginCampaign(); err != nil {
+		return err
 	}
+	defer e.endCampaign()
 
-	renewCtx, cancel := context.WithCancel(context.Background())
-	done := make(chan struct{})
-
-	e.mu.Lock()
-	e.owned = true
-	e.cancel = cancel
-	e.done = done
-	e.mu.Unlock()
-
-	go e.renewLoop(renewCtx, done)
-	return nil
+	for {
+		ok, err := e.client.SetNX(ctx, e.key, e.token, e.opts.Lease).Result()
+		if err != nil {
+			confirmed, probeErr := e.reconcileCampaign()
+			if probeErr == nil && confirmed {
+				e.startRenewal()
+				return nil
+			}
+			wrapped := e.operationError("campaign", err)
+			if probeErr != nil {
+				e.mu.Lock()
+				e.cleanup = true
+				e.mu.Unlock()
+				return errors.Join(wrapped, leader.ErrCommitUnknown, btredis.ErrCommitUnknown)
+			}
+			return wrapped
+		}
+		if ok {
+			e.startRenewal()
+			return nil
+		}
+		if err := sleepContext(ctx, max(e.opts.RenewInterval, 100*time.Millisecond)); err != nil {
+			return err
+		}
+	}
 }
 
 // Resign 은 이 elector가 아직 소유한 leadership만 해제한다.
 func (e *Elector) Resign(ctx context.Context) error {
 	if ctx == nil {
-		ctx = context.Background()
+		return leader.ErrInvalidContext
+	}
+	if err := ctx.Err(); err != nil {
+		return err
 	}
 	e.mu.Lock()
-	if !e.owned {
+	if !e.owned && !e.cleanup {
 		e.mu.Unlock()
 		return nil
 	}
 	cancel := e.cancel
 	done := e.done
 	e.owned = false
+	e.cleanup = true
 	e.cancel = nil
 	e.done = nil
 	e.mu.Unlock()
@@ -123,8 +142,11 @@ func (e *Elector) Resign(ctx context.Context) error {
 
 	_, err := e.client.Eval(ctx, releaseScript, []string{e.key}, e.token).Result()
 	if err != nil {
-		return btredis.NewOpError(btredis.OpLabels{Family: "leader redis", Operation: "resign"}, e.key, err)
+		return errors.Join(e.operationError("resign", err), leader.ErrCommitUnknown, btredis.ErrCommitUnknown)
 	}
+	e.mu.Lock()
+	e.cleanup = false
+	e.mu.Unlock()
 	return nil
 }
 
@@ -137,12 +159,18 @@ func (e *Elector) IsLeader() bool {
 
 // Leader 는 Redis에 기록된 현재 leader token을 반환한다.
 func (e *Elector) Leader(ctx context.Context) (string, error) {
+	if ctx == nil {
+		return "", leader.ErrInvalidContext
+	}
+	if err := ctx.Err(); err != nil {
+		return "", err
+	}
 	value, err := e.client.Get(ctx, e.key).Result()
 	if errors.Is(err, redis.Nil) {
 		return "", nil
 	}
 	if err != nil {
-		return "", btredis.NewOpError(btredis.OpLabels{Family: "leader redis", Operation: "lookup"}, e.key, err)
+		return "", e.operationError("lookup", err)
 	}
 	return value, nil
 }
@@ -162,6 +190,7 @@ func (e *Elector) renewLoop(ctx context.Context, done chan<- struct{}) {
 			if err != nil || !ok {
 				e.mu.Lock()
 				e.owned = false
+				e.cleanup = err != nil
 				e.cancel = nil
 				e.done = nil
 				e.mu.Unlock()
@@ -178,9 +207,76 @@ func (e *Elector) renew(ctx context.Context) (bool, error) {
 	ttlMillis := int64(e.opts.Lease / time.Millisecond)
 	result, err := e.client.Eval(renewCtx, renewScript, []string{e.key}, e.token, ttlMillis).Int()
 	if err != nil {
-		return false, btredis.NewOpError(btredis.OpLabels{Family: "leader redis", Operation: "renew"}, e.key, err)
+		return false, e.operationError("renew", err)
 	}
 	return result == 1, nil
+}
+
+func (e *Elector) beginCampaign() error {
+	e.mu.Lock()
+	defer e.mu.Unlock()
+	if e.cleanup {
+		return leader.ErrCleanupPending
+	}
+	if e.owned {
+		return leader.ErrAlreadyLeader
+	}
+	if e.campaigning {
+		return leader.ErrCampaignInProgress
+	}
+	e.campaigning = true
+	return nil
+}
+
+func (e *Elector) endCampaign() {
+	e.mu.Lock()
+	e.campaigning = false
+	e.mu.Unlock()
+}
+
+func (e *Elector) startRenewal() {
+	renewCtx, cancel := context.WithCancel(context.Background())
+	done := make(chan struct{})
+	e.mu.Lock()
+	e.owned = true
+	e.cleanup = false
+	e.cancel = cancel
+	e.done = done
+	e.mu.Unlock()
+	go e.renewLoop(renewCtx, done)
+}
+
+func (e *Elector) reconcileCampaign() (bool, error) {
+	probeCtx, cancel := context.WithTimeout(context.Background(), min(e.opts.RenewInterval, 250*time.Millisecond))
+	defer cancel()
+	owner, err := e.client.Get(probeCtx, e.key).Result()
+	if errors.Is(err, redis.Nil) {
+		return false, nil
+	}
+	if err != nil {
+		return false, err
+	}
+	return owner == e.token, nil
+}
+
+func (e *Elector) operationError(operation string, cause error) error {
+	redisErr := btredis.NewOpError(
+		btredis.OpLabels{Family: "leader redis", Operation: operation},
+		e.key,
+		cause,
+	)
+	return leader.NewOperationError("redis", operation, redisErr)
+}
+
+func sleepContext(ctx context.Context, delay time.Duration) error {
+	timer := time.NewTimer(delay)
+	defer timer.Stop()
+	select {
+	case <-ctx.Done():
+		return ctx.Err()
+	case <-timer.C:
+		return nil
+	}
 }
 
 func newElectorToken(memberID string) (string, error) {
