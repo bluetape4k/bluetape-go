@@ -171,6 +171,7 @@ func runCancelBefore(t *testing.T, h Harness, config Config) error {
 	}
 	defer gate.Resume()
 	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
 	result := make(chan error, 1)
 	go func() { _, err := acquire(ctx); result <- err }()
 	if err := gate.AwaitStarted(context.Background()); err != nil {
@@ -195,6 +196,7 @@ func runCancelAfter(t *testing.T, h Harness, config Config) error {
 	}
 	defer gate.Resume()
 	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
 	type result struct {
 		release ReleaseFunc
 		err     error
