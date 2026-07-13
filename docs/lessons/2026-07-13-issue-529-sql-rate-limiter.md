@@ -1,6 +1,6 @@
 # Lessons Learned - PostgreSQL Rate Limiter (2026-07-13)
 
-**Related issue:** #529  
+**Related issue:** #529
 **Affected modules:** `ratelimit`, `ratelimit/ratelimittest`, `ratelimit/redis`, `ratelimit/sql`
 
 ## L1: Pool acquisition is part of the commit-unknown boundary
