@@ -17,6 +17,11 @@ and this project uses semantic versioning once the first tag is published.
   mandatory `leader/leadertest` conformance, Testcontainers fault recovery,
   least-privilege role proof, bilingual operations guidance, and a verified
   row-lease sequence diagram.
+- Add `ratelimit/sql` PostgreSQL atomic token buckets for moderate-QPS,
+  database-only deployments. Callers own the fixed schema, `*sql.DB`, and
+  bounded cleanup scheduler; Redis remains the high-QPS choice. Redis and SQL
+  failures share `ratelimit.OperationError` and `ErrCommitUnknown` inspection,
+  and commit-unknown debits must not be replayed automatically.
 
 - Add `cache/redisfory` for bounded Go-native Apache Fory values stored
   directly in Redis with explicit profiles, BTFV envelopes, TTLs, and schema
