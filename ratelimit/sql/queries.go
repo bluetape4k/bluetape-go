@@ -39,3 +39,21 @@ returning last_allowed,
         rate_micros_per_second), 9223372036854775807::numeric)::bigint,
     least(pg_catalog.ceil((burst_micros::numeric - tokens_micros) * 1000000 /
         rate_micros_per_second), 9223372036854775807::numeric)::bigint`
+
+const cleanupQuery = `with observed as materialized (
+    select pg_catalog.clock_timestamp() as observed_at
+), candidates as (
+    select bucket.namespace, bucket.bucket_key
+    from public.bluetape_ratelimit_buckets as bucket cross join observed
+    where bucket.expires_at <= observed.observed_at
+    order by bucket.expires_at, bucket.namespace, bucket.bucket_key
+    limit $1
+    for update of bucket skip locked
+), deleted as (
+    delete from public.bluetape_ratelimit_buckets as bucket
+    using candidates
+    where bucket.namespace = candidates.namespace
+      and bucket.bucket_key = candidates.bucket_key
+    returning 1
+)
+select count(*)::bigint from deleted`

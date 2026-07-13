@@ -247,6 +247,114 @@ func TestAllowInFlightCancellation(t *testing.T) {
 	}
 }
 
+func TestCleanupPostgres(t *testing.T) {
+	ctx, cancel := context.WithTimeout(context.Background(), 90*time.Second)
+	t.Cleanup(cancel)
+	dsn, db := openRateLimitPostgres(ctx, t)
+	limiter := newPostgresLimiter(t, db, "cleanup", Options{RatePerSecond: 1, Burst: 2, IdleTTL: 2 * time.Second})
+
+	t.Run("bounded-delete-and-live-safety", func(t *testing.T) {
+		for _, key := range []string{"expired-1", "expired-2", "expired-3"} {
+			seedBucketForCleanup(ctx, t, db, limiter, key, -time.Minute)
+		}
+		seedBucketForCleanup(ctx, t, db, limiter, "live", time.Minute)
+		count, err := limiter.Cleanup(ctx, 2)
+		if err != nil || count != 2 {
+			t.Fatalf("Cleanup(2) = %d, %v", count, err)
+		}
+		if got := bucketCountForTest(ctx, t, db, limiter.opts.namespace); got != 2 {
+			t.Fatalf("remaining bucket count = %d, want 2", got)
+		}
+		count, err = limiter.Cleanup(ctx, 2)
+		if err != nil || count != 1 {
+			t.Fatalf("second Cleanup(2) = %d, %v", count, err)
+		}
+		if got := bucketCountForTest(ctx, t, db, limiter.opts.namespace); got != 1 {
+			t.Fatalf("live bucket was deleted, count=%d", got)
+		}
+	})
+
+	t.Run("concurrent-workers-do-not-double-count", func(t *testing.T) {
+		for i := range 20 {
+			seedBucketForCleanup(ctx, t, db, limiter, fmt.Sprintf("concurrent-%02d", i), -time.Minute)
+		}
+		poolB, err := sql.Open("pgx", dsn)
+		if err != nil {
+			t.Fatal(err)
+		}
+		t.Cleanup(func() { _ = poolB.Close() })
+		limiterB, err := New(poolB, Options{Namespace: string(limiter.opts.namespace), RatePerSecond: 1, Burst: 2, IdleTTL: 2 * time.Second})
+		if err != nil {
+			t.Fatal(err)
+		}
+		counts := make(chan int64, 2)
+		errs := make(chan error, 2)
+		for _, current := range []*Limiter{limiter, limiterB} {
+			go func() {
+				count, err := current.Cleanup(ctx, 20)
+				counts <- count
+				errs <- err
+			}()
+		}
+		var total int64
+		for range 2 {
+			total += <-counts
+			if err := <-errs; err != nil {
+				t.Fatal(err)
+			}
+		}
+		if total != 20 {
+			t.Fatalf("concurrent cleanup total = %d, want 20", total)
+		}
+	})
+
+	t.Run("lost-response-returns-zero-count", func(t *testing.T) {
+		seedBucketForCleanup(ctx, t, db, limiter, "lost", -time.Minute)
+		cause := errors.New("cleanup response lost")
+		limiter.testHook = func(operation string, phase testPhase, key string) error {
+			if operation == "cleanup" && phase == phaseAfterLinearize {
+				return cause
+			}
+			return nil
+		}
+		count, err := limiter.Cleanup(ctx, 1)
+		if count != 0 || !errors.Is(err, cause) || !errors.Is(err, ratelimit.ErrCommitUnknown) {
+			t.Fatalf("lost Cleanup = %d, %v", count, err)
+		}
+		var opErr ratelimit.OperationError
+		if !errors.As(err, &opErr) || opErr.Operation() != "cleanup" {
+			t.Fatalf("cleanup operation error = %T, %v", err, err)
+		}
+		limiter.testHook = nil
+		if count, err := limiter.Cleanup(ctx, 1); err != nil || count < 0 || count > 1 {
+			t.Fatalf("cleanup retry = %d, %v", count, err)
+		}
+	})
+}
+
+func seedBucketForCleanup(ctx context.Context, t *testing.T, db *sql.DB, limiter *Limiter, key string, expiryOffset time.Duration) {
+	t.Helper()
+	_, err := db.ExecContext(ctx, `insert into public.bluetape_ratelimit_buckets (
+namespace,bucket_key,rate_micros_per_second,burst_micros,idle_ttl_micros,tokens_micros,
+last_allowed,updated_at,expires_at) values ($1,$2,$3::bigint,$4::bigint,$5::bigint,$4::numeric,false,
+pg_catalog.clock_timestamp()-interval '2 minutes',pg_catalog.clock_timestamp()+$6::bigint*interval '1 microsecond')
+on conflict (namespace,bucket_key) do update set expires_at=excluded.expires_at`,
+		limiter.opts.namespace, []byte(key), limiter.opts.rateMicrosPerSecond, limiter.opts.burstMicros,
+		limiter.opts.idleTTLMicros, expiryOffset.Microseconds())
+	if err != nil {
+		t.Fatal(err)
+	}
+}
+
+func bucketCountForTest(ctx context.Context, t *testing.T, db *sql.DB, namespace []byte) int64 {
+	t.Helper()
+	var count int64
+	if err := db.QueryRowContext(ctx, `select count(*) from public.bluetape_ratelimit_buckets where namespace=$1`, namespace).Scan(&count); err != nil {
+		t.Fatal(err)
+	}
+	return count
+}
+
 func waitUntil(t *testing.T, timeout time.Duration, condition func() bool) {
 	t.Helper()
 	deadline := time.Now().Add(timeout)
