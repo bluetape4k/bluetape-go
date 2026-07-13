@@ -103,3 +103,89 @@ func (c EncryptedBytesColumn) Value() (value driver.Value, err error) {
 	}
 	return ciphertext, nil
 }
+
+// EncryptedStringColumn stores UTF-8 plaintext encrypted as raw URL-safe base64 text.
+//
+// The zero value safely represents SQL NULL. Use NewEncryptedStringColumn
+// before scanning or valuing non-NULL data. Column values are mutable per-row
+// state and must not be mutated concurrently.
+type EncryptedStringColumn struct {
+	Data               string
+	Valid              bool
+	MaxPlaintextBytes  int
+	MaxCiphertextBytes int
+	config             encryptedColumnConfig
+}
+
+// NewEncryptedStringColumn creates a string column and copies associatedData.
+func NewEncryptedStringColumn(encryptor encrypt.Encryptor, associatedData []byte) EncryptedStringColumn {
+	return EncryptedStringColumn{config: encryptedColumnConfig{
+		encryptor:      encryptor,
+		associatedData: append([]byte(nil), associatedData...),
+	}}
+}
+
+// Scan decrypts a nil, string, or []byte database value.
+//
+// Non-NULL input must contain the raw URL-safe base64 envelope produced by
+// encrypt.Encryptor.EncryptString. Scan clears prior plaintext before work.
+func (c *EncryptedStringColumn) Scan(src any) error {
+	if c == nil {
+		return newColumnError(ErrInvalidColumnValue, "scan encrypted string", nil)
+	}
+	c.Data, c.Valid = "", false
+	raw, present, err := copiedColumnSource(src, "scan encrypted string")
+	if err != nil || !present {
+		return err
+	}
+	ciphertextLimit, err := effectiveColumnLimit(c.MaxCiphertextBytes, DefaultEncryptedColumnMaxCiphertextBytes, "scan encrypted string ciphertext limit")
+	if err != nil {
+		return err
+	}
+	plaintextLimit, err := effectiveColumnLimit(c.MaxPlaintextBytes, DefaultEncryptedColumnMaxPlaintextBytes, "scan encrypted string plaintext limit")
+	if err != nil {
+		return err
+	}
+	if len(raw) > ciphertextLimit {
+		return newColumnError(ErrColumnValueTooLarge, "scan encrypted string ciphertext", nil)
+	}
+	plaintext, err := c.config.encryptor.DecryptString(string(raw), c.config.associatedData)
+	if err != nil {
+		return newColumnError(ErrInvalidColumnValue, "scan encrypted string", err)
+	}
+	if len(plaintext) > plaintextLimit {
+		return newColumnError(ErrColumnValueTooLarge, "scan encrypted string plaintext", nil)
+	}
+	c.Data, c.Valid = plaintext, true
+	return nil
+}
+
+// Value encrypts Data as raw URL-safe base64 text or returns nil when Valid is false.
+//
+// Value returns string for non-NULL values. Repeated calls use independent
+// random nonces and may return different ciphertext for the same plaintext.
+func (c EncryptedStringColumn) Value() (value driver.Value, err error) {
+	if !c.Valid {
+		return nil, nil
+	}
+	defer recoverColumnPanic("encrypt string", &err)
+	plaintextLimit, err := effectiveColumnLimit(c.MaxPlaintextBytes, DefaultEncryptedColumnMaxPlaintextBytes, "encrypt string plaintext limit")
+	if err != nil {
+		return nil, err
+	}
+	if len(c.Data) > plaintextLimit {
+		return nil, newColumnError(ErrColumnValueTooLarge, "encrypt string plaintext", nil)
+	}
+	ciphertextLimit, err := effectiveColumnLimit(c.MaxCiphertextBytes, DefaultEncryptedColumnMaxCiphertextBytes, "encrypt string ciphertext limit")
+	if err != nil {
+		return nil, err
+	}
+	ciphertext, err := c.config.encryptor.EncryptString(c.Data, c.config.associatedData)
+	if err != nil {
+		return nil, newColumnError(ErrInvalidColumnValue, "encrypt string", err)
+	}
+	if len(ciphertext) > ciphertextLimit {
+		return nil, newColumnError(ErrColumnValueTooLarge, "encrypt string ciphertext", nil)
+	}
+	return ciphertext, nil
+}
