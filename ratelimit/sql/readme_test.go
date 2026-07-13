@@ -66,6 +66,65 @@ func TestReadmeContract(t *testing.T) {
 	}
 }
 
+func TestReleaseRunbookContract(t *testing.T) {
+	t.Parallel()
+
+	body := readContractFile(t, "../../docs/release/v0.19.0-provider-conformance-runbook.md")
+	start := strings.Index(body, "### SQL Rate Limiter Deployment Gates")
+	if start < 0 {
+		t.Fatal("missing SQL rate limiter deployment section")
+	}
+	body = body[start:]
+	ordered := []string{
+		"verify public schema ownership",
+		"REVOKE CREATE ON SCHEMA public FROM PUBLIC",
+		"effective CREATE",
+		"SET LOCAL lock_timeout",
+		"SET LOCAL statement_timeout",
+		"SchemaSQL",
+		"Catalog preflight",
+		"Runtime grants",
+	}
+	last := -1
+	for _, marker := range ordered {
+		index := strings.Index(body, marker)
+		if index < 0 {
+			t.Errorf("missing ordered runbook marker %q", marker)
+			continue
+		}
+		if index <= last {
+			t.Errorf("runbook marker %q appears out of order", marker)
+		}
+		last = index
+	}
+
+	assertContractMarkers(t, body, []string{
+		"pg_is_in_recovery() = false",
+		"transaction_read_only = off",
+		"server identity",
+		"HA timeline",
+		"cadence shorter than `IdleTTL`",
+		"limit in `1..1000`",
+		"maximum batches",
+		"elapsed budget",
+		"Pause cleanup",
+		"count is zero",
+		"up to `limit` rows",
+		"stable baseline",
+		"consecutive breach",
+		"minimum canary observation window",
+		"independent canary namespace",
+		"independent canary cohort",
+		"old-writer fencing",
+		"durability/RPO",
+		"no statement replay",
+		"retain the SQL relation, expiry index, and grants",
+		"zero SQL-provider binary deployment",
+		"zero SQL-provider traffic",
+		"separate destructive migration",
+	})
+}
+
 func readContractFile(t *testing.T, name string) string {
 	t.Helper()
 	body, err := os.ReadFile(name)
