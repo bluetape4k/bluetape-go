@@ -1,126 +1,152 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="1000" viewBox="0 0 1600 1000" role="img" aria-labelledby="title desc">
+<svg xmlns="http://www.w3.org/2000/svg" width="1800" height="1150" viewBox="0 0 1800 1150" role="img" aria-labelledby="title desc">
   <title id="title">sqlkit Helper Contract Map</title>
-  <desc id="desc">Class-style contract map for sqlkit showing database/sql caller-owned session boundaries, transaction helper, row mapping helpers, PostgreSQL-first statement builders, inspectable Statement, and unsupported ORM or migration responsibilities.</desc>
+  <desc id="desc">Responsibility map showing caller-owned database resources, sqlkit transaction and query helpers, statement builders, JSON and encrypted column boundaries, standard-library and encrypt primitives, driver values, and explicit non-goals.</desc>
   <defs>
-    <filter id="softShadow" x="-6%" y="-8%" width="112%" height="120%">
+    <filter id="softShadow" x="-6%" y="-8%" width="112%" height="122%">
       <feDropShadow dx="0" dy="5" stdDeviation="5" flood-color="#0f172a" flood-opacity="0.10"/>
     </filter>
     <style>
       .canvas { fill: #f8fafc; }
       .frame { fill: #ffffff; stroke: #cbd5e1; stroke-width: 1.5; filter: url(#softShadow); }
-      .title, .card-title { font-family: "Architects Daughter", "Comic Sans MS", cursive; fill: #24364f; }
+      .title, .card-title, .mini-title { font-family: "Architects Daughter", "Comic Sans MS", cursive; fill: #24364f; }
       .title { font-size: 42px; }
       .subtitle, .section, .member, .label, .legend { font-family: "Comic Mono", "SFMono-Regular", monospace; fill: #526276; }
       .subtitle { font-size: 17px; }
-      .section { font-size: 13px; font-weight: 700; text-transform: uppercase; letter-spacing: 0; }
-      .card-title { font-size: 25px; }
+      .section { font-size: 13px; font-weight: 700; text-transform: uppercase; }
+      .card-title { font-size: 24px; }
+      .mini-title { font-size: 20px; }
       .member { font-size: 14px; }
       .label { font-size: 13px; font-weight: 700; }
       .legend { font-size: 13px; }
-      .card { stroke-width: 2.2; rx: 12; filter: url(#softShadow); }
+      .card { stroke-width: 2.2; filter: url(#softShadow); }
+      .mini-card { stroke-width: 1.7; }
       .rule { stroke-width: 1.2; opacity: 0.42; }
       .connector { fill: none; stroke-linecap: round; stroke-linejoin: round; stroke-width: 3.1; }
       .dependency { stroke-dasharray: 10 8; }
       .head { stroke-linejoin: round; stroke-dasharray: none; }
-      .legendBox { fill: #ffffff; stroke: #d7e0ea; stroke-width: 1.4; rx: 12; }
+      .label-box, .legend-box { fill: #ffffff; stroke: #d7e0ea; stroke-width: 1.4; }
     </style>
   </defs>
 
-  <rect class="canvas" width="1600" height="1000"/>
-  <rect class="frame" x="34" y="30" width="1532" height="932" rx="8"/>
+  <rect class="canvas" width="1800" height="1150"/>
+  <rect class="frame" x="34" y="30" width="1732" height="1084" rx="8"/>
   <text class="title" x="72" y="88">sqlkit Helper Contract Map</text>
-  <text class="subtitle" x="76" y="120">Small database/sql helpers keep SQL visible: caller-owned sessions, explicit row mapping, PostgreSQL-first builders.</text>
+  <text class="subtitle" x="76" y="120">Caller-owned database resources stay explicit while sqlkit owns small, bounded transformations.</text>
 
-  <rect class="card" x="86" y="178" width="396" height="220" fill="#f3efff" stroke="#9b7aec"/>
-  <text class="card-title" x="284" y="216" text-anchor="middle">database/sql boundary</text>
-  <text class="section" x="116" y="246">caller-owned handles</text>
-  <line class="rule" x1="116" y1="256" x2="452" y2="256" stroke="#9b7aec"/>
-  <text class="member" x="116" y="284">Beginner: BeginTx</text>
-  <text class="member" x="116" y="312">Execer / Queryer / QueryRower</text>
-  <text class="member" x="116" y="340">Session matches *sql.DB and *sql.Tx</text>
-  <text class="member" x="116" y="368">pool lifecycle stays outside sqlkit</text>
+  <rect class="card" x="70" y="164" width="500" height="240" rx="12" fill="#f3efff" stroke="#9b7aec"/>
+  <text class="card-title" x="320" y="202" text-anchor="middle">Caller-owned boundary</text>
+  <text class="section" x="102" y="232">application and database</text>
+  <line class="rule" x1="102" y1="242" x2="538" y2="242" stroke="#9b7aec"/>
+  <text class="member" x="102" y="272">*sql.DB / *sql.Tx and pool lifecycle</text>
+  <text class="member" x="102" y="300">SQL text, schema, indexes, and migrations</text>
+  <text class="member" x="102" y="328">encryption keys, AAD, and rotation policy</text>
+  <text class="member" x="102" y="356">destination types and NULL policy</text>
+  <text class="member" x="102" y="384">query shape and transaction boundaries</text>
 
-  <rect class="card" x="590" y="150" width="420" height="244" fill="#edf9f4" stroke="#63b891"/>
-  <text class="card-title" x="800" y="188" text-anchor="middle">Transaction + rows</text>
-  <text class="section" x="622" y="218">runtime helpers</text>
-  <line class="rule" x1="622" y1="228" x2="978" y2="228" stroke="#63b891"/>
-  <text class="member" x="622" y="256">WithTx(ctx, db, opts, fn)</text>
-  <text class="member" x="622" y="284">commit only when callback returns nil</text>
-  <text class="member" x="622" y="312">QueryAll / QueryOptional / QueryOne</text>
-  <text class="member" x="622" y="340">Mapper[T] receives *sql.Rows</text>
-  <text class="member" x="622" y="368">Rows close on success and failure</text>
+  <rect class="card" x="650" y="164" width="500" height="240" rx="12" fill="#edf9f4" stroke="#63b891"/>
+  <text class="card-title" x="900" y="202" text-anchor="middle">sqlkit runtime helpers</text>
+  <text class="section" x="682" y="232">control flow remains visible</text>
+  <line class="rule" x1="682" y1="242" x2="1118" y2="242" stroke="#63b891"/>
+  <text class="member" x="682" y="272">WithTx(ctx, db, opts, fn)</text>
+  <text class="member" x="682" y="300">QueryAll / QueryOptional / QueryOne</text>
+  <text class="member" x="682" y="328">Mapper[T] receives *sql.Rows</text>
+  <text class="member" x="682" y="356">commit only after a nil callback error</text>
+  <text class="member" x="682" y="384">rows close on success and failure</text>
 
-  <rect class="card" x="1118" y="178" width="396" height="220" fill="#eaf2ff" stroke="#6d9df0"/>
-  <text class="card-title" x="1316" y="216" text-anchor="middle">Statement builders</text>
-  <text class="section" x="1148" y="246">PostgreSQL-first</text>
-  <line class="rule" x1="1148" y1="256" x2="1484" y2="256" stroke="#6d9df0"/>
-  <text class="member" x="1148" y="284">SelectFrom / InsertInto</text>
-  <text class="member" x="1148" y="312">Update / DeleteFrom</text>
-  <text class="member" x="1148" y="340">identifier validation + quoting</text>
-  <text class="member" x="1148" y="368">? rewritten to $1, $2, ...</text>
+  <rect class="card" x="1230" y="164" width="500" height="240" rx="12" fill="#eaf2ff" stroke="#6d9df0"/>
+  <text class="card-title" x="1480" y="202" text-anchor="middle">Statement builders</text>
+  <text class="section" x="1262" y="232">PostgreSQL-first</text>
+  <line class="rule" x1="1262" y1="242" x2="1698" y2="242" stroke="#6d9df0"/>
+  <text class="member" x="1262" y="272">SelectFrom / InsertInto / Update</text>
+  <text class="member" x="1262" y="300">DeleteFrom and inspectable Statement</text>
+  <text class="member" x="1262" y="328">identifier validation and quoting</text>
+  <text class="member" x="1262" y="356">? rewritten to $1, $2, ...</text>
+  <text class="member" x="1262" y="384">SQL and copied args remain observable</text>
 
-  <rect class="card" x="86" y="588" width="396" height="210" fill="#fff4de" stroke="#d59c3f"/>
-  <text class="card-title" x="284" y="626" text-anchor="middle">Statement</text>
-  <text class="section" x="116" y="656">inspectable SQL</text>
-  <line class="rule" x1="116" y1="666" x2="452" y2="666" stroke="#d59c3f"/>
-  <text class="member" x="116" y="694">SQL string remains visible</text>
-  <text class="member" x="116" y="722">Args copied at boundaries</text>
-  <text class="member" x="116" y="750">Exec(ctx, Execer)</text>
-  <text class="member" x="116" y="778">driver/context errors preserve %w</text>
+  <path class="connector" d="M570 284H650" stroke="#8a65d6"/>
+  <polygon class="head" points="650,284 632,274 632,294" fill="#8a65d6" stroke="#8a65d6"/>
+  <rect class="label-box" x="575" y="246" width="70" height="28" rx="10"/>
+  <text class="label" x="610" y="265" text-anchor="middle" fill="#8a65d6">uses</text>
 
-  <rect class="card" x="590" y="588" width="420" height="210" fill="#f8fafc" stroke="#94a3b8"/>
-  <text class="card-title" x="800" y="626" text-anchor="middle">Safety checks</text>
-  <text class="section" x="622" y="656">small guardrails</text>
-  <line class="rule" x1="622" y1="666" x2="978" y2="666" stroke="#94a3b8"/>
-  <text class="member" x="622" y="694">ErrInvalidArgument</text>
-  <text class="member" x="622" y="722">ErrNoRows / ErrTooManyRows</text>
-  <text class="member" x="622" y="750">Update/Delete require Where</text>
-  <text class="member" x="622" y="778">placeholder count must match args</text>
+  <path class="connector" d="M1150 284H1230" stroke="#4f86c6"/>
+  <polygon class="head" points="1230,284 1212,274 1212,294" fill="#4f86c6" stroke="#4f86c6"/>
+  <rect class="label-box" x="1153" y="246" width="74" height="28" rx="10"/>
+  <text class="label" x="1190" y="265" text-anchor="middle" fill="#4f86c6">builds</text>
 
-  <rect class="card" x="1118" y="588" width="396" height="210" fill="#fff0f0" stroke="#d56b7d"/>
-  <text class="card-title" x="1316" y="626" text-anchor="middle">Unsupported boundary</text>
-  <text class="section" x="1148" y="656">use other tools when needed</text>
-  <line class="rule" x1="1148" y1="666" x2="1484" y2="666" stroke="#d56b7d"/>
-  <text class="member" x="1148" y="694">no pool lifecycle or migration owner</text>
-  <text class="member" x="1148" y="722">no ORM state or model hooks</text>
-  <text class="member" x="1148" y="750">no broad dialect abstraction</text>
-  <text class="member" x="1148" y="778">sqlc, Jet, Atlas stay workflow tools</text>
+  <rect class="card" x="230" y="506" width="1340" height="286" rx="12" fill="#fff9ea" stroke="#d59c3f"/>
+  <text class="card-title" x="900" y="544" text-anchor="middle">Column boundary</text>
+  <text class="section" x="262" y="574">sql.Scanner input | driver.Valuer output | publish only after success</text>
+  <line class="rule" x1="262" y1="584" x2="1538" y2="584" stroke="#d59c3f"/>
 
-  <path class="connector" d="M482 288H590" stroke="#8a65d6"/>
-  <polygon class="head" points="590,288 572,278 572,298" fill="#8a65d6" stroke="#8a65d6"/>
-  <rect class="legendBox" x="496" y="252" width="84" height="28"/>
-  <text class="label" x="538" y="271" text-anchor="middle" fill="#8a65d6">executes</text>
+  <rect class="mini-card" x="270" y="610" width="390" height="146" rx="10" fill="#fffdf7" stroke="#e3b768"/>
+  <text class="mini-title" x="465" y="641" text-anchor="middle">JSONColumn[T]</text>
+  <text class="member" x="294" y="672">nil means SQL NULL; JSON null stays valid</text>
+  <text class="member" x="294" y="700">bounded decode and encode</text>
+  <text class="member" x="294" y="728">Data + Valid expose explicit state</text>
 
-  <path class="connector" d="M1010 288H1118" stroke="#4f86c6"/>
-  <polygon class="head" points="1118,288 1100,278 1100,298" fill="#4f86c6" stroke="#4f86c6"/>
-  <rect class="legendBox" x="1024" y="252" width="90" height="28"/>
-  <text class="label" x="1069" y="271" text-anchor="middle" fill="#4f86c6">builds</text>
+  <rect class="mini-card" x="705" y="610" width="390" height="146" rx="10" fill="#fffdf7" stroke="#e3b768"/>
+  <text class="mini-title" x="900" y="641" text-anchor="middle">EncryptedBytesColumn</text>
+  <text class="member" x="729" y="672">copies inputs before decrypting</text>
+  <text class="member" x="729" y="700">bounded plaintext and envelope</text>
+  <text class="member" x="729" y="728">returns []byte BTENC envelope</text>
 
-  <path class="connector" d="M1316 398V474Q1316 494 1296 494H304Q284 494 284 514V588" stroke="#c1842f"/>
-  <polygon class="head" points="284,588 274,570 294,570" fill="#c1842f" stroke="#c1842f"/>
-  <rect class="legendBox" x="638" y="478" width="132" height="28"/>
-  <text class="label" x="704" y="497" text-anchor="middle" fill="#c1842f">returns stmt</text>
+  <rect class="mini-card" x="1140" y="610" width="390" height="146" rx="10" fill="#fffdf7" stroke="#e3b768"/>
+  <text class="mini-title" x="1335" y="641" text-anchor="middle">EncryptedStringColumn</text>
+  <text class="member" x="1164" y="672">validates UTF-8 after decrypting</text>
+  <text class="member" x="1164" y="700">preserves NULL and empty string</text>
+  <text class="member" x="1164" y="728">returns raw URL-safe string</text>
 
-  <path class="connector" d="M284 588V534Q284 514 304 514H690Q710 514 710 494V394" stroke="#64748b"/>
-  <polygon class="head" points="710,394 700,412 720,412" fill="#64748b" stroke="#64748b"/>
-  <rect class="legendBox" x="420" y="498" width="94" height="28"/>
-  <text class="label" x="467" y="517" text-anchor="middle" fill="#64748b">Exec</text>
+  <path class="connector" d="M320 404V506" stroke="#8a65d6"/>
+  <polygon class="head" points="320,506 310,488 330,488" fill="#8a65d6" stroke="#8a65d6"/>
+  <rect class="label-box" x="338" y="448" width="118" height="28" rx="10"/>
+  <text class="label" x="397" y="467" text-anchor="middle" fill="#8a65d6">configures</text>
 
-  <path class="connector" d="M800 394V588" stroke="#64748b"/>
-  <polygon class="head" points="800,588 790,570 810,570" fill="#64748b" stroke="#64748b"/>
-  <rect class="legendBox" x="858" y="478" width="100" height="28"/>
-  <text class="label" x="908" y="497" text-anchor="middle" fill="#64748b">guards</text>
+  <path class="connector" d="M900 404V506" stroke="#3f9a73"/>
+  <polygon class="head" points="900,506 890,488 910,488" fill="#3f9a73" stroke="#3f9a73"/>
+  <rect class="label-box" x="921" y="440" width="92" height="28" rx="10"/>
+  <text class="label" x="967" y="459" text-anchor="middle" fill="#3f9a73">scans</text>
 
-  <path class="connector dependency" d="M1316 398V588" stroke="#d56b7d"/>
-  <polygon class="head" points="1316,588 1306,570 1326,570" fill="#ffffff" stroke="#d56b7d" stroke-width="3.1"/>
-  <rect class="legendBox" x="1338" y="478" width="112" height="28"/>
-  <text class="label" x="1394" y="497" text-anchor="middle" fill="#d56b7d">not owned</text>
+  <rect class="card" x="70" y="866" width="500" height="172" rx="12" fill="#edf9f4" stroke="#63b891"/>
+  <text class="card-title" x="320" y="904" text-anchor="middle">Transformation primitives</text>
+  <text class="section" x="102" y="934">small dependencies</text>
+  <line class="rule" x1="102" y1="944" x2="538" y2="944" stroke="#63b891"/>
+  <text class="member" x="102" y="974">encoding/json for typed JSON values</text>
+  <text class="member" x="102" y="1002">encrypt.Encryptor for authenticated data</text>
 
-  <rect class="legendBox" x="94" y="846" width="1050" height="76"/>
-  <path class="connector" d="M126 872H196" stroke="#4f86c6"/>
-  <polygon class="head" points="196,872 178,862 178,882" fill="#4f86c6" stroke="#4f86c6"/>
-  <text class="legend" x="216" y="877">solid = caller-visible SQL, explicit transaction, and row mapping contract</text>
-  <path class="connector dependency" d="M126 902H196" stroke="#d56b7d"/>
-  <polygon class="head" points="196,902 178,892 178,912" fill="#ffffff" stroke="#d56b7d" stroke-width="3.1"/>
-  <text class="legend" x="216" y="907">dashed = larger ORM, dialect, migration, or workflow responsibility</text>
+  <rect class="card" x="650" y="866" width="500" height="172" rx="12" fill="#eaf2ff" stroke="#6d9df0"/>
+  <text class="card-title" x="900" y="904" text-anchor="middle">Driver-facing values</text>
+  <text class="section" x="682" y="934">database/sql compatible</text>
+  <line class="rule" x1="682" y1="944" x2="1118" y2="944" stroke="#6d9df0"/>
+  <text class="member" x="682" y="974">nil | []byte JSON | []byte BTENC envelope</text>
+  <text class="member" x="682" y="1002">raw URL-safe encoded encrypted string</text>
+
+  <rect class="card" x="1230" y="866" width="500" height="172" rx="12" fill="#fff0f0" stroke="#d56b7d"/>
+  <text class="card-title" x="1480" y="904" text-anchor="middle">Explicit non-goals</text>
+  <text class="section" x="1262" y="934">owned by application workflows</text>
+  <line class="rule" x1="1262" y1="944" x2="1698" y2="944" stroke="#d56b7d"/>
+  <text class="member" x="1262" y="974">ORM metadata, hooks, or schema ownership</text>
+  <text class="member" x="1262" y="1002">KMS, key rotation, or searchable encryption</text>
+
+  <path class="connector" d="M320 792V866" stroke="#3f9a73"/>
+  <polygon class="head" points="320,866 310,848 330,848" fill="#3f9a73" stroke="#3f9a73"/>
+  <rect class="label-box" x="342" y="810" width="104" height="28" rx="10"/>
+  <text class="label" x="394" y="829" text-anchor="middle" fill="#3f9a73">delegates</text>
+
+  <path class="connector" d="M900 792V866" stroke="#4f86c6"/>
+  <polygon class="head" points="900,866 890,848 910,848" fill="#4f86c6" stroke="#4f86c6"/>
+  <rect class="label-box" x="921" y="814" width="88" height="28" rx="10"/>
+  <text class="label" x="965" y="833" text-anchor="middle" fill="#4f86c6">emits</text>
+
+  <path class="connector dependency" d="M1480 792V866" stroke="#d56b7d"/>
+  <polygon class="head" points="1480,866 1470,848 1490,848" fill="#ffffff" stroke="#d56b7d" stroke-width="3.1"/>
+  <rect class="label-box" x="1362" y="810" width="112" height="28" rx="10"/>
+  <text class="label" x="1418" y="829" text-anchor="middle" fill="#d56b7d">not owned</text>
+
+  <rect class="legend-box" x="426" y="1063" width="948" height="32" rx="10"/>
+  <path class="connector" d="M454 1079H508" stroke="#4f86c6"/>
+  <polygon class="head" points="508,1079 492,1070 492,1088" fill="#4f86c6" stroke="#4f86c6"/>
+  <text class="legend" x="526" y="1084">solid = owned call or transformation</text>
+  <path class="connector dependency" d="M912 1079H966" stroke="#d56b7d"/>
+  <polygon class="head" points="966,1079 950,1070 950,1088" fill="#ffffff" stroke="#d56b7d" stroke-width="3.1"/>
+  <text class="legend" x="984" y="1084">dashed = responsibility boundary</text>
 </svg>
