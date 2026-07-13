@@ -3,11 +3,13 @@ package redisratelimit
 import (
 	"context"
 	"errors"
+	"fmt"
 	"strings"
 	"sync"
 	"testing"
 	"time"
 
+	"github.com/bluetape4k/bluetape-go/ratelimit"
 	"github.com/bluetape4k/bluetape-go/ratelimit/ratelimittest"
 	btredis "github.com/bluetape4k/bluetape-go/redis"
 	"github.com/redis/go-redis/v9"
@@ -58,8 +60,12 @@ func TestRedisRateLimiterConformance(t *testing.T) {
 			t.Fatal(err)
 		}
 		result, err := allow(context.Background(), key, 1)
-		if result != (ratelimittest.Result{}) || !errors.Is(err, btredis.ErrCommitUnknown) {
+		if result != (ratelimittest.Result{}) || !errors.Is(err, btredis.ErrCommitUnknown) || !errors.Is(err, ratelimit.ErrCommitUnknown) {
 			t.Fatalf("Allow lost response = %+v, %v", result, err)
+		}
+		var rootOperationErr ratelimit.OperationError
+		if !errors.As(fmt.Errorf("nested: %w", err), &rootOperationErr) {
+			t.Fatalf("Allow root error type = %T", err)
 		}
 		var operationErr *btredis.OpError
 		if !errors.As(err, &operationErr) {
