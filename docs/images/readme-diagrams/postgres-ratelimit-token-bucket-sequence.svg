@@ -1,0 +1,159 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1500" height="1220" viewBox="0 0 1500 1220" role="img" aria-labelledby="title desc">
+  <title id="title">PostgreSQL Token Bucket Sequence</title>
+  <desc id="desc">Allow acquires a caller-bounded connection, executes one atomic PostgreSQL statement, and separates pre-dispatch cancellation from commit-unknown failure.</desc>
+  <defs>
+    <filter id="softShadow" x="-8%" y="-10%" width="116%" height="124%"><feDropShadow dx="0" dy="5" stdDeviation="5" flood-color="#0F172A" flood-opacity="0.10"/></filter>
+    <marker id="arrow-blue" markerWidth="16" markerHeight="16" viewBox="0 0 10 10" refX="9" refY="5" orient="auto" markerUnits="userSpaceOnUse"><path d="M 0 0 L 10 5 L 0 10 Z" fill="#4f77c9" stroke="#4f77c9"/></marker>
+    <marker id="arrow-green" markerWidth="16" markerHeight="16" viewBox="0 0 10 10" refX="9" refY="5" orient="auto" markerUnits="userSpaceOnUse"><path d="M 0 0 L 10 5 L 0 10 Z" fill="#319873" stroke="#319873"/></marker>
+    <marker id="arrow-amber" markerWidth="16" markerHeight="16" viewBox="0 0 10 10" refX="9" refY="5" orient="auto" markerUnits="userSpaceOnUse"><path d="M 0 0 L 10 5 L 0 10 Z" fill="#cf8428" stroke="#cf8428"/></marker>
+    <marker id="arrow-red" markerWidth="16" markerHeight="16" viewBox="0 0 10 10" refX="9" refY="5" orient="auto" markerUnits="userSpaceOnUse"><path d="M 0 0 L 10 5 L 0 10 Z" fill="#c85d73" stroke="#c85d73"/></marker>
+    <marker id="arrow-purple" markerWidth="16" markerHeight="16" viewBox="0 0 10 10" refX="9" refY="5" orient="auto" markerUnits="userSpaceOnUse"><path d="M 0 0 L 10 5 L 0 10 Z" fill="#7e62d9" stroke="#7e62d9"/></marker>
+    <marker id="arrow-teal" markerWidth="16" markerHeight="16" viewBox="0 0 10 10" refX="9" refY="5" orient="auto" markerUnits="userSpaceOnUse"><path d="M 0 0 L 10 5 L 0 10 Z" fill="#3f7d9c" stroke="#3f7d9c"/></marker>
+    <style>
+      .canvas { fill: #f8fafc; }
+      .frame { fill: #ffffff; stroke: #cbd5e1; stroke-width: 1.5; filter: url(#softShadow); }
+      .title, .part-title { font-family: "Architects Daughter"; fill: #263a57; }
+      .title { font-size: 42px; }
+      .subtitle, .small, .msg, .region, .footer { font-family: "Comic Mono"; fill: #526276; }
+      .subtitle { font-size: 17px; }
+      .part-title { font-size: 22px; }
+      .small { font-size: 12px; }
+      .msg { font-size: 13px; font-weight: 700; }
+      .region { font-size: 12px; font-weight: 700; }
+      .footer { font-size: 14px; }
+      .participant { stroke-width: 2.2; rx: 12; filter: url(#softShadow); }
+      .lifeline { stroke: #c5d4e3; stroke-width: 2; stroke-dasharray: 8 8; }
+      .activation { fill: #f3eeff; stroke: #8a65d8; stroke-width: 1.7; rx: 7; opacity: .88; }
+      .route { fill: none; stroke-width: 3; stroke-linecap: round; stroke-linejoin: round; }
+      .return { fill: none; stroke-width: 2.6; stroke-linecap: round; stroke-linejoin: round; stroke-dasharray: 9 8; }
+      .alt { fill: none; stroke: #78909c; stroke-width: 2.4; stroke-dasharray: 12 7; rx: 16; }
+      .alt-label { fill: #ffffff; stroke: #d7e0e4; stroke-width: 1.5; rx: 15; }
+      .else-line { stroke: #78909c; stroke-width: 2.2; stroke-dasharray: 12 8; }
+      .pill { fill: #ffffff; stroke-width: 1.5; rx: 14; }
+      .badge { stroke-width: 1.6; }
+      .badge-text { font-family: "Comic Mono"; font-size: 10px; font-weight: 700; fill: #ffffff; }
+      .legend { fill: #ffffff; stroke: #d4e0ec; stroke-width: 1.5; rx: 12; }
+    </style>
+  </defs>
+  <rect class="canvas" width="1500" height="1220"/>
+  <rect class="frame" x="34" y="30" width="1432" height="1156" rx="8"/>
+  <text class="title" x="72" y="88">PostgreSQL Token Bucket Sequence</text>
+  <text class="subtitle" x="76" y="120">A caller deadline encloses connection acquisition and one atomic UPSERT; post-dispatch failures are never replayed.</text>
+
+  <rect class="participant" x="80" y="174" width="160" height="68" fill="#eaf2ff" stroke="#6d9df0"/>
+  <text class="part-title participant-title" x="160" y="202" text-anchor="middle">Caller</text>
+  <text class="small" x="160" y="224" text-anchor="middle">deadline + key</text>
+  <line class="lifeline" x1="160" y1="242" x2="160" y2="1104"/>
+
+  <rect class="participant" x="330" y="174" width="180" height="68" fill="#edf9f4" stroke="#63b891"/>
+  <text class="part-title participant-title" x="420" y="202" text-anchor="middle">SQL Limiter</text>
+  <text class="small" x="420" y="224" text-anchor="middle">validation + policy</text>
+  <line class="lifeline" x1="420" y1="242" x2="420" y2="1104"/>
+
+  <rect class="participant" x="590" y="174" width="180" height="68" fill="#f3efff" stroke="#9b7aec"/>
+  <text class="part-title participant-title" x="680" y="202" text-anchor="middle">database/sql</text>
+  <text class="small" x="680" y="224" text-anchor="middle">caller-owned pool</text>
+  <line class="lifeline" x1="680" y1="242" x2="680" y2="1104"/>
+
+  <rect class="participant" x="850" y="174" width="180" height="68" fill="#fff4de" stroke="#d59c3f"/>
+  <text class="part-title participant-title" x="940" y="202" text-anchor="middle">PostgreSQL</text>
+  <text class="small" x="940" y="224" text-anchor="middle">writable primary</text>
+  <line class="lifeline" x1="940" y1="242" x2="940" y2="1104"/>
+
+  <rect class="participant" x="1120" y="174" width="180" height="68" fill="#fff0f0" stroke="#dc6f6f"/>
+  <text class="part-title participant-title" x="1210" y="202" text-anchor="middle">Bucket row</text>
+  <text class="small" x="1210" y="224" text-anchor="middle">tokens + server time</text>
+  <line class="lifeline" x1="1210" y1="242" x2="1210" y2="1104"/>
+
+  <rect class="activation" x="153" y="298" width="14" height="790" rx="7"/>
+  <rect class="activation" x="413" y="298" width="14" height="790" rx="7"/>
+  <rect class="activation" x="673" y="368" width="14" height="222" rx="7"/>
+  <rect class="activation" x="933" y="648" width="14" height="372" rx="7"/>
+  <rect class="activation" x="1203" y="718" width="14" height="122" rx="7"/>
+
+  <rect class="alt" x="78" y="420" width="1276" height="190" rx="16"/>
+  <rect class="alt-label" x="96" y="438" width="285" height="30" rx="15"/>
+  <text class="region" x="118" y="458">alt canceled before dispatch</text>
+  <line class="else-line" x1="92" y1="520" x2="1340" y2="520"/>
+  <rect class="alt-label" x="96" y="538" width="224" height="30" rx="15"/>
+  <text class="region" x="118" y="558">else connection acquired</text>
+
+  <rect class="alt" x="78" y="800" width="1276" height="222" rx="16"/>
+  <rect class="alt-label" x="96" y="818" width="226" height="30" rx="15"/>
+  <text class="region" x="118" y="838">alt allowed or rejected</text>
+  <line class="else-line" x1="92" y1="875" x2="1340" y2="875"/>
+  <rect class="alt-label" x="96" y="888" width="260" height="30" rx="15"/>
+  <text class="region" x="118" y="908">else configuration mismatch</text>
+  <line class="else-line" x1="92" y1="945" x2="1340" y2="945"/>
+  <rect class="alt-label" x="96" y="958" width="260" height="30" rx="15"/>
+  <text class="region" x="118" y="978">else post-dispatch failure</text>
+
+  <path class="route" d="M160 310 L420 310" stroke="#4f77c9" marker-end="url(#arrow-blue)"/>
+  <rect class="pill" x="184" y="268" width="212" height="30" rx="15" stroke="#9bb5e7"/>
+  <circle class="badge" cx="202" cy="283" r="13" fill="#4f77c9" stroke="#4f77c9"/>
+  <text class="badge-text badgeText" x="202" y="287" text-anchor="middle">1</text>
+  <text class="msg" x="302" y="288" text-anchor="middle" fill="#4f77c9">Allow(ctx, key, tokens)</text>
+
+  <path class="route" d="M420 380 L680 380" stroke="#7e62d9" marker-end="url(#arrow-purple)"/>
+  <rect class="pill" x="474" y="338" width="152" height="30" rx="15" stroke="#b9a7eb"/>
+  <circle class="badge" cx="492" cy="353" r="13" fill="#7e62d9" stroke="#7e62d9"/>
+  <text class="badge-text badgeText" x="492" y="357" text-anchor="middle">2</text>
+  <text class="msg" x="560" y="358" text-anchor="middle" fill="#7e62d9">Conn(ctx)</text>
+
+  <path class="return" d="M680 490 L420 490" stroke="#c85d73" marker-end="url(#arrow-red)"/>
+  <rect class="pill" x="444" y="448" width="236" height="30" rx="15" stroke="#e0a6b3"/>
+  <circle class="badge" cx="462" cy="463" r="13" fill="#c85d73" stroke="#c85d73"/>
+  <text class="badge-text badgeText" x="462" y="467" text-anchor="middle">3</text>
+  <text class="msg" x="570" y="468" text-anchor="middle" fill="#c85d73">ctx error - no SQL sent</text>
+
+  <path class="return" d="M680 580 L420 580" stroke="#3f7d9c" marker-end="url(#arrow-teal)"/>
+  <rect class="pill" x="462" y="538" width="200" height="30" rx="15" stroke="#8db4c7"/>
+  <circle class="badge" cx="480" cy="553" r="13" fill="#3f7d9c" stroke="#3f7d9c"/>
+  <text class="badge-text badgeText" x="480" y="557" text-anchor="middle">4</text>
+  <text class="msg" x="570" y="558" text-anchor="middle" fill="#3f7d9c">dedicated connection</text>
+
+  <path class="route" d="M420 660 L940 660" stroke="#cf8428" marker-end="url(#arrow-amber)"/>
+  <rect class="pill" x="564" y="618" width="240" height="30" rx="15" stroke="#e4b873"/>
+  <circle class="badge" cx="582" cy="633" r="13" fill="#cf8428" stroke="#cf8428"/>
+  <text class="badge-text badgeText" x="582" y="637" text-anchor="middle">5</text>
+  <text class="msg" x="694" y="638" text-anchor="middle" fill="#cf8428">atomic UPSERT + RETURNING</text>
+
+  <path class="route" d="M940 730 L1210 730" stroke="#319873" marker-end="url(#arrow-green)"/>
+  <rect class="pill" x="950" y="688" width="270" height="30" rx="15" stroke="#86c3aa"/>
+  <circle class="badge" cx="970" cy="703" r="13" fill="#319873" stroke="#319873"/>
+  <text class="badge-text badgeText" x="970" y="707" text-anchor="middle">6</text>
+  <text class="msg" x="1100" y="708" text-anchor="middle" fill="#319873">clock + row lock + refill</text>
+
+  <path class="return" d="M1210 790 L940 790" stroke="#319873" marker-end="url(#arrow-green)"/>
+  <rect class="pill" x="988" y="748" width="202" height="30" rx="15" stroke="#86c3aa"/>
+  <circle class="badge" cx="1006" cy="763" r="13" fill="#319873" stroke="#319873"/>
+  <text class="badge-text badgeText" x="1006" y="767" text-anchor="middle">7</text>
+  <text class="msg" x="1100" y="768" text-anchor="middle" fill="#319873">debit + persist state</text>
+
+  <path class="return" d="M940 855 L420 855" stroke="#3f7d9c" marker-end="url(#arrow-teal)"/>
+  <rect class="pill" x="592" y="813" width="190" height="30" rx="15" stroke="#8db4c7"/>
+  <circle class="badge" cx="610" cy="828" r="13" fill="#3f7d9c" stroke="#3f7d9c"/>
+  <text class="badge-text badgeText" x="610" y="832" text-anchor="middle">8</text>
+  <text class="msg" x="700" y="833" text-anchor="middle" fill="#3f7d9c">Result + timing</text>
+
+  <path class="return" d="M940 925 L420 925" stroke="#cf8428" marker-end="url(#arrow-amber)"/>
+  <rect class="pill" x="500" y="883" width="380" height="30" rx="15" stroke="#e4b873"/>
+  <circle class="badge" cx="520" cy="898" r="13" fill="#cf8428" stroke="#cf8428"/>
+  <text class="badge-text badgeText" x="520" y="902" text-anchor="middle">9</text>
+  <text class="msg" x="700" y="903" text-anchor="middle" fill="#cf8428">ErrConfigurationMismatch - no debit</text>
+
+  <path class="return" d="M940 995 L420 995" stroke="#c85d73" marker-end="url(#arrow-red)"/>
+  <rect class="pill" x="546" y="953" width="284" height="30" rx="15" stroke="#e0a6b3"/>
+  <circle class="badge" cx="564" cy="968" r="13" fill="#c85d73" stroke="#c85d73"/>
+  <text class="badge-text badgeText" x="564" y="972" text-anchor="middle">10</text>
+  <text class="msg" x="702" y="973" text-anchor="middle" fill="#c85d73">ErrCommitUnknown - no replay</text>
+
+  <path class="return" d="M420 1085 L160 1085" stroke="#4f77c9" marker-end="url(#arrow-blue)"/>
+  <rect class="pill" x="198" y="1043" width="188" height="30" rx="15" stroke="#9bb5e7"/>
+  <circle class="badge" cx="216" cy="1058" r="13" fill="#4f77c9" stroke="#4f77c9"/>
+  <text class="badge-text badgeText" x="216" y="1062" text-anchor="middle">11</text>
+  <text class="msg" x="302" y="1063" text-anchor="middle" fill="#4f77c9">Result or error</text>
+
+  <rect class="legend" x="82" y="1130" width="1336" height="42" rx="8"/>
+  <text class="footer" x="750" y="1157" text-anchor="middle">Same-key calls serialize on the bucket row; callers discard results on error and schedule bounded SKIP LOCKED cleanup separately.</text>
+</svg>

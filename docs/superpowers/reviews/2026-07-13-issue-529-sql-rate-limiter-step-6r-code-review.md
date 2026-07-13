@@ -59,7 +59,7 @@
 | 6. Cancellation and response-loss boundary | PASS | pre-canceled validation, pool-acquire cancellation, real in-flight row-lock cancellation, post-scan confirmation, lost-response debit proof, and mandatory conformance gates. |
 | 7. Configuration mismatch is a quota no-op | PASS | `TestAllowPostgres/configuration-mismatch-is-zero-result` compares options, tokens, timestamp, and `xmin` before/after. |
 | 8. Least privilege and exact catalog contract | PASS | `TestRuntimeRoleLeastPrivilege`, exact-schema acceptance, fourteen hostile-drift cases, hostile `IF NOT EXISTS` relation, and deployment catalog queries. |
-| 9. English/Korean docs, root index, changelog, runbook | PASS | paired provider/root READMEs, README contract tests, root indexes, `CHANGELOG.md`, and bilingual v0.19.0 runbook sections. |
+| 9. English/Korean docs, shared sequence diagram, root index, changelog, runbook | PASS | paired provider/root READMEs, README contract tests, audited SVG/PNG sequence asset, root indexes, `CHANGELOG.md`, and bilingual v0.19.0 runbook sections. |
 | 10. Targeted, race, static, and `make ci` gates | PASS | targeted/race/repeat commands below and fresh authoritative `make ci` exit 0. |
 | 11. Cutover/rollback, HA fencing/RPO, telemetry gate | PASS | `SQL Rate Limiter Deployment Gates` in the v0.19.0 runbook and paired provider HA/cutover sections. |
 
@@ -91,8 +91,16 @@
 - Final `make fmt-check`, `make tidy-check`, `make vet`, and `make lint`: PASS;
   lint reported `0 issues`.
 - `git diff --check`: PASS.
+- Diagram README contract RED: both provider READMEs failed while
+  `postgres-ratelimit-token-bucket-sequence.png` was absent; GREEN passed after the shared asset was
+  embedded in both locale files.
+- Diagram render/audits: SVG XML PASS; CairoSVG 2x PNG is 3000x2440; connector audit PASS with 6
+  markers and 11 connectors; geometry, endpoint, mixed-corner, and sequence-style audits report
+  zero failures. Targeted fallback counts confirm 5 participants, 11 numbered messages, and 2
+  alternative frames. The final PNG was inspected at full size with no clipping, overlap, missing
+  glyph, or ambiguous frame boundary.
 
-## Explicit N/A evidence
+## Conditional and delivery evidence
 
 | Conditional gate | Result | Scope evidence |
 |---|---|---|
@@ -100,8 +108,8 @@
 | Module/BOM/CI registration | N/A | This is an additive package inside the existing Go module; `go test ./...` and `make ci` discover it without module registration. |
 | ORM/Spring/Exposed/coroutines/streaming/JDK preview | N/A | The implementation is direct Go `database/sql`; none of these stacks or execution models is present. |
 | Benchmark/chart | N/A | No capacity number or benchmark claim was added; moderate-QPS positioning is qualitative and deployment-owned. |
-| New diagram | N/A | The approved spec states that text and tables cover the operational contract; no new interaction requiring a diagram was introduced. |
-| Live PR review, metadata, and GitHub CI | N/A for this handoff | Push/PR authorization was not given. The validated branch is preserved before those external gates. |
+| Sequence diagram | PASS | The SVG/PNG source pair is embedded in both provider READMEs and exposes acquisition, dispatch, atomic row serialization, outcomes, and no-replay boundaries; render and geometry/style audits pass. |
+| Live PR review, metadata, and GitHub CI | PENDING | Draft PR #606 exists with issue #529 metadata mirrored. Approval and current GitHub CI/review remain external gates; the PR stays draft and unmerged. |
 
 ## Residual deployment-owned risks
 

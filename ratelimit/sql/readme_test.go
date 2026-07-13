@@ -16,6 +16,7 @@ func TestReadmeContract(t *testing.T) {
 			body := readContractFile(t, name)
 			assertContractMarkers(t, body, []string{
 				"[English](README.md) | [한국어](README.ko.md)",
+				"postgres-ratelimit-token-bucket-sequence.png",
 				"SchemaSQL",
 				"New",
 				"Allow",

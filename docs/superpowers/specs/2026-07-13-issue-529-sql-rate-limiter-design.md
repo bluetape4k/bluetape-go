@@ -396,8 +396,15 @@ PostgreSQL에는 Redis key TTL과 같은 자동 row expiry가 없으므로 clean
   canary observation window를 사전에 기록한다. Library가 universal threshold를 제공하지
   않는다.
 
-이번 issue에서는 새 diagram/benchmark chart를 만들지 않는다. 기존 contract와 SQL flow는
-text/table로 충분하며 시각 자산 추가는 acceptance criterion이 아니다.
+Benchmark chart는 만들지 않는다. 측정된 capacity 비교가 없으므로 chart는 근거 없는
+수치 주장을 만들 수 있다. 반면 분산 limiter의 실행 경계는 text/table만으로 빠르게
+파악하기 어렵다. 따라서 `bluetape-diagram`의 sequence best-practices를 따라
+`docs/images/readme-diagrams/postgres-ratelimit-token-bucket-sequence.svg`와 렌더된 PNG를
+만들고 두 provider README가 같은 PNG를 공유한다. 다이어그램은 caller, limiter,
+`database/sql`, writable primary, bucket row 사이의 connection acquisition, one-statement
+UPSERT/RETURNING, same-key row serialization, allow/reject/configuration-mismatch,
+commit-unknown/no-replay 경계만 설명한다. 별도 cleanup은 bounded `SKIP LOCKED` operation임을
+footer로 분리하고 capacity 수치는 표시하지 않는다.
 
 ## Failure modes와 대응
 

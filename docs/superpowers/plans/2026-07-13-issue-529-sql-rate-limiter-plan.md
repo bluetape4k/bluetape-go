@@ -789,13 +789,16 @@ production behavior change.
 
 **Complexity:** Medium public API and bilingual operations guidance.
 
-**Skills:** `bluetape-go-patterns` for Go docs; `bluetape-writer` for natural Korean parity.
+**Skills:** `bluetape-go-patterns` for Go docs; `bluetape-writer` for natural Korean parity;
+`bluetape-diagram` for the shared sequence asset and rendered visual validation.
 
 **Files:**
 - Create: `ratelimit/sql/README.md`
 - Create: `ratelimit/sql/README.ko.md`
 - Create: `ratelimit/sql/example_test.go`
 - Create: `ratelimit/sql/readme_test.go`
+- Create: `docs/images/readme-diagrams/postgres-ratelimit-token-bucket-sequence.svg`
+- Create: `docs/images/readme-diagrams/postgres-ratelimit-token-bucket-sequence.png`
 - Modify: `ratelimit/sql/doc.go`
 - Modify: exported-symbol Go docs in `ratelimit/sql/*.go`
 - Modify: `ratelimit/README.md`
@@ -809,7 +812,8 @@ commit-unknown is not replayed; caller invokes bounded `Cleanup` from its own sc
 the returned count on every cleanup error rather than replaying the same batch. The example must
 not require a live database to produce output.
 
-`readme_test.go` checks both README files contain: `SchemaSQL`, `New`, `Allow`, `Cleanup`,
+`readme_test.go` checks both README files contain: the shared
+`postgres-ratelimit-token-bucket-sequence.png` asset, `SchemaSQL`, `New`, `Allow`, `Cleanup`,
 `ErrConfigurationMismatch`, `ErrCommitUnknown`, caller-owned DB/migration/scheduler,
 moderate-QPS/non-Redis-replacement guidance, fixed relation, least-privilege grants, primary-only
 routing, configuration migration/namespace rotation, no automatic replay, and language switches.
@@ -840,28 +844,45 @@ Update the parent `ratelimit` README pair with a local/Redis/PostgreSQL selectio
 `ratelimit.OperationError`/`ErrCommitUnknown` example. Require the pair to repeat that provider
 quota state is not shared, mixed simultaneous serving can grant multiple full bursts, and safe
 canary/cutover uses independent namespaces/cohorts plus quiesce-and-wait or an approved extra-burst
-budget. Do not add a benchmark chart or diagram: the spec records both as N/A because no measured
-comparison is part of issue #529.
+budget. Keep the benchmark chart N/A because issue #529 makes no measured capacity comparison. Add a
+source-backed sequence diagram using the repository best-practices reference. It must answer where
+dispatch begins, where same-key atomicity is established, which outcomes debit quota, and why a
+commit-unknown result must not be replayed. Share one English-label PNG between both provider
+READMEs and retain the matching SVG source.
 
 - [ ] **Step 4: Verify docs parity and commit**
 
 ```bash
 gofmt -w ratelimit/sql/doc.go ratelimit/sql/example_test.go ratelimit/sql/readme_test.go ratelimit/sql/*.go
 go test -count=1 ./ratelimit/sql -run 'ExampleNew|TestReadmeContract'
+xmllint --noout docs/images/readme-diagrams/postgres-ratelimit-token-bucket-sequence.svg
+cairosvg docs/images/readme-diagrams/postgres-ratelimit-token-bucket-sequence.svg \
+  -o docs/images/readme-diagrams/postgres-ratelimit-token-bucket-sequence.png -s 2
+python3 ~/.codex/skills/bluetape-diagram/scripts/diagram-connector-audit.py \
+  docs/images/readme-diagrams/postgres-ratelimit-token-bucket-sequence.svg
+python3 ~/.codex/skills/bluetape-diagram/scripts/diagram-geometry-audit.py --fail-diagonal \
+  docs/images/readme-diagrams/postgres-ratelimit-token-bucket-sequence.svg
+python3 ~/.codex/skills/bluetape-diagram/scripts/diagram-endpoint-audit.py \
+  docs/images/readme-diagrams/postgres-ratelimit-token-bucket-sequence.svg
+python3 ~/.codex/skills/bluetape-diagram/scripts/diagram-mixed-corner-audit.py \
+  docs/images/readme-diagrams/postgres-ratelimit-token-bucket-sequence.svg
+python3 ~/.codex/skills/bluetape-diagram/scripts/diagram-sequence-style-audit.py \
+  docs/images/readme-diagrams/postgres-ratelimit-token-bucket-sequence.svg
 git diff --check
-git add ratelimit/sql ratelimit/README.md ratelimit/README.ko.md
+git add ratelimit/sql ratelimit/README.md ratelimit/README.ko.md docs/images/readme-diagrams
 git commit -m "docs: document PostgreSQL rate limiting"
 ```
 
 Expected: compile-checked examples and README contract tests PASS; exported symbols have English Go
-docs; English/Korean documents cover the same operational decisions.
+docs; English/Korean documents cover the same operational decisions; the SVG parses, its PNG is
+rendered at 2x, diagram audits report no geometry/endpoint/style failure, and the full-size PNG has
+no clipped text, overlap, or unreadable label.
 
 ### Task 8: Update Public Index, Changelog, and Release Runbook
 
 **Complexity:** Medium release-facing documentation.
 
-**Skills:** `bluetape-writer` for Korean parity; no diagram skill because the approved spec makes
-new visual assets N/A for this issue.
+**Skills:** `bluetape-writer` for Korean parity. The provider sequence asset is owned by Task 7.
 
 **Files:**
 - Modify: `README.md`
@@ -980,7 +1001,8 @@ handles or missing exit codes are not evidence; rerun such a command from scratc
 
 Record a table in the Step 6-R artifact mapping spec criteria 1..11 to exact tests, docs, and
 commands. Explicitly record N/A evidence: no new runtime dependency, module/BOM/CI registration,
-ORM/Spring/Exposed/coroutine/streaming/JDK-preview work, benchmark/chart, and new diagram.
+ORM/Spring/Exposed/coroutine/streaming/JDK-preview work, and benchmark/chart. Record the sequence
+diagram as PASS with the source/render paths, audit output, and full-size inspection evidence.
 
 - [ ] **Step 4: Run the six review lenses and main integration**
 
@@ -1018,7 +1040,7 @@ authorized, copy issue #529 milestone `0.19.0`, assignee `debop`, and labels; en
 | 6. Cancellation/lost-response debit boundary | Task 4 deterministic gates and Task 6 conformance |
 | 7. Configuration mismatch quota no-op | Task 3 row/config/`xmin` assertions |
 | 8. Least privilege and schema/catalog contract | Task 6 security fixture and Task 8 runbook |
-| 9. English/Korean docs, root index, changelog, runbook | Tasks 7 and 8 |
+| 9. English/Korean docs, shared sequence diagram, root index, changelog, runbook | Tasks 7 and 8 |
 | 10. Targeted/race/static/`make ci` verification | Task 9 |
 | 11. Cutover/rollback, HA fencing/RPO, telemetry gate | Task 8 plus operator review in Task 9 |
 
@@ -1038,6 +1060,6 @@ authorized, copy issue #529 milestone `0.19.0`, assignee `debop`, and labels; en
   examples, and no new dependency.
 - User/caller covers result-on-error handling, no unknown replay, configuration migration,
   caller-owned DB/schema/scheduler, provider selection, and unsupported behavior.
-- New module/BOM/CI registration, Spring, Exposed, coroutines, streaming, JDK preview, benchmark
-  charts, and diagrams are N/A with the concrete repository/scope evidence above; they are not
-  silently skipped.
+- New module/BOM/CI registration, Spring, Exposed, coroutines, streaming, JDK preview, and benchmark
+  charts are N/A with the concrete repository/scope evidence above; they are not silently skipped.
+  The sequence diagram is required evidence for the distributed execution and retry boundary.
