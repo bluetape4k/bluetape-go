@@ -12,6 +12,8 @@ ciphertext in a versioned envelope.
 
 ![encrypt envelope sequence](../docs/images/readme-diagrams/encrypt-envelope-sequence.png)
 
+![sqlkit column scan and value sequence](../docs/images/readme-diagrams/sqlkit-column-scan-value-sequence.png)
+
 ## Import
 
 ```go

@@ -150,6 +150,12 @@ The contract map shows that `sqlkit` stays at the `database/sql` boundary:
 callers own handles and SQL, while helpers provide transaction control, row
 mapping, inspectable PostgreSQL-first statements, and small safety checks.
 
+![sqlkit column scan and value sequence](../docs/images/readme-diagrams/sqlkit-column-scan-value-sequence.png)
+
+The column sequence shows how `database/sql` invokes `driver.Valuer` and
+`sql.Scanner`, including NULL branches, bounded JSON or encryption work, and
+the rule that failed scans never publish partial state.
+
 ![sqlkit transaction and query sequence](../docs/images/readme-diagrams/sqlkit-tx-query-sequence.png)
 
 The sequence follows builder output through `WithTx`, `Statement.Exec`,

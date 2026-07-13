@@ -1,0 +1,183 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1800" height="1750" viewBox="0 0 1800 1750" role="img" aria-labelledby="title desc">
+  <title id="title">sqlkit Column Scan and Value Sequence</title>
+  <desc id="desc">Sequence diagram showing database/sql calling sqlkit JSON and encrypted column Value and Scan methods, with explicit SQL NULL branches, bounded transformations, copied scan inputs, safe errors, and state published only after success.</desc>
+  <defs>
+    <filter id="softShadow" x="-8%" y="-10%" width="116%" height="124%">
+      <feDropShadow dx="0" dy="5" stdDeviation="5" flood-color="#0f172a" flood-opacity="0.10"/>
+    </filter>
+    <marker id="seqArrow-blue" markerWidth="16" markerHeight="16" refX="9" refY="5" orient="auto" markerUnits="userSpaceOnUse" viewBox="0 0 10 10">
+      <path d="M 0 0 L 10 5 L 0 10 Z" fill="#4f86c6" stroke="#4f86c6"/>
+    </marker>
+    <marker id="seqArrow-teal" markerWidth="16" markerHeight="16" refX="9" refY="5" orient="auto" markerUnits="userSpaceOnUse" viewBox="0 0 10 10">
+      <path d="M 0 0 L 10 5 L 0 10 Z" fill="#2f8f8a" stroke="#2f8f8a"/>
+    </marker>
+    <marker id="seqArrow-amber" markerWidth="16" markerHeight="16" refX="9" refY="5" orient="auto" markerUnits="userSpaceOnUse" viewBox="0 0 10 10">
+      <path d="M 0 0 L 10 5 L 0 10 Z" fill="#c1842f" stroke="#c1842f"/>
+    </marker>
+    <marker id="seqArrow-green" markerWidth="16" markerHeight="16" refX="9" refY="5" orient="auto" markerUnits="userSpaceOnUse" viewBox="0 0 10 10">
+      <path d="M 0 0 L 10 5 L 0 10 Z" fill="#5f8d3e" stroke="#5f8d3e"/>
+    </marker>
+    <marker id="seqArrow-red" markerWidth="16" markerHeight="16" refX="9" refY="5" orient="auto" markerUnits="userSpaceOnUse" viewBox="0 0 10 10">
+      <path d="M 0 0 L 10 5 L 0 10 Z" fill="#b65b67" stroke="#b65b67"/>
+    </marker>
+    <style>
+      .canvas { fill: #f8fafc; }
+      .frame { fill: #ffffff; stroke: #cbd5e1; stroke-width: 1.5; filter: url(#softShadow); }
+      .title, .participant-title { font-family: "Architects Daughter", "Comic Sans MS", cursive; fill: #263a57; }
+      .title { font-size: 42px; }
+      .subtitle, .role, .msg, .region, .branch, .footer { font-family: "Comic Mono", "SFMono-Regular", monospace; fill: #526276; }
+      .subtitle { font-size: 17px; }
+      .participant-title { font-size: 21px; }
+      .role { font-size: 13px; }
+      .msg { font-size: 13px; font-weight: 700; }
+      .region, .branch { font-size: 13px; font-weight: 700; }
+      .footer { font-size: 14px; }
+      .participant { stroke-width: 2.2; filter: url(#softShadow); }
+      .lifeline { stroke: #c5d4e3; stroke-width: 2; stroke-dasharray: 8 8; }
+      .activation { fill: #f3eeff; stroke: #8a65d8; stroke-width: 1.7; opacity: 0.88; }
+      .call, .return, .error { fill: none; stroke-linecap: round; stroke-linejoin: round; }
+      .call { stroke-width: 3; }
+      .return, .error { stroke-width: 2.7; stroke-dasharray: 9 8; }
+      .alt { fill: #fbfdff; fill-opacity: 0.56; stroke: #78909c; stroke-width: 2.4; stroke-dasharray: 12 7; }
+      .divider { stroke: #9aabba; stroke-width: 1.8; stroke-dasharray: 7 7; }
+      .alt-label, .branch-label, .pill { fill: #ffffff; stroke: #cbd9e7; stroke-width: 1.5; }
+      .badge { stroke-width: 1.6; }
+      .badgeText { font-family: "Comic Mono", "SFMono-Regular", monospace; font-size: 10px; font-weight: 700; fill: #ffffff; }
+    </style>
+  </defs>
+
+  <rect class="canvas" width="1800" height="1750"/>
+  <rect class="frame" x="34" y="30" width="1732" height="1686" rx="8"/>
+  <text class="title" x="72" y="88">sqlkit Column Scan and Value Sequence</text>
+  <text class="subtitle" x="76" y="120">database/sql owns invocation; column helpers own bounded conversion and publish state only after success.</text>
+
+  <rect class="participant" x="65" y="174" width="250" height="78" rx="12" fill="#eaf2ff" stroke="#6d9df0"/>
+  <text class="participant-title" x="190" y="205" text-anchor="middle">Caller</text>
+  <text class="role" x="190" y="229" text-anchor="middle">owns SQL, keys, and policy</text>
+  <line class="lifeline" x1="190" y1="252" x2="190" y2="1620"/>
+
+  <rect class="participant" x="520" y="174" width="260" height="78" rx="12" fill="#edf9f4" stroke="#63b891"/>
+  <text class="participant-title" x="650" y="205" text-anchor="middle">database/sql</text>
+  <text class="role" x="650" y="229" text-anchor="middle">invokes Valuer and Scanner</text>
+  <line class="lifeline" x1="650" y1="252" x2="650" y2="1620"/>
+
+  <rect class="participant" x="970" y="174" width="300" height="78" rx="12" fill="#fff4de" stroke="#d59c3f"/>
+  <text class="participant-title" x="1120" y="205" text-anchor="middle">Column helper</text>
+  <text class="role" x="1120" y="229" text-anchor="middle">JSON or encrypted variant</text>
+  <line class="lifeline" x1="1120" y1="252" x2="1120" y2="1620"/>
+
+  <rect class="participant" x="1430" y="174" width="320" height="78" rx="12" fill="#f3efff" stroke="#9b7aec"/>
+  <text class="participant-title" x="1590" y="202" text-anchor="middle">json / Encryptor</text>
+  <text class="role" x="1590" y="226" text-anchor="middle">typed codec or authenticated crypto</text>
+  <line class="lifeline" x1="1590" y1="252" x2="1590" y2="1620"/>
+
+  <rect class="activation" x="183" y="308" width="14" height="1310" rx="7"/>
+  <rect class="activation" x="643" y="310" width="14" height="1310" rx="7"/>
+  <rect class="activation" x="1113" y="408" width="14" height="1112" rx="7"/>
+  <rect class="activation" x="1583" y="630" width="14" height="790" rx="7"/>
+
+  <path class="call" d="M190 330H650" stroke="#4f86c6" marker-end="url(#seqArrow-blue)"/>
+  <rect class="pill" x="294" y="288" width="252" height="30" rx="15"/>
+  <circle class="badge" cx="316" cy="303" r="13" fill="#4f86c6" stroke="#4f86c6"/>
+  <text class="badgeText" x="316" y="307" text-anchor="middle">1</text>
+  <text class="msg" x="428" y="308" text-anchor="middle" fill="#4f86c6">ExecContext(..., column)</text>
+
+  <path class="call" d="M650 410H1120" stroke="#2f8f8a" marker-end="url(#seqArrow-teal)"/>
+  <rect class="pill" x="810" y="368" width="150" height="30" rx="15"/>
+  <circle class="badge" cx="832" cy="383" r="13" fill="#2f8f8a" stroke="#2f8f8a"/>
+  <text class="badgeText" x="832" y="387" text-anchor="middle">2</text>
+  <text class="msg" x="894" y="388" text-anchor="middle" fill="#2f8f8a">Value()</text>
+
+  <rect class="alt" x="574" y="452" width="1086" height="396" rx="16"/>
+  <rect class="alt-label" x="598" y="430" width="204" height="30" rx="15"/>
+  <text class="region" x="622" y="450">alt source state</text>
+  <rect class="branch-label" x="598" y="474" width="246" height="28" rx="14"/>
+  <text class="branch" x="620" y="493">NULL or invalid state</text>
+  <line class="divider" x1="574" y1="580" x2="1660" y2="580"/>
+  <rect class="branch-label" x="598" y="592" width="164" height="28" rx="14"/>
+  <text class="branch" x="620" y="611">non-NULL state</text>
+
+  <path class="return" d="M1120 550H650" stroke="#5f8d3e" marker-end="url(#seqArrow-green)"/>
+  <rect class="pill" x="754" y="508" width="262" height="30" rx="15"/>
+  <circle class="badge" cx="776" cy="523" r="13" fill="#5f8d3e" stroke="#5f8d3e"/>
+  <text class="badgeText" x="776" y="527" text-anchor="middle">3</text>
+  <text class="msg" x="892" y="528" text-anchor="middle" fill="#5f8d3e">nil or safe validation error</text>
+
+  <path class="call" d="M1120 650H1590" stroke="#c1842f" marker-end="url(#seqArrow-amber)"/>
+  <rect class="pill" x="1218" y="608" width="274" height="30" rx="15"/>
+  <circle class="badge" cx="1240" cy="623" r="13" fill="#c1842f" stroke="#c1842f"/>
+  <text class="badgeText" x="1240" y="627" text-anchor="middle">4</text>
+  <text class="msg" x="1362" y="628" text-anchor="middle" fill="#c1842f">Marshal or Encrypt(data, AAD)</text>
+
+  <path class="return" d="M1590 730H1120" stroke="#5f8d3e" marker-end="url(#seqArrow-green)"/>
+  <rect class="pill" x="1232" y="688" width="246" height="30" rx="15"/>
+  <circle class="badge" cx="1254" cy="703" r="13" fill="#5f8d3e" stroke="#5f8d3e"/>
+  <text class="badgeText" x="1254" y="707" text-anchor="middle">5</text>
+  <text class="msg" x="1362" y="708" text-anchor="middle" fill="#5f8d3e">payload or preserved cause</text>
+
+  <path class="return" d="M1120 820H650" stroke="#5f8d3e" marker-end="url(#seqArrow-green)"/>
+  <rect class="pill" x="742" y="778" width="286" height="30" rx="15"/>
+  <circle class="badge" cx="764" cy="793" r="13" fill="#5f8d3e" stroke="#5f8d3e"/>
+  <text class="badgeText" x="764" y="797" text-anchor="middle">6</text>
+  <text class="msg" x="892" y="798" text-anchor="middle" fill="#5f8d3e">bounded driver.Value or error</text>
+
+  <path class="return" d="M650 910H190" stroke="#5f8d3e" marker-end="url(#seqArrow-green)"/>
+  <rect class="pill" x="334" y="868" width="172" height="30" rx="15"/>
+  <circle class="badge" cx="356" cy="883" r="13" fill="#5f8d3e" stroke="#5f8d3e"/>
+  <text class="badgeText" x="356" y="887" text-anchor="middle">7</text>
+  <text class="msg" x="426" y="888" text-anchor="middle" fill="#5f8d3e">Exec result</text>
+
+  <path class="call" d="M190 990H650" stroke="#4f86c6" marker-end="url(#seqArrow-blue)"/>
+  <rect class="pill" x="266" y="948" width="308" height="30" rx="15"/>
+  <circle class="badge" cx="288" cy="963" r="13" fill="#4f86c6" stroke="#4f86c6"/>
+  <text class="badgeText" x="288" y="967" text-anchor="middle">8</text>
+  <text class="msg" x="428" y="968" text-anchor="middle" fill="#4f86c6">QueryRow(...).Scan(&amp;column)</text>
+
+  <path class="call" d="M650 1070H1120" stroke="#2f8f8a" marker-end="url(#seqArrow-teal)"/>
+  <rect class="pill" x="796" y="1028" width="178" height="30" rx="15"/>
+  <circle class="badge" cx="818" cy="1043" r="13" fill="#2f8f8a" stroke="#2f8f8a"/>
+  <text class="badgeText" x="818" y="1047" text-anchor="middle">9</text>
+  <text class="msg" x="892" y="1048" text-anchor="middle" fill="#2f8f8a">Scan(src)</text>
+
+  <rect class="alt" x="574" y="1112" width="1086" height="406" rx="16"/>
+  <rect class="alt-label" x="598" y="1090" width="414" height="30" rx="15"/>
+  <text class="region" x="622" y="1110">alt copied input after stale state reset</text>
+  <rect class="branch-label" x="598" y="1134" width="162" height="28" rx="14"/>
+  <text class="branch" x="620" y="1153">src is NULL</text>
+  <line class="divider" x1="574" y1="1250" x2="1660" y2="1250"/>
+  <rect class="branch-label" x="598" y="1260" width="274" height="28" rx="14"/>
+  <text class="branch" x="620" y="1279">non-NULL and within limit</text>
+
+  <path class="return" d="M1120 1210H650" stroke="#5f8d3e" marker-end="url(#seqArrow-green)"/>
+  <rect class="pill" x="746" y="1168" width="278" height="30" rx="15"/>
+  <circle class="badge" cx="768" cy="1183" r="13" fill="#5f8d3e" stroke="#5f8d3e"/>
+  <text class="badgeText" x="768" y="1187" text-anchor="middle">10</text>
+  <text class="msg" x="892" y="1188" text-anchor="middle" fill="#5f8d3e">Valid=false; no transform</text>
+
+  <path class="call" d="M1120 1320H1590" stroke="#c1842f" marker-end="url(#seqArrow-amber)"/>
+  <rect class="pill" x="1198" y="1278" width="314" height="30" rx="15"/>
+  <circle class="badge" cx="1220" cy="1293" r="13" fill="#c1842f" stroke="#c1842f"/>
+  <text class="badgeText" x="1220" y="1297" text-anchor="middle">11</text>
+  <text class="msg" x="1362" y="1298" text-anchor="middle" fill="#c1842f">Unmarshal or Decrypt + UTF-8</text>
+
+  <path class="return" d="M1590 1400H1120" stroke="#5f8d3e" marker-end="url(#seqArrow-green)"/>
+  <rect class="pill" x="1226" y="1358" width="258" height="30" rx="15"/>
+  <circle class="badge" cx="1248" cy="1373" r="13" fill="#5f8d3e" stroke="#5f8d3e"/>
+  <text class="badgeText" x="1248" y="1377" text-anchor="middle">12</text>
+  <text class="msg" x="1362" y="1378" text-anchor="middle" fill="#5f8d3e">decoded value or cause</text>
+
+  <path class="error" d="M1120 1490H650" stroke="#b65b67" marker-end="url(#seqArrow-red)"/>
+  <rect class="pill" x="694" y="1448" width="382" height="30" rx="15"/>
+  <circle class="badge" cx="716" cy="1463" r="13" fill="#b65b67" stroke="#b65b67"/>
+  <text class="badgeText" x="716" y="1467" text-anchor="middle">13</text>
+  <text class="msg" x="892" y="1468" text-anchor="middle" fill="#b65b67">publish success; error keeps invalid state</text>
+
+  <path class="return" d="M650 1600H190" stroke="#5f8d3e" marker-end="url(#seqArrow-green)"/>
+  <rect class="pill" x="308" y="1558" width="224" height="30" rx="15"/>
+  <circle class="badge" cx="330" cy="1573" r="13" fill="#5f8d3e" stroke="#5f8d3e"/>
+  <text class="badgeText" x="330" y="1577" text-anchor="middle">14</text>
+  <text class="msg" x="428" y="1578" text-anchor="middle" fill="#5f8d3e">Scan result</text>
+
+  <rect class="pill" x="226" y="1650" width="1348" height="36" rx="18"/>
+  <text class="footer" x="900" y="1673" text-anchor="middle">Oversize, malformed, panic, tamper, wrong-key, and wrong-AAD paths return redacted errors without publishing partial state.</text>
+</svg>
