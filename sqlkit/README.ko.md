@@ -56,6 +56,92 @@ _ = name
 // stmt.Args는 []any{id}입니다.
 ```
 
+## JSON 및 암호화 컬럼
+
+컬럼 helper는 SQL NULL과 JSON `null` 또는 빈 평문을 구분합니다.
+
+| 저장 값 | Helper | SQL NULL | NULL이 아닌 빈 값 |
+|---|---|---|---|
+| JSON/JSONB text 또는 bytes | `JSONColumn[T]` | `Valid=false` | JSON literal `null`은 `Valid=true`입니다. |
+| BYTEA/BLOB envelope | `EncryptedBytesColumn` | `Valid=false` | `Valid=true`인 빈 평문이나 nil 평문을 암호화합니다. |
+| TEXT/VARCHAR base64 envelope | `EncryptedStringColumn` | `Valid=false` | `Valid=true`인 빈 문자열을 암호화합니다. |
+
+`JSONColumn[T]`은 `database/sql`에 바로 전달할 수 있습니다.
+
+```go
+type Profile struct {
+    Name string `json:"name"`
+}
+
+var profile sqlkit.JSONColumn[Profile]
+err := db.QueryRowContext(ctx,
+    "select profile from accounts where id = $1", id,
+).Scan(&profile)
+
+updated := sqlkit.JSONColumn[Profile]{
+    Data:  Profile{Name: "Ada"},
+    Valid: true,
+}
+_, err = db.ExecContext(ctx,
+    "update accounts set profile = $1 where id = $2", updated, id,
+)
+```
+
+암호화 컬럼은 caller가 소유하는 `encrypt.Encryptor`를 재사용합니다. Constructor에
+전달한 associated data는 내부에서 복사합니다.
+
+```go
+payload := sqlkit.NewEncryptedBytesColumn(encryptor,
+    []byte("table=secrets:column=payload"))
+payload.Data = []byte("secret payload")
+payload.Valid = true
+
+stmt, err := sqlkit.InsertInto("secrets").
+    Columns("id", "payload").
+    Values(id, payload).
+    Build()
+
+loaded, err := sqlkit.QueryOne(ctx, db,
+    "select payload from secrets where id = $1",
+    func(rows *sql.Rows) ([]byte, error) {
+        column := sqlkit.NewEncryptedBytesColumn(encryptor,
+            []byte("table=secrets:column=payload"))
+        if err := rows.Scan(&column); err != nil {
+            return nil, err
+        }
+        return append([]byte(nil), column.Data...), nil
+    }, id)
+```
+
+Generated query parameter는 sqlc, Jet, ORM runtime dependency 없이 표준
+`driver.Valuer` contract를 받을 수 있습니다.
+
+```go
+note := sqlkit.NewEncryptedStringColumn(encryptor,
+    []byte("table=secrets:column=note"))
+note.Data = "secret text"
+note.Valid = true
+
+err := queries.UpdateSecret(ctx, UpdateSecretParams{
+    ID:   id,
+    Note: note, // generated field가 driver.Valuer를 받습니다.
+})
+```
+
+`DefaultJSONColumnMaxBytes`와
+`DefaultEncryptedColumnMaxPlaintextBytes`의 기본값은 1 MiB입니다.
+`DefaultEncryptedColumnMaxCiphertextBytes`의 기본값은 2 MiB입니다. Limit이
+0이면 기본값을 쓰고, 양수이면 해당 값으로 제한합니다. 음수이면
+`ErrInvalidColumnValue`, source나 output이 제한을 넘으면
+`ErrColumnValueTooLarge`를 반환합니다.
+
+`Scan`은 driver가 소유한 bytes를 복사하고 decode 전에 이전 값을 지웁니다.
+실패하면 column은 invalid 상태로 남습니다. 암호화 constructor도 associated data를
+복사합니다. Error는 `errors.Is`로 sqlkit과 `encrypt` sentinel을 확인할 수 있지만,
+error string에는 JSON, plaintext, ciphertext, key, associated data를 넣지 않습니다.
+암호문은 호출마다 random nonce를 사용하므로 equality, ordering, filtering query에
+사용할 수 없습니다.
+
 ## Diagram
 
 ![sqlkit helper contract map](../docs/images/readme-diagrams/sqlkit-helper-contract-map.png)

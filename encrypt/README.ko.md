@@ -62,6 +62,22 @@ Associated data는 암호화하지 않는 context를 ciphertext에 묶습니다.
 column, message type, protocol version 같은 안정적인 값을 사용하십시오. 복호화에는
 동일한 associated data가 필요하며, 다른 값은 `ErrAuthenticationFailed`를 반환합니다.
 
+## SQL 컬럼 연동
+
+`sqlkit.NewEncryptedBytesColumn`은 바이너리 `BTENC` envelope를 BYTEA/BLOB
+컬럼에 저장합니다. `sqlkit.NewEncryptedStringColumn`은 같은 envelope를 패딩 없는
+URL-safe base64로 바꿔 TEXT/VARCHAR 컬럼에 저장합니다. 두 constructor 모두
+associated data를 복사합니다.
+
+Tenant, entity, column, protocol version처럼 안정적인 associated data를 사용하면
+암호문을 다른 context로 옮겼을 때 인증이 실패합니다. Key 저장, 접근 제어, 회전,
+회전 후 기존 row를 복호화하는 방법은 caller가 계속 소유합니다.
+
+Random nonce를 사용하므로 ciphertext를 equality, ordering, filtering query에 사용할
+수 없습니다. 검색이 실제 요구사항이면 별도의 blind-index 설계를 검토해야 합니다.
+Nonce를 고정해서 해결하면 안 됩니다. Cloud KMS와 envelope encryption은 별도
+provider가 담당합니다.
+
 ## Envelope
 
 Byte ciphertext는 다음 envelope를 사용합니다.

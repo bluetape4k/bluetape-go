@@ -55,6 +55,93 @@ _ = name
 // stmt.Args is []any{id}.
 ```
 
+## JSON and Encrypted Columns
+
+The column helpers keep SQL NULL separate from values that happen to be empty
+or JSON `null`.
+
+| Stored value | Helper | SQL NULL | Non-NULL empty/null value |
+|---|---|---|---|
+| JSON/JSONB text or bytes | `JSONColumn[T]` | `Valid=false` | JSON literal `null` has `Valid=true` |
+| BYTEA/BLOB envelope | `EncryptedBytesColumn` | `Valid=false` | Empty or nil plaintext with `Valid=true` is encrypted |
+| TEXT/VARCHAR base64 envelope | `EncryptedStringColumn` | `Valid=false` | An empty string with `Valid=true` is encrypted |
+
+Use `JSONColumn[T]` directly with `database/sql`:
+
+```go
+type Profile struct {
+    Name string `json:"name"`
+}
+
+var profile sqlkit.JSONColumn[Profile]
+err := db.QueryRowContext(ctx,
+    "select profile from accounts where id = $1", id,
+).Scan(&profile)
+
+updated := sqlkit.JSONColumn[Profile]{
+    Data:  Profile{Name: "Ada"},
+    Valid: true,
+}
+_, err = db.ExecContext(ctx,
+    "update accounts set profile = $1 where id = $2", updated, id,
+)
+```
+
+Encrypted columns reuse a caller-owned `encrypt.Encryptor` and copy the
+associated data supplied to their constructors:
+
+```go
+payload := sqlkit.NewEncryptedBytesColumn(encryptor,
+    []byte("table=secrets:column=payload"))
+payload.Data = []byte("secret payload")
+payload.Valid = true
+
+stmt, err := sqlkit.InsertInto("secrets").
+    Columns("id", "payload").
+    Values(id, payload).
+    Build()
+
+loaded, err := sqlkit.QueryOne(ctx, db,
+    "select payload from secrets where id = $1",
+    func(rows *sql.Rows) ([]byte, error) {
+        column := sqlkit.NewEncryptedBytesColumn(encryptor,
+            []byte("table=secrets:column=payload"))
+        if err := rows.Scan(&column); err != nil {
+            return nil, err
+        }
+        return append([]byte(nil), column.Data...), nil
+    }, id)
+```
+
+Generated query parameters can accept the standard `driver.Valuer` contract
+without a sqlc, Jet, or ORM runtime dependency:
+
+```go
+note := sqlkit.NewEncryptedStringColumn(encryptor,
+    []byte("table=secrets:column=note"))
+note.Data = "secret text"
+note.Valid = true
+
+err := queries.UpdateSecret(ctx, UpdateSecretParams{
+    ID:   id,
+    Note: note, // generated field accepts driver.Valuer
+})
+```
+
+`DefaultJSONColumnMaxBytes` and
+`DefaultEncryptedColumnMaxPlaintextBytes` are 1 MiB.
+`DefaultEncryptedColumnMaxCiphertextBytes` is 2 MiB. A zero limit selects the
+default, a positive value overrides it, and a negative value returns
+`ErrInvalidColumnValue`. Oversized source or output returns
+`ErrColumnValueTooLarge`.
+
+`Scan` copies driver-owned bytes, clears the previous value before decoding,
+and leaves the column invalid after any failure. Encrypted constructors also
+copy associated data. Errors preserve the sqlkit and `encrypt` sentinels for
+`errors.Is`, while their strings omit JSON, plaintext, ciphertext, keys, and
+associated data. Random nonces mean encrypted values cannot support equality,
+ordering, or filtering queries.
+
 ## Diagram
 
 ![sqlkit helper contract map](../docs/images/readme-diagrams/sqlkit-helper-contract-map.png)
