@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"errors"
+	"fmt"
 	"math"
 	"time"
 
@@ -99,6 +100,37 @@ func (l *Limiter) Allow(ctx context.Context, key string, tokens int64) (ratelimi
 		}
 	}
 	return result, nil
+}
+
+// Cleanup deletes at most limit buckets whose idle expiry has passed.
+// Callers own scheduling, timeouts, and retries. On error the returned count is zero,
+// although an indeterminate operation may already have deleted up to limit rows.
+func (l *Limiter) Cleanup(ctx context.Context, limit int) (int64, error) {
+	ctx = normalizeContext(ctx)
+	if err := ctx.Err(); err != nil {
+		return 0, err
+	}
+	if l == nil || l.db == nil {
+		return 0, errors.New("postgres rate limiter is not initialized")
+	}
+	if limit < 1 || limit > MaxCleanupBatch {
+		return 0, fmt.Errorf("cleanup limit must be between 1 and %d", MaxCleanupBatch)
+	}
+	if l.testHook != nil {
+		if err := l.testHook("cleanup", phaseBeforeLinearize, ""); err != nil {
+			return 0, err
+		}
+	}
+	var count int64
+	if err := l.db.QueryRowContext(ctx, cleanupQuery, limit).Scan(&count); err != nil {
+		return 0, classifyCleanupError(err, ctx.Err())
+	}
+	if l.testHook != nil {
+		if err := l.testHook("cleanup", phaseAfterLinearize, ""); err != nil {
+			return 0, classifyCleanupError(err, ctx.Err())
+		}
+	}
+	return count, nil
 }
 
 func normalizeContext(ctx context.Context) context.Context {

@@ -48,3 +48,24 @@ func TestAllowRejectsBeforeDatabaseTraffic(t *testing.T) {
 		}
 	}
 }
+
+func TestCleanupRejectsBeforeDatabaseTraffic(t *testing.T) {
+	var nilLimiter *Limiter
+	if count, err := nilLimiter.Cleanup(context.Background(), 1); err == nil || count != 0 {
+		t.Fatalf("nil limiter Cleanup = %d, %v", count, err)
+	}
+	limiter, err := New(&sql.DB{}, Options{RatePerSecond: 1, Burst: 1})
+	if err != nil {
+		t.Fatal(err)
+	}
+	for _, limit := range []int{-1, 0, MaxCleanupBatch + 1} {
+		if count, err := limiter.Cleanup(context.Background(), limit); err == nil || count != 0 {
+			t.Fatalf("Cleanup(%d) = %d, %v", limit, count, err)
+		}
+	}
+	canceled, cancel := context.WithCancel(context.Background())
+	cancel()
+	if count, err := limiter.Cleanup(canceled, 1); !errors.Is(err, context.Canceled) || count != 0 {
+		t.Fatalf("pre-canceled Cleanup = %d, %v", count, err)
+	}
+}

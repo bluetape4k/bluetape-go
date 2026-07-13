@@ -82,3 +82,16 @@ func classifyOperationError(operation, namespace, key string, err, contextErr er
 	}
 	return errors.Join(opErr, ratelimit.ErrCommitUnknown)
 }
+
+func classifyCleanupError(err, contextErr error) error {
+	cause := err
+	if contextErr != nil {
+		cause = errors.Join(err, contextErr)
+	}
+	opErr := newCleanupOperationError(cause)
+	var serverErr *pgconn.PgError
+	if errors.As(err, &serverErr) {
+		return opErr
+	}
+	return errors.Join(opErr, ratelimit.ErrCommitUnknown)
+}
