@@ -31,16 +31,16 @@ func (c *JSONColumn[T]) Scan(src any) (err error) {
 	c.Data, c.Valid = zero, false
 	defer recoverColumnPanic("scan JSON", &err)
 
-	raw, present, err := copiedColumnSource(src, "scan JSON")
-	if err != nil || !present {
-		return err
+	if src == nil {
+		return nil
 	}
 	limit, err := effectiveColumnLimit(c.MaxBytes, DefaultJSONColumnMaxBytes, "scan JSON limit")
 	if err != nil {
 		return err
 	}
-	if len(raw) > limit {
-		return newColumnError(ErrColumnValueTooLarge, "scan JSON", nil)
+	raw, present, err := boundedCopiedColumnSource(src, limit, "scan JSON")
+	if err != nil || !present {
+		return err
 	}
 
 	var decoded T

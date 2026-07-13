@@ -64,13 +64,19 @@ func effectiveColumnLimit(configured, fallback int, operation string) (int, erro
 	return configured, nil
 }
 
-func copiedColumnSource(src any, operation string) ([]byte, bool, error) {
+func boundedCopiedColumnSource(src any, limit int, operation string) ([]byte, bool, error) {
 	switch value := src.(type) {
 	case nil:
 		return nil, false, nil
 	case []byte:
+		if len(value) > limit {
+			return nil, true, newColumnError(ErrColumnValueTooLarge, operation, nil)
+		}
 		return append([]byte(nil), value...), true, nil
 	case string:
+		if len(value) > limit {
+			return nil, true, newColumnError(ErrColumnValueTooLarge, operation, nil)
+		}
 		return []byte(value), true, nil
 	default:
 		return nil, false, newColumnError(ErrInvalidColumnValue, operation, nil)
