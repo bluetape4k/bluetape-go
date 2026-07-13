@@ -4,7 +4,6 @@ import (
 	"context"
 	"database/sql"
 	"errors"
-	"fmt"
 	"math"
 	"time"
 
@@ -81,7 +80,9 @@ func (l *Limiter) Allow(ctx context.Context, key string, tokens int64) (ratelimi
 		return ratelimit.Result{}, ErrConfigurationMismatch
 	}
 	if err != nil {
-		return ratelimit.Result{}, fmt.Errorf("postgres rate limiter allow: %w", err)
+		return ratelimit.Result{}, classifyOperationError(
+			"allow", string(l.opts.namespace), normalizedKey, err, ctx.Err(),
+		)
 	}
 	result := ratelimit.Result{
 		Allowed:    allowed,
@@ -92,7 +93,9 @@ func (l *Limiter) Allow(ctx context.Context, key string, tokens int64) (ratelimi
 	}
 	if l.testHook != nil {
 		if err := l.testHook("allow", phaseAfterLinearize, normalizedKey); err != nil {
-			return ratelimit.Result{}, err
+			return ratelimit.Result{}, classifyOperationError(
+				"allow", string(l.opts.namespace), normalizedKey, err, ctx.Err(),
+			)
 		}
 	}
 	return result, nil

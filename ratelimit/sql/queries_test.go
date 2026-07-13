@@ -98,6 +98,155 @@ where namespace=$1 and bucket_key=$2 returning updated_at`, limiter.opts.namespa
 	}
 }
 
+func TestAllowFailureBoundaries(t *testing.T) {
+	ctx, cancel := context.WithTimeout(context.Background(), 90*time.Second)
+	t.Cleanup(cancel)
+	_, db := openRateLimitPostgres(ctx, t)
+
+	t.Run("lost-response", func(t *testing.T) {
+		limiter := newPostgresLimiter(t, db, "lost-response", Options{RatePerSecond: 1, Burst: 2, IdleTTL: 2 * time.Second})
+		cause := errors.New("raw endpoint response marker")
+		limiter.testHook = func(operation string, phase testPhase, key string) error {
+			if operation == "allow" && phase == phaseAfterLinearize {
+				return cause
+			}
+			return nil
+		}
+		result, err := limiter.Allow(ctx, "raw-key-marker", 1)
+		if result != (ratelimit.Result{}) || !errors.Is(err, cause) || !errors.Is(err, ratelimit.ErrCommitUnknown) {
+			t.Fatalf("lost response = %+v, %v", result, err)
+		}
+		var opErr ratelimit.OperationError
+		if !errors.As(err, &opErr) || opErr.Operation() != "allow" {
+			t.Fatalf("lost response operation error = %T, %v", err, err)
+		}
+		limiter.testHook = nil
+		next, err := limiter.Allow(ctx, "raw-key-marker", 2)
+		if err != nil || next.Allowed {
+			t.Fatalf("lost response debit missing = %+v, %v", next, err)
+		}
+	})
+
+	t.Run("cancel-after-scan-returns-confirmed-result", func(t *testing.T) {
+		limiter := newPostgresLimiter(t, db, "after-scan", Options{RatePerSecond: 1, Burst: 1, IdleTTL: time.Second})
+		started := make(chan struct{})
+		resume := make(chan struct{})
+		limiter.testHook = func(operation string, phase testPhase, key string) error {
+			if operation == "allow" && phase == phaseAfterLinearize {
+				close(started)
+				<-resume
+			}
+			return nil
+		}
+		callCtx, callCancel := context.WithCancel(ctx)
+		resultCh := make(chan struct {
+			result ratelimit.Result
+			err    error
+		}, 1)
+		go func() {
+			result, err := limiter.Allow(callCtx, "key", 1)
+			resultCh <- struct {
+				result ratelimit.Result
+				err    error
+			}{result, err}
+		}()
+		<-started
+		callCancel()
+		close(resume)
+		got := <-resultCh
+		if got.err != nil || !got.result.Allowed {
+			t.Fatalf("confirmed result = %+v, %v", got.result, got.err)
+		}
+	})
+
+	t.Run("server-error-is-known-rollback", func(t *testing.T) {
+		limiter := newPostgresLimiter(t, db, "known-rollback", Options{RatePerSecond: 1, Burst: 1, IdleTTL: time.Second})
+		if _, err := db.ExecContext(ctx, `drop table public.bluetape_ratelimit_buckets`); err != nil {
+			t.Fatal(err)
+		}
+		result, err := limiter.Allow(ctx, "key", 1)
+		if result != (ratelimit.Result{}) || err == nil || errors.Is(err, ratelimit.ErrCommitUnknown) {
+			t.Fatalf("known rollback = %+v, %v", result, err)
+		}
+		var opErr ratelimit.OperationError
+		if !errors.As(err, &opErr) {
+			t.Fatalf("known rollback type = %T", err)
+		}
+	})
+}
+
+func TestAllowInFlightCancellation(t *testing.T) {
+	ctx, cancel := context.WithTimeout(context.Background(), 90*time.Second)
+	t.Cleanup(cancel)
+	dsn, admin := openRateLimitPostgres(ctx, t)
+	worker, err := sql.Open("pgx", dsn)
+	if err != nil {
+		t.Fatal(err)
+	}
+	t.Cleanup(func() { _ = worker.Close() })
+	worker.SetMaxOpenConns(1)
+	worker.SetMaxIdleConns(1)
+	limiter := newPostgresLimiter(t, worker, "in-flight-cancel", Options{RatePerSecond: 1, Burst: 2, IdleTTL: 2 * time.Second})
+	if _, err := limiter.Allow(ctx, "key", 1); err != nil {
+		t.Fatal(err)
+	}
+	before := bucketSnapshotForTest(ctx, t, admin, limiter.opts.namespace, "key")
+	var backendPID int
+	if err := worker.QueryRowContext(ctx, `select pg_backend_pid()`).Scan(&backendPID); err != nil {
+		t.Fatal(err)
+	}
+	tx, err := admin.BeginTx(ctx, nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+	t.Cleanup(func() { _ = tx.Rollback() })
+	if _, err := tx.ExecContext(ctx, `select 1 from public.bluetape_ratelimit_buckets where namespace=$1 and bucket_key=$2 for update`, limiter.opts.namespace, []byte("key")); err != nil {
+		t.Fatal(err)
+	}
+
+	callCtx, callCancel := context.WithCancel(ctx)
+	resultCh := make(chan struct {
+		result ratelimit.Result
+		err    error
+	}, 1)
+	go func() {
+		result, err := limiter.Allow(callCtx, "key", 1)
+		resultCh <- struct {
+			result ratelimit.Result
+			err    error
+		}{result, err}
+	}()
+	waitUntil(t, 5*time.Second, func() bool {
+		var waitType string
+		err := admin.QueryRowContext(ctx, `select coalesce(wait_event_type,'') from pg_catalog.pg_stat_activity where pid=$1`, backendPID).Scan(&waitType)
+		return err == nil && waitType == "Lock"
+	})
+	callCancel()
+	select {
+	case got := <-resultCh:
+		if got.result != (ratelimit.Result{}) || !errors.Is(got.err, context.Canceled) || !errors.Is(got.err, ratelimit.ErrCommitUnknown) {
+			t.Fatalf("in-flight cancellation = %+v, %v", got.result, got.err)
+		}
+		var opErr ratelimit.OperationError
+		if !errors.As(got.err, &opErr) || opErr.Operation() != "allow" {
+			t.Fatalf("in-flight cancellation type = %T, %v", got.err, got.err)
+		}
+	case <-time.After(5 * time.Second):
+		t.Fatal("in-flight cancellation did not return")
+	}
+	if err := tx.Rollback(); err != nil {
+		t.Fatal(err)
+	}
+	after := bucketSnapshotForTest(ctx, t, admin, limiter.opts.namespace, "key")
+	if before.rate != after.rate || before.burst != after.burst || before.ttl != after.ttl {
+		t.Fatalf("canceled Allow changed configuration: before=%+v after=%+v", before, after)
+	}
+	next, err := limiter.Allow(ctx, "key", 2)
+	if err != nil || next.Allowed {
+		t.Fatalf("in-flight cancellation admitted more than one debit: %+v, %v", next, err)
+	}
+}
+
 func waitUntil(t *testing.T, timeout time.Duration, condition func() bool) {
 	t.Helper()
 	deadline := time.Now().Add(timeout)
