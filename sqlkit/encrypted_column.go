@@ -48,9 +48,8 @@ func (c *EncryptedBytesColumn) Scan(src any) error {
 		return newColumnError(ErrInvalidColumnValue, "scan encrypted bytes", nil)
 	}
 	c.Data, c.Valid = nil, false
-	raw, present, err := copiedColumnSource(src, "scan encrypted bytes")
-	if err != nil || !present {
-		return err
+	if src == nil {
+		return nil
 	}
 	ciphertextLimit, err := effectiveColumnLimit(c.MaxCiphertextBytes, DefaultEncryptedColumnMaxCiphertextBytes, "scan encrypted bytes ciphertext limit")
 	if err != nil {
@@ -60,8 +59,9 @@ func (c *EncryptedBytesColumn) Scan(src any) error {
 	if err != nil {
 		return err
 	}
-	if len(raw) > ciphertextLimit {
-		return newColumnError(ErrColumnValueTooLarge, "scan encrypted bytes ciphertext", nil)
+	raw, present, err := boundedCopiedColumnSource(src, ciphertextLimit, "scan encrypted bytes ciphertext")
+	if err != nil || !present {
+		return err
 	}
 	plaintext, err := c.config.encryptor.Decrypt(raw, c.config.associatedData)
 	if err != nil {
@@ -134,9 +134,8 @@ func (c *EncryptedStringColumn) Scan(src any) error {
 		return newColumnError(ErrInvalidColumnValue, "scan encrypted string", nil)
 	}
 	c.Data, c.Valid = "", false
-	raw, present, err := copiedColumnSource(src, "scan encrypted string")
-	if err != nil || !present {
-		return err
+	if src == nil {
+		return nil
 	}
 	ciphertextLimit, err := effectiveColumnLimit(c.MaxCiphertextBytes, DefaultEncryptedColumnMaxCiphertextBytes, "scan encrypted string ciphertext limit")
 	if err != nil {
@@ -146,8 +145,9 @@ func (c *EncryptedStringColumn) Scan(src any) error {
 	if err != nil {
 		return err
 	}
-	if len(raw) > ciphertextLimit {
-		return newColumnError(ErrColumnValueTooLarge, "scan encrypted string ciphertext", nil)
+	raw, present, err := boundedCopiedColumnSource(src, ciphertextLimit, "scan encrypted string ciphertext")
+	if err != nil || !present {
+		return err
 	}
 	plaintext, err := c.config.encryptor.DecryptString(string(raw), c.config.associatedData)
 	if err != nil {
