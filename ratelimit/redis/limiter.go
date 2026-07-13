@@ -124,6 +124,7 @@ func (l *Limiter) Allow(ctx context.Context, key string, tokens int64) (ratelimi
 		}
 		return ratelimit.Result{}, errors.Join(
 			operationError(ctx, "consume", bucketKey, err),
+			ratelimit.ErrCommitUnknown,
 			btredis.ErrCommitUnknown,
 		)
 	}
@@ -131,6 +132,7 @@ func (l *Limiter) Allow(ctx context.Context, key string, tokens int64) (ratelimi
 	if err != nil {
 		return ratelimit.Result{}, errors.Join(
 			operationError(ctx, "parse-result", bucketKey, err),
+			ratelimit.ErrCommitUnknown,
 			btredis.ErrCommitUnknown,
 		)
 	}
