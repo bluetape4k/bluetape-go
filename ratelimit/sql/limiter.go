@@ -17,7 +17,7 @@ var _ ratelimit.Limiter = (*Limiter)(nil)
 type Limiter struct {
 	db       *sql.DB
 	opts     options
-	testHook func(operation string, phase testPhase, key string) error
+	testHook func(context.Context, string, testPhase, string) error
 }
 
 type testPhase string
@@ -61,7 +61,7 @@ func (l *Limiter) Allow(ctx context.Context, key string, tokens int64) (ratelimi
 		return ratelimit.Result{}, err
 	}
 	if l.testHook != nil {
-		if err := l.testHook("allow", phaseBeforeLinearize, normalizedKey); err != nil {
+		if err := l.testHook(ctx, "allow", phaseBeforeLinearize, normalizedKey); err != nil {
 			return ratelimit.Result{}, err
 		}
 	}
@@ -93,7 +93,7 @@ func (l *Limiter) Allow(ctx context.Context, key string, tokens int64) (ratelimi
 		ResetAfter: microsDuration(resetMicros),
 	}
 	if l.testHook != nil {
-		if err := l.testHook("allow", phaseAfterLinearize, normalizedKey); err != nil {
+		if err := l.testHook(ctx, "allow", phaseAfterLinearize, normalizedKey); err != nil {
 			return ratelimit.Result{}, classifyOperationError(
 				"allow", string(l.opts.namespace), normalizedKey, err, ctx.Err(),
 			)
@@ -117,7 +117,7 @@ func (l *Limiter) Cleanup(ctx context.Context, limit int) (int64, error) {
 		return 0, fmt.Errorf("cleanup limit must be between 1 and %d", MaxCleanupBatch)
 	}
 	if l.testHook != nil {
-		if err := l.testHook("cleanup", phaseBeforeLinearize, ""); err != nil {
+		if err := l.testHook(ctx, "cleanup", phaseBeforeLinearize, ""); err != nil {
 			return 0, err
 		}
 	}
@@ -126,7 +126,7 @@ func (l *Limiter) Cleanup(ctx context.Context, limit int) (int64, error) {
 		return 0, classifyCleanupError(err, ctx.Err())
 	}
 	if l.testHook != nil {
-		if err := l.testHook("cleanup", phaseAfterLinearize, ""); err != nil {
+		if err := l.testHook(ctx, "cleanup", phaseAfterLinearize, ""); err != nil {
 			return 0, classifyCleanupError(err, ctx.Err())
 		}
 	}

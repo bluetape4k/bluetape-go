@@ -106,7 +106,7 @@ func TestAllowFailureBoundaries(t *testing.T) {
 	t.Run("lost-response", func(t *testing.T) {
 		limiter := newPostgresLimiter(t, db, "lost-response", Options{RatePerSecond: 1, Burst: 2, IdleTTL: 2 * time.Second})
 		cause := errors.New("raw endpoint response marker")
-		limiter.testHook = func(operation string, phase testPhase, key string) error {
+		limiter.testHook = func(_ context.Context, operation string, phase testPhase, key string) error {
 			if operation == "allow" && phase == phaseAfterLinearize {
 				return cause
 			}
@@ -131,7 +131,7 @@ func TestAllowFailureBoundaries(t *testing.T) {
 		limiter := newPostgresLimiter(t, db, "after-scan", Options{RatePerSecond: 1, Burst: 1, IdleTTL: time.Second})
 		started := make(chan struct{})
 		resume := make(chan struct{})
-		limiter.testHook = func(operation string, phase testPhase, key string) error {
+		limiter.testHook = func(_ context.Context, operation string, phase testPhase, key string) error {
 			if operation == "allow" && phase == phaseAfterLinearize {
 				close(started)
 				<-resume
@@ -311,7 +311,7 @@ func TestCleanupPostgres(t *testing.T) {
 	t.Run("lost-response-returns-zero-count", func(t *testing.T) {
 		seedBucketForCleanup(ctx, t, db, limiter, "lost", -time.Minute)
 		cause := errors.New("cleanup response lost")
-		limiter.testHook = func(operation string, phase testPhase, key string) error {
+		limiter.testHook = func(_ context.Context, operation string, phase testPhase, key string) error {
 			if operation == "cleanup" && phase == phaseAfterLinearize {
 				return cause
 			}
