@@ -150,6 +150,12 @@ Contract map은 `sqlkit`이 `database/sql` boundary에 머문다는 점을 보�
 Caller가 handle과 SQL을 소유하고, helper는 transaction control, row mapping,
 inspectable PostgreSQL-first statement, 작은 safety check만 제공합니다.
 
+![sqlkit column scan and value sequence](../docs/images/readme-diagrams/sqlkit-column-scan-value-sequence.png)
+
+Column sequence는 `database/sql`이 `driver.Valuer`와 `sql.Scanner`를 호출하는
+과정을 보여줍니다. SQL NULL 분기, 제한된 JSON 또는 암호화 작업, 실패한 scan이
+부분 상태를 공개하지 않는 규칙도 함께 나타냅니다.
+
 ![sqlkit transaction and query sequence](../docs/images/readme-diagrams/sqlkit-tx-query-sequence.png)
 
 Sequence는 builder output이 `WithTx`, `Statement.Exec`, commit/rollback

@@ -12,6 +12,8 @@ envelope로 감쌉니다.
 
 ![encrypt envelope sequence](../docs/images/readme-diagrams/encrypt-envelope-sequence.png)
 
+![sqlkit column scan and value sequence](../docs/images/readme-diagrams/sqlkit-column-scan-value-sequence.png)
+
 ## 가져오기
 
 ```go
