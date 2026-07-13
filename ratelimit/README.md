@@ -6,8 +6,13 @@
 standard-library HTTP middleware. It is intended for in-process request guards,
 tenant throttles, and tests that need deterministic rejection diagnostics.
 
-Use [`ratelimit/redis`](redis/README.md) when multiple processes must share one
-bucket.
+Choose a provider by ownership and traffic shape:
+
+| Provider | Use when | Boundary |
+|---|---|---|
+| Local `ratelimit` | One process owns the quota. | Fast in-memory state; not shared across processes. |
+| [`ratelimit/redis`](redis/README.md) | Multiple processes need a shared low-latency quota. | Caller-owned Redis; atomic Lua operation. |
+| [`ratelimit/sql`](sql/README.md) | A moderate-QPS, database-only deployment already shares PostgreSQL. | Caller-owned PostgreSQL schema, pool, and cleanup; not a Redis replacement for high-QPS traffic. |
 
 ## Diagram
 
@@ -41,7 +46,7 @@ if !result.Allowed {
 
 Rejected attempts are normal results, not errors. Errors are reserved for
 invalid input, context cancellation, and backend failures in implementations
-such as `ratelimit/redis`.
+such as `ratelimit/redis` and `ratelimit/sql`.
 
 ## HTTP Middleware
 
@@ -119,7 +124,14 @@ macOS arm64 on Apple M4 Pro. Lower `ns/op`, `B/op`, and `allocs/op` are better.
 ## Provider Conformance
 
 `ratelimit/ratelimittest.Run` applies the same burst, refill, cancellation, and
-exact-admission contract to the local and Redis providers. A Redis commit-unknown
-returns a zero result but may have debited once: check the typed error first,
-never replay automatically, and wait a conservative full-refill interval or
-absorb one debit in the caller budget.
+exact-admission contract to local, Redis, and SQL providers. Distributed
+providers expose redacted failures through `ratelimit.OperationError`. If
+`errors.Is(err, ratelimit.ErrCommitUnknown)` is true, discard the zero result and
+do not replay automatically because one debit may have committed.
+
+Local, Redis, and SQL quota state is not shared. Simultaneous mixed-provider
+serving can grant multiple full bursts and is prohibited. A safe canary uses an
+independent namespace and an independent cohort. For cutover or rollback,
+quiesce the old provider and wait a conservative full-refill window before
+activating exactly one new provider, or record an approved extra-burst budget
+for the overlap.
