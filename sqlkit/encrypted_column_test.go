@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"database/sql"
 	"database/sql/driver"
+	"encoding/base64"
 	"errors"
 	"strings"
 	"testing"
@@ -14,6 +15,8 @@ import (
 
 var _ sql.Scanner = (*sqlkit.EncryptedBytesColumn)(nil)
 var _ driver.Valuer = sqlkit.EncryptedBytesColumn{}
+var _ sql.Scanner = (*sqlkit.EncryptedStringColumn)(nil)
+var _ driver.Valuer = sqlkit.EncryptedStringColumn{}
 
 func TestEncryptedBytesColumnRoundTripNullAndStorageType(t *testing.T) {
 	encryptor := newTestEncryptor(t)
@@ -266,6 +269,230 @@ func TestEncryptedBytesColumnZeroValue(t *testing.T) {
 func TestEncryptedBytesColumnNilScanner(t *testing.T) {
 	var column *sqlkit.EncryptedBytesColumn
 	if err := column.Scan([]byte("ciphertext")); !errors.Is(err, sqlkit.ErrInvalidColumnValue) {
+		t.Fatalf("nil Scan error = %v", err)
+	}
+}
+
+func TestEncryptedStringColumnRoundTripNullAndStorageType(t *testing.T) {
+	encryptor := newTestEncryptor(t)
+	aad := []byte("tenant=blue:column=note")
+	input := sqlkit.NewEncryptedStringColumn(encryptor, aad)
+	input.Data = "secret text"
+	input.Valid = true
+
+	value, err := input.Value()
+	if err != nil {
+		t.Fatalf("Value failed: %v", err)
+	}
+	ciphertext, ok := value.(string)
+	if !ok {
+		t.Fatalf("Value type = %T, want string", value)
+	}
+
+	for _, src := range []any{ciphertext, []byte(ciphertext)} {
+		output := sqlkit.NewEncryptedStringColumn(encryptor, aad)
+		if err := output.Scan(src); err != nil {
+			t.Fatalf("Scan(%T) failed: %v", src, err)
+		}
+		if !output.Valid || output.Data != "secret text" {
+			t.Fatalf("output = %#v, want valid secret text", output)
+		}
+	}
+
+	output := sqlkit.NewEncryptedStringColumn(encryptor, aad)
+	output.Data = "stale"
+	output.Valid = true
+	if err := output.Scan(nil); err != nil {
+		t.Fatalf("Scan(nil) failed: %v", err)
+	}
+	if output.Valid || output.Data != "" {
+		t.Fatalf("SQL NULL output = %#v, want invalid empty data", output)
+	}
+}
+
+func TestEncryptedStringColumnEmptyPlaintextIsNotSQLNull(t *testing.T) {
+	encryptor := newTestEncryptor(t)
+	aad := []byte("column=note")
+	input := sqlkit.NewEncryptedStringColumn(encryptor, aad)
+	input.Data = ""
+	input.Valid = true
+
+	value, err := input.Value()
+	if err != nil {
+		t.Fatalf("Value failed: %v", err)
+	}
+	if value == nil || value.(string) == "" {
+		t.Fatalf("valid empty plaintext Value = %v, want ciphertext", value)
+	}
+	output := sqlkit.NewEncryptedStringColumn(encryptor, aad)
+	if err := output.Scan(value); err != nil {
+		t.Fatalf("Scan failed: %v", err)
+	}
+	if !output.Valid || output.Data != "" {
+		t.Fatalf("output = %#v, want valid empty string", output)
+	}
+}
+
+func TestEncryptedStringColumnPreservesMalformedAuthenticationAndUTF8Errors(t *testing.T) {
+	encryptor := newTestEncryptor(t)
+	aad := []byte("column=note")
+	source := sqlkit.NewEncryptedStringColumn(encryptor, aad)
+	source.Data = "secret text"
+	source.Valid = true
+	value, err := source.Value()
+	if err != nil {
+		t.Fatalf("source Value failed: %v", err)
+	}
+	ciphertext := value.(string)
+	envelope, err := base64.RawURLEncoding.DecodeString(ciphertext)
+	if err != nil {
+		t.Fatalf("decode source ciphertext: %v", err)
+	}
+	envelope[len(envelope)-1] ^= 0xff
+	tampered := base64.RawURLEncoding.EncodeToString(envelope)
+
+	invalidUTF8Envelope, err := encryptor.Encrypt([]byte{0xff}, aad)
+	if err != nil {
+		t.Fatalf("encrypt invalid UTF-8 bytes: %v", err)
+	}
+	invalidUTF8 := base64.RawURLEncoding.EncodeToString(invalidUTF8Envelope)
+	wrongEncryptor := newEncryptorFromByte(t, 0x24)
+
+	tests := []struct {
+		name      string
+		column    sqlkit.EncryptedStringColumn
+		src       any
+		wantCause error
+	}{
+		{name: "malformed base64", column: sqlkit.NewEncryptedStringColumn(encryptor, aad), src: "%%%", wantCause: encrypt.ErrMalformedCiphertext},
+		{name: "tampered", column: sqlkit.NewEncryptedStringColumn(encryptor, aad), src: tampered, wantCause: encrypt.ErrAuthenticationFailed},
+		{name: "wrong key", column: sqlkit.NewEncryptedStringColumn(wrongEncryptor, aad), src: ciphertext, wantCause: encrypt.ErrAuthenticationFailed},
+		{name: "wrong AAD", column: sqlkit.NewEncryptedStringColumn(encryptor, []byte("column=other")), src: ciphertext, wantCause: encrypt.ErrAuthenticationFailed},
+		{name: "invalid UTF-8 plaintext", column: sqlkit.NewEncryptedStringColumn(encryptor, aad), src: invalidUTF8, wantCause: encrypt.ErrMalformedCiphertext},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			tt.column.Data = "stale plaintext"
+			tt.column.Valid = true
+			err := tt.column.Scan(tt.src)
+			if !errors.Is(err, sqlkit.ErrInvalidColumnValue) || !errors.Is(err, tt.wantCause) {
+				t.Fatalf("Scan error = %v, want ErrInvalidColumnValue and %v", err, tt.wantCause)
+			}
+			if tt.column.Valid || tt.column.Data != "" {
+				t.Fatalf("failed Scan retained plaintext: %#v", tt.column)
+			}
+		})
+	}
+}
+
+func TestEncryptedStringColumnEnforcesLimitsAndClearsState(t *testing.T) {
+	encryptor := newTestEncryptor(t)
+	aad := []byte("column=note")
+	source := sqlkit.NewEncryptedStringColumn(encryptor, aad)
+	source.Data = "payload"
+	source.Valid = true
+	value, err := source.Value()
+	if err != nil {
+		t.Fatalf("source Value failed: %v", err)
+	}
+	ciphertext := value.(string)
+
+	tests := []struct {
+		name   string
+		plain  int
+		cipher int
+		want   error
+	}{
+		{name: "negative plaintext", plain: -1, want: sqlkit.ErrInvalidColumnValue},
+		{name: "negative ciphertext", cipher: -1, want: sqlkit.ErrInvalidColumnValue},
+		{name: "oversized plaintext", plain: len("payload") - 1, want: sqlkit.ErrColumnValueTooLarge},
+		{name: "oversized ciphertext", cipher: len(ciphertext) - 1, want: sqlkit.ErrColumnValueTooLarge},
+	}
+	for _, tt := range tests {
+		t.Run("scan "+tt.name, func(t *testing.T) {
+			column := sqlkit.NewEncryptedStringColumn(encryptor, aad)
+			column.Data = "stale"
+			column.Valid = true
+			column.MaxPlaintextBytes = tt.plain
+			column.MaxCiphertextBytes = tt.cipher
+			err := column.Scan(ciphertext)
+			if !errors.Is(err, tt.want) {
+				t.Fatalf("Scan error = %v, want %v", err, tt.want)
+			}
+			if column.Valid || column.Data != "" {
+				t.Fatalf("failed Scan retained plaintext: %#v", column)
+			}
+		})
+	}
+
+	for _, tt := range tests {
+		t.Run("value "+tt.name, func(t *testing.T) {
+			column := sqlkit.NewEncryptedStringColumn(encryptor, aad)
+			column.Data = "payload"
+			column.Valid = true
+			column.MaxPlaintextBytes = tt.plain
+			column.MaxCiphertextBytes = tt.cipher
+			if tt.name == "oversized ciphertext" {
+				column.MaxCiphertextBytes = 1
+			}
+			if _, err := column.Value(); !errors.Is(err, tt.want) {
+				t.Fatalf("Value error = %v, want %v", err, tt.want)
+			}
+		})
+	}
+}
+
+func TestEncryptedStringColumnCopiesAADAndRedactsErrors(t *testing.T) {
+	encryptor := newTestEncryptor(t)
+	originalAAD := []byte("column=note")
+	constructorAAD := append([]byte(nil), originalAAD...)
+	input := sqlkit.NewEncryptedStringColumn(encryptor, constructorAAD)
+	for i := range constructorAAD {
+		constructorAAD[i] = 'X'
+	}
+	input.Data = "secret text"
+	input.Valid = true
+	value, err := input.Value()
+	if err != nil {
+		t.Fatalf("Value after AAD mutation failed: %v", err)
+	}
+	output := sqlkit.NewEncryptedStringColumn(encryptor, originalAAD)
+	if err := output.Scan(value); err != nil || output.Data != "secret text" {
+		t.Fatalf("Scan with original AAD = %#v, %v", output, err)
+	}
+
+	markers := []string{"plaintext-secret", "ciphertext-secret", "key-secret", "aad-secret"}
+	redacted := sqlkit.NewEncryptedStringColumn(encryptor, []byte(markers[3]))
+	err = redacted.Scan(markers[1])
+	if err == nil {
+		t.Fatal("Scan error = nil")
+	}
+	for _, marker := range markers {
+		if strings.Contains(err.Error(), marker) {
+			t.Fatalf("error exposes %q: %v", marker, err)
+		}
+	}
+}
+
+func TestEncryptedStringColumnZeroValueAndNilScanner(t *testing.T) {
+	var column sqlkit.EncryptedStringColumn
+	value, err := column.Value()
+	if err != nil || value != nil {
+		t.Fatalf("zero invalid Value = %v, %v", value, err)
+	}
+	column.Data = "secret"
+	column.Valid = true
+	if _, err := column.Value(); !errors.Is(err, sqlkit.ErrInvalidColumnValue) || !errors.Is(err, encrypt.ErrInvalidKey) {
+		t.Fatalf("unconfigured Value error = %v", err)
+	}
+
+	var scanned sqlkit.EncryptedStringColumn
+	if err := scanned.Scan("ciphertext"); !errors.Is(err, sqlkit.ErrInvalidColumnValue) || !errors.Is(err, encrypt.ErrInvalidKey) {
+		t.Fatalf("unconfigured Scan error = %v", err)
+	}
+
+	var nilColumn *sqlkit.EncryptedStringColumn
+	if err := nilColumn.Scan("ciphertext"); !errors.Is(err, sqlkit.ErrInvalidColumnValue) {
 		t.Fatalf("nil Scan error = %v", err)
 	}
 }
