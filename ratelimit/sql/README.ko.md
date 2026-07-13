@@ -15,6 +15,10 @@ delete하는 row 수를 제한하고 expiry index를 통해 가장 이른 expire
 멈춥니다. 이미 lock된 row는 추가로 scan하고 건너뛸 수 있으므로 caller의 실행 시간과
 pressure budget은 여전히 필요합니다.
 
+## 다이어그램
+
+![PostgreSQL token-bucket sequence](../../docs/images/readme-diagrams/postgres-ratelimit-token-bucket-sequence.png)
+
 ## 설치
 
 ```go

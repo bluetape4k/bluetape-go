@@ -16,6 +16,10 @@ locked and deleted rows while the expiry index lets PostgreSQL stop at the
 earliest available expired rows. Already locked rows can still be scanned and
 skipped, so caller time and pressure budgets remain mandatory.
 
+## Diagram
+
+![PostgreSQL token-bucket sequence](../../docs/images/readme-diagrams/postgres-ratelimit-token-bucket-sequence.png)
+
 ## Install
 
 ```go

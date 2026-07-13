@@ -86,3 +86,26 @@ while caller timeout and pressure budgets bound the scan.
 
 Performance documentation must state exactly which resource is bounded and use
 an execution-plan regression for the access path it relies on.
+
+## L5: Distributed limiter docs need an execution-boundary diagram
+
+### Problem
+
+The pre-PR review marked a new diagram N/A because prose and tables contained
+the contract. That evidence was complete but made the pre-dispatch, atomic
+row-serialization, outcome, and retry boundaries expensive to reconstruct.
+
+### Decision
+
+Add one source-backed sequence asset shared by the English and Korean provider
+READMEs. It shows connection acquisition, the single UPSERT/RETURNING dispatch,
+same-key row serialization, allow/reject/configuration-mismatch outcomes, and
+commit-unknown without replay. Keep cleanup as a separate bounded operation and
+avoid unsupported capacity claims.
+
+### Future guard
+
+A distributed provider review may mark a diagram N/A only when its atomic
+linearization point, failure boundary, retry rule, and cleanup ownership are
+already obvious at a glance. Otherwise, default to a sequence diagram and
+validate both source geometry and the full-size rendered PNG.
