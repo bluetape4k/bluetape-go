@@ -119,6 +119,7 @@ func runOverBurst(t *testing.T, h Harness, config Config, key string) error {
 }
 
 func runRejection(t *testing.T, h Harness, config Config, key string) error {
+	config = noRefillDuringCase(config)
 	allow, err := makeAllow(t, h, config)
 	if err != nil {
 		return err
@@ -141,12 +142,25 @@ func runRefill(t *testing.T, h Harness, config Config, key string) error {
 	if _, err := allow(context.Background(), key, config.Burst); err != nil {
 		return err
 	}
-	time.Sleep(2*time.Duration(float64(time.Second)/config.RatePerSecond) + 5*time.Millisecond)
-	result, err := allow(context.Background(), key, 1)
-	if err != nil || !result.Allowed {
-		return rateFailure(fmt.Sprintf("refill=%+v", result), err)
+	deadline := time.Now().Add(conformanceWaitTimeout)
+	for {
+		result, err := allow(context.Background(), key, 1)
+		if err != nil {
+			return rateFailure(fmt.Sprintf("refill=%+v", result), err)
+		}
+		if result.Allowed {
+			return nil
+		}
+		if result.RetryAfter <= 0 {
+			return rateFailure(fmt.Sprintf("refill=%+v", result), nil)
+		}
+		remaining := time.Until(deadline)
+		if remaining <= 0 {
+			return errors.New("ratelimittest: refill did not become available")
+		}
+		wait := min(result.RetryAfter, remaining)
+		time.Sleep(wait)
 	}
-	return nil
 }
 
 func runKeyIsolation(t *testing.T, h Harness, config Config, key string) error {
@@ -218,6 +232,7 @@ func runCancelBefore(t *testing.T, h Harness, config Config, key string) error {
 }
 
 func runCancelAfter(t *testing.T, h Harness, config Config, key string) error {
+	config = noRefillDuringCase(config)
 	allow, err := makeAllow(t, h, config)
 	if err != nil {
 		return err
@@ -262,6 +277,7 @@ func runCancelAfter(t *testing.T, h Harness, config Config, key string) error {
 }
 
 func runLostResponse(t *testing.T, h Harness, config Config, key string) error {
+	config = noRefillDuringCase(config)
 	allow, err := makeAllow(t, h, config)
 	if err != nil {
 		return err
@@ -285,6 +301,12 @@ func runLostResponse(t *testing.T, h Harness, config Config, key string) error {
 		return rateFailure(fmt.Sprintf("lost response debit missing=%+v", next), err)
 	}
 	return nil
+}
+
+func noRefillDuringCase(config Config) Config {
+	config.RatePerSecond = 0.1
+	config.IdleTTL = time.Minute
+	return config
 }
 
 func rateFailure(message string, err error) error {

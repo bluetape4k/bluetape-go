@@ -10,7 +10,10 @@ latency가 중요한 트래픽에서 Redis를 대체하는 구현은 아닙니�
 각 `Allow` 호출은 하나의 `INSERT ... ON CONFLICT DO UPDATE ... RETURNING` 문으로
 refill, 검사, token 소비, 결과 반환을 수행합니다. PostgreSQL server time을 사용하며
 같은 key의 호출은 primary-key row lock으로 직렬화됩니다. `Cleanup`은
-`FOR UPDATE SKIP LOCKED`를 포함한 하나의 bounded `DELETE` CTE를 실행합니다.
+`FOR UPDATE SKIP LOCKED`를 포함한 하나의 `DELETE` CTE를 실행합니다. `limit`은 lock과
+delete하는 row 수를 제한하고 expiry index를 통해 가장 이른 expired row에서 탐색을
+멈춥니다. 이미 lock된 row는 추가로 scan하고 건너뛸 수 있으므로 caller의 실행 시간과
+pressure budget은 여전히 필요합니다.
 
 ## 설치
 
@@ -51,6 +54,9 @@ Runtime role에 table ownership, schema `CREATE`, `TRUNCATE`, `REFERENCES`, `TRI
 생기지 않았는지도 확인합니다.
 
 ## 사용법
+
+`Allow`에는 caller-owned deadline을 전달합니다. Package는 dispatch 뒤에 자체 timeout이나
+retry를 추가하지 않습니다.
 
 ```go
 limiter, err := sqlratelimit.New(db, sqlratelimit.Options{

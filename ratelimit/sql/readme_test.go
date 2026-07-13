@@ -20,6 +20,7 @@ func TestReadmeContract(t *testing.T) {
 				"New",
 				"Allow",
 				"Cleanup",
+				"caller-owned deadline",
 				"ErrConfigurationMismatch",
 				"ErrCommitUnknown",
 				"caller-owned",

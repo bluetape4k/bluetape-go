@@ -65,9 +65,19 @@ func (l *Limiter) Allow(ctx context.Context, key string, tokens int64) (ratelimi
 			return ratelimit.Result{}, err
 		}
 	}
+	conn, err := l.db.Conn(ctx)
+	if err != nil {
+		if contextErr := ctx.Err(); contextErr != nil {
+			return ratelimit.Result{}, contextErr
+		}
+		return ratelimit.Result{}, newOperationError(
+			"allow", string(l.opts.namespace), normalizedKey, err,
+		)
+	}
+	defer func() { _ = conn.Close() }()
 	var allowed bool
 	var remaining, retryMicros, resetMicros int64
-	err = l.db.QueryRowContext(
+	err = conn.QueryRowContext(
 		ctx,
 		allowQuery,
 		l.opts.namespace,
@@ -121,8 +131,16 @@ func (l *Limiter) Cleanup(ctx context.Context, limit int) (int64, error) {
 			return 0, err
 		}
 	}
+	conn, err := l.db.Conn(ctx)
+	if err != nil {
+		if contextErr := ctx.Err(); contextErr != nil {
+			return 0, contextErr
+		}
+		return 0, newCleanupOperationError(err)
+	}
+	defer func() { _ = conn.Close() }()
 	var count int64
-	if err := l.db.QueryRowContext(ctx, cleanupQuery, limit).Scan(&count); err != nil {
+	if err := conn.QueryRowContext(ctx, cleanupQuery, limit).Scan(&count); err != nil {
 		return 0, classifyCleanupError(err, ctx.Err())
 	}
 	if l.testHook != nil {

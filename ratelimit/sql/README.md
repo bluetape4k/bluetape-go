@@ -11,7 +11,10 @@ traffic.
 Each `Allow` executes one `INSERT ... ON CONFLICT DO UPDATE ... RETURNING`
 statement. PostgreSQL server time refills, checks, consumes, and returns the
 bucket result while the primary-key row lock serializes callers for one key.
-`Cleanup` uses one bounded `DELETE` CTE with `FOR UPDATE SKIP LOCKED`.
+`Cleanup` uses one `DELETE` CTE with `FOR UPDATE SKIP LOCKED`; `limit` bounds
+locked and deleted rows while the expiry index lets PostgreSQL stop at the
+earliest available expired rows. Already locked rows can still be scanned and
+skipped, so caller time and pressure budgets remain mandatory.
 
 ## Install
 
@@ -52,6 +55,9 @@ Do not grant table ownership, schema `CREATE`, `TRUNCATE`, `REFERENCES`, or
 do not restore schema creation privileges.
 
 ## Usage
+
+Pass a caller-owned deadline to `Allow`; the package does not add a timeout or
+retry after dispatch.
 
 ```go
 limiter, err := sqlratelimit.New(db, sqlratelimit.Options{

@@ -12,6 +12,67 @@ import (
 
 func TestRunMemoryHarness(t *testing.T) { Run(t, MemoryHarness()) }
 
+func TestConformanceNoRefillCasesTolerateAdapterLatency(t *testing.T) {
+	tests := []struct {
+		name string
+		run  func(*testing.T, Harness, Config, string) error
+	}{
+		{name: "rejection-result", run: runRejection},
+		{name: "cancel-after-linearize", run: runCancelAfter},
+		{name: "lost-response", run: runLostResponse},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			harness := MemoryHarness()
+			newAllow := harness.New
+			harness.New = func(tb testing.TB, config Config) (AllowFunc, error) {
+				allow, err := newAllow(tb, config)
+				if err != nil {
+					return nil, err
+				}
+				return func(ctx context.Context, key string, tokens int64) (Result, error) {
+					result, err := allow(ctx, key, tokens)
+					time.Sleep(20 * time.Millisecond)
+					return result, err
+				}, nil
+			}
+
+			config := Config{RatePerSecond: 100, Burst: 5, IdleTTL: time.Second}
+			if err := tt.run(t, harness, config, "latency-"+tt.name); err != nil {
+				t.Fatalf("latency-sensitive conformance case failed: %v", err)
+			}
+		})
+	}
+}
+
+func TestRunRefillWaitsForEventuallyAllowedResult(t *testing.T) {
+	var calls int
+	harness := Harness{
+		New: func(testing.TB, Config) (AllowFunc, error) {
+			return func(context.Context, string, int64) (Result, error) {
+				calls++
+				switch calls {
+				case 1:
+					return Result{Allowed: true, Requested: 5}, nil
+				case 2:
+					return Result{Requested: 1, RetryAfter: time.Millisecond}, nil
+				default:
+					return Result{Allowed: true, Requested: 1}, nil
+				}
+			}, nil
+		},
+	}
+	config := Config{RatePerSecond: 100, Burst: 5, IdleTTL: time.Second}
+
+	if err := runRefill(t, harness, config, "eventual-refill"); err != nil {
+		t.Fatalf("eventual refill failed: %v", err)
+	}
+	if calls != 3 {
+		t.Fatalf("refill attempts = %d, want 3", calls)
+	}
+}
+
 const diagnosticMarker = "forbidden-ratelimittest-diagnostic-marker"
 
 func TestRunRedactsAdapterDiagnostics(t *testing.T) {
