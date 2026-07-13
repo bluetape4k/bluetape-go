@@ -19,7 +19,7 @@ func ExampleNew() {
 	if err != nil {
 		return
 	}
-	defer migrationDB.Close()
+	defer func() { _ = migrationDB.Close() }()
 	if _, err = migrationDB.ExecContext(ctx, sqlratelimit.SchemaSQL); err != nil {
 		return
 	}
@@ -29,7 +29,7 @@ func ExampleNew() {
 	if err != nil {
 		return
 	}
-	defer runtimeDB.Close()
+	defer func() { _ = runtimeDB.Close() }()
 
 	limiter, err := sqlratelimit.New(runtimeDB, sqlratelimit.Options{
 		Namespace:     "api-v1",
@@ -41,7 +41,10 @@ func ExampleNew() {
 		return
 	}
 
-	result, err := limiter.Allow(ctx, "tenant:blue", 1)
+	// Allow uses a request-owned deadline; the limiter does not add one.
+	allowCtx, allowCancel := context.WithTimeout(ctx, 250*time.Millisecond)
+	defer allowCancel()
+	result, err := limiter.Allow(allowCtx, "tenant:blue", 1)
 	if err != nil {
 		// Ignore result on every error. Commit-unknown may have consumed once,
 		// so do not replay automatically.

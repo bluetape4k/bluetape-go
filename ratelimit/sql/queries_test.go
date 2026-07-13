@@ -5,6 +5,7 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
+	"strconv"
 	"strings"
 	"testing"
 	"time"
@@ -106,7 +107,7 @@ func TestAllowFailureBoundaries(t *testing.T) {
 	t.Run("lost-response", func(t *testing.T) {
 		limiter := newPostgresLimiter(t, db, "lost-response", Options{RatePerSecond: 1, Burst: 2, IdleTTL: 2 * time.Second})
 		cause := errors.New("raw endpoint response marker")
-		limiter.testHook = func(_ context.Context, operation string, phase testPhase, key string) error {
+		limiter.testHook = func(_ context.Context, operation string, phase testPhase, _ string) error {
 			if operation == "allow" && phase == phaseAfterLinearize {
 				return cause
 			}
@@ -131,7 +132,7 @@ func TestAllowFailureBoundaries(t *testing.T) {
 		limiter := newPostgresLimiter(t, db, "after-scan", Options{RatePerSecond: 1, Burst: 1, IdleTTL: time.Second})
 		started := make(chan struct{})
 		resume := make(chan struct{})
-		limiter.testHook = func(_ context.Context, operation string, phase testPhase, key string) error {
+		limiter.testHook = func(_ context.Context, operation string, phase testPhase, _ string) error {
 			if operation == "allow" && phase == phaseAfterLinearize {
 				close(started)
 				<-resume
@@ -241,9 +242,89 @@ func TestAllowInFlightCancellation(t *testing.T) {
 	if before.rate != after.rate || before.burst != after.burst || before.ttl != after.ttl {
 		t.Fatalf("canceled Allow changed configuration: before=%+v after=%+v", before, after)
 	}
-	next, err := limiter.Allow(ctx, "key", 2)
-	if err != nil || next.Allowed {
-		t.Fatalf("in-flight cancellation admitted more than one debit: %+v, %v", next, err)
+	beforeTokens, err := strconv.ParseFloat(before.tokens, 64)
+	if err != nil {
+		t.Fatal(err)
+	}
+	afterTokens, err := strconv.ParseFloat(after.tokens, 64)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if afterTokens < beforeTokens-float64(tokenScale) {
+		t.Fatalf("in-flight cancellation debited more than once: before=%f after=%f", beforeTokens, afterTokens)
+	}
+}
+
+func TestPoolAcquireCancellationIsPreDispatch(t *testing.T) {
+	ctx, cancel := context.WithTimeout(context.Background(), 90*time.Second)
+	t.Cleanup(cancel)
+	dsn, admin := openRateLimitPostgres(ctx, t)
+	pool, err := sql.Open("pgx", dsn)
+	if err != nil {
+		t.Fatal(err)
+	}
+	t.Cleanup(func() { _ = pool.Close() })
+	pool.SetMaxOpenConns(1)
+	pool.SetMaxIdleConns(1)
+	limiter := newPostgresLimiter(t, pool, "pool-acquire-cancel", Options{RatePerSecond: 1, Burst: 1, IdleTTL: time.Minute})
+	held, err := pool.Conn(ctx)
+	if err != nil {
+		t.Fatal(err)
+	}
+	t.Cleanup(func() { _ = held.Close() })
+
+	for _, operation := range []string{"allow", "cleanup"} {
+		operation := operation
+		t.Run(operation, func(t *testing.T) {
+			waits := pool.Stats().WaitCount
+			callCtx, callCancel := context.WithCancel(ctx)
+			defer callCancel()
+			errCh := make(chan error, 1)
+			go func() {
+				if operation == "allow" {
+					result, err := limiter.Allow(callCtx, "key", 1)
+					if result != (ratelimit.Result{}) {
+						errCh <- fmt.Errorf("Allow result = %+v", result)
+						return
+					}
+					errCh <- err
+					return
+				}
+				count, err := limiter.Cleanup(callCtx, 1)
+				if count != 0 {
+					errCh <- fmt.Errorf("Cleanup count = %d", count)
+					return
+				}
+				errCh <- err
+			}()
+			waitUntil(t, 5*time.Second, func() bool { return pool.Stats().WaitCount > waits })
+			callCancel()
+			err := <-errCh
+			var opErr ratelimit.OperationError
+			if !errors.Is(err, context.Canceled) || errors.Is(err, ratelimit.ErrCommitUnknown) || errors.As(err, &opErr) {
+				t.Fatalf("pool-wait cancellation = %T %v", err, err)
+			}
+		})
+	}
+
+	var rows int
+	if err := admin.QueryRowContext(ctx, `select count(*) from public.bluetape_ratelimit_buckets where namespace=$1`, limiter.opts.namespace).Scan(&rows); err != nil {
+		t.Fatal(err)
+	}
+	if rows != 0 {
+		t.Fatalf("pre-dispatch cancellation stored %d rows", rows)
+	}
+
+	if err := held.Close(); err != nil {
+		t.Fatal(err)
+	}
+	if err := pool.Close(); err != nil {
+		t.Fatal(err)
+	}
+	result, err := limiter.Allow(ctx, "key", 1)
+	var opErr ratelimit.OperationError
+	if result != (ratelimit.Result{}) || err == nil || errors.Is(err, ratelimit.ErrCommitUnknown) || !errors.As(err, &opErr) {
+		t.Fatalf("closed-pool Allow = %+v, %T %v", result, err, err)
 	}
 }
 
@@ -311,7 +392,7 @@ func TestCleanupPostgres(t *testing.T) {
 	t.Run("lost-response-returns-zero-count", func(t *testing.T) {
 		seedBucketForCleanup(ctx, t, db, limiter, "lost", -time.Minute)
 		cause := errors.New("cleanup response lost")
-		limiter.testHook = func(_ context.Context, operation string, phase testPhase, key string) error {
+		limiter.testHook = func(_ context.Context, operation string, phase testPhase, _ string) error {
 			if operation == "cleanup" && phase == phaseAfterLinearize {
 				return cause
 			}
@@ -330,6 +411,95 @@ func TestCleanupPostgres(t *testing.T) {
 			t.Fatalf("cleanup retry = %d, %v", count, err)
 		}
 	})
+}
+
+func TestCleanupLargeBacklogUsesExpiryIndexWithoutSort(t *testing.T) {
+	ctx, cancel := context.WithTimeout(context.Background(), 90*time.Second)
+	t.Cleanup(cancel)
+	_, db := openRateLimitPostgres(ctx, t)
+
+	_, err := db.ExecContext(ctx, `insert into public.bluetape_ratelimit_buckets (
+namespace,bucket_key,rate_micros_per_second,burst_micros,idle_ttl_micros,tokens_micros,
+last_allowed,updated_at,expires_at)
+select convert_to('cleanup-plan','UTF8'), convert_to(format('key-%s', n),'UTF8'),
+1, 1000000, 60000000, 0, false,
+pg_catalog.clock_timestamp()-interval '2 days',
+pg_catalog.clock_timestamp()-interval '1 day'
+from generate_series(1, 20000) as n`)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	rows, err := db.QueryContext(ctx, "explain (analyze, buffers, costs off) "+cleanupQuery, 1)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer func() { _ = rows.Close() }()
+	var plan strings.Builder
+	for rows.Next() {
+		var line string
+		if err := rows.Scan(&line); err != nil {
+			t.Fatal(err)
+		}
+		plan.WriteString(line)
+		plan.WriteByte('\n')
+	}
+	if err := rows.Err(); err != nil {
+		t.Fatal(err)
+	}
+	text := plan.String()
+	if strings.Contains(text, "Sort") || !strings.Contains(text, "Index Scan using bluetape_ratelimit_buckets_expires_at_idx") {
+		t.Fatalf("cleanup plan must stop on expiry index without sorting the backlog:\n%s", text)
+	}
+}
+
+func TestCleanupAllowSameRowRace(t *testing.T) {
+	ctx, cancel := context.WithTimeout(context.Background(), 90*time.Second)
+	t.Cleanup(cancel)
+	_, db := openRateLimitPostgres(ctx, t)
+	limiter := newPostgresLimiter(t, db, "cleanup-allow-race", Options{RatePerSecond: 1000, Burst: 1, IdleTTL: time.Minute})
+
+	for iteration := range 20 {
+		key := fmt.Sprintf("same-row-%02d", iteration)
+		seedBucketForCleanup(ctx, t, db, limiter, key, -time.Minute)
+		start := make(chan struct{})
+		type allowResponse struct {
+			result ratelimit.Result
+			err    error
+		}
+		allowCh := make(chan allowResponse, 1)
+		cleanupCh := make(chan struct {
+			count int64
+			err   error
+		}, 1)
+		go func() {
+			<-start
+			result, err := limiter.Allow(ctx, key, 1)
+			allowCh <- allowResponse{result: result, err: err}
+		}()
+		go func() {
+			<-start
+			count, err := limiter.Cleanup(ctx, 1)
+			cleanupCh <- struct {
+				count int64
+				err   error
+			}{count: count, err: err}
+		}()
+		close(start)
+		allowed := <-allowCh
+		cleaned := <-cleanupCh
+		if allowed.err != nil || !allowed.result.Allowed || cleaned.err != nil || cleaned.count < 0 || cleaned.count > 1 {
+			t.Fatalf("iteration %d Allow=%+v/%v Cleanup=%d/%v", iteration, allowed.result, allowed.err, cleaned.count, cleaned.err)
+		}
+		var live bool
+		if err := db.QueryRowContext(ctx, `select expires_at > pg_catalog.clock_timestamp()
+from public.bluetape_ratelimit_buckets where namespace=$1 and bucket_key=$2`, limiter.opts.namespace, []byte(key)).Scan(&live); err != nil {
+			t.Fatalf("iteration %d final row: %v", iteration, err)
+		}
+		if !live {
+			t.Fatalf("iteration %d final row is expired", iteration)
+		}
+	}
 }
 
 func seedBucketForCleanup(ctx context.Context, t *testing.T, db *sql.DB, limiter *Limiter, key string, expiryOffset time.Duration) {

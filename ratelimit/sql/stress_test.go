@@ -88,8 +88,8 @@ func TestFractionalRefillCarry(t *testing.T) {
 	if err := db.QueryRowContext(ctx, `select tokens_micros::double precision from public.bluetape_ratelimit_buckets where namespace=$1 and bucket_key=$2`, limiter.opts.namespace, []byte("key")).Scan(&tokens); err != nil {
 		t.Fatal(err)
 	}
-	if tokens <= 0 || tokens >= 1 {
-		t.Fatalf("fractional carry = %f, want between 0 and 1 microtoken", tokens)
+	if tokens <= 0 || tokens >= float64(tokenScale) {
+		t.Fatalf("fractional carry = %f microtokens, want between 0 and one token", tokens)
 	}
 }
 

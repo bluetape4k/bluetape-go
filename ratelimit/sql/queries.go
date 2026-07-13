@@ -46,7 +46,7 @@ const cleanupQuery = `with observed as materialized (
     select bucket.namespace, bucket.bucket_key
     from public.bluetape_ratelimit_buckets as bucket cross join observed
     where bucket.expires_at <= observed.observed_at
-    order by bucket.expires_at, bucket.namespace, bucket.bucket_key
+    order by bucket.expires_at
     limit $1
     for update of bucket skip locked
 ), deleted as (
