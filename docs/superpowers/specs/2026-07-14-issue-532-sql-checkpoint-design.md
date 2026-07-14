@@ -127,6 +127,7 @@ package batch
 
 var ErrCheckpointConflict = errors.New("batch: checkpoint revision conflict")
 var ErrCommitUnknown = errors.New("batch: commit outcome unknown")
+var ErrAtomicityUnknown = errors.New("batch: atomicity outcome unknown")
 var ErrCheckpointVersionExhausted = errors.New("batch: checkpoint version exhausted")
 
 type VersionedCheckpoint struct {
@@ -205,9 +206,10 @@ checkpoint가 아직 쓰지 않은 pending output을 건너뛰는 것을 막는�
 6. `ErrCheckpointConflict`이면 stale run이므로 reload 없이 현재 run을 중단한다.
 7. `ErrCheckpointVersionExhausted`이면 operator migration 전까지 permanent failure다.
 8. `ErrCommitUnknown`이면 `WriteCount`를 증가시키거나 buffer를 clear하지 않고 현재 run을
-   중단한다. Caller는 same-key actor를 계속 quiesce한 상태에서 fresh run으로 checkpoint를
-   reload한다. Load는 authoritative resume position을 제공하지만 원래 ambiguous attempt를
-   별도로 attribution하지는 않는다.
+   중단한다. `ErrAtomicityUnknown`이 아니면 caller는 same-key actor를 계속 quiesce한 상태에서
+   fresh run으로 checkpoint를 reload한다. Load는 authoritative resume position을 제공하지만
+   원래 ambiguous attempt를 별도로 attribution하지는 않는다. `ErrAtomicityUnknown`이면 fresh
+   run을 시작하지 않고 business/checkpoint state를 수동 reconcile한다.
 
 Atomic `Commit` error에는 `RetryPolicy` 또는 `SkipPolicy`를 적용하지 않는다. Callback failure,
 conflict, context cancellation, transport failure를 자동 replay하면 duplicate business write
@@ -323,6 +325,9 @@ serialize하지 않는다.
   codec과 payload migration을 소유한다. Stored payload는 trusted input으로 가정하지 않으며
   codec은 malformed/untrusted bytes를 fail closed해야 한다. Typed nil/zero `C`의 허용 여부는
   caller codec이 결정하지만 untyped wrong checkpoint type은 DB access 전에 거절한다.
+- Provider는 application-level payload encryption이나 key management를 제공하지 않는다.
+  Sensitive checkpoint는 caller-owned TLS/database encryption과 필요하면 authenticated codec,
+  key rotation/migration을 사용한다.
 
 ## Schema
 
@@ -352,9 +357,10 @@ lifecycle/migration 정책이다. `SchemaSQL`은 bootstrap contract이며 existi
 shape, PK order, check constraint, RLS/triggers, owner와 privilege를 검증해야 한다.
 
 Production topology는 별도 non-login migration owner와 runtime role을 사용한다. Migration
-owner가 bounded lock/statement timeout 아래 schema를 소유·적용하고, `PUBLIC`의 schema
-`CREATE`를 revoke한 뒤 runtime role에 `USAGE ON SCHEMA public`과 고정 table의 `SELECT`,
-`INSERT`, `UPDATE`만 grant한다. Runtime은 schema/table owner 또는 migration-owner member가
+owner는 bounded lock/statement timeout 아래 table 생성 전에 `PUBLIC`의 schema `CREATE`를
+revoke하고 schema를 소유·적용한다. 생성 직후 runtime grant 전에 catalog preflight를 통과해야
+하며, 그 뒤에만 runtime role에 `USAGE ON SCHEMA public`과 고정 table의 `SELECT`, `INSERT`,
+`UPDATE`를 grant한다. Runtime은 schema/table owner 또는 migration-owner member가
 아니며 `CREATE`, `ALTER`, `DROP`, `DELETE`, `TRUNCATE`, `REFERENCES`, `TRIGGER`, grant option,
 inherited/PUBLIC write privilege를 갖지 않는다. Callback이 쓰는 business table 권한은 caller
 책임이다.
@@ -383,8 +389,9 @@ fail closed한다. Active checkpoint row를 삭제하거나 key를 재사용하�
    정확히 한 번 호출한다. Empty이면 callback과 savepoint guard를 모두 생략한다.
 6. Callback 반환 뒤 checkpoint DML 전에 provider가 guard를 release한다. Guard release가
    실패하면 어떤 분류에서도 checkpoint DML이나 Commit을 실행하지 않는다. Raw transaction
-   control의 positive evidence가 있으면 contract-violation/commit-unknown, cancellation 또는
-   transport와 경합해 outcome을 증명할 수 없으면 commit-unknown으로 fail closed한다.
+   control의 positive evidence가 있으면 contract-violation/atomicity-unknown/commit-unknown,
+   cancellation 또는 transport와 경합해 outcome을 증명할 수 없으면
+   atomicity-unknown/commit-unknown으로 fail closed한다.
 7. 같은 concrete `*sql.Tx`를 감싼 non-owning `sqlkit.Session`에서 checkpoint CAS DML 하나를
    실행한다.
 8. CAS 성공 뒤 `ctx.Err()`를 commit dispatch 전에 다시 확인한다. 이미 취소됐다면 commit을
@@ -448,8 +455,12 @@ returning revision
 
 - `errors.Is(err, batch.ErrCheckpointConflict)`는 expected revision이 현재 row와 맞지 않아
   business/checkpoint transaction이 rollback됐음을 뜻한다.
-- `errors.Is(err, batch.ErrCommitUnknown)`는 commit request가 PostgreSQL에 반영됐는지 caller가
-  확정할 수 없음을 뜻한다. 성공 revision과 write count는 반환하지 않는다.
+- `errors.Is(err, batch.ErrCommitUnknown)`는 provider-owned Commit 또는 callback transaction
+  ownership 결과를 caller가 확정할 수 없음을 뜻한다. 성공 revision과 write count는 반환하지
+  않는다.
+- `errors.Is(err, batch.ErrAtomicityUnknown)`는 business write와 checkpoint의 원자적 귀속 자체를
+  증명할 수 없음을 뜻하며 항상 `ErrCommitUnknown`에도 match한다. 이는 provider-owned Commit
+  dispatch unknown보다 강한 recovery barrier다.
 - `errors.Is(err, batch.ErrCheckpointVersionExhausted)`는 current row가 PostgreSQL bigint
   maximum에 도달한 permanent failure다. Stale conflict처럼 blind reload/retry하지 않는다.
 
@@ -470,37 +481,44 @@ KeyID를 노출하지 않는다.
 - Callback 또는 checkpoint statement failure 뒤 provider는 rollback한다. PostgreSQL
   server error와 성공한 rollback은 known rollback이며 commit-unknown이 아니다.
 - CAS no-row는 `ErrCheckpointConflict`이며 rollback된다.
-- Guard release는 caller context가 이미 취소됐더라도 short bounded internal cleanup context로
-  시도하되 business/checkpoint work를 진행시키는 용도로 사용하지 않는다. Release 성공 뒤
-  callback error 또는 caller cancellation이 있으면 rollback하고 known failure/cancellation로
-  반환한다.
+- Guard release는 caller context가 이미 취소됐더라도
+  `context.WithTimeout(context.WithoutCancel(ctx), time.Second)`의 fixed one-second internal probe
+  context로 시도하되 business/checkpoint work를 진행시키는 용도로 사용하지 않는다. Probe
+  timeout은 atomicity-unknown으로 fail closed한다. Release 성공 뒤 callback error 또는 caller
+  cancellation이 있으면 rollback하고 known failure/cancellation로 반환한다.
 - Guard release가 `SQLSTATE 25P02`처럼 active failed transaction을 확인하면 rollback한다.
   Rollback 성공은 known failure이고 rollback 실패는 기존 rollback-error 계약을 따른다.
 - Active caller context의 `sql.ErrTxDone`, `SQLSTATE 25P01`(no active transaction) 또는
   `SQLSTATE 3B001`(invalid savepoint)처럼 lifecycle violation의 positive evidence가 있으면
   sanitized operation error, `sqlcheckpoint.ErrCallbackContractViolation`,
-  `batch.ErrCommitUnknown`에 match한다.
+  `batch.ErrAtomicityUnknown`, `batch.ErrCommitUnknown`에 match한다.
 - Guard release가 cancellation/deadline, canceled-context `sql.ErrTxDone`, transport loss,
   bad connection 또는 분류 불가능한 non-server error로 실패하면 raw Commit과 automatic
   rollback의 경합을 증명할 수 없으므로 `ErrCallbackContractViolation`을 추측하지 않고
-  sanitized operation error와 `batch.ErrCommitUnknown`에만 match한다. 어떤 release failure도
-  checkpoint DML 또는 provider-owned Commit으로 이어지지 않는다.
+  sanitized operation error, `batch.ErrAtomicityUnknown`, `batch.ErrCommitUnknown`에 match한다.
+  어떤 release failure도 checkpoint DML 또는 provider-owned Commit으로 이어지지 않는다.
 - Commit의 PostgreSQL server rejection은 known failure로 분류한다.
 - Commit의 transport loss, in-flight cancellation/deadline, bad connection 또는 결과를
   확정할 수 없는 non-server error는 original/context cause를 `OpError.Unwrap` 안에만 보관하고
   sanitized `OpError`와 `batch.ErrCommitUnknown`만 `errors.Join`한다.
 - Rollback error는 원래 known failure와 함께 sanitized `OpError.Unwrap` 내부에 보존한다.
   Provider는 rollback failure를 숨기지 않지만 raw cause를 outer error string에 join하거나
-  commit을 호출하지 않은 path를 commit-unknown으로 승격하지 않는다.
+  active transaction을 확인한 known-failure path를 commit-unknown으로 승격하지 않는다. Guard
+  release가 ownership을 증명하지 못한 path는 앞선 atomicity-unknown 계약을 따른다.
 - 모든 `Commit` error는 revision zero를 반환한다. Provider와 `Step`은 자동 retry하지 않는다.
 - `Step.statusForError`는 `batch.ErrCommitUnknown`을 context cancellation보다 먼저 검사해
   `StatusFailed`로 분류한다. Known pre-dispatch/callback cancellation만 `StatusCancelled`다.
 
-Commit-unknown 뒤 caller의 유일한 자동화 가능한 안전 행동은 same-key exclusivity를 유지한
-fresh run에서 `Load`하는 것이다. 다른 actor가 개입하지 않았다면 checkpoint의 전진 여부와
-business transaction outcome이 일치한다. Exclusivity를 위반해 다른 actor가 진행했다면 Load는
-현재 authoritative resume position만 제공하며 원래 ambiguous attempt의 attribution 증거가
-아니다. 어떤 경우에도 old expected version으로 `Commit`을 재호출하면 안 된다.
+`ErrCommitUnknown`이지만 `ErrAtomicityUnknown`이 아닌 provider-owned Commit-dispatch unknown에서
+caller의 유일한 자동화 가능한 안전 행동은 same-key exclusivity를 유지한 fresh run에서
+`Load`하는 것이다. 다른 actor가 개입하지 않았다면 checkpoint의 전진 여부와 business
+transaction outcome이 일치한다. Exclusivity를 위반해 다른 actor가 진행했다면 Load는 현재
+authoritative resume position만 제공하며 원래 ambiguous attempt의 attribution 증거가 아니다.
+
+`ErrAtomicityUnknown`이면 fresh `Load` 결과만으로 자동 재개하지 않는다. Caller는 same-key actor와
+intake를 계속 quiesce하고 business idempotency/commit marker와 checkpoint row를 수동 reconcile한
+뒤, 승인된 replay 또는 checkpoint repair/namespace rotation을 선택해야 한다. 어떤 unknown에서도
+old expected version으로 `Commit`을 재호출하면 안 된다.
 
 ## Failure modes와 recovery
 
@@ -513,7 +531,8 @@ business transaction outcome이 일치한다. Exclusivity를 위반해 다른 ac
 | Revision conflict/missing after prior Load | `ErrCheckpointConflict` | stale transaction rollback | stop stale run; quiesce and start fresh load |
 | Revision exhausted | `ErrCheckpointVersionExhausted` | row unchanged | quiesce, reconcile business state, migrate to a new key/namespace |
 | Context canceled before dispatch | original context error | no late write | caller decides whether to restart |
-| Context canceled or connection lost during commit | `ErrCommitUnknown` plus cause | committed or rolled back | fresh load; never blind replay |
+| Context canceled or connection lost during provider-owned commit | `ErrCommitUnknown` plus cause | business/checkpoint transaction committed or rolled back together | fresh load; never blind replay |
+| Guard release/transaction ownership unknown | `ErrAtomicityUnknown` + `ErrCommitUnknown` | business write may exist without checkpoint | quiesce; manually reconcile business/checkpoint state; no automatic fresh-run replay |
 | Decode failure on restart | causal decode error | stored row unchanged | deploy compatible codec/migration |
 | Callback uses captured DB | outside atomic guarantee | independent write may survive | programming error; tests/examples forbid |
 | Same key concurrent runs | one CAS winner, losers conflict | exactly one checkpoint revision wins | mandatory external serialization; CAS is final guard |
@@ -532,6 +551,8 @@ business transaction outcome이 일치한다. Exclusivity를 위반해 다른 ac
   retry, skip or write-count increment.
 - Joined cancellation cause가 있는 commit-unknown은 `StatusFailed`, known cancellation은
   `StatusCancelled`로 구분된다.
+- Atomicity-unknown은 provider-neutral sentinel을 보존하고 항상 `StatusFailed`이며 core가
+  reload/retry를 시도하지 않는다.
 - Filter and processor skip coalesce by consumed-input chunk, commit pending kept output plus the
   latest checkpoint, and use checkpoint-only commit only when pending output is empty.
 - Kept→filter and kept→processor-skip crash/restart cases never checkpoint past buffered output.
@@ -553,10 +574,11 @@ business transaction outcome이 일치한다. Exclusivity를 위반해 다른 ac
   commit-unknown classification.
 - Expected maximum version은 DB/callback 없이 exhaustion error를 반환한다. Actual PostgreSQL
   raw COMMIT/ROLLBACK callback은 private guard release에서 checkpoint DML 전에 감지되어
-  contract-violation + commit-unknown으로 fail closed한다. Raw COMMIT 직후 cancellation과
-  release를 barrier로 경합시킨 경우는 contract violation을 추측하지 않더라도 commit-unknown이며
-  checkpoint DML이 없어야 한다. 정상 callback cancellation은 release 성공 또는 active failed
-  transaction + successful rollback 증거가 있을 때 known cancellation이다.
+  contract-violation + atomicity-unknown + commit-unknown으로 fail closed한다. Raw COMMIT 직후
+  cancellation과 release를 barrier로 경합시킨 경우는 contract violation을 추측하지 않더라도
+  atomicity-unknown이며 checkpoint DML과 automatic fresh-run replay가 없어야 한다. 정상 callback
+  cancellation은 release 성공 또는 active failed transaction + successful rollback 증거가 있을
+  때 known cancellation이다.
 - `errors.Is`/`errors.As` survive wrapping and joined context causes.
 - Hot-path harness proves one Load SELECT, non-empty Commit의 exactly one private
   SAVEPOINT/RELEASE pair와 one checkpoint DML, empty Commit의 zero guard/callback, 그리고 ping,
@@ -573,7 +595,9 @@ Run sequentially and verify connection readiness before assertions.
   business row.
 - Restart after success resumes after the committed chunk.
 - Restart after known rollback replays the chunk.
-- Injected commit-unknown path performs no library retry; a fresh load reconciles state.
+- Injected provider-owned commit-unknown path performs no library retry; a fresh load reconciles
+  state. Raw COMMIT, raw ROLLBACK, raw COMMIT+cancellation race는 모두 checkpoint DML과 automatic
+  replay가 없고 `ErrAtomicityUnknown` 뒤 manual reconciliation을 요구한다.
 - Barriered cancellation proves pre-Begin has no DB access, callback/checkpoint cancellation is known
   rollback with no late rows, and post-commit-dispatch cancellation is commit-unknown followed by
   fresh-load reconciliation.
@@ -599,13 +623,15 @@ parallel with other Docker-backed suites.
   runtime privileges, failure/recovery, callback rules, validation commands를 동등하게 제공한다.
 - Public Go doc과 one compile-checked end-to-end example은 caller-owned schema bootstrap,
   `Codec`, `WriteTxFunc`의 tx-bound `Session.ExecContext`, `StepOptions.AtomicWriter`,
-  checkpoint-only commit, `ErrCommitUnknown` 뒤 fresh-run Load를 포함한다. Captured DB write는
-  금지 예제로 설명한다.
+  checkpoint-only commit, provider-owned `ErrCommitUnknown` 뒤 fresh-run Load와
+  `ErrAtomicityUnknown` 뒤 automatic replay 금지를 포함한다. Captured DB write는 금지 예제로
+  설명한다.
 - 두 locale은 같은 English-label asset을 공유한다:
   `docs/images/readme-diagrams/postgres-batch-checkpoint-atomic-sequence.svg`와 `.png`.
 - Diagram은 `Step`, `CheckpointReader`, `Atomic Writer`, `PostgreSQL` participant와 같은
   transaction frame 안의 business write + CAS, write failure rollback, revision conflict
-  rollback, commit-unknown 뒤 새 Load를 보여주며 두 provider locale README에 embed한다.
+  rollback, provider-owned commit-unknown 뒤 새 Load, atomicity-unknown 뒤 quiesce/manual
+  reconciliation을 보여주며 두 provider locale README에 embed한다.
 - `$bluetape-diagram`으로 SVG/PNG를 생성하고 CairoSVG scale 2, XML/audit, paired asset,
   full-size PNG visual inspection을 통과한다. Mermaid/ASCII/Graphviz output은 public 최종
   asset으로 사용하지 않는다.
@@ -631,9 +657,11 @@ parallel with other Docker-backed suites.
   않는다.
 - 운영자는 primary identity/read-only/recovery 상태, durability/RPO 설정, no-replay canary
   결과를 promotion gate로 확인한다. Shutdown 순서는 intake 중지, run cancel/join,
-  commit-unknown reconcile, transaction user drain 확인, 마지막으로 caller-owned pool close다.
+  commit/atomicity-unknown reconcile, transaction user drain 확인, 마지막으로 caller-owned pool
+  close다.
 - Library는 logger/metric registry를 소유하지 않는다. Caller runbook은 low-cardinality
-  load/commit outcome, conflict, version exhaustion, commit-unknown, cancellation, latency,
+  load/commit outcome, conflict, version exhaustion, commit-unknown, atomicity-unknown,
+  cancellation, latency,
   `sql.DBStats`, table/dead-tuple size, WAL/autovacuum 신호와 canary observation/rollback gate를
   정의한다. Raw key/KeyID는 metric label에 넣지 않는다.
 - Root README locale package inventory와
@@ -648,8 +676,10 @@ parallel with other Docker-backed suites.
 2. Opt-in atomic path가 business write와 checkpoint를 같은 PostgreSQL transaction으로
    commit한다.
 3. CAS conflict가 stale business write와 checkpoint를 함께 rollback한다.
-4. Commit-unknown은 typed sentinel/cause로 노출되고 library가 자동 retry하지 않는다.
-5. Fresh load가 success/rollback/unknown 뒤 restart position을 안전하게 결정한다.
+4. Commit-unknown과 atomicity-unknown은 typed sentinel/cause로 구분되고 library가 자동
+   retry하지 않는다.
+5. Fresh load는 success/rollback/provider-owned commit-unknown 뒤 restart position을 안전하게
+   결정하며 atomicity-unknown은 manual reconciliation 없이는 재개하지 않는다.
 6. Filter/skip progress는 consumed-input boundary에서 pending output과 함께 전진하며,
    pending output이 없을 때만 checkpoint-only transaction을 사용한다.
 7. Caller-owned pool/migration/codec/retry/retention과 최소 runtime privilege가 문서화된다.
