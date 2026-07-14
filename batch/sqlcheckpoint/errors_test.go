@@ -30,6 +30,12 @@ func TestOpErrorSupportsNestedInspection(t *testing.T) {
 	}
 }
 
+func TestOperationCommitIsStable(t *testing.T) {
+	if OperationCommit != "commit" {
+		t.Fatalf("OperationCommit = %q, want commit", OperationCommit)
+	}
+}
+
 func TestCodecErrorSupportsNestedInspection(t *testing.T) {
 	cause := errors.New("hostile-codec-cause-marker")
 	err := newCodecError("decode", cause)

@@ -188,6 +188,33 @@ step, err := batch.NewAtomicStep(batch.AtomicStepOptions[Input, Order]{
     AtomicWriter:  atomicWriter,
     CheckpointKey: "tenant:blue",
 })
+if err != nil {
+    return err
+}
+
+defer func() {
+    recoverCheckpointPanic("tenant:blue", recover())
+}()
+runCtx, runCancel := context.WithTimeout(ctx, time.Minute)
+report := step.Run(runCtx)
+runCancel()
+runErr := report.Err
+if errors.Is(runErr, batch.ErrAtomicityUnknown) {
+    quiesceCheckpointKey("tenant:blue")
+    return reconcileCheckpoint("tenant:blue")
+}
+var operationErr *sqlcheckpoint.OpError
+if errors.Is(runErr, batch.ErrCommitUnknown) &&
+    errors.As(runErr, &operationErr) &&
+    operationErr.Operation() == sqlcheckpoint.OperationCommit {
+    quiesceCheckpointKey("tenant:blue")
+    freshCtx, cancel := context.WithTimeout(context.Background(), time.Second)
+    defer cancel()
+    checkpoint, exists, loadErr := atomicWriter.Load(freshCtx, "tenant:blue")
+    // Reconcile exists/checkpoint while same-key intake remains quiesced.
+    _, _, _ = checkpoint, exists, loadErr
+}
+return runErr
 ```
 
 See [`example_test.go`](example_test.go) for compile-checked construction and
@@ -198,6 +225,12 @@ recovery examples.
 For a commit with output items, the provider creates a fixed private
 `SAVEPOINT`, calls the callback exactly once, and probes transaction ownership.
 A checkpoint-only commit skips both the callback and `SAVEPOINT`.
+
+The provider always opens an explicit **Read Committed** transaction; ambient isolation
+defaults such as Repeatable Read or Serializable are ignored. Callback business logic
+must therefore be correct at Read Committed. A `Writer` is safe for concurrent use only
+when the caller's codec and callback are safe for concurrent use; same-key runs still
+require external serialization.
 
 - Use only the tx-bound `sqlkit.Session` passed to the callback.
 - A captured `*sql.DB`, separate transaction, escaped session/items in a
@@ -277,15 +310,16 @@ duplicate a business write or advance a stale checkpoint.
 Only a provider-owned commit-unknown, and only while no other same-key actor can
 intervene, permits a fresh `Load` to establish the resume position. This branch
 requires `ErrCommitUnknown`, excludes `ErrAtomicityUnknown`, and requires
-`errors.As` to yield `*sqlcheckpoint.OpError` with `Operation() == "commit"`.
+`errors.As` to yield `*sqlcheckpoint.OpError` with
+`Operation() == sqlcheckpoint.OperationCommit`.
 A bare joined sentinel is not evidence of a provider-owned commit dispatch.
 
 ```go
 var operationErr *sqlcheckpoint.OpError
-if errors.Is(commitErr, batch.ErrCommitUnknown) &&
-    !errors.Is(commitErr, batch.ErrAtomicityUnknown) &&
-    errors.As(commitErr, &operationErr) &&
-    operationErr.Operation() == "commit" {
+if errors.Is(runErr, batch.ErrCommitUnknown) &&
+    !errors.Is(runErr, batch.ErrAtomicityUnknown) &&
+    errors.As(runErr, &operationErr) &&
+    operationErr.Operation() == sqlcheckpoint.OperationCommit {
     quiesceCheckpointKey(checkpointKey)
     checkpoint, exists, err := atomicWriter.Load(freshCtx, checkpointKey)
     // Reconcile exists/checkpoint while same-key intake remains quiesced.
@@ -350,6 +384,8 @@ drills, telemetry, canary promotion, rollback, and retention.
 - Use one writable PostgreSQL primary with connection-level transaction
   affinity. Read replicas, multi-primary, statement/transaction replay proxies,
   and transaction-pooling proxies that break affinity are unsupported.
+- Commit always uses explicit Read Committed isolation rather than the ambient
+  role/database default; validate callback invariants at that isolation.
 - The caller configures bounded run/commit contexts and chunk sizes plus
   `lock_timeout`, `statement_timeout`, and
   `idle_in_transaction_session_timeout`.

@@ -62,7 +62,7 @@ func (w *Writer[T, C]) Load(ctx context.Context, key string) (batch.VersionedChe
 		return batch.VersionedCheckpoint{}, false, nil
 	}
 	if err != nil {
-		return batch.VersionedCheckpoint{}, false, newOperationError("load", w.options.namespace, rawKey, err)
+		return batch.VersionedCheckpoint{}, false, newOperationError(OperationLoad, w.options.namespace, rawKey, err)
 	}
 
 	if revision <= 0 {

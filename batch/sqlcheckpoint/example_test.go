@@ -39,6 +39,7 @@ func (*exampleCheckpointReader) Checkpoint(context.Context) (any, bool, error) {
 
 func ExampleNew() {
 	ctx := context.Background()
+	checkpointKey := "tenant:blue"
 
 	// A caller-owned deployer login may assume the non-login migration owner.
 	// The runtime role is never a member of either deployment role.
@@ -140,12 +141,39 @@ func ExampleNew() {
 		Reader:        &exampleCheckpointReader{},
 		Processor:     batch.IdentityProcessor[exampleOrder](),
 		AtomicWriter:  atomicWriter,
-		CheckpointKey: "tenant:blue",
+		CheckpointKey: checkpointKey,
 	})
 	if err != nil {
 		return
 	}
-	_ = step
+	defer func() {
+		recoverCheckpointPanic(checkpointKey, recover(), quiesceCheckpointKey, reconcileCheckpoint)
+	}()
+	runCtx, runCancel := context.WithTimeout(ctx, time.Minute)
+	report := step.Run(runCtx)
+	runCancel()
+	runErr := report.Err
+	if runErr == nil {
+		return
+	}
+	if errors.Is(runErr, batch.ErrAtomicityUnknown) {
+		quiesceCheckpointKey(checkpointKey)
+		reconcileCheckpoint(checkpointKey)
+		return
+	}
+	var operationErr *sqlcheckpoint.OpError
+	if errors.Is(runErr, batch.ErrCommitUnknown) &&
+		errors.As(runErr, &operationErr) &&
+		operationErr.Operation() == sqlcheckpoint.OperationCommit {
+		quiesceCheckpointKey(checkpointKey)
+		freshCtx, cancel := context.WithTimeout(context.Background(), time.Second)
+		defer cancel()
+		checkpoint, exists, loadErr := atomicWriter.Load(freshCtx, checkpointKey)
+		if loadErr != nil {
+			return
+		}
+		_, _ = checkpoint, exists
+	}
 }
 
 func ExampleWriter_commitUnknownRecovery() {
@@ -200,7 +228,7 @@ func ExampleWriter_commitUnknownRecovery() {
 	if errors.Is(commitErr, batch.ErrCommitUnknown) &&
 		!errors.Is(commitErr, batch.ErrAtomicityUnknown) &&
 		errors.As(commitErr, &operationErr) &&
-		operationErr.Operation() == "commit" {
+		operationErr.Operation() == sqlcheckpoint.OperationCommit {
 		quiesceCheckpointKey(checkpointKey)
 		// Reconciliation gets a new bounded context only after the ambiguous
 		// commit context has been cancelled.
