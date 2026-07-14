@@ -400,7 +400,8 @@ fail closed한다. Active checkpoint row를 삭제하거나 key를 재사용하�
    Expected version maximum은 DB state와 무관하게 더 증가시킬 수 없으므로
    `ErrCheckpointVersionExhausted`로 즉시 실패한다.
 2. checkpoint를 encode하고 payload limit을 검증한다.
-3. `db.BeginTx(ctx, nil)`로 transaction을 시작한다.
+3. 배포 환경의 role/database 기본값과 무관하게
+   `db.BeginTx(ctx, &sql.TxOptions{Isolation: sql.LevelReadCommitted})`로 transaction을 시작한다.
 4. 즉시 rollback guard와 deferred panic handler를 설치한다. Panic handler도 아래의 ownership
    probe를 실행한다. Ownership을 증명하면 full rollback 뒤 원래 panic value를 그대로
    re-panic하고, 증명하지 못하면 원래 value를 보존한 sanitized `*AtomicityPanic`으로 re-panic한다.
