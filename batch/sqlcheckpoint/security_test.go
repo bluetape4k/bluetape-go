@@ -11,6 +11,7 @@ import (
 
 const (
 	checkpointMigrationOwner = "sqlcheckpoint_migration_owner"
+	checkpointDeployerRole   = "sqlcheckpoint_deployer"
 	checkpointRuntimeRole    = "sqlcheckpoint_runtime"
 	checkpointRuntimePass    = "sqlcheckpoint-runtime-pass"
 )
@@ -50,9 +51,11 @@ func newCheckpointSecurityFixture(t *testing.T) *checkpointSecurityFixture {
 	// runtime is denied, and only then grant its three DML privileges.
 	setup := []string{
 		`revoke create on schema public from public`,
-		`create role sqlcheckpoint_migration_owner nologin`,
+		`create role sqlcheckpoint_migration_owner nologin nosuperuser nocreatedb nocreaterole noreplication nobypassrls`,
+		`create role sqlcheckpoint_deployer login noinherit nosuperuser nocreatedb nocreaterole noreplication nobypassrls`,
 		`create role sqlcheckpoint_runtime login password 'sqlcheckpoint-runtime-pass' noinherit`,
 		`create role sqlcheckpoint_forbidden_grantee nologin`,
+		`grant sqlcheckpoint_migration_owner to sqlcheckpoint_deployer with inherit false, set true, admin false`,
 		`alter schema public owner to sqlcheckpoint_migration_owner`,
 		`set role sqlcheckpoint_migration_owner`,
 		`set lock_timeout='5s'`,
@@ -71,7 +74,7 @@ func newCheckpointSecurityFixture(t *testing.T) *checkpointSecurityFixture {
 func TestPostgresSecurityFixtureUsesExactMigrationAndGrantOrder(t *testing.T) {
 	fixture := newCheckpointSecurityFixture(t)
 	ctx, dsn, admin := fixture.ctx, fixture.dsn, fixture.admin
-	if err := validateCheckpointCatalog(ctx, admin, checkpointMigrationOwner, checkpointRuntimeRole, false); err != nil {
+	if err := validateCheckpointCatalog(ctx, admin, checkpointMigrationOwner, checkpointDeployerRole, checkpointRuntimeRole, false); err != nil {
 		t.Fatalf("catalog preflight before grants: %v", err)
 	}
 
@@ -93,7 +96,7 @@ func TestPostgresSecurityFixtureUsesExactMigrationAndGrantOrder(t *testing.T) {
 			t.Fatalf("runtime grant %q: %v", statement, err)
 		}
 	}
-	if err := validateCheckpointCatalog(ctx, admin, checkpointMigrationOwner, checkpointRuntimeRole, true); err != nil {
+	if err := validateCheckpointCatalog(ctx, admin, checkpointMigrationOwner, checkpointDeployerRole, checkpointRuntimeRole, true); err != nil {
 		t.Fatalf("catalog preflight after grants: %v", err)
 	}
 
@@ -147,7 +150,7 @@ func TestPostgresSecurityFixtureUsesExactMigrationAndGrantOrder(t *testing.T) {
 func TestPostgresCatalogValidatorRejectsOnePropertyHostileDrift(t *testing.T) {
 	fixture := newCheckpointSecurityFixture(t)
 	owner := checkpointMigrationOwner
-	if err := validateCheckpointCatalog(fixture.ctx, fixture.admin, owner, checkpointRuntimeRole, false); err != nil {
+	if err := validateCheckpointCatalog(fixture.ctx, fixture.admin, owner, checkpointDeployerRole, checkpointRuntimeRole, false); err != nil {
 		t.Fatalf("exact catalog rejected: %v", err)
 	}
 
@@ -198,6 +201,25 @@ func TestPostgresCatalogValidatorRejectsOnePropertyHostileDrift(t *testing.T) {
 		{name: "unrelated-schema-grantee", statements: []string{`create role sqlcheckpoint_unrelated_schema nologin`, `grant usage on schema public to sqlcheckpoint_unrelated_schema`}},
 		{name: "unrelated-table-grantee", statements: []string{`create role sqlcheckpoint_unrelated_table nologin`, `grant select on public.bluetape_batch_checkpoints to sqlcheckpoint_unrelated_table`}},
 		{name: "runtime-membership", statements: []string{`grant sqlcheckpoint_migration_owner to sqlcheckpoint_runtime`}},
+		{name: "runtime-inbound-membership", statements: []string{`grant sqlcheckpoint_runtime to sqlcheckpoint_forbidden_grantee`}},
+		{name: "migration-owner-outbound-membership", statements: []string{`grant sqlcheckpoint_forbidden_grantee to sqlcheckpoint_migration_owner`}},
+		{name: "migration-owner-inbound-membership", statements: []string{`grant sqlcheckpoint_migration_owner to sqlcheckpoint_forbidden_grantee`}},
+		{name: "deployer-membership-inherits", statements: []string{`grant sqlcheckpoint_migration_owner to sqlcheckpoint_deployer with inherit true`}},
+		{name: "deployer-membership-cannot-set", statements: []string{`grant sqlcheckpoint_migration_owner to sqlcheckpoint_deployer with set false`}},
+		{name: "deployer-membership-admin", statements: []string{`grant sqlcheckpoint_migration_owner to sqlcheckpoint_deployer with admin true`}},
+		{name: "deployer-inbound-membership", statements: []string{`grant sqlcheckpoint_deployer to sqlcheckpoint_forbidden_grantee`}},
+		{name: "deployer-extra-outbound-membership", statements: []string{`grant sqlcheckpoint_forbidden_grantee to sqlcheckpoint_deployer`}},
+		{name: "runtime-nologin", statements: []string{`alter role sqlcheckpoint_runtime nologin`}},
+		{name: "runtime-superuser", statements: []string{`alter role sqlcheckpoint_runtime superuser`}},
+		{name: "runtime-createdb", statements: []string{`alter role sqlcheckpoint_runtime createdb`}},
+		{name: "runtime-createrole", statements: []string{`alter role sqlcheckpoint_runtime createrole`}},
+		{name: "runtime-replication", statements: []string{`alter role sqlcheckpoint_runtime replication`}},
+		{name: "runtime-bypassrls", statements: []string{`alter role sqlcheckpoint_runtime bypassrls`}},
+		{name: "migration-owner-superuser", statements: []string{`alter role sqlcheckpoint_migration_owner superuser`}},
+		{name: "migration-owner-createdb", statements: []string{`alter role sqlcheckpoint_migration_owner createdb`}},
+		{name: "migration-owner-createrole", statements: []string{`alter role sqlcheckpoint_migration_owner createrole`}},
+		{name: "migration-owner-replication", statements: []string{`alter role sqlcheckpoint_migration_owner replication`}},
+		{name: "migration-owner-bypassrls", statements: []string{`alter role sqlcheckpoint_migration_owner bypassrls`}},
 		{name: "runtime-schema-create", statements: []string{`grant create on schema public to sqlcheckpoint_runtime`}},
 		{name: "runtime-delete", statements: []string{`grant delete on public.bluetape_batch_checkpoints to sqlcheckpoint_runtime`}},
 		{name: "runtime-grant-option", statements: []string{`grant select on public.bluetape_batch_checkpoints to sqlcheckpoint_runtime with grant option`}},
@@ -252,7 +274,7 @@ func TestPostgresCatalogValidatorRejectsOnePropertyHostileDrift(t *testing.T) {
 					t.Fatalf("hostile mutation %q: %v", statement, err)
 				}
 			}
-			validationErr := validateCheckpointCatalog(fixture.ctx, tx, owner, checkpointRuntimeRole, false)
+			validationErr := validateCheckpointCatalog(fixture.ctx, tx, owner, checkpointDeployerRole, checkpointRuntimeRole, false)
 			if validationErr == nil {
 				t.Fatal("hostile drift passed catalog preflight")
 			}
@@ -267,13 +289,17 @@ func validateCheckpointCatalog(
 	ctx context.Context,
 	db checkpointCatalogQuerier,
 	expectedOwner string,
+	expectedDeployer string,
 	runtimeRole string,
 	expectRuntimeGrants bool,
 ) error {
 	var owner, relkind, persistence string
-	var ownerLogin, rls, forceRLS bool
+	var ownerLogin, ownerSuper, ownerCreateDB, ownerCreateRole, ownerReplication, ownerBypassRLS bool
+	var rls, forceRLS bool
 	var policies, triggers, rules int
-	err := db.QueryRowContext(ctx, `select owner.rolname,owner.rolcanlogin,c.relkind::text,c.relpersistence::text,
+	err := db.QueryRowContext(ctx, `select owner.rolname,owner.rolcanlogin,owner.rolsuper,
+		owner.rolcreatedb,owner.rolcreaterole,owner.rolreplication,owner.rolbypassrls,
+		c.relkind::text,c.relpersistence::text,
 		c.relrowsecurity,c.relforcerowsecurity,
 		(select count(*) from pg_catalog.pg_policy p where p.polrelid=c.oid),
 		(select count(*) from pg_catalog.pg_trigger t where t.tgrelid=c.oid and not t.tgisinternal),
@@ -282,15 +308,36 @@ func validateCheckpointCatalog(
 	join pg_catalog.pg_namespace n on n.oid=c.relnamespace
 	join pg_catalog.pg_roles owner on owner.oid=c.relowner
 	where n.nspname='public' and c.relname='bluetape_batch_checkpoints'`).Scan(
-		&owner, &ownerLogin, &relkind, &persistence, &rls, &forceRLS, &policies, &triggers, &rules)
+		&owner, &ownerLogin, &ownerSuper, &ownerCreateDB, &ownerCreateRole, &ownerReplication, &ownerBypassRLS,
+		&relkind, &persistence, &rls, &forceRLS, &policies, &triggers, &rules)
 	if err != nil {
 		return checkpointCatalogMismatch("relation: %v", err)
 	}
-	if owner != expectedOwner || ownerLogin || relkind != "r" || persistence != "p" ||
+	if owner != expectedOwner || ownerLogin || ownerSuper || ownerCreateDB || ownerCreateRole || ownerReplication || ownerBypassRLS ||
+		relkind != "r" || persistence != "p" ||
 		rls || forceRLS || policies != 0 || triggers != 0 || rules != 0 {
 		return checkpointCatalogMismatch(
-			"relation owner=%q want=%q owner_login=%v kind=%q persistence=%q rls=%v force=%v policies=%d triggers=%d rules=%d",
-			owner, expectedOwner, ownerLogin, relkind, persistence, rls, forceRLS, policies, triggers, rules)
+			"relation owner=%q want=%q owner_attrs=login:%v super:%v createdb:%v createrole:%v replication:%v bypassrls:%v kind=%q persistence=%q rls=%v force=%v policies=%d triggers=%d rules=%d",
+			owner, expectedOwner, ownerLogin, ownerSuper, ownerCreateDB, ownerCreateRole, ownerReplication,
+			ownerBypassRLS, relkind, persistence, rls, forceRLS, policies, triggers, rules)
+	}
+
+	var approvedDeployerMemberships, invalidOwnerMemberships int
+	err = db.QueryRowContext(ctx, `select
+		count(*) filter (where m.roleid=owner.oid and m.member=deployer.oid
+			and not m.inherit_option and m.set_option and not m.admin_option),
+		count(*) filter (where not (m.roleid=owner.oid and m.member=deployer.oid
+			and not m.inherit_option and m.set_option and not m.admin_option))
+	from pg_catalog.pg_roles owner
+	join pg_catalog.pg_roles deployer on deployer.rolname=$2
+	left join pg_catalog.pg_auth_members m on m.roleid in (owner.oid,deployer.oid)
+		or m.member in (owner.oid,deployer.oid)
+	where owner.rolname=$1`, expectedOwner, expectedDeployer).Scan(
+		&approvedDeployerMemberships, &invalidOwnerMemberships)
+	if err != nil || approvedDeployerMemberships != 1 || invalidOwnerMemberships != 0 {
+		return checkpointCatalogMismatch(
+			"migration owner memberships approved_deployer=%d/1 invalid=%d err=%v",
+			approvedDeployerMemberships, invalidOwnerMemberships, err)
 	}
 	var schemaOwner string
 	if err := db.QueryRowContext(ctx, `select owner.rolname
@@ -480,7 +527,8 @@ func validateCheckpointCatalog(
 	if runtimeRole != "" {
 		var usage, create, selectPrivilege, insertPrivilege, updatePrivilege bool
 		var deletePrivilege, truncatePrivilege, referencesPrivilege, triggerPrivilege bool
-		var member, anyMembership, ownerRole, roleInherits, grantOption bool
+		var member, anyMembership, inboundMembership, ownerRole, roleCanLogin, roleInherits, grantOption bool
+		var roleSuper, roleCreateDB, roleCreateRole, roleReplication, roleBypassRLS bool
 		err = db.QueryRowContext(ctx, `select
 			has_schema_privilege($1,'public','usage'),has_schema_privilege($1,'public','create'),
 			has_table_privilege($1,'public.bluetape_batch_checkpoints','select'),
@@ -493,9 +541,17 @@ func validateCheckpointCatalog(
 			pg_has_role($1,$2,'member'),
 			exists(select 1 from pg_catalog.pg_auth_members m
 				where m.member=(select oid from pg_catalog.pg_roles where rolname=$1)),
+			exists(select 1 from pg_catalog.pg_auth_members m
+				where m.roleid=(select oid from pg_catalog.pg_roles where rolname=$1)),
 			(select c.relowner=(select oid from pg_catalog.pg_roles where rolname=$1)
-			 from pg_catalog.pg_class c where c.oid='public.bluetape_batch_checkpoints'::regclass),
+				 from pg_catalog.pg_class c where c.oid='public.bluetape_batch_checkpoints'::regclass),
+			(select rolcanlogin from pg_catalog.pg_roles where rolname=$1),
 			(select rolinherit from pg_catalog.pg_roles where rolname=$1),
+			(select rolsuper from pg_catalog.pg_roles where rolname=$1),
+			(select rolcreatedb from pg_catalog.pg_roles where rolname=$1),
+			(select rolcreaterole from pg_catalog.pg_roles where rolname=$1),
+			(select rolreplication from pg_catalog.pg_roles where rolname=$1),
+			(select rolbypassrls from pg_catalog.pg_roles where rolname=$1),
 			exists(select 1 from pg_catalog.pg_class c
 				join pg_catalog.pg_namespace n on n.oid=c.relnamespace,
 				lateral pg_catalog.aclexplode(coalesce(c.relacl,pg_catalog.acldefault('r',c.relowner))) acl
@@ -504,7 +560,8 @@ func validateCheckpointCatalog(
 				and acl.is_grantable)`, runtimeRole, expectedOwner).Scan(
 			&usage, &create, &selectPrivilege, &insertPrivilege, &updatePrivilege,
 			&deletePrivilege, &truncatePrivilege, &referencesPrivilege, &triggerPrivilege,
-			&member, &anyMembership, &ownerRole, &roleInherits, &grantOption)
+			&member, &anyMembership, &inboundMembership, &ownerRole, &roleCanLogin, &roleInherits,
+			&roleSuper, &roleCreateDB, &roleCreateRole, &roleReplication, &roleBypassRLS, &grantOption)
 		if err != nil {
 			return checkpointCatalogMismatch("runtime privileges: %v", err)
 		}
@@ -514,11 +571,14 @@ func validateCheckpointCatalog(
 		if !usage || selectPrivilege != expectRuntimeGrants ||
 			insertPrivilege != expectRuntimeGrants || updatePrivilege != expectRuntimeGrants ||
 			create || deletePrivilege || truncatePrivilege || referencesPrivilege || triggerPrivilege ||
-			member || anyMembership || ownerRole || roleInherits || grantOption {
+			member || anyMembership || inboundMembership || ownerRole || !roleCanLogin || roleInherits ||
+			roleSuper || roleCreateDB || roleCreateRole || roleReplication || roleBypassRLS || grantOption {
 			return checkpointCatalogMismatch(
-				"runtime usage=%v create=%v select=%v insert=%v update=%v delete=%v truncate=%v references=%v trigger=%v member=%v any_membership=%v owner=%v inherit=%v grant_option=%v",
+				"runtime usage=%v create=%v select=%v insert=%v update=%v delete=%v truncate=%v references=%v trigger=%v member=%v outbound_membership=%v inbound_membership=%v owner=%v login=%v inherit=%v super=%v createdb=%v createrole=%v replication=%v bypassrls=%v grant_option=%v",
 				usage, create, selectPrivilege, insertPrivilege, updatePrivilege, deletePrivilege,
-				truncatePrivilege, referencesPrivilege, triggerPrivilege, member, anyMembership, ownerRole, roleInherits, grantOption)
+				truncatePrivilege, referencesPrivilege, triggerPrivilege, member, anyMembership, inboundMembership,
+				ownerRole, roleCanLogin, roleInherits, roleSuper, roleCreateDB, roleCreateRole, roleReplication,
+				roleBypassRLS, grantOption)
 		}
 	}
 	return nil

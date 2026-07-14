@@ -382,6 +382,11 @@ revoke하고 schema를 소유·적용한다. 생성 직후 runtime grant 전에 
 inherited/PUBLIC write privilege를 갖지 않는다. Callback이 쓰는 business table 권한은 caller
 책임이다.
 
+Migration owner와 runtime은 `NOSUPERUSER NOCREATEDB NOCREATEROLE NOREPLICATION
+NOBYPASSRLS`여야 한다. Migration owner membership은 승인된 deployer 하나에 대한
+`INHERIT FALSE`, `SET TRUE`, `ADMIN FALSE` edge만 허용한다. Runtime의 inbound/outbound
+membership은 모두 0이어야 하며 owner와 deployer의 다른 inbound/outbound edge도 없어야 한다.
+
 Deployment preflight는 ordinary table relkind, permanent logged persistence
 (`pg_class.relpersistence = 'p'`), expected non-login owner, exact column order/type/nullability,
 fixed PK/check constraint names/order/validated definitions, RLS/forced-RLS off, zero policies,

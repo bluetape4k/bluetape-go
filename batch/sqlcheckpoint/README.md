@@ -46,7 +46,11 @@ reconfigure a pool, and never closes one. Complete this order before opening
 runtime traffic:
 
 1. Create a deployment-only deployer login, a non-login migration owner, and a
-   separate runtime role. The migration role is the non-login owner. As a
+   separate runtime role. Create the owner and runtime with
+   `NOSUPERUSER NOCREATEDB NOCREATEROLE NOREPLICATION NOBYPASSRLS`. Grant the
+   owner only to the approved deployer with
+   `WITH INHERIT FALSE, SET TRUE, ADMIN FALSE`; no other inbound or outbound
+   membership is allowed. The migration role is the non-login owner. As a
    controlled one-time ownership transfer, the deployer executes
    `ALTER SCHEMA public OWNER TO sqlcheckpoint_migration_owner`. The role name alone does not
    establish this public schema ownership prerequisite.
@@ -65,8 +69,11 @@ runtime traffic:
 5. Apply the exact runtime grants: schema `USAGE` and table `SELECT`, `INSERT`,
    `UPDATE` without grant option.
 6. Run post-grant effective privilege validation. It must prove only those
-   privileges, `LOGIN NOINHERIT`, and no role membership (zero role membership),
-   zero inheritance, and no grant option before commit.
+   privileges, `LOGIN NOINHERIT`, and no role membership in either direction
+   (zero inbound and outbound role membership; zero role membership),
+   zero inheritance, no cluster-level privileged role attributes, and no grant option
+   before commit. The owner must retain the one exact approved deployer membership;
+   neither the owner nor deployer may have another membership edge.
 
 ```go
 migrationCtx, cancel := context.WithTimeout(ctx, 30*time.Second)
@@ -115,7 +122,9 @@ library action. `validateCheckpointCatalogAndACLs` is application-supplied and
 must implement both pre-grant and post-grant checks shown above.
 The fixed relation is `public.bluetape_batch_checkpoints`. Custom schemas,
 custom table names, and auto-migration are unsupported. The runtime role must
-not own the schema/table or inherit the migration owner.
+not own the schema/table or inherit the migration owner. Validate both
+directions of `pg_auth_members`; checking only roles granted to runtime misses
+roles that were granted runtime, the owner, or the approved deployer.
 
 ```sql
 grant usage on schema public to app_runtime;
@@ -209,7 +218,10 @@ lifecycle evidence also matches `ErrCallbackContractViolation`.
 Identity is the exact, unnormalized raw-byte `(namespace, key)` pair. An empty
 namespace defaults to `default`; a namespace is at most 128 bytes and a key
 must be nonempty. The default key limit is 512 bytes and the hard ceiling is
-1024 bytes. NUL and invalid UTF-8 remain byte-for-byte intact.
+1024 bytes. NUL and invalid UTF-8 remain byte-for-byte intact. Namespace and key
+are not an authorization boundary: callers must authenticate, authorize, and
+construct bounded canonical keys. Use separate database roles or databases
+when checkpoint identities cross trust boundaries.
 
 A missing checkpoint has expected revision zero. The first commit creates
 revision 1 and each later success increments it by exactly one. A stale revision

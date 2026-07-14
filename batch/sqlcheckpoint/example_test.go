@@ -87,8 +87,10 @@ func ExampleNew() {
 			return
 		}
 	}
-	// true requires the exact effective grants, LOGIN NOINHERIT, no membership
-	// or inheritance, and no grant option.
+	// true requires the exact effective grants, LOGIN NOINHERIT, zero runtime
+	// membership in both directions, no privileged role attributes, and no grant
+	// option. The owner has only the approved deployer membership with INHERIT
+	// FALSE, SET TRUE, and ADMIN FALSE.
 	if err = validateCheckpointCatalogAndACLs(migrationCtx, migrationTx, true); err != nil {
 		return
 	}
