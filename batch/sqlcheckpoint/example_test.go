@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"reflect"
 	"testing"
 	"time"
 
@@ -317,7 +318,9 @@ func TestExampleRecoveryClassification(t *testing.T) {
 	t.Run("ordinary sentinel wrapping panic is rethrown", func(t *testing.T) {
 		ordinary := errors.Join(errors.New("ordinary panic"), batch.ErrAtomicityUnknown)
 		defer func() {
-			if recovered := recover(); recovered != ordinary {
+			recovered := recover()
+			if recovered == nil ||
+				reflect.ValueOf(recovered).Pointer() != reflect.ValueOf(ordinary).Pointer() {
 				t.Fatalf("recovered = %#v, want original %#v", recovered, ordinary)
 			}
 		}()
