@@ -29,6 +29,7 @@ type Step[I any, O any] struct {
 	reader    Reader[I]
 	processor Processor[I, O]
 	writer    Writer[O]
+	atomic    AtomicCheckpointWriter[O]
 	retry     RetryPolicy
 	skip      SkipPolicy
 	store     CheckpointStore

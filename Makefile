@@ -49,6 +49,7 @@ lint:
 
 test:
 	@$(GO) test -p 1 -count=1 ./...
+	@$(GO) test -vet=off ./batch/testdata/compat
 
 race:
 	@$(GO) test -race -p 1 -count=1 ./...
