@@ -92,6 +92,7 @@ future scope, not part of the current public API.
 | [`workreport`](workreport/README.md) | active | Status, failure-policy, and report-tree values for lightweight workflow code. |
 | [`workflow`](workflow/README.md) | active | Sequential, conditional, and all-branches parallel runners built on `context.Context` and `workreport`. |
 | [`batch`](batch/README.md) | active | Chunk-oriented batch steps, sequential jobs, retry/skip policies, reports, and checkpoints. |
+| [`batch/sqlcheckpoint`](batch/sqlcheckpoint/README.md) | active | PostgreSQL durable checkpoints that atomically commit a batch callback and consumed-input progress with revision CAS. |
 | [`id`](id/README.md) | active | UUID v4/v7, random and monotonic ULID, standard KSUID, Kotlin-compatible KSUID millis, and Snowflake ID generators. |
 | [`jwt`](jwt/README.md) | active | JWT signing, parsing, validation, typed claim reading, in-memory/distributed `kid` key rotation, and optional provider cache adapters with explicit algorithms. |
 | [`jwt/redis`](jwt/redis/README.md) | active | Redis-specific facade for distributed JWT key-chain repository construction. |

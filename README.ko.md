@@ -89,6 +89,7 @@ API가 아니라 module-gated future scope입니다.
 | [`workreport`](workreport/README.ko.md) | active | lightweight workflow code를 위한 status, failure-policy, report-tree value. |
 | [`workflow`](workflow/README.ko.md) | active | `context.Context`와 `workreport` 기반 sequential, conditional, all-branches parallel runner. |
 | [`batch`](batch/README.ko.md) | active | Chunk-oriented batch step, sequential job, retry/skip policy, report, checkpoint. |
+| [`batch/sqlcheckpoint`](batch/sqlcheckpoint/README.ko.md) | active | Batch callback과 consumed-input checkpoint를 revision CAS로 함께 commit하는 PostgreSQL durable checkpoint provider. |
 | [`id`](id/README.ko.md) | active | UUID v4/v7, random/monotonic ULID, standard KSUID, Kotlin-compatible KSUID millis, Snowflake ID generator. |
 | [`jwt`](jwt/README.ko.md) | active | 명시적 algorithm을 사용하는 JWT signing, parsing, validation, typed claim reading, in-memory/distributed `kid` key rotation, optional provider cache adapter. |
 | [`jwt/redis`](jwt/redis/README.ko.md) | active | Distributed JWT key-chain repository 생성을 위한 Redis 전용 facade. |
