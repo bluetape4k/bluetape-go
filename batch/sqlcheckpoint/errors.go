@@ -9,6 +9,18 @@ import (
 	"github.com/bluetape4k/bluetape-go/batch"
 )
 
+// Stable OpError operation names for caller-side classification and bounded metrics.
+const (
+	OperationLoad           = "load"
+	OperationBegin          = "begin"
+	OperationSavepoint      = "savepoint"
+	OperationCallback       = "callback"
+	OperationOwnershipProbe = "ownership probe"
+	OperationCheckpoint     = "checkpoint"
+	OperationCommit         = "commit"
+	OperationRollback       = "rollback"
+)
+
 // ErrCallbackContractViolation indicates positive evidence that a callback ended
 // or replaced the transaction frame owned by the checkpoint writer.
 var ErrCallbackContractViolation = errors.New("sql checkpoint: callback contract violation")
@@ -57,7 +69,8 @@ func (e *OpError) Unwrap() error {
 // Family returns the low-cardinality operation family.
 func (*OpError) Family() string { return "sql checkpoint" }
 
-// Operation returns the low-cardinality operation name.
+// Operation returns one of the exported Operation constants, or "operation"
+// for an uninitialized error.
 func (e *OpError) Operation() string {
 	if e == nil || e.operation == "" {
 		return "operation"

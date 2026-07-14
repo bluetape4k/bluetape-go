@@ -177,6 +177,33 @@ step, err := batch.NewAtomicStep(batch.AtomicStepOptions[Input, Order]{
     AtomicWriter:  atomicWriter,
     CheckpointKey: "tenant:blue",
 })
+if err != nil {
+    return err
+}
+
+defer func() {
+    recoverCheckpointPanic("tenant:blue", recover())
+}()
+runCtx, runCancel := context.WithTimeout(ctx, time.Minute)
+report := step.Run(runCtx)
+runCancel()
+runErr := report.Err
+if errors.Is(runErr, batch.ErrAtomicityUnknown) {
+    quiesceCheckpointKey("tenant:blue")
+    return reconcileCheckpoint("tenant:blue")
+}
+var operationErr *sqlcheckpoint.OpError
+if errors.Is(runErr, batch.ErrCommitUnknown) &&
+    errors.As(runErr, &operationErr) &&
+    operationErr.Operation() == sqlcheckpoint.OperationCommit {
+    quiesceCheckpointKey("tenant:blue")
+    freshCtx, cancel := context.WithTimeout(context.Background(), time.Second)
+    defer cancel()
+    checkpoint, exists, loadErr := atomicWriter.Load(freshCtx, "tenant:blue")
+    // Same-key intake를 quiesce한 상태에서 exists/checkpoint를 reconcile합니다.
+    _, _, _ = checkpoint, exists, loadErr
+}
+return runErr
 ```
 
 Compile-checked 전체 구성과 recovery 코드는
@@ -187,6 +214,11 @@ Compile-checked 전체 구성과 recovery 코드는
 Output item이 있는 commit에서 provider는 fixed private `SAVEPOINT`를 만들고 callback을
 정확히 한 번 호출한 뒤 transaction ownership을 검사합니다. Output이 없는
 checkpoint-only commit은 callback과 `SAVEPOINT`를 모두 생략합니다.
+
+Provider는 항상 explicit **Read Committed** transaction을 사용하며 Repeatable Read나
+Serializable 같은 ambient isolation default를 무시합니다. Callback business logic은
+Read Committed에서 정확해야 합니다. `Writer`를 공유하려면 caller의 codec과 callback이
+concurrent-safe여야 하며, 같은 key의 run은 여전히 외부에서 직렬화해야 합니다.
 
 - Callback은 전달받은 tx-bound `sqlkit.Session`만 사용합니다.
 - Captured `*sql.DB`, 별도 transaction, goroutine으로 session/item escape, network나 외부
@@ -259,15 +291,16 @@ Atomic step의 `RetryPolicy`와 `SkipPolicy`는 **processor failures only**에 �
 Provider-owned commit-unknown에서만, 그리고 같은 key의 다른 actor가 개입하지 않았을 때만
 fresh `Load`가 안전한 resume position을 제공합니다. 구체적으로 error가
 `ErrCommitUnknown`에 match하고 `ErrAtomicityUnknown`에는 match하지 않으며,
-`errors.As`로 얻은 `*sqlcheckpoint.OpError`의 `Operation() == "commit"`일 때만 이 분기로
+`errors.As`로 얻은 `*sqlcheckpoint.OpError`의
+`Operation() == sqlcheckpoint.OperationCommit`일 때만 이 분기로
 들어갑니다. Bare joined sentinel은 provider-owned commit 증거가 아닙니다.
 
 ```go
 var operationErr *sqlcheckpoint.OpError
-if errors.Is(commitErr, batch.ErrCommitUnknown) &&
-    !errors.Is(commitErr, batch.ErrAtomicityUnknown) &&
-    errors.As(commitErr, &operationErr) &&
-    operationErr.Operation() == "commit" {
+if errors.Is(runErr, batch.ErrCommitUnknown) &&
+    !errors.Is(runErr, batch.ErrAtomicityUnknown) &&
+    errors.As(runErr, &operationErr) &&
+    operationErr.Operation() == sqlcheckpoint.OperationCommit {
     quiesceCheckpointKey(checkpointKey)
     checkpoint, exists, err := atomicWriter.Load(freshCtx, checkpointKey)
     // Reconcile exists/checkpoint while same-key intake remains quiesced.
@@ -330,6 +363,8 @@ retention을 포함한 production gate입니다.
 - Writable PostgreSQL primary와 transaction affinity가 유지되는 connection만 지원합니다.
   Read replica, multi-primary, statement/transaction replay proxy, transaction-pooling으로
   affinity를 깨는 proxy는 지원하지 않습니다.
+- Commit은 role/database의 ambient isolation default가 아니라 explicit Read Committed를
+  사용하므로 callback invariant도 이 isolation에서 검증합니다.
 - Caller는 bounded run/commit context, chunk size, `lock_timeout`, `statement_timeout`,
   `idle_in_transaction_session_timeout`을 설정합니다.
 - Shutdown은 intake stop, run cancel/join, unknown reconciliation, transaction drain 확인,

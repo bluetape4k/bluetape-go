@@ -17,7 +17,8 @@ var (
 	errWriterUninitialized = errors.New("sqlcheckpoint: writer is not initialized")
 )
 
-// Codec encodes and decodes checkpoint values.
+// Codec encodes and decodes checkpoint values. Its functions must be safe for
+// concurrent use when the Writer is shared by concurrent callers.
 type Codec[C any] struct {
 	// Encode serializes one checkpoint value.
 	Encode func(C) ([]byte, error)
@@ -25,11 +26,15 @@ type Codec[C any] struct {
 	Decode func([]byte) (C, error)
 }
 
-// WriteTxFunc persists output items through a caller-defined SQL session.
+// WriteTxFunc persists output items through a caller-defined SQL session in an
+// explicit Read Committed transaction. It must be correct at that isolation
+// level and safe for concurrent use when the Writer is shared.
 type WriteTxFunc[T any] func(context.Context, sqlkit.Session, []T) error
 
 // Writer atomically persists output items and durable checkpoints in PostgreSQL.
 // A Writer must be created with New; its zero value is not initialized.
+// A Writer is safe for concurrent use when its Codec and WriteTxFunc are safe
+// for concurrent use. Calls for the same checkpoint key must still be serialized.
 type Writer[T any, C any] struct {
 	db       *sql.DB
 	options  normalizedOptions
@@ -43,6 +48,8 @@ var _ batch.AtomicCheckpointWriter[any] = (*Writer[any, any])(nil)
 
 // New validates and stores the checkpoint writer configuration without performing database I/O.
 // The caller retains ownership of db and is responsible for applying SchemaSQL.
+// Commit transactions always use Read Committed and do not inherit an ambient
+// role or database isolation default.
 func New[T any, C any](db *sql.DB, options Options, codec Codec[C], write WriteTxFunc[T]) (*Writer[T, C], error) {
 	if db == nil {
 		return nil, errNilDB

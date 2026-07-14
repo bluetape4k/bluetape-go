@@ -37,9 +37,14 @@ func TestReadmeContract(t *testing.T) {
 			"WITH INHERIT FALSE, SET TRUE, ADMIN FALSE",
 			"inbound and outbound role membership",
 			"not an authorization boundary",
+			"Read Committed",
+			"ambient isolation",
+			"safe for concurrent use",
+			"report.Err",
+			"sqlcheckpoint.OperationCommit",
 			"preflight before runtime grants",
 			"*sqlcheckpoint.OpError",
-			`Operation() == "commit"`,
+			"Operation() == sqlcheckpoint.OperationCommit",
 			"errors.As",
 			"public schema ownership prerequisite",
 			"ALTER SCHEMA public OWNER TO sqlcheckpoint_migration_owner",
@@ -76,9 +81,14 @@ func TestReadmeContract(t *testing.T) {
 			"WITH INHERIT FALSE, SET TRUE, ADMIN FALSE",
 			"inbound/outbound `role membership 없음`",
 			"authorization 경계가 아닙니다",
+			"Read Committed",
+			"ambient isolation",
+			"concurrent-safe",
+			"report.Err",
+			"sqlcheckpoint.OperationCommit",
 			"runtime grant 전 preflight",
 			"*sqlcheckpoint.OpError",
-			`Operation() == "commit"`,
+			"Operation() == sqlcheckpoint.OperationCommit",
 			"errors.As",
 			"public schema ownership prerequisite",
 			"ALTER SCHEMA public OWNER TO sqlcheckpoint_migration_owner",
@@ -180,6 +190,7 @@ func TestReadmeHeadingParity(t *testing.T) {
 
 func TestExampleMigrationAndRecoveryOrderContract(t *testing.T) {
 	body := readContractFile(t, "example_test.go")
+	commitRecovery := body[strings.Index(body, "func ExampleWriter_commitUnknownRecovery"):]
 	assertOrderedContractMarkers(t, body, []string{
 		"verifyPublicSchemaOwnedByMigrationOwner(migrationCtx, migrationDB)",
 		"migrationDB.BeginTx(migrationCtx, nil)",
@@ -192,11 +203,29 @@ func TestExampleMigrationAndRecoveryOrderContract(t *testing.T) {
 		"migrationTx.Commit()",
 	})
 	assertOrderedContractMarkers(t, body, []string{
+		"step.Run(runCtx)",
+		"runErr := report.Err",
+		"errors.Is(runErr, batch.ErrCommitUnknown)",
+		"operationErr.Operation() == sqlcheckpoint.OperationCommit",
+		"atomicWriter.Load(freshCtx, checkpointKey)",
+	})
+	assertOrderedContractMarkers(t, commitRecovery, []string{
 		"commitCtx, commitCancel := context.WithTimeout",
 		"writer.Commit(",
 		"commitCancel()",
 		"freshCtx, cancel := context.WithTimeout",
 		"writer.Load(freshCtx, checkpointKey)",
+	})
+}
+
+func TestSequenceDiagramOwnershipContract(t *testing.T) {
+	body := readContractFile(t, "../../docs/images/readme-diagrams/postgres-batch-checkpoint-atomic-sequence.svg")
+	assertContractMarkers(t, body, []string{
+		`d="M180 300 L900 300"`,
+		`d="M900 360 L1280 360"`,
+		`d="M1280 420 L900 420"`,
+		`d="M180 480 L540 480"`,
+		"Restore(checkpoint value)",
 	})
 }
 

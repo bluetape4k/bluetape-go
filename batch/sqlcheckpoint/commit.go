@@ -69,7 +69,7 @@ func (w *Writer[T, C]) Commit(
 
 	tx, err := w.beginTx(ctx)
 	if err != nil {
-		return 0, newOperationError("begin", w.options.namespace, rawKey, err)
+		return 0, newOperationError(OperationBegin, w.options.namespace, rawKey, err)
 	}
 	finished := false
 	rollback := func() error {
@@ -87,7 +87,7 @@ func (w *Writer[T, C]) Commit(
 
 	if len(items) > 0 {
 		if _, err = tx.ExecContext(ctx, savepointSQL); err != nil {
-			return 0, w.rollbackOperation(tx, rollback, "savepoint", rawKey, err)
+			return 0, w.rollbackOperation(tx, rollback, OperationSavepoint, rawKey, err)
 		}
 
 		panicValue, panicked, callbackErr := invokeCallback(ctx, w.write, guardedSession{session: tx}, items)
@@ -108,7 +108,7 @@ func (w *Writer[T, C]) Commit(
 			if contextErr := ctx.Err(); contextErr != nil {
 				cause = errors.Join(cause, contextErr)
 			}
-			opErr := w.rollbackOperation(tx, rollback, "ownership probe", rawKey, cause)
+			opErr := w.rollbackOperation(tx, rollback, OperationOwnershipProbe, rawKey, cause)
 			joined := []error{opErr, batch.ErrAtomicityUnknown, batch.ErrCommitUnknown}
 			if probe.contractViolation {
 				joined = append(joined, ErrCallbackContractViolation)
@@ -117,10 +117,10 @@ func (w *Writer[T, C]) Commit(
 		}
 
 		if callbackErr != nil || probe.err != nil {
-			operation := "callback"
+			operation := OperationCallback
 			cause := callbackErr
 			if callbackErr == nil {
-				operation = "ownership probe"
+				operation = OperationOwnershipProbe
 				cause = probe.err
 			} else if probe.err != nil {
 				cause = errors.Join(callbackErr, probe.err)
@@ -143,7 +143,7 @@ func (w *Writer[T, C]) Commit(
 		return 0, w.rollbackKnown(tx, rollback, rawKey, batch.ErrCheckpointConflict)
 	}
 	if err != nil {
-		return 0, w.rollbackOperation(tx, rollback, "checkpoint", rawKey, err)
+		return 0, w.rollbackOperation(tx, rollback, OperationCheckpoint, rawKey, err)
 	}
 	if err = ctx.Err(); err != nil {
 		return 0, w.rollbackKnown(tx, rollback, rawKey, err)
@@ -156,7 +156,7 @@ func (w *Writer[T, C]) Commit(
 		if contextErr := ctx.Err(); contextErr != nil {
 			cause = errors.Join(err, contextErr)
 		}
-		opErr := newOperationError("commit", w.options.namespace, rawKey, cause)
+		opErr := newOperationError(OperationCommit, w.options.namespace, rawKey, cause)
 		var serverErr *pgconn.PgError
 		if errors.As(err, &serverErr) || errors.Is(err, pgx.ErrTxCommitRollback) {
 			return 0, opErr
@@ -203,7 +203,7 @@ func (w *Writer[T, C]) rollbackKnown(
 	if rollbackErr == nil {
 		return cause
 	}
-	return newOperationError("rollback", w.options.namespace, rawKey, errors.Join(cause, rollbackErr))
+	return newOperationError(OperationRollback, w.options.namespace, rawKey, errors.Join(cause, rollbackErr))
 }
 
 func invokeCallback[T any](
