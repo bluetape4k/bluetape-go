@@ -229,6 +229,9 @@ func TestSequenceDiagramOwnershipContract(t *testing.T) {
 		"Restore(checkpoint value)",
 		"caller: quiesce; Atomic Writer.Load",
 	})
+	if strings.Contains(body, `<rect class="activation" x="533" y="1358"`) {
+		t.Error("commit-unknown recovery must not activate CheckpointReader")
+	}
 }
 
 func TestAtomicPolicyDocumentationContract(t *testing.T) {
