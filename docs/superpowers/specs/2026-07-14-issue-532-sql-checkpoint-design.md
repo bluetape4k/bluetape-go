@@ -243,6 +243,12 @@ const (
 
 var ErrCallbackContractViolation = errors.New("sql checkpoint: callback contract violation")
 
+type AtomicityPanic struct { /* constructor-private fields */ }
+
+func (p *AtomicityPanic) Error() string
+func (p *AtomicityPanic) Unwrap() error
+func (p *AtomicityPanic) PanicValue() any
+
 type Options struct {
     Namespace       string
     MaxKeyBytes     int
@@ -383,15 +389,20 @@ fail closed한다. Active checkpoint row를 삭제하거나 key를 재사용하�
    `ErrCheckpointVersionExhausted`로 즉시 실패한다.
 2. checkpoint를 encode하고 payload limit을 검증한다.
 3. `db.BeginTx(ctx, nil)`로 transaction을 시작한다.
-4. 즉시 rollback guard를 설치한다. Callback panic은 rollback을 시도한 뒤 그대로 propagate한다.
+4. 즉시 rollback guard와 deferred panic handler를 설치한다. Panic handler도 아래의 ownership
+   probe를 실행한다. Ownership을 증명하면 full rollback 뒤 원래 panic value를 그대로
+   re-panic하고, 증명하지 못하면 원래 value를 보존한 sanitized `*AtomicityPanic`으로 re-panic한다.
 5. Items가 non-empty이면 caller input과 무관한 compile-time fixed reserved identifier로
    transaction savepoint guard를 만든 뒤 caller `WriteTxFunc(ctx, guardedSession, items)`를
    정확히 한 번 호출한다. Empty이면 callback과 savepoint guard를 모두 생략한다.
-6. Callback 반환 뒤 checkpoint DML 전에 provider가 guard를 release한다. Guard release가
-   실패하면 어떤 분류에서도 checkpoint DML이나 Commit을 실행하지 않는다. Raw transaction
-   control의 positive evidence가 있으면 contract-violation/atomicity-unknown/commit-unknown,
-   cancellation 또는 transport와 경합해 outcome을 증명할 수 없으면
-   atomicity-unknown/commit-unknown으로 fail closed한다.
+6. Callback 반환 또는 panic 뒤 checkpoint DML 전에 provider가 ownership probe를 실행한다.
+   정상 `RELEASE SAVEPOINT` 성공은 original transaction과 guard가 살아 있음을 증명한다.
+   `SQLSTATE 25P02`이면 같은 reserved guard에 `ROLLBACK TO SAVEPOINT`를 시도하며 이것이 성공할
+   때만 original failed transaction이 살아 있다고 인정한다. Probe가 ownership을 증명하지
+   못하면 어떤 분류에서도 checkpoint DML이나 provider-owned Commit을 실행하지 않는다. Raw
+   transaction control의 positive evidence가 있으면
+   contract-violation/atomicity-unknown/commit-unknown, cancellation 또는 transport와 경합해
+   outcome을 증명할 수 없으면 atomicity-unknown/commit-unknown으로 fail closed한다.
 7. 같은 concrete `*sql.Tx`를 감싼 non-owning `sqlkit.Session`에서 checkpoint CAS DML 하나를
    실행한다.
 8. CAS 성공 뒤 `ctx.Err()`를 commit dispatch 전에 다시 확인한다. 이미 취소됐다면 commit을
@@ -441,6 +452,11 @@ returning revision
   identifier이고 concrete `*sql.Tx`는 callback에 노출하지 않는다. Trusted callback이 reserved
   guard에 직접 접근하는 adversarial behavior는 지원하지 않지만 accidental raw transaction
   control은 guard로 fail closed한다.
+- Callback panic은 transaction ownership 검사를 우회하지 않는다. Ownership-proven cleanup은
+  original panic value를 그대로 re-panic한다. Ownership-unknown cleanup은
+  `*sqlcheckpoint.AtomicityPanic`을 re-panic하며 `errors.Is`로 `batch.ErrAtomicityUnknown`과
+  `batch.ErrCommitUnknown`에 match하고 `PanicValue`로 original recovered value를 보존한다.
+  `AtomicityPanic.Error`와 unwrap chain은 raw panic/provider text를 노출하지 않는다.
 - Caller는 bounded run/commit context와 chunk size를 사용하고 role/database 수준의
   `lock_timeout`, `statement_timeout`, `idle_in_transaction_session_timeout`을 설정한다.
 - Hot path budget은 `Load` 한 SELECT다. Non-empty `Commit`은 BeginTx + private guard
@@ -481,14 +497,16 @@ KeyID를 노출하지 않는다.
 - Callback 또는 checkpoint statement failure 뒤 provider는 rollback한다. PostgreSQL
   server error와 성공한 rollback은 known rollback이며 commit-unknown이 아니다.
 - CAS no-row는 `ErrCheckpointConflict`이며 rollback된다.
-- Guard release는 caller context가 이미 취소됐더라도
+- Ownership probe는 caller context가 이미 취소됐더라도
   `context.WithTimeout(context.WithoutCancel(ctx), time.Second)`의 fixed one-second internal probe
   context로 시도하되 business/checkpoint work를 진행시키는 용도로 사용하지 않는다. Probe
-  timeout은 atomicity-unknown으로 fail closed한다. Release 성공 뒤 callback error 또는 caller
-  cancellation이 있으면 rollback하고 known failure/cancellation로 반환한다.
-- Guard release가 `SQLSTATE 25P02`처럼 active failed transaction을 확인하면 rollback한다.
-  Rollback 성공은 known failure이고 rollback 실패는 기존 rollback-error 계약을 따른다.
-- Active caller context의 `sql.ErrTxDone`, `SQLSTATE 25P01`(no active transaction) 또는
+  timeout은 atomicity-unknown으로 fail closed한다. Release 성공 뒤 callback error, panic 또는
+  caller cancellation이 있으면 full rollback하고 known failure/panic/cancellation로 반환한다.
+- Guard release가 `SQLSTATE 25P02`이면 같은 reserved guard에 `ROLLBACK TO SAVEPOINT`를
+  실행한다. 이것이 성공해야 original transaction survival을 증명하며 이후 full rollback
+  성공은 known failure/panic/cancellation이다. `ROLLBACK TO`가 `3B001`, `25P01`, transport,
+  cancellation 또는 분류 불가능한 error로 실패하면 atomicity-unknown이다.
+- Active caller context의 `sql.ErrTxDone`, 직접 관찰한 `SQLSTATE 25P01`(no active transaction),
   `SQLSTATE 3B001`(invalid savepoint)처럼 lifecycle violation의 positive evidence가 있으면
   sanitized operation error, `sqlcheckpoint.ErrCallbackContractViolation`,
   `batch.ErrAtomicityUnknown`, `batch.ErrCommitUnknown`에 match한다.
@@ -506,6 +524,9 @@ KeyID를 노출하지 않는다.
   active transaction을 확인한 known-failure path를 commit-unknown으로 승격하지 않는다. Guard
   release가 ownership을 증명하지 못한 path는 앞선 atomicity-unknown 계약을 따른다.
 - 모든 `Commit` error는 revision zero를 반환한다. Provider와 `Step`은 자동 retry하지 않는다.
+- Callback panic의 ownership-proven cleanup은 original panic을 유지한다. Ownership-unknown
+  cleanup은 sanitized `AtomicityPanic`의 unwrap chain에 `ErrAtomicityUnknown`과
+  `ErrCommitUnknown`을 보존하며 error return으로 변환하지 않는다.
 - `Step.statusForError`는 `batch.ErrCommitUnknown`을 context cancellation보다 먼저 검사해
   `StatusFailed`로 분류한다. Known pre-dispatch/callback cancellation만 `StatusCancelled`다.
 
@@ -570,15 +591,16 @@ old expected version으로 `Commit`을 재호출하면 안 된다.
   overflow guard. Missing+zero, missing+nonzero, existing+exact/stale and delete-after-Load cases
   prove no stale resurrection.
 - Deterministic injected transaction harness proves callback/CAS-DML/commit order, single invocation,
-  empty callback suppression, panic rollback, connection release, no automatic retry and
-  commit-unknown classification.
+  empty callback suppression, ownership-proven original panic propagation, ownership-unknown
+  `AtomicityPanic`, connection release, no automatic retry and commit-unknown classification.
 - Expected maximum version은 DB/callback 없이 exhaustion error를 반환한다. Actual PostgreSQL
   raw COMMIT/ROLLBACK callback은 private guard release에서 checkpoint DML 전에 감지되어
   contract-violation + atomicity-unknown + commit-unknown으로 fail closed한다. Raw COMMIT 직후
   cancellation과 release를 barrier로 경합시킨 경우는 contract violation을 추측하지 않더라도
   atomicity-unknown이며 checkpoint DML과 automatic fresh-run replay가 없어야 한다. 정상 callback
-  cancellation은 release 성공 또는 active failed transaction + successful rollback 증거가 있을
-  때 known cancellation이다.
+  cancellation은 release 성공 또는 `25P02` 뒤 reserved guard `ROLLBACK TO` 성공과 full rollback
+  증거가 있을 때만 known cancellation이다. Canceled-context `sql.ErrTxDone`은
+  atomicity-unknown이다.
 - `errors.Is`/`errors.As` survive wrapping and joined context causes.
 - Hot-path harness proves one Load SELECT, non-empty Commit의 exactly one private
   SAVEPOINT/RELEASE pair와 one checkpoint DML, empty Commit의 zero guard/callback, 그리고 ping,
@@ -598,9 +620,14 @@ Run sequentially and verify connection readiness before assertions.
 - Injected provider-owned commit-unknown path performs no library retry; a fresh load reconciles
   state. Raw COMMIT, raw ROLLBACK, raw COMMIT+cancellation race는 모두 checkpoint DML과 automatic
   replay가 없고 `ErrAtomicityUnknown` 뒤 manual reconciliation을 요구한다.
-- Barriered cancellation proves pre-Begin has no DB access, callback/checkpoint cancellation is known
-  rollback with no late rows, and post-commit-dispatch cancellation is commit-unknown followed by
-  fresh-load reconciliation.
+- Raw `COMMIT → BEGIN → failed statement`은 `25P02`만으로 known rollback이 되지 않고 reserved
+  guard `ROLLBACK TO` 실패로 atomicity-unknown이 된다. Raw COMMIT 뒤 panic은 sanitized
+  `AtomicityPanic`으로 original value와 manual-reconciliation sentinels를 보존한다. Normal panic은
+  original value를 그대로 전파하고 full rollback한다.
+- Barriered cancellation proves pre-Begin has no DB access; ownership-proven callback/checkpoint
+  cancellation is known rollback with no late rows; canceled-context `sql.ErrTxDone`과 raw
+  COMMIT+cancellation race는 atomicity-unknown; post-provider-Commit-dispatch cancellation is
+  commit-unknown followed by fresh-load reconciliation.
 - Namespace/key isolation including NUL and invalid UTF-8 bytes.
 - All-filter/skip boundary with no pending output advances only checkpoint; mixed boundary commits
   pending output and checkpoint together.
@@ -608,8 +635,10 @@ Run sequentially and verify connection readiness before assertions.
 - Catalog/security assertions reject oversized hostile rows, relation/column/constraint/PK drift,
   unlogged/temp persistence, rewrite rules, RLS/policies/user triggers, unsafe
   owner/member/PUBLIC ACL or excessive runtime privileges.
-- Small-pool cancellation proves bounded transaction/connection release. Unknown+competing-actor
-  harness proves Load cannot attribute the original attempt when exclusivity is violated.
+- Small-pool cancellation proves ownership probe 시작 후 one second + bounded scheduler tolerance
+  안에 connection이 재사용되고 drain 뒤 `DBStats.InUse == 0`이며 추가 callback, checkpoint DML,
+  provider-owned Commit이 없다. Unknown+competing-actor harness proves Load cannot attribute the
+  original attempt when exclusivity is violated.
 
 Concurrency claims require bounded exact-outcome stress plus
 `go test -race -count=1 ./batch ./batch/sqlcheckpoint`. Testcontainers suites are not run in
