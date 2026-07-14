@@ -146,10 +146,18 @@ type AtomicCheckpointWriter[T any] interface {
     ) (uint64, error)
 }
 
-type StepOptions[I any, O any] struct {
-    // Existing fields remain unchanged.
+type AtomicStepOptions[I any, O any] struct {
+    Name          string
+    ChunkSize     int
+    Reader        Reader[I]
+    Processor     Processor[I, O]
     AtomicWriter AtomicCheckpointWriter[O]
+    RetryPolicy   RetryPolicy
+    SkipPolicy    SkipPolicy
+    CheckpointKey string
 }
+
+func NewAtomicStep[I any, O any](AtomicStepOptions[I, O]) (*Step[I, O], error)
 ```
 
 `VersionedCheckpoint.Version`은 storage fencing version이며 business offset, row count,
@@ -162,12 +170,15 @@ timestamp 또는 reader progress 자체가 아니다. Missing checkpoint의 vers
 repository/resource, migration lifecycle은 caller가 소유한다. `Step`은 기존 `Writer`
 lifecycle만 계속 소유하고 atomic provider를 닫지 않는다.
 
-### `StepOptions` validation
+### Constructor와 validation
 
-- `Writer`와 `AtomicWriter` 중 정확히 하나만 설정해야 한다.
-- `AtomicWriter`가 설정되면 `CheckpointStore`를 함께 설정할 수 없다.
+- Existing exported `StepOptions`와 `NewStep` signature/validation은 byte-for-byte API shape와
+  behavior를 유지한다. Unkeyed composite literal도 새 필드 때문에 깨지지 않는다.
+- Atomic 경로는 별도 `AtomicStepOptions`와 `NewAtomicStep`만 사용한다. 이 options type에는
+  legacy `Writer`와 `CheckpointStore` field가 없으므로 unsafe combination을 표현할 수 없다.
+- `NewAtomicStep`은 non-nil `AtomicWriter`를 요구한다.
 - Atomic 경로에서는 `CheckpointKey`가 empty이면 기존과 같이 step name을 사용한다.
-- Atomic 경로의 `Reader`는 `CheckpointReader`를 구현해야 한다. `NewStep`이 이를 검증해
+- Atomic 경로의 `Reader`는 `CheckpointReader`를 구현해야 한다. `NewAtomicStep`이 이를 검증해
   reader open 또는 database access 전에 configuration error를 반환한다.
 - Legacy `Writer + CheckpointStore` validation과 runtime behavior는 호환성을 위해 유지한다.
 - Atomic provider의 nil/zero value는 implementation error를 반환해야 하며 panic하면 안 된다.
@@ -565,9 +576,11 @@ old expected version으로 `Commit`을 재호출하면 안 된다.
 
 ### Core `batch` tests
 
-- `NewStep` accepts exactly one of legacy writer or atomic writer.
-- Atomic writer rejects legacy `CheckpointStore` combination and non-checkpoint reader.
-- Existing legacy tests remain unchanged and prove compatibility.
+- Existing `StepOptions`/`NewStep` compile fixtures, including an external-package unkeyed composite
+  literal fixture, remain unchanged and prove source/behavior compatibility.
+- `NewAtomicStep` requires an atomic writer, defaults the checkpoint key, and rejects a
+  non-checkpoint reader before side effects. `AtomicStepOptions` cannot express legacy writer/store
+  combinations.
 - Atomic restore passes stored value and tracks version.
 - Successful chunk commit captures checkpoint first, calls `Commit` once, advances version, then
   increments `WriteCount`.
@@ -656,7 +669,8 @@ parallel with other Docker-backed suites.
 - `batch/sqlcheckpoint/README.md`와 `README.ko.md`는 architecture, API, schema/migration,
   runtime privileges, failure/recovery, callback rules, validation commands를 동등하게 제공한다.
 - Public Go doc과 one compile-checked end-to-end example은 caller-owned schema bootstrap,
-  `Codec`, `WriteTxFunc`의 tx-bound `Session.ExecContext`, `StepOptions.AtomicWriter`,
+  `Codec`, `WriteTxFunc`의 tx-bound `Session.ExecContext`, `NewAtomicStep`과
+  `AtomicStepOptions.AtomicWriter`,
   checkpoint-only commit, provider-owned `ErrCommitUnknown` 뒤 fresh-run Load와
   `ErrAtomicityUnknown` 뒤 automatic replay 금지를 포함한다. Captured DB write는 금지 예제로
   설명한다.
@@ -676,9 +690,9 @@ parallel with other Docker-backed suites.
 
 ## Compatibility와 rollout
 
-- Existing `CheckpointStore`, `MemoryCheckpointStore`, `Writer`, `StepOptions.Writer` behavior는
-  유지한다. `AtomicWriter`를 사용하지 않는 call site에는 source/behavior change가 없어야
-  한다.
+- Existing `CheckpointStore`, `MemoryCheckpointStore`, `Writer`, exported `StepOptions`와
+  `NewStep` API/behavior는 유지한다. Atomic path는 별도 additive constructor/options라 existing
+  keyed/unkeyed call site에 source/behavior change가 없어야 한다.
 - Legacy 경로는 deprecated하지 않는다. 서로 다른 storage에 write해야 하거나 at-least-once
   replay를 수용하는 caller에게 계속 유효하다.
 - Existing job cutover는 단순 option toggle이 아니다. Caller는 old runs/intake를 quiesce하고,
@@ -697,11 +711,15 @@ parallel with other Docker-backed suites.
   결과를 promotion gate로 확인한다. Shutdown 순서는 intake 중지, run cancel/join,
   commit/atomicity-unknown reconcile, transaction user drain 확인, 마지막으로 caller-owned pool
   close다.
+- Production promotion gate는 representative callback마다 business idempotency/commit marker를
+  조회하는 reconciliation query, 승인된 replay/checkpoint-repair 절차, same-key quiesce 해제
+  조건을 실제로 연습한 recovery drill을 요구한다.
 - Library는 logger/metric registry를 소유하지 않는다. Caller runbook은 low-cardinality
   load/commit outcome, conflict, version exhaustion, commit-unknown, atomicity-unknown,
   cancellation, latency,
   `sql.DBStats`, table/dead-tuple size, WAL/autovacuum 신호와 canary observation/rollback gate를
-  정의한다. Raw key/KeyID는 metric label에 넣지 않는다.
+  정의한다. Table/transaction 규모별 autovacuum 상태, replication lag, dead-tuple alert와 vacuum
+  escalation 조건도 포함한다. Raw key/KeyID는 metric label에 넣지 않는다.
 - Root README locale package inventory와
   `docs/release/v0.19.0-provider-conformance-runbook.md`를 함께 갱신한다.
 - Source parity 분류는 `adapt`다. Durable checkpoint 개념은 유지하지만 Spring Batch job
