@@ -40,6 +40,11 @@ database I/O, `SchemaSQL` 실행, pool 설정 변경이나 close를 하지 않�
 열기 전에 다음 순서를 지킵니다.
 
 1. 배포 전용 deployer login, non-login migration owner, 별도 runtime role을 만듭니다.
+   Owner와 runtime은
+   `NOSUPERUSER NOCREATEDB NOCREATEROLE NOREPLICATION NOBYPASSRLS`로 생성합니다.
+   Owner는 승인된 deployer에게만
+   `WITH INHERIT FALSE, SET TRUE, ADMIN FALSE`로 grant하며, 그 밖의 inbound/outbound
+   membership은 허용하지 않습니다.
    migration role은 이 non-login owner입니다. 통제된 1회성 ownership transfer로 deployer가
    `ALTER SCHEMA public OWNER TO sqlcheckpoint_migration_owner`를 실행합니다. Role name만으로는
    `public schema ownership prerequisite`가 충족되지 않습니다.
@@ -56,8 +61,10 @@ database I/O, `SchemaSQL` 실행, pool 설정 변경이나 close를 하지 않�
 5. Runtime에는 schema `USAGE`와 table `SELECT`, `INSERT`, `UPDATE`만 exact grant하고 grant
    option은 주지 않습니다.
 6. post-grant effective privilege validation에서 이 권한만 존재하는지 확인하고
-   `LOGIN NOINHERIT`, `role membership 없음`(zero role membership), zero inheritance,
-   no grant option을 commit 전에 검증합니다.
+   `LOGIN NOINHERIT`, inbound/outbound `role membership 없음`(zero role membership),
+   zero inheritance, cluster-level privileged role attribute 부재, no grant option을 commit 전에
+   검증합니다. Owner에는 정확히 승인된 deployer membership 하나만 남아야 하며 owner와
+   deployer 모두 다른 membership edge를 가지면 안 됩니다.
 
 ```go
 migrationCtx, cancel := context.WithTimeout(ctx, 30*time.Second)
@@ -106,7 +113,8 @@ transfer는 library가 자동 실행하는 동작이 아니라 deployer prerequi
 모두 검증해야 합니다.
 고정 relation은 `public.bluetape_batch_checkpoints`입니다. Custom schema/table name과
 auto-migration은 지원하지 않습니다. Runtime role은 table/schema owner나 migration-owner
-member가 아니어야 합니다.
+member가 아니어야 합니다. `pg_auth_members`는 양방향을 검사해야 합니다. Runtime에 grant된
+role만 검사하면 runtime, owner 또는 승인된 deployer를 grant받은 role을 놓칩니다.
 
 ```sql
 grant usage on schema public to app_runtime;
@@ -199,7 +207,9 @@ commit을 진행하지 않고 fail closed합니다. Positive lifecycle evidence�
 Identity는 변환하지 않은 raw byte의 정확한 `(namespace, key)` pair입니다. Empty namespace는
 `default`이고 namespace는 최대 128 bytes이며 key는 non-empty여야 합니다. Default key
 limit은 512 bytes, hard ceiling은 1024 bytes입니다. NUL과 invalid UTF-8도 byte-for-byte
-보존합니다.
+보존합니다. Namespace와 key는 authorization 경계가 아닙니다. Caller가 인증·인가와 bounded
+canonical key 생성을 책임지며, trust boundary가 다른 checkpoint identity는 별도 database
+role 또는 database로 분리합니다.
 
 Missing checkpoint의 expected revision은 0입니다. 첫 commit은 revision 1을 만들고 이후
 성공할 때마다 1씩 증가합니다. Stale revision은 `ErrCheckpointConflict`, PostgreSQL bigint
