@@ -72,11 +72,15 @@ func New[T any, C any](db *sql.DB, options Options, codec Codec[C], write WriteT
 		},
 	}
 	w.beginTx = func(ctx context.Context) (transaction, error) {
-		tx, err := w.db.BeginTx(ctx, nil)
+		tx, err := beginCheckpointTransaction(ctx, w.db)
 		if err != nil {
 			return nil, err
 		}
 		return &sqlTransaction{tx: tx}, nil
 	}
 	return w, nil
+}
+
+func beginCheckpointTransaction(ctx context.Context, db *sql.DB) (*sql.Tx, error) {
+	return db.BeginTx(ctx, &sql.TxOptions{Isolation: sql.LevelReadCommitted})
 }

@@ -5,6 +5,7 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
+	"net/url"
 	"strings"
 	"sync/atomic"
 	"testing"
@@ -189,7 +190,7 @@ func (tx *observedTransaction) Rollback() error {
 func observeWriter[T, C any](writer *Writer[T, C], observation *transactionObservation) {
 	writer.beginTx = func(ctx context.Context) (transaction, error) {
 		observation.begins.Add(1)
-		tx, err := writer.db.BeginTx(ctx, nil)
+		tx, err := beginCheckpointTransaction(ctx, writer.db)
 		if err != nil {
 			return nil, err
 		}
@@ -339,6 +340,32 @@ func openPostgresPool(ctx context.Context, t *testing.T, dsn string) *sql.DB {
 	}
 	t.Cleanup(func() { _ = db.Close() })
 	waitPostgresReady(ctx, t, db, "PostgreSQL pool")
+	return db
+}
+
+func openPostgresPoolWithDefaultIsolation(
+	ctx context.Context,
+	t *testing.T,
+	dsn string,
+	isolation string,
+) *sql.DB {
+	t.Helper()
+	parsed, err := url.Parse(dsn)
+	if err != nil {
+		t.Fatal(err)
+	}
+	query := parsed.Query()
+	query.Set("default_transaction_isolation", isolation)
+	parsed.RawQuery = query.Encode()
+
+	db := openPostgresPool(ctx, t, parsed.String())
+	var got string
+	if err := db.QueryRowContext(ctx, `show default_transaction_isolation`).Scan(&got); err != nil {
+		t.Fatal(err)
+	}
+	if got != isolation {
+		t.Fatalf("default_transaction_isolation=%q want=%q", got, isolation)
+	}
 	return db
 }
 

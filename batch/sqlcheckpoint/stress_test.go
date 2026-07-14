@@ -2,6 +2,7 @@ package sqlcheckpoint
 
 import (
 	"context"
+	"database/sql"
 	"errors"
 	"fmt"
 	"sync"
@@ -16,10 +17,35 @@ import (
 func TestPostgresConcurrentConflictHasExactWinnerAndLoser(t *testing.T) {
 	fixture := newPostgresFixture(t)
 	secondPool := openPostgresPool(fixture.ctx, t, fixture.dsn)
+	assertPostgresConcurrentConflictHasExactWinnerAndLoser(
+		fixture.ctx, t, fixture.db, secondPool, "conflict", 8,
+	)
+}
 
-	const iterations = 8
+func TestPostgresConcurrentConflictIgnoresRepeatableReadDefault(t *testing.T) {
+	fixture := newPostgresFixture(t)
+	firstPool := openPostgresPoolWithDefaultIsolation(
+		fixture.ctx, t, fixture.dsn, "repeatable read",
+	)
+	secondPool := openPostgresPoolWithDefaultIsolation(
+		fixture.ctx, t, fixture.dsn, "repeatable read",
+	)
+	assertPostgresConcurrentConflictHasExactWinnerAndLoser(
+		fixture.ctx, t, firstPool, secondPool, "repeatable-read-conflict", 4,
+	)
+}
+
+func assertPostgresConcurrentConflictHasExactWinnerAndLoser(
+	ctx context.Context,
+	t *testing.T,
+	firstPool, secondPool *sql.DB,
+	prefix string,
+	iterations int,
+) {
+	t.Helper()
+
 	for iteration := range iterations {
-		namespace := fmt.Sprintf("conflict-%02d", iteration)
+		namespace := fmt.Sprintf("%s-%02d", prefix, iteration)
 		arrived := make(chan struct{}, 2)
 		release := make(chan struct{})
 		callback := func(ctx context.Context, session sqlkit.Session, items []string) error {
@@ -36,11 +62,11 @@ func TestPostgresConcurrentConflictHasExactWinnerAndLoser(t *testing.T) {
 			}
 		}
 		writers := []*Writer[string, string]{
-			newPostgresWriter(t, fixture.db, namespace, callback),
+			newPostgresWriter(t, firstPool, namespace, callback),
 			newPostgresWriter(t, secondPool, namespace, callback),
 		}
 		for index, writer := range writers {
-			checkpoint, found, err := writer.Load(fixture.ctx, "job")
+			checkpoint, found, err := writer.Load(ctx, "job")
 			if err != nil || found || checkpoint.Version != 0 {
 				t.Fatalf("iteration %d writer %d Load = %+v, %v, %v; want missing", iteration, index, checkpoint, found, err)
 			}
@@ -56,12 +82,12 @@ func TestPostgresConcurrentConflictHasExactWinnerAndLoser(t *testing.T) {
 		outcomes := make(chan outcome, 2)
 		var workers sync.WaitGroup
 		for index, writer := range writers {
-			businessID := fmt.Sprintf("conflict-%02d-%d", iteration, index)
+			businessID := fmt.Sprintf("%s-%02d-%d", prefix, iteration, index)
 			checkpointValue := fmt.Sprintf("winner-%d", index)
 			workers.Add(1)
 			go func() {
 				defer workers.Done()
-				revision, err := writer.Commit(fixture.ctx, "job", 0,
+				revision, err := writer.Commit(ctx, "job", 0,
 					[]string{businessID}, checkpointValue)
 				outcomes <- outcome{
 					writerIndex: index, businessID: businessID, checkpointValue: checkpointValue,
@@ -103,7 +129,7 @@ func TestPostgresConcurrentConflictHasExactWinnerAndLoser(t *testing.T) {
 			want int
 		}{{id: winner.businessID, want: 1}, {id: loser.businessID, want: 0}} {
 			var count int
-			if err := fixture.db.QueryRowContext(fixture.ctx,
+			if err := firstPool.QueryRowContext(ctx,
 				`select count(*) from public.sqlcheckpoint_business where id=$1`, expected.id).Scan(&count); err != nil {
 				t.Fatal(err)
 			}
@@ -111,7 +137,7 @@ func TestPostgresConcurrentConflictHasExactWinnerAndLoser(t *testing.T) {
 				t.Fatalf("iteration %d business %q count=%d want=%d", iteration, expected.id, count, expected.want)
 			}
 		}
-		loaded, found, err := writers[winner.writerIndex].Load(fixture.ctx, "job")
+		loaded, found, err := writers[winner.writerIndex].Load(ctx, "job")
 		if err != nil || !found || loaded.Version != 1 || loaded.Value != winner.checkpointValue {
 			t.Fatalf("iteration %d winner=%d Load=%+v found=%v err=%v; want matching payload %q",
 				iteration, winner.writerIndex, loaded, found, err, winner.checkpointValue)
