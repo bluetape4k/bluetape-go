@@ -1,6 +1,6 @@
 # Lessons Learned - PostgreSQL Batch Checkpoint (2026-07-14)
 
-**Related issue:** #532  
+**Related issue:** #532
 **Affected modules:** `batch`, `batch/sqlcheckpoint`
 
 ## L1: Checkpoint progress is a consumed-input boundary
