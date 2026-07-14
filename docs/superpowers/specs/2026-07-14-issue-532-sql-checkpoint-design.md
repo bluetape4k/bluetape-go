@@ -374,7 +374,8 @@ inherited/PUBLIC write privilege를 갖지 않는다. Callback이 쓰는 busines
 Deployment preflight는 ordinary table relkind, permanent logged persistence
 (`pg_class.relpersistence = 'p'`), expected non-login owner, exact column order/type/nullability,
 fixed PK/check constraint names/order/validated definitions, RLS/forced-RLS off, zero policies,
-zero user triggers, zero user `pg_rewrite` rules, schema owner/ACL과 runtime
+zero user triggers, zero user `pg_rewrite` rules, schema/table/column ACL
+(`pg_attribute.attacl`)과 runtime
 direct/inherited/PUBLIC privilege를 catalog로 검증한다. `IF NOT EXISTS`는 이 검증을 대체하지
 않는다. UNLOGGED/TEMP table과 INSERT/UPDATE rewrite rule은 durable CAS contract 밖이라
 fail closed한다. Active checkpoint row를 삭제하거나 key를 재사용하는 retention은 해당 key의
@@ -457,6 +458,8 @@ returning revision
   `*sqlcheckpoint.AtomicityPanic`을 re-panic하며 `errors.Is`로 `batch.ErrAtomicityUnknown`과
   `batch.ErrCommitUnknown`에 match하고 `PanicValue`로 original recovered value를 보존한다.
   `AtomicityPanic.Error`와 unwrap chain은 raw panic/provider text를 노출하지 않는다.
+  `PanicValue()`는 trusted top-level recovery만 검사할 수 있는 sensitive diagnostic value이며
+  로그, metric, trace, 외부 응답에 출력하면 안 된다.
 - Caller는 bounded run/commit context와 chunk size를 사용하고 role/database 수준의
   `lock_timeout`, `statement_timeout`, `idle_in_transaction_session_timeout`을 설정한다.
 - Hot path budget은 `Load` 한 SELECT다. Non-empty `Commit`은 BeginTx + private guard
@@ -593,6 +596,8 @@ old expected version으로 `Commit`을 재호출하면 안 된다.
 - Deterministic injected transaction harness proves callback/CAS-DML/commit order, single invocation,
   empty callback suppression, ownership-proven original panic propagation, ownership-unknown
   `AtomicityPanic`, connection release, no automatic retry and commit-unknown classification.
+- Secret-bearing panic string/error를 사용해 `AtomicityPanic.Error`, `%v`, `%+v`, unwrap/join chain이
+  redacted 상태를 유지하고 raw value는 explicit `PanicValue()`에만 남는 hostile test를 둔다.
 - Expected maximum version은 DB/callback 없이 exhaustion error를 반환한다. Actual PostgreSQL
   raw COMMIT/ROLLBACK callback은 private guard release에서 checkpoint DML 전에 감지되어
   contract-violation + atomicity-unknown + commit-unknown으로 fail closed한다. Raw COMMIT 직후
@@ -634,7 +639,7 @@ Run sequentially and verify connection readiness before assertions.
 - Provider never closes or reconfigures the caller pool.
 - Catalog/security assertions reject oversized hostile rows, relation/column/constraint/PK drift,
   unlogged/temp persistence, rewrite rules, RLS/policies/user triggers, unsafe
-  owner/member/PUBLIC ACL or excessive runtime privileges.
+  owner/member/PUBLIC schema/table/column ACL or excessive runtime privileges.
 - Small-pool cancellation proves ownership probe 시작 후 one second + bounded scheduler tolerance
   안에 connection이 재사용되고 drain 뒤 `DBStats.InUse == 0`이며 추가 callback, checkpoint DML,
   provider-owned Commit이 없다. Unknown+competing-actor harness proves Load cannot attribute the
