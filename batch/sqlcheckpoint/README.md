@@ -331,6 +331,10 @@ run and unknown reconciliation for that key has been quiesced and joined.
 
 ## Operations And Supported Topology
 
+The [v0.19.0 provider conformance rollout runbook](../../docs/release/v0.19.0-provider-conformance-runbook.md#sql-batch-checkpoint-deployment-gates)
+is the production gate for catalog ownership, least-privilege grants, recovery
+drills, telemetry, canary promotion, rollback, and retention.
+
 - Use one writable PostgreSQL primary with connection-level transaction
   affinity. Read replicas, multi-primary, statement/transaction replay proxies,
   and transaction-pooling proxies that break affinity are unsupported.

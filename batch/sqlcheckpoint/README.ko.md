@@ -313,6 +313,10 @@ unknown reconciliation을 모두 quiesce/join한 maintenance window에서만 수
 
 ## 운영과 지원 topology
 
+[v0.19.0 provider conformance rollout runbook](../../docs/release/v0.19.0-provider-conformance-runbook.md#sql-batch-checkpoint-배포-gate)은
+catalog ownership, 최소 권한 grant, recovery drill, telemetry, canary promotion, rollback,
+retention을 포함한 production gate입니다.
+
 - Writable PostgreSQL primary와 transaction affinity가 유지되는 connection만 지원합니다.
   Read replica, multi-primary, statement/transaction replay proxy, transaction-pooling으로
   affinity를 깨는 proxy는 지원하지 않습니다.

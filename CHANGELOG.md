@@ -22,6 +22,11 @@ and this project uses semantic versioning once the first tag is published.
   bounded cleanup scheduler; Redis remains the high-QPS choice. Redis and SQL
   failures share `ratelimit.OperationError` and `ErrCommitUnknown` inspection,
   and commit-unknown debits must not be replayed automatically.
+- Add `batch/sqlcheckpoint` for PostgreSQL durable checkpoints that commit a
+  batch callback and consumed-input progress in one caller-owned transaction.
+  Revision CAS rejects competing writers; commit-unknown permits only a fresh
+  bounded load, while `ErrAtomicityUnknown` requires quiescing and manual
+  reconciliation before any replay.
 
 - Add `cache/redisfory` for bounded Go-native Apache Fory values stored
   directly in Redis with explicit profiles, BTFV envelopes, TTLs, and schema
