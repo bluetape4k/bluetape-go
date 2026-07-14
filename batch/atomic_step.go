@@ -70,7 +70,7 @@ func (s *Step[I, O]) runAtomic(ctx context.Context) (report Report) {
 		}
 		if !ok {
 			if progressCount > 0 {
-				expected, err = s.commitAtomic(ctx, &report, reader, expected, pending)
+				_, err = s.commitAtomic(ctx, &report, reader, expected, pending)
 				if err != nil {
 					report.finish(statusForError(err), err)
 					return report
