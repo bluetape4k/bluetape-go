@@ -10,11 +10,12 @@ import (
 )
 
 var (
-	errNilDB          = errors.New("sqlcheckpoint: db must not be nil")
-	errNilWrite       = errors.New("sqlcheckpoint: write callback must not be nil")
-	errNilCodecEncode = errors.New("sqlcheckpoint: codec encode must not be nil")
-	errNilCodecDecode = errors.New("sqlcheckpoint: codec decode must not be nil")
-	errWriterNotReady = errors.New("sqlcheckpoint: load and commit are not implemented")
+	errNilDB               = errors.New("sqlcheckpoint: db must not be nil")
+	errNilWrite            = errors.New("sqlcheckpoint: write callback must not be nil")
+	errNilCodecEncode      = errors.New("sqlcheckpoint: codec encode must not be nil")
+	errNilCodecDecode      = errors.New("sqlcheckpoint: codec decode must not be nil")
+	errWriterUninitialized = errors.New("sqlcheckpoint: writer is not initialized")
+	errWriterNotReady      = errors.New("sqlcheckpoint: commit is not implemented")
 )
 
 // Codec encodes and decodes checkpoint values.
@@ -31,10 +32,11 @@ type WriteTxFunc[T any] func(context.Context, sqlkit.Session, []T) error
 // Writer atomically persists output items and durable checkpoints in PostgreSQL.
 // A Writer must be created with New; its zero value is not initialized.
 type Writer[T any, C any] struct {
-	db      *sql.DB
-	options normalizedOptions
-	codec   Codec[C]
-	write   WriteTxFunc[T]
+	db       *sql.DB
+	options  normalizedOptions
+	codec    Codec[C]
+	write    WriteTxFunc[T]
+	queryRow func(context.Context, string, ...any) rowScanner
 }
 
 var _ batch.AtomicCheckpointWriter[any] = (*Writer[any, any])(nil)
@@ -65,12 +67,10 @@ func New[T any, C any](db *sql.DB, options Options, codec Codec[C], write WriteT
 		options: normalized,
 		codec:   codec,
 		write:   write,
+		queryRow: func(ctx context.Context, query string, args ...any) rowScanner {
+			return db.QueryRowContext(ctx, query, args...)
+		},
 	}, nil
-}
-
-// Load is reserved for the checkpoint loading implementation.
-func (*Writer[T, C]) Load(context.Context, string) (batch.VersionedCheckpoint, bool, error) {
-	return batch.VersionedCheckpoint{}, false, errWriterNotReady
 }
 
 // Commit is reserved for the transactional checkpoint commit implementation.
