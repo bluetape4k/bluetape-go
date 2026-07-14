@@ -14,7 +14,7 @@
 
 | Area | Files | Responsibility |
 |---|---|---|
-| Root atomic contract | `batch/errors.go`, `batch/atomic.go`, `batch/atomic_test.go`, `batch/testdata/compat/main.go` | Provider-neutral sentinels, versioned checkpoint interface, additive atomic constructor/options, legacy source-compatibility fixture. |
+| Root atomic contract | `batch/errors.go`, `batch/atomic.go`, `batch/atomic_test.go`, `batch/testdata/compat/main.go`, `Makefile` | Provider-neutral sentinels, versioned checkpoint interface, additive atomic constructor/options, CI-enforced legacy source-compatibility fixture. |
 | Atomic step runtime | `batch/step.go`, `batch/atomic_step.go`, `batch/atomic_step_test.go` | Preserve the legacy loop and add consumed-input atomic chunking, restore, status, counters, skip/filter, close, and no-retry behavior. |
 | SQL public API/schema | `batch/sqlcheckpoint/{doc.go,options.go,options_test.go,schema.go,schema_test.go,writer.go}` | Caller-owned constructor, immutable limits/codec/callback, fixed DDL, key/checkpoint validation, no implicit I/O. |
 | SQL load/diagnostics | `batch/sqlcheckpoint/{load.go,load_test.go,errors.go,errors_test.go}` | Conditional payload projection, typed decode, redacted operation/codec errors, correlation ID, zero/nil safety. |
@@ -109,6 +109,7 @@ Expected: the risk commit predates every source commit.
 - Create: `batch/testdata/compat/main.go`
 - Modify: `batch/errors.go`
 - Modify: `batch/step.go`
+- Modify: `Makefile`
 
 - [ ] **Step 1: Write RED contract and compatibility tests**
 
@@ -131,6 +132,8 @@ Test `NewAtomicStep` for empty name, zero/default and negative chunk size, nil r
 nil atomic writer, non-`CheckpointReader`, negative retry/skip policies, default checkpoint key,
 and no reader/provider side effect on constructor failure. Assert `AtomicStepOptions` exposes no
 legacy writer/store field by compiling only the approved literal shape.
+Add `$(GO) test -vet=off ./batch/testdata/compat` to the `test` target after the normal serial suite,
+so every `make test` and `make ci` run continuously enforces the deliberately unkeyed fixture.
 
 - [ ] **Step 2: Observe RED**
 
@@ -220,7 +223,7 @@ gofmt -w batch/atomic.go batch/atomic_test.go batch/testdata/compat/main.go batc
 go test -count=1 ./batch
 go test -vet=off ./batch/testdata/compat
 git diff --check
-git add batch/atomic.go batch/atomic_test.go batch/testdata/compat/main.go batch/errors.go batch/step.go
+git add Makefile batch/atomic.go batch/atomic_test.go batch/testdata/compat/main.go batch/errors.go batch/step.go
 git commit -m "feat: add atomic batch checkpoint contract"
 ```
 
@@ -718,7 +721,9 @@ git commit -m "test: prove SQL checkpoint recovery"
 Require both locale files to contain `NewAtomicStep`, `SchemaSQL`, `ErrCommitUnknown`,
 `ErrAtomicityUnknown`, `AtomicityPanic`, `PanicValue`, `SAVEPOINT`, authenticated codec/encryption,
 KeyID non-authorization/non-metric guidance, callback restrictions, same-key serialization,
-migration/privilege, recovery, and validation commands. Require both to
+migration/privilege, recovery, and validation commands. Require Go doc and both locale files to say
+that `RetryPolicy` and `SkipPolicy` apply only to processor failures and never to
+`AtomicCheckpointWriter.Commit`, callback, CAS, or unknown-outcome errors. Require both locale files to
 embed `postgres-batch-checkpoint-atomic-sequence.png` and have equal fenced-code-block counts.
 
 - [ ] **Step 2: Add compile-checked construction and recovery examples**
@@ -801,12 +806,15 @@ Add `batch/sqlcheckpoint` to both root package tables. Add the v0.19.0 feature e
 runbook with PUBLIC CREATE revoke→owner migration→catalog preflight→runtime grant, column ACL,
 writable-primary/RPO, representative callback reconciliation drills, safe replay/repair approval,
 quiesce release, autovacuum/replication/dead-tuple thresholds, shutdown order, canary, rollback, and
-retention. Keep English and Korean runbook sections structurally aligned.
+retention. Define low-cardinality load/commit outcomes, conflict/exhaustion,
+commit-unknown/atomicity-unknown, cancellation/latency, and `sql.DBStats` signals; raw KeyID values
+must never become metric labels. Keep English and Korean runbook sections structurally aligned.
 
 - [ ] **Step 4: Verify public documentation and commit**
 
 ```bash
 rg -n 'batch/sqlcheckpoint|ErrAtomicityUnknown|postgres-batch-checkpoint-atomic-sequence' README.md README.ko.md CHANGELOG.md batch/sqlcheckpoint/README.md batch/sqlcheckpoint/README.ko.md docs/release/v0.19.0-provider-conformance-runbook.md
+rg -n 'PUBLIC CREATE|catalog preflight|recovery drill|quiesce|shutdown|canary|rollback|retention|DBStats|metric label' docs/release/v0.19.0-provider-conformance-runbook.md
 go test -count=1 ./batch/sqlcheckpoint -run 'README|Readme'
 git diff --check
 git add README.md README.ko.md CHANGELOG.md docs/release/v0.19.0-provider-conformance-runbook.md docs/images/readme-diagrams/postgres-batch-checkpoint-atomic-sequence.svg docs/images/readme-diagrams/postgres-batch-checkpoint-atomic-sequence.png batch/sqlcheckpoint/README.md batch/sqlcheckpoint/README.ko.md
@@ -856,6 +864,7 @@ session integrates results, fixes findings, reruns affected and exact-final lane
 - [ ] **Step 4: Re-run verification after review repairs**
 
 ```bash
+go test -vet=off ./batch/testdata/compat
 go test -count=1 ./batch ./batch/sqlcheckpoint
 go test -race -count=1 ./batch ./batch/sqlcheckpoint
 make ci
