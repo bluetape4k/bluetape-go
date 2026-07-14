@@ -378,12 +378,13 @@ fail closed한다. Active checkpoint row를 삭제하거나 key를 재사용하�
 2. checkpoint를 encode하고 payload limit을 검증한다.
 3. `db.BeginTx(ctx, nil)`로 transaction을 시작한다.
 4. 즉시 rollback guard를 설치한다. Callback panic은 rollback을 시도한 뒤 그대로 propagate한다.
-5. Items가 non-empty이면 provider-private safe identifier로 transaction savepoint guard를
-   만든 뒤 caller `WriteTxFunc(ctx, guardedSession, items)`를 정확히 한 번 호출한다. Empty이면
-   callback과 savepoint guard를 모두 생략한다.
-6. Callback 반환 뒤 checkpoint DML 전에 provider가 guard를 release한다. Callback이 raw
-   transaction control로 transaction을 끝냈다면 guard release가 실패하므로 checkpoint를
-   별도 autocommit으로 쓰지 않고 contract-violation/commit-unknown으로 중단한다.
+5. Items가 non-empty이면 caller input과 무관한 compile-time fixed reserved identifier로
+   transaction savepoint guard를 만든 뒤 caller `WriteTxFunc(ctx, guardedSession, items)`를
+   정확히 한 번 호출한다. Empty이면 callback과 savepoint guard를 모두 생략한다.
+6. Callback 반환 뒤 checkpoint DML 전에 provider가 guard를 release한다. Guard release가
+   실패하면 어떤 분류에서도 checkpoint DML이나 Commit을 실행하지 않는다. Raw transaction
+   control의 positive evidence가 있으면 contract-violation/commit-unknown, cancellation 또는
+   transport와 경합해 outcome을 증명할 수 없으면 commit-unknown으로 fail closed한다.
 7. 같은 concrete `*sql.Tx`를 감싼 non-owning `sqlkit.Session`에서 checkpoint CAS DML 하나를
    실행한다.
 8. CAS 성공 뒤 `ctx.Err()`를 commit dispatch 전에 다시 확인한다. 이미 취소됐다면 commit을
@@ -429,11 +430,10 @@ returning revision
   변경하면 안 된다. Items slice는 callback duration 동안 read-only로 취급한다.
 - Callback은 raw/procedure 기반 `BEGIN`, `COMMIT`, `ROLLBACK`, `SAVEPOINT`,
   `SET TRANSACTION` 또는 equivalent transaction-control을 실행하거나 session/items를 call
-  이후 보관하면 안 된다. Callback은 provider-private guard name이나 concrete `*sql.Tx`를
-  얻을 수 없다. Guard release failure 또는 active context에서 provider-owned Commit 전
-  `sql.ErrTxDone`이 관찰되면 business transaction이 이미 끝났을 수 있으므로 checkpoint DML을
-  실행하지 않고 `ErrCallbackContractViolation`과 `batch.ErrCommitUnknown`을 함께 반환한다.
-  Canceled context의 automatic rollback은 이 ownership violation과 구분한다.
+  이후 보관하면 안 된다. Guard name은 security secret이 아니라 package-reserved fixed
+  identifier이고 concrete `*sql.Tx`는 callback에 노출하지 않는다. Trusted callback이 reserved
+  guard에 직접 접근하는 adversarial behavior는 지원하지 않지만 accidental raw transaction
+  control은 guard로 fail closed한다.
 - Caller는 bounded run/commit context와 chunk size를 사용하고 role/database 수준의
   `lock_timeout`, `statement_timeout`, `idle_in_transaction_session_timeout`을 설정한다.
 - Hot path budget은 `Load` 한 SELECT다. Non-empty `Commit`은 BeginTx + private guard
@@ -459,7 +459,9 @@ returning revision
 `Unwrap`한다. Error string은 operation과 redacted family만 포함하고 raw namespace/key,
 payload, SQL, DSN, endpoint, codec/provider cause text를 포함하지 않는다. `KeyID`는
 namespace byte length를 8-byte big-endian으로 prefix한 뒤 exact namespace/key bytes를
-SHA-256하고 앞 10 bytes를 hex encode한다. Metric label에는 KeyID를 사용하지 않는다.
+SHA-256하고 앞 10 bytes를 hex encode한다. 이는 pseudonymous correlation ID일 뿐 secret,
+authorization identifier 또는 enumeration 방어가 아니다. 외부 trust boundary와 metric label에는
+KeyID를 노출하지 않는다.
 
 - Validation, checkpoint type/encode failure, pre-canceled context는 database operation
   error로 감싸지 않는다.
@@ -468,8 +470,21 @@ SHA-256하고 앞 10 bytes를 hex encode한다. Metric label에는 KeyID를 사�
 - Callback 또는 checkpoint statement failure 뒤 provider는 rollback한다. PostgreSQL
   server error와 성공한 rollback은 known rollback이며 commit-unknown이 아니다.
 - CAS no-row는 `ErrCheckpointConflict`이며 rollback된다.
-- Active context에서 provider-owned Commit 전에 `sql.ErrTxDone`이면 sanitized operation
-  error, `sqlcheckpoint.ErrCallbackContractViolation`, `batch.ErrCommitUnknown`에 match한다.
+- Guard release는 caller context가 이미 취소됐더라도 short bounded internal cleanup context로
+  시도하되 business/checkpoint work를 진행시키는 용도로 사용하지 않는다. Release 성공 뒤
+  callback error 또는 caller cancellation이 있으면 rollback하고 known failure/cancellation로
+  반환한다.
+- Guard release가 `SQLSTATE 25P02`처럼 active failed transaction을 확인하면 rollback한다.
+  Rollback 성공은 known failure이고 rollback 실패는 기존 rollback-error 계약을 따른다.
+- Active caller context의 `sql.ErrTxDone`, `SQLSTATE 25P01`(no active transaction) 또는
+  `SQLSTATE 3B001`(invalid savepoint)처럼 lifecycle violation의 positive evidence가 있으면
+  sanitized operation error, `sqlcheckpoint.ErrCallbackContractViolation`,
+  `batch.ErrCommitUnknown`에 match한다.
+- Guard release가 cancellation/deadline, canceled-context `sql.ErrTxDone`, transport loss,
+  bad connection 또는 분류 불가능한 non-server error로 실패하면 raw Commit과 automatic
+  rollback의 경합을 증명할 수 없으므로 `ErrCallbackContractViolation`을 추측하지 않고
+  sanitized operation error와 `batch.ErrCommitUnknown`에만 match한다. 어떤 release failure도
+  checkpoint DML 또는 provider-owned Commit으로 이어지지 않는다.
 - Commit의 PostgreSQL server rejection은 known failure로 분류한다.
 - Commit의 transport loss, in-flight cancellation/deadline, bad connection 또는 결과를
   확정할 수 없는 non-server error는 original/context cause를 `OpError.Unwrap` 안에만 보관하고
@@ -538,7 +553,10 @@ business transaction outcome이 일치한다. Exclusivity를 위반해 다른 ac
   commit-unknown classification.
 - Expected maximum version은 DB/callback 없이 exhaustion error를 반환한다. Actual PostgreSQL
   raw COMMIT/ROLLBACK callback은 private guard release에서 checkpoint DML 전에 감지되어
-  contract-violation + commit-unknown으로 fail closed한다.
+  contract-violation + commit-unknown으로 fail closed한다. Raw COMMIT 직후 cancellation과
+  release를 barrier로 경합시킨 경우는 contract violation을 추측하지 않더라도 commit-unknown이며
+  checkpoint DML이 없어야 한다. 정상 callback cancellation은 release 성공 또는 active failed
+  transaction + successful rollback 증거가 있을 때 known cancellation이다.
 - `errors.Is`/`errors.As` survive wrapping and joined context causes.
 - Hot-path harness proves one Load SELECT, non-empty Commit의 exactly one private
   SAVEPOINT/RELEASE pair와 one checkpoint DML, empty Commit의 zero guard/callback, 그리고 ping,
