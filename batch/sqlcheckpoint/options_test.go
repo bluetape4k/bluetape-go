@@ -237,14 +237,13 @@ func TestNewWriterStagingMethodsAreNilSafe(t *testing.T) {
 	}{
 		{name: "nil"},
 		{name: "zero", writer: new(Writer[any, any])},
-		{name: "constructed", writer: mustNewWriter(t, Options{})},
 	}
 
 	for _, tt := range writers {
 		t.Run(tt.name, func(t *testing.T) {
 			_, commitErr := tt.writer.Commit(context.Background(), "key", 0, nil, nil)
-			if !errors.Is(commitErr, errWriterNotReady) {
-				t.Fatalf("Commit() error = %v, want %v", commitErr, errWriterNotReady)
+			if !errors.Is(commitErr, errWriterUninitialized) {
+				t.Fatalf("Commit() error = %v, want %v", commitErr, errWriterUninitialized)
 			}
 		})
 	}

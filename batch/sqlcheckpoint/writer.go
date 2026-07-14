@@ -15,7 +15,6 @@ var (
 	errNilCodecEncode      = errors.New("sqlcheckpoint: codec encode must not be nil")
 	errNilCodecDecode      = errors.New("sqlcheckpoint: codec decode must not be nil")
 	errWriterUninitialized = errors.New("sqlcheckpoint: writer is not initialized")
-	errWriterNotReady      = errors.New("sqlcheckpoint: commit is not implemented")
 )
 
 // Codec encodes and decodes checkpoint values.
@@ -37,6 +36,7 @@ type Writer[T any, C any] struct {
 	codec    Codec[C]
 	write    WriteTxFunc[T]
 	queryRow func(context.Context, string, ...any) rowScanner
+	beginTx  func(context.Context) (transaction, error)
 }
 
 var _ batch.AtomicCheckpointWriter[any] = (*Writer[any, any])(nil)
@@ -62,7 +62,7 @@ func New[T any, C any](db *sql.DB, options Options, codec Codec[C], write WriteT
 		return nil, err
 	}
 
-	return &Writer[T, C]{
+	w := &Writer[T, C]{
 		db:      db,
 		options: normalized,
 		codec:   codec,
@@ -70,10 +70,13 @@ func New[T any, C any](db *sql.DB, options Options, codec Codec[C], write WriteT
 		queryRow: func(ctx context.Context, query string, args ...any) rowScanner {
 			return db.QueryRowContext(ctx, query, args...)
 		},
-	}, nil
-}
-
-// Commit is reserved for the transactional checkpoint commit implementation.
-func (*Writer[T, C]) Commit(context.Context, string, uint64, []T, any) (uint64, error) {
-	return 0, errWriterNotReady
+	}
+	w.beginTx = func(ctx context.Context) (transaction, error) {
+		tx, err := w.db.BeginTx(ctx, nil)
+		if err != nil {
+			return nil, err
+		}
+		return &sqlTransaction{tx: tx}, nil
+	}
+	return w, nil
 }
