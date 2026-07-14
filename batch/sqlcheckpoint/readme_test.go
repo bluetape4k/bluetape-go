@@ -225,7 +225,9 @@ func TestSequenceDiagramOwnershipContract(t *testing.T) {
 		`d="M900 360 L1280 360"`,
 		`d="M1280 420 L900 420"`,
 		`d="M180 480 L540 480"`,
+		`d="M180 1380 L900 1380"`,
 		"Restore(checkpoint value)",
+		"caller: quiesce; Atomic Writer.Load",
 	})
 }
 
