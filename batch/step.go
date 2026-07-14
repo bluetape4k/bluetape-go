@@ -97,6 +97,9 @@ func (s *Step[I, O]) Run(ctx context.Context) (report Report) {
 		report.finish(StatusFailed, fmt.Errorf("step must not be nil"))
 		return report
 	}
+	if s.atomic != nil {
+		return s.runAtomic(ctx)
+	}
 
 	report = newReport(s.name)
 	closeCtx := context.WithoutCancel(ctx)
@@ -290,6 +293,9 @@ func normalizeContext(ctx context.Context) context.Context {
 }
 
 func statusForError(err error) Status {
+	if errors.Is(err, ErrCommitUnknown) || errors.Is(err, ErrAtomicityUnknown) {
+		return StatusFailed
+	}
 	if isContextError(err) {
 		return StatusCancelled
 	}
