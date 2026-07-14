@@ -14,7 +14,7 @@
 
 | Area | Files | Responsibility |
 |---|---|---|
-| Root atomic contract | `batch/errors.go`, `batch/atomic.go`, `batch/atomic_test.go`, `batch/compat_external_test.go` | Provider-neutral sentinels, versioned checkpoint interface, additive atomic constructor/options, legacy source-compatibility fixture. |
+| Root atomic contract | `batch/errors.go`, `batch/atomic.go`, `batch/atomic_test.go`, `batch/testdata/compat/main.go` | Provider-neutral sentinels, versioned checkpoint interface, additive atomic constructor/options, legacy source-compatibility fixture. |
 | Atomic step runtime | `batch/step.go`, `batch/atomic_step.go`, `batch/atomic_step_test.go` | Preserve the legacy loop and add consumed-input atomic chunking, restore, status, counters, skip/filter, close, and no-retry behavior. |
 | SQL public API/schema | `batch/sqlcheckpoint/{doc.go,options.go,options_test.go,schema.go,schema_test.go,writer.go}` | Caller-owned constructor, immutable limits/codec/callback, fixed DDL, key/checkpoint validation, no implicit I/O. |
 | SQL load/diagnostics | `batch/sqlcheckpoint/{load.go,load_test.go,errors.go,errors_test.go}` | Conditional payload projection, typed decode, redacted operation/codec errors, correlation ID, zero/nil safety. |
@@ -40,6 +40,8 @@ PostgreSQL suite. Do not add a dependency, modify the exported fields of `StepOp
 `NewStep`, add automatic migration/retry, or broaden the callback beyond `sqlkit.Session`. Any such
 need stops execution and returns to design review. A failing ownership probe must never dispatch
 checkpoint DML or provider-owned `Commit`.
+Throughput targets, capacity rankings, and new benchmarks are deferred to issue #560 and must not
+expand this issue's DoD.
 
 ### Task 0: Freeze Approved Artifacts and Predict Risks
 
@@ -104,17 +106,18 @@ Expected: the risk commit predates every source commit.
 **Files:**
 - Create: `batch/atomic.go`
 - Create: `batch/atomic_test.go`
-- Create: `batch/compat_external_test.go`
+- Create: `batch/testdata/compat/main.go`
 - Modify: `batch/errors.go`
 - Modify: `batch/step.go`
 
 - [ ] **Step 1: Write RED contract and compatibility tests**
 
-Add root sentinel/interface tests and this external-package compile fixture with the exact existing
-field order:
+Add root sentinel/interface tests and this external-package `testdata` compile fixture with the
+exact existing field order. Keeping it under `testdata` avoids normal `go vet` rejecting the
+deliberately unkeyed literal:
 
 ```go
-package batch_test
+package compat
 
 import "github.com/bluetape4k/bluetape-go/batch"
 
@@ -132,7 +135,8 @@ legacy writer/store field by compiling only the approved literal shape.
 - [ ] **Step 2: Observe RED**
 
 ```bash
-go test -count=1 ./batch -run 'Atomic|LegacyUnkeyed|Compatibility'
+go test -count=1 ./batch -run 'Atomic|Compatibility'
+go test -vet=off ./batch/testdata/compat
 ```
 
 Expected: build FAIL because the sentinels, atomic types, and constructor do not exist.
@@ -212,10 +216,11 @@ func NewAtomicStep[I any, O any](options AtomicStepOptions[I, O]) (*Step[I, O], 
 - [ ] **Step 5: Verify GREEN, full legacy regression, and commit**
 
 ```bash
-gofmt -w batch/atomic.go batch/atomic_test.go batch/compat_external_test.go batch/errors.go batch/step.go
+gofmt -w batch/atomic.go batch/atomic_test.go batch/testdata/compat/main.go batch/errors.go batch/step.go
 go test -count=1 ./batch
+go test -vet=off ./batch/testdata/compat
 git diff --check
-git add batch/atomic.go batch/atomic_test.go batch/compat_external_test.go batch/errors.go batch/step.go
+git add batch/atomic.go batch/atomic_test.go batch/testdata/compat/main.go batch/errors.go batch/step.go
 git commit -m "feat: add atomic batch checkpoint contract"
 ```
 
@@ -501,6 +506,10 @@ empty callback suppression, exact single callback, insert/update CAS, conflict r
 error, swallowed `25P02`, panic, context before Commit, Commit server rejection, transport loss,
 rollback error preservation, revision maximum, and no library retry. Assert every error returns
 revision zero.
+The writer receives an unexported `beginTx func(context.Context) (transaction, error)` initialized
+from its caller DB; package tests replace only this function. The harness asserts exactly one Load
+query, one SAVEPOINT/RELEASE pair and one CAS for non-empty Commit, zero guard/callback for empty
+Commit, and zero CAS/Commit after any ownership-probe failure.
 
 - [ ] **Step 2: Observe RED**
 
@@ -538,6 +547,16 @@ func (t *sqlTransaction) ScanRevision(ctx context.Context, q string, args ...any
 }
 func (t *sqlTransaction) Commit() error { return t.tx.Commit() }
 func (t *sqlTransaction) Rollback() error { return t.tx.Rollback() }
+```
+
+Initialize the production factory when the transaction code lands:
+
+```go
+w.beginTx = func(ctx context.Context) (transaction, error) {
+    tx, err := w.db.BeginTx(ctx, nil)
+    if err != nil { return nil, err }
+    return &sqlTransaction{tx: tx}, nil
+}
 ```
 
 The unexported guarded session forwards only `ExecContext`, `QueryContext`, and `QueryRowContext`;
@@ -620,8 +639,11 @@ an unproven ownership probe.
 
 - [ ] **Step 1: Build one sequential PostgreSQL fixture**
 
-Use `testcontainers/postgres.Start`, blank-import pgx stdlib, open/ping the admin pool, apply
-`SchemaSQL`, create a business table with an idempotency key, and register cleanup with `t.Cleanup`.
+Use `testcontainers/postgres.Start`, blank-import pgx stdlib, and register cleanup with `t.Cleanup`.
+The security fixture executes the production order exactly: revoke PUBLIC CREATE, create/use the
+non-login migration owner, apply `SchemaSQL`, pass catalog preflight, prove runtime access fails
+before grants, grant only USAGE+SELECT/INSERT/UPDATE, then prove allowed DML succeeds and forbidden
+DDL/DML fails. A simpler admin-owned fixture may be used only for non-security transaction tests.
 Use `t.Setenv` only for fixture configuration; do not use `t.Parallel` anywhere in these files.
 
 - [ ] **Step 2: Prove success, restart, rollback, and exact CAS outcomes**
@@ -629,8 +651,9 @@ Use `t.Setenv` only for fixture configuration; do not use `t.Parallel` anywhere 
 Test missing→revision 1, exact update→revision 2, business row plus checkpoint in one commit,
 checkpoint statement failure rolling back business rows, callback failure rollback, success restart,
 known rollback replay, NUL/invalid-UTF8 namespace/key isolation, checkpoint-only commit, and pool
-ownership. With two pools loading the same version behind a barrier, assert exactly one business
-row/checkpoint winner and one `ErrCheckpointConflict` loser.
+ownership. With two pools loading the same version, write different business idempotency keys and
+hold both callbacks at a barrier immediately before checkpoint CAS; then assert exactly one
+business-row/checkpoint winner and one `ErrCheckpointConflict` loser.
 
 - [ ] **Step 3: Prove raw transaction-control and panic failure shields**
 
@@ -693,8 +716,9 @@ git commit -m "test: prove SQL checkpoint recovery"
 - [ ] **Step 1: Write RED example and README contract tests**
 
 Require both locale files to contain `NewAtomicStep`, `SchemaSQL`, `ErrCommitUnknown`,
-`ErrAtomicityUnknown`, `AtomicityPanic`, `PanicValue`, `SAVEPOINT`, callback restrictions,
-same-key serialization, migration/privilege, recovery, and validation commands. Require both to
+`ErrAtomicityUnknown`, `AtomicityPanic`, `PanicValue`, `SAVEPOINT`, authenticated codec/encryption,
+KeyID non-authorization/non-metric guidance, callback restrictions, same-key serialization,
+migration/privilege, recovery, and validation commands. Require both to
 embed `postgres-batch-checkpoint-atomic-sequence.png` and have equal fenced-code-block counts.
 
 - [ ] **Step 2: Add compile-checked construction and recovery examples**
@@ -804,6 +828,7 @@ git commit -m "docs: publish SQL checkpoint operations"
 
 ```bash
 gofmt -w batch/*.go batch/sqlcheckpoint/*.go
+go test -vet=off ./batch/testdata/compat
 go test -count=1 ./batch ./batch/sqlcheckpoint
 go test -count=20 ./batch/sqlcheckpoint -run 'Concurrent|Conflict|Cancellation|Ownership'
 go test -race -count=1 ./batch ./batch/sqlcheckpoint
@@ -845,6 +870,7 @@ Expected: all commands exit 0 and the worktree is clean after committing review 
 The lesson must record consumed-input checkpoint boundaries, insert/update CAS split, transaction
 ownership proof, `25P02` Rollback-To requirement, commit unknown versus atomicity unknown, panic
 supervisor handling, unkeyed option compatibility, small-pool cleanup, and catalog/ACL preflight.
+It must also record that benchmark/capacity comparison remains deferred to issue #560.
 
 ```bash
 git add docs/superpowers/reviews/2026-07-14-issue-532-sql-checkpoint-step-6r-code-review.md docs/lessons/2026-07-14-issue-532-sql-checkpoint.md
