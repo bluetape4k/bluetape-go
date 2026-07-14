@@ -63,6 +63,11 @@ write와 checkpoint CAS를 하나의 transaction으로 commit할 수 있는 opt-
   최신 version에 update 조건을 다시 적용한다. 따라서 `revision = expected` 조건은
   stale writer를 한 statement에서 거부할 수 있다:
   <https://www.postgresql.org/docs/current/transaction-iso.html>.
+- PostgreSQL `pg_class.relpersistence`는 permanent/unlogged/temporary relation을 구분하고,
+  `pg_rewrite`는 table/view rewrite rule을 저장한다. Durable provider preflight는 permanent
+  table과 zero user rules를 요구한다:
+  <https://www.postgresql.org/docs/current/catalog-pg-class.html>,
+  <https://www.postgresql.org/docs/current/catalog-pg-rewrite.html>.
 - CodeGraph는 이 worktree에서 `0 nodes / 0 files`를 반환했다. 구조 근거는 direct source,
   GNO issue/docs, live GitHub issue #532/#504로 보완했다.
 
@@ -184,8 +189,9 @@ lifecycle만 계속 소유하고 atomic provider를 닫지 않는다.
 
 Atomic 경로는 output 개수만 세지 않고 마지막 successful commit 이후 소비한 input 개수를
 `progressCount`로 센다. Kept output은 pending output chunk에 보관하고 filter/processor skip도
-`progressCount`에는 포함한다. `progressCount == ChunkSize` 또는 EOF가 되면 pending output
-(비어 있을 수 있음)과 최신 reader checkpoint를 함께 commit한다. 이 규칙은 all-filter
+`progressCount`에는 포함한다. `progressCount > 0`이고 `progressCount == ChunkSize` 또는
+EOF가 되면 pending output(비어 있을 수 있음)과 최신 reader checkpoint를 함께 commit한다.
+Empty input과 exact-multiple boundary 뒤 EOF는 추가 commit/revision을 만들지 않는다. 이 규칙은 all-filter
 workload의 transaction 수를 대략 `ceil(consumed inputs / ChunkSize)`로 제한하고,
 checkpoint가 아직 쓰지 않은 pending output을 건너뛰는 것을 막는다.
 
@@ -233,6 +239,8 @@ const (
     MaxPayloadBytes        = 16 << 20
 )
 
+var ErrCallbackContractViolation = errors.New("sql checkpoint: callback contract violation")
+
 type Options struct {
     Namespace       string
     MaxKeyBytes     int
@@ -276,8 +284,9 @@ nil `db`, nil write callback, nil encode/decode function을 거절한다. `db`�
 `SchemaSQL`을 실행하지 않고 pool을 닫지 않는다. Writer zero value와 nil receiver는 panic
 없이 initialization error를 반환한다. Direct `Load(nil, ...)`와 `Commit(nil, ...)`는 legacy
 batch convention처럼 `context.Background()`로 normalize한다. Pre-canceled context는 callback
-또는 DB dispatch 전에 원래 context error로 반환한다. `expectedVersion > math.MaxInt64`도
-transaction 시작 전에 거절한다.
+또는 DB dispatch 전에 원래 context error로 반환한다. `expectedVersion > math.MaxInt64`는
+invalid argument이고, `expectedVersion == math.MaxInt64`는
+`batch.ErrCheckpointVersionExhausted`다. 둘 다 callback/transaction 전에 반환한다.
 
 한 constructed writer는 immutable configuration만 가지므로 여러 step/key에서 공유할 수
 있다. 이때 caller의 codec과 callback도 concurrent-safe해야 한다. 같은 `(namespace, key)`의
@@ -322,14 +331,18 @@ serialize하지 않는다.
 ```sql
 create table if not exists public.bluetape_batch_checkpoints (
     namespace bytea not null
+        constraint bluetape_batch_checkpoints_namespace_size_check
         check (pg_catalog.octet_length(namespace) between 1 and 128),
     checkpoint_key bytea not null
+        constraint bluetape_batch_checkpoints_key_size_check
         check (pg_catalog.octet_length(checkpoint_key) between 1 and 1024),
-    revision bigint not null check (revision > 0),
+    revision bigint not null
+        constraint bluetape_batch_checkpoints_revision_check check (revision > 0),
     payload bytea not null
+        constraint bluetape_batch_checkpoints_payload_size_check
         check (pg_catalog.octet_length(payload) <= 16777216),
     updated_at timestamptz not null,
-    primary key (namespace, checkpoint_key)
+    constraint bluetape_batch_checkpoints_pkey primary key (namespace, checkpoint_key)
 )
 ```
 
@@ -346,18 +359,22 @@ owner가 bounded lock/statement timeout 아래 schema를 소유·적용하고, `
 inherited/PUBLIC write privilege를 갖지 않는다. Callback이 쓰는 business table 권한은 caller
 책임이다.
 
-Deployment preflight는 ordinary table relkind, expected non-login owner, exact column
-order/type/nullability, PK order, named/validated check definitions, RLS/forced-RLS off, zero
-policies, zero user triggers, schema owner/ACL과 runtime direct/inherited/PUBLIC privilege를
-catalog로 검증한다. `IF NOT EXISTS`는 이 검증을 대체하지 않는다. Active checkpoint row를
-삭제하거나 key를 재사용하는 retention은 해당 key의 모든 run과 unknown reconciliation을
-quiesce/join한 maintenance window에서만 허용한다.
+Deployment preflight는 ordinary table relkind, permanent logged persistence
+(`pg_class.relpersistence = 'p'`), expected non-login owner, exact column order/type/nullability,
+fixed PK/check constraint names/order/validated definitions, RLS/forced-RLS off, zero policies,
+zero user triggers, zero user `pg_rewrite` rules, schema owner/ACL과 runtime
+direct/inherited/PUBLIC privilege를 catalog로 검증한다. `IF NOT EXISTS`는 이 검증을 대체하지
+않는다. UNLOGGED/TEMP table과 INSERT/UPDATE rewrite rule은 durable CAS contract 밖이라
+fail closed한다. Active checkpoint row를 삭제하거나 key를 재사용하는 retention은 해당 key의
+모든 run과 unknown reconciliation을 quiesce/join한 maintenance window에서만 허용한다.
 
 ## SQL transaction과 CAS
 
 `Commit`은 다음 순서만 허용한다.
 
 1. context, writer initialization, key, expected version, checkpoint type을 검증한다.
+   Expected version maximum은 DB state와 무관하게 더 증가시킬 수 없으므로
+   `ErrCheckpointVersionExhausted`로 즉시 실패한다.
 2. checkpoint를 encode하고 payload limit을 검증한다.
 3. `db.BeginTx(ctx, nil)`로 transaction을 시작한다.
 4. 즉시 rollback guard를 설치한다. Callback panic은 rollback을 시도한 뒤 그대로 propagate한다.
@@ -389,7 +406,6 @@ update public.bluetape_batch_checkpoints set
 where namespace = $1::bytea
   and checkpoint_key = $2::bytea
   and revision = $4::bigint
-  and revision < 9223372036854775807::bigint
 returning revision
 ```
 
@@ -397,7 +413,8 @@ returning revision
 - Existing row + exact expected revision은 revision을 1 증가시킨다.
 - Missing row + nonzero expected, existing row + zero/stale expected는 no returned row이며
   `ErrCheckpointConflict`다.
-- Existing row가 maximum revision이면 `ErrCheckpointVersionExhausted`다.
+- Expected version maximum은 update dispatch 전에 `ErrCheckpointVersionExhausted`다. 따라서
+  no-row 결과는 conflict만 뜻하며 추가 classification SELECT가 필요 없다.
 - Conflict에서는 callback이 앞서 쓴 business rows까지 transaction rollback한다.
 - Runtime values는 positional bind만 사용한다. Relation/column/SQL identifier interpolation은
   금지한다.
@@ -406,6 +423,12 @@ returning revision
   contract 밖이며 문서와 example에서 금지한다. Session에는 Commit/Rollback이 노출되지 않는다.
 - Callback은 checkpoint relation에 직접 접근하거나 role/search_path/session security state를
   변경하면 안 된다. Items slice는 callback duration 동안 read-only로 취급한다.
+- Callback은 raw/procedure 기반 `BEGIN`, `COMMIT`, `ROLLBACK`, `SAVEPOINT`,
+  `SET TRANSACTION` 또는 equivalent transaction-control을 실행하거나 session/items를 call
+  이후 보관하면 안 된다. Active context에서 provider-owned Commit 전 `sql.ErrTxDone`이
+  관찰되면 business transaction이 이미 끝났을 수 있으므로
+  `ErrCallbackContractViolation`과 `batch.ErrCommitUnknown`을 함께 반환한다. Canceled context의
+  automatic rollback은 이 ownership violation과 구분한다.
 - Caller는 bounded run/commit context와 chunk size를 사용하고 role/database 수준의
   `lock_timeout`, `statement_timeout`, `idle_in_transaction_session_timeout`을 설정한다.
 - Hot path budget은 `Load` 한 SELECT, `Commit`의 BeginTx + caller SQL + checkpoint DML 하나 +
@@ -438,6 +461,8 @@ SHA-256하고 앞 10 bytes를 hex encode한다. Metric label에는 KeyID를 사�
 - Callback 또는 checkpoint statement failure 뒤 provider는 rollback한다. PostgreSQL
   server error와 성공한 rollback은 known rollback이며 commit-unknown이 아니다.
 - CAS no-row는 `ErrCheckpointConflict`이며 rollback된다.
+- Active context에서 provider-owned Commit 전에 `sql.ErrTxDone`이면 sanitized operation
+  error, `sqlcheckpoint.ErrCallbackContractViolation`, `batch.ErrCommitUnknown`에 match한다.
 - Commit의 PostgreSQL server rejection은 known failure로 분류한다.
 - Commit의 transport loss, in-flight cancellation/deadline, bad connection 또는 결과를
   확정할 수 없는 non-server error는 original/context cause를 `OpError.Unwrap` 안에만 보관하고
@@ -446,6 +471,8 @@ SHA-256하고 앞 10 bytes를 hex encode한다. Metric label에는 KeyID를 사�
   Provider는 rollback failure를 숨기지 않지만 raw cause를 outer error string에 join하거나
   commit을 호출하지 않은 path를 commit-unknown으로 승격하지 않는다.
 - 모든 `Commit` error는 revision zero를 반환한다. Provider와 `Step`은 자동 retry하지 않는다.
+- `Step.statusForError`는 `batch.ErrCommitUnknown`을 context cancellation보다 먼저 검사해
+  `StatusFailed`로 분류한다. Known pre-dispatch/callback cancellation만 `StatusCancelled`다.
 
 Commit-unknown 뒤 caller의 유일한 자동화 가능한 안전 행동은 same-key exclusivity를 유지한
 fresh run에서 `Load`하는 것이다. 다른 actor가 개입하지 않았다면 checkpoint의 전진 여부와
@@ -481,10 +508,13 @@ business transaction outcome이 일치한다. Exclusivity를 위반해 다른 ac
   increments `WriteCount`.
 - Conflict, callback error, cancellation, commit-unknown return failed/cancelled report without
   retry, skip or write-count increment.
+- Joined cancellation cause가 있는 commit-unknown은 `StatusFailed`, known cancellation은
+  `StatusCancelled`로 구분된다.
 - Filter and processor skip coalesce by consumed-input chunk, commit pending kept output plus the
   latest checkpoint, and use checkpoint-only commit only when pending output is empty.
 - Kept→filter and kept→processor-skip crash/restart cases never checkpoint past buffered output.
 - All-filter, all-skip and mixed streams bound commit count by consumed-input chunk boundaries.
+- Empty input과 exact-multiple input은 EOF에서 redundant Commit/revision을 만들지 않는다.
 - Missing checkpoint capture prevents atomic callback.
 - Public usage has compile-checked examples.
 
@@ -499,6 +529,8 @@ business transaction outcome이 일치한다. Exclusivity를 위반해 다른 ac
 - Deterministic injected transaction harness proves callback/CAS-DML/commit order, single invocation,
   empty callback suppression, panic rollback, connection release, no automatic retry and
   commit-unknown classification.
+- Expected maximum version은 DB/callback 없이 exhaustion error를 반환하고, raw transaction
+  control callback은 contract-violation + commit-unknown으로 fail closed한다.
 - `errors.Is`/`errors.As` survive wrapping and joined context causes.
 - Hot-path harness proves one Load SELECT and exactly one checkpoint DML per Commit without ping,
   catalog preflight, savepoint or retry.
@@ -523,7 +555,8 @@ Run sequentially and verify connection readiness before assertions.
   pending output and checkpoint together.
 - Provider never closes or reconfigures the caller pool.
 - Catalog/security assertions reject oversized hostile rows, relation/column/constraint/PK drift,
-  RLS/policies/user triggers, unsafe owner/member/PUBLIC ACL or excessive runtime privileges.
+  unlogged/temp persistence, rewrite rules, RLS/policies/user triggers, unsafe
+  owner/member/PUBLIC ACL or excessive runtime privileges.
 - Small-pool cancellation proves bounded transaction/connection release. Unknown+competing-actor
   harness proves Load cannot attribute the original attempt when exclusivity is violated.
 
