@@ -378,13 +378,17 @@ fail closed한다. Active checkpoint row를 삭제하거나 key를 재사용하�
 2. checkpoint를 encode하고 payload limit을 검증한다.
 3. `db.BeginTx(ctx, nil)`로 transaction을 시작한다.
 4. 즉시 rollback guard를 설치한다. Callback panic은 rollback을 시도한 뒤 그대로 propagate한다.
-5. Items가 non-empty이면 caller `WriteTxFunc(ctx, session, items)`를 정확히 한 번 호출한다.
-   Empty이면 callback을 호출하지 않는다.
-6. 같은 concrete `*sql.Tx`를 감싼 non-owning `sqlkit.Session`에서 checkpoint CAS DML 하나를
+5. Items가 non-empty이면 provider-private safe identifier로 transaction savepoint guard를
+   만든 뒤 caller `WriteTxFunc(ctx, guardedSession, items)`를 정확히 한 번 호출한다. Empty이면
+   callback과 savepoint guard를 모두 생략한다.
+6. Callback 반환 뒤 checkpoint DML 전에 provider가 guard를 release한다. Callback이 raw
+   transaction control로 transaction을 끝냈다면 guard release가 실패하므로 checkpoint를
+   별도 autocommit으로 쓰지 않고 contract-violation/commit-unknown으로 중단한다.
+7. 같은 concrete `*sql.Tx`를 감싼 non-owning `sqlkit.Session`에서 checkpoint CAS DML 하나를
    실행한다.
-7. CAS 성공 뒤 `ctx.Err()`를 commit dispatch 전에 다시 확인한다. 이미 취소됐다면 commit을
+8. CAS 성공 뒤 `ctx.Err()`를 commit dispatch 전에 다시 확인한다. 이미 취소됐다면 commit을
    호출하지 않고 rollback해 known cancellation로 반환한다.
-8. `tx.Commit()`을 정확히 한 번 호출하고 성공 후에만 revision을 반환한다.
+9. `tx.Commit()`을 정확히 한 번 호출하고 성공 후에만 revision을 반환한다.
 
 Create와 update는 expected version에 따라 서로 다른 single DML을 사용한다. Missing row는
 expected zero일 때만 생성한다.
@@ -425,15 +429,18 @@ returning revision
   변경하면 안 된다. Items slice는 callback duration 동안 read-only로 취급한다.
 - Callback은 raw/procedure 기반 `BEGIN`, `COMMIT`, `ROLLBACK`, `SAVEPOINT`,
   `SET TRANSACTION` 또는 equivalent transaction-control을 실행하거나 session/items를 call
-  이후 보관하면 안 된다. Active context에서 provider-owned Commit 전 `sql.ErrTxDone`이
-  관찰되면 business transaction이 이미 끝났을 수 있으므로
-  `ErrCallbackContractViolation`과 `batch.ErrCommitUnknown`을 함께 반환한다. Canceled context의
-  automatic rollback은 이 ownership violation과 구분한다.
+  이후 보관하면 안 된다. Callback은 provider-private guard name이나 concrete `*sql.Tx`를
+  얻을 수 없다. Guard release failure 또는 active context에서 provider-owned Commit 전
+  `sql.ErrTxDone`이 관찰되면 business transaction이 이미 끝났을 수 있으므로 checkpoint DML을
+  실행하지 않고 `ErrCallbackContractViolation`과 `batch.ErrCommitUnknown`을 함께 반환한다.
+  Canceled context의 automatic rollback은 이 ownership violation과 구분한다.
 - Caller는 bounded run/commit context와 chunk size를 사용하고 role/database 수준의
   `lock_timeout`, `statement_timeout`, `idle_in_transaction_session_timeout`을 설정한다.
-- Hot path budget은 `Load` 한 SELECT, `Commit`의 BeginTx + caller SQL + checkpoint DML 하나 +
-  Commit이다. Provider는 ping, catalog query, savepoint, preflight SELECT 또는 retry를 hot path에
-  추가하지 않는다.
+- Hot path budget은 `Load` 한 SELECT다. Non-empty `Commit`은 BeginTx + private guard
+  SAVEPOINT/RELEASE + caller SQL + checkpoint DML 하나 + Commit이고, empty `Commit`은 guard와
+  callback을 생략한다. Provider는 ping, catalog query, preflight SELECT 또는 retry를 hot
+  path에 추가하지 않는다. Guard overhead는 transaction ownership을 fail closed하기 위해
+  의도적으로 수용하며 benchmark/capacity 평가는 issue #560에서 수행한다.
 
 ## Error contract
 
@@ -529,11 +536,13 @@ business transaction outcome이 일치한다. Exclusivity를 위반해 다른 ac
 - Deterministic injected transaction harness proves callback/CAS-DML/commit order, single invocation,
   empty callback suppression, panic rollback, connection release, no automatic retry and
   commit-unknown classification.
-- Expected maximum version은 DB/callback 없이 exhaustion error를 반환하고, raw transaction
-  control callback은 contract-violation + commit-unknown으로 fail closed한다.
+- Expected maximum version은 DB/callback 없이 exhaustion error를 반환한다. Actual PostgreSQL
+  raw COMMIT/ROLLBACK callback은 private guard release에서 checkpoint DML 전에 감지되어
+  contract-violation + commit-unknown으로 fail closed한다.
 - `errors.Is`/`errors.As` survive wrapping and joined context causes.
-- Hot-path harness proves one Load SELECT and exactly one checkpoint DML per Commit without ping,
-  catalog preflight, savepoint or retry.
+- Hot-path harness proves one Load SELECT, non-empty Commit의 exactly one private
+  SAVEPOINT/RELEASE pair와 one checkpoint DML, empty Commit의 zero guard/callback, 그리고 ping,
+  catalog preflight/retry 부재를 검증한다.
 
 ### PostgreSQL Testcontainers tests
 
