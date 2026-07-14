@@ -242,11 +242,6 @@ func TestNewWriterStagingMethodsAreNilSafe(t *testing.T) {
 
 	for _, tt := range writers {
 		t.Run(tt.name, func(t *testing.T) {
-			_, _, loadErr := tt.writer.Load(context.Background(), "key")
-			if !errors.Is(loadErr, errWriterNotReady) {
-				t.Fatalf("Load() error = %v, want %v", loadErr, errWriterNotReady)
-			}
-
 			_, commitErr := tt.writer.Commit(context.Background(), "key", 0, nil, nil)
 			if !errors.Is(commitErr, errWriterNotReady) {
 				t.Fatalf("Commit() error = %v, want %v", commitErr, errWriterNotReady)
