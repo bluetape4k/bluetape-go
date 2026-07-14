@@ -174,11 +174,11 @@
   <text class="badge-text badgeText" x="404" y="1297" text-anchor="middle">10</text>
   <text class="msg" x="550" y="1298" text-anchor="middle" fill="#cf8428">ErrCommitUnknown; Step stops</text>
 
-  <path class="route" d="M180 1380 L540 1380" stroke="#cf8428" marker-end="url(#arrow-amber)"/>
-  <rect class="pill" x="222" y="1338" width="276" height="30" rx="15"/>
-  <circle class="badge" cx="240" cy="1353" r="13" fill="#cf8428"/>
-  <text class="badge-text badgeText" x="240" y="1357" text-anchor="middle">11</text>
-  <text class="msg" x="370" y="1358" text-anchor="middle" fill="#cf8428">caller: quiesce; fresh Load</text>
+  <path class="route" d="M180 1380 L900 1380" stroke="#cf8428" marker-end="url(#arrow-amber)"/>
+  <rect class="pill" x="365" y="1338" width="370" height="30" rx="15"/>
+  <circle class="badge" cx="383" cy="1353" r="13" fill="#cf8428"/>
+  <text class="badge-text badgeText" x="383" y="1357" text-anchor="middle">11</text>
+  <text class="msg" x="550" y="1358" text-anchor="middle" fill="#cf8428">caller: quiesce; Atomic Writer.Load</text>
 
   <rect class="legend" x="82" y="1480" width="1336" height="28" rx="8"/>
   <text class="footer" x="750" y="1499" text-anchor="middle">Error returns end the Step; labeled caller policy runs outside it and never replays the callback automatically.</text>
