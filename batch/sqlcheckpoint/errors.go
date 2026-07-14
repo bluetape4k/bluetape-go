@@ -4,7 +4,37 @@ import (
 	"crypto/sha256"
 	"encoding/binary"
 	"encoding/hex"
+	"errors"
+
+	"github.com/bluetape4k/bluetape-go/batch"
 )
+
+// ErrCallbackContractViolation indicates positive evidence that a callback ended
+// or replaced the transaction frame owned by the checkpoint writer.
+var ErrCallbackContractViolation = errors.New("sql checkpoint: callback contract violation")
+
+// AtomicityPanic is raised when a callback panics and transaction ownership
+// cannot be proven. PanicValue is sensitive and intended only for trusted
+// top-level recovery code.
+type AtomicityPanic struct {
+	panicValue any
+}
+
+// Error returns a fixed message that does not render the panic or provider cause.
+func (*AtomicityPanic) Error() string { return "sql checkpoint: callback panic with unknown atomicity" }
+
+// Unwrap returns only the sanitized recovery barriers.
+func (*AtomicityPanic) Unwrap() error {
+	return errors.Join(batch.ErrAtomicityUnknown, batch.ErrCommitUnknown)
+}
+
+// PanicValue returns the original callback panic value for trusted diagnostics.
+func (p *AtomicityPanic) PanicValue() any {
+	if p == nil {
+		return nil
+	}
+	return p.panicValue
+}
 
 // OpError wraps a SQL checkpoint operation failure with redacted diagnostics.
 type OpError struct {
