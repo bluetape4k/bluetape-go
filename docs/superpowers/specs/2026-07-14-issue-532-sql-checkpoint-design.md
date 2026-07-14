@@ -655,6 +655,10 @@ parallel with other Docker-backed suites.
   checkpoint-only commit, provider-owned `ErrCommitUnknown` 뒤 fresh-run Load와
   `ErrAtomicityUnknown` 뒤 automatic replay 금지를 포함한다. Captured DB write는 금지 예제로
   설명한다.
+- Provider README/Go doc은 supervisor의 top-level `recover` 경계에서 recovered error를
+  `errors.Is(err, batch.ErrAtomicityUnknown)`로 먼저 식별하고 same-key intake/run을 quiesce한 뒤
+  manual reconciliation으로 보내는 compile-checked example을 포함한다. Generic panic restart가
+  `AtomicityPanic`을 자동 replay해서는 안 된다.
 - 두 locale은 같은 English-label asset을 공유한다:
   `docs/images/readme-diagrams/postgres-batch-checkpoint-atomic-sequence.svg`와 `.png`.
 - Diagram은 `Step`, `CheckpointReader`, `Atomic Writer`, `PostgreSQL` participant와 같은
