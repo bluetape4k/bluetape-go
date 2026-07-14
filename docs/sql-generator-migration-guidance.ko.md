@@ -34,10 +34,10 @@ application이 선택하지 않는 한 generated code는 core package 밖에 둡
 | Atlas | application CI/CD와 runbook에서 migration을 계획하고 적용하는 방법을 보여 줍니다. | runtime adapter 대상이 아닙니다. | `sqlkit`에서 Atlas 실행이나 migration state를 감싸지 않습니다. |
 
 문서와 예제 제공은 허용되지만 runtime compatibility를 보장하지는 않습니다.
-Optional adapter는 실제 caller의 반복된 요구, 별도 issue, 비교 가능한 dependency
-근거와 승인, lifecycle/error contract와 test가 모두 필요합니다. ORM/generated
-state나 runtime dependency를 core에 노출하는 방식은 허용하지 않습니다. 이
-가이드는 어떤 adapter도 추가하지 않습니다.
+Optional adapter는 별도 issue에서 해당 use case의 근거와 maintenance cost를
+검토하고, 비교 가능한 dependency 근거와 승인, lifecycle/error contract와 test를
+갖춰야 합니다. ORM/generated state나 runtime dependency를 core에 노출하는
+방식은 허용하지 않습니다. 이 가이드는 어떤 adapter도 추가하지 않습니다.
 
 ## Runtime-First 경계
 
@@ -50,9 +50,9 @@ Provider와 repository API는 application이 ORM을 사용한다는 이유로 OR
 | transaction을 시작할 수 있는 pool-level 작업 | `*sql.DB` 또는 `sqlkit.Beginner` | caller가 pool을 소유하며, helper는 자신이 시작한 transaction만 소유합니다. |
 | 기존 transaction 안의 작업 | `*sql.Tx` | `BeginTx`를 호출한 계층만 commit/rollback을 소유합니다. |
 | generated package | caller-owned narrow interface 또는 transaction-bound generated handle | application이 generation, package 위치, transaction 연결을 소유합니다. |
-| ORM lifecycle | application 내부의 ORM client 또는 session | ORM state를 provider API에 전달하지 않습니다. |
+| ORM lifecycle | application 내부의 ORM client 또는 session | ORM state를 provider API에 전달하지 않습니다. 정확히 하나의 application composition-root shutdown owner만 wrapper 또는 shared pool을 닫을 수 있으며, feature/library code는 `Close`를 호출하지 않습니다. |
 
-같은 *sql.DB를 사용한다는 사실은 connection pool을 공유한다는 뜻일 뿐, 실행
+같은 `*sql.DB`를 사용한다는 사실은 connection pool을 공유한다는 뜻일 뿐, 실행
 중인 transaction을 공유한다는 뜻은 아닙니다. 한 계층이 transaction을 시작하고
 모든 참여자가 공식 public API를 통해 같은 transaction에 연결될 때만 atomicity를
 보장할 수 있습니다. Framework가 표준 transaction 경계를 연결할 수 없다면 작업을
@@ -91,9 +91,9 @@ gormDB, err := gorm.Open(mysql.New(mysql.Config{
 ```
 
 이 코드는 pool만 공유하며, 이미 실행 중인 `*sql.Tx`를 공유하지 않습니다. GORM의
-공식 transaction callback 또는 session API를 사용하세요. application이 지원되는
-public API를 통해 정확히 같은 transaction에 연결할 수 있을 때만 표준 handle을
-provider에 전달합니다.
+[공식 transaction callback](https://gorm.io/docs/transactions.html) 또는 session
+API를 사용하세요. application이 지원되는 public API를 통해 정확히 같은
+transaction에 연결할 수 있을 때만 표준 handle을 provider에 전달합니다.
 
 ### ent: generated client를 격리하고 ent transaction은 ent가 소유
 
@@ -103,7 +103,10 @@ client := ent.NewClient(ent.Driver(drv))
 ```
 
 ent transaction의 `tx.Client()`는 이미 `*ent.Client`를 받는 application code에서만
-사용합니다. provider API에는 절대 전달하지 않습니다.
+사용합니다. provider API에는 절대 전달하지 않습니다. `client.Close()`는 underlying
+driver를 닫으므로 정확히 하나의 application composition-root shutdown owner만
+client 또는 shared pool을 닫을 수 있습니다. Pool을 공유할 때 feature/library
+code는 `client.Close()`를 호출해서는 안 됩니다.
 
 ### Bun: query를 caller-owned transaction에 연결
 
@@ -127,7 +130,10 @@ return tx.Commit()
 ```
 
 `BeginTx`를 호출한 caller만 commit/rollback을 소유합니다. Bun의 `RunInTx`를
-사용한다면 전체 unit of work를 callback 안에 둡니다.
+사용한다면 전체 unit of work를 callback 안에 둡니다. `bunDB.Close()`는 underlying
+`*sql.DB`를 닫으므로 정확히 하나의 application composition-root shutdown owner만
+wrapper 또는 shared pool을 닫을 수 있습니다. Pool을 공유할 때 feature/library
+code는 `bunDB.Close()`를 호출해서는 안 됩니다.
 
 ### sqlc: generated query를 `*sql.Tx`에 연결
 
@@ -281,6 +287,7 @@ runbook에 둡니다. migration linting도 Atlas workflow이지만, 현재 Atlas
 - [Issue #101 relational SQL epic](https://github.com/bluetape4k/bluetape-go/issues/101)
 - [sqlc documentation](https://docs.sqlc.dev/)
 - [GORM 기존 database connection](https://gorm.io/docs/connecting_to_the_database.html)
+- [GORM transaction](https://gorm.io/docs/transactions.html)
 - [ent sql.DB 통합](https://entgo.io/docs/sql-integration/)
 - [ent transaction](https://entgo.io/docs/transactions/)
 - [Bun 기존 transaction 통합](https://bun.uptrace.dev/guide/golang-orm.html#using-bun-with-existing-code)

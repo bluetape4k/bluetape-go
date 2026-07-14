@@ -34,8 +34,9 @@ unless an application chooses it.
 | Atlas | Show migration planning and apply in application CI/CD and runbooks. | Not a runtime adapter candidate. | Reject wrapping Atlas execution or migration state in `sqlkit`. |
 
 Documentation is not a runtime compatibility guarantee. An optional adapter
-requires a separate issue, comparative dependency evidence, lifecycle and error
-contracts, tests, and approval. This guide adds none.
+requires a separate issue with issue-specific evidence and maintenance-cost
+analysis, comparative dependency evidence, lifecycle and error contracts,
+tests, and approval. This guide adds none.
 
 ## Runtime-First Boundary
 
@@ -48,7 +49,7 @@ not ORM state merely because the application uses an ORM.
 | Pool-level work that may start a transaction | `*sql.DB` or `sqlkit.Beginner` | The caller owns the pool; a helper owns only a transaction it starts. |
 | Work inside an existing transaction | `*sql.Tx` | The layer that calls `BeginTx` is the only commit/rollback owner. |
 | Generated package | Caller-owned narrow interface or transaction-bound generated handle | The application owns generation, package location, and transaction binding. |
-| ORM lifecycle | ORM client or session in the application | Never pass ORM state to provider APIs. |
+| ORM lifecycle | ORM client or session in the application | Never pass ORM state to provider APIs. Exactly one application composition-root shutdown owner may close a wrapper or its shared pool; feature and library code never call `Close`. |
 
 Using the same `*sql.DB` means sharing a connection pool, not sharing an active
 transaction. Claim atomicity only when every participant is bound to the same
@@ -86,10 +87,10 @@ gormDB, err := gorm.Open(mysql.New(mysql.Config{
 }), &gorm.Config{})
 ```
 
-This shares only the pool, not a pre-existing `*sql.Tx`. Use GORM's documented
-transaction callback or session APIs. Pass standard handles to providers only
-when the application can bind the exact same transaction through a supported
-public API.
+This shares only the pool, not a pre-existing `*sql.Tx`. Use GORM's
+[documented transaction callback](https://gorm.io/docs/transactions.html) or
+session APIs. Pass standard handles to providers only when the application can
+bind the exact same transaction through a supported public API.
 
 ### ent: isolate generated clients and let ent own ent transactions
 
@@ -99,7 +100,10 @@ client := ent.NewClient(ent.Driver(drv))
 ```
 
 An ent transaction's `tx.Client()` belongs only in application code that
-already accepts `*ent.Client`; never pass it to provider APIs.
+already accepts `*ent.Client`; never pass it to provider APIs. Because
+`client.Close()` closes the underlying driver, exactly one application
+composition-root shutdown owner may close the client or shared pool. Feature
+and library code must not call `client.Close()` when the pool is shared.
 
 ### Bun: bind a query to a caller-owned transaction
 
@@ -123,7 +127,10 @@ return tx.Commit()
 ```
 
 The caller of `BeginTx` is the sole commit/rollback owner. Alternatively,
-Bun's `RunInTx` keeps the full unit of work inside its callback.
+Bun's `RunInTx` keeps the full unit of work inside its callback. Because
+`bunDB.Close()` closes the underlying `*sql.DB`, exactly one application
+composition-root shutdown owner may close the wrapper or shared pool. Feature
+and library code must not call `bunDB.Close()` when the pool is shared.
 
 ### sqlc: bind generated queries to `*sql.Tx`
 
@@ -277,6 +284,7 @@ project CI only when that account boundary is explicit.
 - [Issue #101 relational SQL epic](https://github.com/bluetape4k/bluetape-go/issues/101)
 - [sqlc documentation](https://docs.sqlc.dev/)
 - [GORM existing database connection](https://gorm.io/docs/connecting_to_the_database.html)
+- [GORM transactions](https://gorm.io/docs/transactions.html)
 - [ent sql.DB integration](https://entgo.io/docs/sql-integration/)
 - [ent transactions](https://entgo.io/docs/transactions/)
 - [Bun existing transaction integration](https://bun.uptrace.dev/guide/golang-orm.html#using-bun-with-existing-code)
