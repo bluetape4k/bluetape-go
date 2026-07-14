@@ -95,7 +95,7 @@ write와 checkpoint CAS를 하나의 transaction으로 commit할 수 있는 opt-
 
 단점:
 
-- callback은 반드시 전달받은 `*sql.Tx`만 사용해야 한다.
+- callback은 반드시 전달받은 tx-bound `sqlkit.Session`만 사용해야 한다.
 - commit 결과가 불명확한 경우 caller가 reload/reconcile해야 한다.
 - 기존 non-SQL writer와는 원자성을 제공하지 않는다.
 
@@ -122,6 +122,7 @@ package batch
 
 var ErrCheckpointConflict = errors.New("batch: checkpoint revision conflict")
 var ErrCommitUnknown = errors.New("batch: commit outcome unknown")
+var ErrCheckpointVersionExhausted = errors.New("batch: checkpoint version exhausted")
 
 type VersionedCheckpoint struct {
     Value   any
@@ -148,8 +149,8 @@ type StepOptions[I any, O any] struct {
 `VersionedCheckpoint.Version`은 storage fencing version이며 business offset, row count,
 timestamp 또는 reader progress 자체가 아니다. Missing checkpoint의 version은 zero다.
 첫 commit은 expected version zero에서 version 1을 만든다. 이후 성공마다 정확히 1씩
-증가한다. PostgreSQL `bigint` 범위까지만 허용하며 overflow 직전 상태는 conflict로
-중단한다.
+증가한다. PostgreSQL `bigint` 범위까지만 허용한다. Maximum revision은 stale conflict와
+구분되는 `ErrCheckpointVersionExhausted`로 중단하며 reload/retry로 복구되지 않는다.
 
 `AtomicCheckpointWriter`는 `Open`/`Close`를 제공하지 않는다. DB/pool, callback이 참조하는
 repository/resource, migration lifecycle은 caller가 소유한다. `Step`은 기존 `Writer`
@@ -174,22 +175,33 @@ lifecycle만 계속 소유하고 atomic provider를 닫지 않는다.
 3. Reader를 연 뒤 atomic writer의 `Load(ctx, key)`를 호출한다.
 4. Checkpoint가 있으면 `Reader.Restore`에 value를 전달하고 returned version을 현재 run의
    expected version으로 보관한다. 없으면 version zero로 시작한다.
-5. 같은 `Step` instance의 concurrent `Run`은 지원하지 않는다. 같은 key의 여러 process/run
-   역시 권장하지 않으며 CAS는 마지막 fencing guard다.
+5. 같은 `Step` instance의 concurrent `Run`은 지원하지 않는다. Caller는 `(namespace,
+   key)`마다 Load부터 run 종료와 commit-unknown reconciliation까지 정확히 하나의 active
+   run만 보장해야 한다. CAS는 accidental overlap을 막는 마지막 fencing guard이지
+   scheduler/lock 대체재가 아니다.
 
-### chunk commit
+### input-progress chunk commit
 
-1. Chunk를 쓰기 전에 `CheckpointReader.Checkpoint`를 호출한다.
+Atomic 경로는 output 개수만 세지 않고 마지막 successful commit 이후 소비한 input 개수를
+`progressCount`로 센다. Kept output은 pending output chunk에 보관하고 filter/processor skip도
+`progressCount`에는 포함한다. `progressCount == ChunkSize` 또는 EOF가 되면 pending output
+(비어 있을 수 있음)과 최신 reader checkpoint를 함께 commit한다. 이 규칙은 all-filter
+workload의 transaction 수를 대략 `ceil(consumed inputs / ChunkSize)`로 제한하고,
+checkpoint가 아직 쓰지 않은 pending output을 건너뛰는 것을 막는다.
+
+1. Commit boundary에서 `CheckpointReader.Checkpoint`를 호출한다.
 2. Checkpoint가 없거나 capture가 실패하면 business callback을 호출하지 않고 실패한다.
-3. `AtomicWriter.Commit(ctx, key, expectedVersion, chunk, checkpoint)`를 한 번 호출한다.
-4. 성공하면 returned version을 다음 expected version으로 저장하고 `WriteCount`를 chunk
-   length만큼 증가시킨다.
+3. `AtomicWriter.Commit(ctx, key, expectedVersion, pending, checkpoint)`를 한 번 호출한다.
+4. 성공하면 returned version을 다음 expected version으로 저장하고 `WriteCount`를 pending
+   length만큼 증가시킨 뒤에만 pending chunk와 `progressCount`를 clear한다.
 5. 알려진 callback/checkpoint/CAS failure이면 business rows와 checkpoint가 모두 rollback된
    상태로 실패한다.
 6. `ErrCheckpointConflict`이면 stale run이므로 reload 없이 현재 run을 중단한다.
-7. `ErrCommitUnknown`이면 `WriteCount`를 증가시키지 않고 현재 run을 중단한다. Caller는 새
-   run에서 checkpoint를 reload한다. Commit됐다면 다음 checkpoint부터 재개하고,
-   rollback됐다면 같은 chunk를 replay한다.
+7. `ErrCheckpointVersionExhausted`이면 operator migration 전까지 permanent failure다.
+8. `ErrCommitUnknown`이면 `WriteCount`를 증가시키거나 buffer를 clear하지 않고 현재 run을
+   중단한다. Caller는 same-key actor를 계속 quiesce한 상태에서 fresh run으로 checkpoint를
+   reload한다. Load는 authoritative resume position을 제공하지만 원래 ambiguous attempt를
+   별도로 attribution하지는 않는다.
 
 Atomic `Commit` error에는 `RetryPolicy` 또는 `SkipPolicy`를 적용하지 않는다. Callback failure,
 conflict, context cancellation, transport failure를 자동 replay하면 duplicate business write
@@ -198,11 +210,14 @@ writer retry/skip semantics는 변하지 않는다.
 
 ### filter와 processor skip
 
-Filter 또는 processor skip으로 output이 없더라도 reader progress는 durable해야 한다.
-Atomic 경로는 empty `[]O`와 새 checkpoint를 같은 `Commit`에 전달한다. SQL provider는
-business callback을 empty chunk에도 호출하며, callback은 이를 no-op으로 처리할 수 있어야
-한다. Checkpoint CAS는 정상적으로 version을 증가시킨다. `WriteCount`는 증가하지 않고 기존
-`FilterCount`/`SkipCount`만 증가한다.
+Filter 또는 processor skip으로 output이 없더라도 reader progress는 bounded interval로
+durable해야 한다. Atomic 경로는 해당 item을 progress chunk에 포함하되 즉시 checkpoint를
+전진시키지 않는다. Boundary에서 이전 kept output이 있으면 그 output과 최신 checkpoint를
+같이 commit하고, pending output이 정말 비어 있을 때만 checkpoint-only transaction을
+실행한다. SQL provider는 empty items에서 callback을 호출하지 않는다. `WriteCount`는 실제
+committed output만 반영하고 기존 `FilterCount`/`SkipCount`는 유지한다. Crash 시 마지막
+successful boundary 뒤의 filter/skip/processor work는 최대 `ChunkSize-1` inputs까지 replay될
+수 있으며 이것이 atomic 경로의 명시적 at-least-once processing 경계다.
 
 ## PostgreSQL provider 공개 API
 
@@ -229,7 +244,7 @@ type Codec[C any] struct {
     Decode func([]byte) (C, error)
 }
 
-type WriteTxFunc[T any] func(context.Context, *sql.Tx, []T) error
+type WriteTxFunc[T any] func(context.Context, sqlkit.Session, []T) error
 
 type Writer[T any, C any] struct { /* constructor-only */ }
 
@@ -257,8 +272,17 @@ const SchemaSQL = `...`
 ```
 
 `Writer[T, C]`는 compile-time으로 `batch.AtomicCheckpointWriter[T]`를 구현한다. `New`는
-`db`를 ping하거나 `SchemaSQL`을 실행하지 않고 pool을 닫지 않는다. Writer zero value와 nil
-receiver는 panic 없이 initialization error를 반환한다.
+nil `db`, nil write callback, nil encode/decode function을 거절한다. `db`를 ping하거나
+`SchemaSQL`을 실행하지 않고 pool을 닫지 않는다. Writer zero value와 nil receiver는 panic
+없이 initialization error를 반환한다. Direct `Load(nil, ...)`와 `Commit(nil, ...)`는 legacy
+batch convention처럼 `context.Background()`로 normalize한다. Pre-canceled context는 callback
+또는 DB dispatch 전에 원래 context error로 반환한다. `expectedVersion > math.MaxInt64`도
+transaction 시작 전에 거절한다.
+
+한 constructed writer는 immutable configuration만 가지므로 여러 step/key에서 공유할 수
+있다. 이때 caller의 codec과 callback도 concurrent-safe해야 한다. 같은 `(namespace, key)`의
+active run은 앞서 정의한 exclusive coordination 계약을 따라야 하며 provider가 내부 mutex로
+serialize하지 않는다.
 
 ### Options와 identity
 
@@ -279,10 +303,17 @@ receiver는 panic 없이 initialization error를 반환한다.
 - `Commit`은 checkpoint가 `C`가 아니면 transaction 시작 전에 type error를 반환한다.
 - Encode는 transaction 시작 전에 수행한다. Encode failure나 payload limit 초과 시 business
   callback/database access가 없어야 한다.
-- Load는 payload를 owned byte slice로 scan하고 Decode한다. Decode failure는 checkpoint를
-  반환하지 않으며 causal error를 `%w`로 보존한다.
+- Load는 한 SELECT에서 revision, payload length와 configured limit 이하일 때만 payload를
+  projection한다. Limit을 넘은 row는 payload bytes를 Go process로 반환하거나 Decode하지
+  않고 safe oversized error로 실패한다. 정상 payload는 owned byte slice로 복사한 뒤
+  Decode한다.
+- Encode/decode failure는 sanitized `CodecError` string을 반환하면서 `Unwrap`으로 causal
+  inspection을 보존한다. Returned error string에는 codec cause 또는 payload text를 포함하지
+  않는다.
 - Provider는 gob, JSON, schema version 또는 compression을 선택하지 않는다. Caller가 stable
-  codec과 payload migration을 소유한다.
+  codec과 payload migration을 소유한다. Stored payload는 trusted input으로 가정하지 않으며
+  codec은 malformed/untrusted bytes를 fail closed해야 한다. Typed nil/zero `C`의 허용 여부는
+  caller codec이 결정하지만 untyped wrong checkpoint type은 DB access 전에 거절한다.
 
 ## Schema
 
@@ -290,10 +321,13 @@ receiver는 panic 없이 initialization error를 반환한다.
 
 ```sql
 create table if not exists public.bluetape_batch_checkpoints (
-    namespace bytea not null,
-    checkpoint_key bytea not null,
+    namespace bytea not null
+        check (pg_catalog.octet_length(namespace) between 1 and 128),
+    checkpoint_key bytea not null
+        check (pg_catalog.octet_length(checkpoint_key) between 1 and 1024),
     revision bigint not null check (revision > 0),
-    payload bytea not null,
+    payload bytea not null
+        check (pg_catalog.octet_length(payload) <= 16777216),
     updated_at timestamptz not null,
     primary key (namespace, checkpoint_key)
 )
@@ -304,9 +338,20 @@ lifecycle/migration 정책이다. `SchemaSQL`은 bootstrap contract이며 existi
 검증하는 migration engine이 아니다. Caller는 migration role로 schema를 적용하고 table
 shape, PK order, check constraint, RLS/triggers, owner와 privilege를 검증해야 한다.
 
-Runtime role에는 writable primary의 고정 table에 대한 `SELECT`, `INSERT`, `UPDATE`만
-필요하다. `CREATE`, `ALTER`, `DELETE`, schema `CREATE`, function execute 권한은 필요하지
-않는다. Callback이 쓰는 business table 권한은 caller 책임이다.
+Production topology는 별도 non-login migration owner와 runtime role을 사용한다. Migration
+owner가 bounded lock/statement timeout 아래 schema를 소유·적용하고, `PUBLIC`의 schema
+`CREATE`를 revoke한 뒤 runtime role에 `USAGE ON SCHEMA public`과 고정 table의 `SELECT`,
+`INSERT`, `UPDATE`만 grant한다. Runtime은 schema/table owner 또는 migration-owner member가
+아니며 `CREATE`, `ALTER`, `DROP`, `DELETE`, `TRUNCATE`, `REFERENCES`, `TRIGGER`, grant option,
+inherited/PUBLIC write privilege를 갖지 않는다. Callback이 쓰는 business table 권한은 caller
+책임이다.
+
+Deployment preflight는 ordinary table relkind, expected non-login owner, exact column
+order/type/nullability, PK order, named/validated check definitions, RLS/forced-RLS off, zero
+policies, zero user triggers, schema owner/ACL과 runtime direct/inherited/PUBLIC privilege를
+catalog로 검증한다. `IF NOT EXISTS`는 이 검증을 대체하지 않는다. Active checkpoint row를
+삭제하거나 key를 재사용하는 retention은 해당 key의 모든 run과 unknown reconciliation을
+quiesce/join한 maintenance window에서만 허용한다.
 
 ## SQL transaction과 CAS
 
@@ -315,38 +360,57 @@ Runtime role에는 writable primary의 고정 table에 대한 `SELECT`, `INSERT`
 1. context, writer initialization, key, expected version, checkpoint type을 검증한다.
 2. checkpoint를 encode하고 payload limit을 검증한다.
 3. `db.BeginTx(ctx, nil)`로 transaction을 시작한다.
-4. caller `WriteTxFunc(ctx, tx, items)`를 정확히 한 번 호출한다.
-5. 같은 `tx`에서 checkpoint UPSERT를 실행한다.
-6. UPSERT가 new revision을 반환하면 `tx.Commit()`을 정확히 한 번 호출한다.
-7. Commit 성공 후에만 revision을 반환한다.
+4. 즉시 rollback guard를 설치한다. Callback panic은 rollback을 시도한 뒤 그대로 propagate한다.
+5. Items가 non-empty이면 caller `WriteTxFunc(ctx, session, items)`를 정확히 한 번 호출한다.
+   Empty이면 callback을 호출하지 않는다.
+6. 같은 concrete `*sql.Tx`를 감싼 non-owning `sqlkit.Session`에서 checkpoint CAS DML 하나를
+   실행한다.
+7. CAS 성공 뒤 `ctx.Err()`를 commit dispatch 전에 다시 확인한다. 이미 취소됐다면 commit을
+   호출하지 않고 rollback해 known cancellation로 반환한다.
+8. `tx.Commit()`을 정확히 한 번 호출하고 성공 후에만 revision을 반환한다.
 
-첫 version과 update를 한 statement로 처리한다.
+Create와 update는 expected version에 따라 서로 다른 single DML을 사용한다. Missing row는
+expected zero일 때만 생성한다.
 
 ```sql
-insert into public.bluetape_batch_checkpoints as checkpoint (
+-- expectedVersion == 0
+insert into public.bluetape_batch_checkpoints (
     namespace, checkpoint_key, revision, payload, updated_at
 )
 values ($1::bytea, $2::bytea, 1, $3::bytea, pg_catalog.clock_timestamp())
-on conflict (namespace, checkpoint_key) do update set
-    revision = checkpoint.revision + 1,
-    payload = excluded.payload,
-    updated_at = excluded.updated_at
-where checkpoint.revision = $4::bigint
-  and checkpoint.revision < 9223372036854775807::bigint
+on conflict (namespace, checkpoint_key) do nothing
+returning revision;
+
+-- expectedVersion > 0
+update public.bluetape_batch_checkpoints set
+    revision = revision + 1,
+    payload = $3::bytea,
+    updated_at = pg_catalog.clock_timestamp()
+where namespace = $1::bytea
+  and checkpoint_key = $2::bytea
+  and revision = $4::bigint
+  and revision < 9223372036854775807::bigint
 returning revision
 ```
 
 - Missing row + expected zero는 revision 1을 insert한다.
 - Existing row + exact expected revision은 revision을 1 증가시킨다.
-- Existing row + stale/zero expected 또는 revision exhaustion은 no returned row이며
+- Missing row + nonzero expected, existing row + zero/stale expected는 no returned row이며
   `ErrCheckpointConflict`다.
+- Existing row가 maximum revision이면 `ErrCheckpointVersionExhausted`다.
 - Conflict에서는 callback이 앞서 쓴 business rows까지 transaction rollback한다.
 - Runtime values는 positional bind만 사용한다. Relation/column/SQL identifier interpolation은
   금지한다.
-- Callback은 전달받은 `*sql.Tx`만 사용해야 한다. Captured `*sql.DB` 또는 별도 transaction을
-  사용한 write는 atomic contract 밖이며 문서와 example에서 금지한다.
-- Callback은 provider가 소유한 transaction을 commit/rollback하거나 `*sql.Tx`를 보관하면
-  안 된다. Items slice는 callback duration 동안 read-only로 취급한다.
+- Callback은 trusted in-process code이며 전달받은 tx-bound `sqlkit.Session`만 사용해야 한다.
+  Captured `*sql.DB`, 별도 transaction, network/external side effect, goroutine escape는 atomic
+  contract 밖이며 문서와 example에서 금지한다. Session에는 Commit/Rollback이 노출되지 않는다.
+- Callback은 checkpoint relation에 직접 접근하거나 role/search_path/session security state를
+  변경하면 안 된다. Items slice는 callback duration 동안 read-only로 취급한다.
+- Caller는 bounded run/commit context와 chunk size를 사용하고 role/database 수준의
+  `lock_timeout`, `statement_timeout`, `idle_in_transaction_session_timeout`을 설정한다.
+- Hot path budget은 `Load` 한 SELECT, `Commit`의 BeginTx + caller SQL + checkpoint DML 하나 +
+  Commit이다. Provider는 ping, catalog query, savepoint, preflight SELECT 또는 retry를 hot path에
+  추가하지 않는다.
 
 ## Error contract
 
@@ -356,12 +420,16 @@ returning revision
   business/checkpoint transaction이 rollback됐음을 뜻한다.
 - `errors.Is(err, batch.ErrCommitUnknown)`는 commit request가 PostgreSQL에 반영됐는지 caller가
   확정할 수 없음을 뜻한다. 성공 revision과 write count는 반환하지 않는다.
+- `errors.Is(err, batch.ErrCheckpointVersionExhausted)`는 current row가 PostgreSQL bigint
+  maximum에 도달한 permanent failure다. Stale conflict처럼 blind reload/retry하지 않는다.
 
 ### SQL provider operation error
 
-`sqlcheckpoint.OpError`는 `errors.As`로 검사할 수 있고 causal error를 `Unwrap`한다. Error
-string은 operation과 redacted `KeyID` family만 포함하고 raw namespace/key, payload, SQL,
-DSN, endpoint 또는 provider cause text를 포함하지 않는다.
+`sqlcheckpoint.OpError`와 `CodecError`는 `errors.As`로 검사할 수 있고 causal error를
+`Unwrap`한다. Error string은 operation과 redacted family만 포함하고 raw namespace/key,
+payload, SQL, DSN, endpoint, codec/provider cause text를 포함하지 않는다. `KeyID`는
+namespace byte length를 8-byte big-endian으로 prefix한 뒤 exact namespace/key bytes를
+SHA-256하고 앞 10 bytes를 hex encode한다. Metric label에는 KeyID를 사용하지 않는다.
 
 - Validation, checkpoint type/encode failure, pre-canceled context는 database operation
   error로 감싸지 않는다.
@@ -372,16 +440,18 @@ DSN, endpoint 또는 provider cause text를 포함하지 않는다.
 - CAS no-row는 `ErrCheckpointConflict`이며 rollback된다.
 - Commit의 PostgreSQL server rejection은 known failure로 분류한다.
 - Commit의 transport loss, in-flight cancellation/deadline, bad connection 또는 결과를
-  확정할 수 없는 non-server error는 `OpError`, original/context cause,
-  `batch.ErrCommitUnknown`을 `errors.Join`한다.
-- Rollback error는 원래 known failure와 join한다. Provider는 rollback failure를 숨기지
-  않지만 commit을 호출하지 않은 path를 commit-unknown으로 승격하지 않는다.
+  확정할 수 없는 non-server error는 original/context cause를 `OpError.Unwrap` 안에만 보관하고
+  sanitized `OpError`와 `batch.ErrCommitUnknown`만 `errors.Join`한다.
+- Rollback error는 원래 known failure와 함께 sanitized `OpError.Unwrap` 내부에 보존한다.
+  Provider는 rollback failure를 숨기지 않지만 raw cause를 outer error string에 join하거나
+  commit을 호출하지 않은 path를 commit-unknown으로 승격하지 않는다.
 - 모든 `Commit` error는 revision zero를 반환한다. Provider와 `Step`은 자동 retry하지 않는다.
 
-Commit-unknown 뒤 caller의 유일한 자동화 가능한 안전 행동은 fresh run에서 `Load`하는
-것이다. 저장된 checkpoint가 전진했다면 business write도 같은 transaction으로 commit된
-것이고, 전진하지 않았다면 callback write도 rollback된 것이다. 다른 actor가 같은 key를
-계속 진행할 수 있으므로 old expected version으로 `Commit`을 재호출하면 안 된다.
+Commit-unknown 뒤 caller의 유일한 자동화 가능한 안전 행동은 same-key exclusivity를 유지한
+fresh run에서 `Load`하는 것이다. 다른 actor가 개입하지 않았다면 checkpoint의 전진 여부와
+business transaction outcome이 일치한다. Exclusivity를 위반해 다른 actor가 진행했다면 Load는
+현재 authoritative resume position만 제공하며 원래 ambiguous attempt의 attribution 증거가
+아니다. 어떤 경우에도 old expected version으로 `Commit`을 재호출하면 안 된다.
 
 ## Failure modes와 recovery
 
@@ -391,12 +461,13 @@ Commit-unknown 뒤 caller의 유일한 자동화 가능한 안전 행동은 fres
 | Begin failure | redacted operation error | no transaction | caller-controlled retry with fresh context |
 | Business callback failure | causal operation error | business/checkpoint rollback | fix/retry whole run |
 | Checkpoint statement/server failure | causal operation error | business/checkpoint rollback | repair DB/schema then rerun |
-| Revision conflict | `ErrCheckpointConflict` | stale transaction rollback | stop stale run; start fresh load |
+| Revision conflict/missing after prior Load | `ErrCheckpointConflict` | stale transaction rollback | stop stale run; quiesce and start fresh load |
+| Revision exhausted | `ErrCheckpointVersionExhausted` | row unchanged | quiesce, reconcile business state, migrate to a new key/namespace |
 | Context canceled before dispatch | original context error | no late write | caller decides whether to restart |
 | Context canceled or connection lost during commit | `ErrCommitUnknown` plus cause | committed or rolled back | fresh load; never blind replay |
 | Decode failure on restart | causal decode error | stored row unchanged | deploy compatible codec/migration |
 | Callback uses captured DB | outside atomic guarantee | independent write may survive | programming error; tests/examples forbid |
-| Same key concurrent runs | one CAS winner, losers conflict | exactly one checkpoint revision wins | serialize runs; CAS is final guard |
+| Same key concurrent runs | one CAS winner, losers conflict | exactly one checkpoint revision wins | mandatory external serialization; CAS is final guard |
 
 ## Test design
 
@@ -410,19 +481,27 @@ Commit-unknown 뒤 caller의 유일한 자동화 가능한 안전 행동은 fres
   increments `WriteCount`.
 - Conflict, callback error, cancellation, commit-unknown return failed/cancelled report without
   retry, skip or write-count increment.
-- Filter and processor skip call empty atomic commit and advance checkpoint/version without
-  incrementing `WriteCount`.
+- Filter and processor skip coalesce by consumed-input chunk, commit pending kept output plus the
+  latest checkpoint, and use checkpoint-only commit only when pending output is empty.
+- Kept→filter and kept→processor-skip crash/restart cases never checkpoint past buffered output.
+- All-filter, all-skip and mixed streams bound commit count by consumed-input chunk boundaries.
 - Missing checkpoint capture prevents atomic callback.
 - Public usage has compile-checked examples.
 
 ### `batch/sqlcheckpoint` unit tests
 
-- Options, nil/zero receiver, exact key bytes, key/payload bounds, checkpoint type, codec error and
-  redacted error contracts.
-- SQL statement shape has fixed identifiers, positional values, revision guard and overflow guard.
-- Deterministic injected transaction harness proves callback/UPSERT/commit order, single invocation,
-  rollback, no automatic retry and commit-unknown classification.
+- Options, nil DB/callback/codec, nil/zero receiver, nil/pre-canceled context, exact key bytes,
+  key/payload bounds, expected version range, checkpoint type, codec error and redacted error
+  contracts.
+- SQL statement shape has fixed identifiers, positional values, create/update revision guards and
+  overflow guard. Missing+zero, missing+nonzero, existing+exact/stale and delete-after-Load cases
+  prove no stale resurrection.
+- Deterministic injected transaction harness proves callback/CAS-DML/commit order, single invocation,
+  empty callback suppression, panic rollback, connection release, no automatic retry and
+  commit-unknown classification.
 - `errors.Is`/`errors.As` survive wrapping and joined context causes.
+- Hot-path harness proves one Load SELECT and exactly one checkpoint DML per Commit without ping,
+  catalog preflight, savepoint or retry.
 
 ### PostgreSQL Testcontainers tests
 
@@ -436,13 +515,17 @@ Run sequentially and verify connection readiness before assertions.
 - Restart after success resumes after the committed chunk.
 - Restart after known rollback replays the chunk.
 - Injected commit-unknown path performs no library retry; a fresh load reconciles state.
-- Pre-cancellation and in-flight cancellation preserve typed context errors and no late confirmed
-  side effect.
+- Barriered cancellation proves pre-Begin has no DB access, callback/checkpoint cancellation is known
+  rollback with no late rows, and post-commit-dispatch cancellation is commit-unknown followed by
+  fresh-load reconciliation.
 - Namespace/key isolation including NUL and invalid UTF-8 bytes.
-- Filter/skip empty chunk advances only checkpoint.
+- All-filter/skip boundary with no pending output advances only checkpoint; mixed boundary commits
+  pending output and checkpoint together.
 - Provider never closes or reconfigures the caller pool.
-- Catalog/security assertions reject hostile relation shape, RLS, user triggers, unsafe owner or
-  excessive runtime privilege assumptions where applicable.
+- Catalog/security assertions reject oversized hostile rows, relation/column/constraint/PK drift,
+  RLS/policies/user triggers, unsafe owner/member/PUBLIC ACL or excessive runtime privileges.
+- Small-pool cancellation proves bounded transaction/connection release. Unknown+competing-actor
+  harness proves Load cannot attribute the original attempt when exclusivity is violated.
 
 Concurrency claims require bounded exact-outcome stress plus
 `go test -race -count=1 ./batch ./batch/sqlcheckpoint`. Testcontainers suites are not run in
@@ -454,12 +537,15 @@ parallel with other Docker-backed suites.
   사용해도 business write와 원자적이지 않음을 명시한다.
 - `batch/sqlcheckpoint/README.md`와 `README.ko.md`는 architecture, API, schema/migration,
   runtime privileges, failure/recovery, callback rules, validation commands를 동등하게 제공한다.
-- Public Go doc과 example은 `WriteTxFunc`가 반드시 받은 `*sql.Tx`를 사용하는 모습을
-  compile-check한다.
+- Public Go doc과 one compile-checked end-to-end example은 caller-owned schema bootstrap,
+  `Codec`, `WriteTxFunc`의 tx-bound `Session.ExecContext`, `StepOptions.AtomicWriter`,
+  checkpoint-only commit, `ErrCommitUnknown` 뒤 fresh-run Load를 포함한다. Captured DB write는
+  금지 예제로 설명한다.
 - 두 locale은 같은 English-label asset을 공유한다:
   `docs/images/readme-diagrams/postgres-batch-checkpoint-atomic-sequence.svg`와 `.png`.
-- Diagram은 `Step`, `CheckpointReader`, `Atomic Writer`, `PostgreSQL` participant와 happy
-  path, write failure rollback, revision conflict rollback, commit-unknown/reload를 보여준다.
+- Diagram은 `Step`, `CheckpointReader`, `Atomic Writer`, `PostgreSQL` participant와 같은
+  transaction frame 안의 business write + CAS, write failure rollback, revision conflict
+  rollback, commit-unknown 뒤 새 Load를 보여주며 두 provider locale README에 embed한다.
 - `$bluetape-diagram`으로 SVG/PNG를 생성하고 CairoSVG scale 2, XML/audit, paired asset,
   full-size PNG visual inspection을 통과한다. Mermaid/ASCII/Graphviz output은 public 최종
   asset으로 사용하지 않는다.
@@ -471,14 +557,27 @@ parallel with other Docker-backed suites.
   한다.
 - Legacy 경로는 deprecated하지 않는다. 서로 다른 storage에 write해야 하거나 at-least-once
   replay를 수용하는 caller에게 계속 유효하다.
-- Atomic 경로는 새 opt-in API이므로 migration은 caller가 writer callback, typed codec,
-  schema migration을 준비한 뒤 step option을 전환하는 방식이다.
-- Rollback은 `AtomicWriter` option 사용을 중단하고 legacy writer/store로 돌아가는 것이다.
-  이미 생성된 checkpoint table과 rows는 caller migration/retention 정책으로 보존하거나
-  제거한다.
+- Existing job cutover는 단순 option toggle이 아니다. Caller는 old runs/intake를 quiesce하고,
+  authoritative legacy checkpoint와 business state를 reconcile한 뒤 exact namespace/key와
+  codec으로 SQL checkpoint를 seed하고 read-back 검증한다. Mixed old/new binaries를 차단하고
+  canary cohort에는 isolated namespace/key와 business-data cohort를 사용한 뒤 정확히 하나의
+  provider만 활성화한다. Legacy crash window 때문에 authoritative position을 증명할 수 없으면
+  in-place seed를 금지하고 명시적으로 idempotent replay 또는 새 cohort restart를 선택한다.
+- Rollback도 atomic runs를 quiesce하고 SQL checkpoint/business state를 legacy store로
+  reconcile/export하거나 명시적으로 승인된 safe replay position을 선택해야 한다. Table,
+  grants, old state는 rollback observation window가 끝날 때까지 보존한다.
 - Provider는 PostgreSQL writable primary만 지원한다. Read replica, transaction-pooling으로
   transaction affinity를 깨는 proxy, callback이 별도 connection을 쓰는 topology는 지원하지
   않는다.
+- 운영자는 primary identity/read-only/recovery 상태, durability/RPO 설정, no-replay canary
+  결과를 promotion gate로 확인한다. Shutdown 순서는 intake 중지, run cancel/join,
+  commit-unknown reconcile, transaction user drain 확인, 마지막으로 caller-owned pool close다.
+- Library는 logger/metric registry를 소유하지 않는다. Caller runbook은 low-cardinality
+  load/commit outcome, conflict, version exhaustion, commit-unknown, cancellation, latency,
+  `sql.DBStats`, table/dead-tuple size, WAL/autovacuum 신호와 canary observation/rollback gate를
+  정의한다. Raw key/KeyID는 metric label에 넣지 않는다.
+- Root README locale package inventory와
+  `docs/release/v0.19.0-provider-conformance-runbook.md`를 함께 갱신한다.
 - Source parity 분류는 `adapt`다. Durable checkpoint 개념은 유지하지만 Spring Batch job
   repository/scheduler shape는 Go package로 이식하지 않는다. Redis/S3는 `defer`, workflow
   engine은 `non-goal`이다.
@@ -491,9 +590,11 @@ parallel with other Docker-backed suites.
 3. CAS conflict가 stale business write와 checkpoint를 함께 rollback한다.
 4. Commit-unknown은 typed sentinel/cause로 노출되고 library가 자동 retry하지 않는다.
 5. Fresh load가 success/rollback/unknown 뒤 restart position을 안전하게 결정한다.
-6. Filter/skip은 empty output transaction으로 checkpoint만 안전하게 전진시킨다.
+6. Filter/skip progress는 consumed-input boundary에서 pending output과 함께 전진하며,
+   pending output이 없을 때만 checkpoint-only transaction을 사용한다.
 7. Caller-owned pool/migration/codec/retry/retention과 최소 runtime privilege가 문서화된다.
-8. English/Korean README, Go doc/example, paired sequence diagram이 source와 일치한다.
+8. English/Korean package/root README, provider runbook, Go doc/example, paired sequence diagram이
+   source와 일치한다.
 9. Targeted tests, race/stress, sequential PostgreSQL integration, `git diff --check`,
    `make ci`가 fresh exit 0이다.
 10. Step 2-R, Step 3-R, Step 6-R, Step 7-R의 six perspectives + main integration이 모두
