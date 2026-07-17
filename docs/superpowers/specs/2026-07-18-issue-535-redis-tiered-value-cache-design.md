@@ -271,7 +271,7 @@ type TieredOptions[V any] struct {
 
 type TieredCache[V any] struct { /* constructor-only */ }
 
-func NewTiered[V any](options TieredOptions[V]) (*TieredCache[V], error)
+func NewTieredCache[V any](options TieredOptions[V]) (*TieredCache[V], error)
 
 func (c *TieredCache[V]) Get(
     ctx context.Context,
@@ -324,6 +324,10 @@ func (c *TieredCache[V]) ClearLocal(ctx context.Context) error
 depending on an opaque L1's optional `GetOrLoad` behavior. `SetDefault` and
 `GetOrLoadDefault` use the remote value cache's `ValueConfig.RemoteTTL`; the
 standard interface methods keep per-entry TTL overrides.
+
+`NewTieredCache` rejects a nil `Remote` and a non-nil but zero/uninitialized
+`ValueCache` with `CacheError` and `ReasonConfiguration` before reading the
+remote default TTL, retaining the L1, or creating any coordinator state.
 
 `InvalidateLocal` acquires the same-key operation token and calls only
 `Local.Delete` through a maintenance lease. `ClearLocal` enters the repairing
@@ -792,10 +796,22 @@ Namespace clear is:
 - non-atomic and not a snapshot;
 - proportional to Redis `SCAN` iterations over selected-database cardinality
   plus `UNLINK` chunks for matching namespace keys;
-- intended for administration, tests, and cache reset, not request hot paths.
+- intended for administration, tests, and one-provider/one-decorator reset,
+  not request hot paths.
 
 Keys added concurrently can escape a scan iteration, and callers must not use
 `Clear` as a transaction or authorization boundary.
+
+`ValueCache.Clear` is L2-only. `TieredCache.Clear` additionally clears only
+that calling decorator's L1 and cannot clear or repair another process-local
+decorator sharing the namespace. Without fleet coordination, other L1s may
+serve their existing values for up to `LocalTTL`, and concurrent writes may
+survive the non-atomic Redis scan. An exact fleet reset requires an
+application-owned runbook: fence and quiesce readers/loaders/writers across all
+instances, perform the admin-scoped L2 clear through the stable primary, fan
+out `ClearLocal` to every live decorator and confirm each success, then resume
+traffic. Without that fence and fanout, namespace clear is only a best-effort
+L2 deletion plus optional cleanup of the calling decorator.
 
 ### Mandatory Local Cleanup and Recovery
 
@@ -880,6 +896,14 @@ Rules:
 - Invalid config, a nil client, and nil or typed-nil interface dependencies
   return `*CacheError` with `ReasonConfiguration`. Unsupported Redis executor
   shapes do not satisfy the concrete public client field type.
+- A nil or zero/uninitialized `TieredOptions.Remote` returns `*CacheError` with
+  `ReasonConfiguration` before the constructor reads remote configuration.
+- Invalid namespace construction returns `*CacheError` with
+  `ReasonConfiguration` and preserves `redis.ErrInvalidKey` for `errors.Is`.
+  Invalid per-call logical keys and negative per-call TTLs return errors that
+  satisfy `errors.Is(err, redis.ErrInvalidKey)` and
+  `errors.Is(err, redis.ErrInvalidTTL)` respectively, before serializer, tier,
+  coordinator, or loader work. These caller-input sentinels are non-retryable.
 - `Serializer.Marshal` failures return `*CacheError` with
   `ReasonSerialization`; `Serializer.Unmarshal` failures return
   `ReasonInvalidPayload`. Both preserve the serializer cause through
@@ -988,7 +1012,8 @@ direct wrapper around `TieredCache`.
 | L1 TTL is configured above the finite default L2 TTL | Reject construction; per-entry overrides cap the effective local TTL. |
 | Existing L2 hit has unknown remaining Redis TTL | Permit at most `LocalTTL` of serving after accepted L1 population, but make no Redis-expiry-relative stale bound; only invalidation closes it deterministically. |
 | Current call writes a known positive Redis TTL | Normalize wire precision, subtract monotonic elapsed time, and skip L1 when the adjusted remainder is non-positive; document residual L1 anchor skew. |
-| Namespace clear is interrupted | Return cancellation plus redacted partial progress; L1 is still cleared by `TieredCache.Clear`. |
+| Namespace clear is interrupted | Return cancellation plus redacted partial progress; `TieredCache.Clear` still clears only its calling decorator's L1. |
+| An admin `ValueCache.Clear` runs while other decorators are live | Clear only L2; other process-local L1 entries and blocked states remain until expiry or explicit per-instance repair. Exact fleet reset uses the documented traffic fence and `ClearLocal` fanout. |
 | Pipeline, transaction queue, cluster, ring, or opaque `Cmdable` wrapper is considered | The concrete `*redis.Client` API makes the unsupported executor shape unrepresentable. |
 | Failover client/proxy or a primary change is considered | Unsupported even when exposed as `*redis.Client`; `Clear` requires a direct endpoint with stable server identity for the entire cursor traversal. |
 | Existing Pub/Sub strategy is given a TieredCache as Local | Unsupported composition; document the local-only adapter boundary rather than deleting L2 on invalidation. |
@@ -1017,8 +1042,9 @@ databases selected with `SELECT` are not a security boundary: ACLs are not
 scoped by logical database, and a `SCAN` credential can enumerate the selected
 database. A runtime identity without `SCAN` may use ordinary cache operations
 while a separately constructed admin-scoped cache instance, connected directly
-to a stable primary endpoint, performs `Clear`. Neither identity needs or
-should receive `FLUSHDB`,
+to a stable primary endpoint, performs `ValueCache.Clear`. That identity clears
+only L2 and cannot invalidate or repair process-local decorators. Neither
+identity needs or should receive `FLUSHDB`,
 `FLUSHALL`, or unrelated administrative commands.
 
 Operators must size Redis memory and eviction policy for the chosen TTLs. A
@@ -1035,6 +1061,18 @@ Long-running loaders therefore require an explicit override and regression
 test; issue #536 must also ensure its tracking consumer does not silently lose
 subsequent invalidations while one key waits.
 
+`LocalCleanupTimeout` must exceed the worst expected active-lease drain plus
+L1 `Delete` or `Clear` latency. Large or slow caller-owned L1 implementations
+must override the one-second default. Exhaustion produces
+`ReasonLocalBlocked`, requires an alert, and requires an explicit successful
+`ClearLocal` recovery before ordinary data operations resume.
+
+The package emits no metrics or logs. Callers use go-redis hooks and returned
+errors to measure command latency and provider failure, alert on
+`ReasonLocalBlocked` and `ReasonPartialClear`, and record redacted
+`ClearProgress`. A partial clear retry starts a new scan at cursor zero; the
+reported progress is diagnostic and not a resumable snapshot.
+
 Cluster and ring deployments are outside the accepted constructor type;
 failover clients and proxies that still present as `*redis.Client` are outside
 the documented topology contract. Supporting dynamic topology later requires
@@ -1050,8 +1088,12 @@ changes during clear, and aggregate partial-progress reporting.
 - nil client plus nil and typed-nil interface dependencies, safe
   constructor-only zero values, and a public API whose concrete client type
   excludes pipelines, transaction queues, clusters, rings, and opaque wrappers;
+- nil and zero/uninitialized `TieredOptions.Remote` rejection before remote
+  TTL access or decorator state retention;
 - nil loader rejection before coordinator creation, tier access, or any Redis
   command;
+- invalid namespace, logical-key, and per-call TTL errors preserve the exact
+  `redis.ErrInvalidKey`/`redis.ErrInvalidTTL` identities documented above;
 - logical-key preservation, adversarial namespace glob rejection, namespace
   collision resistance, length limits, and redaction;
 - deterministic redacted IDs never expose injected raw keys/secrets through
@@ -1102,6 +1144,9 @@ changes during clear, and aggregate partial-progress reporting.
   cleanup; cleanup admitted from blocked preserves blocked state and requires
   a later successful `ClearLocal`, while a concurrent explicit repair that
   wins before admission is not undone;
+- two decorators sharing L2 prove that one decorator or admin
+  `ValueCache.Clear` does not remove the other's L1 hit or blocked state, and
+  that explicit `ClearLocal` fanout is required for fleet reset;
 - independent invalidation-wait and local-cleanup defaults/overrides, including
   invalidation wait expiry behind a long same-key loader;
 - failed direct `InvalidateLocal`/`ClearLocal` blocks the decorator, and a
@@ -1205,10 +1250,16 @@ Add synchronized `cache/redisvalue/README.md` and `README.ko.md` documenting:
 - exclusive post-construction L1 access and instance-local coordination/
   invalidation guarantees;
 - defaults and per-cache override;
+- first-leader flight policy: the leader's loader, TTL, and context govern
+  already-registered followers, while follower cancellation affects only that
+  follower;
 - strict Redis-first mutation behavior;
 - pointer immutability guidance;
 - TTL and bounded-staleness behavior;
 - operational cost and non-atomic semantics of `Clear`;
+- L2-only admin clear, calling-decorator-only local clear, and the
+  fence/quiesce -> L2 clear -> per-instance `ClearLocal` -> resume fleet-reset
+  runbook;
 - sequential `SCAN`/`UNLINK` round-trip cost; bounded internal pipelining is
   deferred to avoid queued-success and partial-progress ambiguity in #535;
 - namespace ownership as one exclusive tenant/security/wire-format clear
@@ -1220,6 +1271,8 @@ Add synchronized `cache/redisvalue/README.md` and `README.ko.md` documenting:
   `UNLINK`), Redis 6+ single-primary topology, ACL/TLS ownership, caller
   dial/read/write/pool timeouts, readiness, memory eviction policy, and
   zero-TTL cleanup responsibility;
+- `InvalidationWaitTimeout` and `LocalCleanupTimeout` sizing, blocked-state
+  alert/recovery, go-redis hook metrics, and cursor-zero partial-clear retry;
 - why key-prefix ACLs do not restrict `SCAN` enumeration, why Redis logical
   databases are not security boundaries, and when a dedicated instance,
   separately enforced endpoint, or separate clear-admin identity is required;
@@ -1256,7 +1309,8 @@ small enough for text and compile-checked examples.
 ## Acceptance Criteria
 
 1. `cache/redisvalue` exposes constructor-only, zero-value-safe
-   `ValueCache[V]` and `TieredCache[V]` types.
+   `ValueCache[V]` and `TieredCache[V]` types through `NewValueCache` and
+   `NewTieredCache`; the tiered constructor rejects nil/uninitialized L2.
 2. `ValueCache[V]` implements `cache.Cache[string,V]` using a caller-owned
    go-redis `*redis.Client` and `serialization.Serializer[V]`.
 3. `TieredCache[V]` implements `cache.LoadingCache[string,V]`, stores `V`
@@ -1277,7 +1331,8 @@ small enough for text and compile-checked examples.
 8. Payload reads and Redis write admission, namespace `UNLINK` chunks, retained
    clear page count, logical-key inputs, errors, and cancellation are bounded
    and redacted as specified; Redis controls one returned `SCAN` page/key-byte
-   size and the serializer controls its own allocations.
+   size and the serializer controls its own allocations. Invalid namespace,
+   logical-key, and TTL errors preserve the shared Redis sentinel identities.
 9. Unknown mutation outcomes preserve `redis.ErrCommitUnknown`; known success
    plus later cancellation does not. Token-held cleanup invalidates L1 without
    reacquiring its own coordinator token.
@@ -1291,7 +1346,9 @@ small enough for text and compile-checked examples.
     admitted repair transition determines final health.
 12. `InvalidateLocal` and `ClearLocal` never mutate Redis and are suitable for
     the #536 spike boundary; current Pub/Sub invalidation never directly wraps
-    the TieredCache mutation surface.
+    the TieredCache mutation surface. Namespace clear affects only L2 plus the
+    calling decorator's L1; exact fleet reset requires the documented fence and
+    per-instance `ClearLocal` fanout.
 13. The public constructor accepts only synchronous single-primary
     `*redis.Client`; queued, cluster, ring, and opaque `Cmdable` executors are
     unrepresentable. Direct stable-primary topology remains a documented
