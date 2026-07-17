@@ -368,11 +368,14 @@ The public client type is the concrete go-redis `*redis.Client`, which issues
 commands synchronously and makes pipelines, transactional queues,
 `*redis.ClusterClient`, `*redis.Ring`, and opaque `Cmdable` wrappers
 unrepresentable at the constructor boundary. #535 supports a single writable
-Redis primary. `redis.NewFailoverClient` is supported because it also returns a
-`*redis.Client`. Cluster-wide clear requires per-primary scanning and slot-safe
-deletion and is deferred rather than silently clearing one node. Production
-construction rejects a nil client; package-internal narrow command interfaces
-remain replaceable by fakes in unit tests.
+Redis primary through a direct endpoint whose identity remains stable for the
+whole operation. `redis.NewFailoverClient`, automatic-failover proxies,
+cluster/proxy endpoints, and primary changes during `Clear` are unsupported in
+#535 even when they present as `*redis.Client`. A changed server invalidates the
+server-local SCAN cursor and can produce silent partial clear. Production
+construction rejects a nil client, while topology is a caller-owned operational
+precondition rather than something the Go type can prove. Package-internal
+narrow command interfaces remain replaceable by fakes in unit tests.
 
 Each namespace is an exclusive administrative deletion and wire-format trust
 domain. It must not be shared across tenants or serializer schemas that cannot
@@ -444,6 +447,11 @@ population error and cleanup error.
 
 ### `TieredCache.GetOrLoad`
 
+Before coordinator lookup or any cache side effect, `GetOrLoad` validates that
+the loader is non-nil. A nil loader returns `CacheError` with
+`ReasonConfiguration`; it never creates a flight, reads either tier, or
+invokes Redis.
+
 `TieredCache` owns same-key collapse through the per-key coordinator described
 below. A leader holds the same context-aware operation token used by `Get`,
 mutations, and invalidation, then rechecks L1 under a healthy local-state
@@ -475,20 +483,22 @@ known write TTL > 0: min(TieredConfig.LocalTTL, normalized wire TTL - elapsed)
 known write TTL = 0: TieredConfig.LocalTTL
 ```
 
-A loader error is returned unchanged and is not cached. A Redis or
-serialization error is not converted into a miss and does not fall through to
-the loader.
+A loader error is not cached and, while local state remains healthy, is returned
+unchanged. A Redis or serialization error is not converted into a miss and does
+not fall through to the loader. A concurrent blocked-state transition uses the
+terminal classification below while preserving the original error as cause.
 
 After an L2 miss, the leader rechecks state/generation before loader admission.
 A blocked state returns `ReasonLocalBlocked`; a healthy generation change
-restarts L1/L2 checks inside the same leader flight. A loader error remains the
-terminal error even if a concurrent block began, because no value is served or
-cached. After loader success, a blocked state returns `ReasonLocalBlocked`
-without writing either tier. A healthy generation change may return the loaded
-value as an uncached operation that linearized before the transition, but it
-does not write L2 or L1. After known L2 write success, a healthy generation
-change similarly skips L1 and returns the value; a blocked state publishes
-`ReasonLocalBlocked`.
+restarts L1/L2 checks inside the same leader flight. Before publishing a loader
+error, the leader performs the same terminal state check: a blocked state
+publishes `ReasonLocalBlocked`, preserving the loader error as its cause, while
+a healthy state publishes the loader error unchanged. After loader success, a
+blocked state returns `ReasonLocalBlocked` without writing either tier. A
+healthy generation change may return the loaded value as an uncached operation
+that linearized before the transition, but it does not write L2 or L1. After
+known L2 write success, a healthy generation change similarly skips L1 and
+returns the value; a blocked state publishes `ReasonLocalBlocked`.
 
 Followers wait context-sensitively. Followers already registered in one active
 `GetOrLoad` flight receive that flight's value or error without rerunning the
@@ -517,12 +527,14 @@ callers atomically register before publication and wait on the flight channel;
 ordinary `Get`, `Set`, `Delete`, and invalidation never join a load result and
 instead wait for the operation token. The leader publishes value/error and
 detaches the active flight while still holding the operation token, then
-releases the token. New arrivals after publication create or join a new flight
-generation. The published record remains alive until every registered
-participant consumes it or cancels. Cancellation atomically detaches only that
-participant. Reference counting removes the key coordinator after it has no
-token holder/waiter, active flight, or retained participant; completed keys are
-not retained.
+releases its own participant reference immediately after publication on both
+success and error, then releases the token. New arrivals after publication
+create or join a new flight generation. The published record remains alive
+until every registered follower participant consumes it or cancels. A follower
+releases its participant reference after receiving the result or atomically
+detaches only itself on cancellation. Reference counting removes the key
+coordinator after it has no token holder/waiter, active flight, or retained
+participant; completed keys are not retained.
 
 If the leader context ends before operation-token acquisition, the acquisition
 loses a single atomic race to cancellation. Under the coordinator mutex, that
@@ -542,12 +554,13 @@ cleanup; each caller owns only its own wait/select state.
 
 The decorator separately owns a context-aware local-state barrier with states
 `healthy`, `blocking`, `blocked`, and `repairing`, plus a monotonically
-increasing generation. A healthy lease registers one active L1 operation and
-captures the generation. Every L1 method post-checks state/generation before
-returning or treating a population as usable. A block transition atomically
-enters `blocking`, increments generation, and denies new healthy leases; it can
-then publish `blocked` without waiting indefinitely for an uncooperative old
-lease. An old read that post-checks after the fence returns
+increasing generation. Repairing state records whether its owned repair epoch
+began from healthy or blocked state. A healthy lease registers one active L1
+operation and captures the generation. Every L1 method post-checks
+state/generation before returning or treating a population as usable. A block
+transition atomically enters `blocking`, increments generation, and denies new
+healthy leases; it can then publish `blocked` without waiting indefinitely for
+an uncooperative old lease. An old read that post-checks after the fence returns
 `ReasonLocalBlocked`; an old write may physically finish, but cannot be served
 while blocked and is removed by the next successful repair.
 
@@ -557,6 +570,22 @@ exclusive mutex across `Local.Get`, so different-key healthy hits and L1 calls
 can proceed concurrently. A lease used to check/capture state is released
 immediately after its L1 operation or generation capture and is never retained
 across Redis or loader work.
+
+After an operation releases its local-state lease, its terminal behavior is
+fixed by the state and generation it observes:
+
+| Observed state | Required terminal behavior |
+|---|---|
+| `healthy` at the captured generation | Continue the documented read, load, mutation, or population path. |
+| `healthy` at a newer generation, or `repairing` that began from healthy | Return an already-read or already-loaded value uncached, or return the defined outcome of an already-dispatched remote mutation without L1 population. Start no additional cache side effect after this observation; the overlapping operation linearizes before the transition. |
+| `blocking`, `blocked`, or `repairing` that began from blocked | Return `ReasonLocalBlocked` without a value and without starting another cache side effect. |
+
+An operation releases every healthy or maintenance lease before waiting for a
+state transition, key token, Redis result, loader, or repair. It never waits
+while holding a local-state lease. The table governs ordinary read, load,
+mutation, and population paths; the explicitly administrative
+`InvalidateLocal` maintenance delete and blocked-state `Clear` paths remain the
+only documented side-effect exceptions.
 
 `ClearLocal` and mandatory full-local cleanup enter `repairing`, increment the
 generation, deny new leases, and context-sensitively drain existing leases
@@ -597,9 +626,9 @@ observed healthy generation mismatch may return the already-read or
 already-loaded value uncached and linearize that overlapping operation before
 the full-clear transition; it may not start another cache side effect. An
 observed blocked state returns `ReasonLocalBlocked` instead. An already-admitted
-operation may still return its original miss, loader error, or provider error
-after the fence because it serves no cached value and does not weaken
-fail-closed state. A refill or mutation that captured an older generation may
+operation may preserve its original miss, loader error, or provider error as
+the cause of `ReasonLocalBlocked`, but the blocked reason is the public terminal
+classification. A refill or mutation that captured an older generation may
 finish already-dispatched remote work but cannot create a usable
 post-clear/post-block local hit.
 
@@ -692,11 +721,11 @@ enters repairing state, increments the generation, drains existing leases,
 calls `Local.Clear` within the owned cleanup budget, and blocks the decorator
 on failure. It does not unblock a decorator that another operation blocked;
 successful explicit `ClearLocal` remains the only user-invoked repair. If a
-newer block is preserved despite successful local clear, `TieredCache.Clear`
-returns `ReasonLocalBlocked` rather than nil. Remote and local errors are
-joined without silently declaring success. Validation or
-cancellation detected before the first remote command returns without mutating
-either tier.
+newer block is preserved despite successful local clear, or if `Clear` began
+while already blocked, `TieredCache.Clear` returns `ReasonLocalBlocked` rather
+than nil. Remote and local errors are joined without silently declaring
+success. Validation or cancellation detected before the first remote command
+returns without mutating either tier.
 
 Namespace clear is:
 
@@ -725,8 +754,12 @@ If mandatory cleanup fails or its cleanup context expires, `TieredCache`
 atomically enters a local-blocked state. A failed `InvalidateLocal` or
 `ClearLocal` also blocks the decorator because an externally requested
 invalidation may not have removed stale data. While blocked, `Get`,
-`GetOrLoad`, `Set`, `Delete`, and `Clear` fail closed with
-`ReasonLocalBlocked` instead of serving potentially stale L1 data.
+`GetOrLoad`, `Set`, and `Delete` fail closed with `ReasonLocalBlocked` instead
+of serving potentially stale L1 data. Administrative `Clear` remains
+available: it attempts the namespace remote clear and mandatory full local
+clear, preserves blocked state even when both succeed, and returns
+`ReasonLocalBlocked` so the caller must explicitly complete a successful
+`ClearLocal` repair.
 `InvalidateLocal` may still attempt a single-key deletion but does not clear
 the global blocked state. A successful `ClearLocal` is the only repair
 operation: it advances the generation, clears L1, and then unblocks the
@@ -890,21 +923,26 @@ direct wrapper around `TieredCache`.
 | Redis mutation invocation returns a non-nil command error and outcome is unknown | Return `redis.ErrCommitUnknown` and perform required local invalidation. |
 | Redis reports known mutation success, then caller cancellation is observed | Return the context/cleanup error, not `redis.ErrCommitUnknown`; preserve the known remote success and invalidate L1 when required. |
 | L1 update fails after L2 success | Invalidate L1, return the L1 error, and leave L2 as the recovery source. |
-| Mandatory L1 cleanup fails or times out | Enter local-blocked state; fail ordinary operations until successful `ClearLocal`. |
+| Mandatory L1 cleanup fails or times out | Enter local-blocked state; fail ordinary data operations until successful `ClearLocal`; administrative `Clear` may clean but cannot heal. |
 | Loader succeeds but L2 write fails | Return the L2 error and do not populate L1. |
 | L1 TTL is configured above the finite default L2 TTL | Reject construction; per-entry overrides cap the effective local TTL. |
 | Existing L2 hit has unknown remaining Redis TTL | Permit at most `LocalTTL` of serving after accepted L1 population, but make no Redis-expiry-relative stale bound; only invalidation closes it deterministically. |
 | Current call writes a known positive Redis TTL | Normalize wire precision, subtract monotonic elapsed time, and skip L1 when the adjusted remainder is non-positive; document residual L1 anchor skew. |
 | Namespace clear is interrupted | Return cancellation plus redacted partial progress; L1 is still cleared by `TieredCache.Clear`. |
-| Pipeline, transaction queue, cluster, ring, or opaque `Cmdable` wrapper is considered | The concrete `*redis.Client` API makes the unsupported shape unrepresentable. |
+| Pipeline, transaction queue, cluster, ring, or opaque `Cmdable` wrapper is considered | The concrete `*redis.Client` API makes the unsupported executor shape unrepresentable. |
+| Failover client/proxy or a primary change is considered | Unsupported even when exposed as `*redis.Client`; `Clear` requires a direct endpoint with stable server identity for the entire cursor traversal. |
 | Existing Pub/Sub strategy is given a TieredCache as Local | Unsupported composition; document the local-only adapter boundary rather than deleting L2 on invalidation. |
 | Future tracking connection becomes ambiguous | #536 must clear L1 and re-establish tracking before serving tracked local hits. |
 
 ## Operational Contract
 
-#535 targets Redis 6 or newer with one writable primary. The caller owns Redis
-client creation, authentication, TLS, failover, dial/read/write/pool timeouts,
-and readiness checks. The Redis identity must be authorized for `GETRANGE`,
+#535 targets Redis 6 or newer with one writable primary reached through a
+direct endpoint whose server identity remains stable for each operation. The
+caller owns Redis client creation, authentication, TLS,
+dial/read/write/pool timeouts, and readiness checks. Automatic failover clients
+or proxies are unsupported because a primary change invalidates the
+server-local `SCAN` cursor and can silently produce partial namespace clear.
+The Redis identity must be authorized for `GETRANGE`,
 `EXISTS`, `SET`, `DEL`, `SCAN`, and `UNLINK` on the configured namespace.
 `UNLINK` is required so namespace clear does not degrade into a blocking delete.
 Deployments should use a dedicated Redis identity, the narrowest feasible
@@ -913,9 +951,14 @@ Redis key ACLs do not scope `SCAN MATCH` enumeration because its pattern is not
 a key argument; a credential granted `+SCAN` can observe key names outside the
 configured prefix in the selected database. Deployments requiring key-name
 confidentiality between principals must isolate them in dedicated Redis
-databases or instances. A runtime identity without `SCAN` may use ordinary
-cache operations while a separately constructed admin-scoped cache instance
-performs `Clear`. Neither identity needs or should receive `FLUSHDB`,
+instances or separately enforced service endpoints whose backend identity is
+stable. Redis logical
+databases selected with `SELECT` are not a security boundary: ACLs are not
+scoped by logical database, and a `SCAN` credential can enumerate the selected
+database. A runtime identity without `SCAN` may use ordinary cache operations
+while a separately constructed admin-scoped cache instance, connected directly
+to a stable primary endpoint, performs `Clear`. Neither identity needs or
+should receive `FLUSHDB`,
 `FLUSHALL`, or unrelated administrative commands.
 
 Operators must size Redis memory and eviction policy for the chosen TTLs. A
@@ -932,10 +975,11 @@ Long-running loaders therefore require an explicit override and regression
 test; issue #536 must also ensure its tracking consumer does not silently lose
 subsequent invalidations while one key waits.
 
-Cluster and ring deployments are outside the accepted constructor type.
-Supporting them later requires an explicit design for per-primary `SCAN`,
-slot-safe deletion, topology changes during clear, and aggregate
-partial-progress reporting.
+Cluster and ring deployments are outside the accepted constructor type;
+failover clients and proxies that still present as `*redis.Client` are outside
+the documented topology contract. Supporting dynamic topology later requires
+an explicit design for per-primary `SCAN`, slot-safe deletion, fenced topology
+changes during clear, and aggregate partial-progress reporting.
 
 ## Testing Strategy
 
@@ -946,6 +990,8 @@ partial-progress reporting.
 - nil client plus nil and typed-nil interface dependencies, safe
   constructor-only zero values, and a public API whose concrete client type
   excludes pipelines, transaction queues, clusters, rings, and opaque wrappers;
+- nil loader rejection before coordinator creation, tier access, or any Redis
+  command;
 - logical-key preservation, adversarial namespace glob rejection, namespace
   collision resistance, length limits, and redaction;
 - deterministic redacted IDs never expose injected raw keys/secrets through
@@ -961,7 +1007,8 @@ partial-progress reporting.
   conditional `EXISTS` only for zero-length results;
 - `GetOrLoad` follows L1 -> L2 -> loader, shares one flight's success or error
   with its existing waiters independently of the L1 implementation, and
-  releases active coordinator/flight entries;
+  releases the leader participant on publication, follower participants on
+  receive/cancellation, and then inactive coordinator/flight entries;
 - loader and serializer failures are not cached;
 - Redis-first `Set` ordering and original-reference L1 population;
 - retained pointer aliases from `Set` and loader results follow the documented
@@ -984,6 +1031,13 @@ partial-progress reporting.
   failures, and blocks when that cleanup cannot be proved;
 - cleanup timeout/failure enters local-blocked state, ordinary operations fail
   closed, and successful `ClearLocal` repairs the cache;
+- the complete healthy/current, healthy/new-generation,
+  repairing-from-healthy, blocking/blocked, and repairing-from-blocked terminal
+  state table, including proof that no wait occurs while holding a local-state
+  lease;
+- administrative `Clear` begun while blocked still attempts remote and local
+  cleanup, preserves blocked state after success, returns `ReasonLocalBlocked`,
+  and requires a later successful `ClearLocal` to heal;
 - independent invalidation-wait and local-cleanup defaults/overrides, including
   invalidation wait expiry behind a long same-key loader;
 - failed direct `InvalidateLocal`/`ClearLocal` blocks the decorator, and a
@@ -1042,7 +1096,9 @@ Testcontainers commands run sequentially.
   admission/drain/cleanup budget returns blocked without admitting new L1
   operations;
 - `TieredCache.Clear` versus a delayed refill, proving the common mandatory
-  full-local-clear primitive fences old generations;
+  full-local-clear primitive fences old generations, while documenting that a
+  concurrent loader may write an L2 value after its key's cursor position so
+  the remote survivor is accepted but L1 remains cleared or unusable;
 - mandatory-full-clear repair epochs return healthy only without an
   intervening block; stale repair owners cannot heal a newer block;
 - concurrent `Get`, `Set`, `Delete`, `ClearLocal`, and cancellation without
@@ -1062,7 +1118,7 @@ Compile-checked examples cover:
 - pointer snapshot semantics;
 - `ClearLocal` versus namespace `Clear`;
 - safe single-primary `*redis.Client` construction and documented unsupported
-  client shapes;
+  client shapes, including failover/proxy clients that share the concrete type;
 - recommended `VersionedSerializer` use and namespace rotation for
   incompatible wire changes.
 
@@ -1089,8 +1145,9 @@ Add synchronized `cache/redisvalue/README.md` and `README.ko.md` documenting:
   `UNLINK`), Redis 6+ single-primary topology, ACL/TLS ownership, caller
   dial/read/write/pool timeouts, readiness, memory eviction policy, and
   zero-TTL cleanup responsibility;
-- why key-prefix ACLs do not restrict `SCAN` enumeration and when a dedicated
-  Redis database/instance or separate clear-admin identity is required;
+- why key-prefix ACLs do not restrict `SCAN` enumeration, why Redis logical
+  databases are not security boundaries, and when a dedicated instance,
+  separately enforced endpoint, or separate clear-admin identity is required;
 - no blocking `DEL` fallback for namespace clear and no cluster/ring support in
   #535;
 - why the current `cache/redisnear` Pub/Sub strategy must not directly wrap a
@@ -1159,7 +1216,9 @@ small enough for text and compile-checked examples.
     the TieredCache mutation surface.
 13. The public constructor accepts only synchronous single-primary
     `*redis.Client`; queued, cluster, ring, and opaque `Cmdable` executors are
-    unrepresentable.
+    unrepresentable. Direct stable-primary topology remains a documented
+    caller precondition because the concrete type cannot distinguish a
+    failover/proxy client whose server identity may change during `Clear`.
 14. Sharing a namespace across tenants/incompatible schemas or accessing one
     L1 outside its sole decorator is unsupported and invalidates the documented
     safety guarantees; the constructor does not claim to detect either misuse.
