@@ -597,7 +597,11 @@ Initial healthy-lease admission is exact:
 
 If a path already acquired a key token before discovering that it needs initial
 admission, it releases the token before waiting and restarts, so repair never
-waits behind a token holder that is itself waiting for repair.
+waits behind a token holder that is itself waiting for repair. An active
+`GetOrLoad` leader retains its flight leadership and participant reference
+during this wait; after repair it reacquires the token and restarts L1/L2 checks
+inside the same flight rather than re-entering registry lookup or joining its
+own flight.
 
 Before every loader or L2 method invocation, an ordinary tiered operation
 obtains an atomic one-shot side-effect admission ticket while holding a healthy
