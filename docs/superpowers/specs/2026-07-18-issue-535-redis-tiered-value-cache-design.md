@@ -1,8 +1,8 @@
 # Issue #535 Redis Tiered Value Cache Design
 
-Status: approved design, repairing initial Step 2-R findings
-Issue: [#535](https://github.com/bluetape4k/bluetape-go/issues/535)  
-Related RESP3 spike: [#536](https://github.com/bluetape4k/bluetape-go/issues/536)  
+Status: Step 2-R converged; awaiting written spec review
+Issue: [#535](https://github.com/bluetape4k/bluetape-go/issues/535)
+Related RESP3 spike: [#536](https://github.com/bluetape4k/bluetape-go/issues/536)
 Target package: `cache/redisvalue`
 
 ## Problem
@@ -1386,4 +1386,5 @@ small enough for text and compile-checked examples.
 | Alternatives presented | Done | L2-only, integrated near cache, and TieredCache decorator compared; user selected the decorator. |
 | Architecture approved | Done | User approved L1 reference/L2 serialization, config overrides, strict errors, clear, and #535/#536 split. |
 | Spec self-review | Done | No placeholders; clarified remaining-TTL stale windows, public error shape, and partial-clear behavior. |
-| Step 2-R review | Pending | Six independent perspectives plus main-session integration. |
+| Step 2-R review | Done | Exact commit `4e6758d`: performance `P0=0/P1=0/P2=0`; stability `0/0/0`; security `0/0/1`; operator/Ops `0/0/0`; developer/API `0/0/1`; user/caller lane timed out and main integration fallback found `0/0/0`. Final integrated verdict: `P0=0/P1=0`. |
+| Written spec review | Pending | Awaiting explicit user approval before invoking `writing-plans` and beginning Step 3. |
