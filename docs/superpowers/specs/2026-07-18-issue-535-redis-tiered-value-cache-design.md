@@ -430,8 +430,10 @@ to `cache.ErrCacheMiss`.
 2. Continue only when L1 returns `cache.ErrCacheMiss`; propagate other L1
    errors, then acquire the context-aware operation token for that logical key.
 3. Under a healthy local-state lease, recheck L1. Return a stable recheck hit
-   or capture the current generation for a miss.
-4. Read L2 while holding the per-key operation token but no local lease.
+   or capture the current generation and atomically admit one L2-read ticket
+   for a miss.
+4. Release the local lease and read L2 under that ticket while holding the
+   per-key operation token.
 5. On L2 hit, acquire a healthy local lease for the captured generation, check
    caller cancellation, call `Local.Set`, and post-check state/generation
    before returning. If generation changed without blocking, return the
@@ -455,16 +457,19 @@ invokes Redis.
 `TieredCache` owns same-key collapse through the per-key coordinator described
 below. A leader holds the same context-aware operation token used by `Get`,
 mutations, and invalidation, then rechecks L1 under a healthy local-state
-lease. Inside the leader flight:
+lease. Every L2 method or loader invocation below first obtains its own
+one-shot side-effect admission ticket under a newly admitted healthy lease at
+the expected generation, releases the lease, then invokes the admitted action.
+Inside the leader flight:
 
 1. Read L2.
 2. Return the L2 value on hit and populate L1 for `TieredConfig.LocalTTL` only
    if context and local state still permit it. No `PTTL` command is added, so
    an existing L2 hit does not claim knowledge of remaining remote TTL.
 3. Continue only on `cache.ErrCacheMiss`.
-4. Run the caller loader once for the collapsed local flight.
-5. Recheck local state/generation, record a monotonic start immediately before
-   dispatch, and store the loaded value in L2.
+4. Admit and run the caller loader once for the collapsed local flight.
+5. Recheck local state/generation, admit the Redis write, record a monotonic
+   start immediately before invocation, and store the loaded value in L2.
 6. After L2 succeeds, check cancellation and local state. For a positive
    requested TTL, subtract elapsed time from normalized wire TTL and populate
    L1 only for a positive adjusted remainder; for zero TTL, use `LocalTTL`.
@@ -532,9 +537,20 @@ success and error, then releases the token. New arrivals after publication
 create or join a new flight generation. The published record remains alive
 until every registered follower participant consumes it or cancels. A follower
 releases its participant reference after receiving the result or atomically
-detaches only itself on cancellation. Reference counting removes the key
-coordinator after it has no token holder/waiter, active flight, or retained
-participant; completed keys are not retained.
+detaches only itself on cancellation. Publication and follower cancellation
+arbitrate under the coordinator mutex; whichever records first determines that
+follower's result and releases its reference exactly once.
+
+Registry lookup/install/retain and idle retirement are serialized by the
+registry mutex. Lookup increments an external coordinator reference before
+releasing that mutex. Final release reacquires the registry mutex and removes a
+coordinator only when the map still points to the same instance and it has no
+external reference, token holder/waiter, active flight, or retained
+participant. No new caller can retain the instance between that idle check and
+map removal. Code never acquires the registry mutex while holding the
+coordinator mutex; an internal final release drops the coordinator mutex before
+requesting retirement. This identity check and lock order prevent ABA removal
+and simultaneous same-key token domains. Completed keys are not retained.
 
 If the leader context ends before operation-token acquisition, the acquisition
 loses a single atomic race to cancellation. Under the coordinator mutex, that
@@ -571,13 +587,41 @@ can proceed concurrently. A lease used to check/capture state is released
 immediately after its L1 operation or generation capture and is never retained
 across Redis or loader work.
 
+Initial healthy-lease admission is exact:
+
+| Observed state | Admission behavior |
+|---|---|
+| `healthy` | Grant the lease and capture its generation. |
+| `repairing` that began from healthy | Wait context-sensitively without a local lease or key operation token; after the state changes, retry admission from the method's initial state check. Caller cancellation returns the context error and does not change cache state. |
+| `blocking`, `blocked`, or `repairing` that began from blocked | Return `ReasonLocalBlocked` without admitting the operation. |
+
+If a path already acquired a key token before discovering that it needs initial
+admission, it releases the token before waiting and restarts, so repair never
+waits behind a token holder that is itself waiting for repair.
+
+Before every loader or L2 method invocation, an ordinary tiered operation
+obtains an atomic one-shot side-effect admission ticket while holding a healthy
+lease at the expected generation. The ticket admits that whole L2 method call,
+including `ValueCache.Get`'s conditional `EXISTS` command. It is a caller-local
+generation decision,
+not a retained registry object: it adds no waiter collection or background
+work. The operation releases the lease before invoking the admitted action. A
+state transition that starts after ticket issuance linearizes after that
+admission and cannot revoke the one already admitted invocation, even if the
+actual function call begins after the transition. Cancellation checked before
+invocation leaves the ticket unused. Any later loader/Redis action requires a
+new ticket, so a transition during an L2 read or loader can prevent the next
+write. Already-admitted work may finish, but cannot create a usable L1
+population after a generation change, and blocked state remains its public
+terminal classification.
+
 After an operation releases its local-state lease, its terminal behavior is
 fixed by the state and generation it observes:
 
 | Observed state | Required terminal behavior |
 |---|---|
 | `healthy` at the captured generation | Continue the documented read, load, mutation, or population path. |
-| `healthy` at a newer generation, or `repairing` that began from healthy | Return an already-read or already-loaded value uncached, or return the defined outcome of an already-dispatched remote mutation without L1 population. Start no additional cache side effect after this observation; the overlapping operation linearizes before the transition. |
+| `healthy` at a newer generation, or `repairing` that began from healthy | Return an already-read or already-loaded value uncached, or return the defined outcome of an already-admitted remote mutation without L1 population. Start no additional cache side effect without a new successful admission ticket; the overlapping operation linearizes before the transition. |
 | `blocking`, `blocked`, or `repairing` that began from blocked | Return `ReasonLocalBlocked` without a value and without starting another cache side effect. |
 
 An operation releases every healthy or maintenance lease before waiting for a
@@ -594,10 +638,15 @@ admission, lease drain, and the L1 cleanup call. Timeout or failure publishes
 `blocked`. Each repairing transition owns a unique repair epoch. Successful
 explicit `ClearLocal` publishes `healthy` only through a compare-and-swap that
 still owns that epoch. Mandatory full cleanup opened by `TieredCache.Clear`
-returns to `healthy` only when it began from healthy state and still owns the
-same epoch; if it began from blocked state or an intervening block replaced its
-epoch, success preserves `blocked`. This removes the check-then-write and
-accidental-heal windows without requiring a goroutine that outlives the method.
+records origin when that local cleanup is admitted, not when the outer `Clear`
+method began. It returns to `healthy` only when admitted from healthy state and
+still owns the same epoch; if admitted from blocked state or an intervening
+block replaced its epoch, success preserves `blocked`. A successful explicit
+`ClearLocal` that completes during the outer remote-scan phase is therefore a
+newer repair: the later mandatory cleanup observes healthy at admission and an
+older `Clear` start snapshot cannot re-block it. This removes the
+check-then-write and accidental-heal windows without requiring a goroutine that
+outlives the method.
 The caller-provided L1 must not re-enter the same `TieredCache` from an L1
 method.
 
@@ -629,7 +678,7 @@ observed blocked state returns `ReasonLocalBlocked` instead. An already-admitted
 operation may preserve its original miss, loader error, or provider error as
 the cause of `ReasonLocalBlocked`, but the blocked reason is the public terminal
 classification. A refill or mutation that captured an older generation may
-finish already-dispatched remote work but cannot create a usable
+finish already-admitted remote work but cannot create a usable
 post-clear/post-block local hit.
 
 The L1 remains caller-owned for lifecycle purposes, but mutation and reads are
@@ -652,8 +701,10 @@ therefore cannot mutate either tier.
 `TieredCache.Set` holds the same-key operation token for the complete operation:
 
 1. Acquire a healthy local-state lease, fail closed if blocked, and capture the
-   current generation, then release the lease.
-2. Record a monotonic start immediately before calling `ValueCache.Set`.
+   current generation plus a one-shot Redis `SET` admission ticket, then
+   release the lease.
+2. Record a monotonic start immediately before invoking the admitted
+   `ValueCache.Set`.
 3. After known L2 success, acquire a healthy lease for the captured generation
    and recheck caller cancellation.
 4. If the generation is still current, write the original `V` into L1 using
@@ -686,8 +737,9 @@ post-success cancellation, or failed L1 population.
 
 `ValueCache.Delete` removes the L2 key and treats an absent key as success.
 `TieredCache.Delete` holds the same-key operation token, checks blocked state
-through a healthy local lease, releases that lease, and then attempts the L2
-delete. Once the Redis `DEL` call has been invoked, it
+through a healthy local lease, atomically admits one Redis `DEL`, releases that
+lease, and then invokes the admitted L2 delete. Once the Redis `DEL` call has
+been invoked, it
 always performs the token-held mandatory L1 invalidation before returning.
 Errors are joined without hiding the Redis mutation outcome or L1 failure.
 Validation, blocked state, or cancellation detected before Redis invocation
@@ -721,11 +773,13 @@ enters repairing state, increments the generation, drains existing leases,
 calls `Local.Clear` within the owned cleanup budget, and blocks the decorator
 on failure. It does not unblock a decorator that another operation blocked;
 successful explicit `ClearLocal` remains the only user-invoked repair. If a
-newer block is preserved despite successful local clear, or if `Clear` began
-while already blocked, `TieredCache.Clear` returns `ReasonLocalBlocked` rather
-than nil. Remote and local errors are joined without silently declaring
-success. Validation or cancellation detected before the first remote command
-returns without mutating either tier.
+newer block is preserved despite successful local clear, or if mandatory local
+cleanup was admitted from blocked state, `TieredCache.Clear` returns
+`ReasonLocalBlocked` rather than nil. If a concurrent explicit `ClearLocal`
+healed the decorator before mandatory cleanup admission, that newer repair
+wins and the later cleanup may return healthy. Remote and local errors are
+joined without silently declaring success. Validation or cancellation detected
+before the first remote command returns without mutating either tier.
 
 Namespace clear is:
 
@@ -757,9 +811,11 @@ invalidation may not have removed stale data. While blocked, `Get`,
 `GetOrLoad`, `Set`, and `Delete` fail closed with `ReasonLocalBlocked` instead
 of serving potentially stale L1 data. Administrative `Clear` remains
 available: it attempts the namespace remote clear and mandatory full local
-clear, preserves blocked state even when both succeed, and returns
-`ReasonLocalBlocked` so the caller must explicitly complete a successful
-`ClearLocal` repair.
+clear. Cleanup admitted while still blocked preserves blocked state even when
+both tiers are cleaned and returns `ReasonLocalBlocked`, so the caller must
+explicitly complete a successful `ClearLocal` repair. A concurrent successful
+`ClearLocal` that wins before cleanup admission is the newer repair and is not
+undone by the older outer `Clear` invocation.
 `InvalidateLocal` may still attempt a single-key deletion but does not clear
 the global blocked state. A successful `ClearLocal` is the only repair
 operation: it advances the generation, clears L1, and then unblocks the
@@ -1035,9 +1091,13 @@ changes during clear, and aggregate partial-progress reporting.
   repairing-from-healthy, blocking/blocked, and repairing-from-blocked terminal
   state table, including proof that no wait occurs while holding a local-state
   lease;
+- initial admission grants healthy, waits context-sensitively and retries for
+  repairing-from-healthy without a lease/token, fails closed for blocked-origin
+  states, and leaves cache state unchanged on caller cancellation;
 - administrative `Clear` begun while blocked still attempts remote and local
-  cleanup, preserves blocked state after success, returns `ReasonLocalBlocked`,
-  and requires a later successful `ClearLocal` to heal;
+  cleanup; cleanup admitted from blocked preserves blocked state and requires
+  a later successful `ClearLocal`, while a concurrent explicit repair that
+  wins before admission is not undone;
 - independent invalidation-wait and local-cleanup defaults/overrides, including
   invalidation wait expiry behind a long same-key loader;
 - failed direct `InvalidateLocal`/`ClearLocal` blocks the decorator, and a
@@ -1075,8 +1135,13 @@ Testcontainers commands run sequentially.
 - bounded same-key `GetOrLoad` stress with exact loader-call totals;
 - leader/follower cancellation and one-flight error sharing without sequential
   loader retries by existing waiters;
+- publication-versus-follower-cancellation arbitration under the coordinator
+  mutex, including a latch where completion and cancellation become ready
+  together and exactly one path releases the participant;
 - leader cancellation before key-token acquisition publishes/closes/detaches
   the flight and leaves no coordinator references;
+- coordinator final-retirement ABA against a new same-key registry lookup,
+  proving identity-checked removal and one operation-token domain;
 - constant-size flight state and allocation-free healthy L1-hit admission via
   `testing.AllocsPerRun`;
 - different-key healthy L1 hits proceed concurrently without creating per-key
@@ -1090,6 +1155,9 @@ Testcontainers commands run sequentially.
 - capture generation in `Set` and `GetOrLoad`, complete `ClearLocal`, then
   resume remote/loader completion, proving healthy mismatch skips L1 and
   blocked state stops later side effects;
+- pause after one-shot admission but before invoking the loader, Redis `SET`,
+  and Redis `DEL`, then transition state, proving the admitted call may finish
+  but no later side effect or usable L1 population crosses the fence;
 - block transition while a key-token waiter or L2 read is active, proving no
   post-block L1 hit return or population;
 - hold L1 readers/writers across the cleanup deadline, proving the total
@@ -1101,6 +1169,9 @@ Testcontainers commands run sequentially.
   the remote survivor is accepted but L1 remains cleared or unusable;
 - mandatory-full-clear repair epochs return healthy only without an
   intervening block; stale repair owners cannot heal a newer block;
+- begin administrative `Clear` while blocked, pause its remote phase, complete
+  a successful `ClearLocal`, then admit the mandatory local phase, proving the
+  newer explicit repair wins and the older outer call cannot re-block it;
 - concurrent `Get`, `Set`, `Delete`, `ClearLocal`, and cancellation without
   races, retained coordinators/flights, or usable late local writes;
 - active coordinator registry returns to zero after stress, failure waves, and
@@ -1193,7 +1264,8 @@ small enough for text and compile-checked examples.
    decoded `V` into L1.
 6. Loads follow L1 -> L2 -> loader, collapse through TieredCache-owned
    context-aware flights that share success or error with existing waiters,
-   release inactive coordinator entries, and write L2 before L1 population.
+   atomically retire inactive coordinator entries without ABA, and write L2
+   before L1 population.
 7. TTL defaults and overrides satisfy the documented finite/zero relationship;
    existing L2 hits make no Redis-expiry-relative bound, while known positive
    writes normalize wire precision and subtract monotonic elapsed time to
@@ -1206,11 +1278,13 @@ small enough for text and compile-checked examples.
    plus later cancellation does not. Token-held cleanup invalidates L1 without
    reacquiring its own coordinator token.
 10. Same-key reads, loads, mutations, and invalidations are linearized; the
-    context-aware local-state leases, state machine, and generations prevent
-    stale local resurrection after clear or block transitions.
+    context-aware local-state leases, one-shot side-effect tickets, state
+    machine, and generations prevent stale local resurrection after clear or
+    block transitions.
 11. Mandatory cleanup uses one owned timeout budget across local-state
     admission/drain/cleanup and blocks ordinary cache use until successful
-    `ClearLocal` repair if cleanup fails.
+    `ClearLocal` repair if cleanup fails; repair epochs ensure the newest
+    admitted repair transition determines final health.
 12. `InvalidateLocal` and `ClearLocal` never mutate Redis and are suitable for
     the #536 spike boundary; current Pub/Sub invalidation never directly wraps
     the TieredCache mutation surface.
