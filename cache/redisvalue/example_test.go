@@ -3,6 +3,7 @@ package redisvalue_test
 import (
 	"context"
 	"errors"
+	"os"
 	"time"
 
 	"github.com/bluetape4k/bluetape-go/cache"
@@ -81,7 +82,10 @@ func ExampleNewTieredCache() {
 	// Namespace Clear is an administrative L2 operation. Construct its
 	// ValueCache with a separately credentialed clear-admin client.
 	clearAdminClient := redis.NewClient(&redis.Options{
-		Addr: "localhost:6379", DialTimeout: 2 * time.Second,
+		Addr:        "localhost:6379",
+		Username:    os.Getenv("REDIS_CLEAR_ADMIN_USERNAME"),
+		Password:    os.Getenv("REDIS_CLEAR_ADMIN_PASSWORD"),
+		DialTimeout: 2 * time.Second,
 		ReadTimeout: 2 * time.Second, WriteTimeout: 2 * time.Second,
 	})
 	defer func() { _ = clearAdminClient.Close() }()

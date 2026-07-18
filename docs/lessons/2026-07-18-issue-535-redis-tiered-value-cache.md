@@ -136,3 +136,7 @@ separately credentialed admin client. Migration guidance also states that
 Review examples as caller code, not merely as compilable syntax: error handling,
 credentials, recovery contexts, and migration boundaries must match production
 guidance.
+
+The example's separate clear-admin client also names its credential inputs;
+a second client instance without an explicit identity does not demonstrate ACL
+separation.
