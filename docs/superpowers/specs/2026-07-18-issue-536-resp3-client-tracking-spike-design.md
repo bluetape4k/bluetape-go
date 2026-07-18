@@ -218,11 +218,13 @@ failed key-cleanup context. The callback still returns
 full-clear repair succeeded. This prevents a partially invalidated multi-key
 payload from leaving an apparently successful but stale L1.
 
-Callback admission is owned by a test-only dispatch gate. Under one mutex,
-`begin` rejects work after closure or increments the in-flight `WaitGroup`;
-`close` flips the admission flag under the same mutex before any `wait`. This
-makes `WaitGroup.Add` impossible once shutdown waiting begins and avoids the
-unsafe late-`Add` lifecycle of a raw `WaitGroup`.
+Callback admission is owned by a zero-value, test-only dispatch gate. Under one
+mutex, `begin` rejects work after `close`; otherwise, it creates a generation
+completion channel for the first active callback and increments the active count
+for every admitted callback. `wait` captures the current active generation before
+signaling registration. Each `done` decrements the active count and closes that
+generation at zero. Because `close` blocks successor admissions under the same
+mutex, shutdown waiting cannot miss a late generation.
 
 A callback rejected after gate closure records exactly one non-blocking,
 redacted failure observation with `reason=shutdown` before returning
