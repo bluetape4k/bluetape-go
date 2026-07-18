@@ -201,7 +201,9 @@ redacted reason without retaining raw payloads or provider messages.
 
 Each test must prove its prerequisites before asserting invalidation behavior:
 
-1. Start Redis 7.4 with the existing Testcontainers helper.
+1. Start Redis 7.4 with the existing Testcontainers helper. Record `INFO server`
+   version/build fields and the configured image tag or digest in the result
+   ledger; a mutable image family alone is not reproducibility evidence.
 2. Create a tracking client with `Protocol: 3`, `PoolSize: 1`,
    `MaxRetries: -1`, and an injected `redis.NewPushNotificationProcessor()`.
 3. Register the `invalidate` handler with `protected=false`.
@@ -299,8 +301,10 @@ cacheable reads. `OnConnect` alone cannot close the missed-invalidation window.
 - Stop issuing new tracked commands.
 - Wait for the synchronized in-flight callback count to reach zero.
 - Unregister `invalidate`, close the sticky connection, and close the client.
-- Assert each operation completes within its explicit context deadline and no
-  new handler lookup succeeds after unregister.
+- Assert command quiescence and unregister with explicit context deadlines. Run
+  context-free `Conn.Close()` and `Client.Close()` behind bounded test watchdog
+  channels; a watchdog timeout observes a stuck close but cannot cancel it.
+  Assert no new handler lookup succeeds after unregister.
 
 These tests document that unregister is not a callback quiescence barrier and
 that direct registration on a caller-created client without processor and
@@ -378,11 +382,10 @@ The research note will classify each target as `proved`, `documented`,
 | Disposable-test admin | `FLUSHDB`, `CLIENT KILL ID` | Test-only; never a production near-cache requirement |
 
 Destructive admin commands may run only against the fresh endpoint returned by
-`testcontainers/redis.Start` in the current test. A test-admin guard compares
-the admin client's configured address with the fixture address and rejects a
-mismatch before dispatch; a direct test proves mismatch produces zero command
-calls. No environment-provided, shared, staging, or production endpoint is
-accepted.
+`testcontainers/redis.Start` in the current test. The fixture constructs the
+admin client internally from that returned address, accepts no caller-supplied
+client, options, dialer, or endpoint, and never exports the admin client. No
+environment-provided, shared, staging, or production endpoint is accepted.
 
 The research note must record AUTH/TLS/certificate ownership as provider
 requirements, state that credentials and endpoints are never written into
