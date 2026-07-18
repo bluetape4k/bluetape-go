@@ -297,7 +297,7 @@ git commit -m "Define the redisvalue safety contract" \
 
 - [ ] **Step 1: Write failing bounded read/write tests with a narrow fake**
 
-Define a package-internal interface containing only `GetRange`, `Exists`, `Set`, and `Del`. Tests must assert non-empty hit uses one command, zero-length hit/miss uses `EXISTS`, payload length `MaxValueBytes+1` is rejected before unmarshal, marshal happens before Redis, and invalid input/cancellation causes no command. Inject a bounded malformed payload and a serializer error containing payload/key/address markers; assert exactly one unmarshal, `ReasonInvalidPayload`, inspectable cause identity, and no `DEL`, loader fallback, L1 population, or other mutation. Assert the outer and joined error strings omit the raw payload, logical/physical key, provider address, and serializer message while `errors.Is`/`errors.As` can still reach causes. The existing oversize-marshal row must prove rejection before Redis dispatch.
+Define a package-internal interface containing only `GetRange`, `Exists`, `Set`, and `Del`. Tests must assert non-empty hit uses one command, zero-length hit/miss uses `EXISTS`, payload length `MaxValueBytes+1` is rejected before unmarshal, marshal happens before Redis, and invalid input/cancellation causes no command. Inject a bounded malformed payload and a serializer error containing payload/key/address markers; assert exactly one unmarshal, `ReasonInvalidPayload`, inspectable cause identity, and no `DEL`, loader fallback, L1 population, or other mutation. Assert the outer error string omits the raw payload, logical/physical key, provider address, and serializer message while `errors.Is`/`errors.As` can still reach causes. The existing oversize-marshal row must prove rejection before Redis dispatch. Task 8 adds the joined provider/local-cleanup redaction assertion after both error paths exist.
 
 ```go
 type fakeCommandClient struct {
@@ -718,7 +718,9 @@ git commit -m "Fence local cache state with repair epochs" \
 
 **Files:**
 - Create: `cache/redisvalue/tiered_cache.go`
+- Modify: `cache/redisvalue/ttl.go`
 - Test: `cache/redisvalue/tiered_cache_test.go`
+- Modify: `cache/redisvalue/ttl_test.go`
 
 - [ ] **Step 1: Write failing L1/L2/reference tests**
 
@@ -741,12 +743,12 @@ func TestTieredCacheL2HitStoresDecodedReference(t *testing.T) {
 
 Name the warmed dependency-count test `TestTieredCacheHealthyL1SkipsRemoteAndSerializer`; it asserts pointer identity, zero serializer calls, zero Redis calls, zero local-state allocations, and no coordinator creation. Name the Redis-first mutation reference test in Task 8 `TestTieredCacheSetPreservesReference`.
 
-Add `TestTieredCacheDifferentKeyL1HitsDoNotSerialize`: a channel-latched fake L1 blocks `Get("slow")`, `Get("fast")` must complete before the slow latch is released, both return direct L1 values, and `coordinators.active()` remains zero. Add `TestTieredCacheDifferentKeyLoadsProceedConcurrently`: two loaders for distinct keys both signal entry before either release latch closes, then both complete with one call each and the registry returns to zero. These tests fail if a package-global or cross-key lock serializes healthy reads or loads.
+Add `TestTieredCacheDifferentKeyL1HitsDoNotSerialize`: a channel-latched fake L1 blocks `Get("slow")`, `Get("fast")` must complete before the slow latch is released, both return direct L1 values, and `coordinators.active()` remains zero. This test fails if a package-global or cross-key lock serializes healthy reads. Task 7 adds the corresponding different-key loader proof after `GetOrLoad` exists.
 
 - [ ] **Step 2: Verify RED**
 
 ```bash
-go test -count=1 ./cache/redisvalue -run '^TestTieredCache(Get|Stores|Pointer|L1|L2)'
+go test -count=1 ./cache/redisvalue -run '^TestTieredCache(Get|Stores|Pointer|L1|L2|Healthy|DifferentKeyL1)'
 ```
 
 Expected: FAIL because decorator reads are absent.
@@ -781,7 +783,7 @@ Test zero, finite, sub-millisecond minimum, fractional truncation, elapsed subtr
 
 ```bash
 gofmt -w cache/redisvalue/*.go
-go test -count=1 ./cache/redisvalue -run '^TestTieredCache(Get|Stores|Pointer|L1|L2|TTL)'
+go test -count=1 ./cache/redisvalue -run '^TestTieredCache(Get|Stores|Pointer|L1|L2|Healthy|DifferentKeyL1|TTL)'
 ```
 
 Expected: PASS.
@@ -828,6 +830,8 @@ func TestGetOrLoadSharesOneLeaderResult(t *testing.T) {
 	if calls.Load() != 1 || tiered.coordinators.active() != 0 { t.Fatalf("calls/active = %d/%d", calls.Load(), tiered.coordinators.active()) }
 }
 ```
+
+Add `TestGetOrLoadDifferentKeysProceedConcurrently`: two loaders for distinct keys both signal entry before either release latch closes, then both complete with one call each and the coordinator registry returns to zero. The test fails if load coordination introduces a package-global or cross-key lock.
 
 - [ ] **Step 2: Verify RED**
 
@@ -878,7 +882,7 @@ git commit -m "Collapse tiered cache loads by key" \
 
 - [ ] **Step 1: Write failing mutation and blocked-state tests**
 
-Cover Redis-first `Set`, original-reference L1 population, same-key mutation order, commit-unknown cleanup, known success plus later cancellation, L1-set failure followed by token-held delete, `Delete`, `InvalidateLocal`, `ClearLocal`, `TieredCache.Clear`, joined errors, cleanup timeout, blocked fail-closed operations, explicit repair, blocked administrative clear, and every method on a zero-value `TieredCache` returning `ReasonUninitialized` without panic.
+Cover Redis-first `Set`, original-reference L1 population, same-key mutation order, commit-unknown cleanup, known success plus later cancellation, L1-set failure followed by token-held delete, `Delete`, `InvalidateLocal`, `ClearLocal`, `TieredCache.Clear`, joined errors, cleanup timeout, blocked fail-closed operations, explicit repair, blocked administrative clear, and every method on a zero-value `TieredCache` returning `ReasonUninitialized` without panic. The joined provider/local-cleanup test injects raw payload/key/address/cause markers and asserts every public joined error string remains redacted while `errors.Is`/`errors.As` preserves both causes.
 
 ```go
 func TestFailedMandatoryCleanupBlocksUntilClearLocal(t *testing.T) {
@@ -921,11 +925,13 @@ func (c *TieredCache[V]) InvalidateLocal(ctx context.Context, key string) error 
 	defer c.coordinators.release(key, coordinator)
 	if err := coordinator.acquireToken(waitCtx); err != nil { c.localState.block(); return c.localBlockedError("invalidate-local", key, err) }
 	defer coordinator.releaseToken()
-	return c.invalidateLocalHeld(waitCtx, key)
+	cleanupCtx, cleanupCancel := context.WithTimeout(waitCtx, c.config.LocalCleanupTimeout)
+	defer cleanupCancel()
+	return c.invalidateLocalHeld(cleanupCtx, key)
 }
 ```
 
-Public `InvalidateLocal` passes a `context.WithTimeout(waitCtx, LocalCleanupTimeout)` child to `invalidateLocalHeld`, so token wait plus maintenance admission/delete cannot exceed the caller/`InvalidationWaitTimeout` budget and the local phase uses at most `LocalCleanupTimeout`. Mandatory post-mutation cleanup instead creates `context.WithTimeout(context.Background(), LocalCleanupTimeout)` before calling the same held helper, because safety cleanup must survive caller cancellation. `ClearLocal` uses one `context.WithTimeout(ctx, LocalCleanupTimeout)` budget across explicit repair admission, lease drain, and `Local.Clear`, and heals only if its epoch still owns the state. Neither public invalidation method calls Redis.
+Public `InvalidateLocal` passes the child cleanup context to `invalidateLocalHeld`, so token wait plus maintenance admission/delete cannot exceed the caller/`InvalidationWaitTimeout` budget and the local phase uses at most `LocalCleanupTimeout`. Add a latch test with `InvalidationWaitTimeout > LocalCleanupTimeout` that acquires the token immediately, stalls maintenance delete, observes the shorter cleanup deadline, and proves blocked state. Mandatory post-mutation cleanup instead creates `context.WithTimeout(context.Background(), LocalCleanupTimeout)` before calling the same held helper, because safety cleanup must survive caller cancellation. `ClearLocal` uses one `context.WithTimeout(ctx, LocalCleanupTimeout)` budget across explicit repair admission, lease drain, and `Local.Clear`, and heals only if its epoch still owns the state. Neither public invalidation method calls Redis.
 
 - [ ] **Step 4: Implement tiered clear and fleet-scope tests**
 
