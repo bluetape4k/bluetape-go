@@ -130,6 +130,241 @@ func (c *TieredCache[V]) GetOrLoadDefault(
 	return c.GetOrLoad(ctx, key, c.remote.config.RemoteTTL, loader)
 }
 
+// Set writes Redis first, then stores the original V reference in L1 when the
+// local generation remains current.
+func (c *TieredCache[V]) Set(ctx context.Context, key string, value V, remoteTTL time.Duration) error {
+	ctx = normalizeContext(ctx)
+	if err := c.validateCall("set", ctx, key); err != nil {
+		return err
+	}
+	if err := validateEntryTTL(remoteTTL); err != nil {
+		return err
+	}
+	coordinator := c.coordinators.acquire(key)
+	defer c.coordinators.release(key, coordinator)
+	if err := coordinator.acquireToken(ctx); err != nil {
+		return err
+	}
+	tokenHeld := true
+	defer func() {
+		if tokenHeld {
+			coordinator.releaseToken()
+		}
+	}()
+
+	var generation uint64
+	for {
+		lease, retry, err := c.acquireHealthyForLeader(ctx, coordinator, &tokenHeld)
+		if err != nil {
+			return c.withCallOperation("set", key, err)
+		}
+		if retry {
+			continue
+		}
+		ticket, admitted := lease.issueTicket()
+		generation = lease.generation
+		lease.release()
+		if !admitted {
+			if c.localState.classify(generation) == localBlocked {
+				return c.localBlockedCallError("set", key, nil)
+			}
+			continue
+		}
+		if err := ticket.consume(ctx); err != nil {
+			return err
+		}
+		break
+	}
+
+	now := c.now
+	if now == nil {
+		now = time.Now
+	}
+	started := now()
+	remoteErr := c.remote.Set(ctx, key, value, remoteTTL)
+	disposition := c.localState.classify(generation)
+	if remoteErr != nil {
+		cleanupErr := c.mandatoryInvalidateLocalHeld(key)
+		return c.mutationResult("set", key, generation, remoteErr, cleanupErr)
+	}
+	if contextErr := ctx.Err(); contextErr != nil {
+		cleanupErr := c.mandatoryInvalidateLocalHeld(key)
+		return c.mutationResult("set", key, generation, contextErr, cleanupErr)
+	}
+	if disposition == localBlocked {
+		cleanupErr := c.mandatoryInvalidateLocalHeld(key)
+		return c.mutationResult("set", key, generation, nil, cleanupErr)
+	}
+	if disposition == localNewerGeneration {
+		return nil
+	}
+	localTTL, ok := knownWriteLocalTTL(c.config.LocalTTL, remoteTTL, started, now)
+	if !ok {
+		return nil
+	}
+	return c.populateLocalHeld(ctx, key, value, localTTL, generation)
+}
+
+// SetDefault delegates to Set using the copied L2 default TTL.
+func (c *TieredCache[V]) SetDefault(ctx context.Context, key string, value V) error {
+	if c == nil || !initializedValueCache(c.remote) {
+		return newCacheError("set-default", ReasonUninitialized, "", nil)
+	}
+	return c.Set(ctx, key, value, c.remote.config.RemoteTTL)
+}
+
+// Delete removes Redis first, then always attempts mandatory local deletion
+// after the Redis command has been invoked.
+func (c *TieredCache[V]) Delete(ctx context.Context, key string) error {
+	ctx = normalizeContext(ctx)
+	if err := c.validateCall("delete", ctx, key); err != nil {
+		return err
+	}
+	coordinator := c.coordinators.acquire(key)
+	defer c.coordinators.release(key, coordinator)
+	if err := coordinator.acquireToken(ctx); err != nil {
+		return err
+	}
+	tokenHeld := true
+	defer func() {
+		if tokenHeld {
+			coordinator.releaseToken()
+		}
+	}()
+
+	var generation uint64
+	for {
+		lease, retry, err := c.acquireHealthyForLeader(ctx, coordinator, &tokenHeld)
+		if err != nil {
+			return c.withCallOperation("delete", key, err)
+		}
+		if retry {
+			continue
+		}
+		ticket, admitted := lease.issueTicket()
+		generation = lease.generation
+		lease.release()
+		if !admitted {
+			if c.localState.classify(generation) == localBlocked {
+				return c.localBlockedCallError("delete", key, nil)
+			}
+			continue
+		}
+		if err := ticket.consume(ctx); err != nil {
+			return err
+		}
+		break
+	}
+
+	remoteErr := c.remote.Delete(ctx, key)
+	cleanupErr := c.mandatoryInvalidateLocalHeld(key)
+	if remoteErr == nil && ctx.Err() != nil {
+		remoteErr = ctx.Err()
+	}
+	return c.mutationResult("delete", key, generation, remoteErr, cleanupErr)
+}
+
+// InvalidateLocal removes only this decorator's L1 entry. It never invokes
+// Redis and never heals a globally blocked local state.
+func (c *TieredCache[V]) InvalidateLocal(ctx context.Context, key string) error {
+	ctx = normalizeContext(ctx)
+	if err := c.validateCall("invalidate-local", ctx, key); err != nil {
+		return err
+	}
+	waitCtx, cancel := context.WithTimeout(ctx, c.config.InvalidationWaitTimeout)
+	defer cancel()
+	coordinator := c.coordinators.acquire(key)
+	defer c.coordinators.release(key, coordinator)
+	if err := coordinator.acquireToken(waitCtx); err != nil {
+		c.localState.block()
+		return c.localBlockedCallError("invalidate-local", key, err)
+	}
+	defer coordinator.releaseToken()
+	cleanupCtx, cleanupCancel := context.WithTimeout(waitCtx, c.config.LocalCleanupTimeout)
+	defer cleanupCancel()
+	return c.invalidateLocalHeld(cleanupCtx, key)
+}
+
+// ClearLocal clears only this decorator's L1 and is the sole explicit repair
+// operation that may heal blocked local state.
+func (c *TieredCache[V]) ClearLocal(ctx context.Context) error {
+	ctx = normalizeContext(ctx)
+	if err := c.validateInitialized("clear-local"); err != nil {
+		return err
+	}
+	cleanupCtx, cancel := context.WithTimeout(ctx, c.config.LocalCleanupTimeout)
+	defer cancel()
+	repair, err := c.localState.beginRepair(cleanupCtx, repairExplicit)
+	if err != nil {
+		c.localState.block()
+		return c.localBlockedCallError("clear-local", "", err)
+	}
+	localErr := c.local.Clear(cleanupCtx)
+	if localErr == nil {
+		localErr = cleanupCtx.Err()
+	}
+	if !c.localState.finishRepair(repair, localErr) {
+		return c.localBlockedCallError("clear-local", "", localErr)
+	}
+	return nil
+}
+
+// Clear clears this namespace in Redis, then always attempts a mandatory full
+// clear of this decorator's L1 once the remote operation has begun.
+func (c *TieredCache[V]) Clear(ctx context.Context) error {
+	ctx = normalizeContext(ctx)
+	if err := c.validateNoKeyCall("clear", ctx); err != nil {
+		return err
+	}
+	generation := c.localState.generationValue()
+	remoteErr := c.remote.Clear(ctx)
+	localErr := c.mandatoryClearLocal(generation)
+	if localErr != nil {
+		return c.localBlockedCallError("clear", "", errors.Join(remoteErr, localErr))
+	}
+	return remoteErr
+}
+
+func (c *TieredCache[V]) mandatoryClearLocal(generation uint64) error {
+	cleanupCtx, cancel := context.WithTimeout(context.Background(), c.config.LocalCleanupTimeout)
+	defer cancel()
+	repair, disposition, err := c.localState.beginRepairAtGeneration(cleanupCtx, repairMandatory, &generation)
+	if err != nil {
+		c.localState.block()
+		return c.localBlockedCallError("clear-local", "", err)
+	}
+	if disposition == localNewerGeneration {
+		return nil
+	}
+	if disposition == localBlocked {
+		return c.localBlockedCallError("clear-local", "", nil)
+	}
+	localErr := c.local.Clear(cleanupCtx)
+	if localErr == nil {
+		localErr = cleanupCtx.Err()
+	}
+	if !c.localState.finishRepair(repair, localErr) {
+		return c.localBlockedCallError("clear-local", "", localErr)
+	}
+	return nil
+}
+
+func (c *TieredCache[V]) mutationResult(
+	operation string,
+	key string,
+	generation uint64,
+	primaryErr error,
+	cleanupErr error,
+) error {
+	if cleanupErr != nil {
+		return c.localBlockedCallError(operation, key, errors.Join(primaryErr, cleanupErr))
+	}
+	if c.localState.classify(generation) == localBlocked {
+		return c.localBlockedCallError(operation, key, primaryErr)
+	}
+	return primaryErr
+}
+
 func (c *TieredCache[V]) runLoadLeader(
 	ctx context.Context,
 	key string,
@@ -481,6 +716,13 @@ func (c *TieredCache[V]) validateCall(operation string, ctx context.Context, key
 		return err
 	}
 	return validateLogicalKey(key)
+}
+
+func (c *TieredCache[V]) validateNoKeyCall(operation string, ctx context.Context) error {
+	if err := c.validateInitialized(operation); err != nil {
+		return err
+	}
+	return ctx.Err()
 }
 
 func (c *TieredCache[V]) validateInitialized(operation string) error {

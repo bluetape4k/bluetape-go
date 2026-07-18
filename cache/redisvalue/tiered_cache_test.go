@@ -4,12 +4,16 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	"strings"
+	"sync"
 	"sync/atomic"
 	"testing"
 	"time"
 
 	"github.com/bluetape4k/bluetape-go/cache"
+	btredis "github.com/bluetape4k/bluetape-go/redis"
 	"github.com/bluetape4k/bluetape-go/serialization"
+	"github.com/google/go-cmp/cmp"
 	"github.com/redis/go-redis/v9"
 )
 
@@ -724,4 +728,387 @@ func currentFlightParticipants[V any](tiered *TieredCache[V], key string) int64 
 		return 0
 	}
 	return coordinator.flight.participants.Load()
+}
+
+var _ cache.LoadingCache[string, valueTestRecord] = (*TieredCache[valueTestRecord])(nil)
+
+type faultLocal[V any] struct {
+	mu          sync.Mutex
+	values      map[string]V
+	getErr      error
+	setErr      error
+	deleteErr   error
+	clearErr    error
+	deleteBlock <-chan struct{}
+	setValues   []V
+	deleteCalls int
+	clearCalls  int
+	events      *[]string
+}
+
+func (l *faultLocal[V]) Get(ctx context.Context, key string) (V, error) {
+	if err := ctx.Err(); err != nil {
+		var zero V
+		return zero, err
+	}
+	l.mu.Lock()
+	defer l.mu.Unlock()
+	if l.getErr != nil {
+		var zero V
+		return zero, l.getErr
+	}
+	value, ok := l.values[key]
+	if !ok {
+		var zero V
+		return zero, cache.ErrCacheMiss
+	}
+	return value, nil
+}
+
+func (l *faultLocal[V]) Set(ctx context.Context, key string, value V, _ time.Duration) error {
+	if err := ctx.Err(); err != nil {
+		return err
+	}
+	l.mu.Lock()
+	defer l.mu.Unlock()
+	if l.values == nil {
+		l.values = make(map[string]V)
+	}
+	l.values[key] = value
+	l.setValues = append(l.setValues, value)
+	if l.events != nil {
+		*l.events = append(*l.events, "local-set")
+	}
+	return l.setErr
+}
+
+func (l *faultLocal[V]) Delete(ctx context.Context, key string) error {
+	if l.deleteBlock != nil {
+		select {
+		case <-ctx.Done():
+			return ctx.Err()
+		case <-l.deleteBlock:
+		}
+	}
+	if err := ctx.Err(); err != nil {
+		return err
+	}
+	l.mu.Lock()
+	defer l.mu.Unlock()
+	l.deleteCalls++
+	delete(l.values, key)
+	if l.events != nil {
+		*l.events = append(*l.events, "local-delete")
+	}
+	return l.deleteErr
+}
+
+func (l *faultLocal[V]) Clear(ctx context.Context) error {
+	if err := ctx.Err(); err != nil {
+		return err
+	}
+	l.mu.Lock()
+	defer l.mu.Unlock()
+	l.clearCalls++
+	clear(l.values)
+	if l.events != nil {
+		*l.events = append(*l.events, "local-clear")
+	}
+	return l.clearErr
+}
+
+func newMutationTiered[V any](t *testing.T, local cache.Cache[string, V], client commandClient, serializer serialization.Serializer[V]) *TieredCache[V] {
+	t.Helper()
+	remote := unitValueCache[V](client, serializer, ValueConfig{RemoteTTL: time.Hour, MaxValueBytes: 1024, ClearBatchSize: 2})
+	return mustTieredCache(t, local, remote, nil)
+}
+
+func TestTieredCacheSetPreservesReferenceAndWritesRedisFirst(t *testing.T) {
+	var events []string
+	local := &faultLocal[*valueTestRecord]{events: &events}
+	client := &fakeCommandClient{set: func(context.Context, string, any, time.Duration) *redis.StatusCmd {
+		events = append(events, "redis-set")
+		return redis.NewStatusResult("OK", nil)
+	}}
+	tiered := newMutationTiered(t, local, client, serialization.NewJSONSerializer[*valueTestRecord]())
+	want := &valueTestRecord{Name: "original"}
+	if err := tiered.Set(context.Background(), "item", want, time.Minute); err != nil {
+		t.Fatal(err)
+	}
+	if diff := cmp.Diff([]string{"redis-set", "local-set"}, events); diff != "" {
+		t.Fatalf("events (-want +got):\n%s", diff)
+	}
+	if len(local.setValues) != 1 || local.setValues[0] != want {
+		t.Fatal("L1 did not retain original reference")
+	}
+	got, err := tiered.Get(context.Background(), "item")
+	if err != nil || got != want {
+		t.Fatalf("Get() = %+v/%v", got, err)
+	}
+}
+
+func TestTieredCacheSetSerializesSameKeyMutations(t *testing.T) {
+	firstEntered := make(chan struct{})
+	firstRelease := make(chan struct{})
+	var calls atomic.Int64
+	var orderMu sync.Mutex
+	var order []string
+	client := &fakeCommandClient{set: func(_ context.Context, _ string, value any, _ time.Duration) *redis.StatusCmd {
+		encoded := string(value.([]byte))
+		if calls.Add(1) == 1 {
+			close(firstEntered)
+			<-firstRelease
+		}
+		orderMu.Lock()
+		order = append(order, encoded)
+		orderMu.Unlock()
+		return redis.NewStatusResult("OK", nil)
+	}}
+	tiered := newMutationTiered(t, cache.NewMemory[string, string](), client, serialization.StringSerializer{})
+	firstDone := make(chan error, 1)
+	go func() { firstDone <- tiered.Set(context.Background(), "item", "first", time.Minute) }()
+	<-firstEntered
+	secondDone := make(chan error, 1)
+	go func() { secondDone <- tiered.Set(context.Background(), "item", "second", time.Minute) }()
+	time.Sleep(20 * time.Millisecond)
+	if calls.Load() != 1 {
+		t.Fatalf("second mutation entered Redis early: %d", calls.Load())
+	}
+	close(firstRelease)
+	if err := <-firstDone; err != nil {
+		t.Fatal(err)
+	}
+	if err := <-secondDone; err != nil {
+		t.Fatal(err)
+	}
+	if diff := cmp.Diff([]string{"first", "second"}, order); diff != "" {
+		t.Fatalf("Redis order (-want +got):\n%s", diff)
+	}
+}
+
+func TestTieredCacheSetCommitUnknownRunsMandatoryCleanupAndRedactsJoinedErrors(t *testing.T) {
+	providerErr := errors.New("redis-secret 127.0.0.1 raw:key payload")
+	deleteErr := errors.New("local-secret 10.0.0.1 raw:key")
+	local := &faultLocal[string]{values: map[string]string{"item": "stale"}, deleteErr: deleteErr}
+	client := &fakeCommandClient{set: func(context.Context, string, any, time.Duration) *redis.StatusCmd {
+		return redis.NewStatusResult("", providerErr)
+	}}
+	tiered := newMutationTiered(t, local, client, serialization.StringSerializer{})
+	err := tiered.Set(context.Background(), "raw:key", "payload", time.Minute)
+	if !hasReason(err, ReasonLocalBlocked) || !errors.Is(err, providerErr) || !errors.Is(err, deleteErr) || !errors.Is(err, btredis.ErrCommitUnknown) {
+		t.Fatalf("Set() = %v", err)
+	}
+	for _, secret := range []string{"redis-secret", "local-secret", "127.0.0.1", "10.0.0.1", "raw:key", "payload"} {
+		if strings.Contains(err.Error(), secret) {
+			t.Fatalf("Set Error() leaked %q: %q", secret, err.Error())
+		}
+	}
+	if local.deleteCalls != 1 || tiered.localState.phaseValue() != phaseBlocked {
+		t.Fatalf("delete calls/phase = %d/%v", local.deleteCalls, tiered.localState.phaseValue())
+	}
+}
+
+func TestTieredCacheSetKnownSuccessThenCancellationInvalidatesLocal(t *testing.T) {
+	ctx, cancel := context.WithCancel(context.Background())
+	local := &faultLocal[string]{values: map[string]string{"item": "stale"}}
+	client := &fakeCommandClient{set: func(context.Context, string, any, time.Duration) *redis.StatusCmd {
+		cancel()
+		return redis.NewStatusResult("OK", nil)
+	}}
+	tiered := newMutationTiered(t, local, client, serialization.StringSerializer{})
+	err := tiered.Set(ctx, "item", "new", time.Minute)
+	if !errors.Is(err, context.Canceled) || local.deleteCalls != 1 || len(local.setValues) != 0 {
+		t.Fatalf("Set() = %v, deletes/sets=%d/%d", err, local.deleteCalls, len(local.setValues))
+	}
+}
+
+func TestTieredCacheDeleteWritesRedisBeforeLocalCleanup(t *testing.T) {
+	var events []string
+	local := &faultLocal[string]{values: map[string]string{"item": "stale"}, events: &events}
+	client := &fakeCommandClient{del: func(context.Context, ...string) *redis.IntCmd {
+		events = append(events, "redis-delete")
+		return redis.NewIntResult(1, nil)
+	}}
+	tiered := newMutationTiered(t, local, client, serialization.StringSerializer{})
+	if err := tiered.Delete(context.Background(), "item"); err != nil {
+		t.Fatal(err)
+	}
+	if diff := cmp.Diff([]string{"redis-delete", "local-delete"}, events); diff != "" {
+		t.Fatalf("events (-want +got):\n%s", diff)
+	}
+}
+
+func TestInvalidateLocalDoesNotCallRedis(t *testing.T) {
+	local := &faultLocal[string]{values: map[string]string{"item": "stale"}}
+	tiered := newMutationTiered(t, local, &fakeCommandClient{}, serialization.StringSerializer{})
+	if err := tiered.InvalidateLocal(context.Background(), "item"); err != nil {
+		t.Fatal(err)
+	}
+	if local.deleteCalls != 1 {
+		t.Fatalf("delete calls = %d", local.deleteCalls)
+	}
+}
+
+func TestInvalidateLocalUsesShorterCleanupDeadlineAndBlocks(t *testing.T) {
+	blockedDelete := make(chan struct{})
+	local := &faultLocal[string]{deleteBlock: blockedDelete}
+	config := TieredConfig{LocalTTL: time.Minute, InvalidationWaitTimeout: time.Second, LocalCleanupTimeout: 20 * time.Millisecond}
+	remote := unitValueCache[string](&fakeCommandClient{}, serialization.StringSerializer{}, ValueConfig{RemoteTTL: time.Hour, MaxValueBytes: 32, ClearBatchSize: 10})
+	tiered := mustTieredCache(t, local, remote, &config)
+	started := time.Now()
+	err := tiered.InvalidateLocal(context.Background(), "item")
+	if !hasReason(err, ReasonLocalBlocked) || time.Since(started) > 300*time.Millisecond {
+		t.Fatalf("InvalidateLocal() = %v after %s", err, time.Since(started))
+	}
+	if tiered.localState.phaseValue() != phaseBlocked {
+		t.Fatalf("phase = %v", tiered.localState.phaseValue())
+	}
+}
+
+func TestFailedMandatoryCleanupBlocksUntilClearLocal(t *testing.T) {
+	local := &faultLocal[string]{deleteErr: errors.New("delete failed")}
+	providerErr := errors.New("provider failed")
+	client := &fakeCommandClient{set: func(context.Context, string, any, time.Duration) *redis.StatusCmd {
+		return redis.NewStatusResult("", providerErr)
+	}}
+	tiered := newMutationTiered(t, local, client, serialization.StringSerializer{})
+	err := tiered.Set(context.Background(), "item", "value", time.Minute)
+	if !hasReason(err, ReasonLocalBlocked) {
+		t.Fatalf("set error = %v", err)
+	}
+	if _, err := tiered.Get(context.Background(), "item"); !hasReason(err, ReasonLocalBlocked) {
+		t.Fatalf("blocked get = %v", err)
+	}
+	local.deleteErr = nil
+	local.clearErr = nil
+	if err := tiered.ClearLocal(context.Background()); err != nil {
+		t.Fatal(err)
+	}
+	if tiered.localState.phaseValue() != phaseHealthy {
+		t.Fatalf("phase = %v", tiered.localState.phaseValue())
+	}
+}
+
+func TestClearLocalFailureRemainsBlocked(t *testing.T) {
+	localErr := errors.New("clear failed")
+	local := &faultLocal[string]{clearErr: localErr}
+	remote := unitValueCache[string](&fakeCommandClient{}, serialization.StringSerializer{}, ValueConfig{RemoteTTL: time.Hour, MaxValueBytes: 32, ClearBatchSize: 10})
+	tiered := mustTieredCache(t, local, remote, nil)
+	err := tiered.ClearLocal(context.Background())
+	if !hasReason(err, ReasonLocalBlocked) || !errors.Is(err, localErr) || tiered.localState.phaseValue() != phaseBlocked {
+		t.Fatalf("ClearLocal() = %v, phase=%v", err, tiered.localState.phaseValue())
+	}
+}
+
+func TestTieredCacheClearRunsRemoteThenMandatoryLocalClear(t *testing.T) {
+	var events []string
+	local := &faultLocal[string]{values: map[string]string{"item": "stale"}, events: &events}
+	client := &fakeCommandClient{scan: func(context.Context, uint64, string, int64) *redis.ScanCmd {
+		events = append(events, "redis-scan")
+		return redis.NewScanCmdResult(nil, 0, nil)
+	}}
+	tiered := newMutationTiered(t, local, client, serialization.StringSerializer{})
+	if err := tiered.Clear(context.Background()); err != nil {
+		t.Fatal(err)
+	}
+	if diff := cmp.Diff([]string{"redis-scan", "local-clear"}, events); diff != "" {
+		t.Fatalf("events (-want +got):\n%s", diff)
+	}
+}
+
+func TestTieredCacheClearWhileBlockedRequiresExplicitClearLocal(t *testing.T) {
+	local := &faultLocal[string]{}
+	client := &fakeCommandClient{scan: func(context.Context, uint64, string, int64) *redis.ScanCmd {
+		return redis.NewScanCmdResult(nil, 0, nil)
+	}}
+	tiered := newMutationTiered(t, local, client, serialization.StringSerializer{})
+	tiered.localState.block()
+	if err := tiered.Clear(context.Background()); !hasReason(err, ReasonLocalBlocked) {
+		t.Fatalf("Clear() = %v", err)
+	}
+	if tiered.localState.phaseValue() != phaseBlocked {
+		t.Fatalf("phase = %v", tiered.localState.phaseValue())
+	}
+	if err := tiered.ClearLocal(context.Background()); err != nil {
+		t.Fatal(err)
+	}
+}
+
+func TestConcurrentClearLocalDuringRemoteClearWins(t *testing.T) {
+	scanEntered := make(chan struct{})
+	releaseScan := make(chan struct{})
+	client := &fakeCommandClient{scan: func(context.Context, uint64, string, int64) *redis.ScanCmd {
+		close(scanEntered)
+		<-releaseScan
+		return redis.NewScanCmdResult(nil, 0, nil)
+	}}
+	outerCleanupErr := errors.New("older clear must not run local cleanup")
+	var clearCalls atomic.Int64
+	local := &localFuncs[string]{clear: func(context.Context) error {
+		if clearCalls.Add(1) == 1 {
+			return nil
+		}
+		return outerCleanupErr
+	}}
+	tiered := newMutationTiered(t, local, client, serialization.StringSerializer{})
+	outerDone := make(chan error, 1)
+	go func() { outerDone <- tiered.Clear(context.Background()) }()
+	<-scanEntered
+	if err := tiered.ClearLocal(context.Background()); err != nil {
+		t.Fatal(err)
+	}
+	close(releaseScan)
+	if err := <-outerDone; err != nil {
+		t.Fatalf("older Clear() = %v", err)
+	}
+	if clearCalls.Load() != 1 || tiered.localState.phaseValue() != phaseHealthy {
+		t.Fatalf("clear calls/phase = %d/%v", clearCalls.Load(), tiered.localState.phaseValue())
+	}
+}
+
+func TestTieredCacheClearDoesNotClearPeerDecoratorL1(t *testing.T) {
+	client := &fakeCommandClient{scan: func(context.Context, uint64, string, int64) *redis.ScanCmd {
+		return redis.NewScanCmdResult(nil, 0, nil)
+	}}
+	remote := unitValueCache[*valueTestRecord](client, serialization.NewJSONSerializer[*valueTestRecord](), ValueConfig{RemoteTTL: time.Hour, MaxValueBytes: 128, ClearBatchSize: 10})
+	firstLocal := cache.NewMemory[string, *valueTestRecord]()
+	secondLocal := cache.NewMemory[string, *valueTestRecord]()
+	firstValue := &valueTestRecord{Name: "first"}
+	secondValue := &valueTestRecord{Name: "second"}
+	if err := firstLocal.Set(context.Background(), "item", firstValue, time.Hour); err != nil {
+		t.Fatal(err)
+	}
+	if err := secondLocal.Set(context.Background(), "item", secondValue, time.Hour); err != nil {
+		t.Fatal(err)
+	}
+	first := mustTieredCache(t, firstLocal, remote, nil)
+	second := mustTieredCache(t, secondLocal, remote, nil)
+	if err := first.Clear(context.Background()); err != nil {
+		t.Fatal(err)
+	}
+	got, err := second.Get(context.Background(), "item")
+	if err != nil || got != secondValue {
+		t.Fatalf("peer Get() = %+v/%v", got, err)
+	}
+	if first.localState.phaseValue() != phaseHealthy || second.localState.phaseValue() != phaseHealthy {
+		t.Fatalf("phases = %v/%v", first.localState.phaseValue(), second.localState.phaseValue())
+	}
+}
+
+func TestTieredCacheZeroValueMutationMethodsReturnUninitialized(t *testing.T) {
+	var tiered TieredCache[string]
+	ctx := context.Background()
+	tests := map[string]error{
+		"set":              tiered.Set(ctx, "item", "value", time.Minute),
+		"set-default":      tiered.SetDefault(ctx, "item", "value"),
+		"delete":           tiered.Delete(ctx, "item"),
+		"clear":            tiered.Clear(ctx),
+		"invalidate-local": tiered.InvalidateLocal(ctx, "item"),
+		"clear-local":      tiered.ClearLocal(ctx),
+	}
+	for name, err := range tests {
+		if !hasReason(err, ReasonUninitialized) {
+			t.Fatalf("%s = %v", name, err)
+		}
+	}
 }
