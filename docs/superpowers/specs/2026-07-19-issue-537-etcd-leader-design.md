@@ -77,12 +77,20 @@ Add import path `leader/etcd` with package name `etcdleader`:
 
 ```go
 func New(client *clientv3.Client, opts leader.Options) (*Elector, error)
+func (e *Elector) EffectiveTTL() time.Duration
 ```
 
 `New` validates a non-nil client and normalized `leader.Options`, requires
-`RenewInterval < Lease`, creates a cryptographically random owner token, computes the election
-prefix and effective integer-second TTL, and performs no backend I/O. It never creates a session
-until `Campaign` starts and never closes the caller's client.
+`RenewInterval < Lease`, creates a cryptographically random owner token, computes the encoded
+election prefix and requested integer-second TTL, and performs no backend I/O. It never creates a
+lease or session until `Campaign` starts and never closes the caller's client. A compile-time
+assertion keeps `*Elector` assignable to `leader.Elector`; the zero-value `Elector` is not usable.
+
+`EffectiveTTL` is a concrete-provider diagnostic because etcd may grant a different TTL from the
+request. Before the first successful grant it returns the requested rounded TTL. After a grant it
+returns the current generation's, or last successfully granted, server TTL. Each generation also
+retains its own granted TTL so later grants cannot shorten an older cleanup deadline. Callers use
+this value for cleanup wait budgets; it is not added to the backend-neutral interface.
 
 The public surface intentionally accepts no raw `concurrency.SessionOption`. Allowing callers to
 override `WithTTL`, `WithLease` or `WithContext` could silently disconnect the `leader.Options`
@@ -96,34 +104,41 @@ The value is an identity token, not a secret, credential, authorization grant or
 
 ## Key and Session Model
 
-The election prefix is the provider-common normalized identity:
+Provider input is encoded into non-overlapping path segments:
 
 ```text
-<KeyPrefix>:<Group>
+/bluetape4k/leader/<base64url(KeyPrefix)>/<base64url(Group)>
 ```
 
-`concurrency.Election` stores candidates below `<prefix>/` using the session lease ID in the key.
-The oldest creation revision is the current leader. The candidate value is the elector's owner
-token, and every candidate key is attached to exactly one elector-owned session lease.
+Both segments use unpadded `base64.RawURLEncoding`. `concurrency.Election` receives the path above
+plus one trailing separator and stores lease-suffixed candidates below it. Every range operation
+uses that exact candidate-root start and `clientv3.GetPrefixRangeEnd(start)`; raw prefixes,
+delimiter concatenation and broad parent-prefix scans are forbidden. The oldest creation revision
+is the current leader. The candidate value is the elector's owner token, and every candidate key
+is attached to exactly one elector-owned lease. Tests cover slash-containing inputs, encoded
+sibling groups and range-end isolation.
 
 Each campaign generation creates:
 
-- one internal session context independent of the caller's campaign context;
-- one `concurrency.Session` with `WithContext` and the effective TTL;
+- one internal generation context and cancel function;
+- one explicit `Lease.Grant` result containing the server-granted TTL;
+- one `concurrency.Session` with `WithContext` and `WithLease` for that grant;
 - one `concurrency.Election` for the fixed prefix;
-- one generation record containing lease ID, candidate key, creation revision, token, cancel and
-  completion handles;
-- after acquisition, one event-driven ownership monitor.
+- one generation record containing lease ID, granted TTL, candidate key, creation revision,
+  latest mutation time, cleanup deadline, token, cancel and completion handles;
+- after acquisition, one generation-owned ownership monitor.
 
 The requested positive `Lease` is rounded up to the next whole second because etcd lease grants
-use integer seconds. The rounded value is the **effective TTL** used for session creation, cleanup
-budgets, expiry fallback and documentation. The provider never rounds down. A sub-second lease
-therefore has a one-second effective TTL. Constructor tests cover exact seconds, fractional
-round-up, overflow and the `RenewInterval < Lease` rule.
+use integer seconds. The provider never rounds down; a sub-second lease therefore requests one
+second. `Campaign` calls `Lease.Grant` explicitly, records `LeaseGrantResponse.TTL`, and adopts that
+lease with `WithLease`; cleanup budgets and expiry fallback always use the granted value, not the
+request. Constructor tests cover exact seconds, fractional round-up, overflow and the
+`RenewInterval < Lease` rule. Grant tests cover a server TTL that differs from the request.
 
-`RenewInterval` remains a provider-neutral safety intent and conformance timing input, but etcd's
-session owns the actual keepalive cadence, normally derived from TTL. The provider does not add a
-second polling or `KeepAliveOnce` loop and does not claim exact `RenewInterval` scheduling.
+The session owns lease keepalive cadence. Separately, the provider honors `RenewInterval` as an
+ownership-validation cadence by calling `Election.Proclaim` with the same token. Proclaim's
+compare-revision transaction proves that the candidate still exists and is still this generation;
+it does not replace or duplicate lease keepalive.
 
 ## Campaign Lifecycle
 
@@ -132,40 +147,53 @@ second polling or `KeepAliveOnce` loop and does not claim exact `RenewInterval` 
 1. Reject nil or already-ended contexts before dispatch.
 2. Under the state mutex, reject `ErrAlreadyLeader`, `ErrCampaignInProgress` or
    `ErrCleanupPending`; otherwise mark campaign in progress and allocate a generation.
-3. Create the generation session using the internal session context and effective TTL.
-4. Create `concurrency.Election` and call `Election.Campaign(ctx, token)` synchronously.
-5. On apparent success, call `Election.Proclaim(ctx, token)` as a compare-revision ownership
-   validation. A missing/replaced key fails closed instead of returning stale success.
-6. Snapshot `Election.Key()` and `Election.Rev()`, mark the generation owned, and start the
-   event-driven ownership monitor.
-7. Return success only after the owned state and monitor handles are published atomically.
+3. Explicitly grant the rounded TTL, record the server-granted TTL, and create the session using
+   the generation context plus `WithLease`.
+4. Create `concurrency.Election`. Build a campaign context canceled by caller completion,
+   generation cancellation or `Session.Ctx()` completion. The cancellation bridges use joined
+   `context.AfterFunc` callbacks; callbacks are stopped or observed before method return.
+5. Call `Election.Campaign(campaignCtx, token)` synchronously. No wrapper goroutine is detached.
+6. On apparent success, perform a bounded `Election.Proclaim` as compare-revision validation.
+   A missing/replaced key fails closed instead of returning stale success.
+7. Snapshot `Election.Key()`, `Election.Rev()` and `Election.Header().Revision`. Start an exact-key
+   watch at the Proclaim header revision plus one and wait for its ready handshake.
+8. Stop the caller-cancellation bridge, re-check the caller and session contexts, then publish
+   owned state plus monitor handles atomically. Return success only after publication.
 
-The internal session context is not derived from the campaign context. A successful campaign may
-therefore keep leadership after the method returns, while caller cancellation remains scoped to
-that acquisition call.
+Caller cancellation cancels the generation context and therefore stops session keepalive even if
+the official Campaign cleanup RPC remains blocked. After successful publication the caller bridge
+is removed, so later cancellation of the acquisition context does not end established leadership.
+Every campaign exit joins its local cancellation callbacks; monitor goroutines are generation-owned
+and must be joined by cleanup.
 
 If Campaign or Proclaim fails after backend dispatch, ownership can be indeterminate. The elector
-retains the session/key/revision generation as cleanup inventory, stops session keepalive, attempts
-a bounded lease revoke, and returns a redacted `leader.OperationError`. If successful ownership or
-cleanup cannot be proved, the result also matches `leader.ErrCommitUnknown` and a following
-Campaign returns `leader.ErrCleanupPending` until the same elector completes `Resign` or the full
-effective TTL has elapsed.
+retains the session/key/revision generation as cleanup inventory, immediately cancels the
+generation context, waits for `Session.Done`, records a conservative expiry deadline, attempts a
+bounded lease revoke, and returns a redacted `leader.OperationError`. If absence or revoke cannot
+be proved, the result also matches `leader.ErrCommitUnknown`; a following Campaign returns
+`leader.ErrCleanupPending` until the same elector completes `Resign`, proves exact-key absence, or
+the recorded server-granted-TTL deadline has elapsed.
 
 ### Cancellation limitation
 
 The provider calls official `Election.Campaign` synchronously and creates no wrapper goroutine.
-On healthy connectivity, caller cancellation stops the watch, removes the candidate and returns
-the context error. During a partition, the official implementation's synchronous
-`Resign(client.Ctx())` can extend method latency beyond the caller deadline. The provider cannot
-interrupt that RPC without closing the shared caller-owned client.
+On healthy connectivity, caller cancellation stops the wait and attempts candidate removal.
+During a partition, the official implementation's synchronous `Resign(client.Ctx())` can extend
+method latency beyond the caller deadline. Canceling the generation stops lease keepalive and
+bounds backend ownership by the granted TTL, but it cannot interrupt that cleanup RPC without
+closing the shared caller-owned client.
 
 The operational contract is therefore:
 
-- cancellation initiates local and remote cleanup;
+- cancellation attempts remote candidate removal and always initiates local keepalive shutdown;
 - successful resign or revoke removes the candidate immediately;
-- unresolved remote cleanup is bounded for safety by stopped keepalive plus effective TTL expiry;
+- unresolved remote cleanup is bounded for safety by observed keepalive stop plus the
+  server-granted TTL and a one-second clock/scheduling margin;
 - strict wall-clock return by the caller deadline is not guaranteed during an etcd/network
   partition;
+- the production hard stop is: cancel all campaign contexts, wait a bounded grace period,
+  coordinate every shared-client user, close the caller-owned client, join the calls, and retain
+  the cleanup inventory until exact absence or TTL expiry;
 - applications must not start protected work after a campaign context has ended, even if a late
   successful return is observed.
 
@@ -173,20 +201,22 @@ This is an explicit etcd primitive limitation, not a promise weakened through a 
 
 ## Ownership Monitoring and Renewal
 
-After acquisition, one provider-owned monitor observes two event sources without polling:
+After acquisition, one provider-owned monitor observes three event sources:
 
 - `Session.Done()`, which closes when the lease keepalive stream ends or the session is canceled;
-- a watch of the exact candidate key beginning after its known acquisition revision.
+- a watch of the exact candidate key beginning at the successful Proclaim header revision plus one;
+- a `RenewInterval` ticker that performs one bounded compare-revision `Election.Proclaim`.
 
-Lease loss, key deletion, watch compaction/error or an ownership-invalidating event clears
-`IsLeader` for the matching generation and stops that generation. A generation check prevents a
-stale monitor from clearing newer state. A watch error fails closed because the provider can no
-longer prove ownership.
+The watch has a ready handshake before Campaign can publish success. PUT events from Proclaim are
+ignored; delete, cancellation, compaction and watch errors invalidate ownership. Session loss or
+any Proclaim failure also invalidates ownership. Every invalidation atomically clears `IsLeader`,
+marks cleanup pending when absence is not proved, and immediately cancels the generation context
+so keepalive stops. A generation check prevents a stale monitor from clearing newer state.
 
-The monitor does not periodically call `Leader`, `TimeToLive`, `Proclaim` or any other backend
-operation. Keepalive scheduling and retries remain inside the official session. In production,
-renewal health is therefore observed as session keepalive continuity rather than a
-provider-generated renewal ticker.
+Each Proclaim uses a fresh operation context bounded by the smallest positive value among
+`RenewInterval`, granted TTL divided by four, and one second. The monitor holds no mutex across a
+backend RPC, join or wait. The session remains the only lease keepalive owner; Proclaim is the
+provider's public `renew` operation and deterministic conformance fault seam.
 
 ## Resign and Cleanup Lifecycle
 
@@ -194,12 +224,12 @@ provider-generated renewal ticker.
 
 1. Reject nil or already-ended contexts before dispatch.
 2. If there is no owned or cleanup generation, return nil.
-3. Mark local leadership false and prevent a new Campaign.
-4. Cancel and join the exact generation monitor so no stale monitor mutates later state.
+3. Mark local leadership false, prevent a new Campaign, and immediately cancel the generation
+   context so session keepalive stops.
+4. Join the exact generation monitor so no stale monitor mutates later state.
 5. Reconstruct the election with the retained session, key and revision using
    `concurrency.ResumeElection` when necessary, then call its compare-revision `Resign(ctx)`.
-6. On confirmed delete or confirmed absence, cancel the session parent context, wait boundedly for
-   `Session.Done`, and revoke the lease with the remaining caller budget.
+6. On confirmed delete or confirmed absence, revoke the lease with the remaining caller budget.
 7. Clear generation state only after cleanup is confirmed. Repeated Resign then returns nil.
 
 The key/revision snapshot is retained independently of `Election`'s mutable local fields because
@@ -209,45 +239,56 @@ inventory and permits a fresh-context retry through `ResumeElection`. The creati
 compare prevents a stale retry from deleting a replacement owner.
 
 If the caller context ends while monitor join, delete or revoke is incomplete, `Resign` preserves
-cleanup state. Canceling the session context stops keepalive even when immediate revoke cannot be
-confirmed; effective TTL expiry is the final safety boundary.
+cleanup state. When `Session.Done` is observed, the generation records a conservative cleanup
+deadline of `max(sessionDoneTime, lastPossibleMutationTime) + grantedTTL + 1s`. Campaign and Resign
+entry reconcile exact key/revision/token absence and clear stale inventory; if reconciliation is
+unavailable, the deadline is the final safety boundary. Resign called while another Campaign is
+still waiting follows the common contract and returns nil; callers cancel the Campaign context to
+stop that attempt.
 
 ## Leader Observation
 
-`Leader(ctx)` validates the context and performs one sorted prefix `Get` with
-`clientv3.WithFirstCreate()`. It does not create a session merely to observe leadership.
+`Leader(ctx)` validates the context and performs one linearizable sorted `Get` over the exact
+encoded candidate range with `clientv3.WithFirstCreate()`. It does not create a session merely to
+observe leadership.
 
 - no candidate returns `"", nil`;
 - the oldest candidate returns its token;
-- a read failure returns a redacted `leader.OperationError("etcd", "leader", cause)`;
+- a read failure returns a redacted `leader.OperationError("etcd", "lookup", cause)`;
 - endpoints, keys, groups, lease IDs, tokens and raw provider messages never appear in the rendered
   error string.
 
-Observation is a linearizable etcd read unless the caller deliberately configured the shared
-client otherwise. `Leader` reports the backend's current candidate and does not prove this local
-elector still owns leadership. `IsLeader` remains the local fail-closed lifecycle signal.
+The provider does not request serializable reads, so observation uses etcd's default linearizable
+Get. `Leader` reports the backend's current candidate and does not prove this local elector still
+owns leadership. `IsLeader` remains the local fail-closed lifecycle signal.
 
 ## Error Policy
 
 Every dispatched provider failure is wrapped with
-`leader.NewOperationError("etcd", operation, cause)`. Stable operation labels are `campaign`,
-`proclaim`, `resign`, `revoke`, `watch` and `leader`.
+`leader.NewOperationError("etcd", operation, cause)`. Stable public operation labels remain
+provider-neutral: `campaign`, `renew`, `resign` and `lookup`. Grant, session, watch, Proclaim,
+revoke and reconciliation are private phases mapped to the owning public operation.
 
 - pre-dispatch nil context returns `leader.ErrInvalidContext`;
 - pre-dispatch canceled/deadline context returns the bare context error;
-- campaign/proclaim failure after possible mutation matches `leader.ErrCommitUnknown` unless
+- campaign/renew failure after possible mutation matches `leader.ErrCommitUnknown` unless
   reconciliation or revoke proves no live ownership;
 - resign/revoke failure after possible mutation matches `leader.ErrCommitUnknown` and retains
   cleanup state;
 - session/watch loss makes `IsLeader=false`; unresolved remote ownership retains cleanup state;
-- rendered errors preserve error type and `errors.Is`/`errors.As` without rendering raw etcd text.
+- rendered errors preserve error type and `errors.Is`/`errors.As` without rendering raw etcd text;
+- provider-owned logs, examples and telemetry never unwrap causes. Tests verify `Error()` and every
+  repository-owned logging path omit endpoint, username, password, token, encoded key/group, lease
+  ID, certificate path and injected raw markers. Documentation warns that an explicitly unwrapped
+  etcd cause is diagnostic-sensitive and must not be logged unsanitized.
 
 No automatic Campaign retry occurs after an indeterminate mutation. Callers retry bounded Resign
 on the same elector and fall back to full effective-TTL wait.
 
 ## Conformance Timing Amendment
 
-Extend the public test-only harness source-compatibly:
+Keep the public `Harness` type unchanged so existing keyed and unkeyed literals compile. Add a
+source-compatible opt-in runner configuration:
 
 ```go
 type Timing struct {
@@ -258,11 +299,15 @@ type Timing struct {
     ResignTimeout time.Duration
 }
 
-type Harness struct {
-    New     Factory
-    Control Control
-    Timing  Timing
+type AbortFunc func(context.Context, leader.Options) error
+
+type Config struct {
+    Timing Timing
+    Abort  AbortFunc
 }
+
+func Run(t *testing.T, harness Harness)
+func RunWithConfig(t *testing.T, harness Harness, config Config)
 ```
 
 The zero-value `Timing` resolves field-by-field to the current defaults:
@@ -273,10 +318,18 @@ The zero-value `Timing` resolves field-by-field to the current defaults:
 - wait timeout: 2s;
 - resign timeout: 250ms.
 
-Normalization rejects negative values and any resolved `RenewInterval >= Lease`. `Run` still
-executes the same named 15-case table in the same order. There are no capability flags, case
-filters, skips or relaxed assertions. Existing harness literals compile unchanged and keep their
-current timing.
+Normalization rejects negative values, any resolved `RenewInterval >= Lease`, non-positive
+timeouts, and `WaitTimeout` or `ResignTimeout` values that do not leave cleanup margin below
+`CaseTimeout`. `Run` is a wrapper around `RunWithConfig` using current defaults. Both execute the
+same named 15-case table in the same order; there are no capability flags, filters, skips or
+relaxed assertions.
+
+Every case owns a cancelable root context and all evaluator contexts derive from it. On case
+timeout the runner cancels the root, waits a bounded join grace, invokes `Abort` if the case is
+still running with a fresh bounded abort context, and joins the case goroutine before the subtest
+returns. A provider adapter that can hit official unbounded cleanup must supply case-dedicated
+clients and an Abort function that closes only those clients. This prevents timed-out cases from
+mutating later tests or leaking sessions.
 
 The etcd integration harness uses:
 
@@ -286,25 +339,27 @@ The etcd integration harness uses:
 - wait timeout: 4s;
 - resign timeout: 2s.
 
-This profile represents integer-second TTL and official keepalive cadence while preserving every
-contract assertion. Harness self-tests prove zero-value compatibility, partial defaulting, invalid
-timing rejection and that a deliberately broken provider still fails under a custom profile.
+This profile represents integer-second TTL and provider ownership validation while preserving
+every contract assertion. Harness self-tests prove zero-value compatibility, unkeyed-literal
+compatibility, partial defaulting, invalid relationship rejection, timeout cancel/abort/join
+ordering and that a deliberately broken provider still fails under a custom profile. `waitFor`
+uses events where the case exposes them, otherwise a 10-20ms ticker/backoff rather than a 1ms poll.
 
 ## Conformance Adapter and Fault Injection
 
 The etcd conformance adapter uses the same real server and namespace as constructed electors.
 
 - `ReplaceOwner` revokes the observed current leader lease, creates a fresh control lease/session,
-  and campaigns a replacement token. Revocation ensures the original `Session.Done` signal and
-  candidate-key deletion are both real backend events.
+  campaigns a replacement token, and immediately calls `Session.Orphan`. The replacement lease ID
+  is retained for bounded suite teardown but is not kept alive; this preserves the expiry-takeover
+  case instead of installing a permanent control owner.
 - `Owner` reads the first-created candidate value.
 - `OperationCount` is identity/operation-specific, monotonic and concurrency-safe.
-- Campaign and resign use a package-private phase hook for deterministic post-linearization
-  response loss, following the SQL provider precedent.
-- A dedicated test client stream interceptor counts successful LeaseKeepAlive responses as
-  `OperationRenew` and can terminate the armed next keepalive stream after a successful response.
-  This proves session loss, local fail-closed transition and stopped renewal traffic without a
-  production polling hook.
+- Campaign, renew and resign use package-private phase hooks for deterministic
+  post-linearization response loss, following the SQL provider precedent.
+- Successful bounded Proclaim calls count as `OperationRenew`; the armed post-success renew hook
+  fails the next call after the real transaction. This proves local fail-closed transition and
+  stopped future renewal traffic without gRPC interceptor coupling.
 
 Test-only hooks never become public API and never bypass actual etcd mutation. The lost-response
 cases first perform the real operation, then replace only its observed response.
@@ -323,22 +378,36 @@ Add test dependency:
 github.com/testcontainers/testcontainers-go/modules/etcd v0.42.0
 ```
 
-Use `gcr.io/etcd-development/etcd:v3.6.13` in the integration fixture. v3.6.13 is the maintained
-previous minor, has a smaller transitive upgrade surface than the newly released v3.7.0, and has
-the same relevant Session/Election behavior. v3.5 is outside the normal current-plus-previous
+Use `gcr.io/etcd-development/etcd:v3.6.13` in the integration fixture and pin the platform digest:
+
+```text
+linux/amd64 sha256:946dfbae58b1dec56af786a23e7322484b58281547bef1e848321f6beeb388d5
+linux/arm64 sha256:23c14fbdf70105a54146cf5ed3a81613b99a973c60d5907851a251ca15664e96
+```
+
+The fixture selects only the current runtime platform and records tag, digest and platform in test
+output. v3.6.13 is the maintained previous minor, has a smaller transitive upgrade surface than
+the newly released v3.7.0, and has the same relevant Session/Election behavior. v3.5 is outside
+the normal current-plus-previous
 support window. A future v3.7 upgrade is separate dependency work.
 
-The fixture uses `etcd.Run` directly; no public `testcontainers/etcd` wrapper is added. After the
-container reports its endpoint, the test performs a bounded real `Status` or KV request before
-declaring readiness. Partially initialized containers and clients are cleaned up with bounded
-`internal/testcleanup` handling. Docker-backed tests run serially.
+The fixture uses `etcd.Run` directly; no public `testcontainers/etcd` wrapper is added. Readiness
+requires bounded `Status` evidence for member/leader plus a linearizable KV roundtrip. This proves
+single-node fixture health, not quorum behavior. Partially initialized containers and clients are
+cleaned up with bounded `internal/testcleanup` handling. Docker-backed tests run serially.
 
 ## Operational and Security Contract
 
 - All contenders for one group use clients that reach the same etcd cluster and election prefix.
 - Production uses an odd-sized quorum, TLS endpoint verification and authenticated clients.
-- The runtime role needs lease grant/keepalive/revoke and read/write/watch access only to its
-  configured election prefix. `KeyPrefix` is a namespace, not a tenant authorization boundary.
+- Every credential with write/delete permission in an election range is a mutually trusted
+  election participant. `KeyPrefix` is collision isolation, never tenant isolation. Tenant or
+  trust isolation requires separate exact encoded ranges and credentials, or separate clusters.
+- etcd RBAC restricts KV read/write/watch to the exact encoded candidate range. Lease operations
+  are not prefix-scoped authorization; documentation must not claim they are. Authenticated
+  integration tests prove the role can use its own range and cannot read/write a sibling range.
+- Production TLS loads a trusted CA, validates endpoint hostname/`ServerName`, and keeps
+  `InsecureSkipVerify=false`. The plaintext single-node fixture is explicitly test-only.
 - Direct writes or deletes under the election prefix can force leadership loss and are restricted
   to trusted operators/roles.
 - etcd linearizable reads and quorum availability define coordination availability. A minority
@@ -349,18 +418,24 @@ declaring readiness. Partially initialized containers and clients are cleaned up
 - Shutdown order is: stop protected work, cancel/join campaign, bounded Resign every elector,
   inventory cleanup-pending generations, wait effective TTL where required, then close the
   caller-owned client after all other users finish.
-- Telemetry records only safe provider/operation/result labels. It never records full endpoints,
-  keys, lease IDs or owner tokens.
+- Provider cutover and rollback are stop-the-world per logical group: stop protected work, drain
+  the old provider and its TTL boundary, then start etcd contenders. Old and etcd providers must
+  never campaign the same logical group concurrently without an external fencing authority.
+- Telemetry records only safe provider/operation/result/status labels. It never records full
+  endpoints, keys, lease IDs or owner tokens. Required signals cover campaigning, leadership,
+  session/watch loss, cleanup-pending age, commit-unknown, revoke outcome and operation latency.
 
 ## Test Strategy
 
 ### Unit and deterministic lifecycle tests
 
 - nil client, option validation, integer-second TTL conversion and token uniqueness;
+- encoded exact-range construction, slash-containing and sibling-group isolation;
 - no backend I/O or session creation in `New`;
 - duplicate, in-progress and cleanup-pending state rejection;
 - generation-safe monitor and resign races;
-- session loss, key deletion, watch error and stale monitor fail-closed behavior;
+- server-granted TTL, EffectiveTTL concurrency and per-generation cleanup deadline;
+- session loss, key deletion, watch error, renew failure and stale monitor fail-closed behavior;
 - resign retry through retained key/revision and stale-resign safety;
 - context and provider-error mapping, commit-unknown composition and redaction;
 - caller client remains usable after elector cleanup.
@@ -375,6 +450,8 @@ declaring readiness. Partially initialized containers and clients are cleaned up
 - resign, idempotent resign, lost response, retry and stale revision protection;
 - server restart/endpoint interruption within a bounded fixture where stable;
 - complete `leadertest.Run` under the etcd timing profile;
+- authenticated own-range success and sibling-range denial, with plaintext marked test-only;
+- higher-contention bounded resource test documenting O(contenders) leases, sessions and watches;
 - repeated and race-enabled package runs, serialized against one fixture.
 
 ### Repository verification
@@ -382,7 +459,7 @@ declaring readiness. Partially initialized containers and clients are cleaned up
 ```bash
 go test -p 1 -count=1 ./leader/leadertest ./leader/etcd
 go test -race -p 1 -count=1 ./leader/leadertest ./leader/etcd
-go test -p 1 -count=10 ./leader/etcd
+go test -p 1 -count=1 ./leader/etcd
 go mod verify
 make fmt-check
 make tidy-check
@@ -394,27 +471,37 @@ make ci
 Dependency verification records the selected etcd/Testcontainers versions and the resulting
 gRPC, protobuf, Prometheus, `x/net`, `x/sys` and zap module graph.
 
+Pull-request CI runs one real-server conformance pass and records measured package/race duration.
+The targeted `go test -p 1 -count=10 ./leader/etcd` soak is a nightly/manual or pre-release gate
+unless its measured upper bound fits normal CI. The supported server target is v3.6.13; other etcd
+minors are explicitly untested until a separate compatibility smoke matrix is added. Dependency
+rollback restores the previous module files and provider registration in one staged change.
+
 ## Documentation and Release Surface
 
 - Add `leader/etcd/README.md` and `README.ko.md` with section-for-section parity.
 - Register the provider in `leader/README.md`, `leader/README.ko.md`, root `README.md` and
   `README.ko.md`.
 - Update the unreleased `CHANGELOG.md` and the v0.19.0 provider-conformance runbook.
-- Include compile-checked examples for acquire/work/resign and cancellation/TTL recovery.
-- Record a Type A lesson covering the official Campaign cleanup context, effective TTL,
-  event-driven ownership monitoring and non-skipping conformance timing profile.
+- Include compile-checked examples for acquire/work/resign and cancellation/TTL recovery. Examples
+  inspect `campaignCtx.Err()` even after nil Campaign return, stop protected work when `IsLeader`
+  clears, preserve initiating and cleanup errors, retry Resign on the same elector, wait
+  `EffectiveTTL` where required, and close the caller client last.
+- Record a Type A lesson covering the official Campaign cleanup context, server-granted TTL,
+  watch-plus-Proclaim ownership monitoring and non-skipping conformance timing profile.
 - Do not add a cluster-provisioning package, generic etcd wrapper or public Testcontainers helper.
 
 ## Risks and Mitigations
 
 | Risk | Mitigation |
 |---|---|
-| Official Campaign cleanup exceeds caller deadline during partition | Call synchronously, document the limitation, stop session keepalive after return, attempt bounded revoke and use effective TTL fallback; never detach a wrapper goroutine. |
-| Session expires while Campaign is completing | Validate ownership with Proclaim and publish owned state only after key/revision snapshot; monitor session and key immediately. |
+| Official Campaign cleanup exceeds caller deadline during partition | Call synchronously, cancel the generation to stop keepalive, document the coordinated caller-client hard stop, and use granted-TTL fallback; never detach a wrapper goroutine. |
+| Session expires while Campaign is completing | Validate ownership with bounded Proclaim, start a revision-correct ready watch, and publish owned state only after context re-check. |
 | Session remains healthy after candidate key deletion | Watch the exact candidate key as well as `Session.Done`; fail closed on deletion or watch error. |
 | Failed Resign clears official Election local fields | Retain key/revision/session independently and retry with `ResumeElection`. |
-| Sub-second shared conformance cannot map to etcd TTL | Add timing-only Harness configuration; keep every case and assertion mandatory. |
-| Opaque keepalive hides renewal operations | Observe/fault the real gRPC stream only in the conformance client; production stays event-driven. |
+| Sub-second shared conformance cannot map to etcd TTL | Add source-compatible `RunWithConfig`; keep Harness and every case/assertion unchanged. |
+| Opaque keepalive hides renewal operations | Use bounded compare-revision Proclaim at RenewInterval as ownership renewal while Session remains the sole lease keepalive owner. |
+| Raw prefix delimiters overlap sibling groups | Encode both identity segments and use exact candidate range ends for Get, RBAC and tests. |
 | v3.7 dependency causes broad transitive churn | Pin maintained v3.6.13 and verify the module graph; upgrade separately. |
 | Error messages leak endpoint/key/token data | Use redacted `leader.OperationError` labels and explicit forbidden-marker tests. |
 | Stale leader continues protected work | Document absence of fencing and require application-level fencing for safety-critical resources. |
@@ -422,17 +509,17 @@ gRPC, protobuf, Prometheus, `x/net`, `x/sys` and zap module graph.
 ## Acceptance Criteria
 
 1. `leader/etcd` implements `leader.Elector` over a caller-owned etcd client without closing it.
-2. Each campaign generation owns one official Session/Election lifecycle and creates no detached
-   per-method goroutine.
+2. Each campaign generation owns one explicitly granted lease plus official Session/Election
+   lifecycle, joins its cancellation/monitor work, and creates no detached per-method goroutine.
 3. Acquire, observation, session renewal, owner loss, cancellation, resign retry, stale cleanup and
-   effective-TTL fallback semantics are covered on a real etcd server.
-4. `leadertest.Harness` gains a source-compatible timing profile with zero-value compatibility,
-   no capability flags and no skipped/relaxed cases.
+   server-granted-TTL fallback semantics are covered on a real etcd server.
+4. `leadertest.Harness` remains unchanged; `RunWithConfig` adds source-compatible timing and
+   cancel/abort/join containment with no capability flags or skipped/relaxed cases.
 5. The etcd provider passes all mandatory conformance cases with the 3s/1s profile.
 6. Operation failures are typed, redacted and commit-unknown/cleanup-pending recovery remains
    discoverable through `errors.Is`/`errors.As`.
 7. README pairs, package registration, changelog, release runbook and Type A lesson document
-   caller ownership, effective TTL, cancellation limitation, quorum/RBAC/TLS, no-fencing and
-   shutdown requirements.
+   caller ownership, server-granted TTL/EffectiveTTL, exact encoded ranges, cancellation hard stop,
+   quorum/RBAC/TLS, stop-the-world migration, no-fencing and shutdown requirements.
 8. Targeted, race, repeated, dependency and repository CI verification pass with Docker-backed
    packages serialized.
