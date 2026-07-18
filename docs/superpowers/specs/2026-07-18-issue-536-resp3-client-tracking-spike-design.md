@@ -1,6 +1,6 @@
 # Issue #536 RESP3 CLIENT TRACKING Spike Design
 
-Status: Step 3-R repair candidate; Step 2-R delta and Step 3-R re-review required
+Status: Step 2-R and Step 3-R converged at `3d7567b`
 Issue: [#536](https://github.com/bluetape4k/bluetape-go/issues/536)
 Predecessor: [#110](https://github.com/bluetape4k/bluetape-go/issues/110)
 Tiered cache seam: [#535](https://github.com/bluetape4k/bluetape-go/issues/535)

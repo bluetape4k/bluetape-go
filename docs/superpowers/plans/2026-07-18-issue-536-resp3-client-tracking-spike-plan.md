@@ -14,9 +14,10 @@
 
 - Approved design: `docs/superpowers/specs/2026-07-18-issue-536-resp3-client-tracking-spike-design.md`
 - Test specification: `docs/superpowers/specs/2026-07-18-issue-536-resp3-client-tracking-spike-test-spec.md`
-- Step 2-R baseline: exact design commit
-  `38364100af92d6da616ff89101109fc768e639a4`, `P0=0 P1=0 P2=0`; the Step 3-R
-  repair candidate requires a fresh exact-commit Step 2-R delta review.
+- Step 2-R final exact design commit:
+  `3d7567b13ebc3a427771734e42aa9b980a7d8388`, `P0=0 P1=0 P2=0`.
+- Step 3-R final exact plan/test-spec commit:
+  `3d7567b13ebc3a427771734e42aa9b980a7d8388`, `P0=0 P1=0 P2=0`.
 - Classification: Type B. Stop before any production file, exported tracking API, dependency change, background pump, reconnect subsystem, or exported physical-key mapper.
 
 ## File Map
