@@ -192,10 +192,19 @@ func (s *localState) releaseActiveLocked() {
 }
 
 func (s *localState) beginRepair(ctx context.Context, kind repairKind) (repairLease, error) {
+	lease, _, err := s.beginRepairAtGeneration(ctx, kind, nil)
+	return lease, err
+}
+
+func (s *localState) beginRepairAtGeneration(
+	ctx context.Context,
+	kind repairKind,
+	expectedGeneration *uint64,
+) (repairLease, localDisposition, error) {
 	ctx = normalizeContext(ctx)
 	for {
 		if err := ctx.Err(); err != nil {
-			return repairLease{}, err
+			return repairLease{}, localBlocked, err
 		}
 		s.mu.Lock()
 		if s.phase == phaseRepairing {
@@ -203,10 +212,15 @@ func (s *localState) beginRepair(ctx context.Context, kind repairKind) (repairLe
 			s.mu.Unlock()
 			select {
 			case <-ctx.Done():
-				return repairLease{}, ctx.Err()
+				return repairLease{}, localBlocked, ctx.Err()
 			case <-changed:
 				continue
 			}
+		}
+		if expectedGeneration != nil && s.generation != *expectedGeneration {
+			disposition := s.classifyLocked(*expectedGeneration)
+			s.mu.Unlock()
+			return repairLease{}, disposition, nil
 		}
 
 		origin := repairFromHealthy
@@ -232,17 +246,17 @@ func (s *localState) beginRepair(ctx context.Context, kind repairKind) (repairLe
 					s.broadcastLocked()
 				}
 				s.mu.Unlock()
-				return repairLease{}, ctx.Err()
+				return repairLease{}, localBlocked, ctx.Err()
 			case <-changed:
 				s.mu.Lock()
 			}
 		}
 		if s.phase != phaseRepairing || s.epoch != lease.epoch {
 			s.mu.Unlock()
-			return repairLease{}, localBlockedError(nil)
+			return repairLease{}, localBlocked, localBlockedError(nil)
 		}
 		s.mu.Unlock()
-		return lease, nil
+		return lease, localCurrent, nil
 	}
 }
 
@@ -282,6 +296,10 @@ func (s *localState) block() {
 func (s *localState) classify(generation uint64) localDisposition {
 	s.mu.Lock()
 	defer s.mu.Unlock()
+	return s.classifyLocked(generation)
+}
+
+func (s *localState) classifyLocked(generation uint64) localDisposition {
 	switch {
 	case s.phase == phaseHealthy && s.generation == generation:
 		return localCurrent
@@ -292,6 +310,12 @@ func (s *localState) classify(generation uint64) localDisposition {
 	default:
 		return localBlocked
 	}
+}
+
+func (s *localState) generationValue() uint64 {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	return s.generation
 }
 
 func (s *localState) phaseValue() localPhase {
