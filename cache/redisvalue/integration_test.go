@@ -248,9 +248,12 @@ func TestRedisValueIntegration(t *testing.T) {
 			t.Fatal(err)
 		}
 		bttesting.Eventually(t, 3*time.Second, func() bool {
-			_, err := tiered.Get(ctx, "short")
+			_, err := remote.Get(ctx, "short")
 			return errors.Is(err, cache.ErrCacheMiss)
 		})
+		if _, err := tiered.Get(ctx, "short"); !errors.Is(err, cache.ErrCacheMiss) {
+			t.Fatalf("tiered Get() after L2 expiry = %v, want cache miss", err)
+		}
 	})
 
 	t.Run("mixed-version-matrix", func(t *testing.T) {
