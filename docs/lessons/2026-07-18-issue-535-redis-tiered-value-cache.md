@@ -1,6 +1,7 @@
 # Lessons Learned - Redis Tiered Value Cache (#535)
 
-**Related issue:** #535  
+**Related issue:** #535
+
 **Affected package:** `cache/redisvalue`
 
 ## L1: A local reference cache and a serialized remote cache need different boundaries
