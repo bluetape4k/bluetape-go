@@ -68,10 +68,11 @@ Write these tests exactly:
 
 - `TestRESP3TrackingSpikeHandlerRejectsUnsafePayloadsWithoutDisclosure`
   covers frame arity, notification type, collection type, non-string/empty key,
-  65 keys, 2049-byte key, 33 allowlisted 2 KiB keys exceeding 64 KiB aggregate,
-  duplicate, and foreign
+  empty key list, 65 keys, 2049-byte key, 33 allowlisted 2 KiB keys exceeding
+  64 KiB aggregate, duplicate, and foreign
   sensitive-marker key. Every row requires zero local calls, one typed failure
-  observation, `overflow=false`, and only `errRESP3InvalidationRejected`.
+  observation, `overflow=false`, and only `errRESP3InvalidationRejected`; the
+  empty list uses reason `key-count`.
 - `TestRESP3TrackingSpikeHandlerProcessesBoundedMultiKeyPayload` requires two
   exact payload-order calls, no full clear, one success event with count two,
   and no overflow.
@@ -142,7 +143,8 @@ mutex. `done` delegates to `wg.Done`; `wait` delegates to `wg.Wait`. Calling
 `HandlePushNotification` must:
 
 1. call `gate.begin`, return the redacted rejection sentinel when closed, and
-   defer `gate.done` only after successful admission;
+   defer `gate.done` only after successful admission; before returning on a
+   closed gate, non-blockingly record one `reason=shutdown` failure event;
 2. accept exactly `[]interface{}{"invalidate", nil}` or a non-empty
    `[]interface{}` key list;
 3. enforce count/per-key/aggregate/duplicate limits;
@@ -221,15 +223,22 @@ directly so actual container identity remains inspectable:
 ```go
 container, err := tcredis.Run(ctx, "redis:7.4-alpine")
 if err != nil {
-	t.Fatal(err)
+	t.Fatal(testcleanup.FormatStartError("redis", "redis:7.4-alpine", err))
 }
 testcleanup.Register(ctx, t, "resp3 redis", container)
 inspect, err := container.Inspect(ctx)
 if err != nil {
 	t.Fatal(err)
 }
-if inspect.Config == nil || inspect.Config.Image != "redis:7.4-alpine" {
-	t.Fatalf("configured image = %v", inspect.Config)
+if inspect.Config == nil {
+	t.Fatal("missing container image config")
+}
+if inspect.Config.Image != "redis:7.4-alpine" {
+	got := inspect.Config.Image
+	if len(got) > 128 {
+		got = got[:128]
+	}
+	t.Fatalf("configured image = %q", got)
 }
 if inspect.Image == "" {
 	t.Fatal("empty engine image identity")
@@ -260,6 +269,15 @@ The fixture accepts no caller-provided client/options/dialer/endpoint. Parse
 ```go
 f.admin.ClientKillByFilter(ctx, "ID", strconv.FormatInt(id, 10)).Result()
 ```
+
+Immediately after all four clients are constructed, register a fixture
+`t.Cleanup`. The container cleanup was registered first, so LIFO closes Redis
+resources before termination. Define a mutex-protected registry of
+`idempotentCloser` entries; every sticky connection and each of the four
+clients receives its own `sync.Once`. Explicit reconnect/shutdown closes and
+final cleanup call the same entry. Final cleanup closes sticky connections
+before clients. No fallible fixture operation may occur between allocating the
+four clients and registering this cleanup.
 
 Use `closeWithin(t, name, func() error)` with a buffered result channel and a
 1-second watchdog. Document in the helper comment that timeout observes but
@@ -413,11 +431,12 @@ completion within 1 second.
 
 `TestRESP3TrackingSpikeShutdownOrdersQuiescenceBeforeUnregister` starts and
 holds one callback inside the invalidator, calls `gate.close`, proves a later
-dispatch is rejected without entering the invalidator, then starts `gate.wait`
-through a 1-second watchdog. Prove the wait is blocked before releasing the
-first callback, release it, require the wait to finish, unregister, assert
-`GetHandler("invalidate") == nil`, then close connection and client with
-`closeWithin`.
+dispatch returns `errRESP3InvalidationRejected`, records exactly one
+`reason=shutdown` event with `overflow=false`, and does not enter the
+invalidator. Then start `gate.wait` through a 1-second watchdog. Prove the wait
+is blocked before releasing the first callback, release it, require the wait to
+finish, unregister, assert `GetHandler("invalidate") == nil`, then close the
+connection and client through their idempotent fixture closers.
 
 - [ ] **Step 3: Verify and commit**
 
