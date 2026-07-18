@@ -72,6 +72,9 @@ Mutation은 Redis-first입니다. `SET` 또는 `DEL`을 호출한 뒤 provider e
 수행합니다. Cleanup 성공을 증명하지 못하면 decorator는 `ReasonLocalBlocked`로
 전환해 fail closed합니다. 성공한 explicit `ClearLocal`만 이 상태를 복구합니다.
 Public error는 redacted 상태로 `errors.Is`/`errors.As` 검사를 지원합니다.
+Deterministic redacted key ID는 anonymization boundary가 아니라 correlation pseudonym입니다.
+Low-entropy key는 dictionary-guess가 가능하므로 key에 secret이나 direct PII를 넣지
+마십시오.
 
 <!-- redisvalue-contract: clear -->
 ## Clear와 fleet reset

@@ -75,3 +75,23 @@ through blocked-state repair.
 Before final review, map every spec concurrency bullet to a named test and
 assert exact side-effect totals; `go test -race` is supporting evidence, not a
 substitute for that traceability.
+
+## L4: Admission and publication need separate fence proofs
+
+### Problem
+
+Pausing only inside a loader or provider callback proves in-flight cleanup, but
+does not isolate the boundary after a side-effect ticket is issued and before
+the admitted loader, `SET`, or `DEL` is invoked.
+
+### Decision
+
+A deterministic local-state seam now issues a one-shot ticket, transitions the
+decorator out of its generation, and then proves that the already admitted
+side effect runs exactly once while its result cannot publish into L1.
+
+### Future Guard
+
+When a state machine separates admission from effect execution, test the
+ticket and the later publication classification independently; callback latches
+alone do not prove both boundaries.

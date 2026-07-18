@@ -72,6 +72,9 @@ late cancellation can be commit-unknown and triggers mandatory L1 cleanup.
 If cleanup cannot be proved, the decorator enters `ReasonLocalBlocked` and
 fails closed. Only a successful explicit `ClearLocal` heals that state. Public
 errors are redacted and remain inspectable with `errors.Is`/`errors.As`.
+The deterministic redacted key ID is a correlation pseudonym, not an
+anonymization boundary: low-entropy keys can be dictionary-guessed. Keys must
+not contain secrets or direct PII.
 
 <!-- redisvalue-contract: clear -->
 ## Clear and fleet reset

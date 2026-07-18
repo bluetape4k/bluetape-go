@@ -50,6 +50,8 @@ func TestReadmeContractMarkersStayInParity(t *testing.T) {
 			"go-redis hooks",
 			"cursor 0",
 			"maxmemory",
+			"correlation pseudonym",
+			"dictionary",
 		} {
 			if !strings.Contains(string(data), required) {
 				t.Fatalf("%s omitted operational contract %q", path, required)

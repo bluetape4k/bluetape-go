@@ -140,6 +140,48 @@ func TestLocalStateTicketCancellationDoesNotConsume(t *testing.T) {
 	}
 }
 
+func TestLocalStateAdmittedSideEffectRunsAfterTransitionButCannotPublish(t *testing.T) {
+	for _, operation := range []string{"loader", "redis-set", "redis-del"} {
+		t.Run(operation, func(t *testing.T) {
+			state := newLocalState()
+			lease, err := state.acquireHealthy(context.Background())
+			if err != nil {
+				t.Fatal(err)
+			}
+			ticket, ok := lease.issueTicket()
+			if !ok {
+				t.Fatal("side effect was not admitted")
+			}
+			lease.release()
+
+			state.block()
+
+			invocations := 0
+			if err := ticket.consume(context.Background()); err != nil {
+				t.Fatal(err)
+			}
+			invocations++
+
+			publishes := 0
+			if state.classify(ticket.generation) == localCurrent {
+				publishes++
+			}
+			if invocations != 1 {
+				t.Fatalf("side-effect invocations = %d", invocations)
+			}
+			if disposition := state.classify(ticket.generation); disposition != localBlocked {
+				t.Fatalf("post-invocation classification = %v", disposition)
+			}
+			if publishes != 0 {
+				t.Fatalf("post-transition publishes = %d", publishes)
+			}
+			if err := ticket.consume(context.Background()); !errors.Is(err, errTicketConsumed) {
+				t.Fatalf("second consume = %v", err)
+			}
+		})
+	}
+}
+
 func TestLocalStateRepairUsesOneContextBudgetAndBlocksOnTimeout(t *testing.T) {
 	state := newLocalState()
 	lease, err := state.acquireHealthy(context.Background())
