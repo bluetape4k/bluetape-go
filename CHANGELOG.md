@@ -31,6 +31,9 @@ and this project uses semantic versioning once the first tag is published.
 - Add `cache/redisfory` for bounded Go-native Apache Fory values stored
   directly in Redis with explicit profiles, BTFV envelopes, TTLs, and schema
   generation key isolation.
+- Add `cache/redisvalue` for bounded generic serialized Redis L2 values and a
+  reference-preserving process-local tiered decorator; RESP3-coherent
+  invalidation remains excluded and tracked separately.
 - Add `redis` foundation package with key, owner-token, lease script, TTL, and
   redacted Redis operation error primitives.
 

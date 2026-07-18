@@ -823,7 +823,7 @@ func newMutationTiered[V any](t *testing.T, local cache.Cache[string, V], client
 	return mustTieredCache(t, local, remote, nil)
 }
 
-func TestTieredCacheSetPreservesReferenceAndWritesRedisFirst(t *testing.T) {
+func TestTieredCacheSetPreservesReference(t *testing.T) {
 	var events []string
 	local := &faultLocal[*valueTestRecord]{events: &events}
 	client := &fakeCommandClient{set: func(context.Context, string, any, time.Duration) *redis.StatusCmd {
