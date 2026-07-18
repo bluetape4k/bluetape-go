@@ -70,7 +70,8 @@ These are declared limits of the evidence-only spike, not unresolved defects.
 ## Verification Evidence
 
 - Complete `^TestRESP3TrackingSpike` suite — PASS.
-- Six Docker-backed integration cases with `-p 1 -count=3` — PASS.
+- Six selected cases with `-p 1 -count=3` — PASS: five Docker-backed cases
+  plus the unit-only unregister case.
 - `go test -race -count=1 ./cache/redisnear` — PASS.
 - `go test -count=1 ./cache/redisvalue ./cache/redisnear` — PASS.
 - Stability repair subset under `-race -count=20` — PASS.
