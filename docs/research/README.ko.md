@@ -26,6 +26,7 @@ dependency candidate, GitHub issue와 연결합니다.
 | `0.14.0` | [Issue #401 benchmark artifact retention](2026-07-07-issue-401-benchmark-artifact-retention.md), [Issue #402 cross-repo SerDe recommendation matrix](2026-07-07-issue-402-cross-repo-serde-recommendation.md) |
 | `0.15.0` | [Issue #405 audit publisher adapter target](2026-07-07-issue-405-audit-publisher-target.md), [Issue #407 audit publisher adapter](2026-07-07-issue-407-audit-publisher-adapter.md), [Issue #455 zstd allocation profile](2026-07-08-issue-455-zstd-allocation-profile.md), [Issue #456 JSON repeated collection profile](2026-07-07-issue-456-json-repeated-profile.md) |
 | `0.17.0` | [Issue #415 workshop adoption matrix](2026-07-08-issue-415-workshop-adoption-matrix.md) |
+| `0.19.0` | [Issue #536 RESP3 CLIENT TRACKING spike](2026-07-18-issue-536-resp3-client-tracking-spike.md) |
 
 ## 갱신 규칙
 
