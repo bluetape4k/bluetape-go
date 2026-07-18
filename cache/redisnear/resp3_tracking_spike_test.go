@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"io"
 	"net"
+	"os"
 	"slices"
 	"strconv"
 	"strings"
@@ -650,7 +651,13 @@ func isRESP3SpikeTransportError(err error) bool {
 	if err == nil {
 		return false
 	}
-	if errors.Is(err, context.Canceled) || errors.Is(err, context.DeadlineExceeded) {
+	if errors.Is(err, context.Canceled) ||
+		errors.Is(err, context.DeadlineExceeded) ||
+		errors.Is(err, os.ErrDeadlineExceeded) {
+		return false
+	}
+	var timeoutError net.Error
+	if errors.As(err, &timeoutError) && timeoutError.Timeout() {
 		return false
 	}
 	if errors.Is(err, io.EOF) ||
@@ -781,6 +788,8 @@ func TestRESP3TrackingSpikeClassifiesConcreteTransportErrorsOnly(t *testing.T) {
 		{name: "wrapped caller canceled", err: fmt.Errorf("command: %w", context.Canceled), want: false},
 		{name: "caller deadline", err: context.DeadlineExceeded, want: false},
 		{name: "wrapped caller deadline", err: fmt.Errorf("command: %w", context.DeadlineExceeded), want: false},
+		{name: "socket deadline", err: os.ErrDeadlineExceeded, want: false},
+		{name: "wrapped socket deadline", err: fmt.Errorf("command: %w", os.ErrDeadlineExceeded), want: false},
 		{name: "generic timeout", err: &net.DNSError{IsTimeout: true}, want: false},
 		{
 			name: "operation wrapping caller cancellation",
@@ -790,6 +799,16 @@ func TestRESP3TrackingSpikeClassifiesConcreteTransportErrorsOnly(t *testing.T) {
 		{
 			name: "operation wrapping caller deadline",
 			err:  &net.OpError{Op: "read", Net: "tcp", Err: context.DeadlineExceeded},
+			want: false,
+		},
+		{
+			name: "operation wrapping socket deadline",
+			err:  &net.OpError{Op: "read", Net: "tcp", Err: os.ErrDeadlineExceeded},
+			want: false,
+		},
+		{
+			name: "operation wrapping generic timeout",
+			err:  &net.OpError{Op: "read", Net: "tcp", Err: &net.DNSError{IsTimeout: true}},
 			want: false,
 		},
 		{name: "EOF", err: io.EOF, want: true},
