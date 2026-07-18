@@ -297,7 +297,7 @@ git commit -m "Define the redisvalue safety contract" \
 
 - [ ] **Step 1: Write failing bounded read/write tests with a narrow fake**
 
-Define a package-internal interface containing only `GetRange`, `Exists`, `Set`, and `Del`. Tests must assert non-empty hit uses one command, zero-length hit/miss uses `EXISTS`, payload length `MaxValueBytes+1` is rejected before unmarshal, marshal happens before Redis, and invalid input/cancellation causes no command.
+Define a package-internal interface containing only `GetRange`, `Exists`, `Set`, and `Del`. Tests must assert non-empty hit uses one command, zero-length hit/miss uses `EXISTS`, payload length `MaxValueBytes+1` is rejected before unmarshal, marshal happens before Redis, and invalid input/cancellation causes no command. Inject a bounded malformed payload and a serializer error containing payload/key/address markers; assert exactly one unmarshal, `ReasonInvalidPayload`, inspectable cause identity, and no `DEL`, loader fallback, L1 population, or other mutation. Assert the outer and joined error strings omit the raw payload, logical/physical key, provider address, and serializer message while `errors.Is`/`errors.As` can still reach causes. The existing oversize-marshal row must prove rejection before Redis dispatch.
 
 ```go
 type fakeCommandClient struct {
@@ -376,19 +376,21 @@ func (c *ValueCache[V]) Get(ctx context.Context, logicalKey string) (V, error) {
 	if err != nil { return zero, err }
 	encoded, err := c.client.GetRange(ctx, key.Value, 0, int64(c.config.MaxValueBytes)).Bytes()
 	if errors.Is(err, redis.Nil) { return zero, cache.ErrCacheMiss }
-	if err != nil { return zero, c.readProviderError("get", key.Value, err) }
+	if err != nil { return zero, c.readProviderError("get", key.RedactedID, err) }
 	if len(encoded) == 0 {
 		exists, existsErr := c.client.Exists(ctx, key.Value).Result()
-		if existsErr != nil { return zero, c.readProviderError("get", key.Value, existsErr) }
+		if existsErr != nil { return zero, c.readProviderError("get", key.RedactedID, existsErr) }
 		if exists == 0 { return zero, cache.ErrCacheMiss }
 	}
-	if len(encoded) > c.config.MaxValueBytes { return zero, c.cacheError("get", ReasonPayloadTooLarge, key.Value, nil) }
+	if len(encoded) > c.config.MaxValueBytes { return zero, c.cacheError("get", ReasonPayloadTooLarge, key.RedactedID, nil) }
 	if err := ctx.Err(); err != nil { return zero, err }
 	value, err := c.serializer.Unmarshal(encoded)
-	if err != nil { return zero, c.cacheError("get", ReasonInvalidPayload, key.Value, err) }
+	if err != nil { return zero, c.cacheError("get", ReasonInvalidPayload, key.RedactedID, err) }
 	return value, nil
 }
 ```
+
+All error helpers accept only `btredis.Key.RedactedID`; raw `Key.Value` is restricted to Redis command arguments.
 
 - [ ] **Step 4: Prove interface compatibility and zero-value safety**
 
@@ -532,7 +534,8 @@ func TestCoordinatorRetirementDoesNotCreateTwoTokenDomains(t *testing.T) {
 	close(retireRelease)
 	<-done
 	next := <-nextReady
-	if first == next && registry.active() != 1 { t.Fatalf("active coordinators = %d", registry.active()) }
+	if first == next { t.Fatal("retired coordinator was reused") }
+	if registry.active() != 1 { t.Fatalf("active coordinators = %d", registry.active()) }
 	registry.release("shared", next)
 	if registry.active() != 0 { t.Fatalf("registry retained %d coordinators", registry.active()) }
 }
@@ -722,7 +725,7 @@ git commit -m "Fence local cache state with repair epochs" \
 Assert healthy L1 hits perform no serializer/Redis call and preserve pointer identity; L2 hits unmarshal once and store the same decoded `V` in L1; separate cold decorators deserialize distinct pointers; only `cache.ErrCacheMiss` falls through; L1 errors and Redis/serialization errors do not become misses.
 
 ```go
-func TestTieredCacheStoresReferencesOnlyInL1(t *testing.T) {
+func TestTieredCacheL2HitStoresDecodedReference(t *testing.T) {
 	local := cache.NewMemory[string, *testValue]()
 	remote, serializer := unitRemotePointerCache(t, &testValue{Name: "remote"})
 	tiered := mustTieredCache(t, local, remote, nil)
@@ -735,6 +738,10 @@ func TestTieredCacheStoresReferencesOnlyInL1(t *testing.T) {
 	if serializer.unmarshalCalls.Load() != 1 { t.Fatalf("unmarshal calls = %d", serializer.unmarshalCalls.Load()) }
 }
 ```
+
+Name the warmed dependency-count test `TestTieredCacheHealthyL1SkipsRemoteAndSerializer`; it asserts pointer identity, zero serializer calls, zero Redis calls, zero local-state allocations, and no coordinator creation. Name the Redis-first mutation reference test in Task 8 `TestTieredCacheSetPreservesReference`.
+
+Add `TestTieredCacheDifferentKeyL1HitsDoNotSerialize`: a channel-latched fake L1 blocks `Get("slow")`, `Get("fast")` must complete before the slow latch is released, both return direct L1 values, and `coordinators.active()` remains zero. Add `TestTieredCacheDifferentKeyLoadsProceedConcurrently`: two loaders for distinct keys both signal entry before either release latch closes, then both complete with one call each and the registry returns to zero. These tests fail if a package-global or cross-key lock serializes healthy reads or loads.
 
 - [ ] **Step 2: Verify RED**
 
@@ -871,7 +878,7 @@ git commit -m "Collapse tiered cache loads by key" \
 
 - [ ] **Step 1: Write failing mutation and blocked-state tests**
 
-Cover Redis-first `Set`, original-reference L1 population, same-key mutation order, commit-unknown cleanup, known success plus later cancellation, L1-set failure followed by token-held delete, `Delete`, `InvalidateLocal`, `ClearLocal`, `TieredCache.Clear`, joined errors, cleanup timeout, blocked fail-closed operations, explicit repair, and blocked administrative clear.
+Cover Redis-first `Set`, original-reference L1 population, same-key mutation order, commit-unknown cleanup, known success plus later cancellation, L1-set failure followed by token-held delete, `Delete`, `InvalidateLocal`, `ClearLocal`, `TieredCache.Clear`, joined errors, cleanup timeout, blocked fail-closed operations, explicit repair, blocked administrative clear, and every method on a zero-value `TieredCache` returning `ReasonUninitialized` without panic.
 
 ```go
 func TestFailedMandatoryCleanupBlocksUntilClearLocal(t *testing.T) {
@@ -907,6 +914,7 @@ func (c *TieredCache[V]) SetDefault(ctx context.Context, key string, value V) er
 
 func (c *TieredCache[V]) InvalidateLocal(ctx context.Context, key string) error {
 	ctx = normalizeContext(ctx)
+	if err := c.validateCall("invalidate-local", ctx, key); err != nil { return err }
 	waitCtx, cancel := context.WithTimeout(ctx, c.config.InvalidationWaitTimeout)
 	defer cancel()
 	coordinator := c.coordinators.acquire(key)
@@ -917,7 +925,7 @@ func (c *TieredCache[V]) InvalidateLocal(ctx context.Context, key string) error 
 }
 ```
 
-`invalidateLocalHeld` creates one package-owned `context.WithTimeout(context.Background(), LocalCleanupTimeout)`, obtains a maintenance lease, calls only `Local.Delete`, and blocks on any failure. `ClearLocal` enters explicit repair, drains leases, calls only `Local.Clear`, and heals only if its epoch still owns the state. Neither method calls Redis.
+Public `InvalidateLocal` passes a `context.WithTimeout(waitCtx, LocalCleanupTimeout)` child to `invalidateLocalHeld`, so token wait plus maintenance admission/delete cannot exceed the caller/`InvalidationWaitTimeout` budget and the local phase uses at most `LocalCleanupTimeout`. Mandatory post-mutation cleanup instead creates `context.WithTimeout(context.Background(), LocalCleanupTimeout)` before calling the same held helper, because safety cleanup must survive caller cancellation. `ClearLocal` uses one `context.WithTimeout(ctx, LocalCleanupTimeout)` budget across explicit repair admission, lease drain, and `Local.Clear`, and heals only if its epoch still owns the state. Neither public invalidation method calls Redis.
 
 - [ ] **Step 4: Implement tiered clear and fleet-scope tests**
 
@@ -1031,13 +1039,27 @@ func TestTieredCacheMixedStressRetiresState(t *testing.T) {
 	report, err := tester.Run(context.Background(), func(ctx context.Context) error {
 		round := int(sequence.Add(1) - 1)
 		key := strconv.Itoa(round % 8)
-		switch round % 4 {
-		case 0: _, _ = tiered.Get(ctx, key)
-		case 1: _, _ = tiered.GetOrLoad(ctx, key, time.Minute, func(context.Context, string) (int, error) { return round, nil })
-		case 2: _ = tiered.Set(ctx, key, round, time.Minute)
-		case 3: _ = tiered.Delete(ctx, key)
+		switch round % 6 {
+		case 0:
+			_, err := tiered.Get(ctx, key)
+			if err != nil && !errors.Is(err, cache.ErrCacheMiss) { return err }
+			return nil
+		case 1:
+			_, err := tiered.GetOrLoad(ctx, key, time.Minute, func(context.Context, string) (int, error) { return round, nil })
+			return err
+		case 2:
+			return tiered.Set(ctx, key, round, time.Minute)
+		case 3:
+			return tiered.Delete(ctx, key)
+		case 4:
+			return tiered.ClearLocal(ctx)
+		default:
+			canceled, cancel := context.WithCancel(ctx)
+			cancel()
+			_, err := tiered.Get(canceled, key)
+			if !errors.Is(err, context.Canceled) { return fmt.Errorf("canceled get: %w", err) }
+			return nil
 		}
-		return nil
 	})
 	if err != nil || report.Completed != 100 { t.Fatalf("stress report = %+v, %v", report, err) }
 	if tiered.coordinators.active() != 0 { t.Fatalf("active coordinators = %d", tiered.coordinators.active()) }
@@ -1119,6 +1141,10 @@ Both files must contain the same heading structure and facts:
 10. `VersionedSerializer`, namespace rotation, rollout, rollback, and zero-TTL cleanup.
 11. Why current Pub/Sub `redisnear` must not wrap this decorator, `rediscoord` ownership, and #536 RESP3 proof gate.
 12. Serial normal/race test commands.
+13. Redis bytes are untrusted; serializers must avoid executable deserialization, return errors rather than panic for malformed input, and own temporary allocations, nesting/recursion, decompression, and CPU limits because `MaxValueBytes` bounds Redis admission bytes rather than decoder work.
+14. Tamper-sensitive deployments wrap payloads in an authenticated envelope in addition to `VersionedSerializer`; built-in versioning detects compatibility mismatches, not malicious modification.
+15. A namespace is one exclusive tenant/schema/clear trust domain and not an authorization boundary; incompatible tenants or wire formats require separate namespaces and Redis ACL/network isolation.
+16. `SCAN COUNT` is a hint: the client retains one Redis-controlled page and one bounded `UNLINK` argument chunk, but cannot bound the byte size of a returned page or external keys.
 
 - [ ] **Step 3: Update root indexes and changelog**
 
