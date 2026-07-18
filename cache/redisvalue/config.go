@@ -122,10 +122,10 @@ func validateNamespace(namespace string) error {
 	}
 	for i := 0; i < len(namespace); i++ {
 		character := namespace[i]
-		if !((character >= 'a' && character <= 'z') ||
-			(character >= 'A' && character <= 'Z') ||
-			(character >= '0' && character <= '9') ||
-			character == '.' || character == '_' || character == '-') {
+		if (character < 'a' || character > 'z') &&
+			(character < 'A' || character > 'Z') &&
+			(character < '0' || character > '9') &&
+			character != '.' && character != '_' && character != '-' {
 			return fmt.Errorf("%w: invalid namespace", btredis.ErrInvalidKey)
 		}
 	}

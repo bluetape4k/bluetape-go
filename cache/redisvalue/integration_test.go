@@ -202,7 +202,7 @@ func TestRedisValueIntegration(t *testing.T) {
 	})
 
 	t.Run("least-privilege-identities", func(t *testing.T) {
-		testRedisValueACLs(t, ctx, addr, client)
+		testRedisValueACLs(ctx, t, addr, client)
 	})
 }
 
@@ -230,7 +230,7 @@ func integrationPhysicalKey[V any](t *testing.T, values *ValueCache[V], logical 
 	return key.Value
 }
 
-func testRedisValueACLs(t *testing.T, ctx context.Context, addr string, admin *redis.Client) {
+func testRedisValueACLs(ctx context.Context, t *testing.T, addr string, admin *redis.Client) {
 	t.Helper()
 	const ordinaryUser = "redisvalue-ordinary"
 	const ordinaryPassword = "ordinary-password"

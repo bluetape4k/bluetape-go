@@ -65,7 +65,7 @@ func NewTieredCache[V any](options TieredOptions[V]) (*TieredCache[V], error) {
 func (c *TieredCache[V]) Get(ctx context.Context, key string) (V, error) {
 	var zero V
 	ctx = normalizeContext(ctx)
-	if err := c.validateCall("get", ctx, key); err != nil {
+	if err := c.validateCall(ctx, "get", key); err != nil {
 		return zero, err
 	}
 	if value, hit, err := c.localGet(ctx, key); err != nil || hit {
@@ -84,7 +84,7 @@ func (c *TieredCache[V]) GetOrLoad(
 ) (V, error) {
 	var zero V
 	ctx = normalizeContext(ctx)
-	if err := c.validateCall("get-or-load", ctx, key); err != nil {
+	if err := c.validateCall(ctx, "get-or-load", key); err != nil {
 		return zero, err
 	}
 	if err := validateEntryTTL(remoteTTL); err != nil {
@@ -134,7 +134,7 @@ func (c *TieredCache[V]) GetOrLoadDefault(
 // local generation remains current.
 func (c *TieredCache[V]) Set(ctx context.Context, key string, value V, remoteTTL time.Duration) error {
 	ctx = normalizeContext(ctx)
-	if err := c.validateCall("set", ctx, key); err != nil {
+	if err := c.validateCall(ctx, "set", key); err != nil {
 		return err
 	}
 	if err := validateEntryTTL(remoteTTL); err != nil {
@@ -217,7 +217,7 @@ func (c *TieredCache[V]) SetDefault(ctx context.Context, key string, value V) er
 // after the Redis command has been invoked.
 func (c *TieredCache[V]) Delete(ctx context.Context, key string) error {
 	ctx = normalizeContext(ctx)
-	if err := c.validateCall("delete", ctx, key); err != nil {
+	if err := c.validateCall(ctx, "delete", key); err != nil {
 		return err
 	}
 	coordinator := c.coordinators.acquire(key)
@@ -268,7 +268,7 @@ func (c *TieredCache[V]) Delete(ctx context.Context, key string) error {
 // Redis and never heals a globally blocked local state.
 func (c *TieredCache[V]) InvalidateLocal(ctx context.Context, key string) error {
 	ctx = normalizeContext(ctx)
-	if err := c.validateCall("invalidate-local", ctx, key); err != nil {
+	if err := c.validateCall(ctx, "invalidate-local", key); err != nil {
 		return err
 	}
 	waitCtx, cancel := context.WithTimeout(ctx, c.config.InvalidationWaitTimeout)
@@ -313,7 +313,7 @@ func (c *TieredCache[V]) ClearLocal(ctx context.Context) error {
 // clear of this decorator's L1 once the remote operation has begun.
 func (c *TieredCache[V]) Clear(ctx context.Context) error {
 	ctx = normalizeContext(ctx)
-	if err := c.validateNoKeyCall("clear", ctx); err != nil {
+	if err := c.validateNoKeyCall(ctx, "clear"); err != nil {
 		return err
 	}
 	generation := c.localState.generationValue()
@@ -708,7 +708,7 @@ func (c *TieredCache[V]) invalidateLocalHeld(ctx context.Context, key string) er
 	return nil
 }
 
-func (c *TieredCache[V]) validateCall(operation string, ctx context.Context, key string) error {
+func (c *TieredCache[V]) validateCall(ctx context.Context, operation, key string) error {
 	if err := c.validateInitialized(operation); err != nil {
 		return err
 	}
@@ -718,7 +718,7 @@ func (c *TieredCache[V]) validateCall(operation string, ctx context.Context, key
 	return validateLogicalKey(key)
 }
 
-func (c *TieredCache[V]) validateNoKeyCall(operation string, ctx context.Context) error {
+func (c *TieredCache[V]) validateNoKeyCall(ctx context.Context, operation string) error {
 	if err := c.validateInitialized(operation); err != nil {
 		return err
 	}
