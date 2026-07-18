@@ -1,6 +1,6 @@
 # Issue #536 RESP3 CLIENT TRACKING Spike Design
 
-Status: approved decision boundary; awaiting written spec review
+Status: Step 2-R repair applied; awaiting exact-commit convergence
 Issue: [#536](https://github.com/bluetape4k/bluetape-go/issues/536)
 Predecessor: [#110](https://github.com/bluetape4k/bluetape-go/issues/110)
 Tiered cache seam: [#535](https://github.com/bluetape4k/bluetape-go/issues/535)
@@ -82,6 +82,8 @@ affinity도 공개 API로 보장하지 않는다.
 
 - `redis.Options.Protocol = 3`은 RESP3 negotiation을 요청하고 RESP3 push processor를
   활성화한다. Option만 확인하지 않고 `HELLO 3` 결과를 test evidence로 남긴다.
+- `redis.Options.MaxRetries`의 zero value는 세 번 재시도한다. Connection-loss proof는
+  `MaxRetries: -1`로 command retry를 끄고 첫 transport failure를 관찰해야 한다.
 - `redis.NewPushNotificationProcessor`와
   `Client.RegisterPushNotificationHandler`는 공개 API다.
 - `push.NotificationProcessor.UnregisterHandler`는 공개되지만 `Client`에는 unregister
@@ -92,9 +94,11 @@ affinity도 공개 API로 보장하지 않는다.
   goroutine-safe하지 않다. 모든 command는 한 test goroutine에서 직렬화한다.
 - Pending push는 ordinary command 전후의 socket read 경로에서 처리된다. 별도
   background receive loop가 없다.
-- Handler는 command processing goroutine에서 동기 실행되고 handler error는 log된 뒤
-  command caller에 반환되지 않는다. Callback은 bounded L1-only operation과 관측값
-  기록만 수행해야 한다.
+- Handler는 command processing goroutine에서 동기 실행되고 handler error는 go-redis
+  global logger에 `%v`로 기록된 뒤 command caller에 반환되지 않는다. Callback은
+  bounded L1-only operation과 non-blocking 관측값 기록만 수행해야 한다. 반환 error는
+  raw payload, physical/logical key, endpoint, credential 또는 provider error를 포함하지
+  않는 low-cardinality sentinel이어야 한다.
 
 ### Redis contract
 
@@ -157,28 +161,49 @@ near-cache 지원 결론으로 사용할 수 없다. 제외한다.
                  ValueCache Redis L2 is never mutated by the handler
 ```
 
-The spike has three independently owned connections:
+The spike separates four client owners so one sticky connection cannot starve
+an unrelated command path:
 
-1. A test-owned `*redis.Client` configured with protocol 3 and a retained push
-   processor.
-2. A sticky `*redis.Conn` from that client for serialized tracking/read/drain
-   commands.
-3. A separate writer/admin client that mutates keys, flushes the database, and
-   kills the tracked client when required.
+1. A tracking client configured with protocol 3, `PoolSize: 1`,
+   `MaxRetries: -1`, and a retained push processor. Its one sticky `*redis.Conn`
+   owns serialized tracking/read/drain commands.
+2. A separate `TieredCache`/`ValueCache` L2 client. Tiered reads never compete
+   for the tracking client's only pool turn.
+3. A separate external writer client that performs ordinary `SET` mutations.
+4. A disposable-test admin client that performs only fixture-scoped `FLUSHDB`
+   and `CLIENT KILL ID` operations.
 
-The handler is test-only. It validates the payload shape, records a bounded
-observation, maps the known test physical key to its logical key, and calls only
-`InvalidateLocal` or `ClearLocal`. Unknown namespace keys, malformed payloads,
-and local invalidation failures are recorded as spike failures rather than
-silently ignored.
+The affinity case uses a dedicated tracking client with `PoolSize: 2`, obtains
+sticky connections A and B, and asserts their `CLIENT ID` values are distinct.
+It does not borrow the L2 or writer client.
+
+The handler is test-only. It accepts exactly two frame elements: the string
+`invalidate` and either `nil` for global invalidation or a `[]interface{}` of at
+most 64 string keys. Each key is at most 2 KiB and the aggregate key bytes are
+at most 128 KiB. The fixture precomputes an exact `physical key -> logical key`
+allowlist with public `redis.KeyBuilder`; it never reverse-maps by trimming a
+prefix. Unknown, duplicate, oversized, or malformed entries fail the spike.
+
+Every callback creates an independent bounded cleanup context from the
+test-owned handler lifetime rather than reusing the drain command context. The
+spike uses `TieredConfig{InvalidationWaitTimeout: 250 * time.Millisecond,
+LocalCleanupTimeout: 100 * time.Millisecond}` and a 500 ms handler cleanup
+deadline. It calls only `InvalidateLocal` or `ClearLocal`.
+
+Handler results are written with a non-blocking `select` to a bounded channel.
+An atomic overflow flag records any dropped observation. Tests require the
+exact event count, `overflow=false`, and an explicit success/failure result for
+every callback. Malformed data and local cleanup failures return only
+`errRESP3InvalidationRejected`; the synchronized observation retains a typed,
+redacted reason without retaining raw payloads or provider messages.
 
 ## RESP3 Negotiation And Tracking Setup
 
 Each test must prove its prerequisites before asserting invalidation behavior:
 
 1. Start Redis 7.4 with the existing Testcontainers helper.
-2. Create a client with `Protocol: 3`, `PoolSize: 1`, and an injected
-   `redis.NewPushNotificationProcessor()`.
+2. Create a tracking client with `Protocol: 3`, `PoolSize: 1`,
+   `MaxRetries: -1`, and an injected `redis.NewPushNotificationProcessor()`.
 3. Register the `invalidate` handler with `protected=false`.
 4. Acquire one sticky connection and issue `HELLO 3`; assert the response reports
    protocol 3.
@@ -187,8 +212,9 @@ Each test must prove its prerequisites before asserting invalidation behavior:
    it.
 
 `PoolSize: 1` reduces scheduling noise but is not treated as a production
-affinity guarantee. Tests that prove affinity hold two explicit sticky
-connections instead of depending on pool scheduling.
+affinity guarantee. It belongs only to the single-connection tracking client;
+the L2, writer, and admin use separate clients. The affinity test explicitly
+uses `PoolSize: 2`, holds two sticky connections, and checks distinct client IDs.
 
 ## Test Matrix
 
@@ -199,8 +225,11 @@ connections instead of depending on pool scheduling.
 - Populate Redis L2 and `TieredCache` L1 with value `old`.
 - Read the physical key through the tracked connection.
 - Mutate that Redis key to `new` from the external writer.
-- Before another tracked-connection command, assert no handler observation and
-  that the tiered read still returns the stale L1 value `old`.
+- Treat successful external `SET` completion as the server-side mutation
+  barrier. Before another tracked-connection command, make an immediate
+  non-blocking assertion that no handler observation exists and assert the
+  tiered read still returns the stale L1 value `old`. Do not interpret this as a
+  latency measurement.
 - Issue `PING` on the tracked connection.
 - Assert exact key invalidation payload, successful `InvalidateLocal`, and a
   subsequent tiered read returning `new` from L2.
@@ -214,6 +243,7 @@ delivery exists, but it is not autonomous.
 `TestRESP3TrackingSpikeRequiresReadAndTrackingOnSameConnection`
 
 - Hold sticky connections A and B concurrently.
+- Assert `CLIENT ID` reports two distinct IDs.
 - Enable tracking on A, read the key on B, mutate externally, then drain A and B.
   Assert no invalidation for that read.
 - Read the key on A, mutate externally, drain A, and assert exact invalidation.
@@ -236,11 +266,17 @@ calls.
 `TestRESP3TrackingSpikeReconnectRequiresReenableAndLocalFlush`
 
 - Track/read a key and obtain the tracked connection client ID.
-- Kill that connection from the admin client.
+- Kill that connection from the disposable-test admin client and assert
+  `CLIENT KILL ID` returns exactly one killed connection.
 - Mutate the key while the tracked connection is unavailable.
-- Assert the stale L1 remains populated and no missed invalidation is replayed.
-- Close the dead sticky connection, clear L1, obtain a new sticky connection,
-  verify RESP3, and re-enable tracking.
+- Run a bounded command on the tracked connection with retries disabled and
+  assert the first transport failure proves loss detection.
+- Assert the stale L1 remains populated and no missed invalidation is replayed
+  even after detection.
+- Mark tracked-L1 use blocked in the test harness, close the dead sticky
+  connection, and call `ClearLocal`.
+- Obtain a new sticky connection, assert its client ID differs, verify RESP3,
+  and assert `CLIENT TRACKINGINFO` reports tracking off before re-enabling it.
 - Re-read and cache the value, mutate again, drain with `PING`, and prove
   invalidation resumes.
 
@@ -250,29 +286,60 @@ cacheable reads. `OnConnect` alone cannot close the missed-invalidation window.
 
 ### Deterministic shutdown
 
-`TestRESP3TrackingSpikeShutdownUnregistersHandler`
+`TestRESP3TrackingSpikeUnregisterIsNotAQuiescenceBarrier`
 
-- Retain the injected processor and register the handler unprotected.
-- Close the sticky connection and client.
-- Unregister `invalidate` through the retained processor.
-- Assert bounded completion, no owned goroutine leak, and no callback after
-  unregistration.
+- Start a direct handler invocation and hold it on a test latch after registry
+  lookup.
+- Unregister `invalidate` through the retained processor and prove unregister
+  returns before that in-flight callback is released.
+- Release and await the callback with a bounded deadline.
 
-The test documents that registering directly on a caller-created client without
-retaining processor ownership is insufficient for a production component.
+`TestRESP3TrackingSpikeShutdownOrdersQuiescenceBeforeUnregister`
+
+- Stop issuing new tracked commands.
+- Wait for the synchronized in-flight callback count to reach zero.
+- Unregister `invalidate`, close the sticky connection, and close the client.
+- Assert each operation completes within its explicit context deadline and no
+  new handler lookup succeeds after unregister.
+
+These tests document that unregister is not a callback quiescence barrier and
+that direct registration on a caller-created client without processor and
+in-flight ownership is insufficient for a production component.
+
+### Handler validation, redaction, and cleanup failure
+
+`TestRESP3TrackingSpikeHandlerRejectsUnsafePayloadsWithoutDisclosure`
+
+- Invoke the test handler directly with wrong arity, wrong notification type,
+  non-string keys, duplicate keys, an unknown key containing a sensitive
+  marker, more than 64 keys, an oversized key, and aggregate bytes over 128 KiB.
+- Assert one bounded failure observation per callback, `overflow=false`, and
+  `errors.Is(err, errRESP3InvalidationRejected)`.
+- Assert returned/loggable error text contains no raw frame, key, namespace,
+  endpoint, credential, or injected provider marker.
+
+`TestRESP3TrackingSpikeHandlerReportsLocalCleanupFailure`
+
+- Inject `InvalidateLocal` and `ClearLocal` failures containing sensitive
+  markers and separately force the handler cleanup deadline to expire.
+- Assert no callback is reported as successful, all observation reasons are
+  typed/redacted, the returned error is only the low-cardinality sentinel, and
+  synchronized state is race-free.
 
 ## Synchronization And Flake Control
 
 - No unbounded sleeps or eventual assertions.
-- Use context deadlines, observation channels, and short bounded negative
-  windows only where absence is the behavior under test.
+- Use context deadlines and observation channels. The command-coupled negative
+  proof uses the completed external mutation as a barrier plus an immediate
+  non-blocking absence check; it does not sleep or report a latency bound.
 - A sticky `*redis.Conn` is used by one goroutine at a time.
-- Handler observations are buffered so synchronous command processing cannot
-  block on the test reader.
+- Handler observations use a non-blocking send plus overflow flag; a full
+  buffer cannot block command processing or look like success.
 - Every test owns unique namespace/key values and performs idempotent cleanup.
 - Testcontainers cases run sequentially when they share Docker resources.
-- Connection-kill tests use `CLIENT ID` and `CLIENT KILL ID`, not timing-based
-  guesses about pool members.
+- Connection-kill tests use distinct `CLIENT ID` values, exact
+  `CLIENT KILL ID == 1`, disabled retries, and an observed transport failure,
+  not timing-based guesses about pool members.
 
 ## Failure Semantics Compared With Pub/Sub
 
@@ -300,6 +367,28 @@ The research note will classify each target as `proved`, `documented`,
 | Redis Cloud/Software `REDIRECT` | Document unsupported provider mode |
 | Sentinel/Cluster | Unknown until a separate topology-specific spike proves per-node connection lifecycle |
 | Generic proxy | Require HELLO 3, tracking, push preservation, and disconnect detection evidence |
+
+### Identity and administrative command boundary
+
+| Identity | Spike commands | Production permission conclusion |
+|---|---|---|
+| Tracked runtime | `HELLO 3`, `CLIENT TRACKING`, `CLIENT TRACKINGINFO`, `CLIENT ID`, `GET`, `PING` | Grant only required tracking/read commands; explicitly deny `FLUSHDB`, `FLUSHALL`, and `CLIENT KILL` |
+| Tiered L2 runtime | Existing bounded redisvalue read/write commands | Preserve redisvalue ACL guidance; logical DB selection is not a security boundary |
+| External writer | Test-owned `SET` for external mutation proof | Ordinary application mutation identity; no admin commands required |
+| Disposable-test admin | `FLUSHDB`, `CLIENT KILL ID` | Test-only; never a production near-cache requirement |
+
+Destructive admin commands may run only against the fresh endpoint returned by
+`testcontainers/redis.Start` in the current test. A test-admin guard compares
+the admin client's configured address with the fixture address and rejects a
+mismatch before dispatch; a direct test proves mismatch produces zero command
+calls. No environment-provided, shared, staging, or production endpoint is
+accepted.
+
+The research note must record AUTH/TLS/certificate ownership as provider
+requirements, state that credentials and endpoints are never written into
+handler errors or observations, and distinguish documented ACL expectations
+from the unauthenticated Testcontainers proof. The spike does not claim live
+AUTH/TLS or managed-provider validation.
 
 ## File Scope
 
@@ -334,11 +423,19 @@ Production adoption requires all of the following:
 If the source-pinned behavior is reproduced, criteria 1-4 fail for a normal
 pooled `*redis.Client`. The expected conclusion is:
 
-- adopt RESP3 parsing and dedicated-connection heartbeat as technically proven;
+- adopt RESP3 parsing and one explicit command-coupled drain as technically
+  proven;
 - reject a production `redisnear.NewTracking` API on go-redis/v9 v9.20.0;
 - keep `redisnear.NewPubSub` as the production strategy;
 - open a separate Type A issue only if a dedicated pump/connection-owner
   subsystem or future go-redis background push API is intentionally pursued.
+
+Periodic heartbeat/pump viability is not proven. Its cadence, maximum stale
+window, disconnect latency, ticker/goroutine lifecycle, additional Redis QPS,
+socket/memory cost, throughput, and provider comparison belong to issue #560 or
+a separately approved Type A design. The research note may provide only the
+qualitative cost statement that each owner needs a dedicated socket and each
+drain adds a Redis command; it must not publish measured performance claims.
 
 ## Type A Escalation Triggers
 
@@ -357,7 +454,9 @@ required:
 After implementation approval, validation will run in this order:
 
 1. Focused Testcontainers spike tests in `cache/redisnear`.
-2. Repetition of timing-sensitive cases with `-count` to expose flakes.
+2. Repeat only the RESP3 integration matrix serially:
+   `go test -p 1 -count=3 -timeout=15m ./cache/redisnear -run '^TestRESP3TrackingSpike(DeliversInvalidationOnlyWhenTrackedConnectionReads|RequiresReadAndTrackingOnSameConnection|MapsGlobalInvalidationToClearLocal|ReconnectRequiresReenableAndLocalFlush|UnregisterIsNotAQuiescenceBarrier|ShutdownOrdersQuiescenceBeforeUnregister)$'`.
+   Container startup time is not performance evidence.
 3. `go test -race ./cache/redisnear -count=1`.
 4. `go test ./cache/redisvalue ./cache/redisnear -count=1`.
 5. `make fmt-check`, `make tidy-check`, `make vet`, `make lint`, and `make test`.
@@ -388,6 +487,9 @@ After implementation approval, validation will run in this order:
   propagation is incomplete.
 - `P1-5`: caller-created client does not expose handler unregister ownership.
 - `P1-6`: provider/proxy behavior is topology-specific.
+- `P1-7`: unregister is not an in-flight callback quiescence barrier.
+- `P1-8`: a synchronous handler needs independent cleanup deadlines,
+  non-blocking observation, and redacted failure signaling.
 
 The written spike may close the issue with these P1 capability blockers because
 the issue is a prove-or-reject research gate, not a production delivery issue.
