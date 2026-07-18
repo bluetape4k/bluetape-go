@@ -139,7 +139,9 @@ func TestNormalizeTimingRejectsContainmentViolations(t *testing.T) {
 }
 ```
 
-Add a subprocess test whose elector blocks after root cancellation. With a successful `Abort`,
+Add a runner test whose injected private evaluator waits on its received case context. Cancel the
+case root and assert the evaluator observes cancellation and joins before `Abort` can run. Add a
+subprocess test whose elector remains blocked after root cancellation; with a successful `Abort`,
 assert event order `cancel, abort, joined`. With nil/failing Abort and an unjoined call, assert the
 subprocess reaches the outer `go test -timeout` fail-stop instead of returning to a later case.
 
@@ -203,10 +205,20 @@ if !fits(timing.WaitTimeout) || !fits(timing.ResignTimeout) {
 ```
 
 Make `Run` exactly `RunWithConfig(t, harness, Config{})`. Move the existing 15-case table unchanged
-into `RunWithConfig`; derive case options and evaluator timeouts from normalized Timing. Each case
-owns a cancelable root context. On timeout: cancel, wait `joinGrace`, call Abort with a fresh
-`abortBudget` context if still running, then join. If the call remains unjoined, block so the outer
-test timeout fails the process rather than leaking work into the next subtest.
+into `RunWithConfig`, but change the private table function shape to:
+
+```go
+type evaluator func(context.Context, *testing.T, Harness, leader.Options, Timing) error
+```
+
+Each case creates one cancelable root and passes it plus normalized Timing to its evaluator. Every
+Campaign, Leader, Control, wait, contention-worker, and bounded Resign context derives from that
+root; `waitFor` accepts the root and exits on `ctx.Done`. The only independent context is the fresh
+Abort context created after root cancellation. Do not leave `context.Background()` in evaluator or
+cleanup helpers. Preserve all 15 names, order, and assertions. On timeout: cancel the root, wait
+`joinGrace`, call Abort with a fresh `abortBudget` context if still running, then join. If the call
+remains unjoined, block so the outer test timeout fails the process rather than leaking work into
+the next subtest.
 
 - [ ] **Step 4: Verify existing and custom profiles**
 
@@ -306,10 +318,11 @@ func New(client *clientv3.Client, opts leader.Options) (*Elector, error)
 func (e *Elector) EffectiveTTL() time.Duration
 ```
 
-Keep the package name `etcdleader`, add Go doc comments for `Elector`, `New`, and `EffectiveTTL`,
-and compile-check the public contract with
-`var _ leader.Elector = (*Elector)(nil)`. The docs must state that the caller owns the client and
-that `New` performs no network I/O.
+Keep the package name `etcdleader` and add Go doc comments for `Elector`, `New`, and `EffectiveTTL`.
+The docs must state that the caller owns the client, `New` performs no network I/O, the `Elector`
+zero value is unusable, and callers must construct it with `New`. Defer
+`var _ leader.Elector = (*Elector)(nil)` until Task 5 has implemented the complete interface; do not
+add temporary public method stubs merely to satisfy an early assertion.
 
 Task 2's initial `generation` contains only `ttl time.Duration` and `published bool`; Task 3 expands
 the same type with lifecycle ownership fields. This keeps `current *generation` compilable without
@@ -342,6 +355,7 @@ git commit -m "Define the etcd election boundary" \
 **Files:**
 - Modify: `leader/etcd/generation.go`
 - Create: `leader/etcd/campaign.go`
+- Create: `leader/etcd/monitor.go`
 - Create: `leader/etcd/generation_test.go`
 - Create: `leader/etcd/campaign_test.go`
 - Modify: `leader/etcd/elector.go`
@@ -382,9 +396,10 @@ func TestPublicationAndCancellationHaveOneWinner(t *testing.T) {
 ```
 
 Add cases for Grant failure, NewSession failure after a known lease, Campaign failure,
-Proclaim failure, created-notify timeout, mismatched created PUT, callback join, and failure after a
-monitor handle exists. For every successfully created Session, assert `Session.Done()` is closed
-before Campaign returns. For the pre-publication monitor failure, assert its handle joins too.
+Proclaim failure, created-notify timeout, mismatched created PUT, callback join, failure after a
+monitor handle exists, and Created acknowledgement immediately followed by DELETE or mismatched
+PUT. For every successfully created Session, assert `Session.Done()` is closed before Campaign
+returns. For every pre-publication monitor failure, assert its handle joins too.
 
 - [ ] **Step 2: Observe RED**
 
@@ -435,7 +450,10 @@ bounded Proclaim; call the injected `snapshotElection` adapter and validate key/
 create the exact-key watch from `headerRev+1` with `WithCreatedNotify`, hand that WatchChan plus the
 injected `sessionDone` signal to a joinable monitor and receive its created acknowledgement; then
 serialize caller cancellation against publication under `e.mu`. Publication is forbidden until
-the monitor owns both observation inputs and has acknowledged watch creation.
+the monitor owns both observation inputs and has acknowledged watch creation. Task 3's
+`monitor.go` owns this minimal start/Created/terminal/join primitive. Under `e.mu`, publication must
+recheck both generation cancellation and the monitor's terminal state so a Created-then-loss event
+cannot publish stale leadership.
 
 Precompute the deterministic key as `candidateRoot + fmt.Sprintf("%x", leaseID)` and retain the
 known lease even when NewSession fails. Any post-dispatch failure cancels and joins the generation,
@@ -461,7 +479,7 @@ git commit -m "Serialize etcd campaign publication" \
 ### Task 4: Add Exact-Key Monitoring and Single-Flight Proclaim
 
 **Files:**
-- Create: `leader/etcd/monitor.go`
+- Modify: `leader/etcd/monitor.go`
 - Create: `leader/etcd/monitor_test.go`
 - Modify: `leader/etcd/generation.go`
 - Modify: `leader/etcd/campaign.go`
@@ -521,6 +539,7 @@ git commit -m "Fail closed on etcd ownership loss" \
 - Create: `leader/etcd/observe.go`
 - Create: `leader/etcd/cleanup_test.go`
 - Create: `leader/etcd/errors_test.go`
+- Create: `leader/etcd/elector_contract_test.go`
 - Modify: `leader/etcd/elector.go`
 
 - [ ] **Step 1: Write RED cleanup and redaction tests**
@@ -580,6 +599,11 @@ one may clear the generation.
 because `WithFirstCreate` returns a slice. Return empty on no candidate and the oldest candidate value otherwise.
 Expose only `campaign`, `renew`, `resign`, and `lookup` as operation labels; map Grant, Session,
 watch, Proclaim, revoke, and reconciliation phases to the owning public operation.
+At this point add `var _ leader.Elector = (*Elector)(nil)` beside the implementation. Add an
+external-package zero-value contract test: `IsLeader` is false, Campaign and Leader fail
+deterministically for valid contexts without panic or backend dispatch, and Resign with a valid
+context is a safe no-op; nil contexts still return `leader.ErrInvalidContext`. The test does not make
+the zero value supported; it enforces the documented constructor-only failure boundary.
 
 - [ ] **Step 5: Verify and commit**
 
@@ -806,12 +830,13 @@ Add a compile-checked caller-owned production client example that loads a CA poo
 
 - [ ] **Step 2: Write section-for-section English/Korean provider docs**
 
-Include install/client ownership, encoded ranges, integer/server-granted TTL, Proclaim versus
-keepalive, cancellation limitation, exact local Session join, cleanup pending, RBAC lease-level
-trust, TLS, quorum/compaction, no fencing, observability sampling, shutdown, stop-the-world cutover,
-symmetric rollback, rapid reacquisition rule, tested server version, and unsupported scope. State
-in both languages that `errors.Unwrap` exposes diagnostic-sensitive raw etcd causes which must not
-be logged or emitted to telemetry without sanitization.
+Include install/client ownership, the constructor-only contract and unusable `Elector` zero value,
+encoded ranges, integer/server-granted TTL, Proclaim versus keepalive, cancellation limitation,
+exact local Session join, cleanup pending, RBAC lease-level trust, TLS, quorum/compaction, no
+fencing, observability sampling, shutdown, stop-the-world cutover, symmetric rollback, rapid
+reacquisition rule, tested server version, and unsupported scope. State in both languages that
+callers must use `New` and that `errors.Unwrap` exposes diagnostic-sensitive raw etcd causes which
+must not be logged or emitted to telemetry without sanitization.
 
 - [ ] **Step 3: Update indexes, changelog, and release runbook**
 
@@ -891,19 +916,23 @@ make ci
 Expected: every command PASS. Record targeted/race/full-CI durations. If normal targeted tests
 exceed three minutes, race exceeds five minutes, combined exceeds eight minutes, or projected full
 CI exceeds 20 minutes/80% of the job timeout, move repeated Docker/race work to a separate CI lane
-before PR review.
+before PR review. Command timings are diagnostic only; workflow admission is based on the complete
+target job, including checkout, Go setup/cache, Docker preflight, cold image pull, existing
+workloads, and every test step.
 
 For that conditional branch, parameterize `Makefile` test/coverage/race package lists so CI can run
 all packages except `./leader/etcd` without changing local defaults. Add an `etcd-leader` job to
-`.github/workflows/ci.yml` with `needs: ci`, `timeout-minutes: 10`, Docker preflight, and serial
+`.github/workflows/ci.yml` with `needs: ci`, `timeout-minutes: 15`, Docker preflight, and serial
 `go test -p 1 -count=1` plus `go test -race -p 1 -count=1` for
-`./leader/leadertest ./leader/etcd`; keep it a required PR check. Before choosing the nightly shape,
-measure the exact ten-run command with `/usr/bin/time -p`. It may join the existing 20-minute
-`testcontainers` job only when the measured wall time is at most 14 minutes, leaving at least 30%
-headroom. Otherwise create a dedicated `etcd-leader-soak` job with a 30-minute timeout; require its
-measured wall time to stay at or below 24 minutes, or reduce the nightly repetition count to the
-largest measured value within that 80% admission limit while retaining the ten-run manual
-pre-release gate.
+`./leader/leadertest ./leader/etcd`; keep it a required PR check. Put the nightly repetition in a
+dedicated `etcd-leader-soak` job with `timeout-minutes: 30`; never append it to the existing
+Testcontainers workload. Before push, run a CI-equivalent sequence including Docker preflight,
+immutable image pull, setup-equivalent module download, and every target job command. After push,
+read each live job's `startedAt`/`completedAt` from GitHub Actions and require the complete PR job to
+finish within 12 minutes and the complete soak job within 24 minutes (80% of their timeouts). If a
+job exceeds the limit, increase its timeout with explicit 20% headroom or reduce only the nightly
+repetition count to the largest measured value within the limit while retaining the ten-run manual
+pre-release gate; rerun exact-head CI before merge readiness.
 
 Validate every local workflow diff mandatorily with
 `go run github.com/rhysd/actionlint/cmd/actionlint@v1.7.12 .github/workflows/*.yml`, then run both
