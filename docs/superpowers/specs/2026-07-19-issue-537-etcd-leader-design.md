@@ -87,12 +87,12 @@ lease or session until `Campaign` starts and never closes the caller's client. A
 assertion keeps `*Elector` assignable to `leader.Elector`; the zero-value `Elector` is not usable.
 
 `EffectiveTTL` is a concrete-provider diagnostic because etcd may grant a different TTL from the
-request. Before the first successful grant, and while a new grant is in progress, it returns the
-requested rounded TTL or the last fully published positive server TTL. A successful grant is
-validated as positive and safely convertible to `time.Duration`, then published atomically. Each
-generation retains its own granted TTL. `EffectiveTTL` is a retry/wait input, not proof that remote
-ownership has expired; cleanup state clears only after revoke or linearizable reconciliation. It is
-not added to the backend-neutral interface.
+request. It returns the current published generation TTL; otherwise the last fully published TTL;
+otherwise the requested rounded TTL. An in-progress grant is invisible until its positive,
+duration-safe server TTL is atomically published. Each generation retains its own granted TTL.
+`EffectiveTTL` is a retry/wait input, not proof that remote ownership has expired; cleanup state
+clears only after revoke or linearizable reconciliation. It is not added to the backend-neutral
+interface.
 
 The public surface intentionally accepts no raw `concurrency.SessionOption`. Allowing callers to
 override `WithTTL`, `WithLease` or `WithContext` could silently disconnect the `leader.Options`
@@ -151,8 +151,10 @@ it does not replace or duplicate lease keepalive.
 1. Reject nil or already-ended contexts before dispatch.
 2. Under the state mutex, reject `ErrAlreadyLeader` or `ErrCampaignInProgress`. If cleanup is
    pending, snapshot it, release the lock and run bounded linearizable reconciliation; continue
-   only when exact absence/replacement is proved, otherwise return `ErrCleanupPending`. Allocate a
-   new campaigning generation only after that check.
+   only when exact absence/replacement is proved, otherwise return `ErrCleanupPending`. Reacquire
+   the lock, verify the snapshotted generation identity/state is unchanged, then atomically clear it
+   and mark the new campaign in progress; a stale reconciliation result retries or loses to the
+   current state error.
 3. Explicitly grant the rounded TTL, record the server-granted TTL, and create the session using
    the generation context plus `WithLease`.
 4. Create `concurrency.Election`. Build a campaign context canceled by caller completion,
@@ -179,8 +181,11 @@ If Campaign or Proclaim fails after backend dispatch, ownership can be indetermi
 key is precomputed from `candidateRoot` and the granted lease ID, while creation revision remains
 explicitly unknown until Campaign state or exact-key reconciliation supplies it. The elector
 retains that inventory, immediately cancels the generation context, attempts a bounded lease
-revoke, and returns a redacted `leader.OperationError`. `Session.Done` is not treated as proof of
-the last server keepalive. If revoke or linearizable exact-key absence/replacement cannot be
+revoke, synchronously joins the local session, and returns a redacted `leader.OperationError`.
+Generation shutdown is an idempotent `sync.Once` helper that cancels the context, calls
+`Session.Orphan()` and observes closed `Session.Done()` before a terminal cleanup path returns or
+state is cleared. `Session.Done` proves only local keepalive-goroutine termination, never the last
+server keepalive or remote deletion. If revoke or linearizable exact-key absence/replacement cannot be
 proved, the result also matches `leader.ErrCommitUnknown` and following Campaign calls return
 `leader.ErrCleanupPending`; elapsed TTL alone never clears inventory.
 
@@ -231,6 +236,11 @@ Proclaim contexts cancel with Resign so the monitor joins promptly. The monitor 
 across a backend RPC, join or wait. The session remains the only lease keepalive owner; Proclaim is
 the provider's public `renew` operation and deterministic conformance fault seam.
 
+Every terminal monitor path invokes the same generation shutdown helper before closing its monitor
+done channel. Session loss already has a closed `Session.Done`; PUT/delete/watch/renew loss cancels
+and synchronously orphans the session. Concurrent Resign joins the single shared shutdown result
+rather than starting a second orphan operation.
+
 ## Resign and Cleanup Lifecycle
 
 `Resign(ctx)` is idempotent and serializes with Campaign and monitor transitions.
@@ -239,7 +249,8 @@ the provider's public `renew` operation and deterministic conformance fault seam
 2. If there is no owned or cleanup generation, return nil.
 3. Mark local leadership false, prevent a new Campaign, and immediately cancel the generation
    context so session keepalive stops.
-4. Join the exact generation monitor so no stale monitor mutates later state.
+4. Run or join the generation shutdown helper until `Session.Done()` is closed, then join the exact
+   monitor so no stale monitor or local keepalive goroutine survives the method.
 5. When creation revision is known, reconstruct the election with the retained session,
    candidate-root, key and revision using `concurrency.ResumeElection`, then call `Resign(ctx)`.
    When revision is unknown, reconcile the deterministic key first and resume only after obtaining
@@ -247,8 +258,8 @@ the provider's public `renew` operation and deterministic conformance fault seam
 6. A nil official Resign result is not deletion proof because its compare may have failed. Attempt
    owned-lease revoke with the remaining budget, then perform a linearizable exact-key Get that
    compares key, create revision, token and lease where known.
-7. Clear generation state only after successful revoke or reconciliation proves exact absence or
-   replacement. Repeated Resign then returns nil.
+7. Clear generation state only after the local session and monitor are joined and successful revoke
+   or reconciliation proves exact absence or replacement. Repeated Resign then returns nil.
 
 The key/revision snapshot is retained independently of `Election`'s mutable local fields because
 the official `Resign` clears its fields on every transaction result. A failed dispatched resign or
@@ -281,7 +292,7 @@ owns leadership. `IsLeader` remains the local fail-closed lifecycle signal.
 
 ## Error Policy
 
-Every dispatched provider failure is wrapped with
+Every returned synchronous provider failure is wrapped with
 `leader.NewOperationError("etcd", operation, cause)`. Stable public operation labels remain
 provider-neutral: `campaign`, `renew`, `resign` and `lookup`. Grant, session, watch, Proclaim,
 revoke and reconciliation are private phases mapped to the owning public operation.
@@ -343,14 +354,22 @@ The zero-value `Timing` resolves field-by-field to the current defaults:
 - resign timeout: 250ms.
 
 Normalization rejects negative values, any resolved `RenewInterval >= Lease`, non-positive
-timeouts, and `WaitTimeout` or `ResignTimeout` values that do not leave cleanup margin below
-`CaseTimeout`. `Run` is a wrapper around `RunWithConfig` using current defaults. Both execute the
-same named 15-case table in the same order; there are no capability flags, filters, skips or
-relaxed assertions.
+timeouts, and profiles that fail both precise containment inequalities:
+
+```text
+joinGrace   = min(ResignTimeout, CaseTimeout/10)
+abortBudget = min(ResignTimeout, 1s)
+WaitTimeout   + joinGrace + abortBudget < CaseTimeout
+ResignTimeout + joinGrace + abortBudget < CaseTimeout
+```
+
+`Run` is a wrapper around `RunWithConfig` using current defaults. Both execute the same named
+15-case table in the same order; there are no capability flags, filters, skips or relaxed
+assertions.
 
 Every case owns a cancelable root context and all evaluator contexts derive from it. On case
 timeout the runner cancels the root, waits a bounded join grace, invokes `Abort` if the case is
-still running with a fresh bounded abort context, and joins the case goroutine before the subtest
+still running with a fresh `abortBudget` context, and joins the case goroutine before the subtest
 returns. A provider adapter that can hit official unbounded cleanup must supply case-dedicated
 clients and an Abort function that closes only those clients. This prevents timed-out cases from
 mutating later tests or leaking sessions.
@@ -466,8 +485,10 @@ cleaned up with bounded `internal/testcleanup` handling. Docker-backed tests run
   cleanup inventory item, and only then restart contenders.
 - No observer API or telemetry dependency is added in this issue. Applications wrap synchronous
   calls for bounded provider/operation/result/latency metrics, sample `IsLeader` for the single
-  asynchronous `leadership_lost` signal, and inventory `ErrCommitUnknown`/`ErrCleanupPending` at
-  call boundaries. Labels are finite and never include endpoints, keys, lease IDs or owner tokens.
+  asynchronous `leadership_lost` signal before every protected-work unit and at least every
+  `min(RenewInterval, 1s)` during a long unit, and alert on the first true-to-false transition.
+  They inventory `ErrCommitUnknown`/`ErrCleanupPending` at call boundaries. Labels are finite and
+  never include endpoints, keys, lease IDs or owner tokens.
 
 ## Test Strategy
 
@@ -480,6 +501,10 @@ cleaned up with bounded `internal/testcleanup` handling. Docker-backed tests run
 - generation-safe monitor and resign races;
 - server-granted TTL, EffectiveTTL concurrency and no time-only cleanup proof;
 - session loss, key deletion, watch error, renew failure and stale monitor fail-closed behavior;
+- caller-callback versus publication winner, created-notify timeout/cancellation, and mismatched
+  PUT or DELETE immediately after the created response;
+- every failed/canceled Campaign return, and every Resign path that claims owned or cleanup
+  inventory, has closed `Session.Done()` and joined monitor handles;
 - resign retry through retained key/revision and stale-resign safety;
 - context and provider-error mapping, commit-unknown composition and redaction;
 - caller client remains usable after elector cleanup.
@@ -521,9 +546,11 @@ Pull-request CI runs one real-server conformance pass and records measured packa
 The targeted `go test -p 1 -count=10 ./leader/etcd` soak is a nightly/manual or pre-release gate
 unless cold and warm measurements show normal package tests at most three minutes, race tests at
 most five minutes, and their combined eight-minute bound stays below one third of the current
-25-minute CI job. The supported server target is v3.6.13; other etcd minors are explicitly untested
-until a separate compatibility smoke matrix is added. Dependency rollback restores the previous
-module files and provider registration in one staged change.
+25-minute CI job. Record the pre-change full-CI baseline as well; projected total runtime must stay
+below 20 minutes, 80% of the job timeout, or the Docker/race work moves to a separate lane. The
+supported server target is v3.6.13; other etcd minors are explicitly untested until a separate
+compatibility smoke matrix is added. Dependency rollback restores the previous module files and
+provider registration in one staged change.
 
 ## Documentation and Release Surface
 
