@@ -370,13 +370,7 @@ func TestRESP3TrackingSpikeHandlerRejectsUnsafePayloadsWithoutDisclosure(t *test
 			if len(keys) != 0 || clears != 0 {
 				t.Fatalf("local calls = keys %v, clears %d; want none", keys, clears)
 			}
-			observation := requireSingleObservation(t, events)
-			if observation.success || observation.reason != tt.reason {
-				t.Fatalf("observation = %+v, want failure reason %q", observation, tt.reason)
-			}
-			if strings.Contains(fmt.Sprint(observation), sensitiveMarker) {
-				t.Fatalf("observation disclosed sensitive marker: %+v", observation)
-			}
+			assertFailureObservation(t, events, invalidationObservation{reason: tt.reason})
 			if handler.overflow.Load() {
 				t.Fatal("overflow = true, want false")
 			}
@@ -416,6 +410,47 @@ func TestRESP3TrackingSpikeHandlerProcessesBoundedMultiKeyPayload(t *testing.T) 
 		if handler.overflow.Load() {
 			t.Fatal("overflow = true, want false")
 		}
+	})
+
+	t.Run("accepts exact key count limit", func(t *testing.T) {
+		physicalKeys := make([]interface{}, maxSpikeInvalidationKeys)
+		allowed := make(map[string]string, len(physicalKeys))
+		wantKeys := make([]string, len(physicalKeys))
+		for i := range physicalKeys {
+			physical := fmt.Sprintf("physical-%02d", i)
+			logical := fmt.Sprintf("logical-%02d", i)
+			physicalKeys[i] = physical
+			allowed[physical] = logical
+			wantKeys[i] = logical
+		}
+
+		assertSuccessfulKeyInvalidation(t, physicalKeys, allowed, wantKeys)
+	})
+
+	t.Run("accepts exact per-key byte limit", func(t *testing.T) {
+		physical := strings.Repeat("k", maxSpikePhysicalKeyBytes)
+		assertSuccessfulKeyInvalidation(
+			t,
+			[]interface{}{physical},
+			map[string]string{physical: "logical"},
+			[]string{"logical"},
+		)
+	})
+
+	t.Run("accepts exact aggregate byte limit", func(t *testing.T) {
+		const keyBytes = maxSpikeAggregateKeyBytes / maxSpikeInvalidationKeys
+		physicalKeys := make([]interface{}, maxSpikeInvalidationKeys)
+		allowed := make(map[string]string, len(physicalKeys))
+		wantKeys := make([]string, len(physicalKeys))
+		for i := range physicalKeys {
+			physical := fmt.Sprintf("%02d", i) + strings.Repeat("a", keyBytes-2)
+			logical := fmt.Sprintf("logical-%02d", i)
+			physicalKeys[i] = physical
+			allowed[physical] = logical
+			wantKeys[i] = logical
+		}
+
+		assertSuccessfulKeyInvalidation(t, physicalKeys, allowed, wantKeys)
 	})
 
 	t.Run("global invalidation clears local", func(t *testing.T) {
@@ -470,7 +505,10 @@ func TestRESP3TrackingSpikeHandlerReportsLocalCleanupFailure(t *testing.T) {
 
 		assertRejectedWithoutDisclosure(t, err)
 		assertFailureCalls(t, local, []string{"logical-one", "logical-two"}, 1)
-		assertFailureObservation(t, events, observationReasonLocalCleanup, true)
+		assertFailureObservation(t, events, invalidationObservation{
+			reason:   observationReasonLocalCleanup,
+			repaired: true,
+		})
 		if handler.overflow.Load() {
 			t.Fatal("overflow = true, want false")
 		}
@@ -495,7 +533,7 @@ func TestRESP3TrackingSpikeHandlerReportsLocalCleanupFailure(t *testing.T) {
 
 		assertRejectedWithoutDisclosure(t, err)
 		assertFailureCalls(t, local, []string{"logical-one", "logical-two"}, 1)
-		assertFailureObservation(t, events, observationReasonRepairFailed, false)
+		assertFailureObservation(t, events, invalidationObservation{reason: observationReasonRepairFailed})
 		if handler.overflow.Load() {
 			t.Fatal("overflow = true, want false")
 		}
@@ -514,7 +552,7 @@ func TestRESP3TrackingSpikeHandlerReportsLocalCleanupFailure(t *testing.T) {
 
 		assertRejectedWithoutDisclosure(t, err)
 		assertFailureCalls(t, local, nil, 1)
-		assertFailureObservation(t, events, observationReasonLocalCleanup, false)
+		assertFailureObservation(t, events, invalidationObservation{reason: observationReasonLocalCleanup})
 		if handler.overflow.Load() {
 			t.Fatal("overflow = true, want false")
 		}
@@ -538,17 +576,34 @@ func TestRESP3TrackingSpikeHandlerReportsLocalCleanupFailure(t *testing.T) {
 
 		assertRejectedWithoutDisclosure(t, err)
 		assertFailureCalls(t, local, []string{"logical-one"}, 1)
-		assertFailureObservation(t, events, observationReasonCleanupTimeout, false)
+		assertFailureObservation(t, events, invalidationObservation{reason: observationReasonCleanupTimeout})
 		if handler.overflow.Load() {
 			t.Fatal("overflow = true, want false")
 		}
 	})
 
 	t.Run("cleanup timeout is bounded and repaired independently", func(t *testing.T) {
+		type contextObservation struct {
+			err         error
+			deadline    time.Time
+			observedAt  time.Time
+			hasDeadline bool
+		}
+		repairContexts := make(chan contextObservation, 1)
 		local := &fakeLocalInvalidator{
 			invalidateFn: func(ctx context.Context, _ string) error {
 				<-ctx.Done()
 				return fmt.Errorf("%s: %w", sensitiveMarker, ctx.Err())
+			},
+			clearFn: func(ctx context.Context) error {
+				deadline, hasDeadline := ctx.Deadline()
+				repairContexts <- contextObservation{
+					err:         ctx.Err(),
+					deadline:    deadline,
+					observedAt:  time.Now(),
+					hasDeadline: hasDeadline,
+				}
+				return nil
 			},
 		}
 		events := make(chan invalidationObservation, 1)
@@ -567,7 +622,53 @@ func TestRESP3TrackingSpikeHandlerReportsLocalCleanupFailure(t *testing.T) {
 		}
 		assertRejectedWithoutDisclosure(t, err)
 		assertFailureCalls(t, local, []string{"logical-one"}, 1)
-		assertFailureObservation(t, events, observationReasonCleanupTimeout, true)
+		assertFailureObservation(t, events, invalidationObservation{
+			reason:   observationReasonCleanupTimeout,
+			repaired: true,
+		})
+		repairContext := <-repairContexts
+		if repairContext.err != nil {
+			t.Fatalf("repair context was not live on entry: %v", repairContext.err)
+		}
+		if !repairContext.hasDeadline {
+			t.Fatal("repair context has no deadline")
+		}
+		remaining := repairContext.deadline.Sub(repairContext.observedAt)
+		if remaining <= 0 || remaining > handler.repairTimeout || remaining < handler.repairTimeout/2 {
+			t.Fatalf("repair context remaining budget = %s, want live budget near %s", remaining, handler.repairTimeout)
+		}
+		if handler.overflow.Load() {
+			t.Fatal("overflow = true, want false")
+		}
+	})
+
+	t.Run("repair timeout is bounded and redacted", func(t *testing.T) {
+		local := &fakeLocalInvalidator{
+			invalidateFn: func(context.Context, string) error {
+				return errors.New(sensitiveMarker)
+			},
+			clearFn: func(ctx context.Context) error {
+				<-ctx.Done()
+				return fmt.Errorf("%s: %w", sensitiveMarker, ctx.Err())
+			},
+		}
+		events := make(chan invalidationObservation, 1)
+		handler := newSpikeHandler(context.Background(), local, allowed, events)
+		handler.repairTimeout = 100 * time.Millisecond
+		done := make(chan error, 1)
+		go func() {
+			done <- handleSpikeNotification(handler, []interface{}{"invalidate", []interface{}{"physical-one"}})
+		}()
+
+		var err error
+		select {
+		case err = <-done:
+		case <-time.After(time.Second):
+			t.Fatal("HandlePushNotification did not respect repair timeout")
+		}
+		assertRejectedWithoutDisclosure(t, err)
+		assertFailureCalls(t, local, []string{"logical-one"}, 1)
+		assertFailureObservation(t, events, invalidationObservation{reason: observationReasonRepairFailed})
 		if handler.overflow.Load() {
 			t.Fatal("overflow = true, want false")
 		}
@@ -583,7 +684,7 @@ func TestRESP3TrackingSpikeHandlerReportsLocalCleanupFailure(t *testing.T) {
 
 		assertRejectedWithoutDisclosure(t, err)
 		assertFailureCalls(t, local, nil, 0)
-		assertFailureObservation(t, events, observationReasonShutdown, false)
+		assertFailureObservation(t, events, invalidationObservation{reason: observationReasonShutdown})
 		if handler.overflow.Load() {
 			t.Fatal("overflow = true, want false")
 		}
@@ -659,22 +760,44 @@ func assertFailureCalls(t *testing.T, local *fakeLocalInvalidator, wantKeys []st
 	}
 }
 
+func assertSuccessfulKeyInvalidation(
+	t *testing.T,
+	physicalKeys []interface{},
+	allowed map[string]string,
+	wantKeys []string,
+) {
+	t.Helper()
+
+	local := &fakeLocalInvalidator{}
+	events := make(chan invalidationObservation, 1)
+	handler := newSpikeHandler(context.Background(), local, allowed, events)
+	err := handleSpikeNotification(handler, []interface{}{"invalidate", physicalKeys})
+	if err != nil {
+		t.Fatalf("HandlePushNotification() error = %v", err)
+	}
+	keys, clears := local.calls()
+	if !slices.Equal(keys, wantKeys) || clears != 0 {
+		t.Fatalf("local calls = keys %v, clears %d; want keys %v, clears 0", keys, clears, wantKeys)
+	}
+	wantObservation := invalidationObservation{success: true, count: len(wantKeys)}
+	if observation := requireSingleObservation(t, events); observation != wantObservation {
+		t.Fatalf("observation = %+v, want %+v", observation, wantObservation)
+	}
+	if handler.overflow.Load() {
+		t.Fatal("overflow = true, want false")
+	}
+}
+
 func assertFailureObservation(
 	t *testing.T,
 	events <-chan invalidationObservation,
-	wantReason observationReason,
-	wantRepaired bool,
+	want invalidationObservation,
 ) {
 	t.Helper()
 
 	observation := requireSingleObservation(t, events)
-	if observation.success || observation.reason != wantReason || observation.repaired != wantRepaired {
-		t.Fatalf(
-			"observation = %+v, want failure reason %q repaired=%t",
-			observation,
-			wantReason,
-			wantRepaired,
-		)
+	if observation != want {
+		t.Fatalf("observation = %+v, want %+v", observation, want)
 	}
 	if strings.Contains(fmt.Sprint(observation), sensitiveMarker) {
 		t.Fatalf("observation disclosed sensitive marker: %+v", observation)
