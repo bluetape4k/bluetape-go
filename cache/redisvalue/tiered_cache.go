@@ -74,6 +74,237 @@ func (c *TieredCache[V]) Get(ctx context.Context, key string) (V, error) {
 	return c.getRemoteCoordinated(ctx, key)
 }
 
+// GetOrLoad returns an L1 or L2 hit, or collapses one caller loader invocation
+// for the active same-key process-local flight.
+func (c *TieredCache[V]) GetOrLoad(
+	ctx context.Context,
+	key string,
+	remoteTTL time.Duration,
+	loader cache.Loader[string, V],
+) (V, error) {
+	var zero V
+	ctx = normalizeContext(ctx)
+	if err := c.validateCall("get-or-load", ctx, key); err != nil {
+		return zero, err
+	}
+	if err := validateEntryTTL(remoteTTL); err != nil {
+		return zero, err
+	}
+	if loader == nil {
+		return zero, newCacheError("get-or-load", ReasonConfiguration, c.keyID(key), nil)
+	}
+	if value, hit, err := c.localGet(ctx, key); err != nil || hit {
+		return value, err
+	}
+
+	coordinator := c.coordinators.acquire(key)
+	defer c.coordinators.release(key, coordinator)
+	flight, leader := coordinator.joinFlight()
+	if !leader {
+		return coordinator.waitFlight(ctx, flight)
+	}
+
+	if err := coordinator.acquireToken(ctx); err != nil {
+		coordinator.publishFlight(flight, zero, err)
+		return zero, err
+	}
+	tokenHeld := true
+	value, err := c.runLoadLeader(ctx, key, remoteTTL, loader, coordinator, &tokenHeld)
+	coordinator.publishFlight(flight, value, err)
+	if tokenHeld {
+		coordinator.releaseToken()
+	}
+	return value, err
+}
+
+// GetOrLoadDefault delegates to GetOrLoad using the copied L2 default TTL.
+func (c *TieredCache[V]) GetOrLoadDefault(
+	ctx context.Context,
+	key string,
+	loader cache.Loader[string, V],
+) (V, error) {
+	if c == nil || !initializedValueCache(c.remote) {
+		var zero V
+		return zero, newCacheError("get-or-load-default", ReasonUninitialized, "", nil)
+	}
+	return c.GetOrLoad(ctx, key, c.remote.config.RemoteTTL, loader)
+}
+
+func (c *TieredCache[V]) runLoadLeader(
+	ctx context.Context,
+	key string,
+	remoteTTL time.Duration,
+	loader cache.Loader[string, V],
+	coordinator *keyCoordinator[V],
+	tokenHeld *bool,
+) (V, error) {
+	var zero V
+	for {
+		lease, retry, err := c.acquireHealthyForLeader(ctx, coordinator, tokenHeld)
+		if err != nil {
+			return zero, c.withCallOperation("get-or-load", key, err)
+		}
+		if retry {
+			continue
+		}
+
+		localValue, localErr := c.local.Get(ctx, key)
+		disposition := c.localState.classify(lease.generation)
+		if localErr == nil {
+			lease.release()
+			if disposition == localBlocked {
+				return zero, c.localBlockedCallError("get-or-load", key, nil)
+			}
+			return localValue, nil
+		}
+		if !errors.Is(localErr, cache.ErrCacheMiss) {
+			lease.release()
+			if disposition == localBlocked {
+				return zero, c.localBlockedCallError("get-or-load", key, localErr)
+			}
+			return zero, c.localFailureError("get-or-load", key, localErr)
+		}
+		remoteReadTicket, admitted := lease.issueTicket()
+		generation := lease.generation
+		lease.release()
+		if !admitted {
+			if c.localState.classify(generation) == localBlocked {
+				return zero, c.localBlockedCallError("get-or-load", key, nil)
+			}
+			continue
+		}
+		if err := remoteReadTicket.consume(ctx); err != nil {
+			return zero, err
+		}
+
+		remoteValue, remoteErr := c.remote.Get(ctx, key)
+		disposition = c.localState.classify(generation)
+		if disposition == localBlocked {
+			return zero, c.localBlockedCallError("get-or-load", key, remoteErr)
+		}
+		if remoteErr == nil {
+			if disposition == localNewerGeneration {
+				return remoteValue, nil
+			}
+			if err := c.populateLocalHeld(ctx, key, remoteValue, c.config.LocalTTL, generation); err != nil {
+				return zero, err
+			}
+			return remoteValue, nil
+		}
+		if !errors.Is(remoteErr, cache.ErrCacheMiss) {
+			return zero, remoteErr
+		}
+		if disposition == localNewerGeneration {
+			continue
+		}
+
+		loaderLease, retry, err := c.acquireHealthyForLeader(ctx, coordinator, tokenHeld)
+		if err != nil {
+			return zero, c.withCallOperation("get-or-load", key, err)
+		}
+		if retry {
+			continue
+		}
+		if loaderLease.generation != generation {
+			loaderLease.release()
+			continue
+		}
+		loaderTicket, admitted := loaderLease.issueTicket()
+		loaderLease.release()
+		if !admitted {
+			if c.localState.classify(generation) == localBlocked {
+				return zero, c.localBlockedCallError("get-or-load", key, nil)
+			}
+			continue
+		}
+		if err := loaderTicket.consume(ctx); err != nil {
+			return zero, err
+		}
+		loaded, loadErr := loader(ctx, key)
+		disposition = c.localState.classify(generation)
+		if disposition == localBlocked {
+			return zero, c.localBlockedCallError("get-or-load", key, loadErr)
+		}
+		if loadErr != nil {
+			return zero, loadErr
+		}
+		if disposition == localNewerGeneration {
+			return loaded, nil
+		}
+
+		writeLease, changed, stateErr := c.localState.tryAcquireHealthy()
+		if stateErr != nil {
+			return zero, c.withCallOperation("get-or-load", key, stateErr)
+		}
+		if changed != nil {
+			return loaded, nil
+		}
+		if writeLease.generation != generation {
+			writeLease.release()
+			if c.localState.classify(generation) == localBlocked {
+				return zero, c.localBlockedCallError("get-or-load", key, nil)
+			}
+			return loaded, nil
+		}
+		writeTicket, admitted := writeLease.issueTicket()
+		writeLease.release()
+		if !admitted {
+			if c.localState.classify(generation) == localBlocked {
+				return zero, c.localBlockedCallError("get-or-load", key, nil)
+			}
+			return loaded, nil
+		}
+		if err := writeTicket.consume(ctx); err != nil {
+			return zero, err
+		}
+		now := c.now
+		if now == nil {
+			now = time.Now
+		}
+		started := now()
+		remoteErr = c.remote.Set(ctx, key, loaded, remoteTTL)
+		disposition = c.localState.classify(generation)
+		if disposition == localBlocked {
+			return zero, c.localBlockedCallError("get-or-load", key, remoteErr)
+		}
+		if remoteErr != nil {
+			return zero, remoteErr
+		}
+		if disposition == localNewerGeneration {
+			return loaded, nil
+		}
+		localTTL, ok := knownWriteLocalTTL(c.config.LocalTTL, remoteTTL, started, now)
+		if !ok {
+			return loaded, nil
+		}
+		if err := c.populateLocalHeld(ctx, key, loaded, localTTL, generation); err != nil {
+			return zero, err
+		}
+		return loaded, nil
+	}
+}
+
+func (c *TieredCache[V]) acquireHealthyForLeader(
+	ctx context.Context,
+	coordinator *keyCoordinator[V],
+	tokenHeld *bool,
+) (localLease, bool, error) {
+	lease, changed, err := c.localState.tryAcquireHealthy()
+	if err != nil || changed == nil {
+		return lease, false, err
+	}
+	coordinator.releaseToken()
+	*tokenHeld = false
+	if err := waitLocalState(ctx, changed); err != nil {
+		return localLease{}, false, err
+	}
+	if err := coordinator.acquireToken(ctx); err != nil {
+		return localLease{}, false, err
+	}
+	*tokenHeld = true
+	return localLease{}, true, nil
+}
+
 func (c *TieredCache[V]) localGet(ctx context.Context, key string) (V, bool, error) {
 	var zero V
 	lease, err := c.localState.acquireHealthy(ctx)

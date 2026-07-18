@@ -348,3 +348,380 @@ func TestTieredCacheL1HitAndL2HitUseIndependentLocalCaches(t *testing.T) {
 		t.Fatalf("warm Get() = %+v/%v", got, err)
 	}
 }
+
+type loadTestRemote struct {
+	cache    *ValueCache[string]
+	getCalls atomic.Int64
+	setCalls atomic.Int64
+	setTTL   atomic.Int64
+}
+
+func newMissTieredCache(t *testing.T) (*TieredCache[string], *loadTestRemote) {
+	t.Helper()
+	remoteState := &loadTestRemote{}
+	client := &fakeCommandClient{
+		getRange: func(context.Context, string, int64, int64) *redis.StringCmd {
+			remoteState.getCalls.Add(1)
+			return redis.NewStringResult("", redis.Nil)
+		},
+		set: func(_ context.Context, _ string, _ any, ttl time.Duration) *redis.StatusCmd {
+			remoteState.setCalls.Add(1)
+			remoteState.setTTL.Store(int64(ttl))
+			return redis.NewStatusResult("OK", nil)
+		},
+	}
+	remoteState.cache = unitValueCache[string](client, serialization.StringSerializer{}, ValueConfig{RemoteTTL: time.Hour, MaxValueBytes: 1024, ClearBatchSize: 10})
+	return mustTieredCache(t, cache.NewMemory[string, string](), remoteState.cache, nil), remoteState
+}
+
+func TestGetOrLoadRejectsNilLoaderBeforeCoordinatorCreation(t *testing.T) {
+	tiered, remote := newMissTieredCache(t)
+	if _, err := tiered.GetOrLoad(context.Background(), "shared", time.Minute, nil); !hasReason(err, ReasonConfiguration) {
+		t.Fatalf("GetOrLoad() = %v", err)
+	}
+	if tiered.coordinators.active() != 0 || remote.getCalls.Load() != 0 || remote.setCalls.Load() != 0 {
+		t.Fatalf("active/get/set = %d/%d/%d", tiered.coordinators.active(), remote.getCalls.Load(), remote.setCalls.Load())
+	}
+}
+
+func TestGetOrLoadSharesOneLeaderResult(t *testing.T) {
+	tiered, remote := newMissTieredCache(t)
+	entered := make(chan struct{})
+	release := make(chan struct{})
+	var calls atomic.Int64
+	loader := func(context.Context, string) (string, error) {
+		if calls.Add(1) == 1 {
+			close(entered)
+		}
+		<-release
+		return "loaded", nil
+	}
+	type result struct {
+		value string
+		err   error
+	}
+	results := make(chan result, 16)
+	for range 16 {
+		go func() {
+			value, err := tiered.GetOrLoad(context.Background(), "shared", time.Minute, loader)
+			results <- result{value: value, err: err}
+		}()
+	}
+	<-entered
+	waitForFlightParticipants(t, tiered, "shared", 16)
+	close(release)
+	for range 16 {
+		got := <-results
+		if got.err != nil || got.value != "loaded" {
+			t.Fatalf("result = %q/%v", got.value, got.err)
+		}
+	}
+	if calls.Load() != 1 || remote.getCalls.Load() != 1 || remote.setCalls.Load() != 1 || tiered.coordinators.active() != 0 {
+		t.Fatalf("loader/get/set/active = %d/%d/%d/%d", calls.Load(), remote.getCalls.Load(), remote.setCalls.Load(), tiered.coordinators.active())
+	}
+}
+
+func TestGetOrLoadSharesOneLeaderError(t *testing.T) {
+	tiered, remote := newMissTieredCache(t)
+	loaderErr := errors.New("loader failed")
+	entered := make(chan struct{})
+	release := make(chan struct{})
+	var calls atomic.Int64
+	loader := func(context.Context, string) (string, error) {
+		if calls.Add(1) == 1 {
+			close(entered)
+		}
+		<-release
+		return "", loaderErr
+	}
+	results := make(chan error, 8)
+	for range 8 {
+		go func() {
+			_, err := tiered.GetOrLoad(context.Background(), "shared", time.Minute, loader)
+			results <- err
+		}()
+	}
+	<-entered
+	waitForFlightParticipants(t, tiered, "shared", 8)
+	close(release)
+	for range 8 {
+		if err := <-results; !errors.Is(err, loaderErr) {
+			t.Fatalf("result error = %v", err)
+		}
+	}
+	if calls.Load() != 1 || remote.setCalls.Load() != 0 || tiered.coordinators.active() != 0 {
+		t.Fatalf("loader/set/active = %d/%d/%d", calls.Load(), remote.setCalls.Load(), tiered.coordinators.active())
+	}
+}
+
+func TestGetOrLoadFirstLeaderOwnsTTLAndLoader(t *testing.T) {
+	tiered, remote := newMissTieredCache(t)
+	entered := make(chan struct{})
+	release := make(chan struct{})
+	var firstCalls atomic.Int64
+	var followerCalls atomic.Int64
+	firstResult := make(chan error, 1)
+	go func() {
+		_, err := tiered.GetOrLoad(context.Background(), "shared", 7*time.Second, func(context.Context, string) (string, error) {
+			firstCalls.Add(1)
+			close(entered)
+			<-release
+			return "leader", nil
+		})
+		firstResult <- err
+	}()
+	<-entered
+	followerResult := make(chan string, 1)
+	go func() {
+		value, err := tiered.GetOrLoad(context.Background(), "shared", 33*time.Second, func(context.Context, string) (string, error) {
+			followerCalls.Add(1)
+			return "follower", nil
+		})
+		if err != nil {
+			followerResult <- err.Error()
+			return
+		}
+		followerResult <- value
+	}()
+	waitForFlightParticipants(t, tiered, "shared", 2)
+	close(release)
+	if err := <-firstResult; err != nil {
+		t.Fatal(err)
+	}
+	if got := <-followerResult; got != "leader" {
+		t.Fatalf("follower result = %q", got)
+	}
+	if firstCalls.Load() != 1 || followerCalls.Load() != 0 || time.Duration(remote.setTTL.Load()) != 7*time.Second {
+		t.Fatalf("first/follower/ttl = %d/%d/%s", firstCalls.Load(), followerCalls.Load(), time.Duration(remote.setTTL.Load()))
+	}
+}
+
+func TestGetOrLoadFollowerCancellationDoesNotCancelLeader(t *testing.T) {
+	tiered, _ := newMissTieredCache(t)
+	entered := make(chan struct{})
+	release := make(chan struct{})
+	leaderResult := make(chan error, 1)
+	go func() {
+		_, err := tiered.GetOrLoad(context.Background(), "shared", time.Minute, func(context.Context, string) (string, error) {
+			close(entered)
+			<-release
+			return "loaded", nil
+		})
+		leaderResult <- err
+	}()
+	<-entered
+	followerCtx, cancelFollower := context.WithCancel(context.Background())
+	followerResult := make(chan error, 1)
+	go func() {
+		_, err := tiered.GetOrLoad(followerCtx, "shared", time.Hour, func(context.Context, string) (string, error) {
+			return "wrong", nil
+		})
+		followerResult <- err
+	}()
+	waitForFlightParticipants(t, tiered, "shared", 2)
+	cancelFollower()
+	if err := <-followerResult; !errors.Is(err, context.Canceled) {
+		t.Fatalf("follower error = %v", err)
+	}
+	close(release)
+	if err := <-leaderResult; err != nil {
+		t.Fatal(err)
+	}
+	if tiered.coordinators.active() != 0 {
+		t.Fatalf("active coordinators = %d", tiered.coordinators.active())
+	}
+}
+
+func TestGetOrLoadLeaderCancellationPublishesToFollowers(t *testing.T) {
+	tiered, _ := newMissTieredCache(t)
+	blocker := tiered.coordinators.acquire("shared")
+	if err := blocker.acquireToken(context.Background()); err != nil {
+		t.Fatal(err)
+	}
+	leaderCtx, cancelLeader := context.WithCancel(context.Background())
+	leaderResult := make(chan error, 1)
+	go func() {
+		_, err := tiered.GetOrLoad(leaderCtx, "shared", time.Minute, func(context.Context, string) (string, error) {
+			return "wrong", nil
+		})
+		leaderResult <- err
+	}()
+	waitForFlightParticipants(t, tiered, "shared", 1)
+	followerResult := make(chan error, 1)
+	go func() {
+		_, err := tiered.GetOrLoad(context.Background(), "shared", time.Minute, func(context.Context, string) (string, error) {
+			return "wrong follower", nil
+		})
+		followerResult <- err
+	}()
+	waitForFlightParticipants(t, tiered, "shared", 2)
+	cancelLeader()
+	if err := <-leaderResult; !errors.Is(err, context.Canceled) {
+		t.Fatalf("leader error = %v", err)
+	}
+	if err := <-followerResult; !errors.Is(err, context.Canceled) {
+		t.Fatalf("follower error = %v", err)
+	}
+	blocker.releaseToken()
+	tiered.coordinators.release("shared", blocker)
+	if tiered.coordinators.active() != 0 {
+		t.Fatalf("active coordinators = %d", tiered.coordinators.active())
+	}
+}
+
+func TestGetOrLoadDoesNotWriteAfterLoaderCancellation(t *testing.T) {
+	tiered, remote := newMissTieredCache(t)
+	ctx, cancel := context.WithCancel(context.Background())
+	_, err := tiered.GetOrLoad(ctx, "shared", time.Minute, func(context.Context, string) (string, error) {
+		cancel()
+		return "loaded", nil
+	})
+	if !errors.Is(err, context.Canceled) {
+		t.Fatalf("GetOrLoad() = %v", err)
+	}
+	if remote.setCalls.Load() != 0 {
+		t.Fatalf("remote set calls = %d", remote.setCalls.Load())
+	}
+}
+
+func TestGetOrLoadHealthyRepairWaitRetainsFlightLeadership(t *testing.T) {
+	remoteEntered := make(chan struct{})
+	remoteRelease := make(chan struct{})
+	var getCalls atomic.Int64
+	client := &fakeCommandClient{
+		getRange: func(context.Context, string, int64, int64) *redis.StringCmd {
+			if getCalls.Add(1) == 1 {
+				close(remoteEntered)
+				<-remoteRelease
+			}
+			return redis.NewStringResult("", redis.Nil)
+		},
+		set: func(context.Context, string, any, time.Duration) *redis.StatusCmd {
+			return redis.NewStatusResult("OK", nil)
+		},
+	}
+	remote := unitValueCache[string](client, serialization.StringSerializer{}, ValueConfig{RemoteTTL: time.Hour, MaxValueBytes: 32, ClearBatchSize: 10})
+	tiered := mustTieredCache(t, cache.NewMemory[string, string](), remote, nil)
+	var loaderCalls atomic.Int64
+	loader := func(context.Context, string) (string, error) {
+		loaderCalls.Add(1)
+		return "loaded", nil
+	}
+	leaderResult := make(chan error, 1)
+	go func() {
+		_, err := tiered.GetOrLoad(context.Background(), "shared", time.Minute, loader)
+		leaderResult <- err
+	}()
+	<-remoteEntered
+	followerResult := make(chan error, 1)
+	go func() {
+		_, err := tiered.GetOrLoad(context.Background(), "shared", time.Hour, func(context.Context, string) (string, error) {
+			return "wrong", nil
+		})
+		followerResult <- err
+	}()
+	waitForFlightParticipants(t, tiered, "shared", 2)
+	repair, err := tiered.localState.beginRepair(context.Background(), repairExplicit)
+	if err != nil {
+		t.Fatal(err)
+	}
+	close(remoteRelease)
+	time.Sleep(20 * time.Millisecond)
+	if loaderCalls.Load() != 0 {
+		t.Fatalf("loader ran during repair: %d", loaderCalls.Load())
+	}
+	if participants := currentFlightParticipants(tiered, "shared"); participants != 2 {
+		t.Fatalf("flight participants during repair = %d", participants)
+	}
+	if !tiered.localState.finishRepair(repair, nil) {
+		t.Fatal("repair did not finish")
+	}
+	if err := <-leaderResult; err != nil {
+		t.Fatal(err)
+	}
+	if err := <-followerResult; err != nil {
+		t.Fatal(err)
+	}
+	if loaderCalls.Load() != 1 || getCalls.Load() != 2 || tiered.coordinators.active() != 0 {
+		t.Fatalf("loader/get/active = %d/%d/%d", loaderCalls.Load(), getCalls.Load(), tiered.coordinators.active())
+	}
+}
+
+func TestGetOrLoadDifferentKeysProceedConcurrently(t *testing.T) {
+	tiered, _ := newMissTieredCache(t)
+	entered := make(chan string, 2)
+	release := make(chan struct{})
+	results := make(chan error, 2)
+	for _, key := range []string{"a", "b"} {
+		go func(key string) {
+			value, err := tiered.GetOrLoad(context.Background(), key, time.Minute, func(context.Context, string) (string, error) {
+				entered <- key
+				<-release
+				return key, nil
+			})
+			if err == nil && value != key {
+				err = errors.New("wrong loaded value")
+			}
+			results <- err
+		}(key)
+	}
+	for range 2 {
+		select {
+		case <-entered:
+		case <-time.After(time.Second):
+			t.Fatal("different-key loaders did not enter concurrently")
+		}
+	}
+	close(release)
+	for range 2 {
+		if err := <-results; err != nil {
+			t.Fatal(err)
+		}
+	}
+	if tiered.coordinators.active() != 0 {
+		t.Fatalf("active coordinators = %d", tiered.coordinators.active())
+	}
+}
+
+func TestGetOrLoadDefaultUsesRemoteDefaultTTL(t *testing.T) {
+	tiered, remote := newMissTieredCache(t)
+	value, err := tiered.GetOrLoadDefault(context.Background(), "shared", func(context.Context, string) (string, error) {
+		return "loaded", nil
+	})
+	if err != nil || value != "loaded" {
+		t.Fatalf("GetOrLoadDefault() = %q/%v", value, err)
+	}
+	if time.Duration(remote.setTTL.Load()) != time.Hour {
+		t.Fatalf("remote ttl = %s", time.Duration(remote.setTTL.Load()))
+	}
+}
+
+func waitForFlightParticipants[V any](t *testing.T, tiered *TieredCache[V], key string, want int64) {
+	t.Helper()
+	deadline := time.Now().Add(time.Second)
+	for {
+		participants := currentFlightParticipants(tiered, key)
+		if participants >= want {
+			return
+		}
+		if time.Now().After(deadline) {
+			t.Fatalf("flight participants = %d, want %d", participants, want)
+		}
+		time.Sleep(time.Millisecond)
+	}
+}
+
+func currentFlightParticipants[V any](tiered *TieredCache[V], key string) int64 {
+	tiered.coordinators.mu.Lock()
+	defer tiered.coordinators.mu.Unlock()
+	coordinator := tiered.coordinators.items[key]
+	if coordinator == nil {
+		return 0
+	}
+	coordinator.mu.Lock()
+	defer coordinator.mu.Unlock()
+	if coordinator.flight == nil {
+		return 0
+	}
+	return coordinator.flight.participants.Load()
+}
