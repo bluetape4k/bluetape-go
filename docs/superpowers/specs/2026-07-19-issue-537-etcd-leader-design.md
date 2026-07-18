@@ -436,4 +436,3 @@ gRPC, protobuf, Prometheus, `x/net`, `x/sys` and zap module graph.
    shutdown requirements.
 8. Targeted, race, repeated, dependency and repository CI verification pass with Docker-backed
    packages serialized.
-
