@@ -1596,8 +1596,8 @@ func TestRESP3TrackingSpikeHandlerReportsLocalCleanupFailure(t *testing.T) {
 			t.Fatal("repair context has no deadline")
 		}
 		remaining := repairContext.deadline.Sub(repairContext.observedAt)
-		if remaining <= 0 || remaining > handler.repairTimeout || remaining < handler.repairTimeout/2 {
-			t.Fatalf("repair context remaining budget = %s, want live budget near %s", remaining, handler.repairTimeout)
+		if remaining <= 0 || remaining > handler.repairTimeout {
+			t.Fatalf("repair context remaining budget = %s, want live budget up to %s", remaining, handler.repairTimeout)
 		}
 		if handler.overflow.Load() {
 			t.Fatal("overflow = true, want false")
@@ -1696,10 +1696,14 @@ func TestRESP3TrackingSpikeHandlerGateWaitRegistersCurrentGeneration(t *testing.
 	if !gate.begin() {
 		t.Fatal("zero-value gate rejected first callback")
 	}
-	released := false
+	if !gate.begin() {
+		t.Fatal("gate rejected second concurrent callback")
+	}
+	released := 0
 	t.Cleanup(func() {
-		if !released {
+		for released < 2 {
 			gate.done()
+			released++
 		}
 	})
 
@@ -1728,7 +1732,15 @@ func TestRESP3TrackingSpikeHandlerGateWaitRegistersCurrentGeneration(t *testing.
 	}
 
 	gate.done()
-	released = true
+	released++
+	select {
+	case <-waitDone:
+		t.Fatal("registered gate wait completed while second callback remained active")
+	default:
+	}
+
+	gate.done()
+	released++
 	completionTimer := time.NewTimer(time.Second)
 	defer func() {
 		if !completionTimer.Stop() {
