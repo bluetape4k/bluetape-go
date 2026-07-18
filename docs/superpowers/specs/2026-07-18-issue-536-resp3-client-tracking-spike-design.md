@@ -1,6 +1,6 @@
 # Issue #536 RESP3 CLIENT TRACKING Spike Design
 
-Status: Step 2-R converged at `3836410`; awaiting Step 3-R plan review
+Status: Step 3-R repair candidate; Step 2-R delta and Step 3-R re-review required
 Issue: [#536](https://github.com/bluetape4k/bluetape-go/issues/536)
 Predecessor: [#110](https://github.com/bluetape4k/bluetape-go/issues/110)
 Tiered cache seam: [#535](https://github.com/bluetape4k/bluetape-go/issues/535)
@@ -184,11 +184,29 @@ at most 64 KiB. The fixture precomputes an exact `physical key -> logical key`
 allowlist with public `redis.KeyBuilder`; it never reverse-maps by trimming a
 prefix. Unknown, duplicate, oversized, or malformed entries fail the spike.
 
-Every callback creates an independent bounded cleanup context from the
-test-owned handler lifetime rather than reusing the drain command context. The
-spike uses `TieredConfig{InvalidationWaitTimeout: 250 * time.Millisecond,
-LocalCleanupTimeout: 100 * time.Millisecond}` and a 500 ms handler cleanup
-deadline. It calls only `InvalidateLocal` or `ClearLocal`.
+Every accepted callback creates an independent bounded key-cleanup context from
+the test-owned handler lifetime rather than reusing the drain command context.
+The default handler key-cleanup deadline is 1 second; the timeout subtest
+injects 100 ms and uses a watchdog of at least 1 second so the assertion cannot
+race the deadline it is proving. The spike uses
+`TieredConfig{InvalidationWaitTimeout: 250 * time.Millisecond,
+LocalCleanupTimeout: 100 * time.Millisecond}`. It calls only
+`InvalidateLocal` or `ClearLocal`.
+
+The handler validates the complete key list before performing cleanup, then
+invalidates logical keys in payload order. A per-key failure stops later key
+attempts and triggers exactly one full `ClearLocal` repair with a separate
+250 ms context derived from the handler lifetime, not from the expired or
+failed key-cleanup context. The callback still returns
+`errRESP3InvalidationRejected`; its redacted observation records whether the
+full-clear repair succeeded. This prevents a partially invalidated multi-key
+payload from leaving an apparently successful but stale L1.
+
+Callback admission is owned by a test-only dispatch gate. Under one mutex,
+`begin` rejects work after closure or increments the in-flight `WaitGroup`;
+`close` flips the admission flag under the same mutex before any `wait`. This
+makes `WaitGroup.Add` impossible once shutdown waiting begins and avoids the
+unsafe late-`Add` lifecycle of a raw `WaitGroup`.
 
 Handler results are written with a non-blocking `select` to a bounded channel.
 An atomic overflow flag records any dropped observation. Tests require the
@@ -201,9 +219,12 @@ redacted reason without retaining raw payloads or provider messages.
 
 Each test must prove its prerequisites before asserting invalidation behavior:
 
-1. Start Redis 7.4 with the existing Testcontainers helper. Record `INFO server`
-   version/build fields and the configured image tag or digest in the result
-   ledger; a mutable image family alone is not reproducibility evidence.
+1. Start Redis 7.4 through the already-declared upstream Testcontainers Redis
+   module using the repository-pinned `redis:7.4-alpine` image. Inspect the
+   actual container and record both `Inspect.Config.Image` and the engine image
+   identity from `Inspect.Image`, plus `INFO server` version/build fields, in
+   the result ledger. Repeating a source-level tag constant is not
+   reproducibility evidence.
 2. Create a tracking client with `Protocol: 3`, `PoolSize: 1`,
    `MaxRetries: -1`, and an injected `redis.NewPushNotificationProcessor()`.
 3. Register the `invalidate` handler with `protected=false`.
@@ -298,13 +319,19 @@ cacheable reads. `OnConnect` alone cannot close the missed-invalidation window.
 
 `TestRESP3TrackingSpikeShutdownOrdersQuiescenceBeforeUnregister`
 
-- Stop issuing new tracked commands.
-- Wait for the synchronized in-flight callback count to reach zero.
-- Unregister `invalidate`, close the sticky connection, and close the client.
+- Start one direct callback and hold it inside the local invalidator.
+- Close the synchronized dispatch gate and prove a later callback is rejected
+  without entering the invalidator.
+- Start a bounded gate wait and prove it remains blocked until the held
+  callback is released.
+- Release the held callback and require the gate wait to complete within a
+  1-second watchdog.
+- Unregister `invalidate`, prove later processor lookup fails, then close the
+  sticky connection and client through 1-second watchdogs.
 - Assert command quiescence and unregister with explicit context deadlines. Run
   context-free `Conn.Close()` and `Client.Close()` behind bounded test watchdog
   channels; a watchdog timeout observes a stuck close but cannot cancel it.
-  Assert no new handler lookup succeeds after unregister.
+  Run the handler, unregister, and shutdown proofs under `go test -race`.
 
 These tests document that unregister is not a callback quiescence barrier and
 that direct registration on a caller-created client without processor and
@@ -324,11 +351,21 @@ in-flight ownership is insufficient for a production component.
 
 `TestRESP3TrackingSpikeHandlerReportsLocalCleanupFailure`
 
-- Inject `InvalidateLocal` and `ClearLocal` failures containing sensitive
-  markers and separately force the handler cleanup deadline to expire.
+- Inject a middle-key `InvalidateLocal` failure in a three-key payload. Assert
+  the first and second calls occur in order, the third is not attempted, and
+  exactly one `ClearLocal` repair runs under its independent repair context.
+- Run the middle-key case once with successful repair and once with a
+  sensitive-marker repair failure; observations distinguish `repaired=true`
+  from `repaired=false` without retaining provider text.
+- Inject global `ClearLocal` failure and separately force the key-cleanup
+  deadline to expire using a 100 ms injected deadline and a 1-second watchdog.
 - Assert no callback is reported as successful, all observation reasons are
   typed/redacted, the returned error is only the low-cardinality sentinel, and
   synchronized state is race-free.
+
+`TestRESP3TrackingSpikeHandlerProcessesBoundedMultiKeyPayload` separately
+proves that a two-key success invalidates both exact logical keys in payload
+order, performs no full clear, and records one success with count two.
 
 ## Synchronization And Flake Control
 
@@ -437,8 +474,9 @@ Periodic heartbeat/pump viability is not proven. Its cadence, maximum stale
 window, disconnect latency, ticker/goroutine lifecycle, additional Redis QPS,
 socket/memory cost, throughput, and provider comparison belong to issue #560 or
 a separately approved Type A design. The research note may provide only the
-qualitative cost statement that each owner needs a dedicated socket and each
-drain adds a Redis command; it must not publish measured performance claims.
+qualitative cost statement that one tracking owner maintains one dedicated
+socket and each explicit drain adds one Redis command; it must not publish
+measured performance claims.
 
 ## Type A Escalation Triggers
 
