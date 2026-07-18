@@ -4,6 +4,7 @@ Date: 2026-07-18 KST
 Issue: [#536](https://github.com/bluetape4k/bluetape-go/issues/536)
 Companion design: `2026-07-18-issue-536-resp3-client-tracking-spike-design.md`
 Step 2-R evidence: `../reviews/2026-07-18-issue-536-resp3-client-tracking-spike-step-2r-spec-review.md`
+Step 3-R evidence: `../reviews/2026-07-18-issue-536-resp3-client-tracking-spike-step-3r-plan-review.md`
 
 ## Test Boundary
 

@@ -3,15 +3,17 @@
 Date: 2026-07-18 KST
 Issue: [#536](https://github.com/bluetape4k/bluetape-go/issues/536)
 Reviewed spec: `docs/superpowers/specs/2026-07-18-issue-536-resp3-client-tracking-spike-design.md`
-Final reviewed commit: `38364100af92d6da616ff89101109fc768e639a4`
+Original converged commit: `38364100af92d6da616ff89101109fc768e639a4`
+Final reviewed commit: `3d7567b13ebc3a427771734e42aa9b980a7d8388`
 Baseline: `f4acaab1676ca4a989051a28f60f37ab147d87f9`
 
 ## Integrated Verdict
 
 `PASS — P0=0 P1=0 P2=0`
 
-Six independent lanes reviewed the same final spec commit. The main session
-integrated their findings, checked the repaired design against the current
+Six independent lanes reviewed the same final spec commit after a delta review
+from the original convergence point. The main session integrated their
+findings, checked the repaired design against the current
 `cache/redisnear`, `cache/redisvalue`, `redis.KeyBuilder`, Testcontainers, and
 go-redis/v9 v9.20.0 surfaces, and found no remaining blocker.
 
@@ -51,8 +53,9 @@ unresolved defects in the spike design.
 
 - Defined unregister as non-quiescent and added explicit proof that it does not
   wait for an already selected callback.
-- Fixed shutdown ordering to stop new commands, wait for in-flight callbacks,
-  unregister, then close.
+- Added a synchronized callback gate that closes admission before waiting,
+  rejects later callbacks with one redacted observation, waits for held work,
+  unregisters, then closes through idempotent resource owners.
 - Disabled go-redis command retries for loss proof, required exact kill count,
   first transport failure, different replacement client ID, tracking-off
   evidence, L1 clear, and resumed delivery.
@@ -62,6 +65,9 @@ unresolved defects in the spike design.
   with observable bounded operations.
 - Described context-free `Conn.Close` and `Client.Close` with watchdog semantics
   that observe but cannot cancel a stuck close.
+- Registered client/connection cleanup after container cleanup so LIFO closes
+  Redis resources first, with per-resource `sync.Once` for explicit-close
+  re-entry.
 
 ### Security
 
@@ -83,6 +89,8 @@ unresolved defects in the spike design.
 
 - Required `INFO server` version/build data plus configured image tag or digest
   in the result ledger.
+- Replaced a duplicated image constant with actual container inspection of the
+  configured image and engine image identity.
 - Classified provider and proxy claims as proved, documented, unsupported, or
   unknown instead of implying universal compatibility.
 - Kept AUTH/TLS/certificate ownership and ACL expectations explicit while
@@ -101,6 +109,8 @@ unresolved defects in the spike design.
 ### User/caller
 
 - Kept RESP3 frame delivery separate from a coherent near-cache claim.
+- Separated null-payload handler clearing from transport-failure detection and
+  harness-owned clear-before-replacement behavior in the architecture diagram.
 - Kept `redisnear.NewPubSub` as the production strategy unless a future Type A
   implementation closes autonomous drain, affinity, disconnect, reconnect,
   failure propagation, and provider-topology gaps.
@@ -126,7 +136,7 @@ unresolved defects in the spike design.
 ## Verification
 
 ```bash
-git diff --check f4acaab1676ca4a989051a28f60f37ab147d87f9..38364100af92d6da616ff89101109fc768e639a4
+git diff --check f4acaab1676ca4a989051a28f60f37ab147d87f9..3d7567b13ebc3a427771734e42aa9b980a7d8388
 ```
 
 Result: PASS.
