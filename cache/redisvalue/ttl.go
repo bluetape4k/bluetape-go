@@ -26,3 +26,23 @@ func normalizeWireTTL(ttl time.Duration) time.Duration {
 	}
 	return ttl.Truncate(time.Millisecond)
 }
+
+func knownWriteLocalTTL(
+	localTTL time.Duration,
+	remoteTTL time.Duration,
+	started time.Time,
+	now func() time.Time,
+) (time.Duration, bool) {
+	if remoteTTL == 0 {
+		return localTTL, true
+	}
+	wireTTL := normalizeWireTTL(remoteTTL)
+	remaining := wireTTL - now().Sub(started)
+	if remaining <= 0 {
+		return 0, false
+	}
+	if localTTL < remaining {
+		return localTTL, true
+	}
+	return remaining, true
+}

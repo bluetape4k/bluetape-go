@@ -81,26 +81,32 @@ func (s *localState) acquireHealthy(ctx context.Context) (localLease, error) {
 		if err := ctx.Err(); err != nil {
 			return localLease{}, err
 		}
-		s.mu.Lock()
-		switch {
-		case s.phase == phaseHealthy:
-			s.active++
-			lease := localLease{state: s, generation: s.generation}
-			s.mu.Unlock()
-			return lease, nil
-		case s.phase == phaseRepairing && s.origin == repairFromHealthy:
-			changed := s.changed
-			s.mu.Unlock()
-			select {
-			case <-ctx.Done():
-				return localLease{}, ctx.Err()
-			case <-changed:
-				continue
-			}
-		default:
-			s.mu.Unlock()
-			return localLease{}, localBlockedError(nil)
+		lease, changed, err := s.tryAcquireHealthy()
+		if err != nil {
+			return localLease{}, err
 		}
+		if changed == nil {
+			return lease, nil
+		}
+		select {
+		case <-ctx.Done():
+			return localLease{}, ctx.Err()
+		case <-changed:
+		}
+	}
+}
+
+func (s *localState) tryAcquireHealthy() (localLease, <-chan struct{}, error) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	switch {
+	case s.phase == phaseHealthy:
+		s.active++
+		return localLease{state: s, generation: s.generation}, nil, nil
+	case s.phase == phaseRepairing && s.origin == repairFromHealthy:
+		return localLease{}, s.changed, nil
+	default:
+		return localLease{}, nil, localBlockedError(nil)
 	}
 }
 
