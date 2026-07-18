@@ -568,6 +568,14 @@ func TestRESP3TrackingSpikeNegotiatesProtocolAndRecordsServer(t *testing.T) {
 	tracking := fixture.sticky(t, "negotiation tracking", fixture.tracking)
 	ctx := t.Context()
 
+	options := fixture.tracking.Options()
+	if got := options.Protocol; got != 3 {
+		t.Fatalf("tracking protocol = %d, want 3", got)
+	}
+	if got := options.PushNotificationProcessor; got != fixture.processor {
+		t.Fatal("tracking push notification processor does not match retained fixture processor")
+	}
+
 	hello, err := tracking.Hello(ctx, 3, "", "", "").Result()
 	if err != nil {
 		t.Fatalf("HELLO 3: %s", boundedSpikeDiagnostic(err.Error(), resp3SpikeDiagnosticBytes))
@@ -600,18 +608,8 @@ func TestRESP3TrackingSpikeNegotiatesProtocolAndRecordsServer(t *testing.T) {
 			boundedSpikeDiagnostic(err.Error(), resp3SpikeDiagnosticBytes),
 		)
 	}
-	if err := tracking.Close(); err != nil {
-		t.Fatalf(
-			"close tracking connection: %s",
-			boundedSpikeDiagnostic(err.Error(), resp3SpikeDiagnosticBytes),
-		)
-	}
-	if err := fixture.tracking.Close(); err != nil {
-		t.Fatalf(
-			"close tracking client: %s",
-			boundedSpikeDiagnostic(err.Error(), resp3SpikeDiagnosticBytes),
-		)
-	}
+	closeWithin(t, "negotiation tracking", tracking.Close)
+	closeWithin(t, "tracking client", fixture.tracking.Close)
 }
 
 func TestRESP3TrackingSpikeHandlerRejectsUnsafePayloadsWithoutDisclosure(t *testing.T) {
