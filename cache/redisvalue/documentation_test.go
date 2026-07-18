@@ -54,6 +54,7 @@ func TestReadmeContractMarkersStayInParity(t *testing.T) {
 			"dictionary",
 			"Redis 6+",
 			"server certificate verification",
+			"`MULTI`/`EXEC`",
 			"SELECT` logical",
 			"same-key loader",
 			"active lease drain",

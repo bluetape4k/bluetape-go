@@ -434,9 +434,11 @@ to `cache.ErrCacheMiss`.
 2. Issue one `GETRANGE 0 MaxValueBytes`, which returns no more than
    `MaxValueBytes + 1` bytes.
 3. A non-empty hit costs one Redis command and one round trip.
-4. A zero-length result issues one conditional `EXISTS` command, making a miss
-   or an existing empty value cost at most two sequential commands/round
-   trips.
+4. A zero-length result is ambiguous, so issue `GETRANGE 0 MaxValueBytes` and
+   `EXISTS` again inside one `MULTI`/`EXEC` transaction. The transaction returns
+   bytes and existence from one Redis point in time, preventing a concurrent
+   create or delete from fabricating an empty hit. A miss or existing empty
+   value costs the initial read plus one transactional round trip.
 5. Reject an oversized payload before deserialization.
 6. Unmarshal exactly once and return the resulting `V`.
 
@@ -623,7 +625,7 @@ own flight.
 Before every loader or L2 method invocation, an ordinary tiered operation
 obtains an atomic one-shot side-effect admission ticket while holding a healthy
 lease at the expected generation. The ticket admits that whole L2 method call,
-including `ValueCache.Get`'s conditional `EXISTS` command. It is a caller-local
+including `ValueCache.Get`'s conditional `MULTI`/`EXEC` bounded re-read. It is a caller-local
 generation decision,
 not a retained registry object: it adds no waiter collection or background
 work. The operation releases the lease before invoking the admitted action. A
@@ -1043,8 +1045,8 @@ caller owns Redis client creation, authentication, TLS,
 dial/read/write/pool timeouts, and readiness checks. Automatic failover clients
 or proxies are unsupported because a primary change invalidates the
 server-local `SCAN` cursor and can silently produce partial namespace clear.
-The Redis identity must be authorized for `GETRANGE`,
-`EXISTS`, `SET`, `DEL`, `SCAN`, and `UNLINK` on the configured namespace.
+The Redis identity must be authorized for `GETRANGE`, `EXISTS`, `MULTI`,
+`EXEC`, `SET`, `DEL`, `SCAN`, and `UNLINK` on the configured namespace.
 `UNLINK` is required so namespace clear does not degrade into a blocking delete.
 Deployments should use a dedicated Redis identity, the narrowest feasible
 key-prefix/command ACL, and verified server certificates when TLS is enabled.
@@ -1127,8 +1129,9 @@ changes during clear, and aggregate partial-progress reporting.
 - L2 hit unmarshals once and puts the resulting `V` into L1;
 - separate cold TieredCache instances deserialize distinct pointers;
 - L2 miss returns `cache.ErrCacheMiss`;
-- bounded read command counts: one `GETRANGE` for non-empty hits and one
-  conditional `EXISTS` only for zero-length results;
+- bounded read command counts: one `GETRANGE` for non-empty hits; zero-length
+  results use one additional `MULTI`/`EXEC` round trip containing a bounded
+  `GETRANGE` re-read and `EXISTS` from one Redis point in time;
 - `GetOrLoad` follows L1 -> L2 -> loader, shares one flight's success or error
   with its existing waiters independently of the L1 implementation, and
   releases the leader participant on publication, follower participants on
@@ -1291,8 +1294,8 @@ Add synchronized `cache/redisvalue/README.md` and `README.ko.md` documenting:
   between Redis write admission size and serializer allocation;
 - caller serializer immutability/concurrent-call safety and the absence of a
   package-global codec lock;
-- required Redis commands (`GETRANGE`, `EXISTS`, `SET`, `DEL`, `SCAN`, and
-  `UNLINK`), Redis 6+ single-primary topology, ACL/TLS ownership, caller
+- required Redis commands (`GETRANGE`, `EXISTS`, `MULTI`, `EXEC`, `SET`, `DEL`,
+  `SCAN`, and `UNLINK`), Redis 6+ single-primary topology, ACL/TLS ownership, caller
   dial/read/write/pool timeouts, readiness, memory eviction policy, and
   zero-TTL cleanup responsibility;
 - `InvalidationWaitTimeout` and `LocalCleanupTimeout` sizing, blocked-state

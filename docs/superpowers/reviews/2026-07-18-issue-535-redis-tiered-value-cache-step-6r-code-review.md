@@ -63,9 +63,34 @@ Every terminal lane reviewed the same implementation SHA
    management methods, while `GetOrLoad` and `GetOrLoadDefault` are covered by
    the same pre-use validation path rather than direct zero-value calls.
 
-The conditional second `EXISTS` round trip after an empty `GETRANGE` remains an
-approved correctness tradeoff for distinguishing an empty value from a miss;
-it is not a terminal finding.
+The pre-PR review accepted a conditional second `EXISTS` round trip after an
+empty `GETRANGE`. Step 7-R later proved that the two commands did not form one
+Redis snapshot and reopened this decision as a P1; see the repair record below.
+
+## Step 7-R PR Review Repair
+
+PR #610 was created at `53f71ca2e86ea2946ff0fd9badf1eb13db346124`.
+The first post-PR performance and security lanes passed with no blockers, but
+the stability lane found one P1: another client could create a non-empty value
+between an empty `GETRANGE` and `EXISTS`, causing `ValueCache.Get` to fabricate
+an empty hit and allowing `TieredCache` to publish it into L1.
+
+The defect was reproduced against two real Redis clients by pausing the reader
+after the first `GETRANGE`. The original implementation failed with
+`Get() = ""/<nil>` when the expected value was `"created"`. The repair keeps the
+one-command non-empty path but re-runs bounded `GETRANGE` plus `EXISTS` inside
+one `MULTI`/`EXEC` transaction for an ambiguous empty first result. Restricted
+ACL evidence was extended to require and prove `MULTI`/`EXEC` along with the
+existing read commands.
+
+Repair evidence:
+
+- cross-client create interleaving test: RED on `53f71ca`, then PASS;
+- restricted ordinary-identity empty/miss test: RED without transaction ACL,
+  then PASS with `MULTI`/`EXEC`;
+- full `cache/redisvalue` normal and race suites: PASS;
+- spec, plan, README locale pair, documentation parity, and lesson updated;
+- affected Step 7-R perspectives and full CI require rerun on the repair head.
 
 ## Verification Evidence
 

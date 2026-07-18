@@ -3,8 +3,10 @@ package redisvalue
 import (
 	"context"
 	"errors"
+	"net"
 	"slices"
 	"strings"
+	"sync"
 	"testing"
 	"time"
 
@@ -19,6 +21,38 @@ import (
 type integrationRecord struct {
 	Name  string `json:"name"`
 	Count int    `json:"count"`
+}
+
+type pauseAfterFirstGetRangeHook struct {
+	once     sync.Once
+	observed chan struct{}
+	release  chan struct{}
+}
+
+func (h *pauseAfterFirstGetRangeHook) DialHook(next redis.DialHook) redis.DialHook {
+	return func(ctx context.Context, network, addr string) (net.Conn, error) {
+		return next(ctx, network, addr)
+	}
+}
+
+func (h *pauseAfterFirstGetRangeHook) ProcessHook(next redis.ProcessHook) redis.ProcessHook {
+	return func(ctx context.Context, cmd redis.Cmder) error {
+		err := next(ctx, cmd)
+		if cmd.Name() == "getrange" {
+			h.once.Do(func() {
+				close(h.observed)
+				select {
+				case <-h.release:
+				case <-ctx.Done():
+				}
+			})
+		}
+		return err
+	}
+}
+
+func (h *pauseAfterFirstGetRangeHook) ProcessPipelineHook(next redis.ProcessPipelineHook) redis.ProcessPipelineHook {
+	return next
 }
 
 func TestRedisValueIntegration(t *testing.T) {
@@ -105,6 +139,51 @@ func TestRedisValueIntegration(t *testing.T) {
 		}
 		if _, err := values.Get(ctx, "missing"); !errors.Is(err, cache.ErrCacheMiss) {
 			t.Fatalf("missing Get() = %v", err)
+		}
+	})
+
+	t.Run("miss-racing-with-create-never-fabricates-empty-value", func(t *testing.T) {
+		hook := &pauseAfterFirstGetRangeHook{
+			observed: make(chan struct{}),
+			release:  make(chan struct{}),
+		}
+		reader := redis.NewClient(&redis.Options{Addr: addr})
+		reader.AddHook(hook)
+		t.Cleanup(func() {
+			if err := reader.Close(); err != nil {
+				t.Errorf("close hooked Redis client: %v", err)
+			}
+		})
+		values := integrationValueCache(t, reader, "atomic-empty-read", serialization.StringSerializer{}, ValueConfig{
+			RemoteTTL: time.Hour, MaxValueBytes: 16, ClearBatchSize: 2,
+		})
+		physicalKey := integrationPhysicalKey(t, values, "item")
+		if err := client.Del(ctx, physicalKey).Err(); err != nil {
+			t.Fatal(err)
+		}
+
+		type result struct {
+			value string
+			err   error
+		}
+		resultCh := make(chan result, 1)
+		go func() {
+			value, err := values.Get(ctx, "item")
+			resultCh <- result{value: value, err: err}
+		}()
+		select {
+		case <-hook.observed:
+		case <-ctx.Done():
+			t.Fatal(ctx.Err())
+		}
+		if err := client.Set(ctx, physicalKey, "created", time.Minute).Err(); err != nil {
+			t.Fatal(err)
+		}
+		close(hook.release)
+
+		got := <-resultCh
+		if got.err != nil || got.value != "created" {
+			t.Fatalf("Get() during create = %q/%v, want created", got.value, got.err)
 		}
 	})
 
@@ -304,7 +383,7 @@ func testRedisValueACLs(ctx context.Context, t *testing.T, addr string, admin *r
 	const clearPassword = "clear-password"
 	const ownPattern = "~bluetape:cache:value:acl-owned:*"
 	for _, command := range [][]any{
-		{"ACL", "SETUSER", ordinaryUser, "reset", "on", ">" + ordinaryPassword, ownPattern, "+getrange", "+exists", "+set", "+del"},
+		{"ACL", "SETUSER", ordinaryUser, "reset", "on", ">" + ordinaryPassword, ownPattern, "+getrange", "+exists", "+set", "+del", "+multi", "+exec"},
 		{"ACL", "SETUSER", clearUser, "reset", "on", ">" + clearPassword, ownPattern, "+scan", "+unlink"},
 	} {
 		if err := admin.Do(ctx, command...).Err(); err != nil {
@@ -328,6 +407,15 @@ func testRedisValueACLs(ctx context.Context, t *testing.T, addr string, admin *r
 	}
 	if got, err := values.Get(ctx, "item"); err != nil || got != "value" {
 		t.Fatalf("ordinary Get() = %q/%v", got, err)
+	}
+	if err := values.Set(ctx, "empty", "", time.Minute); err != nil {
+		t.Fatalf("ordinary empty Set() = %v", err)
+	}
+	if got, err := values.Get(ctx, "empty"); err != nil || got != "" {
+		t.Fatalf("ordinary empty Get() = %q/%v", got, err)
+	}
+	if _, err := values.Get(ctx, "missing"); !errors.Is(err, cache.ErrCacheMiss) {
+		t.Fatalf("ordinary missing Get() = %v", err)
 	}
 	if err := values.Delete(ctx, "item"); err != nil {
 		t.Fatalf("ordinary Delete() = %v", err)

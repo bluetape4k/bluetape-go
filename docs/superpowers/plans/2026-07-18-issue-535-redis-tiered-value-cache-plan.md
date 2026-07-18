@@ -258,7 +258,7 @@ git commit -m "Define the redisvalue safety contract" \
 
 Add `ValueOptions[V]`, `ValueCache[V]`, and `NewValueCache` constructor tests here, where the concrete type is first introduced. Assert nil client, nil/typed-nil serializer, invalid namespace, copied `ValueConfig`, zero-value method safety, and shared input sentinels. The serializer remains caller-owned, immutable after construction, and safe for concurrent `Marshal`/`Unmarshal`; the package does not add a global codec lock.
 
-Define one package-internal six-command interface containing `GetRange`, `Exists`, `Set`, `Del`, `Scan`, and `Unlink`. The fake implements all six methods; Task 2 configures the first four closures and makes unexpected `Scan`/`Unlink` calls panic, while Task 3 configures the clear closures. Tests must assert non-empty hit uses one command, zero-length hit/miss uses `EXISTS`, payload length `MaxValueBytes+1` is rejected before unmarshal, marshal happens before Redis, and invalid input/cancellation causes no command. Inject a bounded malformed payload and a serializer error containing payload/key/address markers; assert exactly one unmarshal, `ReasonInvalidPayload`, inspectable cause identity, and no `DEL`, loader fallback, L1 population, or other mutation. Assert the outer error string omits the raw payload, logical/physical key, provider address, and serializer message while `errors.Is`/`errors.As` can still reach causes. The existing oversize-marshal row must prove rejection before Redis dispatch. Task 8 adds the joined provider/local-cleanup redaction assertion after both error paths exist.
+Define one package-internal command interface containing an atomic `ReadBounded` boundary plus `Set`, `Del`, `Scan`, and `Unlink`. The production go-redis adapter performs one `GETRANGE` for a non-empty result and, for an ambiguous empty result, re-runs bounded `GETRANGE` plus `EXISTS` inside one `MULTI`/`EXEC` transaction. The fake keeps read behavior injectable while clear tests make unexpected reads panic. Tests must assert non-empty hit uses one command, zero-length hit/miss returns bytes and existence from one atomic recheck, payload length `MaxValueBytes+1` is rejected before unmarshal, marshal happens before Redis, and invalid input/cancellation causes no command. Inject a bounded malformed payload and a serializer error containing payload/key/address markers; assert exactly one unmarshal, `ReasonInvalidPayload`, inspectable cause identity, and no `DEL`, loader fallback, L1 population, or other mutation. Assert the outer error string omits the raw payload, logical/physical key, provider address, and serializer message while `errors.Is`/`errors.As` can still reach causes. The existing oversize-marshal row must prove rejection before Redis dispatch. Task 8 adds the joined provider/local-cleanup redaction assertion after both error paths exist.
 
 Add `TestValueCacheDifferentKeySerializerCallsProceedConcurrently` with a concurrency-safe latch serializer. Start two `Set` calls for different keys and require both `Marshal` invocations to signal entry before releasing either; then preload two bounded payloads, start two different-key `Get` calls, and require both `Unmarshal` invocations to enter before release. Assert all four operations succeed and exact call counts are two. This deterministic test fails if `ValueCache` adds a package-global serializer mutex; the Task 10 race run proves the latch serializer and built-in serializer remain race-free.
 
@@ -339,7 +339,7 @@ type ValueCache[V any] struct {
 
 `NewValueCache` validates the concrete client, rejects nil and typed-nil serializers with the shared interface-nil helper, copies either `*options.Config` or `DefaultConfig().Value`, validates the namespace, creates `btredis.NewKeyBuilder("bluetape:cache:value")`, appends the namespace with `Structural`, and stores the resulting builder. It retains but never closes or mutates the caller's client or serializer.
 
-`Get` must issue `GETRANGE 0 MaxValueBytes`, conditionally issue `EXISTS` only for a zero-length result, reject length `> MaxValueBytes`, and call `Unmarshal` exactly once. `Set` must validate, marshal once, reject oversized bytes, recheck context, normalize TTL, invoke Redis, and preserve commit ambiguity on every non-nil post-invocation command error. `SetDefault` delegates to `Set` with the copied default. `Delete` validates before invocation, is idempotent, and treats any post-invocation error as commit-unknown.
+`Get` must issue `GETRANGE 0 MaxValueBytes`; for a zero-length result it must atomically re-read `GETRANGE` and `EXISTS` inside `MULTI`/`EXEC`, reject length `> MaxValueBytes`, and call `Unmarshal` exactly once. `Set` must validate, marshal once, reject oversized bytes, recheck context, normalize TTL, invoke Redis, and preserve commit ambiguity on every non-nil post-invocation command error. `SetDefault` delegates to `Set` with the copied default. `Delete` validates before invocation, is idempotent, and treats any post-invocation error as commit-unknown.
 
 ```go
 func (c *ValueCache[V]) SetDefault(ctx context.Context, key string, value V) error {
@@ -970,11 +970,12 @@ Start one container with `testcontainers/redis.Start`, create caller-owned clien
 - finite expiration and zero persistence;
 - sub-millisecond wire minimum and known-write local TTL adjustment;
 - empty payload versus missing key;
+- deterministic two-client create interleaving after the first empty `GETRANGE`, proving the transactional re-read never fabricates an empty value;
 - maximum payload and oversize rejection;
 - multi-page namespace isolation/clear;
 - two decorators sharing L2 bytes but not pointer identity;
 - mixed-version `VersionedSerializer` matrix: a version-2 reader accepts version-1 bytes, a version-1 reader rejects version-2 bytes with `serialization.ErrUnsupportedVersion`, and namespace reuse remains prohibited unless the deployment's caller-owned serializer matrix proves both upgrade and rollback readers;
-- least-privilege ordinary identity and separate clear-admin identity;
+- least-privilege ordinary identity with `GETRANGE`, `EXISTS`, `MULTI`, `EXEC`, `SET`, and `DEL`, plus a separate clear-admin identity;
 - `+SCAN` foreign-prefix enumeration, denied foreign `GET`/`UNLINK`, and denied `FLUSHDB`/`FLUSHALL`.
 
 ```go

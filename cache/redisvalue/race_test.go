@@ -427,6 +427,23 @@ type stressCommandClient struct {
 	values map[string][]byte
 }
 
+func (c *stressCommandClient) ReadBounded(ctx context.Context, key string, end int64) ([]byte, bool, error) {
+	if err := ctx.Err(); err != nil {
+		return nil, false, err
+	}
+	c.mu.RLock()
+	value, ok := c.values[key]
+	copyOfValue := append([]byte(nil), value...)
+	c.mu.RUnlock()
+	if !ok {
+		return nil, false, nil
+	}
+	if end >= 0 && int64(len(copyOfValue)) > end+1 {
+		copyOfValue = copyOfValue[:end+1]
+	}
+	return copyOfValue, true, nil
+}
+
 func newStressCommandClient() *stressCommandClient {
 	return &stressCommandClient{values: make(map[string][]byte)}
 }

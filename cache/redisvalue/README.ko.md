@@ -54,6 +54,11 @@ Read 순서는 L1, L2, 같은 key의 첫 leader loader입니다. 정확한
 value, error를 공유합니다. Cross-process stampede control은 이 decorator의
 범위가 아닙니다.
 
+L2의 non-empty payload는 bounded `GETRANGE` 한 번으로 읽습니다. Empty payload도
+유효하므로 첫 결과가 비어 있으면 하나의 `MULTI`/`EXEC` transaction 안에서
+`GETRANGE`와 `EXISTS`를 다시 실행합니다. 따라서 concurrent create/delete가 서로
+다른 Redis 시점의 bytes와 existence를 조합하지 않습니다.
+
 <!-- redisvalue-contract: ttl -->
 ## TTL 의미
 
@@ -103,8 +108,8 @@ Redis 6+를 사용하고 안정적인 writable primary 하나에 직접 연결�
 database는 ACL 또는 security boundary가 아닙니다. Trust domain은 ACL, credential,
 network/TLS control로 분리합니다.
 
-일반 identity에는 namespace 대상 `GETRANGE`, `EXISTS`, `SET`, `DEL`만
-부여하고 정확한 key pattern `bluetape:cache:value:<namespace>:*`을 사용합니다.
+일반 identity에는 namespace 대상 `GETRANGE`, `EXISTS`, `MULTI`, `EXEC`, `SET`,
+`DEL`만 부여하고 정확한 key pattern `bluetape:cache:value:<namespace>:*`을 사용합니다.
 별도 clear-admin client로 `ValueCache`를 구성해 `SCAN`과 namespace-scoped
 `UNLINK`만 부여하고 `FLUSHDB`와 `FLUSHALL`은 거부합니다. ACL key pattern만으로
 tenant isolation이 되지는 않습니다. `SCAN`에서 foreign key name이 보일 수

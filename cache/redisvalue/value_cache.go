@@ -13,12 +13,50 @@ import (
 )
 
 type commandClient interface {
-	GetRange(context.Context, string, int64, int64) *redis.StringCmd
-	Exists(context.Context, ...string) *redis.IntCmd
+	ReadBounded(context.Context, string, int64) ([]byte, bool, error)
 	Set(context.Context, string, any, time.Duration) *redis.StatusCmd
 	Del(context.Context, ...string) *redis.IntCmd
 	Scan(context.Context, uint64, string, int64) *redis.ScanCmd
 	Unlink(context.Context, ...string) *redis.IntCmd
+}
+
+type redisCommandClient struct {
+	*redis.Client
+}
+
+// ReadBounded returns one bounded payload and an existence bit from a single
+// Redis point in time. A non-empty first read is already unambiguous; an empty
+// first read is rechecked with GETRANGE and EXISTS inside MULTI/EXEC.
+func (c *redisCommandClient) ReadBounded(ctx context.Context, key string, end int64) ([]byte, bool, error) {
+	encoded, err := c.GetRange(ctx, key, 0, end).Bytes()
+	if errors.Is(err, redis.Nil) {
+		return nil, false, nil
+	}
+	if err != nil {
+		return nil, false, err
+	}
+	if len(encoded) > 0 {
+		return encoded, true, nil
+	}
+
+	var reread *redis.StringCmd
+	var exists *redis.IntCmd
+	if _, err := c.TxPipelined(ctx, func(pipe redis.Pipeliner) error {
+		reread = pipe.GetRange(ctx, key, 0, end)
+		exists = pipe.Exists(ctx, key)
+		return nil
+	}); err != nil {
+		return nil, false, err
+	}
+	encoded, err = reread.Bytes()
+	if err != nil {
+		return nil, false, err
+	}
+	present, err := exists.Result()
+	if err != nil {
+		return nil, false, err
+	}
+	return encoded, present != 0, nil
 }
 
 // ValueOptions configures a serialized Redis L2 value cache. The caller keeps
@@ -63,7 +101,7 @@ func NewValueCache[V any](options ValueOptions[V]) (*ValueCache[V], error) {
 		return nil, newCacheError("configure", ReasonConfiguration, "", err)
 	}
 	return &ValueCache[V]{
-		client:     options.Client,
+		client:     &redisCommandClient{Client: options.Client},
 		serializer: options.Serializer,
 		keys:       builder,
 		namespace:  options.Namespace,
@@ -72,7 +110,7 @@ func NewValueCache[V any](options ValueOptions[V]) (*ValueCache[V], error) {
 }
 
 // Get returns one deserialized value. Missing Redis keys return
-// cache.ErrCacheMiss exactly.
+// cache.ErrCacheMiss exactly; existing empty payloads remain valid hits.
 func (c *ValueCache[V]) Get(ctx context.Context, logicalKey string) (V, error) {
 	var zero V
 	ctx = normalizeContext(ctx)
@@ -86,24 +124,15 @@ func (c *ValueCache[V]) Get(ctx context.Context, logicalKey string) (V, error) {
 	if err != nil {
 		return zero, err
 	}
-	encoded, err := c.client.GetRange(ctx, key.Value, 0, int64(c.config.MaxValueBytes)).Bytes()
-	if errors.Is(err, redis.Nil) {
-		return zero, cache.ErrCacheMiss
-	}
+	encoded, present, err := c.client.ReadBounded(ctx, key.Value, int64(c.config.MaxValueBytes))
 	if err != nil {
 		return zero, c.providerError("get", key.RedactedID, err, false)
 	}
-	if len(encoded) == 0 {
-		exists, existsErr := c.client.Exists(ctx, key.Value).Result()
-		if existsErr != nil {
-			return zero, c.providerError("get", key.RedactedID, existsErr, false)
-		}
-		if exists == 0 {
-			return zero, cache.ErrCacheMiss
-		}
-		if encoded == nil {
-			encoded = []byte{}
-		}
+	if !present {
+		return zero, cache.ErrCacheMiss
+	}
+	if encoded == nil {
+		encoded = []byte{}
 	}
 	if len(encoded) > c.config.MaxValueBytes {
 		return zero, newCacheError("get", ReasonPayloadTooLarge, key.RedactedID, nil)
