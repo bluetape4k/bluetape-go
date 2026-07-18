@@ -242,7 +242,7 @@ func TestCoordinatorRegistryReturnsToZeroAfterConcurrentKeys(t *testing.T) {
 	}
 }
 
-func TestCoordinatorRetirementDoesNotCreateTwoTokenDomains(t *testing.T) {
+func TestCoordinatorRetirementABADoesNotCreateTwoTokenDomains(t *testing.T) {
 	registry := newCoordinatorRegistry[string]()
 	first := registry.acquire("shared")
 	retireEntered := make(chan struct{})
