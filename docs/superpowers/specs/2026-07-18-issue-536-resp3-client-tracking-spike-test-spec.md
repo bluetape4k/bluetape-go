@@ -63,10 +63,14 @@ If a per-key invalidation fails, later keys are not attempted and one
 `ClearLocal` repair runs with a separate 250 ms context. The observation records
 only a `repaired` boolean in addition to the redacted reason.
 
-Callback admission uses a mutex-protected gate. `begin` checks the closed flag
-and increments the in-flight `WaitGroup` while holding the same mutex that
-`close` uses to reject later dispatch. Shutdown calls `close` before `wait`, so
-no `WaitGroup.Add` can race a wait.
+Callback admission uses a zero-value, mutex-protected gate. Under one mutex,
+`begin` rejects work after `close`; otherwise, it creates `generationDone` for
+the first active callback and increments `active`. `close` prevents successor
+admission. Each `done` decrements `active`, then closes and clears
+`generationDone` at zero. `wait` captures the active `generationDone` before
+closing its optional registration signal, then blocks on that captured
+generation. Shutdown calls `close` before `wait`, so the wait cannot miss a later
+admitted generation.
 
 ## Handler Unit Cases
 

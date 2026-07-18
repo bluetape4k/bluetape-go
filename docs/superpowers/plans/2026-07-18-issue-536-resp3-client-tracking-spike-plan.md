@@ -130,16 +130,22 @@ type spikeHandler struct {
 }
 
 type callbackGate struct {
-	mu     sync.Mutex
-	closed bool
-	wg     sync.WaitGroup
+	mu             sync.Mutex
+	closed         bool
+	active         int
+	generationDone chan struct{}
 }
 ```
 
-Implement `callbackGate.begin` so it locks `mu`, rejects when `closed`, or
-calls `wg.Add(1)` before unlocking. `close` flips `closed` under that same
-mutex. `done` delegates to `wg.Done`; `wait` delegates to `wg.Wait`. Calling
-`close` before `wait` makes late `Add` impossible.
+Implement `callbackGate.begin` so it locks `mu`, rejects when `closed`, creates
+`generationDone` when admitting the first active callback, and increments
+`active` before unlocking. `close` flips `closed` under that same mutex to
+prevent successor admission. `done` decrements `active` and closes the current
+`generationDone` before clearing it at zero. `wait(registered chan<- struct{})`
+captures the active `generationDone` under the mutex, closes the optional
+registration signal before unlocking, and then blocks on the captured
+generation. Calling `close` before `wait` ensures shutdown cannot miss a later
+admitted generation.
 
 `HandlePushNotification` must:
 
