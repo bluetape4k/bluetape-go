@@ -276,9 +276,11 @@ go get go.etcd.io/etcd/client/v3@v3.6.13
 go mod tidy
 ```
 
-Expected: the first command fails because the package does not exist; the module commands add only
-the selected etcd production client plus its required transitive graph. The Testcontainers etcd
-module is deferred until Task 6 creates its importing fixture so `go mod tidy` cannot remove it.
+Expected: the first command fails on the deliberately missing etcd module and implementation
+symbols (`clientv3`, `New`, `electionPaths`, and `requestedTTL`), not because the already-created
+`leader/etcd` test package is absent. The module commands add only the selected etcd production
+client plus its required transitive graph. The Testcontainers etcd module is deferred until Task 6
+creates its importing fixture so `go mod tidy` cannot remove it.
 
 - [ ] **Step 3: Implement the constructor-only API**
 
@@ -303,6 +305,11 @@ type Elector struct {
 func New(client *clientv3.Client, opts leader.Options) (*Elector, error)
 func (e *Elector) EffectiveTTL() time.Duration
 ```
+
+Keep the package name `etcdleader`, add Go doc comments for `Elector`, `New`, and `EffectiveTTL`,
+and compile-check the public contract with
+`var _ leader.Elector = (*Elector)(nil)`. The docs must state that the caller owns the client and
+that `New` performs no network I/O.
 
 Task 2's initial `generation` contains only `ttl time.Duration` and `published bool`; Task 3 expands
 the same type with lifecycle ownership fields. This keeps `current *generation` compilable without
@@ -342,12 +349,17 @@ git commit -m "Define the etcd election boundary" \
 - [ ] **Step 1: Write RED lifecycle tests around injectable boundaries**
 
 Keep production on official etcd types but give each elector its own unexported `etcdOps` bundle
-for Grant, NewSession, Campaign, Proclaim, watch-created, revoke, Get, `sessionDone`, and
-`orphanSession`. Per-elector seams prevent parallel tests from racing package globals while the
-official `*concurrency.Session` remains available to `NewElection`. Tests must prove:
+for Grant, NewSession, Campaign, Proclaim, `snapshotElection`, watch-created, revoke, Get,
+`sessionDone`, `orphanSession`, and ticker construction. `snapshotElection` returns an
+`electionSnapshot{key string, createRev, headerRev int64}`; the production adapter reads the
+official `Election.Key()`, `Election.Rev()`, and `Election.Header().Revision`, rejects a nil Header,
+and validates the key plus both revisions before publication. Per-elector seams prevent parallel
+tests from racing package globals while the official `*concurrency.Session` remains available to
+`NewElection`. Tests must prove:
 
 Task 3 adds `ops etcdOps` to `Elector`; production `New` installs real operations and tests replace
-the bundle on an individual elector.
+the bundle on an individual elector. Copy the bundle by value into each generation before any
+remote dispatch. Once Campaign starts, neither production nor tests mutate that generation's copy.
 
 ```go
 func TestShutdownGenerationIsNilSessionSafe(t *testing.T) {
@@ -380,7 +392,8 @@ before Campaign returns. For the pre-publication monitor failure, assert its han
 go test -count=1 ./leader/etcd -run 'TestShutdownGeneration|TestCampaign|TestPublication'
 ```
 
-Expected: FAIL because generation lifecycle and Campaign are absent.
+Expected: FAIL on the deliberately missing generation lifecycle, operations bundle, and Campaign
+symbols.
 
 - [ ] **Step 3: Implement the generation record and one shutdown owner**
 
@@ -394,7 +407,7 @@ type generation struct {
     leaseID clientv3.LeaseID
     ttl time.Duration
     published bool
-    ops *etcdOps
+    ops etcdOps
     session *concurrency.Session
     election *concurrency.Election
     key string
@@ -417,9 +430,12 @@ must not clear remote cleanup inventory.
 - [ ] **Step 4: Implement synchronous Campaign publication**
 
 Implement the eight spec steps in order: reconcile pending cleanup; explicit Grant; NewSession
-with `WithContext` and `WithLease`; `NewElection(session, electionBase)`; synchronous Campaign; bounded
-Proclaim; snapshot key/revision/header; exact-key watch from `proclaimRevision+1` with
-`WithCreatedNotify`; then serialize caller cancellation against publication under `e.mu`.
+with `WithContext` and `WithLease`; `NewElection(session, electionBase)`; synchronous Campaign;
+bounded Proclaim; call the injected `snapshotElection` adapter and validate key/revision/header;
+create the exact-key watch from `headerRev+1` with `WithCreatedNotify`, hand that WatchChan plus the
+injected `sessionDone` signal to a joinable monitor and receive its created acknowledgement; then
+serialize caller cancellation against publication under `e.mu`. Publication is forbidden until
+the monitor owns both observation inputs and has acknowledged watch creation.
 
 Precompute the deterministic key as `candidateRoot + fmt.Sprintf("%x", leaseID)` and retain the
 known lease even when NewSession fails. Any post-dispatch failure cancels and joins the generation,
@@ -524,13 +540,15 @@ for _, marker := range []string{endpoint, username, password, token, encodedGrou
 }
 ```
 
-Add a table for each public operation proving nil context returns bare `leader.ErrInvalidContext`,
-pre-dispatch cancellation/deadline returns the bare context error, post-dispatch failure declares
-`var operationErr *leader.OperationError` and requires `errors.As(err, &operationErr)`, preserves
-causes/sentinels through `errors.Is`, and exposes
-only backend `etcd` plus operation `campaign`, `renew`, `resign`, or `lookup`. Feed the same forbidden
-markers through every repository-owned test logger, example diagnostic helper, and telemetry stub;
-assert none renders an unwrapped cause or raw marker.
+Add a table for each synchronous public operation (`Campaign`, `Resign`, and `Leader`) proving nil
+context returns bare `leader.ErrInvalidContext`, pre-dispatch cancellation/deadline returns the bare
+context error, post-dispatch failure declares `var operationErr *leader.OperationError` and requires
+`errors.As(err, &operationErr)`, preserves causes/sentinels through `errors.Is`, and exposes only
+backend `etcd` plus operation `campaign`, `resign`, or `lookup`. Test asynchronous `renew` failure
+separately: it must fail closed by clearing leadership, preserve unresolved cleanup inventory, and
+emit no raw diagnostic through repository-owned observability. Feed the same forbidden markers
+through every repository-owned test logger, example diagnostic helper, and telemetry stub; assert
+none renders an unwrapped cause or raw marker.
 
 - [ ] **Step 2: Observe RED**
 
@@ -597,7 +615,8 @@ go mod tidy
 go mod verify
 ```
 
-Select only the runtime platform and map it to the approved digest:
+Resolve the Docker container target platform, never the Go host OS, and map it to the approved
+digest:
 
 ```go
 var etcdDigest = map[string]string{
@@ -606,9 +625,18 @@ var etcdDigest = map[string]string{
 }
 ```
 
-Reject platforms absent from the map. Pass the immutable reference
-`"gcr.io/etcd-development/etcd@" + etcdDigest[runtime.GOOS+"/"+runtime.GOARCH]` directly to
-`etcd.Run`; keep `v3.6.13` only as recorded version metadata. Do not launch the mutable tag.
+`containerPlatform(ctx)` first honors a non-empty `DOCKER_DEFAULT_PLATFORM`; otherwise it opens the
+Testcontainers Docker client, reads daemon `Info`, and derives `OSType/Architecture`. Normalize only
+the architecture aliases `x86_64 -> amd64` and `aarch64 -> arm64`, require Linux, and accept only
+`linux/amd64` or `linux/arm64`. The fixture may import `github.com/moby/moby/client` for
+`InfoOptions`; `go mod tidy` may promote that already-present Testcontainers dependency to direct,
+but must not change its selected version.
+
+Reject every platform absent from the map. Pass both the immutable reference
+`"gcr.io/etcd-development/etcd@" + etcdDigest[platform]` and
+`testcontainers.WithImagePlatform(platform)` directly to `etcd.Run`; keep `v3.6.13` only as
+recorded version metadata. Add table tests for environment override, daemon fallback, aliases,
+unsupported OS/architecture, and env-over-daemon precedence. Do not launch the mutable tag.
 
 Readiness requires bounded `Status` member/leader evidence and one linearizable Put/Get/Delete
 roundtrip. Register client and partially created container cleanup with `internal/testcleanup`; log
@@ -869,16 +897,23 @@ For that conditional branch, parameterize `Makefile` test/coverage/race package 
 all packages except `./leader/etcd` without changing local defaults. Add an `etcd-leader` job to
 `.github/workflows/ci.yml` with `needs: ci`, `timeout-minutes: 10`, Docker preflight, and serial
 `go test -p 1 -count=1` plus `go test -race -p 1 -count=1` for
-`./leader/leadertest ./leader/etcd`; keep it a required PR check. Add the ten-run serial soak to the
-existing `testcontainers` scope in `nightly-tests.yml` with its 20-minute job timeout. Validate the
-workflow diff with `actionlint` when installed, inspect `gh workflow view`, and run both separated
-local command sets before accepting the split. Do not hide the package from CI or make the new job
-optional.
+`./leader/leadertest ./leader/etcd`; keep it a required PR check. Before choosing the nightly shape,
+measure the exact ten-run command with `/usr/bin/time -p`. It may join the existing 20-minute
+`testcontainers` job only when the measured wall time is at most 14 minutes, leaving at least 30%
+headroom. Otherwise create a dedicated `etcd-leader-soak` job with a 30-minute timeout; require its
+measured wall time to stay at or below 24 minutes, or reduce the nightly repetition count to the
+largest measured value within that 80% admission limit while retaining the ten-run manual
+pre-release gate.
+
+Validate every local workflow diff mandatorily with
+`go run github.com/rhysd/actionlint/cmd/actionlint@v1.7.12 .github/workflows/*.yml`, then run both
+separated local command sets before accepting the split. Use `gh workflow view` only after push as
+remote registration evidence. Do not hide the package from CI or make the new job optional.
 
 - [ ] **Step 3: Run the pre-release soak under the admission rule**
 
 ```bash
-go test -p 1 -count=10 ./leader/etcd
+/usr/bin/time -p go test -p 1 -count=10 ./leader/etcd
 ```
 
 Expected: PASS when the measured admission rule permits local execution; otherwise record it as a
