@@ -105,11 +105,15 @@ Expected: the risk commit predates every source or module commit.
 
 - [ ] **Step 1: Write RED normalization and compatibility tests**
 
-Add compile/runtime assertions for the exact API:
+Put the source-compatibility assertion in `package leadertest_test` so it proves the external API:
 
 ```go
-var _ = Harness{nil, nil} // existing external unkeyed literals stay valid
+var _ = leadertest.Harness{nil, nil}
+```
 
+Add internal runtime assertions for normalization:
+
+```go
 func TestNormalizeTimingDefaultsAndPartialOverride(t *testing.T) {
     got, err := normalizeConfig(Config{Timing: Timing{Lease: 3 * time.Second}})
     if err != nil { t.Fatal(err) }
@@ -125,6 +129,7 @@ func TestNormalizeTimingRejectsContainmentViolations(t *testing.T) {
         {Lease: time.Second, RenewInterval: time.Second},
         {CaseTimeout: -time.Second},
         {CaseTimeout: 3 * time.Second, WaitTimeout: 2 * time.Second, ResignTimeout: time.Second},
+        {CaseTimeout: time.Duration(1<<63 - 1), WaitTimeout: time.Duration(1<<63 - 2), ResignTimeout: time.Second},
     }
     for _, timing := range invalid {
         if _, err := normalizeConfig(Config{Timing: timing}); err == nil {
@@ -149,31 +154,50 @@ not exist.
 
 - [ ] **Step 3: Implement the timing API and containment formulas**
 
-Add this public shape and keep the blank fields:
+Add Go doc comments for each exported type, field, and function. Keep the blank fields and this
+exact public signature:
 
 ```go
 type Timing struct {
-    Lease, RenewInterval, CaseTimeout, WaitTimeout, ResignTimeout time.Duration
+    // Lease configures the case lease duration.
+    Lease time.Duration
+    // RenewInterval configures the case renewal cadence.
+    RenewInterval time.Duration
+    // CaseTimeout bounds one complete conformance case.
+    CaseTimeout time.Duration
+    // WaitTimeout bounds backend-state observation within a case.
+    WaitTimeout time.Duration
+    // ResignTimeout bounds normal cleanup before abort containment.
+    ResignTimeout time.Duration
     _ struct{}
 }
 
 type AbortFunc func(context.Context, leader.Options) error
 
 type Config struct {
+    // Timing overrides zero-valued conformance timing fields.
     Timing Timing
+    // Abort contains a timed-out case after root cancellation cannot join it.
     Abort AbortFunc
     _ struct{}
 }
+
+func RunWithConfig(t *testing.T, harness Harness, config Config)
 ```
 
 Resolve zero fields independently to `300ms`, `50ms`, `5s`, `2s`, and `250ms`; reject negatives,
-`RenewInterval >= Lease`, and profiles that fail either inequality:
+`RenewInterval >= Lease`, and profiles that fail either inequality. Avoid duration addition so
+caller-controlled near-`MaxInt64` values cannot wrap:
 
 ```go
 joinGrace := min(timing.ResignTimeout, timing.CaseTimeout/10)
 abortBudget := min(timing.ResignTimeout, time.Second)
-if timing.WaitTimeout+joinGrace+abortBudget >= timing.CaseTimeout ||
-    timing.ResignTimeout+joinGrace+abortBudget >= timing.CaseTimeout {
+fits := func(first time.Duration) bool {
+    return first < timing.CaseTimeout &&
+        joinGrace < timing.CaseTimeout-first &&
+        abortBudget < timing.CaseTimeout-first-joinGrace
+}
+if !fits(timing.WaitTimeout) || !fits(timing.ResignTimeout) {
     return Config{}, errors.New("leadertest: timing cannot contain a timed out case")
 }
 ```
@@ -213,6 +237,7 @@ git commit -m "Contain provider conformance timeouts" \
 - Modify: `go.sum`
 - Create: `leader/etcd/doc.go`
 - Create: `leader/etcd/elector.go`
+- Create: `leader/etcd/generation.go`
 - Create: `leader/etcd/options.go`
 - Create: `leader/etcd/options_test.go`
 
@@ -233,7 +258,7 @@ func TestEncodeElectionRange(t *testing.T) {
 }
 
 func TestRequestedTTL(t *testing.T) {
-    cases := []struct{ lease time.Duration; want int }{
+    cases := []struct{ lease time.Duration; want int64 }{
         {time.Second, 1}, {time.Second + time.Nanosecond, 2}, {500 * time.Millisecond, 1},
     }
     for _, tc := range cases {
@@ -248,12 +273,12 @@ func TestRequestedTTL(t *testing.T) {
 ```bash
 go test -count=1 ./leader/etcd -run 'TestNew|TestEncode|TestRequestedTTL'
 go get go.etcd.io/etcd/client/v3@v3.6.13
-go get github.com/testcontainers/testcontainers-go/modules/etcd@v0.42.0
 go mod tidy
 ```
 
-Expected: the first command fails because the package does not exist; module commands add exactly
-the selected etcd client and Testcontainers module plus their required transitive graph.
+Expected: the first command fails because the package does not exist; the module commands add only
+the selected etcd production client plus its required transitive graph. The Testcontainers etcd
+module is deferred until Task 6 creates its importing fixture so `go mod tidy` cannot remove it.
 
 - [ ] **Step 3: Implement the constructor-only API**
 
@@ -265,7 +290,7 @@ type Elector struct {
     opts leader.Options
     paths electionPath
     token string
-    requestedTTL int
+    requestedTTL int64
 
     mu sync.RWMutex
     campaigning bool
@@ -279,10 +304,16 @@ func New(client *clientv3.Client, opts leader.Options) (*Elector, error)
 func (e *Elector) EffectiveTTL() time.Duration
 ```
 
+Task 2's initial `generation` contains only `ttl time.Duration` and `published bool`; Task 3 expands
+the same type with lifecycle ownership fields. This keeps `current *generation` compilable without
+inventing a second state type.
+
 `New` performs only normalization, duration math, key encoding, and a 128-bit `crypto/rand` token.
 It never calls the client, creates a lease/session, or closes caller resources. `EffectiveTTL`
 reads current published TTL, otherwise last published TTL, otherwise requested rounded TTL under
-the state lock.
+the state lock. Add synchronized transition tests proving requested -> published current ->
+last-published behavior under concurrent readers and `go test -race`; an in-progress Grant and any
+invalid/overflow server-granted TTL remain invisible and cannot replace the last valid value.
 
 - [ ] **Step 4: Verify and commit**
 
@@ -290,7 +321,7 @@ the state lock.
 gofmt -w leader/etcd
 go test -count=1 ./leader/etcd -run 'TestNew|TestEncode|TestRequestedTTL|TestEffectiveTTL'
 go mod verify
-git add go.mod go.sum leader/etcd/doc.go leader/etcd/elector.go leader/etcd/options.go leader/etcd/options_test.go
+git add go.mod go.sum leader/etcd/doc.go leader/etcd/elector.go leader/etcd/generation.go leader/etcd/options.go leader/etcd/options_test.go
 git commit -m "Define the etcd election boundary" \
   --trailer "Constraint: Election ranges must not overlap raw caller identities." \
   --trailer "Rejected: Exposing SessionOption | the provider owns lease and Session semantics." \
@@ -302,7 +333,7 @@ git commit -m "Define the etcd election boundary" \
 ### Task 3: Implement Generation-Safe Campaign and Local Session Join
 
 **Files:**
-- Create: `leader/etcd/generation.go`
+- Modify: `leader/etcd/generation.go`
 - Create: `leader/etcd/campaign.go`
 - Create: `leader/etcd/generation_test.go`
 - Create: `leader/etcd/campaign_test.go`
@@ -310,15 +341,25 @@ git commit -m "Define the etcd election boundary" \
 
 - [ ] **Step 1: Write RED lifecycle tests around injectable boundaries**
 
-Keep production on official etcd types but inject package-private functions for Grant,
-NewSession, Campaign, Proclaim, watch-created, revoke, and Get. Tests must prove:
+Keep production on official etcd types but give each elector its own unexported `etcdOps` bundle
+for Grant, NewSession, Campaign, Proclaim, watch-created, revoke, Get, `sessionDone`, and
+`orphanSession`. Per-elector seams prevent parallel tests from racing package globals while the
+official `*concurrency.Session` remains available to `NewElection`. Tests must prove:
+
+Task 3 adds `ops etcdOps` to `Elector`; production `New` installs real operations and tests replace
+the bundle on an individual elector.
 
 ```go
 func TestShutdownGenerationIsNilSessionSafe(t *testing.T) {
-    g := &generation{done: make(chan struct{})}
-    close(g.done)
-    if err := g.shutdown(context.Background()); err != nil { t.Fatal(err) }
-    if err := g.shutdown(context.Background()); err != nil { t.Fatal(err) }
+    ctx, cancel := context.WithCancel(context.Background())
+    g := &generation{ctx: ctx, cancel: cancel, shutdownDone: make(chan struct{})}
+    var wg sync.WaitGroup
+    for range 8 {
+        wg.Add(1)
+        go func() { defer wg.Done(); _ = g.shutdown(context.Background()) }()
+    }
+    wg.Wait()
+    select { case <-g.shutdownDone: default: t.Fatal("shutdown did not close") }
 }
 
 func TestPublicationAndCancellationHaveOneWinner(t *testing.T) {
@@ -352,6 +393,8 @@ type generation struct {
     cancel context.CancelFunc
     leaseID clientv3.LeaseID
     ttl time.Duration
+    published bool
+    ops *etcdOps
     session *concurrency.Session
     election *concurrency.Election
     key string
@@ -364,10 +407,12 @@ type generation struct {
 }
 ```
 
-`shutdown` is nil-session-safe. One caller runs cancel then `Session.Orphan()` when Session exists;
-all callers wait for `shutdownDone`. A successfully created Session must have a closed
-`Session.Done()` before shutdown completes. This proves local goroutine termination only and must
-not clear remote cleanup inventory.
+`shutdown` is nil-session-safe. One caller runs cancel then the per-elector `orphanSession`
+operation when Session exists; all callers wait for `shutdownDone`. Production operations call
+`Session.Orphan` and return `Session.Done`. A successfully created Session must have a closed Done
+channel before shutdown completes. Unit tests inject a controllable Done channel and assert exact
+orphan-before-close/join ordering on every exit. This proves local goroutine termination only and
+must not clear remote cleanup inventory.
 
 - [ ] **Step 4: Implement synchronous Campaign publication**
 
@@ -379,8 +424,9 @@ Proclaim; snapshot key/revision/header; exact-key watch from `proclaimRevision+1
 Precompute the deterministic key as `candidateRoot + fmt.Sprintf("%x", leaseID)` and retain the
 known lease even when NewSession fails. Any post-dispatch failure cancels and joins the generation,
 attempts bounded revoke, joins any created monitor, and clears state only after revoke or exact
-linearizable absence/replacement proof. Wrap public failures as `leader.OperationError("etcd",
-"campaign", cause)` and join `leader.ErrCommitUnknown` when proof is unavailable.
+linearizable absence/replacement proof. Wrap public failures with
+`leader.NewOperationError("etcd", "campaign", cause)` and join `leader.ErrCommitUnknown` when proof
+is unavailable.
 
 - [ ] **Step 5: Verify races and commit**
 
@@ -436,7 +482,8 @@ key, token, creation revision, and lease. Treat DELETE, mismatched PUT, compacti
 Session loss, and Proclaim failure as terminal loss. Proclaim uses a fresh generation-derived
 context bounded by `min(RenewInterval, grantedTTL/4, 1s)` and never overlaps or queues. No mutex is
 held during RPC, wait, shutdown, or join. A generation ID check prevents an old monitor clearing a
-new owner.
+new owner. Construct the ticker with `time.NewTicker`, defer `ticker.Stop`, and add a terminal-path
+test using an injected ticker factory whose stop counter must equal one for every monitor exit.
 
 - [ ] **Step 4: Verify and commit**
 
@@ -477,6 +524,14 @@ for _, marker := range []string{endpoint, username, password, token, encodedGrou
 }
 ```
 
+Add a table for each public operation proving nil context returns bare `leader.ErrInvalidContext`,
+pre-dispatch cancellation/deadline returns the bare context error, post-dispatch failure declares
+`var operationErr *leader.OperationError` and requires `errors.As(err, &operationErr)`, preserves
+causes/sentinels through `errors.Is`, and exposes
+only backend `etcd` plus operation `campaign`, `renew`, `resign`, or `lookup`. Feed the same forbidden
+markers through every repository-owned test logger, example diagnostic helper, and telemetry stub;
+assert none renders an unwrapped cause or raw marker.
+
 - [ ] **Step 2: Observe RED**
 
 ```bash
@@ -490,8 +545,9 @@ Expected: FAIL because cleanup and observation boundaries are absent.
 Resign first clears local leadership and cancels the generation. Run/join generation shutdown,
 then join the exact monitor. With a known revision, call
 `concurrency.ResumeElection(session, candidateRoot, key, createRev)` and
-official Resign. With unknown revision, reconcile deterministic key first. A nil official result
-is followed by bounded lease revoke and a default-linearizable exact-key Get. Clear state only
+official Resign. With unknown revision, reconcile deterministic key first. Every dispatched
+official Resign result, nil or non-nil, is followed by bounded lease revoke when budget remains and
+a default-linearizable exact-key Get; a non-nil response may still follow a committed delete. Clear state only
 after successful revoke or proof of exact absence/replacement; compare key, creation revision,
 token, and lease wherever known. Elapsed TTL and `Session.Done` never clear inventory.
 
@@ -501,8 +557,9 @@ one may clear the generation.
 
 - [ ] **Step 4: Implement observation and public error labels**
 
-`Leader` uses one default-linearizable Get over `[candidateRoot, rangeEnd)` with
-`WithFirstCreate()`. Return empty on no candidate and the oldest candidate value otherwise.
+`Leader` uses one default-linearizable Get over `[candidateRoot, rangeEnd)`. Assemble options as
+`opts := append([]clientv3.OpOption{clientv3.WithRange(rangeEnd)}, clientv3.WithFirstCreate()...)`
+because `WithFirstCreate` returns a slice. Return empty on no candidate and the oldest candidate value otherwise.
 Expose only `campaign`, `renew`, `resign`, and `lookup` as operation labels; map Grant, Session,
 watch, Proclaim, revoke, and reconciliation phases to the owning public operation.
 
@@ -523,14 +580,24 @@ git commit -m "Require proof before clearing etcd ownership" \
 ### Task 6: Build the Real etcd Fixture and Mandatory Conformance Adapter
 
 **Files:**
+- Modify: `go.mod`
+- Modify: `go.sum`
 - Create: `leader/etcd/etcd_test_fixture_test.go`
 - Create: `leader/etcd/integration_test.go`
 - Create: `leader/etcd/conformance_test.go`
 
 - [ ] **Step 1: Write the serial real-server fixture**
 
-Use `etcd.Run` with `gcr.io/etcd-development/etcd:v3.6.13`. Select only the runtime platform and
-assert the configured digest equals:
+Import the Testcontainers etcd module in the fixture first, then add it so tidy retains the direct
+test dependency:
+
+```bash
+go get github.com/testcontainers/testcontainers-go/modules/etcd@v0.42.0
+go mod tidy
+go mod verify
+```
+
+Select only the runtime platform and map it to the approved digest:
 
 ```go
 var etcdDigest = map[string]string{
@@ -538,6 +605,10 @@ var etcdDigest = map[string]string{
     "linux/arm64": "sha256:23c14fbdf70105a54146cf5ed3a81613b99a973c60d5907851a251ca15664e96",
 }
 ```
+
+Reject platforms absent from the map. Pass the immutable reference
+`"gcr.io/etcd-development/etcd@" + etcdDigest[runtime.GOOS+"/"+runtime.GOARCH]` directly to
+`etcd.Run`; keep `v3.6.13` only as recorded version metadata. Do not launch the mutable tag.
 
 Readiness requires bounded `Status` member/leader evidence and one linearizable Put/Get/Delete
 roundtrip. Register client and partially created container cleanup with `internal/testcleanup`; log
@@ -573,17 +644,21 @@ leadertest.RunWithConfig(t, harness, leadertest.Config{
 })
 ```
 
-The adapter owns a mutex-protected `caseClients` registry keyed by normalized group. `Harness.New`
-creates and registers one client per case; `closeFor` removes and closes only that entry, returning
-the close error after honoring an already-ended Abort context. Thus Abort never closes a client
-used by a different case. Expected: all 15 existing named cases PASS with no skips or relaxed
-assertions.
+The adapter owns a mutex-protected `caseClients` registry keyed by normalized group.
+`Harness.New` calls `clientFor(group)` so every elector created by one conformance case—including
+the seven exact-contention electors—reuses the same case-dedicated concurrency-safe client. The
+first creation registers one cleanup; later factories cannot replace or leak the entry. `closeFor`
+atomically detaches the entry and best-effort closes it even when the Abort context is already
+ended, returning `errors.Join(ctx.Err(), closeErr)` as applicable. Thus Abort closes every shared
+user in that case and never a client used by a different case. Expected: all 15 existing named
+cases PASS with no skips or relaxed assertions.
 
 - [ ] **Step 4: Verify and commit**
 
 ```bash
 go test -p 1 -count=1 ./leader/leadertest ./leader/etcd
-git add leader/etcd
+go mod verify
+git add go.mod go.sum leader/etcd
 git commit -m "Prove etcd leader conformance on a real server" \
   --trailer "Constraint: Docker-backed etcd tests must run serially with case-owned abort clients." \
   --trailer "Confidence: high" \
@@ -596,16 +671,27 @@ git commit -m "Prove etcd leader conformance on a real server" \
 **Files:**
 - Create: `leader/etcd/security_test.go`
 - Create: `leader/etcd/resource_test.go`
+- Create: `leader/etcd/shutdown_test.go`
 - Modify: `leader/etcd/integration_test.go`
 - Modify: `leader/etcd/conformance_test.go`
 
 - [ ] **Step 1: Add authenticated boundary tests**
 
-Configure two authenticated principals and exact encoded election ranges. Record own-range KV
-success, sibling-range denial, watch denial, and the actual cross-principal lease-revoke result.
-Assert the test does not claim hostile-tenant isolation if etcd permits lease revoke independently
-of KV prefixes. Assert production examples require a trusted CA, hostname/ServerName verification,
-and `InsecureSkipVerify=false`; mark the fixture plaintext path test-only.
+Use a separate serial container that no unauthenticated test shares. Bootstrap the root user and
+root role before `AuthEnable`, reconnect with root credentials, then create principals/roles A and
+B. Grant each role exactly its encoded `[candidateRoot, rangeEnd)` through
+`RoleGrantPermission`; create separate authenticated clients and register bounded teardown that
+disables auth and terminates the isolated container. Assert A can Put/Get/Delete/Watch its own
+range and every same operation is denied on B's sibling range, with symmetric assertions for B.
+
+On v3.6.13, attach A's candidate key to A's lease and assert B's authenticated cross-principal
+Revoke is denied because server `checkLeasePuts` checks permission for every attached key. Also
+prove B can revoke an unattached lease, then loses that ability after an A-range key is attached.
+Record this pinned result and document that exact disjoint range permissions isolate attached
+election leases only while every attached key remains inside the authorized range; principals with
+the same range remain mutually trusted. A future behavior change requires design review, and
+deployments that cannot prove this v3.6 authorization contract use separate clusters. Mark all
+plaintext fixtures test-only.
 
 - [ ] **Step 2: Add deterministic lifecycle interleavings**
 
@@ -615,25 +701,36 @@ post-success lost responses, cleanup reconciliation ABA, and rapid reacquisition
 reacquisition test must stop and join prior protected work before a new Campaign or use an explicit
 test fencing generation.
 
-- [ ] **Step 3: Add the 32-contender resource test**
+- [ ] **Step 3: Prove the blocked-Campaign hard-stop branch**
 
-Capture a fixture baseline, start 32 contenders in one group, and assert no more than 32 live
-leases, Sessions, and candidate watches; only the current leader has one Proclaim in flight. Cancel,
-Resign/reconcile, close case clients, and require return to the baseline within the configured
-cleanup budget. Count repository-owned goroutines/handles rather than asserting an unstable global
-goroutine number.
+Inject a Campaign blocked in official cleanup on `client.Ctx`. Cancel the case root, wait the join
+grace, coordinate every user of that case-dedicated client, close it, and assert the Campaign plus
+Session/monitor handles join. Preserve cleanup inventory, open a separate healthy diagnostic
+client, and require linearizable exact-range absence/replacement proof before clearing the test's
+restart gate. A timeout invokes the subprocess fail-stop instead of leaking the blocked call.
 
-- [ ] **Step 4: Run repeated and race gates**
+- [ ] **Step 4: Add the 32-contender resource test**
+
+Before starting contenders, capture `Lease.Leases` count, scrape the server
+`etcd_debugging_mvcc_watcher_total` metric, and read package-private atomic counters for live
+Sessions, published monitors, and in-flight Proclaims. Start 32 contenders in one group; subtract
+the baseline and poll with the configured wait deadline. Assert at most 32 live leases, 32 live
+Sessions, 32 server watchers, one published monitor, and one in-flight Proclaim. Cancel,
+Resign/reconcile, close case clients, and poll until every baseline delta is exactly zero. Do not
+assert the process-global goroutine count.
+
+- [ ] **Step 5: Run normal and race gates and measure admission inputs**
 
 ```bash
-go test -p 1 -count=10 ./leader/etcd
-go test -race -p 1 -count=1 ./leader/leadertest ./leader/etcd
+/usr/bin/time -p go test -p 1 -count=1 ./leader/etcd
+/usr/bin/time -p go test -race -p 1 -count=1 ./leader/leadertest ./leader/etcd
 ```
 
 Expected: PASS with one in-flight Proclaim, no late candidate, all local Session/monitor handles
-joined, no forbidden diagnostic marker, and fixture resources back at baseline.
+joined, no forbidden diagnostic marker, and fixture resources back at baseline. Record durations;
+the ten-run soak remains Task 9's admission-gated pre-release command.
 
-- [ ] **Step 5: Commit hardening evidence**
+- [ ] **Step 6: Commit hardening evidence**
 
 ```bash
 git add leader/etcd
@@ -641,7 +738,7 @@ git commit -m "Harden etcd election failure boundaries" \
   --trailer "Constraint: etcd KV prefixes do not automatically isolate lease revocation." \
   --trailer "Confidence: high" \
   --trailer "Scope-risk: broad" \
-  --trailer "Tested: 10x real-server suite, race suite, auth and 32-contender tests"
+  --trailer "Tested: real-server suite, race suite, auth, hard-stop, and 32-contender tests"
 ```
 
 ### Task 8: Publish Bilingual Usage, Shutdown, Migration, and Lesson Guidance
@@ -650,7 +747,9 @@ git commit -m "Harden etcd election failure boundaries" \
 - Create: `leader/etcd/README.md`
 - Create: `leader/etcd/README.ko.md`
 - Create: `leader/etcd/example_test.go`
+- Create: `leader/etcd/readme_test.go`
 - Create: `docs/lessons/2026-07-19-issue-537-etcd-leader.md`
+- Modify: `leader/elector.go`
 - Modify: `leader/README.md`
 - Modify: `leader/README.ko.md`
 - Modify: `README.md`
@@ -668,13 +767,23 @@ The supervisor sequence is: cancel campaigns, bounded join grace, same-elector R
 client is healthy, coordinate shared-client users, close the caller client only for blocked calls,
 join them, persist unresolved inventory, then require a separate healthy client to prove exact
 range absence before restart.
+Extend the compile-checked supervisor through symmetric rollback: stop protected work and every
+etcd contender, perform bounded same-elector cleanup, prove exact range absence with a healthy
+diagnostic client, re-enable the previous provider, and verify zero etcd contenders.
+
+Add a compile-checked caller-owned production client example that loads a CA pool, sets a non-empty
+`ServerName`, leaves `InsecureSkipVerify=false`, and passes the resulting `*clientv3.Client` to
+`New`. A focused test rejects an example config with an empty root pool, empty ServerName, or
+`InsecureSkipVerify=true`; no production TLS ownership moves into the provider.
 
 - [ ] **Step 2: Write section-for-section English/Korean provider docs**
 
 Include install/client ownership, encoded ranges, integer/server-granted TTL, Proclaim versus
 keepalive, cancellation limitation, exact local Session join, cleanup pending, RBAC lease-level
 trust, TLS, quorum/compaction, no fencing, observability sampling, shutdown, stop-the-world cutover,
-symmetric rollback, rapid reacquisition rule, tested server version, and unsupported scope.
+symmetric rollback, rapid reacquisition rule, tested server version, and unsupported scope. State
+in both languages that `errors.Unwrap` exposes diagnostic-sensitive raw etcd causes which must not
+be logged or emitted to telemetry without sanitization.
 
 - [ ] **Step 3: Update indexes, changelog, and release runbook**
 
@@ -682,6 +791,11 @@ Register `leader/etcd` in both leader and root README pairs. Add the v0.19.0 cha
 caller-owned client and no-fencing caveat. Extend the provider runbook with preflight Status plus
 linearizable roundtrip, exact-range RBAC, campaign drain, unresolved inventory, cutover/rollback,
 quorum recovery, and dependency rollback gates.
+
+Update the backend-neutral `leader.Elector.Campaign` Go doc so it no longer promises TTL expiry as
+a universal cleanup fallback: callers retry bounded Resign on the same elector and then follow the
+provider-specific proof/expiry contract; etcd requires successful revoke or linearizable exact-key
+reconciliation.
 
 - [ ] **Step 4: Record the Type A lesson**
 
@@ -694,21 +808,31 @@ timed-out goroutines.
 
 ```bash
 go test -count=1 ./leader/etcd -run '^Example'
+go test -count=1 ./leader/etcd -run 'TestReadmeParity|TestRunbookContract|TestTLSExample'
 git diff --check
-rg -n 'etcd|EffectiveTTL|fencing|cleanup|rollback' leader/etcd/README.md leader/etcd/README.ko.md docs/release/v0.19.0-provider-conformance-runbook.md
-git add leader/etcd README.md README.ko.md leader/README.md leader/README.ko.md CHANGELOG.md docs/release/v0.19.0-provider-conformance-runbook.md docs/lessons/2026-07-19-issue-537-etcd-leader.md
+git add leader/elector.go leader/etcd README.md README.ko.md leader/README.md leader/README.ko.md CHANGELOG.md docs/release/v0.19.0-provider-conformance-runbook.md docs/lessons/2026-07-19-issue-537-etcd-leader.md
 git commit -m "Document safe etcd leader operations" \
   --trailer "Constraint: Local Session join and elapsed TTL do not prove remote deletion." \
   --trailer "Confidence: high" \
   --trailer "Scope-risk: moderate" \
-  --trailer "Tested: compile-checked examples, bilingual parity search, git diff --check"
+  --trailer "Tested: compile-checked examples, TLS assertions, bilingual heading parity, runbook contract, git diff --check"
 ```
+
+`TestReadmeParity` extracts ordered `##` headings from both provider README files and requires a
+one-to-one section mapping covering every Step 2 topic. `TestRunbookContract` requires executable
+command/checklist blocks for Status plus linearizable roundtrip, campaign drain, separate-client
+reconciliation, exact absence, symmetric rollback, dependency rollback (`git diff go.mod go.sum`,
+provider registration removal, `go mod tidy`, `make ci`), quorum recovery, and observability
+sampling cadence; a keyword-only presence check is insufficient.
 
 ### Task 9: Run Final Verification and Prepare Review Evidence
 
 **Files:**
 - Create later: `docs/superpowers/reviews/2026-07-19-issue-537-etcd-leader-step-6r-code-review.md`
 - Create later: `docs/superpowers/reviews/2026-07-19-issue-537-etcd-leader-step-7r-pr-review.md`
+- Conditionally modify if admission fails: `Makefile`
+- Conditionally modify if admission fails: `.github/workflows/ci.yml`
+- Conditionally modify if admission fails: `.github/workflows/nightly-tests.yml`
 - Verify: every issue #537 file and dependency delta
 
 - [ ] **Step 1: Verify dependency shape**
@@ -740,6 +864,16 @@ Expected: every command PASS. Record targeted/race/full-CI durations. If normal 
 exceed three minutes, race exceeds five minutes, combined exceeds eight minutes, or projected full
 CI exceeds 20 minutes/80% of the job timeout, move repeated Docker/race work to a separate CI lane
 before PR review.
+
+For that conditional branch, parameterize `Makefile` test/coverage/race package lists so CI can run
+all packages except `./leader/etcd` without changing local defaults. Add an `etcd-leader` job to
+`.github/workflows/ci.yml` with `needs: ci`, `timeout-minutes: 10`, Docker preflight, and serial
+`go test -p 1 -count=1` plus `go test -race -p 1 -count=1` for
+`./leader/leadertest ./leader/etcd`; keep it a required PR check. Add the ten-run serial soak to the
+existing `testcontainers` scope in `nightly-tests.yml` with its 20-minute job timeout. Validate the
+workflow diff with `actionlint` when installed, inspect `gh workflow view`, and run both separated
+local command sets before accepting the split. Do not hide the package from CI or make the new job
+optional.
 
 - [ ] **Step 3: Run the pre-release soak under the admission rule**
 
