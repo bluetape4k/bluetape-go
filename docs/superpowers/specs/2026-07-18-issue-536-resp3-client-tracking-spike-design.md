@@ -470,7 +470,7 @@ After implementation approval, validation will run in this order:
 | Prove connection affinity | Two explicit sticky connections isolate tracking/read ownership |
 | Prove reconnect behavior | Kill, missed mutation, clear, recreate, re-enable, resume sequence |
 | Prove local flush | Global invalidation and disconnect repair call `ClearLocal` only |
-| Prove shutdown | Retained processor unregisters handler after bounded close |
+| Prove shutdown | Wait for quiescence, unregister the handler, then close the connection/client with bounded assertions |
 | Compare Pub/Sub | Failure semantics table records receive, loss, recovery, and ownership differences |
 | Record compatibility | Provider/proxy matrix separates proved, documented, unsupported, and unknown |
 | No premature public API | File scope and Type A triggers forbid production surface changes |
