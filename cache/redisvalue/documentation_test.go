@@ -68,3 +68,19 @@ func TestReadmeContractMarkersStayInParity(t *testing.T) {
 		}
 	}
 }
+
+func TestExampleUsesSeparateClearAdminIdentity(t *testing.T) {
+	data, err := os.ReadFile("example_test.go")
+	if err != nil {
+		t.Fatal(err)
+	}
+	for _, required := range []string{
+		"clearAdminClient",
+		"REDIS_CLEAR_ADMIN_USERNAME",
+		"REDIS_CLEAR_ADMIN_PASSWORD",
+	} {
+		if !strings.Contains(string(data), required) {
+			t.Fatalf("example omitted clear-admin identity contract %q", required)
+		}
+	}
+}
