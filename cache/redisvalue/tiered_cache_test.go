@@ -334,7 +334,7 @@ func TestTieredCacheGetReturnsExactMiss(t *testing.T) {
 	remote := unitValueCache[string](client, serialization.StringSerializer{}, ValueConfig{RemoteTTL: time.Hour, MaxValueBytes: 32, ClearBatchSize: 10})
 	tiered := mustTieredCache(t, cache.NewMemory[string, string](), remote, nil)
 	_, err := tiered.Get(context.Background(), "item")
-	if err != cache.ErrCacheMiss {
+	if err != cache.ErrCacheMiss { //nolint:errorlint // Exact sentinel identity is the public contract.
 		t.Fatalf("Get() = %v, want exact cache.ErrCacheMiss", err)
 	}
 }

@@ -235,7 +235,7 @@ func TestValueCacheGetRedisNilIsExactMiss(t *testing.T) {
 	}
 	c := unitValueCache[string](client, serialization.StringSerializer{}, ValueConfig{RemoteTTL: time.Hour, MaxValueBytes: 8, ClearBatchSize: 10})
 	_, err := c.Get(context.Background(), "key")
-	if err != cache.ErrCacheMiss {
+	if err != cache.ErrCacheMiss { //nolint:errorlint // Exact sentinel identity is the public contract.
 		t.Fatalf("Get() error = %v, want exact cache.ErrCacheMiss", err)
 	}
 }
