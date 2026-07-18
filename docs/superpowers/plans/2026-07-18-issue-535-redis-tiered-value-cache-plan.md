@@ -42,7 +42,7 @@ Do not change `Makefile`, `cache.Cache`, `cache.LoadingCache`, `cache/redisnear`
 | Acceptance criterion | Implementation and proof |
 |---|---|
 | 1. Constructor-only, zero-value-safe caches | Tasks 2, 6, and 8 constructor/zero-value tests |
-| 2. Caller-owned client and concurrency-safe serializer-backed `ValueCache` | Tasks 2-3 unit tests and Task 9 Redis integration/race evidence |
+| 2. Caller-owned client and concurrency-safe serializer-backed `ValueCache` | Tasks 2-3 unit tests, Task 9 Redis integration, and Task 10 race evidence |
 | 3. Direct-`V` L1 and L2-only serialization | Task 6 reference/serializer-count tests and Task 9 pointer-isolation integration |
 | 4. Copied defaults and per-cache overrides | Task 1 config-copy tests and Task 11 examples/docs |
 | 5. Allocation-free healthy L1 hit | Task 6 hot-path dependency assertions and Task 10 `AllocsPerRun` proof |
@@ -259,6 +259,8 @@ git commit -m "Define the redisvalue safety contract" \
 Add `ValueOptions[V]`, `ValueCache[V]`, and `NewValueCache` constructor tests here, where the concrete type is first introduced. Assert nil client, nil/typed-nil serializer, invalid namespace, copied `ValueConfig`, zero-value method safety, and shared input sentinels. The serializer remains caller-owned, immutable after construction, and safe for concurrent `Marshal`/`Unmarshal`; the package does not add a global codec lock.
 
 Define one package-internal six-command interface containing `GetRange`, `Exists`, `Set`, `Del`, `Scan`, and `Unlink`. The fake implements all six methods; Task 2 configures the first four closures and makes unexpected `Scan`/`Unlink` calls panic, while Task 3 configures the clear closures. Tests must assert non-empty hit uses one command, zero-length hit/miss uses `EXISTS`, payload length `MaxValueBytes+1` is rejected before unmarshal, marshal happens before Redis, and invalid input/cancellation causes no command. Inject a bounded malformed payload and a serializer error containing payload/key/address markers; assert exactly one unmarshal, `ReasonInvalidPayload`, inspectable cause identity, and no `DEL`, loader fallback, L1 population, or other mutation. Assert the outer error string omits the raw payload, logical/physical key, provider address, and serializer message while `errors.Is`/`errors.As` can still reach causes. The existing oversize-marshal row must prove rejection before Redis dispatch. Task 8 adds the joined provider/local-cleanup redaction assertion after both error paths exist.
+
+Add `TestValueCacheDifferentKeySerializerCallsProceedConcurrently` with a concurrency-safe latch serializer. Start two `Set` calls for different keys and require both `Marshal` invocations to signal entry before releasing either; then preload two bounded payloads, start two different-key `Get` calls, and require both `Unmarshal` invocations to enter before release. Assert all four operations succeed and exact call counts are two. This deterministic test fails if `ValueCache` adds a package-global serializer mutex; the Task 10 race run proves the latch serializer and built-in serializer remain race-free.
 
 Use this exact public constructor shape:
 
@@ -745,7 +747,7 @@ Add `TestTieredCacheDifferentKeyL1HitsDoNotSerialize`: a channel-latched fake L1
 - [ ] **Step 2: Verify RED**
 
 ```bash
-go test -count=1 ./cache/redisvalue -run '^TestTieredCache(Get|Stores|Pointer|L1|L2|Healthy|DifferentKeyL1)'
+go test -count=1 ./cache/redisvalue -run '^TestTieredCache(Constructor|Get|Stores|Pointer|L1|L2|Healthy|DifferentKeyL1)'
 ```
 
 Expected: FAIL because decorator reads are absent.
@@ -776,7 +778,7 @@ Test zero, finite, sub-millisecond minimum, fractional truncation, elapsed subtr
 
 ```bash
 gofmt -w cache/redisvalue/*.go
-go test -count=1 ./cache/redisvalue -run '^TestTieredCache(Get|Stores|Pointer|L1|L2|Healthy|DifferentKeyL1|TTL)'
+go test -count=1 ./cache/redisvalue -run '^TestTieredCache(Constructor|Get|Stores|Pointer|L1|L2|Healthy|DifferentKeyL1|TTL)'
 ```
 
 Expected: PASS.
@@ -894,7 +896,7 @@ func TestFailedMandatoryCleanupBlocksUntilClearLocal(t *testing.T) {
 - [ ] **Step 2: Verify RED**
 
 ```bash
-go test -count=1 ./cache/redisvalue -run '^(TestTieredCache(Set|Delete|Clear)|TestInvalidateLocal|TestClearLocal|TestFailedMandatory)'
+go test -count=1 ./cache/redisvalue -run '^(TestTieredCache(Set|Delete|Clear|ZeroValue)|TestInvalidateLocal|TestClearLocal|TestFailedMandatory)'
 ```
 
 Expected: FAIL because mutation/recovery methods are incomplete.
@@ -939,7 +941,7 @@ var _ cache.LoadingCache[string, testValue] = (*TieredCache[testValue])(nil)
 - [ ] **Step 5: Run repeated mutation/recovery tests and commit**
 
 ```bash
-go test -count=20 ./cache/redisvalue -run '^(TestTieredCache(Set|Delete|Clear)|TestInvalidateLocal|TestClearLocal|TestFailedMandatory)'
+go test -count=20 ./cache/redisvalue -run '^(TestTieredCache(Set|Delete|Clear|ZeroValue)|TestInvalidateLocal|TestClearLocal|TestFailedMandatory)'
 go test -race -count=5 ./cache/redisvalue -run '^(TestTieredCache|TestInvalidateLocal|TestClearLocal)'
 ```
 
