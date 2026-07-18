@@ -730,6 +730,29 @@ func currentFlightParticipants[V any](tiered *TieredCache[V], key string) int64 
 	return coordinator.flight.participants.Load()
 }
 
+func waitForCoordinatorTokenUsers[V any](t *testing.T, tiered *TieredCache[V], key string, want int64) {
+	t.Helper()
+	deadline := time.Now().Add(time.Second)
+	for {
+		tiered.coordinators.mu.Lock()
+		coordinator := tiered.coordinators.items[key]
+		var users int64
+		if coordinator != nil {
+			coordinator.mu.Lock()
+			users = coordinator.tokenUsers
+			coordinator.mu.Unlock()
+		}
+		tiered.coordinators.mu.Unlock()
+		if users >= want {
+			return
+		}
+		if time.Now().After(deadline) {
+			t.Fatalf("coordinator token users = %d, want %d", users, want)
+		}
+		time.Sleep(time.Millisecond)
+	}
+}
+
 var _ cache.LoadingCache[string, valueTestRecord] = (*TieredCache[valueTestRecord])(nil)
 
 type faultLocal[V any] struct {

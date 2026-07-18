@@ -33,3 +33,45 @@ stress, race, and real-Redis levels.
 Future RESP3 work calls only `InvalidateLocal` or `ClearLocal`; it never routes
 invalidation events through `Set`, `Delete`, or `Clear`, because those methods
 mutate L2.
+
+## L2: Redacted errors need explicit debug and structured-log contracts
+
+### Problem
+
+Reviewing only `Error()` leaves debug formatting and structured logging as
+implicit behavior, even when the wrapped cause intentionally remains reachable
+through `errors.Is` and `errors.As`.
+
+### Decision
+
+`CacheError` now implements redacted `GoString` and `slog.LogValuer` contracts.
+Tests cover provider, serializer, partial-clear, and joined cleanup failures
+across `%v`, `%+v`, `%#v`, and structured values. Nested partial-clear progress
+also remains visible when an outer local-blocked error joins cleanup failure.
+
+### Future Guard
+
+Any new public error that retains a raw provider cause must test ordinary,
+debug, and structured-log formatting separately from causal inspection.
+
+## L3: A green race run does not replace the approved concurrency matrix
+
+### Problem
+
+The initial stress test proved race freedom and cleanup, but it did not prove
+every generation-fence and mutation-order acceptance criterion from the spec.
+The first Step 6-R stability lane caught that evidence gap.
+
+### Decision
+
+Deterministic latch tests now cover delayed refill against same-key mutation,
+`ClearLocal`, blocked readers and token waiters, loader completion, namespace
+clear, and admitted delete. Repeated same-key waves assert one loader per wave.
+Real Redis tests cover dispatch-time cancellation cleanup and provider failure
+through blocked-state repair.
+
+### Future Guard
+
+Before final review, map every spec concurrency bullet to a named test and
+assert exact side-effect totals; `go test -race` is supporting evidence, not a
+substitute for that traceability.
