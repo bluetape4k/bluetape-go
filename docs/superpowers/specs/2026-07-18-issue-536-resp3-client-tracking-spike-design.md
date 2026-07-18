@@ -1,6 +1,6 @@
 # Issue #536 RESP3 CLIENT TRACKING Spike Design
 
-Status: Step 2-R repair applied; awaiting exact-commit convergence
+Status: Step 2-R aggregate-bound repair applied; awaiting exact-commit confirmation
 Issue: [#536](https://github.com/bluetape4k/bluetape-go/issues/536)
 Predecessor: [#110](https://github.com/bluetape4k/bluetape-go/issues/110)
 Tiered cache seam: [#535](https://github.com/bluetape4k/bluetape-go/issues/535)
@@ -180,7 +180,7 @@ It does not borrow the L2 or writer client.
 The handler is test-only. It accepts exactly two frame elements: the string
 `invalidate` and either `nil` for global invalidation or a `[]interface{}` of at
 most 64 string keys. Each key is at most 2 KiB and the aggregate key bytes are
-at most 128 KiB. The fixture precomputes an exact `physical key -> logical key`
+at most 64 KiB. The fixture precomputes an exact `physical key -> logical key`
 allowlist with public `redis.KeyBuilder`; it never reverse-maps by trimming a
 prefix. Unknown, duplicate, oversized, or malformed entries fail the spike.
 
@@ -316,7 +316,7 @@ in-flight ownership is insufficient for a production component.
 
 - Invoke the test handler directly with wrong arity, wrong notification type,
   non-string keys, duplicate keys, an unknown key containing a sensitive
-  marker, more than 64 keys, an oversized key, and aggregate bytes over 128 KiB.
+  marker, more than 64 keys, an oversized key, and aggregate bytes over 64 KiB.
 - Assert one bounded failure observation per callback, `overflow=false`, and
   `errors.Is(err, errRESP3InvalidationRejected)`.
 - Assert returned/loggable error text contains no raw frame, key, namespace,
