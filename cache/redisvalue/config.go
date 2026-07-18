@@ -17,21 +17,32 @@ const (
 
 // ValueConfig configures serialized Redis L2 storage.
 type ValueConfig struct {
-	RemoteTTL      time.Duration
-	MaxValueBytes  int
+	// RemoteTTL is the default Redis expiry. Zero persists entries; negative
+	// durations are invalid.
+	RemoteTTL time.Duration
+	// MaxValueBytes is the serialized admission limit from 1 byte through 64 MiB.
+	MaxValueBytes int
+	// ClearBatchSize is the SCAN COUNT hint and maximum UNLINK argument count,
+	// from 1 through 1000.
 	ClearBatchSize int64
 }
 
 // TieredConfig configures process-local L1 behavior around a ValueCache.
 type TieredConfig struct {
-	LocalTTL                time.Duration
+	// LocalTTL is the positive L1 expiry ceiling and must not exceed a finite
+	// default RemoteTTL.
+	LocalTTL time.Duration
+	// InvalidationWaitTimeout bounds waits for active same-key work.
 	InvalidationWaitTimeout time.Duration
-	LocalCleanupTimeout     time.Duration
+	// LocalCleanupTimeout bounds mandatory and explicit L1 delete or clear work.
+	LocalCleanupTimeout time.Duration
 }
 
 // Config contains the defaultable ValueCache and TieredCache configuration.
 type Config struct {
-	Value  ValueConfig
+	// Value configures the serialized Redis L2.
+	Value ValueConfig
+	// Tiered configures the optional process-local L1 decorator.
 	Tiered TieredConfig
 }
 

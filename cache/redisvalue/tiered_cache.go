@@ -16,8 +16,10 @@ type TieredOptions[V any] struct {
 	// Local must be new or empty, or already contain values only for the exact
 	// Namespace, schema, and tenant represented by Remote. It must not be shared
 	// with another decorator.
-	Local  cache.Cache[string, V]
+	Local cache.Cache[string, V]
+	// Remote is the serialized L2 provider decorated by this cache.
 	Remote *ValueCache[V]
+	// Config is copied during construction. Nil uses DefaultConfig().Tiered.
 	Config *TieredConfig
 }
 

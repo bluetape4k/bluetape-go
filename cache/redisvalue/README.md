@@ -136,6 +136,11 @@ reader/writer matrix for upgrade and rollback and retain old readers through
 the rollback window plus the maximum finite Redis TTL. Persistent TTL `0` data
 requires an explicit administrative cleanup plan before removing compatibility.
 
+Adoption is incremental: callers may use `ValueCache` alone and add
+`TieredCache` only when a process-local reference L1 is appropriate. Existing
+`cache/redisfory` users retain their current wire format; this package performs
+no implicit migration.
+
 <!-- redisvalue-contract: resp3 -->
 ## RESP3 and adjacent cache packages
 

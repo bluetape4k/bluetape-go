@@ -59,6 +59,8 @@ func TestReadmeContractMarkersStayInParity(t *testing.T) {
 			"active lease drain",
 			"ReasonLocalBlocked",
 			"explicit `ClearLocal`",
+			"cache/redisfory",
+			"no implicit migration",
 		} {
 			if !strings.Contains(string(data), required) {
 				t.Fatalf("%s omitted operational contract %q", path, required)
