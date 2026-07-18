@@ -216,6 +216,15 @@ arbitrary `Local.Set` delay. A zero remote TTL still uses `LocalTTL`.
 `Namespace`, `Serializer`, `Client`, and `Local` are cache identity or owned
 dependencies, not configuration defaults.
 
+The caller retains lifecycle and mutation ownership of `Serializer`. After
+construction it must remain immutable and safe for concurrent `Marshal` and
+`Unmarshal` calls for the cache's full lifetime. `ValueCache` does not clone a
+serializer and does not serialize codec calls behind a package-global lock;
+doing so would hide a caller data race and impose cross-key contention. Built-in
+stateless serializers satisfy this contract. A caller-provided stateful
+serializer must provide its own synchronization while preserving one stable
+wire contract.
+
 ## Public API
 
 The exact exported surface is:
@@ -393,6 +402,10 @@ enumeration is wider than key-prefix ACL matching.
 
 Only `ValueCache` calls `Serializer.Marshal` or `Serializer.Unmarshal`.
 `TieredCache` places `V` itself into L1.
+
+Serializer calls for different cache operations may execute concurrently.
+The serializer is a caller-owned immutable, concurrency-safe dependency; the
+package does not mutate it or add synchronization around it.
 
 If `V` is a pointer:
 
@@ -1088,6 +1101,9 @@ changes during clear, and aggregate partial-progress reporting.
 - nil client plus nil and typed-nil interface dependencies, safe
   constructor-only zero values, and a public API whose concrete client type
   excludes pipelines, transaction queues, clusters, rings, and opaque wrappers;
+- concurrent operations under `-race` with the built-in stateless serializer,
+  plus documentation that custom serializers own immutability and concurrent
+  call safety rather than relying on package-side serialization;
 - nil and zero/uninitialized `TieredOptions.Remote` rejection before remote
   TTL access or decorator state retention;
 - nil loader rejection before coordinator creation, tier access, or any Redis
@@ -1267,6 +1283,8 @@ Add synchronized `cache/redisvalue/README.md` and `README.ko.md` documenting:
 - cancellation and commit-unknown behavior;
 - caller serializer panic-free/resource-bound requirements and the distinction
   between Redis write admission size and serializer allocation;
+- caller serializer immutability/concurrent-call safety and the absence of a
+  package-global codec lock;
 - required Redis commands (`GETRANGE`, `EXISTS`, `SET`, `DEL`, `SCAN`, and
   `UNLINK`), Redis 6+ single-primary topology, ACL/TLS ownership, caller
   dial/read/write/pool timeouts, readiness, memory eviction policy, and
@@ -1312,7 +1330,8 @@ small enough for text and compile-checked examples.
    `ValueCache[V]` and `TieredCache[V]` types through `NewValueCache` and
    `NewTieredCache`; the tiered constructor rejects nil/uninitialized L2.
 2. `ValueCache[V]` implements `cache.Cache[string,V]` using a caller-owned
-   go-redis `*redis.Client` and `serialization.Serializer[V]`.
+   go-redis `*redis.Client` and caller-owned immutable, concurrency-safe
+   `serialization.Serializer[V]`.
 3. `TieredCache[V]` implements `cache.LoadingCache[string,V]`, stores `V`
    directly in L1, and serializes only through L2.
 4. `DefaultConfig` provides independent value/tiered defaults, is copied on
@@ -1386,5 +1405,6 @@ small enough for text and compile-checked examples.
 | Alternatives presented | Done | L2-only, integrated near cache, and TieredCache decorator compared; user selected the decorator. |
 | Architecture approved | Done | User approved L1 reference/L2 serialization, config overrides, strict errors, clear, and #535/#536 split. |
 | Spec self-review | Done | No placeholders; clarified remaining-TTL stale windows, public error shape, and partial-clear behavior. |
+| Written spec review | Approved | User explicitly approved the committed spec before Step 3 planning. |
 | Step 2-R review | Done | Exact commit `4e6758d`: performance `P0=0/P1=0/P2=0`; stability `0/0/0`; security `0/0/1`; operator/Ops `0/0/0`; developer/API `0/0/1`; user/caller lane timed out and main integration fallback found `0/0/0`. Final integrated verdict: `P0=0/P1=0`. |
 | Written spec review | Pending | Awaiting explicit user approval before invoking `writing-plans` and beginning Step 3. |
