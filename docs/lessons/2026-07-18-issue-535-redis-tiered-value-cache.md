@@ -95,3 +95,23 @@ side effect runs exactly once while its result cannot publish into L1.
 When a state machine separates admission from effect execution, test the
 ticket and the later publication classification independently; callback latches
 alone do not prove both boundaries.
+
+## L5: Option names do not explain an operational budget
+
+### Problem
+
+Listing timeout fields and ACL commands did not tell operators how to size the
+budgets, which Redis/TLS baseline to require, or how to alert and recover from a
+blocked local tier.
+
+### Decision
+
+Both package READMEs now bind invalidation and cleanup timeouts to the work they
+must cover, require Redis 6+ with verified TLS certificates when enabled,
+reject logical databases as security boundaries, and make blocked-state alert
+and explicit recovery part of the executable documentation parity contract.
+
+### Future Guard
+
+Operational documentation tests should preserve decision rules and recovery
+actions, not only option and command names.

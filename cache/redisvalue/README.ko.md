@@ -98,6 +98,11 @@ primary command domain을 전제로 합니다.
 <!-- redisvalue-contract: operations -->
 ## 운영과 ACL
 
+Redis 6+를 사용하고 안정적인 writable primary 하나에 직접 연결합니다. TLS를
+사용한다면 server certificate verification을 필수로 합니다. Redis `SELECT` logical
+database는 ACL 또는 security boundary가 아닙니다. Trust domain은 ACL, credential,
+network/TLS control로 분리합니다.
+
 일반 identity에는 namespace 대상 `GETRANGE`, `EXISTS`, `SET`, `DEL`만
 부여하고 정확한 key pattern `bluetape:cache:value:<namespace>:*`을 사용합니다.
 별도 clear-admin client로 `ValueCache`를 구성해 `SCAN`과 namespace-scoped
@@ -114,6 +119,11 @@ command latency/timeout, provider reason, blocked decorator, partial-clear progr
 관찰합니다. Partial clear는 resumable cursor가 아니므로 cursor 0에서 다시
 시작합니다. `ClearProgress.ScannedKeys`는 지금까지 `SCAN`이 반환한 matching key
 수일 뿐 total, percentage, cursor가 아닙니다.
+
+`InvalidationWaitTimeout`은 예상 same-key loader와 Redis latency 합보다 크게
+설정합니다. `LocalCleanupTimeout`은 active lease drain과 L1 delete 또는 clear의
+worst-case latency 합보다 크게 설정합니다. `ReasonLocalBlocked`에 alert를 설정하고,
+자동 retry가 아니라 성공한 explicit `ClearLocal`로 복구합니다.
 
 <!-- redisvalue-contract: versioning -->
 ## Versioning과 rollout
