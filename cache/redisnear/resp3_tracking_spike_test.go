@@ -93,9 +93,10 @@ type spikeHandler struct {
 var _ push.NotificationHandler = (*spikeHandler)(nil)
 
 type callbackGate struct {
-	mu     sync.Mutex
-	closed bool
-	wg     sync.WaitGroup
+	mu             sync.Mutex
+	closed         bool
+	active         int
+	generationDone chan struct{}
 }
 
 func (g *callbackGate) begin() bool {
@@ -105,7 +106,10 @@ func (g *callbackGate) begin() bool {
 	if g.closed {
 		return false
 	}
-	g.wg.Add(1)
+	if g.active == 0 {
+		g.generationDone = make(chan struct{})
+	}
+	g.active++
 	return true
 }
 
@@ -116,11 +120,30 @@ func (g *callbackGate) close() {
 }
 
 func (g *callbackGate) done() {
-	g.wg.Done()
+	g.mu.Lock()
+	defer g.mu.Unlock()
+
+	if g.active == 0 {
+		panic("callback gate done without begin")
+	}
+	g.active--
+	if g.active == 0 {
+		close(g.generationDone)
+		g.generationDone = nil
+	}
 }
 
-func (g *callbackGate) wait() {
-	g.wg.Wait()
+func (g *callbackGate) wait(registered chan<- struct{}) {
+	g.mu.Lock()
+	generationDone := g.generationDone
+	if registered != nil {
+		close(registered)
+	}
+	g.mu.Unlock()
+
+	if generationDone != nil {
+		<-generationDone
+	}
 }
 
 func newSpikeHandler(
@@ -1668,6 +1691,64 @@ func TestRESP3TrackingSpikeHandlerOverflowDoesNotBlock(t *testing.T) {
 	}
 }
 
+func TestRESP3TrackingSpikeHandlerGateWaitRegistersCurrentGeneration(t *testing.T) {
+	var gate callbackGate
+	if !gate.begin() {
+		t.Fatal("zero-value gate rejected first callback")
+	}
+	released := false
+	t.Cleanup(func() {
+		if !released {
+			gate.done()
+		}
+	})
+
+	waitRegistered := make(chan struct{})
+	waitDone := make(chan struct{})
+	go func() {
+		gate.wait(waitRegistered)
+		close(waitDone)
+	}()
+	registrationTimer := time.NewTimer(time.Second)
+	select {
+	case <-waitRegistered:
+		if !registrationTimer.Stop() {
+			select {
+			case <-registrationTimer.C:
+			default:
+			}
+		}
+	case <-registrationTimer.C:
+		t.Fatal("gate wait did not register against active generation")
+	}
+	select {
+	case <-waitDone:
+		t.Fatal("registered gate wait completed before active callback")
+	default:
+	}
+
+	gate.done()
+	released = true
+	completionTimer := time.NewTimer(time.Second)
+	defer func() {
+		if !completionTimer.Stop() {
+			select {
+			case <-completionTimer.C:
+			default:
+			}
+		}
+	}()
+	select {
+	case <-waitDone:
+	case <-completionTimer.C:
+		t.Fatal("registered gate wait did not complete with active generation")
+	}
+	gate.close()
+	if gate.begin() {
+		t.Fatal("closed gate admitted a later callback")
+	}
+}
+
 func TestRESP3TrackingSpikeUnregisterIsNotAQuiescenceBarrier(t *testing.T) {
 	processor := redis.NewPushNotificationProcessor()
 	local := newLatchLocalInvalidator()
@@ -1827,14 +1908,24 @@ func TestRESP3TrackingSpikeShutdownOrdersQuiescenceBeforeUnregister(t *testing.T
 		t.Fatal("overflow = true after shutdown rejection, want false")
 	}
 
-	waitStarted := make(chan struct{})
+	waitRegistered := make(chan struct{})
 	waitDone := make(chan struct{})
 	go func() {
-		close(waitStarted)
-		handler.gate.wait()
+		handler.gate.wait(waitRegistered)
 		close(waitDone)
 	}()
-	<-waitStarted
+	registrationTimer := time.NewTimer(time.Second)
+	select {
+	case <-waitRegistered:
+		if !registrationTimer.Stop() {
+			select {
+			case <-registrationTimer.C:
+			default:
+			}
+		}
+	case <-registrationTimer.C:
+		t.Fatal("gate wait did not register against in-flight callback")
+	}
 	select {
 	case <-waitDone:
 		t.Fatal("gate wait completed before in-flight callback release")
@@ -1842,18 +1933,29 @@ func TestRESP3TrackingSpikeShutdownOrdersQuiescenceBeforeUnregister(t *testing.T
 	}
 
 	local.releaseCallback()
-	select {
-	case err := <-firstDone:
-		if err != nil {
-			t.Fatalf("first callback error = %v, want nil", err)
+	completionTimer := time.NewTimer(time.Second)
+	defer func() {
+		if !completionTimer.Stop() {
+			select {
+			case <-completionTimer.C:
+			default:
+			}
 		}
-	case <-time.After(time.Second):
-		t.Fatal("first callback did not complete after release")
-	}
-	select {
-	case <-waitDone:
-	case <-time.After(time.Second):
-		t.Fatal("gate wait did not complete after callback release")
+	}()
+	callbackCompletion := (<-chan error)(firstDone)
+	waitCompletion := (<-chan struct{})(waitDone)
+	for callbackCompletion != nil || waitCompletion != nil {
+		select {
+		case err := <-callbackCompletion:
+			if err != nil {
+				t.Fatalf("first callback error = %v, want nil", err)
+			}
+			callbackCompletion = nil
+		case <-waitCompletion:
+			waitCompletion = nil
+		case <-completionTimer.C:
+			t.Fatal("callback and gate wait did not both complete within shared watchdog")
+		}
 	}
 	if observation := requireSingleObservation(t, events); observation != (invalidationObservation{success: true, count: 1}) {
 		t.Fatalf("first callback observation = %+v, want one successful invalidation", observation)
