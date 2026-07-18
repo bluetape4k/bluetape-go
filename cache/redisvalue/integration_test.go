@@ -136,7 +136,7 @@ func TestRedisValueIntegration(t *testing.T) {
 		}
 	})
 
-	t.Run("tiered-pointers-are-process-local", func(t *testing.T) {
+	t.Run("pointer-isolation", func(t *testing.T) {
 		remote := integrationValueCache(t, client, "pointers", serialization.NewJSONSerializer[*integrationRecord](), ValueConfig{
 			RemoteTTL: time.Hour, MaxValueBytes: 128, ClearBatchSize: 2,
 		})
