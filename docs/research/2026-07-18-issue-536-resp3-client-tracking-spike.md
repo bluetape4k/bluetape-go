@@ -122,8 +122,8 @@ preservation, physical-connection loss detection, and recovery.
 |---|---|---|
 | Tracked runtime | `HELLO 3`, `CLIENT TRACKING`, `CLIENT TRACKINGINFO`, `CLIENT ID`, `GET`, `PING` | Does not require `FLUSHDB`, `FLUSHALL`, or `CLIENT KILL`. |
 | Tiered L2 runtime | go-redis RESP3 client initialization (`Protocol: 3`, including `HELLO 3` negotiation), `SET` for writes, and the initial `GETRANGE` for captured non-empty string and miss paths. An empty first read, including the captured post-`FLUSHDB` misses, adds `MULTI`, a second `GETRANGE`, `EXISTS`, and `EXEC`. A stored empty-payload hit was not separately exercised, although the same branch distinguishes its presence from a miss. | ACL policy must cover connection initialization and whichever `ValueCache` command paths are enabled; destructive admin commands remain unnecessary. See the `ValueCache` source below. |
-| External writer | Ordinary `SET` | Does not require destructive admin commands. |
-| Disposable-test admin | `FLUSHDB`, `CLIENT KILL ID` | Exists only inside a fresh test-owned container; there is no production equivalent. |
+| External writer | Implicit client initialization: RESP3 negotiation (`Protocol: 3`, `HELLO 3`); explicit test command: ordinary `SET`. | Does not require destructive admin commands. |
+| Disposable-test admin | Implicit client initialization: RESP3 negotiation (`Protocol: 3`, `HELLO 3`); explicit fixture/test commands: `INFO server`, `FLUSHDB`, and `CLIENT KILL ID`. | Exists only inside a fresh test-owned container; there is no production equivalent. |
 
 The test fixture constructs its admin client from the fresh container endpoint
 and accepts no environment-provided endpoint or dialer. Handler failures and
