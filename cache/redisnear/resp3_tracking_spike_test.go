@@ -469,6 +469,7 @@ func newRESP3SpikeFixture(t *testing.T, poolSize int) *resp3SpikeFixture {
 		Protocol:                  3,
 		PoolSize:                  poolSize,
 		MaxRetries:                -1,
+		ContextTimeoutEnabled:     true,
 		PushNotificationProcessor: processor,
 	})
 	l2Client := redis.NewClient(&redis.Options{Addr: addr, Protocol: 3, MaxRetries: -1})
@@ -649,13 +650,22 @@ func isRESP3SpikeTransportError(err error) bool {
 	if err == nil {
 		return false
 	}
-	var networkError net.Error
-	return errors.As(err, &networkError) ||
-		errors.Is(err, io.EOF) ||
+	if errors.Is(err, context.Canceled) || errors.Is(err, context.DeadlineExceeded) {
+		return false
+	}
+	if errors.Is(err, io.EOF) ||
 		errors.Is(err, io.ErrUnexpectedEOF) ||
 		errors.Is(err, net.ErrClosed) ||
 		errors.Is(err, syscall.ECONNRESET) ||
-		errors.Is(err, syscall.EPIPE)
+		errors.Is(err, syscall.EPIPE) {
+		return true
+	}
+	var operationError *net.OpError
+	if !errors.As(err, &operationError) {
+		return false
+	}
+	return !errors.Is(operationError.Err, context.Canceled) &&
+		!errors.Is(operationError.Err, context.DeadlineExceeded)
 }
 
 func parseRESP3SpikeInfo(info string) map[string]string {
@@ -717,6 +727,9 @@ func TestRESP3TrackingSpikeNegotiatesProtocolAndRecordsServer(t *testing.T) {
 	if got := options.Protocol; got != 3 {
 		t.Fatalf("tracking protocol = %d, want 3", got)
 	}
+	if !options.ContextTimeoutEnabled {
+		t.Fatal("tracking context timeout enforcement = false, want true")
+	}
 	if got := options.PushNotificationProcessor; got != fixture.processor {
 		t.Fatal("tracking push notification processor does not match retained fixture processor")
 	}
@@ -755,6 +768,49 @@ func TestRESP3TrackingSpikeNegotiatesProtocolAndRecordsServer(t *testing.T) {
 	}
 	closeWithin(t, "negotiation tracking", tracking.Close)
 	closeWithin(t, "tracking client", fixture.tracking.Close)
+}
+
+func TestRESP3TrackingSpikeClassifiesConcreteTransportErrorsOnly(t *testing.T) {
+	tests := []struct {
+		name string
+		err  error
+		want bool
+	}{
+		{name: "nil", err: nil, want: false},
+		{name: "caller canceled", err: context.Canceled, want: false},
+		{name: "wrapped caller canceled", err: fmt.Errorf("command: %w", context.Canceled), want: false},
+		{name: "caller deadline", err: context.DeadlineExceeded, want: false},
+		{name: "wrapped caller deadline", err: fmt.Errorf("command: %w", context.DeadlineExceeded), want: false},
+		{name: "generic timeout", err: &net.DNSError{IsTimeout: true}, want: false},
+		{
+			name: "operation wrapping caller cancellation",
+			err:  &net.OpError{Op: "read", Net: "tcp", Err: context.Canceled},
+			want: false,
+		},
+		{
+			name: "operation wrapping caller deadline",
+			err:  &net.OpError{Op: "read", Net: "tcp", Err: context.DeadlineExceeded},
+			want: false,
+		},
+		{name: "EOF", err: io.EOF, want: true},
+		{name: "unexpected EOF", err: io.ErrUnexpectedEOF, want: true},
+		{name: "closed connection", err: net.ErrClosed, want: true},
+		{name: "connection reset", err: syscall.ECONNRESET, want: true},
+		{name: "broken pipe", err: syscall.EPIPE, want: true},
+		{
+			name: "network operation",
+			err:  &net.OpError{Op: "read", Net: "tcp", Err: io.EOF},
+			want: true,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if got := isRESP3SpikeTransportError(tt.err); got != tt.want {
+				t.Fatalf("isRESP3SpikeTransportError(%T) = %t, want %t", tt.err, got, tt.want)
+			}
+		})
+	}
 }
 
 func TestRESP3TrackingSpikeDeliversInvalidationOnlyWhenTrackedConnectionReads(t *testing.T) {
@@ -926,7 +982,10 @@ func TestRESP3TrackingSpikeMapsGlobalInvalidationToClearLocal(t *testing.T) {
 	flushErr := fixture.flushDB(flushCtx)
 	cancelFlush()
 	if flushErr != nil {
-		t.Fatalf("fixture FLUSHDB: %v", flushErr)
+		t.Fatalf(
+			"fixture FLUSHDB: %s",
+			boundedSpikeDiagnostic(flushErr.Error(), resp3SpikeDiagnosticBytes),
+		)
 	}
 	assertNoRESP3SpikeObservation(t, events, "before tracked global drain")
 	runRESP3SpikeCommand(t, "drain global invalidation", func(ctx context.Context) (string, error) {
@@ -946,10 +1005,10 @@ func TestRESP3TrackingSpikeMapsGlobalInvalidationToClearLocal(t *testing.T) {
 		cancelGet()
 		if got != "" || err != cache.ErrCacheMiss {
 			t.Fatalf(
-				"tiered get %q after global invalidation = %q, %v; want zero value and exact cache.ErrCacheMiss",
+				"tiered get %q after global invalidation = %q, %s; want zero value and exact cache.ErrCacheMiss",
 				logicalKey,
 				got,
-				err,
+				boundedSpikeDiagnostic(fmt.Sprint(err), resp3SpikeDiagnosticBytes),
 			)
 		}
 	}
@@ -996,7 +1055,11 @@ func TestRESP3TrackingSpikeReconnectRequiresReenableAndLocalFlush(t *testing.T) 
 		return tiered.Get(ctx, logicalKey)
 	}
 	if got, err := cacheableGet(); err != nil || got != "old" {
-		t.Fatalf("cacheable get old = %q, %v; want old", got, err)
+		t.Fatalf(
+			"cacheable get old = %q, %s; want old",
+			got,
+			boundedSpikeDiagnostic(fmt.Sprint(err), resp3SpikeDiagnosticBytes),
+		)
 	}
 	clientIDA := runRESP3SpikeCommand(t, "connection A CLIENT ID", func(ctx context.Context) (int64, error) {
 		return connectionA.ClientID(ctx).Result()
@@ -1009,7 +1072,10 @@ func TestRESP3TrackingSpikeReconnectRequiresReenableAndLocalFlush(t *testing.T) 
 	killed, err := fixture.killID(killCtx, clientIDA)
 	if err != nil {
 		cancelKill()
-		t.Fatalf("fixture CLIENT KILL ID A: %v", err)
+		t.Fatalf(
+			"fixture CLIENT KILL ID A: %s",
+			boundedSpikeDiagnostic(err.Error(), resp3SpikeDiagnosticBytes),
+		)
 	}
 	cancelKill()
 	if killed != 1 {
@@ -1034,18 +1100,29 @@ func TestRESP3TrackingSpikeReconnectRequiresReenableAndLocalFlush(t *testing.T) 
 	}
 	assertNoRESP3SpikeObservation(t, events, "after disconnected mutation and loss detection")
 	if got, err := cacheableGet(); err != nil || got != "old" {
-		t.Fatalf("cacheable get after missed invalidation = %q, %v; want stale old", got, err)
+		t.Fatalf(
+			"cacheable get after missed invalidation = %q, %s; want stale old",
+			got,
+			boundedSpikeDiagnostic(fmt.Sprint(err), resp3SpikeDiagnosticBytes),
+		)
 	}
 	assertNoRESP3SpikeObservation(t, events, "after stale reconnect-window L1 hit")
 
 	trackedL1UseBlocked = true
 	if got, err := cacheableGet(); !errors.Is(err, errRESP3TrackedL1UseBlocked) {
-		t.Fatalf("blocked cacheable get = %q, %v; want tracked L1 block", got, err)
+		t.Fatalf(
+			"blocked cacheable get = %q, %s; want tracked L1 block",
+			got,
+			boundedSpikeDiagnostic(fmt.Sprint(err), resp3SpikeDiagnosticBytes),
+		)
 	}
 	clearCtx, cancelClear := context.WithTimeout(t.Context(), 2*time.Second)
 	if err := tiered.ClearLocal(clearCtx); err != nil {
 		cancelClear()
-		t.Fatalf("clear local after transport loss: %v", err)
+		t.Fatalf(
+			"clear local after transport loss: %s",
+			boundedSpikeDiagnostic(err.Error(), resp3SpikeDiagnosticBytes),
+		)
 	}
 	cancelClear()
 	closeWithin(t, "reconnect tracking A", connectionA.Close)
@@ -1075,13 +1152,23 @@ func TestRESP3TrackingSpikeReconnectRequiresReenableAndLocalFlush(t *testing.T) 
 	runRESP3SpikeCommand(t, "connection B CLIENT TRACKING ON NOLOOP", func(ctx context.Context) (interface{}, error) {
 		return connectionB.Do(ctx, "CLIENT", "TRACKING", "ON", "NOLOOP").Result()
 	})
-	trackedL1UseBlocked = false
-	if got, err := cacheableGet(); err != nil || got != "new" {
-		t.Fatalf("cacheable get after replacement = %q, %v; want new", got, err)
+	if !trackedL1UseBlocked {
+		t.Fatal("tracked L1 use was unblocked before replacement physical read")
 	}
-	runRESP3SpikeCommand(t, "connection B physical GET", func(ctx context.Context) (string, error) {
+	trackedNew := runRESP3SpikeCommand(t, "connection B physical GET new", func(ctx context.Context) (string, error) {
 		return connectionB.Get(ctx, physicalKey).Result()
 	})
+	if trackedNew != "new" {
+		t.Fatalf("connection B tracked GET = %q, want new", trackedNew)
+	}
+	trackedL1UseBlocked = false
+	if got, err := cacheableGet(); err != nil || got != "new" {
+		t.Fatalf(
+			"cacheable get after replacement = %q, %s; want new",
+			got,
+			boundedSpikeDiagnostic(fmt.Sprint(err), resp3SpikeDiagnosticBytes),
+		)
+	}
 	runRESP3SpikeCommand(t, "writer SET newer after replacement", func(ctx context.Context) (string, error) {
 		return fixture.writer.Set(ctx, physicalKey, "newer", 10*time.Minute).Result()
 	})
@@ -1097,7 +1184,11 @@ func TestRESP3TrackingSpikeReconnectRequiresReenableAndLocalFlush(t *testing.T) 
 		t.Fatal("overflow = true, want false")
 	}
 	if got, err := cacheableGet(); err != nil || got != "newer" {
-		t.Fatalf("cacheable get after replacement invalidation = %q, %v; want newer", got, err)
+		t.Fatalf(
+			"cacheable get after replacement invalidation = %q, %s; want newer",
+			got,
+			boundedSpikeDiagnostic(fmt.Sprint(err), resp3SpikeDiagnosticBytes),
+		)
 	}
 }
 
