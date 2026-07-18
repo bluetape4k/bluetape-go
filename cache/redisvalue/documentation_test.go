@@ -52,6 +52,13 @@ func TestReadmeContractMarkersStayInParity(t *testing.T) {
 			"maxmemory",
 			"correlation pseudonym",
 			"dictionary",
+			"Redis 6+",
+			"server certificate verification",
+			"SELECT` logical",
+			"same-key loader",
+			"active lease drain",
+			"ReasonLocalBlocked",
+			"explicit `ClearLocal`",
 		} {
 			if !strings.Contains(string(data), required) {
 				t.Fatalf("%s omitted operational contract %q", path, required)

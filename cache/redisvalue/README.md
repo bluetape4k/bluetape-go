@@ -99,6 +99,11 @@ primary command domain.
 <!-- redisvalue-contract: operations -->
 ## Operations and ACLs
 
+Run Redis 6+ and connect directly to one stable writable primary. When TLS is
+enabled, require server certificate verification. A Redis `SELECT` logical
+database is not an ACL or security boundary; isolate trust domains with ACLs,
+credentials, and network/TLS controls.
+
 Ordinary identities need only `GETRANGE`, `EXISTS`, `SET`, and `DEL` for their
 namespace. Use the exact key pattern
 `bluetape:cache:value:<namespace>:*`. Construct a separate `ValueCache` with a
@@ -116,6 +121,11 @@ command latency/timeouts, provider reasons, blocked decorators, and
 partial-clear progress. A partial clear restarts from cursor 0 because the
 cursor is diagnostic, not resumable. `ClearProgress.ScannedKeys` means only
 matching keys returned so far, never a total, percentage, or cursor.
+
+Set `InvalidationWaitTimeout` above the expected same-key loader plus Redis
+latency. Set `LocalCleanupTimeout` above the worst-case active lease drain plus
+L1 delete or clear latency. Alert on `ReasonLocalBlocked`; recovery requires a
+successful explicit `ClearLocal`, not an automatic retry.
 
 <!-- redisvalue-contract: versioning -->
 ## Versioning and rollout
