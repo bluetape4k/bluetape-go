@@ -944,8 +944,13 @@ func TestRESP3TrackingSpikeMapsGlobalInvalidationToClearLocal(t *testing.T) {
 		getCtx, cancelGet := context.WithTimeout(t.Context(), 2*time.Second)
 		got, err := tiered.Get(getCtx, logicalKey)
 		cancelGet()
-		if !errors.Is(err, cache.ErrCacheMiss) {
-			t.Fatalf("tiered get %q after global invalidation = %q, %v; want cache miss", logicalKey, got, err)
+		if got != "" || err != cache.ErrCacheMiss {
+			t.Fatalf(
+				"tiered get %q after global invalidation = %q, %v; want zero value and exact cache.ErrCacheMiss",
+				logicalKey,
+				got,
+				err,
+			)
 		}
 	}
 }
@@ -968,9 +973,18 @@ func TestRESP3TrackingSpikeReconnectRequiresReenableAndLocalFlush(t *testing.T) 
 	registerRESP3SpikeHandler(t, fixture, handler)
 	connectionA := fixture.sticky(t, "reconnect tracking A", fixture.tracking)
 	assertRESP3SpikeProtocol(t, "reconnect tracking A", connectionA)
+	runRESP3SpikeCommand(t, "writer seed physical old", func(ctx context.Context) (string, error) {
+		return fixture.writer.Set(ctx, physicalKey, "old", 10*time.Minute).Result()
+	})
 	runRESP3SpikeCommand(t, "connection A CLIENT TRACKING ON NOLOOP", func(ctx context.Context) (interface{}, error) {
 		return connectionA.Do(ctx, "CLIENT", "TRACKING", "ON", "NOLOOP").Result()
 	})
+	trackedOld := runRESP3SpikeCommand(t, "connection A tracked GET old", func(ctx context.Context) (string, error) {
+		return connectionA.Get(ctx, physicalKey).Result()
+	})
+	if trackedOld != "old" {
+		t.Fatalf("connection A tracked GET = %q, want old", trackedOld)
+	}
 
 	trackedL1UseBlocked := false
 	cacheableGet := func() (string, error) {
@@ -981,15 +995,9 @@ func TestRESP3TrackingSpikeReconnectRequiresReenableAndLocalFlush(t *testing.T) 
 		defer cancel()
 		return tiered.Get(ctx, logicalKey)
 	}
-	runRESP3SpikeCommand(t, "tiered SET old", func(ctx context.Context) (struct{}, error) {
-		return struct{}{}, tiered.Set(ctx, logicalKey, "old", 10*time.Minute)
-	})
 	if got, err := cacheableGet(); err != nil || got != "old" {
 		t.Fatalf("cacheable get old = %q, %v; want old", got, err)
 	}
-	runRESP3SpikeCommand(t, "connection A tracked GET", func(ctx context.Context) (string, error) {
-		return connectionA.Get(ctx, physicalKey).Result()
-	})
 	clientIDA := runRESP3SpikeCommand(t, "connection A CLIENT ID", func(ctx context.Context) (int64, error) {
 		return connectionA.ClientID(ctx).Result()
 	})
