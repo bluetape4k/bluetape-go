@@ -95,7 +95,7 @@ reference-aliasing proof. Its handler calls only `InvalidateLocal` or
 | L1-only hit | The subscription loop can receive an application invalidation independently of cache reads. | An L1 hit runs no Redis command and did not consume the pending frame. |
 | External writer | Invisible unless it publishes the bluetape invalidation protocol. | Redis-native tracking observed an external mutation after the correct connection read and explicit drain. |
 | Affinity | The subscription connection is explicit. | Tracking enablement, cacheable read, and frame drain must share the relevant physical connection. |
-| Connection loss | Receive failure clears L1; the documented recovery is to recreate the instance. | The missed invalidation was not replayed; safe recovery required blocking L1, clearing it, replacing the connection, verifying RESP3, and re-enabling tracking. |
+| Connection loss | Ordinary `ReceiveMessage` errors clear L1 and are retried automatically with backoff; predecessor guidance reserves instance recreation for terminal or unrecoverable subscriber failure. | The missed invalidation was not replayed; safe recovery required blocking L1, clearing it, replacing the connection, verifying RESP3, and re-enabling tracking. |
 | Shutdown | `NearCache` owns receiver cancellation, Pub/Sub close, and bounded completion. | The spike had to retain the processor, quiesce admitted callbacks, unregister, and close owned resources in order. |
 
 RESP3 closes the external-writer visibility gap only under connection and drain
@@ -121,7 +121,7 @@ preservation, physical-connection loss detection, and recovery.
 | Identity | Required commands in this spike | Explicit boundary |
 |---|---|---|
 | Tracked runtime | `HELLO 3`, `CLIENT TRACKING`, `CLIENT TRACKINGINFO`, `CLIENT ID`, `GET`, `PING` | Does not require `FLUSHDB`, `FLUSHALL`, or `CLIENT KILL`. |
-| Tiered L2 runtime | Existing bounded `redisvalue` read/write commands | Does not require destructive admin commands. |
+| Tiered L2 runtime | go-redis RESP3 client initialization (`Protocol: 3`, including `HELLO 3` negotiation), `SET` for writes, and the initial `GETRANGE` for the captured non-empty string and miss paths. The existing empty-payload ambiguity path conditionally adds `MULTI`, a second `GETRANGE`, `EXISTS`, and `EXEC`; that path was not exercised by this spike. | ACL policy must cover connection initialization and whichever `ValueCache` command paths are enabled; destructive admin commands remain unnecessary. See the `ValueCache` source below. |
 | External writer | Ordinary `SET` | Does not require destructive admin commands. |
 | Disposable-test admin | `FLUSHDB`, `CLIENT KILL ID` | Exists only inside a fresh test-owned container; there is no production equivalent. |
 
@@ -166,6 +166,7 @@ recovery, and provider topology before proposing a production API.
 - [`redisvalue.TieredCache` source](../../cache/redisvalue/tiered_cache.go)
 - [`redisvalue.ValueCache` source](../../cache/redisvalue/value_cache.go)
 - [go-redis v9.20.0 client push registration](https://github.com/redis/go-redis/blob/7d05dd3b7ce12a7b8c7923f73da0fede3bfa7c03/redis.go#L1467-L1493)
+- [go-redis v9.20.0 command path invoking pending-push processing](https://github.com/redis/go-redis/blob/7d05dd3b7ce12a7b8c7923f73da0fede3bfa7c03/redis.go#L952-L990)
 - [go-redis v9.20.0 command-coupled pending-push processing](https://github.com/redis/go-redis/blob/7d05dd3b7ce12a7b8c7923f73da0fede3bfa7c03/redis.go#L1699-L1765)
 - [go-redis v9.20.0 push processor and swallowed handler errors](https://github.com/redis/go-redis/blob/7d05dd3b7ce12a7b8c7923f73da0fede3bfa7c03/push/processor.go#L14-L113)
 - [go-redis v9.20.0 handler registry and unregister behavior](https://github.com/redis/go-redis/blob/7d05dd3b7ce12a7b8c7923f73da0fede3bfa7c03/push/registry.go#L29-L61)
