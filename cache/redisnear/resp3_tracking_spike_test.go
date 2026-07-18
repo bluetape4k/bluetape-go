@@ -4,11 +4,14 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"io"
+	"net"
 	"slices"
 	"strconv"
 	"strings"
 	"sync"
 	"sync/atomic"
+	"syscall"
 	"testing"
 	"time"
 
@@ -45,7 +48,10 @@ const (
 	defaultSpikeRepairTimeout     = 250 * time.Millisecond
 )
 
-var errRESP3InvalidationRejected = errors.New("resp3 invalidation rejected")
+var (
+	errRESP3InvalidationRejected = errors.New("resp3 invalidation rejected")
+	errRESP3TrackedL1UseBlocked  = errors.New("resp3 tracked L1 use blocked")
+)
 
 type observationReason string
 
@@ -512,9 +518,8 @@ func (f *resp3SpikeFixture) flushDB(ctx context.Context) error {
 	return f.admin.FlushDB(ctx).Err()
 }
 
-func (f *resp3SpikeFixture) killID(ctx context.Context, id int64) error {
-	_, err := f.admin.ClientKillByFilter(ctx, "ID", strconv.FormatInt(id, 10)).Result()
-	return err
+func (f *resp3SpikeFixture) killID(ctx context.Context, id int64) (int64, error) {
+	return f.admin.ClientKillByFilter(ctx, "ID", strconv.FormatInt(id, 10)).Result()
 }
 
 func resp3SpikePhysicalKey(t *testing.T, namespace, logical string) string {
@@ -614,6 +619,43 @@ func assertRESP3SpikeProtocol(t *testing.T, name string, connection *idempotentC
 			boundedSpikeDiagnostic(fmt.Sprintf("%#v", got), resp3SpikeDiagnosticBytes),
 		)
 	}
+}
+
+func resp3SpikeTrackingFlags(result interface{}) ([]string, error) {
+	info, ok := result.(map[interface{}]interface{})
+	if !ok {
+		return nil, fmt.Errorf("tracking info type = %T, want map[interface{}]interface{}", result)
+	}
+	rawFlags, ok := info["flags"]
+	if !ok {
+		return nil, errors.New("tracking info flags missing")
+	}
+	flagValues, ok := rawFlags.([]interface{})
+	if !ok {
+		return nil, fmt.Errorf("tracking flags type = %T, want []interface{}", rawFlags)
+	}
+	flags := make([]string, len(flagValues))
+	for index, rawFlag := range flagValues {
+		flag, ok := rawFlag.(string)
+		if !ok {
+			return nil, fmt.Errorf("tracking flag %d type = %T, want string", index, rawFlag)
+		}
+		flags[index] = flag
+	}
+	return flags, nil
+}
+
+func isRESP3SpikeTransportError(err error) bool {
+	if err == nil {
+		return false
+	}
+	var networkError net.Error
+	return errors.As(err, &networkError) ||
+		errors.Is(err, io.EOF) ||
+		errors.Is(err, io.ErrUnexpectedEOF) ||
+		errors.Is(err, net.ErrClosed) ||
+		errors.Is(err, syscall.ECONNRESET) ||
+		errors.Is(err, syscall.EPIPE)
 }
 
 func parseRESP3SpikeInfo(info string) map[string]string {
@@ -842,6 +884,212 @@ func TestRESP3TrackingSpikeRequiresReadAndTrackingOnSameConnection(t *testing.T)
 	}
 	if keys, clears := local.calls(); !slices.Equal(keys, []string{logicalKey}) || clears != 0 {
 		t.Fatalf("local calls = keys %v, clears %d; want exact logical key %q", keys, clears, logicalKey)
+	}
+}
+
+func TestRESP3TrackingSpikeMapsGlobalInvalidationToClearLocal(t *testing.T) {
+	const namespace = "issue-536-global-invalidation"
+	logicalKeys := []string{"first", "second"}
+	fixture := newRESP3SpikeFixture(t, 1)
+	tiered := newRESP3SpikeTieredCache(t, fixture, namespace)
+	allowed := make(map[string]string, len(logicalKeys))
+	for _, logicalKey := range logicalKeys {
+		allowed[resp3SpikePhysicalKey(t, namespace, logicalKey)] = logicalKey
+	}
+
+	events := make(chan invalidationObservation, 1)
+	handler := newSpikeHandler(t.Context(), tiered, allowed, events)
+	registerRESP3SpikeHandler(t, fixture, handler)
+	tracked := fixture.sticky(t, "global invalidation tracking", fixture.tracking)
+	assertRESP3SpikeProtocol(t, "global invalidation tracking", tracked)
+	runRESP3SpikeCommand(t, "global CLIENT TRACKING ON NOLOOP", func(ctx context.Context) (interface{}, error) {
+		return tracked.Do(ctx, "CLIENT", "TRACKING", "ON", "NOLOOP").Result()
+	})
+
+	for _, logicalKey := range logicalKeys {
+		runRESP3SpikeCommand(t, "tiered SET "+logicalKey, func(ctx context.Context) (struct{}, error) {
+			return struct{}{}, tiered.Set(ctx, logicalKey, "old-"+logicalKey, 10*time.Minute)
+		})
+		got := runRESP3SpikeCommand(t, "tiered GET "+logicalKey, func(ctx context.Context) (string, error) {
+			return tiered.Get(ctx, logicalKey)
+		})
+		if got != "old-"+logicalKey {
+			t.Fatalf("tiered get %q = %q; want cached old value", logicalKey, got)
+		}
+		physicalKey := resp3SpikePhysicalKey(t, namespace, logicalKey)
+		runRESP3SpikeCommand(t, "tracked GET "+logicalKey, func(ctx context.Context) (string, error) {
+			return tracked.Get(ctx, physicalKey).Result()
+		})
+	}
+
+	flushCtx, cancelFlush := context.WithTimeout(t.Context(), 2*time.Second)
+	flushErr := fixture.flushDB(flushCtx)
+	cancelFlush()
+	if flushErr != nil {
+		t.Fatalf("fixture FLUSHDB: %v", flushErr)
+	}
+	assertNoRESP3SpikeObservation(t, events, "before tracked global drain")
+	runRESP3SpikeCommand(t, "drain global invalidation", func(ctx context.Context) (string, error) {
+		return tracked.Ping(ctx).Result()
+	})
+
+	event := requireSingleObservation(t, events)
+	if want := (invalidationObservation{success: true, global: true}); event != want {
+		t.Fatalf("global invalidation observation = %+v, want %+v", event, want)
+	}
+	if handler.overflow.Load() {
+		t.Fatal("overflow = true, want false")
+	}
+	for _, logicalKey := range logicalKeys {
+		getCtx, cancelGet := context.WithTimeout(t.Context(), 2*time.Second)
+		got, err := tiered.Get(getCtx, logicalKey)
+		cancelGet()
+		if !errors.Is(err, cache.ErrCacheMiss) {
+			t.Fatalf("tiered get %q after global invalidation = %q, %v; want cache miss", logicalKey, got, err)
+		}
+	}
+}
+
+func TestRESP3TrackingSpikeReconnectRequiresReenableAndLocalFlush(t *testing.T) {
+	const (
+		namespace  = "issue-536-reconnect-loss"
+		logicalKey = "item"
+	)
+	fixture := newRESP3SpikeFixture(t, 1)
+	physicalKey := resp3SpikePhysicalKey(t, namespace, logicalKey)
+	tiered := newRESP3SpikeTieredCache(t, fixture, namespace)
+	events := make(chan invalidationObservation, 1)
+	handler := newSpikeHandler(
+		t.Context(),
+		tiered,
+		map[string]string{physicalKey: logicalKey},
+		events,
+	)
+	registerRESP3SpikeHandler(t, fixture, handler)
+	connectionA := fixture.sticky(t, "reconnect tracking A", fixture.tracking)
+	assertRESP3SpikeProtocol(t, "reconnect tracking A", connectionA)
+	runRESP3SpikeCommand(t, "connection A CLIENT TRACKING ON NOLOOP", func(ctx context.Context) (interface{}, error) {
+		return connectionA.Do(ctx, "CLIENT", "TRACKING", "ON", "NOLOOP").Result()
+	})
+
+	trackedL1UseBlocked := false
+	cacheableGet := func() (string, error) {
+		if trackedL1UseBlocked {
+			return "", errRESP3TrackedL1UseBlocked
+		}
+		ctx, cancel := context.WithTimeout(t.Context(), 2*time.Second)
+		defer cancel()
+		return tiered.Get(ctx, logicalKey)
+	}
+	runRESP3SpikeCommand(t, "tiered SET old", func(ctx context.Context) (struct{}, error) {
+		return struct{}{}, tiered.Set(ctx, logicalKey, "old", 10*time.Minute)
+	})
+	if got, err := cacheableGet(); err != nil || got != "old" {
+		t.Fatalf("cacheable get old = %q, %v; want old", got, err)
+	}
+	runRESP3SpikeCommand(t, "connection A tracked GET", func(ctx context.Context) (string, error) {
+		return connectionA.Get(ctx, physicalKey).Result()
+	})
+	clientIDA := runRESP3SpikeCommand(t, "connection A CLIENT ID", func(ctx context.Context) (int64, error) {
+		return connectionA.ClientID(ctx).Result()
+	})
+	if clientIDA <= 0 {
+		t.Fatalf("connection A CLIENT ID = %d, want positive", clientIDA)
+	}
+
+	killCtx, cancelKill := context.WithTimeout(t.Context(), 2*time.Second)
+	killed, err := fixture.killID(killCtx, clientIDA)
+	if err != nil {
+		cancelKill()
+		t.Fatalf("fixture CLIENT KILL ID A: %v", err)
+	}
+	cancelKill()
+	if killed != 1 {
+		t.Fatalf("fixture CLIENT KILL ID A = %d, want exactly 1", killed)
+	}
+	runRESP3SpikeCommand(t, "writer SET new during disconnect", func(ctx context.Context) (string, error) {
+		return fixture.writer.Set(ctx, physicalKey, "new", 10*time.Minute).Result()
+	})
+
+	pingCtx, cancelPing := context.WithTimeout(t.Context(), 2*time.Second)
+	pingErr := connectionA.Ping(pingCtx).Err()
+	cancelPing()
+	if pingErr == nil {
+		t.Fatal("retry-disabled tracked PING error = nil, want transport failure")
+	}
+	if !isRESP3SpikeTransportError(pingErr) {
+		t.Fatalf(
+			"retry-disabled tracked PING error type = %T (%s), want transport error",
+			pingErr,
+			boundedSpikeDiagnostic(pingErr.Error(), resp3SpikeDiagnosticBytes),
+		)
+	}
+	assertNoRESP3SpikeObservation(t, events, "after disconnected mutation and loss detection")
+	if got, err := cacheableGet(); err != nil || got != "old" {
+		t.Fatalf("cacheable get after missed invalidation = %q, %v; want stale old", got, err)
+	}
+	assertNoRESP3SpikeObservation(t, events, "after stale reconnect-window L1 hit")
+
+	trackedL1UseBlocked = true
+	if got, err := cacheableGet(); !errors.Is(err, errRESP3TrackedL1UseBlocked) {
+		t.Fatalf("blocked cacheable get = %q, %v; want tracked L1 block", got, err)
+	}
+	clearCtx, cancelClear := context.WithTimeout(t.Context(), 2*time.Second)
+	if err := tiered.ClearLocal(clearCtx); err != nil {
+		cancelClear()
+		t.Fatalf("clear local after transport loss: %v", err)
+	}
+	cancelClear()
+	closeWithin(t, "reconnect tracking A", connectionA.Close)
+
+	connectionB := fixture.sticky(t, "reconnect tracking B", fixture.tracking)
+	clientIDB := runRESP3SpikeCommand(t, "connection B CLIENT ID", func(ctx context.Context) (int64, error) {
+		return connectionB.ClientID(ctx).Result()
+	})
+	if clientIDB <= 0 {
+		t.Fatalf("connection B CLIENT ID = %d, want positive", clientIDB)
+	}
+	if clientIDB == clientIDA {
+		t.Fatalf("replacement CLIENT ID = %d, want different from A", clientIDB)
+	}
+	assertRESP3SpikeProtocol(t, "reconnect tracking B", connectionB)
+	trackingInfo := runRESP3SpikeCommand(t, "connection B CLIENT TRACKINGINFO", func(ctx context.Context) (interface{}, error) {
+		return connectionB.Do(ctx, "CLIENT", "TRACKINGINFO").Result()
+	})
+	flags, err := resp3SpikeTrackingFlags(trackingInfo)
+	if err != nil {
+		t.Fatalf("parse CLIENT TRACKINGINFO: %s", boundedSpikeDiagnostic(err.Error(), resp3SpikeDiagnosticBytes))
+	}
+	if !slices.Equal(flags, []string{"off"}) {
+		t.Fatalf("CLIENT TRACKINGINFO flags = %v, want [off]", flags)
+	}
+
+	runRESP3SpikeCommand(t, "connection B CLIENT TRACKING ON NOLOOP", func(ctx context.Context) (interface{}, error) {
+		return connectionB.Do(ctx, "CLIENT", "TRACKING", "ON", "NOLOOP").Result()
+	})
+	trackedL1UseBlocked = false
+	if got, err := cacheableGet(); err != nil || got != "new" {
+		t.Fatalf("cacheable get after replacement = %q, %v; want new", got, err)
+	}
+	runRESP3SpikeCommand(t, "connection B physical GET", func(ctx context.Context) (string, error) {
+		return connectionB.Get(ctx, physicalKey).Result()
+	})
+	runRESP3SpikeCommand(t, "writer SET newer after replacement", func(ctx context.Context) (string, error) {
+		return fixture.writer.Set(ctx, physicalKey, "newer", 10*time.Minute).Result()
+	})
+	assertNoRESP3SpikeObservation(t, events, "before replacement connection drain")
+	runRESP3SpikeCommand(t, "drain replacement connection", func(ctx context.Context) (string, error) {
+		return connectionB.Ping(ctx).Result()
+	})
+	event := requireSingleObservation(t, events)
+	if want := (invalidationObservation{success: true, count: 1}); event != want {
+		t.Fatalf("replacement invalidation observation = %+v, want %+v", event, want)
+	}
+	if handler.overflow.Load() {
+		t.Fatal("overflow = true, want false")
+	}
+	if got, err := cacheableGet(); err != nil || got != "newer" {
+		t.Fatalf("cacheable get after replacement invalidation = %q, %v; want newer", got, err)
 	}
 }
 
