@@ -1,6 +1,6 @@
 # Issue #536 RESP3 CLIENT TRACKING Spike Design
 
-Status: Step 2-R aggregate-bound repair applied; awaiting exact-commit confirmation
+Status: Step 2-R converged at `3836410`; awaiting Step 3-R plan review
 Issue: [#536](https://github.com/bluetape4k/bluetape-go/issues/536)
 Predecessor: [#110](https://github.com/bluetape4k/bluetape-go/issues/110)
 Tiered cache seam: [#535](https://github.com/bluetape4k/bluetape-go/issues/535)
