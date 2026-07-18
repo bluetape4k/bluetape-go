@@ -884,6 +884,8 @@ type ClearProgress struct {
 type CacheError struct { /* redacted fields */ }
 
 func (e *CacheError) Error() string
+func (e *CacheError) GoString() string
+func (e *CacheError) LogValue() slog.Value
 func (e *CacheError) Unwrap() error
 func (e *CacheError) Operation() string
 func (e *CacheError) Reason() Reason
@@ -934,7 +936,8 @@ Rules:
   `*redis.OpError` or context error.
 - Raw values, serialized bytes, Redis keys, namespace contents, and provider
   diagnostics are not logged by the package.
-- `CacheError.Error` and `redis.OpError.Error` contain only stable,
+- `CacheError.Error`, `CacheError.GoString`, `CacheError.LogValue`, and
+  `redis.OpError.Error` contain only stable,
   low-cardinality operation/reason labels and a redacted identifier. They do
   not interpolate causal `Error()` text. Access to a wrapped provider or
   serializer cause through `errors.Unwrap`/`errors.As` is an explicit caller

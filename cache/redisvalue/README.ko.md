@@ -134,6 +134,11 @@ rollback의 정확한 reader/writer matrix를 증명하고, rollback window와 �
 Redis TTL이 끝날 때까지 old reader를 유지해야 합니다. TTL `0` data는 호환성을
 제거하기 전에 명시적인 admin cleanup 계획이 필요합니다.
 
+Adoption은 incremental합니다. Caller는 `ValueCache`만 사용하다가 process-local
+reference L1이 적합할 때만 `TieredCache`를 추가할 수 있습니다. 기존
+`cache/redisfory` 사용자는 현재 wire format을 유지하며 이 package는 no implicit migration
+정책을 따릅니다.
+
 <!-- redisvalue-contract: resp3 -->
 ## RESP3와 인접 cache package
 

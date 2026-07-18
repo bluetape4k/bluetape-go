@@ -115,3 +115,24 @@ and explicit recovery part of the executable documentation parity contract.
 
 Operational documentation tests should preserve decision rules and recovery
 actions, not only option and command names.
+
+## L6: Public examples must model the failure policy
+
+### Problem
+
+A compile-checked example can still teach unsafe behavior when it discards
+mutation or repair errors, or demonstrates namespace clear with an ordinary
+client identity.
+
+### Decision
+
+The example checks every mutation and invalidation result, repairs blocked
+state only with a fresh bounded context, and constructs namespace clear with a
+separately credentialed admin client. Migration guidance also states that
+`ValueCache` adoption is incremental and does not rewrite `redisfory` data.
+
+### Future Guard
+
+Review examples as caller code, not merely as compilable syntax: error handling,
+credentials, recovery contexts, and migration boundaries must match production
+guidance.

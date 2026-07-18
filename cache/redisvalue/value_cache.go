@@ -24,10 +24,14 @@ type commandClient interface {
 // ValueOptions configures a serialized Redis L2 value cache. The caller keeps
 // ownership of Client and Serializer for the cache lifetime.
 type ValueOptions[V any] struct {
-	Client     *redis.Client
-	Namespace  string
+	// Client is one caller-owned direct stable writable-primary client.
+	Client *redis.Client
+	// Namespace identifies one exclusive tenant, schema, and clear trust domain.
+	Namespace string
+	// Serializer is retained without cloning and must support concurrent calls.
 	Serializer serialization.Serializer[V]
-	Config     *ValueConfig
+	// Config is copied during construction. Nil uses DefaultConfig().Value.
+	Config *ValueConfig
 }
 
 // ValueCache stores bounded serialized values in a caller-owned Redis client.

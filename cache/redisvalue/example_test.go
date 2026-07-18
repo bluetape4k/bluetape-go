@@ -55,17 +55,43 @@ func ExampleNewTieredCache() {
 		return
 	}
 	_ = value
-	_ = tiered.Set(ctx, "sku:43", &exampleValue{Name: "mouse"}, 30*time.Second)
-
-	// InvalidateLocal affects this decorator only. Clear scans and unlinks the
-	// Redis namespace, then clears this decorator's L1.
-	_ = tiered.InvalidateLocal(ctx, "sku:42")
-	_ = tiered.ClearLocal(ctx)
-	if err := tiered.Clear(ctx); err != nil {
+	if err := tiered.Set(ctx, "sku:43", &exampleValue{Name: "mouse"}, 30*time.Second); err != nil {
 		var cacheErr *redisvalue.CacheError
 		if errors.As(err, &cacheErr) && cacheErr.Reason() == redisvalue.ReasonLocalBlocked {
-			// Stop serving through this decorator until explicit local repair succeeds.
-			_ = tiered.ClearLocal(ctx)
+			// Use a fresh bounded context for repair. Resume serving through the
+			// decorator only after ClearLocal returns nil.
+			repairCtx, repairCancel := context.WithTimeout(context.Background(), 2*time.Second)
+			repairErr := tiered.ClearLocal(repairCtx)
+			repairCancel()
+			if repairErr != nil {
+				return
+			}
 		}
+		return
+	}
+
+	// InvalidateLocal and ClearLocal affect this decorator only.
+	if err := tiered.InvalidateLocal(ctx, "sku:42"); err != nil {
+		return
+	}
+	if err := tiered.ClearLocal(ctx); err != nil {
+		return
+	}
+
+	// Namespace Clear is an administrative L2 operation. Construct its
+	// ValueCache with a separately credentialed clear-admin client.
+	clearAdminClient := redis.NewClient(&redis.Options{
+		Addr: "localhost:6379", DialTimeout: 2 * time.Second,
+		ReadTimeout: 2 * time.Second, WriteTimeout: 2 * time.Second,
+	})
+	defer func() { _ = clearAdminClient.Close() }()
+	clearAdmin, err := redisvalue.NewValueCache(redisvalue.ValueOptions[*exampleValue]{
+		Client: clearAdminClient, Namespace: "catalog", Serializer: serializer, Config: &config.Value,
+	})
+	if err != nil {
+		return
+	}
+	if err := clearAdmin.Clear(ctx); err != nil {
+		return
 	}
 }
