@@ -12,7 +12,11 @@ import (
 	"testing"
 	"time"
 
+	"github.com/bluetape4k/bluetape-go/cache"
+	"github.com/bluetape4k/bluetape-go/cache/redisvalue"
 	"github.com/bluetape4k/bluetape-go/internal/testcleanup"
+	btredis "github.com/bluetape4k/bluetape-go/redis"
+	"github.com/bluetape4k/bluetape-go/serialization"
 	"github.com/redis/go-redis/v9"
 	"github.com/redis/go-redis/v9/push"
 	tcredis "github.com/testcontainers/testcontainers-go/modules/redis"
@@ -513,6 +517,70 @@ func (f *resp3SpikeFixture) killID(ctx context.Context, id int64) error {
 	return err
 }
 
+func resp3SpikePhysicalKey(t *testing.T, namespace, logical string) string {
+	t.Helper()
+
+	builder, err := btredis.NewKeyBuilder("bluetape:cache:value")
+	if err != nil {
+		t.Fatal(err)
+	}
+	builder, err = builder.Structural(namespace)
+	if err != nil {
+		t.Fatal(err)
+	}
+	key, err := builder.LogicalKey(logical)
+	if err != nil {
+		t.Fatal(err)
+	}
+	return key.Value
+}
+
+func newRESP3SpikeTieredCache(
+	t *testing.T,
+	fixture *resp3SpikeFixture,
+	namespace string,
+) *redisvalue.TieredCache[string] {
+	t.Helper()
+
+	valueConfig := redisvalue.DefaultConfig().Value
+	valueConfig.RemoteTTL = 10 * time.Minute
+	remote, err := redisvalue.NewValueCache(redisvalue.ValueOptions[string]{
+		Client:     fixture.l2.Client,
+		Namespace:  namespace,
+		Serializer: serialization.StringSerializer{},
+		Config:     &valueConfig,
+	})
+	if err != nil {
+		t.Fatalf("new value cache: %v", err)
+	}
+	tiered, err := redisvalue.NewTieredCache(redisvalue.TieredOptions[string]{
+		Local:  cache.NewMemory[string, string](),
+		Remote: remote,
+		Config: &redisvalue.TieredConfig{
+			LocalTTL:                5 * time.Minute,
+			InvalidationWaitTimeout: 250 * time.Millisecond,
+			LocalCleanupTimeout:     100 * time.Millisecond,
+		},
+	})
+	if err != nil {
+		t.Fatalf("new tiered cache: %v", err)
+	}
+	return tiered
+}
+
+func registerRESP3SpikeHandler(t *testing.T, fixture *resp3SpikeFixture, handler *spikeHandler) {
+	t.Helper()
+
+	if err := fixture.processor.RegisterHandler("invalidate", handler, false); err != nil {
+		t.Fatalf("register invalidate handler: %v", err)
+	}
+	t.Cleanup(func() {
+		if err := fixture.processor.UnregisterHandler("invalidate"); err != nil {
+			t.Errorf("unregister invalidate handler: %v", err)
+		}
+	})
+}
+
 func parseRESP3SpikeInfo(info string) map[string]string {
 	parsed := make(map[string]string)
 	for line := range strings.SplitSeq(info, "\n") {
@@ -610,6 +678,138 @@ func TestRESP3TrackingSpikeNegotiatesProtocolAndRecordsServer(t *testing.T) {
 	}
 	closeWithin(t, "negotiation tracking", tracking.Close)
 	closeWithin(t, "tracking client", fixture.tracking.Close)
+}
+
+func TestRESP3TrackingSpikeDeliversInvalidationOnlyWhenTrackedConnectionReads(t *testing.T) {
+	const (
+		namespace  = "issue-536-command-drain"
+		logicalKey = "item"
+	)
+	fixture := newRESP3SpikeFixture(t, 1)
+	tracked := fixture.sticky(t, "command-coupled tracking", fixture.tracking)
+	physicalKey := resp3SpikePhysicalKey(t, namespace, logicalKey)
+	tiered := newRESP3SpikeTieredCache(t, fixture, namespace)
+
+	ctx := t.Context()
+	if err := tiered.Set(ctx, logicalKey, "old", 10*time.Minute); err != nil {
+		t.Fatalf("tiered set old: %v", err)
+	}
+	if got, err := tiered.Get(ctx, logicalKey); err != nil || got != "old" {
+		t.Fatalf("tiered get old = %q, %v; want old", got, err)
+	}
+
+	if err := tracked.Do(ctx, "CLIENT", "TRACKING", "ON", "NOLOOP").Err(); err != nil {
+		t.Fatalf("CLIENT TRACKING ON NOLOOP: %v", err)
+	}
+	if _, err := tracked.Get(ctx, physicalKey).Result(); err != nil {
+		t.Fatalf("tracked GET: %v", err)
+	}
+
+	events := make(chan invalidationObservation, 1)
+	handler := newSpikeHandler(ctx, tiered, map[string]string{physicalKey: logicalKey}, events)
+	registerRESP3SpikeHandler(t, fixture, handler)
+	if err := fixture.writer.Set(ctx, physicalKey, "new", 10*time.Minute).Err(); err != nil {
+		t.Fatalf("external writer SET new: %v", err)
+	}
+	assertNoRESP3SpikeObservation(t, events, "before tracked command")
+	if got, err := tiered.Get(ctx, logicalKey); err != nil || got != "old" {
+		t.Fatalf("tiered get before PING = %q, %v; want stale old", got, err)
+	}
+	assertNoRESP3SpikeObservation(t, events, "after stale L1 hit")
+
+	pingCtx, cancelPing := context.WithTimeout(ctx, 2*time.Second)
+	defer cancelPing()
+	if err := tracked.Ping(pingCtx).Err(); err != nil {
+		t.Fatalf("tracked PING: %v", err)
+	}
+	event := requireSingleObservation(t, events)
+	if want := (invalidationObservation{success: true, count: 1}); event != want {
+		t.Fatalf("invalidation observation = %+v, want %+v", event, want)
+	}
+	if handler.overflow.Load() {
+		t.Fatal("overflow = true, want false")
+	}
+	if got, err := tiered.Get(ctx, logicalKey); err != nil || got != "new" {
+		t.Fatalf("tiered get after invalidation = %q, %v; want new", got, err)
+	}
+}
+
+func TestRESP3TrackingSpikeRequiresReadAndTrackingOnSameConnection(t *testing.T) {
+	const (
+		namespace  = "issue-536-connection-affinity"
+		logicalKey = "item"
+	)
+	fixture := newRESP3SpikeFixture(t, 2)
+	connectionA := fixture.sticky(t, "affinity tracking A", fixture.tracking)
+	connectionB := fixture.sticky(t, "affinity tracking B", fixture.tracking)
+	ctx, cancel := context.WithTimeout(t.Context(), 2*time.Second)
+	defer cancel()
+
+	clientIDA, err := connectionA.ClientID(ctx).Result()
+	if err != nil {
+		t.Fatalf("connection A CLIENT ID: %v", err)
+	}
+	clientIDB, err := connectionB.ClientID(ctx).Result()
+	if err != nil {
+		t.Fatalf("connection B CLIENT ID: %v", err)
+	}
+	if clientIDA <= 0 || clientIDB <= 0 {
+		t.Fatalf("CLIENT IDs = (%d, %d), want both positive", clientIDA, clientIDB)
+	}
+	if clientIDA == clientIDB {
+		t.Fatalf("CLIENT IDs = (%d, %d), want distinct physical connections", clientIDA, clientIDB)
+	}
+
+	physicalKey := resp3SpikePhysicalKey(t, namespace, logicalKey)
+	local := &fakeLocalInvalidator{}
+	events := make(chan invalidationObservation, 1)
+	handler := newSpikeHandler(ctx, local, map[string]string{physicalKey: logicalKey}, events)
+	registerRESP3SpikeHandler(t, fixture, handler)
+
+	if err := connectionA.Do(ctx, "CLIENT", "TRACKING", "ON", "NOLOOP").Err(); err != nil {
+		t.Fatalf("connection A CLIENT TRACKING ON NOLOOP: %v", err)
+	}
+	if err := fixture.writer.Set(ctx, physicalKey, "old", 10*time.Minute).Err(); err != nil {
+		t.Fatalf("seed physical key: %v", err)
+	}
+	if _, err := connectionB.Get(ctx, physicalKey).Result(); err != nil {
+		t.Fatalf("untracked connection B GET: %v", err)
+	}
+	if err := fixture.writer.Set(ctx, physicalKey, "new", 10*time.Minute).Err(); err != nil {
+		t.Fatalf("external writer SET after B read: %v", err)
+	}
+	assertNoRESP3SpikeObservation(t, events, "after untracked B read mutation")
+	if err := connectionA.Ping(ctx).Err(); err != nil {
+		t.Fatalf("drain connection A after B read: %v", err)
+	}
+	if err := connectionB.Ping(ctx).Err(); err != nil {
+		t.Fatalf("drain connection B after B read: %v", err)
+	}
+	assertNoRESP3SpikeObservation(t, events, "after draining A and B for untracked B read")
+	if keys, clears := local.calls(); len(keys) != 0 || clears != 0 {
+		t.Fatalf("local calls after untracked B read = keys %v, clears %d; want none", keys, clears)
+	}
+
+	if _, err := connectionA.Get(ctx, physicalKey).Result(); err != nil {
+		t.Fatalf("tracked connection A GET: %v", err)
+	}
+	if err := fixture.writer.Set(ctx, physicalKey, "newer", 10*time.Minute).Err(); err != nil {
+		t.Fatalf("external writer SET after A read: %v", err)
+	}
+	assertNoRESP3SpikeObservation(t, events, "before draining tracked connection A")
+	if err := connectionA.Ping(ctx).Err(); err != nil {
+		t.Fatalf("drain connection A after A read: %v", err)
+	}
+	event := requireSingleObservation(t, events)
+	if want := (invalidationObservation{success: true, count: 1}); event != want {
+		t.Fatalf("invalidation observation = %+v, want %+v", event, want)
+	}
+	if handler.overflow.Load() {
+		t.Fatal("overflow = true, want false")
+	}
+	if keys, clears := local.calls(); !slices.Equal(keys, []string{logicalKey}) || clears != 0 {
+		t.Fatalf("local calls = keys %v, clears %d; want exact logical key %q", keys, clears, logicalKey)
+	}
 }
 
 func TestRESP3TrackingSpikeHandlerRejectsUnsafePayloadsWithoutDisclosure(t *testing.T) {
@@ -1117,5 +1317,19 @@ func requireSingleObservation(t *testing.T, events <-chan invalidationObservatio
 	default:
 		t.Fatal("missing observation")
 		return invalidationObservation{}
+	}
+}
+
+func assertNoRESP3SpikeObservation(
+	t *testing.T,
+	events <-chan invalidationObservation,
+	phase string,
+) {
+	t.Helper()
+
+	select {
+	case event := <-events:
+		t.Fatalf("unexpected invalidation %s: %+v", phase, event)
+	default:
 	}
 }
