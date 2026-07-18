@@ -6,7 +6,7 @@
 
 **Architecture:** `ValueCache[V]` owns key construction, TTL normalization, serialization, bounded Redis commands, and namespace clear. `TieredCache[V]` composes one exclusively transferred `cache.Cache[string,V]` L1 with that provider, using an ABA-safe same-key coordinator and a process-local state barrier for invalidation, cleanup, and repair. RESP3 tracking remains outside this package and issue #536 may use only the L1-only invalidation methods.
 
-**Tech Stack:** Go 1.25, `github.com/redis/go-redis/v9`, existing `cache` and `serialization` contracts, Redis 7.4 Testcontainers, standard-library synchronization, `testing.AllocsPerRun`, and repository Make targets.
+**Tech Stack:** Go 1.26.3, `github.com/redis/go-redis/v9`, existing `cache` and `serialization` contracts, Redis 7.4 Testcontainers, standard-library synchronization, `testing.AllocsPerRun`, and repository Make targets.
 
 ---
 
@@ -15,7 +15,7 @@
 Create these focused files:
 
 - `cache/redisvalue/doc.go` — package-level behavior and RESP3 boundary.
-- `cache/redisvalue/config.go` — public config/options, defaults, validation, dependency checks.
+- `cache/redisvalue/config.go` — public config defaults, validation, and copied constructor options.
 - `cache/redisvalue/errors.go` — stable reasons, redacted `CacheError`, clear progress, provider wrapping.
 - `cache/redisvalue/ttl.go` — zero/sub-millisecond-safe TTL validation and go-redis wire normalization.
 - `cache/redisvalue/value_cache.go` — bounded `Get`, Redis-first `Set`, `SetDefault`, and idempotent `Delete`.
@@ -24,6 +24,7 @@ Create these focused files:
 - `cache/redisvalue/local_state.go` — healthy/blocking/blocked/repairing barrier, leases, tickets, repair epochs.
 - `cache/redisvalue/tiered_cache.go` — public decorator reads, loads, mutations, cleanup, and invalidation.
 - `cache/redisvalue/*_test.go` — same-package unit, deterministic concurrency, race, allocation, and integration evidence.
+- `cache/redisvalue/documentation_test.go` — executable English/Korean contract-marker parity.
 - `cache/redisvalue/example_test.go` — compile-checked public API examples.
 - `cache/redisvalue/README.md`, `cache/redisvalue/README.ko.md` — synchronized caller and operator contract.
 - `docs/lessons/2026-07-18-issue-535-redis-tiered-value-cache.md` — Type A reusable lesson.
@@ -40,8 +41,8 @@ Do not change `Makefile`, `cache.Cache`, `cache.LoadingCache`, `cache/redisnear`
 
 | Acceptance criterion | Implementation and proof |
 |---|---|
-| 1. Constructor-only, zero-value-safe caches | Tasks 1-2 and 6 constructor/zero-value tests |
-| 2. Caller-owned client and serializer-backed `ValueCache` | Tasks 1-3 unit tests and Task 9 Redis integration |
+| 1. Constructor-only, zero-value-safe caches | Tasks 2, 6, and 8 constructor/zero-value tests |
+| 2. Caller-owned client and concurrency-safe serializer-backed `ValueCache` | Tasks 2-3 unit tests and Task 9 Redis integration/race evidence |
 | 3. Direct-`V` L1 and L2-only serialization | Task 6 reference/serializer-count tests and Task 9 pointer-isolation integration |
 | 4. Copied defaults and per-cache overrides | Task 1 config-copy tests and Task 11 examples/docs |
 | 5. Allocation-free healthy L1 hit | Task 6 hot-path dependency assertions and Task 10 `AllocsPerRun` proof |
@@ -52,12 +53,12 @@ Do not change `Makefile`, `cache.Cache`, `cache.LoadingCache`, `cache/redisnear`
 | 10. Same-key linearization, tickets, state, and generations | Tasks 4-8 deterministic tests and Task 10 adversarial races |
 | 11. One cleanup budget and newest-repair epoch | Tasks 5 and 8 state/repair tests |
 | 12. L1-only invalidation and fleet reset boundary | Task 8 multi-decorator tests and Task 11 operator docs |
-| 13. Synchronous direct-primary public surface | Task 1 constructor types and Task 11 topology docs |
+| 13. Synchronous direct-primary public surface | Task 2 constructor types and Task 11 topology docs |
 | 14. Unsupported namespace/L1 sharing | Task 1 namespace validation and Task 11 ownership docs |
 | 15. Unit, integration, race, stress, and examples | Tasks 1-10 targeted evidence and Task 12 full gates |
 | 16. Synchronized English/Korean docs and RESP3 distinction | Task 11 locale-parity check and root/package docs |
 
-### Task 1: Lock Configuration, Key, TTL, Error, and Constructor Contracts
+### Task 1: Lock Configuration, Key, TTL, and Error Contracts
 
 **Files:**
 - Create: `cache/redisvalue/doc.go`
@@ -68,40 +69,23 @@ Do not change `Makefile`, `cache.Cache`, `cache.LoadingCache`, `cache/redisnear`
 - Test: `cache/redisvalue/errors_test.go`
 - Test: `cache/redisvalue/ttl_test.go`
 
-- [ ] **Step 1: Write failing configuration and constructor tests**
+- [ ] **Step 1: Write failing configuration, key, TTL, and error tests**
 
-Add table-driven tests that assert copied defaults, independent overrides, namespace/key limits, nil and typed-nil serializer/L1 dependencies, nil and zero `Remote`, zero-value method safety, and shared sentinel identity. Use this exact public construction shape:
+Add table-driven tests that assert independent default copies, every configuration bound, namespace/key limits, TTL normalization, redaction, and shared sentinel identity. This task deliberately defines no cache type or constructor, so its GREEN checkpoint does not depend on later coordinator/local-state work.
 
 ```go
-func TestDefaultConfigAndConstructorValidation(t *testing.T) {
-	defaults := DefaultConfig()
-	if defaults.Value.RemoteTTL != time.Hour || defaults.Value.MaxValueBytes != 1<<20 || defaults.Value.ClearBatchSize != 100 {
-		t.Fatalf("value defaults = %+v", defaults.Value)
+func TestDefaultConfigReturnsIndependentValidValues(t *testing.T) {
+	first := DefaultConfig()
+	second := DefaultConfig()
+	if err := first.Validate(); err != nil { t.Fatal(err) }
+	if first.Value.RemoteTTL != time.Hour || first.Value.MaxValueBytes != 1<<20 || first.Value.ClearBatchSize != 100 {
+		t.Fatalf("value defaults = %+v", first.Value)
 	}
-	if defaults.Tiered.LocalTTL != 30*time.Minute || defaults.Tiered.InvalidationWaitTimeout != 30*time.Second || defaults.Tiered.LocalCleanupTimeout != time.Second {
-		t.Fatalf("tiered defaults = %+v", defaults.Tiered)
+	if first.Tiered.LocalTTL != 30*time.Minute || first.Tiered.InvalidationWaitTimeout != 30*time.Second || first.Tiered.LocalCleanupTimeout != time.Second {
+		t.Fatalf("tiered defaults = %+v", first.Tiered)
 	}
-
-	client := redis.NewClient(&redis.Options{Addr: "127.0.0.1:1"})
-	t.Cleanup(func() { _ = client.Close() })
-	valueConfig := defaults.Value
-	valueCache, err := NewValueCache(ValueOptions[string]{
-		Client: client, Namespace: "catalog.prod", Serializer: serialization.NewJSONSerializer[string](), Config: &valueConfig,
-	})
-	if err != nil {
-		t.Fatal(err)
-	}
-	valueConfig.RemoteTTL = 2 * time.Hour
-	if valueCache.config.RemoteTTL != time.Hour {
-		t.Fatalf("constructor retained mutable config: %+v", valueCache.config)
-	}
-
-	if _, err := NewTieredCache(TieredOptions[string]{Local: cache.NewMemory[string, string](), Remote: nil}); !hasReason(err, ReasonConfiguration) {
-		t.Fatalf("nil remote error = %v", err)
-	}
-	if _, err := NewTieredCache(TieredOptions[string]{Local: cache.NewMemory[string, string](), Remote: &ValueCache[string]{}}); !hasReason(err, ReasonConfiguration) {
-		t.Fatalf("zero remote error = %v", err)
-	}
+	first.Value.RemoteTTL = 2 * time.Hour
+	if second.Value.RemoteTTL != time.Hour { t.Fatalf("defaults share state: %+v", second.Value) }
 }
 ```
 
@@ -109,17 +93,9 @@ Add explicit `errors.Is` assertions:
 
 ```go
 func TestInputValidationPreservesRedisSentinels(t *testing.T) {
-	_, err := newTestValueCache[string](t, "tenant*", serialization.NewJSONSerializer[string]())
-	if !hasReason(err, ReasonConfiguration) || !errors.Is(err, btredis.ErrInvalidKey) {
-		t.Fatalf("namespace error = %v", err)
-	}
-	c := mustTestValueCache[string](t, "catalog", serialization.NewJSONSerializer[string]())
-	if _, err := c.Get(context.Background(), " "); !errors.Is(err, btredis.ErrInvalidKey) {
-		t.Fatalf("logical key error = %v", err)
-	}
-	if err := c.Set(context.Background(), "item", "value", -time.Nanosecond); !errors.Is(err, btredis.ErrInvalidTTL) {
-		t.Fatalf("ttl error = %v", err)
-	}
+	if err := validateNamespace("tenant*"); !errors.Is(err, btredis.ErrInvalidKey) { t.Fatalf("namespace = %v", err) }
+	if err := validateLogicalKey(" "); !errors.Is(err, btredis.ErrInvalidKey) { t.Fatalf("logical key = %v", err) }
+	if err := validateEntryTTL(-time.Nanosecond); !errors.Is(err, btredis.ErrInvalidTTL) { t.Fatalf("ttl = %v", err) }
 }
 ```
 
@@ -128,14 +104,14 @@ func TestInputValidationPreservesRedisSentinels(t *testing.T) {
 Run:
 
 ```bash
-go test -count=1 ./cache/redisvalue -run 'Test(DefaultConfigAndConstructorValidation|InputValidationPreservesRedisSentinels)'
+go test -count=1 ./cache/redisvalue -run 'Test(DefaultConfig|Config|InputValidation|TTL|CacheError)'
 ```
 
 Expected: FAIL because package/types are not defined.
 
-- [ ] **Step 3: Implement exact public config and options**
+- [ ] **Step 3: Implement exact public configuration**
 
-Add the exported values and constructors from the approved spec:
+Add the exported configuration from the approved spec:
 
 ```go
 type ValueConfig struct {
@@ -171,26 +147,9 @@ func (c Config) Validate() error {
 	return nil
 }
 
-type ValueOptions[V any] struct {
-	Client     *redis.Client
-	Namespace  string
-	Serializer serialization.Serializer[V]
-	Config     *ValueConfig
-}
-
-type TieredOptions[V any] struct {
-	Local  cache.Cache[string, V]
-	Remote *ValueCache[V]
-	Config *TieredConfig
-}
-
-func NewValueCache[V any](options ValueOptions[V]) (*ValueCache[V], error)
-func NewTieredCache[V any](options TieredOptions[V]) (*TieredCache[V], error)
 ```
 
-Add table rows that call `Config.Validate` directly for every lower/upper bound and for `LocalTTL > RemoteTTL`; assert `errors.Is(err, btredis.ErrInvalidTTL)` for TTL relationship failures. Constructor tests repeat the relationship check against the copied `ValueCache.config.RemoteTTL`.
-
-`NewValueCache` validates the concrete client first, rejects nil and typed-nil serializers with the shared interface-nil helper, copies either `*options.Config` or `DefaultConfig().Value`, creates `btredis.NewKeyBuilder("bluetape:cache:value")`, appends `options.Namespace` with `Structural`, and stores the resulting builder. `NewTieredCache` rejects nil/typed-nil `Local`, rejects nil or uninitialized `Remote`, copies either `*options.Config` or `DefaultConfig().Tiered`, validates `LocalTTL <= Remote.config.RemoteTTL` when the latter is positive, then creates its coordinator registry and local state. Neither constructor takes lifecycle ownership of the client or L1.
+Add table rows that call `Config.Validate` directly for every lower/upper bound and for `LocalTTL > RemoteTTL`; assert `errors.Is(err, btredis.ErrInvalidTTL)` for TTL relationship failures. Tasks 2 and 6 repeat the relevant validation against copied constructor inputs.
 
 Validation must enforce the approved ranges. Do not call `redis.ValidateTTL`; it rejects the zero and positive sub-millisecond TTLs required here. Use:
 
@@ -297,7 +256,22 @@ git commit -m "Define the redisvalue safety contract" \
 
 - [ ] **Step 1: Write failing bounded read/write tests with a narrow fake**
 
-Define a package-internal interface containing only `GetRange`, `Exists`, `Set`, and `Del`. Tests must assert non-empty hit uses one command, zero-length hit/miss uses `EXISTS`, payload length `MaxValueBytes+1` is rejected before unmarshal, marshal happens before Redis, and invalid input/cancellation causes no command. Inject a bounded malformed payload and a serializer error containing payload/key/address markers; assert exactly one unmarshal, `ReasonInvalidPayload`, inspectable cause identity, and no `DEL`, loader fallback, L1 population, or other mutation. Assert the outer error string omits the raw payload, logical/physical key, provider address, and serializer message while `errors.Is`/`errors.As` can still reach causes. The existing oversize-marshal row must prove rejection before Redis dispatch. Task 8 adds the joined provider/local-cleanup redaction assertion after both error paths exist.
+Add `ValueOptions[V]`, `ValueCache[V]`, and `NewValueCache` constructor tests here, where the concrete type is first introduced. Assert nil client, nil/typed-nil serializer, invalid namespace, copied `ValueConfig`, zero-value method safety, and shared input sentinels. The serializer remains caller-owned, immutable after construction, and safe for concurrent `Marshal`/`Unmarshal`; the package does not add a global codec lock.
+
+Define one package-internal six-command interface containing `GetRange`, `Exists`, `Set`, `Del`, `Scan`, and `Unlink`. The fake implements all six methods; Task 2 configures the first four closures and makes unexpected `Scan`/`Unlink` calls panic, while Task 3 configures the clear closures. Tests must assert non-empty hit uses one command, zero-length hit/miss uses `EXISTS`, payload length `MaxValueBytes+1` is rejected before unmarshal, marshal happens before Redis, and invalid input/cancellation causes no command. Inject a bounded malformed payload and a serializer error containing payload/key/address markers; assert exactly one unmarshal, `ReasonInvalidPayload`, inspectable cause identity, and no `DEL`, loader fallback, L1 population, or other mutation. Assert the outer error string omits the raw payload, logical/physical key, provider address, and serializer message while `errors.Is`/`errors.As` can still reach causes. The existing oversize-marshal row must prove rejection before Redis dispatch. Task 8 adds the joined provider/local-cleanup redaction assertion after both error paths exist.
+
+Use this exact public constructor shape:
+
+```go
+type ValueOptions[V any] struct {
+	Client     *redis.Client
+	Namespace  string
+	Serializer serialization.Serializer[V]
+	Config     *ValueConfig
+}
+
+func NewValueCache[V any](options ValueOptions[V]) (*ValueCache[V], error)
+```
 
 ```go
 type fakeCommandClient struct {
@@ -305,6 +279,8 @@ type fakeCommandClient struct {
 	exists   func(context.Context, ...string) *redis.IntCmd
 	set      func(context.Context, string, any, time.Duration) *redis.StatusCmd
 	del      func(context.Context, ...string) *redis.IntCmd
+	scan     func(context.Context, uint64, string, int64) *redis.ScanCmd
+	unlink   func(context.Context, ...string) *redis.IntCmd
 }
 
 func TestValueCacheGetUsesBoundedRead(t *testing.T) {
@@ -359,6 +335,8 @@ type ValueCache[V any] struct {
 }
 ```
 
+`NewValueCache` validates the concrete client, rejects nil and typed-nil serializers with the shared interface-nil helper, copies either `*options.Config` or `DefaultConfig().Value`, validates the namespace, creates `btredis.NewKeyBuilder("bluetape:cache:value")`, appends the namespace with `Structural`, and stores the resulting builder. It retains but never closes or mutates the caller's client or serializer.
+
 `Get` must issue `GETRANGE 0 MaxValueBytes`, conditionally issue `EXISTS` only for a zero-length result, reject length `> MaxValueBytes`, and call `Unmarshal` exactly once. `Set` must validate, marshal once, reject oversized bytes, recheck context, normalize TTL, invoke Redis, and preserve commit ambiguity on every non-nil post-invocation command error. `SetDefault` delegates to `Set` with the copied default. `Delete` validates before invocation, is idempotent, and treats any post-invocation error as commit-unknown.
 
 ```go
@@ -392,19 +370,17 @@ func (c *ValueCache[V]) Get(ctx context.Context, logicalKey string) (V, error) {
 
 All error helpers accept only `btredis.Key.RedactedID`; raw `Key.Value` is restricted to Redis command arguments.
 
-- [ ] **Step 4: Prove interface compatibility and zero-value safety**
+- [ ] **Step 4: Prove the implemented zero-value methods are safe**
 
-Add compile-time assertions and method tests:
+Test the methods introduced so far; Task 3 adds the final interface assertion and `Clear` zero-value row after `Clear` exists:
 
 ```go
-var _ cache.Cache[string, testValue] = (*ValueCache[testValue])(nil)
-
 func TestValueCacheZeroValueReturnsUninitialized(t *testing.T) {
 	var c ValueCache[string]
 	if _, err := c.Get(context.Background(), "key"); !hasReason(err, ReasonUninitialized) { t.Fatalf("get = %v", err) }
 	if err := c.Set(context.Background(), "key", "value", 0); !hasReason(err, ReasonUninitialized) { t.Fatalf("set = %v", err) }
+	if err := c.SetDefault(context.Background(), "key", "value"); !hasReason(err, ReasonUninitialized) { t.Fatalf("set default = %v", err) }
 	if err := c.Delete(context.Background(), "key"); !hasReason(err, ReasonUninitialized) { t.Fatalf("delete = %v", err) }
-	if err := c.Clear(context.Background()); !hasReason(err, ReasonUninitialized) { t.Fatalf("clear = %v", err) }
 }
 ```
 
@@ -492,6 +468,17 @@ func (c *ValueCache[V]) Clear(ctx context.Context) error {
 Never call `FLUSHDB`, `KEYS`, blocking `DEL`, or pipeline commands.
 
 - [ ] **Step 4: Run clear tests and commit**
+
+Add the final zero-value row and compile-time contract now that every `ValueCache` method exists:
+
+```go
+var _ cache.Cache[string, testValue] = (*ValueCache[testValue])(nil)
+
+func TestValueCacheClearZeroValueReturnsUninitialized(t *testing.T) {
+	var c ValueCache[string]
+	if err := c.Clear(context.Background()); !hasReason(err, ReasonUninitialized) { t.Fatalf("clear = %v", err) }
+}
+```
 
 ```bash
 gofmt -w cache/redisvalue/*.go
@@ -724,7 +711,17 @@ git commit -m "Fence local cache state with repair epochs" \
 
 - [ ] **Step 1: Write failing L1/L2/reference tests**
 
-Assert healthy L1 hits perform no serializer/Redis call and preserve pointer identity; L2 hits unmarshal once and store the same decoded `V` in L1; separate cold decorators deserialize distinct pointers; only `cache.ErrCacheMiss` falls through; L1 errors and Redis/serialization errors do not become misses.
+Introduce `TieredOptions[V]`, `TieredCache[V]`, and `NewTieredCache` here. Constructor tests reject nil/typed-nil `Local`, nil and uninitialized `Remote`, invalid copied `TieredConfig`, and `LocalTTL > Remote.config.RemoteTTL` when the remote default is positive. Assert healthy L1 hits perform no serializer/Redis call and preserve pointer identity; L2 hits unmarshal once and store the same decoded `V` in L1; separate cold decorators deserialize distinct pointers; only `cache.ErrCacheMiss` falls through; L1 errors and Redis/serialization errors do not become misses.
+
+```go
+type TieredOptions[V any] struct {
+	Local  cache.Cache[string, V]
+	Remote *ValueCache[V]
+	Config *TieredConfig
+}
+
+func NewTieredCache[V any](options TieredOptions[V]) (*TieredCache[V], error)
+```
 
 ```go
 func TestTieredCacheL2HitStoresDecodedReference(t *testing.T) {
@@ -755,11 +752,7 @@ Expected: FAIL because decorator reads are absent.
 
 - [ ] **Step 3: Implement constructor and `Get`**
 
-Define `TieredCache[V]` with copied config, exclusive L1 reference, remote pointer, coordinator registry, and local state. Assert interface compatibility:
-
-```go
-var _ cache.LoadingCache[string, testValue] = (*TieredCache[testValue])(nil)
-```
+Define `TieredCache[V]` with copied config, exclusive L1 reference, remote pointer, coordinator registry, and local state. `NewTieredCache` rejects invalid dependencies before reading the remote TTL or creating coordinator/state objects, copies the selected tiered config, and validates its relationship to the remote's copied default. Final `cache.LoadingCache` compatibility is asserted in Task 8 after every required method exists.
 
 `Get` order is: validate/context/key -> initial healthy lease/L1 -> miss only -> same-key coordinator/token -> healthy recheck and L2 ticket -> release lease -> L2 read -> generation/state post-check -> L1 `Set` using `LocalTTL` -> post-check -> return. A failed `Local.Set` must call token-held mandatory local delete before returning.
 
@@ -937,6 +930,12 @@ Public `InvalidateLocal` passes the child cleanup context to `invalidateLocalHel
 
 `TieredCache.Clear` invokes remote clear first and, once started, always attempts mandatory full local cleanup with the owned timeout. Cleanup origin is captured at local repair admission. A concurrent successful `ClearLocal` during remote scanning wins; an older outer call cannot re-block it. Two decorators sharing L2 must prove that admin/peer clear leaves the other L1 and blocked state untouched until explicit `ClearLocal` or expiry.
 
+After `Get`, `Set`, `Delete`, `Clear`, and `GetOrLoad` all exist, add the final compile-time contract:
+
+```go
+var _ cache.LoadingCache[string, testValue] = (*TieredCache[testValue])(nil)
+```
+
 - [ ] **Step 5: Run repeated mutation/recovery tests and commit**
 
 ```bash
@@ -972,6 +971,7 @@ Start one container with `testcontainers/redis.Start`, create caller-owned clien
 - maximum payload and oversize rejection;
 - multi-page namespace isolation/clear;
 - two decorators sharing L2 bytes but not pointer identity;
+- mixed-version `VersionedSerializer` matrix: a version-2 reader accepts version-1 bytes, a version-1 reader rejects version-2 bytes with `serialization.ErrUnsupportedVersion`, and namespace reuse remains prohibited unless the deployment's caller-owned serializer matrix proves both upgrade and rollback readers;
 - least-privilege ordinary identity and separate clear-admin identity;
 - `+SCAN` foreign-prefix enumeration, denied foreign `GET`/`UNLINK`, and denied `FLUSHDB`/`FLUSHALL`.
 
@@ -1035,7 +1035,7 @@ Use channels, not sleeps, to pause after ticket admission and before loader/`SET
 
 - [ ] **Step 2: Add bounded stress and registry-zero assertions**
 
-Use `testing/concurrency.GoroutineStressTester` with explicit workers, rounds, and timeout. Run mixed `Get`, `GetOrLoad`, `Set`, `Delete`, `ClearLocal`, and cancellation; after each wave assert loader totals, no data races, `coordinators.active() == 0`, and no blocked state unless the test injected cleanup failure.
+Use `testing/concurrency.GoroutineStressTester` with explicit workers, rounds, and timeout. Build the stress cache with the stateless `serialization.JSONSerializer[int]` (optionally wrapped by `VersionedSerializer`) and no test-only codec mutex, so the full `-race` run exercises concurrent marshal/unmarshal. Run mixed `Get`, `GetOrLoad`, `Set`, `Delete`, `ClearLocal`, and cancellation; after each wave assert loader totals, no data races, `coordinators.active() == 0`, and no blocked state unless the test injected cleanup failure.
 
 ```go
 func TestTieredCacheMixedStressRetiresState(t *testing.T) {
@@ -1098,6 +1098,7 @@ git commit -m "Prove tiered cache linearization under hostile races" \
 
 **Files:**
 - Create: `cache/redisvalue/example_test.go`
+- Create: `cache/redisvalue/documentation_test.go`
 - Create: `cache/redisvalue/README.md`
 - Create: `cache/redisvalue/README.ko.md`
 - Modify: `README.md`
@@ -1151,6 +1152,36 @@ Both files must contain the same heading structure and facts:
 14. Tamper-sensitive deployments wrap payloads in an authenticated envelope in addition to `VersionedSerializer`; built-in versioning detects compatibility mismatches, not malicious modification.
 15. A namespace is one exclusive tenant/schema/clear trust domain and not an authorization boundary; incompatible tenants or wire formats require separate namespaces and Redis ACL/network isolation.
 16. `SCAN COUNT` is a hint: the client retains one Redis-controlled page and one bounded `UNLINK` argument chunk, but cannot bound the byte size of a returned page or external keys.
+17. The serializer is caller-owned, immutable after construction, and safe for concurrent marshal/unmarshal; the package does not clone it or serialize calls behind a global lock.
+18. The built-in versioned envelope is backward-readable only (`v2` reads `v1`, `v1` rejects `v2`); namespace reuse across an upgrade/rollback window is prohibited until the application proves its exact bidirectional serializer matrix.
+
+Place ordered `<!-- redisvalue-contract: <id> -->` markers before the 18 synchronized facts in both READMEs. Add an executable parity test:
+
+```go
+func TestReadmeContractMarkersStayInParity(t *testing.T) {
+	expected := []string{
+		"l1-boundary", "config", "ownership", "load-policy", "ttl", "errors",
+		"clear", "topology", "operations", "versioning", "resp3", "tests",
+		"untrusted-payload", "authentication", "namespace", "scan-bounds",
+		"serializer-concurrency", "compatibility-matrix",
+	}
+	marker := regexp.MustCompile(`<!-- redisvalue-contract: ([a-z0-9-]+) -->`)
+	heading := regexp.MustCompile(`(?m)^(#{1,3}) `)
+	var headingLevels []int
+	for _, path := range []string{"README.md", "README.ko.md"} {
+		data, err := os.ReadFile(path)
+		if err != nil { t.Fatal(err) }
+		matches := marker.FindAllStringSubmatch(string(data), -1)
+		got := make([]string, 0, len(matches))
+		for _, match := range matches { got = append(got, match[1]) }
+		if !slices.Equal(got, expected) { t.Fatalf("%s markers = %v, want %v", path, got, expected) }
+		headings := heading.FindAllStringSubmatch(string(data), -1)
+		levels := make([]int, 0, len(headings))
+		for _, match := range headings { levels = append(levels, len(match[1])) }
+		if headingLevels == nil { headingLevels = levels } else if !slices.Equal(levels, headingLevels) { t.Fatalf("%s heading levels = %v, want %v", path, levels, headingLevels) }
+	}
+}
+```
 
 - [ ] **Step 3: Update root indexes and changelog**
 
@@ -1186,7 +1217,7 @@ Keep these exact test names when adding the tests in Tasks 6, 9, and 10. Do not 
 - [ ] **Step 5: Compile examples, verify locale parity, and commit**
 
 ```bash
-go test -count=1 ./cache/redisvalue -run '^Example'
+go test -count=1 ./cache/redisvalue -run '^(Example|TestReadmeContractMarkersStayInParity)'
 git diff --check
 ```
 
