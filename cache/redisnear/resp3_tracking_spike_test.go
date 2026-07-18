@@ -581,6 +581,41 @@ func registerRESP3SpikeHandler(t *testing.T, fixture *resp3SpikeFixture, handler
 	})
 }
 
+func runRESP3SpikeCommand[T any](
+	t *testing.T,
+	name string,
+	command func(context.Context) (T, error),
+) T {
+	t.Helper()
+
+	ctx, cancel := context.WithTimeout(t.Context(), 2*time.Second)
+	defer cancel()
+	result, err := command(ctx)
+	if err != nil {
+		t.Fatalf(
+			"%s: %s",
+			boundedSpikeDiagnostic(name, resp3SpikeCloserNameBytes),
+			boundedSpikeDiagnostic(err.Error(), resp3SpikeDiagnosticBytes),
+		)
+	}
+	return result
+}
+
+func assertRESP3SpikeProtocol(t *testing.T, name string, connection *idempotentConn) {
+	t.Helper()
+
+	hello := runRESP3SpikeCommand(t, name+" HELLO 3", func(ctx context.Context) (map[string]interface{}, error) {
+		return connection.Hello(ctx, 3, "", "", "").Result()
+	})
+	if got := hello["proto"]; got != int64(3) {
+		t.Fatalf(
+			"%s HELLO proto = %s, want int64(3)",
+			boundedSpikeDiagnostic(name, resp3SpikeCloserNameBytes),
+			boundedSpikeDiagnostic(fmt.Sprintf("%#v", got), resp3SpikeDiagnosticBytes),
+		)
+	}
+}
+
 func parseRESP3SpikeInfo(info string) map[string]string {
 	parsed := make(map[string]string)
 	for line := range strings.SplitSeq(info, "\n") {
@@ -693,6 +728,7 @@ func TestRESP3TrackingSpikeDeliversInvalidationOnlyWhenTrackedConnectionReads(t 
 	handler := newSpikeHandler(ctx, tiered, map[string]string{physicalKey: logicalKey}, events)
 	registerRESP3SpikeHandler(t, fixture, handler)
 	tracked := fixture.sticky(t, "command-coupled tracking", fixture.tracking)
+	assertRESP3SpikeProtocol(t, "command-coupled tracking", tracked)
 
 	if err := tiered.Set(ctx, logicalKey, "old", 10*time.Minute); err != nil {
 		t.Fatalf("tiered set old: %v", err)
@@ -740,19 +776,22 @@ func TestRESP3TrackingSpikeRequiresReadAndTrackingOnSameConnection(t *testing.T)
 		logicalKey = "item"
 	)
 	fixture := newRESP3SpikeFixture(t, 2)
+	physicalKey := resp3SpikePhysicalKey(t, namespace, logicalKey)
+	local := &fakeLocalInvalidator{}
+	events := make(chan invalidationObservation, 1)
+	handler := newSpikeHandler(t.Context(), local, map[string]string{physicalKey: logicalKey}, events)
+	registerRESP3SpikeHandler(t, fixture, handler)
 	connectionA := fixture.sticky(t, "affinity tracking A", fixture.tracking)
 	connectionB := fixture.sticky(t, "affinity tracking B", fixture.tracking)
-	commandCtx, cancel := context.WithTimeout(t.Context(), 2*time.Second)
-	defer cancel()
+	assertRESP3SpikeProtocol(t, "affinity tracking A", connectionA)
+	assertRESP3SpikeProtocol(t, "affinity tracking B", connectionB)
 
-	clientIDA, err := connectionA.ClientID(commandCtx).Result()
-	if err != nil {
-		t.Fatalf("connection A CLIENT ID: %v", err)
-	}
-	clientIDB, err := connectionB.ClientID(commandCtx).Result()
-	if err != nil {
-		t.Fatalf("connection B CLIENT ID: %v", err)
-	}
+	clientIDA := runRESP3SpikeCommand(t, "connection A CLIENT ID", func(ctx context.Context) (int64, error) {
+		return connectionA.ClientID(ctx).Result()
+	})
+	clientIDB := runRESP3SpikeCommand(t, "connection B CLIENT ID", func(ctx context.Context) (int64, error) {
+		return connectionB.ClientID(ctx).Result()
+	})
 	if clientIDA <= 0 || clientIDB <= 0 {
 		t.Fatalf("CLIENT IDs = (%d, %d), want both positive", clientIDA, clientIDB)
 	}
@@ -760,46 +799,40 @@ func TestRESP3TrackingSpikeRequiresReadAndTrackingOnSameConnection(t *testing.T)
 		t.Fatalf("CLIENT IDs = (%d, %d), want distinct physical connections", clientIDA, clientIDB)
 	}
 
-	physicalKey := resp3SpikePhysicalKey(t, namespace, logicalKey)
-	local := &fakeLocalInvalidator{}
-	events := make(chan invalidationObservation, 1)
-	handler := newSpikeHandler(t.Context(), local, map[string]string{physicalKey: logicalKey}, events)
-	registerRESP3SpikeHandler(t, fixture, handler)
-
-	if err := connectionA.Do(commandCtx, "CLIENT", "TRACKING", "ON", "NOLOOP").Err(); err != nil {
-		t.Fatalf("connection A CLIENT TRACKING ON NOLOOP: %v", err)
-	}
-	if err := fixture.writer.Set(commandCtx, physicalKey, "old", 10*time.Minute).Err(); err != nil {
-		t.Fatalf("seed physical key: %v", err)
-	}
-	if _, err := connectionB.Get(commandCtx, physicalKey).Result(); err != nil {
-		t.Fatalf("untracked connection B GET: %v", err)
-	}
-	if err := fixture.writer.Set(commandCtx, physicalKey, "new", 10*time.Minute).Err(); err != nil {
-		t.Fatalf("external writer SET after B read: %v", err)
-	}
+	runRESP3SpikeCommand(t, "connection A CLIENT TRACKING ON NOLOOP", func(ctx context.Context) (interface{}, error) {
+		return connectionA.Do(ctx, "CLIENT", "TRACKING", "ON", "NOLOOP").Result()
+	})
+	runRESP3SpikeCommand(t, "seed physical key", func(ctx context.Context) (string, error) {
+		return fixture.writer.Set(ctx, physicalKey, "old", 10*time.Minute).Result()
+	})
+	runRESP3SpikeCommand(t, "untracked connection B GET", func(ctx context.Context) (string, error) {
+		return connectionB.Get(ctx, physicalKey).Result()
+	})
+	runRESP3SpikeCommand(t, "external writer SET after B read", func(ctx context.Context) (string, error) {
+		return fixture.writer.Set(ctx, physicalKey, "new", 10*time.Minute).Result()
+	})
 	assertNoRESP3SpikeObservation(t, events, "after untracked B read mutation")
-	if err := connectionA.Ping(commandCtx).Err(); err != nil {
-		t.Fatalf("drain connection A after B read: %v", err)
-	}
-	if err := connectionB.Ping(commandCtx).Err(); err != nil {
-		t.Fatalf("drain connection B after B read: %v", err)
-	}
+	runRESP3SpikeCommand(t, "drain connection A after B read", func(ctx context.Context) (string, error) {
+		return connectionA.Ping(ctx).Result()
+	})
+	runRESP3SpikeCommand(t, "drain connection B after B read", func(ctx context.Context) (string, error) {
+		return connectionB.Ping(ctx).Result()
+	})
 	assertNoRESP3SpikeObservation(t, events, "after draining A and B for untracked B read")
 	if keys, clears := local.calls(); len(keys) != 0 || clears != 0 {
 		t.Fatalf("local calls after untracked B read = keys %v, clears %d; want none", keys, clears)
 	}
 
-	if _, err := connectionA.Get(commandCtx, physicalKey).Result(); err != nil {
-		t.Fatalf("tracked connection A GET: %v", err)
-	}
-	if err := fixture.writer.Set(commandCtx, physicalKey, "newer", 10*time.Minute).Err(); err != nil {
-		t.Fatalf("external writer SET after A read: %v", err)
-	}
+	runRESP3SpikeCommand(t, "tracked connection A GET", func(ctx context.Context) (string, error) {
+		return connectionA.Get(ctx, physicalKey).Result()
+	})
+	runRESP3SpikeCommand(t, "external writer SET after A read", func(ctx context.Context) (string, error) {
+		return fixture.writer.Set(ctx, physicalKey, "newer", 10*time.Minute).Result()
+	})
 	assertNoRESP3SpikeObservation(t, events, "before draining tracked connection A")
-	if err := connectionA.Ping(commandCtx).Err(); err != nil {
-		t.Fatalf("drain connection A after A read: %v", err)
-	}
+	runRESP3SpikeCommand(t, "drain connection A after A read", func(ctx context.Context) (string, error) {
+		return connectionA.Ping(ctx).Result()
+	})
 	event := requireSingleObservation(t, events)
 	if want := (invalidationObservation{success: true, count: 1}); event != want {
 		t.Fatalf("invalidation observation = %+v, want %+v", event, want)
