@@ -1104,6 +1104,9 @@ changes during clear, and aggregate partial-progress reporting.
 - concurrent operations under `-race` with the built-in stateless serializer,
   plus documentation that custom serializers own immutability and concurrent
   call safety rather than relying on package-side serialization;
+- a channel-latched concurrency-safe serializer proves different-key
+  `Marshal` calls and different-key `Unmarshal` calls can enter concurrently,
+  preventing a hidden package-global codec lock;
 - nil and zero/uninitialized `TieredOptions.Remote` rejection before remote
   TTL access or decorator state retention;
 - nil loader rejection before coordinator creation, tier access, or any Redis
