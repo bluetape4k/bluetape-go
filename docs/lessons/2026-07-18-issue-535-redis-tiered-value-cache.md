@@ -140,3 +140,28 @@ guidance.
 The example's separate clear-admin client also names its credential inputs;
 a second client instance without an explicit identity does not demonstrate ACL
 separation.
+
+## L7: Bounded reads still need one consistency point
+
+### Problem
+
+`GETRANGE` bounded payload admission, but an empty result required a later
+`EXISTS` to distinguish a missing key from a valid empty payload. Another
+client could create or delete the key between those commands, combining bytes
+from one Redis point in time with existence from another and fabricating an
+empty cache hit.
+
+### Decision
+
+Keep the single-command path for non-empty payloads. When the first bounded
+read is empty, re-run bounded `GETRANGE` and `EXISTS` inside one `MULTI`/`EXEC`
+transaction. The ordinary Redis identity therefore includes transaction
+commands, and a deterministic two-client integration test fixes the exact
+interleaving that exposed the defect.
+
+### Future Guard
+
+When absence and an empty value are both meaningful, never combine a payload
+probe and an existence probe from different backend snapshots. Use one atomic
+transaction/script or a deliberately versioned non-empty envelope, and test a
+cross-client mutation between the original probes.

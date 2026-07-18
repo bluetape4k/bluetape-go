@@ -33,6 +33,10 @@ type clearFake struct {
 	unlink      func(context.Context, ...string) *redis.IntCmd
 }
 
+func (f *clearFake) ReadBounded(context.Context, string, int64) ([]byte, bool, error) {
+	panic("unexpected ReadBounded")
+}
+
 func (f *clearFake) GetRange(context.Context, string, int64, int64) *redis.StringCmd {
 	panic("unexpected GetRange")
 }

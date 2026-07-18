@@ -54,6 +54,11 @@ errors stop the operation. One process-local flight shares the first leader's
 context, TTL, loader, value, and error. Cross-process stampede control is not
 part of this decorator.
 
+L2 uses one bounded `GETRANGE` for a non-empty payload. Because an empty payload
+is valid, an empty first result is re-read with `GETRANGE` and `EXISTS` inside
+one `MULTI`/`EXEC` transaction. This prevents a concurrent create or delete
+from combining bytes and existence from different Redis points in time.
+
 <!-- redisvalue-contract: ttl -->
 ## TTL semantics
 
@@ -104,8 +109,8 @@ enabled, require server certificate verification. A Redis `SELECT` logical
 database is not an ACL or security boundary; isolate trust domains with ACLs,
 credentials, and network/TLS controls.
 
-Ordinary identities need only `GETRANGE`, `EXISTS`, `SET`, and `DEL` for their
-namespace. Use the exact key pattern
+Ordinary identities need only `GETRANGE`, `EXISTS`, `MULTI`, `EXEC`, `SET`, and
+`DEL` for their namespace. Use the exact key pattern
 `bluetape:cache:value:<namespace>:*`. Construct a separate `ValueCache` with a
 clear-admin client that has `SCAN` and namespace-scoped `UNLINK`; deny
 `FLUSHDB` and `FLUSHALL`. ACL key patterns are not tenant isolation by

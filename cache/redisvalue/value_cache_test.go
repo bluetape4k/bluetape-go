@@ -20,12 +20,31 @@ type valueTestRecord struct {
 }
 
 type fakeCommandClient struct {
-	getRange func(context.Context, string, int64, int64) *redis.StringCmd
-	exists   func(context.Context, ...string) *redis.IntCmd
-	set      func(context.Context, string, any, time.Duration) *redis.StatusCmd
-	del      func(context.Context, ...string) *redis.IntCmd
-	scan     func(context.Context, uint64, string, int64) *redis.ScanCmd
-	unlink   func(context.Context, ...string) *redis.IntCmd
+	readBounded func(context.Context, string, int64) ([]byte, bool, error)
+	getRange    func(context.Context, string, int64, int64) *redis.StringCmd
+	exists      func(context.Context, ...string) *redis.IntCmd
+	set         func(context.Context, string, any, time.Duration) *redis.StatusCmd
+	del         func(context.Context, ...string) *redis.IntCmd
+	scan        func(context.Context, uint64, string, int64) *redis.ScanCmd
+	unlink      func(context.Context, ...string) *redis.IntCmd
+}
+
+func (f *fakeCommandClient) ReadBounded(ctx context.Context, key string, end int64) ([]byte, bool, error) {
+	if f.readBounded != nil {
+		return f.readBounded(ctx, key, end)
+	}
+	encoded, err := f.GetRange(ctx, key, 0, end).Bytes()
+	if errors.Is(err, redis.Nil) {
+		return nil, false, nil
+	}
+	if err != nil {
+		return nil, false, err
+	}
+	if len(encoded) > 0 {
+		return encoded, true, nil
+	}
+	present, err := f.Exists(ctx, key).Result()
+	return encoded, present != 0, err
 }
 
 func (f *fakeCommandClient) GetRange(ctx context.Context, key string, start, end int64) *redis.StringCmd {
