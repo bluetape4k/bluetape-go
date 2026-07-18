@@ -39,6 +39,12 @@ The caller owns the direct `*redis.Client`, serializer, and L1 lifecycle.
 read or mutate that L1 through another path. Treat pointer-valued `V` as an
 immutable snapshot while cached because L1 retains the original reference.
 
+<!-- redisvalue-contract: l1-provenance -->
+The supplied `Local` must be new or empty, or already contain values only for
+the exact remote namespace, schema, and tenant. Never reuse or share one L1
+across decorators: L1 keys are the caller's raw logical keys and are not
+namespace-qualified internally.
+
 <!-- redisvalue-contract: load-policy -->
 ## Read and load policy
 
@@ -91,13 +97,22 @@ primary command domain.
 ## Operations and ACLs
 
 Ordinary identities need only `GETRANGE`, `EXISTS`, `SET`, and `DEL` for their
-namespace. A separate clear-admin identity needs `SCAN` and namespace-scoped
-`UNLINK`; deny `FLUSHDB` and `FLUSHALL`. ACL key patterns are not tenant
-isolation by themselves—`SCAN` can expose foreign key names—so also use Redis
-network/TLS isolation. Readiness must `PING` the actual primary. Monitor Redis
-memory, command latency/timeouts, provider reasons, blocked decorators, and
-partial-clear progress. `ClearProgress.ScannedKeys` means only matching keys
-returned so far, never a total, percentage, or cursor.
+namespace. Use the exact key pattern
+`bluetape:cache:value:<namespace>:*`. Construct a separate `ValueCache` with a
+clear-admin client that has `SCAN` and namespace-scoped `UNLINK`; deny
+`FLUSHDB` and `FLUSHALL`. ACL key patterns are not tenant isolation by
+themselves—`SCAN` can expose foreign key names—so also use Redis network/TLS
+isolation.
+
+Set caller-owned go-redis `DialTimeout`, `ReadTimeout`, `WriteTimeout`, and
+`PoolTimeout` for the service budget. A readiness check must prove the stable
+writable primary command path, not only `PING`. Size Redis `maxmemory` and its
+eviction policy for serialized payloads and TTL behavior. This package emits no
+telemetry; install caller-owned go-redis hooks and monitor memory, eviction,
+command latency/timeouts, provider reasons, blocked decorators, and
+partial-clear progress. A partial clear restarts from cursor 0 because the
+cursor is diagnostic, not resumable. `ClearProgress.ScannedKeys` means only
+matching keys returned so far, never a total, percentage, or cursor.
 
 <!-- redisvalue-contract: versioning -->
 ## Versioning and rollout

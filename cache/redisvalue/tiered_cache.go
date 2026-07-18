@@ -13,6 +13,9 @@ import (
 // Redis ValueCache L2. Local becomes exclusively owned by the decorator for
 // cache operations, while its lifecycle remains caller-owned.
 type TieredOptions[V any] struct {
+	// Local must be new or empty, or already contain values only for the exact
+	// Namespace, schema, and tenant represented by Remote. It must not be shared
+	// with another decorator.
 	Local  cache.Cache[string, V]
 	Remote *ValueCache[V]
 	Config *TieredConfig

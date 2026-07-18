@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/bluetape4k/bluetape-go/cache"
+	btredis "github.com/bluetape4k/bluetape-go/redis"
 	"github.com/bluetape4k/bluetape-go/serialization"
 	redistestcontainer "github.com/bluetape4k/bluetape-go/testcontainers/redis"
 	bttesting "github.com/bluetape4k/bluetape-go/testing"
@@ -198,6 +199,71 @@ func TestRedisValueIntegration(t *testing.T) {
 		}
 		if _, err := oldReader.Get(ctx, "item"); !errors.Is(err, serialization.ErrUnsupportedVersion) || !hasReason(err, ReasonInvalidPayload) {
 			t.Fatalf("v1 reads v2 = %v", err)
+		}
+	})
+
+	t.Run("cancellation-after-dispatch-cleans-local", func(t *testing.T) {
+		remote := integrationValueCache(t, client, "cancel-dispatch", serialization.StringSerializer{}, ValueConfig{
+			RemoteTTL: time.Hour, MaxValueBytes: 64, ClearBatchSize: 2,
+		})
+		local := cache.NewMemory[string, string]()
+		tiered := mustTieredCache(t, local, remote, nil)
+		if err := tiered.Set(ctx, "item", "warm", time.Minute); err != nil {
+			t.Fatal(err)
+		}
+		if err := client.Do(ctx, "CLIENT", "PAUSE", 250, "WRITE").Err(); err != nil {
+			t.Fatalf("pause Redis writes: %v", err)
+		}
+		operationCtx, operationCancel := context.WithTimeout(ctx, 25*time.Millisecond)
+		defer operationCancel()
+		started := time.Now()
+		err := tiered.Set(operationCtx, "item", "late", time.Minute)
+		if !errors.Is(err, context.DeadlineExceeded) {
+			t.Fatalf("paused Set() = %T %v", err, err)
+		}
+		if hasReason(err, ReasonProviderFailure) && !errors.Is(err, btredis.ErrCommitUnknown) {
+			t.Fatalf("provider cancellation omitted commit-unknown: %v", err)
+		}
+		if elapsed := time.Since(started); elapsed > time.Second {
+			t.Fatalf("paused Set() took %s", elapsed)
+		}
+		if _, localErr := local.Get(context.Background(), "item"); !errors.Is(localErr, cache.ErrCacheMiss) {
+			t.Fatalf("commit-unknown Set retained L1 = %v", localErr)
+		}
+		bttesting.Eventually(t, 3*time.Second, func() bool {
+			return client.Del(ctx, integrationPhysicalKey(t, remote, "item")).Err() == nil
+		})
+	})
+
+	t.Run("provider-failure-blocks-and-explicit-repair-heals", func(t *testing.T) {
+		failedClient := redis.NewClient(&redis.Options{Addr: addr, Username: "missing-user", Password: "bad-password"})
+		t.Cleanup(func() { _ = failedClient.Close() })
+		if err := failedClient.Ping(ctx).Err(); err == nil {
+			t.Fatal("invalid Redis identity unexpectedly became ready")
+		}
+		remote := integrationValueCache(t, failedClient, "provider-failure", serialization.StringSerializer{}, ValueConfig{
+			RemoteTTL: time.Hour, MaxValueBytes: 64, ClearBatchSize: 2,
+		})
+		cleanupFailure := errors.New("local cleanup failed")
+		local := &faultLocal[string]{values: map[string]string{"item": "stale"}, deleteErr: cleanupFailure}
+		tiered := mustTieredCache(t, local, remote, nil)
+		operationCtx, operationCancel := context.WithTimeout(ctx, time.Second)
+		defer operationCancel()
+		err := tiered.Set(operationCtx, "item", "new", time.Minute)
+		if !hasReason(err, ReasonLocalBlocked) || !errors.Is(err, btredis.ErrCommitUnknown) || !errors.Is(err, cleanupFailure) {
+			t.Fatalf("failed-provider Set() = %v", err)
+		}
+		if _, blockedErr := tiered.Get(ctx, "item"); !hasReason(blockedErr, ReasonLocalBlocked) {
+			t.Fatalf("blocked Get() = %v", blockedErr)
+		}
+		local.mu.Lock()
+		local.deleteErr = nil
+		local.mu.Unlock()
+		if err := tiered.ClearLocal(ctx); err != nil {
+			t.Fatalf("ClearLocal repair = %v", err)
+		}
+		if tiered.localState.phaseValue() != phaseHealthy {
+			t.Fatalf("local phase = %v", tiered.localState.phaseValue())
 		}
 	})
 

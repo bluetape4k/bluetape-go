@@ -1,6 +1,10 @@
 package redisvalue
 
-import "fmt"
+import (
+	"errors"
+	"fmt"
+	"log/slog"
+)
 
 // Reason is a stable low-cardinality Redis value-cache failure category.
 type Reason string
@@ -55,6 +59,17 @@ func (e *CacheError) Error() string {
 	return fmt.Sprintf("redisvalue %s failed for %s: %s", e.operation, e.keyID, e.reason)
 }
 
+// GoString returns the same redacted low-cardinality value for debug
+// formatting.
+func (e *CacheError) GoString() string {
+	return e.Error()
+}
+
+// LogValue returns the redacted error text for structured logging.
+func (e *CacheError) LogValue() slog.Value {
+	return slog.StringValue(e.Error())
+}
+
 // Unwrap returns the causal error.
 func (e *CacheError) Unwrap() error {
 	if e == nil {
@@ -81,10 +96,17 @@ func (e *CacheError) Reason() Reason {
 
 // ClearProgress returns partial namespace-clear progress when applicable.
 func (e *CacheError) ClearProgress() (ClearProgress, bool) {
-	if e == nil || !e.hasClear {
+	if e == nil {
 		return ClearProgress{}, false
 	}
-	return e.progress, true
+	if e.hasClear {
+		return e.progress, true
+	}
+	var nested *CacheError
+	if errors.As(e.cause, &nested) && nested != e {
+		return nested.ClearProgress()
+	}
+	return ClearProgress{}, false
 }
 
 func newCacheError(operation string, reason Reason, keyID string, cause error) *CacheError {

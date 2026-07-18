@@ -2,6 +2,8 @@ package redisvalue
 
 import (
 	"errors"
+	"fmt"
+	"log/slog"
 	"strings"
 	"testing"
 
@@ -33,6 +35,56 @@ func TestCacheErrorIsInspectableAndRedacted(t *testing.T) {
 	}
 }
 
+func TestCacheErrorFormattingAndStructuredLoggingStayRedacted(t *testing.T) {
+	secrets := []string{"raw:key", "secret-bytes", "127.0.0.1", "provider-password"}
+	keyID := btredis.RedactedKeyID("raw:key")
+	tests := map[string]error{
+		"provider": newCacheError(
+			"get",
+			ReasonProviderFailure,
+			keyID,
+			errors.New("provider 127.0.0.1 failed for raw:key with provider-password"),
+		),
+		"serializer": newCacheError(
+			"get",
+			ReasonInvalidPayload,
+			keyID,
+			errors.New("secret-bytes from raw:key"),
+		),
+		"partial-clear": newPartialClearError(
+			"clear",
+			ClearProgress{ScannedKeys: 2, UnlinkedBatches: 1},
+			errors.New("provider-password at 127.0.0.1"),
+		),
+		"joined-cleanup": newCacheError(
+			"set",
+			ReasonLocalBlocked,
+			keyID,
+			errors.Join(
+				errors.New("provider 127.0.0.1 failed for raw:key"),
+				errors.New("cleanup leaked secret-bytes and provider-password"),
+			),
+		),
+	}
+
+	for name, err := range tests {
+		t.Run(name, func(t *testing.T) {
+			for _, formatted := range []string{
+				fmt.Sprintf("%v", err),
+				fmt.Sprintf("%+v", err),
+				fmt.Sprintf("%#v", err),
+			} {
+				assertNoSecrets(t, formatted, secrets)
+			}
+			valuer, ok := err.(slog.LogValuer)
+			if !ok {
+				t.Fatal("CacheError does not implement slog.LogValuer")
+			}
+			assertNoSecrets(t, valuer.LogValue().String(), secrets)
+		})
+	}
+}
+
 func TestCacheErrorClearProgress(t *testing.T) {
 	want := ClearProgress{ScannedKeys: 7, UnlinkedBatches: 2}
 	err := newPartialClearError("clear", want, errors.New("secret provider message"))
@@ -47,6 +99,22 @@ func TestCacheErrorClearProgress(t *testing.T) {
 	}
 	if strings.Contains(err.Error(), "secret provider message") {
 		t.Fatalf("Error() leaked cause: %q", err.Error())
+	}
+}
+
+func TestCacheErrorClearProgressSurvivesOuterBlockedCleanup(t *testing.T) {
+	want := ClearProgress{ScannedKeys: 7, UnlinkedBatches: 2}
+	remoteErr := newPartialClearError("clear", want, errors.New("provider failure"))
+	err := newCacheError(
+		"clear",
+		ReasonLocalBlocked,
+		"",
+		errors.Join(remoteErr, errors.New("local cleanup failure")),
+	)
+
+	got, ok := err.ClearProgress()
+	if !ok || got != want {
+		t.Fatalf("ClearProgress() = %+v/%v, want %+v/true", got, ok, want)
 	}
 }
 
@@ -67,5 +135,14 @@ func TestCacheErrorWithoutKeyUsesLowCardinalityMessage(t *testing.T) {
 	}
 	if _, ok := err.ClearProgress(); ok {
 		t.Fatalf("non-clear error exposed progress")
+	}
+}
+
+func assertNoSecrets(t *testing.T, text string, secrets []string) {
+	t.Helper()
+	for _, secret := range secrets {
+		if strings.Contains(text, secret) {
+			t.Fatalf("formatted error leaked %q: %q", secret, text)
+		}
 	}
 }

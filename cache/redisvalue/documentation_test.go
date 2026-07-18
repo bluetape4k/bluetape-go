@@ -4,12 +4,13 @@ import (
 	"os"
 	"regexp"
 	"slices"
+	"strings"
 	"testing"
 )
 
 func TestReadmeContractMarkersStayInParity(t *testing.T) {
 	expected := []string{
-		"l1-boundary", "config", "ownership", "load-policy", "ttl", "errors",
+		"l1-boundary", "config", "ownership", "l1-provenance", "load-policy", "ttl", "errors",
 		"clear", "topology", "operations", "versioning", "resp3", "tests",
 		"untrusted-payload", "authentication", "namespace", "scan-bounds",
 		"serializer-concurrency", "compatibility-matrix",
@@ -39,6 +40,20 @@ func TestReadmeContractMarkersStayInParity(t *testing.T) {
 			headingLevels = levels
 		} else if !slices.Equal(levels, headingLevels) {
 			t.Fatalf("%s heading levels = %v, want %v", path, levels, headingLevels)
+		}
+		for _, required := range []string{
+			"bluetape:cache:value:<namespace>:*",
+			"DialTimeout",
+			"ReadTimeout",
+			"WriteTimeout",
+			"PoolTimeout",
+			"go-redis hooks",
+			"cursor 0",
+			"maxmemory",
+		} {
+			if !strings.Contains(string(data), required) {
+				t.Fatalf("%s omitted operational contract %q", path, required)
+			}
 		}
 	}
 }

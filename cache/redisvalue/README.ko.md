@@ -39,6 +39,12 @@ decorator를 제공합니다. Coherent multi-process near cache가 아니라 cac
 L1을 읽거나 변경하지 마십시오. Pointer-valued `V`는 L1이 원래 reference를
 보관하므로 cache에 있는 동안 immutable snapshot으로 다룹니다.
 
+<!-- redisvalue-contract: l1-provenance -->
+공급하는 `Local`은 새 cache이거나 비어 있어야 합니다. 기존 값이 있다면 정확히
+같은 remote namespace/schema/tenant의 값만 있어야 합니다. L1 key는 내부에서
+namespace-qualified되지 않은 caller의 raw logical key이므로 다른 decorator와
+재사용하거나 공유하지 마십시오.
+
 <!-- redisvalue-contract: load-policy -->
 ## Read와 load 정책
 
@@ -90,12 +96,20 @@ primary command domain을 전제로 합니다.
 ## 운영과 ACL
 
 일반 identity에는 namespace 대상 `GETRANGE`, `EXISTS`, `SET`, `DEL`만
-부여합니다. 별도 clear-admin에는 `SCAN`과 namespace-scoped `UNLINK`를 부여하고
-`FLUSHDB`와 `FLUSHALL`은 거부합니다. ACL key pattern만으로 tenant isolation이
-되지는 않습니다. `SCAN`에서 foreign key name이 보일 수 있으므로 Redis network와
-TLS도 분리하십시오. Readiness는 실제 primary에 `PING`해야 합니다. Redis memory,
+부여하고 정확한 key pattern `bluetape:cache:value:<namespace>:*`을 사용합니다.
+별도 clear-admin client로 `ValueCache`를 구성해 `SCAN`과 namespace-scoped
+`UNLINK`만 부여하고 `FLUSHDB`와 `FLUSHALL`은 거부합니다. ACL key pattern만으로
+tenant isolation이 되지는 않습니다. `SCAN`에서 foreign key name이 보일 수
+있으므로 Redis network와 TLS도 분리하십시오.
+
+Service budget에 맞춰 caller-owned go-redis `DialTimeout`, `ReadTimeout`,
+`WriteTimeout`, `PoolTimeout`을 설정합니다. Readiness는 `PING`만이 아니라
+안정적인 writable primary command path를 증명해야 합니다. Serialized payload와
+TTL 정책에 맞춰 Redis `maxmemory`와 eviction policy를 정합니다. 이 package는
+no telemetry 정책이므로 caller-owned go-redis hooks를 설치하고 memory, eviction,
 command latency/timeout, provider reason, blocked decorator, partial-clear progress를
-관찰합니다. `ClearProgress.ScannedKeys`는 지금까지 `SCAN`이 반환한 matching key
+관찰합니다. Partial clear는 resumable cursor가 아니므로 cursor 0에서 다시
+시작합니다. `ClearProgress.ScannedKeys`는 지금까지 `SCAN`이 반환한 matching key
 수일 뿐 total, percentage, cursor가 아닙니다.
 
 <!-- redisvalue-contract: versioning -->
