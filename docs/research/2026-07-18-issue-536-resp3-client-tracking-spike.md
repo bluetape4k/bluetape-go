@@ -105,12 +105,18 @@ not enough to displace `redisnear.NewPubSub`.
 ## Provider And ACL Assumptions
 
 The live proof covers one unauthenticated, standalone Redis OSS `7.4.9`
-container using RESP3. It does not prove AUTH, TLS, certificate validation,
-Sentinel, Cluster, a managed service, or a proxy. Redis Cloud/Software support
-is a documented provider requirement, not live evidence here; its `REDIRECT`
-mode is documented as unsupported. Sentinel, Cluster, and generic proxies
-remain unproven until a topology-specific spike verifies `HELLO 3`, tracking,
-push preservation, physical-connection loss detection, and recovery.
+container using RESP3. Redis OSS forced to RESP2, or negotiated down to RESP2
+by configuration or fallback, is rejected for this tracking strategy because
+the RESP3 tracking push contract used by the spike is unavailable. This does
+not imply that Redis Pub/Sub is unavailable; `redisnear.NewPubSub` uses a
+separate production contract.
+
+The live proof does not cover AUTH, TLS, certificate validation, Sentinel,
+Cluster, a managed service, or a proxy. Redis Cloud/Software support is a
+documented provider requirement, not live evidence here; its `REDIRECT` mode
+is documented as unsupported. Sentinel, Cluster, and generic proxies remain
+unproven until a topology-specific spike verifies `HELLO 3`, tracking, push
+preservation, physical-connection loss detection, and recovery.
 
 | Identity | Required commands in this spike | Explicit boundary |
 |---|---|---|
