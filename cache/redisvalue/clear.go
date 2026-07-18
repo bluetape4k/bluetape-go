@@ -1,0 +1,48 @@
+package redisvalue
+
+import (
+	"context"
+
+	btredis "github.com/bluetape4k/bluetape-go/redis"
+)
+
+// Clear unlinks every Redis key in this cache's namespace. It uses SCAN and
+// bounded sequential UNLINK commands; the operation is non-atomic.
+func (c *ValueCache[V]) Clear(ctx context.Context) error {
+	ctx = normalizeContext(ctx)
+	if err := c.validateInitialized("clear"); err != nil {
+		return err
+	}
+	if err := ctx.Err(); err != nil {
+		return err
+	}
+
+	pattern := "bluetape:cache:value:" + c.namespace + ":*"
+	patternID := btredis.RedactedKeyID(pattern)
+	progress := ClearProgress{}
+	var cursor uint64
+	for {
+		if err := ctx.Err(); err != nil {
+			return newPartialClearError("clear", progress, err)
+		}
+		keys, next, err := c.client.Scan(ctx, cursor, pattern, c.config.ClearBatchSize).Result()
+		if err != nil {
+			return newPartialClearError("clear", progress, c.operationError("scan", patternID, err, false))
+		}
+		progress.ScannedKeys += int64(len(keys))
+		for start := 0; start < len(keys); start += int(c.config.ClearBatchSize) {
+			if err := ctx.Err(); err != nil {
+				return newPartialClearError("clear", progress, err)
+			}
+			end := min(start+int(c.config.ClearBatchSize), len(keys))
+			if err := c.client.Unlink(ctx, keys[start:end]...).Err(); err != nil {
+				return newPartialClearError("clear", progress, c.operationError("unlink", patternID, err, true))
+			}
+			progress.UnlinkedBatches++
+		}
+		cursor = next
+		if cursor == 0 {
+			return nil
+		}
+	}
+}

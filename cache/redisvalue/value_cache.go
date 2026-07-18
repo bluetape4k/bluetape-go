@@ -192,14 +192,18 @@ func (c *ValueCache[V]) validateInitialized(operation string) error {
 }
 
 func (c *ValueCache[V]) providerError(operation, keyID string, cause error, commitUnknown bool) error {
+	opErr := c.operationError(operation, keyID, cause, commitUnknown)
+	return newCacheError(operation, ReasonProviderFailure, keyID, opErr)
+}
+
+func (c *ValueCache[V]) operationError(operation, keyID string, cause error, commitUnknown bool) error {
 	if commitUnknown {
 		cause = errors.Join(cause, btredis.ErrCommitUnknown)
 	}
-	opErr := btredis.NewOpErrorWithRedactedKey(btredis.OpLabels{
+	return btredis.NewOpErrorWithRedactedKey(btredis.OpLabels{
 		Family:    "redisvalue",
 		Operation: operation,
 	}, keyID, cause)
-	return newCacheError(operation, ReasonProviderFailure, keyID, opErr)
 }
 
 func normalizeContext(ctx context.Context) context.Context {
