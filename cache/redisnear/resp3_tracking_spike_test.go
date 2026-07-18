@@ -5,16 +5,27 @@ import (
 	"errors"
 	"fmt"
 	"slices"
+	"strconv"
 	"strings"
 	"sync"
 	"sync/atomic"
 	"testing"
 	"time"
 
+	"github.com/bluetape4k/bluetape-go/internal/testcleanup"
+	"github.com/redis/go-redis/v9"
 	"github.com/redis/go-redis/v9/push"
+	tcredis "github.com/testcontainers/testcontainers-go/modules/redis"
 )
 
 const sensitiveMarker = "secret-token=issue-536"
+
+const (
+	resp3SpikeRedisImage      = "redis:7.4-alpine"
+	resp3SpikeCloseTimeout    = time.Second
+	resp3SpikeDiagnosticBytes = 128
+	resp3SpikeCloserNameBytes = 64
+)
 
 type localInvalidator interface {
 	InvalidateLocal(context.Context, string) error
@@ -311,6 +322,296 @@ func (f *fakeLocalInvalidator) calls() ([]string, int) {
 	defer f.mu.Unlock()
 
 	return slices.Clone(f.invalidated), f.clearCalls
+}
+
+type idempotentCloser struct {
+	once    sync.Once
+	closeFn func() error
+	err     error
+}
+
+func (c *idempotentCloser) Close() error {
+	c.once.Do(func() {
+		c.err = c.closeFn()
+	})
+	return c.err
+}
+
+type idempotentConn struct {
+	*redis.Conn
+	closer *idempotentCloser
+}
+
+func (c *idempotentConn) Close() error {
+	return c.closer.Close()
+}
+
+type idempotentClient struct {
+	*redis.Client
+	closer *idempotentCloser
+}
+
+func (c *idempotentClient) Close() error {
+	return c.closer.Close()
+}
+
+type namedCloser struct {
+	name   string
+	closer *idempotentCloser
+}
+
+type closerRegistry struct {
+	mu          sync.Mutex
+	connections []namedCloser
+	clients     []namedCloser
+}
+
+func (r *closerRegistry) registerConnection(name string, closeFn func() error) *idempotentCloser {
+	closer := &idempotentCloser{closeFn: closeFn}
+	r.mu.Lock()
+	r.connections = append(r.connections, namedCloser{name: name, closer: closer})
+	r.mu.Unlock()
+	return closer
+}
+
+func (r *closerRegistry) registerClient(name string, closeFn func() error) *idempotentCloser {
+	closer := &idempotentCloser{closeFn: closeFn}
+	r.mu.Lock()
+	r.clients = append(r.clients, namedCloser{
+		name:   name,
+		closer: closer,
+	})
+	r.mu.Unlock()
+	return closer
+}
+
+func (r *closerRegistry) closeAll(t *testing.T) {
+	t.Helper()
+
+	r.mu.Lock()
+	connections := slices.Clone(r.connections)
+	clients := slices.Clone(r.clients)
+	r.mu.Unlock()
+
+	for _, entry := range connections {
+		closeWithin(t, entry.name, entry.closer.Close)
+	}
+	for _, entry := range clients {
+		closeWithin(t, entry.name, entry.closer.Close)
+	}
+}
+
+type resp3SpikeFixture struct {
+	addr          string
+	configuredImg string
+	engineImageID string
+	processor     push.NotificationProcessor
+	tracking      *idempotentClient
+	l2            *idempotentClient
+	writer        *idempotentClient
+	admin         *idempotentClient
+	serverInfo    map[string]string
+	closers       closerRegistry
+}
+
+func newRESP3SpikeFixture(t *testing.T, poolSize int) *resp3SpikeFixture {
+	t.Helper()
+
+	ctx := t.Context()
+	container, err := tcredis.Run(ctx, resp3SpikeRedisImage)
+	if err != nil {
+		t.Fatal(testcleanup.FormatStartError("redis", resp3SpikeRedisImage, err))
+	}
+	testcleanup.Register(ctx, t, "resp3 redis", container)
+
+	inspect, err := container.Inspect(ctx)
+	if err != nil {
+		t.Fatalf("inspect redis container: %s", boundedSpikeDiagnostic(err.Error(), resp3SpikeDiagnosticBytes))
+	}
+	if inspect == nil {
+		t.Fatal("inspect redis container: empty response")
+	}
+	if inspect.Config == nil {
+		t.Fatal("inspect redis container: empty config")
+	}
+	configuredImg := inspect.Config.Image
+	if configuredImg != resp3SpikeRedisImage {
+		t.Fatalf(
+			"configured image = %q, want %q",
+			boundedSpikeDiagnostic(configuredImg, resp3SpikeDiagnosticBytes),
+			resp3SpikeRedisImage,
+		)
+	}
+	if inspect.Image == "" {
+		t.Fatal("inspect redis container: empty engine image identity")
+	}
+	addr, err := container.PortEndpoint(ctx, "6379/tcp", "")
+	if err != nil {
+		t.Fatalf("resolve redis endpoint: %s", boundedSpikeDiagnostic(err.Error(), resp3SpikeDiagnosticBytes))
+	}
+	if addr == "" {
+		t.Fatal("resolve redis endpoint: empty address")
+	}
+
+	processor := redis.NewPushNotificationProcessor()
+	trackingClient := redis.NewClient(&redis.Options{
+		Addr:                      addr,
+		Protocol:                  3,
+		PoolSize:                  poolSize,
+		MaxRetries:                -1,
+		PushNotificationProcessor: processor,
+	})
+	l2Client := redis.NewClient(&redis.Options{Addr: addr, Protocol: 3, MaxRetries: -1})
+	writerClient := redis.NewClient(&redis.Options{Addr: addr, Protocol: 3, MaxRetries: -1})
+	adminClient := redis.NewClient(&redis.Options{Addr: addr, Protocol: 3, MaxRetries: -1})
+
+	tracking := &idempotentClient{Client: trackingClient}
+	l2 := &idempotentClient{Client: l2Client}
+	writer := &idempotentClient{Client: writerClient}
+	admin := &idempotentClient{Client: adminClient}
+
+	fixture := &resp3SpikeFixture{
+		addr:          addr,
+		configuredImg: configuredImg,
+		engineImageID: inspect.Image,
+		processor:     processor,
+		tracking:      tracking,
+		l2:            l2,
+		writer:        writer,
+		admin:         admin,
+	}
+	tracking.closer = fixture.closers.registerClient("tracking client", trackingClient.Close)
+	l2.closer = fixture.closers.registerClient("L2 client", l2Client.Close)
+	writer.closer = fixture.closers.registerClient("writer client", writerClient.Close)
+	admin.closer = fixture.closers.registerClient("admin client", adminClient.Close)
+	t.Cleanup(func() {
+		fixture.closers.closeAll(t)
+	})
+
+	info, err := admin.Info(ctx, "server").Result()
+	if err != nil {
+		t.Fatalf("INFO server: %s", boundedSpikeDiagnostic(err.Error(), resp3SpikeDiagnosticBytes))
+	}
+	fixture.serverInfo = parseRESP3SpikeInfo(info)
+	return fixture
+}
+
+func (f *resp3SpikeFixture) sticky(t *testing.T, name string, client *idempotentClient) *idempotentConn {
+	t.Helper()
+
+	conn := client.Conn()
+	closer := f.closers.registerConnection(name, conn.Close)
+	return &idempotentConn{Conn: conn, closer: closer}
+}
+
+func (f *resp3SpikeFixture) flushDB(ctx context.Context) error {
+	return f.admin.FlushDB(ctx).Err()
+}
+
+func (f *resp3SpikeFixture) killID(ctx context.Context, id int64) error {
+	_, err := f.admin.ClientKillByFilter(ctx, "ID", strconv.FormatInt(id, 10)).Result()
+	return err
+}
+
+func parseRESP3SpikeInfo(info string) map[string]string {
+	parsed := make(map[string]string)
+	for line := range strings.SplitSeq(info, "\n") {
+		line = strings.TrimSuffix(line, "\r")
+		if line == "" || strings.HasPrefix(line, "#") {
+			continue
+		}
+		key, value, ok := strings.Cut(line, ":")
+		if ok && key != "" {
+			parsed[key] = value
+		}
+	}
+	return parsed
+}
+
+func closeWithin(t *testing.T, name string, closeFn func() error) {
+	t.Helper()
+
+	result := make(chan error, 1)
+	go func() {
+		result <- closeFn()
+	}()
+
+	select {
+	case err := <-result:
+		if err != nil {
+			t.Errorf(
+				"close %s: %s",
+				boundedSpikeDiagnostic(name, resp3SpikeCloserNameBytes),
+				boundedSpikeDiagnostic(err.Error(), resp3SpikeDiagnosticBytes),
+			)
+		}
+	case <-time.After(resp3SpikeCloseTimeout):
+		// Close has no context, so the watchdog can observe a timeout but cannot cancel it.
+		t.Errorf(
+			"close %s timed out after %s",
+			boundedSpikeDiagnostic(name, resp3SpikeCloserNameBytes),
+			resp3SpikeCloseTimeout,
+		)
+	}
+}
+
+func boundedSpikeDiagnostic(value string, maxBytes int) string {
+	value = strings.ReplaceAll(value, sensitiveMarker, "[redacted]")
+	if maxBytes <= 0 || len(value) <= maxBytes {
+		return value
+	}
+	return value[:maxBytes]
+}
+
+func TestRESP3TrackingSpikeNegotiatesProtocolAndRecordsServer(t *testing.T) {
+	fixture := newRESP3SpikeFixture(t, 2)
+	tracking := fixture.sticky(t, "negotiation tracking", fixture.tracking)
+	ctx := t.Context()
+
+	hello, err := tracking.Hello(ctx, 3, "", "", "").Result()
+	if err != nil {
+		t.Fatalf("HELLO 3: %s", boundedSpikeDiagnostic(err.Error(), resp3SpikeDiagnosticBytes))
+	}
+	if got := hello["proto"]; got != int64(3) {
+		t.Fatalf("HELLO proto = %#v, want int64(3)", got)
+	}
+	if fixture.serverInfo["redis_version"] == "" {
+		t.Fatal("INFO server redis_version is empty")
+	}
+	if fixture.configuredImg != "redis:7.4-alpine" {
+		t.Fatalf(
+			"configured image = %q, want redis:7.4-alpine",
+			boundedSpikeDiagnostic(fixture.configuredImg, resp3SpikeDiagnosticBytes),
+		)
+	}
+	if fixture.engineImageID == "" {
+		t.Fatal("engine image identity is empty")
+	}
+	clientID, err := tracking.ClientID(ctx).Result()
+	if err != nil {
+		t.Fatalf("CLIENT ID: %s", boundedSpikeDiagnostic(err.Error(), resp3SpikeDiagnosticBytes))
+	}
+	if clientID <= 0 {
+		t.Fatalf("CLIENT ID = %d, want positive ID", clientID)
+	}
+	if err := tracking.Do(ctx, "CLIENT", "TRACKING", "ON", "NOLOOP").Err(); err != nil {
+		t.Fatalf(
+			"CLIENT TRACKING ON NOLOOP: %s",
+			boundedSpikeDiagnostic(err.Error(), resp3SpikeDiagnosticBytes),
+		)
+	}
+	if err := tracking.Close(); err != nil {
+		t.Fatalf(
+			"close tracking connection: %s",
+			boundedSpikeDiagnostic(err.Error(), resp3SpikeDiagnosticBytes),
+		)
+	}
+	if err := fixture.tracking.Close(); err != nil {
+		t.Fatalf(
+			"close tracking client: %s",
+			boundedSpikeDiagnostic(err.Error(), resp3SpikeDiagnosticBytes),
+		)
+	}
 }
 
 func TestRESP3TrackingSpikeHandlerRejectsUnsafePayloadsWithoutDisclosure(t *testing.T) {
