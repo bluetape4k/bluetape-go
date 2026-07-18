@@ -7,9 +7,11 @@ Step 2-R evidence: `../reviews/2026-07-18-issue-536-resp3-client-tracking-spike-
 
 ## Test Boundary
 
-The spike is an external-package test under `cache/redisnear`. It may use only
-public bluetape-go and go-redis APIs. No production `.go` file, exported symbol,
-dependency, background pump, or reconnect component is added.
+The spike is an external-package test under `cache/redisnear`. Its cache,
+serialization, key-building, and RESP3 behavior use only public bluetape-go and
+go-redis APIs; repository-internal test cleanup may own only disposable
+container termination. No production `.go` file, exported symbol, dependency,
+background pump, or reconnect component is added.
 
 | Layer | Location | Purpose |
 |---|---|---|
@@ -54,7 +56,16 @@ Validation is fixed:
 Every failure returns only `errRESP3InvalidationRejected`. Observations contain a
 typed low-cardinality reason and success bit, not raw frames, keys, namespaces,
 provider errors, endpoints, or credentials. Observation uses a non-blocking send
-and atomic overflow flag.
+and atomic overflow flag. Key-list cleanup uses a 1-second default context;
+timeout tests inject 100 ms and observe completion with a 1-second watchdog.
+If a per-key invalidation fails, later keys are not attempted and one
+`ClearLocal` repair runs with a separate 250 ms context. The observation records
+only a `repaired` boolean in addition to the redacted reason.
+
+Callback admission uses a mutex-protected gate. `begin` checks the closed flag
+and increments the in-flight `WaitGroup` while holding the same mutex that
+`close` uses to reject later dispatch. Shutdown calls `close` before `wait`, so
+no `WaitGroup.Add` can race a wait.
 
 ## Handler Unit Cases
 
@@ -83,15 +94,31 @@ For every row:
 - the overflow flag is false;
 - `err.Error()` and the observation contain none of the sensitive markers.
 
+### `TestRESP3TrackingSpikeHandlerProcessesBoundedMultiKeyPayload`
+
+Submit two exact allowlisted physical keys. Assert both logical keys are
+invalidated in payload order, no full clear occurs, one success observation has
+`count=2`, and overflow is false.
+
 ### `TestRESP3TrackingSpikeHandlerReportsLocalCleanupFailure`
 
-Run key invalidation failure, global clear failure, and expired cleanup deadline
-as separate subtests. Inject a raw error containing a sensitive marker.
+Run these subtests:
+
+- three-key middle failure with successful repair: the first and second keys
+  are attempted, the third is not, exactly one full clear occurs, and the
+  failure observation has `repaired=true`;
+- the same middle failure with injected full-clear failure: exactly one repair
+  is attempted and the observation has `repaired=false`;
+- global clear failure;
+- expired 100 ms key-cleanup deadline, bounded by a 1-second watchdog.
+
+Inject raw errors containing sensitive markers in every failure path.
 
 Expected:
 
 - no success observation;
-- one redacted `local-cleanup` or `cleanup-timeout` observation;
+- one redacted `local-cleanup`, `repair-failed`, or `cleanup-timeout`
+  observation;
 - returned error is only `errRESP3InvalidationRejected`;
 - raw provider/local error text is absent;
 - `go test -race` finds no observation/in-flight data race.
@@ -99,7 +126,7 @@ Expected:
 ### `TestRESP3TrackingSpikeHandlerOverflowDoesNotBlock`
 
 Use an unconsumed event channel of capacity one, invoke the handler twice, and
-assert the second invocation returns within 500 ms, sets `overflow=true`, and
+assert the second invocation returns within 1 second, sets `overflow=true`, and
 returns the low-cardinality rejection sentinel. The test does not infer a
 production latency budget from this watchdog.
 
@@ -108,20 +135,27 @@ production latency budget from this watchdog.
 Register an unprotected handler in a retained processor, obtain the registered
 handler, and hold a direct callback after lookup on a latch. Unregister and
 assert it returns before releasing the in-flight callback. Release and wait for
-the callback with a 500 ms bound. This proves unregister removes future lookups
+the callback with a 1-second bound. This proves unregister removes future lookups
 but does not wait for callbacks already selected by the processor.
 
 ### `TestRESP3TrackingSpikeShutdownOrdersQuiescenceBeforeUnregister`
 
-Stop new direct callback dispatch, wait until the handler in-flight count is
-zero, unregister, assert `GetHandler("invalidate") == nil`, then close any owned
-connection/client through a watchdog helper. `Close()` timeouts fail the test
-but cannot cancel the underlying context-free call.
+Hold one callback inside the invalidator, close the dispatch gate, and prove a
+later direct dispatch is rejected without reaching the invalidator. Start the
+gate wait and prove it is still blocked before releasing the held callback;
+after release it must complete within 1 second. Then unregister, assert
+`GetHandler("invalidate") == nil`, and close any owned connection/client through
+1-second watchdog helpers. `Close()` timeouts fail the test but cannot cancel
+the underlying context-free call. The focused handler/shutdown suite must pass
+under `go test -race`.
 
 ## Redis Fixture
 
-Each integration test starts a fresh Redis server through
-`testcontainers/redis.StartServer`. The fixture creates and owns:
+Each integration test starts a fresh Redis server with the already-declared
+upstream `github.com/testcontainers/testcontainers-go/modules/redis` module and
+the repository-pinned `redis:7.4-alpine` image. It registers the returned
+container with `internal/testcleanup.Register`, obtains its `6379/tcp`
+endpoint, and creates and owns:
 
 1. tracking client: RESP3, retained processor, `PoolSize: 1`,
    `MaxRetries: -1`;
@@ -133,9 +167,11 @@ Each integration test starts a fresh Redis server through
 The affinity test alone uses a tracking client with `PoolSize: 2` and obtains
 two simultaneous sticky connections.
 
-Before behavior assertions, record and verify:
+Before behavior assertions, call `container.Inspect(ctx)` and record and verify:
 
-- configured image tag `redis:7.4-alpine` from the repository helper;
+- non-empty configured image `inspect.Config.Image`, equal to
+  `redis:7.4-alpine`;
+- non-empty engine image identity `inspect.Image`;
 - `INFO server` fields `redis_version`, `redis_build_id`, `os`, and
   `arch_bits` when present;
 - `HELLO 3` map field `proto == 3`;
@@ -154,8 +190,24 @@ Setup:
 
 - namespace `issue-536-command-drain`;
 - logical key `item`;
-- exact physical key built with
-  `redis.NewKeyBuilder("bluetape:cache:value").Structural(namespace).LogicalKey("item")`;
+- exact physical key built by checking each public API result and returning the
+  final `redis.Key.Value`:
+
+  ```go
+  builder, err := btredis.NewKeyBuilder("bluetape:cache:value")
+  if err != nil {
+      t.Fatal(err)
+  }
+  builder, err = builder.Structural(namespace)
+  if err != nil {
+      t.Fatal(err)
+  }
+  key, err := builder.LogicalKey("item")
+  if err != nil {
+      t.Fatal(err)
+  }
+  physical := key.Value
+  ```
 - L2 value `old` and a TieredCache L1 hit;
 - tracked connection performs `GET` for the physical key.
 

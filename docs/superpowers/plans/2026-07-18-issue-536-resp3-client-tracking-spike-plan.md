@@ -14,7 +14,9 @@
 
 - Approved design: `docs/superpowers/specs/2026-07-18-issue-536-resp3-client-tracking-spike-design.md`
 - Test specification: `docs/superpowers/specs/2026-07-18-issue-536-resp3-client-tracking-spike-test-spec.md`
-- Step 2-R: exact design commit `38364100af92d6da616ff89101109fc768e639a4`, `P0=0 P1=0 P2=0`
+- Step 2-R baseline: exact design commit
+  `38364100af92d6da616ff89101109fc768e639a4`, `P0=0 P1=0 P2=0`; the Step 3-R
+  repair candidate requires a fresh exact-commit Step 2-R delta review.
 - Classification: Type B. Stop before any production file, exported tracking API, dependency change, background pump, reconnect subsystem, or exported physical-key mapper.
 
 ## File Map
@@ -70,11 +72,17 @@ Write these tests exactly:
   duplicate, and foreign
   sensitive-marker key. Every row requires zero local calls, one typed failure
   observation, `overflow=false`, and only `errRESP3InvalidationRejected`.
-- `TestRESP3TrackingSpikeHandlerReportsLocalCleanupFailure` covers key failure,
-  global clear failure, canceled handler root, and cleanup deadline. Injected
+- `TestRESP3TrackingSpikeHandlerProcessesBoundedMultiKeyPayload` requires two
+  exact payload-order calls, no full clear, one success event with count two,
+  and no overflow.
+- `TestRESP3TrackingSpikeHandlerReportsLocalCleanupFailure` covers middle-key
+  partial failure plus full-clear repair, repair failure, global clear failure,
+  canceled handler root, and cleanup deadline. The three-key middle-failure
+  rows require first/second attempted, third skipped, exactly one full-clear
+  repair, and the correct `repaired` state. Injected
   sensitive text must be absent from returned/loggable errors and observations.
 - `TestRESP3TrackingSpikeHandlerOverflowDoesNotBlock` fills a capacity-one
-  observation channel, invokes again, and requires return within a 500 ms
+  observation channel, invokes again, and requires return within a 1-second
   watchdog, `overflow=true`, and the low-cardinality sentinel.
 - Success rows require exact physical allowlist lookup, logical-key invalidation,
   nil/global clear, exact event count, and no overflow.
@@ -101,39 +109,58 @@ const (
 var errRESP3InvalidationRejected = errors.New("resp3 invalidation rejected")
 
 type invalidationObservation struct {
-	success bool
-	global  bool
-	count   int
-	reason  observationReason
+	success  bool
+	global   bool
+	count    int
+	reason   observationReason
+	repaired bool
 }
 
 type spikeHandler struct {
-	root           context.Context
-	local          localInvalidator
-	allowed        map[string]string
-	cleanupTimeout time.Duration
-	events         chan invalidationObservation
-	overflow       atomic.Bool
-	inFlight       sync.WaitGroup
+	root              context.Context
+	local             localInvalidator
+	allowed           map[string]string
+	keyCleanupTimeout time.Duration
+	repairTimeout     time.Duration
+	events            chan invalidationObservation
+	overflow          atomic.Bool
+	gate              callbackGate
+}
+
+type callbackGate struct {
+	mu     sync.Mutex
+	closed bool
+	wg     sync.WaitGroup
 }
 ```
 
+Implement `callbackGate.begin` so it locks `mu`, rejects when `closed`, or
+calls `wg.Add(1)` before unlocking. `close` flips `closed` under that same
+mutex. `done` delegates to `wg.Done`; `wait` delegates to `wg.Wait`. Calling
+`close` before `wait` makes late `Add` impossible.
+
 `HandlePushNotification` must:
 
-1. increment/decrement `inFlight`;
+1. call `gate.begin`, return the redacted rejection sentinel when closed, and
+   defer `gate.done` only after successful admission;
 2. accept exactly `[]interface{}{"invalidate", nil}` or a non-empty
    `[]interface{}` key list;
 3. enforce count/per-key/aggregate/duplicate limits;
 4. map by copied exact `map[string]string`, never trim a prefix;
-5. create `context.WithTimeout(h.root, h.cleanupTimeout)` independently of the
-   go-redis command context;
-6. call only `InvalidateLocal` or `ClearLocal`;
-7. record with non-blocking `select`, setting overflow on default;
-8. return only `errRESP3InvalidationRejected` on every failure.
+5. validate and map the whole payload before any cleanup;
+6. create `context.WithTimeout(h.root, h.keyCleanupTimeout)` independently of
+   the go-redis command context; use a 1-second default and inject 100 ms only
+   in the timeout subtest;
+7. invalidate logical keys in payload order; on the first failure stop later
+   key attempts and call `ClearLocal` exactly once with a fresh context derived
+   from `h.root` and the independent 250 ms `repairTimeout`;
+8. call only `InvalidateLocal` or `ClearLocal`;
+9. record with non-blocking `select`, setting overflow on default;
+10. return only `errRESP3InvalidationRejected` on every failure.
 
 Use low-cardinality reasons: `shape`, `type`, `key-count`, `key-size`,
 `aggregate-size`, `duplicate`, `unknown-key`, `local-cleanup`,
-`cleanup-timeout`, and `observation-overflow`.
+`repair-failed`, `cleanup-timeout`, `shutdown`, and `observation-overflow`.
 
 - [ ] **Step 4: Verify GREEN and commit**
 
@@ -160,8 +187,9 @@ Expected: PASS and one test-only file committed.
 
 `TestRESP3TrackingSpikeNegotiatesProtocolAndRecordsServer` must start the
 fixture, assert `HELLO 3` returns `proto == int64(3)`, record non-empty
-`redis_version`, retain configured image `redis:7.4-alpine`, obtain `CLIENT ID`,
-and enable `CLIENT TRACKING ON NOLOOP`.
+`redis_version`, prove `Inspect.Config.Image == "redis:7.4-alpine"`, record a
+non-empty `Inspect.Image` engine identity, obtain `CLIENT ID`, and enable
+`CLIENT TRACKING ON NOLOOP`.
 
 - [ ] **Step 2: Run and verify RED**
 
@@ -175,19 +203,45 @@ Expected: FAIL because fixture helpers do not exist.
 
 ```go
 type resp3SpikeFixture struct {
-	addr       string
-	image      string
-	processor  push.NotificationProcessor
-	tracking   *redis.Client
-	l2         *redis.Client
-	writer     *redis.Client
-	admin      *redis.Client
-	serverInfo map[string]string
+	addr          string
+	configuredImg string
+	engineImageID string
+	processor     push.NotificationProcessor
+	tracking      *redis.Client
+	l2            *redis.Client
+	writer        *redis.Client
+	admin         *redis.Client
+	serverInfo    map[string]string
 }
 ```
 
-`newRESP3SpikeFixture(t, poolSize)` must call
-`redistestcontainer.Start`, create the retained processor, and construct:
+`newRESP3SpikeFixture(t, poolSize)` must call the existing upstream module
+directly so actual container identity remains inspectable:
+
+```go
+container, err := tcredis.Run(ctx, "redis:7.4-alpine")
+if err != nil {
+	t.Fatal(err)
+}
+testcleanup.Register(ctx, t, "resp3 redis", container)
+inspect, err := container.Inspect(ctx)
+if err != nil {
+	t.Fatal(err)
+}
+if inspect.Config == nil || inspect.Config.Image != "redis:7.4-alpine" {
+	t.Fatalf("configured image = %v", inspect.Config)
+}
+if inspect.Image == "" {
+	t.Fatal("empty engine image identity")
+}
+addr, err := container.PortEndpoint(ctx, "6379/tcp", "")
+if err != nil {
+	t.Fatal(err)
+}
+```
+
+This uses the already-declared Testcontainers Redis module and adds no
+dependency. Then create the retained processor and construct:
 
 ```go
 tracking := redis.NewClient(&redis.Options{
@@ -208,7 +262,7 @@ f.admin.ClientKillByFilter(ctx, "ID", strconv.FormatInt(id, 10)).Result()
 ```
 
 Use `closeWithin(t, name, func() error)` with a buffered result channel and a
-2-second watchdog. Document in the helper comment that timeout observes but
+1-second watchdog. Document in the helper comment that timeout observes but
 cannot cancel context-free `Close`.
 
 - [ ] **Step 4: Verify GREEN and commit**
@@ -235,8 +289,18 @@ Build the physical key only with public APIs:
 
 ```go
 builder, err := btredis.NewKeyBuilder("bluetape:cache:value")
+if err != nil {
+	t.Fatal(err)
+}
 builder, err = builder.Structural(namespace)
-physical, err := builder.LogicalKey(logical)
+if err != nil {
+	t.Fatal(err)
+}
+key, err := builder.LogicalKey(logical)
+if err != nil {
+	t.Fatal(err)
+}
+physical := key.Value
 ```
 
 Construct `ValueCache[string]` with `serialization.StringSerializer{}` and a
@@ -343,14 +407,17 @@ Expected: PASS without a production reconnect state machine.
 `TestRESP3TrackingSpikeUnregisterIsNotAQuiescenceBarrier` obtains the handler
 from `processor.GetHandler`, starts it against a latch-blocked invalidator,
 unregisters, proves the callback remains in flight, releases it, and observes
-completion within 500 ms.
+completion within 1 second.
 
 - [ ] **Step 2: Prove ordered shutdown**
 
-`TestRESP3TrackingSpikeShutdownOrdersQuiescenceBeforeUnregister` completes one
-tracked callback, stops new commands, waits for `inFlight` through a watchdog,
-unregisters, asserts `GetHandler("invalidate") == nil`, then closes connection
-and client with `closeWithin`.
+`TestRESP3TrackingSpikeShutdownOrdersQuiescenceBeforeUnregister` starts and
+holds one callback inside the invalidator, calls `gate.close`, proves a later
+dispatch is rejected without entering the invalidator, then starts `gate.wait`
+through a 1-second watchdog. Prove the wait is blocked before releasing the
+first callback, release it, require the wait to finish, unregister, assert
+`GetHandler("invalidate") == nil`, then close connection and client with
+`closeWithin`.
 
 - [ ] **Step 3: Verify and commit**
 
@@ -384,10 +451,10 @@ go list -m github.com/redis/go-redis/v9
 git rev-parse HEAD
 ```
 
-Expected: PASS. Capture exact image tag, Redis version/build/os/arch, Go version,
-module version, commit, test date, and every observed result. If evidence differs
-from the expected rejection path, record the actual result instead of weakening
-tests.
+Expected: PASS. Capture the configured image tag, engine image identity, Redis
+version/build/os/arch, Go version, module version, commit, test date, and every
+observed result. If evidence differs from the expected rejection path, record
+the actual result instead of weakening tests.
 
 - [ ] **Step 2: Write the note with no placeholders**
 
@@ -409,8 +476,8 @@ proven; autonomous coherent pooled near-cache is rejected on go-redis v9.20.0;
 push API requires a separate Type A issue.
 
 Do not publish latency, throughput, CPU, memory, heartbeat cadence, or provider
-ranking. State only that a drain consumes a dedicated socket plus a Redis
-command; #560 owns measurement.
+ranking. State only that one tracking owner maintains one dedicated socket and
+each explicit drain adds one Redis command; #560 owns measurement.
 
 - [ ] **Step 3: Update both indexes**
 
