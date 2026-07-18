@@ -173,14 +173,22 @@ an unrelated command path:
 4. A disposable-test admin client that performs only fixture-scoped `FLUSHDB`
    and `CLIENT KILL ID` operations.
 
+The container cleanup is registered first. After all four clients are created,
+the fixture immediately registers one idempotent cleanup that closes every
+owned sticky connection before the tracking, L2, writer, and admin clients.
+Because `testing.T.Cleanup` is LIFO, all Redis resources close before container
+termination. Explicit reconnect and shutdown closes use the same per-resource
+`sync.Once` wrappers, so final cleanup can safely re-enter them. The owned
+closer registry is mutex-protected for race tests.
+
 The affinity case uses a dedicated tracking client with `PoolSize: 2`, obtains
 sticky connections A and B, and asserts their `CLIENT ID` values are distinct.
 It does not borrow the L2 or writer client.
 
 The handler is test-only. It accepts exactly two frame elements: the string
 `invalidate` and either `nil` for global invalidation or a `[]interface{}` of at
-most 64 string keys. Each key is at most 2 KiB and the aggregate key bytes are
-at most 64 KiB. The fixture precomputes an exact `physical key -> logical key`
+between 1 and 64 string keys. Each key is at most 2 KiB and the aggregate key
+bytes are at most 64 KiB. The fixture precomputes an exact `physical key -> logical key`
 allowlist with public `redis.KeyBuilder`; it never reverse-maps by trimming a
 prefix. Unknown, duplicate, oversized, or malformed entries fail the spike.
 
@@ -207,6 +215,11 @@ Callback admission is owned by a test-only dispatch gate. Under one mutex,
 `close` flips the admission flag under the same mutex before any `wait`. This
 makes `WaitGroup.Add` impossible once shutdown waiting begins and avoids the
 unsafe late-`Add` lifecycle of a raw `WaitGroup`.
+
+A callback rejected after gate closure records exactly one non-blocking,
+redacted failure observation with `reason=shutdown` before returning
+`errRESP3InvalidationRejected`. The shutdown test requires the sentinel,
+`overflow=false`, exact event count one, and zero local invalidator calls.
 
 Handler results are written with a non-blocking `select` to a bounded channel.
 An atomic overflow flag records any dropped observation. Tests require the
@@ -321,7 +334,8 @@ cacheable reads. `OnConnect` alone cannot close the missed-invalidation window.
 
 - Start one direct callback and hold it inside the local invalidator.
 - Close the synchronized dispatch gate and prove a later callback is rejected
-  without entering the invalidator.
+  without entering the invalidator. Require the rejection sentinel, exactly
+  one `reason=shutdown` failure observation, and `overflow=false`.
 - Start a bounded gate wait and prove it remains blocked until the held
   callback is released.
 - Release the held callback and require the gate wait to complete within a
@@ -419,10 +433,11 @@ The research note will classify each target as `proved`, `documented`,
 | Disposable-test admin | `FLUSHDB`, `CLIENT KILL ID` | Test-only; never a production near-cache requirement |
 
 Destructive admin commands may run only against the fresh endpoint returned by
-`testcontainers/redis.Start` in the current test. The fixture constructs the
-admin client internally from that returned address, accepts no caller-supplied
-client, options, dialer, or endpoint, and never exports the admin client. No
-environment-provided, shared, staging, or production endpoint is accepted.
+the directly owned upstream Testcontainers Redis container in the current
+test. The fixture constructs the admin client internally from that returned
+address, accepts no caller-supplied client, options, dialer, or endpoint, and
+never exports the admin client. No environment-provided, shared, staging, or
+production endpoint is accepted.
 
 The research note must record AUTH/TLS/certificate ownership as provider
 requirements, state that credentials and endpoints are never written into

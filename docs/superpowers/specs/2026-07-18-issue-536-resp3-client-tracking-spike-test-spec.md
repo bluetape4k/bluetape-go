@@ -78,6 +78,7 @@ Run these table rows directly against the handler:
 | wrong arity 0/1/3 | missing or extra frame elements | `shape` |
 | wrong notification | first element not string `invalidate` | `type` |
 | wrong key collection | scalar/map second element | `type` |
+| empty key list | empty `[]interface{}{}` | `key-count` |
 | non-string key | nested integer/bool/nil | `type` |
 | empty key | `""` | `key-size` |
 | too many keys | 65 entries | `key-count` |
@@ -141,13 +142,14 @@ but does not wait for callbacks already selected by the processor.
 ### `TestRESP3TrackingSpikeShutdownOrdersQuiescenceBeforeUnregister`
 
 Hold one callback inside the invalidator, close the dispatch gate, and prove a
-later direct dispatch is rejected without reaching the invalidator. Start the
-gate wait and prove it is still blocked before releasing the held callback;
-after release it must complete within 1 second. Then unregister, assert
-`GetHandler("invalidate") == nil`, and close any owned connection/client through
-1-second watchdog helpers. `Close()` timeouts fail the test but cannot cancel
-the underlying context-free call. The focused handler/shutdown suite must pass
-under `go test -race`.
+later direct dispatch returns `errRESP3InvalidationRejected`, records exactly
+one redacted `reason=shutdown` event with `overflow=false`, and never reaches
+the invalidator. Start the gate wait and prove it is still blocked before
+releasing the held callback; after release it must complete within 1 second.
+Then unregister, assert `GetHandler("invalidate") == nil`, and close any owned
+connection/client through 1-second watchdog helpers. `Close()` timeouts fail
+the test but cannot cancel the underlying context-free call. The focused
+handler/shutdown suite must pass under `go test -race`.
 
 ## Redis Fixture
 
@@ -163,6 +165,14 @@ endpoint, and creates and owns:
 3. writer client: separate ordinary client for external `SET`;
 4. admin client: constructed internally from the returned fixture address and
    never accepted from caller input.
+
+Container cleanup is registered before client construction. Immediately after
+the four clients exist, the fixture registers one idempotent `t.Cleanup`; LIFO
+therefore closes Redis resources before the container. A mutex-protected owned
+closer registry holds every sticky connection plus the four clients. Each entry
+uses `sync.Once`, so reconnect/shutdown tests may explicitly close a resource
+and final cleanup may safely call it again. Fixture cleanup closes sticky
+connections first, then clients, all through the 1-second `closeWithin` helper.
 
 The affinity test alone uses a tracking client with `PoolSize: 2` and obtains
 two simultaneous sticky connections.
