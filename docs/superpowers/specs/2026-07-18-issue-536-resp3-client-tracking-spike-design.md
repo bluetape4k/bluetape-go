@@ -152,11 +152,19 @@ near-cache 지원 결론으로 사용할 수 없다. 제외한다.
                         |
                         v
                test-only invalidate handler
-                 | key payload      | null payload / disconnect
+                 | key payload      | null payload
                  v                  v
        TieredCache.InvalidateLocal  TieredCache.ClearLocal
                  |                  |
                  +--------> caller-owned L1
+
+       tracked command transport failure
+                 |
+                 v
+       test harness blocks tracked-L1 use
+                 |
+                 v
+       TieredCache.ClearLocal before replacement tracking
 
                  ValueCache Redis L2 is never mutated by the handler
 ```
