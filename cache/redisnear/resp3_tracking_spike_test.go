@@ -335,6 +335,47 @@ func (f *fakeLocalInvalidator) calls() ([]string, int) {
 	return slices.Clone(f.invalidated), f.clearCalls
 }
 
+type latchLocalInvalidator struct {
+	entered         chan struct{}
+	released        chan struct{}
+	releaseOnce     sync.Once
+	invalidateCalls atomic.Int32
+	clearCalls      atomic.Int32
+}
+
+func newLatchLocalInvalidator() *latchLocalInvalidator {
+	return &latchLocalInvalidator{
+		entered:  make(chan struct{}, 1),
+		released: make(chan struct{}),
+	}
+}
+
+func (l *latchLocalInvalidator) InvalidateLocal(ctx context.Context, _ string) error {
+	l.invalidateCalls.Add(1)
+	select {
+	case l.entered <- struct{}{}:
+	default:
+	}
+
+	select {
+	case <-l.released:
+		return nil
+	case <-ctx.Done():
+		return ctx.Err()
+	}
+}
+
+func (l *latchLocalInvalidator) ClearLocal(context.Context) error {
+	l.clearCalls.Add(1)
+	return nil
+}
+
+func (l *latchLocalInvalidator) releaseCallback() {
+	l.releaseOnce.Do(func() {
+		close(l.released)
+	})
+}
+
 type idempotentCloser struct {
 	once    sync.Once
 	closeFn func() error
@@ -1625,6 +1666,216 @@ func TestRESP3TrackingSpikeHandlerOverflowDoesNotBlock(t *testing.T) {
 	if !slices.Equal(keys, []string{"logical-one", "logical-one"}) || clears != 0 {
 		t.Fatalf("local calls = keys %v, clears %d", keys, clears)
 	}
+}
+
+func TestRESP3TrackingSpikeUnregisterIsNotAQuiescenceBarrier(t *testing.T) {
+	processor := redis.NewPushNotificationProcessor()
+	local := newLatchLocalInvalidator()
+	t.Cleanup(local.releaseCallback)
+	events := make(chan invalidationObservation, 1)
+	handlerRoot, cancelHandler := context.WithCancel(context.Background())
+	t.Cleanup(cancelHandler)
+	handler := newSpikeHandler(
+		handlerRoot,
+		local,
+		map[string]string{"physical-one": "logical-one"},
+		events,
+	)
+	if err := processor.RegisterHandler("invalidate", handler, false); err != nil {
+		t.Fatalf(
+			"register invalidate handler: %s",
+			boundedSpikeDiagnostic(err.Error(), resp3SpikeDiagnosticBytes),
+		)
+	}
+	t.Cleanup(func() {
+		_ = processor.UnregisterHandler("invalidate")
+	})
+
+	selected := processor.GetHandler("invalidate")
+	if selected == nil {
+		t.Fatal("GetHandler(invalidate) = nil after registration")
+	}
+	callbackDone := make(chan error, 1)
+	go func() {
+		callbackDone <- selected.HandlePushNotification(
+			context.Background(),
+			push.NotificationHandlerContext{},
+			[]interface{}{"invalidate", []interface{}{"physical-one"}},
+		)
+	}()
+
+	select {
+	case <-local.entered:
+	case <-time.After(time.Second):
+		t.Fatal("selected callback did not enter invalidator")
+	}
+	unregisterDone := make(chan error, 1)
+	go func() {
+		unregisterDone <- processor.UnregisterHandler("invalidate")
+	}()
+	select {
+	case err := <-unregisterDone:
+		if err != nil {
+			t.Fatalf(
+				"unregister invalidate handler: %s",
+				boundedSpikeDiagnostic(err.Error(), resp3SpikeDiagnosticBytes),
+			)
+		}
+	case <-time.After(time.Second):
+		t.Fatal("UnregisterHandler(invalidate) did not return before callback release")
+	}
+	if got := processor.GetHandler("invalidate"); got != nil {
+		t.Fatalf("GetHandler(invalidate) = %T after unregister, want nil", got)
+	}
+	select {
+	case err := <-callbackDone:
+		t.Fatalf("selected callback completed before release: %v", err)
+	default:
+	}
+
+	local.releaseCallback()
+	select {
+	case err := <-callbackDone:
+		if err != nil {
+			t.Fatalf("selected callback error = %v, want nil", err)
+		}
+	case <-time.After(time.Second):
+		t.Fatal("selected callback did not complete after release")
+	}
+	if got := local.invalidateCalls.Load(); got != 1 {
+		t.Fatalf("local invalidation calls = %d, want exactly 1", got)
+	}
+	if got := local.clearCalls.Load(); got != 0 {
+		t.Fatalf("local clear calls = %d, want 0", got)
+	}
+	if observation := requireSingleObservation(t, events); observation != (invalidationObservation{success: true, count: 1}) {
+		t.Fatalf("in-flight observation = %+v, want one successful invalidation", observation)
+	}
+	if handler.overflow.Load() {
+		t.Fatal("overflow = true, want false")
+	}
+}
+
+func TestRESP3TrackingSpikeShutdownOrdersQuiescenceBeforeUnregister(t *testing.T) {
+	fixture := newRESP3SpikeFixture(t, 1)
+	tracked := fixture.sticky(t, "shutdown tracking", fixture.tracking)
+	assertRESP3SpikeProtocol(t, "shutdown tracking", tracked)
+
+	local := newLatchLocalInvalidator()
+	t.Cleanup(local.releaseCallback)
+	events := make(chan invalidationObservation, 2)
+	handlerRoot, cancelHandler := context.WithCancel(context.Background())
+	t.Cleanup(cancelHandler)
+	handler := newSpikeHandler(
+		handlerRoot,
+		local,
+		map[string]string{"physical-one": "logical-one"},
+		events,
+	)
+	if err := fixture.processor.RegisterHandler("invalidate", handler, false); err != nil {
+		t.Fatalf(
+			"register invalidate handler: %s",
+			boundedSpikeDiagnostic(err.Error(), resp3SpikeDiagnosticBytes),
+		)
+	}
+	t.Cleanup(func() {
+		_ = fixture.processor.UnregisterHandler("invalidate")
+	})
+	selected := fixture.processor.GetHandler("invalidate")
+	if selected == nil {
+		t.Fatal("GetHandler(invalidate) = nil after registration")
+	}
+	notification := []interface{}{"invalidate", []interface{}{"physical-one"}}
+	firstDone := make(chan error, 1)
+	go func() {
+		firstDone <- selected.HandlePushNotification(
+			context.Background(),
+			push.NotificationHandlerContext{},
+			notification,
+		)
+	}()
+	select {
+	case <-local.entered:
+	case <-time.After(time.Second):
+		t.Fatal("first callback did not enter invalidator")
+	}
+
+	handler.gate.close()
+	laterDone := make(chan error, 1)
+	go func() {
+		laterDone <- handleSpikeNotification(handler, notification)
+	}()
+	select {
+	case err := <-laterDone:
+		assertRejectedWithoutDisclosure(t, err)
+	case <-time.After(time.Second):
+		t.Fatal("post-close callback did not return within watchdog")
+	}
+	if got := local.invalidateCalls.Load(); got != 1 {
+		t.Fatalf("local invalidation calls after post-close dispatch = %d, want exactly 1", got)
+	}
+	if got := local.clearCalls.Load(); got != 0 {
+		t.Fatalf("local clear calls after post-close dispatch = %d, want 0", got)
+	}
+	select {
+	case <-local.entered:
+		t.Fatal("post-close callback entered invalidator")
+	default:
+	}
+	assertFailureObservation(t, events, invalidationObservation{reason: observationReasonShutdown})
+	if handler.overflow.Load() {
+		t.Fatal("overflow = true after shutdown rejection, want false")
+	}
+
+	waitStarted := make(chan struct{})
+	waitDone := make(chan struct{})
+	go func() {
+		close(waitStarted)
+		handler.gate.wait()
+		close(waitDone)
+	}()
+	<-waitStarted
+	select {
+	case <-waitDone:
+		t.Fatal("gate wait completed before in-flight callback release")
+	default:
+	}
+
+	local.releaseCallback()
+	select {
+	case err := <-firstDone:
+		if err != nil {
+			t.Fatalf("first callback error = %v, want nil", err)
+		}
+	case <-time.After(time.Second):
+		t.Fatal("first callback did not complete after release")
+	}
+	select {
+	case <-waitDone:
+	case <-time.After(time.Second):
+		t.Fatal("gate wait did not complete after callback release")
+	}
+	if observation := requireSingleObservation(t, events); observation != (invalidationObservation{success: true, count: 1}) {
+		t.Fatalf("first callback observation = %+v, want one successful invalidation", observation)
+	}
+	if got := local.invalidateCalls.Load(); got != 1 {
+		t.Fatalf("local invalidation calls after quiescence = %d, want exactly 1", got)
+	}
+
+	runRESP3SpikeCommand(t, "shutdown post-quiescence PING", func(ctx context.Context) (string, error) {
+		return tracked.Ping(ctx).Result()
+	})
+	if err := fixture.processor.UnregisterHandler("invalidate"); err != nil {
+		t.Fatalf(
+			"unregister invalidate handler after quiescence: %s",
+			boundedSpikeDiagnostic(err.Error(), resp3SpikeDiagnosticBytes),
+		)
+	}
+	if got := fixture.processor.GetHandler("invalidate"); got != nil {
+		t.Fatalf("GetHandler(invalidate) = %T after ordered unregister, want nil", got)
+	}
+	closeWithin(t, "shutdown tracking connection", tracked.Close)
+	closeWithin(t, "shutdown tracking client", fixture.tracking.Close)
 }
 
 func handleSpikeNotification(handler *spikeHandler, notification []interface{}) error {
