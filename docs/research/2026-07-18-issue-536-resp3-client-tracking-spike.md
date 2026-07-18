@@ -121,7 +121,7 @@ preservation, physical-connection loss detection, and recovery.
 | Identity | Required commands in this spike | Explicit boundary |
 |---|---|---|
 | Tracked runtime | `HELLO 3`, `CLIENT TRACKING`, `CLIENT TRACKINGINFO`, `CLIENT ID`, `GET`, `PING` | Does not require `FLUSHDB`, `FLUSHALL`, or `CLIENT KILL`. |
-| Tiered L2 runtime | go-redis RESP3 client initialization (`Protocol: 3`, including `HELLO 3` negotiation), `SET` for writes, and the initial `GETRANGE` for the captured non-empty string and miss paths. The existing empty-payload ambiguity path conditionally adds `MULTI`, a second `GETRANGE`, `EXISTS`, and `EXEC`; that path was not exercised by this spike. | ACL policy must cover connection initialization and whichever `ValueCache` command paths are enabled; destructive admin commands remain unnecessary. See the `ValueCache` source below. |
+| Tiered L2 runtime | go-redis RESP3 client initialization (`Protocol: 3`, including `HELLO 3` negotiation), `SET` for writes, and the initial `GETRANGE` for captured non-empty string and miss paths. An empty first read, including the captured post-`FLUSHDB` misses, adds `MULTI`, a second `GETRANGE`, `EXISTS`, and `EXEC`. A stored empty-payload hit was not separately exercised, although the same branch distinguishes its presence from a miss. | ACL policy must cover connection initialization and whichever `ValueCache` command paths are enabled; destructive admin commands remain unnecessary. See the `ValueCache` source below. |
 | External writer | Ordinary `SET` | Does not require destructive admin commands. |
 | Disposable-test admin | `FLUSHDB`, `CLIENT KILL ID` | Exists only inside a fresh test-owned container; there is no production equivalent. |
 
