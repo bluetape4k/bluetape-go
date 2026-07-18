@@ -686,11 +686,14 @@ func TestRESP3TrackingSpikeDeliversInvalidationOnlyWhenTrackedConnectionReads(t 
 		logicalKey = "item"
 	)
 	fixture := newRESP3SpikeFixture(t, 1)
-	tracked := fixture.sticky(t, "command-coupled tracking", fixture.tracking)
 	physicalKey := resp3SpikePhysicalKey(t, namespace, logicalKey)
 	tiered := newRESP3SpikeTieredCache(t, fixture, namespace)
-
 	ctx := t.Context()
+	events := make(chan invalidationObservation, 1)
+	handler := newSpikeHandler(ctx, tiered, map[string]string{physicalKey: logicalKey}, events)
+	registerRESP3SpikeHandler(t, fixture, handler)
+	tracked := fixture.sticky(t, "command-coupled tracking", fixture.tracking)
+
 	if err := tiered.Set(ctx, logicalKey, "old", 10*time.Minute); err != nil {
 		t.Fatalf("tiered set old: %v", err)
 	}
@@ -705,9 +708,6 @@ func TestRESP3TrackingSpikeDeliversInvalidationOnlyWhenTrackedConnectionReads(t 
 		t.Fatalf("tracked GET: %v", err)
 	}
 
-	events := make(chan invalidationObservation, 1)
-	handler := newSpikeHandler(ctx, tiered, map[string]string{physicalKey: logicalKey}, events)
-	registerRESP3SpikeHandler(t, fixture, handler)
 	if err := fixture.writer.Set(ctx, physicalKey, "new", 10*time.Minute).Err(); err != nil {
 		t.Fatalf("external writer SET new: %v", err)
 	}
@@ -742,14 +742,14 @@ func TestRESP3TrackingSpikeRequiresReadAndTrackingOnSameConnection(t *testing.T)
 	fixture := newRESP3SpikeFixture(t, 2)
 	connectionA := fixture.sticky(t, "affinity tracking A", fixture.tracking)
 	connectionB := fixture.sticky(t, "affinity tracking B", fixture.tracking)
-	ctx, cancel := context.WithTimeout(t.Context(), 2*time.Second)
+	commandCtx, cancel := context.WithTimeout(t.Context(), 2*time.Second)
 	defer cancel()
 
-	clientIDA, err := connectionA.ClientID(ctx).Result()
+	clientIDA, err := connectionA.ClientID(commandCtx).Result()
 	if err != nil {
 		t.Fatalf("connection A CLIENT ID: %v", err)
 	}
-	clientIDB, err := connectionB.ClientID(ctx).Result()
+	clientIDB, err := connectionB.ClientID(commandCtx).Result()
 	if err != nil {
 		t.Fatalf("connection B CLIENT ID: %v", err)
 	}
@@ -763,26 +763,26 @@ func TestRESP3TrackingSpikeRequiresReadAndTrackingOnSameConnection(t *testing.T)
 	physicalKey := resp3SpikePhysicalKey(t, namespace, logicalKey)
 	local := &fakeLocalInvalidator{}
 	events := make(chan invalidationObservation, 1)
-	handler := newSpikeHandler(ctx, local, map[string]string{physicalKey: logicalKey}, events)
+	handler := newSpikeHandler(t.Context(), local, map[string]string{physicalKey: logicalKey}, events)
 	registerRESP3SpikeHandler(t, fixture, handler)
 
-	if err := connectionA.Do(ctx, "CLIENT", "TRACKING", "ON", "NOLOOP").Err(); err != nil {
+	if err := connectionA.Do(commandCtx, "CLIENT", "TRACKING", "ON", "NOLOOP").Err(); err != nil {
 		t.Fatalf("connection A CLIENT TRACKING ON NOLOOP: %v", err)
 	}
-	if err := fixture.writer.Set(ctx, physicalKey, "old", 10*time.Minute).Err(); err != nil {
+	if err := fixture.writer.Set(commandCtx, physicalKey, "old", 10*time.Minute).Err(); err != nil {
 		t.Fatalf("seed physical key: %v", err)
 	}
-	if _, err := connectionB.Get(ctx, physicalKey).Result(); err != nil {
+	if _, err := connectionB.Get(commandCtx, physicalKey).Result(); err != nil {
 		t.Fatalf("untracked connection B GET: %v", err)
 	}
-	if err := fixture.writer.Set(ctx, physicalKey, "new", 10*time.Minute).Err(); err != nil {
+	if err := fixture.writer.Set(commandCtx, physicalKey, "new", 10*time.Minute).Err(); err != nil {
 		t.Fatalf("external writer SET after B read: %v", err)
 	}
 	assertNoRESP3SpikeObservation(t, events, "after untracked B read mutation")
-	if err := connectionA.Ping(ctx).Err(); err != nil {
+	if err := connectionA.Ping(commandCtx).Err(); err != nil {
 		t.Fatalf("drain connection A after B read: %v", err)
 	}
-	if err := connectionB.Ping(ctx).Err(); err != nil {
+	if err := connectionB.Ping(commandCtx).Err(); err != nil {
 		t.Fatalf("drain connection B after B read: %v", err)
 	}
 	assertNoRESP3SpikeObservation(t, events, "after draining A and B for untracked B read")
@@ -790,14 +790,14 @@ func TestRESP3TrackingSpikeRequiresReadAndTrackingOnSameConnection(t *testing.T)
 		t.Fatalf("local calls after untracked B read = keys %v, clears %d; want none", keys, clears)
 	}
 
-	if _, err := connectionA.Get(ctx, physicalKey).Result(); err != nil {
+	if _, err := connectionA.Get(commandCtx, physicalKey).Result(); err != nil {
 		t.Fatalf("tracked connection A GET: %v", err)
 	}
-	if err := fixture.writer.Set(ctx, physicalKey, "newer", 10*time.Minute).Err(); err != nil {
+	if err := fixture.writer.Set(commandCtx, physicalKey, "newer", 10*time.Minute).Err(); err != nil {
 		t.Fatalf("external writer SET after A read: %v", err)
 	}
 	assertNoRESP3SpikeObservation(t, events, "before draining tracked connection A")
-	if err := connectionA.Ping(ctx).Err(); err != nil {
+	if err := connectionA.Ping(commandCtx).Err(); err != nil {
 		t.Fatalf("drain connection A after A read: %v", err)
 	}
 	event := requireSingleObservation(t, events)
