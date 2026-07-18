@@ -1086,7 +1086,7 @@ func TestRESP3TrackingSpikeMapsGlobalInvalidationToClearLocal(t *testing.T) {
 		getCtx, cancelGet := context.WithTimeout(t.Context(), 2*time.Second)
 		got, err := tiered.Get(getCtx, logicalKey)
 		cancelGet()
-		if got != "" || err != cache.ErrCacheMiss {
+		if got != "" || err != cache.ErrCacheMiss { //nolint:errorlint // Exact cache-miss identity is the spike contract.
 			t.Fatalf(
 				"tiered get %q after global invalidation = %q, %s; want zero value and exact cache.ErrCacheMiss",
 				logicalKey,
@@ -1991,7 +1991,7 @@ func handleSpikeNotification(handler *spikeHandler, notification []interface{}) 
 func assertRejectedWithoutDisclosure(t *testing.T, err error) {
 	t.Helper()
 
-	if err != errRESP3InvalidationRejected {
+	if err != errRESP3InvalidationRejected { //nolint:errorlint // Exact rejection identity prevents provider detail wrapping.
 		t.Fatalf("error = %v, want exact rejection sentinel", err)
 	}
 	if !errors.Is(err, errRESP3InvalidationRejected) {
