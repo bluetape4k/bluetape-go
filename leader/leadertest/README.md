@@ -18,6 +18,14 @@ func TestProviderConformance(t *testing.T) {
 }
 ```
 
+## Timeout Containment
+
+Use `RunWithConfig` when a provider needs a hard-stop callback. `CaseTimeout`
+starts cancellation and containment; it does not cap the final join. `Abort`
+must unblock provider work, and the test command must set an outer
+`go test -timeout` so a provider that ignores cancellation and cannot be joined
+fail-stops the process. See `ExampleRunWithConfig` for the compile-checked shape.
+
 ## Commit-Unknown Recovery
 
 A provider must return a typed `leader.OperationError` for dispatched failures.
@@ -34,5 +42,5 @@ owner values, keys, endpoints, or tokens. Inspect provider-local logs separately
 ## Test
 
 ```bash
-go test -race -count=1 ./leader/leadertest
+go test -race -count=1 -timeout=10m ./leader/leadertest
 ```

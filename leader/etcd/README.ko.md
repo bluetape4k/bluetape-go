@@ -42,6 +42,7 @@ elector, err := etcdleader.New(client, leader.Options{
     MemberID:      "worker-1",
     Lease:         30 * time.Second,
     RenewInterval: 10 * time.Second,
+    KeyPrefix:     "billing:leader",
 })
 if err != nil {
     return err
@@ -62,8 +63,10 @@ token 또는 durable identity로 parsing하지 않습니다.
 
 ## Encoded Election Range
 
-Provider는 `KeyPrefix`와 `Group`을 각각 unpadded URL Base64로 인코딩해
-`/bluetape4k/leader` 아래에 배치합니다. Candidate는 해당 identity의 정확한
+Production에서는 `KeyPrefix`를 명시합니다. Provider는 `KeyPrefix`와 `Group`을 각각
+base64url-no-padding으로 인코딩해 `/bluetape4k/leader` 아래에 배치합니다:
+`candidateRoot = /bluetape4k/leader/<encode(KeyPrefix)>/<encode(Group)>/`.
+Candidate는 해당 identity의 정확한
 `[candidateRoot, rangeEnd)` 구간을 사용합니다. Encoding은 sibling group 간 delimiter
 충돌을 막지만 `KeyPrefix`는 hostile tenant 격리가 아니라 collision 격리입니다. 이
 format은 Go 전용이며 Kotlin/JVM leader participant와 호환되지 않습니다.

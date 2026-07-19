@@ -14,7 +14,10 @@ type Timing struct {
 	Lease time.Duration
 	// RenewInterval configures the case renewal cadence.
 	RenewInterval time.Duration
-	// CaseTimeout bounds evaluator work before cancellation and containment.
+	// CaseTimeout bounds evaluator work before cancellation and containment
+	// starts. It does not bound the final provider join; callers must configure
+	// Abort to unblock provider work and an outer go test timeout to fail-stop a
+	// provider that cannot be joined.
 	CaseTimeout time.Duration
 	// WaitTimeout bounds backend-state observation within a case.
 	WaitTimeout time.Duration
@@ -24,7 +27,9 @@ type Timing struct {
 }
 
 // AbortFunc contains provider work after every case timeout, including when
-// evaluator work joins during the cancellation grace period.
+// evaluator work joins during the cancellation grace period. It must unblock
+// provider operations so RunWithConfig can join them; the outer go test timeout
+// is the final fail-stop when containment cannot make progress.
 type AbortFunc func(context.Context, leader.Options) error
 
 // Config configures a conformance run.

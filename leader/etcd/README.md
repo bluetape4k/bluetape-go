@@ -44,6 +44,7 @@ elector, err := etcdleader.New(client, leader.Options{
     MemberID:      "worker-1",
     Lease:         30 * time.Second,
     RenewInterval: 10 * time.Second,
+    KeyPrefix:     "billing:leader",
 })
 if err != nil {
     return err
@@ -66,9 +67,11 @@ suffix as a fencing token or durable identity.
 
 ## Encoded Election Range
 
-The provider encodes `KeyPrefix` and `Group` independently with unpadded URL
-Base64 beneath `/bluetape4k/leader`. Candidates occupy the exact
-`[candidateRoot, rangeEnd)` interval for that identity. Encoding prevents
+Set `KeyPrefix` explicitly in production. The provider encodes `KeyPrefix` and
+`Group` independently with base64url-no-padding beneath `/bluetape4k/leader`:
+`candidateRoot = /bluetape4k/leader/<encode(KeyPrefix)>/<encode(Group)>/`.
+Candidates occupy the exact `[candidateRoot, rangeEnd)` interval for that
+identity. Encoding prevents
 delimiter overlap between sibling groups, but `KeyPrefix` is collision
 isolation, not hostile-tenant isolation. The format is Go-owned and does not
 interoperate with Kotlin/JVM leader participants.
@@ -89,11 +92,10 @@ aggregate capacity as published leader groups multiplied by their configured
 The capacity inventory must also bound live contenders across all groups. Each
 contender consumes one of the expected leases/sessions/candidate keys. Each
 blocked contender may add one campaign wait watch for its predecessor, while
-each published group adds one of the expected ownership exact-key watches. Calculate
-aggregate Proclaim QPS as the sum of `1 / RenewInterval` over published groups,
-then
-validate that full contender, watch, and publication envelope against the
-target etcd cluster.
+each published group adds one of the expected ownership exact-key watches.
+Calculate aggregate Proclaim QPS as the sum of `1 / RenewInterval` over
+published groups, then validate that full contender, watch, and publication
+envelope against the target etcd cluster.
 
 Ownership uses three separate signals:
 
@@ -170,8 +172,8 @@ generation check.
 Cutover is stop-the-world per group: stop protected work, drain and prove the
 old provider's boundary, then start etcd contenders. Rollback is symmetric:
 stop protected work and every etcd campaign, perform bounded same-elector
-cleanup, prove the exact candidate range empty with a healthy client, restore
-verify the diagnostic view has zero etcd contenders, and only then restore the
+cleanup, prove the exact candidate range empty with a healthy client, verify
+the diagnostic view has zero etcd contenders, and only then restore the
 previous provider. Any provider overlap requires an external fencing authority.
 
 ## Observability

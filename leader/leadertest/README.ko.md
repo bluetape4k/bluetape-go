@@ -17,6 +17,14 @@ func TestProviderConformance(t *testing.T) {
 }
 ```
 
+## Timeout Containment
+
+Provider에 hard-stop callback이 필요하면 `RunWithConfig`를 사용합니다. `CaseTimeout`은
+cancellation과 containment를 시작할 뿐 최종 join을 제한하지 않습니다. `Abort`는 provider
+work를 unblock해야 하며, cancellation을 무시하고 join되지 않는 provider가 process를
+fail-stop하도록 test command에 outer `go test -timeout`을 지정합니다. Compile-checked
+형태는 `ExampleRunWithConfig`를 참고합니다.
+
 ## Commit-Unknown 복구
 
 Provider는 dispatch된 실패를 typed `leader.OperationError`로 반환해야 합니다. Commit을
@@ -32,5 +40,5 @@ provider-local log를 별도로 확인합니다.
 ## 테스트
 
 ```bash
-go test -race -count=1 ./leader/leadertest
+go test -race -count=1 -timeout=10m ./leader/leadertest
 ```

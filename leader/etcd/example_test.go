@@ -27,6 +27,7 @@ func ExampleNew() {
 			MemberID:      "worker-1",
 			Lease:         30 * time.Second,
 			RenewInterval: 10 * time.Second,
+			KeyPrefix:     "billing:leader",
 		}
 		elector, err := etcdleader.New(client, opts)
 		if err != nil {
