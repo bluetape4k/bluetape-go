@@ -196,8 +196,8 @@ func TestCampaignCreatedNotifyTimeoutJoinsMonitorAndSession(t *testing.T) {
 	if generation == nil {
 		t.Fatal("Campaign did not retain its in-progress generation")
 	}
-	if err := <-result; err == nil {
-		t.Fatal("Campaign succeeded without watch Created acknowledgement")
+	if err := <-result; !errors.Is(err, context.DeadlineExceeded) {
+		t.Fatalf("Campaign error = %v, want deadline exceeded", err)
 	}
 	assertSessionJoined(t, fake)
 	select {

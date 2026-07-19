@@ -53,6 +53,12 @@ func (e *Elector) Resign(ctx context.Context) error {
 		)
 		resignErr = generation.ops.resign(resignCtx, resumed)
 		cancel()
+		if resignErr == nil {
+			if hookErr := generation.runTestHook("resign", "after"); hookErr != nil {
+				cause := errors.Join(hookErr, shutdownErr, monitorErr)
+				return errors.Join(leader.NewOperationError("etcd", "resign", cause), leader.ErrCommitUnknown)
+			}
+		}
 	}
 
 	proved, cleanupErr := e.cleanupFailedGeneration(generation)
