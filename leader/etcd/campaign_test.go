@@ -47,6 +47,38 @@ func TestCampaignPublishesOnlyAfterWatchCreated(t *testing.T) {
 	shutdownFakeGeneration(t, elector, generation)
 }
 
+func TestResignDoesNotTakeOverUnpublishedCampaignCleanup(t *testing.T) {
+	elector, fake := newFakeElector(t)
+	fake.send(clientv3.WatchResponse{Created: true})
+	hookStarted := make(chan struct{})
+	releaseHook := make(chan struct{})
+	var hookOnce sync.Once
+	elector.testHook = func(operation, phase string) error {
+		if operation == "campaign" && phase == "before" {
+			hookOnce.Do(func() { close(hookStarted) })
+			<-releaseHook
+		}
+		return nil
+	}
+
+	result := make(chan error, 1)
+	go func() { result <- elector.Campaign(context.Background()) }()
+	<-hookStarted
+	if err := elector.Resign(context.Background()); err != nil {
+		t.Fatalf("Resign during unpublished Campaign = %v", err)
+	}
+	if got := fake.revokeCalls.Load(); got != 0 {
+		t.Fatalf("Resign revoked an unpublished Campaign lease: %d", got)
+	}
+	close(releaseHook)
+	if err := <-result; err != nil {
+		t.Fatalf("Campaign after concurrent Resign = %v", err)
+	}
+	if err := elector.Resign(context.Background()); err != nil {
+		t.Fatalf("final Resign = %v", err)
+	}
+}
+
 func TestCampaignFailureStagesJoinAndRevoke(t *testing.T) {
 	wantErr := errors.New("injected failure")
 	tests := []struct {

@@ -30,7 +30,8 @@ unusable. `New` performs no network I/O and never takes ownership of the
 and campaign calls have joined.
 
 Production clients load a non-empty root CA pool, set a hostname-validating
-`ServerName`, and keep `InsecureSkipVerify=false`. See
+`ServerName`, keep `InsecureSkipVerify=false`, and authenticate with a scoped
+username/password or an equivalently scoped client certificate. See
 `ExampleNew_productionTLS` for the compile-checked client shape.
 
 ## Usage
@@ -69,7 +70,9 @@ belongs only to mutually trusted operators and election principals.
 
 Requested leases are rounded up to integer seconds. etcd may return a different
 server-granted TTL; `EffectiveTTL` exposes the last granted value and is the
-only TTL suitable for retry scheduling.
+only TTL suitable for retry scheduling. `RenewInterval` must be at least 100
+milliseconds and less than `Lease`, bounding `Proclaim` traffic to at most ten
+transactions per second per published leader.
 
 Ownership uses three separate signals:
 
@@ -94,6 +97,8 @@ long-lived caller client context. Retry bounded `Resign` on the same elector
 while that client remains healthy. If cleanup remains unknown, retain the
 elector and its inventory. Waiting `EffectiveTTL` only schedules another
 linearizable exact-key reconciliation; elapsed time never proves deletion.
+An unpublished in-progress `Campaign` owns its cleanup; concurrent `Resign` is
+a no-op, so supervisors cancel and join campaign calls before resigning.
 
 ## Shutdown And Reconciliation
 

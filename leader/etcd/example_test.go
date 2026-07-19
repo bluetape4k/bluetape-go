@@ -19,6 +19,7 @@ func ExampleNew() {
 		client *clientv3.Client,
 		startProtectedWork func(context.Context) <-chan struct{},
 		reconcile func(context.Context) error,
+		scheduleRecheck func(time.Duration) error,
 	) (resultErr error) {
 		opts := leader.Options{
 			Group:         "billing-workers",
@@ -33,19 +34,26 @@ func ExampleNew() {
 		campaignCtx, cancelCampaign := context.WithTimeout(ctx, 15*time.Second)
 		defer cancelCampaign()
 		if campaignErr := elector.Campaign(campaignCtx); campaignErr != nil {
-			return errors.Join(campaignErr, retryResignAndReconcile(elector, reconcile))
+			return errors.Join(campaignErr, retryResignAndReconcile(elector, reconcile, scheduleRecheck))
 		}
-		defer func() { resultErr = errors.Join(resultErr, retryResignAndReconcile(elector, reconcile)) }()
 		// A nil Campaign result does not outrank a concurrently completed caller deadline.
 		if err := campaignCtx.Err(); err != nil {
-			return err
+			return errors.Join(err, retryResignAndReconcile(elector, reconcile, scheduleRecheck))
 		}
 
 		protectedCtx, stopProtectedWork := context.WithCancel(ctx)
 		protectedDone := startProtectedWork(protectedCtx)
 		defer func() {
 			stopProtectedWork()
-			resultErr = errors.Join(resultErr, joinProtectedWork(protectedDone))
+			joinErr := joinProtectedWork(protectedDone)
+			resultErr = errors.Join(resultErr, joinErr)
+			if joinErr != nil {
+				return // Preserve leadership inventory; the caller must terminate this process lane.
+			}
+			resultErr = errors.Join(
+				resultErr,
+				retryResignAndReconcile(elector, reconcile, scheduleRecheck),
+			)
 		}()
 		poll := time.NewTicker(min(opts.RenewInterval, time.Second))
 		defer poll.Stop()
@@ -77,11 +85,16 @@ func Example_shutdownSupervisor() {
 		closeCallerClient func() error,
 		persistUnresolved func(error) error,
 		proveExactRangeAbsent func(context.Context) error,
+		scheduleRecheck func(time.Duration) error,
 		restorePreviousProvider func() error,
 		verifyZeroEtcdContenders func() error,
 	) error {
 		cancelCampaigns()
-		cleanupErr := stopAndJoinProtectedWork()
+		joinErr := stopAndJoinProtectedWork()
+		if joinErr != nil {
+			return errors.Join(initiatingErr, joinErr, persistUnresolved(joinErr))
+		}
+		var cleanupErr error
 		grace := time.NewTimer(2 * time.Second)
 		joined := false
 		select {
@@ -92,7 +105,10 @@ func Example_shutdownSupervisor() {
 		}
 		if joined {
 			for _, elector := range electors {
-				cleanupErr = errors.Join(cleanupErr, retryResignAndReconcile(elector, proveExactRangeAbsent))
+				cleanupErr = errors.Join(
+					cleanupErr,
+					retryResignAndReconcile(elector, proveExactRangeAbsent, scheduleRecheck),
+				)
 			}
 		} else {
 			cleanupErr = errors.Join(cleanupErr, coordinateSharedClientUsers(), closeCallerClient())
@@ -110,19 +126,22 @@ func Example_shutdownSupervisor() {
 			return errors.Join(initiatingErr, cleanupErr, proofErr)
 		}
 		// Rollback is symmetric and starts only after protected work and etcd contenders stop.
-		return errors.Join(
-			initiatingErr,
-			cleanupErr,
-			restorePreviousProvider(),
-			verifyZeroEtcdContenders(),
-		)
+		zeroErr := verifyZeroEtcdContenders()
+		if zeroErr != nil {
+			return errors.Join(initiatingErr, cleanupErr, zeroErr)
+		}
+		return errors.Join(initiatingErr, cleanupErr, restorePreviousProvider())
 	}
 
 	_ = shutdown
 }
 
 func ExampleNew_productionTLS() {
-	newClient := func(endpoints []string, roots *x509.CertPool, serverName string) (*clientv3.Client, error) {
+	newClient := func(
+		endpoints []string,
+		roots *x509.CertPool,
+		serverName, username, password string,
+	) (*clientv3.Client, error) {
 		tlsConfig := &tls.Config{
 			MinVersion:         tls.VersionTLS13,
 			RootCAs:            roots,
@@ -132,17 +151,26 @@ func ExampleNew_productionTLS() {
 		if err := validateProductionTLS(tlsConfig); err != nil {
 			return nil, err
 		}
+		if err := validateProductionCredentials(username, password); err != nil {
+			return nil, err
+		}
 		return clientv3.New(clientv3.Config{
 			Endpoints:   endpoints,
 			DialTimeout: 5 * time.Second,
 			TLS:         tlsConfig,
+			Username:    username,
+			Password:    password,
 		})
 	}
 
 	_ = newClient
 }
 
-func retryResignAndReconcile(elector *etcdleader.Elector, reconcile func(context.Context) error) error {
+func retryResignAndReconcile(
+	elector *etcdleader.Elector,
+	reconcile func(context.Context) error,
+	scheduleRecheck func(time.Duration) error,
+) error {
 	var lastErr error
 	for range 3 {
 		cleanupCtx, cancel := context.WithTimeout(context.Background(), min(5*time.Second, elector.EffectiveTTL()/4))
@@ -152,11 +180,17 @@ func retryResignAndReconcile(elector *etcdleader.Elector, reconcile func(context
 			return nil
 		}
 	}
-	timer := time.NewTimer(elector.EffectiveTTL())
-	<-timer.C // Schedule another proof attempt; do not infer deletion from this wait.
 	proofCtx, cancelProof := context.WithTimeout(context.Background(), 5*time.Second)
-	defer cancelProof()
-	return errors.Join(lastErr, reconcile(proofCtx))
+	proofErr := reconcile(proofCtx)
+	cancelProof()
+	if proofErr == nil {
+		return lastErr
+	}
+	if scheduleRecheck == nil {
+		return errors.Join(lastErr, proofErr, errors.New("cleanup recheck scheduler is nil"))
+	}
+	// EffectiveTTL schedules a future proof attempt; it is not deletion proof.
+	return errors.Join(lastErr, proofErr, scheduleRecheck(elector.EffectiveTTL()))
 }
 
 func joinProtectedWork(done <-chan struct{}) error {
@@ -182,6 +216,16 @@ func validateProductionTLS(config *tls.Config) error {
 	}
 	if config.InsecureSkipVerify {
 		return errors.New("etcd TLS forbids InsecureSkipVerify")
+	}
+	return nil
+}
+
+func validateProductionCredentials(username, password string) error {
+	if strings.TrimSpace(username) == "" {
+		return errors.New("etcd authentication requires a username")
+	}
+	if password == "" {
+		return errors.New("etcd authentication requires a password")
 	}
 	return nil
 }

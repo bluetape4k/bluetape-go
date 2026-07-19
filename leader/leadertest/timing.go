@@ -14,7 +14,7 @@ type Timing struct {
 	Lease time.Duration
 	// RenewInterval configures the case renewal cadence.
 	RenewInterval time.Duration
-	// CaseTimeout bounds one complete conformance case.
+	// CaseTimeout bounds evaluator work before cancellation and containment.
 	CaseTimeout time.Duration
 	// WaitTimeout bounds backend-state observation within a case.
 	WaitTimeout time.Duration
@@ -30,7 +30,8 @@ type AbortFunc func(context.Context, leader.Options) error
 type Config struct {
 	// Timing overrides zero-valued conformance timing fields.
 	Timing Timing
-	// Abort contains a timed-out case after root cancellation cannot join it.
+	// Abort contains every timed-out case after root cancellation, whether the
+	// evaluator joins during grace or requires a provider hard stop.
 	Abort AbortFunc
 	_     struct{}
 }

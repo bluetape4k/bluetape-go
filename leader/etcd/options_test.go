@@ -21,6 +21,7 @@ func TestNewRejectsInvalidInputs(t *testing.T) {
 	invalid := []leader.Options{
 		{},
 		{Group: "group", MemberID: ""},
+		{Group: "group", MemberID: "member", Lease: time.Second, RenewInterval: minimumProclaimInterval - time.Nanosecond},
 		{Group: "group", MemberID: "member", Lease: time.Second, RenewInterval: time.Second},
 		{Group: "group", MemberID: "member", Lease: time.Second, RenewInterval: 2 * time.Second},
 	}
@@ -28,6 +29,18 @@ func TestNewRejectsInvalidInputs(t *testing.T) {
 		if _, err := New(client, opts); err == nil {
 			t.Fatalf("New accepted invalid options: %+v", opts)
 		}
+	}
+}
+
+func TestNewAcceptsMinimumProclaimInterval(t *testing.T) {
+	_, err := New(&clientv3.Client{}, leader.Options{
+		Group:         "group",
+		MemberID:      "member",
+		Lease:         time.Second,
+		RenewInterval: minimumProclaimInterval,
+	})
+	if err != nil {
+		t.Fatalf("New rejected minimum Proclaim interval: %v", err)
 	}
 }
 

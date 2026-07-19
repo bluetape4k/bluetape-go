@@ -255,7 +255,7 @@ git commit -m "Contain provider conformance timeouts" \
 
 - [ ] **Step 1: Add RED constructor, TTL, key, and no-I/O tests**
 
-Test nil client, invalid options, `RenewInterval >= Lease`, exact-second TTL, fractional round-up,
+Test nil client, invalid options, `RenewInterval < 100ms`, `RenewInterval >= Lease`, exact-second TTL, fractional round-up,
 overflow, token uniqueness, slash-containing input, encoded sibling isolation, and no backend I/O.
 Use these exact expectations:
 
@@ -824,9 +824,10 @@ etcd contender, perform bounded same-elector cleanup, prove exact range absence 
 diagnostic client, re-enable the previous provider, and verify zero etcd contenders.
 
 Add a compile-checked caller-owned production client example that loads a CA pool, sets a non-empty
-`ServerName`, leaves `InsecureSkipVerify=false`, and passes the resulting `*clientv3.Client` to
-`New`. A focused test rejects an example config with an empty root pool, empty ServerName, or
-`InsecureSkipVerify=true`; no production TLS ownership moves into the provider.
+`ServerName`, leaves `InsecureSkipVerify=false`, supplies scoped authentication, and passes the
+resulting `*clientv3.Client` to `New`. A focused test rejects an example config with an empty root
+pool, empty ServerName, invalid credentials, or `InsecureSkipVerify=true`; no production TLS
+ownership moves into the provider.
 
 - [ ] **Step 2: Write section-for-section English/Korean provider docs**
 
