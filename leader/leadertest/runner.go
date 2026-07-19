@@ -110,25 +110,27 @@ func runEvaluator(t *testing.T, harness Harness, config Config, name string, run
 	cancel()
 	joinGrace := min(config.Timing.ResignTimeout, config.Timing.CaseTimeout/10)
 	joinTimer := time.NewTimer(joinGrace)
+	joined := false
 	select {
 	case <-result:
 		joinTimer.Stop()
-		return errConformanceCaseTimedOut
+		joined = true
 	case <-joinTimer.C:
 	}
 
+	var abortErr error
 	if config.Abort != nil {
 		abortBudget := min(config.Timing.ResignTimeout, time.Second)
 		abortCtx, abortCancel := context.WithTimeout(context.Background(), abortBudget)
-		abortErr := config.Abort(abortCtx, normalized)
+		abortErr = config.Abort(abortCtx, normalized)
 		abortCancel()
-		<-result
-		if abortErr != nil {
-			return errors.Join(errConformanceCaseTimedOut, errConformanceAbortFailed, abortErr)
-		}
-		return errConformanceCaseTimedOut
 	}
-	<-result
+	if !joined {
+		<-result
+	}
+	if abortErr != nil {
+		return errors.Join(errConformanceCaseTimedOut, errConformanceAbortFailed, abortErr)
+	}
 	return errConformanceCaseTimedOut
 }
 
@@ -554,7 +556,8 @@ func evaluateRedaction(ctx context.Context, t *testing.T, h Harness, opts leader
 }
 
 func boundedResign(ctx context.Context, elector leader.Elector, timing Timing) error {
-	resignCtx, cancel := context.WithTimeout(ctx, timing.ResignTimeout)
+	_ = ctx // Case cancellation must not cancel provider cleanup.
+	resignCtx, cancel := context.WithTimeout(context.Background(), timing.ResignTimeout)
 	defer cancel()
 	return elector.Resign(resignCtx)
 }

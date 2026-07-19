@@ -27,7 +27,8 @@ func TestReadmeParity(t *testing.T) {
 	}
 	anchors := []string{
 		"New", "EffectiveTTL", "ErrCommitUnknown", "ErrCleanupPending", "Session", "Proclaim",
-		"InsecureSkipVerify", "ServerName", "compaction", "fencing", "errors.Unwrap",
+		"InsecureSkipVerify", "ServerName", "username/password", "100", "compaction",
+		"fencing", "errors.Unwrap",
 	}
 	for _, file := range []string{"README.md", "README.ko.md"} {
 		contents, err := os.ReadFile(file)
@@ -61,13 +62,17 @@ func TestRunbookContract(t *testing.T) {
 		`etcdctl --endpoints="$ETCD_ENDPOINTS" put "$ETCD_PREFLIGHT_KEY" ready`,
 		`etcdctl --endpoints="$ETCD_ENDPOINTS" get "$ETCD_PREFLIGHT_KEY"`,
 		`etcdctl --endpoints="$ETCD_ENDPOINTS" del "$ETCD_PREFLIGHT_KEY"`,
-		`etcdctl --endpoints="$ETCD_DIAGNOSTIC_ENDPOINTS" get "$ETCD_CANDIDATE_ROOT" --prefix`,
+		`ETCD_EXACT_RANGE_COUNT="$(etcdctl --endpoints="$ETCD_DIAGNOSTIC_ENDPOINTS" get "$ETCD_CANDIDATE_ROOT" --prefix --count-only)"`,
+		`test "$ETCD_EXACT_RANGE_COUNT" -eq 0`,
 		"campaign drain",
 		"exact range",
 		"symmetric rollback",
 		"quorum",
 		"sampling cadence",
 		"git diff -- go.mod go.sum",
+		"git rm -r leader/etcd",
+		"README.md README.ko.md leader/README.md leader/README.ko.md CHANGELOG.md",
+		"TTL only schedules another proof attempt",
 		"go mod tidy",
 		"make ci",
 	}
@@ -76,6 +81,9 @@ func TestRunbookContract(t *testing.T) {
 			if !strings.Contains(section, item) {
 				t.Fatalf("runbook section %d is missing %q", index, item)
 			}
+		}
+		if strings.Contains(section, "get \"$ETCD_CANDIDATE_ROOT\" --prefix\n") {
+			t.Fatalf("runbook section %d prints raw candidate keys and values", index)
 		}
 	}
 }
@@ -95,6 +103,15 @@ func TestTLSExample(t *testing.T) {
 	}
 	if err := validateProductionTLS(&tls.Config{RootCAs: pool, ServerName: "etcd.internal"}); err != nil {
 		t.Fatalf("valid TLS config rejected: %v", err)
+	}
+	if err := validateProductionCredentials("", "secret"); err == nil {
+		t.Fatal("empty etcd username accepted")
+	}
+	if err := validateProductionCredentials("election", ""); err == nil {
+		t.Fatal("empty etcd password accepted")
+	}
+	if err := validateProductionCredentials("election", "secret"); err != nil {
+		t.Fatalf("valid etcd credentials rejected: %v", err)
 	}
 }
 

@@ -12,7 +12,8 @@ import (
 //
 // It is idempotent when no generation exists. Remote cleanup inventory is
 // retained until lease revocation or an exact-key lookup proves ownership is
-// absent or replaced.
+// absent or replaced. An unpublished in-progress Campaign owns its cleanup;
+// concurrent Resign returns nil without canceling or inspecting that generation.
 func (e *Elector) Resign(ctx context.Context) error {
 	if ctx == nil {
 		return leader.ErrInvalidContext
@@ -23,13 +24,16 @@ func (e *Elector) Resign(ctx context.Context) error {
 
 	e.mu.Lock()
 	generation := e.current
-	if generation != nil {
-		generation.published = false
-	}
-	e.mu.Unlock()
 	if generation == nil {
+		e.mu.Unlock()
 		return nil
 	}
+	if e.campaigning && !generation.published {
+		e.mu.Unlock()
+		return nil
+	}
+	generation.published = false
+	e.mu.Unlock()
 
 	generation.cleanupMu.Lock()
 	defer generation.cleanupMu.Unlock()

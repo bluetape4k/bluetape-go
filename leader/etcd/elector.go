@@ -9,6 +9,8 @@ import (
 	clientv3 "go.etcd.io/etcd/client/v3"
 )
 
+const minimumProclaimInterval = 100 * time.Millisecond
+
 // Elector coordinates a single etcd-backed leader election.
 //
 // An Elector must be constructed with [New]. Its zero value is unusable.
@@ -34,7 +36,8 @@ var _ leader.Elector = (*Elector)(nil)
 // New creates an etcd-backed elector over the caller-owned client.
 //
 // New performs no network I/O. After option normalization, RenewInterval must
-// be less than Lease. The caller remains responsible for closing client.
+// be at least 100 milliseconds and less than Lease. The caller remains
+// responsible for closing client.
 func New(client *clientv3.Client, opts leader.Options) (*Elector, error) {
 	if client == nil {
 		return nil, errors.New("etcd leader client must not be nil")
@@ -46,6 +49,9 @@ func New(client *clientv3.Client, opts leader.Options) (*Elector, error) {
 	}
 	if normalized.RenewInterval >= normalized.Lease {
 		return nil, errors.New("etcd leader renew interval must be less than lease")
+	}
+	if normalized.RenewInterval < minimumProclaimInterval {
+		return nil, errors.New("etcd leader renew interval must be at least 100 milliseconds")
 	}
 
 	ttl, err := requestedTTL(normalized.Lease)

@@ -29,8 +29,9 @@ import etcdleader "github.com/bluetape4k/bluetape-go/leader/etcd"
 닫습니다.
 
 Production client는 비어 있지 않은 root CA pool을 읽고 hostname을 검증할
-`ServerName`을 지정하며 `InsecureSkipVerify=false`를 유지합니다. Compile-checked
-client 구성은 `ExampleNew_productionTLS`를 참고합니다.
+`ServerName`을 지정하며 `InsecureSkipVerify=false`를 유지합니다. 또한 scope가 제한된
+username/password 또는 동등하게 제한된 client certificate로 인증합니다.
+Compile-checked client 구성은 `ExampleNew_productionTLS`를 참고합니다.
 
 ## Usage
 
@@ -67,6 +68,8 @@ Candidate range 안의 key를 직접 Put/Delete하면 leadership을 강제로 �
 
 요청한 lease는 정수 초 단위로 올림됩니다. etcd가 다른 server-granted TTL을 반환할 수
 있으며, 마지막 grant를 나타내는 `EffectiveTTL`만 retry scheduling에 사용합니다.
+`RenewInterval`은 최소 100 milliseconds이고 `Lease`보다 짧아야 하며 published leader
+하나당 `Proclaim` traffic을 초당 최대 10 transaction으로 제한합니다.
 
 Ownership은 서로 다른 세 신호를 함께 사용합니다.
 
@@ -90,6 +93,8 @@ cleanup하는 경로에 들어갈 수 있습니다. Client가 healthy할 때 같
 `Resign`을 재시도합니다. Cleanup이 계속 불확실하면 elector와 inventory를 유지합니다.
 `EffectiveTTL` 대기는 다음 linearizable exact-key reconciliation 시점만 정할 뿐,
 시간 경과 자체가 deletion을 증명하지 않습니다.
+아직 publish되지 않은 진행 중 `Campaign`은 자체 cleanup을 소유하므로 concurrent
+`Resign`은 no-op입니다. Supervisor는 resign 전에 campaign call을 cancel하고 join합니다.
 
 ## Shutdown And Reconciliation
 

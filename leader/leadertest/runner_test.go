@@ -254,7 +254,7 @@ func TestWaitForRechecksConditionAtDeadline(t *testing.T) {
 	}
 }
 
-func TestRunWithConfigCancelsAndJoinsBeforeAbort(t *testing.T) {
+func TestRunWithConfigCancelsJoinsAndStillContainsTimedOutCase(t *testing.T) {
 	var mu sync.Mutex
 	var events []string
 	record := func(event string) {
@@ -281,10 +281,67 @@ func TestRunWithConfigCancelsAndJoinsBeforeAbort(t *testing.T) {
 
 	mu.Lock()
 	defer mu.Unlock()
-	if !slices.Equal(events, []string{"cancel", "joined"}) {
+	if !slices.Equal(events, []string{"cancel", "joined", "abort"}) {
 		t.Fatalf("events = %v", events)
 	}
 }
+
+func TestRunWithConfigTimedOutEvaluatorUsesFreshCleanupContext(t *testing.T) {
+	elector := &timeoutCleanupElector{resigned: make(chan struct{})}
+	h := MemoryHarness()
+	h.New = func(testing.TB, leader.Options) (leader.Elector, error) { return elector, nil }
+
+	err := runEvaluator(t, h, Config{Timing: containmentTestTiming()}, "fresh-cleanup", func(
+		ctx context.Context,
+		t *testing.T,
+		h Harness,
+		opts leader.Options,
+		timing Timing,
+	) error {
+		candidate, createErr := newElector(t, h, opts)
+		if createErr != nil {
+			return createErr
+		}
+		if campaignErr := candidate.Campaign(ctx); campaignErr != nil {
+			return campaignErr
+		}
+		defer func() { _ = boundedResign(ctx, candidate, timing) }()
+		<-ctx.Done()
+		return ctx.Err()
+	})
+	if !errors.Is(err, errConformanceCaseTimedOut) {
+		t.Fatalf("runEvaluator error = %v", err)
+	}
+	select {
+	case <-elector.resigned:
+	default:
+		t.Fatal("timed-out evaluator skipped cleanup after root cancellation")
+	}
+}
+
+type timeoutCleanupElector struct {
+	owned    atomic.Bool
+	resigned chan struct{}
+}
+
+func (e *timeoutCleanupElector) Campaign(context.Context) error {
+	e.owned.Store(true)
+	return nil
+}
+
+func (e *timeoutCleanupElector) Resign(ctx context.Context) error {
+	if err := ctx.Err(); err != nil {
+		return err
+	}
+	if e.owned.CompareAndSwap(true, false) {
+		close(e.resigned)
+	}
+	return nil
+}
+
+func (e *timeoutCleanupElector) IsLeader() bool { return e.owned.Load() }
+
+func (*timeoutCleanupElector) Leader(context.Context) (string, error) { return "member", nil }
 
 func TestRunWithConfigSuccessfulAbortJoinsInOrder(t *testing.T) {
 	var mu sync.Mutex

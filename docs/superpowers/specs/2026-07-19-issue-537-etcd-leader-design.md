@@ -81,7 +81,7 @@ func (e *Elector) EffectiveTTL() time.Duration
 ```
 
 `New` validates a non-nil client and normalized `leader.Options`, requires
-`RenewInterval < Lease`, creates a cryptographically random owner token, computes the encoded
+`100ms <= RenewInterval < Lease`, creates a cryptographically random owner token, computes the encoded
 election prefix and requested integer-second TTL, and performs no backend I/O. It never creates a
 lease or session until `Campaign` starts and never closes the caller's client. A compile-time
 assertion keeps `*Elector` assignable to `leader.Elector`; the zero-value `Elector` is not usable.
@@ -137,7 +137,9 @@ use integer seconds. The provider never rounds down; a sub-second lease therefor
 second. `Campaign` calls `Lease.Grant` explicitly, records `LeaseGrantResponse.TTL`, and adopts that
 lease with `WithLease`; retry budgets always use the granted value, not the request. Constructor
 tests cover exact seconds, fractional round-up, overflow and the
-`RenewInterval < Lease` rule. Grant tests cover a server TTL that differs from the request.
+`100ms <= RenewInterval < Lease` rule. The lower bound caps ownership-validation `Proclaim`
+traffic at ten transactions per second per published leader. Grant tests cover a server TTL that
+differs from the request.
 
 The session owns lease keepalive cadence. Separately, the provider honors `RenewInterval` as an
 ownership-validation cadence by calling `Election.Proclaim` with the same token. Proclaim's
