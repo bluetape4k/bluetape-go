@@ -78,6 +78,7 @@ future scope, not part of the current public API.
 | [`leader/redis`](leader/redis/README.md) | active | Redis-backed single, group, and strategic leader election using TTL renewal, ZSET slot tokens, and candidate registries. |
 | [`leader/mongo`](leader/mongo/README.md) | active | MongoDB-backed single, group, and strategic leader election using owner-token leases, bounded slots, candidate registries, and TTL cleanup indexes. |
 | [`leader/sql`](leader/sql/README.md) | active | PostgreSQL-only single leader election using caller-owned row leases and a caller-owned `*sql.DB`. |
+| [`leader/etcd`](leader/etcd/README.md) | active | etcd single leader election using a caller-owned client, official Session/Election primitives, and exact ownership monitoring. |
 | [`resilience`](resilience/README.md) | active | First-party composable retry, timeout, circuit breaker, and bulkhead policies with synchronous observability hooks and `net/http` adapters. |
 | [`cache`](cache/README.md) | active | Generic in-process TTL cache interfaces with context-aware loaders and same-key stampede protection. |
 | [`cache/redisnear`](cache/redisnear/README.md) | active | Redis Pub/Sub near-cache invalidation for process-local loading caches. |
@@ -162,6 +163,7 @@ overview.
   [`leader/redis`](leader/redis/README.md),
   [`leader/mongo`](leader/mongo/README.md),
   [`leader/sql`](leader/sql/README.md),
+  [`leader/etcd`](leader/etcd/README.md),
   [`redis`](redis/README.md), [`redis/stream`](redis/stream/README.md), and
   [`lock/redis`](lock/redis/README.md).
 - Runtime policies, cache, state, and workflow: [`resilience`](resilience/README.md),

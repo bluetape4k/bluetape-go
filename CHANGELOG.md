@@ -17,6 +17,11 @@ and this project uses semantic versioning once the first tag is published.
   mandatory `leader/leadertest` conformance, Testcontainers fault recovery,
   least-privilege role proof, bilingual operations guidance, and a verified
   row-lease sequence diagram.
+- Add `leader/etcd` single-leader election over a caller-owned etcd v3 client
+  and official Session/Election primitives, with server-granted TTL,
+  exact-key/Proclaim fail-closed monitoring, mandatory conformance, authenticated
+  range and lease-revoke proof, and bilingual shutdown guidance. The provider
+  supplies no fencing token; TTL passage alone never proves remote cleanup.
 - Add `ratelimit/sql` PostgreSQL atomic token buckets for moderate-QPS,
   database-only deployments. Callers own the fixed schema, `*sql.DB`, and
   bounded cleanup scheduler; Redis remains the high-QPS choice. Redis and SQL
