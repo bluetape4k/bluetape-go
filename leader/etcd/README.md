@@ -130,13 +130,16 @@ Grant each principal read/write permission only for its encoded
 `[candidateRoot, rangeEnd)` interval. Tests against v3.6.13 prove symmetric
 own-range Put/Get/Delete/Watch access and sibling-range denial. They also prove
 that any user may revoke an unattached lease, but cannot revoke a lease once a
-key outside that user's permitted range is attached. This is the server's
-`checkLeasePuts` behavior, not prefix-scoped lease ownership.
+key outside that user's permitted range is attached, and cannot `KeepAliveOnce`
+that attached lease. These are attached-key authorization checks, not
+creator-owned or prefix-scoped lease capabilities.
 
-Principals sharing a range remain mutually trusted. If a deployment cannot
-prove the same cross-principal revoke behavior for its exact server version,
-place mutually untrusted tenants in separate clusters. TLS must validate both
-the issuing CA and endpoint hostname.
+Principals sharing a range remain mutually trusted. The pinned results narrow
+cross-principal election-lease interference but do not establish general
+hostile-tenant isolation; place mutually untrusted tenants in separate
+clusters. Every server-version change must rerun both cross-principal revoke
+and keepalive denial tests. TLS must validate both the issuing CA and endpoint
+hostname.
 
 ## Quorum, Compaction, And Fencing
 

@@ -458,11 +458,12 @@ cleaned up with bounded `internal/testcleanup` handling. Docker-backed tests run
 - Every credential with write/delete permission in an election range is a mutually trusted
   election participant. `KeyPrefix` is collision isolation, never tenant isolation.
 - etcd RBAC restricts KV read/write/watch to the exact encoded candidate range. Lease operations
-  are not prefix-scoped authorization. Every principal allowed to create leader sessions on one
-  cluster belongs to the same lease-level trust domain; separate credentials and ranges provide
-  namespace isolation, not hostile-tenant isolation. Mutually untrusted tenants require separate
-  clusters unless verified etcd v3.6 authorization proves cross-principal revoke denial.
-  Authenticated tests record own/sibling KV access and cross-principal lease revoke results.
+  are not creator-owned or prefix-scoped capabilities. Pinned v3.6.13 tests prove that attached-key
+  authorization denies both cross-principal revoke and keepalive, while an unattached lease can be
+  revoked by another principal. These results narrow election-lease interference but do not prove
+  general hostile-tenant isolation. Principals sharing one range are mutually trusted, mutually
+  untrusted tenants require separate clusters, and every server-version change reruns both denial
+  tests.
 - Production TLS loads a trusted CA, validates endpoint hostname/`ServerName`, and keeps
   `InsecureSkipVerify=false`. The plaintext single-node fixture is explicitly test-only.
 - Direct writes or deletes under the election prefix can force leadership loss and are restricted
@@ -522,8 +523,8 @@ cleaned up with bounded `internal/testcleanup` handling. Docker-backed tests run
 - resign, idempotent resign, lost response, retry and stale revision protection;
 - server restart/endpoint interruption within a bounded fixture where stable;
 - complete `leadertest.Run` under the etcd timing profile;
-- authenticated own-range success, sibling-range denial and cross-principal revoke result, with
-  plaintext marked test-only;
+- authenticated own-range success, sibling-range denial, unattached revoke behavior, and attached
+  cross-principal revoke/keepalive denial, with plaintext marked test-only;
 - a 32-contender resource test asserting at most 32 live leases/sessions/candidate watches, one
   Proclaim per leader, and return to the fixture baseline after cancellation plus teardown;
 - repeated and race-enabled package runs, serialized against one fixture.

@@ -31,7 +31,7 @@ func RunWithConfig(t *testing.T, harness Harness, config Config) {
 	t.Helper()
 	normalized, err := normalizeConfig(config)
 	if err != nil {
-		t.Fatal("leadertest: invalid config")
+		t.Fatal(err)
 	}
 	if err := validateHarness(harness); err != nil {
 		t.Fatal("leadertest: invalid harness")

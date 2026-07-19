@@ -78,8 +78,8 @@ integer-TTL drift, Campaign cleanup blocked on `client.Ctx`, cancellation/public
 nil Session after Grant/NewSession failure, monitor created before publication failure,
 watch-created handshake timeout, compaction, mismatched PUT, overlapping key ranges,
 Proclaim overlap, stale monitor ABA, nil official Resign without delete, stale revision cleanup,
-lease-level cross-principal revoke, shared-client hard stop, Testcontainers leak, dependency graph
-churn, 32-contender leak, and rapid reacquisition without caller fencing.
+lease-level cross-principal revoke/keepalive, shared-client hard stop, Testcontainers leak,
+dependency graph churn, 32-contender leak, and rapid reacquisition without caller fencing.
 
 - [ ] **Step 4: Commit risk evidence before source work**
 
@@ -738,12 +738,11 @@ disables auth and terminates the isolated container. Assert A can Put/Get/Delete
 range and every same operation is denied on B's sibling range, with symmetric assertions for B.
 
 On v3.6.13, attach A's candidate key to A's lease and assert B's authenticated cross-principal
-Revoke is denied because server `checkLeasePuts` checks permission for every attached key. Also
+Revoke and `KeepAliveOnce` are denied because server authorization checks every attached key. Also
 prove B can revoke an unattached lease, then loses that ability after an A-range key is attached.
-Record this pinned result and document that exact disjoint range permissions isolate attached
-election leases only while every attached key remains inside the authorized range; principals with
-the same range remain mutually trusted. A future behavior change requires design review, and
-deployments that cannot prove this v3.6 authorization contract use separate clusters. Mark all
+Record these pinned results without treating lease IDs as creator-owned or prefix-scoped
+capabilities. Principals with the same range remain mutually trusted, mutually untrusted tenants
+always use separate clusters, and every server-version change reruns both denial tests. Mark all
 plaintext fixtures test-only.
 
 - [ ] **Step 2: Add deterministic lifecycle interleavings**

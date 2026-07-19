@@ -23,7 +23,8 @@ type Timing struct {
 	_             struct{}
 }
 
-// AbortFunc contains provider work that did not join after case cancellation.
+// AbortFunc contains provider work after every case timeout, including when
+// evaluator work joins during the cancellation grace period.
 type AbortFunc func(context.Context, leader.Options) error
 
 // Config configures a conformance run.
