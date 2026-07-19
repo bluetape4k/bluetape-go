@@ -9,8 +9,10 @@ type Elector interface {
 	// 다른 member가 leader이면 leadership을 얻거나 ctx가 끝날 때까지 대기한다.
 	// 이미 이 elector가 leader이면 [ErrAlreadyLeader], 같은 elector의 campaign이
 	// 진행 중이면 [ErrCampaignInProgress], 이전 정리가 남아 있으면
-	// [ErrCleanupPending]을 반환한다. [ErrCommitUnknown]이면 bounded [Elector.Resign]
-	// 으로 owner-token 정리를 재시도하고 실패하면 lease TTL 만료를 기다려야 한다.
+	// [ErrCleanupPending]을 반환한다. [ErrCommitUnknown]이면 같은 elector에서 bounded
+	// [Elector.Resign]을 재시도한 뒤 provider별 cleanup proof/expiry contract를 따라야
+	// 한다. etcd provider는 성공한 revoke 또는 linearizable exact-key reconciliation이
+	// 필요하며 TTL 경과만으로 cleanup을 증명하지 않는다.
 	Campaign(ctx context.Context) error
 
 	// Resign 은 현재 보유한 leadership을 해제한다.
