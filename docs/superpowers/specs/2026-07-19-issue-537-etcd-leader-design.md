@@ -369,12 +369,13 @@ ResignTimeout + joinGrace + abortBudget < CaseTimeout
 15-case table in the same order; there are no capability flags, filters, skips or relaxed
 assertions.
 
-Every case owns a cancelable root context and all evaluator contexts derive from it. On case
-timeout the runner cancels the root, waits a bounded join grace, invokes `Abort` if the case is
-still running with a fresh `abortBudget` context, and joins the case goroutine before the subtest
-returns. A provider adapter that can hit official unbounded cleanup must supply case-dedicated
-clients and an Abort function that closes only those clients. This prevents timed-out cases from
-mutating later tests or leaking sessions.
+Every case owns a cancelable root context. Campaign, observation, control, waits, and workers derive
+from it; bounded cleanup uses a fresh context so root cancellation cannot skip provider release. On
+case timeout the runner cancels the root, waits a bounded join grace, invokes `Abort` with a fresh
+`abortBudget` context whether the evaluator joined or still needs a hard stop, and joins the case
+goroutine before the subtest returns. A provider adapter that can hit official unbounded cleanup
+must supply case-dedicated clients and an Abort function that closes only those clients. This
+prevents timed-out cases from mutating later tests or leaking sessions.
 
 Nil Abort is valid for existing bounded providers. If cancellation does not join and Abort is nil,
 or Abort fails to unblock the case, the harness records a containment-contract violation and does

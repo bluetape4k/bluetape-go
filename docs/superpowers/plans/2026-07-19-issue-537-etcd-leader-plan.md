@@ -165,7 +165,7 @@ type Timing struct {
     Lease time.Duration
     // RenewInterval configures the case renewal cadence.
     RenewInterval time.Duration
-    // CaseTimeout bounds one complete conformance case.
+    // CaseTimeout bounds evaluator work before cancellation and containment.
     CaseTimeout time.Duration
     // WaitTimeout bounds backend-state observation within a case.
     WaitTimeout time.Duration
@@ -179,7 +179,8 @@ type AbortFunc func(context.Context, leader.Options) error
 type Config struct {
     // Timing overrides zero-valued conformance timing fields.
     Timing Timing
-    // Abort contains a timed-out case after root cancellation cannot join it.
+    // Abort contains every timed-out case after root cancellation, whether the
+    // evaluator joins during grace or requires a provider hard stop.
     Abort AbortFunc
     _ struct{}
 }
@@ -211,12 +212,12 @@ into `RunWithConfig`, but change the private table function shape to:
 type evaluator func(context.Context, *testing.T, Harness, leader.Options, Timing) error
 ```
 
-Each case creates one cancelable root and passes it plus normalized Timing to its evaluator. Every
-Campaign, Leader, Control, wait, contention-worker, and bounded Resign context derives from that
-root; `waitFor` accepts the root and exits on `ctx.Done`. The only independent context is the fresh
-Abort context created after root cancellation. Do not leave `context.Background()` in evaluator or
-cleanup helpers. Preserve all 15 names, order, and assertions. On timeout: cancel the root, wait
-`joinGrace`, call Abort with a fresh `abortBudget` context if still running, then join. If the call
+Each case creates one cancelable root and passes it plus normalized Timing to its evaluator.
+Campaign, Leader, Control, wait, and contention-worker contexts derive from that root; `waitFor`
+accepts the root and exits on `ctx.Done`. Bounded Resign cleanup uses a fresh context so root
+cancellation cannot skip release. Preserve all 15 names, order, and assertions. On timeout: cancel
+the root, wait `joinGrace`, call Abort with a fresh `abortBudget` context whether already joined or
+still running, then join. If the call
 remains unjoined, block so the outer test timeout fails the process rather than leaking work into
 the next subtest.
 
