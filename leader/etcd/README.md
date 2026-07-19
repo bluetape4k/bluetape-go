@@ -75,6 +75,13 @@ milliseconds and less than `Lease`, so periodic `Proclaim` cadence is no faster
 than 10 Hz per published leader. Plan aggregate capacity as published leader
 groups multiplied by their configured `Proclaim` rate.
 
+The capacity inventory must also bound live contenders across all groups. Each
+contender consumes one of the expected leases/sessions/candidate keys, while
+each published group adds one of the expected exact-key watches. Calculate
+aggregate Proclaim QPS as the sum of `1 / RenewInterval` over published groups,
+then validate that full contender and publication envelope against the target
+etcd cluster.
+
 Ownership uses three separate signals:
 
 - the official `Session` owns lease keepalive and closes on lease loss;
