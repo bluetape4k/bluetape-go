@@ -34,6 +34,7 @@ func TestReadmeParity(t *testing.T) {
 		"leases/sessions/candidate keys", "exact-key watches", "KeepAliveOnce",
 		"hostile-tenant isolation", "SessionOption", "restart-resume", "<MemberID>:<random>",
 		"failed cleanup attempt", "coordinated hard-stop exception", "synchronous and non-blocking",
+		"campaign wait watch",
 	}
 	for _, file := range []string{"README.md", "README.ko.md"} {
 		contents, err := os.ReadFile(file)
@@ -74,6 +75,12 @@ func TestRollbackDocsVerifyZeroContendersBeforeRestore(t *testing.T) {
 			"zero etcd contenders",
 			restoreAnchor,
 		)
+		if file == "README.md" && !strings.Contains(
+			strings.Join(strings.Fields(rollback), " "),
+			"verify the diagnostic view has zero etcd contenders",
+		) {
+			t.Fatal("README.md does not describe the zero-contender verification action")
+		}
 	}
 
 	contents, err := os.ReadFile("../../docs/release/v0.19.0-provider-conformance-runbook.md")
@@ -300,6 +307,7 @@ func TestRunbookContract(t *testing.T) {
 		"ETCD_MAX_PUBLISHED_GROUPS",
 		"ETCD_MAX_LIVE_CONTENDERS",
 		"ETCD_APPROVED_PROCLAIM_QPS",
+		"campaign wait watch",
 		"etcd_server_proposals_pending",
 		"etcd_server_proposals_failed_total",
 		"etcd_disk_wal_fsync_duration_seconds",

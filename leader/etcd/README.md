@@ -87,11 +87,13 @@ aggregate capacity as published leader groups multiplied by their configured
 `Proclaim` rate.
 
 The capacity inventory must also bound live contenders across all groups. Each
-contender consumes one of the expected leases/sessions/candidate keys, while
-each published group adds one of the expected exact-key watches. Calculate
+contender consumes one of the expected leases/sessions/candidate keys. Each
+blocked contender may add one campaign wait watch for its predecessor, while
+each published group adds one of the expected ownership exact-key watches. Calculate
 aggregate Proclaim QPS as the sum of `1 / RenewInterval` over published groups,
-then validate that full contender and publication envelope against the target
-etcd cluster.
+then
+validate that full contender, watch, and publication envelope against the
+target etcd cluster.
 
 Ownership uses three separate signals:
 
@@ -169,7 +171,7 @@ Cutover is stop-the-world per group: stop protected work, drain and prove the
 old provider's boundary, then start etcd contenders. Rollback is symmetric:
 stop protected work and every etcd campaign, perform bounded same-elector
 cleanup, prove the exact candidate range empty with a healthy client, restore
-the diagnostic view has zero etcd contenders, and only then restore the
+verify the diagnostic view has zero etcd contenders, and only then restore the
 previous provider. Any provider overlap requires an external fencing authority.
 
 ## Observability
