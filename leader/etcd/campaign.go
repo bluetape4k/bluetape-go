@@ -173,7 +173,7 @@ func (e *Elector) Campaign(ctx context.Context) error {
 		clientv3.WithRev(snapshot.headerRev+1),
 		clientv3.WithCreatedNotify(),
 	)
-	monitor := startGenerationMonitor(generation, watch, e.token)
+	monitor := startGenerationMonitor(e, generation, watch, e.token)
 	if err := monitor.waitCreated(generation.ctx); err != nil {
 		return e.failCampaign(generation, caller, err)
 	}
@@ -183,6 +183,7 @@ func (e *Elector) Campaign(ctx context.Context) error {
 	if publicationErr == nil && caller.detach() {
 		generation.published = true
 		e.lastTTL = generation.ttl
+		monitor.publish()
 	} else if publicationErr == nil {
 		publicationErr = context.Canceled
 	}

@@ -382,6 +382,7 @@ type fakeEtcdOps struct {
 
 	snapshot electionSnapshot
 	watch    chan clientv3.WatchResponse
+	ticker   *fakeElectorTicker
 
 	sessionDone  chan struct{}
 	sessionOnce  sync.Once
@@ -409,6 +410,7 @@ func newFakeElector(t *testing.T) (*Elector, *fakeEtcdOps) {
 		watch:       make(chan clientv3.WatchResponse, 8),
 		sessionDone: make(chan struct{}),
 		getResponse: &clientv3.GetResponse{},
+		ticker:      newFakeElectorTicker(),
 	}
 	fake.snapshot = electionSnapshot{
 		key:       elector.paths.root + fmt.Sprintf("%x", fake.leaseID),
@@ -474,7 +476,7 @@ func (fake *fakeEtcdOps) ops() etcdOps {
 			fake.sessionOnce.Do(func() { close(fake.sessionDone) })
 			return nil
 		},
-		newTicker: func(time.Duration) electorTicker { return nil },
+		newTicker: func(time.Duration) electorTicker { return fake.ticker },
 	}
 }
 
@@ -525,3 +527,16 @@ func shutdownFakeGeneration(t *testing.T, elector *Elector, generation *generati
 	}
 	elector.mu.Unlock()
 }
+
+type fakeElectorTicker struct {
+	ticks chan time.Time
+	stops atomic.Int64
+}
+
+func newFakeElectorTicker() *fakeElectorTicker {
+	return &fakeElectorTicker{ticks: make(chan time.Time, 16)}
+}
+
+func (ticker *fakeElectorTicker) C() <-chan time.Time { return ticker.ticks }
+
+func (ticker *fakeElectorTicker) Stop() { ticker.stops.Add(1) }
