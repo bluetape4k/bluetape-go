@@ -20,6 +20,7 @@ func ExampleNew() {
 		startProtectedWork func(context.Context) <-chan struct{},
 		reconcile func(context.Context) error,
 		scheduleRecheck func(time.Duration) error,
+		recordCleanupFailure func(error),
 	) (resultErr error) {
 		opts := leader.Options{
 			Group:         "billing-workers",
@@ -34,14 +35,25 @@ func ExampleNew() {
 		campaignCtx, cancelCampaign := context.WithTimeout(ctx, 15*time.Second)
 		defer cancelCampaign()
 		if campaignErr := elector.Campaign(campaignCtx); campaignErr != nil {
-			return errors.Join(campaignErr, retryResignAndReconcile(elector, reconcile, scheduleRecheck))
+			return errors.Join(campaignErr, retryResignAndReconcile(
+				elector, reconcile, scheduleRecheck, recordCleanupFailure,
+			))
 		}
 		// A nil Campaign result does not outrank a concurrently completed caller deadline.
 		if err := campaignCtx.Err(); err != nil {
-			return errors.Join(err, retryResignAndReconcile(elector, reconcile, scheduleRecheck))
+			return errors.Join(err, retryResignAndReconcile(
+				elector, reconcile, scheduleRecheck, recordCleanupFailure,
+			))
+		}
+		if !elector.IsLeader() {
+			return errors.Join(leader.ErrNotLeader, retryResignAndReconcile(
+				elector, reconcile, scheduleRecheck, recordCleanupFailure,
+			))
 		}
 
 		protectedCtx, stopProtectedWork := context.WithCancel(ctx)
+		// startProtectedWork must recheck elector.IsLeader immediately before
+		// every protected work unit; the loop below also guards long units.
 		protectedDone := startProtectedWork(protectedCtx)
 		defer func() {
 			stopProtectedWork()
@@ -52,7 +64,9 @@ func ExampleNew() {
 			}
 			resultErr = errors.Join(
 				resultErr,
-				retryResignAndReconcile(elector, reconcile, scheduleRecheck),
+				retryResignAndReconcile(
+					elector, reconcile, scheduleRecheck, recordCleanupFailure,
+				),
 			)
 		}()
 		poll := time.NewTicker(min(opts.RenewInterval, time.Second))
@@ -86,6 +100,7 @@ func Example_shutdownSupervisor() {
 		persistUnresolved func(error) error,
 		proveExactRangeAbsent func(context.Context) error,
 		scheduleRecheck func(time.Duration) error,
+		recordCleanupFailure func(error),
 		restorePreviousProvider func() error,
 		verifyZeroEtcdContenders func() error,
 	) error {
@@ -107,12 +122,21 @@ func Example_shutdownSupervisor() {
 			for _, elector := range electors {
 				cleanupErr = errors.Join(
 					cleanupErr,
-					retryResignAndReconcile(elector, proveExactRangeAbsent, scheduleRecheck),
+					retryResignAndReconcile(
+						elector, proveExactRangeAbsent, scheduleRecheck, recordCleanupFailure,
+					),
 				)
 			}
 		} else {
-			cleanupErr = errors.Join(cleanupErr, coordinateSharedClientUsers(), closeCallerClient())
-			<-campaignsDone // client close is the hard stop for official cleanup on client.Ctx().
+			cleanupErr = errors.Join(cleanupErr, hardStopCampaigns(
+				campaignsDone,
+				coordinateSharedClientUsers,
+				closeCallerClient,
+				5*time.Second,
+			))
+			if cleanupErr != nil {
+				return errors.Join(initiatingErr, cleanupErr, persistUnresolved(cleanupErr))
+			}
 		}
 		if cleanupErr != nil {
 			cleanupErr = errors.Join(cleanupErr, persistUnresolved(cleanupErr))
@@ -170,6 +194,7 @@ func retryResignAndReconcile(
 	elector *etcdleader.Elector,
 	reconcile func(context.Context) error,
 	scheduleRecheck func(time.Duration) error,
+	recordFailure func(error),
 ) error {
 	var lastErr error
 	for range 3 {
@@ -179,6 +204,7 @@ func retryResignAndReconcile(
 		if lastErr == nil {
 			return nil
 		}
+		recordCleanupAttempt(recordFailure, lastErr)
 	}
 	proofCtx, cancelProof := context.WithTimeout(context.Background(), 5*time.Second)
 	proofErr := reconcile(proofCtx)
@@ -186,11 +212,47 @@ func retryResignAndReconcile(
 	if proofErr == nil {
 		return lastErr
 	}
+	recordCleanupAttempt(recordFailure, proofErr)
 	if scheduleRecheck == nil {
-		return errors.Join(lastErr, proofErr, errors.New("cleanup recheck scheduler is nil"))
+		schedulerErr := errors.New("cleanup recheck scheduler is nil")
+		recordCleanupAttempt(recordFailure, schedulerErr)
+		return errors.Join(lastErr, proofErr, schedulerErr)
 	}
 	// EffectiveTTL schedules a future proof attempt; it is not deletion proof.
-	return errors.Join(lastErr, proofErr, scheduleRecheck(elector.EffectiveTTL()))
+	scheduleErr := scheduleRecheck(elector.EffectiveTTL())
+	recordCleanupAttempt(recordFailure, scheduleErr)
+	return errors.Join(lastErr, proofErr, scheduleErr)
+}
+
+func recordCleanupAttempt(record func(error), err error) {
+	if record != nil && err != nil {
+		record(err) // The caller must sanitize before logging or labeling the error.
+	}
+}
+
+func hardStopCampaigns(
+	campaignsDone <-chan struct{},
+	coordinateSharedClientUsers func() error,
+	closeCallerClient func() error,
+	joinTimeout time.Duration,
+) error {
+	if err := coordinateSharedClientUsers(); err != nil {
+		return err
+	}
+	if err := closeCallerClient(); err != nil {
+		return err
+	}
+	if campaignsDone == nil {
+		return errors.New("campaign completion channel is nil")
+	}
+	timer := time.NewTimer(joinTimeout)
+	defer timer.Stop()
+	select {
+	case <-campaignsDone:
+		return nil
+	case <-timer.C:
+		return errors.New("campaigns did not join after caller client close")
+	}
 }
 
 func joinProtectedWork(done <-chan struct{}) error {

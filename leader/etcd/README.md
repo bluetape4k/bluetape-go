@@ -49,10 +49,18 @@ if err != nil {
 ```
 
 `Campaign` is synchronous. Even after it returns nil, inspect
-`campaignCtx.Err()` before starting protected work. While work runs, sample
-`IsLeader` before every work unit and at least every
-`min(RenewInterval, 1s)` during a long unit. Stop and join protected work before
-reacquiring. The complete acquire/work/resign sequence is in `ExampleNew`.
+`campaignCtx.Err()` and require `IsLeader()` immediately before starting
+protected work. While work runs, sample `IsLeader` before every work unit and
+at least every `min(RenewInterval, 1s)` during a long unit. Stop and join
+protected work before reacquiring. The complete acquire/work/resign sequence is
+in `ExampleNew`.
+
+`New` accepts only the caller-owned `*clientv3.Client` and normalized
+`leader.Options`. It intentionally exposes no raw `concurrency.SessionOption`,
+session adoption, or restart-resume API. Every Campaign creates a new
+provider-owned session. `Leader` returns an opaque `<MemberID>:<random>` value;
+compare it as a whole string and never parse the suffix as a fencing token or
+durable identity.
 
 ## Encoded Election Range
 
@@ -69,11 +77,12 @@ belongs only to mutually trusted operators and election principals.
 ## Lease And Ownership Signals
 
 Requested leases are rounded up to integer seconds. etcd may return a different
-server-granted TTL; `EffectiveTTL` exposes the last granted value and is the
-only TTL suitable for retry scheduling. `RenewInterval` must be at least 100
-milliseconds and less than `Lease`, so periodic `Proclaim` cadence is no faster
-than 10 Hz per published leader. Plan aggregate capacity as published leader
-groups multiplied by their configured `Proclaim` rate.
+server-granted TTL; `EffectiveTTL` exposes the current or most recent fully
+published grant and is the only TTL suitable for retry scheduling.
+`RenewInterval` must be at least 100 milliseconds and less than `Lease`, so
+periodic `Proclaim` cadence is no faster than 10 Hz per published leader. Plan
+aggregate capacity as published leader groups multiplied by their configured
+`Proclaim` rate.
 
 The capacity inventory must also bound live contenders across all groups. Each
 contender consumes one of the expected leases/sessions/candidate keys, while
@@ -96,9 +105,9 @@ execution guard, not a fencing token or remote-deletion proof.
 
 Inspect `leader.OperationError`, `leader.ErrCommitUnknown`, and
 `leader.ErrCleanupPending` with `errors.Is` and `errors.As`. Diagnostic strings
-redact keys, endpoints, lease IDs, and owner tokens. `errors.Unwrap` deliberately
-preserves the raw etcd cause for programmatic inspection; do not emit that cause
-to logs or telemetry without sanitizing it.
+redact keys, endpoints, lease IDs, and owner tokens. The error chain preserves
+the raw etcd cause for explicit `errors.Is`/`errors.As` inspection; do not emit
+unwrapped or joined raw causes to logs or telemetry without sanitizing them.
 
 Cancellation can enter the official `Election.Campaign` cleanup using the
 long-lived caller client context. Retry bounded `Resign` on the same elector
@@ -167,8 +176,10 @@ Wrap synchronous operations with bounded-cardinality
 provider/operation/result/latency metrics. Sample `IsLeader` before work and at
 least every `min(RenewInterval, 1s)` during long work; emit one
 `leadership_lost` event on the first true-to-false transition. Inventory
-`ErrCommitUnknown` and `ErrCleanupPending` at call boundaries. Never label or
-log endpoints, keys, lease IDs, owner tokens, or rendered raw errors.
+`ErrCommitUnknown` and `ErrCleanupPending` at call boundaries, and record every
+failed cleanup attempt separately even when a later retry proves cleanup.
+Never label or log endpoints, keys, lease IDs, owner tokens, or rendered raw
+errors.
 
 ## Tested Scope
 

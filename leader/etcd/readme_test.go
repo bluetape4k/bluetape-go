@@ -3,10 +3,12 @@ package etcdleader_test
 import (
 	"crypto/tls"
 	"crypto/x509"
+	"errors"
 	"os"
 	"reflect"
 	"strings"
 	"testing"
+	"time"
 )
 
 func TestReadmeParity(t *testing.T) {
@@ -28,9 +30,10 @@ func TestReadmeParity(t *testing.T) {
 	anchors := []string{
 		"New", "EffectiveTTL", "ErrCommitUnknown", "ErrCleanupPending", "Session", "Proclaim",
 		"InsecureSkipVerify", "ServerName", "username/password", "100", "compaction",
-		"fencing", "errors.Unwrap", "aggregate Proclaim QPS", "live contenders",
+		"fencing", "joined raw", "aggregate Proclaim QPS", "live contenders",
 		"leases/sessions/candidate keys", "exact-key watches", "KeepAliveOnce",
-		"hostile-tenant isolation",
+		"hostile-tenant isolation", "SessionOption", "restart-resume", "<MemberID>:<random>",
+		"failed cleanup attempt",
 	}
 	for _, file := range []string{"README.md", "README.ko.md"} {
 		contents, err := os.ReadFile(file)
@@ -46,6 +49,39 @@ func TestReadmeParity(t *testing.T) {
 				t.Fatalf("%s is missing %q", file, anchor)
 			}
 		}
+	}
+}
+
+func TestHardStopCampaignsRequiresSuccessfulCoordination(t *testing.T) {
+	want := errors.New("shared users are active")
+	closed := false
+	err := hardStopCampaigns(
+		make(chan struct{}),
+		func() error { return want },
+		func() error { closed = true; return nil },
+		10*time.Millisecond,
+	)
+	if !errors.Is(err, want) {
+		t.Fatalf("hardStopCampaigns() error = %v, want %v", err, want)
+	}
+	if closed {
+		t.Fatal("hardStopCampaigns() closed the client before shared-user coordination")
+	}
+}
+
+func TestHardStopCampaignsBoundsPostCloseJoin(t *testing.T) {
+	closed := false
+	err := hardStopCampaigns(
+		make(chan struct{}),
+		func() error { return nil },
+		func() error { closed = true; return nil },
+		10*time.Millisecond,
+	)
+	if !closed {
+		t.Fatal("hardStopCampaigns() did not close the coordinated client")
+	}
+	if err == nil || !strings.Contains(err.Error(), "campaigns did not join") {
+		t.Fatalf("hardStopCampaigns() error = %v, want bounded join failure", err)
 	}
 }
 
@@ -91,6 +127,7 @@ func TestRunbookContract(t *testing.T) {
 		`go list -m -f '{{.Version}}' go.opentelemetry.io/otel/sdk/metric`,
 		"TTL only schedules another proof attempt",
 		"go mod tidy",
+		"go get golang.org/x/crypto@v0.49.0",
 		"make ci",
 	}
 	for index, section := range parts {

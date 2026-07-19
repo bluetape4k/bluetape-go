@@ -48,10 +48,16 @@ if err != nil {
 ```
 
 `Campaign`은 synchronous call입니다. Nil을 반환했더라도 protected work를 시작하기
-전에 `campaignCtx.Err()`를 확인합니다. Work 중에는 매 작업 단위 전과 긴 작업에서는
-최소 `min(RenewInterval, 1s)`마다 `IsLeader`를 확인합니다. 재획득 전에 이전 protected
-work를 중지하고 join해야 합니다. 전체 acquire/work/resign 흐름은 `ExampleNew`에
-있습니다.
+전에 `campaignCtx.Err()`를 확인하고 즉시 `IsLeader()`가 true인지 요구합니다. Work
+중에는 매 작업 단위 전과 긴 작업에서는 최소 `min(RenewInterval, 1s)`마다 `IsLeader`를
+확인합니다. 재획득 전에 이전 protected work를 중지하고 join해야 합니다. 전체
+acquire/work/resign 흐름은 `ExampleNew`에 있습니다.
+
+`New`는 caller-owned `*clientv3.Client`와 normalized `leader.Options`만 받습니다. Raw
+`concurrency.SessionOption`, session adoption, restart-resume API는 의도적으로 제공하지
+않으며 Campaign마다 새 provider-owned session을 만듭니다. `Leader`는 opaque
+`<MemberID>:<random>` 값을 반환합니다. 전체 string으로만 비교하고 suffix를 fencing token
+또는 durable identity로 parsing하지 않습니다.
 
 ## Encoded Election Range
 
@@ -67,7 +73,8 @@ Candidate range 안의 key를 직접 Put/Delete하면 leadership을 강제로 �
 ## Lease And Ownership Signals
 
 요청한 lease는 정수 초 단위로 올림됩니다. etcd가 다른 server-granted TTL을 반환할 수
-있으며, 마지막 grant를 나타내는 `EffectiveTTL`만 retry scheduling에 사용합니다.
+있으며, 현재 또는 가장 최근 fully published grant를 나타내는 `EffectiveTTL`만 retry
+scheduling에 사용합니다.
 `RenewInterval`은 최소 100 milliseconds이고 `Lease`보다 짧아야 하므로 published
 leader 하나당 periodic `Proclaim` cadence는 10 Hz보다 빠르지 않습니다. 전체 capacity는
 published leader group 수와 각 group의 configured `Proclaim` rate를 곱해 계획합니다.
@@ -92,8 +99,9 @@ guard일 뿐 fencing token이나 remote deletion proof가 아닙니다.
 
 `leader.OperationError`, `leader.ErrCommitUnknown`, `leader.ErrCleanupPending`는
 `errors.Is`와 `errors.As`로 검사합니다. Diagnostic string은 key, endpoint, lease ID,
-owner token을 redaction합니다. `errors.Unwrap`은 programmatic inspection을 위해 raw etcd
-cause를 보존하므로 sanitize하지 않은 채 log나 telemetry로 내보내면 안 됩니다.
+owner token을 redaction합니다. Error chain은 명시적인 `errors.Is`/`errors.As` 검사를 위해
+raw etcd cause를 보존하지만, unwrapped 또는 joined raw cause를 sanitize하지 않고 log나
+telemetry에 기록하지 않습니다.
 
 Cancellation은 공식 `Election.Campaign`이 장시간 유지되는 caller client context로
 cleanup하는 경로에 들어갈 수 있습니다. Client가 healthy할 때 같은 elector로 bounded
@@ -159,8 +167,9 @@ contender가 0인지 확인합니다. Provider overlap에는 외부 fencing auth
 Synchronous operation은 bounded-cardinality provider/operation/result/latency metric으로
 감쌉니다. Work 전과 긴 work에서는 최소 `min(RenewInterval, 1s)`마다 `IsLeader`를
 sampling하고 첫 true-to-false transition에 `leadership_lost` event 하나를 남깁니다.
-Call boundary에서 `ErrCommitUnknown`과 `ErrCleanupPending`을 inventory합니다. Endpoint,
-key, lease ID, owner token, rendered raw error는 label이나 log에 넣지 않습니다.
+Call boundary에서 `ErrCommitUnknown`과 `ErrCleanupPending`을 inventory하고, 후속 retry가
+cleanup을 증명해도 failed cleanup attempt를 각각 기록합니다. Endpoint, key, lease ID,
+owner token, rendered raw error는 label이나 log에 넣지 않습니다.
 
 ## Tested Scope
 
