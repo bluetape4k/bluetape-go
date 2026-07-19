@@ -169,8 +169,8 @@ Cutover is stop-the-world per group: stop protected work, drain and prove the
 old provider's boundary, then start etcd contenders. Rollback is symmetric:
 stop protected work and every etcd campaign, perform bounded same-elector
 cleanup, prove the exact candidate range empty with a healthy client, restore
-the previous provider, and verify zero etcd contenders. Any provider overlap
-requires an external fencing authority.
+the diagnostic view has zero etcd contenders, and only then restore the
+previous provider. Any provider overlap requires an external fencing authority.
 
 ## Observability
 
