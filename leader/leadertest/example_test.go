@@ -7,6 +7,8 @@ import (
 	"github.com/bluetape4k/bluetape-go/leader/leadertest"
 )
 
+var _ = leadertest.Harness{nil, nil}
+
 func TestProviderConformance(t *testing.T) {
 	harness := leadertest.MemoryHarness()
 	leadertest.Run(t, harness)
