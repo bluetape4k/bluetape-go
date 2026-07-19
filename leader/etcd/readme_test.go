@@ -183,6 +183,29 @@ func TestShutdownFinalProofPersistsUnresolvedCleanup(t *testing.T) {
 	}
 }
 
+func TestShutdownZeroContenderFailureBlocksRestore(t *testing.T) {
+	zeroErr := errors.New("etcd contenders remain")
+	var persisted error
+	restored := false
+	err := finishShutdownAfterProof(
+		nil,
+		nil,
+		nil,
+		func(err error) error { persisted = err; return nil },
+		func() error { restored = true; return nil },
+		func() error { return zeroErr },
+	)
+	if !errors.Is(err, zeroErr) {
+		t.Fatalf("finishShutdownAfterProof() error = %v, want %v", err, zeroErr)
+	}
+	if !errors.Is(persisted, zeroErr) {
+		t.Fatalf("persisted error = %v, want %v", persisted, zeroErr)
+	}
+	if restored {
+		t.Fatal("finishShutdownAfterProof() restored while etcd contenders remained")
+	}
+}
+
 func TestRunbookContract(t *testing.T) {
 	contents, err := os.ReadFile("../../docs/release/v0.19.0-provider-conformance-runbook.md")
 	if err != nil {
