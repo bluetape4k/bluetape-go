@@ -28,7 +28,8 @@ func TestReadmeParity(t *testing.T) {
 	anchors := []string{
 		"New", "EffectiveTTL", "ErrCommitUnknown", "ErrCleanupPending", "Session", "Proclaim",
 		"InsecureSkipVerify", "ServerName", "username/password", "100", "compaction",
-		"fencing", "errors.Unwrap",
+		"fencing", "errors.Unwrap", "aggregate Proclaim QPS", "live contenders",
+		"leases/sessions/candidate keys", "exact-key watches",
 	}
 	for _, file := range []string{"README.md", "README.ko.md"} {
 		contents, err := os.ReadFile(file)
@@ -64,6 +65,13 @@ func TestRunbookContract(t *testing.T) {
 		`etcdctl --endpoints="$ETCD_ENDPOINTS" del "$ETCD_PREFLIGHT_KEY"`,
 		`ETCD_EXACT_RANGE_COUNT="$(etcdctl --endpoints="$ETCD_DIAGNOSTIC_ENDPOINTS" get "$ETCD_CANDIDATE_ROOT" --prefix --count-only)"`,
 		`test "$ETCD_EXACT_RANGE_COUNT" -eq 0`,
+		"ETCD_MAX_PUBLISHED_GROUPS",
+		"ETCD_MAX_LIVE_CONTENDERS",
+		"ETCD_APPROVED_PROCLAIM_QPS",
+		"etcd_server_proposals_pending",
+		"etcd_server_proposals_failed_total",
+		"etcd_disk_wal_fsync_duration_seconds",
+		"etcd_disk_backend_commit_duration_seconds",
 		"campaign drain",
 		"exact range",
 		"symmetric rollback",
@@ -72,6 +80,7 @@ func TestRunbookContract(t *testing.T) {
 		"git diff -- go.mod go.sum",
 		"git rm -r leader/etcd",
 		"README.md README.ko.md leader/README.md leader/README.ko.md leader/elector.go CHANGELOG.md",
+		`git grep -n 'etcd provider' -- leader/elector.go`,
 		`go list -m -f '{{.Version}}' golang.org/x/crypto`,
 		`go list -m -f '{{.Version}}' golang.org/x/net`,
 		`go list -m -f '{{.Version}}' golang.org/x/sys`,

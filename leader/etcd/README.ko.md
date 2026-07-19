@@ -72,6 +72,12 @@ Candidate range 안의 key를 직접 Put/Delete하면 leadership을 강제로 �
 leader 하나당 periodic `Proclaim` cadence는 10 Hz보다 빠르지 않습니다. 전체 capacity는
 published leader group 수와 각 group의 configured `Proclaim` rate를 곱해 계획합니다.
 
+Capacity inventory는 모든 group의 live contenders 상한도 포함해야 합니다. 각 contender는
+예상 leases/sessions/candidate keys 하나씩을 사용하고, published group마다 예상
+exact-key watches 하나가 추가됩니다. aggregate Proclaim QPS는 published group별
+`1 / RenewInterval`의 합으로 계산하고, 전체 contender/publication envelope를 대상 etcd
+cluster에서 검증합니다.
+
 Ownership은 서로 다른 세 신호를 함께 사용합니다.
 
 - 공식 `Session`이 lease keepalive를 소유하고 lease loss 때 종료됩니다.
