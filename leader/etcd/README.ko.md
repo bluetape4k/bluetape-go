@@ -68,8 +68,9 @@ Candidate range 안의 key를 직접 Put/Delete하면 leadership을 강제로 �
 
 요청한 lease는 정수 초 단위로 올림됩니다. etcd가 다른 server-granted TTL을 반환할 수
 있으며, 마지막 grant를 나타내는 `EffectiveTTL`만 retry scheduling에 사용합니다.
-`RenewInterval`은 최소 100 milliseconds이고 `Lease`보다 짧아야 하며 published leader
-하나당 `Proclaim` traffic을 초당 최대 10 transaction으로 제한합니다.
+`RenewInterval`은 최소 100 milliseconds이고 `Lease`보다 짧아야 하므로 published
+leader 하나당 periodic `Proclaim` cadence는 10 Hz보다 빠르지 않습니다. 전체 capacity는
+published leader group 수와 각 group의 configured `Proclaim` rate를 곱해 계획합니다.
 
 Ownership은 서로 다른 세 신호를 함께 사용합니다.
 

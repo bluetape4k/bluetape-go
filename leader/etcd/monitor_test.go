@@ -3,6 +3,7 @@ package etcdleader
 import (
 	"context"
 	"errors"
+	"math"
 	"sync/atomic"
 	"testing"
 	"time"
@@ -141,6 +142,38 @@ func TestMonitorProclaimIsSingleFlight(t *testing.T) {
 	shutdownFakeGeneration(t, elector, generation)
 	if got := fake.ticker.stops.Load(); got != 1 {
 		t.Fatalf("ticker stops = %d, want 1", got)
+	}
+}
+
+func TestMonitorProclaimRateIsBoundedByRenewInterval(t *testing.T) {
+	elector, fake := newFakeElector(t)
+	elector.opts.RenewInterval = minimumProclaimInterval
+	intervals := make(chan time.Duration, 1)
+	elector.ops.newTicker = func(interval time.Duration) electorTicker {
+		intervals <- interval
+		return realElectorTicker{Ticker: time.NewTicker(interval)}
+	}
+	fake.send(clientv3.WatchResponse{Created: true})
+	if err := elector.Campaign(context.Background()); err != nil {
+		t.Fatal(err)
+	}
+	if interval := <-intervals; interval != minimumProclaimInterval {
+		t.Fatalf("ticker interval = %s, want %s", interval, minimumProclaimInterval)
+	}
+
+	started := time.Now()
+	deadline := started.Add(2 * time.Second)
+	for fake.proclaimCalls.Load()-1 < 3 && time.Now().Before(deadline) {
+		time.Sleep(10 * time.Millisecond)
+	}
+	elapsed := time.Since(started)
+	periodicCalls := fake.proclaimCalls.Load() - 1 // Exclude acquisition validation.
+	wantMax := int64(math.Ceil(float64(elapsed)/float64(minimumProclaimInterval))) + 1
+	if periodicCalls < 3 || periodicCalls > wantMax {
+		t.Fatalf("periodic Proclaim calls = %d after %s, want 3..%d", periodicCalls, elapsed, wantMax)
+	}
+	if err := elector.Resign(context.Background()); err != nil {
+		t.Fatal(err)
 	}
 }
 

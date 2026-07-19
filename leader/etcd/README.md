@@ -71,8 +71,9 @@ belongs only to mutually trusted operators and election principals.
 Requested leases are rounded up to integer seconds. etcd may return a different
 server-granted TTL; `EffectiveTTL` exposes the last granted value and is the
 only TTL suitable for retry scheduling. `RenewInterval` must be at least 100
-milliseconds and less than `Lease`, bounding `Proclaim` traffic to at most ten
-transactions per second per published leader.
+milliseconds and less than `Lease`, so periodic `Proclaim` cadence is no faster
+than 10 Hz per published leader. Plan aggregate capacity as published leader
+groups multiplied by their configured `Proclaim` rate.
 
 Ownership uses three separate signals:
 
