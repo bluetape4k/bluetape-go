@@ -1,6 +1,10 @@
 package leadertest
 
 import (
+	"context"
+	"os"
+	"os/exec"
+	"strings"
 	"testing"
 	"time"
 )
@@ -38,5 +42,27 @@ func TestNormalizeTimingRejectsContainmentViolations(t *testing.T) {
 		if _, err := normalizeConfig(Config{Timing: timing}); err == nil {
 			t.Fatalf("accepted invalid timing %+v", timing)
 		}
+	}
+}
+
+func TestRunWithConfigReportsInvalidReason(t *testing.T) {
+	if os.Getenv("BLUETAPE_LEADERTEST_INVALID_CONFIG_HELPER") == "1" {
+		RunWithConfig(t, MemoryHarness(), Config{Timing: Timing{
+			Lease:         time.Second,
+			RenewInterval: time.Second,
+		}})
+		return
+	}
+
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+	command := exec.CommandContext(ctx, os.Args[0], "-test.run=^TestRunWithConfigReportsInvalidReason$")
+	command.Env = append(os.Environ(), "BLUETAPE_LEADERTEST_INVALID_CONFIG_HELPER=1")
+	output, err := command.CombinedOutput()
+	if err == nil {
+		t.Fatal("invalid config helper unexpectedly passed")
+	}
+	if !strings.Contains(string(output), "leadertest: renewal interval must be shorter than lease") {
+		t.Fatalf("invalid config output = %q", output)
 	}
 }

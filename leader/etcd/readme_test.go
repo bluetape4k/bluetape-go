@@ -29,7 +29,8 @@ func TestReadmeParity(t *testing.T) {
 		"New", "EffectiveTTL", "ErrCommitUnknown", "ErrCleanupPending", "Session", "Proclaim",
 		"InsecureSkipVerify", "ServerName", "username/password", "100", "compaction",
 		"fencing", "errors.Unwrap", "aggregate Proclaim QPS", "live contenders",
-		"leases/sessions/candidate keys", "exact-key watches",
+		"leases/sessions/candidate keys", "exact-key watches", "KeepAliveOnce",
+		"hostile-tenant isolation",
 	}
 	for _, file := range []string{"README.md", "README.ko.md"} {
 		contents, err := os.ReadFile(file)
@@ -76,6 +77,7 @@ func TestRunbookContract(t *testing.T) {
 		"exact range",
 		"symmetric rollback",
 		"quorum",
+		"cross-principal keepalive denial",
 		"sampling cadence",
 		"git diff -- go.mod go.sum",
 		"git rm -r leader/etcd",

@@ -42,7 +42,7 @@ func TestEtcdAuthorizationBoundaries(t *testing.T) {
 		assertOwnRangeAccess(t, clientB, pathsB.root+"candidate-b")
 		assertSiblingRangeDenied(t, clientB, pathsA.root+"candidate-a")
 	})
-	t.Run("attached leases inherit key authorization", func(t *testing.T) {
+	t.Run("attached lease operations require key authorization", func(t *testing.T) {
 		unattached, err := clientB.Grant(ctx, 5)
 		if err != nil {
 			t.Fatalf("grant unattached B lease: %v", err)
@@ -60,6 +60,9 @@ func TestEtcdAuthorizationBoundaries(t *testing.T) {
 		}
 		if _, err := clientB.Revoke(ctx, leaseA.ID); !errors.Is(err, rpctypes.ErrPermissionDenied) {
 			t.Fatalf("B revoke A attached lease error = %v, want permission denied", err)
+		}
+		if _, err := clientB.KeepAliveOnce(ctx, leaseA.ID); !errors.Is(err, rpctypes.ErrPermissionDenied) {
+			t.Fatalf("B keep alive A attached lease error = %v, want permission denied", err)
 		}
 
 		leaseB, err := clientB.Grant(ctx, 5)

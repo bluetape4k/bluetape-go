@@ -133,3 +133,32 @@ Do not delete slow cases, share a faulted client across cases, or raise the
 global timing defaults to accommodate one backend. Tune the provider profile,
 retain abort containment, and report normal plus race wall-clock evidence when
 the profile changes.
+
+## L5: Lease authorization follows attached keys, not lease creation
+
+### Problem
+
+An etcd lease ID is neither a creator-owned capability nor a prefix-owned
+resource. Inferring isolation from who called `Grant`, or from one lease RPC,
+can overstate the boundary between authenticated principals.
+
+### Decision
+
+Pin the exact server behavior with authenticated tests. On v3.6.13, another
+principal can revoke an unattached lease, but attached-key authorization denies
+both cross-principal `Revoke` and `KeepAliveOnce` when the principal cannot
+write the attached candidate key. Treat same-range principals as mutually
+trusted and place mutually untrusted tenants in separate clusters regardless;
+the pinned checks are election safety evidence, not general tenant isolation.
+
+### Evidence
+
+`TestEtcdAuthorizationBoundaries` proves symmetric own-range access,
+sibling-range denial, unattached revoke, and attached cross-principal revoke
+plus keepalive denial against the immutable v3.6.13 fixture.
+
+### Future Guard
+
+Rerun both attached-lease denial checks for every etcd server upgrade. Do not
+replace them with source inspection alone or advertise lease IDs as security
+capabilities.

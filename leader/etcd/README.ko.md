@@ -124,12 +124,15 @@ cutover, cleanup inventory 삭제를 결정하지 않습니다.
 Principal마다 encoded `[candidateRoot, rangeEnd)`에만 read/write permission을 줍니다.
 v3.6.13 test는 own-range Put/Get/Delete/Watch 성공과 sibling-range 거부를 양방향으로
 증명합니다. 또한 unattached lease는 어떤 user든 revoke할 수 있지만, 허용 범위 밖
-key가 붙은 lease는 revoke할 수 없음을 확인합니다. 이는 prefix 단위 lease ownership이
-아니라 server의 `checkLeasePuts` 동작입니다.
+key가 붙은 lease는 revoke하거나 `KeepAliveOnce`할 수 없음을 확인합니다. 이는
+creator-owned 또는 prefix-scoped lease capability가 아니라 attached-key authorization
+검사입니다.
 
-같은 range를 공유하는 principal은 서로 신뢰해야 합니다. 배포 대상 server version에서
-동일한 cross-principal revoke 동작을 증명할 수 없다면 상호 신뢰하지 않는 tenant를
-별도 cluster에 둡니다. TLS는 발급 CA와 endpoint hostname을 모두 검증해야 합니다.
+같은 range를 공유하는 principal은 서로 신뢰해야 합니다. Pinned 결과는
+cross-principal election-lease interference를 줄이지만 일반적인 hostile-tenant isolation을
+증명하지 않습니다. 상호 신뢰하지 않는 tenant는 별도 cluster에 두고, server version이
+바뀔 때마다 cross-principal revoke와 keepalive denial test를 모두 재실행합니다. TLS는
+발급 CA와 endpoint hostname을 모두 검증해야 합니다.
 
 ## Quorum, Compaction, And Fencing
 
