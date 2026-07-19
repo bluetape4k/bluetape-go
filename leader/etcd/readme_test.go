@@ -52,6 +52,80 @@ func TestReadmeParity(t *testing.T) {
 	}
 }
 
+func TestRollbackDocsVerifyZeroContendersBeforeRestore(t *testing.T) {
+	readmes := map[string]string{
+		"README.md":    "previous provider",
+		"README.ko.md": "이전 provider",
+	}
+	for file, restoreAnchor := range readmes {
+		contents, err := os.ReadFile(file)
+		if err != nil {
+			t.Fatal(err)
+		}
+		rollback := sectionBetween(
+			t,
+			file,
+			string(contents),
+			"## Migration And Rollback",
+			"## Observability",
+		)
+		assertOrdered(t, file, rollback,
+			"exact candidate range",
+			"zero etcd contenders",
+			restoreAnchor,
+		)
+	}
+
+	contents, err := os.ReadFile("../../docs/release/v0.19.0-provider-conformance-runbook.md")
+	if err != nil {
+		t.Fatal(err)
+	}
+	for index, section := range strings.SplitN(string(contents), "## 한국어", 2) {
+		rollbackStart := strings.Index(section, "symmetric rollback")
+		if rollbackStart < 0 {
+			t.Fatalf("runbook section %d is missing symmetric rollback", index)
+		}
+		restoreAnchor := "previous provider"
+		if index == 1 {
+			restoreAnchor = "이전 provider"
+		}
+		assertOrdered(t, "runbook", section[rollbackStart:],
+			"exact range proof",
+			"zero etcd contenders",
+			restoreAnchor,
+		)
+	}
+}
+
+func sectionBetween(t *testing.T, file, text, start, end string) string {
+	t.Helper()
+	startIndex := strings.Index(text, start)
+	if startIndex < 0 {
+		t.Fatalf("%s is missing %q", file, start)
+	}
+	section := text[startIndex+len(start):]
+	endIndex := strings.Index(section, end)
+	if endIndex < 0 {
+		t.Fatalf("%s is missing %q after %q", file, end, start)
+	}
+	return section[:endIndex]
+}
+
+func assertOrdered(t *testing.T, file, text string, anchors ...string) {
+	t.Helper()
+	text = strings.Join(strings.Fields(text), " ")
+	for index, anchor := range anchors {
+		next := strings.Index(text, anchor)
+		if next < 0 {
+			if index == 0 {
+				t.Fatalf("%s is missing %q", file, anchor)
+			}
+			t.Fatalf("%s does not contain %q after %q", file, anchor, anchors[index-1])
+		}
+		text = text[next+len(anchor):]
+	}
+}
+
 func TestExampleRequiresPerUnitLeadershipGuard(t *testing.T) {
 	contents, err := os.ReadFile("example_test.go")
 	if err != nil {

@@ -160,8 +160,8 @@ token이 없으므로 stale leader가 etcd 연결을 잃은 뒤에도 외부 sid
 Cutover는 group별 stop-the-world입니다. Protected work를 멈추고 기존 provider를 drain한
 뒤 safety boundary를 증명하고 etcd contender를 시작합니다. Rollback도 대칭입니다.
 Protected work와 모든 etcd campaign을 중지하고, bounded same-elector cleanup 후 healthy
-client로 exact candidate range가 비었음을 증명하고, 이전 provider를 복원한 뒤 etcd
-contender가 0인지 확인합니다. Provider overlap에는 외부 fencing authority가 필요합니다.
+client로 exact candidate range가 비었음을 증명하고 zero etcd contenders를 확인한 뒤에만
+이전 provider를 복원합니다. Provider overlap에는 외부 fencing authority가 필요합니다.
 
 ## Observability
 
