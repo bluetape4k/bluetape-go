@@ -178,7 +178,7 @@ func TestRunbookContract(t *testing.T) {
 		`go list -m -f '{{.Version}}' go.opentelemetry.io/otel/sdk/metric`,
 		"TTL only schedules another proof attempt",
 		"go mod tidy",
-		"govulncheck ./...",
+		"go run golang.org/x/vuln/cmd/govulncheck@v1.6.0 ./...",
 		"security floor",
 		"make ci",
 	}
