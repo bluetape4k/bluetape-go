@@ -27,6 +27,10 @@ func Run(t *testing.T, harness Harness) {
 }
 
 // RunWithConfig executes every mandatory single-elector conformance case with config.
+// After CaseTimeout it cancels the evaluator, invokes Abort when configured,
+// and waits until provider work joins. A provider that ignores both cancellation
+// and Abort intentionally blocks until the caller's outer go test timeout
+// fail-stops the test process.
 func RunWithConfig(t *testing.T, harness Harness, config Config) {
 	t.Helper()
 	normalized, err := normalizeConfig(config)

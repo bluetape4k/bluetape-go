@@ -35,6 +35,7 @@ func TestReadmeParity(t *testing.T) {
 		"hostile-tenant isolation", "SessionOption", "restart-resume", "<MemberID>:<random>",
 		"failed cleanup attempt", "coordinated hard-stop exception", "synchronous and non-blocking",
 		"campaign wait watch",
+		`KeyPrefix:     "billing:leader"`, "base64url-no-padding",
 	}
 	for _, file := range []string{"README.md", "README.ko.md"} {
 		contents, err := os.ReadFile(file)
@@ -75,6 +76,11 @@ func TestRollbackDocsVerifyZeroContendersBeforeRestore(t *testing.T) {
 			"zero etcd contenders",
 			restoreAnchor,
 		)
+		forbiddenRestore := "restore"
+		if file == "README.ko.md" {
+			forbiddenRestore = "복원"
+		}
+		assertAbsentBefore(t, file, rollback, forbiddenRestore, "zero etcd contenders")
 		if file == "README.md" && !strings.Contains(
 			strings.Join(strings.Fields(rollback), " "),
 			"verify the diagnostic view has zero etcd contenders",
@@ -93,14 +99,18 @@ func TestRollbackDocsVerifyZeroContendersBeforeRestore(t *testing.T) {
 			t.Fatalf("runbook section %d is missing symmetric rollback", index)
 		}
 		restoreAnchor := "previous provider"
+		forbiddenRestore := "restore"
 		if index == 1 {
 			restoreAnchor = "이전 provider"
+			forbiddenRestore = "복원"
 		}
+		rollback := section[rollbackStart:]
 		assertOrdered(t, "runbook", section[rollbackStart:],
 			"exact range proof",
 			"zero etcd contenders",
 			restoreAnchor,
 		)
+		assertAbsentBefore(t, "runbook", rollback, forbiddenRestore, "zero etcd contenders")
 	}
 }
 
@@ -133,6 +143,18 @@ func assertOrdered(t *testing.T, file, text string, anchors ...string) {
 	}
 }
 
+func assertAbsentBefore(t *testing.T, file, text, forbidden, boundary string) {
+	t.Helper()
+	text = strings.Join(strings.Fields(text), " ")
+	boundaryIndex := strings.Index(text, boundary)
+	if boundaryIndex < 0 {
+		t.Fatalf("%s is missing %q", file, boundary)
+	}
+	if strings.Contains(text[:boundaryIndex], forbidden) {
+		t.Fatalf("%s contains %q before %q", file, forbidden, boundary)
+	}
+}
+
 func TestExampleRequiresPerUnitLeadershipGuard(t *testing.T) {
 	contents, err := os.ReadFile("example_test.go")
 	if err != nil {
@@ -142,6 +164,7 @@ func TestExampleRequiresPerUnitLeadershipGuard(t *testing.T) {
 	for _, anchor := range []string{
 		"startProtectedWork func(context.Context, func() bool)",
 		"startProtectedWork(protectedCtx, elector.IsLeader)",
+		`KeyPrefix:     "billing:leader"`,
 	} {
 		if !strings.Contains(text, anchor) {
 			t.Fatalf("example_test.go is missing %q", anchor)
@@ -307,6 +330,9 @@ func TestRunbookContract(t *testing.T) {
 		"ETCD_MAX_PUBLISHED_GROUPS",
 		"ETCD_MAX_LIVE_CONTENDERS",
 		"ETCD_APPROVED_PROCLAIM_QPS",
+		"ETCD_KEY_PREFIX",
+		"ETCD_GROUP",
+		"base64url_no_pad",
 		"campaign wait watch",
 		"etcd_server_proposals_pending",
 		"etcd_server_proposals_failed_total",
