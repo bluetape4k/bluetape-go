@@ -25,7 +25,7 @@ type Elector struct {
 	current        *generation
 	lastTTL        time.Duration
 	nextGeneration uint64
-	//nolint:unused // Reserved for lifecycle fault injection added in Task 3.
+	// testHook is package-private fault injection used only by real-server tests.
 	testHook func(operation, phase string) error
 }
 

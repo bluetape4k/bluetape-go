@@ -152,6 +152,9 @@ func (e *Elector) Campaign(ctx context.Context) error {
 	generation.session = session
 	generation.election = concurrency.NewElection(session, e.paths.base)
 
+	if err := generation.runTestHook("campaign", "before"); err != nil {
+		return e.failCampaign(generation, caller, err)
+	}
 	if err := generation.ops.campaign(generation.ctx, generation.election, e.token); err != nil {
 		return e.failCampaign(generation, caller, err)
 	}
@@ -198,6 +201,9 @@ func (e *Elector) Campaign(ctx context.Context) error {
 	if publicationErr != nil {
 		return e.failCampaign(generation, caller, publicationErr)
 	}
+	if err := generation.runTestHook("campaign", "after"); err != nil {
+		return errors.Join(leader.NewOperationError("etcd", "campaign", err), leader.ErrCommitUnknown)
+	}
 	return nil
 }
 
@@ -221,6 +227,7 @@ func (e *Elector) beginCampaign() (*generation, error) {
 		ctx:          ctx,
 		cancel:       cancel,
 		ops:          e.ops,
+		testHook:     e.testHook,
 		shutdownDone: make(chan struct{}),
 	}
 	e.campaigning = true
@@ -267,6 +274,7 @@ func validateElectionSnapshot(snapshot electionSnapshot, expectedKey string) err
 
 func (e *Elector) failCampaign(generation *generation, caller *callerCancellation, cause error) error {
 	caller.detach()
+	cause = errors.Join(cause, caller.err())
 	shutdownErr := generation.shutdown(context.Background())
 	monitorErr := waitForMonitor(context.Background(), generation)
 	cause = errors.Join(cause, shutdownErr, monitorErr)
@@ -343,6 +351,7 @@ func (e *Elector) operationBudget(ttl time.Duration) time.Duration {
 }
 
 type callerCancellation struct {
+	ctx  context.Context
 	stop func() bool
 	done <-chan struct{}
 }
@@ -353,7 +362,7 @@ func newCallerCancellation(ctx context.Context, cancel context.CancelFunc) *call
 		cancel()
 		close(done)
 	})
-	return &callerCancellation{stop: stop, done: done}
+	return &callerCancellation{ctx: ctx, stop: stop, done: done}
 }
 
 func (c *callerCancellation) detach() bool {
@@ -362,4 +371,11 @@ func (c *callerCancellation) detach() bool {
 	}
 	<-c.done
 	return false
+}
+
+func (c *callerCancellation) err() error {
+	if c == nil || c.ctx == nil {
+		return nil
+	}
+	return c.ctx.Err()
 }

@@ -19,6 +19,7 @@ type generation struct {
 	ttl       time.Duration
 	published bool
 	ops       etcdOps
+	testHook  func(operation, phase string) error
 	session   *concurrency.Session
 	election  *concurrency.Election
 	key       string
@@ -30,6 +31,13 @@ type generation struct {
 	shutdownDone chan struct{}
 	shutdownErr  error
 	cleanupMu    sync.Mutex
+}
+
+func (g *generation) runTestHook(operation, phase string) error {
+	if g == nil || g.testHook == nil {
+		return nil
+	}
+	return g.testHook(operation, phase)
 }
 
 func (e *Elector) publishGenerationTTL(generation *generation, seconds int64) error {

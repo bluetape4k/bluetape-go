@@ -97,6 +97,9 @@ func (monitor *generationMonitor) run(
 			renewCtx, cancel := context.WithTimeout(generation.ctx, elector.operationBudget(generation.ttl))
 			err := generation.ops.proclaim(renewCtx, generation.election, token)
 			cancel()
+			if err == nil {
+				err = generation.runTestHook("renew", "after")
+			}
 			if err != nil {
 				fail(err)
 				return
