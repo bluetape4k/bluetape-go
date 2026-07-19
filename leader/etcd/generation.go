@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"sync"
+	"sync/atomic"
 	"time"
 
 	clientv3 "go.etcd.io/etcd/client/v3"
@@ -16,21 +17,24 @@ type generation struct {
 	cancel  context.CancelFunc
 	leaseID clientv3.LeaseID
 
-	ttl       time.Duration
-	published bool
-	ops       etcdOps
-	testHook  func(operation, phase string) error
-	session   *concurrency.Session
-	election  *concurrency.Election
-	key       string
-	createRev int64
+	ttl            time.Duration
+	published      bool
+	ops            etcdOps
+	testHook       func(operation, phase string) error
+	session        *concurrency.Session
+	sessionTracked bool
+	election       *concurrency.Election
+	key            string
+	createRev      int64
 	// proclaimRev is the revision at which the candidate value was last confirmed.
-	proclaimRev  int64
-	monitorDone  chan struct{}
-	shutdownOnce sync.Once
-	shutdownDone chan struct{}
-	shutdownErr  error
-	cleanupMu    sync.Mutex
+	proclaimRev      int64
+	monitorDone      chan struct{}
+	shutdownOnce     sync.Once
+	shutdownDone     chan struct{}
+	shutdownErr      error
+	cleanupMu        sync.Mutex
+	monitorPublished atomic.Bool
+	monitorFinished  atomic.Bool
 }
 
 func (g *generation) runTestHook(operation, phase string) error {
@@ -38,6 +42,28 @@ func (g *generation) runTestHook(operation, phase string) error {
 		return nil
 	}
 	return g.testHook(operation, phase)
+}
+
+func (g *generation) publishMonitor() {
+	if g == nil || g.monitorFinished.Load() {
+		return
+	}
+	if g.monitorPublished.CompareAndSwap(false, true) {
+		publishedEtcdMonitors.Add(1)
+	}
+	if g.monitorFinished.Load() && g.monitorPublished.CompareAndSwap(true, false) {
+		publishedEtcdMonitors.Add(-1)
+	}
+}
+
+func (g *generation) finishMonitor() {
+	if g == nil {
+		return
+	}
+	g.monitorFinished.Store(true)
+	if g.monitorPublished.CompareAndSwap(true, false) {
+		publishedEtcdMonitors.Add(-1)
+	}
 }
 
 func (e *Elector) publishGenerationTTL(generation *generation, seconds int64) error {
@@ -63,6 +89,12 @@ func (g *generation) shutdown(ctx context.Context) error {
 	}
 	g.shutdownOnce.Do(func() {
 		defer close(g.shutdownDone)
+		defer func() {
+			if g.sessionTracked {
+				g.sessionTracked = false
+				liveEtcdSessions.Add(-1)
+			}
+		}()
 		if g.cancel != nil {
 			g.cancel()
 		}

@@ -150,6 +150,8 @@ func (e *Elector) Campaign(ctx context.Context) error {
 		return e.failCampaign(generation, caller, errors.New("etcd leader NewSession returned nil"))
 	}
 	generation.session = session
+	generation.sessionTracked = true
+	liveEtcdSessions.Add(1)
 	generation.election = concurrency.NewElection(session, e.paths.base)
 
 	if err := generation.runTestHook("campaign", "before"); err != nil {
