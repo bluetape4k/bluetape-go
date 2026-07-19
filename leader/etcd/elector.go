@@ -18,13 +18,12 @@ type Elector struct {
 	paths        electionPath
 	token        string
 	requestedTTL int64
+	ops          etcdOps
 
-	mu sync.RWMutex
-	//nolint:unused // Reserved for the campaign lifecycle added in Task 3.
-	campaigning bool
-	current     *generation
-	lastTTL     time.Duration
-	//nolint:unused // Reserved for generation ownership added in Task 3.
+	mu             sync.RWMutex
+	campaigning    bool
+	current        *generation
+	lastTTL        time.Duration
 	nextGeneration uint64
 	//nolint:unused // Reserved for lifecycle fault injection added in Task 3.
 	testHook func(operation, phase string) error
@@ -62,6 +61,7 @@ func New(client *clientv3.Client, opts leader.Options) (*Elector, error) {
 		paths:        electionPaths(normalized),
 		token:        token,
 		requestedTTL: ttl,
+		ops:          productionEtcdOps(client),
 	}, nil
 }
 
