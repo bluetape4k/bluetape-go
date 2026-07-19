@@ -29,6 +29,7 @@ type generation struct {
 	shutdownOnce sync.Once
 	shutdownDone chan struct{}
 	shutdownErr  error
+	cleanupMu    sync.Mutex
 }
 
 func (e *Elector) publishGenerationTTL(generation *generation, seconds int64) error {
