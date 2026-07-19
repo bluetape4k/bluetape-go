@@ -3,30 +3,36 @@ package etcdleader
 import (
 	"context"
 	"errors"
+	"time"
 
 	clientv3 "go.etcd.io/etcd/client/v3"
 )
 
 type generationMonitor struct {
-	created  chan error
-	terminal chan error
-	done     chan struct{}
+	created   chan error
+	terminal  chan error
+	done      chan struct{}
+	published chan struct{}
 }
 
 func startGenerationMonitor(
+	elector *Elector,
 	generation *generation,
 	watch clientv3.WatchChan,
 	token string,
 ) *generationMonitor {
 	monitor := &generationMonitor{
-		created:  make(chan error, 1),
-		terminal: make(chan error, 1),
-		done:     make(chan struct{}),
+		created:   make(chan error, 1),
+		terminal:  make(chan error, 1),
+		done:      make(chan struct{}),
+		published: make(chan struct{}),
 	}
 	generation.monitorDone = monitor.done
-	go monitor.run(generation, watch, token)
+	go monitor.run(elector, generation, watch, token)
 	return monitor
 }
+
+func (monitor *generationMonitor) publish() { close(monitor.published) }
 
 func (monitor *generationMonitor) waitCreated(ctx context.Context) error {
 	select {
@@ -43,27 +49,58 @@ func (monitor *generationMonitor) waitCreated(ctx context.Context) error {
 }
 
 func (monitor *generationMonitor) run(
+	elector *Elector,
 	generation *generation,
 	watch clientv3.WatchChan,
 	token string,
 ) {
 	defer close(monitor.done)
 	created := false
+	publish := monitor.published
+	var ticker electorTicker
+	var ticks <-chan time.Time
+	defer func() {
+		if ticker != nil {
+			ticker.Stop()
+		}
+	}()
 	fail := func(err error) {
 		if !created {
 			monitor.created <- err
 		}
 		monitor.terminal <- err
+		elector.loseGeneration(generation)
 	}
+	sessionDone := generation.ops.sessionDone(generation.session)
 
 	for {
 		select {
 		case <-generation.ctx.Done():
 			fail(generation.ctx.Err())
 			return
-		case <-generation.ops.sessionDone(generation.session):
+		case <-sessionDone:
 			fail(errors.New("etcd leader Session ended"))
 			return
+		case <-publish:
+			publish = nil
+			ticker = generation.ops.newTicker(elector.opts.RenewInterval)
+			if ticker == nil {
+				fail(errors.New("etcd leader renewal ticker is unavailable"))
+				return
+			}
+			ticks = ticker.C()
+			if ticks == nil {
+				fail(errors.New("etcd leader renewal ticker is unavailable"))
+				return
+			}
+		case <-ticks:
+			renewCtx, cancel := context.WithTimeout(generation.ctx, elector.operationBudget(generation.ttl))
+			err := generation.ops.proclaim(renewCtx, generation.election, token)
+			cancel()
+			if err != nil {
+				fail(err)
+				return
+			}
 		case response, ok := <-watch:
 			if !ok {
 				fail(errors.New("etcd leader watch closed"))
@@ -84,6 +121,15 @@ func (monitor *generationMonitor) run(
 			}
 		}
 	}
+}
+
+func (e *Elector) loseGeneration(generation *generation) {
+	e.mu.Lock()
+	if e.current == generation {
+		generation.published = false
+	}
+	e.mu.Unlock()
+	_ = generation.shutdown(context.Background())
 }
 
 func (monitor *generationMonitor) drainReadyWatch(

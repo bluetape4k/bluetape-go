@@ -80,3 +80,11 @@ func (e *Elector) EffectiveTTL() time.Duration {
 	}
 	return time.Duration(e.requestedTTL) * time.Second
 }
+
+// IsLeader reports whether the current generation still has locally observed
+// ownership. Remote loss clears this state before monitor shutdown completes.
+func (e *Elector) IsLeader() bool {
+	e.mu.RLock()
+	defer e.mu.RUnlock()
+	return e.current != nil && e.current.published && e.current.ctx != nil && e.current.ctx.Err() == nil
+}
