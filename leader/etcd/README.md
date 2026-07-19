@@ -27,7 +27,9 @@ import etcdleader "github.com/bluetape4k/bluetape-go/leader/etcd"
 Construct every elector with `etcdleader.New`. The zero value of `Elector` is
 unusable. `New` performs no network I/O and never takes ownership of the
 `*clientv3.Client`; the caller closes that shared client only after all users
-and campaign calls have joined.
+and campaign calls have joined. The coordinated hard-stop exception is a
+blocked Campaign: first drain every other shared-client user, close the client
+to unblock that call, then bounded-join it as shown below.
 
 Production clients load a non-empty root CA pool, set a hostname-validating
 `ServerName`, keep `InsecureSkipVerify=false`, and authenticate with a scoped
@@ -55,12 +57,12 @@ at least every `min(RenewInterval, 1s)` during a long unit. Stop and join
 protected work before reacquiring. The complete acquire/work/resign sequence is
 in `ExampleNew`.
 
-`New` accepts only the caller-owned `*clientv3.Client` and normalized
-`leader.Options`. It intentionally exposes no raw `concurrency.SessionOption`,
-session adoption, or restart-resume API. Every Campaign creates a new
-provider-owned session. `Leader` returns an opaque `<MemberID>:<random>` value;
-compare it as a whole string and never parse the suffix as a fencing token or
-durable identity.
+`New` accepts only the caller-owned `*clientv3.Client` and `leader.Options`,
+then normalizes and validates those options. It intentionally exposes no raw
+`concurrency.SessionOption`, session adoption, or restart-resume API. Every
+Campaign creates a new provider-owned session. `Leader` returns an opaque
+`<MemberID>:<random>` value; compare it as a whole string and never parse the
+suffix as a fencing token or durable identity.
 
 ## Encoded Election Range
 
@@ -178,6 +180,8 @@ least every `min(RenewInterval, 1s)` during long work; emit one
 `leadership_lost` event on the first true-to-false transition. Inventory
 `ErrCommitUnknown` and `ErrCleanupPending` at call boundaries, and record every
 failed cleanup attempt separately even when a later retry proves cleanup.
+The example recorder is synchronous and non-blocking; sanitize its input before
+emitting it or hand it off to a bounded internal queue.
 Never label or log endpoints, keys, lease IDs, owner tokens, or rendered raw
 errors.
 
