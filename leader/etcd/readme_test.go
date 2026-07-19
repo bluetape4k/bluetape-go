@@ -136,6 +136,53 @@ func TestSuccessfulCleanupProofClearsUnresolvedState(t *testing.T) {
 	}
 }
 
+func TestShutdownFinalProofClearsTransientCleanupFailure(t *testing.T) {
+	transient := errors.New("initial cleanup proof failed")
+	persisted := false
+	restored := false
+	err := finishShutdownAfterProof(
+		nil,
+		transient,
+		nil,
+		func(error) error { persisted = true; return nil },
+		func() error { restored = true; return nil },
+		func() error { return nil },
+	)
+	if err != nil {
+		t.Fatalf("finishShutdownAfterProof() error = %v, want successful rollback", err)
+	}
+	if persisted {
+		t.Fatal("finishShutdownAfterProof() persisted cleanup after exact absence proof")
+	}
+	if !restored {
+		t.Fatal("finishShutdownAfterProof() did not restore the previous provider")
+	}
+}
+
+func TestShutdownFinalProofPersistsUnresolvedCleanup(t *testing.T) {
+	cleanupErr := errors.New("cleanup outcome unknown")
+	proofErr := errors.New("exact absence proof failed")
+	var persisted error
+	restored := false
+	err := finishShutdownAfterProof(
+		nil,
+		cleanupErr,
+		proofErr,
+		func(err error) error { persisted = err; return nil },
+		func() error { restored = true; return nil },
+		func() error { return nil },
+	)
+	if !errors.Is(err, cleanupErr) || !errors.Is(err, proofErr) {
+		t.Fatalf("finishShutdownAfterProof() error = %v, want cleanup and proof failures", err)
+	}
+	if !errors.Is(persisted, cleanupErr) || !errors.Is(persisted, proofErr) {
+		t.Fatalf("persisted error = %v, want cleanup and proof failures", persisted)
+	}
+	if restored {
+		t.Fatal("finishShutdownAfterProof() restored before exact absence proof")
+	}
+}
+
 func TestRunbookContract(t *testing.T) {
 	contents, err := os.ReadFile("../../docs/release/v0.19.0-provider-conformance-runbook.md")
 	if err != nil {

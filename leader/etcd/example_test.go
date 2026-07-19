@@ -138,26 +138,41 @@ func Example_shutdownSupervisor() {
 				return errors.Join(initiatingErr, cleanupErr, persistUnresolved(cleanupErr))
 			}
 		}
-		if cleanupErr != nil {
-			cleanupErr = errors.Join(cleanupErr, persistUnresolved(cleanupErr))
-		}
-
 		// A separate healthy client must prove exact absence; elapsed TTL is not proof.
 		proofCtx, cancelProof := context.WithTimeout(context.Background(), 5*time.Second)
 		proofErr := proveExactRangeAbsent(proofCtx)
 		cancelProof()
-		if proofErr != nil {
-			return errors.Join(initiatingErr, cleanupErr, proofErr)
-		}
-		// Rollback is symmetric and starts only after protected work and etcd contenders stop.
-		zeroErr := verifyZeroEtcdContenders()
-		if zeroErr != nil {
-			return errors.Join(initiatingErr, cleanupErr, zeroErr)
-		}
-		return errors.Join(initiatingErr, cleanupErr, restorePreviousProvider())
+		return finishShutdownAfterProof(
+			initiatingErr,
+			cleanupErr,
+			proofErr,
+			persistUnresolved,
+			restorePreviousProvider,
+			verifyZeroEtcdContenders,
+		)
 	}
 
 	_ = shutdown
+}
+
+func finishShutdownAfterProof(
+	initiatingErr error,
+	cleanupErr error,
+	proofErr error,
+	persistUnresolved func(error) error,
+	restorePreviousProvider func() error,
+	verifyZeroEtcdContenders func() error,
+) error {
+	if proofErr != nil {
+		unresolvedErr := errors.Join(cleanupErr, proofErr)
+		return errors.Join(initiatingErr, unresolvedErr, persistUnresolved(unresolvedErr))
+	}
+	// Exact absence resolves prior cleanup failures; their recorder entries remain history.
+	if zeroErr := verifyZeroEtcdContenders(); zeroErr != nil {
+		return errors.Join(initiatingErr, zeroErr, persistUnresolved(zeroErr))
+	}
+	// Rollback is symmetric and starts only after protected work and etcd contenders stop.
+	return errors.Join(initiatingErr, restorePreviousProvider())
 }
 
 func ExampleNew_productionTLS() {
