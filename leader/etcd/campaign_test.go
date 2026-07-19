@@ -377,6 +377,7 @@ type fakeEtcdOps struct {
 	campaignErr error
 	proclaimErr error
 	revokeErr   error
+	resignErr   error
 	getErr      error
 	getResponse *clientv3.GetResponse
 
@@ -394,6 +395,7 @@ type fakeEtcdOps struct {
 	proclaimCalls atomic.Int64
 	watchCalls    atomic.Int64
 	revokeCalls   atomic.Int64
+	resignCalls   atomic.Int64
 	orphanCalls   atomic.Int64
 }
 
@@ -463,6 +465,10 @@ func (fake *fakeEtcdOps) ops() etcdOps {
 				return nil, fake.revokeErr
 			}
 			return &clientv3.LeaseRevokeResponse{}, nil
+		},
+		resign: func(context.Context, *concurrency.Election) error {
+			fake.resignCalls.Add(1)
+			return fake.resignErr
 		},
 		get: func(context.Context, string, ...clientv3.OpOption) (*clientv3.GetResponse, error) {
 			if fake.getErr != nil {

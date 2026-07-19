@@ -29,6 +29,8 @@ type Elector struct {
 	testHook func(operation, phase string) error
 }
 
+var _ leader.Elector = (*Elector)(nil)
+
 // New creates an etcd-backed elector over the caller-owned client.
 //
 // New performs no network I/O. After option normalization, RenewInterval must

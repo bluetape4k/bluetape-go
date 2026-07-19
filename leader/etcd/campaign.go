@@ -34,6 +34,7 @@ type etcdOps struct {
 	newSession       func(context.Context, clientv3.LeaseID) (*concurrency.Session, error)
 	campaign         func(context.Context, *concurrency.Election, string) error
 	proclaim         func(context.Context, *concurrency.Election, string) error
+	resign           func(context.Context, *concurrency.Election) error
 	snapshotElection func(*concurrency.Election) (electionSnapshot, error)
 	watch            func(context.Context, string, ...clientv3.OpOption) clientv3.WatchChan
 	revoke           func(context.Context, clientv3.LeaseID) (*clientv3.LeaseRevokeResponse, error)
@@ -61,6 +62,9 @@ func productionEtcdOps(client *clientv3.Client) etcdOps {
 		},
 		proclaim: func(ctx context.Context, election *concurrency.Election, token string) error {
 			return election.Proclaim(ctx, token)
+		},
+		resign: func(ctx context.Context, election *concurrency.Election) error {
+			return election.Resign(ctx)
 		},
 		snapshotElection: snapshotOfficialElection,
 		watch: func(ctx context.Context, key string, opts ...clientv3.OpOption) clientv3.WatchChan {
@@ -105,6 +109,9 @@ func (e *Elector) Campaign(ctx context.Context) error {
 	}
 	if err := ctx.Err(); err != nil {
 		return err
+	}
+	if e.client == nil || e.ops.grant == nil {
+		return leader.NewOperationError("etcd", "campaign", errors.New("etcd leader Elector is not initialized"))
 	}
 
 	generation, err := e.beginCampaign()
