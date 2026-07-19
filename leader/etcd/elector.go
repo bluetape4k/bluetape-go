@@ -1,0 +1,82 @@
+package etcdleader
+
+import (
+	"errors"
+	"sync"
+	"time"
+
+	"github.com/bluetape4k/bluetape-go/leader"
+	clientv3 "go.etcd.io/etcd/client/v3"
+)
+
+// Elector coordinates a single etcd-backed leader election.
+//
+// An Elector must be constructed with [New]. Its zero value is unusable.
+type Elector struct {
+	client       *clientv3.Client
+	opts         leader.Options
+	paths        electionPath
+	token        string
+	requestedTTL int64
+
+	mu sync.RWMutex
+	//nolint:unused // Reserved for the campaign lifecycle added in Task 3.
+	campaigning bool
+	current     *generation
+	lastTTL     time.Duration
+	//nolint:unused // Reserved for generation ownership added in Task 3.
+	nextGeneration uint64
+	//nolint:unused // Reserved for lifecycle fault injection added in Task 3.
+	testHook func(operation, phase string) error
+}
+
+// New creates an etcd-backed elector over the caller-owned client.
+//
+// New performs no network I/O. After option normalization, RenewInterval must
+// be less than Lease. The caller remains responsible for closing client.
+func New(client *clientv3.Client, opts leader.Options) (*Elector, error) {
+	if client == nil {
+		return nil, errors.New("etcd leader client must not be nil")
+	}
+
+	normalized, err := opts.Normalize()
+	if err != nil {
+		return nil, err
+	}
+	if normalized.RenewInterval >= normalized.Lease {
+		return nil, errors.New("etcd leader renew interval must be less than lease")
+	}
+
+	ttl, err := requestedTTL(normalized.Lease)
+	if err != nil {
+		return nil, err
+	}
+	token, err := ownerToken(normalized.MemberID)
+	if err != nil {
+		return nil, err
+	}
+
+	return &Elector{
+		client:       client,
+		opts:         normalized,
+		paths:        electionPaths(normalized),
+		token:        token,
+		requestedTTL: ttl,
+	}, nil
+}
+
+// EffectiveTTL returns the last TTL published by etcd for the active or most
+// recent generation. Before etcd publishes a grant, it returns the requested
+// lease rounded up to whole seconds.
+func (e *Elector) EffectiveTTL() time.Duration {
+	e.mu.RLock()
+	defer e.mu.RUnlock()
+
+	if e.current != nil && e.current.published {
+		return e.current.ttl
+	}
+	if e.lastTTL > 0 {
+		return e.lastTTL
+	}
+	return time.Duration(e.requestedTTL) * time.Second
+}
