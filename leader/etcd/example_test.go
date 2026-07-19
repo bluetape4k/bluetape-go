@@ -17,7 +17,7 @@ func ExampleNew() {
 	run := func(
 		ctx context.Context,
 		client *clientv3.Client,
-		startProtectedWork func(context.Context) <-chan struct{},
+		startProtectedWork func(context.Context, func() bool) <-chan struct{},
 		reconcile func(context.Context) error,
 		scheduleRecheck func(time.Duration) error,
 		recordCleanupFailure func(error),
@@ -52,9 +52,9 @@ func ExampleNew() {
 		}
 
 		protectedCtx, stopProtectedWork := context.WithCancel(ctx)
-		// startProtectedWork must recheck elector.IsLeader immediately before
+		// startProtectedWork must call the supplied guard immediately before
 		// every protected work unit; the loop below also guards long units.
-		protectedDone := startProtectedWork(protectedCtx)
+		protectedDone := startProtectedWork(protectedCtx, elector.IsLeader)
 		defer func() {
 			stopProtectedWork()
 			joinErr := joinProtectedWork(protectedDone)
@@ -209,8 +209,20 @@ func retryResignAndReconcile(
 	proofCtx, cancelProof := context.WithTimeout(context.Background(), 5*time.Second)
 	proofErr := reconcile(proofCtx)
 	cancelProof()
+	return finishCleanupAfterProof(
+		lastErr, proofErr, elector.EffectiveTTL(), scheduleRecheck, recordFailure,
+	)
+}
+
+func finishCleanupAfterProof(
+	lastErr error,
+	proofErr error,
+	retryAfter time.Duration,
+	scheduleRecheck func(time.Duration) error,
+	recordFailure func(error),
+) error {
 	if proofErr == nil {
-		return lastErr
+		return nil // Prior failed attempts remain in the recorder, not unresolved inventory.
 	}
 	recordCleanupAttempt(recordFailure, proofErr)
 	if scheduleRecheck == nil {
@@ -219,7 +231,7 @@ func retryResignAndReconcile(
 		return errors.Join(lastErr, proofErr, schedulerErr)
 	}
 	// EffectiveTTL schedules a future proof attempt; it is not deletion proof.
-	scheduleErr := scheduleRecheck(elector.EffectiveTTL())
+	scheduleErr := scheduleRecheck(retryAfter)
 	recordCleanupAttempt(recordFailure, scheduleErr)
 	return errors.Join(lastErr, proofErr, scheduleErr)
 }
@@ -236,14 +248,14 @@ func hardStopCampaigns(
 	closeCallerClient func() error,
 	joinTimeout time.Duration,
 ) error {
+	if campaignsDone == nil {
+		return errors.New("campaign completion channel is nil")
+	}
 	if err := coordinateSharedClientUsers(); err != nil {
 		return err
 	}
 	if err := closeCallerClient(); err != nil {
 		return err
-	}
-	if campaignsDone == nil {
-		return errors.New("campaign completion channel is nil")
 	}
 	timer := time.NewTimer(joinTimeout)
 	defer timer.Stop()

@@ -33,7 +33,7 @@ func TestReadmeParity(t *testing.T) {
 		"fencing", "joined raw", "aggregate Proclaim QPS", "live contenders",
 		"leases/sessions/candidate keys", "exact-key watches", "KeepAliveOnce",
 		"hostile-tenant isolation", "SessionOption", "restart-resume", "<MemberID>:<random>",
-		"failed cleanup attempt",
+		"failed cleanup attempt", "coordinated hard-stop exception", "synchronous and non-blocking",
 	}
 	for _, file := range []string{"README.md", "README.ko.md"} {
 		contents, err := os.ReadFile(file)
@@ -48,6 +48,22 @@ func TestReadmeParity(t *testing.T) {
 			if !strings.Contains(text, anchor) {
 				t.Fatalf("%s is missing %q", file, anchor)
 			}
+		}
+	}
+}
+
+func TestExampleRequiresPerUnitLeadershipGuard(t *testing.T) {
+	contents, err := os.ReadFile("example_test.go")
+	if err != nil {
+		t.Fatal(err)
+	}
+	text := string(contents)
+	for _, anchor := range []string{
+		"startProtectedWork func(context.Context, func() bool)",
+		"startProtectedWork(protectedCtx, elector.IsLeader)",
+	} {
+		if !strings.Contains(text, anchor) {
+			t.Fatalf("example_test.go is missing %q", anchor)
 		}
 	}
 }
@@ -82,6 +98,41 @@ func TestHardStopCampaignsBoundsPostCloseJoin(t *testing.T) {
 	}
 	if err == nil || !strings.Contains(err.Error(), "campaigns did not join") {
 		t.Fatalf("hardStopCampaigns() error = %v, want bounded join failure", err)
+	}
+}
+
+func TestHardStopCampaignsRejectsNilCompletionBeforeClose(t *testing.T) {
+	coordinated := false
+	closed := false
+	err := hardStopCampaigns(
+		nil,
+		func() error { coordinated = true; return nil },
+		func() error { closed = true; return nil },
+		10*time.Millisecond,
+	)
+	if err == nil || !strings.Contains(err.Error(), "completion channel is nil") {
+		t.Fatalf("hardStopCampaigns() error = %v, want nil completion failure", err)
+	}
+	if coordinated || closed {
+		t.Fatal("hardStopCampaigns() performed side effects for an invalid completion channel")
+	}
+}
+
+func TestSuccessfulCleanupProofClearsUnresolvedState(t *testing.T) {
+	priorFailure := errors.New("resign outcome unknown")
+	scheduled := false
+	err := finishCleanupAfterProof(
+		priorFailure,
+		nil,
+		time.Second,
+		func(time.Duration) error { scheduled = true; return nil },
+		nil,
+	)
+	if err != nil {
+		t.Fatalf("finishCleanupAfterProof() error = %v, want resolved cleanup", err)
+	}
+	if scheduled {
+		t.Fatal("finishCleanupAfterProof() scheduled a recheck after exact cleanup proof")
 	}
 }
 
@@ -127,7 +178,8 @@ func TestRunbookContract(t *testing.T) {
 		`go list -m -f '{{.Version}}' go.opentelemetry.io/otel/sdk/metric`,
 		"TTL only schedules another proof attempt",
 		"go mod tidy",
-		"go get golang.org/x/crypto@v0.49.0",
+		"govulncheck ./...",
+		"security floor",
 		"make ci",
 	}
 	for index, section := range parts {

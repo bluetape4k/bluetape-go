@@ -26,7 +26,8 @@ import etcdleader "github.com/bluetape4k/bluetape-go/leader/etcd"
 모든 elector는 `etcdleader.New`로 생성합니다. `Elector`의 zero value는 사용할 수
 없습니다. `New`는 network I/O를 수행하지 않고 `*clientv3.Client`의 ownership도
 가져가지 않습니다. Shared client는 모든 사용자와 campaign call이 join된 뒤 caller가
-닫습니다.
+닫습니다. coordinated hard-stop exception은 blocked Campaign입니다. 다른 shared-client
+사용자를 모두 drain한 뒤 client를 닫아 call을 깨우고, 아래 예제처럼 bounded join합니다.
 
 Production client는 비어 있지 않은 root CA pool을 읽고 hostname을 검증할
 `ServerName`을 지정하며 `InsecureSkipVerify=false`를 유지합니다. 또한 scope가 제한된
@@ -53,11 +54,11 @@ if err != nil {
 확인합니다. 재획득 전에 이전 protected work를 중지하고 join해야 합니다. 전체
 acquire/work/resign 흐름은 `ExampleNew`에 있습니다.
 
-`New`는 caller-owned `*clientv3.Client`와 normalized `leader.Options`만 받습니다. Raw
-`concurrency.SessionOption`, session adoption, restart-resume API는 의도적으로 제공하지
-않으며 Campaign마다 새 provider-owned session을 만듭니다. `Leader`는 opaque
-`<MemberID>:<random>` 값을 반환합니다. 전체 string으로만 비교하고 suffix를 fencing token
-또는 durable identity로 parsing하지 않습니다.
+`New`는 caller-owned `*clientv3.Client`와 `leader.Options`만 받은 뒤 option을 normalize하고
+validate합니다. Raw `concurrency.SessionOption`, session adoption, restart-resume API는
+의도적으로 제공하지 않으며 Campaign마다 새 provider-owned session을 만듭니다. `Leader`는
+opaque `<MemberID>:<random>` 값을 반환합니다. 전체 string으로만 비교하고 suffix를 fencing
+token 또는 durable identity로 parsing하지 않습니다.
 
 ## Encoded Election Range
 
@@ -169,7 +170,9 @@ Synchronous operation은 bounded-cardinality provider/operation/result/latency m
 sampling하고 첫 true-to-false transition에 `leadership_lost` event 하나를 남깁니다.
 Call boundary에서 `ErrCommitUnknown`과 `ErrCleanupPending`을 inventory하고, 후속 retry가
 cleanup을 증명해도 failed cleanup attempt를 각각 기록합니다. Endpoint, key, lease ID,
-owner token, rendered raw error는 label이나 log에 넣지 않습니다.
+owner token, rendered raw error는 label이나 log에 넣지 않습니다. 예제 recorder는
+synchronous and non-blocking이어야 하며 입력을 sanitize한 뒤 기록하거나 bounded internal
+queue로 넘깁니다.
 
 ## Tested Scope
 
