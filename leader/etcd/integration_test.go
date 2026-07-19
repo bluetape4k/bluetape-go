@@ -229,6 +229,49 @@ func TestEtcdIntegration(t *testing.T) {
 		}
 	})
 
+	t.Run("rapid reacquisition follows protected work join", func(t *testing.T) {
+		ctx, cancel := context.WithTimeout(context.Background(), 8*time.Second)
+		defer cancel()
+		elector := newIntegrationElector(t, fixture.client, integrationOptions(t.Name()))
+		if err := elector.Campaign(ctx); err != nil {
+			t.Fatalf("first Campaign() error = %v", err)
+		}
+		elector.mu.RLock()
+		firstGeneration := elector.current.id
+		elector.mu.RUnlock()
+
+		protectedCtx, stopProtected := context.WithCancel(ctx)
+		protectedStarted := make(chan struct{})
+		protectedDone := make(chan struct{})
+		go func() {
+			defer close(protectedDone)
+			close(protectedStarted)
+			<-protectedCtx.Done()
+		}()
+		<-protectedStarted
+		stopProtected()
+		select {
+		case <-protectedDone:
+		case <-ctx.Done():
+			t.Fatalf("protected work did not join: %v", ctx.Err())
+		}
+		if err := elector.Resign(ctx); err != nil {
+			t.Fatalf("first Resign() error = %v", err)
+		}
+		if err := elector.Campaign(ctx); err != nil {
+			t.Fatalf("second Campaign() error = %v", err)
+		}
+		elector.mu.RLock()
+		secondGeneration := elector.current.id
+		elector.mu.RUnlock()
+		if secondGeneration <= firstGeneration {
+			t.Fatalf("generation did not advance: %d -> %d", firstGeneration, secondGeneration)
+		}
+		if err := elector.Resign(ctx); err != nil {
+			t.Fatalf("second Resign() error = %v", err)
+		}
+	})
+
 	t.Run("single node restart restores elections", func(t *testing.T) {
 		ctx, cancel := context.WithTimeout(context.Background(), 20*time.Second)
 		defer cancel()

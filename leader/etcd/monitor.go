@@ -9,10 +9,11 @@ import (
 )
 
 type generationMonitor struct {
-	created   chan error
-	terminal  chan error
-	done      chan struct{}
-	published chan struct{}
+	generation *generation
+	created    chan error
+	terminal   chan error
+	done       chan struct{}
+	published  chan struct{}
 }
 
 func startGenerationMonitor(
@@ -22,17 +23,21 @@ func startGenerationMonitor(
 	token string,
 ) *generationMonitor {
 	monitor := &generationMonitor{
-		created:   make(chan error, 1),
-		terminal:  make(chan error, 1),
-		done:      make(chan struct{}),
-		published: make(chan struct{}),
+		generation: generation,
+		created:    make(chan error, 1),
+		terminal:   make(chan error, 1),
+		done:       make(chan struct{}),
+		published:  make(chan struct{}),
 	}
 	generation.monitorDone = monitor.done
 	go monitor.run(elector, generation, watch, token)
 	return monitor
 }
 
-func (monitor *generationMonitor) publish() { close(monitor.published) }
+func (monitor *generationMonitor) publish() {
+	monitor.generation.publishMonitor()
+	close(monitor.published)
+}
 
 func (monitor *generationMonitor) waitCreated(ctx context.Context) error {
 	select {
@@ -55,6 +60,7 @@ func (monitor *generationMonitor) run(
 	token string,
 ) {
 	defer close(monitor.done)
+	defer generation.finishMonitor()
 	created := false
 	publish := monitor.published
 	var ticker electorTicker
@@ -95,7 +101,11 @@ func (monitor *generationMonitor) run(
 			}
 		case <-ticks:
 			renewCtx, cancel := context.WithTimeout(generation.ctx, elector.operationBudget(generation.ttl))
-			err := generation.ops.proclaim(renewCtx, generation.election, token)
+			err := func() error {
+				inFlightEtcdProclaims.Add(1)
+				defer inFlightEtcdProclaims.Add(-1)
+				return generation.ops.proclaim(renewCtx, generation.election, token)
+			}()
 			cancel()
 			if err == nil {
 				err = generation.runTestHook("renew", "after")
