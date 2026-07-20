@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"os"
+	"regexp"
 	"testing"
 	"time"
 
@@ -20,7 +21,39 @@ import (
 const (
 	graphNeo4jBenchEnv           = "BLUETAPE_GRAPH_NEO4J_BENCH"
 	graphBenchmarkOperationLimit = 10 * time.Second
+	neo4jBenchmarkImage          = "neo4j:5.26.0@sha256:5a015e53de1895e7eee1574ae0325cf8c4b89587222778108c594bdd45a474b5"
+	memgraphBenchmarkImage       = "memgraph/memgraph:3.5.0@sha256:b411deeb2341698f4f7a0d69535c8937c341e924f66962aa3e70acb63c7a5bd1"
 )
+
+func TestGraphBenchmarkImagesAreImmutable(t *testing.T) {
+	tests := []struct {
+		name  string
+		image string
+		want  string
+	}{
+		{
+			name:  "neo4j",
+			image: neo4jBenchmarkImage,
+			want:  "neo4j:5.26.0@sha256:5a015e53de1895e7eee1574ae0325cf8c4b89587222778108c594bdd45a474b5",
+		},
+		{
+			name:  "memgraph",
+			image: memgraphBenchmarkImage,
+			want:  "memgraph/memgraph:3.5.0@sha256:b411deeb2341698f4f7a0d69535c8937c341e924f66962aa3e70acb63c7a5bd1",
+		},
+	}
+	immutableImage := regexp.MustCompile(`^[^[:space:]@]+@sha256:[0-9a-f]{64}$`)
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if tt.image != tt.want {
+				t.Fatalf("image = %q, want %q", tt.image, tt.want)
+			}
+			if !immutableImage.MatchString(tt.image) {
+				t.Fatalf("image = %q, want immutable image reference", tt.image)
+			}
+		})
+	}
+}
 
 func BenchmarkVertexFromNode(b *testing.B) {
 	node := dbtype.Node{
@@ -351,9 +384,9 @@ func newBenchmarkClient(ctx context.Context, b *testing.B, driver neo4jdriver.Dr
 
 func startNeo4jBenchmarkDriver(ctx context.Context, b *testing.B) neo4jdriver.Driver {
 	b.Helper()
-	container, err := tcneo4j.Run(ctx, "neo4j:5.26.0")
+	container, err := tcneo4j.Run(ctx, neo4jBenchmarkImage)
 	if err != nil {
-		b.Fatal(testcleanup.FormatStartError("neo4j", "neo4j:5.26.0", err))
+		b.Fatal(testcleanup.FormatStartError("neo4j", neo4jBenchmarkImage, err))
 	}
 	testcleanup.Register(ctx, b, "neo4j", container)
 
@@ -372,14 +405,14 @@ func startMemgraphBenchmarkDriver(ctx context.Context, b *testing.B) neo4jdriver
 	b.Helper()
 	container, err := testcontainers.GenericContainer(ctx, testcontainers.GenericContainerRequest{
 		ContainerRequest: testcontainers.ContainerRequest{
-			Image:        memgraphImage,
+			Image:        memgraphBenchmarkImage,
 			ExposedPorts: []string{memgraphBoltPort},
 			WaitingFor:   wait.ForListeningPort(memgraphBoltPort),
 		},
 		Started: true,
 	})
 	if err != nil {
-		b.Fatal(testcleanup.FormatStartError("memgraph", memgraphImage, err))
+		b.Fatal(testcleanup.FormatStartError("memgraph", memgraphBenchmarkImage, err))
 	}
 	testcleanup.Register(ctx, b, "memgraph", container)
 

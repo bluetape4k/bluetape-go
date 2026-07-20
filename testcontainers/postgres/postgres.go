@@ -10,7 +10,7 @@ import (
 )
 
 const (
-	defaultImage    = "postgres:16-alpine"
+	defaultImage    = "postgres:16-alpine@sha256:57c72fd2a128e416c7fcc499958864df5301e940bca0a56f58fddf30ffc07777"
 	defaultDatabase = "bluetape"
 	defaultUsername = "bluetape"
 	defaultPassword = "bluetape"
