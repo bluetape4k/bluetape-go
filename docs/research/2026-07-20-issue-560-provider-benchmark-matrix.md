@@ -40,6 +40,21 @@ exit status. Container artifacts also record the provider-reported version and i
 reference. Failed development captures are retained separately with `-failed-` in their names and
 are not report inputs.
 
+To refresh the tracked snapshot:
+
+1. Start from a clean worktree, record the measured Git SHA and current host/runtime details in
+   `environment.md`, and ensure Docker is available for container-backed families.
+2. Run all nine families above sequentially. Do not overlap container-backed captures.
+3. Reconcile provider-reported versions and immutable image references from the successful raw
+   artifacts into `environment.md`; stop if a provider is missing, duplicated, or inconsistent.
+4. Run `node docs/images/readme-charts/generate-provider-benchmark-summaries.mjs --self-test`,
+   then run the same script without arguments to regenerate all chart sources, SVGs, and PNGs.
+5. Update the report tables from the new raw min/median/max values, cross-check them against the
+   generated Vega-Lite data, then run the repository diff, redaction, and visual chart checks.
+
+The generator fails closed when a canonical artifact's recorded SHA differs from the authority in
+`environment.md`. A partial recapture must not be published as a complete matrix.
+
 ## Leader election
 
 ### Workload and semantic boundary
