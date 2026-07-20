@@ -5,7 +5,7 @@
 This report compares only operations with matching semantics inside each family. It does not
 produce a universal provider ranking. The measurements are a short local snapshot on the machine
 recorded in [environment.md](outputs/issue-560/environment.md), from Git SHA
-`ef3ef4f3070f516a3c75c2637f8e2bca231d9370`.
+`1f1069f4b119957d96158c969f819d6374f902c8`.
 
 - Use local rows as API and implementation lower bounds, not as distributed-provider winners.
 - Choose leader and rate-limit providers from operational requirements first; the measured
@@ -77,18 +77,18 @@ probes are correctness evidence, not ranking inputs.
 
 | Operation | Provider | Median | Observed min-max |
 | --- | --- | ---: | ---: |
-| Campaign uncontended | Redis | 230.5 us | 216.6-232.8 us |
-| Campaign uncontended | MongoDB | 497.1 us | 461.9-512.7 us |
-| Campaign uncontended | PostgreSQL | 1.44 ms | 1.33-1.59 ms |
-| Campaign uncontended | etcd | 1.75 ms | 1.69-2.99 ms |
-| Leader lookup | Redis | 195.9 us | 190.2-203.9 us |
-| Leader lookup | MongoDB | 398.9 us | 368.9-531.4 us |
-| Leader lookup | PostgreSQL | 666.4 us | 647.2-752.3 us |
-| Leader lookup | etcd | 366.3 us | 299.7-426.2 us |
+| Campaign uncontended | Redis | 199.6 us | 193.2-256.6 us |
+| Campaign uncontended | MongoDB | 468.8 us | 402.9-503.6 us |
+| Campaign uncontended | PostgreSQL | 1.44 ms | 1.32-1.47 ms |
+| Campaign uncontended | etcd | 1.98 ms | 1.97-3.68 ms |
+| Leader lookup | Redis | 224.9 us | 202.2-231.7 us |
+| Leader lookup | MongoDB | 345.3 us | 315.0-351.0 us |
+| Leader lookup | PostgreSQL | 661.8 us | 655.9-780.6 us |
+| Leader lookup | etcd | 290.4 us | 290.0-387.9 us |
 | Expiry takeover | Redis | 1.00 s | 1.00-1.00 s |
-| Expiry takeover | MongoDB | 1.00 s | 1.00-1.00 s |
-| Expiry takeover | PostgreSQL | 1.01 s | 1.01-1.01 s |
-| Expiry takeover | etcd | 2.08 s | 2.06-2.09 s |
+| Expiry takeover | MongoDB | 1.01 s | 1.00-1.01 s |
+| Expiry takeover | PostgreSQL | 1.01 s | 1.00-1.01 s |
+| Expiry takeover | etcd | 2.09 s | 2.06-2.29 s |
 
 ![Leader provider latency chart showing min, median, and max for ordinary operations and isolated expiry takeover on a logarithmic axis](../images/readme-charts/provider-benchmark-leader-summary.png)
 
@@ -121,19 +121,19 @@ Metric direction: lower `ns/op` is better for an equivalent allow decision.
 
 | Scenario | Redis median | PostgreSQL median |
 | --- | ---: | ---: |
-| Allow available | 194.3 us | 257.8 us |
-| Allow rejected | 189.7 us | 215.8 us |
-| Parallel, one key, N=8 | 389.2 us | 11.37 ms |
-| Parallel, distinct keys, N=8 | 1.13 ms | 10.68 ms |
+| Allow available | 311.7 us | 243.1 us |
+| Allow rejected | 210.4 us | 223.6 us |
+| Parallel, one key, N=8 | 505.3 us | 10.65 ms |
+| Parallel, distinct keys, N=8 | 482.9 us | 11.75 ms |
 
 ![Rate-limit provider latency chart comparing Redis and PostgreSQL min, median, and max for equivalent allow decisions on a logarithmic axis](../images/readme-charts/provider-benchmark-ratelimit-summary.png)
 
 ### Selection guidance
 
-Redis had the lower median in this local snapshot, especially in the two eight-worker rows.
-PostgreSQL remains a valid choice when transactional colocation and one operational datastore are
-more important than this fixture's latency. The result is a profiling signal, not evidence that
-the SQL contract is unsuitable.
+PostgreSQL had the lower median for the single-key available path, while Redis was lower for the
+rejected path and both eight-worker rows. PostgreSQL remains a valid choice when transactional
+colocation and one operational datastore are more important than the concurrency shape observed
+here. The result is a profiling signal, not evidence that either contract is universally better.
 
 Not proven: fairness under sustained arrival rates, multi-host lock contention, database pool
 saturation, failover, cloud cost, or rate-limit accuracy during partitions. Follow-up issue draft:
@@ -156,12 +156,12 @@ Metric direction: lower `ns/op` is better only within the same cache-path semant
 
 | Path, 128 B payload | Median | Observed min-max |
 | --- | ---: | ---: |
-| Memory get hit | 38.8 ns | 38.1-39.1 ns |
-| Tiered L1 hit | 273.3 ns | 250.4-278.8 ns |
-| Pub/Sub near-cache local hit | 278.7 ns | 243.0-319.2 ns |
-| Redis L2 get hit | 191.6 us | 171.8-220.4 us |
-| Tiered L2 hit | 177.2 us | 176.9-178.7 us |
-| Pub/Sub peer invalidation observed | 273.0 us | 264.9-297.1 us |
+| Memory get hit | 37.7 ns | 37.5-37.9 ns |
+| Tiered L1 hit | 193.4 ns | 174.1-273.7 ns |
+| Pub/Sub near-cache local hit | 322.5 ns | 254.5-421.7 ns |
+| Redis L2 get hit | 181.0 us | 180.9-246.0 us |
+| Tiered L2 hit | 178.0 us | 177.2-178.6 us |
+| Pub/Sub peer invalidation observed | 314.0 us | 313.3-320.6 us |
 
 ![Cache path latency chart separating hot reference-object reads, serialized remote reads, and Pub/Sub invalidation on a logarithmic axis](../images/readme-charts/provider-benchmark-cache-summary.png)
 
@@ -192,9 +192,9 @@ Metric direction: lower `ns/op` is better for the same graph shape and round-tri
 
 | Format | Median | Observed min-max |
 | --- | ---: | ---: |
-| CSV | 119.02 ms | 118.24-120.78 ms |
-| NDJSON | 92.59 ms | 89.56-95.41 ms |
-| GraphML | 215.62 ms | 213.82-216.90 ms |
+| CSV | 120.59 ms | 119.66-120.62 ms |
+| NDJSON | 87.35 ms | 86.68-87.67 ms |
+| GraphML | 215.27 ms | 213.41-221.33 ms |
 
 ![Graph I/O chart comparing CSV, NDJSON, and GraphML medium round-trip min, median, and max latency](../images/readme-charts/provider-benchmark-graphio-summary.png)
 
@@ -222,9 +222,9 @@ Metric direction: lower `ns/op` is better for an equivalent seeded traversal.
 
 | Shape | Neo4j median | Memgraph median | PostgreSQL CTE median |
 | --- | ---: | ---: | ---: |
-| Long chain, depth 16 | 2.21 ms | 539.3 us | 366.4 us |
-| Long chain, depth 64 | 1.99 ms | 694.5 us | 955.4 us |
-| Deep-wide, depth 4 fanout 4 | 4.03 ms | 1.23 ms | 505.0 us |
+| Long chain, depth 16 | 2.16 ms | 537.5 us | 476.9 us |
+| Long chain, depth 64 | 1.67 ms | 608.7 us | 1.06 ms |
+| Deep-wide, depth 4 fanout 4 | 6.69 ms | 1.51 ms | 493.4 us |
 
 ![Graph traversal chart comparing Neo4j, Memgraph, and PostgreSQL recursive CTE min, median, and max latency for equivalent seeded shapes](../images/readme-charts/provider-benchmark-graphdb-summary.png)
 

@@ -12,27 +12,27 @@
         "provider": "CSV",
         "scenario": "Medium round trip",
         "panel": "Equivalent format round trips",
-        "min": 118241611,
-        "median": 119020958,
-        "max": 120779565,
+        "min": 119661282,
+        "median": 120594653,
+        "max": 120616843,
         "samples": 5
       },
       {
         "provider": "NDJSON",
         "scenario": "Medium round trip",
         "panel": "Equivalent format round trips",
-        "min": 89560359,
-        "median": 92585426,
-        "max": 95412814,
+        "min": 86682942,
+        "median": 87348330,
+        "max": 87674372,
         "samples": 5
       },
       {
         "provider": "GraphML",
         "scenario": "Medium round trip",
         "panel": "Equivalent format round trips",
-        "min": 213818108,
-        "median": 215622483,
-        "max": 216896492,
+        "min": 213405175,
+        "median": 215274700,
+        "max": 221329850,
         "samples": 5
       }
     ]

@@ -1,207 +1,188 @@
 command_label: ordinary
 command: env BLUETAPE_LEADER_PROVIDER_BENCH=1 go test -timeout=30m -p 1 -run \^\$ -bench \^BenchmarkProviderLeaderContainers\$/\(Redis\|MongoDB\|PostgreSQL\|etcd\)/\(CampaignUncontended\|ResignOwned\|CampaignContention\|LeaderLookup\)\$ -benchtime=100x -count=3 -benchmem ./leader
-timestamp_utc: 2026-07-20T17:06:13Z
-git_sha: ef3ef4f3070f516a3c75c2637f8e2bca231d9370
+timestamp_utc: 2026-07-20T18:00:26Z
+git_sha: 1f1069f4b119957d96158c969f819d6374f902c8
 pre_run_clean: true
+max_output_bytes: 16777216
 output_begin
 goos: darwin
 goarch: arm64
 pkg: github.com/bluetape4k/bluetape-go/leader
 cpu: Apple M5
-BenchmarkProviderLeaderContainers/Redis/CampaignUncontended-10         	     100	    232823 ns/op	    3326 B/op	      47 allocs/op
+BenchmarkProviderLeaderContainers/Redis/CampaignUncontended-10         	     100	    193175 ns/op	    3689 B/op	      52 allocs/op
 --- BENCH: BenchmarkProviderLeaderContainers/Redis/CampaignUncontended-10
-    provider_benchmark_test.go:973: provider_version="7.4.9" image_reference="redis:7.4-alpine@sha256:6ab0b6e7381779332f97b8ca76193e45b0756f38d4c0dcda72dbb3c32061ab99"
-    provider_benchmark_test.go:973: provider_version="7.4.9" image_reference="redis:7.4-alpine@sha256:6ab0b6e7381779332f97b8ca76193e45b0756f38d4c0dcda72dbb3c32061ab99"
-BenchmarkProviderLeaderContainers/Redis/CampaignUncontended-10         	     100	    230540 ns/op	    3222 B/op	      46 allocs/op
+    provider_benchmark_test.go:1024: provider_version="7.4.9" image_reference="redis:7.4-alpine@sha256:6ab0b6e7381779332f97b8ca76193e45b0756f38d4c0dcda72dbb3c32061ab99"
+    provider_benchmark_test.go:1024: provider_version="7.4.9" image_reference="redis:7.4-alpine@sha256:6ab0b6e7381779332f97b8ca76193e45b0756f38d4c0dcda72dbb3c32061ab99"
+BenchmarkProviderLeaderContainers/Redis/CampaignUncontended-10         	     100	    199635 ns/op	    3591 B/op	      52 allocs/op
 --- BENCH: BenchmarkProviderLeaderContainers/Redis/CampaignUncontended-10
-    provider_benchmark_test.go:973: provider_version="7.4.9" image_reference="redis:7.4-alpine@sha256:6ab0b6e7381779332f97b8ca76193e45b0756f38d4c0dcda72dbb3c32061ab99"
-    provider_benchmark_test.go:973: provider_version="7.4.9" image_reference="redis:7.4-alpine@sha256:6ab0b6e7381779332f97b8ca76193e45b0756f38d4c0dcda72dbb3c32061ab99"
-BenchmarkProviderLeaderContainers/Redis/CampaignUncontended-10         	     100	    216588 ns/op	    3319 B/op	      47 allocs/op
+    provider_benchmark_test.go:1024: provider_version="7.4.9" image_reference="redis:7.4-alpine@sha256:6ab0b6e7381779332f97b8ca76193e45b0756f38d4c0dcda72dbb3c32061ab99"
+    provider_benchmark_test.go:1024: provider_version="7.4.9" image_reference="redis:7.4-alpine@sha256:6ab0b6e7381779332f97b8ca76193e45b0756f38d4c0dcda72dbb3c32061ab99"
+BenchmarkProviderLeaderContainers/Redis/CampaignUncontended-10         	     100	    256596 ns/op	    3568 B/op	      52 allocs/op
 --- BENCH: BenchmarkProviderLeaderContainers/Redis/CampaignUncontended-10
-    provider_benchmark_test.go:973: provider_version="7.4.9" image_reference="redis:7.4-alpine@sha256:6ab0b6e7381779332f97b8ca76193e45b0756f38d4c0dcda72dbb3c32061ab99"
-    provider_benchmark_test.go:973: provider_version="7.4.9" image_reference="redis:7.4-alpine@sha256:6ab0b6e7381779332f97b8ca76193e45b0756f38d4c0dcda72dbb3c32061ab99"
-BenchmarkProviderLeaderContainers/Redis/ResignOwned-10                 	     100	    241352 ns/op	    2644 B/op	      41 allocs/op
+    provider_benchmark_test.go:1024: provider_version="7.4.9" image_reference="redis:7.4-alpine@sha256:6ab0b6e7381779332f97b8ca76193e45b0756f38d4c0dcda72dbb3c32061ab99"
+    provider_benchmark_test.go:1024: provider_version="7.4.9" image_reference="redis:7.4-alpine@sha256:6ab0b6e7381779332f97b8ca76193e45b0756f38d4c0dcda72dbb3c32061ab99"
+BenchmarkProviderLeaderContainers/Redis/ResignOwned-10                 	     100	    264242 ns/op	    2709 B/op	      43 allocs/op
 --- BENCH: BenchmarkProviderLeaderContainers/Redis/ResignOwned-10
-    provider_benchmark_test.go:976: provider_version="7.4.9" image_reference="redis:7.4-alpine@sha256:6ab0b6e7381779332f97b8ca76193e45b0756f38d4c0dcda72dbb3c32061ab99"
-    provider_benchmark_test.go:976: provider_version="7.4.9" image_reference="redis:7.4-alpine@sha256:6ab0b6e7381779332f97b8ca76193e45b0756f38d4c0dcda72dbb3c32061ab99"
-BenchmarkProviderLeaderContainers/Redis/ResignOwned-10                 	     100	    218985 ns/op	    2665 B/op	      41 allocs/op
+    provider_benchmark_test.go:1027: provider_version="7.4.9" image_reference="redis:7.4-alpine@sha256:6ab0b6e7381779332f97b8ca76193e45b0756f38d4c0dcda72dbb3c32061ab99"
+    provider_benchmark_test.go:1027: provider_version="7.4.9" image_reference="redis:7.4-alpine@sha256:6ab0b6e7381779332f97b8ca76193e45b0756f38d4c0dcda72dbb3c32061ab99"
+BenchmarkProviderLeaderContainers/Redis/ResignOwned-10                 	     100	    282947 ns/op	    2715 B/op	      43 allocs/op
 --- BENCH: BenchmarkProviderLeaderContainers/Redis/ResignOwned-10
-    provider_benchmark_test.go:976: provider_version="7.4.9" image_reference="redis:7.4-alpine@sha256:6ab0b6e7381779332f97b8ca76193e45b0756f38d4c0dcda72dbb3c32061ab99"
-    provider_benchmark_test.go:976: provider_version="7.4.9" image_reference="redis:7.4-alpine@sha256:6ab0b6e7381779332f97b8ca76193e45b0756f38d4c0dcda72dbb3c32061ab99"
-BenchmarkProviderLeaderContainers/Redis/ResignOwned-10                 	     100	    236694 ns/op	    2659 B/op	      41 allocs/op
+    provider_benchmark_test.go:1027: provider_version="7.4.9" image_reference="redis:7.4-alpine@sha256:6ab0b6e7381779332f97b8ca76193e45b0756f38d4c0dcda72dbb3c32061ab99"
+    provider_benchmark_test.go:1027: provider_version="7.4.9" image_reference="redis:7.4-alpine@sha256:6ab0b6e7381779332f97b8ca76193e45b0756f38d4c0dcda72dbb3c32061ab99"
+BenchmarkProviderLeaderContainers/Redis/ResignOwned-10                 	     100	    196155 ns/op	    2704 B/op	      43 allocs/op
 --- BENCH: BenchmarkProviderLeaderContainers/Redis/ResignOwned-10
-    provider_benchmark_test.go:976: provider_version="7.4.9" image_reference="redis:7.4-alpine@sha256:6ab0b6e7381779332f97b8ca76193e45b0756f38d4c0dcda72dbb3c32061ab99"
-    provider_benchmark_test.go:976: provider_version="7.4.9" image_reference="redis:7.4-alpine@sha256:6ab0b6e7381779332f97b8ca76193e45b0756f38d4c0dcda72dbb3c32061ab99"
-BenchmarkProviderLeaderContainers/Redis/CampaignContention/N=8-10      	     100	    562928 ns/op	   12201 B/op	     171 allocs/op
+    provider_benchmark_test.go:1027: provider_version="7.4.9" image_reference="redis:7.4-alpine@sha256:6ab0b6e7381779332f97b8ca76193e45b0756f38d4c0dcda72dbb3c32061ab99"
+    provider_benchmark_test.go:1027: provider_version="7.4.9" image_reference="redis:7.4-alpine@sha256:6ab0b6e7381779332f97b8ca76193e45b0756f38d4c0dcda72dbb3c32061ab99"
+BenchmarkProviderLeaderContainers/Redis/CampaignContention/N=8-10      	     100	    371651 ns/op	   13096 B/op	     177 allocs/op
 --- BENCH: BenchmarkProviderLeaderContainers/Redis/CampaignContention/N=8-10
-    provider_benchmark_test.go:979: provider_version="7.4.9" image_reference="redis:7.4-alpine@sha256:6ab0b6e7381779332f97b8ca76193e45b0756f38d4c0dcda72dbb3c32061ab99"
-    provider_benchmark_test.go:979: provider_version="7.4.9" image_reference="redis:7.4-alpine@sha256:6ab0b6e7381779332f97b8ca76193e45b0756f38d4c0dcda72dbb3c32061ab99"
-BenchmarkProviderLeaderContainers/Redis/CampaignContention/N=8-10      	     100	    345971 ns/op	   11840 B/op	     169 allocs/op
+    provider_benchmark_test.go:1030: provider_version="7.4.9" image_reference="redis:7.4-alpine@sha256:6ab0b6e7381779332f97b8ca76193e45b0756f38d4c0dcda72dbb3c32061ab99"
+    provider_benchmark_test.go:1030: provider_version="7.4.9" image_reference="redis:7.4-alpine@sha256:6ab0b6e7381779332f97b8ca76193e45b0756f38d4c0dcda72dbb3c32061ab99"
+BenchmarkProviderLeaderContainers/Redis/CampaignContention/N=8-10      	     100	    352531 ns/op	   12525 B/op	     175 allocs/op
 --- BENCH: BenchmarkProviderLeaderContainers/Redis/CampaignContention/N=8-10
-    provider_benchmark_test.go:979: provider_version="7.4.9" image_reference="redis:7.4-alpine@sha256:6ab0b6e7381779332f97b8ca76193e45b0756f38d4c0dcda72dbb3c32061ab99"
-    provider_benchmark_test.go:979: provider_version="7.4.9" image_reference="redis:7.4-alpine@sha256:6ab0b6e7381779332f97b8ca76193e45b0756f38d4c0dcda72dbb3c32061ab99"
-BenchmarkProviderLeaderContainers/Redis/CampaignContention/N=8-10      	     100	    384062 ns/op	   11894 B/op	     169 allocs/op
+    provider_benchmark_test.go:1030: provider_version="7.4.9" image_reference="redis:7.4-alpine@sha256:6ab0b6e7381779332f97b8ca76193e45b0756f38d4c0dcda72dbb3c32061ab99"
+    provider_benchmark_test.go:1030: provider_version="7.4.9" image_reference="redis:7.4-alpine@sha256:6ab0b6e7381779332f97b8ca76193e45b0756f38d4c0dcda72dbb3c32061ab99"
+BenchmarkProviderLeaderContainers/Redis/CampaignContention/N=8-10      	     100	    316794 ns/op	   12237 B/op	     173 allocs/op
 --- BENCH: BenchmarkProviderLeaderContainers/Redis/CampaignContention/N=8-10
-    provider_benchmark_test.go:979: provider_version="7.4.9" image_reference="redis:7.4-alpine@sha256:6ab0b6e7381779332f97b8ca76193e45b0756f38d4c0dcda72dbb3c32061ab99"
-    provider_benchmark_test.go:979: provider_version="7.4.9" image_reference="redis:7.4-alpine@sha256:6ab0b6e7381779332f97b8ca76193e45b0756f38d4c0dcda72dbb3c32061ab99"
-BenchmarkProviderLeaderContainers/Redis/LeaderLookup-10                	     100	    190191 ns/op	    2576 B/op	      37 allocs/op
+    provider_benchmark_test.go:1030: provider_version="7.4.9" image_reference="redis:7.4-alpine@sha256:6ab0b6e7381779332f97b8ca76193e45b0756f38d4c0dcda72dbb3c32061ab99"
+    provider_benchmark_test.go:1030: provider_version="7.4.9" image_reference="redis:7.4-alpine@sha256:6ab0b6e7381779332f97b8ca76193e45b0756f38d4c0dcda72dbb3c32061ab99"
+BenchmarkProviderLeaderContainers/Redis/LeaderLookup-10                	     100	    202180 ns/op	    2664 B/op	      39 allocs/op
 --- BENCH: BenchmarkProviderLeaderContainers/Redis/LeaderLookup-10
-    provider_benchmark_test.go:982: provider_version="7.4.9" image_reference="redis:7.4-alpine@sha256:6ab0b6e7381779332f97b8ca76193e45b0756f38d4c0dcda72dbb3c32061ab99"
-    provider_benchmark_test.go:982: provider_version="7.4.9" image_reference="redis:7.4-alpine@sha256:6ab0b6e7381779332f97b8ca76193e45b0756f38d4c0dcda72dbb3c32061ab99"
-BenchmarkProviderLeaderContainers/Redis/LeaderLookup-10                	     100	    195940 ns/op	    2576 B/op	      37 allocs/op
+    provider_benchmark_test.go:1033: provider_version="7.4.9" image_reference="redis:7.4-alpine@sha256:6ab0b6e7381779332f97b8ca76193e45b0756f38d4c0dcda72dbb3c32061ab99"
+    provider_benchmark_test.go:1033: provider_version="7.4.9" image_reference="redis:7.4-alpine@sha256:6ab0b6e7381779332f97b8ca76193e45b0756f38d4c0dcda72dbb3c32061ab99"
+BenchmarkProviderLeaderContainers/Redis/LeaderLookup-10                	     100	    231709 ns/op	    2661 B/op	      39 allocs/op
 --- BENCH: BenchmarkProviderLeaderContainers/Redis/LeaderLookup-10
-    provider_benchmark_test.go:982: provider_version="7.4.9" image_reference="redis:7.4-alpine@sha256:6ab0b6e7381779332f97b8ca76193e45b0756f38d4c0dcda72dbb3c32061ab99"
-    provider_benchmark_test.go:982: provider_version="7.4.9" image_reference="redis:7.4-alpine@sha256:6ab0b6e7381779332f97b8ca76193e45b0756f38d4c0dcda72dbb3c32061ab99"
-BenchmarkProviderLeaderContainers/Redis/LeaderLookup-10                	     100	    203853 ns/op	    2578 B/op	      37 allocs/op
+    provider_benchmark_test.go:1033: provider_version="7.4.9" image_reference="redis:7.4-alpine@sha256:6ab0b6e7381779332f97b8ca76193e45b0756f38d4c0dcda72dbb3c32061ab99"
+    provider_benchmark_test.go:1033: provider_version="7.4.9" image_reference="redis:7.4-alpine@sha256:6ab0b6e7381779332f97b8ca76193e45b0756f38d4c0dcda72dbb3c32061ab99"
+BenchmarkProviderLeaderContainers/Redis/LeaderLookup-10                	     100	    224905 ns/op	    2675 B/op	      39 allocs/op
 --- BENCH: BenchmarkProviderLeaderContainers/Redis/LeaderLookup-10
-    provider_benchmark_test.go:982: provider_version="7.4.9" image_reference="redis:7.4-alpine@sha256:6ab0b6e7381779332f97b8ca76193e45b0756f38d4c0dcda72dbb3c32061ab99"
-    provider_benchmark_test.go:982: provider_version="7.4.9" image_reference="redis:7.4-alpine@sha256:6ab0b6e7381779332f97b8ca76193e45b0756f38d4c0dcda72dbb3c32061ab99"
-BenchmarkProviderLeaderContainers/MongoDB/CampaignUncontended-10       	     100	    497115 ns/op	   21201 B/op	     227 allocs/op
+    provider_benchmark_test.go:1033: provider_version="7.4.9" image_reference="redis:7.4-alpine@sha256:6ab0b6e7381779332f97b8ca76193e45b0756f38d4c0dcda72dbb3c32061ab99"
+    provider_benchmark_test.go:1033: provider_version="7.4.9" image_reference="redis:7.4-alpine@sha256:6ab0b6e7381779332f97b8ca76193e45b0756f38d4c0dcda72dbb3c32061ab99"
+BenchmarkProviderLeaderContainers/MongoDB/CampaignUncontended-10       	     100	    402851 ns/op	   21321 B/op	     232 allocs/op
 --- BENCH: BenchmarkProviderLeaderContainers/MongoDB/CampaignUncontended-10
-    provider_benchmark_test.go:973: provider_version="7.0.37" image_reference="mongo:7.0@sha256:340c1c56fb10e95cf79ff547f8664b96bc6ead9909bc355238cbf865a9695a6f"
-    provider_benchmark_test.go:973: provider_version="7.0.37" image_reference="mongo:7.0@sha256:340c1c56fb10e95cf79ff547f8664b96bc6ead9909bc355238cbf865a9695a6f"
-BenchmarkProviderLeaderContainers/MongoDB/CampaignUncontended-10       	     100	    461897 ns/op	   21114 B/op	     227 allocs/op
+    provider_benchmark_test.go:1024: provider_version="7.0.37" image_reference="mongo:7.0@sha256:340c1c56fb10e95cf79ff547f8664b96bc6ead9909bc355238cbf865a9695a6f"
+    provider_benchmark_test.go:1024: provider_version="7.0.37" image_reference="mongo:7.0@sha256:340c1c56fb10e95cf79ff547f8664b96bc6ead9909bc355238cbf865a9695a6f"
+BenchmarkProviderLeaderContainers/MongoDB/CampaignUncontended-10       	     100	    468764 ns/op	   21423 B/op	     232 allocs/op
 --- BENCH: BenchmarkProviderLeaderContainers/MongoDB/CampaignUncontended-10
-    provider_benchmark_test.go:973: provider_version="7.0.37" image_reference="mongo:7.0@sha256:340c1c56fb10e95cf79ff547f8664b96bc6ead9909bc355238cbf865a9695a6f"
-    provider_benchmark_test.go:973: provider_version="7.0.37" image_reference="mongo:7.0@sha256:340c1c56fb10e95cf79ff547f8664b96bc6ead9909bc355238cbf865a9695a6f"
-BenchmarkProviderLeaderContainers/MongoDB/CampaignUncontended-10       	     100	    512687 ns/op	   21095 B/op	     227 allocs/op
+    provider_benchmark_test.go:1024: provider_version="7.0.37" image_reference="mongo:7.0@sha256:340c1c56fb10e95cf79ff547f8664b96bc6ead9909bc355238cbf865a9695a6f"
+    provider_benchmark_test.go:1024: provider_version="7.0.37" image_reference="mongo:7.0@sha256:340c1c56fb10e95cf79ff547f8664b96bc6ead9909bc355238cbf865a9695a6f"
+BenchmarkProviderLeaderContainers/MongoDB/CampaignUncontended-10       	     100	    503648 ns/op	   21355 B/op	     232 allocs/op
 --- BENCH: BenchmarkProviderLeaderContainers/MongoDB/CampaignUncontended-10
-    provider_benchmark_test.go:973: provider_version="7.0.37" image_reference="mongo:7.0@sha256:340c1c56fb10e95cf79ff547f8664b96bc6ead9909bc355238cbf865a9695a6f"
-    provider_benchmark_test.go:973: provider_version="7.0.37" image_reference="mongo:7.0@sha256:340c1c56fb10e95cf79ff547f8664b96bc6ead9909bc355238cbf865a9695a6f"
-BenchmarkProviderLeaderContainers/MongoDB/ResignOwned-10               	     100	    401183 ns/op	    8566 B/op	     102 allocs/op
+    provider_benchmark_test.go:1024: provider_version="7.0.37" image_reference="mongo:7.0@sha256:340c1c56fb10e95cf79ff547f8664b96bc6ead9909bc355238cbf865a9695a6f"
+    provider_benchmark_test.go:1024: provider_version="7.0.37" image_reference="mongo:7.0@sha256:340c1c56fb10e95cf79ff547f8664b96bc6ead9909bc355238cbf865a9695a6f"
+BenchmarkProviderLeaderContainers/MongoDB/ResignOwned-10               	     100	    353696 ns/op	    8711 B/op	     104 allocs/op
 --- BENCH: BenchmarkProviderLeaderContainers/MongoDB/ResignOwned-10
-    provider_benchmark_test.go:976: provider_version="7.0.37" image_reference="mongo:7.0@sha256:340c1c56fb10e95cf79ff547f8664b96bc6ead9909bc355238cbf865a9695a6f"
-    provider_benchmark_test.go:976: provider_version="7.0.37" image_reference="mongo:7.0@sha256:340c1c56fb10e95cf79ff547f8664b96bc6ead9909bc355238cbf865a9695a6f"
-BenchmarkProviderLeaderContainers/MongoDB/ResignOwned-10               	     100	    371140 ns/op	    8510 B/op	     102 allocs/op
+    provider_benchmark_test.go:1027: provider_version="7.0.37" image_reference="mongo:7.0@sha256:340c1c56fb10e95cf79ff547f8664b96bc6ead9909bc355238cbf865a9695a6f"
+    provider_benchmark_test.go:1027: provider_version="7.0.37" image_reference="mongo:7.0@sha256:340c1c56fb10e95cf79ff547f8664b96bc6ead9909bc355238cbf865a9695a6f"
+BenchmarkProviderLeaderContainers/MongoDB/ResignOwned-10               	     100	    348292 ns/op	    8678 B/op	     104 allocs/op
 --- BENCH: BenchmarkProviderLeaderContainers/MongoDB/ResignOwned-10
-    provider_benchmark_test.go:976: provider_version="7.0.37" image_reference="mongo:7.0@sha256:340c1c56fb10e95cf79ff547f8664b96bc6ead9909bc355238cbf865a9695a6f"
-    provider_benchmark_test.go:976: provider_version="7.0.37" image_reference="mongo:7.0@sha256:340c1c56fb10e95cf79ff547f8664b96bc6ead9909bc355238cbf865a9695a6f"
-BenchmarkProviderLeaderContainers/MongoDB/ResignOwned-10               	     100	    393006 ns/op	    8567 B/op	     102 allocs/op
+    provider_benchmark_test.go:1027: provider_version="7.0.37" image_reference="mongo:7.0@sha256:340c1c56fb10e95cf79ff547f8664b96bc6ead9909bc355238cbf865a9695a6f"
+    provider_benchmark_test.go:1027: provider_version="7.0.37" image_reference="mongo:7.0@sha256:340c1c56fb10e95cf79ff547f8664b96bc6ead9909bc355238cbf865a9695a6f"
+BenchmarkProviderLeaderContainers/MongoDB/ResignOwned-10               	     100	    318973 ns/op	    8818 B/op	     104 allocs/op
 --- BENCH: BenchmarkProviderLeaderContainers/MongoDB/ResignOwned-10
-    provider_benchmark_test.go:976: provider_version="7.0.37" image_reference="mongo:7.0@sha256:340c1c56fb10e95cf79ff547f8664b96bc6ead9909bc355238cbf865a9695a6f"
-    provider_benchmark_test.go:976: provider_version="7.0.37" image_reference="mongo:7.0@sha256:340c1c56fb10e95cf79ff547f8664b96bc6ead9909bc355238cbf865a9695a6f"
-BenchmarkProviderLeaderContainers/MongoDB/CampaignContention/N=8-10    	     100	    931767 ns/op	  117774 B/op	    1407 allocs/op
+    provider_benchmark_test.go:1027: provider_version="7.0.37" image_reference="mongo:7.0@sha256:340c1c56fb10e95cf79ff547f8664b96bc6ead9909bc355238cbf865a9695a6f"
+    provider_benchmark_test.go:1027: provider_version="7.0.37" image_reference="mongo:7.0@sha256:340c1c56fb10e95cf79ff547f8664b96bc6ead9909bc355238cbf865a9695a6f"
+BenchmarkProviderLeaderContainers/MongoDB/CampaignContention/N=8-10    	     100	    652107 ns/op	  118794 B/op	    1412 allocs/op
 --- BENCH: BenchmarkProviderLeaderContainers/MongoDB/CampaignContention/N=8-10
-    provider_benchmark_test.go:979: provider_version="7.0.37" image_reference="mongo:7.0@sha256:340c1c56fb10e95cf79ff547f8664b96bc6ead9909bc355238cbf865a9695a6f"
-    provider_benchmark_test.go:979: provider_version="7.0.37" image_reference="mongo:7.0@sha256:340c1c56fb10e95cf79ff547f8664b96bc6ead9909bc355238cbf865a9695a6f"
-BenchmarkProviderLeaderContainers/MongoDB/CampaignContention/N=8-10    	     100	    800311 ns/op	  117784 B/op	    1405 allocs/op
+    provider_benchmark_test.go:1030: provider_version="7.0.37" image_reference="mongo:7.0@sha256:340c1c56fb10e95cf79ff547f8664b96bc6ead9909bc355238cbf865a9695a6f"
+    provider_benchmark_test.go:1030: provider_version="7.0.37" image_reference="mongo:7.0@sha256:340c1c56fb10e95cf79ff547f8664b96bc6ead9909bc355238cbf865a9695a6f"
+BenchmarkProviderLeaderContainers/MongoDB/CampaignContention/N=8-10    	     100	    723898 ns/op	  118928 B/op	    1412 allocs/op
 --- BENCH: BenchmarkProviderLeaderContainers/MongoDB/CampaignContention/N=8-10
-    provider_benchmark_test.go:979: provider_version="7.0.37" image_reference="mongo:7.0@sha256:340c1c56fb10e95cf79ff547f8664b96bc6ead9909bc355238cbf865a9695a6f"
-    provider_benchmark_test.go:979: provider_version="7.0.37" image_reference="mongo:7.0@sha256:340c1c56fb10e95cf79ff547f8664b96bc6ead9909bc355238cbf865a9695a6f"
-BenchmarkProviderLeaderContainers/MongoDB/CampaignContention/N=8-10    	     100	   1251488 ns/op	  117996 B/op	    1406 allocs/op
+    provider_benchmark_test.go:1030: provider_version="7.0.37" image_reference="mongo:7.0@sha256:340c1c56fb10e95cf79ff547f8664b96bc6ead9909bc355238cbf865a9695a6f"
+    provider_benchmark_test.go:1030: provider_version="7.0.37" image_reference="mongo:7.0@sha256:340c1c56fb10e95cf79ff547f8664b96bc6ead9909bc355238cbf865a9695a6f"
+BenchmarkProviderLeaderContainers/MongoDB/CampaignContention/N=8-10    	     100	    681290 ns/op	  118282 B/op	    1411 allocs/op
 --- BENCH: BenchmarkProviderLeaderContainers/MongoDB/CampaignContention/N=8-10
-    provider_benchmark_test.go:979: provider_version="7.0.37" image_reference="mongo:7.0@sha256:340c1c56fb10e95cf79ff547f8664b96bc6ead9909bc355238cbf865a9695a6f"
-    provider_benchmark_test.go:979: provider_version="7.0.37" image_reference="mongo:7.0@sha256:340c1c56fb10e95cf79ff547f8664b96bc6ead9909bc355238cbf865a9695a6f"
-BenchmarkProviderLeaderContainers/MongoDB/LeaderLookup-10              	     100	    531353 ns/op	   16438 B/op	     152 allocs/op
+    provider_benchmark_test.go:1030: provider_version="7.0.37" image_reference="mongo:7.0@sha256:340c1c56fb10e95cf79ff547f8664b96bc6ead9909bc355238cbf865a9695a6f"
+    provider_benchmark_test.go:1030: provider_version="7.0.37" image_reference="mongo:7.0@sha256:340c1c56fb10e95cf79ff547f8664b96bc6ead9909bc355238cbf865a9695a6f"
+BenchmarkProviderLeaderContainers/MongoDB/LeaderLookup-10              	     100	    345329 ns/op	   16414 B/op	     154 allocs/op
 --- BENCH: BenchmarkProviderLeaderContainers/MongoDB/LeaderLookup-10
-    provider_benchmark_test.go:982: provider_version="7.0.37" image_reference="mongo:7.0@sha256:340c1c56fb10e95cf79ff547f8664b96bc6ead9909bc355238cbf865a9695a6f"
-    provider_benchmark_test.go:982: provider_version="7.0.37" image_reference="mongo:7.0@sha256:340c1c56fb10e95cf79ff547f8664b96bc6ead9909bc355238cbf865a9695a6f"
-BenchmarkProviderLeaderContainers/MongoDB/LeaderLookup-10              	     100	    398862 ns/op	   16382 B/op	     152 allocs/op
+    provider_benchmark_test.go:1033: provider_version="7.0.37" image_reference="mongo:7.0@sha256:340c1c56fb10e95cf79ff547f8664b96bc6ead9909bc355238cbf865a9695a6f"
+    provider_benchmark_test.go:1033: provider_version="7.0.37" image_reference="mongo:7.0@sha256:340c1c56fb10e95cf79ff547f8664b96bc6ead9909bc355238cbf865a9695a6f"
+BenchmarkProviderLeaderContainers/MongoDB/LeaderLookup-10              	     100	    315020 ns/op	   16447 B/op	     154 allocs/op
 --- BENCH: BenchmarkProviderLeaderContainers/MongoDB/LeaderLookup-10
-    provider_benchmark_test.go:982: provider_version="7.0.37" image_reference="mongo:7.0@sha256:340c1c56fb10e95cf79ff547f8664b96bc6ead9909bc355238cbf865a9695a6f"
-    provider_benchmark_test.go:982: provider_version="7.0.37" image_reference="mongo:7.0@sha256:340c1c56fb10e95cf79ff547f8664b96bc6ead9909bc355238cbf865a9695a6f"
-BenchmarkProviderLeaderContainers/MongoDB/LeaderLookup-10              	     100	    368882 ns/op	   16362 B/op	     152 allocs/op
+    provider_benchmark_test.go:1033: provider_version="7.0.37" image_reference="mongo:7.0@sha256:340c1c56fb10e95cf79ff547f8664b96bc6ead9909bc355238cbf865a9695a6f"
+    provider_benchmark_test.go:1033: provider_version="7.0.37" image_reference="mongo:7.0@sha256:340c1c56fb10e95cf79ff547f8664b96bc6ead9909bc355238cbf865a9695a6f"
+BenchmarkProviderLeaderContainers/MongoDB/LeaderLookup-10              	     100	    350979 ns/op	   16377 B/op	     154 allocs/op
 --- BENCH: BenchmarkProviderLeaderContainers/MongoDB/LeaderLookup-10
-    provider_benchmark_test.go:982: provider_version="7.0.37" image_reference="mongo:7.0@sha256:340c1c56fb10e95cf79ff547f8664b96bc6ead9909bc355238cbf865a9695a6f"
-    provider_benchmark_test.go:982: provider_version="7.0.37" image_reference="mongo:7.0@sha256:340c1c56fb10e95cf79ff547f8664b96bc6ead9909bc355238cbf865a9695a6f"
-BenchmarkProviderLeaderContainers/PostgreSQL/CampaignUncontended-10    	     100	   1592850 ns/op	   12891 B/op	     122 allocs/op
+    provider_benchmark_test.go:1033: provider_version="7.0.37" image_reference="mongo:7.0@sha256:340c1c56fb10e95cf79ff547f8664b96bc6ead9909bc355238cbf865a9695a6f"
+    provider_benchmark_test.go:1033: provider_version="7.0.37" image_reference="mongo:7.0@sha256:340c1c56fb10e95cf79ff547f8664b96bc6ead9909bc355238cbf865a9695a6f"
+BenchmarkProviderLeaderContainers/PostgreSQL/CampaignUncontended-10    	     100	   1467531 ns/op	   13158 B/op	     126 allocs/op
 --- BENCH: BenchmarkProviderLeaderContainers/PostgreSQL/CampaignUncontended-10
-    provider_benchmark_test.go:973: provider_version="16.14" image_reference="postgres:16-alpine@sha256:57c72fd2a128e416c7fcc499958864df5301e940bca0a56f58fddf30ffc07777"
-    provider_benchmark_test.go:973: provider_version="16.14" image_reference="postgres:16-alpine@sha256:57c72fd2a128e416c7fcc499958864df5301e940bca0a56f58fddf30ffc07777"
-BenchmarkProviderLeaderContainers/PostgreSQL/CampaignUncontended-10    	     100	   1438701 ns/op	   12859 B/op	     122 allocs/op
+    provider_benchmark_test.go:1024: provider_version="16.14" image_reference="postgres:16-alpine@sha256:57c72fd2a128e416c7fcc499958864df5301e940bca0a56f58fddf30ffc07777"
+    provider_benchmark_test.go:1024: provider_version="16.14" image_reference="postgres:16-alpine@sha256:57c72fd2a128e416c7fcc499958864df5301e940bca0a56f58fddf30ffc07777"
+BenchmarkProviderLeaderContainers/PostgreSQL/CampaignUncontended-10    	     100	   1436177 ns/op	   13218 B/op	     127 allocs/op
 --- BENCH: BenchmarkProviderLeaderContainers/PostgreSQL/CampaignUncontended-10
-    provider_benchmark_test.go:973: provider_version="16.14" image_reference="postgres:16-alpine@sha256:57c72fd2a128e416c7fcc499958864df5301e940bca0a56f58fddf30ffc07777"
-    provider_benchmark_test.go:973: provider_version="16.14" image_reference="postgres:16-alpine@sha256:57c72fd2a128e416c7fcc499958864df5301e940bca0a56f58fddf30ffc07777"
-BenchmarkProviderLeaderContainers/PostgreSQL/CampaignUncontended-10    	     100	   1330962 ns/op	   12901 B/op	     122 allocs/op
+    provider_benchmark_test.go:1024: provider_version="16.14" image_reference="postgres:16-alpine@sha256:57c72fd2a128e416c7fcc499958864df5301e940bca0a56f58fddf30ffc07777"
+    provider_benchmark_test.go:1024: provider_version="16.14" image_reference="postgres:16-alpine@sha256:57c72fd2a128e416c7fcc499958864df5301e940bca0a56f58fddf30ffc07777"
+BenchmarkProviderLeaderContainers/PostgreSQL/CampaignUncontended-10    	     100	   1315618 ns/op	   13214 B/op	     127 allocs/op
 --- BENCH: BenchmarkProviderLeaderContainers/PostgreSQL/CampaignUncontended-10
-    provider_benchmark_test.go:973: provider_version="16.14" image_reference="postgres:16-alpine@sha256:57c72fd2a128e416c7fcc499958864df5301e940bca0a56f58fddf30ffc07777"
-    provider_benchmark_test.go:973: provider_version="16.14" image_reference="postgres:16-alpine@sha256:57c72fd2a128e416c7fcc499958864df5301e940bca0a56f58fddf30ffc07777"
-BenchmarkProviderLeaderContainers/PostgreSQL/ResignOwned-10            	     100	    675451 ns/op	    3757 B/op	      55 allocs/op
+    provider_benchmark_test.go:1024: provider_version="16.14" image_reference="postgres:16-alpine@sha256:57c72fd2a128e416c7fcc499958864df5301e940bca0a56f58fddf30ffc07777"
+    provider_benchmark_test.go:1024: provider_version="16.14" image_reference="postgres:16-alpine@sha256:57c72fd2a128e416c7fcc499958864df5301e940bca0a56f58fddf30ffc07777"
+BenchmarkProviderLeaderContainers/PostgreSQL/ResignOwned-10            	     100	    735698 ns/op	    3828 B/op	      57 allocs/op
 --- BENCH: BenchmarkProviderLeaderContainers/PostgreSQL/ResignOwned-10
-    provider_benchmark_test.go:976: provider_version="16.14" image_reference="postgres:16-alpine@sha256:57c72fd2a128e416c7fcc499958864df5301e940bca0a56f58fddf30ffc07777"
-    provider_benchmark_test.go:976: provider_version="16.14" image_reference="postgres:16-alpine@sha256:57c72fd2a128e416c7fcc499958864df5301e940bca0a56f58fddf30ffc07777"
-BenchmarkProviderLeaderContainers/PostgreSQL/ResignOwned-10            	     100	    687199 ns/op	    3751 B/op	      55 allocs/op
+    provider_benchmark_test.go:1027: provider_version="16.14" image_reference="postgres:16-alpine@sha256:57c72fd2a128e416c7fcc499958864df5301e940bca0a56f58fddf30ffc07777"
+    provider_benchmark_test.go:1027: provider_version="16.14" image_reference="postgres:16-alpine@sha256:57c72fd2a128e416c7fcc499958864df5301e940bca0a56f58fddf30ffc07777"
+BenchmarkProviderLeaderContainers/PostgreSQL/ResignOwned-10            	     100	    666041 ns/op	    3831 B/op	      58 allocs/op
 --- BENCH: BenchmarkProviderLeaderContainers/PostgreSQL/ResignOwned-10
-    provider_benchmark_test.go:976: provider_version="16.14" image_reference="postgres:16-alpine@sha256:57c72fd2a128e416c7fcc499958864df5301e940bca0a56f58fddf30ffc07777"
-    provider_benchmark_test.go:976: provider_version="16.14" image_reference="postgres:16-alpine@sha256:57c72fd2a128e416c7fcc499958864df5301e940bca0a56f58fddf30ffc07777"
-BenchmarkProviderLeaderContainers/PostgreSQL/ResignOwned-10            	     100	    676223 ns/op	    3754 B/op	      55 allocs/op
+    provider_benchmark_test.go:1027: provider_version="16.14" image_reference="postgres:16-alpine@sha256:57c72fd2a128e416c7fcc499958864df5301e940bca0a56f58fddf30ffc07777"
+    provider_benchmark_test.go:1027: provider_version="16.14" image_reference="postgres:16-alpine@sha256:57c72fd2a128e416c7fcc499958864df5301e940bca0a56f58fddf30ffc07777"
+BenchmarkProviderLeaderContainers/PostgreSQL/ResignOwned-10            	     100	    721120 ns/op	    3835 B/op	      58 allocs/op
 --- BENCH: BenchmarkProviderLeaderContainers/PostgreSQL/ResignOwned-10
-    provider_benchmark_test.go:976: provider_version="16.14" image_reference="postgres:16-alpine@sha256:57c72fd2a128e416c7fcc499958864df5301e940bca0a56f58fddf30ffc07777"
-    provider_benchmark_test.go:976: provider_version="16.14" image_reference="postgres:16-alpine@sha256:57c72fd2a128e416c7fcc499958864df5301e940bca0a56f58fddf30ffc07777"
-BenchmarkProviderLeaderContainers/PostgreSQL/CampaignContention/N=8-10 	     100	  14868151 ns/op	  681602 B/op	    3113 allocs/op
+    provider_benchmark_test.go:1027: provider_version="16.14" image_reference="postgres:16-alpine@sha256:57c72fd2a128e416c7fcc499958864df5301e940bca0a56f58fddf30ffc07777"
+    provider_benchmark_test.go:1027: provider_version="16.14" image_reference="postgres:16-alpine@sha256:57c72fd2a128e416c7fcc499958864df5301e940bca0a56f58fddf30ffc07777"
+BenchmarkProviderLeaderContainers/PostgreSQL/CampaignContention/N=8-10 	     100	  13004012 ns/op	  687035 B/op	    3156 allocs/op
 --- BENCH: BenchmarkProviderLeaderContainers/PostgreSQL/CampaignContention/N=8-10
-    provider_benchmark_test.go:979: provider_version="16.14" image_reference="postgres:16-alpine@sha256:57c72fd2a128e416c7fcc499958864df5301e940bca0a56f58fddf30ffc07777"
-    provider_benchmark_test.go:979: provider_version="16.14" image_reference="postgres:16-alpine@sha256:57c72fd2a128e416c7fcc499958864df5301e940bca0a56f58fddf30ffc07777"
-BenchmarkProviderLeaderContainers/PostgreSQL/CampaignContention/N=8-10 	     100	  15651720 ns/op	  686818 B/op	    3135 allocs/op
+    provider_benchmark_test.go:1030: provider_version="16.14" image_reference="postgres:16-alpine@sha256:57c72fd2a128e416c7fcc499958864df5301e940bca0a56f58fddf30ffc07777"
+    provider_benchmark_test.go:1030: provider_version="16.14" image_reference="postgres:16-alpine@sha256:57c72fd2a128e416c7fcc499958864df5301e940bca0a56f58fddf30ffc07777"
+BenchmarkProviderLeaderContainers/PostgreSQL/CampaignContention/N=8-10 	     100	  13330031 ns/op	  679190 B/op	    3124 allocs/op
 --- BENCH: BenchmarkProviderLeaderContainers/PostgreSQL/CampaignContention/N=8-10
-    provider_benchmark_test.go:979: provider_version="16.14" image_reference="postgres:16-alpine@sha256:57c72fd2a128e416c7fcc499958864df5301e940bca0a56f58fddf30ffc07777"
-    provider_benchmark_test.go:979: provider_version="16.14" image_reference="postgres:16-alpine@sha256:57c72fd2a128e416c7fcc499958864df5301e940bca0a56f58fddf30ffc07777"
-BenchmarkProviderLeaderContainers/PostgreSQL/CampaignContention/N=8-10 	     100	  15157905 ns/op	  680693 B/op	    3111 allocs/op
+    provider_benchmark_test.go:1030: provider_version="16.14" image_reference="postgres:16-alpine@sha256:57c72fd2a128e416c7fcc499958864df5301e940bca0a56f58fddf30ffc07777"
+    provider_benchmark_test.go:1030: provider_version="16.14" image_reference="postgres:16-alpine@sha256:57c72fd2a128e416c7fcc499958864df5301e940bca0a56f58fddf30ffc07777"
+BenchmarkProviderLeaderContainers/PostgreSQL/CampaignContention/N=8-10 	     100	  14138175 ns/op	  671104 B/op	    3093 allocs/op
 --- BENCH: BenchmarkProviderLeaderContainers/PostgreSQL/CampaignContention/N=8-10
-    provider_benchmark_test.go:979: provider_version="16.14" image_reference="postgres:16-alpine@sha256:57c72fd2a128e416c7fcc499958864df5301e940bca0a56f58fddf30ffc07777"
-    provider_benchmark_test.go:979: provider_version="16.14" image_reference="postgres:16-alpine@sha256:57c72fd2a128e416c7fcc499958864df5301e940bca0a56f58fddf30ffc07777"
-BenchmarkProviderLeaderContainers/PostgreSQL/LeaderLookup-10           	     100	    666423 ns/op	    4611 B/op	      73 allocs/op
+    provider_benchmark_test.go:1030: provider_version="16.14" image_reference="postgres:16-alpine@sha256:57c72fd2a128e416c7fcc499958864df5301e940bca0a56f58fddf30ffc07777"
+    provider_benchmark_test.go:1030: provider_version="16.14" image_reference="postgres:16-alpine@sha256:57c72fd2a128e416c7fcc499958864df5301e940bca0a56f58fddf30ffc07777"
+BenchmarkProviderLeaderContainers/PostgreSQL/LeaderLookup-10           	     100	    655902 ns/op	    4681 B/op	      74 allocs/op
 --- BENCH: BenchmarkProviderLeaderContainers/PostgreSQL/LeaderLookup-10
-    provider_benchmark_test.go:982: provider_version="16.14" image_reference="postgres:16-alpine@sha256:57c72fd2a128e416c7fcc499958864df5301e940bca0a56f58fddf30ffc07777"
-    provider_benchmark_test.go:982: provider_version="16.14" image_reference="postgres:16-alpine@sha256:57c72fd2a128e416c7fcc499958864df5301e940bca0a56f58fddf30ffc07777"
-BenchmarkProviderLeaderContainers/PostgreSQL/LeaderLookup-10           	     100	    647207 ns/op	    4627 B/op	      73 allocs/op
+    provider_benchmark_test.go:1033: provider_version="16.14" image_reference="postgres:16-alpine@sha256:57c72fd2a128e416c7fcc499958864df5301e940bca0a56f58fddf30ffc07777"
+    provider_benchmark_test.go:1033: provider_version="16.14" image_reference="postgres:16-alpine@sha256:57c72fd2a128e416c7fcc499958864df5301e940bca0a56f58fddf30ffc07777"
+BenchmarkProviderLeaderContainers/PostgreSQL/LeaderLookup-10           	     100	    780634 ns/op	    4729 B/op	      75 allocs/op
 --- BENCH: BenchmarkProviderLeaderContainers/PostgreSQL/LeaderLookup-10
-    provider_benchmark_test.go:982: provider_version="16.14" image_reference="postgres:16-alpine@sha256:57c72fd2a128e416c7fcc499958864df5301e940bca0a56f58fddf30ffc07777"
-    provider_benchmark_test.go:982: provider_version="16.14" image_reference="postgres:16-alpine@sha256:57c72fd2a128e416c7fcc499958864df5301e940bca0a56f58fddf30ffc07777"
-BenchmarkProviderLeaderContainers/PostgreSQL/LeaderLookup-10           	     100	    752348 ns/op	    4631 B/op	      73 allocs/op
+    provider_benchmark_test.go:1033: provider_version="16.14" image_reference="postgres:16-alpine@sha256:57c72fd2a128e416c7fcc499958864df5301e940bca0a56f58fddf30ffc07777"
+    provider_benchmark_test.go:1033: provider_version="16.14" image_reference="postgres:16-alpine@sha256:57c72fd2a128e416c7fcc499958864df5301e940bca0a56f58fddf30ffc07777"
+BenchmarkProviderLeaderContainers/PostgreSQL/LeaderLookup-10           	     100	    661827 ns/op	    4694 B/op	      75 allocs/op
 --- BENCH: BenchmarkProviderLeaderContainers/PostgreSQL/LeaderLookup-10
-    provider_benchmark_test.go:982: provider_version="16.14" image_reference="postgres:16-alpine@sha256:57c72fd2a128e416c7fcc499958864df5301e940bca0a56f58fddf30ffc07777"
-    provider_benchmark_test.go:982: provider_version="16.14" image_reference="postgres:16-alpine@sha256:57c72fd2a128e416c7fcc499958864df5301e940bca0a56f58fddf30ffc07777"
-BenchmarkProviderLeaderContainers/etcd/CampaignUncontended-10          	     100	   2994844 ns/op	   61593 B/op	     814 allocs/op
+    provider_benchmark_test.go:1033: provider_version="16.14" image_reference="postgres:16-alpine@sha256:57c72fd2a128e416c7fcc499958864df5301e940bca0a56f58fddf30ffc07777"
+    provider_benchmark_test.go:1033: provider_version="16.14" image_reference="postgres:16-alpine@sha256:57c72fd2a128e416c7fcc499958864df5301e940bca0a56f58fddf30ffc07777"
+BenchmarkProviderLeaderContainers/etcd/CampaignUncontended-10          	     100	   1967557 ns/op	   61891 B/op	     819 allocs/op
 --- BENCH: BenchmarkProviderLeaderContainers/etcd/CampaignUncontended-10
-    provider_benchmark_test.go:973: provider_version="3.6.13" image_reference="gcr.io/etcd-development/etcd@sha256:23c14fbdf70105a54146cf5ed3a81613b99a973c60d5907851a251ca15664e96"
-    provider_benchmark_test.go:973: provider_version="3.6.13" image_reference="gcr.io/etcd-development/etcd@sha256:23c14fbdf70105a54146cf5ed3a81613b99a973c60d5907851a251ca15664e96"
-BenchmarkProviderLeaderContainers/etcd/CampaignUncontended-10          	     100	   1746089 ns/op	   61542 B/op	     814 allocs/op
+    provider_benchmark_test.go:1024: provider_version="3.6.13" image_reference="gcr.io/etcd-development/etcd@sha256:23c14fbdf70105a54146cf5ed3a81613b99a973c60d5907851a251ca15664e96"
+    provider_benchmark_test.go:1024: provider_version="3.6.13" image_reference="gcr.io/etcd-development/etcd@sha256:23c14fbdf70105a54146cf5ed3a81613b99a973c60d5907851a251ca15664e96"
+BenchmarkProviderLeaderContainers/etcd/CampaignUncontended-10          	     100	   1977304 ns/op	   61954 B/op	     820 allocs/op
 --- BENCH: BenchmarkProviderLeaderContainers/etcd/CampaignUncontended-10
-    provider_benchmark_test.go:973: provider_version="3.6.13" image_reference="gcr.io/etcd-development/etcd@sha256:23c14fbdf70105a54146cf5ed3a81613b99a973c60d5907851a251ca15664e96"
-    provider_benchmark_test.go:973: provider_version="3.6.13" image_reference="gcr.io/etcd-development/etcd@sha256:23c14fbdf70105a54146cf5ed3a81613b99a973c60d5907851a251ca15664e96"
-BenchmarkProviderLeaderContainers/etcd/CampaignUncontended-10          	     100	   1685601 ns/op	   61514 B/op	     813 allocs/op
+    provider_benchmark_test.go:1024: provider_version="3.6.13" image_reference="gcr.io/etcd-development/etcd@sha256:23c14fbdf70105a54146cf5ed3a81613b99a973c60d5907851a251ca15664e96"
+    provider_benchmark_test.go:1024: provider_version="3.6.13" image_reference="gcr.io/etcd-development/etcd@sha256:23c14fbdf70105a54146cf5ed3a81613b99a973c60d5907851a251ca15664e96"
+BenchmarkProviderLeaderContainers/etcd/CampaignUncontended-10          	     100	   3679669 ns/op	   61889 B/op	     819 allocs/op
 --- BENCH: BenchmarkProviderLeaderContainers/etcd/CampaignUncontended-10
-    provider_benchmark_test.go:973: provider_version="3.6.13" image_reference="gcr.io/etcd-development/etcd@sha256:23c14fbdf70105a54146cf5ed3a81613b99a973c60d5907851a251ca15664e96"
-    provider_benchmark_test.go:973: provider_version="3.6.13" image_reference="gcr.io/etcd-development/etcd@sha256:23c14fbdf70105a54146cf5ed3a81613b99a973c60d5907851a251ca15664e96"
-BenchmarkProviderLeaderContainers/etcd/ResignOwned-10                  	     100	    925994 ns/op	   21513 B/op	     282 allocs/op
+    provider_benchmark_test.go:1024: provider_version="3.6.13" image_reference="gcr.io/etcd-development/etcd@sha256:23c14fbdf70105a54146cf5ed3a81613b99a973c60d5907851a251ca15664e96"
+    provider_benchmark_test.go:1024: provider_version="3.6.13" image_reference="gcr.io/etcd-development/etcd@sha256:23c14fbdf70105a54146cf5ed3a81613b99a973c60d5907851a251ca15664e96"
+BenchmarkProviderLeaderContainers/etcd/ResignOwned-10                  	     100	   1351346 ns/op	   21611 B/op	     284 allocs/op
 --- BENCH: BenchmarkProviderLeaderContainers/etcd/ResignOwned-10
-    provider_benchmark_test.go:976: provider_version="3.6.13" image_reference="gcr.io/etcd-development/etcd@sha256:23c14fbdf70105a54146cf5ed3a81613b99a973c60d5907851a251ca15664e96"
-    provider_benchmark_test.go:976: provider_version="3.6.13" image_reference="gcr.io/etcd-development/etcd@sha256:23c14fbdf70105a54146cf5ed3a81613b99a973c60d5907851a251ca15664e96"
-BenchmarkProviderLeaderContainers/etcd/ResignOwned-10                  	     100	   1914365 ns/op	   21508 B/op	     282 allocs/op
+    provider_benchmark_test.go:1027: provider_version="3.6.13" image_reference="gcr.io/etcd-development/etcd@sha256:23c14fbdf70105a54146cf5ed3a81613b99a973c60d5907851a251ca15664e96"
+    provider_benchmark_test.go:1027: provider_version="3.6.13" image_reference="gcr.io/etcd-development/etcd@sha256:23c14fbdf70105a54146cf5ed3a81613b99a973c60d5907851a251ca15664e96"
+BenchmarkProviderLeaderContainers/etcd/ResignOwned-10                  	     100	   1038135 ns/op	   21602 B/op	     284 allocs/op
 --- BENCH: BenchmarkProviderLeaderContainers/etcd/ResignOwned-10
-    provider_benchmark_test.go:976: provider_version="3.6.13" image_reference="gcr.io/etcd-development/etcd@sha256:23c14fbdf70105a54146cf5ed3a81613b99a973c60d5907851a251ca15664e96"
-    provider_benchmark_test.go:976: provider_version="3.6.13" image_reference="gcr.io/etcd-development/etcd@sha256:23c14fbdf70105a54146cf5ed3a81613b99a973c60d5907851a251ca15664e96"
-BenchmarkProviderLeaderContainers/etcd/ResignOwned-10                  	     100	   1311186 ns/op	   21512 B/op	     282 allocs/op
+    provider_benchmark_test.go:1027: provider_version="3.6.13" image_reference="gcr.io/etcd-development/etcd@sha256:23c14fbdf70105a54146cf5ed3a81613b99a973c60d5907851a251ca15664e96"
+    provider_benchmark_test.go:1027: provider_version="3.6.13" image_reference="gcr.io/etcd-development/etcd@sha256:23c14fbdf70105a54146cf5ed3a81613b99a973c60d5907851a251ca15664e96"
+BenchmarkProviderLeaderContainers/etcd/ResignOwned-10                  	     100	   1314049 ns/op	   21610 B/op	     284 allocs/op
 --- BENCH: BenchmarkProviderLeaderContainers/etcd/ResignOwned-10
-    provider_benchmark_test.go:976: provider_version="3.6.13" image_reference="gcr.io/etcd-development/etcd@sha256:23c14fbdf70105a54146cf5ed3a81613b99a973c60d5907851a251ca15664e96"
-    provider_benchmark_test.go:976: provider_version="3.6.13" image_reference="gcr.io/etcd-development/etcd@sha256:23c14fbdf70105a54146cf5ed3a81613b99a973c60d5907851a251ca15664e96"
+    provider_benchmark_test.go:1027: provider_version="3.6.13" image_reference="gcr.io/etcd-development/etcd@sha256:23c14fbdf70105a54146cf5ed3a81613b99a973c60d5907851a251ca15664e96"
+    provider_benchmark_test.go:1027: provider_version="3.6.13" image_reference="gcr.io/etcd-development/etcd@sha256:23c14fbdf70105a54146cf5ed3a81613b99a973c60d5907851a251ca15664e96"
 [redacted_output_line]
 [redacted_output_line]
-[redacted_output_line]
-[redacted_output_line]
-[redacted_output_line]
-[redacted_output_line]
-[redacted_output_line]
-[redacted_output_line]
-[redacted_output_line]
-[redacted_output_line]
-[redacted_output_line]
-[redacted_output_line]
-[redacted_output_line]
-[redacted_output_line]
-[redacted_output_line]
-[redacted_output_line]
-[redacted_output_line]
-[redacted_output_line]
-[redacted_output_line]
-[redacted_output_line]
-[redacted_output_line]
-[redacted_output_line]
-     100	   6297543 ns/op	  543352 B/op	    7146 allocs/op
+     100	   5998216 ns/op	  545589 B/op	    7178 allocs/op
 --- BENCH: BenchmarkProviderLeaderContainers/etcd/CampaignContention/N=8-10
-    provider_benchmark_test.go:979: provider_version="3.6.13" image_reference="gcr.io/etcd-development/etcd@sha256:23c14fbdf70105a54146cf5ed3a81613b99a973c60d5907851a251ca15664e96"
-    provider_benchmark_test.go:979: provider_version="3.6.13" image_reference="gcr.io/etcd-development/etcd@sha256:23c14fbdf70105a54146cf5ed3a81613b99a973c60d5907851a251ca15664e96"
+    provider_benchmark_test.go:1030: provider_version="3.6.13" image_reference="gcr.io/etcd-development/etcd@sha256:23c14fbdf70105a54146cf5ed3a81613b99a973c60d5907851a251ca15664e96"
+    provider_benchmark_test.go:1030: provider_version="3.6.13" image_reference="gcr.io/etcd-development/etcd@sha256:23c14fbdf70105a54146cf5ed3a81613b99a973c60d5907851a251ca15664e96"
 [redacted_output_line]
 [redacted_output_line]
 [redacted_output_line]
@@ -219,84 +200,100 @@ BenchmarkProviderLeaderContainers/etcd/ResignOwned-10                  	     100
 [redacted_output_line]
 [redacted_output_line]
 [redacted_output_line]
-[redacted_output_line]
-     100	   6343533 ns/op	  543180 B/op	    7150 allocs/op
+     100	   5852558 ns/op	  544093 B/op	    7156 allocs/op
 --- BENCH: BenchmarkProviderLeaderContainers/etcd/CampaignContention/N=8-10
-    provider_benchmark_test.go:979: provider_version="3.6.13" image_reference="gcr.io/etcd-development/etcd@sha256:23c14fbdf70105a54146cf5ed3a81613b99a973c60d5907851a251ca15664e96"
-    provider_benchmark_test.go:979: provider_version="3.6.13" image_reference="gcr.io/etcd-development/etcd@sha256:23c14fbdf70105a54146cf5ed3a81613b99a973c60d5907851a251ca15664e96"
+    provider_benchmark_test.go:1030: provider_version="3.6.13" image_reference="gcr.io/etcd-development/etcd@sha256:23c14fbdf70105a54146cf5ed3a81613b99a973c60d5907851a251ca15664e96"
+    provider_benchmark_test.go:1030: provider_version="3.6.13" image_reference="gcr.io/etcd-development/etcd@sha256:23c14fbdf70105a54146cf5ed3a81613b99a973c60d5907851a251ca15664e96"
 [redacted_output_line]
 [redacted_output_line]
 [redacted_output_line]
 [redacted_output_line]
 [redacted_output_line]
 [redacted_output_line]
-     100	   7783730 ns/op	  544246 B/op	    7165 allocs/op
+[redacted_output_line]
+[redacted_output_line]
+[redacted_output_line]
+[redacted_output_line]
+[redacted_output_line]
+[redacted_output_line]
+[redacted_output_line]
+[redacted_output_line]
+[redacted_output_line]
+[redacted_output_line]
+[redacted_output_line]
+[redacted_output_line]
+[redacted_output_line]
+[redacted_output_line]
+[redacted_output_line]
+[redacted_output_line]
+     100	   8067955 ns/op	  543279 B/op	    7149 allocs/op
 --- BENCH: BenchmarkProviderLeaderContainers/etcd/CampaignContention/N=8-10
-    provider_benchmark_test.go:979: provider_version="3.6.13" image_reference="gcr.io/etcd-development/etcd@sha256:23c14fbdf70105a54146cf5ed3a81613b99a973c60d5907851a251ca15664e96"
-    provider_benchmark_test.go:979: provider_version="3.6.13" image_reference="gcr.io/etcd-development/etcd@sha256:23c14fbdf70105a54146cf5ed3a81613b99a973c60d5907851a251ca15664e96"
-BenchmarkProviderLeaderContainers/etcd/LeaderLookup-10                 	     100	    426204 ns/op	   13419 B/op	     165 allocs/op
+    provider_benchmark_test.go:1030: provider_version="3.6.13" image_reference="gcr.io/etcd-development/etcd@sha256:23c14fbdf70105a54146cf5ed3a81613b99a973c60d5907851a251ca15664e96"
+    provider_benchmark_test.go:1030: provider_version="3.6.13" image_reference="gcr.io/etcd-development/etcd@sha256:23c14fbdf70105a54146cf5ed3a81613b99a973c60d5907851a251ca15664e96"
+BenchmarkProviderLeaderContainers/etcd/LeaderLookup-10                 	     100	    387885 ns/op	   13511 B/op	     167 allocs/op
 --- BENCH: BenchmarkProviderLeaderContainers/etcd/LeaderLookup-10
-    provider_benchmark_test.go:982: provider_version="3.6.13" image_reference="gcr.io/etcd-development/etcd@sha256:23c14fbdf70105a54146cf5ed3a81613b99a973c60d5907851a251ca15664e96"
-    provider_benchmark_test.go:982: provider_version="3.6.13" image_reference="gcr.io/etcd-development/etcd@sha256:23c14fbdf70105a54146cf5ed3a81613b99a973c60d5907851a251ca15664e96"
-BenchmarkProviderLeaderContainers/etcd/LeaderLookup-10                 	     100	    366335 ns/op	   13430 B/op	     165 allocs/op
+    provider_benchmark_test.go:1033: provider_version="3.6.13" image_reference="gcr.io/etcd-development/etcd@sha256:23c14fbdf70105a54146cf5ed3a81613b99a973c60d5907851a251ca15664e96"
+    provider_benchmark_test.go:1033: provider_version="3.6.13" image_reference="gcr.io/etcd-development/etcd@sha256:23c14fbdf70105a54146cf5ed3a81613b99a973c60d5907851a251ca15664e96"
+BenchmarkProviderLeaderContainers/etcd/LeaderLookup-10                 	     100	    289956 ns/op	   13483 B/op	     167 allocs/op
 --- BENCH: BenchmarkProviderLeaderContainers/etcd/LeaderLookup-10
-    provider_benchmark_test.go:982: provider_version="3.6.13" image_reference="gcr.io/etcd-development/etcd@sha256:23c14fbdf70105a54146cf5ed3a81613b99a973c60d5907851a251ca15664e96"
-    provider_benchmark_test.go:982: provider_version="3.6.13" image_reference="gcr.io/etcd-development/etcd@sha256:23c14fbdf70105a54146cf5ed3a81613b99a973c60d5907851a251ca15664e96"
-BenchmarkProviderLeaderContainers/etcd/LeaderLookup-10                 	     100	    299731 ns/op	   13410 B/op	     165 allocs/op
+    provider_benchmark_test.go:1033: provider_version="3.6.13" image_reference="gcr.io/etcd-development/etcd@sha256:23c14fbdf70105a54146cf5ed3a81613b99a973c60d5907851a251ca15664e96"
+    provider_benchmark_test.go:1033: provider_version="3.6.13" image_reference="gcr.io/etcd-development/etcd@sha256:23c14fbdf70105a54146cf5ed3a81613b99a973c60d5907851a251ca15664e96"
+BenchmarkProviderLeaderContainers/etcd/LeaderLookup-10                 	     100	    290424 ns/op	   13496 B/op	     167 allocs/op
 --- BENCH: BenchmarkProviderLeaderContainers/etcd/LeaderLookup-10
-    provider_benchmark_test.go:982: provider_version="3.6.13" image_reference="gcr.io/etcd-development/etcd@sha256:23c14fbdf70105a54146cf5ed3a81613b99a973c60d5907851a251ca15664e96"
-    provider_benchmark_test.go:982: provider_version="3.6.13" image_reference="gcr.io/etcd-development/etcd@sha256:23c14fbdf70105a54146cf5ed3a81613b99a973c60d5907851a251ca15664e96"
+    provider_benchmark_test.go:1033: provider_version="3.6.13" image_reference="gcr.io/etcd-development/etcd@sha256:23c14fbdf70105a54146cf5ed3a81613b99a973c60d5907851a251ca15664e96"
+    provider_benchmark_test.go:1033: provider_version="3.6.13" image_reference="gcr.io/etcd-development/etcd@sha256:23c14fbdf70105a54146cf5ed3a81613b99a973c60d5907851a251ca15664e96"
 PASS
-ok  	github.com/bluetape4k/bluetape-go/leader	131.834s
+ok  	github.com/bluetape4k/bluetape-go/leader	124.038s
 output_end
 exit_status: 0
 command_label: expiry
 command: env BLUETAPE_LEADER_PROVIDER_BENCH=1 go test -timeout=10m -p 1 -run \^\$ -bench \^BenchmarkProviderLeaderContainers\$/\(Redis\|MongoDB\|PostgreSQL\|etcd\)/ExpiryTakeover\$ -benchtime=1x -count=3 -benchmem ./leader
-timestamp_utc: 2026-07-20T17:08:26Z
-git_sha: ef3ef4f3070f516a3c75c2637f8e2bca231d9370
+timestamp_utc: 2026-07-20T18:02:31Z
+git_sha: 1f1069f4b119957d96158c969f819d6374f902c8
 pre_run_clean: true
+max_output_bytes: 16777216
 output_begin
 goos: darwin
 goarch: arm64
 pkg: github.com/bluetape4k/bluetape-go/leader
 cpu: Apple M5
-BenchmarkProviderLeaderContainers/Redis/ExpiryTakeover-10         	       1	1002914792 ns/op	   21552 B/op	     448 allocs/op
+BenchmarkProviderLeaderContainers/Redis/ExpiryTakeover-10         	       1	1004653333 ns/op	   20696 B/op	     445 allocs/op
 --- BENCH: BenchmarkProviderLeaderContainers/Redis/ExpiryTakeover-10
-    provider_benchmark_test.go:985: provider_version="7.4.9" image_reference="redis:7.4-alpine@sha256:6ab0b6e7381779332f97b8ca76193e45b0756f38d4c0dcda72dbb3c32061ab99"
-BenchmarkProviderLeaderContainers/Redis/ExpiryTakeover-10         	       1	1003371875 ns/op	   20024 B/op	     436 allocs/op
+    provider_benchmark_test.go:1036: provider_version="7.4.9" image_reference="redis:7.4-alpine@sha256:6ab0b6e7381779332f97b8ca76193e45b0756f38d4c0dcda72dbb3c32061ab99"
+BenchmarkProviderLeaderContainers/Redis/ExpiryTakeover-10         	       1	1004323375 ns/op	   20632 B/op	     444 allocs/op
 --- BENCH: BenchmarkProviderLeaderContainers/Redis/ExpiryTakeover-10
-    provider_benchmark_test.go:985: provider_version="7.4.9" image_reference="redis:7.4-alpine@sha256:6ab0b6e7381779332f97b8ca76193e45b0756f38d4c0dcda72dbb3c32061ab99"
-BenchmarkProviderLeaderContainers/Redis/ExpiryTakeover-10         	       1	1002371000 ns/op	   20672 B/op	     442 allocs/op
+    provider_benchmark_test.go:1036: provider_version="7.4.9" image_reference="redis:7.4-alpine@sha256:6ab0b6e7381779332f97b8ca76193e45b0756f38d4c0dcda72dbb3c32061ab99"
+BenchmarkProviderLeaderContainers/Redis/ExpiryTakeover-10         	       1	1004296458 ns/op	   20968 B/op	     447 allocs/op
 --- BENCH: BenchmarkProviderLeaderContainers/Redis/ExpiryTakeover-10
-    provider_benchmark_test.go:985: provider_version="7.4.9" image_reference="redis:7.4-alpine@sha256:6ab0b6e7381779332f97b8ca76193e45b0756f38d4c0dcda72dbb3c32061ab99"
-BenchmarkProviderLeaderContainers/MongoDB/ExpiryTakeover-10       	       1	1003679917 ns/op	  564208 B/op	    4589 allocs/op
+    provider_benchmark_test.go:1036: provider_version="7.4.9" image_reference="redis:7.4-alpine@sha256:6ab0b6e7381779332f97b8ca76193e45b0756f38d4c0dcda72dbb3c32061ab99"
+BenchmarkProviderLeaderContainers/MongoDB/ExpiryTakeover-10       	       1	1006958625 ns/op	  559472 B/op	    4549 allocs/op
 --- BENCH: BenchmarkProviderLeaderContainers/MongoDB/ExpiryTakeover-10
-    provider_benchmark_test.go:985: provider_version="7.0.37" image_reference="mongo:7.0@sha256:340c1c56fb10e95cf79ff547f8664b96bc6ead9909bc355238cbf865a9695a6f"
-BenchmarkProviderLeaderContainers/MongoDB/ExpiryTakeover-10       	       1	1002605500 ns/op	  567072 B/op	    4582 allocs/op
+    provider_benchmark_test.go:1036: provider_version="7.0.37" image_reference="mongo:7.0@sha256:340c1c56fb10e95cf79ff547f8664b96bc6ead9909bc355238cbf865a9695a6f"
+BenchmarkProviderLeaderContainers/MongoDB/ExpiryTakeover-10       	       1	1007044000 ns/op	  560752 B/op	    4560 allocs/op
 --- BENCH: BenchmarkProviderLeaderContainers/MongoDB/ExpiryTakeover-10
-    provider_benchmark_test.go:985: provider_version="7.0.37" image_reference="mongo:7.0@sha256:340c1c56fb10e95cf79ff547f8664b96bc6ead9909bc355238cbf865a9695a6f"
-BenchmarkProviderLeaderContainers/MongoDB/ExpiryTakeover-10       	       1	1002848417 ns/op	  559432 B/op	    4547 allocs/op
+    provider_benchmark_test.go:1036: provider_version="7.0.37" image_reference="mongo:7.0@sha256:340c1c56fb10e95cf79ff547f8664b96bc6ead9909bc355238cbf865a9695a6f"
+BenchmarkProviderLeaderContainers/MongoDB/ExpiryTakeover-10       	       1	1002791833 ns/op	  563640 B/op	    4584 allocs/op
 --- BENCH: BenchmarkProviderLeaderContainers/MongoDB/ExpiryTakeover-10
-    provider_benchmark_test.go:985: provider_version="7.0.37" image_reference="mongo:7.0@sha256:340c1c56fb10e95cf79ff547f8664b96bc6ead9909bc355238cbf865a9695a6f"
-BenchmarkProviderLeaderContainers/PostgreSQL/ExpiryTakeover-10    	       1	1007608333 ns/op	   75496 B/op	    1253 allocs/op
+    provider_benchmark_test.go:1036: provider_version="7.0.37" image_reference="mongo:7.0@sha256:340c1c56fb10e95cf79ff547f8664b96bc6ead9909bc355238cbf865a9695a6f"
+BenchmarkProviderLeaderContainers/PostgreSQL/ExpiryTakeover-10    	       1	1007953834 ns/op	   75360 B/op	    1267 allocs/op
 --- BENCH: BenchmarkProviderLeaderContainers/PostgreSQL/ExpiryTakeover-10
-    provider_benchmark_test.go:985: provider_version="16.14" image_reference="postgres:16-alpine@sha256:57c72fd2a128e416c7fcc499958864df5301e940bca0a56f58fddf30ffc07777"
-BenchmarkProviderLeaderContainers/PostgreSQL/ExpiryTakeover-10    	       1	1007637167 ns/op	   70680 B/op	    1246 allocs/op
+    provider_benchmark_test.go:1036: provider_version="16.14" image_reference="postgres:16-alpine@sha256:57c72fd2a128e416c7fcc499958864df5301e940bca0a56f58fddf30ffc07777"
+BenchmarkProviderLeaderContainers/PostgreSQL/ExpiryTakeover-10    	       1	1003729833 ns/op	   74064 B/op	    1261 allocs/op
 --- BENCH: BenchmarkProviderLeaderContainers/PostgreSQL/ExpiryTakeover-10
-    provider_benchmark_test.go:985: provider_version="16.14" image_reference="postgres:16-alpine@sha256:57c72fd2a128e416c7fcc499958864df5301e940bca0a56f58fddf30ffc07777"
-BenchmarkProviderLeaderContainers/PostgreSQL/ExpiryTakeover-10    	       1	1006096792 ns/op	   70696 B/op	    1247 allocs/op
+    provider_benchmark_test.go:1036: provider_version="16.14" image_reference="postgres:16-alpine@sha256:57c72fd2a128e416c7fcc499958864df5301e940bca0a56f58fddf30ffc07777"
+BenchmarkProviderLeaderContainers/PostgreSQL/ExpiryTakeover-10    	       1	1010098292 ns/op	   71616 B/op	    1257 allocs/op
 --- BENCH: BenchmarkProviderLeaderContainers/PostgreSQL/ExpiryTakeover-10
-    provider_benchmark_test.go:985: provider_version="16.14" image_reference="postgres:16-alpine@sha256:57c72fd2a128e416c7fcc499958864df5301e940bca0a56f58fddf30ffc07777"
-BenchmarkProviderLeaderContainers/etcd/ExpiryTakeover-10          	       1	2056240584 ns/op	  966216 B/op	   13462 allocs/op
+    provider_benchmark_test.go:1036: provider_version="16.14" image_reference="postgres:16-alpine@sha256:57c72fd2a128e416c7fcc499958864df5301e940bca0a56f58fddf30ffc07777"
+BenchmarkProviderLeaderContainers/etcd/ExpiryTakeover-10          	       1	2060678709 ns/op	  965832 B/op	   13457 allocs/op
 --- BENCH: BenchmarkProviderLeaderContainers/etcd/ExpiryTakeover-10
-    provider_benchmark_test.go:985: provider_version="3.6.13" image_reference="gcr.io/etcd-development/etcd@sha256:23c14fbdf70105a54146cf5ed3a81613b99a973c60d5907851a251ca15664e96"
-BenchmarkProviderLeaderContainers/etcd/ExpiryTakeover-10          	       1	2085136792 ns/op	  974824 B/op	   13606 allocs/op
+    provider_benchmark_test.go:1036: provider_version="3.6.13" image_reference="gcr.io/etcd-development/etcd@sha256:23c14fbdf70105a54146cf5ed3a81613b99a973c60d5907851a251ca15664e96"
+BenchmarkProviderLeaderContainers/etcd/ExpiryTakeover-10          	       1	2085930625 ns/op	  974344 B/op	   13602 allocs/op
 --- BENCH: BenchmarkProviderLeaderContainers/etcd/ExpiryTakeover-10
-    provider_benchmark_test.go:985: provider_version="3.6.13" image_reference="gcr.io/etcd-development/etcd@sha256:23c14fbdf70105a54146cf5ed3a81613b99a973c60d5907851a251ca15664e96"
-BenchmarkProviderLeaderContainers/etcd/ExpiryTakeover-10          	       1	2083602458 ns/op	  974744 B/op	   13606 allocs/op
+    provider_benchmark_test.go:1036: provider_version="3.6.13" image_reference="gcr.io/etcd-development/etcd@sha256:23c14fbdf70105a54146cf5ed3a81613b99a973c60d5907851a251ca15664e96"
+BenchmarkProviderLeaderContainers/etcd/ExpiryTakeover-10          	       1	2286870208 ns/op	 1066072 B/op	   14856 allocs/op
 --- BENCH: BenchmarkProviderLeaderContainers/etcd/ExpiryTakeover-10
-    provider_benchmark_test.go:985: provider_version="3.6.13" image_reference="gcr.io/etcd-development/etcd@sha256:23c14fbdf70105a54146cf5ed3a81613b99a973c60d5907851a251ca15664e96"
+    provider_benchmark_test.go:1036: provider_version="3.6.13" image_reference="gcr.io/etcd-development/etcd@sha256:23c14fbdf70105a54146cf5ed3a81613b99a973c60d5907851a251ca15664e96"
 PASS
-ok  	github.com/bluetape4k/bluetape-go/leader	26.943s
+ok  	github.com/bluetape4k/bluetape-go/leader	25.878s
 output_end
 exit_status: 0

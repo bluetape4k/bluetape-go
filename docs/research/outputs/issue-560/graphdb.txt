@@ -1,95 +1,96 @@
 command_label: graphdb
 command: env BLUETAPE_GRAPH_PROVIDER_BENCH=1 go test -timeout=30m -p 1 -run \^\$ -bench \^BenchmarkGraphProviderTraversalContainers\$ -benchtime=100x -count=3 -benchmem ./graph
-timestamp_utc: 2026-07-20T17:09:26Z
-git_sha: ef3ef4f3070f516a3c75c2637f8e2bca231d9370
+timestamp_utc: 2026-07-20T18:03:28Z
+git_sha: 1f1069f4b119957d96158c969f819d6374f902c8
 pre_run_clean: true
+max_output_bytes: 16777216
 output_begin
 goos: darwin
 goarch: arm64
 pkg: github.com/bluetape4k/bluetape-go/graph
 cpu: Apple M5
-BenchmarkGraphProviderTraversalContainers/Neo4j/LongChain/Depth16-10         	     100	   3037755 ns/op	   47800 B/op	     796 allocs/op
+BenchmarkGraphProviderTraversalContainers/Neo4j/LongChain/Depth16-10         	     100	   2675368 ns/op	   47785 B/op	     796 allocs/op
 --- BENCH: BenchmarkGraphProviderTraversalContainers/Neo4j/LongChain/Depth16-10
     provider_benchmark_test.go:256: provider_version="Neo4j/5.26.0" image_reference="neo4j:5.26.0@sha256:5a015e53de1895e7eee1574ae0325cf8c4b89587222778108c594bdd45a474b5"
-BenchmarkGraphProviderTraversalContainers/Neo4j/LongChain/Depth16-10         	     100	   2206292 ns/op	   47841 B/op	     797 allocs/op
+BenchmarkGraphProviderTraversalContainers/Neo4j/LongChain/Depth16-10         	     100	   2160365 ns/op	   47790 B/op	     797 allocs/op
 --- BENCH: BenchmarkGraphProviderTraversalContainers/Neo4j/LongChain/Depth16-10
     provider_benchmark_test.go:256: provider_version="Neo4j/5.26.0" image_reference="neo4j:5.26.0@sha256:5a015e53de1895e7eee1574ae0325cf8c4b89587222778108c594bdd45a474b5"
-BenchmarkGraphProviderTraversalContainers/Neo4j/LongChain/Depth16-10         	     100	   1987318 ns/op	   47801 B/op	     797 allocs/op
+BenchmarkGraphProviderTraversalContainers/Neo4j/LongChain/Depth16-10         	     100	   1477413 ns/op	   47792 B/op	     797 allocs/op
 --- BENCH: BenchmarkGraphProviderTraversalContainers/Neo4j/LongChain/Depth16-10
     provider_benchmark_test.go:256: provider_version="Neo4j/5.26.0" image_reference="neo4j:5.26.0@sha256:5a015e53de1895e7eee1574ae0325cf8c4b89587222778108c594bdd45a474b5"
-BenchmarkGraphProviderTraversalContainers/Neo4j/LongChain/Depth64-10         	     100	   2417885 ns/op	  124718 B/op	    2429 allocs/op
+BenchmarkGraphProviderTraversalContainers/Neo4j/LongChain/Depth64-10         	     100	   2858692 ns/op	  124694 B/op	    2429 allocs/op
 --- BENCH: BenchmarkGraphProviderTraversalContainers/Neo4j/LongChain/Depth64-10
     provider_benchmark_test.go:256: provider_version="Neo4j/5.26.0" image_reference="neo4j:5.26.0@sha256:5a015e53de1895e7eee1574ae0325cf8c4b89587222778108c594bdd45a474b5"
-BenchmarkGraphProviderTraversalContainers/Neo4j/LongChain/Depth64-10         	     100	   1989442 ns/op	  124705 B/op	    2429 allocs/op
+BenchmarkGraphProviderTraversalContainers/Neo4j/LongChain/Depth64-10         	     100	   1645414 ns/op	  124719 B/op	    2429 allocs/op
 --- BENCH: BenchmarkGraphProviderTraversalContainers/Neo4j/LongChain/Depth64-10
     provider_benchmark_test.go:256: provider_version="Neo4j/5.26.0" image_reference="neo4j:5.26.0@sha256:5a015e53de1895e7eee1574ae0325cf8c4b89587222778108c594bdd45a474b5"
-BenchmarkGraphProviderTraversalContainers/Neo4j/LongChain/Depth64-10         	     100	   1536112 ns/op	  124700 B/op	    2429 allocs/op
+BenchmarkGraphProviderTraversalContainers/Neo4j/LongChain/Depth64-10         	     100	   1666217 ns/op	  124704 B/op	    2429 allocs/op
 --- BENCH: BenchmarkGraphProviderTraversalContainers/Neo4j/LongChain/Depth64-10
     provider_benchmark_test.go:256: provider_version="Neo4j/5.26.0" image_reference="neo4j:5.26.0@sha256:5a015e53de1895e7eee1574ae0325cf8c4b89587222778108c594bdd45a474b5"
-BenchmarkGraphProviderTraversalContainers/Neo4j/DeepWide/Depth4Fanout4-10    	     100	   3349992 ns/op	  567075 B/op	   11813 allocs/op
+BenchmarkGraphProviderTraversalContainers/Neo4j/DeepWide/Depth4Fanout4-10    	     100	   6770408 ns/op	  566983 B/op	   11813 allocs/op
 --- BENCH: BenchmarkGraphProviderTraversalContainers/Neo4j/DeepWide/Depth4Fanout4-10
     provider_benchmark_test.go:256: provider_version="Neo4j/5.26.0" image_reference="neo4j:5.26.0@sha256:5a015e53de1895e7eee1574ae0325cf8c4b89587222778108c594bdd45a474b5"
-BenchmarkGraphProviderTraversalContainers/Neo4j/DeepWide/Depth4Fanout4-10    	     100	   4031915 ns/op	  566895 B/op	   11813 allocs/op
+BenchmarkGraphProviderTraversalContainers/Neo4j/DeepWide/Depth4Fanout4-10    	     100	   5620485 ns/op	  566903 B/op	   11813 allocs/op
 --- BENCH: BenchmarkGraphProviderTraversalContainers/Neo4j/DeepWide/Depth4Fanout4-10
     provider_benchmark_test.go:256: provider_version="Neo4j/5.26.0" image_reference="neo4j:5.26.0@sha256:5a015e53de1895e7eee1574ae0325cf8c4b89587222778108c594bdd45a474b5"
-BenchmarkGraphProviderTraversalContainers/Neo4j/DeepWide/Depth4Fanout4-10    	     100	   6383395 ns/op	  566931 B/op	   11813 allocs/op
+BenchmarkGraphProviderTraversalContainers/Neo4j/DeepWide/Depth4Fanout4-10    	     100	   6689458 ns/op	  566895 B/op	   11813 allocs/op
 --- BENCH: BenchmarkGraphProviderTraversalContainers/Neo4j/DeepWide/Depth4Fanout4-10
     provider_benchmark_test.go:256: provider_version="Neo4j/5.26.0" image_reference="neo4j:5.26.0@sha256:5a015e53de1895e7eee1574ae0325cf8c4b89587222778108c594bdd45a474b5"
-BenchmarkGraphProviderTraversalContainers/Memgraph/LongChain/Depth16-10      	     100	    637919 ns/op	   34473 B/op	     609 allocs/op
+BenchmarkGraphProviderTraversalContainers/Memgraph/LongChain/Depth16-10      	     100	    683004 ns/op	   34474 B/op	     609 allocs/op
 --- BENCH: BenchmarkGraphProviderTraversalContainers/Memgraph/LongChain/Depth16-10
     provider_benchmark_test.go:256: provider_version="3.5.0" image_reference="memgraph/memgraph:3.5.0@sha256:b411deeb2341698f4f7a0d69535c8937c341e924f66962aa3e70acb63c7a5bd1"
-BenchmarkGraphProviderTraversalContainers/Memgraph/LongChain/Depth16-10      	     100	    506148 ns/op	   34483 B/op	     609 allocs/op
+BenchmarkGraphProviderTraversalContainers/Memgraph/LongChain/Depth16-10      	     100	    533268 ns/op	   34472 B/op	     609 allocs/op
 --- BENCH: BenchmarkGraphProviderTraversalContainers/Memgraph/LongChain/Depth16-10
     provider_benchmark_test.go:256: provider_version="3.5.0" image_reference="memgraph/memgraph:3.5.0@sha256:b411deeb2341698f4f7a0d69535c8937c341e924f66962aa3e70acb63c7a5bd1"
-BenchmarkGraphProviderTraversalContainers/Memgraph/LongChain/Depth16-10      	     100	    539251 ns/op	   34473 B/op	     609 allocs/op
+BenchmarkGraphProviderTraversalContainers/Memgraph/LongChain/Depth16-10      	     100	    537468 ns/op	   34528 B/op	     609 allocs/op
 --- BENCH: BenchmarkGraphProviderTraversalContainers/Memgraph/LongChain/Depth16-10
     provider_benchmark_test.go:256: provider_version="3.5.0" image_reference="memgraph/memgraph:3.5.0@sha256:b411deeb2341698f4f7a0d69535c8937c341e924f66962aa3e70acb63c7a5bd1"
-BenchmarkGraphProviderTraversalContainers/Memgraph/LongChain/Depth64-10      	     100	    694470 ns/op	   81431 B/op	    1809 allocs/op
+BenchmarkGraphProviderTraversalContainers/Memgraph/LongChain/Depth64-10      	     100	    608717 ns/op	   81422 B/op	    1809 allocs/op
 --- BENCH: BenchmarkGraphProviderTraversalContainers/Memgraph/LongChain/Depth64-10
     provider_benchmark_test.go:256: provider_version="3.5.0" image_reference="memgraph/memgraph:3.5.0@sha256:b411deeb2341698f4f7a0d69535c8937c341e924f66962aa3e70acb63c7a5bd1"
-BenchmarkGraphProviderTraversalContainers/Memgraph/LongChain/Depth64-10      	     100	    659868 ns/op	   81444 B/op	    1809 allocs/op
+BenchmarkGraphProviderTraversalContainers/Memgraph/LongChain/Depth64-10      	     100	    605408 ns/op	   81417 B/op	    1809 allocs/op
 --- BENCH: BenchmarkGraphProviderTraversalContainers/Memgraph/LongChain/Depth64-10
     provider_benchmark_test.go:256: provider_version="3.5.0" image_reference="memgraph/memgraph:3.5.0@sha256:b411deeb2341698f4f7a0d69535c8937c341e924f66962aa3e70acb63c7a5bd1"
-BenchmarkGraphProviderTraversalContainers/Memgraph/LongChain/Depth64-10      	     100	    904846 ns/op	   81421 B/op	    1809 allocs/op
+BenchmarkGraphProviderTraversalContainers/Memgraph/LongChain/Depth64-10      	     100	    655222 ns/op	   81422 B/op	    1809 allocs/op
 --- BENCH: BenchmarkGraphProviderTraversalContainers/Memgraph/LongChain/Depth64-10
     provider_benchmark_test.go:256: provider_version="3.5.0" image_reference="memgraph/memgraph:3.5.0@sha256:b411deeb2341698f4f7a0d69535c8937c341e924f66962aa3e70acb63c7a5bd1"
-BenchmarkGraphProviderTraversalContainers/Memgraph/DeepWide/Depth4Fanout4-10 	     100	   1388712 ns/op	  351388 B/op	    8710 allocs/op
+BenchmarkGraphProviderTraversalContainers/Memgraph/DeepWide/Depth4Fanout4-10 	     100	   1267170 ns/op	  351379 B/op	    8710 allocs/op
 --- BENCH: BenchmarkGraphProviderTraversalContainers/Memgraph/DeepWide/Depth4Fanout4-10
     provider_benchmark_test.go:256: provider_version="3.5.0" image_reference="memgraph/memgraph:3.5.0@sha256:b411deeb2341698f4f7a0d69535c8937c341e924f66962aa3e70acb63c7a5bd1"
-BenchmarkGraphProviderTraversalContainers/Memgraph/DeepWide/Depth4Fanout4-10 	     100	   1233211 ns/op	  351398 B/op	    8710 allocs/op
+BenchmarkGraphProviderTraversalContainers/Memgraph/DeepWide/Depth4Fanout4-10 	     100	   1668192 ns/op	  351374 B/op	    8710 allocs/op
 --- BENCH: BenchmarkGraphProviderTraversalContainers/Memgraph/DeepWide/Depth4Fanout4-10
     provider_benchmark_test.go:256: provider_version="3.5.0" image_reference="memgraph/memgraph:3.5.0@sha256:b411deeb2341698f4f7a0d69535c8937c341e924f66962aa3e70acb63c7a5bd1"
-BenchmarkGraphProviderTraversalContainers/Memgraph/DeepWide/Depth4Fanout4-10 	     100	   1225737 ns/op	  351385 B/op	    8710 allocs/op
+BenchmarkGraphProviderTraversalContainers/Memgraph/DeepWide/Depth4Fanout4-10 	     100	   1505712 ns/op	  351371 B/op	    8710 allocs/op
 --- BENCH: BenchmarkGraphProviderTraversalContainers/Memgraph/DeepWide/Depth4Fanout4-10
     provider_benchmark_test.go:256: provider_version="3.5.0" image_reference="memgraph/memgraph:3.5.0@sha256:b411deeb2341698f4f7a0d69535c8937c341e924f66962aa3e70acb63c7a5bd1"
-BenchmarkGraphProviderTraversalContainers/PostgreSQLRecursiveCTE/LongChain/Depth16-10         	     100	    396668 ns/op	    2880 B/op	      82 allocs/op
+BenchmarkGraphProviderTraversalContainers/PostgreSQLRecursiveCTE/LongChain/Depth16-10         	     100	    500679 ns/op	    2879 B/op	      82 allocs/op
 --- BENCH: BenchmarkGraphProviderTraversalContainers/PostgreSQLRecursiveCTE/LongChain/Depth16-10
     provider_benchmark_test.go:256: provider_version="16.14" image_reference="postgres:16-alpine@sha256:57c72fd2a128e416c7fcc499958864df5301e940bca0a56f58fddf30ffc07777"
-BenchmarkGraphProviderTraversalContainers/PostgreSQLRecursiveCTE/LongChain/Depth16-10         	     100	    366378 ns/op	    2881 B/op	      82 allocs/op
+BenchmarkGraphProviderTraversalContainers/PostgreSQLRecursiveCTE/LongChain/Depth16-10         	     100	    414810 ns/op	    2880 B/op	      82 allocs/op
 --- BENCH: BenchmarkGraphProviderTraversalContainers/PostgreSQLRecursiveCTE/LongChain/Depth16-10
     provider_benchmark_test.go:256: provider_version="16.14" image_reference="postgres:16-alpine@sha256:57c72fd2a128e416c7fcc499958864df5301e940bca0a56f58fddf30ffc07777"
-BenchmarkGraphProviderTraversalContainers/PostgreSQLRecursiveCTE/LongChain/Depth16-10         	     100	    352478 ns/op	    2879 B/op	      82 allocs/op
+BenchmarkGraphProviderTraversalContainers/PostgreSQLRecursiveCTE/LongChain/Depth16-10         	     100	    476917 ns/op	    2880 B/op	      82 allocs/op
 --- BENCH: BenchmarkGraphProviderTraversalContainers/PostgreSQLRecursiveCTE/LongChain/Depth16-10
     provider_benchmark_test.go:256: provider_version="16.14" image_reference="postgres:16-alpine@sha256:57c72fd2a128e416c7fcc499958864df5301e940bca0a56f58fddf30ffc07777"
-BenchmarkGraphProviderTraversalContainers/PostgreSQLRecursiveCTE/LongChain/Depth64-10         	     100	    939897 ns/op	    5665 B/op	     226 allocs/op
+BenchmarkGraphProviderTraversalContainers/PostgreSQLRecursiveCTE/LongChain/Depth64-10         	     100	   1064172 ns/op	    5715 B/op	     226 allocs/op
 --- BENCH: BenchmarkGraphProviderTraversalContainers/PostgreSQLRecursiveCTE/LongChain/Depth64-10
     provider_benchmark_test.go:256: provider_version="16.14" image_reference="postgres:16-alpine@sha256:57c72fd2a128e416c7fcc499958864df5301e940bca0a56f58fddf30ffc07777"
-BenchmarkGraphProviderTraversalContainers/PostgreSQLRecursiveCTE/LongChain/Depth64-10         	     100	    955429 ns/op	    5666 B/op	     226 allocs/op
+BenchmarkGraphProviderTraversalContainers/PostgreSQLRecursiveCTE/LongChain/Depth64-10         	     100	    990193 ns/op	    5720 B/op	     226 allocs/op
 --- BENCH: BenchmarkGraphProviderTraversalContainers/PostgreSQLRecursiveCTE/LongChain/Depth64-10
     provider_benchmark_test.go:256: provider_version="16.14" image_reference="postgres:16-alpine@sha256:57c72fd2a128e416c7fcc499958864df5301e940bca0a56f58fddf30ffc07777"
-BenchmarkGraphProviderTraversalContainers/PostgreSQLRecursiveCTE/LongChain/Depth64-10         	     100	    979755 ns/op	    5665 B/op	     226 allocs/op
+BenchmarkGraphProviderTraversalContainers/PostgreSQLRecursiveCTE/LongChain/Depth64-10         	     100	   1176275 ns/op	    5680 B/op	     226 allocs/op
 --- BENCH: BenchmarkGraphProviderTraversalContainers/PostgreSQLRecursiveCTE/LongChain/Depth64-10
     provider_benchmark_test.go:256: provider_version="16.14" image_reference="postgres:16-alpine@sha256:57c72fd2a128e416c7fcc499958864df5301e940bca0a56f58fddf30ffc07777"
-BenchmarkGraphProviderTraversalContainers/PostgreSQLRecursiveCTE/DeepWide/Depth4Fanout4-10    	     100	    490300 ns/op	   21810 B/op	    1055 allocs/op
+BenchmarkGraphProviderTraversalContainers/PostgreSQLRecursiveCTE/DeepWide/Depth4Fanout4-10    	     100	    493022 ns/op	   21808 B/op	    1054 allocs/op
 --- BENCH: BenchmarkGraphProviderTraversalContainers/PostgreSQLRecursiveCTE/DeepWide/Depth4Fanout4-10
     provider_benchmark_test.go:256: provider_version="16.14" image_reference="postgres:16-alpine@sha256:57c72fd2a128e416c7fcc499958864df5301e940bca0a56f58fddf30ffc07777"
-BenchmarkGraphProviderTraversalContainers/PostgreSQLRecursiveCTE/DeepWide/Depth4Fanout4-10    	     100	    543621 ns/op	   21820 B/op	    1055 allocs/op
+BenchmarkGraphProviderTraversalContainers/PostgreSQLRecursiveCTE/DeepWide/Depth4Fanout4-10    	     100	    493358 ns/op	   21808 B/op	    1055 allocs/op
 --- BENCH: BenchmarkGraphProviderTraversalContainers/PostgreSQLRecursiveCTE/DeepWide/Depth4Fanout4-10
     provider_benchmark_test.go:256: provider_version="16.14" image_reference="postgres:16-alpine@sha256:57c72fd2a128e416c7fcc499958864df5301e940bca0a56f58fddf30ffc07777"
-BenchmarkGraphProviderTraversalContainers/PostgreSQLRecursiveCTE/DeepWide/Depth4Fanout4-10    	     100	    504953 ns/op	   21814 B/op	    1055 allocs/op
+BenchmarkGraphProviderTraversalContainers/PostgreSQLRecursiveCTE/DeepWide/Depth4Fanout4-10    	     100	    550325 ns/op	   21811 B/op	    1055 allocs/op
 --- BENCH: BenchmarkGraphProviderTraversalContainers/PostgreSQLRecursiveCTE/DeepWide/Depth4Fanout4-10
     provider_benchmark_test.go:256: provider_version="16.14" image_reference="postgres:16-alpine@sha256:57c72fd2a128e416c7fcc499958864df5301e940bca0a56f58fddf30ffc07777"
 PASS
-ok  	github.com/bluetape4k/bluetape-go/graph	23.278s
+ok  	github.com/bluetape4k/bluetape-go/graph	23.665s
 output_end
 exit_status: 0
