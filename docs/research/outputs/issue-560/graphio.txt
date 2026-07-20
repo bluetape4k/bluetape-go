@@ -1,0 +1,195 @@
+command_label: graphio
+command: go test -timeout=10m -run \^\$ -bench \^BenchmarkGraphIOFormats\$ -benchmem -count=5 ./graph/graphio
+timestamp_utc: 2026-07-20T16:34:02Z
+git_sha: 94e6aa30d619d2fd3404a191203f34104cf48a52
+pre_run_clean: true
+output_begin
+goos: darwin
+goarch: arm64
+pkg: github.com/bluetape4k/bluetape-go/graph/graphio
+cpu: Apple M5
+BenchmarkGraphIOFormats/CSV/Small/100V-200E-3P/Write-10   	    5372	    220230 ns/op	 238.60 MB/s	  456208 B/op	    4220 allocs/op
+BenchmarkGraphIOFormats/CSV/Small/100V-200E-3P/Write-10   	    5634	    216413 ns/op	 242.81 MB/s	  456212 B/op	    4220 allocs/op
+BenchmarkGraphIOFormats/CSV/Small/100V-200E-3P/Write-10   	    5571	    216834 ns/op	 242.34 MB/s	  456210 B/op	    4220 allocs/op
+BenchmarkGraphIOFormats/CSV/Small/100V-200E-3P/Write-10   	    5510	    218868 ns/op	 240.09 MB/s	  456212 B/op	    4220 allocs/op
+BenchmarkGraphIOFormats/CSV/Small/100V-200E-3P/Write-10   	    5498	    217554 ns/op	 241.54 MB/s	  456213 B/op	    4220 allocs/op
+BenchmarkGraphIOFormats/CSV/Small/100V-200E-3P/Read-10    	    1678	    729769 ns/op	  72.01 MB/s	 2231774 B/op	   13966 allocs/op
+BenchmarkGraphIOFormats/CSV/Small/100V-200E-3P/Read-10    	    1687	    709580 ns/op	  74.06 MB/s	 2231774 B/op	   13966 allocs/op
+BenchmarkGraphIOFormats/CSV/Small/100V-200E-3P/Read-10    	    1688	    725706 ns/op	  72.41 MB/s	 2231774 B/op	   13966 allocs/op
+BenchmarkGraphIOFormats/CSV/Small/100V-200E-3P/Read-10    	    1684	    714529 ns/op	  73.54 MB/s	 2231774 B/op	   13966 allocs/op
+BenchmarkGraphIOFormats/CSV/Small/100V-200E-3P/Read-10    	    1684	    713601 ns/op	  73.64 MB/s	 2231774 B/op	   13966 allocs/op
+BenchmarkGraphIOFormats/CSV/Small/100V-200E-3P/RoundTrip-10         	    1291	    931866 ns/op	  56.39 MB/s	 2689628 B/op	   18192 allocs/op
+BenchmarkGraphIOFormats/CSV/Small/100V-200E-3P/RoundTrip-10         	    1278	    939713 ns/op	  55.92 MB/s	 2689640 B/op	   18192 allocs/op
+BenchmarkGraphIOFormats/CSV/Small/100V-200E-3P/RoundTrip-10         	    1296	    928635 ns/op	  56.59 MB/s	 2689626 B/op	   18192 allocs/op
+BenchmarkGraphIOFormats/CSV/Small/100V-200E-3P/RoundTrip-10         	    1292	    929844 ns/op	  56.51 MB/s	 2689639 B/op	   18192 allocs/op
+BenchmarkGraphIOFormats/CSV/Small/100V-200E-3P/RoundTrip-10         	    1292	    927821 ns/op	  56.64 MB/s	 2689617 B/op	   18192 allocs/op
+BenchmarkGraphIOFormats/CSV/Small/100V-200E-3P/RecordConstructionBaseline-10         	    5389	    222800 ns/op	  357144 B/op	    6101 allocs/op
+BenchmarkGraphIOFormats/CSV/Small/100V-200E-3P/RecordConstructionBaseline-10         	    5534	    219710 ns/op	  357144 B/op	    6101 allocs/op
+BenchmarkGraphIOFormats/CSV/Small/100V-200E-3P/RecordConstructionBaseline-10         	    5548	    215385 ns/op	  357142 B/op	    6101 allocs/op
+BenchmarkGraphIOFormats/CSV/Small/100V-200E-3P/RecordConstructionBaseline-10         	    5535	    215750 ns/op	  357143 B/op	    6101 allocs/op
+BenchmarkGraphIOFormats/CSV/Small/100V-200E-3P/RecordConstructionBaseline-10         	    5544	    219405 ns/op	  357143 B/op	    6101 allocs/op
+BenchmarkGraphIOFormats/CSV/Medium/10000V-20000E-5P/Write-10                         	      38	  30645256 ns/op	 252.90 MB/s	63409010 B/op	  540045 allocs/op
+BenchmarkGraphIOFormats/CSV/Medium/10000V-20000E-5P/Write-10                         	      37	  30640109 ns/op	 252.94 MB/s	63408978 B/op	  540045 allocs/op
+BenchmarkGraphIOFormats/CSV/Medium/10000V-20000E-5P/Write-10                         	      38	  30927177 ns/op	 250.59 MB/s	63409024 B/op	  540046 allocs/op
+BenchmarkGraphIOFormats/CSV/Medium/10000V-20000E-5P/Write-10                         	      37	  30886414 ns/op	 250.92 MB/s	63408945 B/op	  540045 allocs/op
+BenchmarkGraphIOFormats/CSV/Medium/10000V-20000E-5P/Write-10                         	      38	  30229126 ns/op	 256.38 MB/s	63408955 B/op	  540045 allocs/op
+BenchmarkGraphIOFormats/CSV/Medium/10000V-20000E-5P/Read-10                          	      13	  89113115 ns/op	  86.97 MB/s	251655774 B/op	 1650151 allocs/op
+BenchmarkGraphIOFormats/CSV/Medium/10000V-20000E-5P/Read-10                          	      12	  89924767 ns/op	  86.18 MB/s	251655774 B/op	 1650151 allocs/op
+BenchmarkGraphIOFormats/CSV/Medium/10000V-20000E-5P/Read-10                          	      13	  89939321 ns/op	  86.17 MB/s	251655764 B/op	 1650151 allocs/op
+BenchmarkGraphIOFormats/CSV/Medium/10000V-20000E-5P/Read-10                          	      12	  98081486 ns/op	  79.02 MB/s	251655780 B/op	 1650151 allocs/op
+BenchmarkGraphIOFormats/CSV/Medium/10000V-20000E-5P/Read-10                          	      13	  91263644 ns/op	  84.92 MB/s	251655778 B/op	 1650151 allocs/op
+BenchmarkGraphIOFormats/CSV/Medium/10000V-20000E-5P/RoundTrip-10                     	       9	 122490236 ns/op	  63.27 MB/s	315065984 B/op	 2190202 allocs/op
+BenchmarkGraphIOFormats/CSV/Medium/10000V-20000E-5P/RoundTrip-10                     	       9	 120677898 ns/op	  64.22 MB/s	315065629 B/op	 2190197 allocs/op
+BenchmarkGraphIOFormats/CSV/Medium/10000V-20000E-5P/RoundTrip-10                     	       9	 120210421 ns/op	  64.47 MB/s	315065376 B/op	 2190199 allocs/op
+BenchmarkGraphIOFormats/CSV/Medium/10000V-20000E-5P/RoundTrip-10                     	       9	 120313644 ns/op	  64.42 MB/s	315065678 B/op	 2190200 allocs/op
+BenchmarkGraphIOFormats/CSV/Medium/10000V-20000E-5P/RoundTrip-10                     	       9	 121519463 ns/op	  63.78 MB/s	315065718 B/op	 2190202 allocs/op
+BenchmarkGraphIOFormats/CSV/Medium/10000V-20000E-5P/RecordConstructionBaseline-10    	      38	  31117761 ns/op	41490806 B/op	 1065908 allocs/op
+BenchmarkGraphIOFormats/CSV/Medium/10000V-20000E-5P/RecordConstructionBaseline-10    	      38	  31127797 ns/op	41490892 B/op	 1065909 allocs/op
+BenchmarkGraphIOFormats/CSV/Medium/10000V-20000E-5P/RecordConstructionBaseline-10    	      38	  31041365 ns/op	41490726 B/op	 1065908 allocs/op
+BenchmarkGraphIOFormats/CSV/Medium/10000V-20000E-5P/RecordConstructionBaseline-10    	      37	  31346955 ns/op	41490843 B/op	 1065909 allocs/op
+BenchmarkGraphIOFormats/CSV/Medium/10000V-20000E-5P/RecordConstructionBaseline-10    	      37	  30471601 ns/op	41490763 B/op	 1065908 allocs/op
+BenchmarkGraphIOFormats/CSV/WideProperties/1000V-2000E-20P/Write-10                  	     100	  11498743 ns/op	 230.46 MB/s	20014362 B/op	  150038 allocs/op
+BenchmarkGraphIOFormats/CSV/WideProperties/1000V-2000E-20P/Write-10                  	     100	  11483573 ns/op	 230.77 MB/s	20014533 B/op	  150038 allocs/op
+BenchmarkGraphIOFormats/CSV/WideProperties/1000V-2000E-20P/Write-10                  	     100	  11608390 ns/op	 228.29 MB/s	20014476 B/op	  150038 allocs/op
+BenchmarkGraphIOFormats/CSV/WideProperties/1000V-2000E-20P/Write-10                  	     100	  11522863 ns/op	 229.98 MB/s	20014282 B/op	  150037 allocs/op
+BenchmarkGraphIOFormats/CSV/WideProperties/1000V-2000E-20P/Write-10                  	     100	  11602566 ns/op	 228.40 MB/s	20014343 B/op	  150038 allocs/op
+BenchmarkGraphIOFormats/CSV/WideProperties/1000V-2000E-20P/Read-10                   	      45	  26600733 ns/op	  99.62 MB/s	47435012 B/op	  376083 allocs/op
+BenchmarkGraphIOFormats/CSV/WideProperties/1000V-2000E-20P/Read-10                   	      45	  26726985 ns/op	  99.15 MB/s	47435001 B/op	  376083 allocs/op
+BenchmarkGraphIOFormats/CSV/WideProperties/1000V-2000E-20P/Read-10                   	      44	  26924388 ns/op	  98.43 MB/s	47434994 B/op	  376083 allocs/op
+BenchmarkGraphIOFormats/CSV/WideProperties/1000V-2000E-20P/Read-10                   	      44	  27016467 ns/op	  98.09 MB/s	47435021 B/op	  376083 allocs/op
+BenchmarkGraphIOFormats/CSV/WideProperties/1000V-2000E-20P/Read-10                   	      44	  27520198 ns/op	  96.29 MB/s	47435000 B/op	  376083 allocs/op
+BenchmarkGraphIOFormats/CSV/WideProperties/1000V-2000E-20P/RoundTrip-10              	      31	  38943430 ns/op	  68.05 MB/s	67452303 B/op	  526131 allocs/op
+BenchmarkGraphIOFormats/CSV/WideProperties/1000V-2000E-20P/RoundTrip-10              	      30	  39016749 ns/op	  67.92 MB/s	67452505 B/op	  526132 allocs/op
+BenchmarkGraphIOFormats/CSV/WideProperties/1000V-2000E-20P/RoundTrip-10              	      31	  38995823 ns/op	  67.96 MB/s	67452442 B/op	  526131 allocs/op
+BenchmarkGraphIOFormats/CSV/WideProperties/1000V-2000E-20P/RoundTrip-10              	      30	  38901022 ns/op	  68.12 MB/s	67453414 B/op	  526136 allocs/op
+BenchmarkGraphIOFormats/CSV/WideProperties/1000V-2000E-20P/RoundTrip-10              	      31	  39144407 ns/op	  67.70 MB/s	67452613 B/op	  526132 allocs/op
+BenchmarkGraphIOFormats/CSV/WideProperties/1000V-2000E-20P/RecordConstructionBaseline-10         	     100	  11350858 ns/op	13084508 B/op	  332230 allocs/op
+BenchmarkGraphIOFormats/CSV/WideProperties/1000V-2000E-20P/RecordConstructionBaseline-10         	     100	  11339661 ns/op	13084486 B/op	  332230 allocs/op
+BenchmarkGraphIOFormats/CSV/WideProperties/1000V-2000E-20P/RecordConstructionBaseline-10         	     100	  11332721 ns/op	13084516 B/op	  332230 allocs/op
+BenchmarkGraphIOFormats/CSV/WideProperties/1000V-2000E-20P/RecordConstructionBaseline-10         	     100	  11321815 ns/op	13084405 B/op	  332229 allocs/op
+BenchmarkGraphIOFormats/CSV/WideProperties/1000V-2000E-20P/RecordConstructionBaseline-10         	     100	  11327949 ns/op	13084511 B/op	  332230 allocs/op
+BenchmarkGraphIOFormats/NDJSON/Small/100V-200E-3P/Write-10                                       	    5510	    215340 ns/op	 304.17 MB/s	  473185 B/op	    4511 allocs/op
+BenchmarkGraphIOFormats/NDJSON/Small/100V-200E-3P/Write-10                                       	    5565	    214701 ns/op	 305.08 MB/s	  473184 B/op	    4511 allocs/op
+BenchmarkGraphIOFormats/NDJSON/Small/100V-200E-3P/Write-10                                       	    5696	    215297 ns/op	 304.23 MB/s	  473186 B/op	    4511 allocs/op
+BenchmarkGraphIOFormats/NDJSON/Small/100V-200E-3P/Write-10                                       	    5580	    219151 ns/op	 298.88 MB/s	  473184 B/op	    4511 allocs/op
+BenchmarkGraphIOFormats/NDJSON/Small/100V-200E-3P/Write-10                                       	    5544	    216142 ns/op	 303.04 MB/s	  473183 B/op	    4511 allocs/op
+BenchmarkGraphIOFormats/NDJSON/Small/100V-200E-3P/Read-10                                        	    2458	    488436 ns/op	 134.10 MB/s	  579866 B/op	    8824 allocs/op
+BenchmarkGraphIOFormats/NDJSON/Small/100V-200E-3P/Read-10                                        	    2448	    488545 ns/op	 134.07 MB/s	  579866 B/op	    8824 allocs/op
+BenchmarkGraphIOFormats/NDJSON/Small/100V-200E-3P/Read-10                                        	    2451	    492644 ns/op	 132.96 MB/s	  579865 B/op	    8824 allocs/op
+BenchmarkGraphIOFormats/NDJSON/Small/100V-200E-3P/Read-10                                        	    2186	    497283 ns/op	 131.72 MB/s	  579866 B/op	    8824 allocs/op
+BenchmarkGraphIOFormats/NDJSON/Small/100V-200E-3P/Read-10                                        	    2472	    490212 ns/op	 133.62 MB/s	  579866 B/op	    8824 allocs/op
+BenchmarkGraphIOFormats/NDJSON/Small/100V-200E-3P/RoundTrip-10                                   	    1686	    713535 ns/op	  91.80 MB/s	 1053709 B/op	   13337 allocs/op
+BenchmarkGraphIOFormats/NDJSON/Small/100V-200E-3P/RoundTrip-10                                   	    1676	    719224 ns/op	  91.07 MB/s	 1053714 B/op	   13337 allocs/op
+BenchmarkGraphIOFormats/NDJSON/Small/100V-200E-3P/RoundTrip-10                                   	    1688	    713346 ns/op	  91.82 MB/s	 1053718 B/op	   13337 allocs/op
+BenchmarkGraphIOFormats/NDJSON/Small/100V-200E-3P/RoundTrip-10                                   	    1698	    707546 ns/op	  92.57 MB/s	 1053718 B/op	   13337 allocs/op
+BenchmarkGraphIOFormats/NDJSON/Small/100V-200E-3P/RoundTrip-10                                   	    1705	    721453 ns/op	  90.79 MB/s	 1053708 B/op	   13337 allocs/op
+BenchmarkGraphIOFormats/NDJSON/Small/100V-200E-3P/RecordConstructionBaseline-10                  	    5331	    219696 ns/op	  357151 B/op	    6101 allocs/op
+BenchmarkGraphIOFormats/NDJSON/Small/100V-200E-3P/RecordConstructionBaseline-10                  	    5498	    218480 ns/op	  357151 B/op	    6101 allocs/op
+BenchmarkGraphIOFormats/NDJSON/Small/100V-200E-3P/RecordConstructionBaseline-10                  	    5559	    218919 ns/op	  357151 B/op	    6101 allocs/op
+BenchmarkGraphIOFormats/NDJSON/Small/100V-200E-3P/RecordConstructionBaseline-10                  	    5440	    219805 ns/op	  357151 B/op	    6101 allocs/op
+BenchmarkGraphIOFormats/NDJSON/Small/100V-200E-3P/RecordConstructionBaseline-10                  	    5524	    221034 ns/op	  357152 B/op	    6101 allocs/op
+BenchmarkGraphIOFormats/NDJSON/Medium/10000V-20000E-5P/Write-10                                  	      43	  26149753 ns/op	 336.91 MB/s	61933032 B/op	  570029 allocs/op
+BenchmarkGraphIOFormats/NDJSON/Medium/10000V-20000E-5P/Write-10                                  	      44	  26183201 ns/op	 336.48 MB/s	61933244 B/op	  570030 allocs/op
+BenchmarkGraphIOFormats/NDJSON/Medium/10000V-20000E-5P/Write-10                                  	      44	  26241550 ns/op	 335.73 MB/s	61933006 B/op	  570028 allocs/op
+BenchmarkGraphIOFormats/NDJSON/Medium/10000V-20000E-5P/Write-10                                  	      43	  26352882 ns/op	 334.31 MB/s	61933064 B/op	  570029 allocs/op
+BenchmarkGraphIOFormats/NDJSON/Medium/10000V-20000E-5P/Write-10                                  	      43	  26171335 ns/op	 336.63 MB/s	61932988 B/op	  570028 allocs/op
+BenchmarkGraphIOFormats/NDJSON/Medium/10000V-20000E-5P/Read-10                                   	      18	  62066257 ns/op	 141.95 MB/s	67223048 B/op	 1120109 allocs/op
+BenchmarkGraphIOFormats/NDJSON/Medium/10000V-20000E-5P/Read-10                                   	      18	  61337479 ns/op	 143.63 MB/s	67223048 B/op	 1120109 allocs/op
+BenchmarkGraphIOFormats/NDJSON/Medium/10000V-20000E-5P/Read-10                                   	      19	  61816895 ns/op	 142.52 MB/s	67223049 B/op	 1120109 allocs/op
+BenchmarkGraphIOFormats/NDJSON/Medium/10000V-20000E-5P/Read-10                                   	      19	  61583895 ns/op	 143.06 MB/s	67223048 B/op	 1120109 allocs/op
+BenchmarkGraphIOFormats/NDJSON/Medium/10000V-20000E-5P/Read-10                                   	      19	  61535794 ns/op	 143.17 MB/s	67223051 B/op	 1120109 allocs/op
+BenchmarkGraphIOFormats/NDJSON/Medium/10000V-20000E-5P/RoundTrip-10                              	      13	  88843151 ns/op	  99.16 MB/s	129157100 B/op	 1690141 allocs/op
+BenchmarkGraphIOFormats/NDJSON/Medium/10000V-20000E-5P/RoundTrip-10                              	      13	  87428625 ns/op	 100.77 MB/s	129156879 B/op	 1690139 allocs/op
+BenchmarkGraphIOFormats/NDJSON/Medium/10000V-20000E-5P/RoundTrip-10                              	      13	  86877365 ns/op	 101.41 MB/s	129157564 B/op	 1690143 allocs/op
+BenchmarkGraphIOFormats/NDJSON/Medium/10000V-20000E-5P/RoundTrip-10                              	      13	  87476885 ns/op	 100.71 MB/s	129157469 B/op	 1690143 allocs/op
+BenchmarkGraphIOFormats/NDJSON/Medium/10000V-20000E-5P/RoundTrip-10                              	      13	  87506430 ns/op	 100.68 MB/s	129157384 B/op	 1690143 allocs/op
+BenchmarkGraphIOFormats/NDJSON/Medium/10000V-20000E-5P/RecordConstructionBaseline-10             	      38	  31359970 ns/op	41490931 B/op	 1065909 allocs/op
+BenchmarkGraphIOFormats/NDJSON/Medium/10000V-20000E-5P/RecordConstructionBaseline-10             	      38	  31791702 ns/op	41490851 B/op	 1065909 allocs/op
+BenchmarkGraphIOFormats/NDJSON/Medium/10000V-20000E-5P/RecordConstructionBaseline-10             	      37	  31371435 ns/op	41490940 B/op	 1065909 allocs/op
+BenchmarkGraphIOFormats/NDJSON/Medium/10000V-20000E-5P/RecordConstructionBaseline-10             	      37	  31410218 ns/op	41490881 B/op	 1065909 allocs/op
+BenchmarkGraphIOFormats/NDJSON/Medium/10000V-20000E-5P/RecordConstructionBaseline-10             	      38	  31637633 ns/op	41490898 B/op	 1065909 allocs/op
+BenchmarkGraphIOFormats/NDJSON/WideProperties/1000V-2000E-20P/Write-10                           	     132	   9060135 ns/op	 284.32 MB/s	20460937 B/op	  153019 allocs/op
+BenchmarkGraphIOFormats/NDJSON/WideProperties/1000V-2000E-20P/Write-10                           	     132	   9146664 ns/op	 281.63 MB/s	20460934 B/op	  153019 allocs/op
+BenchmarkGraphIOFormats/NDJSON/WideProperties/1000V-2000E-20P/Write-10                           	     130	   9105475 ns/op	 282.91 MB/s	20460994 B/op	  153019 allocs/op
+BenchmarkGraphIOFormats/NDJSON/WideProperties/1000V-2000E-20P/Write-10                           	     132	   9085086 ns/op	 283.54 MB/s	20460902 B/op	  153018 allocs/op
+BenchmarkGraphIOFormats/NDJSON/WideProperties/1000V-2000E-20P/Write-10                           	     129	   9237887 ns/op	 278.85 MB/s	20460893 B/op	  153018 allocs/op
+BenchmarkGraphIOFormats/NDJSON/WideProperties/1000V-2000E-20P/Read-10                            	      72	  16546925 ns/op	 155.68 MB/s	17786290 B/op	  313041 allocs/op
+BenchmarkGraphIOFormats/NDJSON/WideProperties/1000V-2000E-20P/Read-10                            	      74	  16496982 ns/op	 156.15 MB/s	17786283 B/op	  313041 allocs/op
+BenchmarkGraphIOFormats/NDJSON/WideProperties/1000V-2000E-20P/Read-10                            	      73	  16879869 ns/op	 152.61 MB/s	17786285 B/op	  313041 allocs/op
+BenchmarkGraphIOFormats/NDJSON/WideProperties/1000V-2000E-20P/Read-10                            	      72	  16927939 ns/op	 152.17 MB/s	17786291 B/op	  313041 allocs/op
+BenchmarkGraphIOFormats/NDJSON/WideProperties/1000V-2000E-20P/Read-10                            	      69	  17370435 ns/op	 148.30 MB/s	17786287 B/op	  313041 allocs/op
+BenchmarkGraphIOFormats/NDJSON/WideProperties/1000V-2000E-20P/RoundTrip-10                       	      45	  26357101 ns/op	  97.73 MB/s	38249939 B/op	  466069 allocs/op
+BenchmarkGraphIOFormats/NDJSON/WideProperties/1000V-2000E-20P/RoundTrip-10                       	      44	  26822276 ns/op	  96.04 MB/s	38249935 B/op	  466068 allocs/op
+BenchmarkGraphIOFormats/NDJSON/WideProperties/1000V-2000E-20P/RoundTrip-10                       	      44	  26712247 ns/op	  96.44 MB/s	38249971 B/op	  466069 allocs/op
+BenchmarkGraphIOFormats/NDJSON/WideProperties/1000V-2000E-20P/RoundTrip-10                       	      45	  26287644 ns/op	  97.99 MB/s	38249749 B/op	  466068 allocs/op
+BenchmarkGraphIOFormats/NDJSON/WideProperties/1000V-2000E-20P/RoundTrip-10                       	      45	  26133735 ns/op	  98.57 MB/s	38250224 B/op	  466070 allocs/op
+BenchmarkGraphIOFormats/NDJSON/WideProperties/1000V-2000E-20P/RecordConstructionBaseline-10      	     100	  11023315 ns/op	13084299 B/op	  332229 allocs/op
+BenchmarkGraphIOFormats/NDJSON/WideProperties/1000V-2000E-20P/RecordConstructionBaseline-10      	     100	  11023178 ns/op	13084245 B/op	  332229 allocs/op
+BenchmarkGraphIOFormats/NDJSON/WideProperties/1000V-2000E-20P/RecordConstructionBaseline-10      	     100	  11118547 ns/op	13084300 B/op	  332229 allocs/op
+BenchmarkGraphIOFormats/NDJSON/WideProperties/1000V-2000E-20P/RecordConstructionBaseline-10      	     100	  11100174 ns/op	13084282 B/op	  332229 allocs/op
+BenchmarkGraphIOFormats/NDJSON/WideProperties/1000V-2000E-20P/RecordConstructionBaseline-10      	     100	  11114878 ns/op	13084281 B/op	  332229 allocs/op
+BenchmarkGraphIOFormats/GraphML/Small/100V-200E-3P/Write-10                                      	    2826	    433792 ns/op	 218.43 MB/s	  640837 B/op	    5159 allocs/op
+BenchmarkGraphIOFormats/GraphML/Small/100V-200E-3P/Write-10                                      	    2773	    431076 ns/op	 219.80 MB/s	  640837 B/op	    5159 allocs/op
+BenchmarkGraphIOFormats/GraphML/Small/100V-200E-3P/Write-10                                      	    2812	    430412 ns/op	 220.14 MB/s	  640840 B/op	    5159 allocs/op
+BenchmarkGraphIOFormats/GraphML/Small/100V-200E-3P/Write-10                                      	    2793	    430599 ns/op	 220.05 MB/s	  640836 B/op	    5159 allocs/op
+BenchmarkGraphIOFormats/GraphML/Small/100V-200E-3P/Write-10                                      	    2775	    433252 ns/op	 218.70 MB/s	  640839 B/op	    5159 allocs/op
+BenchmarkGraphIOFormats/GraphML/Small/100V-200E-3P/Read-10                                       	    1035	   1153355 ns/op	  82.15 MB/s	 1324851 B/op	   23940 allocs/op
+BenchmarkGraphIOFormats/GraphML/Small/100V-200E-3P/Read-10                                       	    1038	   1164121 ns/op	  81.39 MB/s	 1324829 B/op	   23940 allocs/op
+BenchmarkGraphIOFormats/GraphML/Small/100V-200E-3P/Read-10                                       	    1044	   1187776 ns/op	  79.77 MB/s	 1324850 B/op	   23940 allocs/op
+BenchmarkGraphIOFormats/GraphML/Small/100V-200E-3P/Read-10                                       	    1011	   1174814 ns/op	  80.65 MB/s	 1324833 B/op	   23940 allocs/op
+BenchmarkGraphIOFormats/GraphML/Small/100V-200E-3P/Read-10                                       	    1045	   1178350 ns/op	  80.41 MB/s	 1324849 B/op	   23940 allocs/op
+BenchmarkGraphIOFormats/GraphML/Small/100V-200E-3P/RoundTrip-10                                  	     750	   1612359 ns/op	  58.77 MB/s	 1966192 B/op	   29101 allocs/op
+BenchmarkGraphIOFormats/GraphML/Small/100V-200E-3P/RoundTrip-10                                  	     745	   1665650 ns/op	  56.89 MB/s	 1966167 B/op	   29101 allocs/op
+BenchmarkGraphIOFormats/GraphML/Small/100V-200E-3P/RoundTrip-10                                  	     724	   1629119 ns/op	  58.16 MB/s	 1966183 B/op	   29101 allocs/op
+BenchmarkGraphIOFormats/GraphML/Small/100V-200E-3P/RoundTrip-10                                  	     745	   1626613 ns/op	  58.25 MB/s	 1966185 B/op	   29101 allocs/op
+BenchmarkGraphIOFormats/GraphML/Small/100V-200E-3P/RoundTrip-10                                  	     742	   1627243 ns/op	  58.23 MB/s	 1966183 B/op	   29101 allocs/op
+BenchmarkGraphIOFormats/GraphML/Small/100V-200E-3P/RecordConstructionBaseline-10                 	    5503	    222575 ns/op	  357156 B/op	    6101 allocs/op
+BenchmarkGraphIOFormats/GraphML/Small/100V-200E-3P/RecordConstructionBaseline-10                 	    5427	    221628 ns/op	  357155 B/op	    6101 allocs/op
+BenchmarkGraphIOFormats/GraphML/Small/100V-200E-3P/RecordConstructionBaseline-10                 	    5432	    219889 ns/op	  357156 B/op	    6101 allocs/op
+BenchmarkGraphIOFormats/GraphML/Small/100V-200E-3P/RecordConstructionBaseline-10                 	    5455	    220345 ns/op	  357157 B/op	    6101 allocs/op
+BenchmarkGraphIOFormats/GraphML/Small/100V-200E-3P/RecordConstructionBaseline-10                 	    5374	    222403 ns/op	  357155 B/op	    6101 allocs/op
+BenchmarkGraphIOFormats/GraphML/Medium/10000V-20000E-5P/Write-10                                 	      18	  62228648 ns/op	 212.30 MB/s	84911357 B/op	  750102 allocs/op
+BenchmarkGraphIOFormats/GraphML/Medium/10000V-20000E-5P/Write-10                                 	      18	  62427873 ns/op	 211.62 MB/s	84911434 B/op	  750103 allocs/op
+BenchmarkGraphIOFormats/GraphML/Medium/10000V-20000E-5P/Write-10                                 	      18	  62511007 ns/op	 211.34 MB/s	84911360 B/op	  750102 allocs/op
+BenchmarkGraphIOFormats/GraphML/Medium/10000V-20000E-5P/Write-10                                 	      18	  61847572 ns/op	 213.61 MB/s	84911318 B/op	  750102 allocs/op
+BenchmarkGraphIOFormats/GraphML/Medium/10000V-20000E-5P/Write-10                                 	      18	  61780255 ns/op	 213.84 MB/s	84911367 B/op	  750102 allocs/op
+BenchmarkGraphIOFormats/GraphML/Medium/10000V-20000E-5P/Read-10                                  	       7	 152073530 ns/op	  86.87 MB/s	184140874 B/op	 3210554 allocs/op
+BenchmarkGraphIOFormats/GraphML/Medium/10000V-20000E-5P/Read-10                                  	       7	 154303768 ns/op	  85.62 MB/s	184140729 B/op	 3210554 allocs/op
+BenchmarkGraphIOFormats/GraphML/Medium/10000V-20000E-5P/Read-10                                  	       7	 152689417 ns/op	  86.52 MB/s	184140901 B/op	 3210554 allocs/op
+BenchmarkGraphIOFormats/GraphML/Medium/10000V-20000E-5P/Read-10                                  	       7	 152454637 ns/op	  86.66 MB/s	184140512 B/op	 3210552 allocs/op
+BenchmarkGraphIOFormats/GraphML/Medium/10000V-20000E-5P/Read-10                                  	       7	 152693565 ns/op	  86.52 MB/s	184140323 B/op	 3210552 allocs/op
+BenchmarkGraphIOFormats/GraphML/Medium/10000V-20000E-5P/RoundTrip-10                             	       5	 215696100 ns/op	  61.25 MB/s	269051675 B/op	 3960655 allocs/op
+BenchmarkGraphIOFormats/GraphML/Medium/10000V-20000E-5P/RoundTrip-10                             	       5	 212144667 ns/op	  62.27 MB/s	269051564 B/op	 3960654 allocs/op
+BenchmarkGraphIOFormats/GraphML/Medium/10000V-20000E-5P/RoundTrip-10                             	       5	 220632833 ns/op	  59.88 MB/s	269051164 B/op	 3960655 allocs/op
+BenchmarkGraphIOFormats/GraphML/Medium/10000V-20000E-5P/RoundTrip-10                             	       5	 214658892 ns/op	  61.55 MB/s	269051622 B/op	 3960655 allocs/op
+BenchmarkGraphIOFormats/GraphML/Medium/10000V-20000E-5P/RoundTrip-10                             	       5	 218427867 ns/op	  60.48 MB/s	269050939 B/op	 3960653 allocs/op
+BenchmarkGraphIOFormats/GraphML/Medium/10000V-20000E-5P/RecordConstructionBaseline-10            	      37	  31547593 ns/op	41490550 B/op	 1065908 allocs/op
+BenchmarkGraphIOFormats/GraphML/Medium/10000V-20000E-5P/RecordConstructionBaseline-10            	      37	  32284523 ns/op	41490580 B/op	 1065908 allocs/op
+BenchmarkGraphIOFormats/GraphML/Medium/10000V-20000E-5P/RecordConstructionBaseline-10            	      39	  31461991 ns/op	41490609 B/op	 1065908 allocs/op
+BenchmarkGraphIOFormats/GraphML/Medium/10000V-20000E-5P/RecordConstructionBaseline-10            	      36	  32420078 ns/op	41490610 B/op	 1065909 allocs/op
+BenchmarkGraphIOFormats/GraphML/Medium/10000V-20000E-5P/RecordConstructionBaseline-10            	      38	  33625808 ns/op	41490558 B/op	 1065908 allocs/op
+BenchmarkGraphIOFormats/GraphML/WideProperties/1000V-2000E-20P/Write-10                          	      24	  48138229 ns/op	  87.04 MB/s	97841558 B/op	  453156 allocs/op
+BenchmarkGraphIOFormats/GraphML/WideProperties/1000V-2000E-20P/Write-10                          	      24	  48608219 ns/op	  86.20 MB/s	97841455 B/op	  453156 allocs/op
+BenchmarkGraphIOFormats/GraphML/WideProperties/1000V-2000E-20P/Write-10                          	      24	  47441578 ns/op	  88.32 MB/s	97841508 B/op	  453156 allocs/op
+BenchmarkGraphIOFormats/GraphML/WideProperties/1000V-2000E-20P/Write-10                          	      25	  46577327 ns/op	  89.96 MB/s	97841526 B/op	  453156 allocs/op
+BenchmarkGraphIOFormats/GraphML/WideProperties/1000V-2000E-20P/Write-10                          	      25	  47926855 ns/op	  87.42 MB/s	97841405 B/op	  453156 allocs/op
+BenchmarkGraphIOFormats/GraphML/WideProperties/1000V-2000E-20P/Read-10                           	      25	  47667625 ns/op	  87.90 MB/s	54764256 B/op	  972914 allocs/op
+BenchmarkGraphIOFormats/GraphML/WideProperties/1000V-2000E-20P/Read-10                           	      24	  48220764 ns/op	  86.89 MB/s	54763988 B/op	  972912 allocs/op
+BenchmarkGraphIOFormats/GraphML/WideProperties/1000V-2000E-20P/Read-10                           	      25	  47156012 ns/op	  88.85 MB/s	54764153 B/op	  972913 allocs/op
+BenchmarkGraphIOFormats/GraphML/WideProperties/1000V-2000E-20P/Read-10                           	      25	  47839008 ns/op	  87.58 MB/s	54764225 B/op	  972914 allocs/op
+BenchmarkGraphIOFormats/GraphML/WideProperties/1000V-2000E-20P/Read-10                           	      25	  47699452 ns/op	  87.84 MB/s	54764192 B/op	  972913 allocs/op
+BenchmarkGraphIOFormats/GraphML/WideProperties/1000V-2000E-20P/RoundTrip-10                      	      12	  97128524 ns/op	  43.14 MB/s	152605994 B/op	 1426073 allocs/op
+BenchmarkGraphIOFormats/GraphML/WideProperties/1000V-2000E-20P/RoundTrip-10                      	      12	  97085257 ns/op	  43.16 MB/s	152605732 B/op	 1426071 allocs/op
+BenchmarkGraphIOFormats/GraphML/WideProperties/1000V-2000E-20P/RoundTrip-10                      	      12	  96511611 ns/op	  43.41 MB/s	152605728 B/op	 1426070 allocs/op
+BenchmarkGraphIOFormats/GraphML/WideProperties/1000V-2000E-20P/RoundTrip-10                      	      12	  97013642 ns/op	  43.19 MB/s	152605802 B/op	 1426072 allocs/op
+BenchmarkGraphIOFormats/GraphML/WideProperties/1000V-2000E-20P/RoundTrip-10                      	      12	  97841719 ns/op	  42.82 MB/s	152605946 B/op	 1426072 allocs/op
+BenchmarkGraphIOFormats/GraphML/WideProperties/1000V-2000E-20P/RecordConstructionBaseline-10     	     100	  11087360 ns/op	13084163 B/op	  332228 allocs/op
+BenchmarkGraphIOFormats/GraphML/WideProperties/1000V-2000E-20P/RecordConstructionBaseline-10     	     100	  11078668 ns/op	13084182 B/op	  332228 allocs/op
+BenchmarkGraphIOFormats/GraphML/WideProperties/1000V-2000E-20P/RecordConstructionBaseline-10     	     100	  11121602 ns/op	13084232 B/op	  332229 allocs/op
+BenchmarkGraphIOFormats/GraphML/WideProperties/1000V-2000E-20P/RecordConstructionBaseline-10     	     100	  11139217 ns/op	13084217 B/op	  332229 allocs/op
+BenchmarkGraphIOFormats/GraphML/WideProperties/1000V-2000E-20P/RecordConstructionBaseline-10     	     100	  11122089 ns/op	13084256 B/op	  332229 allocs/op
+PASS
+ok  	github.com/bluetape4k/bluetape-go/graph/graphio	236.424s
+output_end
+exit_status: 0
+
