@@ -703,9 +703,9 @@ func runCacheProviderPreflight(fixture *cacheProviderFixture) error {
 
 func runRedisL2CacheBenchmark(b *testing.B, fixture *cacheProviderFixture, scenario string, payloadSize int) {
 	b.Helper()
+	b.StopTimer()
 	logCacheProviderBenchmarkMetadata(b, fixture)
 	b.ReportAllocs()
-	b.StopTimer()
 	namespace := mustBenchmarkCacheID(b)
 	serializer := newCountingSerializer[*benchmarkCacheRecord](serialization.NewJSONSerializer[*benchmarkCacheRecord]())
 	remote, _, err := newBenchmarkValueCache(fixture, namespace, serializer, func(config *redisvalue.Config) {
@@ -788,9 +788,9 @@ func verifyCacheSerializationCalls(scenario string, serializer *countingSerializ
 
 func runTieredCacheBenchmark(b *testing.B, fixture *cacheProviderFixture, scenario string, payloadSize int) {
 	b.Helper()
+	b.StopTimer()
 	logCacheProviderBenchmarkMetadata(b, fixture)
 	b.ReportAllocs()
-	b.StopTimer()
 	namespace := mustBenchmarkCacheID(b)
 	serializer := newCountingSerializer[*benchmarkCacheRecord](serialization.NewJSONSerializer[*benchmarkCacheRecord]())
 	tiered, local, err := newBenchmarkTieredCache(fixture, namespace, serializer, func(config *redisvalue.Config) {
@@ -879,9 +879,9 @@ func runTieredCacheBenchmark(b *testing.B, fixture *cacheProviderFixture, scenar
 
 func runNearCacheBenchmark(b *testing.B, fixture *cacheProviderFixture, scenario string, payloadSize int) {
 	b.Helper()
+	b.StopTimer()
 	logCacheProviderBenchmarkMetadata(b, fixture)
 	b.ReportAllocs()
-	b.StopTimer()
 	namespace := mustBenchmarkCacheID(b)
 	value := benchmarkCacheValue(payloadSize)
 	key := mustBenchmarkCacheID(b)
