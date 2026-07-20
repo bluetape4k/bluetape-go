@@ -97,6 +97,7 @@ trap 'rm -rf "$private_dir"' EXIT
 raw_file=$private_dir/raw.txt
 sanitized_file=$private_dir/sanitized.txt
 metadata_file=$private_dir/metadata.txt
+command_output_file=$private_dir/command-output.txt
 : >"$raw_file"
 : >"$metadata_file"
 
@@ -135,16 +136,16 @@ run_command() {
   append_header "$raw_file" "$label" "$@"
   printf 'output_begin\n' >>"$raw_file"
 
-  local output_start
-  output_start=$(wc -c <"$raw_file" | tr -d '[:space:]')
+  : >"$command_output_file"
   set +e
-  "$@" 2>&1 | head -c "$max_output_bytes" >>"$raw_file"
+  "$@" 2>&1 | head -c "$((max_output_bytes + 1))" >"$command_output_file"
   local pipe_status=("${PIPESTATUS[@]}")
   set -e
   local status=${pipe_status[0]}
-  local output_end
-  output_end=$(wc -c <"$raw_file" | tr -d '[:space:]')
-  if [ "${pipe_status[1]}" -ne 0 ] || [ "$((output_end - output_start))" -ge "$max_output_bytes" ]; then
+  local output_bytes
+  output_bytes=$(wc -c <"$command_output_file" | tr -d '[:space:]')
+  head -c "$max_output_bytes" "$command_output_file" >>"$raw_file"
+  if [ "${pipe_status[1]}" -ne 0 ] || [ "$output_bytes" -gt "$max_output_bytes" ]; then
     printf '\n[output_truncated_at_%s_bytes]\n' "$max_output_bytes" >>"$raw_file"
     status=125
   fi

@@ -301,7 +301,6 @@ function generate(name) {
   writeFileSync(`${base}.vl.json`, `${JSON.stringify(vegaSpec(chart, rows, rendered.width, rendered.height), null, 2)}\n`);
   writeFileSync(svgPath, `${rendered.svg}\n`);
   run("rsvg-convert", ["--width", String(rendered.width * 2), "--height", String(rendered.height * 2), "--output", pngPath, svgPath]);
-  run("cairosvg", [svgPath, "-o", pngPath, "-s", "2"]);
   process.stdout.write(`generated provider-benchmark-${name}-summary.{vl.json,svg,png}\n`);
 }
 
