@@ -80,7 +80,7 @@ case "$private_dir" in
     ;;
 esac
 chmod 700 "$private_dir"
-trap 'rm -rf "$private_dir"' EXIT HUP INT TERM
+trap 'rm -rf "$private_dir"' EXIT
 
 raw_file=$private_dir/raw.txt
 sanitized_file=$private_dir/sanitized.txt
