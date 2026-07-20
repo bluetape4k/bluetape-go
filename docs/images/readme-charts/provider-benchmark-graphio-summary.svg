@@ -12,35 +12,35 @@
 <text x="44" y="170" class="title panel">Equivalent format round trips</text>
 <text x="44" y="204" class="mono label">CSV - Medium round trip</text>
 <line x1="420" y1="198" x2="990" y2="198" stroke="#E2E8F0"/>
-<line x1="707.5564257524225" y1="198" x2="713.0099916523102" y2="198" stroke="#2563EB" stroke-width="5" stroke-linecap="round"/>
-<line x1="707.5564257524225" y1="191" x2="707.5564257524225" y2="205" stroke="#2563EB" stroke-width="2"/>
-<line x1="713.0099916523102" y1="191" x2="713.0099916523102" y2="205" stroke="#2563EB" stroke-width="2"/>
-<circle cx="708.6746816750222" cy="198" r="6" fill="#2563EB"/>
-<text x="1014" y="203" class="mono value">120.68 ms</text>
+<line x1="707.7192439536756" y1="198" x2="713.894888888598" y2="198" stroke="#2563EB" stroke-width="5" stroke-linecap="round"/>
+<line x1="707.7192439536756" y1="191" x2="707.7192439536756" y2="205" stroke="#2563EB" stroke-width="2"/>
+<line x1="713.894888888598" y1="191" x2="713.894888888598" y2="205" stroke="#2563EB" stroke-width="2"/>
+<circle cx="709.6156417422474" cy="198" r="6" fill="#2563EB"/>
+<text x="1014" y="203" class="mono value">119.02 ms</text>
 <text x="44" y="252" class="mono label">NDJSON - Medium round trip</text>
 <line x1="420" y1="246" x2="990" y2="246" stroke="#E2E8F0"/>
-<line x1="627.8201236662219" y1="246" x2="632.5224979799609" y2="246" stroke="#D97706" stroke-width="5" stroke-linecap="round"/>
-<line x1="627.8201236662219" y1="239" x2="627.8201236662219" y2="253" stroke="#D97706" stroke-width="2"/>
-<line x1="632.5224979799609" y1="239" x2="632.5224979799609" y2="253" stroke="#D97706" stroke-width="2"/>
-<rect x="624.2542408328783" y="241" width="10" height="10" rx="1" fill="#D97706"/>
-<text x="1014" y="251" class="mono value">87.48 ms</text>
+<line x1="637.9286848493612" y1="246" x2="652.1695592220294" y2="246" stroke="#D97706" stroke-width="5" stroke-linecap="round"/>
+<line x1="637.9286848493612" y1="239" x2="637.9286848493612" y2="253" stroke="#D97706" stroke-width="2"/>
+<line x1="652.1695592220294" y1="239" x2="652.1695592220294" y2="253" stroke="#D97706" stroke-width="2"/>
+<rect x="640.2896298059486" y="241" width="10" height="10" rx="1" fill="#D97706"/>
+<text x="1014" y="251" class="mono value">92.59 ms</text>
 <text x="44" y="300" class="mono label">GraphML - Medium round trip</text>
 <line x1="420" y1="294" x2="990" y2="294" stroke="#E2E8F0"/>
-<line x1="927.4731597933417" y1="294" x2="947.7777777777777" y2="294" stroke="#7C3AED" stroke-width="5" stroke-linecap="round"/>
-<line x1="927.4731597933417" y1="287" x2="927.4731597933417" y2="301" stroke="#7C3AED" stroke-width="2"/>
+<line x1="940.287095693963" y1="294" x2="947.7777777777777" y2="294" stroke="#7C3AED" stroke-width="5" stroke-linecap="round"/>
+<line x1="940.287095693963" y1="287" x2="940.287095693963" y2="301" stroke="#7C3AED" stroke-width="2"/>
 <line x1="947.7777777777777" y1="287" x2="947.7777777777777" y2="301" stroke="#7C3AED" stroke-width="2"/>
-<path d="M 935.9685745109991 287 L 942.9685745109991 294 L 935.9685745109991 301 L 928.9685745109991 294 Z" fill="#7C3AED"/>
-<text x="1014" y="299" class="mono value">215.70 ms</text>
+<path d="M 944.6777108625005 287 L 951.6777108625005 294 L 944.6777108625005 301 L 937.6777108625005 294 Z" fill="#7C3AED"/>
+<text x="1014" y="299" class="mono value">215.62 ms</text>
 <line x1="420" y1="390" x2="420" y2="400" stroke="#64748B"/>
 <text x="420" y="420" text-anchor="middle" class="mono axis">0.0 ns</text>
 <line x1="562.5" y1="390" x2="562.5" y2="400" stroke="#64748B"/>
-<text x="562.5" y="420" text-anchor="middle" class="mono axis">59.57 ms</text>
+<text x="562.5" y="420" text-anchor="middle" class="mono axis">58.56 ms</text>
 <line x1="705" y1="390" x2="705" y2="400" stroke="#64748B"/>
-<text x="705" y="420" text-anchor="middle" class="mono axis">119.14 ms</text>
+<text x="705" y="420" text-anchor="middle" class="mono axis">117.12 ms</text>
 <line x1="847.5" y1="390" x2="847.5" y2="400" stroke="#64748B"/>
-<text x="847.5" y="420" text-anchor="middle" class="mono axis">178.71 ms</text>
+<text x="847.5" y="420" text-anchor="middle" class="mono axis">175.69 ms</text>
 <line x1="990" y1="390" x2="990" y2="400" stroke="#64748B"/>
-<text x="990" y="420" text-anchor="middle" class="mono axis">238.28 ms</text>
+<text x="990" y="420" text-anchor="middle" class="mono axis">234.25 ms</text>
 <line x1="420" y1="398" x2="990" y2="398" stroke="#64748B"/>
 <text x="705" y="442" text-anchor="middle" class="mono subtitle">latency (ns/op) - lower is better</text>
 </svg>

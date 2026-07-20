@@ -1,10 +1,10 @@
 command_label: leader-probes
 command: env BLUETAPE_LEADER_PROVIDER_BENCH=1 go test -timeout=15m -p 1 -run \^TestProviderLeaderBenchmarkProbes\$ ./leader
-timestamp_utc: 2026-07-20T16:40:31Z
-git_sha: 94e6aa30d619d2fd3404a191203f34104cf48a52
+timestamp_utc: 2026-07-20T17:08:55Z
+git_sha: ef3ef4f3070f516a3c75c2637f8e2bca231d9370
 pre_run_clean: true
 output_begin
-ok  	github.com/bluetape4k/bluetape-go/leader	12.000s
+ok  	github.com/bluetape4k/bluetape-go/leader	11.761s
 output_end
 exit_status: 0
 

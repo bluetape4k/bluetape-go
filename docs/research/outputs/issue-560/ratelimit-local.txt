@@ -1,25 +1,25 @@
 command_label: ratelimit-local
 command: go test -timeout=10m -run \^\$ -bench \^BenchmarkProviderRateLimitLocal\$ -benchmem -count=5 ./ratelimit
-timestamp_utc: 2026-07-20T16:32:17Z
-git_sha: 94e6aa30d619d2fd3404a191203f34104cf48a52
+timestamp_utc: 2026-07-20T17:00:03Z
+git_sha: ef3ef4f3070f516a3c75c2637f8e2bca231d9370
 pre_run_clean: true
 output_begin
 goos: darwin
 goarch: arm64
 pkg: github.com/bluetape4k/bluetape-go/ratelimit
 cpu: Apple M5
-BenchmarkProviderRateLimitLocal/Local/TokenBucket/AllowAvailable-10         	 4171369	       280.0 ns/op	     320 B/op	       5 allocs/op
-BenchmarkProviderRateLimitLocal/Local/TokenBucket/AllowAvailable-10         	 4263291	       280.8 ns/op	     320 B/op	       5 allocs/op
-BenchmarkProviderRateLimitLocal/Local/TokenBucket/AllowAvailable-10         	 4266919	       282.2 ns/op	     320 B/op	       5 allocs/op
-BenchmarkProviderRateLimitLocal/Local/TokenBucket/AllowAvailable-10         	 4180764	       280.8 ns/op	     320 B/op	       5 allocs/op
-BenchmarkProviderRateLimitLocal/Local/TokenBucket/AllowAvailable-10         	 4281498	       280.5 ns/op	     320 B/op	       5 allocs/op
-BenchmarkProviderRateLimitLocal/Local/TokenBucket/AllowRejected-10          	 4311678	       279.9 ns/op	     320 B/op	       5 allocs/op
-BenchmarkProviderRateLimitLocal/Local/TokenBucket/AllowRejected-10          	 4286362	       281.6 ns/op	     320 B/op	       5 allocs/op
-BenchmarkProviderRateLimitLocal/Local/TokenBucket/AllowRejected-10          	 4307690	       281.1 ns/op	     320 B/op	       5 allocs/op
-BenchmarkProviderRateLimitLocal/Local/TokenBucket/AllowRejected-10          	 4271436	       281.2 ns/op	     320 B/op	       5 allocs/op
-BenchmarkProviderRateLimitLocal/Local/TokenBucket/AllowRejected-10          	 4253289	       282.7 ns/op	     320 B/op	       5 allocs/op
+BenchmarkProviderRateLimitLocal/Local/TokenBucket/AllowAvailable-10         	 4022851	       298.7 ns/op	     320 B/op	       5 allocs/op
+BenchmarkProviderRateLimitLocal/Local/TokenBucket/AllowAvailable-10         	 3815744	       310.3 ns/op	     320 B/op	       5 allocs/op
+BenchmarkProviderRateLimitLocal/Local/TokenBucket/AllowAvailable-10         	 3784928	       295.0 ns/op	     320 B/op	       5 allocs/op
+BenchmarkProviderRateLimitLocal/Local/TokenBucket/AllowAvailable-10         	 3927183	       299.1 ns/op	     320 B/op	       5 allocs/op
+BenchmarkProviderRateLimitLocal/Local/TokenBucket/AllowAvailable-10         	 4111788	       297.9 ns/op	     320 B/op	       5 allocs/op
+BenchmarkProviderRateLimitLocal/Local/TokenBucket/AllowRejected-10          	 3892546	       309.6 ns/op	     320 B/op	       5 allocs/op
+BenchmarkProviderRateLimitLocal/Local/TokenBucket/AllowRejected-10          	 4001636	       298.5 ns/op	     320 B/op	       5 allocs/op
+BenchmarkProviderRateLimitLocal/Local/TokenBucket/AllowRejected-10          	 4216962	       295.2 ns/op	     320 B/op	       5 allocs/op
+BenchmarkProviderRateLimitLocal/Local/TokenBucket/AllowRejected-10          	 4206770	       309.2 ns/op	     320 B/op	       5 allocs/op
+BenchmarkProviderRateLimitLocal/Local/TokenBucket/AllowRejected-10          	 3939031	       313.1 ns/op	     320 B/op	       5 allocs/op
 PASS
-ok  	github.com/bluetape4k/bluetape-go/ratelimit	15.356s
+ok  	github.com/bluetape4k/bluetape-go/ratelimit	16.804s
 output_end
 exit_status: 0
 
