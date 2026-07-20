@@ -10,7 +10,7 @@ import (
 )
 
 const (
-	defaultImage = "mongo:7.0"
+	defaultImage = "mongo:7.0@sha256:340c1c56fb10e95cf79ff547f8664b96bc6ead9909bc355238cbf865a9695a6f"
 
 	// URIKey is the documented key for a MongoDB connection URI.
 	URIKey = "mongodb.uri"
