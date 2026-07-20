@@ -451,6 +451,15 @@ func sanitizeCacheProviderMetadata(value string) string {
 	}, value)
 }
 
+func logCacheProviderBenchmarkMetadata(b *testing.B, fixture *cacheProviderFixture) {
+	b.Helper()
+	b.Logf(
+		"provider_version=%q image_reference=%q",
+		sanitizeCacheProviderMetadata(fixture.providerVersion),
+		sanitizeCacheProviderMetadata(fixture.imageReference),
+	)
+}
+
 func BenchmarkProviderCacheLocal(b *testing.B) {
 	b.Run("Memory", func(b *testing.B) {
 		for _, scenario := range []string{"GetHit", "GetMiss", "Set", "GetOrLoadHot"} {
@@ -694,6 +703,7 @@ func runCacheProviderPreflight(fixture *cacheProviderFixture) error {
 
 func runRedisL2CacheBenchmark(b *testing.B, fixture *cacheProviderFixture, scenario string, payloadSize int) {
 	b.Helper()
+	logCacheProviderBenchmarkMetadata(b, fixture)
 	b.ReportAllocs()
 	b.StopTimer()
 	namespace := mustBenchmarkCacheID(b)
@@ -778,6 +788,7 @@ func verifyCacheSerializationCalls(scenario string, serializer *countingSerializ
 
 func runTieredCacheBenchmark(b *testing.B, fixture *cacheProviderFixture, scenario string, payloadSize int) {
 	b.Helper()
+	logCacheProviderBenchmarkMetadata(b, fixture)
 	b.ReportAllocs()
 	b.StopTimer()
 	namespace := mustBenchmarkCacheID(b)
@@ -868,6 +879,7 @@ func runTieredCacheBenchmark(b *testing.B, fixture *cacheProviderFixture, scenar
 
 func runNearCacheBenchmark(b *testing.B, fixture *cacheProviderFixture, scenario string, payloadSize int) {
 	b.Helper()
+	logCacheProviderBenchmarkMetadata(b, fixture)
 	b.ReportAllocs()
 	b.StopTimer()
 	namespace := mustBenchmarkCacheID(b)

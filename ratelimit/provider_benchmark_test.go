@@ -349,6 +349,11 @@ func BenchmarkProviderRateLimitContainers(b *testing.B) {
 
 func runContainerRateLimitBenchmark(b *testing.B, fixture rateLimitProviderFixture, scenario string) {
 	b.Helper()
+	b.Logf(
+		"provider_version=%q image_reference=%q",
+		sanitizeRateLimitProviderMetadata(fixture.providerVersion),
+		sanitizeRateLimitProviderMetadata(fixture.imageReference),
+	)
 	b.ReportAllocs()
 	b.ResetTimer()
 	for range b.N {
