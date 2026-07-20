@@ -175,7 +175,8 @@ Metric direction: lower `ns/op` is better only within the same cache-path semant
 
 Batch put is `N/A: no public bulk mutation contract`. Not proven: eviction under memory pressure,
 subscriber loss/recovery, cluster failover, WAN invalidation lag, hot-key amplification, or a
-production SLO.
+production SLO. Priority decision: do not change cache defaults from this snapshot; measure
+subscriber recovery and cluster failover before opening a production near-cache recommendation.
 
 ## Graph I/O
 
@@ -206,7 +207,8 @@ format from interoperability and fidelity requirements before using this local l
 
 Graph-store construction is `N/A: no shared construction API`. Not proven: streaming backpressure,
 compressed transport, malformed-input behavior at scale, disk I/O, cross-language compatibility,
-or production dataset skew.
+or production dataset skew. Priority decision: keep format priority unchanged; add
+streaming/backpressure and malformed-input evidence before recommending a production default.
 
 ## Graph traversal providers
 
