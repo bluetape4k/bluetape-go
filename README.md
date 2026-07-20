@@ -352,6 +352,21 @@ Common commands:
 | `make bench-id` | Run opt-in id generator benchmarks. |
 | `make ci` | Run the local CI gate. |
 
+### Provider benchmark matrix
+
+The [provider benchmark report](docs/research/2026-07-20-issue-560-provider-benchmark-matrix.md)
+compares semantically equivalent leader, rate-limit, cache, graph I/O, and graph traversal rows.
+Capture one family at a time:
+
+```bash
+scripts/capture-provider-benchmark.sh leader-local
+```
+
+The accepted family is exactly one of `leader-local`, `leader-containers`, `leader-probes`,
+`ratelimit-local`, `ratelimit-containers`, `cache-local`, `cache-redis`, `graphio`, or `graphdb`.
+Results are short local snapshots with pinned fixture provenance; do not copy them as production
+rankings.
+
 Redis integration tests use Testcontainers and require Docker. The regular CI
 and Nightly workflows both run these tests against real containers and publish
 Go coverage report artifacts.

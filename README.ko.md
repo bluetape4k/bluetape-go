@@ -345,6 +345,21 @@ make ci
 | `make bench-id` | opt-in id generator benchmark를 실행합니다. |
 | `make ci` | 로컬 CI gate를 실행합니다. |
 
+### Provider 벤치마크 매트릭스
+
+[Provider 벤치마크 보고서](docs/research/2026-07-20-issue-560-provider-benchmark-matrix.md)는
+동일한 의미의 leader, rate-limit, cache, graph I/O, graph traversal row만 비교합니다.
+한 번에 family 하나를 수집합니다.
+
+```bash
+scripts/capture-provider-benchmark.sh leader-local
+```
+
+허용되는 family는 `leader-local`, `leader-containers`, `leader-probes`, `ratelimit-local`,
+`ratelimit-containers`, `cache-local`, `cache-redis`, `graphio`, `graphdb` 중 정확히 하나입니다.
+결과는 고정된 fixture provenance를 가진 짧은 로컬 snapshot이므로 production 순위로
+복사해서 사용하지 마세요.
+
 Redis integration test는 Testcontainers를 사용하므로 Docker가 필요합니다. 일반
 CI와 Nightly workflow 모두 실제 container를 사용해 테스트하고 Go coverage
 report artifact를 게시합니다.
