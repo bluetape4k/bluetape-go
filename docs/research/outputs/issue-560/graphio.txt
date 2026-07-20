@@ -192,4 +192,3 @@ PASS
 ok  	github.com/bluetape4k/bluetape-go/graph/graphio	241.607s
 output_end
 exit_status: 0
-

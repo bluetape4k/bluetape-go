@@ -62,6 +62,7 @@ type leaderRoundOptions struct {
 	workers      int
 	attemptLimit time.Duration
 	roundLimit   time.Duration
+	joinLimit    time.Duration
 }
 
 type leaderRoundResult struct {
@@ -82,6 +83,10 @@ func runLeaderRound(
 	if opts.workers <= 0 || opts.attemptLimit <= 0 || opts.roundLimit <= 0 || worker == nil {
 		return nil, errors.New("leader round requires positive limits and a worker")
 	}
+	joinLimit := opts.joinLimit
+	if joinLimit <= 0 {
+		joinLimit = opts.roundLimit
+	}
 
 	deadlineCtx, cancelDeadline := context.WithTimeout(ctx, opts.roundLimit)
 	defer cancelDeadline()
@@ -94,8 +99,25 @@ func runLeaderRound(
 	results := make(chan leaderRoundResult, opts.workers)
 	var workers sync.WaitGroup
 	var firstErr error
+	var firstErrMu sync.Mutex
 	var firstErrOnce sync.Once
 	var stoppedOnWinner atomic.Bool
+	setFirstErr := func(err error) {
+		firstErrOnce.Do(func() {
+			firstErrMu.Lock()
+			firstErr = err
+			firstErrMu.Unlock()
+		})
+	}
+	roundError := func() error {
+		firstErrMu.Lock()
+		err := firstErr
+		firstErrMu.Unlock()
+		if err == nil && roundCtx.Err() != nil && !errors.Is(context.Cause(roundCtx), winnerCancellation) {
+			err = context.Cause(roundCtx)
+		}
+		return err
+	}
 
 	for workerID := range opts.workers {
 		workers.Add(1)
@@ -110,7 +132,7 @@ func runLeaderRound(
 				select {
 				case <-start:
 				default:
-					firstErrOnce.Do(func() { firstErr = roundCtx.Err() })
+					setFirstErr(roundCtx.Err())
 					results <- leaderRoundResult{worker: workerID}
 					return
 				}
@@ -126,7 +148,9 @@ func runLeaderRound(
 			winnerStopped := stoppedOnWinner.Load() && errors.Is(context.Cause(roundCtx), winnerCancellation)
 			if err != nil && (!winnerStopped || !errors.Is(err, context.Canceled)) {
 				firstErrOnce.Do(func() {
+					firstErrMu.Lock()
 					firstErr = fmt.Errorf("leader round worker %d: %w", workerID, err)
+					firstErrMu.Unlock()
 					cancelRound(err)
 				})
 			}
@@ -138,7 +162,7 @@ func runLeaderRound(
 		select {
 		case <-ready:
 		case <-roundCtx.Done():
-			firstErrOnce.Do(func() { firstErr = roundCtx.Err() })
+			setFirstErr(roundCtx.Err())
 		}
 	}
 	close(start)
@@ -151,11 +175,38 @@ func runLeaderRound(
 	}()
 
 	collected := make([]leaderRoundResult, 0, opts.workers)
-	for result := range results {
-		collected = append(collected, result)
+	roundDone := roundCtx.Done()
+	var joinTimer *time.Timer
+	var joinDone <-chan time.Time
+	defer func() {
+		if joinTimer != nil {
+			joinTimer.Stop()
+		}
+	}()
+
+	for {
+		select {
+		case result, ok := <-results:
+			if !ok {
+				return collected, roundError()
+			}
+			collected = append(collected, result)
+		case <-joined:
+			for result := range results {
+				collected = append(collected, result)
+			}
+			return collected, roundError()
+		case <-roundDone:
+			roundDone = nil
+			joinTimer = time.NewTimer(joinLimit)
+			joinDone = joinTimer.C
+		case <-joinDone:
+			return collected, errors.Join(
+				roundError(),
+				fmt.Errorf("leader round join timed out after %s: completed %d/%d: %w", joinLimit, len(collected), opts.workers, context.DeadlineExceeded),
+			)
+		}
 	}
-	<-joined
-	return collected, firstErr
 }
 
 type leaderProviderFixture struct {
@@ -1590,6 +1641,40 @@ func TestRunLeaderRoundPreservesDeadline(t *testing.T) {
 	}
 	if got := len(results); got != workers {
 		t.Fatalf("results = %d, want %d", got, workers)
+	}
+}
+
+func TestRunLeaderRoundFailsBoundedWhenWorkerIgnoresCancellation(t *testing.T) {
+	release := make(chan struct{})
+	t.Cleanup(func() { close(release) })
+
+	type roundOutcome struct {
+		results []leaderRoundResult
+		err     error
+	}
+	outcome := make(chan roundOutcome, 1)
+	go func() {
+		results, err := runLeaderRound(context.Background(), leaderRoundOptions{
+			workers:      1,
+			attemptLimit: 20 * time.Millisecond,
+			roundLimit:   20 * time.Millisecond,
+		}, func(context.Context, int) (leaderRoundResult, error) {
+			<-release
+			return leaderRoundResult{}, nil
+		})
+		outcome <- roundOutcome{results: results, err: err}
+	}()
+
+	select {
+	case got := <-outcome:
+		if !errors.Is(got.err, context.DeadlineExceeded) {
+			t.Fatalf("run leader round error = %v, want deadline exceeded", got.err)
+		}
+		if len(got.results) != 0 {
+			t.Fatalf("results = %d, want 0 before rogue worker release", len(got.results))
+		}
+	case <-time.After(250 * time.Millisecond):
+		t.Fatal("run leader round did not bound the rogue worker join")
 	}
 }
 
