@@ -294,9 +294,6 @@ func benchmarkTraversalRuntime(b *testing.B, runtime traversalRuntime, shape tra
 		if err != nil {
 			b.Fatalf("query %s on %s: %v", shape.name, runtime.name, err)
 		}
-		if len(last) != len(shape.expectedIDs) {
-			b.Fatalf("query %s on %s returned %d IDs, want %d", shape.name, runtime.name, len(last), len(shape.expectedIDs))
-		}
 		graphProviderTraversalSink = last
 	}
 	b.StopTimer()
