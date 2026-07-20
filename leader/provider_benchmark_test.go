@@ -149,15 +149,21 @@ func runLeaderRound(
 }
 
 type leaderProviderFixture struct {
-	name            string
-	providerVersion string
-	imageReference  string
-	newElector      func(member, group string) (leader.Elector, error)
-	observe         func(context.Context, string) (string, error)
-	replace         func(context.Context, string, string, string) error
-	cleanup         func(context.Context, string) error
-	close           func(context.Context) error
-	abort           func(context.Context, leader.Elector) error
+	name               string
+	providerVersion    string
+	imageReference     string
+	newElector         func(member, group string) (leader.Elector, error)
+	observe            func(context.Context, string) (string, error)
+	replace            func(context.Context, string, string, string) error
+	rejectStaleRelease func(context.Context, string, string) (bool, error)
+	cleanup            func(context.Context, string) error
+	close              func(context.Context) error
+	abort              func(context.Context, leader.Elector) error
+}
+
+type providerEtcdStaleRelease struct {
+	key            string
+	createRevision int64
 }
 
 type providerElectorResource struct {
@@ -392,6 +398,15 @@ return 0`
 			}
 			return nil
 		},
+		rejectStaleRelease: func(ctx context.Context, group, staleOwner string) (bool, error) {
+			const releaseScript = `
+if redis.call("GET", KEYS[1]) == ARGV[1] then
+  return redis.call("DEL", KEYS[1])
+end
+return 0`
+			deleted, err := control.Eval(ctx, releaseScript, []string{prefix + ":" + group}, staleOwner).Int64()
+			return deleted == 0, err
+		},
 		cleanup: func(ctx context.Context, group string) error {
 			return cleanupProviderResources(ctx, registry, group, backendCleanup)
 		},
@@ -486,6 +501,13 @@ func newMongoProviderFixture(tb testing.TB, lease time.Duration) leaderProviderF
 				return errors.New("mongodb replacement control did not match the active owner")
 			}
 			return nil
+		},
+		rejectStaleRelease: func(ctx context.Context, group, staleOwner string) (bool, error) {
+			result, err := collection.DeleteOne(ctx, bson.M{"_id": prefix + ":" + group, "token": staleOwner})
+			if err != nil {
+				return false, err
+			}
+			return result.DeletedCount == 0, nil
 		},
 		cleanup: func(ctx context.Context, group string) error {
 			return cleanupProviderResources(ctx, registry, group, backendCleanup)
@@ -582,6 +604,17 @@ updated_at=pg_catalog.clock_timestamp() where leader_key=$1 and owner_token=$2`,
 			}
 			return nil
 		},
+		rejectStaleRelease: func(ctx context.Context, group, staleOwner string) (bool, error) {
+			result, err := control.ExecContext(ctx, `delete from public.bluetape_leader_leases where leader_key=$1 and owner_token=$2`, prefix+":"+group, staleOwner)
+			if err != nil {
+				return false, err
+			}
+			rows, err := result.RowsAffected()
+			if err != nil {
+				return false, err
+			}
+			return rows == 0, nil
+		},
 		cleanup: func(ctx context.Context, group string) error {
 			return cleanupProviderResources(ctx, registry, group, backendCleanup)
 		},
@@ -627,6 +660,8 @@ func newEtcdProviderFixture(tb testing.TB, lease time.Duration) leaderProviderFi
 	}
 	prefix := mustProviderID(tb)
 	registry := newProviderResourceRegistry()
+	var staleReleaseMu sync.Mutex
+	staleReleases := make(map[string]providerEtcdStaleRelease)
 	backendCleanup := func(ctx context.Context, group string) error {
 		_, err := control.Delete(ctx, providerEtcdCleanupPrefix(prefix, group), clientv3.WithPrefix())
 		return err
@@ -700,7 +735,32 @@ func newEtcdProviderFixture(tb testing.TB, lease time.Duration) leaderProviderFi
 				}
 				return errors.Join(err, revokeErr)
 			}
+			staleReleaseMu.Lock()
+			staleReleases[group] = providerEtcdStaleRelease{
+				key:            string(old.Key),
+				createRevision: old.CreateRevision,
+			}
+			staleReleaseMu.Unlock()
 			return nil
+		},
+		rejectStaleRelease: func(ctx context.Context, group, staleOwner string) (bool, error) {
+			staleReleaseMu.Lock()
+			staleRelease, ok := staleReleases[group]
+			staleReleaseMu.Unlock()
+			if !ok {
+				return false, errors.New("etcd stale release control has no replacement receipt")
+			}
+			transaction, err := control.Txn(ctx).
+				If(
+					clientv3.Compare(clientv3.CreateRevision(staleRelease.key), "=", staleRelease.createRevision),
+					clientv3.Compare(clientv3.Value(staleRelease.key), "=", staleOwner),
+				).
+				Then(clientv3.OpDelete(staleRelease.key)).
+				Commit()
+			if err != nil {
+				return false, err
+			}
+			return !transaction.Succeeded, nil
 		},
 		cleanup: func(ctx context.Context, group string) error {
 			return cleanupProviderResources(ctx, registry, group, backendCleanup)
@@ -1250,6 +1310,18 @@ func testStaleOwnerRejected(t *testing.T, fixture leaderProviderFixture) {
 		t.Fatalf("force replacement owner: %v", err)
 	}
 	replaceCancel()
+	releaseCtx, releaseCancel := operationContext()
+	rejected, releaseErr := fixture.rejectStaleRelease(releaseCtx, group, staleOwner)
+	releaseCancel()
+	if releaseErr != nil {
+		t.Fatalf("execute stale owner release against %s backend: %v", fixture.name, releaseErr)
+	}
+	if !rejected {
+		t.Fatalf("%s backend accepted stale owner release", fixture.name)
+	}
+	if current := observeProviderOwner(t, fixture, group); current != replacementOwner {
+		t.Fatalf("owner after direct stale release = %q, want replacement %q", current, replacementOwner)
+	}
 	resignCtx, resignCancel := context.WithTimeout(context.Background(), 2*time.Second)
 	resignErr := stale.Resign(resignCtx)
 	resignCancel()
