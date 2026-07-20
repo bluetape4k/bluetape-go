@@ -1,0 +1,112 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="962" viewBox="0 0 1200 962">
+<defs><style>
+    .title{font-family:'Architects Daughter','Comic Sans MS',cursive;font-size:34px;font-weight:700;fill:#0F172A}
+    .mono{font-family:'Comic Mono','SFMono-Regular',Consolas,monospace;fill:#334155}
+    .subtitle{font-size:16px}.panel{font-size:20px;font-weight:700}.label{font-size:14px}.value{font-size:13px;font-weight:700}.axis{font-size:12px;fill:#64748B}
+  </style></defs>
+<rect width="1200" height="962" fill="#F8FAFC"/>
+<rect x="20" y="20" width="1160" height="922" rx="24" fill="#FFFFFF" stroke="#CBD5E1" stroke-width="2"/>
+<text x="44" y="66" class="title">Leader provider latency</text>
+<text x="44" y="96" class="mono subtitle">min - median - max ns/op; lower is better; expiry isolated; logarithmic axis</text>
+<text x="44" y="124" class="mono axis">Whisker = observed min/max; marker = median; labels and marker shapes identify providers.</text>
+<text x="44" y="170" class="title panel">Ordinary operations</text>
+<text x="44" y="204" class="mono label">Redis - Campaign uncontended</text>
+<line x1="420" y1="198" x2="990" y2="198" stroke="#E2E8F0"/>
+<line x1="451.99008579388357" y1="198" x2="472.79576221216064" y2="198" stroke="#2563EB" stroke-width="5" stroke-linecap="round"/>
+<line x1="451.99008579388357" y1="191" x2="451.99008579388357" y2="205" stroke="#2563EB" stroke-width="2"/>
+<line x1="472.79576221216064" y1="191" x2="472.79576221216064" y2="205" stroke="#2563EB" stroke-width="2"/>
+<circle cx="458.25134709851926" cy="198" r="6" fill="#2563EB"/>
+<text x="1014" y="203" class="mono value">216.5 us</text>
+<text x="44" y="252" class="mono label">Redis - Leader lookup</text>
+<line x1="420" y1="246" x2="990" y2="246" stroke="#E2E8F0"/>
+<line x1="453.3063291493678" y1="246" x2="458.7696933039245" y2="246" stroke="#2563EB" stroke-width="5" stroke-linecap="round"/>
+<line x1="453.3063291493678" y1="239" x2="453.3063291493678" y2="253" stroke="#2563EB" stroke-width="2"/>
+<line x1="458.7696933039245" y1="239" x2="458.7696933039245" y2="253" stroke="#2563EB" stroke-width="2"/>
+<circle cx="454.43140774566746" cy="246" r="6" fill="#2563EB"/>
+<text x="1014" y="251" class="mono value">200.5 us</text>
+<text x="44" y="300" class="mono label">MongoDB - Campaign uncontended</text>
+<line x1="420" y1="294" x2="990" y2="294" stroke="#E2E8F0"/>
+<line x1="489.1527141678162" y1="294" x2="496.728692975462" y2="294" stroke="#D97706" stroke-width="5" stroke-linecap="round"/>
+<line x1="489.1527141678162" y1="287" x2="489.1527141678162" y2="301" stroke="#D97706" stroke-width="2"/>
+<line x1="496.728692975462" y1="287" x2="496.728692975462" y2="301" stroke="#D97706" stroke-width="2"/>
+<rect x="490.48891078984633" y="289" width="10" height="10" rx="1" fill="#D97706"/>
+<text x="1014" y="299" class="mono value">459.4 us</text>
+<text x="44" y="348" class="mono label">MongoDB - Leader lookup</text>
+<line x1="420" y1="342" x2="990" y2="342" stroke="#E2E8F0"/>
+<line x1="481.2708915971903" y1="342" x2="485.56627875416865" y2="342" stroke="#D97706" stroke-width="5" stroke-linecap="round"/>
+<line x1="481.2708915971903" y1="335" x2="481.2708915971903" y2="349" stroke="#D97706" stroke-width="2"/>
+<line x1="485.56627875416865" y1="335" x2="485.56627875416865" y2="349" stroke="#D97706" stroke-width="2"/>
+<rect x="478.3577986850579" y="337" width="10" height="10" rx="1" fill="#D97706"/>
+<text x="1014" y="347" class="mono value">359.6 us</text>
+<text x="44" y="396" class="mono label">PostgreSQL - Campaign uncontended</text>
+<line x1="420" y1="390" x2="990" y2="390" stroke="#E2E8F0"/>
+<line x1="543.4441194149705" y1="390" x2="551.0830137528051" y2="390" stroke="#7C3AED" stroke-width="5" stroke-linecap="round"/>
+<line x1="543.4441194149705" y1="383" x2="543.4441194149705" y2="397" stroke="#7C3AED" stroke-width="2"/>
+<line x1="551.0830137528051" y1="383" x2="551.0830137528051" y2="397" stroke="#7C3AED" stroke-width="2"/>
+<path d="M 546.3618353121813 383 L 553.3618353121813 390 L 546.3618353121813 397 L 539.3618353121813 390 Z" fill="#7C3AED"/>
+<text x="1014" y="395" class="mono value">1.28 ms</text>
+<text x="44" y="444" class="mono label">PostgreSQL - Leader lookup</text>
+<line x1="420" y1="438" x2="990" y2="438" stroke="#E2E8F0"/>
+<line x1="511.1559331628705" y1="438" x2="522.6971230611808" y2="438" stroke="#7C3AED" stroke-width="5" stroke-linecap="round"/>
+<line x1="511.1559331628705" y1="431" x2="511.1559331628705" y2="445" stroke="#7C3AED" stroke-width="2"/>
+<line x1="522.6971230611808" y1="431" x2="522.6971230611808" y2="445" stroke="#7C3AED" stroke-width="2"/>
+<path d="M 514.2588353528896 431 L 521.2588353528896 438 L 514.2588353528896 445 L 507.2588353528896 438 Z" fill="#7C3AED"/>
+<text x="1014" y="443" class="mono value">671.2 us</text>
+<text x="44" y="492" class="mono label">etcd - Campaign uncontended</text>
+<line x1="420" y1="486" x2="990" y2="486" stroke="#E2E8F0"/>
+<line x1="555.4735230514302" y1="486" x2="560.561759255049" y2="486" stroke="#059669" stroke-width="5" stroke-linecap="round"/>
+<line x1="555.4735230514302" y1="479" x2="555.4735230514302" y2="493" stroke="#059669" stroke-width="2"/>
+<line x1="560.561759255049" y1="479" x2="560.561759255049" y2="493" stroke="#059669" stroke-width="2"/>
+<path d="M 557.0878300041135 479 L 564.0878300041135 492 L 550.0878300041135 492 Z" fill="#059669"/>
+<text x="1014" y="491" class="mono value">1.59 ms</text>
+<text x="44" y="540" class="mono label">etcd - Leader lookup</text>
+<line x1="420" y1="534" x2="990" y2="534" stroke="#E2E8F0"/>
+<line x1="468.0875962619949" y1="534" x2="473.1721903574522" y2="534" stroke="#059669" stroke-width="5" stroke-linecap="round"/>
+<line x1="468.0875962619949" y1="527" x2="468.0875962619949" y2="541" stroke="#059669" stroke-width="2"/>
+<line x1="473.1721903574522" y1="527" x2="473.1721903574522" y2="541" stroke="#059669" stroke-width="2"/>
+<path d="M 468.2001212539749 527 L 475.2001212539749 540 L 461.2001212539749 540 Z" fill="#059669"/>
+<text x="1014" y="539" class="mono value">264.7 us</text>
+<text x="44" y="612" class="title panel">Deadline-driven takeover</text>
+<text x="44" y="646" class="mono label">Redis - Expiry takeover</text>
+<line x1="420" y1="640" x2="990" y2="640" stroke="#E2E8F0"/>
+<line x1="876.1812606240856" y1="640" x2="876.2040452622612" y2="640" stroke="#2563EB" stroke-width="5" stroke-linecap="round"/>
+<line x1="876.1812606240856" y1="633" x2="876.1812606240856" y2="647" stroke="#2563EB" stroke-width="2"/>
+<line x1="876.2040452622612" y1="633" x2="876.2040452622612" y2="647" stroke="#2563EB" stroke-width="2"/>
+<circle cx="876.1874921165304" cy="640" r="6" fill="#2563EB"/>
+<text x="1014" y="645" class="mono value">1.00 s</text>
+<text x="44" y="694" class="mono label">MongoDB - Expiry takeover</text>
+<line x1="420" y1="688" x2="990" y2="688" stroke="#E2E8F0"/>
+<line x1="876.2107339508348" y1="688" x2="876.2921668455755" y2="688" stroke="#D97706" stroke-width="5" stroke-linecap="round"/>
+<line x1="876.2107339508348" y1="681" x2="876.2107339508348" y2="695" stroke="#D97706" stroke-width="2"/>
+<line x1="876.2921668455755" y1="681" x2="876.2921668455755" y2="695" stroke="#D97706" stroke-width="2"/>
+<rect x="871.2280041752579" y="683" width="10" height="10" rx="1" fill="#D97706"/>
+<text x="1014" y="693" class="mono value">1.00 s</text>
+<text x="44" y="742" class="mono label">PostgreSQL - Expiry takeover</text>
+<line x1="420" y1="736" x2="990" y2="736" stroke="#E2E8F0"/>
+<line x1="876.1639391468626" y1="736" x2="876.4802617406806" y2="736" stroke="#7C3AED" stroke-width="5" stroke-linecap="round"/>
+<line x1="876.1639391468626" y1="729" x2="876.1639391468626" y2="743" stroke="#7C3AED" stroke-width="2"/>
+<line x1="876.4802617406806" y1="729" x2="876.4802617406806" y2="743" stroke="#7C3AED" stroke-width="2"/>
+<path d="M 876.4719992214332 729 L 883.4719992214332 736 L 876.4719992214332 743 L 869.4719992214332 736 Z" fill="#7C3AED"/>
+<text x="1014" y="741" class="mono value">1.01 s</text>
+<text x="44" y="790" class="mono label">etcd - Expiry takeover</text>
+<line x1="420" y1="784" x2="990" y2="784" stroke="#E2E8F0"/>
+<line x1="917.458938010492" y1="784" x2="921.0964070398861" y2="784" stroke="#059669" stroke-width="5" stroke-linecap="round"/>
+<line x1="917.458938010492" y1="777" x2="917.458938010492" y2="791" stroke="#059669" stroke-width="2"/>
+<line x1="921.0964070398861" y1="777" x2="921.0964070398861" y2="791" stroke="#059669" stroke-width="2"/>
+<path d="M 919.5891061733373 777 L 926.5891061733373 790 L 912.5891061733373 790 Z" fill="#059669"/>
+<text x="1014" y="789" class="mono value">2.41 s</text>
+<line x1="420" y1="880" x2="420" y2="890" stroke="#64748B"/>
+<text x="420" y="910" text-anchor="middle" class="mono axis">100.0 us</text>
+<line x1="534" y1="880" x2="534" y2="890" stroke="#64748B"/>
+<text x="534" y="910" text-anchor="middle" class="mono axis">1.00 ms</text>
+<line x1="648" y1="880" x2="648" y2="890" stroke="#64748B"/>
+<text x="648" y="910" text-anchor="middle" class="mono axis">10.00 ms</text>
+<line x1="762" y1="880" x2="762" y2="890" stroke="#64748B"/>
+<text x="762" y="910" text-anchor="middle" class="mono axis">100.00 ms</text>
+<line x1="876" y1="880" x2="876" y2="890" stroke="#64748B"/>
+<text x="876" y="910" text-anchor="middle" class="mono axis">1.00 s</text>
+<line x1="990" y1="880" x2="990" y2="890" stroke="#64748B"/>
+<text x="990" y="910" text-anchor="middle" class="mono axis">10.00 s</text>
+<line x1="420" y1="888" x2="990" y2="888" stroke="#64748B"/>
+<text x="705" y="932" text-anchor="middle" class="mono subtitle">latency (ns/op) - lower is better - log scale</text>
+</svg>

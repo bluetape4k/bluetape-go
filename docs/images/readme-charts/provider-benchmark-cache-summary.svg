@@ -1,0 +1,71 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="732" viewBox="0 0 1200 732">
+<defs><style>
+    .title{font-family:'Architects Daughter','Comic Sans MS',cursive;font-size:34px;font-weight:700;fill:#0F172A}
+    .mono{font-family:'Comic Mono','SFMono-Regular',Consolas,monospace;fill:#334155}
+    .subtitle{font-size:16px}.panel{font-size:20px;font-weight:700}.label{font-size:14px}.value{font-size:13px;font-weight:700}.axis{font-size:12px;fill:#64748B}
+  </style></defs>
+<rect width="1200" height="732" fill="#F8FAFC"/>
+<rect x="20" y="20" width="1160" height="692" rx="24" fill="#FFFFFF" stroke="#CBD5E1" stroke-width="2"/>
+<text x="44" y="66" class="title">Cache path latency</text>
+<text x="44" y="96" class="mono subtitle">min - median - max ns/op; lower is better; logarithmic axis</text>
+<text x="44" y="124" class="mono axis">Whisker = observed min/max; marker = median; labels and marker shapes identify providers.</text>
+<text x="44" y="170" class="title panel">Hot read paths</text>
+<text x="44" y="204" class="mono label">Memory - Get hit 128 B</text>
+<line x1="420" y1="198" x2="990" y2="198" stroke="#E2E8F0"/>
+<line x1="485.3470602910441" y1="198" x2="485.91258949756667" y2="198" stroke="#475569" stroke-width="5" stroke-linecap="round"/>
+<line x1="485.3470602910441" y1="191" x2="485.3470602910441" y2="205" stroke="#475569" stroke-width="2"/>
+<line x1="485.91258949756667" y1="191" x2="485.91258949756667" y2="205" stroke="#475569" stroke-width="2"/>
+<circle cx="485.75541612449604" cy="198" r="6" fill="#475569"/>
+<text x="1014" y="203" class="mono value">37.7 ns</text>
+<text x="44" y="252" class="mono label">Tiered - L1 hit 128 B</text>
+<line x1="420" y1="246" x2="990" y2="246" stroke="#E2E8F0"/>
+<line x1="570.4492763536456" y1="246" x2="575.4517657077045" y2="246" stroke="#7C3AED" stroke-width="5" stroke-linecap="round"/>
+<line x1="570.4492763536456" y1="239" x2="570.4492763536456" y2="253" stroke="#7C3AED" stroke-width="2"/>
+<line x1="575.4517657077045" y1="239" x2="575.4517657077045" y2="253" stroke="#7C3AED" stroke-width="2"/>
+<path d="M 575.4088817111411 239 L 582.4088817111411 246 L 575.4088817111411 253 L 568.4088817111411 246 Z" fill="#7C3AED"/>
+<text x="1014" y="251" class="mono value">231 ns</text>
+<text x="44" y="300" class="mono label">NearCachePubSub - Local hit 128 B</text>
+<line x1="420" y1="294" x2="990" y2="294" stroke="#E2E8F0"/>
+<line x1="584.0118607506839" y1="294" x2="585.2757005563782" y2="294" stroke="#059669" stroke-width="5" stroke-linecap="round"/>
+<line x1="584.0118607506839" y1="287" x2="584.0118607506839" y2="301" stroke="#059669" stroke-width="2"/>
+<line x1="585.2757005563782" y1="287" x2="585.2757005563782" y2="301" stroke="#059669" stroke-width="2"/>
+<path d="M 585.0643466775085 287 L 592.0643466775085 300 L 578.0643466775085 300 Z" fill="#059669"/>
+<text x="1014" y="299" class="mono value">281 ns</text>
+<text x="44" y="372" class="title panel">Remote read paths</text>
+<text x="44" y="406" class="mono label">RedisL2 - Get hit 128 B</text>
+<line x1="420" y1="400" x2="990" y2="400" stroke="#E2E8F0"/>
+<line x1="905.8013262592071" y1="400" x2="925.8071616033906" y2="400" stroke="#2563EB" stroke-width="5" stroke-linecap="round"/>
+<line x1="905.8013262592071" y1="393" x2="905.8013262592071" y2="407" stroke="#2563EB" stroke-width="2"/>
+<line x1="925.8071616033906" y1="393" x2="925.8071616033906" y2="407" stroke="#2563EB" stroke-width="2"/>
+<rect x="907.8965821623517" y="395" width="10" height="10" rx="1" fill="#2563EB"/>
+<text x="1014" y="405" class="mono value">210.7 us</text>
+<text x="44" y="454" class="mono label">Tiered - L2 hit 128 B</text>
+<line x1="420" y1="448" x2="990" y2="448" stroke="#E2E8F0"/>
+<line x1="904.9898192104374" y1="448" x2="935.0612049827954" y2="448" stroke="#7C3AED" stroke-width="5" stroke-linecap="round"/>
+<line x1="904.9898192104374" y1="441" x2="904.9898192104374" y2="455" stroke="#7C3AED" stroke-width="2"/>
+<line x1="935.0612049827954" y1="441" x2="935.0612049827954" y2="455" stroke="#7C3AED" stroke-width="2"/>
+<path d="M 912.3517261294635 441 L 919.3517261294635 448 L 912.3517261294635 455 L 905.3517261294635 448 Z" fill="#7C3AED"/>
+<text x="1014" y="453" class="mono value">208.4 us</text>
+<text x="44" y="526" class="title panel">Invalidation observation</text>
+<text x="44" y="560" class="mono label">NearCachePubSub - Peer invalidation 128 B</text>
+<line x1="420" y1="554" x2="990" y2="554" stroke="#E2E8F0"/>
+<line x1="926.7287353122445" y1="554" x2="928.1783487682806" y2="554" stroke="#059669" stroke-width="5" stroke-linecap="round"/>
+<line x1="926.7287353122445" y1="547" x2="926.7287353122445" y2="561" stroke="#059669" stroke-width="2"/>
+<line x1="928.1783487682806" y1="547" x2="928.1783487682806" y2="561" stroke="#059669" stroke-width="2"/>
+<path d="M 927.8292041818129 547 L 934.8292041818129 560 L 920.8292041818129 560 Z" fill="#059669"/>
+<text x="1014" y="559" class="mono value">284.9 us</text>
+<line x1="420" y1="650" x2="420" y2="660" stroke="#64748B"/>
+<text x="420" y="680" text-anchor="middle" class="mono axis">10.0 ns</text>
+<line x1="534" y1="650" x2="534" y2="660" stroke="#64748B"/>
+<text x="534" y="680" text-anchor="middle" class="mono axis">100 ns</text>
+<line x1="648" y1="650" x2="648" y2="660" stroke="#64748B"/>
+<text x="648" y="680" text-anchor="middle" class="mono axis">1.0 us</text>
+<line x1="762" y1="650" x2="762" y2="660" stroke="#64748B"/>
+<text x="762" y="680" text-anchor="middle" class="mono axis">10.0 us</text>
+<line x1="876" y1="650" x2="876" y2="660" stroke="#64748B"/>
+<text x="876" y="680" text-anchor="middle" class="mono axis">100.0 us</text>
+<line x1="990" y1="650" x2="990" y2="660" stroke="#64748B"/>
+<text x="990" y="680" text-anchor="middle" class="mono axis">1.00 ms</text>
+<line x1="420" y1="658" x2="990" y2="658" stroke="#64748B"/>
+<text x="705" y="702" text-anchor="middle" class="mono subtitle">latency (ns/op) - lower is better - log scale</text>
+</svg>
