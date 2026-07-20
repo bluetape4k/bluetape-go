@@ -272,32 +272,50 @@ func BenchmarkProviderRateLimitLocal(b *testing.B) {
 
 func runLocalRateLimitBenchmark(b *testing.B, scenario string) {
 	b.Helper()
+	burst := int64(b.N) + 1
+	ratePerSecond := 1_000_000.0
+	idleTTL := time.Duration(0)
+	if scenario == "AllowRejected" {
+		burst = rateLimitProviderCapacity
+		ratePerSecond = rateLimitProviderRefill
+		idleTTL = rateLimitProviderIdleTTL
+	}
+	limiter, err := ratelimit.New(ratelimit.Options{
+		RatePerSecond: ratePerSecond,
+		Burst:         burst,
+		IdleTTL:       idleTTL,
+	})
+	if err != nil {
+		b.Fatalf("new local token bucket: %v", err)
+	}
+	if scenario == "AllowRejected" {
+		if err := seedRejectedRateLimit(limiter, "benchmark-key"); err != nil {
+			b.Fatalf("seed local rejected bucket: %v", err)
+		}
+	}
+	preflightKey := "benchmark-key"
+	if scenario == "AllowAvailable" {
+		preflightKey = "preflight-key"
+	}
+	preflight, preflightErr := runSingleRateLimitAllow(limiter, preflightKey)
+	if err := errors.Join(preflightErr, verifyRateLimitScenarioWithLimits(scenario, preflight, burst, ratePerSecond)); err != nil {
+		b.Fatalf("preflight local token bucket %s: %v", scenario, err)
+	}
+
 	b.ReportAllocs()
 	b.ResetTimer()
+	var results []rateLimitRoundResult
 	for range b.N {
-		b.StopTimer()
-		limiter, err := ratelimit.New(ratelimit.Options{
-			RatePerSecond: rateLimitProviderRefill,
-			Burst:         rateLimitProviderCapacity,
-			IdleTTL:       rateLimitProviderIdleTTL,
-		})
-		if err != nil {
-			b.Fatalf("new local token bucket: %v", err)
-		}
-		if scenario == "AllowRejected" {
-			if err := seedRejectedRateLimit(limiter, "benchmark-key"); err != nil {
-				b.Fatalf("seed local rejected bucket: %v", err)
-			}
-		}
-
-		b.StartTimer()
-		results, runErr := runSingleRateLimitAllow(limiter, "benchmark-key")
-		b.StopTimer()
-
+		var runErr error
+		results, runErr = runSingleRateLimitAllow(limiter, "benchmark-key")
 		rateLimitProviderBenchmarkSink = results
-		if err := errors.Join(runErr, verifyRateLimitScenario(scenario, results)); err != nil {
-			b.Fatalf("local token bucket %s: %v", scenario, err)
+		if runErr != nil {
+			b.Fatalf("allow local token bucket %s: %v", scenario, runErr)
 		}
+	}
+	b.StopTimer()
+	if err := verifyRateLimitScenarioWithLimits(scenario, results, burst, ratePerSecond); err != nil {
+		b.Fatalf("final local token bucket %s: %v", scenario, err)
 	}
 }
 
@@ -456,6 +474,20 @@ func seedRejectedRateLimit(limiter ratelimit.Limiter, key string) error {
 }
 
 func verifyRateLimitScenario(scenario string, results []rateLimitRoundResult) error {
+	return verifyRateLimitScenarioWithLimits(
+		scenario,
+		results,
+		rateLimitProviderCapacity,
+		rateLimitProviderRefill,
+	)
+}
+
+func verifyRateLimitScenarioWithLimits(
+	scenario string,
+	results []rateLimitRoundResult,
+	capacity int64,
+	ratePerSecond float64,
+) error {
 	wantResults := 1
 	wantAvailable := 1
 	switch scenario {
@@ -478,18 +510,18 @@ func verifyRateLimitScenario(scenario string, results []rateLimitRoundResult) er
 	if available != wantAvailable {
 		return fmt.Errorf("available results = %d, want %d", available, wantAvailable)
 	}
-	if scenario == "AllowParallel" && int64(available) > rateLimitProviderCapacity {
-		return fmt.Errorf("parallel available results = %d, exceeds capacity %d", available, rateLimitProviderCapacity)
+	if scenario == "AllowParallel" && int64(available) > capacity {
+		return fmt.Errorf("parallel available results = %d, exceeds capacity %d", available, capacity)
 	}
 
-	fullRefill := time.Duration(float64(rateLimitProviderCapacity)/rateLimitProviderRefill) * time.Second
+	fullRefill := time.Duration(float64(time.Second) * float64(capacity) / ratePerSecond)
 	for _, roundResult := range results {
 		result := roundResult.result
 		if result.Requested != 1 {
 			return fmt.Errorf("worker %d requested = %d, want 1", roundResult.worker, result.Requested)
 		}
-		if result.Remaining < 0 || result.Remaining > rateLimitProviderCapacity {
-			return fmt.Errorf("worker %d remaining = %d, want range [0,%d]", roundResult.worker, result.Remaining, rateLimitProviderCapacity)
+		if result.Remaining < 0 || result.Remaining > capacity {
+			return fmt.Errorf("worker %d remaining = %d, want range [0,%d]", roundResult.worker, result.Remaining, capacity)
 		}
 		if result.RetryAfter < 0 || result.RetryAfter > fullRefill {
 			return fmt.Errorf("worker %d retry after = %s, want range [0,%s]", roundResult.worker, result.RetryAfter, fullRefill)
