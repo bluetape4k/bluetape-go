@@ -183,10 +183,12 @@ func runGraphProviderLifecycleCleanup(parent context.Context, timeout time.Durat
 type traversalRuntime struct {
 	name    string
 	seed    func(context.Context, traversalShape) error
-	query   func(context.Context, traversalShape) ([]string, error)
+	prepare func(traversalShape) (preparedTraversal, error)
 	cleanup func(context.Context) error
 	close   func(context.Context) error
 }
+
+type preparedTraversal func(context.Context) ([]string, error)
 
 type graphProviderMetadata struct {
 	providerVersion string
@@ -199,10 +201,8 @@ type graphProviderFactory struct {
 }
 
 func graphProviderTraversalCypher(depth int) (string, error) {
-	switch depth {
-	case 4, 16, 64:
-	default:
-		return "", fmt.Errorf("unreviewed graph traversal depth %d", depth)
+	if err := validateGraphProviderTraversalDepth(depth); err != nil {
+		return "", err
 	}
 	return fmt.Sprintf(`
 MATCH (root:%s {run: $run, id: $root})
@@ -210,6 +210,15 @@ MATCH (root)-[:%s*0..%d]->(n:%s {run: $run})
 RETURN DISTINCT n.id AS id
 ORDER BY id
 `, graphProviderVertexLabel, graphProviderRelationshipType, depth, graphProviderVertexLabel), nil
+}
+
+func validateGraphProviderTraversalDepth(depth int) error {
+	switch depth {
+	case 4, 16, 64:
+		return nil
+	default:
+		return fmt.Errorf("unreviewed graph traversal depth %d", depth)
+	}
 }
 
 const graphProviderSeedVerticesCypher = `
@@ -260,9 +269,13 @@ func benchmarkTraversalRuntime(b *testing.B, runtime traversalRuntime, shape tra
 		b.Fatalf("seed %s on %s: %v", shape.name, runtime.name, err)
 	}
 	setupCancel()
+	prepared, err := runtime.prepare(shape)
+	if err != nil {
+		b.Fatalf("prepare %s on %s: %v", shape.name, runtime.name, err)
+	}
 
 	preflightCtx, preflightCancel := graphProviderOperationContext()
-	preflightIDs, err := runtime.query(preflightCtx, shape)
+	preflightIDs, err := prepared(preflightCtx)
 	preflightCancel()
 	if err != nil {
 		b.Fatalf("preflight %s on %s: %v", shape.name, runtime.name, err)
@@ -276,7 +289,7 @@ func benchmarkTraversalRuntime(b *testing.B, runtime traversalRuntime, shape tra
 	var last []string
 	for b.Loop() {
 		opCtx, cancel := graphProviderOperationContext()
-		last, err = runtime.query(opCtx, shape)
+		last, err = prepared(opCtx)
 		cancel()
 		if err != nil {
 			b.Fatalf("query %s on %s: %v", shape.name, runtime.name, err)
@@ -408,12 +421,15 @@ DETACH DELETE n
 		}
 		return nil
 	}
-	runtime.query = func(queryCtx context.Context, shape traversalShape) ([]string, error) {
+	runtime.prepare = func(shape traversalShape) (preparedTraversal, error) {
 		query, err := graphProviderTraversalCypher(shape.maxDepth)
 		if err != nil {
 			return nil, err
 		}
-		return collectCypherStrings(queryCtx, driver, query, map[string]any{"run": runID, "root": shape.rootID}, "id")
+		params := map[string]any{"run": runID, "root": shape.rootID}
+		return func(queryCtx context.Context) ([]string, error) {
+			return collectCypherStrings(queryCtx, driver, query, params, "id")
+		}, nil
 	}
 	return runtime, graphProviderMetadata{providerVersion: providerVersion, imageReference: imageReference}
 }
@@ -519,8 +535,11 @@ create index edges_from_id_idx on %s.edges(from_id);
 		committed = true
 		return nil
 	}
-	runtime.query = func(queryCtx context.Context, shape traversalShape) (_ []string, resultErr error) {
-		rows, err := db.QueryContext(queryCtx, fmt.Sprintf(`
+	runtime.prepare = func(shape traversalShape) (preparedTraversal, error) {
+		if err := validateGraphProviderTraversalDepth(shape.maxDepth); err != nil {
+			return nil, err
+		}
+		query := fmt.Sprintf(`
 with recursive reachable(id, depth, path) as (
     select id, 0, array[id]
     from %s.vertices
@@ -535,27 +554,33 @@ with recursive reachable(id, depth, path) as (
 select distinct id
 from reachable
 order by id
-`, schema, schema), shape.rootID, shape.maxDepth)
-		if err != nil {
-			return nil, fmt.Errorf("query recursive traversal: %w", err)
-		}
-		defer func() {
-			if closeErr := rows.Close(); closeErr != nil {
-				resultErr = errors.Join(resultErr, fmt.Errorf("close recursive traversal rows: %w", closeErr))
+		`, schema, schema)
+		rootID := shape.rootID
+		maxDepth := shape.maxDepth
+		resultCapacity := len(shape.expectedIDs)
+		return func(queryCtx context.Context) (_ []string, resultErr error) {
+			rows, err := db.QueryContext(queryCtx, query, rootID, maxDepth)
+			if err != nil {
+				return nil, fmt.Errorf("query recursive traversal: %w", err)
 			}
-		}()
-		ids := make([]string, 0, len(shape.expectedIDs))
-		for rows.Next() {
-			var id string
-			if err := rows.Scan(&id); err != nil {
-				return nil, fmt.Errorf("scan recursive traversal: %w", err)
+			defer func() {
+				if closeErr := rows.Close(); closeErr != nil {
+					resultErr = errors.Join(resultErr, fmt.Errorf("close recursive traversal rows: %w", closeErr))
+				}
+			}()
+			ids := make([]string, 0, resultCapacity)
+			for rows.Next() {
+				var id string
+				if err := rows.Scan(&id); err != nil {
+					return nil, fmt.Errorf("scan recursive traversal: %w", err)
+				}
+				ids = append(ids, id)
 			}
-			ids = append(ids, id)
-		}
-		if err := rows.Err(); err != nil {
-			return nil, fmt.Errorf("iterate recursive traversal: %w", err)
-		}
-		return ids, nil
+			if err := rows.Err(); err != nil {
+				return nil, fmt.Errorf("iterate recursive traversal: %w", err)
+			}
+			return ids, nil
+		}, nil
 	}
 	return runtime, graphProviderMetadata{providerVersion: providerVersion, imageReference: graphProviderPostgresImage}
 }
@@ -860,6 +885,38 @@ func TestGraphProviderSchemaNameRejectsUntrustedIdentifiers(t *testing.T) {
 		if _, err := graphProviderSchemaName(invalid); err == nil {
 			t.Fatalf("expected invalid schema error for %q", invalid)
 		}
+	}
+}
+
+func TestBenchmarkTraversalRuntimePreparesOnceBeforePreflightAndTimedQueries(t *testing.T) {
+	result := testing.Benchmark(func(b *testing.B) {
+		shape := longChainShape(4, 8)
+		prepareCalls := 0
+		queryCalls := 0
+		runtime := traversalRuntime{
+			name: "fake",
+			seed: func(context.Context, traversalShape) error { return nil },
+			prepare: func(got traversalShape) (preparedTraversal, error) {
+				prepareCalls++
+				if got.name != shape.name {
+					return nil, fmt.Errorf("prepared shape = %q, want %q", got.name, shape.name)
+				}
+				return func(context.Context) ([]string, error) {
+					queryCalls++
+					return append([]string(nil), shape.expectedIDs...), nil
+				}, nil
+			},
+		}
+		benchmarkTraversalRuntime(b, runtime, shape)
+		if prepareCalls != 1 {
+			b.Fatalf("prepare calls = %d, want 1", prepareCalls)
+		}
+		if queryCalls != b.N+1 {
+			b.Fatalf("prepared query calls = %d, want preflight + b.N = %d", queryCalls, b.N+1)
+		}
+	})
+	if result.N < 1 {
+		t.Fatalf("benchmark iterations = %d, want at least 1", result.N)
 	}
 }
 
