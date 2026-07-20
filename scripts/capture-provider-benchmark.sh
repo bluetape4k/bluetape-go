@@ -13,15 +13,16 @@ if [ "$#" -ne 1 ]; then
 fi
 
 family=$1
-max_output_bytes=${BLUETAPE_PROVIDER_BENCH_MAX_OUTPUT_BYTES:-16777216}
+default_max_output_bytes=16777216
+max_output_bytes=${BLUETAPE_PROVIDER_BENCH_MAX_OUTPUT_BYTES:-$default_max_output_bytes}
 case "$max_output_bytes" in
   ''|*[!0-9]*)
     printf 'error: benchmark output limit must be a positive byte count\n' >&2
     exit 2
     ;;
 esac
-if [ "$max_output_bytes" -le 0 ]; then
-  printf 'error: benchmark output limit must be a positive byte count\n' >&2
+if [ "$max_output_bytes" -le 0 ] || [ "$max_output_bytes" -gt "$default_max_output_bytes" ]; then
+  printf 'error: benchmark output limit must be between 1 and %s bytes\n' "$default_max_output_bytes" >&2
   exit 2
 fi
 case "$family" in
@@ -213,8 +214,8 @@ awk '
       }
       next
     }
-    if (lower ~ /(^|[^[:alnum:]])(password|passwd|token|secret|authorization|credential|access_key|api_key|private_key|client_secret|endpoint|dsn|proxy|registry|container_id|containerid)[[:space:]]*[=:][[:space:]]*[^[:space:]]+/ ||
-        lower ~ /"(password|passwd|token|secret|authorization|credential|access_key|api_key|private_key|client_secret|endpoint|dsn|proxy|registry|container_id|containerid)"[[:space:]]*:/ ||
+    if (lower ~ /(^|[^[:alnum:]])(password|passwd|token|secret|authorization|credential|access[-_]?key|access[-_]?token|api[-_]?key|private[-_]?key|client[-_]?secret|endpoint|dsn|proxy|registry|container[-_]?id)[[:space:]]*[=:][[:space:]]*[^[:space:]]+/ ||
+        lower ~ /"(password|passwd|token|secret|authorization|credential|access[-_]?key|access[-_]?token|api[-_]?key|private[-_]?key|client[-_]?secret|endpoint|dsn|proxy|registry|container[-_]?id)"[[:space:]]*:/ ||
         $0 ~ /[[:alpha:]][[:alnum:]+.-]*:\/\// ||
         $0 ~ /\/Users\/[^\/[:space:]]+/ ||
         $0 ~ /\/home\/[^\/[:space:]]+/ ||
@@ -232,7 +233,7 @@ awk '
 
 contains_prohibited_content() {
   LC_ALL=C grep -Eiq \
-    '([[:alpha:]][[:alnum:]+.-]*:\/\/|(^|[^[:alnum:]])(password|passwd|token|secret|authorization|credential|access_key|api_key|private_key|client_secret|endpoint|dsn|proxy|registry|container_id|containerid)[[:space:]]*[=:][[:space:]]*[^[:space:]]+|"(password|passwd|token|secret|authorization|credential|access_key|api_key|private_key|client_secret|endpoint|dsn|proxy|registry|container_id|containerid)"[[:space:]]*:|-----BEGIN [^-]*PRIVATE KEY-----|-----END [^-]*PRIVATE KEY-----|\/Users\/[^\/[:space:]]+|\/home\/[^\/[:space:]]+|\/private\/(var|tmp)\/[^[:space:]]+|\/var\/folders\/[^[:space:]]+|\/tmp\/[^[:space:]]+|(localhost|host\.docker\.internal):[0-9]+|([0-9]{1,3}\.){3}[0-9]{1,3}:[0-9]+)' \
+    '([[:alpha:]][[:alnum:]+.-]*:\/\/|(^|[^[:alnum:]])(password|passwd|token|secret|authorization|credential|access[-_]?key|access[-_]?token|api[-_]?key|private[-_]?key|client[-_]?secret|endpoint|dsn|proxy|registry|container[-_]?id)[[:space:]]*[=:][[:space:]]*[^[:space:]]+|"(password|passwd|token|secret|authorization|credential|access[-_]?key|access[-_]?token|api[-_]?key|private[-_]?key|client[-_]?secret|endpoint|dsn|proxy|registry|container[-_]?id)"[[:space:]]*:|-----BEGIN [^-]*PRIVATE KEY-----|-----END [^-]*PRIVATE KEY-----|\/Users\/[^\/[:space:]]+|\/home\/[^\/[:space:]]+|\/private\/(var|tmp)\/[^[:space:]]+|\/var\/folders\/[^[:space:]]+|\/tmp\/[^[:space:]]+|(localhost|host\.docker\.internal):[0-9]+|([0-9]{1,3}\.){3}[0-9]{1,3}:[0-9]+)' \
     "$1"
 }
 

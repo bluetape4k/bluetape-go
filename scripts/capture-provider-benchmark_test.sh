@@ -164,12 +164,15 @@ container_id=0123456789abcdef0123456789abcdef
 AWS_SECRET_ACCESS_KEY=raw-cloud-secret
 {"password":"raw-json-secret"}
 {"authorization":"Bearer raw-json-token"}
+{"api-key":"raw-api-key-value"}
+{"access-token":"raw-access-token-value"}
+{"clientSecret":"raw-client-secret-value"}
 -----BEGIN PRIVATE KEY-----
 raw-pem-material
 -----END PRIVATE KEY-----' run_capture "$fixture" graphio
 
   local output=$fixture/repo/docs/research/outputs/issue-560/graphio.txt
-  assert_file_excludes "$output" 'raw-success-secret|raw-cloud-secret|raw-json-secret|raw-json-token|raw-pem-material|BEGIN PRIVATE KEY|db\.internal|proxy\.internal|raw-host-path|0123456789abcdef|authorization[=:][^[:space:]]+|AWS_SECRET_ACCESS_KEY'
+  assert_file_excludes "$output" 'raw-success-secret|raw-cloud-secret|raw-json-secret|raw-json-token|raw-api-key-value|raw-access-token-value|raw-client-secret-value|raw-pem-material|BEGIN PRIVATE KEY|db\.internal|proxy\.internal|raw-host-path|0123456789abcdef|authorization[=:][^[:space:]]+|AWS_SECRET_ACCESS_KEY'
   assert_file_contains "$output" '^\[redacted_output_line\]$'
 }
 
@@ -210,6 +213,18 @@ assert_oversized_output_fails_without_canonical_artifact() {
   assert_file_contains "$failed" '^\[output_truncated_at_64_bytes\]$'
 }
 
+assert_output_limit_override_cannot_exceed_default() {
+  local fixture
+  fixture=$(setup_fixture oversized-limit)
+
+  if BLUETAPE_PROVIDER_BENCH_MAX_OUTPUT_BYTES=16777217 run_capture "$fixture" graphio; then
+    fail "output limit override increased the default ceiling"
+  else
+    test "$?" -eq 2 || fail "oversized output limit did not fail as invalid input"
+  fi
+  test ! -e "$fixture/repo/docs" || fail "oversized output limit created artifacts"
+}
+
 assert_command_timestamp_sha_and_exit_status_headers_exist() {
   local fixture
   fixture=$(setup_fixture headers)
@@ -233,6 +248,7 @@ tests=(
   assert_secret_pattern_blocks_canonical_output
   assert_secret_bearing_failure_is_sanitized_before_retention
   assert_oversized_output_fails_without_canonical_artifact
+  assert_output_limit_override_cannot_exceed_default
   assert_command_timestamp_sha_and_exit_status_headers_exist
 )
 
