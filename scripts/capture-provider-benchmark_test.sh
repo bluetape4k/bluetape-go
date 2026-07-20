@@ -112,6 +112,7 @@ assert_failure_writes_timestamped_failure_output() {
   local failed
   failed=$(find "$fixture/repo/docs/research/outputs/issue-560" -maxdepth 1 -name 'graphio-failed-*.txt' -print -quit)
   test -n "$failed" || fail "timestamped failure artifact was not written"
+  printf '%s\n' "${failed##*/}" | grep -Eq '^graphio-failed-[0-9]{8}T[0-9]{6}Z-[0-9]+\.txt$' || fail "failure artifact has no collision-resistant suffix"
   assert_file_contains "$failed" '^exit_status: 17$'
   test ! -e "$fixture/repo/docs/research/outputs/issue-560/graphio.txt" || fail "failure created canonical output"
 
@@ -160,10 +161,15 @@ endpoint=https://db.internal:8443
 HTTPS_PROXY=http://proxy.internal:8080
 host_path=/private/var/raw-host-path
 container_id=0123456789abcdef0123456789abcdef
-AWS_SECRET_ACCESS_KEY=raw-cloud-secret' run_capture "$fixture" graphio
+AWS_SECRET_ACCESS_KEY=raw-cloud-secret
+{"password":"raw-json-secret"}
+{"authorization":"Bearer raw-json-token"}
+-----BEGIN PRIVATE KEY-----
+raw-pem-material
+-----END PRIVATE KEY-----' run_capture "$fixture" graphio
 
   local output=$fixture/repo/docs/research/outputs/issue-560/graphio.txt
-  assert_file_excludes "$output" 'raw-success-secret|raw-cloud-secret|db\.internal|proxy\.internal|raw-host-path|0123456789abcdef|authorization[=:][^[:space:]]+|AWS_SECRET_ACCESS_KEY'
+  assert_file_excludes "$output" 'raw-success-secret|raw-cloud-secret|raw-json-secret|raw-json-token|raw-pem-material|BEGIN PRIVATE KEY|db\.internal|proxy\.internal|raw-host-path|0123456789abcdef|authorization[=:][^[:space:]]+|AWS_SECRET_ACCESS_KEY'
   assert_file_contains "$output" '^\[redacted_output_line\]$'
 }
 
@@ -184,6 +190,26 @@ assert_secret_bearing_failure_is_sanitized_before_retention() {
   assert_file_contains "$failed" '^\[redacted_output_line\]$'
 }
 
+assert_oversized_output_fails_without_canonical_artifact() {
+  local fixture
+  fixture=$(setup_fixture oversized-output)
+  local oversized
+  oversized=$(printf '%0256d' 0)
+
+  if BLUETAPE_PROVIDER_BENCH_MAX_OUTPUT_BYTES=64 FAKE_GO_OUTPUT="$oversized" run_capture "$fixture" graphio; then
+    fail "oversized benchmark output returned success"
+  else
+    test "$?" -eq 125 || fail "oversized benchmark output did not fail closed"
+  fi
+
+  local output_dir=$fixture/repo/docs/research/outputs/issue-560
+  test ! -e "$output_dir/graphio.txt" || fail "oversized output created a canonical artifact"
+  local failed
+  failed=$(find "$output_dir" -maxdepth 1 -name 'graphio-failed-*.txt' -print -quit)
+  test -n "$failed" || fail "oversized output did not retain a failure artifact"
+  assert_file_contains "$failed" '^\[output_truncated_at_64_bytes\]$'
+}
+
 assert_command_timestamp_sha_and_exit_status_headers_exist() {
   local fixture
   fixture=$(setup_fixture headers)
@@ -195,6 +221,7 @@ assert_command_timestamp_sha_and_exit_status_headers_exist() {
   test "$(grep -c '^timestamp_utc:' "$output")" -eq 2 || fail "leader capture does not contain two timestamps"
   test "$(grep -Ec '^git_sha: [0-9a-f]{40}$' "$output")" -eq 2 || fail "leader capture does not contain two Git SHAs"
   test "$(grep -c '^pre_run_clean: true$' "$output")" -eq 2 || fail "leader capture does not contain clean-state headers"
+  test "$(grep -c '^max_output_bytes: 16777216$' "$output")" -eq 2 || fail "leader capture does not contain output limits"
   test "$(grep -c '^exit_status: 0$' "$output")" -eq 2 || fail "leader capture does not contain two exit statuses"
 }
 
@@ -205,6 +232,7 @@ tests=(
   assert_unknown_family_fails_before_command
   assert_secret_pattern_blocks_canonical_output
   assert_secret_bearing_failure_is_sanitized_before_retention
+  assert_oversized_output_fails_without_canonical_artifact
   assert_command_timestamp_sha_and_exit_status_headers_exist
 )
 

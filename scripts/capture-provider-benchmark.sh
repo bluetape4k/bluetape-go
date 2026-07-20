@@ -13,6 +13,17 @@ if [ "$#" -ne 1 ]; then
 fi
 
 family=$1
+max_output_bytes=${BLUETAPE_PROVIDER_BENCH_MAX_OUTPUT_BYTES:-16777216}
+case "$max_output_bytes" in
+  ''|*[!0-9]*)
+    printf 'error: benchmark output limit must be a positive byte count\n' >&2
+    exit 2
+    ;;
+esac
+if [ "$max_output_bytes" -le 0 ]; then
+  printf 'error: benchmark output limit must be a positive byte count\n' >&2
+  exit 2
+fi
 case "$family" in
   leader-local | leader-containers | leader-probes | ratelimit-local | ratelimit-containers | cache-local | cache-redis | graphio | graphdb) ;;
   *)
@@ -89,7 +100,7 @@ metadata_file=$private_dir/metadata.txt
 : >"$metadata_file"
 
 git_sha=$(git rev-parse HEAD)
-capture_stamp=$(date -u '+%Y%m%dT%H%M%SZ')
+capture_stamp=$(date -u '+%Y%m%dT%H%M%SZ')-$$
 
 display_command() {
   local token
@@ -111,6 +122,7 @@ append_header() {
     printf 'timestamp_utc: %s\n' "$(date -u '+%Y-%m-%dT%H:%M:%SZ')"
     printf 'git_sha: %s\n' "$git_sha"
     printf 'pre_run_clean: true\n'
+    printf 'max_output_bytes: %s\n' "$max_output_bytes"
   } >>"$destination"
 }
 
@@ -122,10 +134,19 @@ run_command() {
   append_header "$raw_file" "$label" "$@"
   printf 'output_begin\n' >>"$raw_file"
 
+  local output_start
+  output_start=$(wc -c <"$raw_file" | tr -d '[:space:]')
   set +e
-  "$@" >>"$raw_file" 2>&1
-  local status=$?
+  "$@" 2>&1 | head -c "$max_output_bytes" >>"$raw_file"
+  local pipe_status=("${PIPESTATUS[@]}")
   set -e
+  local status=${pipe_status[0]}
+  local output_end
+  output_end=$(wc -c <"$raw_file" | tr -d '[:space:]')
+  if [ "${pipe_status[1]}" -ne 0 ] || [ "$((output_end - output_start))" -ge "$max_output_bytes" ]; then
+    printf '\n[output_truncated_at_%s_bytes]\n' "$max_output_bytes" >>"$raw_file"
+    status=125
+  fi
 
   printf 'output_end\n' >>"$raw_file"
   printf 'exit_status: %s\n' "$status" >>"$raw_file"
@@ -181,7 +202,19 @@ esac
 awk '
   {
     lower = tolower($0)
+    if (lower ~ /-----begin [^-]*private key-----/) {
+      in_private_key = 1
+      print "[redacted_output_line]"
+      next
+    }
+    if (in_private_key) {
+      if (lower ~ /-----end [^-]*private key-----/) {
+        in_private_key = 0
+      }
+      next
+    }
     if (lower ~ /(^|[^[:alnum:]])(password|passwd|token|secret|authorization|credential|access_key|api_key|private_key|client_secret|endpoint|dsn|proxy|registry|container_id|containerid)[[:space:]]*[=:][[:space:]]*[^[:space:]]+/ ||
+        lower ~ /"(password|passwd|token|secret|authorization|credential|access_key|api_key|private_key|client_secret|endpoint|dsn|proxy|registry|container_id|containerid)"[[:space:]]*:/ ||
         $0 ~ /[[:alpha:]][[:alnum:]+.-]*:\/\// ||
         $0 ~ /\/Users\/[^\/[:space:]]+/ ||
         $0 ~ /\/home\/[^\/[:space:]]+/ ||
@@ -199,7 +232,7 @@ awk '
 
 contains_prohibited_content() {
   LC_ALL=C grep -Eiq \
-    '([[:alpha:]][[:alnum:]+.-]*:\/\/|(^|[^[:alnum:]])(password|passwd|token|secret|authorization|credential|access_key|api_key|private_key|client_secret|endpoint|dsn|proxy|registry|container_id|containerid)[[:space:]]*[=:][[:space:]]*[^[:space:]]+|\/Users\/[^\/[:space:]]+|\/home\/[^\/[:space:]]+|\/private\/(var|tmp)\/[^[:space:]]+|\/var\/folders\/[^[:space:]]+|\/tmp\/[^[:space:]]+|(localhost|host\.docker\.internal):[0-9]+|([0-9]{1,3}\.){3}[0-9]{1,3}:[0-9]+)' \
+    '([[:alpha:]][[:alnum:]+.-]*:\/\/|(^|[^[:alnum:]])(password|passwd|token|secret|authorization|credential|access_key|api_key|private_key|client_secret|endpoint|dsn|proxy|registry|container_id|containerid)[[:space:]]*[=:][[:space:]]*[^[:space:]]+|"(password|passwd|token|secret|authorization|credential|access_key|api_key|private_key|client_secret|endpoint|dsn|proxy|registry|container_id|containerid)"[[:space:]]*:|-----BEGIN [^-]*PRIVATE KEY-----|-----END [^-]*PRIVATE KEY-----|\/Users\/[^\/[:space:]]+|\/home\/[^\/[:space:]]+|\/private\/(var|tmp)\/[^[:space:]]+|\/var\/folders\/[^[:space:]]+|\/tmp\/[^[:space:]]+|(localhost|host\.docker\.internal):[0-9]+|([0-9]{1,3}\.){3}[0-9]{1,3}:[0-9]+)' \
     "$1"
 }
 

@@ -38,7 +38,9 @@ scripts/capture-provider-benchmark.sh graphdb
 Each raw artifact records the exact `go test` command, timestamp, Git SHA, benchmark output, and
 exit status. Container artifacts also record the provider-reported version and immutable image
 reference. Failed development captures are retained separately with `-failed-` in their names and
-are not report inputs.
+are not report inputs. Each command captures at most 16 MiB by default; an overflow fails closed
+without replacing canonical evidence. `BLUETAPE_PROVIDER_BENCH_MAX_OUTPUT_BYTES` may set a smaller
+positive bound for constrained environments.
 
 To refresh the tracked snapshot:
 
