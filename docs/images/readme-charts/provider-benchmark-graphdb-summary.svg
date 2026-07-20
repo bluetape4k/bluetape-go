@@ -12,77 +12,77 @@
 <text x="44" y="170" class="title panel">Equivalent seeded traversals</text>
 <text x="44" y="204" class="mono label">Neo4j - LongChain Depth16</text>
 <line x1="420" y1="198" x2="990" y2="198" stroke="#E2E8F0"/>
-<line x1="585.0134152863515" y1="198" x2="746.0282481511075" y2="198" stroke="#2563EB" stroke-width="5" stroke-linecap="round"/>
-<line x1="585.0134152863515" y1="191" x2="585.0134152863515" y2="205" stroke="#2563EB" stroke-width="2"/>
-<line x1="746.0282481511075" y1="191" x2="746.0282481511075" y2="205" stroke="#2563EB" stroke-width="2"/>
-<circle cx="630.3540839796534" cy="198" r="6" fill="#2563EB"/>
-<text x="1014" y="203" class="mono value">2.15 ms</text>
+<line x1="584.3110410334591" y1="198" x2="671.1609548419506" y2="198" stroke="#2563EB" stroke-width="5" stroke-linecap="round"/>
+<line x1="584.3110410334591" y1="191" x2="584.3110410334591" y2="205" stroke="#2563EB" stroke-width="2"/>
+<line x1="671.1609548419506" y1="191" x2="671.1609548419506" y2="205" stroke="#2563EB" stroke-width="2"/>
+<circle cx="602.4157660443838" cy="198" r="6" fill="#2563EB"/>
+<text x="1014" y="203" class="mono value">2.21 ms</text>
 <text x="44" y="252" class="mono label">Memgraph - LongChain Depth16</text>
 <line x1="420" y1="246" x2="990" y2="246" stroke="#E2E8F0"/>
-<line x1="469.92913857667725" y1="246" x2="483.0672122488852" y2="246" stroke="#059669" stroke-width="5" stroke-linecap="round"/>
-<line x1="469.92913857667725" y1="239" x2="469.92913857667725" y2="253" stroke="#059669" stroke-width="2"/>
-<line x1="483.0672122488852" y1="239" x2="483.0672122488852" y2="253" stroke="#059669" stroke-width="2"/>
-<rect x="466.9262298093729" y="241" width="10" height="10" rx="1" fill="#059669"/>
-<text x="1014" y="251" class="mono value">531.1 us</text>
+<line x1="461.84821191022434" y1="246" x2="472.74301092478566" y2="246" stroke="#059669" stroke-width="5" stroke-linecap="round"/>
+<line x1="461.84821191022434" y1="239" x2="461.84821191022434" y2="253" stroke="#059669" stroke-width="2"/>
+<line x1="472.74301092478566" y1="239" x2="472.74301092478566" y2="253" stroke="#059669" stroke-width="2"/>
+<rect x="459.5851611007065" y="241" width="10" height="10" rx="1" fill="#059669"/>
+<text x="1014" y="251" class="mono value">539.3 us</text>
 <text x="44" y="300" class="mono label">PostgreSQLRecursiveCTE - LongChain Depth16</text>
 <line x1="420" y1="294" x2="990" y2="294" stroke="#E2E8F0"/>
-<line x1="456.245959219168" y1="294" x2="462.6902328526811" y2="294" stroke="#7C3AED" stroke-width="5" stroke-linecap="round"/>
-<line x1="456.245959219168" y1="287" x2="456.245959219168" y2="301" stroke="#7C3AED" stroke-width="2"/>
-<line x1="462.6902328526811" y1="287" x2="462.6902328526811" y2="301" stroke="#7C3AED" stroke-width="2"/>
-<path d="M 457.13162151467634 287 L 464.13162151467634 294 L 457.13162151467634 301 L 450.13162151467634 294 Z" fill="#7C3AED"/>
-<text x="1014" y="299" class="mono value">379.8 us</text>
+<line x1="449.14280810690167" y1="294" x2="452.79642816331364" y2="294" stroke="#7C3AED" stroke-width="5" stroke-linecap="round"/>
+<line x1="449.14280810690167" y1="287" x2="449.14280810690167" y2="301" stroke="#7C3AED" stroke-width="2"/>
+<line x1="452.79642816331364" y1="287" x2="452.79642816331364" y2="301" stroke="#7C3AED" stroke-width="2"/>
+<path d="M 450.2920572307787 287 L 457.2920572307787 294 L 450.2920572307787 301 L 443.2920572307787 294 Z" fill="#7C3AED"/>
+<text x="1014" y="299" class="mono value">366.4 us</text>
 <text x="44" y="348" class="mono label">Neo4j - LongChain Depth64</text>
 <line x1="420" y1="342" x2="990" y2="342" stroke="#E2E8F0"/>
-<line x1="635.6338358711148" y1="342" x2="663.7378227995706" y2="342" stroke="#2563EB" stroke-width="5" stroke-linecap="round"/>
-<line x1="635.6338358711148" y1="335" x2="635.6338358711148" y2="349" stroke="#2563EB" stroke-width="2"/>
-<line x1="663.7378227995706" y1="335" x2="663.7378227995706" y2="349" stroke="#2563EB" stroke-width="2"/>
-<circle cx="637.4001738451" cy="342" r="6" fill="#2563EB"/>
-<text x="1014" y="347" class="mono value">2.22 ms</text>
+<line x1="547.0054223148932" y1="342" x2="619.9102315025503" y2="342" stroke="#2563EB" stroke-width="5" stroke-linecap="round"/>
+<line x1="547.0054223148932" y1="335" x2="547.0054223148932" y2="349" stroke="#2563EB" stroke-width="2"/>
+<line x1="619.9102315025503" y1="335" x2="619.9102315025503" y2="349" stroke="#2563EB" stroke-width="2"/>
+<circle cx="584.4866529139709" cy="342" r="6" fill="#2563EB"/>
+<text x="1014" y="347" class="mono value">1.99 ms</text>
 <text x="44" y="396" class="mono label">Memgraph - LongChain Depth64</text>
 <line x1="420" y1="390" x2="990" y2="390" stroke="#E2E8F0"/>
-<line x1="479.51546982402994" y1="390" x2="480.48668682350933" y2="390" stroke="#059669" stroke-width="5" stroke-linecap="round"/>
-<line x1="479.51546982402994" y1="383" x2="479.51546982402994" y2="397" stroke="#059669" stroke-width="2"/>
-<line x1="480.48668682350933" y1="383" x2="480.48668682350933" y2="397" stroke="#059669" stroke-width="2"/>
-<rect x="475.12491264671746" y="385" width="10" height="10" rx="1" fill="#059669"/>
-<text x="1014" y="395" class="mono value">614.9 us</text>
+<line x1="474.5577497032013" y1="390" x2="494.81248005349994" y2="390" stroke="#059669" stroke-width="5" stroke-linecap="round"/>
+<line x1="474.5577497032013" y1="383" x2="474.5577497032013" y2="397" stroke="#059669" stroke-width="2"/>
+<line x1="494.81248005349994" y1="383" x2="494.81248005349994" y2="397" stroke="#059669" stroke-width="2"/>
+<rect x="472.4186359035174" y="385" width="10" height="10" rx="1" fill="#059669"/>
+<text x="1014" y="395" class="mono value">694.5 us</text>
 <text x="44" y="444" class="mono label">PostgreSQLRecursiveCTE - LongChain Depth64</text>
 <line x1="420" y1="438" x2="990" y2="438" stroke="#E2E8F0"/>
-<line x1="511.97570672508243" y1="438" x2="514.4513176391887" y2="438" stroke="#7C3AED" stroke-width="5" stroke-linecap="round"/>
-<line x1="511.97570672508243" y1="431" x2="511.97570672508243" y2="445" stroke="#7C3AED" stroke-width="2"/>
-<line x1="514.4513176391887" y1="431" x2="514.4513176391887" y2="445" stroke="#7C3AED" stroke-width="2"/>
-<path d="M 513.4327766663129 431 L 520.4327766663129 438 L 513.4327766663129 445 L 506.43277666631286 438 Z" fill="#7C3AED"/>
-<text x="1014" y="443" class="mono value">955.6 us</text>
+<line x1="497.710489480911" y1="438" x2="501.00594067368013" y2="438" stroke="#7C3AED" stroke-width="5" stroke-linecap="round"/>
+<line x1="497.710489480911" y1="431" x2="497.710489480911" y2="445" stroke="#7C3AED" stroke-width="2"/>
+<line x1="501.00594067368013" y1="431" x2="501.00594067368013" y2="445" stroke="#7C3AED" stroke-width="2"/>
+<path d="M 498.9946720271023 431 L 505.9946720271023 438 L 498.9946720271023 445 L 491.9946720271023 438 Z" fill="#7C3AED"/>
+<text x="1014" y="443" class="mono value">955.4 us</text>
 <text x="44" y="492" class="mono label">Neo4j - DeepWide Depth4Fanout4</text>
 <line x1="420" y1="486" x2="990" y2="486" stroke="#E2E8F0"/>
-<line x1="833.512186252503" y1="486" x2="947.7777777777777" y2="486" stroke="#2563EB" stroke-width="5" stroke-linecap="round"/>
-<line x1="833.512186252503" y1="479" x2="833.512186252503" y2="493" stroke="#2563EB" stroke-width="2"/>
+<line x1="696.9766453953316" y1="486" x2="947.7777777777777" y2="486" stroke="#2563EB" stroke-width="5" stroke-linecap="round"/>
+<line x1="696.9766453953316" y1="479" x2="696.9766453953316" y2="493" stroke="#2563EB" stroke-width="2"/>
 <line x1="947.7777777777777" y1="479" x2="947.7777777777777" y2="493" stroke="#2563EB" stroke-width="2"/>
-<circle cx="921.7006062305973" cy="486" r="6" fill="#2563EB"/>
-<text x="1014" y="491" class="mono value">5.13 ms</text>
+<circle cx="753.3578979350156" cy="486" r="6" fill="#2563EB"/>
+<text x="1014" y="491" class="mono value">4.03 ms</text>
 <text x="44" y="540" class="mono label">Memgraph - DeepWide Depth4Fanout4</text>
 <line x1="420" y1="534" x2="990" y2="534" stroke="#E2E8F0"/>
-<line x1="539.9856323675723" y1="534" x2="548.5173430011744" y2="534" stroke="#059669" stroke-width="5" stroke-linecap="round"/>
-<line x1="539.9856323675723" y1="527" x2="539.9856323675723" y2="541" stroke="#059669" stroke-width="2"/>
-<line x1="548.5173430011744" y1="527" x2="548.5173430011744" y2="541" stroke="#059669" stroke-width="2"/>
-<rect x="535.8037308911446" y="529" width="10" height="10" rx="1" fill="#059669"/>
-<text x="1014" y="539" class="mono value">1.24 ms</text>
+<line x1="521.3436815362359" y1="534" x2="534.8184208142114" y2="534" stroke="#059669" stroke-width="5" stroke-linecap="round"/>
+<line x1="521.3436815362359" y1="527" x2="521.3436815362359" y2="541" stroke="#059669" stroke-width="2"/>
+<line x1="534.8184208142114" y1="527" x2="534.8184208142114" y2="541" stroke="#059669" stroke-width="2"/>
+<rect x="516.9616303097507" y="529" width="10" height="10" rx="1" fill="#059669"/>
+<text x="1014" y="539" class="mono value">1.23 ms</text>
 <text x="44" y="588" class="mono label">PostgreSQLRecursiveCTE - DeepWide Depth4Fanout4</text>
 <line x1="420" y1="582" x2="990" y2="582" stroke="#E2E8F0"/>
-<line x1="468.56339217088566" y1="582" x2="469.0877691736248" y2="582" stroke="#7C3AED" stroke-width="5" stroke-linecap="round"/>
-<line x1="468.56339217088566" y1="575" x2="468.56339217088566" y2="589" stroke="#7C3AED" stroke-width="2"/>
-<line x1="469.0877691736248" y1="575" x2="469.0877691736248" y2="589" stroke="#7C3AED" stroke-width="2"/>
-<path d="M 468.9291751966636 575 L 475.9291751966636 582 L 468.9291751966636 589 L 461.9291751966636 582 Z" fill="#7C3AED"/>
-<text x="1014" y="587" class="mono value">500.4 us</text>
+<line x1="460.5379025494184" y1="582" x2="464.94647179648655" y2="582" stroke="#7C3AED" stroke-width="5" stroke-linecap="round"/>
+<line x1="460.5379025494184" y1="575" x2="460.5379025494184" y2="589" stroke="#7C3AED" stroke-width="2"/>
+<line x1="464.94647179648655" y1="575" x2="464.94647179648655" y2="589" stroke="#7C3AED" stroke-width="2"/>
+<path d="M 461.74940955748815 575 L 468.74940955748815 582 L 461.74940955748815 589 L 454.74940955748815 582 Z" fill="#7C3AED"/>
+<text x="1014" y="587" class="mono value">505.0 us</text>
 <line x1="420" y1="678" x2="420" y2="688" stroke="#64748B"/>
 <text x="420" y="708" text-anchor="middle" class="mono axis">0.0 ns</text>
 <line x1="562.5" y1="678" x2="562.5" y2="688" stroke="#64748B"/>
-<text x="562.5" y="708" text-anchor="middle" class="mono axis">1.46 ms</text>
+<text x="562.5" y="708" text-anchor="middle" class="mono axis">1.72 ms</text>
 <line x1="705" y1="678" x2="705" y2="688" stroke="#64748B"/>
-<text x="705" y="708" text-anchor="middle" class="mono axis">2.91 ms</text>
+<text x="705" y="708" text-anchor="middle" class="mono axis">3.45 ms</text>
 <line x1="847.5" y1="678" x2="847.5" y2="688" stroke="#64748B"/>
-<text x="847.5" y="708" text-anchor="middle" class="mono axis">4.37 ms</text>
+<text x="847.5" y="708" text-anchor="middle" class="mono axis">5.17 ms</text>
 <line x1="990" y1="678" x2="990" y2="688" stroke="#64748B"/>
-<text x="990" y="708" text-anchor="middle" class="mono axis">5.83 ms</text>
+<text x="990" y="708" text-anchor="middle" class="mono axis">6.89 ms</text>
 <line x1="420" y1="686" x2="990" y2="686" stroke="#64748B"/>
 <text x="705" y="730" text-anchor="middle" class="mono subtitle">latency (ns/op) - lower is better</text>
 </svg>

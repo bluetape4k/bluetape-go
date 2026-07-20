@@ -5,7 +5,7 @@
 This report compares only operations with matching semantics inside each family. It does not
 produce a universal provider ranking. The measurements are a short local snapshot on the machine
 recorded in [environment.md](outputs/issue-560/environment.md), from Git SHA
-`94e6aa30d619d2fd3404a191203f34104cf48a52`.
+`ef3ef4f3070f516a3c75c2637f8e2bca231d9370`.
 
 - Use local rows as API and implementation lower bounds, not as distributed-provider winners.
 - Choose leader and rate-limit providers from operational requirements first; the measured
@@ -60,18 +60,18 @@ probes are correctness evidence, not ranking inputs.
 
 | Operation | Provider | Median | Observed min-max |
 | --- | --- | ---: | ---: |
-| Campaign uncontended | Redis | 216.5 us | 190.8-290.5 us |
-| Campaign uncontended | MongoDB | 459.4 us | 404.2-471.0 us |
-| Campaign uncontended | PostgreSQL | 1.28 ms | 1.21-1.41 ms |
-| Campaign uncontended | etcd | 1.59 ms | 1.54-1.71 ms |
-| Leader lookup | Redis | 200.5 us | 196.0-218.8 us |
-| Leader lookup | MongoDB | 359.6 us | 344.7-376.0 us |
-| Leader lookup | PostgreSQL | 671.2 us | 630.4-795.9 us |
-| Leader lookup | etcd | 264.7 us | 264.1-292.7 us |
+| Campaign uncontended | Redis | 230.5 us | 216.6-232.8 us |
+| Campaign uncontended | MongoDB | 497.1 us | 461.9-512.7 us |
+| Campaign uncontended | PostgreSQL | 1.44 ms | 1.33-1.59 ms |
+| Campaign uncontended | etcd | 1.75 ms | 1.69-2.99 ms |
+| Leader lookup | Redis | 195.9 us | 190.2-203.9 us |
+| Leader lookup | MongoDB | 398.9 us | 368.9-531.4 us |
+| Leader lookup | PostgreSQL | 666.4 us | 647.2-752.3 us |
+| Leader lookup | etcd | 366.3 us | 299.7-426.2 us |
 | Expiry takeover | Redis | 1.00 s | 1.00-1.00 s |
-| Expiry takeover | MongoDB | 1.00 s | 1.00-1.01 s |
-| Expiry takeover | PostgreSQL | 1.01 s | 1.00-1.01 s |
-| Expiry takeover | etcd | 2.41 s | 2.31-2.49 s |
+| Expiry takeover | MongoDB | 1.00 s | 1.00-1.00 s |
+| Expiry takeover | PostgreSQL | 1.01 s | 1.01-1.01 s |
+| Expiry takeover | etcd | 2.08 s | 2.06-2.09 s |
 
 ![Leader provider latency chart showing min, median, and max for ordinary operations and isolated expiry takeover on a logarithmic axis](../images/readme-charts/provider-benchmark-leader-summary.png)
 
@@ -104,10 +104,10 @@ Metric direction: lower `ns/op` is better for an equivalent allow decision.
 
 | Scenario | Redis median | PostgreSQL median |
 | --- | ---: | ---: |
-| Allow available | 204.0 us | 231.0 us |
-| Allow rejected | 200.9 us | 222.0 us |
-| Parallel, one key, N=8 | 382.1 us | 9.89 ms |
-| Parallel, distinct keys, N=8 | 391.1 us | 9.83 ms |
+| Allow available | 194.3 us | 257.8 us |
+| Allow rejected | 189.7 us | 215.8 us |
+| Parallel, one key, N=8 | 389.2 us | 11.37 ms |
+| Parallel, distinct keys, N=8 | 1.13 ms | 10.68 ms |
 
 ![Rate-limit provider latency chart comparing Redis and PostgreSQL min, median, and max for equivalent allow decisions on a logarithmic axis](../images/readme-charts/provider-benchmark-ratelimit-summary.png)
 
@@ -139,12 +139,12 @@ Metric direction: lower `ns/op` is better only within the same cache-path semant
 
 | Path, 128 B payload | Median | Observed min-max |
 | --- | ---: | ---: |
-| Memory get hit | 37.7 ns | 37.4-37.9 ns |
-| Tiered L1 hit | 230.8 ns | 208.8-231.0 ns |
-| Pub/Sub near-cache local hit | 280.5 ns | 274.6-281.7 ns |
-| Redis L2 get hit | 210.7 us | 182.6-273.5 us |
-| Tiered L2 hit | 208.4 us | 179.6-329.7 us |
-| Pub/Sub peer invalidation observed | 284.9 us | 278.6-286.9 us |
+| Memory get hit | 38.8 ns | 38.1-39.1 ns |
+| Tiered L1 hit | 273.3 ns | 250.4-278.8 ns |
+| Pub/Sub near-cache local hit | 278.7 ns | 243.0-319.2 ns |
+| Redis L2 get hit | 191.6 us | 171.8-220.4 us |
+| Tiered L2 hit | 177.2 us | 176.9-178.7 us |
+| Pub/Sub peer invalidation observed | 273.0 us | 264.9-297.1 us |
 
 ![Cache path latency chart separating hot reference-object reads, serialized remote reads, and Pub/Sub invalidation on a logarithmic axis](../images/readme-charts/provider-benchmark-cache-summary.png)
 
@@ -175,9 +175,9 @@ Metric direction: lower `ns/op` is better for the same graph shape and round-tri
 
 | Format | Median | Observed min-max |
 | --- | ---: | ---: |
-| CSV | 120.68 ms | 120.21-122.49 ms |
-| NDJSON | 87.48 ms | 86.88-88.84 ms |
-| GraphML | 215.70 ms | 212.14-220.63 ms |
+| CSV | 119.02 ms | 118.24-120.78 ms |
+| NDJSON | 92.59 ms | 89.56-95.41 ms |
+| GraphML | 215.62 ms | 213.82-216.90 ms |
 
 ![Graph I/O chart comparing CSV, NDJSON, and GraphML medium round-trip min, median, and max latency](../images/readme-charts/provider-benchmark-graphio-summary.png)
 
@@ -205,9 +205,9 @@ Metric direction: lower `ns/op` is better for an equivalent seeded traversal.
 
 | Shape | Neo4j median | Memgraph median | PostgreSQL CTE median |
 | --- | ---: | ---: | ---: |
-| Long chain, depth 16 | 2.15 ms | 531.1 us | 379.8 us |
-| Long chain, depth 64 | 2.22 ms | 614.9 us | 955.6 us |
-| Deep-wide, depth 4 fanout 4 | 5.13 ms | 1.24 ms | 500.4 us |
+| Long chain, depth 16 | 2.21 ms | 539.3 us | 366.4 us |
+| Long chain, depth 64 | 1.99 ms | 694.5 us | 955.4 us |
+| Deep-wide, depth 4 fanout 4 | 4.03 ms | 1.23 ms | 505.0 us |
 
 ![Graph traversal chart comparing Neo4j, Memgraph, and PostgreSQL recursive CTE min, median, and max latency for equivalent seeded shapes](../images/readme-charts/provider-benchmark-graphdb-summary.png)
 
