@@ -106,6 +106,20 @@ assert_failure_writes_timestamped_failure_output() {
   test -n "$failed" || fail "timestamped failure artifact was not written"
   assert_file_contains "$failed" '^exit_status: 17$'
   test ! -e "$fixture/repo/docs/research/outputs/issue-560/graphio.txt" || fail "failure created canonical output"
+
+  fixture=$(setup_fixture unwritable-output)
+  mkdir -p "$fixture/repo/docs/research/outputs/issue-560"
+  chmod 500 "$fixture/repo/docs/research/outputs/issue-560"
+  if FAKE_GO_EXIT=31 FAKE_GO_OUTPUT='publish failed' run_capture "$fixture" graphio; then
+    chmod 700 "$fixture/repo/docs/research/outputs/issue-560"
+    fail "unwritable artifact directory returned success"
+  else
+    local publish_status=$?
+    chmod 700 "$fixture/repo/docs/research/outputs/issue-560"
+    test "$publish_status" -eq 31 || fail "publish failure changed the benchmark exit status"
+  fi
+  test ! -e "$fixture/repo/sanitized.txt" || fail "publish failure escaped the artifact directory"
+  test -z "$(find "$fixture/repo/docs/research/outputs/issue-560" -maxdepth 1 -type f -print -quit)" || fail "publish failure retained a partial artifact"
 }
 
 assert_unknown_family_fails_before_command() {
