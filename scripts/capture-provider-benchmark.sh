@@ -26,24 +26,19 @@ repo_root=$(git rev-parse --show-toplevel 2>/dev/null) || {
   exit 2
 }
 cd "$repo_root"
+repo_root=$(pwd -P)
 
 configured_output=${BLUETAPE_PROVIDER_BENCH_OUTPUT_DIR:-docs/research/outputs/issue-560}
 case "$configured_output" in
-  /*) output_dir=$configured_output ;;
-  *) output_dir=$repo_root/$configured_output ;;
-esac
-case "$output_dir" in
-  "$repo_root" | *'/../'* | *'/..')
-    printf 'error: output directory must be a child of the repository\n' >&2
-    exit 2
+  docs/research/outputs/issue-560 | "$repo_root/docs/research/outputs/issue-560")
+    output_dir=$repo_root/docs/research/outputs/issue-560
     ;;
-  "$repo_root"/*) ;;
   *)
-    printf 'error: output directory must be a child of the repository\n' >&2
+    printf 'error: output override must name docs/research/outputs/issue-560 in this repository\n' >&2
     exit 2
     ;;
 esac
-output_rel=${output_dir#"$repo_root"/}
+output_rel=docs/research/outputs/issue-560
 
 dirty=$(git status --porcelain=v1 --untracked-files=all -- . \
   ":(exclude)$output_rel" ":(exclude)$output_rel/**")
@@ -66,9 +61,24 @@ esac
 umask 077
 private_parent=${TMPDIR:-/tmp}
 case "$private_parent" in
-  "$repo_root" | "$repo_root"/*) private_parent=/tmp ;;
+  /*) ;;
+  *) private_parent=$repo_root/$private_parent ;;
+esac
+if ! private_parent=$(cd "$private_parent" 2>/dev/null && pwd -P); then
+  private_parent=$(cd /tmp && pwd -P)
+fi
+case "$private_parent" in
+  "$repo_root" | "$repo_root"/*) private_parent=$(cd /tmp && pwd -P) ;;
 esac
 private_dir=$(mktemp -d "$private_parent/bluetape-provider-benchmark.XXXXXX")
+private_dir=$(cd "$private_dir" && pwd -P)
+case "$private_dir" in
+  "$repo_root" | "$repo_root"/*)
+    rm -rf "$private_dir"
+    printf 'error: private capture directory resolved inside the repository\n' >&2
+    exit 2
+    ;;
+esac
 chmod 700 "$private_dir"
 trap 'rm -rf "$private_dir"' EXIT HUP INT TERM
 
@@ -171,10 +181,13 @@ esac
 awk '
   {
     lower = tolower($0)
-    if (lower ~ /(^|[^[:alnum:]_])(password|passwd|token|secret|authorization)[[:space:]]*[=:][[:space:]]*[^[:space:]]+/ ||
-        $0 ~ /:\/\/[^\/@[:space:]]+:[^\/@[:space:]]+@/ ||
+    if (lower ~ /(^|[^[:alnum:]])(password|passwd|token|secret|authorization|credential|access_key|api_key|private_key|client_secret|endpoint|dsn|proxy|registry|container_id|containerid)[[:space:]]*[=:][[:space:]]*[^[:space:]]+/ ||
+        $0 ~ /[[:alpha:]][[:alnum:]+.-]*:\/\// ||
         $0 ~ /\/Users\/[^\/[:space:]]+/ ||
         $0 ~ /\/home\/[^\/[:space:]]+/ ||
+        $0 ~ /\/private\/(var|tmp)\/[^[:space:]]+/ ||
+        $0 ~ /\/var\/folders\/[^[:space:]]+/ ||
+        $0 ~ /\/tmp\/[^[:space:]]+/ ||
         lower ~ /(localhost|host\.docker\.internal):[0-9]+/ ||
         $0 ~ /([0-9]{1,3}\.){3}[0-9]{1,3}:[0-9]+/) {
       print "[redacted_output_line]"
@@ -186,7 +199,7 @@ awk '
 
 contains_prohibited_content() {
   LC_ALL=C grep -Eiq \
-    '(:\/\/[^\/@[:space:]]+:[^\/@[:space:]]+@|(^|[^[:alnum:]_])(password|passwd|token|secret|authorization)[[:space:]]*[=:][[:space:]]*[^[:space:]]+|\/Users\/[^\/[:space:]]+|\/home\/[^\/[:space:]]+|(localhost|host\.docker\.internal):[0-9]+|([0-9]{1,3}\.){3}[0-9]{1,3}:[0-9]+)' \
+    '([[:alpha:]][[:alnum:]+.-]*:\/\/|(^|[^[:alnum:]])(password|passwd|token|secret|authorization|credential|access_key|api_key|private_key|client_secret|endpoint|dsn|proxy|registry|container_id|containerid)[[:space:]]*[=:][[:space:]]*[^[:space:]]+|\/Users\/[^\/[:space:]]+|\/home\/[^\/[:space:]]+|\/private\/(var|tmp)\/[^[:space:]]+|\/var\/folders\/[^[:space:]]+|\/tmp\/[^[:space:]]+|(localhost|host\.docker\.internal):[0-9]+|([0-9]{1,3}\.){3}[0-9]{1,3}:[0-9]+)' \
     "$1"
 }
 
@@ -198,27 +211,45 @@ publish_file() {
   artifact_tmp=$(mktemp "$output_dir/.${family}.tmp.XXXXXX")
   cp "$source" "$artifact_tmp"
   chmod 600 "$artifact_tmp"
+  if contains_prohibited_content "$artifact_tmp"; then
+    rm -f "$artifact_tmp"
+    return 1
+  fi
   mv -f "$artifact_tmp" "$target"
 }
 
-if contains_prohibited_content "$sanitized_file"; then
-  blocked=$private_dir/blocked.txt
+publish_blocked_metadata() {
+  local target=$1
+  local blocked=$private_dir/blocked.txt
+
   cp "$metadata_file" "$blocked"
   printf 'redaction_status: blocked\n' >>"$blocked"
+  publish_file "$blocked" "$target"
+}
+
+if contains_prohibited_content "$sanitized_file"; then
   if [ "$status" -eq 0 ]; then
     status=125
   fi
-  publish_file "$blocked" "$output_dir/$family-failed-$capture_stamp.txt"
+  publish_blocked_metadata "$output_dir/$family-failed-$capture_stamp.txt"
   printf 'error: prohibited content remained after sanitization; stream body discarded\n' >&2
   exit "$status"
 fi
 
 if [ "$status" -eq 0 ]; then
-  publish_file "$sanitized_file" "$output_dir/$family.txt"
+  if ! publish_file "$sanitized_file" "$output_dir/$family.txt"; then
+    status=125
+    publish_blocked_metadata "$output_dir/$family-failed-$capture_stamp.txt"
+    printf 'error: artifact-local redaction scan failed; stream body discarded\n' >&2
+    exit "$status"
+  fi
   printf 'captured %s\n' "$output_dir/$family.txt"
   exit 0
 fi
 
-publish_file "$sanitized_file" "$output_dir/$family-failed-$capture_stamp.txt"
+if ! publish_file "$sanitized_file" "$output_dir/$family-failed-$capture_stamp.txt"; then
+  publish_blocked_metadata "$output_dir/$family-failed-$capture_stamp.txt"
+  printf 'error: artifact-local redaction scan failed; stream body discarded\n' >&2
+fi
 printf 'benchmark family %s failed with exit status %s\n' "$family" "$status" >&2
 exit "$status"
