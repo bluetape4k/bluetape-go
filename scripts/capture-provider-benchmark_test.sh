@@ -116,16 +116,32 @@ assert_unknown_family_fails_before_command() {
     fail "unknown family returned success"
   fi
   test ! -e "$fixture/repo/docs" || fail "unknown family created artifacts"
+
+  mkdir -p "$fixture/repo/leader"
+  printf 'dirty\n' >"$fixture/repo/leader/dirty.go"
+  if (
+    cd "$fixture/repo"
+    PATH="$fixture/bin:$PATH" BLUETAPE_PROVIDER_BENCH_OUTPUT_DIR=leader \
+      "$fixture/repo/scripts/capture-provider-benchmark.sh" graphio
+  ); then
+    fail "output override was allowed to hide dirty source"
+  fi
+  test ! -e "$fixture/repo/leader/graphio.txt" || fail "invalid output override created an artifact"
 }
 
 assert_secret_pattern_blocks_canonical_output() {
   local fixture
   fixture=$(setup_fixture secret-success)
 
-  FAKE_GO_OUTPUT='authorization=raw-success-secret' run_capture "$fixture" graphio
+  FAKE_GO_OUTPUT='authorization=raw-success-secret
+endpoint=https://db.internal:8443
+HTTPS_PROXY=http://proxy.internal:8080
+host_path=/private/var/raw-host-path
+container_id=0123456789abcdef0123456789abcdef
+AWS_SECRET_ACCESS_KEY=raw-cloud-secret' run_capture "$fixture" graphio
 
   local output=$fixture/repo/docs/research/outputs/issue-560/graphio.txt
-  assert_file_excludes "$output" 'raw-success-secret|authorization[=:][^[:space:]]+'
+  assert_file_excludes "$output" 'raw-success-secret|raw-cloud-secret|db\.internal|proxy\.internal|raw-host-path|0123456789abcdef|authorization[=:][^[:space:]]+|AWS_SECRET_ACCESS_KEY'
   assert_file_contains "$output" '^\[redacted_output_line\]$'
 }
 
