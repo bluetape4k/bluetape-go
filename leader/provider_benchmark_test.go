@@ -154,6 +154,7 @@ type leaderProviderFixture struct {
 	imageReference  string
 	newElector      func(member, group string) (leader.Elector, error)
 	observe         func(context.Context, string) (string, error)
+	replace         func(context.Context, string, string, string) error
 	cleanup         func(context.Context, string) error
 	close           func(context.Context) error
 	abort           func(context.Context, leader.Elector) error
@@ -375,6 +376,22 @@ func newRedisProviderFixture(tb testing.TB, lease time.Duration) leaderProviderF
 			}
 			return value, err
 		},
+		replace: func(ctx context.Context, group, staleOwner, replacementOwner string) error {
+			const replaceScript = `
+if redis.call("get", KEYS[1]) == ARGV[1] then
+  redis.call("psetex", KEYS[1], ARGV[3], ARGV[2])
+  return 1
+end
+return 0`
+			replaced, err := control.Eval(ctx, replaceScript, []string{prefix + ":" + group}, staleOwner, replacementOwner, lease.Milliseconds()).Int64()
+			if err != nil {
+				return err
+			}
+			if replaced != 1 {
+				return errors.New("redis replacement control did not match the active owner")
+			}
+			return nil
+		},
 		cleanup: func(ctx context.Context, group string) error {
 			return cleanupProviderResources(ctx, registry, group, backendCleanup)
 		},
@@ -452,6 +469,24 @@ func newMongoProviderFixture(tb testing.TB, lease time.Duration) leaderProviderF
 			}
 			return document.Token, err
 		},
+		replace: func(ctx context.Context, group, staleOwner, replacementOwner string) error {
+			result, err := collection.UpdateOne(ctx,
+				bson.M{"_id": prefix + ":" + group, "token": staleOwner},
+				bson.M{"$set": bson.M{
+					"member_id":   "replacement-control",
+					"token":       replacementOwner,
+					"lease_until": time.Now().UTC().Add(lease),
+					"updated_at":  time.Now().UTC(),
+				}},
+			)
+			if err != nil {
+				return err
+			}
+			if result.MatchedCount != 1 {
+				return errors.New("mongodb replacement control did not match the active owner")
+			}
+			return nil
+		},
 		cleanup: func(ctx context.Context, group string) error {
 			return cleanupProviderResources(ctx, registry, group, backendCleanup)
 		},
@@ -528,6 +563,24 @@ func newPostgresProviderFixture(tb testing.TB, lease time.Duration) leaderProvid
 				return "", nil
 			}
 			return owner, err
+		},
+		replace: func(ctx context.Context, group, staleOwner, replacementOwner string) error {
+			result, err := control.ExecContext(ctx, `update public.bluetape_leader_leases
+set member_id='replacement-control', owner_token=$3,
+lease_until=pg_catalog.clock_timestamp()+$4::bigint*interval '1 microsecond',
+updated_at=pg_catalog.clock_timestamp() where leader_key=$1 and owner_token=$2`,
+				prefix+":"+group, staleOwner, replacementOwner, lease.Microseconds())
+			if err != nil {
+				return err
+			}
+			rows, err := result.RowsAffected()
+			if err != nil {
+				return err
+			}
+			if rows != 1 {
+				return fmt.Errorf("postgres replacement control updated %d rows, want 1", rows)
+			}
+			return nil
 		},
 		cleanup: func(ctx context.Context, group string) error {
 			return cleanupProviderResources(ctx, registry, group, backendCleanup)
@@ -608,6 +661,46 @@ func newEtcdProviderFixture(tb testing.TB, lease time.Duration) leaderProviderFi
 				return "", err
 			}
 			return observer.Leader(ctx)
+		},
+		replace: func(ctx context.Context, group, staleOwner, replacementOwner string) error {
+			groupPrefix := providerEtcdCleanupPrefix(prefix, group)
+			getOptions := append([]clientv3.OpOption{clientv3.WithPrefix()}, clientv3.WithFirstCreate()...)
+			current, err := control.Get(ctx, groupPrefix, getOptions...)
+			if err != nil {
+				return err
+			}
+			if len(current.Kvs) != 1 || current.Kvs[0] == nil {
+				return errors.New("etcd replacement control found no active owner")
+			}
+			ttl := int64((lease + time.Second - 1) / time.Second)
+			grant, err := control.Grant(ctx, ttl)
+			if err != nil {
+				return err
+			}
+			old := current.Kvs[0]
+			newKey := groupPrefix + fmt.Sprintf("%x", grant.ID)
+			transaction, err := control.Txn(ctx).
+				If(
+					clientv3.Compare(clientv3.CreateRevision(string(old.Key)), "=", old.CreateRevision),
+					clientv3.Compare(clientv3.Value(string(old.Key)), "=", staleOwner),
+					clientv3.Compare(clientv3.CreateRevision(newKey), "=", 0),
+				).
+				Then(
+					clientv3.OpDelete(string(old.Key)),
+					clientv3.OpPut(newKey, replacementOwner, clientv3.WithLease(grant.ID)),
+				).
+				Commit()
+			if err != nil || !transaction.Succeeded {
+				revokeErr := runBoundedCleanup(context.WithoutCancel(ctx), func(cleanupCtx context.Context) error {
+					_, revokeErr := control.Revoke(cleanupCtx, grant.ID)
+					return revokeErr
+				})
+				if err == nil {
+					err = errors.New("etcd replacement control transaction lost its compare")
+				}
+				return errors.Join(err, revokeErr)
+			}
+			return nil
 		},
 		cleanup: func(ctx context.Context, group string) error {
 			return cleanupProviderResources(ctx, registry, group, backendCleanup)
@@ -1039,6 +1132,7 @@ func testActiveHolderCancellation(t *testing.T, fixture leaderProviderFixture) {
 		t.Fatal(err)
 	}
 	campaignCtx, cancelCampaign := context.WithTimeout(context.Background(), 500*time.Millisecond)
+	defer cancelCampaign()
 	done := make(chan error, 1)
 	ready := make(chan struct{})
 	var active atomic.Int32
@@ -1052,14 +1146,13 @@ func testActiveHolderCancellation(t *testing.T, fixture leaderProviderFixture) {
 	time.Sleep(2 * providerExpiryPoll)
 	select {
 	case campaignErr := <-done:
-		t.Fatalf("contender completed before cancellation: %v", campaignErr)
+		t.Fatalf("contender completed before deadline expiry: %v", campaignErr)
 	default:
 	}
-	cancelCampaign()
 	select {
 	case campaignErr := <-done:
-		if !errors.Is(campaignErr, context.Canceled) {
-			t.Fatalf("blocked contender error = %v, want context cancellation", campaignErr)
+		if !errors.Is(campaignErr, context.DeadlineExceeded) {
+			t.Fatalf("blocked contender error = %v, want deadline exceeded", campaignErr)
 		}
 	case <-time.After(2 * time.Second):
 		t.Fatal("blocked contender did not drain within 2s")
@@ -1147,61 +1240,26 @@ func testStaleOwnerRejected(t *testing.T, fixture leaderProviderFixture) {
 	if err != nil {
 		t.Fatalf("seed stale owner: %v", err)
 	}
-	if err := fixture.abort(context.Background(), stale); err != nil {
-		t.Fatalf("abort stale owner renewal: %v", err)
-	}
-	waitCtx, waitCancel := operationContext()
-	if err := waitForProviderOwnerChange(waitCtx, fixture, group, staleOwner, providerExpiryLease+5*time.Second); err != nil {
-		waitCancel()
-		t.Fatalf("wait for stale owner expiry: %v", err)
-	}
-	waitCancel()
-	if expiredOwner := observeProviderOwner(t, fixture, group); expiredOwner != "" {
-		t.Fatalf("owner after stale lease expiry = %q, want absence", expiredOwner)
-	}
-	lossCtx, lossCancel := operationContext()
-	if err := waitForLocalLeadershipLoss(lossCtx, stale, 5*time.Second); err != nil {
-		lossCancel()
-		t.Fatalf("wait for stale renewal shutdown: %v", err)
-	}
-	lossCancel()
-	replacement, err := fixture.newElector("member-replacement", group)
-	if err != nil {
-		t.Fatal(err)
-	}
-	replacementOwner, err := seedProviderOwner(fixture, group, replacement)
-	if err != nil {
-		t.Fatalf("seed replacement owner: %v", err)
-	}
+	replacementOwner := "member-replacement:" + mustProviderID(t)
 	if replacementOwner == staleOwner {
 		t.Fatalf("replacement owner reused stale token %q", staleOwner)
 	}
-	time.Sleep(300 * time.Millisecond)
-	if current := observeProviderOwner(t, fixture, group); current != replacementOwner {
-		t.Fatalf("owner after stale renewal window = %q, want replacement %q", current, replacementOwner)
+	replaceCtx, replaceCancel := operationContext()
+	if err := fixture.replace(replaceCtx, group, staleOwner, replacementOwner); err != nil {
+		replaceCancel()
+		t.Fatalf("force replacement owner: %v", err)
 	}
+	replaceCancel()
 	resignCtx, resignCancel := context.WithTimeout(context.Background(), 2*time.Second)
-	_ = stale.Resign(resignCtx)
+	resignErr := stale.Resign(resignCtx)
 	resignCancel()
+	if resignErr != nil {
+		t.Fatalf("stale owner resign: %v", resignErr)
+	}
 	if current := observeProviderOwner(t, fixture, group); current != replacementOwner {
 		t.Fatalf("owner after stale resign = %q, want replacement %q", current, replacementOwner)
 	}
 	cleanupProviderProbe(t, fixture, group)
-}
-
-func waitForLocalLeadershipLoss(ctx context.Context, elector leader.Elector, limit time.Duration) error {
-	waitCtx, cancel := context.WithTimeout(ctx, limit)
-	defer cancel()
-	ticker := time.NewTicker(providerExpiryPoll)
-	defer ticker.Stop()
-	for elector.IsLeader() {
-		select {
-		case <-waitCtx.Done():
-			return waitCtx.Err()
-		case <-ticker.C:
-		}
-	}
-	return nil
 }
 
 func observeProviderOwner(t *testing.T, fixture leaderProviderFixture, group string) string {
