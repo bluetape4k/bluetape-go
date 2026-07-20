@@ -124,7 +124,7 @@ func runLeaderRound(
 				cancelRound(winnerCancellation)
 			}
 			winnerStopped := stoppedOnWinner.Load() && errors.Is(context.Cause(roundCtx), winnerCancellation)
-			if err != nil && !(winnerStopped && errors.Is(err, context.Canceled)) {
+			if err != nil && (!winnerStopped || !errors.Is(err, context.Canceled)) {
 				firstErrOnce.Do(func() {
 					firstErr = fmt.Errorf("leader round worker %d: %w", workerID, err)
 					cancelRound(err)
