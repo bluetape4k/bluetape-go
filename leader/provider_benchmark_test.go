@@ -4,6 +4,7 @@ import (
 	"context"
 	"crypto/rand"
 	"database/sql"
+	"encoding/base64"
 	"encoding/hex"
 	"errors"
 	"fmt"
@@ -573,8 +574,8 @@ func newEtcdProviderFixture(tb testing.TB, lease time.Duration) leaderProviderFi
 	}
 	prefix := mustProviderID(tb)
 	registry := newProviderResourceRegistry()
-	backendCleanup := func(ctx context.Context, _ string) error {
-		_, err := control.Delete(ctx, "/bluetape4k/leader/", clientv3.WithPrefix())
+	backendCleanup := func(ctx context.Context, group string) error {
+		_, err := control.Delete(ctx, providerEtcdCleanupPrefix(prefix, group), clientv3.WithPrefix())
 		return err
 	}
 	fixture := leaderProviderFixture{
@@ -694,6 +695,15 @@ func waitForProviderEtcdReady(ctx context.Context, client *clientv3.Client, endp
 	return errors.Join(ctx.Err(), lastErr)
 }
 
+func providerEtcdCleanupPrefix(prefix, group string) string {
+	encode := base64.RawURLEncoding.EncodeToString
+	path := "/bluetape4k/leader/" + encode([]byte(prefix)) + "/"
+	if group != "" {
+		path += encode([]byte(group)) + "/"
+	}
+	return path
+}
+
 type leaderProviderFactory struct {
 	name string
 	open func(testing.TB, time.Duration) leaderProviderFixture
@@ -793,7 +803,7 @@ func runProviderLeaderBenchmark(b *testing.B, factory leaderProviderFactory, sce
 				b.StopTimer()
 			}
 			if runErr == nil {
-				runErr = verifyCampaignRound(fixture, group, results)
+				runErr = verifyCampaignRound(fixture, group, results, electors)
 			}
 		case "ResignOwned":
 			var elector leader.Elector
@@ -896,16 +906,24 @@ func firstRoundLeader(results []leaderRoundResult) string {
 	return results[0].leader
 }
 
-func verifyCampaignRound(fixture leaderProviderFixture, group string, results []leaderRoundResult) error {
+func verifyCampaignRound(fixture leaderProviderFixture, group string, results []leaderRoundResult, electors []leader.Elector) error {
 	if winners := countRoundWinners(results); winners != 1 {
 		return fmt.Errorf("campaign winners = %d, want 1", winners)
 	}
 	winner := ""
+	winnerWorker := -1
 	for _, result := range results {
 		if result.won {
 			winner = result.member
+			winnerWorker = result.worker
 			break
 		}
+	}
+	if winnerWorker < 0 || winnerWorker >= len(electors) || electors[winnerWorker] == nil {
+		return fmt.Errorf("campaign winner worker %d has no elector", winnerWorker)
+	}
+	if !electors[winnerWorker].IsLeader() {
+		return fmt.Errorf("campaign winner Elector.IsLeader() = false")
 	}
 	ctx, cancel := operationContext()
 	defer cancel()
@@ -1008,20 +1026,52 @@ func TestProviderLeaderBenchmarkProbes(t *testing.T) {
 func testActiveHolderCancellation(t *testing.T, fixture leaderProviderFixture) {
 	t.Helper()
 	group := mustProviderID(t)
-	elector, err := fixture.newElector("member-active", group)
+	holder, err := fixture.newElector("member-active", group)
 	if err != nil {
 		t.Fatal(err)
 	}
-	campaignCtx, cancelCampaign := context.WithCancel(context.Background())
-	if err := elector.Campaign(campaignCtx); err != nil {
-		cancelCampaign()
-		t.Fatalf("campaign active holder: %v", err)
+	owner, err := seedProviderOwner(fixture, group, holder)
+	if err != nil {
+		t.Fatalf("seed active holder: %v", err)
 	}
-	owner := observeProviderOwner(t, fixture, group)
-	cancelCampaign()
+	contender, err := fixture.newElector("member-blocked", group)
+	if err != nil {
+		t.Fatal(err)
+	}
+	campaignCtx, cancelCampaign := context.WithTimeout(context.Background(), 500*time.Millisecond)
+	done := make(chan error, 1)
+	ready := make(chan struct{})
+	var active atomic.Int32
+	active.Add(1)
+	go func() {
+		defer active.Add(-1)
+		close(ready)
+		done <- contender.Campaign(campaignCtx)
+	}()
+	<-ready
 	time.Sleep(2 * providerExpiryPoll)
+	select {
+	case campaignErr := <-done:
+		t.Fatalf("contender completed before cancellation: %v", campaignErr)
+	default:
+	}
+	cancelCampaign()
+	select {
+	case campaignErr := <-done:
+		if !errors.Is(campaignErr, context.Canceled) {
+			t.Fatalf("blocked contender error = %v, want context cancellation", campaignErr)
+		}
+	case <-time.After(2 * time.Second):
+		t.Fatal("blocked contender did not drain within 2s")
+	}
+	if got := active.Load(); got != 0 {
+		t.Fatalf("active contenders after cancellation = %d, want 0", got)
+	}
+	if !holder.IsLeader() {
+		t.Fatal("original holder lost local leadership after contender cancellation")
+	}
 	if current := observeProviderOwner(t, fixture, group); current != owner {
-		t.Fatalf("owner after campaign context cancellation = %q, want preserved %q", current, owner)
+		t.Fatalf("owner after blocked contender cancellation = %q, want preserved %q", current, owner)
 	}
 	cleanupProviderProbe(t, fixture, group)
 }
@@ -1097,12 +1147,24 @@ func testStaleOwnerRejected(t *testing.T, fixture leaderProviderFixture) {
 	if err != nil {
 		t.Fatalf("seed stale owner: %v", err)
 	}
-	ctx, cancel := operationContext()
-	if err := stale.Resign(ctx); err != nil {
-		cancel()
-		t.Fatalf("resign stale owner: %v", err)
+	if err := fixture.abort(context.Background(), stale); err != nil {
+		t.Fatalf("abort stale owner renewal: %v", err)
 	}
-	cancel()
+	waitCtx, waitCancel := operationContext()
+	if err := waitForProviderOwnerChange(waitCtx, fixture, group, staleOwner, providerExpiryLease+5*time.Second); err != nil {
+		waitCancel()
+		t.Fatalf("wait for stale owner expiry: %v", err)
+	}
+	waitCancel()
+	if expiredOwner := observeProviderOwner(t, fixture, group); expiredOwner != "" {
+		t.Fatalf("owner after stale lease expiry = %q, want absence", expiredOwner)
+	}
+	lossCtx, lossCancel := operationContext()
+	if err := waitForLocalLeadershipLoss(lossCtx, stale, 5*time.Second); err != nil {
+		lossCancel()
+		t.Fatalf("wait for stale renewal shutdown: %v", err)
+	}
+	lossCancel()
 	replacement, err := fixture.newElector("member-replacement", group)
 	if err != nil {
 		t.Fatal(err)
@@ -1114,16 +1176,32 @@ func testStaleOwnerRejected(t *testing.T, fixture leaderProviderFixture) {
 	if replacementOwner == staleOwner {
 		t.Fatalf("replacement owner reused stale token %q", staleOwner)
 	}
-	ctx, cancel = operationContext()
-	staleErr := stale.Resign(ctx)
-	cancel()
-	if staleErr != nil {
-		t.Fatalf("repeat stale resign: %v", staleErr)
+	time.Sleep(300 * time.Millisecond)
+	if current := observeProviderOwner(t, fixture, group); current != replacementOwner {
+		t.Fatalf("owner after stale renewal window = %q, want replacement %q", current, replacementOwner)
 	}
+	resignCtx, resignCancel := context.WithTimeout(context.Background(), 2*time.Second)
+	_ = stale.Resign(resignCtx)
+	resignCancel()
 	if current := observeProviderOwner(t, fixture, group); current != replacementOwner {
 		t.Fatalf("owner after stale resign = %q, want replacement %q", current, replacementOwner)
 	}
 	cleanupProviderProbe(t, fixture, group)
+}
+
+func waitForLocalLeadershipLoss(ctx context.Context, elector leader.Elector, limit time.Duration) error {
+	waitCtx, cancel := context.WithTimeout(ctx, limit)
+	defer cancel()
+	ticker := time.NewTicker(providerExpiryPoll)
+	defer ticker.Stop()
+	for elector.IsLeader() {
+		select {
+		case <-waitCtx.Done():
+			return waitCtx.Err()
+		case <-ticker.C:
+		}
+	}
+	return nil
 }
 
 func observeProviderOwner(t *testing.T, fixture leaderProviderFixture, group string) string {
@@ -1144,6 +1222,37 @@ func cleanupProviderProbe(t *testing.T, fixture leaderProviderFixture, group str
 	}
 	if owner := observeProviderOwner(t, fixture, group); owner != "" {
 		t.Fatalf("backend owner after cleanup = %q, want absence", owner)
+	}
+}
+
+type localLeadershipElector struct {
+	leader bool
+}
+
+func (elector localLeadershipElector) Campaign(context.Context) error { return nil }
+func (elector localLeadershipElector) Resign(context.Context) error   { return nil }
+func (elector localLeadershipElector) IsLeader() bool                 { return elector.leader }
+func (elector localLeadershipElector) Leader(context.Context) (string, error) {
+	return "member-0:token", nil
+}
+
+func TestProviderEtcdCleanupPrefixScopesGeneratedNamespace(t *testing.T) {
+	if got, want := providerEtcdCleanupPrefix("0123", ""), "/bluetape4k/leader/MDEyMw/"; got != want {
+		t.Fatalf("namespace cleanup prefix = %q, want %q", got, want)
+	}
+	if got, want := providerEtcdCleanupPrefix("0123", "group-a"), "/bluetape4k/leader/MDEyMw/Z3JvdXAtYQ/"; got != want {
+		t.Fatalf("group cleanup prefix = %q, want %q", got, want)
+	}
+}
+
+func TestVerifyCampaignRoundRequiresLocalLeadership(t *testing.T) {
+	fixture := leaderProviderFixture{
+		observe: func(context.Context, string) (string, error) { return "member-0:token", nil },
+	}
+	results := []leaderRoundResult{{worker: 0, member: "member-0", won: true}}
+	err := verifyCampaignRound(fixture, "group", results, []leader.Elector{localLeadershipElector{leader: false}})
+	if err == nil || !strings.Contains(err.Error(), "IsLeader") {
+		t.Fatalf("verify campaign round error = %v, want IsLeader failure", err)
 	}
 }
 
