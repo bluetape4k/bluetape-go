@@ -293,11 +293,7 @@ func runLocalRateLimitBenchmark(b *testing.B, scenario string) {
 			b.Fatalf("seed local rejected bucket: %v", err)
 		}
 	}
-	preflightKey := "benchmark-key"
-	if scenario == "AllowAvailable" {
-		preflightKey = "preflight-key"
-	}
-	preflight, preflightErr := runSingleRateLimitAllow(limiter, preflightKey)
+	preflight, preflightErr := runSingleRateLimitAllow(limiter, "benchmark-key")
 	if err := errors.Join(preflightErr, verifyRateLimitScenarioWithLimits(scenario, preflight, burst, ratePerSecond)); err != nil {
 		b.Fatalf("preflight local token bucket %s: %v", scenario, err)
 	}
@@ -496,7 +492,7 @@ func verifyRateLimitScenarioWithLimits(
 		wantAvailable = 0
 	case "AllowParallel":
 		wantResults = rateLimitProviderWorkers
-		wantAvailable = int(rateLimitProviderCapacity)
+		wantAvailable = min(rateLimitProviderWorkers, int(capacity))
 	case "AllowDistinctKeys":
 		wantResults = rateLimitProviderWorkers
 		wantAvailable = rateLimitProviderWorkers
