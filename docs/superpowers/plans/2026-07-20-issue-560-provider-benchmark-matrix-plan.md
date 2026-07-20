@@ -61,6 +61,23 @@ services.
 | No public API/dependency/default change | Tasks 1-10 diff and module checks |
 | Full verification and P0/P1=0 | Tasks 10-11 |
 
+## Step 3-R Plan Review Record
+
+The review target was commit `7bb2a79`; repairs below are applied in the next plan commit.
+
+| Lens | Execution | Initial P0/P1 | Resolution |
+|---|---|---:|---|
+| Performance | Native lane timed out; main integration fallback performed | 0/3 | Defined the local leader baseline, separated expiry timing, and fixed Graph I/O/result-consumption boundaries |
+| Stability | Independent verifier lane | 0/4 | Added blocked-peer drain tests, exact-once lifecycle ordering, serial package gates, and bounded expiry policy |
+| Security | Independent code-reviewer lane | 0/2 | Verified exact digest references and made both success/failure capture sanitize before retention |
+| Operator/Ops | Native lane creation stalled; main integration fallback performed | 0/2 | Made service-version collection post-capture and made PNG rasterization deterministic/fail-closed |
+| Developer/API | Main-session equivalent after native runtime stall | 0/2 | Removed capture-name drift and avoided double container termination while retaining existing helpers |
+| User/caller | Main-session equivalent after native runtime stall | 0/1 | Kept README reproduction arguments exact and separated non-comparable chart/report sections |
+
+Main integration result after repair: `P0=0`, `P1=0`. The stalled native paths were not waited on
+again; the main session completed those read-only perspectives as required by the repository
+fallback rule.
+
 ### Task 1: Pin Container Provenance Without Changing Helper APIs
 
 **Files:**
@@ -74,15 +91,16 @@ services.
 
 - [ ] **Step 1: Resolve reviewed multi-architecture image digests**
 
-Use the reviewed multi-architecture index digests below. Before editing code, inspect each index
-and verify that it still contains both `linux/amd64` and `linux/arm64` descriptors:
+Use the reviewed multi-architecture index digests below. Before editing code, inspect each exact
+tag-plus-digest reference and verify that it contains both `linux/amd64` and `linux/arm64`
+descriptors:
 
 ```bash
-docker manifest inspect --verbose redis:7.4-alpine
-docker manifest inspect --verbose postgres:16-alpine
-docker manifest inspect --verbose mongo:7.0
-docker manifest inspect --verbose neo4j:5.26.0
-docker manifest inspect --verbose memgraph/memgraph:3.5.0
+docker manifest inspect --verbose redis:7.4-alpine@sha256:6ab0b6e7381779332f97b8ca76193e45b0756f38d4c0dcda72dbb3c32061ab99
+docker manifest inspect --verbose postgres:16-alpine@sha256:57c72fd2a128e416c7fcc499958864df5301e940bca0a56f58fddf30ffc07777
+docker manifest inspect --verbose mongo:7.0@sha256:340c1c56fb10e95cf79ff547f8664b96bc6ead9909bc355238cbf865a9695a6f
+docker manifest inspect --verbose neo4j:5.26.0@sha256:5a015e53de1895e7eee1574ae0325cf8c4b89587222778108c594bdd45a474b5
+docker manifest inspect --verbose memgraph/memgraph:3.5.0@sha256:b411deeb2341698f4f7a0d69535c8937c341e924f66962aa3e70acb63c7a5bd1
 ```
 
 | Image tag | Reviewed index digest |
@@ -93,8 +111,10 @@ docker manifest inspect --verbose memgraph/memgraph:3.5.0
 | `neo4j:5.26.0` | `sha256:5a015e53de1895e7eee1574ae0325cf8c4b89587222778108c594bdd45a474b5` |
 | `memgraph/memgraph:3.5.0` | `sha256:b411deeb2341698f4f7a0d69535c8937c341e924f66962aa3e70acb63c7a5bd1` |
 
-Expected: every command reports an index/manifest-list whose Linux descriptors include both
-architectures. Do not proceed if the reviewed digest no longer resolves or lacks either target.
+Expected: every exact reference resolves to an index/manifest-list whose Linux descriptors include
+both architectures. Separately resolve each mutable tag and record whether it still points at the
+reviewed index; tag drift is reported but cannot change the pinned code authority. Do not proceed
+if an exact reviewed digest no longer resolves or lacks either target.
 
 - [ ] **Step 2: Write failing image-authority tests**
 
@@ -102,6 +122,8 @@ Add same-package tests for the three shared helpers:
 
 ```go
 func TestDefaultImageIsImmutable(t *testing.T) {
+	const want = "redis:7.4-alpine@sha256:6ab0b6e7381779332f97b8ca76193e45b0756f38d4c0dcda72dbb3c32061ab99"
+	if defaultImage != want { t.Fatalf("defaultImage=%q want=%q", defaultImage, want) }
 	if !regexp.MustCompile(`^[^[:space:]@]+@sha256:[0-9a-f]{64}$`).MatchString(defaultImage) {
 		t.Fatalf("defaultImage is not digest pinned: %q", defaultImage)
 	}
@@ -115,7 +137,7 @@ In `graph/neo4j/benchmark_test.go`, introduce constants
 - [ ] **Step 3: Run tests and verify RED**
 
 ```bash
-go test -count=1 ./testcontainers/redis ./testcontainers/postgres ./testcontainers/mongodb ./graph/neo4j -run 'Test(DefaultImageIsImmutable|GraphBenchmarkImagesAreImmutable)'
+go test -p 1 -count=1 ./testcontainers/redis ./testcontainers/postgres ./testcontainers/mongodb ./graph/neo4j -run 'Test(DefaultImageIsImmutable|GraphBenchmarkImagesAreImmutable)'
 ```
 
 Expected: FAIL because current helper and GraphDB image strings are mutable tags.
@@ -136,7 +158,7 @@ retain the human-readable tag rather than rendering the full digest.
 
 ```bash
 gofmt -w testcontainers/redis/*.go testcontainers/postgres/*.go testcontainers/mongodb/*.go graph/neo4j/benchmark_test.go
-go test -count=1 ./testcontainers/redis ./testcontainers/postgres ./testcontainers/mongodb ./graph/neo4j
+go test -p 1 -count=1 ./testcontainers/redis ./testcontainers/postgres ./testcontainers/mongodb ./graph/neo4j
 ```
 
 Expected: PASS; no exported API diff.
@@ -188,10 +210,18 @@ func TestRunLeaderRoundJoinsEveryWorker(t *testing.T) {
 }
 
 func TestRunLeaderRoundCancelsAndDrainsOnError(t *testing.T) {
+	var active atomic.Int64
 	_, err := runLeaderRound(context.Background(),
 		leaderRoundOptions{workers: 8, attemptLimit: 100 * time.Millisecond, roundLimit: time.Second},
-		func(context.Context, string) (bool, error) { return false, errors.New("injected") })
+		func(ctx context.Context, member string) (bool, error) {
+			active.Add(1)
+			defer active.Add(-1)
+			if member == "member-0" { return false, errors.New("injected") }
+			<-ctx.Done()
+			return false, ctx.Err()
+		})
 	if err == nil { t.Fatal("expected error") }
+	if active.Load() != 0 { t.Fatalf("active=%d", active.Load()) }
 }
 ```
 
@@ -222,7 +252,13 @@ Redis/MongoDB/PostgreSQL fixtures must call existing `testcontainers/*` helpers.
 fixture copies only the current `leader/etcd` platform-digest selection, readiness, and
 client-close order because its fixture is package-private. Every fixture uses a 90-second startup
 context, 10-second operation contexts, internally generated 32-character lowercase-hex prefixes,
-and checked namespace/client cleanup.
+and checked namespace/client cleanup. For shared `StartServer` fixtures, register the
+benchmark-owned namespace/client coordinator after the server so LIFO cleanup performs
+`namespace -> client -> existing Started container cleanup` exactly once. The copied etcd fixture
+owns and checks its explicit `namespace -> client -> container` teardown. Every cleanup path uses
+an independently bounded `context.WithoutCancel` and surfaces joined errors.
+Before timing, each container fixture emits one sanitized `provider_version` and pinned
+`image_reference` line without endpoint, DSN, credential, container ID, or host-path fields.
 
 - [ ] **Step 4: Add exact latency benchmark rows**
 
@@ -232,6 +268,11 @@ Add:
 func BenchmarkProviderLeaderLocal(b *testing.B)
 func BenchmarkProviderLeaderContainers(b *testing.B)
 ```
+
+`BenchmarkProviderLeaderLocal` emits exactly
+`LocalHarness/CampaignContention/N=8` using a test-local atomic one-winner stub. It measures only
+the shared start-barrier/result-drain/join overhead, consumes every result through a test-local
+sink, and is labeled as a lower-bound concurrency-harness baseline rather than a provider.
 
 The container function gates on `BLUETAPE_LEADER_PROVIDER_BENCH=1` and emits:
 
@@ -248,8 +289,10 @@ etcd/{CampaignUncontended,ResignOwned,CampaignContention/N=8,LeaderLookup,Expiry
 
 Use a 30-second lease for non-expiry rounds, 5-second attempt bounds, 10-second round bounds,
 unique groups per round, `b.ReportAllocs()`, explicit `b.ResetTimer()`, and timer-paused
-cleanup. `ExpiryTakeover` uses the same intentionally shorter lease for every provider and stays
-in its own report/chart section.
+cleanup. `ExpiryTakeover` uses a one-second lease (the common etcd-compatible minimum), polls at
+25 milliseconds, and has a lease-plus-five-second observation bound. The capture script runs it
+separately with `-benchtime=1x -count=3`; it stays in its own raw/report/chart section rather than
+the ordinary 100-iteration latency command.
 
 - [ ] **Step 5: Add non-ranked correctness probes**
 
@@ -304,9 +347,17 @@ func TestRunRateLimitRoundJoinsWorkersAndCapsAllowed(t *testing.T) {
 }
 
 func TestRunRateLimitRoundDrainsAfterError(t *testing.T) {
+	var active atomic.Int64
 	_, err := runRateLimitRound(context.Background(), 8, time.Second,
-		func(context.Context, string) (ratelimit.Result, error) { return ratelimit.Result{}, errors.New("injected") })
+		func(ctx context.Context, key string) (ratelimit.Result, error) {
+			active.Add(1)
+			defer active.Add(-1)
+			if strings.HasSuffix(key, "-0") { return ratelimit.Result{}, errors.New("injected") }
+			<-ctx.Done()
+			return ratelimit.Result{}, ctx.Err()
+		})
 	if err == nil { t.Fatal("expected error") }
+	if active.Load() != 0 { t.Fatalf("active=%d", active.Load()) }
 }
 ```
 
@@ -332,6 +383,17 @@ Redis and PostgreSQL emit `AllowAvailable`, `AllowRejected`, `AllowParallel/N=8`
 hex namespace, timer-paused seed/reset, fresh 10-second contexts, and checks that same-key allowed
 count never exceeds capacity. Gate containers on
 `BLUETAPE_RATELIMIT_PROVIDER_BENCH=1`.
+
+Each container fixture calls the existing `StartServer`, whose container cleanup is registered
+first. Register one benchmark-owned cleanup coordinator afterward; Go's LIFO cleanup order then
+proves `namespace deletion -> client close -> existing Started container cleanup`, without a
+second `Terminate` call. Give the coordinator an independently bounded `context.WithoutCancel`,
+join and surface its lifecycle errors, and let the existing server cleanup report termination
+errors. Add a fake coordinator test that records namespace/client order and injects one error at
+each stage to prove the later stage still runs and the combined error is returned; rely on the
+existing `testcontainers/server` tests for the final registered container cleanup.
+Emit the sanitized Redis/PostgreSQL `provider_version` and pinned `image_reference` once before
+timing.
 
 - [ ] **Step 4: Run focused tests and local smoke**
 
@@ -411,6 +473,14 @@ serialization only at L2, and no batch-put row. Assert the report later records
 readiness before timing, measure publish-to-peer-eviction observation, use the two-second bound,
 surface subscriber errors, and check every `Close`.
 
+The Redis fixture calls existing `StartServer` first, then registers one benchmark-owned cleanup
+coordinator. LIFO cleanup yields `namespace deletion -> near-cache/subscriber close -> Redis client
+close -> existing Started container cleanup`, without double termination. Give the coordinator an
+independently bounded `context.WithoutCancel`, join and surface every coordinator error, and rely on
+the existing server cleanup to report termination errors. Add a fake coordinator test with injected
+errors to prove later stages still execute and the combined error is returned.
+Emit the sanitized Redis `provider_version` and pinned `image_reference` once before timing.
+
 - [ ] **Step 4: Run focused tests, local smoke, and race**
 
 ```bash
@@ -452,7 +522,9 @@ func TestBenchmarkFormatsRoundTripEquivalentRecords(t *testing.T) {
 	for _, format := range benchmarkGraphFormats() {
 		encoded := format.write(t, records)
 		decoded := format.read(t, encoded)
-		if diff := cmp.Diff(records, decoded); diff != "" { t.Fatalf("%s (-want +got):\n%s", format.name, diff) }
+		want := normalizeBenchmarkRecords(records)
+		got := normalizeBenchmarkRecords(decoded)
+		if diff := cmp.Diff(want, got); diff != "" { t.Fatalf("%s (-want +got):\n%s", format.name, diff) }
 	}
 }
 ```
@@ -477,8 +549,10 @@ func BenchmarkGraphIOFormats(b *testing.B)
 Emit `Small/100V-200E-3P`, `Medium/10000V-20000E-5P`, and
 `WideProperties/1000V-2000E-20P` under each format with `Write`, `Read`,
 `RoundTrip`, and `RecordConstructionBaseline`. Pause timing for fixture byte generation,
-call `b.SetBytes(totalEncodedBytes)`, report allocations, and assert record counts plus
-representative IDs. Never subtract the construction baseline to invent parser-only numbers.
+call `b.SetBytes(totalEncodedBytes)` only for Write/Read/RoundTrip, report allocations, consume
+each timed result through test-local sinks, and assert normalized record counts plus representative
+IDs after timing. `RecordConstructionBaseline` has no MB/s value because it consumes no encoded
+bytes. Never subtract the construction baseline to invent parser-only numbers.
 
 - [ ] **Step 4: Run focused tests and smoke**
 
@@ -555,7 +629,12 @@ Neo4j and Memgraph use the same parameterized Cypher subset and official Testcon
 modules/request. PostgreSQL uses `testcontainers/postgres`, a benchmark-owned schema, indexed
 `vertices(id)` and `edges(from_id,to_id)`, and a parameterized recursive CTE. No ambient DSN
 or endpoint is accepted. All runtimes verify expected IDs before `b.ResetTimer()`, use fresh
-10-second query contexts, then checked cleanup/client/container shutdown.
+10-second query contexts, then checked cleanup/client/container shutdown. PostgreSQL uses the
+existing `StartServer` registration and a later benchmark-owned schema/client coordinator so LIFO
+cleanup terminates the container exactly once. Neo4j/Memgraph own their raw Testcontainers
+termination. All three paths use independently bounded `context.WithoutCancel` cleanup and surface
+joined errors.
+Emit each sanitized database `provider_version` and pinned `image_reference` once before timing.
 
 - [ ] **Step 4: Add exact traversal benchmark**
 
@@ -619,6 +698,7 @@ assert_failure_preserves_previous_success
 assert_failure_writes_timestamped_failure_output
 assert_unknown_family_fails_before_command
 assert_secret_pattern_blocks_canonical_output
+assert_secret_bearing_failure_is_sanitized_before_retention
 assert_command_timestamp_sha_and_exit_status_headers_exist
 ```
 
@@ -641,13 +721,39 @@ cache-local cache-redis
 graphio graphdb
 ```
 
+Map those names to these exact commands; no caller-supplied command fragment is accepted:
+
+```text
+leader-local: go test -timeout=10m -run ^$ -bench ^BenchmarkProviderLeaderLocal$ -benchmem -count=5 ./leader
+leader-containers[ordinary]: env BLUETAPE_LEADER_PROVIDER_BENCH=1 go test -timeout=30m -p 1 -run ^$ -bench ^BenchmarkProviderLeaderContainers$/(Redis|MongoDB|PostgreSQL|etcd)/(CampaignUncontended|ResignOwned|CampaignContention|LeaderLookup)$ -benchtime=100x -count=3 -benchmem ./leader
+leader-containers[expiry]: env BLUETAPE_LEADER_PROVIDER_BENCH=1 go test -timeout=10m -p 1 -run ^$ -bench ^BenchmarkProviderLeaderContainers$/(Redis|MongoDB|PostgreSQL|etcd)/ExpiryTakeover$ -benchtime=1x -count=3 -benchmem ./leader
+leader-probes: env BLUETAPE_LEADER_PROVIDER_BENCH=1 go test -timeout=15m -p 1 -run ^TestProviderLeaderBenchmarkProbes$ ./leader
+ratelimit-local: go test -timeout=10m -run ^$ -bench ^BenchmarkProviderRateLimitLocal$ -benchmem -count=5 ./ratelimit
+ratelimit-containers: env BLUETAPE_RATELIMIT_PROVIDER_BENCH=1 go test -timeout=30m -p 1 -run ^$ -bench ^BenchmarkProviderRateLimitContainers$ -benchtime=100x -count=3 -benchmem ./ratelimit
+cache-local: go test -timeout=10m -run ^$ -bench ^BenchmarkProviderCacheLocal$ -benchmem -count=5 ./cache
+cache-redis: env BLUETAPE_CACHE_PROVIDER_BENCH=1 go test -timeout=30m -p 1 -run ^$ -bench ^BenchmarkProviderCacheRedis$ -benchtime=100x -count=3 -benchmem ./cache
+graphio: go test -timeout=10m -run ^$ -bench ^BenchmarkGraphIOFormats$ -benchmem -count=5 ./graph/graphio
+graphdb: env BLUETAPE_GRAPH_PROVIDER_BENCH=1 go test -timeout=30m -p 1 -run ^$ -bench ^BenchmarkGraphProviderTraversalContainers$ -benchtime=100x -count=3 -benchmem ./graph
+```
+
+In the shell implementation, each token above is passed through `set --` and `"$@"`; the display
+header re-quotes those fixed tokens for readability. The bracketed leader labels identify the two
+fixed commands written to the single `leader-containers.txt` artifact and are not CLI arguments.
+
 The script uses `set -eu`, a cleanup trap, an output-directory override only for its own tracked
 artifact destination, and a `case` that stores commands as positional arguments rather than
 `eval`. It writes command, UTC timestamp, Git SHA, pre-run clean state, combined stdout/stderr,
-and exit status to a temporary file. It rejects a dirty pre-run tree except the documented
-artifact-output directory. On success it runs the allowlisted secret-pattern scanner and atomically
-renames the file. On failure it retains a timestamped `*-failed-*.txt`, preserves the previous
-canonical file, and exits non-zero.
+and exit status to a mode-`0700` temporary directory outside the repository. It rejects a dirty
+pre-run tree except the documented artifact-output directory. On success it scans the private
+stream, copies only sanitized content to an artifact-local temporary file, rescans it, and
+atomically renames it. On failure it applies the same sanitize-and-rescan pipeline before retaining
+a timestamped `*-failed-*.txt`; if prohibited content survives, retain metadata with
+`redaction_status: blocked` but discard the stream body. Preserve the previous canonical file and
+return the original non-zero status in all failure cases.
+
+For `leader-containers`, execute and record two allowlisted commands in order: ordinary rows with
+`-benchtime=100x -count=3` while excluding `ExpiryTakeover`, then only `ExpiryTakeover` with
+`-benchtime=1x -count=3`. A failure in either command makes the whole family capture fail.
 
 - [ ] **Step 3: Verify GREEN and shell syntax**
 
@@ -656,7 +762,7 @@ bash -n scripts/capture-provider-benchmark.sh scripts/capture-provider-benchmark
 bash scripts/capture-provider-benchmark_test.sh
 ```
 
-Expected: PASS with all six named assertions.
+Expected: PASS with all seven named assertions.
 
 - [ ] **Step 4: Commit code before measurements**
 
@@ -688,12 +794,13 @@ docker info
 Expected: empty Git status; record only allowlisted environment fields. Do not paste full
 `docker info` into the artifact.
 
-- [ ] **Step 2: Write the sanitized environment manifest**
+- [ ] **Step 2: Write the sanitized host/runtime portion of the environment manifest**
 
 Record UTC/local timestamp and timezone, OS/kernel/arch, CPU model, logical CPUs, RAM, Go version,
-Git SHA and clean pre-run state, Docker client/server/platform, each configured tag/resolved digest,
-and provider-reported version. Never record DSNs, endpoints, container IDs, host paths, registry
-credentials, proxy configuration, or the complete environment.
+Git SHA and clean pre-run state, Docker client/server/platform, and each configured
+tag-plus-reviewed-digest. Never record DSNs, endpoints, container IDs, host paths, registry
+credentials, proxy configuration, or the complete environment. Provider-reported versions are
+added only after successful container captures; do not write placeholder values.
 
 - [ ] **Step 3: Run local families**
 
@@ -720,14 +827,21 @@ Expected: each command exits 0 before the next begins. If any command fails, pre
 artifact, stop downstream reporting for that family, repair the benchmark/fixture in its owning
 task, commit, return to a clean HEAD, and rerun every affected family.
 
+After all five container commands succeed, parse the allowlisted `provider_version` fields from
+their canonical outputs into `environment.md`; fail if any executed provider is missing, duplicated,
+or inconsistent across families.
+
 - [ ] **Step 5: Validate evidence integrity**
 
 ```bash
-rg -n 'exit_status: 0' docs/research/outputs/issue-560
-rg -n '(://[^/@[:space:]]+:[^/@[:space:]]+@|(?i)(password|passwd|token|secret|authorization)[=:][^[:space:]]+)' docs/research/outputs/issue-560
+test "$(find docs/research/outputs/issue-560 -maxdepth 1 -name '*.txt' ! -name '*-failed-*' | wc -l | tr -d ' ')" -eq 9
+test "$(rg --no-filename '^exit_status: 0$' docs/research/outputs/issue-560/*.txt | wc -l | tr -d ' ')" -eq 10
+if rg -n '^exit_status: [^0]' docs/research/outputs/issue-560/*.txt; then exit 1; fi
+if rg -n '(://[^/@[:space:]]+:[^/@[:space:]]+@|(?i)(password|passwd|token|secret|authorization)[=:][^[:space:]]+)' docs/research/outputs/issue-560; then exit 1; fi
 ```
 
-Expected: every canonical output has exit status 0; the secret scan has no matches. Manually
+Expected: exactly nine canonical files and ten zero exit headers because `leader-containers` has
+two fixed command sections; no non-zero canonical header; the secret scan has no matches. Manually
 confirm row counts and min/median/max availability for all container scenarios.
 
 - [ ] **Step 6: Commit raw evidence**
@@ -767,14 +881,19 @@ node docs/images/readme-charts/generate-provider-benchmark-summaries.mjs --self-
 ```
 
 Expected before parser implementation: FAIL. The GREEN self-test covers one valid fixture and
-unknown/missing/duplicate/non-finite/error-exit fixtures.
+one valid two-command leader fixture plus unknown/missing/duplicate/non-finite/error-exit fixtures.
+The parser treats command sections independently, requires the exact expected section count, and
+never merges ordinary leader latency samples with `ExpiryTakeover` samples.
 
 - [ ] **Step 3: Generate five family chart sets**
 
 Produce leader, rate limiter, cache, graph I/O, and GraphDB chart sets. Chart only equivalent
 latency rows, keep `ExpiryTakeover` separate, use min/median/max or error bars for container
 samples, label units, provide sufficient contrast and direct provider labels/patterns, and never
-depend on color alone. Keep allocation/density details in tables rather than mixing units.
+depend on color alone. Keep allocation/density details in tables rather than mixing units. Use
+repository-relative data paths and portable system font stacks; do not embed user-home font paths.
+The generator writes Vega-Lite JSON and SVG directly, invokes `rsvg-convert` with fixed dimensions
+to produce each PNG, and fails clearly if rasterization is unavailable.
 
 - [ ] **Step 4: Visually inspect rendered assets**
 
@@ -808,8 +927,8 @@ scripts/capture-provider-benchmark.sh leader-local
 ```
 
 The accepted family argument is exactly one of `leader-local`, `leader-containers`,
-`ratelimit-local`, `ratelimit-containers`, `cache-local`, `cache-redis`, `graphio-local`,
-`graph-provider-containers`, or `leader-probes`.
+`ratelimit-local`, `ratelimit-containers`, `cache-local`, `cache-redis`, `graphio`, `graphdb`,
+or `leader-probes`.
 
 Explain in each locale that results are short local snapshots and should not be copied as
 production rankings. Do not duplicate result numbers in README.
@@ -852,9 +971,9 @@ file/command evidence and explain when the pattern is `N/A`.
 - [ ] **Step 2: Run targeted package and script validation**
 
 ```bash
-go test -count=1 ./testcontainers/redis ./testcontainers/postgres ./testcontainers/mongodb
-go test -count=1 ./leader ./ratelimit ./cache ./graph ./graph/graphio ./graph/neo4j
-go test -race -count=1 ./leader ./ratelimit ./cache ./graph ./graph/graphio
+go test -p 1 -count=1 ./testcontainers/redis ./testcontainers/postgres ./testcontainers/mongodb
+go test -p 1 -count=1 ./leader ./ratelimit ./cache ./graph ./graph/graphio ./graph/neo4j
+go test -p 1 -race -count=1 ./leader ./ratelimit ./cache ./graph ./graph/graphio
 bash -n scripts/capture-provider-benchmark.sh scripts/capture-provider-benchmark_test.sh
 bash scripts/capture-provider-benchmark_test.sh
 node docs/images/readme-charts/generate-provider-benchmark-summaries.mjs --self-test
@@ -900,7 +1019,7 @@ before changing production code.
 ```bash
 node docs/images/readme-charts/generate-provider-benchmark-summaries.mjs
 git diff --exit-code -- docs/images/readme-charts
-rg -n '(://[^/@[:space:]]+:[^/@[:space:]]+@|(?i)(password|passwd|token|secret|authorization)[=:][^[:space:]]+)' docs/research/outputs/issue-560
+if rg -n '(://[^/@[:space:]]+:[^/@[:space:]]+@|(?i)(password|passwd|token|secret|authorization)[=:][^[:space:]]+)' docs/research/outputs/issue-560; then exit 1; fi
 git status --short
 ```
 

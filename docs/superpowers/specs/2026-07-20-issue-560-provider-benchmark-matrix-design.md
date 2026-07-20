@@ -204,6 +204,9 @@ contention과 runtime을 포함한다. 보고서는 다음 세 범주를 분리�
 
 `leader/provider_benchmark_test.go`는 package `leader_test`에서 Redis, MongoDB,
 PostgreSQL, etcd provider를 생성하고 위 lifecycle matrix의 helper/contract를 사용한다.
+`BenchmarkProviderLeaderLocal/LocalHarness/CampaignContention/N=8`은 실제 provider가 아닌
+test-local atomic one-winner stub으로 barrier-to-join harness overhead만 측정한다. 이 row는
+API/동시성 하한선이며 distributed provider 순위나 기능 근거로 사용하지 않는다.
 
 | 시나리오 | 분류 | 의미와 검증 |
 |---|---|---|
@@ -293,6 +296,9 @@ store/builder가 없다. 따라서 `Read`는 parser+record materialization end-t
 `RecordConstructionBaseline`은 동일 record set을 bytes parsing 없이 생성하는 하한선이다.
 두 수치를 빼서 parser-only 비용이라고 주장하지 않으며 graph-store construction은
 `N/A: no shared construction API`로 명시한다.
+`MB/s`는 실제 encoded bytes를 소비하는 Write/Read/RoundTrip에만 보고하고,
+`RecordConstructionBaseline`에는 적용하지 않는다. 모든 timed loop는 결과를 test-local
+sink에 소비하고 timer 밖에서 불변식을 재확인해 compiler 제거를 방지한다.
 
 ### GraphDB
 
@@ -336,7 +342,8 @@ go test -timeout=10m -run '^$' -bench '^BenchmarkProviderRateLimitLocal$' -bench
 go test -timeout=10m -run '^$' -bench '^BenchmarkProviderCacheLocal$' -benchmem -count=5 ./cache
 go test -timeout=10m -run '^$' -bench '^BenchmarkGraphIOFormats$' -benchmem -count=5 ./graph/graphio
 
-BLUETAPE_LEADER_PROVIDER_BENCH=1 go test -timeout=30m -p 1 -run '^$' -bench '^BenchmarkProviderLeaderContainers$' -benchtime=100x -count=3 -benchmem ./leader
+BLUETAPE_LEADER_PROVIDER_BENCH=1 go test -timeout=30m -p 1 -run '^$' -bench '^BenchmarkProviderLeaderContainers$/(Redis|MongoDB|PostgreSQL|etcd)/(CampaignUncontended|ResignOwned|CampaignContention|LeaderLookup)$' -benchtime=100x -count=3 -benchmem ./leader
+BLUETAPE_LEADER_PROVIDER_BENCH=1 go test -timeout=10m -p 1 -run '^$' -bench '^BenchmarkProviderLeaderContainers$/(Redis|MongoDB|PostgreSQL|etcd)/ExpiryTakeover$' -benchtime=1x -count=3 -benchmem ./leader
 BLUETAPE_LEADER_PROVIDER_BENCH=1 go test -timeout=15m -p 1 -run '^TestProviderLeaderBenchmarkProbes$' ./leader
 BLUETAPE_RATELIMIT_PROVIDER_BENCH=1 go test -timeout=30m -p 1 -run '^$' -bench '^BenchmarkProviderRateLimitContainers$' -benchtime=100x -count=3 -benchmem ./ratelimit
 BLUETAPE_CACHE_PROVIDER_BENCH=1 go test -timeout=30m -p 1 -run '^$' -bench '^BenchmarkProviderCacheRedis$' -benchtime=100x -count=3 -benchmem ./cache
@@ -346,10 +353,12 @@ BLUETAPE_GRAPH_PROVIDER_BENCH=1 go test -timeout=30m -p 1 -run '^$' -bench '^Ben
 환경 변수 하나는 한 family만 제어한다. 일반 `go test ./...`와 `make ci`는 container
 benchmark를 실행하지 않는다. `scripts/capture-provider-benchmark.sh <family>`를 단일
 재현/capture entry point로 추가한다. 이 script는 위 allowlisted command만 실행하고,
-command/UTC timestamp/Git SHA header, combined stdout/stderr와 exit status를 임시 파일에
-기록한다. 성공한 전체 실행만 canonical `.txt`로 atomic rename한다. 실패 output은
+command/UTC timestamp/Git SHA header, combined stdout/stderr와 exit status를 repository 밖의
+private 임시 파일에 기록한다. 성공한 전체 실행만 redaction scan 후 canonical `.txt`로
+atomic rename한다. 실패 output도 먼저 고정 규칙으로 sanitize하고 재검사한 뒤
 `<family>-failed-<timestamp>.txt`에 보존하며 마지막 성공 artifact를 덮어쓰지 않는다.
-script 자체가 non-zero exit를 그대로 반환하고 raw artifact redaction scan도 실행한다.
+정제 후에도 금지 패턴이 남으면 output 본문은 폐기하고 command/exit/redaction-blocked
+metadata만 보존한다. script 자체는 원래 non-zero exit를 그대로 반환한다.
 
 ## Artifact 구조
 
