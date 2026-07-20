@@ -1,6 +1,6 @@
 # Issue #560 Provider Benchmark Matrix Design
 
-Status: Step 2-R converged; awaiting written spec review
+Status: Approved on 2026-07-20 after Step 2-R convergence
 Issue: [#560](https://github.com/bluetape4k/bluetape-go/issues/560)
 Milestone: `0.19.0`
 Target branch: `perf/issue-560-provider-benchmark-matrix`
