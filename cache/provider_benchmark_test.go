@@ -4,6 +4,7 @@ import (
 	"context"
 	"crypto/rand"
 	"encoding/hex"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"os"
@@ -45,6 +46,8 @@ var cachePayloadProfiles = []cachePayloadProfile{
 	{name: "4KiB", size: 4 << 10},
 }
 
+var benchmarkCacheHexID = regexp.MustCompile(`^[0-9a-f]{32}$`)
+
 var (
 	cacheProviderRecordSink *benchmarkCacheRecord
 	cacheProviderBytesSink  []byte
@@ -69,6 +72,39 @@ func newBenchmarkCacheID() (string, error) {
 		return "", fmt.Errorf("generate cache benchmark id: %w", err)
 	}
 	return hex.EncodeToString(value[:]), nil
+}
+
+// benchmarkNearInvalidation is a test-only mirror of redisnear's private
+// version-1 set envelope and default channel grammar. The pure protocol test
+// below intentionally fails closed if this reviewed wire shape drifts.
+func benchmarkNearInvalidation(namespace, originID, key string) (string, []byte, error) {
+	if !benchmarkCacheHexID.MatchString(namespace) {
+		return "", nil, errors.New("benchmark near-cache namespace must be a lowercase-hex ID")
+	}
+	if !benchmarkCacheHexID.MatchString(originID) {
+		return "", nil, errors.New("benchmark near-cache origin must be a lowercase-hex ID")
+	}
+	if !benchmarkCacheHexID.MatchString(key) {
+		return "", nil, errors.New("benchmark near-cache key must be a lowercase-hex ID")
+	}
+	message := struct {
+		Version   int    `json:"version"`
+		Namespace string `json:"namespace"`
+		OriginID  string `json:"originID"`
+		Operation string `json:"operation"`
+		Key       string `json:"key"`
+	}{
+		Version:   1,
+		Namespace: namespace,
+		OriginID:  originID,
+		Operation: "set",
+		Key:       key,
+	}
+	payload, err := json.Marshal(message)
+	if err != nil {
+		return "", nil, fmt.Errorf("encode benchmark near-cache invalidation: %w", err)
+	}
+	return "bluetape:cache:near:" + namespace + ":invalidate", payload, nil
 }
 
 func observePeerInvalidation(ctx context.Context, invalidated func() bool) error {
@@ -230,6 +266,9 @@ func (resources *cacheProviderNearResources) add(cacheClose func() error, collec
 }
 
 func (resources *cacheProviderNearResources) closeAll(ctx context.Context) error {
+	if ctx == nil {
+		ctx = context.Background()
+	}
 	resources.mu.Lock()
 	owned := append([]cacheProviderNearResource(nil), resources.resources...)
 	resources.mu.Unlock()
@@ -245,10 +284,20 @@ func (resources *cacheProviderNearResources) closeAll(ctx context.Context) error
 		}()
 	}
 	var joined error
-	for range owned {
-		joined = errors.Join(joined, <-results)
+	completed := 0
+	for completed < len(owned) {
+		select {
+		case closeErr := <-results:
+			joined = errors.Join(joined, closeErr)
+			completed++
+		case <-ctx.Done():
+			return errors.Join(
+				joined,
+				fmt.Errorf("close near-cache resources: completed=%d total=%d: %w", completed, len(owned), ctx.Err()),
+			)
+		}
 	}
-	return errors.Join(joined, ctx.Err())
+	return joined
 }
 
 type cacheProviderFixture struct {
@@ -799,8 +848,13 @@ func runNearCacheBenchmark(b *testing.B, fixture *cacheProviderFixture, scenario
 	namespace := mustBenchmarkCacheID(b)
 	value := benchmarkCacheValue(payloadSize)
 	key := mustBenchmarkCacheID(b)
+	originA := mustBenchmarkCacheID(b)
+	channel, peerPayload, err := benchmarkNearInvalidation(namespace, originA, key)
+	if err != nil {
+		b.Fatalf("derive near-cache benchmark protocol: %v", err)
+	}
 	localA := btcache.NewMemory[string, *benchmarkCacheRecord]()
-	nearA, errorsA, err := newBenchmarkNearCache(fixture, namespace, localA)
+	nearA, errorsA, err := newBenchmarkNearCache(fixture, namespace, channel, originA, localA)
 	if err != nil {
 		b.Fatalf("new near cache: %v", err)
 	}
@@ -809,7 +863,7 @@ func runNearCacheBenchmark(b *testing.B, fixture *cacheProviderFixture, scenario
 	var errorsB *nearErrorCollector
 	if scenario == "PeerInvalidation" {
 		localB = btcache.NewMemory[string, *benchmarkCacheRecord]()
-		nearB, errorsB, err = newBenchmarkNearCache(fixture, namespace, localB)
+		nearB, errorsB, err = newBenchmarkNearCache(fixture, namespace, channel, mustBenchmarkCacheID(b), localB)
 		if err != nil {
 			b.Fatalf("new peer near cache: %v", err)
 		}
@@ -832,6 +886,13 @@ func runNearCacheBenchmark(b *testing.B, fixture *cacheProviderFixture, scenario
 		case "PeerInvalidation":
 			ctx, cancel := cacheProviderOperationContext()
 			err = localB.Set(ctx, key, value, cacheProviderTTL)
+			if err == nil {
+				var primed *benchmarkCacheRecord
+				primed, err = nearB.Get(ctx, key)
+				if err == nil && primed != value {
+					err = errors.New("peer near-cache prime did not preserve the decoded reference")
+				}
+			}
 			cancel()
 		}
 		if err != nil {
@@ -842,16 +903,9 @@ func runNearCacheBenchmark(b *testing.B, fixture *cacheProviderFixture, scenario
 		observationCtx, observationCancel := context.WithTimeout(opCtx, cacheProviderObservationLimit)
 		var got *benchmarkCacheRecord
 		var observationErr error
-		b.StartTimer()
-		switch scenario {
-		case "LocalHit", "LocalMiss":
-			got, err = nearA.Get(opCtx, key)
-		case "PublishSet":
-			err = nearA.Set(opCtx, key, value, cacheProviderTTL)
-		case "PublishDelete":
-			err = nearA.Delete(opCtx, key)
-		case "PeerInvalidation":
-			err = nearA.Set(opCtx, key, value, cacheProviderTTL)
+		if scenario == "PeerInvalidation" {
+			b.StartTimer()
+			err = fixture.client.Publish(opCtx, channel, peerPayload).Err()
 			if err == nil {
 				err = observePeerInvalidation(observationCtx, func() bool {
 					_, getErr := nearB.Get(opCtx, key)
@@ -865,10 +919,21 @@ func runNearCacheBenchmark(b *testing.B, fixture *cacheProviderFixture, scenario
 					return false
 				})
 			}
-		default:
-			err = fmt.Errorf("unknown near-cache scenario %q", scenario)
+			b.StopTimer()
+		} else {
+			b.StartTimer()
+			switch scenario {
+			case "LocalHit", "LocalMiss":
+				got, err = nearA.Get(opCtx, key)
+			case "PublishSet":
+				err = nearA.Set(opCtx, key, value, cacheProviderTTL)
+			case "PublishDelete":
+				err = nearA.Delete(opCtx, key)
+			default:
+				err = fmt.Errorf("unknown near-cache scenario %q", scenario)
+			}
+			b.StopTimer()
 		}
-		b.StopTimer()
 		observationCancel()
 		opCancel()
 
@@ -896,11 +961,12 @@ func runNearCacheBenchmark(b *testing.B, fixture *cacheProviderFixture, scenario
 func newBenchmarkNearCache(
 	fixture *cacheProviderFixture,
 	namespace string,
+	channel string,
+	originID string,
 	local *btcache.Memory[string, *benchmarkCacheRecord],
 ) (*redisnear.NearCache[*benchmarkCacheRecord], *nearErrorCollector, error) {
-	originID, err := newBenchmarkCacheID()
-	if err != nil {
-		return nil, nil, err
+	if !benchmarkCacheHexID.MatchString(namespace) || !benchmarkCacheHexID.MatchString(originID) || strings.TrimSpace(channel) == "" {
+		return nil, nil, errors.New("invalid near-cache benchmark subscription identity")
 	}
 	collector := &nearErrorCollector{}
 	ctx, cancel := cacheProviderOperationContext()
@@ -908,6 +974,7 @@ func newBenchmarkNearCache(
 	near, err := redisnear.NewPubSub(ctx, redisnear.Options[*benchmarkCacheRecord]{
 		Client:    fixture.client,
 		Namespace: namespace,
+		Channel:   channel,
 		OriginID:  originID,
 		Local:     local,
 		OnError:   collector.report,
@@ -996,5 +1063,95 @@ func TestCacheProviderCleanupRunsEveryStageOnceInOrder(t *testing.T) {
 	}
 	if want := []string{"namespace", "near", "client"}; !reflect.DeepEqual(calls, want) {
 		t.Fatalf("cleanup calls = %v, want %v", calls, want)
+	}
+}
+
+func TestCacheProviderNearResourcesReturnsBoundedTimeoutAndAllowsRogueCloseToJoin(t *testing.T) {
+	release := make(chan struct{})
+	rogueDone := make(chan struct{})
+	resources := &cacheProviderNearResources{}
+	resources.add(func() error {
+		defer close(rogueDone)
+		<-release
+		return nil
+	}, nil)
+
+	ctx, cancel := context.WithTimeout(context.Background(), 20*time.Millisecond)
+	defer cancel()
+	result := make(chan error, 1)
+	go func() { result <- resources.closeAll(ctx) }()
+
+	select {
+	case err := <-result:
+		if !errors.Is(err, context.DeadlineExceeded) || !strings.Contains(err.Error(), "completed=0 total=1") {
+			t.Fatalf("bounded close error = %v", err)
+		}
+	case <-time.After(100 * time.Millisecond):
+		close(release)
+		<-rogueDone
+		<-result
+		t.Fatal("near-resource close did not return within its context bound")
+	}
+
+	close(release)
+	select {
+	case <-rogueDone:
+	case <-time.After(time.Second):
+		t.Fatal("rogue close goroutine did not join after release")
+	}
+}
+
+func TestCacheProviderNearResourcesCollectsEveryCloseAndSubscriberError(t *testing.T) {
+	closeAErr := errors.New("close-a")
+	closeBErr := errors.New("close-b")
+	subscriberErr := errors.New("subscriber")
+	collector := &nearErrorCollector{}
+	collector.report(context.Background(), subscriberErr)
+	var calls atomic.Int64
+	resources := &cacheProviderNearResources{}
+	resources.add(func() error {
+		calls.Add(1)
+		return closeAErr
+	}, collector)
+	resources.add(func() error {
+		calls.Add(1)
+		return closeBErr
+	}, nil)
+
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
+	defer cancel()
+	err := resources.closeAll(ctx)
+	if calls.Load() != 2 || !errors.Is(err, closeAErr) || !errors.Is(err, closeBErr) || !errors.Is(err, subscriberErr) {
+		t.Fatalf("normal close calls/error = %d/%v", calls.Load(), err)
+	}
+}
+
+func TestBenchmarkNearInvalidationMirrorsProductionProtocol(t *testing.T) {
+	const (
+		namespace = "0123456789abcdef0123456789abcdef"
+		originID  = "abcdef0123456789abcdef0123456789"
+		key       = "11111111111111111111111111111111"
+	)
+	channel, payload, err := benchmarkNearInvalidation(namespace, originID, key)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if want := "bluetape:cache:near:" + namespace + ":invalidate"; channel != want {
+		t.Fatalf("channel = %q, want %q", channel, want)
+	}
+	if want := `{"version":1,"namespace":"0123456789abcdef0123456789abcdef","originID":"abcdef0123456789abcdef0123456789","operation":"set","key":"11111111111111111111111111111111"}`; string(payload) != want {
+		t.Fatalf("payload = %q, want %q", payload, want)
+	}
+
+	for name, input := range map[string][3]string{
+		"namespace": {"", originID, key},
+		"origin":    {namespace, "NOT-LOWER-HEX", key},
+		"key":       {namespace, originID, ""},
+	} {
+		t.Run(name, func(t *testing.T) {
+			if _, _, err := benchmarkNearInvalidation(input[0], input[1], input[2]); err == nil {
+				t.Fatal("invalid protocol input was accepted")
+			}
+		})
 	}
 }
