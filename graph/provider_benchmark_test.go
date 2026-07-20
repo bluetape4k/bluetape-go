@@ -251,9 +251,9 @@ func BenchmarkGraphProviderTraversalContainers(b *testing.B) {
 	for _, factory := range factories {
 		b.Run(factory.name, func(b *testing.B) {
 			runtime, metadata := factory.open(b)
-			b.Logf("provider_version=%q image_reference=%q", sanitizeGraphProviderMetadata(metadata.providerVersion), sanitizeGraphProviderMetadata(metadata.imageReference))
 			for _, shape := range shapes {
 				b.Run(shape.name, func(b *testing.B) {
+					b.Logf("provider_version=%q image_reference=%q", sanitizeGraphProviderMetadata(metadata.providerVersion), sanitizeGraphProviderMetadata(metadata.imageReference))
 					benchmarkTraversalRuntime(b, runtime, shape)
 				})
 			}
