@@ -352,6 +352,20 @@ func newRedisProviderFixture(tb testing.TB, lease time.Duration) leaderProviderF
 		_ = control.Close()
 		tb.Fatalf("ping redis provider: %v", err)
 	}
+	serverInfo, err := control.Info(ctx, "server").Result()
+	if err != nil {
+		_ = control.Close()
+		tb.Fatalf("query Redis provider version: %v", err)
+	}
+	providerVersion, err := parseRedisProviderVersion(serverInfo)
+	if err != nil {
+		_ = control.Close()
+		tb.Fatal(err)
+	}
+	if !providerVersionMatchesAuthority(providerVersion, "7.4") {
+		_ = control.Close()
+		tb.Fatalf("Redis provider version %q does not match pinned image authority %q", sanitizeProviderMetadata(providerVersion), "7.4")
+	}
 	prefix := mustProviderID(tb)
 	registry := newProviderResourceRegistry()
 	backendCleanup := func(ctx context.Context, group string) error {
@@ -377,7 +391,7 @@ func newRedisProviderFixture(tb testing.TB, lease time.Duration) leaderProviderF
 	}
 	fixture := leaderProviderFixture{
 		name:            "Redis",
-		providerVersion: "7.4",
+		providerVersion: providerVersion,
 		imageReference:  "redis:7.4-alpine@sha256:6ab0b6e7381779332f97b8ca76193e45b0756f38d4c0dcda72dbb3c32061ab99",
 		newElector: func(member, group string) (leader.Elector, error) {
 			client := redis.NewClient(&redis.Options{Addr: address})
@@ -459,6 +473,18 @@ func newMongoProviderFixture(tb testing.TB, lease time.Duration) leaderProviderF
 		_ = control.Disconnect(context.Background())
 		tb.Fatalf("ping mongodb provider: %v", err)
 	}
+	var buildInfo struct {
+		Version string `bson:"version"`
+	}
+	if err := control.Database("admin").RunCommand(ctx, bson.D{{Key: "buildInfo", Value: 1}}).Decode(&buildInfo); err != nil {
+		_ = control.Disconnect(context.Background())
+		tb.Fatalf("query MongoDB provider version: %v", err)
+	}
+	providerVersion := strings.TrimSpace(buildInfo.Version)
+	if !providerVersionMatchesAuthority(providerVersion, "7.0") {
+		_ = control.Disconnect(context.Background())
+		tb.Fatalf("MongoDB provider version %q does not match pinned image authority %q", sanitizeProviderMetadata(providerVersion), "7.0")
+	}
 	prefix := mustProviderID(tb)
 	database := control.Database("leader_benchmark_" + prefix)
 	collection := database.Collection("leases")
@@ -472,7 +498,7 @@ func newMongoProviderFixture(tb testing.TB, lease time.Duration) leaderProviderF
 	}
 	fixture := leaderProviderFixture{
 		name:            "MongoDB",
-		providerVersion: "7.0",
+		providerVersion: providerVersion,
 		imageReference:  "mongo:7.0@sha256:340c1c56fb10e95cf79ff547f8664b96bc6ead9909bc355238cbf865a9695a6f",
 		newElector: func(member, group string) (leader.Elector, error) {
 			client, err := mongo.Connect(options.Client().ApplyURI(uri))
@@ -565,6 +591,16 @@ func newPostgresProviderFixture(tb testing.TB, lease time.Duration) leaderProvid
 		_ = control.Close()
 		tb.Fatalf("create postgres leader schema: %v", err)
 	}
+	var providerVersion string
+	if err := control.QueryRowContext(ctx, `show server_version`).Scan(&providerVersion); err != nil {
+		_ = control.Close()
+		tb.Fatalf("query PostgreSQL provider version: %v", err)
+	}
+	providerVersion = strings.TrimSpace(providerVersion)
+	if !providerVersionMatchesAuthority(providerVersion, "16") {
+		_ = control.Close()
+		tb.Fatalf("PostgreSQL provider version %q does not match pinned image authority %q", sanitizeProviderMetadata(providerVersion), "16")
+	}
 	prefix := mustProviderID(tb)
 	registry := newProviderResourceRegistry()
 	backendCleanup := func(ctx context.Context, group string) error {
@@ -577,7 +613,7 @@ func newPostgresProviderFixture(tb testing.TB, lease time.Duration) leaderProvid
 	}
 	fixture := leaderProviderFixture{
 		name:            "PostgreSQL",
-		providerVersion: "16",
+		providerVersion: providerVersion,
 		imageReference:  "postgres:16-alpine@sha256:57c72fd2a128e416c7fcc499958864df5301e940bca0a56f58fddf30ffc07777",
 		newElector: func(member, group string) (leader.Elector, error) {
 			db, err := sql.Open("pgx", dsn)
@@ -679,6 +715,16 @@ func newEtcdProviderFixture(tb testing.TB, lease time.Duration) leaderProviderFi
 		_ = control.Close()
 		tb.Fatalf("wait for etcd provider readiness: %v", err)
 	}
+	status, err := control.Status(ctx, endpoints[0])
+	if err != nil {
+		_ = control.Close()
+		tb.Fatalf("query etcd provider version: %v", err)
+	}
+	providerVersion := strings.TrimSpace(status.Version)
+	if !providerVersionMatchesAuthority(providerVersion, providerEtcdVersion) {
+		_ = control.Close()
+		tb.Fatalf("etcd provider version %q does not match pinned image authority %q", sanitizeProviderMetadata(providerVersion), providerEtcdVersion)
+	}
 	prefix := mustProviderID(tb)
 	registry := newProviderResourceRegistry()
 	var staleReleaseMu sync.Mutex
@@ -689,7 +735,7 @@ func newEtcdProviderFixture(tb testing.TB, lease time.Duration) leaderProviderFi
 	}
 	fixture := leaderProviderFixture{
 		name:            "etcd",
-		providerVersion: providerEtcdVersion,
+		providerVersion: providerVersion,
 		imageReference:  image,
 		newElector: func(member, group string) (leader.Elector, error) {
 			client, err := clientv3.New(clientv3.Config{Endpoints: endpoints, DialTimeout: 5 * time.Second})
@@ -1054,6 +1100,25 @@ func runProviderLeaderBenchmark(b *testing.B, factory leaderProviderFactory, sce
 	}
 }
 
+func parseRedisProviderVersion(serverInfo string) (string, error) {
+	for line := range strings.SplitSeq(serverInfo, "\n") {
+		line = strings.TrimSpace(line)
+		if version, ok := strings.CutPrefix(line, "redis_version:"); ok {
+			version = strings.TrimSpace(version)
+			if version != "" {
+				return version, nil
+			}
+		}
+	}
+	return "", errors.New("Redis server info has no reported version")
+}
+
+func providerVersionMatchesAuthority(reported, authority string) bool {
+	reported = strings.TrimPrefix(strings.TrimSpace(reported), "v")
+	authority = strings.TrimPrefix(strings.TrimSpace(authority), "v")
+	return reported != "" && authority != "" && (reported == authority || strings.HasPrefix(reported, authority+"."))
+}
+
 func sanitizeProviderMetadata(value string) string {
 	return strings.Map(func(r rune) rune {
 		if r < 0x20 || r == 0x7f {
@@ -1400,6 +1465,41 @@ func TestProviderEtcdCleanupPrefixScopesGeneratedNamespace(t *testing.T) {
 	}
 	if got, want := providerEtcdCleanupPrefix("0123", "group-a"), "/bluetape4k/leader/MDEyMw/Z3JvdXAtYQ/"; got != want {
 		t.Fatalf("group cleanup prefix = %q, want %q", got, want)
+	}
+}
+
+func TestParseRedisProviderVersion(t *testing.T) {
+	version, err := parseRedisProviderVersion("# Server\r\nredis_version:7.4.9\r\nredis_git_sha1:00000000\r\n")
+	if err != nil {
+		t.Fatalf("parse Redis provider version: %v", err)
+	}
+	if version != "7.4.9" {
+		t.Fatalf("Redis provider version = %q, want %q", version, "7.4.9")
+	}
+
+	if _, err := parseRedisProviderVersion("# Server\nredis_version:\n"); err == nil {
+		t.Fatal("expected empty Redis provider version to fail")
+	}
+}
+
+func TestProviderVersionMatchesAuthority(t *testing.T) {
+	for _, tc := range []struct {
+		name      string
+		reported  string
+		authority string
+		want      bool
+	}{
+		{name: "exact", reported: "7.4", authority: "7.4", want: true},
+		{name: "patch", reported: "7.4.9", authority: "7.4", want: true},
+		{name: "authority v prefix", reported: "3.6.13", authority: "v3.6.13", want: true},
+		{name: "different minor", reported: "7.5.0", authority: "7.4", want: false},
+		{name: "empty reported", reported: "", authority: "7.4", want: false},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			if got := providerVersionMatchesAuthority(tc.reported, tc.authority); got != tc.want {
+				t.Fatalf("providerVersionMatchesAuthority(%q, %q) = %v, want %v", tc.reported, tc.authority, got, tc.want)
+			}
+		})
 	}
 }
 
