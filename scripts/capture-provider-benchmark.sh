@@ -206,16 +206,25 @@ contains_prohibited_content() {
 publish_file() {
   local source=$1
   local target=$2
-  local artifact_tmp
+  local artifact_tmp=''
 
-  artifact_tmp=$(mktemp "$output_dir/.${family}.tmp.XXXXXX")
-  cp "$source" "$artifact_tmp"
-  chmod 600 "$artifact_tmp"
+  artifact_tmp=$(mktemp "$output_dir/.${family}.tmp.XXXXXX") || return 1
+  if ! cp "$source" "$artifact_tmp"; then
+    rm -f "$artifact_tmp"
+    return 1
+  fi
+  if ! chmod 600 "$artifact_tmp"; then
+    rm -f "$artifact_tmp"
+    return 1
+  fi
   if contains_prohibited_content "$artifact_tmp"; then
     rm -f "$artifact_tmp"
     return 1
   fi
-  mv -f "$artifact_tmp" "$target"
+  if ! mv -f "$artifact_tmp" "$target"; then
+    rm -f "$artifact_tmp"
+    return 1
+  fi
 }
 
 publish_blocked_metadata() {
@@ -231,7 +240,9 @@ if contains_prohibited_content "$sanitized_file"; then
   if [ "$status" -eq 0 ]; then
     status=125
   fi
-  publish_blocked_metadata "$output_dir/$family-failed-$capture_stamp.txt"
+  if ! publish_blocked_metadata "$output_dir/$family-failed-$capture_stamp.txt"; then
+    printf 'error: unable to retain blocked-redaction metadata\n' >&2
+  fi
   printf 'error: prohibited content remained after sanitization; stream body discarded\n' >&2
   exit "$status"
 fi
@@ -239,7 +250,9 @@ fi
 if [ "$status" -eq 0 ]; then
   if ! publish_file "$sanitized_file" "$output_dir/$family.txt"; then
     status=125
-    publish_blocked_metadata "$output_dir/$family-failed-$capture_stamp.txt"
+    if ! publish_blocked_metadata "$output_dir/$family-failed-$capture_stamp.txt"; then
+      printf 'error: unable to retain blocked-redaction metadata\n' >&2
+    fi
     printf 'error: artifact-local redaction scan failed; stream body discarded\n' >&2
     exit "$status"
   fi
@@ -248,7 +261,9 @@ if [ "$status" -eq 0 ]; then
 fi
 
 if ! publish_file "$sanitized_file" "$output_dir/$family-failed-$capture_stamp.txt"; then
-  publish_blocked_metadata "$output_dir/$family-failed-$capture_stamp.txt"
+  if ! publish_blocked_metadata "$output_dir/$family-failed-$capture_stamp.txt"; then
+    printf 'error: unable to retain blocked-redaction metadata\n' >&2
+  fi
   printf 'error: artifact-local redaction scan failed; stream body discarded\n' >&2
 fi
 printf 'benchmark family %s failed with exit status %s\n' "$family" "$status" >&2
