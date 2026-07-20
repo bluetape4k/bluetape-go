@@ -213,6 +213,20 @@ assert_oversized_output_fails_without_canonical_artifact() {
   assert_file_contains "$failed" '^\[output_truncated_at_64_bytes\]$'
 }
 
+assert_output_at_exact_limit_succeeds() {
+  local fixture
+  fixture=$(setup_fixture exact-output-limit)
+  local exact
+  exact=$(printf '%063d' 0)
+
+  BLUETAPE_PROVIDER_BENCH_MAX_OUTPUT_BYTES=64 FAKE_GO_OUTPUT="$exact" run_capture "$fixture" graphio
+
+  local output=$fixture/repo/docs/research/outputs/issue-560/graphio.txt
+  test -f "$output" || fail "output at the exact limit did not create a canonical artifact"
+  assert_file_contains "$output" '^exit_status: 0$'
+  assert_file_excludes "$output" 'output_truncated_at_64_bytes'
+}
+
 assert_output_limit_override_cannot_exceed_default() {
   local fixture
   fixture=$(setup_fixture oversized-limit)
@@ -248,6 +262,7 @@ tests=(
   assert_secret_pattern_blocks_canonical_output
   assert_secret_bearing_failure_is_sanitized_before_retention
   assert_oversized_output_fails_without_canonical_artifact
+  assert_output_at_exact_limit_succeeds
   assert_output_limit_override_cannot_exceed_default
   assert_command_timestamp_sha_and_exit_status_headers_exist
 )

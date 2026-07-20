@@ -146,7 +146,7 @@ private state until shell unwind completes.
 ### Evidence
 
 `scripts/capture-provider-benchmark_test.sh` exercises clean publication, dirty-source rejection,
-output confinement, secret blocking, publication failure, and signal behavior. The issue output
+output confinement, secret blocking, publication failure, and bounded-output behavior. The issue output
 directory retains four development failure artifacts alongside nine successful canonical files.
 
 ### Future Guard
