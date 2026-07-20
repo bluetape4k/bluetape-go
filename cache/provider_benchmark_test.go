@@ -479,64 +479,77 @@ func BenchmarkProviderCacheLocal(b *testing.B) {
 func runMemoryCacheBenchmark(b *testing.B, scenario string, payloadSize int) {
 	b.Helper()
 	b.ReportAllocs()
-	b.StopTimer()
 	local := btcache.NewMemory[string, *benchmarkCacheRecord]()
 	value := benchmarkCacheValue(payloadSize)
 	key := mustBenchmarkCacheID(b)
+	ctx := context.Background()
 	if scenario == "GetHit" || scenario == "GetOrLoadHot" {
-		ctx, cancel := cacheProviderOperationContext()
 		err := local.Set(ctx, key, value, cacheProviderTTL)
-		cancel()
 		if err != nil {
 			b.Fatalf("seed memory cache: %v", err)
 		}
 	}
 	var loaderCalls atomic.Int64
-
-	for range b.N {
-		ctx, cancel := cacheProviderOperationContext()
-		b.StartTimer()
-		var got *benchmarkCacheRecord
-		var err error
+	invoke := func() (*benchmarkCacheRecord, error) {
 		switch scenario {
 		case "GetHit", "GetMiss":
-			got, err = local.Get(ctx, key)
+			return local.Get(ctx, key)
 		case "Set":
-			err = local.Set(ctx, key, value, cacheProviderTTL)
+			return nil, local.Set(ctx, key, value, cacheProviderTTL)
 		case "GetOrLoadHot":
-			got, err = local.GetOrLoad(ctx, key, cacheProviderTTL, func(context.Context, string) (*benchmarkCacheRecord, error) {
+			return local.GetOrLoad(ctx, key, cacheProviderTTL, func(context.Context, string) (*benchmarkCacheRecord, error) {
 				loaderCalls.Add(1)
 				return value, nil
 			})
 		default:
-			err = fmt.Errorf("unknown memory cache scenario %q", scenario)
+			return nil, fmt.Errorf("unknown memory cache scenario %q", scenario)
 		}
-		b.StopTimer()
-		cancel()
+	}
+	preflight, preflightErr := invoke()
+	if err := verifyMemoryCacheBenchmarkResult(scenario, preflight, value, preflightErr); err != nil {
+		b.Fatalf("preflight memory cache %s: %v", scenario, err)
+	}
 
-		if scenario == "GetMiss" {
-			if !errors.Is(err, btcache.ErrCacheMiss) {
-				b.Fatalf("memory cache miss: %v", err)
-			}
-			continue
-		}
-		if err != nil {
-			b.Fatalf("memory cache %s: %v", scenario, err)
-		}
-		if (scenario == "GetHit" || scenario == "GetOrLoadHot") && got != value {
-			b.Fatalf("memory cache %s did not preserve the stored reference", scenario)
-		}
+	b.ResetTimer()
+	var got *benchmarkCacheRecord
+	var err error
+	for range b.N {
+		got, err = invoke()
 		cacheProviderRecordSink = got
+	}
+	b.StopTimer()
+	if err := verifyMemoryCacheBenchmarkResult(scenario, got, value, err); err != nil {
+		b.Fatalf("final memory cache %s: %v", scenario, err)
 	}
 	if scenario == "GetOrLoadHot" && loaderCalls.Load() != 0 {
 		b.Fatalf("hot loader calls = %d, want 0", loaderCalls.Load())
 	}
 }
 
+func verifyMemoryCacheBenchmarkResult(
+	scenario string,
+	got *benchmarkCacheRecord,
+	want *benchmarkCacheRecord,
+	err error,
+) error {
+	if scenario == "GetMiss" {
+		if !errors.Is(err, btcache.ErrCacheMiss) {
+			return fmt.Errorf("memory cache miss error = %v, want %v", err, btcache.ErrCacheMiss)
+		}
+		return nil
+	}
+	if err != nil {
+		return err
+	}
+	if (scenario == "GetHit" || scenario == "GetOrLoadHot") && got != want {
+		return errors.New("stored reference was not preserved")
+	}
+	return nil
+}
+
 func runCacheSerializationBenchmark(b *testing.B, scenario string, payloadSize int) {
 	b.Helper()
 	b.ReportAllocs()
-	b.StopTimer()
 	serializer := newCountingSerializer[*benchmarkCacheRecord](serialization.NewJSONSerializer[*benchmarkCacheRecord]())
 	value := benchmarkCacheValue(payloadSize)
 	encoded, err := serializer.Marshal(value)
@@ -544,9 +557,21 @@ func runCacheSerializationBenchmark(b *testing.B, scenario string, payloadSize i
 		b.Fatalf("seed serialization baseline: %v", err)
 	}
 	serializer.reset()
+	switch scenario {
+	case "Marshal":
+		_, err = serializer.Marshal(value)
+	case "Unmarshal":
+		_, err = serializer.Unmarshal(encoded)
+	default:
+		err = fmt.Errorf("unknown serialization scenario %q", scenario)
+	}
+	if err != nil {
+		b.Fatalf("preflight serialization baseline %s: %v", scenario, err)
+	}
+	serializer.reset()
 
+	b.ResetTimer()
 	for range b.N {
-		b.StartTimer()
 		switch scenario {
 		case "Marshal":
 			cacheProviderBytesSink, err = serializer.Marshal(value)
@@ -555,11 +580,11 @@ func runCacheSerializationBenchmark(b *testing.B, scenario string, payloadSize i
 		default:
 			err = fmt.Errorf("unknown serialization scenario %q", scenario)
 		}
-		b.StopTimer()
 		if err != nil {
 			b.Fatalf("serialization baseline %s: %v", scenario, err)
 		}
 	}
+	b.StopTimer()
 	marshalCalls, unmarshalCalls := serializer.counts()
 	if scenario == "Marshal" && (marshalCalls != int64(b.N) || unmarshalCalls != 0) {
 		b.Fatalf("marshal baseline calls = %d/%d, want %d/0", marshalCalls, unmarshalCalls, b.N)
