@@ -543,7 +543,10 @@ func verifyMemoryCacheBenchmarkResult(
 ) error {
 	if scenario == "GetMiss" {
 		if !errors.Is(err, btcache.ErrCacheMiss) {
-			return fmt.Errorf("memory cache miss error = %v, want %v", err, btcache.ErrCacheMiss)
+			if err == nil {
+				return errors.New("memory cache miss returned no error")
+			}
+			return fmt.Errorf("memory cache miss returned an unexpected error: %w", err)
 		}
 		return nil
 	}
