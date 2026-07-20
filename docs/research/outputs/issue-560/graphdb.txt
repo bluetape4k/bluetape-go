@@ -93,4 +93,3 @@ PASS
 ok  	github.com/bluetape4k/bluetape-go/graph	23.278s
 output_end
 exit_status: 0
-

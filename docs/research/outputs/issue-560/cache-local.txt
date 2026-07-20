@@ -72,4 +72,3 @@ PASS
 ok  	github.com/bluetape4k/bluetape-go/cache	89.668s
 output_end
 exit_status: 0
-

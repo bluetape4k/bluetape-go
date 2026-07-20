@@ -33,4 +33,3 @@ BenchmarkProviderCacheLocal/Memory/Set/128B-10            	signal: interrupt
 FAIL	github.com/bluetape4k/bluetape-go/cache	35.578s
 output_end
 exit_status: 1
-

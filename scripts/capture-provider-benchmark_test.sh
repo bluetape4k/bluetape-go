@@ -25,6 +25,13 @@ assert_file_excludes() {
   fi
 }
 
+assert_file_has_no_blank_line_at_eof() {
+  local file=$1
+  local suffix
+  suffix=$(tail -c 2 "$file" | od -An -tx1 | tr -d '[:space:]')
+  test "$suffix" != '0a0a' || fail "$file ends with a blank line"
+}
+
 setup_fixture() {
   local name=$1
   local fixture=$test_root/$name
@@ -69,6 +76,7 @@ assert_success_writes_atomic_canonical_output() {
   local output=$fixture/repo/docs/research/outputs/issue-560/graphio.txt
   test -f "$output" || fail "canonical output was not written"
   assert_file_contains "$output" '^exit_status: 0$'
+  assert_file_has_no_blank_line_at_eof "$output"
   assert_file_contains "$output" '^BenchmarkProvider-8 1 100 ns/op$'
   if find "$(dirname "$output")" -maxdepth 1 -name '.*.tmp.*' | grep -q .; then
     fail "artifact-local temporary file was retained"

@@ -7,4 +7,3 @@ output_begin
 ok  	github.com/bluetape4k/bluetape-go/leader	11.761s
 output_end
 exit_status: 0
-

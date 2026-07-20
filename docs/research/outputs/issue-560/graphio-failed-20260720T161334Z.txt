@@ -89,4 +89,3 @@ BenchmarkGraphIOFormats/NDJSON/Small/100V-200E-3P/RecordConstructionBaseline-10 
 FAIL	github.com/bluetape4k/bluetape-go/graph/graphio	96.937s
 output_end
 exit_status: 1
-

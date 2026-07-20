@@ -128,8 +128,8 @@ run_command() {
   set -e
 
   printf 'output_end\n' >>"$raw_file"
-  printf 'exit_status: %s\n\n' "$status" >>"$raw_file"
-  printf 'exit_status: %s\n\n' "$status" >>"$metadata_file"
+  printf 'exit_status: %s\n' "$status" >>"$raw_file"
+  printf 'exit_status: %s\n' "$status" >>"$metadata_file"
   return "$status"
 }
 

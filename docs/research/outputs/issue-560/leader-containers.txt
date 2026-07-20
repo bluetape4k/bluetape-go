@@ -250,7 +250,6 @@ PASS
 ok  	github.com/bluetape4k/bluetape-go/leader	131.834s
 output_end
 exit_status: 0
-
 command_label: expiry
 command: env BLUETAPE_LEADER_PROVIDER_BENCH=1 go test -timeout=10m -p 1 -run \^\$ -bench \^BenchmarkProviderLeaderContainers\$/\(Redis\|MongoDB\|PostgreSQL\|etcd\)/ExpiryTakeover\$ -benchtime=1x -count=3 -benchmem ./leader
 timestamp_utc: 2026-07-20T17:08:26Z
@@ -301,4 +300,3 @@ PASS
 ok  	github.com/bluetape4k/bluetape-go/leader	26.943s
 output_end
 exit_status: 0
-

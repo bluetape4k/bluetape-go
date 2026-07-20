@@ -324,4 +324,3 @@ PASS
 ok  	github.com/bluetape4k/bluetape-go/cache	3.381s
 output_end
 exit_status: 0
-

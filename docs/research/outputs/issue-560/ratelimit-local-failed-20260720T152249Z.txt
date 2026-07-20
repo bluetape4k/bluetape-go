@@ -22,4 +22,3 @@ FAIL	github.com/bluetape4k/bluetape-go/ratelimit	754.881s
 FAIL
 output_end
 exit_status: 1
-
