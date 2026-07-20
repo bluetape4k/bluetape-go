@@ -1,0 +1,20 @@
+command_label: leader-local
+command: go test -timeout=10m -run \^\$ -bench \^BenchmarkProviderLeaderLocal\$ -benchmem -count=5 ./leader
+timestamp_utc: 2026-07-20T16:32:09Z
+git_sha: 94e6aa30d619d2fd3404a191203f34104cf48a52
+pre_run_clean: true
+output_begin
+goos: darwin
+goarch: arm64
+pkg: github.com/bluetape4k/bluetape-go/leader
+cpu: Apple M5
+BenchmarkProviderLeaderLocal/LocalHarness/CampaignContention/N=8-10         	   71190	     16332 ns/op	    4862 B/op	      59 allocs/op
+BenchmarkProviderLeaderLocal/LocalHarness/CampaignContention/N=8-10         	   73915	     16425 ns/op	    4861 B/op	      59 allocs/op
+BenchmarkProviderLeaderLocal/LocalHarness/CampaignContention/N=8-10         	   72738	     16313 ns/op	    4861 B/op	      59 allocs/op
+BenchmarkProviderLeaderLocal/LocalHarness/CampaignContention/N=8-10         	   73302	     16394 ns/op	    4863 B/op	      59 allocs/op
+BenchmarkProviderLeaderLocal/LocalHarness/CampaignContention/N=8-10         	   73278	     16345 ns/op	    4861 B/op	      59 allocs/op
+PASS
+ok  	github.com/bluetape4k/bluetape-go/leader	7.265s
+output_end
+exit_status: 0
+
