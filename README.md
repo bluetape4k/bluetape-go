@@ -364,6 +364,9 @@ scripts/capture-provider-benchmark.sh leader-local
 
 The accepted family is exactly one of `leader-local`, `leader-containers`, `leader-probes`,
 `ratelimit-local`, `ratelimit-containers`, `cache-local`, `cache-redis`, `graphio`, or `graphdb`.
+The container-backed families require Docker, can take several minutes, and must run sequentially
+so their fixtures and host resources do not overlap. Follow the report's recapture checklist when
+refreshing tracked evidence and charts.
 Results are short local snapshots with pinned fixture provenance; do not copy them as production
 rankings.
 

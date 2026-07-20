@@ -357,6 +357,9 @@ scripts/capture-provider-benchmark.sh leader-local
 
 허용되는 family는 `leader-local`, `leader-containers`, `leader-probes`, `ratelimit-local`,
 `ratelimit-containers`, `cache-local`, `cache-redis`, `graphio`, `graphdb` 중 정확히 하나입니다.
+컨테이너 기반 family는 Docker가 필요하고 몇 분 이상 걸릴 수 있으며, fixture와 host
+resource가 겹치지 않도록 직렬로 실행해야 합니다. 추적 중인 증거와 차트를 갱신할 때는
+보고서의 재수집 checklist를 따르세요.
 결과는 고정된 fixture provenance를 가진 짧은 로컬 snapshot이므로 production 순위로
 복사해서 사용하지 마세요.
 
