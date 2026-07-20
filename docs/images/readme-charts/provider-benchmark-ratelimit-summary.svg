@@ -12,60 +12,60 @@
 <text x="44" y="170" class="title panel">Equivalent allow decisions</text>
 <text x="44" y="204" class="mono label">Redis - AllowAvailable</text>
 <line x1="420" y1="198" x2="990" y2="198" stroke="#E2E8F0"/>
-<line x1="468.6039407928009" y1="198" x2="489.18480781574675" y2="198" stroke="#2563EB" stroke-width="5" stroke-linecap="round"/>
-<line x1="468.6039407928009" y1="191" x2="468.6039407928009" y2="205" stroke="#2563EB" stroke-width="2"/>
-<line x1="489.18480781574675" y1="191" x2="489.18480781574675" y2="205" stroke="#2563EB" stroke-width="2"/>
-<circle cx="474.81620211652694" cy="198" r="6" fill="#2563EB"/>
-<text x="1014" y="203" class="mono value">194.3 us</text>
+<line x1="500.7792998320542" y1="198" x2="548.4946190578055" y2="198" stroke="#2563EB" stroke-width="5" stroke-linecap="round"/>
+<line x1="500.7792998320542" y1="191" x2="500.7792998320542" y2="205" stroke="#2563EB" stroke-width="2"/>
+<line x1="548.4946190578055" y1="191" x2="548.4946190578055" y2="205" stroke="#2563EB" stroke-width="2"/>
+<circle cx="513.8203162080295" cy="198" r="6" fill="#2563EB"/>
+<text x="1014" y="203" class="mono value">311.7 us</text>
 <text x="44" y="252" class="mono label">PostgreSQL - AllowAvailable</text>
 <line x1="420" y1="246" x2="990" y2="246" stroke="#E2E8F0"/>
-<line x1="482.6732840589022" y1="246" x2="522.9780302675929" y2="246" stroke="#7C3AED" stroke-width="5" stroke-linecap="round"/>
-<line x1="482.6732840589022" y1="239" x2="482.6732840589022" y2="253" stroke="#7C3AED" stroke-width="2"/>
-<line x1="522.9780302675929" y1="239" x2="522.9780302675929" y2="253" stroke="#7C3AED" stroke-width="2"/>
-<path d="M 498.14951466522695 239 L 505.14951466522695 246 L 498.14951466522695 253 L 491.14951466522695 246 Z" fill="#7C3AED"/>
-<text x="1014" y="251" class="mono value">257.8 us</text>
+<line x1="484.7856748326234" y1="246" x2="530.5159682583317" y2="246" stroke="#7C3AED" stroke-width="5" stroke-linecap="round"/>
+<line x1="484.7856748326234" y1="239" x2="484.7856748326234" y2="253" stroke="#7C3AED" stroke-width="2"/>
+<line x1="530.5159682583317" y1="239" x2="530.5159682583317" y2="253" stroke="#7C3AED" stroke-width="2"/>
+<path d="M 493.29201379754403 239 L 500.29201379754403 246 L 493.29201379754403 253 L 486.29201379754403 246 Z" fill="#7C3AED"/>
+<text x="1014" y="251" class="mono value">243.1 us</text>
 <text x="44" y="300" class="mono label">Redis - AllowRejected</text>
 <line x1="420" y1="294" x2="990" y2="294" stroke="#E2E8F0"/>
-<line x1="472.7701317766238" y1="294" x2="478.6766927765649" y2="294" stroke="#2563EB" stroke-width="5" stroke-linecap="round"/>
-<line x1="472.7701317766238" y1="287" x2="472.7701317766238" y2="301" stroke="#2563EB" stroke-width="2"/>
-<line x1="478.6766927765649" y1="287" x2="478.6766927765649" y2="301" stroke="#2563EB" stroke-width="2"/>
-<circle cx="472.82191761985996" cy="294" r="6" fill="#2563EB"/>
-<text x="1014" y="299" class="mono value">189.7 us</text>
+<line x1="478.64467253781555" y1="294" x2="507.8280148207742" y2="294" stroke="#2563EB" stroke-width="5" stroke-linecap="round"/>
+<line x1="478.64467253781555" y1="287" x2="478.64467253781555" y2="301" stroke="#2563EB" stroke-width="2"/>
+<line x1="507.8280148207742" y1="287" x2="507.8280148207742" y2="301" stroke="#2563EB" stroke-width="2"/>
+<circle cx="481.394375693773" cy="294" r="6" fill="#2563EB"/>
+<text x="1014" y="299" class="mono value">210.4 us</text>
 <text x="44" y="348" class="mono label">PostgreSQL - AllowRejected</text>
 <line x1="420" y1="342" x2="990" y2="342" stroke="#E2E8F0"/>
-<line x1="483.2089663689733" y1="342" x2="484.7051024020139" y2="342" stroke="#7C3AED" stroke-width="5" stroke-linecap="round"/>
-<line x1="483.2089663689733" y1="335" x2="483.2089663689733" y2="349" stroke="#7C3AED" stroke-width="2"/>
-<line x1="484.7051024020139" y1="335" x2="484.7051024020139" y2="349" stroke="#7C3AED" stroke-width="2"/>
-<path d="M 483.46136104554455 335 L 490.46136104554455 342 L 483.46136104554455 349 L 476.46136104554455 342 Z" fill="#7C3AED"/>
-<text x="1014" y="347" class="mono value">215.8 us</text>
+<line x1="483.6325037180727" y1="342" x2="494.32864007052564" y2="342" stroke="#7C3AED" stroke-width="5" stroke-linecap="round"/>
+<line x1="483.6325037180727" y1="335" x2="483.6325037180727" y2="349" stroke="#7C3AED" stroke-width="2"/>
+<line x1="494.32864007052564" y1="335" x2="494.32864007052564" y2="349" stroke="#7C3AED" stroke-width="2"/>
+<path d="M 486.39078456483526 335 L 493.39078456483526 342 L 486.39078456483526 349 L 479.39078456483526 342 Z" fill="#7C3AED"/>
+<text x="1014" y="347" class="mono value">223.6 us</text>
 <text x="44" y="396" class="mono label">Redis - AllowParallel N=8</text>
 <line x1="420" y1="390" x2="990" y2="390" stroke="#E2E8F0"/>
-<line x1="527.8016215748611" y1="390" x2="568.7096852762132" y2="390" stroke="#2563EB" stroke-width="5" stroke-linecap="round"/>
-<line x1="527.8016215748611" y1="383" x2="527.8016215748611" y2="397" stroke="#2563EB" stroke-width="2"/>
-<line x1="568.7096852762132" y1="383" x2="568.7096852762132" y2="397" stroke="#2563EB" stroke-width="2"/>
-<circle cx="532.1338980678106" cy="390" r="6" fill="#2563EB"/>
-<text x="1014" y="395" class="mono value">389.2 us</text>
+<line x1="551.7325853084133" y1="390" x2="560.6714614575387" y2="390" stroke="#2563EB" stroke-width="5" stroke-linecap="round"/>
+<line x1="551.7325853084133" y1="383" x2="551.7325853084133" y2="397" stroke="#2563EB" stroke-width="2"/>
+<line x1="560.6714614575387" y1="383" x2="560.6714614575387" y2="397" stroke="#2563EB" stroke-width="2"/>
+<circle cx="553.6777959131878" cy="390" r="6" fill="#2563EB"/>
+<text x="1014" y="395" class="mono value">505.3 us</text>
 <text x="44" y="444" class="mono label">PostgreSQL - AllowParallel N=8</text>
 <line x1="420" y1="438" x2="990" y2="438" stroke="#E2E8F0"/>
-<line x1="810.0608177725751" y1="438" x2="811.1783607924233" y2="438" stroke="#7C3AED" stroke-width="5" stroke-linecap="round"/>
-<line x1="810.0608177725751" y1="431" x2="810.0608177725751" y2="445" stroke="#7C3AED" stroke-width="2"/>
-<line x1="811.1783607924233" y1="431" x2="811.1783607924233" y2="445" stroke="#7C3AED" stroke-width="2"/>
-<path d="M 810.5697297912405 431 L 817.5697297912405 438 L 810.5697297912405 445 L 803.5697297912405 438 Z" fill="#7C3AED"/>
-<text x="1014" y="443" class="mono value">11.37 ms</text>
+<line x1="800.7416604579257" y1="438" x2="807.1952941095931" y2="438" stroke="#7C3AED" stroke-width="5" stroke-linecap="round"/>
+<line x1="800.7416604579257" y1="431" x2="800.7416604579257" y2="445" stroke="#7C3AED" stroke-width="2"/>
+<line x1="807.1952941095931" y1="431" x2="807.1952941095931" y2="445" stroke="#7C3AED" stroke-width="2"/>
+<path d="M 805.1908854879141 431 L 812.1908854879141 438 L 805.1908854879141 445 L 798.1908854879141 438 Z" fill="#7C3AED"/>
+<text x="1014" y="443" class="mono value">10.65 ms</text>
 <text x="44" y="492" class="mono label">Redis - AllowDistinctKeys N=8</text>
 <line x1="420" y1="486" x2="990" y2="486" stroke="#E2E8F0"/>
-<line x1="602.984950684172" y1="486" x2="664.1726039192104" y2="486" stroke="#2563EB" stroke-width="5" stroke-linecap="round"/>
-<line x1="602.984950684172" y1="479" x2="602.984950684172" y2="493" stroke="#2563EB" stroke-width="2"/>
-<line x1="664.1726039192104" y1="479" x2="664.1726039192104" y2="493" stroke="#2563EB" stroke-width="2"/>
-<circle cx="620.2800098543569" cy="486" r="6" fill="#2563EB"/>
-<text x="1014" y="491" class="mono value">1.13 ms</text>
+<line x1="549.1932601982364" y1="486" x2="552.9395161381283" y2="486" stroke="#2563EB" stroke-width="5" stroke-linecap="round"/>
+<line x1="549.1932601982364" y1="479" x2="549.1932601982364" y2="493" stroke="#2563EB" stroke-width="2"/>
+<line x1="552.9395161381283" y1="479" x2="552.9395161381283" y2="493" stroke="#2563EB" stroke-width="2"/>
+<circle cx="549.9367990771959" cy="486" r="6" fill="#2563EB"/>
+<text x="1014" y="491" class="mono value">482.9 us</text>
 <text x="44" y="540" class="mono label">PostgreSQL - AllowDistinctKeys N=8</text>
 <line x1="420" y1="534" x2="990" y2="534" stroke="#E2E8F0"/>
-<line x1="803.8821616690927" y1="534" x2="805.6738896297638" y2="534" stroke="#7C3AED" stroke-width="5" stroke-linecap="round"/>
-<line x1="803.8821616690927" y1="527" x2="803.8821616690927" y2="541" stroke="#7C3AED" stroke-width="2"/>
-<line x1="805.6738896297638" y1="527" x2="805.6738896297638" y2="541" stroke="#7C3AED" stroke-width="2"/>
-<path d="M 805.4567338700735 527 L 812.4567338700735 534 L 805.4567338700735 541 L 798.4567338700735 534 Z" fill="#7C3AED"/>
-<text x="1014" y="539" class="mono value">10.68 ms</text>
+<line x1="807.3506639094893" y1="534" x2="822.0616349851473" y2="534" stroke="#7C3AED" stroke-width="5" stroke-linecap="round"/>
+<line x1="807.3506639094893" y1="527" x2="807.3506639094893" y2="541" stroke="#7C3AED" stroke-width="2"/>
+<line x1="822.0616349851473" y1="527" x2="822.0616349851473" y2="541" stroke="#7C3AED" stroke-width="2"/>
+<path d="M 813.3036481490021 527 L 820.3036481490021 534 L 813.3036481490021 541 L 806.3036481490021 534 Z" fill="#7C3AED"/>
+<text x="1014" y="539" class="mono value">11.75 ms</text>
 <line x1="420" y1="630" x2="420" y2="640" stroke="#64748B"/>
 <text x="420" y="660" text-anchor="middle" class="mono axis">100.0 us</text>
 <line x1="610" y1="630" x2="610" y2="640" stroke="#64748B"/>

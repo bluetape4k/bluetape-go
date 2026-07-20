@@ -12,54 +12,54 @@
         "provider": "Memory",
         "scenario": "Get hit 128 B",
         "panel": "Hot read paths",
-        "min": 38.14,
-        "median": 38.79,
-        "max": 39.13,
+        "min": 37.49,
+        "median": 37.68,
+        "max": 37.87,
         "samples": 5
       },
       {
         "provider": "Tiered",
         "scenario": "L1 hit 128 B",
         "panel": "Hot read paths",
-        "min": 250.4,
-        "median": 273.3,
-        "max": 278.8,
+        "min": 174.1,
+        "median": 193.4,
+        "max": 273.7,
         "samples": 3
       },
       {
         "provider": "NearCachePubSub",
         "scenario": "Local hit 128 B",
         "panel": "Hot read paths",
-        "min": 243,
-        "median": 278.7,
-        "max": 319.2,
+        "min": 254.5,
+        "median": 322.5,
+        "max": 421.7,
         "samples": 3
       },
       {
         "provider": "RedisL2",
         "scenario": "Get hit 128 B",
         "panel": "Remote read paths",
-        "min": 171829,
-        "median": 191564,
-        "max": 220382,
+        "min": 180870,
+        "median": 180964,
+        "max": 245986,
         "samples": 3
       },
       {
         "provider": "Tiered",
         "scenario": "L2 hit 128 B",
         "panel": "Remote read paths",
-        "min": 176915,
-        "median": 177178,
-        "max": 178659,
+        "min": 177220,
+        "median": 177988,
+        "max": 178617,
         "samples": 3
       },
       {
         "provider": "NearCachePubSub",
         "scenario": "Peer invalidation 128 B",
         "panel": "Invalidation observation",
-        "min": 264868,
-        "median": 272979,
-        "max": 297056,
+        "min": 313261,
+        "median": 314018,
+        "max": 320600,
         "samples": 3
       }
     ]

@@ -1,326 +1,327 @@
 command_label: cache-redis
 command: env BLUETAPE_CACHE_PROVIDER_BENCH=1 go test -timeout=30m -p 1 -run \^\$ -bench \^BenchmarkProviderCacheRedis\$ -benchtime=100x -count=3 -benchmem ./cache
-timestamp_utc: 2026-07-20T17:09:22Z
-git_sha: ef3ef4f3070f516a3c75c2637f8e2bca231d9370
+timestamp_utc: 2026-07-20T18:03:24Z
+git_sha: 1f1069f4b119957d96158c969f819d6374f902c8
 pre_run_clean: true
+max_output_bytes: 16777216
 output_begin
 goos: darwin
 goarch: arm64
 pkg: github.com/bluetape4k/bluetape-go/cache
 cpu: Apple M5
-BenchmarkProviderCacheRedis/RedisL2/GetHit/128B-10         	     100	    220382 ns/op	    1344 B/op	      21 allocs/op
+BenchmarkProviderCacheRedis/RedisL2/GetHit/128B-10         	     100	    245986 ns/op	    1344 B/op	      21 allocs/op
 --- BENCH: BenchmarkProviderCacheRedis/RedisL2/GetHit/128B-10
     provider_benchmark_test.go:629: provider_version="7.4.9" image_reference="redis:7.4-alpine@sha256:6ab0b6e7381779332f97b8ca76193e45b0756f38d4c0dcda72dbb3c32061ab99"
     provider_benchmark_test.go:629: provider_version="7.4.9" image_reference="redis:7.4-alpine@sha256:6ab0b6e7381779332f97b8ca76193e45b0756f38d4c0dcda72dbb3c32061ab99"
-BenchmarkProviderCacheRedis/RedisL2/GetHit/128B-10         	     100	    191564 ns/op	    1344 B/op	      21 allocs/op
+BenchmarkProviderCacheRedis/RedisL2/GetHit/128B-10         	     100	    180870 ns/op	    1344 B/op	      21 allocs/op
 --- BENCH: BenchmarkProviderCacheRedis/RedisL2/GetHit/128B-10
     provider_benchmark_test.go:629: provider_version="7.4.9" image_reference="redis:7.4-alpine@sha256:6ab0b6e7381779332f97b8ca76193e45b0756f38d4c0dcda72dbb3c32061ab99"
     provider_benchmark_test.go:629: provider_version="7.4.9" image_reference="redis:7.4-alpine@sha256:6ab0b6e7381779332f97b8ca76193e45b0756f38d4c0dcda72dbb3c32061ab99"
-BenchmarkProviderCacheRedis/RedisL2/GetHit/128B-10         	     100	    171829 ns/op	    1344 B/op	      21 allocs/op
+BenchmarkProviderCacheRedis/RedisL2/GetHit/128B-10         	     100	    180964 ns/op	    1344 B/op	      21 allocs/op
 --- BENCH: BenchmarkProviderCacheRedis/RedisL2/GetHit/128B-10
     provider_benchmark_test.go:629: provider_version="7.4.9" image_reference="redis:7.4-alpine@sha256:6ab0b6e7381779332f97b8ca76193e45b0756f38d4c0dcda72dbb3c32061ab99"
     provider_benchmark_test.go:629: provider_version="7.4.9" image_reference="redis:7.4-alpine@sha256:6ab0b6e7381779332f97b8ca76193e45b0756f38d4c0dcda72dbb3c32061ab99"
-BenchmarkProviderCacheRedis/RedisL2/GetHit/4KiB-10         	     100	    198963 ns/op	   11984 B/op	      21 allocs/op
+BenchmarkProviderCacheRedis/RedisL2/GetHit/4KiB-10         	     100	    210858 ns/op	   11984 B/op	      21 allocs/op
 --- BENCH: BenchmarkProviderCacheRedis/RedisL2/GetHit/4KiB-10
     provider_benchmark_test.go:629: provider_version="7.4.9" image_reference="redis:7.4-alpine@sha256:6ab0b6e7381779332f97b8ca76193e45b0756f38d4c0dcda72dbb3c32061ab99"
     provider_benchmark_test.go:629: provider_version="7.4.9" image_reference="redis:7.4-alpine@sha256:6ab0b6e7381779332f97b8ca76193e45b0756f38d4c0dcda72dbb3c32061ab99"
-BenchmarkProviderCacheRedis/RedisL2/GetHit/4KiB-10         	     100	    213182 ns/op	   11984 B/op	      21 allocs/op
+BenchmarkProviderCacheRedis/RedisL2/GetHit/4KiB-10         	     100	    207796 ns/op	   11984 B/op	      21 allocs/op
 --- BENCH: BenchmarkProviderCacheRedis/RedisL2/GetHit/4KiB-10
     provider_benchmark_test.go:629: provider_version="7.4.9" image_reference="redis:7.4-alpine@sha256:6ab0b6e7381779332f97b8ca76193e45b0756f38d4c0dcda72dbb3c32061ab99"
     provider_benchmark_test.go:629: provider_version="7.4.9" image_reference="redis:7.4-alpine@sha256:6ab0b6e7381779332f97b8ca76193e45b0756f38d4c0dcda72dbb3c32061ab99"
-BenchmarkProviderCacheRedis/RedisL2/GetHit/4KiB-10         	     100	    210396 ns/op	   11984 B/op	      21 allocs/op
+BenchmarkProviderCacheRedis/RedisL2/GetHit/4KiB-10         	     100	    205252 ns/op	   11984 B/op	      21 allocs/op
 --- BENCH: BenchmarkProviderCacheRedis/RedisL2/GetHit/4KiB-10
     provider_benchmark_test.go:629: provider_version="7.4.9" image_reference="redis:7.4-alpine@sha256:6ab0b6e7381779332f97b8ca76193e45b0756f38d4c0dcda72dbb3c32061ab99"
     provider_benchmark_test.go:629: provider_version="7.4.9" image_reference="redis:7.4-alpine@sha256:6ab0b6e7381779332f97b8ca76193e45b0756f38d4c0dcda72dbb3c32061ab99"
-BenchmarkProviderCacheRedis/RedisL2/GetMiss/128B-10        	     100	    358446 ns/op	    1648 B/op	      41 allocs/op
+BenchmarkProviderCacheRedis/RedisL2/GetMiss/128B-10        	     100	    357867 ns/op	    1648 B/op	      41 allocs/op
 --- BENCH: BenchmarkProviderCacheRedis/RedisL2/GetMiss/128B-10
     provider_benchmark_test.go:629: provider_version="7.4.9" image_reference="redis:7.4-alpine@sha256:6ab0b6e7381779332f97b8ca76193e45b0756f38d4c0dcda72dbb3c32061ab99"
     provider_benchmark_test.go:629: provider_version="7.4.9" image_reference="redis:7.4-alpine@sha256:6ab0b6e7381779332f97b8ca76193e45b0756f38d4c0dcda72dbb3c32061ab99"
-BenchmarkProviderCacheRedis/RedisL2/GetMiss/128B-10        	     100	    352721 ns/op	    1648 B/op	      41 allocs/op
+BenchmarkProviderCacheRedis/RedisL2/GetMiss/128B-10        	     100	    353202 ns/op	    1648 B/op	      41 allocs/op
 --- BENCH: BenchmarkProviderCacheRedis/RedisL2/GetMiss/128B-10
     provider_benchmark_test.go:629: provider_version="7.4.9" image_reference="redis:7.4-alpine@sha256:6ab0b6e7381779332f97b8ca76193e45b0756f38d4c0dcda72dbb3c32061ab99"
     provider_benchmark_test.go:629: provider_version="7.4.9" image_reference="redis:7.4-alpine@sha256:6ab0b6e7381779332f97b8ca76193e45b0756f38d4c0dcda72dbb3c32061ab99"
-BenchmarkProviderCacheRedis/RedisL2/GetMiss/128B-10        	     100	    351516 ns/op	    1648 B/op	      41 allocs/op
+BenchmarkProviderCacheRedis/RedisL2/GetMiss/128B-10        	     100	    352483 ns/op	    1648 B/op	      41 allocs/op
 --- BENCH: BenchmarkProviderCacheRedis/RedisL2/GetMiss/128B-10
     provider_benchmark_test.go:629: provider_version="7.4.9" image_reference="redis:7.4-alpine@sha256:6ab0b6e7381779332f97b8ca76193e45b0756f38d4c0dcda72dbb3c32061ab99"
     provider_benchmark_test.go:629: provider_version="7.4.9" image_reference="redis:7.4-alpine@sha256:6ab0b6e7381779332f97b8ca76193e45b0756f38d4c0dcda72dbb3c32061ab99"
-BenchmarkProviderCacheRedis/RedisL2/GetMiss/4KiB-10        	     100	    353059 ns/op	    1648 B/op	      41 allocs/op
+BenchmarkProviderCacheRedis/RedisL2/GetMiss/4KiB-10        	     100	    352379 ns/op	    1648 B/op	      41 allocs/op
 --- BENCH: BenchmarkProviderCacheRedis/RedisL2/GetMiss/4KiB-10
     provider_benchmark_test.go:629: provider_version="7.4.9" image_reference="redis:7.4-alpine@sha256:6ab0b6e7381779332f97b8ca76193e45b0756f38d4c0dcda72dbb3c32061ab99"
     provider_benchmark_test.go:629: provider_version="7.4.9" image_reference="redis:7.4-alpine@sha256:6ab0b6e7381779332f97b8ca76193e45b0756f38d4c0dcda72dbb3c32061ab99"
-BenchmarkProviderCacheRedis/RedisL2/GetMiss/4KiB-10        	     100	    353043 ns/op	    1648 B/op	      41 allocs/op
+BenchmarkProviderCacheRedis/RedisL2/GetMiss/4KiB-10        	     100	    351340 ns/op	    1648 B/op	      41 allocs/op
 --- BENCH: BenchmarkProviderCacheRedis/RedisL2/GetMiss/4KiB-10
     provider_benchmark_test.go:629: provider_version="7.4.9" image_reference="redis:7.4-alpine@sha256:6ab0b6e7381779332f97b8ca76193e45b0756f38d4c0dcda72dbb3c32061ab99"
     provider_benchmark_test.go:629: provider_version="7.4.9" image_reference="redis:7.4-alpine@sha256:6ab0b6e7381779332f97b8ca76193e45b0756f38d4c0dcda72dbb3c32061ab99"
-BenchmarkProviderCacheRedis/RedisL2/GetMiss/4KiB-10        	     100	    362390 ns/op	    1648 B/op	      41 allocs/op
+BenchmarkProviderCacheRedis/RedisL2/GetMiss/4KiB-10        	     100	    352163 ns/op	    1648 B/op	      41 allocs/op
 --- BENCH: BenchmarkProviderCacheRedis/RedisL2/GetMiss/4KiB-10
     provider_benchmark_test.go:629: provider_version="7.4.9" image_reference="redis:7.4-alpine@sha256:6ab0b6e7381779332f97b8ca76193e45b0756f38d4c0dcda72dbb3c32061ab99"
     provider_benchmark_test.go:629: provider_version="7.4.9" image_reference="redis:7.4-alpine@sha256:6ab0b6e7381779332f97b8ca76193e45b0756f38d4c0dcda72dbb3c32061ab99"
-BenchmarkProviderCacheRedis/RedisL2/Set/128B-10            	     100	    238639 ns/op	     991 B/op	      15 allocs/op
+BenchmarkProviderCacheRedis/RedisL2/Set/128B-10            	     100	    178414 ns/op	     985 B/op	      15 allocs/op
 --- BENCH: BenchmarkProviderCacheRedis/RedisL2/Set/128B-10
     provider_benchmark_test.go:629: provider_version="7.4.9" image_reference="redis:7.4-alpine@sha256:6ab0b6e7381779332f97b8ca76193e45b0756f38d4c0dcda72dbb3c32061ab99"
     provider_benchmark_test.go:629: provider_version="7.4.9" image_reference="redis:7.4-alpine@sha256:6ab0b6e7381779332f97b8ca76193e45b0756f38d4c0dcda72dbb3c32061ab99"
-BenchmarkProviderCacheRedis/RedisL2/Set/128B-10            	     100	    186430 ns/op	     980 B/op	      15 allocs/op
+BenchmarkProviderCacheRedis/RedisL2/Set/128B-10            	     100	    177570 ns/op	     980 B/op	      15 allocs/op
 --- BENCH: BenchmarkProviderCacheRedis/RedisL2/Set/128B-10
     provider_benchmark_test.go:629: provider_version="7.4.9" image_reference="redis:7.4-alpine@sha256:6ab0b6e7381779332f97b8ca76193e45b0756f38d4c0dcda72dbb3c32061ab99"
     provider_benchmark_test.go:629: provider_version="7.4.9" image_reference="redis:7.4-alpine@sha256:6ab0b6e7381779332f97b8ca76193e45b0756f38d4c0dcda72dbb3c32061ab99"
-BenchmarkProviderCacheRedis/RedisL2/Set/128B-10            	     100	    195686 ns/op	     985 B/op	      15 allocs/op
+BenchmarkProviderCacheRedis/RedisL2/Set/128B-10            	     100	    175990 ns/op	     985 B/op	      15 allocs/op
 --- BENCH: BenchmarkProviderCacheRedis/RedisL2/Set/128B-10
     provider_benchmark_test.go:629: provider_version="7.4.9" image_reference="redis:7.4-alpine@sha256:6ab0b6e7381779332f97b8ca76193e45b0756f38d4c0dcda72dbb3c32061ab99"
     provider_benchmark_test.go:629: provider_version="7.4.9" image_reference="redis:7.4-alpine@sha256:6ab0b6e7381779332f97b8ca76193e45b0756f38d4c0dcda72dbb3c32061ab99"
-BenchmarkProviderCacheRedis/RedisL2/Set/4KiB-10            	     100	    195967 ns/op	    6894 B/op	      15 allocs/op
+BenchmarkProviderCacheRedis/RedisL2/Set/4KiB-10            	     100	    196674 ns/op	    7019 B/op	      15 allocs/op
 --- BENCH: BenchmarkProviderCacheRedis/RedisL2/Set/4KiB-10
     provider_benchmark_test.go:629: provider_version="7.4.9" image_reference="redis:7.4-alpine@sha256:6ab0b6e7381779332f97b8ca76193e45b0756f38d4c0dcda72dbb3c32061ab99"
     provider_benchmark_test.go:629: provider_version="7.4.9" image_reference="redis:7.4-alpine@sha256:6ab0b6e7381779332f97b8ca76193e45b0756f38d4c0dcda72dbb3c32061ab99"
-BenchmarkProviderCacheRedis/RedisL2/Set/4KiB-10            	     100	    192057 ns/op	    7018 B/op	      15 allocs/op
+BenchmarkProviderCacheRedis/RedisL2/Set/4KiB-10            	     100	    192255 ns/op	    7018 B/op	      15 allocs/op
 --- BENCH: BenchmarkProviderCacheRedis/RedisL2/Set/4KiB-10
     provider_benchmark_test.go:629: provider_version="7.4.9" image_reference="redis:7.4-alpine@sha256:6ab0b6e7381779332f97b8ca76193e45b0756f38d4c0dcda72dbb3c32061ab99"
     provider_benchmark_test.go:629: provider_version="7.4.9" image_reference="redis:7.4-alpine@sha256:6ab0b6e7381779332f97b8ca76193e45b0756f38d4c0dcda72dbb3c32061ab99"
-BenchmarkProviderCacheRedis/RedisL2/Set/4KiB-10            	     100	    191683 ns/op	    6894 B/op	      15 allocs/op
+BenchmarkProviderCacheRedis/RedisL2/Set/4KiB-10            	     100	    191309 ns/op	    7018 B/op	      15 allocs/op
 --- BENCH: BenchmarkProviderCacheRedis/RedisL2/Set/4KiB-10
     provider_benchmark_test.go:629: provider_version="7.4.9" image_reference="redis:7.4-alpine@sha256:6ab0b6e7381779332f97b8ca76193e45b0756f38d4c0dcda72dbb3c32061ab99"
     provider_benchmark_test.go:629: provider_version="7.4.9" image_reference="redis:7.4-alpine@sha256:6ab0b6e7381779332f97b8ca76193e45b0756f38d4c0dcda72dbb3c32061ab99"
-BenchmarkProviderCacheRedis/RedisL2/Delete/128B-10         	     100	    175490 ns/op	     664 B/op	      12 allocs/op
+BenchmarkProviderCacheRedis/RedisL2/Delete/128B-10         	     100	    177312 ns/op	     664 B/op	      12 allocs/op
 --- BENCH: BenchmarkProviderCacheRedis/RedisL2/Delete/128B-10
     provider_benchmark_test.go:629: provider_version="7.4.9" image_reference="redis:7.4-alpine@sha256:6ab0b6e7381779332f97b8ca76193e45b0756f38d4c0dcda72dbb3c32061ab99"
     provider_benchmark_test.go:629: provider_version="7.4.9" image_reference="redis:7.4-alpine@sha256:6ab0b6e7381779332f97b8ca76193e45b0756f38d4c0dcda72dbb3c32061ab99"
-BenchmarkProviderCacheRedis/RedisL2/Delete/128B-10         	     100	    173840 ns/op	     664 B/op	      12 allocs/op
+BenchmarkProviderCacheRedis/RedisL2/Delete/128B-10         	     100	    173692 ns/op	     664 B/op	      12 allocs/op
 --- BENCH: BenchmarkProviderCacheRedis/RedisL2/Delete/128B-10
     provider_benchmark_test.go:629: provider_version="7.4.9" image_reference="redis:7.4-alpine@sha256:6ab0b6e7381779332f97b8ca76193e45b0756f38d4c0dcda72dbb3c32061ab99"
     provider_benchmark_test.go:629: provider_version="7.4.9" image_reference="redis:7.4-alpine@sha256:6ab0b6e7381779332f97b8ca76193e45b0756f38d4c0dcda72dbb3c32061ab99"
-BenchmarkProviderCacheRedis/RedisL2/Delete/128B-10         	     100	    174865 ns/op	     664 B/op	      12 allocs/op
+BenchmarkProviderCacheRedis/RedisL2/Delete/128B-10         	     100	    173187 ns/op	     664 B/op	      12 allocs/op
 --- BENCH: BenchmarkProviderCacheRedis/RedisL2/Delete/128B-10
     provider_benchmark_test.go:629: provider_version="7.4.9" image_reference="redis:7.4-alpine@sha256:6ab0b6e7381779332f97b8ca76193e45b0756f38d4c0dcda72dbb3c32061ab99"
     provider_benchmark_test.go:629: provider_version="7.4.9" image_reference="redis:7.4-alpine@sha256:6ab0b6e7381779332f97b8ca76193e45b0756f38d4c0dcda72dbb3c32061ab99"
-BenchmarkProviderCacheRedis/RedisL2/Delete/4KiB-10         	     100	    174577 ns/op	     664 B/op	      12 allocs/op
+BenchmarkProviderCacheRedis/RedisL2/Delete/4KiB-10         	     100	    176130 ns/op	     664 B/op	      12 allocs/op
 --- BENCH: BenchmarkProviderCacheRedis/RedisL2/Delete/4KiB-10
     provider_benchmark_test.go:629: provider_version="7.4.9" image_reference="redis:7.4-alpine@sha256:6ab0b6e7381779332f97b8ca76193e45b0756f38d4c0dcda72dbb3c32061ab99"
     provider_benchmark_test.go:629: provider_version="7.4.9" image_reference="redis:7.4-alpine@sha256:6ab0b6e7381779332f97b8ca76193e45b0756f38d4c0dcda72dbb3c32061ab99"
-BenchmarkProviderCacheRedis/RedisL2/Delete/4KiB-10         	     100	    177050 ns/op	     664 B/op	      12 allocs/op
+BenchmarkProviderCacheRedis/RedisL2/Delete/4KiB-10         	     100	    174626 ns/op	     664 B/op	      12 allocs/op
 --- BENCH: BenchmarkProviderCacheRedis/RedisL2/Delete/4KiB-10
     provider_benchmark_test.go:629: provider_version="7.4.9" image_reference="redis:7.4-alpine@sha256:6ab0b6e7381779332f97b8ca76193e45b0756f38d4c0dcda72dbb3c32061ab99"
     provider_benchmark_test.go:629: provider_version="7.4.9" image_reference="redis:7.4-alpine@sha256:6ab0b6e7381779332f97b8ca76193e45b0756f38d4c0dcda72dbb3c32061ab99"
-BenchmarkProviderCacheRedis/RedisL2/Delete/4KiB-10         	     100	    176344 ns/op	     664 B/op	      12 allocs/op
+BenchmarkProviderCacheRedis/RedisL2/Delete/4KiB-10         	     100	    185790 ns/op	     664 B/op	      12 allocs/op
 --- BENCH: BenchmarkProviderCacheRedis/RedisL2/Delete/4KiB-10
     provider_benchmark_test.go:629: provider_version="7.4.9" image_reference="redis:7.4-alpine@sha256:6ab0b6e7381779332f97b8ca76193e45b0756f38d4c0dcda72dbb3c32061ab99"
     provider_benchmark_test.go:629: provider_version="7.4.9" image_reference="redis:7.4-alpine@sha256:6ab0b6e7381779332f97b8ca76193e45b0756f38d4c0dcda72dbb3c32061ab99"
-BenchmarkProviderCacheRedis/Tiered/L1Hit/128B-10           	     100	       278.8 ns/op	       0 B/op	       0 allocs/op
+BenchmarkProviderCacheRedis/Tiered/L1Hit/128B-10           	     100	       273.7 ns/op	       0 B/op	       0 allocs/op
 --- BENCH: BenchmarkProviderCacheRedis/Tiered/L1Hit/128B-10
     provider_benchmark_test.go:640: provider_version="7.4.9" image_reference="redis:7.4-alpine@sha256:6ab0b6e7381779332f97b8ca76193e45b0756f38d4c0dcda72dbb3c32061ab99"
     provider_benchmark_test.go:640: provider_version="7.4.9" image_reference="redis:7.4-alpine@sha256:6ab0b6e7381779332f97b8ca76193e45b0756f38d4c0dcda72dbb3c32061ab99"
-BenchmarkProviderCacheRedis/Tiered/L1Hit/128B-10           	     100	       250.4 ns/op	       0 B/op	       0 allocs/op
+BenchmarkProviderCacheRedis/Tiered/L1Hit/128B-10           	     100	       174.1 ns/op	       0 B/op	       0 allocs/op
 --- BENCH: BenchmarkProviderCacheRedis/Tiered/L1Hit/128B-10
     provider_benchmark_test.go:640: provider_version="7.4.9" image_reference="redis:7.4-alpine@sha256:6ab0b6e7381779332f97b8ca76193e45b0756f38d4c0dcda72dbb3c32061ab99"
     provider_benchmark_test.go:640: provider_version="7.4.9" image_reference="redis:7.4-alpine@sha256:6ab0b6e7381779332f97b8ca76193e45b0756f38d4c0dcda72dbb3c32061ab99"
-BenchmarkProviderCacheRedis/Tiered/L1Hit/128B-10           	     100	       273.3 ns/op	       0 B/op	       0 allocs/op
+BenchmarkProviderCacheRedis/Tiered/L1Hit/128B-10           	     100	       193.4 ns/op	       0 B/op	       0 allocs/op
 --- BENCH: BenchmarkProviderCacheRedis/Tiered/L1Hit/128B-10
     provider_benchmark_test.go:640: provider_version="7.4.9" image_reference="redis:7.4-alpine@sha256:6ab0b6e7381779332f97b8ca76193e45b0756f38d4c0dcda72dbb3c32061ab99"
     provider_benchmark_test.go:640: provider_version="7.4.9" image_reference="redis:7.4-alpine@sha256:6ab0b6e7381779332f97b8ca76193e45b0756f38d4c0dcda72dbb3c32061ab99"
-BenchmarkProviderCacheRedis/Tiered/L1Hit/4KiB-10           	     100	       205.4 ns/op	       0 B/op	       0 allocs/op
+BenchmarkProviderCacheRedis/Tiered/L1Hit/4KiB-10           	     100	       157.5 ns/op	       0 B/op	       0 allocs/op
 --- BENCH: BenchmarkProviderCacheRedis/Tiered/L1Hit/4KiB-10
     provider_benchmark_test.go:640: provider_version="7.4.9" image_reference="redis:7.4-alpine@sha256:6ab0b6e7381779332f97b8ca76193e45b0756f38d4c0dcda72dbb3c32061ab99"
     provider_benchmark_test.go:640: provider_version="7.4.9" image_reference="redis:7.4-alpine@sha256:6ab0b6e7381779332f97b8ca76193e45b0756f38d4c0dcda72dbb3c32061ab99"
-BenchmarkProviderCacheRedis/Tiered/L1Hit/4KiB-10           	     100	       281.6 ns/op	       0 B/op	       0 allocs/op
+BenchmarkProviderCacheRedis/Tiered/L1Hit/4KiB-10           	     100	       203.3 ns/op	       0 B/op	       0 allocs/op
 --- BENCH: BenchmarkProviderCacheRedis/Tiered/L1Hit/4KiB-10
     provider_benchmark_test.go:640: provider_version="7.4.9" image_reference="redis:7.4-alpine@sha256:6ab0b6e7381779332f97b8ca76193e45b0756f38d4c0dcda72dbb3c32061ab99"
     provider_benchmark_test.go:640: provider_version="7.4.9" image_reference="redis:7.4-alpine@sha256:6ab0b6e7381779332f97b8ca76193e45b0756f38d4c0dcda72dbb3c32061ab99"
-BenchmarkProviderCacheRedis/Tiered/L1Hit/4KiB-10           	     100	       256.6 ns/op	       0 B/op	       0 allocs/op
+BenchmarkProviderCacheRedis/Tiered/L1Hit/4KiB-10           	     100	       248.8 ns/op	       0 B/op	       0 allocs/op
 --- BENCH: BenchmarkProviderCacheRedis/Tiered/L1Hit/4KiB-10
     provider_benchmark_test.go:640: provider_version="7.4.9" image_reference="redis:7.4-alpine@sha256:6ab0b6e7381779332f97b8ca76193e45b0756f38d4c0dcda72dbb3c32061ab99"
     provider_benchmark_test.go:640: provider_version="7.4.9" image_reference="redis:7.4-alpine@sha256:6ab0b6e7381779332f97b8ca76193e45b0756f38d4c0dcda72dbb3c32061ab99"
-BenchmarkProviderCacheRedis/Tiered/L2Hit/128B-10           	     100	    178659 ns/op	    1504 B/op	      23 allocs/op
+BenchmarkProviderCacheRedis/Tiered/L2Hit/128B-10           	     100	    177988 ns/op	    1504 B/op	      23 allocs/op
 --- BENCH: BenchmarkProviderCacheRedis/Tiered/L2Hit/128B-10
     provider_benchmark_test.go:640: provider_version="7.4.9" image_reference="redis:7.4-alpine@sha256:6ab0b6e7381779332f97b8ca76193e45b0756f38d4c0dcda72dbb3c32061ab99"
     provider_benchmark_test.go:640: provider_version="7.4.9" image_reference="redis:7.4-alpine@sha256:6ab0b6e7381779332f97b8ca76193e45b0756f38d4c0dcda72dbb3c32061ab99"
-BenchmarkProviderCacheRedis/Tiered/L2Hit/128B-10           	     100	    176915 ns/op	    1504 B/op	      23 allocs/op
+BenchmarkProviderCacheRedis/Tiered/L2Hit/128B-10           	     100	    177220 ns/op	    1504 B/op	      23 allocs/op
 --- BENCH: BenchmarkProviderCacheRedis/Tiered/L2Hit/128B-10
     provider_benchmark_test.go:640: provider_version="7.4.9" image_reference="redis:7.4-alpine@sha256:6ab0b6e7381779332f97b8ca76193e45b0756f38d4c0dcda72dbb3c32061ab99"
     provider_benchmark_test.go:640: provider_version="7.4.9" image_reference="redis:7.4-alpine@sha256:6ab0b6e7381779332f97b8ca76193e45b0756f38d4c0dcda72dbb3c32061ab99"
-BenchmarkProviderCacheRedis/Tiered/L2Hit/128B-10           	     100	    177178 ns/op	    1504 B/op	      23 allocs/op
+BenchmarkProviderCacheRedis/Tiered/L2Hit/128B-10           	     100	    178617 ns/op	    1504 B/op	      23 allocs/op
 --- BENCH: BenchmarkProviderCacheRedis/Tiered/L2Hit/128B-10
     provider_benchmark_test.go:640: provider_version="7.4.9" image_reference="redis:7.4-alpine@sha256:6ab0b6e7381779332f97b8ca76193e45b0756f38d4c0dcda72dbb3c32061ab99"
     provider_benchmark_test.go:640: provider_version="7.4.9" image_reference="redis:7.4-alpine@sha256:6ab0b6e7381779332f97b8ca76193e45b0756f38d4c0dcda72dbb3c32061ab99"
-BenchmarkProviderCacheRedis/Tiered/L2Hit/4KiB-10           	     100	    214791 ns/op	   12144 B/op	      23 allocs/op
+BenchmarkProviderCacheRedis/Tiered/L2Hit/4KiB-10           	     100	    211293 ns/op	   12144 B/op	      23 allocs/op
 --- BENCH: BenchmarkProviderCacheRedis/Tiered/L2Hit/4KiB-10
     provider_benchmark_test.go:640: provider_version="7.4.9" image_reference="redis:7.4-alpine@sha256:6ab0b6e7381779332f97b8ca76193e45b0756f38d4c0dcda72dbb3c32061ab99"
     provider_benchmark_test.go:640: provider_version="7.4.9" image_reference="redis:7.4-alpine@sha256:6ab0b6e7381779332f97b8ca76193e45b0756f38d4c0dcda72dbb3c32061ab99"
-BenchmarkProviderCacheRedis/Tiered/L2Hit/4KiB-10           	     100	    209585 ns/op	   12144 B/op	      23 allocs/op
+BenchmarkProviderCacheRedis/Tiered/L2Hit/4KiB-10           	     100	    209754 ns/op	   12144 B/op	      23 allocs/op
 --- BENCH: BenchmarkProviderCacheRedis/Tiered/L2Hit/4KiB-10
     provider_benchmark_test.go:640: provider_version="7.4.9" image_reference="redis:7.4-alpine@sha256:6ab0b6e7381779332f97b8ca76193e45b0756f38d4c0dcda72dbb3c32061ab99"
     provider_benchmark_test.go:640: provider_version="7.4.9" image_reference="redis:7.4-alpine@sha256:6ab0b6e7381779332f97b8ca76193e45b0756f38d4c0dcda72dbb3c32061ab99"
-BenchmarkProviderCacheRedis/Tiered/L2Hit/4KiB-10           	     100	    200837 ns/op	   12144 B/op	      23 allocs/op
+BenchmarkProviderCacheRedis/Tiered/L2Hit/4KiB-10           	     100	    211100 ns/op	   12144 B/op	      23 allocs/op
 --- BENCH: BenchmarkProviderCacheRedis/Tiered/L2Hit/4KiB-10
     provider_benchmark_test.go:640: provider_version="7.4.9" image_reference="redis:7.4-alpine@sha256:6ab0b6e7381779332f97b8ca76193e45b0756f38d4c0dcda72dbb3c32061ab99"
     provider_benchmark_test.go:640: provider_version="7.4.9" image_reference="redis:7.4-alpine@sha256:6ab0b6e7381779332f97b8ca76193e45b0756f38d4c0dcda72dbb3c32061ab99"
-BenchmarkProviderCacheRedis/Tiered/LoadMiss/128B-10        	     100	    490163 ns/op	    2861 B/op	      59 allocs/op
+BenchmarkProviderCacheRedis/Tiered/LoadMiss/128B-10        	     100	    522615 ns/op	    2856 B/op	      59 allocs/op
 --- BENCH: BenchmarkProviderCacheRedis/Tiered/LoadMiss/128B-10
     provider_benchmark_test.go:640: provider_version="7.4.9" image_reference="redis:7.4-alpine@sha256:6ab0b6e7381779332f97b8ca76193e45b0756f38d4c0dcda72dbb3c32061ab99"
     provider_benchmark_test.go:640: provider_version="7.4.9" image_reference="redis:7.4-alpine@sha256:6ab0b6e7381779332f97b8ca76193e45b0756f38d4c0dcda72dbb3c32061ab99"
-BenchmarkProviderCacheRedis/Tiered/LoadMiss/128B-10        	     100	    497418 ns/op	    2861 B/op	      59 allocs/op
+BenchmarkProviderCacheRedis/Tiered/LoadMiss/128B-10        	     100	    528316 ns/op	    2856 B/op	      59 allocs/op
 --- BENCH: BenchmarkProviderCacheRedis/Tiered/LoadMiss/128B-10
     provider_benchmark_test.go:640: provider_version="7.4.9" image_reference="redis:7.4-alpine@sha256:6ab0b6e7381779332f97b8ca76193e45b0756f38d4c0dcda72dbb3c32061ab99"
     provider_benchmark_test.go:640: provider_version="7.4.9" image_reference="redis:7.4-alpine@sha256:6ab0b6e7381779332f97b8ca76193e45b0756f38d4c0dcda72dbb3c32061ab99"
-BenchmarkProviderCacheRedis/Tiered/LoadMiss/128B-10        	     100	    498211 ns/op	    2856 B/op	      59 allocs/op
+BenchmarkProviderCacheRedis/Tiered/LoadMiss/128B-10        	     100	    523733 ns/op	    2861 B/op	      59 allocs/op
 --- BENCH: BenchmarkProviderCacheRedis/Tiered/LoadMiss/128B-10
     provider_benchmark_test.go:640: provider_version="7.4.9" image_reference="redis:7.4-alpine@sha256:6ab0b6e7381779332f97b8ca76193e45b0756f38d4c0dcda72dbb3c32061ab99"
     provider_benchmark_test.go:640: provider_version="7.4.9" image_reference="redis:7.4-alpine@sha256:6ab0b6e7381779332f97b8ca76193e45b0756f38d4c0dcda72dbb3c32061ab99"
-BenchmarkProviderCacheRedis/Tiered/LoadMiss/4KiB-10        	     100	    504812 ns/op	    9019 B/op	      59 allocs/op
+BenchmarkProviderCacheRedis/Tiered/LoadMiss/4KiB-10        	     100	    541759 ns/op	    9144 B/op	      59 allocs/op
 --- BENCH: BenchmarkProviderCacheRedis/Tiered/LoadMiss/4KiB-10
     provider_benchmark_test.go:640: provider_version="7.4.9" image_reference="redis:7.4-alpine@sha256:6ab0b6e7381779332f97b8ca76193e45b0756f38d4c0dcda72dbb3c32061ab99"
     provider_benchmark_test.go:640: provider_version="7.4.9" image_reference="redis:7.4-alpine@sha256:6ab0b6e7381779332f97b8ca76193e45b0756f38d4c0dcda72dbb3c32061ab99"
-BenchmarkProviderCacheRedis/Tiered/LoadMiss/4KiB-10        	     100	    512259 ns/op	    9144 B/op	      59 allocs/op
+BenchmarkProviderCacheRedis/Tiered/LoadMiss/4KiB-10        	     100	    542260 ns/op	    9019 B/op	      59 allocs/op
 --- BENCH: BenchmarkProviderCacheRedis/Tiered/LoadMiss/4KiB-10
     provider_benchmark_test.go:640: provider_version="7.4.9" image_reference="redis:7.4-alpine@sha256:6ab0b6e7381779332f97b8ca76193e45b0756f38d4c0dcda72dbb3c32061ab99"
     provider_benchmark_test.go:640: provider_version="7.4.9" image_reference="redis:7.4-alpine@sha256:6ab0b6e7381779332f97b8ca76193e45b0756f38d4c0dcda72dbb3c32061ab99"
-BenchmarkProviderCacheRedis/Tiered/LoadMiss/4KiB-10        	     100	    506086 ns/op	    9144 B/op	      59 allocs/op
+BenchmarkProviderCacheRedis/Tiered/LoadMiss/4KiB-10        	     100	    546620 ns/op	    8895 B/op	      59 allocs/op
 --- BENCH: BenchmarkProviderCacheRedis/Tiered/LoadMiss/4KiB-10
     provider_benchmark_test.go:640: provider_version="7.4.9" image_reference="redis:7.4-alpine@sha256:6ab0b6e7381779332f97b8ca76193e45b0756f38d4c0dcda72dbb3c32061ab99"
     provider_benchmark_test.go:640: provider_version="7.4.9" image_reference="redis:7.4-alpine@sha256:6ab0b6e7381779332f97b8ca76193e45b0756f38d4c0dcda72dbb3c32061ab99"
-BenchmarkProviderCacheRedis/Tiered/WriteThrough/128B-10    	     100	    166674 ns/op	    1146 B/op	      17 allocs/op
+BenchmarkProviderCacheRedis/Tiered/WriteThrough/128B-10    	     100	    177524 ns/op	    1152 B/op	      17 allocs/op
 --- BENCH: BenchmarkProviderCacheRedis/Tiered/WriteThrough/128B-10
     provider_benchmark_test.go:640: provider_version="7.4.9" image_reference="redis:7.4-alpine@sha256:6ab0b6e7381779332f97b8ca76193e45b0756f38d4c0dcda72dbb3c32061ab99"
     provider_benchmark_test.go:640: provider_version="7.4.9" image_reference="redis:7.4-alpine@sha256:6ab0b6e7381779332f97b8ca76193e45b0756f38d4c0dcda72dbb3c32061ab99"
-BenchmarkProviderCacheRedis/Tiered/WriteThrough/128B-10    	     100	    169509 ns/op	    1146 B/op	      17 allocs/op
+BenchmarkProviderCacheRedis/Tiered/WriteThrough/128B-10    	     100	    177567 ns/op	    1146 B/op	      17 allocs/op
 --- BENCH: BenchmarkProviderCacheRedis/Tiered/WriteThrough/128B-10
     provider_benchmark_test.go:640: provider_version="7.4.9" image_reference="redis:7.4-alpine@sha256:6ab0b6e7381779332f97b8ca76193e45b0756f38d4c0dcda72dbb3c32061ab99"
     provider_benchmark_test.go:640: provider_version="7.4.9" image_reference="redis:7.4-alpine@sha256:6ab0b6e7381779332f97b8ca76193e45b0756f38d4c0dcda72dbb3c32061ab99"
-BenchmarkProviderCacheRedis/Tiered/WriteThrough/128B-10    	     100	    165789 ns/op	    1146 B/op	      17 allocs/op
+BenchmarkProviderCacheRedis/Tiered/WriteThrough/128B-10    	     100	    176165 ns/op	    1152 B/op	      17 allocs/op
 --- BENCH: BenchmarkProviderCacheRedis/Tiered/WriteThrough/128B-10
     provider_benchmark_test.go:640: provider_version="7.4.9" image_reference="redis:7.4-alpine@sha256:6ab0b6e7381779332f97b8ca76193e45b0756f38d4c0dcda72dbb3c32061ab99"
     provider_benchmark_test.go:640: provider_version="7.4.9" image_reference="redis:7.4-alpine@sha256:6ab0b6e7381779332f97b8ca76193e45b0756f38d4c0dcda72dbb3c32061ab99"
-BenchmarkProviderCacheRedis/Tiered/WriteThrough/4KiB-10    	     100	    186742 ns/op	    7185 B/op	      17 allocs/op
+BenchmarkProviderCacheRedis/Tiered/WriteThrough/4KiB-10    	     100	    192312 ns/op	    7185 B/op	      17 allocs/op
 --- BENCH: BenchmarkProviderCacheRedis/Tiered/WriteThrough/4KiB-10
     provider_benchmark_test.go:640: provider_version="7.4.9" image_reference="redis:7.4-alpine@sha256:6ab0b6e7381779332f97b8ca76193e45b0756f38d4c0dcda72dbb3c32061ab99"
     provider_benchmark_test.go:640: provider_version="7.4.9" image_reference="redis:7.4-alpine@sha256:6ab0b6e7381779332f97b8ca76193e45b0756f38d4c0dcda72dbb3c32061ab99"
-BenchmarkProviderCacheRedis/Tiered/WriteThrough/4KiB-10    	     100	    181925 ns/op	    7185 B/op	      17 allocs/op
+BenchmarkProviderCacheRedis/Tiered/WriteThrough/4KiB-10    	     100	    193320 ns/op	    7185 B/op	      17 allocs/op
 --- BENCH: BenchmarkProviderCacheRedis/Tiered/WriteThrough/4KiB-10
     provider_benchmark_test.go:640: provider_version="7.4.9" image_reference="redis:7.4-alpine@sha256:6ab0b6e7381779332f97b8ca76193e45b0756f38d4c0dcda72dbb3c32061ab99"
     provider_benchmark_test.go:640: provider_version="7.4.9" image_reference="redis:7.4-alpine@sha256:6ab0b6e7381779332f97b8ca76193e45b0756f38d4c0dcda72dbb3c32061ab99"
-BenchmarkProviderCacheRedis/Tiered/WriteThrough/4KiB-10    	     100	    178142 ns/op	    7185 B/op	      17 allocs/op
+BenchmarkProviderCacheRedis/Tiered/WriteThrough/4KiB-10    	     100	    192985 ns/op	    7185 B/op	      17 allocs/op
 --- BENCH: BenchmarkProviderCacheRedis/Tiered/WriteThrough/4KiB-10
     provider_benchmark_test.go:640: provider_version="7.4.9" image_reference="redis:7.4-alpine@sha256:6ab0b6e7381779332f97b8ca76193e45b0756f38d4c0dcda72dbb3c32061ab99"
     provider_benchmark_test.go:640: provider_version="7.4.9" image_reference="redis:7.4-alpine@sha256:6ab0b6e7381779332f97b8ca76193e45b0756f38d4c0dcda72dbb3c32061ab99"
-BenchmarkProviderCacheRedis/NearCachePubSub/LocalHit/128B-10         	     100	       319.2 ns/op	      16 B/op	       1 allocs/op
+BenchmarkProviderCacheRedis/NearCachePubSub/LocalHit/128B-10         	     100	       322.5 ns/op	      16 B/op	       1 allocs/op
 --- BENCH: BenchmarkProviderCacheRedis/NearCachePubSub/LocalHit/128B-10
     provider_benchmark_test.go:651: provider_version="7.4.9" image_reference="redis:7.4-alpine@sha256:6ab0b6e7381779332f97b8ca76193e45b0756f38d4c0dcda72dbb3c32061ab99"
     provider_benchmark_test.go:651: provider_version="7.4.9" image_reference="redis:7.4-alpine@sha256:6ab0b6e7381779332f97b8ca76193e45b0756f38d4c0dcda72dbb3c32061ab99"
-BenchmarkProviderCacheRedis/NearCachePubSub/LocalHit/128B-10         	     100	       243.0 ns/op	      16 B/op	       1 allocs/op
+BenchmarkProviderCacheRedis/NearCachePubSub/LocalHit/128B-10         	     100	       421.7 ns/op	      16 B/op	       1 allocs/op
 --- BENCH: BenchmarkProviderCacheRedis/NearCachePubSub/LocalHit/128B-10
     provider_benchmark_test.go:651: provider_version="7.4.9" image_reference="redis:7.4-alpine@sha256:6ab0b6e7381779332f97b8ca76193e45b0756f38d4c0dcda72dbb3c32061ab99"
     provider_benchmark_test.go:651: provider_version="7.4.9" image_reference="redis:7.4-alpine@sha256:6ab0b6e7381779332f97b8ca76193e45b0756f38d4c0dcda72dbb3c32061ab99"
-BenchmarkProviderCacheRedis/NearCachePubSub/LocalHit/128B-10         	     100	       278.7 ns/op	      16 B/op	       1 allocs/op
+BenchmarkProviderCacheRedis/NearCachePubSub/LocalHit/128B-10         	     100	       254.5 ns/op	      16 B/op	       1 allocs/op
 --- BENCH: BenchmarkProviderCacheRedis/NearCachePubSub/LocalHit/128B-10
     provider_benchmark_test.go:651: provider_version="7.4.9" image_reference="redis:7.4-alpine@sha256:6ab0b6e7381779332f97b8ca76193e45b0756f38d4c0dcda72dbb3c32061ab99"
     provider_benchmark_test.go:651: provider_version="7.4.9" image_reference="redis:7.4-alpine@sha256:6ab0b6e7381779332f97b8ca76193e45b0756f38d4c0dcda72dbb3c32061ab99"
-BenchmarkProviderCacheRedis/NearCachePubSub/LocalHit/4KiB-10         	     100	       273.8 ns/op	      16 B/op	       1 allocs/op
+BenchmarkProviderCacheRedis/NearCachePubSub/LocalHit/4KiB-10         	     100	       297.9 ns/op	      16 B/op	       1 allocs/op
 --- BENCH: BenchmarkProviderCacheRedis/NearCachePubSub/LocalHit/4KiB-10
     provider_benchmark_test.go:651: provider_version="7.4.9" image_reference="redis:7.4-alpine@sha256:6ab0b6e7381779332f97b8ca76193e45b0756f38d4c0dcda72dbb3c32061ab99"
     provider_benchmark_test.go:651: provider_version="7.4.9" image_reference="redis:7.4-alpine@sha256:6ab0b6e7381779332f97b8ca76193e45b0756f38d4c0dcda72dbb3c32061ab99"
-BenchmarkProviderCacheRedis/NearCachePubSub/LocalHit/4KiB-10         	     100	       312.1 ns/op	      16 B/op	       1 allocs/op
+BenchmarkProviderCacheRedis/NearCachePubSub/LocalHit/4KiB-10         	     100	       260.8 ns/op	      16 B/op	       1 allocs/op
 --- BENCH: BenchmarkProviderCacheRedis/NearCachePubSub/LocalHit/4KiB-10
     provider_benchmark_test.go:651: provider_version="7.4.9" image_reference="redis:7.4-alpine@sha256:6ab0b6e7381779332f97b8ca76193e45b0756f38d4c0dcda72dbb3c32061ab99"
     provider_benchmark_test.go:651: provider_version="7.4.9" image_reference="redis:7.4-alpine@sha256:6ab0b6e7381779332f97b8ca76193e45b0756f38d4c0dcda72dbb3c32061ab99"
-BenchmarkProviderCacheRedis/NearCachePubSub/LocalHit/4KiB-10         	     100	       271.2 ns/op	      16 B/op	       1 allocs/op
+BenchmarkProviderCacheRedis/NearCachePubSub/LocalHit/4KiB-10         	     100	       239.1 ns/op	      16 B/op	       1 allocs/op
 --- BENCH: BenchmarkProviderCacheRedis/NearCachePubSub/LocalHit/4KiB-10
     provider_benchmark_test.go:651: provider_version="7.4.9" image_reference="redis:7.4-alpine@sha256:6ab0b6e7381779332f97b8ca76193e45b0756f38d4c0dcda72dbb3c32061ab99"
     provider_benchmark_test.go:651: provider_version="7.4.9" image_reference="redis:7.4-alpine@sha256:6ab0b6e7381779332f97b8ca76193e45b0756f38d4c0dcda72dbb3c32061ab99"
-BenchmarkProviderCacheRedis/NearCachePubSub/LocalMiss/128B-10        	     100	       216.2 ns/op	      16 B/op	       1 allocs/op
+BenchmarkProviderCacheRedis/NearCachePubSub/LocalMiss/128B-10        	     100	       191.2 ns/op	      16 B/op	       1 allocs/op
 --- BENCH: BenchmarkProviderCacheRedis/NearCachePubSub/LocalMiss/128B-10
     provider_benchmark_test.go:651: provider_version="7.4.9" image_reference="redis:7.4-alpine@sha256:6ab0b6e7381779332f97b8ca76193e45b0756f38d4c0dcda72dbb3c32061ab99"
     provider_benchmark_test.go:651: provider_version="7.4.9" image_reference="redis:7.4-alpine@sha256:6ab0b6e7381779332f97b8ca76193e45b0756f38d4c0dcda72dbb3c32061ab99"
-BenchmarkProviderCacheRedis/NearCachePubSub/LocalMiss/128B-10        	     100	       202.9 ns/op	      16 B/op	       1 allocs/op
+BenchmarkProviderCacheRedis/NearCachePubSub/LocalMiss/128B-10        	     100	       178.7 ns/op	      16 B/op	       1 allocs/op
 --- BENCH: BenchmarkProviderCacheRedis/NearCachePubSub/LocalMiss/128B-10
     provider_benchmark_test.go:651: provider_version="7.4.9" image_reference="redis:7.4-alpine@sha256:6ab0b6e7381779332f97b8ca76193e45b0756f38d4c0dcda72dbb3c32061ab99"
     provider_benchmark_test.go:651: provider_version="7.4.9" image_reference="redis:7.4-alpine@sha256:6ab0b6e7381779332f97b8ca76193e45b0756f38d4c0dcda72dbb3c32061ab99"
-BenchmarkProviderCacheRedis/NearCachePubSub/LocalMiss/128B-10        	     100	       180.4 ns/op	      16 B/op	       1 allocs/op
+BenchmarkProviderCacheRedis/NearCachePubSub/LocalMiss/128B-10        	     100	       264.2 ns/op	      16 B/op	       1 allocs/op
 --- BENCH: BenchmarkProviderCacheRedis/NearCachePubSub/LocalMiss/128B-10
     provider_benchmark_test.go:651: provider_version="7.4.9" image_reference="redis:7.4-alpine@sha256:6ab0b6e7381779332f97b8ca76193e45b0756f38d4c0dcda72dbb3c32061ab99"
     provider_benchmark_test.go:651: provider_version="7.4.9" image_reference="redis:7.4-alpine@sha256:6ab0b6e7381779332f97b8ca76193e45b0756f38d4c0dcda72dbb3c32061ab99"
-BenchmarkProviderCacheRedis/NearCachePubSub/LocalMiss/4KiB-10        	     100	       204.2 ns/op	      16 B/op	       1 allocs/op
+BenchmarkProviderCacheRedis/NearCachePubSub/LocalMiss/4KiB-10        	     100	       257.1 ns/op	      16 B/op	       1 allocs/op
 --- BENCH: BenchmarkProviderCacheRedis/NearCachePubSub/LocalMiss/4KiB-10
     provider_benchmark_test.go:651: provider_version="7.4.9" image_reference="redis:7.4-alpine@sha256:6ab0b6e7381779332f97b8ca76193e45b0756f38d4c0dcda72dbb3c32061ab99"
     provider_benchmark_test.go:651: provider_version="7.4.9" image_reference="redis:7.4-alpine@sha256:6ab0b6e7381779332f97b8ca76193e45b0756f38d4c0dcda72dbb3c32061ab99"
-BenchmarkProviderCacheRedis/NearCachePubSub/LocalMiss/4KiB-10        	     100	       217.5 ns/op	      16 B/op	       1 allocs/op
+BenchmarkProviderCacheRedis/NearCachePubSub/LocalMiss/4KiB-10        	     100	       182.1 ns/op	      16 B/op	       1 allocs/op
 --- BENCH: BenchmarkProviderCacheRedis/NearCachePubSub/LocalMiss/4KiB-10
     provider_benchmark_test.go:651: provider_version="7.4.9" image_reference="redis:7.4-alpine@sha256:6ab0b6e7381779332f97b8ca76193e45b0756f38d4c0dcda72dbb3c32061ab99"
     provider_benchmark_test.go:651: provider_version="7.4.9" image_reference="redis:7.4-alpine@sha256:6ab0b6e7381779332f97b8ca76193e45b0756f38d4c0dcda72dbb3c32061ab99"
-BenchmarkProviderCacheRedis/NearCachePubSub/LocalMiss/4KiB-10        	     100	       259.6 ns/op	      16 B/op	       1 allocs/op
+BenchmarkProviderCacheRedis/NearCachePubSub/LocalMiss/4KiB-10        	     100	       205.4 ns/op	      16 B/op	       1 allocs/op
 --- BENCH: BenchmarkProviderCacheRedis/NearCachePubSub/LocalMiss/4KiB-10
     provider_benchmark_test.go:651: provider_version="7.4.9" image_reference="redis:7.4-alpine@sha256:6ab0b6e7381779332f97b8ca76193e45b0756f38d4c0dcda72dbb3c32061ab99"
     provider_benchmark_test.go:651: provider_version="7.4.9" image_reference="redis:7.4-alpine@sha256:6ab0b6e7381779332f97b8ca76193e45b0756f38d4c0dcda72dbb3c32061ab99"
-BenchmarkProviderCacheRedis/NearCachePubSub/PublishSet/128B-10       	     100	    186336 ns/op	    1580 B/op	      28 allocs/op
+BenchmarkProviderCacheRedis/NearCachePubSub/PublishSet/128B-10       	     100	    206469 ns/op	    1547 B/op	      28 allocs/op
 --- BENCH: BenchmarkProviderCacheRedis/NearCachePubSub/PublishSet/128B-10
     provider_benchmark_test.go:651: provider_version="7.4.9" image_reference="redis:7.4-alpine@sha256:6ab0b6e7381779332f97b8ca76193e45b0756f38d4c0dcda72dbb3c32061ab99"
     provider_benchmark_test.go:651: provider_version="7.4.9" image_reference="redis:7.4-alpine@sha256:6ab0b6e7381779332f97b8ca76193e45b0756f38d4c0dcda72dbb3c32061ab99"
-BenchmarkProviderCacheRedis/NearCachePubSub/PublishSet/128B-10       	     100	    237178 ns/op	    1539 B/op	      28 allocs/op
+BenchmarkProviderCacheRedis/NearCachePubSub/PublishSet/128B-10       	     100	    211570 ns/op	    1582 B/op	      29 allocs/op
 --- BENCH: BenchmarkProviderCacheRedis/NearCachePubSub/PublishSet/128B-10
     provider_benchmark_test.go:651: provider_version="7.4.9" image_reference="redis:7.4-alpine@sha256:6ab0b6e7381779332f97b8ca76193e45b0756f38d4c0dcda72dbb3c32061ab99"
     provider_benchmark_test.go:651: provider_version="7.4.9" image_reference="redis:7.4-alpine@sha256:6ab0b6e7381779332f97b8ca76193e45b0756f38d4c0dcda72dbb3c32061ab99"
-BenchmarkProviderCacheRedis/NearCachePubSub/PublishSet/128B-10       	     100	    197774 ns/op	    1570 B/op	      28 allocs/op
+BenchmarkProviderCacheRedis/NearCachePubSub/PublishSet/128B-10       	     100	    197740 ns/op	    1539 B/op	      28 allocs/op
 --- BENCH: BenchmarkProviderCacheRedis/NearCachePubSub/PublishSet/128B-10
     provider_benchmark_test.go:651: provider_version="7.4.9" image_reference="redis:7.4-alpine@sha256:6ab0b6e7381779332f97b8ca76193e45b0756f38d4c0dcda72dbb3c32061ab99"
     provider_benchmark_test.go:651: provider_version="7.4.9" image_reference="redis:7.4-alpine@sha256:6ab0b6e7381779332f97b8ca76193e45b0756f38d4c0dcda72dbb3c32061ab99"
-BenchmarkProviderCacheRedis/NearCachePubSub/PublishSet/4KiB-10       	     100	    211657 ns/op	    1534 B/op	      28 allocs/op
+BenchmarkProviderCacheRedis/NearCachePubSub/PublishSet/4KiB-10       	     100	    212359 ns/op	    1557 B/op	      28 allocs/op
 --- BENCH: BenchmarkProviderCacheRedis/NearCachePubSub/PublishSet/4KiB-10
     provider_benchmark_test.go:651: provider_version="7.4.9" image_reference="redis:7.4-alpine@sha256:6ab0b6e7381779332f97b8ca76193e45b0756f38d4c0dcda72dbb3c32061ab99"
     provider_benchmark_test.go:651: provider_version="7.4.9" image_reference="redis:7.4-alpine@sha256:6ab0b6e7381779332f97b8ca76193e45b0756f38d4c0dcda72dbb3c32061ab99"
-BenchmarkProviderCacheRedis/NearCachePubSub/PublishSet/4KiB-10       	     100	    199203 ns/op	    1536 B/op	      28 allocs/op
+BenchmarkProviderCacheRedis/NearCachePubSub/PublishSet/4KiB-10       	     100	    193200 ns/op	    1558 B/op	      28 allocs/op
 --- BENCH: BenchmarkProviderCacheRedis/NearCachePubSub/PublishSet/4KiB-10
     provider_benchmark_test.go:651: provider_version="7.4.9" image_reference="redis:7.4-alpine@sha256:6ab0b6e7381779332f97b8ca76193e45b0756f38d4c0dcda72dbb3c32061ab99"
     provider_benchmark_test.go:651: provider_version="7.4.9" image_reference="redis:7.4-alpine@sha256:6ab0b6e7381779332f97b8ca76193e45b0756f38d4c0dcda72dbb3c32061ab99"
-BenchmarkProviderCacheRedis/NearCachePubSub/PublishSet/4KiB-10       	     100	    199017 ns/op	    1536 B/op	      28 allocs/op
+BenchmarkProviderCacheRedis/NearCachePubSub/PublishSet/4KiB-10       	     100	    215880 ns/op	    1552 B/op	      28 allocs/op
 --- BENCH: BenchmarkProviderCacheRedis/NearCachePubSub/PublishSet/4KiB-10
     provider_benchmark_test.go:651: provider_version="7.4.9" image_reference="redis:7.4-alpine@sha256:6ab0b6e7381779332f97b8ca76193e45b0756f38d4c0dcda72dbb3c32061ab99"
     provider_benchmark_test.go:651: provider_version="7.4.9" image_reference="redis:7.4-alpine@sha256:6ab0b6e7381779332f97b8ca76193e45b0756f38d4c0dcda72dbb3c32061ab99"
-BenchmarkProviderCacheRedis/NearCachePubSub/PublishDelete/128B-10    	     100	    198750 ns/op	    1520 B/op	      28 allocs/op
+BenchmarkProviderCacheRedis/NearCachePubSub/PublishDelete/128B-10    	     100	    227154 ns/op	    1521 B/op	      28 allocs/op
 --- BENCH: BenchmarkProviderCacheRedis/NearCachePubSub/PublishDelete/128B-10
     provider_benchmark_test.go:651: provider_version="7.4.9" image_reference="redis:7.4-alpine@sha256:6ab0b6e7381779332f97b8ca76193e45b0756f38d4c0dcda72dbb3c32061ab99"
     provider_benchmark_test.go:651: provider_version="7.4.9" image_reference="redis:7.4-alpine@sha256:6ab0b6e7381779332f97b8ca76193e45b0756f38d4c0dcda72dbb3c32061ab99"
-BenchmarkProviderCacheRedis/NearCachePubSub/PublishDelete/128B-10    	     100	    206161 ns/op	    1494 B/op	      27 allocs/op
+BenchmarkProviderCacheRedis/NearCachePubSub/PublishDelete/128B-10    	     100	    227558 ns/op	    1510 B/op	      28 allocs/op
 --- BENCH: BenchmarkProviderCacheRedis/NearCachePubSub/PublishDelete/128B-10
     provider_benchmark_test.go:651: provider_version="7.4.9" image_reference="redis:7.4-alpine@sha256:6ab0b6e7381779332f97b8ca76193e45b0756f38d4c0dcda72dbb3c32061ab99"
     provider_benchmark_test.go:651: provider_version="7.4.9" image_reference="redis:7.4-alpine@sha256:6ab0b6e7381779332f97b8ca76193e45b0756f38d4c0dcda72dbb3c32061ab99"
-BenchmarkProviderCacheRedis/NearCachePubSub/PublishDelete/128B-10    	     100	    203039 ns/op	    1512 B/op	      27 allocs/op
+BenchmarkProviderCacheRedis/NearCachePubSub/PublishDelete/128B-10    	     100	    227316 ns/op	    1534 B/op	      28 allocs/op
 --- BENCH: BenchmarkProviderCacheRedis/NearCachePubSub/PublishDelete/128B-10
     provider_benchmark_test.go:651: provider_version="7.4.9" image_reference="redis:7.4-alpine@sha256:6ab0b6e7381779332f97b8ca76193e45b0756f38d4c0dcda72dbb3c32061ab99"
     provider_benchmark_test.go:651: provider_version="7.4.9" image_reference="redis:7.4-alpine@sha256:6ab0b6e7381779332f97b8ca76193e45b0756f38d4c0dcda72dbb3c32061ab99"
-BenchmarkProviderCacheRedis/NearCachePubSub/PublishDelete/4KiB-10    	     100	    202560 ns/op	    1514 B/op	      27 allocs/op
+BenchmarkProviderCacheRedis/NearCachePubSub/PublishDelete/4KiB-10    	     100	    223845 ns/op	    1537 B/op	      28 allocs/op
 --- BENCH: BenchmarkProviderCacheRedis/NearCachePubSub/PublishDelete/4KiB-10
     provider_benchmark_test.go:651: provider_version="7.4.9" image_reference="redis:7.4-alpine@sha256:6ab0b6e7381779332f97b8ca76193e45b0756f38d4c0dcda72dbb3c32061ab99"
     provider_benchmark_test.go:651: provider_version="7.4.9" image_reference="redis:7.4-alpine@sha256:6ab0b6e7381779332f97b8ca76193e45b0756f38d4c0dcda72dbb3c32061ab99"
-BenchmarkProviderCacheRedis/NearCachePubSub/PublishDelete/4KiB-10    	     100	    206244 ns/op	    1483 B/op	      27 allocs/op
+BenchmarkProviderCacheRedis/NearCachePubSub/PublishDelete/4KiB-10    	     100	    221262 ns/op	    1460 B/op	      27 allocs/op
 --- BENCH: BenchmarkProviderCacheRedis/NearCachePubSub/PublishDelete/4KiB-10
     provider_benchmark_test.go:651: provider_version="7.4.9" image_reference="redis:7.4-alpine@sha256:6ab0b6e7381779332f97b8ca76193e45b0756f38d4c0dcda72dbb3c32061ab99"
     provider_benchmark_test.go:651: provider_version="7.4.9" image_reference="redis:7.4-alpine@sha256:6ab0b6e7381779332f97b8ca76193e45b0756f38d4c0dcda72dbb3c32061ab99"
-BenchmarkProviderCacheRedis/NearCachePubSub/PublishDelete/4KiB-10    	     100	    210836 ns/op	    1540 B/op	      28 allocs/op
+BenchmarkProviderCacheRedis/NearCachePubSub/PublishDelete/4KiB-10    	     100	    222845 ns/op	    1521 B/op	      28 allocs/op
 --- BENCH: BenchmarkProviderCacheRedis/NearCachePubSub/PublishDelete/4KiB-10
     provider_benchmark_test.go:651: provider_version="7.4.9" image_reference="redis:7.4-alpine@sha256:6ab0b6e7381779332f97b8ca76193e45b0756f38d4c0dcda72dbb3c32061ab99"
     provider_benchmark_test.go:651: provider_version="7.4.9" image_reference="redis:7.4-alpine@sha256:6ab0b6e7381779332f97b8ca76193e45b0756f38d4c0dcda72dbb3c32061ab99"
-BenchmarkProviderCacheRedis/NearCachePubSub/PeerInvalidation/128B-10 	     100	    272979 ns/op	    2509 B/op	      47 allocs/op
+BenchmarkProviderCacheRedis/NearCachePubSub/PeerInvalidation/128B-10 	     100	    313261 ns/op	    2567 B/op	      48 allocs/op
 --- BENCH: BenchmarkProviderCacheRedis/NearCachePubSub/PeerInvalidation/128B-10
     provider_benchmark_test.go:651: provider_version="7.4.9" image_reference="redis:7.4-alpine@sha256:6ab0b6e7381779332f97b8ca76193e45b0756f38d4c0dcda72dbb3c32061ab99"
     provider_benchmark_test.go:651: provider_version="7.4.9" image_reference="redis:7.4-alpine@sha256:6ab0b6e7381779332f97b8ca76193e45b0756f38d4c0dcda72dbb3c32061ab99"
-BenchmarkProviderCacheRedis/NearCachePubSub/PeerInvalidation/128B-10 	     100	    264868 ns/op	    2487 B/op	      47 allocs/op
+BenchmarkProviderCacheRedis/NearCachePubSub/PeerInvalidation/128B-10 	     100	    314018 ns/op	    2513 B/op	      48 allocs/op
 --- BENCH: BenchmarkProviderCacheRedis/NearCachePubSub/PeerInvalidation/128B-10
     provider_benchmark_test.go:651: provider_version="7.4.9" image_reference="redis:7.4-alpine@sha256:6ab0b6e7381779332f97b8ca76193e45b0756f38d4c0dcda72dbb3c32061ab99"
     provider_benchmark_test.go:651: provider_version="7.4.9" image_reference="redis:7.4-alpine@sha256:6ab0b6e7381779332f97b8ca76193e45b0756f38d4c0dcda72dbb3c32061ab99"
-BenchmarkProviderCacheRedis/NearCachePubSub/PeerInvalidation/128B-10 	     100	    297056 ns/op	    2498 B/op	      47 allocs/op
+BenchmarkProviderCacheRedis/NearCachePubSub/PeerInvalidation/128B-10 	     100	    320600 ns/op	    2561 B/op	      48 allocs/op
 --- BENCH: BenchmarkProviderCacheRedis/NearCachePubSub/PeerInvalidation/128B-10
     provider_benchmark_test.go:651: provider_version="7.4.9" image_reference="redis:7.4-alpine@sha256:6ab0b6e7381779332f97b8ca76193e45b0756f38d4c0dcda72dbb3c32061ab99"
     provider_benchmark_test.go:651: provider_version="7.4.9" image_reference="redis:7.4-alpine@sha256:6ab0b6e7381779332f97b8ca76193e45b0756f38d4c0dcda72dbb3c32061ab99"
-BenchmarkProviderCacheRedis/NearCachePubSub/PeerInvalidation/4KiB-10 	     100	    494621 ns/op	    2505 B/op	      47 allocs/op
+BenchmarkProviderCacheRedis/NearCachePubSub/PeerInvalidation/4KiB-10 	     100	    305715 ns/op	    2512 B/op	      47 allocs/op
 --- BENCH: BenchmarkProviderCacheRedis/NearCachePubSub/PeerInvalidation/4KiB-10
     provider_benchmark_test.go:651: provider_version="7.4.9" image_reference="redis:7.4-alpine@sha256:6ab0b6e7381779332f97b8ca76193e45b0756f38d4c0dcda72dbb3c32061ab99"
     provider_benchmark_test.go:651: provider_version="7.4.9" image_reference="redis:7.4-alpine@sha256:6ab0b6e7381779332f97b8ca76193e45b0756f38d4c0dcda72dbb3c32061ab99"
-BenchmarkProviderCacheRedis/NearCachePubSub/PeerInvalidation/4KiB-10 	     100	    304972 ns/op	    2526 B/op	      48 allocs/op
+BenchmarkProviderCacheRedis/NearCachePubSub/PeerInvalidation/4KiB-10 	     100	    317590 ns/op	    2559 B/op	      48 allocs/op
 --- BENCH: BenchmarkProviderCacheRedis/NearCachePubSub/PeerInvalidation/4KiB-10
     provider_benchmark_test.go:651: provider_version="7.4.9" image_reference="redis:7.4-alpine@sha256:6ab0b6e7381779332f97b8ca76193e45b0756f38d4c0dcda72dbb3c32061ab99"
     provider_benchmark_test.go:651: provider_version="7.4.9" image_reference="redis:7.4-alpine@sha256:6ab0b6e7381779332f97b8ca76193e45b0756f38d4c0dcda72dbb3c32061ab99"
-BenchmarkProviderCacheRedis/NearCachePubSub/PeerInvalidation/4KiB-10 	     100	    316065 ns/op	    2546 B/op	      48 allocs/op
+BenchmarkProviderCacheRedis/NearCachePubSub/PeerInvalidation/4KiB-10 	     100	    311141 ns/op	    2515 B/op	      48 allocs/op
 --- BENCH: BenchmarkProviderCacheRedis/NearCachePubSub/PeerInvalidation/4KiB-10
     provider_benchmark_test.go:651: provider_version="7.4.9" image_reference="redis:7.4-alpine@sha256:6ab0b6e7381779332f97b8ca76193e45b0756f38d4c0dcda72dbb3c32061ab99"
     provider_benchmark_test.go:651: provider_version="7.4.9" image_reference="redis:7.4-alpine@sha256:6ab0b6e7381779332f97b8ca76193e45b0756f38d4c0dcda72dbb3c32061ab99"
 PASS
-ok  	github.com/bluetape4k/bluetape-go/cache	3.381s
+ok  	github.com/bluetape4k/bluetape-go/cache	3.462s
 output_end
 exit_status: 0

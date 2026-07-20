@@ -2,10 +2,10 @@
 
 ## Capture authority
 
-- UTC start: `2026-07-20T16:59:36Z`
-- Local start: `2026-07-21T01:59:36+0900 KST`
+- UTC start: `2026-07-20T17:54:35Z`
+- Local start: `2026-07-21T02:54:35+0900 KST`
 - Timezone: `Asia/Seoul`
-- Git SHA: `ef3ef4f3070f516a3c75c2637f8e2bca231d9370`
+- Git SHA: `1f1069f4b119957d96158c969f819d6374f902c8`
 - Pre-run worktree state: clean outside this artifact directory
 - Post-run worktree state: only this artifact directory was modified
 
