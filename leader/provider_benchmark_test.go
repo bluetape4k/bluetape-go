@@ -83,8 +83,11 @@ func runLeaderRound(
 		return nil, errors.New("leader round requires positive limits and a worker")
 	}
 
-	roundCtx, cancelRound := context.WithTimeout(ctx, opts.roundLimit)
-	defer cancelRound()
+	deadlineCtx, cancelDeadline := context.WithTimeout(ctx, opts.roundLimit)
+	defer cancelDeadline()
+	winnerCancellation := errors.New("leader round stopped after winner")
+	roundCtx, cancelRound := context.WithCancelCause(deadlineCtx)
+	defer cancelRound(nil)
 
 	start := make(chan struct{})
 	ready := make(chan struct{}, opts.workers)
@@ -102,9 +105,15 @@ func runLeaderRound(
 			select {
 			case <-start:
 			case <-roundCtx.Done():
-				firstErrOnce.Do(func() { firstErr = roundCtx.Err() })
-				results <- leaderRoundResult{worker: workerID}
-				return
+				// Winner cancellation can happen only after start closes. If both
+				// are ready, consume the opened barrier before observing cancellation.
+				select {
+				case <-start:
+				default:
+					firstErrOnce.Do(func() { firstErr = roundCtx.Err() })
+					results <- leaderRoundResult{worker: workerID}
+					return
+				}
 			}
 
 			attemptCtx, cancelAttempt := context.WithTimeout(roundCtx, opts.attemptLimit)
@@ -112,12 +121,13 @@ func runLeaderRound(
 			cancelAttempt()
 			result.worker = workerID
 			if result.won && stoppedOnWinner.CompareAndSwap(false, true) {
-				cancelRound()
+				cancelRound(winnerCancellation)
 			}
-			if err != nil && !(stoppedOnWinner.Load() && errors.Is(err, context.Canceled)) {
+			winnerStopped := stoppedOnWinner.Load() && errors.Is(context.Cause(roundCtx), winnerCancellation)
+			if err != nil && !(winnerStopped && errors.Is(err, context.Canceled)) {
 				firstErrOnce.Do(func() {
 					firstErr = fmt.Errorf("leader round worker %d: %w", workerID, err)
-					cancelRound()
+					cancelRound(err)
 				})
 			}
 			results <- result
@@ -164,6 +174,17 @@ type leaderProviderFixture struct {
 type providerEtcdStaleRelease struct {
 	key            string
 	createRevision int64
+}
+
+type providerCampaignEntryContext struct {
+	context.Context
+	once    sync.Once
+	entered chan struct{}
+}
+
+func (ctx *providerCampaignEntryContext) Err() error {
+	ctx.once.Do(func() { close(ctx.entered) })
+	return ctx.Context.Err()
 }
 
 type providerElectorResource struct {
@@ -1264,13 +1285,20 @@ func testCancellationCleanup(t *testing.T, fixture leaderProviderFixture) {
 	}
 	var active atomic.Int32
 	done := make(chan error, 1)
-	campaignCtx, cancelCampaign := context.WithCancel(context.Background())
+	entered := make(chan struct{})
+	baseCtx, cancelCampaign := context.WithCancel(context.Background())
+	defer cancelCampaign()
+	campaignCtx := &providerCampaignEntryContext{Context: baseCtx, entered: entered}
 	active.Add(1)
 	go func() {
 		defer active.Add(-1)
 		done <- contender.Campaign(campaignCtx)
 	}()
-	time.Sleep(2 * providerExpiryPoll)
+	select {
+	case <-entered:
+	case <-time.After(2 * time.Second):
+		t.Fatal("blocked campaign did not enter Campaign within 2s")
+	}
 	cancelCampaign()
 	select {
 	case campaignErr := <-done:
@@ -1412,6 +1440,56 @@ func TestRunLeaderRoundJoinsAllWorkers(t *testing.T) {
 	}
 	if got := active.Load(); got != 0 {
 		t.Fatalf("active workers after return = %d, want 0", got)
+	}
+}
+
+func TestRunLeaderRoundStartsAllWorkersBeforeWinnerCancellation(t *testing.T) {
+	const (
+		workers    = 8
+		iterations = 100
+	)
+	for iteration := range iterations {
+		var winner atomic.Bool
+		var started atomic.Int32
+		results, err := runLeaderRound(context.Background(), leaderRoundOptions{
+			workers:      workers,
+			attemptLimit: time.Second,
+			roundLimit:   2 * time.Second,
+		}, func(ctx context.Context, _ int) (leaderRoundResult, error) {
+			started.Add(1)
+			if winner.CompareAndSwap(false, true) {
+				return leaderRoundResult{won: true}, nil
+			}
+			<-ctx.Done()
+			return leaderRoundResult{}, ctx.Err()
+		})
+		if err != nil {
+			t.Fatalf("iteration %d: run leader round: %v", iteration, err)
+		}
+		if got := len(results); got != workers {
+			t.Fatalf("iteration %d: results = %d, want %d", iteration, got, workers)
+		}
+		if got := started.Load(); got != workers {
+			t.Fatalf("iteration %d: started workers = %d, want %d", iteration, got, workers)
+		}
+	}
+}
+
+func TestRunLeaderRoundPreservesDeadline(t *testing.T) {
+	const workers = 4
+	results, err := runLeaderRound(context.Background(), leaderRoundOptions{
+		workers:      workers,
+		attemptLimit: time.Second,
+		roundLimit:   20 * time.Millisecond,
+	}, func(ctx context.Context, _ int) (leaderRoundResult, error) {
+		<-ctx.Done()
+		return leaderRoundResult{}, ctx.Err()
+	})
+	if !errors.Is(err, context.DeadlineExceeded) {
+		t.Fatalf("run leader round error = %v, want deadline exceeded", err)
+	}
+	if got := len(results); got != workers {
+		t.Fatalf("results = %d, want %d", got, workers)
 	}
 }
 
