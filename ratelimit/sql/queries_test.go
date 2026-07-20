@@ -549,7 +549,7 @@ func TestAllowPostgres(t *testing.T) {
 			t.Fatalf("first Allow = %+v, %v", first, err)
 		}
 		second, err := limiter.Allow(ctx, "user", 1)
-		if err != nil || !second.Allowed || second.Remaining != 0 {
+		if err != nil || !second.Allowed || second.Remaining != 0 || second.RetryAfter != 0 {
 			t.Fatalf("second Allow = %+v, %v", second, err)
 		}
 		rejected, err := limiter.Allow(ctx, "user", 1)

@@ -35,8 +35,10 @@ where bucket.rate_micros_per_second = excluded.rate_micros_per_second
   and bucket.idle_ttl_micros = excluded.idle_ttl_micros
 returning last_allowed,
     pg_catalog.floor(tokens_micros / 1000000)::bigint,
-    least(pg_catalog.ceil(greatest(0::numeric, $3::numeric - tokens_micros) * 1000000 /
-        rate_micros_per_second), 9223372036854775807::numeric)::bigint,
+    case when last_allowed then 0::bigint else
+        least(pg_catalog.ceil(greatest(0::numeric, $3::numeric - tokens_micros) * 1000000 /
+            rate_micros_per_second), 9223372036854775807::numeric)::bigint
+    end,
     least(pg_catalog.ceil((burst_micros::numeric - tokens_micros) * 1000000 /
         rate_micros_per_second), 9223372036854775807::numeric)::bigint`
 
