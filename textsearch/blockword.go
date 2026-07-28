@@ -6,62 +6,62 @@ import (
 	"unicode/utf8"
 )
 
-// MaxBlockwordTextLength is the maximum input size accepted by
-// NewBlockwordRequest and BlockwordDictionary.Process.
+// MaxBlockwordTextLength textsearch language image example에서 caller-visible 상태와 의미를 설명한다.
+// NewBlockwordRequest textsearch language image example에서 동작과 caller-visible 계약을 설명한다.
 const MaxBlockwordTextLength = 100_000
 
-// Severity represents a blockword exposure level.
+// Severity textsearch language image example에서 caller-visible 상태와 의미를 설명한다.
 type Severity int
 
 const (
-	// SeverityLow is the default blockword severity.
+	// SeverityLow textsearch language image example에서 caller-visible 상태와 의미를 설명한다.
 	SeverityLow Severity = iota
-	// SeverityMiddle represents medium severity blockwords.
+	// SeverityMiddle textsearch language image example에서 caller-visible 상태와 의미를 설명한다.
 	SeverityMiddle
-	// SeverityHigh represents high severity blockwords.
+	// SeverityHigh textsearch language image example에서 caller-visible 상태와 의미를 설명한다.
 	SeverityHigh
 )
 
-// BlockwordEntry is one compiled blockword dictionary entry.
+// BlockwordEntry textsearch language image example에서 caller-visible 상태와 의미를 설명한다.
 type BlockwordEntry struct {
-	// ID is caller-owned metadata. When empty, a stable decimal index is used.
+	// ID textsearch language image example에서 caller-visible 상태와 의미를 설명한다.
 	ID string
-	// Text is the word or pattern text to detect.
+	// Text textsearch language image example에서 caller-visible 상태와 의미를 설명한다.
 	Text string
-	// Severity describes the entry's exposure level.
+	// Severity textsearch language image example에서 동작과 caller-visible 계약을 설명한다.
 	Severity Severity
-	// Metadata carries caller-owned labels such as category or source.
+	// Metadata textsearch language image example에서 동작과 caller-visible 계약을 설명한다.
 	Metadata map[string]string
 }
 
-// BlockwordOptions controls detection and masking.
+// BlockwordOptions textsearch language image example에서 동작과 caller-visible 계약을 설명한다.
 type BlockwordOptions struct {
-	// Mask is repeated once per matched rune when building MaskedText.
+	// Mask textsearch language image example에서 caller-visible 상태와 의미를 설명한다.
 	Mask string
-	// MinSeverity keeps entries with Severity >= MinSeverity. The zero value
-	// includes every entry.
+	// MinSeverity textsearch language image example에서 동작과 caller-visible 계약을 설명한다.
+	// 세부 조건은 language script, tokenizer, normalization, example ownership 계약을 따른다.
 	MinSeverity Severity
 }
 
-// BlockwordRequest is a validated blockword processing request.
+// BlockwordRequest textsearch language image example에서 caller-visible 상태와 의미를 설명한다.
 type BlockwordRequest struct {
 	Text    string
 	Options BlockwordOptions
 }
 
-// BlockwordResponse contains blockword processing results.
+// BlockwordResponse textsearch language image example에서 caller-visible 상태와 의미를 설명한다.
 type BlockwordResponse struct {
 	Request    BlockwordRequest
 	MaskedText string
 	Matches    []BlockwordMatch
 }
 
-// BlockwordExists reports whether the response detected at least one entry.
+// BlockwordExists textsearch language image example에서 반환값과 오류 의미를 설명한다.
 func (r BlockwordResponse) BlockwordExists() bool {
 	return len(r.Matches) > 0
 }
 
-// BlockWords returns detected dictionary texts in match order.
+// BlockWords textsearch language image example에서 반환값과 오류 의미를 설명한다.
 func (r BlockwordResponse) BlockWords() []string {
 	words := make([]string, len(r.Matches))
 	for i, match := range r.Matches {
@@ -70,7 +70,7 @@ func (r BlockwordResponse) BlockWords() []string {
 	return words
 }
 
-// BlockwordMatch describes one blockword occurrence in the original input.
+// BlockwordMatch textsearch language image example에서 동작과 caller-visible 계약을 설명한다.
 type BlockwordMatch struct {
 	Entry BlockwordEntry
 	Start int
@@ -78,13 +78,13 @@ type BlockwordMatch struct {
 	Text  string
 }
 
-// BlockwordDictionary is an immutable compiled blockword matcher.
+// BlockwordDictionary textsearch language image example에서 caller-visible 상태와 의미를 설명한다.
 type BlockwordDictionary struct {
 	matcher *Matcher
 	entries map[string]BlockwordEntry
 }
 
-// NewBlockwordRequest validates text and applies default options.
+// NewBlockwordRequest textsearch language image example에서 동작과 caller-visible 계약을 설명한다.
 func NewBlockwordRequest(text string, options BlockwordOptions) (BlockwordRequest, error) {
 	textLength := utf8.RuneCountInString(text)
 	if textLength > MaxBlockwordTextLength {
@@ -96,7 +96,7 @@ func NewBlockwordRequest(text string, options BlockwordOptions) (BlockwordReques
 	return BlockwordRequest{Text: text, Options: normalizeBlockwordOptions(options)}, nil
 }
 
-// NewBlockwordDictionary compiles entries into an immutable dictionary.
+// NewBlockwordDictionary textsearch language image example에서 동작과 caller-visible 계약을 설명한다.
 func NewBlockwordDictionary(entries []BlockwordEntry, cfg Config) (*BlockwordDictionary, error) {
 	if len(entries) == 0 {
 		return nil, ErrNoPatterns
@@ -125,7 +125,7 @@ func NewBlockwordDictionary(entries []BlockwordEntry, cfg Config) (*BlockwordDic
 	return &BlockwordDictionary{matcher: matcher, entries: compiled}, nil
 }
 
-// Detect returns deterministic non-overlapping blockword matches.
+// Detect textsearch language image example에서 반환값과 오류 의미를 설명한다.
 func (d *BlockwordDictionary) Detect(text string, options BlockwordOptions) []BlockwordMatch {
 	if d == nil || d.matcher == nil {
 		return nil
@@ -148,7 +148,7 @@ func (d *BlockwordDictionary) Detect(text string, options BlockwordOptions) []Bl
 	return selectBlockwordLeftmostLongest(result)
 }
 
-// Process validates request text, detects blockwords, and returns masked text.
+// Process textsearch language image example에서 반환값과 오류 의미를 설명한다.
 func (d *BlockwordDictionary) Process(request BlockwordRequest) (BlockwordResponse, error) {
 	normalized, err := NewBlockwordRequest(request.Text, request.Options)
 	if err != nil {
@@ -162,7 +162,7 @@ func (d *BlockwordDictionary) Process(request BlockwordRequest) (BlockwordRespon
 	}, nil
 }
 
-// Mask validates text and returns the masked output for convenience.
+// Mask textsearch language image example에서 반환값과 오류 의미를 설명한다.
 func (d *BlockwordDictionary) Mask(text string, options BlockwordOptions) (string, error) {
 	request, err := NewBlockwordRequest(text, options)
 	if err != nil {
