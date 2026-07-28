@@ -10,15 +10,15 @@ import (
 	"time"
 )
 
-// KeyFunc는 func 공개 타입이며 token bucket, limiter option, HTTP boundary, result quota 계약을 보존한다.
+// KeyFunc func 공개 타입이며 token bucket, limiter option, HTTP boundary, result quota 계약을 보존한다.
 // 필드와 zero value, nil 허용 여부, 동시성 소유권은 생성자와 메서드의 한국어 주석 및 테스트 계약을 따른다.
 type KeyFunc func(*http.Request) string
 
-// HandlerErrorHandler는 func 공개 타입이며 token bucket, limiter option, HTTP boundary, result quota 계약을 보존한다.
+// HandlerErrorHandler func 공개 타입이며 token bucket, limiter option, HTTP boundary, result quota 계약을 보존한다.
 // 필드와 zero value, nil 허용 여부, 동시성 소유권은 생성자와 메서드의 한국어 주석 및 테스트 계약을 따른다.
 type HandlerErrorHandler func(http.ResponseWriter, *http.Request, Result, error)
 
-// HandlerOptions는 struct 공개 타입이며 token bucket, limiter option, HTTP boundary, result quota 계약을 보존한다.
+// HandlerOptions struct 공개 타입이며 token bucket, limiter option, HTTP boundary, result quota 계약을 보존한다.
 // 필드와 zero value, nil 허용 여부, 동시성 소유권은 생성자와 메서드의 한국어 주석 및 테스트 계약을 따른다.
 type HandlerOptions struct {
 	Limiter      Limiter
@@ -27,7 +27,7 @@ type HandlerOptions struct {
 	ErrorHandler HandlerErrorHandler
 }
 
-// Handler는 struct 공개 타입이며 token bucket, limiter option, HTTP boundary, result quota 계약을 보존한다.
+// Handler struct 공개 타입이며 token bucket, limiter option, HTTP boundary, result quota 계약을 보존한다.
 // 필드와 zero value, nil 허용 여부, 동시성 소유권은 생성자와 메서드의 한국어 주석 및 테스트 계약을 따른다.
 type Handler struct {
 	next         http.Handler
@@ -37,7 +37,7 @@ type Handler struct {
 	errorHandler HandlerErrorHandler
 }
 
-// NewHandler는 NewHandler 공개 API의 동작을 수행하며 token bucket, limiter option, HTTP boundary, result quota 계약을 보존한다.
+// NewHandler NewHandler 공개 API의 동작을 수행하며 token bucket, limiter option, HTTP boundary, result quota 계약을 보존한다.
 //
 // 매개변수:
 //   - next: NewHandler 동작에 필요한 next 값이다. zero value, 범위, nil 허용 여부는 함수 계약을 따른다.
@@ -75,7 +75,7 @@ func NewHandler(next http.Handler, options HandlerOptions) (*Handler, error) {
 	}, nil
 }
 
-// ServeHTTP는 ServeHTTP 공개 API의 동작을 수행하며 token bucket, limiter option, HTTP boundary, result quota 계약을 보존한다.
+// ServeHTTP ServeHTTP 공개 API의 동작을 수행하며 token bucket, limiter option, HTTP boundary, result quota 계약을 보존한다.
 //
 // 매개변수:
 //   - w: ServeHTTP 동작에 필요한 w 값이다. zero value, 범위, nil 허용 여부는 함수 계약을 따른다.
@@ -99,7 +99,7 @@ func (h *Handler) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 	h.next.ServeHTTP(w, req)
 }
 
-// RemoteIPKey는 RemoteIPKey 공개 API의 동작을 수행하며 token bucket, limiter option, HTTP boundary, result quota 계약을 보존한다.
+// RemoteIPKey RemoteIPKey 공개 API의 동작을 수행하며 token bucket, limiter option, HTTP boundary, result quota 계약을 보존한다.
 //
 // 매개변수:
 //   - req: RemoteIPKey 동작에 필요한 req 값이다. zero value, 범위, nil 허용 여부는 함수 계약을 따른다.

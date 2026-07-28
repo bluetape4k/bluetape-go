@@ -41,7 +41,7 @@ type memoryGate struct {
 	resumeOnce  sync.Once
 }
 
-// MemoryHarness는 MemoryHarness 공개 API의 동작을 수행하며 lock conformance harness의 acquire/release ownership 계약을 보존한다.
+// MemoryHarness MemoryHarness 공개 API의 동작을 수행하며 lock conformance harness의 acquire/release ownership 계약을 보존한다.
 func MemoryHarness() Harness {
 	control := &memoryControl{
 		records:  make(map[string]lockRecord),

@@ -9,33 +9,33 @@ import (
 )
 
 var (
-	// ErrAlreadyLeader 는 elector가 이미 leader일 때 반환된다.
+	// ErrAlreadyLeader elector가 이미 leader일 때 반환된다.
 	ErrAlreadyLeader = errors.New("leader: already leader")
 
-	// ErrNotLeader 는 다른 member가 leader일 때 반환된다.
+	// ErrNotLeader 다른 member가 leader일 때 반환된다.
 	ErrNotLeader = errors.New("leader: not leader")
 
-	// ErrCampaignInProgress 는 같은 elector에서 campaign이 이미 진행 중일 때 반환된다.
+	// ErrCampaignInProgress 같은 elector에서 campaign이 이미 진행 중일 때 반환된다.
 	ErrCampaignInProgress = errors.New("leader: campaign in progress")
 
 	// ErrCleanupPending 은 이전 leadership 정리가 완료되지 않았을 때 반환된다.
 	ErrCleanupPending = errors.New("leader: cleanup pending")
 
-	// ErrInvalidContext 는 nil context가 허용되지 않는 작업에 전달됐을 때 반환된다.
+	// ErrInvalidContext nil context가 허용되지 않는 작업에 전달됐을 때 반환된다.
 	ErrInvalidContext = errors.New("leader: invalid context")
 
 	// ErrCommitUnknown 은 backend 변경이 반영됐는지 확인할 수 없을 때 반환된다.
 	ErrCommitUnknown = errors.New("leader: commit unknown")
 )
 
-// OperationError 는 provider 작업 실패의 원인을 보존하면서 진단 문자열을 정제한다.
+// OperationError provider 작업 실패의 원인을 보존하면서 진단 문자열을 정제한다.
 type OperationError struct {
 	backend   string
 	operation string
 	cause     error
 }
 
-// NewOperationError 는 backend 작업 실패를 정제된 오류로 감싼다.
+// NewOperationError backend 작업 실패를 정제된 오류로 감싼다.
 //
 // 잘못된 metadata 또는 nil cause에는 *OperationError 대신 검증 오류를 반환한다.
 func NewOperationError(backend, operation string, cause error) error {
@@ -45,7 +45,7 @@ func NewOperationError(backend, operation string, cause error) error {
 	return &OperationError{backend: backend, operation: operation, cause: cause}
 }
 
-// Error 는 raw provider 오류 문자열을 포함하지 않는 진단을 반환한다.
+// Error raw provider 오류 문자열을 포함하지 않는 진단을 반환한다.
 func (e *OperationError) Error() string {
 	if e == nil || !validOperationLabel(e.backend) || !validOperationLabel(e.operation) || e.cause == nil {
 		return "leader operation failed"
@@ -61,12 +61,12 @@ func (e *OperationError) Unwrap() error {
 	return e.cause
 }
 
-// Is 는 원래 provider 오류에 대한 errors.Is 판정을 보존한다.
+// Is 원래 provider 오류에 대한 errors.Is 판정을 보존한다.
 func (e *OperationError) Is(target error) bool {
 	return e != nil && errors.Is(e.cause, target)
 }
 
-// Backend 는 정제된 backend label을 반환한다.
+// Backend 정제된 backend label을 반환한다.
 func (e *OperationError) Backend() string {
 	if e == nil || !validOperationLabel(e.backend) {
 		return "unknown"

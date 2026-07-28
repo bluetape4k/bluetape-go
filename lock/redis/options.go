@@ -6,10 +6,10 @@ import (
 	"time"
 )
 
-// Options는 struct 공개 타입이며 Redis lock key, owner token, TTL, unlock safety 계약을 보존한다.
+// Options struct 공개 타입이며 Redis lock key, owner token, TTL, unlock safety 계약을 보존한다.
 // 필드와 zero value, nil 허용 여부, 동시성 소유권은 생성자와 메서드의 한국어 주석 및 테스트 계약을 따른다.
 type Options struct {
-	// Key는 Redis lock key다. 필수다.
+	// Key Redis lock key다. 필수다.
 	Key string
 	// TTL은 lock이 자동 만료될 시간이다. 양수여야 한다.
 	TTL time.Duration

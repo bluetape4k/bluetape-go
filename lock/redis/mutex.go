@@ -17,14 +17,14 @@ end
 return 0
 `
 
-// Mutex는 struct 공개 타입이며 Redis lock key, owner token, TTL, unlock safety 계약을 보존한다.
+// Mutex struct 공개 타입이며 Redis lock key, owner token, TTL, unlock safety 계약을 보존한다.
 // 필드와 zero value, nil 허용 여부, 동시성 소유권은 생성자와 메서드의 한국어 주석 및 테스트 계약을 따른다.
 type Mutex struct {
 	client redis.Cmdable
 	opts   options
 }
 
-// Lease는 struct 공개 타입이며 Redis lock key, owner token, TTL, unlock safety 계약을 보존한다.
+// Lease struct 공개 타입이며 Redis lock key, owner token, TTL, unlock safety 계약을 보존한다.
 // 필드와 zero value, nil 허용 여부, 동시성 소유권은 생성자와 메서드의 한국어 주석 및 테스트 계약을 따른다.
 type Lease struct {
 	mutex       *Mutex
@@ -33,7 +33,7 @@ type Lease struct {
 	sharedLease *btredis.Lease
 }
 
-// New는 New 공개 API의 동작을 수행하며 Redis lock key, owner token, TTL, unlock safety 계약을 보존한다.
+// New New 공개 API의 동작을 수행하며 Redis lock key, owner token, TTL, unlock safety 계약을 보존한다.
 //
 // 매개변수:
 //   - client: Redis backend 또는 conformance provider다. 연결/종료 소유권은 생성자와 harness 계약을 따른다.
@@ -51,7 +51,7 @@ func New(client redis.Cmdable, opts Options) (*Mutex, error) {
 	return &Mutex{client: client, opts: normalized}, nil
 }
 
-// TryLock는 TryLock 공개 API의 동작을 수행하며 Redis lock key, owner token, TTL, unlock safety 계약을 보존한다.
+// TryLock TryLock 공개 API의 동작을 수행하며 Redis lock key, owner token, TTL, unlock safety 계약을 보존한다.
 //
 // 매개변수:
 //   - ctx: 호출자가 소유한 취소, deadline, 요청 범위를 전달한다.
@@ -99,12 +99,12 @@ func (m *Mutex) TryLock(ctx context.Context) (*Lease, error) {
 	return &Lease{mutex: m, key: m.opts.key, token: token, sharedLease: sharedLease}, nil
 }
 
-// Key는 Key 공개 API의 동작을 수행하며 Redis lock key, owner token, TTL, unlock safety 계약을 보존한다.
+// Key Key 공개 API의 동작을 수행하며 Redis lock key, owner token, TTL, unlock safety 계약을 보존한다.
 func (m *Mutex) Key() string {
 	return m.opts.key
 }
 
-// Key는 Key 공개 API의 동작을 수행하며 Redis lock key, owner token, TTL, unlock safety 계약을 보존한다.
+// Key Key 공개 API의 동작을 수행하며 Redis lock key, owner token, TTL, unlock safety 계약을 보존한다.
 func (l *Lease) Key() string {
 	if l == nil {
 		return ""
@@ -112,7 +112,7 @@ func (l *Lease) Key() string {
 	return l.key
 }
 
-// Token는 Token 공개 API의 동작을 수행하며 Redis lock key, owner token, TTL, unlock safety 계약을 보존한다.
+// Token Token 공개 API의 동작을 수행하며 Redis lock key, owner token, TTL, unlock safety 계약을 보존한다.
 func (l *Lease) Token() string {
 	if l == nil {
 		return ""
@@ -120,7 +120,7 @@ func (l *Lease) Token() string {
 	return l.token
 }
 
-// Unlock는 Unlock 공개 API의 동작을 수행하며 Redis lock key, owner token, TTL, unlock safety 계약을 보존한다.
+// Unlock Unlock 공개 API의 동작을 수행하며 Redis lock key, owner token, TTL, unlock safety 계약을 보존한다.
 //
 // 매개변수:
 //   - ctx: 호출자가 소유한 취소, deadline, 요청 범위를 전달한다.

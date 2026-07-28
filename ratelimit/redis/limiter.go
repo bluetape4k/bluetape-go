@@ -64,7 +64,7 @@ local remaining = math.floor(tokens / scale)
 return { allowed, remaining, retry_after_ms, reset_after_ms }
 `
 
-// Limiter는 struct 공개 타입이며 Redis token bucket script, key, TTL, permit/quota 계약을 보존한다.
+// Limiter struct 공개 타입이며 Redis token bucket script, key, TTL, permit/quota 계약을 보존한다.
 // 필드와 zero value, nil 허용 여부, 동시성 소유권은 생성자와 메서드의 한국어 주석 및 테스트 계약을 따른다.
 type Limiter struct {
 	client redis.Cmdable
@@ -73,7 +73,7 @@ type Limiter struct {
 
 var _ ratelimit.Limiter = (*Limiter)(nil)
 
-// New는 New 공개 API의 동작을 수행하며 Redis token bucket script, key, TTL, permit/quota 계약을 보존한다.
+// New New 공개 API의 동작을 수행하며 Redis token bucket script, key, TTL, permit/quota 계약을 보존한다.
 //
 // 매개변수:
 //   - options: New 동작에 필요한 options 값이다. zero value, 범위, nil 허용 여부는 함수 계약을 따른다.
@@ -87,7 +87,7 @@ func New(options Options) (*Limiter, error) {
 	return &Limiter{client: normalized.client, opts: normalized}, nil
 }
 
-// Allow는 Allow 공개 API의 동작을 수행하며 Redis token bucket script, key, TTL, permit/quota 계약을 보존한다.
+// Allow Allow 공개 API의 동작을 수행하며 Redis token bucket script, key, TTL, permit/quota 계약을 보존한다.
 //
 // 매개변수:
 //   - ctx: 호출자가 소유한 취소, deadline, 요청 범위를 전달한다.

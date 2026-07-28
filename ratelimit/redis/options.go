@@ -17,20 +17,20 @@ const (
 	tokenScale         = int64(1_000_000)
 )
 
-// Options는 struct 공개 타입이며 Redis token bucket script, key, TTL, permit/quota 계약을 보존한다.
+// Options struct 공개 타입이며 Redis token bucket script, key, TTL, permit/quota 계약을 보존한다.
 // 필드와 zero value, nil 허용 여부, 동시성 소유권은 생성자와 메서드의 한국어 주석 및 테스트 계약을 따른다.
 type Options struct {
-	// Client는 caller-owned Redis client다.
+	// Client caller-owned Redis client다.
 	Client redis.Cmdable
-	// Namespace는 Redis key scope다.
+	// Namespace Redis key scope다.
 	Namespace string
-	// RatePerSecond 는 초당 채워지는 token 수다.
+	// RatePerSecond 초당 채워지는 token 수다.
 	RatePerSecond float64
-	// Burst 는 bucket 최대 token 수다.
+	// Burst bucket 최대 token 수다.
 	Burst int64
 	// IdleTTL은 쓰지 않는 Redis bucket key 만료 시간이다.
 	IdleTTL time.Duration
-	// MaxKeyBytes는 logical key 최대 byte 수다.
+	// MaxKeyBytes logical key 최대 byte 수다.
 	MaxKeyBytes int
 }
 
