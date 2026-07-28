@@ -13,9 +13,9 @@ type History struct {
 // NewHistory NewHistory 공개 API의 동작을 수행하며 audit entry, event, repository, recorder, history 계약을 보존한다.
 //
 // 매개변수:
-//   - entries: NewHistory 동작에 필요한 entries 값이다. zero value, 범위, nil 허용 여부는 함수 계약을 따른다.
+//   - entries: NewHistory에 전달되는 값이다. 허용 범위와 nil 처리 방식은 구현 검증을 따른다.
 //
-// 반환 오류는 입력 검증 실패, 취소, transaction 실패, repository/outbox 실패, 또는 package sentinel/typed error 계약을 보존한다.
+// 반환 오류는 입력 검증 실패, context 취소, transaction 실패, repository/outbox 실패, package sentinel error와 typed error를 그대로 드러낸다.
 func NewHistory(entries []Entry) (History, error) {
 	if len(entries) == 0 {
 		return History{}, validationError(ErrInvalidEntry, "entries", len(entries))

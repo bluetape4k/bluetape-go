@@ -21,9 +21,9 @@ func NewMemoryRepository() *MemoryRepository {
 //
 // 매개변수:
 //   - ctx: 호출자가 소유한 취소, deadline, 요청 범위를 전달한다.
-//   - entries: Append 동작에 필요한 entries 값이다. zero value, 범위, nil 허용 여부는 함수 계약을 따른다.
+//   - entries: Append에 전달되는 값이다. 허용 범위와 nil 처리 방식은 구현 검증을 따른다.
 //
-// 반환 오류는 입력 검증 실패, 취소, transaction 실패, repository/outbox 실패, 또는 package sentinel/typed error 계약을 보존한다.
+// 반환 오류는 입력 검증 실패, context 취소, transaction 실패, repository/outbox 실패, package sentinel error와 typed error를 그대로 드러낸다.
 func (r *MemoryRepository) Append(ctx context.Context, entries ...Entry) error {
 	ctx = normalizeContext(ctx)
 	if err := checkContext(ctx); err != nil {
@@ -63,9 +63,9 @@ func (r *MemoryRepository) Append(ctx context.Context, entries ...Entry) error {
 //
 // 매개변수:
 //   - ctx: 호출자가 소유한 취소, deadline, 요청 범위를 전달한다.
-//   - query: Find 동작에 필요한 query 값이다. zero value, 범위, nil 허용 여부는 함수 계약을 따른다.
+//   - query: Find에 전달되는 값이다. 허용 범위와 nil 처리 방식은 구현 검증을 따른다.
 //
-// 반환 오류는 입력 검증 실패, 취소, transaction 실패, repository/outbox 실패, 또는 package sentinel/typed error 계약을 보존한다.
+// 반환 오류는 입력 검증 실패, context 취소, transaction 실패, repository/outbox 실패, package sentinel error와 typed error를 그대로 드러낸다.
 func (r *MemoryRepository) Find(ctx context.Context, query Query) ([]Entry, error) {
 	ctx = normalizeContext(ctx)
 	if err := checkContext(ctx); err != nil {
@@ -103,9 +103,9 @@ func (r *MemoryRepository) Find(ctx context.Context, query Query) ([]Entry, erro
 //
 // 매개변수:
 //   - ctx: 호출자가 소유한 취소, deadline, 요청 범위를 전달한다.
-//   - aggregate: LoadHistory 동작에 필요한 aggregate 값이다. zero value, 범위, nil 허용 여부는 함수 계약을 따른다.
+//   - aggregate: LoadHistory에 전달되는 값이다. 허용 범위와 nil 처리 방식은 구현 검증을 따른다.
 //
-// 반환 오류는 입력 검증 실패, 취소, transaction 실패, repository/outbox 실패, 또는 package sentinel/typed error 계약을 보존한다.
+// 반환 오류는 입력 검증 실패, context 취소, transaction 실패, repository/outbox 실패, package sentinel error와 typed error를 그대로 드러낸다.
 func (r *MemoryRepository) LoadHistory(ctx context.Context, aggregate AggregateID) (History, bool, error) {
 	if err := aggregate.Validate(); err != nil {
 		return History{}, false, validationCause(ErrInvalidQuery, "aggregate", aggregate, err)
@@ -128,9 +128,9 @@ func (r *MemoryRepository) LoadHistory(ctx context.Context, aggregate AggregateI
 //
 // 매개변수:
 //   - ctx: 호출자가 소유한 취소, deadline, 요청 범위를 전달한다.
-//   - aggregate: Latest 동작에 필요한 aggregate 값이다. zero value, 범위, nil 허용 여부는 함수 계약을 따른다.
+//   - aggregate: Latest에 전달되는 값이다. 허용 범위와 nil 처리 방식은 구현 검증을 따른다.
 //
-// 반환 오류는 입력 검증 실패, 취소, transaction 실패, repository/outbox 실패, 또는 package sentinel/typed error 계약을 보존한다.
+// 반환 오류는 입력 검증 실패, context 취소, transaction 실패, repository/outbox 실패, package sentinel error와 typed error를 그대로 드러낸다.
 func (r *MemoryRepository) Latest(ctx context.Context, aggregate AggregateID) (Entry, bool, error) {
 	if err := aggregate.Validate(); err != nil {
 		return Entry{}, false, validationCause(ErrInvalidQuery, "aggregate", aggregate, err)
@@ -149,9 +149,9 @@ func (r *MemoryRepository) Latest(ctx context.Context, aggregate AggregateID) (E
 //
 // 매개변수:
 //   - ctx: 호출자가 소유한 취소, deadline, 요청 범위를 전달한다.
-//   - aggregate: LatestSnapshot 동작에 필요한 aggregate 값이다. zero value, 범위, nil 허용 여부는 함수 계약을 따른다.
+//   - aggregate: LatestSnapshot에 전달되는 값이다. 허용 범위와 nil 처리 방식은 구현 검증을 따른다.
 //
-// 반환 오류는 입력 검증 실패, 취소, transaction 실패, repository/outbox 실패, 또는 package sentinel/typed error 계약을 보존한다.
+// 반환 오류는 입력 검증 실패, context 취소, transaction 실패, repository/outbox 실패, package sentinel error와 typed error를 그대로 드러낸다.
 func (r *MemoryRepository) LatestSnapshot(ctx context.Context, aggregate AggregateID) (Entry, bool, error) {
 	return r.findSnapshot(ctx, aggregate, 0)
 }
@@ -160,10 +160,10 @@ func (r *MemoryRepository) LatestSnapshot(ctx context.Context, aggregate Aggrega
 //
 // 매개변수:
 //   - ctx: 호출자가 소유한 취소, deadline, 요청 범위를 전달한다.
-//   - aggregate: PreviousSnapshot 동작에 필요한 aggregate 값이다. zero value, 범위, nil 허용 여부는 함수 계약을 따른다.
-//   - before: PreviousSnapshot 동작에 필요한 before 값이다. zero value, 범위, nil 허용 여부는 함수 계약을 따른다.
+//   - aggregate: PreviousSnapshot에 전달되는 값이다. 허용 범위와 nil 처리 방식은 구현 검증을 따른다.
+//   - before: PreviousSnapshot에 전달되는 값이다. 허용 범위와 nil 처리 방식은 구현 검증을 따른다.
 //
-// 반환 오류는 입력 검증 실패, 취소, transaction 실패, repository/outbox 실패, 또는 package sentinel/typed error 계약을 보존한다.
+// 반환 오류는 입력 검증 실패, context 취소, transaction 실패, repository/outbox 실패, package sentinel error와 typed error를 그대로 드러낸다.
 func (r *MemoryRepository) PreviousSnapshot(ctx context.Context, aggregate AggregateID, before Revision) (Entry, bool, error) {
 	if err := before.Validate(); err != nil {
 		return Entry{}, false, validationCause(ErrInvalidQuery, "before", before, err)

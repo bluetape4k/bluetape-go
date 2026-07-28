@@ -16,10 +16,10 @@ type AggregateID struct {
 // NewAggregateID NewAggregateID 공개 API의 동작을 수행하며 audit entry, event, repository, recorder, history 계약을 보존한다.
 //
 // 매개변수:
-//   - typ: NewAggregateID 동작에 필요한 typ 값이다. zero value, 범위, nil 허용 여부는 함수 계약을 따른다.
+//   - typ: NewAggregateID에 전달되는 값이다. 허용 범위와 nil 처리 방식은 구현 검증을 따른다.
 //   - id: audit event 또는 entry 식별자다. uniqueness와 idempotency 의미는 repository 계약을 따른다.
 //
-// 반환 오류는 입력 검증 실패, 취소, transaction 실패, repository/outbox 실패, 또는 package sentinel/typed error 계약을 보존한다.
+// 반환 오류는 입력 검증 실패, context 취소, transaction 실패, repository/outbox 실패, package sentinel error와 typed error를 그대로 드러낸다.
 func NewAggregateID(typ string, id string) (AggregateID, error) {
 	aggregate := AggregateID{
 		Type: strings.TrimSpace(typ),
@@ -33,7 +33,7 @@ func NewAggregateID(typ string, id string) (AggregateID, error) {
 
 // Validate Validate 공개 API의 동작을 수행하며 audit entry, event, repository, recorder, history 계약을 보존한다.
 //
-// 반환 오류는 입력 검증 실패, 취소, transaction 실패, repository/outbox 실패, 또는 package sentinel/typed error 계약을 보존한다.
+// 반환 오류는 입력 검증 실패, context 취소, transaction 실패, repository/outbox 실패, package sentinel error와 typed error를 그대로 드러낸다.
 func (id AggregateID) Validate() error {
 	if strings.TrimSpace(id.Type) == "" {
 		return validationError(ErrInvalidAggregateID, "type", id.Type)
@@ -52,9 +52,9 @@ func (id AggregateID) String() string {
 // UnmarshalJSON UnmarshalJSON 공개 API의 동작을 수행하며 audit entry, event, repository, recorder, history 계약을 보존한다.
 //
 // 매개변수:
-//   - data: UnmarshalJSON 동작에 필요한 data 값이다. zero value, 범위, nil 허용 여부는 함수 계약을 따른다.
+//   - data: UnmarshalJSON에 전달되는 값이다. 허용 범위와 nil 처리 방식은 구현 검증을 따른다.
 //
-// 반환 오류는 입력 검증 실패, 취소, transaction 실패, repository/outbox 실패, 또는 package sentinel/typed error 계약을 보존한다.
+// 반환 오류는 입력 검증 실패, context 취소, transaction 실패, repository/outbox 실패, package sentinel error와 typed error를 그대로 드러낸다.
 func (id *AggregateID) UnmarshalJSON(data []byte) error {
 	type aggregateID AggregateID
 	var decoded aggregateID
@@ -80,7 +80,7 @@ func InitialRevision() Revision {
 
 // Validate Validate 공개 API의 동작을 수행하며 audit entry, event, repository, recorder, history 계약을 보존한다.
 //
-// 반환 오류는 입력 검증 실패, 취소, transaction 실패, repository/outbox 실패, 또는 package sentinel/typed error 계약을 보존한다.
+// 반환 오류는 입력 검증 실패, context 취소, transaction 실패, repository/outbox 실패, package sentinel error와 typed error를 그대로 드러낸다.
 func (r Revision) Validate() error {
 	if r == 0 {
 		return validationError(ErrInvalidRevision, "revision", r)
@@ -90,7 +90,7 @@ func (r Revision) Validate() error {
 
 // Next Next 공개 API의 동작을 수행하며 audit entry, event, repository, recorder, history 계약을 보존한다.
 //
-// 반환 오류는 입력 검증 실패, 취소, transaction 실패, repository/outbox 실패, 또는 package sentinel/typed error 계약을 보존한다.
+// 반환 오류는 입력 검증 실패, context 취소, transaction 실패, repository/outbox 실패, package sentinel error와 typed error를 그대로 드러낸다.
 func (r Revision) Next() (Revision, error) {
 	if err := r.Validate(); err != nil {
 		return 0, err

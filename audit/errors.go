@@ -41,7 +41,7 @@ func (e ValidationError) Error() string {
 
 // Unwrap Unwrap 공개 API의 동작을 수행하며 audit entry, event, repository, recorder, history 계약을 보존한다.
 //
-// 반환 오류는 입력 검증 실패, 취소, transaction 실패, repository/outbox 실패, 또는 package sentinel/typed error 계약을 보존한다.
+// 반환 오류는 입력 검증 실패, context 취소, transaction 실패, repository/outbox 실패, package sentinel error와 typed error를 그대로 드러낸다.
 func (e ValidationError) Unwrap() error {
 	return e.Cause
 }
@@ -49,7 +49,7 @@ func (e ValidationError) Unwrap() error {
 // Is Is 공개 API의 동작을 수행하며 audit entry, event, repository, recorder, history 계약을 보존한다.
 //
 // 매개변수:
-//   - target: Is 동작에 필요한 target 값이다. zero value, 범위, nil 허용 여부는 함수 계약을 따른다.
+//   - target: Is에 전달되는 값이다. 허용 범위와 nil 처리 방식은 구현 검증을 따른다.
 func (e ValidationError) Is(target error) bool {
 	return target == e.Kind
 }

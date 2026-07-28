@@ -20,7 +20,7 @@ type RepositoryFactory func(testing.TB) audit.Repository
 // RunRepositoryConformance RunRepositoryConformance 공개 API의 동작을 수행하며 audit conformance harness의 repository/recorder 계약을 보존한다.
 //
 // 매개변수:
-//   - t: RunRepositoryConformance 동작에 필요한 t 값이다. zero value, 범위, nil 허용 여부는 함수 계약을 따른다.
+//   - t: RunRepositoryConformance에 전달되는 값이다. 허용 범위와 nil 처리 방식은 구현 검증을 따른다.
 //   - factory: 감사 대상 actor, action, resource, metadata 값이다. 빈 값과 민감정보 처리는 audit 계약을 따른다.
 func RunRepositoryConformance(t *testing.T, factory RepositoryFactory) {
 	t.Helper()

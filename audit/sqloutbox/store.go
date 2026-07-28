@@ -112,9 +112,9 @@ type Failure struct {
 // NewStore NewStore 공개 API의 동작을 수행하며 SQL outbox store, relay, transaction, idempotent delivery 계약을 보존한다.
 //
 // 매개변수:
-//   - options: NewStore 동작에 필요한 options 값이다. zero value, 범위, nil 허용 여부는 함수 계약을 따른다.
+//   - options: 적용할 옵션 목록이다. nil이면 기본값만 사용한다.
 //
-// 반환 오류는 입력 검증 실패, 취소, transaction 실패, repository/outbox 실패, 또는 package sentinel/typed error 계약을 보존한다.
+// 반환 오류는 입력 검증 실패, context 취소, transaction 실패, repository/outbox 실패, package sentinel error와 typed error를 그대로 드러낸다.
 func NewStore(options Options) (*Store, error) {
 	table := strings.TrimSpace(options.Table)
 	if table == "" {
@@ -160,7 +160,7 @@ func NewStore(options Options) (*Store, error) {
 //   - ctx: 호출자가 소유한 취소, deadline, 요청 범위를 전달한다.
 //   - db: SQL transaction 또는 outbox 저장소 backend다. commit/rollback 소유권은 호출자와 store 계약을 따른다.
 //
-// 반환 오류는 입력 검증 실패, 취소, transaction 실패, repository/outbox 실패, 또는 package sentinel/typed error 계약을 보존한다.
+// 반환 오류는 입력 검증 실패, context 취소, transaction 실패, repository/outbox 실패, package sentinel error와 typed error를 그대로 드러낸다.
 func (s *Store) CreateSchema(ctx context.Context, db sqlkit.Execer) error {
 	if err := requireStoreAndExecer(s, db); err != nil {
 		return err
@@ -207,9 +207,9 @@ create table if not exists %s (
 // 매개변수:
 //   - ctx: 호출자가 소유한 취소, deadline, 요청 범위를 전달한다.
 //   - db: SQL transaction 또는 outbox 저장소 backend다. commit/rollback 소유권은 호출자와 store 계약을 따른다.
-//   - entries: Enqueue 동작에 필요한 entries 값이다. zero value, 범위, nil 허용 여부는 함수 계약을 따른다.
+//   - entries: Enqueue에 전달되는 값이다. 허용 범위와 nil 처리 방식은 구현 검증을 따른다.
 //
-// 반환 오류는 입력 검증 실패, 취소, transaction 실패, repository/outbox 실패, 또는 package sentinel/typed error 계약을 보존한다.
+// 반환 오류는 입력 검증 실패, context 취소, transaction 실패, repository/outbox 실패, package sentinel error와 typed error를 그대로 드러낸다.
 func (s *Store) Enqueue(ctx context.Context, db sqlkit.Execer, entries ...audit.Entry) error {
 	if err := requireStoreAndExecer(s, db); err != nil {
 		return err
@@ -267,9 +267,9 @@ insert into %s (
 // 매개변수:
 //   - ctx: 호출자가 소유한 취소, deadline, 요청 범위를 전달한다.
 //   - db: SQL transaction 또는 outbox 저장소 backend다. commit/rollback 소유권은 호출자와 store 계약을 따른다.
-//   - options: Claim 동작에 필요한 options 값이다. zero value, 범위, nil 허용 여부는 함수 계약을 따른다.
+//   - options: 적용할 옵션 목록이다. nil이면 기본값만 사용한다.
 //
-// 반환 오류는 입력 검증 실패, 취소, transaction 실패, repository/outbox 실패, 또는 package sentinel/typed error 계약을 보존한다.
+// 반환 오류는 입력 검증 실패, context 취소, transaction 실패, repository/outbox 실패, package sentinel error와 typed error를 그대로 드러낸다.
 func (s *Store) Claim(ctx context.Context, db sqlkit.Session, options ClaimOptions) ([]Record, error) {
 	if err := requireStoreAndSession(s, db); err != nil {
 		return nil, err
@@ -352,9 +352,9 @@ returning outbox.id, outbox.status, outbox.aggregate_type, outbox.aggregate_id,
 // 매개변수:
 //   - ctx: 호출자가 소유한 취소, deadline, 요청 범위를 전달한다.
 //   - db: SQL transaction 또는 outbox 저장소 backend다. commit/rollback 소유권은 호출자와 store 계약을 따른다.
-//   - records: MarkPublished 동작에 필요한 records 값이다. zero value, 범위, nil 허용 여부는 함수 계약을 따른다.
+//   - records: MarkPublished에 전달되는 값이다. 허용 범위와 nil 처리 방식은 구현 검증을 따른다.
 //
-// 반환 오류는 입력 검증 실패, 취소, transaction 실패, repository/outbox 실패, 또는 package sentinel/typed error 계약을 보존한다.
+// 반환 오류는 입력 검증 실패, context 취소, transaction 실패, repository/outbox 실패, package sentinel error와 typed error를 그대로 드러낸다.
 func (s *Store) MarkPublished(ctx context.Context, db sqlkit.Execer, records ...Record) error {
 	if err := requireStoreAndExecer(s, db); err != nil {
 		return err
@@ -397,9 +397,9 @@ func (s *Store) MarkPublished(ctx context.Context, db sqlkit.Execer, records ...
 // 매개변수:
 //   - ctx: 호출자가 소유한 취소, deadline, 요청 범위를 전달한다.
 //   - db: SQL transaction 또는 outbox 저장소 backend다. commit/rollback 소유권은 호출자와 store 계약을 따른다.
-//   - failure: MarkFailed 동작에 필요한 failure 값이다. zero value, 범위, nil 허용 여부는 함수 계약을 따른다.
+//   - failure: MarkFailed에 전달되는 값이다. 허용 범위와 nil 처리 방식은 구현 검증을 따른다.
 //
-// 반환 오류는 입력 검증 실패, 취소, transaction 실패, repository/outbox 실패, 또는 package sentinel/typed error 계약을 보존한다.
+// 반환 오류는 입력 검증 실패, context 취소, transaction 실패, repository/outbox 실패, package sentinel error와 typed error를 그대로 드러낸다.
 func (s *Store) MarkFailed(ctx context.Context, db sqlkit.Execer, failure Failure) error {
 	if err := requireStoreAndExecer(s, db); err != nil {
 		return err

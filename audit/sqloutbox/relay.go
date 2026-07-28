@@ -58,9 +58,9 @@ type Relay struct {
 // 매개변수:
 //   - store: SQL transaction 또는 outbox 저장소 backend다. commit/rollback 소유권은 호출자와 store 계약을 따른다.
 //   - publisher: outbox delivery 또는 relay publisher다. 중복 전송과 retry 의미는 outbox 계약을 따른다.
-//   - options: NewRelay 동작에 필요한 options 값이다. zero value, 범위, nil 허용 여부는 함수 계약을 따른다.
+//   - options: 적용할 옵션 목록이다. nil이면 기본값만 사용한다.
 //
-// 반환 오류는 입력 검증 실패, 취소, transaction 실패, repository/outbox 실패, 또는 package sentinel/typed error 계약을 보존한다.
+// 반환 오류는 입력 검증 실패, context 취소, transaction 실패, repository/outbox 실패, package sentinel error와 typed error를 그대로 드러낸다.
 func NewRelay(store *Store, publisher Publisher, options RelayOptions) (*Relay, error) {
 	if store == nil {
 		return nil, fmt.Errorf("%w: store must not be nil", ErrInvalidArgument)
@@ -119,7 +119,7 @@ func NewRelay(store *Store, publisher Publisher, options RelayOptions) (*Relay, 
 //   - ctx: 호출자가 소유한 취소, deadline, 요청 범위를 전달한다.
 //   - db: SQL transaction 또는 outbox 저장소 backend다. commit/rollback 소유권은 호출자와 store 계약을 따른다.
 //
-// 반환 오류는 입력 검증 실패, 취소, transaction 실패, repository/outbox 실패, 또는 package sentinel/typed error 계약을 보존한다.
+// 반환 오류는 입력 검증 실패, context 취소, transaction 실패, repository/outbox 실패, package sentinel error와 typed error를 그대로 드러낸다.
 func (r *Relay) RunOnce(ctx context.Context, db sqlkit.Session) (RelayResult, error) {
 	if r == nil {
 		return RelayResult{}, fmt.Errorf("%w: relay must not be nil", ErrInvalidArgument)
@@ -188,7 +188,7 @@ func isCallerCancellation(ctx context.Context, err error) bool {
 //   - ctx: 호출자가 소유한 취소, deadline, 요청 범위를 전달한다.
 //   - db: SQL transaction 또는 outbox 저장소 backend다. commit/rollback 소유권은 호출자와 store 계약을 따른다.
 //
-// 반환 오류는 입력 검증 실패, 취소, transaction 실패, repository/outbox 실패, 또는 package sentinel/typed error 계약을 보존한다.
+// 반환 오류는 입력 검증 실패, context 취소, transaction 실패, repository/outbox 실패, package sentinel error와 typed error를 그대로 드러낸다.
 func (r *Relay) Run(ctx context.Context, db sqlkit.Session) error {
 	if ctx == nil {
 		ctx = context.Background()
