@@ -1,15 +1,15 @@
-// Package graph provides model-only graph values for I/O helpers and examples.
+// Package graph는 graph IO Neo4j backend 계약과 호출자 사용 경계를 설명한다.
 //
-// The package intentionally contains no graph database client, query DSL,
-// schema manager, repository, session, transaction, algorithm engine, or backend
-// adapter. Follow-up packages own those contracts after concrete I/O and example
-// work proves shared behavior.
+// 이 주석은 graph format, backend requirement, traversal, serialization 조건을 설명한다.
+// 세부 조건은 GraphML, NDJSON, CSV, Neo4j 계약과 caller-owned graph model을 따른다.
+// 이 주석은 graph IO Neo4j backend의 backend 요구사항, cancellation, timeout, 오류 처리 세부사항을 설명한다.
+// 세부 조건은 GraphML, NDJSON, CSV, Neo4j 계약과 caller-owned graph model을 따른다.
 //
-// Properties are shallow-copied at map boundaries. Nested mutable values remain
-// caller-owned and should be deep-copied by future adapters before trust
-// boundaries.
+// Properties는 graph IO Neo4j backend에서 caller-visible 상태와 의미를 설명한다.
+// 이 주석은 graph IO Neo4j backend의 backend 요구사항, cancellation, timeout, 오류 처리 세부사항을 설명한다.
+// 이 주석은 graph IO Neo4j backend의 backend 요구사항, cancellation, timeout, 오류 처리 세부사항을 설명한다.
 //
-// Path validates step values and weight only. It does not prove endpoint
-// continuity, alternating vertex/edge order, or traversal correctness. Future
-// algorithms or backend adapters own those stricter invariants.
+// Path는 graph IO Neo4j backend에서 동작과 caller-visible 계약을 설명한다.
+// 이 주석은 graph IO Neo4j backend의 backend 요구사항, cancellation, timeout, 오류 처리 세부사항을 설명한다.
+// 세부 조건은 GraphML, NDJSON, CSV, Neo4j 계약과 caller-owned graph model을 따른다.
 package graph

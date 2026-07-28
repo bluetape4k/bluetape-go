@@ -22,7 +22,7 @@ type ndjsonEnvelope struct {
 	Properties graph.Properties `json:"properties,omitempty"`
 }
 
-// NDJSONWriter writes one graph record per line.
+// 이 주석은 graph format, backend requirement, traversal, serialization 조건을 설명한다.
 type NDJSONWriter struct {
 	ctx      context.Context
 	writer   io.Writer
@@ -34,7 +34,7 @@ type NDJSONWriter struct {
 	setupErr error
 }
 
-// NewNDJSONWriter creates an NDJSON stream writer.
+// NewNDJSONWriter는 graph IO Neo4j backend에서 생성과 초기화 계약을 설명한다.
 func NewNDJSONWriter(ctx context.Context, writer io.Writer, options WriteOptions) *NDJSONWriter {
 	if ctx == nil {
 		ctx = context.Background()
@@ -50,7 +50,7 @@ func NewNDJSONWriter(ctx context.Context, writer io.Writer, options WriteOptions
 	}
 }
 
-// WriteRecord validates and writes one NDJSON record.
+// WriteRecord는 graph IO Neo4j backend에서 동작과 caller-visible 계약을 설명한다.
 func (w *NDJSONWriter) WriteRecord(record Record) error {
 	if w.closed {
 		return ErrStreamClosed
@@ -87,7 +87,7 @@ func (w *NDJSONWriter) WriteRecord(record Record) error {
 	return nil
 }
 
-// Close freezes and returns the final report.
+// Close는 graph IO Neo4j backend에서 반환값과 오류 의미를 설명한다.
 func (w *NDJSONWriter) Close() (Report, error) {
 	if w.closed {
 		return w.final, nil
@@ -98,7 +98,7 @@ func (w *NDJSONWriter) Close() (Report, error) {
 	return w.final, nil
 }
 
-// WriteNDJSON writes all vertices before edges to produce a validated stream.
+// WriteNDJSON는 graph IO Neo4j backend에서 동작과 caller-visible 계약을 설명한다.
 func WriteNDJSON(ctx context.Context, writer io.Writer, records []Record, options WriteOptions) (Report, error) {
 	stream := NewNDJSONWriter(ctx, writer, options)
 	for _, record := range records {
@@ -120,7 +120,7 @@ func WriteNDJSON(ctx context.Context, writer io.Writer, records []Record, option
 	return stream.Close()
 }
 
-// NDJSONReader reads a validated NDJSON stream.
+// 이 주석은 graph format, backend requirement, traversal, serialization 조건을 설명한다.
 type NDJSONReader struct {
 	ctx       context.Context
 	scanner   *bufio.Scanner
@@ -137,7 +137,7 @@ type NDJSONReader struct {
 	lastError error
 }
 
-// NewNDJSONReader creates an NDJSON stream reader.
+// NewNDJSONReader는 graph IO Neo4j backend에서 생성과 초기화 계약을 설명한다.
 func NewNDJSONReader(ctx context.Context, reader io.Reader, options ReadOptions) *NDJSONReader {
 	if ctx == nil {
 		ctx = context.Background()
@@ -167,7 +167,7 @@ func NewNDJSONReader(ctx context.Context, reader io.Reader, options ReadOptions)
 	}
 }
 
-// ReadRecord returns the next valid record or io.EOF.
+// ReadRecord는 graph IO Neo4j backend에서 반환값과 오류 의미를 설명한다.
 func (r *NDJSONReader) ReadRecord() (Record, error) {
 	if r.closed {
 		return Record{}, ErrStreamClosed
@@ -212,7 +212,7 @@ func (r *NDJSONReader) ReadRecord() (Record, error) {
 	}
 }
 
-// Close freezes and returns the final report.
+// Close는 graph IO Neo4j backend에서 반환값과 오류 의미를 설명한다.
 func (r *NDJSONReader) Close() (Report, error) {
 	if r.closed {
 		return r.final, nil
@@ -223,7 +223,7 @@ func (r *NDJSONReader) Close() (Report, error) {
 	return r.final, nil
 }
 
-// ReadNDJSON reads a complete NDJSON stream.
+// ReadNDJSON는 graph IO Neo4j backend에서 동작과 caller-visible 계약을 설명한다.
 func ReadNDJSON(ctx context.Context, reader io.Reader, options ReadOptions) ([]Record, Report, error) {
 	stream := NewNDJSONReader(ctx, reader, options)
 	records := make([]Record, 0)

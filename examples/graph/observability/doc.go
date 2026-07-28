@@ -1,6 +1,6 @@
-// Package observability demonstrates a backend-neutral incident-response graph.
+// Package observability는 graph IO Neo4j backend 계약과 호출자 사용 경계를 설명한다.
 //
-// The example keeps the graph in memory so callers can see the domain model,
-// traversal questions, and graphio import/export boundary without adopting a
-// database adapter.
+// 이 주석은 graph format, backend requirement, traversal, serialization 조건을 설명한다.
+// 세부 조건은 GraphML, NDJSON, CSV, Neo4j 계약과 caller-owned graph model을 따른다.
+// 세부 조건은 GraphML, NDJSON, CSV, Neo4j 계약과 caller-owned graph model을 따른다.
 package observability

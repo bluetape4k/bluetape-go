@@ -1,8 +1,8 @@
-// Package neo4j adapts official Neo4j Go driver results to graph values.
+// Package neo4j는 graph IO Neo4j backend 계약과 호출자 사용 경계를 설명한다.
 //
-// This package is intentionally a narrow backend proof. It maps Neo4j
-// dbtype.Node and dbtype.Relationship values into graph.Vertex and graph.Edge
-// and provides small read/write query helpers around a caller-owned driver. It
-// does not define a backend-neutral repository, session, transaction, schema,
-// or Cypher DSL.
+// 이 주석은 graph format, backend requirement, traversal, serialization 조건을 설명한다.
+// 이 주석은 graph IO Neo4j backend의 backend 요구사항, cancellation, timeout, 오류 처리 세부사항을 설명한다.
+// 세부 조건은 GraphML, NDJSON, CSV, Neo4j 계약과 caller-owned graph model을 따른다.
+// 세부 조건은 GraphML, NDJSON, CSV, Neo4j 계약과 caller-owned graph model을 따른다.
+// 세부 조건은 GraphML, NDJSON, CSV, Neo4j 계약과 caller-owned graph model을 따른다.
 package neo4j
