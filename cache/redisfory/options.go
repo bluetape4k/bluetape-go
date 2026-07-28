@@ -26,7 +26,7 @@ type Profile string
 const (
 	// ProfileNativeFast 고정 schema Go-native serialization profile이다.
 	ProfileNativeFast Profile = "native-fast"
-	// ProfileNativeCompatible은 Go-native schema evolution metadata를 포함하는 profile이다.
+	// ProfileNativeCompatible Go-native schema evolution metadata를 포함하는 profile이다.
 	ProfileNativeCompatible Profile = "native-compatible"
 )
 

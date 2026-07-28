@@ -17,7 +17,7 @@ type Profile string
 const (
 	// ProfileNativeFast 고정 schema Go-native profile이다.
 	ProfileNativeFast Profile = "native-fast"
-	// ProfileNativeCompatible은 schema-compatible Go-native profile이다.
+	// ProfileNativeCompatible schema-compatible Go-native profile이다.
 	ProfileNativeCompatible Profile = "native-compatible"
 )
 

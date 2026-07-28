@@ -21,7 +21,7 @@ type Profile uint8
 const (
 	// ProfileNativeFast 고정 schema Go-native serialization profile이다.
 	ProfileNativeFast Profile = iota + 1
-	// ProfileNativeCompatible은 Fory-compatible schema evolution metadata를 포함하는 profile이다.
+	// ProfileNativeCompatible Fory-compatible schema evolution metadata를 포함하는 profile이다.
 	ProfileNativeCompatible
 )
 
