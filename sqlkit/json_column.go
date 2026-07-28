@@ -5,7 +5,7 @@ import (
 	"encoding/json"
 )
 
-// DefaultJSONColumnMaxBytes는 JSON source 또는 output size의 기본 최대값이다.
+// DefaultJSONColumnMaxBytes JSON source 또는 output size의 기본 최대값이다.
 const DefaultJSONColumnMaxBytes = 1 << 20
 
 // JSONColumn은 typed JSON value와 SQL NULL 상태를 함께 저장한다.
@@ -49,9 +49,9 @@ func (c *JSONColumn[T]) Scan(src any) (err error) {
 	return nil
 }
 
-// Value는 Data를 JSON으로 encode하거나 Valid가 false이면 nil을 반환한다.
+// Value Data를 JSON으로 encode하거나 Valid가 false이면 nil을 반환한다.
 //
-// Value는 non-NULL 값에 대해 []byte를 반환하며 error 문자열에 callback 원인을 노출하지 않는다.
+// Value non-NULL 값에 대해 []byte를 반환하며 error 문자열에 callback 원인을 노출하지 않는다.
 func (c JSONColumn[T]) Value() (value driver.Value, err error) {
 	if !c.Valid {
 		return nil, nil

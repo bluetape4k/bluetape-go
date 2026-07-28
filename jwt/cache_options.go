@@ -59,7 +59,7 @@ func WithCacheMaxTTL(ttl time.Duration) CacheOption {
 	}
 }
 
-// WithCacheKeyPrefix 는 cache key의 비밀이 아닌 namespace prefix를 지정한다.
+// WithCacheKeyPrefix cache key의 비밀이 아닌 namespace prefix를 지정한다.
 func WithCacheKeyPrefix(prefix string) CacheOption {
 	return func(cfg *cacheConfig) error {
 		if err := validateCacheText("cache_key_prefix", prefix); err != nil {
@@ -70,7 +70,7 @@ func WithCacheKeyPrefix(prefix string) CacheOption {
 	}
 }
 
-// WithCacheTrustScope 는 provider, tenant, key namespace에 대한 명시적 private scope를 지정한다.
+// WithCacheTrustScope provider, tenant, key namespace에 대한 명시적 private scope를 지정한다.
 func WithCacheTrustScope(scope string) CacheOption {
 	return func(cfg *cacheConfig) error {
 		if err := validateCacheText("cache_trust_scope", scope); err != nil {

@@ -1,4 +1,4 @@
-// Package encrypt는 local service data를 위한 작은 AES-GCM facade를 제공한다.
+// Package encrypt local service data를 위한 작은 AES-GCM facade를 제공한다.
 //
 // 이 package는 Go standard library의 AES-GCM random-nonce AEAD를 사용하고 ciphertext를
 // versioned envelope로 감싼다. 호출자는 key 생성, 영속화, 회전, 저장을 소유한다. 이 package는

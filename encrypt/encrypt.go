@@ -26,14 +26,14 @@ type Option func(*config) error
 
 type config struct{}
 
-// Encryptor는 호출자가 소유한 AES key material로 byte를 암호화하고 복호화한다.
+// Encryptor 호출자가 소유한 AES key material로 byte를 암호화하고 복호화한다.
 //
 // Encryptor 값은 생성 후 불변이며 여러 goroutine에서 동시에 사용해도 안전하다.
 type Encryptor struct {
 	aead cipher.AEAD
 }
 
-// New는 16, 24, 32 byte AES key로 Encryptor를 생성한다.
+// New 16, 24, 32 byte AES key로 Encryptor를 생성한다.
 //
 // key는 사용 전에 복사된다. 호출자는 이 package 밖에서 key material을 영속화하고 회전해야 하며,
 // 생성된 key는 test나 provisioning helper 용도에 한정된다.
@@ -66,7 +66,7 @@ func New(key []byte, options ...Option) (Encryptor, error) {
 	return Encryptor{aead: aead}, nil
 }
 
-// Encrypt는 plaintext를 암호화하고 versioned ciphertext envelope를 반환한다.
+// Encrypt plaintext를 암호화하고 versioned ciphertext envelope를 반환한다.
 func Encrypt(key, plaintext, associatedData []byte) ([]byte, error) {
 	encryptor, err := New(key)
 	if err != nil {
@@ -75,7 +75,7 @@ func Encrypt(key, plaintext, associatedData []byte) ([]byte, error) {
 	return encryptor.Encrypt(plaintext, associatedData)
 }
 
-// Decrypt는 versioned ciphertext envelope를 복호화한다.
+// Decrypt versioned ciphertext envelope를 복호화한다.
 func Decrypt(key, ciphertext, associatedData []byte) ([]byte, error) {
 	encryptor, err := New(key)
 	if err != nil {
@@ -84,7 +84,7 @@ func Decrypt(key, ciphertext, associatedData []byte) ([]byte, error) {
 	return encryptor.Decrypt(ciphertext, associatedData)
 }
 
-// Encrypt는 plaintext를 암호화하고 versioned ciphertext envelope를 반환한다.
+// Encrypt plaintext를 암호화하고 versioned ciphertext envelope를 반환한다.
 func (e Encryptor) Encrypt(plaintext, associatedData []byte) ([]byte, error) {
 	if e.aead == nil {
 		return nil, errorWith(ErrInvalidKey, "encrypt", nil)
@@ -97,7 +97,7 @@ func (e Encryptor) Encrypt(plaintext, associatedData []byte) ([]byte, error) {
 	return out, nil
 }
 
-// Decrypt는 versioned ciphertext envelope를 복호화한다.
+// Decrypt versioned ciphertext envelope를 복호화한다.
 func (e Encryptor) Decrypt(ciphertext, associatedData []byte) ([]byte, error) {
 	if e.aead == nil {
 		return nil, errorWith(ErrInvalidKey, "decrypt", nil)

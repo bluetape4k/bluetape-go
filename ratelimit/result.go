@@ -5,12 +5,12 @@ import (
 	"time"
 )
 
-// Limiter 는 key별 token 소비를 시도한다.
+// Limiter key별 token 소비를 시도한다.
 type Limiter interface {
 	Allow(ctx context.Context, key string, tokens int64) (Result, error)
 }
 
-// Result 는 rate limit 판정 결과다.
+// Result rate limit 판정 결과다.
 type Result struct {
 	Allowed    bool
 	Requested  int64

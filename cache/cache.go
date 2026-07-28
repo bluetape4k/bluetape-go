@@ -6,10 +6,10 @@ import (
 	"time"
 )
 
-// Loader 는 cache miss 값을 계산한다.
+// Loader cache miss 값을 계산한다.
 type Loader[K comparable, V any] func(context.Context, K) (V, error)
 
-// Cache 는 context-aware key-value cache 계약이다.
+// Cache context-aware key-value cache 계약이다.
 type Cache[K comparable, V any] interface {
 	Get(ctx context.Context, key K) (V, error)
 	Set(ctx context.Context, key K, value V, ttl time.Duration) error
@@ -17,7 +17,7 @@ type Cache[K comparable, V any] interface {
 	Clear(ctx context.Context) error
 }
 
-// LoadingCache 는 miss 시 로더로 값을 채우는 cache 계약이다.
+// LoadingCache miss 시 로더로 값을 채우는 cache 계약이다.
 type LoadingCache[K comparable, V any] interface {
 	Cache[K, V]
 	GetOrLoad(ctx context.Context, key K, ttl time.Duration, loader Loader[K, V]) (V, error)

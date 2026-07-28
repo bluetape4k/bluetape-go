@@ -7,7 +7,7 @@ import (
 	"fmt"
 )
 
-// Mapper는 rows의 현재 row를 domain 값으로 mapping한다. 기대하는 column에 맞춰 rows.Scan을 정확히 호출해야 한다.
+// Mapper rows의 현재 row를 domain 값으로 mapping한다. 기대하는 column에 맞춰 rows.Scan을 정확히 호출해야 한다.
 type Mapper[T any] func(rows *sql.Rows) (T, error)
 
 // QueryAll은 query를 실행하고 반환된 모든 row를 mapping한다.

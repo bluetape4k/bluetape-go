@@ -6,13 +6,13 @@ import (
 	"fmt"
 )
 
-// Statement는 검토 가능한 SQL statement와 database/sql에 순서대로 전달할 argument를 함께 보관한다.
+// Statement 검토 가능한 SQL statement와 database/sql에 순서대로 전달할 argument를 함께 보관한다.
 type Statement struct {
 	SQL  string
 	Args []any
 }
 
-// NewStatement는 args를 defensive copy한 stmt를 반환한다.
+// NewStatement args를 defensive copy한 stmt를 반환한다.
 func NewStatement(query string, args ...any) Statement {
 	return Statement{
 		SQL:  query,

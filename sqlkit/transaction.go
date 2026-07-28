@@ -7,10 +7,10 @@ import (
 	"fmt"
 )
 
-// TxFunc는 tx 안에서 work를 실행한다. error를 반환하면 transaction을 rollback하고 nil을 반환하면 commit한다.
+// TxFunc tx 안에서 work를 실행한다. error를 반환하면 transaction을 rollback하고 nil을 반환하면 commit한다.
 type TxFunc func(ctx context.Context, tx *sql.Tx) error
 
-// WithTx는 transaction을 시작하고 fn을 실행한 뒤 fn이 성공한 경우에만 commit한다.
+// WithTx transaction을 시작하고 fn을 실행한 뒤 fn이 성공한 경우에만 commit한다.
 //
 // database handle lifecycle은 호출자가 소유한다. WithTx는 자신이 시작한 transaction만 소유한다.
 // Context cancellation은 BeginTx와 fn에 그대로 전달되며, cancellation이나 deadline error를 재시도하지 않는다.

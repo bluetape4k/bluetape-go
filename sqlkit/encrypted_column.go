@@ -7,9 +7,9 @@ import (
 )
 
 const (
-	// DefaultEncryptedColumnMaxPlaintextBytes는 plaintext 기본 한도를 1 MiB로 제한한다.
+	// DefaultEncryptedColumnMaxPlaintextBytes plaintext 기본 한도를 1 MiB로 제한한다.
 	DefaultEncryptedColumnMaxPlaintextBytes = 1 << 20
-	// DefaultEncryptedColumnMaxCiphertextBytes는 저장할 ciphertext 기본 한도를 2 MiB로 제한한다.
+	// DefaultEncryptedColumnMaxCiphertextBytes 저장할 ciphertext 기본 한도를 2 MiB로 제한한다.
 	DefaultEncryptedColumnMaxCiphertextBytes = 2 << 20
 )
 
@@ -73,9 +73,9 @@ func (c *EncryptedBytesColumn) Scan(src any) error {
 	return nil
 }
 
-// Value는 Data를 binary envelope로 암호화하거나 Valid가 false이면 nil을 반환한다.
+// Value Data를 binary envelope로 암호화하거나 Valid가 false이면 nil을 반환한다.
 //
-// Value는 non-NULL 값에 대해 []byte를 반환한다. 반복 호출은 독립적인 random nonce를 사용하므로
+// Value non-NULL 값에 대해 []byte를 반환한다. 반복 호출은 독립적인 random nonce를 사용하므로
 // 같은 plaintext라도 다른 ciphertext를 반환할 수 있다.
 func (c EncryptedBytesColumn) Value() (value driver.Value, err error) {
 	if !c.Valid {
@@ -158,9 +158,9 @@ func (c *EncryptedStringColumn) Scan(src any) error {
 	return nil
 }
 
-// Value는 Data를 raw URL-safe base64 text로 암호화하거나 Valid가 false이면 nil을 반환한다.
+// Value Data를 raw URL-safe base64 text로 암호화하거나 Valid가 false이면 nil을 반환한다.
 //
-// Value는 non-NULL 값에 대해 string을 반환한다. 반복 호출은 독립적인 random nonce를 사용하므로
+// Value non-NULL 값에 대해 string을 반환한다. 반복 호출은 독립적인 random nonce를 사용하므로
 // 같은 plaintext라도 다른 ciphertext를 반환할 수 있다.
 func (c EncryptedStringColumn) Value() (value driver.Value, err error) {
 	if !c.Valid {
