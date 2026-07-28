@@ -18,16 +18,16 @@ import (
 
 const defaultMaxInputBytes int64 = 4 << 20
 
-// FormatGraphML identifies bounded GraphML graph records.
+// FormatGraphML graph IO Neo4j backend에서 caller-visible 상태와 의미를 설명한다.
 const FormatGraphML graphio.Format = "graphml"
 
-// ReadOptions configures GraphML imports.
+// ReadOptions graph IO Neo4j backend에서 설정값과 기본값 적용 방식을 설명한다.
 type ReadOptions struct {
 	graphio.ReadOptions
 	MaxInputBytes int64
 }
 
-// WriteOptions configures GraphML exports.
+// WriteOptions graph IO Neo4j backend에서 설정값과 기본값 적용 방식을 설명한다.
 type WriteOptions struct {
 	graphio.WriteOptions
 }
@@ -85,7 +85,7 @@ type parser struct {
 	stack        []string
 }
 
-// Read imports a bounded directed GraphML document into graphio records.
+// Read graph IO Neo4j backend에서 동작과 caller-visible 계약을 설명한다.
 func Read(ctx context.Context, reader io.Reader, options ReadOptions) ([]graphio.Record, graphio.Report, error) {
 	if ctx == nil {
 		ctx = context.Background()
@@ -129,7 +129,7 @@ func Read(ctx context.Context, reader io.Reader, options ReadOptions) ([]graphio
 	return p.records, p.report, nil
 }
 
-// Write exports graphio records as a bounded directed GraphML document.
+// Write graph IO Neo4j backend에서 동작과 caller-visible 계약을 설명한다.
 func Write(ctx context.Context, writer io.Writer, records []graphio.Record, options WriteOptions) (graphio.Report, error) {
 	if ctx == nil {
 		ctx = context.Background()
