@@ -1,16 +1,19 @@
 # Issue 86 Strategic Leader Elector Spec
 
+> 한국어 요구사항 경계: 이 spec/design/test-spec 문서는 한국어 독자가 요구사항을 추적할 수 있도록 목적과 검증 경계를 한국어로 보강한다. API 이름, command, code identifier, issue/PR 번호, compatibility matrix, acceptance keyword, DoD/test evidence는 요구사항 약화를 막기 위해 원문 그대로 보존한다. 변경자는 아래 literal contract를 삭제하거나 의미를 약하게 바꾸지 않아야 한다.
+
+
 Issue: #86
 Milestone: 0.3.0
 
-## Context
+## 맥락
 
 `leader.Elector`는 한 group에서 하나의 leader token을 얻는 lock-contention
 모델이다. `leader.GroupElector`는 bounded slot 모델이다. #86은 후보들이 자신을
 등록하고, 모든 노드가 동일한 후보 목록에 deterministic strategy를 적용해 같은
 winner를 계산하는 candidate-list 모델을 추가한다.
 
-## Goals
+## 목표s
 
 - `leader`에 candidate metadata, result, strategy, scorer, strategic elector
   계약을 추가한다.

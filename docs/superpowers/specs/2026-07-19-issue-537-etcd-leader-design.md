@@ -1,5 +1,8 @@
 # Issue #537 etcd Leader Elector Design
 
+> 한국어 요구사항 경계: 이 spec/design/test-spec 문서는 한국어 독자가 요구사항을 추적할 수 있도록 목적과 검증 경계를 한국어로 보강한다. API 이름, command, code identifier, issue/PR 번호, compatibility matrix, acceptance keyword, DoD/test evidence는 요구사항 약화를 막기 위해 원문 그대로 보존한다. 변경자는 아래 literal contract를 삭제하거나 의미를 약하게 바꾸지 않아야 한다.
+
+
 Issue: [#537](https://github.com/bluetape4k/bluetape-go/issues/537)
 
 Parent research: [#496](https://github.com/bluetape4k/bluetape-go/issues/496)
@@ -23,7 +26,7 @@ backend-native semantics를 유지하도록 결정했다.
 표현할 수 없다. Contract case를 끄거나 의미를 약화하지 않고 동일 case에 provider timing
 profile을 적용할 수 있도록 conformance harness를 source-compatible하게 확장해야 한다.
 
-## Requirements and Scope
+## 요구사항 and Scope
 
 - `leader/etcd`에서 `leader.Elector` single-leader contract를 구현한다.
 - 공개 constructor는 caller-owned, concurrency-safe `*clientv3.Client`를 받는다.
@@ -419,7 +422,7 @@ The etcd conformance adapter uses the same real server and namespace as construc
 Test-only hooks never become public API and never bypass actual etcd mutation. The lost-response
 cases first perform the real operation, then replace only its observed response.
 
-## Dependencies and Fixture
+## Dependency and Fixture
 
 Add production dependency:
 
@@ -573,7 +576,7 @@ provider registration in one staged change.
   watch-plus-Proclaim ownership monitoring and non-skipping conformance timing profile.
 - Do not add a cluster-provisioning package, generic etcd wrapper or public Testcontainers helper.
 
-## Risks and Mitigations
+## 위험 and Mitigations
 
 | Risk | Mitigation |
 |---|---|
