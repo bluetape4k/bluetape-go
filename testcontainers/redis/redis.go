@@ -12,11 +12,11 @@ import (
 const (
 	defaultImage = "redis:7.4-alpine@sha256:6ab0b6e7381779332f97b8ca76193e45b0756f38d4c0dcda72dbb3c32061ab99"
 
-	// AddressKey는 Redis host:port 주소를 저장하는 documented key다.
+	// AddressKey Redis host:port 주소를 저장하는 documented key다.
 	AddressKey = "redis.address"
 )
 
-// Start는 Start 공개 API의 동작을 수행하며 Redis test fixture의 image, address, cleanup ownership 계약을 보존한다.
+// Start Start 공개 API의 동작을 수행하며 Redis test fixture의 image, address, cleanup ownership 계약을 보존한다.
 //
 // 매개변수:
 //   - ctx: 호출자가 소유한 취소, deadline, 요청 범위를 전달한다.
@@ -27,7 +27,7 @@ func Start(ctx context.Context, tb testing.TB) string {
 	return mustDetail(ctx, tb, StartServer(ctx, tb), AddressKey)
 }
 
-// StartServer는 StartServer 공개 API의 동작을 수행하며 Redis test fixture의 image, address, cleanup ownership 계약을 보존한다.
+// StartServer StartServer 공개 API의 동작을 수행하며 Redis test fixture의 image, address, cleanup ownership 계약을 보존한다.
 //
 // 매개변수:
 //   - ctx: 호출자가 소유한 취소, deadline, 요청 범위를 전달한다.

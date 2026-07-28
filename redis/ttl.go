@@ -5,7 +5,7 @@ import (
 	"time"
 )
 
-// ValidateTTL는 ValidateTTL 공개 API의 동작을 수행하며 Redis key, TTL, lease, owner token, Lua script primitive 계약을 보존한다.
+// ValidateTTL ValidateTTL 공개 API의 동작을 수행하며 Redis key, TTL, lease, owner token, Lua script primitive 계약을 보존한다.
 //
 // 매개변수:
 //   - name: Redis key 또는 key 구성 요소다. namespace, slot, normalization 의미는 primitive 계약을 따른다.
@@ -19,7 +19,7 @@ func ValidateTTL(name string, ttl time.Duration) error {
 	return nil
 }
 
-// TTLMillis는 TTLMillis 공개 API의 동작을 수행하며 Redis key, TTL, lease, owner token, Lua script primitive 계약을 보존한다.
+// TTLMillis TTLMillis 공개 API의 동작을 수행하며 Redis key, TTL, lease, owner token, Lua script primitive 계약을 보존한다.
 //
 // 매개변수:
 //   - name: Redis key 또는 key 구성 요소다. namespace, slot, normalization 의미는 primitive 계약을 따른다.

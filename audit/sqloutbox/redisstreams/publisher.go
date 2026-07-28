@@ -15,19 +15,19 @@ import (
 
 const defaultStream = "audit:sqloutbox"
 
-// Client는 Publisher가 사용하는 좁은 Redis Streams append surface다.
+// Client Publisher가 사용하는 좁은 Redis Streams append surface다.
 type Client = redisstream.Appender
 
-// Options는 struct 공개 타입이며 Redis Stream outbox publish, idempotency, stream key 계약을 보존한다.
+// Options struct 공개 타입이며 Redis Stream outbox publish, idempotency, stream key 계약을 보존한다.
 // 필드와 zero value, nil 허용 여부, 동시성 소유권은 생성자와 메서드의 한국어 주석 및 테스트 계약을 따른다.
 type Options struct {
-	// Client는 호출자가 소유한 Redis client다.
+	// Client 호출자가 소유한 Redis client다.
 	Client Client
 	// Stream은 Redis stream key다. 기본값은 "audit:sqloutbox"다.
 	Stream string
 }
 
-// Publisher는 struct 공개 타입이며 Redis Stream outbox publish, idempotency, stream key 계약을 보존한다.
+// Publisher struct 공개 타입이며 Redis Stream outbox publish, idempotency, stream key 계약을 보존한다.
 // 필드와 zero value, nil 허용 여부, 동시성 소유권은 생성자와 메서드의 한국어 주석 및 테스트 계약을 따른다.
 type Publisher struct {
 	client Client
@@ -36,7 +36,7 @@ type Publisher struct {
 
 var _ sqloutbox.Publisher = (*Publisher)(nil)
 
-// New는 New 공개 API의 동작을 수행하며 Redis Stream outbox publish, idempotency, stream key 계약을 보존한다.
+// New New 공개 API의 동작을 수행하며 Redis Stream outbox publish, idempotency, stream key 계약을 보존한다.
 //
 // 매개변수:
 //   - options: New 동작에 필요한 options 값이다. zero value, 범위, nil 허용 여부는 함수 계약을 따른다.
@@ -56,7 +56,7 @@ func New(options Options) (*Publisher, error) {
 	return &Publisher{client: options.Client, stream: stream}, nil
 }
 
-// Stream는 Stream 공개 API의 동작을 수행하며 Redis Stream outbox publish, idempotency, stream key 계약을 보존한다.
+// Stream Stream 공개 API의 동작을 수행하며 Redis Stream outbox publish, idempotency, stream key 계약을 보존한다.
 func (p *Publisher) Stream() string {
 	if p == nil {
 		return ""
@@ -64,7 +64,7 @@ func (p *Publisher) Stream() string {
 	return p.stream
 }
 
-// Publish는 Publish 공개 API의 동작을 수행하며 Redis Stream outbox publish, idempotency, stream key 계약을 보존한다.
+// Publish Publish 공개 API의 동작을 수행하며 Redis Stream outbox publish, idempotency, stream key 계약을 보존한다.
 //
 // 매개변수:
 //   - ctx: 호출자가 소유한 취소, deadline, 요청 범위를 전달한다.

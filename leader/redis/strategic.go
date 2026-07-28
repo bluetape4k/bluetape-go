@@ -67,14 +67,14 @@ redis.call("SET", KEYS[1], cjson.encode(candidate), "PX", ttl)
 return 1
 `
 
-// StrategicElector는 struct 공개 타입이며 leader election의 lease, owner token, fencing, group key 계약을 보존한다.
+// StrategicElector struct 공개 타입이며 leader election의 lease, owner token, fencing, group key 계약을 보존한다.
 // 필드와 zero value, nil 허용 여부, 동시성 소유권은 생성자와 메서드의 한국어 주석 및 테스트 계약을 따른다.
 type StrategicElector[T any] struct {
 	client redis.Cmdable
 	opts   leader.Options
 }
 
-// NewStrategic는 NewStrategic 공개 API의 동작을 수행하며 leader election의 lease, owner token, fencing, group key 계약을 보존한다.
+// NewStrategic NewStrategic 공개 API의 동작을 수행하며 leader election의 lease, owner token, fencing, group key 계약을 보존한다.
 //
 // 매개변수:
 //   - client: Redis backend client 또는 fixture다. 연결과 종료 소유권은 생성자 계약을 따른다.
@@ -96,7 +96,7 @@ func NewStrategic[T any](client redis.Cmdable, opts leader.Options) (*StrategicE
 	return &StrategicElector[T]{client: client, opts: normalized}, nil
 }
 
-// RegisterCandidate는 RegisterCandidate 공개 API의 동작을 수행하며 leader election의 lease, owner token, fencing, group key 계약을 보존한다.
+// RegisterCandidate RegisterCandidate 공개 API의 동작을 수행하며 leader election의 lease, owner token, fencing, group key 계약을 보존한다.
 //
 // 매개변수:
 //   - ctx: 호출자가 소유한 취소, deadline, 요청 범위를 전달한다.
@@ -150,7 +150,7 @@ func (e *StrategicElector[T]) RegisterCandidate(
 	return nil
 }
 
-// UnregisterCandidate는 UnregisterCandidate 공개 API의 동작을 수행하며 leader election의 lease, owner token, fencing, group key 계약을 보존한다.
+// UnregisterCandidate UnregisterCandidate 공개 API의 동작을 수행하며 leader election의 lease, owner token, fencing, group key 계약을 보존한다.
 //
 // 매개변수:
 //   - ctx: 호출자가 소유한 취소, deadline, 요청 범위를 전달한다.
@@ -175,7 +175,7 @@ func (e *StrategicElector[T]) UnregisterCandidate(ctx context.Context, group str
 	return nil
 }
 
-// ListCandidates는 ListCandidates 공개 API의 동작을 수행하며 leader election의 lease, owner token, fencing, group key 계약을 보존한다.
+// ListCandidates ListCandidates 공개 API의 동작을 수행하며 leader election의 lease, owner token, fencing, group key 계약을 보존한다.
 //
 // 매개변수:
 //   - ctx: 호출자가 소유한 취소, deadline, 요청 범위를 전달한다.
@@ -211,7 +211,7 @@ func (e *StrategicElector[T]) ListCandidates(ctx context.Context, group string) 
 	return candidates, nil
 }
 
-// UpdateResult는 UpdateResult 공개 API의 동작을 수행하며 leader election의 lease, owner token, fencing, group key 계약을 보존한다.
+// UpdateResult UpdateResult 공개 API의 동작을 수행하며 leader election의 lease, owner token, fencing, group key 계약을 보존한다.
 //
 // 매개변수:
 //   - ctx: 호출자가 소유한 취소, deadline, 요청 범위를 전달한다.
@@ -259,7 +259,7 @@ func (e *StrategicElector[T]) UpdateResult(
 	return nil
 }
 
-// RunIfLeader는 RunIfLeader 공개 API의 동작을 수행하며 leader election의 lease, owner token, fencing, group key 계약을 보존한다.
+// RunIfLeader RunIfLeader 공개 API의 동작을 수행하며 leader election의 lease, owner token, fencing, group key 계약을 보존한다.
 //
 // 매개변수:
 //   - ctx: 호출자가 소유한 취소, deadline, 요청 범위를 전달한다.

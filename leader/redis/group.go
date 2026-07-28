@@ -50,7 +50,7 @@ return active
 
 const groupPollInterval = 50 * time.Millisecond
 
-// GroupElector는 struct 공개 타입이며 leader election의 lease, owner token, fencing, group key 계약을 보존한다.
+// GroupElector struct 공개 타입이며 leader election의 lease, owner token, fencing, group key 계약을 보존한다.
 // 필드와 zero value, nil 허용 여부, 동시성 소유권은 생성자와 메서드의 한국어 주석 및 테스트 계약을 따른다.
 type GroupElector struct {
 	client redis.Cmdable
@@ -65,7 +65,7 @@ type GroupElector struct {
 	done   chan struct{}
 }
 
-// NewGroup는 NewGroup 공개 API의 동작을 수행하며 leader election의 lease, owner token, fencing, group key 계약을 보존한다.
+// NewGroup NewGroup 공개 API의 동작을 수행하며 leader election의 lease, owner token, fencing, group key 계약을 보존한다.
 //
 // 매개변수:
 //   - client: Redis backend client 또는 fixture다. 연결과 종료 소유권은 생성자 계약을 따른다.
@@ -95,7 +95,7 @@ func NewGroup(client redis.Cmdable, opts leader.GroupOptions) (*GroupElector, er
 	}, nil
 }
 
-// Campaign는 Campaign 공개 API의 동작을 수행하며 leader election의 lease, owner token, fencing, group key 계약을 보존한다.
+// Campaign Campaign 공개 API의 동작을 수행하며 leader election의 lease, owner token, fencing, group key 계약을 보존한다.
 //
 // 매개변수:
 //   - ctx: 호출자가 소유한 취소, deadline, 요청 범위를 전달한다.
@@ -142,7 +142,7 @@ func (e *GroupElector) Campaign(ctx context.Context) error {
 	}
 }
 
-// Resign는 Resign 공개 API의 동작을 수행하며 leader election의 lease, owner token, fencing, group key 계약을 보존한다.
+// Resign Resign 공개 API의 동작을 수행하며 leader election의 lease, owner token, fencing, group key 계약을 보존한다.
 //
 // 매개변수:
 //   - ctx: 호출자가 소유한 취소, deadline, 요청 범위를 전달한다.
@@ -182,14 +182,14 @@ func (e *GroupElector) Resign(ctx context.Context) error {
 	return nil
 }
 
-// IsLeader는 IsLeader 공개 API의 동작을 수행하며 leader election의 lease, owner token, fencing, group key 계약을 보존한다.
+// IsLeader IsLeader 공개 API의 동작을 수행하며 leader election의 lease, owner token, fencing, group key 계약을 보존한다.
 func (e *GroupElector) IsLeader() bool {
 	e.mu.RLock()
 	defer e.mu.RUnlock()
 	return e.owned
 }
 
-// ActiveCount는 ActiveCount 공개 API의 동작을 수행하며 leader election의 lease, owner token, fencing, group key 계약을 보존한다.
+// ActiveCount ActiveCount 공개 API의 동작을 수행하며 leader election의 lease, owner token, fencing, group key 계약을 보존한다.
 //
 // 매개변수:
 //   - ctx: 호출자가 소유한 취소, deadline, 요청 범위를 전달한다.
@@ -203,7 +203,7 @@ func (e *GroupElector) ActiveCount(ctx context.Context) (int, error) {
 	return active, nil
 }
 
-// AvailableSlots는 AvailableSlots 공개 API의 동작을 수행하며 leader election의 lease, owner token, fencing, group key 계약을 보존한다.
+// AvailableSlots AvailableSlots 공개 API의 동작을 수행하며 leader election의 lease, owner token, fencing, group key 계약을 보존한다.
 //
 // 매개변수:
 //   - ctx: 호출자가 소유한 취소, deadline, 요청 범위를 전달한다.

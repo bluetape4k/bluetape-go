@@ -31,7 +31,7 @@ const (
 	campaignRetryCap  = 250 * time.Millisecond
 )
 
-// Elector는 struct 공개 타입이며 leader election의 lease, owner token, fencing, group key 계약을 보존한다.
+// Elector struct 공개 타입이며 leader election의 lease, owner token, fencing, group key 계약을 보존한다.
 // 필드와 zero value, nil 허용 여부, 동시성 소유권은 생성자와 메서드의 한국어 주석 및 테스트 계약을 따른다.
 type Elector struct {
 	client redis.Cmdable
@@ -48,7 +48,7 @@ type Elector struct {
 	done        chan struct{}
 }
 
-// New는 New 공개 API의 동작을 수행하며 leader election의 lease, owner token, fencing, group key 계약을 보존한다.
+// New New 공개 API의 동작을 수행하며 leader election의 lease, owner token, fencing, group key 계약을 보존한다.
 //
 // 매개변수:
 //   - client: Redis backend client 또는 fixture다. 연결과 종료 소유권은 생성자 계약을 따른다.
@@ -78,7 +78,7 @@ func New(client redis.Cmdable, opts leader.Options) (*Elector, error) {
 	}, nil
 }
 
-// Campaign는 Campaign 공개 API의 동작을 수행하며 leader election의 lease, owner token, fencing, group key 계약을 보존한다.
+// Campaign Campaign 공개 API의 동작을 수행하며 leader election의 lease, owner token, fencing, group key 계약을 보존한다.
 //
 // 매개변수:
 //   - ctx: 호출자가 소유한 취소, deadline, 요청 범위를 전달한다.
@@ -125,7 +125,7 @@ func (e *Elector) Campaign(ctx context.Context) error {
 	}
 }
 
-// Resign는 Resign 공개 API의 동작을 수행하며 leader election의 lease, owner token, fencing, group key 계약을 보존한다.
+// Resign Resign 공개 API의 동작을 수행하며 leader election의 lease, owner token, fencing, group key 계약을 보존한다.
 //
 // 매개변수:
 //   - ctx: 호출자가 소유한 취소, deadline, 요청 범위를 전달한다.
@@ -175,14 +175,14 @@ func (e *Elector) Resign(ctx context.Context) error {
 	return nil
 }
 
-// IsLeader는 IsLeader 공개 API의 동작을 수행하며 leader election의 lease, owner token, fencing, group key 계약을 보존한다.
+// IsLeader IsLeader 공개 API의 동작을 수행하며 leader election의 lease, owner token, fencing, group key 계약을 보존한다.
 func (e *Elector) IsLeader() bool {
 	e.mu.RLock()
 	defer e.mu.RUnlock()
 	return e.owned
 }
 
-// Leader는 Leader 공개 API의 동작을 수행하며 leader election의 lease, owner token, fencing, group key 계약을 보존한다.
+// Leader Leader 공개 API의 동작을 수행하며 leader election의 lease, owner token, fencing, group key 계약을 보존한다.
 //
 // 매개변수:
 //   - ctx: 호출자가 소유한 취소, deadline, 요청 범위를 전달한다.

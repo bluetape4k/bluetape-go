@@ -6,13 +6,13 @@ import (
 	redis "github.com/redis/go-redis/v9"
 )
 
-// Appender는 interface 공개 타입이며 Redis key, TTL, lease, token, script, stream primitive 계약을 보존한다.
+// Appender interface 공개 타입이며 Redis key, TTL, lease, token, script, stream primitive 계약을 보존한다.
 // 필드와 zero value, nil 허용 여부, 동시성 소유권은 생성자와 메서드의 한국어 주석 및 테스트 계약을 따른다.
 type Appender interface {
 	XAdd(context.Context, *redis.XAddArgs) *redis.StringCmd
 }
 
-// Append는 Append 공개 API의 동작을 수행하며 Redis key, TTL, lease, token, script, stream primitive 계약을 보존한다.
+// Append Append 공개 API의 동작을 수행하며 Redis key, TTL, lease, token, script, stream primitive 계약을 보존한다.
 //
 // 매개변수:
 //   - ctx: 호출자가 소유한 취소, deadline, 요청 범위를 전달한다.
@@ -39,13 +39,13 @@ func Append(ctx context.Context, client Appender, args redis.XAddArgs) (string, 
 	return result, nil
 }
 
-// Reader는 interface 공개 타입이며 Redis key, TTL, lease, token, script, stream primitive 계약을 보존한다.
+// Reader interface 공개 타입이며 Redis key, TTL, lease, token, script, stream primitive 계약을 보존한다.
 // 필드와 zero value, nil 허용 여부, 동시성 소유권은 생성자와 메서드의 한국어 주석 및 테스트 계약을 따른다.
 type Reader interface {
 	XRead(context.Context, *redis.XReadArgs) *redis.XStreamSliceCmd
 }
 
-// Read는 Read 공개 API의 동작을 수행하며 Redis key, TTL, lease, token, script, stream primitive 계약을 보존한다.
+// Read Read 공개 API의 동작을 수행하며 Redis key, TTL, lease, token, script, stream primitive 계약을 보존한다.
 //
 // 매개변수:
 //   - ctx: 호출자가 소유한 취소, deadline, 요청 범위를 전달한다.
@@ -70,13 +70,13 @@ func Read(ctx context.Context, client Reader, args redis.XReadArgs) ([]redis.XSt
 	return result, nil
 }
 
-// GroupCreator는 interface 공개 타입이며 Redis key, TTL, lease, token, script, stream primitive 계약을 보존한다.
+// GroupCreator interface 공개 타입이며 Redis key, TTL, lease, token, script, stream primitive 계약을 보존한다.
 // 필드와 zero value, nil 허용 여부, 동시성 소유권은 생성자와 메서드의 한국어 주석 및 테스트 계약을 따른다.
 type GroupCreator interface {
 	XGroupCreateMkStream(context.Context, string, string, string) *redis.StatusCmd
 }
 
-// CreateGroup는 CreateGroup 공개 API의 동작을 수행하며 Redis key, TTL, lease, token, script, stream primitive 계약을 보존한다.
+// CreateGroup CreateGroup 공개 API의 동작을 수행하며 Redis key, TTL, lease, token, script, stream primitive 계약을 보존한다.
 //
 // 매개변수:
 //   - ctx: 호출자가 소유한 취소, deadline, 요청 범위를 전달한다.
@@ -107,13 +107,13 @@ func CreateGroup(ctx context.Context, client GroupCreator, stream, group, start 
 	return nil
 }
 
-// GroupReader는 interface 공개 타입이며 Redis key, TTL, lease, token, script, stream primitive 계약을 보존한다.
+// GroupReader interface 공개 타입이며 Redis key, TTL, lease, token, script, stream primitive 계약을 보존한다.
 // 필드와 zero value, nil 허용 여부, 동시성 소유권은 생성자와 메서드의 한국어 주석 및 테스트 계약을 따른다.
 type GroupReader interface {
 	XReadGroup(context.Context, *redis.XReadGroupArgs) *redis.XStreamSliceCmd
 }
 
-// ReadGroup는 ReadGroup 공개 API의 동작을 수행하며 Redis key, TTL, lease, token, script, stream primitive 계약을 보존한다.
+// ReadGroup ReadGroup 공개 API의 동작을 수행하며 Redis key, TTL, lease, token, script, stream primitive 계약을 보존한다.
 //
 // 매개변수:
 //   - ctx: 호출자가 소유한 취소, deadline, 요청 범위를 전달한다.
@@ -144,13 +144,13 @@ func ReadGroup(ctx context.Context, client GroupReader, args redis.XReadGroupArg
 	return result, nil
 }
 
-// Acknowledger는 interface 공개 타입이며 Redis key, TTL, lease, token, script, stream primitive 계약을 보존한다.
+// Acknowledger interface 공개 타입이며 Redis key, TTL, lease, token, script, stream primitive 계약을 보존한다.
 // 필드와 zero value, nil 허용 여부, 동시성 소유권은 생성자와 메서드의 한국어 주석 및 테스트 계약을 따른다.
 type Acknowledger interface {
 	XAck(context.Context, string, string, ...string) *redis.IntCmd
 }
 
-// Acknowledge는 Acknowledge 공개 API의 동작을 수행하며 Redis key, TTL, lease, token, script, stream primitive 계약을 보존한다.
+// Acknowledge Acknowledge 공개 API의 동작을 수행하며 Redis key, TTL, lease, token, script, stream primitive 계약을 보존한다.
 //
 // 매개변수:
 //   - ctx: 호출자가 소유한 취소, deadline, 요청 범위를 전달한다.
@@ -182,13 +182,13 @@ func Acknowledge(ctx context.Context, client Acknowledger, stream, group string,
 	return result, nil
 }
 
-// PendingInspector는 interface 공개 타입이며 Redis key, TTL, lease, token, script, stream primitive 계약을 보존한다.
+// PendingInspector interface 공개 타입이며 Redis key, TTL, lease, token, script, stream primitive 계약을 보존한다.
 // 필드와 zero value, nil 허용 여부, 동시성 소유권은 생성자와 메서드의 한국어 주석 및 테스트 계약을 따른다.
 type PendingInspector interface {
 	XPendingExt(context.Context, *redis.XPendingExtArgs) *redis.XPendingExtCmd
 }
 
-// Pending는 Pending 공개 API의 동작을 수행하며 Redis key, TTL, lease, token, script, stream primitive 계약을 보존한다.
+// Pending Pending 공개 API의 동작을 수행하며 Redis key, TTL, lease, token, script, stream primitive 계약을 보존한다.
 //
 // 매개변수:
 //   - ctx: 호출자가 소유한 취소, deadline, 요청 범위를 전달한다.
@@ -215,13 +215,13 @@ func Pending(ctx context.Context, client PendingInspector, args redis.XPendingEx
 	return result, nil
 }
 
-// AutoClaimer는 interface 공개 타입이며 Redis key, TTL, lease, token, script, stream primitive 계약을 보존한다.
+// AutoClaimer interface 공개 타입이며 Redis key, TTL, lease, token, script, stream primitive 계약을 보존한다.
 // 필드와 zero value, nil 허용 여부, 동시성 소유권은 생성자와 메서드의 한국어 주석 및 테스트 계약을 따른다.
 type AutoClaimer interface {
 	XAutoClaim(context.Context, *redis.XAutoClaimArgs) *redis.XAutoClaimCmd
 }
 
-// AutoClaim는 AutoClaim 공개 API의 동작을 수행하며 Redis key, TTL, lease, token, script, stream primitive 계약을 보존한다.
+// AutoClaim AutoClaim 공개 API의 동작을 수행하며 Redis key, TTL, lease, token, script, stream primitive 계약을 보존한다.
 //
 // 매개변수:
 //   - ctx: 호출자가 소유한 취소, deadline, 요청 범위를 전달한다.
@@ -257,14 +257,14 @@ func AutoClaim(ctx context.Context, client AutoClaimer, args redis.XAutoClaimArg
 	return messages, start, nil
 }
 
-// Trimmer는 interface 공개 타입이며 Redis key, TTL, lease, token, script, stream primitive 계약을 보존한다.
+// Trimmer interface 공개 타입이며 Redis key, TTL, lease, token, script, stream primitive 계약을 보존한다.
 // 필드와 zero value, nil 허용 여부, 동시성 소유권은 생성자와 메서드의 한국어 주석 및 테스트 계약을 따른다.
 type Trimmer interface {
 	XTrimMaxLen(context.Context, string, int64) *redis.IntCmd
 	XTrimMinID(context.Context, string, string) *redis.IntCmd
 }
 
-// TrimMaxLen는 TrimMaxLen 공개 API의 동작을 수행하며 Redis key, TTL, lease, token, script, stream primitive 계약을 보존한다.
+// TrimMaxLen TrimMaxLen 공개 API의 동작을 수행하며 Redis key, TTL, lease, token, script, stream primitive 계약을 보존한다.
 //
 // 매개변수:
 //   - ctx: 호출자가 소유한 취소, deadline, 요청 범위를 전달한다.
@@ -292,7 +292,7 @@ func TrimMaxLen(ctx context.Context, client Trimmer, stream string, maxLen int64
 	return result, nil
 }
 
-// TrimMinID는 TrimMinID 공개 API의 동작을 수행하며 Redis key, TTL, lease, token, script, stream primitive 계약을 보존한다.
+// TrimMinID TrimMinID 공개 API의 동작을 수행하며 Redis key, TTL, lease, token, script, stream primitive 계약을 보존한다.
 //
 // 매개변수:
 //   - ctx: 호출자가 소유한 취소, deadline, 요청 범위를 전달한다.
@@ -320,13 +320,13 @@ func TrimMinID(ctx context.Context, client Trimmer, stream, minID string) (int64
 	return result, nil
 }
 
-// Deleter는 interface 공개 타입이며 Redis key, TTL, lease, token, script, stream primitive 계약을 보존한다.
+// Deleter interface 공개 타입이며 Redis key, TTL, lease, token, script, stream primitive 계약을 보존한다.
 // 필드와 zero value, nil 허용 여부, 동시성 소유권은 생성자와 메서드의 한국어 주석 및 테스트 계약을 따른다.
 type Deleter interface {
 	XDel(context.Context, string, ...string) *redis.IntCmd
 }
 
-// Delete는 Delete 공개 API의 동작을 수행하며 Redis key, TTL, lease, token, script, stream primitive 계약을 보존한다.
+// Delete Delete 공개 API의 동작을 수행하며 Redis key, TTL, lease, token, script, stream primitive 계약을 보존한다.
 //
 // 매개변수:
 //   - ctx: 호출자가 소유한 취소, deadline, 요청 범위를 전달한다.

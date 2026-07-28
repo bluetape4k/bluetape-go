@@ -6,14 +6,14 @@ import (
 	"strings"
 )
 
-// Lease는 struct 공개 타입이며 Redis key, TTL, lease, owner token, Lua script primitive 계약을 보존한다.
+// Lease struct 공개 타입이며 Redis key, TTL, lease, owner token, Lua script primitive 계약을 보존한다.
 // 필드와 zero value, nil 허용 여부, 동시성 소유권은 생성자와 메서드의 한국어 주석 및 테스트 계약을 따른다.
 type Lease struct {
 	key   string
 	token OwnerToken
 }
 
-// NewLease는 NewLease 공개 API의 동작을 수행하며 Redis key, TTL, lease, owner token, Lua script primitive 계약을 보존한다.
+// NewLease NewLease 공개 API의 동작을 수행하며 Redis key, TTL, lease, owner token, Lua script primitive 계약을 보존한다.
 //
 // 매개변수:
 //   - key: Redis key 또는 key 구성 요소다. namespace, slot, normalization 의미는 primitive 계약을 따른다.
@@ -28,37 +28,37 @@ func NewLease(key string, token OwnerToken) (Lease, error) {
 	return lease, nil
 }
 
-// Key는 Key 공개 API의 동작을 수행하며 Redis key, TTL, lease, owner token, Lua script primitive 계약을 보존한다.
+// Key Key 공개 API의 동작을 수행하며 Redis key, TTL, lease, owner token, Lua script primitive 계약을 보존한다.
 func (l Lease) Key() string {
 	return l.key
 }
 
-// RedactedKeyID는 RedactedKeyID 공개 API의 동작을 수행하며 Redis key, TTL, lease, owner token, Lua script primitive 계약을 보존한다.
+// RedactedKeyID RedactedKeyID 공개 API의 동작을 수행하며 Redis key, TTL, lease, owner token, Lua script primitive 계약을 보존한다.
 func (l Lease) RedactedKeyID() string {
 	return RedactedKeyID(l.key)
 }
 
-// Token는 Token 공개 API의 동작을 수행하며 Redis key, TTL, lease, owner token, Lua script primitive 계약을 보존한다.
+// Token Token 공개 API의 동작을 수행하며 Redis key, TTL, lease, owner token, Lua script primitive 계약을 보존한다.
 func (l Lease) Token() OwnerToken {
 	return l.token
 }
 
-// String는 String 공개 API의 동작을 수행하며 Redis key, TTL, lease, owner token, Lua script primitive 계약을 보존한다.
+// String String 공개 API의 동작을 수행하며 Redis key, TTL, lease, owner token, Lua script primitive 계약을 보존한다.
 func (l Lease) String() string {
 	return "redis-lease:" + l.RedactedKeyID()
 }
 
-// GoString는 GoString 공개 API의 동작을 수행하며 Redis key, TTL, lease, owner token, Lua script primitive 계약을 보존한다.
+// GoString GoString 공개 API의 동작을 수행하며 Redis key, TTL, lease, owner token, Lua script primitive 계약을 보존한다.
 func (l Lease) GoString() string {
 	return l.String()
 }
 
-// LogValue는 LogValue 공개 API의 동작을 수행하며 Redis key, TTL, lease, owner token, Lua script primitive 계약을 보존한다.
+// LogValue LogValue 공개 API의 동작을 수행하며 Redis key, TTL, lease, owner token, Lua script primitive 계약을 보존한다.
 func (l Lease) LogValue() slog.Value {
 	return slog.StringValue(l.String())
 }
 
-// Validate는 Validate 공개 API의 동작을 수행하며 Redis key, TTL, lease, owner token, Lua script primitive 계약을 보존한다.
+// Validate Validate 공개 API의 동작을 수행하며 Redis key, TTL, lease, owner token, Lua script primitive 계약을 보존한다.
 //
 // 반환 오류는 입력 검증 실패, 취소, Redis/backend 실패, lease/token 불일치, 또는 package sentinel/typed error 계약을 보존한다.
 func (l Lease) Validate() error {

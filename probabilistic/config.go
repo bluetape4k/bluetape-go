@@ -18,7 +18,7 @@ var (
 	ln2Squared = ln2 * ln2
 )
 
-// Config 는 Bloom filter 생성 설정입니다.
+// Config Bloom filter 생성 설정입니다.
 type Config struct {
 	expectedInsertions       uint64
 	falsePositiveProbability float64
@@ -26,7 +26,7 @@ type Config struct {
 	hashFunctionCount        uint64
 }
 
-// DefaultConfig 는 기본 Bloom filter 설정을 반환합니다.
+// DefaultConfig 기본 Bloom filter 설정을 반환합니다.
 func DefaultConfig() Config {
 	cfg, err := NewConfig(defaultExpectedInsertions, defaultFalsePositiveProbability)
 	if err != nil {
@@ -35,7 +35,7 @@ func DefaultConfig() Config {
 	return cfg
 }
 
-// NewConfig 는 예상 삽입 수와 목표 false-positive probability로 설정을 만듭니다.
+// NewConfig 예상 삽입 수와 목표 false-positive probability로 설정을 만듭니다.
 func NewConfig(expectedInsertions uint64, falsePositiveProbability float64) (Config, error) {
 	if expectedInsertions == 0 {
 		return Config{}, ConfigError{Field: "expectedInsertions", Err: fmt.Errorf("must be greater than zero")}
@@ -61,22 +61,22 @@ func NewConfig(expectedInsertions uint64, falsePositiveProbability float64) (Con
 	}, nil
 }
 
-// ExpectedInsertions 는 설정이 가정한 예상 삽입 수를 반환합니다.
+// ExpectedInsertions 설정이 가정한 예상 삽입 수를 반환합니다.
 func (c Config) ExpectedInsertions() uint64 {
 	return c.normalized().expectedInsertions
 }
 
-// FalsePositiveProbability 는 설정의 목표 false-positive probability를 반환합니다.
+// FalsePositiveProbability 설정의 목표 false-positive probability를 반환합니다.
 func (c Config) FalsePositiveProbability() float64 {
 	return c.normalized().falsePositiveProbability
 }
 
-// BitSize 는 계산된 bitset 크기를 반환합니다.
+// BitSize 계산된 bitset 크기를 반환합니다.
 func (c Config) BitSize() uint64 {
 	return c.normalized().bitSize
 }
 
-// HashFunctionCount 는 값 하나당 계산할 hash offset 수를 반환합니다.
+// HashFunctionCount 값 하나당 계산할 hash offset 수를 반환합니다.
 func (c Config) HashFunctionCount() uint64 {
 	return c.normalized().hashFunctionCount
 }

@@ -10,24 +10,24 @@ import (
 
 var redactedKeyPattern = regexp.MustCompile(`^redis-key:[0-9a-f]{24}$`)
 
-// Key는 struct 공개 타입이며 Redis key, TTL, lease, owner token, Lua script primitive 계약을 보존한다.
+// Key struct 공개 타입이며 Redis key, TTL, lease, owner token, Lua script primitive 계약을 보존한다.
 // 필드와 zero value, nil 허용 여부, 동시성 소유권은 생성자와 메서드의 한국어 주석 및 테스트 계약을 따른다.
 type Key struct {
 	Value      string
 	RedactedID string
 }
 
-// String는 String 공개 API의 동작을 수행하며 Redis key, TTL, lease, owner token, Lua script primitive 계약을 보존한다.
+// String String 공개 API의 동작을 수행하며 Redis key, TTL, lease, owner token, Lua script primitive 계약을 보존한다.
 func (k Key) String() string {
 	return k.RedactedID
 }
 
-// GoString는 GoString 공개 API의 동작을 수행하며 Redis key, TTL, lease, owner token, Lua script primitive 계약을 보존한다.
+// GoString GoString 공개 API의 동작을 수행하며 Redis key, TTL, lease, owner token, Lua script primitive 계약을 보존한다.
 func (k Key) GoString() string {
 	return k.RedactedID
 }
 
-// KeyBuilder는 struct 공개 타입이며 Redis key, TTL, lease, owner token, Lua script primitive 계약을 보존한다.
+// KeyBuilder struct 공개 타입이며 Redis key, TTL, lease, owner token, Lua script primitive 계약을 보존한다.
 // 필드와 zero value, nil 허용 여부, 동시성 소유권은 생성자와 메서드의 한국어 주석 및 테스트 계약을 따른다.
 type KeyBuilder struct {
 	prefix     []string
@@ -35,7 +35,7 @@ type KeyBuilder struct {
 	hashTag    string
 }
 
-// NewKeyBuilder는 NewKeyBuilder 공개 API의 동작을 수행하며 Redis key, TTL, lease, owner token, Lua script primitive 계약을 보존한다.
+// NewKeyBuilder NewKeyBuilder 공개 API의 동작을 수행하며 Redis key, TTL, lease, owner token, Lua script primitive 계약을 보존한다.
 //
 // 매개변수:
 //   - prefix: NewKeyBuilder 동작에 필요한 prefix 값이다. zero value, 범위, nil 허용 여부는 함수 계약을 따른다.
@@ -54,7 +54,7 @@ func NewKeyBuilder(prefix string) (KeyBuilder, error) {
 	return KeyBuilder{prefix: append([]string(nil), parts...)}, nil
 }
 
-// Structural는 Structural 공개 API의 동작을 수행하며 Redis key, TTL, lease, owner token, Lua script primitive 계약을 보존한다.
+// Structural Structural 공개 API의 동작을 수행하며 Redis key, TTL, lease, owner token, Lua script primitive 계약을 보존한다.
 //
 // 매개변수:
 //   - parts: Structural 동작에 필요한 parts 값이다. zero value, 범위, nil 허용 여부는 함수 계약을 따른다.
@@ -72,7 +72,7 @@ func (b KeyBuilder) Structural(parts ...string) (KeyBuilder, error) {
 	return next, nil
 }
 
-// WithHashTag는 WithHashTag 공개 API의 동작을 수행하며 Redis key, TTL, lease, owner token, Lua script primitive 계약을 보존한다.
+// WithHashTag WithHashTag 공개 API의 동작을 수행하며 Redis key, TTL, lease, owner token, Lua script primitive 계약을 보존한다.
 //
 // 매개변수:
 //   - tag: WithHashTag 동작에 필요한 tag 값이다. zero value, 범위, nil 허용 여부는 함수 계약을 따른다.
@@ -90,7 +90,7 @@ func (b KeyBuilder) WithHashTag(tag string) (KeyBuilder, error) {
 	return next, nil
 }
 
-// StructuralKey는 StructuralKey 공개 API의 동작을 수행하며 Redis key, TTL, lease, owner token, Lua script primitive 계약을 보존한다.
+// StructuralKey StructuralKey 공개 API의 동작을 수행하며 Redis key, TTL, lease, owner token, Lua script primitive 계약을 보존한다.
 //
 // 매개변수:
 //   - parts: StructuralKey 동작에 필요한 parts 값이다. zero value, 범위, nil 허용 여부는 함수 계약을 따른다.
@@ -107,7 +107,7 @@ func (b KeyBuilder) StructuralKey(parts ...string) (Key, error) {
 	return Key{Value: value, RedactedID: RedactedKeyID(value)}, nil
 }
 
-// LogicalKey는 LogicalKey 공개 API의 동작을 수행하며 Redis key, TTL, lease, owner token, Lua script primitive 계약을 보존한다.
+// LogicalKey LogicalKey 공개 API의 동작을 수행하며 Redis key, TTL, lease, owner token, Lua script primitive 계약을 보존한다.
 //
 // 매개변수:
 //   - logicalKey: Redis key 또는 key 구성 요소다. namespace, slot, normalization 의미는 primitive 계약을 따른다.
@@ -124,7 +124,7 @@ func (b KeyBuilder) LogicalKey(logicalKey string) (Key, error) {
 	return Key{Value: value, RedactedID: RedactedKeyID(value)}, nil
 }
 
-// RedactedKeyID는 RedactedKeyID 공개 API의 동작을 수행하며 Redis key, TTL, lease, owner token, Lua script primitive 계약을 보존한다.
+// RedactedKeyID RedactedKeyID 공개 API의 동작을 수행하며 Redis key, TTL, lease, owner token, Lua script primitive 계약을 보존한다.
 //
 // 매개변수:
 //   - key: Redis key 또는 key 구성 요소다. namespace, slot, normalization 의미는 primitive 계약을 따른다.
@@ -133,7 +133,7 @@ func RedactedKeyID(key string) string {
 	return "redis-key:" + hex.EncodeToString(sum[:12])
 }
 
-// ValidateRedactedKeyID는 ValidateRedactedKeyID 공개 API의 동작을 수행하며 Redis key, TTL, lease, owner token, Lua script primitive 계약을 보존한다.
+// ValidateRedactedKeyID ValidateRedactedKeyID 공개 API의 동작을 수행하며 Redis key, TTL, lease, owner token, Lua script primitive 계약을 보존한다.
 //
 // 매개변수:
 //   - id: ValidateRedactedKeyID 동작에 필요한 id 값이다. zero value, 범위, nil 허용 여부는 함수 계약을 따른다.

@@ -12,7 +12,7 @@ import (
 	"golang.org/x/sync/singleflight"
 )
 
-// CachedDistributedProvider 는 DistributedProvider에 신뢰된 Reader cache를 추가한다.
+// CachedDistributedProvider DistributedProvider에 신뢰된 Reader cache를 추가한다.
 type CachedDistributedProvider struct {
 	provider *DistributedProvider
 	cache    cache.Cache[string, *Reader]
@@ -22,7 +22,7 @@ type CachedDistributedProvider struct {
 	epoch    atomic.Uint64
 }
 
-// NewCachedDistributedProvider 는 distributed JWT provider용 cache adapter를 만든다.
+// NewCachedDistributedProvider distributed JWT provider용 cache adapter를 만든다.
 func NewCachedDistributedProvider(provider *DistributedProvider, c cache.Cache[string, *Reader], options ...CacheOption) (*CachedDistributedProvider, error) {
 	if provider == nil {
 		return nil, OptionError{Option: "provider", Err: errorsNew("must not be nil")}
@@ -43,7 +43,7 @@ func NewCachedDistributedProvider(provider *DistributedProvider, c cache.Cache[s
 	return &CachedDistributedProvider{provider: provider, cache: c, cfg: cfg}, nil
 }
 
-// ComposeContext 는 token 생성을 wrapped DistributedProvider에 위임한다.
+// ComposeContext token 생성을 wrapped DistributedProvider에 위임한다.
 func (p *CachedDistributedProvider) ComposeContext(ctx context.Context, options ...ComposeOption) (string, error) {
 	if err := p.validateReady(ctx); err != nil {
 		return "", err
@@ -51,7 +51,7 @@ func (p *CachedDistributedProvider) ComposeContext(ctx context.Context, options 
 	return p.provider.ComposeContext(ctx, options...)
 }
 
-// ParseContext 는 token을 검증하고 성공한 distributed parse 결과를 cache한다.
+// ParseContext token을 검증하고 성공한 distributed parse 결과를 cache한다.
 func (p *CachedDistributedProvider) ParseContext(ctx context.Context, token string, options ...ParseOption) (*Reader, error) {
 	if err := p.validateReady(ctx); err != nil {
 		return nil, err
@@ -70,7 +70,7 @@ func (p *CachedDistributedProvider) ParseContext(ctx context.Context, token stri
 	return p.parseWithCache(ctx, profile.key, token, options...)
 }
 
-// CurrentKeyChainContext 는 현재 key 조회를 wrapped provider에 위임한다.
+// CurrentKeyChainContext 현재 key 조회를 wrapped provider에 위임한다.
 func (p *CachedDistributedProvider) CurrentKeyChainContext(ctx context.Context) (*KeyChain, error) {
 	if err := p.validateReady(ctx); err != nil {
 		return nil, err
@@ -78,7 +78,7 @@ func (p *CachedDistributedProvider) CurrentKeyChainContext(ctx context.Context) 
 	return p.provider.CurrentKeyChainContext(ctx)
 }
 
-// RotateContext 는 강제하지 않는 key 회전을 wrapped provider에 위임한다.
+// RotateContext 강제하지 않는 key 회전을 wrapped provider에 위임한다.
 func (p *CachedDistributedProvider) RotateContext(ctx context.Context) (*KeyChain, error) {
 	if err := p.validateReady(ctx); err != nil {
 		return nil, err
@@ -86,7 +86,7 @@ func (p *CachedDistributedProvider) RotateContext(ctx context.Context) (*KeyChai
 	return p.provider.RotateContext(ctx)
 }
 
-// ForcedRotateContext 는 wrapped provider를 강제 회전하고 cached Reader를 지운다.
+// ForcedRotateContext wrapped provider를 강제 회전하고 cached Reader를 지운다.
 func (p *CachedDistributedProvider) ForcedRotateContext(ctx context.Context) (*KeyChain, error) {
 	if err := p.validateReady(ctx); err != nil {
 		return nil, err
@@ -101,7 +101,7 @@ func (p *CachedDistributedProvider) ForcedRotateContext(ctx context.Context) (*K
 	return key, nil
 }
 
-// FindKeyChainContext 는 kid 조회를 wrapped provider에 위임한다.
+// FindKeyChainContext kid 조회를 wrapped provider에 위임한다.
 func (p *CachedDistributedProvider) FindKeyChainContext(ctx context.Context, kid string) (*KeyChain, error) {
 	if err := p.validateReady(ctx); err != nil {
 		return nil, err
@@ -109,7 +109,7 @@ func (p *CachedDistributedProvider) FindKeyChainContext(ctx context.Context, kid
 	return p.provider.FindKeyChainContext(ctx, kid)
 }
 
-// DeleteKeyChainsContext 는 repository key를 삭제하고 cached Reader를 지운다.
+// DeleteKeyChainsContext repository key를 삭제하고 cached Reader를 지운다.
 func (p *CachedDistributedProvider) DeleteKeyChainsContext(ctx context.Context) error {
 	if err := p.validateReady(ctx); err != nil {
 		return err
@@ -120,7 +120,7 @@ func (p *CachedDistributedProvider) DeleteKeyChainsContext(ctx context.Context) 
 	return p.ClearCache(ctx)
 }
 
-// ClearCache 는 설정된 cache backend의 모든 cached Reader를 지운다.
+// ClearCache 설정된 cache backend의 모든 cached Reader를 지운다.
 func (p *CachedDistributedProvider) ClearCache(ctx context.Context) error {
 	if err := p.validateReady(ctx); err != nil {
 		return err

@@ -24,7 +24,7 @@ return 0
 `)
 )
 
-// CompareAndDelete는 CompareAndDelete 공개 API의 동작을 수행하며 Redis key, TTL, lease, owner token, Lua script primitive 계약을 보존한다.
+// CompareAndDelete CompareAndDelete 공개 API의 동작을 수행하며 Redis key, TTL, lease, owner token, Lua script primitive 계약을 보존한다.
 //
 // 매개변수:
 //   - ctx: 호출자가 소유한 취소, deadline, 요청 범위를 전달한다.
@@ -45,7 +45,7 @@ func CompareAndDelete(ctx context.Context, client redis.Scripter, lease Lease, f
 	return scriptBool(cmd, labels, lease.RedactedKeyID())
 }
 
-// CompareAndExtend는 CompareAndExtend 공개 API의 동작을 수행하며 Redis key, TTL, lease, owner token, Lua script primitive 계약을 보존한다.
+// CompareAndExtend CompareAndExtend 공개 API의 동작을 수행하며 Redis key, TTL, lease, owner token, Lua script primitive 계약을 보존한다.
 //
 // 매개변수:
 //   - ctx: 호출자가 소유한 취소, deadline, 요청 범위를 전달한다.
