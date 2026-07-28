@@ -14,7 +14,7 @@ import (
 	"go.mongodb.org/mongo-driver/v2/mongo/options"
 )
 
-// Elector is a MongoDB-backed single leader elector.
+// Elector는 leader backend election에서 caller-visible 상태와 의미를 설명한다.
 type Elector struct {
 	collection *mongo.Collection
 	opts       leader.Options
@@ -44,7 +44,7 @@ type leaseDocument struct {
 	UpdatedAt  time.Time `bson:"updated_at"`
 }
 
-// New creates a MongoDB-backed single leader elector.
+// New는 leader backend election에서 생성과 초기화 계약을 설명한다.
 func New(collection *mongo.Collection, opts leader.Options, optionFns ...Option) (*Elector, error) {
 	if err := requireCollection(collection); err != nil {
 		return nil, err
@@ -70,7 +70,7 @@ func New(collection *mongo.Collection, opts leader.Options, optionFns ...Option)
 	}, nil
 }
 
-// Campaign loops until this elector acquires leadership or ctx is canceled.
+// Campaign는 leader backend election에서 caller-visible 상태와 의미를 설명한다.
 func (e *Elector) Campaign(ctx context.Context) error {
 	if ctx == nil {
 		return leader.ErrInvalidContext
@@ -112,7 +112,7 @@ func (e *Elector) Campaign(ctx context.Context) error {
 	}
 }
 
-// Resign releases leadership only when this elector still owns it.
+// Resign는 leader backend election에서 실행, cancellation, cleanup 계약을 설명한다.
 func (e *Elector) Resign(ctx context.Context) error {
 	if ctx == nil {
 		return leader.ErrInvalidContext
@@ -156,14 +156,14 @@ func (e *Elector) Resign(ctx context.Context) error {
 	return nil
 }
 
-// IsLeader reports whether this elector still believes it owns leadership.
+// IsLeader는 leader backend election에서 반환값과 오류 의미를 설명한다.
 func (e *Elector) IsLeader() bool {
 	e.mu.RLock()
 	defer e.mu.RUnlock()
 	return e.owned
 }
 
-// Leader returns the active leader token recorded in MongoDB.
+// Leader는 leader backend election에서 반환값과 오류 의미를 설명한다.
 func (e *Elector) Leader(ctx context.Context) (string, error) {
 	if ctx == nil {
 		return "", leader.ErrInvalidContext

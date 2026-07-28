@@ -16,7 +16,7 @@ import (
 
 const defaultStrategicKeyPrefix = "bluetape:leader-strategy"
 
-// StrategicElector is a MongoDB-backed candidate-registry leader elector.
+// StrategicElector는 leader backend election에서 caller-visible 상태와 의미를 설명한다.
 type StrategicElector[T any] struct {
 	collection *mongo.Collection
 	opts       leader.Options
@@ -42,7 +42,7 @@ type strategicCandidateDocument struct {
 	UpdatedAt       time.Time         `bson:"updated_at"`
 }
 
-// NewStrategic creates a MongoDB-backed strategic leader elector.
+// NewStrategic는 leader backend election에서 생성과 초기화 계약을 설명한다.
 func NewStrategic[T any](collection *mongo.Collection, opts leader.Options, optionFns ...Option) (*StrategicElector[T], error) {
 	if err := requireCollection(collection); err != nil {
 		return nil, err
@@ -65,7 +65,7 @@ func NewStrategic[T any](collection *mongo.Collection, opts leader.Options, opti
 	}, nil
 }
 
-// RegisterCandidate registers or refreshes a candidate with a MongoDB lease.
+// RegisterCandidate는 leader backend election에서 caller-visible 상태와 의미를 설명한다.
 func (e *StrategicElector[T]) RegisterCandidate(
 	ctx context.Context,
 	group string,
@@ -136,7 +136,7 @@ func (e *StrategicElector[T]) RegisterCandidate(
 	return nil
 }
 
-// UnregisterCandidate removes a candidate from the registry.
+// UnregisterCandidate는 leader backend election에서 caller-visible 상태와 의미를 설명한다.
 func (e *StrategicElector[T]) UnregisterCandidate(ctx context.Context, group string, nodeID string) error {
 	if ctx == nil {
 		ctx = context.Background()
@@ -154,7 +154,7 @@ func (e *StrategicElector[T]) UnregisterCandidate(ctx context.Context, group str
 	return nil
 }
 
-// ListCandidates returns the current live candidates for a group.
+// ListCandidates는 leader backend election에서 반환값과 오류 의미를 설명한다.
 func (e *StrategicElector[T]) ListCandidates(ctx context.Context, group string) ([]leader.CandidateInfo, error) {
 	if ctx == nil {
 		ctx = context.Background()
@@ -196,7 +196,7 @@ func (e *StrategicElector[T]) ListCandidates(ctx context.Context, group string) 
 	return candidates, nil
 }
 
-// UpdateResult records an action outcome for a live candidate.
+// UpdateResult는 leader backend election에서 동작과 caller-visible 계약을 설명한다.
 func (e *StrategicElector[T]) UpdateResult(
 	ctx context.Context,
 	group string,
@@ -247,7 +247,7 @@ func (e *StrategicElector[T]) UpdateResult(
 	return nil
 }
 
-// RunIfLeader runs action only when this elector's member is elected.
+// RunIfLeader는 leader backend election에서 실행, cancellation, cleanup 계약을 설명한다.
 func (e *StrategicElector[T]) RunIfLeader(
 	ctx context.Context,
 	group string,

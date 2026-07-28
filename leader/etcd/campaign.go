@@ -41,7 +41,7 @@ type etcdOps struct {
 	get              func(context.Context, string, ...clientv3.OpOption) (*clientv3.GetResponse, error)
 	sessionDone      func(*concurrency.Session) <-chan struct{}
 	orphanSession    func(*concurrency.Session) error
-	//nolint:unused // The exact monitor consumes the injected ticker in Task 4.
+	// 이 주석은 leader backend election의 backend 요구사항, cancellation, timeout, 오류 처리 세부사항을 설명한다.
 	newTicker func(time.Duration) electorTicker
 }
 
@@ -102,7 +102,7 @@ func snapshotOfficialElection(election *concurrency.Election) (electionSnapshot,
 	}, nil
 }
 
-// Campaign waits until this elector owns the oldest candidate in its election.
+// Campaign는 leader backend election에서 실행, cancellation, cleanup 계약을 설명한다.
 func (e *Elector) Campaign(ctx context.Context) error {
 	if ctx == nil {
 		return leader.ErrInvalidContext
