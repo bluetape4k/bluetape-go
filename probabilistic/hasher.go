@@ -7,14 +7,14 @@ const (
 	bytesHasherKey  = "probabilistic:bytes:v1"
 )
 
-// Hasher는 struct 공개 타입이며 Bloom filter의 capacity, false-positive rate, hasher, compatibility 계약을 보존한다.
+// Hasher struct 공개 타입이며 Bloom filter의 capacity, false-positive rate, hasher, compatibility 계약을 보존한다.
 // 필드와 zero value, nil 허용 여부, 동시성 소유권은 생성자와 메서드의 한국어 주석 및 테스트 계약을 따른다.
 type Hasher[T any] struct {
 	key string
 	sum func(T) []byte
 }
 
-// NewHasher는 NewHasher 공개 API의 동작을 수행하며 Bloom filter의 capacity, false-positive rate, hasher, compatibility 계약을 보존한다.
+// NewHasher NewHasher 공개 API의 동작을 수행하며 Bloom filter의 capacity, false-positive rate, hasher, compatibility 계약을 보존한다.
 //
 // 매개변수:
 //   - key: 저장소 또는 Redis filter를 식별하는 key다. namespace와 compatibility 의미는 package 계약을 따른다.
@@ -31,7 +31,7 @@ func NewHasher[T any](key string, sum func(T) []byte) (Hasher[T], error) {
 	return Hasher[T]{key: key, sum: sum}, nil
 }
 
-// Key는 Key 공개 API의 동작을 수행하며 Bloom filter의 capacity, false-positive rate, hasher, compatibility 계약을 보존한다.
+// Key Key 공개 API의 동작을 수행하며 Bloom filter의 capacity, false-positive rate, hasher, compatibility 계약을 보존한다.
 func (h Hasher[T]) Key() string {
 	return h.key
 }
@@ -46,7 +46,7 @@ func (h Hasher[T]) validate() error {
 	return nil
 }
 
-// Bytes는 Bytes 공개 API의 동작을 수행하며 Bloom filter의 capacity, false-positive rate, hasher, compatibility 계약을 보존한다.
+// Bytes Bytes 공개 API의 동작을 수행하며 Bloom filter의 capacity, false-positive rate, hasher, compatibility 계약을 보존한다.
 //
 // 매개변수:
 //   - value: Bloom/Redis filter에 추가하거나 검사할 값이다. nil/empty/hash input 의미는 hasher 계약을 따른다.

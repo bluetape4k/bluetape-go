@@ -15,7 +15,7 @@ const (
 	defaultKeyPrefix     = "bluetape:leader"
 )
 
-// Options 는 leader election 참가자를 설정한다.
+// Options leader election 참가자를 설정한다.
 type Options struct {
 	Group         string
 	MemberID      string
@@ -24,7 +24,7 @@ type Options struct {
 	KeyPrefix     string
 }
 
-// Normalize 는 옵션을 검증하고 기본값을 채운다.
+// Normalize 옵션을 검증하고 기본값을 채운다.
 func (o Options) Normalize() (Options, error) {
 	if err := core.RequireNotBlank("group", o.Group); err != nil {
 		return Options{}, err

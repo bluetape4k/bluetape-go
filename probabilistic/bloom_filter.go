@@ -5,7 +5,7 @@ import (
 	"sync"
 )
 
-// BloomFilter는 interface 공개 타입이며 Bloom filter의 capacity, false-positive rate, hasher, compatibility 계약을 보존한다.
+// BloomFilter interface 공개 타입이며 Bloom filter의 capacity, false-positive rate, hasher, compatibility 계약을 보존한다.
 // 필드와 zero value, nil 허용 여부, 동시성 소유권은 생성자와 메서드의 한국어 주석 및 테스트 계약을 따른다.
 type BloomFilter[T any] interface {
 	ExpectedInsertions() uint64
@@ -39,7 +39,7 @@ type bloomFilter[T any] struct {
 
 func (f *bloomFilter[T]) sealedBloomFilter() {} //nolint:unused // 외부 BloomFilter 구현을 막는 sealing hook입니다.
 
-// NewBloomFilter는 NewBloomFilter 공개 API의 동작을 수행하며 Bloom filter의 capacity, false-positive rate, hasher, compatibility 계약을 보존한다.
+// NewBloomFilter NewBloomFilter 공개 API의 동작을 수행하며 Bloom filter의 capacity, false-positive rate, hasher, compatibility 계약을 보존한다.
 //
 // 매개변수:
 //   - cfg: NewBloomFilter 동작에 필요한 cfg 값이다. zero value, 범위, nil 허용 여부는 함수 계약을 따른다.
@@ -62,7 +62,7 @@ func NewBloomFilter[T any](cfg Config, hasher Hasher[T]) (BloomFilter[T], error)
 	}, nil
 }
 
-// NewStringBloomFilter는 NewStringBloomFilter 공개 API의 동작을 수행하며 Bloom filter의 capacity, false-positive rate, hasher, compatibility 계약을 보존한다.
+// NewStringBloomFilter NewStringBloomFilter 공개 API의 동작을 수행하며 Bloom filter의 capacity, false-positive rate, hasher, compatibility 계약을 보존한다.
 //
 // 매개변수:
 //   - cfg: NewStringBloomFilter 동작에 필요한 cfg 값이다. zero value, 범위, nil 허용 여부는 함수 계약을 따른다.
@@ -72,7 +72,7 @@ func NewStringBloomFilter(cfg Config) (BloomFilter[string], error) {
 	return NewBloomFilter(cfg, stringHasher())
 }
 
-// NewBytesBloomFilter는 NewBytesBloomFilter 공개 API의 동작을 수행하며 Bloom filter의 capacity, false-positive rate, hasher, compatibility 계약을 보존한다.
+// NewBytesBloomFilter NewBytesBloomFilter 공개 API의 동작을 수행하며 Bloom filter의 capacity, false-positive rate, hasher, compatibility 계약을 보존한다.
 //
 // 매개변수:
 //   - cfg: NewBytesBloomFilter 동작에 필요한 cfg 값이다. zero value, 범위, nil 허용 여부는 함수 계약을 따른다.
@@ -82,47 +82,47 @@ func NewBytesBloomFilter(cfg Config) (BloomFilter[[]byte], error) {
 	return NewBloomFilter(cfg, bytesHasher())
 }
 
-// ExpectedInsertions는 ExpectedInsertions 공개 API의 동작을 수행하며 Bloom filter의 capacity, false-positive rate, hasher, compatibility 계약을 보존한다.
+// ExpectedInsertions ExpectedInsertions 공개 API의 동작을 수행하며 Bloom filter의 capacity, false-positive rate, hasher, compatibility 계약을 보존한다.
 func (f *bloomFilter[T]) ExpectedInsertions() uint64 {
 	f.mu.RLock()
 	defer f.mu.RUnlock()
 	return f.config.expectedInsertions
 }
 
-// FalsePositiveProbability는 FalsePositiveProbability 공개 API의 동작을 수행하며 Bloom filter의 capacity, false-positive rate, hasher, compatibility 계약을 보존한다.
+// FalsePositiveProbability FalsePositiveProbability 공개 API의 동작을 수행하며 Bloom filter의 capacity, false-positive rate, hasher, compatibility 계약을 보존한다.
 func (f *bloomFilter[T]) FalsePositiveProbability() float64 {
 	f.mu.RLock()
 	defer f.mu.RUnlock()
 	return f.config.falsePositiveProbability
 }
 
-// BitSize는 BitSize 공개 API의 동작을 수행하며 Bloom filter의 capacity, false-positive rate, hasher, compatibility 계약을 보존한다.
+// BitSize BitSize 공개 API의 동작을 수행하며 Bloom filter의 capacity, false-positive rate, hasher, compatibility 계약을 보존한다.
 func (f *bloomFilter[T]) BitSize() uint64 {
 	f.mu.RLock()
 	defer f.mu.RUnlock()
 	return f.config.bitSize
 }
 
-// HashFunctionCount는 HashFunctionCount 공개 API의 동작을 수행하며 Bloom filter의 capacity, false-positive rate, hasher, compatibility 계약을 보존한다.
+// HashFunctionCount HashFunctionCount 공개 API의 동작을 수행하며 Bloom filter의 capacity, false-positive rate, hasher, compatibility 계약을 보존한다.
 func (f *bloomFilter[T]) HashFunctionCount() uint64 {
 	f.mu.RLock()
 	defer f.mu.RUnlock()
 	return f.config.hashFunctionCount
 }
 
-// BitCount는 BitCount 공개 API의 동작을 수행하며 Bloom filter의 capacity, false-positive rate, hasher, compatibility 계약을 보존한다.
+// BitCount BitCount 공개 API의 동작을 수행하며 Bloom filter의 capacity, false-positive rate, hasher, compatibility 계약을 보존한다.
 func (f *bloomFilter[T]) BitCount() uint64 {
 	f.mu.RLock()
 	defer f.mu.RUnlock()
 	return f.bitCount
 }
 
-// IsEmpty는 IsEmpty 공개 API의 동작을 수행하며 Bloom filter의 capacity, false-positive rate, hasher, compatibility 계약을 보존한다.
+// IsEmpty IsEmpty 공개 API의 동작을 수행하며 Bloom filter의 capacity, false-positive rate, hasher, compatibility 계약을 보존한다.
 func (f *bloomFilter[T]) IsEmpty() bool {
 	return f.BitCount() == 0
 }
 
-// MightContain는 MightContain 공개 API의 동작을 수행하며 Bloom filter의 capacity, false-positive rate, hasher, compatibility 계약을 보존한다.
+// MightContain MightContain 공개 API의 동작을 수행하며 Bloom filter의 capacity, false-positive rate, hasher, compatibility 계약을 보존한다.
 //
 // 매개변수:
 //   - value: Bloom/Redis filter에 추가하거나 검사할 값이다. nil/empty/hash input 의미는 hasher 계약을 따른다.
@@ -142,7 +142,7 @@ func (f *bloomFilter[T]) MightContain(value T) bool {
 	return true
 }
 
-// Put는 Put 공개 API의 동작을 수행하며 Bloom filter의 capacity, false-positive rate, hasher, compatibility 계약을 보존한다.
+// Put Put 공개 API의 동작을 수행하며 Bloom filter의 capacity, false-positive rate, hasher, compatibility 계약을 보존한다.
 //
 // 매개변수:
 //   - value: Bloom/Redis filter에 추가하거나 검사할 값이다. nil/empty/hash input 의미는 hasher 계약을 따른다.
@@ -164,7 +164,7 @@ func (f *bloomFilter[T]) Put(value T) bool {
 	return changed
 }
 
-// PutAll는 PutAll 공개 API의 동작을 수행하며 Bloom filter의 capacity, false-positive rate, hasher, compatibility 계약을 보존한다.
+// PutAll PutAll 공개 API의 동작을 수행하며 Bloom filter의 capacity, false-positive rate, hasher, compatibility 계약을 보존한다.
 //
 // 매개변수:
 //   - other: PutAll 동작에 필요한 other 값이다. zero value, 범위, nil 허용 여부는 함수 계약을 따른다.
@@ -197,21 +197,21 @@ func (f *bloomFilter[T]) PutAll(other BloomFilter[T]) error {
 	return nil
 }
 
-// ApproximateElementCount는 ApproximateElementCount 공개 API의 동작을 수행하며 Bloom filter의 capacity, false-positive rate, hasher, compatibility 계약을 보존한다.
+// ApproximateElementCount ApproximateElementCount 공개 API의 동작을 수행하며 Bloom filter의 capacity, false-positive rate, hasher, compatibility 계약을 보존한다.
 func (f *bloomFilter[T]) ApproximateElementCount() uint64 {
 	f.mu.RLock()
 	defer f.mu.RUnlock()
 	return approximateElementCount(f.bitCount, f.config.bitSize, f.config.hashFunctionCount)
 }
 
-// ExpectedFPP는 ExpectedFPP 공개 API의 동작을 수행하며 Bloom filter의 capacity, false-positive rate, hasher, compatibility 계약을 보존한다.
+// ExpectedFPP ExpectedFPP 공개 API의 동작을 수행하며 Bloom filter의 capacity, false-positive rate, hasher, compatibility 계약을 보존한다.
 func (f *bloomFilter[T]) ExpectedFPP() float64 {
 	f.mu.RLock()
 	defer f.mu.RUnlock()
 	return expectedFPP(f.bitCount, f.config.bitSize, f.config.hashFunctionCount)
 }
 
-// Clear는 Clear 공개 API의 동작을 수행하며 Bloom filter의 capacity, false-positive rate, hasher, compatibility 계약을 보존한다.
+// Clear Clear 공개 API의 동작을 수행하며 Bloom filter의 capacity, false-positive rate, hasher, compatibility 계약을 보존한다.
 func (f *bloomFilter[T]) Clear() {
 	f.mu.Lock()
 	defer f.mu.Unlock()

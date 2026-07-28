@@ -1,4 +1,4 @@
-// Package bloomhash는 bluetape-go의 bloomhash probabilistic data structure 기능을 제공한다.
+// Package bloomhash bluetape-go의 bloomhash probabilistic data structure 기능을 제공한다.
 // 공개 API 주석은 capacity, false-positive rate, hasher, key, TTL, backend ownership, 오류 계약을 한국어로 확인할 수 있도록 유지한다.
 package bloomhash
 
@@ -9,7 +9,7 @@ import (
 
 const hash2Fallback = uint64(0x9e3779b97f4a7c15)
 
-// Indexes는 Indexes 공개 API의 동작을 수행하며 Bloom hash index 계산의 capacity, hash count, deterministic mapping 계약을 보존한다.
+// Indexes Indexes 공개 API의 동작을 수행하며 Bloom hash index 계산의 capacity, hash count, deterministic mapping 계약을 보존한다.
 //
 // 매개변수:
 //   - bytes: Indexes 동작에 필요한 bytes 값이다. zero value, 범위, nil 허용 여부는 함수 계약을 따른다.
@@ -24,7 +24,7 @@ func Indexes(bytes []byte, hashFunctionCount uint64, bitSize uint64) []uint64 {
 	return result
 }
 
-// AppendIndexes는 AppendIndexes 공개 API의 동작을 수행하며 Bloom hash index 계산의 capacity, hash count, deterministic mapping 계약을 보존한다.
+// AppendIndexes AppendIndexes 공개 API의 동작을 수행하며 Bloom hash index 계산의 capacity, hash count, deterministic mapping 계약을 보존한다.
 //
 // 매개변수:
 //   - dst: AppendIndexes 동작에 필요한 dst 값이다. zero value, 범위, nil 허용 여부는 함수 계약을 따른다.

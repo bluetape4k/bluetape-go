@@ -17,7 +17,7 @@ import (
 	"github.com/redis/go-redis/v9"
 )
 
-// TestBatchSchedulerExample 는 여러 replica 중 하나만 예약 작업을 실행하는 문제를 다룬다.
+// TestBatchSchedulerExample 여러 replica 중 하나만 예약 작업을 실행하는 문제를 다룬다.
 func TestBatchSchedulerExample(t *testing.T) {
 	ctx := context.Background()
 	client := redisExampleClient(ctx, t)
@@ -86,7 +86,7 @@ func TestBatchSchedulerExample(t *testing.T) {
 	})
 }
 
-// TestGroupBatchWorkersExample 는 동시에 실행할 수 있는 batch worker 수를 제한한다.
+// TestGroupBatchWorkersExample 동시에 실행할 수 있는 batch worker 수를 제한한다.
 func TestGroupBatchWorkersExample(t *testing.T) {
 	ctx := context.Background()
 	client := redisExampleClient(ctx, t)
@@ -126,7 +126,7 @@ func TestGroupBatchWorkersExample(t *testing.T) {
 	}
 }
 
-// TestMigrationGateExample 는 배포 중 여러 instance가 같은 migration을 중복 적용하지 않게 한다.
+// TestMigrationGateExample 배포 중 여러 instance가 같은 migration을 중복 적용하지 않게 한다.
 func TestMigrationGateExample(t *testing.T) {
 	ctx := context.Background()
 	client := redisExampleClient(ctx, t)

@@ -7,15 +7,15 @@ import (
 )
 
 var (
-	// ErrInvalidOptions는 Redis probabilistic option이 invalid일 때 반환된다.
+	// ErrInvalidOptions Redis probabilistic option이 invalid일 때 반환된다.
 	ErrInvalidOptions = errors.New("redis probabilistic: invalid options")
-	// ErrConfigMismatch는 저장된 metadata가 호출자 config와 호환되지 않을 때 반환된다.
+	// ErrConfigMismatch 저장된 metadata가 호출자 config와 호환되지 않을 때 반환된다.
 	ErrConfigMismatch = errors.New("redis bloom: config mismatch")
-	// ErrConfigCorrupt는 저장된 metadata가 없거나 불완전할 때 반환된다.
+	// ErrConfigCorrupt 저장된 metadata가 없거나 불완전할 때 반환된다.
 	ErrConfigCorrupt = errors.New("redis bloom: config corrupt")
 )
 
-// RedisError는 struct 공개 타입이며 Redis Bloom/HyperLogLog key, TTL, script, backend compatibility 계약을 보존한다.
+// RedisError struct 공개 타입이며 Redis Bloom/HyperLogLog key, TTL, script, backend compatibility 계약을 보존한다.
 // 필드와 zero value, nil 허용 여부, 동시성 소유권은 생성자와 메서드의 한국어 주석 및 테스트 계약을 따른다.
 type RedisError struct {
 	Family    string

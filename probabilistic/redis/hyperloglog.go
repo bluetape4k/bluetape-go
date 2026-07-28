@@ -10,7 +10,7 @@ import (
 	"github.com/redis/go-redis/v9"
 )
 
-// HyperLogLog는 interface 공개 타입이며 Redis Bloom/HyperLogLog key, TTL, script, backend compatibility 계약을 보존한다.
+// HyperLogLog interface 공개 타입이며 Redis Bloom/HyperLogLog key, TTL, script, backend compatibility 계약을 보존한다.
 // 필드와 zero value, nil 허용 여부, 동시성 소유권은 생성자와 메서드의 한국어 주석 및 테스트 계약을 따른다.
 type HyperLogLog[T any] interface {
 	HasherKey() string
@@ -19,7 +19,7 @@ type HyperLogLog[T any] interface {
 	Merge(ctx context.Context, sourceNamespaces ...string) error
 }
 
-// HyperLogLogOptions는 struct 공개 타입이며 Redis Bloom/HyperLogLog key, TTL, script, backend compatibility 계약을 보존한다.
+// HyperLogLogOptions struct 공개 타입이며 Redis Bloom/HyperLogLog key, TTL, script, backend compatibility 계약을 보존한다.
 // 필드와 zero value, nil 허용 여부, 동시성 소유권은 생성자와 메서드의 한국어 주석 및 테스트 계약을 따른다.
 type HyperLogLogOptions[T any] struct {
 	Client    redis.Cmdable
@@ -39,7 +39,7 @@ type normalizedHyperLogLogOptions[T any] struct {
 	hasher probabilistic.Hasher[T]
 }
 
-// NewHyperLogLog는 NewHyperLogLog 공개 API의 동작을 수행하며 Redis Bloom/HyperLogLog key, TTL, script, backend compatibility 계약을 보존한다.
+// NewHyperLogLog NewHyperLogLog 공개 API의 동작을 수행하며 Redis Bloom/HyperLogLog key, TTL, script, backend compatibility 계약을 보존한다.
 //
 // 매개변수:
 //   - options: NewHyperLogLog 동작에 필요한 options 값이다. zero value, 범위, nil 허용 여부는 함수 계약을 따른다.
@@ -57,7 +57,7 @@ func NewHyperLogLog[T any](options HyperLogLogOptions[T]) (HyperLogLog[T], error
 	}, nil
 }
 
-// NewStringHyperLogLog는 NewStringHyperLogLog 공개 API의 동작을 수행하며 Redis Bloom/HyperLogLog key, TTL, script, backend compatibility 계약을 보존한다.
+// NewStringHyperLogLog NewStringHyperLogLog 공개 API의 동작을 수행하며 Redis Bloom/HyperLogLog key, TTL, script, backend compatibility 계약을 보존한다.
 //
 // 매개변수:
 //   - client: Redis backend client다. 연결과 종료 소유권은 생성자 계약을 따른다.
@@ -78,7 +78,7 @@ func NewStringHyperLogLog(client redis.Cmdable, namespace string) (HyperLogLog[s
 	})
 }
 
-// NewBytesHyperLogLog는 NewBytesHyperLogLog 공개 API의 동작을 수행하며 Redis Bloom/HyperLogLog key, TTL, script, backend compatibility 계약을 보존한다.
+// NewBytesHyperLogLog NewBytesHyperLogLog 공개 API의 동작을 수행하며 Redis Bloom/HyperLogLog key, TTL, script, backend compatibility 계약을 보존한다.
 //
 // 매개변수:
 //   - client: Redis backend client다. 연결과 종료 소유권은 생성자 계약을 따른다.

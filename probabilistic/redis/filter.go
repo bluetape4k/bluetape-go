@@ -14,7 +14,7 @@ const (
 	bytesHasherKey  = "probabilistic:bytes:v1"
 )
 
-// BloomFilter는 interface 공개 타입이며 Redis Bloom/HyperLogLog key, TTL, script, backend compatibility 계약을 보존한다.
+// BloomFilter interface 공개 타입이며 Redis Bloom/HyperLogLog key, TTL, script, backend compatibility 계약을 보존한다.
 // 필드와 zero value, nil 허용 여부, 동시성 소유권은 생성자와 메서드의 한국어 주석 및 테스트 계약을 따른다.
 type BloomFilter[T any] interface {
 	ExpectedInsertions() uint64
@@ -39,7 +39,7 @@ type bloomFilter[T any] struct {
 	meta   metadata
 }
 
-// NewBloomFilter는 NewBloomFilter 공개 API의 동작을 수행하며 Redis Bloom/HyperLogLog key, TTL, script, backend compatibility 계약을 보존한다.
+// NewBloomFilter NewBloomFilter 공개 API의 동작을 수행하며 Redis Bloom/HyperLogLog key, TTL, script, backend compatibility 계약을 보존한다.
 //
 // 매개변수:
 //   - ctx: 호출자가 소유한 취소, deadline, 요청 범위를 전달한다.
@@ -64,7 +64,7 @@ func NewBloomFilter[T any](ctx context.Context, options Options[T]) (BloomFilter
 	}, nil
 }
 
-// NewStringBloomFilter는 NewStringBloomFilter 공개 API의 동작을 수행하며 Redis Bloom/HyperLogLog key, TTL, script, backend compatibility 계약을 보존한다.
+// NewStringBloomFilter NewStringBloomFilter 공개 API의 동작을 수행하며 Redis Bloom/HyperLogLog key, TTL, script, backend compatibility 계약을 보존한다.
 //
 // 매개변수:
 //   - ctx: 호출자가 소유한 취소, deadline, 요청 범위를 전달한다.
@@ -88,7 +88,7 @@ func NewStringBloomFilter(ctx context.Context, client redis.Cmdable, namespace s
 	})
 }
 
-// NewBytesBloomFilter는 NewBytesBloomFilter 공개 API의 동작을 수행하며 Redis Bloom/HyperLogLog key, TTL, script, backend compatibility 계약을 보존한다.
+// NewBytesBloomFilter NewBytesBloomFilter 공개 API의 동작을 수행하며 Redis Bloom/HyperLogLog key, TTL, script, backend compatibility 계약을 보존한다.
 //
 // 매개변수:
 //   - ctx: 호출자가 소유한 취소, deadline, 요청 범위를 전달한다.

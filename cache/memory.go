@@ -20,7 +20,7 @@ func (e entry[V]) expired(now time.Time) bool {
 	return !e.expiresAt.IsZero() && !now.Before(e.expiresAt)
 }
 
-// Memory 는 process-local TTL cache다.
+// Memory process-local TTL cache다.
 type Memory[K comparable, V any] struct {
 	mu         sync.RWMutex
 	values     map[K]entry[V]
@@ -30,7 +30,7 @@ type Memory[K comparable, V any] struct {
 	now        func() time.Time
 }
 
-// NewMemory 는 process-local loading cache를 만든다.
+// NewMemory process-local loading cache를 만든다.
 func NewMemory[K comparable, V any]() *Memory[K, V] {
 	return newMemoryWithClock[K, V](time.Now)
 }
@@ -98,7 +98,7 @@ func (m *Memory[K, V]) Set(ctx context.Context, key K, value V, ttl time.Duratio
 	return nil
 }
 
-// Delete 는 key의 값을 제거한다.
+// Delete key의 값을 제거한다.
 func (m *Memory[K, V]) Delete(ctx context.Context, key K) error {
 	ctx = normalizeContext(ctx)
 	if err := ctx.Err(); err != nil {
@@ -112,7 +112,7 @@ func (m *Memory[K, V]) Delete(ctx context.Context, key K) error {
 	return nil
 }
 
-// Clear 는 모든 값을 제거한다.
+// Clear 모든 값을 제거한다.
 func (m *Memory[K, V]) Clear(ctx context.Context) error {
 	ctx = normalizeContext(ctx)
 	if err := ctx.Err(); err != nil {
@@ -126,7 +126,7 @@ func (m *Memory[K, V]) Clear(ctx context.Context) error {
 	return nil
 }
 
-// GetOrLoad 는 miss일 때 loader로 값을 채운다.
+// GetOrLoad miss일 때 loader로 값을 채운다.
 func (m *Memory[K, V]) GetOrLoad(ctx context.Context, key K, ttl time.Duration, loader Loader[K, V]) (V, error) {
 	var zero V
 	ctx = normalizeContext(ctx)
