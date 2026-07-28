@@ -12,7 +12,7 @@ import (
 // TieredOptions struct 공개 타입이며 tiered Redis value cache의 local/remote ownership, TTL, clear coordination 계약을 보존한다.
 // 필드와 zero value, nil 허용 여부, 동시성 소유권은 생성자와 메서드의 한국어 주석 및 테스트 계약을 따른다.
 type TieredOptions[V any] struct {
-	// Local은 새 cache이거나 비어 있어야 하며, 같은 Remote/namespace/key 계약의 값만 포함해야 한다.
+	// Local 새 cache이거나 비어 있어야 하며, 같은 Remote/namespace/key 계약의 값만 포함해야 한다.
 	// Namespace, schema, and tenant represented by Remote. It must not be shared
 	// with another decorator.
 	Local cache.Cache[string, V]

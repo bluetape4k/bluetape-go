@@ -44,11 +44,11 @@ type Options[V any] struct {
 	Client Client
 	// Namespace 같은 invalidation scope를 공유하는 cache group이다.
 	Namespace string
-	// Channel은 Redis Pub/Sub channel이다. 비우면 namespace 기반 기본값을 쓴다.
+	// Channel Redis Pub/Sub channel이다. 비우면 namespace 기반 기본값을 쓴다.
 	Channel string
 	// OriginID 자기 자신이 보낸 invalidation을 무시하기 위한 token이다.
 	OriginID string
-	// Local은 값 저장을 담당하는 process-local cache다.
+	// Local 값 저장을 담당하는 process-local cache다.
 	Local cache.LoadingCache[string, V]
 	// OnError malformed message나 subscriber 오류를 보고한다.
 	OnError OnError

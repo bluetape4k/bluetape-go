@@ -24,9 +24,9 @@ type Options struct {
 	MaxTypeFields int
 	// MaxTypeMetaBytes encoding된 Fory type metadata byte 상한이다.
 	MaxTypeMetaBytes int
-	// MaxSchemaVersionsPerType은 type별로 보존할 schema version 수 상한이다.
+	// MaxSchemaVersionsPerType type별로 보존할 schema version 수 상한이다.
 	MaxSchemaVersionsPerType int
-	// MaxAverageSchemaVersionsPerType은 type별 평균 보존 schema version 수 상한이다.
+	// MaxAverageSchemaVersionsPerType type별 평균 보존 schema version 수 상한이다.
 	MaxAverageSchemaVersionsPerType int
 }
 

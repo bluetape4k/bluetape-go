@@ -18,7 +18,7 @@ const (
 // ValueConfig struct 공개 타입이며 tiered Redis value cache의 local/remote ownership, TTL, clear coordination 계약을 보존한다.
 // 필드와 zero value, nil 허용 여부, 동시성 소유권은 생성자와 메서드의 한국어 주석 및 테스트 계약을 따른다.
 type ValueConfig struct {
-	// RemoteTTL은 기본 Redis expiry다. zero는 항목 영속화를 뜻하고 음수는 invalid다.
+	// RemoteTTL 기본 Redis expiry다. zero는 항목 영속화를 뜻하고 음수는 invalid다.
 	RemoteTTL time.Duration
 	// MaxValueBytes serialized value 허용 상한이며 1 byte부터 64 MiB까지 허용한다.
 	MaxValueBytes int
@@ -29,11 +29,11 @@ type ValueConfig struct {
 // TieredConfig struct 공개 타입이며 tiered Redis value cache의 local/remote ownership, TTL, clear coordination 계약을 보존한다.
 // 필드와 zero value, nil 허용 여부, 동시성 소유권은 생성자와 메서드의 한국어 주석 및 테스트 계약을 따른다.
 type TieredConfig struct {
-	// LocalTTL은 양수 L1 expiry 상한이며 finite RemoteTTL을 초과하면 안 된다.
+	// LocalTTL 양수 L1 expiry 상한이며 finite RemoteTTL을 초과하면 안 된다.
 	LocalTTL time.Duration
-	// InvalidationWaitTimeout은 같은 key의 active work 대기 시간을 제한한다.
+	// InvalidationWaitTimeout 같은 key의 active work 대기 시간을 제한한다.
 	InvalidationWaitTimeout time.Duration
-	// LocalCleanupTimeout은 필수/명시적 L1 delete 또는 clear 작업 시간을 제한한다.
+	// LocalCleanupTimeout 필수/명시적 L1 delete 또는 clear 작업 시간을 제한한다.
 	LocalCleanupTimeout time.Duration
 }
 

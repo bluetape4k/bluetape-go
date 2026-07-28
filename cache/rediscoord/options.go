@@ -27,13 +27,13 @@ type Options[V any] struct {
 	Cache cache.LoadingCache[string, V]
 	// Namespace coordination key 범위를 나눈다.
 	Namespace string
-	// Codec은 loader result payload를 encoding/decoding하는 필수 codec이다.
+	// Codec loader result payload를 encoding/decoding하는 필수 codec이다.
 	Codec Codec[V]
-	// LockTTL은 load owner lease 유지 시간이다.
+	// LockTTL load owner lease 유지 시간이다.
 	LockTTL time.Duration
-	// ResultTTL은 공유 result envelope 보존 시간이다.
+	// ResultTTL 공유 result envelope 보존 시간이다.
 	ResultTTL time.Duration
-	// PollInterval은 waiter가 result를 재확인하는 polling 간격이다.
+	// PollInterval waiter가 result를 재확인하는 polling 간격이다.
 	PollInterval time.Duration
 	// MaxResultBytes encoded Redis result envelope byte 상한이다. zero는 제한 없음을 뜻한다.
 	MaxResultBytes int
