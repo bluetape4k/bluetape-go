@@ -9,12 +9,7 @@ import (
 
 const defaultPollInterval = 25 * time.Millisecond
 
-// Eventually Eventually 공개 API의 동작을 수행하며 테스트 helper의 timeout, cancellation, cleanup 계약을 보존한다.
-//
-// 매개변수:
-//   - t: Eventually에 전달되는 값이다. 허용 범위와 nil 처리 방식은 구현 검증을 따른다.
-//   - timeout: 대기 또는 실행을 제한할 시간이다. 0의 의미는 함수별 기본값을 따른다.
-//   - condition: Eventually에 전달되는 값이다. 허용 범위와 nil 처리 방식은 구현 검증을 따른다.
+// Eventually condition이 timeout 안에 true가 될 때까지 평가한다.
 func Eventually(t *testing.T, timeout time.Duration, condition func() bool) {
 	t.Helper()
 
@@ -38,12 +33,7 @@ func EventuallyWithPolling(t *testing.T, timeout time.Duration, polling time.Dur
 		Should(gomega.BeTrue())
 }
 
-// Consistently Consistently 공개 API의 동작을 수행하며 테스트 helper의 timeout, cancellation, cleanup 계약을 보존한다.
-//
-// 매개변수:
-//   - t: Consistently에 전달되는 값이다. 허용 범위와 nil 처리 방식은 구현 검증을 따른다.
-//   - duration: Consistently에 전달되는 값이다. 허용 범위와 nil 처리 방식은 구현 검증을 따른다.
-//   - condition: Consistently에 전달되는 값이다. 허용 범위와 nil 처리 방식은 구현 검증을 따른다.
+// Consistently condition이 duration 동안 true로 유지되는지 확인한다.
 func Consistently(t *testing.T, duration time.Duration, condition func() bool) {
 	t.Helper()
 

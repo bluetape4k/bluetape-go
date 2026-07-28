@@ -20,7 +20,8 @@ func (e entry[V]) expired(now time.Time) bool {
 	return !e.expiresAt.IsZero() && !now.Before(e.expiresAt)
 }
 
-// Memory process-local TTL cache다.
+// Memory struct 공개 타입이며 in-memory cache의 key, TTL, snapshot, miss 계약을 보존한다.
+// 필드와 zero value, nil 허용 여부, 동시성 소유권은 생성자와 메서드의 한국어 주석 및 테스트 계약을 따른다.
 type Memory[K comparable, V any] struct {
 	mu         sync.RWMutex
 	values     map[K]entry[V]
@@ -30,7 +31,7 @@ type Memory[K comparable, V any] struct {
 	now        func() time.Time
 }
 
-// NewMemory process-local loading cache를 만든다.
+// NewMemory NewMemory 공개 API의 동작을 수행하며 in-memory cache의 key, TTL, snapshot, miss 계약을 보존한다.
 func NewMemory[K comparable, V any]() *Memory[K, V] {
 	return newMemoryWithClock[K, V](time.Now)
 }
@@ -53,7 +54,13 @@ func (m *Memory[K, V]) currentTime() time.Time {
 	return m.now()
 }
 
-// Get 은 key의 값을 반환한다.
+// Get Get 공개 API의 동작을 수행하며 in-memory cache의 key, TTL, snapshot, miss 계약을 보존한다.
+//
+// 매개변수:
+//   - ctx: 호출자가 소유한 취소, deadline, 요청 범위를 전달한다.
+//   - key: cache lookup과 저장에 사용하는 caller-owned key다. 정규화와 namespace 의미는 package 계약을 따른다.
+//
+// 반환 오류는 cache miss, 입력 검증 실패, context 취소, Redis/backend 실패, package sentinel error와 typed error를 그대로 드러낸다.
 func (m *Memory[K, V]) Get(ctx context.Context, key K) (V, error) {
 	var zero V
 	ctx = normalizeContext(ctx)
@@ -76,7 +83,15 @@ func (m *Memory[K, V]) Get(ctx context.Context, key K) (V, error) {
 	return item.value, nil
 }
 
-// Set 은 key에 value를 저장한다.
+// Set Set 공개 API의 동작을 수행하며 in-memory cache의 key, TTL, snapshot, miss 계약을 보존한다.
+//
+// 매개변수:
+//   - ctx: 호출자가 소유한 취소, deadline, 요청 범위를 전달한다.
+//   - key: cache lookup과 저장에 사용하는 caller-owned key다. 정규화와 namespace 의미는 package 계약을 따른다.
+//   - value: 직렬화하거나 cache에 보관할 값이다. nil, zero value, aliasing 의미는 serializer/cache 계약을 따른다.
+//   - ttl: cache entry의 유효 시간이다. zero, 음수, 만료 의미는 옵션과 TTL 계약을 따른다.
+//
+// 반환 오류는 cache miss, 입력 검증 실패, context 취소, Redis/backend 실패, package sentinel error와 typed error를 그대로 드러낸다.
 func (m *Memory[K, V]) Set(ctx context.Context, key K, value V, ttl time.Duration) error {
 	ctx = normalizeContext(ctx)
 	if err := ctx.Err(); err != nil {
@@ -98,7 +113,13 @@ func (m *Memory[K, V]) Set(ctx context.Context, key K, value V, ttl time.Duratio
 	return nil
 }
 
-// Delete key의 값을 제거한다.
+// Delete Delete 공개 API의 동작을 수행하며 in-memory cache의 key, TTL, snapshot, miss 계약을 보존한다.
+//
+// 매개변수:
+//   - ctx: 호출자가 소유한 취소, deadline, 요청 범위를 전달한다.
+//   - key: cache lookup과 저장에 사용하는 caller-owned key다. 정규화와 namespace 의미는 package 계약을 따른다.
+//
+// 반환 오류는 cache miss, 입력 검증 실패, context 취소, Redis/backend 실패, package sentinel error와 typed error를 그대로 드러낸다.
 func (m *Memory[K, V]) Delete(ctx context.Context, key K) error {
 	ctx = normalizeContext(ctx)
 	if err := ctx.Err(); err != nil {
@@ -112,7 +133,12 @@ func (m *Memory[K, V]) Delete(ctx context.Context, key K) error {
 	return nil
 }
 
-// Clear 모든 값을 제거한다.
+// Clear Clear 공개 API의 동작을 수행하며 in-memory cache의 key, TTL, snapshot, miss 계약을 보존한다.
+//
+// 매개변수:
+//   - ctx: 호출자가 소유한 취소, deadline, 요청 범위를 전달한다.
+//
+// 반환 오류는 cache miss, 입력 검증 실패, context 취소, Redis/backend 실패, package sentinel error와 typed error를 그대로 드러낸다.
 func (m *Memory[K, V]) Clear(ctx context.Context) error {
 	ctx = normalizeContext(ctx)
 	if err := ctx.Err(); err != nil {
@@ -126,7 +152,15 @@ func (m *Memory[K, V]) Clear(ctx context.Context) error {
 	return nil
 }
 
-// GetOrLoad miss일 때 loader로 값을 채운다.
+// GetOrLoad GetOrLoad 공개 API의 동작을 수행하며 in-memory cache의 key, TTL, snapshot, miss 계약을 보존한다.
+//
+// 매개변수:
+//   - ctx: 호출자가 소유한 취소, deadline, 요청 범위를 전달한다.
+//   - key: cache lookup과 저장에 사용하는 caller-owned key다. 정규화와 namespace 의미는 package 계약을 따른다.
+//   - ttl: cache entry의 유효 시간이다. zero, 음수, 만료 의미는 옵션과 TTL 계약을 따른다.
+//   - loader: GetOrLoad에 전달되는 값이다. 허용 범위와 nil 처리 방식은 구현 검증을 따른다.
+//
+// 반환 오류는 cache miss, 입력 검증 실패, context 취소, Redis/backend 실패, package sentinel error와 typed error를 그대로 드러낸다.
 func (m *Memory[K, V]) GetOrLoad(ctx context.Context, key K, ttl time.Duration, loader Loader[K, V]) (V, error) {
 	var zero V
 	ctx = normalizeContext(ctx)

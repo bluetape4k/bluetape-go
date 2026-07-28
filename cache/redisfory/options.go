@@ -15,20 +15,23 @@ import (
 
 var namespaceSegmentPattern = regexp.MustCompile(`^[A-Za-z0-9._-]+$`)
 
-// Registration registers all Fory-visible application types before cache use.
+// Registration func 공개 타입이며 Redis 값 캐시의 serialization, TTL, backend ownership 계약을 보존한다.
+// 필드와 zero value, nil 허용 여부, 동시성 소유권은 생성자와 메서드의 한국어 주석 및 테스트 계약을 따른다.
 type Registration func(*fory.Fory) error
 
-// Profile identifies the Go-native Fory wire profile.
+// Profile string 공개 타입이며 Redis 값 캐시의 serialization, TTL, backend ownership 계약을 보존한다.
+// 필드와 zero value, nil 허용 여부, 동시성 소유권은 생성자와 메서드의 한국어 주석 및 테스트 계약을 따른다.
 type Profile string
 
 const (
-	// ProfileNativeFast uses fixed-schema Go-native serialization.
+	// ProfileNativeFast 고정 schema Go-native serialization profile이다.
 	ProfileNativeFast Profile = "native-fast"
-	// ProfileNativeCompatible enables Go-native schema evolution metadata.
+	// ProfileNativeCompatible Go-native schema evolution metadata를 포함하는 profile이다.
 	ProfileNativeCompatible Profile = "native-compatible"
 )
 
-// Options configures a Redis-backed Fory value cache.
+// Options struct 공개 타입이며 Redis 값 캐시의 serialization, TTL, backend ownership 계약을 보존한다.
+// 필드와 zero value, nil 허용 여부, 동시성 소유권은 생성자와 메서드의 한국어 주석 및 테스트 계약을 따른다.
 type Options struct {
 	// Client executes Redis commands and remains owned by the caller.
 	Client redis.Cmdable
@@ -38,21 +41,22 @@ type Options struct {
 	SchemaGeneration uint32
 	// Register deterministically registers all cache-visible Fory types.
 	Register Registration
-	// MaxPayloadBytes bounds Fory bytes excluding the BTFV header.
+	// MaxPayloadBytes BTFV header를 제외한 Fory byte payload 상한이다.
 	MaxPayloadBytes int
-	// MaxDepth bounds nested Fory values.
+	// MaxDepth 중첩된 Fory value 깊이 상한이다.
 	MaxDepth int
-	// MaxTypeFields bounds fields in one Fory type.
+	// MaxTypeFields 하나의 Fory type에 포함할 수 있는 field 수 상한이다.
 	MaxTypeFields int
-	// MaxTypeMetaBytes bounds encoded Fory type metadata.
+	// MaxTypeMetaBytes encoding된 Fory type metadata byte 상한이다.
 	MaxTypeMetaBytes int
-	// MaxSchemaVersionsPerType bounds retained schema versions per type.
+	// MaxSchemaVersionsPerType type별로 보존할 schema version 수 상한이다.
 	MaxSchemaVersionsPerType int
-	// MaxAverageSchemaVersionsPerType bounds average retained schema versions.
+	// MaxAverageSchemaVersionsPerType type별 평균 보존 schema version 수 상한이다.
 	MaxAverageSchemaVersionsPerType int
 }
 
-// ValueCache stores one bounded Fory value type in Redis.
+// ValueCache struct 공개 타입이며 Redis 값 캐시의 serialization, TTL, backend ownership 계약을 보존한다.
+// 필드와 zero value, nil 허용 여부, 동시성 소유권은 생성자와 메서드의 한국어 주석 및 테스트 계약을 따른다.
 type ValueCache[V any] struct {
 	client     commandClient
 	keys       btredis.KeyBuilder
@@ -62,12 +66,22 @@ type ValueCache[V any] struct {
 	maxPayload int
 }
 
-// NewNativeFast creates a cache using fixed-schema Go-native Fory serialization.
+// NewNativeFast NewNativeFast 공개 API의 동작을 수행하며 Redis 값 캐시의 serialization, TTL, backend ownership 계약을 보존한다.
+//
+// 매개변수:
+//   - options: 적용할 옵션 목록이다. nil이면 기본값만 사용한다.
+//
+// 반환 오류는 cache miss, 입력 검증 실패, context 취소, Redis/backend 실패, package sentinel error와 typed error를 그대로 드러낸다.
 func NewNativeFast[V any](options Options) (*ValueCache[V], error) {
 	return newValueCache[V](ProfileNativeFast, options)
 }
 
-// NewNativeCompatible creates a cache using schema-compatible Go-native Fory serialization.
+// NewNativeCompatible NewNativeCompatible 공개 API의 동작을 수행하며 Redis 값 캐시의 serialization, TTL, backend ownership 계약을 보존한다.
+//
+// 매개변수:
+//   - options: 적용할 옵션 목록이다. nil이면 기본값만 사용한다.
+//
+// 반환 오류는 cache miss, 입력 검증 실패, context 취소, Redis/backend 실패, package sentinel error와 typed error를 그대로 드러낸다.
 func NewNativeCompatible[V any](options Options) (*ValueCache[V], error) {
 	return newValueCache[V](ProfileNativeCompatible, options)
 }

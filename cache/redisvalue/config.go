@@ -15,38 +15,38 @@ const (
 	maxClearBatchSize  = 1000
 )
 
-// ValueConfig configures serialized Redis L2 storage.
+// ValueConfig struct 공개 타입이며 tiered Redis value cache의 local/remote ownership, TTL, clear coordination 계약을 보존한다.
+// 필드와 zero value, nil 허용 여부, 동시성 소유권은 생성자와 메서드의 한국어 주석 및 테스트 계약을 따른다.
 type ValueConfig struct {
-	// RemoteTTL is the default Redis expiry. Zero persists entries; negative
-	// durations are invalid.
+	// RemoteTTL 기본 Redis expiry다. zero는 항목 영속화를 뜻하고 음수는 invalid다.
 	RemoteTTL time.Duration
-	// MaxValueBytes is the serialized admission limit from 1 byte through 64 MiB.
+	// MaxValueBytes serialized value 허용 상한이며 1 byte부터 64 MiB까지 허용한다.
 	MaxValueBytes int
-	// ClearBatchSize is the SCAN COUNT hint and maximum UNLINK argument count,
-	// from 1 through 1000.
+	// ClearBatchSize SCAN COUNT hint이자 한 번의 UNLINK argument 수 상한이다.
 	ClearBatchSize int64
 }
 
-// TieredConfig configures process-local L1 behavior around a ValueCache.
+// TieredConfig struct 공개 타입이며 tiered Redis value cache의 local/remote ownership, TTL, clear coordination 계약을 보존한다.
+// 필드와 zero value, nil 허용 여부, 동시성 소유권은 생성자와 메서드의 한국어 주석 및 테스트 계약을 따른다.
 type TieredConfig struct {
-	// LocalTTL is the positive L1 expiry ceiling and must not exceed a finite
-	// default RemoteTTL.
+	// LocalTTL 양수 L1 expiry 상한이며 finite RemoteTTL을 초과하면 안 된다.
 	LocalTTL time.Duration
-	// InvalidationWaitTimeout bounds waits for active same-key work.
+	// InvalidationWaitTimeout 같은 key의 active work 대기 시간을 제한한다.
 	InvalidationWaitTimeout time.Duration
-	// LocalCleanupTimeout bounds mandatory and explicit L1 delete or clear work.
+	// LocalCleanupTimeout 필수/명시적 L1 delete 또는 clear 작업 시간을 제한한다.
 	LocalCleanupTimeout time.Duration
 }
 
-// Config contains the defaultable ValueCache and TieredCache configuration.
+// Config struct 공개 타입이며 tiered Redis value cache의 local/remote ownership, TTL, clear coordination 계약을 보존한다.
+// 필드와 zero value, nil 허용 여부, 동시성 소유권은 생성자와 메서드의 한국어 주석 및 테스트 계약을 따른다.
 type Config struct {
-	// Value configures the serialized Redis L2.
+	// Value serialized Redis L2 설정을 담는다.
 	Value ValueConfig
-	// Tiered configures the optional process-local L1 decorator.
+	// Tiered 선택적 process-local L1 decorator 설정을 담는다.
 	Tiered TieredConfig
 }
 
-// DefaultConfig returns an independent configuration value with safe defaults.
+// DefaultConfig DefaultConfig 공개 API의 동작을 수행하며 tiered Redis value cache의 local/remote ownership, TTL, clear coordination 계약을 보존한다.
 func DefaultConfig() Config {
 	return Config{
 		Value: ValueConfig{
@@ -62,8 +62,9 @@ func DefaultConfig() Config {
 	}
 }
 
-// Validate verifies all configured bounds and the default cross-tier TTL
-// relationship.
+// Validate Validate 공개 API의 동작을 수행하며 tiered Redis value cache의 local/remote ownership, TTL, clear coordination 계약을 보존한다.
+//
+// 반환 오류는 cache miss, 입력 검증 실패, context 취소, Redis/backend 실패, package sentinel error와 typed error를 그대로 드러낸다.
 func (c Config) Validate() error {
 	if err := validateValueConfig(c.Value); err != nil {
 		return err

@@ -6,8 +6,12 @@ import (
 	btredis "github.com/bluetape4k/bluetape-go/redis"
 )
 
-// Clear unlinks every Redis key in this cache's namespace. It uses SCAN and
-// bounded sequential UNLINK commands; the operation is non-atomic.
+// Clear Clear 공개 API의 동작을 수행하며 tiered Redis value cache의 local/remote ownership, TTL, clear coordination 계약을 보존한다.
+//
+// 매개변수:
+//   - ctx: 호출자가 소유한 취소, deadline, 요청 범위를 전달한다.
+//
+// 반환 오류는 cache miss, 입력 검증 실패, context 취소, Redis/backend 실패, package sentinel error와 typed error를 그대로 드러낸다.
 func (c *ValueCache[V]) Clear(ctx context.Context) error {
 	ctx = normalizeContext(ctx)
 	if err := c.validateInitialized("clear"); err != nil {

@@ -14,20 +14,23 @@ var (
 	errProviderFailed     = errors.New("fory native provider failed")
 )
 
-// Profile identifies the Go-native Fory runtime profile.
+// Profile uint8 공개 타입이며 cache key, miss, TTL, serialization 계약을 보존한다.
+// 필드와 zero value, nil 허용 여부, 동시성 소유권은 생성자와 메서드의 한국어 주석 및 테스트 계약을 따른다.
 type Profile uint8
 
 const (
-	// ProfileNativeFast uses fixed-schema Go-native serialization.
+	// ProfileNativeFast 고정 schema Go-native serialization profile이다.
 	ProfileNativeFast Profile = iota + 1
-	// ProfileNativeCompatible enables Fory-compatible schema evolution.
+	// ProfileNativeCompatible Fory-compatible schema evolution metadata를 포함하는 profile이다.
 	ProfileNativeCompatible
 )
 
-// Registration registers all Fory-visible application types before use.
+// Registration func 공개 타입이며 cache key, miss, TTL, serialization 계약을 보존한다.
+// 필드와 zero value, nil 허용 여부, 동시성 소유권은 생성자와 메서드의 한국어 주석 및 테스트 계약을 따른다.
 type Registration func(*fory.Fory) error
 
-// Reason is a sanitized runtime failure category.
+// Reason string 공개 타입이며 cache key, miss, TTL, serialization 계약을 보존한다.
+// 필드와 zero value, nil 허용 여부, 동시성 소유권은 생성자와 메서드의 한국어 주석 및 테스트 계약을 따른다.
 type Reason string
 
 const (
@@ -45,14 +48,15 @@ const (
 	ReasonForyFailure Reason = "fory-failure"
 )
 
-// Error describes a sanitized internal Fory runtime failure.
+// Error struct 공개 타입이며 cache key, miss, TTL, serialization 계약을 보존한다.
+// 필드와 zero value, nil 허용 여부, 동시성 소유권은 생성자와 메서드의 한국어 주석 및 테스트 계약을 따른다.
 type Error struct {
 	operation string
 	reason    Reason
 	cause     error
 }
 
-// Error returns a stable message without provider or payload details.
+// Error Error 공개 API의 동작을 수행하며 cache key, miss, TTL, serialization 계약을 보존한다.
 func (e *Error) Error() string {
 	if e == nil {
 		return "<nil>"
@@ -60,7 +64,9 @@ func (e *Error) Error() string {
 	return fmt.Sprintf("fory native %s failed: %s", e.operation, e.reason)
 }
 
-// Unwrap returns only a sanitized package cause.
+// Unwrap Unwrap 공개 API의 동작을 수행하며 cache key, miss, TTL, serialization 계약을 보존한다.
+//
+// 반환 오류는 cache miss, 입력 검증 실패, context 취소, Redis/backend 실패, package sentinel error와 typed error를 그대로 드러낸다.
 func (e *Error) Unwrap() error {
 	if e == nil {
 		return nil
@@ -68,7 +74,7 @@ func (e *Error) Unwrap() error {
 	return e.cause
 }
 
-// Operation returns the stable runtime operation.
+// Operation Operation 공개 API의 동작을 수행하며 cache key, miss, TTL, serialization 계약을 보존한다.
 func (e *Error) Operation() string {
 	if e == nil {
 		return ""
@@ -76,7 +82,7 @@ func (e *Error) Operation() string {
 	return e.operation
 }
 
-// Reason returns the low-cardinality failure category.
+// Reason Reason 공개 API의 동작을 수행하며 cache key, miss, TTL, serialization 계약을 보존한다.
 func (e *Error) Reason() Reason {
 	if e == nil {
 		return ""
@@ -84,7 +90,8 @@ func (e *Error) Reason() Reason {
 	return e.reason
 }
 
-// Limits bounds Fory payload and schema metadata resource use.
+// Limits struct 공개 타입이며 cache key, miss, TTL, serialization 계약을 보존한다.
+// 필드와 zero value, nil 허용 여부, 동시성 소유권은 생성자와 메서드의 한국어 주석 및 테스트 계약을 따른다.
 type Limits struct {
 	MaxPayloadBytes                 int
 	MaxDepth                        int
@@ -116,8 +123,8 @@ func (l Limits) withDefaults() Limits {
 	return l
 }
 
-// Runtime serializes one supported root type through a synchronized Fory instance.
-// Copies share the same runtime and lock.
+// Runtime struct 공개 타입이며 cache key, miss, TTL, serialization 계약을 보존한다.
+// 필드와 zero value, nil 허용 여부, 동시성 소유권은 생성자와 메서드의 한국어 주석 및 테스트 계약을 따른다.
 type Runtime[V any] struct {
 	state        *runtimeState
 	limits       Limits
@@ -129,7 +136,14 @@ type runtimeState struct {
 	runtime *fory.Fory
 }
 
-// New constructs a registered Go-native Fory runtime with bounded defaults.
+// New New 공개 API의 동작을 수행하며 cache key, miss, TTL, serialization 계약을 보존한다.
+//
+// 매개변수:
+//   - profile: New에 전달되는 값이다. 허용 범위와 nil 처리 방식은 구현 검증을 따른다.
+//   - limits: New에 전달되는 값이다. 허용 범위와 nil 처리 방식은 구현 검증을 따른다.
+//   - register: New에 전달되는 값이다. 허용 범위와 nil 처리 방식은 구현 검증을 따른다.
+//
+// 반환 오류는 cache miss, 입력 검증 실패, context 취소, Redis/backend 실패, package sentinel error와 typed error를 그대로 드러낸다.
 func New[V any](profile Profile, limits Limits, register Registration) (*Runtime[V], error) {
 	if profile != ProfileNativeFast && profile != ProfileNativeCompatible {
 		return nil, newError("configure", ReasonConfiguration, nil)
@@ -167,7 +181,12 @@ func New[V any](profile Profile, limits Limits, register Registration) (*Runtime
 	}, nil
 }
 
-// Serialize encodes value and returns caller-owned bytes.
+// Serialize Serialize 공개 API의 동작을 수행하며 cache key, miss, TTL, serialization 계약을 보존한다.
+//
+// 매개변수:
+//   - value: 직렬화하거나 cache에 보관할 값이다. nil, zero value, aliasing 의미는 serializer/cache 계약을 따른다.
+//
+// 반환 오류는 cache miss, 입력 검증 실패, context 취소, Redis/backend 실패, package sentinel error와 typed error를 그대로 드러낸다.
 func (r *Runtime[V]) Serialize(value V) ([]byte, error) {
 	if r == nil || r.state == nil || r.state.runtime == nil {
 		return nil, newError("serialize", ReasonUninitialized, nil)
@@ -195,7 +214,12 @@ func (r *Runtime[V]) Serialize(value V) ([]byte, error) {
 	return append([]byte(nil), raw...), nil
 }
 
-// Deserialize decodes raw Fory bytes into the configured root type.
+// Deserialize Deserialize 공개 API의 동작을 수행하며 cache key, miss, TTL, serialization 계약을 보존한다.
+//
+// 매개변수:
+//   - raw: Deserialize에 전달되는 값이다. 허용 범위와 nil 처리 방식은 구현 검증을 따른다.
+//
+// 반환 오류는 cache miss, 입력 검증 실패, context 취소, Redis/backend 실패, package sentinel error와 typed error를 그대로 드러낸다.
 func (r *Runtime[V]) Deserialize(raw []byte) (V, error) {
 	var value V
 	if r == nil || r.state == nil || r.state.runtime == nil {

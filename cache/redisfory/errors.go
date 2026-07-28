@@ -10,7 +10,8 @@ var (
 	errRegistrationFailed = errors.New("redisfory registration failed")
 )
 
-// Reason is a stable, low-cardinality cache failure category.
+// Reason string 공개 타입이며 Redis 값 캐시의 serialization, TTL, backend ownership 계약을 보존한다.
+// 필드와 zero value, nil 허용 여부, 동시성 소유권은 생성자와 메서드의 한국어 주석 및 테스트 계약을 따른다.
 type Reason string
 
 const (
@@ -38,7 +39,8 @@ const (
 	ReasonForyFailure Reason = "fory-failure"
 )
 
-// CacheError describes a sanitized redisfory failure.
+// CacheError struct 공개 타입이며 Redis 값 캐시의 serialization, TTL, backend ownership 계약을 보존한다.
+// 필드와 zero value, nil 허용 여부, 동시성 소유권은 생성자와 메서드의 한국어 주석 및 테스트 계약을 따른다.
 type CacheError struct {
 	operation string
 	profile   Profile
@@ -46,7 +48,7 @@ type CacheError struct {
 	cause     error
 }
 
-// Error returns a stable message without Redis keys, values, or provider details.
+// Error Error 공개 API의 동작을 수행하며 Redis 값 캐시의 serialization, TTL, backend ownership 계약을 보존한다.
 func (e *CacheError) Error() string {
 	if e == nil {
 		return "<nil>"
@@ -54,7 +56,9 @@ func (e *CacheError) Error() string {
 	return fmt.Sprintf("redisfory %s failed: %s", e.operation, e.reason)
 }
 
-// Unwrap returns only a sanitized package cause.
+// Unwrap Unwrap 공개 API의 동작을 수행하며 Redis 값 캐시의 serialization, TTL, backend ownership 계약을 보존한다.
+//
+// 반환 오류는 cache miss, 입력 검증 실패, context 취소, Redis/backend 실패, package sentinel error와 typed error를 그대로 드러낸다.
 func (e *CacheError) Unwrap() error {
 	if e == nil {
 		return nil
@@ -62,7 +66,7 @@ func (e *CacheError) Unwrap() error {
 	return e.cause
 }
 
-// Operation returns the stable operation name.
+// Operation Operation 공개 API의 동작을 수행하며 Redis 값 캐시의 serialization, TTL, backend ownership 계약을 보존한다.
 func (e *CacheError) Operation() string {
 	if e == nil {
 		return ""
@@ -70,7 +74,7 @@ func (e *CacheError) Operation() string {
 	return e.operation
 }
 
-// Profile returns the configured Fory profile.
+// Profile Profile 공개 API의 동작을 수행하며 Redis 값 캐시의 serialization, TTL, backend ownership 계약을 보존한다.
 func (e *CacheError) Profile() Profile {
 	if e == nil {
 		return ""
@@ -78,7 +82,7 @@ func (e *CacheError) Profile() Profile {
 	return e.profile
 }
 
-// Reason returns the stable failure category.
+// Reason Reason 공개 API의 동작을 수행하며 Redis 값 캐시의 serialization, TTL, backend ownership 계약을 보존한다.
 func (e *CacheError) Reason() Reason {
 	if e == nil {
 		return ""
