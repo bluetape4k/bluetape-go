@@ -23,7 +23,7 @@ type Client = redisstream.Appender
 type Options struct {
 	// Client 호출자가 소유한 Redis client다.
 	Client Client
-	// Stream은 Redis stream key다. 기본값은 "audit:sqloutbox"다.
+	// Stream Redis stream key다. 기본값은 "audit:sqloutbox"다.
 	Stream string
 }
 
