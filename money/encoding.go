@@ -10,7 +10,7 @@ type moneyJSON struct {
 	Currency string `json:"currency"`
 }
 
-// MarshalText 는 Money 를 `USD 12.34` 형식으로 직렬화합니다.
+// MarshalText Money 를 `USD 12.34` 형식으로 직렬화합니다.
 func (m Money) MarshalText() ([]byte, error) {
 	if err := m.validate(); err != nil {
 		return nil, err
@@ -18,7 +18,7 @@ func (m Money) MarshalText() ([]byte, error) {
 	return []byte(m.String()), nil
 }
 
-// UnmarshalText 는 `USD 12.34` 형식의 텍스트를 Money 로 역직렬화합니다.
+// UnmarshalText `USD 12.34` 형식의 텍스트를 Money 로 역직렬화합니다.
 func (m *Money) UnmarshalText(text []byte) error {
 	if m == nil {
 		return ErrInvalidMoney

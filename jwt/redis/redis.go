@@ -2,13 +2,13 @@ package redis
 
 import jwt "github.com/bluetape4k/bluetape-go/jwt"
 
-// Options는 JWT key provider repository에서 설정값과 기본값 적용 방식을 설명한다.
+// Options JWT key provider repository에서 설정값과 기본값 적용 방식을 설명한다.
 type Options = jwt.RedisRepositoryOptions
 
-// Repository는 JWT key provider repository에서 caller-visible 상태와 의미를 설명한다.
+// Repository JWT key provider repository에서 caller-visible 상태와 의미를 설명한다.
 type Repository = jwt.RedisRepository
 
-// New는 JWT key provider repository에서 생성과 초기화 계약을 설명한다.
+// New JWT key provider repository에서 생성과 초기화 계약을 설명한다.
 func New(options Options) (*Repository, error) {
 	return jwt.NewRedisRepository(options)
 }

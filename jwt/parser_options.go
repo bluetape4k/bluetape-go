@@ -15,7 +15,7 @@ type parseConfig struct {
 // ParseOption 은 JWT parse와 claim 검증 option이다.
 type ParseOption func(*parseConfig) error
 
-// WithLeeway 는 exp/nbf/iat 검증 여유 시간을 지정한다.
+// WithLeeway exp/nbf/iat 검증 여유 시간을 지정한다.
 func WithLeeway(leeway time.Duration) ParseOption {
 	return func(cfg *parseConfig) error {
 		if leeway < 0 {
@@ -26,7 +26,7 @@ func WithLeeway(leeway time.Duration) ParseOption {
 	}
 }
 
-// WithExpectedIssuer 는 기대 issuer를 지정한다.
+// WithExpectedIssuer 기대 issuer를 지정한다.
 func WithExpectedIssuer(issuer string) ParseOption {
 	return func(cfg *parseConfig) error {
 		cfg.expectedIssuer = issuer
@@ -34,7 +34,7 @@ func WithExpectedIssuer(issuer string) ParseOption {
 	}
 }
 
-// WithExpectedAudience 는 기대 audience를 지정한다.
+// WithExpectedAudience 기대 audience를 지정한다.
 func WithExpectedAudience(audience ...string) ParseOption {
 	return func(cfg *parseConfig) error {
 		cfg.expectedAudience = append([]string(nil), audience...)
@@ -42,7 +42,7 @@ func WithExpectedAudience(audience ...string) ParseOption {
 	}
 }
 
-// WithExpectedSubject 는 기대 subject를 지정한다.
+// WithExpectedSubject 기대 subject를 지정한다.
 func WithExpectedSubject(subject string) ParseOption {
 	return func(cfg *parseConfig) error {
 		cfg.expectedSubject = subject
@@ -50,7 +50,7 @@ func WithExpectedSubject(subject string) ParseOption {
 	}
 }
 
-// WithExpirationRequired 는 exp claim을 필수로 만든다.
+// WithExpirationRequired exp claim을 필수로 만든다.
 func WithExpirationRequired() ParseOption {
 	return func(cfg *parseConfig) error {
 		cfg.expirationRequired = true

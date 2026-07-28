@@ -1,4 +1,4 @@
-// Package mongo는 JWT key provider repository 계약과 호출자 사용 경계를 설명한다.
+// Package mongo JWT key provider repository 계약과 호출자 사용 경계를 설명한다.
 //
 // MongoDB collection은 trusted service boundary 안에서 사용하며, key material payload와
 // current KID pointer의 저장, 조회, 회전 계약을 유지한다.

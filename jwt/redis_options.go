@@ -17,19 +17,19 @@ const (
 	maxRedisMaxKeyBytes     = 1 << 20
 )
 
-// RedisRepositoryOptions는 JWT key provider repository에서 설정값과 기본값 적용 방식을 설명한다.
+// RedisRepositoryOptions JWT key provider repository에서 설정값과 기본값 적용 방식을 설명한다.
 type RedisRepositoryOptions struct {
-	// Client는 JWT key provider repository에서 caller-visible 상태와 의미를 설명한다.
+	// Client JWT key provider repository에서 caller-visible 상태와 의미를 설명한다.
 	Client redis.Cmdable
-	// Namespace는 JWT key provider repository에서 caller-visible 상태와 의미를 설명한다.
+	// Namespace JWT key provider repository에서 caller-visible 상태와 의미를 설명한다.
 	Namespace string
-	// Capacity는 JWT key provider repository에서 동작과 caller-visible 계약을 설명한다.
+	// Capacity JWT key provider repository에서 동작과 caller-visible 계약을 설명한다.
 	Capacity int
-	// KeyTTL는 JWT key provider repository에서 설정값과 기본값 적용 방식을 설명한다.
+	// KeyTTL JWT key provider repository에서 설정값과 기본값 적용 방식을 설명한다.
 	KeyTTL time.Duration
-	// RetentionLeeway는 JWT key provider repository에서 caller-visible 상태와 의미를 설명한다.
+	// RetentionLeeway JWT key provider repository에서 caller-visible 상태와 의미를 설명한다.
 	RetentionLeeway time.Duration
-	// MaxKeyBytes는 JWT key provider repository에서 동작과 caller-visible 계약을 설명한다.
+	// MaxKeyBytes JWT key provider repository에서 동작과 caller-visible 계약을 설명한다.
 	MaxKeyBytes int
 }
 
