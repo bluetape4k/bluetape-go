@@ -15,18 +15,18 @@ const (
 	defaultUsername = "bluetape"
 	defaultPassword = "bluetape"
 
-	// ConnectionStringKey is the documented key for a PostgreSQL connection string.
+	// ConnectionStringKey는 Testcontainers fixture에서 caller-visible 상태와 의미를 설명한다.
 	ConnectionStringKey = "postgres.connection-string"
 )
 
-// Start launches a PostgreSQL test container and returns its connection string.
+// Start는 Testcontainers fixture에서 반환값과 오류 의미를 설명한다.
 func Start(ctx context.Context, tb testing.TB) string {
 	tb.Helper()
 
 	return mustDetail(ctx, tb, StartServer(ctx, tb), ConnectionStringKey)
 }
 
-// StartServer launches a PostgreSQL test container and returns the shared server view.
+// StartServer는 Testcontainers fixture에서 반환값과 오류 의미를 설명한다.
 func StartServer(ctx context.Context, tb testing.TB) *tcserver.Started {
 	tb.Helper()
 

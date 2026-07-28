@@ -1,7 +1,7 @@
-// Package server provides small shared contracts for Testcontainers fixtures.
+// Package server는 Testcontainers fixture 계약과 호출자 사용 경계를 설명한다.
 //
-// The package is intentionally limited to started-container inspection,
-// connection details, explicit test-scoped environment export, and cleanup. It
-// does not start containers, keep global server registries, or export process
-// environment variables outside testing.TB.Setenv.
+// 이 주석은 Testcontainers fixture startup, endpoint, environment, cleanup 조건을 설명한다.
+// 세부 조건은 container image, port, DSN, URL, lifecycle 계약을 따른다.
+// 세부 조건은 container image, port, DSN, URL, lifecycle 계약을 따른다.
+// 세부 조건은 container image, port, DSN, URL, lifecycle 계약을 따른다.
 package server
