@@ -24,7 +24,7 @@ type OwnerToken struct {
 
 // NewOwnerToken NewOwnerToken 공개 API의 동작을 수행하며 Redis key, TTL, lease, owner token, Lua script primitive 계약을 보존한다.
 //
-// 반환 오류는 입력 검증 실패, 취소, Redis/backend 실패, lease/token 불일치, 또는 package sentinel/typed error 계약을 보존한다.
+// 반환 오류는 입력 검증 실패, context 취소, Redis/backend 실패, lease/token 불일치, package sentinel error와 typed error를 그대로 드러낸다.
 func NewOwnerToken() (OwnerToken, error) {
 	var data [32]byte
 	if _, err := rand.Read(data[:]); err != nil {
@@ -36,9 +36,9 @@ func NewOwnerToken() (OwnerToken, error) {
 // ParseOwnerToken ParseOwnerToken 공개 API의 동작을 수행하며 Redis key, TTL, lease, owner token, Lua script primitive 계약을 보존한다.
 //
 // 매개변수:
-//   - value: ParseOwnerToken 동작에 필요한 value 값이다. zero value, 범위, nil 허용 여부는 함수 계약을 따른다.
+//   - value: ParseOwnerToken에 전달되는 값이다. 허용 범위와 nil 처리 방식은 구현 검증을 따른다.
 //
-// 반환 오류는 입력 검증 실패, 취소, Redis/backend 실패, lease/token 불일치, 또는 package sentinel/typed error 계약을 보존한다.
+// 반환 오류는 입력 검증 실패, context 취소, Redis/backend 실패, lease/token 불일치, package sentinel error와 typed error를 그대로 드러낸다.
 func ParseOwnerToken(value string) (OwnerToken, error) {
 	token := OwnerToken{value: value}
 	if err := token.Validate(); err != nil {
@@ -72,7 +72,7 @@ func (t OwnerToken) RedisValue() string {
 
 // Validate Validate 공개 API의 동작을 수행하며 Redis key, TTL, lease, owner token, Lua script primitive 계약을 보존한다.
 //
-// 반환 오류는 입력 검증 실패, 취소, Redis/backend 실패, lease/token 불일치, 또는 package sentinel/typed error 계약을 보존한다.
+// 반환 오류는 입력 검증 실패, context 취소, Redis/backend 실패, lease/token 불일치, package sentinel error와 typed error를 그대로 드러낸다.
 func (t OwnerToken) Validate() error {
 	if strings.TrimSpace(t.value) == "" || !tokenPattern.MatchString(t.value) {
 		return fmt.Errorf("%w: expected 64 lowercase hex characters", ErrInvalidOwnerToken)

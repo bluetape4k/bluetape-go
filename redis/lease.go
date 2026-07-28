@@ -19,7 +19,7 @@ type Lease struct {
 //   - key: Redis key 또는 key 구성 요소다. namespace, slot, normalization 의미는 primitive 계약을 따른다.
 //   - token: 소유자 식별 또는 compare-and-delete 안전성을 위한 token이다.
 //
-// 반환 오류는 입력 검증 실패, 취소, Redis/backend 실패, lease/token 불일치, 또는 package sentinel/typed error 계약을 보존한다.
+// 반환 오류는 입력 검증 실패, context 취소, Redis/backend 실패, lease/token 불일치, package sentinel error와 typed error를 그대로 드러낸다.
 func NewLease(key string, token OwnerToken) (Lease, error) {
 	lease := Lease{key: key, token: token}
 	if err := lease.Validate(); err != nil {
@@ -60,7 +60,7 @@ func (l Lease) LogValue() slog.Value {
 
 // Validate Validate 공개 API의 동작을 수행하며 Redis key, TTL, lease, owner token, Lua script primitive 계약을 보존한다.
 //
-// 반환 오류는 입력 검증 실패, 취소, Redis/backend 실패, lease/token 불일치, 또는 package sentinel/typed error 계약을 보존한다.
+// 반환 오류는 입력 검증 실패, context 취소, Redis/backend 실패, lease/token 불일치, package sentinel error와 typed error를 그대로 드러낸다.
 func (l Lease) Validate() error {
 	if strings.TrimSpace(l.key) == "" {
 		return fmt.Errorf("%w: invalid lease key", ErrInvalidKey)

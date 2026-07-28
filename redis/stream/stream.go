@@ -17,9 +17,9 @@ type Appender interface {
 // 매개변수:
 //   - ctx: 호출자가 소유한 취소, deadline, 요청 범위를 전달한다.
 //   - client: Redis backend client 또는 fixture다. 연결과 종료 소유권은 생성자 계약을 따른다.
-//   - args: Append 동작에 필요한 args 값이다. zero value, 범위, nil 허용 여부는 함수 계약을 따른다.
+//   - args: Append에 전달되는 값이다. 허용 범위와 nil 처리 방식은 구현 검증을 따른다.
 //
-// 반환 오류는 입력 검증 실패, 취소, Redis/backend 실패, lease/token 불일치, 또는 package sentinel/typed error 계약을 보존한다.
+// 반환 오류는 입력 검증 실패, context 취소, Redis/backend 실패, lease/token 불일치, package sentinel error와 typed error를 그대로 드러낸다.
 func Append(ctx context.Context, client Appender, args redis.XAddArgs) (string, error) {
 	ctx, err := prepareContext(ctx, client)
 	if err != nil {
@@ -50,9 +50,9 @@ type Reader interface {
 // 매개변수:
 //   - ctx: 호출자가 소유한 취소, deadline, 요청 범위를 전달한다.
 //   - client: Redis backend client 또는 fixture다. 연결과 종료 소유권은 생성자 계약을 따른다.
-//   - args: Read 동작에 필요한 args 값이다. zero value, 범위, nil 허용 여부는 함수 계약을 따른다.
+//   - args: Read에 전달되는 값이다. 허용 범위와 nil 처리 방식은 구현 검증을 따른다.
 //
-// 반환 오류는 입력 검증 실패, 취소, Redis/backend 실패, lease/token 불일치, 또는 package sentinel/typed error 계약을 보존한다.
+// 반환 오류는 입력 검증 실패, context 취소, Redis/backend 실패, lease/token 불일치, package sentinel error와 typed error를 그대로 드러낸다.
 func Read(ctx context.Context, client Reader, args redis.XReadArgs) ([]redis.XStream, error) {
 	ctx, err := prepareContext(ctx, client)
 	if err != nil {
@@ -83,9 +83,9 @@ type GroupCreator interface {
 //   - client: Redis backend client 또는 fixture다. 연결과 종료 소유권은 생성자 계약을 따른다.
 //   - stream: Redis Stream id, entry, 또는 consumer group 관련 값이다.
 //   - group: Redis Stream id, entry, 또는 consumer group 관련 값이다.
-//   - start: CreateGroup 동작에 필요한 start 값이다. zero value, 범위, nil 허용 여부는 함수 계약을 따른다.
+//   - start: CreateGroup에 전달되는 값이다. 허용 범위와 nil 처리 방식은 구현 검증을 따른다.
 //
-// 반환 오류는 입력 검증 실패, 취소, Redis/backend 실패, lease/token 불일치, 또는 package sentinel/typed error 계약을 보존한다.
+// 반환 오류는 입력 검증 실패, context 취소, Redis/backend 실패, lease/token 불일치, package sentinel error와 typed error를 그대로 드러낸다.
 func CreateGroup(ctx context.Context, client GroupCreator, stream, group, start string) error {
 	ctx, err := prepareContext(ctx, client)
 	if err != nil {
@@ -118,9 +118,9 @@ type GroupReader interface {
 // 매개변수:
 //   - ctx: 호출자가 소유한 취소, deadline, 요청 범위를 전달한다.
 //   - client: Redis backend client 또는 fixture다. 연결과 종료 소유권은 생성자 계약을 따른다.
-//   - args: ReadGroup 동작에 필요한 args 값이다. zero value, 범위, nil 허용 여부는 함수 계약을 따른다.
+//   - args: ReadGroup에 전달되는 값이다. 허용 범위와 nil 처리 방식은 구현 검증을 따른다.
 //
-// 반환 오류는 입력 검증 실패, 취소, Redis/backend 실패, lease/token 불일치, 또는 package sentinel/typed error 계약을 보존한다.
+// 반환 오류는 입력 검증 실패, context 취소, Redis/backend 실패, lease/token 불일치, package sentinel error와 typed error를 그대로 드러낸다.
 func ReadGroup(ctx context.Context, client GroupReader, args redis.XReadGroupArgs) ([]redis.XStream, error) {
 	ctx, err := prepareContext(ctx, client)
 	if err != nil {
@@ -157,9 +157,9 @@ type Acknowledger interface {
 //   - client: Redis backend client 또는 fixture다. 연결과 종료 소유권은 생성자 계약을 따른다.
 //   - stream: Redis Stream id, entry, 또는 consumer group 관련 값이다.
 //   - group: Redis Stream id, entry, 또는 consumer group 관련 값이다.
-//   - ids: Acknowledge 동작에 필요한 ids 값이다. zero value, 범위, nil 허용 여부는 함수 계약을 따른다.
+//   - ids: Acknowledge에 전달되는 값이다. 허용 범위와 nil 처리 방식은 구현 검증을 따른다.
 //
-// 반환 오류는 입력 검증 실패, 취소, Redis/backend 실패, lease/token 불일치, 또는 package sentinel/typed error 계약을 보존한다.
+// 반환 오류는 입력 검증 실패, context 취소, Redis/backend 실패, lease/token 불일치, package sentinel error와 typed error를 그대로 드러낸다.
 func Acknowledge(ctx context.Context, client Acknowledger, stream, group string, ids ...string) (int64, error) {
 	ctx, err := prepareContext(ctx, client)
 	if err != nil {
@@ -193,9 +193,9 @@ type PendingInspector interface {
 // 매개변수:
 //   - ctx: 호출자가 소유한 취소, deadline, 요청 범위를 전달한다.
 //   - client: Redis backend client 또는 fixture다. 연결과 종료 소유권은 생성자 계약을 따른다.
-//   - args: Pending 동작에 필요한 args 값이다. zero value, 범위, nil 허용 여부는 함수 계약을 따른다.
+//   - args: Pending에 전달되는 값이다. 허용 범위와 nil 처리 방식은 구현 검증을 따른다.
 //
-// 반환 오류는 입력 검증 실패, 취소, Redis/backend 실패, lease/token 불일치, 또는 package sentinel/typed error 계약을 보존한다.
+// 반환 오류는 입력 검증 실패, context 취소, Redis/backend 실패, lease/token 불일치, package sentinel error와 typed error를 그대로 드러낸다.
 func Pending(ctx context.Context, client PendingInspector, args redis.XPendingExtArgs) ([]redis.XPendingExt, error) {
 	ctx, err := prepareContext(ctx, client)
 	if err != nil {
@@ -226,9 +226,9 @@ type AutoClaimer interface {
 // 매개변수:
 //   - ctx: 호출자가 소유한 취소, deadline, 요청 범위를 전달한다.
 //   - client: Redis backend client 또는 fixture다. 연결과 종료 소유권은 생성자 계약을 따른다.
-//   - args: AutoClaim 동작에 필요한 args 값이다. zero value, 범위, nil 허용 여부는 함수 계약을 따른다.
+//   - args: AutoClaim에 전달되는 값이다. 허용 범위와 nil 처리 방식은 구현 검증을 따른다.
 //
-// 반환 오류는 입력 검증 실패, 취소, Redis/backend 실패, lease/token 불일치, 또는 package sentinel/typed error 계약을 보존한다.
+// 반환 오류는 입력 검증 실패, context 취소, Redis/backend 실패, lease/token 불일치, package sentinel error와 typed error를 그대로 드러낸다.
 func AutoClaim(ctx context.Context, client AutoClaimer, args redis.XAutoClaimArgs) ([]redis.XMessage, string, error) {
 	ctx, err := prepareContext(ctx, client)
 	if err != nil {
@@ -270,9 +270,9 @@ type Trimmer interface {
 //   - ctx: 호출자가 소유한 취소, deadline, 요청 범위를 전달한다.
 //   - client: Redis backend client 또는 fixture다. 연결과 종료 소유권은 생성자 계약을 따른다.
 //   - stream: Redis Stream id, entry, 또는 consumer group 관련 값이다.
-//   - maxLen: TrimMaxLen 동작에 필요한 maxLen 값이다. zero value, 범위, nil 허용 여부는 함수 계약을 따른다.
+//   - maxLen: TrimMaxLen에 전달되는 값이다. 허용 범위와 nil 처리 방식은 구현 검증을 따른다.
 //
-// 반환 오류는 입력 검증 실패, 취소, Redis/backend 실패, lease/token 불일치, 또는 package sentinel/typed error 계약을 보존한다.
+// 반환 오류는 입력 검증 실패, context 취소, Redis/backend 실패, lease/token 불일치, package sentinel error와 typed error를 그대로 드러낸다.
 func TrimMaxLen(ctx context.Context, client Trimmer, stream string, maxLen int64) (int64, error) {
 	ctx, err := prepareContext(ctx, client)
 	if err != nil {
@@ -298,9 +298,9 @@ func TrimMaxLen(ctx context.Context, client Trimmer, stream string, maxLen int64
 //   - ctx: 호출자가 소유한 취소, deadline, 요청 범위를 전달한다.
 //   - client: Redis backend client 또는 fixture다. 연결과 종료 소유권은 생성자 계약을 따른다.
 //   - stream: Redis Stream id, entry, 또는 consumer group 관련 값이다.
-//   - minID: TrimMinID 동작에 필요한 minID 값이다. zero value, 범위, nil 허용 여부는 함수 계약을 따른다.
+//   - minID: TrimMinID에 전달되는 값이다. 허용 범위와 nil 처리 방식은 구현 검증을 따른다.
 //
-// 반환 오류는 입력 검증 실패, 취소, Redis/backend 실패, lease/token 불일치, 또는 package sentinel/typed error 계약을 보존한다.
+// 반환 오류는 입력 검증 실패, context 취소, Redis/backend 실패, lease/token 불일치, package sentinel error와 typed error를 그대로 드러낸다.
 func TrimMinID(ctx context.Context, client Trimmer, stream, minID string) (int64, error) {
 	ctx, err := prepareContext(ctx, client)
 	if err != nil {
@@ -332,9 +332,9 @@ type Deleter interface {
 //   - ctx: 호출자가 소유한 취소, deadline, 요청 범위를 전달한다.
 //   - client: Redis backend client 또는 fixture다. 연결과 종료 소유권은 생성자 계약을 따른다.
 //   - stream: Redis Stream id, entry, 또는 consumer group 관련 값이다.
-//   - ids: Delete 동작에 필요한 ids 값이다. zero value, 범위, nil 허용 여부는 함수 계약을 따른다.
+//   - ids: Delete에 전달되는 값이다. 허용 범위와 nil 처리 방식은 구현 검증을 따른다.
 //
-// 반환 오류는 입력 검증 실패, 취소, Redis/backend 실패, lease/token 불일치, 또는 package sentinel/typed error 계약을 보존한다.
+// 반환 오류는 입력 검증 실패, context 취소, Redis/backend 실패, lease/token 불일치, package sentinel error와 typed error를 그대로 드러낸다.
 func Delete(ctx context.Context, client Deleter, stream string, ids ...string) (int64, error) {
 	ctx, err := prepareContext(ctx, client)
 	if err != nil {

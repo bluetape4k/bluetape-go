@@ -20,7 +20,7 @@ const (
 //
 // 매개변수:
 //   - ctx: 호출자가 소유한 취소, deadline, 요청 범위를 전달한다.
-//   - tb: Start 동작에 필요한 tb 값이다. zero value, 범위, nil 허용 여부는 함수 계약을 따른다.
+//   - tb: 실패를 보고할 testing 객체다.
 func Start(ctx context.Context, tb testing.TB) string {
 	tb.Helper()
 
@@ -31,7 +31,7 @@ func Start(ctx context.Context, tb testing.TB) string {
 //
 // 매개변수:
 //   - ctx: 호출자가 소유한 취소, deadline, 요청 범위를 전달한다.
-//   - tb: StartServer 동작에 필요한 tb 값이다. zero value, 범위, nil 허용 여부는 함수 계약을 따른다.
+//   - tb: 실패를 보고할 testing 객체다.
 func StartServer(ctx context.Context, tb testing.TB) *tcserver.Started {
 	tb.Helper()
 

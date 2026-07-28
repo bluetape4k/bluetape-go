@@ -39,9 +39,9 @@ var _ sqloutbox.Publisher = (*Publisher)(nil)
 // New New 공개 API의 동작을 수행하며 Redis Stream outbox publish, idempotency, stream key 계약을 보존한다.
 //
 // 매개변수:
-//   - options: New 동작에 필요한 options 값이다. zero value, 범위, nil 허용 여부는 함수 계약을 따른다.
+//   - options: 적용할 옵션 목록이다. nil이면 기본값만 사용한다.
 //
-// 반환 오류는 입력 검증 실패, 취소, Redis/backend 실패, lease/token 불일치, 또는 package sentinel/typed error 계약을 보존한다.
+// 반환 오류는 입력 검증 실패, context 취소, Redis/backend 실패, lease/token 불일치, package sentinel error와 typed error를 그대로 드러낸다.
 func New(options Options) (*Publisher, error) {
 	if isNilClient(options.Client) {
 		return nil, fmt.Errorf("%w: redis client must not be nil", sqloutbox.ErrInvalidArgument)
@@ -68,9 +68,9 @@ func (p *Publisher) Stream() string {
 //
 // 매개변수:
 //   - ctx: 호출자가 소유한 취소, deadline, 요청 범위를 전달한다.
-//   - record: Publish 동작에 필요한 record 값이다. zero value, 범위, nil 허용 여부는 함수 계약을 따른다.
+//   - record: Publish에 전달되는 값이다. 허용 범위와 nil 처리 방식은 구현 검증을 따른다.
 //
-// 반환 오류는 입력 검증 실패, 취소, Redis/backend 실패, lease/token 불일치, 또는 package sentinel/typed error 계약을 보존한다.
+// 반환 오류는 입력 검증 실패, context 취소, Redis/backend 실패, lease/token 불일치, package sentinel error와 typed error를 그대로 드러낸다.
 func (p *Publisher) Publish(ctx context.Context, record sqloutbox.Record) error {
 	ctx = normalizeContext(ctx)
 	if err := ctx.Err(); err != nil {
