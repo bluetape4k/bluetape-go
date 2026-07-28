@@ -1,6 +1,8 @@
 # Issue #205 Step 6-R Code Review
 
-## Scope
+> 한국어 리뷰 경계: 이 문서는 리뷰 판정과 근거를 한국어 독자가 추적할 수 있도록 정리한다. 심각도 토큰, 판정 토큰, 파일 경로, 라인 번호, 이슈/PR 번호, 명령, 코드 식별자는 원문의 증거 앵커로 보존한다.
+
+## 범위
 
 - Diff base: `HEAD` after the Step 3 design/plan commit
 - Packages: `core`, `collections`, `codec`, `serialization`
@@ -18,7 +20,7 @@
   continue to accept arbitrary encoded bytes.
 - README locale files and examples document migration and fallback behavior.
 
-## Six-Perspective Findings
+## 6개 관점 발견 사항
 
 | Tier | Perspective | P0 | P1 | P2/P3 | Evidence |
 |---|---:|---:|---:|---|---|
@@ -29,9 +31,9 @@
 | 5 | Developer/API | 0 | 0 | none | New dependency direction is intentional and verified with `go list -deps`; no import cycle surfaced in tests or `make ci`; exported comments document changed behavior. |
 | 6 | User/Caller | 0 | 0 | none | English/Korean README updates and examples show `errors.Is(err, core.ErrInvalidUTF8)` plus byte fallback. |
 
-## Main Integration Review
+## 메인 통합 검토
 
-| Check | Result |
+| 검사 | 결과 |
 |---|---|
 | P0/P1 convergence | PASS: P0=0 P1=0 |
 | Scope discipline | PASS: no new parity primitives, dependencies, workflow files, or unrelated package changes. |
@@ -39,7 +41,7 @@
 | Test adequacy | PASS: RED/GREEN observed; targeted tests, examples, race checks, dependency check, docs grep, and `make ci` all passed. |
 | Quick concurrency/security scan | PASS: `rg "context\\.TODO\\(|context\\.Background\\(|go func|time\\.Tick\\(|http\\.ListenAndServe\\(|panic\\(|RealIP|X-Forwarded-For" core codec collections serialization` found only pre-existing codec alphabet constructor panics and example-test panics for impossible decode failures. |
 
-## Verdict
+## 판정
 
 Step 6-R PASS.
 

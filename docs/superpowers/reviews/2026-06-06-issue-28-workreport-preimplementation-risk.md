@@ -1,10 +1,12 @@
 # Issue 28 Workreport Pre-Implementation Risk
 
-Issue: #28
-Gate: Step 3-P / T0
-Status: PASS
+> 한국어 리뷰 경계: 이 문서는 리뷰 판정과 근거를 한국어 독자가 추적할 수 있도록 정리한다. 심각도 토큰, 판정 토큰, 파일 경로, 라인 번호, 이슈/PR 번호, 명령, 코드 식별자는 원문의 증거 앵커로 보존한다.
 
-## Reviewed Evidence
+이슈: #28
+게이트: Step 3-P / T0
+상태: PASS
+
+## 검토한 증거
 
 - `docs/superpowers/specs/2026-06-06-issue-28-workreport-spec.md`
 - `docs/superpowers/plans/2026-06-06-issue-28-workreport-plan.md`
@@ -13,7 +15,7 @@ Status: PASS
 - `CHANGELOG.md`
 - `WIP.md`
 
-## Risks
+## 위험
 
 | Risk | Severity | Mitigation fed into implementation |
 |---|---|---|
@@ -24,6 +26,6 @@ Status: PASS
 | `workreport` could drift into runner-specific execution behavior before #27. | P2 | Keep package stateless and value-based; no goroutines, runner interfaces, retry, scheduler, or mutable context. |
 | Stress/cancellation gate could be weak because the package is mostly value logic. | P2 | Use helper-based tests only where they add signal: immutable aggregation under `GoroutineStressTester`, cancellation report preservation under `AsyncJobTester`, plus race run. |
 
-## Verdict
+## 판정
 
 P0=0 P1=0. Step 4 implementation is unblocked.

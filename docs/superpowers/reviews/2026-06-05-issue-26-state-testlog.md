@@ -1,13 +1,15 @@
 # Issue #26 State Testlog
 
-Issue: #26
+> 한국어 리뷰 경계: 이 문서는 리뷰 판정과 근거를 한국어 독자가 추적할 수 있도록 정리한다. 심각도 토큰, 판정 토큰, 파일 경로, 라인 번호, 이슈/PR 번호, 명령, 코드 식별자는 원문의 증거 앵커로 보존한다.
+
+이슈: #26
 Milestone: 0.4.0
-Gate: Step 4-T
-Date: 2026-06-05
+게이트: Step 4-T
+날짜: 2026-06-05
 
-## Commands
+## 명령
 
-| Command | Result | Evidence |
+| 명령 | 결과 | Evidence |
 |---|---|---|
 | `gofmt -w state` | PASS | Completed with no output. |
 | `go test -count=1 ./state` | PASS | Latest rerun: `ok github.com/bluetape4k/bluetape-go/state 0.484s`. |
@@ -38,7 +40,7 @@ Date: 2026-06-05
 
 ### Step 4-T Checklist Completion Report
 
-| Item | Status | Notes |
+| 항목 | 상태 | Notes |
 |------|--------|-------|
 | Tests run for changed modules | Done | `go test -count=1 ./state`; `go test -race -count=1 ./state`. |
 | Each affected repo/module verified independently | Done | `state` targeted checks and full repo `go test -count=1 ./...` passed. |

@@ -1,18 +1,20 @@
 # Issue #219 Step 3-R Plan Review
 
-Issue: [#219](https://github.com/bluetape4k/bluetape-go/issues/219)
+> 한국어 리뷰 경계: 이 문서는 리뷰 판정과 근거를 한국어 독자가 추적할 수 있도록 정리한다. 심각도 토큰, 판정 토큰, 파일 경로, 라인 번호, 이슈/PR 번호, 명령, 코드 식별자는 원문의 증거 앵커로 보존한다.
+
+이슈: [#219](https://github.com/bluetape4k/bluetape-go/issues/219)
 Plan: `docs/superpowers/plans/2026-06-23-issue-219-toxiproxy-wrapper-plan.md`
 Spec: `docs/superpowers/specs/2026-06-23-issue-219-toxiproxy-wrapper-design.md`
-Date: 2026-06-23
+날짜: 2026-06-23
 
-## Review Mode
+## 검토 모드
 
 Native review lanes were unavailable because the previous Step 2-R spawn
 attempts hit the agent thread limit and cleanup was interrupted. Per user
 direction, this gate uses main-session integration fallback for all six
 perspectives.
 
-## Findings
+## 발견 사항
 
 | Tier | Perspective | P0 | P1 | P2 | P3 | Evidence |
 |---|---|---:|---:|---:|---:|---|
@@ -25,7 +27,7 @@ perspectives.
 
 ## Critic Integration
 
-| Check | Result | Evidence |
+| 검사 | 결과 | Evidence |
 |---|---|---|
 | Spec coverage | PASS | Tasks cover package API, Redis proxy test, README pair, deferrals, and validation commands. |
 | Ordering | PASS | Tests are written first, implementation follows, docs and verification close the slice. |
@@ -33,13 +35,13 @@ perspectives.
 | Concrete commands | PASS | Targeted tests, race tests, make gates, and `git diff --check` are listed. |
 | Broad scope avoided | PASS | RabbitMQ/Redpanda/WireMock/Nginx/Mailpit/ElasticMQ stay deferred. |
 
-## Resolved During Review
+## 검토 중 해결됨
 
 | Severity | Finding | Resolution |
 |---|---|---|
 | P1 | `ProxiedEndpoint` required an upstream Toxiproxy container, but the plan initially tried to get it through `tcserver.Started`, which intentionally does not expose the underlying container. | Updated spec and plan to add `StartContainer`; `StartServer` remains the shared connection-detail path and `testcontainers/server` stays unchanged. |
 
-## Integrated Verdict
+## 통합 판정
 
 P0=0 P1=0
 

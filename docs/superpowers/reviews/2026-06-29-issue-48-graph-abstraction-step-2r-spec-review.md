@@ -1,9 +1,11 @@
 # Issue #48 Graph Abstraction Step 2-R Spec Review
 
-Date: 2026-06-29
-Scope: `docs/superpowers/specs/2026-06-29-issue-48-graph-abstraction-design.md`
+> 한국어 리뷰 경계: 이 문서는 리뷰 판정과 근거를 한국어 독자가 추적할 수 있도록 정리한다. 심각도 토큰, 판정 토큰, 파일 경로, 라인 번호, 이슈/PR 번호, 명령, 코드 식별자는 원문의 증거 앵커로 보존한다.
 
-## Verdict
+날짜: 2026-06-29
+범위: `docs/superpowers/specs/2026-06-29-issue-48-graph-abstraction-design.md`
+
+## 판정
 
 P0: 0
 P1: 0
@@ -15,7 +17,7 @@ was revised to use unexported value fields, defensive accessors, explicit
 `Validate` methods, typed edge endpoint structs, validating path-step helpers,
 redacted errors, JSON validation, and a package-level race gate.
 
-## Evidence
+## 증거
 
 - Live issue: #48 `Design minimal Go graph abstraction`, milestone `0.10.0`,
   priority `p0`.
@@ -28,7 +30,7 @@ redacted errors, JSON validation, and a package-level race gate.
   `/Users/debop/.codex/skills/bluetape4k-full-feature/references/step-2r-spec-review.md`.
 - Go guidance: `/Users/debop/.codex/skills/bluetape-go-patterns/SKILL.md`.
 
-## Iteration 1 Findings
+## 반복 1 발견 사항
 
 | Perspective | P0 | P1 | P2 | P3 | Resolution |
 | --- | ---: | ---: | ---: | ---: | --- |

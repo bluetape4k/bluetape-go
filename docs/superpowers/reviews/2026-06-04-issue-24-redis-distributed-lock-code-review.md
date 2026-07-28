@@ -1,8 +1,10 @@
 # Issue 24 Redis Distributed Lock Code Review
 
-Date: 2026-06-04 KST
+> 한국어 리뷰 경계: 이 문서는 리뷰 판정과 근거를 한국어 독자가 추적할 수 있도록 정리한다. 심각도 토큰, 판정 토큰, 파일 경로, 라인 번호, 이슈/PR 번호, 명령, 코드 식별자는 원문의 증거 앵커로 보존한다.
+
+날짜: 2026-06-04 KST
 Workflow step: Step 6-R implemented diff review
-Scope: `lock/redis`, `README.md`, `README.ko.md`, `CHANGELOG.md`, `WIP.md`,
+범위: `lock/redis`, `README.md`, `README.ko.md`, `CHANGELOG.md`, `WIP.md`,
 `docs/research/**`, `docs/superpowers/**`
 Diff base: `origin/develop`
 
@@ -16,7 +18,7 @@ Diff base: `origin/develop`
 - Stress repeat: `go test -count=5 ./lock/redis -run 'TestMutexSameKeyContentionStress|TestMutexAsyncCancellationDoesNotLeakKey'` PASS, 10 runs
 - Public surface check: `go doc ./lock/redis` PASS
 
-## Findings Resolved During Review
+## 검토 중 해결한 발견 사항
 
 | Priority | File:Line | Tier | Finding | Resolution |
 |---|---|---|---|---|
@@ -35,7 +37,7 @@ Diff base: `origin/develop`
 | Tier 6 Performance/Stability | PASS | No blocking retry loop or unbounded buffer introduced; single Redis round trip for acquire and one Lua script for unlock; stress tests prove same-key contention behavior. |
 | Tier 7 Docs/Release/Evidence | PASS | README locale set, CHANGELOG, WIP, research index, issue research, spec, and plan are synchronized with the implemented API and non-goals. |
 
-## P0/P1 Gate
+## P0/P1 게이트
 
 - P0: 0 -> 0
 - P1: 1 -> 0

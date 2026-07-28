@@ -1,16 +1,18 @@
 # Issue #536 RESP3 Client Tracking Spike Step 6-R Code Review
 
-Issue: #536
+> 한국어 리뷰 경계: 이 문서는 리뷰 판정과 근거를 한국어 독자가 추적할 수 있도록 정리한다. 심각도 토큰, 판정 토큰, 파일 경로, 라인 번호, 이슈/PR 번호, 명령, 코드 식별자는 원문의 증거 앵커로 보존한다.
 
-Date: 2026-07-19
+이슈: #536
 
-Base: `origin/develop` at `f4acaab1676ca4a989051a28f60f37ab147d87f9`
+날짜: 2026-07-19
+
+기준: `origin/develop` at `f4acaab1676ca4a989051a28f60f37ab147d87f9`
 
 Reviewed implementation SHA: `c320b487721b275b16ba555a335ba436323a64bf`
 
-Gate: six independent perspectives plus main-session integration.
+게이트: six independent perspectives plus main-session integration.
 
-## Convergence History
+## 수렴 이력
 
 The first six-perspective pass reviewed
 `16735c013cb67e23734cb1572dd5a915bbdf9a76`. Five perspectives reported no
@@ -32,9 +34,9 @@ Every perspective then independently refreshed its review on the same repaired
 implementation SHA. No lane timed out, and main-session fallback was not
 required.
 
-## Terminal Exact-Head Results
+## 최종 정확한 HEAD 결과
 
-| Tier | Perspective | Verdict | P0 | P1 | P2 | P3 |
+| 계층 | 관점 | 판정 | P0 | P1 | P2 | P3 |
 |---|---|---:|---:|---:|---:|---:|
 | 1 | Performance | PASS | 0 | 0 | 0 | 0 |
 | 2 | Stability | PASS | 0 | 0 | 0 | 0 |
@@ -48,7 +50,7 @@ Every terminal lane reviewed
 `c320b487721b275b16ba555a335ba436323a64bf` against
 `f4acaab1676ca4a989051a28f60f37ab147d87f9`.
 
-## Accepted Scope Boundaries
+## 수용한 범위 경계
 
 - The spike proves command-coupled RESP3 invalidation delivery on a dedicated
   physical connection. It does not prove an autonomous coherent pooled
@@ -67,7 +69,7 @@ Every terminal lane reviewed
 
 These are declared limits of the evidence-only spike, not unresolved defects.
 
-## Verification Evidence
+## 검증 증거
 
 - Complete `^TestRESP3TrackingSpike` suite — PASS.
 - Six selected cases with `-p 1 -count=3` — PASS: five Docker-backed cases
@@ -86,7 +88,7 @@ These are declared limits of the evidence-only spike, not unresolved defects.
 - No production Go file, public API, dependency, or package README changed.
 - The working tree was clean at the reviewed implementation SHA.
 
-## Main Integration Verdict
+## 메인 통합 판정
 
 PASS.
 
@@ -107,7 +109,7 @@ PASS.
 
 ## DoD
 
-| Item | Status |
+| 항목 | 상태 |
 |---|---|
 | Six independent perspectives covered | Done. |
 | Same exact repaired implementation SHA reviewed | Done: `c320b487721b275b16ba555a335ba436323a64bf`. |

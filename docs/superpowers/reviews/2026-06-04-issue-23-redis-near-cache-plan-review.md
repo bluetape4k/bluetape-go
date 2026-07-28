@@ -1,12 +1,14 @@
 # Issue 23 Redis Near Cache Plan Review
 
-Issue: #23
-Gate: Step 3-R
-Date: 2026-06-04
+> 한국어 리뷰 경계: 이 문서는 리뷰 판정과 근거를 한국어 독자가 추적할 수 있도록 정리한다. 심각도 토큰, 판정 토큰, 파일 경로, 라인 번호, 이슈/PR 번호, 명령, 코드 식별자는 원문의 증거 앵커로 보존한다.
+
+이슈: #23
+게이트: Step 3-R
+날짜: 2026-06-04
 Plan: `docs/superpowers/plans/2026-06-04-issue-23-redis-near-cache-plan.md`
 Spec: `docs/superpowers/specs/2026-06-04-issue-23-redis-near-cache-spec.md`
 
-## Perspective Findings
+## 관점별 발견 사항
 
 | Perspective | P0 | P1 | P2 | P3 | Notes |
 |---|---:|---:|---:|---:|---|
@@ -15,7 +17,7 @@ Spec: `docs/superpowers/specs/2026-06-04-issue-23-redis-near-cache-spec.md`
 | Architect | 0 | 0 | 0 | 0 | New package keeps Redis strategy isolated and avoids new local-cache dependency. |
 | Delivery/Docs | 0 | 0 | 0 | 0 | README pair, CHANGELOG, lessons, and PR evidence are assigned. |
 
-## Local 7-Tier Review
+## 로컬 7-Tier 검토
 
 | Tier | P0 | P1 | P2 | P3 | Evidence |
 |---|---:|---:|---:|---:|---|
@@ -38,7 +40,7 @@ Spec: `docs/superpowers/specs/2026-06-04-issue-23-redis-near-cache-spec.md`
 | Resource lifecycle explicit | PASS | `NewPubSub`, subscriber loop, `Close`, and `ErrClosed` are named tasks/checks. |
 | Stress/benchmark decision explicit | PASS | Stress in #23; benchmarks in #107. |
 
-## Gate Verdict
+## 게이트 판정
 
 P0 = 0
 P1 = 0

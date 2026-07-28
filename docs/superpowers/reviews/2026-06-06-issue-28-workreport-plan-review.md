@@ -1,12 +1,14 @@
 # Issue 28 Workreport Plan Review
 
+> 한국어 리뷰 경계: 이 문서는 리뷰 판정과 근거를 한국어 독자가 추적할 수 있도록 정리한다. 심각도 토큰, 판정 토큰, 파일 경로, 라인 번호, 이슈/PR 번호, 명령, 코드 식별자는 원문의 증거 앵커로 보존한다.
+
 Plan: `docs/superpowers/plans/2026-06-06-issue-28-workreport-plan.md`
 Spec: `docs/superpowers/specs/2026-06-06-issue-28-workreport-spec.md`
-Issue: #28
-Gate: Step 3-R
-Status: PASS
+이슈: #28
+게이트: Step 3-R
+상태: PASS
 
-## Scope
+## 범위
 
 Reviewed the #28 plan for implementable order, acceptance mapping, validation
 coverage, docs/release readiness, and `bluetape-go-patterns` compliance.
@@ -20,7 +22,7 @@ coverage, docs/release readiness, and `bluetape-go-patterns` compliance.
 | Architect | 0 | 0 | 0 | 0 | `workreport` remains independent; #27 consumes it later without import cycles. |
 | Delivery/docs | 0 | 0 | 0 | 0 | T5 adds README pair and examples; T6 updates CHANGELOG, WIP, and lessons; T9 covers PR/CI. |
 
-## Local 7-Tier Review
+## 로컬 7-Tier 검토
 
 | Tier | P0 | P1 | P2 | P3 | Evidence |
 |---|---:|---:|---:|---:|---|
@@ -42,6 +44,6 @@ coverage, docs/release readiness, and `bluetape-go-patterns` compliance.
 | README/localized docs covered | PASS | T5 assigns `README.md` and `README.ko.md`. |
 | New module/workflow registration checks | N/A | Go package only; no Gradle module, workflow YAML, or publishable JVM artifact. |
 
-## Gate Verdict
+## 게이트 판정
 
 P0=0 P1=0. Step 3-R is closed.

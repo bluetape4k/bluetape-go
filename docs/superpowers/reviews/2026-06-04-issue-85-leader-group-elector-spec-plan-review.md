@@ -1,6 +1,8 @@
 # Issue 85 Spec And Plan Review
 
-## Scope
+> 한국어 리뷰 경계: 이 문서는 리뷰 판정과 근거를 한국어 독자가 추적할 수 있도록 정리한다. 심각도 토큰, 판정 토큰, 파일 경로, 라인 번호, 이슈/PR 번호, 명령, 코드 식별자는 원문의 증거 앵커로 보존한다.
+
+## 범위
 
 - Spec: `docs/superpowers/specs/2026-06-04-issue-85-leader-group-elector-spec.md`
 - Plan: `docs/superpowers/plans/2026-06-04-issue-85-leader-group-elector-plan.md`
@@ -10,7 +12,7 @@
 
 P0/P1: 0.
 
-| Tier | Scope | Verdict | Evidence |
+| 계층 | 범위 | 판정 | 증거 |
 |---|---|---|---|
 | 1 Security | Redis key/token exposure | PASS | Tokens are opaque ownership guards; no secrets or auth boundary added. |
 | 2 Ops/SRE | leak recovery, diagnosis | PASS | Spec requires expiry pruning, counts, wrapped backend/context errors. |
@@ -24,7 +26,7 @@ P0/P1: 0.
 
 P0/P1: 0.
 
-| Tier | Scope | Verdict | Evidence |
+| 계층 | 범위 | 판정 | 증거 |
 |---|---|---|---|
 | 1 Security | task coverage | PASS | No new external dependency or secret path. |
 | 2 Ops/SRE | lifecycle tasks | PASS | Renewal loop, context-bounded campaign, and idempotent resign are implementation tasks. |
@@ -34,7 +36,7 @@ P0/P1: 0.
 | 6 Performance | stability | PASS | Plan includes contention and no busy-spin behavior. |
 | 7 Delivery | PR readiness | PASS | Lessons, Lore commit, PR metadata, and CI gate are included. |
 
-## Consolidated Findings
+## 종합 발견 사항
 
 | Priority | Area | Finding | Decision |
 |---|---|---|---|

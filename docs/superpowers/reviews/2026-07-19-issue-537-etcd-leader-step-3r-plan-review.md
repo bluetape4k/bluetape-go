@@ -1,14 +1,16 @@
 # Issue #537 etcd Leader Step 3-R Plan Review
 
-Date: 2026-07-19 KST
-Issue: [#537](https://github.com/bluetape4k/bluetape-go/issues/537)
+> 한국어 리뷰 경계: 이 문서는 리뷰 판정과 근거를 한국어 독자가 추적할 수 있도록 정리한다. 심각도 토큰, 판정 토큰, 파일 경로, 라인 번호, 이슈/PR 번호, 명령, 코드 식별자는 원문의 증거 앵커로 보존한다.
+
+날짜: 2026-07-19 KST
+이슈: [#537](https://github.com/bluetape4k/bluetape-go/issues/537)
 Reviewed plan: `docs/superpowers/plans/2026-07-19-issue-537-etcd-leader-plan.md`
 Final reviewed commit: `bac98c95114d05dfba712d71667bcf95c7f9750c`
 Reviewed SHA-256: `0a88baf47bf5c5a21c4bfd40299a05c36a3f715d99aa23daf46a8eaa1d3b74e6`
 Approved spec commit: `287c5eaffa025969a2eae15affc8f5b5faddbe21`
 Baseline: `origin/develop@41663dea0a2a34cd459df24802f59882cff834aa`
 
-## Integrated Verdict
+## 통합 판정
 
 `PASS — P0=0 P1=0`
 
@@ -34,7 +36,7 @@ does not name the zero-value contract test. Both tests are included by the
 later full-package gates; neither changes implementation architecture,
 correctness criteria, or the `P0=0 P1=0` verdict.
 
-## Final Exact-Commit Results
+## 최종 정확한 커밋 결과
 
 | Lane | P0 | P1 | P2 | Verdict |
 |---|---:|---:|---:|---|
@@ -134,7 +136,7 @@ correctness criteria, or the `P0=0 P1=0` verdict.
 - Implementation remains blocked on a fresh explicit user approval after this
   reviewed-plan handoff.
 
-## Verification
+## 검증
 
 ```bash
 git diff --check 41663dea0a2a34cd459df24802f59882cff834aa..bac98c95114d05dfba712d71667bcf95c7f9750c
@@ -142,7 +144,7 @@ git show --check --stat bac98c95114d05dfba712d71667bcf95c7f9750c
 go run github.com/rhysd/actionlint/cmd/actionlint@v1.7.12 .github/workflows/*.yml
 ```
 
-Result: PASS.
+결과: PASS.
 
 Runtime etcd behavior, Docker-backed conformance, race execution, dependency
 mutation, documentation changes, live CI, PR review, and merge readiness remain

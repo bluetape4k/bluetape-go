@@ -1,6 +1,8 @@
 # Issue #532 PostgreSQL Batch Checkpoint Plan Review
 
-## Scope
+> 한국어 리뷰 경계: 이 문서는 리뷰 판정과 근거를 한국어 독자가 추적할 수 있도록 정리한다. 심각도 토큰, 판정 토큰, 파일 경로, 라인 번호, 이슈/PR 번호, 명령, 코드 식별자는 원문의 증거 앵커로 보존한다.
+
+## 범위
 
 - Plan: `docs/superpowers/plans/2026-07-14-issue-532-sql-checkpoint-plan.md`
 - Reviewed commit: `4480cac0fe3e36ce0e232e41cc22c83fc96ab4a4`
@@ -21,7 +23,7 @@
 | P2 | Developer/API | The deliberate external unkeyed-literal fixture was outside normal `go test ./...` and could be skipped after review repairs. | The Makefile test target runs the fixture with vet disabled, so `make test`, `make ci`, focused verification, and repair verification all enforce source compatibility. |
 | P2 | Developer/API | Callers could interpret retry and skip policies as transaction retry controls. | Go doc and both locale READMEs must state that the policies apply only to processor failures and never to callback, CAS, Commit, or unknown-outcome errors. |
 
-## Final rerun results
+## 최종 재실행 결과
 
 All completed lanes reviewed the exact plan commit and SHA-256 above. Three available review agents
 were reused across two bounded waves. The security and user/caller agent repeatedly exceeded the
@@ -40,7 +42,7 @@ same exact hash and owns the final integration verdict.
 
 The P3 notes are positive implementation evidence, not deferred defects. No actionable P2 remains.
 
-## Main-session integration verdict
+## 메인 세션 통합 판정
 
 The plan is executable in dependency order and preserves the approved stability-first design: each
 business write and checkpoint CAS share one caller-configured PostgreSQL transaction, while any

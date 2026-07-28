@@ -1,13 +1,15 @@
 # Issue #537 etcd Leader Step 2-R Spec Review
 
-Date: 2026-07-19 KST
-Issue: [#537](https://github.com/bluetape4k/bluetape-go/issues/537)
+> 한국어 리뷰 경계: 이 문서는 리뷰 판정과 근거를 한국어 독자가 추적할 수 있도록 정리한다. 심각도 토큰, 판정 토큰, 파일 경로, 라인 번호, 이슈/PR 번호, 명령, 코드 식별자는 원문의 증거 앵커로 보존한다.
+
+날짜: 2026-07-19 KST
+이슈: [#537](https://github.com/bluetape4k/bluetape-go/issues/537)
 Reviewed spec: `docs/superpowers/specs/2026-07-19-issue-537-etcd-leader-design.md`
 Final reviewed commit: `287c5eaffa025969a2eae15affc8f5b5faddbe21`
 Reviewed SHA-256: `1334036ae726aa3d3adb9085712828e0a4936a3c61ea865ce2f20dcc6f215339`
 Baseline: `origin/develop@41663dea0a2a34cd459df24802f59882cff834aa`
 
-## Integrated Verdict
+## 통합 판정
 
 `PASS — P0=0 P1=0`
 
@@ -17,7 +19,7 @@ received a separate role-scoped assignment, and the main session performed the
 integration review. No implementation or runtime etcd behavior was exercised
 during Step 2-R.
 
-## Final Exact-Commit Results
+## 최종 정확한 커밋 결과
 
 | Lane | P0 | P1 | P2 | Verdict |
 |---|---:|---:|---:|---|
@@ -38,9 +40,9 @@ before reacquisition, or the caller must provide external generation fencing.
 These are bounded implementation and documentation obligations, not unresolved
 design blockers.
 
-## Findings Resolved During Review
+## 검토 중 해결한 발견 사항
 
-### Performance
+### 성능
 
 - Added explicit `joinGrace` and `abortBudget` relationships, bounded hard-stop
   behavior, and a fail-stop branch when a stuck operation cannot be contained.
@@ -61,7 +63,7 @@ design blockers.
   cancel, `Session.Orphan`, observe closed `Session.Done`, and join monitor work.
 - Kept local Session termination separate from remote cleanup proof.
 
-### Security
+### 보안
 
 - Defined separator-free encoded election bases and non-overlapping candidate
   ranges used consistently by `Election`, `ResumeElection`, watch, and cleanup.
@@ -71,7 +73,7 @@ design blockers.
 - Required authenticated TLS, least-privilege prefix access, redacted errors,
   and a cross-principal revoke boundary test.
 
-### Operator/Ops
+### 운영/Ops
 
 - Added coordinated shutdown for in-flight Campaign, healthy and blocked
   cleanup branches, retained unresolved inventory, and restart preconditions.
@@ -80,7 +82,7 @@ design blockers.
 - Kept observability caller-owned with finite labels and bounded leadership-loss
   sampling.
 
-### Developer/API
+### 개발자/API
 
 - Preserved `Harness` and `Run` source compatibility while adding
   `RunWithConfig`, `Timing`, and `Config` with zero-value defaults and an
@@ -117,14 +119,14 @@ design blockers.
 - No implementation mutation is authorized by this review artifact itself;
   Step 3 implementation planning and plan review remain the next gate.
 
-## Verification
+## 검증
 
 ```bash
 git diff --check 41663dea0a2a34cd459df24802f59882cff834aa..287c5eaffa025969a2eae15affc8f5b5faddbe21
 git show --check --stat 287c5eaffa025969a2eae15affc8f5b5faddbe21
 ```
 
-Result: PASS.
+결과: PASS.
 
 Runtime etcd behavior, Docker integration, race execution, and performance
 budgets are intentionally deferred to the approved implementation plan and its

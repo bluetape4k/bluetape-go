@@ -1,6 +1,8 @@
 # Issue #529 PostgreSQL Rate Limiter Step 6-R Review
 
-## Scope and verdict
+> 한국어 리뷰 경계: 이 문서는 리뷰 판정과 근거를 한국어 독자가 추적할 수 있도록 정리한다. 심각도 토큰, 판정 토큰, 파일 경로, 라인 번호, 이슈/PR 번호, 명령, 코드 식별자는 원문의 증거 앵커로 보존한다.
+
+## 범위와 판정
 
 - Base: `58a2e7a` (`origin/develop`)
 - Branch: `feat/issue-529-sql-ratelimit`
@@ -12,7 +14,7 @@
 - Final verdict: `P0=0`, `P1=0`, `P2=0`, `P3=0`.
 - Pre-PR gate: PASS. No unresolved finding remains.
 
-## Six review perspectives
+## 6개 검토 관점
 
 | Perspective | Final result | Evidence |
 |---|---|---|
@@ -111,7 +113,7 @@
 | Sequence diagram | PASS | The SVG/PNG source pair is embedded in both provider READMEs and exposes acquisition, dispatch, atomic row serialization, outcomes, and no-replay boundaries; render and geometry/style audits pass. |
 | Live PR review, metadata, and GitHub CI | PENDING | Draft PR #606 exists with issue #529 metadata mirrored. Approval and current GitHub CI/review remain external gates; the PR stays draft and unmerged. |
 
-## Residual deployment-owned risks
+## 배포 소유 잔여 위험
 
 - Service-specific capacity, hot-key latency, WAL/dead-tuple/index growth, pool
   margins, cleanup cadence, and telemetry thresholds require a production-like

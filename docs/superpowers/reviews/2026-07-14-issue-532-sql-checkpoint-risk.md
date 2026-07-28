@@ -1,5 +1,7 @@
 # Issue #532 PostgreSQL Durable Batch Checkpoint Risk Prediction
 
+> 한국어 리뷰 경계: 이 문서는 리뷰 판정과 근거를 한국어 독자가 추적할 수 있도록 정리한다. 심각도 토큰, 판정 토큰, 파일 경로, 라인 번호, 이슈/PR 번호, 명령, 코드 식별자는 원문의 증거 앵커로 보존한다.
+
 ## Frozen baseline
 
 - Branch: `feat/issue-532-sql-checkpoint`
@@ -19,7 +21,7 @@
 | `go test -count=1 ./batch ./sqlkit` | Exit 0; `batch` PASS in 0.321s; `sqlkit` PASS in 5.383s |
 | `go test -count=1 ./...` | Exit 0; all repository packages passed, including `audit/sqloutbox` in 35.153s, `graph/neo4j` in 46.227s, `ratelimit/sql` in 42.259s, `batch` in 0.688s, and `sqlkit` in 14.449s |
 
-## Risk table
+## 위험 표
 
 | Risk | Trigger | Signal | Prevention | Recovery | Owner |
 |---|---|---|---|---|---|
@@ -49,7 +51,7 @@
 | Testcontainers leakage | A pool, connection, goroutine, or container outlives a PostgreSQL test fixture | Test hang, leftover containers, exhausted ports, or subsequent suite interference | Run Docker-backed suites sequentially, use bounded contexts and LIFO cleanup, and assert pool/connection release on every failure path | Terminate the leaked fixture, verify Docker and pool cleanup, and rerun the command from scratch | Tests |
 | Bilingual or diagram drift | Public behavior changes without paired locale or rendered sequence updates | English and Korean READMEs disagree, missing embed, stale SVG/PNG pair, or diagram omits a recovery branch | Update English/Korean package and root inventory together; generate paired SVG/PNG and audit the full-size rendering against the settled contract | Block PR progression, repair both locales and both assets, rerun doc/reference checks, and visually review again | Docs |
 
-## Stop conditions
+## 중단 조건
 
 - Any P0/P1 finding, missing exit code, artifact hash drift, non-artifact pre-risk change, or baseline
   failure blocks source work.

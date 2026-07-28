@@ -1,9 +1,11 @@
 # Issue #26 State Code Review
 
-Issue: #26
+> 한국어 리뷰 경계: 이 문서는 리뷰 판정과 근거를 한국어 독자가 추적할 수 있도록 정리한다. 심각도 토큰, 판정 토큰, 파일 경로, 라인 번호, 이슈/PR 번호, 명령, 코드 식별자는 원문의 증거 앵커로 보존한다.
+
+이슈: #26
 Milestone: 0.4.0
-Gate: Step 6-R
-Date: 2026-06-05
+게이트: Step 6-R
+날짜: 2026-06-05
 Reviewed diff base: `fef44e6`
 Module slice: `state`
 
@@ -16,7 +18,7 @@ Native subagents were not used because the current session tool contract allows
 spawning only when the user explicitly requests sub-agent or parallel-agent
 work. The gate therefore uses local-equivalent independent lanes.
 
-## Reviewed Scope
+## 검토 범위
 
 - `state/doc.go`
 - `state/types.go`
@@ -43,7 +45,7 @@ work. The gate therefore uses local-equivalent independent lanes.
 | Tier 6 Performance/stability | 0 | 0 | 0 | 0 | Guards run outside lock; commit rechecks state; stress test uses bounded timeout. |
 | Tier 7 Documentation/release/evidence | 0 | 0 | 0 | 0 | Package README, compile-checked example, CHANGELOG, WIP, lesson, testlog, verifier, and perf scan exist. |
 
-## Integrated Findings
+## 통합 발견 사항
 
 | ID | Severity | File:Line | Finding | Resolution |
 |---|---|---|---|---|
@@ -71,7 +73,7 @@ Unchanged lanes:
 
 ## Verification Evidence After Fix
 
-| Command | Result |
+| 명령 | 결과 |
 |---|---|
 | `gofmt -w state` | PASS |
 | `go test -count=1 ./state` | PASS: `ok github.com/bluetape4k/bluetape-go/state 0.484s` |
@@ -79,7 +81,7 @@ Unchanged lanes:
 | `go test -count=1 ./...` | PASS: all packages passed; `testcontainers/kafka` 20.813s was the slowest observed package. |
 | `git diff --check` | PASS |
 
-## Convergence Verdict
+## 수렴 판정
 
 P0=0 P1=0
 
@@ -90,7 +92,7 @@ preparation.
 
 ### Step 6-R Checklist Completion Report
 
-| Item | Status | Notes |
+| 항목 | 상태 | Notes |
 |------|--------|-------|
 | Tier 1 security review complete | Done | No security boundary. |
 | Tier 2 Ops/SRE reliability review complete | Done | Context/cancellation and failure diagnosis reviewed. |

@@ -1,10 +1,12 @@
 # Issue #217 Step 2-R Spec Review
 
-Issue: [#217](https://github.com/bluetape4k/bluetape-go/issues/217)  
-Spec: `docs/superpowers/specs/2026-06-23-issue-217-testcontainers-server-design.md`  
-Date: 2026-06-23
+> 한국어 리뷰 경계: 이 문서는 리뷰 판정과 근거를 한국어 독자가 추적할 수 있도록 정리한다. 심각도 토큰, 판정 토큰, 파일 경로, 라인 번호, 이슈/PR 번호, 명령, 코드 식별자는 원문의 증거 앵커로 보존한다.
 
-## Scope
+이슈: [#217](https://github.com/bluetape4k/bluetape-go/issues/217)
+Spec: `docs/superpowers/specs/2026-06-23-issue-217-testcontainers-server-design.md`
+날짜: 2026-06-23
+
+## 범위
 
 Reviewed the proposed `testcontainers/server` abstraction, existing wrapper
 migration path, environment export behavior, cleanup contract, and documentation
@@ -14,7 +16,7 @@ Subagent lanes were treated as local independent perspectives for this review
 iteration to avoid blocking the implementation lane on slow worker startup. The
 main session performed the integration verdict.
 
-## Six-Lane Findings
+## 6개 관점 발견 사항
 
 | Tier | Perspective | Verdict | Findings |
 |---|---|---:|---|
@@ -42,11 +44,11 @@ main session performed the integration verdict.
 | P2 | Mutable `ConnectionDetails` maps can leak if returned directly. | Implementation must clone on return and tests must prove caller mutation does not affect stored details. |
 | P3 | Docs can drift across English/Korean READMEs. | Update both locale files for each changed wrapper package and include fixed-port collision language. |
 
-## Integrated Verdict
+## 통합 판정
 
-P0: 0  
-P1: 0  
-P2: 2  
+P0: 0
+P1: 0
+P2: 2
 P3: 1
 
 The spec is implementation-ready after the recorded edits. Step 3 planning must

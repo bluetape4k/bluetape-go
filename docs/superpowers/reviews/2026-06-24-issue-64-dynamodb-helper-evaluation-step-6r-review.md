@@ -1,9 +1,11 @@
 # Issue #64 Step 6-R Diff Review
 
-Scope: docs-only decision diff for #64.
+> 한국어 리뷰 경계: 이 문서는 리뷰 판정과 근거를 한국어 독자가 추적할 수 있도록 정리한다. 심각도 토큰, 판정 토큰, 파일 경로, 라인 번호, 이슈/PR 번호, 명령, 코드 식별자는 원문의 증거 앵커로 보존한다.
+
+범위: docs-only decision diff for #64.
 Baseline: `origin/develop` at `3f386098570a44817e4cf616ffef87163e5b1530`.
 
-## 7-Tier Review
+## 7-Tier 검토
 
 | Lane | P0 | P1 | Verdict | Evidence |
 |---|---:|---:|---|---|
@@ -17,7 +19,7 @@ Baseline: `origin/develop` at `3f386098570a44817e4cf616ffef87163e5b1530`.
 
 P0=0 P1=0
 
-## Validation
+## 검증
 
 - PASS `git diff --check`
 - PASS `make fmt-check`

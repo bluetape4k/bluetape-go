@@ -1,10 +1,12 @@
 # Issue #33 JWT Concurrency Notes
 
-Task: JWT local rotation and parse concurrency evidence
-Issue: #33
-Date: 2026-06-08
+> 한국어 리뷰 경계: 이 문서는 리뷰 판정과 근거를 한국어 독자가 추적할 수 있도록 정리한다. 심각도 토큰, 판정 토큰, 파일 경로, 라인 번호, 이슈/PR 번호, 명령, 코드 식별자는 원문의 증거 앵커로 보존한다.
 
-## Scope
+Task: JWT local rotation and parse concurrency evidence
+이슈: #33
+날짜: 2026-06-08
+
+## 범위
 
 The #33 `jwt` package performs local CPU/crypto work and process-local
 in-memory key lookup. It does not expose external I/O, background workers,

@@ -1,12 +1,14 @@
 # Issue #206 Range and Collection Primitives Step 5 Verifier
 
-Issue: #206
+> 한국어 리뷰 경계: 이 문서는 리뷰 판정과 근거를 한국어 독자가 추적할 수 있도록 정리한다. 심각도 토큰, 판정 토큰, 파일 경로, 라인 번호, 이슈/PR 번호, 명령, 코드 식별자는 원문의 증거 앵커로 보존한다.
+
+이슈: #206
 Spec: `docs/superpowers/specs/2026-06-22-issue-206-range-collections-design.md`
 Plan: `docs/superpowers/plans/2026-06-22-issue-206-range-collections-plan.md`
-Date: 2026-06-22
+날짜: 2026-06-22
 Worktree: `issue-206-range-collections`
 
-## Implementation Scope
+## 구현 범위
 
 New production files:
 
@@ -47,9 +49,9 @@ Updated docs:
 | README and examples | English/Korean READMEs document range notation, invalid ranges, stack/ring order, 0-based pages, shallow snapshots, factorial growth, non-goroutine-safety, and Kotlin/JVM exclusions; examples compile through package tests. | PASS |
 | No new dependencies | Implementation uses only the Go standard library. | PASS |
 
-## Validation Evidence
+## 검증 증거
 
-| Command | Result |
+| 명령 | 결과 |
 |---|---|
 | `go test -count=1 ./core ./collections` | PASS |
 | `go test -race -count=1 ./core ./collections` | PASS |
@@ -57,6 +59,6 @@ Updated docs:
 | `git diff --check` | PASS |
 | `golangci-lint cache clean && make ci` | PASS after cache clean; first run failed on stale deleted-worktree paths plus two local QF1001 style issues, local issues were fixed and rerun passed. |
 
-## Verdict
+## 판정
 
 Step 5 verifier verdict: PASS.

@@ -1,7 +1,9 @@
 # Issue #36 Step 6-R Code Review
 
-Date: 2026-06-09
-Scope: current `issue-36-probabilistic` branch diff against `origin/develop`.
+> 한국어 리뷰 경계: 이 문서는 리뷰 판정과 근거를 한국어 독자가 추적할 수 있도록 정리한다. 심각도 토큰, 판정 토큰, 파일 경로, 라인 번호, 이슈/PR 번호, 명령, 코드 식별자는 원문의 증거 앵커로 보존한다.
+
+날짜: 2026-06-09
+범위: current `issue-36-probabilistic` branch diff against `origin/develop`.
 
 ## Integrated Gate
 
@@ -72,7 +74,7 @@ Quick scan:
 rg "context\\.TODO\\(|context\\.Background\\(|go func|time\\.Tick\\(|http\\.ListenAndServe\\(|panic\\(|RealIP|X-Forwarded-For" .
 ```
 
-Result: existing repository hits plus new `probabilistic` invariant panics only;
+결과: existing repository hits plus new `probabilistic` invariant panics only;
 no context, goroutine, HTTP trust-boundary, or background lifecycle surface was
 added by #36.
 
@@ -103,7 +105,7 @@ No documentation/release blocker found. `README.md`, `README.ko.md`,
 test log were updated. Redis-backed probabilistic filters are explicitly deferred
 to #182 and not bundled into #36.
 
-## Validation
+## 검증
 
 ```bash
 go test -count=1 ./probabilistic
@@ -114,7 +116,7 @@ golangci-lint cache clean
 make ci
 ```
 
-Result: PASS. `make ci` initially surfaced stale `golangci-lint` cache output
+결과: PASS. `make ci` initially surfaced stale `golangci-lint` cache output
 from removed sibling worktree `.worktrees/issue-35-money`; after
 `golangci-lint cache clean`, current branch validation passed with `0 issues.`
 and all packages green. Latest full `make ci` after sealed-interface and custom

@@ -1,6 +1,8 @@
 # Issue #178 Step 6-R Code Review
 
-## Scope
+> 한국어 리뷰 경계: 이 문서는 리뷰 판정과 근거를 한국어 독자가 추적할 수 있도록 정리한다. 심각도 토큰, 판정 토큰, 파일 경로, 라인 번호, 이슈/PR 번호, 명령, 코드 식별자는 원문의 증거 앵커로 보존한다.
+
+## 범위
 
 - Branch: `issue-178-money-exchange-rate-providers`
 - Implementation scope:
@@ -20,7 +22,7 @@
   - `scripts/generate-money-exchange-rate-provider-diagram.mjs`
   - `docs/images/readme-diagrams/money-exchange-rate-provider-flow.*`
 
-## Execution Mode
+## 실행 모드
 
 The 7-Tier gate was executed as six independent main-session role lanes plus
 one main integration review. Native subagents were intentionally not used for
@@ -33,7 +35,7 @@ native subagent stalls.
 |---|---|---|---|
 | P3 | Refresh stampede | Concurrent stale refresh can issue more than one HTTP refresh under heavy contention because #178 uses a simple mutex-protected snapshot, not singleflight. This is acceptable for the first provider because retry/cache semantics are bounded and there is no background goroutine. | Documented as non-blocking. `GoroutineStressTester` covers concurrent rates and stale refresh correctness. |
 
-Verdict: PASS. P0=0 P1=0.
+판정: PASS. P0=0 P1=0.
 
 ## Tier 2: Stability
 
@@ -41,7 +43,7 @@ Verdict: PASS. P0=0 P1=0.
 |---|---|---|---|
 | P3 | Nil context tests | Staticcheck flags nil context calls by default, but nil context normalization is an explicit repo convention and issue contract. | Added local `nolint:staticcheck` comments only on contract tests. Runtime code normalizes nil context. |
 
-Verdict: PASS. P0=0 P1=0.
+판정: PASS. P0=0 P1=0.
 
 ## Tier 3: Security
 
@@ -49,7 +51,7 @@ Verdict: PASS. P0=0 P1=0.
 |---|---|---|---|
 | P3 | Endpoint override | `ECBProviderOptions.Endpoint` allows caller-provided HTTP(S) endpoints for tests and controlled deployments. It is validated for non-empty HTTP(S) scheme, but callers must not treat arbitrary untrusted endpoints as authoritative financial data. | README states ECB reference-rate informational boundary and non-accounting/non-trading scope. No credentials or external provider dependencies added. |
 
-Verdict: PASS. P0=0 P1=0.
+판정: PASS. P0=0 P1=0.
 
 ## Tier 4: Operator/Ops
 
@@ -57,7 +59,7 @@ Verdict: PASS. P0=0 P1=0.
 |---|---|---|---|
 | P3 | Freshness operations | ECB weekends and TARGET closing days can make `ObservedAt` older than `FetchedAt`. | README documents `ObservedAt`, `FetchedAt`, `ExpiresAt`, `Stale`, `RefreshError`, `CacheTTL`, `MaxStale`, and stale fallback behavior. |
 
-Verdict: PASS. P0=0 P1=0.
+판정: PASS. P0=0 P1=0.
 
 ## Tier 5: Developer/API
 
@@ -65,7 +67,7 @@ Verdict: PASS. P0=0 P1=0.
 |---|---|---|---|
 | P3 | Public API growth | `money` now exposes provider-backed APIs in addition to value APIs. Misuse risk is controlled only if the boundary stays explicit. | `Convert` remains unchanged. Provider-backed conversion is only through `ConvertWithProvider(ctx, amount, target, provider)` and returns the quote used. |
 
-Verdict: PASS. P0=0 P1=0.
+판정: PASS. P0=0 P1=0.
 
 ## Tier 6: User/Caller
 
@@ -73,7 +75,7 @@ Verdict: PASS. P0=0 P1=0.
 |---|---|---|---|
 | P3 | Live examples | Live ECB calls would make examples flaky and slow. | Compile-checked example uses a fake provider. README shows construction and usage but tests stay local. |
 
-Verdict: PASS. P0=0 P1=0.
+판정: PASS. P0=0 P1=0.
 
 ## Main Integration
 
@@ -94,7 +96,7 @@ Verdict: PASS. P0=0 P1=0.
 
 These run under both normal and race-detector gates.
 
-## Verification Evidence
+## 검증 증거
 
 ```bash
 node scripts/generate-money-exchange-rate-provider-diagram.mjs
@@ -121,7 +123,7 @@ Observed results:
 - `make test`, `make race`, `make ci`: pass.
 - `git diff --check`: pass.
 
-## Gate Verdict
+## 게이트 판정
 
 - P0: 0
 - P1: 0

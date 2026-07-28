@@ -1,12 +1,14 @@
 # Task 9 Review: Redis Distributed JWT Documentation and Examples
 
-Issue: #173
+> 한국어 리뷰 경계: 이 문서는 리뷰 판정과 근거를 한국어 독자가 추적할 수 있도록 정리한다. 심각도 토큰, 판정 토큰, 파일 경로, 라인 번호, 이슈/PR 번호, 명령, 코드 식별자는 원문의 증거 앵커로 보존한다.
+
+이슈: #173
 Plan: `docs/superpowers/plans/2026-06-12-issue-173-distributed-jwt-keychain-repositories-plan.md`
-Scope: T9 examples, README guidance, operator runbook, and benchmark chart references.
+범위: T9 examples, README guidance, operator runbook, and benchmark chart references.
 
-## Result
+## 결과
 
-Gate: PASS
+게이트: PASS
 
 - P0: 0
 - P1: 0
@@ -21,7 +23,7 @@ Gate: PASS
 - `docs/images/readme-charts/distributed-jwt-redis-benchmark.vl.json`
 - `docs/research/outputs/issue-173/distributed-jwt-redis-bench.txt`
 
-## Verification Evidence
+## 검증 증거
 
 ```bash
 gofmt -w jwt/redis/example_test.go
@@ -63,7 +65,7 @@ Evidence confirmed both README variants cover:
 
 `git diff --check` produced no whitespace errors.
 
-## Notes
+## 메모
 
 The benchmark section links to the SVG chart and raw output instead of restating
 all numbers inline. This keeps README guidance readable while preserving the

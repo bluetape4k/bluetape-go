@@ -1,13 +1,15 @@
 # Issue #207 Wildcard and Hash Utilities Step 2-R Spec Review
 
-Issue: #207
-Spec: `docs/superpowers/specs/2026-06-22-issue-207-wildcard-hash-utils-design.md`
-Gate: Step 2-R, 7-Tier spec review
-Date: 2026-06-22
-Worktree: `issue-207-wildcard-hash-utils`
-Base: `origin/develop` at `0ea2bfc`
+> 한국어 리뷰 경계: 이 문서는 리뷰 판정과 근거를 한국어 독자가 추적할 수 있도록 정리한다. 심각도 토큰, 판정 토큰, 파일 경로, 라인 번호, 이슈/PR 번호, 명령, 코드 식별자는 원문의 증거 앵커로 보존한다.
 
-## Reviewed Scope
+이슈: #207
+Spec: `docs/superpowers/specs/2026-06-22-issue-207-wildcard-hash-utils-design.md`
+게이트: Step 2-R, 7-Tier spec review
+날짜: 2026-06-22
+Worktree: `issue-207-wildcard-hash-utils`
+기준: `origin/develop` at `0ea2bfc`
+
+## 검토 범위
 
 - GitHub issue #207 objective, acceptance criteria, and parent epic #204
 - `docs/research/2026-06-21-issue-202-source-parity-matrix.md`
@@ -17,7 +19,7 @@ Base: `origin/develop` at `0ea2bfc`
 - Current Go package shape in `core` and `probabilistic`
 - Dependency evidence for `github.com/cespare/xxhash/v2`
 
-## Evidence
+## 증거
 
 | Check | Evidence | Status |
 |---|---|---|
@@ -29,7 +31,7 @@ Base: `origin/develop` at `0ea2bfc`
 | Whitespace gate | `git diff --check` passed after moving spec/plan into the feature worktree. | PASS |
 | Native subagent state | Prior stale-agent cleanup attempts hung until user interruption; further native lane spawning was explicitly avoided to keep progress moving. | UNAVAILABLE; main-session 7-tier fallback performed. |
 
-## Six Review Lanes
+## 6개 검토 관점
 
 | Lane | P0 | P1 | P2 | P3 | Verdict | Evidence |
 |---|---:|---:|---:|---:|---|---|
@@ -40,7 +42,7 @@ Base: `origin/develop` at `0ea2bfc`
 | Developer/API | 0 | 0 | 0 | 0 | PASS | API is small, pattern-first like Go matchers, error-returning for malformed patterns, and avoids generic object hashing. |
 | User/Caller | 0 | 0 | 0 | 0 | PASS | README obligations cover syntax, case sensitivity, lexical path matching, portability limits, non-crypto warning, and excluded JVM helpers. |
 
-## Main Integration Review
+## 메인 통합 검토
 
 The spec satisfies #207 while staying Go-native:
 
@@ -54,11 +56,11 @@ The spec satisfies #207 while staying Go-native:
 - The dependency choice is bounded to `github.com/cespare/xxhash/v2`, already
   present indirectly and suited to XXH64 only.
 
-## Findings Convergence
+## 발견 사항 수렴
 
 No P0/P1 findings were found. No spec edits were required after review.
 
-## Verdict
+## 판정
 
 P0=0 P1=0
 

@@ -1,6 +1,8 @@
 # Issue #310 Libvips Evaluation Review
 
-## Scope
+> 한국어 리뷰 경계: 이 문서는 리뷰 판정과 근거를 한국어 독자가 추적할 수 있도록 정리한다. 심각도 토큰, 판정 토큰, 파일 경로, 라인 번호, 이슈/PR 번호, 명령, 코드 식별자는 원문의 증거 앵커로 보존한다.
+
+## 범위
 
 - Diff base: `origin/develop`
 - Module slice: `examples/imagekit-govips` nested optional module plus research/docs.
@@ -8,7 +10,7 @@
   not available in this Codex surface, so the current session performed each
   lane directly and recorded the fallback.
 
-## Six-Lane Findings
+## 6개 관점 발견 사항
 
 | Lane | Reviewed Evidence | P0 | P1 | P2 | P3 | Verdict |
 |---|---|---:|---:|---:|---:|---|
@@ -34,7 +36,7 @@ Findings:
 - `adapter_test.go:121` is the parallel caller coverage; `go test -race ./...`
   passed for the nested module.
 
-## Integration Verdict
+## 통합 판정
 
 P0 = 0, P1 = 0.
 

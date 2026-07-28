@@ -1,9 +1,11 @@
 # Issue #175 Step 6-R Code Review
 
-Issue: #175
-Date: 2026-06-14
-Branch: `issue-175-jwt-provider-cache-adapters`
-Gate: 7-Tier = 6 independent lanes + main integration review
+> 한국어 리뷰 경계: 이 문서는 리뷰 판정과 근거를 한국어 독자가 추적할 수 있도록 정리한다. 심각도 토큰, 판정 토큰, 파일 경로, 라인 번호, 이슈/PR 번호, 명령, 코드 식별자는 원문의 증거 앵커로 보존한다.
+
+이슈: #175
+날짜: 2026-06-14
+브랜치: `issue-175-jwt-provider-cache-adapters`
+게이트: 7-Tier = 6 independent lanes + main integration review
 Wait SLA: subagent wait max 10 minutes; long blocking wait is forbidden.
 Timeout retry rule: if a lane is closed after exceeding the 10-minute SLA,
 rerun that lane up to 3 times before final main-session fallback.
@@ -11,7 +13,7 @@ rerun that lane up to 3 times before final main-session fallback.
 This Step 6-R was redone because the earlier review attempt did not preserve
 the required 6 independent lanes + main integration shape consistently enough.
 
-## Reviewed Scope
+## 검토 범위
 
 - JWT provider cache adapters:
   - `jwt/cache_options.go`
@@ -34,7 +36,7 @@ the required 6 independent lanes + main integration shape consistently enough.
   - `docs/images/readme-diagrams/jwt-provider-cache-adapter-flow.*`
   - `scripts/generate-jwt-provider-cache-adapter-diagram.mjs`
 
-## Initial Lane Results
+## 초기 관점 결과
 
 | Tier | Perspective | Agent | Verdict | P0 | P1 | P2 | P3 |
 |---|---|---|---:|---:|---:|---:|---:|
@@ -106,7 +108,7 @@ Security evidence:
 No remaining P0/P1 security issue is visible after retry plus main integration
 review.
 
-## Validation Evidence
+## 검증 증거
 
 - `node scripts/generate-jwt-provider-cache-adapter-diagram.mjs`
   - PASS: `nodes=11 routes=9 segments=18 badEndpointAngle=0 badBends=0 interiorCrossings=0 nodeOverlaps=0 laneClearance=0 marginImbalance=0 margins=L48/R48/T48/B48 titleGap=58`
@@ -148,7 +150,7 @@ Stale evidence note:
   - `lint` reported SA1012 for intentional nil-context contract tests.
   Both were fixed before the final successful `make ci`.
 
-## Main Integration Verdict
+## 메인 통합 판정
 
 APPROVE.
 
@@ -162,7 +164,7 @@ gate for Step 6-R is closed.
 
 ## DoD
 
-| Item | Status |
+| 항목 | 상태 |
 |---|---|
 | Six independent lanes run | Done |
 | Main integration review run | Done |

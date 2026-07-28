@@ -1,6 +1,8 @@
 # Issue #205 Step 3-R Plan Review
 
-## Scope
+> 한국어 리뷰 경계: 이 문서는 리뷰 판정과 근거를 한국어 독자가 추적할 수 있도록 정리한다. 심각도 토큰, 판정 토큰, 파일 경로, 라인 번호, 이슈/PR 번호, 명령, 코드 식별자는 원문의 증거 앵커로 보존한다.
+
+## 범위
 
 - Plan: `docs/superpowers/plans/2026-06-21-issue-205-foundation-hardening-plan.md`
 - Spec: `docs/superpowers/specs/2026-06-21-issue-205-foundation-hardening-design.md`
@@ -35,7 +37,7 @@ integration fallback instead of waiting further.
 | P1 | User/Caller | Plan lacked concrete migration examples for callers. | Resolved. Task 5 adds examples using `errors.Is(err, core.ErrInvalidUTF8)` and byte-helper/`BytesSerializer` fallback. |
 | P1 | User/Caller | Plan did not explicitly include URL62/Base64URL binary alternatives. | Resolved. Task 2 binary decoder tests include `DecodeURL62` and `DecodeBase64URL`; Task 5 README checks require both names. |
 
-## Checklist
+## 체크리스트
 
 | Check | Status | Evidence |
 |---|---|---|
@@ -46,7 +48,7 @@ integration fallback instead of waiting further.
 | Dependency/source checks assigned | PASS | API Decision and Task 6 require `go list -deps ./codec ./serialization` to confirm the intentional `core` dependency. |
 | P0/P1 convergence | PASS | All initial P1 items have required plan edits; latest integrated table is P0=0 P1=0. |
 
-## Verdict
+## 판정
 
 Step 3-R PASS.
 

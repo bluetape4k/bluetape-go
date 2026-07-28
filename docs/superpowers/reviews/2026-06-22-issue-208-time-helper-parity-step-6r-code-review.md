@@ -1,16 +1,18 @@
 # Issue #208 Step 6-R Code Review
 
-Issue: #208
-Milestone: 0.6.3
-Date: 2026-06-22
+> 한국어 리뷰 경계: 이 문서는 리뷰 판정과 근거를 한국어 독자가 추적할 수 있도록 정리한다. 심각도 토큰, 판정 토큰, 파일 경로, 라인 번호, 이슈/PR 번호, 명령, 코드 식별자는 원문의 증거 앵커로 보존한다.
 
-## Execution Note
+이슈: #208
+Milestone: 0.6.3
+날짜: 2026-06-22
+
+## 실행 메모
 
 Native subagent unavailable/stale cleanup hang; main-session 7-tier fallback
 performed. Six independent perspectives were reviewed locally, and this
 session owns the integration verdict.
 
-## Scope Reviewed
+## 검토 범위
 
 - `core/time.go`
 - `core/time_test.go`
@@ -20,7 +22,7 @@ session owns the integration verdict.
 - `core/README.ko.md`
 - #208 spec and plan artifacts under `docs/superpowers/`
 
-## Evidence
+## 증거
 
 - `go test -count=1 ./core` passed.
 - `go test -race -count=1 ./core` passed.
@@ -32,7 +34,7 @@ session owns the integration verdict.
 - `make ci` passed.
 - `git diff --check` passed.
 
-## 7-Tier Findings
+## 7-Tier 발견 사항
 
 | Tier | Perspective | P0 | P1 | P2/P3 Notes |
 |---|---:|---:|---:|---|
@@ -44,7 +46,7 @@ session owns the integration verdict.
 | 6 | User/Caller | 0 | 0 | Example tests and README snippets cover quarter windows and reporting date iteration. |
 | 7 | Integration | 0 | 0 | Implementation matches spec exclusions and #208 DoD; full `make ci` evidence is green. |
 
-## Findings
+## 발견 사항
 
 | Priority | Area | Finding | Resolution |
 |---|---|---|---|
@@ -52,6 +54,6 @@ session owns the integration verdict.
 
 No P0/P1 findings remain.
 
-## Verdict
+## 판정
 
 P0 = 0, P1 = 0. Step 6-R is closed for commit and PR creation.

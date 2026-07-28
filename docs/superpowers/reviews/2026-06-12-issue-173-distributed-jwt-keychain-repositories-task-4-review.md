@@ -1,15 +1,17 @@
 # Issue #173 Task 4 Review
 
-Issue: #173
-Task: Redis DTO Codec and Secret-Safe Validation
-Date: 2026-06-12
+> 한국어 리뷰 경계: 이 문서는 리뷰 판정과 근거를 한국어 독자가 추적할 수 있도록 정리한다. 심각도 토큰, 판정 토큰, 파일 경로, 라인 번호, 이슈/PR 번호, 명령, 코드 식별자는 원문의 증거 앵커로 보존한다.
 
-## Scope
+이슈: #173
+Task: Redis DTO Codec and Secret-Safe Validation
+날짜: 2026-06-12
+
+## 범위
 
 - `jwt/redis_dto.go`
 - `jwt/redis_dto_test.go`
 
-## TDD Evidence
+## TDD 증거
 
 | Phase | Evidence | Status |
 | --- | --- | --- |
@@ -29,7 +31,7 @@ Date: 2026-06-12
 | Errors do not leak key material. | `TestDTOErrorsDoNotLeakKeyMaterial`. | PASS |
 | No public raw-key repository helper was added. | DTO codec remains package-private inside `jwt`; public raw-key helper search found no new production helper. | PASS |
 
-## Verdict
+## 판정
 
 P0=0 P1=0
 

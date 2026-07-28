@@ -1,10 +1,12 @@
 # Issue #173 Task 8 Review
 
-Issue: #173
-Task: Benchmarks and Chart Asset Gate
-Date: 2026-06-12
+> 한국어 리뷰 경계: 이 문서는 리뷰 판정과 근거를 한국어 독자가 추적할 수 있도록 정리한다. 심각도 토큰, 판정 토큰, 파일 경로, 라인 번호, 이슈/PR 번호, 명령, 코드 식별자는 원문의 증거 앵커로 보존한다.
 
-## Scope
+이슈: #173
+Task: Benchmarks and Chart Asset Gate
+날짜: 2026-06-12
+
+## 범위
 
 - `jwt/redis_benchmark_test.go`
 - `docs/research/outputs/issue-173/distributed-jwt-redis-bench.txt`
@@ -54,7 +56,7 @@ Stored benchmark snapshot:
 - `Rotate` empty/expired: one Lua read phase, one provider `create`, one Lua/CAS store phase.
 - `ForcedRotate`: one provider `create`, one Lua/store phase.
 
-## Verdict
+## 판정
 
 P0=0 P1=0
 

@@ -1,18 +1,20 @@
 # Issue 569 Redis Foundation Spec Review
 
-Date: 2026-07-10 KST
-Gate: Step 2-R
-Spec: `docs/superpowers/specs/2026-07-10-issue-569-redis-foundation-spec.md`
-Branch: `feat/issue-569-redis-foundation`
+> 한국어 리뷰 경계: 이 문서는 리뷰 판정과 근거를 한국어 독자가 추적할 수 있도록 정리한다. 심각도 토큰, 판정 토큰, 파일 경로, 라인 번호, 이슈/PR 번호, 명령, 코드 식별자는 원문의 증거 앵커로 보존한다.
 
-## Reviewed Scope
+날짜: 2026-07-10 KST
+게이트: Step 2-R
+Spec: `docs/superpowers/specs/2026-07-10-issue-569-redis-foundation-spec.md`
+브랜치: `feat/issue-569-redis-foundation`
+
+## 검토 범위
 
 - New public `redis` package design with package name `btredis`.
 - Key builder, hash-tag, owner-token, lease, script helper, TTL, and error
   contracts.
 - Test, documentation, release evidence, and migration boundaries.
 
-## Evidence
+## 증거
 
 - `gh issue view 569`: issue is open, assigned to `debop`, milestone `0.19.0`.
 - Worktree `.worktrees/issue-569-redis-foundation` from `develop`.
@@ -78,7 +80,7 @@ Branch: `feat/issue-569-redis-foundation`
 | 5 | Developer/API | 0 | 0 | P2 suggestions on OpError construction, TTL ordering, and structural terminal were applied. |
 | 6 | User/Caller | 0 | 0 | No P0/P1; P2/P3 guidance incorporated through docs/example acceptance. |
 
-## Integrated Verdict
+## 통합 판정
 
 P0=0 P1=0
 

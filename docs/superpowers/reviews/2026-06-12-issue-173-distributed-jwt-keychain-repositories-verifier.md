@@ -1,14 +1,16 @@
 # Issue #173 Verifier: Redis Distributed JWT KeyChain Repositories
 
-Gate: PASS
+> 한국어 리뷰 경계: 이 문서는 리뷰 판정과 근거를 한국어 독자가 추적할 수 있도록 정리한다. 심각도 토큰, 판정 토큰, 파일 경로, 라인 번호, 이슈/PR 번호, 명령, 코드 식별자는 원문의 증거 앵커로 보존한다.
+
+게이트: PASS
 
 - P0: 0
 - P1: 0
 - P2: 0
 
-## Validation Commands
+## 검증 명령
 
-| Command | Result |
+| 명령 | 결과 |
 | --- | --- |
 | `gofmt -w jwt/*.go jwt/redis/*.go` | PASS |
 | `go test -p 1 -count=1 ./jwt ./jwt/redis` | PASS: `jwt` 12.367s, `jwt/redis` 0.271s after lint fixes |
@@ -68,7 +70,7 @@ with readable axes, values, and no overlapping panel labels.
 | Redis trim and TTL validation handle skew/latency edge cases. | `TestRepositoryCapacityTrimSkipsCandidateWithoutExceedingCapacity`; `TestRepositoryConfiguredKeyTTLUsesKeyValidityNotStoreClock`; Lua trim removes non-candidate keys until capacity is satisfied. | PASS |
 | Examples avoid reusing bootstrap timeout contexts as operation contexts. | README pair and `jwt/redis/example_test.go` use `setupCtx` for constructors and `opCtx` for distributed operations. | PASS |
 
-## Notes
+## 메모
 
 `make ci` initially failed on lint issues in the new JWT examples and tests, plus
 stale golangci cache references to a removed sibling worktree. The JWT issues

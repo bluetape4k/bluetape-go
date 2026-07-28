@@ -1,7 +1,9 @@
 # Issue #592 Probabilistic Redis Key Builder Plan Review
 
-Date: 2026-07-10 KST
-Gate: Step 3-R
+> 한국어 리뷰 경계: 이 문서는 리뷰 판정과 근거를 한국어 독자가 추적할 수 있도록 정리한다. 심각도 토큰, 판정 토큰, 파일 경로, 라인 번호, 이슈/PR 번호, 명령, 코드 식별자는 원문의 증거 앵커로 보존한다.
+
+날짜: 2026-07-10 KST
+게이트: Step 3-R
 Plan: `docs/superpowers/plans/2026-07-10-issue-592-probabilistic-redis-keybuilder-plan.md`
 Spec: `docs/superpowers/specs/2026-07-10-issue-592-probabilistic-redis-keybuilder-spec.md`
 Baseline: `9b8a0a1a80a041b0796bbe27ff9ee987db159c4b`
@@ -14,7 +16,7 @@ Baseline: `9b8a0a1a80a041b0796bbe27ff9ee987db159c4b`
 
 The plan was amended before this review closed.
 
-## Converged Perspectives
+## 수렴된 관점
 
 | Perspective | P0 | P1 | P2 | P3 | Evidence |
 |---|---:|---:|---:|---:|---|
@@ -25,7 +27,7 @@ The plan was amended before this review closed.
 | Developer/API | 0 | 0 | 0 | 0 | Task 0 commits design artifacts before RED; the amended direct-adapter test makes the construction migration observable. |
 | User/Caller | 0 | 0 | 0 | 0 | Existing namespace, public error, and stored-key behavior are explicit regression contracts; README is correctly N/A. |
 
-## Integration Verdict
+## 통합 판정
 
 The amended plan maps all eight specification invariants to concrete tasks and
 commands. It has no task that depends on a later task. No placeholder scan
@@ -33,7 +35,7 @@ findings remain.
 
 P0=0 P1=0 P2=0 P3=0
 
-## Rejected With Rationale
+## 근거와 함께 거절함
 
 | Rejected item | Rationale |
 |---|---|

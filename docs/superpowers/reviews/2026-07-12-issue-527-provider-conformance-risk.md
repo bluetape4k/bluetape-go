@@ -1,5 +1,7 @@
 # Issue #527 Provider Conformance Pre-Implementation Risk Record
 
+> 한국어 리뷰 경계: 이 문서는 리뷰 판정과 근거를 한국어 독자가 추적할 수 있도록 정리한다. 심각도 토큰, 판정 토큰, 파일 경로, 라인 번호, 이슈/PR 번호, 명령, 코드 식별자는 원문의 증거 앵커로 보존한다.
+
 **Milestone:** 0.19.0
 **Plan commit:** `bf0afa92c31059350778252213e2debc18b0514e`
 **Recorded before source changes:** yes
@@ -8,7 +10,7 @@
 
 The approved plan passed the required plan review with P0=0 and P1=0 across performance, stability, security, operator/Ops, developer/API, and user/caller perspectives. The operator lane did not conclude within its bounded review window, so `lane timed out; main integration fallback performed`. Main integration verified bounded retry and cleanup, TTL takeover, mixed-version migration, telemetry, canary, rollback, and container lifecycle requirements. The performance integration verified that normal paths add no storage schema or replay protocol, fault probes remain exceptional-path work, and the private nil-hook path has an allocation and latency regression gate.
 
-## Predicted Risks
+## 예측 위험
 
 | Risk | Detection signal | Mitigation and rerun gate | Rollback or recovery owner |
 |---|---|---|---|
@@ -90,7 +92,7 @@ The exact baseline command was rerun after the private nil hook:
 
 Allowed-path median changed from 113.9 to 115.5 ns/op (about +1.4%). Rejected-path median changed from 76.30 to 76.66 ns/op (about +0.5%). Both remain below the 10% investigation threshold.
 
-### Verification Commands
+### 검증 명령
 
 The following gates passed on the implementation diff:
 

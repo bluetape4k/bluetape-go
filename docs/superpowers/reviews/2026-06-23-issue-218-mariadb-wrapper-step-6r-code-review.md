@@ -1,15 +1,17 @@
 # Issue #218 Step 6-R Code Review
 
-Issue: [#218](https://github.com/bluetape4k/bluetape-go/issues/218)  
-Diff Base: `origin/develop` at `8c1a646`  
-Date: 2026-06-23
+> 한국어 리뷰 경계: 이 문서는 리뷰 판정과 근거를 한국어 독자가 추적할 수 있도록 정리한다. 심각도 토큰, 판정 토큰, 파일 경로, 라인 번호, 이슈/PR 번호, 명령, 코드 식별자는 원문의 증거 앵커로 보존한다.
 
-## Reviewed Scope
+이슈: [#218](https://github.com/bluetape4k/bluetape-go/issues/218)
+Diff Base: `origin/develop` at `8c1a646`
+날짜: 2026-06-23
+
+## 검토 범위
 
 - Database/storage roadmap matrix and MariaDB first-slice design.
 - New `testcontainers/mariadb` wrapper, tests, README pair, and module dependency.
 
-## Six-Lane Review
+## 6개 관점 검토
 
 | Tier | Perspective | P0 | P1 | P2 | P3 | Evidence |
 |---|---|---:|---:|---:|---:|---|
@@ -20,7 +22,7 @@ Date: 2026-06-23
 | 5 | Developer/API | 0 | 0 | 0 | 0 | API mirrors existing MySQL wrapper with `Start`, `StartServer`, and `DSNKey`; broader services are routed by matrix. |
 | 6 | User/Caller | 0 | 0 | 0 | 0 | Caller can use typed DSN or shared server connection details; docs include env export example. |
 
-## Validation Evidence
+## 검증 증거
 
 - `go test -p 1 -count=1 ./testcontainers/mariadb`
 - `go test -race -p 1 -count=1 ./testcontainers/mariadb`
@@ -34,7 +36,7 @@ Date: 2026-06-23
 - `make race`
 - `git diff --check`
 
-## Integrated Verdict
+## 통합 판정
 
 P0=0 P1=0
 

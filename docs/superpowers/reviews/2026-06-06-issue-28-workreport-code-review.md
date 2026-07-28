@@ -1,16 +1,18 @@
 # Issue 28 Workreport Code Review
 
-Issue: #28
-Gate: Step 6-R
-Status: PASS
+> 한국어 리뷰 경계: 이 문서는 리뷰 판정과 근거를 한국어 독자가 추적할 수 있도록 정리한다. 심각도 토큰, 판정 토큰, 파일 경로, 라인 번호, 이슈/PR 번호, 명령, 코드 식별자는 원문의 증거 앵커로 보존한다.
+
+이슈: #28
+게이트: Step 6-R
+상태: PASS
 Diff base: `origin/develop`
 Reviewed scope: `workreport/*`, `CHANGELOG.md`, `WIP.md`, `docs/lessons/2026-06-06-workreport-failure-policy.md`, issue #28 spec/plan/review artifacts.
 
-## Findings
+## 발견 사항
 
 No P0/P1/P2/P3 findings.
 
-## 7-Tier Review
+## 7-Tier 검토
 
 | Tier | P0 | P1 | P2 | P3 | Evidence |
 |---|---:|---:|---:|---:|---|
@@ -30,6 +32,6 @@ No P0/P1/P2/P3 findings.
 | Performance/stability scan | PASS | Step 4-P verifier section records no resource, goroutine, timer, IO, or lifecycle risks. |
 | Validation freshness | PASS | Targeted, race, full `./...`, lint-config, and whitespace checks passed after implementation. |
 
-## Convergence
+## 수렴
 
 P0=0 P1=0. Step 6-R is closed.

@@ -1,6 +1,8 @@
 # Issue #178 Money Exchange Rate Providers Step 2-R Spec Review
 
-## Scope
+> 한국어 리뷰 경계: 이 문서는 리뷰 판정과 근거를 한국어 독자가 추적할 수 있도록 정리한다. 심각도 토큰, 판정 토큰, 파일 경로, 라인 번호, 이슈/PR 번호, 명령, 코드 식별자는 원문의 증거 앵커로 보존한다.
+
+## 범위
 
 - Spec: `docs/superpowers/specs/2026-06-14-issue-178-money-exchange-rate-providers-design.md`
 - Research: `docs/superpowers/research/2026-06-14-issue-178-money-exchange-rate-providers-research.md`
@@ -10,7 +12,7 @@
 - Worktree: `.worktrees/issue-178-money-exchange-rate-providers`
 - Required reference: `/Users/debop/.codex/skills/bluetape4k-full-feature/references/step-2r-spec-review.md`
 
-## Execution Note
+## 실행 메모
 
 7-Tier gate shape is six independent lanes plus main integration review:
 performance, stability, security, operator/Ops, developer/API, user/caller,
@@ -21,7 +23,7 @@ instructed the main session to switch roles locally because native subagent
 lifecycle repeatedly stalled in this thread. This artifact records
 `main-role fallback performed per user instruction`.
 
-## Lane Results
+## 관점별 결과
 
 | Lane | P0 | P1 | P2 | P3 | Verdict | Evidence |
 |---|---:|---:|---:|---:|---|---|
@@ -32,7 +34,7 @@ lifecycle repeatedly stalled in this thread. This artifact records
 | Developer/API | 0 | 0 | 0 | 0 | PASS after edit | Initial P1: invalid options and nil provider behavior were under-specified. Fixed by requiring nil/typed-nil provider rejection and option validation. |
 | User/Caller | 0 | 0 | 0 | 0 | PASS | Spec separates value-only `Convert` from context-aware `ConvertWithProvider`, returns quote metadata, keeps README pair in scope, and links #231/#232. |
 
-## Integrated Findings
+## 통합 발견 사항
 
 | ID | Severity | Finding | Resolution |
 |---|---|---|---|
@@ -48,7 +50,7 @@ After the P1 edits:
 - Developer/API lane rechecked option validation, nil provider behavior, and Go-shaped public API.
 - Main integration rechecked #178 scope and follow-up split.
 
-## Convergence Verdict
+## 수렴 판정
 
 P0=0 P1=0.
 
@@ -56,7 +58,7 @@ Step 2-R PASS.
 
 ## Checklist Completion
 
-| Item | Status | Notes |
+| 항목 | 상태 | Notes |
 |---|---|---|
 | Six perspective lanes complete or fallback recorded | Done | Main-role fallback performed per user instruction. |
 | Tier 1 performance spec review complete | Done | P0=0 P1=0. |

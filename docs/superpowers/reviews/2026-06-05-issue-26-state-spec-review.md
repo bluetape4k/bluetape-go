@@ -1,9 +1,11 @@
 # Issue #26 State Spec Review
 
-Issue: #26
+> 한국어 리뷰 경계: 이 문서는 리뷰 판정과 근거를 한국어 독자가 추적할 수 있도록 정리한다. 심각도 토큰, 판정 토큰, 파일 경로, 라인 번호, 이슈/PR 번호, 명령, 코드 식별자는 원문의 증거 앵커로 보존한다.
+
+이슈: #26
 Milestone: 0.4.0
-Date: 2026-06-05
-Gate: Step 2-R
+날짜: 2026-06-05
+게이트: Step 2-R
 Reviewed spec: `docs/superpowers/specs/2026-06-05-issue-26-state-spec.md`
 Research: `docs/superpowers/research/2026-06-05-issue-26-state-inventory.md`
 
@@ -23,7 +25,7 @@ spawning only when the user explicitly requests sub-agent or parallel-agent
 work. The gate therefore uses the skill's allowed local-equivalent independent
 lanes.
 
-## Scope
+## 범위
 
 - Public `state` package API for states, events, transitions, guards, results,
   and errors.
@@ -60,7 +62,7 @@ Out of scope:
 | Tier 6 Performance/stability | 0 | 1 | 0 | 0 | Guard execution outside lock is specified, but context recheck and concurrent loser behavior needed tighter test requirements. |
 | Tier 7 Docs/release/evidence | 0 | 1 | 0 | 0 | README/Go doc must distinguish registered events from guard-approved transitions. |
 
-## Integrated Findings
+## 통합 발견 사항
 
 | ID | Severity | Finding | Required spec change | Resolution |
 |---|---|---|---|---|
@@ -112,7 +114,7 @@ Rejected during review:
 
 Open questions for user: none.
 
-## Convergence Verdict
+## 수렴 판정
 
 P0=0 P1=0
 
@@ -122,7 +124,7 @@ Step 2-R gate status: PASS. The spec may proceed to Step 3 plan authoring.
 
 ### Step 2-R Checklist Completion Report
 
-| Item | Status | Notes |
+| 항목 | 상태 | Notes |
 |------|--------|-------|
 | Four perspective reviews complete | Done | Developer/API, security, Ops/SRE, and user/caller perspectives recorded. |
 | Selected Step 2-R native subagent lanes complete or local-equivalent reason recorded | Done | Local-equivalent used because subagent tool requires explicit user request for sub-agent work. |
