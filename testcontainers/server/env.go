@@ -7,10 +7,10 @@ import (
 	"testing"
 )
 
-// ErrInvalidEnvName reports that an environment export target is blank.
+// ErrInvalidEnvName Testcontainers fixture에서 반환값과 오류 의미를 설명한다.
 var ErrInvalidEnvName = errors.New("invalid environment variable name")
 
-// ExportEnv maps connection details into test-scoped environment variables.
+// ExportEnv Testcontainers fixture에서 동작과 caller-visible 계약을 설명한다.
 func ExportEnv(tb testing.TB, details ConnectionDetails, names map[string]string) error {
 	tb.Helper()
 

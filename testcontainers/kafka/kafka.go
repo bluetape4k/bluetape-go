@@ -15,13 +15,13 @@ const (
 	defaultImage     = "confluentinc/confluent-local:7.5.0"
 	defaultClusterID = "bluetape-test-cluster"
 
-	// BrokersKey is the documented key for the Kafka broker address list.
+	// BrokersKey Testcontainers fixture에서 caller-visible 상태와 의미를 설명한다.
 	BrokersKey = "kafka.brokers"
 )
 
 var errEmptyBrokers = errors.New("empty broker list")
 
-// Start launches a Kafka test container and returns broker addresses.
+// Start Testcontainers fixture에서 반환값과 오류 의미를 설명한다.
 func Start(ctx context.Context, tb testing.TB) []string {
 	tb.Helper()
 
@@ -32,7 +32,7 @@ func Start(ctx context.Context, tb testing.TB) []string {
 	return brokers
 }
 
-// StartServer launches a Kafka test container and returns the shared server view.
+// StartServer Testcontainers fixture에서 반환값과 오류 의미를 설명한다.
 func StartServer(ctx context.Context, tb testing.TB) *tcserver.Started {
 	tb.Helper()
 
