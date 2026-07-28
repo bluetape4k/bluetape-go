@@ -1,30 +1,30 @@
-# Graph Backend Adapter Order
+# Graph backend adapter 순서
 
-Date: 2026-06-30
-Issue: #50
-Milestone: 0.10.0
+일자: 2026-06-30
+이슈: #50
+마일스톤: 0.10.0
 
-## Lesson
+## 교훈
 
-Backend adapter work should start with one driver-proven package, not a common
-repository/session abstraction. Neo4j is the only evaluated backend with an
-official Go driver, active releases, context-aware API shape, and a dedicated
-Testcontainers Go module. Memgraph belongs next as compatibility coverage on
-that driver path, not as a new abstraction.
+Backend adapter 작업은 common repository/session abstraction이 아니라 driver로 검증된
+하나의 package에서 시작해야 한다. Neo4j는 official Go driver, active release,
+context-aware API shape, 전용 Testcontainers Go module을 모두 갖춘 유일한 평가 backend다.
+Memgraph는 새 abstraction이 아니라 이 Neo4j-driver 경로의 compatibility coverage로 다음에
+둔다.
 
-AGE, FalkorDB, TinkerPop/TinkerGraph, and Neptune stay deferred or rejected for
-the first Go adapter slice because their local-test, driver, or managed-service
-shape would force more infrastructure than the current graph API can justify.
+AGE, FalkorDB, TinkerPop/TinkerGraph, Neptune은 local-test, driver, managed-service
+형태 때문에 현재 graph API가 정당화할 수 있는 것보다 많은 infrastructure를 요구하므로
+첫 Go adapter 범위에서는 보류하거나 제외한다.
 
-## Applied Follow-Ups
+## 적용된 후속 작업
 
-- #365 owns the first Neo4j adapter proof.
-- #366 owns Memgraph compatibility against the Neo4j-driver path.
-- #51 examples should use `graph` and `graph/graphio` first; backend examples
-  can wait until #365 has a proven package boundary.
+- #365가 첫 Neo4j adapter proof를 소유한다.
+- #366이 Neo4j-driver 경로에 대한 Memgraph compatibility를 소유한다.
+- #51 example은 먼저 `graph`와 `graph/graphio`를 사용한다. Backend example은 #365가
+  검증된 package boundary를 가진 뒤 진행한다.
 
-## Guardrail
+## 가드레일
 
-Do not add backend-independent graph repository, session, schema, transaction,
-or query interfaces until at least one backend adapter and one domain example
-prove the shared behavior in Go.
+최소 하나의 backend adapter와 하나의 domain example이 Go에서 shared behavior를 증명하기
+전까지 backend-independent graph repository, session, schema, transaction, query
+interface를 추가하지 않는다.

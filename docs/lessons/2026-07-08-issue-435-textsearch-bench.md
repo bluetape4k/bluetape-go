@@ -1,17 +1,18 @@
-# Issue #435 Textsearch Benchmark Lesson
+# Issue #435 Textsearch Benchmark 교훈
 
-Raw Aho-Corasick speed is not enough to justify replacing `textsearch`.
+Raw Aho-Corasick 속도만으로 `textsearch` 교체를 정당화할 수는 없다.
 
-- Benchmark external engines only against comparable raw matching behavior;
-  keep normalization, original byte spans, boundaries, replacement, masking, and
-  blockword processing measured on the first-party API.
-- A production replacement needs both a measured caller bottleneck and semantic
-  parity proof. A microbenchmark win alone should stay as evidence, not a
-  dependency decision.
-- Cloudflare is a strong steady-state raw matcher candidate, but its build
-  allocation and untagged module version need adoption caution.
-- RRethy is attractive for large-dictionary compile cost, but its smaller
-  adoption signal and allocating match API need caller-specific profiling.
-- Keep benchmark outputs with environment metadata so later optimization work
-  can compare against the same dictionary and input shapes instead of repeating
-  ecosystem research.
+- external engine benchmark는 비교 가능한 raw matching behavior에만 맞춘다.
+  normalization, original byte span, boundary, replacement, masking, blockword
+  processing은 first-party API에서 측정해야 한다.
+- production replacement에는 측정된 caller bottleneck과 semantic parity proof가
+  모두 필요하다. microbenchmark 승리는 dependency decision이 아니라 evidence로
+  남긴다.
+- Cloudflare는 steady-state raw matcher 후보로 강하지만 build allocation과
+  untagged module version 때문에 adoption에는 주의가 필요하다.
+- RRethy는 large-dictionary compile cost 측면에서 매력적이지만 adoption signal이
+  작고 match API가 allocation을 만들기 때문에 caller-specific profiling이
+  필요하다.
+- benchmark output에는 environment metadata를 함께 보존해, 이후 optimization
+  작업이 ecosystem research를 반복하지 않고 같은 dictionary와 input shape로
+  비교할 수 있게 한다.

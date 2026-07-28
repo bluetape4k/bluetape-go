@@ -1,12 +1,12 @@
-# Graph Research Ordering
+# Graph Research Ordering 교훈
 
-When a bluetape-go research issue maps to a large Kotlin source module, do not
-start by porting the broadest source abstraction. First rank the Go caller value,
-driver maturity, and local-test story.
+bluetape-go research issue가 큰 Kotlin source module에 mapping되더라도 가장 넓은
+source abstraction을 port하는 것으로 시작하지 않는다. 먼저 Go caller value, driver
+maturity, local-test story를 순위화한다.
 
-For the graph track, the evidence points to NDJSON/CSV I/O and one concrete
-domain example before a backend-independent repository/session contract. Neo4j is
-the first backend candidate because it has official Go driver and Testcontainers
-support. Memgraph should begin as Neo4j-driver compatibility coverage. AGE,
-FalkorDB, TinkerGraph, GraphML, and Kotlin web integration parity stay deferred
-until smaller Go proofs justify them.
+graph track에서 evidence는 backend-independent repository/session contract 전에
+NDJSON/CSV I/O와 하나의 concrete domain example을 가리킨다. Neo4j는 official Go
+driver와 Testcontainers support가 있으므로 첫 backend candidate다. Memgraph는
+Neo4j-driver compatibility coverage로 시작해야 한다. AGE, FalkorDB, TinkerGraph,
+GraphML, Kotlin web integration parity는 더 작은 Go proof가 정당화할 때까지 deferred로
+둔다.

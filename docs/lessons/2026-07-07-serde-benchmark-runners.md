@@ -1,21 +1,20 @@
-# SerDe Benchmark Runner Scope
+# SerDe benchmark runner 범위
 
-Issue #400 turns the #399 fixture matrix into runnable Go benchmark entry
-points without changing production APIs.
+Issue #400은 production API를 바꾸지 않고 #399 fixture matrix를 runnable Go benchmark entry
+point로 만든다.
 
-## Lessons
+## 교훈
 
-- Keep benchmark fixtures in `_test.go` when the package does not own reusable
-  fixture APIs. Cross-repo fixture names are a documentation contract, not a
-  reason to export production symbols.
-- Document codec exclusions beside the command. Large Base58/Base62 byte-array
-  rows would measure the current division-based alphabet implementation more
-  than a realistic SerDe transport path.
-- Make artifact-producing commands explicit even before the artifact format is
-  finalized. `tee docs/research/outputs/issue-400/...` gives #401 a concrete
-  retention target without settling metadata too early.
+- Package가 reusable fixture API를 소유하지 않는다면 benchmark fixture는 `_test.go`에 둔다.
+  Cross-repo fixture name은 documentation contract이지 production symbol을 export할 이유가
+  아니다.
+- Codec exclusion은 command 옆에 문서화한다. 큰 Base58/Base62 byte-array row는 현실적인
+  SerDe transport path보다 현재 division-based alphabet implementation을 더 크게 측정한다.
+- Artifact-producing command는 artifact format이 최종화되기 전에도 명시한다.
+  `tee docs/research/outputs/issue-400/...`는 metadata를 너무 일찍 고정하지 않으면서도
+  #401에 구체적인 retention target을 제공한다.
 
-## Evidence
+## 증거
 
 - `serialization/serialization_benchmark_test.go`
 - `codec/codec_benchmark_test.go`

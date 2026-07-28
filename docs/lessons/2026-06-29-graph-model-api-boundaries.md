@@ -1,43 +1,38 @@
-# Graph Model API Boundaries
+# Graph model API 경계
 
-Date: 2026-06-29
-Issue: #48
-Milestone: 0.10.0
+일자: 2026-06-29
+이슈: #48
+마일스톤: 0.10.0
 
-## Decision
+## 결정
 
-The first `graph` package is a model-only package. It defines validated graph
-values for vertices, edges, paths, labels, IDs, shallow properties, and JSON
-round trips, but it deliberately avoids repository, session, schema, query,
-transaction, backend, algorithm, and capability interfaces.
+첫 `graph` package는 model-only package다. Vertex, edge, path, label, ID, shallow
+property, JSON round trip을 위한 validated graph value를 정의하지만 repository,
+session, schema, query, transaction, backend, algorithm, capability interface는
+의도적으로 제외한다.
 
-## Why
+## 이유
 
-The 0.10.0 graph milestone still needs proof from #49 graph I/O helpers, #50
-backend adapter evaluation, and #51 domain examples before broader contracts can
-be made stable. Adding those abstractions in #48 would freeze guesses before the
-shared behavior is known.
+0.10.0 graph milestone은 더 넓은 contract를 안정화하기 전에 #49 graph I/O helper,
+#50 backend adapter evaluation, #51 domain example의 증거가 필요하다. #48에서
+abstraction을 추가하면 shared behavior가 알려지기 전에 추측을 고정하게 된다.
 
-## API Boundaries
+## API 경계
 
-- Edge endpoints use named structs so the directed roles are visible at the
-  callsite.
-- `PathStep` constructors validate vertex and edge values so invalid step shapes
-  are not silently created through public helpers.
-- `Path` validates step values and aggregate weight only. It does not validate
-  endpoint continuity or traversal correctness; later algorithms and adapters
-  own those invariants.
-- Struct fields stay unexported and accessors return shallow defensive copies.
-- `Properties` copies only the map boundary. Nested mutable values remain
-  caller-owned and must be copied or sanitized by future I/O/backend adapters
-  before trust boundaries.
-- `ValidationError` keeps typed category, field, redacted summary, and cause. It
-  must not store raw values.
-- `ErrUnsupportedCapability` is reserved for future capability boundaries and is
-  not returned by #48 constructors.
+- Edge endpoint는 named struct를 사용해 directed role이 callsite에서 보이게 한다.
+- `PathStep` constructor는 vertex와 edge value를 검증해 invalid step shape가 public
+  helper로 조용히 생성되지 않게 한다.
+- `Path`는 step value와 aggregate weight만 검증한다. Endpoint continuity나 traversal
+  correctness는 검증하지 않으며, 이후 algorithm과 adapter가 그 invariant를 소유한다.
+- Struct field는 unexported로 유지하고 accessor는 shallow defensive copy를 반환한다.
+- `Properties`는 map boundary만 copy한다. Nested mutable value는 caller-owned로 남으며,
+  미래 I/O/backend adapter가 trust boundary 전에 copy하거나 sanitize해야 한다.
+- `ValidationError`는 typed category, field, redacted summary, cause를 보존한다. Raw
+  value를 저장하면 안 된다.
+- `ErrUnsupportedCapability`는 미래 capability boundary를 위해 예약하며 #48 constructor는
+  이를 반환하지 않는다.
 
-## Verification Notes
+## 검증 메모
 
-The implementation must keep `go test -count=1 ./graph`,
-`go test -race -count=1 ./graph`, `go doc ./graph`, README parity, and Step 6-R
-P0/P1 gates green before PR creation.
+구현은 PR creation 전에 `go test -count=1 ./graph`, `go test -race -count=1 ./graph`,
+`go doc ./graph`, README parity, Step 6-R P0/P1 gate를 green으로 유지해야 한다.

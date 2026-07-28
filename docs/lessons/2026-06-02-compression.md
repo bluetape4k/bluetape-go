@@ -1,7 +1,7 @@
 # Compression
 
-Issue #13 keeps compression as explicit algorithm adapters with a shared stream
-contract. Use stdlib for gzip, zlib, and raw DEFLATE; add direct dependencies
-only for algorithms absent from stdlib and valuable for service payloads:
-zstd, lz4, and snappy. Defer bzip2 compression, zip archives, brotli, and s2
-until a concrete compatibility or performance issue needs them.
+Issue #13은 compression을 shared stream contract를 가진 explicit algorithm
+adapter로 유지한다. gzip, zlib, raw DEFLATE는 stdlib를 사용하고, stdlib에 없지만
+service payload에 가치가 있는 zstd, lz4, snappy만 direct dependency로 추가한다.
+bzip2 compression, zip archive, brotli, s2는 구체적인 compatibility 또는
+performance issue가 생길 때까지 defer한다.

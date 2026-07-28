@@ -1,52 +1,50 @@
-# Lessons Learned - Resilience Observability Hooks (2026-06-03)
+# Resilience Observability Hooks Lessons (2026-06-03)
 
 Related issue: #21
 Affected module: `resilience`
 
-## L1: Stabilize low-cardinality labels before telemetry adapters
+## L1: telemetry adapter보다 low-cardinality label을 먼저 안정화한다
 
-### Problem
+### 문제
 
-Retry, timeout, circuit breaker, and bulkhead already emitted some events, but
-callers had to treat event kind strings and policy type strings as ad hoc data.
-That makes HTTP middleware or future telemetry bridges brittle because they need
-stable labels before deciding how to map events to logs, counters, or spans.
+Retry, timeout, circuit breaker, bulkhead는 이미 일부 event를 emit했지만 caller는
+event kind string과 policy type string을 ad hoc data처럼 다뤄야 했다. HTTP
+middleware나 future telemetry bridge는 log, counter, span mapping 전에 stable
+label이 필요하므로 이 상태는 brittle하다.
 
-### Lesson
+### 교훈
 
-For first-party resilience policies, define the policy type, event category, and
-error category contract before adding exporters or middleware. Keep exporter
-dependencies out of the core package and let `OnEvent` bridge to the service's
-existing logging/metrics/tracing stack.
-
-### Evidence
-
-- `resilience/events.go` adds stable policy type, event category, and error
-  category constants without changing `EventHandler`.
-- `README.md`, `README.ko.md`, and `resilience/doc.go` document synchronous
-  handler behavior and the no-exporter boundary.
-- `go mod tidy && git diff --exit-code -- go.mod go.sum` confirms no runtime
-  dependency was added.
-
-## L2: Review every emission path against a dedicated regression test
-
-### Problem
-
-The first implementation added retry predicate-rejected failure emission, but
-the initial test set covered retry ordering and retry exhaustion only. That
-would have let a future change remove or mislabel predicate-rejected failures
-without failing a focused event test.
-
-### Lesson
-
-When a policy has multiple event-producing branches, Step 6-R should map each
-branch to a named regression test. If a branch is implemented but untested, fix
-the test gap before PR creation even when the branch is not the headline issue
-acceptance case.
+first-party resilience policy는 exporter나 middleware를 추가하기 전에 policy type,
+event category, error category contract를 정의한다. exporter dependency는 core
+package 밖에 두고, `OnEvent`가 service의 기존 logging/metrics/tracing stack으로
+bridge하게 한다.
 
 ### Evidence
 
-- Step 6-R recorded the missing predicate-rejected retry test as a P2 finding.
-- `TestRetryPredicateRejectedFailureEmitsFailureEvent` now locks that behavior.
-- `go test -count=1 ./resilience`, `go test -race -count=1 ./resilience`, and
-  `go test -count=1 ./...` pass after the fix.
+- `resilience/events.go`는 `EventHandler`를 바꾸지 않고 stable policy type, event
+  category, error category constant를 추가했다.
+- `README.md`, `README.ko.md`, `resilience/doc.go`는 synchronous handler behavior와
+  no-exporter boundary를 문서화했다.
+- `go mod tidy && git diff --exit-code -- go.mod go.sum`은 runtime dependency가
+  추가되지 않았음을 확인했다.
+
+## L2: 모든 emission path를 전용 regression test와 대조한다
+
+### 문제
+
+첫 구현은 retry predicate-rejected failure emission을 추가했지만 initial test set은
+retry ordering과 retry exhaustion만 다뤘다. focused event test가 없으면 future
+change가 predicate-rejected failure를 제거하거나 mislabel해도 실패하지 않는다.
+
+### 교훈
+
+policy에 여러 event-producing branch가 있으면 Step 6-R에서 각 branch를 named
+regression test에 mapping한다. branch가 구현됐지만 test되지 않았으면 headline
+acceptance case가 아니어도 PR creation 전에 test gap을 고친다.
+
+### Evidence
+
+- Step 6-R은 missing predicate-rejected retry test를 P2 finding으로 기록했다.
+- `TestRetryPredicateRejectedFailureEmitsFailureEvent`가 해당 behavior를 고정한다.
+- fix 이후 `go test -count=1 ./resilience`, `go test -race -count=1 ./resilience`,
+  `go test -count=1 ./...`가 통과했다.

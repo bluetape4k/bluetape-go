@@ -5,16 +5,14 @@ Milestone: 0.4.0
 
 ## Lesson
 
-Go FSM guards are ordinary caller code, so inspection APIs need clear semantics:
-`CanTransition` may execute a guard and therefore requires inquiry-safe guards,
-while `AllowedEvents` must stay a structural registry query that does not
-evaluate guards.
+Go FSM guard는 ordinary caller code이므로 inspection API의 semantics가 명확해야
+한다. `CanTransition`은 guard를 실행할 수 있으므로 inquiry-safe guard를 요구하고,
+`AllowedEvents`는 guard를 평가하지 않는 structural registry query로 유지한다.
 
 ## Applied Guardrails
 
-- Guards run outside the machine lock and the current state is rechecked before
-  commit.
-- Concurrent guarded transitions return one success and deterministic
-  `ErrConcurrentTransition` errors for losers.
-- `TransitionError` preserves both package sentinel errors and wrapped
-  guard/context causes for `errors.Is`.
+- guard는 machine lock 밖에서 실행하고, commit 전에 current state를 다시 확인한다.
+- concurrent guarded transition은 하나만 success하고 loser에게 deterministic
+  `ErrConcurrentTransition` error를 반환한다.
+- `TransitionError`는 package sentinel error와 wrapped guard/context cause를 모두
+  보존해 `errors.Is`가 동작하게 한다.

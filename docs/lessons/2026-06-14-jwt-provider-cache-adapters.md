@@ -1,71 +1,70 @@
-# Lessons Learned - JWT Provider Cache Adapters (2026-06-14)
+# JWT Provider Cache Adapter 교훈 (2026-06-14)
 
 **Related issue**: #175
 **Related PR**: #230
 **Affected modules**: `jwt`, `jwt/redis`, `testing/concurrency`
 
-## L1: Cached JWT readers need stale-hit revalidation tests
+## L1: Cached JWT reader에는 stale-hit revalidation test가 필요하다
 
-### Problem
+### 문제
 
-A cached `jwt.Reader` can become invalid after key rotation, algorithm changes,
-or removed key ids. Warm-hit tests alone do not prove that a stale cached reader
-is deleted and reparsed through the live provider path.
+cached `jwt.Reader`는 key rotation, algorithm 변경, key id 제거 뒤 invalid해질 수
+있다. warm-hit test만으로는 stale cached reader가 삭제되고 live provider path로 다시
+parse된다는 것을 증명하지 못한다.
 
-### Lesson
+### 교훈
 
-For JWT cache adapters, test both local and distributed stale-hit branches. Seed
-the cache with invalid reader states, verify delete/reparse behavior, and cover
-nil reader, wrong algorithm, unknown key id, and expired-key or expired-token
-no-recache cases.
+JWT cache adapter에서는 local 및 distributed stale-hit branch를 모두 test한다.
+invalid reader state로 cache를 seed하고 delete/reparse behavior를 검증하며, nil
+reader, wrong algorithm, unknown key id, expired-key 또는 expired-token no-recache
+case를 포함한다.
 
-### Evidence
+### 증거
 
 - `jwt/cached_provider_test.go`
 - `jwt/cached_distributed_provider_test.go`
-- Step 6-R Security lane reached `P0=0 P1=0` after stale-hit and TTL proof tests
-  were added.
+- stale-hit 및 TTL proof test를 추가한 뒤 Step 6-R Security lane은 `P0=0 P1=0`에
+  도달했다.
 
-## L2: Cancellation tests must prove no cache write completed
+## L2: Cancellation test는 cache write가 완료되지 않았음을 증명해야 한다
 
-### Problem
+### 문제
 
-An async cancellation test can pass by observing a canceled caller, while an
-in-flight cache owner still completes `Set` and leaves a stale entry behind.
-That is a correctness gap for context-aware cache APIs.
+async cancellation test는 caller가 canceled된 것만 관찰하고도 통과할 수 있다. 그동안
+in-flight cache owner가 여전히 `Set`을 완료해 stale entry를 남길 수 있다. 이는
+context-aware cache API의 correctness gap이다.
 
-### Lesson
+### 교훈
 
-Cancellation tests for cache adapters should assert both the caller-visible
-error and the storage side effect. Use the repository concurrency helpers where
-they fit, then assert no completed `Set` and no retained entry after the helper
-returns.
+cache adapter의 cancellation test는 caller-visible error와 storage side effect를 모두
+assert해야 한다. 맞는 곳에는 repository concurrency helper를 사용하고, helper가 반환된
+뒤 completed `Set`과 retained entry가 없음을 assert한다.
 
-### Evidence
+### 증거
 
 - `jwt/cache_failure_test.go` uses `AsyncJobTester`.
-- Security rerun attempt 2 found a P2 proof gap; main integration added
-  assertions for `sets == 0` and `entries == 0`.
-- Fresh targeted test, race test, and `make ci` passed after the assertion fix.
+- Security rerun attempt 2가 P2 proof gap을 찾았고, main integration이 `sets == 0`와
+  `entries == 0` assertion을 추가했다.
+- assertion fix 뒤 fresh targeted test, race test, `make ci`가 통과했다.
 
-## L3: Review lane timeout is recoverable work, not immediate failure
+## L3: Review lane timeout은 즉시 실패가 아니라 recoverable work다
 
-### Problem
+### 문제
 
-Native subagent lanes can exceed the 10-minute SLA even when the review
-perspective is still valuable. Leaving the lane as a final timeout too early
-turns a runtime delay into weaker review evidence.
+review perspective가 여전히 유용해도 native subagent lane은 10-minute SLA를 넘을 수
+있다. lane을 너무 빨리 final timeout으로 남기면 runtime delay가 약한 review
+evidence로 바뀐다.
 
-### Lesson
+### 교훈
 
-For Step 2-R, Step 3-R, Step 6-R, and Step 7-R, close timed-out lanes and rerun
-the same perspective up to 3 times with a fresh gate-scoped agent before final
-main-session fallback. The main session must continue local verification while
-subagents run.
+Step 2-R, Step 3-R, Step 6-R, Step 7-R에서는 timed-out lane을 닫고 final
+main-session fallback 전에 같은 perspective를 fresh gate-scoped agent로 최대 3회
+다시 실행한다. subagent가 실행되는 동안 main session은 local verification을 계속해야
+한다.
 
-### Evidence
+### 증거
 
-- Step 6-R Security attempt 1 timed out after the 10-minute SLA.
-- Security attempt 2 completed with `P0=0 P1=0 P2=1 P3=0`.
-- `bluetape4k-workflow` and `bluetape4k-full-feature` were updated in live
-  skill files and chezmoi source with matching retry-then-fallback rules.
+- Step 6-R Security attempt 1은 10-minute SLA 뒤 timeout됐다.
+- Security attempt 2는 `P0=0 P1=0 P2=1 P3=0`로 완료됐다.
+- `bluetape4k-workflow`와 `bluetape4k-full-feature`는 live skill file 및 chezmoi
+  source에서 같은 retry-then-fallback rule로 갱신됐다.
