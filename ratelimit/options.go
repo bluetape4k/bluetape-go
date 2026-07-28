@@ -14,7 +14,7 @@ type Options struct {
 	RatePerSecond float64
 	// Burst bucket 최대 token 수다.
 	Burst int64
-	// IdleTTL은 쓰지 않는 key 상태를 제거하는 시간이다.
+	// IdleTTL 쓰지 않는 key 상태를 제거하는 시간이다.
 	IdleTTL time.Duration
 }
 
