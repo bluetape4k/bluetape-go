@@ -19,11 +19,10 @@ var (
 	ErrInjectedFailure = errors.New("injected sqloutbox publisher failure")
 )
 
-// PublisherFunc func 공개 타입이며 SQL outbox transaction, relay, idempotent delivery 계약을 보존한다.
-// 필드와 zero value, nil 허용 여부, 동시성/transaction 소유권은 생성자와 메서드의 한국어 주석 및 테스트 계약을 따른다.
+// PublisherFunc SQL outbox transaction, relay, idempotent delivery에서 사용하는 함수 타입이다.
 type PublisherFunc func(context.Context, sqloutbox.Record) error
 
-// Publish Publish 공개 API의 동작을 수행하며 SQL outbox transaction, relay, idempotent delivery 계약을 보존한다.
+// Publish SQL outbox transaction, relay, idempotent delivery의 쓰기 동작을 수행한다.
 //
 // 매개변수:
 //   - ctx: 호출자가 소유한 취소, deadline, 요청 범위를 전달한다.
@@ -40,11 +39,10 @@ func (fn PublisherFunc) Publish(ctx context.Context, record sqloutbox.Record) er
 	return fn(ctx, record)
 }
 
-// DiscardPublisher struct 공개 타입이며 SQL outbox transaction, relay, idempotent delivery 계약을 보존한다.
-// 필드와 zero value, nil 허용 여부, 동시성/transaction 소유권은 생성자와 메서드의 한국어 주석 및 테스트 계약을 따른다.
+// DiscardPublisher SQL outbox transaction, relay, idempotent delivery에서 사용하는 구조체다.
 type DiscardPublisher struct{}
 
-// Publish Publish 공개 API의 동작을 수행하며 SQL outbox transaction, relay, idempotent delivery 계약을 보존한다.
+// Publish SQL outbox transaction, relay, idempotent delivery의 쓰기 동작을 수행한다.
 //
 // 매개변수:
 //   - ctx: 호출자가 소유한 취소, deadline, 요청 범위를 전달한다.
@@ -55,11 +53,10 @@ func (DiscardPublisher) Publish(ctx context.Context, _ sqloutbox.Record) error {
 	return contextError(ctx)
 }
 
-// RecordingOption func 공개 타입이며 SQL outbox transaction, relay, idempotent delivery 계약을 보존한다.
-// 필드와 zero value, nil 허용 여부, 동시성/transaction 소유권은 생성자와 메서드의 한국어 주석 및 테스트 계약을 따른다.
+// RecordingOption SQL outbox transaction, relay, idempotent delivery에서 사용하는 함수 타입이다.
 type RecordingOption func(*RecordingPublisher)
 
-// WithFailures WithFailures 공개 API의 동작을 수행하며 SQL outbox transaction, relay, idempotent delivery 계약을 보존한다.
+// WithFailures SQL outbox transaction, relay, idempotent delivery 옵션을 설정한다.
 //
 // 매개변수:
 //   - failures: WithFailures에 전달되는 값이다. 허용 범위와 nil 처리 방식은 구현 검증을 따른다.
@@ -82,8 +79,7 @@ func WithFailures(failures map[audit.EventID]int, err error) RecordingOption {
 	}
 }
 
-// RecordingPublisher struct 공개 타입이며 SQL outbox transaction, relay, idempotent delivery 계약을 보존한다.
-// 필드와 zero value, nil 허용 여부, 동시성/transaction 소유권은 생성자와 메서드의 한국어 주석 및 테스트 계약을 따른다.
+// RecordingPublisher SQL outbox transaction, relay, idempotent delivery에서 사용하는 구조체다.
 type RecordingPublisher struct {
 	mu         sync.Mutex
 	records    []sqloutbox.Record
@@ -91,7 +87,7 @@ type RecordingPublisher struct {
 	failureErr error
 }
 
-// NewRecordingPublisher NewRecordingPublisher 공개 API의 동작을 수행하며 SQL outbox transaction, relay, idempotent delivery 계약을 보존한다.
+// NewRecordingPublisher SQL outbox transaction, relay, idempotent delivery에 사용할 값을 생성한다.
 //
 // 매개변수:
 //   - options: 적용할 옵션 목록이다. nil이면 기본값만 사용한다.
@@ -105,7 +101,7 @@ func NewRecordingPublisher(options ...RecordingOption) *RecordingPublisher {
 	return publisher
 }
 
-// Publish Publish 공개 API의 동작을 수행하며 SQL outbox transaction, relay, idempotent delivery 계약을 보존한다.
+// Publish SQL outbox transaction, relay, idempotent delivery의 쓰기 동작을 수행한다.
 //
 // 매개변수:
 //   - ctx: 호출자가 소유한 취소, deadline, 요청 범위를 전달한다.
@@ -136,7 +132,7 @@ func (p *RecordingPublisher) Publish(ctx context.Context, record sqloutbox.Recor
 	return nil
 }
 
-// Records Records 공개 API의 동작을 수행하며 SQL outbox transaction, relay, idempotent delivery 계약을 보존한다.
+// Records SQL outbox transaction, relay, idempotent delivery에서 필요한 값을 조회한다.
 func (p *RecordingPublisher) Records() []sqloutbox.Record {
 	if p == nil {
 		return nil
@@ -150,7 +146,7 @@ func (p *RecordingPublisher) Records() []sqloutbox.Record {
 	return records
 }
 
-// EventIDs EventIDs 공개 API의 동작을 수행하며 SQL outbox transaction, relay, idempotent delivery 계약을 보존한다.
+// EventIDs SQL outbox transaction, relay, idempotent delivery에서 필요한 값을 조회한다.
 func (p *RecordingPublisher) EventIDs() []audit.EventID {
 	if p == nil {
 		return nil
@@ -166,7 +162,7 @@ func (p *RecordingPublisher) EventIDs() []audit.EventID {
 	return ids
 }
 
-// Count Count 공개 API의 동작을 수행하며 SQL outbox transaction, relay, idempotent delivery 계약을 보존한다.
+// Count SQL outbox transaction, relay, idempotent delivery에서 필요한 값을 조회한다.
 func (p *RecordingPublisher) Count() int {
 	if p == nil {
 		return 0
@@ -178,7 +174,7 @@ func (p *RecordingPublisher) Count() int {
 	return len(p.records)
 }
 
-// Reset Reset 공개 API의 동작을 수행하며 SQL outbox transaction, relay, idempotent delivery 계약을 보존한다.
+// Reset SQL outbox transaction, relay, idempotent delivery의 쓰기 동작을 수행한다.
 func (p *RecordingPublisher) Reset() {
 	if p == nil {
 		return

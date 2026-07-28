@@ -15,7 +15,6 @@ var (
 )
 
 // RetryError struct 공개 타입이며 취소, deadline, retry, timeout, circuit breaker 상태를 보존한다.
-// 필드와 zero value, nil 허용 여부, 동시성 소유권은 생성자와 메서드의 한국어 주석 및 테스트 계약을 따른다.
 type RetryError struct {
 	PolicyName string
 	Attempts   int
@@ -45,7 +44,6 @@ func (e RetryError) Is(target error) bool {
 }
 
 // TimeoutError struct 공개 타입이며 취소, deadline, retry, timeout, circuit breaker 상태를 보존한다.
-// 필드와 zero value, nil 허용 여부, 동시성 소유권은 생성자와 메서드의 한국어 주석 및 테스트 계약을 따른다.
 type TimeoutError struct {
 	PolicyName string
 	Timeout    time.Duration
@@ -75,7 +73,6 @@ func (e TimeoutError) Is(target error) bool {
 }
 
 // CircuitOpenError struct 공개 타입이며 취소, deadline, retry, timeout, circuit breaker 상태를 보존한다.
-// 필드와 zero value, nil 허용 여부, 동시성 소유권은 생성자와 메서드의 한국어 주석 및 테스트 계약을 따른다.
 type CircuitOpenError struct {
 	PolicyName string
 	State      CircuitState
@@ -97,7 +94,6 @@ func (e CircuitOpenError) Is(target error) bool {
 }
 
 // BulkheadRejectedError struct 공개 타입이며 취소, deadline, retry, timeout, circuit breaker 상태를 보존한다.
-// 필드와 zero value, nil 허용 여부, 동시성 소유권은 생성자와 메서드의 한국어 주석 및 테스트 계약을 따른다.
 type BulkheadRejectedError struct {
 	PolicyName string
 }

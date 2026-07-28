@@ -15,12 +15,10 @@ import (
 
 var namespaceSegmentPattern = regexp.MustCompile(`^[A-Za-z0-9._-]+$`)
 
-// Registration func 공개 타입이며 Redis 값 캐시의 serialization, TTL, backend ownership 계약을 보존한다.
-// 필드와 zero value, nil 허용 여부, 동시성 소유권은 생성자와 메서드의 한국어 주석 및 테스트 계약을 따른다.
+// Registration Redis 값 캐시의 serialization, TTL, backend ownership에서 사용하는 함수 타입이다.
 type Registration func(*fory.Fory) error
 
-// Profile string 공개 타입이며 Redis 값 캐시의 serialization, TTL, backend ownership 계약을 보존한다.
-// 필드와 zero value, nil 허용 여부, 동시성 소유권은 생성자와 메서드의 한국어 주석 및 테스트 계약을 따른다.
+// Profile Redis 값 캐시의 serialization, TTL, backend ownership에서 사용하는 문자열 타입이다.
 type Profile string
 
 const (
@@ -30,8 +28,7 @@ const (
 	ProfileNativeCompatible Profile = "native-compatible"
 )
 
-// Options struct 공개 타입이며 Redis 값 캐시의 serialization, TTL, backend ownership 계약을 보존한다.
-// 필드와 zero value, nil 허용 여부, 동시성 소유권은 생성자와 메서드의 한국어 주석 및 테스트 계약을 따른다.
+// Options Redis 값 캐시의 serialization, TTL, backend ownership에서 사용하는 구조체다.
 type Options struct {
 	// Client executes Redis commands and remains owned by the caller.
 	Client redis.Cmdable
@@ -55,8 +52,7 @@ type Options struct {
 	MaxAverageSchemaVersionsPerType int
 }
 
-// ValueCache struct 공개 타입이며 Redis 값 캐시의 serialization, TTL, backend ownership 계약을 보존한다.
-// 필드와 zero value, nil 허용 여부, 동시성 소유권은 생성자와 메서드의 한국어 주석 및 테스트 계약을 따른다.
+// ValueCache Redis 값 캐시의 serialization, TTL, backend ownership에서 사용하는 구조체다.
 type ValueCache[V any] struct {
 	client     commandClient
 	keys       btredis.KeyBuilder
@@ -66,7 +62,7 @@ type ValueCache[V any] struct {
 	maxPayload int
 }
 
-// NewNativeFast NewNativeFast 공개 API의 동작을 수행하며 Redis 값 캐시의 serialization, TTL, backend ownership 계약을 보존한다.
+// NewNativeFast Redis 값 캐시의 serialization, TTL, backend ownership에 사용할 값을 생성한다.
 //
 // 매개변수:
 //   - options: 적용할 옵션 목록이다. nil이면 기본값만 사용한다.
@@ -76,7 +72,7 @@ func NewNativeFast[V any](options Options) (*ValueCache[V], error) {
 	return newValueCache[V](ProfileNativeFast, options)
 }
 
-// NewNativeCompatible NewNativeCompatible 공개 API의 동작을 수행하며 Redis 값 캐시의 serialization, TTL, backend ownership 계약을 보존한다.
+// NewNativeCompatible Redis 값 캐시의 serialization, TTL, backend ownership에 사용할 값을 생성한다.
 //
 // 매개변수:
 //   - options: 적용할 옵션 목록이다. nil이면 기본값만 사용한다.

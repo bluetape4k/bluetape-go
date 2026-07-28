@@ -106,7 +106,7 @@ func (f *bloomFilter[T]) IsEmpty() bool {
 	return f.BitCount() == 0
 }
 
-// MightContain MightContain 공개 API의 동작을 수행하며 Bloom filter의 capacity, false-positive rate, hasher, compatibility 계약을 보존한다.
+// MightContain Bloom filter의 capacity, false-positive rate, hasher, compatibility 동작을 수행한다.
 //
 // 매개변수:
 //   - value: Bloom/Redis filter에 추가하거나 검사할 값이다. nil/empty/hash input 의미는 hasher 계약을 따른다.
@@ -126,7 +126,7 @@ func (f *bloomFilter[T]) MightContain(value T) bool {
 	return true
 }
 
-// Put Put 공개 API의 동작을 수행하며 Bloom filter의 capacity, false-positive rate, hasher, compatibility 계약을 보존한다.
+// Put Bloom filter의 capacity, false-positive rate, hasher, compatibility 동작을 수행한다.
 //
 // 매개변수:
 //   - value: Bloom/Redis filter에 추가하거나 검사할 값이다. nil/empty/hash input 의미는 hasher 계약을 따른다.
@@ -148,7 +148,7 @@ func (f *bloomFilter[T]) Put(value T) bool {
 	return changed
 }
 
-// PutAll PutAll 공개 API의 동작을 수행하며 Bloom filter의 capacity, false-positive rate, hasher, compatibility 계약을 보존한다.
+// PutAll Bloom filter의 capacity, false-positive rate, hasher, compatibility 동작을 수행한다.
 //
 // 매개변수:
 //   - other: PutAll에 전달되는 값이다. 허용 범위와 nil 처리 방식은 구현 검증을 따른다.

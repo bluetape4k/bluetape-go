@@ -7,8 +7,7 @@ import (
 	"time"
 )
 
-// EventRecord struct 공개 타입이며 audit entry, event, repository, recorder, history 계약을 보존한다.
-// 필드와 zero value, nil 허용 여부, 동시성/transaction 소유권은 생성자와 메서드의 한국어 주석 및 테스트 계약을 따른다.
+// EventRecord audit entry, event, repository, recorder, history에서 사용하는 구조체다.
 type EventRecord struct {
 	EventID        EventID
 	EventType      EventType
@@ -18,8 +17,7 @@ type EventRecord struct {
 	Payload        json.RawMessage
 }
 
-// AggregateRecorder struct 공개 타입이며 audit entry, event, repository, recorder, history 계약을 보존한다.
-// 필드와 zero value, nil 허용 여부, 동시성/transaction 소유권은 생성자와 메서드의 한국어 주석 및 테스트 계약을 따른다.
+// AggregateRecorder audit entry, event, repository, recorder, history에서 사용하는 구조체다.
 type AggregateRecorder struct {
 	mu        sync.Mutex
 	aggregate AggregateID
@@ -27,7 +25,7 @@ type AggregateRecorder struct {
 	pending   []DomainEvent
 }
 
-// NewAggregateRecorder NewAggregateRecorder 공개 API의 동작을 수행하며 audit entry, event, repository, recorder, history 계약을 보존한다.
+// NewAggregateRecorder audit entry, event, repository, recorder, history에 사용할 값을 생성한다.
 //
 // 매개변수:
 //   - aggregate: NewAggregateRecorder에 전달되는 값이다. 허용 범위와 nil 처리 방식은 구현 검증을 따른다.
@@ -37,7 +35,7 @@ func NewAggregateRecorder(aggregate AggregateID) (*AggregateRecorder, error) {
 	return NewAggregateRecorderFromHead(aggregate, 0)
 }
 
-// NewAggregateRecorderFromHead NewAggregateRecorderFromHead 공개 API의 동작을 수행하며 audit entry, event, repository, recorder, history 계약을 보존한다.
+// NewAggregateRecorderFromHead audit entry, event, repository, recorder, history에 사용할 값을 생성한다.
 //
 // 매개변수:
 //   - aggregate: NewAggregateRecorderFromHead에 전달되는 값이다. 허용 범위와 nil 처리 방식은 구현 검증을 따른다.
@@ -56,7 +54,7 @@ func NewAggregateRecorderFromHead(aggregate AggregateID, head Revision) (*Aggreg
 	return &AggregateRecorder{aggregate: aggregate, head: head}, nil
 }
 
-// Record Record 공개 API의 동작을 수행하며 audit entry, event, repository, recorder, history 계약을 보존한다.
+// Record audit entry, event, repository, recorder, history의 쓰기 동작을 수행한다.
 //
 // 매개변수:
 //   - record: Record에 전달되는 값이다. 허용 범위와 nil 처리 방식은 구현 검증을 따른다.
@@ -120,7 +118,7 @@ func (r *AggregateRecorder) Record(record EventRecord) (DomainEvent, error) {
 	return event.Clone(), nil
 }
 
-// PendingEvents PendingEvents 공개 API의 동작을 수행하며 audit entry, event, repository, recorder, history 계약을 보존한다.
+// PendingEvents audit entry, event, repository, recorder, history에서 필요한 값을 조회한다.
 func (r *AggregateRecorder) PendingEvents() []DomainEvent {
 	if r == nil {
 		return nil
@@ -134,7 +132,7 @@ func (r *AggregateRecorder) PendingEvents() []DomainEvent {
 	return snapshot
 }
 
-// AckThrough AckThrough 공개 API의 동작을 수행하며 audit entry, event, repository, recorder, history 계약을 보존한다.
+// AckThrough audit entry, event, repository, recorder, history의 상태를 변경한다.
 //
 // 매개변수:
 //   - revision: AckThrough에 전달되는 값이다. 허용 범위와 nil 처리 방식은 구현 검증을 따른다.
@@ -168,7 +166,7 @@ func (r *AggregateRecorder) AckThrough(revision Revision) error {
 	return nil
 }
 
-// HeadRevision HeadRevision 공개 API의 동작을 수행하며 audit entry, event, repository, recorder, history 계약을 보존한다.
+// HeadRevision audit entry, event, repository, recorder, history에서 필요한 값을 조회한다.
 func (r *AggregateRecorder) HeadRevision() Revision {
 	if r == nil {
 		return 0

@@ -13,14 +13,13 @@ import (
 
 var captureOutputMu sync.Mutex
 
-// CapturedOutput struct 공개 타입이며 테스트 helper의 timeout, cancellation, cleanup 계약을 보존한다.
-// 필드와 zero value, nil 허용 여부, 동시성 소유권은 생성자와 메서드의 한국어 주석 및 테스트 계약을 따른다.
+// CapturedOutput 테스트 helper의 timeout, cancellation, cleanup에서 사용하는 구조체다.
 type CapturedOutput struct {
 	Stdout string
 	Stderr string
 }
 
-// CheckTempOutputPath CheckTempOutputPath 공개 API의 동작을 수행하며 테스트 helper의 timeout, cancellation, cleanup 계약을 보존한다.
+// CheckTempOutputPath 테스트 helper의 timeout, cancellation, cleanup 동작을 수행한다.
 //
 // 매개변수:
 //   - root: CheckTempOutputPath가 해석할 문자열이다. 빈 문자열은 구현 검증을 따른다.
@@ -61,7 +60,7 @@ func CheckTempOutputPath(root string, parts ...string) (string, error) {
 	return path, nil
 }
 
-// TempOutputDir TempOutputDir 공개 API의 동작을 수행하며 테스트 helper의 timeout, cancellation, cleanup 계약을 보존한다.
+// TempOutputDir 테스트 helper의 timeout, cancellation, cleanup 동작을 수행한다.
 //
 // 매개변수:
 //   - tb: 실패를 보고할 testing 객체다.
@@ -77,7 +76,7 @@ func TempOutputDir(tb testing.TB, parts ...string) string {
 	return path
 }
 
-// TempOutputPath TempOutputPath 공개 API의 동작을 수행하며 테스트 helper의 timeout, cancellation, cleanup 계약을 보존한다.
+// TempOutputPath 테스트 helper의 timeout, cancellation, cleanup 동작을 수행한다.
 //
 // 매개변수:
 //   - tb: 실패를 보고할 testing 객체다.
@@ -93,7 +92,7 @@ func TempOutputPath(tb testing.TB, parts ...string) string {
 	return path
 }
 
-// SetEnv SetEnv 공개 API의 동작을 수행하며 테스트 helper의 timeout, cancellation, cleanup 계약을 보존한다.
+// SetEnv 테스트 helper의 timeout, cancellation, cleanup 동작을 수행한다.
 //
 // 매개변수:
 //   - tb: 실패를 보고할 testing 객체다.
@@ -109,7 +108,7 @@ func SetEnv(tb testing.TB, key, value string) {
 	tb.Cleanup(restore)
 }
 
-// UnsetEnv UnsetEnv 공개 API의 동작을 수행하며 테스트 helper의 timeout, cancellation, cleanup 계약을 보존한다.
+// UnsetEnv 테스트 helper의 timeout, cancellation, cleanup 동작을 수행한다.
 //
 // 매개변수:
 //   - tb: 실패를 보고할 testing 객체다.
@@ -124,7 +123,7 @@ func UnsetEnv(tb testing.TB, key string) {
 	tb.Cleanup(restore)
 }
 
-// CaptureOutput CaptureOutput 공개 API의 동작을 수행하며 테스트 helper의 timeout, cancellation, cleanup 계약을 보존한다.
+// CaptureOutput 테스트 helper의 timeout, cancellation, cleanup 동작을 수행한다.
 //
 // 매개변수:
 //   - tb: 실패를 보고할 testing 객체다.
@@ -140,7 +139,7 @@ func CaptureOutput(tb testing.TB, run func()) CapturedOutput {
 	return output
 }
 
-// CheckCaptureOutput CheckCaptureOutput 공개 API의 동작을 수행하며 테스트 helper의 timeout, cancellation, cleanup 계약을 보존한다.
+// CheckCaptureOutput 테스트 helper의 timeout, cancellation, cleanup 동작을 수행한다.
 //
 // 매개변수:
 //   - run: CheckCaptureOutput에 전달되는 값이다. 허용 범위와 nil 처리 방식은 구현 검증을 따른다.

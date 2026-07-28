@@ -7,7 +7,6 @@ import (
 )
 
 // HTTPStatusPredicate func 공개 타입이며 취소, deadline, retry, timeout, circuit breaker 상태를 보존한다.
-// 필드와 zero value, nil 허용 여부, 동시성 소유권은 생성자와 메서드의 한국어 주석 및 테스트 계약을 따른다.
 type HTTPStatusPredicate func(int) bool
 
 // RetryableServerError RetryableServerError 공개 API의 동작을 수행하며 취소, deadline, retry, timeout, circuit breaker 상태를 보존한다.
@@ -19,7 +18,6 @@ func RetryableServerError(statusCode int) bool {
 }
 
 // StatusError struct 공개 타입이며 취소, deadline, retry, timeout, circuit breaker 상태를 보존한다.
-// 필드와 zero value, nil 허용 여부, 동시성 소유권은 생성자와 메서드의 한국어 주석 및 테스트 계약을 따른다.
 type StatusError struct {
 	StatusCode int
 	Status     string
@@ -33,7 +31,6 @@ func (e StatusError) Error() string {
 }
 
 // RoundTripperOptions struct 공개 타입이며 취소, deadline, retry, timeout, circuit breaker 상태를 보존한다.
-// 필드와 zero value, nil 허용 여부, 동시성 소유권은 생성자와 메서드의 한국어 주석 및 테스트 계약을 따른다.
 type RoundTripperOptions struct {
 	Transport       http.RoundTripper
 	Policies        []Policy[*http.Response]
@@ -41,7 +38,6 @@ type RoundTripperOptions struct {
 }
 
 // ResilientRoundTripper struct 공개 타입이며 취소, deadline, retry, timeout, circuit breaker 상태를 보존한다.
-// 필드와 zero value, nil 허용 여부, 동시성 소유권은 생성자와 메서드의 한국어 주석 및 테스트 계약을 따른다.
 type ResilientRoundTripper struct {
 	transport       http.RoundTripper
 	policies        []Policy[*http.Response]
@@ -136,18 +132,15 @@ func cloneRequestForAttempt(ctx context.Context, req *http.Request, attemptNumbe
 }
 
 // HandlerErrorHandler func 공개 타입이며 취소, deadline, retry, timeout, circuit breaker 상태를 보존한다.
-// 필드와 zero value, nil 허용 여부, 동시성 소유권은 생성자와 메서드의 한국어 주석 및 테스트 계약을 따른다.
 type HandlerErrorHandler func(http.ResponseWriter, *http.Request, error)
 
 // HandlerOptions struct 공개 타입이며 취소, deadline, retry, timeout, circuit breaker 상태를 보존한다.
-// 필드와 zero value, nil 허용 여부, 동시성 소유권은 생성자와 메서드의 한국어 주석 및 테스트 계약을 따른다.
 type HandlerOptions struct {
 	Policies     []Policy[struct{}]
 	ErrorHandler HandlerErrorHandler
 }
 
 // ResilientHandler struct 공개 타입이며 취소, deadline, retry, timeout, circuit breaker 상태를 보존한다.
-// 필드와 zero value, nil 허용 여부, 동시성 소유권은 생성자와 메서드의 한국어 주석 및 테스트 계약을 따른다.
 type ResilientHandler struct {
 	next         http.Handler
 	policies     []Policy[struct{}]

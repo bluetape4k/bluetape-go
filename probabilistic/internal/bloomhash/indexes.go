@@ -9,7 +9,7 @@ import (
 
 const hash2Fallback = uint64(0x9e3779b97f4a7c15)
 
-// Indexes Indexes 공개 API의 동작을 수행하며 Bloom hash index 계산의 capacity, hash count, deterministic mapping 계약을 보존한다.
+// Indexes Bloom hash index 계산의 capacity, hash count, deterministic mapping 동작을 수행한다.
 //
 // 매개변수:
 //   - bytes: Indexes에 전달되는 값이다. 허용 범위와 nil 처리 방식은 구현 검증을 따른다.
@@ -24,7 +24,7 @@ func Indexes(bytes []byte, hashFunctionCount uint64, bitSize uint64) []uint64 {
 	return result
 }
 
-// AppendIndexes AppendIndexes 공개 API의 동작을 수행하며 Bloom hash index 계산의 capacity, hash count, deterministic mapping 계약을 보존한다.
+// AppendIndexes Bloom hash index 계산의 capacity, hash count, deterministic mapping 동작을 수행한다.
 //
 // 매개변수:
 //   - dst: AppendIndexes에 전달되는 값이다. 허용 범위와 nil 처리 방식은 구현 검증을 따른다.

@@ -53,7 +53,7 @@ func (m *Memory[K, V]) currentTime() time.Time {
 	return m.now()
 }
 
-// Get Get 공개 API의 동작을 수행하며 in-memory cache의 key, TTL, snapshot, miss 계약을 보존한다.
+// Get in-memory cache의 key, TTL, snapshot, miss에서 필요한 값을 조회한다.
 //
 // 매개변수:
 //   - ctx: 호출자가 소유한 취소, deadline, 요청 범위를 전달한다.
@@ -82,7 +82,7 @@ func (m *Memory[K, V]) Get(ctx context.Context, key K) (V, error) {
 	return item.value, nil
 }
 
-// Set Set 공개 API의 동작을 수행하며 in-memory cache의 key, TTL, snapshot, miss 계약을 보존한다.
+// Set in-memory cache의 key, TTL, snapshot, miss의 상태를 변경한다.
 //
 // 매개변수:
 //   - ctx: 호출자가 소유한 취소, deadline, 요청 범위를 전달한다.

@@ -13,8 +13,7 @@ import (
 
 const redisMaxBitOffset = uint64(1) << 32
 
-// Options struct 공개 타입이며 Redis Bloom/HyperLogLog key, TTL, script, backend compatibility 계약을 보존한다.
-// 필드와 zero value, nil 허용 여부, 동시성 소유권은 생성자와 메서드의 한국어 주석 및 테스트 계약을 따른다.
+// Options Redis Bloom/HyperLogLog key, TTL, script, backend compatibility에서 사용하는 구조체다.
 type Options[T any] struct {
 	// Client 호출자가 소유한 Redis backend client다. 연결 종료와 lifecycle은 호출자가 관리한다.
 	Client redis.Cmdable

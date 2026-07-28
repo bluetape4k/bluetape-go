@@ -12,15 +12,14 @@ import (
 	"github.com/redis/go-redis/v9"
 )
 
-// StampedeCache struct 공개 타입이며 Redis 조정, stampede 방지, codec envelope 계약을 보존한다.
-// 필드와 zero value, nil 허용 여부, 동시성 소유권은 생성자와 메서드의 한국어 주석 및 테스트 계약을 따른다.
+// StampedeCache Redis 조정, stampede 방지, codec envelope에서 사용하는 구조체다.
 type StampedeCache[V any] struct {
 	cfg config[V]
 }
 
 var _ cache.LoadingCache[string, string] = (*StampedeCache[string])(nil)
 
-// NewStampedeCache NewStampedeCache 공개 API의 동작을 수행하며 Redis 조정, stampede 방지, codec envelope 계약을 보존한다.
+// NewStampedeCache Redis 조정, stampede 방지, codec envelope에 사용할 값을 생성한다.
 //
 // 매개변수:
 //   - options: 적용할 옵션 목록이다. nil이면 기본값만 사용한다.
@@ -34,7 +33,7 @@ func NewStampedeCache[V any](options Options[V]) (*StampedeCache[V], error) {
 	return &StampedeCache[V]{cfg: cfg}, nil
 }
 
-// Get Get 공개 API의 동작을 수행하며 Redis 조정, stampede 방지, codec envelope 계약을 보존한다.
+// Get Redis 조정, stampede 방지, codec envelope에서 필요한 값을 조회한다.
 //
 // 매개변수:
 //   - ctx: 호출자가 소유한 취소, deadline, 요청 범위를 전달한다.
@@ -45,7 +44,7 @@ func (c *StampedeCache[V]) Get(ctx context.Context, key string) (V, error) {
 	return c.cfg.cache.Get(normalizeContext(ctx), key)
 }
 
-// Set Set 공개 API의 동작을 수행하며 Redis 조정, stampede 방지, codec envelope 계약을 보존한다.
+// Set Redis 조정, stampede 방지, codec envelope의 상태를 변경한다.
 //
 // 매개변수:
 //   - ctx: 호출자가 소유한 취소, deadline, 요청 범위를 전달한다.
@@ -58,7 +57,7 @@ func (c *StampedeCache[V]) Set(ctx context.Context, key string, value V, ttl tim
 	return c.cfg.cache.Set(normalizeContext(ctx), key, value, ttl)
 }
 
-// Delete Delete 공개 API의 동작을 수행하며 Redis 조정, stampede 방지, codec envelope 계약을 보존한다.
+// Delete Redis 조정, stampede 방지, codec envelope의 상태를 변경한다.
 //
 // 매개변수:
 //   - ctx: 호출자가 소유한 취소, deadline, 요청 범위를 전달한다.
@@ -69,7 +68,7 @@ func (c *StampedeCache[V]) Delete(ctx context.Context, key string) error {
 	return c.cfg.cache.Delete(normalizeContext(ctx), key)
 }
 
-// Clear Clear 공개 API의 동작을 수행하며 Redis 조정, stampede 방지, codec envelope 계약을 보존한다.
+// Clear Redis 조정, stampede 방지, codec envelope 동작을 수행한다.
 //
 // 매개변수:
 //   - ctx: 호출자가 소유한 취소, deadline, 요청 범위를 전달한다.
@@ -79,7 +78,7 @@ func (c *StampedeCache[V]) Clear(ctx context.Context) error {
 	return c.cfg.cache.Clear(normalizeContext(ctx))
 }
 
-// GetOrLoad GetOrLoad 공개 API의 동작을 수행하며 Redis 조정, stampede 방지, codec envelope 계약을 보존한다.
+// GetOrLoad Redis 조정, stampede 방지, codec envelope 동작을 수행한다.
 //
 // 매개변수:
 //   - ctx: 호출자가 소유한 취소, deadline, 요청 범위를 전달한다.

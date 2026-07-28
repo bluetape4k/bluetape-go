@@ -43,7 +43,7 @@ func New(client redis.Cmdable, opts Options) (*Mutex, error) {
 	return &Mutex{client: client, opts: normalized}, nil
 }
 
-// TryLock TryLock 공개 API의 동작을 수행하며 Redis lock key, owner token, TTL, unlock safety 계약을 보존한다.
+// TryLock Redis lock key, owner token, TTL, unlock safety 동작을 수행한다.
 //
 // 매개변수:
 //   - ctx: 호출자가 소유한 취소, deadline, 요청 범위를 전달한다.
@@ -104,7 +104,7 @@ func (l *Lease) Key() string {
 	return l.key
 }
 
-// Token Token 공개 API의 동작을 수행하며 Redis lock key, owner token, TTL, unlock safety 계약을 보존한다.
+// Token Redis lock key, owner token, TTL, unlock safety 동작을 수행한다.
 func (l *Lease) Token() string {
 	if l == nil {
 		return ""
@@ -112,7 +112,7 @@ func (l *Lease) Token() string {
 	return l.token
 }
 
-// Unlock Unlock 공개 API의 동작을 수행하며 Redis lock key, owner token, TTL, unlock safety 계약을 보존한다.
+// Unlock Redis lock key, owner token, TTL, unlock safety 동작을 수행한다.
 //
 // 매개변수:
 //   - ctx: 호출자가 소유한 취소, deadline, 요청 범위를 전달한다.

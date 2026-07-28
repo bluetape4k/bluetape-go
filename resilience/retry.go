@@ -8,11 +8,9 @@ import (
 )
 
 // RetryPredicate func 공개 타입이며 취소, deadline, retry, timeout, circuit breaker 상태를 보존한다.
-// 필드와 zero value, nil 허용 여부, 동시성 소유권은 생성자와 메서드의 한국어 주석 및 테스트 계약을 따른다.
 type RetryPredicate func(error) bool
 
 // Sleeper interface 공개 타입이며 취소, deadline, retry, timeout, circuit breaker 상태를 보존한다.
-// 필드와 zero value, nil 허용 여부, 동시성 소유권은 생성자와 메서드의 한국어 주석 및 테스트 계약을 따른다.
 type Sleeper interface {
 	Sleep(context.Context, time.Duration) error
 }
@@ -36,7 +34,6 @@ func (realSleeper) Sleep(ctx context.Context, delay time.Duration) error {
 }
 
 // RetryOptions struct 공개 타입이며 취소, deadline, retry, timeout, circuit breaker 상태를 보존한다.
-// 필드와 zero value, nil 허용 여부, 동시성 소유권은 생성자와 메서드의 한국어 주석 및 테스트 계약을 따른다.
 type RetryOptions struct {
 	Name        string
 	MaxAttempts int
@@ -47,7 +44,6 @@ type RetryOptions struct {
 }
 
 // RetryPolicy struct 공개 타입이며 취소, deadline, retry, timeout, circuit breaker 상태를 보존한다.
-// 필드와 zero value, nil 허용 여부, 동시성 소유권은 생성자와 메서드의 한국어 주석 및 테스트 계약을 따른다.
 type RetryPolicy[T any] struct {
 	options RetryOptions
 }

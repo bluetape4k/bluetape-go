@@ -10,16 +10,13 @@ import (
 	"github.com/bluetape4k/bluetape-go/workreport"
 )
 
-// Work func 공개 타입이며 workflow 실행 순서, 병렬성, 실패 전파 계약을 보존한다.
-// 필드와 zero value, nil 허용 여부, 동시성 소유권은 생성자와 메서드의 한국어 주석 및 테스트 계약을 따른다.
+// Work workflow 실행 순서, 병렬성, 실패 전파에서 사용하는 함수 타입이다.
 type Work func(context.Context) workreport.Report
 
-// Predicate func 공개 타입이며 workflow 실행 순서, 병렬성, 실패 전파 계약을 보존한다.
-// 필드와 zero value, nil 허용 여부, 동시성 소유권은 생성자와 메서드의 한국어 주석 및 테스트 계약을 따른다.
+// Predicate workflow 실행 순서, 병렬성, 실패 전파에서 사용하는 함수 타입이다.
 type Predicate func(context.Context) (bool, error)
 
-// Runner interface 공개 타입이며 workflow 실행 순서, 병렬성, 실패 전파 계약을 보존한다.
-// 필드와 zero value, nil 허용 여부, 동시성 소유권은 생성자와 메서드의 한국어 주석 및 테스트 계약을 따른다.
+// Runner workflow 실행 순서, 병렬성, 실패 전파에서 사용하는 인터페이스이다.
 type Runner interface {
 	Run(context.Context) workreport.Report
 }
@@ -43,7 +40,7 @@ type parallelRunner struct {
 	works  []Work
 }
 
-// Sequential Sequential 공개 API의 동작을 수행하며 workflow 실행 순서, 병렬성, 실패 전파 계약을 보존한다.
+// Sequential workflow 실행 순서, 병렬성, 실패 전파 동작을 수행한다.
 //
 // 매개변수:
 //   - name: report나 상태를 식별할 이름이다.
@@ -57,7 +54,7 @@ func Sequential(name string, policy workreport.FailurePolicy, works ...Work) Run
 	}
 }
 
-// Conditional Conditional 공개 API의 동작을 수행하며 workflow 실행 순서, 병렬성, 실패 전파 계약을 보존한다.
+// Conditional workflow 실행 순서, 병렬성, 실패 전파 동작을 수행한다.
 //
 // 매개변수:
 //   - name: report나 상태를 식별할 이름이다.
@@ -73,7 +70,7 @@ func Conditional(name string, predicate Predicate, trueWork Work, falseWork ...W
 	}
 }
 
-// Parallel Parallel 공개 API의 동작을 수행하며 workflow 실행 순서, 병렬성, 실패 전파 계약을 보존한다.
+// Parallel workflow 실행 순서, 병렬성, 실패 전파 동작을 수행한다.
 //
 // 매개변수:
 //   - name: report나 상태를 식별할 이름이다.

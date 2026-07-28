@@ -12,17 +12,16 @@ import (
 
 var tokenPattern = regexp.MustCompile(`^[0-9a-f]{64}$`)
 
-// ErrInvalidOwnerToken 변수 공개 값이며 Redis key, TTL, lease, owner token, Lua script primitive 계약을 보존한다.
+// ErrInvalidOwnerToken Redis key, TTL, lease, owner token, Lua script primitive에서 사용하는 공개 변수 값이다.
 // 호출자는 이 식별자를 Redis 오류, stream 상태, lease/token, 옵션, 또는 기본값 계약을 비교할 때 사용한다.
 var ErrInvalidOwnerToken = errors.New("redis: invalid owner token")
 
-// OwnerToken struct 공개 타입이며 Redis key, TTL, lease, owner token, Lua script primitive 계약을 보존한다.
-// 필드와 zero value, nil 허용 여부, 동시성 소유권은 생성자와 메서드의 한국어 주석 및 테스트 계약을 따른다.
+// OwnerToken Redis key, TTL, lease, owner token, Lua script primitive에서 사용하는 구조체다.
 type OwnerToken struct {
 	value string
 }
 
-// NewOwnerToken NewOwnerToken 공개 API의 동작을 수행하며 Redis key, TTL, lease, owner token, Lua script primitive 계약을 보존한다.
+// NewOwnerToken Redis key, TTL, lease, owner token, Lua script primitive에 사용할 값을 생성한다.
 //
 // 반환 오류는 입력 검증 실패, context 취소, Redis/backend 실패, lease/token 불일치, package sentinel error와 typed error를 그대로 드러낸다.
 func NewOwnerToken() (OwnerToken, error) {
@@ -33,7 +32,7 @@ func NewOwnerToken() (OwnerToken, error) {
 	return OwnerToken{value: hex.EncodeToString(data[:])}, nil
 }
 
-// ParseOwnerToken ParseOwnerToken 공개 API의 동작을 수행하며 Redis key, TTL, lease, owner token, Lua script primitive 계약을 보존한다.
+// ParseOwnerToken Redis key, TTL, lease, owner token, Lua script primitive 동작을 수행한다.
 //
 // 매개변수:
 //   - value: ParseOwnerToken에 전달되는 값이다. 허용 범위와 nil 처리 방식은 구현 검증을 따른다.
@@ -47,7 +46,7 @@ func ParseOwnerToken(value string) (OwnerToken, error) {
 	return token, nil
 }
 
-// String String 공개 API의 동작을 수행하며 Redis key, TTL, lease, owner token, Lua script primitive 계약을 보존한다.
+// String Redis key, TTL, lease, owner token, Lua script primitive의 식별 정보를 반환한다.
 func (t OwnerToken) String() string {
 	if t.value == "" {
 		return "redis-owner-token:<empty>"
@@ -55,22 +54,22 @@ func (t OwnerToken) String() string {
 	return "redis-owner-token:<redacted>"
 }
 
-// GoString GoString 공개 API의 동작을 수행하며 Redis key, TTL, lease, owner token, Lua script primitive 계약을 보존한다.
+// GoString Redis key, TTL, lease, owner token, Lua script primitive 동작을 수행한다.
 func (t OwnerToken) GoString() string {
 	return t.String()
 }
 
-// LogValue LogValue 공개 API의 동작을 수행하며 Redis key, TTL, lease, owner token, Lua script primitive 계약을 보존한다.
+// LogValue Redis key, TTL, lease, owner token, Lua script primitive 동작을 수행한다.
 func (t OwnerToken) LogValue() slog.Value {
 	return slog.StringValue(t.String())
 }
 
-// RedisValue RedisValue 공개 API의 동작을 수행하며 Redis key, TTL, lease, owner token, Lua script primitive 계약을 보존한다.
+// RedisValue Redis key, TTL, lease, owner token, Lua script primitive 동작을 수행한다.
 func (t OwnerToken) RedisValue() string {
 	return t.value
 }
 
-// Validate Validate 공개 API의 동작을 수행하며 Redis key, TTL, lease, owner token, Lua script primitive 계약을 보존한다.
+// Validate 값이 Redis key, TTL, lease, owner token, Lua script primitive 규칙을 만족하는지 검사한다.
 //
 // 반환 오류는 입력 검증 실패, context 취소, Redis/backend 실패, lease/token 불일치, package sentinel error와 typed error를 그대로 드러낸다.
 func (t OwnerToken) Validate() error {

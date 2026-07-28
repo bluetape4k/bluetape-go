@@ -9,28 +9,23 @@ import (
 	"time"
 )
 
-// Config struct 공개 타입이며 lock conformance harness의 acquire/release ownership 계약을 보존한다.
-// 필드와 zero value, nil 허용 여부, 동시성 소유권은 생성자와 메서드의 한국어 주석 및 테스트 계약을 따른다.
+// Config lock conformance harness의 acquire/release ownership에서 사용하는 구조체다.
 type Config struct {
 	Key   string
 	Owner string
 	TTL   time.Duration
 }
 
-// ReleaseFunc func 공개 타입이며 lock conformance harness의 acquire/release ownership 계약을 보존한다.
-// 필드와 zero value, nil 허용 여부, 동시성 소유권은 생성자와 메서드의 한국어 주석 및 테스트 계약을 따른다.
+// ReleaseFunc lock conformance harness의 acquire/release ownership에서 사용하는 함수 타입이다.
 type ReleaseFunc func(context.Context) (bool, error)
 
-// AcquireFunc func 공개 타입이며 lock conformance harness의 acquire/release ownership 계약을 보존한다.
-// 필드와 zero value, nil 허용 여부, 동시성 소유권은 생성자와 메서드의 한국어 주석 및 테스트 계약을 따른다.
+// AcquireFunc lock conformance harness의 acquire/release ownership에서 사용하는 함수 타입이다.
 type AcquireFunc func(context.Context) (ReleaseFunc, error)
 
-// Factory func 공개 타입이며 lock conformance harness의 acquire/release ownership 계약을 보존한다.
-// 필드와 zero value, nil 허용 여부, 동시성 소유권은 생성자와 메서드의 한국어 주석 및 테스트 계약을 따른다.
+// Factory lock conformance harness의 acquire/release ownership에서 사용하는 함수 타입이다.
 type Factory func(testing.TB, Config) (AcquireFunc, error)
 
-// Operation string 공개 타입이며 lock conformance harness의 acquire/release ownership 계약을 보존한다.
-// 필드와 zero value, nil 허용 여부, 동시성 소유권은 생성자와 메서드의 한국어 주석 및 테스트 계약을 따른다.
+// Operation lock conformance harness의 acquire/release ownership에서 사용하는 문자열 타입이다.
 type Operation string
 
 const (
@@ -40,8 +35,7 @@ const (
 	OperationRelease Operation = "release"
 )
 
-// Phase string 공개 타입이며 lock conformance harness의 acquire/release ownership 계약을 보존한다.
-// 필드와 zero value, nil 허용 여부, 동시성 소유권은 생성자와 메서드의 한국어 주석 및 테스트 계약을 따른다.
+// Phase lock conformance harness의 acquire/release ownership에서 사용하는 문자열 타입이다.
 type Phase string
 
 const (
@@ -51,15 +45,13 @@ const (
 	PhaseAfterLinearize Phase = "after-linearize"
 )
 
-// Gate interface 공개 타입이며 lock conformance harness의 acquire/release ownership 계약을 보존한다.
-// 필드와 zero value, nil 허용 여부, 동시성 소유권은 생성자와 메서드의 한국어 주석 및 테스트 계약을 따른다.
+// Gate lock conformance harness의 acquire/release ownership에서 사용하는 인터페이스이다.
 type Gate interface {
 	AwaitStarted(context.Context) error
 	Resume()
 }
 
-// Control interface 공개 타입이며 lock conformance harness의 acquire/release ownership 계약을 보존한다.
-// 필드와 zero value, nil 허용 여부, 동시성 소유권은 생성자와 메서드의 한국어 주석 및 테스트 계약을 따른다.
+// Control lock conformance harness의 acquire/release ownership에서 사용하는 인터페이스이다.
 type Control interface {
 	GateNext(context.Context, Config, Operation, Phase) (Gate, error)
 	FailNext(context.Context, Config, Operation, error) error
@@ -67,12 +59,10 @@ type Control interface {
 	OperationCount(Config, Operation) int64
 }
 
-// ErrorClassifier func 공개 타입이며 lock conformance harness의 acquire/release ownership 계약을 보존한다.
-// 필드와 zero value, nil 허용 여부, 동시성 소유권은 생성자와 메서드의 한국어 주석 및 테스트 계약을 따른다.
+// ErrorClassifier lock conformance harness의 acquire/release ownership에서 사용하는 함수 타입이다.
 type ErrorClassifier func(error) bool
 
-// Harness struct 공개 타입이며 lock conformance harness의 acquire/release ownership 계약을 보존한다.
-// 필드와 zero value, nil 허용 여부, 동시성 소유권은 생성자와 메서드의 한국어 주석 및 테스트 계약을 따른다.
+// Harness lock conformance harness의 acquire/release ownership에서 사용하는 구조체다.
 type Harness struct {
 	New             Factory
 	Control         Control

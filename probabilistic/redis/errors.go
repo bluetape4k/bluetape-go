@@ -15,8 +15,7 @@ var (
 	ErrConfigCorrupt = errors.New("redis bloom: config corrupt")
 )
 
-// RedisError struct 공개 타입이며 Redis Bloom/HyperLogLog key, TTL, script, backend compatibility 계약을 보존한다.
-// 필드와 zero value, nil 허용 여부, 동시성 소유권은 생성자와 메서드의 한국어 주석 및 테스트 계약을 따른다.
+// RedisError Redis Bloom/HyperLogLog key, TTL, script, backend compatibility에서 사용하는 구조체다.
 type RedisError struct {
 	Family    string
 	Operation string

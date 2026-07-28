@@ -18,8 +18,7 @@ const (
 	unlockTimeout       = time.Second
 )
 
-// Options struct 공개 타입이며 Redis 조정, stampede 방지, codec envelope 계약을 보존한다.
-// 필드와 zero value, nil 허용 여부, 동시성 소유권은 생성자와 메서드의 한국어 주석 및 테스트 계약을 따른다.
+// Options Redis 조정, stampede 방지, codec envelope에서 사용하는 구조체다.
 type Options[V any] struct {
 	// Client 필수 Redis coordination backend다.
 	Client redis.Cmdable

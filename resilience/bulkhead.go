@@ -6,7 +6,6 @@ import (
 )
 
 // BulkheadOptions struct 공개 타입이며 취소, deadline, retry, timeout, circuit breaker 상태를 보존한다.
-// 필드와 zero value, nil 허용 여부, 동시성 소유권은 생성자와 메서드의 한국어 주석 및 테스트 계약을 따른다.
 type BulkheadOptions struct {
 	Name          string
 	MaxConcurrent int
@@ -15,7 +14,6 @@ type BulkheadOptions struct {
 }
 
 // BulkheadPolicy struct 공개 타입이며 취소, deadline, retry, timeout, circuit breaker 상태를 보존한다.
-// 필드와 zero value, nil 허용 여부, 동시성 소유권은 생성자와 메서드의 한국어 주석 및 테스트 계약을 따른다.
 type BulkheadPolicy[T any] struct {
 	options BulkheadOptions
 	permits chan struct{}

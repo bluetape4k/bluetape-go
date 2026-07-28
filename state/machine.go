@@ -16,8 +16,7 @@ type transitionTarget[S comparable, E comparable] struct {
 	guard Guard[S, E]
 }
 
-// Machine struct 공개 타입이며 상태 전이, guard, final state 계약을 보존한다.
-// 필드와 zero value, nil 허용 여부, 동시성 소유권은 생성자와 메서드의 한국어 주석 및 테스트 계약을 따른다.
+// Machine 상태 전이, guard, final state에서 사용하는 구조체다.
 type Machine[S comparable, E comparable] struct {
 	mu          sync.RWMutex
 	current     S
@@ -26,7 +25,7 @@ type Machine[S comparable, E comparable] struct {
 	finalStates map[S]struct{}
 }
 
-// NewMachine NewMachine 공개 API의 동작을 수행하며 상태 전이, guard, final state 계약을 보존한다.
+// NewMachine 상태 전이, guard, final state에 사용할 값을 생성한다.
 //
 // 매개변수:
 //   - initial: machine의 초기 상태다.
@@ -87,14 +86,14 @@ func NewMachine[S comparable, E comparable](
 	}, nil
 }
 
-// State State 공개 API의 동작을 수행하며 상태 전이, guard, final state 계약을 보존한다.
+// State 상태 전이, guard, final state 동작을 수행한다.
 func (m *Machine[S, E]) State() S {
 	m.mu.RLock()
 	defer m.mu.RUnlock()
 	return m.current
 }
 
-// Transition Transition 공개 API의 동작을 수행하며 상태 전이, guard, final state 계약을 보존한다.
+// Transition 상태 전이, guard, final state 동작을 수행한다.
 //
 // 매개변수:
 //   - ctx: 호출자가 소유한 취소, deadline, 요청 범위를 전달한다.
@@ -146,7 +145,7 @@ func (m *Machine[S, E]) Transition(ctx context.Context, event E) (Result[S, E], 
 	}, nil
 }
 
-// CanTransition CanTransition 공개 API의 동작을 수행하며 상태 전이, guard, final state 계약을 보존한다.
+// CanTransition 상태 전이, guard, final state 동작을 수행한다.
 //
 // 매개변수:
 //   - ctx: 호출자가 소유한 취소, deadline, 요청 범위를 전달한다.
@@ -185,7 +184,7 @@ func (m *Machine[S, E]) CanTransition(ctx context.Context, event E) (bool, error
 	return true, nil
 }
 
-// AllowedEvents AllowedEvents 공개 API의 동작을 수행하며 상태 전이, guard, final state 계약을 보존한다.
+// AllowedEvents 상태 전이, guard, final state 동작을 수행한다.
 func (m *Machine[S, E]) AllowedEvents() []E {
 	m.mu.RLock()
 	defer m.mu.RUnlock()

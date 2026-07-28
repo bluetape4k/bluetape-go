@@ -43,7 +43,7 @@ func (h Hasher[T]) validate() error {
 	return nil
 }
 
-// Bytes Bytes 공개 API의 동작을 수행하며 Bloom filter의 capacity, false-positive rate, hasher, compatibility 계약을 보존한다.
+// Bytes Bloom filter의 capacity, false-positive rate, hasher, compatibility 동작을 수행한다.
 //
 // 매개변수:
 //   - value: Bloom/Redis filter에 추가하거나 검사할 값이다. nil/empty/hash input 의미는 hasher 계약을 따른다.

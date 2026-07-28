@@ -9,7 +9,6 @@ import (
 )
 
 // AwaitStatus int 공개 타입이며 테스트 helper의 timeout, cancellation, cleanup 계약을 보존한다.
-// 필드와 zero value, nil 허용 여부, 동시성 소유권은 생성자와 메서드의 한국어 주석 및 테스트 계약을 따른다.
 type AwaitStatus int
 
 const (
@@ -22,20 +21,16 @@ const (
 	AwaitFailure
 )
 
-// AwaitProbe func 공개 타입이며 테스트 helper의 timeout, cancellation, cleanup 계약을 보존한다.
-// 필드와 zero value, nil 허용 여부, 동시성 소유권은 생성자와 메서드의 한국어 주석 및 테스트 계약을 따른다.
+// AwaitProbe 테스트 helper의 timeout, cancellation, cleanup에서 사용하는 함수 타입이다.
 type AwaitProbe[T any] func(context.Context) (T, error)
 
-// AwaitCheck func 공개 타입이며 테스트 helper의 timeout, cancellation, cleanup 계약을 보존한다.
-// 필드와 zero value, nil 허용 여부, 동시성 소유권은 생성자와 메서드의 한국어 주석 및 테스트 계약을 따른다.
+// AwaitCheck 테스트 helper의 timeout, cancellation, cleanup에서 사용하는 함수 타입이다.
 type AwaitCheck[T any] func(T, error) AwaitStatus
 
-// AwaitErrorProbe func 공개 타입이며 테스트 helper의 timeout, cancellation, cleanup 계약을 보존한다.
-// 필드와 zero value, nil 허용 여부, 동시성 소유권은 생성자와 메서드의 한국어 주석 및 테스트 계약을 따른다.
+// AwaitErrorProbe 테스트 helper의 timeout, cancellation, cleanup에서 사용하는 함수 타입이다.
 type AwaitErrorProbe func(context.Context) error
 
-// AwaitResult struct 공개 타입이며 테스트 helper의 timeout, cancellation, cleanup 계약을 보존한다.
-// 필드와 zero value, nil 허용 여부, 동시성 소유권은 생성자와 메서드의 한국어 주석 및 테스트 계약을 따른다.
+// AwaitResult 테스트 helper의 timeout, cancellation, cleanup에서 사용하는 구조체다.
 type AwaitResult[T any] struct {
 	// Value is the final value returned by the probe.
 	Value T
@@ -47,7 +42,7 @@ type AwaitResult[T any] struct {
 	Elapsed time.Duration
 }
 
-// CheckAwait CheckAwait 공개 API의 동작을 수행하며 테스트 helper의 timeout, cancellation, cleanup 계약을 보존한다.
+// CheckAwait 테스트 helper의 timeout, cancellation, cleanup 동작을 수행한다.
 //
 // 매개변수:
 //   - ctx: 호출자가 소유한 취소, deadline, 요청 범위를 전달한다.
@@ -125,7 +120,7 @@ func CheckAwait[T any](
 	}
 }
 
-// RequireAwait RequireAwait 공개 API의 동작을 수행하며 테스트 helper의 timeout, cancellation, cleanup 계약을 보존한다.
+// RequireAwait 테스트 helper의 timeout, cancellation, cleanup 동작을 수행한다.
 //
 // 매개변수:
 //   - ctx: 호출자가 소유한 취소, deadline, 요청 범위를 전달한다.
@@ -151,7 +146,7 @@ func RequireAwait[T any](
 	return result
 }
 
-// CheckAwaitValue CheckAwaitValue 공개 API의 동작을 수행하며 테스트 helper의 timeout, cancellation, cleanup 계약을 보존한다.
+// CheckAwaitValue 테스트 helper의 timeout, cancellation, cleanup 동작을 수행한다.
 //
 // 매개변수:
 //   - ctx: 호출자가 소유한 취소, deadline, 요청 범위를 전달한다.
@@ -176,7 +171,7 @@ func CheckAwaitValue[T comparable](
 	})
 }
 
-// RequireAwaitValue RequireAwaitValue 공개 API의 동작을 수행하며 테스트 helper의 timeout, cancellation, cleanup 계약을 보존한다.
+// RequireAwaitValue 테스트 helper의 timeout, cancellation, cleanup 동작을 수행한다.
 //
 // 매개변수:
 //   - ctx: 호출자가 소유한 취소, deadline, 요청 범위를 전달한다.
@@ -202,7 +197,7 @@ func RequireAwaitValue[T comparable](
 	return result
 }
 
-// CheckAwaitError CheckAwaitError 공개 API의 동작을 수행하며 테스트 helper의 timeout, cancellation, cleanup 계약을 보존한다.
+// CheckAwaitError 테스트 helper의 timeout, cancellation, cleanup 동작을 수행한다.
 //
 // 매개변수:
 //   - ctx: 호출자가 소유한 취소, deadline, 요청 범위를 전달한다.
@@ -237,7 +232,7 @@ func CheckAwaitError(
 	})
 }
 
-// RequireAwaitError RequireAwaitError 공개 API의 동작을 수행하며 테스트 helper의 timeout, cancellation, cleanup 계약을 보존한다.
+// RequireAwaitError 테스트 helper의 timeout, cancellation, cleanup 동작을 수행한다.
 //
 // 매개변수:
 //   - ctx: 호출자가 소유한 취소, deadline, 요청 범위를 전달한다.

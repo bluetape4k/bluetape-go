@@ -5,21 +5,19 @@ import (
 	"fmt"
 )
 
-// Runner interface 공개 타입이며 batch 단계, checkpoint, writer 안전성, 재시작 계약을 보존한다.
-// 필드와 zero value, nil 허용 여부, 동시성 소유권은 생성자와 메서드의 한국어 주석 및 테스트 계약을 따른다.
+// Runner batch 단계, checkpoint, writer 안전성, 재시작에서 사용하는 인터페이스이다.
 type Runner interface {
 	Name() string
 	Run(context.Context) Report
 }
 
-// Job struct 공개 타입이며 batch 단계, checkpoint, writer 안전성, 재시작 계약을 보존한다.
-// 필드와 zero value, nil 허용 여부, 동시성 소유권은 생성자와 메서드의 한국어 주석 및 테스트 계약을 따른다.
+// Job batch 단계, checkpoint, writer 안전성, 재시작에서 사용하는 구조체다.
 type Job struct {
 	name  string
 	steps []Runner
 }
 
-// NewJob NewJob 공개 API의 동작을 수행하며 batch 단계, checkpoint, writer 안전성, 재시작 계약을 보존한다.
+// NewJob batch 단계, checkpoint, writer 안전성, 재시작에 사용할 값을 생성한다.
 //
 // 매개변수:
 //   - name: report나 상태를 식별할 이름이다.
@@ -41,7 +39,7 @@ func NewJob(name string, steps ...Runner) (*Job, error) {
 	return &Job{name: name, steps: append([]Runner(nil), steps...)}, nil
 }
 
-// Name Name 공개 API의 동작을 수행하며 batch 단계, checkpoint, writer 안전성, 재시작 계약을 보존한다.
+// Name batch 단계, checkpoint, writer 안전성, 재시작의 식별 정보를 반환한다.
 func (j *Job) Name() string {
 	if j == nil {
 		return ""
@@ -49,7 +47,7 @@ func (j *Job) Name() string {
 	return j.name
 }
 
-// Run Run 공개 API의 동작을 수행하며 batch 단계, checkpoint, writer 안전성, 재시작 계약을 보존한다.
+// Run batch 단계, checkpoint, writer 안전성, 재시작의 쓰기 동작을 수행한다.
 //
 // 매개변수:
 //   - ctx: 호출자가 소유한 취소, deadline, 요청 범위를 전달한다.

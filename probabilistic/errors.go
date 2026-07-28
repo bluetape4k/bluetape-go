@@ -32,7 +32,7 @@ func (e ConfigError) Error() string {
 	return fmt.Sprintf("%v: %s: %v", ErrInvalidConfig, e.Field, e.Err)
 }
 
-// Unwrap Unwrap 공개 API의 동작을 수행하며 Bloom filter의 capacity, false-positive rate, hasher, compatibility 계약을 보존한다.
+// Unwrap 감싼 원인 오류를 반환한다.
 //
 // 반환 오류는 입력 검증 실패, compatibility 불일치, Redis/backend 실패, package sentinel error와 typed error를 그대로 드러낸다.
 func (e ConfigError) Unwrap() error {

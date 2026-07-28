@@ -6,14 +6,13 @@ import (
 	"strings"
 )
 
-// AggregateID struct 공개 타입이며 audit entry, event, repository, recorder, history 계약을 보존한다.
-// 필드와 zero value, nil 허용 여부, 동시성/transaction 소유권은 생성자와 메서드의 한국어 주석 및 테스트 계약을 따른다.
+// AggregateID audit entry, event, repository, recorder, history에서 사용하는 구조체다.
 type AggregateID struct {
 	Type string `json:"type"`
 	ID   string `json:"id"`
 }
 
-// NewAggregateID NewAggregateID 공개 API의 동작을 수행하며 audit entry, event, repository, recorder, history 계약을 보존한다.
+// NewAggregateID audit entry, event, repository, recorder, history에 사용할 값을 생성한다.
 //
 // 매개변수:
 //   - typ: NewAggregateID에 전달되는 값이다. 허용 범위와 nil 처리 방식은 구현 검증을 따른다.
@@ -31,7 +30,7 @@ func NewAggregateID(typ string, id string) (AggregateID, error) {
 	return aggregate, nil
 }
 
-// Validate Validate 공개 API의 동작을 수행하며 audit entry, event, repository, recorder, history 계약을 보존한다.
+// Validate 값이 audit entry, event, repository, recorder, history 규칙을 만족하는지 검사한다.
 //
 // 반환 오류는 입력 검증 실패, context 취소, transaction 실패, repository/outbox 실패, package sentinel error와 typed error를 그대로 드러낸다.
 func (id AggregateID) Validate() error {
@@ -44,12 +43,12 @@ func (id AggregateID) Validate() error {
 	return nil
 }
 
-// String String 공개 API의 동작을 수행하며 audit entry, event, repository, recorder, history 계약을 보존한다.
+// String audit entry, event, repository, recorder, history의 식별 정보를 반환한다.
 func (id AggregateID) String() string {
 	return id.Type + ":" + id.ID
 }
 
-// UnmarshalJSON UnmarshalJSON 공개 API의 동작을 수행하며 audit entry, event, repository, recorder, history 계약을 보존한다.
+// UnmarshalJSON JSON 표현을 현재 값으로 복원한다.
 //
 // 매개변수:
 //   - data: UnmarshalJSON에 전달되는 값이다. 허용 범위와 nil 처리 방식은 구현 검증을 따른다.
@@ -70,15 +69,14 @@ func (id *AggregateID) UnmarshalJSON(data []byte) error {
 }
 
 // Revision uint64 공개 타입이며 audit entry, event, repository, recorder, history 계약을 보존한다.
-// 필드와 zero value, nil 허용 여부, 동시성/transaction 소유권은 생성자와 메서드의 한국어 주석 및 테스트 계약을 따른다.
 type Revision uint64
 
-// InitialRevision InitialRevision 공개 API의 동작을 수행하며 audit entry, event, repository, recorder, history 계약을 보존한다.
+// InitialRevision audit entry, event, repository, recorder, history 동작을 수행한다.
 func InitialRevision() Revision {
 	return Revision(1)
 }
 
-// Validate Validate 공개 API의 동작을 수행하며 audit entry, event, repository, recorder, history 계약을 보존한다.
+// Validate 값이 audit entry, event, repository, recorder, history 규칙을 만족하는지 검사한다.
 //
 // 반환 오류는 입력 검증 실패, context 취소, transaction 실패, repository/outbox 실패, package sentinel error와 typed error를 그대로 드러낸다.
 func (r Revision) Validate() error {
@@ -88,7 +86,7 @@ func (r Revision) Validate() error {
 	return nil
 }
 
-// Next Next 공개 API의 동작을 수행하며 audit entry, event, repository, recorder, history 계약을 보존한다.
+// Next audit entry, event, repository, recorder, history 동작을 수행한다.
 //
 // 반환 오류는 입력 검증 실패, context 취소, transaction 실패, repository/outbox 실패, package sentinel error와 typed error를 그대로 드러낸다.
 func (r Revision) Next() (Revision, error) {
@@ -102,10 +100,9 @@ func (r Revision) Next() (Revision, error) {
 }
 
 // Metadata map[string]string 공개 타입이며 audit entry, event, repository, recorder, history 계약을 보존한다.
-// 필드와 zero value, nil 허용 여부, 동시성/transaction 소유권은 생성자와 메서드의 한국어 주석 및 테스트 계약을 따른다.
 type Metadata map[string]string
 
-// Clone Clone 공개 API의 동작을 수행하며 audit entry, event, repository, recorder, history 계약을 보존한다.
+// Clone 값을 복사해 caller가 독립적으로 수정할 수 있게 한다.
 func (m Metadata) Clone() Metadata {
 	if len(m) == 0 {
 		return nil

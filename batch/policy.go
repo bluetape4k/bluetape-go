@@ -6,25 +6,22 @@ import (
 	"fmt"
 )
 
-// ErrorPredicate func 공개 타입이며 batch 단계, checkpoint, writer 안전성, 재시작 계약을 보존한다.
-// 필드와 zero value, nil 허용 여부, 동시성 소유권은 생성자와 메서드의 한국어 주석 및 테스트 계약을 따른다.
+// ErrorPredicate batch 단계, checkpoint, writer 안전성, 재시작에서 사용하는 함수 타입이다.
 type ErrorPredicate func(error) bool
 
-// RetryPolicy struct 공개 타입이며 batch 단계, checkpoint, writer 안전성, 재시작 계약을 보존한다.
-// 필드와 zero value, nil 허용 여부, 동시성 소유권은 생성자와 메서드의 한국어 주석 및 테스트 계약을 따른다.
+// RetryPolicy batch 단계, checkpoint, writer 안전성, 재시작에서 사용하는 구조체다.
 type RetryPolicy struct {
 	MaxAttempts int
 	RetryIf     ErrorPredicate
 }
 
-// SkipPolicy struct 공개 타입이며 batch 단계, checkpoint, writer 안전성, 재시작 계약을 보존한다.
-// 필드와 zero value, nil 허용 여부, 동시성 소유권은 생성자와 메서드의 한국어 주석 및 테스트 계약을 따른다.
+// SkipPolicy batch 단계, checkpoint, writer 안전성, 재시작에서 사용하는 구조체다.
 type SkipPolicy struct {
 	MaxSkips int
 	SkipIf   ErrorPredicate
 }
 
-// RetryErrors RetryErrors 공개 API의 동작을 수행하며 batch 단계, checkpoint, writer 안전성, 재시작 계약을 보존한다.
+// RetryErrors batch 단계, checkpoint, writer 안전성, 재시작 오류 처리 정책을 만든다.
 //
 // 매개변수:
 //   - maxAttempts: 허용할 최대 재시도 횟수다.
@@ -38,7 +35,7 @@ func RetryErrors(maxAttempts int, retryIf ErrorPredicate) (RetryPolicy, error) {
 	return RetryPolicy{MaxAttempts: maxAttempts, RetryIf: retryIf}, nil
 }
 
-// SkipErrors SkipErrors 공개 API의 동작을 수행하며 batch 단계, checkpoint, writer 안전성, 재시작 계약을 보존한다.
+// SkipErrors batch 단계, checkpoint, writer 안전성, 재시작 오류 처리 정책을 만든다.
 //
 // 매개변수:
 //   - maxSkips: 허용할 최대 skip 횟수다.

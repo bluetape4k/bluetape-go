@@ -9,8 +9,7 @@ import (
 	btredis "github.com/bluetape4k/bluetape-go/redis"
 )
 
-// TieredOptions struct 공개 타입이며 tiered Redis value cache의 local/remote ownership, TTL, clear coordination 계약을 보존한다.
-// 필드와 zero value, nil 허용 여부, 동시성 소유권은 생성자와 메서드의 한국어 주석 및 테스트 계약을 따른다.
+// TieredOptions tiered Redis value cache의 local/remote ownership, TTL, clear coordination에서 사용하는 구조체다.
 type TieredOptions[V any] struct {
 	// Local 새 cache이거나 비어 있어야 하며, 같은 Remote/namespace/key 계약의 값만 포함해야 한다.
 	// Namespace, schema, and tenant represented by Remote. It must not be shared
@@ -22,8 +21,7 @@ type TieredOptions[V any] struct {
 	Config *TieredConfig
 }
 
-// TieredCache struct 공개 타입이며 tiered Redis value cache의 local/remote ownership, TTL, clear coordination 계약을 보존한다.
-// 필드와 zero value, nil 허용 여부, 동시성 소유권은 생성자와 메서드의 한국어 주석 및 테스트 계약을 따른다.
+// TieredCache tiered Redis value cache의 local/remote ownership, TTL, clear coordination에서 사용하는 구조체다.
 type TieredCache[V any] struct {
 	local        cache.Cache[string, V]
 	remote       *ValueCache[V]
@@ -33,7 +31,7 @@ type TieredCache[V any] struct {
 	now          func() time.Time
 }
 
-// NewTieredCache NewTieredCache 공개 API의 동작을 수행하며 tiered Redis value cache의 local/remote ownership, TTL, clear coordination 계약을 보존한다.
+// NewTieredCache tiered Redis value cache의 local/remote ownership, TTL, clear coordination에 사용할 값을 생성한다.
 //
 // 매개변수:
 //   - options: 적용할 옵션 목록이다. nil이면 기본값만 사용한다.
@@ -68,7 +66,7 @@ func NewTieredCache[V any](options TieredOptions[V]) (*TieredCache[V], error) {
 	}, nil
 }
 
-// Get Get 공개 API의 동작을 수행하며 tiered Redis value cache의 local/remote ownership, TTL, clear coordination 계약을 보존한다.
+// Get tiered Redis value cache의 local/remote ownership, TTL, clear coordination에서 필요한 값을 조회한다.
 //
 // 매개변수:
 //   - ctx: 호출자가 소유한 취소, deadline, 요청 범위를 전달한다.
@@ -87,7 +85,7 @@ func (c *TieredCache[V]) Get(ctx context.Context, key string) (V, error) {
 	return c.getRemoteCoordinated(ctx, key)
 }
 
-// GetOrLoad GetOrLoad 공개 API의 동작을 수행하며 tiered Redis value cache의 local/remote ownership, TTL, clear coordination 계약을 보존한다.
+// GetOrLoad tiered Redis value cache의 local/remote ownership, TTL, clear coordination 동작을 수행한다.
 //
 // 매개변수:
 //   - ctx: 호출자가 소유한 취소, deadline, 요청 범위를 전달한다.
@@ -137,7 +135,7 @@ func (c *TieredCache[V]) GetOrLoad(
 	return value, err
 }
 
-// GetOrLoadDefault GetOrLoadDefault 공개 API의 동작을 수행하며 tiered Redis value cache의 local/remote ownership, TTL, clear coordination 계약을 보존한다.
+// GetOrLoadDefault tiered Redis value cache의 local/remote ownership, TTL, clear coordination 동작을 수행한다.
 //
 // 매개변수:
 //   - ctx: 호출자가 소유한 취소, deadline, 요청 범위를 전달한다.
@@ -157,7 +155,7 @@ func (c *TieredCache[V]) GetOrLoadDefault(
 	return c.GetOrLoad(ctx, key, c.remote.config.RemoteTTL, loader)
 }
 
-// Set Set 공개 API의 동작을 수행하며 tiered Redis value cache의 local/remote ownership, TTL, clear coordination 계약을 보존한다.
+// Set tiered Redis value cache의 local/remote ownership, TTL, clear coordination의 상태를 변경한다.
 //
 // 매개변수:
 //   - ctx: 호출자가 소유한 취소, deadline, 요청 범위를 전달한다.
@@ -239,7 +237,7 @@ func (c *TieredCache[V]) Set(ctx context.Context, key string, value V, remoteTTL
 	return c.populateLocalHeld(ctx, key, value, localTTL, generation)
 }
 
-// SetDefault SetDefault 공개 API의 동작을 수행하며 tiered Redis value cache의 local/remote ownership, TTL, clear coordination 계약을 보존한다.
+// SetDefault tiered Redis value cache의 local/remote ownership, TTL, clear coordination 동작을 수행한다.
 //
 // 매개변수:
 //   - ctx: 호출자가 소유한 취소, deadline, 요청 범위를 전달한다.
@@ -254,7 +252,7 @@ func (c *TieredCache[V]) SetDefault(ctx context.Context, key string, value V) er
 	return c.Set(ctx, key, value, c.remote.config.RemoteTTL)
 }
 
-// Delete Delete 공개 API의 동작을 수행하며 tiered Redis value cache의 local/remote ownership, TTL, clear coordination 계약을 보존한다.
+// Delete tiered Redis value cache의 local/remote ownership, TTL, clear coordination의 상태를 변경한다.
 //
 // 매개변수:
 //   - ctx: 호출자가 소유한 취소, deadline, 요청 범위를 전달한다.
@@ -310,7 +308,7 @@ func (c *TieredCache[V]) Delete(ctx context.Context, key string) error {
 	return c.mutationResult("delete", key, generation, remoteErr, cleanupErr)
 }
 
-// InvalidateLocal InvalidateLocal 공개 API의 동작을 수행하며 tiered Redis value cache의 local/remote ownership, TTL, clear coordination 계약을 보존한다.
+// InvalidateLocal tiered Redis value cache의 local/remote ownership, TTL, clear coordination 동작을 수행한다.
 //
 // 매개변수:
 //   - ctx: 호출자가 소유한 취소, deadline, 요청 범위를 전달한다.
@@ -336,7 +334,7 @@ func (c *TieredCache[V]) InvalidateLocal(ctx context.Context, key string) error 
 	return c.invalidateLocalHeld(cleanupCtx, key)
 }
 
-// ClearLocal ClearLocal 공개 API의 동작을 수행하며 tiered Redis value cache의 local/remote ownership, TTL, clear coordination 계약을 보존한다.
+// ClearLocal tiered Redis value cache의 local/remote ownership, TTL, clear coordination 동작을 수행한다.
 //
 // 매개변수:
 //   - ctx: 호출자가 소유한 취소, deadline, 요청 범위를 전달한다.
@@ -364,7 +362,7 @@ func (c *TieredCache[V]) ClearLocal(ctx context.Context) error {
 	return nil
 }
 
-// Clear Clear 공개 API의 동작을 수행하며 tiered Redis value cache의 local/remote ownership, TTL, clear coordination 계약을 보존한다.
+// Clear tiered Redis value cache의 local/remote ownership, TTL, clear coordination 동작을 수행한다.
 //
 // 매개변수:
 //   - ctx: 호출자가 소유한 취소, deadline, 요청 범위를 전달한다.

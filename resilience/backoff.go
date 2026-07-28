@@ -9,13 +9,11 @@ import (
 const maxDuration = time.Duration(1<<63 - 1)
 
 // Backoff interface 공개 타입이며 취소, deadline, retry, timeout, circuit breaker 상태를 보존한다.
-// 필드와 zero value, nil 허용 여부, 동시성 소유권은 생성자와 메서드의 한국어 주석 및 테스트 계약을 따른다.
 type Backoff interface {
 	Delay(attempt int) time.Duration
 }
 
 // BackoffFunc func 공개 타입이며 취소, deadline, retry, timeout, circuit breaker 상태를 보존한다.
-// 필드와 zero value, nil 허용 여부, 동시성 소유권은 생성자와 메서드의 한국어 주석 및 테스트 계약을 따른다.
 type BackoffFunc func(attempt int) time.Duration
 
 // Delay Delay 공개 API의 동작을 수행하며 취소, deadline, retry, timeout, circuit breaker 상태를 보존한다.
@@ -47,7 +45,6 @@ func ConstantBackoff(delay time.Duration) Backoff {
 }
 
 // ExponentialBackoff struct 공개 타입이며 취소, deadline, retry, timeout, circuit breaker 상태를 보존한다.
-// 필드와 zero value, nil 허용 여부, 동시성 소유권은 생성자와 메서드의 한국어 주석 및 테스트 계약을 따른다.
 type ExponentialBackoff struct {
 	InitialDelay time.Duration
 	Multiplier   float64

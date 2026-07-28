@@ -71,7 +71,7 @@ func New(client redis.Cmdable, opts leader.Options) (*Elector, error) {
 	}, nil
 }
 
-// Campaign Campaign 공개 API의 동작을 수행하며 leader election의 lease, owner token, fencing, group key 계약을 보존한다.
+// Campaign leader election의 lease, owner token, fencing, group key 동작을 수행한다.
 //
 // 매개변수:
 //   - ctx: 호출자가 소유한 취소, deadline, 요청 범위를 전달한다.
@@ -118,7 +118,7 @@ func (e *Elector) Campaign(ctx context.Context) error {
 	}
 }
 
-// Resign Resign 공개 API의 동작을 수행하며 leader election의 lease, owner token, fencing, group key 계약을 보존한다.
+// Resign leader election의 lease, owner token, fencing, group key 동작을 수행한다.
 //
 // 매개변수:
 //   - ctx: 호출자가 소유한 취소, deadline, 요청 범위를 전달한다.

@@ -6,16 +6,13 @@ import (
 	"time"
 )
 
-// EventID string 공개 타입이며 audit entry, event, repository, recorder, history 계약을 보존한다.
-// 필드와 zero value, nil 허용 여부, 동시성/transaction 소유권은 생성자와 메서드의 한국어 주석 및 테스트 계약을 따른다.
+// EventID audit entry, event, repository, recorder, history에서 사용하는 문자열 타입이다.
 type EventID string
 
-// EventType string 공개 타입이며 audit entry, event, repository, recorder, history 계약을 보존한다.
-// 필드와 zero value, nil 허용 여부, 동시성/transaction 소유권은 생성자와 메서드의 한국어 주석 및 테스트 계약을 따른다.
+// EventType audit entry, event, repository, recorder, history에서 사용하는 문자열 타입이다.
 type EventType string
 
-// EventOptions struct 공개 타입이며 audit entry, event, repository, recorder, history 계약을 보존한다.
-// 필드와 zero value, nil 허용 여부, 동시성/transaction 소유권은 생성자와 메서드의 한국어 주석 및 테스트 계약을 따른다.
+// EventOptions audit entry, event, repository, recorder, history에서 사용하는 구조체다.
 type EventOptions struct {
 	EventID        EventID
 	EventType      EventType
@@ -28,8 +25,7 @@ type EventOptions struct {
 	Payload        json.RawMessage
 }
 
-// DomainEvent struct 공개 타입이며 audit entry, event, repository, recorder, history 계약을 보존한다.
-// 필드와 zero value, nil 허용 여부, 동시성/transaction 소유권은 생성자와 메서드의 한국어 주석 및 테스트 계약을 따른다.
+// DomainEvent audit entry, event, repository, recorder, history에서 사용하는 구조체다.
 type DomainEvent struct {
 	EventID        EventID         `json:"event_id"`
 	EventType      EventType       `json:"event_type"`
@@ -42,7 +38,7 @@ type DomainEvent struct {
 	Payload        json.RawMessage `json:"payload"`
 }
 
-// NewDomainEvent NewDomainEvent 공개 API의 동작을 수행하며 audit entry, event, repository, recorder, history 계약을 보존한다.
+// NewDomainEvent audit entry, event, repository, recorder, history에 사용할 값을 생성한다.
 //
 // 매개변수:
 //   - options: 적용할 옵션 목록이다. nil이면 기본값만 사용한다.
@@ -70,7 +66,7 @@ func NewDomainEvent(options EventOptions) (DomainEvent, error) {
 	return event, nil
 }
 
-// Validate Validate 공개 API의 동작을 수행하며 audit entry, event, repository, recorder, history 계약을 보존한다.
+// Validate 값이 audit entry, event, repository, recorder, history 규칙을 만족하는지 검사한다.
 //
 // 반환 오류는 입력 검증 실패, context 취소, transaction 실패, repository/outbox 실패, package sentinel error와 typed error를 그대로 드러낸다.
 func (e DomainEvent) Validate() error {
@@ -104,7 +100,7 @@ func (e DomainEvent) Validate() error {
 	return nil
 }
 
-// Clone Clone 공개 API의 동작을 수행하며 audit entry, event, repository, recorder, history 계약을 보존한다.
+// Clone 값을 복사해 caller가 독립적으로 수정할 수 있게 한다.
 func (e DomainEvent) Clone() DomainEvent {
 	clone := e
 	clone.Metadata = e.Metadata.Clone()
@@ -112,7 +108,7 @@ func (e DomainEvent) Clone() DomainEvent {
 	return clone
 }
 
-// UnmarshalJSON UnmarshalJSON 공개 API의 동작을 수행하며 audit entry, event, repository, recorder, history 계약을 보존한다.
+// UnmarshalJSON JSON 표현을 현재 값으로 복원한다.
 //
 // 매개변수:
 //   - data: UnmarshalJSON에 전달되는 값이다. 허용 범위와 nil 처리 방식은 구현 검증을 따른다.

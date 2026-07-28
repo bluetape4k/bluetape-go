@@ -15,8 +15,7 @@ const (
 	maxClearBatchSize  = 1000
 )
 
-// ValueConfig struct 공개 타입이며 tiered Redis value cache의 local/remote ownership, TTL, clear coordination 계약을 보존한다.
-// 필드와 zero value, nil 허용 여부, 동시성 소유권은 생성자와 메서드의 한국어 주석 및 테스트 계약을 따른다.
+// ValueConfig tiered Redis value cache의 local/remote ownership, TTL, clear coordination에서 사용하는 구조체다.
 type ValueConfig struct {
 	// RemoteTTL 기본 Redis expiry다. zero는 항목 영속화를 뜻하고 음수는 invalid다.
 	RemoteTTL time.Duration
@@ -26,8 +25,7 @@ type ValueConfig struct {
 	ClearBatchSize int64
 }
 
-// TieredConfig struct 공개 타입이며 tiered Redis value cache의 local/remote ownership, TTL, clear coordination 계약을 보존한다.
-// 필드와 zero value, nil 허용 여부, 동시성 소유권은 생성자와 메서드의 한국어 주석 및 테스트 계약을 따른다.
+// TieredConfig tiered Redis value cache의 local/remote ownership, TTL, clear coordination에서 사용하는 구조체다.
 type TieredConfig struct {
 	// LocalTTL 양수 L1 expiry 상한이며 finite RemoteTTL을 초과하면 안 된다.
 	LocalTTL time.Duration
@@ -37,8 +35,7 @@ type TieredConfig struct {
 	LocalCleanupTimeout time.Duration
 }
 
-// Config struct 공개 타입이며 tiered Redis value cache의 local/remote ownership, TTL, clear coordination 계약을 보존한다.
-// 필드와 zero value, nil 허용 여부, 동시성 소유권은 생성자와 메서드의 한국어 주석 및 테스트 계약을 따른다.
+// Config tiered Redis value cache의 local/remote ownership, TTL, clear coordination에서 사용하는 구조체다.
 type Config struct {
 	// Value serialized Redis L2 설정을 담는다.
 	Value ValueConfig
@@ -46,7 +43,7 @@ type Config struct {
 	Tiered TieredConfig
 }
 
-// DefaultConfig DefaultConfig 공개 API의 동작을 수행하며 tiered Redis value cache의 local/remote ownership, TTL, clear coordination 계약을 보존한다.
+// DefaultConfig tiered Redis value cache의 local/remote ownership, TTL, clear coordination 동작을 수행한다.
 func DefaultConfig() Config {
 	return Config{
 		Value: ValueConfig{
@@ -62,7 +59,7 @@ func DefaultConfig() Config {
 	}
 }
 
-// Validate Validate 공개 API의 동작을 수행하며 tiered Redis value cache의 local/remote ownership, TTL, clear coordination 계약을 보존한다.
+// Validate 값이 tiered Redis value cache의 local/remote ownership, TTL, clear coordination 규칙을 만족하는지 검사한다.
 //
 // 반환 오류는 cache miss, 입력 검증 실패, context 취소, Redis/backend 실패, package sentinel error와 typed error를 그대로 드러낸다.
 func (c Config) Validate() error {

@@ -8,7 +8,6 @@ import (
 )
 
 // TimeoutOptions struct 공개 타입이며 취소, deadline, retry, timeout, circuit breaker 상태를 보존한다.
-// 필드와 zero value, nil 허용 여부, 동시성 소유권은 생성자와 메서드의 한국어 주석 및 테스트 계약을 따른다.
 type TimeoutOptions struct {
 	Name    string
 	Timeout time.Duration
@@ -16,7 +15,6 @@ type TimeoutOptions struct {
 }
 
 // TimeoutPolicy struct 공개 타입이며 취소, deadline, retry, timeout, circuit breaker 상태를 보존한다.
-// 필드와 zero value, nil 허용 여부, 동시성 소유권은 생성자와 메서드의 한국어 주석 및 테스트 계약을 따른다.
 type TimeoutPolicy[T any] struct {
 	options TimeoutOptions
 }

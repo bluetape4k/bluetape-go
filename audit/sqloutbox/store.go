@@ -30,8 +30,7 @@ var (
 	ErrRecordNotFound = errors.New("sqloutbox record not found")
 )
 
-// Status string 공개 타입이며 SQL outbox store, relay, transaction, idempotent delivery 계약을 보존한다.
-// 필드와 zero value, nil 허용 여부, 동시성/transaction 소유권은 생성자와 메서드의 한국어 주석 및 테스트 계약을 따른다.
+// Status SQL outbox store, relay, transaction, idempotent delivery에서 사용하는 문자열 타입이다.
 type Status string
 
 const (
@@ -45,12 +44,10 @@ const (
 	StatusDeadLetter Status = "dead_letter"
 )
 
-// RecordID int64 공개 타입이며 SQL outbox store, relay, transaction, idempotent delivery 계약을 보존한다.
-// 필드와 zero value, nil 허용 여부, 동시성/transaction 소유권은 생성자와 메서드의 한국어 주석 및 테스트 계약을 따른다.
+// RecordID SQL outbox store, relay, transaction, idempotent delivery에서 사용하는 정수 타입이다.
 type RecordID int64
 
-// Options struct 공개 타입이며 SQL outbox store, relay, transaction, idempotent delivery 계약을 보존한다.
-// 필드와 zero value, nil 허용 여부, 동시성/transaction 소유권은 생성자와 메서드의 한국어 주석 및 테스트 계약을 따른다.
+// Options SQL outbox store, relay, transaction, idempotent delivery에서 사용하는 구조체다.
 type Options struct {
 	// Table PostgreSQL table 이름이다. "audit.audit_outbox" 같은 schema-qualified 이름을 허용한다.
 	Table string
@@ -62,8 +59,7 @@ type Options struct {
 	MaxErrorBytes int
 }
 
-// Store struct 공개 타입이며 SQL outbox store, relay, transaction, idempotent delivery 계약을 보존한다.
-// 필드와 zero value, nil 허용 여부, 동시성/transaction 소유권은 생성자와 메서드의 한국어 주석 및 테스트 계약을 따른다.
+// Store SQL outbox store, relay, transaction, idempotent delivery에서 사용하는 구조체다.
 type Store struct {
 	table         string
 	quotedTable   string
@@ -73,8 +69,7 @@ type Store struct {
 	maxErrorBytes int
 }
 
-// Record struct 공개 타입이며 SQL outbox store, relay, transaction, idempotent delivery 계약을 보존한다.
-// 필드와 zero value, nil 허용 여부, 동시성/transaction 소유권은 생성자와 메서드의 한국어 주석 및 테스트 계약을 따른다.
+// Record SQL outbox store, relay, transaction, idempotent delivery에서 사용하는 구조체다.
 type Record struct {
 	ID             RecordID
 	Status         Status
@@ -90,16 +85,14 @@ type Record struct {
 	Entry          audit.Entry
 }
 
-// ClaimOptions struct 공개 타입이며 SQL outbox store, relay, transaction, idempotent delivery 계약을 보존한다.
-// 필드와 zero value, nil 허용 여부, 동시성/transaction 소유권은 생성자와 메서드의 한국어 주석 및 테스트 계약을 따른다.
+// ClaimOptions SQL outbox store, relay, transaction, idempotent delivery에서 사용하는 구조체다.
 type ClaimOptions struct {
 	Limit         int
 	Now           time.Time
 	LeaseDuration time.Duration
 }
 
-// Failure struct 공개 타입이며 SQL outbox store, relay, transaction, idempotent delivery 계약을 보존한다.
-// 필드와 zero value, nil 허용 여부, 동시성/transaction 소유권은 생성자와 메서드의 한국어 주석 및 테스트 계약을 따른다.
+// Failure SQL outbox store, relay, transaction, idempotent delivery에서 사용하는 구조체다.
 type Failure struct {
 	ID          RecordID
 	Attempt     int
@@ -109,7 +102,7 @@ type Failure struct {
 	Now         time.Time
 }
 
-// NewStore NewStore 공개 API의 동작을 수행하며 SQL outbox store, relay, transaction, idempotent delivery 계약을 보존한다.
+// NewStore SQL outbox store, relay, transaction, idempotent delivery에 사용할 값을 생성한다.
 //
 // 매개변수:
 //   - options: 적용할 옵션 목록이다. nil이면 기본값만 사용한다.
@@ -154,7 +147,7 @@ func NewStore(options Options) (*Store, error) {
 	}, nil
 }
 
-// CreateSchema CreateSchema 공개 API의 동작을 수행하며 SQL outbox store, relay, transaction, idempotent delivery 계약을 보존한다.
+// CreateSchema SQL outbox store, relay, transaction, idempotent delivery의 상태를 변경한다.
 //
 // 매개변수:
 //   - ctx: 호출자가 소유한 취소, deadline, 요청 범위를 전달한다.
@@ -202,7 +195,7 @@ create table if not exists %s (
 	return err
 }
 
-// Enqueue Enqueue 공개 API의 동작을 수행하며 SQL outbox store, relay, transaction, idempotent delivery 계약을 보존한다.
+// Enqueue SQL outbox store, relay, transaction, idempotent delivery의 상태를 변경한다.
 //
 // 매개변수:
 //   - ctx: 호출자가 소유한 취소, deadline, 요청 범위를 전달한다.
@@ -262,7 +255,7 @@ insert into %s (
 	return nil
 }
 
-// Claim Claim 공개 API의 동작을 수행하며 SQL outbox store, relay, transaction, idempotent delivery 계약을 보존한다.
+// Claim SQL outbox store, relay, transaction, idempotent delivery의 상태를 변경한다.
 //
 // 매개변수:
 //   - ctx: 호출자가 소유한 취소, deadline, 요청 범위를 전달한다.
@@ -347,7 +340,7 @@ returning outbox.id, outbox.status, outbox.aggregate_type, outbox.aggregate_id,
 	return records, nil
 }
 
-// MarkPublished MarkPublished 공개 API의 동작을 수행하며 SQL outbox store, relay, transaction, idempotent delivery 계약을 보존한다.
+// MarkPublished SQL outbox store, relay, transaction, idempotent delivery의 상태를 변경한다.
 //
 // 매개변수:
 //   - ctx: 호출자가 소유한 취소, deadline, 요청 범위를 전달한다.
@@ -392,7 +385,7 @@ func (s *Store) MarkPublished(ctx context.Context, db sqlkit.Execer, records ...
 	return nil
 }
 
-// MarkFailed MarkFailed 공개 API의 동작을 수행하며 SQL outbox store, relay, transaction, idempotent delivery 계약을 보존한다.
+// MarkFailed SQL outbox store, relay, transaction, idempotent delivery의 상태를 변경한다.
 //
 // 매개변수:
 //   - ctx: 호출자가 소유한 취소, deadline, 요청 범위를 전달한다.

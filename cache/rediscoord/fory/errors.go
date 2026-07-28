@@ -10,8 +10,7 @@ var (
 	errProviderFailed     = errors.New("fory codec provider failed")
 )
 
-// Profile string 공개 타입이며 Redis 조정, stampede 방지, codec envelope 계약을 보존한다.
-// 필드와 zero value, nil 허용 여부, 동시성 소유권은 생성자와 메서드의 한국어 주석 및 테스트 계약을 따른다.
+// Profile Redis 조정, stampede 방지, codec envelope에서 사용하는 문자열 타입이다.
 type Profile string
 
 const (
@@ -21,8 +20,7 @@ const (
 	ProfileNativeCompatible Profile = "native-compatible"
 )
 
-// Reason string 공개 타입이며 Redis 조정, stampede 방지, codec envelope 계약을 보존한다.
-// 필드와 zero value, nil 허용 여부, 동시성 소유권은 생성자와 메서드의 한국어 주석 및 테스트 계약을 따른다.
+// Reason Redis 조정, stampede 방지, codec envelope에서 사용하는 문자열 타입이다.
 type Reason string
 
 const (
@@ -48,8 +46,7 @@ const (
 	ReasonForyFailure Reason = "fory-failure"
 )
 
-// CodecError struct 공개 타입이며 Redis 조정, stampede 방지, codec envelope 계약을 보존한다.
-// 필드와 zero value, nil 허용 여부, 동시성 소유권은 생성자와 메서드의 한국어 주석 및 테스트 계약을 따른다.
+// CodecError Redis 조정, stampede 방지, codec envelope에서 사용하는 구조체다.
 type CodecError struct {
 	operation string
 	profile   Profile
@@ -64,7 +61,7 @@ func (e *CodecError) Error() string {
 	return fmt.Sprintf("fory codec %s failed (%s): %s", e.operation, e.profile, e.reason)
 }
 
-// Unwrap Unwrap 공개 API의 동작을 수행하며 Redis 조정, stampede 방지, codec envelope 계약을 보존한다.
+// Unwrap 감싼 원인 오류를 반환한다.
 //
 // 반환 오류는 cache miss, 입력 검증 실패, context 취소, Redis/backend 실패, package sentinel error와 typed error를 그대로 드러낸다.
 func (e *CodecError) Unwrap() error {
@@ -74,11 +71,11 @@ func (e *CodecError) Unwrap() error {
 	return e.cause
 }
 
-// Operation Operation 공개 API의 동작을 수행하며 Redis 조정, stampede 방지, codec envelope 계약을 보존한다.
+// Operation Redis 조정, stampede 방지, codec envelope의 식별 정보를 반환한다.
 func (e *CodecError) Operation() string { return e.operation }
 
-// Profile Profile 공개 API의 동작을 수행하며 Redis 조정, stampede 방지, codec envelope 계약을 보존한다.
+// Profile Redis 조정, stampede 방지, codec envelope의 식별 정보를 반환한다.
 func (e *CodecError) Profile() Profile { return e.profile }
 
-// Reason Reason 공개 API의 동작을 수행하며 Redis 조정, stampede 방지, codec envelope 계약을 보존한다.
+// Reason Redis 조정, stampede 방지, codec envelope의 식별 정보를 반환한다.
 func (e *CodecError) Reason() Reason { return e.reason }

@@ -114,7 +114,7 @@ func NewPubSub[V any](ctx context.Context, options Options[V]) (*NearCache[V], e
 	return near, nil
 }
 
-// Get Get 공개 API의 동작을 수행하며 near-cache local state, invalidation message, Redis Pub/Sub 계약을 보존한다.
+// Get near-cache local state, invalidation message, Redis Pub/Sub에서 필요한 값을 조회한다.
 //
 // 매개변수:
 //   - ctx: 호출자가 소유한 취소, deadline, 요청 범위를 전달한다.
@@ -135,7 +135,7 @@ func (c *NearCache[V]) Get(ctx context.Context, key string) (V, error) {
 	return c.cfg.local.Get(ctx, key)
 }
 
-// Set Set 공개 API의 동작을 수행하며 near-cache local state, invalidation message, Redis Pub/Sub 계약을 보존한다.
+// Set near-cache local state, invalidation message, Redis Pub/Sub의 상태를 변경한다.
 //
 // 매개변수:
 //   - ctx: 호출자가 소유한 취소, deadline, 요청 범위를 전달한다.

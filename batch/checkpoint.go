@@ -6,33 +6,30 @@ import (
 	"sync"
 )
 
-// CheckpointReader interface 공개 타입이며 batch 단계, checkpoint, writer 안전성, 재시작 계약을 보존한다.
-// 필드와 zero value, nil 허용 여부, 동시성 소유권은 생성자와 메서드의 한국어 주석 및 테스트 계약을 따른다.
+// CheckpointReader batch 단계, checkpoint, writer 안전성, 재시작에서 사용하는 인터페이스이다.
 type CheckpointReader interface {
 	Restore(context.Context, any) error
 	Checkpoint(context.Context) (any, bool, error)
 }
 
-// CheckpointStore interface 공개 타입이며 batch 단계, checkpoint, writer 안전성, 재시작 계약을 보존한다.
-// 필드와 zero value, nil 허용 여부, 동시성 소유권은 생성자와 메서드의 한국어 주석 및 테스트 계약을 따른다.
+// CheckpointStore batch 단계, checkpoint, writer 안전성, 재시작에서 사용하는 인터페이스이다.
 type CheckpointStore interface {
 	Load(context.Context, string) (any, bool, error)
 	Save(context.Context, string, any) error
 }
 
-// MemoryCheckpointStore struct 공개 타입이며 batch 단계, checkpoint, writer 안전성, 재시작 계약을 보존한다.
-// 필드와 zero value, nil 허용 여부, 동시성 소유권은 생성자와 메서드의 한국어 주석 및 테스트 계약을 따른다.
+// MemoryCheckpointStore batch 단계, checkpoint, writer 안전성, 재시작에서 사용하는 구조체다.
 type MemoryCheckpointStore struct {
 	mu     sync.RWMutex
 	values map[string]any
 }
 
-// NewMemoryCheckpointStore NewMemoryCheckpointStore 공개 API의 동작을 수행하며 batch 단계, checkpoint, writer 안전성, 재시작 계약을 보존한다.
+// NewMemoryCheckpointStore batch 단계, checkpoint, writer 안전성, 재시작에 사용할 값을 생성한다.
 func NewMemoryCheckpointStore() *MemoryCheckpointStore {
 	return &MemoryCheckpointStore{values: make(map[string]any)}
 }
 
-// Load Load 공개 API의 동작을 수행하며 batch 단계, checkpoint, writer 안전성, 재시작 계약을 보존한다.
+// Load batch 단계, checkpoint, writer 안전성, 재시작에서 필요한 값을 조회한다.
 //
 // 매개변수:
 //   - ctx: 호출자가 소유한 취소, deadline, 요청 범위를 전달한다.
@@ -52,7 +49,7 @@ func (s *MemoryCheckpointStore) Load(ctx context.Context, key string) (any, bool
 	return value, ok, nil
 }
 
-// Save Save 공개 API의 동작을 수행하며 batch 단계, checkpoint, writer 안전성, 재시작 계약을 보존한다.
+// Save batch 단계, checkpoint, writer 안전성, 재시작의 쓰기 동작을 수행한다.
 //
 // 매개변수:
 //   - ctx: 호출자가 소유한 취소, deadline, 요청 범위를 전달한다.

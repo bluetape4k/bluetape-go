@@ -6,19 +6,18 @@ import (
 	"strings"
 )
 
-// SchemaVersion 상수 공개 값이며 audit entry, event, repository, recorder, history 계약을 보존한다.
+// SchemaVersion audit entry, event, repository, recorder, history에서 사용하는 공개 상수 값이다.
 // 호출자는 이 식별자를 audit 상태, outbox 상태, 오류, 또는 conformance 계약을 비교할 때 사용한다.
 const SchemaVersion = 1
 
-// SnapshotMetadata struct 공개 타입이며 audit entry, event, repository, recorder, history 계약을 보존한다.
-// 필드와 zero value, nil 허용 여부, 동시성/transaction 소유권은 생성자와 메서드의 한국어 주석 및 테스트 계약을 따른다.
+// SnapshotMetadata audit entry, event, repository, recorder, history에서 사용하는 구조체다.
 type SnapshotMetadata struct {
 	Format        string          `json:"format"`
 	SchemaVersion string          `json:"schema_version"`
 	Payload       json.RawMessage `json:"payload"`
 }
 
-// Validate Validate 공개 API의 동작을 수행하며 audit entry, event, repository, recorder, history 계약을 보존한다.
+// Validate 값이 audit entry, event, repository, recorder, history 규칙을 만족하는지 검사한다.
 //
 // 반환 오류는 입력 검증 실패, context 취소, transaction 실패, repository/outbox 실패, package sentinel error와 typed error를 그대로 드러낸다.
 func (m SnapshotMetadata) Validate() error {
@@ -34,14 +33,14 @@ func (m SnapshotMetadata) Validate() error {
 	return nil
 }
 
-// Clone Clone 공개 API의 동작을 수행하며 audit entry, event, repository, recorder, history 계약을 보존한다.
+// Clone 값을 복사해 caller가 독립적으로 수정할 수 있게 한다.
 func (m SnapshotMetadata) Clone() SnapshotMetadata {
 	clone := m
 	clone.Payload = cloneRawMessage(m.Payload)
 	return clone
 }
 
-// UnmarshalJSON UnmarshalJSON 공개 API의 동작을 수행하며 audit entry, event, repository, recorder, history 계약을 보존한다.
+// UnmarshalJSON JSON 표현을 현재 값으로 복원한다.
 //
 // 매개변수:
 //   - data: UnmarshalJSON에 전달되는 값이다. 허용 범위와 nil 처리 방식은 구현 검증을 따른다.
@@ -63,15 +62,14 @@ func (m *SnapshotMetadata) UnmarshalJSON(data []byte) error {
 	return nil
 }
 
-// ChangeMetadata struct 공개 타입이며 audit entry, event, repository, recorder, history 계약을 보존한다.
-// 필드와 zero value, nil 허용 여부, 동시성/transaction 소유권은 생성자와 메서드의 한국어 주석 및 테스트 계약을 따른다.
+// ChangeMetadata audit entry, event, repository, recorder, history에서 사용하는 구조체다.
 type ChangeMetadata struct {
 	ChangedFields []string `json:"changed_fields"`
 	Summary       string   `json:"summary,omitempty"`
 	Attributes    Metadata `json:"attributes,omitempty"`
 }
 
-// NewChangeMetadata NewChangeMetadata 공개 API의 동작을 수행하며 audit entry, event, repository, recorder, history 계약을 보존한다.
+// NewChangeMetadata audit entry, event, repository, recorder, history에 사용할 값을 생성한다.
 //
 // 매개변수:
 //   - fields: NewChangeMetadata에 전달되는 값이다. 허용 범위와 nil 처리 방식은 구현 검증을 따른다.
@@ -105,7 +103,7 @@ func NewChangeMetadata(fields []string, summary string, attributes Metadata) (Ch
 	return change, nil
 }
 
-// Validate Validate 공개 API의 동작을 수행하며 audit entry, event, repository, recorder, history 계약을 보존한다.
+// Validate 값이 audit entry, event, repository, recorder, history 규칙을 만족하는지 검사한다.
 //
 // 반환 오류는 입력 검증 실패, context 취소, transaction 실패, repository/outbox 실패, package sentinel error와 typed error를 그대로 드러낸다.
 func (m ChangeMetadata) Validate() error {
@@ -129,7 +127,7 @@ func (m ChangeMetadata) Validate() error {
 	return nil
 }
 
-// Clone Clone 공개 API의 동작을 수행하며 audit entry, event, repository, recorder, history 계약을 보존한다.
+// Clone 값을 복사해 caller가 독립적으로 수정할 수 있게 한다.
 func (m ChangeMetadata) Clone() ChangeMetadata {
 	clone := ChangeMetadata{
 		Summary:    m.Summary,
@@ -141,7 +139,7 @@ func (m ChangeMetadata) Clone() ChangeMetadata {
 	return clone
 }
 
-// UnmarshalJSON UnmarshalJSON 공개 API의 동작을 수행하며 audit entry, event, repository, recorder, history 계약을 보존한다.
+// UnmarshalJSON JSON 표현을 현재 값으로 복원한다.
 //
 // 매개변수:
 //   - data: UnmarshalJSON에 전달되는 값이다. 허용 범위와 nil 처리 방식은 구현 검증을 따른다.
@@ -161,8 +159,7 @@ func (m *ChangeMetadata) UnmarshalJSON(data []byte) error {
 	return nil
 }
 
-// EntryOptions struct 공개 타입이며 audit entry, event, repository, recorder, history 계약을 보존한다.
-// 필드와 zero value, nil 허용 여부, 동시성/transaction 소유권은 생성자와 메서드의 한국어 주석 및 테스트 계약을 따른다.
+// EntryOptions audit entry, event, repository, recorder, history에서 사용하는 구조체다.
 type EntryOptions struct {
 	Author   string
 	Event    DomainEvent
@@ -170,8 +167,7 @@ type EntryOptions struct {
 	Change   *ChangeMetadata
 }
 
-// Entry struct 공개 타입이며 audit entry, event, repository, recorder, history 계약을 보존한다.
-// 필드와 zero value, nil 허용 여부, 동시성/transaction 소유권은 생성자와 메서드의 한국어 주석 및 테스트 계약을 따른다.
+// Entry audit entry, event, repository, recorder, history에서 사용하는 구조체다.
 type Entry struct {
 	SchemaVersion int               `json:"schema_version"`
 	Aggregate     AggregateID       `json:"aggregate"`
@@ -182,7 +178,7 @@ type Entry struct {
 	Change        *ChangeMetadata   `json:"change,omitempty"`
 }
 
-// NewEntry NewEntry 공개 API의 동작을 수행하며 audit entry, event, repository, recorder, history 계약을 보존한다.
+// NewEntry audit entry, event, repository, recorder, history에 사용할 값을 생성한다.
 //
 // 매개변수:
 //   - options: 적용할 옵션 목록이다. nil이면 기본값만 사용한다.
@@ -210,7 +206,7 @@ func NewEntry(options EntryOptions) (Entry, error) {
 	return entry, nil
 }
 
-// Validate Validate 공개 API의 동작을 수행하며 audit entry, event, repository, recorder, history 계약을 보존한다.
+// Validate 값이 audit entry, event, repository, recorder, history 규칙을 만족하는지 검사한다.
 //
 // 반환 오류는 입력 검증 실패, context 취소, transaction 실패, repository/outbox 실패, package sentinel error와 typed error를 그대로 드러낸다.
 func (e Entry) Validate() error {
@@ -248,7 +244,7 @@ func (e Entry) Validate() error {
 	return nil
 }
 
-// Clone Clone 공개 API의 동작을 수행하며 audit entry, event, repository, recorder, history 계약을 보존한다.
+// Clone 값을 복사해 caller가 독립적으로 수정할 수 있게 한다.
 func (e Entry) Clone() Entry {
 	clone := e
 	clone.Event = e.Event.Clone()
@@ -263,7 +259,7 @@ func (e Entry) Clone() Entry {
 	return clone
 }
 
-// UnmarshalJSON UnmarshalJSON 공개 API의 동작을 수행하며 audit entry, event, repository, recorder, history 계약을 보존한다.
+// UnmarshalJSON JSON 표현을 현재 값으로 복원한다.
 //
 // 매개변수:
 //   - data: UnmarshalJSON에 전달되는 값이다. 허용 범위와 nil 처리 방식은 구현 검증을 따른다.
@@ -284,7 +280,7 @@ func (e *Entry) UnmarshalJSON(data []byte) error {
 	return nil
 }
 
-// DecodeEntryJSON DecodeEntryJSON 공개 API의 동작을 수행하며 audit entry, event, repository, recorder, history 계약을 보존한다.
+// DecodeEntryJSON JSON payload를 audit entry로 복원한다.
 //
 // 매개변수:
 //   - data: DecodeEntryJSON에 전달되는 값이다. 허용 범위와 nil 처리 방식은 구현 검증을 따른다.

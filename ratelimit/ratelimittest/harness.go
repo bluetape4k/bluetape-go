@@ -10,16 +10,14 @@ import (
 	"time"
 )
 
-// Config struct 공개 타입이며 rate-limit conformance harness의 quota/result ownership 계약을 보존한다.
-// 필드와 zero value, nil 허용 여부, 동시성 소유권은 생성자와 메서드의 한국어 주석 및 테스트 계약을 따른다.
+// Config rate-limit conformance harness의 quota/result ownership에서 사용하는 구조체다.
 type Config struct {
 	RatePerSecond float64
 	Burst         int64
 	IdleTTL       time.Duration
 }
 
-// Result struct 공개 타입이며 rate-limit conformance harness의 quota/result ownership 계약을 보존한다.
-// 필드와 zero value, nil 허용 여부, 동시성 소유권은 생성자와 메서드의 한국어 주석 및 테스트 계약을 따른다.
+// Result rate-limit conformance harness의 quota/result ownership에서 사용하는 구조체다.
 type Result struct {
 	Allowed    bool
 	Requested  int64
@@ -28,16 +26,13 @@ type Result struct {
 	ResetAfter time.Duration
 }
 
-// AllowFunc func 공개 타입이며 rate-limit conformance harness의 quota/result ownership 계약을 보존한다.
-// 필드와 zero value, nil 허용 여부, 동시성 소유권은 생성자와 메서드의 한국어 주석 및 테스트 계약을 따른다.
+// AllowFunc rate-limit conformance harness의 quota/result ownership에서 사용하는 함수 타입이다.
 type AllowFunc func(context.Context, string, int64) (Result, error)
 
-// Factory func 공개 타입이며 rate-limit conformance harness의 quota/result ownership 계약을 보존한다.
-// 필드와 zero value, nil 허용 여부, 동시성 소유권은 생성자와 메서드의 한국어 주석 및 테스트 계약을 따른다.
+// Factory rate-limit conformance harness의 quota/result ownership에서 사용하는 함수 타입이다.
 type Factory func(testing.TB, Config) (AllowFunc, error)
 
-// Phase string 공개 타입이며 rate-limit conformance harness의 quota/result ownership 계약을 보존한다.
-// 필드와 zero value, nil 허용 여부, 동시성 소유권은 생성자와 메서드의 한국어 주석 및 테스트 계약을 따른다.
+// Phase rate-limit conformance harness의 quota/result ownership에서 사용하는 문자열 타입이다.
 type Phase string
 
 const (
@@ -47,27 +42,23 @@ const (
 	PhaseAfterLinearize Phase = "after-linearize"
 )
 
-// Gate interface 공개 타입이며 rate-limit conformance harness의 quota/result ownership 계약을 보존한다.
-// 필드와 zero value, nil 허용 여부, 동시성 소유권은 생성자와 메서드의 한국어 주석 및 테스트 계약을 따른다.
+// Gate rate-limit conformance harness의 quota/result ownership에서 사용하는 인터페이스이다.
 type Gate interface {
 	AwaitStarted(context.Context) error
 	Resume()
 }
 
-// Control interface 공개 타입이며 rate-limit conformance harness의 quota/result ownership 계약을 보존한다.
-// 필드와 zero value, nil 허용 여부, 동시성 소유권은 생성자와 메서드의 한국어 주석 및 테스트 계약을 따른다.
+// Control rate-limit conformance harness의 quota/result ownership에서 사용하는 인터페이스이다.
 type Control interface {
 	GateNext(context.Context, string, Phase) (Gate, error)
 	FailNext(context.Context, string, error) error
 	OperationCount(string) int64
 }
 
-// ErrorClassifier func 공개 타입이며 rate-limit conformance harness의 quota/result ownership 계약을 보존한다.
-// 필드와 zero value, nil 허용 여부, 동시성 소유권은 생성자와 메서드의 한국어 주석 및 테스트 계약을 따른다.
+// ErrorClassifier rate-limit conformance harness의 quota/result ownership에서 사용하는 함수 타입이다.
 type ErrorClassifier func(error) bool
 
-// Harness struct 공개 타입이며 rate-limit conformance harness의 quota/result ownership 계약을 보존한다.
-// 필드와 zero value, nil 허용 여부, 동시성 소유권은 생성자와 메서드의 한국어 주석 및 테스트 계약을 따른다.
+// Harness rate-limit conformance harness의 quota/result ownership에서 사용하는 구조체다.
 type Harness struct {
 	New             Factory
 	Control         Control

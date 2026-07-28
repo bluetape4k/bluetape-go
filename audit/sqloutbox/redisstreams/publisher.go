@@ -18,8 +18,7 @@ const defaultStream = "audit:sqloutbox"
 // Client Publisher가 사용하는 좁은 Redis Streams append surface다.
 type Client = redisstream.Appender
 
-// Options struct 공개 타입이며 Redis Stream outbox publish, idempotency, stream key 계약을 보존한다.
-// 필드와 zero value, nil 허용 여부, 동시성 소유권은 생성자와 메서드의 한국어 주석 및 테스트 계약을 따른다.
+// Options Redis Stream outbox publish, idempotency, stream key에서 사용하는 구조체다.
 type Options struct {
 	// Client 호출자가 소유한 Redis client다.
 	Client Client
@@ -27,8 +26,7 @@ type Options struct {
 	Stream string
 }
 
-// Publisher struct 공개 타입이며 Redis Stream outbox publish, idempotency, stream key 계약을 보존한다.
-// 필드와 zero value, nil 허용 여부, 동시성 소유권은 생성자와 메서드의 한국어 주석 및 테스트 계약을 따른다.
+// Publisher Redis Stream outbox publish, idempotency, stream key에서 사용하는 구조체다.
 type Publisher struct {
 	client Client
 	stream string
@@ -36,7 +34,7 @@ type Publisher struct {
 
 var _ sqloutbox.Publisher = (*Publisher)(nil)
 
-// New New 공개 API의 동작을 수행하며 Redis Stream outbox publish, idempotency, stream key 계약을 보존한다.
+// New Redis Stream outbox publish, idempotency, stream key에 사용할 값을 생성한다.
 //
 // 매개변수:
 //   - options: 적용할 옵션 목록이다. nil이면 기본값만 사용한다.
@@ -56,7 +54,7 @@ func New(options Options) (*Publisher, error) {
 	return &Publisher{client: options.Client, stream: stream}, nil
 }
 
-// Stream Stream 공개 API의 동작을 수행하며 Redis Stream outbox publish, idempotency, stream key 계약을 보존한다.
+// Stream Redis Stream outbox publish, idempotency, stream key에서 필요한 값을 조회한다.
 func (p *Publisher) Stream() string {
 	if p == nil {
 		return ""
@@ -64,7 +62,7 @@ func (p *Publisher) Stream() string {
 	return p.stream
 }
 
-// Publish Publish 공개 API의 동작을 수행하며 Redis Stream outbox publish, idempotency, stream key 계약을 보존한다.
+// Publish Redis Stream outbox publish, idempotency, stream key의 쓰기 동작을 수행한다.
 //
 // 매개변수:
 //   - ctx: 호출자가 소유한 취소, deadline, 요청 범위를 전달한다.

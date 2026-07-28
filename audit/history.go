@@ -2,15 +2,14 @@ package audit
 
 import "sort"
 
-// History struct 공개 타입이며 audit entry, event, repository, recorder, history 계약을 보존한다.
-// 필드와 zero value, nil 허용 여부, 동시성/transaction 소유권은 생성자와 메서드의 한국어 주석 및 테스트 계약을 따른다.
+// History audit entry, event, repository, recorder, history에서 사용하는 구조체다.
 type History struct {
 	aggregate AggregateID
 	entries   []Entry
 	head      Revision
 }
 
-// NewHistory NewHistory 공개 API의 동작을 수행하며 audit entry, event, repository, recorder, history 계약을 보존한다.
+// NewHistory audit entry, event, repository, recorder, history에 사용할 값을 생성한다.
 //
 // 매개변수:
 //   - entries: NewHistory에 전달되는 값이다. 허용 범위와 nil 처리 방식은 구현 검증을 따른다.
@@ -64,17 +63,17 @@ func NewHistory(entries []Entry) (History, error) {
 	}, nil
 }
 
-// AggregateID AggregateID 공개 API의 동작을 수행하며 audit entry, event, repository, recorder, history 계약을 보존한다.
+// AggregateID audit entry, event, repository, recorder, history에서 필요한 값을 조회한다.
 func (h History) AggregateID() AggregateID {
 	return h.aggregate
 }
 
-// HeadRevision HeadRevision 공개 API의 동작을 수행하며 audit entry, event, repository, recorder, history 계약을 보존한다.
+// HeadRevision audit entry, event, repository, recorder, history에서 필요한 값을 조회한다.
 func (h History) HeadRevision() Revision {
 	return h.head
 }
 
-// Entries Entries 공개 API의 동작을 수행하며 audit entry, event, repository, recorder, history 계약을 보존한다.
+// Entries audit entry, event, repository, recorder, history에서 필요한 값을 조회한다.
 func (h History) Entries() []Entry {
 	if len(h.entries) == 0 {
 		return nil

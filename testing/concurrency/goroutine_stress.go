@@ -5,13 +5,12 @@ import (
 	"testing"
 )
 
-// GoroutineStressTester struct 공개 타입이며 테스트 helper의 timeout, cancellation, cleanup 계약을 보존한다.
-// 필드와 zero value, nil 허용 여부, 동시성 소유권은 생성자와 메서드의 한국어 주석 및 테스트 계약을 따른다.
+// GoroutineStressTester 테스트 helper의 timeout, cancellation, cleanup에서 사용하는 구조체다.
 type GoroutineStressTester struct {
 	options Options
 }
 
-// NewGoroutineStressTester NewGoroutineStressTester 공개 API의 동작을 수행하며 테스트 helper의 timeout, cancellation, cleanup 계약을 보존한다.
+// NewGoroutineStressTester 테스트 helper의 timeout, cancellation, cleanup에 사용할 값을 생성한다.
 //
 // 매개변수:
 //   - options: 적용할 옵션 목록이다. nil이면 기본값만 사용한다.
@@ -19,7 +18,7 @@ func NewGoroutineStressTester(options Options) GoroutineStressTester {
 	return GoroutineStressTester{options: options}
 }
 
-// Run Run 공개 API의 동작을 수행하며 테스트 helper의 timeout, cancellation, cleanup 계약을 보존한다.
+// Run 테스트 helper의 timeout, cancellation, cleanup의 쓰기 동작을 수행한다.
 //
 // 매개변수:
 //   - ctx: 호출자가 소유한 취소, deadline, 요청 범위를 전달한다.
@@ -30,7 +29,7 @@ func (t GoroutineStressTester) Run(ctx context.Context, tasks ...Task) (Report, 
 	return runAll(ctx, t.options, tasks)
 }
 
-// RunT RunT 공개 API의 동작을 수행하며 테스트 helper의 timeout, cancellation, cleanup 계약을 보존한다.
+// RunT 테스트 helper의 timeout, cancellation, cleanup 동작을 수행한다.
 //
 // 매개변수:
 //   - tb: 실패를 보고할 testing 객체다.

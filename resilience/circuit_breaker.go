@@ -9,7 +9,6 @@ import (
 )
 
 // CircuitState string 공개 타입이며 취소, deadline, retry, timeout, circuit breaker 상태를 보존한다.
-// 필드와 zero value, nil 허용 여부, 동시성 소유권은 생성자와 메서드의 한국어 주석 및 테스트 계약을 따른다.
 type CircuitState string
 
 const (
@@ -22,11 +21,9 @@ const (
 )
 
 // FailurePredicate func 공개 타입이며 취소, deadline, retry, timeout, circuit breaker 상태를 보존한다.
-// 필드와 zero value, nil 허용 여부, 동시성 소유권은 생성자와 메서드의 한국어 주석 및 테스트 계약을 따른다.
 type FailurePredicate func(error) bool
 
 // CircuitBreakerOptions struct 공개 타입이며 취소, deadline, retry, timeout, circuit breaker 상태를 보존한다.
-// 필드와 zero value, nil 허용 여부, 동시성 소유권은 생성자와 메서드의 한국어 주석 및 테스트 계약을 따른다.
 type CircuitBreakerOptions struct {
 	Name                  string
 	FailureThreshold      int
@@ -39,7 +36,6 @@ type CircuitBreakerOptions struct {
 }
 
 // CircuitBreakerPolicy struct 공개 타입이며 취소, deadline, retry, timeout, circuit breaker 상태를 보존한다.
-// 필드와 zero value, nil 허용 여부, 동시성 소유권은 생성자와 메서드의 한국어 주석 및 테스트 계약을 따른다.
 type CircuitBreakerPolicy[T any] struct {
 	options CircuitBreakerOptions
 

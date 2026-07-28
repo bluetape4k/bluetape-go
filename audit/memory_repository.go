@@ -5,19 +5,18 @@ import (
 	"sync"
 )
 
-// MemoryRepository struct 공개 타입이며 audit entry, event, repository, recorder, history 계약을 보존한다.
-// 필드와 zero value, nil 허용 여부, 동시성/transaction 소유권은 생성자와 메서드의 한국어 주석 및 테스트 계약을 따른다.
+// MemoryRepository audit entry, event, repository, recorder, history에서 사용하는 구조체다.
 type MemoryRepository struct {
 	mu      sync.RWMutex
 	entries []Entry
 }
 
-// NewMemoryRepository NewMemoryRepository 공개 API의 동작을 수행하며 audit entry, event, repository, recorder, history 계약을 보존한다.
+// NewMemoryRepository audit entry, event, repository, recorder, history에 사용할 값을 생성한다.
 func NewMemoryRepository() *MemoryRepository {
 	return &MemoryRepository{}
 }
 
-// Append Append 공개 API의 동작을 수행하며 audit entry, event, repository, recorder, history 계약을 보존한다.
+// Append audit entry, event, repository, recorder, history의 쓰기 동작을 수행한다.
 //
 // 매개변수:
 //   - ctx: 호출자가 소유한 취소, deadline, 요청 범위를 전달한다.
@@ -59,7 +58,7 @@ func (r *MemoryRepository) Append(ctx context.Context, entries ...Entry) error {
 	return nil
 }
 
-// Find Find 공개 API의 동작을 수행하며 audit entry, event, repository, recorder, history 계약을 보존한다.
+// Find audit entry, event, repository, recorder, history에서 필요한 값을 조회한다.
 //
 // 매개변수:
 //   - ctx: 호출자가 소유한 취소, deadline, 요청 범위를 전달한다.
@@ -99,7 +98,7 @@ func (r *MemoryRepository) Find(ctx context.Context, query Query) ([]Entry, erro
 	return matched, nil
 }
 
-// LoadHistory LoadHistory 공개 API의 동작을 수행하며 audit entry, event, repository, recorder, history 계약을 보존한다.
+// LoadHistory audit entry, event, repository, recorder, history에서 필요한 값을 조회한다.
 //
 // 매개변수:
 //   - ctx: 호출자가 소유한 취소, deadline, 요청 범위를 전달한다.
@@ -124,7 +123,7 @@ func (r *MemoryRepository) LoadHistory(ctx context.Context, aggregate AggregateI
 	return history, true, nil
 }
 
-// Latest Latest 공개 API의 동작을 수행하며 audit entry, event, repository, recorder, history 계약을 보존한다.
+// Latest audit entry, event, repository, recorder, history에서 필요한 값을 조회한다.
 //
 // 매개변수:
 //   - ctx: 호출자가 소유한 취소, deadline, 요청 범위를 전달한다.
@@ -145,7 +144,7 @@ func (r *MemoryRepository) Latest(ctx context.Context, aggregate AggregateID) (E
 	return entries[0], true, nil
 }
 
-// LatestSnapshot LatestSnapshot 공개 API의 동작을 수행하며 audit entry, event, repository, recorder, history 계약을 보존한다.
+// LatestSnapshot audit entry, event, repository, recorder, history에서 필요한 값을 조회한다.
 //
 // 매개변수:
 //   - ctx: 호출자가 소유한 취소, deadline, 요청 범위를 전달한다.
@@ -156,7 +155,7 @@ func (r *MemoryRepository) LatestSnapshot(ctx context.Context, aggregate Aggrega
 	return r.findSnapshot(ctx, aggregate, 0)
 }
 
-// PreviousSnapshot PreviousSnapshot 공개 API의 동작을 수행하며 audit entry, event, repository, recorder, history 계약을 보존한다.
+// PreviousSnapshot audit entry, event, repository, recorder, history에서 필요한 값을 조회한다.
 //
 // 매개변수:
 //   - ctx: 호출자가 소유한 취소, deadline, 요청 범위를 전달한다.

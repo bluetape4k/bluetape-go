@@ -26,7 +26,7 @@ type commandClient interface {
 	Del(context.Context, ...string) *redis.IntCmd
 }
 
-// Set Set 공개 API의 동작을 수행하며 Redis 값 캐시의 serialization, TTL, backend ownership 계약을 보존한다.
+// Set Redis 값 캐시의 serialization, TTL, backend ownership의 상태를 변경한다.
 //
 // 매개변수:
 //   - ctx: 호출자가 소유한 취소, deadline, 요청 범위를 전달한다.
@@ -67,7 +67,7 @@ func (c *ValueCache[V]) Set(ctx context.Context, logicalKey string, value V, ttl
 	return nil
 }
 
-// Get Get 공개 API의 동작을 수행하며 Redis 값 캐시의 serialization, TTL, backend ownership 계약을 보존한다.
+// Get Redis 값 캐시의 serialization, TTL, backend ownership에서 필요한 값을 조회한다.
 //
 // 매개변수:
 //   - ctx: 호출자가 소유한 취소, deadline, 요청 범위를 전달한다.
@@ -121,7 +121,7 @@ func (c *ValueCache[V]) Get(ctx context.Context, logicalKey string) (V, error) {
 	return value, nil
 }
 
-// Delete Delete 공개 API의 동작을 수행하며 Redis 값 캐시의 serialization, TTL, backend ownership 계약을 보존한다.
+// Delete Redis 값 캐시의 serialization, TTL, backend ownership의 상태를 변경한다.
 //
 // 매개변수:
 //   - ctx: 호출자가 소유한 취소, deadline, 요청 범위를 전달한다.

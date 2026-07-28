@@ -6,12 +6,11 @@ import (
 	"fmt"
 )
 
-// DefaultChunkSize 상수 공개 값이며 batch 단계, checkpoint, writer 안전성, 재시작 계약을 보존한다.
+// DefaultChunkSize batch 단계, checkpoint, writer 안전성, 재시작에서 사용하는 공개 상수 값이다.
 // 호출자는 이 식별자를 오류, 상태, 이벤트, 옵션, 또는 기본값 계약을 비교할 때 사용한다.
 const DefaultChunkSize = 100
 
-// StepOptions struct 공개 타입이며 batch 단계, checkpoint, writer 안전성, 재시작 계약을 보존한다.
-// 필드와 zero value, nil 허용 여부, 동시성 소유권은 생성자와 메서드의 한국어 주석 및 테스트 계약을 따른다.
+// StepOptions batch 단계, checkpoint, writer 안전성, 재시작에서 사용하는 구조체다.
 type StepOptions[I any, O any] struct {
 	Name            string
 	ChunkSize       int
@@ -24,8 +23,7 @@ type StepOptions[I any, O any] struct {
 	CheckpointKey   string
 }
 
-// Step struct 공개 타입이며 batch 단계, checkpoint, writer 안전성, 재시작 계약을 보존한다.
-// 필드와 zero value, nil 허용 여부, 동시성 소유권은 생성자와 메서드의 한국어 주석 및 테스트 계약을 따른다.
+// Step batch 단계, checkpoint, writer 안전성, 재시작에서 사용하는 구조체다.
 type Step[I any, O any] struct {
 	name      string
 	chunkSize int
@@ -39,7 +37,7 @@ type Step[I any, O any] struct {
 	key       string
 }
 
-// NewStep NewStep 공개 API의 동작을 수행하며 batch 단계, checkpoint, writer 안전성, 재시작 계약을 보존한다.
+// NewStep batch 단계, checkpoint, writer 안전성, 재시작에 사용할 값을 생성한다.
 //
 // 매개변수:
 //   - options: 적용할 옵션 목록이다. nil이면 기본값만 사용한다.
@@ -88,7 +86,7 @@ func NewStep[I any, O any](options StepOptions[I, O]) (*Step[I, O], error) {
 	}, nil
 }
 
-// Name Name 공개 API의 동작을 수행하며 batch 단계, checkpoint, writer 안전성, 재시작 계약을 보존한다.
+// Name batch 단계, checkpoint, writer 안전성, 재시작의 식별 정보를 반환한다.
 func (s *Step[I, O]) Name() string {
 	if s == nil {
 		return ""
@@ -96,7 +94,7 @@ func (s *Step[I, O]) Name() string {
 	return s.name
 }
 
-// Run Run 공개 API의 동작을 수행하며 batch 단계, checkpoint, writer 안전성, 재시작 계약을 보존한다.
+// Run batch 단계, checkpoint, writer 안전성, 재시작의 쓰기 동작을 수행한다.
 //
 // 매개변수:
 //   - ctx: 호출자가 소유한 취소, deadline, 요청 범위를 전달한다.

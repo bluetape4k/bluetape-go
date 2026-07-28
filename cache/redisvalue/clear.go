@@ -6,7 +6,7 @@ import (
 	btredis "github.com/bluetape4k/bluetape-go/redis"
 )
 
-// Clear Clear 공개 API의 동작을 수행하며 tiered Redis value cache의 local/remote ownership, TTL, clear coordination 계약을 보존한다.
+// Clear tiered Redis value cache의 local/remote ownership, TTL, clear coordination 동작을 수행한다.
 //
 // 매개변수:
 //   - ctx: 호출자가 소유한 취소, deadline, 요청 범위를 전달한다.

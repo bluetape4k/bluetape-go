@@ -16,7 +16,7 @@ const (
 	AddressKey = "redis.address"
 )
 
-// Start Start 공개 API의 동작을 수행하며 Redis test fixture의 image, address, cleanup ownership 계약을 보존한다.
+// Start Redis test fixture의 image, address, cleanup ownership 동작을 수행한다.
 //
 // 매개변수:
 //   - ctx: 호출자가 소유한 취소, deadline, 요청 범위를 전달한다.
@@ -27,7 +27,7 @@ func Start(ctx context.Context, tb testing.TB) string {
 	return mustDetail(ctx, tb, StartServer(ctx, tb), AddressKey)
 }
 
-// StartServer StartServer 공개 API의 동작을 수행하며 Redis test fixture의 image, address, cleanup ownership 계약을 보존한다.
+// StartServer Redis test fixture의 image, address, cleanup ownership 동작을 수행한다.
 //
 // 매개변수:
 //   - ctx: 호출자가 소유한 취소, deadline, 요청 범위를 전달한다.

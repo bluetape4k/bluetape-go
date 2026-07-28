@@ -10,8 +10,7 @@ import (
 	"github.com/redis/go-redis/v9"
 )
 
-// HyperLogLog interface 공개 타입이며 Redis Bloom/HyperLogLog key, TTL, script, backend compatibility 계약을 보존한다.
-// 필드와 zero value, nil 허용 여부, 동시성 소유권은 생성자와 메서드의 한국어 주석 및 테스트 계약을 따른다.
+// HyperLogLog Redis Bloom/HyperLogLog key, TTL, script, backend compatibility에서 사용하는 인터페이스이다.
 type HyperLogLog[T any] interface {
 	HasherKey() string
 	Add(ctx context.Context, values ...T) (bool, error)
@@ -19,8 +18,7 @@ type HyperLogLog[T any] interface {
 	Merge(ctx context.Context, sourceNamespaces ...string) error
 }
 
-// HyperLogLogOptions struct 공개 타입이며 Redis Bloom/HyperLogLog key, TTL, script, backend compatibility 계약을 보존한다.
-// 필드와 zero value, nil 허용 여부, 동시성 소유권은 생성자와 메서드의 한국어 주석 및 테스트 계약을 따른다.
+// HyperLogLogOptions Redis Bloom/HyperLogLog key, TTL, script, backend compatibility에서 사용하는 구조체다.
 type HyperLogLogOptions[T any] struct {
 	Client    redis.Cmdable
 	Namespace string
@@ -39,7 +37,7 @@ type normalizedHyperLogLogOptions[T any] struct {
 	hasher probabilistic.Hasher[T]
 }
 
-// NewHyperLogLog NewHyperLogLog 공개 API의 동작을 수행하며 Redis Bloom/HyperLogLog key, TTL, script, backend compatibility 계약을 보존한다.
+// NewHyperLogLog Redis Bloom/HyperLogLog key, TTL, script, backend compatibility에 사용할 값을 생성한다.
 //
 // 매개변수:
 //   - options: 적용할 옵션 목록이다. nil이면 기본값만 사용한다.
@@ -57,7 +55,7 @@ func NewHyperLogLog[T any](options HyperLogLogOptions[T]) (HyperLogLog[T], error
 	}, nil
 }
 
-// NewStringHyperLogLog NewStringHyperLogLog 공개 API의 동작을 수행하며 Redis Bloom/HyperLogLog key, TTL, script, backend compatibility 계약을 보존한다.
+// NewStringHyperLogLog Redis Bloom/HyperLogLog key, TTL, script, backend compatibility에 사용할 값을 생성한다.
 //
 // 매개변수:
 //   - client: Redis backend client다. 연결과 종료 소유권은 생성자 계약을 따른다.
@@ -78,7 +76,7 @@ func NewStringHyperLogLog(client redis.Cmdable, namespace string) (HyperLogLog[s
 	})
 }
 
-// NewBytesHyperLogLog NewBytesHyperLogLog 공개 API의 동작을 수행하며 Redis Bloom/HyperLogLog key, TTL, script, backend compatibility 계약을 보존한다.
+// NewBytesHyperLogLog Redis Bloom/HyperLogLog key, TTL, script, backend compatibility에 사용할 값을 생성한다.
 //
 // 매개변수:
 //   - client: Redis backend client다. 연결과 종료 소유권은 생성자 계약을 따른다.

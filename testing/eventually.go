@@ -16,7 +16,7 @@ func Eventually(t *testing.T, timeout time.Duration, condition func() bool) {
 	EventuallyWithPolling(t, timeout, defaultPollInterval, condition)
 }
 
-// EventuallyWithPolling EventuallyWithPolling 공개 API의 동작을 수행하며 테스트 helper의 timeout, cancellation, cleanup 계약을 보존한다.
+// EventuallyWithPolling 테스트 helper의 timeout, cancellation, cleanup 동작을 수행한다.
 //
 // 매개변수:
 //   - t: EventuallyWithPolling에 전달되는 값이다. 허용 범위와 nil 처리 방식은 구현 검증을 따른다.
@@ -40,7 +40,7 @@ func Consistently(t *testing.T, duration time.Duration, condition func() bool) {
 	ConsistentlyWithPolling(t, duration, defaultPollInterval, condition)
 }
 
-// ConsistentlyWithPolling ConsistentlyWithPolling 공개 API의 동작을 수행하며 테스트 helper의 timeout, cancellation, cleanup 계약을 보존한다.
+// ConsistentlyWithPolling 테스트 helper의 timeout, cancellation, cleanup 동작을 수행한다.
 //
 // 매개변수:
 //   - t: ConsistentlyWithPolling에 전달되는 값이다. 허용 범위와 nil 처리 방식은 구현 검증을 따른다.

@@ -15,7 +15,6 @@ const (
 )
 
 // EventKind string 공개 타입이며 취소, deadline, retry, timeout, circuit breaker 상태를 보존한다.
-// 필드와 zero value, nil 허용 여부, 동시성 소유권은 생성자와 메서드의 한국어 주석 및 테스트 계약을 따른다.
 type EventKind string
 
 const (
@@ -39,7 +38,6 @@ const (
 )
 
 // EventCategory string 공개 타입이며 취소, deadline, retry, timeout, circuit breaker 상태를 보존한다.
-// 필드와 zero value, nil 허용 여부, 동시성 소유권은 생성자와 메서드의 한국어 주석 및 테스트 계약을 따른다.
 type EventCategory string
 
 const (
@@ -60,7 +58,6 @@ const (
 )
 
 // ErrorCategory string 공개 타입이며 취소, deadline, retry, timeout, circuit breaker 상태를 보존한다.
-// 필드와 zero value, nil 허용 여부, 동시성 소유권은 생성자와 메서드의 한국어 주석 및 테스트 계약을 따른다.
 type ErrorCategory string
 
 const (
@@ -84,7 +81,6 @@ const (
 )
 
 // Event struct 공개 타입이며 취소, deadline, retry, timeout, circuit breaker 상태를 보존한다.
-// 필드와 zero value, nil 허용 여부, 동시성 소유권은 생성자와 메서드의 한국어 주석 및 테스트 계약을 따른다.
 type Event struct {
 	PolicyName    string
 	PolicyType    string
@@ -101,7 +97,6 @@ type Event struct {
 }
 
 // EventHandler func 공개 타입이며 취소, deadline, retry, timeout, circuit breaker 상태를 보존한다.
-// 필드와 zero value, nil 허용 여부, 동시성 소유권은 생성자와 메서드의 한국어 주석 및 테스트 계약을 따른다.
 type EventHandler func(context.Context, Event)
 
 func emitEvent(ctx context.Context, handler EventHandler, event Event) {

@@ -7,12 +7,10 @@ import (
 	"github.com/bluetape4k/bluetape-go/cache/internal/forynative"
 )
 
-// Registration func 공개 타입이며 Redis 조정, stampede 방지, codec envelope 계약을 보존한다.
-// 필드와 zero value, nil 허용 여부, 동시성 소유권은 생성자와 메서드의 한국어 주석 및 테스트 계약을 따른다.
+// Registration Redis 조정, stampede 방지, codec envelope에서 사용하는 함수 타입이다.
 type Registration func(*fory.Fory) error
 
-// Options struct 공개 타입이며 Redis 조정, stampede 방지, codec envelope 계약을 보존한다.
-// 필드와 zero value, nil 허용 여부, 동시성 소유권은 생성자와 메서드의 한국어 주석 및 테스트 계약을 따른다.
+// Options Redis 조정, stampede 방지, codec envelope에서 사용하는 구조체다.
 type Options struct {
 	// Register deterministically registers all codec-visible Fory types.
 	Register Registration
@@ -52,8 +50,7 @@ func (o Options) withDefaults() Options {
 	return o
 }
 
-// Codec struct 공개 타입이며 Redis 조정, stampede 방지, codec envelope 계약을 보존한다.
-// 필드와 zero value, nil 허용 여부, 동시성 소유권은 생성자와 메서드의 한국어 주석 및 테스트 계약을 따른다.
+// Codec Redis 조정, stampede 방지, codec envelope에서 사용하는 구조체다.
 type Codec[V any] struct {
 	state      *codecState[V]
 	profile    Profile
@@ -64,7 +61,7 @@ type codecState[V any] struct {
 	runtime *forynative.Runtime[V]
 }
 
-// NewNativeFast NewNativeFast 공개 API의 동작을 수행하며 Redis 조정, stampede 방지, codec envelope 계약을 보존한다.
+// NewNativeFast Redis 조정, stampede 방지, codec envelope에 사용할 값을 생성한다.
 //
 // 매개변수:
 //   - options: 적용할 옵션 목록이다. nil이면 기본값만 사용한다.
@@ -74,7 +71,7 @@ func NewNativeFast[V any](options Options) (*Codec[V], error) {
 	return newCodec[V](ProfileNativeFast, options)
 }
 
-// NewNativeCompatible NewNativeCompatible 공개 API의 동작을 수행하며 Redis 조정, stampede 방지, codec envelope 계약을 보존한다.
+// NewNativeCompatible Redis 조정, stampede 방지, codec envelope에 사용할 값을 생성한다.
 //
 // 매개변수:
 //   - options: 적용할 옵션 목록이다. nil이면 기본값만 사용한다.
@@ -104,7 +101,7 @@ func newCodec[V any](profile Profile, options Options) (*Codec[V], error) {
 	return &Codec[V]{state: &codecState[V]{runtime: runtime}, profile: profile, maxPayload: o.MaxPayloadBytes}, nil
 }
 
-// Marshal Marshal 공개 API의 동작을 수행하며 Redis 조정, stampede 방지, codec envelope 계약을 보존한다.
+// Marshal Redis 조정, stampede 방지, codec envelope 값을 직렬화한다.
 //
 // 매개변수:
 //   - value: 직렬화하거나 cache에 보관할 값이다. nil, zero value, aliasing 의미는 serializer/cache 계약을 따른다.
@@ -121,7 +118,7 @@ func (c *Codec[V]) Marshal(value V) ([]byte, error) {
 	return wrap(c.profile, raw), nil
 }
 
-// Unmarshal Unmarshal 공개 API의 동작을 수행하며 Redis 조정, stampede 방지, codec envelope 계약을 보존한다.
+// Unmarshal Redis 조정, stampede 방지, codec envelope 값을 복원한다.
 //
 // 매개변수:
 //   - data: Unmarshal에 전달되는 값이다. 허용 범위와 nil 처리 방식은 구현 검증을 따른다.

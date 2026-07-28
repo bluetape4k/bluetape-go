@@ -13,11 +13,10 @@ import (
 	"github.com/bluetape4k/bluetape-go/audit"
 )
 
-// RepositoryFactory func 공개 타입이며 audit conformance harness의 repository/recorder 계약을 보존한다.
-// 필드와 zero value, nil 허용 여부, 동시성/transaction 소유권은 생성자와 메서드의 한국어 주석 및 테스트 계약을 따른다.
+// RepositoryFactory audit conformance harness의 repository/recorder에서 사용하는 함수 타입이다.
 type RepositoryFactory func(testing.TB) audit.Repository
 
-// RunRepositoryConformance RunRepositoryConformance 공개 API의 동작을 수행하며 audit conformance harness의 repository/recorder 계약을 보존한다.
+// RunRepositoryConformance audit conformance harness의 repository/recorder 동작을 수행한다.
 //
 // 매개변수:
 //   - t: RunRepositoryConformance에 전달되는 값이다. 허용 범위와 nil 처리 방식은 구현 검증을 따른다.

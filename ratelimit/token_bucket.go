@@ -17,8 +17,7 @@ type bucketState struct {
 	lastSeenAt time.Time
 }
 
-// TokenBucket struct 공개 타입이며 token bucket, limiter option, HTTP boundary, result quota 계약을 보존한다.
-// 필드와 zero value, nil 허용 여부, 동시성 소유권은 생성자와 메서드의 한국어 주석 및 테스트 계약을 따른다.
+// TokenBucket token bucket, limiter option, HTTP boundary, result quota에서 사용하는 구조체다.
 type TokenBucket struct {
 	mu       sync.Mutex
 	opts     options

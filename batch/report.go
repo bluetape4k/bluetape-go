@@ -2,8 +2,7 @@ package batch
 
 import "time"
 
-// Status string 공개 타입이며 batch 단계, checkpoint, writer 안전성, 재시작 계약을 보존한다.
-// 필드와 zero value, nil 허용 여부, 동시성 소유권은 생성자와 메서드의 한국어 주석 및 테스트 계약을 따른다.
+// Status batch 단계, checkpoint, writer 안전성, 재시작에서 사용하는 문자열 타입이다.
 type Status string
 
 const (
@@ -17,8 +16,7 @@ const (
 	StatusPartial Status = "partial"
 )
 
-// Report struct 공개 타입이며 batch 단계, checkpoint, writer 안전성, 재시작 계약을 보존한다.
-// 필드와 zero value, nil 허용 여부, 동시성 소유권은 생성자와 메서드의 한국어 주석 및 테스트 계약을 따른다.
+// Report batch 단계, checkpoint, writer 안전성, 재시작에서 사용하는 구조체다.
 type Report struct {
 	Name        string
 	Status      Status
@@ -33,12 +31,12 @@ type Report struct {
 	Children    []Report
 }
 
-// IsSuccess IsSuccess 공개 API의 동작을 수행하며 batch 단계, checkpoint, writer 안전성, 재시작 계약을 보존한다.
+// IsSuccess batch 단계, checkpoint, writer 안전성, 재시작 상태가 조건을 만족하는지 반환한다.
 func (r Report) IsSuccess() bool {
 	return r.Status == StatusCompleted
 }
 
-// IsFailure IsFailure 공개 API의 동작을 수행하며 batch 단계, checkpoint, writer 안전성, 재시작 계약을 보존한다.
+// IsFailure batch 단계, checkpoint, writer 안전성, 재시작 상태가 조건을 만족하는지 반환한다.
 func (r Report) IsFailure() bool {
 	return r.Status == StatusFailed || r.Status == StatusCancelled || r.Status == StatusPartial
 }
