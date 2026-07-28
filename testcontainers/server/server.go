@@ -15,7 +15,7 @@ import (
 // ErrInvalidServer Testcontainers fixture에서 반환값과 오류 의미를 설명한다.
 var ErrInvalidServer = errors.New("invalid testcontainer server")
 
-// 이 주석은 Testcontainers fixture startup, endpoint, environment, cleanup 조건을 설명한다.
+// Container test server container의 endpoint와 cleanup handle을 보관한다.
 type Container interface {
 	Host(context.Context) (string, error)
 	MappedPort(context.Context, string) (network.Port, error)

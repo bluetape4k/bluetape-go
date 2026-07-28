@@ -31,7 +31,7 @@ const (
 	DedicatedNetworkNameKey = "floci.dedicated_network_name"
 )
 
-// 이 주석은 Testcontainers fixture startup, endpoint, environment, cleanup 조건을 설명한다.
+// ContainerOption Floci test container 생성 옵션을 조정한다.
 type ContainerOption func(*upstreamfloci.FlociContainer)
 
 // S3Config Testcontainers fixture에서 동작과 caller-visible 계약을 설명한다.
