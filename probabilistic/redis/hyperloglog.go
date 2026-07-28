@@ -42,9 +42,9 @@ type normalizedHyperLogLogOptions[T any] struct {
 // NewHyperLogLog NewHyperLogLog 공개 API의 동작을 수행하며 Redis Bloom/HyperLogLog key, TTL, script, backend compatibility 계약을 보존한다.
 //
 // 매개변수:
-//   - options: NewHyperLogLog 동작에 필요한 options 값이다. zero value, 범위, nil 허용 여부는 함수 계약을 따른다.
+//   - options: 적용할 옵션 목록이다. nil이면 기본값만 사용한다.
 //
-// 반환 오류는 입력 검증 실패, compatibility 불일치, Redis/backend 실패, 또는 package sentinel/typed error 계약을 보존한다.
+// 반환 오류는 입력 검증 실패, compatibility 불일치, Redis/backend 실패, package sentinel error와 typed error를 그대로 드러낸다.
 func NewHyperLogLog[T any](options HyperLogLogOptions[T]) (HyperLogLog[T], error) {
 	normalized, err := normalizeHyperLogLogOptions(options)
 	if err != nil {
@@ -63,7 +63,7 @@ func NewHyperLogLog[T any](options HyperLogLogOptions[T]) (HyperLogLog[T], error
 //   - client: Redis backend client다. 연결과 종료 소유권은 생성자 계약을 따른다.
 //   - namespace: 저장소 또는 Redis filter를 식별하는 key다. namespace와 compatibility 의미는 package 계약을 따른다.
 //
-// 반환 오류는 입력 검증 실패, compatibility 불일치, Redis/backend 실패, 또는 package sentinel/typed error 계약을 보존한다.
+// 반환 오류는 입력 검증 실패, compatibility 불일치, Redis/backend 실패, package sentinel error와 typed error를 그대로 드러낸다.
 func NewStringHyperLogLog(client redis.Cmdable, namespace string) (HyperLogLog[string], error) {
 	hasher, err := probabilistic.NewHasher(stringHasherKey, func(value string) []byte {
 		return []byte(value)
@@ -84,7 +84,7 @@ func NewStringHyperLogLog(client redis.Cmdable, namespace string) (HyperLogLog[s
 //   - client: Redis backend client다. 연결과 종료 소유권은 생성자 계약을 따른다.
 //   - namespace: 저장소 또는 Redis filter를 식별하는 key다. namespace와 compatibility 의미는 package 계약을 따른다.
 //
-// 반환 오류는 입력 검증 실패, compatibility 불일치, Redis/backend 실패, 또는 package sentinel/typed error 계약을 보존한다.
+// 반환 오류는 입력 검증 실패, compatibility 불일치, Redis/backend 실패, package sentinel error와 typed error를 그대로 드러낸다.
 func NewBytesHyperLogLog(client redis.Cmdable, namespace string) (HyperLogLog[[]byte], error) {
 	hasher, err := probabilistic.NewHasher(bytesHasherKey, func(value []byte) []byte {
 		copied := make([]byte, len(value))

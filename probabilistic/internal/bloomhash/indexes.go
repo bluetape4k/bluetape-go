@@ -12,9 +12,9 @@ const hash2Fallback = uint64(0x9e3779b97f4a7c15)
 // Indexes Indexes 공개 API의 동작을 수행하며 Bloom hash index 계산의 capacity, hash count, deterministic mapping 계약을 보존한다.
 //
 // 매개변수:
-//   - bytes: Indexes 동작에 필요한 bytes 값이다. zero value, 범위, nil 허용 여부는 함수 계약을 따른다.
+//   - bytes: Indexes에 전달되는 값이다. 허용 범위와 nil 처리 방식은 구현 검증을 따른다.
 //   - hashFunctionCount: hash index를 계산하는 deterministic hasher다. compatibility와 seed 의미는 hasher 계약을 따른다.
-//   - bitSize: Indexes 동작에 필요한 bitSize 값이다. zero value, 범위, nil 허용 여부는 함수 계약을 따른다.
+//   - bitSize: Indexes에 전달되는 값이다. 허용 범위와 nil 처리 방식은 구현 검증을 따른다.
 func Indexes(bytes []byte, hashFunctionCount uint64, bitSize uint64) []uint64 {
 	hash1, hash2 := hashes(bytes)
 	result := make([]uint64, hashFunctionCount)
@@ -27,10 +27,10 @@ func Indexes(bytes []byte, hashFunctionCount uint64, bitSize uint64) []uint64 {
 // AppendIndexes AppendIndexes 공개 API의 동작을 수행하며 Bloom hash index 계산의 capacity, hash count, deterministic mapping 계약을 보존한다.
 //
 // 매개변수:
-//   - dst: AppendIndexes 동작에 필요한 dst 값이다. zero value, 범위, nil 허용 여부는 함수 계약을 따른다.
-//   - bytes: AppendIndexes 동작에 필요한 bytes 값이다. zero value, 범위, nil 허용 여부는 함수 계약을 따른다.
+//   - dst: AppendIndexes에 전달되는 값이다. 허용 범위와 nil 처리 방식은 구현 검증을 따른다.
+//   - bytes: AppendIndexes에 전달되는 값이다. 허용 범위와 nil 처리 방식은 구현 검증을 따른다.
 //   - hashFunctionCount: hash index를 계산하는 deterministic hasher다. compatibility와 seed 의미는 hasher 계약을 따른다.
-//   - bitSize: AppendIndexes 동작에 필요한 bitSize 값이다. zero value, 범위, nil 허용 여부는 함수 계약을 따른다.
+//   - bitSize: AppendIndexes에 전달되는 값이다. 허용 범위와 nil 처리 방식은 구현 검증을 따른다.
 func AppendIndexes(dst []any, bytes []byte, hashFunctionCount uint64, bitSize uint64) []any {
 	hash1, hash2 := hashes(bytes)
 	for i := range hashFunctionCount {

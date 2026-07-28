@@ -42,10 +42,10 @@ func (f *bloomFilter[T]) sealedBloomFilter() {} //nolint:unused // 외부 BloomF
 // NewBloomFilter NewBloomFilter 공개 API의 동작을 수행하며 Bloom filter의 capacity, false-positive rate, hasher, compatibility 계약을 보존한다.
 //
 // 매개변수:
-//   - cfg: NewBloomFilter 동작에 필요한 cfg 값이다. zero value, 범위, nil 허용 여부는 함수 계약을 따른다.
+//   - cfg: NewBloomFilter에 전달되는 값이다. 허용 범위와 nil 처리 방식은 구현 검증을 따른다.
 //   - hasher: hash index를 계산하는 deterministic hasher다. compatibility와 seed 의미는 hasher 계약을 따른다.
 //
-// 반환 오류는 입력 검증 실패, compatibility 불일치, Redis/backend 실패, 또는 package sentinel/typed error 계약을 보존한다.
+// 반환 오류는 입력 검증 실패, compatibility 불일치, Redis/backend 실패, package sentinel error와 typed error를 그대로 드러낸다.
 func NewBloomFilter[T any](cfg Config, hasher Hasher[T]) (BloomFilter[T], error) {
 	cfg, err := normalizeConfig(cfg)
 	if err != nil {
@@ -65,9 +65,9 @@ func NewBloomFilter[T any](cfg Config, hasher Hasher[T]) (BloomFilter[T], error)
 // NewStringBloomFilter NewStringBloomFilter 공개 API의 동작을 수행하며 Bloom filter의 capacity, false-positive rate, hasher, compatibility 계약을 보존한다.
 //
 // 매개변수:
-//   - cfg: NewStringBloomFilter 동작에 필요한 cfg 값이다. zero value, 범위, nil 허용 여부는 함수 계약을 따른다.
+//   - cfg: NewStringBloomFilter에 전달되는 값이다. 허용 범위와 nil 처리 방식은 구현 검증을 따른다.
 //
-// 반환 오류는 입력 검증 실패, compatibility 불일치, Redis/backend 실패, 또는 package sentinel/typed error 계약을 보존한다.
+// 반환 오류는 입력 검증 실패, compatibility 불일치, Redis/backend 실패, package sentinel error와 typed error를 그대로 드러낸다.
 func NewStringBloomFilter(cfg Config) (BloomFilter[string], error) {
 	return NewBloomFilter(cfg, stringHasher())
 }
@@ -75,9 +75,9 @@ func NewStringBloomFilter(cfg Config) (BloomFilter[string], error) {
 // NewBytesBloomFilter NewBytesBloomFilter 공개 API의 동작을 수행하며 Bloom filter의 capacity, false-positive rate, hasher, compatibility 계약을 보존한다.
 //
 // 매개변수:
-//   - cfg: NewBytesBloomFilter 동작에 필요한 cfg 값이다. zero value, 범위, nil 허용 여부는 함수 계약을 따른다.
+//   - cfg: NewBytesBloomFilter에 전달되는 값이다. 허용 범위와 nil 처리 방식은 구현 검증을 따른다.
 //
-// 반환 오류는 입력 검증 실패, compatibility 불일치, Redis/backend 실패, 또는 package sentinel/typed error 계약을 보존한다.
+// 반환 오류는 입력 검증 실패, compatibility 불일치, Redis/backend 실패, package sentinel error와 typed error를 그대로 드러낸다.
 func NewBytesBloomFilter(cfg Config) (BloomFilter[[]byte], error) {
 	return NewBloomFilter(cfg, bytesHasher())
 }
@@ -167,9 +167,9 @@ func (f *bloomFilter[T]) Put(value T) bool {
 // PutAll PutAll 공개 API의 동작을 수행하며 Bloom filter의 capacity, false-positive rate, hasher, compatibility 계약을 보존한다.
 //
 // 매개변수:
-//   - other: PutAll 동작에 필요한 other 값이다. zero value, 범위, nil 허용 여부는 함수 계약을 따른다.
+//   - other: PutAll에 전달되는 값이다. 허용 범위와 nil 처리 방식은 구현 검증을 따른다.
 //
-// 반환 오류는 입력 검증 실패, compatibility 불일치, Redis/backend 실패, 또는 package sentinel/typed error 계약을 보존한다.
+// 반환 오류는 입력 검증 실패, compatibility 불일치, Redis/backend 실패, package sentinel error와 typed error를 그대로 드러낸다.
 func (f *bloomFilter[T]) PutAll(other BloomFilter[T]) error {
 	if other == nil {
 		return ErrNilFilter

@@ -18,9 +18,9 @@ type Hasher[T any] struct {
 //
 // 매개변수:
 //   - key: 저장소 또는 Redis filter를 식별하는 key다. namespace와 compatibility 의미는 package 계약을 따른다.
-//   - sum: NewHasher 동작에 필요한 sum 값이다. zero value, 범위, nil 허용 여부는 함수 계약을 따른다.
+//   - sum: NewHasher에 전달되는 값이다. 허용 범위와 nil 처리 방식은 구현 검증을 따른다.
 //
-// 반환 오류는 입력 검증 실패, compatibility 불일치, Redis/backend 실패, 또는 package sentinel/typed error 계약을 보존한다.
+// 반환 오류는 입력 검증 실패, compatibility 불일치, Redis/backend 실패, package sentinel error와 typed error를 그대로 드러낸다.
 func NewHasher[T any](key string, sum func(T) []byte) (Hasher[T], error) {
 	if key == "" {
 		return Hasher[T]{}, ErrEmptyHasherKey
@@ -51,7 +51,7 @@ func (h Hasher[T]) validate() error {
 // 매개변수:
 //   - value: Bloom/Redis filter에 추가하거나 검사할 값이다. nil/empty/hash input 의미는 hasher 계약을 따른다.
 //
-// 반환 오류는 입력 검증 실패, compatibility 불일치, Redis/backend 실패, 또는 package sentinel/typed error 계약을 보존한다.
+// 반환 오류는 입력 검증 실패, compatibility 불일치, Redis/backend 실패, package sentinel error와 typed error를 그대로 드러낸다.
 func (h Hasher[T]) Bytes(value T) ([]byte, error) {
 	if err := h.validate(); err != nil {
 		return nil, err
