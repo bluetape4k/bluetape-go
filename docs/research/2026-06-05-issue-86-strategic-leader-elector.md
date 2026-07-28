@@ -1,31 +1,29 @@
-# Issue 86 Strategic Leader Elector
+# Issue 86 Strategic Leader Elector 연구
 
 Issue: #86
 Milestone: 0.3.0
 
-## Summary
+## 요약
 
-#86 is the remaining 0.3.0 implementation slice for pluggable leader election.
-It adds a candidate-registry model where each node registers metadata, all nodes
-apply the same deterministic strategy, and only the elected node runs the guarded
-action.
+#86은 pluggable leader election을 위한 남은 0.3.0 implementation slice다. 각 node가
+metadata를 등록하고, 모든 node가 동일한 deterministic strategy를 적용하며, elected
+node만 guarded action을 실행하는 candidate-registry model을 추가한다.
 
-## Decision
+## 결정
 
-Implement a Go-owned `leader.StrategicElector` API and Redis-backed
-`leader/redis` implementation. Use `bluetape4k-leader` as reference evidence,
-but do not make Redis keys or serialized candidates compatible with the JVM
-implementation.
+Go가 소유하는 `leader.StrategicElector` API와 Redis-backed `leader/redis` 구현을
+추가한다. `bluetape4k-leader`는 reference evidence로 사용하되, Redis key나
+serialized candidate를 JVM implementation과 compatible하게 만들지는 않는다.
 
-## Scope
+## 범위
 
-- Candidate metadata and result counters.
-- FIFO, seed-stable random, and scored strategies.
-- Idle-time, success-rate, candidate-weight, and weighted scorers.
+- candidate metadata 및 result counters.
+- FIFO, seed-stable random, scored strategies.
+- idle-time, success-rate, candidate-weight, weighted scorers.
 - Redis shared candidate registry.
-- Testcontainers, stress, cancellation, examples, and README locale updates.
+- Testcontainers, stress, cancellation, examples, README locale updates.
 
-## Related Artifacts
+## 관련 산출물
 
 - Superpowers research:
   `docs/superpowers/research/2026-06-05-issue-86-strategic-leader-elector-research.md`

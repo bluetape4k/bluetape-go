@@ -3,13 +3,12 @@
 Issue: [#439](https://github.com/bluetape4k/bluetape-go/issues/439)  
 Milestone: Backlog  
 Date: 2026-07-09  
-Scope: `audit` in-memory repository and `audit/sqloutbox` PostgreSQL relay paths
+Scope: `audit` in-memory repository 및 `audit/sqloutbox` PostgreSQL relay path
 
 ## Snapshot Boundary
 
-This report is a local benchmark snapshot. It is not a production ranking and
-does not change audit delivery semantics by itself. Lower `ns/op`, `ms/op`,
-`B/op`, and `allocs/op` are better.
+이 report는 local benchmark snapshot이다. production ranking이 아니며 audit delivery semantics를 그 자체로 바꾸지 않는다.
+낮은 `ns/op`, `ms/op`, `B/op`, `allocs/op`이 더 좋다.
 
 ![audit + sqloutbox benchmark summary](../images/readme-charts/audit-outbox-benchmark-summary.png)
 
@@ -29,8 +28,8 @@ does not change audit delivery semantics by itself. Lower `ns/op`, `ms/op`,
 
 | Command | Raw output file | Notes |
 |---|---|---|
-| `go test -run '^$' -bench 'Benchmark(MemoryRepository\|AuditEntryJSONRoundTrip)' -benchmem ./audit` | `docs/research/outputs/issue-439/audit-memory-bench.txt` | In-memory repository and JSON rows. |
-| `BLUETAPE_AUDIT_SQL_OUTBOX_BENCH=1 go test -p 1 -run '^$' -bench '^BenchmarkAuditSQLOutboxPostgres' -benchtime=100x -benchmem ./audit/sqloutbox` | `docs/research/outputs/issue-439/audit-sqloutbox-postgres-bench.txt` | Serial opt-in PostgreSQL/Testcontainers run. |
+| `go test -run '^$' -bench 'Benchmark(MemoryRepository\\|AuditEntryJSONRoundTrip)' -benchmem ./audit` | `docs/research/outputs/issue-439/audit-memory-bench.txt` | in-memory repository 및 JSON row. |
+| `BLUETAPE_AUDIT_SQL_OUTBOX_BENCH=1 go test -p 1 -run '^BenchmarkAuditSQLOutboxPostgres' -benchtime=100x -benchmem ./audit/sqloutbox` | `docs/research/outputs/issue-439/audit-sqloutbox-postgres-bench.txt` | serial opt-in PostgreSQL/Testcontainers run. |
 
 ## In-Memory Results
 
@@ -56,40 +55,28 @@ does not change audit delivery semantics by itself. Lower `ns/op`, `ms/op`,
 
 ## Interpretation
 
-- In-memory single-aggregate lookup and small history operations are cheap
-  enough for tests and local adapters. The medium rows show the expected clone
-  and validation cost: 256-entry `LoadHistory` is about 0.94 ms/op and allocates
-  about 2.0 MiB/op because repository reads return defensive copies and then
-  reconstruct a contiguous `History`.
-- `Find` over `AggregateType` is intentionally broader than aggregate-key lookup
-  and scans a 64x16 in-memory corpus before limiting to 32 newest rows. Treat
-  this as a visibility row for repository shape, not as a recommendation for
-  production query design.
-- PostgreSQL outbox rows are in the low single-digit millisecond range for
-  local `postgres:16-alpine` Testcontainers batches of 10. `Claim` is the
-  smallest row because it updates and decodes one batch, while `RunOnce`
-  includes claim plus publish/failure marking.
-- Dead-letter marking is slightly slower and allocates slightly more than the
-  publish path because it persists bounded failure text and state transition
-  fields. This is acceptable for the current correctness-first relay boundary.
+- in-memory single-aggregate lookup과 small history operation은 test 및 local adapter에 충분히 저렴하다. medium row는 expected
+  clone 및 validation cost를 보여 준다. 256-entry `LoadHistory`는 약 0.94 ms/op이며 약 2.0 MiB/op를 allocate한다. repository read가
+  defensive copy를 반환하고 contiguous `History`를 재구성하기 때문이다.
+- `AggregateType` 기준 `Find`는 aggregate-key lookup보다 의도적으로 넓으며 64x16 in-memory corpus를 scan한 뒤 최신 32 row로
+  제한한다. 이는 repository shape visibility row이지 production query design recommendation이 아니다.
+- PostgreSQL outbox row는 local `postgres:16-alpine` Testcontainers batch 10개에서 low single-digit millisecond range다.
+  `Claim`은 batch 하나를 update/decode하므로 가장 작고, `RunOnce`는 claim과 publish/failure marking을 포함한다.
+- dead-letter marking은 bounded failure text와 state transition field를 저장하므로 publish path보다 약간 느리고 allocation이
+  조금 더 많다. 현재 correctness-first relay boundary에서는 수용 가능하다.
 
 ## Not Proven By This Snapshot
 
-- These rows do not rank PostgreSQL against Redis Streams, Kafka, NATS, RabbitMQ,
-  Redpanda, Pulsar, or any future publisher adapter.
-- They do not prove production throughput under network latency, WAL settings,
-  connection pools, migrations, schema indexes beyond the package DDL, or
-  concurrent relay workers.
-- They do not justify changing delivery semantics, claim ownership, idempotency,
-  retry, or dead-letter behavior in #439.
+- 이 row는 PostgreSQL을 Redis Streams, Kafka, NATS, RabbitMQ, Redpanda, Pulsar 또는 future publisher adapter와 ranking하지 않는다.
+- network latency, WAL setting, connection pool, migration, package DDL 밖 schema index, concurrent relay worker 아래 production
+  throughput을 증명하지 않는다.
+- #439에서 delivery semantics, claim ownership, idempotency, retry, dead-letter behavior 변경을 정당화하지 않는다.
 
 ## Follow-Up Use
 
-- Future publisher adapter issues should link this report before making
-  throughput or low-latency delivery claims.
-- If SQL relay throughput becomes a target, the next benchmark should add
-  pooled concurrent relay workers, transaction shape, connection-pool size, and
-  representative payload redaction/encryption overhead.
+- future publisher adapter issue는 throughput 또는 low-latency delivery claim 전에 이 report를 link해야 한다.
+- SQL relay throughput이 target이 되면 다음 benchmark는 pooled concurrent relay worker, transaction shape, connection-pool size,
+  representative payload redaction/encryption overhead를 추가해야 한다.
 
 ## Artifacts
 

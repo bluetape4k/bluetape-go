@@ -1,21 +1,21 @@
-# Issue #214 testing data and reporting research
+# Issue #214 testing data 및 reporting 연구
 
 Date: 2026-06-23
 Milestone: 0.6.4
 Issue: #214
 Parent: #209
 
-## Decision
+## 결정
 
-Do not add a faker, random-data, parameter-source, or Mermaid reporting
-dependency in 0.6.4.
+0.6.4에서는 faker, random-data, parameter-source, Mermaid reporting dependency를
+추가하지 않는다.
 
-Keep the Go testing surface centered on table-driven tests, fuzz tests,
-compile-checked examples, fixtures, golden files, and small deterministic data
-builders. Defer any faker dependency to #222, where focused assertion test-data
-and fixture examples can prove a concrete consumer.
+Go testing surface는 table-driven test, fuzz test, compile-checked example,
+fixture, golden file, 작은 deterministic data builder 중심으로 유지한다. faker
+dependency는 #222로 defer하고, focused assertion test-data와 fixture example이
+구체적인 consumer를 증명한 뒤 다시 판단한다.
 
-## Acceptance Criteria Coverage
+## Acceptance Criteria 대응
 
 | Requirement | Decision |
 |---|---|
@@ -25,22 +25,21 @@ and fixture examples can prove a concrete consumer.
 | Include `testing/assertions`, random/faker support, parameter sources, mock web servers, Spring/Ktor test data patterns. | Assertions/test-data examples route to #222; HTTP/mock servers route to #219/#224; Spring/Ktor-style fixtures become typed Go builders, not reflection injection. |
 | Decide later package needs. | Database/audit/graph/AWS/golden needs should start with deterministic builders and checked-in fixtures; randomized text/token data remains opt-in research only. |
 
-## Go Baseline
+## Go 기준선
 
-- Table-driven tests already dominate the repository and fit parameter-source
-  needs without a helper API.
-- Go fuzz targets (`func FuzzXxx(f *testing.F)`) are the right shape for parser,
-  codec, wildcard, and boundary-input coverage when examples or tables are too
-  narrow.
-- Compile-checked examples already provide caller-facing documentation and
-  exact-output verification.
-- `go test -json` emits the same information as verbose test output in a
-  machine-readable format. Downstream reporting should consume that stream
-  rather than adding a custom test runner.
-- `testing.T.TempDir`, `testing.T.Setenv`, and the scoped helpers from #212 are
-  enough for temp output, env restoration, and golden-file write targets.
+- Table-driven test가 이미 repository의 주된 형태이며, helper API 없이도
+  parameter-source 요구를 충족한다.
+- Go fuzz target(`func FuzzXxx(f *testing.F)`)은 example이나 table만으로 너무
+  좁은 parser, codec, wildcard, boundary-input coverage에 맞는 형태다.
+- Compile-checked example은 이미 caller-facing documentation과 exact-output
+  verification을 제공한다.
+- `go test -json`은 verbose test output과 같은 정보를 machine-readable format으로
+  방출한다. Downstream reporting은 custom test runner를 추가하기보다 이 stream을
+  소비해야 한다.
+- `testing.T.TempDir`, `testing.T.Setenv`, #212의 scoped helper면 temp output,
+  env restoration, golden-file write target에 충분하다.
 
-## Candidate Dependency Snapshot
+## 후보 Dependency Snapshot
 
 Live metadata was collected with `gh repo view` and `go list -m -versions` on
 2026-06-23.
@@ -52,13 +51,13 @@ Live metadata was collected with `gh repo view` and `go list -m -versions` on
 | `github.com/jaswdr/faker/v2` | MIT | Active repo; latest observed module line `v2.9.1`; zero-dependency faker-style API. | Useful for ad hoc realistic values but includes APIs that can create image/temp files and broad random behavior; determinism must be wrapped carefully. | Defer. |
 | `github.com/Pallinder/go-randomdata` | MIT | Older release line `v1.2.0`; last push observed in 2023. | Small API, but weaker maintenance signal and less explicit determinism than local builders. | Reject. |
 
-## Parameter Sources
+## Parameter Source
 
-JUnit-style field-source and parameter-source APIs should not be ported as a
-generic Go helper. In Go, table literals are simpler, type-checked, easy to name,
-and compose with subtests.
+JUnit-style field-source와 parameter-source API는 generic Go helper로 port하지 않는다.
+Go에서는 table literal이 더 단순하고, type-checked이며, 이름 붙이기 쉽고,
+subtest와도 잘 합성된다.
 
-Recommended pattern:
+권장 패턴:
 
 ```go
 tests := []struct {
@@ -77,50 +76,46 @@ for _, tt := range tests {
 }
 ```
 
-Generics helpers are acceptable only when they remove repeated assertion loops
-inside one package. Do not add a public `testing` parameter-source API until at
-least three packages repeat the same typed pattern and table literals are no
-longer clear.
+Generics helper는 한 package 안의 반복 assertion loop를 제거할 때만 허용한다.
+최소 세 package에서 같은 typed pattern이 반복되고 table literal이 더 이상 명확하지
+않다는 증거가 나오기 전에는 public `testing` parameter-source API를 추가하지 않는다.
 
-## Test Data Builders
+## Test Data Builder
 
-Add examples before dependencies. The #222 follow-up should start with local,
-deterministic builders for:
+dependency보다 example을 먼저 추가한다. #222 follow-up은 다음 local deterministic
+builder에서 시작해야 한다.
 
-- database/audit/graph domain fixtures with stable IDs, timestamps, and small
-  readable names;
-- randomized text/token data only when a fuzz target or parser boundary needs
-  more input variety;
-- AWS payload fixtures as checked-in JSON or typed builders before emulator
-  integration;
-- golden-file helpers that build paths with #212 `TempOutputPath` but keep
-  canonical expected files in package-local `testdata`.
+- stable ID, timestamp, 작고 읽기 쉬운 이름을 가진 database/audit/graph domain fixture
+- fuzz target 또는 parser boundary가 더 다양한 input을 필요로 할 때만 쓰는 randomized
+  text/token data
+- emulator integration보다 먼저 checked-in JSON 또는 typed builder로 제공하는 AWS payload fixture
+- path는 #212 `TempOutputPath`로 만들되 canonical expected file은 package-local
+  `testdata`에 유지하는 golden-file helper
 
-## Mock Web Servers and Spring/Ktor Patterns
+## Mock Web Server 및 Spring/Ktor Pattern
 
-Spring/Ktor test data patterns map to Go as explicit builders, `httptest.Server`
-fixtures, and package-local client/server helpers. Do not add a WireMock-style
-general dependency in 0.6.4.
+Spring/Ktor test data pattern은 Go에서 explicit builder, `httptest.Server` fixture,
+package-local client/server helper로 매핑한다. 0.6.4에서는 WireMock-style general
+dependency를 추가하지 않는다.
 
-HTTP mock and fault-injection work already belongs to #219 and integration
-recipe documentation belongs to #224. Those issues should decide whether a
-shared mock server wrapper is justified by real package consumers.
+HTTP mock과 fault-injection work는 이미 #219에 속하고, integration recipe
+documentation은 #224에 속한다. shared mock server wrapper가 real package consumer로
+정당화되는지는 해당 issue들이 결정해야 한다.
 
 ## Reporting
 
-Keep reporting outside the public `testing` helper API:
+Reporting은 public `testing` helper API 밖에 둔다.
 
-- Use `go test -json` for structured event streams.
-- Store coverage and package summaries through existing CI/doc tooling.
-- Mermaid/timeline output can be an external script or docs artifact if a future
-  issue proves value, but it should not become a library dependency or test
-  runner.
+- structured event stream에는 `go test -json`을 사용한다.
+- coverage와 package summary는 기존 CI/doc tooling으로 저장한다.
+- Mermaid/timeline output은 향후 issue가 가치를 증명하면 external script 또는 docs
+  artifact가 될 수 있지만, library dependency나 test runner가 되면 안 된다.
 
-Reporting helpers that transform `go test -json` must preserve package, test,
-  action, elapsed time, output, and failure text. A diagram-only view is
-  insufficient as merge evidence.
+`go test -json`을 변환하는 reporting helper는 package, test, action, elapsed time,
+output, failure text를 보존해야 한다. diagram-only view는 merge evidence로 충분하지
+않다.
 
-## Follow-Up Mapping
+## 후속 매핑
 
 | Need | Follow-up |
 |---|---|
@@ -130,7 +125,7 @@ Reporting helpers that transform `go test -json` must preserve package, test,
 | Generic parameter-source public API | Non-goal until repeated need is proven. |
 | Mermaid/timeline reporting library | Non-goal; use `go test -json` consumers if needed. |
 
-## Sources
+## 출처
 
 - #214 issue requirements.
 - `docs/research/2026-06-21-issue-202-source-parity-matrix.md`.
