@@ -6,5 +6,5 @@
 //
 // Go 구현은 Kotlin utils/probabilistic의 핵심 계약을 따르되, 서비스 코드에서
 // 공유하기 쉽도록 goroutine-safe하게 구현합니다. Redis-backed Bloom, Cuckoo,
-// HyperLogLog는 별도 후속 이슈에서 다룹니다.
+// HyperLogLog 별도 후속 이슈에서 다룹니다.
 package probabilistic
