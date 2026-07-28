@@ -66,7 +66,7 @@ func (e *CodecError) Error() string {
 
 // Unwrap Unwrap 공개 API의 동작을 수행하며 Redis 조정, stampede 방지, codec envelope 계약을 보존한다.
 //
-// 반환 오류는 cache miss, 입력 검증 실패, 취소, Redis/backend 실패, 또는 package sentinel/typed error 계약을 보존한다.
+// 반환 오류는 cache miss, 입력 검증 실패, context 취소, Redis/backend 실패, package sentinel error와 typed error를 그대로 드러낸다.
 func (e *CodecError) Unwrap() error {
 	if e == nil {
 		return nil

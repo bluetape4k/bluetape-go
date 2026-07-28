@@ -11,7 +11,7 @@ import (
 // 매개변수:
 //   - ctx: 호출자가 소유한 취소, deadline, 요청 범위를 전달한다.
 //
-// 반환 오류는 cache miss, 입력 검증 실패, 취소, Redis/backend 실패, 또는 package sentinel/typed error 계약을 보존한다.
+// 반환 오류는 cache miss, 입력 검증 실패, context 취소, Redis/backend 실패, package sentinel error와 typed error를 그대로 드러낸다.
 func (c *ValueCache[V]) Clear(ctx context.Context) error {
 	ctx = normalizeContext(ctx)
 	if err := c.validateInitialized("clear"); err != nil {

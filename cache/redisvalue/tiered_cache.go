@@ -36,9 +36,9 @@ type TieredCache[V any] struct {
 // NewTieredCache NewTieredCache 공개 API의 동작을 수행하며 tiered Redis value cache의 local/remote ownership, TTL, clear coordination 계약을 보존한다.
 //
 // 매개변수:
-//   - options: NewTieredCache 동작에 필요한 options 값이다. zero value, 범위, nil 허용 여부는 함수 계약을 따른다.
+//   - options: 적용할 옵션 목록이다. nil이면 기본값만 사용한다.
 //
-// 반환 오류는 cache miss, 입력 검증 실패, 취소, Redis/backend 실패, 또는 package sentinel/typed error 계약을 보존한다.
+// 반환 오류는 cache miss, 입력 검증 실패, context 취소, Redis/backend 실패, package sentinel error와 typed error를 그대로 드러낸다.
 func NewTieredCache[V any](options TieredOptions[V]) (*TieredCache[V], error) {
 	if nilInterface(options.Local) || !initializedValueCache(options.Remote) {
 		return nil, newCacheError("configure-tiered", ReasonConfiguration, "", nil)
@@ -74,7 +74,7 @@ func NewTieredCache[V any](options TieredOptions[V]) (*TieredCache[V], error) {
 //   - ctx: 호출자가 소유한 취소, deadline, 요청 범위를 전달한다.
 //   - key: cache lookup과 저장에 사용하는 caller-owned key다. 정규화와 namespace 의미는 package 계약을 따른다.
 //
-// 반환 오류는 cache miss, 입력 검증 실패, 취소, Redis/backend 실패, 또는 package sentinel/typed error 계약을 보존한다.
+// 반환 오류는 cache miss, 입력 검증 실패, context 취소, Redis/backend 실패, package sentinel error와 typed error를 그대로 드러낸다.
 func (c *TieredCache[V]) Get(ctx context.Context, key string) (V, error) {
 	var zero V
 	ctx = normalizeContext(ctx)
@@ -93,9 +93,9 @@ func (c *TieredCache[V]) Get(ctx context.Context, key string) (V, error) {
 //   - ctx: 호출자가 소유한 취소, deadline, 요청 범위를 전달한다.
 //   - key: cache lookup과 저장에 사용하는 caller-owned key다. 정규화와 namespace 의미는 package 계약을 따른다.
 //   - remoteTTL: cache entry의 유효 시간이다. zero, 음수, 만료 의미는 옵션과 TTL 계약을 따른다.
-//   - loader: GetOrLoad 동작에 필요한 loader 값이다. zero value, 범위, nil 허용 여부는 함수 계약을 따른다.
+//   - loader: GetOrLoad에 전달되는 값이다. 허용 범위와 nil 처리 방식은 구현 검증을 따른다.
 //
-// 반환 오류는 cache miss, 입력 검증 실패, 취소, Redis/backend 실패, 또는 package sentinel/typed error 계약을 보존한다.
+// 반환 오류는 cache miss, 입력 검증 실패, context 취소, Redis/backend 실패, package sentinel error와 typed error를 그대로 드러낸다.
 func (c *TieredCache[V]) GetOrLoad(
 	ctx context.Context,
 	key string,
@@ -142,9 +142,9 @@ func (c *TieredCache[V]) GetOrLoad(
 // 매개변수:
 //   - ctx: 호출자가 소유한 취소, deadline, 요청 범위를 전달한다.
 //   - key: cache lookup과 저장에 사용하는 caller-owned key다. 정규화와 namespace 의미는 package 계약을 따른다.
-//   - loader: GetOrLoadDefault 동작에 필요한 loader 값이다. zero value, 범위, nil 허용 여부는 함수 계약을 따른다.
+//   - loader: GetOrLoadDefault에 전달되는 값이다. 허용 범위와 nil 처리 방식은 구현 검증을 따른다.
 //
-// 반환 오류는 cache miss, 입력 검증 실패, 취소, Redis/backend 실패, 또는 package sentinel/typed error 계약을 보존한다.
+// 반환 오류는 cache miss, 입력 검증 실패, context 취소, Redis/backend 실패, package sentinel error와 typed error를 그대로 드러낸다.
 func (c *TieredCache[V]) GetOrLoadDefault(
 	ctx context.Context,
 	key string,
@@ -165,7 +165,7 @@ func (c *TieredCache[V]) GetOrLoadDefault(
 //   - value: 직렬화하거나 cache에 보관할 값이다. nil, zero value, aliasing 의미는 serializer/cache 계약을 따른다.
 //   - remoteTTL: cache entry의 유효 시간이다. zero, 음수, 만료 의미는 옵션과 TTL 계약을 따른다.
 //
-// 반환 오류는 cache miss, 입력 검증 실패, 취소, Redis/backend 실패, 또는 package sentinel/typed error 계약을 보존한다.
+// 반환 오류는 cache miss, 입력 검증 실패, context 취소, Redis/backend 실패, package sentinel error와 typed error를 그대로 드러낸다.
 func (c *TieredCache[V]) Set(ctx context.Context, key string, value V, remoteTTL time.Duration) error {
 	ctx = normalizeContext(ctx)
 	if err := c.validateCall(ctx, "set", key); err != nil {
@@ -246,7 +246,7 @@ func (c *TieredCache[V]) Set(ctx context.Context, key string, value V, remoteTTL
 //   - key: cache lookup과 저장에 사용하는 caller-owned key다. 정규화와 namespace 의미는 package 계약을 따른다.
 //   - value: 직렬화하거나 cache에 보관할 값이다. nil, zero value, aliasing 의미는 serializer/cache 계약을 따른다.
 //
-// 반환 오류는 cache miss, 입력 검증 실패, 취소, Redis/backend 실패, 또는 package sentinel/typed error 계약을 보존한다.
+// 반환 오류는 cache miss, 입력 검증 실패, context 취소, Redis/backend 실패, package sentinel error와 typed error를 그대로 드러낸다.
 func (c *TieredCache[V]) SetDefault(ctx context.Context, key string, value V) error {
 	if c == nil || !initializedValueCache(c.remote) {
 		return newCacheError("set-default", ReasonUninitialized, "", nil)
@@ -260,7 +260,7 @@ func (c *TieredCache[V]) SetDefault(ctx context.Context, key string, value V) er
 //   - ctx: 호출자가 소유한 취소, deadline, 요청 범위를 전달한다.
 //   - key: cache lookup과 저장에 사용하는 caller-owned key다. 정규화와 namespace 의미는 package 계약을 따른다.
 //
-// 반환 오류는 cache miss, 입력 검증 실패, 취소, Redis/backend 실패, 또는 package sentinel/typed error 계약을 보존한다.
+// 반환 오류는 cache miss, 입력 검증 실패, context 취소, Redis/backend 실패, package sentinel error와 typed error를 그대로 드러낸다.
 func (c *TieredCache[V]) Delete(ctx context.Context, key string) error {
 	ctx = normalizeContext(ctx)
 	if err := c.validateCall(ctx, "delete", key); err != nil {
@@ -316,7 +316,7 @@ func (c *TieredCache[V]) Delete(ctx context.Context, key string) error {
 //   - ctx: 호출자가 소유한 취소, deadline, 요청 범위를 전달한다.
 //   - key: cache lookup과 저장에 사용하는 caller-owned key다. 정규화와 namespace 의미는 package 계약을 따른다.
 //
-// 반환 오류는 cache miss, 입력 검증 실패, 취소, Redis/backend 실패, 또는 package sentinel/typed error 계약을 보존한다.
+// 반환 오류는 cache miss, 입력 검증 실패, context 취소, Redis/backend 실패, package sentinel error와 typed error를 그대로 드러낸다.
 func (c *TieredCache[V]) InvalidateLocal(ctx context.Context, key string) error {
 	ctx = normalizeContext(ctx)
 	if err := c.validateCall(ctx, "invalidate-local", key); err != nil {
@@ -341,7 +341,7 @@ func (c *TieredCache[V]) InvalidateLocal(ctx context.Context, key string) error 
 // 매개변수:
 //   - ctx: 호출자가 소유한 취소, deadline, 요청 범위를 전달한다.
 //
-// 반환 오류는 cache miss, 입력 검증 실패, 취소, Redis/backend 실패, 또는 package sentinel/typed error 계약을 보존한다.
+// 반환 오류는 cache miss, 입력 검증 실패, context 취소, Redis/backend 실패, package sentinel error와 typed error를 그대로 드러낸다.
 func (c *TieredCache[V]) ClearLocal(ctx context.Context) error {
 	ctx = normalizeContext(ctx)
 	if err := c.validateInitialized("clear-local"); err != nil {
@@ -369,7 +369,7 @@ func (c *TieredCache[V]) ClearLocal(ctx context.Context) error {
 // 매개변수:
 //   - ctx: 호출자가 소유한 취소, deadline, 요청 범위를 전달한다.
 //
-// 반환 오류는 cache miss, 입력 검증 실패, 취소, Redis/backend 실패, 또는 package sentinel/typed error 계약을 보존한다.
+// 반환 오류는 cache miss, 입력 검증 실패, context 취소, Redis/backend 실패, package sentinel error와 typed error를 그대로 드러낸다.
 func (c *TieredCache[V]) Clear(ctx context.Context) error {
 	ctx = normalizeContext(ctx)
 	if err := c.validateNoKeyCall(ctx, "clear"); err != nil {

@@ -66,7 +66,7 @@ func (e *Error) Error() string {
 
 // Unwrap Unwrap 공개 API의 동작을 수행하며 cache key, miss, TTL, serialization 계약을 보존한다.
 //
-// 반환 오류는 cache miss, 입력 검증 실패, 취소, Redis/backend 실패, 또는 package sentinel/typed error 계약을 보존한다.
+// 반환 오류는 cache miss, 입력 검증 실패, context 취소, Redis/backend 실패, package sentinel error와 typed error를 그대로 드러낸다.
 func (e *Error) Unwrap() error {
 	if e == nil {
 		return nil
@@ -139,11 +139,11 @@ type runtimeState struct {
 // New New 공개 API의 동작을 수행하며 cache key, miss, TTL, serialization 계약을 보존한다.
 //
 // 매개변수:
-//   - profile: New 동작에 필요한 profile 값이다. zero value, 범위, nil 허용 여부는 함수 계약을 따른다.
-//   - limits: New 동작에 필요한 limits 값이다. zero value, 범위, nil 허용 여부는 함수 계약을 따른다.
-//   - register: New 동작에 필요한 register 값이다. zero value, 범위, nil 허용 여부는 함수 계약을 따른다.
+//   - profile: New에 전달되는 값이다. 허용 범위와 nil 처리 방식은 구현 검증을 따른다.
+//   - limits: New에 전달되는 값이다. 허용 범위와 nil 처리 방식은 구현 검증을 따른다.
+//   - register: New에 전달되는 값이다. 허용 범위와 nil 처리 방식은 구현 검증을 따른다.
 //
-// 반환 오류는 cache miss, 입력 검증 실패, 취소, Redis/backend 실패, 또는 package sentinel/typed error 계약을 보존한다.
+// 반환 오류는 cache miss, 입력 검증 실패, context 취소, Redis/backend 실패, package sentinel error와 typed error를 그대로 드러낸다.
 func New[V any](profile Profile, limits Limits, register Registration) (*Runtime[V], error) {
 	if profile != ProfileNativeFast && profile != ProfileNativeCompatible {
 		return nil, newError("configure", ReasonConfiguration, nil)
@@ -186,7 +186,7 @@ func New[V any](profile Profile, limits Limits, register Registration) (*Runtime
 // 매개변수:
 //   - value: 직렬화하거나 cache에 보관할 값이다. nil, zero value, aliasing 의미는 serializer/cache 계약을 따른다.
 //
-// 반환 오류는 cache miss, 입력 검증 실패, 취소, Redis/backend 실패, 또는 package sentinel/typed error 계약을 보존한다.
+// 반환 오류는 cache miss, 입력 검증 실패, context 취소, Redis/backend 실패, package sentinel error와 typed error를 그대로 드러낸다.
 func (r *Runtime[V]) Serialize(value V) ([]byte, error) {
 	if r == nil || r.state == nil || r.state.runtime == nil {
 		return nil, newError("serialize", ReasonUninitialized, nil)
@@ -217,9 +217,9 @@ func (r *Runtime[V]) Serialize(value V) ([]byte, error) {
 // Deserialize Deserialize 공개 API의 동작을 수행하며 cache key, miss, TTL, serialization 계약을 보존한다.
 //
 // 매개변수:
-//   - raw: Deserialize 동작에 필요한 raw 값이다. zero value, 범위, nil 허용 여부는 함수 계약을 따른다.
+//   - raw: Deserialize에 전달되는 값이다. 허용 범위와 nil 처리 방식은 구현 검증을 따른다.
 //
-// 반환 오류는 cache miss, 입력 검증 실패, 취소, Redis/backend 실패, 또는 package sentinel/typed error 계약을 보존한다.
+// 반환 오류는 cache miss, 입력 검증 실패, context 취소, Redis/backend 실패, package sentinel error와 typed error를 그대로 드러낸다.
 func (r *Runtime[V]) Deserialize(raw []byte) (V, error) {
 	var value V
 	if r == nil || r.state == nil || r.state.runtime == nil {

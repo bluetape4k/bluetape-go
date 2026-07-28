@@ -69,9 +69,9 @@ type ValueCache[V any] struct {
 // NewNativeFast NewNativeFast 공개 API의 동작을 수행하며 Redis 값 캐시의 serialization, TTL, backend ownership 계약을 보존한다.
 //
 // 매개변수:
-//   - options: NewNativeFast 동작에 필요한 options 값이다. zero value, 범위, nil 허용 여부는 함수 계약을 따른다.
+//   - options: 적용할 옵션 목록이다. nil이면 기본값만 사용한다.
 //
-// 반환 오류는 cache miss, 입력 검증 실패, 취소, Redis/backend 실패, 또는 package sentinel/typed error 계약을 보존한다.
+// 반환 오류는 cache miss, 입력 검증 실패, context 취소, Redis/backend 실패, package sentinel error와 typed error를 그대로 드러낸다.
 func NewNativeFast[V any](options Options) (*ValueCache[V], error) {
 	return newValueCache[V](ProfileNativeFast, options)
 }
@@ -79,9 +79,9 @@ func NewNativeFast[V any](options Options) (*ValueCache[V], error) {
 // NewNativeCompatible NewNativeCompatible 공개 API의 동작을 수행하며 Redis 값 캐시의 serialization, TTL, backend ownership 계약을 보존한다.
 //
 // 매개변수:
-//   - options: NewNativeCompatible 동작에 필요한 options 값이다. zero value, 범위, nil 허용 여부는 함수 계약을 따른다.
+//   - options: 적용할 옵션 목록이다. nil이면 기본값만 사용한다.
 //
-// 반환 오류는 cache miss, 입력 검증 실패, 취소, Redis/backend 실패, 또는 package sentinel/typed error 계약을 보존한다.
+// 반환 오류는 cache miss, 입력 검증 실패, context 취소, Redis/backend 실패, package sentinel error와 typed error를 그대로 드러낸다.
 func NewNativeCompatible[V any](options Options) (*ValueCache[V], error) {
 	return newValueCache[V](ProfileNativeCompatible, options)
 }

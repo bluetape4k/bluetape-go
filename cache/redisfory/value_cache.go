@@ -34,7 +34,7 @@ type commandClient interface {
 //   - value: 직렬화하거나 cache에 보관할 값이다. nil, zero value, aliasing 의미는 serializer/cache 계약을 따른다.
 //   - ttl: cache entry의 유효 시간이다. zero, 음수, 만료 의미는 옵션과 TTL 계약을 따른다.
 //
-// 반환 오류는 cache miss, 입력 검증 실패, 취소, Redis/backend 실패, 또는 package sentinel/typed error 계약을 보존한다.
+// 반환 오류는 cache miss, 입력 검증 실패, context 취소, Redis/backend 실패, package sentinel error와 typed error를 그대로 드러낸다.
 func (c *ValueCache[V]) Set(ctx context.Context, logicalKey string, value V, ttl time.Duration) error {
 	ctx = normalizeContext(ctx)
 	if err := c.validateInitialized("set"); err != nil {
@@ -73,7 +73,7 @@ func (c *ValueCache[V]) Set(ctx context.Context, logicalKey string, value V, ttl
 //   - ctx: 호출자가 소유한 취소, deadline, 요청 범위를 전달한다.
 //   - logicalKey: cache lookup과 저장에 사용하는 caller-owned key다. 정규화와 namespace 의미는 package 계약을 따른다.
 //
-// 반환 오류는 cache miss, 입력 검증 실패, 취소, Redis/backend 실패, 또는 package sentinel/typed error 계약을 보존한다.
+// 반환 오류는 cache miss, 입력 검증 실패, context 취소, Redis/backend 실패, package sentinel error와 typed error를 그대로 드러낸다.
 func (c *ValueCache[V]) Get(ctx context.Context, logicalKey string) (V, error) {
 	var value V
 	ctx = normalizeContext(ctx)
@@ -127,7 +127,7 @@ func (c *ValueCache[V]) Get(ctx context.Context, logicalKey string) (V, error) {
 //   - ctx: 호출자가 소유한 취소, deadline, 요청 범위를 전달한다.
 //   - logicalKey: cache lookup과 저장에 사용하는 caller-owned key다. 정규화와 namespace 의미는 package 계약을 따른다.
 //
-// 반환 오류는 cache miss, 입력 검증 실패, 취소, Redis/backend 실패, 또는 package sentinel/typed error 계약을 보존한다.
+// 반환 오류는 cache miss, 입력 검증 실패, context 취소, Redis/backend 실패, package sentinel error와 typed error를 그대로 드러낸다.
 func (c *ValueCache[V]) Delete(ctx context.Context, logicalKey string) error {
 	ctx = normalizeContext(ctx)
 	if err := c.validateInitialized("delete"); err != nil {
