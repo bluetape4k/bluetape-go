@@ -3,44 +3,44 @@
 Snapshot: 2026-07-10 KST
 Scope: `0.18.0` ecosystem follow-up release prep.
 
-## Current Target Release
+## 현재 Target Release
 
-`v0.18.0` - ecosystem follow-up scope that adds MongoDB group and strategic
-leader elector providers, bounded GraphML graph I/O, and the first broker-backed
-audit sqloutbox publisher provider through Redis Streams.
+`v0.18.0`은 MongoDB group/strategic leader elector provider, bounded GraphML
+graph I/O, 그리고 Redis Streams 기반의 첫 broker-backed audit sqloutbox
+publisher provider를 추가하는 ecosystem follow-up 범위다.
 
-Issues #489, #490, #491, and #533 close the 0.18.0 implementation slice. The
-release extends the existing leader, graph, and audit packages without changing
-the shared public contracts that were tagged in `v0.17.0`.
+Issue #489, #490, #491, #533은 0.18.0 implementation slice를 닫는다. 이
+release는 `v0.17.0`에서 tag된 shared public contract를 바꾸지 않고 기존
+`leader`, `graph`, `audit` package를 확장한다.
 
-## Current State
+## 현재 상태
 
 - `v0.1.0`, `v0.1.1`, `v0.2.0`, `v0.3.0`, `v0.4.0`, `v0.5.0`, `v0.5.1`,
   `v0.6.0`, `v0.6.1` through `v0.6.8`, `v0.7.0`, `v0.8.0`, `v0.9.0`,
   `v0.10.0`, `v0.11.0`, `v0.12.0`, `v0.13.0`, `v0.14.0`, `v0.15.0`, and
-  `v0.16.0`, and `v0.17.0` are tagged and released.
-- Milestone `0.18.0` has zero open issues; #489, #490, #491, and #533 are
-  closed.
-- `CHANGELOG.md` contains the `v0.18.0` release section dated 2026-07-10.
-- `v0.18.0` tag and GitHub Release are not created yet.
+  `v0.16.0`, and `v0.17.0`은 tag와 release가 끝났다.
+- Milestone `0.18.0`의 open issue는 0개이며 #489, #490, #491, #533은
+  closed 상태다.
+- `CHANGELOG.md`에는 2026-07-10 날짜의 `v0.18.0` release section이 있다.
+- `v0.18.0` tag와 GitHub Release는 아직 생성되지 않았다.
 
 ## Release Checklist
 
-1. Merge this release-prep branch to `develop` so `CHANGELOG.md`, `WIP.md`,
-   README locale files, and release checklist evidence reflect `v0.18.0`.
-2. Close milestone `0.18.0` after the release-prep PR lands and the changelog
-   gate is present on `develop`.
-3. Promote the verified `develop` tree to `main` through a release PR or the
-   protected-branch projection fallback if the direct PR is not mergeable.
-4. Verify `make ci` locally and GitHub CI on the release PR.
-5. Tag `v0.18.0` on `main`.
-6. Create the GitHub Release from `CHANGELOG.md` with validation evidence.
+1. 이 release-prep branch를 `develop`에 merge해서 `CHANGELOG.md`, `WIP.md`,
+   README locale file, release checklist evidence가 `v0.18.0`을 반영하게 한다.
+2. release-prep PR이 landing되고 changelog gate가 `develop`에 존재하면
+   milestone `0.18.0`을 닫는다.
+3. 검증된 `develop` tree를 release PR로 `main`에 승격한다. direct PR이
+   mergeable하지 않으면 protected-branch projection fallback을 사용한다.
+4. local `make ci`와 release PR의 GitHub CI를 검증한다.
+5. `main`에 `v0.18.0` tag를 생성한다.
+6. validation evidence와 함께 `CHANGELOG.md`에서 GitHub Release를 생성한다.
 
 ## Release Support Notes
 
-The 0.18.0 slice publishes provider follow-ups for MongoDB leader election,
-GraphML interchange, and Redis Streams audit delivery while preserving caller
-ownership of MongoDB collections, XML stream limits, Redis stream keys, and
-outbox idempotency metadata. Before `v0.18.0` is tagged, rollback is closing the
-release PR and deleting the release branch. After a tag, release corrections
-should use a patch release unless an explicit retag plan is approved.
+0.18.0 slice는 MongoDB leader election, GraphML interchange, Redis Streams audit
+delivery의 provider follow-up을 publish한다. 동시에 MongoDB collection, XML
+stream limit, Redis stream key, outbox idempotency metadata의 caller ownership을
+보존한다. `v0.18.0` tag 생성 전 rollback은 release PR을 닫고 release branch를
+삭제하는 것이다. tag 이후의 release correction은 명시적인 retag plan 승인이
+없는 한 patch release로 처리해야 한다.
