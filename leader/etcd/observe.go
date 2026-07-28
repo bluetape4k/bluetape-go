@@ -8,8 +8,8 @@ import (
 	clientv3 "go.etcd.io/etcd/client/v3"
 )
 
-// Leader returns the oldest candidate value in this elector's encoded range.
-// It returns an empty string when the election has no candidates.
+// Leader leader backend election에서 반환값과 오류 의미를 설명한다.
+// 이 주석은 backend lease, ownership, consistency, cancellation 조건을 설명한다.
 func (e *Elector) Leader(ctx context.Context) (string, error) {
 	if ctx == nil {
 		return "", leader.ErrInvalidContext

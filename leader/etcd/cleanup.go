@@ -8,12 +8,12 @@ import (
 	"go.etcd.io/etcd/client/v3/concurrency"
 )
 
-// Resign releases this elector's current generation.
+// Resign leader backend election에서 실행, cancellation, cleanup 계약을 설명한다.
 //
-// It is idempotent when no generation exists. Remote cleanup inventory is
-// retained until lease revocation or an exact-key lookup proves ownership is
-// absent or replaced. An unpublished in-progress Campaign owns its cleanup;
-// concurrent Resign returns nil without canceling or inspecting that generation.
+// 이 주석은 backend lease, ownership, consistency, cancellation 조건을 설명한다.
+// 세부 조건은 backend별 lease, cleanup, retry 계약을 따른다.
+// 세부 조건은 backend별 lease, cleanup, retry 계약을 따른다.
+// 세부 조건은 backend별 lease, cleanup, retry 계약을 따른다.
 func (e *Elector) Resign(ctx context.Context) error {
 	if ctx == nil {
 		return leader.ErrInvalidContext

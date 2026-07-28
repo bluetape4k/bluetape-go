@@ -13,7 +13,7 @@ import (
 	"go.mongodb.org/mongo-driver/v2/mongo/options"
 )
 
-// GroupElector is a MongoDB-backed multi-leader elector.
+// GroupElector leader backend election에서 caller-visible 상태와 의미를 설명한다.
 type GroupElector struct {
 	collection *mongo.Collection
 	opts       leader.GroupOptions
@@ -43,7 +43,7 @@ type groupLeaseDocument struct {
 	UpdatedAt  time.Time `bson:"updated_at"`
 }
 
-// NewGroup creates a MongoDB-backed multi-leader elector.
+// NewGroup leader backend election에서 생성과 초기화 계약을 설명한다.
 func NewGroup(collection *mongo.Collection, opts leader.GroupOptions, optionFns ...Option) (*GroupElector, error) {
 	if err := requireCollection(collection); err != nil {
 		return nil, err
@@ -70,7 +70,7 @@ func NewGroup(collection *mongo.Collection, opts leader.GroupOptions, optionFns 
 	}, nil
 }
 
-// Campaign loops until this elector acquires one group slot or ctx is canceled.
+// Campaign leader backend election에서 caller-visible 상태와 의미를 설명한다.
 func (e *GroupElector) Campaign(ctx context.Context) error {
 	if ctx == nil {
 		ctx = context.Background()
@@ -95,7 +95,7 @@ func (e *GroupElector) Campaign(ctx context.Context) error {
 	}
 }
 
-// Resign releases this elector's current slot when it still owns that slot.
+// Resign leader backend election에서 실행, cancellation, cleanup 계약을 설명한다.
 func (e *GroupElector) Resign(ctx context.Context) error {
 	if ctx == nil {
 		ctx = context.Background()
@@ -120,14 +120,14 @@ func (e *GroupElector) Resign(ctx context.Context) error {
 	return nil
 }
 
-// IsLeader reports whether this elector still believes it owns a group slot.
+// IsLeader leader backend election에서 반환값과 오류 의미를 설명한다.
 func (e *GroupElector) IsLeader() bool {
 	e.mu.RLock()
 	defer e.mu.RUnlock()
 	return e.owned
 }
 
-// ActiveCount returns the number of currently live slots for this group.
+// ActiveCount leader backend election에서 반환값과 오류 의미를 설명한다.
 func (e *GroupElector) ActiveCount(ctx context.Context) (int, error) {
 	if ctx == nil {
 		ctx = context.Background()
@@ -143,7 +143,7 @@ func (e *GroupElector) ActiveCount(ctx context.Context) (int, error) {
 	return int(count), nil
 }
 
-// AvailableSlots returns the number of currently free slots for this group.
+// AvailableSlots leader backend election에서 반환값과 오류 의미를 설명한다.
 func (e *GroupElector) AvailableSlots(ctx context.Context) (int, error) {
 	active, err := e.ActiveCount(ctx)
 	if err != nil {

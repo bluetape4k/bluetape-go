@@ -67,20 +67,13 @@ redis.call("SET", KEYS[1], cjson.encode(candidate), "PX", ttl)
 return 1
 `
 
-// StrategicElector struct 공개 타입이며 leader election의 lease, owner token, fencing, group key 계약을 보존한다.
-// 필드와 zero value, nil 허용 여부, 동시성 소유권은 생성자와 메서드의 한국어 주석 및 테스트 계약을 따른다.
+// StrategicElector leader backend election에서 caller-visible 상태와 의미를 설명한다.
 type StrategicElector[T any] struct {
 	client redis.Cmdable
 	opts   leader.Options
 }
 
-// NewStrategic NewStrategic 공개 API의 동작을 수행하며 leader election의 lease, owner token, fencing, group key 계약을 보존한다.
-//
-// 매개변수:
-//   - client: Redis backend client 또는 fixture다. 연결과 종료 소유권은 생성자 계약을 따른다.
-//   - opts: NewStrategic에 전달되는 값이다. 허용 범위와 nil 처리 방식은 구현 검증을 따른다.
-//
-// 반환 오류는 입력 검증 실패, context 취소, Redis/backend 실패, lease/token 불일치, package sentinel error와 typed error를 그대로 드러낸다.
+// NewStrategic leader backend election에서 생성과 초기화 계약을 설명한다.
 func NewStrategic[T any](client redis.Cmdable, opts leader.Options) (*StrategicElector[T], error) {
 	if client == nil {
 		return nil, errors.New("redis client must not be nil")
@@ -96,15 +89,7 @@ func NewStrategic[T any](client redis.Cmdable, opts leader.Options) (*StrategicE
 	return &StrategicElector[T]{client: client, opts: normalized}, nil
 }
 
-// RegisterCandidate RegisterCandidate 공개 API의 동작을 수행하며 leader election의 lease, owner token, fencing, group key 계약을 보존한다.
-//
-// 매개변수:
-//   - ctx: 호출자가 소유한 취소, deadline, 요청 범위를 전달한다.
-//   - group: Redis Stream id, entry, 또는 consumer group 관련 값이다.
-//   - info: RegisterCandidate에 전달되는 값이다. 허용 범위와 nil 처리 방식은 구현 검증을 따른다.
-//   - ttl: lease 또는 entry 유효 시간이다. zero/negative/expiry 의미는 TTL 계약을 따른다.
-//
-// 반환 오류는 입력 검증 실패, context 취소, Redis/backend 실패, lease/token 불일치, package sentinel error와 typed error를 그대로 드러낸다.
+// RegisterCandidate leader backend election에서 caller-visible 상태와 의미를 설명한다.
 func (e *StrategicElector[T]) RegisterCandidate(
 	ctx context.Context,
 	group string,
@@ -150,14 +135,7 @@ func (e *StrategicElector[T]) RegisterCandidate(
 	return nil
 }
 
-// UnregisterCandidate UnregisterCandidate 공개 API의 동작을 수행하며 leader election의 lease, owner token, fencing, group key 계약을 보존한다.
-//
-// 매개변수:
-//   - ctx: 호출자가 소유한 취소, deadline, 요청 범위를 전달한다.
-//   - group: Redis Stream id, entry, 또는 consumer group 관련 값이다.
-//   - nodeID: UnregisterCandidate에 전달되는 값이다. 허용 범위와 nil 처리 방식은 구현 검증을 따른다.
-//
-// 반환 오류는 입력 검증 실패, context 취소, Redis/backend 실패, lease/token 불일치, package sentinel error와 typed error를 그대로 드러낸다.
+// UnregisterCandidate leader backend election에서 caller-visible 상태와 의미를 설명한다.
 func (e *StrategicElector[T]) UnregisterCandidate(ctx context.Context, group string, nodeID string) error {
 	if err := validateGroup(group); err != nil {
 		return err
@@ -175,13 +153,7 @@ func (e *StrategicElector[T]) UnregisterCandidate(ctx context.Context, group str
 	return nil
 }
 
-// ListCandidates ListCandidates 공개 API의 동작을 수행하며 leader election의 lease, owner token, fencing, group key 계약을 보존한다.
-//
-// 매개변수:
-//   - ctx: 호출자가 소유한 취소, deadline, 요청 범위를 전달한다.
-//   - group: Redis Stream id, entry, 또는 consumer group 관련 값이다.
-//
-// 반환 오류는 입력 검증 실패, context 취소, Redis/backend 실패, lease/token 불일치, package sentinel error와 typed error를 그대로 드러낸다.
+// ListCandidates leader backend election에서 반환값과 오류 의미를 설명한다.
 func (e *StrategicElector[T]) ListCandidates(ctx context.Context, group string) ([]leader.CandidateInfo, error) {
 	if err := validateGroup(group); err != nil {
 		return nil, err
@@ -211,15 +183,7 @@ func (e *StrategicElector[T]) ListCandidates(ctx context.Context, group string) 
 	return candidates, nil
 }
 
-// UpdateResult UpdateResult 공개 API의 동작을 수행하며 leader election의 lease, owner token, fencing, group key 계약을 보존한다.
-//
-// 매개변수:
-//   - ctx: 호출자가 소유한 취소, deadline, 요청 범위를 전달한다.
-//   - group: Redis Stream id, entry, 또는 consumer group 관련 값이다.
-//   - nodeID: UpdateResult에 전달되는 값이다. 허용 범위와 nil 처리 방식은 구현 검증을 따른다.
-//   - result: UpdateResult에 전달되는 값이다. 허용 범위와 nil 처리 방식은 구현 검증을 따른다.
-//
-// 반환 오류는 입력 검증 실패, context 취소, Redis/backend 실패, lease/token 불일치, package sentinel error와 typed error를 그대로 드러낸다.
+// UpdateResult leader backend election에서 동작과 caller-visible 계약을 설명한다.
 func (e *StrategicElector[T]) UpdateResult(
 	ctx context.Context,
 	group string,
@@ -259,15 +223,7 @@ func (e *StrategicElector[T]) UpdateResult(
 	return nil
 }
 
-// RunIfLeader RunIfLeader 공개 API의 동작을 수행하며 leader election의 lease, owner token, fencing, group key 계약을 보존한다.
-//
-// 매개변수:
-//   - ctx: 호출자가 소유한 취소, deadline, 요청 범위를 전달한다.
-//   - group: Redis Stream id, entry, 또는 consumer group 관련 값이다.
-//   - strategy: RunIfLeader에 전달되는 값이다. 허용 범위와 nil 처리 방식은 구현 검증을 따른다.
-//   - action: 호출자가 소유한 취소, deadline, 요청 범위를 전달한다.
-//
-// 반환 오류는 입력 검증 실패, context 취소, Redis/backend 실패, lease/token 불일치, package sentinel error와 typed error를 그대로 드러낸다.
+// RunIfLeader leader backend election에서 실행, cancellation, cleanup 계약을 설명한다.
 func (e *StrategicElector[T]) RunIfLeader(
 	ctx context.Context,
 	group string,
