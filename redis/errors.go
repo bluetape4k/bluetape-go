@@ -13,9 +13,9 @@ var (
 	ErrInvalidKey = errors.New("redis: invalid key")
 	// ErrInvalidHashTag Redis Cluster hash tag가 invalid일 때 반환된다.
 	ErrInvalidHashTag = errors.New("redis: invalid hash tag")
-	// ErrInvalidTTL은 Redis TTL이 invalid일 때 반환된다.
+	// ErrInvalidTTL Redis TTL이 invalid일 때 반환된다.
 	ErrInvalidTTL = errors.New("redis: invalid ttl")
-	// ErrCommitUnknown은 dispatch된 Redis mutation이 commit됐을 수 있을 때 반환된다.
+	// ErrCommitUnknown dispatch된 Redis mutation이 commit됐을 수 있을 때 반환된다.
 	ErrCommitUnknown = errors.New("redis: commit unknown")
 )
 
