@@ -1,3 +1,3 @@
-// Package integration contains compile-checked end-to-end recipes that combine
-// multiple bluetape-go packages in one application-shaped flow.
+// Package integration은 여러 bluetape-go package를 하나의 application-shaped flow로 결합하는
+// compile-checked end-to-end recipe를 담는다.
 package integration

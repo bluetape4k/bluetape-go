@@ -13,23 +13,23 @@ import (
 )
 
 var (
-	// ErrInvalidCommand reports an invalid example service command.
+	// ErrInvalidCommand는 example service command가 유효하지 않을 때 반환된다.
 	ErrInvalidCommand = errors.New("invalid audit example command")
-	// ErrOrderExists reports duplicate order creation.
+	// ErrOrderExists는 중복 order 생성 시도에서 반환된다.
 	ErrOrderExists = errors.New("order already exists")
-	// ErrOrderNotFound reports a command for a missing order.
+	// ErrOrderNotFound는 존재하지 않는 order에 대한 command에서 반환된다.
 	ErrOrderNotFound = errors.New("order not found")
-	// ErrOrderCompleted reports a mutation attempt after completion.
+	// ErrOrderCompleted는 완료된 order에 대한 mutation 시도에서 반환된다.
 	ErrOrderCompleted = errors.New("order already completed")
 )
 
-// OrderServiceOptions configures the example order service.
+// OrderServiceOptions는 example order service를 설정한다.
 type OrderServiceOptions struct {
 	Author string
 	Now    func() time.Time
 }
 
-// OrderService records order changes through an audit.Repository.
+// OrderService는 audit.Repository를 통해 order 변경을 기록한다.
 type OrderService struct {
 	mu     sync.Mutex
 	repo   audit.Repository
@@ -38,7 +38,7 @@ type OrderService struct {
 	orders map[string]Order
 }
 
-// Order is the source-of-truth state in the example service.
+// Order는 example service의 source-of-truth state다.
 type Order struct {
 	ID         string
 	CustomerID string
@@ -47,20 +47,20 @@ type Order struct {
 	UpdatedAt  time.Time
 }
 
-// LineItem is one order line in the example source state.
+// LineItem은 example source state의 단일 order line이다.
 type LineItem struct {
 	SKU      string
 	Quantity int
 }
 
-// CreateOrderCommand creates an order aggregate.
+// CreateOrderCommand는 order aggregate를 생성한다.
 type CreateOrderCommand struct {
 	OrderID    string
 	CustomerID string
 	CommandID  string
 }
 
-// AddItemCommand adds an item to an open order.
+// AddItemCommand는 열린 order에 item을 추가한다.
 type AddItemCommand struct {
 	OrderID   string
 	SKU       string
@@ -68,19 +68,19 @@ type AddItemCommand struct {
 	CommandID string
 }
 
-// CompleteOrderCommand marks an order complete.
+// CompleteOrderCommand는 order를 완료 상태로 표시한다.
 type CompleteOrderCommand struct {
 	OrderID   string
 	CommandID string
 }
 
-// EntrySink is the minimal outbox-like boundary used by the example replay
-// helper. Production callers can adapt this to audit/sqloutbox.Store.Enqueue.
+// EntrySink는 example replay helper가 사용하는 최소 outbox-like boundary다.
+// Production 호출자는 이를 audit/sqloutbox.Store.Enqueue로 adapter할 수 있다.
 type EntrySink interface {
 	Enqueue(context.Context, ...audit.Entry) error
 }
 
-// NewOrderService creates an audit-backed in-memory order service.
+// NewOrderService는 audit-backed in-memory order service를 생성한다.
 func NewOrderService(repo audit.Repository, options OrderServiceOptions) (*OrderService, error) {
 	if repo == nil {
 		return nil, fmt.Errorf("%w: repository must not be nil", ErrInvalidCommand)
@@ -101,7 +101,7 @@ func NewOrderService(repo audit.Repository, options OrderServiceOptions) (*Order
 	}, nil
 }
 
-// NewOrderAggregateID creates the aggregate identity used by the example.
+// NewOrderAggregateID는 example에서 사용하는 aggregate identity를 생성한다.
 func NewOrderAggregateID(orderID string) (audit.AggregateID, error) {
 	orderID = strings.TrimSpace(orderID)
 	if orderID == "" {
@@ -110,8 +110,7 @@ func NewOrderAggregateID(orderID string) (audit.AggregateID, error) {
 	return audit.NewAggregateID("order", orderID)
 }
 
-// CreateOrder creates a new order and writes an audit entry before mutating the
-// source state.
+// CreateOrder는 새 order를 만들고 source state를 변경하기 전에 audit entry를 기록한다.
 func (s *OrderService) CreateOrder(ctx context.Context, command CreateOrderCommand) (Order, error) {
 	if err := checkContext(ctx); err != nil {
 		return Order{}, err
@@ -150,7 +149,7 @@ func (s *OrderService) CreateOrder(ctx context.Context, command CreateOrderComma
 	return order, nil
 }
 
-// AddItem adds one line item and records the change in audit history.
+// AddItem은 line item 하나를 추가하고 변경을 audit history에 기록한다.
 func (s *OrderService) AddItem(ctx context.Context, command AddItemCommand) (Order, error) {
 	if err := checkContext(ctx); err != nil {
 		return Order{}, err
@@ -190,8 +189,7 @@ func (s *OrderService) AddItem(ctx context.Context, command AddItemCommand) (Ord
 	return updated, nil
 }
 
-// CompleteOrder marks an order complete and records the change in audit
-// history.
+// CompleteOrder는 order를 완료 상태로 표시하고 변경을 audit history에 기록한다.
 func (s *OrderService) CompleteOrder(ctx context.Context, command CompleteOrderCommand) (Order, error) {
 	if err := checkContext(ctx); err != nil {
 		return Order{}, err
@@ -229,7 +227,7 @@ func (s *OrderService) CompleteOrder(ctx context.Context, command CompleteOrderC
 	return updated, nil
 }
 
-// History returns reconstructed audit history for one order.
+// History는 order 하나의 재구성된 audit history를 반환한다.
 func (s *OrderService) History(ctx context.Context, orderID string) (audit.History, bool, error) {
 	aggregate, err := NewOrderAggregateID(orderID)
 	if err != nil {
@@ -238,7 +236,7 @@ func (s *OrderService) History(ctx context.Context, orderID string) (audit.Histo
 	return s.repo.LoadHistory(ctx, aggregate)
 }
 
-// Lookup returns a defensive copy of source order state.
+// Lookup은 source order state의 defensive copy를 반환한다.
 func (s *OrderService) Lookup(orderID string) (Order, bool) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
@@ -300,7 +298,7 @@ func (s *OrderService) nextEntry(
 	})
 }
 
-// ReplayHistoryToOutbox replays one aggregate history into an outbox-like sink.
+// ReplayHistoryToOutbox는 aggregate history 하나를 outbox-like sink로 replay한다.
 func ReplayHistoryToOutbox(ctx context.Context, reader audit.HistoryReader, aggregate audit.AggregateID, sink EntrySink) error {
 	if err := checkContext(ctx); err != nil {
 		return err
