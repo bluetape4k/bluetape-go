@@ -23,10 +23,10 @@ type CapturedOutput struct {
 // CheckTempOutputPath CheckTempOutputPath 공개 API의 동작을 수행하며 테스트 helper의 timeout, cancellation, cleanup 계약을 보존한다.
 //
 // 매개변수:
-//   - root: CheckTempOutputPath가 식별자, 상태, 이름, 또는 입력으로 해석하는 문자열 값이다. 빈 문자열 처리는 함수 계약을 따른다.
-//   - parts: CheckTempOutputPath 동작에 필요한 parts 값이다. zero value, 범위, nil 허용 여부는 함수 계약을 따른다.
+//   - root: CheckTempOutputPath가 해석할 문자열이다. 빈 문자열은 구현 검증을 따른다.
+//   - parts: CheckTempOutputPath에 전달되는 값이다. 허용 범위와 nil 처리 방식은 구현 검증을 따른다.
 //
-// 반환 오류는 입력 검증 실패, 취소, deadline, 상태 전이 실패, 또는 패키지 sentinel/typed error 계약을 보존한다.
+// 반환 오류는 입력 검증 실패, context 취소/deadline, 상태 전이 실패, 패키지 sentinel error와 typed error를 그대로 드러낸다.
 func CheckTempOutputPath(root string, parts ...string) (string, error) {
 	if root == "" {
 		return "", errors.New("root must not be empty")
@@ -64,8 +64,8 @@ func CheckTempOutputPath(root string, parts ...string) (string, error) {
 // TempOutputDir TempOutputDir 공개 API의 동작을 수행하며 테스트 helper의 timeout, cancellation, cleanup 계약을 보존한다.
 //
 // 매개변수:
-//   - tb: TempOutputDir 동작에 필요한 tb 값이다. zero value, 범위, nil 허용 여부는 함수 계약을 따른다.
-//   - parts: TempOutputDir 동작에 필요한 parts 값이다. zero value, 범위, nil 허용 여부는 함수 계약을 따른다.
+//   - tb: 실패를 보고할 testing 객체다.
+//   - parts: TempOutputDir에 전달되는 값이다. 허용 범위와 nil 처리 방식은 구현 검증을 따른다.
 func TempOutputDir(tb testing.TB, parts ...string) string {
 	tb.Helper()
 
@@ -80,8 +80,8 @@ func TempOutputDir(tb testing.TB, parts ...string) string {
 // TempOutputPath TempOutputPath 공개 API의 동작을 수행하며 테스트 helper의 timeout, cancellation, cleanup 계약을 보존한다.
 //
 // 매개변수:
-//   - tb: TempOutputPath 동작에 필요한 tb 값이다. zero value, 범위, nil 허용 여부는 함수 계약을 따른다.
-//   - parts: TempOutputPath 동작에 필요한 parts 값이다. zero value, 범위, nil 허용 여부는 함수 계약을 따른다.
+//   - tb: 실패를 보고할 testing 객체다.
+//   - parts: TempOutputPath에 전달되는 값이다. 허용 범위와 nil 처리 방식은 구현 검증을 따른다.
 func TempOutputPath(tb testing.TB, parts ...string) string {
 	tb.Helper()
 
@@ -96,9 +96,9 @@ func TempOutputPath(tb testing.TB, parts ...string) string {
 // SetEnv SetEnv 공개 API의 동작을 수행하며 테스트 helper의 timeout, cancellation, cleanup 계약을 보존한다.
 //
 // 매개변수:
-//   - tb: SetEnv 동작에 필요한 tb 값이다. zero value, 범위, nil 허용 여부는 함수 계약을 따른다.
-//   - key: SetEnv가 식별자, 상태, 이름, 또는 입력으로 해석하는 문자열 값이다. 빈 문자열 처리는 함수 계약을 따른다.
-//   - value: SetEnv가 식별자, 상태, 이름, 또는 입력으로 해석하는 문자열 값이다. 빈 문자열 처리는 함수 계약을 따른다.
+//   - tb: 실패를 보고할 testing 객체다.
+//   - key: SetEnv가 해석할 문자열이다. 빈 문자열은 구현 검증을 따른다.
+//   - value: SetEnv가 해석할 문자열이다. 빈 문자열은 구현 검증을 따른다.
 func SetEnv(tb testing.TB, key, value string) {
 	tb.Helper()
 
@@ -112,8 +112,8 @@ func SetEnv(tb testing.TB, key, value string) {
 // UnsetEnv UnsetEnv 공개 API의 동작을 수행하며 테스트 helper의 timeout, cancellation, cleanup 계약을 보존한다.
 //
 // 매개변수:
-//   - tb: UnsetEnv 동작에 필요한 tb 값이다. zero value, 범위, nil 허용 여부는 함수 계약을 따른다.
-//   - key: UnsetEnv가 식별자, 상태, 이름, 또는 입력으로 해석하는 문자열 값이다. 빈 문자열 처리는 함수 계약을 따른다.
+//   - tb: 실패를 보고할 testing 객체다.
+//   - key: UnsetEnv가 해석할 문자열이다. 빈 문자열은 구현 검증을 따른다.
 func UnsetEnv(tb testing.TB, key string) {
 	tb.Helper()
 
@@ -127,8 +127,8 @@ func UnsetEnv(tb testing.TB, key string) {
 // CaptureOutput CaptureOutput 공개 API의 동작을 수행하며 테스트 helper의 timeout, cancellation, cleanup 계약을 보존한다.
 //
 // 매개변수:
-//   - tb: CaptureOutput 동작에 필요한 tb 값이다. zero value, 범위, nil 허용 여부는 함수 계약을 따른다.
-//   - run: CaptureOutput 동작에 필요한 run 값이다. zero value, 범위, nil 허용 여부는 함수 계약을 따른다.
+//   - tb: 실패를 보고할 testing 객체다.
+//   - run: CaptureOutput에 전달되는 값이다. 허용 범위와 nil 처리 방식은 구현 검증을 따른다.
 func CaptureOutput(tb testing.TB, run func()) CapturedOutput {
 	tb.Helper()
 
@@ -143,9 +143,9 @@ func CaptureOutput(tb testing.TB, run func()) CapturedOutput {
 // CheckCaptureOutput CheckCaptureOutput 공개 API의 동작을 수행하며 테스트 helper의 timeout, cancellation, cleanup 계약을 보존한다.
 //
 // 매개변수:
-//   - run: CheckCaptureOutput 동작에 필요한 run 값이다. zero value, 범위, nil 허용 여부는 함수 계약을 따른다.
+//   - run: CheckCaptureOutput에 전달되는 값이다. 허용 범위와 nil 처리 방식은 구현 검증을 따른다.
 //
-// 반환 오류는 입력 검증 실패, 취소, deadline, 상태 전이 실패, 또는 패키지 sentinel/typed error 계약을 보존한다.
+// 반환 오류는 입력 검증 실패, context 취소/deadline, 상태 전이 실패, 패키지 sentinel error와 typed error를 그대로 드러낸다.
 func CheckCaptureOutput(run func()) (CapturedOutput, error) {
 	if run == nil {
 		return CapturedOutput{}, errors.New("run must not be nil")

@@ -36,7 +36,7 @@ func (*AtomicityPanic) Error() string { return "sql checkpoint: callback panic w
 
 // Unwrap Unwrap 공개 API의 동작을 수행하며 batch 단계, checkpoint, writer 안전성, 재시작 계약을 보존한다.
 //
-// 반환 오류는 입력 검증 실패, 취소, deadline, 상태 전이 실패, 또는 패키지 sentinel/typed error 계약을 보존한다.
+// 반환 오류는 입력 검증 실패, context 취소/deadline, 상태 전이 실패, 패키지 sentinel error와 typed error를 그대로 드러낸다.
 func (*AtomicityPanic) Unwrap() error {
 	return errors.Join(batch.ErrAtomicityUnknown, batch.ErrCommitUnknown)
 }
@@ -62,7 +62,7 @@ func (e *OpError) Error() string { return e.Family() + " " + e.Operation() + " f
 
 // Unwrap Unwrap 공개 API의 동작을 수행하며 batch 단계, checkpoint, writer 안전성, 재시작 계약을 보존한다.
 //
-// 반환 오류는 입력 검증 실패, 취소, deadline, 상태 전이 실패, 또는 패키지 sentinel/typed error 계약을 보존한다.
+// 반환 오류는 입력 검증 실패, context 취소/deadline, 상태 전이 실패, 패키지 sentinel error와 typed error를 그대로 드러낸다.
 func (e *OpError) Unwrap() error {
 	if e == nil {
 		return nil
@@ -109,7 +109,7 @@ func (e *CodecError) Error() string { return e.Family() + " " + e.Operation() + 
 
 // Unwrap Unwrap 공개 API의 동작을 수행하며 batch 단계, checkpoint, writer 안전성, 재시작 계약을 보존한다.
 //
-// 반환 오류는 입력 검증 실패, 취소, deadline, 상태 전이 실패, 또는 패키지 sentinel/typed error 계약을 보존한다.
+// 반환 오류는 입력 검증 실패, context 취소/deadline, 상태 전이 실패, 패키지 sentinel error와 typed error를 그대로 드러낸다.
 func (e *CodecError) Unwrap() error {
 	if e == nil {
 		return nil

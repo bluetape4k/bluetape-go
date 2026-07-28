@@ -17,7 +17,7 @@ type Report struct {
 // Completed Completed 공개 API의 동작을 수행하며 work report 상태, failure policy, child report 계약을 보존한다.
 //
 // 매개변수:
-//   - name: Completed가 식별자, 상태, 이름, 또는 입력으로 해석하는 문자열 값이다. 빈 문자열 처리는 함수 계약을 따른다.
+//   - name: report나 상태를 식별할 이름이다.
 func Completed(name string) Report {
 	return newReport(name, StatusCompleted, nil, "", nil)
 }
@@ -25,7 +25,7 @@ func Completed(name string) Report {
 // Failed Failed 공개 API의 동작을 수행하며 work report 상태, failure policy, child report 계약을 보존한다.
 //
 // 매개변수:
-//   - name: Failed가 식별자, 상태, 이름, 또는 입력으로 해석하는 문자열 값이다. 빈 문자열 처리는 함수 계약을 따른다.
+//   - name: report나 상태를 식별할 이름이다.
 //   - err: 검사하거나 감쌀 오류 값이다.
 func Failed(name string, err error) Report {
 	return newReport(name, StatusFailed, err, "", nil)
@@ -34,8 +34,8 @@ func Failed(name string, err error) Report {
 // Partial Partial 공개 API의 동작을 수행하며 work report 상태, failure policy, child report 계약을 보존한다.
 //
 // 매개변수:
-//   - name: Partial가 식별자, 상태, 이름, 또는 입력으로 해석하는 문자열 값이다. 빈 문자열 처리는 함수 계약을 따른다.
-//   - children: Partial 동작에 필요한 children 값이다. zero value, 범위, nil 허용 여부는 함수 계약을 따른다.
+//   - name: report나 상태를 식별할 이름이다.
+//   - children: Partial에 전달되는 값이다. 허용 범위와 nil 처리 방식은 구현 검증을 따른다.
 func Partial(name string, children ...Report) Report {
 	return newReport(name, StatusPartial, nil, "", children)
 }
@@ -43,8 +43,8 @@ func Partial(name string, children ...Report) Report {
 // Aborted Aborted 공개 API의 동작을 수행하며 work report 상태, failure policy, child report 계약을 보존한다.
 //
 // 매개변수:
-//   - name: Aborted가 식별자, 상태, 이름, 또는 입력으로 해석하는 문자열 값이다. 빈 문자열 처리는 함수 계약을 따른다.
-//   - reason: Aborted가 식별자, 상태, 이름, 또는 입력으로 해석하는 문자열 값이다. 빈 문자열 처리는 함수 계약을 따른다.
+//   - name: report나 상태를 식별할 이름이다.
+//   - reason: 중단 또는 실패 이유다.
 func Aborted(name, reason string) Report {
 	return newReport(name, StatusAborted, nil, reason, nil)
 }
@@ -52,7 +52,7 @@ func Aborted(name, reason string) Report {
 // Cancelled Cancelled 공개 API의 동작을 수행하며 work report 상태, failure policy, child report 계약을 보존한다.
 //
 // 매개변수:
-//   - name: Cancelled가 식별자, 상태, 이름, 또는 입력으로 해석하는 문자열 값이다. 빈 문자열 처리는 함수 계약을 따른다.
+//   - name: report나 상태를 식별할 이름이다.
 //   - err: 검사하거나 감쌀 오류 값이다.
 func Cancelled(name string, err error) Report {
 	return newReport(name, StatusCancelled, err, "", nil)
@@ -61,11 +61,11 @@ func Cancelled(name string, err error) Report {
 // Aggregate Aggregate 공개 API의 동작을 수행하며 work report 상태, failure policy, child report 계약을 보존한다.
 //
 // 매개변수:
-//   - name: Aggregate가 식별자, 상태, 이름, 또는 입력으로 해석하는 문자열 값이다. 빈 문자열 처리는 함수 계약을 따른다.
-//   - policy: Aggregate 동작에 필요한 policy 값이다. zero value, 범위, nil 허용 여부는 함수 계약을 따른다.
-//   - children: Aggregate 동작에 필요한 children 값이다. zero value, 범위, nil 허용 여부는 함수 계약을 따른다.
+//   - name: report나 상태를 식별할 이름이다.
+//   - policy: Aggregate에 전달되는 값이다. 허용 범위와 nil 처리 방식은 구현 검증을 따른다.
+//   - children: Aggregate에 전달되는 값이다. 허용 범위와 nil 처리 방식은 구현 검증을 따른다.
 //
-// 반환 오류는 입력 검증 실패, 취소, deadline, 상태 전이 실패, 또는 패키지 sentinel/typed error 계약을 보존한다.
+// 반환 오류는 입력 검증 실패, context 취소/deadline, 상태 전이 실패, 패키지 sentinel error와 typed error를 그대로 드러낸다.
 func Aggregate(name string, policy FailurePolicy, children ...Report) (Report, error) {
 	if !policy.valid() {
 		return Report{}, FailurePolicyError{Policy: policy}

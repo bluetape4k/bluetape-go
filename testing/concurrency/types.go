@@ -123,7 +123,7 @@ func (e RunError) Is(target error) bool {
 // As As 공개 API의 동작을 수행하며 테스트 helper의 timeout, cancellation, cleanup 계약을 보존한다.
 //
 // 매개변수:
-//   - target: As 동작에 필요한 target 값이다. zero value, 범위, nil 허용 여부는 함수 계약을 따른다.
+//   - target: As에 전달되는 값이다. 허용 범위와 nil 처리 방식은 구현 검증을 따른다.
 func (e RunError) As(target any) bool {
 	for _, err := range e.Errors {
 		if errors.As(err, target) {

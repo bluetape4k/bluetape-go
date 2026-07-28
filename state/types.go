@@ -34,7 +34,7 @@ type config[S comparable, E comparable] struct {
 // WithFinalStates WithFinalStates 공개 API의 동작을 수행하며 상태 전이, guard, final state 계약을 보존한다.
 //
 // 매개변수:
-//   - states: WithFinalStates 동작에 필요한 states 값이다. zero value, 범위, nil 허용 여부는 함수 계약을 따른다.
+//   - states: 최종 상태로 취급할 상태 목록이다.
 func WithFinalStates[S comparable, E comparable](states ...S) Option[S, E] {
 	return func(cfg *config[S, E]) {
 		if cfg.finalStates == nil {

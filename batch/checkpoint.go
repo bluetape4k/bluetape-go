@@ -36,9 +36,9 @@ func NewMemoryCheckpointStore() *MemoryCheckpointStore {
 //
 // 매개변수:
 //   - ctx: 호출자가 소유한 취소, deadline, 요청 범위를 전달한다.
-//   - key: Load가 식별자, 상태, 이름, 또는 입력으로 해석하는 문자열 값이다. 빈 문자열 처리는 함수 계약을 따른다.
+//   - key: Load가 해석할 문자열이다. 빈 문자열은 구현 검증을 따른다.
 //
-// 반환 오류는 입력 검증 실패, 취소, deadline, 상태 전이 실패, 또는 패키지 sentinel/typed error 계약을 보존한다.
+// 반환 오류는 입력 검증 실패, context 취소/deadline, 상태 전이 실패, 패키지 sentinel error와 typed error를 그대로 드러낸다.
 func (s *MemoryCheckpointStore) Load(ctx context.Context, key string) (any, bool, error) {
 	if err := ctx.Err(); err != nil {
 		return nil, false, err
@@ -56,10 +56,10 @@ func (s *MemoryCheckpointStore) Load(ctx context.Context, key string) (any, bool
 //
 // 매개변수:
 //   - ctx: 호출자가 소유한 취소, deadline, 요청 범위를 전달한다.
-//   - key: Save가 식별자, 상태, 이름, 또는 입력으로 해석하는 문자열 값이다. 빈 문자열 처리는 함수 계약을 따른다.
-//   - checkpoint: Save 동작에 필요한 checkpoint 값이다. zero value, 범위, nil 허용 여부는 함수 계약을 따른다.
+//   - key: Save가 해석할 문자열이다. 빈 문자열은 구현 검증을 따른다.
+//   - checkpoint: 저장하거나 commit할 checkpoint 값이다.
 //
-// 반환 오류는 입력 검증 실패, 취소, deadline, 상태 전이 실패, 또는 패키지 sentinel/typed error 계약을 보존한다.
+// 반환 오류는 입력 검증 실패, context 취소/deadline, 상태 전이 실패, 패키지 sentinel error와 typed error를 그대로 드러낸다.
 func (s *MemoryCheckpointStore) Save(ctx context.Context, key string, checkpoint any) error {
 	if err := ctx.Err(); err != nil {
 		return err

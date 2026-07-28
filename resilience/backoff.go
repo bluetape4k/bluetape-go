@@ -21,7 +21,7 @@ type BackoffFunc func(attempt int) time.Duration
 // Delay Delay 공개 API의 동작을 수행하며 취소, deadline, retry, timeout, circuit breaker 상태를 보존한다.
 //
 // 매개변수:
-//   - attempt: Delay 동작에 필요한 attempt 값이다. zero value, 범위, nil 허용 여부는 함수 계약을 따른다.
+//   - attempt: 현재 시도 번호다.
 func (fn BackoffFunc) Delay(attempt int) time.Duration {
 	return fn(attempt)
 }
@@ -36,7 +36,7 @@ func NoBackoff() Backoff {
 // ConstantBackoff ConstantBackoff 공개 API의 동작을 수행하며 취소, deadline, retry, timeout, circuit breaker 상태를 보존한다.
 //
 // 매개변수:
-//   - delay: ConstantBackoff 동작에 필요한 delay 값이다. zero value, 범위, nil 허용 여부는 함수 계약을 따른다.
+//   - delay: 고정 backoff로 사용할 시간이다.
 func ConstantBackoff(delay time.Duration) Backoff {
 	return BackoffFunc(func(int) time.Duration {
 		if delay < 0 {
@@ -59,7 +59,7 @@ type ExponentialBackoff struct {
 // Delay Delay 공개 API의 동작을 수행하며 취소, deadline, retry, timeout, circuit breaker 상태를 보존한다.
 //
 // 매개변수:
-//   - attempt: Delay 동작에 필요한 attempt 값이다. zero value, 범위, nil 허용 여부는 함수 계약을 따른다.
+//   - attempt: 현재 시도 번호다.
 func (b ExponentialBackoff) Delay(attempt int) time.Duration {
 	if attempt <= 0 || b.InitialDelay <= 0 {
 		return 0

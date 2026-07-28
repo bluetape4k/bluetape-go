@@ -24,9 +24,9 @@ type ProcessorFunc[I any, O any] func(context.Context, I) (O, bool, error)
 //
 // 매개변수:
 //   - ctx: 호출자가 소유한 취소, deadline, 요청 범위를 전달한다.
-//   - item: Process 동작에 필요한 item 값이다. zero value, 범위, nil 허용 여부는 함수 계약을 따른다.
+//   - item: 처리할 단일 항목이다.
 //
-// 반환 오류는 입력 검증 실패, 취소, deadline, 상태 전이 실패, 또는 패키지 sentinel/typed error 계약을 보존한다.
+// 반환 오류는 입력 검증 실패, context 취소/deadline, 상태 전이 실패, 패키지 sentinel error와 typed error를 그대로 드러낸다.
 func (f ProcessorFunc[I, O]) Process(ctx context.Context, item I) (O, bool, error) {
 	return f(ctx, item)
 }

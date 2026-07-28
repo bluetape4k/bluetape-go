@@ -46,9 +46,9 @@ type parallelRunner struct {
 // Sequential Sequential 공개 API의 동작을 수행하며 workflow 실행 순서, 병렬성, 실패 전파 계약을 보존한다.
 //
 // 매개변수:
-//   - name: Sequential가 식별자, 상태, 이름, 또는 입력으로 해석하는 문자열 값이다. 빈 문자열 처리는 함수 계약을 따른다.
-//   - policy: Sequential 동작에 필요한 policy 값이다. zero value, 범위, nil 허용 여부는 함수 계약을 따른다.
-//   - works: Sequential 동작에 필요한 works 값이다. zero value, 범위, nil 허용 여부는 함수 계약을 따른다.
+//   - name: report나 상태를 식별할 이름이다.
+//   - policy: Sequential에 전달되는 값이다. 허용 범위와 nil 처리 방식은 구현 검증을 따른다.
+//   - works: Sequential에 전달되는 값이다. 허용 범위와 nil 처리 방식은 구현 검증을 따른다.
 func Sequential(name string, policy workreport.FailurePolicy, works ...Work) Runner {
 	return sequentialRunner{
 		name:   name,
@@ -60,10 +60,10 @@ func Sequential(name string, policy workreport.FailurePolicy, works ...Work) Run
 // Conditional Conditional 공개 API의 동작을 수행하며 workflow 실행 순서, 병렬성, 실패 전파 계약을 보존한다.
 //
 // 매개변수:
-//   - name: Conditional가 식별자, 상태, 이름, 또는 입력으로 해석하는 문자열 값이다. 빈 문자열 처리는 함수 계약을 따른다.
-//   - predicate: Conditional 동작에 필요한 predicate 값이다. zero value, 범위, nil 허용 여부는 함수 계약을 따른다.
-//   - trueWork: Conditional 동작에 필요한 trueWork 값이다. zero value, 범위, nil 허용 여부는 함수 계약을 따른다.
-//   - falseWork: Conditional 동작에 필요한 falseWork 값이다. zero value, 범위, nil 허용 여부는 함수 계약을 따른다.
+//   - name: report나 상태를 식별할 이름이다.
+//   - predicate: Conditional에 전달되는 값이다. 허용 범위와 nil 처리 방식은 구현 검증을 따른다.
+//   - trueWork: Conditional에 전달되는 값이다. 허용 범위와 nil 처리 방식은 구현 검증을 따른다.
+//   - falseWork: Conditional에 전달되는 값이다. 허용 범위와 nil 처리 방식은 구현 검증을 따른다.
 func Conditional(name string, predicate Predicate, trueWork Work, falseWork ...Work) Runner {
 	return conditionalRunner{
 		name:        name,
@@ -76,9 +76,9 @@ func Conditional(name string, predicate Predicate, trueWork Work, falseWork ...W
 // Parallel Parallel 공개 API의 동작을 수행하며 workflow 실행 순서, 병렬성, 실패 전파 계약을 보존한다.
 //
 // 매개변수:
-//   - name: Parallel가 식별자, 상태, 이름, 또는 입력으로 해석하는 문자열 값이다. 빈 문자열 처리는 함수 계약을 따른다.
-//   - policy: Parallel 동작에 필요한 policy 값이다. zero value, 범위, nil 허용 여부는 함수 계약을 따른다.
-//   - works: Parallel 동작에 필요한 works 값이다. zero value, 범위, nil 허용 여부는 함수 계약을 따른다.
+//   - name: report나 상태를 식별할 이름이다.
+//   - policy: Parallel에 전달되는 값이다. 허용 범위와 nil 처리 방식은 구현 검증을 따른다.
+//   - works: Parallel에 전달되는 값이다. 허용 범위와 nil 처리 방식은 구현 검증을 따른다.
 func Parallel(name string, policy workreport.FailurePolicy, works ...Work) Runner {
 	return parallelRunner{
 		name:   name,

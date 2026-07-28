@@ -22,10 +22,10 @@ type Job struct {
 // NewJob NewJob 공개 API의 동작을 수행하며 batch 단계, checkpoint, writer 안전성, 재시작 계약을 보존한다.
 //
 // 매개변수:
-//   - name: NewJob가 식별자, 상태, 이름, 또는 입력으로 해석하는 문자열 값이다. 빈 문자열 처리는 함수 계약을 따른다.
-//   - steps: NewJob 동작에 필요한 steps 값이다. zero value, 범위, nil 허용 여부는 함수 계약을 따른다.
+//   - name: report나 상태를 식별할 이름이다.
+//   - steps: job에 포함할 step 목록이다.
 //
-// 반환 오류는 입력 검증 실패, 취소, deadline, 상태 전이 실패, 또는 패키지 sentinel/typed error 계약을 보존한다.
+// 반환 오류는 입력 검증 실패, context 취소/deadline, 상태 전이 실패, 패키지 sentinel error와 typed error를 그대로 드러낸다.
 func NewJob(name string, steps ...Runner) (*Job, error) {
 	if name == "" {
 		return nil, fmt.Errorf("job name must not be empty")

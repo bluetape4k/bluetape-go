@@ -24,12 +24,12 @@ var (
 //
 // 매개변수:
 //   - ctx: 호출자가 소유한 취소, deadline, 요청 범위를 전달한다.
-//   - key: Commit가 식별자, 상태, 이름, 또는 입력으로 해석하는 문자열 값이다. 빈 문자열 처리는 함수 계약을 따른다.
-//   - expectedVersion: Commit 동작에 필요한 expectedVersion 값이다. zero value, 범위, nil 허용 여부는 함수 계약을 따른다.
-//   - items: Commit가 순서와 snapshot 의미를 유지하며 읽는 items 목록이다. nil과 빈 슬라이스 의미는 함수 계약을 따른다.
-//   - checkpoint: Commit 동작에 필요한 checkpoint 값이다. zero value, 범위, nil 허용 여부는 함수 계약을 따른다.
+//   - key: Commit가 해석할 문자열이다. 빈 문자열은 구현 검증을 따른다.
+//   - expectedVersion: commit할 때 기대하는 현재 version이다.
+//   - items: Commit가 순서와 snapshot 의미를 유지하며 읽는 items 목록이다. nil과 빈 슬라이스는 해당 함수의 입력 규칙에 따라 처리한다.
+//   - checkpoint: 저장하거나 commit할 checkpoint 값이다.
 //
-// 반환 오류는 입력 검증 실패, 취소, deadline, 상태 전이 실패, 또는 패키지 sentinel/typed error 계약을 보존한다.
+// 반환 오류는 입력 검증 실패, context 취소/deadline, 상태 전이 실패, 패키지 sentinel error와 typed error를 그대로 드러낸다.
 func (w *Writer[T, C]) Commit(
 	ctx context.Context,
 	key string,

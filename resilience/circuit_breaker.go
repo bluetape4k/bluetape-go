@@ -54,9 +54,9 @@ type CircuitBreakerPolicy[T any] struct {
 // NewCircuitBreaker NewCircuitBreaker 공개 API의 동작을 수행하며 취소, deadline, retry, timeout, circuit breaker 상태를 보존한다.
 //
 // 매개변수:
-//   - options: NewCircuitBreaker 동작에 필요한 options 값이다. zero value, 범위, nil 허용 여부는 함수 계약을 따른다.
+//   - options: 적용할 옵션 목록이다. nil이면 기본값만 사용한다.
 //
-// 반환 오류는 입력 검증 실패, 취소, deadline, 상태 전이 실패, 또는 패키지 sentinel/typed error 계약을 보존한다.
+// 반환 오류는 입력 검증 실패, context 취소/deadline, 상태 전이 실패, 패키지 sentinel error와 typed error를 그대로 드러낸다.
 func NewCircuitBreaker[T any](options CircuitBreakerOptions) (*CircuitBreakerPolicy[T], error) {
 	if options.FailureThreshold <= 0 {
 		return nil, fmt.Errorf("failure threshold must be positive")
@@ -94,7 +94,7 @@ func (p *CircuitBreakerPolicy[T]) State() CircuitState {
 // Apply Apply 공개 API의 동작을 수행하며 취소, deadline, retry, timeout, circuit breaker 상태를 보존한다.
 //
 // 매개변수:
-//   - operation: Apply 동작에 필요한 operation 값이다. zero value, 범위, nil 허용 여부는 함수 계약을 따른다.
+//   - operation: 보호 정책 안에서 실행할 작업이다.
 func (p *CircuitBreakerPolicy[T]) Apply(operation Operation[T]) Operation[T] {
 	return func(ctx context.Context) (T, error) {
 		var zero T

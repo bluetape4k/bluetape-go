@@ -27,10 +27,10 @@ type SkipPolicy struct {
 // RetryErrors RetryErrors 공개 API의 동작을 수행하며 batch 단계, checkpoint, writer 안전성, 재시작 계약을 보존한다.
 //
 // 매개변수:
-//   - maxAttempts: RetryErrors 동작에 필요한 maxAttempts 값이다. zero value, 범위, nil 허용 여부는 함수 계약을 따른다.
-//   - retryIf: RetryErrors 동작에 필요한 retryIf 값이다. zero value, 범위, nil 허용 여부는 함수 계약을 따른다.
+//   - maxAttempts: 허용할 최대 재시도 횟수다.
+//   - retryIf: 오류를 재시도 대상으로 볼지 판정하는 함수다.
 //
-// 반환 오류는 입력 검증 실패, 취소, deadline, 상태 전이 실패, 또는 패키지 sentinel/typed error 계약을 보존한다.
+// 반환 오류는 입력 검증 실패, context 취소/deadline, 상태 전이 실패, 패키지 sentinel error와 typed error를 그대로 드러낸다.
 func RetryErrors(maxAttempts int, retryIf ErrorPredicate) (RetryPolicy, error) {
 	if maxAttempts <= 0 {
 		return RetryPolicy{}, fmt.Errorf("max attempts must be positive")
@@ -41,10 +41,10 @@ func RetryErrors(maxAttempts int, retryIf ErrorPredicate) (RetryPolicy, error) {
 // SkipErrors SkipErrors 공개 API의 동작을 수행하며 batch 단계, checkpoint, writer 안전성, 재시작 계약을 보존한다.
 //
 // 매개변수:
-//   - maxSkips: SkipErrors 동작에 필요한 maxSkips 값이다. zero value, 범위, nil 허용 여부는 함수 계약을 따른다.
-//   - skipIf: SkipErrors 동작에 필요한 skipIf 값이다. zero value, 범위, nil 허용 여부는 함수 계약을 따른다.
+//   - maxSkips: 허용할 최대 skip 횟수다.
+//   - skipIf: 오류를 skip 대상으로 볼지 판정하는 함수다.
 //
-// 반환 오류는 입력 검증 실패, 취소, deadline, 상태 전이 실패, 또는 패키지 sentinel/typed error 계약을 보존한다.
+// 반환 오류는 입력 검증 실패, context 취소/deadline, 상태 전이 실패, 패키지 sentinel error와 typed error를 그대로 드러낸다.
 func SkipErrors(maxSkips int, skipIf ErrorPredicate) (SkipPolicy, error) {
 	if maxSkips <= 0 {
 		return SkipPolicy{}, fmt.Errorf("max skips must be positive")

@@ -46,12 +46,12 @@ var _ batch.AtomicCheckpointWriter[any] = (*Writer[any, any])(nil)
 // New New 공개 API의 동작을 수행하며 batch 단계, checkpoint, writer 안전성, 재시작 계약을 보존한다.
 //
 // 매개변수:
-//   - db: New 동작에 필요한 db 값이다. zero value, 범위, nil 허용 여부는 함수 계약을 따른다.
-//   - options: New 동작에 필요한 options 값이다. zero value, 범위, nil 허용 여부는 함수 계약을 따른다.
-//   - codec: New 동작에 필요한 codec 값이다. zero value, 범위, nil 허용 여부는 함수 계약을 따른다.
-//   - write: New 동작에 필요한 write 값이다. zero value, 범위, nil 허용 여부는 함수 계약을 따른다.
+//   - db: 사용할 database handle이다. nil 허용 여부는 생성자 검증을 따른다.
+//   - options: 적용할 옵션 목록이다. nil이면 기본값만 사용한다.
+//   - codec: 저장 값 인코딩에 사용할 codec이다.
+//   - write: checkpoint 저장에 사용할 쓰기 함수다.
 //
-// 반환 오류는 입력 검증 실패, 취소, deadline, 상태 전이 실패, 또는 패키지 sentinel/typed error 계약을 보존한다.
+// 반환 오류는 입력 검증 실패, context 취소/deadline, 상태 전이 실패, 패키지 sentinel error와 typed error를 그대로 드러낸다.
 func New[T any, C any](db *sql.DB, options Options, codec Codec[C], write WriteTxFunc[T]) (*Writer[T, C], error) {
 	if db == nil {
 		return nil, errNilDB
