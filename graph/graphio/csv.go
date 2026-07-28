@@ -16,19 +16,19 @@ import (
 	"github.com/bluetape4k/bluetape-go/graph"
 )
 
-// 이 주석은 graph format, backend requirement, traversal, serialization 조건을 설명한다.
+// CSVWriterStreams CSV writer가 사용할 출력 stream 묶음이다.
 type CSVWriterStreams struct {
 	Vertices io.Writer
 	Edges    io.Writer
 }
 
-// 이 주석은 graph format, backend requirement, traversal, serialization 조건을 설명한다.
+// CSVReaderStreams CSV reader가 사용할 입력 stream 묶음이다.
 type CSVReaderStreams struct {
 	Vertices io.Reader
 	Edges    io.Reader
 }
 
-// 이 주석은 graph format, backend requirement, traversal, serialization 조건을 설명한다.
+// CSVWriter graph를 CSV vertex/edge stream으로 직렬화한다.
 type CSVWriter struct {
 	ctx           context.Context
 	options       CSVWriteOptions
@@ -263,7 +263,7 @@ func WriteCSV(ctx context.Context, streams CSVWriterStreams, records []Record, o
 	return writer.Close()
 }
 
-// 이 주석은 graph format, backend requirement, traversal, serialization 조건을 설명한다.
+// CSVReader CSV vertex/edge stream에서 graph를 복원한다.
 type CSVReader struct {
 	ctx          context.Context
 	options      CSVReadOptions

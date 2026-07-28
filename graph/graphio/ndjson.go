@@ -22,7 +22,7 @@ type ndjsonEnvelope struct {
 	Properties graph.Properties `json:"properties,omitempty"`
 }
 
-// 이 주석은 graph format, backend requirement, traversal, serialization 조건을 설명한다.
+// NDJSONWriter graph record를 NDJSON stream으로 직렬화한다.
 type NDJSONWriter struct {
 	ctx      context.Context
 	writer   io.Writer
@@ -120,7 +120,7 @@ func WriteNDJSON(ctx context.Context, writer io.Writer, records []Record, option
 	return stream.Close()
 }
 
-// 이 주석은 graph format, backend requirement, traversal, serialization 조건을 설명한다.
+// NDJSONReader NDJSON stream에서 graph record를 복원한다.
 type NDJSONReader struct {
 	ctx       context.Context
 	scanner   *bufio.Scanner

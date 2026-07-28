@@ -118,29 +118,29 @@ func checkRecordLimit(options ReadOptions, count int64) error {
 	return nil
 }
 
-// 이 주석은 graph format, backend requirement, traversal, serialization 조건을 설명한다.
+// CSVPropertyMode CSV property column을 쓰고 읽는 방식을 선택한다.
 type CSVPropertyMode string
 
 const (
-	// 이 주석은 graph format, backend requirement, traversal, serialization 조건을 설명한다.
+	// CSVPropertiesPrefixedColumns property를 prefix column으로 펼친다.
 	CSVPropertiesPrefixedColumns CSVPropertyMode = "prefixed_columns"
-	// 이 주석은 graph format, backend requirement, traversal, serialization 조건을 설명한다.
+	// CSVPropertiesRawJSONColumn property를 JSON column 하나에 보관한다.
 	CSVPropertiesRawJSONColumn CSVPropertyMode = "raw_json_column"
-	// 이 주석은 graph format, backend requirement, traversal, serialization 조건을 설명한다.
+	// CSVPropertiesNone property column을 쓰지 않는다.
 	CSVPropertiesNone CSVPropertyMode = "none"
 )
 
-// 이 주석은 graph format, backend requirement, traversal, serialization 조건을 설명한다.
+// CSVFormulaPolicy spreadsheet formula injection 방지 방식을 선택한다.
 type CSVFormulaPolicy string
 
 const (
-	// 이 주석은 graph format, backend requirement, traversal, serialization 조건을 설명한다.
+	// CSVFormulaEscape formula처럼 보이는 cell을 escape한다.
 	CSVFormulaEscape CSVFormulaPolicy = "escape"
-	// 이 주석은 graph format, backend requirement, traversal, serialization 조건을 설명한다.
+	// CSVFormulaRaw cell 값을 escape하지 않고 그대로 쓴다.
 	CSVFormulaRaw CSVFormulaPolicy = "raw"
 )
 
-// 이 주석은 graph format, backend requirement, traversal, serialization 조건을 설명한다.
+// CSVWriteOptions CSV writer 동작을 조정한다.
 type CSVWriteOptions struct {
 	WriteOptions
 	PropertyMode        CSVPropertyMode
@@ -150,7 +150,7 @@ type CSVWriteOptions struct {
 	PropertyColumns     []string
 }
 
-// 이 주석은 graph format, backend requirement, traversal, serialization 조건을 설명한다.
+// CSVReadOptions CSV reader 동작을 조정한다.
 type CSVReadOptions struct {
 	ReadOptions
 	PropertyMode        CSVPropertyMode
