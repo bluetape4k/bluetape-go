@@ -3,44 +3,40 @@
 Issue: [#431](https://github.com/bluetape4k/bluetape-go/issues/431)  
 Milestone: Backlog  
 Date: 2026-07-09  
-Decision: **implement `leader/mongo` in a single-elector first slice**
+Decision: **single-elector first slice로 `leader/mongo`를 구현한다**
 
-## Decision
+## 결정
 
-Add a future MongoDB-backed `leader.Elector` package only after this research
-branch lands. The first implementation issue should support single-leader
-campaign, renewal, observation, and owner-token release for `leader.Elector`.
+이 research branch가 land된 뒤에만 MongoDB-backed `leader.Elector` package를 추가한다. 첫 implementation issue는
+`leader.Elector`용 single-leader campaign, renewal, observation, owner-token release를 지원해야 한다.
 
-Do not ship `GroupElector` or `StrategicElector` in the first MongoDB slice.
-Both are valid follow-ups, but they need different document shapes and
-contention proofs:
+첫 MongoDB slice에서는 `GroupElector` 또는 `StrategicElector`를 ship하지 않는다. 둘 다 valid follow-up이지만 서로 다른 document
+shape와 contention proof가 필요하다.
 
-- `GroupElector` needs a slot model that preserves exact `MaxLeaders` under
-  concurrent acquisition.
-- `StrategicElector` needs a candidate registry, pruning policy, deterministic
-  read model, and strategy-specific failover tests.
+- `GroupElector`는 concurrent acquisition에서도 정확한 `MaxLeaders`를 보존하는 slot model이 필요하다.
+- `StrategicElector`는 candidate registry, pruning policy, deterministic read model, strategy-specific failover test가 필요하다.
 
 ## Current Repo Evidence
 
 | Evidence | Result |
 |---|---|
-| `leader/elector.go` | The shared `Elector` contract already separates `Campaign`, `Resign`, `IsLeader`, and `Leader`. |
-| `leader/group.go` | `GroupElector` adds `MaxLeaders`, active counts, and slot availability, so it is not just a single-document variant. |
-| `leader/options.go` | Lease, renew interval, group, member ID, and key prefix validation are already backend-neutral. |
-| `leader/README.md` / `.ko.md` | Backend renewal failure must make `IsLeader` false. |
-| `leader/redis/README.md` | Redis already provides single, group, and strategic implementations, but each uses a different storage pattern. |
-| `testcontainers/mongodb` | #430 provides a shared MongoDB integration-test fixture while keeping client, database, collection, indexes, and test data caller-owned. |
-| `docs/lessons/2026-07-07-mongodb-testcontainer-fixture.md` | MongoDB helpers should not hide client lifecycle or caller-owned storage decisions. |
+| `leader/elector.go` | shared `Elector` contract는 `Campaign`, `Resign`, `IsLeader`, `Leader`를 이미 분리한다. |
+| `leader/group.go` | `GroupElector`는 `MaxLeaders`, active count, slot availability를 추가하므로 single-document variant가 아니다. |
+| `leader/options.go` | lease, renew interval, group, member ID, key prefix validation은 이미 backend-neutral이다. |
+| `leader/README.md` / `.ko.md` | backend renewal failure는 `IsLeader`를 false로 만들어야 한다. |
+| `leader/redis/README.md` | Redis는 single, group, strategic implementation을 이미 제공하지만 각각 다른 storage pattern을 사용한다. |
+| `testcontainers/mongodb` | #430은 MongoDB integration-test fixture를 공유하면서 client, database, collection, index, test data는 caller-owned로 둔다. |
+| `docs/lessons/2026-07-07-mongodb-testcontainer-fixture.md` | MongoDB helper는 client lifecycle 또는 caller-owned storage decision을 숨기면 안 된다. |
 
-## MongoDB Semantics That Matter
+## 중요한 MongoDB Semantics
 
 | Semantics | Design implication |
 |---|---|
-| `findOneAndUpdate` atomically filters and updates one document | Use one lease document per normalized leader key for single-elector acquisition and renewal. |
-| Single-document writes are atomic | Store the active owner token and `lease_until` in the same document; do not split ownership across collections for the first slice. |
-| TTL indexes remove expired documents asynchronously | TTL is cleanup only. Lease validity must come from query predicates such as `lease_until <= now` or `lease_until > now`. |
-| `$currentDate` can set server-side timestamps | Prefer server-side timestamps for `updated_at`; evaluate aggregation-pipeline updates for server-side `lease_until` calculation before accepting client clock skew. |
-| Write concern is caller configuration | Document `majority` write concern as the production recommendation; do not silently mutate a caller-provided collection. |
+| `findOneAndUpdate`는 한 document를 atomic하게 filter/update한다. | single-elector acquisition 및 renewal에는 normalized leader key당 lease document 하나를 사용한다. |
+| single-document write는 atomic이다. | active owner token과 `lease_until`을 같은 document에 저장한다. 첫 slice에서 ownership을 collection 여러 개로 나누지 않는다. |
+| TTL index는 expired document를 asynchronous하게 제거한다. | TTL은 cleanup 전용이다. lease validity는 `lease_until <= now` 또는 `lease_until > now` 같은 query predicate에서 나온다. |
+| `$currentDate`는 server-side timestamp를 설정할 수 있다. | `updated_at`에는 server-side timestamp를 우선한다. client clock skew를 수용하기 전에 server-side `lease_until` 계산용 aggregation-pipeline update를 평가한다. |
+| write concern은 caller configuration이다. | production recommendation으로 `majority` write concern을 문서화하되 caller-provided collection을 조용히 mutate하지 않는다. |
 
 Sources:
 
@@ -54,89 +50,82 @@ Sources:
 
 | Field | Purpose |
 |---|---|
-| `_id` or `key` | Unique normalized leader key, such as `<keyPrefix>:<group>`. |
-| `group` | Human-readable group name for diagnostics. |
-| `member_id` | Caller member ID from `leader.Options`. |
-| `token` | Opaque owner token, preferably `memberID:random`, returned by `Leader`. |
-| `lease_until` | Authoritative lease-expiry instant used by acquire/read predicates. |
-| `created_at` / `updated_at` | Diagnostics and cleanup support. |
+| `_id` or `key` | `<keyPrefix>:<group>` 같은 unique normalized leader key. |
+| `group` | diagnostics용 human-readable group name. |
+| `member_id` | `leader.Options`에서 온 caller member ID. |
+| `token` | preferably `memberID:random`인 opaque owner token. `Leader`가 반환한다. |
+| `lease_until` | acquire/read predicate가 사용하는 authoritative lease-expiry instant. |
+| `created_at` / `updated_at` | diagnostics 및 cleanup support. |
 
-Indexes for the first slice:
+첫 slice의 index:
 
-- unique `_id` or unique `{key: 1}`;
-- optional TTL index on `lease_until` with `expireAfterSeconds: 0` for cleanup;
-- no group/strategy index until group or strategic elector work begins.
+- unique `_id` 또는 unique `{key: 1}`.
+- cleanup용 optional TTL index on `lease_until` with `expireAfterSeconds: 0`.
+- group 또는 strategic elector work 전에는 group/strategy index 없음.
 
 ## Operation Design
 
 | Operation | Required behavior |
 |---|---|
-| `Campaign(ctx)` | Loop until context cancellation or successful ownership. Try an atomic conditional update for expired ownership; handle duplicate-key races from upsert as a lost acquisition and retry after the existing renewal interval/backoff. |
-| `Renew` | Update only when the stored token matches this elector's token. A zero-match renewal means leadership was lost; stop the renewal loop and make `IsLeader` false. |
-| `Resign(ctx)` | Delete or clear only when token matches. If another owner already replaced the document, return success after clearing local leadership because `Resign` is idempotent for non-leaders. |
-| `Leader(ctx)` | Read the document only when `lease_until > now` and return the stored token; expired documents are treated as no leader even if TTL cleanup has not run. |
-| `IsLeader()` | Return local state only. It becomes true after successful acquisition and false after resign, failed renewal, context-driven shutdown, or observed owner loss. |
+| `Campaign(ctx)` | context cancellation 또는 successful ownership까지 loop한다. expired ownership에 atomic conditional update를 시도하고, upsert duplicate-key race는 lost acquisition으로 처리한 뒤 기존 renewal interval/backoff 뒤 retry한다. |
+| `Renew` | stored token이 이 elector의 token과 일치할 때만 update한다. zero-match renewal은 leadership loss이므로 renewal loop를 멈추고 `IsLeader`를 false로 만든다. |
+| `Resign(ctx)` | token이 일치할 때만 delete 또는 clear한다. 다른 owner가 이미 document를 대체했다면 local leadership을 clear한 뒤 success를 반환한다. non-leader의 `Resign`은 idempotent다. |
+| `Leader(ctx)` | `lease_until > now`인 document만 read하고 stored token을 반환한다. expired document는 TTL cleanup이 아직 없어도 no leader로 본다. |
+| `IsLeader()` | local state만 반환한다. successful acquisition 뒤 true가 되고 resign, failed renewal, context-driven shutdown, observed owner loss 뒤 false가 된다. |
 
 ## Time And Clock Policy
 
-The implementation should prefer MongoDB server time for write timestamps and,
-if practical with the Go driver, server-side calculation of `lease_until`.
-If the first slice computes `lease_until` in Go, the package must document that
-callers need bounded clock skew between contenders and should configure lease
-durations larger than expected skew plus operation latency.
+implementation은 write timestamp에 MongoDB server time을 우선하고, Go driver로 가능하다면 `lease_until`도 server-side에서 계산한다.
+첫 slice가 Go에서 `lease_until`을 계산한다면 contender 간 bounded clock skew가 필요하고 lease duration이 expected skew plus
+operation latency보다 커야 한다고 문서화한다.
 
-TTL monitor timing must not participate in correctness. It may delete old
-lease documents later than their expiry; acquisition and observation remain
-correct only because every active query compares `lease_until`.
+TTL monitor timing은 correctness에 참여하면 안 된다. TTL monitor는 lease document를 expiry보다 늦게 삭제할 수 있다. acquisition과
+observation은 모든 active query가 `lease_until`을 비교하기 때문에만 correct하다.
 
 ## Cancellation And Lifecycle
 
-- Caller owns the MongoDB client, database, collection, indexes, and write
-  concern configuration.
-- `Campaign` and `Resign` honor caller contexts.
-- The renewal loop must stop on `Resign`, lost ownership, context cancellation,
-  or backend errors that prevent proving ownership.
-- Cleanup contexts may use bounded `context.WithoutCancel` only for local
-  teardown after a request context is canceled; no hidden global goroutines or
-  clients.
+- caller가 MongoDB client, database, collection, index, write concern configuration을 소유한다.
+- `Campaign`과 `Resign`은 caller context를 존중한다.
+- renewal loop는 `Resign`, lost ownership, context cancellation, ownership proof를 막는 backend error에서 멈춰야 한다.
+- cleanup context는 request context cancellation 뒤 local teardown에 한해 bounded `context.WithoutCancel`을 사용할 수 있다.
+  hidden global goroutine 또는 client는 없다.
 
 ## Follow-Up Scope
 
-Follow-up implementation issue:
+follow-up implementation issue:
 
 - [#485](https://github.com/bluetape4k/bluetape-go/issues/485)
   `feat: Add MongoDB single leader elector backend`
 
-Scope for #485:
+#485 scope:
 
-- `leader/mongo` single `leader.Elector`;
-- options that accept a caller-owned `*mongo.Collection`;
-- owner-token acquire, renew, release, and read predicates;
-- TTL cleanup index documentation or helper;
-- integration tests with `testcontainers/mongodb`;
-- contention/race tests proving only one local leader at a time.
+- `leader/mongo` single `leader.Elector`.
+- caller-owned `*mongo.Collection`을 받는 option.
+- owner-token acquire, renew, release, read predicate.
+- TTL cleanup index documentation 또는 helper.
+- `testcontainers/mongodb` integration test.
+- 한 번에 local leader 하나만 있음을 증명하는 contention/race test.
 
-Defer these to later issues:
+defer:
 
-- MongoDB `GroupElector`;
-- MongoDB `StrategicElector`;
-- transaction-backed or multi-document designs;
-- JVM wire/document compatibility;
-- a generic distributed-lock package.
+- MongoDB `GroupElector`.
+- MongoDB `StrategicElector`.
+- transaction-backed 또는 multi-document design.
+- JVM wire/document compatibility.
+- generic distributed-lock package.
 
 ## Verification Plan For Implementation
 
-Future implementation PRs must include:
+future implementation PR은 다음을 포함해야 한다.
 
 - `go test -count=1 ./leader ./leader/mongo`
 - `go test -race -count=1 ./leader ./leader/mongo`
 - `go test -p 1 -count=1 ./leader/mongo ./testcontainers/mongodb`
-- contention tests with multiple contenders and short leases;
-- failed-renewal tests that prove `IsLeader` flips false;
-- expired-document tests that prove TTL cleanup is not required for takeover.
+- multiple contender와 short lease를 가진 contention test.
+- failed renewal이 `IsLeader`를 false로 바꾸는 test.
+- takeover에 TTL cleanup이 필요 없음을 증명하는 expired-document test.
 
 ## Outcome
 
-#431 should close after this research note, README pointer, review artifact, and
-durable wiki preservation land. Follow-up issue #485 implements only the
-single-elector MongoDB backend and uses this document as the acceptance boundary.
+이 research note, README pointer, review artifact, durable wiki preservation이 land되면 #431을 닫는다. follow-up issue #485는
+single-elector MongoDB backend만 구현하고 이 문서를 acceptance boundary로 사용한다.

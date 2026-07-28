@@ -1,27 +1,29 @@
-# Provider Benchmark Matrix for Issue 560
+# Issue 560 Provider Benchmark Matrix
 
-## Decision summary
+## 결정 요약
 
-This report compares only operations with matching semantics inside each family. It does not
-produce a universal provider ranking. The measurements are a short local snapshot on the machine
-recorded in [environment.md](outputs/issue-560/environment.md), from Git SHA
-`1f1069f4b119957d96158c969f819d6374f902c8`.
+이 보고서는 각 family 안에서 semantics가 맞는 operation만 비교한다. universal provider
+ranking을 만들지 않는다. 측정값은 [environment.md](outputs/issue-560/environment.md)에
+기록된 machine에서 Git SHA `1f1069f4b119957d96158c969f819d6374f902c8` 기준으로 캡처한
+짧은 local snapshot이다.
 
-- Use local rows as API and implementation lower bounds, not as distributed-provider winners.
-- Choose leader and rate-limit providers from operational requirements first; the measured
-  latency shows the cost shape of this fixture, not production availability or durability.
-- Preserve the cache boundary: L1 keeps reference objects, while L2 serialization and network
-  work dominate remote paths.
-- Choose graph I/O by interchange requirements before local round-trip latency.
-- Keep PostgreSQL recursive CTE as a strong first-party traversal baseline; the snapshot does not
-  justify adopting or rejecting a graph database universally.
+- local row는 API 및 implementation lower bound로 사용하고, distributed-provider winner로
+  사용하지 않는다.
+- leader와 rate-limit provider는 먼저 operational requirement에서 선택한다. 측정된
+  latency는 이 fixture의 cost shape를 보여주지만 production availability 또는 durability를
+  증명하지 않는다.
+- cache boundary를 보존한다. L1은 reference object를 유지하고, L2 serialization과 network
+  work가 remote path를 지배한다.
+- graph I/O는 local round-trip latency보다 interchange requirement를 먼저 보고 선택한다.
+- PostgreSQL recursive CTE는 강한 first-party traversal baseline으로 유지한다. 이 snapshot은
+  graph database를 보편적으로 채택하거나 거절할 근거가 아니다.
 
-All charts show observed min, median, and max `ns/op`. Lower is better. Allocation data and every
-unselected row remain in the linked raw Go benchmark outputs.
+모든 chart는 관측된 min, median, max `ns/op`을 표시한다. 낮을수록 좋다. allocation data와
+선택되지 않은 모든 row는 linked raw Go benchmark output에 남아 있다.
 
-## Reproduction and evidence
+## 재현 및 근거
 
-Run one family at a time:
+family 하나씩 실행한다.
 
 ```bash
 scripts/capture-provider-benchmark.sh leader-local
@@ -35,45 +37,45 @@ scripts/capture-provider-benchmark.sh graphio
 scripts/capture-provider-benchmark.sh graphdb
 ```
 
-Each raw artifact records the exact `go test` command, timestamp, Git SHA, benchmark output, and
-exit status. Container artifacts also record the provider-reported version and immutable image
-reference. Failed development captures are retained separately with `-failed-` in their names and
-are not report inputs. Each command captures at most 16 MiB by default; an overflow fails closed
-without replacing canonical evidence. `BLUETAPE_PROVIDER_BENCH_MAX_OUTPUT_BYTES` may set a smaller
-positive bound for constrained environments.
+각 raw artifact는 정확한 `go test` command, timestamp, Git SHA, benchmark output,
+exit status를 기록한다. container artifact는 provider-reported version과 immutable image
+reference도 기록한다. 실패한 development capture는 이름에 `-failed-`를 붙여 별도로 보존하고
+report input으로 쓰지 않는다. 각 command는 기본적으로 최대 16 MiB를 캡처한다. overflow는
+canonical evidence를 교체하지 않고 fail closed한다. 제한된 환경에서는
+`BLUETAPE_PROVIDER_BENCH_MAX_OUTPUT_BYTES`로 더 작은 positive bound를 설정할 수 있다.
 
-To refresh the tracked snapshot:
+tracked snapshot을 갱신하려면 다음 순서를 따른다.
 
-1. Start from a clean worktree, record the measured Git SHA and current host/runtime details in
-   `environment.md`, and ensure Docker is available for container-backed families.
-2. Run all nine families above sequentially. Do not overlap container-backed captures.
-3. Reconcile provider-reported versions and immutable image references from the successful raw
-   artifacts into `environment.md`; stop if a provider is missing, duplicated, or inconsistent.
-4. Run `node docs/images/readme-charts/generate-provider-benchmark-summaries.mjs --self-test`,
-   then run the same script without arguments to regenerate all chart sources, SVGs, and PNGs.
-5. Update the report tables from the new raw min/median/max values, cross-check them against the
-   generated Vega-Lite data, then run the repository diff, redaction, and visual chart checks.
+1. clean worktree에서 시작하고, measured Git SHA와 현재 host/runtime details를
+   `environment.md`에 기록하며, container-backed family를 위해 Docker가 사용 가능한지 확인한다.
+2. 위의 아홉 family를 모두 sequential로 실행한다. container-backed capture를 겹치지 않는다.
+3. successful raw artifact의 provider-reported version과 immutable image reference를
+   `environment.md`에 reconcile한다. provider가 누락, 중복, 불일치하면 중단한다.
+4. `node docs/images/readme-charts/generate-provider-benchmark-summaries.mjs --self-test`를
+   실행한 다음, 같은 script를 argument 없이 실행해 모든 chart source, SVG, PNG를 재생성한다.
+5. 새 raw min/median/max 값으로 report table을 갱신하고 generated Vega-Lite data와
+   cross-check한 뒤 repository diff, redaction, visual chart check를 실행한다.
 
-The generator fails closed when a canonical artifact's recorded SHA differs from the authority in
-`environment.md`. A partial recapture must not be published as a complete matrix.
+generator는 canonical artifact의 recorded SHA가 `environment.md`의 authority와 다르면
+fail closed한다. partial recapture를 complete matrix로 공개하면 안 된다.
 
 ## Leader election
 
 ### Workload and semantic boundary
 
-The ranked rows time uncontended campaign, owned resignation, supported contention, leader lookup,
-and lease-expiry takeover against disposable Redis, MongoDB, PostgreSQL, and etcd fixtures. The
-chart selects uncontended campaign and lookup as ordinary operations and isolates expiry takeover
-because its intentional lease wait is a different latency class. etcd contention is not ranked
-because the deterministic same-process fixture cannot establish an equivalent multi-session
-contention row.
+ranked row는 disposable Redis, MongoDB, PostgreSQL, etcd fixture를 대상으로 uncontended
+campaign, owned resignation, supported contention, leader lookup, lease-expiry takeover를
+측정한다. chart는 ordinary operation으로 uncontended campaign과 lookup을 선택하고, intentional
+lease wait이 다른 latency class이므로 expiry takeover를 분리한다. etcd contention은
+deterministic same-process fixture가 equivalent multi-session contention row를 만들 수 없어서
+ranking하지 않는다.
 
 - Local lower bound: [leader-local.txt](outputs/issue-560/leader-local.txt)
 - Container commands and rows: [leader-containers.txt](outputs/issue-560/leader-containers.txt)
 - Correctness/deadline probes: [leader-probes.txt](outputs/issue-560/leader-probes.txt)
 
-Metric direction: lower `ns/op` is better for the same operation. Active-holder and renewal/deadline
-probes are correctness evidence, not ranking inputs.
+Metric direction: 같은 operation에서는 낮은 `ns/op`이 좋다. active-holder 및
+renewal/deadline probe는 correctness evidence이지 ranking input이 아니다.
 
 | Operation | Provider | Median | Observed min-max |
 | --- | --- | ---: | ---: |
@@ -94,30 +96,31 @@ probes are correctness evidence, not ranking inputs.
 
 ### Selection guidance
 
-- Redis is suitable when the deployment already operates Redis and low local-network coordination
-  latency matters more than adding another consensus system.
-- MongoDB and PostgreSQL avoid a new provider when either database is already the operational
-  authority; their different operation profiles should be evaluated against the application mix.
-- etcd remains appropriate when its consensus and operational model are already required. This
-  snapshot's expiry behavior includes provider semantics and polling/deadline behavior, not just a
-  network round trip.
+- Redis를 이미 운영하고 있고 low local-network coordination latency가 별도 consensus system을
+  추가하는 것보다 중요하면 Redis가 적합하다.
+- MongoDB와 PostgreSQL은 해당 database가 이미 operational authority일 때 새 provider를
+  피할 수 있게 한다. 서로 다른 operation profile은 application mix에 맞춰 평가해야 한다.
+- etcd는 consensus와 operational model이 이미 요구될 때 여전히 적합하다. 이 snapshot의
+  expiry behavior는 network round trip뿐 아니라 provider semantics와 polling/deadline behavior를
+  포함한다.
 
-Not proven: failover availability, clock-skew tolerance, quorum loss, WAN behavior, renewal under
-sustained load, or production fencing guarantees. Priority decision: keep the correctness probes
-outside rankings and add multi-process/load evidence before changing a provider recommendation.
+증명되지 않은 것: failover availability, clock-skew tolerance, quorum loss, WAN behavior,
+renewal under sustained load, production fencing guarantees. priority decision: correctness
+probe를 ranking 밖에 유지하고, provider recommendation을 바꾸기 전에 multi-process/load
+evidence를 추가한다.
 
 ## Rate limiting
 
 ### Workload and semantic boundary
 
-The provider rows compare the same single-key allow/reject decisions and the same eight-worker
-parallel/distinct-key shapes for Redis and PostgreSQL. The local token bucket is only an API lower
-bound and does not participate in the distributed ranking.
+provider row는 Redis와 PostgreSQL에 대해 같은 single-key allow/reject decision 및 같은
+eight-worker parallel/distinct-key shape를 비교한다. local token bucket은 API lower bound일
+뿐 distributed ranking에 참여하지 않는다.
 
 - Local lower bound: [ratelimit-local.txt](outputs/issue-560/ratelimit-local.txt)
 - Container rows: [ratelimit-containers.txt](outputs/issue-560/ratelimit-containers.txt)
 
-Metric direction: lower `ns/op` is better for an equivalent allow decision.
+Metric direction: equivalent allow decision에서는 낮은 `ns/op`이 좋다.
 
 | Scenario | Redis median | PostgreSQL median |
 | --- | ---: | ---: |
@@ -130,29 +133,29 @@ Metric direction: lower `ns/op` is better for an equivalent allow decision.
 
 ### Selection guidance
 
-PostgreSQL had the lower median for the single-key available path, while Redis was lower for the
-rejected path and both eight-worker rows. PostgreSQL remains a valid choice when transactional
-colocation and one operational datastore are more important than the concurrency shape observed
-here. The result is a profiling signal, not evidence that either contract is universally better.
+PostgreSQL은 single-key available path에서 더 낮은 median을 보였고, Redis는 rejected path와
+두 eight-worker row에서 더 낮았다. transactional colocation과 단일 operational datastore가
+여기 관측된 concurrency shape보다 중요하면 PostgreSQL은 여전히 유효한 선택이다. 이 결과는
+profiling signal이지 어느 contract가 보편적으로 더 낫다는 evidence가 아니다.
 
-Not proven: fairness under sustained arrival rates, multi-host lock contention, database pool
-saturation, failover, cloud cost, or rate-limit accuracy during partitions. Follow-up issue draft:
-profile the PostgreSQL parallel path with connection-pool telemetry and a controlled multi-client
-arrival curve before making a high-contention recommendation.
+증명되지 않은 것: sustained arrival rate에서의 fairness, multi-host lock contention,
+database pool saturation, failover, cloud cost, partition 중 rate-limit accuracy. follow-up
+issue draft: high-contention recommendation을 만들기 전에 connection-pool telemetry와 controlled
+multi-client arrival curve로 PostgreSQL parallel path를 profile한다.
 
 ## Cache
 
 ### Workload and semantic boundary
 
-Local memory, Redis L2, tiered cache, and Pub/Sub near-cache rows preserve different boundaries.
-L1 rows return reference objects without serialization. L2 and tiered-L2 rows include remote access
-and serialization. Pub/Sub peer invalidation includes publication plus observed peer eviction.
-RESP3 client tracking remains an experimental spike and is not the production near-cache row.
+Local memory, Redis L2, tiered cache, Pub/Sub near-cache row는 서로 다른 boundary를 보존한다.
+L1 row는 serialization 없이 reference object를 반환한다. L2와 tiered-L2 row는 remote access와
+serialization을 포함한다. Pub/Sub peer invalidation은 publication과 observed peer eviction을
+포함한다. RESP3 client tracking은 experimental spike로 남으며 production near-cache row가 아니다.
 
 - Local memory and serialization baselines: [cache-local.txt](outputs/issue-560/cache-local.txt)
 - Redis, tiered, and Pub/Sub near-cache rows: [cache-redis.txt](outputs/issue-560/cache-redis.txt)
 
-Metric direction: lower `ns/op` is better only within the same cache-path semantics.
+Metric direction: 같은 cache-path semantics 안에서만 낮은 `ns/op`이 좋다.
 
 | Path, 128 B payload | Median | Observed min-max |
 | --- | ---: | ---: |
@@ -167,29 +170,29 @@ Metric direction: lower `ns/op` is better only within the same cache-path semant
 
 ### Selection guidance
 
-- Use the memory cache for process-local reference semantics and the lowest hot-read overhead.
-- Use tiered cache when a local reference-object L1 plus serialized Redis L2 matches the consistency
-  model. Treat the two layers as different semantic and performance boundaries.
-- Use the Pub/Sub near cache when peer invalidation is required and eventual invalidation semantics
-  are acceptable. The production row is Pub/Sub, not the RESP3 spike.
+- process-local reference semantics와 가장 낮은 hot-read overhead가 필요하면 memory cache를 사용한다.
+- local reference-object L1과 serialized Redis L2가 consistency model에 맞으면 tiered cache를
+  사용한다. 두 layer를 서로 다른 semantic 및 performance boundary로 취급한다.
+- peer invalidation이 필요하고 eventual invalidation semantics가 허용되면 Pub/Sub near cache를
+  사용한다. production row는 RESP3 spike가 아니라 Pub/Sub이다.
 
-Batch put is `N/A: no public bulk mutation contract`. Not proven: eviction under memory pressure,
-subscriber loss/recovery, cluster failover, WAN invalidation lag, hot-key amplification, or a
-production SLO. Priority decision: do not change cache defaults from this snapshot; measure
-subscriber recovery and cluster failover before opening a production near-cache recommendation.
+Batch put은 `N/A: no public bulk mutation contract`다. 증명되지 않은 것: eviction under
+memory pressure, subscriber loss/recovery, cluster failover, WAN invalidation lag,
+hot-key amplification, production SLO. priority decision: 이 snapshot에서 cache default를
+바꾸지 않는다. production near-cache recommendation을 열기 전에 subscriber recovery와 cluster
+failover를 측정한다.
 
 ## Graph I/O
 
 ### Workload and semantic boundary
 
-CSV, NDJSON, and GraphML use the same generated graph shapes and separately time write, read,
-round-trip, and record-construction baselines. The chart compares only the medium
-`10000V-20000E-5P` round trip. It does not mix throughput, allocations, or construction baselines
-into the latency axis.
+CSV, NDJSON, GraphML은 같은 generated graph shape를 사용하고 write, read, round-trip,
+record-construction baseline을 별도로 측정한다. chart는 medium `10000V-20000E-5P`
+round trip만 비교한다. throughput, allocation, construction baseline을 latency axis에 섞지 않는다.
 
 - Exact command and all rows: [graphio.txt](outputs/issue-560/graphio.txt)
 
-Metric direction: lower `ns/op` is better for the same graph shape and round-trip operation.
+Metric direction: 같은 graph shape와 round-trip operation에서는 낮은 `ns/op`이 좋다.
 
 | Format | Median | Observed min-max |
 | --- | ---: | ---: |
@@ -201,26 +204,27 @@ Metric direction: lower `ns/op` is better for the same graph shape and round-tri
 
 ### Selection guidance
 
-NDJSON had the lowest medium round-trip median in this snapshot. CSV remains useful for simple
-tabular interchange, while GraphML preserves a graph-oriented interchange contract. Choose the
-format from interoperability and fidelity requirements before using this local latency ordering.
+NDJSON은 이 snapshot에서 가장 낮은 medium round-trip median을 보였다. CSV는 단순 tabular
+interchange에 여전히 유용하고, GraphML은 graph-oriented interchange contract를 보존한다.
+local latency ordering보다 interoperability와 fidelity requirement를 먼저 보고 format을 선택한다.
 
-Graph-store construction is `N/A: no shared construction API`. Not proven: streaming backpressure,
-compressed transport, malformed-input behavior at scale, disk I/O, cross-language compatibility,
-or production dataset skew. Priority decision: keep format priority unchanged; add
-streaming/backpressure and malformed-input evidence before recommending a production default.
+Graph-store construction은 `N/A: no shared construction API`다. 증명되지 않은 것: streaming
+backpressure, compressed transport, malformed-input behavior at scale, disk I/O,
+cross-language compatibility, production dataset skew. priority decision: format priority를
+유지한다. production default를 권고하기 전에 streaming/backpressure와 malformed-input evidence를
+추가한다.
 
 ## Graph traversal providers
 
 ### Workload and semantic boundary
 
-Neo4j, Memgraph, and PostgreSQL recursive CTE fixtures receive the same generated long-chain and
-deep-wide shapes. Setup, seeding, version queries, and verification stay outside the timer. The
-ranked operation is traversal only.
+Neo4j, Memgraph, PostgreSQL recursive CTE fixture는 같은 generated long-chain 및 deep-wide
+shape를 받는다. setup, seeding, version query, verification은 timer 밖에 둔다. ranked
+operation은 traversal만이다.
 
 - Exact command and all rows: [graphdb.txt](outputs/issue-560/graphdb.txt)
 
-Metric direction: lower `ns/op` is better for an equivalent seeded traversal.
+Metric direction: equivalent seeded traversal에서는 낮은 `ns/op`이 좋다.
 
 | Shape | Neo4j median | Memgraph median | PostgreSQL CTE median |
 | --- | ---: | ---: | ---: |
@@ -232,19 +236,19 @@ Metric direction: lower `ns/op` is better for an equivalent seeded traversal.
 
 ### Selection guidance
 
-PostgreSQL recursive CTE had the lowest median for depth-16 and deep-wide rows; Memgraph had the
-lowest median for depth 64. Neo4j was slower in these three local shapes. These results justify
-keeping the relational baseline and measuring the application's real query mix; they do not prove
-that a provider is universally better.
+PostgreSQL recursive CTE는 depth-16 및 deep-wide row에서 가장 낮은 median을 보였고,
+Memgraph는 depth 64에서 가장 낮은 median을 보였다. Neo4j는 이 세 local shape에서 더 느렸다.
+이 결과는 relational baseline 유지와 application real query mix 측정을 정당화하지만,
+provider가 보편적으로 더 낫다는 증거는 아니다.
 
-Not proven: Cypher feature breadth, transactional graph updates, index strategy, concurrent mixed
-read/write load, cluster behavior, operational tooling, or production-scale datasets. Priority
-decision: do not add a new graph provider from these rows alone; require workload-specific
-capability and operational evidence.
+증명되지 않은 것: Cypher feature breadth, transactional graph updates, index strategy,
+concurrent mixed read/write load, cluster behavior, operational tooling, production-scale
+datasets. priority decision: 이 row만으로 새 graph provider를 추가하지 않는다.
+workload-specific capability와 operational evidence가 필요하다.
 
 ## Global limitations
 
-One local Docker snapshot does not establish production SLOs, cloud cost, WAN behavior, failure
-recovery, or a universal winner. The immutable images and provider-reported versions make this
-snapshot auditable, not timeless. Re-run the same commands on the deployment-relevant architecture
-and preserve a new environment manifest before changing an operational recommendation.
+하나의 local Docker snapshot은 production SLO, cloud cost, WAN behavior, failure recovery,
+universal winner를 확립하지 않는다. immutable image와 provider-reported version은 이 snapshot을
+auditable하게 만들지만 timeless하게 만들지는 않는다. operational recommendation을 바꾸기 전에
+deployment-relevant architecture에서 같은 command를 재실행하고 새 environment manifest를 보존한다.

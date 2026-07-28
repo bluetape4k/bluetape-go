@@ -3,12 +3,11 @@
 Issue: #NNN
 Milestone: X.Y.Z
 Date: YYYY-MM-DD
-Scope: package or cross-repo benchmark scope
+Scope: package 또는 cross-repo benchmark scope
 
 ## Snapshot Boundary
 
-This report is a local benchmark snapshot. It is not a production ranking and
-does not change defaults by itself.
+이 report는 local benchmark snapshot이다. production ranking이 아니며 그 자체로 default를 바꾸지 않는다.
 
 ## Environment
 
@@ -32,27 +31,27 @@ does not change defaults by itself.
 
 | Metric | Direction |
 |---|---|
-| `ns/op` | Lower is better |
-| `B/op` | Lower is better |
-| `allocs/op` | Lower is better |
-| `MB/s` | Higher is better |
-| `encoded_bytes` | Lower is denser |
-| `compressed_bytes` | Lower is denser |
-| `compressed/original` | Lower is denser |
+| `ns/op` | 낮을수록 좋다 |
+| `B/op` | 낮을수록 좋다 |
+| `allocs/op` | 낮을수록 좋다 |
+| `MB/s` | 높을수록 좋다 |
+| `encoded_bytes` | 낮을수록 조밀하다 |
+| `compressed_bytes` | 낮을수록 조밀하다 |
+| `compressed/original` | 낮을수록 조밀하다 |
 
 ## Interpretation
 
-- Measured evidence:
+- measured evidence:
   - TODO
-- Hypotheses or follow-up candidates:
+- hypothesis 또는 follow-up candidate:
   - TODO
-- Not comparable from this snapshot:
+- 이 snapshot만으로 비교할 수 없는 항목:
   - TODO
 
 ## Traceability Checklist
 
-- [ ] Every measured statement cites a command.
-- [ ] Every measured statement cites a raw output file.
-- [ ] Metric direction is stated before comparing values.
-- [ ] Local-snapshot language is used.
-- [ ] Production-ranking language is absent.
+- [ ] 모든 measured statement가 command를 cite한다.
+- [ ] 모든 measured statement가 raw output file을 cite한다.
+- [ ] value를 비교하기 전에 metric direction을 적는다.
+- [ ] local-snapshot language를 사용한다.
+- [ ] production-ranking language가 없다.

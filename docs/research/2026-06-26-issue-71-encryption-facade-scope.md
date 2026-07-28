@@ -1,57 +1,61 @@
 # Issue 71 Encryption Facade Research Scope
 
-Issue #71 decides whether bluetape-go should expose a Go service encryption
-facade after #42 routed KMS here and #43 routed AEAD/DAEAD/keyset/MAC/digest
-boundaries here. The outcome is narrow: implement the default byte/string AEAD
-facade with the Go standard library, and defer keyset/KMS/streaming variants
-until concrete callers need them.
+Issue #71은 #42가 KMS를 여기로 라우팅하고 #43이
+AEAD/DAEAD/keyset/MAC/digest 경계를 여기로 라우팅한 뒤, bluetape-go가 Go
+service encryption facade를 노출해야 하는지 결정한다. 결론은 좁다.
+Default byte/string AEAD facade는 Go standard library로 구현하고,
+keyset/KMS/streaming variant는 concrete caller가 필요로 할 때까지 보류한다.
 
-## Source Inventory
+## 소스 인벤토리
 
 Source repository: `/Users/debop/work/bluetape4k/bluetape4k-projects/io/tink`
 
-- `TinkAead` wraps AEAD byte and UTF-8 string encryption with associated data.
-- `TinkDeterministicAead` wraps deterministic AEAD for searchable fields and
-  documents equality leakage.
-- `VersionedKeysetStore` provides current/find/rotate/rotate-if-due operations.
-- `VersionedCiphertextSupport` prefixes ciphertext with an 8-byte version.
-- Redis-backed stores provide a protected shared keyset boundary, not a generic
-  cache or config wrapper.
-- MAC and digest helpers are explicitly documented as non-encryption.
+- `TinkAead`는 associated data를 포함한 AEAD byte 및 UTF-8 string encryption을
+  감싼다.
+- `TinkDeterministicAead`는 searchable field용 deterministic AEAD를 감싸고
+  equality leakage를 문서화한다.
+- `VersionedKeysetStore`는 current/find/rotate/rotate-if-due operation을
+  제공한다.
+- `VersionedCiphertextSupport`는 ciphertext 앞에 8-byte version을 붙인다.
+- Redis-backed store는 generic cache나 config wrapper가 아니라 protected
+  shared keyset boundary를 제공한다.
+- MAC과 digest helper는 encryption이 아니라고 명시적으로 문서화되어 있다.
 
 Relevant bluetape-go evidence:
 
-- Go module target is `go 1.26.3`; local toolchain is `go1.26.4`.
-- `jwt` already has sentinel errors, safe key material copying, repository
-  rotation, Redis/Mongo storage boundaries, and stress/race expectations.
-- `docs/research/2026-06-25-issue-42-aws-scope.md` routes KMS envelope
-  compatibility here and rejects generic AWS KMS wrappers.
-- `docs/research/2026-06-25-issue-43-io-codec-protocol-scope.md` routes
-  AEAD/DAEAD/keysets/MAC/digest here and rejects broad I/O wrappers.
-- `bluetape4k-exposed` PR #300 removed unsafe generated-keyset defaults for
-  persisted encrypted columns, proving durable ciphertext needs explicit
-  persisted/versioned key material.
+- Go module target은 `go 1.26.3`이고 local toolchain은 `go1.26.4`다.
+- `jwt`는 이미 sentinel errors, safe key material copying, repository
+  rotation, Redis/Mongo storage boundaries, stress/race expectations를 가진다.
+- `docs/research/2026-06-25-issue-42-aws-scope.md`는 KMS envelope
+  compatibility를 여기로 라우팅하고 generic AWS KMS wrapper를 기각한다.
+- `docs/research/2026-06-25-issue-43-io-codec-protocol-scope.md`는
+  AEAD/DAEAD/keysets/MAC/digest를 여기로 라우팅하고 broad I/O wrapper를
+  기각한다.
+- `bluetape4k-exposed` PR #300은 persisted encrypted column의 unsafe
+  generated-keyset default를 제거했다. durable ciphertext에는 explicit
+  persisted/versioned key material이 필요하다는 증거다.
 
-## External Evidence
+## 외부 근거
 
-- Go `crypto/cipher` in Go 1.26 exposes `NewGCMWithRandomNonce`, which prepends
-  a random 96-bit nonce to ciphertext and gives callers an AEAD with nonce size
-  zero. This directly supports the #71 requirement that the common API must not
-  expose caller-managed nonces.
-- Tink deterministic encryption documentation recommends AES256-SIV but warns
-  that deterministic ciphertext can reveal repeated plaintext equality. It also
-  warns against cleartext keysets in real applications.
-- Tink key-management documentation recommends encrypted keysets protected by a
-  KMS/KEK and documents AWS KMS URI support, but that is an operational keyset
-  story rather than a small default encryption facade.
-- `filippo.io/age` is credible for recipient/identity-based file or stream
-  encryption, including password-derived identities, but it is file/recipient
-  shaped rather than a general service byte/string AEAD facade.
-- AWS KMS `GenerateDataKey` returns plaintext data keys plus encrypted data-key
-  blobs for local envelope encryption, requires encryption-context matching for
-  decrypt, and says plaintext data keys should be erased after local use.
-- AWS Encryption SDK for Go exists and requires Go 1.23+, but adopting it would
-  make AWS/KMS policy central to the default package instead of optional.
+- Go 1.26의 `crypto/cipher`는 random 96-bit nonce를 ciphertext 앞에 붙이고
+  nonce size가 zero인 AEAD를 caller에게 주는 `NewGCMWithRandomNonce`를
+  노출한다. 이는 common API가 caller-managed nonce를 노출하면 안 된다는
+  #71 요구를 직접 지원한다.
+- Tink deterministic encryption documentation은 AES256-SIV를 권장하지만,
+  deterministic ciphertext가 repeated plaintext equality를 드러낼 수 있다고
+  경고한다. 또한 실제 애플리케이션에서 cleartext keyset을 쓰지 말라고
+  경고한다.
+- Tink key-management documentation은 KMS/KEK로 보호되는 encrypted keyset을
+  권장하고 AWS KMS URI support를 문서화한다. 하지만 이는 작은 default
+  encryption facade가 아니라 operational keyset story다.
+- `filippo.io/age`는 password-derived identities를 포함한
+  recipient/identity-based file 또는 stream encryption에 credible하지만,
+  general service byte/string AEAD facade가 아니라 file/recipient shaped이다.
+- AWS KMS `GenerateDataKey`는 local envelope encryption을 위한 plaintext data
+  key와 encrypted data-key blob을 반환하고, decrypt에는 encryption-context
+  matching이 필요하며, local use 이후 plaintext data key를 지우라고 말한다.
+- AWS Encryption SDK for Go는 존재하고 Go 1.23+를 요구하지만, 이를 채택하면
+  AWS/KMS policy가 optional이 아니라 default package의 중심이 된다.
 
 Sources:
 
@@ -62,7 +66,7 @@ Sources:
 - https://docs.aws.amazon.com/kms/latest/APIReference/API_GenerateDataKey.html
 - https://docs.aws.amazon.com/encryption-sdk/latest/developer-guide/go.html
 
-## Candidate Ranking
+## 후보 순위
 
 | Area | Go fit | Risk | Decision |
 |---|---:|---:|---|
@@ -78,54 +82,55 @@ Sources:
 | MAC/digest helpers | Medium | Medium | Document boundaries; no package now. |
 | JWT signing/password hashing | Low | High | Out of scope; existing packages and specialized libraries own these. |
 
-## Implement
+## 구현
 
-Create #315 for a focused stdlib-backed package:
+Focused stdlib-backed package용 #315를 만든다.
 
-- Encrypt/decrypt `[]byte` and UTF-8 `string`.
-- Use authenticated encryption only.
-- Hide nonce management by using Go 1.26 `cipher.NewGCMWithRandomNonce`.
-- Require explicit caller-provided key material or a narrow key provider.
-- Accept associated data for tenant/entity/column/message context binding.
-- Return typed/sentinel errors for invalid key, malformed envelope,
-  authentication failure, wrong key, tamper, and invalid options.
-- Use a versioned envelope so later key IDs, deterministic variants, or KMS
-  envelope data can be added without changing the initial API.
-- Document safe logging: never include plaintext, ciphertext, key bytes, or
-  associated data in errors.
+- `[]byte`와 UTF-8 `string`을 encrypt/decrypt한다.
+- Authenticated encryption만 사용한다.
+- Go 1.26 `cipher.NewGCMWithRandomNonce`를 사용해 nonce management를 숨긴다.
+- Explicit caller-provided key material 또는 narrow key provider를 요구한다.
+- Tenant/entity/column/message context binding을 위해 associated data를 받는다.
+- Invalid key, malformed envelope, authentication failure, wrong key, tamper,
+  invalid options에 대해 typed/sentinel error를 반환한다.
+- Later key IDs, deterministic variants, KMS envelope data를 initial API 변경
+  없이 추가할 수 있도록 versioned envelope를 사용한다.
+- Safe logging을 문서화한다. Plaintext, ciphertext, key bytes, associated
+  data를 error에 포함하지 않는다.
 
-## Defer
+## 보류
 
-- Deterministic AEAD until a concrete searchable-field package or database
-  example needs it.
-- Tink Go until keyset rotation, encrypted keyset storage, or KMS-backed keyset
-  protection becomes a first-class feature.
-- Redis/Mongo keyset repositories until the key material owner is defined and
-  protected storage requirements are explicit.
-- AWS KMS envelope encryption until a cloud adapter issue owns data-key
-  generation, encryption context, redaction, caching, and retry behavior.
-- age until a file/stream/recipient workflow exists.
-- MAC/digest helpers unless a later integrity-only API proves repeated caller
-  value.
+- Concrete searchable-field package 또는 database example이 필요로 할 때까지
+  Deterministic AEAD를 보류한다.
+- Keyset rotation, encrypted keyset storage, KMS-backed keyset protection이
+  first-class feature가 될 때까지 Tink Go를 보류한다.
+- Key material owner가 정의되고 protected storage requirement가 명확해질
+  때까지 Redis/Mongo keyset repository를 보류한다.
+- Cloud adapter issue가 data-key generation, encryption context, redaction,
+  caching, retry behavior를 소유할 때까지 AWS KMS envelope encryption을
+  보류한다.
+- File/stream/recipient workflow가 생길 때까지 age를 보류한다.
+- Later integrity-only API가 repeated caller value를 증명하기 전까지
+  MAC/digest helper를 보류한다.
 
-## Follow-up Issue
+## 후속 이슈
 
 - #315: implement the stdlib AES-GCM encryption facade.
 
-No additional follow-up issue is created for Tink, age, AWS KMS, deterministic
-AEAD, Redis keysets, MAC, or digest in this pass.
+이 pass에서는 Tink, age, AWS KMS, deterministic AEAD, Redis keysets, MAC,
+digest에 대한 추가 follow-up issue를 만들지 않는다.
 
-## Validation Plan
+## 검증 계획
 
 - Documentation-only PR: `git diff --check` and targeted `rg`.
-- Verify #71 and #315 issue bodies contain the #71 research outcome.
-- Preserve external evidence in `bluetape4k-wiki` and validate with
-  `gno update`, `gno embed --collection bluetape4k-wiki`, and representative
-  `gno search`.
-- No Go tests are required for this PR because no Go code changes.
+- #71과 #315 issue body에 #71 research outcome이 들어 있는지 확인한다.
+- External evidence는 `bluetape4k-wiki`에 보존하고 `gno update`,
+  `gno embed --collection bluetape4k-wiki`, representative `gno search`로
+  검증한다.
+- Go code change가 없으므로 이 PR에는 Go test가 필요하지 않다.
 
-## Follow-up Recommendation
+## 후속 권고
 
-Close #71 through this research PR, then implement #315 in a later 0.12.0
-delivery slice. Keep the default package dependency-free unless #315 discovers
-that the standard-library envelope cannot satisfy the documented tests.
+이 research PR로 #71을 닫고, 이후 0.12.0 delivery slice에서 #315를 구현한다.
+#315가 standard-library envelope로 documented test를 만족할 수 없음을
+발견하기 전까지 default package는 dependency-free로 유지한다.

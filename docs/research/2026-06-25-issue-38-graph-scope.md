@@ -1,17 +1,16 @@
-# Issue 38 Graph Scope Research
+# Issue 38 Graph 범위 연구
 
-## Context
+## 맥락
 
-Issue #38 is the 0.7.0 research gate for deciding whether the
-`bluetape4k-graph` ecosystem should become Go packages, examples, or be
-deferred before milestone 0.11.0 implementation starts.
+Issue #38은 milestone 0.11.0 구현을 시작하기 전에 `bluetape4k-graph` ecosystem을
+Go package로 만들지, example로 남길지, defer할지를 결정하는 0.7.0 research gate다.
 
-This note supersedes the broad June 1 graph placeholder with source-backed
-scope decisions for #44, #48, #49, #50, and #51.
+이 노트는 #44, #48, #49, #50, #51에 대한 source-backed scope decision으로
+넓은 June 1 graph placeholder를 대체한다.
 
-## Source Inventory
+## 소스 인벤토리
 
-Current `bluetape4k-graph` evidence:
+현재 `bluetape4k-graph` 증거:
 
 - Root README describes a unified Kotlin API over Apache AGE, Neo4j, Memgraph,
   TinkerPop/TinkerGraph, and FalkorDB, plus graph I/O, Spring Boot/Ktor
@@ -35,26 +34,25 @@ Current `bluetape4k-graph` evidence:
   runs, FalkorDB is lightweight but weak for edge-heavy repeated writes, and
   TinkerGraph remains valuable only as an in-memory contract/example baseline.
 
-## Current Go Ecosystem Evidence
+## 현재 Go Ecosystem 증거
 
-External sources checked on 2026-06-25:
+External source는 2026-06-25에 확인했다.
 
-- Neo4j has an official Go driver and current manual for `v6`
+- Neo4j는 `v6`용 official Go driver와 current manual을 제공한다
   (`github.com/neo4j/neo4j-go-driver/v6`).
-- Memgraph's Go quick start explicitly uses the Neo4j Go driver because both
-  products speak Bolt and Cypher. Memgraph keeps compatibility as the adoption
-  path rather than a separate first-party Go driver surface.
-- Apache AGE includes a Go driver/parser under the Apache AGE repository, but
-  the surface is smaller than Neo4j's driver and remains tied to PostgreSQL AGE
-  AGType/Cypher-over-SQL semantics.
-- FalkorDB has `github.com/FalkorDB/falkordb-go/v2` plus FalkorDB docs listing
-  Go client/OGM support.
-- Testcontainers for Go has official modules for Neo4j and PostgreSQL. Current
-  evidence did not show first-party Testcontainers Go modules for Memgraph,
-  Apache AGE, or FalkorDB, so those candidates would need repo-local
-  `GenericContainer` launchers or a custom module before implementation.
+- Memgraph의 Go quick start는 Neo4j Go driver를 명시적으로 사용한다. 두 제품 모두
+  Bolt와 Cypher를 사용하기 때문이다. Memgraph는 별도 first-party Go driver surface가
+  아니라 compatibility를 adoption path로 둔다.
+- Apache AGE repository에는 Go driver/parser가 있지만 surface가 Neo4j driver보다
+  작고 PostgreSQL AGE AGType/Cypher-over-SQL semantic에 묶여 있다.
+- FalkorDB에는 `github.com/FalkorDB/falkordb-go/v2`와 Go client/OGM support를
+  언급하는 FalkorDB docs가 있다.
+- Testcontainers for Go는 Neo4j와 PostgreSQL official module을 제공한다. 현재
+  증거로는 Memgraph, Apache AGE, FalkorDB용 first-party Testcontainers Go module이
+  보이지 않으므로, 구현 전 repo-local `GenericContainer` launcher 또는 custom module이
+  필요하다.
 
-## Ranking
+## 순위
 
 | Area | Go fit | Maintenance cost | Recommendation |
 | --- | --- | --- | --- |
@@ -71,39 +69,38 @@ External sources checked on 2026-06-25:
 | Spring/Ktor integrations | N/A for Go | High | Do not port; replace with workshop HTTP examples when needed. |
 | Benchmarks | Medium | Medium | Add only after implementation candidates exist; use Go benchmarks and measured command output, not copied JMH claims. |
 
-## Decisions
+## 결정
 
-### Implement
+### 구현
 
-- A small `graph` model surface only when required by #49 or #51:
+- #49 또는 #51이 요구할 때만 작은 `graph` model surface를 둔다.
   `Vertex`, `Edge`, `Path`, element IDs, labels, properties, and typed import
-  errors. Keep it data-oriented and avoid repository/session abstractions in the
-  first PR.
-- NDJSON graph envelope helpers first. NDJSON has the best Go fit because it is
-  streaming-friendly, line-oriented, easy to test with `encoding/json`, and does
-  not require XML or paired-file coordination.
-- CSV paired-file helpers second if NDJSON exposes a stable model and there is
-  a clear bulk import/export example.
-- One domain example first: observability incident or IAM access graph. Both
-  map to Go service concerns and can be tested without adopting a broad graph
-  abstraction.
+  errors가 대상이다. 첫 PR에서는 data-oriented로 유지하고 repository/session
+  abstraction을 피한다.
+- NDJSON graph envelope helper를 먼저 둔다. NDJSON은 streaming-friendly,
+  line-oriented, `encoding/json`으로 테스트하기 쉽고 XML이나 paired-file
+  coordination이 필요 없어 Go 적합성이 가장 높다.
+- NDJSON이 stable model을 드러내고 명확한 bulk import/export example이 생긴 뒤에
+  CSV paired-file helper를 두 번째로 검토한다.
+- 첫 domain example은 observability incident 또는 IAM access graph로 둔다. 둘 다
+  Go service concern에 매핑되고 broad graph abstraction 없이 테스트할 수 있다.
 
-### Adopt
+### 채택
 
-- Neo4j official Go driver for real graph database examples and any future
-  adapter experiments.
-- Neo4j Go driver for Memgraph compatibility experiments; record Memgraph
-  compatibility quirks separately instead of inventing another interface.
-- Testcontainers Go Neo4j module for Neo4j integration tests.
-- Testcontainers Go PostgreSQL module only for PostgreSQL/AGE exploratory tests;
-  do not treat AGE as selected until a dedicated local launcher proves reliable.
+- real graph database example과 향후 adapter experiment에는 Neo4j official Go driver를
+  사용한다.
+- Memgraph compatibility experiment에는 Neo4j Go driver를 사용한다. 별도 interface를
+  만들지 말고 Memgraph compatibility quirk를 따로 기록한다.
+- Neo4j integration test에는 Testcontainers Go Neo4j module을 사용한다.
+- PostgreSQL/AGE exploratory test에는 Testcontainers Go PostgreSQL module만 사용한다.
+  dedicated local launcher가 reliability를 증명하기 전에는 AGE를 selected로 취급하지 않는다.
 
-### Example-Only
+### Example-only
 
-- Memgraph should start as a Neo4j-driver compatibility example or test matrix
-  row, not a separate public package.
-- Backend comparison should live in docs/workshop examples until two backends
-  prove an identical Go-shaped contract.
+- Memgraph는 별도 public package가 아니라 Neo4j-driver compatibility example 또는
+  test matrix row로 시작한다.
+- 두 backend가 동일한 Go-shaped contract를 증명하기 전까지 backend comparison은
+  docs/workshop example에 둔다.
 
 ### Defer
 
@@ -115,7 +112,7 @@ External sources checked on 2026-06-25:
 - Spring Boot/Ktor integration analogues; use ordinary Go HTTP examples if a
   service integration is needed.
 
-## Issue Updates Required
+## 필요한 Issue 업데이트
 
 - #44: Make 0.11.0 graph epic implementation order explicit: examples and
   NDJSON/CSV before adapters, adapter work only after #50 proves local test
@@ -132,21 +129,18 @@ External sources checked on 2026-06-25:
   example; defer the large source example matrix until backend/I/O decisions are
   proven.
 
-## Validation Plan for Future Implementation
+## 향후 구현 검증 계획
 
-- Public Go APIs need success, malformed input, cancellation, and zero-value
-  tests.
-- Streaming import/export must propagate `context.Context`, close all
-  `io.Reader`/`io.Writer` resources according to ownership flags, and include
-  large-record tests.
-- Any adapter or graph server example must run Testcontainers-backed packages
-  serially and include local cleanup evidence.
-- Concurrency/race evidence is required for shared readers/writers, batched
-  importers, caches, or goroutine-owned adapters.
+- Public Go API는 success, malformed input, cancellation, zero-value test가 필요하다.
+- Streaming import/export는 `context.Context`를 전파하고 ownership flag에 따라 모든
+  `io.Reader`/`io.Writer` resource를 닫으며 large-record test를 포함해야 한다.
+- Adapter 또는 graph server example은 Testcontainers-backed package를 serial로 실행하고
+  local cleanup evidence를 포함해야 한다.
+- Shared reader/writer, batched importer, cache, goroutine-owned adapter에는
+  concurrency/race evidence가 필요하다.
 
-## Follow-Up Recommendation
+## 후속 권고
 
-Do not begin #48 with the full Kotlin repository contract. Start #49/#51 with a
-small shared model and NDJSON/example proof. If that proof exposes repeated
-backend operations, create a narrower #48 implementation issue for only those
-operations.
+#48을 full Kotlin repository contract로 시작하지 않는다. #49/#51은 작은 shared model과
+NDJSON/example proof로 시작한다. 그 proof에서 반복 backend operation이 드러나면,
+그 operation만 대상으로 하는 더 좁은 #48 implementation issue를 만든다.
