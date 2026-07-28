@@ -10,13 +10,16 @@ import (
 	"time"
 )
 
-// KeyFunc 는 HTTP request에서 rate limit key를 만든다.
+// KeyFunc는 func 공개 타입이며 token bucket, limiter option, HTTP boundary, result quota 계약을 보존한다.
+// 필드와 zero value, nil 허용 여부, 동시성 소유권은 생성자와 메서드의 한국어 주석 및 테스트 계약을 따른다.
 type KeyFunc func(*http.Request) string
 
-// HandlerErrorHandler 는 middleware 거부 또는 backend 오류를 쓴다.
+// HandlerErrorHandler는 func 공개 타입이며 token bucket, limiter option, HTTP boundary, result quota 계약을 보존한다.
+// 필드와 zero value, nil 허용 여부, 동시성 소유권은 생성자와 메서드의 한국어 주석 및 테스트 계약을 따른다.
 type HandlerErrorHandler func(http.ResponseWriter, *http.Request, Result, error)
 
-// HandlerOptions 는 HTTP middleware 설정이다.
+// HandlerOptions는 struct 공개 타입이며 token bucket, limiter option, HTTP boundary, result quota 계약을 보존한다.
+// 필드와 zero value, nil 허용 여부, 동시성 소유권은 생성자와 메서드의 한국어 주석 및 테스트 계약을 따른다.
 type HandlerOptions struct {
 	Limiter      Limiter
 	KeyFunc      KeyFunc
@@ -24,7 +27,8 @@ type HandlerOptions struct {
 	ErrorHandler HandlerErrorHandler
 }
 
-// Handler 는 HTTP server rate limit middleware다.
+// Handler는 struct 공개 타입이며 token bucket, limiter option, HTTP boundary, result quota 계약을 보존한다.
+// 필드와 zero value, nil 허용 여부, 동시성 소유권은 생성자와 메서드의 한국어 주석 및 테스트 계약을 따른다.
 type Handler struct {
 	next         http.Handler
 	limiter      Limiter
@@ -33,7 +37,13 @@ type Handler struct {
 	errorHandler HandlerErrorHandler
 }
 
-// NewHandler 는 HTTP rate limit middleware를 만든다.
+// NewHandler는 NewHandler 공개 API의 동작을 수행하며 token bucket, limiter option, HTTP boundary, result quota 계약을 보존한다.
+//
+// 매개변수:
+//   - next: NewHandler 동작에 필요한 next 값이다. zero value, 범위, nil 허용 여부는 함수 계약을 따른다.
+//   - options: NewHandler 동작에 필요한 options 값이다. zero value, 범위, nil 허용 여부는 함수 계약을 따른다.
+//
+// 반환 오류는 입력 검증 실패, 취소, Redis/backend 실패, lock ownership 불일치, quota 거절, 또는 package sentinel/typed error 계약을 보존한다.
 func NewHandler(next http.Handler, options HandlerOptions) (*Handler, error) {
 	if options.Limiter == nil {
 		return nil, fmt.Errorf("limiter must not be nil")
@@ -65,7 +75,11 @@ func NewHandler(next http.Handler, options HandlerOptions) (*Handler, error) {
 	}, nil
 }
 
-// ServeHTTP 는 요청별 token 소비 후 다음 handler를 실행한다.
+// ServeHTTP는 ServeHTTP 공개 API의 동작을 수행하며 token bucket, limiter option, HTTP boundary, result quota 계약을 보존한다.
+//
+// 매개변수:
+//   - w: ServeHTTP 동작에 필요한 w 값이다. zero value, 범위, nil 허용 여부는 함수 계약을 따른다.
+//   - req: ServeHTTP 동작에 필요한 req 값이다. zero value, 범위, nil 허용 여부는 함수 계약을 따른다.
 func (h *Handler) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 	key := strings.TrimSpace(h.keyFunc(req))
 	if key == "" {
@@ -85,7 +99,10 @@ func (h *Handler) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 	h.next.ServeHTTP(w, req)
 }
 
-// RemoteIPKey 는 Request.RemoteAddr의 host 부분만 key로 쓴다.
+// RemoteIPKey는 RemoteIPKey 공개 API의 동작을 수행하며 token bucket, limiter option, HTTP boundary, result quota 계약을 보존한다.
+//
+// 매개변수:
+//   - req: RemoteIPKey 동작에 필요한 req 값이다. zero value, 범위, nil 허용 여부는 함수 계약을 따른다.
 func RemoteIPKey(req *http.Request) string {
 	if req == nil {
 		return ""

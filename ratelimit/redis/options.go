@@ -17,7 +17,8 @@ const (
 	tokenScale         = int64(1_000_000)
 )
 
-// Options 는 Redis token bucket 설정이다.
+// Options는 struct 공개 타입이며 Redis token bucket script, key, TTL, permit/quota 계약을 보존한다.
+// 필드와 zero value, nil 허용 여부, 동시성 소유권은 생성자와 메서드의 한국어 주석 및 테스트 계약을 따른다.
 type Options struct {
 	// Client는 caller-owned Redis client다.
 	Client redis.Cmdable

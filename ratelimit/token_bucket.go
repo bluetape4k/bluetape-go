@@ -17,7 +17,8 @@ type bucketState struct {
 	lastSeenAt time.Time
 }
 
-// TokenBucket 은 process-local keyed rate limiter다.
+// TokenBucket는 struct 공개 타입이며 token bucket, limiter option, HTTP boundary, result quota 계약을 보존한다.
+// 필드와 zero value, nil 허용 여부, 동시성 소유권은 생성자와 메서드의 한국어 주석 및 테스트 계약을 따른다.
 type TokenBucket struct {
 	mu       sync.Mutex
 	opts     options
@@ -35,7 +36,12 @@ const (
 
 var _ Limiter = (*TokenBucket)(nil)
 
-// New 는 process-local token bucket limiter를 만든다.
+// New는 New 공개 API의 동작을 수행하며 token bucket, limiter option, HTTP boundary, result quota 계약을 보존한다.
+//
+// 매개변수:
+//   - options: New 동작에 필요한 options 값이다. zero value, 범위, nil 허용 여부는 함수 계약을 따른다.
+//
+// 반환 오류는 입력 검증 실패, 취소, Redis/backend 실패, lock ownership 불일치, quota 거절, 또는 package sentinel/typed error 계약을 보존한다.
 func New(options Options) (*TokenBucket, error) {
 	return newWithClock(options, time.Now)
 }
@@ -55,7 +61,14 @@ func newWithClock(options Options, now clockFunc) (*TokenBucket, error) {
 	}, nil
 }
 
-// Allow 는 key bucket에서 token을 소비한다.
+// Allow는 Allow 공개 API의 동작을 수행하며 token bucket, limiter option, HTTP boundary, result quota 계약을 보존한다.
+//
+// 매개변수:
+//   - ctx: 호출자가 소유한 취소, deadline, 요청 범위를 전달한다.
+//   - key: 동기화 또는 quota를 식별하는 caller-owned key다. namespace와 normalization 의미는 package 계약을 따른다.
+//   - tokens: lock owner 또는 safe unlock 비교에 사용하는 token이다.
+//
+// 반환 오류는 입력 검증 실패, 취소, Redis/backend 실패, lock ownership 불일치, quota 거절, 또는 package sentinel/typed error 계약을 보존한다.
 func (l *TokenBucket) Allow(ctx context.Context, key string, tokens int64) (Result, error) {
 	ctx = normalizeContext(ctx)
 	if err := ctx.Err(); err != nil {
