@@ -1,11 +1,11 @@
 package compression
 
-// Default Default 공개 API의 동작을 수행한다.
+// Default 기본 compressor registry를 반환한다.
 func Default() Compressor {
 	return Zstd()
 }
 
-// All All 공개 API의 동작을 수행한다.
+// All 등록된 모든 compressor를 반환한다.
 func All() []Compressor {
 	return []Compressor{
 		Gzip(),

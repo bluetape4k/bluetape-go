@@ -250,310 +250,310 @@ var (
 	accelerationRegistry = MustRegistry(accelerationMeterPerSecondSquared)
 )
 
-// FromDuration FromDuration 공개 API의 동작을 수행한다.
+// FromDuration time.Duration 값을 측정값으로 변환한다.
 //
 // 매개변수:
-//   - duration: FromDuration 동작에 필요한 duration 값이다. zero value, 범위, nil 허용 여부는 함수 계약을 따른다.
+//   - duration: FromDuration에 전달되는 값이다. 허용 범위와 nil 처리 방식은 구현 검증을 따른다.
 func FromDuration(duration time.Duration) Measure[Time] {
 	return Must(float64(duration)/float64(time.Millisecond), timeMillisecond)
 }
 
-// LengthMillimeter LengthMillimeter 공개 API의 동작을 수행한다.
+// LengthMillimeter 해당 측정 단위를 반환한다.
 func LengthMillimeter() Unit[Length] { return lengthMillimeter }
 
-// LengthCentimeter LengthCentimeter 공개 API의 동작을 수행한다.
+// LengthCentimeter 해당 측정 단위를 반환한다.
 func LengthCentimeter() Unit[Length] { return lengthCentimeter }
 
-// LengthMeter LengthMeter 공개 API의 동작을 수행한다.
+// LengthMeter 해당 측정 단위를 반환한다.
 func LengthMeter() Unit[Length] { return lengthMeter }
 
-// LengthKilometer LengthKilometer 공개 API의 동작을 수행한다.
+// LengthKilometer 해당 측정 단위를 반환한다.
 func LengthKilometer() Unit[Length] { return lengthKilometer }
 
-// LengthInch LengthInch 공개 API의 동작을 수행한다.
+// LengthInch 해당 측정 단위를 반환한다.
 func LengthInch() Unit[Length] { return lengthInch }
 
-// LengthFoot LengthFoot 공개 API의 동작을 수행한다.
+// LengthFoot 해당 측정 단위를 반환한다.
 func LengthFoot() Unit[Length] { return lengthFoot }
 
-// LengthMile LengthMile 공개 API의 동작을 수행한다.
+// LengthMile 해당 측정 단위를 반환한다.
 func LengthMile() Unit[Length] { return lengthMile }
 
-// LengthRegistry LengthRegistry 공개 API의 동작을 수행한다.
+// LengthRegistry 해당 차원의 단위 registry를 반환한다.
 func LengthRegistry() Registry[Length] { return lengthRegistry }
 
-// TimeMillisecond TimeMillisecond 공개 API의 동작을 수행한다.
+// TimeMillisecond 해당 측정 단위를 반환한다.
 func TimeMillisecond() Unit[Time] { return timeMillisecond }
 
-// TimeSecond TimeSecond 공개 API의 동작을 수행한다.
+// TimeSecond 해당 측정 단위를 반환한다.
 func TimeSecond() Unit[Time] { return timeSecond }
 
-// TimeMinute TimeMinute 공개 API의 동작을 수행한다.
+// TimeMinute 해당 측정 단위를 반환한다.
 func TimeMinute() Unit[Time] { return timeMinute }
 
-// TimeHour TimeHour 공개 API의 동작을 수행한다.
+// TimeHour 해당 측정 단위를 반환한다.
 func TimeHour() Unit[Time] { return timeHour }
 
-// TimeRegistry TimeRegistry 공개 API의 동작을 수행한다.
+// TimeRegistry 해당 차원의 단위 registry를 반환한다.
 func TimeRegistry() Registry[Time] { return timeRegistry }
 
-// MassGram MassGram 공개 API의 동작을 수행한다.
+// MassGram 해당 측정 단위를 반환한다.
 func MassGram() Unit[Mass] { return massGram }
 
-// MassKilogram MassKilogram 공개 API의 동작을 수행한다.
+// MassKilogram 해당 측정 단위를 반환한다.
 func MassKilogram() Unit[Mass] { return massKilogram }
 
-// MassTon MassTon 공개 API의 동작을 수행한다.
+// MassTon 해당 측정 단위를 반환한다.
 func MassTon() Unit[Mass] { return massTon }
 
-// MassRegistry MassRegistry 공개 API의 동작을 수행한다.
+// MassRegistry 해당 차원의 단위 registry를 반환한다.
 func MassRegistry() Registry[Mass] { return massRegistry }
 
-// AreaSquareMillimeter AreaSquareMillimeter 공개 API의 동작을 수행한다.
+// AreaSquareMillimeter 해당 측정 단위를 반환한다.
 func AreaSquareMillimeter() Unit[Area] { return areaSquareMillimeter }
 
-// AreaSquareCentimeter AreaSquareCentimeter 공개 API의 동작을 수행한다.
+// AreaSquareCentimeter 해당 측정 단위를 반환한다.
 func AreaSquareCentimeter() Unit[Area] { return areaSquareCentimeter }
 
-// AreaSquareMeter AreaSquareMeter 공개 API의 동작을 수행한다.
+// AreaSquareMeter 해당 측정 단위를 반환한다.
 func AreaSquareMeter() Unit[Area] { return areaSquareMeter }
 
-// AreaSquareKilometer AreaSquareKilometer 공개 API의 동작을 수행한다.
+// AreaSquareKilometer 해당 측정 단위를 반환한다.
 func AreaSquareKilometer() Unit[Area] { return areaSquareKilometer }
 
-// AreaRegistry AreaRegistry 공개 API의 동작을 수행한다.
+// AreaRegistry 해당 차원의 단위 registry를 반환한다.
 func AreaRegistry() Registry[Area] { return areaRegistry }
 
-// VolumeCubicMillimeter VolumeCubicMillimeter 공개 API의 동작을 수행한다.
+// VolumeCubicMillimeter 해당 측정 단위를 반환한다.
 func VolumeCubicMillimeter() Unit[Volume] { return volumeCubicMillimeter }
 
-// VolumeCubicCentimeter VolumeCubicCentimeter 공개 API의 동작을 수행한다.
+// VolumeCubicCentimeter 해당 측정 단위를 반환한다.
 func VolumeCubicCentimeter() Unit[Volume] { return volumeCubicCentimeter }
 
-// VolumeMilliliter VolumeMilliliter 공개 API의 동작을 수행한다.
+// VolumeMilliliter 해당 측정 단위를 반환한다.
 func VolumeMilliliter() Unit[Volume] { return volumeMilliliter }
 
-// VolumeLiter VolumeLiter 공개 API의 동작을 수행한다.
+// VolumeLiter 해당 측정 단위를 반환한다.
 func VolumeLiter() Unit[Volume] { return volumeLiter }
 
-// VolumeCubicMeter VolumeCubicMeter 공개 API의 동작을 수행한다.
+// VolumeCubicMeter 해당 측정 단위를 반환한다.
 func VolumeCubicMeter() Unit[Volume] { return volumeCubicMeter }
 
-// VolumeRegistry VolumeRegistry 공개 API의 동작을 수행한다.
+// VolumeRegistry 해당 차원의 단위 registry를 반환한다.
 func VolumeRegistry() Registry[Volume] { return volumeRegistry }
 
-// StorageByte StorageByte 공개 API의 동작을 수행한다.
+// StorageByte 해당 측정 단위를 반환한다.
 func StorageByte() Unit[Storage] { return storageByte }
 
-// StorageKilobyte StorageKilobyte 공개 API의 동작을 수행한다.
+// StorageKilobyte 해당 측정 단위를 반환한다.
 func StorageKilobyte() Unit[Storage] { return storageKilobyte }
 
-// StorageMegabyte StorageMegabyte 공개 API의 동작을 수행한다.
+// StorageMegabyte 해당 측정 단위를 반환한다.
 func StorageMegabyte() Unit[Storage] { return storageMegabyte }
 
-// StorageGigabyte StorageGigabyte 공개 API의 동작을 수행한다.
+// StorageGigabyte 해당 측정 단위를 반환한다.
 func StorageGigabyte() Unit[Storage] { return storageGigabyte }
 
-// StorageTerabyte StorageTerabyte 공개 API의 동작을 수행한다.
+// StorageTerabyte 해당 측정 단위를 반환한다.
 func StorageTerabyte() Unit[Storage] { return storageTerabyte }
 
-// StoragePetabyte StoragePetabyte 공개 API의 동작을 수행한다.
+// StoragePetabyte 해당 측정 단위를 반환한다.
 func StoragePetabyte() Unit[Storage] { return storagePetabyte }
 
-// StorageExabyte StorageExabyte 공개 API의 동작을 수행한다.
+// StorageExabyte 해당 측정 단위를 반환한다.
 func StorageExabyte() Unit[Storage] { return storageExabyte }
 
-// StorageZettabyte StorageZettabyte 공개 API의 동작을 수행한다.
+// StorageZettabyte 해당 측정 단위를 반환한다.
 func StorageZettabyte() Unit[Storage] { return storageZettabyte }
 
-// StorageYottabyte StorageYottabyte 공개 API의 동작을 수행한다.
+// StorageYottabyte 해당 측정 단위를 반환한다.
 func StorageYottabyte() Unit[Storage] { return storageYottabyte }
 
-// StorageRegistry StorageRegistry 공개 API의 동작을 수행한다.
+// StorageRegistry 해당 차원의 단위 registry를 반환한다.
 func StorageRegistry() Registry[Storage] { return storageRegistry }
 
-// BinaryByte BinaryByte 공개 API의 동작을 수행한다.
+// BinaryByte 해당 측정 단위를 반환한다.
 func BinaryByte() Unit[BinarySize] { return binaryByte }
 
-// BinaryKilobyte BinaryKilobyte 공개 API의 동작을 수행한다.
+// BinaryKilobyte 해당 측정 단위를 반환한다.
 func BinaryKilobyte() Unit[BinarySize] { return binaryKilobyte }
 
-// BinaryMegabyte BinaryMegabyte 공개 API의 동작을 수행한다.
+// BinaryMegabyte 해당 측정 단위를 반환한다.
 func BinaryMegabyte() Unit[BinarySize] { return binaryMegabyte }
 
-// BinaryGigabyte BinaryGigabyte 공개 API의 동작을 수행한다.
+// BinaryGigabyte 해당 측정 단위를 반환한다.
 func BinaryGigabyte() Unit[BinarySize] { return binaryGigabyte }
 
-// BinaryTerabyte BinaryTerabyte 공개 API의 동작을 수행한다.
+// BinaryTerabyte 해당 측정 단위를 반환한다.
 func BinaryTerabyte() Unit[BinarySize] { return binaryTerabyte }
 
-// BinaryPetabyte BinaryPetabyte 공개 API의 동작을 수행한다.
+// BinaryPetabyte 해당 측정 단위를 반환한다.
 func BinaryPetabyte() Unit[BinarySize] { return binaryPetabyte }
 
-// BinaryKibibyte BinaryKibibyte 공개 API의 동작을 수행한다.
+// BinaryKibibyte 해당 측정 단위를 반환한다.
 func BinaryKibibyte() Unit[BinarySize] { return binaryKibibyte }
 
-// BinaryMebibyte BinaryMebibyte 공개 API의 동작을 수행한다.
+// BinaryMebibyte 해당 측정 단위를 반환한다.
 func BinaryMebibyte() Unit[BinarySize] { return binaryMebibyte }
 
-// BinaryGibibyte BinaryGibibyte 공개 API의 동작을 수행한다.
+// BinaryGibibyte 해당 측정 단위를 반환한다.
 func BinaryGibibyte() Unit[BinarySize] { return binaryGibibyte }
 
-// BinaryTebibyte BinaryTebibyte 공개 API의 동작을 수행한다.
+// BinaryTebibyte 해당 측정 단위를 반환한다.
 func BinaryTebibyte() Unit[BinarySize] { return binaryTebibyte }
 
-// BinaryPebibyte BinaryPebibyte 공개 API의 동작을 수행한다.
+// BinaryPebibyte 해당 측정 단위를 반환한다.
 func BinaryPebibyte() Unit[BinarySize] { return binaryPebibyte }
 
-// BinaryBit BinaryBit 공개 API의 동작을 수행한다.
+// BinaryBit 해당 측정 단위를 반환한다.
 func BinaryBit() Unit[BinarySize] { return binaryBit }
 
-// BinaryKilobit BinaryKilobit 공개 API의 동작을 수행한다.
+// BinaryKilobit 해당 측정 단위를 반환한다.
 func BinaryKilobit() Unit[BinarySize] { return binaryKilobit }
 
-// BinaryMegabit BinaryMegabit 공개 API의 동작을 수행한다.
+// BinaryMegabit 해당 측정 단위를 반환한다.
 func BinaryMegabit() Unit[BinarySize] { return binaryMegabit }
 
-// BinaryGigabit BinaryGigabit 공개 API의 동작을 수행한다.
+// BinaryGigabit 해당 측정 단위를 반환한다.
 func BinaryGigabit() Unit[BinarySize] { return binaryGigabit }
 
-// BinaryTerabit BinaryTerabit 공개 API의 동작을 수행한다.
+// BinaryTerabit 해당 측정 단위를 반환한다.
 func BinaryTerabit() Unit[BinarySize] { return binaryTerabit }
 
-// BinaryPetabit BinaryPetabit 공개 API의 동작을 수행한다.
+// BinaryPetabit 해당 측정 단위를 반환한다.
 func BinaryPetabit() Unit[BinarySize] { return binaryPetabit }
 
-// BinarySizeRegistry BinarySizeRegistry 공개 API의 동작을 수행한다.
+// BinarySizeRegistry 해당 차원의 단위 registry를 반환한다.
 func BinarySizeRegistry() Registry[BinarySize] { return binarySizeRegistry }
 
-// FrequencyHertz FrequencyHertz 공개 API의 동작을 수행한다.
+// FrequencyHertz 해당 측정 단위를 반환한다.
 func FrequencyHertz() Unit[Frequency] { return frequencyHertz }
 
-// FrequencyKilohertz FrequencyKilohertz 공개 API의 동작을 수행한다.
+// FrequencyKilohertz 해당 측정 단위를 반환한다.
 func FrequencyKilohertz() Unit[Frequency] { return frequencyKilohertz }
 
-// FrequencyMegahertz FrequencyMegahertz 공개 API의 동작을 수행한다.
+// FrequencyMegahertz 해당 측정 단위를 반환한다.
 func FrequencyMegahertz() Unit[Frequency] { return frequencyMegahertz }
 
-// FrequencyGigahertz FrequencyGigahertz 공개 API의 동작을 수행한다.
+// FrequencyGigahertz 해당 측정 단위를 반환한다.
 func FrequencyGigahertz() Unit[Frequency] { return frequencyGigahertz }
 
-// FrequencyRegistry FrequencyRegistry 공개 API의 동작을 수행한다.
+// FrequencyRegistry 해당 차원의 단위 registry를 반환한다.
 func FrequencyRegistry() Registry[Frequency] { return frequencyRegistry }
 
-// EnergyJoule EnergyJoule 공개 API의 동작을 수행한다.
+// EnergyJoule 해당 측정 단위를 반환한다.
 func EnergyJoule() Unit[Energy] { return energyJoule }
 
-// EnergyKilojoule EnergyKilojoule 공개 API의 동작을 수행한다.
+// EnergyKilojoule 해당 측정 단위를 반환한다.
 func EnergyKilojoule() Unit[Energy] { return energyKilojoule }
 
-// EnergyMegajoule EnergyMegajoule 공개 API의 동작을 수행한다.
+// EnergyMegajoule 해당 측정 단위를 반환한다.
 func EnergyMegajoule() Unit[Energy] { return energyMegajoule }
 
-// EnergyWattHour EnergyWattHour 공개 API의 동작을 수행한다.
+// EnergyWattHour 해당 측정 단위를 반환한다.
 func EnergyWattHour() Unit[Energy] { return energyWattHour }
 
-// EnergyKilowattHour EnergyKilowattHour 공개 API의 동작을 수행한다.
+// EnergyKilowattHour 해당 측정 단위를 반환한다.
 func EnergyKilowattHour() Unit[Energy] { return energyKilowattHour }
 
-// EnergyRegistry EnergyRegistry 공개 API의 동작을 수행한다.
+// EnergyRegistry 해당 차원의 단위 registry를 반환한다.
 func EnergyRegistry() Registry[Energy] { return energyRegistry }
 
-// PowerMilliwatt PowerMilliwatt 공개 API의 동작을 수행한다.
+// PowerMilliwatt 해당 측정 단위를 반환한다.
 func PowerMilliwatt() Unit[Power] { return powerMilliwatt }
 
-// PowerWatt PowerWatt 공개 API의 동작을 수행한다.
+// PowerWatt 해당 측정 단위를 반환한다.
 func PowerWatt() Unit[Power] { return powerWatt }
 
-// PowerKilowatt PowerKilowatt 공개 API의 동작을 수행한다.
+// PowerKilowatt 해당 측정 단위를 반환한다.
 func PowerKilowatt() Unit[Power] { return powerKilowatt }
 
-// PowerMegawatt PowerMegawatt 공개 API의 동작을 수행한다.
+// PowerMegawatt 해당 측정 단위를 반환한다.
 func PowerMegawatt() Unit[Power] { return powerMegawatt }
 
-// PowerGigawatt PowerGigawatt 공개 API의 동작을 수행한다.
+// PowerGigawatt 해당 측정 단위를 반환한다.
 func PowerGigawatt() Unit[Power] { return powerGigawatt }
 
-// PowerRegistry PowerRegistry 공개 API의 동작을 수행한다.
+// PowerRegistry 해당 차원의 단위 registry를 반환한다.
 func PowerRegistry() Registry[Power] { return powerRegistry }
 
-// PressurePascal PressurePascal 공개 API의 동작을 수행한다.
+// PressurePascal 해당 측정 단위를 반환한다.
 func PressurePascal() Unit[Pressure] { return pressurePascal }
 
-// PressureHectopascal PressureHectopascal 공개 API의 동작을 수행한다.
+// PressureHectopascal 해당 측정 단위를 반환한다.
 func PressureHectopascal() Unit[Pressure] { return pressureHectopascal }
 
-// PressureKilopascal PressureKilopascal 공개 API의 동작을 수행한다.
+// PressureKilopascal 해당 측정 단위를 반환한다.
 func PressureKilopascal() Unit[Pressure] { return pressureKilopascal }
 
-// PressureMegapascal PressureMegapascal 공개 API의 동작을 수행한다.
+// PressureMegapascal 해당 측정 단위를 반환한다.
 func PressureMegapascal() Unit[Pressure] { return pressureMegapascal }
 
-// PressureGigapascal PressureGigapascal 공개 API의 동작을 수행한다.
+// PressureGigapascal 해당 측정 단위를 반환한다.
 func PressureGigapascal() Unit[Pressure] { return pressureGigapascal }
 
-// PressureBar PressureBar 공개 API의 동작을 수행한다.
+// PressureBar 해당 측정 단위를 반환한다.
 func PressureBar() Unit[Pressure] { return pressureBar }
 
-// PressureDecibar PressureDecibar 공개 API의 동작을 수행한다.
+// PressureDecibar 해당 측정 단위를 반환한다.
 func PressureDecibar() Unit[Pressure] { return pressureDecibar }
 
-// PressureMillibar PressureMillibar 공개 API의 동작을 수행한다.
+// PressureMillibar 해당 측정 단위를 반환한다.
 func PressureMillibar() Unit[Pressure] { return pressureMillibar }
 
-// PressureAtmosphere PressureAtmosphere 공개 API의 동작을 수행한다.
+// PressureAtmosphere 해당 측정 단위를 반환한다.
 func PressureAtmosphere() Unit[Pressure] { return pressureAtmosphere }
 
-// PressurePSI PressurePSI 공개 API의 동작을 수행한다.
+// PressurePSI 해당 측정 단위를 반환한다.
 func PressurePSI() Unit[Pressure] { return pressurePSI }
 
-// PressureTorr PressureTorr 공개 API의 동작을 수행한다.
+// PressureTorr 해당 측정 단위를 반환한다.
 func PressureTorr() Unit[Pressure] { return pressureTorr }
 
-// PressureMillimeterMercury PressureMillimeterMercury 공개 API의 동작을 수행한다.
+// PressureMillimeterMercury 해당 측정 단위를 반환한다.
 func PressureMillimeterMercury() Unit[Pressure] { return pressureMillimeterMercury }
 
-// PressureRegistry PressureRegistry 공개 API의 동작을 수행한다.
+// PressureRegistry 해당 차원의 단위 registry를 반환한다.
 func PressureRegistry() Registry[Pressure] { return pressureRegistry }
 
-// AngleRadian AngleRadian 공개 API의 동작을 수행한다.
+// AngleRadian 해당 측정 단위를 반환한다.
 func AngleRadian() Unit[Angle] { return angleRadian }
 
-// AngleDegree AngleDegree 공개 API의 동작을 수행한다.
+// AngleDegree 해당 측정 단위를 반환한다.
 func AngleDegree() Unit[Angle] { return angleDegree }
 
-// AngleRegistry AngleRegistry 공개 API의 동작을 수행한다.
+// AngleRegistry 해당 차원의 단위 registry를 반환한다.
 func AngleRegistry() Registry[Angle] { return angleRegistry }
 
-// GraphicsPixel GraphicsPixel 공개 API의 동작을 수행한다.
+// GraphicsPixel 해당 측정 단위를 반환한다.
 func GraphicsPixel() Unit[GraphicsLength] { return graphicsPixel }
 
-// GraphicsLengthRegistry GraphicsLengthRegistry 공개 API의 동작을 수행한다.
+// GraphicsLengthRegistry 해당 차원의 단위 registry를 반환한다.
 func GraphicsLengthRegistry() Registry[GraphicsLength] { return graphicsLengthRegistry }
 
-// VelocityMeterPerSecond VelocityMeterPerSecond 공개 API의 동작을 수행한다.
+// VelocityMeterPerSecond 해당 측정 단위를 반환한다.
 func VelocityMeterPerSecond() Unit[Velocity] { return velocityMeterPerSecond }
 
-// VelocityKilometerPerHour VelocityKilometerPerHour 공개 API의 동작을 수행한다.
+// VelocityKilometerPerHour 해당 측정 단위를 반환한다.
 func VelocityKilometerPerHour() Unit[Velocity] { return velocityKilometerPerHour }
 
-// VelocityRegistry VelocityRegistry 공개 API의 동작을 수행한다.
+// VelocityRegistry 해당 차원의 단위 registry를 반환한다.
 func VelocityRegistry() Registry[Velocity] { return velocityRegistry }
 
-// AccelerationMeterPerSecondSquared AccelerationMeterPerSecondSquared 공개 API의 동작을 수행한다.
+// AccelerationMeterPerSecondSquared 해당 측정 단위를 반환한다.
 func AccelerationMeterPerSecondSquared() Unit[Acceleration] {
 	return accelerationMeterPerSecondSquared
 }
 
-// AccelerationRegistry AccelerationRegistry 공개 API의 동작을 수행한다.
+// AccelerationRegistry 해당 차원의 단위 registry를 반환한다.
 func AccelerationRegistry() Registry[Acceleration] { return accelerationRegistry }
 
-// Duration Duration 공개 API의 동작을 수행한다.
+// Duration 측정값을 time.Duration으로 변환한다.
 //
 // 매개변수:
-//   - value: Duration 동작에 필요한 value 값이다. zero value, 범위, nil 허용 여부는 함수 계약을 따른다.
+//   - value: Duration에 전달되는 값이다. 허용 범위와 nil 처리 방식은 구현 검증을 따른다.
 //
-// 반환 오류는 입력 검증 실패, 취소, 외부 원인, 또는 패키지 sentinel/typed error 계약을 보존한다.
+// 반환 오류는 입력 검증 실패와 패키지에서 정의한 sentinel error/typed error를 그대로 드러낸다.
 func Duration(value Measure[Time]) (time.Duration, error) {
 	millis, err := value.In(timeMillisecond)
 	if err != nil {
@@ -566,248 +566,248 @@ func Duration(value Measure[Time]) (time.Duration, error) {
 	return time.Duration(nanos), nil
 }
 
-// ParseLength ParseLength 공개 API의 동작을 수행한다.
+// ParseLength 문자열 입력을 도메인 값으로 해석한다.
 //
 // 매개변수:
-//   - text: ParseLength가 해석하거나 검증하는 문자열 값이다. 빈 문자열과 공백 처리 의미는 함수 계약을 따른다.
+//   - text: ParseLength가 해석할 문자열이다. 빈 문자열과 공백은 구현 검증을 따른다.
 //
-// 반환 오류는 입력 검증 실패, 취소, 외부 원인, 또는 패키지 sentinel/typed error 계약을 보존한다.
+// 반환 오류는 입력 검증 실패와 패키지에서 정의한 sentinel error/typed error를 그대로 드러낸다.
 func ParseLength(text string) (Measure[Length], error) { return Parse(text, lengthRegistry) }
 
-// ParseTime ParseTime 공개 API의 동작을 수행한다.
+// ParseTime 문자열 입력을 도메인 값으로 해석한다.
 //
 // 매개변수:
-//   - text: ParseTime가 해석하거나 검증하는 문자열 값이다. 빈 문자열과 공백 처리 의미는 함수 계약을 따른다.
+//   - text: ParseTime가 해석할 문자열이다. 빈 문자열과 공백은 구현 검증을 따른다.
 //
-// 반환 오류는 입력 검증 실패, 취소, 외부 원인, 또는 패키지 sentinel/typed error 계약을 보존한다.
+// 반환 오류는 입력 검증 실패와 패키지에서 정의한 sentinel error/typed error를 그대로 드러낸다.
 func ParseTime(text string) (Measure[Time], error) { return Parse(text, timeRegistry) }
 
-// ParseMass ParseMass 공개 API의 동작을 수행한다.
+// ParseMass 문자열 입력을 도메인 값으로 해석한다.
 //
 // 매개변수:
-//   - text: ParseMass가 해석하거나 검증하는 문자열 값이다. 빈 문자열과 공백 처리 의미는 함수 계약을 따른다.
+//   - text: ParseMass가 해석할 문자열이다. 빈 문자열과 공백은 구현 검증을 따른다.
 //
-// 반환 오류는 입력 검증 실패, 취소, 외부 원인, 또는 패키지 sentinel/typed error 계약을 보존한다.
+// 반환 오류는 입력 검증 실패와 패키지에서 정의한 sentinel error/typed error를 그대로 드러낸다.
 func ParseMass(text string) (Measure[Mass], error) { return Parse(text, massRegistry) }
 
-// ParseArea ParseArea 공개 API의 동작을 수행한다.
+// ParseArea 문자열 입력을 도메인 값으로 해석한다.
 //
 // 매개변수:
-//   - text: ParseArea가 해석하거나 검증하는 문자열 값이다. 빈 문자열과 공백 처리 의미는 함수 계약을 따른다.
+//   - text: ParseArea가 해석할 문자열이다. 빈 문자열과 공백은 구현 검증을 따른다.
 //
-// 반환 오류는 입력 검증 실패, 취소, 외부 원인, 또는 패키지 sentinel/typed error 계약을 보존한다.
+// 반환 오류는 입력 검증 실패와 패키지에서 정의한 sentinel error/typed error를 그대로 드러낸다.
 func ParseArea(text string) (Measure[Area], error) { return Parse(text, areaRegistry) }
 
-// ParseVolume ParseVolume 공개 API의 동작을 수행한다.
+// ParseVolume 문자열 입력을 도메인 값으로 해석한다.
 //
 // 매개변수:
-//   - text: ParseVolume가 해석하거나 검증하는 문자열 값이다. 빈 문자열과 공백 처리 의미는 함수 계약을 따른다.
+//   - text: ParseVolume가 해석할 문자열이다. 빈 문자열과 공백은 구현 검증을 따른다.
 //
-// 반환 오류는 입력 검증 실패, 취소, 외부 원인, 또는 패키지 sentinel/typed error 계약을 보존한다.
+// 반환 오류는 입력 검증 실패와 패키지에서 정의한 sentinel error/typed error를 그대로 드러낸다.
 func ParseVolume(text string) (Measure[Volume], error) { return Parse(text, volumeRegistry) }
 
-// ParseStorage ParseStorage 공개 API의 동작을 수행한다.
+// ParseStorage 문자열 입력을 도메인 값으로 해석한다.
 //
 // 매개변수:
-//   - text: ParseStorage가 해석하거나 검증하는 문자열 값이다. 빈 문자열과 공백 처리 의미는 함수 계약을 따른다.
+//   - text: ParseStorage가 해석할 문자열이다. 빈 문자열과 공백은 구현 검증을 따른다.
 //
-// 반환 오류는 입력 검증 실패, 취소, 외부 원인, 또는 패키지 sentinel/typed error 계약을 보존한다.
+// 반환 오류는 입력 검증 실패와 패키지에서 정의한 sentinel error/typed error를 그대로 드러낸다.
 func ParseStorage(text string) (Measure[Storage], error) { return Parse(text, storageRegistry) }
 
-// ParseBinarySize ParseBinarySize 공개 API의 동작을 수행한다.
+// ParseBinarySize 문자열 입력을 도메인 값으로 해석한다.
 //
 // 매개변수:
-//   - text: ParseBinarySize가 해석하거나 검증하는 문자열 값이다. 빈 문자열과 공백 처리 의미는 함수 계약을 따른다.
+//   - text: ParseBinarySize가 해석할 문자열이다. 빈 문자열과 공백은 구현 검증을 따른다.
 //
-// 반환 오류는 입력 검증 실패, 취소, 외부 원인, 또는 패키지 sentinel/typed error 계약을 보존한다.
+// 반환 오류는 입력 검증 실패와 패키지에서 정의한 sentinel error/typed error를 그대로 드러낸다.
 func ParseBinarySize(text string) (Measure[BinarySize], error) {
 	return Parse(text, binarySizeRegistry)
 }
 
-// ParseFrequency ParseFrequency 공개 API의 동작을 수행한다.
+// ParseFrequency 문자열 입력을 도메인 값으로 해석한다.
 //
 // 매개변수:
-//   - text: ParseFrequency가 해석하거나 검증하는 문자열 값이다. 빈 문자열과 공백 처리 의미는 함수 계약을 따른다.
+//   - text: ParseFrequency가 해석할 문자열이다. 빈 문자열과 공백은 구현 검증을 따른다.
 //
-// 반환 오류는 입력 검증 실패, 취소, 외부 원인, 또는 패키지 sentinel/typed error 계약을 보존한다.
+// 반환 오류는 입력 검증 실패와 패키지에서 정의한 sentinel error/typed error를 그대로 드러낸다.
 func ParseFrequency(text string) (Measure[Frequency], error) { return Parse(text, frequencyRegistry) }
 
-// ParseEnergy ParseEnergy 공개 API의 동작을 수행한다.
+// ParseEnergy 문자열 입력을 도메인 값으로 해석한다.
 //
 // 매개변수:
-//   - text: ParseEnergy가 해석하거나 검증하는 문자열 값이다. 빈 문자열과 공백 처리 의미는 함수 계약을 따른다.
+//   - text: ParseEnergy가 해석할 문자열이다. 빈 문자열과 공백은 구현 검증을 따른다.
 //
-// 반환 오류는 입력 검증 실패, 취소, 외부 원인, 또는 패키지 sentinel/typed error 계약을 보존한다.
+// 반환 오류는 입력 검증 실패와 패키지에서 정의한 sentinel error/typed error를 그대로 드러낸다.
 func ParseEnergy(text string) (Measure[Energy], error) { return Parse(text, energyRegistry) }
 
-// ParsePower ParsePower 공개 API의 동작을 수행한다.
+// ParsePower 문자열 입력을 도메인 값으로 해석한다.
 //
 // 매개변수:
-//   - text: ParsePower가 해석하거나 검증하는 문자열 값이다. 빈 문자열과 공백 처리 의미는 함수 계약을 따른다.
+//   - text: ParsePower가 해석할 문자열이다. 빈 문자열과 공백은 구현 검증을 따른다.
 //
-// 반환 오류는 입력 검증 실패, 취소, 외부 원인, 또는 패키지 sentinel/typed error 계약을 보존한다.
+// 반환 오류는 입력 검증 실패와 패키지에서 정의한 sentinel error/typed error를 그대로 드러낸다.
 func ParsePower(text string) (Measure[Power], error) { return Parse(text, powerRegistry) }
 
-// ParsePressure ParsePressure 공개 API의 동작을 수행한다.
+// ParsePressure 문자열 입력을 도메인 값으로 해석한다.
 //
 // 매개변수:
-//   - text: ParsePressure가 해석하거나 검증하는 문자열 값이다. 빈 문자열과 공백 처리 의미는 함수 계약을 따른다.
+//   - text: ParsePressure가 해석할 문자열이다. 빈 문자열과 공백은 구현 검증을 따른다.
 //
-// 반환 오류는 입력 검증 실패, 취소, 외부 원인, 또는 패키지 sentinel/typed error 계약을 보존한다.
+// 반환 오류는 입력 검증 실패와 패키지에서 정의한 sentinel error/typed error를 그대로 드러낸다.
 func ParsePressure(text string) (Measure[Pressure], error) { return Parse(text, pressureRegistry) }
 
-// ParseAngle ParseAngle 공개 API의 동작을 수행한다.
+// ParseAngle 문자열 입력을 도메인 값으로 해석한다.
 //
 // 매개변수:
-//   - text: ParseAngle가 해석하거나 검증하는 문자열 값이다. 빈 문자열과 공백 처리 의미는 함수 계약을 따른다.
+//   - text: ParseAngle가 해석할 문자열이다. 빈 문자열과 공백은 구현 검증을 따른다.
 //
-// 반환 오류는 입력 검증 실패, 취소, 외부 원인, 또는 패키지 sentinel/typed error 계약을 보존한다.
+// 반환 오류는 입력 검증 실패와 패키지에서 정의한 sentinel error/typed error를 그대로 드러낸다.
 func ParseAngle(text string) (Measure[Angle], error) { return Parse(text, angleRegistry) }
 
-// ParseGraphicsLength ParseGraphicsLength 공개 API의 동작을 수행한다.
+// ParseGraphicsLength 문자열 입력을 도메인 값으로 해석한다.
 //
 // 매개변수:
-//   - text: ParseGraphicsLength가 해석하거나 검증하는 문자열 값이다. 빈 문자열과 공백 처리 의미는 함수 계약을 따른다.
+//   - text: ParseGraphicsLength가 해석할 문자열이다. 빈 문자열과 공백은 구현 검증을 따른다.
 //
-// 반환 오류는 입력 검증 실패, 취소, 외부 원인, 또는 패키지 sentinel/typed error 계약을 보존한다.
+// 반환 오류는 입력 검증 실패와 패키지에서 정의한 sentinel error/typed error를 그대로 드러낸다.
 func ParseGraphicsLength(text string) (Measure[GraphicsLength], error) {
 	return Parse(text, graphicsLengthRegistry)
 }
 
-// ParseVelocity ParseVelocity 공개 API의 동작을 수행한다.
+// ParseVelocity 문자열 입력을 도메인 값으로 해석한다.
 //
 // 매개변수:
-//   - text: ParseVelocity가 해석하거나 검증하는 문자열 값이다. 빈 문자열과 공백 처리 의미는 함수 계약을 따른다.
+//   - text: ParseVelocity가 해석할 문자열이다. 빈 문자열과 공백은 구현 검증을 따른다.
 //
-// 반환 오류는 입력 검증 실패, 취소, 외부 원인, 또는 패키지 sentinel/typed error 계약을 보존한다.
+// 반환 오류는 입력 검증 실패와 패키지에서 정의한 sentinel error/typed error를 그대로 드러낸다.
 func ParseVelocity(text string) (Measure[Velocity], error) { return Parse(text, velocityRegistry) }
 
-// ParseAcceleration ParseAcceleration 공개 API의 동작을 수행한다.
+// ParseAcceleration 문자열 입력을 도메인 값으로 해석한다.
 //
 // 매개변수:
-//   - text: ParseAcceleration가 해석하거나 검증하는 문자열 값이다. 빈 문자열과 공백 처리 의미는 함수 계약을 따른다.
+//   - text: ParseAcceleration가 해석할 문자열이다. 빈 문자열과 공백은 구현 검증을 따른다.
 //
-// 반환 오류는 입력 검증 실패, 취소, 외부 원인, 또는 패키지 sentinel/typed error 계약을 보존한다.
+// 반환 오류는 입력 검증 실패와 패키지에서 정의한 sentinel error/typed error를 그대로 드러낸다.
 func ParseAcceleration(text string) (Measure[Acceleration], error) {
 	return Parse(text, accelerationRegistry)
 }
 
-// HumanLength HumanLength 공개 API의 동작을 수행한다.
+// HumanLength 측정값을 사람이 읽기 쉬운 문자열로 변환한다.
 //
 // 매개변수:
-//   - value: HumanLength 동작에 필요한 value 값이다. zero value, 범위, nil 허용 여부는 함수 계약을 따른다.
+//   - value: HumanLength에 전달되는 값이다. 허용 범위와 nil 처리 방식은 구현 검증을 따른다.
 //
-// 반환 오류는 입력 검증 실패, 취소, 외부 원인, 또는 패키지 sentinel/typed error 계약을 보존한다.
+// 반환 오류는 입력 검증 실패와 패키지에서 정의한 sentinel error/typed error를 그대로 드러낸다.
 func HumanLength(value Measure[Length]) (string, error) {
 	return value.Human(lengthMillimeter, lengthCentimeter, lengthMeter, lengthKilometer)
 }
 
-// HumanTime HumanTime 공개 API의 동작을 수행한다.
+// HumanTime 측정값을 사람이 읽기 쉬운 문자열로 변환한다.
 //
 // 매개변수:
-//   - value: HumanTime 동작에 필요한 value 값이다. zero value, 범위, nil 허용 여부는 함수 계약을 따른다.
+//   - value: HumanTime에 전달되는 값이다. 허용 범위와 nil 처리 방식은 구현 검증을 따른다.
 //
-// 반환 오류는 입력 검증 실패, 취소, 외부 원인, 또는 패키지 sentinel/typed error 계약을 보존한다.
+// 반환 오류는 입력 검증 실패와 패키지에서 정의한 sentinel error/typed error를 그대로 드러낸다.
 func HumanTime(value Measure[Time]) (string, error) {
 	return value.Human(timeMillisecond, timeSecond, timeMinute, timeHour)
 }
 
-// HumanMass HumanMass 공개 API의 동작을 수행한다.
+// HumanMass 측정값을 사람이 읽기 쉬운 문자열로 변환한다.
 //
 // 매개변수:
-//   - value: HumanMass 동작에 필요한 value 값이다. zero value, 범위, nil 허용 여부는 함수 계약을 따른다.
+//   - value: HumanMass에 전달되는 값이다. 허용 범위와 nil 처리 방식은 구현 검증을 따른다.
 //
-// 반환 오류는 입력 검증 실패, 취소, 외부 원인, 또는 패키지 sentinel/typed error 계약을 보존한다.
+// 반환 오류는 입력 검증 실패와 패키지에서 정의한 sentinel error/typed error를 그대로 드러낸다.
 func HumanMass(value Measure[Mass]) (string, error) {
 	return value.Human(massGram, massKilogram, massTon)
 }
 
-// HumanArea HumanArea 공개 API의 동작을 수행한다.
+// HumanArea 측정값을 사람이 읽기 쉬운 문자열로 변환한다.
 //
 // 매개변수:
-//   - value: HumanArea 동작에 필요한 value 값이다. zero value, 범위, nil 허용 여부는 함수 계약을 따른다.
+//   - value: HumanArea에 전달되는 값이다. 허용 범위와 nil 처리 방식은 구현 검증을 따른다.
 //
-// 반환 오류는 입력 검증 실패, 취소, 외부 원인, 또는 패키지 sentinel/typed error 계약을 보존한다.
+// 반환 오류는 입력 검증 실패와 패키지에서 정의한 sentinel error/typed error를 그대로 드러낸다.
 func HumanArea(value Measure[Area]) (string, error) {
 	return value.Human(areaSquareMillimeter, areaSquareCentimeter, areaSquareMeter, areaSquareKilometer)
 }
 
-// HumanVolume HumanVolume 공개 API의 동작을 수행한다.
+// HumanVolume 측정값을 사람이 읽기 쉬운 문자열로 변환한다.
 //
 // 매개변수:
-//   - value: HumanVolume 동작에 필요한 value 값이다. zero value, 범위, nil 허용 여부는 함수 계약을 따른다.
+//   - value: HumanVolume에 전달되는 값이다. 허용 범위와 nil 처리 방식은 구현 검증을 따른다.
 //
-// 반환 오류는 입력 검증 실패, 취소, 외부 원인, 또는 패키지 sentinel/typed error 계약을 보존한다.
+// 반환 오류는 입력 검증 실패와 패키지에서 정의한 sentinel error/typed error를 그대로 드러낸다.
 func HumanVolume(value Measure[Volume]) (string, error) {
 	return value.Human(volumeCubicMillimeter, volumeCubicCentimeter, volumeMilliliter, volumeLiter, volumeCubicMeter)
 }
 
-// HumanStorage HumanStorage 공개 API의 동작을 수행한다.
+// HumanStorage 측정값을 사람이 읽기 쉬운 문자열로 변환한다.
 //
 // 매개변수:
-//   - value: HumanStorage 동작에 필요한 value 값이다. zero value, 범위, nil 허용 여부는 함수 계약을 따른다.
+//   - value: HumanStorage에 전달되는 값이다. 허용 범위와 nil 처리 방식은 구현 검증을 따른다.
 //
-// 반환 오류는 입력 검증 실패, 취소, 외부 원인, 또는 패키지 sentinel/typed error 계약을 보존한다.
+// 반환 오류는 입력 검증 실패와 패키지에서 정의한 sentinel error/typed error를 그대로 드러낸다.
 func HumanStorage(value Measure[Storage]) (string, error) {
 	return value.Human(storageByte, storageKilobyte, storageMegabyte, storageGigabyte, storageTerabyte, storagePetabyte)
 }
 
-// HumanBinarySize HumanBinarySize 공개 API의 동작을 수행한다.
+// HumanBinarySize 측정값을 사람이 읽기 쉬운 문자열로 변환한다.
 //
 // 매개변수:
-//   - value: HumanBinarySize 동작에 필요한 value 값이다. zero value, 범위, nil 허용 여부는 함수 계약을 따른다.
+//   - value: HumanBinarySize에 전달되는 값이다. 허용 범위와 nil 처리 방식은 구현 검증을 따른다.
 //
-// 반환 오류는 입력 검증 실패, 취소, 외부 원인, 또는 패키지 sentinel/typed error 계약을 보존한다.
+// 반환 오류는 입력 검증 실패와 패키지에서 정의한 sentinel error/typed error를 그대로 드러낸다.
 func HumanBinarySize(value Measure[BinarySize]) (string, error) {
 	return value.Human(binaryBit, binaryByte, binaryKilobyte, binaryMegabyte, binaryGigabyte, binaryTerabyte, binaryPetabyte)
 }
 
-// HumanFrequency HumanFrequency 공개 API의 동작을 수행한다.
+// HumanFrequency 측정값을 사람이 읽기 쉬운 문자열로 변환한다.
 //
 // 매개변수:
-//   - value: HumanFrequency 동작에 필요한 value 값이다. zero value, 범위, nil 허용 여부는 함수 계약을 따른다.
+//   - value: HumanFrequency에 전달되는 값이다. 허용 범위와 nil 처리 방식은 구현 검증을 따른다.
 //
-// 반환 오류는 입력 검증 실패, 취소, 외부 원인, 또는 패키지 sentinel/typed error 계약을 보존한다.
+// 반환 오류는 입력 검증 실패와 패키지에서 정의한 sentinel error/typed error를 그대로 드러낸다.
 func HumanFrequency(value Measure[Frequency]) (string, error) {
 	return value.Human(frequencyHertz, frequencyKilohertz, frequencyMegahertz, frequencyGigahertz)
 }
 
-// HumanEnergy HumanEnergy 공개 API의 동작을 수행한다.
+// HumanEnergy 측정값을 사람이 읽기 쉬운 문자열로 변환한다.
 //
 // 매개변수:
-//   - value: HumanEnergy 동작에 필요한 value 값이다. zero value, 범위, nil 허용 여부는 함수 계약을 따른다.
+//   - value: HumanEnergy에 전달되는 값이다. 허용 범위와 nil 처리 방식은 구현 검증을 따른다.
 //
-// 반환 오류는 입력 검증 실패, 취소, 외부 원인, 또는 패키지 sentinel/typed error 계약을 보존한다.
+// 반환 오류는 입력 검증 실패와 패키지에서 정의한 sentinel error/typed error를 그대로 드러낸다.
 func HumanEnergy(value Measure[Energy]) (string, error) {
 	return value.Human(energyJoule, energyKilojoule, energyMegajoule, energyWattHour, energyKilowattHour)
 }
 
-// HumanPower HumanPower 공개 API의 동작을 수행한다.
+// HumanPower 측정값을 사람이 읽기 쉬운 문자열로 변환한다.
 //
 // 매개변수:
-//   - value: HumanPower 동작에 필요한 value 값이다. zero value, 범위, nil 허용 여부는 함수 계약을 따른다.
+//   - value: HumanPower에 전달되는 값이다. 허용 범위와 nil 처리 방식은 구현 검증을 따른다.
 //
-// 반환 오류는 입력 검증 실패, 취소, 외부 원인, 또는 패키지 sentinel/typed error 계약을 보존한다.
+// 반환 오류는 입력 검증 실패와 패키지에서 정의한 sentinel error/typed error를 그대로 드러낸다.
 func HumanPower(value Measure[Power]) (string, error) {
 	return value.Human(powerMilliwatt, powerWatt, powerKilowatt, powerMegawatt, powerGigawatt)
 }
 
-// HumanPressure HumanPressure 공개 API의 동작을 수행한다.
+// HumanPressure 측정값을 사람이 읽기 쉬운 문자열로 변환한다.
 //
 // 매개변수:
-//   - value: HumanPressure 동작에 필요한 value 값이다. zero value, 범위, nil 허용 여부는 함수 계약을 따른다.
+//   - value: HumanPressure에 전달되는 값이다. 허용 범위와 nil 처리 방식은 구현 검증을 따른다.
 //
-// 반환 오류는 입력 검증 실패, 취소, 외부 원인, 또는 패키지 sentinel/typed error 계약을 보존한다.
+// 반환 오류는 입력 검증 실패와 패키지에서 정의한 sentinel error/typed error를 그대로 드러낸다.
 func HumanPressure(value Measure[Pressure]) (string, error) {
 	return value.Human(pressurePascal, pressureHectopascal, pressureKilopascal, pressureMegapascal, pressureGigapascal, pressureBar, pressureAtmosphere, pressurePSI)
 }
 
-// HumanAngle HumanAngle 공개 API의 동작을 수행한다.
+// HumanAngle 측정값을 사람이 읽기 쉬운 문자열로 변환한다.
 //
 // 매개변수:
-//   - value: HumanAngle 동작에 필요한 value 값이다. zero value, 범위, nil 허용 여부는 함수 계약을 따른다.
+//   - value: HumanAngle에 전달되는 값이다. 허용 범위와 nil 처리 방식은 구현 검증을 따른다.
 //
-// 반환 오류는 입력 검증 실패, 취소, 외부 원인, 또는 패키지 sentinel/typed error 계약을 보존한다.
+// 반환 오류는 입력 검증 실패와 패키지에서 정의한 sentinel error/typed error를 그대로 드러낸다.
 func HumanAngle(value Measure[Angle]) (string, error) {
 	degrees, err := value.In(angleDegree)
 	if err != nil {
@@ -817,12 +817,12 @@ func HumanAngle(value Measure[Angle]) (string, error) {
 	return formatValue(normalized, angleDegree), nil
 }
 
-// Sin Sin 공개 API의 동작을 수행한다.
+// Sin 각도 값의 삼각함수 결과를 반환한다.
 //
 // 매개변수:
-//   - value: Sin 동작에 필요한 value 값이다. zero value, 범위, nil 허용 여부는 함수 계약을 따른다.
+//   - value: Sin에 전달되는 값이다. 허용 범위와 nil 처리 방식은 구현 검증을 따른다.
 //
-// 반환 오류는 입력 검증 실패, 취소, 외부 원인, 또는 패키지 sentinel/typed error 계약을 보존한다.
+// 반환 오류는 입력 검증 실패와 패키지에서 정의한 sentinel error/typed error를 그대로 드러낸다.
 func Sin(value Measure[Angle]) (float64, error) {
 	radians, err := value.In(angleRadian)
 	if err != nil {
@@ -831,12 +831,12 @@ func Sin(value Measure[Angle]) (float64, error) {
 	return math.Sin(radians), nil
 }
 
-// Cos Cos 공개 API의 동작을 수행한다.
+// Cos 각도 값의 삼각함수 결과를 반환한다.
 //
 // 매개변수:
-//   - value: Cos 동작에 필요한 value 값이다. zero value, 범위, nil 허용 여부는 함수 계약을 따른다.
+//   - value: Cos에 전달되는 값이다. 허용 범위와 nil 처리 방식은 구현 검증을 따른다.
 //
-// 반환 오류는 입력 검증 실패, 취소, 외부 원인, 또는 패키지 sentinel/typed error 계약을 보존한다.
+// 반환 오류는 입력 검증 실패와 패키지에서 정의한 sentinel error/typed error를 그대로 드러낸다.
 func Cos(value Measure[Angle]) (float64, error) {
 	radians, err := value.In(angleRadian)
 	if err != nil {
@@ -845,12 +845,12 @@ func Cos(value Measure[Angle]) (float64, error) {
 	return math.Cos(radians), nil
 }
 
-// Tan Tan 공개 API의 동작을 수행한다.
+// Tan 각도 값의 삼각함수 결과를 반환한다.
 //
 // 매개변수:
-//   - value: Tan 동작에 필요한 value 값이다. zero value, 범위, nil 허용 여부는 함수 계약을 따른다.
+//   - value: Tan에 전달되는 값이다. 허용 범위와 nil 처리 방식은 구현 검증을 따른다.
 //
-// 반환 오류는 입력 검증 실패, 취소, 외부 원인, 또는 패키지 sentinel/typed error 계약을 보존한다.
+// 반환 오류는 입력 검증 실패와 패키지에서 정의한 sentinel error/typed error를 그대로 드러낸다.
 func Tan(value Measure[Angle]) (float64, error) {
 	radians, err := value.In(angleRadian)
 	if err != nil {
@@ -859,20 +859,20 @@ func Tan(value Measure[Angle]) (float64, error) {
 	return math.Tan(radians), nil
 }
 
-// ASin ASin 공개 API의 동작을 수행한다.
+// ASin 역삼각함수 결과를 반환한다.
 //
 // 매개변수:
-//   - value: ASin 동작에 필요한 value 값이다. zero value, 범위, nil 허용 여부는 함수 계약을 따른다.
+//   - value: ASin에 전달되는 값이다. 허용 범위와 nil 처리 방식은 구현 검증을 따른다.
 //
-// 반환 오류는 입력 검증 실패, 취소, 외부 원인, 또는 패키지 sentinel/typed error 계약을 보존한다.
+// 반환 오류는 입력 검증 실패와 패키지에서 정의한 sentinel error/typed error를 그대로 드러낸다.
 func ASin(value float64) (Measure[Angle], error) {
 	return New(math.Asin(value), angleRadian)
 }
 
-// MustASin MustASin 공개 API의 동작을 수행한다.
+// MustASin 역삼각함수 계산에 실패하면 panic한다.
 //
 // 매개변수:
-//   - value: MustASin 동작에 필요한 value 값이다. zero value, 범위, nil 허용 여부는 함수 계약을 따른다.
+//   - value: MustASin에 전달되는 값이다. 허용 범위와 nil 처리 방식은 구현 검증을 따른다.
 func MustASin(value float64) Measure[Angle] {
 	angle, err := ASin(value)
 	if err != nil {
@@ -881,20 +881,20 @@ func MustASin(value float64) Measure[Angle] {
 	return angle
 }
 
-// ACos ACos 공개 API의 동작을 수행한다.
+// ACos 역삼각함수 결과를 반환한다.
 //
 // 매개변수:
-//   - value: ACos 동작에 필요한 value 값이다. zero value, 범위, nil 허용 여부는 함수 계약을 따른다.
+//   - value: ACos에 전달되는 값이다. 허용 범위와 nil 처리 방식은 구현 검증을 따른다.
 //
-// 반환 오류는 입력 검증 실패, 취소, 외부 원인, 또는 패키지 sentinel/typed error 계약을 보존한다.
+// 반환 오류는 입력 검증 실패와 패키지에서 정의한 sentinel error/typed error를 그대로 드러낸다.
 func ACos(value float64) (Measure[Angle], error) {
 	return New(math.Acos(value), angleRadian)
 }
 
-// MustACos MustACos 공개 API의 동작을 수행한다.
+// MustACos 역삼각함수 계산에 실패하면 panic한다.
 //
 // 매개변수:
-//   - value: MustACos 동작에 필요한 value 값이다. zero value, 범위, nil 허용 여부는 함수 계약을 따른다.
+//   - value: MustACos에 전달되는 값이다. 허용 범위와 nil 처리 방식은 구현 검증을 따른다.
 func MustACos(value float64) Measure[Angle] {
 	angle, err := ACos(value)
 	if err != nil {
@@ -903,20 +903,20 @@ func MustACos(value float64) Measure[Angle] {
 	return angle
 }
 
-// ATan ATan 공개 API의 동작을 수행한다.
+// ATan 역삼각함수 결과를 반환한다.
 //
 // 매개변수:
-//   - value: ATan 동작에 필요한 value 값이다. zero value, 범위, nil 허용 여부는 함수 계약을 따른다.
+//   - value: ATan에 전달되는 값이다. 허용 범위와 nil 처리 방식은 구현 검증을 따른다.
 //
-// 반환 오류는 입력 검증 실패, 취소, 외부 원인, 또는 패키지 sentinel/typed error 계약을 보존한다.
+// 반환 오류는 입력 검증 실패와 패키지에서 정의한 sentinel error/typed error를 그대로 드러낸다.
 func ATan(value float64) (Measure[Angle], error) {
 	return New(math.Atan(value), angleRadian)
 }
 
-// MustATan MustATan 공개 API의 동작을 수행한다.
+// MustATan 역삼각함수 계산에 실패하면 panic한다.
 //
 // 매개변수:
-//   - value: MustATan 동작에 필요한 value 값이다. zero value, 범위, nil 허용 여부는 함수 계약을 따른다.
+//   - value: MustATan에 전달되는 값이다. 허용 범위와 nil 처리 방식은 구현 검증을 따른다.
 func MustATan(value float64) Measure[Angle] {
 	angle, err := ATan(value)
 	if err != nil {
@@ -925,22 +925,22 @@ func MustATan(value float64) Measure[Angle] {
 	return angle
 }
 
-// ATan2 ATan2 공개 API의 동작을 수행한다.
+// ATan2 역삼각함수 결과를 반환한다.
 //
 // 매개변수:
-//   - y: ATan2 동작에 필요한 y 값이다. zero value, 범위, nil 허용 여부는 함수 계약을 따른다.
-//   - x: ATan2 동작에 필요한 x 값이다. zero value, 범위, nil 허용 여부는 함수 계약을 따른다.
+//   - y: ATan2에 전달되는 값이다. 허용 범위와 nil 처리 방식은 구현 검증을 따른다.
+//   - x: ATan2에 전달되는 값이다. 허용 범위와 nil 처리 방식은 구현 검증을 따른다.
 //
-// 반환 오류는 입력 검증 실패, 취소, 외부 원인, 또는 패키지 sentinel/typed error 계약을 보존한다.
+// 반환 오류는 입력 검증 실패와 패키지에서 정의한 sentinel error/typed error를 그대로 드러낸다.
 func ATan2(y, x float64) (Measure[Angle], error) {
 	return New(math.Atan2(y, x), angleRadian)
 }
 
-// MustATan2 MustATan2 공개 API의 동작을 수행한다.
+// MustATan2 역삼각함수 계산에 실패하면 panic한다.
 //
 // 매개변수:
-//   - y: MustATan2 동작에 필요한 y 값이다. zero value, 범위, nil 허용 여부는 함수 계약을 따른다.
-//   - x: MustATan2 동작에 필요한 x 값이다. zero value, 범위, nil 허용 여부는 함수 계약을 따른다.
+//   - y: MustATan2에 전달되는 값이다. 허용 범위와 nil 처리 방식은 구현 검증을 따른다.
+//   - x: MustATan2에 전달되는 값이다. 허용 범위와 nil 처리 방식은 구현 검증을 따른다.
 func MustATan2(y, x float64) Measure[Angle] {
 	angle, err := ATan2(y, x)
 	if err != nil {

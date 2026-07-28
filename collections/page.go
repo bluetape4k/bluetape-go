@@ -5,8 +5,7 @@ import (
 	"math"
 )
 
-// Page struct 공개 타입이다.
-// 값의 zero value, nil 허용 여부, 동시성 소유권은 생성자와 메서드의 한국어 주석 및 테스트 계약을 따른다.
+// Page 패키지에서 공개하는 구조체다.
 type Page[T any] struct {
 	items  []T
 	page   int
@@ -15,15 +14,15 @@ type Page[T any] struct {
 	offset int64
 }
 
-// PageOf PageOf 공개 API의 동작을 수행한다.
+// PageOf 항목 목록과 page metadata로 Page를 만든다.
 //
 // 매개변수:
-//   - items: PageOf가 읽거나 복사하는 items 목록이다. nil과 빈 슬라이스 의미는 함수 계약을 따른다.
-//   - page: PageOf 동작에 필요한 page 값이다. zero value, 범위, nil 허용 여부는 함수 계약을 따른다.
-//   - size: PageOf 동작에 필요한 size 값이다. zero value, 범위, nil 허용 여부는 함수 계약을 따른다.
-//   - total: PageOf 동작에 필요한 total 값이다. zero value, 범위, nil 허용 여부는 함수 계약을 따른다.
+//   - items: page에 담을 항목 목록이다. nil과 빈 슬라이스는 빈 목록으로 다룬다.
+//   - page: PageOf에 전달되는 값이다. 허용 범위와 nil 처리 방식은 구현 검증을 따른다.
+//   - size: PageOf에 전달되는 값이다. 허용 범위와 nil 처리 방식은 구현 검증을 따른다.
+//   - total: PageOf에 전달되는 값이다. 허용 범위와 nil 처리 방식은 구현 검증을 따른다.
 //
-// 반환 오류는 입력 검증 실패, 취소, 외부 원인, 또는 패키지 sentinel/typed error 계약을 보존한다.
+// 반환 오류는 입력 검증 실패와 패키지에서 정의한 sentinel error/typed error를 그대로 드러낸다.
 func PageOf[T any](items []T, page, size int, total int64) (Page[T], error) {
 	var zero Page[T]
 	if page < 0 {
@@ -56,7 +55,7 @@ func PageOf[T any](items []T, page, size int, total int64) (Page[T], error) {
 	}, nil
 }
 
-// Items Items 공개 API의 동작을 수행한다.
+// Items 현재 값을 슬라이스로 반환한다.
 func (p Page[T]) Items() []T {
 	if p.items == nil {
 		return nil
@@ -66,22 +65,22 @@ func (p Page[T]) Items() []T {
 	return result
 }
 
-// PageNumber PageNumber 공개 API의 동작을 수행한다.
+// PageNumber 현재 page 번호를 반환한다.
 func (p Page[T]) PageNumber() int {
 	return p.page
 }
 
-// PageSize PageSize 공개 API의 동작을 수행한다.
+// PageSize page 크기를 반환한다.
 func (p Page[T]) PageSize() int {
 	return p.size
 }
 
-// TotalItems TotalItems 공개 API의 동작을 수행한다.
+// TotalItems 전체 항목 수를 반환한다.
 func (p Page[T]) TotalItems() int64 {
 	return p.total
 }
 
-// TotalPages TotalPages 공개 API의 동작을 수행한다.
+// TotalPages 전체 page 수를 반환한다.
 func (p Page[T]) TotalPages() int64 {
 	if p.total <= 0 || p.size <= 0 {
 		return 0
@@ -94,18 +93,18 @@ func (p Page[T]) TotalPages() int64 {
 	return pages
 }
 
-// Offset Offset 공개 API의 동작을 수행한다.
+// Offset 현재 page의 시작 offset을 반환한다.
 func (p Page[T]) Offset() int64 {
 	return p.offset
 }
 
-// HasNext HasNext 공개 API의 동작을 수행한다.
+// HasNext 해당 상태가 존재하는지 반환한다.
 func (p Page[T]) HasNext() bool {
 	totalPages := p.TotalPages()
 	return totalPages > 0 && int64(p.page) < totalPages-1
 }
 
-// HasPrevious HasPrevious 공개 API의 동작을 수행한다.
+// HasPrevious 해당 상태가 존재하는지 반환한다.
 func (p Page[T]) HasPrevious() bool {
 	return p.page > 0
 }

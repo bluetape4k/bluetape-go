@@ -5,13 +5,13 @@ import (
 	"fmt"
 )
 
-// Go Go 공개 API의 동작을 수행한다.
+// Go task를 새 goroutine에서 실행하고 결과를 수집한다.
 //
 // 매개변수:
 //   - ctx: 호출자가 소유한 취소, deadline, 요청 범위를 전달한다.
-//   - task: Go 동작에 필요한 task 값이다. zero value, 범위, nil 허용 여부는 함수 계약을 따른다.
+//   - task: Go에 전달되는 값이다. 허용 범위와 nil 처리 방식은 구현 검증을 따른다.
 //
-// 반환 오류는 입력 검증 실패, 취소, 외부 원인, 또는 패키지 sentinel/typed error 계약을 보존한다.
+// 반환 오류는 입력 검증 실패와 패키지에서 정의한 sentinel error/typed error를 그대로 드러낸다.
 func Go(ctx context.Context, task Task) <-chan error {
 	result := make(chan error, 1)
 	go func() {
@@ -21,15 +21,15 @@ func Go(ctx context.Context, task Task) <-chan error {
 	return result
 }
 
-// ForEach ForEach 공개 API의 동작을 수행한다.
+// ForEach 값 목록을 제한된 병렬도로 처리한다.
 //
 // 매개변수:
 //   - ctx: 호출자가 소유한 취소, deadline, 요청 범위를 전달한다.
-//   - values: ForEach가 읽거나 복사하는 values 목록이다. nil과 빈 슬라이스 의미는 함수 계약을 따른다.
-//   - limit: ForEach 동작에 필요한 limit 값이다. zero value, 범위, nil 허용 여부는 함수 계약을 따른다.
+//   - values: 처리할 값 목록이다. nil과 빈 슬라이스는 함수별 입력 규칙에 따라 빈 입력으로 다룬다.
+//   - limit: ForEach에 전달되는 값이다. 허용 범위와 nil 처리 방식은 구현 검증을 따른다.
 //   - worker: 호출자가 소유한 취소, deadline, 요청 범위를 전달한다.
 //
-// 반환 오류는 입력 검증 실패, 취소, 외부 원인, 또는 패키지 sentinel/typed error 계약을 보존한다.
+// 반환 오류는 입력 검증 실패와 패키지에서 정의한 sentinel error/typed error를 그대로 드러낸다.
 func ForEach[T any](ctx context.Context, values []T, limit int, worker func(context.Context, T) error) error {
 	if limit <= 0 {
 		return fmt.Errorf("limit must be positive")
@@ -51,15 +51,15 @@ func ForEach[T any](ctx context.Context, values []T, limit int, worker func(cont
 	return group.Wait()
 }
 
-// Map Map 공개 API의 동작을 수행한다.
+// Map 값 목록을 제한된 병렬도로 변환한다.
 //
 // 매개변수:
 //   - ctx: 호출자가 소유한 취소, deadline, 요청 범위를 전달한다.
-//   - values: Map가 읽거나 복사하는 values 목록이다. nil과 빈 슬라이스 의미는 함수 계약을 따른다.
-//   - limit: Map 동작에 필요한 limit 값이다. zero value, 범위, nil 허용 여부는 함수 계약을 따른다.
+//   - values: 처리할 값 목록이다. nil과 빈 슬라이스는 함수별 입력 규칙에 따라 빈 입력으로 다룬다.
+//   - limit: Map에 전달되는 값이다. 허용 범위와 nil 처리 방식은 구현 검증을 따른다.
 //   - mapper: 호출자가 소유한 취소, deadline, 요청 범위를 전달한다.
 //
-// 반환 오류는 입력 검증 실패, 취소, 외부 원인, 또는 패키지 sentinel/typed error 계약을 보존한다.
+// 반환 오류는 입력 검증 실패와 패키지에서 정의한 sentinel error/typed error를 그대로 드러낸다.
 func Map[T any, R any](ctx context.Context, values []T, limit int, mapper func(context.Context, T) (R, error)) ([]R, error) {
 	if limit <= 0 {
 		return nil, fmt.Errorf("limit must be positive")

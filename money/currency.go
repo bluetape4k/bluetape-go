@@ -10,8 +10,7 @@ import (
 	"golang.org/x/text/language"
 )
 
-// Currency struct 공개 타입이다.
-// 값의 zero value, nil 허용 여부, 동시성 소유권은 생성자와 메서드의 한국어 주석 및 테스트 계약을 따른다.
+// Currency 패키지에서 공개하는 구조체다.
 type Currency struct {
 	curr gmoney.Currency
 }
@@ -29,12 +28,12 @@ var (
 	JPY = MustParseCurrency("JPY")
 )
 
-// ParseCurrency ParseCurrency 공개 API의 동작을 수행한다.
+// ParseCurrency 문자열 입력을 도메인 값으로 해석한다.
 //
 // 매개변수:
-//   - code: ParseCurrency가 해석하거나 검증하는 문자열 값이다. 빈 문자열과 공백 처리 의미는 함수 계약을 따른다.
+//   - code: ParseCurrency가 해석할 문자열이다. 빈 문자열과 공백은 구현 검증을 따른다.
 //
-// 반환 오류는 입력 검증 실패, 취소, 외부 원인, 또는 패키지 sentinel/typed error 계약을 보존한다.
+// 반환 오류는 입력 검증 실패와 패키지에서 정의한 sentinel error/typed error를 그대로 드러낸다.
 func ParseCurrency(code string) (Currency, error) {
 	normalized := strings.ToUpper(strings.TrimSpace(code))
 	if normalized == "" || normalized == "XXX" || normalized == "999" {
@@ -50,10 +49,10 @@ func ParseCurrency(code string) (Currency, error) {
 	return Currency{curr: curr}, nil
 }
 
-// MustParseCurrency MustParseCurrency 공개 API의 동작을 수행한다.
+// MustParseCurrency 문자열 입력을 도메인 값으로 해석하고 실패하면 panic한다.
 //
 // 매개변수:
-//   - code: MustParseCurrency가 해석하거나 검증하는 문자열 값이다. 빈 문자열과 공백 처리 의미는 함수 계약을 따른다.
+//   - code: MustParseCurrency가 해석할 문자열이다. 빈 문자열과 공백은 구현 검증을 따른다.
 func MustParseCurrency(code string) Currency {
 	curr, err := ParseCurrency(code)
 	if err != nil {
@@ -62,21 +61,21 @@ func MustParseCurrency(code string) Currency {
 	return curr
 }
 
-// IsCurrency IsCurrency 공개 API의 동작을 수행한다.
+// IsCurrency 값이 조건을 만족하는지 반환한다.
 //
 // 매개변수:
-//   - code: IsCurrency가 해석하거나 검증하는 문자열 값이다. 빈 문자열과 공백 처리 의미는 함수 계약을 따른다.
+//   - code: IsCurrency가 해석할 문자열이다. 빈 문자열과 공백은 구현 검증을 따른다.
 func IsCurrency(code string) bool {
 	_, err := ParseCurrency(code)
 	return err == nil
 }
 
-// CurrencyByLocale CurrencyByLocale 공개 API의 동작을 수행한다.
+// CurrencyByLocale locale tag에 맞는 기본 통화를 찾는다.
 //
 // 매개변수:
-//   - tag: CurrencyByLocale가 해석하거나 검증하는 문자열 값이다. 빈 문자열과 공백 처리 의미는 함수 계약을 따른다.
+//   - tag: CurrencyByLocale가 해석할 문자열이다. 빈 문자열과 공백은 구현 검증을 따른다.
 //
-// 반환 오류는 입력 검증 실패, 취소, 외부 원인, 또는 패키지 sentinel/typed error 계약을 보존한다.
+// 반환 오류는 입력 검증 실패와 패키지에서 정의한 sentinel error/typed error를 그대로 드러낸다.
 func CurrencyByLocale(tag string) (Currency, error) {
 	normalized := normalizeLocaleTag(tag)
 	if normalized == "" {
@@ -95,7 +94,7 @@ func CurrencyByLocale(tag string) (Currency, error) {
 	return currencyByRegion(region, tag)
 }
 
-// Code Code 공개 API의 동작을 수행한다.
+// Code 통화 코드를 반환한다.
 func (c Currency) Code() string {
 	if c.IsZero() {
 		return ""
@@ -103,7 +102,7 @@ func (c Currency) Code() string {
 	return c.curr.Code()
 }
 
-// Num Num 공개 API의 동작을 수행한다.
+// Num ISO 4217 numeric code를 반환한다.
 func (c Currency) Num() string {
 	if c.IsZero() {
 		return ""
@@ -111,7 +110,7 @@ func (c Currency) Num() string {
 	return c.curr.Num()
 }
 
-// Scale Scale 공개 API의 동작을 수행한다.
+// Scale 측정값에 배율을 적용한다.
 func (c Currency) Scale() int {
 	if c.IsZero() {
 		return 0
@@ -119,12 +118,12 @@ func (c Currency) Scale() int {
 	return c.curr.Scale()
 }
 
-// String String 공개 API의 동작을 수행한다.
+// String 값을 사람이 읽을 수 있는 문자열로 반환한다.
 func (c Currency) String() string {
 	return c.Code()
 }
 
-// IsZero IsZero 공개 API의 동작을 수행한다.
+// IsZero 값이 zero value인지 반환한다.
 func (c Currency) IsZero() bool {
 	return c.curr == gmoney.XXX
 }

@@ -3,37 +3,36 @@ package rules
 import "context"
 
 // CompositeOption func 공개 타입이다.
-// 값의 zero value, nil 허용 여부, 동시성 소유권은 생성자와 메서드의 한국어 주석 및 테스트 계약을 따른다.
 type CompositeOption func(*compositeRule)
 
-// WithCompositeDescription WithCompositeDescription 공개 API의 동작을 수행한다.
+// WithCompositeDescription CompositeDescription 설정을 적용한 옵션을 반환한다.
 //
 // 매개변수:
-//   - description: WithCompositeDescription가 해석하거나 검증하는 문자열 값이다. 빈 문자열과 공백 처리 의미는 함수 계약을 따른다.
+//   - description: WithCompositeDescription가 해석할 문자열이다. 빈 문자열과 공백은 구현 검증을 따른다.
 func WithCompositeDescription(description string) CompositeOption {
 	return func(rule *compositeRule) {
 		rule.description = description
 	}
 }
 
-// WithCompositePriority WithCompositePriority 공개 API의 동작을 수행한다.
+// WithCompositePriority CompositePriority 설정을 적용한 옵션을 반환한다.
 //
 // 매개변수:
-//   - priority: WithCompositePriority 동작에 필요한 priority 값이다. zero value, 범위, nil 허용 여부는 함수 계약을 따른다.
+//   - priority: WithCompositePriority에 전달되는 값이다. 허용 범위와 nil 처리 방식은 구현 검증을 따른다.
 func WithCompositePriority(priority int) CompositeOption {
 	return func(rule *compositeRule) {
 		rule.priority = priority
 	}
 }
 
-// NewActivationGroup NewActivationGroup 공개 API의 동작을 수행한다.
+// NewActivationGroup ActivationGroup 인스턴스를 생성한다.
 //
 // 매개변수:
-//   - name: NewActivationGroup가 해석하거나 검증하는 문자열 값이다. 빈 문자열과 공백 처리 의미는 함수 계약을 따른다.
-//   - children: NewActivationGroup가 읽거나 복사하는 children 목록이다. nil과 빈 슬라이스 의미는 함수 계약을 따른다.
-//   - options: NewActivationGroup 동작에 필요한 options 값이다. zero value, 범위, nil 허용 여부는 함수 계약을 따른다.
+//   - name: NewActivationGroup가 해석할 문자열이다. 빈 문자열과 공백은 구현 검증을 따른다.
+//   - children: NewActivationGroup가 처리할 값 목록이다. nil과 빈 슬라이스는 구현의 입력 규칙에 따라 처리한다.
+//   - options: 적용할 옵션 목록이다. nil이면 기본값만 사용한다.
 //
-// 반환 오류는 입력 검증 실패, 취소, 외부 원인, 또는 패키지 sentinel/typed error 계약을 보존한다.
+// 반환 오류는 입력 검증 실패와 패키지에서 정의한 sentinel error/typed error를 그대로 드러낸다.
 func NewActivationGroup(name string, children []Rule, options ...CompositeOption) (Rule, error) {
 	group, err := newCompositeRule(name, compositeActivation, children, "", options...)
 	if err != nil {
@@ -42,15 +41,15 @@ func NewActivationGroup(name string, children []Rule, options ...CompositeOption
 	return group, nil
 }
 
-// NewConditionalGroup NewConditionalGroup 공개 API의 동작을 수행한다.
+// NewConditionalGroup ConditionalGroup 인스턴스를 생성한다.
 //
 // 매개변수:
-//   - name: NewConditionalGroup가 해석하거나 검증하는 문자열 값이다. 빈 문자열과 공백 처리 의미는 함수 계약을 따른다.
-//   - guardName: NewConditionalGroup가 해석하거나 검증하는 문자열 값이다. 빈 문자열과 공백 처리 의미는 함수 계약을 따른다.
-//   - children: NewConditionalGroup가 읽거나 복사하는 children 목록이다. nil과 빈 슬라이스 의미는 함수 계약을 따른다.
-//   - options: NewConditionalGroup 동작에 필요한 options 값이다. zero value, 범위, nil 허용 여부는 함수 계약을 따른다.
+//   - name: NewConditionalGroup가 해석할 문자열이다. 빈 문자열과 공백은 구현 검증을 따른다.
+//   - guardName: NewConditionalGroup가 해석할 문자열이다. 빈 문자열과 공백은 구현 검증을 따른다.
+//   - children: NewConditionalGroup가 처리할 값 목록이다. nil과 빈 슬라이스는 구현의 입력 규칙에 따라 처리한다.
+//   - options: 적용할 옵션 목록이다. nil이면 기본값만 사용한다.
 //
-// 반환 오류는 입력 검증 실패, 취소, 외부 원인, 또는 패키지 sentinel/typed error 계약을 보존한다.
+// 반환 오류는 입력 검증 실패와 패키지에서 정의한 sentinel error/typed error를 그대로 드러낸다.
 func NewConditionalGroup(name, guardName string, children []Rule, options ...CompositeOption) (Rule, error) {
 	guardName = normalizeKey(guardName)
 	if guardName == "" {
@@ -66,14 +65,14 @@ func NewConditionalGroup(name, guardName string, children []Rule, options ...Com
 	return group, nil
 }
 
-// NewUnitGroup NewUnitGroup 공개 API의 동작을 수행한다.
+// NewUnitGroup UnitGroup 인스턴스를 생성한다.
 //
 // 매개변수:
-//   - name: NewUnitGroup가 해석하거나 검증하는 문자열 값이다. 빈 문자열과 공백 처리 의미는 함수 계약을 따른다.
-//   - children: NewUnitGroup가 읽거나 복사하는 children 목록이다. nil과 빈 슬라이스 의미는 함수 계약을 따른다.
-//   - options: NewUnitGroup 동작에 필요한 options 값이다. zero value, 범위, nil 허용 여부는 함수 계약을 따른다.
+//   - name: NewUnitGroup가 해석할 문자열이다. 빈 문자열과 공백은 구현 검증을 따른다.
+//   - children: NewUnitGroup가 처리할 값 목록이다. nil과 빈 슬라이스는 구현의 입력 규칙에 따라 처리한다.
+//   - options: 적용할 옵션 목록이다. nil이면 기본값만 사용한다.
 //
-// 반환 오류는 입력 검증 실패, 취소, 외부 원인, 또는 패키지 sentinel/typed error 계약을 보존한다.
+// 반환 오류는 입력 검증 실패와 패키지에서 정의한 sentinel error/typed error를 그대로 드러낸다.
 func NewUnitGroup(name string, children []Rule, options ...CompositeOption) (Rule, error) {
 	group, err := newCompositeRule(name, compositeUnit, children, "", options...)
 	if err != nil {

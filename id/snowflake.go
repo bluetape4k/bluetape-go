@@ -18,15 +18,13 @@ const (
 
 var defaultSnowflakeEpoch = time.Date(2020, 1, 1, 0, 0, 0, 0, time.UTC)
 
-// SnowflakeGenerator interface 공개 타입이다.
-// 값의 zero value, nil 허용 여부, 동시성 소유권은 생성자와 메서드의 한국어 주석 및 테스트 계약을 따른다.
+// SnowflakeGenerator 패키지에서 공개하는 인터페이스다.
 type SnowflakeGenerator interface {
 	Int64Generator
 	StringGenerator
 }
 
 // SnowflakeOption func 공개 타입이다.
-// 값의 zero value, nil 허용 여부, 동시성 소유권은 생성자와 메서드의 한국어 주석 및 테스트 계약을 따른다.
 type SnowflakeOption func(*snowflakeConfig) error
 
 type snowflakeConfig struct {
@@ -34,10 +32,10 @@ type snowflakeConfig struct {
 	now   func() time.Time
 }
 
-// WithSnowflakeEpoch WithSnowflakeEpoch 공개 API의 동작을 수행한다.
+// WithSnowflakeEpoch SnowflakeEpoch 설정을 적용한 옵션을 반환한다.
 //
 // 매개변수:
-//   - epoch: WithSnowflakeEpoch 동작에 필요한 epoch 값이다. zero value, 범위, nil 허용 여부는 함수 계약을 따른다.
+//   - epoch: WithSnowflakeEpoch에 전달되는 값이다. 허용 범위와 nil 처리 방식은 구현 검증을 따른다.
 func WithSnowflakeEpoch(epoch time.Time) SnowflakeOption {
 	return func(c *snowflakeConfig) error {
 		if epoch.IsZero() {
@@ -48,10 +46,10 @@ func WithSnowflakeEpoch(epoch time.Time) SnowflakeOption {
 	}
 }
 
-// WithSnowflakeTime WithSnowflakeTime 공개 API의 동작을 수행한다.
+// WithSnowflakeTime SnowflakeTime 설정을 적용한 옵션을 반환한다.
 //
 // 매개변수:
-//   - now: WithSnowflakeTime 동작에 필요한 now 값이다. zero value, 범위, nil 허용 여부는 함수 계약을 따른다.
+//   - now: WithSnowflakeTime에 전달되는 값이다. 허용 범위와 nil 처리 방식은 구현 검증을 따른다.
 func WithSnowflakeTime(now func() time.Time) SnowflakeOption {
 	return func(c *snowflakeConfig) error {
 		if now == nil {
@@ -70,21 +68,20 @@ type snowflakeGenerator struct {
 	sequence  int64
 }
 
-// SnowflakeParts struct 공개 타입이다.
-// 값의 zero value, nil 허용 여부, 동시성 소유권은 생성자와 메서드의 한국어 주석 및 테스트 계약을 따른다.
+// SnowflakeParts 패키지에서 공개하는 구조체다.
 type SnowflakeParts struct {
 	Time      time.Time
 	MachineID int64
 	Sequence  int64
 }
 
-// NewSnowflakeGenerator NewSnowflakeGenerator 공개 API의 동작을 수행한다.
+// NewSnowflakeGenerator SnowflakeGenerator 인스턴스를 생성한다.
 //
 // 매개변수:
-//   - machineID: NewSnowflakeGenerator 동작에 필요한 machineID 값이다. zero value, 범위, nil 허용 여부는 함수 계약을 따른다.
-//   - options: NewSnowflakeGenerator 동작에 필요한 options 값이다. zero value, 범위, nil 허용 여부는 함수 계약을 따른다.
+//   - machineID: NewSnowflakeGenerator에 전달되는 값이다. 허용 범위와 nil 처리 방식은 구현 검증을 따른다.
+//   - options: 적용할 옵션 목록이다. nil이면 기본값만 사용한다.
 //
-// 반환 오류는 입력 검증 실패, 취소, 외부 원인, 또는 패키지 sentinel/typed error 계약을 보존한다.
+// 반환 오류는 입력 검증 실패와 패키지에서 정의한 sentinel error/typed error를 그대로 드러낸다.
 func NewSnowflakeGenerator(machineID int64, options ...SnowflakeOption) (SnowflakeGenerator, error) {
 	if machineID < 0 || machineID > snowflakeMaxMachineID {
 		return nil, OptionError{Option: "machineID", Err: ErrInvalidOptions}
@@ -153,12 +150,12 @@ func (g *snowflakeGenerator) NextString() (string, error) {
 	return strconv.FormatInt(value, 10), nil
 }
 
-// ParseSnowflake ParseSnowflake 공개 API의 동작을 수행한다.
+// ParseSnowflake 문자열 입력을 도메인 값으로 해석한다.
 //
 // 매개변수:
-//   - value: ParseSnowflake가 해석하거나 검증하는 문자열 값이다. 빈 문자열과 공백 처리 의미는 함수 계약을 따른다.
+//   - value: ParseSnowflake가 해석할 문자열이다. 빈 문자열과 공백은 구현 검증을 따른다.
 //
-// 반환 오류는 입력 검증 실패, 취소, 외부 원인, 또는 패키지 sentinel/typed error 계약을 보존한다.
+// 반환 오류는 입력 검증 실패와 패키지에서 정의한 sentinel error/typed error를 그대로 드러낸다.
 func ParseSnowflake(value string) (int64, error) {
 	parsed, err := strconv.ParseInt(value, 10, 64)
 	if err != nil || parsed < 0 {
@@ -170,13 +167,13 @@ func ParseSnowflake(value string) (int64, error) {
 	return parsed, nil
 }
 
-// DecodeSnowflake DecodeSnowflake 공개 API의 동작을 수행한다.
+// DecodeSnowflake Snowflake 형식의 입력을 원래 값으로 디코딩한다.
 //
 // 매개변수:
-//   - value: DecodeSnowflake 동작에 필요한 value 값이다. zero value, 범위, nil 허용 여부는 함수 계약을 따른다.
-//   - options: DecodeSnowflake 동작에 필요한 options 값이다. zero value, 범위, nil 허용 여부는 함수 계약을 따른다.
+//   - value: DecodeSnowflake에 전달되는 값이다. 허용 범위와 nil 처리 방식은 구현 검증을 따른다.
+//   - options: 적용할 옵션 목록이다. nil이면 기본값만 사용한다.
 //
-// 반환 오류는 입력 검증 실패, 취소, 외부 원인, 또는 패키지 sentinel/typed error 계약을 보존한다.
+// 반환 오류는 입력 검증 실패와 패키지에서 정의한 sentinel error/typed error를 그대로 드러낸다.
 func DecodeSnowflake(value int64, options ...SnowflakeOption) (SnowflakeParts, error) {
 	if value < 0 {
 		return SnowflakeParts{}, ParseError{Kind: "snowflake", Value: strconv.FormatInt(value, 10), Err: errorsNew("must be non-negative")}

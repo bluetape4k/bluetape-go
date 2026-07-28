@@ -5,19 +5,18 @@ import (
 	"sort"
 )
 
-// Registry struct 공개 타입이다.
-// 값의 zero value, nil 허용 여부, 동시성 소유권은 생성자와 메서드의 한국어 주석 및 테스트 계약을 따른다.
+// Registry 패키지에서 공개하는 구조체다.
 type Registry[D any] struct {
 	units    []Unit[D]
 	bySuffix map[string]Unit[D]
 }
 
-// NewRegistry NewRegistry 공개 API의 동작을 수행한다.
+// NewRegistry Registry 인스턴스를 생성한다.
 //
 // 매개변수:
-//   - units: NewRegistry 동작에 필요한 units 값이다. zero value, 범위, nil 허용 여부는 함수 계약을 따른다.
+//   - units: NewRegistry에 전달되는 값이다. 허용 범위와 nil 처리 방식은 구현 검증을 따른다.
 //
-// 반환 오류는 입력 검증 실패, 취소, 외부 원인, 또는 패키지 sentinel/typed error 계약을 보존한다.
+// 반환 오류는 입력 검증 실패와 패키지에서 정의한 sentinel error/typed error를 그대로 드러낸다.
 func NewRegistry[D any](units ...Unit[D]) (Registry[D], error) {
 	if len(units) == 0 {
 		return Registry[D]{}, fmt.Errorf("%w: at least one unit is required", ErrInvalidUnit)
@@ -45,10 +44,10 @@ func NewRegistry[D any](units ...Unit[D]) (Registry[D], error) {
 	return Registry[D]{units: copied, bySuffix: bySuffix}, nil
 }
 
-// MustRegistry MustRegistry 공개 API의 동작을 수행한다.
+// MustRegistry 해당 차원의 단위 registry를 반환한다.
 //
 // 매개변수:
-//   - units: MustRegistry 동작에 필요한 units 값이다. zero value, 범위, nil 허용 여부는 함수 계약을 따른다.
+//   - units: MustRegistry에 전달되는 값이다. 허용 범위와 nil 처리 방식은 구현 검증을 따른다.
 func MustRegistry[D any](units ...Unit[D]) Registry[D] {
 	registry, err := NewRegistry(units...)
 	if err != nil {
@@ -64,17 +63,17 @@ func (r Registry[D]) validate() error {
 	return nil
 }
 
-// Units Units 공개 API의 동작을 수행한다.
+// Units 값에 연결된 단위 정보를 반환한다.
 func (r Registry[D]) Units() []Unit[D] {
 	copied := make([]Unit[D], len(r.units))
 	copy(copied, r.units)
 	return copied
 }
 
-// Lookup Lookup 공개 API의 동작을 수행한다.
+// Lookup registry에서 단위 이름을 조회한다.
 //
 // 매개변수:
-//   - suffix: Lookup가 해석하거나 검증하는 문자열 값이다. 빈 문자열과 공백 처리 의미는 함수 계약을 따른다.
+//   - suffix: Lookup가 해석할 문자열이다. 빈 문자열과 공백은 구현 검증을 따른다.
 func (r Registry[D]) Lookup(suffix string) (Unit[D], bool) {
 	unit, ok := r.bySuffix[suffix]
 	return unit, ok

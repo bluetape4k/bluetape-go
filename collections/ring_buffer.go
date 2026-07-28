@@ -2,8 +2,7 @@ package collections
 
 import "fmt"
 
-// RingBuffer struct 공개 타입이다.
-// 값의 zero value, nil 허용 여부, 동시성 소유권은 생성자와 메서드의 한국어 주석 및 테스트 계약을 따른다.
+// RingBuffer 패키지에서 공개하는 구조체다.
 type RingBuffer[T any] struct {
 	values   []T
 	start    int
@@ -11,12 +10,12 @@ type RingBuffer[T any] struct {
 	capacity int
 }
 
-// NewRingBuffer NewRingBuffer 공개 API의 동작을 수행한다.
+// NewRingBuffer RingBuffer 인스턴스를 생성한다.
 //
 // 매개변수:
-//   - capacity: NewRingBuffer 동작에 필요한 capacity 값이다. zero value, 범위, nil 허용 여부는 함수 계약을 따른다.
+//   - capacity: NewRingBuffer에 전달되는 값이다. 허용 범위와 nil 처리 방식은 구현 검증을 따른다.
 //
-// 반환 오류는 입력 검증 실패, 취소, 외부 원인, 또는 패키지 sentinel/typed error 계약을 보존한다.
+// 반환 오류는 입력 검증 실패와 패키지에서 정의한 sentinel error/typed error를 그대로 드러낸다.
 func NewRingBuffer[T any](capacity int) (*RingBuffer[T], error) {
 	if capacity <= 0 {
 		return nil, fmt.Errorf("%w: ring buffer capacity[%d] must be positive", ErrInvalidArgument, capacity)
@@ -27,7 +26,7 @@ func NewRingBuffer[T any](capacity int) (*RingBuffer[T], error) {
 	}, nil
 }
 
-// Capacity Capacity 공개 API의 동작을 수행한다.
+// Capacity 저장 가능한 최대 항목 수를 반환한다.
 func (r *RingBuffer[T]) Capacity() int {
 	if r == nil {
 		return 0
@@ -35,7 +34,7 @@ func (r *RingBuffer[T]) Capacity() int {
 	return r.capacity
 }
 
-// Len Len 공개 API의 동작을 수행한다.
+// Len 현재 항목 수를 반환한다.
 func (r *RingBuffer[T]) Len() int {
 	if r == nil {
 		return 0
@@ -43,15 +42,15 @@ func (r *RingBuffer[T]) Len() int {
 	return r.length
 }
 
-// Empty Empty 공개 API의 동작을 수행한다.
+// Empty 저장된 항목이 없는지 반환한다.
 func (r *RingBuffer[T]) Empty() bool {
 	return r.Len() == 0
 }
 
-// Add Add 공개 API의 동작을 수행한다.
+// Add 현재 값에 입력 값을 더한 결과를 반환한다.
 //
 // 매개변수:
-//   - value: Add 동작에 필요한 value 값이다. zero value, 범위, nil 허용 여부는 함수 계약을 따른다.
+//   - value: Add에 전달되는 값이다. 허용 범위와 nil 처리 방식은 구현 검증을 따른다.
 func (r *RingBuffer[T]) Add(value T) {
 	if r == nil || r.capacity <= 0 {
 		return
@@ -66,20 +65,20 @@ func (r *RingBuffer[T]) Add(value T) {
 	r.start = (r.start + 1) % r.capacity
 }
 
-// AddAll AddAll 공개 API의 동작을 수행한다.
+// AddAll 여러 값을 순서대로 추가한다.
 //
 // 매개변수:
-//   - values: AddAll 동작에 필요한 values 값이다. zero value, 범위, nil 허용 여부는 함수 계약을 따른다.
+//   - values: AddAll에 전달되는 값이다. 허용 범위와 nil 처리 방식은 구현 검증을 따른다.
 func (r *RingBuffer[T]) AddAll(values ...T) {
 	for _, value := range values {
 		r.Add(value)
 	}
 }
 
-// At At 공개 API의 동작을 수행한다.
+// At index 위치의 값을 반환한다.
 //
 // 매개변수:
-//   - index: At 동작에 필요한 index 값이다. zero value, 범위, nil 허용 여부는 함수 계약을 따른다.
+//   - index: At에 전달되는 값이다. 허용 범위와 nil 처리 방식은 구현 검증을 따른다.
 func (r *RingBuffer[T]) At(index int) (T, bool) {
 	var zero T
 	if r == nil || index < 0 || index >= r.length {
@@ -88,7 +87,7 @@ func (r *RingBuffer[T]) At(index int) (T, bool) {
 	return r.values[(r.start+index)%r.capacity], true
 }
 
-// Values Values 공개 API의 동작을 수행한다.
+// Values 현재 값을 슬라이스로 반환한다.
 func (r *RingBuffer[T]) Values() []T {
 	if r == nil {
 		return nil
@@ -100,12 +99,12 @@ func (r *RingBuffer[T]) Values() []T {
 	return result
 }
 
-// Drop Drop 공개 API의 동작을 수행한다.
+// Drop 앞쪽 n개 항목을 제거한다.
 //
 // 매개변수:
-//   - n: Drop 동작에 필요한 n 값이다. zero value, 범위, nil 허용 여부는 함수 계약을 따른다.
+//   - n: Drop에 전달되는 값이다. 허용 범위와 nil 처리 방식은 구현 검증을 따른다.
 //
-// 반환 오류는 입력 검증 실패, 취소, 외부 원인, 또는 패키지 sentinel/typed error 계약을 보존한다.
+// 반환 오류는 입력 검증 실패와 패키지에서 정의한 sentinel error/typed error를 그대로 드러낸다.
 func (r *RingBuffer[T]) Drop(n int) error {
 	if n < 0 {
 		return fmt.Errorf("%w: drop count[%d] must be non-negative", ErrInvalidArgument, n)
@@ -126,7 +125,7 @@ func (r *RingBuffer[T]) Drop(n int) error {
 	return nil
 }
 
-// Clear Clear 공개 API의 동작을 수행한다.
+// Clear 저장된 항목을 모두 제거한다.
 func (r *RingBuffer[T]) Clear() {
 	if r == nil {
 		return

@@ -2,8 +2,7 @@ package rules
 
 import "context"
 
-// InferenceConfig struct 공개 타입이다.
-// 값의 zero value, nil 허용 여부, 동시성 소유권은 생성자와 메서드의 한국어 주석 및 테스트 계약을 따른다.
+// InferenceConfig 패키지에서 공개하는 구조체다.
 type InferenceConfig struct {
 	// MaxCycles bounds inference and must be positive.
 	MaxCycles int
@@ -11,20 +10,19 @@ type InferenceConfig struct {
 	EngineConfig EngineConfig
 }
 
-// InferenceEngine struct 공개 타입이다.
-// 값의 zero value, nil 허용 여부, 동시성 소유권은 생성자와 메서드의 한국어 주석 및 테스트 계약을 따른다.
+// InferenceEngine 패키지에서 공개하는 구조체다.
 type InferenceEngine struct {
 	rules  *RuleSet
 	config InferenceConfig
 }
 
-// NewInferenceEngine NewInferenceEngine 공개 API의 동작을 수행한다.
+// NewInferenceEngine InferenceEngine 인스턴스를 생성한다.
 //
 // 매개변수:
-//   - rules: NewInferenceEngine 동작에 필요한 rules 값이다. zero value, 범위, nil 허용 여부는 함수 계약을 따른다.
-//   - config: NewInferenceEngine 동작에 필요한 config 값이다. zero value, 범위, nil 허용 여부는 함수 계약을 따른다.
+//   - rules: NewInferenceEngine에 전달되는 값이다. 허용 범위와 nil 처리 방식은 구현 검증을 따른다.
+//   - config: NewInferenceEngine에 전달되는 값이다. 허용 범위와 nil 처리 방식은 구현 검증을 따른다.
 //
-// 반환 오류는 입력 검증 실패, 취소, 외부 원인, 또는 패키지 sentinel/typed error 계약을 보존한다.
+// 반환 오류는 입력 검증 실패와 패키지에서 정의한 sentinel error/typed error를 그대로 드러낸다.
 func NewInferenceEngine(rules *RuleSet, config InferenceConfig) (*InferenceEngine, error) {
 	if config.MaxCycles <= 0 {
 		return nil, ErrInvalidMaxCycles
@@ -38,8 +36,7 @@ func NewInferenceEngine(rules *RuleSet, config InferenceConfig) (*InferenceEngin
 	return &InferenceEngine{rules: rules, config: config}, nil
 }
 
-// InferenceResult struct 공개 타입이다.
-// 값의 zero value, nil 허용 여부, 동시성 소유권은 생성자와 메서드의 한국어 주석 및 테스트 계약을 따른다.
+// InferenceResult 패키지에서 공개하는 구조체다.
 type InferenceResult struct {
 	Cycles       int
 	CycleResults []Result
@@ -50,13 +47,13 @@ type InferenceResult struct {
 	StopReason   DetailStatus
 }
 
-// Run Run 공개 API의 동작을 수행한다.
+// Run 작업을 실행하고 완료 또는 오류를 반환한다.
 //
 // 매개변수:
 //   - ctx: 호출자가 소유한 취소, deadline, 요청 범위를 전달한다.
-//   - facts: Run 동작에 필요한 facts 값이다. zero value, 범위, nil 허용 여부는 함수 계약을 따른다.
+//   - facts: Run에 전달되는 값이다. 허용 범위와 nil 처리 방식은 구현 검증을 따른다.
 //
-// 반환 오류는 입력 검증 실패, 취소, 외부 원인, 또는 패키지 sentinel/typed error 계약을 보존한다.
+// 반환 오류는 입력 검증 실패와 패키지에서 정의한 sentinel error/typed error를 그대로 드러낸다.
 func (e *InferenceEngine) Run(ctx context.Context, facts *Facts) (InferenceResult, error) {
 	if ctx == nil {
 		ctx = context.Background()

@@ -6,7 +6,7 @@ import (
 	"github.com/golang/snappy"
 )
 
-// Snappy Snappy 공개 API의 동작을 수행한다.
+// Snappy 해당 형식의 compressor를 생성한다.
 func Snappy() Compressor {
 	return streamCompressor{
 		name: "snappy",

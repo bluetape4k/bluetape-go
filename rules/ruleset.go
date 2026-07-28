@@ -5,8 +5,7 @@ import (
 	"sync"
 )
 
-// RuleSet struct 공개 타입이다.
-// 값의 zero value, nil 허용 여부, 동시성 소유권은 생성자와 메서드의 한국어 주석 및 테스트 계약을 따른다.
+// RuleSet 패키지에서 공개하는 구조체다.
 type RuleSet struct {
 	mu      sync.RWMutex
 	nextSeq uint64
@@ -20,12 +19,12 @@ type ruleEntry struct {
 	seq      uint64
 }
 
-// NewRuleSet NewRuleSet 공개 API의 동작을 수행한다.
+// NewRuleSet RuleSet 인스턴스를 생성한다.
 //
 // 매개변수:
-//   - rules: NewRuleSet 동작에 필요한 rules 값이다. zero value, 범위, nil 허용 여부는 함수 계약을 따른다.
+//   - rules: NewRuleSet에 전달되는 값이다. 허용 범위와 nil 처리 방식은 구현 검증을 따른다.
 //
-// 반환 오류는 입력 검증 실패, 취소, 외부 원인, 또는 패키지 sentinel/typed error 계약을 보존한다.
+// 반환 오류는 입력 검증 실패와 패키지에서 정의한 sentinel error/typed error를 그대로 드러낸다.
 func NewRuleSet(rules ...Rule) (*RuleSet, error) {
 	set := &RuleSet{byName: make(map[string]ruleEntry)}
 	for _, rule := range rules {
@@ -36,12 +35,12 @@ func NewRuleSet(rules ...Rule) (*RuleSet, error) {
 	return set, nil
 }
 
-// Add Add 공개 API의 동작을 수행한다.
+// Add 현재 값에 입력 값을 더한 결과를 반환한다.
 //
 // 매개변수:
-//   - rule: Add 동작에 필요한 rule 값이다. zero value, 범위, nil 허용 여부는 함수 계약을 따른다.
+//   - rule: Add에 전달되는 값이다. 허용 범위와 nil 처리 방식은 구현 검증을 따른다.
 //
-// 반환 오류는 입력 검증 실패, 취소, 외부 원인, 또는 패키지 sentinel/typed error 계약을 보존한다.
+// 반환 오류는 입력 검증 실패와 패키지에서 정의한 sentinel error/typed error를 그대로 드러낸다.
 func (s *RuleSet) Add(rule Rule) error {
 	if s == nil {
 		return ErrNilRuleSet
@@ -68,10 +67,10 @@ func (s *RuleSet) Add(rule Rule) error {
 	return nil
 }
 
-// Remove Remove 공개 API의 동작을 수행한다.
+// Remove key에 해당하는 fact를 제거한다.
 //
 // 매개변수:
-//   - name: Remove가 해석하거나 검증하는 문자열 값이다. 빈 문자열과 공백 처리 의미는 함수 계약을 따른다.
+//   - name: Remove가 해석할 문자열이다. 빈 문자열과 공백은 구현 검증을 따른다.
 func (s *RuleSet) Remove(name string) bool {
 	if s == nil {
 		return false
@@ -88,10 +87,10 @@ func (s *RuleSet) Remove(name string) bool {
 	return ok
 }
 
-// Get Get 공개 API의 동작을 수행한다.
+// Get key에 해당하는 값을 조회한다.
 //
 // 매개변수:
-//   - name: Get가 해석하거나 검증하는 문자열 값이다. 빈 문자열과 공백 처리 의미는 함수 계약을 따른다.
+//   - name: Get가 해석할 문자열이다. 빈 문자열과 공백은 구현 검증을 따른다.
 func (s *RuleSet) Get(name string) (Rule, bool) {
 	if s == nil {
 		return nil, false
@@ -107,7 +106,7 @@ func (s *RuleSet) Get(name string) (Rule, bool) {
 	return entry.rule, ok
 }
 
-// Len Len 공개 API의 동작을 수행한다.
+// Len 현재 항목 수를 반환한다.
 func (s *RuleSet) Len() int {
 	if s == nil {
 		return 0
@@ -118,7 +117,7 @@ func (s *RuleSet) Len() int {
 	return len(s.byName)
 }
 
-// Rules Rules 공개 API의 동작을 수행한다.
+// Rules ruleset에 등록된 rule 목록을 반환한다.
 func (s *RuleSet) Rules() []Rule {
 	entries := s.entries()
 	rules := make([]Rule, 0, len(entries))

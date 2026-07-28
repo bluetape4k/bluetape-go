@@ -7,33 +7,32 @@ import (
 	"github.com/bluetape4k/bluetape-go/core"
 )
 
-// BytesSerializer struct 공개 타입이다.
-// 값의 zero value, nil 허용 여부, 동시성 소유권은 생성자와 메서드의 한국어 주석 및 테스트 계약을 따른다.
+// BytesSerializer 패키지에서 공개하는 구조체다.
 type BytesSerializer struct{}
 
-// Format Format 공개 API의 동작을 수행한다.
+// Format 값을 지정한 형식의 문자열로 변환한다.
 func (BytesSerializer) Format() string {
 	return "bytes"
 }
 
-// Marshal Marshal 공개 API의 동작을 수행한다.
+// Marshal 값을 직렬화된 바이트로 변환한다.
 //
 // 매개변수:
-//   - value: Marshal가 읽거나 복사하는 value 목록이다. nil과 빈 슬라이스 의미는 함수 계약을 따른다.
+//   - value: Marshal가 처리할 값 목록이다. nil과 빈 슬라이스는 구현의 입력 규칙에 따라 처리한다.
 //
-// 반환 오류는 입력 검증 실패, 취소, 외부 원인, 또는 패키지 sentinel/typed error 계약을 보존한다.
+// 반환 오류는 입력 검증 실패와 패키지에서 정의한 sentinel error/typed error를 그대로 드러낸다.
 func (BytesSerializer) Marshal(value []byte) ([]byte, error) {
 	copied := make([]byte, len(value))
 	copy(copied, value)
 	return copied, nil
 }
 
-// Unmarshal Unmarshal 공개 API의 동작을 수행한다.
+// Unmarshal 직렬화된 데이터를 대상 값으로 복원한다.
 //
 // 매개변수:
-//   - data: Unmarshal가 읽거나 복사하는 data 목록이다. nil과 빈 슬라이스 의미는 함수 계약을 따른다.
+//   - data: Unmarshal가 처리할 값 목록이다. nil과 빈 슬라이스는 구현의 입력 규칙에 따라 처리한다.
 //
-// 반환 오류는 입력 검증 실패, 취소, 외부 원인, 또는 패키지 sentinel/typed error 계약을 보존한다.
+// 반환 오류는 입력 검증 실패와 패키지에서 정의한 sentinel error/typed error를 그대로 드러낸다.
 func (BytesSerializer) Unmarshal(data []byte) ([]byte, error) {
 	if data == nil {
 		return nil, fmt.Errorf("unmarshal bytes: input must not be nil")
@@ -43,21 +42,20 @@ func (BytesSerializer) Unmarshal(data []byte) ([]byte, error) {
 	return copied, nil
 }
 
-// StringSerializer struct 공개 타입이다.
-// 값의 zero value, nil 허용 여부, 동시성 소유권은 생성자와 메서드의 한국어 주석 및 테스트 계약을 따른다.
+// StringSerializer 패키지에서 공개하는 구조체다.
 type StringSerializer struct{}
 
-// Format Format 공개 API의 동작을 수행한다.
+// Format 값을 지정한 형식의 문자열로 변환한다.
 func (StringSerializer) Format() string {
 	return "string"
 }
 
-// Marshal Marshal 공개 API의 동작을 수행한다.
+// Marshal 값을 직렬화된 바이트로 변환한다.
 //
 // 매개변수:
-//   - value: Marshal가 해석하거나 검증하는 문자열 값이다. 빈 문자열과 공백 처리 의미는 함수 계약을 따른다.
+//   - value: Marshal가 해석할 문자열이다. 빈 문자열과 공백은 구현 검증을 따른다.
 //
-// 반환 오류는 입력 검증 실패, 취소, 외부 원인, 또는 패키지 sentinel/typed error 계약을 보존한다.
+// 반환 오류는 입력 검증 실패와 패키지에서 정의한 sentinel error/typed error를 그대로 드러낸다.
 func (StringSerializer) Marshal(value string) ([]byte, error) {
 	if !utf8.ValidString(value) {
 		return nil, fmt.Errorf("marshal string: %w", core.ErrInvalidUTF8)
@@ -65,12 +63,12 @@ func (StringSerializer) Marshal(value string) ([]byte, error) {
 	return []byte(value), nil
 }
 
-// Unmarshal Unmarshal 공개 API의 동작을 수행한다.
+// Unmarshal 직렬화된 데이터를 대상 값으로 복원한다.
 //
 // 매개변수:
-//   - data: Unmarshal가 읽거나 복사하는 data 목록이다. nil과 빈 슬라이스 의미는 함수 계약을 따른다.
+//   - data: Unmarshal가 처리할 값 목록이다. nil과 빈 슬라이스는 구현의 입력 규칙에 따라 처리한다.
 //
-// 반환 오류는 입력 검증 실패, 취소, 외부 원인, 또는 패키지 sentinel/typed error 계약을 보존한다.
+// 반환 오류는 입력 검증 실패와 패키지에서 정의한 sentinel error/typed error를 그대로 드러낸다.
 func (StringSerializer) Unmarshal(data []byte) (string, error) {
 	if data == nil {
 		return "", fmt.Errorf("unmarshal string: input must not be nil")

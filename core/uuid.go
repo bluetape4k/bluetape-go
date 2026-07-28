@@ -7,16 +7,15 @@ import (
 	googleuuid "github.com/google/uuid"
 )
 
-// ZeroUUID 상수 공개 값이다.
-// 호출자는 이 식별자를 패키지의 오류, 옵션, 상수, 또는 기본값 계약을 비교할 때 사용한다.
+// ZeroUUID 패키지에서 공개하는 상수 값이다.
 const ZeroUUID = "00000000-0000-0000-0000-000000000000"
 
 var uuidTextPattern = regexp.MustCompile(`^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$`)
 
-// IsUUID IsUUID 공개 API의 동작을 수행한다.
+// IsUUID 값이 조건을 만족하는지 반환한다.
 //
 // 매개변수:
-//   - value: IsUUID가 해석하거나 검증하는 문자열 값이다. 빈 문자열과 공백 처리 의미는 함수 계약을 따른다.
+//   - value: IsUUID가 해석할 문자열이다. 빈 문자열과 공백은 구현 검증을 따른다.
 func IsUUID(value string) bool {
 	if !uuidTextPattern.MatchString(value) {
 		return false
@@ -25,12 +24,12 @@ func IsUUID(value string) bool {
 	return err == nil
 }
 
-// CanonicalUUID CanonicalUUID 공개 API의 동작을 수행한다.
+// CanonicalUUID UUID 문자열을 canonical 형식으로 정규화한다.
 //
 // 매개변수:
-//   - value: CanonicalUUID가 해석하거나 검증하는 문자열 값이다. 빈 문자열과 공백 처리 의미는 함수 계약을 따른다.
+//   - value: CanonicalUUID가 해석할 문자열이다. 빈 문자열과 공백은 구현 검증을 따른다.
 //
-// 반환 오류는 입력 검증 실패, 취소, 외부 원인, 또는 패키지 sentinel/typed error 계약을 보존한다.
+// 반환 오류는 입력 검증 실패와 패키지에서 정의한 sentinel error/typed error를 그대로 드러낸다.
 func CanonicalUUID(value string) (string, error) {
 	if !IsUUID(value) {
 		return "", fmt.Errorf("%w: UUID[%q] must be hyphenated UUID text", ErrInvalidArgument, value)
@@ -42,13 +41,13 @@ func CanonicalUUID(value string) (string, error) {
 	return parsed.String(), nil
 }
 
-// RequireUUID RequireUUID 공개 API의 동작을 수행한다.
+// RequireUUID 유효한 UUID 문자열인지 검사한다.
 //
 // 매개변수:
-//   - name: RequireUUID가 해석하거나 검증하는 문자열 값이다. 빈 문자열과 공백 처리 의미는 함수 계약을 따른다.
-//   - value: RequireUUID가 해석하거나 검증하는 문자열 값이다. 빈 문자열과 공백 처리 의미는 함수 계약을 따른다.
+//   - name: RequireUUID가 해석할 문자열이다. 빈 문자열과 공백은 구현 검증을 따른다.
+//   - value: RequireUUID가 해석할 문자열이다. 빈 문자열과 공백은 구현 검증을 따른다.
 //
-// 반환 오류는 입력 검증 실패, 취소, 외부 원인, 또는 패키지 sentinel/typed error 계약을 보존한다.
+// 반환 오류는 입력 검증 실패와 패키지에서 정의한 sentinel error/typed error를 그대로 드러낸다.
 func RequireUUID(name, value string) error {
 	if !IsUUID(value) {
 		return fmt.Errorf("%w: %s[%q] must be hyphenated UUID text", ErrInvalidArgument, name, value)
@@ -56,10 +55,10 @@ func RequireUUID(name, value string) error {
 	return nil
 }
 
-// IsZeroUUID IsZeroUUID 공개 API의 동작을 수행한다.
+// IsZeroUUID 값이 조건을 만족하는지 반환한다.
 //
 // 매개변수:
-//   - value: IsZeroUUID가 해석하거나 검증하는 문자열 값이다. 빈 문자열과 공백 처리 의미는 함수 계약을 따른다.
+//   - value: IsZeroUUID가 해석할 문자열이다. 빈 문자열과 공백은 구현 검증을 따른다.
 func IsZeroUUID(value string) bool {
 	canonical, err := CanonicalUUID(value)
 	return err == nil && canonical == ZeroUUID

@@ -5,20 +5,19 @@ import (
 	"math"
 )
 
-// Measure struct 공개 타입이다.
-// 값의 zero value, nil 허용 여부, 동시성 소유권은 생성자와 메서드의 한국어 주석 및 테스트 계약을 따른다.
+// Measure 패키지에서 공개하는 구조체다.
 type Measure[D any] struct {
 	amount float64
 	unit   Unit[D]
 }
 
-// New New 공개 API의 동작을 수행한다.
+// New 값 인스턴스를 생성한다.
 //
 // 매개변수:
-//   - amount: New 동작에 필요한 amount 값이다. zero value, 범위, nil 허용 여부는 함수 계약을 따른다.
-//   - unit: New 동작에 필요한 unit 값이다. zero value, 범위, nil 허용 여부는 함수 계약을 따른다.
+//   - amount: New에 전달되는 값이다. 허용 범위와 nil 처리 방식은 구현 검증을 따른다.
+//   - unit: New에 전달되는 값이다. 허용 범위와 nil 처리 방식은 구현 검증을 따른다.
 //
-// 반환 오류는 입력 검증 실패, 취소, 외부 원인, 또는 패키지 sentinel/typed error 계약을 보존한다.
+// 반환 오류는 입력 검증 실패와 패키지에서 정의한 sentinel error/typed error를 그대로 드러낸다.
 func New[D any](amount float64, unit Unit[D]) (Measure[D], error) {
 	if !finite(amount) {
 		return Measure[D]{}, fmt.Errorf("%w: amount must be finite", ErrInvalidMeasure)
@@ -29,11 +28,11 @@ func New[D any](amount float64, unit Unit[D]) (Measure[D], error) {
 	return Measure[D]{amount: amount, unit: unit}, nil
 }
 
-// Must Must 공개 API의 동작을 수행한다.
+// Must 결과 값이 오류이면 panic하고 성공 값을 반환한다.
 //
 // 매개변수:
-//   - amount: Must 동작에 필요한 amount 값이다. zero value, 범위, nil 허용 여부는 함수 계약을 따른다.
-//   - unit: Must 동작에 필요한 unit 값이다. zero value, 범위, nil 허용 여부는 함수 계약을 따른다.
+//   - amount: Must에 전달되는 값이다. 허용 범위와 nil 처리 방식은 구현 검증을 따른다.
+//   - unit: Must에 전달되는 값이다. 허용 범위와 nil 처리 방식은 구현 검증을 따른다.
 func Must[D any](amount float64, unit Unit[D]) Measure[D] {
 	measure, err := New(amount, unit)
 	if err != nil {
@@ -52,19 +51,19 @@ func (m Measure[D]) validate() error {
 	return nil
 }
 
-// Amount Amount 공개 API의 동작을 수행한다.
+// Amount 금액 값을 반환한다.
 func (m Measure[D]) Amount() float64 {
 	return m.amount
 }
 
-// Unit Unit 공개 API의 동작을 수행한다.
+// Unit 값에 연결된 단위 정보를 반환한다.
 func (m Measure[D]) Unit() Unit[D] {
 	return m.unit
 }
 
-// BaseAmount BaseAmount 공개 API의 동작을 수행한다.
+// BaseAmount 해당 통화 금액을 생성한다.
 //
-// 반환 오류는 입력 검증 실패, 취소, 외부 원인, 또는 패키지 sentinel/typed error 계약을 보존한다.
+// 반환 오류는 입력 검증 실패와 패키지에서 정의한 sentinel error/typed error를 그대로 드러낸다.
 func (m Measure[D]) BaseAmount() (float64, error) {
 	if err := m.validate(); err != nil {
 		return 0, err
@@ -76,12 +75,12 @@ func (m Measure[D]) BaseAmount() (float64, error) {
 	return value, nil
 }
 
-// In In 공개 API의 동작을 수행한다.
+// In 값을 대상 단위나 표현으로 변환한다.
 //
 // 매개변수:
-//   - unit: In 동작에 필요한 unit 값이다. zero value, 범위, nil 허용 여부는 함수 계약을 따른다.
+//   - unit: In에 전달되는 값이다. 허용 범위와 nil 처리 방식은 구현 검증을 따른다.
 //
-// 반환 오류는 입력 검증 실패, 취소, 외부 원인, 또는 패키지 sentinel/typed error 계약을 보존한다.
+// 반환 오류는 입력 검증 실패와 패키지에서 정의한 sentinel error/typed error를 그대로 드러낸다.
 func (m Measure[D]) In(unit Unit[D]) (float64, error) {
 	if err := m.validate(); err != nil {
 		return 0, err
@@ -96,12 +95,12 @@ func (m Measure[D]) In(unit Unit[D]) (float64, error) {
 	return value, nil
 }
 
-// As As 공개 API의 동작을 수행한다.
+// As 측정값을 대상 단위로 변환한다.
 //
 // 매개변수:
-//   - unit: As 동작에 필요한 unit 값이다. zero value, 범위, nil 허용 여부는 함수 계약을 따른다.
+//   - unit: As에 전달되는 값이다. 허용 범위와 nil 처리 방식은 구현 검증을 따른다.
 //
-// 반환 오류는 입력 검증 실패, 취소, 외부 원인, 또는 패키지 sentinel/typed error 계약을 보존한다.
+// 반환 오류는 입력 검증 실패와 패키지에서 정의한 sentinel error/typed error를 그대로 드러낸다.
 func (m Measure[D]) As(unit Unit[D]) (Measure[D], error) {
 	value, err := m.In(unit)
 	if err != nil {
@@ -110,12 +109,12 @@ func (m Measure[D]) As(unit Unit[D]) (Measure[D], error) {
 	return New(value, unit)
 }
 
-// Add Add 공개 API의 동작을 수행한다.
+// Add 현재 값에 입력 값을 더한 결과를 반환한다.
 //
 // 매개변수:
-//   - other: Add 동작에 필요한 other 값이다. zero value, 범위, nil 허용 여부는 함수 계약을 따른다.
+//   - other: Add에 전달되는 값이다. 허용 범위와 nil 처리 방식은 구현 검증을 따른다.
 //
-// 반환 오류는 입력 검증 실패, 취소, 외부 원인, 또는 패키지 sentinel/typed error 계약을 보존한다.
+// 반환 오류는 입력 검증 실패와 패키지에서 정의한 sentinel error/typed error를 그대로 드러낸다.
 func (m Measure[D]) Add(other Measure[D]) (Measure[D], error) {
 	if err := m.validate(); err != nil {
 		return Measure[D]{}, err
@@ -135,12 +134,12 @@ func (m Measure[D]) Add(other Measure[D]) (Measure[D], error) {
 	return New(left+right, unit)
 }
 
-// Sub Sub 공개 API의 동작을 수행한다.
+// Sub 현재 값에서 입력 값을 뺀 결과를 반환한다.
 //
 // 매개변수:
-//   - other: Sub 동작에 필요한 other 값이다. zero value, 범위, nil 허용 여부는 함수 계약을 따른다.
+//   - other: Sub에 전달되는 값이다. 허용 범위와 nil 처리 방식은 구현 검증을 따른다.
 //
-// 반환 오류는 입력 검증 실패, 취소, 외부 원인, 또는 패키지 sentinel/typed error 계약을 보존한다.
+// 반환 오류는 입력 검증 실패와 패키지에서 정의한 sentinel error/typed error를 그대로 드러낸다.
 func (m Measure[D]) Sub(other Measure[D]) (Measure[D], error) {
 	if err := m.validate(); err != nil {
 		return Measure[D]{}, err
@@ -160,12 +159,12 @@ func (m Measure[D]) Sub(other Measure[D]) (Measure[D], error) {
 	return New(left-right, unit)
 }
 
-// MulScalar MulScalar 공개 API의 동작을 수행한다.
+// MulScalar 측정값에 scalar를 곱한다.
 //
 // 매개변수:
-//   - scalar: MulScalar 동작에 필요한 scalar 값이다. zero value, 범위, nil 허용 여부는 함수 계약을 따른다.
+//   - scalar: MulScalar에 전달되는 값이다. 허용 범위와 nil 처리 방식은 구현 검증을 따른다.
 //
-// 반환 오류는 입력 검증 실패, 취소, 외부 원인, 또는 패키지 sentinel/typed error 계약을 보존한다.
+// 반환 오류는 입력 검증 실패와 패키지에서 정의한 sentinel error/typed error를 그대로 드러낸다.
 func (m Measure[D]) MulScalar(scalar float64) (Measure[D], error) {
 	if err := m.validate(); err != nil {
 		return Measure[D]{}, err
@@ -176,12 +175,12 @@ func (m Measure[D]) MulScalar(scalar float64) (Measure[D], error) {
 	return New(m.amount*scalar, m.unit)
 }
 
-// DivScalar DivScalar 공개 API의 동작을 수행한다.
+// DivScalar 측정값을 scalar로 나눈다.
 //
 // 매개변수:
-//   - scalar: DivScalar 동작에 필요한 scalar 값이다. zero value, 범위, nil 허용 여부는 함수 계약을 따른다.
+//   - scalar: DivScalar에 전달되는 값이다. 허용 범위와 nil 처리 방식은 구현 검증을 따른다.
 //
-// 반환 오류는 입력 검증 실패, 취소, 외부 원인, 또는 패키지 sentinel/typed error 계약을 보존한다.
+// 반환 오류는 입력 검증 실패와 패키지에서 정의한 sentinel error/typed error를 그대로 드러낸다.
 func (m Measure[D]) DivScalar(scalar float64) (Measure[D], error) {
 	if err := m.validate(); err != nil {
 		return Measure[D]{}, err
@@ -195,9 +194,9 @@ func (m Measure[D]) DivScalar(scalar float64) (Measure[D], error) {
 	return New(m.amount/scalar, m.unit)
 }
 
-// Neg Neg 공개 API의 동작을 수행한다.
+// Neg 부호를 반전한 값을 반환한다.
 //
-// 반환 오류는 입력 검증 실패, 취소, 외부 원인, 또는 패키지 sentinel/typed error 계약을 보존한다.
+// 반환 오류는 입력 검증 실패와 패키지에서 정의한 sentinel error/typed error를 그대로 드러낸다.
 func (m Measure[D]) Neg() (Measure[D], error) {
 	if err := m.validate(); err != nil {
 		return Measure[D]{}, err
@@ -205,12 +204,12 @@ func (m Measure[D]) Neg() (Measure[D], error) {
 	return New(-m.amount, m.unit)
 }
 
-// Compare Compare 공개 API의 동작을 수행한다.
+// Compare 두 값을 정렬 순서로 비교한다.
 //
 // 매개변수:
-//   - other: Compare 동작에 필요한 other 값이다. zero value, 범위, nil 허용 여부는 함수 계약을 따른다.
+//   - other: Compare에 전달되는 값이다. 허용 범위와 nil 처리 방식은 구현 검증을 따른다.
 //
-// 반환 오류는 입력 검증 실패, 취소, 외부 원인, 또는 패키지 sentinel/typed error 계약을 보존한다.
+// 반환 오류는 입력 검증 실패와 패키지에서 정의한 sentinel error/typed error를 그대로 드러낸다.
 func (m Measure[D]) Compare(other Measure[D]) (int, error) {
 	if err := m.validate(); err != nil {
 		return 0, err
@@ -232,12 +231,12 @@ func (m Measure[D]) Compare(other Measure[D]) (int, error) {
 	}
 }
 
-// ToNearest ToNearest 공개 API의 동작을 수행한다.
+// ToNearest 값을 대상 단위나 표현으로 변환한다.
 //
 // 매개변수:
-//   - nearest: ToNearest 동작에 필요한 nearest 값이다. zero value, 범위, nil 허용 여부는 함수 계약을 따른다.
+//   - nearest: ToNearest에 전달되는 값이다. 허용 범위와 nil 처리 방식은 구현 검증을 따른다.
 //
-// 반환 오류는 입력 검증 실패, 취소, 외부 원인, 또는 패키지 sentinel/typed error 계약을 보존한다.
+// 반환 오류는 입력 검증 실패와 패키지에서 정의한 sentinel error/typed error를 그대로 드러낸다.
 func (m Measure[D]) ToNearest(nearest float64) (Measure[D], error) {
 	if err := m.validate(); err != nil {
 		return Measure[D]{}, err
@@ -248,12 +247,12 @@ func (m Measure[D]) ToNearest(nearest float64) (Measure[D], error) {
 	return New(math.Round(m.amount/nearest)*nearest, m.unit)
 }
 
-// Format Format 공개 API의 동작을 수행한다.
+// Format 값을 지정한 형식의 문자열로 변환한다.
 //
 // 매개변수:
-//   - unit: Format 동작에 필요한 unit 값이다. zero value, 범위, nil 허용 여부는 함수 계약을 따른다.
+//   - unit: Format에 전달되는 값이다. 허용 범위와 nil 처리 방식은 구현 검증을 따른다.
 //
-// 반환 오류는 입력 검증 실패, 취소, 외부 원인, 또는 패키지 sentinel/typed error 계약을 보존한다.
+// 반환 오류는 입력 검증 실패와 패키지에서 정의한 sentinel error/typed error를 그대로 드러낸다.
 func (m Measure[D]) Format(unit Unit[D]) (string, error) {
 	value, err := m.In(unit)
 	if err != nil {
@@ -262,12 +261,12 @@ func (m Measure[D]) Format(unit Unit[D]) (string, error) {
 	return formatValue(value, unit), nil
 }
 
-// Human Human 공개 API의 동작을 수행한다.
+// Human 측정값을 사람이 읽기 쉬운 문자열로 변환한다.
 //
 // 매개변수:
-//   - candidates: Human 동작에 필요한 candidates 값이다. zero value, 범위, nil 허용 여부는 함수 계약을 따른다.
+//   - candidates: Human에 전달되는 값이다. 허용 범위와 nil 처리 방식은 구현 검증을 따른다.
 //
-// 반환 오류는 입력 검증 실패, 취소, 외부 원인, 또는 패키지 sentinel/typed error 계약을 보존한다.
+// 반환 오류는 입력 검증 실패와 패키지에서 정의한 sentinel error/typed error를 그대로 드러낸다.
 func (m Measure[D]) Human(candidates ...Unit[D]) (string, error) {
 	if len(candidates) == 0 {
 		return m.Format(m.unit)
@@ -306,7 +305,7 @@ func (m Measure[D]) Human(candidates ...Unit[D]) (string, error) {
 	return formatValue(bestValue, best), nil
 }
 
-// String String 공개 API의 동작을 수행한다.
+// String 값을 사람이 읽을 수 있는 문자열로 반환한다.
 func (m Measure[D]) String() string {
 	if err := m.validate(); err != nil {
 		return "<invalid measure>"

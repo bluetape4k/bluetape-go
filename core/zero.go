@@ -1,25 +1,25 @@
 package core
 
-// Zero Zero 공개 API의 동작을 수행한다.
+// Zero 타입 T의 zero value를 반환한다.
 func Zero[T any]() T {
 	var zero T
 	return zero
 }
 
-// IsZero IsZero 공개 API의 동작을 수행한다.
+// IsZero 값이 zero value인지 반환한다.
 //
 // 매개변수:
-//   - value: IsZero 동작에 필요한 value 값이다. zero value, 범위, nil 허용 여부는 함수 계약을 따른다.
+//   - value: IsZero에 전달되는 값이다. 허용 범위와 nil 처리 방식은 구현 검증을 따른다.
 func IsZero[T comparable](value T) bool {
 	var zero T
 	return value == zero
 }
 
-// DefaultIfZero DefaultIfZero 공개 API의 동작을 수행한다.
+// DefaultIfZero value가 zero value이면 fallback을 반환한다.
 //
 // 매개변수:
-//   - value: DefaultIfZero 동작에 필요한 value 값이다. zero value, 범위, nil 허용 여부는 함수 계약을 따른다.
-//   - fallback: DefaultIfZero 동작에 필요한 fallback 값이다. zero value, 범위, nil 허용 여부는 함수 계약을 따른다.
+//   - value: DefaultIfZero에 전달되는 값이다. 허용 범위와 nil 처리 방식은 구현 검증을 따른다.
+//   - fallback: DefaultIfZero에 전달되는 값이다. 허용 범위와 nil 처리 방식은 구현 검증을 따른다.
 func DefaultIfZero[T comparable](value, fallback T) T {
 	if IsZero(value) {
 		return fallback
@@ -27,11 +27,11 @@ func DefaultIfZero[T comparable](value, fallback T) T {
 	return value
 }
 
-// IfZeroOrDefault IfZeroOrDefault 공개 API의 동작을 수행한다.
+// IfZeroOrDefault value가 zero value이면 fallback을 반환한다.
 //
 // 매개변수:
-//   - value: IfZeroOrDefault 동작에 필요한 value 값이다. zero value, 범위, nil 허용 여부는 함수 계약을 따른다.
-//   - fallback: IfZeroOrDefault 동작에 필요한 fallback 값이다. zero value, 범위, nil 허용 여부는 함수 계약을 따른다.
+//   - value: IfZeroOrDefault에 전달되는 값이다. 허용 범위와 nil 처리 방식은 구현 검증을 따른다.
+//   - fallback: IfZeroOrDefault에 전달되는 값이다. 허용 범위와 nil 처리 방식은 구현 검증을 따른다.
 func IfZeroOrDefault[T comparable](value T, fallback T) T {
 	if IsZero(value) {
 		return fallback
@@ -39,10 +39,10 @@ func IfZeroOrDefault[T comparable](value T, fallback T) T {
 	return value
 }
 
-// FirstNonZero FirstNonZero 공개 API의 동작을 수행한다.
+// FirstNonZero 처음 만나는 non-zero 값을 반환한다.
 //
 // 매개변수:
-//   - values: FirstNonZero 동작에 필요한 values 값이다. zero value, 범위, nil 허용 여부는 함수 계약을 따른다.
+//   - values: FirstNonZero에 전달되는 값이다. 허용 범위와 nil 처리 방식은 구현 검증을 따른다.
 func FirstNonZero[T comparable](values ...T) T {
 	for _, value := range values {
 		if !IsZero(value) {

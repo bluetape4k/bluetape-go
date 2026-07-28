@@ -7,15 +7,15 @@ import (
 	"io"
 )
 
-// Gzip Gzip 공개 API의 동작을 수행한다.
+// Gzip 해당 형식의 compressor를 생성한다.
 func Gzip() Compressor {
 	return GzipLevel(gzip.DefaultCompression)
 }
 
-// GzipLevel GzipLevel 공개 API의 동작을 수행한다.
+// GzipLevel 지정한 압축 level을 사용하는 compressor를 생성한다.
 //
 // 매개변수:
-//   - level: GzipLevel 동작에 필요한 level 값이다. zero value, 범위, nil 허용 여부는 함수 계약을 따른다.
+//   - level: GzipLevel에 전달되는 값이다. 허용 범위와 nil 처리 방식은 구현 검증을 따른다.
 func GzipLevel(level int) Compressor {
 	return streamCompressor{
 		name: "gzip",
@@ -28,15 +28,15 @@ func GzipLevel(level int) Compressor {
 	}
 }
 
-// Zlib Zlib 공개 API의 동작을 수행한다.
+// Zlib 해당 형식의 compressor를 생성한다.
 func Zlib() Compressor {
 	return ZlibLevel(flate.DefaultCompression)
 }
 
-// ZlibLevel ZlibLevel 공개 API의 동작을 수행한다.
+// ZlibLevel 지정한 압축 level을 사용하는 compressor를 생성한다.
 //
 // 매개변수:
-//   - level: ZlibLevel 동작에 필요한 level 값이다. zero value, 범위, nil 허용 여부는 함수 계약을 따른다.
+//   - level: ZlibLevel에 전달되는 값이다. 허용 범위와 nil 처리 방식은 구현 검증을 따른다.
 func ZlibLevel(level int) Compressor {
 	return streamCompressor{
 		name: "zlib",
@@ -49,15 +49,15 @@ func ZlibLevel(level int) Compressor {
 	}
 }
 
-// Deflate Deflate 공개 API의 동작을 수행한다.
+// Deflate 해당 형식의 compressor를 생성한다.
 func Deflate() Compressor {
 	return DeflateLevel(flate.DefaultCompression)
 }
 
-// DeflateLevel DeflateLevel 공개 API의 동작을 수행한다.
+// DeflateLevel 지정한 압축 level을 사용하는 compressor를 생성한다.
 //
 // 매개변수:
-//   - level: DeflateLevel 동작에 필요한 level 값이다. zero value, 범위, nil 허용 여부는 함수 계약을 따른다.
+//   - level: DeflateLevel에 전달되는 값이다. 허용 범위와 nil 처리 방식은 구현 검증을 따른다.
 func DeflateLevel(level int) Compressor {
 	return streamCompressor{
 		name: "deflate",

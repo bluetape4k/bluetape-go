@@ -13,13 +13,12 @@ type ulidGenerator struct {
 }
 
 // ULIDOption func 공개 타입이다.
-// 값의 zero value, nil 허용 여부, 동시성 소유권은 생성자와 메서드의 한국어 주석 및 테스트 계약을 따른다.
 type ULIDOption func(*ulidGenerator) error
 
-// WithULIDEntropy WithULIDEntropy 공개 API의 동작을 수행한다.
+// WithULIDEntropy ULIDEntropy 설정을 적용한 옵션을 반환한다.
 //
 // 매개변수:
-//   - entropy: WithULIDEntropy 동작에 필요한 entropy 값이다. zero value, 범위, nil 허용 여부는 함수 계약을 따른다.
+//   - entropy: WithULIDEntropy에 전달되는 값이다. 허용 범위와 nil 처리 방식은 구현 검증을 따른다.
 func WithULIDEntropy(entropy io.Reader) ULIDOption {
 	return func(g *ulidGenerator) error {
 		if entropy == nil {
@@ -30,10 +29,10 @@ func WithULIDEntropy(entropy io.Reader) ULIDOption {
 	}
 }
 
-// WithULIDTime WithULIDTime 공개 API의 동작을 수행한다.
+// WithULIDTime ULIDTime 설정을 적용한 옵션을 반환한다.
 //
 // 매개변수:
-//   - now: WithULIDTime 동작에 필요한 now 값이다. zero value, 범위, nil 허용 여부는 함수 계약을 따른다.
+//   - now: WithULIDTime에 전달되는 값이다. 허용 범위와 nil 처리 방식은 구현 검증을 따른다.
 func WithULIDTime(now func() time.Time) ULIDOption {
 	return func(g *ulidGenerator) error {
 		if now == nil {
@@ -44,22 +43,22 @@ func WithULIDTime(now func() time.Time) ULIDOption {
 	}
 }
 
-// NewULIDGenerator NewULIDGenerator 공개 API의 동작을 수행한다.
+// NewULIDGenerator ULIDGenerator 인스턴스를 생성한다.
 //
 // 매개변수:
-//   - options: NewULIDGenerator 동작에 필요한 options 값이다. zero value, 범위, nil 허용 여부는 함수 계약을 따른다.
+//   - options: 적용할 옵션 목록이다. nil이면 기본값만 사용한다.
 //
-// 반환 오류는 입력 검증 실패, 취소, 외부 원인, 또는 패키지 sentinel/typed error 계약을 보존한다.
+// 반환 오류는 입력 검증 실패와 패키지에서 정의한 sentinel error/typed error를 그대로 드러낸다.
 func NewULIDGenerator(options ...ULIDOption) (StringGenerator, error) {
 	return newULIDGenerator(defaultEntropyReader(), time.Now, options...)
 }
 
-// NewMonotonicULIDGenerator NewMonotonicULIDGenerator 공개 API의 동작을 수행한다.
+// NewMonotonicULIDGenerator MonotonicULIDGenerator 인스턴스를 생성한다.
 //
 // 매개변수:
-//   - options: NewMonotonicULIDGenerator 동작에 필요한 options 값이다. zero value, 범위, nil 허용 여부는 함수 계약을 따른다.
+//   - options: 적용할 옵션 목록이다. nil이면 기본값만 사용한다.
 //
-// 반환 오류는 입력 검증 실패, 취소, 외부 원인, 또는 패키지 sentinel/typed error 계약을 보존한다.
+// 반환 오류는 입력 검증 실패와 패키지에서 정의한 sentinel error/typed error를 그대로 드러낸다.
 func NewMonotonicULIDGenerator(options ...ULIDOption) (StringGenerator, error) {
 	g, err := newULIDGenerator(defaultEntropyReader(), time.Now, options...)
 	if err != nil {
@@ -103,9 +102,9 @@ func (g *ulidGenerator) NextString() (string, error) {
 	return string(encoded[:]), nil
 }
 
-// NewULID NewULID 공개 API의 동작을 수행한다.
+// NewULID ULID 인스턴스를 생성한다.
 //
-// 반환 오류는 입력 검증 실패, 취소, 외부 원인, 또는 패키지 sentinel/typed error 계약을 보존한다.
+// 반환 오류는 입력 검증 실패와 패키지에서 정의한 sentinel error/typed error를 그대로 드러낸다.
 func NewULID() (string, error) {
 	g, err := NewULIDGenerator()
 	if err != nil {
@@ -114,12 +113,12 @@ func NewULID() (string, error) {
 	return g.NextString()
 }
 
-// ParseULID ParseULID 공개 API의 동작을 수행한다.
+// ParseULID 문자열 입력을 도메인 값으로 해석한다.
 //
 // 매개변수:
-//   - value: ParseULID가 해석하거나 검증하는 문자열 값이다. 빈 문자열과 공백 처리 의미는 함수 계약을 따른다.
+//   - value: ParseULID가 해석할 문자열이다. 빈 문자열과 공백은 구현 검증을 따른다.
 //
-// 반환 오류는 입력 검증 실패, 취소, 외부 원인, 또는 패키지 sentinel/typed error 계약을 보존한다.
+// 반환 오류는 입력 검증 실패와 패키지에서 정의한 sentinel error/typed error를 그대로 드러낸다.
 func ParseULID(value string) (string, error) {
 	parsed, err := okulid.ParseStrict(value)
 	if err != nil {
@@ -128,12 +127,12 @@ func ParseULID(value string) (string, error) {
 	return parsed.String(), nil
 }
 
-// ULIDTime ULIDTime 공개 API의 동작을 수행한다.
+// ULIDTime ULID에 포함된 시각을 반환한다.
 //
 // 매개변수:
-//   - value: ULIDTime가 해석하거나 검증하는 문자열 값이다. 빈 문자열과 공백 처리 의미는 함수 계약을 따른다.
+//   - value: ULIDTime가 해석할 문자열이다. 빈 문자열과 공백은 구현 검증을 따른다.
 //
-// 반환 오류는 입력 검증 실패, 취소, 외부 원인, 또는 패키지 sentinel/typed error 계약을 보존한다.
+// 반환 오류는 입력 검증 실패와 패키지에서 정의한 sentinel error/typed error를 그대로 드러낸다.
 func ULIDTime(value string) (time.Time, error) {
 	parsed, err := okulid.ParseStrict(value)
 	if err != nil {

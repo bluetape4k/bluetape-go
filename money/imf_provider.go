@@ -30,7 +30,6 @@ const (
 )
 
 // IMFFrequency string 공개 타입이다.
-// 값의 zero value, nil 허용 여부, 동시성 소유권은 생성자와 메서드의 한국어 주석 및 테스트 계약을 따른다.
 type IMFFrequency string
 
 const (
@@ -45,7 +44,6 @@ const (
 )
 
 // IMFRateFamily string 공개 타입이다.
-// 값의 zero value, nil 허용 여부, 동시성 소유권은 생성자와 메서드의 한국어 주석 및 테스트 계약을 따른다.
 type IMFRateFamily string
 
 const (
@@ -55,8 +53,7 @@ const (
 	IMFRatePeriodAverage IMFRateFamily = "PA_RT"
 )
 
-// IMFProviderOptions struct 공개 타입이다.
-// 값의 zero value, nil 허용 여부, 동시성 소유권은 생성자와 메서드의 한국어 주석 및 테스트 계약을 따른다.
+// IMFProviderOptions 패키지에서 공개하는 구조체다.
 type IMFProviderOptions struct {
 	// Client is the HTTP client used for requests. nil uses http.DefaultClient.
 	Client *http.Client
@@ -88,8 +85,7 @@ type IMFProviderOptions struct {
 	CountryCodes map[string]string
 }
 
-// IMFProvider struct 공개 타입이다.
-// 값의 zero value, nil 허용 여부, 동시성 소유권은 생성자와 메서드의 한국어 주석 및 테스트 계약을 따른다.
+// IMFProvider 패키지에서 공개하는 구조체다.
 type IMFProvider struct {
 	client   *http.Client
 	endpoint string
@@ -166,12 +162,12 @@ func (e imfHTTPStatusError) Unwrap() error {
 	return ErrExchangeRateProvider
 }
 
-// NewIMFProvider NewIMFProvider 공개 API의 동작을 수행한다.
+// NewIMFProvider IMFProvider 인스턴스를 생성한다.
 //
 // 매개변수:
-//   - options: NewIMFProvider 동작에 필요한 options 값이다. zero value, 범위, nil 허용 여부는 함수 계약을 따른다.
+//   - options: 적용할 옵션 목록이다. nil이면 기본값만 사용한다.
 //
-// 반환 오류는 입력 검증 실패, 취소, 외부 원인, 또는 패키지 sentinel/typed error 계약을 보존한다.
+// 반환 오류는 입력 검증 실패와 패키지에서 정의한 sentinel error/typed error를 그대로 드러낸다.
 func NewIMFProvider(options IMFProviderOptions) (*IMFProvider, error) {
 	options = normalizeIMFOptions(options)
 	if err := validateIMFOptions(options); err != nil {
@@ -200,14 +196,14 @@ func NewIMFProvider(options IMFProviderOptions) (*IMFProvider, error) {
 	}, nil
 }
 
-// Rate Rate 공개 API의 동작을 수행한다.
+// Rate 기준 통화와 대상 통화 사이의 환율을 반환한다.
 //
 // 매개변수:
 //   - ctx: 호출자가 소유한 취소, deadline, 요청 범위를 전달한다.
-//   - base: Rate 동작에 필요한 base 값이다. zero value, 범위, nil 허용 여부는 함수 계약을 따른다.
-//   - target: Rate 동작에 필요한 target 값이다. zero value, 범위, nil 허용 여부는 함수 계약을 따른다.
+//   - base: Rate에 전달되는 값이다. 허용 범위와 nil 처리 방식은 구현 검증을 따른다.
+//   - target: Rate에 전달되는 값이다. 허용 범위와 nil 처리 방식은 구현 검증을 따른다.
 //
-// 반환 오류는 입력 검증 실패, 취소, 외부 원인, 또는 패키지 sentinel/typed error 계약을 보존한다.
+// 반환 오류는 입력 검증 실패와 패키지에서 정의한 sentinel error/typed error를 그대로 드러낸다.
 func (p *IMFProvider) Rate(ctx context.Context, base Currency, target Currency) (ExchangeRateQuote, error) {
 	if p == nil {
 		return ExchangeRateQuote{}, ErrExchangeRateProvider

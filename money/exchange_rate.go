@@ -7,21 +7,20 @@ import (
 	gmoney "github.com/govalues/money"
 )
 
-// ExchangeRate struct 공개 타입이다.
-// 값의 zero value, nil 허용 여부, 동시성 소유권은 생성자와 메서드의 한국어 주석 및 테스트 계약을 따른다.
+// ExchangeRate 패키지에서 공개하는 구조체다.
 type ExchangeRate struct {
 	rate  gmoney.ExchangeRate
 	valid bool
 }
 
-// NewExchangeRate NewExchangeRate 공개 API의 동작을 수행한다.
+// NewExchangeRate ExchangeRate 인스턴스를 생성한다.
 //
 // 매개변수:
-//   - base: NewExchangeRate 동작에 필요한 base 값이다. zero value, 범위, nil 허용 여부는 함수 계약을 따른다.
-//   - quote: NewExchangeRate 동작에 필요한 quote 값이다. zero value, 범위, nil 허용 여부는 함수 계약을 따른다.
-//   - rate: NewExchangeRate가 해석하거나 검증하는 문자열 값이다. 빈 문자열과 공백 처리 의미는 함수 계약을 따른다.
+//   - base: NewExchangeRate에 전달되는 값이다. 허용 범위와 nil 처리 방식은 구현 검증을 따른다.
+//   - quote: NewExchangeRate에 전달되는 값이다. 허용 범위와 nil 처리 방식은 구현 검증을 따른다.
+//   - rate: NewExchangeRate가 해석할 문자열이다. 빈 문자열과 공백은 구현 검증을 따른다.
 //
-// 반환 오류는 입력 검증 실패, 취소, 외부 원인, 또는 패키지 sentinel/typed error 계약을 보존한다.
+// 반환 오류는 입력 검증 실패와 패키지에서 정의한 sentinel error/typed error를 그대로 드러낸다.
 func NewExchangeRate(base Currency, quote Currency, rate string) (ExchangeRate, error) {
 	if err := base.validate(); err != nil {
 		return ExchangeRate{}, err
@@ -46,13 +45,13 @@ func NewExchangeRate(base Currency, quote Currency, rate string) (ExchangeRate, 
 	return ExchangeRate{rate: parsed, valid: true}, nil
 }
 
-// Convert Convert 공개 API의 동작을 수행한다.
+// Convert 금액을 대상 통화로 변환한다.
 //
 // 매개변수:
-//   - amount: Convert 동작에 필요한 amount 값이다. zero value, 범위, nil 허용 여부는 함수 계약을 따른다.
-//   - rate: Convert 동작에 필요한 rate 값이다. zero value, 범위, nil 허용 여부는 함수 계약을 따른다.
+//   - amount: Convert에 전달되는 값이다. 허용 범위와 nil 처리 방식은 구현 검증을 따른다.
+//   - rate: Convert에 전달되는 값이다. 허용 범위와 nil 처리 방식은 구현 검증을 따른다.
 //
-// 반환 오류는 입력 검증 실패, 취소, 외부 원인, 또는 패키지 sentinel/typed error 계약을 보존한다.
+// 반환 오류는 입력 검증 실패와 패키지에서 정의한 sentinel error/typed error를 그대로 드러낸다.
 func Convert(amount Money, rate ExchangeRate) (Money, error) {
 	if err := amount.validate(); err != nil {
 		return Money{}, err
@@ -70,13 +69,13 @@ func Convert(amount Money, rate ExchangeRate) (Money, error) {
 	return Money{amount: converted.RoundToCurr(), valid: true}, nil
 }
 
-// Valid Valid 공개 API의 동작을 수행한다.
+// Valid 값이 유효한지 반환한다.
 func (r ExchangeRate) Valid() bool {
 	return r.valid && !r.rate.IsZero() && r.rate.IsPos() &&
 		r.rate.Base() != gmoney.XXX && r.rate.Quote() != gmoney.XXX
 }
 
-// Base Base 공개 API의 동작을 수행한다.
+// Base 환율의 기준 통화를 반환한다.
 func (r ExchangeRate) Base() Currency {
 	if !r.Valid() {
 		return Currency{}
@@ -84,7 +83,7 @@ func (r ExchangeRate) Base() Currency {
 	return Currency{curr: r.rate.Base()}
 }
 
-// Quote Quote 공개 API의 동작을 수행한다.
+// Quote 환율의 상대 통화를 반환한다.
 func (r ExchangeRate) Quote() Currency {
 	if !r.Valid() {
 		return Currency{}
@@ -92,7 +91,7 @@ func (r ExchangeRate) Quote() Currency {
 	return Currency{curr: r.rate.Quote()}
 }
 
-// Rate Rate 공개 API의 동작을 수행한다.
+// Rate 기준 통화와 대상 통화 사이의 환율을 반환한다.
 func (r ExchangeRate) Rate() string {
 	if !r.Valid() {
 		return ""
@@ -100,7 +99,7 @@ func (r ExchangeRate) Rate() string {
 	return r.rate.Decimal().String()
 }
 
-// IsZero IsZero 공개 API의 동작을 수행한다.
+// IsZero 값이 zero value인지 반환한다.
 func (r ExchangeRate) IsZero() bool {
 	return !r.Valid()
 }

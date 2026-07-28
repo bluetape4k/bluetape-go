@@ -21,13 +21,12 @@ type ksuidMillisGenerator struct {
 }
 
 // KSUIDMillisOption func 공개 타입이다.
-// 값의 zero value, nil 허용 여부, 동시성 소유권은 생성자와 메서드의 한국어 주석 및 테스트 계약을 따른다.
 type KSUIDMillisOption func(*ksuidMillisGenerator) error
 
-// WithKSUIDMillisEntropy WithKSUIDMillisEntropy 공개 API의 동작을 수행한다.
+// WithKSUIDMillisEntropy KSUIDMillisEntropy 설정을 적용한 옵션을 반환한다.
 //
 // 매개변수:
-//   - entropy: WithKSUIDMillisEntropy 동작에 필요한 entropy 값이다. zero value, 범위, nil 허용 여부는 함수 계약을 따른다.
+//   - entropy: WithKSUIDMillisEntropy에 전달되는 값이다. 허용 범위와 nil 처리 방식은 구현 검증을 따른다.
 func WithKSUIDMillisEntropy(entropy io.Reader) KSUIDMillisOption {
 	return func(g *ksuidMillisGenerator) error {
 		if entropy == nil {
@@ -38,10 +37,10 @@ func WithKSUIDMillisEntropy(entropy io.Reader) KSUIDMillisOption {
 	}
 }
 
-// WithKSUIDMillisTime WithKSUIDMillisTime 공개 API의 동작을 수행한다.
+// WithKSUIDMillisTime KSUIDMillisTime 설정을 적용한 옵션을 반환한다.
 //
 // 매개변수:
-//   - now: WithKSUIDMillisTime 동작에 필요한 now 값이다. zero value, 범위, nil 허용 여부는 함수 계약을 따른다.
+//   - now: WithKSUIDMillisTime에 전달되는 값이다. 허용 범위와 nil 처리 방식은 구현 검증을 따른다.
 func WithKSUIDMillisTime(now func() time.Time) KSUIDMillisOption {
 	return func(g *ksuidMillisGenerator) error {
 		if now == nil {
@@ -52,12 +51,12 @@ func WithKSUIDMillisTime(now func() time.Time) KSUIDMillisOption {
 	}
 }
 
-// NewKSUIDMillisGenerator NewKSUIDMillisGenerator 공개 API의 동작을 수행한다.
+// NewKSUIDMillisGenerator KSUIDMillisGenerator 인스턴스를 생성한다.
 //
 // 매개변수:
-//   - options: NewKSUIDMillisGenerator 동작에 필요한 options 값이다. zero value, 범위, nil 허용 여부는 함수 계약을 따른다.
+//   - options: 적용할 옵션 목록이다. nil이면 기본값만 사용한다.
 //
-// 반환 오류는 입력 검증 실패, 취소, 외부 원인, 또는 패키지 sentinel/typed error 계약을 보존한다.
+// 반환 오류는 입력 검증 실패와 패키지에서 정의한 sentinel error/typed error를 그대로 드러낸다.
 func NewKSUIDMillisGenerator(options ...KSUIDMillisOption) (StringGenerator, error) {
 	return newKSUIDMillisGenerator(defaultEntropyReader(), time.Now, options...)
 }
@@ -96,9 +95,9 @@ func (g *ksuidMillisGenerator) NextString() (string, error) {
 	return encoded, nil
 }
 
-// NewKSUIDMillis NewKSUIDMillis 공개 API의 동작을 수행한다.
+// NewKSUIDMillis KSUIDMillis 인스턴스를 생성한다.
 //
-// 반환 오류는 입력 검증 실패, 취소, 외부 원인, 또는 패키지 sentinel/typed error 계약을 보존한다.
+// 반환 오류는 입력 검증 실패와 패키지에서 정의한 sentinel error/typed error를 그대로 드러낸다.
 func NewKSUIDMillis() (string, error) {
 	g, err := NewKSUIDMillisGenerator()
 	if err != nil {
@@ -107,12 +106,12 @@ func NewKSUIDMillis() (string, error) {
 	return g.NextString()
 }
 
-// ParseKSUIDMillis ParseKSUIDMillis 공개 API의 동작을 수행한다.
+// ParseKSUIDMillis 문자열 입력을 도메인 값으로 해석한다.
 //
 // 매개변수:
-//   - value: ParseKSUIDMillis가 해석하거나 검증하는 문자열 값이다. 빈 문자열과 공백 처리 의미는 함수 계약을 따른다.
+//   - value: ParseKSUIDMillis가 해석할 문자열이다. 빈 문자열과 공백은 구현 검증을 따른다.
 //
-// 반환 오류는 입력 검증 실패, 취소, 외부 원인, 또는 패키지 sentinel/typed error 계약을 보존한다.
+// 반환 오류는 입력 검증 실패와 패키지에서 정의한 sentinel error/typed error를 그대로 드러낸다.
 func ParseKSUIDMillis(value string) (string, error) {
 	if _, err := decodeKSUIDMillis(value); err != nil {
 		return "", ParseError{Kind: "ksuid-millis", Value: value, Err: err}
@@ -120,12 +119,12 @@ func ParseKSUIDMillis(value string) (string, error) {
 	return value, nil
 }
 
-// KSUIDMillisTime KSUIDMillisTime 공개 API의 동작을 수행한다.
+// KSUIDMillisTime KSUID millis 값에 포함된 시각을 반환한다.
 //
 // 매개변수:
-//   - value: KSUIDMillisTime가 해석하거나 검증하는 문자열 값이다. 빈 문자열과 공백 처리 의미는 함수 계약을 따른다.
+//   - value: KSUIDMillisTime가 해석할 문자열이다. 빈 문자열과 공백은 구현 검증을 따른다.
 //
-// 반환 오류는 입력 검증 실패, 취소, 외부 원인, 또는 패키지 sentinel/typed error 계약을 보존한다.
+// 반환 오류는 입력 검증 실패와 패키지에서 정의한 sentinel error/typed error를 그대로 드러낸다.
 func KSUIDMillisTime(value string) (time.Time, error) {
 	raw, err := decodeKSUIDMillis(value)
 	if err != nil {

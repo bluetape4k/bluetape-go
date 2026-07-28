@@ -7,14 +7,12 @@ import (
 	"time"
 )
 
-// ExchangeRateProvider interface 공개 타입이다.
-// 값의 zero value, nil 허용 여부, 동시성 소유권은 생성자와 메서드의 한국어 주석 및 테스트 계약을 따른다.
+// ExchangeRateProvider 패키지에서 공개하는 인터페이스다.
 type ExchangeRateProvider interface {
 	Rate(ctx context.Context, base Currency, target Currency) (ExchangeRateQuote, error)
 }
 
-// ExchangeRateQuote struct 공개 타입이다.
-// 값의 zero value, nil 허용 여부, 동시성 소유권은 생성자와 메서드의 한국어 주석 및 테스트 계약을 따른다.
+// ExchangeRateQuote 패키지에서 공개하는 구조체다.
 type ExchangeRateQuote struct {
 	// Rate 변환에 사용할 환율입니다.
 	Rate ExchangeRate
@@ -32,15 +30,15 @@ type ExchangeRateQuote struct {
 	RefreshError error
 }
 
-// ConvertWithProvider ConvertWithProvider 공개 API의 동작을 수행한다.
+// ConvertWithProvider provider에서 환율을 조회해 금액을 변환한다.
 //
 // 매개변수:
 //   - ctx: 호출자가 소유한 취소, deadline, 요청 범위를 전달한다.
-//   - amount: ConvertWithProvider 동작에 필요한 amount 값이다. zero value, 범위, nil 허용 여부는 함수 계약을 따른다.
-//   - target: ConvertWithProvider 동작에 필요한 target 값이다. zero value, 범위, nil 허용 여부는 함수 계약을 따른다.
-//   - provider: ConvertWithProvider 동작에 필요한 provider 값이다. zero value, 범위, nil 허용 여부는 함수 계약을 따른다.
+//   - amount: ConvertWithProvider에 전달되는 값이다. 허용 범위와 nil 처리 방식은 구현 검증을 따른다.
+//   - target: ConvertWithProvider에 전달되는 값이다. 허용 범위와 nil 처리 방식은 구현 검증을 따른다.
+//   - provider: ConvertWithProvider에 전달되는 값이다. 허용 범위와 nil 처리 방식은 구현 검증을 따른다.
 //
-// 반환 오류는 입력 검증 실패, 취소, 외부 원인, 또는 패키지 sentinel/typed error 계약을 보존한다.
+// 반환 오류는 입력 검증 실패와 패키지에서 정의한 sentinel error/typed error를 그대로 드러낸다.
 func ConvertWithProvider(ctx context.Context, amount Money, target Currency, provider ExchangeRateProvider) (Money, ExchangeRateQuote, error) {
 	if err := amount.validate(); err != nil {
 		return Money{}, ExchangeRateQuote{}, err

@@ -5,8 +5,7 @@ import (
 	"fmt"
 )
 
-// PanicError struct 공개 타입이다.
-// 값의 zero value, nil 허용 여부, 동시성 소유권은 생성자와 메서드의 한국어 주석 및 테스트 계약을 따른다.
+// PanicError 패키지에서 공개하는 구조체다.
 type PanicError struct {
 	Value any
 }

@@ -6,8 +6,7 @@ import (
 	"fmt"
 )
 
-// EngineConfig struct 공개 타입이다.
-// 값의 zero value, nil 허용 여부, 동시성 소유권은 생성자와 메서드의 한국어 주석 및 테스트 계약을 따른다.
+// EngineConfig 패키지에서 공개하는 구조체다.
 type EngineConfig struct {
 	// StopOnFirstApplied stops after the first rule whose Execute succeeds.
 	StopOnFirstApplied bool
@@ -22,18 +21,17 @@ type EngineConfig struct {
 	UsePriorityThreshold bool
 }
 
-// Engine struct 공개 타입이다.
-// 값의 zero value, nil 허용 여부, 동시성 소유권은 생성자와 메서드의 한국어 주석 및 테스트 계약을 따른다.
+// Engine 패키지에서 공개하는 구조체다.
 type Engine struct {
 	rules  *RuleSet
 	config EngineConfig
 }
 
-// NewEngine NewEngine 공개 API의 동작을 수행한다.
+// NewEngine Engine 인스턴스를 생성한다.
 //
 // 매개변수:
-//   - rules: NewEngine 동작에 필요한 rules 값이다. zero value, 범위, nil 허용 여부는 함수 계약을 따른다.
-//   - config: NewEngine 동작에 필요한 config 값이다. zero value, 범위, nil 허용 여부는 함수 계약을 따른다.
+//   - rules: NewEngine에 전달되는 값이다. 허용 범위와 nil 처리 방식은 구현 검증을 따른다.
+//   - config: NewEngine에 전달되는 값이다. 허용 범위와 nil 처리 방식은 구현 검증을 따른다.
 func NewEngine(rules *RuleSet, config EngineConfig) *Engine {
 	if rules == nil {
 		rules = &RuleSet{byName: make(map[string]ruleEntry)}
@@ -42,7 +40,6 @@ func NewEngine(rules *RuleSet, config EngineConfig) *Engine {
 }
 
 // DetailStatus string 공개 타입이다.
-// 값의 zero value, nil 허용 여부, 동시성 소유권은 생성자와 메서드의 한국어 주석 및 테스트 계약을 따른다.
 type DetailStatus string
 
 const (
@@ -62,8 +59,7 @@ const (
 	StatusSkipped DetailStatus = "skipped"
 )
 
-// Detail struct 공개 타입이다.
-// 값의 zero value, nil 허용 여부, 동시성 소유권은 생성자와 메서드의 한국어 주석 및 테스트 계약을 따른다.
+// Detail 패키지에서 공개하는 구조체다.
 type Detail struct {
 	RuleName  string
 	Priority  int
@@ -73,8 +69,7 @@ type Detail struct {
 	Err       error
 }
 
-// Result struct 공개 타입이다.
-// 값의 zero value, nil 허용 여부, 동시성 소유권은 생성자와 메서드의 한국어 주석 및 테스트 계약을 따른다.
+// Result 패키지에서 공개하는 구조체다.
 type Result struct {
 	Details      []Detail
 	Applied      int
@@ -85,13 +80,13 @@ type Result struct {
 	StopReason   DetailStatus
 }
 
-// Run Run 공개 API의 동작을 수행한다.
+// Run 작업을 실행하고 완료 또는 오류를 반환한다.
 //
 // 매개변수:
 //   - ctx: 호출자가 소유한 취소, deadline, 요청 범위를 전달한다.
-//   - facts: Run 동작에 필요한 facts 값이다. zero value, 범위, nil 허용 여부는 함수 계약을 따른다.
+//   - facts: Run에 전달되는 값이다. 허용 범위와 nil 처리 방식은 구현 검증을 따른다.
 //
-// 반환 오류는 입력 검증 실패, 취소, 외부 원인, 또는 패키지 sentinel/typed error 계약을 보존한다.
+// 반환 오류는 입력 검증 실패와 패키지에서 정의한 sentinel error/typed error를 그대로 드러낸다.
 func (e *Engine) Run(ctx context.Context, facts *Facts) (Result, error) {
 	if ctx == nil {
 		ctx = context.Background()

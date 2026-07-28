@@ -1,5 +1,4 @@
 // Package exprreader bluetape-go의 exprreader 기능을 제공한다.
-// 공개 API 주석은 호출자가 입력, 반환값, 오류, 취소, zero value 계약을 한국어로 확인할 수 있도록 유지한다.
 package exprreader
 
 import (
@@ -28,15 +27,14 @@ var (
 	ErrInvalidRuleAction = errors.New("exprreader rule action is invalid")
 )
 
-// ReaderError struct 공개 타입이다.
-// 값의 zero value, nil 허용 여부, 동시성 소유권은 생성자와 메서드의 한국어 주석 및 테스트 계약을 따른다.
+// ReaderError 패키지에서 공개하는 구조체다.
 type ReaderError struct {
 	RuleName string
 	Field    string
 	Err      error
 }
 
-// Error Error 공개 API의 동작을 수행한다.
+// Error 오류 메시지를 반환한다.
 func (e ReaderError) Error() string {
 	var b strings.Builder
 	b.WriteString("exprreader")
@@ -56,15 +54,14 @@ func (e ReaderError) Error() string {
 	return b.String()
 }
 
-// Unwrap Unwrap 공개 API의 동작을 수행한다.
+// Unwrap 감싼 원인 오류를 반환한다.
 //
-// 반환 오류는 입력 검증 실패, 취소, 외부 원인, 또는 패키지 sentinel/typed error 계약을 보존한다.
+// 반환 오류는 입력 검증 실패와 패키지에서 정의한 sentinel error/typed error를 그대로 드러낸다.
 func (e ReaderError) Unwrap() error {
 	return e.Err
 }
 
-// Document struct 공개 타입이다.
-// 값의 zero value, nil 허용 여부, 동시성 소유권은 생성자와 메서드의 한국어 주석 및 테스트 계약을 따른다.
+// Document 패키지에서 공개하는 구조체다.
 type Document struct {
 	// Rules contains compiled rules in deterministic RuleSet order.
 	Rules *rules.RuleSet
@@ -73,13 +70,12 @@ type Document struct {
 }
 
 // Option func 공개 타입이다.
-// 값의 zero value, nil 허용 여부, 동시성 소유권은 생성자와 메서드의 한국어 주석 및 테스트 계약을 따른다.
 type Option func(*config)
 
-// WithMaxNodes WithMaxNodes 공개 API의 동작을 수행한다.
+// WithMaxNodes MaxNodes 설정을 적용한 옵션을 반환한다.
 //
 // 매개변수:
-//   - maxNodes: WithMaxNodes 동작에 필요한 maxNodes 값이다. zero value, 범위, nil 허용 여부는 함수 계약을 따른다.
+//   - maxNodes: WithMaxNodes에 전달되는 값이다. 허용 범위와 nil 처리 방식은 구현 검증을 따른다.
 func WithMaxNodes(maxNodes uint) Option {
 	return func(c *config) {
 		c.maxNodes = maxNodes
@@ -90,14 +86,14 @@ type config struct {
 	maxNodes uint
 }
 
-// Load Load 공개 API의 동작을 수행한다.
+// Load key에 해당하는 값을 조회한다.
 //
 // 매개변수:
 //   - ctx: 호출자가 소유한 취소, deadline, 요청 범위를 전달한다.
-//   - r: Load 동작에 필요한 r 값이다. zero value, 범위, nil 허용 여부는 함수 계약을 따른다.
-//   - options: Load 동작에 필요한 options 값이다. zero value, 범위, nil 허용 여부는 함수 계약을 따른다.
+//   - r: Load에 전달되는 값이다. 허용 범위와 nil 처리 방식은 구현 검증을 따른다.
+//   - options: 적용할 옵션 목록이다. nil이면 기본값만 사용한다.
 //
-// 반환 오류는 입력 검증 실패, 취소, 외부 원인, 또는 패키지 sentinel/typed error 계약을 보존한다.
+// 반환 오류는 입력 검증 실패와 패키지에서 정의한 sentinel error/typed error를 그대로 드러낸다.
 func Load(ctx context.Context, r io.Reader, options ...Option) (*Document, error) {
 	if ctx == nil {
 		ctx = context.Background()

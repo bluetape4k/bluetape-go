@@ -20,8 +20,7 @@ var (
 	ErrSequenceExhausted = errors.New("id: sequence exhausted")
 )
 
-// OptionError struct 공개 타입이다.
-// 값의 zero value, nil 허용 여부, 동시성 소유권은 생성자와 메서드의 한국어 주석 및 테스트 계약을 따른다.
+// OptionError 패키지에서 공개하는 구조체다.
 type OptionError struct {
 	Option string
 	Err    error
@@ -36,7 +35,7 @@ func (e OptionError) Error() string {
 
 func (e OptionError) Unwrap() error { return e.Err }
 
-// Is Is 공개 API의 동작을 수행한다.
+// Is errors.Is 비교를 지원한다.
 //
 // 매개변수:
 //   - target: 검사하거나 감쌀 오류 값이다.
@@ -44,8 +43,7 @@ func (e OptionError) Is(target error) bool {
 	return target == ErrInvalidOptions || errors.Is(e.Err, target)
 }
 
-// ParseError struct 공개 타입이다.
-// 값의 zero value, nil 허용 여부, 동시성 소유권은 생성자와 메서드의 한국어 주석 및 테스트 계약을 따른다.
+// ParseError 패키지에서 공개하는 구조체다.
 type ParseError struct {
 	Kind  string
 	Value string
@@ -61,7 +59,7 @@ func (e ParseError) Error() string {
 
 func (e ParseError) Unwrap() error { return e.Err }
 
-// Is Is 공개 API의 동작을 수행한다.
+// Is errors.Is 비교를 지원한다.
 //
 // 매개변수:
 //   - target: 검사하거나 감쌀 오류 값이다.
@@ -69,8 +67,7 @@ func (e ParseError) Is(target error) bool {
 	return target == ErrInvalidID || errors.Is(e.Err, target)
 }
 
-// EntropyError struct 공개 타입이다.
-// 값의 zero value, nil 허용 여부, 동시성 소유권은 생성자와 메서드의 한국어 주석 및 테스트 계약을 따른다.
+// EntropyError 패키지에서 공개하는 구조체다.
 type EntropyError struct {
 	Kind string
 	Err  error
@@ -85,7 +82,7 @@ func (e EntropyError) Error() string {
 
 func (e EntropyError) Unwrap() error { return e.Err }
 
-// Is Is 공개 API의 동작을 수행한다.
+// Is errors.Is 비교를 지원한다.
 //
 // 매개변수:
 //   - target: 검사하거나 감쌀 오류 값이다.
@@ -93,8 +90,7 @@ func (e EntropyError) Is(target error) bool {
 	return target == ErrEntropy || errors.Is(e.Err, target)
 }
 
-// ClockRollbackError struct 공개 타입이다.
-// 값의 zero value, nil 허용 여부, 동시성 소유권은 생성자와 메서드의 한국어 주석 및 테스트 계약을 따른다.
+// ClockRollbackError 패키지에서 공개하는 구조체다.
 type ClockRollbackError struct {
 	Last int64
 	Now  int64
@@ -104,7 +100,7 @@ func (e ClockRollbackError) Error() string {
 	return fmt.Sprintf("%v: last=%d now=%d", ErrClockRollback, e.Last, e.Now)
 }
 
-// Is Is 공개 API의 동작을 수행한다.
+// Is errors.Is 비교를 지원한다.
 //
 // 매개변수:
 //   - target: 검사하거나 감쌀 오류 값이다.
@@ -112,8 +108,7 @@ func (e ClockRollbackError) Is(target error) bool {
 	return target == ErrClockRollback
 }
 
-// SequenceExhaustedError struct 공개 타입이다.
-// 값의 zero value, nil 허용 여부, 동시성 소유권은 생성자와 메서드의 한국어 주석 및 테스트 계약을 따른다.
+// SequenceExhaustedError 패키지에서 공개하는 구조체다.
 type SequenceExhaustedError struct {
 	Millis int64
 }
@@ -122,7 +117,7 @@ func (e SequenceExhaustedError) Error() string {
 	return fmt.Sprintf("%v: millis=%d", ErrSequenceExhausted, e.Millis)
 }
 
-// Is Is 공개 API의 동작을 수행한다.
+// Is errors.Is 비교를 지원한다.
 //
 // 매개변수:
 //   - target: 검사하거나 감쌀 오류 값이다.

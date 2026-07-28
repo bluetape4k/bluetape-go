@@ -19,13 +19,12 @@ type ksuidGenerator struct {
 }
 
 // KSUIDOption func 공개 타입이다.
-// 값의 zero value, nil 허용 여부, 동시성 소유권은 생성자와 메서드의 한국어 주석 및 테스트 계약을 따른다.
 type KSUIDOption func(*ksuidGenerator) error
 
-// WithKSUIDEntropy WithKSUIDEntropy 공개 API의 동작을 수행한다.
+// WithKSUIDEntropy KSUIDEntropy 설정을 적용한 옵션을 반환한다.
 //
 // 매개변수:
-//   - entropy: WithKSUIDEntropy 동작에 필요한 entropy 값이다. zero value, 범위, nil 허용 여부는 함수 계약을 따른다.
+//   - entropy: WithKSUIDEntropy에 전달되는 값이다. 허용 범위와 nil 처리 방식은 구현 검증을 따른다.
 func WithKSUIDEntropy(entropy io.Reader) KSUIDOption {
 	return func(g *ksuidGenerator) error {
 		if entropy == nil {
@@ -36,10 +35,10 @@ func WithKSUIDEntropy(entropy io.Reader) KSUIDOption {
 	}
 }
 
-// WithKSUIDTime WithKSUIDTime 공개 API의 동작을 수행한다.
+// WithKSUIDTime KSUIDTime 설정을 적용한 옵션을 반환한다.
 //
 // 매개변수:
-//   - now: WithKSUIDTime 동작에 필요한 now 값이다. zero value, 범위, nil 허용 여부는 함수 계약을 따른다.
+//   - now: WithKSUIDTime에 전달되는 값이다. 허용 범위와 nil 처리 방식은 구현 검증을 따른다.
 func WithKSUIDTime(now func() time.Time) KSUIDOption {
 	return func(g *ksuidGenerator) error {
 		if now == nil {
@@ -50,12 +49,12 @@ func WithKSUIDTime(now func() time.Time) KSUIDOption {
 	}
 }
 
-// NewKSUIDGenerator NewKSUIDGenerator 공개 API의 동작을 수행한다.
+// NewKSUIDGenerator KSUIDGenerator 인스턴스를 생성한다.
 //
 // 매개변수:
-//   - options: NewKSUIDGenerator 동작에 필요한 options 값이다. zero value, 범위, nil 허용 여부는 함수 계약을 따른다.
+//   - options: 적용할 옵션 목록이다. nil이면 기본값만 사용한다.
 //
-// 반환 오류는 입력 검증 실패, 취소, 외부 원인, 또는 패키지 sentinel/typed error 계약을 보존한다.
+// 반환 오류는 입력 검증 실패와 패키지에서 정의한 sentinel error/typed error를 그대로 드러낸다.
 func NewKSUIDGenerator(options ...KSUIDOption) (StringGenerator, error) {
 	return newKSUIDGenerator(defaultEntropyReader(), time.Now, options...)
 }
@@ -111,9 +110,9 @@ func validateKSUIDTime(value time.Time) error {
 	return nil
 }
 
-// NewKSUID NewKSUID 공개 API의 동작을 수행한다.
+// NewKSUID KSUID 인스턴스를 생성한다.
 //
-// 반환 오류는 입력 검증 실패, 취소, 외부 원인, 또는 패키지 sentinel/typed error 계약을 보존한다.
+// 반환 오류는 입력 검증 실패와 패키지에서 정의한 sentinel error/typed error를 그대로 드러낸다.
 func NewKSUID() (string, error) {
 	g, err := NewKSUIDGenerator()
 	if err != nil {
@@ -122,12 +121,12 @@ func NewKSUID() (string, error) {
 	return g.NextString()
 }
 
-// ParseKSUID ParseKSUID 공개 API의 동작을 수행한다.
+// ParseKSUID 문자열 입력을 도메인 값으로 해석한다.
 //
 // 매개변수:
-//   - value: ParseKSUID가 해석하거나 검증하는 문자열 값이다. 빈 문자열과 공백 처리 의미는 함수 계약을 따른다.
+//   - value: ParseKSUID가 해석할 문자열이다. 빈 문자열과 공백은 구현 검증을 따른다.
 //
-// 반환 오류는 입력 검증 실패, 취소, 외부 원인, 또는 패키지 sentinel/typed error 계약을 보존한다.
+// 반환 오류는 입력 검증 실패와 패키지에서 정의한 sentinel error/typed error를 그대로 드러낸다.
 func ParseKSUID(value string) (string, error) {
 	parsed, err := segmentioksuid.Parse(value)
 	if err != nil {
@@ -140,12 +139,12 @@ func ParseKSUID(value string) (string, error) {
 	return canonical, nil
 }
 
-// KSUIDTime KSUIDTime 공개 API의 동작을 수행한다.
+// KSUIDTime KSUID에 포함된 시각을 반환한다.
 //
 // 매개변수:
-//   - value: KSUIDTime가 해석하거나 검증하는 문자열 값이다. 빈 문자열과 공백 처리 의미는 함수 계약을 따른다.
+//   - value: KSUIDTime가 해석할 문자열이다. 빈 문자열과 공백은 구현 검증을 따른다.
 //
-// 반환 오류는 입력 검증 실패, 취소, 외부 원인, 또는 패키지 sentinel/typed error 계약을 보존한다.
+// 반환 오류는 입력 검증 실패와 패키지에서 정의한 sentinel error/typed error를 그대로 드러낸다.
 func KSUIDTime(value string) (time.Time, error) {
 	parsed, err := segmentioksuid.Parse(value)
 	if err != nil {
