@@ -11,7 +11,7 @@ import (
 	"github.com/bluetape4k/bluetape-go/core"
 )
 
-// CandidateInfo holds metadata for a strategy-based leader candidate.
+// CandidateInfo는 strategy-based leader candidate의 metadata를 보관한다.
 type CandidateInfo struct {
 	NodeID          string
 	RegisteredAt    time.Time
@@ -23,12 +23,12 @@ type CandidateInfo struct {
 	Metadata        map[string]string
 }
 
-// TotalCount returns the number of recorded action outcomes.
+// TotalCount는 기록된 action outcome 수를 반환한다.
 func (c CandidateInfo) TotalCount() int64 {
 	return c.SuccessCount + c.FailureCount
 }
 
-// SuccessRate returns the candidate success ratio from 0.0 to 1.0.
+// SuccessRate는 candidate 성공 비율을 0.0부터 1.0 사이 값으로 반환한다.
 func (c CandidateInfo) SuccessRate() float64 {
 	total := c.TotalCount()
 	if total == 0 {
@@ -37,7 +37,7 @@ func (c CandidateInfo) SuccessRate() float64 {
 	return float64(c.SuccessCount) / float64(total)
 }
 
-// IdleDuration returns time elapsed since the last completion, or registration.
+// IdleDuration은 마지막 completion 또는 registration 이후 경과 시간을 반환한다.
 func (c CandidateInfo) IdleDuration(now time.Time) time.Duration {
 	base := c.RegisteredAt
 	if !c.LastCompletedAt.IsZero() {
@@ -49,27 +49,27 @@ func (c CandidateInfo) IdleDuration(now time.Time) time.Duration {
 	return now.Sub(base)
 }
 
-// CandidateResult is a recorded action outcome for a candidate.
+// CandidateResult는 candidate에 대해 기록된 action outcome이다.
 type CandidateResult int
 
 const (
-	// CandidateSucceeded records a successful guarded action.
+	// CandidateSucceeded는 guarded action 성공을 기록한다.
 	CandidateSucceeded CandidateResult = iota + 1
-	// CandidateFailed records a failed guarded action.
+	// CandidateFailed는 guarded action 실패를 기록한다.
 	CandidateFailed
 )
 
-// ElectionStrategy selects one candidate from a shared candidate list.
+// ElectionStrategy는 공유 candidate list에서 candidate 하나를 선택한다.
 type ElectionStrategy interface {
 	Elect(candidates []CandidateInfo) (CandidateInfo, bool)
 }
 
-// CandidateScorer computes a priority score for a candidate.
+// CandidateScorer는 candidate의 priority score를 계산한다.
 type CandidateScorer interface {
 	Score(candidate CandidateInfo, all []CandidateInfo) float64
 }
 
-// StrategicElector coordinates strategy-based leadership.
+// StrategicElector는 strategy-based leadership을 조정한다.
 type StrategicElector[T any] interface {
 	RegisterCandidate(ctx context.Context, group string, info CandidateInfo, ttl time.Duration) error
 	UnregisterCandidate(ctx context.Context, group string, nodeID string) error
@@ -83,10 +83,10 @@ type StrategicElector[T any] interface {
 	) (T, bool, error)
 }
 
-// FifoStrategy elects the earliest registered candidate.
+// FifoStrategy는 가장 먼저 등록된 candidate를 선출한다.
 type FifoStrategy struct{}
 
-// Elect selects by RegisteredAt, then NodeID.
+// Elect는 RegisteredAt을 먼저 보고 그다음 NodeID로 candidate를 선택한다.
 func (FifoStrategy) Elect(candidates []CandidateInfo) (CandidateInfo, bool) {
 	sorted := sortCandidates(candidates)
 	if len(sorted) == 0 {
@@ -95,12 +95,12 @@ func (FifoStrategy) Elect(candidates []CandidateInfo) (CandidateInfo, bool) {
 	return sorted[0], true
 }
 
-// RandomStrategy elects a seed-stable random candidate.
+// RandomStrategy는 seed-stable random candidate를 선출한다.
 type RandomStrategy struct {
 	Seed uint64
 }
 
-// Elect sorts candidates by NodeID before applying a seed-stable random choice.
+// Elect는 seed-stable random choice를 적용하기 전에 candidate를 NodeID로 정렬한다.
 func (s RandomStrategy) Elect(candidates []CandidateInfo) (CandidateInfo, bool) {
 	sorted := sortCandidatesByNodeID(candidates)
 	if len(sorted) == 0 {
@@ -111,12 +111,12 @@ func (s RandomStrategy) Elect(candidates []CandidateInfo) (CandidateInfo, bool) 
 	return sorted[rng.IntN(len(sorted))], true
 }
 
-// ScoredStrategy elects the highest scoring candidate.
+// ScoredStrategy는 score가 가장 높은 candidate를 선출한다.
 type ScoredStrategy struct {
 	Scorer CandidateScorer
 }
 
-// Elect scores candidates and uses FIFO ordering to break ties.
+// Elect는 candidate score를 계산하고 동점이면 FIFO ordering으로 결정한다.
 func (s ScoredStrategy) Elect(candidates []CandidateInfo) (CandidateInfo, bool) {
 	if s.Scorer == nil {
 		return CandidateInfo{}, false
@@ -139,12 +139,12 @@ func (s ScoredStrategy) Elect(candidates []CandidateInfo) (CandidateInfo, bool) 
 	return winner, true
 }
 
-// IdleTimeScorer scores candidates by relative idle time.
+// IdleTimeScorer는 상대 idle time으로 candidate score를 계산한다.
 type IdleTimeScorer struct {
 	Now func() time.Time
 }
 
-// Score returns idle time normalized to 0-100 within the candidate list.
+// Score는 candidate list 안에서 idle time을 0-100 범위로 정규화해 반환한다.
 func (s IdleTimeScorer) Score(candidate CandidateInfo, all []CandidateInfo) float64 {
 	now := time.Now
 	if s.Now != nil {
@@ -165,34 +165,34 @@ func (s IdleTimeScorer) Score(candidate CandidateInfo, all []CandidateInfo) floa
 	return float64(candidate.IdleDuration(current)) / float64(maxIdle) * 100
 }
 
-// SuccessRateScorer scores candidates by success rate.
+// SuccessRateScorer는 success rate로 candidate score를 계산한다.
 type SuccessRateScorer struct{}
 
-// Score returns success rate normalized to 0-100.
+// Score는 success rate를 0-100 범위로 정규화해 반환한다.
 func (SuccessRateScorer) Score(candidate CandidateInfo, _ []CandidateInfo) float64 {
 	return candidate.SuccessRate() * 100
 }
 
-// WeightScorer scores candidates by CandidateInfo.Weight.
+// WeightScorer는 CandidateInfo.Weight로 candidate score를 계산한다.
 type WeightScorer struct{}
 
-// Score returns the candidate weight unchanged.
+// Score는 candidate weight를 그대로 반환한다.
 func (WeightScorer) Score(candidate CandidateInfo, _ []CandidateInfo) float64 {
 	return candidate.Weight
 }
 
-// WeightedScore combines one scorer with a positive weight.
+// WeightedScore는 하나의 scorer와 양수 weight를 결합한다.
 type WeightedScore struct {
 	Scorer CandidateScorer
 	Weight float64
 }
 
-// WeightedScorer combines multiple scorers by weighted sum.
+// WeightedScorer는 여러 scorer를 weighted sum으로 결합한다.
 type WeightedScorer struct {
 	scorers []WeightedScore
 }
 
-// NewWeightedScorer creates a weighted composite scorer.
+// NewWeightedScorer는 weighted composite scorer를 생성한다.
 func NewWeightedScorer(scorers ...WeightedScore) (WeightedScorer, error) {
 	if len(scorers) == 0 {
 		return WeightedScorer{}, errors.New("weighted scorer requires at least one scorer")
@@ -211,7 +211,7 @@ func NewWeightedScorer(scorers ...WeightedScore) (WeightedScorer, error) {
 	return WeightedScorer{scorers: copied}, nil
 }
 
-// Score returns the weighted sum of all scorer results.
+// Score는 모든 scorer 결과의 weighted sum을 반환한다.
 func (s WeightedScorer) Score(candidate CandidateInfo, all []CandidateInfo) float64 {
 	total := 0.0
 	for _, scorer := range s.scorers {
