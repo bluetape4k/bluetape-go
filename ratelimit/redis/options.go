@@ -27,7 +27,7 @@ type Options struct {
 	RatePerSecond float64
 	// Burst bucket 최대 token 수다.
 	Burst int64
-	// IdleTTL은 쓰지 않는 Redis bucket key 만료 시간이다.
+	// IdleTTL 쓰지 않는 Redis bucket key 만료 시간이다.
 	IdleTTL time.Duration
 	// MaxKeyBytes logical key 최대 byte 수다.
 	MaxKeyBytes int
