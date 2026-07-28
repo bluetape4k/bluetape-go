@@ -31,7 +31,8 @@ const (
 	campaignRetryCap  = 250 * time.Millisecond
 )
 
-// Elector Redis 기반 leader elector다.
+// Elector struct 공개 타입이며 leader election의 lease, owner token, fencing, group key 계약을 보존한다.
+// 필드와 zero value, nil 허용 여부, 동시성 소유권은 생성자와 메서드의 한국어 주석 및 테스트 계약을 따른다.
 type Elector struct {
 	client redis.Cmdable
 	opts   leader.Options
@@ -47,7 +48,13 @@ type Elector struct {
 	done        chan struct{}
 }
 
-// New Redis 기반 leader elector를 만든다.
+// New New 공개 API의 동작을 수행하며 leader election의 lease, owner token, fencing, group key 계약을 보존한다.
+//
+// 매개변수:
+//   - client: Redis backend client 또는 fixture다. 연결과 종료 소유권은 생성자 계약을 따른다.
+//   - opts: New에 전달되는 값이다. 허용 범위와 nil 처리 방식은 구현 검증을 따른다.
+//
+// 반환 오류는 입력 검증 실패, context 취소, Redis/backend 실패, lease/token 불일치, package sentinel error와 typed error를 그대로 드러낸다.
 func New(client redis.Cmdable, opts leader.Options) (*Elector, error) {
 	if client == nil {
 		return nil, errors.New("redis client must not be nil")
@@ -71,10 +78,12 @@ func New(client redis.Cmdable, opts leader.Options) (*Elector, error) {
 	}, nil
 }
 
-// Campaign 은 leadership을 얻거나 ctx가 끝날 때까지 대기한다.
+// Campaign Campaign 공개 API의 동작을 수행하며 leader election의 lease, owner token, fencing, group key 계약을 보존한다.
 //
-// ErrCommitUnknown이면 bounded Resign으로 owner-token 정리를 재시도하고, 정리가
-// 확인되지 않으면 lease TTL 만료 뒤에 다시 campaign해야 한다.
+// 매개변수:
+//   - ctx: 호출자가 소유한 취소, deadline, 요청 범위를 전달한다.
+//
+// 반환 오류는 입력 검증 실패, context 취소, Redis/backend 실패, lease/token 불일치, package sentinel error와 typed error를 그대로 드러낸다.
 func (e *Elector) Campaign(ctx context.Context) error {
 	if ctx == nil {
 		return leader.ErrInvalidContext
@@ -116,7 +125,12 @@ func (e *Elector) Campaign(ctx context.Context) error {
 	}
 }
 
-// Resign 은 이 elector가 아직 소유한 leadership만 해제한다.
+// Resign Resign 공개 API의 동작을 수행하며 leader election의 lease, owner token, fencing, group key 계약을 보존한다.
+//
+// 매개변수:
+//   - ctx: 호출자가 소유한 취소, deadline, 요청 범위를 전달한다.
+//
+// 반환 오류는 입력 검증 실패, context 취소, Redis/backend 실패, lease/token 불일치, package sentinel error와 typed error를 그대로 드러낸다.
 func (e *Elector) Resign(ctx context.Context) error {
 	if ctx == nil {
 		return leader.ErrInvalidContext
@@ -161,14 +175,19 @@ func (e *Elector) Resign(ctx context.Context) error {
 	return nil
 }
 
-// IsLeader 이 elector가 아직 leader라고 판단하는지 알려준다.
+// IsLeader IsLeader 공개 API의 동작을 수행하며 leader election의 lease, owner token, fencing, group key 계약을 보존한다.
 func (e *Elector) IsLeader() bool {
 	e.mu.RLock()
 	defer e.mu.RUnlock()
 	return e.owned
 }
 
-// Leader Redis에 기록된 현재 leader token을 반환한다.
+// Leader Leader 공개 API의 동작을 수행하며 leader election의 lease, owner token, fencing, group key 계약을 보존한다.
+//
+// 매개변수:
+//   - ctx: 호출자가 소유한 취소, deadline, 요청 범위를 전달한다.
+//
+// 반환 오류는 입력 검증 실패, context 취소, Redis/backend 실패, lease/token 불일치, package sentinel error와 typed error를 그대로 드러낸다.
 func (e *Elector) Leader(ctx context.Context) (string, error) {
 	if ctx == nil {
 		return "", leader.ErrInvalidContext

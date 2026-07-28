@@ -1,6 +1,3 @@
-// Package redisstream provides direct, caller-controlled Redis Streams commands.
-//
-// The package does not own a Redis client, consumer loop, retry policy, payload
-// encoding, stream retention, or consumer-group topology. Callers must use
-// idempotent effects because Redis Streams consumer groups are at-least-once.
+// Package redisstream bluetape-go의 redisstream Redis 기능을 제공한다.
+// 공개 API 주석은 key, TTL, lease, token, stream, backend ownership, 오류 계약을 한국어로 확인할 수 있도록 유지한다.
 package redisstream

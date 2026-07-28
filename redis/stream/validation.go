@@ -11,7 +11,8 @@ import (
 	btredis "github.com/bluetape4k/bluetape-go/redis"
 )
 
-// ErrInvalidArgument is returned when a Redis Streams command argument is invalid.
+// ErrInvalidArgument 변수 공개 값이며 Redis key, TTL, lease, token, script, stream primitive 계약을 보존한다.
+// 호출자는 이 식별자를 Redis 오류, stream 상태, lease/token, 옵션, 또는 기본값 계약을 비교할 때 사용한다.
 var ErrInvalidArgument = errors.New("redis stream: invalid argument")
 
 func prepareContext(ctx context.Context, client any) (context.Context, error) {

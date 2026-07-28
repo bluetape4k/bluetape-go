@@ -6,12 +6,10 @@ import (
 	"time"
 )
 
-// Loader func 공개 타입이며 cache key, miss, TTL, serialization 계약을 보존한다.
-// 필드와 zero value, nil 허용 여부, 동시성 소유권은 생성자와 메서드의 한국어 주석 및 테스트 계약을 따른다.
+// Loader cache miss 값을 계산한다.
 type Loader[K comparable, V any] func(context.Context, K) (V, error)
 
-// Cache interface 공개 타입이며 cache key, miss, TTL, serialization 계약을 보존한다.
-// 필드와 zero value, nil 허용 여부, 동시성 소유권은 생성자와 메서드의 한국어 주석 및 테스트 계약을 따른다.
+// Cache context-aware key-value cache 계약이다.
 type Cache[K comparable, V any] interface {
 	Get(ctx context.Context, key K) (V, error)
 	Set(ctx context.Context, key K, value V, ttl time.Duration) error
@@ -19,8 +17,7 @@ type Cache[K comparable, V any] interface {
 	Clear(ctx context.Context) error
 }
 
-// LoadingCache interface 공개 타입이며 cache key, miss, TTL, serialization 계약을 보존한다.
-// 필드와 zero value, nil 허용 여부, 동시성 소유권은 생성자와 메서드의 한국어 주석 및 테스트 계약을 따른다.
+// LoadingCache miss 시 로더로 값을 채우는 cache 계약이다.
 type LoadingCache[K comparable, V any] interface {
 	Cache[K, V]
 	GetOrLoad(ctx context.Context, key K, ttl time.Duration, loader Loader[K, V]) (V, error)
