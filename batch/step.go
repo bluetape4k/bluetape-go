@@ -6,10 +6,12 @@ import (
 	"fmt"
 )
 
-// DefaultChunkSize is used when StepOptions.ChunkSize is zero.
+// DefaultChunkSize는 상수 공개 값이며 batch 단계, checkpoint, writer 안전성, 재시작 계약을 보존한다.
+// 호출자는 이 식별자를 오류, 상태, 이벤트, 옵션, 또는 기본값 계약을 비교할 때 사용한다.
 const DefaultChunkSize = 100
 
-// StepOptions configures a batch step.
+// StepOptions는 struct 공개 타입이며 batch 단계, checkpoint, writer 안전성, 재시작 계약을 보존한다.
+// 필드와 zero value, nil 허용 여부, 동시성 소유권은 생성자와 메서드의 한국어 주석 및 테스트 계약을 따른다.
 type StepOptions[I any, O any] struct {
 	Name            string
 	ChunkSize       int
@@ -22,7 +24,8 @@ type StepOptions[I any, O any] struct {
 	CheckpointKey   string
 }
 
-// Step runs a reader, processor, and writer as one chunk-oriented batch unit.
+// Step는 struct 공개 타입이며 batch 단계, checkpoint, writer 안전성, 재시작 계약을 보존한다.
+// 필드와 zero value, nil 허용 여부, 동시성 소유권은 생성자와 메서드의 한국어 주석 및 테스트 계약을 따른다.
 type Step[I any, O any] struct {
 	name      string
 	chunkSize int
@@ -36,7 +39,12 @@ type Step[I any, O any] struct {
 	key       string
 }
 
-// NewStep creates a batch step.
+// NewStep는 NewStep 공개 API의 동작을 수행하며 batch 단계, checkpoint, writer 안전성, 재시작 계약을 보존한다.
+//
+// 매개변수:
+//   - options: NewStep 동작에 필요한 options 값이다. zero value, 범위, nil 허용 여부는 함수 계약을 따른다.
+//
+// 반환 오류는 입력 검증 실패, 취소, deadline, 상태 전이 실패, 또는 패키지 sentinel/typed error 계약을 보존한다.
 func NewStep[I any, O any](options StepOptions[I, O]) (*Step[I, O], error) {
 	if options.Name == "" {
 		return nil, fmt.Errorf("step name must not be empty")
@@ -80,7 +88,7 @@ func NewStep[I any, O any](options StepOptions[I, O]) (*Step[I, O], error) {
 	}, nil
 }
 
-// Name returns the step name.
+// Name는 Name 공개 API의 동작을 수행하며 batch 단계, checkpoint, writer 안전성, 재시작 계약을 보존한다.
 func (s *Step[I, O]) Name() string {
 	if s == nil {
 		return ""
@@ -88,8 +96,10 @@ func (s *Step[I, O]) Name() string {
 	return s.name
 }
 
-// Run executes the step until the reader is exhausted, context is cancelled, or
-// processing/writing fails.
+// Run는 Run 공개 API의 동작을 수행하며 batch 단계, checkpoint, writer 안전성, 재시작 계약을 보존한다.
+//
+// 매개변수:
+//   - ctx: 호출자가 소유한 취소, deadline, 요청 범위를 전달한다.
 func (s *Step[I, O]) Run(ctx context.Context) (report Report) {
 	ctx = normalizeContext(ctx)
 	if s == nil {

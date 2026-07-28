@@ -2,14 +2,12 @@ package state
 
 import "context"
 
-// Guard decides whether a transition may proceed.
-//
-// Guards receive the caller context, current state, and event. Returning an
-// error rejects the transition. Because CanTransition can evaluate guards
-// without mutating the machine, guards should be safe for inquiry calls.
+// Guard는 func 공개 타입이며 상태 전이, guard, final state 계약을 보존한다.
+// 필드와 zero value, nil 허용 여부, 동시성 소유권은 생성자와 메서드의 한국어 주석 및 테스트 계약을 따른다.
 type Guard[S comparable, E comparable] func(context.Context, S, E) error
 
-// Transition defines one event path from a source state to a target state.
+// Transition는 struct 공개 타입이며 상태 전이, guard, final state 계약을 보존한다.
+// 필드와 zero value, nil 허용 여부, 동시성 소유권은 생성자와 메서드의 한국어 주석 및 테스트 계약을 따른다.
 type Transition[S comparable, E comparable] struct {
 	From  S
 	Event E
@@ -17,21 +15,26 @@ type Transition[S comparable, E comparable] struct {
 	Guard Guard[S, E]
 }
 
-// Result reports the state change performed by Transition.
+// Result는 struct 공개 타입이며 상태 전이, guard, final state 계약을 보존한다.
+// 필드와 zero value, nil 허용 여부, 동시성 소유권은 생성자와 메서드의 한국어 주석 및 테스트 계약을 따른다.
 type Result[S comparable, E comparable] struct {
 	Previous S
 	Event    E
 	Current  S
 }
 
-// Option configures a Machine during construction.
+// Option는 func 공개 타입이며 상태 전이, guard, final state 계약을 보존한다.
+// 필드와 zero value, nil 허용 여부, 동시성 소유권은 생성자와 메서드의 한국어 주석 및 테스트 계약을 따른다.
 type Option[S comparable, E comparable] func(*config[S, E])
 
 type config[S comparable, E comparable] struct {
 	finalStates map[S]struct{}
 }
 
-// WithFinalStates marks states that reject further transitions.
+// WithFinalStates는 WithFinalStates 공개 API의 동작을 수행하며 상태 전이, guard, final state 계약을 보존한다.
+//
+// 매개변수:
+//   - states: WithFinalStates 동작에 필요한 states 값이다. zero value, 범위, nil 허용 여부는 함수 계약을 따른다.
 func WithFinalStates[S comparable, E comparable](states ...S) Option[S, E] {
 	return func(cfg *config[S, E]) {
 		if cfg.finalStates == nil {

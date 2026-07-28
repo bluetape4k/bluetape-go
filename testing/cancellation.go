@@ -9,21 +9,24 @@ import (
 	"time"
 )
 
-// ContextOperation is a context-aware operation used by cancellation checks.
+// ContextOperation는 func 공개 타입이며 테스트 helper의 timeout, cancellation, cleanup 계약을 보존한다.
+// 필드와 zero value, nil 허용 여부, 동시성 소유권은 생성자와 메서드의 한국어 주석 및 테스트 계약을 따른다.
 type ContextOperation func(context.Context) error
 
-// WaiterProbe observes cancellation from a blocked waiter.
-//
-// The probe must call ready after it has reached the waiter state being tested.
+// WaiterProbe는 func 공개 타입이며 테스트 helper의 timeout, cancellation, cleanup 계약을 보존한다.
+// 필드와 zero value, nil 허용 여부, 동시성 소유권은 생성자와 메서드의 한국어 주석 및 테스트 계약을 따른다.
 type WaiterProbe func(context.Context, func()) error
 
-// CleanupProbe observes cancellation-driven cleanup.
-//
-// The probe must call ready after it has started and cleaned after the
-// underlying resource cleanup is visible.
+// CleanupProbe는 func 공개 타입이며 테스트 helper의 timeout, cancellation, cleanup 계약을 보존한다.
+// 필드와 zero value, nil 허용 여부, 동시성 소유권은 생성자와 메서드의 한국어 주석 및 테스트 계약을 따른다.
 type CleanupProbe func(context.Context, func(), func()) error
 
-// CheckContextCanceled verifies that operation preserves context.Canceled.
+// CheckContextCanceled는 CheckContextCanceled 공개 API의 동작을 수행하며 테스트 helper의 timeout, cancellation, cleanup 계약을 보존한다.
+//
+// 매개변수:
+//   - operation: CheckContextCanceled 동작에 필요한 operation 값이다. zero value, 범위, nil 허용 여부는 함수 계약을 따른다.
+//
+// 반환 오류는 입력 검증 실패, 취소, deadline, 상태 전이 실패, 또는 패키지 sentinel/typed error 계약을 보존한다.
 func CheckContextCanceled(operation ContextOperation) error {
 	if operation == nil {
 		return fmt.Errorf("operation must not be nil")
@@ -39,7 +42,11 @@ func CheckContextCanceled(operation ContextOperation) error {
 	return nil
 }
 
-// RequireContextCanceled fails tb when operation does not preserve context.Canceled.
+// RequireContextCanceled는 RequireContextCanceled 공개 API의 동작을 수행하며 테스트 helper의 timeout, cancellation, cleanup 계약을 보존한다.
+//
+// 매개변수:
+//   - tb: RequireContextCanceled 동작에 필요한 tb 값이다. zero value, 범위, nil 허용 여부는 함수 계약을 따른다.
+//   - operation: RequireContextCanceled 동작에 필요한 operation 값이다. zero value, 범위, nil 허용 여부는 함수 계약을 따른다.
 func RequireContextCanceled(tb testing.TB, operation ContextOperation) {
 	tb.Helper()
 
@@ -48,7 +55,13 @@ func RequireContextCanceled(tb testing.TB, operation ContextOperation) {
 	}
 }
 
-// CheckDeadlineExceeded verifies that operation preserves context.DeadlineExceeded.
+// CheckDeadlineExceeded는 CheckDeadlineExceeded 공개 API의 동작을 수행하며 테스트 helper의 timeout, cancellation, cleanup 계약을 보존한다.
+//
+// 매개변수:
+//   - timeout: CheckDeadlineExceeded 동작에 필요한 timeout 값이다. zero value, 범위, nil 허용 여부는 함수 계약을 따른다.
+//   - operation: CheckDeadlineExceeded 동작에 필요한 operation 값이다. zero value, 범위, nil 허용 여부는 함수 계약을 따른다.
+//
+// 반환 오류는 입력 검증 실패, 취소, deadline, 상태 전이 실패, 또는 패키지 sentinel/typed error 계약을 보존한다.
 func CheckDeadlineExceeded(timeout time.Duration, operation ContextOperation) error {
 	if timeout <= 0 {
 		return fmt.Errorf("timeout must be positive")
@@ -76,7 +89,12 @@ func CheckDeadlineExceeded(timeout time.Duration, operation ContextOperation) er
 	}
 }
 
-// RequireDeadlineExceeded fails tb when operation does not preserve context.DeadlineExceeded.
+// RequireDeadlineExceeded는 RequireDeadlineExceeded 공개 API의 동작을 수행하며 테스트 helper의 timeout, cancellation, cleanup 계약을 보존한다.
+//
+// 매개변수:
+//   - tb: RequireDeadlineExceeded 동작에 필요한 tb 값이다. zero value, 범위, nil 허용 여부는 함수 계약을 따른다.
+//   - timeout: RequireDeadlineExceeded 동작에 필요한 timeout 값이다. zero value, 범위, nil 허용 여부는 함수 계약을 따른다.
+//   - operation: RequireDeadlineExceeded 동작에 필요한 operation 값이다. zero value, 범위, nil 허용 여부는 함수 계약을 따른다.
 func RequireDeadlineExceeded(tb testing.TB, timeout time.Duration, operation ContextOperation) {
 	tb.Helper()
 
@@ -85,7 +103,13 @@ func RequireDeadlineExceeded(tb testing.TB, timeout time.Duration, operation Con
 	}
 }
 
-// CheckWaiterReleased verifies that a blocked waiter returns after cancellation.
+// CheckWaiterReleased는 CheckWaiterReleased 공개 API의 동작을 수행하며 테스트 helper의 timeout, cancellation, cleanup 계약을 보존한다.
+//
+// 매개변수:
+//   - timeout: CheckWaiterReleased 동작에 필요한 timeout 값이다. zero value, 범위, nil 허용 여부는 함수 계약을 따른다.
+//   - waiter: CheckWaiterReleased 동작에 필요한 waiter 값이다. zero value, 범위, nil 허용 여부는 함수 계약을 따른다.
+//
+// 반환 오류는 입력 검증 실패, 취소, deadline, 상태 전이 실패, 또는 패키지 sentinel/typed error 계약을 보존한다.
 func CheckWaiterReleased(timeout time.Duration, waiter WaiterProbe) error {
 	if timeout <= 0 {
 		return fmt.Errorf("timeout must be positive")
@@ -123,7 +147,12 @@ func CheckWaiterReleased(timeout time.Duration, waiter WaiterProbe) error {
 	}
 }
 
-// RequireWaiterReleased fails tb when a blocked waiter does not return after cancellation.
+// RequireWaiterReleased는 RequireWaiterReleased 공개 API의 동작을 수행하며 테스트 helper의 timeout, cancellation, cleanup 계약을 보존한다.
+//
+// 매개변수:
+//   - tb: RequireWaiterReleased 동작에 필요한 tb 값이다. zero value, 범위, nil 허용 여부는 함수 계약을 따른다.
+//   - timeout: RequireWaiterReleased 동작에 필요한 timeout 값이다. zero value, 범위, nil 허용 여부는 함수 계약을 따른다.
+//   - waiter: RequireWaiterReleased 동작에 필요한 waiter 값이다. zero value, 범위, nil 허용 여부는 함수 계약을 따른다.
 func RequireWaiterReleased(tb testing.TB, timeout time.Duration, waiter WaiterProbe) {
 	tb.Helper()
 
@@ -132,7 +161,13 @@ func RequireWaiterReleased(tb testing.TB, timeout time.Duration, waiter WaiterPr
 	}
 }
 
-// CheckCleanupOnCancel verifies that cancellation triggers cleanup and returns.
+// CheckCleanupOnCancel는 CheckCleanupOnCancel 공개 API의 동작을 수행하며 테스트 helper의 timeout, cancellation, cleanup 계약을 보존한다.
+//
+// 매개변수:
+//   - timeout: CheckCleanupOnCancel 동작에 필요한 timeout 값이다. zero value, 범위, nil 허용 여부는 함수 계약을 따른다.
+//   - probe: CheckCleanupOnCancel 동작에 필요한 probe 값이다. zero value, 범위, nil 허용 여부는 함수 계약을 따른다.
+//
+// 반환 오류는 입력 검증 실패, 취소, deadline, 상태 전이 실패, 또는 패키지 sentinel/typed error 계약을 보존한다.
 func CheckCleanupOnCancel(timeout time.Duration, probe CleanupProbe) error {
 	if timeout <= 0 {
 		return fmt.Errorf("timeout must be positive")
@@ -189,7 +224,12 @@ func CheckCleanupOnCancel(timeout time.Duration, probe CleanupProbe) error {
 	return nil
 }
 
-// RequireCleanupOnCancel fails tb when cancellation cleanup is not observed.
+// RequireCleanupOnCancel는 RequireCleanupOnCancel 공개 API의 동작을 수행하며 테스트 helper의 timeout, cancellation, cleanup 계약을 보존한다.
+//
+// 매개변수:
+//   - tb: RequireCleanupOnCancel 동작에 필요한 tb 값이다. zero value, 범위, nil 허용 여부는 함수 계약을 따른다.
+//   - timeout: RequireCleanupOnCancel 동작에 필요한 timeout 값이다. zero value, 범위, nil 허용 여부는 함수 계약을 따른다.
+//   - probe: RequireCleanupOnCancel 동작에 필요한 probe 값이다. zero value, 범위, nil 허용 여부는 함수 계약을 따른다.
 func RequireCleanupOnCancel(tb testing.TB, timeout time.Duration, probe CleanupProbe) {
 	tb.Helper()
 

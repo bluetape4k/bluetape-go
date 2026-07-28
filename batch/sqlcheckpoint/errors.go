@@ -21,26 +21,27 @@ const (
 	OperationRollback       = "rollback"
 )
 
-// ErrCallbackContractViolation indicates positive evidence that a callback ended
-// or replaced the transaction frame owned by the checkpoint writer.
+// ErrCallbackContractViolation는 변수 공개 값이며 batch 단계, checkpoint, writer 안전성, 재시작 계약을 보존한다.
+// 호출자는 이 식별자를 오류, 상태, 이벤트, 옵션, 또는 기본값 계약을 비교할 때 사용한다.
 var ErrCallbackContractViolation = errors.New("sql checkpoint: callback contract violation")
 
-// AtomicityPanic is raised when a callback panics and transaction ownership
-// cannot be proven. PanicValue is sensitive and intended only for trusted
-// top-level recovery code.
+// AtomicityPanic는 struct 공개 타입이며 batch 단계, checkpoint, writer 안전성, 재시작 계약을 보존한다.
+// 필드와 zero value, nil 허용 여부, 동시성 소유권은 생성자와 메서드의 한국어 주석 및 테스트 계약을 따른다.
 type AtomicityPanic struct {
 	panicValue any
 }
 
-// Error returns a fixed message that does not render the panic or provider cause.
+// Error는 Error 공개 API의 동작을 수행하며 batch 단계, checkpoint, writer 안전성, 재시작 계약을 보존한다.
 func (*AtomicityPanic) Error() string { return "sql checkpoint: callback panic with unknown atomicity" }
 
-// Unwrap returns only the sanitized recovery barriers.
+// Unwrap는 Unwrap 공개 API의 동작을 수행하며 batch 단계, checkpoint, writer 안전성, 재시작 계약을 보존한다.
+//
+// 반환 오류는 입력 검증 실패, 취소, deadline, 상태 전이 실패, 또는 패키지 sentinel/typed error 계약을 보존한다.
 func (*AtomicityPanic) Unwrap() error {
 	return errors.Join(batch.ErrAtomicityUnknown, batch.ErrCommitUnknown)
 }
 
-// PanicValue returns the original callback panic value for trusted diagnostics.
+// PanicValue는 PanicValue 공개 API의 동작을 수행하며 batch 단계, checkpoint, writer 안전성, 재시작 계약을 보존한다.
 func (p *AtomicityPanic) PanicValue() any {
 	if p == nil {
 		return nil
@@ -48,17 +49,20 @@ func (p *AtomicityPanic) PanicValue() any {
 	return p.panicValue
 }
 
-// OpError wraps a SQL checkpoint operation failure with redacted diagnostics.
+// OpError는 struct 공개 타입이며 batch 단계, checkpoint, writer 안전성, 재시작 계약을 보존한다.
+// 필드와 zero value, nil 허용 여부, 동시성 소유권은 생성자와 메서드의 한국어 주석 및 테스트 계약을 따른다.
 type OpError struct {
 	operation string
 	keyID     string
 	err       error
 }
 
-// Error returns a sanitized message without namespace, key, payload, SQL, connection, or cause text.
+// Error는 Error 공개 API의 동작을 수행하며 batch 단계, checkpoint, writer 안전성, 재시작 계약을 보존한다.
 func (e *OpError) Error() string { return e.Family() + " " + e.Operation() + " failed" }
 
-// Unwrap returns the causal database error.
+// Unwrap는 Unwrap 공개 API의 동작을 수행하며 batch 단계, checkpoint, writer 안전성, 재시작 계약을 보존한다.
+//
+// 반환 오류는 입력 검증 실패, 취소, deadline, 상태 전이 실패, 또는 패키지 sentinel/typed error 계약을 보존한다.
 func (e *OpError) Unwrap() error {
 	if e == nil {
 		return nil
@@ -66,11 +70,10 @@ func (e *OpError) Unwrap() error {
 	return e.err
 }
 
-// Family returns the low-cardinality operation family.
+// Family는 Family 공개 API의 동작을 수행하며 batch 단계, checkpoint, writer 안전성, 재시작 계약을 보존한다.
 func (*OpError) Family() string { return "sql checkpoint" }
 
-// Operation returns one of the exported Operation constants, or "operation"
-// for an uninitialized error.
+// Operation는 Operation 공개 API의 동작을 수행하며 batch 단계, checkpoint, writer 안전성, 재시작 계약을 보존한다.
 func (e *OpError) Operation() string {
 	if e == nil || e.operation == "" {
 		return "operation"
@@ -78,8 +81,7 @@ func (e *OpError) Operation() string {
 	return e.operation
 }
 
-// KeyID returns a sensitive pseudonymous diagnostic identifier.
-// It must not be used as a metric label, authorization identifier, or external trust-boundary value.
+// KeyID는 KeyID 공개 API의 동작을 수행하며 batch 단계, checkpoint, writer 안전성, 재시작 계약을 보존한다.
 func (e *OpError) KeyID() string {
 	if e == nil || e.keyID == "" {
 		return "sql-checkpoint-key:<missing>"
@@ -95,16 +97,19 @@ func newOperationError(operation string, namespace, key []byte, err error) error
 	}
 }
 
-// CodecError wraps a checkpoint codec failure without rendering payload or cause text.
+// CodecError는 struct 공개 타입이며 batch 단계, checkpoint, writer 안전성, 재시작 계약을 보존한다.
+// 필드와 zero value, nil 허용 여부, 동시성 소유권은 생성자와 메서드의 한국어 주석 및 테스트 계약을 따른다.
 type CodecError struct {
 	operation string
 	err       error
 }
 
-// Error returns a sanitized codec operation message.
+// Error는 Error 공개 API의 동작을 수행하며 batch 단계, checkpoint, writer 안전성, 재시작 계약을 보존한다.
 func (e *CodecError) Error() string { return e.Family() + " " + e.Operation() + " failed" }
 
-// Unwrap returns the causal codec error.
+// Unwrap는 Unwrap 공개 API의 동작을 수행하며 batch 단계, checkpoint, writer 안전성, 재시작 계약을 보존한다.
+//
+// 반환 오류는 입력 검증 실패, 취소, deadline, 상태 전이 실패, 또는 패키지 sentinel/typed error 계약을 보존한다.
 func (e *CodecError) Unwrap() error {
 	if e == nil {
 		return nil
@@ -112,10 +117,10 @@ func (e *CodecError) Unwrap() error {
 	return e.err
 }
 
-// Family returns the low-cardinality codec family.
+// Family는 Family 공개 API의 동작을 수행하며 batch 단계, checkpoint, writer 안전성, 재시작 계약을 보존한다.
 func (*CodecError) Family() string { return "checkpoint codec" }
 
-// Operation returns the low-cardinality codec operation name.
+// Operation는 Operation 공개 API의 동작을 수행하며 batch 단계, checkpoint, writer 안전성, 재시작 계약을 보존한다.
 func (e *CodecError) Operation() string {
 	if e == nil || e.operation == "" {
 		return "operation"

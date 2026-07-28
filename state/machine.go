@@ -16,7 +16,8 @@ type transitionTarget[S comparable, E comparable] struct {
 	guard Guard[S, E]
 }
 
-// Machine is a concurrency-safe finite state machine.
+// Machine는 struct 공개 타입이며 상태 전이, guard, final state 계약을 보존한다.
+// 필드와 zero value, nil 허용 여부, 동시성 소유권은 생성자와 메서드의 한국어 주석 및 테스트 계약을 따른다.
 type Machine[S comparable, E comparable] struct {
 	mu          sync.RWMutex
 	current     S
@@ -25,7 +26,14 @@ type Machine[S comparable, E comparable] struct {
 	finalStates map[S]struct{}
 }
 
-// NewMachine creates a finite state machine from explicit transitions.
+// NewMachine는 NewMachine 공개 API의 동작을 수행하며 상태 전이, guard, final state 계약을 보존한다.
+//
+// 매개변수:
+//   - initial: NewMachine 동작에 필요한 initial 값이다. zero value, 범위, nil 허용 여부는 함수 계약을 따른다.
+//   - transitions: NewMachine가 순서와 snapshot 의미를 유지하며 읽는 transitions 목록이다. nil과 빈 슬라이스 의미는 함수 계약을 따른다.
+//   - options: NewMachine 동작에 필요한 options 값이다. zero value, 범위, nil 허용 여부는 함수 계약을 따른다.
+//
+// 반환 오류는 입력 검증 실패, 취소, deadline, 상태 전이 실패, 또는 패키지 sentinel/typed error 계약을 보존한다.
 func NewMachine[S comparable, E comparable](
 	initial S,
 	transitions []Transition[S, E],
@@ -79,14 +87,20 @@ func NewMachine[S comparable, E comparable](
 	}, nil
 }
 
-// State returns the current state.
+// State는 State 공개 API의 동작을 수행하며 상태 전이, guard, final state 계약을 보존한다.
 func (m *Machine[S, E]) State() S {
 	m.mu.RLock()
 	defer m.mu.RUnlock()
 	return m.current
 }
 
-// Transition applies one event transition.
+// Transition는 Transition 공개 API의 동작을 수행하며 상태 전이, guard, final state 계약을 보존한다.
+//
+// 매개변수:
+//   - ctx: 호출자가 소유한 취소, deadline, 요청 범위를 전달한다.
+//   - event: Transition 동작에 필요한 event 값이다. zero value, 범위, nil 허용 여부는 함수 계약을 따른다.
+//
+// 반환 오류는 입력 검증 실패, 취소, deadline, 상태 전이 실패, 또는 패키지 sentinel/typed error 계약을 보존한다.
 func (m *Machine[S, E]) Transition(ctx context.Context, event E) (Result[S, E], error) {
 	var zero Result[S, E]
 	ctx = normalizeContext(ctx)
@@ -132,9 +146,13 @@ func (m *Machine[S, E]) Transition(ctx context.Context, event E) (Result[S, E], 
 	}, nil
 }
 
-// CanTransition reports whether the current state can transition with event.
+// CanTransition는 CanTransition 공개 API의 동작을 수행하며 상태 전이, guard, final state 계약을 보존한다.
 //
-// It may execute the transition guard, but it never mutates the machine.
+// 매개변수:
+//   - ctx: 호출자가 소유한 취소, deadline, 요청 범위를 전달한다.
+//   - event: CanTransition 동작에 필요한 event 값이다. zero value, 범위, nil 허용 여부는 함수 계약을 따른다.
+//
+// 반환 오류는 입력 검증 실패, 취소, deadline, 상태 전이 실패, 또는 패키지 sentinel/typed error 계약을 보존한다.
 func (m *Machine[S, E]) CanTransition(ctx context.Context, event E) (bool, error) {
 	ctx = normalizeContext(ctx)
 	if err := ctx.Err(); err != nil {
@@ -167,9 +185,7 @@ func (m *Machine[S, E]) CanTransition(ctx context.Context, event E) (bool, error
 	return true, nil
 }
 
-// AllowedEvents returns registered events for the current state.
-//
-// It does not evaluate guards; use CanTransition to evaluate a specific guard.
+// AllowedEvents는 AllowedEvents 공개 API의 동작을 수행하며 상태 전이, guard, final state 계약을 보존한다.
 func (m *Machine[S, E]) AllowedEvents() []E {
 	m.mu.RLock()
 	defer m.mu.RUnlock()

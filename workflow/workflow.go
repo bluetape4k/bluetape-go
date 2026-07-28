@@ -10,13 +10,16 @@ import (
 	"github.com/bluetape4k/bluetape-go/workreport"
 )
 
-// Work is a context-aware workflow step.
+// Work는 func 공개 타입이며 workflow 실행 순서, 병렬성, 실패 전파 계약을 보존한다.
+// 필드와 zero value, nil 허용 여부, 동시성 소유권은 생성자와 메서드의 한국어 주석 및 테스트 계약을 따른다.
 type Work func(context.Context) workreport.Report
 
-// Predicate selects a conditional branch.
+// Predicate는 func 공개 타입이며 workflow 실행 순서, 병렬성, 실패 전파 계약을 보존한다.
+// 필드와 zero value, nil 허용 여부, 동시성 소유권은 생성자와 메서드의 한국어 주석 및 테스트 계약을 따른다.
 type Predicate func(context.Context) (bool, error)
 
-// Runner executes a workflow and returns a structured report.
+// Runner는 interface 공개 타입이며 workflow 실행 순서, 병렬성, 실패 전파 계약을 보존한다.
+// 필드와 zero value, nil 허용 여부, 동시성 소유권은 생성자와 메서드의 한국어 주석 및 테스트 계약을 따른다.
 type Runner interface {
 	Run(context.Context) workreport.Report
 }
@@ -40,7 +43,12 @@ type parallelRunner struct {
 	works  []Work
 }
 
-// Sequential creates a runner that executes works in input order.
+// Sequential는 Sequential 공개 API의 동작을 수행하며 workflow 실행 순서, 병렬성, 실패 전파 계약을 보존한다.
+//
+// 매개변수:
+//   - name: Sequential가 식별자, 상태, 이름, 또는 입력으로 해석하는 문자열 값이다. 빈 문자열 처리는 함수 계약을 따른다.
+//   - policy: Sequential 동작에 필요한 policy 값이다. zero value, 범위, nil 허용 여부는 함수 계약을 따른다.
+//   - works: Sequential 동작에 필요한 works 값이다. zero value, 범위, nil 허용 여부는 함수 계약을 따른다.
 func Sequential(name string, policy workreport.FailurePolicy, works ...Work) Runner {
 	return sequentialRunner{
 		name:   name,
@@ -49,7 +57,13 @@ func Sequential(name string, policy workreport.FailurePolicy, works ...Work) Run
 	}
 }
 
-// Conditional creates a runner that evaluates predicate once and runs one branch.
+// Conditional는 Conditional 공개 API의 동작을 수행하며 workflow 실행 순서, 병렬성, 실패 전파 계약을 보존한다.
+//
+// 매개변수:
+//   - name: Conditional가 식별자, 상태, 이름, 또는 입력으로 해석하는 문자열 값이다. 빈 문자열 처리는 함수 계약을 따른다.
+//   - predicate: Conditional 동작에 필요한 predicate 값이다. zero value, 범위, nil 허용 여부는 함수 계약을 따른다.
+//   - trueWork: Conditional 동작에 필요한 trueWork 값이다. zero value, 범위, nil 허용 여부는 함수 계약을 따른다.
+//   - falseWork: Conditional 동작에 필요한 falseWork 값이다. zero value, 범위, nil 허용 여부는 함수 계약을 따른다.
 func Conditional(name string, predicate Predicate, trueWork Work, falseWork ...Work) Runner {
 	return conditionalRunner{
 		name:        name,
@@ -59,7 +73,12 @@ func Conditional(name string, predicate Predicate, trueWork Work, falseWork ...W
 	}
 }
 
-// Parallel creates a runner that starts all works with a shared cancellable context.
+// Parallel는 Parallel 공개 API의 동작을 수행하며 workflow 실행 순서, 병렬성, 실패 전파 계약을 보존한다.
+//
+// 매개변수:
+//   - name: Parallel가 식별자, 상태, 이름, 또는 입력으로 해석하는 문자열 값이다. 빈 문자열 처리는 함수 계약을 따른다.
+//   - policy: Parallel 동작에 필요한 policy 값이다. zero value, 범위, nil 허용 여부는 함수 계약을 따른다.
+//   - works: Parallel 동작에 필요한 works 값이다. zero value, 범위, nil 허용 여부는 함수 계약을 따른다.
 func Parallel(name string, policy workreport.FailurePolicy, works ...Work) Runner {
 	return parallelRunner{
 		name:   name,

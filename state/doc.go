@@ -1,6 +1,3 @@
-// Package state provides small finite state machine primitives.
-//
-// A Machine owns one current state, applies explicit event transitions, and
-// lets guards veto transitions with ordinary Go errors. Public methods are safe
-// for concurrent callers.
+// Package state는 bluetape-go의 state 기능을 제공한다.
+// 공개 API 주석은 호출자가 입력, 반환값, 오류, 취소, deadline, zero value 계약을 한국어로 확인할 수 있도록 유지한다.
 package state

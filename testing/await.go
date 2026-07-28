@@ -8,7 +8,8 @@ import (
 	"time"
 )
 
-// AwaitStatus tells CheckAwait how to handle an observed value/error pair.
+// AwaitStatus는 int 공개 타입이며 테스트 helper의 timeout, cancellation, cleanup 계약을 보존한다.
+// 필드와 zero value, nil 허용 여부, 동시성 소유권은 생성자와 메서드의 한국어 주석 및 테스트 계약을 따른다.
 type AwaitStatus int
 
 const (
@@ -21,16 +22,20 @@ const (
 	AwaitFailure
 )
 
-// AwaitProbe observes an eventually consistent value.
+// AwaitProbe는 func 공개 타입이며 테스트 helper의 timeout, cancellation, cleanup 계약을 보존한다.
+// 필드와 zero value, nil 허용 여부, 동시성 소유권은 생성자와 메서드의 한국어 주석 및 테스트 계약을 따른다.
 type AwaitProbe[T any] func(context.Context) (T, error)
 
-// AwaitCheck classifies a probe observation.
+// AwaitCheck는 func 공개 타입이며 테스트 helper의 timeout, cancellation, cleanup 계약을 보존한다.
+// 필드와 zero value, nil 허용 여부, 동시성 소유권은 생성자와 메서드의 한국어 주석 및 테스트 계약을 따른다.
 type AwaitCheck[T any] func(T, error) AwaitStatus
 
-// AwaitErrorProbe observes an eventually expected error state.
+// AwaitErrorProbe는 func 공개 타입이며 테스트 helper의 timeout, cancellation, cleanup 계약을 보존한다.
+// 필드와 zero value, nil 허용 여부, 동시성 소유권은 생성자와 메서드의 한국어 주석 및 테스트 계약을 따른다.
 type AwaitErrorProbe func(context.Context) error
 
-// AwaitResult contains the final observation made by an await helper.
+// AwaitResult는 struct 공개 타입이며 테스트 helper의 timeout, cancellation, cleanup 계약을 보존한다.
+// 필드와 zero value, nil 허용 여부, 동시성 소유권은 생성자와 메서드의 한국어 주석 및 테스트 계약을 따른다.
 type AwaitResult[T any] struct {
 	// Value is the final value returned by the probe.
 	Value T
@@ -42,7 +47,16 @@ type AwaitResult[T any] struct {
 	Elapsed time.Duration
 }
 
-// CheckAwait polls probe until check reports success or failure.
+// CheckAwait는 CheckAwait 공개 API의 동작을 수행하며 테스트 helper의 timeout, cancellation, cleanup 계약을 보존한다.
+//
+// 매개변수:
+//   - ctx: 호출자가 소유한 취소, deadline, 요청 범위를 전달한다.
+//   - timeout: CheckAwait 동작에 필요한 timeout 값이다. zero value, 범위, nil 허용 여부는 함수 계약을 따른다.
+//   - interval: CheckAwait 동작에 필요한 interval 값이다. zero value, 범위, nil 허용 여부는 함수 계약을 따른다.
+//   - probe: CheckAwait 동작에 필요한 probe 값이다. zero value, 범위, nil 허용 여부는 함수 계약을 따른다.
+//   - check: CheckAwait 동작에 필요한 check 값이다. zero value, 범위, nil 허용 여부는 함수 계약을 따른다.
+//
+// 반환 오류는 입력 검증 실패, 취소, deadline, 상태 전이 실패, 또는 패키지 sentinel/typed error 계약을 보존한다.
 func CheckAwait[T any](
 	ctx context.Context,
 	timeout time.Duration,
@@ -111,7 +125,15 @@ func CheckAwait[T any](
 	}
 }
 
-// RequireAwait fails tb when CheckAwait fails.
+// RequireAwait는 RequireAwait 공개 API의 동작을 수행하며 테스트 helper의 timeout, cancellation, cleanup 계약을 보존한다.
+//
+// 매개변수:
+//   - ctx: 호출자가 소유한 취소, deadline, 요청 범위를 전달한다.
+//   - tb: RequireAwait 동작에 필요한 tb 값이다. zero value, 범위, nil 허용 여부는 함수 계약을 따른다.
+//   - timeout: RequireAwait 동작에 필요한 timeout 값이다. zero value, 범위, nil 허용 여부는 함수 계약을 따른다.
+//   - interval: RequireAwait 동작에 필요한 interval 값이다. zero value, 범위, nil 허용 여부는 함수 계약을 따른다.
+//   - probe: RequireAwait 동작에 필요한 probe 값이다. zero value, 범위, nil 허용 여부는 함수 계약을 따른다.
+//   - check: RequireAwait 동작에 필요한 check 값이다. zero value, 범위, nil 허용 여부는 함수 계약을 따른다.
 func RequireAwait[T any](
 	ctx context.Context,
 	tb testing.TB,
@@ -129,7 +151,16 @@ func RequireAwait[T any](
 	return result
 }
 
-// CheckAwaitValue polls probe until the observed value equals want.
+// CheckAwaitValue는 CheckAwaitValue 공개 API의 동작을 수행하며 테스트 helper의 timeout, cancellation, cleanup 계약을 보존한다.
+//
+// 매개변수:
+//   - ctx: 호출자가 소유한 취소, deadline, 요청 범위를 전달한다.
+//   - timeout: CheckAwaitValue 동작에 필요한 timeout 값이다. zero value, 범위, nil 허용 여부는 함수 계약을 따른다.
+//   - interval: CheckAwaitValue 동작에 필요한 interval 값이다. zero value, 범위, nil 허용 여부는 함수 계약을 따른다.
+//   - probe: CheckAwaitValue 동작에 필요한 probe 값이다. zero value, 범위, nil 허용 여부는 함수 계약을 따른다.
+//   - want: CheckAwaitValue 동작에 필요한 want 값이다. zero value, 범위, nil 허용 여부는 함수 계약을 따른다.
+//
+// 반환 오류는 입력 검증 실패, 취소, deadline, 상태 전이 실패, 또는 패키지 sentinel/typed error 계약을 보존한다.
 func CheckAwaitValue[T comparable](
 	ctx context.Context,
 	timeout time.Duration,
@@ -145,7 +176,15 @@ func CheckAwaitValue[T comparable](
 	})
 }
 
-// RequireAwaitValue fails tb when CheckAwaitValue fails.
+// RequireAwaitValue는 RequireAwaitValue 공개 API의 동작을 수행하며 테스트 helper의 timeout, cancellation, cleanup 계약을 보존한다.
+//
+// 매개변수:
+//   - ctx: 호출자가 소유한 취소, deadline, 요청 범위를 전달한다.
+//   - tb: RequireAwaitValue 동작에 필요한 tb 값이다. zero value, 범위, nil 허용 여부는 함수 계약을 따른다.
+//   - timeout: RequireAwaitValue 동작에 필요한 timeout 값이다. zero value, 범위, nil 허용 여부는 함수 계약을 따른다.
+//   - interval: RequireAwaitValue 동작에 필요한 interval 값이다. zero value, 범위, nil 허용 여부는 함수 계약을 따른다.
+//   - probe: RequireAwaitValue 동작에 필요한 probe 값이다. zero value, 범위, nil 허용 여부는 함수 계약을 따른다.
+//   - want: RequireAwaitValue 동작에 필요한 want 값이다. zero value, 범위, nil 허용 여부는 함수 계약을 따른다.
 func RequireAwaitValue[T comparable](
 	ctx context.Context,
 	tb testing.TB,
@@ -163,7 +202,16 @@ func RequireAwaitValue[T comparable](
 	return result
 }
 
-// CheckAwaitError polls probe until its error matches target.
+// CheckAwaitError는 CheckAwaitError 공개 API의 동작을 수행하며 테스트 helper의 timeout, cancellation, cleanup 계약을 보존한다.
+//
+// 매개변수:
+//   - ctx: 호출자가 소유한 취소, deadline, 요청 범위를 전달한다.
+//   - timeout: CheckAwaitError 동작에 필요한 timeout 값이다. zero value, 범위, nil 허용 여부는 함수 계약을 따른다.
+//   - interval: CheckAwaitError 동작에 필요한 interval 값이다. zero value, 범위, nil 허용 여부는 함수 계약을 따른다.
+//   - probe: CheckAwaitError 동작에 필요한 probe 값이다. zero value, 범위, nil 허용 여부는 함수 계약을 따른다.
+//   - target: 검사하거나 감쌀 오류 값이다.
+//
+// 반환 오류는 입력 검증 실패, 취소, deadline, 상태 전이 실패, 또는 패키지 sentinel/typed error 계약을 보존한다.
 func CheckAwaitError(
 	ctx context.Context,
 	timeout time.Duration,
@@ -189,7 +237,15 @@ func CheckAwaitError(
 	})
 }
 
-// RequireAwaitError fails tb when CheckAwaitError fails.
+// RequireAwaitError는 RequireAwaitError 공개 API의 동작을 수행하며 테스트 helper의 timeout, cancellation, cleanup 계약을 보존한다.
+//
+// 매개변수:
+//   - ctx: 호출자가 소유한 취소, deadline, 요청 범위를 전달한다.
+//   - tb: RequireAwaitError 동작에 필요한 tb 값이다. zero value, 범위, nil 허용 여부는 함수 계약을 따른다.
+//   - timeout: RequireAwaitError 동작에 필요한 timeout 값이다. zero value, 범위, nil 허용 여부는 함수 계약을 따른다.
+//   - interval: RequireAwaitError 동작에 필요한 interval 값이다. zero value, 범위, nil 허용 여부는 함수 계약을 따른다.
+//   - probe: RequireAwaitError 동작에 필요한 probe 값이다. zero value, 범위, nil 허용 여부는 함수 계약을 따른다.
+//   - target: 검사하거나 감쌀 오류 값이다.
 func RequireAwaitError(
 	ctx context.Context,
 	tb testing.TB,

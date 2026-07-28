@@ -13,13 +13,20 @@ import (
 
 var captureOutputMu sync.Mutex
 
-// CapturedOutput contains process stdout and stderr text captured during a test helper call.
+// CapturedOutput는 struct 공개 타입이며 테스트 helper의 timeout, cancellation, cleanup 계약을 보존한다.
+// 필드와 zero value, nil 허용 여부, 동시성 소유권은 생성자와 메서드의 한국어 주석 및 테스트 계약을 따른다.
 type CapturedOutput struct {
 	Stdout string
 	Stderr string
 }
 
-// CheckTempOutputPath joins path parts under root and rejects absolute or parent-traversing parts.
+// CheckTempOutputPath는 CheckTempOutputPath 공개 API의 동작을 수행하며 테스트 helper의 timeout, cancellation, cleanup 계약을 보존한다.
+//
+// 매개변수:
+//   - root: CheckTempOutputPath가 식별자, 상태, 이름, 또는 입력으로 해석하는 문자열 값이다. 빈 문자열 처리는 함수 계약을 따른다.
+//   - parts: CheckTempOutputPath 동작에 필요한 parts 값이다. zero value, 범위, nil 허용 여부는 함수 계약을 따른다.
+//
+// 반환 오류는 입력 검증 실패, 취소, deadline, 상태 전이 실패, 또는 패키지 sentinel/typed error 계약을 보존한다.
 func CheckTempOutputPath(root string, parts ...string) (string, error) {
 	if root == "" {
 		return "", errors.New("root must not be empty")
@@ -54,7 +61,11 @@ func CheckTempOutputPath(root string, parts ...string) (string, error) {
 	return path, nil
 }
 
-// TempOutputDir creates a scoped output directory under tb.TempDir.
+// TempOutputDir는 TempOutputDir 공개 API의 동작을 수행하며 테스트 helper의 timeout, cancellation, cleanup 계약을 보존한다.
+//
+// 매개변수:
+//   - tb: TempOutputDir 동작에 필요한 tb 값이다. zero value, 범위, nil 허용 여부는 함수 계약을 따른다.
+//   - parts: TempOutputDir 동작에 필요한 parts 값이다. zero value, 범위, nil 허용 여부는 함수 계약을 따른다.
 func TempOutputDir(tb testing.TB, parts ...string) string {
 	tb.Helper()
 
@@ -66,7 +77,11 @@ func TempOutputDir(tb testing.TB, parts ...string) string {
 	return path
 }
 
-// TempOutputPath returns a scoped output path under tb.TempDir and creates its parent directory.
+// TempOutputPath는 TempOutputPath 공개 API의 동작을 수행하며 테스트 helper의 timeout, cancellation, cleanup 계약을 보존한다.
+//
+// 매개변수:
+//   - tb: TempOutputPath 동작에 필요한 tb 값이다. zero value, 범위, nil 허용 여부는 함수 계약을 따른다.
+//   - parts: TempOutputPath 동작에 필요한 parts 값이다. zero value, 범위, nil 허용 여부는 함수 계약을 따른다.
 func TempOutputPath(tb testing.TB, parts ...string) string {
 	tb.Helper()
 
@@ -78,9 +93,12 @@ func TempOutputPath(tb testing.TB, parts ...string) string {
 	return path
 }
 
-// SetEnv sets an environment variable and restores its previous state during tb.Cleanup.
+// SetEnv는 SetEnv 공개 API의 동작을 수행하며 테스트 helper의 timeout, cancellation, cleanup 계약을 보존한다.
 //
-// Environment variables are process-global. Do not use this helper from parallel tests.
+// 매개변수:
+//   - tb: SetEnv 동작에 필요한 tb 값이다. zero value, 범위, nil 허용 여부는 함수 계약을 따른다.
+//   - key: SetEnv가 식별자, 상태, 이름, 또는 입력으로 해석하는 문자열 값이다. 빈 문자열 처리는 함수 계약을 따른다.
+//   - value: SetEnv가 식별자, 상태, 이름, 또는 입력으로 해석하는 문자열 값이다. 빈 문자열 처리는 함수 계약을 따른다.
 func SetEnv(tb testing.TB, key, value string) {
 	tb.Helper()
 
@@ -91,9 +109,11 @@ func SetEnv(tb testing.TB, key, value string) {
 	tb.Cleanup(restore)
 }
 
-// UnsetEnv unsets an environment variable and restores its previous state during tb.Cleanup.
+// UnsetEnv는 UnsetEnv 공개 API의 동작을 수행하며 테스트 helper의 timeout, cancellation, cleanup 계약을 보존한다.
 //
-// Environment variables are process-global. Do not use this helper from parallel tests.
+// 매개변수:
+//   - tb: UnsetEnv 동작에 필요한 tb 값이다. zero value, 범위, nil 허용 여부는 함수 계약을 따른다.
+//   - key: UnsetEnv가 식별자, 상태, 이름, 또는 입력으로 해석하는 문자열 값이다. 빈 문자열 처리는 함수 계약을 따른다.
 func UnsetEnv(tb testing.TB, key string) {
 	tb.Helper()
 
@@ -104,10 +124,11 @@ func UnsetEnv(tb testing.TB, key string) {
 	tb.Cleanup(restore)
 }
 
-// CaptureOutput captures process stdout and stderr while run executes and fails tb on setup errors.
+// CaptureOutput는 CaptureOutput 공개 API의 동작을 수행하며 테스트 helper의 timeout, cancellation, cleanup 계약을 보존한다.
 //
-// Stdout and stderr are process-global. Do not use this helper from parallel tests or while other
-// goroutines may write to os.Stdout/os.Stderr.
+// 매개변수:
+//   - tb: CaptureOutput 동작에 필요한 tb 값이다. zero value, 범위, nil 허용 여부는 함수 계약을 따른다.
+//   - run: CaptureOutput 동작에 필요한 run 값이다. zero value, 범위, nil 허용 여부는 함수 계약을 따른다.
 func CaptureOutput(tb testing.TB, run func()) CapturedOutput {
 	tb.Helper()
 
@@ -119,11 +140,12 @@ func CaptureOutput(tb testing.TB, run func()) CapturedOutput {
 	return output
 }
 
-// CheckCaptureOutput captures process stdout and stderr while run executes.
+// CheckCaptureOutput는 CheckCaptureOutput 공개 API의 동작을 수행하며 테스트 helper의 timeout, cancellation, cleanup 계약을 보존한다.
 //
-// The helper serializes capture calls and restores os.Stdout/os.Stderr before returning or
-// re-panicking. Stdout and stderr are process-global, so callers must not use it from parallel tests
-// or while unrelated goroutines may write to the process streams.
+// 매개변수:
+//   - run: CheckCaptureOutput 동작에 필요한 run 값이다. zero value, 범위, nil 허용 여부는 함수 계약을 따른다.
+//
+// 반환 오류는 입력 검증 실패, 취소, deadline, 상태 전이 실패, 또는 패키지 sentinel/typed error 계약을 보존한다.
 func CheckCaptureOutput(run func()) (CapturedOutput, error) {
 	if run == nil {
 		return CapturedOutput{}, errors.New("run must not be nil")

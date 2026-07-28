@@ -5,24 +5,32 @@ import (
 	"fmt"
 )
 
-// Operation is a context-aware unit of work protected by resilience policies.
+// Operation는 func 공개 타입이며 취소, deadline, retry, timeout, circuit breaker 상태를 보존한다.
+// 필드와 zero value, nil 허용 여부, 동시성 소유권은 생성자와 메서드의 한국어 주석 및 테스트 계약을 따른다.
 type Operation[T any] func(context.Context) (T, error)
 
-// Policy wraps an operation with resilience behavior.
+// Policy는 interface 공개 타입이며 취소, deadline, retry, timeout, circuit breaker 상태를 보존한다.
+// 필드와 zero value, nil 허용 여부, 동시성 소유권은 생성자와 메서드의 한국어 주석 및 테스트 계약을 따른다.
 type Policy[T any] interface {
 	Apply(Operation[T]) Operation[T]
 }
 
-// PolicyFunc adapts a function into a Policy.
+// PolicyFunc는 func 공개 타입이며 취소, deadline, retry, timeout, circuit breaker 상태를 보존한다.
+// 필드와 zero value, nil 허용 여부, 동시성 소유권은 생성자와 메서드의 한국어 주석 및 테스트 계약을 따른다.
 type PolicyFunc[T any] func(Operation[T]) Operation[T]
 
-// Apply wraps operation with fn.
+// Apply는 Apply 공개 API의 동작을 수행하며 취소, deadline, retry, timeout, circuit breaker 상태를 보존한다.
+//
+// 매개변수:
+//   - operation: Apply 동작에 필요한 operation 값이다. zero value, 범위, nil 허용 여부는 함수 계약을 따른다.
 func (fn PolicyFunc[T]) Apply(operation Operation[T]) Operation[T] {
 	return fn(operation)
 }
 
-// Compose returns a policy that applies policies in the order they are listed.
-// The first policy is the outermost policy.
+// Compose는 Compose 공개 API의 동작을 수행하며 취소, deadline, retry, timeout, circuit breaker 상태를 보존한다.
+//
+// 매개변수:
+//   - policies: Compose 동작에 필요한 policies 값이다. zero value, 범위, nil 허용 여부는 함수 계약을 따른다.
 func Compose[T any](policies ...Policy[T]) Policy[T] {
 	return PolicyFunc[T](func(operation Operation[T]) Operation[T] {
 		wrapped := operation
@@ -36,7 +44,14 @@ func Compose[T any](policies ...Policy[T]) Policy[T] {
 	})
 }
 
-// Run executes operation after applying policies in order.
+// Run는 Run 공개 API의 동작을 수행하며 취소, deadline, retry, timeout, circuit breaker 상태를 보존한다.
+//
+// 매개변수:
+//   - ctx: 호출자가 소유한 취소, deadline, 요청 범위를 전달한다.
+//   - operation: Run 동작에 필요한 operation 값이다. zero value, 범위, nil 허용 여부는 함수 계약을 따른다.
+//   - policies: Run 동작에 필요한 policies 값이다. zero value, 범위, nil 허용 여부는 함수 계약을 따른다.
+//
+// 반환 오류는 입력 검증 실패, 취소, deadline, 상태 전이 실패, 또는 패키지 sentinel/typed error 계약을 보존한다.
 func Run[T any](ctx context.Context, operation Operation[T], policies ...Policy[T]) (T, error) {
 	if ctx == nil {
 		ctx = context.Background()

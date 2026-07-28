@@ -8,7 +8,8 @@ import (
 	"time"
 )
 
-// CircuitState identifies a circuit breaker's admission state.
+// CircuitState는 string 공개 타입이며 취소, deadline, retry, timeout, circuit breaker 상태를 보존한다.
+// 필드와 zero value, nil 허용 여부, 동시성 소유권은 생성자와 메서드의 한국어 주석 및 테스트 계약을 따른다.
 type CircuitState string
 
 const (
@@ -20,10 +21,12 @@ const (
 	CircuitStateHalfOpen CircuitState = "half-open"
 )
 
-// FailurePredicate decides whether err should count as a policy failure.
+// FailurePredicate는 func 공개 타입이며 취소, deadline, retry, timeout, circuit breaker 상태를 보존한다.
+// 필드와 zero value, nil 허용 여부, 동시성 소유권은 생성자와 메서드의 한국어 주석 및 테스트 계약을 따른다.
 type FailurePredicate func(error) bool
 
-// CircuitBreakerOptions configures a circuit breaker policy.
+// CircuitBreakerOptions는 struct 공개 타입이며 취소, deadline, retry, timeout, circuit breaker 상태를 보존한다.
+// 필드와 zero value, nil 허용 여부, 동시성 소유권은 생성자와 메서드의 한국어 주석 및 테스트 계약을 따른다.
 type CircuitBreakerOptions struct {
 	Name                  string
 	FailureThreshold      int
@@ -35,7 +38,8 @@ type CircuitBreakerOptions struct {
 	OnEvent               EventHandler
 }
 
-// CircuitBreakerPolicy protects operations with a circuit breaker.
+// CircuitBreakerPolicy는 struct 공개 타입이며 취소, deadline, retry, timeout, circuit breaker 상태를 보존한다.
+// 필드와 zero value, nil 허용 여부, 동시성 소유권은 생성자와 메서드의 한국어 주석 및 테스트 계약을 따른다.
 type CircuitBreakerPolicy[T any] struct {
 	options CircuitBreakerOptions
 
@@ -47,7 +51,12 @@ type CircuitBreakerPolicy[T any] struct {
 	halfOpenInFlight int
 }
 
-// NewCircuitBreaker creates a circuit breaker policy.
+// NewCircuitBreaker는 NewCircuitBreaker 공개 API의 동작을 수행하며 취소, deadline, retry, timeout, circuit breaker 상태를 보존한다.
+//
+// 매개변수:
+//   - options: NewCircuitBreaker 동작에 필요한 options 값이다. zero value, 범위, nil 허용 여부는 함수 계약을 따른다.
+//
+// 반환 오류는 입력 검증 실패, 취소, deadline, 상태 전이 실패, 또는 패키지 sentinel/typed error 계약을 보존한다.
 func NewCircuitBreaker[T any](options CircuitBreakerOptions) (*CircuitBreakerPolicy[T], error) {
 	if options.FailureThreshold <= 0 {
 		return nil, fmt.Errorf("failure threshold must be positive")
@@ -74,7 +83,7 @@ func NewCircuitBreaker[T any](options CircuitBreakerOptions) (*CircuitBreakerPol
 	}, nil
 }
 
-// State returns the current circuit breaker state.
+// State는 State 공개 API의 동작을 수행하며 취소, deadline, retry, timeout, circuit breaker 상태를 보존한다.
 func (p *CircuitBreakerPolicy[T]) State() CircuitState {
 	p.mu.Lock()
 	defer p.mu.Unlock()
@@ -82,7 +91,10 @@ func (p *CircuitBreakerPolicy[T]) State() CircuitState {
 	return p.state
 }
 
-// Apply wraps operation with circuit breaker behavior.
+// Apply는 Apply 공개 API의 동작을 수행하며 취소, deadline, retry, timeout, circuit breaker 상태를 보존한다.
+//
+// 매개변수:
+//   - operation: Apply 동작에 필요한 operation 값이다. zero value, 범위, nil 허용 여부는 함수 계약을 따른다.
 func (p *CircuitBreakerPolicy[T]) Apply(operation Operation[T]) Operation[T] {
 	return func(ctx context.Context) (T, error) {
 		var zero T

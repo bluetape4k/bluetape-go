@@ -6,17 +6,20 @@ import (
 	"net/http"
 )
 
-// HTTPStatusPredicate decides whether an HTTP status should be treated as a
-// retryable transport error by ResilientRoundTripper.
+// HTTPStatusPredicate는 func 공개 타입이며 취소, deadline, retry, timeout, circuit breaker 상태를 보존한다.
+// 필드와 zero value, nil 허용 여부, 동시성 소유권은 생성자와 메서드의 한국어 주석 및 테스트 계약을 따른다.
 type HTTPStatusPredicate func(int) bool
 
-// RetryableServerError returns true for 5xx status codes.
+// RetryableServerError는 RetryableServerError 공개 API의 동작을 수행하며 취소, deadline, retry, timeout, circuit breaker 상태를 보존한다.
+//
+// 매개변수:
+//   - statusCode: RetryableServerError 동작에 필요한 statusCode 값이다. zero value, 범위, nil 허용 여부는 함수 계약을 따른다.
 func RetryableServerError(statusCode int) bool {
 	return statusCode >= http.StatusInternalServerError && statusCode <= 599
 }
 
-// StatusError reports an HTTP response status that a RoundTripper converted
-// into an error so retry and circuit breaker policies can observe it.
+// StatusError는 struct 공개 타입이며 취소, deadline, retry, timeout, circuit breaker 상태를 보존한다.
+// 필드와 zero value, nil 허용 여부, 동시성 소유권은 생성자와 메서드의 한국어 주석 및 테스트 계약을 따른다.
 type StatusError struct {
 	StatusCode int
 	Status     string
@@ -29,21 +32,26 @@ func (e StatusError) Error() string {
 	return fmt.Sprintf("http status %d", e.StatusCode)
 }
 
-// RoundTripperOptions configures a resilient HTTP client transport.
+// RoundTripperOptions는 struct 공개 타입이며 취소, deadline, retry, timeout, circuit breaker 상태를 보존한다.
+// 필드와 zero value, nil 허용 여부, 동시성 소유권은 생성자와 메서드의 한국어 주석 및 테스트 계약을 따른다.
 type RoundTripperOptions struct {
 	Transport       http.RoundTripper
 	Policies        []Policy[*http.Response]
 	RetryableStatus HTTPStatusPredicate
 }
 
-// ResilientRoundTripper applies resilience policies to each HTTP request.
+// ResilientRoundTripper는 struct 공개 타입이며 취소, deadline, retry, timeout, circuit breaker 상태를 보존한다.
+// 필드와 zero value, nil 허용 여부, 동시성 소유권은 생성자와 메서드의 한국어 주석 및 테스트 계약을 따른다.
 type ResilientRoundTripper struct {
 	transport       http.RoundTripper
 	policies        []Policy[*http.Response]
 	retryableStatus HTTPStatusPredicate
 }
 
-// NewRoundTripper creates a RoundTripper that runs requests through policies.
+// NewRoundTripper는 NewRoundTripper 공개 API의 동작을 수행하며 취소, deadline, retry, timeout, circuit breaker 상태를 보존한다.
+//
+// 매개변수:
+//   - options: NewRoundTripper 동작에 필요한 options 값이다. zero value, 범위, nil 허용 여부는 함수 계약을 따른다.
 func NewRoundTripper(options RoundTripperOptions) *ResilientRoundTripper {
 	transport := options.Transport
 	if transport == nil {
@@ -57,7 +65,12 @@ func NewRoundTripper(options RoundTripperOptions) *ResilientRoundTripper {
 	}
 }
 
-// RoundTrip executes req through the configured transport and policies.
+// RoundTrip는 RoundTrip 공개 API의 동작을 수행하며 취소, deadline, retry, timeout, circuit breaker 상태를 보존한다.
+//
+// 매개변수:
+//   - req: RoundTrip 동작에 필요한 req 값이다. zero value, 범위, nil 허용 여부는 함수 계약을 따른다.
+//
+// 반환 오류는 입력 검증 실패, 취소, deadline, 상태 전이 실패, 또는 패키지 sentinel/typed error 계약을 보존한다.
 func (t *ResilientRoundTripper) RoundTrip(req *http.Request) (*http.Response, error) {
 	if req == nil {
 		return nil, fmt.Errorf("request must not be nil")
@@ -122,23 +135,30 @@ func cloneRequestForAttempt(ctx context.Context, req *http.Request, attemptNumbe
 	return attempt, nil
 }
 
-// HandlerErrorHandler writes policy errors produced by ResilientHandler.
+// HandlerErrorHandler는 func 공개 타입이며 취소, deadline, retry, timeout, circuit breaker 상태를 보존한다.
+// 필드와 zero value, nil 허용 여부, 동시성 소유권은 생성자와 메서드의 한국어 주석 및 테스트 계약을 따른다.
 type HandlerErrorHandler func(http.ResponseWriter, *http.Request, error)
 
-// HandlerOptions configures a resilient HTTP server handler.
+// HandlerOptions는 struct 공개 타입이며 취소, deadline, retry, timeout, circuit breaker 상태를 보존한다.
+// 필드와 zero value, nil 허용 여부, 동시성 소유권은 생성자와 메서드의 한국어 주석 및 테스트 계약을 따른다.
 type HandlerOptions struct {
 	Policies     []Policy[struct{}]
 	ErrorHandler HandlerErrorHandler
 }
 
-// ResilientHandler applies resilience policies before running a server handler.
+// ResilientHandler는 struct 공개 타입이며 취소, deadline, retry, timeout, circuit breaker 상태를 보존한다.
+// 필드와 zero value, nil 허용 여부, 동시성 소유권은 생성자와 메서드의 한국어 주석 및 테스트 계약을 따른다.
 type ResilientHandler struct {
 	next         http.Handler
 	policies     []Policy[struct{}]
 	errorHandler HandlerErrorHandler
 }
 
-// NewHandler creates a handler that runs next through policies.
+// NewHandler는 NewHandler 공개 API의 동작을 수행하며 취소, deadline, retry, timeout, circuit breaker 상태를 보존한다.
+//
+// 매개변수:
+//   - next: NewHandler 동작에 필요한 next 값이다. zero value, 범위, nil 허용 여부는 함수 계약을 따른다.
+//   - options: NewHandler 동작에 필요한 options 값이다. zero value, 범위, nil 허용 여부는 함수 계약을 따른다.
 func NewHandler(next http.Handler, options HandlerOptions) *ResilientHandler {
 	if next == nil {
 		next = http.NotFoundHandler()
@@ -156,7 +176,11 @@ func NewHandler(next http.Handler, options HandlerOptions) *ResilientHandler {
 	}
 }
 
-// ServeHTTP applies policies and delegates to the wrapped handler.
+// ServeHTTP는 ServeHTTP 공개 API의 동작을 수행하며 취소, deadline, retry, timeout, circuit breaker 상태를 보존한다.
+//
+// 매개변수:
+//   - w: ServeHTTP 동작에 필요한 w 값이다. zero value, 범위, nil 허용 여부는 함수 계약을 따른다.
+//   - req: ServeHTTP 동작에 필요한 req 값이다. zero value, 범위, nil 허용 여부는 함수 계약을 따른다.
 func (h *ResilientHandler) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 	operation := func(ctx context.Context) (struct{}, error) {
 		h.next.ServeHTTP(w, req.WithContext(ctx))

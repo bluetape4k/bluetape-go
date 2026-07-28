@@ -1,16 +1,14 @@
-// Package batch provides a small context-aware chunk processing core.
+// Package batch는 context-aware chunk 처리 코어를 제공한다.
 //
-// A Step reads one input item at a time, processes it, and writes processed
-// items in chunks. A Job runs one or more steps sequentially and stops at the
-// first failed or cancelled step.
+// Step은 입력 항목을 하나씩 읽고, 처리한 뒤, 처리 결과를 chunk 단위로 기록한다.
+// Job은 하나 이상의 step을 순서대로 실행하며 실패하거나 취소된 step에서 중단한다.
 //
-// NewStep preserves the legacy Writer + CheckpointStore path. That path can use
-// durable checkpoint storage, but it is not atomic with business writes because
-// Writer.Write and CheckpointStore.Save are separate operations. NewAtomicStep
-// is the additive opt-in path for an AtomicCheckpointWriter that commits output
-// and reader progress together.
+// NewStep은 기존 Writer + CheckpointStore 경로를 보존한다. 이 경로는 durable
+// checkpoint 저장소를 사용할 수 있지만, Writer.Write와 CheckpointStore.Save가
+// 별도 작업이므로 business write와 atomic하지 않다. NewAtomicStep은
+// AtomicCheckpointWriter가 출력과 reader progress를 함께 commit하는 opt-in 경로다.
 //
-// In an atomic step, RetryPolicy and SkipPolicy apply to processor failures only.
-// They never apply to AtomicCheckpointWriter.Commit, its business callback,
-// checkpoint CAS, or commit-unknown and atomicity-unknown unknown-outcome errors.
+// atomic step에서 RetryPolicy와 SkipPolicy는 processor failures에만 적용된다.
+// 이 정책은 AtomicCheckpointWriter.Commit, business callback, checkpoint CAS,
+// commit-unknown 및 atomicity-unknown unknown-outcome 오류에는 적용되지 않는다.
 package batch

@@ -14,10 +14,12 @@ const (
 	defaultRoundsPerTask = 1
 )
 
-// Task is a context-aware test body.
+// Task는 func 공개 타입이며 테스트 helper의 timeout, cancellation, cleanup 계약을 보존한다.
+// 필드와 zero value, nil 허용 여부, 동시성 소유권은 생성자와 메서드의 한국어 주석 및 테스트 계약을 따른다.
 type Task func(context.Context) error
 
-// Options configures a tester run.
+// Options는 struct 공개 타입이며 테스트 helper의 timeout, cancellation, cleanup 계약을 보존한다.
+// 필드와 zero value, nil 허용 여부, 동시성 소유권은 생성자와 메서드의 한국어 주석 및 테스트 계약을 따른다.
 type Options struct {
 	// Workers bounds the number of tasks that may run concurrently.
 	Workers int
@@ -57,7 +59,8 @@ func withTimeout(ctx context.Context, timeout time.Duration) (context.Context, c
 	return context.WithTimeout(ctx, timeout)
 }
 
-// Report summarizes a tester run.
+// Report는 struct 공개 타입이며 테스트 helper의 timeout, cancellation, cleanup 계약을 보존한다.
+// 필드와 zero value, nil 허용 여부, 동시성 소유권은 생성자와 메서드의 한국어 주석 및 테스트 계약을 따른다.
 type Report struct {
 	// Scheduled is the total number of task executions planned for the run.
 	Scheduled int
@@ -84,7 +87,8 @@ type Report struct {
 	Duration time.Duration
 }
 
-// RunError contains one or more task failures captured during a tester run.
+// RunError는 struct 공개 타입이며 테스트 helper의 timeout, cancellation, cleanup 계약을 보존한다.
+// 필드와 zero value, nil 허용 여부, 동시성 소유권은 생성자와 메서드의 한국어 주석 및 테스트 계약을 따른다.
 type RunError struct {
 	Errors []error
 }
@@ -103,7 +107,10 @@ func (e RunError) Error() string {
 	return "concurrency test failed: " + strings.Join(parts, "; ")
 }
 
-// Is reports whether any captured error matches target.
+// Is는 Is 공개 API의 동작을 수행하며 테스트 helper의 timeout, cancellation, cleanup 계약을 보존한다.
+//
+// 매개변수:
+//   - target: 검사하거나 감쌀 오류 값이다.
 func (e RunError) Is(target error) bool {
 	for _, err := range e.Errors {
 		if errors.Is(err, target) {
@@ -113,7 +120,10 @@ func (e RunError) Is(target error) bool {
 	return false
 }
 
-// As reports whether any captured error can be assigned to target.
+// As는 As 공개 API의 동작을 수행하며 테스트 helper의 timeout, cancellation, cleanup 계약을 보존한다.
+//
+// 매개변수:
+//   - target: As 동작에 필요한 target 값이다. zero value, 범위, nil 허용 여부는 함수 계약을 따른다.
 func (e RunError) As(target any) bool {
 	for _, err := range e.Errors {
 		if errors.As(err, target) {
