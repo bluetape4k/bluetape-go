@@ -5,8 +5,8 @@ import (
 	"sync"
 )
 
-// BloomFilter interface 공개 타입이며 Bloom filter의 capacity, false-positive rate, hasher, compatibility 계약을 보존한다.
-// 필드와 zero value, nil 허용 여부, 동시성 소유권은 생성자와 메서드의 한국어 주석 및 테스트 계약을 따른다.
+// BloomFilter 삭제를 지원하지 않는 goroutine-safe 인메모리 Bloom filter 계약입니다.
+// 구현은 패키지 내부로 제한되며 생성자는 패키지 생성 filter만 반환합니다.
 type BloomFilter[T any] interface {
 	ExpectedInsertions() uint64
 	FalsePositiveProbability() float64
@@ -39,13 +39,7 @@ type bloomFilter[T any] struct {
 
 func (f *bloomFilter[T]) sealedBloomFilter() {} //nolint:unused // 외부 BloomFilter 구현을 막는 sealing hook입니다.
 
-// NewBloomFilter NewBloomFilter 공개 API의 동작을 수행하며 Bloom filter의 capacity, false-positive rate, hasher, compatibility 계약을 보존한다.
-//
-// 매개변수:
-//   - cfg: NewBloomFilter에 전달되는 값이다. 허용 범위와 nil 처리 방식은 구현 검증을 따른다.
-//   - hasher: hash index를 계산하는 deterministic hasher다. compatibility와 seed 의미는 hasher 계약을 따른다.
-//
-// 반환 오류는 입력 검증 실패, compatibility 불일치, Redis/backend 실패, package sentinel error와 typed error를 그대로 드러낸다.
+// NewBloomFilter 명시적 Hasher를 사용하는 BloomFilter를 만듭니다.
 func NewBloomFilter[T any](cfg Config, hasher Hasher[T]) (BloomFilter[T], error) {
 	cfg, err := normalizeConfig(cfg)
 	if err != nil {
@@ -62,62 +56,52 @@ func NewBloomFilter[T any](cfg Config, hasher Hasher[T]) (BloomFilter[T], error)
 	}, nil
 }
 
-// NewStringBloomFilter NewStringBloomFilter 공개 API의 동작을 수행하며 Bloom filter의 capacity, false-positive rate, hasher, compatibility 계약을 보존한다.
-//
-// 매개변수:
-//   - cfg: NewStringBloomFilter에 전달되는 값이다. 허용 범위와 nil 처리 방식은 구현 검증을 따른다.
-//
-// 반환 오류는 입력 검증 실패, compatibility 불일치, Redis/backend 실패, package sentinel error와 typed error를 그대로 드러낸다.
+// NewStringBloomFilter string 값을 위한 BloomFilter를 만듭니다.
 func NewStringBloomFilter(cfg Config) (BloomFilter[string], error) {
 	return NewBloomFilter(cfg, stringHasher())
 }
 
-// NewBytesBloomFilter NewBytesBloomFilter 공개 API의 동작을 수행하며 Bloom filter의 capacity, false-positive rate, hasher, compatibility 계약을 보존한다.
-//
-// 매개변수:
-//   - cfg: NewBytesBloomFilter에 전달되는 값이다. 허용 범위와 nil 처리 방식은 구현 검증을 따른다.
-//
-// 반환 오류는 입력 검증 실패, compatibility 불일치, Redis/backend 실패, package sentinel error와 typed error를 그대로 드러낸다.
+// NewBytesBloomFilter byte slice 값을 위한 BloomFilter를 만듭니다.
 func NewBytesBloomFilter(cfg Config) (BloomFilter[[]byte], error) {
 	return NewBloomFilter(cfg, bytesHasher())
 }
 
-// ExpectedInsertions ExpectedInsertions 공개 API의 동작을 수행하며 Bloom filter의 capacity, false-positive rate, hasher, compatibility 계약을 보존한다.
+// ExpectedInsertions 필터 생성 시 가정한 예상 삽입 수를 반환합니다.
 func (f *bloomFilter[T]) ExpectedInsertions() uint64 {
 	f.mu.RLock()
 	defer f.mu.RUnlock()
 	return f.config.expectedInsertions
 }
 
-// FalsePositiveProbability FalsePositiveProbability 공개 API의 동작을 수행하며 Bloom filter의 capacity, false-positive rate, hasher, compatibility 계약을 보존한다.
+// FalsePositiveProbability 필터 생성 시 목표로 한 false-positive probability를 반환합니다.
 func (f *bloomFilter[T]) FalsePositiveProbability() float64 {
 	f.mu.RLock()
 	defer f.mu.RUnlock()
 	return f.config.falsePositiveProbability
 }
 
-// BitSize BitSize 공개 API의 동작을 수행하며 Bloom filter의 capacity, false-positive rate, hasher, compatibility 계약을 보존한다.
+// BitSize 내부 bitset 크기를 반환합니다.
 func (f *bloomFilter[T]) BitSize() uint64 {
 	f.mu.RLock()
 	defer f.mu.RUnlock()
 	return f.config.bitSize
 }
 
-// HashFunctionCount HashFunctionCount 공개 API의 동작을 수행하며 Bloom filter의 capacity, false-positive rate, hasher, compatibility 계약을 보존한다.
+// HashFunctionCount 값 하나당 계산하는 hash offset 수를 반환합니다.
 func (f *bloomFilter[T]) HashFunctionCount() uint64 {
 	f.mu.RLock()
 	defer f.mu.RUnlock()
 	return f.config.hashFunctionCount
 }
 
-// BitCount BitCount 공개 API의 동작을 수행하며 Bloom filter의 capacity, false-positive rate, hasher, compatibility 계약을 보존한다.
+// BitCount 현재 켜진 bit 개수를 반환합니다.
 func (f *bloomFilter[T]) BitCount() uint64 {
 	f.mu.RLock()
 	defer f.mu.RUnlock()
 	return f.bitCount
 }
 
-// IsEmpty IsEmpty 공개 API의 동작을 수행하며 Bloom filter의 capacity, false-positive rate, hasher, compatibility 계약을 보존한다.
+// IsEmpty 필터가 비어 있는지 반환합니다.
 func (f *bloomFilter[T]) IsEmpty() bool {
 	return f.BitCount() == 0
 }
@@ -197,21 +181,21 @@ func (f *bloomFilter[T]) PutAll(other BloomFilter[T]) error {
 	return nil
 }
 
-// ApproximateElementCount ApproximateElementCount 공개 API의 동작을 수행하며 Bloom filter의 capacity, false-positive rate, hasher, compatibility 계약을 보존한다.
+// ApproximateElementCount 현재 bit 포화도를 기준으로 삽입 수를 근사합니다.
 func (f *bloomFilter[T]) ApproximateElementCount() uint64 {
 	f.mu.RLock()
 	defer f.mu.RUnlock()
 	return approximateElementCount(f.bitCount, f.config.bitSize, f.config.hashFunctionCount)
 }
 
-// ExpectedFPP ExpectedFPP 공개 API의 동작을 수행하며 Bloom filter의 capacity, false-positive rate, hasher, compatibility 계약을 보존한다.
+// ExpectedFPP 현재 bit 포화도를 기준으로 기대 false-positive probability를 계산합니다.
 func (f *bloomFilter[T]) ExpectedFPP() float64 {
 	f.mu.RLock()
 	defer f.mu.RUnlock()
 	return expectedFPP(f.bitCount, f.config.bitSize, f.config.hashFunctionCount)
 }
 
-// Clear Clear 공개 API의 동작을 수행하며 Bloom filter의 capacity, false-positive rate, hasher, compatibility 계약을 보존한다.
+// Clear Bloom filter 상태를 초기화합니다.
 func (f *bloomFilter[T]) Clear() {
 	f.mu.Lock()
 	defer f.mu.Unlock()

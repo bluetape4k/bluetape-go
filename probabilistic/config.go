@@ -18,8 +18,7 @@ var (
 	ln2Squared = ln2 * ln2
 )
 
-// Config struct 공개 타입이며 Bloom filter의 capacity, false-positive rate, hasher, compatibility 계약을 보존한다.
-// 필드와 zero value, nil 허용 여부, 동시성 소유권은 생성자와 메서드의 한국어 주석 및 테스트 계약을 따른다.
+// Config Bloom filter 생성 설정입니다.
 type Config struct {
 	expectedInsertions       uint64
 	falsePositiveProbability float64
@@ -27,7 +26,7 @@ type Config struct {
 	hashFunctionCount        uint64
 }
 
-// DefaultConfig DefaultConfig 공개 API의 동작을 수행하며 Bloom filter의 capacity, false-positive rate, hasher, compatibility 계약을 보존한다.
+// DefaultConfig 기본 Bloom filter 설정을 반환합니다.
 func DefaultConfig() Config {
 	cfg, err := NewConfig(defaultExpectedInsertions, defaultFalsePositiveProbability)
 	if err != nil {
@@ -36,13 +35,7 @@ func DefaultConfig() Config {
 	return cfg
 }
 
-// NewConfig NewConfig 공개 API의 동작을 수행하며 Bloom filter의 capacity, false-positive rate, hasher, compatibility 계약을 보존한다.
-//
-// 매개변수:
-//   - expectedInsertions: NewConfig에 전달되는 값이다. 허용 범위와 nil 처리 방식은 구현 검증을 따른다.
-//   - falsePositiveProbability: 허용할 false-positive 확률이다. 0과 1 경계값 의미는 config 계약을 따른다.
-//
-// 반환 오류는 입력 검증 실패, compatibility 불일치, Redis/backend 실패, package sentinel error와 typed error를 그대로 드러낸다.
+// NewConfig 예상 삽입 수와 목표 false-positive probability로 설정을 만듭니다.
 func NewConfig(expectedInsertions uint64, falsePositiveProbability float64) (Config, error) {
 	if expectedInsertions == 0 {
 		return Config{}, ConfigError{Field: "expectedInsertions", Err: fmt.Errorf("must be greater than zero")}
@@ -68,22 +61,22 @@ func NewConfig(expectedInsertions uint64, falsePositiveProbability float64) (Con
 	}, nil
 }
 
-// ExpectedInsertions ExpectedInsertions 공개 API의 동작을 수행하며 Bloom filter의 capacity, false-positive rate, hasher, compatibility 계약을 보존한다.
+// ExpectedInsertions 설정이 가정한 예상 삽입 수를 반환합니다.
 func (c Config) ExpectedInsertions() uint64 {
 	return c.normalized().expectedInsertions
 }
 
-// FalsePositiveProbability FalsePositiveProbability 공개 API의 동작을 수행하며 Bloom filter의 capacity, false-positive rate, hasher, compatibility 계약을 보존한다.
+// FalsePositiveProbability 설정의 목표 false-positive probability를 반환합니다.
 func (c Config) FalsePositiveProbability() float64 {
 	return c.normalized().falsePositiveProbability
 }
 
-// BitSize BitSize 공개 API의 동작을 수행하며 Bloom filter의 capacity, false-positive rate, hasher, compatibility 계약을 보존한다.
+// BitSize 계산된 bitset 크기를 반환합니다.
 func (c Config) BitSize() uint64 {
 	return c.normalized().bitSize
 }
 
-// HashFunctionCount HashFunctionCount 공개 API의 동작을 수행하며 Bloom filter의 capacity, false-positive rate, hasher, compatibility 계약을 보존한다.
+// HashFunctionCount 값 하나당 계산할 hash offset 수를 반환합니다.
 func (c Config) HashFunctionCount() uint64 {
 	return c.normalized().hashFunctionCount
 }

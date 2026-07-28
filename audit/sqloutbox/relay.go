@@ -16,22 +16,14 @@ const (
 	defaultIdleDelay   = 100 * time.Millisecond
 )
 
-// Publisher publishes one claimed outbox record.
-//
-// Delivery is at-least-once: the same Record can be passed to Publish more
-// than once after a retry or an expired claim lease. Implementations and
-// downstream consumers must use Record.EventID or Record.IdempotencyKey for
-// idempotency.
-//
-// If the caller-owned context is cancelled or reaches its deadline, Publish
-// should return that context error, possibly wrapped. Relay treats caller
-// cancellation as shutdown and does not convert it into retry or dead-letter
-// state.
+// Publisher interface 공개 타입이며 SQL outbox store, relay, transaction, idempotent delivery 계약을 보존한다.
+// 필드와 zero value, nil 허용 여부, 동시성/transaction 소유권은 생성자와 메서드의 한국어 주석 및 테스트 계약을 따른다.
 type Publisher interface {
 	Publish(context.Context, Record) error
 }
 
-// RelayOptions configures outbox relay behavior.
+// RelayOptions struct 공개 타입이며 SQL outbox store, relay, transaction, idempotent delivery 계약을 보존한다.
+// 필드와 zero value, nil 허용 여부, 동시성/transaction 소유권은 생성자와 메서드의 한국어 주석 및 테스트 계약을 따른다.
 type RelayOptions struct {
 	ClaimLimit  int
 	MaxAttempts int
@@ -40,7 +32,8 @@ type RelayOptions struct {
 	Now         func() time.Time
 }
 
-// RelayResult summarizes one RunOnce batch.
+// RelayResult struct 공개 타입이며 SQL outbox store, relay, transaction, idempotent delivery 계약을 보존한다.
+// 필드와 zero value, nil 허용 여부, 동시성/transaction 소유권은 생성자와 메서드의 한국어 주석 및 테스트 계약을 따른다.
 type RelayResult struct {
 	Claimed      int
 	Published    int
@@ -48,7 +41,8 @@ type RelayResult struct {
 	DeadLettered int
 }
 
-// Relay claims pending records and sends them through a Publisher.
+// Relay struct 공개 타입이며 SQL outbox store, relay, transaction, idempotent delivery 계약을 보존한다.
+// 필드와 zero value, nil 허용 여부, 동시성/transaction 소유권은 생성자와 메서드의 한국어 주석 및 테스트 계약을 따른다.
 type Relay struct {
 	store      *Store
 	publisher  Publisher
@@ -59,7 +53,14 @@ type Relay struct {
 	now        func() time.Time
 }
 
-// NewRelay creates a relay over a Store and Publisher.
+// NewRelay NewRelay 공개 API의 동작을 수행하며 SQL outbox store, relay, transaction, idempotent delivery 계약을 보존한다.
+//
+// 매개변수:
+//   - store: SQL transaction 또는 outbox 저장소 backend다. commit/rollback 소유권은 호출자와 store 계약을 따른다.
+//   - publisher: outbox delivery 또는 relay publisher다. 중복 전송과 retry 의미는 outbox 계약을 따른다.
+//   - options: 적용할 옵션 목록이다. nil이면 기본값만 사용한다.
+//
+// 반환 오류는 입력 검증 실패, context 취소, transaction 실패, repository/outbox 실패, package sentinel error와 typed error를 그대로 드러낸다.
 func NewRelay(store *Store, publisher Publisher, options RelayOptions) (*Relay, error) {
 	if store == nil {
 		return nil, fmt.Errorf("%w: store must not be nil", ErrInvalidArgument)
@@ -112,7 +113,13 @@ func NewRelay(store *Store, publisher Publisher, options RelayOptions) (*Relay, 
 	}, nil
 }
 
-// RunOnce claims one batch and records publish success or failure state.
+// RunOnce RunOnce 공개 API의 동작을 수행하며 SQL outbox store, relay, transaction, idempotent delivery 계약을 보존한다.
+//
+// 매개변수:
+//   - ctx: 호출자가 소유한 취소, deadline, 요청 범위를 전달한다.
+//   - db: SQL transaction 또는 outbox 저장소 backend다. commit/rollback 소유권은 호출자와 store 계약을 따른다.
+//
+// 반환 오류는 입력 검증 실패, context 취소, transaction 실패, repository/outbox 실패, package sentinel error와 typed error를 그대로 드러낸다.
 func (r *Relay) RunOnce(ctx context.Context, db sqlkit.Session) (RelayResult, error) {
 	if r == nil {
 		return RelayResult{}, fmt.Errorf("%w: relay must not be nil", ErrInvalidArgument)
@@ -175,8 +182,13 @@ func isCallerCancellation(ctx context.Context, err error) bool {
 	return errors.Is(err, ctxErr)
 }
 
-// Run keeps publishing batches until the context is cancelled or an internal
-// store operation fails.
+// Run Run 공개 API의 동작을 수행하며 SQL outbox store, relay, transaction, idempotent delivery 계약을 보존한다.
+//
+// 매개변수:
+//   - ctx: 호출자가 소유한 취소, deadline, 요청 범위를 전달한다.
+//   - db: SQL transaction 또는 outbox 저장소 backend다. commit/rollback 소유권은 호출자와 store 계약을 따른다.
+//
+// 반환 오류는 입력 검증 실패, context 취소, transaction 실패, repository/outbox 실패, package sentinel error와 typed error를 그대로 드러낸다.
 func (r *Relay) Run(ctx context.Context, db sqlkit.Session) error {
 	if ctx == nil {
 		ctx = context.Background()
