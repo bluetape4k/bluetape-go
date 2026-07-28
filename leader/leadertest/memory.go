@@ -41,7 +41,7 @@ type memoryElector struct {
 	done        chan struct{}
 }
 
-// MemoryHarness는 race-safe in-memory reference implementation을 반환한다.
+// MemoryHarness race-safe in-memory reference implementation을 반환한다.
 func MemoryHarness() Harness {
 	backend := &memoryBackend{records: make(map[string]*memoryRecord)}
 	return Harness{

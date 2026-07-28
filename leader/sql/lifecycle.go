@@ -83,14 +83,14 @@ func (e *Elector) Resign(ctx context.Context) error {
 	return nil
 }
 
-// IsLeader는 이 elector가 현재 lease를 소유한다고 판단하는지 알려준다.
+// IsLeader 이 elector가 현재 lease를 소유한다고 판단하는지 알려준다.
 func (e *Elector) IsLeader() bool {
 	e.mu.RLock()
 	defer e.mu.RUnlock()
 	return e.owned
 }
 
-// Leader는 PostgreSQL에 기록된 active owner token을 반환한다.
+// Leader PostgreSQL에 기록된 active owner token을 반환한다.
 func (e *Elector) Leader(ctx context.Context) (string, error) {
 	if ctx == nil {
 		return "", leader.ErrInvalidContext

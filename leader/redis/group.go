@@ -50,7 +50,7 @@ return active
 
 const groupPollInterval = 50 * time.Millisecond
 
-// GroupElector 는 Redis ZSET 기반 multi-leader elector다.
+// GroupElector Redis ZSET 기반 multi-leader elector다.
 type GroupElector struct {
 	client redis.Cmdable
 	opts   leader.GroupOptions
@@ -64,7 +64,7 @@ type GroupElector struct {
 	done   chan struct{}
 }
 
-// NewGroup 는 Redis 기반 multi-leader elector를 만든다.
+// NewGroup Redis 기반 multi-leader elector를 만든다.
 func NewGroup(client redis.Cmdable, opts leader.GroupOptions) (*GroupElector, error) {
 	if client == nil {
 		return nil, errors.New("redis client must not be nil")
@@ -165,14 +165,14 @@ func (e *GroupElector) Resign(ctx context.Context) error {
 	return nil
 }
 
-// IsLeader 는 이 elector가 아직 leader slot을 보유한다고 판단하는지 알려준다.
+// IsLeader 이 elector가 아직 leader slot을 보유한다고 판단하는지 알려준다.
 func (e *GroupElector) IsLeader() bool {
 	e.mu.RLock()
 	defer e.mu.RUnlock()
 	return e.owned
 }
 
-// ActiveCount 는 현재 살아 있는 leader slot 수를 반환한다.
+// ActiveCount 현재 살아 있는 leader slot 수를 반환한다.
 func (e *GroupElector) ActiveCount(ctx context.Context) (int, error) {
 	active, err := e.activeCount(ctx)
 	if err != nil {
@@ -181,7 +181,7 @@ func (e *GroupElector) ActiveCount(ctx context.Context) (int, error) {
 	return active, nil
 }
 
-// AvailableSlots 는 추가로 획득할 수 있는 leader slot 수를 반환한다.
+// AvailableSlots 추가로 획득할 수 있는 leader slot 수를 반환한다.
 func (e *GroupElector) AvailableSlots(ctx context.Context) (int, error) {
 	active, err := e.activeCount(ctx)
 	if err != nil {

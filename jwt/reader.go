@@ -7,7 +7,7 @@ import (
 	golangjwt "github.com/golang-jwt/jwt/v5"
 )
 
-// Reader 는 검증된 JWT header와 claim을 읽는다.
+// Reader 검증된 JWT header와 claim을 읽는다.
 type Reader struct {
 	kid       string
 	algorithm Algorithm
@@ -15,7 +15,7 @@ type Reader struct {
 	claims    golangjwt.MapClaims
 }
 
-// Kid 는 검증된 token의 kid header를 반환한다.
+// Kid 검증된 token의 kid header를 반환한다.
 func (r *Reader) Kid() string {
 	if r == nil {
 		return ""
@@ -31,7 +31,7 @@ func (r *Reader) Algorithm() Algorithm {
 	return r.algorithm
 }
 
-// Header 는 header 값을 반환한다.
+// Header header 값을 반환한다.
 func (r *Reader) Header(name string) (any, bool) {
 	if r == nil {
 		return nil, false
@@ -40,7 +40,7 @@ func (r *Reader) Header(name string) (any, bool) {
 	return copyValue(value), ok
 }
 
-// Claim 는 claim 값을 반환한다.
+// Claim claim 값을 반환한다.
 func (r *Reader) Claim(name string) (any, bool) {
 	if r == nil {
 		return nil, false
@@ -79,7 +79,7 @@ func (r *Reader) ClaimTime(name string) (time.Time, bool) {
 	return time.Time{}, false
 }
 
-// Issuer 는 iss claim을 반환한다.
+// Issuer iss claim을 반환한다.
 func (r *Reader) Issuer() string {
 	if r == nil {
 		return ""
@@ -88,7 +88,7 @@ func (r *Reader) Issuer() string {
 	return value
 }
 
-// Subject 는 sub claim을 반환한다.
+// Subject sub claim을 반환한다.
 func (r *Reader) Subject() string {
 	if r == nil {
 		return ""
@@ -97,7 +97,7 @@ func (r *Reader) Subject() string {
 	return value
 }
 
-// Audience 는 aud claim을 반환한다.
+// Audience aud claim을 반환한다.
 func (r *Reader) Audience() []string {
 	if r == nil {
 		return nil
@@ -124,7 +124,7 @@ func (r *Reader) IssuedAt() (time.Time, bool) {
 	return r.ClaimTime("iat")
 }
 
-// IsExpired 는 now 기준 만료 여부를 반환한다.
+// IsExpired now 기준 만료 여부를 반환한다.
 func (r *Reader) IsExpired(now time.Time) bool {
 	expiresAt, ok := r.ExpiresAt()
 	return ok && !now.Before(expiresAt)

@@ -10,7 +10,7 @@ import (
 
 // Timing은 provider conformance case가 사용하는 시간 경계를 설정한다.
 type Timing struct {
-	// Lease는 case lease duration을 설정한다.
+	// Lease case lease duration을 설정한다.
 	Lease time.Duration
 	// RenewInterval은 case renewal cadence를 설정한다.
 	RenewInterval time.Duration
@@ -25,16 +25,16 @@ type Timing struct {
 	_             struct{}
 }
 
-// AbortFunc는 cancellation grace period 동안 evaluator work가 join되는 경우를 포함해
+// AbortFunc cancellation grace period 동안 evaluator work가 join되는 경우를 포함해
 // 모든 case timeout 뒤 provider work를 contain한다. RunWithConfig가 join할 수 있도록
 // provider operation을 unblock해야 하며, containment가 진전되지 않을 때 외부 go test timeout이 최종 fail-stop이다.
 type AbortFunc func(context.Context, leader.Options) error
 
-// Config는 conformance run을 설정한다.
+// Config conformance run을 설정한다.
 type Config struct {
 	// Timing은 zero-valued conformance timing field를 override한다.
 	Timing Timing
-	// Abort는 evaluator가 grace 동안 join되거나 provider hard stop이 필요한 경우 모두에서
+	// Abort evaluator가 grace 동안 join되거나 provider hard stop이 필요한 경우 모두에서
 	// root cancellation 뒤 timeout case를 contain한다.
 	Abort AbortFunc
 	_     struct{}
