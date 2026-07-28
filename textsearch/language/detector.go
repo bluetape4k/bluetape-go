@@ -20,15 +20,15 @@ const (
 	Unknown Language = lingua.Unknown
 	// Chinese textsearch language image example에서 caller-visible 상태와 의미를 설명한다.
 	Chinese Language = lingua.Chinese
-	// 이 주석은 tokenizer, normalization, language detection, image/example 경계를 설명한다.
+	// English 영어 text로 판정된 언어 code다.
 	English Language = lingua.English
 	// French textsearch language image example에서 caller-visible 상태와 의미를 설명한다.
 	French Language = lingua.French
 	// German textsearch language image example에서 caller-visible 상태와 의미를 설명한다.
 	German Language = lingua.German
-	// 이 주석은 tokenizer, normalization, language detection, image/example 경계를 설명한다.
+	// Japanese 일본어 text로 판정된 언어 code다.
 	Japanese Language = lingua.Japanese
-	// 이 주석은 tokenizer, normalization, language detection, image/example 경계를 설명한다.
+	// Korean 한국어 text로 판정된 언어 code다.
 	Korean Language = lingua.Korean
 	// Latin textsearch language image example에서 caller-visible 상태와 의미를 설명한다.
 	Latin Language = lingua.Latin
