@@ -1,76 +1,38 @@
-# Issue 24 Redis Distributed Lock Implementation Plan
+# Issue 24 Redis Distributed Lock Plan
 
-Issue: #24
-Milestone: 0.3.0
-Date: 2026-06-04
-Spec: `docs/superpowers/specs/2026-06-04-issue-24-redis-distributed-lock-spec.md`
+## 분류
 
-## Objective
+- 작업 유형: Type A - Full Feature.
+- 근거: Redis coordination primitive, public API, Lua/atomic behavior, Testcontainers tests, docs를 포함한다.
+- 범위: Go 서비스 간 짧은 critical section 보호를 위한 Redis-backed lock을 구현한다.
 
-Implement a small single-Redis-instance distributed lock package with owner
-tokens, TTL acquisition, owner-safe unlock, Testcontainers proof, stress tests,
-and documentation.
+## 목표
 
-## Task Plan
+caller가 명시적으로 lease TTL과 context deadline을 선택하는 Redis distributed lock을 제공한다. 구현은 Redisson compatibility를 주장하지 않고, first-party Go contract로 fencing, ownership token, release safety를 문서화한다.
 
-| Task | Scope | Details | Validation |
-|---|---|---|---|
-| T1 Package scaffold | `lock/redis` | Add `doc.go`, `options.go`, `errors.go`, and `mutex.go` with package name `redislock`. | `go test -count=1 ./lock/redis` compile |
-| T2 Acquire path | `lock/redis` | Validate options, generate random token when needed, call `SetNX`, return `ErrNotAcquired` on contention, preserve context errors. | Tests for acquire, contention, invalid options, canceled context. |
-| T3 Owner-safe unlock | `lock/redis` | Add Lua compare-and-delete script; `Lease.Unlock` returns true only when it deletes its own key and false when expired/lost. | Tests for owner unlock, non-owner safety, expired lease unlock. |
-| T4 TTL expiration | `lock/redis` tests | Prove Redis TTL is set and another owner can acquire after expiration. | Testcontainers test with short TTL and `Eventually`. |
-| T5 Stress/cancellation | `lock/redis` tests | Use `GoroutineStressTester` for same-key contention and `AsyncJobTester` for canceled attempts. | `go test -count=1 ./lock/redis -run 'Stress|Async|Cancellation'` |
-| T6 Examples/docs | `lock/redis`, README pair, CHANGELOG, research index | Add compile-checked example, README.md/README.ko.md package row and section, CHANGELOG Unreleased entry, research links. | `go test -count=1 ./lock/redis -run Example`; targeted `rg`. |
-| T7 Verification/review/lessons | docs | Add implementation review and lessons, run targeted tests/race/diff/GNO. | Review P0=0/P1=0; lessons committed. |
+## 순서
 
-## Test Matrix
+1. lock research와 #24 issue contract를 확인한다.
+2. namespace, lock key, owner token, lease TTL, retry/wait policy를 spec에 고정한다.
+3. acquire/release/extend 실패 테스트를 먼저 작성한다.
+4. Redis atomic command 또는 Lua script로 ownership-safe acquire/release를 구현한다.
+5. cancellation, expired lease, wrong-owner release, Redis deletion을 테스트한다.
+6. examples와 README에 misuse caveats와 safe operational checks를 추가한다.
+7. 필요한 경우 benchmark evidence는 raw output으로 분리한다.
 
-| Behavior | Test | Assertion |
-|---|---|---|
-| Missing client | unit | `New(nil, ...)` fails. |
-| Missing key / bad TTL / blank token | unit | validation error before Redis command. |
-| Acquire success | Testcontainers | `TryLock` returns lease, Redis key stores lease token, PTTL is positive. |
-| Contention | Testcontainers | Second mutex gets `ErrNotAcquired`. |
-| Owner unlock | Testcontainers | `Unlock` returns true and key is gone. |
-| Non-owner safety | Testcontainers | Stale lease unlock returns false and current owner token remains. |
-| Expiration | Testcontainers | After TTL expiry, another mutex acquires same key. |
-| Context cancellation | Testcontainers/unit | canceled acquire/unlock preserve `context.Canceled` through `errors.Is`. |
-| Stress | Testcontainers | concurrent contenders do not report more than one success per round. |
-| Async cancellation | Testcontainers | canceled attempts complete and key is not leaked. |
-| Example | compile test | example imports `lock/redis` as `redislock` and compiles. |
+## 리뷰 게이트
 
-## Validation Commands
+- lock이 영구 고착될 수 있는 경로가 없는지 확인한다.
+- release가 owner token을 검증하는지 확인한다.
+- context cancellation과 retry wait가 일관적인지 확인한다.
+- key names와 token values가 error/log에 노출되지 않는지 확인한다.
+- Redis Cluster hash-tag 요구사항이 문서화되어 있는지 확인한다.
 
-Run Testcontainers-backed commands serially.
+## 검증 게이트
 
-```bash
-go test -count=1 ./lock/redis
-go test -race -count=1 ./lock/redis
-go test -count=1 ./...
-go test -race -count=1 ./...
-go test -count=1 ./lock/redis -run Example
-git diff --check
-gno update
-```
-
-If full repo race is too slow after targeted race passes, record the gap and
-wait for GitHub CI.
-
-## Documentation Tasks
-
-- README.md: package row and Redis distributed lock usage section.
-- README.ko.md: synchronized Korean section.
-- CHANGELOG.md: Unreleased added entry.
-- `docs/research/README.md`: link #24 research.
-- `docs/research/2026-06-01-milestone-0.3.0-cache-coordination-research.md`:
-  name #24 lock decision.
-
-## Step 3 Checklist Completion Report
-
-| Item | Status | Notes |
-|---|---|---|
-| Every spec requirement mapped | Done | T1-T7 and test matrix cover owner token, TTL, owner-safe unlock, contention, expiration, cleanup, stress. |
-| Task order implementable | Done | Scaffold -> acquire -> unlock -> tests -> docs -> review. |
-| Testcontainers handled serially | Done | Validation commands explicitly run serially. |
-| Verification commands concrete | Done | Targeted package, race, full repo, example, diff, GNO. |
-| Public docs impact assigned | Done | README pair and CHANGELOG included. |
+- `go test -count=1 ./coordination/...`
+- `go test -race -count=1 ./coordination/...`
+- `go test -count=1 ./...`
+- `go vet ./...`
+- `make fmt-check`
+- `git diff --check`

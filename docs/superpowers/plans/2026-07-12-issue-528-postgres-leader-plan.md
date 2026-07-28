@@ -1,50 +1,53 @@
-# PostgreSQL Leader Elector Implementation Plan
+# PostgreSQL leader elector 구현 계획
 
-> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
+> 한국어 재작성 범위: 이 계획 문서는 한국어 운영 문서로 읽히도록 제목, 판단, 작업 설명, 위험, 검증, 롤백 문맥을 한국어로 정리한다. 명령, 경로, API 이름, 이슈/PR 번호, 브랜치명, 코드 블록, 테스트 출력 같은 증거 문자열은 정확성을 위해 원문 그대로 보존한다.
 
-**Goal:** Add a PostgreSQL row-lease implementation of `leader.Elector` at `leader/sql` that passes the shared provider conformance suite and ships with caller-owned schema guidance.
 
-**Architecture:** `sqlleader.Elector` holds a caller-owned `*sql.DB`, an opaque owner token, and the same mutex-protected local lifecycle used by the Redis and Mongo providers. Acquire, renew, resign, and observation each use one schema-qualified PostgreSQL statement with `pg_catalog.clock_timestamp()`; mutation ambiguity is reconciled through a fresh bounded primary read and cleanup-pending recovery.
+> **에이전트 작업자용:** 필수 하위 스킬: 사용 superpowers:subagent-driven-development (권장) 또는 superpowers:executing-plans to 이 계획을 작업 단위로 구현. 단계는 checkbox (`- [ ]`) 추적 문법을 사용.
 
-**Tech Stack:** Go 1.26, `database/sql`, pgx v5 stdlib, PostgreSQL 16 Testcontainers, `leader/leadertest`, CairoSVG and bluetape diagram audits.
+**목표:** 추가 a PostgreSQL row-lease implementation of `leader.Elector` at `leader/sql` that passes the 공유 provider conformance suite 및 ships 함께 호출자-owned schema guidance.
+
+**아키텍처:** `sqlleader.Elector` holds a 호출자-owned `*sql.DB`, an opaque owner token, 및 the same mutex-protected local lifecycle used by the Redis 및 Mongo providers. Acquire, renew, resign, 및 observation each use one schema-qualified PostgreSQL statement 함께 `pg_catalog.clock_timestamp()`; mutation ambiguity is reconciled through a fresh bounded primary read 및 cleanup-pending recovery.
+
+**기술 스택:** Go 1.26, `database/sql`, pgx v5 stdlib, PostgreSQL 16 Testcontainers, `leader/leadertest`, CairoSVG 및 bluetape diagram audits.
 
 ---
 
-## File Map
+## 파일 지도
 
-| Area | Files | Responsibility |
+| Area | 파일 | 책임 |
 |---|---|---|
-| Package/API | `leader/sql/doc.go`, `leader/sql/elector.go`, `leader/sql/backoff.go` | Public package contract, constructor validation, owner token, campaign loop, local state, bounded attempt/backoff policy. |
-| PostgreSQL boundary | `leader/sql/schema.go`, `leader/sql/queries.go` | Exported bootstrap schema and all qualified parameterized SQL statements/mutation probes. |
-| Lifecycle | `leader/sql/lifecycle.go` | Renewal generation, ownership loss, cleanup-pending resign and retry-safe join semantics. |
-| Tests | `leader/sql/{elector_test.go,queries_test.go,lifecycle_test.go,conformance_test.go,security_test.go,readme_test.go,example_test.go}` | Constructor/schema, real PostgreSQL linearization, lifecycle/fault injection, mandatory conformance, least-privilege deployment, docs contract, compile-checked usage. |
-| Provider docs | `leader/sql/README.md`, `leader/sql/README.ko.md` | Setup, schema/grants, primary-only routing, safety margins, lifecycle/runbook, failure modes. |
-| Diagram | `docs/images/readme-diagrams/postgres-leader-row-lease-sequence.{svg,png}` | Acquire/renew/contention/resign and cleanup/TTL sequence. |
-| Public index/release | `leader/README.md`, `leader/README.ko.md`, `README.md`, `README.ko.md`, `CHANGELOG.md` | Discoverability and v0.19.0 behavior/caveat summary. |
-| Workflow evidence | `docs/superpowers/reviews/2026-07-12-issue-528-postgres-leader-risk.md`, later Step 6-R/7-R review artifacts | Pre-implementation prediction and final review evidence. |
+| Package/API | `leader/sql/doc.go`, `leader/sql/elector.go`, `leader/sql/backoff.go` | Public 패키지 계약, constructor validation, owner token, campaign loop, local state, bounded attempt/backoff policy. |
+| PostgreSQL boundary | `leader/sql/schema.go`, `leader/sql/queries.go` | Exported bootstrap schema 및 모든 qualified parameterized SQL statements/mutation probes. |
+| Lifecycle | `leader/sql/lifecycle.go` | Renewal generation, ownership loss, cleanup-pending resign 및 retry-safe join semantics. |
+| Tests | `leader/sql/{elector_test.go,queries_test.go,lifecycle_test.go,conformance_test.go,security_test.go,readme_test.go,example_test.go}` | Constructor/schema, real PostgreSQL linearization, lifecycle/fault injection, mandatory conformance, least-privilege deployment, docs 계약, compile-checked usage. |
+| Provider docs | `leader/sql/README.md`, `leader/sql/README.ko.md` | Setup, schema/grants, primary-만 routing, safety margins, lifecycle/runbook, failure modes. |
+| Diagram | `docs/images/readme-diagrams/postgres-leader-row-lease-sequence.{svg,png}` | Acquire/renew/contention/resign 및 cleanup/TTL sequence. |
+| Public index/release | `leader/README.md`, `leader/README.ko.md`, `README.md`, `README.ko.md`, `CHANGELOG.md` | Discoverability 및 v0.19.0 behavior/caveat summary. |
+| Workf낮음 evidence | `docs/superpowers/reviews/2026-07-12-issue-528-postgres-leader-risk.md`, later 단계 6-R/7-R review artifacts | Pre-implementation prediction 및 final review evidence. |
 
-## Dependency Order
+## 의존 순서
 
-Task 0 must precede every source edit. Task 1 establishes the API and schema contract. Task 2
-implements the SQL linearization boundary consumed by Tasks 3-5. Task 3 owns lifecycle state;
-Task 4 adds ambiguous-result recovery only after the happy-path lifecycle is green. Task 5 adds
-the mandatory provider adapter. Tasks 6-8 consume the settled API and may proceed only after
-Task 5 passes. Task 9 is the final local gate.
+작업 0 must precede every source edit. 작업 1 establishes the API 및 schema 계약. 작업 2
+implements the SQL linearization boundary consumed by Tasks 3-5. 작업 3 owns lifecycle state;
+작업 4 adds ambiguous-result recovery 만 후 the happy-path lifecycle is green. 작업 5 adds
+the mandatory provider adapter. Tasks 6-8 consume the settled API 및 may proceed 만 후
+작업 5 passes. 작업 9 is the final local gate.
 
-Do not run Testcontainers-backed tasks in parallel. Do not change `leader.Options`,
-`leader.Elector`, or `leader/leadertest`; a required shared-contract change stops execution and
+다음을 하지 않는다: run Testcontainers-backed tasks in parallel. 다음을 하지 않는다: change `leader.Options`,
+`leader.Elector`, 또는 `leader/leadertest`; a required 공유-계약 change stops execution 및
 returns to design review.
 
-### Task 0: Freeze Artifacts and Predict Implementation Risks
+### 작업 0: 고정 Artifacts 및 예측 Implementation Risks
 
-**Files:**
-- Verify: `docs/superpowers/specs/2026-07-12-issue-528-postgres-leader-design.md`
-- Verify: `docs/superpowers/plans/2026-07-12-issue-528-postgres-leader-plan.md`
-- Create: `docs/superpowers/reviews/2026-07-12-issue-528-postgres-leader-risk.md`
+**파일:**
+- 검증: `docs/superpowers/specs/2026-07-12-issue-528-postgres-leader-design.md`
+- 검증: `docs/superpowers/plans/2026-07-12-issue-528-postgres-leader-plan.md`
+- 생성: `docs/superpowers/reviews/2026-07-12-issue-528-postgres-leader-risk.md`
 
-- [ ] **Step 1: Verify the approved artifact-only state**
+- [ ] **단계 1: 검증 the approved artifact-만 state**
 
-Run:
+실행:
 
 ```bash
 git status --short
@@ -52,20 +55,20 @@ git log --oneline origin/develop..HEAD
 git diff --check origin/develop...HEAD
 ```
 
-Expected: only the approved spec, plan, and their review amendments are ahead of `develop`; no
+예상: 만 the approved spec, plan, 및 their review amendments are ahead of `develop`; 없음
 `leader/sql` source exists.
 
-- [ ] **Step 2: Record the pre-implementation risk table**
+- [ ] **단계 2: 기록 the pre-implementation risk table**
 
-Create the risk artifact with columns `Risk`, `Trigger`, `Signal`, `Prevention`, `Recovery`, and
+생성 the risk artifact 함께 columns `Risk`, `Trigger`, `Signal`, `Prevention`, `Recovery`, 및
 `Owner`. Include at least: absent-row upsert race, lock/pool starvation, retry herd, stale
-insert-side timestamp, renewal-after-resign, generation ABA, indeterminate acquire/renew/resign,
-replica-routed probe, async failover loss, public-schema hijack, token/error leakage, unsafe lease
-margin, Testcontainers leak, expired-row growth, and diagram/source drift.
+insert-side timestamp, renewal-후-resign, generation ABA, indeterminate acquire/renew/resign,
+replica-routed probe, async failover loss, 공개-schema hijack, token/오류 leakage, unsafe lease
+margin, Testcontainers leak, expired-row growth, 및 diagram/source drift.
 
-- [ ] **Step 3: Capture baseline package and environment evidence**
+- [ ] **단계 3: 캡처 baseline 패키지 및 environment evidence**
 
-Run:
+실행:
 
 ```bash
 go version
@@ -73,30 +76,30 @@ go list -m github.com/jackc/pgx/v5 github.com/testcontainers/testcontainers-go
 go test -count=20 ./testing -run '^TestCheckWaiterReleasedDiagnostics$'
 ```
 
-Expected: versions are recorded; the known baseline waiter test passes 20/20. Add the exact
-outputs and the earlier one-off baseline failure note to the risk artifact.
+예상: versions are recorded; the known baseline waiter 테스트 passes 20/20. 추가 the exact
+outputs 및 the earlier one-off baseline failure note to the risk artifact.
 
-- [ ] **Step 4: Commit risk evidence before source work**
+- [ ] **단계 4: 커밋 risk evidence 전에 source work**
 
 ```bash
 git add docs/superpowers/reviews/2026-07-12-issue-528-postgres-leader-risk.md
 git commit -m "docs: predict PostgreSQL leader risks"
 ```
 
-Expected: the risk commit predates every `leader/sql` source commit.
+예상: the risk commit predates every `leader/sql` source commit.
 
-### Task 1: Define the Public API and Caller-Owned Schema
+### 작업 1: 정의 the Public API 및 Caller-Owned Schema
 
-**Files:**
-- Create: `leader/sql/doc.go`
-- Create: `leader/sql/elector.go`
-- Create: `leader/sql/schema.go`
-- Create: `leader/sql/elector_test.go`
-- Create: `leader/sql/queries_test.go`
+**파일:**
+- 생성: `leader/sql/doc.go`
+- 생성: `leader/sql/elector.go`
+- 생성: `leader/sql/schema.go`
+- 생성: `leader/sql/elector_test.go`
+- 생성: `leader/sql/queries_test.go`
 
-- [ ] **Step 1: Write RED constructor and schema tests**
+- [ ] **단계 1: Write RED constructor 및 schema 테스트**
 
-Add tests with these exact assertions:
+추가 테스트 함께 these exact assertions:
 
 ```go
 func TestNewValidatesInputs(t *testing.T) {
@@ -130,17 +133,17 @@ func TestSchemaSQLHasExpectedShape(t *testing.T) {
 }
 ```
 
-- [ ] **Step 2: Observe RED**
+- [ ] **단계 2: Observe RED**
 
 ```bash
 go test -count=1 ./leader/sql -run 'TestNew|TestSchema'
 ```
 
-Expected: build FAIL because `leader/sql`, `New`, `Elector`, and `SchemaSQL` do not exist.
+예상: build FAIL because `leader/sql`, `New`, `Elector`, 및 `SchemaSQL` do 아님 exist.
 
-- [ ] **Step 3: Add the minimal package, constructor, and schema**
+- [ ] **단계 3: 추가 the minimal 패키지, constructor, 및 schema**
 
-Use this public shape:
+사용 this 공개 shape:
 
 ```go
 type Elector struct {
@@ -172,9 +175,9 @@ func New(db *sql.DB, opts leader.Options) (*Elector, error) {
 }
 ```
 
-`randomToken` reads 16 bytes from `crypto/rand` and returns
+`randomToken` reads 16 bytes from `crypto/rand` 및 returns
 `memberID + ":" + hex.EncodeToString(data[:])`. `SchemaSQL` uses
-this exact bootstrap and has no implicit execution helper:
+this exact bootstrap 및 has 없음 implicit execution helper:
 
 ```go
 const SchemaSQL = `create table if not exists public.bluetape_leader_leases (
@@ -194,7 +197,7 @@ func randomToken(memberID string) (string, error) {
 }
 ```
 
-- [ ] **Step 4: Verify GREEN and commit**
+- [ ] **단계 4: 검증 GREEN 및 commit**
 
 ```bash
 gofmt -w leader/sql/doc.go leader/sql/elector.go leader/sql/schema.go leader/sql/elector_test.go leader/sql/queries_test.go
@@ -203,19 +206,19 @@ git add leader/sql/doc.go leader/sql/elector.go leader/sql/schema.go leader/sql/
 git commit -m "feat: define PostgreSQL leader provider"
 ```
 
-Expected: constructor/schema tests PASS without opening a database connection.
+예상: constructor/schema 테스트 PASS without opening a database connection.
 
-### Task 2: Implement Atomic PostgreSQL Lease Operations
+### 작업 2: 구현 Atomic PostgreSQL Lease Operations
 
-**Files:**
-- Create: `leader/sql/queries.go`
+**파일:**
+- 생성: `leader/sql/queries.go`
 - Modify: `leader/sql/elector.go`
 - Modify: `leader/sql/queries_test.go`
 
-- [ ] **Step 1: Add RED real-PostgreSQL operation tests**
+- [ ] **단계 1: 추가 RED real-PostgreSQL operation 테스트**
 
-Create one serial Testcontainers fixture using `postgrestestcontainer.Start`, `sql.Open("pgx",
-dsn)`, `db.PingContext`, and `db.ExecContext(ctx, SchemaSQL)`. Add subtests proving:
+생성 one serial Testcontainers fixture using `postgrestestcontainer.Start`, `sql.Open("pgx",
+dsn)`, `db.PingContext`, and `db.ExecContext(ctx, SchemaSQL)`. 추가 subtests proving:
 
 ```go
 func TestLeaseStatements(t *testing.T) {
@@ -232,30 +235,30 @@ func TestLeaseStatements(t *testing.T) {
 ```
 
 For the exact-winner case, release 16 goroutines from one barrier, call private `tryAcquire` on
-separate electors sharing the pool, and assert exactly one `true`. Replace the stored token with
-a second owner before invoking the first owner's delete and assert the replacement survives.
+separate electors sharing the pool, 및 assert exactly one `true`. 교체 the stored token 함께
+a second owner 전에 invoking the first owner's delete 및 assert the replacement survives.
 
-Add `TestQueriesUseQualifiedServerClock` in the same package and assert acquire, renew, and lookup
-contain `pg_catalog.clock_timestamp()` and `public.bluetape_leader_leases`, while no runtime query
+추가 `TestQueriesUseQualifiedServerClock` in the same 패키지 및 assert acquire, renew, 및 lookup
+contain `pg_catalog.clock_timestamp()` 및 `public.bluetape_leader_leases`, while 없음 runtime query
 contains an unqualified `clock_timestamp()` call.
 
-In `hostile-schema-detected`, use transactional DDL to replace the relation with a compatible
-seven-column shape that lacks the PK and has a user trigger/RLS, execute the Task 6 catalog gate,
-assert it fails, and roll the transaction back. In `expired-cleanup-safety`, insert live,
-recently-expired, and grace-expired rows, run the documented server-time cleanup, and prove it
-removes only the grace-expired row while live takeover remains possible.
+In `hostile-schema-detected`, use transactional DDL to replace the relation 함께 a compatible
+seven-column shape that lacks the PK 및 has a 사용자 trigger/RLS, execute the 작업 6 catalog gate,
+assert it fails, 및 roll the transaction back. In `expired-cleanup-safety`, insert live,
+recently-expired, 및 grace-expired rows, run the documented server-time cleanup, 및 prove it
+removes 만 the grace-expired row while live takeover remains possible.
 
-- [ ] **Step 2: Observe RED**
+- [ ] **단계 2: Observe RED**
 
 ```bash
 go test -p 1 -count=1 ./leader/sql -run '^TestLeaseStatements$'
 ```
 
-Expected: FAIL because the query constants and storage methods are absent.
+예상: FAIL because the query constants 및 storage methods are absent.
 
-- [ ] **Step 3: Implement the four one-statement boundaries**
+- [ ] **단계 3: 구현 the four one-statement boundaries**
 
-Define qualified query constants. Acquire must contain this core:
+정의 qualified query constants. Acquire must contain this core:
 
 ```sql
 insert into public.bluetape_leader_leases (
@@ -276,7 +279,7 @@ where public.bluetape_leader_leases.lease_until <= pg_catalog.clock_timestamp()
 returning owner_token, lease_until
 ```
 
-Implement private methods with `QueryRowContext(...).Scan(...)`:
+구현 private methods 함께 `QueryRowContext(...).Scan(...)`:
 
 ```go
 func (e *Elector) tryAcquire(ctx context.Context) (bool, error)
@@ -285,16 +288,16 @@ func (e *Elector) deleteOwner(ctx context.Context) error
 func (e *Elector) lookupOwner(ctx context.Context) (string, error)
 ```
 
-Map only `sql.ErrNoRows` to normal contention/no leader. Convert durations with a ceiling helper
-that returns at least one microsecond. Renew predicates on key, token, and live expiry; delete
-predicates on key and token; lookup predicates on key and live expiry. Every backend error is
-wrapped with `leader.NewOperationError("postgres", operation, err)`.
+Map 만 `sql.ErrNoRows` to normal contention/없음 leader. Convert durations 함께 a ceiling helper
+that returns at least one microsecond. Renew predicates on key, token, 및 live expiry; delete
+predicates on key 및 token; lookup predicates on key 및 live expiry. Every backend 오류 is
+wrapped 함께 `leader.NewOperationError("postgres", operation, err)`.
 
-Add `TestDurationMicrosCeilsPositive` with `1ns -> 1`, `1us -> 1`, `1001ns -> 2`, and a large
-duration that does not overflow. README guidance—not a new public validation—explains that
-sub-microsecond and near-zero lease settings are operationally unusable for network SQL.
+추가 `TestDurationMicrosCeilsPositive` 함께 `1ns -> 1`, `1us -> 1`, `1001ns -> 2`, 및 a large
+duration that does 아님 overf낮음. README guidance—아님 a new 공개 validation—explains that
+sub-microsecond 및 near-zero lease settings are operationally unusable for network SQL.
 
-Use these exact remaining statement shapes:
+사용 these exact remaining statement shapes:
 
 ```sql
 update public.bluetape_leader_leases
@@ -311,7 +314,7 @@ select owner_token from public.bluetape_leader_leases
 where leader_key = $1 and lease_until > pg_catalog.clock_timestamp();
 ```
 
-- [ ] **Step 4: Verify GREEN and commit**
+- [ ] **단계 4: 검증 GREEN 및 commit**
 
 ```bash
 gofmt -w leader/sql/queries.go leader/sql/elector.go leader/sql/queries_test.go
@@ -320,19 +323,19 @@ git add leader/sql/queries.go leader/sql/elector.go leader/sql/queries_test.go
 git commit -m "feat: add PostgreSQL leader lease statements"
 ```
 
-Expected: all PostgreSQL statement subtests PASS; no new dependency appears in `go.mod`.
+예상: 모든 PostgreSQL statement subtests PASS; 없음 new dependency appears in `go.mod`.
 
-### Task 3: Add Campaign, Renewal, and Retry-Safe Resign Lifecycle
+### 작업 3: 추가 Campaign, Renewal, 및 Retry-Safe Resign Lifecycle
 
-**Files:**
-- Create: `leader/sql/backoff.go`
-- Create: `leader/sql/lifecycle.go`
+**파일:**
+- 생성: `leader/sql/backoff.go`
+- 생성: `leader/sql/lifecycle.go`
 - Modify: `leader/sql/elector.go`
-- Create: `leader/sql/lifecycle_test.go`
+- 생성: `leader/sql/lifecycle_test.go`
 
-- [ ] **Step 1: Write RED lifecycle tests**
+- [ ] **단계 1: Write RED lifecycle 테스트**
 
-Cover these exact states with bounded contexts and `bttesting.Eventually`/`Consistently`:
+Cover these exact states 함께 bounded contexts 및 `bttesting.Eventually`/`Consistently`:
 
 ```go
 func testCampaignBlocksUntilContextOrTakeover(t *testing.T, db *sql.DB)
@@ -351,32 +354,32 @@ func testConstrainedPoolTimesOutWithoutLeaseOverstay(t *testing.T, db *sql.DB)
 func testSharedPoolMultiElectorShutdown(t *testing.T, db *sql.DB)
 ```
 
-Implement the listed cases as helper-backed subtests under one `TestPostgresLifecycle` so Task 3
-starts one PostgreSQL container, not one per case. Do not call `t.Parallel` in any container-backed
-parent or child test.
+구현 the listed cases as helper-backed subtests under one `TestPostgresLifecycle` so 작업 3
+starts one PostgreSQL container, 아님 one per case. 다음을 하지 않는다: call `t.Parallel` in any container-backed
+parent 또는 child 테스트.
 
-Use a test hook gate to block a renewal, start `Resign` with an expiring context, assert
-`IsLeader()==false`, `cleanup==true`, and saved `done` remains; release the renewal, retry with a
-fresh context, and assert the row is deleted and cleanup clears.
+사용 a 테스트 hook gate to block a renewal, start `Resign` 함께 an expiring context, assert
+`IsLeader()==false`, `cleanup==true`, 및 saved `done` remains; release the renewal, retry 함께 a
+fresh context, 및 assert the row is deleted 및 cleanup clears.
 
-The constrained-pool case sets `MaxOpenConns(1)`, holds the only connection, and asserts attempt
-and renewal deadlines increment `DBStats.WaitCount`/`WaitDuration`, do not tight-loop, and clear
-local leadership rather than overstaying. The shared-pool shutdown case runs at least three
-unique-group electors, cancels protected work/campaigns, bounded-resigns all of them, proves renew
-operation counts stop and unresolved cleanup inventory is empty, then closes the pool only after
-all users finish.
+The constrained-pool case sets `MaxOpenConns(1)`, holds the 만 connection, 및 asserts attempt
+및 renewal deadlines increment `DBStats.WaitCount`/`WaitDuration`, do 아님 tight-loop, 및 clear
+local leadership rather than overstaying. The 공유-pool shutdown case runs at least three
+unique-group electors, cancels protected work/campaigns, bounded-resigns 모든 of them, proves renew
+operation counts stop 및 unresolved cleanup inventory is empty, then closes the pool 만 후
+모든 users finish.
 
-- [ ] **Step 2: Observe RED**
+- [ ] **단계 2: Observe RED**
 
 ```bash
 go test -p 1 -count=1 ./leader/sql -run '^TestPostgresLifecycle$'
 ```
 
-Expected: FAIL because public lifecycle methods and retry state do not exist.
+예상: FAIL because 공개 lifecycle methods 및 retry state do 아님 exist.
 
-- [ ] **Step 3: Implement campaign and bounded backoff**
+- [ ] **단계 3: 구현 campaign 및 bounded backoff**
 
-Implement the public loop in this order:
+구현 the 공개 loop in this order:
 
 ```go
 func (e *Elector) Campaign(ctx context.Context) error {
@@ -395,31 +398,31 @@ func (e *Elector) Campaign(ctx context.Context) error {
 }
 ```
 
-The attempt budget is bounded by the caller and
+The attempt budget is bounded by the 호출자 및
 `max(100ms, min(RenewInterval, 1s))`. Backoff begins at 25ms, doubles, applies stable
-owner-token jitter, and caps at `max(25ms, min(Lease/4, 1s))` without allocating a timer after
-the context is done. Add `runTestHook(operation, phase string) error` as a default-nil internal
-seam. Invoke the `renew/after` phase after a successful renewal statement and before the loop
-publishes the result; Task 3 uses it only as a blocking lifecycle gate and Task 4 adds returned
+owner-token jitter, 및 caps at `max(25ms, min(Lease/4, 1s))` without allocating a timer 후
+the context is done. 추가 `runTestHook(operation, phase string) error` as a default-nil internal
+seam. Invoke the `renew/after` phase 후 a successful renewal statement 및 전에 the loop
+publishes the result; 작업 3 uses it 만 as a blocking lifecycle gate 및 작업 4 adds returned
 failure semantics for every mutation.
 
-- [ ] **Step 4: Implement generation-safe renewal and resign**
+- [ ] **단계 4: 구현 generation-safe renewal 및 resign**
 
-`startRenewal` increments `generation`, sets `owned=true`, clears cleanup, and starts one loop.
+`startRenewal` increments `generation`, sets `owned=true`, clears cleanup, 및 starts one loop.
 The loop uses `time.NewTicker(RenewInterval)`. Zero-row renewal calls
-`clearOwnershipAfterLoss(generation, done, false)`; any indeterminate error passes `true`.
-Every renewal derives and cancels a child context bounded by `RenewInterval`; pool wait, row lock,
-or half-open connection may not retain `owned=true` beyond that budget. A renewal timeout is
-indeterminate, sets cleanup pending, and stops further renewal traffic. Cover it with a real
-row-lock deadline test as well as the blocking hook test.
+`clearOwnershipAfterLoss(generation, done, false)`; any indeterminate 오류 passes `true`.
+Every renewal derives 및 cancels a child context bounded by `RenewInterval`; pool wait, row lock,
+또는 half-open connection may 아님 retain `owned=true` beyond that budget. A renewal timeout is
+indeterminate, sets cleanup pending, 및 stops further renewal traffic. Cover it 함께 a real
+row-lock deadline 테스트 as well as the blocking hook 테스트.
 
 `Resign` must atomically transition to `owned=false, cleanup=true`, cancel, join the saved exact
-generation, and then call token-conditional delete. A join timeout returns `ctx.Err()` without
-clearing `cancel`, `done`, generation, or cleanup. A later retry resumes the same join/delete.
-Zero-row/already-absent delete is success and clears cleanup only when the generation still
+generation, 및 then call token-conditional delete. A join timeout returns `ctx.Err()` without
+clearing `cancel`, `done`, generation, 또는 cleanup. A later retry resumes the same join/delete.
+Zero-row/already-absent delete is success 및 clears cleanup 만 when the generation still
 matches.
 
-Add the remaining public methods and compile-time assertion:
+추가 the remaining 공개 methods 및 compile-time assertion:
 
 ```go
 var _ leader.Elector = (*Elector)(nil)
@@ -437,12 +440,12 @@ func (e *Elector) Leader(ctx context.Context) (string, error) {
 }
 ```
 
-`acquireAttempt` derives the internal context, calls `tryAcquire`, records whether only the
-internal deadline fired (`attemptCtx.Err()!=nil && ctx.Err()==nil`), and passes that fact to the
-Task 4 reconciliation path. Until Task 4, successful/no-row results work and non-contention
-errors remain typed provider errors.
+`acquireAttempt` derives the internal context, calls `tryAcquire`, records whether 만 the
+internal deadline fired (`attemptCtx.Err()!=nil && ctx.Err()==nil`), 및 passes that fact to the
+작업 4 reconciliation path. Until 작업 4, successful/없음-row results work 및 non-contention
+오류 remain typed provider 오류.
 
-- [ ] **Step 5: Verify race safety and commit**
+- [ ] **단계 5: 검증 race safety 및 commit**
 
 ```bash
 gofmt -w leader/sql/backoff.go leader/sql/lifecycle.go leader/sql/elector.go leader/sql/lifecycle_test.go
@@ -452,19 +455,19 @@ git add leader/sql/backoff.go leader/sql/lifecycle.go leader/sql/elector.go lead
 git commit -m "feat: manage PostgreSQL leader lifecycle"
 ```
 
-Expected: PASS with zero races and no renewal traffic after a completed resign.
+예상: PASS 함께 zero races 및 없음 renewal traffic 후 a completed resign.
 
-### Task 4: Reconcile Indeterminate Mutations and Preserve Cleanup
+### 작업 4: Reconcile Indeterminate Mutations 및 보존 Cleanup
 
-**Files:**
+**파일:**
 - Modify: `leader/sql/elector.go`
 - Modify: `leader/sql/queries.go`
 - Modify: `leader/sql/lifecycle.go`
 - Modify: `leader/sql/lifecycle_test.go`
 
-- [ ] **Step 1: Add RED phase-specific fault tests**
+- [ ] **단계 1: 추가 RED phase-specific fault 테스트**
 
-Define test-only phases `before`, `after`, and `reconcile` and add:
+정의 테스트-만 phases `before`, `after`, 및 `reconcile` 및 add:
 
 ```go
 func testAcquireLostResponseReconcilesOwnToken(t *testing.T, db *sql.DB)
@@ -477,42 +480,42 @@ func testMutationFaultMatrix(t *testing.T, db *sql.DB)
 func testBackendTerminationRecoveryAndTakeover(t *testing.T, db *sql.DB)
 ```
 
-Implement these as subtests/helpers under one serial `TestPostgresFaultRecovery` fixture so Task 4
-starts one PostgreSQL container and resets rows/fault state by unique group between cases.
+구현 these as subtests/helpers under one serial `TestPostgresFaultRecovery` fixture so 작업 4
+starts one PostgreSQL container 및 resets rows/fault state by unique group between cases.
 
-The redaction cause contains distinct DSN, endpoint, relation, constraint, group, member, key,
-and token markers. Assert none occur in `err.Error()` while `errors.Is` and `errors.As` reach the
-original cause and `*leader.OperationError`.
+The redaction 원인 contains distinct DSN, endpoint, relation, constraint, group, member, key,
+및 token markers. 검증 none occur in `err.Error()` while `errors.Is` 및 `errors.As` reach the
+original 원인 및 `*leader.OperationError`.
 
-`TestMutationFaultMatrix` is table-driven over campaign/renew/resign and before/after/reconcile
-phases. Each row states whether SQL changed storage, the returned error/sentinel, `owned`,
-`cleanup`, bounded resign behavior, and whether TTL takeover is required. A before failure never
-matches `ErrCommitUnknown`; an after failure is ambiguous; reconcile applies only to acquisition.
+`TestMutationFaultMatrix` is table-driven over campaign/renew/resign 및 전에/후/reconcile
+phases. Each row states whether SQL changed storage, the returned 오류/sentinel, `owned`,
+`cleanup`, bounded resign behavior, 및 whether TTL takeover is required. A 전에 failure never
+matches `ErrCommitUnknown`; an 후 failure is ambiguous; reconcile applies 만 to acquisition.
 
-For `TestInternalAttemptTimeoutWithOtherOwnerRetries`, begin a real transaction that updates and
-holds the target row lock, confirm the lock holder and blocked UPSERT through a channel plus
-`pg_stat_activity`, then assert operation counts show timeout, reconciliation, and backoff before
-rolling back the transaction in cleanup. Sleeps alone are not synchronization evidence.
+For `TestInternalAttemptTimeoutWithOtherOwnerRetries`, begin a real transaction that updates 및
+holds the target row lock, confirm the lock holder 및 blocked UPSERT through a channel plus
+`pg_stat_activity`, then assert operation counts show timeout, reconciliation, 및 backoff 전에
+rolling back the transaction in cleanup. Sleeps alone are 아님 synchronization evidence.
 
 For `TestBackendTerminationRecoveryAndTakeover`, acquire a lease, hold its row from an admin
-transaction so renewal blocks, find the blocked renewal PID in `pg_stat_activity`, and call
-`pg_catalog.pg_terminate_backend(pid)` from a separate admin connection. Assert the bounded renew
-attempt makes `IsLeader` false and cleanup pending; roll back the blocker, prove the pool
-reconnects, perform bounded resign or wait server-time lease expiry, then prove a fresh elector
+transaction so renewal blocks, find the blocked renewal PID in `pg_stat_activity`, 및 call
+`pg_catalog.pg_terminate_backend(pid)` from a separate admin connection. 검증 the bounded renew
+attempt makes `IsLeader` false 및 cleanup pending; roll back the blocker, prove the pool
+reconnects, perform bounded resign 또는 wait server-time lease expiry, then prove a fresh elector
 takes over.
 
-- [ ] **Step 2: Observe RED**
+- [ ] **단계 2: Observe RED**
 
 ```bash
 go test -p 1 -count=1 ./leader/sql -run '^TestPostgresFaultRecovery$'
 ```
 
-Expected: FAIL because mutation phases and fresh-context reconciliation are absent.
+예상: FAIL because mutation phases 및 fresh-context reconciliation are absent.
 
-- [ ] **Step 3: Implement bounded primary reconciliation**
+- [ ] **단계 3: 구현 bounded primary reconciliation**
 
-After an acquire statement error, create a fresh background context with the same attempt budget
-and call the same-pool live-token lookup:
+After an acquire statement 오류, create a fresh background context 함께 the same attempt budget
+및 call the same-pool live-token lookup:
 
 ```go
 owner, probeErr := e.lookupOwner(reconcileCtx)
@@ -529,17 +532,17 @@ default:
 }
 ```
 
-The `after` hook runs only after storage success. Renewal post-mutation failure clears local
-ownership, retains cleanup, and stops the loop. Resign mutation/post-mutation failure retains
-cleanup and returns `errors.Join(OperationError, leader.ErrCommitUnknown)`; a subsequent
+The `after` hook runs 만 후 storage success. Renewal post-mutation failure clears local
+ownership, retains cleanup, 및 stops the loop. Resign mutation/post-mutation failure retains
+cleanup 및 returns `errors.Join(OperationError, leader.ErrCommitUnknown)`; a subsequent
 already-absent delete succeeds.
 
-Keep the hook field/helper unexported and unreachable from `New` or any exported option. Every
-hook error crosses the same redacted `leader.OperationError("postgres", operation, cause)` boundary;
-the fault matrix rejects any direct raw hook error. Task 9 verifies the exported package surface
-contains only the approved constructor, schema constant, elector type, and elector methods.
+유지 the hook field/helper unexported 및 unreachable from `New` 또는 any exported option. Every
+hook 오류 crosses the same redacted `leader.OperationError("postgres", operation, cause)` boundary;
+the fault matrix rejects any direct raw hook 오류. 작업 9 verifies the exported 패키지 surface
+contains 만 the approved constructor, schema constant, elector type, 및 elector methods.
 
-- [ ] **Step 4: Verify GREEN and commit**
+- [ ] **단계 4: 검증 GREEN 및 commit**
 
 ```bash
 gofmt -w leader/sql/elector.go leader/sql/queries.go leader/sql/lifecycle.go leader/sql/lifecycle_test.go
@@ -549,22 +552,22 @@ git add leader/sql/elector.go leader/sql/queries.go leader/sql/lifecycle.go lead
 git commit -m "feat: reconcile PostgreSQL leader mutations"
 ```
 
-Expected: typed/redacted errors preserve causes; ambiguous mutations never allow a fresh campaign
-before cleanup.
+예상: typed/redacted 오류 preserve causes; ambiguous mutations never al낮음 a fresh campaign
+전에 cleanup.
 
-### Task 5: Pass the Mandatory Provider Conformance Suite
+### 작업 5: Pass the Mandatory Provider Conformance Suite
 
-**Files:**
-- Create: `leader/sql/conformance_test.go`
-- Create: `leader/sql/security_test.go`
+**파일:**
+- 생성: `leader/sql/conformance_test.go`
+- 생성: `leader/sql/security_test.go`
 - Modify: `leader/sql/lifecycle_test.go`
 
-- [ ] **Step 1: Build the PostgreSQL conformance control**
+- [ ] **단계 1: 구성 the PostgreSQL conformance control**
 
-Implement `leadertest.Control` in package `sqlleader` with mutex-protected failure maps and
+구현 `leadertest.Control` in 패키지 `sqlleader` 함께 mutex-protected failure maps 및
 operation counters keyed by normalized leader key. `ReplaceOwner` performs a server-time upsert,
-`Owner` performs the qualified live-token read, and `FailNext` installs one post-mutation hook.
-Use a unique group per conformance case and one serial PostgreSQL container.
+`Owner` performs the qualified live-token read, 및 `FailNext` installs one post-mutation hook.
+사용 a unique group per conformance case 및 one serial PostgreSQL container.
 
 ```go
 func TestPostgresElectorConformance(t *testing.T) {
@@ -584,45 +587,45 @@ func TestPostgresElectorConformance(t *testing.T) {
 }
 ```
 
-- [ ] **Step 2: Observe RED**
+- [ ] **단계 2: Observe RED**
 
 ```bash
 go test -p 1 -count=1 ./leader/sql -run '^TestPostgresElectorConformance$'
 ```
 
-Expected: at least one named mandatory case fails until adapter phase/count semantics match the
+예상: at least one named mandatory case fails until adapter phase/count semantics match the
 real mutation boundaries.
 
-- [ ] **Step 3: Make all 15 mandatory cases GREEN without changing the runner**
+- [ ] **단계 3: Make 모든 15 mandatory cases GREEN 변경하지 않고 the runner**
 
-Run the suite repeatedly while fixing only `leader/sql` or its adapter:
+실행 the suite repeatedly while fixing 만 `leader/sql` 또는 its adapter:
 
 ```bash
 go test -p 1 -count=10 ./leader/sql -run '^TestPostgresElectorConformance$'
 ```
 
-Expected: 10/10 PASS for acquire-observe, owned-duplicate, campaign-in-progress,
+예상: 10/10 PASS for acquire-observe, owned-duplicate, campaign-in-progress,
 contention-cancel, campaign-lost-response, renewal, renew-failure, owner-loss,
 expiry-takeover, resign-idempotent, resign-retry, stale-resign, exact-contention, nil-context,
-and redaction.
+및 redaction.
 
-- [ ] **Step 4: Prove the documented least-privilege role**
+- [ ] **단계 4: 증명 the documented least-privilege role**
 
-As the Testcontainers superuser, create a unique migration owner and login runtime role. Install
-the table under the migration owner, grant only schema `USAGE` and table
-`SELECT,INSERT,UPDATE,DELETE`, and open a second `*sql.DB` as the runtime role. Through that pool,
-run acquire, renew, lookup, resign, and the conformance suite; assert `create table`, `alter table`,
-`truncate`, and `create trigger` fail. Query `has_schema_privilege`, `has_table_privilege`, role
-membership, table owner, PK, trigger count, and RLS state and assert the Task 6 deployment gate.
-Drop roles/tables with bounded cleanup.
+As the Testcontainers superuser, create a unique migration owner 및 login runtime role. Install
+the table under the migration owner, grant 만 schema `USAGE` 및 table
+`SELECT,INSERT,UPDATE,DELETE`, 및 open a second `*sql.DB` as the runtime role. Through that pool,
+run acquire, renew, lookup, resign, 및 the conformance suite; assert `create table`, `alter table`,
+`truncate`, 및 `create trigger` fail. Query `has_schema_privilege`, `has_table_privilege`, role
+membership, table owner, PK, trigger count, 및 RLS state 및 assert the 작업 6 deployment gate.
+Drop roles/tables 함께 bounded cleanup.
 
 ```bash
 go test -p 1 -count=1 ./leader/sql -run '^TestRuntimeRoleLeastPrivilege$'
 ```
 
-Expected: all elector operations PASS; every DDL/ownership escalation is denied.
+예상: 모든 elector operations PASS; every DDL/ownership escalation is denied.
 
-- [ ] **Step 5: Commit conformance and privilege proof**
+- [ ] **단계 5: 커밋 conformance 및 privilege proof**
 
 ```bash
 gofmt -w leader/sql/conformance_test.go leader/sql/security_test.go leader/sql/lifecycle_test.go
@@ -631,26 +634,26 @@ git add leader/sql/conformance_test.go leader/sql/security_test.go leader/sql/li
 git commit -m "test: cover PostgreSQL leader conformance"
 ```
 
-Expected: the unchanged shared runner passes against the real PostgreSQL provider.
+예상: the unchanged 공유 runner passes against the real PostgreSQL provider.
 
-### Task 6: Add Compile-Checked Usage and Bilingual Provider Documentation
+### 작업 6: 추가 Compile-Checked Usage 및 Bilingual Provider Documentation
 
-**Files:**
-- Create: `leader/sql/example_test.go`
-- Create: `leader/sql/readme_test.go`
-- Create: `leader/sql/README.md`
-- Create: `leader/sql/README.ko.md`
+**파일:**
+- 생성: `leader/sql/example_test.go`
+- 생성: `leader/sql/readme_test.go`
+- 생성: `leader/sql/README.md`
+- 생성: `leader/sql/README.ko.md`
 
-- [ ] **Step 1: Add a complete lifecycle example**
+- [ ] **단계 1: 추가 a complete lifecycle example**
 
-The external-package example blank-imports `github.com/jackc/pgx/v5/stdlib`, opens a caller-owned
-`*sql.DB` with `db, err := sql.Open("pgx", dsn)`, executes `SchemaSQL` as an explicitly marked
-development/bootstrap step, constructs the elector, campaigns with a bounded context,
-polls at less than `RenewInterval`, cancels protected work on an unexpected `IsLeader` loss, and
-performs bounded resign before closing the pool. Keep it compile-checked without requiring a live
-database by placing runtime calls in a helper not executed by the example output test.
+The external-패키지 example blank-imports `github.com/jackc/pgx/v5/stdlib`, opens a 호출자-owned
+`*sql.DB` 함께 `db, err := sql.Open("pgx", dsn)`, executes `SchemaSQL` as an explicitly marked
+development/bootstrap step, constructs the elector, campaigns 함께 a bounded context,
+polls at less than `RenewInterval`, cancels protected work on an unexpected `IsLeader` loss, 및
+performs bounded resign 전에 closing the pool. 유지 it compile-checked without requiring a live
+database by placing runtime calls in a helper 아님 executed by the example output 테스트.
 
-Use this exact result ordering and same-elector cleanup shape in the helper:
+사용 this exact result ordering 및 same-elector cleanup shape in the helper:
 
 ```go
 err := elector.Campaign(campaignCtx)
@@ -669,13 +672,13 @@ default:
 ```
 
 `boundedResign` creates a fresh short context for each retry on the same elector. If cleanup does
-not succeed, it waits one full `opts.Lease` measured from the last failed cleanup attempt before
-allowing process restart/reuse; it never constructs a replacement elector to bypass cleanup.
+아님 succeed, it waits one full `opts.Lease` measured from the last failed cleanup attempt 전에
+al낮음ing process restart/reuse; it never constructs a replacement elector to bypass cleanup.
 
-- [ ] **Step 2: Write the synchronized README pair**
+- [ ] **단계 2: Write the synchronized README pair**
 
-Both READMEs must include the same headings and commands: Import, Schema, Least Privilege Grants,
-Usage, Lease Semantics, Primary/Failover Contract, Pool and Timing, Failure Recovery, Shutdown,
+Both READMEs must include the same headings 및 commands: 가져오기, Schema, Least Privilege Grants,
+Usage, Lease Semantics, Primary/Failover Contract, Pool 및 Timing, Failure Recovery, Shutdown,
 Expired Row Cleanup, Security Boundaries, Test. Include exact SQL grants:
 
 ```sql
@@ -685,25 +688,25 @@ on table public.bluetape_leader_leases to app_runtime;
 ```
 
 Put `revoke create on schema public from public;` in a separate DB-administrator hardening block,
-not in the application migration copy/paste block, because it affects every role in the database.
+아님 in the application migration copy/paste block, because it affects every role in the database.
 
-State that `public` is fixed in v0.19.0, custom schemas are unsupported, tokens are not secrets or
-fencing credentials, `KeyPrefix` is not authorization, reads must not route to replicas, and
+State that `public` is fixed in v0.19.0, custom schemas are unsupported, tokens are 아님 secrets 또는
+fencing credentials, `KeyPrefix` is 아님 authorization, reads must 아님 route to replicas, 및
 `SchemaSQL` is bootstrap rather than an upgrade engine.
 
-Start with a preflight table that checks: migration role can create the fixed protected `public`
-relation; runtime role cannot create there; the DSN reaches a writable primary; `Lease` and
-`RenewInterval` are either both zero (10s/3s defaults after normalization) or satisfy
-`0 < RenewInterval < Lease`; and short custom leases set both values explicitly. Unsupported
-custom-schema or replica-routed environments stop before migration.
+Start 함께 a preflight table that checks: migration role can create the fixed protected `public`
+relation; runtime role cannot create there; the DSN reaches a writable primary; `Lease` 및
+`RenewInterval` are either both zero (10s/3s defaults 후 normalization) 또는 satisfy
+`0 < RenewInterval < Lease`; 및 short custom leases set both values explicitly. Unsupported
+custom-schema 또는 replica-routed environments stop 전에 migration.
 
-Also state that `Group`, `MemberID`, `KeyPrefix`, and owner tokens are stored/returned in plaintext
-and must not contain credentials, secrets, or sensitive customer identifiers. RLS is not
-configured by the provider; a caller-supplied policy must independently prove all four DML paths
-and `ON CONFLICT DO UPDATE`, otherwise RLS is unsupported for that deployment.
+Also state that `Group`, `MemberID`, `KeyPrefix`, 및 owner tokens are stored/returned in plaintext
+및 must 아님 contain credentials, secrets, 또는 sensitive customer identifiers. RLS is 아님
+configured by the provider; a 호출자-supplied policy must independently prove 모든 four DML paths
+및 `ON CONFLICT DO UPDATE`, otherwise RLS is unsupported for that deployment.
 
-Include this schema-shape check and fail deployment if the seven ordered rows differ from the
-documented contract:
+Include this schema-shape check 및 fail deployment if the seven ordered rows differ from the
+documented 계약:
 
 ```sql
 select column_name, data_type, is_nullable
@@ -712,7 +715,7 @@ where table_schema = 'public' and table_name = 'bluetape_leader_leases'
 order by ordinal_position;
 ```
 
-Add catalog checks for the protected object itself:
+추가 catalog checks for the protected object itself:
 
 ```sql
 select c.relkind, pg_catalog.pg_get_userbyid(c.relowner) as owner,
@@ -738,11 +741,11 @@ select has_schema_privilege(current_user, 'public', 'USAGE') as schema_usage,
 ```
 
 Expected deployment values are relation kind `r`, the configured migration owner, RLS false,
-primary key `{leader_key}`, zero user triggers, runtime `schema_usage=true`,
-`schema_create=false`, `table_dml=true`, and `table_ddl=false`; also inspect direct/inherited role
-memberships and `PUBLIC` grants.
+primary key `{leader_key}`, zero 사용자 triggers, runtime `schema_usage=true`,
+`schema_create=false`, `table_dml=true`, 및 `table_ddl=false`; also inspect direct/inherited role
+memberships 및 `PUBLIC` grants.
 
-Include this optional logical-expiry cleanup template and require a grace interval larger than
+Include this optional logical-expiry cleanup template 및 require a grace interval larger than
 the maximum configured lease; explain that it is storage hygiene, never the correctness TTL:
 
 ```sql
@@ -750,15 +753,15 @@ delete from public.bluetape_leader_leases
 where lease_until < pg_catalog.clock_timestamp() - interval '1 day';
 ```
 
-Add a controlled HA canary checklist distinct from the local backend-termination test. Capture
-before/after outputs for `pg_is_in_recovery()`, `transaction_read_only`, server identity/timeline,
-and WAL position; prove every elector/probe endpoint reaches the writable primary; restart or
-promote under the deployment's HA controller; fence the old writer before the new writer accepts
-leases; then prove bounded cleanup or full-lease takeover. The local test proves pool reconnection
-only and must not be reported as promotion/fencing evidence.
+추가 a controlled HA canary checklist distinct from the local backend-termination 테스트. 캡처
+전에/후 outputs for `pg_is_in_recovery()`, `transaction_read_only`, server identity/timeline,
+및 WAL position; prove every elector/probe endpoint reaches the writable primary; restart 또는
+promote under the deployment's HA controller; fence the old writer 전에 the new writer accepts
+leases; then prove bounded cleanup 또는 full-lease takeover. The local 테스트 proves pool reconnection
+만 및 must 아님 be reported as promotion/fencing evidence.
 
-Use this exact before/after identity query and stop if `in_recovery=true`, `read_only=on`, the
-endpoint is not the intended primary, or the old primary still accepts writes after promotion:
+사용 this exact 전에/후 identity query 및 stop if `in_recovery=true`, `read_only=on`, the
+endpoint is 아님 the intended primary, 또는 the old primary still accepts writes 후 promotion:
 
 ```sql
 select pg_catalog.inet_server_addr() as server_addr,
@@ -769,14 +772,14 @@ select pg_catalog.inet_server_addr() as server_addr,
        pg_catalog.pg_current_wal_lsn() as wal_lsn;
 ```
 
-Create `readme_test.go` with a table of stable required anchors that must occur in both README
+생성 `readme_test.go` 함께 a table of stable required anchors that must occur in both README
 files: `DBStats.WaitCount`, `DBStats.WaitDuration`, `DBStats.InUse`, `DBStats.MaxOpenConnections`,
 `Lease-RenewInterval`, `ErrCommitUnknown`, `ErrCleanupPending`, `pg_is_in_recovery()`,
-`transaction_read_only`, `full lease`, `dead tuples`, and `autovacuum`. This test prevents either
+`transaction_read_only`, `full lease`, `dead tuples`, 및 `autovacuum`. This 테스트 prevents either
 translation from dropping pool alerts, recovery branches, primary fencing, full-lease fallback,
-row growth, or shutdown inventory.
+row growth, 또는 shutdown inventory.
 
-- [ ] **Step 3: Verify docs/example and commit**
+- [ ] **단계 3: 검증 docs/example 및 commit**
 
 ```bash
 gofmt -w leader/sql/example_test.go leader/sql/readme_test.go
@@ -789,21 +792,21 @@ git add leader/sql/example_test.go leader/sql/readme_test.go leader/sql/README.m
 git commit -m "docs: explain PostgreSQL leader operations"
 ```
 
-Expected: example compiles; pasted heading rows have the same count and semantic order; each
-setup/grant/test command has a corresponding block in both languages; every operational boundary
+예상: example compiles; pasted heading rows have the same count 및 semantic order; each
+setup/grant/테스트 command has a corresponding block in both languages; every operational boundary
 appears in both files.
 
-### Task 7: Create and Verify the Row-Lease Sequence Diagram
+### 작업 7: 생성 및 검증 the Row-Lease Sequence Diagram
 
-**Files:**
-- Create: `docs/images/readme-diagrams/postgres-leader-row-lease-sequence.svg`
-- Create: `docs/images/readme-diagrams/postgres-leader-row-lease-sequence.png`
+**파일:**
+- 생성: `docs/images/readme-diagrams/postgres-leader-row-lease-sequence.svg`
+- 생성: `docs/images/readme-diagrams/postgres-leader-row-lease-sequence.png`
 - Modify: `leader/sql/README.md`
 - Modify: `leader/sql/README.ko.md`
 
-- [ ] **Step 1: Pin source and visual references**
+- [ ] **단계 1: Pin source 및 visual references**
 
-Read the implemented `leader/sql/{elector.go,queries.go,lifecycle.go}` and both provider READMEs.
+Read the implemented `leader/sql/{elector.go,queries.go,lifecycle.go}` 및 both provider READMEs.
 Open these full-size references:
 
 ```text
@@ -811,19 +814,19 @@ Open these full-size references:
 docs/images/readme-diagrams/mongo-leader-election-sequence.png
 ```
 
-Record the reader question: “How does one PostgreSQL row serialize acquire, renewal, contention,
-commit-unknown cleanup, and safe resign?” The diagram kind is sequence; load only the already
-selected common and sequence rules.
+기록 the reader question: “How does one PostgreSQL row serialize acquire, renewal, contention,
+commit-unknown cleanup, 및 safe resign?” The diagram kind is sequence; load 만 the already
+selected common 및 sequence rules.
 
-- [ ] **Step 2: Create one source-backed SVG**
+- [ ] **단계 2: 생성 one source-backed SVG**
 
-Use participants Caller, `sqlleader.Elector`, caller-owned `*sql.DB`, and PostgreSQL primary.
+사용 participants Caller, `sqlleader.Elector`, 호출자-owned `*sql.DB`, 및 PostgreSQL primary.
 Show numbered rows for Campaign, atomic UPSERT, live-owner retry, confirmed acquisition,
-periodic token-bound UPDATE, Leader lookup, token-bound DELETE, and an `alt` frame for
-commit-unknown probe/cleanup/lease expiry. Use explicit muted-color 16x16 sequence markers,
-lifelines, activations, transparent branch frames, and readable row spacing.
+periodic token-bound UPDATE, Leader lookup, token-bound DELETE, 및 an `alt` frame for
+commit-unknown probe/cleanup/lease expiry. 사용 explicit muted-color 16x16 sequence markers,
+lifelines, activations, transparent branch frames, 및 readable row spacing.
 
-- [ ] **Step 3: Parse, render, and audit the authoritative PNG**
+- [ ] **단계 3: Parse, render, 및 audit the authoritative PNG**
 
 ```bash
 xmllint --noout docs/images/readme-diagrams/postgres-leader-row-lease-sequence.svg
@@ -835,14 +838,14 @@ python3 "${CODEX_HOME:-$HOME/.codex}/skills/bluetape-diagram/scripts/diagram-mix
 python3 "${CODEX_HOME:-$HOME/.codex}/skills/bluetape-diagram/scripts/diagram-sequence-style-audit.py" docs/images/readme-diagrams/postgres-leader-row-lease-sequence.svg
 ```
 
-Expected: XML/render succeed; meaningful participant/lifeline/message/label/marker/frame counts are
-nonzero and all reported failures are zero. Open the PNG at full size after the final coordinate
-change and record dimensions, label/line separation, arrowhead parity, branch transparency,
-crossings, card intrusion, and whitespace in the Step 6-R evidence ledger.
+예상: XML/render succeed; meaningful participant/lifeline/message/label/marker/frame counts are
+nonzero 및 모든 reported failures are zero. Open the PNG at full size 후 the final coordinate
+change 및 record dimensions, label/line separation, arrowhead parity, branch transparency,
+crossings, card intrusion, 및 whitespace in the 단계 6-R evidence ledger.
 
-- [ ] **Step 4: Embed and commit the paired asset**
+- [ ] **단계 4: Embed 및 commit the paired asset**
 
-Add `![PostgreSQL row-lease sequence](../../docs/images/readme-diagrams/postgres-leader-row-lease-sequence.png)`
+추가 `![PostgreSQL row-lease sequence](../../docs/images/readme-diagrams/postgres-leader-row-lease-sequence.png)`
 to both provider READMEs, verify both relative targets, then run:
 
 ```bash
@@ -851,30 +854,30 @@ git add docs/images/readme-diagrams/postgres-leader-row-lease-sequence.svg docs/
 git commit -m "docs: diagram PostgreSQL leader leases"
 ```
 
-Expected: one canonical SVG/PNG pair is exposed from both language READMEs.
+예상: one canonical SVG/PNG pair is exposed from both language READMEs.
 
-### Task 8: Update Public Indexes and Release Guidance
+### 작업 8: 업데이트 Public Indexes 및 Release Guidance
 
-**Files:**
+**파일:**
 - Modify: `leader/README.md`
 - Modify: `leader/README.ko.md`
 - Modify: `README.md`
 - Modify: `README.ko.md`
 - Modify: `CHANGELOG.md`
 
-- [ ] **Step 1: Add synchronized backend discovery**
+- [ ] **단계 1: 추가 synchronized backend discovery**
 
-Add `leader/sql` to both leader backend sections, both root package tables, and both root
-coordination link lists. Describe it as PostgreSQL-only, single-elector, caller-owned row leases;
-do not imply group/strategic support.
+추가 `leader/sql` to both leader backend sections, both root 패키지 tables, 및 both root
+coordination link lists. Describe it as PostgreSQL-만, single-elector, 호출자-owned row leases;
+do 아님 imply group/strategic support.
 
-- [ ] **Step 2: Add v0.19.0 CHANGELOG guidance**
+- [ ] **단계 2: 추가 v0.19.0 CHANGELOG guidance**
 
-Under the existing unreleased/v0.19.0 section, record the new provider, mandatory conformance,
-fixed `public.bluetape_leader_leases` migration, primary-only routing, bounded resign/TTL recovery,
-and absence of fencing/custom schema support.
+Under the 기존 unreleased/v0.19.0 section, record the new provider, mandatory conformance,
+fixed `public.bluetape_leader_leases` migration, primary-만 routing, bounded resign/TTL recovery,
+및 absence of fencing/custom schema support.
 
-- [ ] **Step 3: Verify parity and commit**
+- [ ] **단계 3: 검증 parity 및 commit**
 
 ```bash
 rg -n 'leader/sql|PostgreSQL|Postgres' README.md README.ko.md leader/README.md leader/README.ko.md CHANGELOG.md
@@ -883,15 +886,15 @@ git add README.md README.ko.md leader/README.md leader/README.ko.md CHANGELOG.md
 git commit -m "docs: publish PostgreSQL leader provider"
 ```
 
-Expected: English/Korean discovery surfaces and release guidance agree on scope and caveats.
+예상: 영문/한국어 discovery surfaces 및 release guidance agree on scope 및 caveats.
 
-### Task 9: Run Final Local Gates and Prepare Review Evidence
+### 작업 9: 실행 Final Local Gates 및 준비 리뷰 증거
 
-**Files:**
-- Create during workflow: `docs/superpowers/reviews/2026-07-12-issue-528-postgres-leader-step-6r-code-review.md`
-- Modify only if review finds issues: files from Tasks 1-8
+**파일:**
+- 생성 during workf낮음: `docs/superpowers/reviews/2026-07-12-issue-528-postgres-leader-step-6r-code-review.md`
+- Modify 만 if review finds issues: files from Tasks 1-8
 
-- [ ] **Step 1: Run targeted and stress verification from scratch**
+- [ ] **단계 1: 실행 targeted 및 stress verification from scratch**
 
 ```bash
 go test -p 1 -count=10 ./leader/sql -run '^TestPostgresElectorConformance$'
@@ -900,11 +903,11 @@ go test -p 1 -race -count=1 ./leader ./leader/sql
 go doc github.com/bluetape4k/bluetape-go/leader/sql
 ```
 
-Expected: all commands exit 0; Testcontainers tests are serial and race verification reports no
-races; Go doc exposes no hook/fault configuration. Lost handles or missing exit codes are not
+예상: 모든 commands exit 0; Testcontainers 테스트 are serial 및 race verification reports 없음
+races; Go doc exposes 없음 hook/fault configuration. Lost handles 또는 missing exit codes are 아님
 evidence—rerun from scratch.
 
-- [ ] **Step 2: Run repository gates**
+- [ ] **단계 2: 실행 repository gates**
 
 ```bash
 make fmt-check
@@ -914,16 +917,16 @@ make lint
 make ci
 ```
 
-Expected: every command exits 0. If the known waiter diagnostic recurs, rerun its targeted 20x
-proof before classifying it; do not hide a new provider failure behind the baseline note.
+예상: every command exits 0. If the known waiter diagnostic recurs, rerun its targeted 20x
+proof 전에 classifying it; do 아님 hide a new provider failure behind the baseline note.
 
-- [ ] **Step 3: Complete Step 6-R review and diagram ledger**
+- [ ] **단계 3: Complete 단계 6-R review 및 diagram ledger**
 
-Run the six independent performance, stability, security, operator/Ops, developer/API, and
-user/caller lanes. Main integration records P0/P1/P2 findings, every fix/rerun, and the complete
+실행 the six independent 성능, 안정성, 보안, 운영자/Ops, 개발자/API, 및
+사용자/호출자 lanes. Main integration records P0/P1/P2 findings, every fix/rerun, 및 the complete
 DIA-01..08 plus DIA-COM/SEQ evidence. Unresolved P0/P1 blocks PR creation.
 
-- [ ] **Step 4: Commit only review-driven changes and evidence**
+- [ ] **단계 4: 커밋 만 review-driven changes 및 evidence**
 
 ```bash
 git status --short
@@ -933,20 +936,20 @@ git add docs/superpowers/reviews/2026-07-12-issue-528-postgres-leader-step-6r-co
 git commit -m "docs: review PostgreSQL leader provider"
 ```
 
-Expected: worktree is clean, review verdict is P0=0/P1=0, and commits remain scoped to #528.
+예상: worktree is clean, review verdict is P0=0/P1=0, 및 commits remain scoped to #528.
 
-## Rollback Boundaries
+## 롤백 Boundaries
 
-- Revert documentation/index/diagram commits without changing the storage implementation.
-- Revert in exact reverse dependency order: public indexes, diagram, provider docs/example,
+- Revert documentation/index/diagram commits 변경하지 않고 the storage implementation.
+- Revert in exact reverse dependency order: 공개 indexes, diagram, provider docs/example,
   conformance adapter, reconciliation, lifecycle, SQL statements, then schema/API. Revert the
-  risk artifact only after source rollback evidence is preserved.
-- Never drop or mutate `public.bluetape_leader_leases` automatically during rollback; callers own
-  migrations and may leave the unused compatible table in place.
-- If runtime rollout produces commit-unknown or primary-routing ambiguity, stop protected work,
-  first fence every non-authoritative writer and restore one authoritative writable primary.
-  Record endpoint identity, recovery/read-only state, and database timeline evidence. Then cancel
-  and join or terminate every elector, record every unresolved elector and the maximum configured
-  lease, and start one wait of that maximum lease after the final join/process stop. Verify
-  server-time expiry on the authoritative primary before enabling takeover, disabling the provider,
-  or rolling application binaries back.
+  risk artifact 만 후 source rollback evidence is preserved.
+- Never drop 또는 mutate `public.bluetape_leader_leases` automatically during rollback; callers own
+  migrations 및 may leave the unused compatible table in place.
+- If runtime rollout produces commit-unknown 또는 primary-routing ambiguity, stop protected work,
+  first fence every non-authoritative writer 및 restore one authoritative writable primary.
+  기록 endpoint identity, recovery/read-만 state, 및 database timeline evidence. Then cancel
+  및 join 또는 terminate every elector, record every unresolved elector 및 the maximum configured
+  lease, 및 start one wait of that maximum lease 후 the final join/process stop. 검증
+  server-time expiry on the authoritative primary 전에 enabling takeover, disabling the provider,
+  또는 rolling application binaries back.

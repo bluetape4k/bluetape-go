@@ -1,12 +1,15 @@
 # Issue #208 Implementation Plan
 
+> 한국어 운영 요약: 이 계획 문서는 사용자 협업용 실행 계획이다. 아래 원문에 포함된 명령, 경로, API 이름, issue/PR 번호, branch 이름, code block, test output은 추적성과 재현성을 위해 그대로 보존한다. 작업 순서, 위험, 검증, 롤백 판단은 한국어 독자가 바로 실행 경계를 이해할 수 있도록 이 메모를 우선 적용한다.
+> 추가 한국어 요약: 이 문서의 실행 판단은 기존 순서를 따르며, 변경자는 작업 표와 검증 목록을 먼저 확인한 뒤 관련 테스트를 실행한다. 영어로 남은 항목은 코드 식별자 또는 재현 증거다.\n
+
 Issue: #208
 Milestone: 0.6.3
 Spec: `docs/superpowers/specs/2026-06-22-issue-208-time-helper-parity-design.md`
 Spec review: `docs/superpowers/reviews/2026-06-22-issue-208-time-helper-parity-step-2r-spec-review.md`
 Date: 2026-06-22
 
-## Goal
+## 목표
 
 Add a small Go-native time helper surface to `core` for quarter,
 year-quarter, and calendar date iteration workflows. Preserve the issue's
@@ -171,7 +174,7 @@ as cumulative evidence rather than rerunning unnecessary duplicates.
 | No panics for invalid caller values | Tasks 1 and 2 require sentinel errors or false return values for invalid inputs. |
 | No new dependency | Task 2 restricts implementation to the standard library. |
 
-## Risks and Mitigations
+## 위험 and Mitigations
 
 | Risk | Mitigation |
 |---|---|
