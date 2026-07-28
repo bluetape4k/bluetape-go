@@ -1,11 +1,13 @@
 # Issue 100 SQL Research 7-Tier Review
 
-Scope: issue #100 research note, #317/#318/#319 follow-up issues, #100/#101/#7
+> 한국어 감사/리뷰 경계: 이 문서는 리뷰 결론과 남은 위험을 한국어 독자가 추적할 수 있도록 정리한다. 심각도 표기, 판정 표기, 파일 경로, 라인 번호, 이슈/PR 링크, 명령, 코드 식별자, 인용 증거는 원문의 증거 앵커로 보존한다.
+
+범위: issue #100 research note, #317/#318/#319 follow-up issues, #100/#101/#7
 tracker updates, wiki preservation note, and research index updates.
 
 Baseline: `e6d6e25` on `origin/develop`.
 
-## Findings
+## 발견 사항
 
 P0=0 P1=0
 
@@ -21,7 +23,7 @@ P0=0 P1=0
 | 6 | User/Caller | 0 | 0 | 0 | 0 | PASS |
 | 7 | Integration | 0 | 0 | 0 | 0 | PASS |
 
-## Evidence
+## 증거
 
 - The research starts with `database/sql` transaction and row mapping helpers
   instead of a broad ORM or mandatory generator.
@@ -35,12 +37,12 @@ P0=0 P1=0
 - No Go code, dependency, module, runtime, or public API changes are introduced
   by this PR.
 
-## Remaining Risk
+## 남은 위험
 
 The first implementation package path is intentionally not locked. #317 must
 choose the final path after checking import layout and README placement.
 
-## Validation
+## 검증
 
 - `git diff --check`
 - Targeted `rg` over issue #100 research, review, lesson, and research index

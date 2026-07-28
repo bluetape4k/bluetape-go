@@ -1,6 +1,8 @@
 # Issue #429 Cumulative Hardening Review
 
-## Scope
+> 한국어 감사/리뷰 경계: 이 문서는 리뷰 결론과 남은 위험을 한국어 독자가 추적할 수 있도록 정리한다. 심각도 표기, 판정 표기, 파일 경로, 라인 번호, 이슈/PR 링크, 명령, 코드 식별자, 인용 증거는 원문의 증거 앵커로 보존한다.
+
+## 범위
 
 - Issue: #429 `refactor: Apply cumulative lesson hardening to code through 0.12.0`
 - Parent: #423
@@ -9,7 +11,7 @@
 - Primary lesson sources: `docs/lessons/**`, `docs/review/**`, and
   `bluetape-go-patterns` lessons promoted through 0.12.0.
 
-## Evidence Scan
+## 증거 스캔
 
 | Area | Evidence | Result |
 |---|---|---|
@@ -20,7 +22,7 @@
 | Cancellation and shared-state proof | #444 added stress coverage; #446 fixed same-key cache cancellation leakage. Current changes touch cleanup/docs only. | no-op with evidence |
 | Testcontainers serial scheduling | `Makefile` still uses serial package execution for Docker-backed full-suite commands, and package README pairs continue to document `-p 1`. | no-op with evidence |
 
-## Package Slice Checklist
+## 패키지 단위 체크리스트
 
 | Slice | Status | Notes |
 |---|---|---|
@@ -30,7 +32,7 @@
 | `workflow`, `batch`, SQL/database, AWS/DynamoDB, text/language/tokenizer, audit/outbox, graph/image/encryption, rules | no-op with evidence | Current review found no new P0/P1 in these slices beyond prior closed reviews and #444/#446 hardening. |
 | Package README/README.ko, examples, diagrams, benchmarks, release docs | fixed | README and README.ko pairs updated together for touched packages. No diagram or benchmark changes in this PR. |
 
-## 7-Tier Review
+## 7-Tier 검토
 
 | Lane | Verdict | Notes |
 |---|---|---|
@@ -42,7 +44,7 @@
 | User/Caller | PASS | README and README.ko pairs stay synchronized for changed package guidance. P0=0 P1=0. |
 | Integration | PASS | Targeted package tests and race tests passed before full CI. P0=0 P1=0. |
 
-## Validation
+## 검증
 
 - `rg -n "TerminateContainer\\(|nw\\.Remove\\(ctx\\)|defer (near|client)\\.Close\\(\\)|container\\.Terminate\\(context\\.Background\\(\\)" --glob '*.go' --glob 'README*.md'`: no matches.
 - `go test -p 1 -count=1 ./testcontainers/toxiproxy ./cache/redisnear ./cache/rediscoord ./jwt`: PASS.

@@ -1,17 +1,19 @@
 # Issue #231 IMF Provider Step 6-R Review
 
-Scope: `money` IMF exchange-rate provider implementation, tests, README pair,
+> 한국어 감사/리뷰 경계: 이 문서는 리뷰 결론과 남은 위험을 한국어 독자가 추적할 수 있도록 정리한다. 심각도 표기, 판정 표기, 파일 경로, 라인 번호, 이슈/PR 링크, 명령, 코드 식별자, 인용 증거는 원문의 증거 앵커로 보존한다.
+
+범위: `money` IMF exchange-rate provider implementation, tests, README pair,
 research note, WIP, and changelog updates.
 
 Baseline: `develop` at `b83d8b3`.
 
-## Gate Result
+## 게이트 결과
 
 P0=0 P1=0
 
 Final verdict: PASS.
 
-## Lane Results
+## 관점별 결과
 
 | Lane | P0 | P1 | P2 | P3 | Verdict | Evidence |
 |---|---:|---:|---:|---:|---|---|
@@ -22,7 +24,7 @@ Final verdict: PASS.
 | Developer/API | 0 | 0 | 0 | 0 | PASS | Public API remains a narrow `ExchangeRateProvider`; `Convert` value path is unchanged. Options document family/frequency/window/country-code semantics. |
 | User/caller docs | 0 | 0 | 0 | 0 | PASS | README pair documents IMF reference-data caveat, USD/EUR scope, default country-code map, fixed period window options, retry behavior, and XDR deferral. |
 
-## Repaired Findings
+## 수정한 발견 사항
 
 - P1: Unbounded IMF HTTP response handling could exhaust memory. Fixed with a
   4 MiB success-body cap, bounded sanitized error diagnostics, and oversized
@@ -41,7 +43,7 @@ Final verdict: PASS.
 - P2/P3 docs gaps: default domestic-currency map, period-window override, retry
   behavior, and source URLs are now documented.
 
-## Validation
+## 검증
 
 | Command / Review | Status | Evidence |
 |---|---|---|
@@ -53,7 +55,7 @@ Final verdict: PASS.
 | Performance re-review | PASS | P0=0 P1=0; duplicate refresh recorded as non-blocking P2/non-goal. |
 | Correctness re-review | PASS | P0=0 P1=0 after dedicated EUR fixtures and series validation. |
 
-## Residual Risk
+## 잔여 위험
 
 IMF refresh coalescing is not implemented. Concurrent expired-cache callers may
 each attempt a refresh, but stale fallback, locks, and race coverage are now

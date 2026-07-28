@@ -1,11 +1,13 @@
 # Issue #318 SQLKit Builder 7-Tier Review
 
+> 한국어 감사/리뷰 경계: 이 문서는 리뷰 결론과 남은 위험을 한국어 독자가 추적할 수 있도록 정리한다. 심각도 표기, 판정 표기, 파일 경로, 라인 번호, 이슈/PR 링크, 명령, 코드 식별자, 인용 증거는 원문의 증거 앵커로 보존한다.
+
 Reviewed branch: `feat/issue-318-sqlkit-builder`
 Baseline: `8832940 feat: add runtime SQL transaction and row mapping foundation (#325)`
-Scope: `sqlkit` builder implementation, PostgreSQL repository prototype tests,
+범위: `sqlkit` builder implementation, PostgreSQL repository prototype tests,
 and README locale updates.
 
-## Evidence
+## 증거
 
 - `go test -count=1 ./sqlkit`: RED failed before implementation because
   `SelectFrom`, `InsertInto`, `Update`, `DeleteFrom`, and `Statement` were
@@ -23,7 +25,7 @@ and README locale updates.
   `leader/redis/TestRedisGroupElectorWaitsUntilContextExpires`; targeted
   `go test -race -p 1 -count=1 ./leader/redis` passed; second `make ci`: PASS.
 
-## Findings
+## 발견 사항
 
 | Tier | Perspective | Verdict | Findings |
 |---|---|---:|---|
@@ -35,7 +37,7 @@ and README locale updates.
 | 6 | User/Caller | PASS | Unit tests assert exact SQL/args for all CRUD builders (`sqlkit/builder_test.go:11`, `sqlkit/builder_test.go:25`, `sqlkit/builder_test.go:38`, `sqlkit/builder_test.go:50`). PostgreSQL repository prototype proves CRUD, rollback, and relational query (`sqlkit/repository_example_test.go:90`). README and README.ko.md are in sync. |
 | 7 | Integration/Evidence | PASS | Spec/plan exist and were committed before implementation. Validation includes targeted package tests, package race, repo-wide serial tests, and full `make ci` rerun. No dependency, workflow, generated artifact, or unrelated file drift found. |
 
-## P2/P3 Notes
+## P2/P3 메모
 
 - P2 deferred: `Where` is a raw SQL fragment by design. This is documented and
   keeps joins/subqueries possible without introducing a broad dialect or ORM
@@ -44,7 +46,7 @@ and README locale updates.
   decides whether optional generator or query-builder guidance belongs in
   `sqlkit`.
 
-## Gate Verdict
+## 게이트 판정
 
 P0=0 P1=0
 

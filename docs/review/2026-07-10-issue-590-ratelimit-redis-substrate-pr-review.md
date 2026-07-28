@@ -1,6 +1,8 @@
 # Issue #590 Redis Rate Limiter PR Review
 
-## Scope
+> 한국어 감사/리뷰 경계: 이 문서는 리뷰 결론과 남은 위험을 한국어 독자가 추적할 수 있도록 정리한다. 심각도 표기, 판정 표기, 파일 경로, 라인 번호, 이슈/PR 링크, 명령, 코드 식별자, 인용 증거는 원문의 증거 앵커로 보존한다.
+
+## 범위
 
 - PR: #591
 - Issue: #590
@@ -10,7 +12,7 @@
   not exposed in this session; the main session independently reviewed each
   required perspective and owns the integration verdict.
 
-## Actual PR Diff Review
+## 실제 PR diff 검토
 
 | Perspective | P0 | P1 | P2 | P3 | Verdict |
 |---|---:|---:|---:|---:|---|
@@ -21,7 +23,7 @@
 | Developer/API | 0 | 0 | 0 | 0 | No exported API changes. Error inspection follows Go `errors.Is`/`errors.As`; shared helpers incompatible with local contracts remain explicitly rejected. |
 | User/Caller | 0 | 0 | 0 | 0 | README locale pair documents diagnostics; exact caller-key, result, and unsupported-feature behavior remain compatible. |
 
-## Integration Verdict
+## 통합 판정
 
 The live PR body matches the linked issue metadata and ends with `## DoD
 Status`. Targeted normal/race tests and full local CI pass. The GitHub CI run
@@ -29,4 +31,4 @@ was in progress when this review was written; its result remains the Step 8
 merge gate.
 
 P0=0 P1=0
-Verdict: APPROVE
+판정: APPROVE

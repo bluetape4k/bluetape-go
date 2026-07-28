@@ -1,11 +1,13 @@
 # Issue #431 MongoDB Leader Research Review
 
-Issue: [#431](https://github.com/bluetape4k/bluetape-go/issues/431)  
-Branch: `feat/issue-431-leader-mongo-research`  
-Baseline: `466745b`  
-Date: 2026-07-09
+> 한국어 감사/리뷰 경계: 이 문서는 리뷰 결론과 남은 위험을 한국어 독자가 추적할 수 있도록 정리한다. 심각도 표기, 판정 표기, 파일 경로, 라인 번호, 이슈/PR 링크, 명령, 코드 식별자, 인용 증거는 원문의 증거 앵커로 보존한다.
 
-## Scope
+이슈: [#431](https://github.com/bluetape4k/bluetape-go/issues/431)
+브랜치: `feat/issue-431-leader-mongo-research`
+Baseline: `466745b`
+날짜: 2026-07-09
+
+## 범위
 
 - `docs/research/2026-07-09-issue-431-leader-mongodb-storage.md`
 - `docs/lessons/2026-07-09-issue-431-leader-mongo-research.md`
@@ -13,7 +15,7 @@ Date: 2026-07-09
 - `docs/research/README.md`
 - `bluetape4k-wiki/research/2026-07-09-bluetape-go-leader-mongodb-storage.md`
 
-## Evidence
+## 증거
 
 - Issue #431 requires a research-first decision for MongoDB leader election
   storage before adding implementation work.
@@ -28,7 +30,7 @@ Date: 2026-07-09
 - Follow-up issue [#485](https://github.com/bluetape4k/bluetape-go/issues/485)
   was created for the single-elector `leader/mongo` implementation only.
 
-## 7-Tier Lanes
+## 7-Tier 관점
 
 | Lane | Verdict | Notes |
 |---|---|---|
@@ -40,7 +42,7 @@ Date: 2026-07-09
 | User/Caller | PASS | P0=0 P1=0. README points callers to the research boundary without claiming an implemented MongoDB backend. |
 | Integration | PASS | P0=0 P1=0. Main-session review accepts a single-elector follow-up and defers group/strategic shapes. |
 
-## Validation
+## 검증
 
 | Command | Status | Evidence |
 |---|---|---|
@@ -50,7 +52,7 @@ Date: 2026-07-09
 | `git diff --check` | PASS | No whitespace errors. |
 | `gno update` / `gno embed --collection bluetape4k-wiki` / representative `gno search` | PASS | New wiki note indexed and found by `leader MongoDB findOneAndUpdate lease_until` search; embed command exited 0 with a nonfatal Metal compile warning. |
 
-## Findings
+## 발견 사항
 
 P0=0 P1=0
 
@@ -60,7 +62,7 @@ P0=0 P1=0
 - P2 bounded: Group and strategic variants are separate design problems and
   should not be bundled with the first MongoDB package issue.
 
-## Residual Risk
+## 잔여 위험
 
 The research does not run MongoDB contention benchmarks or implementation
 tests. The future implementation PR still needs to prove server-time handling,

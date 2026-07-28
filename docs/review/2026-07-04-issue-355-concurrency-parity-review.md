@@ -1,6 +1,8 @@
 # Issue #355 Concurrency Parity Review
 
-Date: 2026-07-04
+> 한국어 감사/리뷰 경계: 이 문서는 리뷰 결론과 남은 위험을 한국어 독자가 추적할 수 있도록 정리한다. 심각도 표기, 판정 표기, 파일 경로, 라인 번호, 이슈/PR 링크, 명령, 코드 식별자, 인용 증거는 원문의 증거 앵커로 보존한다.
+
+날짜: 2026-07-04
 
 Scope:
 
@@ -12,7 +14,7 @@ Scope:
 - `concurrency/README.ko.md`
 - `docs/research/2026-07-04-issue-355-concurrency-parity.md`
 
-## Evidence
+## 증거
 
 - Issue #355 requires adapt/skip decisions for reducer, round-robin,
   future-composition, and lock/latch patterns.
@@ -28,7 +30,7 @@ Scope:
   `WorkerPool`, `Go`, and panic-to-error handling around `context.Context` and
   `errgroup`.
 
-## 7-Tier Lanes
+## 7-Tier 관점
 
 | Lane | Verdict | Notes |
 |---|---|---|
@@ -40,7 +42,7 @@ Scope:
 | User/Caller | Pass | README pairs and examples show construction, `Next`, and race-test expectations. Decision notes document adapt/skip choices for each Kotlin candidate family. |
 | Integration | Pass | Targeted tests, race tests, and the full local gate passed. |
 
-## Validation
+## 검증
 
 - `git diff --check`: PASS
 - `git diff --cached --check`: PASS
@@ -53,12 +55,12 @@ Scope:
 - `make test`: PASS
 - `make race`: PASS
 
-## Findings
+## 발견 사항
 
 - P0: 0
 - P1: 0
 
-## Residual Risk
+## 잔여 위험
 
 `RoundRobin` is intentionally only a cyclic counter. If future call sites need
 bounded reduction, streaming backpressure, or first-success/first-completed

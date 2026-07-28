@@ -1,11 +1,13 @@
 # Issue #207 Wildcard and Hash Utilities Step 6-R Review
 
-Scope: `core` wildcard matching, XXH64 helpers, README pair, dependency
+> 한국어 감사/리뷰 경계: 이 문서는 리뷰 결론과 남은 위험을 한국어 독자가 추적할 수 있도록 정리한다. 심각도 표기, 판정 표기, 파일 경로, 라인 번호, 이슈/PR 링크, 명령, 코드 식별자, 인용 증거는 원문의 증거 앵커로 보존한다.
+
+범위: `core` wildcard matching, XXH64 helpers, README pair, dependency
 metadata, spec/plan/review artifacts, and lessons.
 
 Baseline: `origin/develop` at `0ea2bfc`.
 
-## Gate Result
+## 게이트 결과
 
 P0=0 P1=0
 
@@ -15,7 +17,7 @@ Native subagent lanes were unavailable because stale-agent cleanup attempts
 hung until user interruption. The six-lane 7-tier frame was completed in the
 main session and recorded here as the review evidence.
 
-## Lane Results
+## 관점별 결과
 
 | Lane | P0 | P1 | P2 | P3 | Verdict | Evidence |
 |---|---:|---:|---:|---:|---|---|
@@ -26,16 +28,16 @@ main session and recorded here as the review evidence.
 | Developer/API | 0 | 0 | 0 | 0 | PASS | Public APIs are small, explicit, and Go-shaped: string/path wildcard helpers are separate, error returns are explicit, and hash helpers only accept byte/string inputs. |
 | User/caller docs | 0 | 0 | 0 | 0 | PASS | README and Korean README document syntax, lexical path behavior, escaped literals, deterministic XXH64, non-crypto limits, and excluded JVM/resource/system/generic helpers. |
 
-## Findings
+## 발견 사항
 
-No P0/P1 findings.
+P0/P1 발견 사항 없음.
 
 Resolved P2: path pattern backslash semantics were initially ambiguous for
 wildcard segments and escaped literal `*`/`?` characters. The implementation now
 keeps `/` and `\` as input separators while documenting and testing escaped
 literal wildcard characters inside slash-separated pattern segments.
 
-## Validation
+## 검증
 
 | Command / Review | Status | Evidence |
 |---|---|---|
@@ -50,7 +52,7 @@ literal wildcard characters inside slash-separated pattern segments.
 | `git diff --check` | PASS | Whitespace check clean. |
 | Web research preservation | PASS | `bluetape4k-wiki` note committed and pushed as `5e5dfcf`; `gno update`, `gno embed --collection bluetape4k-wiki`, and `gno search "cespare xxhash Go dependency review" -c bluetape4k-wiki` passed. |
 
-## Residual Risk
+## 잔여 위험
 
 Path matching is lexical only and does not model OS-specific filesystem
 normalization, symlinks, or case-folding. That is intentional for portable

@@ -1,7 +1,9 @@
 # Issue #592 Probabilistic Redis Key Builder Code Review
 
-Date: 2026-07-10 KST
-Gate: Step 6 / Step 6-R
+> 한국어 감사/리뷰 경계: 이 문서는 리뷰 결론과 남은 위험을 한국어 독자가 추적할 수 있도록 정리한다. 심각도 표기, 판정 표기, 파일 경로, 라인 번호, 이슈/PR 링크, 명령, 코드 식별자, 인용 증거는 원문의 증거 앵커로 보존한다.
+
+날짜: 2026-07-10 KST
+게이트: Step 6 / Step 6-R
 Baseline: `068df42615303090be1f57e03a494b596962e8e7`
 Reviewed production/test diff:
 
@@ -12,7 +14,7 @@ Native reviewer spawning is not exposed in this session. The changed slice is
 small and tightly coupled, so this gate uses independent local-equivalent
 six-perspective passes plus main-session integration.
 
-## Findings
+## 발견 사항
 
 | Perspective | P0 | P1 | P2 | P3 | Evidence and verdict |
 |---|---:|---:|---:|---:|---|
@@ -23,7 +25,7 @@ six-perspective passes plus main-session integration.
 | Developer/API | 0 | 0 | 0 | 0 | Private adapter is confined to `keys.go`; no exported API or `RedisError`/metadata sentinel source changed. Production concurrency quick scan of changed files returned zero hits. |
 | User/Caller | 0 | 0 | 0 | 0 | Valid colon namespaces and invalid namespaces retain their contracts. No caller-visible behavior changed, so README/README.ko, changelog, diagram, and release-note changes are N/A. |
 
-## Integration
+## 통합
 
 P0=0 P1=0 P2=0 P3=0
 
@@ -34,7 +36,7 @@ mapping, Lua scripts, and HyperLogLog command behavior. Focused formatter,
 tidy, vet, serial normal tests, serial race tests, and `git diff --check` are
 all fresh PASS evidence.
 
-## Deferred/Rejected
+## 유예/거절
 
 | Item | Decision | Rationale |
 |---|---|---|

@@ -1,6 +1,8 @@
 # Issue 395 Expr Reader Review
 
-## Scope
+> 한국어 감사/리뷰 경계: 이 문서는 리뷰 결론과 남은 위험을 한국어 독자가 추적할 수 있도록 정리한다. 심각도 표기, 판정 표기, 파일 경로, 라인 번호, 이슈/PR 링크, 명령, 코드 식별자, 인용 증거는 원문의 증거 앵커로 보존한다.
+
+## 범위
 
 - Issue: #395
 - Branch: `feat/issue-395-expr-rule-reader`
@@ -13,7 +15,7 @@
   - `rules/exprreader/reader.go`
   - `rules/exprreader/reader_test.go`
 
-## Independent Lanes
+## 독립 관점
 
 ### Code Review Lane
 
@@ -34,7 +36,7 @@
   - Medium: permissive schema parsing was the main long-term API risk for a config-driven reader.
   - Low: `Load` checks context before and after `io.ReadAll`, but cannot interrupt a blocked bare `io.Reader`.
 
-## Resolution
+## 해결
 
 - Added strict YAML/JSON decoding with `yaml.Decoder.KnownFields(true)`.
 - Rejected multiple rule documents.
@@ -50,13 +52,13 @@
 
 The `io.Reader` cancellation limitation remains accepted because `Load` cannot safely preempt arbitrary blocking readers without changing the public input contract. The reader still checks context before and after the read, and generated rules check context before evaluation and execution.
 
-## Final Verdict
+## 최종 판정
 
 - P0: 0
 - P1: 0
 - Status: approved after fixes
 
-## Verification
+## 검증
 
 - `go test -count=1 ./rules ./rules/...`
 - `go test -race -count=1 ./rules ./rules/...`

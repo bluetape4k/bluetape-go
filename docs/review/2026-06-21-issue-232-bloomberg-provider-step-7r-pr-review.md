@@ -1,16 +1,18 @@
 # Issue #232 Bloomberg Provider Step 7-R PR Review
 
-PR: #248
-Issue: #232
-Date: 2026-06-21
+> 한국어 감사/리뷰 경계: 이 문서는 리뷰 결론과 남은 위험을 한국어 독자가 추적할 수 있도록 정리한다. 심각도 표기, 판정 표기, 파일 경로, 라인 번호, 이슈/PR 링크, 명령, 코드 식별자, 인용 증거는 원문의 증거 앵커로 보존한다.
 
-## Gate Result
+PR: #248
+이슈: #232
+날짜: 2026-06-21
+
+## 게이트 결과
 
 P0=0 P1=0
 
 Final verdict: PASS.
 
-## PR Metadata
+## PR 메타데이터
 
 | Check | Status | Evidence |
 |---|---|---|
@@ -21,7 +23,7 @@ Final verdict: PASS.
 | Labels | PASS | PR labels are `area: utilities`, `type: research`, and `priority: p2`, matching issue #232. |
 | Body shape | PASS | Live PR body is non-empty and its final `##` heading is `## DoD Status`. |
 
-## 7-Tier PR Review
+## 7-Tier PR 검토
 
 | Lane | P0 | P1 | P2 | P3 | Verdict | Evidence |
 |---|---:|---:|---:|---:|---|---|
@@ -33,7 +35,7 @@ Final verdict: PASS.
 | User/caller docs | 0 | 0 | 0 | 0 | PASS | English and Korean README files both state Bloomberg-backed rates require customer-owned access and are not default `money` behavior or default CI. |
 | Dependency/licensing | 0 | 0 | 0 | 0 | PASS | No Bloomberg SDK or package dependency is introduced. Official Bloomberg source evidence supports the licensed/customer-owned framing. |
 
-## Validation
+## 검증
 
 | Command / Check | Status | Evidence |
 |---|---|---|
@@ -45,16 +47,16 @@ Final verdict: PASS.
 | `gno search "Bloomberg SAPI B-PIPE Data License money provider" -c bluetape4k-wiki` | PASS | Representative search returned the new Bloomberg enterprise access note. |
 | GitHub CI | PENDING | PR #248 CI is running at review time. |
 
-## Findings
+## 발견 사항
 
-No P0/P1 findings.
+P0/P1 발견 사항 없음.
 
 One Step 6-R P2 wording issue was repaired before PR creation: the review
 artifact now states that future Bloomberg stale/context behavior follows the
 desired IMF/current context contract, not an over-broad existing ECB/IMF
 invariant.
 
-## Residual Risk
+## 잔여 위험
 
 Live Bloomberg behavior cannot be validated without a licensed customer
 environment. This PR intentionally does not add a live adapter; future live

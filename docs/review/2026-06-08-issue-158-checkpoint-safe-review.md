@@ -1,6 +1,8 @@
 # Issue #158 7-Tier Review: Checkpoint-safe writer skip
 
-## Scope
+> 한국어 감사/리뷰 경계: 이 문서는 리뷰 결론과 남은 위험을 한국어 독자가 추적할 수 있도록 정리한다. 심각도 표기, 판정 표기, 파일 경로, 라인 번호, 이슈/PR 링크, 명령, 코드 식별자, 인용 증거는 원문의 증거 앵커로 보존한다.
+
+## 범위
 
 - Issue: #158 `fix(batch): make skipped writer chunks checkpoint-safe`
 - Branch: `fix-issue-158-checkpoint-safe`
@@ -11,7 +13,7 @@
   - `batch/step.go`
   - `batch/policy_test.go`
 
-## Summary
+## 요약
 
 `Step.flush` no longer advances a checkpoint after a skipped writer chunk when
 `CheckpointStore` is configured. `Writer` does not expose an atomic commit
@@ -20,7 +22,7 @@ drop items that were not safely committed. The new behavior fails that unsafe
 path with `ErrUnsafeWriterSkipCheckpoint` and preserves the original writer
 error with `%w`. Writer skip behavior without checkpointing is unchanged.
 
-## 7-Tier Findings
+## 7-Tier 발견 사항
 
 ### Tier 1: Security
 
@@ -80,7 +82,7 @@ error with `%w`. Writer skip behavior without checkpointing is unchanged.
 - Release note: This is a patch-safe behavior fix for milestone `0.5.0`; it
   does not require retagging by itself.
 
-## Validation
+## 검증
 
 - PASS: `go test -count=1 ./batch -run 'TestStepRunDoesNotCheckpointSkippedWriterChunk|TestStepRunComposesRetryAndSkipPolicies|TestStepRunRestartsFromCheckpoint'`
 - PASS: `go test -count=1 ./batch`
@@ -92,7 +94,7 @@ error with `%w`. Writer skip behavior without checkpointing is unchanged.
 - PASS: `go test -count=1 ./testcontainers/kafka -run TestStartKafka -v`
 - PASS: rerun `make ci`
 
-## Graph Review
+## 그래프 검토
 
 - `code-review-graph.detect_changes_tool` analyzed the four changed files
   against `origin/develop` and returned risk score `0.00`, affected flows `0`,
@@ -100,7 +102,7 @@ error with `%w`. Writer skip behavior without checkpointing is unchanged.
 - Limitation: the graph reported zero changed functions for this Go diff, so
   source-level review and focused tests are the primary evidence.
 
-## Gate Verdict
+## 게이트 판정
 
 P0=0 P1=0
 

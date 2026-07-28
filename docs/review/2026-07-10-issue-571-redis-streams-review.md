@@ -1,6 +1,8 @@
 # Issue #571 Redis Streams Primitive Implementation Review
 
-## Scope
+> 한국어 감사/리뷰 경계: 이 문서는 리뷰 결론과 남은 위험을 한국어 독자가 추적할 수 있도록 정리한다. 심각도 표기, 판정 표기, 파일 경로, 라인 번호, 이슈/PR 링크, 명령, 코드 식별자, 인용 증거는 원문의 증거 앵커로 보존한다.
+
+## 범위
 
 - Specification: `docs/superpowers/specs/2026-07-10-issue-571-redis-streams-spec.md`
 - Plan: `docs/superpowers/plans/2026-07-10-issue-571-redis-streams-plan.md`
@@ -10,7 +12,7 @@
   not exposed in this session; the main session independently applied every
   required perspective and owns the integration verdict.
 
-## Resolved Implementation Findings
+## 해결한 구현 발견 사항
 
 | Priority | Area | Finding | Resolution | Evidence |
 |---|---|---|---|---|
@@ -18,7 +20,7 @@
 | P1 | Test isolation | Static test stream names can retain a consumer group across normal/race processes when container cleanup is not immediately observable. | The fixture appends a UUID to each test-owned stream key and deletes only that key during cleanup. | Two consecutive normal/race targeted runs passed. |
 | P1 | Lint state | golangci-lint cache referenced a removed #585 worktree; the new example also initially ignored `Client.Close`'s error. | Updated the example cleanup closure and cleared the linter cache before rerunning repository gates. | `make lint` reports `0 issues`. |
 
-## 7-Tier Findings
+## 7-Tier 발견 사항
 
 | Perspective | P0 | P1 | P2 | P3 | Result |
 |---|---:|---:|---:|---:|---|
@@ -29,7 +31,7 @@
 | Developer/API | 0 | 0 | 0 | 0 | Narrow per-command interfaces match go-redis command shapes and native result types. `Read`/`ReadGroup` validate the exact all-streams-then-all-IDs order. #533 aliases only `Appender`. |
 | User/Caller | 0 | 0 | 0 | 0 | Stream/group/consumer names and payload values remain verbatim after blank validation. The provider keeps its public API, field envelope, default stream, and duplicate-attempt behavior. |
 
-## Diagram Evidence Ledger
+## 다이어그램 증거 원장
 
 | Gate | Evidence |
 |---|---|
@@ -43,9 +45,9 @@
 | Visual inspection | Full-size source PNG and a `1200x840` reduced preview were opened. Text, numbered messages, lifelines, transparent branch frame, and explicit trim/recovery labels were legible; recovery message 10 was moved inside the branch frame. |
 | Diff hygiene | `git diff --check` passed. |
 
-## Verification
+## 검증
 
-| Command | Result |
+| 명령 | 결과 |
 |---|---|
 | `go test -p 1 -count=1 ./redis/stream` | PASS, including Redis Testcontainers behavior. |
 | `go test -p 1 -race -count=1 ./redis/stream` | PASS; repeated normal/race pair passed after UUID fixture isolation. |
@@ -54,7 +56,7 @@
 | `go test -count=1 ./redis/stream -run Example` | PASS. |
 | `make fmt-check`, `make tidy-check`, `make vet`, `make lint`, `make test`, `make race`, `make ci` | PASS; lint reports `0 issues` after clearing stale cache. |
 
-## Integration Verdict
+## 통합 판정
 
 The implementation satisfies the direct Redis Streams primitive boundary and
 removes duplicate append dispatch behavior from the SQL outbox provider without

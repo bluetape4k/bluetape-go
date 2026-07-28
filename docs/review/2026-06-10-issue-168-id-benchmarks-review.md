@@ -1,6 +1,8 @@
 # Issue #168 7-Tier Review: ID generator benchmark comparison
 
-## Scope
+> 한국어 감사/리뷰 경계: 이 문서는 리뷰 결론과 남은 위험을 한국어 독자가 추적할 수 있도록 정리한다. 심각도 표기, 판정 표기, 파일 경로, 라인 번호, 이슈/PR 링크, 명령, 코드 식별자, 인용 증거는 원문의 증거 앵커로 보존한다.
+
+## 범위
 
 - Issue: #168 `Benchmark id generators against bluetape4k-idgenerators`
 - Branch: `issue/168-id-benchmarks`
@@ -19,7 +21,7 @@
   - `docs/research/2026-06-10-issue-168-id-generator-benchmark.md`
   - `docs/research/outputs/issue-168/*`
 
-## Summary
+## 요약
 
 The change adds a reproducible `make bench-id` target, enables allocation
 reporting for Go ID benchmarks, splits UUID convenience-function cost from
@@ -46,7 +48,7 @@ correction strip and a bottom benchmark-correction band, so the UUID
 reused-generator and Snowflake synthetic-clock boundaries are not hidden in
 surrounding prose.
 
-## 7-Tier Findings
+## 7-Tier 발견 사항
 
 ### Tier 1: Acceptance and Scope
 
@@ -111,7 +113,7 @@ surrounding prose.
   Korean indexes were updated together.
 - Gate: P0=0, P1=0.
 
-## Validation
+## 검증
 
 - PASS: `git diff --check`
 - PASS: `go test -count=1 ./id`
@@ -138,7 +140,7 @@ surrounding prose.
 - PASS: performance-focused verifier re-review after UUID/ULID/Snowflake
   boundary repairs, with `P0=0 P1=0`
 
-## Subagent Gate Summary
+## 서브에이전트 게이트 요약
 
 - Tier 1 main integration: P0=0 P1=0 after repairing reviewer blockers.
 - Tier 2 code reviewer subagent: P0=0 P1=0.
@@ -151,7 +153,7 @@ surrounding prose.
 - Tier 7 vision subagent: P0=0 P1=0 after the chart correction strip and
   benchmark-correction band were added.
 
-## Performance Review Repair Note
+## 성능 검토 수정 메모
 
 The earlier performance review did not catch two material benchmark hazards:
 UUID convenience-function benchmarks were being used as chart rows, and the
@@ -163,7 +165,7 @@ the chart itself now carries a visible correction strip plus correction band.
 Follow-up issues require equivalent clock/batch remeasurement before
 optimization claims.
 
-## Gate Verdict
+## 게이트 판정
 
 P0=0 P1=0
 
