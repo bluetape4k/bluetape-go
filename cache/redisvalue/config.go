@@ -15,18 +15,18 @@ const (
 	maxClearBatchSize  = 1000
 )
 
-// ValueConfig는 struct 공개 타입이며 tiered Redis value cache의 local/remote ownership, TTL, clear coordination 계약을 보존한다.
+// ValueConfig struct 공개 타입이며 tiered Redis value cache의 local/remote ownership, TTL, clear coordination 계약을 보존한다.
 // 필드와 zero value, nil 허용 여부, 동시성 소유권은 생성자와 메서드의 한국어 주석 및 테스트 계약을 따른다.
 type ValueConfig struct {
 	// RemoteTTL은 기본 Redis expiry다. zero는 항목 영속화를 뜻하고 음수는 invalid다.
 	RemoteTTL time.Duration
-	// MaxValueBytes는 serialized value 허용 상한이며 1 byte부터 64 MiB까지 허용한다.
+	// MaxValueBytes serialized value 허용 상한이며 1 byte부터 64 MiB까지 허용한다.
 	MaxValueBytes int
-	// ClearBatchSize는 SCAN COUNT hint이자 한 번의 UNLINK argument 수 상한이다.
+	// ClearBatchSize SCAN COUNT hint이자 한 번의 UNLINK argument 수 상한이다.
 	ClearBatchSize int64
 }
 
-// TieredConfig는 struct 공개 타입이며 tiered Redis value cache의 local/remote ownership, TTL, clear coordination 계약을 보존한다.
+// TieredConfig struct 공개 타입이며 tiered Redis value cache의 local/remote ownership, TTL, clear coordination 계약을 보존한다.
 // 필드와 zero value, nil 허용 여부, 동시성 소유권은 생성자와 메서드의 한국어 주석 및 테스트 계약을 따른다.
 type TieredConfig struct {
 	// LocalTTL은 양수 L1 expiry 상한이며 finite RemoteTTL을 초과하면 안 된다.
@@ -37,16 +37,16 @@ type TieredConfig struct {
 	LocalCleanupTimeout time.Duration
 }
 
-// Config는 struct 공개 타입이며 tiered Redis value cache의 local/remote ownership, TTL, clear coordination 계약을 보존한다.
+// Config struct 공개 타입이며 tiered Redis value cache의 local/remote ownership, TTL, clear coordination 계약을 보존한다.
 // 필드와 zero value, nil 허용 여부, 동시성 소유권은 생성자와 메서드의 한국어 주석 및 테스트 계약을 따른다.
 type Config struct {
-	// Value는 serialized Redis L2 설정을 담는다.
+	// Value serialized Redis L2 설정을 담는다.
 	Value ValueConfig
-	// Tiered는 선택적 process-local L1 decorator 설정을 담는다.
+	// Tiered 선택적 process-local L1 decorator 설정을 담는다.
 	Tiered TieredConfig
 }
 
-// DefaultConfig는 DefaultConfig 공개 API의 동작을 수행하며 tiered Redis value cache의 local/remote ownership, TTL, clear coordination 계약을 보존한다.
+// DefaultConfig DefaultConfig 공개 API의 동작을 수행하며 tiered Redis value cache의 local/remote ownership, TTL, clear coordination 계약을 보존한다.
 func DefaultConfig() Config {
 	return Config{
 		Value: ValueConfig{
@@ -62,7 +62,7 @@ func DefaultConfig() Config {
 	}
 }
 
-// Validate는 Validate 공개 API의 동작을 수행하며 tiered Redis value cache의 local/remote ownership, TTL, clear coordination 계약을 보존한다.
+// Validate Validate 공개 API의 동작을 수행하며 tiered Redis value cache의 local/remote ownership, TTL, clear coordination 계약을 보존한다.
 //
 // 반환 오류는 cache miss, 입력 검증 실패, 취소, Redis/backend 실패, 또는 package sentinel/typed error 계약을 보존한다.
 func (c Config) Validate() error {

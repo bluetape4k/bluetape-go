@@ -10,13 +10,13 @@ import (
 	"time"
 )
 
-// KeyFunc 는 HTTP request에서 rate limit key를 만든다.
+// KeyFunc HTTP request에서 rate limit key를 만든다.
 type KeyFunc func(*http.Request) string
 
-// HandlerErrorHandler 는 middleware 거부 또는 backend 오류를 쓴다.
+// HandlerErrorHandler middleware 거부 또는 backend 오류를 쓴다.
 type HandlerErrorHandler func(http.ResponseWriter, *http.Request, Result, error)
 
-// HandlerOptions 는 HTTP middleware 설정이다.
+// HandlerOptions HTTP middleware 설정이다.
 type HandlerOptions struct {
 	Limiter      Limiter
 	KeyFunc      KeyFunc
@@ -24,7 +24,7 @@ type HandlerOptions struct {
 	ErrorHandler HandlerErrorHandler
 }
 
-// Handler 는 HTTP server rate limit middleware다.
+// Handler HTTP server rate limit middleware다.
 type Handler struct {
 	next         http.Handler
 	limiter      Limiter
@@ -33,7 +33,7 @@ type Handler struct {
 	errorHandler HandlerErrorHandler
 }
 
-// NewHandler 는 HTTP rate limit middleware를 만든다.
+// NewHandler HTTP rate limit middleware를 만든다.
 func NewHandler(next http.Handler, options HandlerOptions) (*Handler, error) {
 	if options.Limiter == nil {
 		return nil, fmt.Errorf("limiter must not be nil")
@@ -65,7 +65,7 @@ func NewHandler(next http.Handler, options HandlerOptions) (*Handler, error) {
 	}, nil
 }
 
-// ServeHTTP 는 요청별 token 소비 후 다음 handler를 실행한다.
+// ServeHTTP 요청별 token 소비 후 다음 handler를 실행한다.
 func (h *Handler) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 	key := strings.TrimSpace(h.keyFunc(req))
 	if key == "" {
@@ -85,7 +85,7 @@ func (h *Handler) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 	h.next.ServeHTTP(w, req)
 }
 
-// RemoteIPKey 는 Request.RemoteAddr의 host 부분만 key로 쓴다.
+// RemoteIPKey Request.RemoteAddr의 host 부분만 key로 쓴다.
 func RemoteIPKey(req *http.Request) string {
 	if req == nil {
 		return ""

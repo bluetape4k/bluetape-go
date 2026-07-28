@@ -24,7 +24,7 @@ type redisCommandClient struct {
 	*redis.Client
 }
 
-// ReadBounded는 ReadBounded 공개 API의 동작을 수행하며 tiered Redis value cache의 local/remote ownership, TTL, clear coordination 계약을 보존한다.
+// ReadBounded ReadBounded 공개 API의 동작을 수행하며 tiered Redis value cache의 local/remote ownership, TTL, clear coordination 계약을 보존한다.
 //
 // 매개변수:
 //   - ctx: 호출자가 소유한 취소, deadline, 요청 범위를 전달한다.
@@ -64,20 +64,20 @@ func (c *redisCommandClient) ReadBounded(ctx context.Context, key string, end in
 	return encoded, present != 0, nil
 }
 
-// ValueOptions는 struct 공개 타입이며 tiered Redis value cache의 local/remote ownership, TTL, clear coordination 계약을 보존한다.
+// ValueOptions struct 공개 타입이며 tiered Redis value cache의 local/remote ownership, TTL, clear coordination 계약을 보존한다.
 // 필드와 zero value, nil 허용 여부, 동시성 소유권은 생성자와 메서드의 한국어 주석 및 테스트 계약을 따른다.
 type ValueOptions[V any] struct {
-	// Client는 호출자가 소유한 direct stable writable-primary Redis client다.
+	// Client 호출자가 소유한 direct stable writable-primary Redis client다.
 	Client *redis.Client
 	// Namespace identifies one exclusive tenant, schema, and clear trust domain.
 	Namespace string
-	// Serializer는 clone 없이 보관되므로 concurrent call을 지원해야 한다.
+	// Serializer clone 없이 보관되므로 concurrent call을 지원해야 한다.
 	Serializer serialization.Serializer[V]
-	// Config는 생성 시 복사된다. nil이면 DefaultConfig().Value를 사용한다.
+	// Config 생성 시 복사된다. nil이면 DefaultConfig().Value를 사용한다.
 	Config *ValueConfig
 }
 
-// ValueCache는 struct 공개 타입이며 tiered Redis value cache의 local/remote ownership, TTL, clear coordination 계약을 보존한다.
+// ValueCache struct 공개 타입이며 tiered Redis value cache의 local/remote ownership, TTL, clear coordination 계약을 보존한다.
 // 필드와 zero value, nil 허용 여부, 동시성 소유권은 생성자와 메서드의 한국어 주석 및 테스트 계약을 따른다.
 type ValueCache[V any] struct {
 	client     commandClient
@@ -87,7 +87,7 @@ type ValueCache[V any] struct {
 	config     ValueConfig
 }
 
-// NewValueCache는 NewValueCache 공개 API의 동작을 수행하며 tiered Redis value cache의 local/remote ownership, TTL, clear coordination 계약을 보존한다.
+// NewValueCache NewValueCache 공개 API의 동작을 수행하며 tiered Redis value cache의 local/remote ownership, TTL, clear coordination 계약을 보존한다.
 //
 // 매개변수:
 //   - options: NewValueCache 동작에 필요한 options 값이다. zero value, 범위, nil 허용 여부는 함수 계약을 따른다.
@@ -117,7 +117,7 @@ func NewValueCache[V any](options ValueOptions[V]) (*ValueCache[V], error) {
 	}, nil
 }
 
-// Get는 Get 공개 API의 동작을 수행하며 tiered Redis value cache의 local/remote ownership, TTL, clear coordination 계약을 보존한다.
+// Get Get 공개 API의 동작을 수행하며 tiered Redis value cache의 local/remote ownership, TTL, clear coordination 계약을 보존한다.
 //
 // 매개변수:
 //   - ctx: 호출자가 소유한 취소, deadline, 요청 범위를 전달한다.
@@ -160,7 +160,7 @@ func (c *ValueCache[V]) Get(ctx context.Context, logicalKey string) (V, error) {
 	return value, nil
 }
 
-// Set는 Set 공개 API의 동작을 수행하며 tiered Redis value cache의 local/remote ownership, TTL, clear coordination 계약을 보존한다.
+// Set Set 공개 API의 동작을 수행하며 tiered Redis value cache의 local/remote ownership, TTL, clear coordination 계약을 보존한다.
 //
 // 매개변수:
 //   - ctx: 호출자가 소유한 취소, deadline, 요청 범위를 전달한다.
@@ -200,7 +200,7 @@ func (c *ValueCache[V]) Set(ctx context.Context, logicalKey string, value V, ttl
 	return nil
 }
 
-// SetDefault는 SetDefault 공개 API의 동작을 수행하며 tiered Redis value cache의 local/remote ownership, TTL, clear coordination 계약을 보존한다.
+// SetDefault SetDefault 공개 API의 동작을 수행하며 tiered Redis value cache의 local/remote ownership, TTL, clear coordination 계약을 보존한다.
 //
 // 매개변수:
 //   - ctx: 호출자가 소유한 취소, deadline, 요청 범위를 전달한다.
@@ -215,7 +215,7 @@ func (c *ValueCache[V]) SetDefault(ctx context.Context, key string, value V) err
 	return c.Set(ctx, key, value, c.config.RemoteTTL)
 }
 
-// Delete는 Delete 공개 API의 동작을 수행하며 tiered Redis value cache의 local/remote ownership, TTL, clear coordination 계약을 보존한다.
+// Delete Delete 공개 API의 동작을 수행하며 tiered Redis value cache의 local/remote ownership, TTL, clear coordination 계약을 보존한다.
 //
 // 매개변수:
 //   - ctx: 호출자가 소유한 취소, deadline, 요청 범위를 전달한다.

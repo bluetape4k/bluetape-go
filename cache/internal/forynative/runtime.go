@@ -14,22 +14,22 @@ var (
 	errProviderFailed     = errors.New("fory native provider failed")
 )
 
-// Profile는 uint8 공개 타입이며 cache key, miss, TTL, serialization 계약을 보존한다.
+// Profile uint8 공개 타입이며 cache key, miss, TTL, serialization 계약을 보존한다.
 // 필드와 zero value, nil 허용 여부, 동시성 소유권은 생성자와 메서드의 한국어 주석 및 테스트 계약을 따른다.
 type Profile uint8
 
 const (
-	// ProfileNativeFast는 고정 schema Go-native serialization profile이다.
+	// ProfileNativeFast 고정 schema Go-native serialization profile이다.
 	ProfileNativeFast Profile = iota + 1
 	// ProfileNativeCompatible은 Fory-compatible schema evolution metadata를 포함하는 profile이다.
 	ProfileNativeCompatible
 )
 
-// Registration는 func 공개 타입이며 cache key, miss, TTL, serialization 계약을 보존한다.
+// Registration func 공개 타입이며 cache key, miss, TTL, serialization 계약을 보존한다.
 // 필드와 zero value, nil 허용 여부, 동시성 소유권은 생성자와 메서드의 한국어 주석 및 테스트 계약을 따른다.
 type Registration func(*fory.Fory) error
 
-// Reason는 string 공개 타입이며 cache key, miss, TTL, serialization 계약을 보존한다.
+// Reason string 공개 타입이며 cache key, miss, TTL, serialization 계약을 보존한다.
 // 필드와 zero value, nil 허용 여부, 동시성 소유권은 생성자와 메서드의 한국어 주석 및 테스트 계약을 따른다.
 type Reason string
 
@@ -48,7 +48,7 @@ const (
 	ReasonForyFailure Reason = "fory-failure"
 )
 
-// Error는 struct 공개 타입이며 cache key, miss, TTL, serialization 계약을 보존한다.
+// Error struct 공개 타입이며 cache key, miss, TTL, serialization 계약을 보존한다.
 // 필드와 zero value, nil 허용 여부, 동시성 소유권은 생성자와 메서드의 한국어 주석 및 테스트 계약을 따른다.
 type Error struct {
 	operation string
@@ -56,7 +56,7 @@ type Error struct {
 	cause     error
 }
 
-// Error는 Error 공개 API의 동작을 수행하며 cache key, miss, TTL, serialization 계약을 보존한다.
+// Error Error 공개 API의 동작을 수행하며 cache key, miss, TTL, serialization 계약을 보존한다.
 func (e *Error) Error() string {
 	if e == nil {
 		return "<nil>"
@@ -64,7 +64,7 @@ func (e *Error) Error() string {
 	return fmt.Sprintf("fory native %s failed: %s", e.operation, e.reason)
 }
 
-// Unwrap는 Unwrap 공개 API의 동작을 수행하며 cache key, miss, TTL, serialization 계약을 보존한다.
+// Unwrap Unwrap 공개 API의 동작을 수행하며 cache key, miss, TTL, serialization 계약을 보존한다.
 //
 // 반환 오류는 cache miss, 입력 검증 실패, 취소, Redis/backend 실패, 또는 package sentinel/typed error 계약을 보존한다.
 func (e *Error) Unwrap() error {
@@ -74,7 +74,7 @@ func (e *Error) Unwrap() error {
 	return e.cause
 }
 
-// Operation는 Operation 공개 API의 동작을 수행하며 cache key, miss, TTL, serialization 계약을 보존한다.
+// Operation Operation 공개 API의 동작을 수행하며 cache key, miss, TTL, serialization 계약을 보존한다.
 func (e *Error) Operation() string {
 	if e == nil {
 		return ""
@@ -82,7 +82,7 @@ func (e *Error) Operation() string {
 	return e.operation
 }
 
-// Reason는 Reason 공개 API의 동작을 수행하며 cache key, miss, TTL, serialization 계약을 보존한다.
+// Reason Reason 공개 API의 동작을 수행하며 cache key, miss, TTL, serialization 계약을 보존한다.
 func (e *Error) Reason() Reason {
 	if e == nil {
 		return ""
@@ -90,7 +90,7 @@ func (e *Error) Reason() Reason {
 	return e.reason
 }
 
-// Limits는 struct 공개 타입이며 cache key, miss, TTL, serialization 계약을 보존한다.
+// Limits struct 공개 타입이며 cache key, miss, TTL, serialization 계약을 보존한다.
 // 필드와 zero value, nil 허용 여부, 동시성 소유권은 생성자와 메서드의 한국어 주석 및 테스트 계약을 따른다.
 type Limits struct {
 	MaxPayloadBytes                 int
@@ -123,7 +123,7 @@ func (l Limits) withDefaults() Limits {
 	return l
 }
 
-// Runtime는 struct 공개 타입이며 cache key, miss, TTL, serialization 계약을 보존한다.
+// Runtime struct 공개 타입이며 cache key, miss, TTL, serialization 계약을 보존한다.
 // 필드와 zero value, nil 허용 여부, 동시성 소유권은 생성자와 메서드의 한국어 주석 및 테스트 계약을 따른다.
 type Runtime[V any] struct {
 	state        *runtimeState
@@ -136,7 +136,7 @@ type runtimeState struct {
 	runtime *fory.Fory
 }
 
-// New는 New 공개 API의 동작을 수행하며 cache key, miss, TTL, serialization 계약을 보존한다.
+// New New 공개 API의 동작을 수행하며 cache key, miss, TTL, serialization 계약을 보존한다.
 //
 // 매개변수:
 //   - profile: New 동작에 필요한 profile 값이다. zero value, 범위, nil 허용 여부는 함수 계약을 따른다.
@@ -181,7 +181,7 @@ func New[V any](profile Profile, limits Limits, register Registration) (*Runtime
 	}, nil
 }
 
-// Serialize는 Serialize 공개 API의 동작을 수행하며 cache key, miss, TTL, serialization 계약을 보존한다.
+// Serialize Serialize 공개 API의 동작을 수행하며 cache key, miss, TTL, serialization 계약을 보존한다.
 //
 // 매개변수:
 //   - value: 직렬화하거나 cache에 보관할 값이다. nil, zero value, aliasing 의미는 serializer/cache 계약을 따른다.
@@ -214,7 +214,7 @@ func (r *Runtime[V]) Serialize(value V) ([]byte, error) {
 	return append([]byte(nil), raw...), nil
 }
 
-// Deserialize는 Deserialize 공개 API의 동작을 수행하며 cache key, miss, TTL, serialization 계약을 보존한다.
+// Deserialize Deserialize 공개 API의 동작을 수행하며 cache key, miss, TTL, serialization 계약을 보존한다.
 //
 // 매개변수:
 //   - raw: Deserialize 동작에 필요한 raw 값이다. zero value, 범위, nil 허용 여부는 함수 계약을 따른다.

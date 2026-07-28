@@ -22,35 +22,35 @@ const (
 	receiverShutdownBudget = time.Second
 )
 
-// ErrClosed는 변수 공개 값이며 near-cache local state, invalidation message, Redis Pub/Sub 계약을 보존한다.
+// ErrClosed 변수 공개 값이며 near-cache local state, invalidation message, Redis Pub/Sub 계약을 보존한다.
 // 호출자는 이 식별자를 cache 오류, 옵션, event, 또는 기본값 계약을 비교할 때 사용한다.
 var ErrClosed = errors.New("near cache is closed")
 
-// Client는 interface 공개 타입이며 near-cache local state, invalidation message, Redis Pub/Sub 계약을 보존한다.
+// Client interface 공개 타입이며 near-cache local state, invalidation message, Redis Pub/Sub 계약을 보존한다.
 // 필드와 zero value, nil 허용 여부, 동시성 소유권은 생성자와 메서드의 한국어 주석 및 테스트 계약을 따른다.
 type Client interface {
 	Publish(ctx context.Context, channel string, message any) *redis.IntCmd
 	Subscribe(ctx context.Context, channels ...string) *redis.PubSub
 }
 
-// OnError는 func 공개 타입이며 near-cache local state, invalidation message, Redis Pub/Sub 계약을 보존한다.
+// OnError func 공개 타입이며 near-cache local state, invalidation message, Redis Pub/Sub 계약을 보존한다.
 // 필드와 zero value, nil 허용 여부, 동시성 소유권은 생성자와 메서드의 한국어 주석 및 테스트 계약을 따른다.
 type OnError func(context.Context, error)
 
-// Options는 struct 공개 타입이며 near-cache local state, invalidation message, Redis Pub/Sub 계약을 보존한다.
+// Options struct 공개 타입이며 near-cache local state, invalidation message, Redis Pub/Sub 계약을 보존한다.
 // 필드와 zero value, nil 허용 여부, 동시성 소유권은 생성자와 메서드의 한국어 주석 및 테스트 계약을 따른다.
 type Options[V any] struct {
-	// Client는 Redis publish/subscribe backend다. 필수다.
+	// Client Redis publish/subscribe backend다. 필수다.
 	Client Client
-	// Namespace는 같은 invalidation scope를 공유하는 cache group이다.
+	// Namespace 같은 invalidation scope를 공유하는 cache group이다.
 	Namespace string
 	// Channel은 Redis Pub/Sub channel이다. 비우면 namespace 기반 기본값을 쓴다.
 	Channel string
-	// OriginID는 자기 자신이 보낸 invalidation을 무시하기 위한 token이다.
+	// OriginID 자기 자신이 보낸 invalidation을 무시하기 위한 token이다.
 	OriginID string
 	// Local은 값 저장을 담당하는 process-local cache다.
 	Local cache.LoadingCache[string, V]
-	// OnError는 malformed message나 subscriber 오류를 보고한다.
+	// OnError malformed message나 subscriber 오류를 보고한다.
 	OnError OnError
 }
 
@@ -68,7 +68,7 @@ type errorReport struct {
 	err error
 }
 
-// NearCache는 struct 공개 타입이며 near-cache local state, invalidation message, Redis Pub/Sub 계약을 보존한다.
+// NearCache struct 공개 타입이며 near-cache local state, invalidation message, Redis Pub/Sub 계약을 보존한다.
 // 필드와 zero value, nil 허용 여부, 동시성 소유권은 생성자와 메서드의 한국어 주석 및 테스트 계약을 따른다.
 type NearCache[V any] struct {
 	cfg       config[V]
@@ -85,7 +85,7 @@ type NearCache[V any] struct {
 
 var _ cache.LoadingCache[string, string] = (*NearCache[string])(nil)
 
-// NewPubSub는 NewPubSub 공개 API의 동작을 수행하며 near-cache local state, invalidation message, Redis Pub/Sub 계약을 보존한다.
+// NewPubSub NewPubSub 공개 API의 동작을 수행하며 near-cache local state, invalidation message, Redis Pub/Sub 계약을 보존한다.
 //
 // 매개변수:
 //   - ctx: 호출자가 소유한 취소, deadline, 요청 범위를 전달한다.
@@ -125,7 +125,7 @@ func NewPubSub[V any](ctx context.Context, options Options[V]) (*NearCache[V], e
 	return near, nil
 }
 
-// Get는 Get 공개 API의 동작을 수행하며 near-cache local state, invalidation message, Redis Pub/Sub 계약을 보존한다.
+// Get Get 공개 API의 동작을 수행하며 near-cache local state, invalidation message, Redis Pub/Sub 계약을 보존한다.
 //
 // 매개변수:
 //   - ctx: 호출자가 소유한 취소, deadline, 요청 범위를 전달한다.
@@ -146,7 +146,7 @@ func (c *NearCache[V]) Get(ctx context.Context, key string) (V, error) {
 	return c.cfg.local.Get(ctx, key)
 }
 
-// Set는 Set 공개 API의 동작을 수행하며 near-cache local state, invalidation message, Redis Pub/Sub 계약을 보존한다.
+// Set Set 공개 API의 동작을 수행하며 near-cache local state, invalidation message, Redis Pub/Sub 계약을 보존한다.
 //
 // 매개변수:
 //   - ctx: 호출자가 소유한 취소, deadline, 요청 범위를 전달한다.
@@ -171,7 +171,7 @@ func (c *NearCache[V]) Set(ctx context.Context, key string, value V, ttl time.Du
 	return c.publish(ctx, operationSet, key)
 }
 
-// Delete는 Delete 공개 API의 동작을 수행하며 near-cache local state, invalidation message, Redis Pub/Sub 계약을 보존한다.
+// Delete Delete 공개 API의 동작을 수행하며 near-cache local state, invalidation message, Redis Pub/Sub 계약을 보존한다.
 //
 // 매개변수:
 //   - ctx: 호출자가 소유한 취소, deadline, 요청 범위를 전달한다.
@@ -194,7 +194,7 @@ func (c *NearCache[V]) Delete(ctx context.Context, key string) error {
 	return c.publish(ctx, operationDelete, key)
 }
 
-// Clear는 Clear 공개 API의 동작을 수행하며 near-cache local state, invalidation message, Redis Pub/Sub 계약을 보존한다.
+// Clear Clear 공개 API의 동작을 수행하며 near-cache local state, invalidation message, Redis Pub/Sub 계약을 보존한다.
 //
 // 매개변수:
 //   - ctx: 호출자가 소유한 취소, deadline, 요청 범위를 전달한다.
@@ -216,7 +216,7 @@ func (c *NearCache[V]) Clear(ctx context.Context) error {
 	return c.publish(ctx, operationClear, "")
 }
 
-// GetOrLoad는 GetOrLoad 공개 API의 동작을 수행하며 near-cache local state, invalidation message, Redis Pub/Sub 계약을 보존한다.
+// GetOrLoad GetOrLoad 공개 API의 동작을 수행하며 near-cache local state, invalidation message, Redis Pub/Sub 계약을 보존한다.
 //
 // 매개변수:
 //   - ctx: 호출자가 소유한 취소, deadline, 요청 범위를 전달한다.
@@ -244,7 +244,7 @@ func (c *NearCache[V]) GetOrLoad(
 	return c.cfg.local.GetOrLoad(ctx, key, ttl, loader)
 }
 
-// Close는 Close 공개 API의 동작을 수행하며 near-cache local state, invalidation message, Redis Pub/Sub 계약을 보존한다.
+// Close Close 공개 API의 동작을 수행하며 near-cache local state, invalidation message, Redis Pub/Sub 계약을 보존한다.
 //
 // 반환 오류는 cache miss, 입력 검증 실패, 취소, Redis/backend 실패, 또는 package sentinel/typed error 계약을 보존한다.
 func (c *NearCache[V]) Close() error {

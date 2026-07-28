@@ -7,22 +7,22 @@ import (
 	"github.com/bluetape4k/bluetape-go/cache/internal/forynative"
 )
 
-// Registration는 func 공개 타입이며 Redis 조정, stampede 방지, codec envelope 계약을 보존한다.
+// Registration func 공개 타입이며 Redis 조정, stampede 방지, codec envelope 계약을 보존한다.
 // 필드와 zero value, nil 허용 여부, 동시성 소유권은 생성자와 메서드의 한국어 주석 및 테스트 계약을 따른다.
 type Registration func(*fory.Fory) error
 
-// Options는 struct 공개 타입이며 Redis 조정, stampede 방지, codec envelope 계약을 보존한다.
+// Options struct 공개 타입이며 Redis 조정, stampede 방지, codec envelope 계약을 보존한다.
 // 필드와 zero value, nil 허용 여부, 동시성 소유권은 생성자와 메서드의 한국어 주석 및 테스트 계약을 따른다.
 type Options struct {
 	// Register deterministically registers all codec-visible Fory types.
 	Register Registration
-	// MaxPayloadBytes는 BTFY header를 제외한 Fory byte payload 상한이다.
+	// MaxPayloadBytes BTFY header를 제외한 Fory byte payload 상한이다.
 	MaxPayloadBytes int
-	// MaxDepth는 중첩된 Fory value 깊이 상한이다.
+	// MaxDepth 중첩된 Fory value 깊이 상한이다.
 	MaxDepth int
-	// MaxTypeFields는 하나의 Fory type에 포함할 수 있는 field 수 상한이다.
+	// MaxTypeFields 하나의 Fory type에 포함할 수 있는 field 수 상한이다.
 	MaxTypeFields int
-	// MaxTypeMetaBytes는 encoding된 Fory type metadata byte 상한이다.
+	// MaxTypeMetaBytes encoding된 Fory type metadata byte 상한이다.
 	MaxTypeMetaBytes int
 	// MaxSchemaVersionsPerType은 type별로 보존할 schema version 수 상한이다.
 	MaxSchemaVersionsPerType int
@@ -52,7 +52,7 @@ func (o Options) withDefaults() Options {
 	return o
 }
 
-// Codec는 struct 공개 타입이며 Redis 조정, stampede 방지, codec envelope 계약을 보존한다.
+// Codec struct 공개 타입이며 Redis 조정, stampede 방지, codec envelope 계약을 보존한다.
 // 필드와 zero value, nil 허용 여부, 동시성 소유권은 생성자와 메서드의 한국어 주석 및 테스트 계약을 따른다.
 type Codec[V any] struct {
 	state      *codecState[V]
@@ -64,7 +64,7 @@ type codecState[V any] struct {
 	runtime *forynative.Runtime[V]
 }
 
-// NewNativeFast는 NewNativeFast 공개 API의 동작을 수행하며 Redis 조정, stampede 방지, codec envelope 계약을 보존한다.
+// NewNativeFast NewNativeFast 공개 API의 동작을 수행하며 Redis 조정, stampede 방지, codec envelope 계약을 보존한다.
 //
 // 매개변수:
 //   - options: NewNativeFast 동작에 필요한 options 값이다. zero value, 범위, nil 허용 여부는 함수 계약을 따른다.
@@ -74,7 +74,7 @@ func NewNativeFast[V any](options Options) (*Codec[V], error) {
 	return newCodec[V](ProfileNativeFast, options)
 }
 
-// NewNativeCompatible는 NewNativeCompatible 공개 API의 동작을 수행하며 Redis 조정, stampede 방지, codec envelope 계약을 보존한다.
+// NewNativeCompatible NewNativeCompatible 공개 API의 동작을 수행하며 Redis 조정, stampede 방지, codec envelope 계약을 보존한다.
 //
 // 매개변수:
 //   - options: NewNativeCompatible 동작에 필요한 options 값이다. zero value, 범위, nil 허용 여부는 함수 계약을 따른다.
@@ -104,7 +104,7 @@ func newCodec[V any](profile Profile, options Options) (*Codec[V], error) {
 	return &Codec[V]{state: &codecState[V]{runtime: runtime}, profile: profile, maxPayload: o.MaxPayloadBytes}, nil
 }
 
-// Marshal는 Marshal 공개 API의 동작을 수행하며 Redis 조정, stampede 방지, codec envelope 계약을 보존한다.
+// Marshal Marshal 공개 API의 동작을 수행하며 Redis 조정, stampede 방지, codec envelope 계약을 보존한다.
 //
 // 매개변수:
 //   - value: 직렬화하거나 cache에 보관할 값이다. nil, zero value, aliasing 의미는 serializer/cache 계약을 따른다.
@@ -121,7 +121,7 @@ func (c *Codec[V]) Marshal(value V) ([]byte, error) {
 	return wrap(c.profile, raw), nil
 }
 
-// Unmarshal는 Unmarshal 공개 API의 동작을 수행하며 Redis 조정, stampede 방지, codec envelope 계약을 보존한다.
+// Unmarshal Unmarshal 공개 API의 동작을 수행하며 Redis 조정, stampede 방지, codec envelope 계약을 보존한다.
 //
 // 매개변수:
 //   - data: Unmarshal 동작에 필요한 data 값이다. zero value, 범위, nil 허용 여부는 함수 계약을 따른다.

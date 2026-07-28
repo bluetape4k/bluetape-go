@@ -6,9 +6,9 @@ import (
 	"time"
 )
 
-// Options 는 Redis lock 생성 설정이다.
+// Options Redis lock 생성 설정이다.
 type Options struct {
-	// Key는 Redis lock key다. 필수다.
+	// Key Redis lock key다. 필수다.
 	Key string
 	// TTL은 lock이 자동 만료될 시간이다. 양수여야 한다.
 	TTL time.Duration

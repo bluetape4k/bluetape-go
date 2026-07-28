@@ -18,14 +18,14 @@ const (
 	unlockTimeout       = time.Second
 )
 
-// Options는 struct 공개 타입이며 Redis 조정, stampede 방지, codec envelope 계약을 보존한다.
+// Options struct 공개 타입이며 Redis 조정, stampede 방지, codec envelope 계약을 보존한다.
 // 필드와 zero value, nil 허용 여부, 동시성 소유권은 생성자와 메서드의 한국어 주석 및 테스트 계약을 따른다.
 type Options[V any] struct {
-	// Client는 필수 Redis coordination backend다.
+	// Client 필수 Redis coordination backend다.
 	Client redis.Cmdable
-	// Cache는 감쌀 필수 local 또는 near LoadingCache다.
+	// Cache 감쌀 필수 local 또는 near LoadingCache다.
 	Cache cache.LoadingCache[string, V]
-	// Namespace는 coordination key 범위를 나눈다.
+	// Namespace coordination key 범위를 나눈다.
 	Namespace string
 	// Codec은 loader result payload를 encoding/decoding하는 필수 codec이다.
 	Codec Codec[V]
@@ -35,7 +35,7 @@ type Options[V any] struct {
 	ResultTTL time.Duration
 	// PollInterval은 waiter가 result를 재확인하는 polling 간격이다.
 	PollInterval time.Duration
-	// MaxResultBytes는 encoded Redis result envelope byte 상한이다. zero는 제한 없음을 뜻한다.
+	// MaxResultBytes encoded Redis result envelope byte 상한이다. zero는 제한 없음을 뜻한다.
 	MaxResultBytes int
 }
 

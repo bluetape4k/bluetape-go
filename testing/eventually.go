@@ -9,7 +9,7 @@ import (
 
 const defaultPollInterval = 25 * time.Millisecond
 
-// Eventually 는 condition이 timeout 안에 true가 될 때까지 평가한다.
+// Eventually condition이 timeout 안에 true가 될 때까지 평가한다.
 func Eventually(t *testing.T, timeout time.Duration, condition func() bool) {
 	t.Helper()
 
@@ -27,7 +27,7 @@ func EventuallyWithPolling(t *testing.T, timeout time.Duration, polling time.Dur
 		Should(gomega.BeTrue())
 }
 
-// Consistently 는 condition이 duration 동안 true로 유지되는지 확인한다.
+// Consistently condition이 duration 동안 true로 유지되는지 확인한다.
 func Consistently(t *testing.T, duration time.Duration, condition func() bool) {
 	t.Helper()
 
