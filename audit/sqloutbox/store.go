@@ -52,7 +52,7 @@ type RecordID int64
 // Options struct 공개 타입이며 SQL outbox store, relay, transaction, idempotent delivery 계약을 보존한다.
 // 필드와 zero value, nil 허용 여부, 동시성/transaction 소유권은 생성자와 메서드의 한국어 주석 및 테스트 계약을 따른다.
 type Options struct {
-	// Table은 PostgreSQL table 이름이다. "audit.audit_outbox" 같은 schema-qualified 이름을 허용한다.
+	// Table PostgreSQL table 이름이다. "audit.audit_outbox" 같은 schema-qualified 이름을 허용한다.
 	Table string
 	// Now write timestamp에 사용할 wall-clock 시간을 공급한다. nil이면 time.Now를 사용한다.
 	Now func() time.Time
