@@ -1,3 +1,5 @@
-// Package redis bluetape-go의 redis Redis 기능을 제공한다.
-// 공개 API 주석은 key, TTL, lease, token, stream, backend ownership, 오류 계약을 한국어로 확인할 수 있도록 유지한다.
+// Package redis JWT key provider repository 계약과 호출자 사용 경계를 설명한다.
+//
+// Redis keyspace는 trusted service boundary 안에서 사용하며, key material payload와
+// current KID pointer의 저장, 조회, 회전 계약을 유지한다.
 package redis
