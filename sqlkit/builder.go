@@ -20,7 +20,7 @@ type SelectBuilder struct {
 	limit   *int
 }
 
-// SelectFrom은 table을 대상으로 하는 SELECT statement 구성을 시작한다.
+// SelectFrom table을 대상으로 하는 SELECT statement 구성을 시작한다.
 func SelectFrom(table string) *SelectBuilder {
 	return &SelectBuilder{table: table}
 }
@@ -121,7 +121,7 @@ func (b *InsertBuilder) Values(values ...any) *InsertBuilder {
 	return b
 }
 
-// Returning은 PostgreSQL RETURNING column 목록을 추가한다.
+// Returning PostgreSQL RETURNING column 목록을 추가한다.
 func (b *InsertBuilder) Returning(columns ...string) *InsertBuilder {
 	b.returning = append(b.returning, columns...)
 	return b
@@ -187,7 +187,7 @@ func Update(table string) *UpdateBuilder {
 	return &UpdateBuilder{table: table}
 }
 
-// Set은 column assignment를 추가한다.
+// Set column assignment를 추가한다.
 func (b *UpdateBuilder) Set(column string, value any) *UpdateBuilder {
 	b.sets = append(b.sets, assignment{column: column, value: value})
 	return b
@@ -245,7 +245,7 @@ type DeleteBuilder struct {
 	where []whereClause
 }
 
-// DeleteFrom은 table을 대상으로 하는 DELETE statement 구성을 시작한다.
+// DeleteFrom table을 대상으로 하는 DELETE statement 구성을 시작한다.
 func DeleteFrom(table string) *DeleteBuilder {
 	return &DeleteBuilder{table: table}
 }

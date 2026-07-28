@@ -10,12 +10,12 @@ import (
 // Mapper rows의 현재 row를 domain 값으로 mapping한다. 기대하는 column에 맞춰 rows.Scan을 정확히 호출해야 한다.
 type Mapper[T any] func(rows *sql.Rows) (T, error)
 
-// QueryAll은 query를 실행하고 반환된 모든 row를 mapping한다.
+// QueryAll query를 실행하고 반환된 모든 row를 mapping한다.
 func QueryAll[T any](ctx context.Context, db Queryer, query string, mapper Mapper[T], args ...any) (values []T, err error) {
 	return queryMapped(ctx, db, query, mapper, 0, args...)
 }
 
-// QueryOptional은 query를 실행하고 0개 또는 1개의 mapped row를 반환한다.
+// QueryOptional query를 실행하고 0개 또는 1개의 mapped row를 반환한다.
 func QueryOptional[T any](ctx context.Context, db Queryer, query string, mapper Mapper[T], args ...any) (T, bool, error) {
 	var zero T
 
@@ -33,7 +33,7 @@ func QueryOptional[T any](ctx context.Context, db Queryer, query string, mapper 
 	}
 }
 
-// QueryOne은 query를 실행하고 정확히 1개의 mapped row를 반환한다.
+// QueryOne query를 실행하고 정확히 1개의 mapped row를 반환한다.
 func QueryOne[T any](ctx context.Context, db Queryer, query string, mapper Mapper[T], args ...any) (T, error) {
 	value, ok, err := QueryOptional(ctx, db, query, mapper, args...)
 	if err != nil {
@@ -87,7 +87,7 @@ func queryMapped[T any](ctx context.Context, db Queryer, query string, mapper Ma
 	return values, nil
 }
 
-// ScanOne은 현재 row를 dest에 scan하고 dereference한 값을 반환한다.
+// ScanOne 현재 row를 dest에 scan하고 dereference한 값을 반환한다.
 func ScanOne[T any](dest *T) Mapper[T] {
 	return func(rows *sql.Rows) (T, error) {
 		var zero T

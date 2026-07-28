@@ -20,7 +20,7 @@ func NewStatement(query string, args ...any) Statement {
 	}
 }
 
-// Exec은 context-aware database/sql Exec boundary를 통해 stmt를 실행한다.
+// Exec context-aware database/sql Exec boundary를 통해 stmt를 실행한다.
 func (stmt Statement) Exec(ctx context.Context, db Execer) (stdsql.Result, error) {
 	if ctx == nil {
 		ctx = context.Background()

@@ -20,7 +20,7 @@ type QueryRower interface {
 	QueryRowContext(ctx context.Context, query string, args ...any) *stdsql.Row
 }
 
-// Session은 *sql.DB와 *sql.Tx가 구현하는 공통 context-aware execution surface다.
+// Session *sql.DB와 *sql.Tx가 구현하는 공통 context-aware execution surface다.
 type Session interface {
 	Execer
 	Queryer

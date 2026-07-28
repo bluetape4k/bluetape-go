@@ -18,7 +18,7 @@ type encryptedColumnConfig struct {
 	associatedData []byte
 }
 
-// EncryptedBytesColumn은 임의 plaintext byte를 binary envelope로 암호화해 저장한다.
+// EncryptedBytesColumn 임의 plaintext byte를 binary envelope로 암호화해 저장한다.
 //
 // zero value는 SQL NULL을 안전하게 나타낸다. non-NULL data를 Scan하거나 Value로 만들기 전에
 // NewEncryptedBytesColumn을 사용한다. Column value는 row별 mutable state이므로 동시에 변경하면 안 된다.
@@ -30,7 +30,7 @@ type EncryptedBytesColumn struct {
 	config             encryptedColumnConfig
 }
 
-// NewEncryptedBytesColumn은 byte column을 생성하고 associatedData를 복사한다.
+// NewEncryptedBytesColumn byte column을 생성하고 associatedData를 복사한다.
 func NewEncryptedBytesColumn(encryptor encrypt.Encryptor, associatedData []byte) EncryptedBytesColumn {
 	return EncryptedBytesColumn{config: encryptedColumnConfig{
 		encryptor:      encryptor,
@@ -38,9 +38,9 @@ func NewEncryptedBytesColumn(encryptor encrypt.Encryptor, associatedData []byte)
 	}}
 }
 
-// Scan은 nil, string, []byte database value를 복호화한다.
+// Scan nil, string, []byte database value를 복호화한다.
 //
-// Scan은 validation 전에 기존 plaintext를 지우고 driver 소유 input을 복사하며,
+// Scan validation 전에 기존 plaintext를 지우고 driver 소유 input을 복사하며,
 // 복호화와 size validation이 성공한 뒤에만 Data를 공개한다.
 func (c *EncryptedBytesColumn) Scan(src any) error {
 	if c == nil {
@@ -103,7 +103,7 @@ func (c EncryptedBytesColumn) Value() (value driver.Value, err error) {
 	return ciphertext, nil
 }
 
-// EncryptedStringColumn은 UTF-8 plaintext를 raw URL-safe base64 text로 암호화해 저장한다.
+// EncryptedStringColumn UTF-8 plaintext를 raw URL-safe base64 text로 암호화해 저장한다.
 //
 // zero value는 SQL NULL을 안전하게 나타낸다. non-NULL data를 Scan하거나 Value로 만들기 전에
 // NewEncryptedStringColumn을 사용한다. Column value는 row별 mutable state이므로 동시에 변경하면 안 된다.
@@ -115,7 +115,7 @@ type EncryptedStringColumn struct {
 	config             encryptedColumnConfig
 }
 
-// NewEncryptedStringColumn은 string column을 생성하고 associatedData를 복사한다.
+// NewEncryptedStringColumn string column을 생성하고 associatedData를 복사한다.
 func NewEncryptedStringColumn(encryptor encrypt.Encryptor, associatedData []byte) EncryptedStringColumn {
 	return EncryptedStringColumn{config: encryptedColumnConfig{
 		encryptor:      encryptor,
@@ -123,10 +123,10 @@ func NewEncryptedStringColumn(encryptor encrypt.Encryptor, associatedData []byte
 	}}
 }
 
-// Scan은 nil, string, []byte database value를 복호화한다.
+// Scan nil, string, []byte database value를 복호화한다.
 //
 // non-NULL input은 encrypt.Encryptor.EncryptString이 생성한 raw URL-safe base64 envelope를 포함해야 한다.
-// Scan은 작업 전에 기존 plaintext를 지운다.
+// Scan 작업 전에 기존 plaintext를 지운다.
 func (c *EncryptedStringColumn) Scan(src any) error {
 	if c == nil {
 		return newColumnError(ErrInvalidColumnValue, "scan encrypted string", nil)

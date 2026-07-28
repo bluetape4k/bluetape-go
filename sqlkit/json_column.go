@@ -8,7 +8,7 @@ import (
 // DefaultJSONColumnMaxBytes JSON source 또는 output size의 기본 최대값이다.
 const DefaultJSONColumnMaxBytes = 1 << 20
 
-// JSONColumn은 typed JSON value와 SQL NULL 상태를 함께 저장한다.
+// JSONColumn typed JSON value와 SQL NULL 상태를 함께 저장한다.
 //
 // zero value는 SQL NULL을 나타낸다. MaxBytes가 0이면 DefaultJSONColumnMaxBytes를 사용한다.
 // JSON literal null은 유효한 JSON value이며 SQL NULL과 구분된다.
@@ -18,9 +18,9 @@ type JSONColumn[T any] struct {
 	MaxBytes int
 }
 
-// Scan은 nil, string, []byte database value를 새로운 T 값으로 decode한다.
+// Scan nil, string, []byte database value를 새로운 T 값으로 decode한다.
 //
-// Scan은 driver가 소유한 byte를 복사하고 decode 전에 이전 값을 지우며, decode가 성공한 뒤에만 Data를 공개한다.
+// Scan driver가 소유한 byte를 복사하고 decode 전에 이전 값을 지우며, decode가 성공한 뒤에만 Data를 공개한다.
 func (c *JSONColumn[T]) Scan(src any) (err error) {
 	if c == nil {
 		return newColumnError(ErrInvalidColumnValue, "scan JSON", nil)

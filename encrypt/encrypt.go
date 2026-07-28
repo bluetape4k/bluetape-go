@@ -21,7 +21,7 @@ var (
 	envelopeHeader = []byte{'B', 'T', 'E', 'N', 'C', envelopeVersion, algorithmAESGCM}
 )
 
-// Option은 Encryptor 생성 설정을 적용한다.
+// Option Encryptor 생성 설정을 적용한다.
 type Option func(*config) error
 
 type config struct{}
@@ -115,7 +115,7 @@ func (e Encryptor) Decrypt(ciphertext, associatedData []byte) ([]byte, error) {
 	return plaintext, nil
 }
 
-// EncryptString은 UTF-8 text를 암호화하고 URL-safe base64 envelope를 반환한다.
+// EncryptString UTF-8 text를 암호화하고 URL-safe base64 envelope를 반환한다.
 func (e Encryptor) EncryptString(plaintext string, associatedData []byte) (string, error) {
 	if !utf8.ValidString(plaintext) {
 		return "", errorWith(ErrInvalidOptions, "encrypt string", nil)
@@ -127,7 +127,7 @@ func (e Encryptor) EncryptString(plaintext string, associatedData []byte) (strin
 	return base64.RawURLEncoding.EncodeToString(ciphertext), nil
 }
 
-// DecryptString은 URL-safe base64 envelope를 UTF-8 text로 복호화한다.
+// DecryptString URL-safe base64 envelope를 UTF-8 text로 복호화한다.
 func (e Encryptor) DecryptString(ciphertext string, associatedData []byte) (string, error) {
 	envelope, err := base64.RawURLEncoding.DecodeString(ciphertext)
 	if err != nil {
