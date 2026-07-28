@@ -7,17 +7,20 @@ const (
 	bytesHasherKey  = "probabilistic:bytes:v1"
 )
 
-// Hasher 는 Bloom filter 값에서 stable hash 입력 bytes를 만드는 전략입니다.
-//
-// Custom hasher 함수는 deterministic하고 goroutine-safe해야 합니다.
+// Hasher는 struct 공개 타입이며 Bloom filter의 capacity, false-positive rate, hasher, compatibility 계약을 보존한다.
+// 필드와 zero value, nil 허용 여부, 동시성 소유권은 생성자와 메서드의 한국어 주석 및 테스트 계약을 따른다.
 type Hasher[T any] struct {
 	key string
 	sum func(T) []byte
 }
 
-// NewHasher 는 compatibility key와 hash 입력 함수를 가진 Hasher를 만듭니다.
-// 같은 key를 가진 Hasher는 PutAll에서 호환된다고 간주되므로, caller는 key와 함수
-// 구현의 의미를 stable하게 유지해야 합니다.
+// NewHasher는 NewHasher 공개 API의 동작을 수행하며 Bloom filter의 capacity, false-positive rate, hasher, compatibility 계약을 보존한다.
+//
+// 매개변수:
+//   - key: 저장소 또는 Redis filter를 식별하는 key다. namespace와 compatibility 의미는 package 계약을 따른다.
+//   - sum: NewHasher 동작에 필요한 sum 값이다. zero value, 범위, nil 허용 여부는 함수 계약을 따른다.
+//
+// 반환 오류는 입력 검증 실패, compatibility 불일치, Redis/backend 실패, 또는 package sentinel/typed error 계약을 보존한다.
 func NewHasher[T any](key string, sum func(T) []byte) (Hasher[T], error) {
 	if key == "" {
 		return Hasher[T]{}, ErrEmptyHasherKey
@@ -28,7 +31,7 @@ func NewHasher[T any](key string, sum func(T) []byte) (Hasher[T], error) {
 	return Hasher[T]{key: key, sum: sum}, nil
 }
 
-// Key 는 PutAll 호환성 판단에 사용하는 stable hasher key를 반환합니다.
+// Key는 Key 공개 API의 동작을 수행하며 Bloom filter의 capacity, false-positive rate, hasher, compatibility 계약을 보존한다.
 func (h Hasher[T]) Key() string {
 	return h.key
 }
@@ -43,7 +46,12 @@ func (h Hasher[T]) validate() error {
 	return nil
 }
 
-// Bytes validates the hasher and returns stable hash input bytes for value.
+// Bytes는 Bytes 공개 API의 동작을 수행하며 Bloom filter의 capacity, false-positive rate, hasher, compatibility 계약을 보존한다.
+//
+// 매개변수:
+//   - value: Bloom/Redis filter에 추가하거나 검사할 값이다. nil/empty/hash input 의미는 hasher 계약을 따른다.
+//
+// 반환 오류는 입력 검증 실패, compatibility 불일치, Redis/backend 실패, 또는 package sentinel/typed error 계약을 보존한다.
 func (h Hasher[T]) Bytes(value T) ([]byte, error) {
 	if err := h.validate(); err != nil {
 		return nil, err

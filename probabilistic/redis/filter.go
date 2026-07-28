@@ -14,7 +14,8 @@ const (
 	bytesHasherKey  = "probabilistic:bytes:v1"
 )
 
-// BloomFilter exposes metadata for a Redis-backed Bloom filter.
+// BloomFilter는 interface 공개 타입이며 Redis Bloom/HyperLogLog key, TTL, script, backend compatibility 계약을 보존한다.
+// 필드와 zero value, nil 허용 여부, 동시성 소유권은 생성자와 메서드의 한국어 주석 및 테스트 계약을 따른다.
 type BloomFilter[T any] interface {
 	ExpectedInsertions() uint64
 	FalsePositiveProbability() float64
@@ -38,7 +39,13 @@ type bloomFilter[T any] struct {
 	meta   metadata
 }
 
-// NewBloomFilter creates a Redis-backed Bloom filter from explicit options.
+// NewBloomFilter는 NewBloomFilter 공개 API의 동작을 수행하며 Redis Bloom/HyperLogLog key, TTL, script, backend compatibility 계약을 보존한다.
+//
+// 매개변수:
+//   - ctx: 호출자가 소유한 취소, deadline, 요청 범위를 전달한다.
+//   - options: NewBloomFilter 동작에 필요한 options 값이다. zero value, 범위, nil 허용 여부는 함수 계약을 따른다.
+//
+// 반환 오류는 입력 검증 실패, compatibility 불일치, Redis/backend 실패, 또는 package sentinel/typed error 계약을 보존한다.
 func NewBloomFilter[T any](ctx context.Context, options Options[T]) (BloomFilter[T], error) {
 	normalized, err := normalizeOptions(options)
 	if err != nil {
@@ -57,7 +64,15 @@ func NewBloomFilter[T any](ctx context.Context, options Options[T]) (BloomFilter
 	}, nil
 }
 
-// NewStringBloomFilter creates a Redis-backed Bloom filter for string values.
+// NewStringBloomFilter는 NewStringBloomFilter 공개 API의 동작을 수행하며 Redis Bloom/HyperLogLog key, TTL, script, backend compatibility 계약을 보존한다.
+//
+// 매개변수:
+//   - ctx: 호출자가 소유한 취소, deadline, 요청 범위를 전달한다.
+//   - client: Redis backend client다. 연결과 종료 소유권은 생성자 계약을 따른다.
+//   - namespace: 저장소 또는 Redis filter를 식별하는 key다. namespace와 compatibility 의미는 package 계약을 따른다.
+//   - cfg: NewStringBloomFilter 동작에 필요한 cfg 값이다. zero value, 범위, nil 허용 여부는 함수 계약을 따른다.
+//
+// 반환 오류는 입력 검증 실패, compatibility 불일치, Redis/backend 실패, 또는 package sentinel/typed error 계약을 보존한다.
 func NewStringBloomFilter(ctx context.Context, client redis.Cmdable, namespace string, cfg probabilistic.Config) (BloomFilter[string], error) {
 	hasher, err := probabilistic.NewHasher(stringHasherKey, func(value string) []byte {
 		return []byte(value)
@@ -73,7 +88,15 @@ func NewStringBloomFilter(ctx context.Context, client redis.Cmdable, namespace s
 	})
 }
 
-// NewBytesBloomFilter creates a Redis-backed Bloom filter for byte slices.
+// NewBytesBloomFilter는 NewBytesBloomFilter 공개 API의 동작을 수행하며 Redis Bloom/HyperLogLog key, TTL, script, backend compatibility 계약을 보존한다.
+//
+// 매개변수:
+//   - ctx: 호출자가 소유한 취소, deadline, 요청 범위를 전달한다.
+//   - client: Redis backend client다. 연결과 종료 소유권은 생성자 계약을 따른다.
+//   - namespace: 저장소 또는 Redis filter를 식별하는 key다. namespace와 compatibility 의미는 package 계약을 따른다.
+//   - cfg: NewBytesBloomFilter 동작에 필요한 cfg 값이다. zero value, 범위, nil 허용 여부는 함수 계약을 따른다.
+//
+// 반환 오류는 입력 검증 실패, compatibility 불일치, Redis/backend 실패, 또는 package sentinel/typed error 계약을 보존한다.
 func NewBytesBloomFilter(ctx context.Context, client redis.Cmdable, namespace string, cfg probabilistic.Config) (BloomFilter[[]byte], error) {
 	hasher, err := probabilistic.NewHasher(bytesHasherKey, func(value []byte) []byte {
 		copied := make([]byte, len(value))

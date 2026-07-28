@@ -1,10 +1,3 @@
-// Package redisbloom provides Redis-backed Bloom filters and HyperLogLog
-// cardinality estimates using ordinary Redis commands.
-//
-// Filters in this package store shared distributed state. A false result means
-// a value is not present unless Redis keys were cleared, deleted, evicted, or
-// overwritten after insertion. A true result may be a false positive.
-//
-// HyperLogLog values estimate cardinality only. They do not answer membership
-// questions and should not be used as Bloom or Cuckoo filters.
+// Package redisbloom는 bluetape-go의 redisbloom probabilistic data structure 기능을 제공한다.
+// 공개 API 주석은 capacity, false-positive rate, hasher, key, TTL, backend ownership, 오류 계약을 한국어로 확인할 수 있도록 유지한다.
 package redisbloom

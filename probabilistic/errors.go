@@ -18,13 +18,14 @@ var (
 	ErrEmptyHasherKey = errors.New("probabilistic: empty hasher key")
 )
 
-// ConfigError 는 유효하지 않은 설정 필드와 원인을 보존합니다.
+// ConfigError는 struct 공개 타입이며 Bloom filter의 capacity, false-positive rate, hasher, compatibility 계약을 보존한다.
+// 필드와 zero value, nil 허용 여부, 동시성 소유권은 생성자와 메서드의 한국어 주석 및 테스트 계약을 따른다.
 type ConfigError struct {
 	Field string
 	Err   error
 }
 
-// Error 는 설정 오류 메시지를 반환합니다.
+// Error는 Error 공개 API의 동작을 수행하며 Bloom filter의 capacity, false-positive rate, hasher, compatibility 계약을 보존한다.
 func (e ConfigError) Error() string {
 	if e.Field == "" {
 		return fmt.Sprintf("%v: %v", ErrInvalidConfig, e.Err)
@@ -32,7 +33,9 @@ func (e ConfigError) Error() string {
 	return fmt.Sprintf("%v: %s: %v", ErrInvalidConfig, e.Field, e.Err)
 }
 
-// Unwrap 은 errors.Is/errors.As가 원인 오류를 찾도록 합니다.
+// Unwrap는 Unwrap 공개 API의 동작을 수행하며 Bloom filter의 capacity, false-positive rate, hasher, compatibility 계약을 보존한다.
+//
+// 반환 오류는 입력 검증 실패, compatibility 불일치, Redis/backend 실패, 또는 package sentinel/typed error 계약을 보존한다.
 func (e ConfigError) Unwrap() error {
 	if e.Err == nil {
 		return ErrInvalidConfig
@@ -40,7 +43,10 @@ func (e ConfigError) Unwrap() error {
 	return e.Err
 }
 
-// Is 는 ConfigError가 ErrInvalidConfig 또는 원인 오류와 match되도록 합니다.
+// Is는 Is 공개 API의 동작을 수행하며 Bloom filter의 capacity, false-positive rate, hasher, compatibility 계약을 보존한다.
+//
+// 매개변수:
+//   - target: Is 동작에 필요한 target 값이다. zero value, 범위, nil 허용 여부는 함수 계약을 따른다.
 func (e ConfigError) Is(target error) bool {
 	return target == ErrInvalidConfig || errors.Is(e.Err, target)
 }
