@@ -1,5 +1,5 @@
-// Package mongo provides a MongoDB facade for distributed JWT KeyChain repositories.
+// Package mongo는 JWT key provider repository 계약과 호출자 사용 경계를 설명한다.
 //
-// MongoDB stores JWT signing authority for distributed providers. Use a private,
-// trusted MongoDB deployment and keep the MongoDB client lifecycle caller-owned.
+// MongoDB collection은 trusted service boundary 안에서 사용하며, key material payload와
+// current KID pointer의 저장, 조회, 회전 계약을 유지한다.
 package mongo
