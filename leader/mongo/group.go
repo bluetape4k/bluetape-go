@@ -13,7 +13,7 @@ import (
 	"go.mongodb.org/mongo-driver/v2/mongo/options"
 )
 
-// GroupElector는 leader backend election에서 caller-visible 상태와 의미를 설명한다.
+// GroupElector leader backend election에서 caller-visible 상태와 의미를 설명한다.
 type GroupElector struct {
 	collection *mongo.Collection
 	opts       leader.GroupOptions
@@ -43,7 +43,7 @@ type groupLeaseDocument struct {
 	UpdatedAt  time.Time `bson:"updated_at"`
 }
 
-// NewGroup는 leader backend election에서 생성과 초기화 계약을 설명한다.
+// NewGroup leader backend election에서 생성과 초기화 계약을 설명한다.
 func NewGroup(collection *mongo.Collection, opts leader.GroupOptions, optionFns ...Option) (*GroupElector, error) {
 	if err := requireCollection(collection); err != nil {
 		return nil, err
@@ -70,7 +70,7 @@ func NewGroup(collection *mongo.Collection, opts leader.GroupOptions, optionFns 
 	}, nil
 }
 
-// Campaign는 leader backend election에서 caller-visible 상태와 의미를 설명한다.
+// Campaign leader backend election에서 caller-visible 상태와 의미를 설명한다.
 func (e *GroupElector) Campaign(ctx context.Context) error {
 	if ctx == nil {
 		ctx = context.Background()
@@ -95,7 +95,7 @@ func (e *GroupElector) Campaign(ctx context.Context) error {
 	}
 }
 
-// Resign는 leader backend election에서 실행, cancellation, cleanup 계약을 설명한다.
+// Resign leader backend election에서 실행, cancellation, cleanup 계약을 설명한다.
 func (e *GroupElector) Resign(ctx context.Context) error {
 	if ctx == nil {
 		ctx = context.Background()
@@ -120,14 +120,14 @@ func (e *GroupElector) Resign(ctx context.Context) error {
 	return nil
 }
 
-// IsLeader는 leader backend election에서 반환값과 오류 의미를 설명한다.
+// IsLeader leader backend election에서 반환값과 오류 의미를 설명한다.
 func (e *GroupElector) IsLeader() bool {
 	e.mu.RLock()
 	defer e.mu.RUnlock()
 	return e.owned
 }
 
-// ActiveCount는 leader backend election에서 반환값과 오류 의미를 설명한다.
+// ActiveCount leader backend election에서 반환값과 오류 의미를 설명한다.
 func (e *GroupElector) ActiveCount(ctx context.Context) (int, error) {
 	if ctx == nil {
 		ctx = context.Background()
@@ -143,7 +143,7 @@ func (e *GroupElector) ActiveCount(ctx context.Context) (int, error) {
 	return int(count), nil
 }
 
-// AvailableSlots는 leader backend election에서 반환값과 오류 의미를 설명한다.
+// AvailableSlots leader backend election에서 반환값과 오류 의미를 설명한다.
 func (e *GroupElector) AvailableSlots(ctx context.Context) (int, error) {
 	active, err := e.ActiveCount(ctx)
 	if err != nil {

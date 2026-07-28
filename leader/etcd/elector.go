@@ -11,7 +11,7 @@ import (
 
 const minimumProclaimInterval = 100 * time.Millisecond
 
-// Elector는 leader backend election에서 leader election 선택과 조정 계약을 설명한다.
+// Elector leader backend election에서 leader election 선택과 조정 계약을 설명한다.
 //
 // 이 주석은 backend lease, ownership, consistency, cancellation 조건을 설명한다.
 type Elector struct {
@@ -33,9 +33,9 @@ type Elector struct {
 
 var _ leader.Elector = (*Elector)(nil)
 
-// New는 leader backend election에서 생성과 초기화 계약을 설명한다.
+// New leader backend election에서 생성과 초기화 계약을 설명한다.
 //
-// New는 leader backend election에서 동작과 caller-visible 계약을 설명한다.
+// New leader backend election에서 동작과 caller-visible 계약을 설명한다.
 // 세부 조건은 backend별 lease, cleanup, retry 계약을 따른다.
 // 세부 조건은 backend별 lease, cleanup, retry 계약을 따른다.
 func New(client *clientv3.Client, opts leader.Options) (*Elector, error) {
@@ -73,7 +73,7 @@ func New(client *clientv3.Client, opts leader.Options) (*Elector, error) {
 	}, nil
 }
 
-// EffectiveTTL는 leader backend election에서 반환값과 오류 의미를 설명한다.
+// EffectiveTTL leader backend election에서 반환값과 오류 의미를 설명한다.
 // 세부 조건은 backend별 lease, cleanup, retry 계약을 따른다.
 // 세부 조건은 backend별 lease, cleanup, retry 계약을 따른다.
 func (e *Elector) EffectiveTTL() time.Duration {
@@ -89,7 +89,7 @@ func (e *Elector) EffectiveTTL() time.Duration {
 	return time.Duration(e.requestedTTL) * time.Second
 }
 
-// IsLeader는 leader backend election에서 반환값과 오류 의미를 설명한다.
+// IsLeader leader backend election에서 반환값과 오류 의미를 설명한다.
 // 이 주석은 leader backend election의 backend 요구사항, cancellation, timeout, 오류 처리 세부사항을 설명한다.
 func (e *Elector) IsLeader() bool {
 	e.mu.RLock()

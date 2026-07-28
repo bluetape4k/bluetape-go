@@ -102,7 +102,7 @@ func snapshotOfficialElection(election *concurrency.Election) (electionSnapshot,
 	}, nil
 }
 
-// Campaign는 leader backend election에서 실행, cancellation, cleanup 계약을 설명한다.
+// Campaign leader backend election에서 실행, cancellation, cleanup 계약을 설명한다.
 func (e *Elector) Campaign(ctx context.Context) error {
 	if ctx == nil {
 		return leader.ErrInvalidContext

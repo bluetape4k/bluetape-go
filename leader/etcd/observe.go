@@ -8,7 +8,7 @@ import (
 	clientv3 "go.etcd.io/etcd/client/v3"
 )
 
-// Leader는 leader backend election에서 반환값과 오류 의미를 설명한다.
+// Leader leader backend election에서 반환값과 오류 의미를 설명한다.
 // 이 주석은 backend lease, ownership, consistency, cancellation 조건을 설명한다.
 func (e *Elector) Leader(ctx context.Context) (string, error) {
 	if ctx == nil {

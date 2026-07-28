@@ -9,7 +9,7 @@ import (
 	"go.mongodb.org/mongo-driver/v2/mongo/options"
 )
 
-// EnsureIndexes는 leader backend election에서 생성과 초기화 계약을 설명한다.
+// EnsureIndexes leader backend election에서 생성과 초기화 계약을 설명한다.
 //
 // 이 주석은 backend lease, ownership, consistency, cancellation 조건을 설명한다.
 // 세부 조건은 backend별 lease, cleanup, retry 계약을 따른다.

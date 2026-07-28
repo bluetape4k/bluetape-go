@@ -8,7 +8,7 @@ import (
 	"go.etcd.io/etcd/client/v3/concurrency"
 )
 
-// Resign는 leader backend election에서 실행, cancellation, cleanup 계약을 설명한다.
+// Resign leader backend election에서 실행, cancellation, cleanup 계약을 설명한다.
 //
 // 이 주석은 backend lease, ownership, consistency, cancellation 조건을 설명한다.
 // 세부 조건은 backend별 lease, cleanup, retry 계약을 따른다.

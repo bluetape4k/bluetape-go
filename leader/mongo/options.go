@@ -14,10 +14,10 @@ type config struct {
 	clock      func() time.Time
 }
 
-// Option는 leader backend election에서 설정값과 기본값 적용 방식을 설명한다.
+// Option leader backend election에서 설정값과 기본값 적용 방식을 설명한다.
 type Option func(*config) error
 
-// WithRetryDelay는 leader backend election에서 설정값과 기본값 적용 방식을 설명한다.
+// WithRetryDelay leader backend election에서 설정값과 기본값 적용 방식을 설명한다.
 // 세부 조건은 backend별 lease, cleanup, retry 계약을 따른다.
 func WithRetryDelay(delay time.Duration) Option {
 	return func(cfg *config) error {
@@ -29,7 +29,7 @@ func WithRetryDelay(delay time.Duration) Option {
 	}
 }
 
-// WithClock는 leader backend election에서 설정값과 기본값 적용 방식을 설명한다.
+// WithClock leader backend election에서 설정값과 기본값 적용 방식을 설명한다.
 //
 // 이 주석은 backend lease, ownership, consistency, cancellation 조건을 설명한다.
 // 세부 조건은 backend별 lease, cleanup, retry 계약을 따른다.

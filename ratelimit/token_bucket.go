@@ -35,7 +35,7 @@ const (
 
 var _ Limiter = (*TokenBucket)(nil)
 
-// New 는 process-local token bucket limiter를 만든다.
+// New process-local token bucket limiter를 만든다.
 func New(options Options) (*TokenBucket, error) {
 	return newWithClock(options, time.Now)
 }
@@ -55,7 +55,7 @@ func newWithClock(options Options, now clockFunc) (*TokenBucket, error) {
 	}, nil
 }
 
-// Allow 는 key bucket에서 token을 소비한다.
+// Allow key bucket에서 token을 소비한다.
 func (l *TokenBucket) Allow(ctx context.Context, key string, tokens int64) (Result, error) {
 	ctx = normalizeContext(ctx)
 	if err := ctx.Err(); err != nil {
