@@ -35,7 +35,7 @@ var (
 type Status string
 
 const (
-	// StatusPending은 available_at 이후 relay가 record를 점유할 수 있는 상태다.
+	// StatusPending available_at 이후 relay가 record를 점유할 수 있는 상태다.
 	StatusPending Status = "pending"
 	// StatusClaimed relay가 publish를 위해 record lease를 점유한 상태다.
 	StatusClaimed Status = "claimed"
