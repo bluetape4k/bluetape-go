@@ -1,11 +1,13 @@
 # Issue 225 Corrective Series Closure Report
 
-Issue: [#225](https://github.com/bluetape4k/bluetape-go/issues/225)
+> 한국어 감사 경계: 이 문서는 감사 결론과 후속 라우팅을 한국어 독자가 추적할 수 있도록 정리한다. 심각도 표기, 패키지명, API 이름, 명령, 링크, 인용 증거는 원문의 증거 앵커로 보존한다.
+
+이슈: [#225](https://github.com/bluetape4k/bluetape-go/issues/225)
 Parent epic: [#221](https://github.com/bluetape4k/bluetape-go/issues/221)
 Baseline commit: `f42cb1ed71a4c20b18cd016b9f46a6bb9ac14bb4`
-Date: 2026-06-24
+날짜: 2026-06-24
 
-## Verdict
+## 판정
 
 The `0.6.x` corrective series is ready to close after #225 lands.
 
@@ -18,7 +20,7 @@ The remaining work is either:
 - recorded as an explicit Go non-goal because the source behavior is JVM,
   Kotlin DSL, framework, or application-owned policy.
 
-## Closure Evidence
+## 종료 증거
 
 | Milestone | Gate | Evidence |
 |---|---:|---|
@@ -28,7 +30,7 @@ The remaining work is either:
 | `0.6.5` Testcontainers hardening and service expansion | Closed | #215 epic closed; #216, #217, #218, #219, and #220 are closed. |
 | `0.6.6` developer experience and integration closure | Ready after #225 | #222, #223, and #224 are closed; #225 supplies this final report; #221 remains open only until this report is merged and linked. |
 
-## Re-run Source-Parity Matrix
+## source-parity 매트릭스 재실행
 
 The #202 matrix was rechecked against the current issue state and repository
 surface after the `0.6.3`, `0.6.4`, and `0.6.5` work landed.
@@ -48,7 +50,7 @@ surface after the `0.6.3`, `0.6.4`, and `0.6.5` work landed.
 | Ktor/Spring Boot source examples | Represented as integration-recipe evidence in #224. | Framework-specific APIs are non-goals for this Go core repo. |
 | Data, text, audit, graph, and rule engine projects families | Routed to later roadmap milestones. | #100/#101, #39/#45/#52-#55, #41/#46/#56-#59, #38/#44/#48-#51, and #37 own future work. |
 
-## Findings
+## 발견 사항
 
 Corrective-series findings:
 
@@ -80,7 +82,7 @@ blocker:
 | Graph | #38, #44, #48-#51 |
 | Rule engine | #37 |
 
-## Non-goals Confirmed
+## 확인한 비목표
 
 - Kotlin extension-method and DSL parity is not copied into Go packages.
 - JVM `Result`, Java executor, virtual-thread, JUnit lifecycle extension,
@@ -91,7 +93,7 @@ blocker:
 - Reporting frameworks that replace `go test` output are excluded until a
   concrete debugging workflow justifies them.
 
-## Validation Commands
+## 검증 명령
 
 The report is documentation-only, but the final repository state must still
 prove the corrective series under the standard gates.
@@ -111,7 +113,7 @@ Recent CI evidence:
   passed after adding the #224 integration recipes.
 - #225 PR CI remains pending until this report is opened as a pull request.
 
-## Environment Notes
+## 환경 메모
 
 - Local validation ran on macOS with Docker/Testcontainers available.
 - Testcontainers-backed packages should remain serial where Docker resources,
@@ -119,7 +121,7 @@ Recent CI evidence:
 - Docker-backed example smoke tests remain opt-in by environment variable, so
   ordinary `go test ./...` stays usable without forcing local emulators.
 
-## Closeout
+## 마감
 
 After this report lands:
 
