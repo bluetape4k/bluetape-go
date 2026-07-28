@@ -10,12 +10,11 @@ import (
 
 var _ leader.Elector = (*Elector)(nil)
 
-// Campaign waits until the elector acquires leadership or ctx ends.
+// Campaign elector가 leadership을 획득하거나 ctx가 끝날 때까지 기다린다.
 //
-// It returns leader.ErrAlreadyLeader, leader.ErrCampaignInProgress, or
-// leader.ErrCleanupPending for conflicting local states. Reconciliation may
-// confirm ownership after ctx expires; callers must then retain the elector,
-// inspect ctx.Err before protected work, and perform bounded cleanup.
+// 충돌하는 local state에는 leader.ErrAlreadyLeader, leader.ErrCampaignInProgress,
+// leader.ErrCleanupPending을 반환한다. reconciliation이 ctx 만료 후 ownership을 확인할 수 있으므로
+// 호출자는 elector를 유지하고, protected work 전에 ctx.Err를 확인하며, bounded cleanup을 수행해야 한다.
 func (e *Elector) Campaign(ctx context.Context) error {
 	if ctx == nil {
 		return leader.ErrInvalidContext
@@ -44,11 +43,10 @@ func (e *Elector) Campaign(ctx context.Context) error {
 	}
 }
 
-// Resign stops renewal and conditionally deletes this elector's owner token.
+// Resign renewal을 중지하고 이 elector의 owner token을 조건부로 삭제한다.
 //
-// An indeterminate delete returns leader.ErrCommitUnknown. Retry Resign on the
-// same elector with fresh bounded contexts, then use full-lease expiry as the
-// final fallback.
+// delete 결과가 불명확하면 leader.ErrCommitUnknown을 반환한다. 같은 elector에서 fresh bounded context로
+// Resign을 재시도한 뒤, 최종 fallback으로 full-lease expiry를 사용한다.
 func (e *Elector) Resign(ctx context.Context) error {
 	if ctx == nil {
 		return leader.ErrInvalidContext
@@ -85,14 +83,14 @@ func (e *Elector) Resign(ctx context.Context) error {
 	return nil
 }
 
-// IsLeader reports whether this elector currently believes it owns the lease.
+// IsLeader 이 elector가 현재 lease를 소유한다고 판단하는지 알려준다.
 func (e *Elector) IsLeader() bool {
 	e.mu.RLock()
 	defer e.mu.RUnlock()
 	return e.owned
 }
 
-// Leader returns the active owner token recorded in PostgreSQL.
+// Leader PostgreSQL에 기록된 active owner token을 반환한다.
 func (e *Elector) Leader(ctx context.Context) (string, error) {
 	if ctx == nil {
 		return "", leader.ErrInvalidContext

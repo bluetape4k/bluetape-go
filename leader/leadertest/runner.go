@@ -21,16 +21,15 @@ var (
 
 type evaluator func(context.Context, *testing.T, Harness, leader.Options, Timing) error
 
-// Run executes every mandatory single-elector conformance case with default timing.
+// Run 기본 timing으로 모든 필수 single-elector conformance case를 실행한다.
 func Run(t *testing.T, harness Harness) {
 	RunWithConfig(t, harness, Config{})
 }
 
-// RunWithConfig executes every mandatory single-elector conformance case with config.
-// After CaseTimeout it cancels the evaluator, invokes Abort when configured,
-// and waits until provider work joins. A provider that ignores both cancellation
-// and Abort intentionally blocks until the caller's outer go test timeout
-// fail-stops the test process.
+// RunWithConfig config로 모든 필수 single-elector conformance case를 실행한다.
+// CaseTimeout 뒤 evaluator를 cancel하고, 설정된 경우 Abort를 호출한 다음 provider work가
+// join될 때까지 기다린다. cancellation과 Abort를 모두 무시하는 provider는 호출자의 외부
+// go test timeout이 test process를 fail-stop할 때까지 의도적으로 block된다.
 func RunWithConfig(t *testing.T, harness Harness, config Config) {
 	t.Helper()
 	normalized, err := normalizeConfig(config)
