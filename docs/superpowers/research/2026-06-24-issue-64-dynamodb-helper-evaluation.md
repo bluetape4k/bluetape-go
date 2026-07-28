@@ -1,11 +1,14 @@
 # Issue #64 DynamoDB Helper Evaluation
 
+> 한국어 연구 요약: 이 문서는 사용자 협업용 조사/결정 기록이다. 아래 표와 목록의 URL, package name, command, issue number, version, source path는 evidence이므로 그대로 보존한다. 의사결정, 선택/보류/거절 사유, 후속 이슈 경계는 한국어 독자가 바로 이해할 수 있도록 이 요약을 우선 적용한다.
+> 추가 한국어 해석: 이 문서에서 영어로 남은 표의 값은 원문 근거이며, 실제 채택 여부는 한국어 결정 문장을 따른다. 후속 작업자는 보류와 거절 항목을 새 구현 범위로 착각하지 않아야 한다.\n
+
 Issue: [#64](https://github.com/bluetape4k/bluetape-go/issues/64)
 Date: 2026-06-24
 Follow-up helper issue: [#270](https://github.com/bluetape4k/bluetape-go/issues/270)
 Workshop example issue: [bluetape-go-workshop#61](https://github.com/bluetape4k/bluetape-go-workshop/issues/61)
 
-## Goal
+## 목표
 
 Decide whether DynamoDB support in `bluetape-go` should add package code,
 compile-checked examples, or stay on direct AWS SDK for Go v2 calls.
@@ -14,7 +17,7 @@ The default remains direct AWS SDK use. A helper is justified only when it
 removes repeated Go-specific integration work that the SDK does not already
 express cleanly.
 
-## Evidence
+## 근거
 
 - #60 selected DynamoDB as the only AWS helper research candidate after S3,
   SQS, and SNS stayed example-only.
@@ -33,7 +36,7 @@ express cleanly.
   - table creators and DAX auto-configuration are JVM framework/runtime
     surfaces, not Go library primitives.
 
-## Decision Matrix
+## 결정 Matrix
 
 | Candidate | Decision | Owner | Rationale |
 |---|---|---|---|
@@ -85,7 +88,7 @@ For #270, stress tests are required only if the helper adds shared state,
 goroutines, worker lifecycle, or a goroutine-safe public claim. Regardless of
 stress need, race validation remains mandatory for the changed package.
 
-## Conclusion
+## 결론
 
 Close #64 after recording this decision. Implement only #270 in
 `bluetape-go`, and keep conditional write / optimistic locking guidance in the

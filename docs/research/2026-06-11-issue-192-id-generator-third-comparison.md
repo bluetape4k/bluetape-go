@@ -1,12 +1,12 @@
-# Issue #192 ID generator third comparison
+# Issue #192 ID generator third comparison 연구
 
-## Scope
+## 범위
 
-This note records the third local comparison after both optimization passes:
+이 note는 양쪽 optimization pass 이후의 세 번째 local comparison을 기록한다.
 
-- Go side: `bluetape-go` optimized ID generators from issue #192.
-- Kotlin side: `bluetape4k-idgenerators` candidate 3 from issue #738/#739.
-- Decision being informed: final data set for the `bluetape4k.github.io` article covering the Go implementation, first comparison, Go optimization, second comparison, Kotlin optimization, and third comparison.
+- Go side: issue #192의 `bluetape-go` optimized ID generators.
+- Kotlin side: issue #738/#739의 `bluetape4k-idgenerators` candidate 3.
+- informed decision: Go implementation, first comparison, Go optimization, second comparison, Kotlin optimization, third comparison을 다루는 `bluetape4k.github.io` article의 final data set.
 
 ## Revisions
 
@@ -21,8 +21,9 @@ This note records the third local comparison after both optimization passes:
 make bench-id
 ```
 
-Kotlin rows use `docs/benchmarks/raw/issue-738/candidate-3-focused.csv` from
-`bluetape4k-projects` and normalize throughput with:
+Kotlin row는 `bluetape4k-projects`의
+`docs/benchmarks/raw/issue-738/candidate-3-focused.csv`를 사용하고, throughput을 다음
+식으로 normalize한다.
 
 ```text
 ns/id = 1e9 / (ops/s * 65536)
@@ -37,7 +38,7 @@ ns/id = 1e9 / (ops/s * 65536)
 - Go: 1.26.4
 - Kotlin/JMH: GraalVM JDK 21.0.11, `kotlinx-benchmark`, batch size 65,536
 
-## Results
+## 결과
 
 | Workload | Go ns/id | Kotlin ns/id | Lower | Note |
 |---|---:|---:|---|---|
@@ -50,19 +51,19 @@ ns/id = 1e9 / (ops/s * 65536)
 | KSUID millis single | 123.50 | 167.07 | Go | Kotlin full candidate 3 run; targeted repeat was 157.03 ns/id |
 | KSUID millis concurrent | 215.90 | 215.81 | Kotlin | Effectively tied |
 
-## Interpretation
+## 해석
 
-- Snowflake still favors Go numerically, but the row is not production-equivalent: Go uses synthetic clock hooks while Kotlin uses the real clock and hits the 4,096/ms sequence ceiling in the 65,536-ID batch.
-- Kotlin now leads single-thread monotonic ULID and KSUID seconds after direct entropy/payload changes.
-- Go still leads concurrent monotonic ULID and single-thread KSUID millis.
-- KSUID millis concurrent is a practical tie in this local snapshot: Go measured 215.90 ns/id and Kotlin measured 215.81 ns/id.
-- Kotlin Snowflake's main improvement is allocation, not throughput: issue #738 profile evidence shows `snowflakeDefaultWithUniqueness` normalized allocation reduced from about 14.58 MB/op to 6.97 MB/op.
+- Snowflake는 수치상 여전히 Go에 유리하지만, 해당 row는 production-equivalent가 아니다. Go는 synthetic clock hook을 사용하고, Kotlin은 real clock을 사용하며 65,536-ID batch에서 4,096/ms sequence ceiling에 닿는다.
+- direct entropy/payload 변경 이후 Kotlin은 single-thread monotonic ULID와 KSUID seconds에서 앞선다.
+- Go는 여전히 concurrent monotonic ULID와 single-thread KSUID millis에서 앞선다.
+- KSUID millis concurrent는 이 local snapshot에서 practical tie다. Go는 215.90 ns/id, Kotlin은 215.81 ns/id로 측정되었다.
+- Kotlin Snowflake의 main improvement는 throughput이 아니라 allocation이다. issue #738 profile evidence는 `snowflakeDefaultWithUniqueness` normalized allocation이 약 14.58 MB/op에서 6.97 MB/op로 줄었음을 보여 준다.
 
 ## Blog Seed
 
-The article should avoid a simplistic "language X is faster" conclusion. The data says the bottleneck moved by generator family:
+article은 단순한 "language X is faster" 결론을 피해야 한다. data는 bottleneck이 generator family별로 이동했음을 보여 준다.
 
-- Go optimization mostly removed entropy-read overhead and improved KSUID/ULID concurrency.
-- Kotlin optimization removed intermediate allocation in Snowflake and reduced entropy staging in ULID/KSUID.
-- Clock model and benchmark shape dominate Snowflake interpretation.
-- KSUID millis moved from a clear Go lead to near parity under concurrent load.
+- Go optimization은 주로 entropy-read overhead를 제거하고 KSUID/ULID concurrency를 개선했다.
+- Kotlin optimization은 Snowflake intermediate allocation을 제거하고 ULID/KSUID entropy staging을 줄였다.
+- clock model과 benchmark shape가 Snowflake 해석을 지배한다.
+- KSUID millis는 concurrent load에서 명확한 Go lead에서 near parity로 이동했다.

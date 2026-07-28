@@ -1,12 +1,14 @@
 # Issue #200 Retrospective Audit
 
-Issue: #200
-Parent epic: #199
-Milestone: `0.6.2`
-Audit date: 2026-06-14
-Branch: `issue-200-retrospective-audit`
+> 한국어 감사 경계: 이 문서는 감사 결론과 후속 라우팅을 한국어 독자가 추적할 수 있도록 정리한다. 심각도 표기, 패키지명, API 이름, 명령, 링크, 인용 증거는 원문의 증거 앵커로 보존한다.
 
-## Scope And Baseline
+이슈: #200
+Parent epic: #199
+마일스톤: `0.6.2`
+Audit date: 2026-06-14
+브랜치: `issue-200-retrospective-audit`
+
+## 범위 및 기준선
 
 This audit re-verifies completed and still-open implementation evidence from
 milestones `0.1.0` through `0.6.1`. The branch is audit-only: no implementation
@@ -36,14 +38,14 @@ Repository shape:
 | README files | 64 |
 | Benchmark test files | 11 |
 
-## Audit Flow
+## 감사 흐름
 
 ![Issue #200 retrospective audit flow](../images/readme-diagrams/issue-200-retrospective-audit-flow.png)
 
 The audit follows the approved flow: inventory, evidence slice, six independent
 review lenses, severity ledger, P0/P1 follow-up gate, and closure gate.
 
-## Milestone And Issue Inventory
+## 마일스톤 및 이슈 인벤토리
 
 Milestones relevant to the audit:
 
@@ -76,7 +78,7 @@ Unresolvable named issue:
 |---:|---|
 | #91 | `gh issue view 91` returned `Could not resolve to an issue or pull request`. No package mapping was possible. |
 
-## Issue To Package Map
+## 이슈-패키지 매핑
 
 | Packages | Issues and PR-style entries |
 |---|---|
@@ -101,7 +103,7 @@ Unresolvable named issue:
 | `money` | #6, #35, #178, #179, #180, #181 |
 | `probabilistic`, `probabilistic/redis` | #6, #36, #182 |
 
-## Package Findings
+## 패키지 발견 사항
 
 | Package | Source/tests/docs evidence | Perf | Stability | Security | Ops | API | User | Finding |
 |---|---|---:|---:|---:|---:|---:|---:|---|
@@ -145,11 +147,11 @@ Package verdict totals:
 P0=0 P1=0 P2=3 P3=1
 ```
 
-## P0/P1 Follow-Up Issues
+## P0/P1 후속 이슈
 
 No P0/P1 follow-up issues required.
 
-## Deferred Parity Gaps
+## 유예한 parity 간극
 
 | Severity | Area | Rationale | Target milestone |
 |---|---|---|---|
@@ -158,7 +160,7 @@ No P0/P1 follow-up issues required.
 | P2 | Testcontainers cleanup timeout | Helpers terminate containers from `t.Cleanup` with `context.Background()`. Current tests pass, but bounded cleanup would reduce local/CI hang risk when Docker is unhealthy. | `0.6.2` |
 | P3 | `jwt/redis` local README | The alias package is documented through root `jwt/README*.md`; a local README could improve discoverability but is not required for correctness. | `0.6.3` |
 
-## Validation Evidence
+## 검증 증거
 
 | Command | Output file | Result |
 |---|---|---|
@@ -176,7 +178,7 @@ Operational note:
 - The rerun reported `0 issues` and completed `tidy-check`, `fmt-check`, `vet`,
   `lint`, `test`, and `race`.
 
-## 7-Tier Integration Verdict
+## 7-Tier 통합 판정
 
 | Lane | P0 | P1 | P2 | P3 | Verdict |
 |---|---:|---:|---:|---:|---|
@@ -193,7 +195,7 @@ Final gate:
 P0=0 P1=0
 ```
 
-## DoD Status
+## DoD 상태
 
 | Requirement | Status | Evidence |
 |---|---|---|

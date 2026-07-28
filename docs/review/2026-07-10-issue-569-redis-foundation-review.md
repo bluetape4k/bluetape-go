@@ -1,12 +1,14 @@
 # Issue 569 Redis Foundation Step 6-R Review
 
-Date: 2026-07-10
-Branch: `feat/issue-569-redis-foundation`
+> 한국어 감사/리뷰 경계: 이 문서는 리뷰 결론과 남은 위험을 한국어 독자가 추적할 수 있도록 정리한다. 심각도 표기, 판정 표기, 파일 경로, 라인 번호, 이슈/PR 링크, 명령, 코드 식별자, 인용 증거는 원문의 증거 앵커로 보존한다.
+
+날짜: 2026-07-10
+브랜치: `feat/issue-569-redis-foundation`
 Baseline: `7c8af9a Plan Redis foundation implementation`
-Scope: new public `redis` package, package README pair, root README indexes, and
+범위: new public `redis` package, package README pair, root README indexes, and
 `CHANGELOG.md`.
 
-## Reviewed Evidence
+## 검토한 증거
 
 - Implementation:
   - `redis/token.go`: 256-bit lowercase-hex owner token, redacted formatting,
@@ -28,9 +30,9 @@ Scope: new public `redis` package, package README pair, root README indexes, and
     key/token boundaries, cancellation runbook, rollback, and verification.
   - Root `README.md` and `README.ko.md` include the package index entry.
 
-## Verification
+## 검증
 
-| Command | Result |
+| 명령 | 결과 |
 |---|---|
 | `go test -count=1 ./redis -run 'OwnerToken|NewOwnerToken|ParseOwnerToken'` | PASS after TDD green |
 | `go test -count=1 ./redis -run 'Key|TTL|OpError|Redacted'` | PASS after TDD green |
@@ -44,7 +46,7 @@ Scope: new public `redis` package, package README pair, root README indexes, and
 | `gh issue view 569 --json assignees,milestone,labels,state,title,url` | PASS, assignee `debop`, milestone `0.19.0`, state `OPEN` |
 | `make ci` | PASS |
 
-## 7-Tier Findings
+## 7-Tier 발견 사항
 
 | Tier | Perspective | P0 | P1 | P2 | P3 | Evidence |
 |---|---:|---:|---:|---:|---:|---|
@@ -58,7 +60,7 @@ Scope: new public `redis` package, package README pair, root README indexes, and
 
 P0=0 P1=0
 
-## Remaining Risks And Follow-Up
+## 남은 위험 및 후속 조치
 
 - #570 must own migration from package-local Redis helpers to this foundation
   package, with old/new key parity tests before any package behavior changes.

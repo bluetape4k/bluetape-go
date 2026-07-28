@@ -2,27 +2,37 @@ package rules
 
 import "context"
 
-// CompositeOption configures a composite rule group.
+// CompositeOption func 공개 타입이다.
 type CompositeOption func(*compositeRule)
 
-// WithCompositeDescription sets a composite rule description.
+// WithCompositeDescription CompositeDescription 설정을 적용한 옵션을 반환한다.
+//
+// 매개변수:
+//   - description: WithCompositeDescription가 해석할 문자열이다. 빈 문자열과 공백은 구현 검증을 따른다.
 func WithCompositeDescription(description string) CompositeOption {
 	return func(rule *compositeRule) {
 		rule.description = description
 	}
 }
 
-// WithCompositePriority sets a composite rule priority. Lower values run first.
+// WithCompositePriority CompositePriority 설정을 적용한 옵션을 반환한다.
+//
+// 매개변수:
+//   - priority: WithCompositePriority에 전달되는 값이다. 허용 범위와 nil 처리 방식은 구현 검증을 따른다.
 func WithCompositePriority(priority int) CompositeOption {
 	return func(rule *compositeRule) {
 		rule.priority = priority
 	}
 }
 
-// NewActivationGroup creates a rule that executes only the first matching child.
+// NewActivationGroup ActivationGroup 인스턴스를 생성한다.
 //
-// Child predicates should be side-effect-free. Composite Execute re-evaluates
-// children instead of storing per-run selection state on the group rule.
+// 매개변수:
+//   - name: NewActivationGroup가 해석할 문자열이다. 빈 문자열과 공백은 구현 검증을 따른다.
+//   - children: NewActivationGroup가 처리할 값 목록이다. nil과 빈 슬라이스는 구현의 입력 규칙에 따라 처리한다.
+//   - options: 적용할 옵션 목록이다. nil이면 기본값만 사용한다.
+//
+// 반환 오류는 입력 검증 실패와 패키지에서 정의한 sentinel error/typed error를 그대로 드러낸다.
 func NewActivationGroup(name string, children []Rule, options ...CompositeOption) (Rule, error) {
 	group, err := newCompositeRule(name, compositeActivation, children, "", options...)
 	if err != nil {
@@ -31,12 +41,15 @@ func NewActivationGroup(name string, children []Rule, options ...CompositeOption
 	return group, nil
 }
 
-// NewConditionalGroup creates a rule gated by a named guard rule.
+// NewConditionalGroup ConditionalGroup 인스턴스를 생성한다.
 //
-// The guard must be present in children. All non-guard children are dependent
-// rules and are evaluated/executed only when the guard matches. Child
-// predicates should be side-effect-free because Execute re-evaluates the guard
-// and dependent predicates.
+// 매개변수:
+//   - name: NewConditionalGroup가 해석할 문자열이다. 빈 문자열과 공백은 구현 검증을 따른다.
+//   - guardName: NewConditionalGroup가 해석할 문자열이다. 빈 문자열과 공백은 구현 검증을 따른다.
+//   - children: NewConditionalGroup가 처리할 값 목록이다. nil과 빈 슬라이스는 구현의 입력 규칙에 따라 처리한다.
+//   - options: 적용할 옵션 목록이다. nil이면 기본값만 사용한다.
+//
+// 반환 오류는 입력 검증 실패와 패키지에서 정의한 sentinel error/typed error를 그대로 드러낸다.
 func NewConditionalGroup(name, guardName string, children []Rule, options ...CompositeOption) (Rule, error) {
 	guardName = normalizeKey(guardName)
 	if guardName == "" {
@@ -52,10 +65,14 @@ func NewConditionalGroup(name, guardName string, children []Rule, options ...Com
 	return group, nil
 }
 
-// NewUnitGroup creates a rule that executes only when all children match.
+// NewUnitGroup UnitGroup 인스턴스를 생성한다.
 //
-// Child predicates should be side-effect-free. Composite Execute re-evaluates
-// children before executing them to avoid storing per-run state on the group.
+// 매개변수:
+//   - name: NewUnitGroup가 해석할 문자열이다. 빈 문자열과 공백은 구현 검증을 따른다.
+//   - children: NewUnitGroup가 처리할 값 목록이다. nil과 빈 슬라이스는 구현의 입력 규칙에 따라 처리한다.
+//   - options: 적용할 옵션 목록이다. nil이면 기본값만 사용한다.
+//
+// 반환 오류는 입력 검증 실패와 패키지에서 정의한 sentinel error/typed error를 그대로 드러낸다.
 func NewUnitGroup(name string, children []Rule, options ...CompositeOption) (Rule, error) {
 	group, err := newCompositeRule(name, compositeUnit, children, "", options...)
 	if err != nil {

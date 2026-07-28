@@ -13,12 +13,16 @@ import (
 
 const redisMaxBitOffset = uint64(1) << 32
 
-// Options configures a Redis-backed Bloom filter.
+// Options Redis Bloom/HyperLogLog key, TTL, script, backend compatibility에서 사용하는 구조체다.
 type Options[T any] struct {
-	Client    redis.Cmdable
+	// Client 호출자가 소유한 Redis backend client다. 연결 종료와 lifecycle은 호출자가 관리한다.
+	Client redis.Cmdable
+	// Namespace Redis Bloom/HyperLogLog key를 구분하는 논리 namespace다.
 	Namespace string
-	Config    probabilistic.Config
-	Hasher    probabilistic.Hasher[T]
+	// Config capacity, false-positive rate, bit size, hash count compatibility를 정의한다.
+	Config probabilistic.Config
+	// Hasher T 값을 deterministic byte input으로 바꾸는 compatibility anchor다.
+	Hasher probabilistic.Hasher[T]
 }
 
 type normalizedOptions[T any] struct {

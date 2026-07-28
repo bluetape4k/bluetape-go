@@ -1,11 +1,3 @@
-// Package btredis provides small Redis safety primitives shared by Redis-backed
-// bluetape-go packages.
-//
-// The package intentionally does not wrap the go-redis client and does not own
-// Redis connections, logging, metrics, retries, or tenant isolation. Callers own
-// Redis clients, deadlines, access control, and package-specific key contracts.
-//
-// Owner tokens and exact Redis keys are sensitive lease inputs. Use Lease,
-// OwnerToken, and redacted key formatting for diagnostics; do not log RedisValue
-// output or raw keys.
+// Package btredis bluetape-go의 btredis Redis 기능을 제공한다.
+// 공개 API 주석은 key, TTL, lease, token, stream, backend ownership, 오류 계약을 한국어로 확인할 수 있도록 유지한다.
 package btredis

@@ -9,11 +9,11 @@ import (
 	"go.mongodb.org/mongo-driver/v2/mongo/options"
 )
 
-// EnsureIndexes creates optional cleanup indexes for the MongoDB elector.
+// EnsureIndexes leader backend election에서 생성과 초기화 계약을 설명한다.
 //
-// The TTL index is not used for correctness. Campaign and Leader decide lease
-// validity with lease_until predicates so expired documents can be taken over
-// before MongoDB's TTL monitor deletes them.
+// 이 주석은 backend lease, ownership, consistency, cancellation 조건을 설명한다.
+// 세부 조건은 backend별 lease, cleanup, retry 계약을 따른다.
+// 세부 조건은 backend별 lease, cleanup, retry 계약을 따른다.
 func EnsureIndexes(ctx context.Context, collection *mongo.Collection) error {
 	if err := requireCollection(collection); err != nil {
 		return err

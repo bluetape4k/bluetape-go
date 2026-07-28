@@ -1,6 +1,9 @@
 # Issue #590 Redis Rate Limiter Diagnostic Substrate Migration Spec
 
-## Context
+> 한국어 요구사항 경계: 이 spec/design/test-spec 문서는 한국어 독자가 요구사항을 추적할 수 있도록 목적과 검증 경계를 한국어로 보강한다. API 이름, command, code identifier, issue/PR 번호, compatibility matrix, acceptance keyword, DoD/test evidence는 요구사항 약화를 막기 위해 원문 그대로 보존한다. 변경자는 아래 literal contract를 삭제하거나 의미를 약하게 바꾸지 않아야 한다.
+> 추가 한국어 검증 메모: 영어로 남은 항목은 대부분 code/API/evidence literal이다. 구현 전에는 한국어 경계 문장과 원문 acceptance checklist를 함께 읽고, 검증 gate가 줄어들지 않았는지 확인한다.\n
+
+## 맥락
 
 Issue #570 moves Redis-backed packages to the shared `redis` substrate only
 where its input contract is compatible. `ratelimit/redis` has one direct
@@ -55,7 +58,7 @@ cause before constructing the operation error.
    key, script argument, or provider text.
 8. No public API, benchmark result, chart, or performance claim changes.
 
-## Risks And Failure Modes
+## 위험 And Failure Modes
 
 | Risk | Mitigation |
 |---|---|
@@ -64,7 +67,7 @@ cause before constructing the operation error.
 | A script or TTL refactor changes distributed admission | Explicitly exclude script/TTL changes and rerun existing Testcontainers concurrency coverage. |
 | Error text leaks operational identifiers | Use the shared redacted `OpError` and marker-based leak assertions. |
 
-## Test Plan
+## 테스트 계획
 
 - Add a closed-client `Allow` test that asserts typed error, provider cause,
   family/operation/key-ID, and marker redaction.

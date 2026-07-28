@@ -1,6 +1,8 @@
 # Issue 21 Observability Hooks Step 6-R 7-Tier Review
 
-## Scope
+> 한국어 리뷰 경계: 이 문서는 리뷰 판정과 근거를 한국어 독자가 추적할 수 있도록 정리한다. 심각도 토큰, 판정 토큰, 파일 경로, 라인 번호, 이슈/PR 번호, 명령, 코드 식별자는 원문의 증거 앵커로 보존한다.
+
+## 범위
 
 - Base: `origin/feat/issue-19-circuit-breaker-bulkhead`
 - Branch: `feat/issue-21-observability-hooks`
@@ -16,7 +18,7 @@
   - `README.md`
   - `README.ko.md`
 
-## Graph Evidence
+## 그래프 증거
 
 - CodeGraph MCP `codegraph_context`: event entry points are `Event`,
   `EventHandler`, and `emitEvent`; related emission sites are retry, timeout,
@@ -29,7 +31,7 @@
 - CLI `code-review-graph status --repo .`: 500 nodes, 3,710 edges, branch
   `feat/issue-21-observability-hooks`.
 
-## Tier Results
+## 계층별 결과
 
 | Tier | Scope | Findings | Evidence |
 |---|---|---:|---|
@@ -55,7 +57,7 @@ Final normalized findings after fix:
 - P2: 0
 - P3: 0
 
-## Validation Evidence
+## 검증 증거
 
 - `go test -count=1 ./resilience`: PASS, 35 tests.
 - `go test -race -count=1 ./resilience`: PASS, 35 tests.
@@ -68,7 +70,7 @@ Final normalized findings after fix:
 - `codegraph sync . && codegraph status .`: PASS.
 - `code-review-graph build --repo . && code-review-graph status --repo .`: PASS.
 
-## Convergence Verdict
+## 수렴 판정
 
 PASS. Step 6-R is closed with P0=0 and P1=0. The only review finding was a P2
 test-gap concern, fixed and reverified before proceeding to lesson capture and

@@ -6,7 +6,7 @@ import (
 	"log/slog"
 )
 
-// Reason is a stable low-cardinality Redis value-cache failure category.
+// Reason tiered Redis value cache의 local/remote ownership, TTL, clear coordination에서 사용하는 문자열 타입이다.
 type Reason string
 
 const (
@@ -30,15 +30,13 @@ const (
 	ReasonPartialClear Reason = "partial-clear"
 )
 
-// ClearProgress reports monotonic partial namespace-clear work. ScannedKeys is
-// only the number of matching keys returned by SCAN so far; it is not a total,
-// completion percentage, or cursor.
+// ClearProgress tiered Redis value cache의 local/remote ownership, TTL, clear coordination에서 사용하는 구조체다.
 type ClearProgress struct {
 	ScannedKeys     int64
 	UnlinkedBatches int64
 }
 
-// CacheError is an inspectable and redacted Redis value-cache failure.
+// CacheError tiered Redis value cache의 local/remote ownership, TTL, clear coordination에서 사용하는 구조체다.
 type CacheError struct {
 	operation string
 	reason    Reason
@@ -48,7 +46,7 @@ type CacheError struct {
 	cause     error
 }
 
-// Error returns a redacted low-cardinality failure message.
+// Error 오류 메시지를 반환한다.
 func (e *CacheError) Error() string {
 	if e == nil {
 		return "<nil>"
@@ -59,18 +57,19 @@ func (e *CacheError) Error() string {
 	return fmt.Sprintf("redisvalue %s failed for %s: %s", e.operation, e.keyID, e.reason)
 }
 
-// GoString returns the same redacted low-cardinality value for debug
-// formatting.
+// GoString tiered Redis value cache의 local/remote ownership, TTL, clear coordination 동작을 수행한다.
 func (e *CacheError) GoString() string {
 	return e.Error()
 }
 
-// LogValue returns the redacted error text for structured logging.
+// LogValue tiered Redis value cache의 local/remote ownership, TTL, clear coordination 동작을 수행한다.
 func (e *CacheError) LogValue() slog.Value {
 	return slog.StringValue(e.Error())
 }
 
-// Unwrap returns the causal error.
+// Unwrap 감싼 원인 오류를 반환한다.
+//
+// 반환 오류는 cache miss, 입력 검증 실패, context 취소, Redis/backend 실패, package sentinel error와 typed error를 그대로 드러낸다.
 func (e *CacheError) Unwrap() error {
 	if e == nil {
 		return nil
@@ -78,7 +77,7 @@ func (e *CacheError) Unwrap() error {
 	return e.cause
 }
 
-// Operation returns the stable operation label.
+// Operation tiered Redis value cache의 local/remote ownership, TTL, clear coordination의 식별 정보를 반환한다.
 func (e *CacheError) Operation() string {
 	if e == nil {
 		return ""
@@ -86,7 +85,7 @@ func (e *CacheError) Operation() string {
 	return e.operation
 }
 
-// Reason returns the stable failure category.
+// Reason tiered Redis value cache의 local/remote ownership, TTL, clear coordination의 식별 정보를 반환한다.
 func (e *CacheError) Reason() Reason {
 	if e == nil {
 		return ""
@@ -94,7 +93,7 @@ func (e *CacheError) Reason() Reason {
 	return e.reason
 }
 
-// ClearProgress returns partial namespace-clear progress when applicable.
+// ClearProgress tiered Redis value cache의 local/remote ownership, TTL, clear coordination 동작을 수행한다.
 func (e *CacheError) ClearProgress() (ClearProgress, bool) {
 	if e == nil {
 		return ClearProgress{}, false

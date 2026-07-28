@@ -1,5 +1,8 @@
 # Issue 569 Redis Foundation Package Spec
 
+> 한국어 요구사항 경계: 이 spec/design/test-spec 문서는 한국어 독자가 요구사항을 추적할 수 있도록 목적과 검증 경계를 한국어로 보강한다. API 이름, command, code identifier, issue/PR 번호, compatibility matrix, acceptance keyword, DoD/test evidence는 요구사항 약화를 막기 위해 원문 그대로 보존한다. 변경자는 아래 literal contract를 삭제하거나 의미를 약하게 바꾸지 않아야 한다.
+> 추가 한국어 검증 메모: 영어로 남은 항목은 대부분 code/API/evidence literal이다. 구현 전에는 한국어 경계 문장과 원문 acceptance checklist를 함께 읽고, 검증 gate가 줄어들지 않았는지 확인한다.\n
+
 Date: 2026-07-10 KST
 Issue: #569
 Milestone: 0.19.0
@@ -49,7 +52,7 @@ the foundation API is reviewed and tested.
 | Redis Cluster specification, https://redis.io/docs/latest/operate/oss_and_stack/reference/cluster-spec/ | Keys containing the same hash-tag substring in `{...}` map to the same slot. | Key builder must make hash-tag use explicit for multi-key atomicity, not implicit for every key. |
 | Local `go doc github.com/redis/go-redis/v9.Script.Run` | `Script.Run` uses `EVALSHA` and falls back to `EVAL`. | Foundation script helpers should use `redis.NewScript` and accept narrow `redis.Scripter`/`redis.Cmdable` inputs where practical. |
 
-## Goals
+## 목표s
 
 - Add public import path `github.com/bluetape4k/bluetape-go/redis` with package
   clause `btredis`.
@@ -81,7 +84,7 @@ the foundation API is reviewed and tested.
   for key building, redaction, token generation, TTL conversion, and script
   helper command paths.
 
-## Design Options
+## 설계 Options
 
 ### Option A - Narrow Foundation Package (Selected)
 
@@ -363,7 +366,7 @@ Rules:
   `"lease ttl"` or `"idle ttl"`, not Redis keys, tenant IDs, or user input.
   Validation errors must avoid echoing arbitrary high-cardinality labels.
 
-## Test Plan
+## 테스트 계획
 
 Unit tests:
 
@@ -462,7 +465,7 @@ primitive surface, not a topology or protocol that benefits from README visual
 assets. If later migration docs explain multi-package adoption flow, diagrams
 can be added under #570.
 
-## Risks And Mitigations
+## 위험 And Mitigations
 
 | Risk | Severity | Mitigation |
 |---|---|---|

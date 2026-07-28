@@ -1,10 +1,12 @@
 # Issue #598 Fory Redis Value Cache Implementation Review
 
-Date: 2026-07-10 KST
-Scope: `origin/develop...HEAD`
+> 한국어 감사/리뷰 경계: 이 문서는 리뷰 결론과 남은 위험을 한국어 독자가 추적할 수 있도록 정리한다. 심각도 표기, 판정 표기, 파일 경로, 라인 번호, 이슈/PR 링크, 명령, 코드 식별자, 인용 증거는 원문의 증거 앵커로 보존한다.
+
+날짜: 2026-07-10 KST
+범위: `origin/develop...HEAD`
 Baseline: `origin/develop` at `24ab73aba12168d29dc8ef8a12ba04d48eb3edfe`
 
-## Evidence
+## 증거
 
 - `cache/redisfory` provides opt-in Go-native fast and compatible Fory value
   caches over a caller-owned `redis.Cmdable`.
@@ -32,7 +34,7 @@ Baseline: `origin/develop` at `24ab73aba12168d29dc8ef8a12ba04d48eb3edfe`
   rendering, endpoint, sequence-style, geometry, connector, crossing, and
   visual inspection checks passed.
 
-## Verification
+## 검증
 
 | Command or check | Result |
 | --- | --- |
@@ -46,7 +48,7 @@ Baseline: `origin/develop` at `24ab73aba12168d29dc8ef8a12ba04d48eb3edfe`
 | `git diff --check origin/develop...HEAD` | PASS |
 | `make ci` | INCOMPLETE: unrelated `ratelimit/redis` Redis readiness tests timed out; the changed packages passed and `go test -p 1 -count=1 ./ratelimit/redis` passed immediately afterward. Remote CI remains required. |
 
-## Seven-Tier Review
+## 7-Tier 검토
 
 | Lane | Initial findings | Corrections and final decision |
 | --- | --- | --- |
@@ -58,7 +60,7 @@ Baseline: `origin/develop` at `24ab73aba12168d29dc8ef8a12ba04d48eb3edfe`
 | User/Caller | P3 `Key.RedactedID()` wording; P2 wrong `redis.OpError` name | Corrected field wording and documented `*btredis.OpError.KeyID()` in both READMEs. P0=0 P1=0. |
 | Main integration | Reviewed complete diff, tests, docs, diagram, and #597/#599 boundaries | Scope remains direct Go-only Redis values; no loading fallback, cross-language claim, or benchmark claim was introduced. P0=0 P1=0. |
 
-## Deferred Work
+## 유예한 작업
 
 - Issue #599 owns comparative performance work. It must retain exact commands,
   raw output, environment and revision metadata, a result table, a Chart, and

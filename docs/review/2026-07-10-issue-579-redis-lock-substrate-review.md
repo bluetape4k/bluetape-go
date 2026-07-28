@@ -1,6 +1,8 @@
 # Issue #579 Redis Lock Substrate Review
 
-## Scope
+> 한국어 감사/리뷰 경계: 이 문서는 리뷰 결론과 남은 위험을 한국어 독자가 추적할 수 있도록 정리한다. 심각도 표기, 판정 표기, 파일 경로, 라인 번호, 이슈/PR 링크, 명령, 코드 식별자, 인용 증거는 원문의 증거 앵커로 보존한다.
+
+## 범위
 
 - Baseline: `develop` at `7a2b761`
 - Implementation: `lock/redis/{mutex.go,mutex_test.go,README.md,README.ko.md}`
@@ -9,7 +11,7 @@
   is not exposed in this session; the main session performed the independent
   perspective reads and owns integration.
 
-## Evidence
+## 증거
 
 - `go vet ./lock/redis`
 - `golangci-lint run ./lock/redis --timeout 5m` (`0 issues`)
@@ -19,7 +21,7 @@
 - `git diff --check`
 - Production concurrency scan over `lock/redis/*.go`
 
-## Six-Perspective Findings
+## 6개 관점 발견 사항
 
 | Perspective | P0 | P1 | P2 | P3 | Evidence and Verdict |
 |---|---:|---:|---:|---:|---|
@@ -30,7 +32,7 @@
 | Developer/API | 0 | 0 | 0 | 0 | No exported API signatures changed. Canonical tokens use shared script helpers; non-canonical legacy tokens retain equivalent Lua behavior. |
 | User/Caller | 0 | 0 | 0 | 0 | README locale pair explains the preserved `errors.Is`/`errors.As` cause contract and redacted diagnostics. |
 
-## Integration Notes
+## 통합 메모
 
 - `Options.Token` keeps its existing `strings.TrimSpace` normalization; it is
   not forced into the shared canonical token form.

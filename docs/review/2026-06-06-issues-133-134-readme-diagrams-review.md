@@ -1,22 +1,24 @@
 # Issues 133 and 134 README Diagrams Review
 
-Issues: #133, #134
-Gate: Diagram coverage
-Status: PASS
+> 한국어 감사/리뷰 경계: 이 문서는 리뷰 결론과 남은 위험을 한국어 독자가 추적할 수 있도록 정리한다. 심각도 표기, 판정 표기, 파일 경로, 라인 번호, 이슈/PR 링크, 명령, 코드 식별자, 인용 증거는 원문의 증거 앵커로 보존한다.
 
-## Scope
+Issues: #133, #134
+게이트: Diagram coverage
+상태: PASS
+
+## 범위
 
 Reviewed the combined #133/#134 diff for README diagram assets and package
 README embeds covering 0.4.0 workflow primitives plus complex Redis
 coordination packages.
 
-## Findings
+## 발견 사항
 
 No P0, P1, P2, or P3 findings.
 
-## Evidence
+## 증거
 
-| Check | Result |
+| 검사 | 결과 |
 |---|---|
 | Existing `state` README diagrams remain in place for the finite state transition and guarded transition flows. | PASS |
 | Added source-grounded workflow runner and workreport failure-policy diagrams. | PASS |
@@ -26,7 +28,7 @@ No P0, P1, P2, or P3 findings.
 | SVG text uses `Architects Daughter` and `Comic Mono`. | PASS |
 | Rendered PNG contact sheet was inspected for readable labels and no edge-label overlap. | PASS |
 
-## Graphviz Evidence
+## Graphviz 증거
 
 ```text
 workflow-runner-flow: nodes=8 routes=11 segments=57 badEndpointAngle=0 badBends=0 interiorCrossings=0 marginImbalance=0 titleGap=pass graphvizFinalDrift=0
@@ -38,7 +40,7 @@ redis-leader-election-lifecycle: nodes=7 routes=8 segments=36 badEndpointAngle=0
 redis-ratelimit-token-bucket-flow: nodes=7 routes=8 segments=45 badEndpointAngle=0 badBends=0 interiorCrossings=0 marginImbalance=0 titleGap=pass graphvizFinalDrift=0
 ```
 
-## Validation
+## 검증
 
 - Final README SVG/PNG diagram assets were generated and inspected: PASS.
 - `find docs/images/readme-diagrams -type f | sort`: PASS.
@@ -50,6 +52,6 @@ redis-ratelimit-token-bucket-flow: nodes=7 routes=8 segments=45 badEndpointAngle
 - `go test -count=1 ./workflow ./workreport ./cache/redisnear ./cache/rediscoord ./lock/redis ./leader/redis ./ratelimit/redis`: PASS.
 - `go test -count=1 ./...`: PASS.
 
-## Gate Verdict
+## 게이트 판정
 
 P0=0 P1=0. Diagram coverage gate is closed for #133 and #134.

@@ -1,6 +1,8 @@
 # Issue #529 PostgreSQL Rate Limiter Plan Review
 
-## Scope
+> 한국어 리뷰 경계: 이 문서는 리뷰 판정과 근거를 한국어 독자가 추적할 수 있도록 정리한다. 심각도 토큰, 판정 토큰, 파일 경로, 라인 번호, 이슈/PR 번호, 명령, 코드 식별자는 원문의 증거 앵커로 보존한다.
+
+## 범위
 
 - Plan: `docs/superpowers/plans/2026-07-13-issue-529-sql-rate-limiter-plan.md`
 - Reviewed SHA-256: `76ca819a5cb1beb10040b34d283ae60a30a6aff3dd0751a365e970c4e6f1adab`
@@ -28,7 +30,7 @@ refill expression, removed undefined helper snippets, and moved nil/zero method 
 where those methods exist. The repeated expression is intentional because PostgreSQL
 `ON CONFLICT DO UPDATE` has no `FROM` clause.
 
-## Final rerun results
+## 최종 재실행 결과
 
 | Perspective | P0 | P1 | P2 | P3 | Result |
 |---|---:|---:|---:|---:|---|
@@ -39,7 +41,7 @@ where those methods exist. The repeated expression is intentional because Postgr
 | Developer/API | 0 | 0 | 0 | 0 | All tasks compile in order; public/root/Redis compatibility, private test controls, examples, docs, commands, and no-dependency drift are explicit. |
 | User/Caller | 0 | 0 | 0 | 0 | Result/count-on-error, replay, configuration migration, DB/schema/scheduler ownership, mixed providers, canary/cutover, and unsupported behavior are misuse-resistant. |
 
-## Main-session integration verdict
+## 메인 세션 통합 판정
 
 All eleven acceptance criteria and every DoD item map to an ordered task, named files, RED/GREEN
 commands, rollback points, and final evidence. New dependency/module/BOM/CI registration, ORM,

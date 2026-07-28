@@ -1,13 +1,15 @@
 # Issue #536 RESP3 CLIENT TRACKING Spike Step 2-R Review
 
-Date: 2026-07-18 KST
-Issue: [#536](https://github.com/bluetape4k/bluetape-go/issues/536)
+> 한국어 리뷰 경계: 이 문서는 리뷰 판정과 근거를 한국어 독자가 추적할 수 있도록 정리한다. 심각도 토큰, 판정 토큰, 파일 경로, 라인 번호, 이슈/PR 번호, 명령, 코드 식별자는 원문의 증거 앵커로 보존한다.
+
+날짜: 2026-07-18 KST
+이슈: [#536](https://github.com/bluetape4k/bluetape-go/issues/536)
 Reviewed spec: `docs/superpowers/specs/2026-07-18-issue-536-resp3-client-tracking-spike-design.md`
 Original converged commit: `38364100af92d6da616ff89101109fc768e639a4`
 Final reviewed commit: `3d7567b13ebc3a427771734e42aa9b980a7d8388`
 Baseline: `f4acaab1676ca4a989051a28f60f37ab147d87f9`
 
-## Integrated Verdict
+## 통합 판정
 
 `PASS — P0=0 P1=0 P2=0`
 
@@ -21,7 +23,7 @@ The `P1-1` through `P1-8` entries retained in the design are production RESP3
 capability blockers that the spike is intended to prove or reject. They are not
 unresolved defects in the spike design.
 
-## Final Exact-Commit Results
+## 최종 정확한 커밋 결과
 
 | Lane | P0 | P1 | P2 | Verdict |
 |---|---:|---:|---:|---|
@@ -33,9 +35,9 @@ unresolved defects in the spike design.
 | User/caller | 0 | 0 | 0 | PASS |
 | Main-session integration | 0 | 0 | 0 | PASS |
 
-## Findings Resolved During Review
+## 검토 중 해결한 발견 사항
 
-### Performance
+### 성능
 
 - Separated tracking, L2, writer, and admin client ownership so a sticky
   `PoolSize: 1` connection cannot starve TieredCache commands.
@@ -69,7 +71,7 @@ unresolved defects in the spike design.
   Redis resources first, with per-resource `sync.Once` for explicit-close
   re-entry.
 
-### Security
+### 보안
 
 - Required a low-cardinality handler sentinel because go-redis logs handler
   errors through its global logger.
@@ -85,7 +87,7 @@ unresolved defects in the spike design.
   internally from the fresh Testcontainers endpoint with no caller-supplied
   client, options, dialer, or endpoint.
 
-### Operator/Ops
+### 운영/Ops
 
 - Required `INFO server` version/build data plus configured image tag or digest
   in the result ledger.
@@ -96,7 +98,7 @@ unresolved defects in the spike design.
 - Kept AUTH/TLS/certificate ownership and ACL expectations explicit while
   avoiding a false claim that the unauthenticated container proves them.
 
-### Developer/API
+### 개발자/API
 
 - Confirmed the spike compiles against public-only seams:
   `TieredCache.InvalidateLocal`, `TieredCache.ClearLocal`,
@@ -133,13 +135,13 @@ unresolved defects in the spike design.
 - No implementation mutation is authorized by this review artifact itself;
   Step 3 plan review remains the next gate.
 
-## Verification
+## 검증
 
 ```bash
 git diff --check f4acaab1676ca4a989051a28f60f37ab147d87f9..3d7567b13ebc3a427771734e42aa9b980a7d8388
 ```
 
-Result: PASS.
+결과: PASS.
 
 Runtime Redis behavior was intentionally not executed during Step 2-R. The
 approved plan and test spec own RED/GREEN execution and evidence capture.

@@ -1,6 +1,6 @@
 package workreport
 
-// FailurePolicy controls how aggregators treat child failures.
+// FailurePolicy int 공개 타입이며 work report 상태, failure policy, child report 계약을 보존한다.
 type FailurePolicy int
 
 const (

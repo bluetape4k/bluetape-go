@@ -1,6 +1,8 @@
 # Issue #430 MongoDB Testcontainers Review
 
-## Scope
+> 한국어 감사/리뷰 경계: 이 문서는 리뷰 결론과 남은 위험을 한국어 독자가 추적할 수 있도록 정리한다. 심각도 표기, 판정 표기, 파일 경로, 라인 번호, 이슈/PR 링크, 명령, 코드 식별자, 인용 증거는 원문의 증거 앵커로 보존한다.
+
+## 범위
 
 - Issue: #430 `feat: Add MongoDB Testcontainers fixture package`
 - Parent: #423
@@ -8,7 +10,7 @@
 - Worktree: `.worktrees/issue-430-mongodb-testcontainer`
 - Branch: `issue-430-mongodb-testcontainer`
 
-## Changes Reviewed
+## 검토한 변경
 
 - Added `testcontainers/mongodb` with `Start`, `StartServer`, `URIKey`, package
   docs, README, and README.ko.
@@ -20,7 +22,7 @@
   unchanged and outside this issue.
 - Added root README and README.ko package-table entries for the new fixture.
 
-## Acceptance Mapping
+## 수용 기준 매핑
 
 | Requirement | Status | Evidence |
 |---|---|---|
@@ -30,7 +32,7 @@
 | Refactor JWT tests to shared fixture | PASS | `jwt/mongo_repository_test.go` imports `testcontainers/mongodb`; private `jwtMongoFixture` and `jwtMongoURI` were removed. |
 | README pair documents runtime caveats and serial tests | PASS | `testcontainers/mongodb/README.md` and `README.ko.md` document Docker, dynamic ports, caller-owned clients, cleanup, and `-p 1`. |
 
-## 7-Tier Review
+## 7-Tier 검토
 
 | Lane | Verdict | Notes |
 |---|---|---|
@@ -42,7 +44,7 @@
 | User/Caller | PASS | Tests prove the returned URI works with the official MongoDB driver for ping/insert/find. P0=0 P1=0. |
 | Integration | PASS | JWT Mongo repository tests consume the shared fixture; no package-local private MongoDB launcher remains. P0=0 P1=0. |
 
-## Validation
+## 검증
 
 - TDD RED: `go test -count=1 ./testcontainers/mongodb` failed with no non-test Go files before implementation.
 - `go test -p 1 -count=1 ./testcontainers/mongodb ./jwt ./jwt/mongo`: PASS.

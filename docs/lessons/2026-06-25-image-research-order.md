@@ -1,14 +1,13 @@
-# Image Research Ordering
+# Image Research Ordering 교훈
 
-For image work, do not begin by porting all `bluetape4k-image` modules. The Go
-value is strongest in bounded thumbnail, resize, and conversion behavior that
-can be tested with fixtures, fuzz inputs, and benchmarks without native
-dependencies.
+image 작업은 모든 `bluetape4k-image` module을 port하는 것으로 시작하지 않는다. Go value는
+native dependency 없이 fixture, fuzz input, benchmark로 test할 수 있는 bounded thumbnail,
+resize, conversion behavior에서 가장 강하다.
 
-libvips is still the likely acceleration path for large images, but it belongs
-behind an optional package only after native detection, codec support, runtime
-lifecycle, memory behavior, and benchmark deltas are proven in this repo.
+libvips는 여전히 large image의 유력한 acceleration path지만, 이 repo에서 native
+detection, codec support, runtime lifecycle, memory behavior, benchmark delta가 증명된
+뒤 optional package 뒤에 둬야 한다.
 
-CAPTCHA and OCR need service-specific justification. CAPTCHA examples must
-state replay, expiry, rate-limit, and OCR-bypass limits; OCR should wait for a
-native Tesseract issue with containerized smoke tests.
+CAPTCHA와 OCR에는 service-specific justification이 필요하다. CAPTCHA example은 replay,
+expiry, rate-limit, OCR-bypass limit를 명시해야 한다. OCR은 containerized smoke test를
+갖춘 native Tesseract issue를 기다려야 한다.

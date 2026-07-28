@@ -1,17 +1,19 @@
 # Issue #590 Spec And Plan Verification
 
-## Workflow Repair
+> 한국어 감사/리뷰 경계: 이 문서는 리뷰 결론과 남은 위험을 한국어 독자가 추적할 수 있도록 정리한다. 심각도 표기, 판정 표기, 파일 경로, 라인 번호, 이슈/PR 링크, 명령, 코드 식별자, 인용 증거는 원문의 증거 앵커로 보존한다.
+
+## 워크플로 수정
 
 Step 5 was discovered after the first Step 6-R artifact. No source change occurred after that review, but strict workflow ordering requires the verifier gate before code-review closure. This artifact performs the missed verifier gate against `51ac356` and reruns the current-session Step 6-R integration verdict.
 
-## Inputs
+## 입력
 
 - Spec: `docs/superpowers/specs/2026-07-10-issue-590-ratelimit-redis-substrate-spec.md`
 - Test spec: `docs/superpowers/specs/2026-07-10-issue-590-ratelimit-redis-substrate-test-spec.md`
 - Plan: `docs/superpowers/plans/2026-07-10-issue-590-ratelimit-redis-substrate-plan.md`
 - Implementation commit: `51ac356`
 
-## Step 5 Verifier Checklist
+## Step 5 검증자 체크리스트
 
 | Check | Evidence | Verdict |
 |---|---|---|
@@ -23,11 +25,11 @@ Step 5 was discovered after the first Step 6-R artifact. No source change occurr
 | Evidence is fresh | `go test -p 1 -count=1 ./ratelimit/redis ./redis`; `go test -p 1 -race -count=1 ./ratelimit/redis`; and `git diff --check origin/develop...HEAD` pass after the implementation commit. | PASS |
 | Known gaps recorded | No benchmark ran because behavior and command count are unchanged; #560 owns the benchmark matrix, result table, chart, and written analysis. | PASS |
 
-## Step 5 Verdict
+## Step 5 판정
 
 VERIFIED
 
-## Step 6-R Rerun
+## Step 6-R 재실행
 
 The prior six-perspective review at `docs/review/2026-07-10-issue-590-ratelimit-redis-substrate-review.md` remains valid because the code diff is unchanged. The current-session integration reran its scope/verification check after Step 5 and found no new finding.
 

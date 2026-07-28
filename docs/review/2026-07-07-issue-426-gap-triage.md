@@ -1,6 +1,8 @@
 # Issue #426 Feature Gap Triage
 
-## Scope
+> 한국어 감사/리뷰 경계: 이 문서는 리뷰 결론과 남은 위험을 한국어 독자가 추적할 수 있도록 정리한다. 심각도 표기, 판정 표기, 파일 경로, 라인 번호, 이슈/PR 링크, 명령, 코드 식별자, 인용 증거는 원문의 증거 앵커로 보존한다.
+
+## 범위
 
 - Issue: #426 `triage: Identify missing feature gaps in existing packages`
 - Parent: #423
@@ -8,14 +10,14 @@
 - Worktree: `.worktrees/issue-426-gap-triage`
 - Boundary: classification only; no implementation in this issue.
 
-## Method
+## 방법
 
 The triage compared current public package claims, recent review outcomes, and
 source-parity research notes. The root README is the package index and project
 rule source; package READMEs and research notes are used only when they name a
 caller problem or a deferred package family.
 
-## Gap Matrix
+## 간극 매트릭스
 
 | Package/surface | Caller problem | Evidence | Severity | Proposed owner | Decision |
 |---|---|---|---|---|---|
@@ -36,7 +38,7 @@ needed by the JWT Mongo repository test surface. That gap was implemented and
 reviewed in #430 before this triage closed. No additional #427 implementation
 work remains for 0.13.0 after #430.
 
-## Later And Backlog Routing
+## 향후 및 백로그 라우팅
 
 | Bucket | Items | Reason |
 |---|---|---|
@@ -44,7 +46,7 @@ work remains for 0.13.0 after #430.
 | Later package-specific issue | Redis Cuckoo/HLL, PostGIS/pgvector, concrete HTTP mock fixture | Needs a package-local API contract and caller evidence. |
 | Backlog / reject | Broad wrapper parity, global logger facade, JVM future/executor facade, local TinkerGraph adapter, Neptune local-fixture work | Go-native rules and existing research exclude these as 0.13.0 work. |
 
-## 7-Tier Triage Verdict
+## 7-Tier 선별 판정
 
 | Lane | Verdict | Notes |
 |---|---|---|
@@ -56,7 +58,7 @@ work remains for 0.13.0 after #430.
 | User/Caller | PASS | Current shipped caller pain was the MongoDB fixture reuse gap, closed by #430. Other items need new caller evidence. P0=0 P1=0. |
 | Integration | PASS | #426 output links the only 0.13.0 must-have to #430/#427 and routes later items without blocking 0.13.0. P0=0 P1=0. |
 
-## Validation
+## 검증
 
 - `gh issue view 426 --json number,title,state,milestone,labels,body`: issue
   scope and required matrix schema confirmed.

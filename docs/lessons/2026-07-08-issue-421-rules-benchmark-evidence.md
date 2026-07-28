@@ -1,17 +1,26 @@
-# Issue #421 Rules Benchmark Evidence
+# Issue #421 Rules Benchmark Evidence 교훈
 
 ## Lesson
 
-Benchmark follow-up issues should make the public Make target reproduce the retained evidence command, not just provide a quick one-shot smoke command. For issue #421, the final `bench-rules` target is phony, listed in `make help`, and runs the same `-count=5` command preserved in `docs/research/outputs/issue-421/rules-benchmark.txt`.
+Benchmark follow-up issue에서는 public Make target이 빠른 one-shot smoke command가
+아니라 보존된 evidence command를 재현해야 한다. Issue #421의 최종
+`bench-rules` target은 phony이고 `make help`에 표시되며,
+`docs/research/outputs/issue-421/rules-benchmark.txt`에 보존된 동일한 `-count=5`
+command를 실행한다.
 
 ## What Changed
 
-- Added focused rules benchmarks for composite activation, unit, conditional, bounded inference, and sequential engine paths.
-- Split bounded inference into stable `Count0` and `Count1` sub-benchmarks instead of mixing workloads inside one row.
-- Preserved raw benchmark output and sanitized environment metadata under `docs/research/outputs/issue-421/`.
+- composite activation, unit, conditional, bounded inference, sequential engine
+  path에 대한 focused rules benchmark를 추가했다.
+- bounded inference는 한 row 안에서 workload를 섞지 않고 안정적인 `Count0`과
+  `Count1` sub-benchmark로 나눴다.
+- raw benchmark output과 sanitized environment metadata를
+  `docs/research/outputs/issue-421/` 아래 보존했다.
 
 ## Next Time
 
-- Record benchmark command, raw output, metric direction, and interpretation boundary together.
-- Avoid host fingerprints in durable benchmark artifacts.
-- Treat benchmark rows as evidence for the specific workload shape they measure; add a separate row when a fresh-request workload matters.
+- benchmark command, raw output, metric direction, interpretation boundary를 함께
+  기록한다.
+- durable benchmark artifact에는 host fingerprint를 넣지 않는다.
+- benchmark row는 측정한 특정 workload shape의 증거로만 취급한다. fresh-request
+  workload가 중요하면 별도 row를 추가한다.

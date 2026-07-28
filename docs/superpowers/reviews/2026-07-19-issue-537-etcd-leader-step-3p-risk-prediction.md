@@ -1,8 +1,10 @@
 # Issue #537 etcd Leader Step 3-P Risk Prediction
 
-Date: 2026-07-19 KST
+> 한국어 리뷰 경계: 이 문서는 리뷰 판정과 근거를 한국어 독자가 추적할 수 있도록 정리한다. 심각도 토큰, 판정 토큰, 파일 경로, 라인 번호, 이슈/PR 번호, 명령, 코드 식별자는 원문의 증거 앵커로 보존한다.
 
-Issue: [#537](https://github.com/bluetape4k/bluetape-go/issues/537)
+날짜: 2026-07-19 KST
+
+이슈: [#537](https://github.com/bluetape4k/bluetape-go/issues/537)
 
 Approved design: `docs/superpowers/specs/2026-07-19-issue-537-etcd-leader-design.md`
 
@@ -10,7 +12,7 @@ Approved plan: `docs/superpowers/plans/2026-07-19-issue-537-etcd-leader-plan.md`
 
 ## Baseline Evidence
 
-| Check | Result |
+| 검사 | 결과 |
 |---|---|
 | Go / platform | `go1.26.5`, `darwin/arm64` |
 | Testcontainers module | `github.com/testcontainers/testcontainers-go v0.42.0` |

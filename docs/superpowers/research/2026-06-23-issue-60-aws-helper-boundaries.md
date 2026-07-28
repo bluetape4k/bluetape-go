@@ -4,91 +4,91 @@ Issue: [#60](https://github.com/bluetape4k/bluetape-go/issues/60)
 Stack base: PR #266 / branch `issue-61-floci-service-smoke`  
 Date: 2026-06-23
 
-## Goal
+## 목표
 
-Decide which AWS service surfaces should become bluetape-go helpers, which
-should stay example-only, and which should remain deferred. The decision must
-keep bluetape-go idiomatic for Go instead of porting Kotlin/JVM wrapper shapes.
+어떤 AWS service surface가 bluetape-go helper가 되어야 하는지, 어떤 것은
+example-only로 남아야 하는지, 어떤 것은 연기해야 하는지 결정한다. 결정은
+Kotlin/JVM wrapper 형태를 이식하지 않고 bluetape-go가 Go idiom을 유지하게
+해야 한다.
 
-## Evidence
+## 증거
 
-- `docs/research/2026-06-01-milestone-0.9.0-aws-research.md` already sets the
-  Go direction: avoid wrapping AWS SDK for Go v2 without repeated-service
-  benefit, start with Floci Testcontainers, prefer example-first S3/SQS, and
-  evaluate DynamoDB helper pain points separately.
-- PR #265 adds `testcontainers/floci` for repeatable Floci startup and AWS SDK
-  config loading.
-- PR #266 extends that fixture with S3, SQS, SNS, and DynamoDB service config
-  aliases and an opt-in service smoke test, while leaving AWS service clients
-  caller-owned.
-- `bluetape4k-aws/README.md` covers a much wider Kotlin/JVM surface:
-  DynamoDB, S3, SES/SESv2, SNS, SQS, KMS, CloudWatch/Logs, IMDS, Kinesis, STS,
-  RDS IAM, Secrets Manager, Parameter Store, Spring Boot operations, Ktor
-  SigV4, and Floci-first emulator policy.
+- `docs/research/2026-06-01-milestone-0.9.0-aws-research.md`는 이미 Go
+  방향을 정했다. 반복 service 이점 없이 AWS SDK for Go v2를 감싸지 말고,
+  Floci Testcontainers로 시작하며, S3/SQS는 example-first로 두고,
+  DynamoDB helper pain point는 별도로 평가한다.
+- PR #265는 반복 가능한 Floci 시작과 AWS SDK config loading을 위한
+  `testcontainers/floci`를 추가한다.
+- PR #266은 그 fixture에 S3, SQS, SNS, DynamoDB service config alias와
+  opt-in service smoke test를 더한다. AWS service client는 caller-owned로
+  남긴다.
+- `bluetape4k-aws/README.md`는 훨씬 넓은 Kotlin/JVM surface를 다룬다.
+  DynamoDB, S3, SES/SESv2, SNS, SQS, KMS, CloudWatch/Logs, IMDS, Kinesis,
+  STS, RDS IAM, Secrets Manager, Parameter Store, Spring Boot operations,
+  Ktor SigV4, Floci-first emulator policy가 포함된다.
 
-## Go Boundary Rule
+## Go 경계 규칙
 
-Use direct AWS SDK for Go v2 clients by default. Add a bluetape-go package only
-when the helper removes repeated, Go-specific integration work that the SDK does
-not already express cleanly.
+기본값은 direct AWS SDK for Go v2 client를 사용한다. Helper가 SDK로 이미
+깔끔하게 표현되지 않는 반복적인 Go-specific integration 작업을 제거할 때만
+bluetape-go package를 추가한다.
 
-Accepted helper shapes:
+허용되는 helper 형태:
 
-- Test fixture helpers that make local AWS endpoints, credentials, and cleanup
-  repeatable.
-- Example packages that show idiomatic `context.Context`, SDK client
-  construction, request options, and cleanup against Floci.
-- Narrow utilities after a follow-up issue proves recurring boilerplate or
-  error-prone SDK usage.
+- Local AWS endpoint, credential, cleanup을 반복 가능하게 만드는 test
+  fixture helper.
+- Floci 대상에서 idiomatic `context.Context`, SDK client construction,
+  request option, cleanup을 보여 주는 example package.
+- 반복 boilerplate 또는 오류가 잦은 SDK 사용이 후속 issue에서 증명된 뒤의
+  좁은 utility.
 
-Rejected helper shapes:
+거절되는 helper 형태:
 
-- Coroutine, Spring Boot, or Ktor API ports.
-- Generic service clients that mirror AWS SDK methods.
-- Wrapper-owned retries, auth, metrics, or serialization unless a concrete
-  package proves a local contract that cannot be represented by SDK options.
+- Coroutine, Spring Boot, Ktor API port.
+- AWS SDK method를 그대로 반영하는 generic service client.
+- Concrete package가 SDK option으로 표현할 수 없는 local contract를
+  증명하기 전의 wrapper-owned retry, auth, metrics, serialization.
 
 ## Candidate Matrix
 
 | Candidate | Decision | Owner | Rationale |
 |---|---|---|---|
-| Floci fixture | Adopt | #61 / PR #266 | Reusable local endpoint, static test credentials, service config, and cleanup are repo-specific testing concerns. |
-| S3 | Example-only | #62 | AWS SDK for Go v2 already owns S3 clients and request types. Examples should cover local endpoint config, path-style access, object IO, and presign flow if needed. |
-| SQS | Example-only | #63 | AWS SDK calls are direct. Examples should cover bounded receive loops, delete/visibility handling, and `context.Context` cancellation. |
-| SNS | Example-only | #63 | Use direct SDK clients. Examples should cover SNS to SQS fanout through Floci and queue policy caveats if needed. |
-| DynamoDB | Research candidate | #64 | Conditional writes, expression construction, optimistic locking, batch limits, and item mapping may justify narrow helpers, but #64 must prove the repeated pain before implementation. |
-| KMS | Defer | Future issue only | KMS encryption/decryption is service-specific and security-sensitive; direct SDK plus example is enough until a consumer needs envelope encryption policy. |
-| Secrets Manager | Defer | Future issue only | Secret loading policy, caching, rotation, and redaction need an application consumer before a helper contract is safe. |
-| Parameter Store | Defer | Future issue only | Same boundary as Secrets Manager; direct SDK or app config code should own naming and caching until proven repeated. |
-| STS | Defer | Future issue only | Direct SDK covers role/session calls. Add examples only when a package needs assumed-role or caller-identity setup. |
-| RDS IAM | Defer | Future issue only | Token generation belongs with a future SQL/database package if it needs IAM auth. Do not add an AWS track package first. |
-| CloudWatch | Defer | Future issue only | Metrics publishing should be driven by observability package requirements. Avoid a generic CloudWatch wrapper. |
-| CloudWatch Logs | Defer | Future issue only | Log stream token behavior is service-specific; add only with a concrete logging/ops consumer. |
-| Kinesis | Defer | Future issue only | Stream consumers need careful iterator, retry, and backpressure semantics. No current Go consumer exists. |
-| IMDS | Defer | Future issue only | Metadata access is runtime/environment-sensitive. Add only when an app/runtime package needs it. |
-| SES/SESv2 | Defer | Future issue only | Email sending needs identity, MIME, size, and validation policy. No current Go mail package depends on it. |
-| SigV4 HTTP signing | Defer | Future issue only | The AWS SDK and smithy signer should remain direct unless a concrete generic HTTP signing package is requested. |
-| AWS-backed config | Defer | Future issue only | Config loading touches secrets, refresh, and precedence policy. Keep it app-owned until a Go config package needs it. |
-| LocalStack | Fallback only | #60-#64 | Keep as compatibility fallback for proven Floci gaps, not the default fixture. |
-| DynamoDB Local | Defer | #64 | Consider only if #64 selects DynamoDB repository helpers and Floci cannot cover required behavior. |
-| ElasticMQ | Defer | #63 | Consider only if Floci SQS/SNS blocks #63 examples. |
-| MiniStack | Reject for now | None | Treat as evaluation-only until the exact SDK smoke matrix passes and it solves a blocker Floci cannot. |
+| Floci fixture | Adopt | #61 / PR #266 | 재사용 가능한 local endpoint, static test credential, service config, cleanup은 repo-specific testing concern이다. |
+| S3 | Example-only | #62 | AWS SDK for Go v2가 이미 S3 client와 request type을 소유한다. Example은 local endpoint config, path-style access, object IO, 필요 시 presign flow를 다루면 된다. |
+| SQS | Example-only | #63 | AWS SDK call은 직접 사용한다. Example은 bounded receive loop, delete/visibility handling, `context.Context` cancellation을 다루면 된다. |
+| SNS | Example-only | #63 | Direct SDK client를 사용한다. Example은 Floci를 통한 SNS to SQS fanout과 queue policy caveat를 필요 시 다룬다. |
+| DynamoDB | Research candidate | #64 | Conditional write, expression construction, optimistic locking, batch limit, item mapping은 좁은 helper를 정당화할 수 있지만 #64가 구현 전에 반복 pain을 증명해야 한다. |
+| KMS | Defer | Future issue only | KMS encryption/decryption은 service-specific이고 security-sensitive하다. Consumer가 envelope encryption policy를 요구하기 전에는 direct SDK와 example이면 충분하다. |
+| Secrets Manager | Defer | Future issue only | Secret loading policy, caching, rotation, redaction은 helper contract가 안전해지기 전에 application consumer가 필요하다. |
+| Parameter Store | Defer | Future issue only | Secrets Manager와 같은 경계다. 반복성이 증명될 때까지 direct SDK 또는 app config code가 naming/caching을 소유한다. |
+| STS | Defer | Future issue only | Direct SDK가 role/session call을 덮는다. Package가 assumed-role 또는 caller-identity setup을 필요로 할 때만 example을 추가한다. |
+| RDS IAM | Defer | Future issue only | Token generation은 IAM auth가 필요한 미래 SQL/database package에 속한다. AWS track package를 먼저 만들지 않는다. |
+| CloudWatch | Defer | Future issue only | Metrics publishing은 observability package 요구에서 출발해야 한다. Generic CloudWatch wrapper를 피한다. |
+| CloudWatch Logs | Defer | Future issue only | Log stream token behavior는 service-specific이다. 구체 logging/ops consumer가 있을 때만 추가한다. |
+| Kinesis | Defer | Future issue only | Stream consumer는 iterator, retry, backpressure semantics를 신중히 다뤄야 한다. 현재 Go consumer가 없다. |
+| IMDS | Defer | Future issue only | Metadata access는 runtime/environment-sensitive하다. App/runtime package가 필요로 할 때만 추가한다. |
+| SES/SESv2 | Defer | Future issue only | Email sending에는 identity, MIME, size, validation policy가 필요하다. 현재 Go mail package가 의존하지 않는다. |
+| SigV4 HTTP signing | Defer | Future issue only | Concrete generic HTTP signing package가 요청되기 전에는 AWS SDK와 smithy signer를 직접 둔다. |
+| AWS-backed config | Defer | Future issue only | Config loading은 secrets, refresh, precedence policy를 건드린다. Go config package가 필요로 하기 전에는 app-owned로 둔다. |
+| LocalStack | Fallback only | #60-#64 | Floci gap이 증명될 때의 compatibility fallback으로 유지하고 default fixture로 두지 않는다. |
+| DynamoDB Local | Defer | #64 | #64가 DynamoDB repository helper를 선택하고 Floci가 필요한 동작을 덮지 못할 때만 고려한다. |
+| ElasticMQ | Defer | #63 | Floci SQS/SNS가 #63 example을 막을 때만 고려한다. |
+| MiniStack | Reject for now | None | 정확한 SDK smoke matrix를 통과하고 Floci가 해결하지 못하는 blocker를 풀기 전까지 evaluation-only로 취급한다. |
 
-## Follow-Up Routing
+## 후속 라우팅
 
-- #61 stays the Floci fixture track and is represented by PR #266.
-- #62 should implement S3 examples without client wrappers.
-- #63 should implement SQS/SNS producer-consumer and fanout examples without
-  service wrappers.
-- #64 should decide whether DynamoDB needs narrow helpers, with direct SDK as
-  the default and DynamoDB Local only as fallback evidence.
-- No new issue is needed for KMS, Secrets Manager, Parameter Store, STS/RDS IAM,
-  CloudWatch/Logs, Kinesis, IMDS, SES, SigV4, or AWS-backed config until a real
-  consumer appears.
+- #61은 Floci fixture track으로 남고 PR #266이 이를 대표한다.
+- #62는 client wrapper 없이 S3 example을 구현해야 한다.
+- #63은 service wrapper 없이 SQS/SNS producer-consumer와 fanout example을
+  구현해야 한다.
+- #64는 direct SDK를 기본값으로 두고 DynamoDB가 좁은 helper를 필요로
+  하는지 결정해야 한다. DynamoDB Local은 fallback evidence로만 둔다.
+- KMS, Secrets Manager, Parameter Store, STS/RDS IAM, CloudWatch/Logs,
+  Kinesis, IMDS, SES, SigV4, AWS-backed config는 실제 consumer가 나타날
+  때까지 새 issue가 필요 없다.
 
-## Decision
+## 결정
 
-For 0.9.0, bluetape-go should ship Floci-backed examples and keep AWS SDK for
-Go v2 service clients caller-owned. Helper implementation beyond the Floci
-fixture is limited to future issue evidence, with DynamoDB as the only current
-research candidate.
+0.9.0에서 bluetape-go는 Floci-backed example을 제공하고 AWS SDK for Go v2
+service client는 caller-owned로 유지한다. Floci fixture를 넘어서는 helper
+구현은 미래 issue evidence로 제한하며, DynamoDB만 현재 research candidate다.

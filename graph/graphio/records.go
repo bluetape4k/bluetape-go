@@ -2,36 +2,36 @@ package graphio
 
 import "github.com/bluetape4k/bluetape-go/graph"
 
-// RecordKind identifies whether a Record contains a vertex or edge.
+// RecordKind graph IO Neo4j backend에서 caller-visible 상태와 의미를 설명한다.
 type RecordKind string
 
 const (
-	// RecordVertex identifies a vertex record.
+	// RecordVertex graph IO Neo4j backend에서 caller-visible 상태와 의미를 설명한다.
 	RecordVertex RecordKind = "vertex"
-	// RecordEdge identifies an edge record.
+	// RecordEdge graph IO Neo4j backend에서 caller-visible 상태와 의미를 설명한다.
 	RecordEdge RecordKind = "edge"
 )
 
-// Record is a one-of vertex or edge value for neutral graph streams.
+// Record graph IO Neo4j backend에서 caller-visible 상태와 의미를 설명한다.
 type Record struct {
 	Kind   RecordKind
 	Vertex graph.Vertex
 	Edge   graph.Edge
 }
 
-// VertexRecord creates a vertex record.
+// VertexRecord graph IO Neo4j backend에서 생성과 초기화 계약을 설명한다.
 func VertexRecord(vertex graph.Vertex) (Record, error) {
 	record := Record{Kind: RecordVertex, Vertex: vertex}
 	return record, record.Validate()
 }
 
-// EdgeRecord creates an edge record.
+// EdgeRecord graph IO Neo4j backend에서 생성과 초기화 계약을 설명한다.
 func EdgeRecord(edge graph.Edge) (Record, error) {
 	record := Record{Kind: RecordEdge, Edge: edge}
 	return record, record.Validate()
 }
 
-// Validate verifies that exactly one graph value matches Kind.
+// Validate graph IO Neo4j backend에서 동작과 caller-visible 계약을 설명한다.
 func (r Record) Validate() error {
 	vertexOK := r.Vertex.Validate() == nil
 	edgeOK := r.Edge.Validate() == nil

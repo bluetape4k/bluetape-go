@@ -1,17 +1,19 @@
 # Issue #217 Step 6-R Code Review
 
-Issue: [#217](https://github.com/bluetape4k/bluetape-go/issues/217)  
-Diff Base: `origin/develop` at `625d2e2`  
-Date: 2026-06-23
+> 한국어 리뷰 경계: 이 문서는 리뷰 판정과 근거를 한국어 독자가 추적할 수 있도록 정리한다. 심각도 토큰, 판정 토큰, 파일 경로, 라인 번호, 이슈/PR 번호, 명령, 코드 식별자는 원문의 증거 앵커로 보존한다.
 
-## Reviewed Scope
+이슈: [#217](https://github.com/bluetape4k/bluetape-go/issues/217)
+Diff Base: `origin/develop` at `625d2e2`
+날짜: 2026-06-23
+
+## 검토 범위
 
 - New public package `testcontainers/server`
 - Wrapper adaptations in `testcontainers/{postgres,mysql,redis,kafka,nats}`
 - English/Korean README updates for the same wrappers
 - `go.mod` direct dependency classification for `github.com/moby/moby/api`
 
-## Six-Lane Review
+## 6개 관점 검토
 
 | Tier | Perspective | P0 | P1 | P2 | P3 | Evidence |
 |---|---|---:|---:|---:|---:|---|
@@ -30,11 +32,11 @@ Production quick scan on changed Go paths:
 rg -n "context\.TODO\(|context\.Background\(|go func|time\.Tick\(|http\.ListenAndServe\(|panic\(|RealIP|X-Forwarded-For" testcontainers/server testcontainers/{postgres,mysql,redis,kafka,nats} -g '*.go'
 ```
 
-Result: only expected `context.Background()` usage in wrapper tests; no new
+결과: only expected `context.Background()` usage in wrapper tests; no new
 production goroutines, `panic`, `time.Tick`, HTTP server, or proxy-header trust
 paths.
 
-## Validation Evidence
+## 검증 증거
 
 - `go test -p 1 -count=1 ./testcontainers/server ./testcontainers/redis ./testcontainers/postgres ./testcontainers/mysql ./testcontainers/kafka ./testcontainers/nats`
 - `go test -race -p 1 -count=1 ./testcontainers/server ./testcontainers/redis ./testcontainers/postgres ./testcontainers/mysql ./testcontainers/kafka ./testcontainers/nats`
@@ -46,7 +48,7 @@ paths.
 - `make race`
 - `git diff --check`
 
-## Integrated Verdict
+## 통합 판정
 
 P0=0 P1=0
 

@@ -1,13 +1,13 @@
-# Issue #53 Blockword Rebuild Scope
+# Issue #53 Blockword Rebuild Scope 교훈
 
-`textsearch` blockword support should stay a deterministic compiled dictionary
-layer over the #52 matcher.
+`textsearch` blockword support는 #52 matcher 위의 deterministic compiled dictionary
+layer로 유지해야 한다.
 
-- Runtime dictionary mutation is represented by compiling a new
-  `BlockwordDictionary` and swapping it at the caller boundary.
-- Severity filtering must run before non-overlapping match selection so a
-  filtered-out low-severity overlap cannot hide a higher-severity match.
-- Request validation reports only lengths, not raw user input.
-- Korean and Japanese examples are dictionary masking fixtures, not claims of
-  morphological tokenizer parity.
-- Masking remains helper behavior and not a moderation or security boundary.
+- runtime dictionary mutation은 새 `BlockwordDictionary`를 compile하고 caller boundary에서
+  swap하는 방식으로 표현한다.
+- severity filtering은 non-overlapping match selection 전에 실행되어야 한다. 그래야
+  filtered-out low-severity overlap이 higher-severity match를 숨길 수 없다.
+- request validation은 raw user input이 아니라 length만 보고한다.
+- Korean 및 Japanese example은 dictionary masking fixture이지 morphological tokenizer
+  parity 주장으로 보지 않는다.
+- masking은 moderation 또는 security boundary가 아니라 helper behavior로 남는다.

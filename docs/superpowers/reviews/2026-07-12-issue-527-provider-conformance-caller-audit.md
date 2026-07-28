@@ -1,5 +1,7 @@
 # Issue #527 Caller Migration And Locale Audit
 
+> 한국어 리뷰 경계: 이 문서는 리뷰 판정과 근거를 한국어 독자가 추적할 수 있도록 정리한다. 심각도 토큰, 판정 토큰, 파일 경로, 라인 번호, 이슈/PR 번호, 명령, 코드 식별자는 원문의 증거 앵커로 보존한다.
+
 ## Scope And Commands
 
 The first-party Go tree was searched after implementation with:
@@ -34,7 +36,7 @@ External repositories were not claimed as scanned. The 0.19.0 `CHANGELOG.md` and
 - custom lock token consumers that depended on trimming migrate explicitly;
 - Redis rate-limit callers never replay commit-unknown requests and budget for one possible debit.
 
-Status: documented for the 0.19.0 release; downstream repository execution remains owned by each consumer maintainer.
+상태: documented for the 0.19.0 release; downstream repository execution remains owned by each consumer maintainer.
 
 ## English/Korean Section Mapping
 

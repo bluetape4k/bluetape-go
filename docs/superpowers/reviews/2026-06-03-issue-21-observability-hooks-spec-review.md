@@ -1,6 +1,8 @@
 # Issue 21 Observability Hooks Spec Review
 
-## Scope
+> 한국어 리뷰 경계: 이 문서는 리뷰 판정과 근거를 한국어 독자가 추적할 수 있도록 정리한다. 심각도 토큰, 판정 토큰, 파일 경로, 라인 번호, 이슈/PR 번호, 명령, 코드 식별자는 원문의 증거 앵커로 보존한다.
+
+## 범위
 
 - Spec: `docs/superpowers/specs/2026-06-03-issue-21-observability-hooks-spec.md`
 - Research: `docs/superpowers/research/2026-06-03-issue-21-observability-hooks-inventory.md`
@@ -8,7 +10,7 @@
 - Package: `resilience`
 - Review gate: Step 2-R
 
-## Evidence
+## 증거
 
 - Current source inspected:
   - `resilience/events.go`
@@ -26,7 +28,7 @@
   - CodeGraph: 107 files, 927 nodes, 1,647 edges
   - code-review-graph: 104 files, 497 nodes, 3,691 edges
 
-## Findings
+## 발견 사항
 
 - P0: 0
 - P1: 0
@@ -38,9 +40,9 @@
     bulkhead events to use it.
 - P3: 0
 
-## Tier Verdicts
+## 계층별 판정
 
-| Tier | Scope | Verdict | Evidence |
+| 계층 | 범위 | 판정 | 증거 |
 |---|---|---:|---|
 | 1 Security | sensitive data and dependency risk | PASS | Spec adds no exporter, global registry, network IO, auth, secrets, or deserialization. It keeps event payloads caller-supplied and avoids vendor dependencies. |
 | 2 Ops/SRE | diagnosis and operational predictability | PASS | Spec requires stable policy type/category/error-category labels, synchronous predictable handlers, and no internal locks while invoking handler code. |
@@ -50,6 +52,6 @@
 | 6 Performance/stability | hot path and locking | PASS | Spec preserves synchronous handler behavior and explicitly forbids calling handlers while circuit breaker locks are held. |
 | 7 Docs/evidence | README/package docs and issue traceability | PASS | Spec requires package docs, README locale mention, validation commands, and PR metadata for issue #21. |
 
-## Integrated Verdict
+## 통합 판정
 
 P0=0 and P1=0. Step 2-R is closed.

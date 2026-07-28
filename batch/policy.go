@@ -6,24 +6,28 @@ import (
 	"fmt"
 )
 
-// ErrorPredicate decides whether a policy applies to err.
+// ErrorPredicate batch 단계, checkpoint, writer 안전성, 재시작에서 사용하는 함수 타입이다.
 type ErrorPredicate func(error) bool
 
-// RetryPolicy retries processor and writer failures before skip/fail handling.
+// RetryPolicy batch 단계, checkpoint, writer 안전성, 재시작에서 사용하는 구조체다.
 type RetryPolicy struct {
 	MaxAttempts int
 	RetryIf     ErrorPredicate
 }
 
-// SkipPolicy skips failed processor items or failed writer chunks after retry
-// is exhausted. When a Step has a CheckpointStore, failed writer chunks are not
-// skipped because Writer cannot report a safe committed item boundary.
+// SkipPolicy batch 단계, checkpoint, writer 안전성, 재시작에서 사용하는 구조체다.
 type SkipPolicy struct {
 	MaxSkips int
 	SkipIf   ErrorPredicate
 }
 
-// RetryErrors creates a retry policy for matching non-context errors.
+// RetryErrors batch 단계, checkpoint, writer 안전성, 재시작 오류 처리 정책을 만든다.
+//
+// 매개변수:
+//   - maxAttempts: 허용할 최대 재시도 횟수다.
+//   - retryIf: 오류를 재시도 대상으로 볼지 판정하는 함수다.
+//
+// 반환 오류는 입력 검증 실패, context 취소/deadline, 상태 전이 실패, 패키지 sentinel error와 typed error를 그대로 드러낸다.
 func RetryErrors(maxAttempts int, retryIf ErrorPredicate) (RetryPolicy, error) {
 	if maxAttempts <= 0 {
 		return RetryPolicy{}, fmt.Errorf("max attempts must be positive")
@@ -31,7 +35,13 @@ func RetryErrors(maxAttempts int, retryIf ErrorPredicate) (RetryPolicy, error) {
 	return RetryPolicy{MaxAttempts: maxAttempts, RetryIf: retryIf}, nil
 }
 
-// SkipErrors creates a skip policy for matching non-context errors.
+// SkipErrors batch 단계, checkpoint, writer 안전성, 재시작 오류 처리 정책을 만든다.
+//
+// 매개변수:
+//   - maxSkips: 허용할 최대 skip 횟수다.
+//   - skipIf: 오류를 skip 대상으로 볼지 판정하는 함수다.
+//
+// 반환 오류는 입력 검증 실패, context 취소/deadline, 상태 전이 실패, 패키지 sentinel error와 typed error를 그대로 드러낸다.
 func SkipErrors(maxSkips int, skipIf ErrorPredicate) (SkipPolicy, error) {
 	if maxSkips <= 0 {
 		return SkipPolicy{}, fmt.Errorf("max skips must be positive")

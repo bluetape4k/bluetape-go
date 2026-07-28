@@ -1,12 +1,14 @@
 # Issue #206 Range and Collection Primitives Step 7-R PR Review
 
-Issue: #206
+> 한국어 리뷰 경계: 이 문서는 리뷰 판정과 근거를 한국어 독자가 추적할 수 있도록 정리한다. 심각도 토큰, 판정 토큰, 파일 경로, 라인 번호, 이슈/PR 번호, 명령, 코드 식별자는 원문의 증거 앵커로 보존한다.
+
+이슈: #206
 PR: #253
-Gate: Step 7-R, PR review
-Date: 2026-06-22
+게이트: Step 7-R, PR review
+날짜: 2026-06-22
 Worktree: `issue-206-range-collections`
 
-## Reviewed Scope
+## 검토 범위
 
 - Live PR #253 title, body, metadata, and status check rollup.
 - Branch commits:
@@ -36,7 +38,7 @@ Worktree: `issue-206-range-collections`
 | Developer/API | 0 | 0 | 0 | 0 | PASS | Public API remains small, Go-native, documented, and constructor-validated. |
 | User/Caller | 0 | 0 | 0 | 0 | PASS | README and examples cover behavior, limitations, and Kotlin/JVM exclusions in English and Korean. |
 
-## Verdict
+## 판정
 
 P0=0 P1=0
 

@@ -1,6 +1,8 @@
 # Issue #407 Review: Audit Publisher Adapter
 
-## Scope
+> 한국어 감사/리뷰 경계: 이 문서는 리뷰 결론과 남은 위험을 한국어 독자가 추적할 수 있도록 정리한다. 심각도 표기, 판정 표기, 파일 경로, 라인 번호, 이슈/PR 링크, 명령, 코드 식별자, 인용 증거는 원문의 증거 앵커로 보존한다.
+
+## 범위
 
 - New `audit/sqloutbox/sqloutboxtest` helper package.
 - Deterministic publisher helpers for discard, function adaptation, recording,
@@ -9,15 +11,15 @@
 - Diagram decision for a package that implements an existing
   `sqloutbox.Publisher` participant.
 
-## Subagent Note
+## 서브에이전트 메모
 
 Native subagent spawning was not used because the available subagent tool
 surface is gated to explicit user subagent requests. The main session performed
 the six independent review lanes and integration verdict as fallback.
 
-## Lane Findings
+## 관점별 발견 사항
 
-### Performance
+### 성능
 
 P0: 0
 P1: 0
@@ -28,7 +30,7 @@ P1: 0
 - Failure injection is map lookup by event ID and stays out of production relay
   hot paths unless callers opt into this helper.
 
-### Stability
+### 안정성
 
 P0: 0
 P1: 0
@@ -38,7 +40,7 @@ P1: 0
 - Relay integration coverage proves retry and dead-letter handoff with
   Testcontainers-backed PostgreSQL.
 
-### Security
+### 보안
 
 P0: 0
 P1: 0
@@ -49,7 +51,7 @@ P1: 0
 - Returned failure errors remain caller/test supplied and only affect existing
   sqloutbox persisted failure text paths.
 
-### Operator/Ops
+### 운영/Ops
 
 P0: 0
 P1: 0
@@ -59,7 +61,7 @@ P1: 0
 - Documentation keeps broker topology, retention, replay, redaction, and
   consumer idempotency in later adapter or application-owned scopes.
 
-### Developer/API
+### 개발자/API
 
 P0: 0
 P1: 0
@@ -69,7 +71,7 @@ P1: 0
 - Examples compile as Go example tests.
 - `Records` and `EventIDs` return defensive snapshots.
 
-### User/Caller
+### 사용자/호출자
 
 P0: 0
 P1: 0
@@ -81,7 +83,7 @@ P1: 0
 - No package-local diagram is needed because the existing sqloutbox class and
   relay sequence diagrams already include the `Publisher` participant.
 
-## Integration Verdict
+## 통합 판정
 
 P0: 0
 P1: 0
@@ -91,7 +93,7 @@ publisher adapter as a deterministic test/example helper, avoids premature
 broker topology, and adds stress/race plus relay-backed retry/dead-letter
 coverage.
 
-## Diagram Evidence
+## 다이어그램 증거
 
 | Gate | Evidence | Result |
 |---|---|---|
@@ -100,7 +102,7 @@ coverage.
 | Existing class diagram eye check | Full-size visual inspection of `docs/images/readme-diagrams/audit-sqloutbox-class-contract-map.png` | PASS, readable and covers `Publisher` participant |
 | Existing sequence diagram eye check | Full-size visual inspection of `docs/images/readme-diagrams/audit-sqloutbox-relay-sequence.png` | PASS, readable and covers relay publish/error branches |
 
-## Evidence
+## 증거
 
 - `go test -count=1 ./audit/sqloutbox/sqloutboxtest`
 - `go test -race -count=1 ./audit/sqloutbox/sqloutboxtest`

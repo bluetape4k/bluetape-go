@@ -1,11 +1,13 @@
 # Issue #48 Step 6-R Code Review
 
-Date: 2026-06-29
+> 한국어 리뷰 경계: 이 문서는 리뷰 판정과 근거를 한국어 독자가 추적할 수 있도록 정리한다. 심각도 토큰, 판정 토큰, 파일 경로, 라인 번호, 이슈/PR 번호, 명령, 코드 식별자는 원문의 증거 앵커로 보존한다.
+
+날짜: 2026-06-29
 Worktree: `.worktrees/issue-48-graph-abstraction`
-Branch: `feat/issue-48-graph-abstraction`
+브랜치: `feat/issue-48-graph-abstraction`
 Baseline: `4d48de3`
 
-## Verdict
+## 판정
 
 P0: 0
 P1: 0
@@ -23,7 +25,7 @@ The implementation is approved for PR creation after final verification.
 | Developer/API | 0 | 2 | 1 | 1 | Restored zero-path accessor contract, documented path continuity as out of scope, and pinned exact JSON wire shape. |
 | User/Caller | 0 | 0 | 2 | 1 | Documented `Path` as a model container, explained raw parse helper scope, and aligned Korean scope wording. |
 
-## Corrections Applied
+## 적용한 수정
 
 - `Path.UnmarshalJSON` now rejects top-level `null`, missing `steps`, missing
   `total_weight`, `steps:null`, and non-empty edge paths with omitted weight.
@@ -38,14 +40,14 @@ The implementation is approved for PR creation after final verification.
 - `docs/lessons/2026-06-29-graph-model-api-boundaries.md` records the API
   boundary rationale.
 
-## Rerun Evidence
+## 재실행 증거
 
 | Perspective | P0 | P1 | Evidence |
 | --- | ---: | ---: | --- |
 | Stability | 0 | 0 | Rerun accepted required-field path JSON checks and malformed payload tests. |
 | Developer/API | 0 | 0 | Rerun accepted model-only path scope, exact JSON shape, zero-path behavior, and reserved unsupported-capability contract. |
 
-## Main Integration Review
+## 메인 통합 검토
 
 No unresolved P0 or P1 findings remain. The branch keeps #48 scoped to model
 values only and does not introduce repository, session, schema, query,

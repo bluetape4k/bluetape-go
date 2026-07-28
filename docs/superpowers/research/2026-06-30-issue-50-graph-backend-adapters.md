@@ -1,10 +1,13 @@
 # Issue #50 Graph Backend Adapter Feasibility
 
+> 한국어 연구 요약: 이 문서는 사용자 협업용 조사/결정 기록이다. 아래 표와 목록의 URL, package name, command, issue number, version, source path는 evidence이므로 그대로 보존한다. 의사결정, 선택/보류/거절 사유, 후속 이슈 경계는 한국어 독자가 바로 이해할 수 있도록 이 요약을 우선 적용한다.
+> 추가 한국어 해석: 이 문서에서 영어로 남은 표의 값은 원문 근거이며, 실제 채택 여부는 한국어 결정 문장을 따른다. 후속 작업자는 보류와 거절 항목을 새 구현 범위로 착각하지 않아야 한다.\n
+
 Date: 2026-06-30
 Milestone: 0.10.0
 Issue: #50
 
-## Decision
+## 결정
 
 Rank the Go graph backend path as:
 
@@ -35,7 +38,7 @@ kept the Go surface to backend-neutral values plus bounded NDJSON/CSV record
 I/O. Backend work now needs one concrete driver proof before any common
 repository or session abstraction is credible.
 
-## Evidence Matrix
+## 근거 Matrix
 
 | Backend | Go driver maturity | License / maintenance | Query model | Transactions / batch / schema | Local test story | Decision |
 |---|---|---|---|---|---|---|
@@ -101,7 +104,7 @@ Treat Memgraph as a Neo4j-driver compatibility matrix:
 - AWS Neptune docs and Go modules: Go access exists, but the proof is remote or
   managed-service oriented.
 
-## Validation
+## 검증
 
 - `gh issue view 50 --json ...`: issue scope and acceptance criteria confirmed.
 - `gh issue list --search "Neo4j graph adapter ..."` and Memgraph equivalent:

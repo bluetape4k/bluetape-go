@@ -1,17 +1,19 @@
 # Issue #216 Testcontainers contracts review
 
-Date: 2026-06-23
-Scope: `internal/testcleanup`, `testcontainers/{postgres,mysql,redis,kafka,nats}`,
+> 한국어 감사/리뷰 경계: 이 문서는 리뷰 결론과 남은 위험을 한국어 독자가 추적할 수 있도록 정리한다. 심각도 표기, 판정 표기, 파일 경로, 라인 번호, 이슈/PR 링크, 명령, 코드 식별자, 인용 증거는 원문의 증거 앵커로 보존한다.
+
+날짜: 2026-06-23
+범위: `internal/testcleanup`, `testcontainers/{postgres,mysql,redis,kafka,nats}`,
 and the matching README locale sets.
 Baseline: `daa4aea`
 Review mode: main-session 7-tier fallback after native subagent cleanup was
 interrupted by the user for latency.
 
-## Verdict
+## 판정
 
 P0=0 P1=0
 
-## 7-Tier Review
+## 7-Tier 검토
 
 1. Performance: PASS
    - Docker-backed package execution is serial. The affected package tests no
@@ -59,13 +61,13 @@ P0=0 P1=0
      - `make test`
      - `make race`
 
-## Findings
+## 발견 사항
 
-No P0/P1 findings.
+P0/P1 발견 사항 없음.
 
 P2/P3 follow-up: none.
 
-## Notes
+## 메모
 
 `make lint` initially reported stale findings from a removed sibling worktree
 path (`../issue-212-temp-env-output/...`). `golangci-lint cache clean` removed

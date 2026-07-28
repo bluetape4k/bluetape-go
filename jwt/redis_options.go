@@ -17,19 +17,19 @@ const (
 	maxRedisMaxKeyBytes     = 1 << 20
 )
 
-// RedisRepositoryOptions configures a Redis-backed distributed KeyChain repository.
+// RedisRepositoryOptions JWT key provider repository에서 설정값과 기본값 적용 방식을 설명한다.
 type RedisRepositoryOptions struct {
-	// Client is caller-owned. The repository never closes it.
+	// Client JWT key provider repository에서 caller-visible 상태와 의미를 설명한다.
 	Client redis.Cmdable
-	// Namespace scopes Redis signing authority keys.
+	// Namespace JWT key provider repository에서 caller-visible 상태와 의미를 설명한다.
 	Namespace string
-	// Capacity limits retained KeyChains.
+	// Capacity JWT key provider repository에서 동작과 caller-visible 계약을 설명한다.
 	Capacity int
-	// KeyTTL sets Redis expiration for stored KeyChains. Zero means no Redis TTL.
+	// KeyTTL JWT key provider repository에서 설정값과 기본값 적용 방식을 설명한다.
 	KeyTTL time.Duration
-	// RetentionLeeway is the maximum parse leeway Redis TTL must preserve.
+	// RetentionLeeway JWT key provider repository에서 caller-visible 상태와 의미를 설명한다.
 	RetentionLeeway time.Duration
-	// MaxKeyBytes limits each serialized KeyChain payload.
+	// MaxKeyBytes JWT key provider repository에서 동작과 caller-visible 계약을 설명한다.
 	MaxKeyBytes int
 }
 

@@ -5,18 +5,24 @@ import (
 	"sync"
 )
 
-// MemoryRepository is a goroutine-safe, non-durable in-memory audit repository.
+// MemoryRepository audit entry, event, repository, recorder, history에서 사용하는 구조체다.
 type MemoryRepository struct {
 	mu      sync.RWMutex
 	entries []Entry
 }
 
-// NewMemoryRepository creates an empty in-memory audit repository.
+// NewMemoryRepository audit entry, event, repository, recorder, history에 사용할 값을 생성한다.
 func NewMemoryRepository() *MemoryRepository {
 	return &MemoryRepository{}
 }
 
-// Append validates and appends entries as an all-or-nothing operation.
+// Append audit entry, event, repository, recorder, history의 쓰기 동작을 수행한다.
+//
+// 매개변수:
+//   - ctx: 호출자가 소유한 취소, deadline, 요청 범위를 전달한다.
+//   - entries: Append에 전달되는 값이다. 허용 범위와 nil 처리 방식은 구현 검증을 따른다.
+//
+// 반환 오류는 입력 검증 실패, context 취소, transaction 실패, repository/outbox 실패, package sentinel error와 typed error를 그대로 드러낸다.
 func (r *MemoryRepository) Append(ctx context.Context, entries ...Entry) error {
 	ctx = normalizeContext(ctx)
 	if err := checkContext(ctx); err != nil {
@@ -52,7 +58,13 @@ func (r *MemoryRepository) Append(ctx context.Context, entries ...Entry) error {
 	return nil
 }
 
-// Find returns defensive copies matching query in append order by default.
+// Find audit entry, event, repository, recorder, history에서 필요한 값을 조회한다.
+//
+// 매개변수:
+//   - ctx: 호출자가 소유한 취소, deadline, 요청 범위를 전달한다.
+//   - query: Find에 전달되는 값이다. 허용 범위와 nil 처리 방식은 구현 검증을 따른다.
+//
+// 반환 오류는 입력 검증 실패, context 취소, transaction 실패, repository/outbox 실패, package sentinel error와 typed error를 그대로 드러낸다.
 func (r *MemoryRepository) Find(ctx context.Context, query Query) ([]Entry, error) {
 	ctx = normalizeContext(ctx)
 	if err := checkContext(ctx); err != nil {
@@ -86,7 +98,13 @@ func (r *MemoryRepository) Find(ctx context.Context, query Query) ([]Entry, erro
 	return matched, nil
 }
 
-// LoadHistory returns a full contiguous history for aggregate when present.
+// LoadHistory audit entry, event, repository, recorder, history에서 필요한 값을 조회한다.
+//
+// 매개변수:
+//   - ctx: 호출자가 소유한 취소, deadline, 요청 범위를 전달한다.
+//   - aggregate: LoadHistory에 전달되는 값이다. 허용 범위와 nil 처리 방식은 구현 검증을 따른다.
+//
+// 반환 오류는 입력 검증 실패, context 취소, transaction 실패, repository/outbox 실패, package sentinel error와 typed error를 그대로 드러낸다.
 func (r *MemoryRepository) LoadHistory(ctx context.Context, aggregate AggregateID) (History, bool, error) {
 	if err := aggregate.Validate(); err != nil {
 		return History{}, false, validationCause(ErrInvalidQuery, "aggregate", aggregate, err)
@@ -105,7 +123,13 @@ func (r *MemoryRepository) LoadHistory(ctx context.Context, aggregate AggregateI
 	return history, true, nil
 }
 
-// Latest returns the newest entry for aggregate when present.
+// Latest audit entry, event, repository, recorder, history에서 필요한 값을 조회한다.
+//
+// 매개변수:
+//   - ctx: 호출자가 소유한 취소, deadline, 요청 범위를 전달한다.
+//   - aggregate: Latest에 전달되는 값이다. 허용 범위와 nil 처리 방식은 구현 검증을 따른다.
+//
+// 반환 오류는 입력 검증 실패, context 취소, transaction 실패, repository/outbox 실패, package sentinel error와 typed error를 그대로 드러낸다.
 func (r *MemoryRepository) Latest(ctx context.Context, aggregate AggregateID) (Entry, bool, error) {
 	if err := aggregate.Validate(); err != nil {
 		return Entry{}, false, validationCause(ErrInvalidQuery, "aggregate", aggregate, err)
@@ -120,12 +144,25 @@ func (r *MemoryRepository) Latest(ctx context.Context, aggregate AggregateID) (E
 	return entries[0], true, nil
 }
 
-// LatestSnapshot returns the newest snapshot-bearing entry for aggregate.
+// LatestSnapshot audit entry, event, repository, recorder, history에서 필요한 값을 조회한다.
+//
+// 매개변수:
+//   - ctx: 호출자가 소유한 취소, deadline, 요청 범위를 전달한다.
+//   - aggregate: LatestSnapshot에 전달되는 값이다. 허용 범위와 nil 처리 방식은 구현 검증을 따른다.
+//
+// 반환 오류는 입력 검증 실패, context 취소, transaction 실패, repository/outbox 실패, package sentinel error와 typed error를 그대로 드러낸다.
 func (r *MemoryRepository) LatestSnapshot(ctx context.Context, aggregate AggregateID) (Entry, bool, error) {
 	return r.findSnapshot(ctx, aggregate, 0)
 }
 
-// PreviousSnapshot returns the newest snapshot before the supplied revision.
+// PreviousSnapshot audit entry, event, repository, recorder, history에서 필요한 값을 조회한다.
+//
+// 매개변수:
+//   - ctx: 호출자가 소유한 취소, deadline, 요청 범위를 전달한다.
+//   - aggregate: PreviousSnapshot에 전달되는 값이다. 허용 범위와 nil 처리 방식은 구현 검증을 따른다.
+//   - before: PreviousSnapshot에 전달되는 값이다. 허용 범위와 nil 처리 방식은 구현 검증을 따른다.
+//
+// 반환 오류는 입력 검증 실패, context 취소, transaction 실패, repository/outbox 실패, package sentinel error와 typed error를 그대로 드러낸다.
 func (r *MemoryRepository) PreviousSnapshot(ctx context.Context, aggregate AggregateID, before Revision) (Entry, bool, error) {
 	if err := before.Validate(); err != nil {
 		return Entry{}, false, validationCause(ErrInvalidQuery, "before", before, err)

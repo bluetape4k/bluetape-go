@@ -1,21 +1,21 @@
-# Issue 336 - Kagome Japanese Adapter Boundary
+# Issue #336 Kagome Japanese Adapter Boundary 교훈
 
-## Lesson
+## 교훈
 
-Kagome's public token has both `Position` and `Start`/`End`. `Position` is the
-byte offset that matches `textsearch.TokenSpan`; `Start`/`End` are rune-oriented
-positions. The adapter must use `Position + len(Surface)` for caller-visible
-byte spans and test this on every returned token.
+Kagome의 public token에는 `Position`과 `Start`/`End`가 모두 있다. `Position`은
+`textsearch.TokenSpan`과 맞는 byte offset이고, `Start`/`End`는 rune-oriented position이다.
+adapter는 caller-visible byte span에 `Position + len(Surface)`를 사용해야 하며, 반환되는
+모든 token에서 이를 test해야 한다.
 
 ## Boundary
 
-- Keep `textsearch` core dependency-free.
-- Put Kagome and dictionary imports only under `textsearch/japanese`.
-- Default to IPA dictionary and expose `WithDictionary` for deliberate opt-in
-  dictionary swaps.
-- Treat Kagome POS as metadata while keeping `textsearch.PartOfSpeech` coarse.
-- Async/cancellation helpers are not applicable because Kagome tokenization is
-  synchronous CPU-local work; concurrency coverage uses `GoroutineStressTester`.
+- `textsearch` core는 dependency-free로 유지한다.
+- Kagome 및 dictionary import는 `textsearch/japanese` 아래에만 둔다.
+- IPA dictionary를 default로 삼고, 의도적 opt-in dictionary swap에는 `WithDictionary`를
+  노출한다.
+- Kagome POS는 metadata로 다루고 `textsearch.PartOfSpeech`는 coarse하게 유지한다.
+- Kagome tokenization은 synchronous CPU-local work이므로 async/cancellation helper는
+  적용되지 않는다. concurrency coverage에는 `GoroutineStressTester`를 사용한다.
 
 ## Verification Targets
 

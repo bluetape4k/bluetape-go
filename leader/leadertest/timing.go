@@ -8,36 +8,34 @@ import (
 	"github.com/bluetape4k/bluetape-go/leader"
 )
 
-// Timing configures the time boundaries used by provider conformance cases.
+// Timing provider conformance case가 사용하는 시간 경계를 설정한다.
 type Timing struct {
-	// Lease configures the case lease duration.
+	// Lease case lease duration을 설정한다.
 	Lease time.Duration
-	// RenewInterval configures the case renewal cadence.
+	// RenewInterval case renewal cadence를 설정한다.
 	RenewInterval time.Duration
-	// CaseTimeout bounds evaluator work before cancellation and containment
-	// starts. It does not bound the final provider join; callers must configure
-	// Abort to unblock provider work and an outer go test timeout to fail-stop a
-	// provider that cannot be joined.
+	// CaseTimeout cancellation과 containment가 시작되기 전 evaluator work의 한도를 정한다.
+	// final provider join은 제한하지 않는다. 호출자는 provider work를 unblock할 Abort와,
+	// join할 수 없는 provider를 fail-stop할 외부 go test timeout을 설정해야 한다.
 	CaseTimeout time.Duration
-	// WaitTimeout bounds backend-state observation within a case.
+	// WaitTimeout case 안의 backend-state observation 한도를 정한다.
 	WaitTimeout time.Duration
-	// ResignTimeout bounds normal cleanup before abort containment.
+	// ResignTimeout abort containment 전에 수행하는 normal cleanup 한도를 정한다.
 	ResignTimeout time.Duration
 	_             struct{}
 }
 
-// AbortFunc contains provider work after every case timeout, including when
-// evaluator work joins during the cancellation grace period. It must unblock
-// provider operations so RunWithConfig can join them; the outer go test timeout
-// is the final fail-stop when containment cannot make progress.
+// AbortFunc cancellation grace period 동안 evaluator work가 join되는 경우를 포함해
+// 모든 case timeout 뒤 provider work를 contain한다. RunWithConfig가 join할 수 있도록
+// provider operation을 unblock해야 하며, containment가 진전되지 않을 때 외부 go test timeout이 최종 fail-stop이다.
 type AbortFunc func(context.Context, leader.Options) error
 
-// Config configures a conformance run.
+// Config conformance run을 설정한다.
 type Config struct {
-	// Timing overrides zero-valued conformance timing fields.
+	// Timing zero-valued conformance timing field를 override한다.
 	Timing Timing
-	// Abort contains every timed-out case after root cancellation, whether the
-	// evaluator joins during grace or requires a provider hard stop.
+	// Abort evaluator가 grace 동안 join되거나 provider hard stop이 필요한 경우 모두에서
+	// root cancellation 뒤 timeout case를 contain한다.
 	Abort AbortFunc
 	_     struct{}
 }

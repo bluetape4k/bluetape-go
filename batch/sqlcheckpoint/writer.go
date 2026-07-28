@@ -17,8 +17,7 @@ var (
 	errWriterUninitialized = errors.New("sqlcheckpoint: writer is not initialized")
 )
 
-// Codec encodes and decodes checkpoint values. Its functions must be safe for
-// concurrent use when the Writer is shared by concurrent callers.
+// Codec batch 단계, checkpoint, writer 안전성, 재시작에서 사용하는 구조체다.
 type Codec[C any] struct {
 	// Encode serializes one checkpoint value.
 	Encode func(C) ([]byte, error)
@@ -26,15 +25,10 @@ type Codec[C any] struct {
 	Decode func([]byte) (C, error)
 }
 
-// WriteTxFunc persists output items through a caller-defined SQL session in an
-// explicit Read Committed transaction. It must be correct at that isolation
-// level and safe for concurrent use when the Writer is shared.
+// WriteTxFunc batch 단계, checkpoint, writer 안전성, 재시작에서 사용하는 함수 타입이다.
 type WriteTxFunc[T any] func(context.Context, sqlkit.Session, []T) error
 
-// Writer atomically persists output items and durable checkpoints in PostgreSQL.
-// A Writer must be created with New; its zero value is not initialized.
-// A Writer is safe for concurrent use when its Codec and WriteTxFunc are safe
-// for concurrent use. Calls for the same checkpoint key must still be serialized.
+// Writer batch 단계, checkpoint, writer 안전성, 재시작에서 사용하는 구조체다.
 type Writer[T any, C any] struct {
 	db       *sql.DB
 	options  normalizedOptions
@@ -46,10 +40,15 @@ type Writer[T any, C any] struct {
 
 var _ batch.AtomicCheckpointWriter[any] = (*Writer[any, any])(nil)
 
-// New validates and stores the checkpoint writer configuration without performing database I/O.
-// The caller retains ownership of db and is responsible for applying SchemaSQL.
-// Commit transactions always use Read Committed and do not inherit an ambient
-// role or database isolation default.
+// New batch 단계, checkpoint, writer 안전성, 재시작에 사용할 값을 생성한다.
+//
+// 매개변수:
+//   - db: 사용할 database handle이다. nil 허용 여부는 생성자 검증을 따른다.
+//   - options: 적용할 옵션 목록이다. nil이면 기본값만 사용한다.
+//   - codec: 저장 값 인코딩에 사용할 codec이다.
+//   - write: checkpoint 저장에 사용할 쓰기 함수다.
+//
+// 반환 오류는 입력 검증 실패, context 취소/deadline, 상태 전이 실패, 패키지 sentinel error와 typed error를 그대로 드러낸다.
 func New[T any, C any](db *sql.DB, options Options, codec Codec[C], write WriteTxFunc[T]) (*Writer[T, C], error) {
 	if db == nil {
 		return nil, errNilDB

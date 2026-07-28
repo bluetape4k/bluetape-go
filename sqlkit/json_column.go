@@ -5,24 +5,22 @@ import (
 	"encoding/json"
 )
 
-// DefaultJSONColumnMaxBytes is the default maximum JSON source or output size.
+// DefaultJSONColumnMaxBytes JSON source 또는 output size의 기본 최대값이다.
 const DefaultJSONColumnMaxBytes = 1 << 20
 
-// JSONColumn stores a typed JSON value and its SQL NULL state.
+// JSONColumn typed JSON value와 SQL NULL 상태를 함께 저장한다.
 //
-// The zero value represents SQL NULL. MaxBytes uses
-// DefaultJSONColumnMaxBytes when it is zero. JSON literal null remains a valid
-// JSON value and is distinct from SQL NULL.
+// zero value는 SQL NULL을 나타낸다. MaxBytes가 0이면 DefaultJSONColumnMaxBytes를 사용한다.
+// JSON literal null은 유효한 JSON value이며 SQL NULL과 구분된다.
 type JSONColumn[T any] struct {
 	Data     T
 	Valid    bool
 	MaxBytes int
 }
 
-// Scan decodes a nil, string, or []byte database value into a fresh T.
+// Scan nil, string, []byte database value를 새로운 T 값으로 decode한다.
 //
-// Scan copies driver-owned bytes, clears the previous value before decoding,
-// and publishes Data only after decoding succeeds.
+// Scan driver가 소유한 byte를 복사하고 decode 전에 이전 값을 지우며, decode가 성공한 뒤에만 Data를 공개한다.
 func (c *JSONColumn[T]) Scan(src any) (err error) {
 	if c == nil {
 		return newColumnError(ErrInvalidColumnValue, "scan JSON", nil)
@@ -51,10 +49,9 @@ func (c *JSONColumn[T]) Scan(src any) (err error) {
 	return nil
 }
 
-// Value encodes Data as JSON or returns nil when Valid is false.
+// Value Data를 JSON으로 encode하거나 Valid가 false이면 nil을 반환한다.
 //
-// Value returns []byte for non-NULL values and never exposes callback causes
-// through its error string.
+// Value non-NULL 값에 대해 []byte를 반환하며 error 문자열에 callback 원인을 노출하지 않는다.
 func (c JSONColumn[T]) Value() (value driver.Value, err error) {
 	if !c.Valid {
 		return nil, nil

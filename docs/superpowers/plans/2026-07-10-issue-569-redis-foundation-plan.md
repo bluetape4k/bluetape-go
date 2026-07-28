@@ -1,60 +1,63 @@
-# Issue 569 Redis Foundation Implementation Plan
+# Issue 569 Redis foundation 구현 계획
 
-> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
+> 한국어 재작성 범위: 이 계획 문서는 한국어 운영 문서로 읽히도록 제목, 판단, 작업 설명, 위험, 검증, 롤백 문맥을 한국어로 정리한다. 명령, 경로, API 이름, 이슈/PR 번호, 브랜치명, 코드 블록, 테스트 출력 같은 증거 문자열은 정확성을 위해 원문 그대로 보존한다.
 
-**Goal:** Add the public `github.com/bluetape4k/bluetape-go/redis` package with safe Redis key, owner-token, lease script, TTL, and operational error primitives.
 
-**Architecture:** Implement a narrow package named `btredis` that reuses `go-redis/v9` only for script execution and does not wrap the Redis client. Existing Redis-backed packages are not migrated in this issue; #570 owns migration after parity tests and benchmarks.
+> **에이전트 작업자용:** 필수 하위 스킬: 사용 superpowers:subagent-driven-development (권장) 또는 superpowers:executing-plans to 이 계획을 작업 단위로 구현. 단계는 checkbox (`- [ ]`) 추적 문법을 사용.
 
-**Tech Stack:** `go.mod` declares Go 1.26.3, current local toolchain is `go1.26.5`, `github.com/redis/go-redis/v9`, existing `testcontainers/redis` fixture, table-driven `testing`, TDD, `go test`, `go test -race`, `make ci`.
+**목표:** 추가 the 공개 `github.com/bluetape4k/bluetape-go/redis` 패키지 함께 safe Redis key, owner-token, lease script, TTL, 및 operational 오류 primitives.
+
+**아키텍처:** 구현 a narrow 패키지 named `btredis` that reuses `go-redis/v9` 만 for script execution 및 does 아님 wrap the Redis client. Existing Redis-backed packages are 아님 migrated in this issue; #570 owns migration 후 parity 테스트 및 benchmarks.
+
+**기술 스택:** `go.mod` declares Go 1.26.3, current local toolchain is `go1.26.5`, `github.com/redis/go-redis/v9`, 기존 `testcontainers/redis` fixture, table-driven `testing`, TDD, `go test`, `go test -race`, `make ci`.
 
 ---
 
-## Inputs
+## 입력
 
 - Spec: `docs/superpowers/specs/2026-07-10-issue-569-redis-foundation-spec.md`
 - Spec review: `docs/superpowers/reviews/2026-07-10-issue-569-redis-foundation-spec-review.md`
 - Issue: #569
 - Milestone: `0.19.0`
 
-## File Map
+## 파일 지도
 
-| Path | Responsibility |
+| Path | 책임 |
 |---|---|
-| `redis/doc.go` | Package overview and safety boundary. |
-| `redis/errors.go` | Sentinels, `OpError`, redacted error construction. |
+| `redis/doc.go` | Package overview 및 safety boundary. |
+| `redis/errors.go` | Sentinels, `OpError`, redacted 오류 construction. |
 | `redis/key.go` | `Key`, `KeyBuilder`, redacted key id helpers. |
 | `redis/token.go` | Opaque `OwnerToken` generation, parsing, validation, redacted formatting. |
-| `redis/ttl.go` | TTL validation and millisecond conversion. |
-| `redis/lease.go` | Immutable `Lease` and validation. |
-| `redis/script.go` | Package-level compare-delete / compare-extend Lua scripts and helpers. |
-| `redis/*_test.go` | Unit, fake-scripter, integration, stress, and examples. |
-| `redis/README.md`, `redis/README.ko.md` | Public package docs and operator guidance. |
-| `README.md`, `README.ko.md` | Root package index updates. |
-| `CHANGELOG.md` | `[Unreleased]` package addition. |
-| `docs/lessons/2026-07-10-issue-569-redis-foundation.md` | Session lesson before PR. |
-| `docs/review/2026-07-10-issue-569-redis-foundation-review.md` | Step 6-R final review artifact. |
+| `redis/ttl.go` | TTL validation 및 millisecond conversion. |
+| `redis/lease.go` | Immutable `Lease` 및 validation. |
+| `redis/script.go` | Package-level compare-delete / compare-extend Lua scripts 및 helpers. |
+| `redis/*_test.go` | Unit, fake-scripter, integration, stress, 및 example. |
+| `redis/README.md`, `redis/README.ko.md` | Public 패키지 docs 및 운영자 guidance. |
+| `README.md`, `README.ko.md` | Root 패키지 index updates. |
+| `CHANGELOG.md` | `[Unreleased]` 패키지 addition. |
+| `docs/lessons/2026-07-10-issue-569-redis-foundation.md` | Session lesson 전에 PR. |
+| `docs/review/2026-07-10-issue-569-redis-foundation-review.md` | 단계 6-R final review artifact. |
 
-## Current-Code Assumptions To Recheck Before Step 4
+## Current-Code Assumptions To Recheck Before 단계 4
 
 - `go.mod` still contains `github.com/redis/go-redis/v9`.
 - `testcontainers/redis.Start(ctx, tb)` still returns a Redis address.
-- No top-level `redis/` package exists.
-- Existing Redis packages are not edited except docs/root indexes in this issue.
+- No top-level `redis/` 패키지 exists.
+- Existing Redis packages are 아님 edited except docs/root indexes in this issue.
 
-## Task 1: Package Scaffold And Token Contract
+## 작업 1: Package Scaffold And Token Contract
 
-complexity: high
+complexity: 높음
 Required skill: `bluetape-go-patterns`
 
-**Files:**
-- Create: `redis/doc.go`
-- Create: `redis/token.go`
-- Create: `redis/token_test.go`
+**파일:**
+- 생성: `redis/doc.go`
+- 생성: `redis/token.go`
+- 생성: `redis/token_test.go`
 
-- [ ] **Step 1: Write failing token tests**
+- [ ] **단계 1: Write failing token 테스트**
 
-Create `redis/token_test.go`:
+생성 `redis/token_test.go`:
 
 ```go
 package btredis
@@ -176,19 +179,19 @@ func contains(s, sub string) bool {
 }
 ```
 
-- [ ] **Step 2: Verify token tests fail for missing package**
+- [ ] **단계 2: 검증 token 테스트 fail for missing 패키지**
 
-Run:
+실행:
 
 ```bash
 go test -count=1 ./redis -run 'OwnerToken|NewOwnerToken|ParseOwnerToken'
 ```
 
-Expected: FAIL because `./redis` does not yet exist or token symbols are undefined.
+예상: FAIL because `./redis` does 아님 yet exist 또는 token symbols are undefined.
 
-- [ ] **Step 3: Implement minimal token and package docs**
+- [ ] **단계 3: 구현 minimal token 및 패키지 docs**
 
-Create `redis/doc.go`:
+생성 `redis/doc.go`:
 
 ```go
 // Package btredis provides small Redis safety primitives shared by Redis-backed
@@ -202,7 +205,7 @@ Create `redis/doc.go`:
 package btredis
 ```
 
-Create `redis/token.go`:
+생성 `redis/token.go`:
 
 ```go
 package btredis
@@ -277,62 +280,62 @@ func (t OwnerToken) Validate() error {
 }
 ```
 
-- [ ] **Step 4: Verify token tests pass**
+- [ ] **단계 4: 검증 token 테스트 pass**
 
-Run:
+실행:
 
 ```bash
 go test -count=1 ./redis -run 'OwnerToken|NewOwnerToken|ParseOwnerToken'
 ```
 
-Expected: PASS.
+예상: PASS.
 
-## Task 2: Key Builder, Redaction, TTL, And OpError
+## 작업 2: Key Builder, Redaction, TTL, And OpError
 
-complexity: high
+complexity: 높음
 Required skill: `bluetape-go-patterns`
 
-**Files:**
-- Create: `redis/key.go`
-- Create: `redis/ttl.go`
-- Create: `redis/errors.go`
-- Create: `redis/key_test.go`
-- Create: `redis/ttl_test.go`
-- Create: `redis/errors_test.go`
+**파일:**
+- 생성: `redis/key.go`
+- 생성: `redis/ttl.go`
+- 생성: `redis/errors.go`
+- 생성: `redis/key_test.go`
+- 생성: `redis/ttl_test.go`
+- 생성: `redis/errors_test.go`
 
-- [ ] **Step 1: Write failing key, TTL, and error tests**
+- [ ] **단계 1: Write failing key, TTL, 및 오류 테스트**
 
-Create `redis/key_test.go`, `redis/ttl_test.go`, and `redis/errors_test.go` with table-driven tests covering:
+생성 `redis/key_test.go`, `redis/ttl_test.go`, 및 `redis/errors_test.go` 함께 table-driven 테스트 covering:
 
 - structural segments reject `""`, `" "`, `"a:b"`, `"{bad}"`;
-- `NewKeyBuilder("bluetape:probabilistic:bloom:v1")` accepts a colon-delimited package prefix by validating each prefix part as a structural segment;
-- invalid prefixes such as `""`, `" "`, `"bad::prefix"`, `"bad:{tag}"`, and `"bad: part"` return `ErrInvalidKey`;
-- `LogicalKey(" lock key ")`, `LogicalKey("tenant:user:{caller}:a:b")`, and `LogicalKey("line\nkey")` preserve exact bytes;
-- `WithHashTag("test:package:case")` preserves the colon-bearing hash tag so #570 can keep existing `probabilistic/redis` namespace keys;
-- `WithHashTag("")`, `WithHashTag("{bad}")`, and `WithHashTag("bad{tag}")` return `ErrInvalidHashTag`;
-- `StructuralKey("bits")` and `StructuralKey("config")` preserve same hash tag;
-- `KeyBuilder{}` methods return `ErrInvalidKey` or `ErrInvalidHashTag` and do not panic;
-- `RedactedKeyID("tenant:secret")` is deterministic, matches `^redis-key:[0-9a-f]{24}$`, and does not contain `tenant:secret`;
+- `NewKeyBuilder("bluetape:probabilistic:bloom:v1")` accepts a colon-delimited 패키지 prefix by validating each prefix part as a structural segment;
+- invalid prefixes such as `""`, `" "`, `"bad::prefix"`, `"bad:{tag}"`, 및 `"bad: part"` return `ErrInvalidKey`;
+- `LogicalKey(" lock key ")`, `LogicalKey("tenant:user:{caller}:a:b")`, 및 `LogicalKey("line\nkey")` preserve exact bytes;
+- `WithHashTag("test:package:case")` preserves the colon-bearing hash tag so #570 can keep 기존 `probabilistic/redis` namespace keys;
+- `WithHashTag("")`, `WithHashTag("{bad}")`, 및 `WithHashTag("bad{tag}")` return `ErrInvalidHashTag`;
+- `StructuralKey("bits")` 및 `StructuralKey("config")` preserve same hash tag;
+- `KeyBuilder{}` methods return `ErrInvalidKey` 또는 `ErrInvalidHashTag` 및 do 아님 panic;
+- `RedactedKeyID("tenant:secret")` is deterministic, matches `^redis-key:[0-9a-f]{24}$`, 및 does 아님 contain `tenant:secret`;
 - `TTLMillis("lease ttl", time.Millisecond)` returns `1`;
-- zero, negative, and sub-millisecond TTLs return `ErrInvalidTTL`;
-- `NewOpError(OpLabels{Family: "redis lock", Operation: "release"}, "raw:key", context.DeadlineExceeded)` returns an `OpError`, wraps the cause, and does not print `raw:key`;
+- zero, negative, 및 sub-millisecond TTLs return `ErrInvalidTTL`;
+- `NewOpError(OpLabels{Family: "redis lock", Operation: "release"}, "raw:key", context.DeadlineExceeded)` returns an `OpError`, wraps the 원인, 및 does 아님 print `raw:key`;
 - `NewOpErrorWithRedactedKey` preserves a valid already-redacted key id;
-- `NewOpErrorWithRedactedKey` rejects raw-key-looking values and malformed IDs with `ErrInvalidKey` without echoing the rejected value;
-- `NewOpError` and `NewOpErrorWithRedactedKey` do not include raw keys or owner tokens in `Error()` even when the wrapped cause message contains them;
-- `OpLabels` rejects empty, overlong, or delimiter-heavy family/operation labels without echoing rejected label text;
-- `Key.String()` and `Key.GoString()` return `RedactedID`, not `Value`.
+- `NewOpErrorWithRedactedKey` rejects raw-key-looking values 및 malformed IDs 함께 `ErrInvalidKey` without echoing the rejected value;
+- `NewOpError` 및 `NewOpErrorWithRedactedKey` do 아님 include raw keys 또는 owner tokens in `Error()` even when the wrapped 원인 message contains them;
+- `OpLabels` rejects empty, overlong, 또는 delimiter-heavy family/operation labels without echoing rejected label text;
+- `Key.String()` 및 `Key.GoString()` return `RedactedID`, 아님 `Value`.
 
-Use this exact command:
+사용 this exact command:
 
 ```bash
 go test -count=1 ./redis -run 'Key|TTL|OpError|Redacted'
 ```
 
-Expected: FAIL because the new symbols are not implemented.
+예상: FAIL because the new symbols are 아님 implemented.
 
-- [ ] **Step 2: Implement key builder, TTL helpers, and errors**
+- [ ] **단계 2: 구현 key builder, TTL helpers, 및 오류**
 
-Implement:
+구현:
 
 ```go
 var (
@@ -344,109 +347,109 @@ var (
 
 Implementation constraints:
 
-- `RedactedKeyID` uses SHA-256 and the first 12 bytes encoded as hex.
-- `ValidateRedactedKeyID` accepts only `redis-key:<24 lowercase hex>`.
-- `KeyBuilder` stores prefix parts, optional hash tag, and structural parts.
-- `NewKeyBuilder(prefix)` splits a colon-delimited package prefix, validates each prefix part as a structural segment, and stores the original colon-delimited prefix shape through its parts.
-- `Structural(parts...)` returns a copied builder with appended structural parts.
-- `WithHashTag(tag)` validates non-empty and no braces, then stores tag verbatim; `:` is allowed because existing `probabilistic/redis` namespaces use colon-bearing hash tags.
+- `RedactedKeyID` uses SHA-256 및 the first 12 bytes encoded as hex.
+- `ValidateRedactedKeyID` accepts 만 `redis-key:<24 낮음ercase hex>`.
+- `KeyBuilder` stores prefix parts, optional hash tag, 및 structural parts.
+- `NewKeyBuilder(prefix)` splits a colon-delimited 패키지 prefix, validates each prefix part as a structural segment, 및 stores the original colon-delimited prefix shape through its parts.
+- `Structural(parts...)` returns a copied builder 함께 appended structural parts.
+- `WithHashTag(tag)` validates non-empty 및 없음 braces, then stores tag verbatim; `:` is al낮음ed because 기존 `probabilistic/redis` namespaces use colon-bearing hash tags.
 - `StructuralKey(parts...)` appends structural suffixes.
 - `LogicalKey(logicalKey)` validates non-blank by `strings.TrimSpace` but appends the original string.
-- `Key.String()` and `Key.GoString()` return `RedactedID`; `Key.Value` remains sensitive Redis command input.
-- `ValidateTTL` rejects `ttl < time.Millisecond` and `ttl <= 0`.
-- `TTLMillis` calls `ValidateTTL` and returns `ttl.Milliseconds()`.
-- `OpLabels` groups low-cardinality `Family` and `Operation` values to avoid adjacent positional key/label strings. Label validation rejects empty, overlong, colon/braces, and whitespace-only values.
-- `NewOpError` computes `RedactedKeyID(rawKey)` and never stores raw key.
-- `NewOpErrorWithRedactedKey` validates the redacted key id before storing it.
-- `OpError.Error()` prints family, operation, redacted key id, and cause type/category only; it must not include the wrapped cause text because provider errors may contain raw keys or tokens.
-- `OpError.Is` delegates to the wrapped cause.
+- `Key.String()` 및 `Key.GoString()` return `RedactedID`; `Key.Value` remains sensitive Redis command input.
+- `ValidateTTL` rejects `ttl < time.Millisecond` 및 `ttl <= 0`.
+- `TTLMillis` calls `ValidateTTL` 및 returns `ttl.Milliseconds()`.
+- `OpLabels` groups 낮음-cardinality `Family` 및 `Operation` values to avoid adjacent positional key/label strings. Label validation rejects empty, overlong, colon/braces, 및 whitespace-만 values.
+- `NewOpError` computes `RedactedKeyID(rawKey)` 및 never stores raw key.
+- `NewOpErrorWithRedactedKey` validates the redacted key id 전에 storing it.
+- `OpError.Error()` prints family, operation, redacted key id, 및 원인 type/category 만; it must 아님 include the wrapped 원인 text because provider 오류 may contain raw keys 또는 tokens.
+- `OpError.Is` delegates to the wrapped 원인.
 
-- [ ] **Step 3: Verify key, TTL, and error tests pass**
+- [ ] **단계 3: 검증 key, TTL, 및 오류 테스트 pass**
 
-Run:
+실행:
 
 ```bash
 go test -count=1 ./redis -run 'Key|TTL|OpError|Redacted'
 ```
 
-Expected: PASS.
+예상: PASS.
 
-## Task 3: Lease And Script Helpers With Fake Scripter No-Dispatch Tests
+## 작업 3: Lease And Script Helpers With Fake Scripter No-Dispatch Tests
 
-complexity: high
+complexity: 높음
 Required skill: `bluetape-go-patterns`
 
-**Files:**
-- Create: `redis/lease.go`
-- Create: `redis/script.go`
-- Create: `redis/lease_test.go`
-- Create: `redis/script_test.go`
+**파일:**
+- 생성: `redis/lease.go`
+- 생성: `redis/script.go`
+- 생성: `redis/lease_test.go`
+- 생성: `redis/script_test.go`
 
-- [ ] **Step 1: Write failing lease and fake-scripter tests**
+- [ ] **단계 1: Write failing lease 및 fake-scripter 테스트**
 
 Tests must prove:
 
-- `NewLease("", validToken)` and `NewLease("key", OwnerToken{})` return sentinel-compatible errors.
+- `NewLease("", validToken)` 및 `NewLease("key", OwnerToken{})` return sentinel-compatible 오류.
 - `Lease{}` is invalid.
-- `CompareAndDelete(nil, fake, lease, "redis test")` returns a validation error and fake call count remains 0.
-- `CompareAndDelete(ctx, nil, lease, "redis test")` and `CompareAndExtend(ctx, nil, lease, ttl, "redis test")` return validation errors and do not panic.
-- a typed nil client returns a validation error when detectable without unsafe reflection.
-- pre-canceled context returns `context.Canceled` and fake call count remains 0.
-- invalid lease returns validation error and fake call count remains 0.
-- invalid TTL for `CompareAndExtend` returns `ErrInvalidTTL` and fake call count remains 0.
+- `CompareAndDelete(nil, fake, lease, "redis test")` returns a validation 오류 및 fake call count remains 0.
+- `CompareAndDelete(ctx, nil, lease, "redis test")` 및 `CompareAndExtend(ctx, nil, lease, ttl, "redis test")` return validation 오류 및 do 아님 panic.
+- a typed nil client returns a validation 오류 when detectable without unsafe reflection.
+- pre-canceled context returns `context.Canceled` 및 fake call count remains 0.
+- invalid lease returns validation 오류 및 fake call count remains 0.
+- invalid TTL for `CompareAndExtend` returns `ErrInvalidTTL` 및 fake call count remains 0.
 - fake success returning integer `1` maps to `true`.
 - fake success returning integer `0` maps to `false`.
-- fake Redis error wraps as `OpError` and preserves the cause.
-- fake Redis error with raw key/token text in the cause still produces an `OpError.Error()` string that contains only the redacted key id and no raw key/token.
+- fake Redis 오류 wraps as `OpError` 및 preserves the 원인.
+- fake Redis 오류 함께 raw key/token text in the 원인 still produces an `OpError.Error()` string that contains 만 the redacted key id 및 없음 raw key/token.
 
-Run:
+실행:
 
 ```bash
 go test -count=1 ./redis -run 'Lease|CompareAnd'
 ```
 
-Expected: FAIL until `lease.go` and `script.go` exist.
+예상: FAIL until `lease.go` 및 `script.go` exist.
 
-- [ ] **Step 2: Implement immutable lease and package-level scripts**
+- [ ] **단계 2: 구현 immutable lease 및 패키지-level scripts**
 
-Implement constraints:
+구현 constraints:
 
-- `Lease` has unexported `key string` and `token OwnerToken`.
+- `Lease` has unexported `key string` 및 `token OwnerToken`.
 - `NewLease` validates non-blank key without trimming stored key.
-- `Lease.Key`, `Lease.RedactedKeyID`, `Lease.Token`, and `Lease.Validate` are value methods.
-- `compareDeleteScript := redis.NewScript(...)` and `compareExtendScript := redis.NewScript(...)` are package-level vars.
-- Script helpers validate in this order before Redis dispatch:
+- `Lease.Key`, `Lease.RedactedKeyID`, `Lease.Token`, 및 `Lease.Validate` are value methods.
+- `compareDeleteScript := redis.NewScript(...)` 및 `compareExtendScript := redis.NewScript(...)` are 패키지-level vars.
+- Script helpers validate in this order 전에 Redis dispatch:
   1. `ctx != nil`
   2. `ctx.Err()`
-  3. `client != nil` and detectable typed nil client rejection
+  3. `client != nil` 및 detectable typed nil client rejection
   4. `lease.Validate()`
-  5. for extend only, `TTLMillis("lease ttl", ttl)`
+  5. for extend 만, `TTLMillis("lease ttl", ttl)`
 - Script helpers call `script.Run(ctx, client, []string{lease.Key()}, lease.Token().RedisValue(), ...)`.
-- Script helpers build `OpLabels{Family: family, Operation: "compare-delete"}` and `OpLabels{Family: family, Operation: "compare-extend"}` for error construction.
-- Result integer `1` is true, `0` is false; any parse error is wrapped in `OpError`.
+- Script helpers build `OpLabels{Family: family, Operation: "compare-delete"}` 및 `OpLabels{Family: family, Operation: "compare-extend"}` for 오류 construction.
+- Result integer `1` is true, `0` is false; any parse 오류 is wrapped in `OpError`.
 
-- [ ] **Step 3: Verify fake-scripter tests pass**
+- [ ] **단계 3: 검증 fake-scripter 테스트 pass**
 
-Run:
+실행:
 
 ```bash
 go test -count=1 ./redis -run 'Lease|CompareAnd'
 ```
 
-Expected: PASS.
+예상: PASS.
 
-## Task 4: Redis Testcontainers Integration And Stress
+## 작업 4: Redis Testcontainers Integration And Stress
 
-complexity: high
+complexity: 높음
 Required skill: `bluetape-go-patterns`
 
-**Files:**
-- Create: `redis/integration_test.go`
-- Create or update: `redis/script_test.go`
+**파일:**
+- 생성: `redis/integration_test.go`
+- 생성 또는 update: `redis/script_test.go`
 
-- [ ] **Step 1: Write failing Redis integration tests**
+- [ ] **단계 1: Write failing Redis integration 테스트**
 
-Use `redistestcontainer.Start(ctx, t)` from `github.com/bluetape4k/bluetape-go/testcontainers/redis` and `redis.NewClient`.
+사용 `redistestcontainer.Start(ctx, t)` from `github.com/bluetape4k/bluetape-go/testcontainers/redis` 및 `redis.NewClient`.
 
 Tests:
 
@@ -460,55 +463,55 @@ Tests:
 - `TestCompareAndDeleteInterleavedOwnersStress`
 - `TestCompareAndExtendInterleavedOwnersStress`
 
-Each test must:
+Each 테스트 must:
 
 - use `context.WithTimeout`;
 - use unique keys from `t.Name()`;
-- call `t.Cleanup` to delete keys and close client;
-- not call `t.Parallel` in Testcontainers-backed tests or in parent subtests;
-- run Testcontainers-backed Redis tests serially through package command, not parallel external invocations.
-- assert first-run helper execution succeeds against a fresh real client, relying on go-redis `Script.Run` to handle `EVALSHA`/`EVAL` fallback instead of reimplementing fallback in this package.
-- stress tests use at least 8 workers and 32 iterations per worker on a shared key, interleave stale and later owners, and assert the later owner value remains intact; extend stress also asserts stale owners do not increase the later owner's TTL beyond the expected owner TTL window.
+- call `t.Cleanup` to delete keys 및 close client;
+- 아님 call `t.Parallel` in Testcontainers-backed 테스트 또는 in parent subtests;
+- run Testcontainers-backed Redis 테스트 serially through 패키지 command, 아님 parallel external invocations.
+- assert first-run helper execution succeeds against a fresh real client, relying on go-redis `Script.Run` to handle `EVALSHA`/`EVAL` fallback instead of reimplementing fallback in this 패키지.
+- stress 테스트 use at least 8 workers 및 32 iterations per worker on a 공유 key, interleave stale 및 later owners, 및 assert the later owner value remains intact; extend stress also asserts stale owners do 아님 increase the later owner's TTL beyond the expected owner TTL window.
 
-Run:
+실행:
 
 ```bash
 go test -p 1 -count=1 ./redis -run 'CompareAnd(Delete|Extend)'
 ```
 
-Expected: FAIL until integration support is complete.
+예상: FAIL until integration support is complete.
 
-- [ ] **Step 2: Implement missing integration support**
+- [ ] **단계 2: 구현 missing integration support**
 
-Only adjust production code if integration tests expose a real contract gap. Do not add retry loops or provider migration code.
+Only adjust production code if integration 테스트 expose a real 계약 gap. 다음을 하지 않는다: add retry loops 또는 provider migration code.
 
-- [ ] **Step 3: Verify integration and race**
+- [ ] **단계 3: 검증 integration 및 race**
 
-Run:
+실행:
 
 ```bash
 go test -p 1 -count=1 ./redis
 go test -p 1 -race -count=1 ./redis
 ```
 
-Expected: PASS.
+예상: PASS.
 
-## Task 5: Examples, README Locale Set, Root Index, And Changelog
+## 작업 5: Examples, README Locale Set, Root Index, And Changelog
 
-complexity: medium
+complexity: 보통
 Required skill: `bluetape-go-patterns`
 
-**Files:**
-- Create: `redis/example_test.go`
-- Create: `redis/README.md`
-- Create: `redis/README.ko.md`
+**파일:**
+- 생성: `redis/example_test.go`
+- 생성: `redis/README.md`
+- 생성: `redis/README.ko.md`
 - Modify: `README.md`
 - Modify: `README.ko.md`
 - Modify: `CHANGELOG.md`
 
-- [ ] **Step 1: Add compile-checked examples**
+- [ ] **단계 1: 추가 compile-checked example**
 
-Create examples:
+생성 example:
 
 - `ExampleNewOwnerToken`
 - `ExampleKeyBuilder_LogicalKey`
@@ -516,49 +519,49 @@ Create examples:
 - `ExampleCompareAndDelete`
 - `ExampleOpError`
 
-Examples must not print raw owner token values. Use `String()` or redacted key IDs only.
-`ExampleCompareAndDelete` must show `context.WithTimeout` and document that
-`(false, nil)` means ownership drift. `ExampleOpError` must use `OpLabels` and
-must not pass raw key material as family or operation labels.
+Examples must 아님 print raw owner token values. 사용 `String()` 또는 redacted key IDs 만.
+`ExampleCompareAndDelete` must show `context.WithTimeout` 및 document that
+`(false, nil)` means ownership drift. `ExampleOpError` must use `OpLabels` 및
+must 아님 pass raw key material as family 또는 operation labels.
 
-Run:
+실행:
 
 ```bash
 go test -count=1 ./redis -run Example
 ```
 
-Expected: PASS after examples compile.
+예상: PASS 후 example compile.
 
-- [ ] **Step 2: Write package READMEs**
+- [ ] **단계 2: Write 패키지 READMEs**
 
-`redis/README.md` and `redis/README.ko.md` must cover:
+`redis/README.md` 및 `redis/README.ko.md` must cover:
 
-- import path and package name;
-- non-goals: no generic Redis facade, no migration of existing packages in #569;
-- key preservation and structural/logical split;
-- hash-tags are same-slot helpers, not tenant isolation;
-- owner-token secrecy and redacted formatting;
-- `context.WithTimeout` examples and post-dispatch cancellation indeterminate state;
-- `(false, nil)` means ownership drift, not an infrastructure error;
-- `OpError` and redacted diagnostics;
-- Redis script/client error triage and the fact that `OpError.Error()` is
-  sanitized while the cause remains available through `errors.Is` / `errors.As`;
+- import path 및 패키지 name;
+- non-goals: 없음 generic Redis facade, 없음 migration of 기존 packages in #569;
+- key preservation 및 structural/logical split;
+- hash-tags are same-slot helpers, 아님 tenant isolation;
+- owner-token secrecy 및 redacted formatting;
+- `context.WithTimeout` example 및 post-dispatch cancellation indeterminate state;
+- `(false, nil)` means ownership drift, 아님 an infrastructure 오류;
+- `OpError` 및 redacted 진단;
+- Redis script/client 오류 triage 및 the fact that `OpError.Error()` is
+  sanitized while the 원인 remains available through `errors.Is` / `errors.As`;
 - cleanup guidance for partial failures;
-- rollback/no-migration behavior for #569;
-- test commands.
+- rollback/없음-migration behavior for #569;
+- 테스트 commands.
 
-- [ ] **Step 3: Update root README and changelog**
+- [ ] **단계 3: 업데이트 root README 및 changelog**
 
-Add a concise `redis` package index row to `README.md` and `README.ko.md`.
-Add `[Unreleased]` changelog bullet:
+추가 a concise `redis` 패키지 index row to `README.md` 및 `README.ko.md`.
+추가 `[Unreleased]` changelog bullet:
 
 ```markdown
 - Add `redis` foundation package with key, owner-token, lease script, TTL, and redacted Redis operation error primitives.
 ```
 
-- [ ] **Step 4: Verify docs against source**
+- [ ] **단계 4: 검증 docs against source**
 
-Run:
+실행:
 
 ```bash
 go test -count=1 ./redis -run Example
@@ -567,23 +570,23 @@ rg -n "context.WithTimeout|false, nil|ownership drift|indeterminate|cleanup|no m
 git diff --check
 ```
 
-Expected: PASS / matching docs. Also manually checklist both locale READMEs for
+예상: PASS / matching docs. Also manually checklist both locale READMEs for
 the same boundary, non-goals, key preservation, token secrecy, timeout,
-cancellation, ownership drift, script/client error, cleanup, rollback, and
-no-migration sections; keyword presence alone is not sufficient.
+cancellation, ownership drift, script/client 오류, cleanup, rollback, 및
+없음-migration sections; keyword presence alone is 아님 sufficient.
 
-## Task 6: Final Verification, Lessons, And Review Evidence
+## 작업 6: Final 검증, Lessons, And 리뷰 증거
 
-complexity: medium
+complexity: 보통
 Required skill: `bluetape-go-patterns`
 
-**Files:**
-- Create: `docs/lessons/2026-07-10-issue-569-redis-foundation.md`
-- Create: `docs/review/2026-07-10-issue-569-redis-foundation-review.md`
+**파일:**
+- 생성: `docs/lessons/2026-07-10-issue-569-redis-foundation.md`
+- 생성: `docs/review/2026-07-10-issue-569-redis-foundation-review.md`
 
-- [ ] **Step 1: Run targeted verification**
+- [ ] **단계 1: 실행 targeted verification**
 
-Run:
+실행:
 
 ```bash
 go test -p 1 -count=1 ./redis
@@ -592,71 +595,71 @@ go test -count=1 ./redis -run Example
 git diff --check
 ```
 
-Expected: PASS.
+예상: PASS.
 
-- [ ] **Step 2: Run full repo verification**
+- [ ] **단계 2: 실행 full repo verification**
 
-Run:
+실행:
 
 ```bash
 make ci
 ```
 
-Expected: PASS.
+예상: PASS.
 
-- [ ] **Step 3: Verify no existing Redis package migration occurred**
+- [ ] **단계 3: 검증 없음 기존 Redis 패키지 migration occurred**
 
-Run:
+실행:
 
 ```bash
 git diff --name-only origin/develop...HEAD
 rg -n 'github.com/bluetape4k/bluetape-go/redis' lock/redis leader/redis ratelimit/redis probabilistic/redis cache/rediscoord cache/redisnear jwt || true
 ```
 
-Expected: changed files do not include existing Redis package implementation files, and `rg` prints no imports in those packages.
+예상: changed files do 아님 include 기존 Redis 패키지 implementation files, 및 `rg` prints 없음 imports in those packages.
 
-- [ ] **Step 4: Record lesson and code review artifact**
+- [ ] **단계 4: 기록 lesson 및 code review artifact**
 
 Lesson must capture:
 
-- public Redis foundation should reject nil contexts for external IO;
+- 공개 Redis foundation should reject nil contexts for external IO;
 - owner tokens must be opaque/redacted by default;
-- structural key segments and caller-owned logical keys need separate API surfaces;
+- structural key segments 및 호출자-owned logical keys need separate API surfaces;
 - post-dispatch Redis script cancellation has indeterminate commit state.
 
-Review artifact must include:
+리뷰 artifact must include:
 
-- reviewed scope and baseline commit;
-- verification commands and results;
+- reviewed scope 및 baseline commit;
+- verification commands 및 results;
 - 7-Tier P0/P1/P2/P3 table;
 - explicit `P0=0 P1=0`;
-- remaining risks or follow-up issues.
+- remaining risks 또는 fol낮음-up issues.
 
-- [ ] **Step 5: Verify issue metadata before PR**
+- [ ] **단계 5: 검증 issue metadata 전에 PR**
 
-Run:
+실행:
 
 ```bash
 gh issue view 569 --json assignees,milestone,labels,state,title,url
 ```
 
-Expected:
+예상:
 
 - state `OPEN`;
 - assignee `debop`;
 - milestone `0.19.0`;
 - labels match issue scope.
 
-## Step 3 Checklist Completion Report
+## 단계 3 Checklist Completion Report
 
-| Item | Status | Notes |
+| Item | 상태 | Notes |
 |------|--------|-------|
 | Plan path confirmed inside feature worktree | Done | `docs/superpowers/plans/2026-07-10-issue-569-redis-foundation-plan.md`. |
-| All tasks have complexity labels | Done | Tasks 1-4 high, Tasks 5-6 medium. |
+| All tasks have complexity labels | Done | Tasks 1-4 높음, Tasks 5-6 보통. |
 | `bluetape-go-patterns` applied to every code-bearing task | Done | Each task declares required skill. |
-| Plan code/test snippets conform to Go patterns | Done | Context, `%w`, errors.Is/As, race, and Testcontainers requirements included. |
-| Thread/coroutine helper applicability | N/A | Go repo; race/stress uses Go `testing` and `go test -race`, not bluetape4k JUnit helpers. |
-| Tests and verification tasks included | Done | Unit, fake-scripter, Testcontainers, race, examples, `make ci`. |
-| Multilingual README and contributor docs included | Done | README locale set, CHANGELOG, lessons, review artifact. |
-| Risky ordering/dependency assumptions explicit | Done | Current-code assumptions and no-migration check included. |
-| Spec + plan committed before implementation | Pending | Commit after Step 3-R plan review convergence. |
+| Plan code/테스트 snippets conform to Go patterns | Done | Context, `%w`, 오류.Is/As, race, 및 Testcontainers requirements included. |
+| Thread/coroutine helper applicability | N/A | Go repo; race/stress uses Go `testing` 및 `go test -race`, 아님 bluetape4k JUnit helpers. |
+| Tests 및 verification tasks included | Done | Unit, fake-scripter, Testcontainers, race, example, `make ci`. |
+| Multilingual README 및 contributor docs included | Done | README locale set, CHANGELOG, lessons, review artifact. |
+| Risky ordering/dependency assumptions explicit | Done | Current-code assumptions 및 없음-migration check included. |
+| Spec + plan committed 전에 implementation | Pending | 커밋 후 단계 3-R plan review convergence. |

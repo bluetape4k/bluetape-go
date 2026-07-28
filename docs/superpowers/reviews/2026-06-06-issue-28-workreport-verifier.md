@@ -1,17 +1,19 @@
 # Issue 28 Workreport Verifier
 
-Issue: #28
-Gate: Step 5
-Status: VERIFIED
+> 한국어 리뷰 경계: 이 문서는 리뷰 판정과 근거를 한국어 독자가 추적할 수 있도록 정리한다. 심각도 토큰, 판정 토큰, 파일 경로, 라인 번호, 이슈/PR 번호, 명령, 코드 식별자는 원문의 증거 앵커로 보존한다.
 
-## Inputs
+이슈: #28
+게이트: Step 5
+상태: VERIFIED
+
+## 입력
 
 - Spec: `docs/superpowers/specs/2026-06-06-issue-28-workreport-spec.md`
 - Plan: `docs/superpowers/plans/2026-06-06-issue-28-workreport-plan.md`
 - Implementation: `workreport/*`
 - Docs/release notes: `CHANGELOG.md`, `WIP.md`, `docs/lessons/2026-06-06-workreport-failure-policy.md`
 
-## Verification
+## 검증
 
 | Requirement | Status | Evidence |
 |---|---|---|
@@ -42,7 +44,7 @@ lines. No performance or stability issues were found:
 - Child report slices are copied intentionally to protect report-tree stability.
 - Stress/race validation covers immutable aggregation use.
 
-## Validation Evidence
+## 검증 증거
 
 | Command | Status | Evidence |
 |---|---|---|
@@ -56,6 +58,6 @@ lines. No performance or stability issues were found:
 | `rg -n "^func Example\|GoroutineStressTester\|AsyncJobTester" workreport` | PASS | Examples and helper-based tests found. |
 | `rg -n "workreport\|#28\|0\\.4\\.0" CHANGELOG.md WIP.md docs/lessons/2026-06-06-workreport-failure-policy.md` | PASS | Release notes, WIP, and lesson references found. |
 
-## Verdict
+## 판정
 
 VERIFIED. No spec or plan gaps remain.

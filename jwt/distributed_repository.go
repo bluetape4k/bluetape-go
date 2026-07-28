@@ -6,7 +6,7 @@ import (
 	"time"
 )
 
-// DistributedKeyChainRepository stores JWT KeyChains for multi-instance providers.
+// DistributedKeyChainRepository JWT key provider repository에서 동작과 caller-visible 계약을 설명한다.
 type DistributedKeyChainRepository interface {
 	Current(ctx context.Context, now time.Time) (*KeyChain, error)
 	Find(ctx context.Context, kid string, now time.Time) (*KeyChain, error)

@@ -1,10 +1,12 @@
 # Issue 86 Strategic Leader Elector Code Review
 
-Issue: #86
-Milestone: 0.3.0
-Branch: `feat/issue-86-strategic-leader-elector`
+> 한국어 리뷰 경계: 이 문서는 리뷰 판정과 근거를 한국어 독자가 추적할 수 있도록 정리한다. 심각도 토큰, 판정 토큰, 파일 경로, 라인 번호, 이슈/PR 번호, 명령, 코드 식별자는 원문의 증거 앵커로 보존한다.
 
-## Verdict
+이슈: #86
+Milestone: 0.3.0
+브랜치: `feat/issue-86-strategic-leader-elector`
+
+## 판정
 
 P0=0 P1=0
 
@@ -48,12 +50,12 @@ No blocking issues found in the local review pass.
    - Implementation stays in `leader` and `leader/redis`.
    - Research, spec, plan, lesson, and review artifacts are linked to #86.
 
-## Verification Evidence
+## 검증 증거
 
 - `go test -count=1 ./leader ./leader/redis -run 'Strategic|Candidate|Scored|FIFO|Random|Async|Stress|ExampleNewStrategic'`: 14 passed in 2 packages.
 - `go test -race -count=1 ./leader ./leader/redis -run 'Strategic|Candidate|Scored|FIFO|Random|Async|Stress'`: 14 passed in 2 packages.
 
-## Residual Risk
+## 잔여 위험
 
 `RunIfLeader` intentionally uses strategy selection over the current candidate
 snapshot; it does not implement a separate Redis lease lock. This matches the

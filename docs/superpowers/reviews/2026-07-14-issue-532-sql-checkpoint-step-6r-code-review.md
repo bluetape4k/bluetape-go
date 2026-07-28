@@ -1,6 +1,8 @@
 # Issue #532 PostgreSQL Batch Checkpoint Step 6-R Review
 
-## Scope and verdict
+> 한국어 리뷰 경계: 이 문서는 리뷰 판정과 근거를 한국어 독자가 추적할 수 있도록 정리한다. 심각도 토큰, 판정 토큰, 파일 경로, 라인 번호, 이슈/PR 번호, 명령, 코드 식별자는 원문의 증거 앵커로 보존한다.
+
+## 범위와 판정
 
 - Base: `873555f` (`origin/develop`)
 - Branch: `feat/issue-532-sql-checkpoint`
@@ -12,7 +14,7 @@
 - Final verdict: `P0=0`, `P1=0`, `P2=2` advisory.
 - Pre-PR gate: PASS. No unresolved blocking finding remains.
 
-## Six review perspectives
+## 6개 검토 관점
 
 | Perspective | Final result | Evidence |
 |---|---|---|
@@ -102,7 +104,7 @@
   reader never returns. This preserves cleanup after cancellation and matches
   the legacy step behavior; callers must enforce an outer shutdown deadline.
 
-## Residual deployment-owned risks
+## 배포 소유 잔여 위험
 
 - Production capacity, hot-key latency, WAL, dead tuples, autovacuum, pool
   margin, and telemetry thresholds require a production-like canary.

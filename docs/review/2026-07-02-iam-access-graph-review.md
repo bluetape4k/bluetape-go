@@ -1,11 +1,13 @@
 # IAM Access Graph Example Review
 
-Scope: issue #368, `examples/graph/iamaccess`, README links, and
+> 한국어 감사/리뷰 경계: 이 문서는 리뷰 결론과 남은 위험을 한국어 독자가 추적할 수 있도록 정리한다. 심각도 표기, 판정 표기, 파일 경로, 라인 번호, 이슈/PR 링크, 명령, 코드 식별자, 인용 증거는 원문의 증거 앵커로 보존한다.
+
+범위: issue #368, `examples/graph/iamaccess`, README links, and
 `graph-iam-access-paths` README diagram.
 
 Baseline: `f05a8c8` (`develop` after #366).
 
-## Six Lanes
+## 6개 관점
 
 | Lane | Verdict | Evidence |
 |---|---|---|
@@ -16,7 +18,7 @@ Baseline: `f05a8c8` (`develop` after #366).
 | Developer/API | PASS | Public API stays Go-shaped: immutable fixture accessors, explicit `AccessExplanation` and `PrivilegeChain` values, `map[string][]string` approved-action input, and graphio import/export helpers matching the observability example. |
 | User/Caller | PASS | Tests and README demonstrate effective access, explicit deny, risky nested admin inheritance, least-privilege drift, temporary access, and NDJSON round-trip. Diagram visually separates member, allow, deny, and temporary grant paths. |
 
-## Diagram Evidence
+## 다이어그램 증거
 
 | Gate | Evidence | Verdict |
 |---|---|---|
@@ -28,7 +30,7 @@ Baseline: `f05a8c8` (`develop` after #366).
 | Connector audit | `graph-iam-access-paths.svg: PASS markers=4 connectors=17 cards=17 intrusions=0 crossings=0` | PASS |
 | Full-size PNG inspection | Opened `docs/images/readme-diagrams/graph-iam-access-paths.png`; no card/text overlap, no connector crossing, right resource card has enough size for delete/read paths. | PASS |
 
-## Integrated Verdict
+## 통합 판정
 
 P0=0 P1=0
 

@@ -1,12 +1,14 @@
 # Issue 32 ID Generator Foundation Plan Review
 
+> 한국어 리뷰 경계: 이 문서는 리뷰 판정과 근거를 한국어 독자가 추적할 수 있도록 정리한다. 심각도 토큰, 판정 토큰, 파일 경로, 라인 번호, 이슈/PR 번호, 명령, 코드 식별자는 원문의 증거 앵커로 보존한다.
+
 Plan: `docs/superpowers/plans/2026-06-08-issue-32-id-generator-foundation-plan.md`
 Spec: `docs/superpowers/specs/2026-06-08-issue-32-id-generator-foundation-spec.md`
 Review gate: Step 3-R
 Baseline: `origin/develop` at `fc2ec24`
 Method: subagent-based 7-Tier plan review
 
-## Lane Budget
+## 관점 예산
 
 - Lanes: 7 independent read-only subagents.
 - Write scope: none for reviewers.
@@ -14,7 +16,7 @@ Method: subagent-based 7-Tier plan review
 - Stop condition: each tier returns P0/P1/P2/P3 findings with file:line
   evidence and explicit `P0=<n> P1=<n>`.
 
-## Initial Subagent Results
+## 초기 서브에이전트 결과
 
 | Tier | Reviewer | P0 | P1 | P2 | P3 | Summary |
 |---|---|---:|---:|---:|---:|---|
@@ -72,7 +74,7 @@ The references were corrected:
 
 Narrow Tier 7 recheck returned `P0=0 P1=0 P2=0 P3=0`.
 
-## Integrated Verdict
+## 통합 판정
 
 PASS. Subagent-based Step 3-R convergence reached `P0=0 P1=0`.
 
@@ -81,7 +83,7 @@ results. P2/P3 findings were also repaired rather than deferred.
 
 ## Step 3-R Checklist Completion Report
 
-| Item | Status | Notes |
+| 항목 | 상태 | Notes |
 |------|--------|-------|
 | Step 3-R references read | Done | `step-3r-plan-review-perspectives.md` and `step-3r-plan-review.md`. |
 | Plan reviewed against spec | Done | 7-Tier subagent review used the plan, spec, spec review, and `$bluetape-go-patterns`. |

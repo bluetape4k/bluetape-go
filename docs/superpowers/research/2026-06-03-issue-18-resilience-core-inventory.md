@@ -1,63 +1,60 @@
 # Issue 18 Resilience Core Inventory
 
-## Context
+## 맥락
 
-Issue #18 starts milestone `0.2.0` by creating the first-party
-`resilience` package. The goal is not to wrap an existing Go library. The goal
-is to own a Go-native policy model that can grow across retry, timeout, circuit
-breaker, bulkhead, observability hooks, and HTTP examples.
+Issue #18은 milestone `0.2.0`을 시작하며 first-party `resilience` package를 만든다.
+목표는 기존 Go library를 감싸는 것이 아니라 retry, timeout, circuit breaker, bulkhead,
+observability hook, HTTP example로 확장 가능한 Go-native policy model을 소유하는 것이다.
 
 ## Source Inventory
 
-Observed source and reference inputs:
+관찰한 source와 reference input은 다음과 같다.
 
-- `bluetape4k-projects/infra/resilience4j`: service-level resilience concepts.
-- `bluetape4k-projects/ktor/resilience4j`: framework integration examples that
-  should later map to `net/http`.
-- `failsafe-go`: composable policy shape and executor-oriented API ideas.
-- `cenkalti/backoff`: exponential backoff and jitter design ideas.
-- `sony/gobreaker`: circuit breaker state and half-open behavior ideas for #19.
-- `golang.org/x/sync/semaphore`: bulkhead/concurrency limiter ideas for #19.
+- `bluetape4k-projects/infra/resilience4j`: service-level resilience concept.
+- `bluetape4k-projects/ktor/resilience4j`: 나중에 `net/http`로 대응할 framework integration example.
+- `failsafe-go`: composable policy shape와 executor-oriented API idea.
+- `cenkalti/backoff`: exponential backoff와 jitter design idea.
+- `sony/gobreaker`: #19 circuit breaker state와 half-open behavior reference.
+- `golang.org/x/sync/semaphore`: #19 bulkhead/concurrency limiter reference.
 - `golang.org/x/time/rate`: future token-bucket rate limiter reference.
 
-## Implement Now
+## 지금 구현할 것
 
-- `Operation[T]`: `context.Context`-aware unit of work.
-- `Policy[T]`: composable operation wrapper.
-- `Compose` and `Run`: policy application and execution helpers.
+- `Operation[T]`: `context.Context`를 받는 work unit.
+- `Policy[T]`: operation을 감싸는 composable wrapper.
+- `Compose`와 `Run`: policy 적용 및 실행 helper.
 - Retry policy:
   - max attempts
   - retryable error predicate
   - pluggable backoff
-  - pluggable sleeper for deterministic tests
-- Backoff policies:
+  - deterministic test용 pluggable sleeper
+- Backoff policy:
   - no delay
   - constant delay
-  - exponential delay with optional jitter
+  - optional jitter가 있는 exponential delay
 - Timeout policy:
   - `context.WithTimeout` composition
   - cooperative timeout semantics
 - Common errors:
   - retry exhaustion
   - policy-owned timeout
-  - wrapped cause preservation through `errors.Is` and `errors.As`
+  - `errors.Is`와 `errors.As`를 통한 wrapped cause preservation
 - Event skeleton:
   - success
   - retry
   - timeout
 
-## Defer
+## 미룰 것
 
 - Circuit breaker implementation: #19.
 - Bulkhead implementation: #19.
-- Full event payload matrix and ordering coverage: #21.
-- HTTP middleware and README copy-paste examples: #20.
-- OpenTelemetry or metrics exporter dependencies: #21 or later.
-- Rate limiter implementation: later milestone unless a `0.2.0` child issue
-  explicitly pulls it in.
+- Full event payload matrix와 ordering coverage: #21.
+- HTTP middleware와 README copy-paste example: #20.
+- OpenTelemetry 또는 metrics exporter dependency: #21 이후.
+- Rate limiter implementation: 별도 `0.2.0` child issue가 끌어오지 않는 한 later milestone.
 
-## Decision
+## 결정
 
-Create a small public `resilience` package with first-party implementation.
-External libraries are reference material only. Keep behavior deterministic,
-composition explicit, and errors inspectable with standard Go error handling.
+작은 public `resilience` package를 first-party implementation으로 만든다. 외부 library는
+reference material일 뿐이다. behavior는 deterministic하게, composition은 explicit하게,
+error는 standard Go error handling으로 검사 가능하게 유지한다.

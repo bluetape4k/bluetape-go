@@ -1,13 +1,15 @@
 # Issue #25 7-Tier Code Review
 
-Issue: #25
+> 한국어 리뷰 경계: 이 문서는 리뷰 판정과 근거를 한국어 독자가 추적할 수 있도록 정리한다. 심각도 토큰, 판정 토큰, 파일 경로, 라인 번호, 이슈/PR 번호, 명령, 코드 식별자는 원문의 증거 앵커로 보존한다.
+
+이슈: #25
 Milestone: 0.3.0
-Date: 2026-06-05
+날짜: 2026-06-05
 Diff base: `origin/develop`
-Scope: `ratelimit`, `ratelimit/redis`, README pair, package READMEs,
+범위: `ratelimit`, `ratelimit/redis`, README pair, package READMEs,
 `CHANGELOG.md`, `WIP.md`, research/spec/plan/review artifacts.
 
-## Reviewed Evidence
+## 검토한 증거
 
 - Local limiter API and state: `ratelimit/result.go`, `ratelimit/options.go`,
   `ratelimit/token_bucket.go`.
@@ -20,7 +22,7 @@ Scope: `ratelimit`, `ratelimit/redis`, README pair, package READMEs,
 - Validation: targeted tests, race tests, `make bench-ratelimit`, `make ci`,
   wiki preservation, GNO evidence.
 
-## Tier Findings
+## 계층별 발견 사항
 
 | Tier | P0 | P1 | P2 | P3 | Evidence |
 |---|---:|---:|---:|---:|---|
@@ -40,7 +42,7 @@ Scope: `ratelimit`, `ratelimit/redis`, README pair, package READMEs,
 
 ## Validation Snapshot
 
-| Command | Result |
+| 명령 | 결과 |
 |---|---|
 | `go test -count=1 ./ratelimit ./ratelimit/redis` | PASS, 44 tests |
 | `go test -race -count=1 ./ratelimit ./ratelimit/redis` | PASS, 44 tests |
@@ -49,7 +51,7 @@ Scope: `ratelimit`, `ratelimit/redis`, README pair, package READMEs,
 | `make ci` | PASS after final local over-burst test addition |
 | `git diff --check` | PASS |
 
-## Convergence Verdict
+## 수렴 판정
 
 - P0: 0
 - P1: 0

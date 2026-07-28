@@ -50,7 +50,7 @@ return active
 
 const groupPollInterval = 50 * time.Millisecond
 
-// GroupElector 는 Redis ZSET 기반 multi-leader elector다.
+// GroupElector Redis ZSET 기반 multi-leader elector다.
 type GroupElector struct {
 	client redis.Cmdable
 	opts   leader.GroupOptions
@@ -64,7 +64,7 @@ type GroupElector struct {
 	done   chan struct{}
 }
 
-// NewGroup 는 Redis 기반 multi-leader elector를 만든다.
+// NewGroup Redis 기반 multi-leader elector를 만든다.
 func NewGroup(client redis.Cmdable, opts leader.GroupOptions) (*GroupElector, error) {
 	if client == nil {
 		return nil, errors.New("redis client must not be nil")
@@ -88,7 +88,12 @@ func NewGroup(client redis.Cmdable, opts leader.GroupOptions) (*GroupElector, er
 	}, nil
 }
 
-// Campaign 은 빈 leader slot을 획득할 때까지 대기한다.
+// Campaign leader election의 lease, owner token, fencing, group key 동작을 수행한다.
+//
+// 매개변수:
+//   - ctx: 호출자가 소유한 취소, deadline, 요청 범위를 전달한다.
+//
+// 반환 오류는 입력 검증 실패, context 취소, Redis/backend 실패, lease/token 불일치, package sentinel error와 typed error를 그대로 드러낸다.
 func (e *GroupElector) Campaign(ctx context.Context) error {
 	e.mu.Lock()
 	if e.owned || e.active {
@@ -130,7 +135,12 @@ func (e *GroupElector) Campaign(ctx context.Context) error {
 	}
 }
 
-// Resign 은 이 elector가 아직 소유한 leader slot만 해제한다.
+// Resign leader election의 lease, owner token, fencing, group key 동작을 수행한다.
+//
+// 매개변수:
+//   - ctx: 호출자가 소유한 취소, deadline, 요청 범위를 전달한다.
+//
+// 반환 오류는 입력 검증 실패, context 취소, Redis/backend 실패, lease/token 불일치, package sentinel error와 typed error를 그대로 드러낸다.
 func (e *GroupElector) Resign(ctx context.Context) error {
 	if ctx == nil {
 		ctx = context.Background()
@@ -165,14 +175,14 @@ func (e *GroupElector) Resign(ctx context.Context) error {
 	return nil
 }
 
-// IsLeader 는 이 elector가 아직 leader slot을 보유한다고 판단하는지 알려준다.
+// IsLeader 이 elector가 아직 leader slot을 보유한다고 판단하는지 알려준다.
 func (e *GroupElector) IsLeader() bool {
 	e.mu.RLock()
 	defer e.mu.RUnlock()
 	return e.owned
 }
 
-// ActiveCount 는 현재 살아 있는 leader slot 수를 반환한다.
+// ActiveCount 현재 살아 있는 leader slot 수를 반환한다.
 func (e *GroupElector) ActiveCount(ctx context.Context) (int, error) {
 	active, err := e.activeCount(ctx)
 	if err != nil {
@@ -181,7 +191,7 @@ func (e *GroupElector) ActiveCount(ctx context.Context) (int, error) {
 	return active, nil
 }
 
-// AvailableSlots 는 추가로 획득할 수 있는 leader slot 수를 반환한다.
+// AvailableSlots 추가로 획득할 수 있는 leader slot 수를 반환한다.
 func (e *GroupElector) AvailableSlots(ctx context.Context) (int, error) {
 	active, err := e.activeCount(ctx)
 	if err != nil {

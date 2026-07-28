@@ -1,5 +1,7 @@
 # Issue #529 PostgreSQL Rate Limiter Risk Prediction
 
+> 한국어 리뷰 경계: 이 문서는 리뷰 판정과 근거를 한국어 독자가 추적할 수 있도록 정리한다. 심각도 토큰, 판정 토큰, 파일 경로, 라인 번호, 이슈/PR 번호, 명령, 코드 식별자는 원문의 증거 앵커로 보존한다.
+
 ## Baseline
 
 - Branch: `feat/issue-529-sql-ratelimit`
@@ -11,7 +13,7 @@
 - Task 0 slice: `go test -count=1 ./ratelimit/... ./redis/...` PASS
 - Artifact commits before source work: `e7c17b2`, `ae72179`
 
-## Risk table
+## 위험 표
 
 | Risk | Trigger | Signal | Prevention | Recovery | Owner |
 |---|---|---|---|---|---|
@@ -37,7 +39,7 @@
 | Testcontainers leakage | Pool/conn outlives fixture | Hangs, port/resource exhaustion | LIFO cleanup, bounded contexts, serial runs | Terminate fixture; rerun from scratch | Tests |
 | Bilingual documentation drift | Public behavior changes | Conflicting caller guidance | Contract tests and paired commits | Repair both locale files before PR | Docs |
 
-## Stop conditions
+## 중단 조건
 
 - Any P0/P1 review finding, exact-admission failure, worker leak, schema/privilege drift, or missing
   command exit code blocks the next task.

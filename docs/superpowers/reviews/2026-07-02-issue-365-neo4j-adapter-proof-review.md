@@ -1,6 +1,8 @@
 # Issue #365 Neo4j Adapter Proof Review
 
-## Scope
+> 한국어 리뷰 경계: 이 문서는 리뷰 판정과 근거를 한국어 독자가 추적할 수 있도록 정리한다. 심각도 토큰, 판정 토큰, 파일 경로, 라인 번호, 이슈/PR 번호, 명령, 코드 식별자는 원문의 증거 앵커로 보존한다.
+
+## 범위
 
 - Diff base: `origin/develop`.
 - Module slice: new `graph/neo4j` package, root README package index, graph
@@ -8,7 +10,7 @@
 - Review mode: main-session six-lane review. Native subagents were not spawned
   because this Codex surface only spawns subagents on explicit user request.
 
-## Six-Lane Findings
+## 6개 관점 발견 사항
 
 | Lane | Reviewed Evidence | P0 | P1 | P2 | P3 | Verdict |
 |---|---|---:|---:|---:|---:|---|
@@ -19,7 +21,7 @@
 | Developer/API | Small conversion and client helpers, no repository/session/schema abstraction, v6 non-deprecated driver API | 0 | 0 | 0 | 0 | PASS |
 | User/Caller | README/README.ko describe mapping, examples, errors, test commands, and deferred scope | 0 | 0 | 0 | 0 | PASS |
 
-## Integration Verdict
+## 통합 판정
 
 P0 = 0, P1 = 0.
 
@@ -27,7 +29,7 @@ The implementation satisfies #365 as a first Neo4j backend proof and keeps
 Memgraph, GraphML, other graph backends, broad Cypher DSLs, and backend-neutral
 repository/session contracts deferred.
 
-## Validation
+## 검증
 
 ```bash
 make tidy-check

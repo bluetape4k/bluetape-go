@@ -1,6 +1,9 @@
 # Issue #49 Graph I/O Design
 
-## Context
+> 한국어 요구사항 경계: 이 spec/design/test-spec 문서는 한국어 독자가 요구사항을 추적할 수 있도록 목적과 검증 경계를 한국어로 보강한다. API 이름, command, code identifier, issue/PR 번호, compatibility matrix, acceptance keyword, DoD/test evidence는 요구사항 약화를 막기 위해 원문 그대로 보존한다. 변경자는 아래 literal contract를 삭제하거나 의미를 약하게 바꾸지 않아야 한다.
+> 추가 한국어 검증 메모: 영어로 남은 항목은 대부분 code/API/evidence literal이다. 구현 전에는 한국어 경계 문장과 원문 acceptance checklist를 함께 읽고, 검증 gate가 줄어들지 않았는지 확인한다.\n
+
+## 맥락
 
 Issue #49 is the first graph I/O implementation task for milestone `0.10.0`.
 It follows #48, which added only model values in package `graph`: `ElementID`,
@@ -66,7 +69,7 @@ on large streams, context cancellation that keeps reading or writing, raw value
 leakage in errors, and broad compatibility claims for GraphML, compression, or
 encrypted streams without Go evidence.
 
-## Goals
+## 목표s
 
 - Add a narrow graph I/O package under `graph` that works directly with #48
   model values.
@@ -106,7 +109,7 @@ encrypted streams without Go evidence.
   must validate JSON-compatible property values at the wire boundary and avoid
   including raw values in errors.
 
-## Design Options
+## 설계 Options
 
 ### Option A: `graph/graphio` with records, reports, and stream codecs
 
@@ -664,7 +667,7 @@ Update:
 The README pair must keep English and Korean content aligned. The root README
 must list `graph/graphio` as active only after implementation exists.
 
-## Validation Plan
+## 검증 Plan
 
 Targeted validation:
 

@@ -31,7 +31,7 @@ const (
 	campaignRetryCap  = 250 * time.Millisecond
 )
 
-// Elector 는 Redis 기반 leader elector다.
+// Elector Redis 기반 leader elector다.
 type Elector struct {
 	client redis.Cmdable
 	opts   leader.Options
@@ -47,7 +47,7 @@ type Elector struct {
 	done        chan struct{}
 }
 
-// New 는 Redis 기반 leader elector를 만든다.
+// New Redis 기반 leader elector를 만든다.
 func New(client redis.Cmdable, opts leader.Options) (*Elector, error) {
 	if client == nil {
 		return nil, errors.New("redis client must not be nil")
@@ -71,10 +71,12 @@ func New(client redis.Cmdable, opts leader.Options) (*Elector, error) {
 	}, nil
 }
 
-// Campaign 은 leadership을 얻거나 ctx가 끝날 때까지 대기한다.
+// Campaign leader election의 lease, owner token, fencing, group key 동작을 수행한다.
 //
-// ErrCommitUnknown이면 bounded Resign으로 owner-token 정리를 재시도하고, 정리가
-// 확인되지 않으면 lease TTL 만료 뒤에 다시 campaign해야 한다.
+// 매개변수:
+//   - ctx: 호출자가 소유한 취소, deadline, 요청 범위를 전달한다.
+//
+// 반환 오류는 입력 검증 실패, context 취소, Redis/backend 실패, lease/token 불일치, package sentinel error와 typed error를 그대로 드러낸다.
 func (e *Elector) Campaign(ctx context.Context) error {
 	if ctx == nil {
 		return leader.ErrInvalidContext
@@ -116,7 +118,12 @@ func (e *Elector) Campaign(ctx context.Context) error {
 	}
 }
 
-// Resign 은 이 elector가 아직 소유한 leadership만 해제한다.
+// Resign leader election의 lease, owner token, fencing, group key 동작을 수행한다.
+//
+// 매개변수:
+//   - ctx: 호출자가 소유한 취소, deadline, 요청 범위를 전달한다.
+//
+// 반환 오류는 입력 검증 실패, context 취소, Redis/backend 실패, lease/token 불일치, package sentinel error와 typed error를 그대로 드러낸다.
 func (e *Elector) Resign(ctx context.Context) error {
 	if ctx == nil {
 		return leader.ErrInvalidContext
@@ -161,14 +168,14 @@ func (e *Elector) Resign(ctx context.Context) error {
 	return nil
 }
 
-// IsLeader 는 이 elector가 아직 leader라고 판단하는지 알려준다.
+// IsLeader 이 elector가 아직 leader라고 판단하는지 알려준다.
 func (e *Elector) IsLeader() bool {
 	e.mu.RLock()
 	defer e.mu.RUnlock()
 	return e.owned
 }
 
-// Leader 는 Redis에 기록된 현재 leader token을 반환한다.
+// Leader Redis에 기록된 현재 leader token을 반환한다.
 func (e *Elector) Leader(ctx context.Context) (string, error) {
 	if ctx == nil {
 		return "", leader.ErrInvalidContext

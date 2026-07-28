@@ -1,10 +1,12 @@
 # Issue #49 Step 6-R Implementation Review
 
-Date: 2026-06-30
-Milestone: 0.10.0
-Scope: `graph/graphio` NDJSON and paired CSV graph I/O helpers
+> 한국어 리뷰 경계: 이 문서는 리뷰 판정과 근거를 한국어 독자가 추적할 수 있도록 정리한다. 심각도 토큰, 판정 토큰, 파일 경로, 라인 번호, 이슈/PR 번호, 명령, 코드 식별자는 원문의 증거 앵커로 보존한다.
 
-## Verdict
+날짜: 2026-06-30
+Milestone: 0.10.0
+범위: `graph/graphio` NDJSON and paired CSV graph I/O helpers
+
+## 판정
 
 Final gate: P0=0 P1=0
 
@@ -18,7 +20,7 @@ before this verdict:
   Fixed by preserving setup errors and returning `ErrInvalidOptions` on write,
   with a regression test.
 
-## Lane Summary
+## 관점 요약
 
 | Lane | Initial P0 | Initial P1 | Resolution |
 |---|---:|---:|---|
@@ -30,7 +32,7 @@ before this verdict:
 | User/caller | 0 | 0 | CSV reader example, raw interchange option, unknown-field wording, and elapsed reports improved. |
 | Main integration | 0 | 0 | Re-ran targeted tests, race, vet, lint, docs, and diff checks after fixes. |
 
-## Evidence
+## 증거
 
 - `go test -count=1 ./graph/graphio`
 - `go test -count=1 ./graph/...`

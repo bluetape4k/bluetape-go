@@ -1,111 +1,106 @@
-# Lessons Learned - PostgreSQL Rate Limiter (2026-07-13)
+# PostgreSQL Rate Limiter 교훈 (2026-07-13)
 
 **Related issue:** #529
 **Affected modules:** `ratelimit`, `ratelimit/ratelimittest`, `ratelimit/redis`, `ratelimit/sql`
 
-## L1: Pool acquisition is part of the commit-unknown boundary
+## L1: 풀 획득도 commit-unknown 경계에 포함된다
 
-### Problem
+### 문제
 
-Calling `DB.QueryRowContext` directly does not let a provider distinguish a
-context canceled while waiting for a pooled connection from a context canceled
-after PostgreSQL dispatch. Treating both as commit-unknown is safe but loses the
-strong no-dispatch result and weakens caller diagnostics.
+`DB.QueryRowContext`를 바로 호출하면 provider가 pooled connection 대기 중 취소와
+PostgreSQL dispatch 이후 취소를 구분할 수 없다. 둘 다 commit-unknown으로 처리하면
+안전하지만, dispatch가 없었다는 강한 결과를 잃고 caller 진단도 약해진다.
 
-### Decision
+### 결정
 
-Acquire a dedicated caller-owned `*sql.Conn` first. Return the original context
-error when acquisition is canceled, emit a typed determinate provider error for
-other acquisition failures, and classify only query/scan failures as possibly
-dispatched.
+먼저 caller-owned `*sql.Conn`을 확보한다. 획득 중 취소되면 원래 context error를
+반환하고, 다른 획득 실패는 typed determinate provider error로 낸다. query/scan
+실패만 dispatch 가능성이 있는 결과로 분류한다.
 
-### Future guard
+### 향후 가드
 
-Distributed `database/sql` providers that expose commit-unknown semantics must
-test pool-wait cancellation separately from row-lock or response-loss
-cancellation.
+commit-unknown 의미를 공개하는 distributed `database/sql` provider는 pool-wait
+cancellation을 row-lock 또는 response-loss cancellation과 별도로 테스트해야 한다.
 
-## L2: `IF NOT EXISTS` needs an exact hostile-catalog preflight
+## L2: `IF NOT EXISTS`에는 hostile catalog preflight가 필요하다
 
-### Problem
+### 문제
 
-`CREATE TABLE/INDEX IF NOT EXISTS` does not prove that an existing object has the
-required owner, relation kind, columns, constraints, index target, RLS policy,
-or trigger state. A same-name hostile object can make migration appear complete
-and fail only after runtime traffic begins.
+`CREATE TABLE/INDEX IF NOT EXISTS`는 기존 객체가 필요한 owner, relation kind,
+columns, constraints, index target, RLS policy, trigger state를 가진다는 증거가
+아니다. 같은 이름의 hostile object는 migration이 끝난 것처럼 보이게 하고 runtime
+traffic이 시작된 뒤에만 실패를 드러낼 수 있다.
 
-### Decision
+### 결정
 
-Keep migration caller-owned, but require a pre-traffic catalog proof for the
-entire supported relation. Test both the exact schema and hostile mutations,
-including a same-name expiry index on another relation.
+migration은 caller-owned로 유지하되, 지원 relation 전체에 대해 traffic 전 catalog
+proof를 요구한다. 정확한 schema와 hostile mutation을 모두 테스트하고, 다른 relation에
+있는 같은 이름 expiry index도 포함한다.
 
-### Future guard
+### 향후 가드
 
-Every fixed-schema SQL provider should pair its migration constant with an
-operator-visible catalog checklist and hostile-object integration cases.
+모든 fixed-schema SQL provider는 migration constant와 함께 operator-visible catalog
+checklist 및 hostile-object integration case를 가져야 한다.
 
-## L3: Conformance must isolate scheduling latency from refill semantics
+## L3: conformance는 scheduling latency와 refill 의미를 분리해야 한다
 
-### Problem
+### 문제
 
-At 100 tokens per second, a missing token refills in 10 ms. Race instrumentation
-and database adapter latency can cross that window, so debit-preservation cases
-can legitimately observe a refilled bucket and falsely report a contract
-failure. A fixed refill sleep has the inverse problem: it assumes scheduler and
-server clocks have advanced enough.
+초당 100 token이면 빠진 token 하나가 10 ms 안에 보충된다. race instrumentation과
+database adapter latency가 이 창을 넘으면 debit-preservation case가 정상적으로 refill된
+bucket을 보고 contract failure로 오판할 수 있다. 고정 refill sleep은 반대로 scheduler와
+server clock이 충분히 전진했다고 가정하는 문제가 있다.
 
-### Decision
+### 결정
 
-Use a refill interval longer than the whole case timeout for assertions that
-require no refill. For the refill contract, retry only rejected results within a
-bounded deadline and honor the provider's positive `RetryAfter`.
+refill이 없어야 하는 assertion에는 전체 case timeout보다 긴 refill interval을 쓴다.
+refill contract는 bounded deadline 안에서 reject 결과만 재시도하고 provider의 양수
+`RetryAfter`를 존중한다.
 
-### Future guard
+### 향후 가드
 
-Timing tests should make time irrelevant to negative assertions and use
-condition-based bounded waits for positive eventual behavior. Reproduce a
-suspected flaky test repeatedly before labeling it baseline noise.
+timing test는 negative assertion에서 시간을 무관하게 만들고, positive eventual behavior에는
+condition-based bounded wait를 써야 한다. 의심스러운 flaky test는 baseline noise로
+분류하기 전에 반복 재현한다.
 
-## L4: Cleanup bounds and scan bounds are different claims
+## L4: cleanup bound와 scan bound는 서로 다른 주장이다
 
-### Problem
+### 문제
 
-Adding primary-key tie breakers to expiry ordering forced PostgreSQL to sort a
-large expired backlog even though an expiry index existed. Removing the Sort
-does not mean `SKIP LOCKED` scans at most `limit` rows; locked rows may still be
-visited and skipped.
+expiry ordering에 primary-key tie breaker를 추가하자 expiry index가 있어도 PostgreSQL이
+큰 expired backlog를 sort했다. Sort를 제거해도 `SKIP LOCKED`가 최대 `limit` row만
+scan한다는 뜻은 아니다. locked row는 여전히 방문되고 skip될 수 있다.
 
-### Decision
+### 결정
 
-Order by the indexed expiry column only, prove the large-backlog plan has an
-expiry-index scan and no Sort, and document that `limit` bounds locks/deletes
-while caller timeout and pressure budgets bound the scan.
+indexed expiry column만으로 정렬한다. large-backlog plan이 expiry-index scan을 쓰고 Sort가
+없음을 증명한다. `limit`은 lock/delete 수를 제한하고, scan은 caller timeout과 pressure
+budget이 제한한다는 점을 문서화한다.
 
-### Future guard
+### 향후 가드
 
-Performance documentation must state exactly which resource is bounded and use
-an execution-plan regression for the access path it relies on.
+performance documentation은 어떤 resource가 제한되는지 정확히 적고, 의존하는 access path는
+execution-plan regression으로 고정해야 한다.
 
-## L5: Distributed limiter docs need an execution-boundary diagram
+## L5: distributed limiter 문서에는 실행 경계 diagram이 필요하다
 
-### Problem
+### 문제
 
-The pre-PR review marked a new diagram N/A because prose and tables contained
-the contract. That evidence was complete but made the pre-dispatch, atomic
-row-serialization, outcome, and retry boundaries expensive to reconstruct.
+pre-PR review에서는 prose와 table에 contract가 있으므로 새 diagram을 N/A로 표시했다.
+증거는 충분했지만 pre-dispatch, atomic row-serialization, outcome, retry 경계를
+다시 구성하기가 비쌌다.
 
-### Decision
+### 결정
 
-Add one source-backed sequence asset shared by the English and Korean provider
-READMEs. It shows connection acquisition, the single UPSERT/RETURNING dispatch,
-same-key row serialization, allow/reject/configuration-mismatch outcomes, and
-commit-unknown without replay. Keep cleanup as a separate bounded operation and
-avoid unsupported capacity claims.
+English/Korean provider README가 공유하는 source-backed sequence asset 하나를 추가한다.
+이 asset은 connection acquisition, 단일 UPSERT/RETURNING dispatch, same-key row
+serialization, allow/reject/configuration-mismatch outcome, replay 없는 commit-unknown을
+보여 준다. cleanup은 별도의 bounded operation으로 유지하고 unsupported capacity claim은
+피한다.
 
-### Future guard
+### 향후 가드
 
-A distributed provider review may mark a diagram N/A only when its atomic
-linearization point, failure boundary, retry rule, and cleanup ownership are
-already obvious at a glance. Otherwise, default to a sequence diagram and
-validate both source geometry and the full-size rendered PNG.
+distributed provider review에서 diagram을 N/A로 둘 수 있는 경우는 atomic linearization
+point, failure boundary, retry rule, cleanup ownership이 한눈에 명확할 때뿐이다. 그렇지
+않으면 sequence diagram을 기본으로 두고 source geometry와 full-size rendered PNG를 모두
+검증한다.

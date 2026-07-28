@@ -10,11 +10,7 @@ import (
 	"github.com/redis/go-redis/v9"
 )
 
-// HyperLogLog estimates the cardinality of caller values in Redis.
-//
-// Values are transformed through the configured probabilistic.Hasher and then
-// stored as SHA-256 hex digests, so Redis receives stable identifiers rather
-// than raw caller values.
+// HyperLogLog Redis Bloom/HyperLogLog key, TTL, script, backend compatibility에서 사용하는 인터페이스이다.
 type HyperLogLog[T any] interface {
 	HasherKey() string
 	Add(ctx context.Context, values ...T) (bool, error)
@@ -22,7 +18,7 @@ type HyperLogLog[T any] interface {
 	Merge(ctx context.Context, sourceNamespaces ...string) error
 }
 
-// HyperLogLogOptions configures a Redis-backed HyperLogLog.
+// HyperLogLogOptions Redis Bloom/HyperLogLog key, TTL, script, backend compatibility에서 사용하는 구조체다.
 type HyperLogLogOptions[T any] struct {
 	Client    redis.Cmdable
 	Namespace string
@@ -41,7 +37,12 @@ type normalizedHyperLogLogOptions[T any] struct {
 	hasher probabilistic.Hasher[T]
 }
 
-// NewHyperLogLog creates a Redis-backed HyperLogLog from explicit options.
+// NewHyperLogLog Redis Bloom/HyperLogLog key, TTL, script, backend compatibility에 사용할 값을 생성한다.
+//
+// 매개변수:
+//   - options: 적용할 옵션 목록이다. nil이면 기본값만 사용한다.
+//
+// 반환 오류는 입력 검증 실패, compatibility 불일치, Redis/backend 실패, package sentinel error와 typed error를 그대로 드러낸다.
 func NewHyperLogLog[T any](options HyperLogLogOptions[T]) (HyperLogLog[T], error) {
 	normalized, err := normalizeHyperLogLogOptions(options)
 	if err != nil {
@@ -54,7 +55,13 @@ func NewHyperLogLog[T any](options HyperLogLogOptions[T]) (HyperLogLog[T], error
 	}, nil
 }
 
-// NewStringHyperLogLog creates a Redis-backed HyperLogLog for string values.
+// NewStringHyperLogLog Redis Bloom/HyperLogLog key, TTL, script, backend compatibility에 사용할 값을 생성한다.
+//
+// 매개변수:
+//   - client: Redis backend client다. 연결과 종료 소유권은 생성자 계약을 따른다.
+//   - namespace: 저장소 또는 Redis filter를 식별하는 key다. namespace와 compatibility 의미는 package 계약을 따른다.
+//
+// 반환 오류는 입력 검증 실패, compatibility 불일치, Redis/backend 실패, package sentinel error와 typed error를 그대로 드러낸다.
 func NewStringHyperLogLog(client redis.Cmdable, namespace string) (HyperLogLog[string], error) {
 	hasher, err := probabilistic.NewHasher(stringHasherKey, func(value string) []byte {
 		return []byte(value)
@@ -69,7 +76,13 @@ func NewStringHyperLogLog(client redis.Cmdable, namespace string) (HyperLogLog[s
 	})
 }
 
-// NewBytesHyperLogLog creates a Redis-backed HyperLogLog for byte slices.
+// NewBytesHyperLogLog Redis Bloom/HyperLogLog key, TTL, script, backend compatibility에 사용할 값을 생성한다.
+//
+// 매개변수:
+//   - client: Redis backend client다. 연결과 종료 소유권은 생성자 계약을 따른다.
+//   - namespace: 저장소 또는 Redis filter를 식별하는 key다. namespace와 compatibility 의미는 package 계약을 따른다.
+//
+// 반환 오류는 입력 검증 실패, compatibility 불일치, Redis/backend 실패, package sentinel error와 typed error를 그대로 드러낸다.
 func NewBytesHyperLogLog(client redis.Cmdable, namespace string) (HyperLogLog[[]byte], error) {
 	hasher, err := probabilistic.NewHasher(bytesHasherKey, func(value []byte) []byte {
 		copied := make([]byte, len(value))

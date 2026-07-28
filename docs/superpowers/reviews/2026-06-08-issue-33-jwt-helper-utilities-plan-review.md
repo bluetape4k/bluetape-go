@@ -1,13 +1,15 @@
 # Issue #33 JWT Helper Utilities Plan Review
 
+> 한국어 리뷰 경계: 이 문서는 리뷰 판정과 근거를 한국어 독자가 추적할 수 있도록 정리한다. 심각도 토큰, 판정 토큰, 파일 경로, 라인 번호, 이슈/PR 번호, 명령, 코드 식별자는 원문의 증거 앵커로 보존한다.
+
 Review type: Step 3-R plan review
 Plan: `docs/superpowers/plans/2026-06-08-issue-33-jwt-helper-utilities-plan.md`
 Spec: `docs/superpowers/specs/2026-06-08-issue-33-jwt-helper-utilities-spec.md`
-Issue: #33
+이슈: #33
 Milestone: 0.6.0
-Review date: 2026-06-08
+검토일: 2026-06-08
 
-## Inputs
+## 입력
 
 - Step 2-R spec review passed with P0=0/P1=0.
 - Follow-up issues are linked and scoped:
@@ -17,7 +19,7 @@ Review date: 2026-06-08
 - Plan covers T0-T11 from dependency risk note through PR metadata, CI, and
   Step 7-R PR review.
 
-## Subagent Results
+## 서브에이전트 결과
 
 | Reviewer | Role | Initial P0 | Initial P1 | Initial P2 | Initial P3 | Verdict |
 | --- | --- | ---: | ---: | ---: | ---: | --- |
@@ -26,7 +28,7 @@ Review date: 2026-06-08
 | Euclid | test-engineer | 0 | 2 | 0 | 1 | Failed until deterministic reader-clock tests and lock-scope proof were planned. |
 | Kepler | critic closure | 0 | 0 | 0 | 0 | Passed after P1/P2/P3 closure. |
 
-## Blockers Closed
+## 차단 항목 종료
 
 | Finding | Severity | Resolution |
 | --- | --- | --- |
@@ -35,7 +37,7 @@ Review date: 2026-06-08
 | Inbound unsupported JOSE/compression headers were only rejected at compose time. | P1 | Spec and T4 now require parse rejection for signed tokens carrying `zip`, `crit`, `jku`, `jwk`, `x5u`, or `x5c`. |
 | Fixed HMAC key strength was not specified or tested. | P1 | Spec and T2 now require HS256 >= 32 bytes, HS384 >= 48 bytes, HS512 >= 64 bytes, with empty/short secret tests using `ErrInvalidKey`. |
 
-## Non-Blocking Fixes Applied
+## 비차단 수정 적용
 
 | Finding | Severity | Resolution |
 | --- | --- | --- |
@@ -51,7 +53,7 @@ Final Step 3-R counts: P0=0, P1=0, P2=0, P3=0.
 
 Gate verdict: PASS. The plan may advance to implementation.
 
-## Verification
+## 검증
 
 ```bash
 git diff --check

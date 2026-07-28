@@ -1,5 +1,8 @@
 # Issue #571 Redis Streams Primitive Spec
 
+> 한국어 요구사항 경계: 이 spec/design/test-spec 문서는 한국어 독자가 요구사항을 추적할 수 있도록 목적과 검증 경계를 한국어로 보강한다. API 이름, command, code identifier, issue/PR 번호, compatibility matrix, acceptance keyword, DoD/test evidence는 요구사항 약화를 막기 위해 원문 그대로 보존한다. 변경자는 아래 literal contract를 삭제하거나 의미를 약하게 바꾸지 않아야 한다.
+> 추가 한국어 검증 메모: 영어로 남은 항목은 대부분 code/API/evidence literal이다. 구현 전에는 한국어 경계 문장과 원문 acceptance checklist를 함께 읽고, 검증 gate가 줄어들지 않았는지 확인한다.\n
+
 Date: 2026-07-10 KST
 Issue: #571
 Milestone: 0.19.0
@@ -34,7 +37,7 @@ encoding, retry policy, deadlines, and recovery decisions.
 | Local `go doc github.com/redis/go-redis/v9` | `XAdd`, `XRead`, `XReadGroup`, `XAck`, `XPendingExt`, `XAutoClaim`, trim, and delete APIs are available. | The package should expose narrow command-shaped interfaces and return existing `go-redis` response values. |
 | `testing/concurrency/goroutine_stress.go` | The repository has a bounded goroutine stress harness. | A bounded concurrent append stress test can prove stateless primitive calls do not share mutable package state. |
 
-## Goals
+## 목표s
 
 - Add `redis/stream` with package clause `redisstream`.
 - Wrap the direct Redis Streams operations needed for explicit at-least-once
@@ -247,7 +250,7 @@ compatible with, `redisstream.Appender`; no broader client surface is added.
   ownership. The diagram labels must state at-least-once and caller-owned
   operations without presenting trim or replay as automatic.
 
-## Test Plan
+## 테스트 계획
 
 - Unit-test each validation branch, nil and typed-nil client rejection,
   verbatim stream/group/consumer preservation, value-argument non-mutation,
@@ -263,7 +266,7 @@ compatible with, `redisstream.Appender`; no broader client surface is added.
 - Verify with targeted normal and race tests, then `make ci` before PR
   publication.
 
-## Risks And Mitigations
+## 위험 And Mitigations
 
 | Risk | Severity | Mitigation |
 |---|---|---|

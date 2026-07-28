@@ -1,21 +1,23 @@
 # Issue #408 Review: Audit Publisher Adoption
 
-## Scope
+> 한국어 감사/리뷰 경계: 이 문서는 리뷰 결론과 남은 위험을 한국어 독자가 추적할 수 있도록 정리한다. 심각도 표기, 판정 표기, 파일 경로, 라인 번호, 이슈/PR 링크, 명령, 코드 식별자, 인용 증거는 원문의 증거 앵커로 보존한다.
+
+## 범위
 
 - English/Korean root README audit example summary updates.
 - English/Korean `examples/audit` README publisher adoption and operator notes.
 - `audit-example-service-flow` SVG/PNG refresh.
 - Research and lesson notes for the adoption decision.
 
-## Subagent Note
+## 서브에이전트 메모
 
 Native subagent spawning was not used because the available subagent tool
 surface is gated to explicit user subagent requests. The main session performed
 the six independent review lanes and integration verdict as fallback.
 
-## Lane Findings
+## 관점별 발견 사항
 
-### Performance
+### 성능
 
 P0: 0
 P1: 0
@@ -24,7 +26,7 @@ P1: 0
 - The example still avoids adding a durable broker adapter or new framework
   layer.
 
-### Stability
+### 안정성
 
 P0: 0
 P1: 0
@@ -33,7 +35,7 @@ P1: 0
 - Relay lifecycle distinctions are explicit: `RunOnce` for scheduler polling,
   `Run` for context-owned worker loops.
 
-### Security
+### 보안
 
 P0: 0
 P1: 0
@@ -42,7 +44,7 @@ P1: 0
 - No credentials, network clients, TLS settings, broker topology, or durable
   transport configuration are introduced.
 
-### Operator/Ops
+### 운영/Ops
 
 P0: 0
 P1: 0
@@ -52,7 +54,7 @@ P1: 0
 - Workshop follow-up is linked instead of implying this repo now owns all
   runnable cross-repo service examples.
 
-### Developer/API
+### 개발자/API
 
 P0: 0
 P1: 0
@@ -63,7 +65,7 @@ P1: 0
 - `sqloutboxtest.RecordingPublisher` and `WithFailures` are documented for
   retry/duplicate test adoption.
 
-### User/Caller
+### 사용자/호출자
 
 P0: 0
 P1: 0
@@ -73,7 +75,7 @@ P1: 0
 - The refreshed diagram shows both the example replay path and the production
   adoption path in one image.
 
-## Integration Verdict
+## 통합 판정
 
 P0: 0
 P1: 0
@@ -83,7 +85,7 @@ example small, documents the relay-to-publisher adoption path with source
 checked API names, links the workshop follow-up, and updates one existing
 diagram asset with verified rendering.
 
-## Diagram Evidence
+## 다이어그램 증거
 
 | Gate | Evidence | Result |
 |---|---|---|
@@ -95,7 +97,7 @@ diagram asset with verified rendering.
 | Endpoint audit | `diagram-endpoint-audit.py docs/images/readme-diagrams/audit-example-service-flow.svg` | PASS |
 | Full-size eye check | Visual inspection of rendered `audit-example-service-flow.png` after label adjustment | PASS, no text/connector overlap observed |
 
-## Evidence
+## 증거
 
 - `rg -n "type Publisher|func NewRelay|RunOnce|Run\\(|Enqueue|EventID|IdempotencyKey|NewRecordingPublisher|WithFailures" audit/sqloutbox audit/sqloutbox/sqloutboxtest`
 - `go test -count=1 ./examples/audit ./audit/sqloutbox ./audit/sqloutbox/sqloutboxtest`

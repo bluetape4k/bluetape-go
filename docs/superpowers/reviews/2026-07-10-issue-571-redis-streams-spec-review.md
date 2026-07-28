@@ -1,6 +1,8 @@
 # Issue #571 Redis Streams Primitive Spec Review
 
-## Scope
+> 한국어 리뷰 경계: 이 문서는 리뷰 판정과 근거를 한국어 독자가 추적할 수 있도록 정리한다. 심각도 토큰, 판정 토큰, 파일 경로, 라인 번호, 이슈/PR 번호, 명령, 코드 식별자는 원문의 증거 앵커로 보존한다.
+
+## 범위
 
 - Spec: `docs/superpowers/specs/2026-07-10-issue-571-redis-streams-spec.md`
 - Test specification: `docs/superpowers/specs/2026-07-10-issue-571-redis-streams-test-spec.md`
@@ -10,7 +12,7 @@
   not exposed in this session; the main session independently applied every
   required perspective and owns the integration verdict.
 
-## Findings
+## 발견 사항
 
 | Perspective | P0 | P1 | P2 | P3 | Result |
 |---|---:|---:|---:|---:|---|
@@ -21,13 +23,13 @@
 | Developer/API | 0 | 0 | 0 | 0 | Narrow per-command interfaces preserve ordinary `go-redis` response types and keep scope bounded to `XAUTOCLAIM`, not a broad facade. |
 | User/Caller | 0 | 0 | 0 | 0 | Names and payloads remain verbatim, and #533 migrates only the dispatch path while retaining its audit envelope and duplicate behavior. |
 
-## Resolved Finding
+## 해결한 발견 사항
 
 | Priority | Finding | Resolution | Evidence |
 |---|---|---|---|
 | P1 | The first draft described `XREAD`/`XREADGROUP` arguments as interleaved `stream, id` pairs. go-redis expects all stream keys followed by their IDs. | Updated both specs to require an even list in all-streams-then-all-IDs order and to validate only the key half as stream names. | `go doc github.com/redis/go-redis/v9.XReadGroupArgs`, updated spec/test spec. |
 
-## Integration Verdict
+## 통합 판정
 
 The specification is implementable without creating a generic Redis facade or
 changing #533's public provider behavior. It deliberately exposes command

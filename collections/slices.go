@@ -2,16 +2,19 @@ package collections
 
 import "fmt"
 
-// Indexed is a value paired with its 0-based index.
+// Indexed 패키지에서 공개하는 구조체다.
 type Indexed[T any] struct {
 	Index int
 	Value T
 }
 
-// Chunk splits values into fixed-size chunks.
+// Chunk 값 목록을 지정한 크기의 묶음으로 나눈다.
 //
-// The final chunk may be smaller than size. A nil input returns nil; an empty
-// non-nil input returns an empty non-nil slice.
+// 매개변수:
+//   - values: 처리할 값 목록이다. nil과 빈 슬라이스는 함수별 입력 규칙에 따라 빈 입력으로 다룬다.
+//   - size: Chunk에 전달되는 값이다. 허용 범위와 nil 처리 방식은 구현 검증을 따른다.
+//
+// 반환 오류는 입력 검증 실패와 패키지에서 정의한 sentinel error/typed error를 그대로 드러낸다.
 func Chunk[T any](values []T, size int) ([][]T, error) {
 	if size <= 0 {
 		return nil, fmt.Errorf("%w: chunk size[%d] must be positive", ErrInvalidArgument, size)
@@ -34,10 +37,14 @@ func Chunk[T any](values []T, size int) ([][]T, error) {
 	return chunks, nil
 }
 
-// Sliding returns one-step windows over values.
+// Sliding 값 목록을 sliding window로 나눈다.
 //
-// When partialWindows is true, trailing partial windows are included. A nil
-// input returns nil; an empty non-nil input returns an empty non-nil slice.
+// 매개변수:
+//   - values: 처리할 값 목록이다. nil과 빈 슬라이스는 함수별 입력 규칙에 따라 빈 입력으로 다룬다.
+//   - size: Sliding에 전달되는 값이다. 허용 범위와 nil 처리 방식은 구현 검증을 따른다.
+//   - partialWindows: Sliding에 전달되는 값이다. 허용 범위와 nil 처리 방식은 구현 검증을 따른다.
+//
+// 반환 오류는 입력 검증 실패와 패키지에서 정의한 sentinel error/typed error를 그대로 드러낸다.
 func Sliding[T any](values []T, size int, partialWindows bool) ([][]T, error) {
 	if size <= 0 {
 		return nil, fmt.Errorf("%w: sliding size[%d] must be positive", ErrInvalidArgument, size)
@@ -63,10 +70,13 @@ func Sliding[T any](values []T, size int, partialWindows bool) ([][]T, error) {
 	return windows, nil
 }
 
-// ChunkBy splits values whenever startsNew returns true for the next value.
+// ChunkBy startsNew 함수가 true를 반환하는 지점마다 새 묶음을 시작한다.
 //
-// The matching value starts the new chunk. The first value never creates an
-// empty leading chunk.
+// 매개변수:
+//   - values: 처리할 값 목록이다. nil과 빈 슬라이스는 함수별 입력 규칙에 따라 빈 입력으로 다룬다.
+//   - startsNew: ChunkBy에 전달되는 값이다. 허용 범위와 nil 처리 방식은 구현 검증을 따른다.
+//
+// 반환 오류는 입력 검증 실패와 패키지에서 정의한 sentinel error/typed error를 그대로 드러낸다.
 func ChunkBy[T any](values []T, startsNew func(T) bool) ([][]T, error) {
 	if startsNew == nil {
 		return nil, fmt.Errorf("%w: startsNew must not be nil", ErrInvalidArgument)
@@ -90,7 +100,12 @@ func ChunkBy[T any](values []T, startsNew func(T) bool) ([][]T, error) {
 	return chunks, nil
 }
 
-// SafeSubslice returns values[from:to] after clamping indexes to valid bounds.
+// SafeSubslice 범위를 벗어난 index를 잘라 안전한 subslice를 반환한다.
+//
+// 매개변수:
+//   - values: 처리할 값 목록이다. nil과 빈 슬라이스는 함수별 입력 규칙에 따라 빈 입력으로 다룬다.
+//   - from: SafeSubslice에 전달되는 값이다. 허용 범위와 nil 처리 방식은 구현 검증을 따른다.
+//   - to: SafeSubslice에 전달되는 값이다. 허용 범위와 nil 처리 방식은 구현 검증을 따른다.
 func SafeSubslice[T any](values []T, from, to int) []T {
 	if values == nil {
 		return nil
@@ -110,7 +125,14 @@ func SafeSubslice[T any](values []T, from, to int) []T {
 	return values[from:to]
 }
 
-// PadTo returns values padded with item until it reaches newSize.
+// PadTo 목록 길이가 newSize에 도달할 때까지 item을 채운다.
+//
+// 매개변수:
+//   - values: 처리할 값 목록이다. nil과 빈 슬라이스는 함수별 입력 규칙에 따라 빈 입력으로 다룬다.
+//   - newSize: PadTo에 전달되는 값이다. 허용 범위와 nil 처리 방식은 구현 검증을 따른다.
+//   - item: 처리할 단일 항목이다.
+//
+// 반환 오류는 입력 검증 실패와 패키지에서 정의한 sentinel error/typed error를 그대로 드러낸다.
 func PadTo[T any](values []T, newSize int, item T) ([]T, error) {
 	if newSize < 0 {
 		return nil, fmt.Errorf("%w: pad size[%d] must be non-negative", ErrInvalidArgument, newSize)
@@ -127,9 +149,10 @@ func PadTo[T any](values []T, newSize int, item T) ([]T, error) {
 	return padded, nil
 }
 
-// Distinct returns values with duplicate comparable elements removed.
+// Distinct 중복 값을 제거한 목록을 반환한다.
 //
-// The first occurrence is kept and input order is preserved.
+// 매개변수:
+//   - values: 처리할 값 목록이다. nil과 빈 슬라이스는 함수별 입력 규칙에 따라 빈 입력으로 다룬다.
 func Distinct[T comparable](values []T) []T {
 	if values == nil {
 		return nil
@@ -150,7 +173,10 @@ func Distinct[T comparable](values []T) []T {
 	return result
 }
 
-// Count returns the number of occurrences for each comparable value.
+// Count predicate를 만족하는 값의 개수를 반환한다.
+//
+// 매개변수:
+//   - values: 처리할 값 목록이다. nil과 빈 슬라이스는 함수별 입력 규칙에 따라 빈 입력으로 다룬다.
 func Count[T comparable](values []T) map[T]int {
 	if values == nil {
 		return nil
@@ -162,9 +188,13 @@ func Count[T comparable](values []T) map[T]int {
 	return counts
 }
 
-// DistinctBy returns values with duplicate keys removed.
+// DistinctBy key 함수 결과가 중복되는 값을 제거한다.
 //
-// The first occurrence for each key is kept and input order is preserved.
+// 매개변수:
+//   - values: 처리할 값 목록이다. nil과 빈 슬라이스는 함수별 입력 규칙에 따라 빈 입력으로 다룬다.
+//   - key: DistinctBy에 전달되는 값이다. 허용 범위와 nil 처리 방식은 구현 검증을 따른다.
+//
+// 반환 오류는 입력 검증 실패와 패키지에서 정의한 sentinel error/typed error를 그대로 드러낸다.
 func DistinctBy[T any, K comparable](values []T, key func(T) K) ([]T, error) {
 	if key == nil {
 		return nil, fmt.Errorf("%w: key must not be nil", ErrInvalidArgument)
@@ -189,7 +219,10 @@ func DistinctBy[T any, K comparable](values []T, key func(T) K) ([]T, error) {
 	return result, nil
 }
 
-// ZipWithIndex returns values paired with their 0-based indexes.
+// ZipWithIndex 값 목록에 index를 붙여 반환한다.
+//
+// 매개변수:
+//   - values: 처리할 값 목록이다. nil과 빈 슬라이스는 함수별 입력 규칙에 따라 빈 입력으로 다룬다.
 func ZipWithIndex[T any](values []T) []Indexed[T] {
 	if values == nil {
 		return nil
@@ -204,7 +237,13 @@ func ZipWithIndex[T any](values []T) []Indexed[T] {
 	return indexed
 }
 
-// MapErr maps values and stops at the first mapper error.
+// MapErr 각 값을 변환하고 첫 오류에서 중단한다.
+//
+// 매개변수:
+//   - values: 처리할 값 목록이다. nil과 빈 슬라이스는 함수별 입력 규칙에 따라 빈 입력으로 다룬다.
+//   - mapper: MapErr에 전달되는 값이다. 허용 범위와 nil 처리 방식은 구현 검증을 따른다.
+//
+// 반환 오류는 입력 검증 실패와 패키지에서 정의한 sentinel error/typed error를 그대로 드러낸다.
 func MapErr[T any, R any](values []T, mapper func(T) (R, error)) ([]R, error) {
 	if mapper == nil {
 		return nil, fmt.Errorf("%w: mapper must not be nil", ErrInvalidArgument)
@@ -224,7 +263,13 @@ func MapErr[T any, R any](values []T, mapper func(T) (R, error)) ([]R, error) {
 	return result, nil
 }
 
-// ForEachErr calls action for each value and stops at the first action error.
+// ForEachErr 각 값에 action을 적용하고 첫 오류에서 중단한다.
+//
+// 매개변수:
+//   - values: 처리할 값 목록이다. nil과 빈 슬라이스는 함수별 입력 규칙에 따라 빈 입력으로 다룬다.
+//   - action: ForEachErr에 전달되는 값이다. 허용 범위와 nil 처리 방식은 구현 검증을 따른다.
+//
+// 반환 오류는 입력 검증 실패와 패키지에서 정의한 sentinel error/typed error를 그대로 드러낸다.
 func ForEachErr[T any](values []T, action func(T) error) error {
 	if action == nil {
 		return fmt.Errorf("%w: action must not be nil", ErrInvalidArgument)
@@ -237,7 +282,13 @@ func ForEachErr[T any](values []T, action func(T) error) error {
 	return nil
 }
 
-// FilterErr keeps values whose predicate result is true and stops at the first predicate error.
+// FilterErr predicate가 true인 값만 남기고 첫 오류에서 중단한다.
+//
+// 매개변수:
+//   - values: 처리할 값 목록이다. nil과 빈 슬라이스는 함수별 입력 규칙에 따라 빈 입력으로 다룬다.
+//   - predicate: FilterErr에 전달되는 값이다. 허용 범위와 nil 처리 방식은 구현 검증을 따른다.
+//
+// 반환 오류는 입력 검증 실패와 패키지에서 정의한 sentinel error/typed error를 그대로 드러낸다.
 func FilterErr[T any](values []T, predicate func(T) (bool, error)) ([]T, error) {
 	if predicate == nil {
 		return nil, fmt.Errorf("%w: predicate must not be nil", ErrInvalidArgument)
@@ -259,7 +310,13 @@ func FilterErr[T any](values []T, predicate func(T) (bool, error)) ([]T, error) 
 	return result, nil
 }
 
-// FilterMap maps values and keeps only mapped results whose ok flag is true.
+// FilterMap mapper가 반환한 값 중 유효한 값만 모은다.
+//
+// 매개변수:
+//   - values: 처리할 값 목록이다. nil과 빈 슬라이스는 함수별 입력 규칙에 따라 빈 입력으로 다룬다.
+//   - mapper: FilterMap에 전달되는 값이다. 허용 범위와 nil 처리 방식은 구현 검증을 따른다.
+//
+// 반환 오류는 입력 검증 실패와 패키지에서 정의한 sentinel error/typed error를 그대로 드러낸다.
 func FilterMap[T any, R any](values []T, mapper func(T) (R, bool)) ([]R, error) {
 	if mapper == nil {
 		return nil, fmt.Errorf("%w: mapper must not be nil", ErrInvalidArgument)

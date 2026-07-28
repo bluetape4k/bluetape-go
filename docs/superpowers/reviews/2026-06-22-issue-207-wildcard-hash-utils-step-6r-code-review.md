@@ -1,12 +1,14 @@
 # Issue #207 Wildcard and Hash Utilities Step 6-R Code Review
 
-Issue: #207
-Gate: Step 6-R, implemented diff 7-Tier review
-Date: 2026-06-22
-Worktree: `issue-207-wildcard-hash-utils`
-Base: `origin/develop` at `0ea2bfc`
+> 한국어 리뷰 경계: 이 문서는 리뷰 판정과 근거를 한국어 독자가 추적할 수 있도록 정리한다. 심각도 토큰, 판정 토큰, 파일 경로, 라인 번호, 이슈/PR 번호, 명령, 코드 식별자는 원문의 증거 앵커로 보존한다.
 
-## Reviewed Scope
+이슈: #207
+게이트: Step 6-R, implemented diff 7-Tier review
+날짜: 2026-06-22
+Worktree: `issue-207-wildcard-hash-utils`
+기준: `origin/develop` at `0ea2bfc`
+
+## 검토 범위
 
 - `core/wildcard.go`
 - `core/wildcard_test.go`
@@ -18,7 +20,7 @@ Base: `origin/develop` at `0ea2bfc`
 - `go.mod`
 - #207 spec/plan/review artifacts under `docs/superpowers`
 
-## Evidence
+## 증거
 
 | Check | Evidence | Status |
 |---|---|---|
@@ -34,7 +36,7 @@ Base: `origin/develop` at `0ea2bfc`
 | Production quick scan | `rg -n "context\\.TODO\\(|context\\.Background\\(|go func|time\\.Tick\\(|http\\.ListenAndServe\\(|panic\\(|RealIP|X-Forwarded-For" core` returned no hits. | PASS |
 | Native subagent state | Prior stale-agent cleanup attempts hung until user interruption; further native lane spawning was avoided per user-visible fallback decision. | UNAVAILABLE; main-session 7-tier fallback performed. |
 
-## Six Review Lanes
+## 6개 검토 관점
 
 | Lane | P0 | P1 | P2 | P3 | Verdict | Evidence |
 |---|---:|---:|---:|---:|---|---|
@@ -45,7 +47,7 @@ Base: `origin/develop` at `0ea2bfc`
 | Developer/API | 0 | 0 | 0 | 0 | PASS | Public API is small and localized to `core`; wildcard functions return errors instead of panicking; path and string helpers have separate contracts; `xxhash` is a direct dependency only because it is imported by production code. |
 | User/Caller | 0 | 0 | 0 | 0 | PASS | README and Korean README document syntax, lexical path behavior, escaped literals, deterministic XXH64, non-crypto warning, and excluded JVM/resource/system/generic helpers. |
 
-## Findings Convergence
+## 발견 사항 수렴
 
 | Iteration | Finding | Action | Result |
 |---|---|---|---|
@@ -53,7 +55,7 @@ Base: `origin/develop` at `0ea2bfc`
 
 No P0/P1 findings were found. The P2 ambiguity was fixed inside scope before PR preparation.
 
-## Verdict
+## 판정
 
 P0=0 P1=0
 

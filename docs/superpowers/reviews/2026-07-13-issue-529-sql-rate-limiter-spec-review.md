@@ -1,6 +1,8 @@
 # Issue #529 PostgreSQL Rate Limiter Spec Review
 
-## Scope
+> 한국어 리뷰 경계: 이 문서는 리뷰 판정과 근거를 한국어 독자가 추적할 수 있도록 정리한다. 심각도 토큰, 판정 토큰, 파일 경로, 라인 번호, 이슈/PR 번호, 명령, 코드 식별자는 원문의 증거 앵커로 보존한다.
+
+## 범위
 
 - Spec: `docs/superpowers/specs/2026-07-13-issue-529-sql-rate-limiter-design.md`
 - Reviewed SHA-256: `0eb3e1c9a56219db110ebe4aa8c062c09bf187b959752a62fd246f3877313ffa`
@@ -37,7 +39,7 @@ lock and WAL/write overhead.
 | Developer/API | 0 | 0 | 0 | 0 | Lane unavailable/thread limit; main integration fallback performed. The API is additive, implements the root interface, preserves Redis inspection compatibility, and makes DB ownership explicit. |
 | User/Caller | 0 | 0 | 0 | 0 | Lane timed out; main integration fallback performed. Misuse, unsupported topology, migration, replay, cleanup, and provider-switch guidance are explicit. |
 
-## Main-session integration verdict
+## 메인 세션 통합 판정
 
 The spec fixes the public package boundary, exact token arithmetic, one-statement
 linearization, caller-owned schema and cleanup, failure classification, and

@@ -6,12 +6,19 @@ import (
 	redis "github.com/redis/go-redis/v9"
 )
 
-// Appender is the Redis command surface used by Append.
+// Appender Redis key, TTL, lease, token, script, stream primitive에서 사용하는 인터페이스이다.
 type Appender interface {
 	XAdd(context.Context, *redis.XAddArgs) *redis.StringCmd
 }
 
-// Append adds one caller-owned entry to a Redis stream.
+// Append Redis key, TTL, lease, token, script, stream primitive의 쓰기 동작을 수행한다.
+//
+// 매개변수:
+//   - ctx: 호출자가 소유한 취소, deadline, 요청 범위를 전달한다.
+//   - client: Redis backend client 또는 fixture다. 연결과 종료 소유권은 생성자 계약을 따른다.
+//   - args: Append에 전달되는 값이다. 허용 범위와 nil 처리 방식은 구현 검증을 따른다.
+//
+// 반환 오류는 입력 검증 실패, context 취소, Redis/backend 실패, lease/token 불일치, package sentinel error와 typed error를 그대로 드러낸다.
 func Append(ctx context.Context, client Appender, args redis.XAddArgs) (string, error) {
 	ctx, err := prepareContext(ctx, client)
 	if err != nil {
@@ -31,12 +38,19 @@ func Append(ctx context.Context, client Appender, args redis.XAddArgs) (string, 
 	return result, nil
 }
 
-// Reader is the Redis command surface used by Read.
+// Reader Redis key, TTL, lease, token, script, stream primitive에서 사용하는 인터페이스이다.
 type Reader interface {
 	XRead(context.Context, *redis.XReadArgs) *redis.XStreamSliceCmd
 }
 
-// Read reads entries from caller-selected streams and IDs.
+// Read Redis key, TTL, lease, token, script, stream primitive 동작을 수행한다.
+//
+// 매개변수:
+//   - ctx: 호출자가 소유한 취소, deadline, 요청 범위를 전달한다.
+//   - client: Redis backend client 또는 fixture다. 연결과 종료 소유권은 생성자 계약을 따른다.
+//   - args: Read에 전달되는 값이다. 허용 범위와 nil 처리 방식은 구현 검증을 따른다.
+//
+// 반환 오류는 입력 검증 실패, context 취소, Redis/backend 실패, lease/token 불일치, package sentinel error와 typed error를 그대로 드러낸다.
 func Read(ctx context.Context, client Reader, args redis.XReadArgs) ([]redis.XStream, error) {
 	ctx, err := prepareContext(ctx, client)
 	if err != nil {
@@ -54,12 +68,21 @@ func Read(ctx context.Context, client Reader, args redis.XReadArgs) ([]redis.XSt
 	return result, nil
 }
 
-// GroupCreator is the Redis command surface used by CreateGroup.
+// GroupCreator Redis key, TTL, lease, token, script, stream primitive에서 사용하는 인터페이스이다.
 type GroupCreator interface {
 	XGroupCreateMkStream(context.Context, string, string, string) *redis.StatusCmd
 }
 
-// CreateGroup creates a consumer group and its stream when absent.
+// CreateGroup Redis key, TTL, lease, token, script, stream primitive 동작을 수행한다.
+//
+// 매개변수:
+//   - ctx: 호출자가 소유한 취소, deadline, 요청 범위를 전달한다.
+//   - client: Redis backend client 또는 fixture다. 연결과 종료 소유권은 생성자 계약을 따른다.
+//   - stream: Redis Stream id, entry, 또는 consumer group 관련 값이다.
+//   - group: Redis Stream id, entry, 또는 consumer group 관련 값이다.
+//   - start: CreateGroup에 전달되는 값이다. 허용 범위와 nil 처리 방식은 구현 검증을 따른다.
+//
+// 반환 오류는 입력 검증 실패, context 취소, Redis/backend 실패, lease/token 불일치, package sentinel error와 typed error를 그대로 드러낸다.
 func CreateGroup(ctx context.Context, client GroupCreator, stream, group, start string) error {
 	ctx, err := prepareContext(ctx, client)
 	if err != nil {
@@ -81,12 +104,19 @@ func CreateGroup(ctx context.Context, client GroupCreator, stream, group, start 
 	return nil
 }
 
-// GroupReader is the Redis command surface used by ReadGroup.
+// GroupReader Redis key, TTL, lease, token, script, stream primitive에서 사용하는 인터페이스이다.
 type GroupReader interface {
 	XReadGroup(context.Context, *redis.XReadGroupArgs) *redis.XStreamSliceCmd
 }
 
-// ReadGroup reads entries for one caller-selected consumer group and consumer.
+// ReadGroup Redis key, TTL, lease, token, script, stream primitive 동작을 수행한다.
+//
+// 매개변수:
+//   - ctx: 호출자가 소유한 취소, deadline, 요청 범위를 전달한다.
+//   - client: Redis backend client 또는 fixture다. 연결과 종료 소유권은 생성자 계약을 따른다.
+//   - args: ReadGroup에 전달되는 값이다. 허용 범위와 nil 처리 방식은 구현 검증을 따른다.
+//
+// 반환 오류는 입력 검증 실패, context 취소, Redis/backend 실패, lease/token 불일치, package sentinel error와 typed error를 그대로 드러낸다.
 func ReadGroup(ctx context.Context, client GroupReader, args redis.XReadGroupArgs) ([]redis.XStream, error) {
 	ctx, err := prepareContext(ctx, client)
 	if err != nil {
@@ -110,12 +140,21 @@ func ReadGroup(ctx context.Context, client GroupReader, args redis.XReadGroupArg
 	return result, nil
 }
 
-// Acknowledger is the Redis command surface used by Acknowledge.
+// Acknowledger Redis key, TTL, lease, token, script, stream primitive에서 사용하는 인터페이스이다.
 type Acknowledger interface {
 	XAck(context.Context, string, string, ...string) *redis.IntCmd
 }
 
-// Acknowledge removes caller-selected IDs from one consumer group's pending list.
+// Acknowledge Redis key, TTL, lease, token, script, stream primitive 동작을 수행한다.
+//
+// 매개변수:
+//   - ctx: 호출자가 소유한 취소, deadline, 요청 범위를 전달한다.
+//   - client: Redis backend client 또는 fixture다. 연결과 종료 소유권은 생성자 계약을 따른다.
+//   - stream: Redis Stream id, entry, 또는 consumer group 관련 값이다.
+//   - group: Redis Stream id, entry, 또는 consumer group 관련 값이다.
+//   - ids: Acknowledge에 전달되는 값이다. 허용 범위와 nil 처리 방식은 구현 검증을 따른다.
+//
+// 반환 오류는 입력 검증 실패, context 취소, Redis/backend 실패, lease/token 불일치, package sentinel error와 typed error를 그대로 드러낸다.
 func Acknowledge(ctx context.Context, client Acknowledger, stream, group string, ids ...string) (int64, error) {
 	ctx, err := prepareContext(ctx, client)
 	if err != nil {
@@ -138,12 +177,19 @@ func Acknowledge(ctx context.Context, client Acknowledger, stream, group string,
 	return result, nil
 }
 
-// PendingInspector is the Redis command surface used by Pending.
+// PendingInspector Redis key, TTL, lease, token, script, stream primitive에서 사용하는 인터페이스이다.
 type PendingInspector interface {
 	XPendingExt(context.Context, *redis.XPendingExtArgs) *redis.XPendingExtCmd
 }
 
-// Pending returns caller-selected pending entries for one consumer group.
+// Pending Redis key, TTL, lease, token, script, stream primitive 동작을 수행한다.
+//
+// 매개변수:
+//   - ctx: 호출자가 소유한 취소, deadline, 요청 범위를 전달한다.
+//   - client: Redis backend client 또는 fixture다. 연결과 종료 소유권은 생성자 계약을 따른다.
+//   - args: Pending에 전달되는 값이다. 허용 범위와 nil 처리 방식은 구현 검증을 따른다.
+//
+// 반환 오류는 입력 검증 실패, context 취소, Redis/backend 실패, lease/token 불일치, package sentinel error와 typed error를 그대로 드러낸다.
 func Pending(ctx context.Context, client PendingInspector, args redis.XPendingExtArgs) ([]redis.XPendingExt, error) {
 	ctx, err := prepareContext(ctx, client)
 	if err != nil {
@@ -163,12 +209,19 @@ func Pending(ctx context.Context, client PendingInspector, args redis.XPendingEx
 	return result, nil
 }
 
-// AutoClaimer is the Redis command surface used by AutoClaim.
+// AutoClaimer Redis key, TTL, lease, token, script, stream primitive에서 사용하는 인터페이스이다.
 type AutoClaimer interface {
 	XAutoClaim(context.Context, *redis.XAutoClaimArgs) *redis.XAutoClaimCmd
 }
 
-// AutoClaim claims pending entries and returns the Redis-provided next cursor.
+// AutoClaim Redis key, TTL, lease, token, script, stream primitive 동작을 수행한다.
+//
+// 매개변수:
+//   - ctx: 호출자가 소유한 취소, deadline, 요청 범위를 전달한다.
+//   - client: Redis backend client 또는 fixture다. 연결과 종료 소유권은 생성자 계약을 따른다.
+//   - args: AutoClaim에 전달되는 값이다. 허용 범위와 nil 처리 방식은 구현 검증을 따른다.
+//
+// 반환 오류는 입력 검증 실패, context 취소, Redis/backend 실패, lease/token 불일치, package sentinel error와 typed error를 그대로 드러낸다.
 func AutoClaim(ctx context.Context, client AutoClaimer, args redis.XAutoClaimArgs) ([]redis.XMessage, string, error) {
 	ctx, err := prepareContext(ctx, client)
 	if err != nil {
@@ -197,13 +250,21 @@ func AutoClaim(ctx context.Context, client AutoClaimer, args redis.XAutoClaimArg
 	return messages, start, nil
 }
 
-// Trimmer is the Redis command surface used by TrimMaxLen and TrimMinID.
+// Trimmer Redis key, TTL, lease, token, script, stream primitive에서 사용하는 인터페이스이다.
 type Trimmer interface {
 	XTrimMaxLen(context.Context, string, int64) *redis.IntCmd
 	XTrimMinID(context.Context, string, string) *redis.IntCmd
 }
 
-// TrimMaxLen explicitly trims a stream to a caller-selected maximum length.
+// TrimMaxLen Redis key, TTL, lease, token, script, stream primitive 동작을 수행한다.
+//
+// 매개변수:
+//   - ctx: 호출자가 소유한 취소, deadline, 요청 범위를 전달한다.
+//   - client: Redis backend client 또는 fixture다. 연결과 종료 소유권은 생성자 계약을 따른다.
+//   - stream: Redis Stream id, entry, 또는 consumer group 관련 값이다.
+//   - maxLen: TrimMaxLen에 전달되는 값이다. 허용 범위와 nil 처리 방식은 구현 검증을 따른다.
+//
+// 반환 오류는 입력 검증 실패, context 취소, Redis/backend 실패, lease/token 불일치, package sentinel error와 typed error를 그대로 드러낸다.
 func TrimMaxLen(ctx context.Context, client Trimmer, stream string, maxLen int64) (int64, error) {
 	ctx, err := prepareContext(ctx, client)
 	if err != nil {
@@ -223,7 +284,15 @@ func TrimMaxLen(ctx context.Context, client Trimmer, stream string, maxLen int64
 	return result, nil
 }
 
-// TrimMinID explicitly trims a stream before a caller-selected minimum ID.
+// TrimMinID Redis key, TTL, lease, token, script, stream primitive 동작을 수행한다.
+//
+// 매개변수:
+//   - ctx: 호출자가 소유한 취소, deadline, 요청 범위를 전달한다.
+//   - client: Redis backend client 또는 fixture다. 연결과 종료 소유권은 생성자 계약을 따른다.
+//   - stream: Redis Stream id, entry, 또는 consumer group 관련 값이다.
+//   - minID: TrimMinID에 전달되는 값이다. 허용 범위와 nil 처리 방식은 구현 검증을 따른다.
+//
+// 반환 오류는 입력 검증 실패, context 취소, Redis/backend 실패, lease/token 불일치, package sentinel error와 typed error를 그대로 드러낸다.
 func TrimMinID(ctx context.Context, client Trimmer, stream, minID string) (int64, error) {
 	ctx, err := prepareContext(ctx, client)
 	if err != nil {
@@ -243,12 +312,20 @@ func TrimMinID(ctx context.Context, client Trimmer, stream, minID string) (int64
 	return result, nil
 }
 
-// Deleter is the Redis command surface used by Delete.
+// Deleter Redis key, TTL, lease, token, script, stream primitive에서 사용하는 인터페이스이다.
 type Deleter interface {
 	XDel(context.Context, string, ...string) *redis.IntCmd
 }
 
-// Delete explicitly removes caller-selected IDs from a stream.
+// Delete Redis key, TTL, lease, token, script, stream primitive의 상태를 변경한다.
+//
+// 매개변수:
+//   - ctx: 호출자가 소유한 취소, deadline, 요청 범위를 전달한다.
+//   - client: Redis backend client 또는 fixture다. 연결과 종료 소유권은 생성자 계약을 따른다.
+//   - stream: Redis Stream id, entry, 또는 consumer group 관련 값이다.
+//   - ids: Delete에 전달되는 값이다. 허용 범위와 nil 처리 방식은 구현 검증을 따른다.
+//
+// 반환 오류는 입력 검증 실패, context 취소, Redis/backend 실패, lease/token 불일치, package sentinel error와 typed error를 그대로 드러낸다.
 func Delete(ctx context.Context, client Deleter, stream string, ids ...string) (int64, error) {
 	ctx, err := prepareContext(ctx, client)
 	if err != nil {

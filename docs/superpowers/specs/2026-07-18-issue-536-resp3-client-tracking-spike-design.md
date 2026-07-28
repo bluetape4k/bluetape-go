@@ -1,5 +1,8 @@
 # Issue #536 RESP3 CLIENT TRACKING Spike Design
 
+> 한국어 요구사항 경계: 이 spec/design/test-spec 문서는 한국어 독자가 요구사항을 추적할 수 있도록 목적과 검증 경계를 한국어로 보강한다. API 이름, command, code identifier, issue/PR 번호, compatibility matrix, acceptance keyword, DoD/test evidence는 요구사항 약화를 막기 위해 원문 그대로 보존한다. 변경자는 아래 literal contract를 삭제하거나 의미를 약하게 바꾸지 않아야 한다.
+
+
 Status: Step 2-R and Step 3-R converged at `3d7567b`
 Issue: [#536](https://github.com/bluetape4k/bluetape-go/issues/536)
 Predecessor: [#110](https://github.com/bluetape4k/bluetape-go/issues/110)
@@ -29,7 +32,7 @@ affinity도 공개 API로 보장하지 않는다.
 경계를 Testcontainers에서 재현하고, production strategy를 채택하거나 기각할 근거를
 남기는 Type B spike다.
 
-## Goals
+## 목표s
 
 1. Redis 7.4와 go-redis/v9 v9.20.0에서 RESP3 tracking invalidation payload를 공개
    API만으로 관찰할 수 있음을 증명한다.
@@ -515,7 +518,7 @@ required:
 - go-redis version/dependency change
 - five or more coupled production files
 
-## Validation
+## 검증
 
 After implementation approval, validation will run in this order:
 
@@ -541,7 +544,7 @@ After implementation approval, validation will run in this order:
 | Record compatibility | Provider/proxy matrix separates proved, documented, unsupported, and unknown |
 | No premature public API | File scope and Type A triggers forbid production surface changes |
 
-## Risks And Expected Review Verdict
+## 위험 And Expected Review Verdict
 
 - `P0=0`.
 - `P1-1`: command-coupled push processing permits indefinitely stale L1 hits.

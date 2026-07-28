@@ -1,7 +1,9 @@
 # Issue #23 Redis NearCache Step 6-R Code Review
 
-Date: 2026-06-04
-Branch: `feat/issue-23-near-cache`
+> 한국어 리뷰 경계: 이 문서는 리뷰 판정과 근거를 한국어 독자가 추적할 수 있도록 정리한다. 심각도 토큰, 판정 토큰, 파일 경로, 라인 번호, 이슈/PR 번호, 명령, 코드 식별자는 원문의 증거 앵커로 보존한다.
+
+날짜: 2026-06-04
+브랜치: `feat/issue-23-near-cache`
 Reviewed scope:
 
 - `cache/redisnear/doc.go`
@@ -18,7 +20,7 @@ Required references loaded:
 - `bluetape4k-full-feature/references/step-6r-code-review.md`
 - `bluetape4k-full-feature/references/step-4p-perf-scan.md`
 
-## Integrated Findings
+## 통합 발견 사항
 
 | Priority | File:Line | Tier | Finding | Resolution |
 |---|---|---|---|---|
@@ -44,7 +46,7 @@ Final blocking counts: P0 = 0, P1 = 0.
 | 6 Performance/stability | Hot path, waits, retries, cleanup | 0 | 0 | 0 | 0 | No value serialization in Redis path; bounded receive backoff; Testcontainers readiness uses `PING`; race test passed. Benchmarks tracked in #107. |
 | 7 Docs/release/evidence | README locale, changelog, follow-ups | 0 | 0 | 0 | 0 | README/README.ko and CHANGELOG updated; #107 and #110 cover benchmark/RESP3 follow-ups. |
 
-## Convergence
+## 수렴
 
 | Iteration | P0 | P1 | P2 | P3 | Action |
 |---|---:|---:|---:|---:|---|

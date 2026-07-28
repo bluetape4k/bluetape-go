@@ -1,6 +1,8 @@
 # Issue #377 Rules Composite and Inference Review
 
-Date: 2026-07-06
+> 한국어 감사/리뷰 경계: 이 문서는 리뷰 결론과 남은 위험을 한국어 독자가 추적할 수 있도록 정리한다. 심각도 표기, 판정 표기, 파일 경로, 라인 번호, 이슈/PR 링크, 명령, 코드 식별자, 인용 증거는 원문의 증거 앵커로 보존한다.
+
+날짜: 2026-07-06
 
 Scope:
 
@@ -8,7 +10,7 @@ Scope:
 - `README.md`
 - `README.ko.md`
 
-## Evidence
+## 증거
 
 - Issue #377 requires activation, conditional, and unit composite groups plus
   bounded inference on top of the first-party `rules` core from #375.
@@ -18,7 +20,7 @@ Scope:
 - The implementation keeps composites as ordinary `Rule` values and keeps
   inference sequential with explicit `InferenceConfig.MaxCycles`.
 
-## 7-Tier Lanes
+## 7-Tier 관점
 
 | Lane | Verdict | Notes |
 |---|---|---|
@@ -30,7 +32,7 @@ Scope:
 | User/Caller | PASS | P0=0 P1=0. Added compile-checked examples and README caveats for re-evaluation and inference. |
 | Integration | PASS | Main-session integration verified P1 fixes, docs parity, and final test gate. |
 
-## Validation
+## 검증
 
 - `git diff --check`: PASS
 - `go test -count=1 ./rules`: PASS
@@ -38,7 +40,7 @@ Scope:
 - `go vet ./rules`: PASS
 - `make fmt-check && make tidy-check && make vet && make lint && make test && make race`: PASS
 
-## Findings
+## 발견 사항
 
 - P0: 0
 - P1: 0 after fixes

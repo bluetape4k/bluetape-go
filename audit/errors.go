@@ -16,7 +16,7 @@ var (
 	ErrRevisionConflict   = errors.New("revision conflict")
 )
 
-// ValidationError reports a field-specific validation failure.
+// ValidationError audit entry, event, repository, recorder, history에서 사용하는 구조체다.
 type ValidationError struct {
 	Kind  error
 	Field string
@@ -24,7 +24,7 @@ type ValidationError struct {
 	Cause error
 }
 
-// Error returns a stable validation error message.
+// Error 오류 메시지를 반환한다.
 func (e ValidationError) Error() string {
 	if e.Field == "" {
 		if e.Cause != nil {
@@ -38,12 +38,17 @@ func (e ValidationError) Error() string {
 	return fmt.Sprintf("%v: field=%s value=redacted", e.Kind, e.Field)
 }
 
-// Unwrap returns the underlying validation cause.
+// Unwrap 감싼 원인 오류를 반환한다.
+//
+// 반환 오류는 입력 검증 실패, context 취소, transaction 실패, repository/outbox 실패, package sentinel error와 typed error를 그대로 드러낸다.
 func (e ValidationError) Unwrap() error {
 	return e.Cause
 }
 
-// Is allows errors.Is checks against the package sentinel error.
+// Is errors.Is 비교를 지원한다.
+//
+// 매개변수:
+//   - target: Is에 전달되는 값이다. 허용 범위와 nil 처리 방식은 구현 검증을 따른다.
 func (e ValidationError) Is(target error) bool {
 	return target == e.Kind
 }

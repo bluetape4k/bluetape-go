@@ -31,7 +31,7 @@ type memoryGate struct {
 	resumeOnce  sync.Once
 }
 
-// MemoryHarness returns a race-safe reference token bucket.
+// MemoryHarness rate-limit conformance harness의 quota/result ownership 동작을 수행한다.
 func MemoryHarness() Harness {
 	control := &memoryControl{
 		buckets:  make(map[string]bucket),

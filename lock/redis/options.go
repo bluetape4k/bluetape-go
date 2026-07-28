@@ -6,13 +6,13 @@ import (
 	"time"
 )
 
-// Options 는 Redis lock 생성 설정이다.
+// Options Redis lock 생성 설정이다.
 type Options struct {
-	// Key는 Redis lock key다. 필수다.
+	// Key Redis lock key다. 필수다.
 	Key string
-	// TTL은 lock이 자동 만료될 시간이다. 양수여야 한다.
+	// TTL lock이 자동 만료될 시간이다. 양수여야 한다.
 	TTL time.Duration
-	// Token은 선택적 owner token이다. 비우면 acquire마다 무작위 token을 만든다.
+	// Token 선택적 owner token이다. 비우면 acquire마다 무작위 token을 만든다.
 	Token string
 }
 

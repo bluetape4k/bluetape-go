@@ -9,23 +9,23 @@ import (
 	"time"
 )
 
-// Config identifies a stable lock owner and lease duration.
+// Config lock conformance harness의 acquire/release ownership에서 사용하는 구조체다.
 type Config struct {
 	Key   string
 	Owner string
 	TTL   time.Duration
 }
 
-// ReleaseFunc releases only the ownership acquired by its paired AcquireFunc.
+// ReleaseFunc lock conformance harness의 acquire/release ownership에서 사용하는 함수 타입이다.
 type ReleaseFunc func(context.Context) (bool, error)
 
-// AcquireFunc attempts one immediate lock acquisition.
+// AcquireFunc lock conformance harness의 acquire/release ownership에서 사용하는 함수 타입이다.
 type AcquireFunc func(context.Context) (ReleaseFunc, error)
 
-// Factory creates an acquire function attached to the provider namespace.
+// Factory lock conformance harness의 acquire/release ownership에서 사용하는 함수 타입이다.
 type Factory func(testing.TB, Config) (AcquireFunc, error)
 
-// Operation identifies an acquire or release mutation.
+// Operation lock conformance harness의 acquire/release ownership에서 사용하는 문자열 타입이다.
 type Operation string
 
 const (
@@ -35,7 +35,7 @@ const (
 	OperationRelease Operation = "release"
 )
 
-// Phase identifies a deterministic command boundary.
+// Phase lock conformance harness의 acquire/release ownership에서 사용하는 문자열 타입이다.
 type Phase string
 
 const (
@@ -45,13 +45,13 @@ const (
 	PhaseAfterLinearize Phase = "after-linearize"
 )
 
-// Gate pauses one operation at a deterministic boundary.
+// Gate lock conformance harness의 acquire/release ownership에서 사용하는 인터페이스이다.
 type Gate interface {
 	AwaitStarted(context.Context) error
 	Resume()
 }
 
-// Control supplies mandatory backend observation and fault injection.
+// Control lock conformance harness의 acquire/release ownership에서 사용하는 인터페이스이다.
 type Control interface {
 	GateNext(context.Context, Config, Operation, Phase) (Gate, error)
 	FailNext(context.Context, Config, Operation, error) error
@@ -59,10 +59,10 @@ type Control interface {
 	OperationCount(Config, Operation) int64
 }
 
-// ErrorClassifier identifies the provider's typed operation errors.
+// ErrorClassifier lock conformance harness의 acquire/release ownership에서 사용하는 함수 타입이다.
 type ErrorClassifier func(error) bool
 
-// Harness supplies a provider factory, control, and neutral error classifier.
+// Harness lock conformance harness의 acquire/release ownership에서 사용하는 구조체다.
 type Harness struct {
 	New             Factory
 	Control         Control

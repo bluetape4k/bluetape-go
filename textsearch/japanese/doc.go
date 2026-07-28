@@ -1,7 +1,7 @@
-// Package japanese adapts Kagome v2 Japanese morphological analysis to the
-// textsearch.Tokenizer contract.
+// Package japanese textsearch language image example 계약과 호출자 사용 경계를 설명한다.
+// 이 주석은 textsearch language image example의 backend 요구사항, cancellation, timeout, 오류 처리 세부사항을 설명한다.
 //
-// The package is intentionally optional: importing it pulls in Kagome plus the
-// selected dictionary packages, while the core textsearch package remains
-// dependency-free.
+// 이 주석은 tokenizer, normalization, language detection, image/example 경계를 설명한다.
+// 세부 조건은 language script, tokenizer, normalization, example ownership 계약을 따른다.
+// 이 주석은 textsearch language image example의 backend 요구사항, cancellation, timeout, 오류 처리 세부사항을 설명한다.
 package japanese

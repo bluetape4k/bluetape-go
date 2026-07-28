@@ -1,9 +1,11 @@
 # Issue #166 KSUID Generator Family Code Review
 
-Date: 2026-06-08 KST
-Branch: `issue-166-ksuid`
-Base: `origin/develop` at `189388a6cb8b3c175ac2c4183efd2a5b91384a4a`
-Issue: #166 `Port KSUID generator family`
+> 한국어 리뷰 경계: 이 문서는 리뷰 판정과 근거를 한국어 독자가 추적할 수 있도록 정리한다. 심각도 토큰, 판정 토큰, 파일 경로, 라인 번호, 이슈/PR 번호, 명령, 코드 식별자는 원문의 증거 앵커로 보존한다.
+
+날짜: 2026-06-08 KST
+브랜치: `issue-166-ksuid`
+기준: `origin/develop` at `189388a6cb8b3c175ac2c4183efd2a5b91384a4a`
+이슈: #166 `Port KSUID generator family`
 
 ## Step 6-R Integrated Result
 
@@ -57,7 +59,7 @@ Final gate: `P0=0 P1=0 P2=0 P3=0`.
     boundary wording.
   - `WIP.md` release checklist numbering was repaired.
 
-## Validation Evidence
+## 검증 증거
 
 - `git diff --check`
 - `go test -count=1 ./id`

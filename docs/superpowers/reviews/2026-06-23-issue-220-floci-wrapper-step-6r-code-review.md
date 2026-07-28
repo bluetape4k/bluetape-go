@@ -1,11 +1,13 @@
 # Issue #220 Floci Wrapper Step 6-R Code Review
 
-Issue: [#220](https://github.com/bluetape4k/bluetape-go/issues/220)  
-Branch: `issue-220-aws-graph-infra-fixtures`  
-Base: `origin/develop` at `1c4f5d4`  
-Date: 2026-06-23
+> 한국어 리뷰 경계: 이 문서는 리뷰 판정과 근거를 한국어 독자가 추적할 수 있도록 정리한다. 심각도 토큰, 판정 토큰, 파일 경로, 라인 번호, 이슈/PR 번호, 명령, 코드 식별자는 원문의 증거 앵커로 보존한다.
 
-## Scope
+이슈: [#220](https://github.com/bluetape4k/bluetape-go/issues/220)
+브랜치: `issue-220-aws-graph-infra-fixtures`
+기준: `origin/develop` at `1c4f5d4`
+날짜: 2026-06-23
+
+## 범위
 
 Reviewed the Floci fixture implementation slice:
 
@@ -22,7 +24,7 @@ This gate used main integration fallback for all six 7-tier perspectives, per
 the current user instruction. No subagent verdict is treated as required
 evidence for this gate.
 
-## Review Lanes
+## 검토 관점
 
 | Lane | P0 | P1 | P2 | P3 | Evidence |
 |---|---:|---:|---:|---:|---|
@@ -36,7 +38,7 @@ evidence for this gate.
 
 Final gate: `P0=0 P1=0`.
 
-## Findings
+## 발견 사항
 
 No blocking findings remain.
 
@@ -50,7 +52,7 @@ Resolved during Step 6-R:
   connection refused failures. Re-ran all affected Docker packages sequentially
   and recorded the passing evidence below.
 
-## Validation
+## 검증
 
 RED evidence:
 
@@ -85,7 +87,7 @@ Documentation checks:
 
 ## Step 6 Checklist Completion Report
 
-| Item | Status | Notes |
+| 항목 | 상태 | Notes |
 |---|---|---|
 | Implemented diff reviewed | Done | Floci package, README pair, dependency changes, spec/plan amendments. |
 | 7-tier review run | Done | Main integration fallback for six perspectives plus integration lane. |

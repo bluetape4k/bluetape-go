@@ -1,4 +1,5 @@
-// Package audittest contains reusable conformance tests for audit adapters.
+// Package audittest bluetape-go의 audittest audit/outbox 기능을 제공한다.
+// 공개 API 주석은 transaction, idempotency, repository ownership, delivery, 오류 계약을 한국어로 확인할 수 있도록 유지한다.
 package audittest
 
 import (
@@ -12,10 +13,14 @@ import (
 	"github.com/bluetape4k/bluetape-go/audit"
 )
 
-// RepositoryFactory creates a repository under test.
+// RepositoryFactory audit conformance harness의 repository/recorder에서 사용하는 함수 타입이다.
 type RepositoryFactory func(testing.TB) audit.Repository
 
-// RunRepositoryConformance verifies the storage-neutral audit repository contract.
+// RunRepositoryConformance audit conformance harness의 repository/recorder 동작을 수행한다.
+//
+// 매개변수:
+//   - t: RunRepositoryConformance에 전달되는 값이다. 허용 범위와 nil 처리 방식은 구현 검증을 따른다.
+//   - factory: 감사 대상 actor, action, resource, metadata 값이다. 빈 값과 민감정보 처리는 audit 계약을 따른다.
 func RunRepositoryConformance(t *testing.T, factory RepositoryFactory) {
 	t.Helper()
 	t.Run("append load and query", func(t *testing.T) {

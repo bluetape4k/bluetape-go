@@ -4,27 +4,38 @@ const base62Alphabet = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrst
 
 var base62 = newAlphabetEncoding("Base62", base62Alphabet)
 
-// EncodeBase62 encodes bytes with the 0-9A-Z-a-z Base62 alphabet.
+// EncodeBase62 입력 값을 Base62 형식으로 인코딩한다.
+//
+// 매개변수:
+//   - input: 인코딩할 바이트 슬라이스다. nil이나 빈 슬라이스는 빈 입력으로 처리한다.
 func EncodeBase62(input []byte) string {
 	return base62.encode(input)
 }
 
-// DecodeBase62 decodes a Base62 string.
+// DecodeBase62 Base62 형식의 입력을 원래 값으로 디코딩한다.
+//
+// 매개변수:
+//   - input: 디코딩할 문자열이다. 빈 문자열과 잘못된 문자는 구현의 검증 규칙에 따라 처리한다.
+//
+// 반환 오류는 입력 검증 실패와 패키지에서 정의한 sentinel error/typed error를 그대로 드러낸다.
 func DecodeBase62(input string) ([]byte, error) {
 	return base62.decode(input)
 }
 
-// EncodeBase62String encodes a UTF-8 string with Base62.
+// EncodeBase62String 입력 값을 Base62 형식으로 인코딩한다.
 //
-// It converts the string to bytes before encoding and cannot report invalid UTF-8.
+// 매개변수:
+//   - input: 처리할 문자열이다. 빈 문자열 허용 여부는 해당 함수의 검증 규칙을 따른다.
 func EncodeBase62String(input string) string {
 	return EncodeBase62([]byte(input))
 }
 
-// DecodeBase62String decodes Base62 bytes into a UTF-8 string.
+// DecodeBase62String Base62 형식의 입력을 원래 값으로 디코딩한다.
 //
-// It returns an error wrapping core.ErrInvalidUTF8 when decoded bytes are not valid UTF-8.
-// Use DecodeBase62 for binary payloads.
+// 매개변수:
+//   - input: 디코딩할 문자열이다. 빈 문자열과 잘못된 문자는 구현의 검증 규칙에 따라 처리한다.
+//
+// 반환 오류는 입력 검증 실패와 패키지에서 정의한 sentinel error/typed error를 그대로 드러낸다.
 func DecodeBase62String(input string) (string, error) {
 	decoded, err := DecodeBase62(input)
 	if err != nil {
@@ -33,15 +44,20 @@ func DecodeBase62String(input string) (string, error) {
 	return stringFromUTF8Bytes("decode Base62 string", decoded)
 }
 
-// EncodeURL62 is an alias for EncodeBase62.
+// EncodeURL62 입력 값을 URL62 형식으로 인코딩한다.
 //
-// Base62 output contains only ASCII letters and digits, so it is already safe
-// for path segments, query values, and Redis key fragments without escaping.
+// 매개변수:
+//   - input: 인코딩할 바이트 슬라이스다. nil이나 빈 슬라이스는 빈 입력으로 처리한다.
 func EncodeURL62(input []byte) string {
 	return EncodeBase62(input)
 }
 
-// DecodeURL62 is an alias for DecodeBase62.
+// DecodeURL62 URL62 형식의 입력을 원래 값으로 디코딩한다.
+//
+// 매개변수:
+//   - input: 디코딩할 문자열이다. 빈 문자열과 잘못된 문자는 구현의 검증 규칙에 따라 처리한다.
+//
+// 반환 오류는 입력 검증 실패와 패키지에서 정의한 sentinel error/typed error를 그대로 드러낸다.
 func DecodeURL62(input string) ([]byte, error) {
 	return DecodeBase62(input)
 }

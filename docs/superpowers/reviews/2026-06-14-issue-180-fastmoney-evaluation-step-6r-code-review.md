@@ -1,12 +1,14 @@
 # Issue #180 FastMoney Evaluation Step 6-R Implementation Review
 
-Issue: #180
+> 한국어 리뷰 경계: 이 문서는 리뷰 판정과 근거를 한국어 독자가 추적할 수 있도록 정리한다. 심각도 토큰, 판정 토큰, 파일 경로, 라인 번호, 이슈/PR 번호, 명령, 코드 식별자는 원문의 증거 앵커로 보존한다.
+
+이슈: #180
 Spec: `docs/superpowers/specs/2026-06-14-issue-180-fastmoney-evaluation-design.md`
 Plan: `docs/superpowers/plans/2026-06-14-issue-180-fastmoney-evaluation-plan.md`
-Gate: Step 6-R, 7-Tier implementation review
+게이트: Step 6-R, 7-Tier implementation review
 Method: main-session role switching. Native subagents were not used in this session because prior lane waits have been unreliable; main-session fallback performed the required six independent lanes plus integration review.
 
-## Reviewed Scope
+## 검토 범위
 
 - Benchmark coverage:
   - `money/money_benchmark_test.go`
@@ -24,7 +26,7 @@ Method: main-session role switching. Native subagents were not used in this sess
   - `money/README.ko.md`
   - `CHANGELOG.md`
 
-## Evidence
+## 증거
 
 | Check | Evidence | Status |
 |---|---|---|
@@ -38,7 +40,7 @@ Method: main-session role switching. Native subagents were not used in this sess
 | Stress/race gate | `go test -count=1 ./money -run 'TestMoneyOperationsUseGoroutineStressTester'` and `go test -race -count=1 ./money ./testing/concurrency` passed. | PASS |
 | Local CI | `make ci` passed after stale golangci cache cleanup; rerun `make lint` printed `0 issues.` before CI. | PASS |
 
-## Six Review Lanes
+## 6개 검토 관점
 
 | Lane | P0 | P1 | P2 | P3 | Verdict | Evidence |
 |---|---:|---:|---:|---:|---|---|
@@ -49,14 +51,14 @@ Method: main-session role switching. Native subagents were not used in this sess
 | Developer/API | 0 | 0 | 0 | 0 | PASS | No public `FastMoney` type was added. Documentation states direct `govalues` is reference-only and keeps bluetape-go wrappers as the public boundary. |
 | User/Caller | 0 | 0 | 0 | 0 | PASS | English and Korean README files explain the decision, embed the chart, and route minor-unit callers to `NewMinor` and `MinorUnits`. |
 
-## Findings
+## 발견 사항
 
 | Severity | Finding | Resolution | Status |
 |---|---|---|---|
 | P2 | First chart render had the final row too close to panel borders. | Increased panel height and canvas height; rerendered and reinspected the PNG. | FIXED |
 | P3 | First `make lint` run read stale golangci cache entries from deleted sibling worktree `issue-179-locale-currency-mapping`. | Ran `golangci-lint cache clean` and reran `make lint`; it printed `0 issues.`. `make ci` then passed. | FIXED |
 
-## Validation Commands
+## 검증 명령
 
 ```bash
 go test -count=1 ./money -run '^$'
@@ -77,7 +79,7 @@ make lint
 make ci
 ```
 
-## Main Integration Review
+## 메인 통합 검토
 
 - P0 findings: 0
 - P1 findings: 0
@@ -86,7 +88,7 @@ make ci
 
 The implementation satisfies #180 without expanding the public API. The result is evidence-backed: raw benchmark output, chart assets, README pair, research note, lesson note, goroutine stress, race detector, and full local CI are all present.
 
-## Verdict
+## 판정
 
 P0=0 P1=0
 

@@ -1,6 +1,8 @@
 # Issue #110 RESP3 CLIENT TRACKING Research 7-Tier Review
 
-## Scope
+> 한국어 리뷰 경계: 이 문서는 리뷰 판정과 근거를 한국어 독자가 추적할 수 있도록 정리한다. 심각도 토큰, 판정 토큰, 파일 경로, 라인 번호, 이슈/PR 번호, 명령, 코드 식별자는 원문의 증거 앵커로 보존한다.
+
+## 범위
 
 - Issue: #110 `Evaluate RESP3 CLIENT TRACKING near-cache strategy`
 - Diff base: `origin/develop`
@@ -9,7 +11,7 @@
   - `docs/research/2026-06-01-milestone-0.3.0-cache-coordination-research.md`
   - `docs/research/README.md`
 
-## Integrated Verdict
+## 통합 판정
 
 | Severity | Count | Verdict |
 |---|---:|---|
@@ -20,7 +22,7 @@
 
 Gate verdict: PASS. P0 = 0 and P1 = 0.
 
-## Tier Findings
+## 계층별 발견 사항
 
 | Tier | Focus | P0 | P1 | P2 | P3 | Evidence |
 |---|---|---:|---:|---:|---:|---|
@@ -32,7 +34,7 @@ Gate verdict: PASS. P0 = 0 and P1 = 0.
 | 6 Performance/stability | Server memory, notification volume, benchmarks | 0 | 0 | 0 | 0 | Default tracking vs `BCAST` tradeoff is recorded; #107 should not benchmark unimplemented RESP3 tracking yet. |
 | 7 Docs/release/evidence | Searchability, index, milestone alignment | 0 | 0 | 0 | 0 | `docs/research` document is linked from research index and 0.3.0 milestone research. |
 
-## Validation Evidence
+## 검증 증거
 
 - `git diff --check`: PASS
 - `rg "issue-110-resp3-client-tracking|CLIENT TRACKING|NewTracking" docs/research docs/superpowers/reviews docs/lessons`: PASS
@@ -45,7 +47,7 @@ Post-merge requirement: after PR merge and local `develop` sync, run
 bluetape4k-docs -n 10` returns
 `bluetape-go/docs/research/2026-06-04-issue-110-resp3-client-tracking.md`.
 
-## Review Notes
+## 검토 메모
 
 - The research closes #110 as a decision artifact and intentionally avoids
   production code changes.

@@ -26,7 +26,7 @@ type generation struct {
 	election       *concurrency.Election
 	key            string
 	createRev      int64
-	// proclaimRev is the revision at which the candidate value was last confirmed.
+	// proclaimRev 값은 leader backend election 동작의 세부 조건을 설명한다.
 	proclaimRev      int64
 	monitorDone      chan struct{}
 	shutdownOnce     sync.Once

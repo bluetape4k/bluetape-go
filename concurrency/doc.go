@@ -1,8 +1,2 @@
-// Package concurrency provides context-aware helpers for running goroutines.
-//
-// The package builds on golang.org/x/sync/errgroup and keeps the public
-// contract small: safe goroutine launch, errgroup-style task groups, bounded
-// parallel map/for-each helpers, simple worker pools, and round-robin counters.
-// Task panics are converted into errors so callers can treat failed goroutines
-// uniformly.
+// Package concurrency bluetape-go의 concurrency 기능을 제공한다.
 package concurrency

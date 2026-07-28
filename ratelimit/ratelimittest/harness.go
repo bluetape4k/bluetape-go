@@ -10,14 +10,14 @@ import (
 	"time"
 )
 
-// Config describes a token bucket in tokens per second.
+// Config rate-limit conformance harness의 quota/result ownership에서 사용하는 구조체다.
 type Config struct {
 	RatePerSecond float64
 	Burst         int64
 	IdleTTL       time.Duration
 }
 
-// Result is the provider-neutral token-bucket outcome.
+// Result rate-limit conformance harness의 quota/result ownership에서 사용하는 구조체다.
 type Result struct {
 	Allowed    bool
 	Requested  int64
@@ -26,13 +26,13 @@ type Result struct {
 	ResetAfter time.Duration
 }
 
-// AllowFunc consumes tokens for one key.
+// AllowFunc rate-limit conformance harness의 quota/result ownership에서 사용하는 함수 타입이다.
 type AllowFunc func(context.Context, string, int64) (Result, error)
 
-// Factory constructs an AllowFunc for a configuration.
+// Factory rate-limit conformance harness의 quota/result ownership에서 사용하는 함수 타입이다.
 type Factory func(testing.TB, Config) (AllowFunc, error)
 
-// Phase identifies a deterministic mutation boundary.
+// Phase rate-limit conformance harness의 quota/result ownership에서 사용하는 문자열 타입이다.
 type Phase string
 
 const (
@@ -42,23 +42,23 @@ const (
 	PhaseAfterLinearize Phase = "after-linearize"
 )
 
-// Gate pauses one Allow call at a deterministic boundary.
+// Gate rate-limit conformance harness의 quota/result ownership에서 사용하는 인터페이스이다.
 type Gate interface {
 	AwaitStarted(context.Context) error
 	Resume()
 }
 
-// Control supplies mandatory backend observation and fault injection.
+// Control rate-limit conformance harness의 quota/result ownership에서 사용하는 인터페이스이다.
 type Control interface {
 	GateNext(context.Context, string, Phase) (Gate, error)
 	FailNext(context.Context, string, error) error
 	OperationCount(string) int64
 }
 
-// ErrorClassifier identifies typed provider errors without importing a provider.
+// ErrorClassifier rate-limit conformance harness의 quota/result ownership에서 사용하는 함수 타입이다.
 type ErrorClassifier func(error) bool
 
-// Harness supplies a provider factory, control, and error classifier.
+// Harness rate-limit conformance harness의 quota/result ownership에서 사용하는 구조체다.
 type Harness struct {
 	New             Factory
 	Control         Control

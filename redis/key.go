@@ -10,31 +10,35 @@ import (
 
 var redactedKeyPattern = regexp.MustCompile(`^redis-key:[0-9a-f]{24}$`)
 
-// Key is a Redis key value plus its stable redacted diagnostic identifier.
+// Key Redis key, TTL, lease, owner token, Lua script primitive에서 사용하는 구조체다.
 type Key struct {
 	Value      string
 	RedactedID string
 }
 
-// String returns the redacted key identifier.
+// String Redis key, TTL, lease, owner token, Lua script primitive의 식별 정보를 반환한다.
 func (k Key) String() string {
 	return k.RedactedID
 }
 
-// GoString returns the redacted key identifier for debug formatting.
+// GoString Redis key, TTL, lease, owner token, Lua script primitive 동작을 수행한다.
 func (k Key) GoString() string {
 	return k.RedactedID
 }
 
-// KeyBuilder builds Redis keys from package-owned structural parts and one
-// caller-owned logical key segment.
+// KeyBuilder Redis key, TTL, lease, owner token, Lua script primitive에서 사용하는 구조체다.
 type KeyBuilder struct {
 	prefix     []string
 	structural []string
 	hashTag    string
 }
 
-// NewKeyBuilder returns a builder for a colon-delimited package key prefix.
+// NewKeyBuilder Redis key, TTL, lease, owner token, Lua script primitive에 사용할 값을 생성한다.
+//
+// 매개변수:
+//   - prefix: NewKeyBuilder에 전달되는 값이다. 허용 범위와 nil 처리 방식은 구현 검증을 따른다.
+//
+// 반환 오류는 입력 검증 실패, context 취소, Redis/backend 실패, lease/token 불일치, package sentinel error와 typed error를 그대로 드러낸다.
 func NewKeyBuilder(prefix string) (KeyBuilder, error) {
 	parts := strings.Split(prefix, ":")
 	if len(parts) == 0 {
@@ -48,7 +52,12 @@ func NewKeyBuilder(prefix string) (KeyBuilder, error) {
 	return KeyBuilder{prefix: append([]string(nil), parts...)}, nil
 }
 
-// Structural appends package-owned structural key parts.
+// Structural Redis key, TTL, lease, owner token, Lua script primitive 동작을 수행한다.
+//
+// 매개변수:
+//   - parts: Structural에 전달되는 값이다. 허용 범위와 nil 처리 방식은 구현 검증을 따른다.
+//
+// 반환 오류는 입력 검증 실패, context 취소, Redis/backend 실패, lease/token 불일치, package sentinel error와 typed error를 그대로 드러낸다.
 func (b KeyBuilder) Structural(parts ...string) (KeyBuilder, error) {
 	if err := b.validate(); err != nil {
 		return KeyBuilder{}, err
@@ -61,7 +70,12 @@ func (b KeyBuilder) Structural(parts ...string) (KeyBuilder, error) {
 	return next, nil
 }
 
-// WithHashTag adds a Redis Cluster hash tag. Colons are preserved.
+// WithHashTag Redis key, TTL, lease, owner token, Lua script primitive 옵션을 설정한다.
+//
+// 매개변수:
+//   - tag: WithHashTag에 전달되는 값이다. 허용 범위와 nil 처리 방식은 구현 검증을 따른다.
+//
+// 반환 오류는 입력 검증 실패, context 취소, Redis/backend 실패, lease/token 불일치, package sentinel error와 typed error를 그대로 드러낸다.
 func (b KeyBuilder) WithHashTag(tag string) (KeyBuilder, error) {
 	if err := b.validate(); err != nil {
 		return KeyBuilder{}, err
@@ -74,7 +88,12 @@ func (b KeyBuilder) WithHashTag(tag string) (KeyBuilder, error) {
 	return next, nil
 }
 
-// StructuralKey returns a key made only from package-owned structural parts.
+// StructuralKey Redis key, TTL, lease, owner token, Lua script primitive 동작을 수행한다.
+//
+// 매개변수:
+//   - parts: StructuralKey에 전달되는 값이다. 허용 범위와 nil 처리 방식은 구현 검증을 따른다.
+//
+// 반환 오류는 입력 검증 실패, context 취소, Redis/backend 실패, lease/token 불일치, package sentinel error와 typed error를 그대로 드러낸다.
 func (b KeyBuilder) StructuralKey(parts ...string) (Key, error) {
 	if err := b.validate(); err != nil {
 		return Key{}, err
@@ -86,7 +105,12 @@ func (b KeyBuilder) StructuralKey(parts ...string) (Key, error) {
 	return Key{Value: value, RedactedID: RedactedKeyID(value)}, nil
 }
 
-// LogicalKey returns a key with one caller-owned logical key segment preserved verbatim.
+// LogicalKey Redis key, TTL, lease, owner token, Lua script primitive 동작을 수행한다.
+//
+// 매개변수:
+//   - logicalKey: Redis key 또는 key 구성 요소다. namespace, slot, normalization 의미는 primitive 계약을 따른다.
+//
+// 반환 오류는 입력 검증 실패, context 취소, Redis/backend 실패, lease/token 불일치, package sentinel error와 typed error를 그대로 드러낸다.
 func (b KeyBuilder) LogicalKey(logicalKey string) (Key, error) {
 	if err := b.validate(); err != nil {
 		return Key{}, err
@@ -98,13 +122,21 @@ func (b KeyBuilder) LogicalKey(logicalKey string) (Key, error) {
 	return Key{Value: value, RedactedID: RedactedKeyID(value)}, nil
 }
 
-// RedactedKeyID returns a stable, deterministic key correlation identifier.
+// RedactedKeyID Redis key, TTL, lease, owner token, Lua script primitive 동작을 수행한다.
+//
+// 매개변수:
+//   - key: Redis key 또는 key 구성 요소다. namespace, slot, normalization 의미는 primitive 계약을 따른다.
 func RedactedKeyID(key string) string {
 	sum := sha256.Sum256([]byte(key))
 	return "redis-key:" + hex.EncodeToString(sum[:12])
 }
 
-// ValidateRedactedKeyID verifies that id has the canonical redacted key shape.
+// ValidateRedactedKeyID Redis key, TTL, lease, owner token, Lua script primitive 동작을 수행한다.
+//
+// 매개변수:
+//   - id: ValidateRedactedKeyID에 전달되는 값이다. 허용 범위와 nil 처리 방식은 구현 검증을 따른다.
+//
+// 반환 오류는 입력 검증 실패, context 취소, Redis/backend 실패, lease/token 불일치, package sentinel error와 typed error를 그대로 드러낸다.
 func ValidateRedactedKeyID(id string) error {
 	if !redactedKeyPattern.MatchString(id) {
 		return invalidKey("redacted key id")

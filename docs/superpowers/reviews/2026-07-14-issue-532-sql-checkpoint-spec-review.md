@@ -1,6 +1,8 @@
 # Issue #532 PostgreSQL Batch Checkpoint Spec Review
 
-## Scope
+> 한국어 리뷰 경계: 이 문서는 리뷰 판정과 근거를 한국어 독자가 추적할 수 있도록 정리한다. 심각도 토큰, 판정 토큰, 파일 경로, 라인 번호, 이슈/PR 번호, 명령, 코드 식별자는 원문의 증거 앵커로 보존한다.
+
+## 범위
 
 - Spec: `docs/superpowers/specs/2026-07-14-issue-532-sql-checkpoint-design.md`
 - Reviewed commit: `227d22322054ba6d93f2fb381e373678f81bf1e3`
@@ -22,7 +24,7 @@
 | P1 | Developer/API | Adding `AtomicWriter` to exported `StepOptions` would break external unkeyed composite literals. | Existing `StepOptions` and `NewStep` remain unchanged; the atomic path uses additive `AtomicStepOptions` and `NewAtomicStep`. |
 | P1 | User/Caller | Callback misuse, generic panic restart, and provider switching could cause writes outside the atomic boundary or unsafe replay. | The spec forbids captured DB/external side effects/raw transaction control, adds a top-level recovery example, and requires explicit rollout/rollback reconciliation. |
 
-## Final rerun results
+## 최종 재실행 결과
 
 All lanes reviewed the exact spec hash recorded above. The three available review agents were reused
 across two bounded waves; each perspective ran as a separate read-only role-scoped task. The main
@@ -41,7 +43,7 @@ The remaining P3 notes are implementation-plan details: fix a deterministic sche
 the pool-drain test, measure savepoint cost under issue #560, and choose workload-specific alert and
 vacuum thresholds in the runbook.
 
-## Main-session integration verdict
+## 메인 세션 통합 판정
 
 The design preserves the legacy batch API while adding a database-agnostic atomic core contract and
 a PostgreSQL provider whose business write and checkpoint CAS share one transaction. It does not

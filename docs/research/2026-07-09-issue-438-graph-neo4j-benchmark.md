@@ -1,24 +1,18 @@
 # Issue #438 Graph Neo4j/Memgraph Benchmark Evidence
 
-Issue #438 adds measured benchmark evidence for the `graph/neo4j` adapter
-surface. The change is benchmark-only: graph value types, Neo4j client
-semantics, driver ownership, and Memgraph compatibility contracts are
-unchanged.
+Issue #438은 `graph/neo4j` adapter surface에 대한 measured benchmark evidence를 추가한다. 변경은 benchmark-only이며 graph
+value type, Neo4j client semantics, driver ownership, Memgraph compatibility contract는 바꾸지 않는다.
 
 ## Artifacts
 
-- Pure mapping/default benchmark:
-  `docs/research/outputs/issue-438/graph-neo4j-mapping-bench.txt`
-- Neo4j/Memgraph Testcontainers opt-in benchmark:
-  `docs/research/outputs/issue-438/graph-neo4j-containers-bench.txt`
-- Environment and Docker metadata:
-  `docs/research/outputs/issue-438/environment.md`
-- Scan-friendly benchmark chart:
-  `docs/images/readme-charts/graph-neo4j-benchmark-summary.png`
+- pure mapping/default benchmark: `docs/research/outputs/issue-438/graph-neo4j-mapping-bench.txt`
+- Neo4j/Memgraph Testcontainers opt-in benchmark: `docs/research/outputs/issue-438/graph-neo4j-containers-bench.txt`
+- environment 및 Docker metadata: `docs/research/outputs/issue-438/environment.md`
+- scan-friendly benchmark chart: `docs/images/readme-charts/graph-neo4j-benchmark-summary.png`
 
 ![graph/neo4j benchmark summary](../images/readme-charts/graph-neo4j-benchmark-summary.png)
 
-Chart source files:
+chart source files:
 
 - SVG: `docs/images/readme-charts/graph-neo4j-benchmark-summary.svg`
 - PNG: `docs/images/readme-charts/graph-neo4j-benchmark-summary.png`
@@ -27,14 +21,12 @@ Chart source files:
 
 ## Commands
 
-- Local/default:
-  `go test -run '^$' -bench . -benchmem ./graph/neo4j`
+- local/default: `go test -run '^$' -bench . -benchmem ./graph/neo4j`
 - Neo4j/Memgraph Testcontainers, serial and opt-in:
   `BLUETAPE_GRAPH_NEO4J_BENCH=1 go test -p 1 -run '^$' -bench '^BenchmarkGraphNeo4jContainers' -benchtime=100x -benchmem ./graph/neo4j`
 
-Container benchmarks require Docker plus `neo4j:5.26.0` and
-`memgraph/memgraph:3.5.0`. Normal benchmark runs skip container rows unless
-`BLUETAPE_GRAPH_NEO4J_BENCH=1` is set.
+container benchmark는 Docker와 `neo4j:5.26.0`, `memgraph/memgraph:3.5.0`이 필요하다. normal benchmark run은
+`BLUETAPE_GRAPH_NEO4J_BENCH=1`이 없으면 container row를 skip한다.
 
 ## Pure Mapping Rows
 
@@ -45,9 +37,8 @@ Container benchmarks require Docker plus `neo4j:5.26.0` and
 | `BenchmarkVerticesFromRecords` | `16971 ns/op`, `37696 B/op`, `201 allocs/op` |
 | `BenchmarkEdgesFromRecords` | `14386 ns/op`, `41792 B/op`, `201 allocs/op` |
 
-Interpretation: single-value mapping stays sub-microsecond and record-batch
-mapping cost is dominated by graph value construction plus shallow property
-copying.
+해석: single-value mapping은 sub-microsecond에 머물고, record-batch mapping cost는 graph value construction과 shallow property
+copying이 지배한다.
 
 ## Container Read/Write Rows
 
@@ -70,14 +61,11 @@ copying.
 | Memgraph `memgraph/memgraph:3.5.0` | `ReadEmptyResult` | `491485 ns/op`, `18204 B/op`, `185 allocs/op` |
 | Memgraph `memgraph/memgraph:3.5.0` | `WriteSyntaxError` | `478611 ns/op`, `7976 B/op`, `165 allocs/op` |
 
-Interpretation: this is a local Testcontainers snapshot, not a production
-ranking between databases. The rows include caller-side parameter map and
-bounded context setup, and are useful as regression evidence for the current
-caller-owned driver adapter boundary and shared Cypher subset.
+해석: 이것은 local Testcontainers snapshot이지 database 간 production ranking이 아니다. row에는 caller-side parameter map과
+bounded context setup이 포함되어 있으며, 현재 caller-owned driver adapter boundary와 shared Cypher subset에 대한 regression
+evidence로 유용하다.
 
-## Decision
+## 결정
 
-No optimization issue is opened from this run. The benchmark gap is closed, and
-the measured rows do not show a correctness or public API problem that warrants
-changing `Client`, adding a backend-neutral repository abstraction, or adding a
-dedicated `graph/memgraph` package.
+이 run에서 optimization issue를 열지 않는다. benchmark gap은 닫혔고, measured row는 `Client` 변경, backend-neutral repository
+abstraction 추가, dedicated `graph/memgraph` package 추가를 정당화할 correctness 또는 public API 문제를 보이지 않는다.

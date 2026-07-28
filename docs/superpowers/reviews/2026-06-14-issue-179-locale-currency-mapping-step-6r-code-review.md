@@ -1,12 +1,14 @@
 # Issue #179 Step 6-R Code Review
 
-## Review Mode
+> 한국어 리뷰 경계: 이 문서는 리뷰 판정과 근거를 한국어 독자가 추적할 수 있도록 정리한다. 심각도 토큰, 판정 토큰, 파일 경로, 라인 번호, 이슈/PR 번호, 명령, 코드 식별자는 원문의 증거 앵커로 보존한다.
+
+## 검토 모드
 
 7-Tier gate executed as six independent review lanes plus main integration review.
 
 Native subagents were not used for this gate because this session showed unstable child-agent waits and the operator instruction was to continue with main-session role switching. Main integration fallback performed.
 
-## Scope
+## 범위
 
 - `money/currency.go`
 - `money/currency_test.go`
@@ -22,7 +24,7 @@ Native subagents were not used for this gate because this session showed unstabl
 
 No `jwt` files are modified in this diff.
 
-## Evidence
+## 증거
 
 - `node scripts/generate-money-locale-currency-diagram.mjs`: PASS
   - `nodes=9 routes=8 segments=10`
@@ -42,7 +44,7 @@ No `jwt` files are modified in this diff.
 
 ## Lane 1: Performance
 
-Verdict: PASS.
+판정: PASS.
 
 `CurrencyByLocale` now performs a small BCP47 normalization, explicit region extraction, and one CLDR currency query per call. There is no new shared cache, lock, goroutine, I/O, or network dependency. The lookup path is bounded by locale tag segments and CLDR tender iterator size.
 
@@ -50,7 +52,7 @@ The repo-local `GoroutineStressTester` covers concurrent success and rejection p
 
 ## Lane 2: Stability And Concurrency
 
-Verdict: PASS with visible external blocker.
+판정: PASS with visible external blocker.
 
 The implementation keeps language-only tags invalid by requiring an explicit region before currency resolution. It tolerates `language.ValueError` only after a valid explicit region is found, preserving the existing `at-AT` compatibility case while still rejecting malformed tags.
 
@@ -58,13 +60,13 @@ The full repository test run is currently blocked by unchanged `jwt` cached-prov
 
 ## Lane 3: Security
 
-Verdict: PASS.
+판정: PASS.
 
 The change parses local strings only and does not add network calls, file access, credential handling, serialization, shell execution, or user-controlled resource expansion beyond bounded tag parsing. Invalid, missing, no-tender, and ambiguous regions are rejected through the existing `ErrInvalidCurrency` sentinel.
 
 ## Lane 4: Operator And Operations
 
-Verdict: PASS.
+판정: PASS.
 
 `golang.org/x/text` is promoted to a direct dependency because the money package now imports `language` and `currency` directly. README files and CHANGELOG document the CLDR-backed behavior and caveat that locale mapping is a convenience, not legal/accounting authority.
 
@@ -72,7 +74,7 @@ Diagram artifacts are regenerated and checked with geometry, SVG, and PNG gates.
 
 ## Lane 5: Developer And API
 
-Verdict: PASS.
+판정: PASS.
 
 The public API remains `CurrencyByLocale(tag string) (Currency, error)`. No new exported function or behavior flag is added. Errors wrap `ErrInvalidCurrency`, preserving `errors.Is` callers.
 
@@ -80,13 +82,13 @@ The implementation uses `currency.Query(currency.Region(r))` rather than `curren
 
 ## Lane 6: User And Caller
 
-Verdict: PASS.
+판정: PASS.
 
 Common locales such as `ko-KR`, `en_US`, `de-DE`, `en-GB`, `fr-CA`, `en-AU`, `pt-BR`, `hi-IN`, `es-MX`, and `zh-Hant-TW` are covered. Ambiguous or unsupported cases such as `ko`, `und`, `en-001`, `en-QM`, `en-AQ`, `es-PA`, and `en-u-cu-usd` are rejected consistently.
 
 Docs explain that callers must choose a currency themselves when a region has multiple current tender units.
 
-## Main Integration Review
+## 메인 통합 검토
 
 P0 findings: 0.
 

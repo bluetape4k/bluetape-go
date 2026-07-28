@@ -1,6 +1,8 @@
 # Issue #588 Redis Cache Coordinator Substrate Review
 
-## Scope
+> 한국어 감사/리뷰 경계: 이 문서는 리뷰 결론과 남은 위험을 한국어 독자가 추적할 수 있도록 정리한다. 심각도 표기, 판정 표기, 파일 경로, 라인 번호, 이슈/PR 링크, 명령, 코드 식별자, 인용 증거는 원문의 증거 앵커로 보존한다.
+
+## 범위
 
 - Baseline: `develop` at `3734963`
 - Implementation: `cache/rediscoord/{stampede_cache.go,operation_error_test.go,README.md,README.ko.md}`
@@ -9,7 +11,7 @@
   is not exposed in this session; the main session performed the independent
   perspective reads and owns integration.
 
-## Verification Evidence
+## 검증 증거
 
 - `make fmt-check`
 - `make tidy-check`
@@ -26,7 +28,7 @@ The final CI command explicitly disables the local machine's stale reuse
 setting and enables Testcontainers cleanup. It completed normal and race suites
 without provider connection failures.
 
-## Six-Perspective Findings
+## 6개 관점 발견 사항
 
 | Perspective | P0 | P1 | P2 | P3 | Evidence and Verdict |
 |---|---:|---:|---:|---:|---|
@@ -37,7 +39,7 @@ without provider connection failures.
 | Developer/API | 0 | 0 | 0 | 0 | No exported API changes. `errors.As` exposes low-cardinality family/operation/key-ID fields; `redis.Nil` remains a control-flow sentinel. |
 | User/Caller | 0 | 0 | 0 | 0 | Caller namespace/key bytes and opaque result-envelope token equality remain unchanged; README locale pair documents the diagnostic guarantee. |
 
-## Integration Notes
+## 통합 메모
 
 - `redis.KeyBuilder` is intentionally not used because its structural segment
   validation would narrow current caller-visible namespace/key inputs.

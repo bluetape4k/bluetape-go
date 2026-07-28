@@ -1,12 +1,14 @@
 # Issue #175 Step 7-R PR Review
 
-Issue: #175
-PR: #230
-Date: 2026-06-14
-Branch: `issue-175-jwt-provider-cache-adapters`
-Gate: 7-Tier = 6 independent lanes + main integration review
+> 한국어 리뷰 경계: 이 문서는 리뷰 판정과 근거를 한국어 독자가 추적할 수 있도록 정리한다. 심각도 토큰, 판정 토큰, 파일 경로, 라인 번호, 이슈/PR 번호, 명령, 코드 식별자는 원문의 증거 앵커로 보존한다.
 
-## Reviewed Scope
+이슈: #175
+PR: #230
+날짜: 2026-06-14
+브랜치: `issue-175-jwt-provider-cache-adapters`
+게이트: 7-Tier = 6 independent lanes + main integration review
+
+## 검토 범위
 
 - PR diff against `develop` for #230.
 - Follow-up patch after Step 7-R comments:
@@ -18,7 +20,7 @@ Gate: 7-Tier = 6 independent lanes + main integration review
   - `docs/images/readme-diagrams/jwt-provider-cache-adapter-flow.{png,svg}`
   - `docs/lessons/2026-06-14-jwt-provider-cache-adapters.md`
 
-## Initial Lane Results
+## 초기 관점 결과
 
 | Tier | Perspective | Result | P0 | P1 | P2 | P3 | Notes |
 |---|---|---:|---:|---:|---:|---:|---|
@@ -66,7 +68,7 @@ final gate.
   and relies on non-reused `kid` values.
 - Targeted JWT cache tests and race checks passed after the follow-up patch.
 
-## Validation Evidence
+## 검증 증거
 
 - `git diff --check`
   - PASS

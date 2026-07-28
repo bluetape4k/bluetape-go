@@ -1,12 +1,14 @@
 # Issue #592 Probabilistic Redis Key Builder PR Review
 
-Date: 2026-07-10 KST
-Gate: Step 7-R
+> 한국어 감사/리뷰 경계: 이 문서는 리뷰 결론과 남은 위험을 한국어 독자가 추적할 수 있도록 정리한다. 심각도 표기, 판정 표기, 파일 경로, 라인 번호, 이슈/PR 링크, 명령, 코드 식별자, 인용 증거는 원문의 증거 앵커로 보존한다.
+
+날짜: 2026-07-10 KST
+게이트: Step 7-R
 PR: #593
 URL: https://github.com/bluetape4k/bluetape-go/pull/593
-Base: `origin/develop` at `9b8a0a1a80a041b0796bbe27ff9ee987db159c4b`
+기준: `origin/develop` at `9b8a0a1a80a041b0796bbe27ff9ee987db159c4b`
 
-## PR Context Evidence
+## PR 컨텍스트 증거
 
 - `gh pr diff 593 --name-only` lists only the planned source/tests and tracked
   workflow, review, and lesson artifacts.
@@ -15,7 +17,7 @@ Base: `origin/develop` at `9b8a0a1a80a041b0796bbe27ff9ee987db159c4b`
   `type: task`, `area: utilities`, `area: testing`, and `priority: p1`.
 - Live PR body is non-empty and its final section is `## DoD Status`.
 
-## Six-Perspective PR Verdict
+## 6개 관점 PR 판정
 
 | Perspective | P0 | P1 | P2 | P3 | Verdict |
 |---|---:|---:|---:|---:|---|
@@ -26,7 +28,7 @@ Base: `origin/develop` at `9b8a0a1a80a041b0796bbe27ff9ee987db159c4b`
 | Developer/API | 0 | 0 | 0 | 0 | No exported API, dependency, or `RedisError` change; design/verification artifacts are tracked. |
 | User/Caller | 0 | 0 | 0 | 0 | Namespace and key compatibility are retained; README, diagram, and benchmark artifacts are correctly N/A. |
 
-## Integration Verdict
+## 통합 판정
 
 P0=0 P1=0 P2=0 P3=0
 

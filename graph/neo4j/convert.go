@@ -8,11 +8,11 @@ import (
 	"github.com/neo4j/neo4j-go-driver/v6/neo4j/dbtype"
 )
 
-// VertexFromNode maps a Neo4j node into a graph.Vertex.
+// VertexFromNode graph IO Neo4j backend에서 동작과 caller-visible 계약을 설명한다.
 //
-// Neo4j nodes can have multiple labels while graph.Vertex has one label. This
-// adapter chooses the first label after trimming and sorting labels
-// lexicographically so the mapping is deterministic.
+// 이 주석은 graph format, backend requirement, traversal, serialization 조건을 설명한다.
+// 세부 조건은 GraphML, NDJSON, CSV, Neo4j 계약과 caller-owned graph model을 따른다.
+// 세부 조건은 GraphML, NDJSON, CSV, Neo4j 계약과 caller-owned graph model을 따른다.
 func VertexFromNode(node dbtype.Node) (graph.Vertex, error) {
 	id, err := elementID(node.ElementId)
 	if err != nil {
@@ -29,7 +29,7 @@ func VertexFromNode(node dbtype.Node) (graph.Vertex, error) {
 	return vertex, nil
 }
 
-// EdgeFromRelationship maps a Neo4j relationship into a directed graph.Edge.
+// EdgeFromRelationship graph IO Neo4j backend에서 동작과 caller-visible 계약을 설명한다.
 func EdgeFromRelationship(relationship dbtype.Relationship) (graph.Edge, error) {
 	id, err := elementID(relationship.ElementId)
 	if err != nil {

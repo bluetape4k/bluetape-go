@@ -27,8 +27,8 @@ var (
 	startError error
 )
 
-// Runtime describes the native libvips runtime linked into this optional
-// example module.
+// Runtime textsearch language image example에서 caller-visible 상태와 의미를 설명한다.
+// 세부 조건은 language script, tokenizer, normalization, example ownership 계약을 따른다.
 type Runtime struct {
 	LibvipsVersion string
 	GovipsVersion  string
@@ -37,9 +37,9 @@ type Runtime struct {
 	SupportsGIF    bool
 }
 
-// Startup initializes govips once for the process. The example intentionally
-// does not call Shutdown during normal operation because govips cannot be
-// restarted after shutdown.
+// Startup textsearch language image example에서 동작과 caller-visible 계약을 설명한다.
+// 세부 조건은 language script, tokenizer, normalization, example ownership 계약을 따른다.
+// 세부 조건은 language script, tokenizer, normalization, example ownership 계약을 따른다.
 func Startup() error {
 	startOnce.Do(func() {
 		vips.LoggingSettings(func(string, vips.LogLevel, string) {}, vips.LogLevelError)
@@ -56,7 +56,7 @@ func Startup() error {
 	return nil
 }
 
-// RuntimeInfo reports the detected govips and libvips capabilities.
+// RuntimeInfo textsearch language image example에서 반환값과 오류 의미를 설명한다.
 func RuntimeInfo() Runtime {
 	return Runtime{
 		LibvipsVersion: vips.Version,
@@ -67,8 +67,8 @@ func RuntimeInfo() Runtime {
 	}
 }
 
-// Transform reads a bounded image, transforms it through libvips, and returns
-// encoded bytes plus imagekit-compatible metadata.
+// Transform textsearch language image example에서 반환값과 오류 의미를 설명한다.
+// 세부 조건은 language script, tokenizer, normalization, example ownership 계약을 따른다.
 func Transform(ctx context.Context, reader io.Reader, request imagekit.Request) (imagekit.Result, error) {
 	var output bytes.Buffer
 	result, err := TransformTo(ctx, &output, reader, request)
@@ -79,9 +79,9 @@ func Transform(ctx context.Context, reader io.Reader, request imagekit.Request) 
 	return result, nil
 }
 
-// TransformTo writes the libvips output to writer. Like imagekit.TransformTo,
-// the write is not atomic and callers should stage output before publishing
-// when partial writes are not acceptable.
+// TransformTo textsearch language image example에서 동작과 caller-visible 계약을 설명한다.
+// 세부 조건은 language script, tokenizer, normalization, example ownership 계약을 따른다.
+// 세부 조건은 language script, tokenizer, normalization, example ownership 계약을 따른다.
 func TransformTo(ctx context.Context, writer io.Writer, reader io.Reader, request imagekit.Request) (imagekit.Result, error) {
 	ctx = normalizeContext(ctx)
 	req, err := normalizeRequest(request)

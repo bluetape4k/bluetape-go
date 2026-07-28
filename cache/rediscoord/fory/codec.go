@@ -7,25 +7,24 @@ import (
 	"github.com/bluetape4k/bluetape-go/cache/internal/forynative"
 )
 
-// Registration registers every Fory struct, enum, and extension type used by a codec.
+// Registration Redis 조정, stampede 방지, codec envelope에서 사용하는 함수 타입이다.
 type Registration func(*fory.Fory) error
 
-// Options configures a native Fory codec. Zero limit values use the documented
-// bounded defaults; negative values are rejected.
+// Options Redis 조정, stampede 방지, codec envelope에서 사용하는 구조체다.
 type Options struct {
 	// Register deterministically registers all codec-visible Fory types.
 	Register Registration
-	// MaxPayloadBytes bounds Fory bytes excluding the BTFY header.
+	// MaxPayloadBytes BTFY header를 제외한 Fory byte payload 상한이다.
 	MaxPayloadBytes int
-	// MaxDepth bounds nested Fory values.
+	// MaxDepth 중첩된 Fory value 깊이 상한이다.
 	MaxDepth int
-	// MaxTypeFields bounds fields in one Fory type.
+	// MaxTypeFields 하나의 Fory type에 포함할 수 있는 field 수 상한이다.
 	MaxTypeFields int
-	// MaxTypeMetaBytes bounds encoded Fory type metadata.
+	// MaxTypeMetaBytes encoding된 Fory type metadata byte 상한이다.
 	MaxTypeMetaBytes int
-	// MaxSchemaVersionsPerType bounds retained schema versions per type.
+	// MaxSchemaVersionsPerType type별로 보존할 schema version 수 상한이다.
 	MaxSchemaVersionsPerType int
-	// MaxAverageSchemaVersionsPerType bounds average retained schema versions.
+	// MaxAverageSchemaVersionsPerType type별 평균 보존 schema version 수 상한이다.
 	MaxAverageSchemaVersionsPerType int
 }
 
@@ -51,8 +50,7 @@ func (o Options) withDefaults() Options {
 	return o
 }
 
-// Codec implements rediscoord's Marshal/Unmarshal contract. Copies share the
-// same internal Fory runtime and synchronization state.
+// Codec Redis 조정, stampede 방지, codec envelope에서 사용하는 구조체다.
 type Codec[V any] struct {
 	state      *codecState[V]
 	profile    Profile
@@ -63,12 +61,22 @@ type codecState[V any] struct {
 	runtime *forynative.Runtime[V]
 }
 
-// NewNativeFast creates a native, non-compatible Fory codec.
+// NewNativeFast Redis 조정, stampede 방지, codec envelope에 사용할 값을 생성한다.
+//
+// 매개변수:
+//   - options: 적용할 옵션 목록이다. nil이면 기본값만 사용한다.
+//
+// 반환 오류는 cache miss, 입력 검증 실패, context 취소, Redis/backend 실패, package sentinel error와 typed error를 그대로 드러낸다.
 func NewNativeFast[V any](options Options) (*Codec[V], error) {
 	return newCodec[V](ProfileNativeFast, options)
 }
 
-// NewNativeCompatible creates a native schema-compatible Fory codec.
+// NewNativeCompatible Redis 조정, stampede 방지, codec envelope에 사용할 값을 생성한다.
+//
+// 매개변수:
+//   - options: 적용할 옵션 목록이다. nil이면 기본값만 사용한다.
+//
+// 반환 오류는 cache miss, 입력 검증 실패, context 취소, Redis/backend 실패, package sentinel error와 typed error를 그대로 드러낸다.
 func NewNativeCompatible[V any](options Options) (*Codec[V], error) {
 	return newCodec[V](ProfileNativeCompatible, options)
 }
@@ -93,7 +101,12 @@ func newCodec[V any](profile Profile, options Options) (*Codec[V], error) {
 	return &Codec[V]{state: &codecState[V]{runtime: runtime}, profile: profile, maxPayload: o.MaxPayloadBytes}, nil
 }
 
-// Marshal serializes a value and wraps it in the profile envelope.
+// Marshal Redis 조정, stampede 방지, codec envelope 값을 직렬화한다.
+//
+// 매개변수:
+//   - value: 직렬화하거나 cache에 보관할 값이다. nil, zero value, aliasing 의미는 serializer/cache 계약을 따른다.
+//
+// 반환 오류는 cache miss, 입력 검증 실패, context 취소, Redis/backend 실패, package sentinel error와 typed error를 그대로 드러낸다.
 func (c *Codec[V]) Marshal(value V) ([]byte, error) {
 	if c == nil || c.state == nil || c.state.runtime == nil {
 		return nil, &CodecError{operation: "marshal", reason: ReasonUninitialized}
@@ -105,7 +118,12 @@ func (c *Codec[V]) Marshal(value V) ([]byte, error) {
 	return wrap(c.profile, raw), nil
 }
 
-// Unmarshal decodes a profile envelope into a value.
+// Unmarshal Redis 조정, stampede 방지, codec envelope 값을 복원한다.
+//
+// 매개변수:
+//   - data: Unmarshal에 전달되는 값이다. 허용 범위와 nil 처리 방식은 구현 검증을 따른다.
+//
+// 반환 오류는 cache miss, 입력 검증 실패, context 취소, Redis/backend 실패, package sentinel error와 typed error를 그대로 드러낸다.
 func (c *Codec[V]) Unmarshal(data []byte) (V, error) {
 	var value V
 	if c == nil || c.state == nil || c.state.runtime == nil {

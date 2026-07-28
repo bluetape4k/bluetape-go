@@ -1,13 +1,15 @@
 # Issue #201 Test Gate Upgrade Step 2-R Spec Review
 
-Issue: #201
+> 한국어 리뷰 경계: 이 문서는 리뷰 판정과 근거를 한국어 독자가 추적할 수 있도록 정리한다. 심각도 토큰, 판정 토큰, 파일 경로, 라인 번호, 이슈/PR 번호, 명령, 코드 식별자는 원문의 증거 앵커로 보존한다.
+
+이슈: #201
 Spec: `docs/superpowers/specs/2026-06-14-issue-201-test-gates-design.md`
-Gate: Step 2-R, 7-Tier spec review
+게이트: Step 2-R, 7-Tier spec review
 Method: main-session role switching. Native subagents are preferred, but this
 session has repeatedly shown long blocking waits. This review preserves the
 required six independent lanes plus main integration and records the fallback.
 
-## Reviewed Scope
+## 검토 범위
 
 - `docs/superpowers/specs/2026-06-14-issue-201-test-gates-design.md`
 - `docs/images/readme-diagrams/issue-201-test-gates-flow.svg`
@@ -15,7 +17,7 @@ required six independent lanes plus main integration and records the fallback.
 - #199 and #201 live GitHub issue bodies
 - #200 audit artifact and Step 6-R review evidence
 
-## Evidence
+## 증거
 
 | Check | Evidence | Status |
 |---|---|---|
@@ -28,7 +30,7 @@ required six independent lanes plus main integration and records the fallback.
 | Visual inspection | Rendered PNG inspected; no visible text overflow, card/card overlap, connector/card intersection, or excessive bottom whitespace. | PASS |
 | Placeholder scan | `rg -n "TBD|TODO|placeholder|fill in|later"` returned no unresolved spec placeholder; the only angle-bracket hit is the intentional `P0=<n> P1=<n>` gate string. | PASS |
 
-## Six Review Lanes
+## 6개 검토 관점
 
 | Lane | P0 | P1 | P2 | P3 | Verdict | Evidence |
 |---|---:|---:|---:|---:|---|---|
@@ -39,7 +41,7 @@ required six independent lanes plus main integration and records the fallback.
 | Developer/API | 0 | 0 | 0 | 0 | PASS | Spec rejects broad API expansion and new dependencies; design keeps helper surface first-party and Go-shaped. |
 | User/Caller | 0 | 0 | 0 | 0 | PASS | Spec links #201 to the parent epic, separates docs-only parity work into #202/follow-up scope, and requires PR DoD body verification. |
 
-## Main Integration Review
+## 메인 통합 검토
 
 The spec is narrow enough for Type B execution and still satisfies the user's
 Superpowers requirements:
@@ -53,7 +55,7 @@ Superpowers requirements:
 - It excludes IMF/Bloomberg and docs-only README parity from this test-hardening
   branch.
 
-## Verdict
+## 판정
 
 P0=0 P1=0
 

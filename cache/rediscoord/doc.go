@@ -1,7 +1,3 @@
-// Package rediscoord coordinates cache loads through Redis.
-//
-// The package is not a durable Redis cache. It wraps an existing LoadingCache
-// and briefly shares one process's loader result during a cold-miss burst.
-// Options.MaxResultBytes can bound the transient encoded result envelope.
-// Go-native Apache Fory codecs are available from the opt-in fory child package.
+// Package rediscoord bluetape-go의 rediscoord cache 기능을 제공한다.
+// 공개 API 주석은 key, TTL, serialization, backend ownership, 오류 계약을 한국어로 확인할 수 있도록 유지한다.
 package rediscoord

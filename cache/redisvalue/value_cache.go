@@ -24,9 +24,14 @@ type redisCommandClient struct {
 	*redis.Client
 }
 
-// ReadBounded returns one bounded payload and an existence bit from a single
-// Redis point in time. A non-empty first read is already unambiguous; an empty
-// first read is rechecked with GETRANGE and EXISTS inside MULTI/EXEC.
+// ReadBounded tiered Redis value cache의 local/remote ownership, TTL, clear coordination 동작을 수행한다.
+//
+// 매개변수:
+//   - ctx: 호출자가 소유한 취소, deadline, 요청 범위를 전달한다.
+//   - key: cache lookup과 저장에 사용하는 caller-owned key다. 정규화와 namespace 의미는 package 계약을 따른다.
+//   - end: ReadBounded에 전달되는 값이다. 허용 범위와 nil 처리 방식은 구현 검증을 따른다.
+//
+// 반환 오류는 cache miss, 입력 검증 실패, context 취소, Redis/backend 실패, package sentinel error와 typed error를 그대로 드러낸다.
 func (c *redisCommandClient) ReadBounded(ctx context.Context, key string, end int64) ([]byte, bool, error) {
 	encoded, err := c.GetRange(ctx, key, 0, end).Bytes()
 	if errors.Is(err, redis.Nil) {
@@ -59,21 +64,19 @@ func (c *redisCommandClient) ReadBounded(ctx context.Context, key string, end in
 	return encoded, present != 0, nil
 }
 
-// ValueOptions configures a serialized Redis L2 value cache. The caller keeps
-// ownership of Client and Serializer for the cache lifetime.
+// ValueOptions tiered Redis value cache의 local/remote ownership, TTL, clear coordination에서 사용하는 구조체다.
 type ValueOptions[V any] struct {
-	// Client is one caller-owned direct stable writable-primary client.
+	// Client 호출자가 소유한 direct stable writable-primary Redis client다.
 	Client *redis.Client
 	// Namespace identifies one exclusive tenant, schema, and clear trust domain.
 	Namespace string
-	// Serializer is retained without cloning and must support concurrent calls.
+	// Serializer clone 없이 보관되므로 concurrent call을 지원해야 한다.
 	Serializer serialization.Serializer[V]
-	// Config is copied during construction. Nil uses DefaultConfig().Value.
+	// Config 생성 시 복사된다. nil이면 DefaultConfig().Value를 사용한다.
 	Config *ValueConfig
 }
 
-// ValueCache stores bounded serialized values in a caller-owned Redis client.
-// Its zero value is not usable; construct it with NewValueCache.
+// ValueCache tiered Redis value cache의 local/remote ownership, TTL, clear coordination에서 사용하는 구조체다.
 type ValueCache[V any] struct {
 	client     commandClient
 	serializer serialization.Serializer[V]
@@ -82,9 +85,12 @@ type ValueCache[V any] struct {
 	config     ValueConfig
 }
 
-// NewValueCache constructs a bounded serialized Redis L2 cache. Serializer is
-// retained as a caller-owned immutable dependency and must be safe for
-// concurrent Marshal and Unmarshal calls.
+// NewValueCache tiered Redis value cache의 local/remote ownership, TTL, clear coordination에 사용할 값을 생성한다.
+//
+// 매개변수:
+//   - options: 적용할 옵션 목록이다. nil이면 기본값만 사용한다.
+//
+// 반환 오류는 cache miss, 입력 검증 실패, context 취소, Redis/backend 실패, package sentinel error와 typed error를 그대로 드러낸다.
 func NewValueCache[V any](options ValueOptions[V]) (*ValueCache[V], error) {
 	if options.Client == nil || nilInterface(options.Serializer) {
 		return nil, newCacheError("configure", ReasonConfiguration, "", nil)
@@ -109,8 +115,13 @@ func NewValueCache[V any](options ValueOptions[V]) (*ValueCache[V], error) {
 	}, nil
 }
 
-// Get returns one deserialized value. Missing Redis keys return
-// cache.ErrCacheMiss exactly; existing empty payloads remain valid hits.
+// Get tiered Redis value cache의 local/remote ownership, TTL, clear coordination에서 필요한 값을 조회한다.
+//
+// 매개변수:
+//   - ctx: 호출자가 소유한 취소, deadline, 요청 범위를 전달한다.
+//   - logicalKey: cache lookup과 저장에 사용하는 caller-owned key다. 정규화와 namespace 의미는 package 계약을 따른다.
+//
+// 반환 오류는 cache miss, 입력 검증 실패, context 취소, Redis/backend 실패, package sentinel error와 typed error를 그대로 드러낸다.
 func (c *ValueCache[V]) Get(ctx context.Context, logicalKey string) (V, error) {
 	var zero V
 	ctx = normalizeContext(ctx)
@@ -147,8 +158,15 @@ func (c *ValueCache[V]) Get(ctx context.Context, logicalKey string) (V, error) {
 	return value, nil
 }
 
-// Set serializes and stores one value using the supplied per-entry Redis TTL.
-// A zero TTL means no Redis expiry.
+// Set tiered Redis value cache의 local/remote ownership, TTL, clear coordination의 상태를 변경한다.
+//
+// 매개변수:
+//   - ctx: 호출자가 소유한 취소, deadline, 요청 범위를 전달한다.
+//   - logicalKey: cache lookup과 저장에 사용하는 caller-owned key다. 정규화와 namespace 의미는 package 계약을 따른다.
+//   - value: 직렬화하거나 cache에 보관할 값이다. nil, zero value, aliasing 의미는 serializer/cache 계약을 따른다.
+//   - ttl: cache entry의 유효 시간이다. zero, 음수, 만료 의미는 옵션과 TTL 계약을 따른다.
+//
+// 반환 오류는 cache miss, 입력 검증 실패, context 취소, Redis/backend 실패, package sentinel error와 typed error를 그대로 드러낸다.
 func (c *ValueCache[V]) Set(ctx context.Context, logicalKey string, value V, ttl time.Duration) error {
 	ctx = normalizeContext(ctx)
 	if err := c.validateInitialized("set"); err != nil {
@@ -180,7 +198,14 @@ func (c *ValueCache[V]) Set(ctx context.Context, logicalKey string, value V, ttl
 	return nil
 }
 
-// SetDefault stores one value using the copied default Redis TTL.
+// SetDefault tiered Redis value cache의 local/remote ownership, TTL, clear coordination 동작을 수행한다.
+//
+// 매개변수:
+//   - ctx: 호출자가 소유한 취소, deadline, 요청 범위를 전달한다.
+//   - key: cache lookup과 저장에 사용하는 caller-owned key다. 정규화와 namespace 의미는 package 계약을 따른다.
+//   - value: 직렬화하거나 cache에 보관할 값이다. nil, zero value, aliasing 의미는 serializer/cache 계약을 따른다.
+//
+// 반환 오류는 cache miss, 입력 검증 실패, context 취소, Redis/backend 실패, package sentinel error와 typed error를 그대로 드러낸다.
 func (c *ValueCache[V]) SetDefault(ctx context.Context, key string, value V) error {
 	if err := c.validateInitialized("set-default"); err != nil {
 		return err
@@ -188,7 +213,13 @@ func (c *ValueCache[V]) SetDefault(ctx context.Context, key string, value V) err
 	return c.Set(ctx, key, value, c.config.RemoteTTL)
 }
 
-// Delete removes one logical key. Deleting an absent key succeeds.
+// Delete tiered Redis value cache의 local/remote ownership, TTL, clear coordination의 상태를 변경한다.
+//
+// 매개변수:
+//   - ctx: 호출자가 소유한 취소, deadline, 요청 범위를 전달한다.
+//   - logicalKey: cache lookup과 저장에 사용하는 caller-owned key다. 정규화와 namespace 의미는 package 계약을 따른다.
+//
+// 반환 오류는 cache miss, 입력 검증 실패, context 취소, Redis/backend 실패, package sentinel error와 typed error를 그대로 드러낸다.
 func (c *ValueCache[V]) Delete(ctx context.Context, logicalKey string) error {
 	ctx = normalizeContext(ctx)
 	if err := c.validateInitialized("delete"); err != nil {

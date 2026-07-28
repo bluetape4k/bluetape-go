@@ -1,27 +1,29 @@
 # Issue #536 RESP3 Client Tracking Spike Step 7-R Pre-PR Review
 
-Issue: #536
+> 한국어 리뷰 경계: 이 문서는 리뷰 판정과 근거를 한국어 독자가 추적할 수 있도록 정리한다. 심각도 토큰, 판정 토큰, 파일 경로, 라인 번호, 이슈/PR 번호, 명령, 코드 식별자는 원문의 증거 앵커로 보존한다.
 
-Date: 2026-07-19
+이슈: #536
 
-Base: `origin/develop` at `f4acaab1676ca4a989051a28f60f37ab147d87f9`
+날짜: 2026-07-19
 
-Reviewed candidate SHA: `50a6ded6af26cdb4845eaf5fe2af2d4aa722cb61`
+기준: `origin/develop` at `f4acaab1676ca4a989051a28f60f37ab147d87f9`
 
-Branch: `test/issue-536-resp3-client-tracking-spike`
+검토한 후보 SHA: `50a6ded6af26cdb4845eaf5fe2af2d4aa722cb61`
 
-Gate: six independent perspectives plus main-session integration.
+브랜치: `test/issue-536-resp3-client-tracking-spike`
 
-## Review Mode
+게이트: six independent perspectives plus main-session integration.
+
+## 검토 모드
 
 This is a pre-PR readiness review. Live GitHub inspection found no PR for the
 candidate branch, and the current authority does not permit push or PR
 creation. Remote CI, human reviews, review threads, and exact remote PR-head
 verification are therefore `N/A` at this gate, not passing evidence.
 
-## Live Metadata Checks
+## 실시간 메타데이터 검사
 
-| Item | Live result |
+| 항목 | 실시간 결과 |
 |---|---|
 | Issue | `#536 test: Spike RESP3 client-tracking near-cache invalidation` |
 | Issue state | OPEN |
@@ -33,7 +35,7 @@ verification are therefore `N/A` at this gate, not passing evidence.
 | Branch PR | None |
 | Remote CI/reviews/threads | N/A until a PR exists |
 
-## Convergence History
+## 수렴 이력
 
 The first Step 7-R pass reviewed
 `05062e401f5a7e4c084aafa1a67edb1fe426a4c2`. Performance found one P2 in the
@@ -48,9 +50,9 @@ candidate directly.
 
 No lane timed out, and main-session fallback was not required.
 
-## Terminal Exact-Head Results
+## 최종 정확한 HEAD 결과
 
-| Tier | Perspective | Verdict | P0 | P1 | P2 | P3 |
+| 계층 | 관점 | 판정 | P0 | P1 | P2 | P3 |
 |---|---|---:|---:|---:|---:|---:|
 | 1 | Performance | PASS | 0 | 0 | 0 | 0 |
 | 2 | Stability | PASS | 0 | 0 | 0 | 0 |
@@ -64,7 +66,7 @@ Every terminal lane reviewed
 `50a6ded6af26cdb4845eaf5fe2af2d4aa722cb61` against
 `f4acaab1676ca4a989051a28f60f37ab147d87f9`.
 
-## Candidate Scope
+## 후보 범위
 
 - One external-package RESP3 spike test file.
 - One indexed research evidence ledger.
@@ -80,7 +82,7 @@ requirements, unregister semantics, and bounded shutdown. It rejects an
 autonomous coherent pooled RESP3 near-cache on the tested public go-redis
 surface.
 
-## Accepted Scope Boundaries
+## 수용한 범위 경계
 
 - Production remains on `redisnear.NewPubSub`.
 - L1 stores `V` directly as a reference object; only Redis L2 performs
@@ -97,7 +99,7 @@ surface.
 These boundaries are explicit evidence limits, not unresolved production
 defects, because no production RESP3 API is introduced.
 
-## Fresh Verification Evidence
+## 최신 검증 증거
 
 On candidate `50a6ded6af26cdb4845eaf5fe2af2d4aa722cb61`:
 
@@ -114,7 +116,7 @@ On candidate `50a6ded6af26cdb4845eaf5fe2af2d4aa722cb61`:
   — PASS.
 - Exact base, merge base, candidate SHA, and clean working tree — confirmed.
 
-## Main Integration Verdict
+## 메인 통합 판정
 
 PASS for local PR readiness.
 
@@ -135,7 +137,7 @@ PASS for local PR readiness.
 
 ## DoD
 
-| Item | Status |
+| 항목 | 상태 |
 |---|---|
 | Live issue/milestone/base state refreshed | Done. |
 | Branch PR absence confirmed | Done. |

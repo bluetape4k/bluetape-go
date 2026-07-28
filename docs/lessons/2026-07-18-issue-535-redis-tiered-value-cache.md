@@ -1,167 +1,149 @@
-# Lessons Learned - Redis Tiered Value Cache (#535)
+# Redis Tiered Value Cache 교훈 (#535)
 
 **Related issue:** #535
 
 **Affected package:** `cache/redisvalue`
 
-## L1: A local reference cache and a serialized remote cache need different boundaries
+## L1: local reference cache와 serialized remote cache는 경계가 다르다
 
-### Problem
+### 문제
 
-Serializing or cloning values before every L1 write would make the local tier a
-second serialization boundary. Pointer-valued callers would receive a different
-object after refill, and healthy L1 hits would pay work that belongs only to the
-remote tier.
+모든 L1 write 전에 값을 serialize하거나 clone하면 local tier가 두 번째 serialization boundary가 된다.
+pointer-valued caller는 refill 뒤 다른 object를 받게 되고, 정상 L1 hit도 remote tier에만 필요한
+비용을 치른다.
 
-### Decision
+### 결정
 
-`TieredCache[V]` stores `V` directly in its exclusively owned L1. Only
-`ValueCache[V]` invokes `serialization.Serializer[V]`. Callers that choose
-pointer-valued `V` treat cached objects as immutable snapshots while cached.
+`TieredCache[V]`는 독점 소유 L1에 `V`를 직접 저장한다. `serialization.Serializer[V]`를 호출하는 것은
+`ValueCache[V]`뿐이다. pointer-valued `V`를 선택한 caller는 cache에 있는 동안 cached object를
+immutable snapshot으로 다룬다.
 
-### Evidence
+### 증거
 
 `TestTieredCacheSetPreservesReference`,
 `TestTieredCacheHealthyL1SkipsRemoteAndSerializer`,
 `TestTieredCacheL2HitStoresDecodedReference`,
-`TestTieredCacheMixedStressRetiresState`, and
-`TestRedisValueIntegration/pointer-isolation` prove the boundary at unit,
-stress, race, and real-Redis levels.
+`TestTieredCacheMixedStressRetiresState`, 그리고
+`TestRedisValueIntegration/pointer-isolation`은 unit, stress, race, real-Redis 수준에서 이 경계를
+증명한다.
 
-### Future Guard
+### 향후 가드
 
-Future RESP3 work calls only `InvalidateLocal` or `ClearLocal`; it never routes
-invalidation events through `Set`, `Delete`, or `Clear`, because those methods
-mutate L2.
+향후 RESP3 작업은 `InvalidateLocal` 또는 `ClearLocal`만 호출한다. `Set`, `Delete`, `Clear`는 L2를
+mutate하므로 invalidation event를 이 메서드들로 보내지 않는다.
 
-## L2: Redacted errors need explicit debug and structured-log contracts
+## L2: redacted error에는 debug 및 structured-log contract가 필요하다
 
-### Problem
+### 문제
 
-Reviewing only `Error()` leaves debug formatting and structured logging as
-implicit behavior, even when the wrapped cause intentionally remains reachable
-through `errors.Is` and `errors.As`.
+`Error()`만 검토하면 wrapped cause가 의도적으로 `errors.Is`와 `errors.As`로 접근 가능하더라도 debug
+formatting과 structured logging이 implicit behavior로 남는다.
 
-### Decision
+### 결정
 
-`CacheError` now implements redacted `GoString` and `slog.LogValuer` contracts.
-Tests cover provider, serializer, partial-clear, and joined cleanup failures
-across `%v`, `%+v`, `%#v`, and structured values. Nested partial-clear progress
-also remains visible when an outer local-blocked error joins cleanup failure.
+`CacheError`는 redacted `GoString` 및 `slog.LogValuer` contract를 구현한다. 테스트는 provider,
+serializer, partial-clear, joined cleanup failure를 `%v`, `%+v`, `%#v`, structured value에 걸쳐
+다룬다. outer local-blocked error가 cleanup failure와 join되어도 nested partial-clear progress는
+계속 보인다.
 
-### Future Guard
+### 향후 가드
 
-Any new public error that retains a raw provider cause must test ordinary,
-debug, and structured-log formatting separately from causal inspection.
+raw provider cause를 보존하는 새 public error는 causal inspection과 별도로 ordinary, debug,
+structured-log formatting을 테스트해야 한다.
 
-## L3: A green race run does not replace the approved concurrency matrix
+## L3: green race run은 approved concurrency matrix를 대체하지 않는다
 
-### Problem
+### 문제
 
-The initial stress test proved race freedom and cleanup, but it did not prove
-every generation-fence and mutation-order acceptance criterion from the spec.
-The first Step 6-R stability lane caught that evidence gap.
+초기 stress test는 race freedom과 cleanup을 증명했지만 spec의 모든 generation-fence 및 mutation-order
+acceptance criterion을 증명하지는 않았다. 첫 Step 6-R stability lane이 이 증거 공백을 잡았다.
 
-### Decision
+### 결정
 
-Deterministic latch tests now cover delayed refill against same-key mutation,
-`ClearLocal`, blocked readers and token waiters, loader completion, namespace
-clear, and admitted delete. Repeated same-key waves assert one loader per wave.
-Real Redis tests cover dispatch-time cancellation cleanup and provider failure
-through blocked-state repair.
+deterministic latch test는 same-key mutation과 경쟁하는 delayed refill, `ClearLocal`, blocked reader와
+token waiter, loader completion, namespace clear, admitted delete를 다룬다. repeated same-key wave는
+wave당 loader 하나를 assert한다. real Redis test는 dispatch-time cancellation cleanup과 blocked-state
+repair를 통한 provider failure를 다룬다.
 
-### Future Guard
+### 향후 가드
 
-Before final review, map every spec concurrency bullet to a named test and
-assert exact side-effect totals; `go test -race` is supporting evidence, not a
-substitute for that traceability.
+final review 전에 모든 spec concurrency bullet을 named test에 매핑하고 exact side-effect total을
+assert한다. `go test -race`는 supporting evidence이지 traceability를 대체하지 않는다.
 
-## L4: Admission and publication need separate fence proofs
+## L4: admission과 publication에는 별도 fence proof가 필요하다
 
-### Problem
+### 문제
 
-Pausing only inside a loader or provider callback proves in-flight cleanup, but
-does not isolate the boundary after a side-effect ticket is issued and before
-the admitted loader, `SET`, or `DEL` is invoked.
+loader 또는 provider callback 내부에서만 멈추면 in-flight cleanup은 증명하지만, side-effect ticket
+발급 후 admitted loader, `SET`, `DEL` 호출 전 경계를 분리하지 못한다.
 
-### Decision
+### 결정
 
-A deterministic local-state seam now issues a one-shot ticket, transitions the
-decorator out of its generation, and then proves that the already admitted
-side effect runs exactly once while its result cannot publish into L1.
+deterministic local-state seam이 one-shot ticket을 발급하고 decorator를 해당 generation 밖으로 전환한 뒤,
+이미 admitted된 side effect가 정확히 한 번 실행되지만 결과는 L1에 publish될 수 없음을 증명한다.
 
-### Future Guard
+### 향후 가드
 
-When a state machine separates admission from effect execution, test the
-ticket and the later publication classification independently; callback latches
-alone do not prove both boundaries.
+state machine이 admission과 effect execution을 분리하면 ticket과 이후 publication classification을
+독립적으로 테스트한다. callback latch만으로는 두 경계를 모두 증명하지 못한다.
 
-## L5: Option names do not explain an operational budget
+## L5: option 이름만으로는 operational budget이 설명되지 않는다
 
-### Problem
+### 문제
 
-Listing timeout fields and ACL commands did not tell operators how to size the
-budgets, which Redis/TLS baseline to require, or how to alert and recover from a
-blocked local tier.
+timeout field와 ACL command를 나열하는 것만으로는 operator가 budget을 어떻게 산정할지, 어떤 Redis/TLS
+baseline을 요구할지, blocked local tier를 어떻게 alert/recover할지 알 수 없다.
 
-### Decision
+### 결정
 
-Both package READMEs now bind invalidation and cleanup timeouts to the work they
-must cover, require Redis 6+ with verified TLS certificates when enabled,
-reject logical databases as security boundaries, and make blocked-state alert
-and explicit recovery part of the executable documentation parity contract.
+두 package README는 invalidation 및 cleanup timeout을 해당 timeout이 덮어야 하는 work에 연결한다. TLS
+사용 시 verified TLS certificate가 있는 Redis 6+를 요구하고, logical database를 security boundary로
+보지 않으며, blocked-state alert와 explicit recovery를 executable documentation parity contract의 일부로
+둔다.
 
-### Future Guard
+### 향후 가드
 
-Operational documentation tests should preserve decision rules and recovery
-actions, not only option and command names.
+operational documentation test는 option 및 command 이름뿐 아니라 decision rule과 recovery action을
+보존해야 한다.
 
-## L6: Public examples must model the failure policy
+## L6: public example은 failure policy를 모델링해야 한다
 
-### Problem
+### 문제
 
-A compile-checked example can still teach unsafe behavior when it discards
-mutation or repair errors, or demonstrates namespace clear with an ordinary
-client identity.
+compile-checked example도 mutation 또는 repair error를 버리거나 ordinary client identity로 namespace
+clear를 보여 주면 unsafe behavior를 가르칠 수 있다.
 
-### Decision
+### 결정
 
-The example checks every mutation and invalidation result, repairs blocked
-state only with a fresh bounded context, and constructs namespace clear with a
-separately credentialed admin client. Migration guidance also states that
-`ValueCache` adoption is incremental and does not rewrite `redisfory` data.
+example은 모든 mutation 및 invalidation result를 확인하고, fresh bounded context로만 blocked state를
+repair하며, 별도 credential의 admin client로 namespace clear를 구성한다. migration guidance도
+`ValueCache` 채택은 incremental하며 `redisfory` data를 rewrite하지 않는다고 명시한다.
 
-### Future Guard
+### 향후 가드
 
-Review examples as caller code, not merely as compilable syntax: error handling,
-credentials, recovery contexts, and migration boundaries must match production
-guidance.
+example은 단순히 compile되는 syntax가 아니라 caller code로 review한다. error handling, credential,
+recovery context, migration boundary가 production guidance와 맞아야 한다.
 
-The example's separate clear-admin client also names its credential inputs;
-a second client instance without an explicit identity does not demonstrate ACL
-separation.
+example의 별도 clear-admin client는 credential input도 이름으로 드러낸다. 명시적 identity가 없는 두 번째
+client instance는 ACL separation을 증명하지 않는다.
 
-## L7: Bounded reads still need one consistency point
+## L7: bounded read에도 하나의 consistency point가 필요하다
 
-### Problem
+### 문제
 
-`GETRANGE` bounded payload admission, but an empty result required a later
-`EXISTS` to distinguish a missing key from a valid empty payload. Another
-client could create or delete the key between those commands, combining bytes
-from one Redis point in time with existence from another and fabricating an
-empty cache hit.
+`GETRANGE`는 bounded payload admission을 제공했지만, empty result에서는 missing key와 valid empty payload를
+구분하기 위해 나중에 `EXISTS`가 필요했다. 다른 client가 두 command 사이에 key를 만들거나 삭제하면 서로
+다른 Redis 시점의 bytes와 existence가 결합되어 empty cache hit가 조작될 수 있다.
 
-### Decision
+### 결정
 
-Keep the single-command path for non-empty payloads. When the first bounded
-read is empty, re-run bounded `GETRANGE` and `EXISTS` inside one `MULTI`/`EXEC`
-transaction. The ordinary Redis identity therefore includes transaction
-commands, and a deterministic two-client integration test fixes the exact
-interleaving that exposed the defect.
+non-empty payload에는 single-command path를 유지한다. 첫 bounded read가 empty이면 bounded `GETRANGE`와
+`EXISTS`를 하나의 `MULTI`/`EXEC` transaction 안에서 다시 실행한다. 따라서 ordinary Redis identity에는
+transaction command가 포함되며, deterministic two-client integration test가 결함을 드러낸 정확한
+interleaving을 고정한다.
 
-### Future Guard
+### 향후 가드
 
-When absence and an empty value are both meaningful, never combine a payload
-probe and an existence probe from different backend snapshots. Use one atomic
-transaction/script or a deliberately versioned non-empty envelope, and test a
-cross-client mutation between the original probes.
+absence와 empty value가 모두 의미 있으면 서로 다른 backend snapshot의 payload probe와 existence probe를
+결합하지 않는다. 하나의 atomic transaction/script 또는 의도적으로 versioned non-empty envelope을 사용하고,
+원래 probe 사이의 cross-client mutation을 테스트한다.

@@ -1,10 +1,12 @@
 # Issue #219 Step 6-R Code Review
 
-Issue: [#219](https://github.com/bluetape4k/bluetape-go/issues/219)  
-Diff Base: `origin/develop` at `9b529d1`  
-Date: 2026-06-23
+> 한국어 리뷰 경계: 이 문서는 리뷰 판정과 근거를 한국어 독자가 추적할 수 있도록 정리한다. 심각도 토큰, 판정 토큰, 파일 경로, 라인 번호, 이슈/PR 번호, 명령, 코드 식별자는 원문의 증거 앵커로 보존한다.
 
-## Reviewed Scope
+이슈: [#219](https://github.com/bluetape4k/bluetape-go/issues/219)
+Diff Base: `origin/develop` at `9b529d1`
+날짜: 2026-06-23
+
+## 검토 범위
 
 - Messaging/HTTP/fault-injection service matrix for #219.
 - New `testcontainers/toxiproxy` wrapper, Redis-through-proxy integration test,
@@ -12,13 +14,13 @@ Date: 2026-06-23
 - Spec, plan, and prior Step 2-R/3-R review artifacts for the selected
   Toxiproxy first slice.
 
-## Runtime Note
+## 런타임 메모
 
 Native review lanes were not used for this gate because the session was
 instructed to proceed with main integration fallback. The main session applied
 the same six-lane 7-Tier frame and completed each perspective read-only.
 
-## Six-Lane Review
+## 6개 관점 검토
 
 | Tier | Perspective | P0 | P1 | P2 | P3 | Evidence |
 |---|---|---:|---:|---:|---:|---|
@@ -45,7 +47,7 @@ the same six-lane 7-Tier frame and completed each perspective read-only.
 - `testcontainers/toxiproxy/toxiproxy_test.go:55` and
   `testcontainers/toxiproxy/toxiproxy_test.go:56` bound Redis client I/O.
 
-## Validation Evidence
+## 검증 증거
 
 - `go test -p 1 -count=1 ./testcontainers/toxiproxy`
 - `go test -race -p 1 -count=1 ./testcontainers/toxiproxy`
@@ -61,7 +63,7 @@ the same six-lane 7-Tier frame and completed each perspective read-only.
 - `make ci`
 - `git diff --check`
 
-## Integrated Verdict
+## 통합 판정
 
 P0=0 P1=0
 

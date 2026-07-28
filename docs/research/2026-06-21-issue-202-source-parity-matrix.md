@@ -1,26 +1,26 @@
-# Issue #202 Source Parity Matrix
+# Issue #202 소스 패리티 매트릭스
 
 Issue: [#202](https://github.com/bluetape4k/bluetape-go/issues/202)
 Milestone: `0.6.2`
 Date: 2026-06-21
 
-## Decision
+## 결정
 
-Use this matrix as the shared evidence source for the corrective `0.6.x`
-series. The goal is selective Go-native parity, not a Kotlin/JVM API clone.
+이 매트릭스를 보정용 `0.6.x` 시리즈의 공통 증거 자료로 사용한다.
+목표는 Kotlin/JVM API 복제가 아니라, Go에 맞는 선택적 패리티다.
 
-High-value gaps already have receiving epics:
+가치가 높은 공백은 이미 다음 수신 epic에 매핑되어 있다.
 
-- Core foundation gaps map to [#204](https://github.com/bluetape4k/bluetape-go/issues/204) / `0.6.3`.
-- Testing helper gaps map to [#209](https://github.com/bluetape4k/bluetape-go/issues/209) / `0.6.4`.
-- Testcontainers gaps map to [#215](https://github.com/bluetape4k/bluetape-go/issues/215) / `0.6.5`.
-- Cross-cutting docs, examples, assertions, logging, time, and math closure maps
-  to [#221](https://github.com/bluetape4k/bluetape-go/issues/221) / `0.6.6`.
+- Core foundation 공백은 [#204](https://github.com/bluetape4k/bluetape-go/issues/204) / `0.6.3`에 매핑한다.
+- Testing helper 공백은 [#209](https://github.com/bluetape4k/bluetape-go/issues/209) / `0.6.4`에 매핑한다.
+- Testcontainers 공백은 [#215](https://github.com/bluetape4k/bluetape-go/issues/215) / `0.6.5`에 매핑한다.
+- Cross-cutting docs, examples, assertions, logging, time, math 마감 작업은
+  [#221](https://github.com/bluetape4k/bluetape-go/issues/221) / `0.6.6`에 매핑한다.
 
-No new issue is required from this pass. The uncovered high-value work fits the
-existing `0.6.3` through `0.6.6` epics.
+이번 검토에서 새 issue는 필요하지 않다. 아직 덮지 못한 고가치 작업은
+기존 `0.6.3`부터 `0.6.6`까지의 epic 안에 들어간다.
 
-## Status Legend
+## 상태 범례
 
 | Status | Meaning |
 |---|---|
@@ -29,7 +29,7 @@ existing `0.6.3` through `0.6.6` epics.
 | Missing | No equivalent Go package or helper exists yet. |
 | Excluded | Deliberate non-goal for Go or for the current library scope. |
 
-## Core Matrix
+## Core 매트릭스
 
 | Source family | Kotlin source path | bluetape-go path | Current status | Quality status | Missing work | Target | Non-goal rationale |
 |---|---|---|---|---|---|---|---|
@@ -43,7 +43,7 @@ existing `0.6.3` through `0.6.6` epics.
 | Concurrency foundation | `core/.../concurrent/*`, virtual thread helpers | `concurrency/*`, `testing/concurrency/*` | Partial | Worker/group helpers exist and use Go contexts. | Audit cancellation, cleanup, and race behavior before any new primitive. | #204 / #205, #209 / #210 | Java executor, virtual thread, and `CompletableFuture` shapes are excluded. |
 | Functional / Result helpers | `core/.../functional/*`, `ResultSupport.kt` | None | Excluded | Existing Go packages use explicit values and errors. | None unless a concrete call site proves repeated boilerplate. | #221 / #225 closure record | Kotlin `Result`, higher-order DSLs, and monadic wrappers are not a Go goal. |
 
-## JUnit5 / Testing Matrix
+## JUnit5 / Testing 매트릭스
 
 | Source family | Kotlin source path | bluetape-go path | Current status | Quality status | Missing work | Target | Non-goal rationale |
 |---|---|---|---|---|---|---|---|
@@ -55,7 +55,7 @@ existing `0.6.3` through `0.6.6` epics.
 | Stopwatch / timing | `StopwatchExtension` | Package-local benchmark/timing code | Missing | `testing` benchmarks remain primary. | Add timing helper only when ordinary benchmark/test output is insufficient. | #209 / #212, #221 / #223 | JUnit lifecycle timing extension parity is excluded. |
 | Reporting / Mermaid | `testing/junit5/.../report/*` | None | Missing | No reporting framework exists. | Consider examples or generated docs only if they materially improve debugging. | #209 / #214, #221 / #224 | Replacing `go test` output with a reporting framework is excluded. |
 
-## Testcontainers Matrix
+## Testcontainers 매트릭스
 
 | Source family | Kotlin source path | bluetape-go path | Current status | Quality status | Missing work | Target | Non-goal rationale |
 |---|---|---|---|---|---|---|---|
@@ -69,7 +69,7 @@ existing `0.6.3` through `0.6.6` epics.
 | AWS / emulators | MiniStack, Floci, LocalStack, DynamoDB Local, ElasticMQ | None | Missing | AWS packages are future roadmap work. | Choose emulator fixtures based on #47/#60-#64 before implementing. | #215 / #220 | Deprecated LocalStack-first parity is excluded unless a design issue selects it. |
 | Infrastructure / graph / observability | Keycloak, Vault, Consul, etcd, Zipkin, Grafana, K3s, Neo4j, Memgraph, FalkorDB, AGE | None | Missing | No current Go package consumes these fixtures. | Add only when graph, audit, security, or integration examples need them. | #215 / #220, #221 / #224 | Infrastructure wrappers without roadmap demand are excluded. |
 
-## Broader bluetape4k-projects Routing
+## 더 넓은 bluetape4k-projects 라우팅
 
 | Source family | Source modules | Routing decision |
 |---|---|---|
@@ -82,12 +82,10 @@ existing `0.6.3` through `0.6.6` epics.
 | Audit / outbox | `audit/*`, messaging examples | Defer to `0.10.0`; messaging fixtures route through #215. |
 | Graph | `graph/*` | Defer to `0.11.0`; graph fixtures route through #215. |
 
-## Acceptance Check
+## 수용 확인
 
-- Implemented, partial, excluded, and missing states are separated above.
-- Every high-value missing item maps to #204, #209, #215, #221, or a later
-  roadmap family.
-- JVM-only, framework-only, and DSL-shaped items have explicit non-goal
-  rationale.
-- No behavior change is made by this note; implementation work remains in the
-  receiving issues.
+- 위 매트릭스는 Implemented, Partial, Excluded, Missing 상태를 분리한다.
+- 모든 고가치 Missing 항목은 #204, #209, #215, #221 또는 이후 roadmap 계열로
+  매핑되어 있다.
+- JVM 전용, framework 전용, DSL 형태 항목은 명시적인 non-goal 근거를 가진다.
+- 이 노트는 동작 변경을 만들지 않는다. 구현 작업은 각 수신 issue에서 진행한다.

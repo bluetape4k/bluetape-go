@@ -1,18 +1,18 @@
 # Issue 58 Audit Outbox And Publisher Design
 
-Issue #58 decides the first durable audit outbox direction after the #56 audit
-model and #57 repository/history contracts.
+Issue #58은 #56 audit model과 #57 repository/history contract 뒤에 올 첫
+durable audit outbox 방향을 결정한다.
 
-## Decision
+## 결정
 
-Select a SQL outbox store and relay contract as the first concrete adapter
-target. The implementation issue is #346.
+첫 concrete adapter target으로 SQL outbox store와 relay contract를 선택한다.
+Implementation issue는 #346이다.
 
-Kafka, NATS, Redis Streams, RabbitMQ, Redpanda, and Pulsar are not selected for
-this slice. They remain publisher/projection adapters that should consume
-records from a durable outbox after the SQL outbox contract is proven.
+Kafka, NATS, Redis Streams, RabbitMQ, Redpanda, Pulsar는 이 slice에서
+선택하지 않는다. 이들은 SQL outbox contract가 증명된 뒤 durable outbox에서
+record를 소비해야 하는 publisher/projection adapter로 남긴다.
 
-This keeps the audit track aligned with:
+이 결정은 audit track을 다음과 맞춘다.
 
 - #57: storage-neutral repository/history contracts and in-memory conformance.
 - #100: runtime-first `database/sql`, visible SQL, PostgreSQL-first integration.
@@ -20,11 +20,10 @@ This keeps the audit track aligned with:
   adapters and Redis is a projection or explicit audit store only after replay
   and head semantics are accepted.
 
-## Minimal Contract Shape
+## 최소 Contract 형태
 
-The first implementation should keep the public surface small and Go-shaped.
-The exact package name belongs to #346, but the contract should include these
-roles:
+첫 구현은 public surface를 작고 Go-shaped로 유지해야 한다. 정확한 package
+name은 #346에서 정하되, contract에는 다음 role이 포함되어야 한다.
 
 | Role | Responsibility |
 |---|---|
@@ -33,73 +32,74 @@ roles:
 | Publisher | Publish one claimed outbox record with `context.Context`; duplicate publish attempts are possible. |
 | Relay | Claim records, call the publisher, mark success/failure, and shut down deterministically on context cancellation. |
 
-The contract should avoid broad event-sourcing framework behavior. A caller that
-only needs audit history should not need a publisher or relay.
+Contract는 broad event-sourcing framework behavior를 피해야 한다. Audit
+history만 필요한 caller가 publisher나 relay를 필요로 하면 안 된다.
 
 ## Delivery Semantics
 
-- Delivery is at-least-once. Exactly-once is not promised.
-- Idempotency is based on the stable audit event ID plus the caller-supplied
-  idempotency key already present in `audit.DomainEvent`.
-- SQL uniqueness should reject duplicate event IDs and duplicate idempotency
-  keys at the durable boundary.
-- Per-aggregate revision ordering should be preserved where a single store and
-  relay can do so. No global ordering guarantee should be exposed.
-- Failed publishes should update attempt count, next availability, and a
-  redacted last error. Poison records should move to dead-letter state instead
-  of blocking the whole relay indefinitely.
-- Serialization should use the existing `audit.Entry` JSON validation contract.
-  Adapters must bound untrusted bytes before calling `audit.DecodeEntryJSON`.
-- Publisher adapters should map stable metadata to transport headers only when
-  doing so does not leak sensitive payload or aggregate data.
+- Delivery는 at-least-once다. Exactly-once는 약속하지 않는다.
+- Idempotency는 stable audit event ID와 `audit.DomainEvent`에 이미 있는
+  caller-supplied idempotency key를 기반으로 한다.
+- SQL uniqueness는 durable boundary에서 duplicate event ID와 duplicate
+  idempotency key를 거부해야 한다.
+- 단일 store와 relay가 보장할 수 있는 범위에서 per-aggregate revision
+  ordering을 보존해야 한다. Global ordering guarantee는 노출하지 않는다.
+- Failed publish는 attempt count, next availability, redacted last error를
+  업데이트해야 한다. Poison record는 whole relay를 무기한 막지 말고
+  dead-letter state로 이동해야 한다.
+- Serialization은 기존 `audit.Entry` JSON validation contract를 사용한다.
+  Adapter는 `audit.DecodeEntryJSON`을 호출하기 전에 untrusted bytes를
+  제한해야 한다.
+- Publisher adapter는 sensitive payload나 aggregate data를 유출하지 않을 때만
+  stable metadata를 transport header로 매핑해야 한다.
 
-## First SQL Adapter Boundary
+## 첫 SQL Adapter 경계
 
-#346 should implement a SQL outbox store and relay against the existing
-runtime-first SQL direction.
+#346은 기존 runtime-first SQL 방향을 기준으로 SQL outbox store와 relay를
+구현해야 한다.
 
-- Use `database/sql` as the execution boundary.
-- Use `sqlkit` helpers where they reduce boilerplate without hiding SQL.
-- Use PostgreSQL as the first real database integration anchor.
-- Keep migration ownership application-visible. The package can provide DDL
-  guidance or fixtures, but should not run hidden migrations.
-- Keep source write, audit repository append, and outbox enqueue choreography
-  application-owned unless #346 explicitly introduces a caller-supplied
-  transaction/session hook.
+- Execution boundary는 `database/sql`을 사용한다.
+- SQL을 숨기지 않으면서 boilerplate를 줄일 때만 `sqlkit` helper를 사용한다.
+- PostgreSQL을 첫 real database integration anchor로 사용한다.
+- Migration ownership은 application-visible로 유지한다. Package는 DDL
+  guidance나 fixture를 제공할 수 있지만 hidden migration을 실행하면 안 된다.
+- #346이 caller-supplied transaction/session hook을 명시적으로 도입하지 않는
+  한, source write, audit repository append, outbox enqueue choreography는
+  application-owned로 유지한다.
 
-## Deferred Adapters
+## 보류 Adapter
 
 | Adapter | Decision | Rationale |
 |---|---|---|
-| Kafka publisher | Defer | Best after SQL outbox claims and retry/dead-letter state exist. Kafka should not become the history query store. |
-| NATS publisher | Defer | Useful for low-latency fanout, but still needs durable outbox semantics first. |
-| Redis Streams | Defer | Better as projection or stream fanout after replay/head semantics are explicit. |
-| RabbitMQ/Redpanda/Pulsar | Defer | No current audit requirement selects these brokers; do not expand fixture scope before demand. |
-| Direct Redis audit store | Defer | Redis must be an explicit audit source or projection, not SQL write-behind. |
+| Kafka publisher | Defer | SQL outbox claim과 retry/dead-letter state가 생긴 뒤가 적합하다. Kafka는 history query store가 되면 안 된다. |
+| NATS publisher | Defer | Low-latency fanout에 유용하지만 durable outbox semantics가 먼저 필요하다. |
+| Redis Streams | Defer | Replay/head semantics가 명확해진 뒤 projection 또는 stream fanout으로 더 적합하다. |
+| RabbitMQ/Redpanda/Pulsar | Defer | 현재 audit requirement는 이 broker들을 선택하지 않는다. Demand 전 fixture scope를 넓히지 않는다. |
+| Direct Redis audit store | Defer | Redis는 SQL write-behind가 아니라 explicit audit source 또는 projection이어야 한다. |
 
-## Application-Owned Responsibilities
+## 애플리케이션 소유 책임
 
-Applications still own:
+Application은 계속 다음을 소유한다.
 
 - Source-of-truth row/document persistence.
-- Transaction boundaries across source writes, audit repository append, and
-  outbox enqueue.
-- Schema migrations and database permissions.
+- Source write, audit repository append, outbox enqueue 전반의 transaction
+  boundaries.
+- Schema migrations와 database permissions.
 - Publisher client lifecycle, authentication, TLS, topic/subject/stream
-  topology, and broker-specific retention.
-- Payload redaction, PII policy, tenant isolation, and maximum payload size.
-- Consumer idempotency and replay behavior.
-- Observability labels and alerting thresholds.
+  topology, broker-specific retention.
+- Payload redaction, PII policy, tenant isolation, maximum payload size.
+- Consumer idempotency와 replay behavior.
+- Observability labels와 alerting thresholds.
 
-## Follow-Up Issue
+## 후속 이슈
 
 - #346 implements the SQL audit outbox store and relay contract selected here.
 
-Do not create Kafka, NATS, or Redis Stream implementation issues until #346
-proves the durable outbox contract or a concrete example requires a specific
-transport.
+#346이 durable outbox contract를 증명하거나 concrete example이 specific
+transport를 요구하기 전까지 Kafka, NATS, Redis Stream implementation issue는
+만들지 않는다.
 
-## Validation Plan
+## 검증 계획
 
 - Documentation PR: `git diff --check` and targeted `rg` for linked issue and
   README references.

@@ -28,7 +28,13 @@ type rowScanner interface {
 	Scan(...any) error
 }
 
-// Load returns the typed checkpoint and its durable revision when the key exists.
+// Load batch 단계, checkpoint, writer 안전성, 재시작에서 필요한 값을 조회한다.
+//
+// 매개변수:
+//   - ctx: 호출자가 소유한 취소, deadline, 요청 범위를 전달한다.
+//   - key: Load가 해석할 문자열이다. 빈 문자열은 구현 검증을 따른다.
+//
+// 반환 오류는 입력 검증 실패, context 취소/deadline, 상태 전이 실패, 패키지 sentinel error와 typed error를 그대로 드러낸다.
 func (w *Writer[T, C]) Load(ctx context.Context, key string) (batch.VersionedCheckpoint, bool, error) {
 	if ctx == nil {
 		ctx = context.Background()

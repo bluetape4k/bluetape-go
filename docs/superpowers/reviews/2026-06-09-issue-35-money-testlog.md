@@ -1,13 +1,15 @@
 # Issue #35 Money Step 4-T Testlog
 
-## Scope
+> 한국어 리뷰 경계: 이 문서는 리뷰 판정과 근거를 한국어 독자가 추적할 수 있도록 정리한다. 심각도 토큰, 판정 토큰, 파일 경로, 라인 번호, 이슈/PR 번호, 명령, 코드 식별자는 원문의 증거 앵커로 보존한다.
+
+## 범위
 
 - Worktree: `.worktrees/issue-35-money`
 - Base: `origin/develop`
 - Package: `money`
 - Issue: #35
 
-## Dependency Evidence
+## 의존성 증거
 
 - `go list -m github.com/govalues/money github.com/govalues/decimal`
   - `github.com/govalues/money v0.2.4`
@@ -20,7 +22,7 @@
 - `gh repo view govalues/decimal --json nameWithOwner,isArchived,pushedAt,updatedAt,latestRelease,licenseInfo`
   - `govalues/decimal`, archived false, MIT, latest release `v0.1.36`
 
-## Validation Commands
+## 검증 명령
 
 - `gofmt -w money`: pass
 - `go mod tidy`: pass

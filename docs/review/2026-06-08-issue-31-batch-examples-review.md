@@ -1,6 +1,8 @@
 # Issue 31 Batch Examples Review
 
-## Scope
+> 한국어 감사/리뷰 경계: 이 문서는 리뷰 결론과 남은 위험을 한국어 독자가 추적할 수 있도록 정리한다. 심각도 표기, 판정 표기, 파일 경로, 라인 번호, 이슈/PR 링크, 명령, 코드 식별자, 인용 증거는 원문의 증거 앵커로 보존한다.
+
+## 범위
 
 - Baseline: `origin/develop`
 - Changed files:
@@ -8,7 +10,7 @@
   - `leader/redis/README.md`
   - `leader/redis/README.ko.md`
 
-## Review Evidence
+## 검토 증거
 
 - `code-review-graph build --repo .`
   - `194 files`, `1260 nodes`, `10888 edges`
@@ -25,7 +27,7 @@
   - `AsyncJobTester` covers cancellation propagation through the guarded batch path.
   - README and README.ko document the runnable command and Testcontainers requirement.
 
-## Validation
+## 검증
 
 ```text
 go test -count=1 ./leader/redis -run 'Test(BatchSchedulerExample|MigrationGateExample|LeaderGuardedBatchExecutionWithGoroutineStressTester|LeaderGuardedBatchExecutionWithAsyncJobTesterCancellation)'
@@ -36,7 +38,7 @@ git diff --check
 make ci
 ```
 
-## Findings
+## 발견 사항
 
 - P0: none
 - P1: none
@@ -45,6 +47,6 @@ make ci
 
 P0=0 P1=0
 
-## Verdict
+## 판정
 
 PASS. The issue #31 acceptance criteria are covered by runnable Redis Testcontainers examples and documented local commands.

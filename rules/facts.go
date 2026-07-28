@@ -6,21 +6,23 @@ import (
 	"sync"
 )
 
-// Facts stores rule input and output values by key.
-//
-// Facts is safe for concurrent access to the container itself. Stored values
-// are caller-owned: Clone and Snapshot copy the map, not the values inside it.
+// Facts 패키지에서 공개하는 구조체다.
 type Facts struct {
 	mu     sync.RWMutex
 	values map[string]any
 }
 
-// NewFacts creates an empty facts container.
+// NewFacts Facts 인스턴스를 생성한다.
 func NewFacts() *Facts {
 	return &Facts{values: make(map[string]any)}
 }
 
-// NewFactsFrom creates facts from values.
+// NewFactsFrom FactsFrom 인스턴스를 생성한다.
+//
+// 매개변수:
+//   - values: NewFactsFrom에 전달되는 값이다. 허용 범위와 nil 처리 방식은 구현 검증을 따른다.
+//
+// 반환 오류는 입력 검증 실패와 패키지에서 정의한 sentinel error/typed error를 그대로 드러낸다.
 func NewFactsFrom(values map[string]any) (*Facts, error) {
 	facts := NewFacts()
 	for key, value := range values {
@@ -31,7 +33,13 @@ func NewFactsFrom(values map[string]any) (*Facts, error) {
 	return facts, nil
 }
 
-// Set stores value under key.
+// Set key에 값을 저장한다.
+//
+// 매개변수:
+//   - key: Set가 해석할 문자열이다. 빈 문자열과 공백은 구현 검증을 따른다.
+//   - value: Set에 전달되는 값이다. 허용 범위와 nil 처리 방식은 구현 검증을 따른다.
+//
+// 반환 오류는 입력 검증 실패와 패키지에서 정의한 sentinel error/typed error를 그대로 드러낸다.
 func (f *Facts) Set(key string, value any) error {
 	if f == nil {
 		return ErrNilFacts
@@ -50,7 +58,10 @@ func (f *Facts) Set(key string, value any) error {
 	return nil
 }
 
-// Get returns the value stored under key.
+// Get key에 해당하는 값을 조회한다.
+//
+// 매개변수:
+//   - key: Get가 해석할 문자열이다. 빈 문자열과 공백은 구현 검증을 따른다.
 func (f *Facts) Get(key string) (any, bool) {
 	if f == nil {
 		return nil, false
@@ -66,7 +77,10 @@ func (f *Facts) Get(key string) (any, bool) {
 	return value, ok
 }
 
-// Delete removes key and reports whether a value existed.
+// Delete key에 해당하는 값을 제거한다.
+//
+// 매개변수:
+//   - key: Delete가 해석할 문자열이다. 빈 문자열과 공백은 구현 검증을 따른다.
 func (f *Facts) Delete(key string) bool {
 	if f == nil {
 		return false
@@ -86,13 +100,16 @@ func (f *Facts) Delete(key string) bool {
 	return ok
 }
 
-// Has reports whether key exists.
+// Has 해당 상태가 존재하는지 반환한다.
+//
+// 매개변수:
+//   - key: Has가 해석할 문자열이다. 빈 문자열과 공백은 구현 검증을 따른다.
 func (f *Facts) Has(key string) bool {
 	_, ok := f.Get(key)
 	return ok
 }
 
-// Len returns the number of stored facts.
+// Len 현재 항목 수를 반환한다.
 func (f *Facts) Len() int {
 	if f == nil {
 		return 0
@@ -103,7 +120,7 @@ func (f *Facts) Len() int {
 	return len(f.values)
 }
 
-// Keys returns stored keys in ascending lexical order.
+// Keys 저장된 key 목록을 반환한다.
 func (f *Facts) Keys() []string {
 	if f == nil {
 		return nil
@@ -119,7 +136,7 @@ func (f *Facts) Keys() []string {
 	return keys
 }
 
-// Snapshot returns a shallow copy of the stored key/value map.
+// Snapshot 현재 상태를 복사해 반환한다.
 func (f *Facts) Snapshot() map[string]any {
 	if f == nil {
 		return nil
@@ -134,7 +151,7 @@ func (f *Facts) Snapshot() map[string]any {
 	return copied
 }
 
-// Clone returns a new Facts container with the same shallow-copied values.
+// Clone 현재 facts를 복사한다.
 func (f *Facts) Clone() *Facts {
 	return &Facts{values: f.Snapshot()}
 }

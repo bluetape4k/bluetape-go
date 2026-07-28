@@ -1,69 +1,42 @@
 # Issue 21 Observability Hooks Plan
 
-## Context
+## 분류
 
-- Issue: #21 `Add observability hooks for resilience policies`
-- Spec: `docs/superpowers/specs/2026-06-03-issue-21-observability-hooks-spec.md`
-- Research: `docs/superpowers/research/2026-06-03-issue-21-observability-hooks-inventory.md`
-- Base: stacked on PR #96 because #21 extends #19 circuit/bulkhead events.
+- 작업 유형: Type A - Full Feature.
+- 근거: resilience 공용 API에 observer hook, event contracts, examples, README 갱신, 테스트를 추가한다.
+- 진행 라인: issue #21 전용 worktree에서 구현한다.
 
-## Tasks
+## 목표
 
-| Task | Description | Acceptance Evidence |
-|---|---|---|
-| T1 | Extend `resilience/events.go` with stable policy type, event category, and error category constants plus additive event payload fields. | Public constants compile; existing tests still compile. |
-| T2 | Add small internal event constructors/classification helpers to keep policy event literals consistent. | Policy files use helpers or stable constants consistently; no runtime dependencies. |
-| T3 | Update retry emission for retry scheduling, success, retry exhaustion, and predicate-rejected failures. | Retry ordering and exhaustion tests pass; `errors.Is(err, ErrRetryExhausted)` still works. |
-| T4 | Update timeout emission with category, timeout duration, and error category while preserving parent-cancellation behavior. | Timeout event tests pass; parent cancellation is not mislabeled. |
-| T5 | Update circuit breaker and bulkhead events with stable policy type/category/error category fields. | Circuit transition/rejection and bulkhead admission/rejection/success tests pass. |
-| T6 | Add deterministic event ordering/payload tests for retry, timeout, circuit breaker, and bulkhead. | `go test -count=1 ./resilience` and race test pass. |
-| T7 | Update package docs and README locale pair to explain synchronous event bridging without vendor dependencies. | README names match source constants/API; docs are source-consistent. |
-| T8 | Run full verification and graph-aware 7-tier review. | Required commands pass; review artifact records P0=0/P1=0. |
-| T9 | Write lesson, commit, push, create PR, post-PR review, wait for CI, and report DoD. | PR # recorded with milestone `0.2.0`, assignee `debop`, CI success. |
+`resilience` 정책 실행 흐름에서 caller가 metrics, logs, tracing에 연결할 수 있는 lightweight observer hook을 제공한다. 구현은 외부 observability SDK에 의존하지 않고, 이벤트 구조와 option wiring만 first-party로 유지한다.
 
-## Validation Commands
+## 순서
+
+1. #18, #19에서 확정된 event skeleton과 error contracts를 다시 확인한다.
+2. hook 요구사항을 spec과 plan에 기록하고, SDK 비의존 원칙을 명시한다.
+3. retry, timeout, circuit breaker, bulkhead 이벤트를 공통 event envelope로 정리한다.
+4. observer option과 no-op 기본값을 추가한다.
+5. event emission order, error classification, context cancellation을 검증하는 테스트를 추가한다.
+6. examples에서 metrics/logging adapter를 caller-owned 형태로 보여준다.
+7. README와 package docs에 hook 사용법과 안정성 제약을 반영한다.
+8. focused tests, race tests, repo checks, diff checks를 실행한다.
+
+## 리뷰 게이트
+
+다음 항목을 확인한다.
+
+- hook이 OpenTelemetry, Prometheus, slog 같은 특정 SDK를 강제하지 않는지 확인한다.
+- observer callback이 policy 동작을 바꾸지 않는지 확인한다.
+- panic, blocking, allocation 위험이 문서화되었는지 확인한다.
+- event fields가 retry/timeout/circuit breaker/bulkhead에 충분한지 확인한다.
+- error classification이 기존 sentinel/typed error와 일치하는지 확인한다.
+- examples가 caller-owned instrumentation으로 유지되는지 확인한다.
+
+## 검증 게이트
 
 - `go test -count=1 ./resilience`
 - `go test -race -count=1 ./resilience`
 - `go test -count=1 ./...`
 - `go vet ./...`
-- `golangci-lint run ./...`
 - `make fmt-check`
-- `go mod tidy && git diff --exit-code -- go.mod go.sum`
 - `git diff --check`
-- `codegraph sync . && codegraph status .`
-- `code-review-graph build --repo . && code-review-graph status --repo .`
-
-## Review Gates
-
-- Step 3-R plan/test review:
-  - verify event ordering tests cover each issue acceptance criterion
-  - verify no new dependency or async handler is planned
-  - verify additive public API shape
-- Step 6-R implementation review:
-  - Tier 1 security: event data and dependency risk
-  - Tier 2 Ops/SRE: logging/metric bridge usability and handler predictability
-  - Tier 3 structural: public API and policy blast radius
-  - Tier 4 Go quality: constants/helpers, source compatibility, doc comments
-  - Tier 5 tests: ordering, payload, parent cancellation, sentinel errors
-  - Tier 6 performance/stability: handler lock boundaries and hot path overhead
-  - Tier 7 docs/evidence: README locale, package docs, PR DoD, CI evidence
-
-## Risks and Controls
-
-- Risk: adding a typed `PolicyType` field could break callers that assign a
-  `string` variable to `Event.PolicyType`.
-  - Control: keep `Event.PolicyType` as `string`; add string constants.
-- Risk: handler calls while a circuit breaker lock is held could deadlock if
-  handler calls `State`.
-  - Control: preserve current transition event pattern and review lock scopes.
-- Risk: event tests become timing-flaky.
-  - Control: use fake sleeper, fake clock, channels, and bounded deadlines only
-    when testing timeout behavior.
-- Risk: event categories become too broad for metrics.
-  - Control: keep a separate `ErrorCategory` field for error label specificity.
-
-## Stop Condition
-
-Stop after PR is created, reviewed, CI is green, and the user receives the
-Step DoD report. Do not merge without an explicit merge request.

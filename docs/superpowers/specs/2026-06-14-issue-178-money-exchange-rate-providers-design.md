@@ -1,5 +1,8 @@
 # Issue #178 Money Exchange Rate Providers Design
 
+> 한국어 요구사항 경계: 이 spec/design/test-spec 문서는 한국어 독자가 요구사항을 추적할 수 있도록 목적과 검증 경계를 한국어로 보강한다. API 이름, command, code identifier, issue/PR 번호, compatibility matrix, acceptance keyword, DoD/test evidence는 요구사항 약화를 막기 위해 원문 그대로 보존한다. 변경자는 아래 literal contract를 삭제하거나 의미를 약하게 바꾸지 않아야 한다.
+
+
 ## 1. 문제 정의
 
 Issue #178은 #35에서 의도적으로 미룬 provider-backed exchange-rate conversion을 `money` package에 추가한다.

@@ -1,28 +1,22 @@
 # Issue #437 JWT Redis Contention Benchmark Evidence
 
-Issue #437 closes the remaining distributed JWT Redis/provider contention
-benchmark follow-up from the #173 lesson. The change adds benchmark rows only;
-signing semantics, key retention, Redis storage format, and provider cache
-contracts are unchanged.
+Issue #437는 #173 lesson에서 남은 distributed JWT Redis/provider contention benchmark follow-up을 닫는다. 변경은 benchmark row만
+추가하며 signing semantics, key retention, Redis storage format, provider cache contract는 바꾸지 않는다.
 
 ## Artifacts
 
-- Local default benchmark:
-  `docs/research/outputs/issue-437/jwt-local-bench.txt`
-- Redis/Testcontainers opt-in benchmark:
-  `docs/research/outputs/issue-437/jwt-redis-bench.txt`
-- Environment and Docker metadata:
-  `docs/research/outputs/issue-437/environment.md`
+- local default benchmark: `docs/research/outputs/issue-437/jwt-local-bench.txt`
+- Redis/Testcontainers opt-in benchmark: `docs/research/outputs/issue-437/jwt-redis-bench.txt`
+- environment 및 Docker metadata: `docs/research/outputs/issue-437/environment.md`
 
 ## Commands
 
-- Local/default:
-  `go test -run '^$' -bench . -benchmem ./jwt`
+- local/default: `go test -run '^$' -bench . -benchmem ./jwt`
 - Redis/Testcontainers, serial and opt-in:
   `BLUETAPE_JWT_REDIS_BENCH=1 go test -p 1 -run '^$' -bench '^BenchmarkRedis' -benchtime=100x -benchmem ./jwt`
 
-Redis benchmarks require Docker and `redis:7.4-alpine`. Normal benchmark runs
-skip Redis/Testcontainers rows unless `BLUETAPE_JWT_REDIS_BENCH=1` is set.
+Redis benchmark는 Docker와 `redis:7.4-alpine`이 필요하다. normal benchmark run은 `BLUETAPE_JWT_REDIS_BENCH=1`이 없으면
+Redis/Testcontainers row를 skip한다.
 
 ## Local Provider Contention Rows
 
@@ -35,9 +29,8 @@ skip Redis/Testcontainers rows unless `BLUETAPE_JWT_REDIS_BENCH=1` is set.
 | `BenchmarkCachedProviderParseHMACWarmHitParallel` | `353.5 ns/op`, `1176 B/op`, `15 allocs/op` |
 | `BenchmarkCachedDistributedProviderParseHMACWarmHitParallel` | `367.7 ns/op`, `1324 B/op`, `17 allocs/op` |
 
-Interpretation: local concurrent key lookup and retained-key lookup are
-allocation-free. Cached warm-hit provider reads stay materially cheaper than
-compose-plus-parse and forced-rotation paths.
+해석: local concurrent key lookup과 retained-key lookup은 allocation-free다. cached warm-hit provider read는
+compose-plus-parse 및 forced-rotation path보다 훨씬 저렴하다.
 
 ## Redis Provider Contention Rows
 
@@ -50,15 +43,10 @@ compose-plus-parse and forced-rotation paths.
 | `BenchmarkRedisDistributedProviderParseContextParallel` | `55988 ns/op`, `11698 B/op`, `105 allocs/op` |
 | `BenchmarkRedisCachedDistributedProviderParseContextWarmHitParallel` | `74058 ns/op`, `9274 B/op`, `53 allocs/op` |
 
-Interpretation: Redis contention rows now cover direct key lookup, retained key
-lookup, forced rotation, compose, parse, and cached provider warm-hit paths.
-The `-benchtime=100x` run is a comparable local snapshot, not production
-capacity guidance.
+해석: Redis contention row는 direct key lookup, retained key lookup, forced rotation, compose, parse, cached provider
+warm-hit path를 덮는다. `-benchtime=100x` run은 comparable local snapshot이지 production capacity guidance가 아니다.
 
-## Decision
+## 결정
 
-No optimization issue is opened from this run. The measured rows close the
-contention benchmark evidence gap, but they do not show a correctness or API
-problem that warrants changing JWT security, key retention, cache trust scope,
-or Redis storage contracts.
-
+이 run에서 optimization issue를 열지 않는다. measured row는 contention benchmark evidence gap을 닫지만 JWT security, key
+retention, cache trust scope, Redis storage contract를 바꿀 correctness 또는 API 문제를 보이지 않는다.

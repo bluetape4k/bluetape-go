@@ -1,11 +1,13 @@
 # Issue #439 Audit Outbox Benchmark Review
 
-Issue: [#439](https://github.com/bluetape4k/bluetape-go/issues/439)
-Branch: `feat/issue-439-audit-bench`
-Baseline: `cbc5b0a`
-Date: 2026-07-09
+> 한국어 감사/리뷰 경계: 이 문서는 리뷰 결론과 남은 위험을 한국어 독자가 추적할 수 있도록 정리한다. 심각도 표기, 판정 표기, 파일 경로, 라인 번호, 이슈/PR 링크, 명령, 코드 식별자, 인용 증거는 원문의 증거 앵커로 보존한다.
 
-## Scope
+이슈: [#439](https://github.com/bluetape4k/bluetape-go/issues/439)
+브랜치: `feat/issue-439-audit-bench`
+Baseline: `cbc5b0a`
+날짜: 2026-07-09
+
+## 범위
 
 - `audit/benchmark_test.go`
 - `audit/sqloutbox/benchmark_test.go`
@@ -15,7 +17,7 @@ Date: 2026-07-09
 - `docs/research/outputs/issue-439/*`
 - `docs/images/readme-charts/audit-outbox-benchmark-summary.*`
 
-## Evidence
+## 증거
 
 - Issue #439 requires benchmark commands/raw output preservation, separate
   in-memory and PostgreSQL/Testcontainers rows, environment metadata, batch and
@@ -28,7 +30,7 @@ Date: 2026-07-09
   `BLUETAPE_AUDIT_SQL_OUTBOX_BENCH=1` and uses `postgres:16-alpine` through the
   repository Testcontainers fixture.
 
-## 7-Tier Lanes
+## 7-Tier 관점
 
 | Lane | Verdict | Notes |
 |---|---|---|
@@ -40,7 +42,7 @@ Date: 2026-07-09
 | User/Caller | PASS | P0=0 P1=0. README files expose commands and chart links without changing default usage semantics. |
 | Integration | PASS | P0=0 P1=0. Main-session review accepted benchmark-only scope and confirmed follow-up adapter claims are evidence-linked, not implied by this branch. |
 
-## Validation
+## 검증
 
 | Command | Status | Evidence |
 |---|---|---|
@@ -62,7 +64,7 @@ Date: 2026-07-09
 | `make ci` | PASS | Full local CI gate completed, including tidy, format, vet, lint, test, and race. |
 | Artifact hygiene scan | PASS | No local user paths or secret-like tokens found in issue #439 benchmark artifacts. |
 
-## Findings
+## 발견 사항
 
 P0=0 P1=0
 
@@ -72,7 +74,7 @@ P0=0 P1=0
 - P3 documented: local Testcontainers latency is planning evidence only, not a
   production ranking or adapter-selection conclusion.
 
-## Residual Risk
+## 잔여 위험
 
 The retained benchmark evidence is a local snapshot on darwin/arm64 with
 `postgres:16-alpine`. It does not cover concurrent relay workers, production

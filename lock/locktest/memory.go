@@ -41,7 +41,7 @@ type memoryGate struct {
 	resumeOnce  sync.Once
 }
 
-// MemoryHarness returns a race-safe reference lock provider.
+// MemoryHarness lock conformance harness의 acquire/release ownership 동작을 수행한다.
 func MemoryHarness() Harness {
 	control := &memoryControl{
 		records:  make(map[string]lockRecord),

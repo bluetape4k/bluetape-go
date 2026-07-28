@@ -6,27 +6,43 @@ import (
 	"unicode/utf8"
 )
 
-// HasLength reports whether value is not empty.
+// HasLength 해당 상태가 존재하는지 반환한다.
+//
+// 매개변수:
+//   - value: HasLength가 해석할 문자열이다. 빈 문자열과 공백은 구현 검증을 따른다.
 func HasLength(value string) bool {
 	return value != ""
 }
 
-// NoLength reports whether value is empty.
+// NoLength 길이가 없는 값인지 반환한다.
+//
+// 매개변수:
+//   - value: NoLength가 해석할 문자열이다. 빈 문자열과 공백은 구현 검증을 따른다.
 func NoLength(value string) bool {
 	return value == ""
 }
 
-// HasText reports whether value contains at least one non-whitespace rune.
+// HasText 해당 상태가 존재하는지 반환한다.
+//
+// 매개변수:
+//   - value: HasText가 해석할 문자열이다. 빈 문자열과 공백은 구현 검증을 따른다.
 func HasText(value string) bool {
 	return strings.TrimSpace(value) != ""
 }
 
-// NoText reports whether value is empty or only whitespace.
+// NoText 표시할 text가 없는 값인지 반환한다.
+//
+// 매개변수:
+//   - value: NoText가 해석할 문자열이다. 빈 문자열과 공백은 구현 검증을 따른다.
 func NoText(value string) bool {
 	return !HasText(value)
 }
 
-// EmptyToDefault returns fallback when value is empty.
+// EmptyToDefault 빈 문자열이면 fallback을 반환한다.
+//
+// 매개변수:
+//   - value: EmptyToDefault가 해석할 문자열이다. 빈 문자열과 공백은 구현 검증을 따른다.
+//   - fallback: EmptyToDefault가 해석할 문자열이다. 빈 문자열과 공백은 구현 검증을 따른다.
 func EmptyToDefault(value, fallback string) string {
 	if value == "" {
 		return fallback
@@ -34,7 +50,11 @@ func EmptyToDefault(value, fallback string) string {
 	return value
 }
 
-// BlankToDefault returns fallback when value is empty or only whitespace.
+// BlankToDefault 공백 문자열이면 fallback을 반환한다.
+//
+// 매개변수:
+//   - value: BlankToDefault가 해석할 문자열이다. 빈 문자열과 공백은 구현 검증을 따른다.
+//   - fallback: BlankToDefault가 해석할 문자열이다. 빈 문자열과 공백은 구현 검증을 따른다.
 func BlankToDefault(value, fallback string) string {
 	if !HasText(value) {
 		return fallback
@@ -42,7 +62,10 @@ func BlankToDefault(value, fallback string) string {
 	return value
 }
 
-// EmptyToNil returns nil when value is empty; otherwise it returns a pointer to value.
+// EmptyToNil 빈 문자열이면 nil 포인터를 반환한다.
+//
+// 매개변수:
+//   - value: EmptyToNil가 해석할 문자열이다. 빈 문자열과 공백은 구현 검증을 따른다.
 func EmptyToNil(value string) *string {
 	if NoLength(value) {
 		return nil
@@ -50,7 +73,10 @@ func EmptyToNil(value string) *string {
 	return &value
 }
 
-// BlankToNil returns nil when value is empty or only whitespace; otherwise it returns a pointer to value.
+// BlankToNil 공백 문자열이면 nil 포인터를 반환한다.
+//
+// 매개변수:
+//   - value: BlankToNil가 해석할 문자열이다. 빈 문자열과 공백은 구현 검증을 따른다.
 func BlankToNil(value string) *string {
 	if NoText(value) {
 		return nil
@@ -58,7 +84,11 @@ func BlankToNil(value string) *string {
 	return &value
 }
 
-// Mask returns value with every rune replaced by mask.
+// Mask 문자열 일부를 mask 문자로 가린다.
+//
+// 매개변수:
+//   - value: Mask가 해석할 문자열이다. 빈 문자열과 공백은 구현 검증을 따른다.
+//   - mask: Mask에 전달되는 값이다. 허용 범위와 nil 처리 방식은 구현 검증을 따른다.
 func Mask(value string, mask rune) string {
 	if value == "" {
 		return ""
@@ -70,7 +100,11 @@ func Mask(value string, mask rune) string {
 	return builder.String()
 }
 
-// CommonPrefix returns the shared rune prefix of a and b.
+// CommonPrefix 두 문자열의 공통 prefix를 반환한다.
+//
+// 매개변수:
+//   - a: CommonPrefix가 해석할 문자열이다. 빈 문자열과 공백은 구현 검증을 따른다.
+//   - b: CommonPrefix가 해석할 문자열이다. 빈 문자열과 공백은 구현 검증을 따른다.
 func CommonPrefix(a, b string) string {
 	if a == "" || b == "" {
 		return ""
@@ -89,7 +123,11 @@ func CommonPrefix(a, b string) string {
 	return string(ar[:limit])
 }
 
-// CommonSuffix returns the shared rune suffix of a and b.
+// CommonSuffix 두 문자열의 공통 suffix를 반환한다.
+//
+// 매개변수:
+//   - a: CommonSuffix가 해석할 문자열이다. 빈 문자열과 공백은 구현 검증을 따른다.
+//   - b: CommonSuffix가 해석할 문자열이다. 빈 문자열과 공백은 구현 검증을 따른다.
 func CommonSuffix(a, b string) string {
 	if a == "" || b == "" {
 		return ""
@@ -108,9 +146,13 @@ func CommonSuffix(a, b string) string {
 	return string(ar[len(ar)-limit:])
 }
 
-// TruncateUTF8Bytes truncates value to at most maxBytes without splitting a UTF-8 rune.
+// TruncateUTF8Bytes UTF-8 문자열을 byte 길이 한도에 맞춰 자른다.
 //
-// It returns an error wrapping ErrInvalidUTF8 when value is not valid UTF-8.
+// 매개변수:
+//   - value: TruncateUTF8Bytes가 해석할 문자열이다. 빈 문자열과 공백은 구현 검증을 따른다.
+//   - maxBytes: TruncateUTF8Bytes에 전달되는 값이다. 허용 범위와 nil 처리 방식은 구현 검증을 따른다.
+//
+// 반환 오류는 입력 검증 실패와 패키지에서 정의한 sentinel error/typed error를 그대로 드러낸다.
 func TruncateUTF8Bytes(value string, maxBytes int) (string, error) {
 	if maxBytes < 0 {
 		return "", fmt.Errorf("%w: maxBytes[%d] must be non-negative", ErrInvalidArgument, maxBytes)

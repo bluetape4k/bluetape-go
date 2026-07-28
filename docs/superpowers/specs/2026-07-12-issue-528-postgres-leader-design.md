@@ -1,5 +1,8 @@
 # Issue #528 PostgreSQL Leader Elector Design
 
+> 한국어 요구사항 경계: 이 spec/design/test-spec 문서는 한국어 독자가 요구사항을 추적할 수 있도록 목적과 검증 경계를 한국어로 보강한다. API 이름, command, code identifier, issue/PR 번호, compatibility matrix, acceptance keyword, DoD/test evidence는 요구사항 약화를 막기 위해 원문 그대로 보존한다. 변경자는 아래 literal contract를 삭제하거나 의미를 약하게 바꾸지 않아야 한다.
+
+
 Issue: [#528](https://github.com/bluetape4k/bluetape-go/issues/528)
 
 Parent research: [#499](https://github.com/bluetape4k/bluetape-go/issues/499)
@@ -16,7 +19,7 @@ provider는 없다. #499는 첫 SQL provider를 PostgreSQL row lease로 한정�
 lock, generic lock API, ORM integration은 별도 과제로 남겼다. #527에서 확정한 single
 elector conformance contract를 변경하지 않고 같은 의미론을 제공해야 한다.
 
-## Requirements and Scope
+## 요구사항 and Scope
 
 - `leader.Elector` single-leader contract를 구현한다.
 - 공개 constructor는 caller-owned, concurrency-safe pool인 `*sql.DB`를 받는다.

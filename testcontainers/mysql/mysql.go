@@ -15,18 +15,18 @@ const (
 	defaultUsername = "bluetape"
 	defaultPassword = "bluetape"
 
-	// DSNKey is the documented key for a MySQL data source name.
+	// DSNKey Testcontainers fixture에서 caller-visible 상태와 의미를 설명한다.
 	DSNKey = "mysql.dsn"
 )
 
-// Start launches a MySQL test container and returns its data source name.
+// Start Testcontainers fixture에서 반환값과 오류 의미를 설명한다.
 func Start(ctx context.Context, tb testing.TB) string {
 	tb.Helper()
 
 	return mustDetail(ctx, tb, StartServer(ctx, tb), DSNKey)
 }
 
-// StartServer launches a MySQL test container and returns the shared server view.
+// StartServer Testcontainers fixture에서 반환값과 오류 의미를 설명한다.
 func StartServer(ctx context.Context, tb testing.TB) *tcserver.Started {
 	tb.Helper()
 

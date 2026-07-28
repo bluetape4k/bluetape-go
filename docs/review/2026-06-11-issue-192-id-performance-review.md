@@ -1,13 +1,15 @@
 # Issue #192 7-Tier Review: ID generator performance optimization
 
-## Scope
+> 한국어 감사/리뷰 경계: 이 문서는 리뷰 결론과 남은 위험을 한국어 독자가 추적할 수 있도록 정리한다. 심각도 표기, 판정 표기, 파일 경로, 라인 번호, 이슈/PR 링크, 명령, 코드 식별자, 인용 증거는 원문의 증거 앵커로 보존한다.
+
+## 범위
 
 - Issue: #192 `perf: Improve UUID, ULID, and KSUID generation performance`
 - Branch: `issue/192-id-performance`
 - Base: `develop` at `ce4e5ca5d39bff8c5542c093bc67585b34f148a0`
 - Preserved baseline: Issue #168 benchmark report and chart remain unchanged.
 
-## Summary
+## 요약
 
 The change keeps the Issue #168 Kotlin-vs-Go chart as the pre-optimization
 baseline and adds a Go-only Issue #192 optimization pass. UUID, ULID, KSUID
@@ -20,7 +22,7 @@ The generated IDs remain identifiers, not authentication or authorization
 secrets. Custom entropy readers are still caller-provided and must be safe for
 concurrent use when a generator is shared.
 
-## 7-Tier Findings
+## 7-Tier 발견 사항
 
 ### Tier 1: Acceptance and Scope
 
@@ -83,7 +85,7 @@ concurrent use when a generator is shared.
   preservation blockers.
 - Gate: P0=0, P1=0.
 
-## Performance Result
+## 성능 결과
 
 - Geomean latency: `-58.34%`.
 - UUID v4 reused: `224.10 ns/op -> 45.57 ns/op`.
@@ -93,7 +95,7 @@ concurrent use when a generator is shared.
 - KSUID millis: `316.80 ns/op -> 122.80 ns/op`.
 - KSUID millis allocation: `104 B/op, 3 allocs/op -> 56 B/op, 2 allocs/op`.
 
-## Validation
+## 검증
 
 - PASS: `git diff --check`
 - PASS: `go test -count=1 ./id`
@@ -118,7 +120,7 @@ concurrent use when a generator is shared.
 - PASS: native verifier subagent: P0=0 P1=0
 - PASS: native vision subagent: P0=0 P1=0
 
-## Subagent Gate Summary
+## 서브에이전트 게이트 요약
 
 - Tier 1 main integration: P0=0 P1=0.
 - Tier 2 code reviewer subagent: P0=0 P1=0.
@@ -128,7 +130,7 @@ concurrent use when a generator is shared.
 - Tier 6 vision subagent: P0=0 P1=0.
 - Tier 7 final integration after P2 polish: P0=0 P1=0.
 
-## Blog Seed
+## 블로그 seed
 
 This issue preserves a useful narrative: the initial chart made Go look weaker
 than expected; generator reuse was not the main lever; profiling showed entropy
@@ -136,7 +138,7 @@ reads dominated; buffered crypto entropy moved the bottleneck to string
 encoding, time access, and UUID v7 ordering. Keep Issue #168 as the baseline
 chart and use Issue #192's before/after chart for the optimization chapter.
 
-## Gate Verdict
+## 게이트 판정
 
 P0=0 P1=0
 

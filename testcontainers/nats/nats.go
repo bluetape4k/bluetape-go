@@ -12,18 +12,18 @@ import (
 const (
 	defaultImage = "nats:2.10-alpine"
 
-	// URLKey is the documented key for the NATS connection URL.
+	// URLKey Testcontainers fixture에서 caller-visible 상태와 의미를 설명한다.
 	URLKey = "nats.url"
 )
 
-// Start launches a NATS test container and returns its connection URL.
+// Start Testcontainers fixture에서 반환값과 오류 의미를 설명한다.
 func Start(ctx context.Context, tb testing.TB) string {
 	tb.Helper()
 
 	return mustDetail(ctx, tb, StartServer(ctx, tb), URLKey)
 }
 
-// StartServer launches a NATS test container and returns the shared server view.
+// StartServer Testcontainers fixture에서 반환값과 오류 의미를 설명한다.
 func StartServer(ctx context.Context, tb testing.TB) *tcserver.Started {
 	tb.Helper()
 

@@ -1,6 +1,8 @@
 # Issue #455 Review: zstd Allocation Profile
 
-## Scope
+> 한국어 감사/리뷰 경계: 이 문서는 리뷰 결론과 남은 위험을 한국어 독자가 추적할 수 있도록 정리한다. 심각도 표기, 판정 표기, 파일 경로, 라인 번호, 이슈/PR 링크, 명령, 코드 식별자, 인용 증거는 원문의 증거 앵커로 보존한다.
+
+## 범위
 
 - `compression.ZstdLevel` and zstd `Compress` implementation.
 - zstd output byte compatibility with `NewWriter`.
@@ -8,15 +10,15 @@
 - Benchmark/profile evidence for compression and SerDe zstd rows.
 - README and research notes.
 
-## Diagram Decision
+## 다이어그램 결정
 
 No diagram change is required. The change is an internal compressor allocation
 optimization. It does not add a public topology, lifecycle, class relationship,
 or sequence that would be clearer as a README diagram.
 
-## Lane Findings
+## 관점별 발견 사항
 
-### Performance
+### 성능
 
 P0: 0
 P1: 0
@@ -27,7 +29,7 @@ P1: 0
   `19.62 MB/op` to `73 KB/op`.
 - `compressed_bytes` stayed unchanged on both target rows.
 
-### Stability
+### 안정성
 
 P0: 0
 P1: 0
@@ -37,7 +39,7 @@ P1: 0
 - `TestZstdCompressConcurrentStress` covers shared pooled encoder use with
   `GoroutineStressTester`.
 
-### Security
+### 보안
 
 P0: 0
 P1: 0
@@ -47,7 +49,7 @@ P1: 0
 - Returned compressed byte slices are backed by the per-call output buffer, not
   a pooled caller-visible buffer.
 
-### Operator/Ops
+### 운영/Ops
 
 P0: 0
 P1: 0
@@ -56,7 +58,7 @@ P1: 0
   `docs/research/outputs/issue-455/`.
 - Environment and checksum data are recorded.
 
-### Developer/API
+### 개발자/API
 
 P0: 0
 P1: 0
@@ -66,7 +68,7 @@ P1: 0
   public API shape is unchanged.
 - `NewWriter` still returns an independent stream writer.
 
-### User/Caller
+### 사용자/호출자
 
 P0: 0
 P1: 0
@@ -74,7 +76,7 @@ P1: 0
 - Output byte compatibility with stream writer is tested.
 - README notes clarify that the encoder reuse is internal to `Compress`.
 
-## Integration Verdict
+## 통합 판정
 
 P0: 0
 P1: 0
@@ -83,7 +85,7 @@ The change is narrow and evidence-backed. It removes repeated zstd encoder
 allocation from byte-slice `Compress` without changing public API behavior or
 the targeted benchmark output sizes.
 
-## Evidence
+## 증거
 
 - `gh issue view 455`
 - `ctx_batch_execute` over #455, #404, SerDe benchmark docs, and compression

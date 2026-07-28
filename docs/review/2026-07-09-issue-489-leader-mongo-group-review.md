@@ -1,10 +1,12 @@
 # Issue #489 MongoDB Group Leader Review
 
-Issue: [#489](https://github.com/bluetape4k/bluetape-go/issues/489)
-Date: 2026-07-09
-Scope: `leader/mongo` `leader.GroupElector` backend
+> 한국어 감사/리뷰 경계: 이 문서는 리뷰 결론과 남은 위험을 한국어 독자가 추적할 수 있도록 정리한다. 심각도 표기, 판정 표기, 파일 경로, 라인 번호, 이슈/PR 링크, 명령, 코드 식별자, 인용 증거는 원문의 증거 앵커로 보존한다.
 
-## Evidence
+이슈: [#489](https://github.com/bluetape4k/bluetape-go/issues/489)
+날짜: 2026-07-09
+범위: `leader/mongo` `leader.GroupElector` backend
+
+## 증거
 
 - `leader/mongo/group.go` implements `leader.GroupElector` with one MongoDB
   lease document per bounded group slot.
@@ -17,7 +19,7 @@ Scope: `leader/mongo` `leader.GroupElector` backend
 - `EnsureIndexes` now creates the cleanup TTL index plus a `group_key,
   lease_until` index for active slot counting.
 
-## 7-Tier Review
+## 7-Tier 검토
 
 | Lane | Verdict | Notes |
 |---|---|---|
@@ -29,7 +31,7 @@ Scope: `leader/mongo` `leader.GroupElector` backend
 | User/Caller | PASS | Tests prove exact `MaxLeaders`, context cancellation, reclaim, and renewal-loss behavior. |
 | Integration | PASS | P0=0 P1=0. Main-session integration accepts bounded slot documents as the minimal MongoDB group model. |
 
-## Validation
+## 검증
 
 - `go test -count=1 ./leader ./leader/mongo`
 - `go test -p 1 -count=1 ./leader/mongo ./testcontainers/mongodb`
@@ -41,7 +43,7 @@ Scope: `leader/mongo` `leader.GroupElector` backend
 - `make ci`
 - `git diff --check`
 
-## Residual Risk
+## 잔여 위험
 
 Changing `MaxLeaders` downward while old higher-numbered slots are still active
 can temporarily make `ActiveCount` exceed the new limit. `AvailableSlots` clamps

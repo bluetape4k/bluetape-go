@@ -1,49 +1,52 @@
-# Issue #531 ORM and Generated SQL Boundaries Implementation Plan
+# Issue #531 ORM 및 Generated SQL Boundaries 구현 계획
 
-> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
+> 한국어 재작성 범위: 이 계획 문서는 한국어 운영 문서로 읽히도록 제목, 판단, 작업 설명, 위험, 검증, 롤백 문맥을 한국어로 정리한다. 명령, 경로, API 이름, 이슈/PR 번호, 브랜치명, 코드 블록, 테스트 출력 같은 증거 문자열은 정확성을 위해 원문 그대로 보존한다.
 
-**Goal:** Clarify how applications combine bluetape-go with GORM, ent, Bun, sqlc, Jet, and Atlas while keeping ORM state and optional dependencies outside core packages.
 
-**Architecture:** Keep production packages unchanged. Add dependency-free external-package examples that compile the shared `sqlkit.Session` and transaction-bound generated-handle patterns, then expand the existing English/Korean SQL generator guide with a policy matrix and upstream-verified integration snippets. Treat pool sharing, transaction sharing, and migration ownership as separate contracts.
+> **에이전트 작업자용:** 필수 하위 스킬: 사용 superpowers:subagent-driven-development (권장) 또는 superpowers:executing-plans to 이 계획을 작업 단위로 구현. 단계는 checkbox (`- [ ]`) 추적 문법을 사용.
 
-**Tech Stack:** Go 1.26, `database/sql`, existing `sqlkit` interfaces, Go examples, bilingual Markdown, official GORM/ent/Bun/sqlc/Jet/Atlas documentation, GitHub CLI.
+**목표:** Clarify how applications combine bluetape-go 함께 GORM, ent, Bun, sqlc, Jet, 및 Atlas while keeping ORM state 및 optional dependencies outside core packages.
+
+**아키텍처:** 유지 production packages unchanged. 추가 dependency-free external-패키지 example that compile the 공유 `sqlkit.Session` 및 transaction-bound generated-handle patterns, then expand the 기존 영문/한국어 SQL generator guide 함께 a policy matrix 및 upstream-verified integration snippets. Treat pool sharing, transaction sharing, 및 migration ownership as separate contracts.
+
+**기술 스택:** Go 1.26, `database/sql`, 기존 `sqlkit` interfaces, Go example, bilingual Markdown, official GORM/ent/Bun/sqlc/Jet/Atlas documentation, GitHub CLI.
 
 ---
 
-## Execution constraints
+## 실행 제약
 
-- Work only in `/Users/debop/work/bluetape4k/bluetape-go/.worktrees/docs-issue-531-orm-boundary-examples` on `docs/issue-531-orm-boundary-examples`.
+- Work 만 in `/Users/debop/work/bluetape4k/bluetape-go/.worktrees/docs-issue-531-orm-boundary-examples` on `docs/issue-531-orm-boundary-examples`.
 - Design authority: `docs/superpowers/specs/2026-07-14-issue-531-orm-generated-sql-boundaries-design.md` at commit `ff23d6d`.
-- Keep production behavior unchanged. No production `.go` file, `go.mod`, `go.sum`, schema, migration, workflow, diagram, or generated source may change.
-- Do not add GORM, ent, Bun, sqlc, Jet, Atlas, goqu, or Bob dependencies.
-- Use `apply_patch` for file edits. Use `gofmt` only for the new Go example file.
-- Public documentation, commits, and PR metadata are English. Keep the Korean guide source-equivalent and natural rather than literal.
-- Verify external API names against official/upstream sources immediately before editing. Do not document internal fields or unsupported transaction binding.
-- Run heavyweight checks serially. Stop before merge; CI green only authorizes a merge-approval request.
-- CodeGraph is not exposed in this session. Direct source inspection is the recorded fallback for `sqlkit.Session` and `sqlkit.WithTx`.
+- 유지 production behavior unchanged. No production `.go` file, `go.mod`, `go.sum`, schema, migration, workf낮음, diagram, 또는 generated source may change.
+- 다음을 하지 않는다: add GORM, ent, Bun, sqlc, Jet, Atlas, goqu, 또는 Bob dependencies.
+- 사용 `apply_patch` for file edits. 사용 `gofmt` 만 for the new Go example file.
+- Public documentation, commits, 및 PR metadata are 영문. 유지 the 한국어 guide source-equivalent 및 natural rather than literal.
+- 검증 external API names against official/upstream sources immediately 전에 editing. 다음을 하지 않는다: document internal fields 또는 unsupported transaction binding.
+- 실행 heavyweight checks serially. Stop 전에 merge; CI green 만 authorizes a merge-approval request.
+- CodeGraph is 아님 exposed in this session. Direct source inspection is the recorded fallback for `sqlkit.Session` 및 `sqlkit.WithTx`.
 
-## File map
+## 파일 지도
 
-| Path | Responsibility |
+| Path | 책임 |
 |---|---|
-| `sqlkit/orm_boundary_example_test.go` | Compile-check standard session and application-owned generated-handle boundaries without optional dependencies |
-| `docs/sql-generator-migration-guidance.md` | English policy matrix, ownership rules, and upstream-backed tool examples |
-| `docs/sql-generator-migration-guidance.ko.md` | Natural Korean source-equivalent guide |
-| `docs/superpowers/specs/2026-07-14-issue-531-orm-generated-sql-boundaries-design.md` | Approved design authority; no implementation edits expected |
-| `docs/superpowers/plans/2026-07-14-issue-531-orm-generated-sql-boundaries-plan.md` | This execution contract |
+| `sqlkit/orm_boundary_example_test.go` | Compile-check standard session 및 application-owned generated-handle boundaries without optional dependencies |
+| `docs/sql-generator-migration-guidance.md` | 영문 policy matrix, ownership rules, 및 upstream-backed tool example |
+| `docs/sql-generator-migration-guidance.ko.md` | Natural 한국어 source-equivalent guide |
+| `docs/superpowers/specs/2026-07-14-issue-531-orm-generated-sql-boundaries-design.md` | Approved design authority; 없음 implementation edits expected |
+| `docs/superpowers/plans/2026-07-14-issue-531-orm-generated-sql-boundaries-plan.md` | This execution 계약 |
 
-`sqlkit/README.md` and `sqlkit/README.ko.md` already link their locale-specific guide under the selection section. Verify those links, but do not edit the README pair unless the link is missing or incorrect; a scope expansion requires a revised plan.
+`sqlkit/README.md` 및 `sqlkit/README.ko.md` already link their locale-specific guide under the selection section. 검증 those links, but do 아님 edit the README pair unless the link is missing 또는 incorrect; a scope expansion requires a revised plan.
 
-### Task 1: Add dependency-free compile examples
+### 작업 1: 추가 dependency-free compile example
 
-**Files:**
-- Create: `sqlkit/orm_boundary_example_test.go`
+**파일:**
+- 생성: `sqlkit/orm_boundary_example_test.go`
 
-This maintenance task adds no production behavior, so manufacturing a RED production test is N/A. The gate is that the new public example compiles against the existing `sqlkit` contracts without adding a dependency.
+This maintenance task adds 없음 production behavior, so manufacturing a RED production 테스트 is N/A. The gate is that the new 공개 example compiles against the 기존 `sqlkit` contracts without adding a dependency.
 
-- [ ] **Step 1: Create the standard session and generated-handle examples**
+- [ ] **단계 1: 생성 the standard session 및 generated-handle example**
 
-Create `sqlkit/orm_boundary_example_test.go` with this exact content:
+생성 `sqlkit/orm_boundary_example_test.go` 함께 this exact content:
 
 ```go
 package sqlkit_test
@@ -113,20 +116,20 @@ func ExampleWithTx_generatedQueryHandle() {
 }
 ```
 
-- [ ] **Step 2: Format and compile the examples**
+- [ ] **단계 2: Format 및 compile the example**
 
-Run:
+실행:
 
 ```bash
 gofmt -w sqlkit/orm_boundary_example_test.go
 go test -count=1 ./sqlkit -run '^(ExampleSession_repositoryBoundary|ExampleWithTx_generatedQueryHandle)$'
 ```
 
-Expected: `ok github.com/bluetape4k/bluetape-go/sqlkit`; `go.mod` and `go.sum` remain unchanged.
+예상: `ok github.com/bluetape4k/bluetape-go/sqlkit`; `go.mod` 및 `go.sum` remain unchanged.
 
-- [ ] **Step 3: Review the example boundary**
+- [ ] **단계 3: 리뷰 the example boundary**
 
-Run:
+실행:
 
 ```bash
 rg -n 'gorm|entgo|uptrace|go-jet|atlasgo|sqlc' sqlkit/orm_boundary_example_test.go
@@ -134,25 +137,25 @@ git diff --check
 git diff -- sqlkit/orm_boundary_example_test.go
 ```
 
-Expected: the dependency search returns no matches; the diff contains only external-package examples, standard-library imports, and the existing `sqlkit` import; diff check exits 0.
+예상: the dependency search returns 없음 matches; the diff contains 만 external-패키지 example, standard-library imports, 및 the 기존 `sqlkit` import; diff check exits 0.
 
-- [ ] **Step 4: Commit the compile examples**
+- [ ] **단계 4: 커밋 the compile example**
 
 ```bash
 git add sqlkit/orm_boundary_example_test.go
 git commit -m "docs: add SQL boundary compile examples"
 ```
 
-Expected: one new `_test.go` file is committed and the worktree is clean.
+예상: one new `_test.go` file is committed 및 the worktree is clean.
 
-### Task 2: Expand the English boundary guide
+### 작업 2: Expand the 영문 boundary guide
 
-**Files:**
+**파일:**
 - Modify: `docs/sql-generator-migration-guidance.md`
 
-- [ ] **Step 1: Refresh the official source ledger**
+- [ ] **단계 1: Refresh the official source ledger**
 
-Open and verify these exact primary sources:
+Open 및 verify these exact primary sources:
 
 ```text
 https://gorm.io/docs/connecting_to_the_database.html
@@ -169,18 +172,18 @@ https://atlasgo.io/versioned/apply
 
 Expected identifiers:
 
-- GORM: `mysql.New(mysql.Config{Conn: sqlDB})` initializes GORM from caller-owned `*sql.DB`.
-- ent: `entsql.OpenDB(dialect.Postgres, sqlDB)` and `tx.Client()` remain documented.
-- Bun: `bun.NewDB(sqldb, pgdialect.New())` and `.Conn(tx)` remain documented; `bun.Tx` embeds `*sql.Tx`.
-- sqlc: generated `DBTX`, `Queries.WithTx(*sql.Tx)`, and returned transaction-bound `*Queries` remain documented.
-- Jet: `stmt.QueryContext(ctx, tx, &dest)` and `stmt.ExecContext(ctx, tx)` remain documented.
-- Atlas: `migrate diff` and `migrate apply` remain external CLI workflows.
+- GORM: `mysql.New(mysql.Config{Conn: sqlDB})` initializes GORM from 호출자-owned `*sql.DB`.
+- ent: `entsql.OpenDB(dialect.Postgres, sqlDB)` 및 `tx.Client()` remain documented.
+- Bun: `bun.NewDB(sqldb, pgdialect.New())` 및 `.Conn(tx)` remain documented; `bun.Tx` embeds `*sql.Tx`.
+- sqlc: generated `DBTX`, `Queries.WithTx(*sql.Tx)`, 및 returned transaction-bound `*Queries` remain documented.
+- Jet: `stmt.QueryContext(ctx, tx, &dest)` 및 `stmt.ExecContext(ctx, tx)` remain documented.
+- Atlas: `migrate diff` 및 `migrate apply` remain external CLI workf낮음s.
 
-If an identifier has changed, update both locale snippets to the currently documented public form before continuing. Never substitute an internal field.
+If an identifier has changed, update both locale snippets to the currently documented 공개 form 전에 continuing. Never substitute an internal field.
 
-- [ ] **Step 2: Insert the policy matrix after `## Selection Matrix`**
+- [ ] **단계 2: Insert the policy matrix 후 `## Selection Matrix`**
 
-After the current selection table and before `## Runtime-First Boundary`, insert:
+After the current selection table 및 전에 `## Runtime-First Boundary`, insert:
 
 ```markdown
 ## Integration Policy
@@ -200,9 +203,9 @@ and error contracts, tests, and explicit approval. No adapter is added by this
 guide.
 ```
 
-- [ ] **Step 3: Replace the runtime-first section with explicit handle ownership**
+- [ ] **단계 3: 교체 the runtime-first section 함께 explicit handle ownership**
 
-Replace the existing `## Runtime-First Boundary` section through the line before `## Isolated sqlc Example` with:
+교체 the 기존 `## Runtime-First Boundary` section through the line 전에 `## Isolated sqlc Example` 함께:
 
 ````markdown
 ## Runtime-First Boundary
@@ -236,7 +239,7 @@ Use `sqlkit.Session` when the same repository function should work with either
 `*sql.DB` or `*sql.Tx`:
 
 ```go
-func LoadAccount(ctx context.Context, session sqlkit.Session, id int64) (Account, error) {
+func LoadAccount(ctx context.Context, session sqlkit.Session, id int64) (Account, 오류) {
     var account Account
     err := session.QueryRowContext(
         ctx,
@@ -292,7 +295,7 @@ tx, err := sqlDB.BeginTx(ctx, nil)
 if err != nil {
     return err
 }
-defer tx.Rollback()
+defer tx.롤백()
 
 _, err = bunDB.NewInsert().
     Conn(tx).
@@ -301,7 +304,7 @@ _, err = bunDB.NewInsert().
 if err != nil {
     return err
 }
-return tx.Commit()
+return tx.커밋()
 ```
 
 The code that calls `BeginTx` remains the sole commit/rollback owner. When Bun
@@ -320,9 +323,9 @@ func LoadGeneratedAccount(
     db *sql.DB,
     queries *accountsqlc.Queries,
     id int64,
-) (Account, error) {
+) (Account, 오류) {
     var account Account
-    err := sqlkit.WithTx(ctx, db, nil, func(ctx context.Context, tx *sql.Tx) error {
+    err := sqlkit.WithTx(ctx, db, nil, func(ctx context.Context, tx *sql.Tx) 오류 {
         row, err := queries.WithTx(tx).GetAccount(ctx, id)
         if err != nil {
             return err
@@ -346,13 +349,13 @@ tx, err := db.BeginTx(ctx, nil)
 if err != nil {
     return err
 }
-defer tx.Rollback()
+defer tx.롤백()
 
 var accounts []model.Account
 if err := stmt.QueryContext(ctx, tx, &accounts); err != nil {
     return err
 }
-return tx.Commit()
+return tx.커밋()
 ```
 
 Keep generated table/model imports and generator output outside core packages.
@@ -366,9 +369,9 @@ Runtime repositories should assume the required schema version already exists
 and should not invoke Atlas commands.
 ````
 
-- [ ] **Step 4: Extend the reference list**
+- [ ] **단계 4: Extend the reference list**
 
-Add these official sources to `## References`, preserving the existing entries:
+추가 these official sources to `## References`, preserving the 기존 entries:
 
 ```markdown
 - [GORM existing database connection](https://gorm.io/docs/connecting_to_the_database.html)
@@ -380,17 +383,17 @@ Add these official sources to `## References`, preserving the existing entries:
 - [Jet transaction execution](https://github.com/go-jet/jet/wiki/FAQ#how-to-execute-jet-statement-in-sql-transaction)
 ```
 
-Expected: every technical identifier in the new English section is backed by one of these primary sources or an existing Atlas/Jet source.
+예상: every technical identifier in the new 영문 section is backed by one of these primary sources 또는 an 기존 Atlas/Jet source.
 
-### Task 3: Add the source-equivalent Korean guide
+### 작업 3: 추가 the source-equivalent 한국어 guide
 
-**Files:**
+**파일:**
 - Modify: `docs/sql-generator-migration-guidance.ko.md`
-- Modify: `docs/sql-generator-migration-guidance.md` only for parity corrections found during this task
+- Modify: `docs/sql-generator-migration-guidance.md` 만 for parity corrections found during this task
 
-- [ ] **Step 1: Insert the Korean policy matrix after `## 선택 Matrix`**
+- [ ] **단계 1: Insert the 한국어 policy matrix 후 `## 선택 Matrix`**
 
-After the current selection table and before `## Runtime-First 경계`, insert:
+After the current selection table 및 전에 `## Runtime-First 경계`, insert:
 
 ```markdown
 ## 통합 정책
@@ -409,9 +412,9 @@ adapter를 추가하려면 별도 issue, dependency 비교 근거, lifecycle과 
 명시적인 승인이 필요합니다. 이 가이드에서는 adapter를 추가하지 않습니다.
 ```
 
-- [ ] **Step 2: Replace the Korean runtime-first section with explicit ownership**
+- [ ] **단계 2: 교체 the 한국어 runtime-first section 함께 explicit ownership**
 
-Replace the existing `## Runtime-First 경계` section through the line before `## 격리된 sqlc 예제` with:
+교체 the 기존 `## Runtime-First 경계` section through the line 전에 `## 격리된 sqlc 예제` 함께:
 
 ````markdown
 ## Runtime-First 경계
@@ -446,7 +449,7 @@ commit하지 않습니다.
 `sqlkit.Session`을 받습니다.
 
 ```go
-func LoadAccount(ctx context.Context, session sqlkit.Session, id int64) (Account, error) {
+func LoadAccount(ctx context.Context, session sqlkit.Session, id int64) (Account, 오류) {
     var account Account
     err := session.QueryRowContext(
         ctx,
@@ -501,7 +504,7 @@ tx, err := sqlDB.BeginTx(ctx, nil)
 if err != nil {
     return err
 }
-defer tx.Rollback()
+defer tx.롤백()
 
 _, err = bunDB.NewInsert().
     Conn(tx).
@@ -510,7 +513,7 @@ _, err = bunDB.NewInsert().
 if err != nil {
     return err
 }
-return tx.Commit()
+return tx.커밋()
 ```
 
 `BeginTx`를 호출한 code만 commit/rollback합니다. Bun이 `RunInTx`로 transaction을
@@ -527,9 +530,9 @@ func LoadGeneratedAccount(
     db *sql.DB,
     queries *accountsqlc.Queries,
     id int64,
-) (Account, error) {
+) (Account, 오류) {
     var account Account
-    err := sqlkit.WithTx(ctx, db, nil, func(ctx context.Context, tx *sql.Tx) error {
+    err := sqlkit.WithTx(ctx, db, nil, func(ctx context.Context, tx *sql.Tx) 오류 {
         row, err := queries.WithTx(tx).GetAccount(ctx, id)
         if err != nil {
             return err
@@ -553,13 +556,13 @@ tx, err := db.BeginTx(ctx, nil)
 if err != nil {
     return err
 }
-defer tx.Rollback()
+defer tx.롤백()
 
 var accounts []model.Account
 if err := stmt.QueryContext(ctx, tx, &accounts); err != nil {
     return err
 }
-return tx.Commit()
+return tx.커밋()
 ```
 
 Generated table/model import와 generator output은 core package 밖에 둡니다. Transaction을
@@ -573,9 +576,9 @@ repository는 필요한 schema version이 이미 준비되어 있다고 가정�
 호출하지 않습니다.
 ````
 
-- [ ] **Step 3: Add all Korean reference links**
+- [ ] **단계 3: 추가 모든 한국어 reference links**
 
-Add Korean link labels for the same URLs:
+추가 한국어 link labels for the same URLs:
 
 ```markdown
 - [GORM existing database connection](https://gorm.io/docs/connecting_to_the_database.html)
@@ -587,9 +590,9 @@ Add Korean link labels for the same URLs:
 - [Jet transaction 실행](https://github.com/go-jet/jet/wiki/FAQ#how-to-execute-jet-statement-in-sql-transaction)
 ```
 
-- [ ] **Step 4: Verify locale parity and natural Korean**
+- [ ] **단계 4: 검증 locale parity 및 natural 한국어**
 
-Run:
+실행:
 
 ```bash
 for file in docs/sql-generator-migration-guidance.md docs/sql-generator-migration-guidance.ko.md; do
@@ -603,11 +606,11 @@ diff -u \
   <(rg -o 'https://[^)]+' docs/sql-generator-migration-guidance.ko.md | sort -u)
 ```
 
-Expected: the four counts match by locale and the URL diff is empty. Manually reject English sentence skeletons, vague promotional language, or inconsistent translations of pool, transaction, handle, lifecycle, and ownership.
+예상: the four counts match by locale 및 the URL diff is empty. Manually reject 영문 sentence skeletons, vague promotional language, 또는 inconsistent translations of pool, transaction, handle, lifecycle, 및 ownership.
 
-- [ ] **Step 5: Verify the existing README links and local references**
+- [ ] **단계 5: 검증 the 기존 README links 및 local references**
 
-Run:
+실행:
 
 ```bash
 rg -n 'sql-generator-migration-guidance\.md' sqlkit/README.md
@@ -617,11 +620,11 @@ test -f docs/sql-generator-migration-guidance.md
 test -f docs/sql-generator-migration-guidance.ko.md
 ```
 
-Expected: each README has one locale-correct guide link and all local targets exist.
+예상: each README has one locale-correct guide link 및 모든 local targets exist.
 
-- [ ] **Step 6: Check official external links**
+- [ ] **단계 6: Check official external links**
 
-Run this serial link check:
+실행 this serial link check:
 
 ```bash
 for url in \
@@ -639,9 +642,9 @@ for url in \
 done
 ```
 
-Expected: all URLs return successfully. If an upstream blocks automated requests but opens interactively, record that exact URL as manual primary-source evidence instead of deleting it.
+예상: 모든 URLs return successfully. If an upstream blocks automated requests but opens interactively, record that exact URL as manual primary-source evidence instead of deleting it.
 
-- [ ] **Step 7: Commit the bilingual guide**
+- [ ] **단계 7: 커밋 the bilingual guide**
 
 ```bash
 git diff --check
@@ -649,23 +652,23 @@ git add docs/sql-generator-migration-guidance.md docs/sql-generator-migration-gu
 git commit -m "docs: clarify ORM and generated SQL boundaries"
 ```
 
-Expected: both locale files are committed together and the worktree is clean.
+예상: both locale files are committed together 및 the worktree is clean.
 
-### Task 4: Run repository verification and integration review
+### 작업 4: 실행 repository verification 및 integration review
 
-**Files:**
-- Verify only; no planned edits
+**파일:**
+- 검증 만; 없음 planned edits
 
-- [ ] **Step 1: Run targeted fresh tests**
+- [ ] **단계 1: 실행 targeted fresh 테스트**
 
 ```bash
 go test -count=1 ./sqlkit -run '^(ExampleSession_repositoryBoundary|ExampleWithTx_generatedQueryHandle)$'
 go test -count=1 ./sqlkit
 ```
 
-Expected: both commands exit 0.
+예상: both commands exit 0.
 
-- [ ] **Step 2: Prove formatting and module stability**
+- [ ] **단계 2: 증명 formatting 및 module 안정성**
 
 ```bash
 make fmt-check
@@ -674,9 +677,9 @@ git diff --check
 git status --short --branch
 ```
 
-Expected: all commands exit 0; no `go.mod`/`go.sum` diff; branch status is clean.
+예상: 모든 commands exit 0; 없음 `go.mod`/`go.sum` diff; branch status is clean.
 
-- [ ] **Step 3: Prove the scoped file set**
+- [ ] **단계 3: 증명 the scoped file set**
 
 ```bash
 git diff --name-only develop...HEAD
@@ -694,38 +697,38 @@ docs/superpowers/specs/2026-07-14-issue-531-orm-generated-sql-boundaries-design.
 sqlkit/orm_boundary_example_test.go
 ```
 
-Expected Go-only output: `sqlkit/orm_boundary_example_test.go`. Expected prohibited-scope output: empty.
+Expected Go-만 output: `sqlkit/orm_boundary_example_test.go`. Expected prohibited-scope output: empty.
 
-- [ ] **Step 4: Perform the six-perspective and integration review**
+- [ ] **단계 4: Perform the six-perspective 및 integration review**
 
-Review `git diff develop...HEAD` directly and record this verdict in the PR DoD table:
+리뷰 `git diff develop...HEAD` directly 및 record this verdict in the PR DoD table:
 
 | Perspective | Required verdict |
 |---|---|
-| Performance | N/A: documentation and compile-only examples add no runtime path or benchmark claim. |
-| Stability | PASS: one transaction owner; pool sharing is not described as transaction sharing; context and errors flow to the owner. |
-| Security | PASS: no credentials, real DSNs, unsafe SQL interpolation, dependency, or migration execution added. |
-| Operator/Ops | PASS: Atlas remains in CI/CD/runbooks and runtime providers assume schema readiness. |
-| Developer/API | PASS: `Session`, `*sql.DB`, `*sql.Tx`, and generated handles have distinct ownership rules; external APIs match primary sources. |
-| User/caller | PASS: English/Korean readers receive equivalent selection rules, warnings, examples, and links. |
-| Integration | PASS only when P0=0 and P1=0 and every prior row has fresh evidence. |
+| Performance | N/A: documentation 및 compile-만 example add 없음 runtime path 또는 benchmark claim. |
+| Stability | PASS: one transaction owner; pool sharing is 아님 described as transaction sharing; context 및 오류 f낮음 to the owner. |
+| Security | PASS: 없음 credentials, real DSNs, unsafe SQL interpolation, dependency, 또는 migration execution added. |
+| Operator/Ops | PASS: Atlas remains in CI/CD/runbooks 및 runtime providers assume schema readiness. |
+| Developer/API | PASS: `Session`, `*sql.DB`, `*sql.Tx`, 및 generated handles have distinct ownership rules; external APIs match primary sources. |
+| User/호출자 | PASS: 영문/한국어 readers receive equivalent selection rules, warnings, example, 및 links. |
+| Integration | PASS 만 when P0=0 및 P1=0 및 every prior row has fresh evidence. |
 
-Any plausible P0/P1 blocks `make ci`, push, and PR creation until repaired and revalidated.
+Any plausible P0/P1 blocks `make ci`, push, 및 PR creation until repaired 및 revalidated.
 
-- [ ] **Step 5: Run the authoritative local CI gate**
+- [ ] **단계 5: 실행 the authoritative local CI gate**
 
 ```bash
 make ci
 ```
 
-Expected: `tidy-check`, `fmt-check`, `vet`, `lint`, serial uncached tests, and serial uncached race tests all pass. If lint reports a deleted-worktree cache path, run `golangci-lint cache clean` and rerun `make ci` from the beginning; only the fresh observed exit code is valid.
+예상: `tidy-check`, `fmt-check`, `vet`, `lint`, serial uncached 테스트, 및 serial uncached race 테스트 모든 pass. If lint reports a deleted-worktree cache path, run `golangci-lint cache clean` 및 rerun `make ci` from the beginning; 만 the fresh observed exit code is valid.
 
-### Task 5: Create the PR and stop at merge approval
+### 작업 5: 생성 the PR 및 stop at merge approval
 
-**Files:**
+**파일:**
 - No repository file changes expected
 
-- [ ] **Step 1: Recheck issue metadata and branch state**
+- [ ] **단계 1: Recheck issue metadata 및 branch state**
 
 ```bash
 gh issue view 531 --json state,assignees,labels,milestone,url
@@ -733,19 +736,19 @@ git status --short --branch
 git log --oneline develop..HEAD
 ```
 
-Expected: issue is OPEN, assignee includes `debop`, milestone is `0.19.0`, labels include `type: task`, `area: docs`, `area: database`, and `priority: p2`; branch is clean and contains the design, plan, example, and bilingual guide commits.
+예상: issue is OPEN, assignee includes `debop`, milestone is `0.19.0`, labels include `type: task`, `area: docs`, `area: database`, 및 `priority: p2`; branch is clean 및 contains the design, plan, example, 및 bilingual guide commits.
 
-- [ ] **Step 2: Push the branch**
+- [ ] **단계 2: Push the branch**
 
 ```bash
 git push -u origin docs/issue-531-orm-boundary-examples
 ```
 
-Expected: upstream is set and local HEAD equals the remote branch SHA.
+예상: upstream is set 및 local HEAD equals the remote branch SHA.
 
-- [ ] **Step 3: Create the PR with the final DoD heading**
+- [ ] **단계 3: 생성 the PR 함께 the final DoD heading**
 
-Run `mkdir -p .tmp`, then create `.tmp/issue-531-pr-body.md` with `apply_patch`
+실행 `mkdir -p .tmp`, then create `.tmp/issue-531-pr-body.md` 함께 `apply_patch`
 using this exact body:
 
 ```markdown
@@ -758,7 +761,7 @@ using this exact body:
 
 Fixes #531
 
-## Validation
+## 검증
 
 - `go test -count=1 ./sqlkit -run '^(ExampleSession_repositoryBoundary|ExampleWithTx_generatedQueryHandle)$'`
 - `go test -count=1 ./sqlkit`
@@ -795,9 +798,9 @@ gh pr create \
   --body-file .tmp/issue-531-pr-body.md
 ```
 
-Expected: one OPEN PR URL is returned.
+예상: one OPEN PR URL is returned.
 
-- [ ] **Step 4: Apply and verify exact live PR metadata**
+- [ ] **단계 4: Apply 및 verify exact live PR metadata**
 
 ```bash
 pr=$(gh pr view --json number --jq .number)
@@ -811,11 +814,11 @@ gh pr edit "$pr" \
 gh pr view "$pr" --json number,title,state,baseRefName,headRefName,body,assignees,labels,milestone,url
 ```
 
-Expected: base is `develop`, head is `docs/issue-531-orm-boundary-examples`, title is exact, assignee is `debop`, milestone is `0.19.0`, all four labels are present, and the body's final `##` heading is `## DoD Status`. Repair any mismatch before waiting for CI.
+예상: base is `develop`, head is `docs/issue-531-orm-boundary-examples`, title is exact, assignee is `debop`, milestone is `0.19.0`, 모든 four labels are present, 및 the body's final `##` heading is `## DoD Status`. Repair any mismatch 전에 waiting for CI.
 
-- [ ] **Step 5: Wait for CI, refresh reviews, and stop**
+- [ ] **단계 5: Wait for CI, refresh reviews, 및 stop**
 
-Poll checks in bounded intervals and report progress every 2-3 minutes:
+Poll checks in bounded intervals 및 report progress every 2-3 minutes:
 
 ```bash
 gh pr checks --watch --interval 20
@@ -823,4 +826,4 @@ pr=$(gh pr view --json number --jq .number)
 gh pr view "$pr" --json reviewDecision,reviews,comments,latestReviews,mergeStateStatus,statusCheckRollup
 ```
 
-Expected: all required checks are green, no unresolved P0/P1 review feedback exists, and merge state is ready. Do not merge. Report the PR URL, HEAD SHA, CI results, review state, and exact merge hold, then request explicit merge approval.
+예상: 모든 required checks are green, 없음 unresolved P0/P1 review feedback exists, 및 merge state is ready. 다음을 하지 않는다: merge. Report the PR URL, HEAD SHA, CI results, review state, 및 exact merge hold, then request explicit merge approval.

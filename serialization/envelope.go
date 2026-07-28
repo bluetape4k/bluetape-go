@@ -10,13 +10,19 @@ const (
 	envelopeV1    = 1
 )
 
-// VersionedSerializer wraps a named serializer with a small versioned envelope.
+// VersionedSerializer 패키지에서 공개하는 구조체다.
 type VersionedSerializer[T any] struct {
 	serializer NamedSerializer[T]
 	version    uint16
 }
 
-// NewVersionedSerializer creates a versioned serializer.
+// NewVersionedSerializer VersionedSerializer 인스턴스를 생성한다.
+//
+// 매개변수:
+//   - serializer: NewVersionedSerializer에 전달되는 값이다. 허용 범위와 nil 처리 방식은 구현 검증을 따른다.
+//   - version: NewVersionedSerializer에 전달되는 값이다. 허용 범위와 nil 처리 방식은 구현 검증을 따른다.
+//
+// 반환 오류는 입력 검증 실패와 패키지에서 정의한 sentinel error/typed error를 그대로 드러낸다.
 func NewVersionedSerializer[T any](serializer NamedSerializer[T], version uint16) (VersionedSerializer[T], error) {
 	if serializer == nil {
 		return VersionedSerializer[T]{}, fmt.Errorf("serializer must not be nil")
@@ -37,17 +43,22 @@ func NewVersionedSerializer[T any](serializer NamedSerializer[T], version uint16
 	}, nil
 }
 
-// Format returns the wrapped serializer format.
+// Format 값을 지정한 형식의 문자열로 변환한다.
 func (s VersionedSerializer[T]) Format() string {
 	return s.serializer.Format()
 }
 
-// Version returns the payload version written by Marshal.
+// Version 직렬화 envelope의 version 값을 반환한다.
 func (s VersionedSerializer[T]) Version() uint16 {
 	return s.version
 }
 
-// Marshal serializes value and prefixes a versioned envelope.
+// Marshal 값을 직렬화된 바이트로 변환한다.
+//
+// 매개변수:
+//   - value: Marshal에 전달되는 값이다. 허용 범위와 nil 처리 방식은 구현 검증을 따른다.
+//
+// 반환 오류는 입력 검증 실패와 패키지에서 정의한 sentinel error/typed error를 그대로 드러낸다.
 func (s VersionedSerializer[T]) Marshal(value T) ([]byte, error) {
 	payload, err := s.serializer.Marshal(value)
 	if err != nil {
@@ -65,7 +76,12 @@ func (s VersionedSerializer[T]) Marshal(value T) ([]byte, error) {
 	return result, nil
 }
 
-// Unmarshal validates the envelope and deserializes its payload.
+// Unmarshal 직렬화된 데이터를 대상 값으로 복원한다.
+//
+// 매개변수:
+//   - data: Unmarshal가 처리할 값 목록이다. nil과 빈 슬라이스는 구현의 입력 규칙에 따라 처리한다.
+//
+// 반환 오류는 입력 검증 실패와 패키지에서 정의한 sentinel error/typed error를 그대로 드러낸다.
 func (s VersionedSerializer[T]) Unmarshal(data []byte) (T, error) {
 	var zero T
 	payload, err := s.payload(data)

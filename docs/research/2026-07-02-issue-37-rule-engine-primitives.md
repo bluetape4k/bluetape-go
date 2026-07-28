@@ -1,17 +1,17 @@
 # Issue #37 Rule Engine Primitives Research
 
-## Context
+## 맥락
 
-Issue #37 asks how much of `bluetape4k-rule-engine` should become Go code and
-which parts should remain dependency-backed or deferred. The source module
-contains core facts/rules/rule sets, priority-based execution, Kotlin DSL and
+Issue #37은 `bluetape4k-rule-engine` 중 어느 범위가 Go code가 되어야 하고,
+어느 부분을 dependency-backed 또는 deferred로 남겨야 하는지 묻는다. Source
+module은 core facts/rules/rule sets, priority-based execution, Kotlin DSL과
 annotation registration, coroutine-aware execution, composite groups, forward
-chaining, script-backed rules, and YAML/JSON/HOCON readers.
+chaining, script-backed rules, YAML/JSON/HOCON readers를 포함한다.
 
-The Go repository has no current rule-engine package. The closest local
-reference is `workflow`, which already models `context.Context` cancellation
-and conditional execution, but it intentionally avoids mutable shared state and
-durable rule-engine semantics.
+Go repository에는 현재 rule-engine package가 없다. 가장 가까운 local
+reference는 `workflow`이며, 이미 `context.Context` cancellation과 conditional
+execution을 모델링한다. 하지만 `workflow`는 의도적으로 mutable shared state와
+durable rule-engine semantics를 피한다.
 
 ## Source Concept Matrix
 
@@ -33,55 +33,56 @@ durable rule-engine semantics.
 
 | Candidate | License | Maintenance signal | Fit | Decision |
 |---|---|---|---|---|
-| `hyperjumptech/grule-rule-engine` | README reports Apache-2.0; GitHub API license is `NOASSERTION` | Not archived, pushed 2026-02-10, about 2.5k stars | Full Drools-like engine and DSL | Reference only; too broad for core primitives. |
-| `rulego/rulego` | Apache-2.0 | Not archived, pushed 2026-06-26, about 1.5k stars | Component orchestration and IoT-style rule chains | Reference only; not the small in-process library shape needed here. |
-| `gorules/zen-go` | MIT | Not archived, pushed 2026-03-15 | JSON Decision Model with Rust-backed native binding | Reference for decision models; native/Rust binding is too heavy for core. |
-| `bytedance/arishem` | Apache-2.0 | Not archived, pushed 2025-03-24 | DSL/config-driven business rules | Reference only; DSL adoption needs separate evaluation. |
-| `expr-lang/expr` | MIT | Not archived, pushed 2026-06-04, about 7.9k stars | Maintained Go expression language | Best later candidate for expression-backed rules/readers. |
+| `hyperjumptech/grule-rule-engine` | README reports Apache-2.0; GitHub API license is `NOASSERTION` | Not archived, pushed 2026-02-10, about 2.5k stars | Full Drools-like engine and DSL | Reference only; core primitive에는 너무 넓다. |
+| `rulego/rulego` | Apache-2.0 | Not archived, pushed 2026-06-26, about 1.5k stars | Component orchestration and IoT-style rule chains | Reference only; 여기서 필요한 small in-process library shape가 아니다. |
+| `gorules/zen-go` | MIT | Not archived, pushed 2026-03-15 | JSON Decision Model with Rust-backed native binding | Decision model reference로만 본다. Native/Rust binding은 core에 너무 무겁다. |
+| `bytedance/arishem` | Apache-2.0 | Not archived, pushed 2025-03-24 | DSL/config-driven business rules | Reference only; DSL adoption은 별도 평가가 필요하다. |
+| `expr-lang/expr` | MIT | Not archived, pushed 2026-06-04, about 7.9k stars | Maintained Go expression language | Expression-backed rules/readers의 later candidate로 가장 적합하다. |
 | `PaesslerAG/gval` | BSD-3-Clause | Not archived, pushed 2025-08-04 | Smaller expression evaluator | Secondary expression candidate. |
-| `Knetic/govaluate` | MIT | Archived | Dynamic expression evaluator | Reject for new code because the repository is archived. |
+| `Knetic/govaluate` | MIT | Archived | Dynamic expression evaluator | Repository가 archived이므로 new code에서는 기각한다. |
 
-## Decision
+## 결정
 
-Implement the minimal rule-engine core as a first-party Go package. The core is
-small enough to keep dependency-free while preserving the important source
-contracts: facts, rule ordering, rule sets, engine config, error policy, and
-context cancellation. Do not adopt a full Go rule engine for the default package
-because the available engines bring larger DSL, orchestration, native binding,
-or decision-model surfaces than the source-parity core requires.
+Minimal rule-engine core를 first-party Go package로 구현한다. Core는
+dependency-free로 유지할 만큼 작고, source의 중요한 contract인 facts, rule
+ordering, rule sets, engine config, error policy, context cancellation을 보존할
+수 있다. Available Go engine은 source-parity core가 요구하는 것보다 큰 DSL,
+orchestration, native binding, decision-model surface를 가져오므로 default
+package로 채택하지 않는다.
 
-Use a new `rules` package for the implementation track. Keep `workflow` as a
-separate execution-composition package; it should inform context handling but
-should not become a mutable facts/rule engine.
+Implementation track에는 새 `rules` package를 사용한다. `workflow`는 별도의
+execution-composition package로 유지한다. `workflow`는 context handling에는
+참고가 되지만 mutable facts/rule engine이 되면 안 된다.
 
-## Follow-Up Issues
+## 후속 이슈
 
 - #375: implement first-party rules core primitives.
 - #377: add composite and bounded inference rule primitives.
 - #376: evaluate expression-backed YAML and JSON rule readers.
 
-Annotation and JVM script parity are intentionally deferred with no immediate
-implementation issue. If #376 selects an expression engine, create a narrower
-implementation issue for YAML/JSON readers only.
+Annotation과 JVM script parity는 immediate implementation issue 없이 의도적으로
+보류한다. #376이 expression engine을 선택하면 YAML/JSON reader만을 위한 더
+좁은 implementation issue를 만든다.
 
 ## Error And Cancellation Policy
 
-The core package should check context before each rule evaluation and execution.
-Cancellation should short-circuit with `context.Canceled` or
-`context.DeadlineExceeded` preserved for `errors.Is`. Evaluation/execution
-errors should appear in the engine result and obey the configured stop/continue
-policy. This avoids the source engine's log-and-continue default becoming an
-invisible failure path for Go callers.
+Core package는 각 rule evaluation과 execution 전에 context를 확인해야 한다.
+Cancellation은 `errors.Is`에서 보존되는 `context.Canceled` 또는
+`context.DeadlineExceeded`로 short-circuit해야 한다. Evaluation/execution
+error는 engine result에 나타나고 configured stop/continue policy를 따라야
+한다. 이렇게 해야 source engine의 log-and-continue default가 Go caller에게
+보이지 않는 failure path가 되는 일을 피할 수 있다.
 
 ## Determinism Policy
 
-Rules should execute by priority ascending, then rule name, then registration
-sequence only for exact ties. Duplicate names should be rejected unless the
-registration API explicitly replaces an existing rule. Forward chaining must be
-bounded by a configured max-cycle limit to avoid non-converging rule sets.
+Rule은 priority ascending, 그다음 rule name, exact tie일 때만 registration
+sequence 순서로 실행해야 한다. Registration API가 명시적으로 existing rule을
+replace하지 않는 한 duplicate name은 거부해야 한다. Forward chaining은
+non-converging rule set을 피하기 위해 configured max-cycle limit으로 제한해야
+한다.
 
-## Verification Notes
+## 검증 메모
 
-This is a research/design issue. No Go package code was added. The follow-up
-implementation issues require unit, race, cancellation, and
-`testing/concurrency` stress coverage.
+이 이슈는 research/design issue다. Go package code는 추가하지 않았다. Follow-up
+implementation issue는 unit, race, cancellation, `testing/concurrency` stress
+coverage를 요구한다.

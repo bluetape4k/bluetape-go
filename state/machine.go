@@ -16,7 +16,7 @@ type transitionTarget[S comparable, E comparable] struct {
 	guard Guard[S, E]
 }
 
-// Machine is a concurrency-safe finite state machine.
+// Machine 상태 전이, guard, final state에서 사용하는 구조체다.
 type Machine[S comparable, E comparable] struct {
 	mu          sync.RWMutex
 	current     S
@@ -25,7 +25,14 @@ type Machine[S comparable, E comparable] struct {
 	finalStates map[S]struct{}
 }
 
-// NewMachine creates a finite state machine from explicit transitions.
+// NewMachine 상태 전이, guard, final state에 사용할 값을 생성한다.
+//
+// 매개변수:
+//   - initial: machine의 초기 상태다.
+//   - transitions: NewMachine가 순서와 snapshot 의미를 유지하며 읽는 transitions 목록이다. nil과 빈 슬라이스는 해당 함수의 입력 규칙에 따라 처리한다.
+//   - options: 적용할 옵션 목록이다. nil이면 기본값만 사용한다.
+//
+// 반환 오류는 입력 검증 실패, context 취소/deadline, 상태 전이 실패, 패키지 sentinel error와 typed error를 그대로 드러낸다.
 func NewMachine[S comparable, E comparable](
 	initial S,
 	transitions []Transition[S, E],
@@ -79,14 +86,20 @@ func NewMachine[S comparable, E comparable](
 	}, nil
 }
 
-// State returns the current state.
+// State 상태 전이, guard, final state 동작을 수행한다.
 func (m *Machine[S, E]) State() S {
 	m.mu.RLock()
 	defer m.mu.RUnlock()
 	return m.current
 }
 
-// Transition applies one event transition.
+// Transition 상태 전이, guard, final state 동작을 수행한다.
+//
+// 매개변수:
+//   - ctx: 호출자가 소유한 취소, deadline, 요청 범위를 전달한다.
+//   - event: 상태 전이에 적용할 event다.
+//
+// 반환 오류는 입력 검증 실패, context 취소/deadline, 상태 전이 실패, 패키지 sentinel error와 typed error를 그대로 드러낸다.
 func (m *Machine[S, E]) Transition(ctx context.Context, event E) (Result[S, E], error) {
 	var zero Result[S, E]
 	ctx = normalizeContext(ctx)
@@ -132,9 +145,13 @@ func (m *Machine[S, E]) Transition(ctx context.Context, event E) (Result[S, E], 
 	}, nil
 }
 
-// CanTransition reports whether the current state can transition with event.
+// CanTransition 상태 전이, guard, final state 동작을 수행한다.
 //
-// It may execute the transition guard, but it never mutates the machine.
+// 매개변수:
+//   - ctx: 호출자가 소유한 취소, deadline, 요청 범위를 전달한다.
+//   - event: 상태 전이에 적용할 event다.
+//
+// 반환 오류는 입력 검증 실패, context 취소/deadline, 상태 전이 실패, 패키지 sentinel error와 typed error를 그대로 드러낸다.
 func (m *Machine[S, E]) CanTransition(ctx context.Context, event E) (bool, error) {
 	ctx = normalizeContext(ctx)
 	if err := ctx.Err(); err != nil {
@@ -167,9 +184,7 @@ func (m *Machine[S, E]) CanTransition(ctx context.Context, event E) (bool, error
 	return true, nil
 }
 
-// AllowedEvents returns registered events for the current state.
-//
-// It does not evaluate guards; use CanTransition to evaluate a specific guard.
+// AllowedEvents 상태 전이, guard, final state 동작을 수행한다.
 func (m *Machine[S, E]) AllowedEvents() []E {
 	m.mu.RLock()
 	defer m.mu.RUnlock()

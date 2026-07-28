@@ -1,11 +1,14 @@
 # Issue #410 Redis Cuckoo and HyperLogLog Research
 
+> 한국어 연구 요약: 이 문서는 사용자 협업용 조사/결정 기록이다. 아래 표와 목록의 URL, package name, command, issue number, version, source path는 evidence이므로 그대로 보존한다. 의사결정, 선택/보류/거절 사유, 후속 이슈 경계는 한국어 독자가 바로 이해할 수 있도록 이 요약을 우선 적용한다.
+> 추가 한국어 해석: 이 문서에서 영어로 남은 표의 값은 원문 근거이며, 실제 채택 여부는 한국어 결정 문장을 따른다. 후속 작업자는 보류와 거절 항목을 새 구현 범위로 착각하지 않아야 한다.\n
+
 Issue: #410
 Parent: #409
 Milestone: 0.16.0
 Date: 2026-07-08
 
-## Goal
+## 목표
 
 Choose the first Redis probabilistic follow-up structure after the existing
 Redis-backed Bloom filter scope, and record the Redis/runtime assumptions that
@@ -124,7 +127,7 @@ README updates should say:
 | Redis module assumptions are documented. | PASS | HLL uses core Redis `PF*`; Cuckoo is deferred until `CF*` runtime/module assumptions are explicit. |
 | Rejected alternatives are documented. | PASS | Cuckoo-first, combined Cuckoo+HLL, and broad go-redis probabilistic wrapper are rejected for the first implementation. |
 
-## Validation Plan
+## 검증 Plan
 
 - `git diff --check`
 - targeted `rg` for #410, HLL, and Cuckoo decision terms

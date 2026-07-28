@@ -9,7 +9,8 @@ import (
 
 const resultVersion = 1
 
-// ErrResultTooLarge reports that an encoded coordination result exceeded its configured bound.
+// ErrResultTooLarge Redis 조정, stampede 방지, codec envelope에서 사용하는 공개 변수 값이다.
+// 호출자는 이 식별자를 cache 오류, 옵션, event, 또는 기본값 계약을 비교할 때 사용한다.
 var ErrResultTooLarge = errors.New("coordination result exceeds maximum size")
 
 type resultEnvelope struct {

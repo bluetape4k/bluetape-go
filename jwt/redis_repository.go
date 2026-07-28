@@ -10,7 +10,7 @@ import (
 	"github.com/redis/go-redis/v9"
 )
 
-// RedisRepository stores distributed JWT KeyChains in Redis.
+// RedisRepository JWT key provider repository에서 caller-visible 상태와 의미를 설명한다.
 type RedisRepository struct {
 	client redis.Cmdable
 	opts   redisRepositoryOptions
@@ -18,7 +18,7 @@ type RedisRepository struct {
 
 var _ DistributedKeyChainRepository = (*RedisRepository)(nil)
 
-// NewRedisRepository creates a Redis-backed distributed KeyChain repository.
+// NewRedisRepository JWT key provider repository에서 생성과 초기화 계약을 설명한다.
 func NewRedisRepository(options RedisRepositoryOptions) (*RedisRepository, error) {
 	normalized, err := options.normalize()
 	if err != nil {
@@ -27,7 +27,7 @@ func NewRedisRepository(options RedisRepositoryOptions) (*RedisRepository, error
 	return &RedisRepository{client: normalized.client, opts: normalized}, nil
 }
 
-// Current returns the current non-expired KeyChain.
+// Current JWT key provider repository에서 반환값과 오류 의미를 설명한다.
 func (r *RedisRepository) Current(ctx context.Context, now time.Time) (*KeyChain, error) {
 	if err := r.validateReady(ctx); err != nil {
 		return nil, err
@@ -46,7 +46,7 @@ func (r *RedisRepository) Current(ctx context.Context, now time.Time) (*KeyChain
 	return key, nil
 }
 
-// Find returns a non-expired KeyChain by kid.
+// Find JWT key provider repository에서 반환값과 오류 의미를 설명한다.
 func (r *RedisRepository) Find(ctx context.Context, kid string, now time.Time) (*KeyChain, error) {
 	if err := r.validateReady(ctx); err != nil {
 		return nil, err
@@ -57,7 +57,7 @@ func (r *RedisRepository) Find(ctx context.Context, kid string, now time.Time) (
 	return r.findPayload(ctx, kid, now)
 }
 
-// Rotate returns the current key or stores a new one when no live key exists.
+// Rotate JWT key provider repository에서 반환값과 오류 의미를 설명한다.
 func (r *RedisRepository) Rotate(ctx context.Context, create func() (*KeyChain, error), now time.Time) (*KeyChain, error) {
 	if err := r.validateReady(ctx); err != nil {
 		return nil, err
@@ -79,7 +79,7 @@ func (r *RedisRepository) Rotate(ctx context.Context, create func() (*KeyChain, 
 	return r.storeCAS(ctx, observedKID, key, now)
 }
 
-// ForcedRotate always stores a newly created KeyChain.
+// ForcedRotate JWT key provider repository에서 동작과 caller-visible 계약을 설명한다.
 func (r *RedisRepository) ForcedRotate(ctx context.Context, create func() (*KeyChain, error), now time.Time) (*KeyChain, error) {
 	if err := r.validateReady(ctx); err != nil {
 		return nil, err
@@ -94,7 +94,7 @@ func (r *RedisRepository) ForcedRotate(ctx context.Context, create func() (*KeyC
 	return r.store(ctx, key, now)
 }
 
-// DeleteAll removes all Redis state for this repository namespace.
+// DeleteAll JWT key provider repository에서 caller-visible 상태와 의미를 설명한다.
 func (r *RedisRepository) DeleteAll(ctx context.Context) error {
 	if err := r.validateReady(ctx); err != nil {
 		return err

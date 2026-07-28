@@ -1,15 +1,17 @@
 # Issue #175 Step 3-R Plan Review
 
-Issue: #175
-Date: 2026-06-14
+> 한국어 리뷰 경계: 이 문서는 리뷰 판정과 근거를 한국어 독자가 추적할 수 있도록 정리한다. 심각도 토큰, 판정 토큰, 파일 경로, 라인 번호, 이슈/PR 번호, 명령, 코드 식별자는 원문의 증거 앵커로 보존한다.
+
+이슈: #175
+날짜: 2026-06-14
 Plan: `docs/superpowers/plans/2026-06-14-issue-175-jwt-provider-cache-adapters-plan.md`
 Spec: `docs/superpowers/specs/2026-06-14-issue-175-jwt-provider-cache-adapters-design.md`
-Gate: 7-Tier = 6 independent lanes + main integration review
+게이트: 7-Tier = 6 independent lanes + main integration review
 Wait SLA: subagent wait max 10 minutes; long blocking wait is forbidden.
 
 ## Initial 7-Tier Results
 
-| Tier | Perspective | Verdict | P0 | P1 | P2 | P3 |
+| 계층 | 관점 | 판정 | P0 | P1 | P2 | P3 |
 |---|---|---:|---:|---:|---:|---:|
 | 1 | Performance | COMMENT | 0 | 0 | 0 | 1 |
 | 2 | Stability | REQUEST_CHANGES | 0 | 2 | 1 | 0 |
@@ -56,7 +58,7 @@ implementation tasks and verification commands:
 
 No remaining P0/P1 issue is visible in the plan after fallback review.
 
-## Main Integration Verdict
+## 메인 통합 판정
 
 APPROVE.
 
@@ -69,7 +71,7 @@ The plan is ready for Step 4 implementation. P2/P3 comments were converted into
 explicit tasks where they reduce implementation risk, documentation drift, or
 verification ambiguity.
 
-## Verification Evidence
+## 검증 증거
 
 - `git diff --check`
   - PASS
@@ -85,7 +87,7 @@ verification ambiguity.
 
 ## DoD
 
-| Item | Status |
+| 항목 | 상태 |
 |---|---|
 | Six independent lanes run | Done |
 | Main integration review run | Done |

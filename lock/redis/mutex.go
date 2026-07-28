@@ -17,13 +17,13 @@ end
 return 0
 `
 
-// Mutex 는 Redis key 하나에 대한 owner-token lock이다.
+// Mutex Redis key 하나에 대한 owner-token lock이다.
 type Mutex struct {
 	client redis.Cmdable
 	opts   options
 }
 
-// Lease 는 성공적으로 획득한 Redis lock 소유권이다.
+// Lease 성공적으로 획득한 Redis lock 소유권이다.
 type Lease struct {
 	mutex       *Mutex
 	key         string
@@ -31,7 +31,7 @@ type Lease struct {
 	sharedLease *btredis.Lease
 }
 
-// New 는 Redis lock mutex를 만든다.
+// New Redis lock mutex를 만든다.
 func New(client redis.Cmdable, opts Options) (*Mutex, error) {
 	if client == nil {
 		return nil, fmt.Errorf("redis client must not be nil")
@@ -43,11 +43,12 @@ func New(client redis.Cmdable, opts Options) (*Mutex, error) {
 	return &Mutex{client: client, opts: normalized}, nil
 }
 
-// TryLock 은 lock 획득을 한 번 시도한다.
+// TryLock Redis lock key, owner token, TTL, unlock safety 동작을 수행한다.
 //
-// ErrCommitUnknown과 함께 non-nil Lease가 반환되면 type-first로 오류를 판별한 뒤
-// 그 Lease로 bounded Unlock을 즉시 시도해야 한다. 같은 Lease의 Unlock은 재시도할 수
-// 있으며 정리가 확인되지 않으면 TTL 만료를 기다려야 한다.
+// 매개변수:
+//   - ctx: 호출자가 소유한 취소, deadline, 요청 범위를 전달한다.
+//
+// 반환 오류는 입력 검증 실패, context 취소, Redis/backend 실패, lock ownership 불일치, quota 거절, package sentinel error와 typed error를 그대로 드러낸다.
 func (m *Mutex) TryLock(ctx context.Context) (*Lease, error) {
 	ctx = normalizeContext(ctx)
 	if err := ctx.Err(); err != nil {
@@ -90,12 +91,12 @@ func (m *Mutex) TryLock(ctx context.Context) (*Lease, error) {
 	return &Lease{mutex: m, key: m.opts.key, token: token, sharedLease: sharedLease}, nil
 }
 
-// Key 는 Redis lock key를 반환한다.
+// Key Redis lock key를 반환한다.
 func (m *Mutex) Key() string {
 	return m.opts.key
 }
 
-// Key 는 lease가 소유한 Redis lock key를 반환한다.
+// Key lease가 소유한 Redis lock key를 반환한다.
 func (l *Lease) Key() string {
 	if l == nil {
 		return ""
@@ -103,7 +104,7 @@ func (l *Lease) Key() string {
 	return l.key
 }
 
-// Token 은 lease owner token을 반환한다.
+// Token Redis lock key, owner token, TTL, unlock safety 동작을 수행한다.
 func (l *Lease) Token() string {
 	if l == nil {
 		return ""
@@ -111,10 +112,12 @@ func (l *Lease) Token() string {
 	return l.token
 }
 
-// Unlock 은 현재 token이 아직 owner일 때만 lock key를 제거한다.
+// Unlock Redis lock key, owner token, TTL, unlock safety 동작을 수행한다.
 //
-// ErrCommitUnknown이면 동일 Lease로 bounded Unlock을 재시도한다. false와 nil은 이미
-// 삭제됐거나 owner가 교체됐음을 뜻하며 replacement owner는 삭제하지 않는다.
+// 매개변수:
+//   - ctx: 호출자가 소유한 취소, deadline, 요청 범위를 전달한다.
+//
+// 반환 오류는 입력 검증 실패, context 취소, Redis/backend 실패, lock ownership 불일치, quota 거절, package sentinel error와 typed error를 그대로 드러낸다.
 func (l *Lease) Unlock(ctx context.Context) (bool, error) {
 	if l == nil || l.mutex == nil {
 		return false, nil

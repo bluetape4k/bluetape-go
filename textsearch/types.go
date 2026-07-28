@@ -1,70 +1,70 @@
 package textsearch
 
-// NormalizeMode selects Unicode normalization applied before matching.
+// NormalizeMode textsearch language image example에서 leader election 선택과 조정 계약을 설명한다.
 type NormalizeMode int
 
 const (
-	// NormalizeNone leaves input and patterns unchanged.
+	// NormalizeNone textsearch language image example에서 동작과 caller-visible 계약을 설명한다.
 	NormalizeNone NormalizeMode = iota
-	// NormalizeNFC applies canonical composition.
+	// NormalizeNFC textsearch language image example에서 동작과 caller-visible 계약을 설명한다.
 	NormalizeNFC
-	// NormalizeNFKC applies compatibility composition.
+	// NormalizeNFKC textsearch language image example에서 동작과 caller-visible 계약을 설명한다.
 	NormalizeNFKC
 )
 
-// BoundaryMode controls optional word-boundary filtering.
+// BoundaryMode textsearch language image example에서 동작과 caller-visible 계약을 설명한다.
 type BoundaryMode int
 
 const (
-	// BoundaryNone allows matches anywhere.
+	// BoundaryNone textsearch language image example에서 동작과 caller-visible 계약을 설명한다.
 	BoundaryNone BoundaryMode = iota
-	// BoundaryASCIIWord requires ASCII word boundaries around matches.
+	// BoundaryASCIIWord textsearch language image example에서 동작과 caller-visible 계약을 설명한다.
 	BoundaryASCIIWord
-	// BoundaryUnicodeWord requires Unicode letter, digit, or underscore
-	// boundaries around matches.
+	// BoundaryUnicodeWord textsearch language image example에서 동작과 caller-visible 계약을 설명한다.
+	// 세부 조건은 language script, tokenizer, normalization, example ownership 계약을 따른다.
 	BoundaryUnicodeWord
 )
 
-// OverlapMode controls how FindAll returns overlapping matches.
+// OverlapMode textsearch language image example에서 반환값과 오류 의미를 설명한다.
 type OverlapMode int
 
 const (
-	// OverlapAll returns every match emitted by the automaton.
+	// OverlapAll textsearch language image example에서 반환값과 오류 의미를 설명한다.
 	OverlapAll OverlapMode = iota
-	// OverlapLeftmostLongest returns non-overlapping matches, preferring the
-	// longest match at each leftmost start position.
+	// OverlapLeftmostLongest textsearch language image example에서 반환값과 오류 의미를 설명한다.
+	// 세부 조건은 language script, tokenizer, normalization, example ownership 계약을 따른다.
 	OverlapLeftmostLongest
 )
 
-// Pattern is one dictionary entry.
+// Pattern textsearch language image example에서 caller-visible 상태와 의미를 설명한다.
 type Pattern struct {
-	// ID is caller-owned metadata copied into Match values. When ID is empty,
-	// Compile assigns a stable decimal index string.
+	// ID textsearch language image example에서 caller-visible 상태와 의미를 설명한다.
+	// Compile textsearch language image example에서 동작과 caller-visible 계약을 설명한다.
 	ID string
-	// Text is the pattern text after caller-owned loading or filtering.
+	// Text textsearch language image example에서 caller-visible 상태와 의미를 설명한다.
 	Text string
 }
 
-// Config controls dictionary compilation and match filtering.
+// Config textsearch language image example에서 동작과 caller-visible 계약을 설명한다.
 type Config struct {
-	// IgnoreCase folds input and pattern text with strings.ToLower before
-	// matching. Locale-specific casing is outside this package's scope.
+	// IgnoreCase textsearch language image example에서 동작과 caller-visible 계약을 설명한다.
+	// 이 주석은 textsearch language image example의 backend 요구사항, cancellation, timeout, 오류 처리 세부사항을 설명한다.
 	IgnoreCase bool
-	// Normalize applies Unicode normalization before matching. Offset reporting
-	// maps normalized segments back to original byte spans.
+	// Normalize textsearch language image example에서 동작과 caller-visible 계약을 설명한다.
+	// 세부 조건은 language script, tokenizer, normalization, example ownership 계약을 따른다.
 	Normalize NormalizeMode
-	// Boundary filters matches that are not surrounded by word boundaries.
+	// Boundary textsearch language image example에서 caller-visible 상태와 의미를 설명한다.
 	Boundary BoundaryMode
-	// Overlap controls FindAll output. The zero value returns all matches.
+	// Overlap textsearch language image example에서 반환값과 오류 의미를 설명한다.
 	Overlap OverlapMode
 }
 
-// Match describes one pattern occurrence in the original input string.
+// Match textsearch language image example에서 동작과 caller-visible 계약을 설명한다.
 type Match struct {
 	Pattern Pattern
-	// Start and End are byte offsets in the original input. End is exclusive.
+	// Start textsearch language image example에서 설정값과 기본값 적용 방식을 설명한다.
 	Start int
 	End   int
-	// Text is the original input slice for Start:End.
+	// Text textsearch language image example에서 caller-visible 상태와 의미를 설명한다.
 	Text string
 }

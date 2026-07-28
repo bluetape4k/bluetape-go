@@ -1,14 +1,16 @@
 # Issue #206 Range and Collection Primitives Step 6-R Code Review
 
-Issue: #206
+> 한국어 리뷰 경계: 이 문서는 리뷰 판정과 근거를 한국어 독자가 추적할 수 있도록 정리한다. 심각도 토큰, 판정 토큰, 파일 경로, 라인 번호, 이슈/PR 번호, 명령, 코드 식별자는 원문의 증거 앵커로 보존한다.
+
+이슈: #206
 Spec: `docs/superpowers/specs/2026-06-22-issue-206-range-collections-design.md`
 Plan: `docs/superpowers/plans/2026-06-22-issue-206-range-collections-plan.md`
 Verifier: `docs/superpowers/reviews/2026-06-22-issue-206-range-collections-step-5-verifier.md`
-Gate: Step 6-R, 7-Tier code review
-Date: 2026-06-22
+게이트: Step 6-R, 7-Tier code review
+날짜: 2026-06-22
 Worktree: `issue-206-range-collections`
 
-## Reviewed Scope
+## 검토 범위
 
 - `core/range.go`
 - `core/range_test.go`
@@ -24,7 +26,7 @@ Worktree: `issue-206-range-collections`
 - `collections/collections_example_test.go`
 - English and Korean README updates for `core` and `collections`
 
-## Evidence
+## 증거
 
 | Check | Evidence | Status |
 |---|---|---|
@@ -37,7 +39,7 @@ Worktree: `issue-206-range-collections`
 | CI after fixes | `make ci` passed with lint `0 issues` and all package tests including Testcontainers. | PASS |
 | Native subagent availability | Native subagent manager was unreliable earlier in the session; main-session 7-tier fallback used. | UNAVAILABLE; fallback performed. |
 
-## Six Review Lanes
+## 6개 검토 관점
 
 | Lane | P0 | P1 | P2 | P3 | Verdict | Evidence |
 |---|---:|---:|---:|---:|---|---|
@@ -48,7 +50,7 @@ Worktree: `issue-206-range-collections`
 | Developer/API | 0 | 0 | 0 | 0 | PASS | Public APIs keep unexported invariants, Go doc comments, snapshot semantics, and package boundaries. Plain errors remain consistent with current helper style. |
 | User/Caller | 0 | 0 | 0 | 0 | PASS | Examples and English/Korean README updates cover range notation, ordering, page numbering, shallow snapshots, factorial growth, non-goroutine-safety, and Kotlin/JVM exclusions. |
 
-## Findings Convergence
+## 발견 사항 수렴
 
 | Iteration | Finding | Action | Result |
 |---|---|---|---|
@@ -56,7 +58,7 @@ Worktree: `issue-206-range-collections`
 | 1 | P1: `Page.HasNext()` used `int64(p.page)+1`, which could overflow for the last representable page. | Rewrote as `totalPages > 0 && int64(p.page) < totalPages-1` and added 64-bit regression test. | Targeted, race, full tests, diff check, and `make ci` passed. |
 | 1 | P2: `BoundedStack.Push` could retain discarded values in backing array after overflow. | Zeroed discarded tail slots before reslicing. | Targeted, race, full tests, diff check, and `make ci` passed. |
 
-## Main Integration Review
+## 메인 통합 검토
 
 The implementation now satisfies #206 and the reviewed spec:
 
@@ -70,7 +72,7 @@ The implementation now satisfies #206 and the reviewed spec:
   snapshots, and early-stop propagation.
 - README and examples are synchronized across English and Korean files.
 
-## Verdict
+## 판정
 
 P0=0 P1=0
 

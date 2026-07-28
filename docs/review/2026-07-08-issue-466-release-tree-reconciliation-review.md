@@ -1,13 +1,15 @@
 # Issue #466 Release Tree Reconciliation Review
 
-## Scope
+> 한국어 감사/리뷰 경계: 이 문서는 리뷰 결론과 남은 위험을 한국어 독자가 추적할 수 있도록 정리한다. 심각도 표기, 판정 표기, 파일 경로, 라인 번호, 이슈/PR 링크, 명령, 코드 식별자, 인용 증거는 원문의 증거 앵커로 보존한다.
+
+## 범위
 
 - Issue: #466 `release: reconcile develop with v0.15.0 main release tree`
 - Branch: `chore/issue-466-reconcile-main-tree`
 - Base: `origin/develop`
 - Release tree source: `origin/main` at `c1e6db575beee41d19ce6b3ca5de5a89ef0b0da8`
 
-## Changes Reviewed
+## 검토한 변경
 
 - Merged the current `origin/main` release tree into the `origin/develop` line.
 - Resolved release-tree conflicts in favor of `origin/main` because `main` is the
@@ -19,7 +21,7 @@
 - Added this review artifact and the paired lesson so the reconciliation reason
   survives after the sync.
 
-## Acceptance Mapping
+## 수용 기준 매핑
 
 | Requirement | Status | Evidence |
 |---|---|---|
@@ -28,7 +30,7 @@
 | Preserve current 0.15.0 release payload | PASS | Source commit is `v0.15.0` target `c1e6db575beee41d19ce6b3ca5de5a89ef0b0da8`. |
 | Keep validation explicit | PASS | `git diff --cached --check` passed after conflict resolution; full `make ci` remains the merge gate. |
 
-## 7-Tier Review
+## 7-Tier 검토
 
 | Lane | Verdict | Notes |
 |---|---|---|
@@ -40,7 +42,7 @@
 | User/Caller | PASS | README/package docs remain aligned with the released tree. P0=0 P1=0. |
 | Integration | PASS | The sync branch makes future `develop -> main` promotion a normal additive/reviewable path instead of a deletion-prone projection. P0=0 P1=0. |
 
-## Validation
+## 검증
 
 - `git diff --cached --check`: PASS after merge conflict resolution.
 - `git diff --cached --name-status origin/main`: PASS before adding this issue

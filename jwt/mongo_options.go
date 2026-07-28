@@ -14,19 +14,19 @@ const (
 	maxMongoMaxKeyBytes     = maxRedisMaxKeyBytes
 )
 
-// MongoRepositoryOptions configures a MongoDB-backed distributed KeyChain repository.
+// MongoRepositoryOptions JWT key provider repository에서 설정값과 기본값 적용 방식을 설명한다.
 type MongoRepositoryOptions struct {
-	// Client is caller-owned. The repository never closes it.
+	// Client JWT key provider repository에서 caller-visible 상태와 의미를 설명한다.
 	Client *mongo.Client
-	// Database is the MongoDB database that stores JWT signing authority.
+	// Database JWT key provider repository에서 caller-visible 상태와 의미를 설명한다.
 	Database string
-	// Collection is the MongoDB collection that stores current and retained keys.
+	// Collection JWT key provider repository에서 caller-visible 상태와 의미를 설명한다.
 	Collection string
-	// Namespace scopes MongoDB signing authority keys.
+	// Namespace JWT key provider repository에서 동작과 caller-visible 계약을 설명한다.
 	Namespace string
-	// Capacity limits retained KeyChains.
+	// Capacity JWT key provider repository에서 동작과 caller-visible 계약을 설명한다.
 	Capacity int
-	// MaxKeyBytes limits each serialized KeyChain payload.
+	// MaxKeyBytes JWT key provider repository에서 동작과 caller-visible 계약을 설명한다.
 	MaxKeyBytes int
 }
 

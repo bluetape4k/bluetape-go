@@ -6,13 +6,13 @@ import (
 	"time"
 )
 
-// Repository appends validated audit entries and reads audit history.
+// Repository audit entry, event, repository, recorder, history에서 사용하는 인터페이스이다.
 type Repository interface {
 	Append(ctx context.Context, entries ...Entry) error
 	HistoryReader
 }
 
-// HistoryReader queries stored audit history without exposing storage details.
+// HistoryReader audit entry, event, repository, recorder, history에서 사용하는 인터페이스이다.
 type HistoryReader interface {
 	Find(ctx context.Context, query Query) ([]Entry, error)
 	LoadHistory(ctx context.Context, aggregate AggregateID) (History, bool, error)
@@ -21,7 +21,7 @@ type HistoryReader interface {
 	PreviousSnapshot(ctx context.Context, aggregate AggregateID, before Revision) (Entry, bool, error)
 }
 
-// Query filters audit entries. The zero value returns all entries in append order.
+// Query audit entry, event, repository, recorder, history에서 사용하는 구조체다.
 type Query struct {
 	Aggregate      *AggregateID
 	AggregateType  string
@@ -33,7 +33,9 @@ type Query struct {
 	Limit          int
 }
 
-// Validate returns a normalized query or an ErrInvalidQuery-compatible error.
+// Validate 값이 audit entry, event, repository, recorder, history 규칙을 만족하는지 검사한다.
+//
+// 반환 오류는 입력 검증 실패, context 취소, transaction 실패, repository/outbox 실패, package sentinel error와 typed error를 그대로 드러낸다.
 func (q Query) Validate() (Query, error) {
 	normalized := q
 	if q.Aggregate != nil {

@@ -12,10 +12,10 @@ import (
 	"github.com/testcontainers/testcontainers-go"
 )
 
-// ErrInvalidServer reports invalid server adapter configuration.
+// ErrInvalidServer Testcontainers fixture에서 반환값과 오류 의미를 설명한다.
 var ErrInvalidServer = errors.New("invalid testcontainer server")
 
-// Container is the Testcontainers subset needed by Started.
+// Container test server container의 endpoint와 cleanup handle을 보관한다.
 type Container interface {
 	Host(context.Context) (string, error)
 	MappedPort(context.Context, string) (network.Port, error)
@@ -23,14 +23,14 @@ type Container interface {
 	Terminate(context.Context, ...testcontainers.TerminateOption) error
 }
 
-// Port describes a named container port exposed by a server.
+// Port Testcontainers fixture에서 동작과 caller-visible 계약을 설명한다.
 type Port struct {
 	Name          string
 	ContainerPort string
 	Scheme        string
 }
 
-// Server exposes common operations for a started Testcontainers fixture.
+// Server Testcontainers fixture에서 제공하는 기능과 사용 경계를 설명한다.
 type Server interface {
 	Name() string
 	Host(context.Context) (string, error)
@@ -41,10 +41,10 @@ type Server interface {
 	Terminate(context.Context) error
 }
 
-// Option configures a Started server adapter.
+// Option Testcontainers fixture에서 설정값과 기본값 적용 방식을 설명한다.
 type Option func(*Started) error
 
-// Started adapts a started Testcontainers container to the Server contract.
+// Started Testcontainers fixture에서 동작과 caller-visible 계약을 설명한다.
 type Started struct {
 	name      string
 	container Container
@@ -54,7 +54,7 @@ type Started struct {
 
 var _ Server = (*Started)(nil)
 
-// New creates a server adapter around an already-started container.
+// New Testcontainers fixture에서 생성과 초기화 계약을 설명한다.
 func New(name string, container Container, options ...Option) (*Started, error) {
 	name = strings.TrimSpace(name)
 	if name == "" {
@@ -82,7 +82,7 @@ func New(name string, container Container, options ...Option) (*Started, error) 
 	return started, nil
 }
 
-// WithPort records named port metadata for a server.
+// WithPort Testcontainers fixture에서 동작과 caller-visible 계약을 설명한다.
 func WithPort(name, containerPort, scheme string) Option {
 	return func(started *Started) error {
 		port := Port{
@@ -101,7 +101,7 @@ func WithPort(name, containerPort, scheme string) Option {
 	}
 }
 
-// WithConnectionDetails sets the function used to compute connection details.
+// WithConnectionDetails Testcontainers fixture에서 설정값과 기본값 적용 방식을 설명한다.
 func WithConnectionDetails(fn func(context.Context, *Started) (ConnectionDetails, error)) Option {
 	return func(started *Started) error {
 		if fn == nil {
@@ -112,12 +112,12 @@ func WithConnectionDetails(fn func(context.Context, *Started) (ConnectionDetails
 	}
 }
 
-// Name returns the server name used in diagnostics.
+// Name Testcontainers fixture에서 반환값과 오류 의미를 설명한다.
 func (s *Started) Name() string {
 	return s.name
 }
 
-// Host returns the host where container ports are exposed.
+// Host Testcontainers fixture에서 반환값과 오류 의미를 설명한다.
 func (s *Started) Host(ctx context.Context) (string, error) {
 	host, err := s.container.Host(ctx)
 	if err != nil {
@@ -126,7 +126,7 @@ func (s *Started) Host(ctx context.Context) (string, error) {
 	return host, nil
 }
 
-// MappedPort returns the mapped host port for a container port.
+// MappedPort Testcontainers fixture에서 반환값과 오류 의미를 설명한다.
 func (s *Started) MappedPort(ctx context.Context, containerPort string) (string, error) {
 	port, err := s.container.MappedPort(ctx, containerPort)
 	if err != nil {
@@ -135,7 +135,7 @@ func (s *Started) MappedPort(ctx context.Context, containerPort string) (string,
 	return port.Port(), nil
 }
 
-// Endpoint returns a scheme-qualified endpoint for a container port.
+// Endpoint Testcontainers fixture에서 반환값과 오류 의미를 설명한다.
 func (s *Started) Endpoint(ctx context.Context, containerPort, scheme string) (string, error) {
 	endpoint, err := s.container.PortEndpoint(ctx, containerPort, scheme)
 	if err != nil {
@@ -144,7 +144,7 @@ func (s *Started) Endpoint(ctx context.Context, containerPort, scheme string) (s
 	return endpoint, nil
 }
 
-// ConnectionDetails returns cloned connection details for this server.
+// ConnectionDetails Testcontainers fixture에서 반환값과 오류 의미를 설명한다.
 func (s *Started) ConnectionDetails(ctx context.Context) (ConnectionDetails, error) {
 	details, err := s.details(ctx, s)
 	if err != nil {
@@ -153,13 +153,13 @@ func (s *Started) ConnectionDetails(ctx context.Context) (ConnectionDetails, err
 	return details.Clone(), nil
 }
 
-// RegisterCleanup registers bounded container cleanup on the test.
+// RegisterCleanup Testcontainers fixture에서 caller-visible 상태와 의미를 설명한다.
 func (s *Started) RegisterCleanup(ctx context.Context, tb testing.TB) {
 	tb.Helper()
 	testcleanup.Register(ctx, tb, s.name, s.container)
 }
 
-// Terminate terminates the server container with the default bounded timeout.
+// Terminate Testcontainers fixture에서 동작과 caller-visible 계약을 설명한다.
 func (s *Started) Terminate(ctx context.Context) error {
 	if err := testcleanup.Terminate(ctx, testcleanup.DefaultTerminateTimeout, s.container); err != nil {
 		return fmt.Errorf("%s terminate: %w", s.name, err)

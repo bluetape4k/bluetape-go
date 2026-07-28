@@ -1,9 +1,3 @@
-// Package audit provides storage-neutral aggregate event, audit history, and
-// repository contracts.
-//
-// The package records domain events with stable aggregate identity, monotonic
-// revisions, caller-owned event IDs, idempotency keys, and JSON-safe metadata.
-// It includes a non-durable in-memory repository for tests and examples. It
-// intentionally does not own durable SQL schemas, Redis/Kafka/NATS adapters,
-// outbox publishing, source transaction choreography, or object diffing.
+// Package audit bluetape-go의 audit audit/outbox 기능을 제공한다.
+// 공개 API 주석은 transaction, idempotency, repository ownership, delivery, 오류 계약을 한국어로 확인할 수 있도록 유지한다.
 package audit

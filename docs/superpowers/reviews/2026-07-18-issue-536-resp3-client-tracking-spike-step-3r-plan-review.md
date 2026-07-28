@@ -1,12 +1,14 @@
 # Issue #536 RESP3 CLIENT TRACKING Spike Step 3-R Review
 
-Date: 2026-07-18 KST
-Issue: [#536](https://github.com/bluetape4k/bluetape-go/issues/536)
+> 한국어 리뷰 경계: 이 문서는 리뷰 판정과 근거를 한국어 독자가 추적할 수 있도록 정리한다. 심각도 토큰, 판정 토큰, 파일 경로, 라인 번호, 이슈/PR 번호, 명령, 코드 식별자는 원문의 증거 앵커로 보존한다.
+
+날짜: 2026-07-18 KST
+이슈: [#536](https://github.com/bluetape4k/bluetape-go/issues/536)
 Reviewed plan: `docs/superpowers/plans/2026-07-18-issue-536-resp3-client-tracking-spike-plan.md`
 Reviewed test spec: `docs/superpowers/specs/2026-07-18-issue-536-resp3-client-tracking-spike-test-spec.md`
 Final reviewed commit: `3d7567b13ebc3a427771734e42aa9b980a7d8388`
 
-## Integrated Verdict
+## 통합 판정
 
 `PASS — P0=0 P1=0 P2=0`
 
@@ -16,7 +18,7 @@ repository APIs, go-redis/v9 v9.20.0, Testcontainers v0.42.0, and the Step 2-R
 design. No production implementation, exported API, dependency, background
 pump, or reconnect subsystem is authorized by this review.
 
-## Final Exact-Commit Results
+## 최종 정확한 커밋 결과
 
 | Lane | P0 | P1 | P2 | Verdict |
 |---|---:|---:|---:|---|
@@ -28,7 +30,7 @@ pump, or reconnect subsystem is authorized by this review.
 | User/caller | 0 | 0 | 0 | PASS |
 | Main-session integration | 0 | 0 | 0 | PASS |
 
-## Findings Resolved During Review
+## 검토 중 해결한 발견 사항
 
 ### Findings from `5a850e4`, resolved by `fcfe6fa`
 
@@ -83,7 +85,7 @@ pump, or reconnect subsystem is authorized by this review.
 - `redisnear.NewPubSub` remains the production strategy unless execution
   evidence and a separately approved Type A design justify another component.
 
-## Verification
+## 검증
 
 ```bash
 git diff --check 38364100af92d6da616ff89101109fc768e639a4..3d7567b13ebc3a427771734e42aa9b980a7d8388
@@ -93,7 +95,7 @@ go doc github.com/bluetape4k/bluetape-go/internal/testcleanup.Register
 go doc github.com/bluetape4k/bluetape-go/internal/testcleanup.FormatStartError
 ```
 
-Result: PASS.
+결과: PASS.
 
 Runtime Redis behavior was intentionally not executed during Step 3-R. The
 reviewed plan owns RED/GREEN implementation, serial Testcontainers repetition,

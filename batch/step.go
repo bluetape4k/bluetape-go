@@ -6,10 +6,11 @@ import (
 	"fmt"
 )
 
-// DefaultChunkSize is used when StepOptions.ChunkSize is zero.
+// DefaultChunkSize batch 단계, checkpoint, writer 안전성, 재시작에서 사용하는 공개 상수 값이다.
+// 호출자는 이 식별자를 오류, 상태, 이벤트, 옵션, 또는 기본값 계약을 비교할 때 사용한다.
 const DefaultChunkSize = 100
 
-// StepOptions configures a batch step.
+// StepOptions batch 단계, checkpoint, writer 안전성, 재시작에서 사용하는 구조체다.
 type StepOptions[I any, O any] struct {
 	Name            string
 	ChunkSize       int
@@ -22,7 +23,7 @@ type StepOptions[I any, O any] struct {
 	CheckpointKey   string
 }
 
-// Step runs a reader, processor, and writer as one chunk-oriented batch unit.
+// Step batch 단계, checkpoint, writer 안전성, 재시작에서 사용하는 구조체다.
 type Step[I any, O any] struct {
 	name      string
 	chunkSize int
@@ -36,7 +37,12 @@ type Step[I any, O any] struct {
 	key       string
 }
 
-// NewStep creates a batch step.
+// NewStep batch 단계, checkpoint, writer 안전성, 재시작에 사용할 값을 생성한다.
+//
+// 매개변수:
+//   - options: 적용할 옵션 목록이다. nil이면 기본값만 사용한다.
+//
+// 반환 오류는 입력 검증 실패, context 취소/deadline, 상태 전이 실패, 패키지 sentinel error와 typed error를 그대로 드러낸다.
 func NewStep[I any, O any](options StepOptions[I, O]) (*Step[I, O], error) {
 	if options.Name == "" {
 		return nil, fmt.Errorf("step name must not be empty")
@@ -80,7 +86,7 @@ func NewStep[I any, O any](options StepOptions[I, O]) (*Step[I, O], error) {
 	}, nil
 }
 
-// Name returns the step name.
+// Name batch 단계, checkpoint, writer 안전성, 재시작의 식별 정보를 반환한다.
 func (s *Step[I, O]) Name() string {
 	if s == nil {
 		return ""
@@ -88,8 +94,10 @@ func (s *Step[I, O]) Name() string {
 	return s.name
 }
 
-// Run executes the step until the reader is exhausted, context is cancelled, or
-// processing/writing fails.
+// Run batch 단계, checkpoint, writer 안전성, 재시작의 쓰기 동작을 수행한다.
+//
+// 매개변수:
+//   - ctx: 호출자가 소유한 취소, deadline, 요청 범위를 전달한다.
 func (s *Step[I, O]) Run(ctx context.Context) (report Report) {
 	ctx = normalizeContext(ctx)
 	if s == nil {

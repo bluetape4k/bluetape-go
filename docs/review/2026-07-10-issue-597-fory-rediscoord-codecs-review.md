@@ -1,10 +1,12 @@
 # Issue #597 Fory Rediscoord Codecs Review
 
-Date: 2026-07-10 KST
-Scope: `origin/develop...HEAD`
+> 한국어 감사/리뷰 경계: 이 문서는 리뷰 결론과 남은 위험을 한국어 독자가 추적할 수 있도록 정리한다. 심각도 표기, 판정 표기, 파일 경로, 라인 번호, 이슈/PR 링크, 명령, 코드 식별자, 인용 증거는 원문의 증거 앵커로 보존한다.
+
+날짜: 2026-07-10 KST
+범위: `origin/develop...HEAD`
 Baseline: `origin/develop` at `21f402b2d83559268f399a4f2f02c86fa2c59af8`
 
-## Evidence
+## 증거
 
 - Apache Fory Go is pinned at `v1.3.0` and imported only by the opt-in
   `cache/rediscoord/fory` child package.
@@ -37,7 +39,7 @@ Baseline: `origin/develop` at `21f402b2d83559268f399a4f2f02c86fa2c59af8`
   startup-response symptoms. The changed packages passed in those runs and in
   isolated normal/race runs.
 
-## Seven-Tier Review
+## 7-Tier 검토
 
 | Lane | P0 | P1 | Decision |
 | --- | ---: | ---: | --- |
@@ -49,7 +51,7 @@ Baseline: `origin/develop` at `21f402b2d83559268f399a4f2f02c86fa2c59af8`
 | User/Caller | 0 | 0 | Compile-checked examples and EN/KO usage/runbook are aligned. |
 | Main integration | 0 | 0 | Scope remains #597; direct Redis cache and benchmarks remain separate. |
 
-## Post-PR Review
+## PR 이후 검토
 
 PR #600 Step 7-R initially found one P1: a panic from `Options.Register`
 escaped codec construction. The correction adds a constructor panic boundary,
@@ -63,7 +65,7 @@ expanded unsupported-root and zero-value negative paths, clarified that
 `CodecError.Unwrap()` exposes only a sanitized package cause, and added a
 compile-checked Fory `StampedeCache` integration example.
 
-## Deferred Work
+## 유예한 작업
 
 - `MaxResultBytes=0` intentionally preserves the existing unlimited behavior.
   Fory deployments should set a positive value as shown in the README. Making
