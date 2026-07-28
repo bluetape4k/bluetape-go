@@ -22,47 +22,47 @@ const (
 )
 
 var (
-	// ErrInvalidArgument는 sqloutbox API 인자가 유효하지 않을 때 반환된다.
+	// ErrInvalidArgument sqloutbox API 인자가 유효하지 않을 때 반환된다.
 	ErrInvalidArgument = errors.New("invalid sqloutbox argument")
-	// ErrInvalidRecord는 저장된 outbox record 상태가 유효하지 않을 때 반환된다.
+	// ErrInvalidRecord 저장된 outbox record 상태가 유효하지 않을 때 반환된다.
 	ErrInvalidRecord = errors.New("invalid sqloutbox record")
-	// ErrRecordNotFound는 전이 대상 outbox record가 더 이상 기대 상태에 없을 때 반환된다.
+	// ErrRecordNotFound 전이 대상 outbox record가 더 이상 기대 상태에 없을 때 반환된다.
 	ErrRecordNotFound = errors.New("sqloutbox record not found")
 )
 
-// Status는 string 공개 타입이며 SQL outbox store, relay, transaction, idempotent delivery 계약을 보존한다.
+// Status string 공개 타입이며 SQL outbox store, relay, transaction, idempotent delivery 계약을 보존한다.
 // 필드와 zero value, nil 허용 여부, 동시성/transaction 소유권은 생성자와 메서드의 한국어 주석 및 테스트 계약을 따른다.
 type Status string
 
 const (
 	// StatusPending은 available_at 이후 relay가 record를 점유할 수 있는 상태다.
 	StatusPending Status = "pending"
-	// StatusClaimed는 relay가 publish를 위해 record lease를 점유한 상태다.
+	// StatusClaimed relay가 publish를 위해 record lease를 점유한 상태다.
 	StatusClaimed Status = "claimed"
-	// StatusPublished는 publisher 전송이 성공한 상태다.
+	// StatusPublished publisher 전송이 성공한 상태다.
 	StatusPublished Status = "published"
-	// StatusDeadLetter는 재시도 한도를 소진해 더 이상 자동 전송하지 않는 상태다.
+	// StatusDeadLetter 재시도 한도를 소진해 더 이상 자동 전송하지 않는 상태다.
 	StatusDeadLetter Status = "dead_letter"
 )
 
-// RecordID는 int64 공개 타입이며 SQL outbox store, relay, transaction, idempotent delivery 계약을 보존한다.
+// RecordID int64 공개 타입이며 SQL outbox store, relay, transaction, idempotent delivery 계약을 보존한다.
 // 필드와 zero value, nil 허용 여부, 동시성/transaction 소유권은 생성자와 메서드의 한국어 주석 및 테스트 계약을 따른다.
 type RecordID int64
 
-// Options는 struct 공개 타입이며 SQL outbox store, relay, transaction, idempotent delivery 계약을 보존한다.
+// Options struct 공개 타입이며 SQL outbox store, relay, transaction, idempotent delivery 계약을 보존한다.
 // 필드와 zero value, nil 허용 여부, 동시성/transaction 소유권은 생성자와 메서드의 한국어 주석 및 테스트 계약을 따른다.
 type Options struct {
 	// Table은 PostgreSQL table 이름이다. "audit.audit_outbox" 같은 schema-qualified 이름을 허용한다.
 	Table string
-	// Now는 write timestamp에 사용할 wall-clock 시간을 공급한다. nil이면 time.Now를 사용한다.
+	// Now write timestamp에 사용할 wall-clock 시간을 공급한다. nil이면 time.Now를 사용한다.
 	Now func() time.Time
-	// MaxEntryBytes는 database에서 decode할 Entry JSON byte 한도를 지정한다.
+	// MaxEntryBytes database에서 decode할 Entry JSON byte 한도를 지정한다.
 	MaxEntryBytes int
-	// MaxErrorBytes는 저장할 publish failure 문자열의 byte 한도를 지정한다.
+	// MaxErrorBytes 저장할 publish failure 문자열의 byte 한도를 지정한다.
 	MaxErrorBytes int
 }
 
-// Store는 struct 공개 타입이며 SQL outbox store, relay, transaction, idempotent delivery 계약을 보존한다.
+// Store struct 공개 타입이며 SQL outbox store, relay, transaction, idempotent delivery 계약을 보존한다.
 // 필드와 zero value, nil 허용 여부, 동시성/transaction 소유권은 생성자와 메서드의 한국어 주석 및 테스트 계약을 따른다.
 type Store struct {
 	table         string
@@ -73,7 +73,7 @@ type Store struct {
 	maxErrorBytes int
 }
 
-// Record는 struct 공개 타입이며 SQL outbox store, relay, transaction, idempotent delivery 계약을 보존한다.
+// Record struct 공개 타입이며 SQL outbox store, relay, transaction, idempotent delivery 계약을 보존한다.
 // 필드와 zero value, nil 허용 여부, 동시성/transaction 소유권은 생성자와 메서드의 한국어 주석 및 테스트 계약을 따른다.
 type Record struct {
 	ID             RecordID
@@ -90,7 +90,7 @@ type Record struct {
 	Entry          audit.Entry
 }
 
-// ClaimOptions는 struct 공개 타입이며 SQL outbox store, relay, transaction, idempotent delivery 계약을 보존한다.
+// ClaimOptions struct 공개 타입이며 SQL outbox store, relay, transaction, idempotent delivery 계약을 보존한다.
 // 필드와 zero value, nil 허용 여부, 동시성/transaction 소유권은 생성자와 메서드의 한국어 주석 및 테스트 계약을 따른다.
 type ClaimOptions struct {
 	Limit         int
@@ -98,7 +98,7 @@ type ClaimOptions struct {
 	LeaseDuration time.Duration
 }
 
-// Failure는 struct 공개 타입이며 SQL outbox store, relay, transaction, idempotent delivery 계약을 보존한다.
+// Failure struct 공개 타입이며 SQL outbox store, relay, transaction, idempotent delivery 계약을 보존한다.
 // 필드와 zero value, nil 허용 여부, 동시성/transaction 소유권은 생성자와 메서드의 한국어 주석 및 테스트 계약을 따른다.
 type Failure struct {
 	ID          RecordID
@@ -109,7 +109,7 @@ type Failure struct {
 	Now         time.Time
 }
 
-// NewStore는 NewStore 공개 API의 동작을 수행하며 SQL outbox store, relay, transaction, idempotent delivery 계약을 보존한다.
+// NewStore NewStore 공개 API의 동작을 수행하며 SQL outbox store, relay, transaction, idempotent delivery 계약을 보존한다.
 //
 // 매개변수:
 //   - options: NewStore 동작에 필요한 options 값이다. zero value, 범위, nil 허용 여부는 함수 계약을 따른다.
@@ -154,7 +154,7 @@ func NewStore(options Options) (*Store, error) {
 	}, nil
 }
 
-// CreateSchema는 CreateSchema 공개 API의 동작을 수행하며 SQL outbox store, relay, transaction, idempotent delivery 계약을 보존한다.
+// CreateSchema CreateSchema 공개 API의 동작을 수행하며 SQL outbox store, relay, transaction, idempotent delivery 계약을 보존한다.
 //
 // 매개변수:
 //   - ctx: 호출자가 소유한 취소, deadline, 요청 범위를 전달한다.
@@ -202,7 +202,7 @@ create table if not exists %s (
 	return err
 }
 
-// Enqueue는 Enqueue 공개 API의 동작을 수행하며 SQL outbox store, relay, transaction, idempotent delivery 계약을 보존한다.
+// Enqueue Enqueue 공개 API의 동작을 수행하며 SQL outbox store, relay, transaction, idempotent delivery 계약을 보존한다.
 //
 // 매개변수:
 //   - ctx: 호출자가 소유한 취소, deadline, 요청 범위를 전달한다.
@@ -262,7 +262,7 @@ insert into %s (
 	return nil
 }
 
-// Claim는 Claim 공개 API의 동작을 수행하며 SQL outbox store, relay, transaction, idempotent delivery 계약을 보존한다.
+// Claim Claim 공개 API의 동작을 수행하며 SQL outbox store, relay, transaction, idempotent delivery 계약을 보존한다.
 //
 // 매개변수:
 //   - ctx: 호출자가 소유한 취소, deadline, 요청 범위를 전달한다.
@@ -347,7 +347,7 @@ returning outbox.id, outbox.status, outbox.aggregate_type, outbox.aggregate_id,
 	return records, nil
 }
 
-// MarkPublished는 MarkPublished 공개 API의 동작을 수행하며 SQL outbox store, relay, transaction, idempotent delivery 계약을 보존한다.
+// MarkPublished MarkPublished 공개 API의 동작을 수행하며 SQL outbox store, relay, transaction, idempotent delivery 계약을 보존한다.
 //
 // 매개변수:
 //   - ctx: 호출자가 소유한 취소, deadline, 요청 범위를 전달한다.
@@ -392,7 +392,7 @@ func (s *Store) MarkPublished(ctx context.Context, db sqlkit.Execer, records ...
 	return nil
 }
 
-// MarkFailed는 MarkFailed 공개 API의 동작을 수행하며 SQL outbox store, relay, transaction, idempotent delivery 계약을 보존한다.
+// MarkFailed MarkFailed 공개 API의 동작을 수행하며 SQL outbox store, relay, transaction, idempotent delivery 계약을 보존한다.
 //
 // 매개변수:
 //   - ctx: 호출자가 소유한 취소, deadline, 요청 범위를 전달한다.

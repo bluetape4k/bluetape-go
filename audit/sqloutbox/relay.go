@@ -16,13 +16,13 @@ const (
 	defaultIdleDelay   = 100 * time.Millisecond
 )
 
-// Publisher는 interface 공개 타입이며 SQL outbox store, relay, transaction, idempotent delivery 계약을 보존한다.
+// Publisher interface 공개 타입이며 SQL outbox store, relay, transaction, idempotent delivery 계약을 보존한다.
 // 필드와 zero value, nil 허용 여부, 동시성/transaction 소유권은 생성자와 메서드의 한국어 주석 및 테스트 계약을 따른다.
 type Publisher interface {
 	Publish(context.Context, Record) error
 }
 
-// RelayOptions는 struct 공개 타입이며 SQL outbox store, relay, transaction, idempotent delivery 계약을 보존한다.
+// RelayOptions struct 공개 타입이며 SQL outbox store, relay, transaction, idempotent delivery 계약을 보존한다.
 // 필드와 zero value, nil 허용 여부, 동시성/transaction 소유권은 생성자와 메서드의 한국어 주석 및 테스트 계약을 따른다.
 type RelayOptions struct {
 	ClaimLimit  int
@@ -32,7 +32,7 @@ type RelayOptions struct {
 	Now         func() time.Time
 }
 
-// RelayResult는 struct 공개 타입이며 SQL outbox store, relay, transaction, idempotent delivery 계약을 보존한다.
+// RelayResult struct 공개 타입이며 SQL outbox store, relay, transaction, idempotent delivery 계약을 보존한다.
 // 필드와 zero value, nil 허용 여부, 동시성/transaction 소유권은 생성자와 메서드의 한국어 주석 및 테스트 계약을 따른다.
 type RelayResult struct {
 	Claimed      int
@@ -41,7 +41,7 @@ type RelayResult struct {
 	DeadLettered int
 }
 
-// Relay는 struct 공개 타입이며 SQL outbox store, relay, transaction, idempotent delivery 계약을 보존한다.
+// Relay struct 공개 타입이며 SQL outbox store, relay, transaction, idempotent delivery 계약을 보존한다.
 // 필드와 zero value, nil 허용 여부, 동시성/transaction 소유권은 생성자와 메서드의 한국어 주석 및 테스트 계약을 따른다.
 type Relay struct {
 	store      *Store
@@ -53,7 +53,7 @@ type Relay struct {
 	now        func() time.Time
 }
 
-// NewRelay는 NewRelay 공개 API의 동작을 수행하며 SQL outbox store, relay, transaction, idempotent delivery 계약을 보존한다.
+// NewRelay NewRelay 공개 API의 동작을 수행하며 SQL outbox store, relay, transaction, idempotent delivery 계약을 보존한다.
 //
 // 매개변수:
 //   - store: SQL transaction 또는 outbox 저장소 backend다. commit/rollback 소유권은 호출자와 store 계약을 따른다.
@@ -113,7 +113,7 @@ func NewRelay(store *Store, publisher Publisher, options RelayOptions) (*Relay, 
 	}, nil
 }
 
-// RunOnce는 RunOnce 공개 API의 동작을 수행하며 SQL outbox store, relay, transaction, idempotent delivery 계약을 보존한다.
+// RunOnce RunOnce 공개 API의 동작을 수행하며 SQL outbox store, relay, transaction, idempotent delivery 계약을 보존한다.
 //
 // 매개변수:
 //   - ctx: 호출자가 소유한 취소, deadline, 요청 범위를 전달한다.
@@ -182,7 +182,7 @@ func isCallerCancellation(ctx context.Context, err error) bool {
 	return errors.Is(err, ctxErr)
 }
 
-// Run는 Run 공개 API의 동작을 수행하며 SQL outbox store, relay, transaction, idempotent delivery 계약을 보존한다.
+// Run Run 공개 API의 동작을 수행하며 SQL outbox store, relay, transaction, idempotent delivery 계약을 보존한다.
 //
 // 매개변수:
 //   - ctx: 호출자가 소유한 취소, deadline, 요청 범위를 전달한다.

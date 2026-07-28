@@ -2,7 +2,7 @@ package leader
 
 import "context"
 
-// Elector 는 한 group 안의 한 member leadership을 조정한다.
+// Elector 한 group 안의 한 member leadership을 조정한다.
 type Elector interface {
 	// Campaign 은 leadership 획득을 시도한다.
 	//
@@ -20,10 +20,10 @@ type Elector interface {
 	// 이미 leader가 아니면 성공으로 처리한다. 따라서 반복 호출해도 안전하다.
 	Resign(ctx context.Context) error
 
-	// IsLeader 는 이 elector가 아직 leader라고 판단하는지 알려준다.
+	// IsLeader 이 elector가 아직 leader라고 판단하는지 알려준다.
 	IsLeader() bool
 
-	// Leader 는 backend가 기록한 현재 leader token을 반환한다.
+	// Leader backend가 기록한 현재 leader token을 반환한다.
 	//
 	// leader가 없으면 빈 문자열과 nil error를 반환한다.
 	Leader(ctx context.Context) (string, error)

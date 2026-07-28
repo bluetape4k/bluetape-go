@@ -16,7 +16,7 @@ var (
 	ErrRevisionConflict   = errors.New("revision conflict")
 )
 
-// ValidationError는 struct 공개 타입이며 audit entry, event, repository, recorder, history 계약을 보존한다.
+// ValidationError struct 공개 타입이며 audit entry, event, repository, recorder, history 계약을 보존한다.
 // 필드와 zero value, nil 허용 여부, 동시성/transaction 소유권은 생성자와 메서드의 한국어 주석 및 테스트 계약을 따른다.
 type ValidationError struct {
 	Kind  error
@@ -25,7 +25,7 @@ type ValidationError struct {
 	Cause error
 }
 
-// Error는 Error 공개 API의 동작을 수행하며 audit entry, event, repository, recorder, history 계약을 보존한다.
+// Error Error 공개 API의 동작을 수행하며 audit entry, event, repository, recorder, history 계약을 보존한다.
 func (e ValidationError) Error() string {
 	if e.Field == "" {
 		if e.Cause != nil {
@@ -39,14 +39,14 @@ func (e ValidationError) Error() string {
 	return fmt.Sprintf("%v: field=%s value=redacted", e.Kind, e.Field)
 }
 
-// Unwrap는 Unwrap 공개 API의 동작을 수행하며 audit entry, event, repository, recorder, history 계약을 보존한다.
+// Unwrap Unwrap 공개 API의 동작을 수행하며 audit entry, event, repository, recorder, history 계약을 보존한다.
 //
 // 반환 오류는 입력 검증 실패, 취소, transaction 실패, repository/outbox 실패, 또는 package sentinel/typed error 계약을 보존한다.
 func (e ValidationError) Unwrap() error {
 	return e.Cause
 }
 
-// Is는 Is 공개 API의 동작을 수행하며 audit entry, event, repository, recorder, history 계약을 보존한다.
+// Is Is 공개 API의 동작을 수행하며 audit entry, event, repository, recorder, history 계약을 보존한다.
 //
 // 매개변수:
 //   - target: Is 동작에 필요한 target 값이다. zero value, 범위, nil 허용 여부는 함수 계약을 따른다.
