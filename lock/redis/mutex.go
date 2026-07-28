@@ -17,15 +17,13 @@ end
 return 0
 `
 
-// Mutex struct 공개 타입이며 Redis lock key, owner token, TTL, unlock safety 계약을 보존한다.
-// 필드와 zero value, nil 허용 여부, 동시성 소유권은 생성자와 메서드의 한국어 주석 및 테스트 계약을 따른다.
+// Mutex Redis key 하나에 대한 owner-token lock이다.
 type Mutex struct {
 	client redis.Cmdable
 	opts   options
 }
 
-// Lease struct 공개 타입이며 Redis lock key, owner token, TTL, unlock safety 계약을 보존한다.
-// 필드와 zero value, nil 허용 여부, 동시성 소유권은 생성자와 메서드의 한국어 주석 및 테스트 계약을 따른다.
+// Lease 성공적으로 획득한 Redis lock 소유권이다.
 type Lease struct {
 	mutex       *Mutex
 	key         string
@@ -33,13 +31,7 @@ type Lease struct {
 	sharedLease *btredis.Lease
 }
 
-// New New 공개 API의 동작을 수행하며 Redis lock key, owner token, TTL, unlock safety 계약을 보존한다.
-//
-// 매개변수:
-//   - client: Redis backend 또는 conformance provider다. 연결/종료 소유권은 생성자와 harness 계약을 따른다.
-//   - opts: New에 전달되는 값이다. 허용 범위와 nil 처리 방식은 구현 검증을 따른다.
-//
-// 반환 오류는 입력 검증 실패, context 취소, Redis/backend 실패, lock ownership 불일치, quota 거절, package sentinel error와 typed error를 그대로 드러낸다.
+// New Redis lock mutex를 만든다.
 func New(client redis.Cmdable, opts Options) (*Mutex, error) {
 	if client == nil {
 		return nil, fmt.Errorf("redis client must not be nil")
@@ -99,12 +91,12 @@ func (m *Mutex) TryLock(ctx context.Context) (*Lease, error) {
 	return &Lease{mutex: m, key: m.opts.key, token: token, sharedLease: sharedLease}, nil
 }
 
-// Key Key 공개 API의 동작을 수행하며 Redis lock key, owner token, TTL, unlock safety 계약을 보존한다.
+// Key Redis lock key를 반환한다.
 func (m *Mutex) Key() string {
 	return m.opts.key
 }
 
-// Key Key 공개 API의 동작을 수행하며 Redis lock key, owner token, TTL, unlock safety 계약을 보존한다.
+// Key lease가 소유한 Redis lock key를 반환한다.
 func (l *Lease) Key() string {
 	if l == nil {
 		return ""

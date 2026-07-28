@@ -36,12 +36,7 @@ const (
 
 var _ Limiter = (*TokenBucket)(nil)
 
-// New New 공개 API의 동작을 수행하며 token bucket, limiter option, HTTP boundary, result quota 계약을 보존한다.
-//
-// 매개변수:
-//   - options: 적용할 옵션 목록이다. nil이면 기본값만 사용한다.
-//
-// 반환 오류는 입력 검증 실패, context 취소, Redis/backend 실패, lock ownership 불일치, quota 거절, package sentinel error와 typed error를 그대로 드러낸다.
+// New process-local token bucket limiter를 만든다.
 func New(options Options) (*TokenBucket, error) {
 	return newWithClock(options, time.Now)
 }
@@ -61,14 +56,7 @@ func newWithClock(options Options, now clockFunc) (*TokenBucket, error) {
 	}, nil
 }
 
-// Allow Allow 공개 API의 동작을 수행하며 token bucket, limiter option, HTTP boundary, result quota 계약을 보존한다.
-//
-// 매개변수:
-//   - ctx: 호출자가 소유한 취소, deadline, 요청 범위를 전달한다.
-//   - key: 동기화 또는 quota를 식별하는 caller-owned key다. namespace와 normalization 의미는 package 계약을 따른다.
-//   - tokens: lock owner 또는 safe unlock 비교에 사용하는 token이다.
-//
-// 반환 오류는 입력 검증 실패, context 취소, Redis/backend 실패, lock ownership 불일치, quota 거절, package sentinel error와 typed error를 그대로 드러낸다.
+// Allow key bucket에서 token을 소비한다.
 func (l *TokenBucket) Allow(ctx context.Context, key string, tokens int64) (Result, error) {
 	ctx = normalizeContext(ctx)
 	if err := ctx.Err(); err != nil {
