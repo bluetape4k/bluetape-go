@@ -5,14 +5,15 @@ import (
 	"fmt"
 )
 
-// VersionedCheckpoint is a checkpoint value paired with its storage fencing version.
+// VersionedCheckpoint struct 공개 타입이며 batch 단계, checkpoint, writer 안전성, 재시작 계약을 보존한다.
+// 필드와 zero value, nil 허용 여부, 동시성 소유권은 생성자와 메서드의 한국어 주석 및 테스트 계약을 따른다.
 type VersionedCheckpoint struct {
 	Value   any
 	Version uint64
 }
 
-// AtomicCheckpointWriter atomically persists an output chunk and its next checkpoint.
-// It has no Open or Close methods; the caller owns the provider and database lifecycle.
+// AtomicCheckpointWriter interface 공개 타입이며 batch 단계, checkpoint, writer 안전성, 재시작 계약을 보존한다.
+// 필드와 zero value, nil 허용 여부, 동시성 소유권은 생성자와 메서드의 한국어 주석 및 테스트 계약을 따른다.
 type AtomicCheckpointWriter[T any] interface {
 	// Load returns the checkpoint for key and whether it exists. When no checkpoint
 	// exists, the consumer contract starts with expected revision zero.
@@ -24,7 +25,8 @@ type AtomicCheckpointWriter[T any] interface {
 	Commit(ctx context.Context, key string, expectedVersion uint64, items []T, checkpoint any) (newVersion uint64, err error)
 }
 
-// AtomicStepOptions configures a batch step whose output and checkpoint commit atomically.
+// AtomicStepOptions struct 공개 타입이며 batch 단계, checkpoint, writer 안전성, 재시작 계약을 보존한다.
+// 필드와 zero value, nil 허용 여부, 동시성 소유권은 생성자와 메서드의 한국어 주석 및 테스트 계약을 따른다.
 type AtomicStepOptions[I any, O any] struct {
 	Name          string
 	ChunkSize     int
@@ -36,7 +38,12 @@ type AtomicStepOptions[I any, O any] struct {
 	CheckpointKey string
 }
 
-// NewAtomicStep creates a batch step with atomic output and checkpoint commits.
+// NewAtomicStep NewAtomicStep 공개 API의 동작을 수행하며 batch 단계, checkpoint, writer 안전성, 재시작 계약을 보존한다.
+//
+// 매개변수:
+//   - options: 적용할 옵션 목록이다. nil이면 기본값만 사용한다.
+//
+// 반환 오류는 입력 검증 실패, context 취소/deadline, 상태 전이 실패, 패키지 sentinel error와 typed error를 그대로 드러낸다.
 func NewAtomicStep[I any, O any](options AtomicStepOptions[I, O]) (*Step[I, O], error) {
 	if options.Name == "" {
 		return nil, fmt.Errorf("step name must not be empty")

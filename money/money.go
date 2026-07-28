@@ -9,19 +9,13 @@ import (
 	gmoney "github.com/govalues/money"
 )
 
-// Money 패키지에서 공개하는 구조체다.
+// Money 명시적 통화를 가진 decimal-backed 금액 값입니다.
 type Money struct {
 	amount gmoney.Amount
 	valid  bool
 }
 
-// New 값 인스턴스를 생성한다.
-//
-// 매개변수:
-//   - amount: New가 해석할 문자열이다. 빈 문자열과 공백은 구현 검증을 따른다.
-//   - currency: New에 전달되는 값이다. 허용 범위와 nil 처리 방식은 구현 검증을 따른다.
-//
-// 반환 오류는 입력 검증 실패와 패키지에서 정의한 sentinel error/typed error를 그대로 드러낸다.
+// New 문자열 금액과 통화로 Money 를 생성합니다.
 func New(amount string, currency Currency) (Money, error) {
 	if err := currency.validate(); err != nil {
 		return Money{}, err
@@ -33,13 +27,7 @@ func New(amount string, currency Currency) (Money, error) {
 	return Money{amount: parsed, valid: true}, nil
 }
 
-// NewFromInt64 FromInt64 인스턴스를 생성한다.
-//
-// 매개변수:
-//   - units: NewFromInt64에 전달되는 값이다. 허용 범위와 nil 처리 방식은 구현 검증을 따른다.
-//   - currency: NewFromInt64에 전달되는 값이다. 허용 범위와 nil 처리 방식은 구현 검증을 따른다.
-//
-// 반환 오류는 입력 검증 실패와 패키지에서 정의한 sentinel error/typed error를 그대로 드러낸다.
+// NewFromInt64 major unit 정수 값으로 Money 를 생성합니다.
 func NewFromInt64(units int64, currency Currency) (Money, error) {
 	if err := currency.validate(); err != nil {
 		return Money{}, err
@@ -51,13 +39,7 @@ func NewFromInt64(units int64, currency Currency) (Money, error) {
 	return Money{amount: amount, valid: true}, nil
 }
 
-// NewFromFloat64 FromFloat64 인스턴스를 생성한다.
-//
-// 매개변수:
-//   - amount: NewFromFloat64에 전달되는 값이다. 허용 범위와 nil 처리 방식은 구현 검증을 따른다.
-//   - currency: NewFromFloat64에 전달되는 값이다. 허용 범위와 nil 처리 방식은 구현 검증을 따른다.
-//
-// 반환 오류는 입력 검증 실패와 패키지에서 정의한 sentinel error/typed error를 그대로 드러낸다.
+// NewFromFloat64 float64 금액으로 Money 를 생성합니다.
 func NewFromFloat64(amount float64, currency Currency) (Money, error) {
 	if math.IsNaN(amount) || math.IsInf(amount, 0) {
 		return Money{}, fmt.Errorf("%w: special float %v", ErrInvalidAmount, amount)
@@ -72,23 +54,12 @@ func NewFromFloat64(amount float64, currency Currency) (Money, error) {
 	return Money{amount: created, valid: true}, nil
 }
 
-// Zero 타입 T의 zero value를 반환한다.
-//
-// 매개변수:
-//   - currency: Zero에 전달되는 값이다. 허용 범위와 nil 처리 방식은 구현 검증을 따른다.
-//
-// 반환 오류는 입력 검증 실패와 패키지에서 정의한 sentinel error/typed error를 그대로 드러낸다.
+// Zero 지정 통화의 0 금액을 생성합니다.
 func Zero(currency Currency) (Money, error) {
 	return New("0", currency)
 }
 
-// NewMinor Minor 인스턴스를 생성한다.
-//
-// 매개변수:
-//   - units: NewMinor에 전달되는 값이다. 허용 범위와 nil 처리 방식은 구현 검증을 따른다.
-//   - currency: NewMinor에 전달되는 값이다. 허용 범위와 nil 처리 방식은 구현 검증을 따른다.
-//
-// 반환 오류는 입력 검증 실패와 패키지에서 정의한 sentinel error/typed error를 그대로 드러낸다.
+// NewMinor 통화 minor unit 정수 값으로 Money 를 생성합니다.
 func NewMinor(units int64, currency Currency) (Money, error) {
 	if err := currency.validate(); err != nil {
 		return Money{}, err
@@ -100,12 +71,7 @@ func NewMinor(units int64, currency Currency) (Money, error) {
 	return Money{amount: amount, valid: true}, nil
 }
 
-// Parse 문자열 입력을 도메인 값으로 해석한다.
-//
-// 매개변수:
-//   - s: Parse가 해석할 문자열이다. 빈 문자열과 공백은 구현 검증을 따른다.
-//
-// 반환 오류는 입력 검증 실패와 패키지에서 정의한 sentinel error/typed error를 그대로 드러낸다.
+// Parse `USD 12.34` 형식의 텍스트를 Money 로 변환합니다.
 func Parse(s string) (Money, error) {
 	code, amount, err := splitText(s)
 	if err != nil {
@@ -118,57 +84,32 @@ func Parse(s string) (Money, error) {
 	return New(amount, curr)
 }
 
-// KRWAmount 해당 통화 금액을 생성한다.
-//
-// 매개변수:
-//   - amount: KRWAmount가 해석할 문자열이다. 빈 문자열과 공백은 구현 검증을 따른다.
-//
-// 반환 오류는 입력 검증 실패와 패키지에서 정의한 sentinel error/typed error를 그대로 드러낸다.
+// KRWAmount 대한민국 원 금액을 생성합니다.
 func KRWAmount(amount string) (Money, error) {
 	return New(amount, KRW)
 }
 
-// USDAmount 해당 통화 금액을 생성한다.
-//
-// 매개변수:
-//   - amount: USDAmount가 해석할 문자열이다. 빈 문자열과 공백은 구현 검증을 따른다.
-//
-// 반환 오류는 입력 검증 실패와 패키지에서 정의한 sentinel error/typed error를 그대로 드러낸다.
+// USDAmount 미국 달러 금액을 생성합니다.
 func USDAmount(amount string) (Money, error) {
 	return New(amount, USD)
 }
 
-// EURAmount 해당 통화 금액을 생성한다.
-//
-// 매개변수:
-//   - amount: EURAmount가 해석할 문자열이다. 빈 문자열과 공백은 구현 검증을 따른다.
-//
-// 반환 오류는 입력 검증 실패와 패키지에서 정의한 sentinel error/typed error를 그대로 드러낸다.
+// EURAmount 유로 금액을 생성합니다.
 func EURAmount(amount string) (Money, error) {
 	return New(amount, EUR)
 }
 
-// CNYAmount 해당 통화 금액을 생성한다.
-//
-// 매개변수:
-//   - amount: CNYAmount가 해석할 문자열이다. 빈 문자열과 공백은 구현 검증을 따른다.
-//
-// 반환 오류는 입력 검증 실패와 패키지에서 정의한 sentinel error/typed error를 그대로 드러낸다.
+// CNYAmount 중국 위안 금액을 생성합니다.
 func CNYAmount(amount string) (Money, error) {
 	return New(amount, CNY)
 }
 
-// JPYAmount 해당 통화 금액을 생성한다.
-//
-// 매개변수:
-//   - amount: JPYAmount가 해석할 문자열이다. 빈 문자열과 공백은 구현 검증을 따른다.
-//
-// 반환 오류는 입력 검증 실패와 패키지에서 정의한 sentinel error/typed error를 그대로 드러낸다.
+// JPYAmount 일본 엔 금액을 생성합니다.
 func JPYAmount(amount string) (Money, error) {
 	return New(amount, JPY)
 }
 
-// Currency 금액의 통화를 반환한다.
+// Currency Money 의 통화를 반환합니다.
 func (m Money) Currency() Currency {
 	if !m.valid {
 		return Currency{}
@@ -184,7 +125,7 @@ func (m Money) String() string {
 	return m.amount.String()
 }
 
-// Amount 금액 값을 반환한다.
+// Amount 통화를 제외한 decimal 금액 문자열을 반환합니다.
 func (m Money) Amount() string {
 	if !m.valid {
 		return ""
@@ -192,9 +133,7 @@ func (m Money) Amount() string {
 	return m.amount.Decimal().String()
 }
 
-// MinorUnits 통화의 소수 자리 수를 반환한다.
-//
-// 반환 오류는 입력 검증 실패와 패키지에서 정의한 sentinel error/typed error를 그대로 드러낸다.
+// MinorUnits 통화 minor unit 정수 값을 반환합니다.
 func (m Money) MinorUnits() (int64, error) {
 	if err := m.validate(); err != nil {
 		return 0, err
@@ -206,9 +145,7 @@ func (m Money) MinorUnits() (int64, error) {
 	return units, nil
 }
 
-// Float64 금액을 float64 값으로 반환한다.
-//
-// 반환 오류는 입력 검증 실패와 패키지에서 정의한 sentinel error/typed error를 그대로 드러낸다.
+// Float64 float64 금액을 반환합니다.
 func (m Money) Float64() (float64, error) {
 	if err := m.validate(); err != nil {
 		return 0, err
@@ -220,14 +157,12 @@ func (m Money) Float64() (float64, error) {
 	return value, nil
 }
 
-// IsZero 값이 zero value인지 반환한다.
+// IsZero invalid zero-value Money 인지 반환합니다.
 func (m Money) IsZero() bool {
 	return !m.valid
 }
 
-// Round 측정값을 지정한 단위에 맞춰 반올림한다.
-//
-// 반환 오류는 입력 검증 실패와 패키지에서 정의한 sentinel error/typed error를 그대로 드러낸다.
+// Round 통화 scale에 맞춰 half-even rounding을 적용합니다.
 func (m Money) Round() (Money, error) {
 	if err := m.validate(); err != nil {
 		return Money{}, err
@@ -235,12 +170,7 @@ func (m Money) Round() (Money, error) {
 	return Money{amount: m.amount.RoundToCurr(), valid: true}, nil
 }
 
-// RoundTo 금액을 지정한 소수 자리로 반올림한다.
-//
-// 매개변수:
-//   - scale: RoundTo에 전달되는 값이다. 허용 범위와 nil 처리 방식은 구현 검증을 따른다.
-//
-// 반환 오류는 입력 검증 실패와 패키지에서 정의한 sentinel error/typed error를 그대로 드러낸다.
+// RoundTo 지정 scale에 맞춰 half-even rounding을 적용합니다.
 func (m Money) RoundTo(scale int) (Money, error) {
 	if err := m.validate(); err != nil {
 		return Money{}, err
@@ -251,12 +181,7 @@ func (m Money) RoundTo(scale int) (Money, error) {
 	return Money{amount: m.amount.Round(scale), valid: true}, nil
 }
 
-// Add 현재 값에 입력 값을 더한 결과를 반환한다.
-//
-// 매개변수:
-//   - other: Add에 전달되는 값이다. 허용 범위와 nil 처리 방식은 구현 검증을 따른다.
-//
-// 반환 오류는 입력 검증 실패와 패키지에서 정의한 sentinel error/typed error를 그대로 드러낸다.
+// Add 같은 통화의 금액을 더합니다.
 func (m Money) Add(other Money) (Money, error) {
 	if err := validatePair(m, other); err != nil {
 		return Money{}, err
@@ -268,12 +193,7 @@ func (m Money) Add(other Money) (Money, error) {
 	return Money{amount: amount, valid: true}, nil
 }
 
-// Sub 현재 값에서 입력 값을 뺀 결과를 반환한다.
-//
-// 매개변수:
-//   - other: Sub에 전달되는 값이다. 허용 범위와 nil 처리 방식은 구현 검증을 따른다.
-//
-// 반환 오류는 입력 검증 실패와 패키지에서 정의한 sentinel error/typed error를 그대로 드러낸다.
+// Sub 같은 통화의 금액을 뺍니다.
 func (m Money) Sub(other Money) (Money, error) {
 	if err := validatePair(m, other); err != nil {
 		return Money{}, err
@@ -285,9 +205,7 @@ func (m Money) Sub(other Money) (Money, error) {
 	return Money{amount: amount, valid: true}, nil
 }
 
-// Neg 부호를 반전한 값을 반환한다.
-//
-// 반환 오류는 입력 검증 실패와 패키지에서 정의한 sentinel error/typed error를 그대로 드러낸다.
+// Neg 부호를 반전합니다.
 func (m Money) Neg() (Money, error) {
 	if err := m.validate(); err != nil {
 		return Money{}, err
@@ -299,9 +217,7 @@ func (m Money) Neg() (Money, error) {
 	return zero.Sub(m)
 }
 
-// Abs 금액의 절댓값을 반환한다.
-//
-// 반환 오류는 입력 검증 실패와 패키지에서 정의한 sentinel error/typed error를 그대로 드러낸다.
+// Abs 절댓값 금액을 반환합니다.
 func (m Money) Abs() (Money, error) {
 	if err := m.validate(); err != nil {
 		return Money{}, err
@@ -312,12 +228,7 @@ func (m Money) Abs() (Money, error) {
 	return m, nil
 }
 
-// Cmp 두 금액을 비교한다.
-//
-// 매개변수:
-//   - other: Cmp에 전달되는 값이다. 허용 범위와 nil 처리 방식은 구현 검증을 따른다.
-//
-// 반환 오류는 입력 검증 실패와 패키지에서 정의한 sentinel error/typed error를 그대로 드러낸다.
+// Cmp 같은 통화의 금액을 비교합니다.
 func (m Money) Cmp(other Money) (int, error) {
 	if err := validatePair(m, other); err != nil {
 		return 0, err
@@ -359,12 +270,7 @@ func (m Money) Mul(factor string) (Money, error) {
 	return Money{amount: amount, valid: true}, nil
 }
 
-// Quo 현재 값을 입력 값으로 나눈 결과를 반환한다.
-//
-// 매개변수:
-//   - divisor: Quo가 해석할 문자열이다. 빈 문자열과 공백은 구현 검증을 따른다.
-//
-// 반환 오류는 입력 검증 실패와 패키지에서 정의한 sentinel error/typed error를 그대로 드러낸다.
+// Quo decimal 문자열 스칼라로 나눕니다.
 func (m Money) Quo(divisor string) (Money, error) {
 	if err := m.validate(); err != nil {
 		return Money{}, err

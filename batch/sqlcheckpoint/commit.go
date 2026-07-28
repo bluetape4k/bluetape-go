@@ -20,7 +20,16 @@ var (
 	errEncodedPayloadTooLarge = errors.New("sqlcheckpoint: encoded checkpoint payload exceeds byte limit")
 )
 
-// Commit atomically persists output items and a checkpoint revision.
+// Commit Commit 공개 API의 동작을 수행하며 batch 단계, checkpoint, writer 안전성, 재시작 계약을 보존한다.
+//
+// 매개변수:
+//   - ctx: 호출자가 소유한 취소, deadline, 요청 범위를 전달한다.
+//   - key: Commit가 해석할 문자열이다. 빈 문자열은 구현 검증을 따른다.
+//   - expectedVersion: commit할 때 기대하는 현재 version이다.
+//   - items: Commit가 순서와 snapshot 의미를 유지하며 읽는 items 목록이다. nil과 빈 슬라이스는 해당 함수의 입력 규칙에 따라 처리한다.
+//   - checkpoint: 저장하거나 commit할 checkpoint 값이다.
+//
+// 반환 오류는 입력 검증 실패, context 취소/deadline, 상태 전이 실패, 패키지 sentinel error와 typed error를 그대로 드러낸다.
 func (w *Writer[T, C]) Commit(
 	ctx context.Context,
 	key string,

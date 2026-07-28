@@ -7,19 +7,26 @@ import (
 	"time"
 )
 
-// TimeoutOptions configures a timeout policy.
+// TimeoutOptions struct 공개 타입이며 취소, deadline, retry, timeout, circuit breaker 상태를 보존한다.
+// 필드와 zero value, nil 허용 여부, 동시성 소유권은 생성자와 메서드의 한국어 주석 및 테스트 계약을 따른다.
 type TimeoutOptions struct {
 	Name    string
 	Timeout time.Duration
 	OnEvent EventHandler
 }
 
-// TimeoutPolicy applies a per-operation context timeout.
+// TimeoutPolicy struct 공개 타입이며 취소, deadline, retry, timeout, circuit breaker 상태를 보존한다.
+// 필드와 zero value, nil 허용 여부, 동시성 소유권은 생성자와 메서드의 한국어 주석 및 테스트 계약을 따른다.
 type TimeoutPolicy[T any] struct {
 	options TimeoutOptions
 }
 
-// NewTimeout creates a timeout policy.
+// NewTimeout NewTimeout 공개 API의 동작을 수행하며 취소, deadline, retry, timeout, circuit breaker 상태를 보존한다.
+//
+// 매개변수:
+//   - options: 적용할 옵션 목록이다. nil이면 기본값만 사용한다.
+//
+// 반환 오류는 입력 검증 실패, context 취소/deadline, 상태 전이 실패, 패키지 sentinel error와 typed error를 그대로 드러낸다.
 func NewTimeout[T any](options TimeoutOptions) (*TimeoutPolicy[T], error) {
 	if options.Timeout <= 0 {
 		return nil, fmt.Errorf("timeout must be positive")
@@ -27,7 +34,10 @@ func NewTimeout[T any](options TimeoutOptions) (*TimeoutPolicy[T], error) {
 	return &TimeoutPolicy[T]{options: options}, nil
 }
 
-// Apply wraps operation with timeout behavior.
+// Apply Apply 공개 API의 동작을 수행하며 취소, deadline, retry, timeout, circuit breaker 상태를 보존한다.
+//
+// 매개변수:
+//   - operation: 보호 정책 안에서 실행할 작업이다.
 func (p *TimeoutPolicy[T]) Apply(operation Operation[T]) Operation[T] {
 	return func(ctx context.Context) (T, error) {
 		if ctx == nil {

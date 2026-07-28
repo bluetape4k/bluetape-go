@@ -1,4 +1,4 @@
-// Package money bluetape-go의 money 기능을 제공한다.
+// Package money 통화와 금액을 명시적으로 다루는 작은 값 API를 제공합니다.
 package money
 
 import "errors"

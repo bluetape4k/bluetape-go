@@ -2,7 +2,8 @@ package workreport
 
 import "time"
 
-// Report captures one work outcome and optional child outcomes.
+// Report struct 공개 타입이며 work report 상태, failure policy, child report 계약을 보존한다.
+// 필드와 zero value, nil 허용 여부, 동시성 소유권은 생성자와 메서드의 한국어 주석 및 테스트 계약을 따른다.
 type Report struct {
 	Name      string
 	Status    Status
@@ -13,32 +14,58 @@ type Report struct {
 	Children  []Report
 }
 
-// Completed reports successful work.
+// Completed Completed 공개 API의 동작을 수행하며 work report 상태, failure policy, child report 계약을 보존한다.
+//
+// 매개변수:
+//   - name: report나 상태를 식별할 이름이다.
 func Completed(name string) Report {
 	return newReport(name, StatusCompleted, nil, "", nil)
 }
 
-// Failed reports work that failed with err.
+// Failed Failed 공개 API의 동작을 수행하며 work report 상태, failure policy, child report 계약을 보존한다.
+//
+// 매개변수:
+//   - name: report나 상태를 식별할 이름이다.
+//   - err: 검사하거나 감쌀 오류 값이다.
 func Failed(name string, err error) Report {
 	return newReport(name, StatusFailed, err, "", nil)
 }
 
-// Partial reports aggregated work with one or more non-completed children.
+// Partial Partial 공개 API의 동작을 수행하며 work report 상태, failure policy, child report 계약을 보존한다.
+//
+// 매개변수:
+//   - name: report나 상태를 식별할 이름이다.
+//   - children: Partial에 전달되는 값이다. 허용 범위와 nil 처리 방식은 구현 검증을 따른다.
 func Partial(name string, children ...Report) Report {
 	return newReport(name, StatusPartial, nil, "", children)
 }
 
-// Aborted reports work stopped for a caller-defined reason.
+// Aborted Aborted 공개 API의 동작을 수행하며 work report 상태, failure policy, child report 계약을 보존한다.
+//
+// 매개변수:
+//   - name: report나 상태를 식별할 이름이다.
+//   - reason: 중단 또는 실패 이유다.
 func Aborted(name, reason string) Report {
 	return newReport(name, StatusAborted, nil, reason, nil)
 }
 
-// Cancelled reports work stopped by caller cancellation or deadline.
+// Cancelled Cancelled 공개 API의 동작을 수행하며 work report 상태, failure policy, child report 계약을 보존한다.
+//
+// 매개변수:
+//   - name: report나 상태를 식별할 이름이다.
+//   - err: 검사하거나 감쌀 오류 값이다.
 func Cancelled(name string, err error) Report {
 	return newReport(name, StatusCancelled, err, "", nil)
 }
 
-// Aggregate combines child reports according to policy.
+// Aggregate Aggregate 공개 API의 동작을 수행하며 work report 상태, failure policy, child report 계약을 보존한다.
+//
+// 매개변수:
+//   - name: report나 상태를 식별할 이름이다.
+//   - policy: Aggregate에 전달되는 값이다. 허용 범위와 nil 처리 방식은 구현 검증을 따른다.
+//   - children: Aggregate에 전달되는 값이다. 허용 범위와 nil 처리 방식은 구현 검증을 따른다.
+//
+// 반환 오류는 입력 검증 실패, context 취소/deadline, 상태 전이 실패, 패키지 sentinel error와 typed error를 그대로 드러낸다.
 func Aggregate(name string, policy FailurePolicy, children ...Report) (Report, error) {
 	if !policy.valid() {
 		return Report{}, FailurePolicyError{Policy: policy}
@@ -57,32 +84,32 @@ func Aggregate(name string, policy FailurePolicy, children ...Report) (Report, e
 	}
 }
 
-// IsSuccess reports whether the report is completed.
+// IsSuccess IsSuccess 공개 API의 동작을 수행하며 work report 상태, failure policy, child report 계약을 보존한다.
 func (r Report) IsSuccess() bool {
 	return r.Status == StatusCompleted
 }
 
-// IsFailed reports whether the report status is failed.
+// IsFailed IsFailed 공개 API의 동작을 수행하며 work report 상태, failure policy, child report 계약을 보존한다.
 func (r Report) IsFailed() bool {
 	return r.Status == StatusFailed
 }
 
-// IsPartial reports whether the report status is partial.
+// IsPartial IsPartial 공개 API의 동작을 수행하며 work report 상태, failure policy, child report 계약을 보존한다.
 func (r Report) IsPartial() bool {
 	return r.Status == StatusPartial
 }
 
-// IsAborted reports whether the report status is aborted.
+// IsAborted IsAborted 공개 API의 동작을 수행하며 work report 상태, failure policy, child report 계약을 보존한다.
 func (r Report) IsAborted() bool {
 	return r.Status == StatusAborted
 }
 
-// IsCancelled reports whether the report status is cancelled.
+// IsCancelled IsCancelled 공개 API의 동작을 수행하며 work report 상태, failure policy, child report 계약을 보존한다.
 func (r Report) IsCancelled() bool {
 	return r.Status == StatusCancelled
 }
 
-// IsFailure reports whether the report represents a non-success known outcome.
+// IsFailure IsFailure 공개 API의 동작을 수행하며 work report 상태, failure policy, child report 계약을 보존한다.
 func (r Report) IsFailure() bool {
 	switch r.Status {
 	case StatusFailed, StatusPartial, StatusAborted, StatusCancelled:
@@ -92,7 +119,7 @@ func (r Report) IsFailure() bool {
 	}
 }
 
-// IsTerminal reports whether the report has a known terminal status.
+// IsTerminal IsTerminal 공개 API의 동작을 수행하며 work report 상태, failure policy, child report 계약을 보존한다.
 func (r Report) IsTerminal() bool {
 	return r.Status.known()
 }

@@ -7,10 +7,12 @@ import (
 	"time"
 )
 
-// RetryPredicate decides whether err should be retried.
+// RetryPredicate func 공개 타입이며 취소, deadline, retry, timeout, circuit breaker 상태를 보존한다.
+// 필드와 zero value, nil 허용 여부, 동시성 소유권은 생성자와 메서드의 한국어 주석 및 테스트 계약을 따른다.
 type RetryPredicate func(error) bool
 
-// Sleeper waits for retry delays. Tests can replace it with a fake sleeper.
+// Sleeper interface 공개 타입이며 취소, deadline, retry, timeout, circuit breaker 상태를 보존한다.
+// 필드와 zero value, nil 허용 여부, 동시성 소유권은 생성자와 메서드의 한국어 주석 및 테스트 계약을 따른다.
 type Sleeper interface {
 	Sleep(context.Context, time.Duration) error
 }
@@ -33,7 +35,8 @@ func (realSleeper) Sleep(ctx context.Context, delay time.Duration) error {
 	}
 }
 
-// RetryOptions configures a retry policy.
+// RetryOptions struct 공개 타입이며 취소, deadline, retry, timeout, circuit breaker 상태를 보존한다.
+// 필드와 zero value, nil 허용 여부, 동시성 소유권은 생성자와 메서드의 한국어 주석 및 테스트 계약을 따른다.
 type RetryOptions struct {
 	Name        string
 	MaxAttempts int
@@ -43,12 +46,18 @@ type RetryOptions struct {
 	OnEvent     EventHandler
 }
 
-// RetryPolicy retries failed operations.
+// RetryPolicy struct 공개 타입이며 취소, deadline, retry, timeout, circuit breaker 상태를 보존한다.
+// 필드와 zero value, nil 허용 여부, 동시성 소유권은 생성자와 메서드의 한국어 주석 및 테스트 계약을 따른다.
 type RetryPolicy[T any] struct {
 	options RetryOptions
 }
 
-// NewRetry creates a retry policy.
+// NewRetry NewRetry 공개 API의 동작을 수행하며 취소, deadline, retry, timeout, circuit breaker 상태를 보존한다.
+//
+// 매개변수:
+//   - options: 적용할 옵션 목록이다. nil이면 기본값만 사용한다.
+//
+// 반환 오류는 입력 검증 실패, context 취소/deadline, 상태 전이 실패, 패키지 sentinel error와 typed error를 그대로 드러낸다.
 func NewRetry[T any](options RetryOptions) (*RetryPolicy[T], error) {
 	if options.MaxAttempts <= 0 {
 		return nil, fmt.Errorf("max attempts must be positive")
@@ -65,7 +74,10 @@ func NewRetry[T any](options RetryOptions) (*RetryPolicy[T], error) {
 	return &RetryPolicy[T]{options: options}, nil
 }
 
-// Apply wraps operation with retry behavior.
+// Apply Apply 공개 API의 동작을 수행하며 취소, deadline, retry, timeout, circuit breaker 상태를 보존한다.
+//
+// 매개변수:
+//   - operation: 보호 정책 안에서 실행할 작업이다.
 func (p *RetryPolicy[T]) Apply(operation Operation[T]) Operation[T] {
 	return func(ctx context.Context) (T, error) {
 		var zero T

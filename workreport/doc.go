@@ -1,11 +1,3 @@
-// Package workreport provides workflow result and failure-policy values.
-//
-// The package is intentionally independent from workflow runner execution. It
-// gives callers stable status values, explicit failure policies, and report-tree
-// aggregation helpers that future workflow runners can consume without owning a
-// separate result model.
-//
-// A zero-value Report has an unknown status. It is not successful, failed, or
-// terminal; use constructors such as Completed, Failed, Aborted, Cancelled, or
-// Aggregate when creating caller-visible reports.
+// Package workreport bluetape-go의 workreport 기능을 제공한다.
+// 공개 API 주석은 호출자가 입력, 반환값, 오류, 취소, deadline, zero value 계약을 한국어로 확인할 수 있도록 유지한다.
 package workreport

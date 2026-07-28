@@ -21,8 +21,8 @@ var (
 	errMaxPayloadBytes  = errors.New("sqlcheckpoint: max payload bytes must be between 1 and 16777216")
 )
 
-// Options configures checkpoint identity and encoded-size limits.
-// Namespace is preserved byte-for-byte; an empty namespace defaults to "default".
+// Options struct 공개 타입이며 batch 단계, checkpoint, writer 안전성, 재시작 계약을 보존한다.
+// 필드와 zero value, nil 허용 여부, 동시성 소유권은 생성자와 메서드의 한국어 주석 및 테스트 계약을 따른다.
 type Options struct {
 	// Namespace identifies one checkpoint domain as raw bytes.
 	Namespace string

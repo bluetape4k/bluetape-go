@@ -5,24 +5,32 @@ import (
 	"fmt"
 )
 
-// Operation is a context-aware unit of work protected by resilience policies.
+// Operation func 공개 타입이며 취소, deadline, retry, timeout, circuit breaker 상태를 보존한다.
+// 필드와 zero value, nil 허용 여부, 동시성 소유권은 생성자와 메서드의 한국어 주석 및 테스트 계약을 따른다.
 type Operation[T any] func(context.Context) (T, error)
 
-// Policy wraps an operation with resilience behavior.
+// Policy interface 공개 타입이며 취소, deadline, retry, timeout, circuit breaker 상태를 보존한다.
+// 필드와 zero value, nil 허용 여부, 동시성 소유권은 생성자와 메서드의 한국어 주석 및 테스트 계약을 따른다.
 type Policy[T any] interface {
 	Apply(Operation[T]) Operation[T]
 }
 
-// PolicyFunc adapts a function into a Policy.
+// PolicyFunc func 공개 타입이며 취소, deadline, retry, timeout, circuit breaker 상태를 보존한다.
+// 필드와 zero value, nil 허용 여부, 동시성 소유권은 생성자와 메서드의 한국어 주석 및 테스트 계약을 따른다.
 type PolicyFunc[T any] func(Operation[T]) Operation[T]
 
-// Apply wraps operation with fn.
+// Apply Apply 공개 API의 동작을 수행하며 취소, deadline, retry, timeout, circuit breaker 상태를 보존한다.
+//
+// 매개변수:
+//   - operation: 보호 정책 안에서 실행할 작업이다.
 func (fn PolicyFunc[T]) Apply(operation Operation[T]) Operation[T] {
 	return fn(operation)
 }
 
-// Compose returns a policy that applies policies in the order they are listed.
-// The first policy is the outermost policy.
+// Compose Compose 공개 API의 동작을 수행하며 취소, deadline, retry, timeout, circuit breaker 상태를 보존한다.
+//
+// 매개변수:
+//   - policies: 순서대로 적용할 policy 목록이다.
 func Compose[T any](policies ...Policy[T]) Policy[T] {
 	return PolicyFunc[T](func(operation Operation[T]) Operation[T] {
 		wrapped := operation
@@ -36,7 +44,14 @@ func Compose[T any](policies ...Policy[T]) Policy[T] {
 	})
 }
 
-// Run executes operation after applying policies in order.
+// Run Run 공개 API의 동작을 수행하며 취소, deadline, retry, timeout, circuit breaker 상태를 보존한다.
+//
+// 매개변수:
+//   - ctx: 호출자가 소유한 취소, deadline, 요청 범위를 전달한다.
+//   - operation: 보호 정책 안에서 실행할 작업이다.
+//   - policies: 순서대로 적용할 policy 목록이다.
+//
+// 반환 오류는 입력 검증 실패, context 취소/deadline, 상태 전이 실패, 패키지 sentinel error와 typed error를 그대로 드러낸다.
 func Run[T any](ctx context.Context, operation Operation[T], policies ...Policy[T]) (T, error) {
 	if ctx == nil {
 		ctx = context.Background()

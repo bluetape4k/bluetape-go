@@ -7,12 +7,12 @@ import (
 	"time"
 )
 
-// ExchangeRateProvider 패키지에서 공개하는 인터페이스다.
+// ExchangeRateProvider context-aware 환율 source입니다.
 type ExchangeRateProvider interface {
 	Rate(ctx context.Context, base Currency, target Currency) (ExchangeRateQuote, error)
 }
 
-// ExchangeRateQuote 패키지에서 공개하는 구조체다.
+// ExchangeRateQuote provider가 반환한 환율과 source metadata입니다.
 type ExchangeRateQuote struct {
 	// Rate 변환에 사용할 환율입니다.
 	Rate ExchangeRate
@@ -30,15 +30,7 @@ type ExchangeRateQuote struct {
 	RefreshError error
 }
 
-// ConvertWithProvider provider에서 환율을 조회해 금액을 변환한다.
-//
-// 매개변수:
-//   - ctx: 호출자가 소유한 취소, deadline, 요청 범위를 전달한다.
-//   - amount: ConvertWithProvider에 전달되는 값이다. 허용 범위와 nil 처리 방식은 구현 검증을 따른다.
-//   - target: ConvertWithProvider에 전달되는 값이다. 허용 범위와 nil 처리 방식은 구현 검증을 따른다.
-//   - provider: ConvertWithProvider에 전달되는 값이다. 허용 범위와 nil 처리 방식은 구현 검증을 따른다.
-//
-// 반환 오류는 입력 검증 실패와 패키지에서 정의한 sentinel error/typed error를 그대로 드러낸다.
+// ConvertWithProvider provider에서 환율을 받아 Money를 target 통화로 변환합니다.
 func ConvertWithProvider(ctx context.Context, amount Money, target Currency, provider ExchangeRateProvider) (Money, ExchangeRateQuote, error) {
 	if err := amount.validate(); err != nil {
 		return Money{}, ExchangeRateQuote{}, err

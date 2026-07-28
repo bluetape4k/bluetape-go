@@ -10,7 +10,7 @@ import (
 	"golang.org/x/text/language"
 )
 
-// Currency 패키지에서 공개하는 구조체다.
+// Currency ISO 4217 통화를 나타내는 값입니다.
 type Currency struct {
 	curr gmoney.Currency
 }
@@ -28,12 +28,7 @@ var (
 	JPY = MustParseCurrency("JPY")
 )
 
-// ParseCurrency 문자열 입력을 도메인 값으로 해석한다.
-//
-// 매개변수:
-//   - code: ParseCurrency가 해석할 문자열이다. 빈 문자열과 공백은 구현 검증을 따른다.
-//
-// 반환 오류는 입력 검증 실패와 패키지에서 정의한 sentinel error/typed error를 그대로 드러낸다.
+// ParseCurrency ISO 4217 alphabetic/numeric currency code를 Currency 로 변환합니다.
 func ParseCurrency(code string) (Currency, error) {
 	normalized := strings.ToUpper(strings.TrimSpace(code))
 	if normalized == "" || normalized == "XXX" || normalized == "999" {
@@ -49,10 +44,7 @@ func ParseCurrency(code string) (Currency, error) {
 	return Currency{curr: curr}, nil
 }
 
-// MustParseCurrency 문자열 입력을 도메인 값으로 해석하고 실패하면 panic한다.
-//
-// 매개변수:
-//   - code: MustParseCurrency가 해석할 문자열이다. 빈 문자열과 공백은 구현 검증을 따른다.
+// MustParseCurrency ParseCurrency 와 같지만 실패하면 panic 합니다.
 func MustParseCurrency(code string) Currency {
 	curr, err := ParseCurrency(code)
 	if err != nil {
@@ -61,10 +53,7 @@ func MustParseCurrency(code string) Currency {
 	return curr
 }
 
-// IsCurrency 값이 조건을 만족하는지 반환한다.
-//
-// 매개변수:
-//   - code: IsCurrency가 해석할 문자열이다. 빈 문자열과 공백은 구현 검증을 따른다.
+// IsCurrency code가 #35 public wrapper에서 지원하는 유효 통화인지 반환합니다.
 func IsCurrency(code string) bool {
 	_, err := ParseCurrency(code)
 	return err == nil
@@ -94,7 +83,7 @@ func CurrencyByLocale(tag string) (Currency, error) {
 	return currencyByRegion(region, tag)
 }
 
-// Code 통화 코드를 반환한다.
+// Code 3-letter ISO 4217 currency code를 반환합니다.
 func (c Currency) Code() string {
 	if c.IsZero() {
 		return ""
@@ -102,7 +91,7 @@ func (c Currency) Code() string {
 	return c.curr.Code()
 }
 
-// Num ISO 4217 numeric code를 반환한다.
+// Num ISO 4217 numeric currency code를 반환합니다.
 func (c Currency) Num() string {
 	if c.IsZero() {
 		return ""
@@ -123,7 +112,7 @@ func (c Currency) String() string {
 	return c.Code()
 }
 
-// IsZero 값이 zero value인지 반환한다.
+// IsZero zero-value 또는 no-currency 값을 invalid 통화로 판정합니다.
 func (c Currency) IsZero() bool {
 	return c.curr == gmoney.XXX
 }
