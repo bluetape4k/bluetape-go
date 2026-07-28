@@ -7,7 +7,7 @@ import (
 	"time"
 )
 
-// TimeoutOptions는 struct 공개 타입이며 취소, deadline, retry, timeout, circuit breaker 상태를 보존한다.
+// TimeoutOptions struct 공개 타입이며 취소, deadline, retry, timeout, circuit breaker 상태를 보존한다.
 // 필드와 zero value, nil 허용 여부, 동시성 소유권은 생성자와 메서드의 한국어 주석 및 테스트 계약을 따른다.
 type TimeoutOptions struct {
 	Name    string
@@ -15,13 +15,13 @@ type TimeoutOptions struct {
 	OnEvent EventHandler
 }
 
-// TimeoutPolicy는 struct 공개 타입이며 취소, deadline, retry, timeout, circuit breaker 상태를 보존한다.
+// TimeoutPolicy struct 공개 타입이며 취소, deadline, retry, timeout, circuit breaker 상태를 보존한다.
 // 필드와 zero value, nil 허용 여부, 동시성 소유권은 생성자와 메서드의 한국어 주석 및 테스트 계약을 따른다.
 type TimeoutPolicy[T any] struct {
 	options TimeoutOptions
 }
 
-// NewTimeout는 NewTimeout 공개 API의 동작을 수행하며 취소, deadline, retry, timeout, circuit breaker 상태를 보존한다.
+// NewTimeout NewTimeout 공개 API의 동작을 수행하며 취소, deadline, retry, timeout, circuit breaker 상태를 보존한다.
 //
 // 매개변수:
 //   - options: NewTimeout 동작에 필요한 options 값이다. zero value, 범위, nil 허용 여부는 함수 계약을 따른다.
@@ -34,7 +34,7 @@ func NewTimeout[T any](options TimeoutOptions) (*TimeoutPolicy[T], error) {
 	return &TimeoutPolicy[T]{options: options}, nil
 }
 
-// Apply는 Apply 공개 API의 동작을 수행하며 취소, deadline, retry, timeout, circuit breaker 상태를 보존한다.
+// Apply Apply 공개 API의 동작을 수행하며 취소, deadline, retry, timeout, circuit breaker 상태를 보존한다.
 //
 // 매개변수:
 //   - operation: Apply 동작에 필요한 operation 값이다. zero value, 범위, nil 허용 여부는 함수 계약을 따른다.

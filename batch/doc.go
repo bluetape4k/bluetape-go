@@ -1,4 +1,4 @@
-// Package batch는 context-aware chunk 처리 코어를 제공한다.
+// Package batch context-aware chunk 처리 코어를 제공한다.
 //
 // Step은 입력 항목을 하나씩 읽고, 처리한 뒤, 처리 결과를 chunk 단위로 기록한다.
 // Job은 하나 이상의 step을 순서대로 실행하며 실패하거나 취소된 step에서 중단한다.

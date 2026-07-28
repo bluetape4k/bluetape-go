@@ -2,11 +2,11 @@ package state
 
 import "context"
 
-// Guard는 func 공개 타입이며 상태 전이, guard, final state 계약을 보존한다.
+// Guard func 공개 타입이며 상태 전이, guard, final state 계약을 보존한다.
 // 필드와 zero value, nil 허용 여부, 동시성 소유권은 생성자와 메서드의 한국어 주석 및 테스트 계약을 따른다.
 type Guard[S comparable, E comparable] func(context.Context, S, E) error
 
-// Transition는 struct 공개 타입이며 상태 전이, guard, final state 계약을 보존한다.
+// Transition struct 공개 타입이며 상태 전이, guard, final state 계약을 보존한다.
 // 필드와 zero value, nil 허용 여부, 동시성 소유권은 생성자와 메서드의 한국어 주석 및 테스트 계약을 따른다.
 type Transition[S comparable, E comparable] struct {
 	From  S
@@ -15,7 +15,7 @@ type Transition[S comparable, E comparable] struct {
 	Guard Guard[S, E]
 }
 
-// Result는 struct 공개 타입이며 상태 전이, guard, final state 계약을 보존한다.
+// Result struct 공개 타입이며 상태 전이, guard, final state 계약을 보존한다.
 // 필드와 zero value, nil 허용 여부, 동시성 소유권은 생성자와 메서드의 한국어 주석 및 테스트 계약을 따른다.
 type Result[S comparable, E comparable] struct {
 	Previous S
@@ -23,7 +23,7 @@ type Result[S comparable, E comparable] struct {
 	Current  S
 }
 
-// Option는 func 공개 타입이며 상태 전이, guard, final state 계약을 보존한다.
+// Option func 공개 타입이며 상태 전이, guard, final state 계약을 보존한다.
 // 필드와 zero value, nil 허용 여부, 동시성 소유권은 생성자와 메서드의 한국어 주석 및 테스트 계약을 따른다.
 type Option[S comparable, E comparable] func(*config[S, E])
 
@@ -31,7 +31,7 @@ type config[S comparable, E comparable] struct {
 	finalStates map[S]struct{}
 }
 
-// WithFinalStates는 WithFinalStates 공개 API의 동작을 수행하며 상태 전이, guard, final state 계약을 보존한다.
+// WithFinalStates WithFinalStates 공개 API의 동작을 수행하며 상태 전이, guard, final state 계약을 보존한다.
 //
 // 매개변수:
 //   - states: WithFinalStates 동작에 필요한 states 값이다. zero value, 범위, nil 허용 여부는 함수 계약을 따른다.

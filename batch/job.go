@@ -5,21 +5,21 @@ import (
 	"fmt"
 )
 
-// Runner는 interface 공개 타입이며 batch 단계, checkpoint, writer 안전성, 재시작 계약을 보존한다.
+// Runner interface 공개 타입이며 batch 단계, checkpoint, writer 안전성, 재시작 계약을 보존한다.
 // 필드와 zero value, nil 허용 여부, 동시성 소유권은 생성자와 메서드의 한국어 주석 및 테스트 계약을 따른다.
 type Runner interface {
 	Name() string
 	Run(context.Context) Report
 }
 
-// Job는 struct 공개 타입이며 batch 단계, checkpoint, writer 안전성, 재시작 계약을 보존한다.
+// Job struct 공개 타입이며 batch 단계, checkpoint, writer 안전성, 재시작 계약을 보존한다.
 // 필드와 zero value, nil 허용 여부, 동시성 소유권은 생성자와 메서드의 한국어 주석 및 테스트 계약을 따른다.
 type Job struct {
 	name  string
 	steps []Runner
 }
 
-// NewJob는 NewJob 공개 API의 동작을 수행하며 batch 단계, checkpoint, writer 안전성, 재시작 계약을 보존한다.
+// NewJob NewJob 공개 API의 동작을 수행하며 batch 단계, checkpoint, writer 안전성, 재시작 계약을 보존한다.
 //
 // 매개변수:
 //   - name: NewJob가 식별자, 상태, 이름, 또는 입력으로 해석하는 문자열 값이다. 빈 문자열 처리는 함수 계약을 따른다.
@@ -41,7 +41,7 @@ func NewJob(name string, steps ...Runner) (*Job, error) {
 	return &Job{name: name, steps: append([]Runner(nil), steps...)}, nil
 }
 
-// Name는 Name 공개 API의 동작을 수행하며 batch 단계, checkpoint, writer 안전성, 재시작 계약을 보존한다.
+// Name Name 공개 API의 동작을 수행하며 batch 단계, checkpoint, writer 안전성, 재시작 계약을 보존한다.
 func (j *Job) Name() string {
 	if j == nil {
 		return ""
@@ -49,7 +49,7 @@ func (j *Job) Name() string {
 	return j.name
 }
 
-// Run는 Run 공개 API의 동작을 수행하며 batch 단계, checkpoint, writer 안전성, 재시작 계약을 보존한다.
+// Run Run 공개 API의 동작을 수행하며 batch 단계, checkpoint, writer 안전성, 재시작 계약을 보존한다.
 //
 // 매개변수:
 //   - ctx: 호출자가 소유한 취소, deadline, 요청 범위를 전달한다.

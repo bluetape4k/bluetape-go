@@ -9,7 +9,7 @@ import (
 
 const defaultPollInterval = 25 * time.Millisecond
 
-// Eventually는 Eventually 공개 API의 동작을 수행하며 테스트 helper의 timeout, cancellation, cleanup 계약을 보존한다.
+// Eventually Eventually 공개 API의 동작을 수행하며 테스트 helper의 timeout, cancellation, cleanup 계약을 보존한다.
 //
 // 매개변수:
 //   - t: Eventually 동작에 필요한 t 값이다. zero value, 범위, nil 허용 여부는 함수 계약을 따른다.
@@ -21,7 +21,7 @@ func Eventually(t *testing.T, timeout time.Duration, condition func() bool) {
 	EventuallyWithPolling(t, timeout, defaultPollInterval, condition)
 }
 
-// EventuallyWithPolling는 EventuallyWithPolling 공개 API의 동작을 수행하며 테스트 helper의 timeout, cancellation, cleanup 계약을 보존한다.
+// EventuallyWithPolling EventuallyWithPolling 공개 API의 동작을 수행하며 테스트 helper의 timeout, cancellation, cleanup 계약을 보존한다.
 //
 // 매개변수:
 //   - t: EventuallyWithPolling 동작에 필요한 t 값이다. zero value, 범위, nil 허용 여부는 함수 계약을 따른다.
@@ -38,7 +38,7 @@ func EventuallyWithPolling(t *testing.T, timeout time.Duration, polling time.Dur
 		Should(gomega.BeTrue())
 }
 
-// Consistently는 Consistently 공개 API의 동작을 수행하며 테스트 helper의 timeout, cancellation, cleanup 계약을 보존한다.
+// Consistently Consistently 공개 API의 동작을 수행하며 테스트 helper의 timeout, cancellation, cleanup 계약을 보존한다.
 //
 // 매개변수:
 //   - t: Consistently 동작에 필요한 t 값이다. zero value, 범위, nil 허용 여부는 함수 계약을 따른다.
@@ -50,7 +50,7 @@ func Consistently(t *testing.T, duration time.Duration, condition func() bool) {
 	ConsistentlyWithPolling(t, duration, defaultPollInterval, condition)
 }
 
-// ConsistentlyWithPolling는 ConsistentlyWithPolling 공개 API의 동작을 수행하며 테스트 helper의 timeout, cancellation, cleanup 계약을 보존한다.
+// ConsistentlyWithPolling ConsistentlyWithPolling 공개 API의 동작을 수행하며 테스트 helper의 timeout, cancellation, cleanup 계약을 보존한다.
 //
 // 매개변수:
 //   - t: ConsistentlyWithPolling 동작에 필요한 t 값이다. zero value, 범위, nil 허용 여부는 함수 계약을 따른다.

@@ -6,33 +6,33 @@ import (
 	"sync"
 )
 
-// CheckpointReader는 interface 공개 타입이며 batch 단계, checkpoint, writer 안전성, 재시작 계약을 보존한다.
+// CheckpointReader interface 공개 타입이며 batch 단계, checkpoint, writer 안전성, 재시작 계약을 보존한다.
 // 필드와 zero value, nil 허용 여부, 동시성 소유권은 생성자와 메서드의 한국어 주석 및 테스트 계약을 따른다.
 type CheckpointReader interface {
 	Restore(context.Context, any) error
 	Checkpoint(context.Context) (any, bool, error)
 }
 
-// CheckpointStore는 interface 공개 타입이며 batch 단계, checkpoint, writer 안전성, 재시작 계약을 보존한다.
+// CheckpointStore interface 공개 타입이며 batch 단계, checkpoint, writer 안전성, 재시작 계약을 보존한다.
 // 필드와 zero value, nil 허용 여부, 동시성 소유권은 생성자와 메서드의 한국어 주석 및 테스트 계약을 따른다.
 type CheckpointStore interface {
 	Load(context.Context, string) (any, bool, error)
 	Save(context.Context, string, any) error
 }
 
-// MemoryCheckpointStore는 struct 공개 타입이며 batch 단계, checkpoint, writer 안전성, 재시작 계약을 보존한다.
+// MemoryCheckpointStore struct 공개 타입이며 batch 단계, checkpoint, writer 안전성, 재시작 계약을 보존한다.
 // 필드와 zero value, nil 허용 여부, 동시성 소유권은 생성자와 메서드의 한국어 주석 및 테스트 계약을 따른다.
 type MemoryCheckpointStore struct {
 	mu     sync.RWMutex
 	values map[string]any
 }
 
-// NewMemoryCheckpointStore는 NewMemoryCheckpointStore 공개 API의 동작을 수행하며 batch 단계, checkpoint, writer 안전성, 재시작 계약을 보존한다.
+// NewMemoryCheckpointStore NewMemoryCheckpointStore 공개 API의 동작을 수행하며 batch 단계, checkpoint, writer 안전성, 재시작 계약을 보존한다.
 func NewMemoryCheckpointStore() *MemoryCheckpointStore {
 	return &MemoryCheckpointStore{values: make(map[string]any)}
 }
 
-// Load는 Load 공개 API의 동작을 수행하며 batch 단계, checkpoint, writer 안전성, 재시작 계약을 보존한다.
+// Load Load 공개 API의 동작을 수행하며 batch 단계, checkpoint, writer 안전성, 재시작 계약을 보존한다.
 //
 // 매개변수:
 //   - ctx: 호출자가 소유한 취소, deadline, 요청 범위를 전달한다.
@@ -52,7 +52,7 @@ func (s *MemoryCheckpointStore) Load(ctx context.Context, key string) (any, bool
 	return value, ok, nil
 }
 
-// Save는 Save 공개 API의 동작을 수행하며 batch 단계, checkpoint, writer 안전성, 재시작 계약을 보존한다.
+// Save Save 공개 API의 동작을 수행하며 batch 단계, checkpoint, writer 안전성, 재시작 계약을 보존한다.
 //
 // 매개변수:
 //   - ctx: 호출자가 소유한 취소, deadline, 요청 범위를 전달한다.

@@ -1,4 +1,4 @@
-// Package sqlcheckpoint는 SQL 기반 batch checkpoint 저장과 atomic writer 계약을 제공한다.
+// Package sqlcheckpoint SQL 기반 batch checkpoint 저장과 atomic writer 계약을 제공한다.
 // 공개 API 주석은 호출자가 입력, 반환값, 오류, 취소, deadline, zero value 계약을 한국어로 확인할 수 있도록 유지한다.
 //
 // RetryPolicy와 SkipPolicy는 processor failures 이후 checkpoint 처리 방식을 구분한다.

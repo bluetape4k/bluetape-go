@@ -5,21 +5,21 @@ import (
 	"fmt"
 )
 
-// Operation는 func 공개 타입이며 취소, deadline, retry, timeout, circuit breaker 상태를 보존한다.
+// Operation func 공개 타입이며 취소, deadline, retry, timeout, circuit breaker 상태를 보존한다.
 // 필드와 zero value, nil 허용 여부, 동시성 소유권은 생성자와 메서드의 한국어 주석 및 테스트 계약을 따른다.
 type Operation[T any] func(context.Context) (T, error)
 
-// Policy는 interface 공개 타입이며 취소, deadline, retry, timeout, circuit breaker 상태를 보존한다.
+// Policy interface 공개 타입이며 취소, deadline, retry, timeout, circuit breaker 상태를 보존한다.
 // 필드와 zero value, nil 허용 여부, 동시성 소유권은 생성자와 메서드의 한국어 주석 및 테스트 계약을 따른다.
 type Policy[T any] interface {
 	Apply(Operation[T]) Operation[T]
 }
 
-// PolicyFunc는 func 공개 타입이며 취소, deadline, retry, timeout, circuit breaker 상태를 보존한다.
+// PolicyFunc func 공개 타입이며 취소, deadline, retry, timeout, circuit breaker 상태를 보존한다.
 // 필드와 zero value, nil 허용 여부, 동시성 소유권은 생성자와 메서드의 한국어 주석 및 테스트 계약을 따른다.
 type PolicyFunc[T any] func(Operation[T]) Operation[T]
 
-// Apply는 Apply 공개 API의 동작을 수행하며 취소, deadline, retry, timeout, circuit breaker 상태를 보존한다.
+// Apply Apply 공개 API의 동작을 수행하며 취소, deadline, retry, timeout, circuit breaker 상태를 보존한다.
 //
 // 매개변수:
 //   - operation: Apply 동작에 필요한 operation 값이다. zero value, 범위, nil 허용 여부는 함수 계약을 따른다.
@@ -27,7 +27,7 @@ func (fn PolicyFunc[T]) Apply(operation Operation[T]) Operation[T] {
 	return fn(operation)
 }
 
-// Compose는 Compose 공개 API의 동작을 수행하며 취소, deadline, retry, timeout, circuit breaker 상태를 보존한다.
+// Compose Compose 공개 API의 동작을 수행하며 취소, deadline, retry, timeout, circuit breaker 상태를 보존한다.
 //
 // 매개변수:
 //   - policies: Compose 동작에 필요한 policies 값이다. zero value, 범위, nil 허용 여부는 함수 계약을 따른다.
@@ -44,7 +44,7 @@ func Compose[T any](policies ...Policy[T]) Policy[T] {
 	})
 }
 
-// Run는 Run 공개 API의 동작을 수행하며 취소, deadline, retry, timeout, circuit breaker 상태를 보존한다.
+// Run Run 공개 API의 동작을 수행하며 취소, deadline, retry, timeout, circuit breaker 상태를 보존한다.
 //
 // 매개변수:
 //   - ctx: 호출자가 소유한 취소, deadline, 요청 범위를 전달한다.

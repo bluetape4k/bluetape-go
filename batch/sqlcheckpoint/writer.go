@@ -17,7 +17,7 @@ var (
 	errWriterUninitialized = errors.New("sqlcheckpoint: writer is not initialized")
 )
 
-// Codec는 struct 공개 타입이며 batch 단계, checkpoint, writer 안전성, 재시작 계약을 보존한다.
+// Codec struct 공개 타입이며 batch 단계, checkpoint, writer 안전성, 재시작 계약을 보존한다.
 // 필드와 zero value, nil 허용 여부, 동시성 소유권은 생성자와 메서드의 한국어 주석 및 테스트 계약을 따른다.
 type Codec[C any] struct {
 	// Encode serializes one checkpoint value.
@@ -26,11 +26,11 @@ type Codec[C any] struct {
 	Decode func([]byte) (C, error)
 }
 
-// WriteTxFunc는 func 공개 타입이며 batch 단계, checkpoint, writer 안전성, 재시작 계약을 보존한다.
+// WriteTxFunc func 공개 타입이며 batch 단계, checkpoint, writer 안전성, 재시작 계약을 보존한다.
 // 필드와 zero value, nil 허용 여부, 동시성 소유권은 생성자와 메서드의 한국어 주석 및 테스트 계약을 따른다.
 type WriteTxFunc[T any] func(context.Context, sqlkit.Session, []T) error
 
-// Writer는 struct 공개 타입이며 batch 단계, checkpoint, writer 안전성, 재시작 계약을 보존한다.
+// Writer struct 공개 타입이며 batch 단계, checkpoint, writer 안전성, 재시작 계약을 보존한다.
 // 필드와 zero value, nil 허용 여부, 동시성 소유권은 생성자와 메서드의 한국어 주석 및 테스트 계약을 따른다.
 type Writer[T any, C any] struct {
 	db       *sql.DB
@@ -43,7 +43,7 @@ type Writer[T any, C any] struct {
 
 var _ batch.AtomicCheckpointWriter[any] = (*Writer[any, any])(nil)
 
-// New는 New 공개 API의 동작을 수행하며 batch 단계, checkpoint, writer 안전성, 재시작 계약을 보존한다.
+// New New 공개 API의 동작을 수행하며 batch 단계, checkpoint, writer 안전성, 재시작 계약을 보존한다.
 //
 // 매개변수:
 //   - db: New 동작에 필요한 db 값이다. zero value, 범위, nil 허용 여부는 함수 계약을 따른다.

@@ -6,11 +6,11 @@ import (
 	"net/http"
 )
 
-// HTTPStatusPredicate는 func 공개 타입이며 취소, deadline, retry, timeout, circuit breaker 상태를 보존한다.
+// HTTPStatusPredicate func 공개 타입이며 취소, deadline, retry, timeout, circuit breaker 상태를 보존한다.
 // 필드와 zero value, nil 허용 여부, 동시성 소유권은 생성자와 메서드의 한국어 주석 및 테스트 계약을 따른다.
 type HTTPStatusPredicate func(int) bool
 
-// RetryableServerError는 RetryableServerError 공개 API의 동작을 수행하며 취소, deadline, retry, timeout, circuit breaker 상태를 보존한다.
+// RetryableServerError RetryableServerError 공개 API의 동작을 수행하며 취소, deadline, retry, timeout, circuit breaker 상태를 보존한다.
 //
 // 매개변수:
 //   - statusCode: RetryableServerError 동작에 필요한 statusCode 값이다. zero value, 범위, nil 허용 여부는 함수 계약을 따른다.
@@ -18,7 +18,7 @@ func RetryableServerError(statusCode int) bool {
 	return statusCode >= http.StatusInternalServerError && statusCode <= 599
 }
 
-// StatusError는 struct 공개 타입이며 취소, deadline, retry, timeout, circuit breaker 상태를 보존한다.
+// StatusError struct 공개 타입이며 취소, deadline, retry, timeout, circuit breaker 상태를 보존한다.
 // 필드와 zero value, nil 허용 여부, 동시성 소유권은 생성자와 메서드의 한국어 주석 및 테스트 계약을 따른다.
 type StatusError struct {
 	StatusCode int
@@ -32,7 +32,7 @@ func (e StatusError) Error() string {
 	return fmt.Sprintf("http status %d", e.StatusCode)
 }
 
-// RoundTripperOptions는 struct 공개 타입이며 취소, deadline, retry, timeout, circuit breaker 상태를 보존한다.
+// RoundTripperOptions struct 공개 타입이며 취소, deadline, retry, timeout, circuit breaker 상태를 보존한다.
 // 필드와 zero value, nil 허용 여부, 동시성 소유권은 생성자와 메서드의 한국어 주석 및 테스트 계약을 따른다.
 type RoundTripperOptions struct {
 	Transport       http.RoundTripper
@@ -40,7 +40,7 @@ type RoundTripperOptions struct {
 	RetryableStatus HTTPStatusPredicate
 }
 
-// ResilientRoundTripper는 struct 공개 타입이며 취소, deadline, retry, timeout, circuit breaker 상태를 보존한다.
+// ResilientRoundTripper struct 공개 타입이며 취소, deadline, retry, timeout, circuit breaker 상태를 보존한다.
 // 필드와 zero value, nil 허용 여부, 동시성 소유권은 생성자와 메서드의 한국어 주석 및 테스트 계약을 따른다.
 type ResilientRoundTripper struct {
 	transport       http.RoundTripper
@@ -48,7 +48,7 @@ type ResilientRoundTripper struct {
 	retryableStatus HTTPStatusPredicate
 }
 
-// NewRoundTripper는 NewRoundTripper 공개 API의 동작을 수행하며 취소, deadline, retry, timeout, circuit breaker 상태를 보존한다.
+// NewRoundTripper NewRoundTripper 공개 API의 동작을 수행하며 취소, deadline, retry, timeout, circuit breaker 상태를 보존한다.
 //
 // 매개변수:
 //   - options: NewRoundTripper 동작에 필요한 options 값이다. zero value, 범위, nil 허용 여부는 함수 계약을 따른다.
@@ -65,7 +65,7 @@ func NewRoundTripper(options RoundTripperOptions) *ResilientRoundTripper {
 	}
 }
 
-// RoundTrip는 RoundTrip 공개 API의 동작을 수행하며 취소, deadline, retry, timeout, circuit breaker 상태를 보존한다.
+// RoundTrip RoundTrip 공개 API의 동작을 수행하며 취소, deadline, retry, timeout, circuit breaker 상태를 보존한다.
 //
 // 매개변수:
 //   - req: RoundTrip 동작에 필요한 req 값이다. zero value, 범위, nil 허용 여부는 함수 계약을 따른다.
@@ -135,18 +135,18 @@ func cloneRequestForAttempt(ctx context.Context, req *http.Request, attemptNumbe
 	return attempt, nil
 }
 
-// HandlerErrorHandler는 func 공개 타입이며 취소, deadline, retry, timeout, circuit breaker 상태를 보존한다.
+// HandlerErrorHandler func 공개 타입이며 취소, deadline, retry, timeout, circuit breaker 상태를 보존한다.
 // 필드와 zero value, nil 허용 여부, 동시성 소유권은 생성자와 메서드의 한국어 주석 및 테스트 계약을 따른다.
 type HandlerErrorHandler func(http.ResponseWriter, *http.Request, error)
 
-// HandlerOptions는 struct 공개 타입이며 취소, deadline, retry, timeout, circuit breaker 상태를 보존한다.
+// HandlerOptions struct 공개 타입이며 취소, deadline, retry, timeout, circuit breaker 상태를 보존한다.
 // 필드와 zero value, nil 허용 여부, 동시성 소유권은 생성자와 메서드의 한국어 주석 및 테스트 계약을 따른다.
 type HandlerOptions struct {
 	Policies     []Policy[struct{}]
 	ErrorHandler HandlerErrorHandler
 }
 
-// ResilientHandler는 struct 공개 타입이며 취소, deadline, retry, timeout, circuit breaker 상태를 보존한다.
+// ResilientHandler struct 공개 타입이며 취소, deadline, retry, timeout, circuit breaker 상태를 보존한다.
 // 필드와 zero value, nil 허용 여부, 동시성 소유권은 생성자와 메서드의 한국어 주석 및 테스트 계약을 따른다.
 type ResilientHandler struct {
 	next         http.Handler
@@ -154,7 +154,7 @@ type ResilientHandler struct {
 	errorHandler HandlerErrorHandler
 }
 
-// NewHandler는 NewHandler 공개 API의 동작을 수행하며 취소, deadline, retry, timeout, circuit breaker 상태를 보존한다.
+// NewHandler NewHandler 공개 API의 동작을 수행하며 취소, deadline, retry, timeout, circuit breaker 상태를 보존한다.
 //
 // 매개변수:
 //   - next: NewHandler 동작에 필요한 next 값이다. zero value, 범위, nil 허용 여부는 함수 계약을 따른다.
@@ -176,7 +176,7 @@ func NewHandler(next http.Handler, options HandlerOptions) *ResilientHandler {
 	}
 }
 
-// ServeHTTP는 ServeHTTP 공개 API의 동작을 수행하며 취소, deadline, retry, timeout, circuit breaker 상태를 보존한다.
+// ServeHTTP ServeHTTP 공개 API의 동작을 수행하며 취소, deadline, retry, timeout, circuit breaker 상태를 보존한다.
 //
 // 매개변수:
 //   - w: ServeHTTP 동작에 필요한 w 값이다. zero value, 범위, nil 허용 여부는 함수 계약을 따른다.

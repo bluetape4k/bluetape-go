@@ -5,7 +5,7 @@ import (
 	"fmt"
 )
 
-// BulkheadOptions는 struct 공개 타입이며 취소, deadline, retry, timeout, circuit breaker 상태를 보존한다.
+// BulkheadOptions struct 공개 타입이며 취소, deadline, retry, timeout, circuit breaker 상태를 보존한다.
 // 필드와 zero value, nil 허용 여부, 동시성 소유권은 생성자와 메서드의 한국어 주석 및 테스트 계약을 따른다.
 type BulkheadOptions struct {
 	Name          string
@@ -14,14 +14,14 @@ type BulkheadOptions struct {
 	OnEvent       EventHandler
 }
 
-// BulkheadPolicy는 struct 공개 타입이며 취소, deadline, retry, timeout, circuit breaker 상태를 보존한다.
+// BulkheadPolicy struct 공개 타입이며 취소, deadline, retry, timeout, circuit breaker 상태를 보존한다.
 // 필드와 zero value, nil 허용 여부, 동시성 소유권은 생성자와 메서드의 한국어 주석 및 테스트 계약을 따른다.
 type BulkheadPolicy[T any] struct {
 	options BulkheadOptions
 	permits chan struct{}
 }
 
-// NewBulkhead는 NewBulkhead 공개 API의 동작을 수행하며 취소, deadline, retry, timeout, circuit breaker 상태를 보존한다.
+// NewBulkhead NewBulkhead 공개 API의 동작을 수행하며 취소, deadline, retry, timeout, circuit breaker 상태를 보존한다.
 //
 // 매개변수:
 //   - options: NewBulkhead 동작에 필요한 options 값이다. zero value, 범위, nil 허용 여부는 함수 계약을 따른다.
@@ -37,12 +37,12 @@ func NewBulkhead[T any](options BulkheadOptions) (*BulkheadPolicy[T], error) {
 	}, nil
 }
 
-// InFlight는 InFlight 공개 API의 동작을 수행하며 취소, deadline, retry, timeout, circuit breaker 상태를 보존한다.
+// InFlight InFlight 공개 API의 동작을 수행하며 취소, deadline, retry, timeout, circuit breaker 상태를 보존한다.
 func (p *BulkheadPolicy[T]) InFlight() int {
 	return len(p.permits)
 }
 
-// Apply는 Apply 공개 API의 동작을 수행하며 취소, deadline, retry, timeout, circuit breaker 상태를 보존한다.
+// Apply Apply 공개 API의 동작을 수행하며 취소, deadline, retry, timeout, circuit breaker 상태를 보존한다.
 //
 // 매개변수:
 //   - operation: Apply 동작에 필요한 operation 값이다. zero value, 범위, nil 허용 여부는 함수 계약을 따른다.
