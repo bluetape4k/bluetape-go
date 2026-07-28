@@ -1,6 +1,8 @@
 # Issue #309 ImageKit Pure-Go Benchmark
 
-## Environment
+> 한국어 벤치마크 경계: 이 문서는 벤치마크 목적과 해석 한계를 한국어 독자가 추적할 수 있도록 정리한다. 벤치마크 이름, 명령, raw output 경로, fixture 이름, 수치 증거는 원문의 재현성 앵커로 보존한다.
+
+## 환경
 
 - Date: 2026-07-01
 - Command: `go test -run '^$' -bench '^BenchmarkTransform' -benchmem ./imagekit`
@@ -8,12 +10,12 @@
 - OS/Arch: `darwin/arm64`
 - CPU: `Apple M5`
 
-## Notes
+## 메모
 
 These rows are the pure-Go baseline for issue #310 libvips comparison. They do
 not claim libvips-level throughput.
 
-## Raw Output
+## 원시 출력
 
 ```text
 goos: darwin

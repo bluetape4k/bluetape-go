@@ -1,11 +1,13 @@
 # Issue #203 Public API and Error Contract Audit
 
-Issue: [#203](https://github.com/bluetape4k/bluetape-go/issues/203)
-Parent: [#199](https://github.com/bluetape4k/bluetape-go/issues/199)
-Milestone: `0.6.2`
-Date: 2026-06-21
+> 한국어 감사 경계: 이 문서는 감사 결론과 후속 라우팅을 한국어 독자가 추적할 수 있도록 정리한다. 심각도 표기, 패키지명, API 이름, 명령, 링크, 인용 증거는 원문의 증거 앵커로 보존한다.
 
-## Verdict
+이슈: [#203](https://github.com/bluetape4k/bluetape-go/issues/203)
+상위: [#199](https://github.com/bluetape4k/bluetape-go/issues/199)
+마일스톤: `0.6.2`
+날짜: 2026-06-21
+
+## 판정
 
 P0 = 0, P1 = 0, P2 = 5, P3 = 2
 
@@ -19,7 +21,7 @@ Breaking API proposals are not bundled into this issue. They should be filed
 under the receiving corrective epics only when the next implementation slice
 proves the migration value.
 
-## Evidence
+## 증거
 
 - `go list ./...` enumerated 36 packages, including 35 public packages and one
   internal cleanup helper package.
@@ -29,9 +31,9 @@ proves the migration value.
 - CodeGraph index was available with 300 Go files, 4,295 symbols, and 10,286
   edges for structural lookup.
 
-## Package Contract Matrix
+## 패키지 계약 매트릭스
 
-| Package | Exported surface | Error contract | Zero/nil/context contract | Verdict |
+| 패키지 | 공개 surface | 오류 계약 | zero/nil/context 계약 | 판정 |
 |---|---:|---|---|---|
 | `batch` | 25 | `ErrUnsafeWriterSkipCheckpoint`; policy predicates preserve caller errors. | Constructors reject nil steps and invalid policies; checkpoint safety documented. | P2: consider typed constructor errors only if callers need matching. |
 | `cache` | 6 | `ErrCacheMiss` is stable and tested with `errors.Is`. | Zero TTL semantics and cancellation behavior are tested. | OK |
@@ -67,9 +69,9 @@ proves the migration value.
 | `workflow` | 7 | Runner sentinels cover nil work/predicate and invalid report status. | Context cancellation maps into work reports. | OK |
 | `workreport` | 13 | `ErrUnknownFailurePolicy` plus typed `FailurePolicyError`; child errors preserve causes. | Reports are immutable enough for caller consumption; children are copied. | OK |
 
-## Follow-up Routing
+## 후속 라우팅
 
-| Severity | Candidate | Route | Rationale |
+| 심각도 | 후보 | 라우팅 | 근거 |
 |---|---|---|---|
 | P2 | Shared validation sentinels for `core`, `collections`, `ratelimit`, and small constructor helpers | #204 | Only add if the core parity work proves callers need stable semantic matching. |
 | P2 | `cache/rediscoord` operator-facing error categories | #215 or later cache issue | Current wrapping is sufficient; categorization may help only if GenericServer/property-export work reuses it. |
@@ -79,7 +81,7 @@ proves the migration value.
 | P3 | Codec invalid-input sentinel | Later maintenance issue only if callers ask for matching | Current callers generally treat decode errors as invalid input without branching. |
 | P3 | Measure surface size | #221 / #223 | Large exported unit catalog is intentional, but future math/time additions should avoid uncontrolled expansion. |
 
-## Non-goals
+## 비목표
 
 - Do not add broad sentinels to every validation error just for symmetry.
 - Do not convert small helper packages into Kotlin-style extension surfaces.
@@ -88,7 +90,7 @@ proves the migration value.
 - Do not replace `testing.T` fixture helpers with error-returning APIs unless
   #215 selects a reusable generic server contract.
 
-## Acceptance Check
+## 수용 기준 확인
 
 - Exported symbols were grouped by package.
 - Error contracts were checked for sentinel/typed matching where callers need
