@@ -12,7 +12,7 @@ import (
 	"golang.org/x/sync/singleflight"
 )
 
-// CachedProvider 는 Provider에 신뢰된 Reader cache를 추가한다.
+// CachedProvider Provider에 신뢰된 Reader cache를 추가한다.
 type CachedProvider struct {
 	provider *Provider
 	cache    cache.Cache[string, *Reader]
@@ -26,7 +26,7 @@ var _ Signer = (*CachedProvider)(nil)
 var _ Parser = (*CachedProvider)(nil)
 var _ Rotator = (*CachedProvider)(nil)
 
-// NewCachedProvider 는 in-memory JWT Provider용 cache adapter를 만든다.
+// NewCachedProvider in-memory JWT Provider용 cache adapter를 만든다.
 func NewCachedProvider(provider *Provider, c cache.Cache[string, *Reader], options ...CacheOption) (*CachedProvider, error) {
 	if err := provider.validateReady(); err != nil {
 		return nil, err
@@ -44,7 +44,7 @@ func NewCachedProvider(provider *Provider, c cache.Cache[string, *Reader], optio
 	return &CachedProvider{provider: provider, cache: c, cfg: cfg}, nil
 }
 
-// Compose 는 token 생성을 wrapped Provider에 위임한다.
+// Compose token 생성을 wrapped Provider에 위임한다.
 func (p *CachedProvider) Compose(options ...ComposeOption) (string, error) {
 	if err := p.validateReady(); err != nil {
 		return "", err
@@ -52,12 +52,12 @@ func (p *CachedProvider) Compose(options ...ComposeOption) (string, error) {
 	return p.provider.Compose(options...)
 }
 
-// Parse 는 cache 작업에 context.Background를 사용해 token을 검증한다.
+// Parse cache 작업에 context.Background를 사용해 token을 검증한다.
 func (p *CachedProvider) Parse(token string, options ...ParseOption) (*Reader, error) {
 	return p.ParseContext(context.Background(), token, options...)
 }
 
-// TryParse 는 Parse 성공 여부를 bool로 반환한다.
+// TryParse Parse 성공 여부를 bool로 반환한다.
 func (p *CachedProvider) TryParse(token string, options ...ParseOption) (*Reader, bool) {
 	reader, err := p.Parse(token, options...)
 	if err != nil {
@@ -66,7 +66,7 @@ func (p *CachedProvider) TryParse(token string, options ...ParseOption) (*Reader
 	return reader, true
 }
 
-// ParseContext 는 token을 검증하고 성공한 Reader 결과를 cache한다.
+// ParseContext token을 검증하고 성공한 Reader 결과를 cache한다.
 func (p *CachedProvider) ParseContext(ctx context.Context, token string, options ...ParseOption) (*Reader, error) {
 	if err := p.validateReady(); err != nil {
 		return nil, err
@@ -96,7 +96,7 @@ func (p *CachedProvider) CurrentKeyChain() (*KeyChain, error) {
 	return p.provider.CurrentKeyChain()
 }
 
-// Rotate 는 강제하지 않는 key 회전을 wrapped Provider에 위임한다.
+// Rotate 강제하지 않는 key 회전을 wrapped Provider에 위임한다.
 func (p *CachedProvider) Rotate() (*KeyChain, error) {
 	if err := p.validateReady(); err != nil {
 		return nil, err
@@ -104,7 +104,7 @@ func (p *CachedProvider) Rotate() (*KeyChain, error) {
 	return p.provider.Rotate()
 }
 
-// ForcedRotate 는 wrapped Provider를 강제 회전하고 cached Reader를 지운다.
+// ForcedRotate wrapped Provider를 강제 회전하고 cached Reader를 지운다.
 func (p *CachedProvider) ForcedRotate() (*KeyChain, error) {
 	if err := p.validateReady(); err != nil {
 		return nil, err
@@ -127,7 +127,7 @@ func (p *CachedProvider) FindKeyChain(kid string) (*KeyChain, error) {
 	return p.provider.FindKeyChain(kid)
 }
 
-// ClearCache 는 설정된 cache backend의 모든 cached Reader를 지운다.
+// ClearCache 설정된 cache backend의 모든 cached Reader를 지운다.
 func (p *CachedProvider) ClearCache(ctx context.Context) error {
 	if err := p.validateReady(); err != nil {
 		return err

@@ -36,7 +36,7 @@ var (
 	ErrInferenceNonConverged = errors.New("rules inference did not converge")
 )
 
-// RulePhase는 string 공개 타입이다.
+// RulePhase string 공개 타입이다.
 // 값의 zero value, nil 허용 여부, 동시성 소유권은 생성자와 메서드의 한국어 주석 및 테스트 계약을 따른다.
 type RulePhase string
 
@@ -47,7 +47,7 @@ const (
 	PhaseExecute RulePhase = "execute"
 )
 
-// RuleError는 struct 공개 타입이다.
+// RuleError struct 공개 타입이다.
 // 값의 zero value, nil 허용 여부, 동시성 소유권은 생성자와 메서드의 한국어 주석 및 테스트 계약을 따른다.
 type RuleError struct {
 	RuleName string
@@ -55,7 +55,7 @@ type RuleError struct {
 	Err      error
 }
 
-// Error는 Error 공개 API의 동작을 수행한다.
+// Error Error 공개 API의 동작을 수행한다.
 func (e RuleError) Error() string {
 	if e.Err == nil {
 		if e.RuleName == "" {
@@ -69,14 +69,14 @@ func (e RuleError) Error() string {
 	return "rules " + string(e.Phase) + " failed for " + e.RuleName + ": " + e.Err.Error()
 }
 
-// Unwrap는 Unwrap 공개 API의 동작을 수행한다.
+// Unwrap Unwrap 공개 API의 동작을 수행한다.
 //
 // 반환 오류는 입력 검증 실패, 취소, 외부 원인, 또는 패키지 sentinel/typed error 계약을 보존한다.
 func (e RuleError) Unwrap() error {
 	return e.Err
 }
 
-// Is는 Is 공개 API의 동작을 수행한다.
+// Is Is 공개 API의 동작을 수행한다.
 //
 // 매개변수:
 //   - target: 검사하거나 감쌀 오류 값이다.
@@ -85,14 +85,14 @@ func (e RuleError) Is(target error) bool {
 		e.Phase == PhaseExecute && target == ErrRuleExecution
 }
 
-// InferenceError는 struct 공개 타입이다.
+// InferenceError struct 공개 타입이다.
 // 값의 zero value, nil 허용 여부, 동시성 소유권은 생성자와 메서드의 한국어 주석 및 테스트 계약을 따른다.
 type InferenceError struct {
 	Cycles int
 	Err    error
 }
 
-// Error는 Error 공개 API의 동작을 수행한다.
+// Error Error 공개 API의 동작을 수행한다.
 func (e InferenceError) Error() string {
 	if e.Err == nil {
 		return "rules inference failed"
@@ -100,7 +100,7 @@ func (e InferenceError) Error() string {
 	return "rules inference failed after " + strconv.Itoa(e.Cycles) + " cycles: " + e.Err.Error()
 }
 
-// Unwrap는 Unwrap 공개 API의 동작을 수행한다.
+// Unwrap Unwrap 공개 API의 동작을 수행한다.
 //
 // 반환 오류는 입력 검증 실패, 취소, 외부 원인, 또는 패키지 sentinel/typed error 계약을 보존한다.
 func (e InferenceError) Unwrap() error {

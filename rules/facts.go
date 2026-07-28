@@ -6,19 +6,19 @@ import (
 	"sync"
 )
 
-// Facts는 struct 공개 타입이다.
+// Facts struct 공개 타입이다.
 // 값의 zero value, nil 허용 여부, 동시성 소유권은 생성자와 메서드의 한국어 주석 및 테스트 계약을 따른다.
 type Facts struct {
 	mu     sync.RWMutex
 	values map[string]any
 }
 
-// NewFacts는 NewFacts 공개 API의 동작을 수행한다.
+// NewFacts NewFacts 공개 API의 동작을 수행한다.
 func NewFacts() *Facts {
 	return &Facts{values: make(map[string]any)}
 }
 
-// NewFactsFrom는 NewFactsFrom 공개 API의 동작을 수행한다.
+// NewFactsFrom NewFactsFrom 공개 API의 동작을 수행한다.
 //
 // 매개변수:
 //   - values: NewFactsFrom 동작에 필요한 values 값이다. zero value, 범위, nil 허용 여부는 함수 계약을 따른다.
@@ -34,7 +34,7 @@ func NewFactsFrom(values map[string]any) (*Facts, error) {
 	return facts, nil
 }
 
-// Set는 Set 공개 API의 동작을 수행한다.
+// Set Set 공개 API의 동작을 수행한다.
 //
 // 매개변수:
 //   - key: Set가 해석하거나 검증하는 문자열 값이다. 빈 문자열과 공백 처리 의미는 함수 계약을 따른다.
@@ -59,7 +59,7 @@ func (f *Facts) Set(key string, value any) error {
 	return nil
 }
 
-// Get는 Get 공개 API의 동작을 수행한다.
+// Get Get 공개 API의 동작을 수행한다.
 //
 // 매개변수:
 //   - key: Get가 해석하거나 검증하는 문자열 값이다. 빈 문자열과 공백 처리 의미는 함수 계약을 따른다.
@@ -78,7 +78,7 @@ func (f *Facts) Get(key string) (any, bool) {
 	return value, ok
 }
 
-// Delete는 Delete 공개 API의 동작을 수행한다.
+// Delete Delete 공개 API의 동작을 수행한다.
 //
 // 매개변수:
 //   - key: Delete가 해석하거나 검증하는 문자열 값이다. 빈 문자열과 공백 처리 의미는 함수 계약을 따른다.
@@ -101,7 +101,7 @@ func (f *Facts) Delete(key string) bool {
 	return ok
 }
 
-// Has는 Has 공개 API의 동작을 수행한다.
+// Has Has 공개 API의 동작을 수행한다.
 //
 // 매개변수:
 //   - key: Has가 해석하거나 검증하는 문자열 값이다. 빈 문자열과 공백 처리 의미는 함수 계약을 따른다.
@@ -110,7 +110,7 @@ func (f *Facts) Has(key string) bool {
 	return ok
 }
 
-// Len는 Len 공개 API의 동작을 수행한다.
+// Len Len 공개 API의 동작을 수행한다.
 func (f *Facts) Len() int {
 	if f == nil {
 		return 0
@@ -121,7 +121,7 @@ func (f *Facts) Len() int {
 	return len(f.values)
 }
 
-// Keys는 Keys 공개 API의 동작을 수행한다.
+// Keys Keys 공개 API의 동작을 수행한다.
 func (f *Facts) Keys() []string {
 	if f == nil {
 		return nil
@@ -137,7 +137,7 @@ func (f *Facts) Keys() []string {
 	return keys
 }
 
-// Snapshot는 Snapshot 공개 API의 동작을 수행한다.
+// Snapshot Snapshot 공개 API의 동작을 수행한다.
 func (f *Facts) Snapshot() map[string]any {
 	if f == nil {
 		return nil
@@ -152,7 +152,7 @@ func (f *Facts) Snapshot() map[string]any {
 	return copied
 }
 
-// Clone는 Clone 공개 API의 동작을 수행한다.
+// Clone Clone 공개 API의 동작을 수행한다.
 func (f *Facts) Clone() *Facts {
 	return &Facts{values: f.Snapshot()}
 }

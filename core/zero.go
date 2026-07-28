@@ -1,12 +1,12 @@
 package core
 
-// Zero는 Zero 공개 API의 동작을 수행한다.
+// Zero Zero 공개 API의 동작을 수행한다.
 func Zero[T any]() T {
 	var zero T
 	return zero
 }
 
-// IsZero는 IsZero 공개 API의 동작을 수행한다.
+// IsZero IsZero 공개 API의 동작을 수행한다.
 //
 // 매개변수:
 //   - value: IsZero 동작에 필요한 value 값이다. zero value, 범위, nil 허용 여부는 함수 계약을 따른다.
@@ -15,7 +15,7 @@ func IsZero[T comparable](value T) bool {
 	return value == zero
 }
 
-// DefaultIfZero는 DefaultIfZero 공개 API의 동작을 수행한다.
+// DefaultIfZero DefaultIfZero 공개 API의 동작을 수행한다.
 //
 // 매개변수:
 //   - value: DefaultIfZero 동작에 필요한 value 값이다. zero value, 범위, nil 허용 여부는 함수 계약을 따른다.
@@ -27,7 +27,7 @@ func DefaultIfZero[T comparable](value, fallback T) T {
 	return value
 }
 
-// IfZeroOrDefault는 IfZeroOrDefault 공개 API의 동작을 수행한다.
+// IfZeroOrDefault IfZeroOrDefault 공개 API의 동작을 수행한다.
 //
 // 매개변수:
 //   - value: IfZeroOrDefault 동작에 필요한 value 값이다. zero value, 범위, nil 허용 여부는 함수 계약을 따른다.
@@ -39,7 +39,7 @@ func IfZeroOrDefault[T comparable](value T, fallback T) T {
 	return value
 }
 
-// FirstNonZero는 FirstNonZero 공개 API의 동작을 수행한다.
+// FirstNonZero FirstNonZero 공개 API의 동작을 수행한다.
 //
 // 매개변수:
 //   - values: FirstNonZero 동작에 필요한 values 값이다. zero value, 범위, nil 허용 여부는 함수 계약을 따른다.

@@ -2,14 +2,14 @@ package collections
 
 import "fmt"
 
-// Indexed는 struct 공개 타입이다.
+// Indexed struct 공개 타입이다.
 // 값의 zero value, nil 허용 여부, 동시성 소유권은 생성자와 메서드의 한국어 주석 및 테스트 계약을 따른다.
 type Indexed[T any] struct {
 	Index int
 	Value T
 }
 
-// Chunk는 Chunk 공개 API의 동작을 수행한다.
+// Chunk Chunk 공개 API의 동작을 수행한다.
 //
 // 매개변수:
 //   - values: Chunk가 읽거나 복사하는 values 목록이다. nil과 빈 슬라이스 의미는 함수 계약을 따른다.
@@ -38,7 +38,7 @@ func Chunk[T any](values []T, size int) ([][]T, error) {
 	return chunks, nil
 }
 
-// Sliding는 Sliding 공개 API의 동작을 수행한다.
+// Sliding Sliding 공개 API의 동작을 수행한다.
 //
 // 매개변수:
 //   - values: Sliding가 읽거나 복사하는 values 목록이다. nil과 빈 슬라이스 의미는 함수 계약을 따른다.
@@ -71,7 +71,7 @@ func Sliding[T any](values []T, size int, partialWindows bool) ([][]T, error) {
 	return windows, nil
 }
 
-// ChunkBy는 ChunkBy 공개 API의 동작을 수행한다.
+// ChunkBy ChunkBy 공개 API의 동작을 수행한다.
 //
 // 매개변수:
 //   - values: ChunkBy가 읽거나 복사하는 values 목록이다. nil과 빈 슬라이스 의미는 함수 계약을 따른다.
@@ -101,7 +101,7 @@ func ChunkBy[T any](values []T, startsNew func(T) bool) ([][]T, error) {
 	return chunks, nil
 }
 
-// SafeSubslice는 SafeSubslice 공개 API의 동작을 수행한다.
+// SafeSubslice SafeSubslice 공개 API의 동작을 수행한다.
 //
 // 매개변수:
 //   - values: SafeSubslice가 읽거나 복사하는 values 목록이다. nil과 빈 슬라이스 의미는 함수 계약을 따른다.
@@ -126,7 +126,7 @@ func SafeSubslice[T any](values []T, from, to int) []T {
 	return values[from:to]
 }
 
-// PadTo는 PadTo 공개 API의 동작을 수행한다.
+// PadTo PadTo 공개 API의 동작을 수행한다.
 //
 // 매개변수:
 //   - values: PadTo가 읽거나 복사하는 values 목록이다. nil과 빈 슬라이스 의미는 함수 계약을 따른다.
@@ -150,7 +150,7 @@ func PadTo[T any](values []T, newSize int, item T) ([]T, error) {
 	return padded, nil
 }
 
-// Distinct는 Distinct 공개 API의 동작을 수행한다.
+// Distinct Distinct 공개 API의 동작을 수행한다.
 //
 // 매개변수:
 //   - values: Distinct가 읽거나 복사하는 values 목록이다. nil과 빈 슬라이스 의미는 함수 계약을 따른다.
@@ -174,7 +174,7 @@ func Distinct[T comparable](values []T) []T {
 	return result
 }
 
-// Count는 Count 공개 API의 동작을 수행한다.
+// Count Count 공개 API의 동작을 수행한다.
 //
 // 매개변수:
 //   - values: Count가 읽거나 복사하는 values 목록이다. nil과 빈 슬라이스 의미는 함수 계약을 따른다.
@@ -189,7 +189,7 @@ func Count[T comparable](values []T) map[T]int {
 	return counts
 }
 
-// DistinctBy는 DistinctBy 공개 API의 동작을 수행한다.
+// DistinctBy DistinctBy 공개 API의 동작을 수행한다.
 //
 // 매개변수:
 //   - values: DistinctBy가 읽거나 복사하는 values 목록이다. nil과 빈 슬라이스 의미는 함수 계약을 따른다.
@@ -220,7 +220,7 @@ func DistinctBy[T any, K comparable](values []T, key func(T) K) ([]T, error) {
 	return result, nil
 }
 
-// ZipWithIndex는 ZipWithIndex 공개 API의 동작을 수행한다.
+// ZipWithIndex ZipWithIndex 공개 API의 동작을 수행한다.
 //
 // 매개변수:
 //   - values: ZipWithIndex가 읽거나 복사하는 values 목록이다. nil과 빈 슬라이스 의미는 함수 계약을 따른다.
@@ -238,7 +238,7 @@ func ZipWithIndex[T any](values []T) []Indexed[T] {
 	return indexed
 }
 
-// MapErr는 MapErr 공개 API의 동작을 수행한다.
+// MapErr MapErr 공개 API의 동작을 수행한다.
 //
 // 매개변수:
 //   - values: MapErr가 읽거나 복사하는 values 목록이다. nil과 빈 슬라이스 의미는 함수 계약을 따른다.
@@ -264,7 +264,7 @@ func MapErr[T any, R any](values []T, mapper func(T) (R, error)) ([]R, error) {
 	return result, nil
 }
 
-// ForEachErr는 ForEachErr 공개 API의 동작을 수행한다.
+// ForEachErr ForEachErr 공개 API의 동작을 수행한다.
 //
 // 매개변수:
 //   - values: ForEachErr가 읽거나 복사하는 values 목록이다. nil과 빈 슬라이스 의미는 함수 계약을 따른다.
@@ -283,7 +283,7 @@ func ForEachErr[T any](values []T, action func(T) error) error {
 	return nil
 }
 
-// FilterErr는 FilterErr 공개 API의 동작을 수행한다.
+// FilterErr FilterErr 공개 API의 동작을 수행한다.
 //
 // 매개변수:
 //   - values: FilterErr가 읽거나 복사하는 values 목록이다. nil과 빈 슬라이스 의미는 함수 계약을 따른다.
@@ -311,7 +311,7 @@ func FilterErr[T any](values []T, predicate func(T) (bool, error)) ([]T, error) 
 	return result, nil
 }
 
-// FilterMap는 FilterMap 공개 API의 동작을 수행한다.
+// FilterMap FilterMap 공개 API의 동작을 수행한다.
 //
 // 매개변수:
 //   - values: FilterMap가 읽거나 복사하는 values 목록이다. nil과 빈 슬라이스 의미는 함수 계약을 따른다.

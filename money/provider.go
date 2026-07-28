@@ -7,18 +7,18 @@ import (
 	"time"
 )
 
-// ExchangeRateProvider는 interface 공개 타입이다.
+// ExchangeRateProvider interface 공개 타입이다.
 // 값의 zero value, nil 허용 여부, 동시성 소유권은 생성자와 메서드의 한국어 주석 및 테스트 계약을 따른다.
 type ExchangeRateProvider interface {
 	Rate(ctx context.Context, base Currency, target Currency) (ExchangeRateQuote, error)
 }
 
-// ExchangeRateQuote는 struct 공개 타입이다.
+// ExchangeRateQuote struct 공개 타입이다.
 // 값의 zero value, nil 허용 여부, 동시성 소유권은 생성자와 메서드의 한국어 주석 및 테스트 계약을 따른다.
 type ExchangeRateQuote struct {
-	// Rate 는 변환에 사용할 환율입니다.
+	// Rate 변환에 사용할 환율입니다.
 	Rate ExchangeRate
-	// Source 는 환율 source 이름입니다.
+	// Source 환율 source 이름입니다.
 	Source string
 	// ObservedAt 은 provider가 환율을 관측한 시각입니다.
 	ObservedAt time.Time
@@ -28,11 +28,11 @@ type ExchangeRateQuote struct {
 	ExpiresAt time.Time
 	// Stale 은 refresh 실패 후 오래된 snapshot으로 만든 quote인지 나타냅니다.
 	Stale bool
-	// RefreshError 는 stale fallback을 유발한 refresh 오류입니다.
+	// RefreshError stale fallback을 유발한 refresh 오류입니다.
 	RefreshError error
 }
 
-// ConvertWithProvider는 ConvertWithProvider 공개 API의 동작을 수행한다.
+// ConvertWithProvider ConvertWithProvider 공개 API의 동작을 수행한다.
 //
 // 매개변수:
 //   - ctx: 호출자가 소유한 취소, deadline, 요청 범위를 전달한다.

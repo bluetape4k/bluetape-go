@@ -6,7 +6,7 @@ import (
 	"strings"
 )
 
-// Number는 interface 공개 타입이다.
+// Number interface 공개 타입이다.
 // 값의 zero value, nil 허용 여부, 동시성 소유권은 생성자와 메서드의 한국어 주석 및 테스트 계약을 따른다.
 type Number interface {
 	~int | ~int8 | ~int16 | ~int32 | ~int64 |
@@ -14,7 +14,7 @@ type Number interface {
 		~float32 | ~float64
 }
 
-// RequireNotBlank는 RequireNotBlank 공개 API의 동작을 수행한다.
+// RequireNotBlank RequireNotBlank 공개 API의 동작을 수행한다.
 //
 // 매개변수:
 //   - name: RequireNotBlank가 해석하거나 검증하는 문자열 값이다. 빈 문자열과 공백 처리 의미는 함수 계약을 따른다.
@@ -28,7 +28,7 @@ func RequireNotBlank(name, value string) error {
 	return nil
 }
 
-// RequireNotEmpty는 RequireNotEmpty 공개 API의 동작을 수행한다.
+// RequireNotEmpty RequireNotEmpty 공개 API의 동작을 수행한다.
 //
 // 매개변수:
 //   - name: RequireNotEmpty가 해석하거나 검증하는 문자열 값이다. 빈 문자열과 공백 처리 의미는 함수 계약을 따른다.
@@ -42,7 +42,7 @@ func RequireNotEmpty(name, value string) error {
 	return nil
 }
 
-// RequireInRange는 RequireInRange 공개 API의 동작을 수행한다.
+// RequireInRange RequireInRange 공개 API의 동작을 수행한다.
 //
 // 매개변수:
 //   - name: RequireInRange가 해석하거나 검증하는 문자열 값이다. 빈 문자열과 공백 처리 의미는 함수 계약을 따른다.
@@ -61,7 +61,7 @@ func RequireInRange[T cmp.Ordered](name string, value, lower, upper T) error {
 	return nil
 }
 
-// RequireInOpenRange는 RequireInOpenRange 공개 API의 동작을 수행한다.
+// RequireInOpenRange RequireInOpenRange 공개 API의 동작을 수행한다.
 //
 // 매개변수:
 //   - name: RequireInOpenRange가 해석하거나 검증하는 문자열 값이다. 빈 문자열과 공백 처리 의미는 함수 계약을 따른다.
@@ -80,7 +80,7 @@ func RequireInOpenRange[T cmp.Ordered](name string, value, lower, upper T) error
 	return nil
 }
 
-// RequirePositive는 RequirePositive 공개 API의 동작을 수행한다.
+// RequirePositive RequirePositive 공개 API의 동작을 수행한다.
 //
 // 매개변수:
 //   - name: RequirePositive가 해석하거나 검증하는 문자열 값이다. 빈 문자열과 공백 처리 의미는 함수 계약을 따른다.
@@ -95,7 +95,7 @@ func RequirePositive[T Number](name string, value T) error {
 	return nil
 }
 
-// RequireNonNegative는 RequireNonNegative 공개 API의 동작을 수행한다.
+// RequireNonNegative RequireNonNegative 공개 API의 동작을 수행한다.
 //
 // 매개변수:
 //   - name: RequireNonNegative가 해석하거나 검증하는 문자열 값이다. 빈 문자열과 공백 처리 의미는 함수 계약을 따른다.

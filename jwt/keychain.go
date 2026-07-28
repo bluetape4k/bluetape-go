@@ -29,7 +29,7 @@ type KeyChain struct {
 	verificationKey any
 }
 
-// KID 는 JWT header의 kid 값을 반환한다.
+// KID JWT header의 kid 값을 반환한다.
 func (k *KeyChain) KID() string {
 	if k == nil {
 		return ""
@@ -61,7 +61,7 @@ func (k *KeyChain) ExpiresAt() time.Time {
 	return k.expiresAt
 }
 
-// Expired 는 now 기준으로 KeyChain 만료 여부를 반환한다.
+// Expired now 기준으로 KeyChain 만료 여부를 반환한다.
 func (k *KeyChain) Expired(now time.Time) bool {
 	if k == nil {
 		return true

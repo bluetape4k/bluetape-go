@@ -5,7 +5,7 @@ import (
 	"fmt"
 )
 
-// Go는 Go 공개 API의 동작을 수행한다.
+// Go Go 공개 API의 동작을 수행한다.
 //
 // 매개변수:
 //   - ctx: 호출자가 소유한 취소, deadline, 요청 범위를 전달한다.
@@ -21,7 +21,7 @@ func Go(ctx context.Context, task Task) <-chan error {
 	return result
 }
 
-// ForEach는 ForEach 공개 API의 동작을 수행한다.
+// ForEach ForEach 공개 API의 동작을 수행한다.
 //
 // 매개변수:
 //   - ctx: 호출자가 소유한 취소, deadline, 요청 범위를 전달한다.
@@ -51,7 +51,7 @@ func ForEach[T any](ctx context.Context, values []T, limit int, worker func(cont
 	return group.Wait()
 }
 
-// Map는 Map 공개 API의 동작을 수행한다.
+// Map Map 공개 API의 동작을 수행한다.
 //
 // 매개변수:
 //   - ctx: 호출자가 소유한 취소, deadline, 요청 범위를 전달한다.

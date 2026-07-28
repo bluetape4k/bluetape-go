@@ -4,7 +4,7 @@ const base62Alphabet = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrst
 
 var base62 = newAlphabetEncoding("Base62", base62Alphabet)
 
-// EncodeBase62는 EncodeBase62 공개 API의 동작을 수행한다.
+// EncodeBase62 EncodeBase62 공개 API의 동작을 수행한다.
 //
 // 매개변수:
 //   - input: EncodeBase62가 읽거나 복사하는 input 목록이다. nil과 빈 슬라이스 의미는 함수 계약을 따른다.
@@ -12,7 +12,7 @@ func EncodeBase62(input []byte) string {
 	return base62.encode(input)
 }
 
-// DecodeBase62는 DecodeBase62 공개 API의 동작을 수행한다.
+// DecodeBase62 DecodeBase62 공개 API의 동작을 수행한다.
 //
 // 매개변수:
 //   - input: DecodeBase62가 해석하거나 검증하는 문자열 값이다. 빈 문자열과 공백 처리 의미는 함수 계약을 따른다.
@@ -22,7 +22,7 @@ func DecodeBase62(input string) ([]byte, error) {
 	return base62.decode(input)
 }
 
-// EncodeBase62String는 EncodeBase62String 공개 API의 동작을 수행한다.
+// EncodeBase62String EncodeBase62String 공개 API의 동작을 수행한다.
 //
 // 매개변수:
 //   - input: EncodeBase62String가 해석하거나 검증하는 문자열 값이다. 빈 문자열과 공백 처리 의미는 함수 계약을 따른다.
@@ -30,7 +30,7 @@ func EncodeBase62String(input string) string {
 	return EncodeBase62([]byte(input))
 }
 
-// DecodeBase62String는 DecodeBase62String 공개 API의 동작을 수행한다.
+// DecodeBase62String DecodeBase62String 공개 API의 동작을 수행한다.
 //
 // 매개변수:
 //   - input: DecodeBase62String가 해석하거나 검증하는 문자열 값이다. 빈 문자열과 공백 처리 의미는 함수 계약을 따른다.
@@ -44,7 +44,7 @@ func DecodeBase62String(input string) (string, error) {
 	return stringFromUTF8Bytes("decode Base62 string", decoded)
 }
 
-// EncodeURL62는 EncodeURL62 공개 API의 동작을 수행한다.
+// EncodeURL62 EncodeURL62 공개 API의 동작을 수행한다.
 //
 // 매개변수:
 //   - input: EncodeURL62가 읽거나 복사하는 input 목록이다. nil과 빈 슬라이스 의미는 함수 계약을 따른다.
@@ -52,7 +52,7 @@ func EncodeURL62(input []byte) string {
 	return EncodeBase62(input)
 }
 
-// DecodeURL62는 DecodeURL62 공개 API의 동작을 수행한다.
+// DecodeURL62 DecodeURL62 공개 API의 동작을 수행한다.
 //
 // 매개변수:
 //   - input: DecodeURL62가 해석하거나 검증하는 문자열 값이다. 빈 문자열과 공백 처리 의미는 함수 계약을 따른다.

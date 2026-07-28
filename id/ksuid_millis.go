@@ -20,11 +20,11 @@ type ksuidMillisGenerator struct {
 	now     func() time.Time
 }
 
-// KSUIDMillisOption는 func 공개 타입이다.
+// KSUIDMillisOption func 공개 타입이다.
 // 값의 zero value, nil 허용 여부, 동시성 소유권은 생성자와 메서드의 한국어 주석 및 테스트 계약을 따른다.
 type KSUIDMillisOption func(*ksuidMillisGenerator) error
 
-// WithKSUIDMillisEntropy는 WithKSUIDMillisEntropy 공개 API의 동작을 수행한다.
+// WithKSUIDMillisEntropy WithKSUIDMillisEntropy 공개 API의 동작을 수행한다.
 //
 // 매개변수:
 //   - entropy: WithKSUIDMillisEntropy 동작에 필요한 entropy 값이다. zero value, 범위, nil 허용 여부는 함수 계약을 따른다.
@@ -38,7 +38,7 @@ func WithKSUIDMillisEntropy(entropy io.Reader) KSUIDMillisOption {
 	}
 }
 
-// WithKSUIDMillisTime는 WithKSUIDMillisTime 공개 API의 동작을 수행한다.
+// WithKSUIDMillisTime WithKSUIDMillisTime 공개 API의 동작을 수행한다.
 //
 // 매개변수:
 //   - now: WithKSUIDMillisTime 동작에 필요한 now 값이다. zero value, 범위, nil 허용 여부는 함수 계약을 따른다.
@@ -52,7 +52,7 @@ func WithKSUIDMillisTime(now func() time.Time) KSUIDMillisOption {
 	}
 }
 
-// NewKSUIDMillisGenerator는 NewKSUIDMillisGenerator 공개 API의 동작을 수행한다.
+// NewKSUIDMillisGenerator NewKSUIDMillisGenerator 공개 API의 동작을 수행한다.
 //
 // 매개변수:
 //   - options: NewKSUIDMillisGenerator 동작에 필요한 options 값이다. zero value, 범위, nil 허용 여부는 함수 계약을 따른다.
@@ -96,7 +96,7 @@ func (g *ksuidMillisGenerator) NextString() (string, error) {
 	return encoded, nil
 }
 
-// NewKSUIDMillis는 NewKSUIDMillis 공개 API의 동작을 수행한다.
+// NewKSUIDMillis NewKSUIDMillis 공개 API의 동작을 수행한다.
 //
 // 반환 오류는 입력 검증 실패, 취소, 외부 원인, 또는 패키지 sentinel/typed error 계약을 보존한다.
 func NewKSUIDMillis() (string, error) {
@@ -107,7 +107,7 @@ func NewKSUIDMillis() (string, error) {
 	return g.NextString()
 }
 
-// ParseKSUIDMillis는 ParseKSUIDMillis 공개 API의 동작을 수행한다.
+// ParseKSUIDMillis ParseKSUIDMillis 공개 API의 동작을 수행한다.
 //
 // 매개변수:
 //   - value: ParseKSUIDMillis가 해석하거나 검증하는 문자열 값이다. 빈 문자열과 공백 처리 의미는 함수 계약을 따른다.
@@ -120,7 +120,7 @@ func ParseKSUIDMillis(value string) (string, error) {
 	return value, nil
 }
 
-// KSUIDMillisTime는 KSUIDMillisTime 공개 API의 동작을 수행한다.
+// KSUIDMillisTime KSUIDMillisTime 공개 API의 동작을 수행한다.
 //
 // 매개변수:
 //   - value: KSUIDMillisTime가 해석하거나 검증하는 문자열 값이다. 빈 문자열과 공백 처리 의미는 함수 계약을 따른다.

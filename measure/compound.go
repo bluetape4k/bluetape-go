@@ -2,7 +2,7 @@ package measure
 
 import "fmt"
 
-// ProductUnit는 ProductUnit 공개 API의 동작을 수행한다.
+// ProductUnit ProductUnit 공개 API의 동작을 수행한다.
 //
 // 매개변수:
 //   - first: ProductUnit 동작에 필요한 first 값이다. zero value, 범위, nil 허용 여부는 함수 계약을 따른다.
@@ -23,7 +23,7 @@ func ProductUnit[A, B any](first Unit[A], second Unit[B]) (Unit[Product[A, B]], 
 	return NewUnit[Product[A, B]](first.name+"*"+second.name, suffix, first.ratio*second.ratio)
 }
 
-// MustProductUnit는 MustProductUnit 공개 API의 동작을 수행한다.
+// MustProductUnit MustProductUnit 공개 API의 동작을 수행한다.
 //
 // 매개변수:
 //   - first: MustProductUnit 동작에 필요한 first 값이다. zero value, 범위, nil 허용 여부는 함수 계약을 따른다.
@@ -36,7 +36,7 @@ func MustProductUnit[A, B any](first Unit[A], second Unit[B]) Unit[Product[A, B]
 	return unit
 }
 
-// RatioUnit는 RatioUnit 공개 API의 동작을 수행한다.
+// RatioUnit RatioUnit 공개 API의 동작을 수행한다.
 //
 // 매개변수:
 //   - numerator: RatioUnit 동작에 필요한 numerator 값이다. zero value, 범위, nil 허용 여부는 함수 계약을 따른다.
@@ -57,7 +57,7 @@ func RatioUnit[A, B any](numerator Unit[A], denominator Unit[B]) (Unit[Ratio[A, 
 	)
 }
 
-// MustRatioUnit는 MustRatioUnit 공개 API의 동작을 수행한다.
+// MustRatioUnit MustRatioUnit 공개 API의 동작을 수행한다.
 //
 // 매개변수:
 //   - numerator: MustRatioUnit 동작에 필요한 numerator 값이다. zero value, 범위, nil 허용 여부는 함수 계약을 따른다.
@@ -70,7 +70,7 @@ func MustRatioUnit[A, B any](numerator Unit[A], denominator Unit[B]) Unit[Ratio[
 	return unit
 }
 
-// InverseUnit는 InverseUnit 공개 API의 동작을 수행한다.
+// InverseUnit InverseUnit 공개 API의 동작을 수행한다.
 //
 // 매개변수:
 //   - unit: InverseUnit 동작에 필요한 unit 값이다. zero value, 범위, nil 허용 여부는 함수 계약을 따른다.
@@ -83,7 +83,7 @@ func InverseUnit[D any](unit Unit[D]) (Unit[Inverse[D]], error) {
 	return NewUnit[Inverse[D]]("1/"+unit.name, "1/"+unit.suffix, 1/unit.ratio)
 }
 
-// MustInverseUnit는 MustInverseUnit 공개 API의 동작을 수행한다.
+// MustInverseUnit MustInverseUnit 공개 API의 동작을 수행한다.
 //
 // 매개변수:
 //   - unit: MustInverseUnit 동작에 필요한 unit 값이다. zero value, 범위, nil 허용 여부는 함수 계약을 따른다.
@@ -95,7 +95,7 @@ func MustInverseUnit[D any](unit Unit[D]) Unit[Inverse[D]] {
 	return inverse
 }
 
-// Mul는 Mul 공개 API의 동작을 수행한다.
+// Mul Mul 공개 API의 동작을 수행한다.
 //
 // 매개변수:
 //   - left: Mul 동작에 필요한 left 값이다. zero value, 범위, nil 허용 여부는 함수 계약을 따른다.
@@ -116,7 +116,7 @@ func Mul[A, B any](left Measure[A], right Measure[B]) (Measure[Product[A, B]], e
 	return New(left.amount*right.amount, unit)
 }
 
-// Div는 Div 공개 API의 동작을 수행한다.
+// Div Div 공개 API의 동작을 수행한다.
 //
 // 매개변수:
 //   - left: Div 동작에 필요한 left 값이다. zero value, 범위, nil 허용 여부는 함수 계약을 따른다.
@@ -140,7 +140,7 @@ func Div[A, B any](left Measure[A], right Measure[B]) (Measure[Ratio[A, B]], err
 	return New(left.amount/right.amount, unit)
 }
 
-// MulRatioByDenominator는 MulRatioByDenominator 공개 API의 동작을 수행한다.
+// MulRatioByDenominator MulRatioByDenominator 공개 API의 동작을 수행한다.
 //
 // 매개변수:
 //   - ratio: MulRatioByDenominator 동작에 필요한 ratio 값이다. zero value, 범위, nil 허용 여부는 함수 계약을 따른다.
@@ -162,7 +162,7 @@ func MulRatioByDenominator[A, B any](ratio Measure[Ratio[A, B]], denominator Mea
 	return New(base/result.ratio, result)
 }
 
-// DivProductByLeft는 DivProductByLeft 공개 API의 동작을 수행한다.
+// DivProductByLeft DivProductByLeft 공개 API의 동작을 수행한다.
 //
 // 매개변수:
 //   - product: DivProductByLeft 동작에 필요한 product 값이다. zero value, 범위, nil 허용 여부는 함수 계약을 따른다.
@@ -187,7 +187,7 @@ func DivProductByLeft[A, B any](product Measure[Product[A, B]], left Measure[A],
 	return New(base/result.ratio, result)
 }
 
-// AreaFromLength는 AreaFromLength 공개 API의 동작을 수행한다.
+// AreaFromLength AreaFromLength 공개 API의 동작을 수행한다.
 //
 // 매개변수:
 //   - width: AreaFromLength 동작에 필요한 width 값이다. zero value, 범위, nil 허용 여부는 함수 계약을 따른다.
@@ -205,7 +205,7 @@ func AreaFromLength(width, height Measure[Length]) (Measure[Area], error) {
 	return New(base/AreaSquareMeter().Ratio(), AreaSquareMeter())
 }
 
-// VolumeFromAreaLength는 VolumeFromAreaLength 공개 API의 동작을 수행한다.
+// VolumeFromAreaLength VolumeFromAreaLength 공개 API의 동작을 수행한다.
 //
 // 매개변수:
 //   - area: VolumeFromAreaLength 동작에 필요한 area 값이다. zero value, 범위, nil 허용 여부는 함수 계약을 따른다.
@@ -223,7 +223,7 @@ func VolumeFromAreaLength(area Measure[Area], length Measure[Length]) (Measure[V
 	return New(base/VolumeCubicMeter().Ratio(), VolumeCubicMeter())
 }
 
-// LengthFromVolumeArea는 LengthFromVolumeArea 공개 API의 동작을 수행한다.
+// LengthFromVolumeArea LengthFromVolumeArea 공개 API의 동작을 수행한다.
 //
 // 매개변수:
 //   - volume: LengthFromVolumeArea 동작에 필요한 volume 값이다. zero value, 범위, nil 허용 여부는 함수 계약을 따른다.
@@ -244,7 +244,7 @@ func LengthFromVolumeArea(volume Measure[Volume], area Measure[Area]) (Measure[L
 	return New(base/LengthMeter().Ratio(), LengthMeter())
 }
 
-// AreaFromVolumeLength는 AreaFromVolumeLength 공개 API의 동작을 수행한다.
+// AreaFromVolumeLength AreaFromVolumeLength 공개 API의 동작을 수행한다.
 //
 // 매개변수:
 //   - volume: AreaFromVolumeLength 동작에 필요한 volume 값이다. zero value, 범위, nil 허용 여부는 함수 계약을 따른다.
@@ -265,7 +265,7 @@ func AreaFromVolumeLength(volume Measure[Volume], length Measure[Length]) (Measu
 	return New(base/AreaSquareMeter().Ratio(), AreaSquareMeter())
 }
 
-// VelocityFromLengthTime는 VelocityFromLengthTime 공개 API의 동작을 수행한다.
+// VelocityFromLengthTime VelocityFromLengthTime 공개 API의 동작을 수행한다.
 //
 // 매개변수:
 //   - length: VelocityFromLengthTime 동작에 필요한 length 값이다. zero value, 범위, nil 허용 여부는 함수 계약을 따른다.
@@ -284,7 +284,7 @@ func VelocityFromLengthTime(length Measure[Length], duration Measure[Time]) (Mea
 	return New(value, VelocityMeterPerSecond())
 }
 
-// LengthFromVelocityTime는 LengthFromVelocityTime 공개 API의 동작을 수행한다.
+// LengthFromVelocityTime LengthFromVelocityTime 공개 API의 동작을 수행한다.
 //
 // 매개변수:
 //   - velocity: LengthFromVelocityTime 동작에 필요한 velocity 값이다. zero value, 범위, nil 허용 여부는 함수 계약을 따른다.
@@ -295,7 +295,7 @@ func LengthFromVelocityTime(velocity Measure[Velocity], duration Measure[Time]) 
 	return MulRatioByDenominator(velocity, duration, LengthMeter())
 }
 
-// PowerFromEnergyTime는 PowerFromEnergyTime 공개 API의 동작을 수행한다.
+// PowerFromEnergyTime PowerFromEnergyTime 공개 API의 동작을 수행한다.
 //
 // 매개변수:
 //   - energy: PowerFromEnergyTime 동작에 필요한 energy 값이다. zero value, 범위, nil 허용 여부는 함수 계약을 따른다.
@@ -317,7 +317,7 @@ func PowerFromEnergyTime(energy Measure[Energy], duration Measure[Time]) (Measur
 	return New((joules/(millis/1000))/PowerWatt().Ratio(), PowerWatt())
 }
 
-// EnergyFromPowerTime는 EnergyFromPowerTime 공개 API의 동작을 수행한다.
+// EnergyFromPowerTime EnergyFromPowerTime 공개 API의 동작을 수행한다.
 //
 // 매개변수:
 //   - power: EnergyFromPowerTime 동작에 필요한 power 값이다. zero value, 범위, nil 허용 여부는 함수 계약을 따른다.

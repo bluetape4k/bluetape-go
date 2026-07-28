@@ -7,14 +7,14 @@ import (
 	gmoney "github.com/govalues/money"
 )
 
-// ExchangeRate는 struct 공개 타입이다.
+// ExchangeRate struct 공개 타입이다.
 // 값의 zero value, nil 허용 여부, 동시성 소유권은 생성자와 메서드의 한국어 주석 및 테스트 계약을 따른다.
 type ExchangeRate struct {
 	rate  gmoney.ExchangeRate
 	valid bool
 }
 
-// NewExchangeRate는 NewExchangeRate 공개 API의 동작을 수행한다.
+// NewExchangeRate NewExchangeRate 공개 API의 동작을 수행한다.
 //
 // 매개변수:
 //   - base: NewExchangeRate 동작에 필요한 base 값이다. zero value, 범위, nil 허용 여부는 함수 계약을 따른다.
@@ -46,7 +46,7 @@ func NewExchangeRate(base Currency, quote Currency, rate string) (ExchangeRate, 
 	return ExchangeRate{rate: parsed, valid: true}, nil
 }
 
-// Convert는 Convert 공개 API의 동작을 수행한다.
+// Convert Convert 공개 API의 동작을 수행한다.
 //
 // 매개변수:
 //   - amount: Convert 동작에 필요한 amount 값이다. zero value, 범위, nil 허용 여부는 함수 계약을 따른다.
@@ -70,13 +70,13 @@ func Convert(amount Money, rate ExchangeRate) (Money, error) {
 	return Money{amount: converted.RoundToCurr(), valid: true}, nil
 }
 
-// Valid는 Valid 공개 API의 동작을 수행한다.
+// Valid Valid 공개 API의 동작을 수행한다.
 func (r ExchangeRate) Valid() bool {
 	return r.valid && !r.rate.IsZero() && r.rate.IsPos() &&
 		r.rate.Base() != gmoney.XXX && r.rate.Quote() != gmoney.XXX
 }
 
-// Base는 Base 공개 API의 동작을 수행한다.
+// Base Base 공개 API의 동작을 수행한다.
 func (r ExchangeRate) Base() Currency {
 	if !r.Valid() {
 		return Currency{}
@@ -84,7 +84,7 @@ func (r ExchangeRate) Base() Currency {
 	return Currency{curr: r.rate.Base()}
 }
 
-// Quote는 Quote 공개 API의 동작을 수행한다.
+// Quote Quote 공개 API의 동작을 수행한다.
 func (r ExchangeRate) Quote() Currency {
 	if !r.Valid() {
 		return Currency{}
@@ -92,7 +92,7 @@ func (r ExchangeRate) Quote() Currency {
 	return Currency{curr: r.rate.Quote()}
 }
 
-// Rate는 Rate 공개 API의 동작을 수행한다.
+// Rate Rate 공개 API의 동작을 수행한다.
 func (r ExchangeRate) Rate() string {
 	if !r.Valid() {
 		return ""
@@ -100,7 +100,7 @@ func (r ExchangeRate) Rate() string {
 	return r.rate.Decimal().String()
 }
 
-// IsZero는 IsZero 공개 API의 동작을 수행한다.
+// IsZero IsZero 공개 API의 동작을 수행한다.
 func (r ExchangeRate) IsZero() bool {
 	return !r.Valid()
 }

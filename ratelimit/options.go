@@ -8,11 +8,11 @@ import (
 
 const minDefaultIdleTTL = time.Minute
 
-// Options 는 local token bucket 설정이다.
+// Options local token bucket 설정이다.
 type Options struct {
-	// RatePerSecond 는 초당 채워지는 token 수다.
+	// RatePerSecond 초당 채워지는 token 수다.
 	RatePerSecond float64
-	// Burst 는 bucket 최대 token 수다.
+	// Burst bucket 최대 token 수다.
 	Burst int64
 	// IdleTTL은 쓰지 않는 key 상태를 제거하는 시간이다.
 	IdleTTL time.Duration

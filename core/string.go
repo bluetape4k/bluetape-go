@@ -6,7 +6,7 @@ import (
 	"unicode/utf8"
 )
 
-// HasLength는 HasLength 공개 API의 동작을 수행한다.
+// HasLength HasLength 공개 API의 동작을 수행한다.
 //
 // 매개변수:
 //   - value: HasLength가 해석하거나 검증하는 문자열 값이다. 빈 문자열과 공백 처리 의미는 함수 계약을 따른다.
@@ -14,7 +14,7 @@ func HasLength(value string) bool {
 	return value != ""
 }
 
-// NoLength는 NoLength 공개 API의 동작을 수행한다.
+// NoLength NoLength 공개 API의 동작을 수행한다.
 //
 // 매개변수:
 //   - value: NoLength가 해석하거나 검증하는 문자열 값이다. 빈 문자열과 공백 처리 의미는 함수 계약을 따른다.
@@ -22,7 +22,7 @@ func NoLength(value string) bool {
 	return value == ""
 }
 
-// HasText는 HasText 공개 API의 동작을 수행한다.
+// HasText HasText 공개 API의 동작을 수행한다.
 //
 // 매개변수:
 //   - value: HasText가 해석하거나 검증하는 문자열 값이다. 빈 문자열과 공백 처리 의미는 함수 계약을 따른다.
@@ -30,7 +30,7 @@ func HasText(value string) bool {
 	return strings.TrimSpace(value) != ""
 }
 
-// NoText는 NoText 공개 API의 동작을 수행한다.
+// NoText NoText 공개 API의 동작을 수행한다.
 //
 // 매개변수:
 //   - value: NoText가 해석하거나 검증하는 문자열 값이다. 빈 문자열과 공백 처리 의미는 함수 계약을 따른다.
@@ -38,7 +38,7 @@ func NoText(value string) bool {
 	return !HasText(value)
 }
 
-// EmptyToDefault는 EmptyToDefault 공개 API의 동작을 수행한다.
+// EmptyToDefault EmptyToDefault 공개 API의 동작을 수행한다.
 //
 // 매개변수:
 //   - value: EmptyToDefault가 해석하거나 검증하는 문자열 값이다. 빈 문자열과 공백 처리 의미는 함수 계약을 따른다.
@@ -50,7 +50,7 @@ func EmptyToDefault(value, fallback string) string {
 	return value
 }
 
-// BlankToDefault는 BlankToDefault 공개 API의 동작을 수행한다.
+// BlankToDefault BlankToDefault 공개 API의 동작을 수행한다.
 //
 // 매개변수:
 //   - value: BlankToDefault가 해석하거나 검증하는 문자열 값이다. 빈 문자열과 공백 처리 의미는 함수 계약을 따른다.
@@ -62,7 +62,7 @@ func BlankToDefault(value, fallback string) string {
 	return value
 }
 
-// EmptyToNil는 EmptyToNil 공개 API의 동작을 수행한다.
+// EmptyToNil EmptyToNil 공개 API의 동작을 수행한다.
 //
 // 매개변수:
 //   - value: EmptyToNil가 해석하거나 검증하는 문자열 값이다. 빈 문자열과 공백 처리 의미는 함수 계약을 따른다.
@@ -73,7 +73,7 @@ func EmptyToNil(value string) *string {
 	return &value
 }
 
-// BlankToNil는 BlankToNil 공개 API의 동작을 수행한다.
+// BlankToNil BlankToNil 공개 API의 동작을 수행한다.
 //
 // 매개변수:
 //   - value: BlankToNil가 해석하거나 검증하는 문자열 값이다. 빈 문자열과 공백 처리 의미는 함수 계약을 따른다.
@@ -84,7 +84,7 @@ func BlankToNil(value string) *string {
 	return &value
 }
 
-// Mask는 Mask 공개 API의 동작을 수행한다.
+// Mask Mask 공개 API의 동작을 수행한다.
 //
 // 매개변수:
 //   - value: Mask가 해석하거나 검증하는 문자열 값이다. 빈 문자열과 공백 처리 의미는 함수 계약을 따른다.
@@ -100,7 +100,7 @@ func Mask(value string, mask rune) string {
 	return builder.String()
 }
 
-// CommonPrefix는 CommonPrefix 공개 API의 동작을 수행한다.
+// CommonPrefix CommonPrefix 공개 API의 동작을 수행한다.
 //
 // 매개변수:
 //   - a: CommonPrefix가 해석하거나 검증하는 문자열 값이다. 빈 문자열과 공백 처리 의미는 함수 계약을 따른다.
@@ -123,7 +123,7 @@ func CommonPrefix(a, b string) string {
 	return string(ar[:limit])
 }
 
-// CommonSuffix는 CommonSuffix 공개 API의 동작을 수행한다.
+// CommonSuffix CommonSuffix 공개 API의 동작을 수행한다.
 //
 // 매개변수:
 //   - a: CommonSuffix가 해석하거나 검증하는 문자열 값이다. 빈 문자열과 공백 처리 의미는 함수 계약을 따른다.
@@ -146,7 +146,7 @@ func CommonSuffix(a, b string) string {
 	return string(ar[len(ar)-limit:])
 }
 
-// TruncateUTF8Bytes는 TruncateUTF8Bytes 공개 API의 동작을 수행한다.
+// TruncateUTF8Bytes TruncateUTF8Bytes 공개 API의 동작을 수행한다.
 //
 // 매개변수:
 //   - value: TruncateUTF8Bytes가 해석하거나 검증하는 문자열 값이다. 빈 문자열과 공백 처리 의미는 함수 계약을 따른다.

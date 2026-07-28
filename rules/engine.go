@@ -6,7 +6,7 @@ import (
 	"fmt"
 )
 
-// EngineConfig는 struct 공개 타입이다.
+// EngineConfig struct 공개 타입이다.
 // 값의 zero value, nil 허용 여부, 동시성 소유권은 생성자와 메서드의 한국어 주석 및 테스트 계약을 따른다.
 type EngineConfig struct {
 	// StopOnFirstApplied stops after the first rule whose Execute succeeds.
@@ -22,14 +22,14 @@ type EngineConfig struct {
 	UsePriorityThreshold bool
 }
 
-// Engine는 struct 공개 타입이다.
+// Engine struct 공개 타입이다.
 // 값의 zero value, nil 허용 여부, 동시성 소유권은 생성자와 메서드의 한국어 주석 및 테스트 계약을 따른다.
 type Engine struct {
 	rules  *RuleSet
 	config EngineConfig
 }
 
-// NewEngine는 NewEngine 공개 API의 동작을 수행한다.
+// NewEngine NewEngine 공개 API의 동작을 수행한다.
 //
 // 매개변수:
 //   - rules: NewEngine 동작에 필요한 rules 값이다. zero value, 범위, nil 허용 여부는 함수 계약을 따른다.
@@ -41,7 +41,7 @@ func NewEngine(rules *RuleSet, config EngineConfig) *Engine {
 	return &Engine{rules: rules, config: config}
 }
 
-// DetailStatus는 string 공개 타입이다.
+// DetailStatus string 공개 타입이다.
 // 값의 zero value, nil 허용 여부, 동시성 소유권은 생성자와 메서드의 한국어 주석 및 테스트 계약을 따른다.
 type DetailStatus string
 
@@ -62,7 +62,7 @@ const (
 	StatusSkipped DetailStatus = "skipped"
 )
 
-// Detail는 struct 공개 타입이다.
+// Detail struct 공개 타입이다.
 // 값의 zero value, nil 허용 여부, 동시성 소유권은 생성자와 메서드의 한국어 주석 및 테스트 계약을 따른다.
 type Detail struct {
 	RuleName  string
@@ -73,7 +73,7 @@ type Detail struct {
 	Err       error
 }
 
-// Result는 struct 공개 타입이다.
+// Result struct 공개 타입이다.
 // 값의 zero value, nil 허용 여부, 동시성 소유권은 생성자와 메서드의 한국어 주석 및 테스트 계약을 따른다.
 type Result struct {
 	Details      []Detail
@@ -85,7 +85,7 @@ type Result struct {
 	StopReason   DetailStatus
 }
 
-// Run는 Run 공개 API의 동작을 수행한다.
+// Run Run 공개 API의 동작을 수행한다.
 //
 // 매개변수:
 //   - ctx: 호출자가 소유한 취소, deadline, 요청 범위를 전달한다.

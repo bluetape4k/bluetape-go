@@ -5,7 +5,7 @@ import (
 	"math"
 )
 
-// Page는 struct 공개 타입이다.
+// Page struct 공개 타입이다.
 // 값의 zero value, nil 허용 여부, 동시성 소유권은 생성자와 메서드의 한국어 주석 및 테스트 계약을 따른다.
 type Page[T any] struct {
 	items  []T
@@ -15,7 +15,7 @@ type Page[T any] struct {
 	offset int64
 }
 
-// PageOf는 PageOf 공개 API의 동작을 수행한다.
+// PageOf PageOf 공개 API의 동작을 수행한다.
 //
 // 매개변수:
 //   - items: PageOf가 읽거나 복사하는 items 목록이다. nil과 빈 슬라이스 의미는 함수 계약을 따른다.
@@ -56,7 +56,7 @@ func PageOf[T any](items []T, page, size int, total int64) (Page[T], error) {
 	}, nil
 }
 
-// Items는 Items 공개 API의 동작을 수행한다.
+// Items Items 공개 API의 동작을 수행한다.
 func (p Page[T]) Items() []T {
 	if p.items == nil {
 		return nil
@@ -66,22 +66,22 @@ func (p Page[T]) Items() []T {
 	return result
 }
 
-// PageNumber는 PageNumber 공개 API의 동작을 수행한다.
+// PageNumber PageNumber 공개 API의 동작을 수행한다.
 func (p Page[T]) PageNumber() int {
 	return p.page
 }
 
-// PageSize는 PageSize 공개 API의 동작을 수행한다.
+// PageSize PageSize 공개 API의 동작을 수행한다.
 func (p Page[T]) PageSize() int {
 	return p.size
 }
 
-// TotalItems는 TotalItems 공개 API의 동작을 수행한다.
+// TotalItems TotalItems 공개 API의 동작을 수행한다.
 func (p Page[T]) TotalItems() int64 {
 	return p.total
 }
 
-// TotalPages는 TotalPages 공개 API의 동작을 수행한다.
+// TotalPages TotalPages 공개 API의 동작을 수행한다.
 func (p Page[T]) TotalPages() int64 {
 	if p.total <= 0 || p.size <= 0 {
 		return 0
@@ -94,18 +94,18 @@ func (p Page[T]) TotalPages() int64 {
 	return pages
 }
 
-// Offset는 Offset 공개 API의 동작을 수행한다.
+// Offset Offset 공개 API의 동작을 수행한다.
 func (p Page[T]) Offset() int64 {
 	return p.offset
 }
 
-// HasNext는 HasNext 공개 API의 동작을 수행한다.
+// HasNext HasNext 공개 API의 동작을 수행한다.
 func (p Page[T]) HasNext() bool {
 	totalPages := p.TotalPages()
 	return totalPages > 0 && int64(p.page) < totalPages-1
 }
 
-// HasPrevious는 HasPrevious 공개 API의 동작을 수행한다.
+// HasPrevious HasPrevious 공개 API의 동작을 수행한다.
 func (p Page[T]) HasPrevious() bool {
 	return p.page > 0
 }

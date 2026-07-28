@@ -2,7 +2,7 @@ package collections
 
 import "fmt"
 
-// GroupBy는 GroupBy 공개 API의 동작을 수행한다.
+// GroupBy GroupBy 공개 API의 동작을 수행한다.
 //
 // 매개변수:
 //   - values: GroupBy가 읽거나 복사하는 values 목록이다. nil과 빈 슬라이스 의미는 함수 계약을 따른다.
@@ -25,7 +25,7 @@ func GroupBy[T any, K comparable](values []T, key func(T) K) (map[K][]T, error) 
 	return groups, nil
 }
 
-// CountBy는 CountBy 공개 API의 동작을 수행한다.
+// CountBy CountBy 공개 API의 동작을 수행한다.
 //
 // 매개변수:
 //   - values: CountBy가 읽거나 복사하는 values 목록이다. nil과 빈 슬라이스 의미는 함수 계약을 따른다.

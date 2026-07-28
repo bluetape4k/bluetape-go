@@ -29,7 +29,7 @@ const (
 	defaultIMFMaxBodyBytes = 4 << 20
 )
 
-// IMFFrequency는 string 공개 타입이다.
+// IMFFrequency string 공개 타입이다.
 // 값의 zero value, nil 허용 여부, 동시성 소유권은 생성자와 메서드의 한국어 주석 및 테스트 계약을 따른다.
 type IMFFrequency string
 
@@ -44,7 +44,7 @@ const (
 	IMFFrequencyAnnual IMFFrequency = "A"
 )
 
-// IMFRateFamily는 string 공개 타입이다.
+// IMFRateFamily string 공개 타입이다.
 // 값의 zero value, nil 허용 여부, 동시성 소유권은 생성자와 메서드의 한국어 주석 및 테스트 계약을 따른다.
 type IMFRateFamily string
 
@@ -55,7 +55,7 @@ const (
 	IMFRatePeriodAverage IMFRateFamily = "PA_RT"
 )
 
-// IMFProviderOptions는 struct 공개 타입이다.
+// IMFProviderOptions struct 공개 타입이다.
 // 값의 zero value, nil 허용 여부, 동시성 소유권은 생성자와 메서드의 한국어 주석 및 테스트 계약을 따른다.
 type IMFProviderOptions struct {
 	// Client is the HTTP client used for requests. nil uses http.DefaultClient.
@@ -88,7 +88,7 @@ type IMFProviderOptions struct {
 	CountryCodes map[string]string
 }
 
-// IMFProvider는 struct 공개 타입이다.
+// IMFProvider struct 공개 타입이다.
 // 값의 zero value, nil 허용 여부, 동시성 소유권은 생성자와 메서드의 한국어 주석 및 테스트 계약을 따른다.
 type IMFProvider struct {
 	client   *http.Client
@@ -166,7 +166,7 @@ func (e imfHTTPStatusError) Unwrap() error {
 	return ErrExchangeRateProvider
 }
 
-// NewIMFProvider는 NewIMFProvider 공개 API의 동작을 수행한다.
+// NewIMFProvider NewIMFProvider 공개 API의 동작을 수행한다.
 //
 // 매개변수:
 //   - options: NewIMFProvider 동작에 필요한 options 값이다. zero value, 범위, nil 허용 여부는 함수 계약을 따른다.
@@ -200,7 +200,7 @@ func NewIMFProvider(options IMFProviderOptions) (*IMFProvider, error) {
 	}, nil
 }
 
-// Rate는 Rate 공개 API의 동작을 수행한다.
+// Rate Rate 공개 API의 동작을 수행한다.
 //
 // 매개변수:
 //   - ctx: 호출자가 소유한 취소, deadline, 요청 범위를 전달한다.

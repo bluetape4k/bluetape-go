@@ -16,7 +16,7 @@ import (
 )
 
 const (
-	// ECBSource 는 ECB daily reference-rate provider source 이름입니다.
+	// ECBSource ECB daily reference-rate provider source 이름입니다.
 	ECBSource = "ECB"
 
 	defaultECBEndpoint     = "https://www.ecb.europa.eu/stats/eurofxref/eurofxref-daily.xml"
@@ -27,12 +27,12 @@ const (
 	defaultECBMaxBodyBytes = 4 << 20
 )
 
-// ECBProviderOptions는 struct 공개 타입이다.
+// ECBProviderOptions struct 공개 타입이다.
 // 값의 zero value, nil 허용 여부, 동시성 소유권은 생성자와 메서드의 한국어 주석 및 테스트 계약을 따른다.
 type ECBProviderOptions struct {
-	// Client 는 HTTP 요청에 사용할 client입니다. nil이면 http.DefaultClient를 사용합니다.
+	// Client HTTP 요청에 사용할 client입니다. nil이면 http.DefaultClient를 사용합니다.
 	Client *http.Client
-	// Endpoint 는 ECB daily XML endpoint입니다.
+	// Endpoint ECB daily XML endpoint입니다.
 	Endpoint string
 	// Timeout 은 fetch 한 번에 적용할 provider-owned timeout입니다.
 	Timeout time.Duration
@@ -40,19 +40,19 @@ type ECBProviderOptions struct {
 	CacheTTL time.Duration
 	// MaxStale 은 refresh 실패 시 stale snapshot을 반환할 수 있는 최대 기간입니다.
 	MaxStale time.Duration
-	// RetryCount 는 첫 시도 이후 추가 재시도 횟수입니다.
+	// RetryCount 첫 시도 이후 추가 재시도 횟수입니다.
 	RetryCount int
-	// RetryBackoff 는 재시도 사이의 대기 시간입니다.
+	// RetryBackoff 재시도 사이의 대기 시간입니다.
 	RetryBackoff time.Duration
-	// AllowStaleOnError 는 refresh 실패 시 stale snapshot 반환을 허용합니다.
+	// AllowStaleOnError refresh 실패 시 stale snapshot 반환을 허용합니다.
 	AllowStaleOnError bool
-	// MaxBodyBytes 는 XML decode 전에 읽을 수 있는 최대 ECB response body 크기입니다.
+	// MaxBodyBytes XML decode 전에 읽을 수 있는 최대 ECB response body 크기입니다.
 	MaxBodyBytes int64
-	// Now 는 freshness test를 위한 시간 provider입니다.
+	// Now freshness test를 위한 시간 provider입니다.
 	Now func() time.Time
 }
 
-// ECBProvider는 struct 공개 타입이다.
+// ECBProvider struct 공개 타입이다.
 // 값의 zero value, nil 허용 여부, 동시성 소유권은 생성자와 메서드의 한국어 주석 및 테스트 계약을 따른다.
 type ECBProvider struct {
 	client   *http.Client
@@ -96,7 +96,7 @@ type ecbRateCube struct {
 	Rate     string `xml:"rate,attr"`
 }
 
-// NewECBProvider는 NewECBProvider 공개 API의 동작을 수행한다.
+// NewECBProvider NewECBProvider 공개 API의 동작을 수행한다.
 //
 // 매개변수:
 //   - options: NewECBProvider 동작에 필요한 options 값이다. zero value, 범위, nil 허용 여부는 함수 계약을 따른다.
@@ -125,7 +125,7 @@ func NewECBProvider(options ECBProviderOptions) (*ECBProvider, error) {
 	}, nil
 }
 
-// Rate는 Rate 공개 API의 동작을 수행한다.
+// Rate Rate 공개 API의 동작을 수행한다.
 //
 // 매개변수:
 //   - ctx: 호출자가 소유한 취소, deadline, 요청 범위를 전달한다.

@@ -5,14 +5,14 @@ import (
 	"sort"
 )
 
-// Registry는 struct 공개 타입이다.
+// Registry struct 공개 타입이다.
 // 값의 zero value, nil 허용 여부, 동시성 소유권은 생성자와 메서드의 한국어 주석 및 테스트 계약을 따른다.
 type Registry[D any] struct {
 	units    []Unit[D]
 	bySuffix map[string]Unit[D]
 }
 
-// NewRegistry는 NewRegistry 공개 API의 동작을 수행한다.
+// NewRegistry NewRegistry 공개 API의 동작을 수행한다.
 //
 // 매개변수:
 //   - units: NewRegistry 동작에 필요한 units 값이다. zero value, 범위, nil 허용 여부는 함수 계약을 따른다.
@@ -45,7 +45,7 @@ func NewRegistry[D any](units ...Unit[D]) (Registry[D], error) {
 	return Registry[D]{units: copied, bySuffix: bySuffix}, nil
 }
 
-// MustRegistry는 MustRegistry 공개 API의 동작을 수행한다.
+// MustRegistry MustRegistry 공개 API의 동작을 수행한다.
 //
 // 매개변수:
 //   - units: MustRegistry 동작에 필요한 units 값이다. zero value, 범위, nil 허용 여부는 함수 계약을 따른다.
@@ -64,14 +64,14 @@ func (r Registry[D]) validate() error {
 	return nil
 }
 
-// Units는 Units 공개 API의 동작을 수행한다.
+// Units Units 공개 API의 동작을 수행한다.
 func (r Registry[D]) Units() []Unit[D] {
 	copied := make([]Unit[D], len(r.units))
 	copy(copied, r.units)
 	return copied
 }
 
-// Lookup는 Lookup 공개 API의 동작을 수행한다.
+// Lookup Lookup 공개 API의 동작을 수행한다.
 //
 // 매개변수:
 //   - suffix: Lookup가 해석하거나 검증하는 문자열 값이다. 빈 문자열과 공백 처리 의미는 함수 계약을 따른다.

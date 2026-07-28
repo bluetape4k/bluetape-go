@@ -1,4 +1,4 @@
-// Package exprreader는 bluetape-go의 exprreader 기능을 제공한다.
+// Package exprreader bluetape-go의 exprreader 기능을 제공한다.
 // 공개 API 주석은 호출자가 입력, 반환값, 오류, 취소, zero value 계약을 한국어로 확인할 수 있도록 유지한다.
 package exprreader
 
@@ -28,7 +28,7 @@ var (
 	ErrInvalidRuleAction = errors.New("exprreader rule action is invalid")
 )
 
-// ReaderError는 struct 공개 타입이다.
+// ReaderError struct 공개 타입이다.
 // 값의 zero value, nil 허용 여부, 동시성 소유권은 생성자와 메서드의 한국어 주석 및 테스트 계약을 따른다.
 type ReaderError struct {
 	RuleName string
@@ -36,7 +36,7 @@ type ReaderError struct {
 	Err      error
 }
 
-// Error는 Error 공개 API의 동작을 수행한다.
+// Error Error 공개 API의 동작을 수행한다.
 func (e ReaderError) Error() string {
 	var b strings.Builder
 	b.WriteString("exprreader")
@@ -56,14 +56,14 @@ func (e ReaderError) Error() string {
 	return b.String()
 }
 
-// Unwrap는 Unwrap 공개 API의 동작을 수행한다.
+// Unwrap Unwrap 공개 API의 동작을 수행한다.
 //
 // 반환 오류는 입력 검증 실패, 취소, 외부 원인, 또는 패키지 sentinel/typed error 계약을 보존한다.
 func (e ReaderError) Unwrap() error {
 	return e.Err
 }
 
-// Document는 struct 공개 타입이다.
+// Document struct 공개 타입이다.
 // 값의 zero value, nil 허용 여부, 동시성 소유권은 생성자와 메서드의 한국어 주석 및 테스트 계약을 따른다.
 type Document struct {
 	// Rules contains compiled rules in deterministic RuleSet order.
@@ -72,11 +72,11 @@ type Document struct {
 	EngineConfig rules.EngineConfig
 }
 
-// Option는 func 공개 타입이다.
+// Option func 공개 타입이다.
 // 값의 zero value, nil 허용 여부, 동시성 소유권은 생성자와 메서드의 한국어 주석 및 테스트 계약을 따른다.
 type Option func(*config)
 
-// WithMaxNodes는 WithMaxNodes 공개 API의 동작을 수행한다.
+// WithMaxNodes WithMaxNodes 공개 API의 동작을 수행한다.
 //
 // 매개변수:
 //   - maxNodes: WithMaxNodes 동작에 필요한 maxNodes 값이다. zero value, 범위, nil 허용 여부는 함수 계약을 따른다.
@@ -90,7 +90,7 @@ type config struct {
 	maxNodes uint
 }
 
-// Load는 Load 공개 API의 동작을 수행한다.
+// Load Load 공개 API의 동작을 수행한다.
 //
 // 매개변수:
 //   - ctx: 호출자가 소유한 취소, deadline, 요청 범위를 전달한다.

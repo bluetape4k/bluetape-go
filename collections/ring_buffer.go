@@ -2,7 +2,7 @@ package collections
 
 import "fmt"
 
-// RingBuffer는 struct 공개 타입이다.
+// RingBuffer struct 공개 타입이다.
 // 값의 zero value, nil 허용 여부, 동시성 소유권은 생성자와 메서드의 한국어 주석 및 테스트 계약을 따른다.
 type RingBuffer[T any] struct {
 	values   []T
@@ -11,7 +11,7 @@ type RingBuffer[T any] struct {
 	capacity int
 }
 
-// NewRingBuffer는 NewRingBuffer 공개 API의 동작을 수행한다.
+// NewRingBuffer NewRingBuffer 공개 API의 동작을 수행한다.
 //
 // 매개변수:
 //   - capacity: NewRingBuffer 동작에 필요한 capacity 값이다. zero value, 범위, nil 허용 여부는 함수 계약을 따른다.
@@ -27,7 +27,7 @@ func NewRingBuffer[T any](capacity int) (*RingBuffer[T], error) {
 	}, nil
 }
 
-// Capacity는 Capacity 공개 API의 동작을 수행한다.
+// Capacity Capacity 공개 API의 동작을 수행한다.
 func (r *RingBuffer[T]) Capacity() int {
 	if r == nil {
 		return 0
@@ -35,7 +35,7 @@ func (r *RingBuffer[T]) Capacity() int {
 	return r.capacity
 }
 
-// Len는 Len 공개 API의 동작을 수행한다.
+// Len Len 공개 API의 동작을 수행한다.
 func (r *RingBuffer[T]) Len() int {
 	if r == nil {
 		return 0
@@ -43,12 +43,12 @@ func (r *RingBuffer[T]) Len() int {
 	return r.length
 }
 
-// Empty는 Empty 공개 API의 동작을 수행한다.
+// Empty Empty 공개 API의 동작을 수행한다.
 func (r *RingBuffer[T]) Empty() bool {
 	return r.Len() == 0
 }
 
-// Add는 Add 공개 API의 동작을 수행한다.
+// Add Add 공개 API의 동작을 수행한다.
 //
 // 매개변수:
 //   - value: Add 동작에 필요한 value 값이다. zero value, 범위, nil 허용 여부는 함수 계약을 따른다.
@@ -66,7 +66,7 @@ func (r *RingBuffer[T]) Add(value T) {
 	r.start = (r.start + 1) % r.capacity
 }
 
-// AddAll는 AddAll 공개 API의 동작을 수행한다.
+// AddAll AddAll 공개 API의 동작을 수행한다.
 //
 // 매개변수:
 //   - values: AddAll 동작에 필요한 values 값이다. zero value, 범위, nil 허용 여부는 함수 계약을 따른다.
@@ -76,7 +76,7 @@ func (r *RingBuffer[T]) AddAll(values ...T) {
 	}
 }
 
-// At는 At 공개 API의 동작을 수행한다.
+// At At 공개 API의 동작을 수행한다.
 //
 // 매개변수:
 //   - index: At 동작에 필요한 index 값이다. zero value, 범위, nil 허용 여부는 함수 계약을 따른다.
@@ -88,7 +88,7 @@ func (r *RingBuffer[T]) At(index int) (T, bool) {
 	return r.values[(r.start+index)%r.capacity], true
 }
 
-// Values는 Values 공개 API의 동작을 수행한다.
+// Values Values 공개 API의 동작을 수행한다.
 func (r *RingBuffer[T]) Values() []T {
 	if r == nil {
 		return nil
@@ -100,7 +100,7 @@ func (r *RingBuffer[T]) Values() []T {
 	return result
 }
 
-// Drop는 Drop 공개 API의 동작을 수행한다.
+// Drop Drop 공개 API의 동작을 수행한다.
 //
 // 매개변수:
 //   - n: Drop 동작에 필요한 n 값이다. zero value, 범위, nil 허용 여부는 함수 계약을 따른다.
@@ -126,7 +126,7 @@ func (r *RingBuffer[T]) Drop(n int) error {
 	return nil
 }
 
-// Clear는 Clear 공개 API의 동작을 수행한다.
+// Clear Clear 공개 API의 동작을 수행한다.
 func (r *RingBuffer[T]) Clear() {
 	if r == nil {
 		return

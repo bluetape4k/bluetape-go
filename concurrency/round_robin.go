@@ -5,14 +5,14 @@ import (
 	"sync/atomic"
 )
 
-// RoundRobin는 struct 공개 타입이다.
+// RoundRobin struct 공개 타입이다.
 // 값의 zero value, nil 허용 여부, 동시성 소유권은 생성자와 메서드의 한국어 주석 및 테스트 계약을 따른다.
 type RoundRobin struct {
 	maximum uint64
 	counter atomic.Uint64
 }
 
-// NewRoundRobin는 NewRoundRobin 공개 API의 동작을 수행한다.
+// NewRoundRobin NewRoundRobin 공개 API의 동작을 수행한다.
 //
 // 매개변수:
 //   - maximum: NewRoundRobin 동작에 필요한 maximum 값이다. zero value, 범위, nil 허용 여부는 함수 계약을 따른다.
@@ -25,7 +25,7 @@ func NewRoundRobin(maximum int) (*RoundRobin, error) {
 	return &RoundRobin{maximum: uint64(maximum)}, nil
 }
 
-// Get는 Get 공개 API의 동작을 수행한다.
+// Get Get 공개 API의 동작을 수행한다.
 func (r *RoundRobin) Get() int {
 	if r == nil || r.maximum == 0 {
 		return 0
@@ -33,7 +33,7 @@ func (r *RoundRobin) Get() int {
 	return int(r.counter.Load())
 }
 
-// Set는 Set 공개 API의 동작을 수행한다.
+// Set Set 공개 API의 동작을 수행한다.
 //
 // 매개변수:
 //   - value: Set 동작에 필요한 value 값이다. zero value, 범위, nil 허용 여부는 함수 계약을 따른다.
@@ -50,7 +50,7 @@ func (r *RoundRobin) Set(value int) error {
 	return nil
 }
 
-// Next는 Next 공개 API의 동작을 수행한다.
+// Next Next 공개 API의 동작을 수행한다.
 func (r *RoundRobin) Next() int {
 	if r == nil || r.maximum == 0 {
 		return 0

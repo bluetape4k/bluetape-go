@@ -10,26 +10,26 @@ import (
 	"golang.org/x/text/language"
 )
 
-// Currency는 struct 공개 타입이다.
+// Currency struct 공개 타입이다.
 // 값의 zero value, nil 허용 여부, 동시성 소유권은 생성자와 메서드의 한국어 주석 및 테스트 계약을 따른다.
 type Currency struct {
 	curr gmoney.Currency
 }
 
 var (
-	// KRW 는 대한민국 원입니다.
+	// KRW 대한민국 원입니다.
 	KRW = MustParseCurrency("KRW")
-	// USD 는 미국 달러입니다.
+	// USD 미국 달러입니다.
 	USD = MustParseCurrency("USD")
-	// EUR 는 유로입니다.
+	// EUR 유로입니다.
 	EUR = MustParseCurrency("EUR")
-	// CNY 는 중국 위안입니다.
+	// CNY 중국 위안입니다.
 	CNY = MustParseCurrency("CNY")
-	// JPY 는 일본 엔입니다.
+	// JPY 일본 엔입니다.
 	JPY = MustParseCurrency("JPY")
 )
 
-// ParseCurrency는 ParseCurrency 공개 API의 동작을 수행한다.
+// ParseCurrency ParseCurrency 공개 API의 동작을 수행한다.
 //
 // 매개변수:
 //   - code: ParseCurrency가 해석하거나 검증하는 문자열 값이다. 빈 문자열과 공백 처리 의미는 함수 계약을 따른다.
@@ -50,7 +50,7 @@ func ParseCurrency(code string) (Currency, error) {
 	return Currency{curr: curr}, nil
 }
 
-// MustParseCurrency는 MustParseCurrency 공개 API의 동작을 수행한다.
+// MustParseCurrency MustParseCurrency 공개 API의 동작을 수행한다.
 //
 // 매개변수:
 //   - code: MustParseCurrency가 해석하거나 검증하는 문자열 값이다. 빈 문자열과 공백 처리 의미는 함수 계약을 따른다.
@@ -62,7 +62,7 @@ func MustParseCurrency(code string) Currency {
 	return curr
 }
 
-// IsCurrency는 IsCurrency 공개 API의 동작을 수행한다.
+// IsCurrency IsCurrency 공개 API의 동작을 수행한다.
 //
 // 매개변수:
 //   - code: IsCurrency가 해석하거나 검증하는 문자열 값이다. 빈 문자열과 공백 처리 의미는 함수 계약을 따른다.
@@ -71,7 +71,7 @@ func IsCurrency(code string) bool {
 	return err == nil
 }
 
-// CurrencyByLocale는 CurrencyByLocale 공개 API의 동작을 수행한다.
+// CurrencyByLocale CurrencyByLocale 공개 API의 동작을 수행한다.
 //
 // 매개변수:
 //   - tag: CurrencyByLocale가 해석하거나 검증하는 문자열 값이다. 빈 문자열과 공백 처리 의미는 함수 계약을 따른다.
@@ -95,7 +95,7 @@ func CurrencyByLocale(tag string) (Currency, error) {
 	return currencyByRegion(region, tag)
 }
 
-// Code는 Code 공개 API의 동작을 수행한다.
+// Code Code 공개 API의 동작을 수행한다.
 func (c Currency) Code() string {
 	if c.IsZero() {
 		return ""
@@ -103,7 +103,7 @@ func (c Currency) Code() string {
 	return c.curr.Code()
 }
 
-// Num는 Num 공개 API의 동작을 수행한다.
+// Num Num 공개 API의 동작을 수행한다.
 func (c Currency) Num() string {
 	if c.IsZero() {
 		return ""
@@ -111,7 +111,7 @@ func (c Currency) Num() string {
 	return c.curr.Num()
 }
 
-// Scale는 Scale 공개 API의 동작을 수행한다.
+// Scale Scale 공개 API의 동작을 수행한다.
 func (c Currency) Scale() int {
 	if c.IsZero() {
 		return 0
@@ -119,12 +119,12 @@ func (c Currency) Scale() int {
 	return c.curr.Scale()
 }
 
-// String는 String 공개 API의 동작을 수행한다.
+// String String 공개 API의 동작을 수행한다.
 func (c Currency) String() string {
 	return c.Code()
 }
 
-// IsZero는 IsZero 공개 API의 동작을 수행한다.
+// IsZero IsZero 공개 API의 동작을 수행한다.
 func (c Currency) IsZero() bool {
 	return c.curr == gmoney.XXX
 }

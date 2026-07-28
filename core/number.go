@@ -5,7 +5,7 @@ import (
 	"strings"
 )
 
-// Clamp는 Clamp 공개 API의 동작을 수행한다.
+// Clamp Clamp 공개 API의 동작을 수행한다.
 //
 // 매개변수:
 //   - value: Clamp 동작에 필요한 value 값이다. zero value, 범위, nil 허용 여부는 함수 계약을 따른다.
@@ -27,7 +27,7 @@ func Clamp[T Number](value, lower, upper T) (T, error) {
 	return value, nil
 }
 
-// IsHexDigit는 IsHexDigit 공개 API의 동작을 수행한다.
+// IsHexDigit IsHexDigit 공개 API의 동작을 수행한다.
 //
 // 매개변수:
 //   - r: IsHexDigit 동작에 필요한 r 값이다. zero value, 범위, nil 허용 여부는 함수 계약을 따른다.
@@ -35,7 +35,7 @@ func IsHexDigit(r rune) bool {
 	return ('0' <= r && r <= '9') || ('a' <= r && r <= 'f') || ('A' <= r && r <= 'F')
 }
 
-// IsHexFormat는 IsHexFormat 공개 API의 동작을 수행한다.
+// IsHexFormat IsHexFormat 공개 API의 동작을 수행한다.
 //
 // 매개변수:
 //   - value: IsHexFormat가 해석하거나 검증하는 문자열 값이다. 빈 문자열과 공백 처리 의미는 함수 계약을 따른다.

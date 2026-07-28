@@ -2,7 +2,7 @@ package rules
 
 import "context"
 
-// InferenceConfig는 struct 공개 타입이다.
+// InferenceConfig struct 공개 타입이다.
 // 값의 zero value, nil 허용 여부, 동시성 소유권은 생성자와 메서드의 한국어 주석 및 테스트 계약을 따른다.
 type InferenceConfig struct {
 	// MaxCycles bounds inference and must be positive.
@@ -11,14 +11,14 @@ type InferenceConfig struct {
 	EngineConfig EngineConfig
 }
 
-// InferenceEngine는 struct 공개 타입이다.
+// InferenceEngine struct 공개 타입이다.
 // 값의 zero value, nil 허용 여부, 동시성 소유권은 생성자와 메서드의 한국어 주석 및 테스트 계약을 따른다.
 type InferenceEngine struct {
 	rules  *RuleSet
 	config InferenceConfig
 }
 
-// NewInferenceEngine는 NewInferenceEngine 공개 API의 동작을 수행한다.
+// NewInferenceEngine NewInferenceEngine 공개 API의 동작을 수행한다.
 //
 // 매개변수:
 //   - rules: NewInferenceEngine 동작에 필요한 rules 값이다. zero value, 범위, nil 허용 여부는 함수 계약을 따른다.
@@ -38,7 +38,7 @@ func NewInferenceEngine(rules *RuleSet, config InferenceConfig) (*InferenceEngin
 	return &InferenceEngine{rules: rules, config: config}, nil
 }
 
-// InferenceResult는 struct 공개 타입이다.
+// InferenceResult struct 공개 타입이다.
 // 값의 zero value, nil 허용 여부, 동시성 소유권은 생성자와 메서드의 한국어 주석 및 테스트 계약을 따른다.
 type InferenceResult struct {
 	Cycles       int
@@ -50,7 +50,7 @@ type InferenceResult struct {
 	StopReason   DetailStatus
 }
 
-// Run는 Run 공개 API의 동작을 수행한다.
+// Run Run 공개 API의 동작을 수행한다.
 //
 // 매개변수:
 //   - ctx: 호출자가 소유한 취소, deadline, 요청 범위를 전달한다.

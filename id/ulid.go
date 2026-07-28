@@ -12,11 +12,11 @@ type ulidGenerator struct {
 	now     func() time.Time
 }
 
-// ULIDOption는 func 공개 타입이다.
+// ULIDOption func 공개 타입이다.
 // 값의 zero value, nil 허용 여부, 동시성 소유권은 생성자와 메서드의 한국어 주석 및 테스트 계약을 따른다.
 type ULIDOption func(*ulidGenerator) error
 
-// WithULIDEntropy는 WithULIDEntropy 공개 API의 동작을 수행한다.
+// WithULIDEntropy WithULIDEntropy 공개 API의 동작을 수행한다.
 //
 // 매개변수:
 //   - entropy: WithULIDEntropy 동작에 필요한 entropy 값이다. zero value, 범위, nil 허용 여부는 함수 계약을 따른다.
@@ -30,7 +30,7 @@ func WithULIDEntropy(entropy io.Reader) ULIDOption {
 	}
 }
 
-// WithULIDTime는 WithULIDTime 공개 API의 동작을 수행한다.
+// WithULIDTime WithULIDTime 공개 API의 동작을 수행한다.
 //
 // 매개변수:
 //   - now: WithULIDTime 동작에 필요한 now 값이다. zero value, 범위, nil 허용 여부는 함수 계약을 따른다.
@@ -44,7 +44,7 @@ func WithULIDTime(now func() time.Time) ULIDOption {
 	}
 }
 
-// NewULIDGenerator는 NewULIDGenerator 공개 API의 동작을 수행한다.
+// NewULIDGenerator NewULIDGenerator 공개 API의 동작을 수행한다.
 //
 // 매개변수:
 //   - options: NewULIDGenerator 동작에 필요한 options 값이다. zero value, 범위, nil 허용 여부는 함수 계약을 따른다.
@@ -54,7 +54,7 @@ func NewULIDGenerator(options ...ULIDOption) (StringGenerator, error) {
 	return newULIDGenerator(defaultEntropyReader(), time.Now, options...)
 }
 
-// NewMonotonicULIDGenerator는 NewMonotonicULIDGenerator 공개 API의 동작을 수행한다.
+// NewMonotonicULIDGenerator NewMonotonicULIDGenerator 공개 API의 동작을 수행한다.
 //
 // 매개변수:
 //   - options: NewMonotonicULIDGenerator 동작에 필요한 options 값이다. zero value, 범위, nil 허용 여부는 함수 계약을 따른다.
@@ -103,7 +103,7 @@ func (g *ulidGenerator) NextString() (string, error) {
 	return string(encoded[:]), nil
 }
 
-// NewULID는 NewULID 공개 API의 동작을 수행한다.
+// NewULID NewULID 공개 API의 동작을 수행한다.
 //
 // 반환 오류는 입력 검증 실패, 취소, 외부 원인, 또는 패키지 sentinel/typed error 계약을 보존한다.
 func NewULID() (string, error) {
@@ -114,7 +114,7 @@ func NewULID() (string, error) {
 	return g.NextString()
 }
 
-// ParseULID는 ParseULID 공개 API의 동작을 수행한다.
+// ParseULID ParseULID 공개 API의 동작을 수행한다.
 //
 // 매개변수:
 //   - value: ParseULID가 해석하거나 검증하는 문자열 값이다. 빈 문자열과 공백 처리 의미는 함수 계약을 따른다.
@@ -128,7 +128,7 @@ func ParseULID(value string) (string, error) {
 	return parsed.String(), nil
 }
 
-// ULIDTime는 ULIDTime 공개 API의 동작을 수행한다.
+// ULIDTime ULIDTime 공개 API의 동작을 수행한다.
 //
 // 매개변수:
 //   - value: ULIDTime가 해석하거나 검증하는 문자열 값이다. 빈 문자열과 공백 처리 의미는 함수 계약을 따른다.

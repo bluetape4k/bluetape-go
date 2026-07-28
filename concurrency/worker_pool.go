@@ -5,14 +5,14 @@ import (
 	"fmt"
 )
 
-// WorkerPool는 struct 공개 타입이다.
+// WorkerPool struct 공개 타입이다.
 // 값의 zero value, nil 허용 여부, 동시성 소유권은 생성자와 메서드의 한국어 주석 및 테스트 계약을 따른다.
 type WorkerPool[T any] struct {
 	size    int
 	handler func(context.Context, T) error
 }
 
-// NewWorkerPool는 NewWorkerPool 공개 API의 동작을 수행한다.
+// NewWorkerPool NewWorkerPool 공개 API의 동작을 수행한다.
 //
 // 매개변수:
 //   - size: NewWorkerPool 동작에 필요한 size 값이다. zero value, 범위, nil 허용 여부는 함수 계약을 따른다.
@@ -33,7 +33,7 @@ func NewWorkerPool[T any](size int, handler func(context.Context, T) error) (*Wo
 	}, nil
 }
 
-// Run는 Run 공개 API의 동작을 수행한다.
+// Run Run 공개 API의 동작을 수행한다.
 //
 // 매개변수:
 //   - ctx: 호출자가 소유한 취소, deadline, 요청 범위를 전달한다.

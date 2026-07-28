@@ -10,7 +10,7 @@ type moneyJSON struct {
 	Currency string `json:"currency"`
 }
 
-// MarshalText는 MarshalText 공개 API의 동작을 수행한다.
+// MarshalText MarshalText 공개 API의 동작을 수행한다.
 //
 // 반환 오류는 입력 검증 실패, 취소, 외부 원인, 또는 패키지 sentinel/typed error 계약을 보존한다.
 func (m Money) MarshalText() ([]byte, error) {
@@ -20,7 +20,7 @@ func (m Money) MarshalText() ([]byte, error) {
 	return []byte(m.String()), nil
 }
 
-// UnmarshalText는 UnmarshalText 공개 API의 동작을 수행한다.
+// UnmarshalText UnmarshalText 공개 API의 동작을 수행한다.
 //
 // 매개변수:
 //   - text: UnmarshalText가 읽거나 복사하는 text 목록이다. nil과 빈 슬라이스 의미는 함수 계약을 따른다.
@@ -38,7 +38,7 @@ func (m *Money) UnmarshalText(text []byte) error {
 	return nil
 }
 
-// MarshalJSON는 MarshalJSON 공개 API의 동작을 수행한다.
+// MarshalJSON MarshalJSON 공개 API의 동작을 수행한다.
 //
 // 반환 오류는 입력 검증 실패, 취소, 외부 원인, 또는 패키지 sentinel/typed error 계약을 보존한다.
 func (m Money) MarshalJSON() ([]byte, error) {
@@ -51,7 +51,7 @@ func (m Money) MarshalJSON() ([]byte, error) {
 	})
 }
 
-// UnmarshalJSON는 UnmarshalJSON 공개 API의 동작을 수행한다.
+// UnmarshalJSON UnmarshalJSON 공개 API의 동작을 수행한다.
 //
 // 매개변수:
 //   - data: UnmarshalJSON가 읽거나 복사하는 data 목록이다. nil과 빈 슬라이스 의미는 함수 계약을 따른다.

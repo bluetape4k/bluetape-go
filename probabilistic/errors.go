@@ -6,25 +6,25 @@ import (
 )
 
 var (
-	// ErrInvalidConfig 는 Bloom filter 설정이 유효하지 않을 때 반환됩니다.
+	// ErrInvalidConfig Bloom filter 설정이 유효하지 않을 때 반환됩니다.
 	ErrInvalidConfig = errors.New("probabilistic: invalid config")
-	// ErrIncompatibleFilter 는 병합 대상 Bloom filter의 설정이나 hasher가 다를 때 반환됩니다.
+	// ErrIncompatibleFilter 병합 대상 Bloom filter의 설정이나 hasher가 다를 때 반환됩니다.
 	ErrIncompatibleFilter = errors.New("probabilistic: incompatible filter")
-	// ErrNilFilter 는 nil Bloom filter를 병합하려 할 때 반환됩니다.
+	// ErrNilFilter nil Bloom filter를 병합하려 할 때 반환됩니다.
 	ErrNilFilter = errors.New("probabilistic: nil filter")
-	// ErrNilHasher 는 nil hasher 함수로 Bloom filter를 만들 때 반환됩니다.
+	// ErrNilHasher nil hasher 함수로 Bloom filter를 만들 때 반환됩니다.
 	ErrNilHasher = errors.New("probabilistic: nil hasher")
-	// ErrEmptyHasherKey 는 빈 hasher compatibility key를 사용할 때 반환됩니다.
+	// ErrEmptyHasherKey 빈 hasher compatibility key를 사용할 때 반환됩니다.
 	ErrEmptyHasherKey = errors.New("probabilistic: empty hasher key")
 )
 
-// ConfigError 는 유효하지 않은 설정 필드와 원인을 보존합니다.
+// ConfigError 유효하지 않은 설정 필드와 원인을 보존합니다.
 type ConfigError struct {
 	Field string
 	Err   error
 }
 
-// Error 는 설정 오류 메시지를 반환합니다.
+// Error 설정 오류 메시지를 반환합니다.
 func (e ConfigError) Error() string {
 	if e.Field == "" {
 		return fmt.Sprintf("%v: %v", ErrInvalidConfig, e.Err)
@@ -40,7 +40,7 @@ func (e ConfigError) Unwrap() error {
 	return e.Err
 }
 
-// Is 는 ConfigError가 ErrInvalidConfig 또는 원인 오류와 match되도록 합니다.
+// Is ConfigError가 ErrInvalidConfig 또는 원인 오류와 match되도록 합니다.
 func (e ConfigError) Is(target error) bool {
 	return target == ErrInvalidConfig || errors.Is(e.Err, target)
 }

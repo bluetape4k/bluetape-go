@@ -17,13 +17,13 @@ end
 return 0
 `
 
-// Mutex 는 Redis key 하나에 대한 owner-token lock이다.
+// Mutex Redis key 하나에 대한 owner-token lock이다.
 type Mutex struct {
 	client redis.Cmdable
 	opts   options
 }
 
-// Lease 는 성공적으로 획득한 Redis lock 소유권이다.
+// Lease 성공적으로 획득한 Redis lock 소유권이다.
 type Lease struct {
 	mutex       *Mutex
 	key         string
@@ -31,7 +31,7 @@ type Lease struct {
 	sharedLease *btredis.Lease
 }
 
-// New 는 Redis lock mutex를 만든다.
+// New Redis lock mutex를 만든다.
 func New(client redis.Cmdable, opts Options) (*Mutex, error) {
 	if client == nil {
 		return nil, fmt.Errorf("redis client must not be nil")
@@ -90,12 +90,12 @@ func (m *Mutex) TryLock(ctx context.Context) (*Lease, error) {
 	return &Lease{mutex: m, key: m.opts.key, token: token, sharedLease: sharedLease}, nil
 }
 
-// Key 는 Redis lock key를 반환한다.
+// Key Redis lock key를 반환한다.
 func (m *Mutex) Key() string {
 	return m.opts.key
 }
 
-// Key 는 lease가 소유한 Redis lock key를 반환한다.
+// Key lease가 소유한 Redis lock key를 반환한다.
 func (l *Lease) Key() string {
 	if l == nil {
 		return ""

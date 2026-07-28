@@ -250,7 +250,7 @@ var (
 	accelerationRegistry = MustRegistry(accelerationMeterPerSecondSquared)
 )
 
-// FromDuration는 FromDuration 공개 API의 동작을 수행한다.
+// FromDuration FromDuration 공개 API의 동작을 수행한다.
 //
 // 매개변수:
 //   - duration: FromDuration 동작에 필요한 duration 값이다. zero value, 범위, nil 허용 여부는 함수 계약을 따른다.
@@ -258,297 +258,297 @@ func FromDuration(duration time.Duration) Measure[Time] {
 	return Must(float64(duration)/float64(time.Millisecond), timeMillisecond)
 }
 
-// LengthMillimeter는 LengthMillimeter 공개 API의 동작을 수행한다.
+// LengthMillimeter LengthMillimeter 공개 API의 동작을 수행한다.
 func LengthMillimeter() Unit[Length] { return lengthMillimeter }
 
-// LengthCentimeter는 LengthCentimeter 공개 API의 동작을 수행한다.
+// LengthCentimeter LengthCentimeter 공개 API의 동작을 수행한다.
 func LengthCentimeter() Unit[Length] { return lengthCentimeter }
 
-// LengthMeter는 LengthMeter 공개 API의 동작을 수행한다.
+// LengthMeter LengthMeter 공개 API의 동작을 수행한다.
 func LengthMeter() Unit[Length] { return lengthMeter }
 
-// LengthKilometer는 LengthKilometer 공개 API의 동작을 수행한다.
+// LengthKilometer LengthKilometer 공개 API의 동작을 수행한다.
 func LengthKilometer() Unit[Length] { return lengthKilometer }
 
-// LengthInch는 LengthInch 공개 API의 동작을 수행한다.
+// LengthInch LengthInch 공개 API의 동작을 수행한다.
 func LengthInch() Unit[Length] { return lengthInch }
 
-// LengthFoot는 LengthFoot 공개 API의 동작을 수행한다.
+// LengthFoot LengthFoot 공개 API의 동작을 수행한다.
 func LengthFoot() Unit[Length] { return lengthFoot }
 
-// LengthMile는 LengthMile 공개 API의 동작을 수행한다.
+// LengthMile LengthMile 공개 API의 동작을 수행한다.
 func LengthMile() Unit[Length] { return lengthMile }
 
-// LengthRegistry는 LengthRegistry 공개 API의 동작을 수행한다.
+// LengthRegistry LengthRegistry 공개 API의 동작을 수행한다.
 func LengthRegistry() Registry[Length] { return lengthRegistry }
 
-// TimeMillisecond는 TimeMillisecond 공개 API의 동작을 수행한다.
+// TimeMillisecond TimeMillisecond 공개 API의 동작을 수행한다.
 func TimeMillisecond() Unit[Time] { return timeMillisecond }
 
-// TimeSecond는 TimeSecond 공개 API의 동작을 수행한다.
+// TimeSecond TimeSecond 공개 API의 동작을 수행한다.
 func TimeSecond() Unit[Time] { return timeSecond }
 
-// TimeMinute는 TimeMinute 공개 API의 동작을 수행한다.
+// TimeMinute TimeMinute 공개 API의 동작을 수행한다.
 func TimeMinute() Unit[Time] { return timeMinute }
 
-// TimeHour는 TimeHour 공개 API의 동작을 수행한다.
+// TimeHour TimeHour 공개 API의 동작을 수행한다.
 func TimeHour() Unit[Time] { return timeHour }
 
-// TimeRegistry는 TimeRegistry 공개 API의 동작을 수행한다.
+// TimeRegistry TimeRegistry 공개 API의 동작을 수행한다.
 func TimeRegistry() Registry[Time] { return timeRegistry }
 
-// MassGram는 MassGram 공개 API의 동작을 수행한다.
+// MassGram MassGram 공개 API의 동작을 수행한다.
 func MassGram() Unit[Mass] { return massGram }
 
-// MassKilogram는 MassKilogram 공개 API의 동작을 수행한다.
+// MassKilogram MassKilogram 공개 API의 동작을 수행한다.
 func MassKilogram() Unit[Mass] { return massKilogram }
 
-// MassTon는 MassTon 공개 API의 동작을 수행한다.
+// MassTon MassTon 공개 API의 동작을 수행한다.
 func MassTon() Unit[Mass] { return massTon }
 
-// MassRegistry는 MassRegistry 공개 API의 동작을 수행한다.
+// MassRegistry MassRegistry 공개 API의 동작을 수행한다.
 func MassRegistry() Registry[Mass] { return massRegistry }
 
-// AreaSquareMillimeter는 AreaSquareMillimeter 공개 API의 동작을 수행한다.
+// AreaSquareMillimeter AreaSquareMillimeter 공개 API의 동작을 수행한다.
 func AreaSquareMillimeter() Unit[Area] { return areaSquareMillimeter }
 
-// AreaSquareCentimeter는 AreaSquareCentimeter 공개 API의 동작을 수행한다.
+// AreaSquareCentimeter AreaSquareCentimeter 공개 API의 동작을 수행한다.
 func AreaSquareCentimeter() Unit[Area] { return areaSquareCentimeter }
 
-// AreaSquareMeter는 AreaSquareMeter 공개 API의 동작을 수행한다.
+// AreaSquareMeter AreaSquareMeter 공개 API의 동작을 수행한다.
 func AreaSquareMeter() Unit[Area] { return areaSquareMeter }
 
-// AreaSquareKilometer는 AreaSquareKilometer 공개 API의 동작을 수행한다.
+// AreaSquareKilometer AreaSquareKilometer 공개 API의 동작을 수행한다.
 func AreaSquareKilometer() Unit[Area] { return areaSquareKilometer }
 
-// AreaRegistry는 AreaRegistry 공개 API의 동작을 수행한다.
+// AreaRegistry AreaRegistry 공개 API의 동작을 수행한다.
 func AreaRegistry() Registry[Area] { return areaRegistry }
 
-// VolumeCubicMillimeter는 VolumeCubicMillimeter 공개 API의 동작을 수행한다.
+// VolumeCubicMillimeter VolumeCubicMillimeter 공개 API의 동작을 수행한다.
 func VolumeCubicMillimeter() Unit[Volume] { return volumeCubicMillimeter }
 
-// VolumeCubicCentimeter는 VolumeCubicCentimeter 공개 API의 동작을 수행한다.
+// VolumeCubicCentimeter VolumeCubicCentimeter 공개 API의 동작을 수행한다.
 func VolumeCubicCentimeter() Unit[Volume] { return volumeCubicCentimeter }
 
-// VolumeMilliliter는 VolumeMilliliter 공개 API의 동작을 수행한다.
+// VolumeMilliliter VolumeMilliliter 공개 API의 동작을 수행한다.
 func VolumeMilliliter() Unit[Volume] { return volumeMilliliter }
 
-// VolumeLiter는 VolumeLiter 공개 API의 동작을 수행한다.
+// VolumeLiter VolumeLiter 공개 API의 동작을 수행한다.
 func VolumeLiter() Unit[Volume] { return volumeLiter }
 
-// VolumeCubicMeter는 VolumeCubicMeter 공개 API의 동작을 수행한다.
+// VolumeCubicMeter VolumeCubicMeter 공개 API의 동작을 수행한다.
 func VolumeCubicMeter() Unit[Volume] { return volumeCubicMeter }
 
-// VolumeRegistry는 VolumeRegistry 공개 API의 동작을 수행한다.
+// VolumeRegistry VolumeRegistry 공개 API의 동작을 수행한다.
 func VolumeRegistry() Registry[Volume] { return volumeRegistry }
 
-// StorageByte는 StorageByte 공개 API의 동작을 수행한다.
+// StorageByte StorageByte 공개 API의 동작을 수행한다.
 func StorageByte() Unit[Storage] { return storageByte }
 
-// StorageKilobyte는 StorageKilobyte 공개 API의 동작을 수행한다.
+// StorageKilobyte StorageKilobyte 공개 API의 동작을 수행한다.
 func StorageKilobyte() Unit[Storage] { return storageKilobyte }
 
-// StorageMegabyte는 StorageMegabyte 공개 API의 동작을 수행한다.
+// StorageMegabyte StorageMegabyte 공개 API의 동작을 수행한다.
 func StorageMegabyte() Unit[Storage] { return storageMegabyte }
 
-// StorageGigabyte는 StorageGigabyte 공개 API의 동작을 수행한다.
+// StorageGigabyte StorageGigabyte 공개 API의 동작을 수행한다.
 func StorageGigabyte() Unit[Storage] { return storageGigabyte }
 
-// StorageTerabyte는 StorageTerabyte 공개 API의 동작을 수행한다.
+// StorageTerabyte StorageTerabyte 공개 API의 동작을 수행한다.
 func StorageTerabyte() Unit[Storage] { return storageTerabyte }
 
-// StoragePetabyte는 StoragePetabyte 공개 API의 동작을 수행한다.
+// StoragePetabyte StoragePetabyte 공개 API의 동작을 수행한다.
 func StoragePetabyte() Unit[Storage] { return storagePetabyte }
 
-// StorageExabyte는 StorageExabyte 공개 API의 동작을 수행한다.
+// StorageExabyte StorageExabyte 공개 API의 동작을 수행한다.
 func StorageExabyte() Unit[Storage] { return storageExabyte }
 
-// StorageZettabyte는 StorageZettabyte 공개 API의 동작을 수행한다.
+// StorageZettabyte StorageZettabyte 공개 API의 동작을 수행한다.
 func StorageZettabyte() Unit[Storage] { return storageZettabyte }
 
-// StorageYottabyte는 StorageYottabyte 공개 API의 동작을 수행한다.
+// StorageYottabyte StorageYottabyte 공개 API의 동작을 수행한다.
 func StorageYottabyte() Unit[Storage] { return storageYottabyte }
 
-// StorageRegistry는 StorageRegistry 공개 API의 동작을 수행한다.
+// StorageRegistry StorageRegistry 공개 API의 동작을 수행한다.
 func StorageRegistry() Registry[Storage] { return storageRegistry }
 
-// BinaryByte는 BinaryByte 공개 API의 동작을 수행한다.
+// BinaryByte BinaryByte 공개 API의 동작을 수행한다.
 func BinaryByte() Unit[BinarySize] { return binaryByte }
 
-// BinaryKilobyte는 BinaryKilobyte 공개 API의 동작을 수행한다.
+// BinaryKilobyte BinaryKilobyte 공개 API의 동작을 수행한다.
 func BinaryKilobyte() Unit[BinarySize] { return binaryKilobyte }
 
-// BinaryMegabyte는 BinaryMegabyte 공개 API의 동작을 수행한다.
+// BinaryMegabyte BinaryMegabyte 공개 API의 동작을 수행한다.
 func BinaryMegabyte() Unit[BinarySize] { return binaryMegabyte }
 
-// BinaryGigabyte는 BinaryGigabyte 공개 API의 동작을 수행한다.
+// BinaryGigabyte BinaryGigabyte 공개 API의 동작을 수행한다.
 func BinaryGigabyte() Unit[BinarySize] { return binaryGigabyte }
 
-// BinaryTerabyte는 BinaryTerabyte 공개 API의 동작을 수행한다.
+// BinaryTerabyte BinaryTerabyte 공개 API의 동작을 수행한다.
 func BinaryTerabyte() Unit[BinarySize] { return binaryTerabyte }
 
-// BinaryPetabyte는 BinaryPetabyte 공개 API의 동작을 수행한다.
+// BinaryPetabyte BinaryPetabyte 공개 API의 동작을 수행한다.
 func BinaryPetabyte() Unit[BinarySize] { return binaryPetabyte }
 
-// BinaryKibibyte는 BinaryKibibyte 공개 API의 동작을 수행한다.
+// BinaryKibibyte BinaryKibibyte 공개 API의 동작을 수행한다.
 func BinaryKibibyte() Unit[BinarySize] { return binaryKibibyte }
 
-// BinaryMebibyte는 BinaryMebibyte 공개 API의 동작을 수행한다.
+// BinaryMebibyte BinaryMebibyte 공개 API의 동작을 수행한다.
 func BinaryMebibyte() Unit[BinarySize] { return binaryMebibyte }
 
-// BinaryGibibyte는 BinaryGibibyte 공개 API의 동작을 수행한다.
+// BinaryGibibyte BinaryGibibyte 공개 API의 동작을 수행한다.
 func BinaryGibibyte() Unit[BinarySize] { return binaryGibibyte }
 
-// BinaryTebibyte는 BinaryTebibyte 공개 API의 동작을 수행한다.
+// BinaryTebibyte BinaryTebibyte 공개 API의 동작을 수행한다.
 func BinaryTebibyte() Unit[BinarySize] { return binaryTebibyte }
 
-// BinaryPebibyte는 BinaryPebibyte 공개 API의 동작을 수행한다.
+// BinaryPebibyte BinaryPebibyte 공개 API의 동작을 수행한다.
 func BinaryPebibyte() Unit[BinarySize] { return binaryPebibyte }
 
-// BinaryBit는 BinaryBit 공개 API의 동작을 수행한다.
+// BinaryBit BinaryBit 공개 API의 동작을 수행한다.
 func BinaryBit() Unit[BinarySize] { return binaryBit }
 
-// BinaryKilobit는 BinaryKilobit 공개 API의 동작을 수행한다.
+// BinaryKilobit BinaryKilobit 공개 API의 동작을 수행한다.
 func BinaryKilobit() Unit[BinarySize] { return binaryKilobit }
 
-// BinaryMegabit는 BinaryMegabit 공개 API의 동작을 수행한다.
+// BinaryMegabit BinaryMegabit 공개 API의 동작을 수행한다.
 func BinaryMegabit() Unit[BinarySize] { return binaryMegabit }
 
-// BinaryGigabit는 BinaryGigabit 공개 API의 동작을 수행한다.
+// BinaryGigabit BinaryGigabit 공개 API의 동작을 수행한다.
 func BinaryGigabit() Unit[BinarySize] { return binaryGigabit }
 
-// BinaryTerabit는 BinaryTerabit 공개 API의 동작을 수행한다.
+// BinaryTerabit BinaryTerabit 공개 API의 동작을 수행한다.
 func BinaryTerabit() Unit[BinarySize] { return binaryTerabit }
 
-// BinaryPetabit는 BinaryPetabit 공개 API의 동작을 수행한다.
+// BinaryPetabit BinaryPetabit 공개 API의 동작을 수행한다.
 func BinaryPetabit() Unit[BinarySize] { return binaryPetabit }
 
-// BinarySizeRegistry는 BinarySizeRegistry 공개 API의 동작을 수행한다.
+// BinarySizeRegistry BinarySizeRegistry 공개 API의 동작을 수행한다.
 func BinarySizeRegistry() Registry[BinarySize] { return binarySizeRegistry }
 
-// FrequencyHertz는 FrequencyHertz 공개 API의 동작을 수행한다.
+// FrequencyHertz FrequencyHertz 공개 API의 동작을 수행한다.
 func FrequencyHertz() Unit[Frequency] { return frequencyHertz }
 
-// FrequencyKilohertz는 FrequencyKilohertz 공개 API의 동작을 수행한다.
+// FrequencyKilohertz FrequencyKilohertz 공개 API의 동작을 수행한다.
 func FrequencyKilohertz() Unit[Frequency] { return frequencyKilohertz }
 
-// FrequencyMegahertz는 FrequencyMegahertz 공개 API의 동작을 수행한다.
+// FrequencyMegahertz FrequencyMegahertz 공개 API의 동작을 수행한다.
 func FrequencyMegahertz() Unit[Frequency] { return frequencyMegahertz }
 
-// FrequencyGigahertz는 FrequencyGigahertz 공개 API의 동작을 수행한다.
+// FrequencyGigahertz FrequencyGigahertz 공개 API의 동작을 수행한다.
 func FrequencyGigahertz() Unit[Frequency] { return frequencyGigahertz }
 
-// FrequencyRegistry는 FrequencyRegistry 공개 API의 동작을 수행한다.
+// FrequencyRegistry FrequencyRegistry 공개 API의 동작을 수행한다.
 func FrequencyRegistry() Registry[Frequency] { return frequencyRegistry }
 
-// EnergyJoule는 EnergyJoule 공개 API의 동작을 수행한다.
+// EnergyJoule EnergyJoule 공개 API의 동작을 수행한다.
 func EnergyJoule() Unit[Energy] { return energyJoule }
 
-// EnergyKilojoule는 EnergyKilojoule 공개 API의 동작을 수행한다.
+// EnergyKilojoule EnergyKilojoule 공개 API의 동작을 수행한다.
 func EnergyKilojoule() Unit[Energy] { return energyKilojoule }
 
-// EnergyMegajoule는 EnergyMegajoule 공개 API의 동작을 수행한다.
+// EnergyMegajoule EnergyMegajoule 공개 API의 동작을 수행한다.
 func EnergyMegajoule() Unit[Energy] { return energyMegajoule }
 
-// EnergyWattHour는 EnergyWattHour 공개 API의 동작을 수행한다.
+// EnergyWattHour EnergyWattHour 공개 API의 동작을 수행한다.
 func EnergyWattHour() Unit[Energy] { return energyWattHour }
 
-// EnergyKilowattHour는 EnergyKilowattHour 공개 API의 동작을 수행한다.
+// EnergyKilowattHour EnergyKilowattHour 공개 API의 동작을 수행한다.
 func EnergyKilowattHour() Unit[Energy] { return energyKilowattHour }
 
-// EnergyRegistry는 EnergyRegistry 공개 API의 동작을 수행한다.
+// EnergyRegistry EnergyRegistry 공개 API의 동작을 수행한다.
 func EnergyRegistry() Registry[Energy] { return energyRegistry }
 
-// PowerMilliwatt는 PowerMilliwatt 공개 API의 동작을 수행한다.
+// PowerMilliwatt PowerMilliwatt 공개 API의 동작을 수행한다.
 func PowerMilliwatt() Unit[Power] { return powerMilliwatt }
 
-// PowerWatt는 PowerWatt 공개 API의 동작을 수행한다.
+// PowerWatt PowerWatt 공개 API의 동작을 수행한다.
 func PowerWatt() Unit[Power] { return powerWatt }
 
-// PowerKilowatt는 PowerKilowatt 공개 API의 동작을 수행한다.
+// PowerKilowatt PowerKilowatt 공개 API의 동작을 수행한다.
 func PowerKilowatt() Unit[Power] { return powerKilowatt }
 
-// PowerMegawatt는 PowerMegawatt 공개 API의 동작을 수행한다.
+// PowerMegawatt PowerMegawatt 공개 API의 동작을 수행한다.
 func PowerMegawatt() Unit[Power] { return powerMegawatt }
 
-// PowerGigawatt는 PowerGigawatt 공개 API의 동작을 수행한다.
+// PowerGigawatt PowerGigawatt 공개 API의 동작을 수행한다.
 func PowerGigawatt() Unit[Power] { return powerGigawatt }
 
-// PowerRegistry는 PowerRegistry 공개 API의 동작을 수행한다.
+// PowerRegistry PowerRegistry 공개 API의 동작을 수행한다.
 func PowerRegistry() Registry[Power] { return powerRegistry }
 
-// PressurePascal는 PressurePascal 공개 API의 동작을 수행한다.
+// PressurePascal PressurePascal 공개 API의 동작을 수행한다.
 func PressurePascal() Unit[Pressure] { return pressurePascal }
 
-// PressureHectopascal는 PressureHectopascal 공개 API의 동작을 수행한다.
+// PressureHectopascal PressureHectopascal 공개 API의 동작을 수행한다.
 func PressureHectopascal() Unit[Pressure] { return pressureHectopascal }
 
-// PressureKilopascal는 PressureKilopascal 공개 API의 동작을 수행한다.
+// PressureKilopascal PressureKilopascal 공개 API의 동작을 수행한다.
 func PressureKilopascal() Unit[Pressure] { return pressureKilopascal }
 
-// PressureMegapascal는 PressureMegapascal 공개 API의 동작을 수행한다.
+// PressureMegapascal PressureMegapascal 공개 API의 동작을 수행한다.
 func PressureMegapascal() Unit[Pressure] { return pressureMegapascal }
 
-// PressureGigapascal는 PressureGigapascal 공개 API의 동작을 수행한다.
+// PressureGigapascal PressureGigapascal 공개 API의 동작을 수행한다.
 func PressureGigapascal() Unit[Pressure] { return pressureGigapascal }
 
-// PressureBar는 PressureBar 공개 API의 동작을 수행한다.
+// PressureBar PressureBar 공개 API의 동작을 수행한다.
 func PressureBar() Unit[Pressure] { return pressureBar }
 
-// PressureDecibar는 PressureDecibar 공개 API의 동작을 수행한다.
+// PressureDecibar PressureDecibar 공개 API의 동작을 수행한다.
 func PressureDecibar() Unit[Pressure] { return pressureDecibar }
 
-// PressureMillibar는 PressureMillibar 공개 API의 동작을 수행한다.
+// PressureMillibar PressureMillibar 공개 API의 동작을 수행한다.
 func PressureMillibar() Unit[Pressure] { return pressureMillibar }
 
-// PressureAtmosphere는 PressureAtmosphere 공개 API의 동작을 수행한다.
+// PressureAtmosphere PressureAtmosphere 공개 API의 동작을 수행한다.
 func PressureAtmosphere() Unit[Pressure] { return pressureAtmosphere }
 
-// PressurePSI는 PressurePSI 공개 API의 동작을 수행한다.
+// PressurePSI PressurePSI 공개 API의 동작을 수행한다.
 func PressurePSI() Unit[Pressure] { return pressurePSI }
 
-// PressureTorr는 PressureTorr 공개 API의 동작을 수행한다.
+// PressureTorr PressureTorr 공개 API의 동작을 수행한다.
 func PressureTorr() Unit[Pressure] { return pressureTorr }
 
-// PressureMillimeterMercury는 PressureMillimeterMercury 공개 API의 동작을 수행한다.
+// PressureMillimeterMercury PressureMillimeterMercury 공개 API의 동작을 수행한다.
 func PressureMillimeterMercury() Unit[Pressure] { return pressureMillimeterMercury }
 
-// PressureRegistry는 PressureRegistry 공개 API의 동작을 수행한다.
+// PressureRegistry PressureRegistry 공개 API의 동작을 수행한다.
 func PressureRegistry() Registry[Pressure] { return pressureRegistry }
 
-// AngleRadian는 AngleRadian 공개 API의 동작을 수행한다.
+// AngleRadian AngleRadian 공개 API의 동작을 수행한다.
 func AngleRadian() Unit[Angle] { return angleRadian }
 
-// AngleDegree는 AngleDegree 공개 API의 동작을 수행한다.
+// AngleDegree AngleDegree 공개 API의 동작을 수행한다.
 func AngleDegree() Unit[Angle] { return angleDegree }
 
-// AngleRegistry는 AngleRegistry 공개 API의 동작을 수행한다.
+// AngleRegistry AngleRegistry 공개 API의 동작을 수행한다.
 func AngleRegistry() Registry[Angle] { return angleRegistry }
 
-// GraphicsPixel는 GraphicsPixel 공개 API의 동작을 수행한다.
+// GraphicsPixel GraphicsPixel 공개 API의 동작을 수행한다.
 func GraphicsPixel() Unit[GraphicsLength] { return graphicsPixel }
 
-// GraphicsLengthRegistry는 GraphicsLengthRegistry 공개 API의 동작을 수행한다.
+// GraphicsLengthRegistry GraphicsLengthRegistry 공개 API의 동작을 수행한다.
 func GraphicsLengthRegistry() Registry[GraphicsLength] { return graphicsLengthRegistry }
 
-// VelocityMeterPerSecond는 VelocityMeterPerSecond 공개 API의 동작을 수행한다.
+// VelocityMeterPerSecond VelocityMeterPerSecond 공개 API의 동작을 수행한다.
 func VelocityMeterPerSecond() Unit[Velocity] { return velocityMeterPerSecond }
 
-// VelocityKilometerPerHour는 VelocityKilometerPerHour 공개 API의 동작을 수행한다.
+// VelocityKilometerPerHour VelocityKilometerPerHour 공개 API의 동작을 수행한다.
 func VelocityKilometerPerHour() Unit[Velocity] { return velocityKilometerPerHour }
 
-// VelocityRegistry는 VelocityRegistry 공개 API의 동작을 수행한다.
+// VelocityRegistry VelocityRegistry 공개 API의 동작을 수행한다.
 func VelocityRegistry() Registry[Velocity] { return velocityRegistry }
 
-// AccelerationMeterPerSecondSquared는 AccelerationMeterPerSecondSquared 공개 API의 동작을 수행한다.
+// AccelerationMeterPerSecondSquared AccelerationMeterPerSecondSquared 공개 API의 동작을 수행한다.
 func AccelerationMeterPerSecondSquared() Unit[Acceleration] {
 	return accelerationMeterPerSecondSquared
 }
 
-// AccelerationRegistry는 AccelerationRegistry 공개 API의 동작을 수행한다.
+// AccelerationRegistry AccelerationRegistry 공개 API의 동작을 수행한다.
 func AccelerationRegistry() Registry[Acceleration] { return accelerationRegistry }
 
-// Duration는 Duration 공개 API의 동작을 수행한다.
+// Duration Duration 공개 API의 동작을 수행한다.
 //
 // 매개변수:
 //   - value: Duration 동작에 필요한 value 값이다. zero value, 범위, nil 허용 여부는 함수 계약을 따른다.
@@ -566,7 +566,7 @@ func Duration(value Measure[Time]) (time.Duration, error) {
 	return time.Duration(nanos), nil
 }
 
-// ParseLength는 ParseLength 공개 API의 동작을 수행한다.
+// ParseLength ParseLength 공개 API의 동작을 수행한다.
 //
 // 매개변수:
 //   - text: ParseLength가 해석하거나 검증하는 문자열 값이다. 빈 문자열과 공백 처리 의미는 함수 계약을 따른다.
@@ -574,7 +574,7 @@ func Duration(value Measure[Time]) (time.Duration, error) {
 // 반환 오류는 입력 검증 실패, 취소, 외부 원인, 또는 패키지 sentinel/typed error 계약을 보존한다.
 func ParseLength(text string) (Measure[Length], error) { return Parse(text, lengthRegistry) }
 
-// ParseTime는 ParseTime 공개 API의 동작을 수행한다.
+// ParseTime ParseTime 공개 API의 동작을 수행한다.
 //
 // 매개변수:
 //   - text: ParseTime가 해석하거나 검증하는 문자열 값이다. 빈 문자열과 공백 처리 의미는 함수 계약을 따른다.
@@ -582,7 +582,7 @@ func ParseLength(text string) (Measure[Length], error) { return Parse(text, leng
 // 반환 오류는 입력 검증 실패, 취소, 외부 원인, 또는 패키지 sentinel/typed error 계약을 보존한다.
 func ParseTime(text string) (Measure[Time], error) { return Parse(text, timeRegistry) }
 
-// ParseMass는 ParseMass 공개 API의 동작을 수행한다.
+// ParseMass ParseMass 공개 API의 동작을 수행한다.
 //
 // 매개변수:
 //   - text: ParseMass가 해석하거나 검증하는 문자열 값이다. 빈 문자열과 공백 처리 의미는 함수 계약을 따른다.
@@ -590,7 +590,7 @@ func ParseTime(text string) (Measure[Time], error) { return Parse(text, timeRegi
 // 반환 오류는 입력 검증 실패, 취소, 외부 원인, 또는 패키지 sentinel/typed error 계약을 보존한다.
 func ParseMass(text string) (Measure[Mass], error) { return Parse(text, massRegistry) }
 
-// ParseArea는 ParseArea 공개 API의 동작을 수행한다.
+// ParseArea ParseArea 공개 API의 동작을 수행한다.
 //
 // 매개변수:
 //   - text: ParseArea가 해석하거나 검증하는 문자열 값이다. 빈 문자열과 공백 처리 의미는 함수 계약을 따른다.
@@ -598,7 +598,7 @@ func ParseMass(text string) (Measure[Mass], error) { return Parse(text, massRegi
 // 반환 오류는 입력 검증 실패, 취소, 외부 원인, 또는 패키지 sentinel/typed error 계약을 보존한다.
 func ParseArea(text string) (Measure[Area], error) { return Parse(text, areaRegistry) }
 
-// ParseVolume는 ParseVolume 공개 API의 동작을 수행한다.
+// ParseVolume ParseVolume 공개 API의 동작을 수행한다.
 //
 // 매개변수:
 //   - text: ParseVolume가 해석하거나 검증하는 문자열 값이다. 빈 문자열과 공백 처리 의미는 함수 계약을 따른다.
@@ -606,7 +606,7 @@ func ParseArea(text string) (Measure[Area], error) { return Parse(text, areaRegi
 // 반환 오류는 입력 검증 실패, 취소, 외부 원인, 또는 패키지 sentinel/typed error 계약을 보존한다.
 func ParseVolume(text string) (Measure[Volume], error) { return Parse(text, volumeRegistry) }
 
-// ParseStorage는 ParseStorage 공개 API의 동작을 수행한다.
+// ParseStorage ParseStorage 공개 API의 동작을 수행한다.
 //
 // 매개변수:
 //   - text: ParseStorage가 해석하거나 검증하는 문자열 값이다. 빈 문자열과 공백 처리 의미는 함수 계약을 따른다.
@@ -614,7 +614,7 @@ func ParseVolume(text string) (Measure[Volume], error) { return Parse(text, volu
 // 반환 오류는 입력 검증 실패, 취소, 외부 원인, 또는 패키지 sentinel/typed error 계약을 보존한다.
 func ParseStorage(text string) (Measure[Storage], error) { return Parse(text, storageRegistry) }
 
-// ParseBinarySize는 ParseBinarySize 공개 API의 동작을 수행한다.
+// ParseBinarySize ParseBinarySize 공개 API의 동작을 수행한다.
 //
 // 매개변수:
 //   - text: ParseBinarySize가 해석하거나 검증하는 문자열 값이다. 빈 문자열과 공백 처리 의미는 함수 계약을 따른다.
@@ -624,7 +624,7 @@ func ParseBinarySize(text string) (Measure[BinarySize], error) {
 	return Parse(text, binarySizeRegistry)
 }
 
-// ParseFrequency는 ParseFrequency 공개 API의 동작을 수행한다.
+// ParseFrequency ParseFrequency 공개 API의 동작을 수행한다.
 //
 // 매개변수:
 //   - text: ParseFrequency가 해석하거나 검증하는 문자열 값이다. 빈 문자열과 공백 처리 의미는 함수 계약을 따른다.
@@ -632,7 +632,7 @@ func ParseBinarySize(text string) (Measure[BinarySize], error) {
 // 반환 오류는 입력 검증 실패, 취소, 외부 원인, 또는 패키지 sentinel/typed error 계약을 보존한다.
 func ParseFrequency(text string) (Measure[Frequency], error) { return Parse(text, frequencyRegistry) }
 
-// ParseEnergy는 ParseEnergy 공개 API의 동작을 수행한다.
+// ParseEnergy ParseEnergy 공개 API의 동작을 수행한다.
 //
 // 매개변수:
 //   - text: ParseEnergy가 해석하거나 검증하는 문자열 값이다. 빈 문자열과 공백 처리 의미는 함수 계약을 따른다.
@@ -640,7 +640,7 @@ func ParseFrequency(text string) (Measure[Frequency], error) { return Parse(text
 // 반환 오류는 입력 검증 실패, 취소, 외부 원인, 또는 패키지 sentinel/typed error 계약을 보존한다.
 func ParseEnergy(text string) (Measure[Energy], error) { return Parse(text, energyRegistry) }
 
-// ParsePower는 ParsePower 공개 API의 동작을 수행한다.
+// ParsePower ParsePower 공개 API의 동작을 수행한다.
 //
 // 매개변수:
 //   - text: ParsePower가 해석하거나 검증하는 문자열 값이다. 빈 문자열과 공백 처리 의미는 함수 계약을 따른다.
@@ -648,7 +648,7 @@ func ParseEnergy(text string) (Measure[Energy], error) { return Parse(text, ener
 // 반환 오류는 입력 검증 실패, 취소, 외부 원인, 또는 패키지 sentinel/typed error 계약을 보존한다.
 func ParsePower(text string) (Measure[Power], error) { return Parse(text, powerRegistry) }
 
-// ParsePressure는 ParsePressure 공개 API의 동작을 수행한다.
+// ParsePressure ParsePressure 공개 API의 동작을 수행한다.
 //
 // 매개변수:
 //   - text: ParsePressure가 해석하거나 검증하는 문자열 값이다. 빈 문자열과 공백 처리 의미는 함수 계약을 따른다.
@@ -656,7 +656,7 @@ func ParsePower(text string) (Measure[Power], error) { return Parse(text, powerR
 // 반환 오류는 입력 검증 실패, 취소, 외부 원인, 또는 패키지 sentinel/typed error 계약을 보존한다.
 func ParsePressure(text string) (Measure[Pressure], error) { return Parse(text, pressureRegistry) }
 
-// ParseAngle는 ParseAngle 공개 API의 동작을 수행한다.
+// ParseAngle ParseAngle 공개 API의 동작을 수행한다.
 //
 // 매개변수:
 //   - text: ParseAngle가 해석하거나 검증하는 문자열 값이다. 빈 문자열과 공백 처리 의미는 함수 계약을 따른다.
@@ -664,7 +664,7 @@ func ParsePressure(text string) (Measure[Pressure], error) { return Parse(text, 
 // 반환 오류는 입력 검증 실패, 취소, 외부 원인, 또는 패키지 sentinel/typed error 계약을 보존한다.
 func ParseAngle(text string) (Measure[Angle], error) { return Parse(text, angleRegistry) }
 
-// ParseGraphicsLength는 ParseGraphicsLength 공개 API의 동작을 수행한다.
+// ParseGraphicsLength ParseGraphicsLength 공개 API의 동작을 수행한다.
 //
 // 매개변수:
 //   - text: ParseGraphicsLength가 해석하거나 검증하는 문자열 값이다. 빈 문자열과 공백 처리 의미는 함수 계약을 따른다.
@@ -674,7 +674,7 @@ func ParseGraphicsLength(text string) (Measure[GraphicsLength], error) {
 	return Parse(text, graphicsLengthRegistry)
 }
 
-// ParseVelocity는 ParseVelocity 공개 API의 동작을 수행한다.
+// ParseVelocity ParseVelocity 공개 API의 동작을 수행한다.
 //
 // 매개변수:
 //   - text: ParseVelocity가 해석하거나 검증하는 문자열 값이다. 빈 문자열과 공백 처리 의미는 함수 계약을 따른다.
@@ -682,7 +682,7 @@ func ParseGraphicsLength(text string) (Measure[GraphicsLength], error) {
 // 반환 오류는 입력 검증 실패, 취소, 외부 원인, 또는 패키지 sentinel/typed error 계약을 보존한다.
 func ParseVelocity(text string) (Measure[Velocity], error) { return Parse(text, velocityRegistry) }
 
-// ParseAcceleration는 ParseAcceleration 공개 API의 동작을 수행한다.
+// ParseAcceleration ParseAcceleration 공개 API의 동작을 수행한다.
 //
 // 매개변수:
 //   - text: ParseAcceleration가 해석하거나 검증하는 문자열 값이다. 빈 문자열과 공백 처리 의미는 함수 계약을 따른다.
@@ -692,7 +692,7 @@ func ParseAcceleration(text string) (Measure[Acceleration], error) {
 	return Parse(text, accelerationRegistry)
 }
 
-// HumanLength는 HumanLength 공개 API의 동작을 수행한다.
+// HumanLength HumanLength 공개 API의 동작을 수행한다.
 //
 // 매개변수:
 //   - value: HumanLength 동작에 필요한 value 값이다. zero value, 범위, nil 허용 여부는 함수 계약을 따른다.
@@ -702,7 +702,7 @@ func HumanLength(value Measure[Length]) (string, error) {
 	return value.Human(lengthMillimeter, lengthCentimeter, lengthMeter, lengthKilometer)
 }
 
-// HumanTime는 HumanTime 공개 API의 동작을 수행한다.
+// HumanTime HumanTime 공개 API의 동작을 수행한다.
 //
 // 매개변수:
 //   - value: HumanTime 동작에 필요한 value 값이다. zero value, 범위, nil 허용 여부는 함수 계약을 따른다.
@@ -712,7 +712,7 @@ func HumanTime(value Measure[Time]) (string, error) {
 	return value.Human(timeMillisecond, timeSecond, timeMinute, timeHour)
 }
 
-// HumanMass는 HumanMass 공개 API의 동작을 수행한다.
+// HumanMass HumanMass 공개 API의 동작을 수행한다.
 //
 // 매개변수:
 //   - value: HumanMass 동작에 필요한 value 값이다. zero value, 범위, nil 허용 여부는 함수 계약을 따른다.
@@ -722,7 +722,7 @@ func HumanMass(value Measure[Mass]) (string, error) {
 	return value.Human(massGram, massKilogram, massTon)
 }
 
-// HumanArea는 HumanArea 공개 API의 동작을 수행한다.
+// HumanArea HumanArea 공개 API의 동작을 수행한다.
 //
 // 매개변수:
 //   - value: HumanArea 동작에 필요한 value 값이다. zero value, 범위, nil 허용 여부는 함수 계약을 따른다.
@@ -732,7 +732,7 @@ func HumanArea(value Measure[Area]) (string, error) {
 	return value.Human(areaSquareMillimeter, areaSquareCentimeter, areaSquareMeter, areaSquareKilometer)
 }
 
-// HumanVolume는 HumanVolume 공개 API의 동작을 수행한다.
+// HumanVolume HumanVolume 공개 API의 동작을 수행한다.
 //
 // 매개변수:
 //   - value: HumanVolume 동작에 필요한 value 값이다. zero value, 범위, nil 허용 여부는 함수 계약을 따른다.
@@ -742,7 +742,7 @@ func HumanVolume(value Measure[Volume]) (string, error) {
 	return value.Human(volumeCubicMillimeter, volumeCubicCentimeter, volumeMilliliter, volumeLiter, volumeCubicMeter)
 }
 
-// HumanStorage는 HumanStorage 공개 API의 동작을 수행한다.
+// HumanStorage HumanStorage 공개 API의 동작을 수행한다.
 //
 // 매개변수:
 //   - value: HumanStorage 동작에 필요한 value 값이다. zero value, 범위, nil 허용 여부는 함수 계약을 따른다.
@@ -752,7 +752,7 @@ func HumanStorage(value Measure[Storage]) (string, error) {
 	return value.Human(storageByte, storageKilobyte, storageMegabyte, storageGigabyte, storageTerabyte, storagePetabyte)
 }
 
-// HumanBinarySize는 HumanBinarySize 공개 API의 동작을 수행한다.
+// HumanBinarySize HumanBinarySize 공개 API의 동작을 수행한다.
 //
 // 매개변수:
 //   - value: HumanBinarySize 동작에 필요한 value 값이다. zero value, 범위, nil 허용 여부는 함수 계약을 따른다.
@@ -762,7 +762,7 @@ func HumanBinarySize(value Measure[BinarySize]) (string, error) {
 	return value.Human(binaryBit, binaryByte, binaryKilobyte, binaryMegabyte, binaryGigabyte, binaryTerabyte, binaryPetabyte)
 }
 
-// HumanFrequency는 HumanFrequency 공개 API의 동작을 수행한다.
+// HumanFrequency HumanFrequency 공개 API의 동작을 수행한다.
 //
 // 매개변수:
 //   - value: HumanFrequency 동작에 필요한 value 값이다. zero value, 범위, nil 허용 여부는 함수 계약을 따른다.
@@ -772,7 +772,7 @@ func HumanFrequency(value Measure[Frequency]) (string, error) {
 	return value.Human(frequencyHertz, frequencyKilohertz, frequencyMegahertz, frequencyGigahertz)
 }
 
-// HumanEnergy는 HumanEnergy 공개 API의 동작을 수행한다.
+// HumanEnergy HumanEnergy 공개 API의 동작을 수행한다.
 //
 // 매개변수:
 //   - value: HumanEnergy 동작에 필요한 value 값이다. zero value, 범위, nil 허용 여부는 함수 계약을 따른다.
@@ -782,7 +782,7 @@ func HumanEnergy(value Measure[Energy]) (string, error) {
 	return value.Human(energyJoule, energyKilojoule, energyMegajoule, energyWattHour, energyKilowattHour)
 }
 
-// HumanPower는 HumanPower 공개 API의 동작을 수행한다.
+// HumanPower HumanPower 공개 API의 동작을 수행한다.
 //
 // 매개변수:
 //   - value: HumanPower 동작에 필요한 value 값이다. zero value, 범위, nil 허용 여부는 함수 계약을 따른다.
@@ -792,7 +792,7 @@ func HumanPower(value Measure[Power]) (string, error) {
 	return value.Human(powerMilliwatt, powerWatt, powerKilowatt, powerMegawatt, powerGigawatt)
 }
 
-// HumanPressure는 HumanPressure 공개 API의 동작을 수행한다.
+// HumanPressure HumanPressure 공개 API의 동작을 수행한다.
 //
 // 매개변수:
 //   - value: HumanPressure 동작에 필요한 value 값이다. zero value, 범위, nil 허용 여부는 함수 계약을 따른다.
@@ -802,7 +802,7 @@ func HumanPressure(value Measure[Pressure]) (string, error) {
 	return value.Human(pressurePascal, pressureHectopascal, pressureKilopascal, pressureMegapascal, pressureGigapascal, pressureBar, pressureAtmosphere, pressurePSI)
 }
 
-// HumanAngle는 HumanAngle 공개 API의 동작을 수행한다.
+// HumanAngle HumanAngle 공개 API의 동작을 수행한다.
 //
 // 매개변수:
 //   - value: HumanAngle 동작에 필요한 value 값이다. zero value, 범위, nil 허용 여부는 함수 계약을 따른다.
@@ -817,7 +817,7 @@ func HumanAngle(value Measure[Angle]) (string, error) {
 	return formatValue(normalized, angleDegree), nil
 }
 
-// Sin는 Sin 공개 API의 동작을 수행한다.
+// Sin Sin 공개 API의 동작을 수행한다.
 //
 // 매개변수:
 //   - value: Sin 동작에 필요한 value 값이다. zero value, 범위, nil 허용 여부는 함수 계약을 따른다.
@@ -831,7 +831,7 @@ func Sin(value Measure[Angle]) (float64, error) {
 	return math.Sin(radians), nil
 }
 
-// Cos는 Cos 공개 API의 동작을 수행한다.
+// Cos Cos 공개 API의 동작을 수행한다.
 //
 // 매개변수:
 //   - value: Cos 동작에 필요한 value 값이다. zero value, 범위, nil 허용 여부는 함수 계약을 따른다.
@@ -845,7 +845,7 @@ func Cos(value Measure[Angle]) (float64, error) {
 	return math.Cos(radians), nil
 }
 
-// Tan는 Tan 공개 API의 동작을 수행한다.
+// Tan Tan 공개 API의 동작을 수행한다.
 //
 // 매개변수:
 //   - value: Tan 동작에 필요한 value 값이다. zero value, 범위, nil 허용 여부는 함수 계약을 따른다.
@@ -859,7 +859,7 @@ func Tan(value Measure[Angle]) (float64, error) {
 	return math.Tan(radians), nil
 }
 
-// ASin는 ASin 공개 API의 동작을 수행한다.
+// ASin ASin 공개 API의 동작을 수행한다.
 //
 // 매개변수:
 //   - value: ASin 동작에 필요한 value 값이다. zero value, 범위, nil 허용 여부는 함수 계약을 따른다.
@@ -869,7 +869,7 @@ func ASin(value float64) (Measure[Angle], error) {
 	return New(math.Asin(value), angleRadian)
 }
 
-// MustASin는 MustASin 공개 API의 동작을 수행한다.
+// MustASin MustASin 공개 API의 동작을 수행한다.
 //
 // 매개변수:
 //   - value: MustASin 동작에 필요한 value 값이다. zero value, 범위, nil 허용 여부는 함수 계약을 따른다.
@@ -881,7 +881,7 @@ func MustASin(value float64) Measure[Angle] {
 	return angle
 }
 
-// ACos는 ACos 공개 API의 동작을 수행한다.
+// ACos ACos 공개 API의 동작을 수행한다.
 //
 // 매개변수:
 //   - value: ACos 동작에 필요한 value 값이다. zero value, 범위, nil 허용 여부는 함수 계약을 따른다.
@@ -891,7 +891,7 @@ func ACos(value float64) (Measure[Angle], error) {
 	return New(math.Acos(value), angleRadian)
 }
 
-// MustACos는 MustACos 공개 API의 동작을 수행한다.
+// MustACos MustACos 공개 API의 동작을 수행한다.
 //
 // 매개변수:
 //   - value: MustACos 동작에 필요한 value 값이다. zero value, 범위, nil 허용 여부는 함수 계약을 따른다.
@@ -903,7 +903,7 @@ func MustACos(value float64) Measure[Angle] {
 	return angle
 }
 
-// ATan는 ATan 공개 API의 동작을 수행한다.
+// ATan ATan 공개 API의 동작을 수행한다.
 //
 // 매개변수:
 //   - value: ATan 동작에 필요한 value 값이다. zero value, 범위, nil 허용 여부는 함수 계약을 따른다.
@@ -913,7 +913,7 @@ func ATan(value float64) (Measure[Angle], error) {
 	return New(math.Atan(value), angleRadian)
 }
 
-// MustATan는 MustATan 공개 API의 동작을 수행한다.
+// MustATan MustATan 공개 API의 동작을 수행한다.
 //
 // 매개변수:
 //   - value: MustATan 동작에 필요한 value 값이다. zero value, 범위, nil 허용 여부는 함수 계약을 따른다.
@@ -925,7 +925,7 @@ func MustATan(value float64) Measure[Angle] {
 	return angle
 }
 
-// ATan2는 ATan2 공개 API의 동작을 수행한다.
+// ATan2 ATan2 공개 API의 동작을 수행한다.
 //
 // 매개변수:
 //   - y: ATan2 동작에 필요한 y 값이다. zero value, 범위, nil 허용 여부는 함수 계약을 따른다.
@@ -936,7 +936,7 @@ func ATan2(y, x float64) (Measure[Angle], error) {
 	return New(math.Atan2(y, x), angleRadian)
 }
 
-// MustATan2는 MustATan2 공개 API의 동작을 수행한다.
+// MustATan2 MustATan2 공개 API의 동작을 수행한다.
 //
 // 매개변수:
 //   - y: MustATan2 동작에 필요한 y 값이다. zero value, 범위, nil 허용 여부는 함수 계약을 따른다.

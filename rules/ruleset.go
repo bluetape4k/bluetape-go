@@ -5,7 +5,7 @@ import (
 	"sync"
 )
 
-// RuleSet는 struct 공개 타입이다.
+// RuleSet struct 공개 타입이다.
 // 값의 zero value, nil 허용 여부, 동시성 소유권은 생성자와 메서드의 한국어 주석 및 테스트 계약을 따른다.
 type RuleSet struct {
 	mu      sync.RWMutex
@@ -20,7 +20,7 @@ type ruleEntry struct {
 	seq      uint64
 }
 
-// NewRuleSet는 NewRuleSet 공개 API의 동작을 수행한다.
+// NewRuleSet NewRuleSet 공개 API의 동작을 수행한다.
 //
 // 매개변수:
 //   - rules: NewRuleSet 동작에 필요한 rules 값이다. zero value, 범위, nil 허용 여부는 함수 계약을 따른다.
@@ -36,7 +36,7 @@ func NewRuleSet(rules ...Rule) (*RuleSet, error) {
 	return set, nil
 }
 
-// Add는 Add 공개 API의 동작을 수행한다.
+// Add Add 공개 API의 동작을 수행한다.
 //
 // 매개변수:
 //   - rule: Add 동작에 필요한 rule 값이다. zero value, 범위, nil 허용 여부는 함수 계약을 따른다.
@@ -68,7 +68,7 @@ func (s *RuleSet) Add(rule Rule) error {
 	return nil
 }
 
-// Remove는 Remove 공개 API의 동작을 수행한다.
+// Remove Remove 공개 API의 동작을 수행한다.
 //
 // 매개변수:
 //   - name: Remove가 해석하거나 검증하는 문자열 값이다. 빈 문자열과 공백 처리 의미는 함수 계약을 따른다.
@@ -88,7 +88,7 @@ func (s *RuleSet) Remove(name string) bool {
 	return ok
 }
 
-// Get는 Get 공개 API의 동작을 수행한다.
+// Get Get 공개 API의 동작을 수행한다.
 //
 // 매개변수:
 //   - name: Get가 해석하거나 검증하는 문자열 값이다. 빈 문자열과 공백 처리 의미는 함수 계약을 따른다.
@@ -107,7 +107,7 @@ func (s *RuleSet) Get(name string) (Rule, bool) {
 	return entry.rule, ok
 }
 
-// Len는 Len 공개 API의 동작을 수행한다.
+// Len Len 공개 API의 동작을 수행한다.
 func (s *RuleSet) Len() int {
 	if s == nil {
 		return 0
@@ -118,7 +118,7 @@ func (s *RuleSet) Len() int {
 	return len(s.byName)
 }
 
-// Rules는 Rules 공개 API의 동작을 수행한다.
+// Rules Rules 공개 API의 동작을 수행한다.
 func (s *RuleSet) Rules() []Rule {
 	entries := s.entries()
 	rules := make([]Rule, 0, len(entries))

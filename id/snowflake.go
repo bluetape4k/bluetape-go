@@ -18,14 +18,14 @@ const (
 
 var defaultSnowflakeEpoch = time.Date(2020, 1, 1, 0, 0, 0, 0, time.UTC)
 
-// SnowflakeGenerator는 interface 공개 타입이다.
+// SnowflakeGenerator interface 공개 타입이다.
 // 값의 zero value, nil 허용 여부, 동시성 소유권은 생성자와 메서드의 한국어 주석 및 테스트 계약을 따른다.
 type SnowflakeGenerator interface {
 	Int64Generator
 	StringGenerator
 }
 
-// SnowflakeOption는 func 공개 타입이다.
+// SnowflakeOption func 공개 타입이다.
 // 값의 zero value, nil 허용 여부, 동시성 소유권은 생성자와 메서드의 한국어 주석 및 테스트 계약을 따른다.
 type SnowflakeOption func(*snowflakeConfig) error
 
@@ -34,7 +34,7 @@ type snowflakeConfig struct {
 	now   func() time.Time
 }
 
-// WithSnowflakeEpoch는 WithSnowflakeEpoch 공개 API의 동작을 수행한다.
+// WithSnowflakeEpoch WithSnowflakeEpoch 공개 API의 동작을 수행한다.
 //
 // 매개변수:
 //   - epoch: WithSnowflakeEpoch 동작에 필요한 epoch 값이다. zero value, 범위, nil 허용 여부는 함수 계약을 따른다.
@@ -48,7 +48,7 @@ func WithSnowflakeEpoch(epoch time.Time) SnowflakeOption {
 	}
 }
 
-// WithSnowflakeTime는 WithSnowflakeTime 공개 API의 동작을 수행한다.
+// WithSnowflakeTime WithSnowflakeTime 공개 API의 동작을 수행한다.
 //
 // 매개변수:
 //   - now: WithSnowflakeTime 동작에 필요한 now 값이다. zero value, 범위, nil 허용 여부는 함수 계약을 따른다.
@@ -70,7 +70,7 @@ type snowflakeGenerator struct {
 	sequence  int64
 }
 
-// SnowflakeParts는 struct 공개 타입이다.
+// SnowflakeParts struct 공개 타입이다.
 // 값의 zero value, nil 허용 여부, 동시성 소유권은 생성자와 메서드의 한국어 주석 및 테스트 계약을 따른다.
 type SnowflakeParts struct {
 	Time      time.Time
@@ -78,7 +78,7 @@ type SnowflakeParts struct {
 	Sequence  int64
 }
 
-// NewSnowflakeGenerator는 NewSnowflakeGenerator 공개 API의 동작을 수행한다.
+// NewSnowflakeGenerator NewSnowflakeGenerator 공개 API의 동작을 수행한다.
 //
 // 매개변수:
 //   - machineID: NewSnowflakeGenerator 동작에 필요한 machineID 값이다. zero value, 범위, nil 허용 여부는 함수 계약을 따른다.
@@ -153,7 +153,7 @@ func (g *snowflakeGenerator) NextString() (string, error) {
 	return strconv.FormatInt(value, 10), nil
 }
 
-// ParseSnowflake는 ParseSnowflake 공개 API의 동작을 수행한다.
+// ParseSnowflake ParseSnowflake 공개 API의 동작을 수행한다.
 //
 // 매개변수:
 //   - value: ParseSnowflake가 해석하거나 검증하는 문자열 값이다. 빈 문자열과 공백 처리 의미는 함수 계약을 따른다.
@@ -170,7 +170,7 @@ func ParseSnowflake(value string) (int64, error) {
 	return parsed, nil
 }
 
-// DecodeSnowflake는 DecodeSnowflake 공개 API의 동작을 수행한다.
+// DecodeSnowflake DecodeSnowflake 공개 API의 동작을 수행한다.
 //
 // 매개변수:
 //   - value: DecodeSnowflake 동작에 필요한 value 값이다. zero value, 범위, nil 허용 여부는 함수 계약을 따른다.
