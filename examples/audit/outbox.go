@@ -7,18 +7,18 @@ import (
 	"github.com/bluetape4k/bluetape-go/audit"
 )
 
-// MemoryOutbox는 example package에서 사용하는 in-memory EntrySink다.
+// MemoryOutbox example package에서 사용하는 in-memory EntrySink다.
 type MemoryOutbox struct {
 	mu      sync.Mutex
 	entries []audit.Entry
 }
 
-// NewMemoryOutbox는 비어 있는 in-memory outbox fixture를 생성한다.
+// NewMemoryOutbox 비어 있는 in-memory outbox fixture를 생성한다.
 func NewMemoryOutbox() *MemoryOutbox {
 	return &MemoryOutbox{}
 }
 
-// Enqueue는 entries의 defensive copy를 저장한다.
+// Enqueue entries의 defensive copy를 저장한다.
 func (o *MemoryOutbox) Enqueue(ctx context.Context, entries ...audit.Entry) error {
 	if err := checkContext(ctx); err != nil {
 		return err
@@ -40,7 +40,7 @@ func (o *MemoryOutbox) Enqueue(ctx context.Context, entries ...audit.Entry) erro
 	return nil
 }
 
-// Entries는 queue에 쌓인 entry의 defensive copy를 반환한다.
+// Entries queue에 쌓인 entry의 defensive copy를 반환한다.
 func (o *MemoryOutbox) Entries() []audit.Entry {
 	o.mu.Lock()
 	defer o.mu.Unlock()

@@ -28,7 +28,7 @@ func WithClock(now func() time.Time) ProviderOption {
 	}
 }
 
-// WithEntropy 는 key 생성과 kid 생성에 사용할 entropy reader를 지정한다.
+// WithEntropy key 생성과 kid 생성에 사용할 entropy reader를 지정한다.
 func WithEntropy(entropy io.Reader) ProviderOption {
 	return func(cfg *providerConfig) error {
 		if entropy == nil {
@@ -50,7 +50,7 @@ func WithKeyTTL(ttl time.Duration) ProviderOption {
 	}
 }
 
-// WithRepositoryCapacity 는 in-memory KeyChain 보존 개수를 지정한다.
+// WithRepositoryCapacity in-memory KeyChain 보존 개수를 지정한다.
 func WithRepositoryCapacity(capacity int) ProviderOption {
 	return func(cfg *providerConfig) error {
 		cfg.capacity = capacity
@@ -58,7 +58,7 @@ func WithRepositoryCapacity(capacity int) ProviderOption {
 	}
 }
 
-// WithKeyIDGenerator 는 custom kid 생성 함수를 지정한다.
+// WithKeyIDGenerator custom kid 생성 함수를 지정한다.
 //
 // 반환 값은 provider 안에서 unique해야 하며, 공유 provider에서 사용할 때는
 // generator 자체가 concurrent use에 안전해야 한다.
@@ -72,7 +72,7 @@ func WithKeyIDGenerator(keyID func() (string, error)) ProviderOption {
 	}
 }
 
-// WithRSAKeyBits 는 생성 RSA key 크기를 지정한다.
+// WithRSAKeyBits 생성 RSA key 크기를 지정한다.
 func WithRSAKeyBits(bits int) ProviderOption {
 	return func(cfg *providerConfig) error {
 		if bits < 2048 {
