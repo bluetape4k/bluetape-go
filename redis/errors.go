@@ -9,23 +9,25 @@ import (
 )
 
 var (
-	// ErrInvalidKey is returned when a Redis key or key-related label is invalid.
+	// ErrInvalidKey는 Redis key 또는 key 관련 label이 invalid일 때 반환된다.
 	ErrInvalidKey = errors.New("redis: invalid key")
-	// ErrInvalidHashTag is returned when a Redis Cluster hash tag is invalid.
+	// ErrInvalidHashTag는 Redis Cluster hash tag가 invalid일 때 반환된다.
 	ErrInvalidHashTag = errors.New("redis: invalid hash tag")
-	// ErrInvalidTTL is returned when a Redis TTL is invalid.
+	// ErrInvalidTTL은 Redis TTL이 invalid일 때 반환된다.
 	ErrInvalidTTL = errors.New("redis: invalid ttl")
-	// ErrCommitUnknown is returned when a dispatched Redis mutation may have committed.
+	// ErrCommitUnknown은 dispatch된 Redis mutation이 commit됐을 수 있을 때 반환된다.
 	ErrCommitUnknown = errors.New("redis: commit unknown")
 )
 
-// OpLabels are low-cardinality labels for Redis operation diagnostics.
+// OpLabels는 struct 공개 타입이며 Redis key, TTL, lease, owner token, Lua script primitive 계약을 보존한다.
+// 필드와 zero value, nil 허용 여부, 동시성 소유권은 생성자와 메서드의 한국어 주석 및 테스트 계약을 따른다.
 type OpLabels struct {
 	Family    string
 	Operation string
 }
 
-// OpError wraps a Redis operation failure with redacted diagnostics.
+// OpError는 struct 공개 타입이며 Redis key, TTL, lease, owner token, Lua script primitive 계약을 보존한다.
+// 필드와 zero value, nil 허용 여부, 동시성 소유권은 생성자와 메서드의 한국어 주석 및 테스트 계약을 따른다.
 type OpError struct {
 	family    string
 	operation string
@@ -33,7 +35,14 @@ type OpError struct {
 	err       error
 }
 
-// NewOpError returns a redacted Redis operation error for a raw Redis key.
+// NewOpError는 NewOpError 공개 API의 동작을 수행하며 Redis key, TTL, lease, owner token, Lua script primitive 계약을 보존한다.
+//
+// 매개변수:
+//   - labels: NewOpError 동작에 필요한 labels 값이다. zero value, 범위, nil 허용 여부는 함수 계약을 따른다.
+//   - rawKey: Redis key 또는 key 구성 요소다. namespace, slot, normalization 의미는 primitive 계약을 따른다.
+//   - err: NewOpError 동작에 필요한 err 값이다. zero value, 범위, nil 허용 여부는 함수 계약을 따른다.
+//
+// 반환 오류는 입력 검증 실패, 취소, Redis/backend 실패, lease/token 불일치, 또는 package sentinel/typed error 계약을 보존한다.
 func NewOpError(labels OpLabels, rawKey string, err error) error {
 	if err := labels.validate(); err != nil {
 		return err
@@ -41,7 +50,14 @@ func NewOpError(labels OpLabels, rawKey string, err error) error {
 	return newOpErrorWithKeyID(labels, RedactedKeyID(rawKey), err)
 }
 
-// NewOpErrorWithRedactedKey returns a Redis operation error for a pre-redacted key id.
+// NewOpErrorWithRedactedKey는 NewOpErrorWithRedactedKey 공개 API의 동작을 수행하며 Redis key, TTL, lease, owner token, Lua script primitive 계약을 보존한다.
+//
+// 매개변수:
+//   - labels: NewOpErrorWithRedactedKey 동작에 필요한 labels 값이다. zero value, 범위, nil 허용 여부는 함수 계약을 따른다.
+//   - redactedKeyID: Redis key 또는 key 구성 요소다. namespace, slot, normalization 의미는 primitive 계약을 따른다.
+//   - err: NewOpErrorWithRedactedKey 동작에 필요한 err 값이다. zero value, 범위, nil 허용 여부는 함수 계약을 따른다.
+//
+// 반환 오류는 입력 검증 실패, 취소, Redis/backend 실패, lease/token 불일치, 또는 package sentinel/typed error 계약을 보존한다.
 func NewOpErrorWithRedactedKey(labels OpLabels, redactedKeyID string, err error) error {
 	if err := labels.validate(); err != nil {
 		return err
@@ -52,7 +68,7 @@ func NewOpErrorWithRedactedKey(labels OpLabels, redactedKeyID string, err error)
 	return newOpErrorWithKeyID(labels, redactedKeyID, err)
 }
 
-// Error returns a sanitized message without raw keys, tokens, or provider text.
+// Error는 Error 공개 API의 동작을 수행하며 Redis key, TTL, lease, owner token, Lua script primitive 계약을 보존한다.
 func (e *OpError) Error() string {
 	if e == nil {
 		return "redis operation failed"
@@ -64,7 +80,9 @@ func (e *OpError) Error() string {
 	return fmt.Sprintf("%s %s failed for %s: %s", e.Family(), e.Operation(), e.KeyID(), cause)
 }
 
-// Unwrap returns the causal Redis/context error.
+// Unwrap는 Unwrap 공개 API의 동작을 수행하며 Redis key, TTL, lease, owner token, Lua script primitive 계약을 보존한다.
+//
+// 반환 오류는 입력 검증 실패, 취소, Redis/backend 실패, lease/token 불일치, 또는 package sentinel/typed error 계약을 보존한다.
 func (e *OpError) Unwrap() error {
 	if e == nil {
 		return nil
@@ -72,7 +90,10 @@ func (e *OpError) Unwrap() error {
 	return e.err
 }
 
-// Is delegates matching to the causal error.
+// Is는 Is 공개 API의 동작을 수행하며 Redis key, TTL, lease, owner token, Lua script primitive 계약을 보존한다.
+//
+// 매개변수:
+//   - target: Is 동작에 필요한 target 값이다. zero value, 범위, nil 허용 여부는 함수 계약을 따른다.
 func (e *OpError) Is(target error) bool {
 	if e == nil {
 		return false
@@ -80,7 +101,7 @@ func (e *OpError) Is(target error) bool {
 	return errors.Is(e.err, target)
 }
 
-// Family returns the low-cardinality Redis operation family.
+// Family는 Family 공개 API의 동작을 수행하며 Redis key, TTL, lease, owner token, Lua script primitive 계약을 보존한다.
 func (e *OpError) Family() string {
 	if e == nil || !validLabel(e.family) {
 		return "redis"
@@ -88,7 +109,7 @@ func (e *OpError) Family() string {
 	return e.family
 }
 
-// Operation returns the low-cardinality Redis operation name.
+// Operation는 Operation 공개 API의 동작을 수행하며 Redis key, TTL, lease, owner token, Lua script primitive 계약을 보존한다.
 func (e *OpError) Operation() string {
 	if e == nil || !validLabel(e.operation) {
 		return "operation"
@@ -96,7 +117,7 @@ func (e *OpError) Operation() string {
 	return e.operation
 }
 
-// KeyID returns the redacted Redis key correlation id.
+// KeyID는 KeyID 공개 API의 동작을 수행하며 Redis key, TTL, lease, owner token, Lua script primitive 계약을 보존한다.
 func (e *OpError) KeyID() string {
 	if e == nil || ValidateRedactedKeyID(e.keyID) != nil {
 		return "redis-key:<missing>"

@@ -50,7 +50,8 @@ return active
 
 const groupPollInterval = 50 * time.Millisecond
 
-// GroupElector 는 Redis ZSET 기반 multi-leader elector다.
+// GroupElector는 struct 공개 타입이며 leader election의 lease, owner token, fencing, group key 계약을 보존한다.
+// 필드와 zero value, nil 허용 여부, 동시성 소유권은 생성자와 메서드의 한국어 주석 및 테스트 계약을 따른다.
 type GroupElector struct {
 	client redis.Cmdable
 	opts   leader.GroupOptions
@@ -64,7 +65,13 @@ type GroupElector struct {
 	done   chan struct{}
 }
 
-// NewGroup 는 Redis 기반 multi-leader elector를 만든다.
+// NewGroup는 NewGroup 공개 API의 동작을 수행하며 leader election의 lease, owner token, fencing, group key 계약을 보존한다.
+//
+// 매개변수:
+//   - client: Redis backend client 또는 fixture다. 연결과 종료 소유권은 생성자 계약을 따른다.
+//   - opts: NewGroup 동작에 필요한 opts 값이다. zero value, 범위, nil 허용 여부는 함수 계약을 따른다.
+//
+// 반환 오류는 입력 검증 실패, 취소, Redis/backend 실패, lease/token 불일치, 또는 package sentinel/typed error 계약을 보존한다.
 func NewGroup(client redis.Cmdable, opts leader.GroupOptions) (*GroupElector, error) {
 	if client == nil {
 		return nil, errors.New("redis client must not be nil")
@@ -88,7 +95,12 @@ func NewGroup(client redis.Cmdable, opts leader.GroupOptions) (*GroupElector, er
 	}, nil
 }
 
-// Campaign 은 빈 leader slot을 획득할 때까지 대기한다.
+// Campaign는 Campaign 공개 API의 동작을 수행하며 leader election의 lease, owner token, fencing, group key 계약을 보존한다.
+//
+// 매개변수:
+//   - ctx: 호출자가 소유한 취소, deadline, 요청 범위를 전달한다.
+//
+// 반환 오류는 입력 검증 실패, 취소, Redis/backend 실패, lease/token 불일치, 또는 package sentinel/typed error 계약을 보존한다.
 func (e *GroupElector) Campaign(ctx context.Context) error {
 	e.mu.Lock()
 	if e.owned || e.active {
@@ -130,7 +142,12 @@ func (e *GroupElector) Campaign(ctx context.Context) error {
 	}
 }
 
-// Resign 은 이 elector가 아직 소유한 leader slot만 해제한다.
+// Resign는 Resign 공개 API의 동작을 수행하며 leader election의 lease, owner token, fencing, group key 계약을 보존한다.
+//
+// 매개변수:
+//   - ctx: 호출자가 소유한 취소, deadline, 요청 범위를 전달한다.
+//
+// 반환 오류는 입력 검증 실패, 취소, Redis/backend 실패, lease/token 불일치, 또는 package sentinel/typed error 계약을 보존한다.
 func (e *GroupElector) Resign(ctx context.Context) error {
 	if ctx == nil {
 		ctx = context.Background()
@@ -165,14 +182,19 @@ func (e *GroupElector) Resign(ctx context.Context) error {
 	return nil
 }
 
-// IsLeader 는 이 elector가 아직 leader slot을 보유한다고 판단하는지 알려준다.
+// IsLeader는 IsLeader 공개 API의 동작을 수행하며 leader election의 lease, owner token, fencing, group key 계약을 보존한다.
 func (e *GroupElector) IsLeader() bool {
 	e.mu.RLock()
 	defer e.mu.RUnlock()
 	return e.owned
 }
 
-// ActiveCount 는 현재 살아 있는 leader slot 수를 반환한다.
+// ActiveCount는 ActiveCount 공개 API의 동작을 수행하며 leader election의 lease, owner token, fencing, group key 계약을 보존한다.
+//
+// 매개변수:
+//   - ctx: 호출자가 소유한 취소, deadline, 요청 범위를 전달한다.
+//
+// 반환 오류는 입력 검증 실패, 취소, Redis/backend 실패, lease/token 불일치, 또는 package sentinel/typed error 계약을 보존한다.
 func (e *GroupElector) ActiveCount(ctx context.Context) (int, error) {
 	active, err := e.activeCount(ctx)
 	if err != nil {
@@ -181,7 +203,12 @@ func (e *GroupElector) ActiveCount(ctx context.Context) (int, error) {
 	return active, nil
 }
 
-// AvailableSlots 는 추가로 획득할 수 있는 leader slot 수를 반환한다.
+// AvailableSlots는 AvailableSlots 공개 API의 동작을 수행하며 leader election의 lease, owner token, fencing, group key 계약을 보존한다.
+//
+// 매개변수:
+//   - ctx: 호출자가 소유한 취소, deadline, 요청 범위를 전달한다.
+//
+// 반환 오류는 입력 검증 실패, 취소, Redis/backend 실패, lease/token 불일치, 또는 package sentinel/typed error 계약을 보존한다.
 func (e *GroupElector) AvailableSlots(ctx context.Context) (int, error) {
 	active, err := e.activeCount(ctx)
 	if err != nil {
