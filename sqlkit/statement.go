@@ -6,14 +6,13 @@ import (
 	"fmt"
 )
 
-// Statement is an inspectable SQL statement plus the ordered arguments that
-// should be passed to database/sql.
+// Statement는 검토 가능한 SQL statement와 database/sql에 순서대로 전달할 argument를 함께 보관한다.
 type Statement struct {
 	SQL  string
 	Args []any
 }
 
-// NewStatement returns stmt with a defensive copy of args.
+// NewStatement는 args를 defensive copy한 stmt를 반환한다.
 func NewStatement(query string, args ...any) Statement {
 	return Statement{
 		SQL:  query,
@@ -21,7 +20,7 @@ func NewStatement(query string, args ...any) Statement {
 	}
 }
 
-// Exec executes stmt through the context-aware database/sql Exec boundary.
+// Exec은 context-aware database/sql Exec boundary를 통해 stmt를 실행한다.
 func (stmt Statement) Exec(ctx context.Context, db Execer) (stdsql.Result, error) {
 	if ctx == nil {
 		ctx = context.Background()

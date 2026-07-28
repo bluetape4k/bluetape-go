@@ -7,9 +7,9 @@ import (
 )
 
 const (
-	// DefaultEncryptedColumnMaxPlaintextBytes limits plaintext to 1 MiB by default.
+	// DefaultEncryptedColumnMaxPlaintextBytes는 plaintext 기본 한도를 1 MiB로 제한한다.
 	DefaultEncryptedColumnMaxPlaintextBytes = 1 << 20
-	// DefaultEncryptedColumnMaxCiphertextBytes limits stored ciphertext to 2 MiB by default.
+	// DefaultEncryptedColumnMaxCiphertextBytes는 저장할 ciphertext 기본 한도를 2 MiB로 제한한다.
 	DefaultEncryptedColumnMaxCiphertextBytes = 2 << 20
 )
 
@@ -18,11 +18,10 @@ type encryptedColumnConfig struct {
 	associatedData []byte
 }
 
-// EncryptedBytesColumn stores arbitrary plaintext bytes encrypted as a binary envelope.
+// EncryptedBytesColumn은 임의 plaintext byte를 binary envelope로 암호화해 저장한다.
 //
-// The zero value safely represents SQL NULL. Use NewEncryptedBytesColumn
-// before scanning or valuing non-NULL data. Column values are mutable per-row
-// state and must not be mutated concurrently.
+// zero value는 SQL NULL을 안전하게 나타낸다. non-NULL data를 Scan하거나 Value로 만들기 전에
+// NewEncryptedBytesColumn을 사용한다. Column value는 row별 mutable state이므로 동시에 변경하면 안 된다.
 type EncryptedBytesColumn struct {
 	Data               []byte
 	Valid              bool
@@ -31,7 +30,7 @@ type EncryptedBytesColumn struct {
 	config             encryptedColumnConfig
 }
 
-// NewEncryptedBytesColumn creates a byte column and copies associatedData.
+// NewEncryptedBytesColumn은 byte column을 생성하고 associatedData를 복사한다.
 func NewEncryptedBytesColumn(encryptor encrypt.Encryptor, associatedData []byte) EncryptedBytesColumn {
 	return EncryptedBytesColumn{config: encryptedColumnConfig{
 		encryptor:      encryptor,
@@ -39,10 +38,10 @@ func NewEncryptedBytesColumn(encryptor encrypt.Encryptor, associatedData []byte)
 	}}
 }
 
-// Scan decrypts a nil, string, or []byte database value.
+// Scan은 nil, string, []byte database value를 복호화한다.
 //
-// Scan clears prior plaintext before validation, copies driver-owned input,
-// and publishes Data only after decryption and size validation succeed.
+// Scan은 validation 전에 기존 plaintext를 지우고 driver 소유 input을 복사하며,
+// 복호화와 size validation이 성공한 뒤에만 Data를 공개한다.
 func (c *EncryptedBytesColumn) Scan(src any) error {
 	if c == nil {
 		return newColumnError(ErrInvalidColumnValue, "scan encrypted bytes", nil)
@@ -74,10 +73,10 @@ func (c *EncryptedBytesColumn) Scan(src any) error {
 	return nil
 }
 
-// Value encrypts Data as a binary envelope or returns nil when Valid is false.
+// Value는 Data를 binary envelope로 암호화하거나 Valid가 false이면 nil을 반환한다.
 //
-// Value returns []byte for non-NULL values. Repeated calls use independent
-// random nonces and may return different ciphertext for the same plaintext.
+// Value는 non-NULL 값에 대해 []byte를 반환한다. 반복 호출은 독립적인 random nonce를 사용하므로
+// 같은 plaintext라도 다른 ciphertext를 반환할 수 있다.
 func (c EncryptedBytesColumn) Value() (value driver.Value, err error) {
 	if !c.Valid {
 		return nil, nil
@@ -104,11 +103,10 @@ func (c EncryptedBytesColumn) Value() (value driver.Value, err error) {
 	return ciphertext, nil
 }
 
-// EncryptedStringColumn stores UTF-8 plaintext encrypted as raw URL-safe base64 text.
+// EncryptedStringColumn은 UTF-8 plaintext를 raw URL-safe base64 text로 암호화해 저장한다.
 //
-// The zero value safely represents SQL NULL. Use NewEncryptedStringColumn
-// before scanning or valuing non-NULL data. Column values are mutable per-row
-// state and must not be mutated concurrently.
+// zero value는 SQL NULL을 안전하게 나타낸다. non-NULL data를 Scan하거나 Value로 만들기 전에
+// NewEncryptedStringColumn을 사용한다. Column value는 row별 mutable state이므로 동시에 변경하면 안 된다.
 type EncryptedStringColumn struct {
 	Data               string
 	Valid              bool
@@ -117,7 +115,7 @@ type EncryptedStringColumn struct {
 	config             encryptedColumnConfig
 }
 
-// NewEncryptedStringColumn creates a string column and copies associatedData.
+// NewEncryptedStringColumn은 string column을 생성하고 associatedData를 복사한다.
 func NewEncryptedStringColumn(encryptor encrypt.Encryptor, associatedData []byte) EncryptedStringColumn {
 	return EncryptedStringColumn{config: encryptedColumnConfig{
 		encryptor:      encryptor,
@@ -125,10 +123,10 @@ func NewEncryptedStringColumn(encryptor encrypt.Encryptor, associatedData []byte
 	}}
 }
 
-// Scan decrypts a nil, string, or []byte database value.
+// Scan은 nil, string, []byte database value를 복호화한다.
 //
-// Non-NULL input must contain the raw URL-safe base64 envelope produced by
-// encrypt.Encryptor.EncryptString. Scan clears prior plaintext before work.
+// non-NULL input은 encrypt.Encryptor.EncryptString이 생성한 raw URL-safe base64 envelope를 포함해야 한다.
+// Scan은 작업 전에 기존 plaintext를 지운다.
 func (c *EncryptedStringColumn) Scan(src any) error {
 	if c == nil {
 		return newColumnError(ErrInvalidColumnValue, "scan encrypted string", nil)
@@ -160,10 +158,10 @@ func (c *EncryptedStringColumn) Scan(src any) error {
 	return nil
 }
 
-// Value encrypts Data as raw URL-safe base64 text or returns nil when Valid is false.
+// Value는 Data를 raw URL-safe base64 text로 암호화하거나 Valid가 false이면 nil을 반환한다.
 //
-// Value returns string for non-NULL values. Repeated calls use independent
-// random nonces and may return different ciphertext for the same plaintext.
+// Value는 non-NULL 값에 대해 string을 반환한다. 반복 호출은 독립적인 random nonce를 사용하므로
+// 같은 plaintext라도 다른 ciphertext를 반환할 수 있다.
 func (c EncryptedStringColumn) Value() (value driver.Value, err error) {
 	if !c.Valid {
 		return nil, nil

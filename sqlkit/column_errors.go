@@ -6,10 +6,10 @@ import (
 )
 
 var (
-	// ErrInvalidColumnValue reports an unsupported, malformed, or invalidly configured column value.
+	// ErrInvalidColumnValue는 지원하지 않거나 malformed이거나 잘못 설정된 column value일 때 반환된다.
 	ErrInvalidColumnValue = errors.New("sqlkit: invalid column value")
 
-	// ErrColumnValueTooLarge reports a column source or encoded value above its byte limit.
+	// ErrColumnValueTooLarge는 column source 또는 encoded value가 byte 한도를 넘을 때 반환된다.
 	ErrColumnValueTooLarge = errors.New("sqlkit: column value too large")
 )
 
