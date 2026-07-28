@@ -7,22 +7,32 @@ import (
 	"github.com/bluetape4k/bluetape-go/core"
 )
 
-// BytesSerializer copies byte slices without transforming them.
+// BytesSerializer 패키지에서 공개하는 구조체다.
 type BytesSerializer struct{}
 
-// Format returns the stable serializer format name.
+// Format 값을 지정한 형식의 문자열로 변환한다.
 func (BytesSerializer) Format() string {
 	return "bytes"
 }
 
-// Marshal returns a copy of value.
+// Marshal 값을 직렬화된 바이트로 변환한다.
+//
+// 매개변수:
+//   - value: Marshal가 처리할 값 목록이다. nil과 빈 슬라이스는 구현의 입력 규칙에 따라 처리한다.
+//
+// 반환 오류는 입력 검증 실패와 패키지에서 정의한 sentinel error/typed error를 그대로 드러낸다.
 func (BytesSerializer) Marshal(value []byte) ([]byte, error) {
 	copied := make([]byte, len(value))
 	copy(copied, value)
 	return copied, nil
 }
 
-// Unmarshal returns a copy of data.
+// Unmarshal 직렬화된 데이터를 대상 값으로 복원한다.
+//
+// 매개변수:
+//   - data: Unmarshal가 처리할 값 목록이다. nil과 빈 슬라이스는 구현의 입력 규칙에 따라 처리한다.
+//
+// 반환 오류는 입력 검증 실패와 패키지에서 정의한 sentinel error/typed error를 그대로 드러낸다.
 func (BytesSerializer) Unmarshal(data []byte) ([]byte, error) {
 	if data == nil {
 		return nil, fmt.Errorf("unmarshal bytes: input must not be nil")
@@ -32,17 +42,20 @@ func (BytesSerializer) Unmarshal(data []byte) ([]byte, error) {
 	return copied, nil
 }
 
-// StringSerializer serializes strings as UTF-8 bytes.
+// StringSerializer 패키지에서 공개하는 구조체다.
 type StringSerializer struct{}
 
-// Format returns the stable serializer format name.
+// Format 값을 지정한 형식의 문자열로 변환한다.
 func (StringSerializer) Format() string {
 	return "string"
 }
 
-// Marshal serializes value as UTF-8 bytes.
+// Marshal 값을 직렬화된 바이트로 변환한다.
 //
-// It returns an error wrapping core.ErrInvalidUTF8 when value is not valid UTF-8.
+// 매개변수:
+//   - value: Marshal가 해석할 문자열이다. 빈 문자열과 공백은 구현 검증을 따른다.
+//
+// 반환 오류는 입력 검증 실패와 패키지에서 정의한 sentinel error/typed error를 그대로 드러낸다.
 func (StringSerializer) Marshal(value string) ([]byte, error) {
 	if !utf8.ValidString(value) {
 		return nil, fmt.Errorf("marshal string: %w", core.ErrInvalidUTF8)
@@ -50,9 +63,12 @@ func (StringSerializer) Marshal(value string) ([]byte, error) {
 	return []byte(value), nil
 }
 
-// Unmarshal deserializes UTF-8 bytes into a string.
+// Unmarshal 직렬화된 데이터를 대상 값으로 복원한다.
 //
-// It returns an error wrapping core.ErrInvalidUTF8 when data is not valid UTF-8.
+// 매개변수:
+//   - data: Unmarshal가 처리할 값 목록이다. nil과 빈 슬라이스는 구현의 입력 규칙에 따라 처리한다.
+//
+// 반환 오류는 입력 검증 실패와 패키지에서 정의한 sentinel error/typed error를 그대로 드러낸다.
 func (StringSerializer) Unmarshal(data []byte) (string, error) {
 	if data == nil {
 		return "", fmt.Errorf("unmarshal string: input must not be nil")

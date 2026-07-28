@@ -1,4 +1,4 @@
-// Package leader 는 leader election 계약을 정의한다.
+// Package leader leader election 계약을 정의한다.
 //
 // 하나의 Elector는 하나의 group에서 하나의 member를 대표한다. Campaign은
 // leadership 획득을 시도하고, Resign은 보유 중인 leadership만 해제한다.

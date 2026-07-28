@@ -1,11 +1,11 @@
 package compression
 
-// Default returns the recommended general-purpose compressor.
+// Default 기본 compressor registry를 반환한다.
 func Default() Compressor {
 	return Zstd()
 }
 
-// All returns the foundation compressors supported by bluetape-go.
+// All 등록된 모든 compressor를 반환한다.
 func All() []Compressor {
 	return []Compressor{
 		Gzip(),

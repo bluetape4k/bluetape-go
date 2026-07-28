@@ -7,20 +7,23 @@ import (
 	"io"
 )
 
-// JSONOption configures JSONSerializer.
+// JSONOption func 공개 타입이다.
 type JSONOption func(*JSONSerializerOptions)
 
-// JSONSerializerOptions controls JSON decoding behavior.
+// JSONSerializerOptions 패키지에서 공개하는 구조체다.
 type JSONSerializerOptions struct {
 	DisallowUnknownFields bool
 }
 
-// JSONSerializer serializes values with Go's standard encoding/json package.
+// JSONSerializer 패키지에서 공개하는 구조체다.
 type JSONSerializer[T any] struct {
 	options JSONSerializerOptions
 }
 
-// NewJSONSerializer creates a JSON serializer.
+// NewJSONSerializer JSONSerializer 인스턴스를 생성한다.
+//
+// 매개변수:
+//   - options: 적용할 옵션 목록이다. nil이면 기본값만 사용한다.
 func NewJSONSerializer[T any](options ...JSONOption) JSONSerializer[T] {
 	serializer := JSONSerializer[T]{}
 	for _, option := range options {
@@ -31,19 +34,24 @@ func NewJSONSerializer[T any](options ...JSONOption) JSONSerializer[T] {
 	return serializer
 }
 
-// WithDisallowUnknownFields makes JSON decoding reject unknown object fields.
+// WithDisallowUnknownFields DisallowUnknownFields 설정을 적용한 옵션을 반환한다.
 func WithDisallowUnknownFields() JSONOption {
 	return func(options *JSONSerializerOptions) {
 		options.DisallowUnknownFields = true
 	}
 }
 
-// Format returns the stable serializer format name.
+// Format 값을 지정한 형식의 문자열로 변환한다.
 func (s JSONSerializer[T]) Format() string {
 	return "json"
 }
 
-// Marshal serializes value as JSON.
+// Marshal 값을 직렬화된 바이트로 변환한다.
+//
+// 매개변수:
+//   - value: Marshal에 전달되는 값이다. 허용 범위와 nil 처리 방식은 구현 검증을 따른다.
+//
+// 반환 오류는 입력 검증 실패와 패키지에서 정의한 sentinel error/typed error를 그대로 드러낸다.
 func (s JSONSerializer[T]) Marshal(value T) ([]byte, error) {
 	data, err := json.Marshal(value)
 	if err != nil {
@@ -52,7 +60,12 @@ func (s JSONSerializer[T]) Marshal(value T) ([]byte, error) {
 	return data, nil
 }
 
-// Unmarshal deserializes JSON bytes into T.
+// Unmarshal 직렬화된 데이터를 대상 값으로 복원한다.
+//
+// 매개변수:
+//   - data: Unmarshal가 처리할 값 목록이다. nil과 빈 슬라이스는 구현의 입력 규칙에 따라 처리한다.
+//
+// 반환 오류는 입력 검증 실패와 패키지에서 정의한 sentinel error/typed error를 그대로 드러낸다.
 func (s JSONSerializer[T]) Unmarshal(data []byte) (T, error) {
 	var value T
 	if len(data) == 0 {

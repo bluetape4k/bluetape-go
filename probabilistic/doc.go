@@ -1,4 +1,4 @@
-// Package probabilistic 는 확률적 자료구조를 위한 작은 first-party API를 제공합니다.
+// Package probabilistic 확률적 자료구조를 위한 작은 first-party API를 제공합니다.
 //
 // 현재 패키지는 인메모리 Bloom filter를 제공합니다. Bloom filter는 삭제를
 // 지원하지 않고 false positive가 가능하지만, 성공적으로 삽입되고 이후 Clear로

@@ -6,7 +6,7 @@ import (
 	"strings"
 )
 
-// Unit  기준 단위 대비 ratio를 가진 불변 단위 값입니다.
+// Unit 패키지에서 공개하는 구조체다.
 type Unit[D any] struct {
 	name   string
 	suffix string
@@ -18,17 +18,28 @@ type unitConfig struct {
 	space bool
 }
 
-// UnitOption  단위 생성 옵션입니다.
+// UnitOption func 공개 타입이다.
 type UnitOption[D any] func(*unitConfig)
 
-// WithSpaceBeforeSuffix  수치와 suffix 사이 공백 출력 여부를 지정합니다.
+// WithSpaceBeforeSuffix SpaceBeforeSuffix 설정을 적용한 옵션을 반환한다.
+//
+// 매개변수:
+//   - space: WithSpaceBeforeSuffix에 전달되는 값이다. 허용 범위와 nil 처리 방식은 구현 검증을 따른다.
 func WithSpaceBeforeSuffix[D any](space bool) UnitOption[D] {
 	return func(config *unitConfig) {
 		config.space = space
 	}
 }
 
-// NewUnit  유효성 검사를 거쳐 새 Unit을 생성합니다.
+// NewUnit Unit 인스턴스를 생성한다.
+//
+// 매개변수:
+//   - name: NewUnit가 해석할 문자열이다. 빈 문자열과 공백은 구현 검증을 따른다.
+//   - suffix: NewUnit가 해석할 문자열이다. 빈 문자열과 공백은 구현 검증을 따른다.
+//   - ratio: NewUnit에 전달되는 값이다. 허용 범위와 nil 처리 방식은 구현 검증을 따른다.
+//   - options: 적용할 옵션 목록이다. nil이면 기본값만 사용한다.
+//
+// 반환 오류는 입력 검증 실패와 패키지에서 정의한 sentinel error/typed error를 그대로 드러낸다.
 func NewUnit[D any](name, suffix string, ratio float64, options ...UnitOption[D]) (Unit[D], error) {
 	config := unitConfig{space: true}
 	for _, option := range options {
@@ -49,7 +60,13 @@ func NewUnit[D any](name, suffix string, ratio float64, options ...UnitOption[D]
 	return unit, nil
 }
 
-// MustUnit  유효하지 않은 단위면 panic을 발생시킵니다.
+// MustUnit 단위 조회에 실패하면 panic한다.
+//
+// 매개변수:
+//   - name: MustUnit가 해석할 문자열이다. 빈 문자열과 공백은 구현 검증을 따른다.
+//   - suffix: MustUnit가 해석할 문자열이다. 빈 문자열과 공백은 구현 검증을 따른다.
+//   - ratio: MustUnit에 전달되는 값이다. 허용 범위와 nil 처리 방식은 구현 검증을 따른다.
+//   - options: 적용할 옵션 목록이다. nil이면 기본값만 사용한다.
 func MustUnit[D any](name, suffix string, ratio float64, options ...UnitOption[D]) Unit[D] {
 	unit, err := NewUnit[D](name, suffix, ratio, options...)
 	if err != nil {
@@ -77,32 +94,32 @@ func (u Unit[D]) valid() bool {
 	return u.validate() == nil
 }
 
-// Name  단위 이름을 반환합니다.
+// Name 식별자 이름을 반환한다.
 func (u Unit[D]) Name() string {
 	return u.name
 }
 
-// Suffix  단위 suffix를 반환합니다.
+// Suffix 값에 사용할 suffix 문자열을 반환한다.
 func (u Unit[D]) Suffix() string {
 	return u.suffix
 }
 
-// Ratio  기준 단위 대비 배율을 반환합니다.
+// Ratio 두 측정값의 비율을 반환한다.
 func (u Unit[D]) Ratio() float64 {
 	return u.ratio
 }
 
-// SpaceBeforeSuffix  포맷 시 수치와 suffix 사이 공백 여부를 반환합니다.
+// SpaceBeforeSuffix suffix 앞 공백 사용 여부를 반환한다.
 func (u Unit[D]) SpaceBeforeSuffix() bool {
 	return u.space
 }
 
-// IsValid  단위가 생성자 계약을 만족하는지 반환합니다.
+// IsValid 값이 조건을 만족하는지 반환한다.
 func (u Unit[D]) IsValid() bool {
 	return u.valid()
 }
 
-// String  단위 suffix를 반환합니다.
+// String 값을 사람이 읽을 수 있는 문자열로 반환한다.
 func (u Unit[D]) String() string {
 	if !u.valid() {
 		return "<invalid unit>"

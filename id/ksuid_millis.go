@@ -20,11 +20,13 @@ type ksuidMillisGenerator struct {
 	now     func() time.Time
 }
 
-// KSUIDMillisOption configures Kotlin-compatible millisecond KSUID generation.
+// KSUIDMillisOption func 공개 타입이다.
 type KSUIDMillisOption func(*ksuidMillisGenerator) error
 
-// WithKSUIDMillisEntropy injects an entropy reader. Production defaults use crypto/rand.
-// Custom readers must be safe for concurrent use when the generator is shared.
+// WithKSUIDMillisEntropy KSUIDMillisEntropy 설정을 적용한 옵션을 반환한다.
+//
+// 매개변수:
+//   - entropy: WithKSUIDMillisEntropy에 전달되는 값이다. 허용 범위와 nil 처리 방식은 구현 검증을 따른다.
 func WithKSUIDMillisEntropy(entropy io.Reader) KSUIDMillisOption {
 	return func(g *ksuidMillisGenerator) error {
 		if entropy == nil {
@@ -35,8 +37,10 @@ func WithKSUIDMillisEntropy(entropy io.Reader) KSUIDMillisOption {
 	}
 }
 
-// WithKSUIDMillisTime injects a clock for deterministic tests. Custom clocks
-// must be safe for concurrent use when the generator is shared.
+// WithKSUIDMillisTime KSUIDMillisTime 설정을 적용한 옵션을 반환한다.
+//
+// 매개변수:
+//   - now: WithKSUIDMillisTime에 전달되는 값이다. 허용 범위와 nil 처리 방식은 구현 검증을 따른다.
 func WithKSUIDMillisTime(now func() time.Time) KSUIDMillisOption {
 	return func(g *ksuidMillisGenerator) error {
 		if now == nil {
@@ -47,7 +51,12 @@ func WithKSUIDMillisTime(now func() time.Time) KSUIDMillisOption {
 	}
 }
 
-// NewKSUIDMillisGenerator creates a Kotlin-compatible millisecond KSUID string generator.
+// NewKSUIDMillisGenerator KSUIDMillisGenerator 인스턴스를 생성한다.
+//
+// 매개변수:
+//   - options: 적용할 옵션 목록이다. nil이면 기본값만 사용한다.
+//
+// 반환 오류는 입력 검증 실패와 패키지에서 정의한 sentinel error/typed error를 그대로 드러낸다.
 func NewKSUIDMillisGenerator(options ...KSUIDMillisOption) (StringGenerator, error) {
 	return newKSUIDMillisGenerator(defaultEntropyReader(), time.Now, options...)
 }
@@ -86,7 +95,9 @@ func (g *ksuidMillisGenerator) NextString() (string, error) {
 	return encoded, nil
 }
 
-// NewKSUIDMillis returns a Kotlin-compatible millisecond KSUID string.
+// NewKSUIDMillis KSUIDMillis 인스턴스를 생성한다.
+//
+// 반환 오류는 입력 검증 실패와 패키지에서 정의한 sentinel error/typed error를 그대로 드러낸다.
 func NewKSUIDMillis() (string, error) {
 	g, err := NewKSUIDMillisGenerator()
 	if err != nil {
@@ -95,11 +106,12 @@ func NewKSUIDMillis() (string, error) {
 	return g.NextString()
 }
 
-// ParseKSUIDMillis validates a Kotlin-compatible millisecond KSUID string.
+// ParseKSUIDMillis 문자열 입력을 도메인 값으로 해석한다.
 //
-// Bare 27-character KSUID strings are not self-describing. This validates the
-// Kotlin-compatible millis shape only; callers must know they are handling the
-// millis family, not the Segment-compatible seconds family.
+// 매개변수:
+//   - value: ParseKSUIDMillis가 해석할 문자열이다. 빈 문자열과 공백은 구현 검증을 따른다.
+//
+// 반환 오류는 입력 검증 실패와 패키지에서 정의한 sentinel error/typed error를 그대로 드러낸다.
 func ParseKSUIDMillis(value string) (string, error) {
 	if _, err := decodeKSUIDMillis(value); err != nil {
 		return "", ParseError{Kind: "ksuid-millis", Value: value, Err: err}
@@ -107,11 +119,12 @@ func ParseKSUIDMillis(value string) (string, error) {
 	return value, nil
 }
 
-// KSUIDMillisTime extracts the timestamp encoded in a Kotlin-compatible millisecond KSUID string.
+// KSUIDMillisTime KSUID millis 값에 포함된 시각을 반환한다.
 //
-// Bare 27-character KSUID strings are not self-describing. Call this only for
-// caller-known millis strings; Segment seconds strings may parse but produce the
-// wrong family interpretation.
+// 매개변수:
+//   - value: KSUIDMillisTime가 해석할 문자열이다. 빈 문자열과 공백은 구현 검증을 따른다.
+//
+// 반환 오류는 입력 검증 실패와 패키지에서 정의한 sentinel error/typed error를 그대로 드러낸다.
 func KSUIDMillisTime(value string) (time.Time, error) {
 	raw, err := decodeKSUIDMillis(value)
 	if err != nil {

@@ -17,15 +17,15 @@ const (
 	tokenScale         = int64(1_000_000)
 )
 
-// Options 는 Redis token bucket 설정이다.
+// Options Redis token bucket 설정이다.
 type Options struct {
 	// Client caller-owned Redis client다.
 	Client redis.Cmdable
 	// Namespace Redis key scope다.
 	Namespace string
-	// RatePerSecond 는 초당 채워지는 token 수다.
+	// RatePerSecond 초당 채워지는 token 수다.
 	RatePerSecond float64
-	// Burst 는 bucket 최대 token 수다.
+	// Burst bucket 최대 token 수다.
 	Burst int64
 	// IdleTTL 쓰지 않는 Redis bucket key 만료 시간이다.
 	IdleTTL time.Duration

@@ -5,7 +5,7 @@ import (
 	"math"
 )
 
-// Page contains one page of items plus 0-based pagination metadata.
+// Page 패키지에서 공개하는 구조체다.
 type Page[T any] struct {
 	items  []T
 	page   int
@@ -14,7 +14,15 @@ type Page[T any] struct {
 	offset int64
 }
 
-// PageOf creates a page value after validating metadata and snapshotting items.
+// PageOf 항목 목록과 page metadata로 Page를 만든다.
+//
+// 매개변수:
+//   - items: page에 담을 항목 목록이다. nil과 빈 슬라이스는 빈 목록으로 다룬다.
+//   - page: PageOf에 전달되는 값이다. 허용 범위와 nil 처리 방식은 구현 검증을 따른다.
+//   - size: PageOf에 전달되는 값이다. 허용 범위와 nil 처리 방식은 구현 검증을 따른다.
+//   - total: PageOf에 전달되는 값이다. 허용 범위와 nil 처리 방식은 구현 검증을 따른다.
+//
+// 반환 오류는 입력 검증 실패와 패키지에서 정의한 sentinel error/typed error를 그대로 드러낸다.
 func PageOf[T any](items []T, page, size int, total int64) (Page[T], error) {
 	var zero Page[T]
 	if page < 0 {
@@ -47,7 +55,7 @@ func PageOf[T any](items []T, page, size int, total int64) (Page[T], error) {
 	}, nil
 }
 
-// Items returns a shallow snapshot of the page items.
+// Items 현재 값을 슬라이스로 반환한다.
 func (p Page[T]) Items() []T {
 	if p.items == nil {
 		return nil
@@ -57,22 +65,22 @@ func (p Page[T]) Items() []T {
 	return result
 }
 
-// PageNumber returns the 0-based page number.
+// PageNumber 현재 page 번호를 반환한다.
 func (p Page[T]) PageNumber() int {
 	return p.page
 }
 
-// PageSize returns the requested page size.
+// PageSize page 크기를 반환한다.
 func (p Page[T]) PageSize() int {
 	return p.size
 }
 
-// TotalItems returns the total item count.
+// TotalItems 전체 항목 수를 반환한다.
 func (p Page[T]) TotalItems() int64 {
 	return p.total
 }
 
-// TotalPages returns the total number of pages.
+// TotalPages 전체 page 수를 반환한다.
 func (p Page[T]) TotalPages() int64 {
 	if p.total <= 0 || p.size <= 0 {
 		return 0
@@ -85,18 +93,18 @@ func (p Page[T]) TotalPages() int64 {
 	return pages
 }
 
-// Offset returns the 0-based item offset for this page.
+// Offset 현재 page의 시작 offset을 반환한다.
 func (p Page[T]) Offset() int64 {
 	return p.offset
 }
 
-// HasNext reports whether another page exists after this page.
+// HasNext 해당 상태가 존재하는지 반환한다.
 func (p Page[T]) HasNext() bool {
 	totalPages := p.TotalPages()
 	return totalPages > 0 && int64(p.page) < totalPages-1
 }
 
-// HasPrevious reports whether a previous page exists before this page.
+// HasPrevious 해당 상태가 존재하는지 반환한다.
 func (p Page[T]) HasPrevious() bool {
 	return p.page > 0
 }

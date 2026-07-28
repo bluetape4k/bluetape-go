@@ -22,19 +22,19 @@ const (
 	receiverShutdownBudget = time.Second
 )
 
-// ErrClosed 는 닫힌 near cache에 접근했을 때 반환된다.
+// ErrClosed 닫힌 near cache에 접근했을 때 반환된다.
 var ErrClosed = errors.New("near cache is closed")
 
-// Client 는 invalidation publish/subscribe에 필요한 Redis 명령 계약이다.
+// Client invalidation publish/subscribe에 필요한 Redis 명령 계약이다.
 type Client interface {
 	Publish(ctx context.Context, channel string, message any) *redis.IntCmd
 	Subscribe(ctx context.Context, channels ...string) *redis.PubSub
 }
 
-// OnError 는 background subscriber 오류를 관찰한다.
+// OnError background subscriber 오류를 관찰한다.
 type OnError func(context.Context, error)
 
-// Options 는 Pub/Sub near cache 생성 옵션이다.
+// Options Pub/Sub near cache 생성 옵션이다.
 type Options[V any] struct {
 	// Client Redis publish/subscribe backend다. 필수다.
 	Client Client
@@ -64,7 +64,7 @@ type errorReport struct {
 	err error
 }
 
-// NearCache 는 Redis invalidation을 local LoadingCache에 적용한다.
+// NearCache Redis invalidation을 local LoadingCache에 적용한다.
 type NearCache[V any] struct {
 	cfg       config[V]
 	pubsub    *redis.PubSub
@@ -80,7 +80,7 @@ type NearCache[V any] struct {
 
 var _ cache.LoadingCache[string, string] = (*NearCache[string])(nil)
 
-// NewPubSub 는 Redis Pub/Sub 기반 near cache를 만든다.
+// NewPubSub Redis Pub/Sub 기반 near cache를 만든다.
 func NewPubSub[V any](ctx context.Context, options Options[V]) (*NearCache[V], error) {
 	ctx = normalizeContext(ctx)
 	if err := ctx.Err(); err != nil {
@@ -146,7 +146,7 @@ func (c *NearCache[V]) Set(ctx context.Context, key string, value V, ttl time.Du
 	return c.publish(ctx, operationSet, key)
 }
 
-// Delete 는 local cache entry를 제거하고 peer에게 invalidation을 발행한다.
+// Delete local cache entry를 제거하고 peer에게 invalidation을 발행한다.
 func (c *NearCache[V]) Delete(ctx context.Context, key string) error {
 	ctx = normalizeContext(ctx)
 	if err := ctx.Err(); err != nil {
@@ -163,7 +163,7 @@ func (c *NearCache[V]) Delete(ctx context.Context, key string) error {
 	return c.publish(ctx, operationDelete, key)
 }
 
-// Clear 는 local cache를 비우고 peer에게 clear invalidation을 발행한다.
+// Clear local cache를 비우고 peer에게 clear invalidation을 발행한다.
 func (c *NearCache[V]) Clear(ctx context.Context) error {
 	ctx = normalizeContext(ctx)
 	if err := ctx.Err(); err != nil {
@@ -180,7 +180,7 @@ func (c *NearCache[V]) Clear(ctx context.Context) error {
 	return c.publish(ctx, operationClear, "")
 }
 
-// GetOrLoad 는 local cache miss를 loader로 채운다.
+// GetOrLoad local cache miss를 loader로 채운다.
 func (c *NearCache[V]) GetOrLoad(
 	ctx context.Context,
 	key string,
@@ -200,7 +200,7 @@ func (c *NearCache[V]) GetOrLoad(
 	return c.cfg.local.GetOrLoad(ctx, key, ttl, loader)
 }
 
-// Close 는 subscriber를 닫는다. 여러 번 호출해도 안전하다.
+// Close subscriber를 닫는다. 여러 번 호출해도 안전하다.
 func (c *NearCache[V]) Close() error {
 	if c == nil {
 		return nil

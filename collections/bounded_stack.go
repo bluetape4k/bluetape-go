@@ -2,17 +2,18 @@ package collections
 
 import "fmt"
 
-// BoundedStack is a fixed-capacity LIFO container.
-//
-// Pushing beyond capacity drops the oldest bottom value. BoundedStack is not
-// goroutine-safe; callers that share it across goroutines must synchronize
-// access externally.
+// BoundedStack 패키지에서 공개하는 구조체다.
 type BoundedStack[T any] struct {
 	values   []T
 	capacity int
 }
 
-// NewBoundedStack creates a stack that keeps at most capacity values.
+// NewBoundedStack BoundedStack 인스턴스를 생성한다.
+//
+// 매개변수:
+//   - capacity: NewBoundedStack에 전달되는 값이다. 허용 범위와 nil 처리 방식은 구현 검증을 따른다.
+//
+// 반환 오류는 입력 검증 실패와 패키지에서 정의한 sentinel error/typed error를 그대로 드러낸다.
 func NewBoundedStack[T any](capacity int) (*BoundedStack[T], error) {
 	if capacity <= 0 {
 		return nil, fmt.Errorf("%w: bounded stack capacity[%d] must be positive", ErrInvalidArgument, capacity)
@@ -23,7 +24,7 @@ func NewBoundedStack[T any](capacity int) (*BoundedStack[T], error) {
 	}, nil
 }
 
-// Capacity returns the maximum number of retained values.
+// Capacity 저장 가능한 최대 항목 수를 반환한다.
 func (s *BoundedStack[T]) Capacity() int {
 	if s == nil {
 		return 0
@@ -31,7 +32,7 @@ func (s *BoundedStack[T]) Capacity() int {
 	return s.capacity
 }
 
-// Len returns the number of retained values.
+// Len 현재 항목 수를 반환한다.
 func (s *BoundedStack[T]) Len() int {
 	if s == nil {
 		return 0
@@ -39,12 +40,15 @@ func (s *BoundedStack[T]) Len() int {
 	return len(s.values)
 }
 
-// Empty reports whether the stack has no values.
+// Empty 저장된 항목이 없는지 반환한다.
 func (s *BoundedStack[T]) Empty() bool {
 	return s.Len() == 0
 }
 
-// Push adds value to the top of the stack.
+// Push 값을 추가한다.
+//
+// 매개변수:
+//   - value: Push에 전달되는 값이다. 허용 범위와 nil 처리 방식은 구현 검증을 따른다.
 func (s *BoundedStack[T]) Push(value T) {
 	if s == nil || s.capacity <= 0 {
 		return
@@ -61,14 +65,17 @@ func (s *BoundedStack[T]) Push(value T) {
 	}
 }
 
-// PushAll adds values to the top of the stack in argument order.
+// PushAll 여러 값을 순서대로 stack에 추가한다.
+//
+// 매개변수:
+//   - values: PushAll에 전달되는 값이다. 허용 범위와 nil 처리 방식은 구현 검증을 따른다.
 func (s *BoundedStack[T]) PushAll(values ...T) {
 	for _, value := range values {
 		s.Push(value)
 	}
 }
 
-// Pop removes and returns the top value.
+// Pop 마지막 값을 제거하고 반환한다.
 func (s *BoundedStack[T]) Pop() (T, bool) {
 	var zero T
 	if s == nil || len(s.values) == 0 {
@@ -81,7 +88,7 @@ func (s *BoundedStack[T]) Pop() (T, bool) {
 	return value, true
 }
 
-// Peek returns the top value without removing it.
+// Peek 마지막 값을 제거하지 않고 반환한다.
 func (s *BoundedStack[T]) Peek() (T, bool) {
 	if s == nil || len(s.values) == 0 {
 		var zero T
@@ -90,7 +97,10 @@ func (s *BoundedStack[T]) Peek() (T, bool) {
 	return s.values[len(s.values)-1], true
 }
 
-// At returns the value at index, where index 0 is the top.
+// At index 위치의 값을 반환한다.
+//
+// 매개변수:
+//   - index: At에 전달되는 값이다. 허용 범위와 nil 처리 방식은 구현 검증을 따른다.
 func (s *BoundedStack[T]) At(index int) (T, bool) {
 	var zero T
 	if s == nil || index < 0 || index >= len(s.values) {
@@ -99,7 +109,7 @@ func (s *BoundedStack[T]) At(index int) (T, bool) {
 	return s.values[len(s.values)-1-index], true
 }
 
-// Values returns a top-to-bottom shallow snapshot.
+// Values 현재 값을 슬라이스로 반환한다.
 func (s *BoundedStack[T]) Values() []T {
 	if s == nil {
 		return nil
@@ -111,7 +121,7 @@ func (s *BoundedStack[T]) Values() []T {
 	return result
 }
 
-// Clear removes all values.
+// Clear 저장된 항목을 모두 제거한다.
 func (s *BoundedStack[T]) Clear() {
 	if s == nil {
 		return

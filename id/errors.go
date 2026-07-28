@@ -20,7 +20,7 @@ var (
 	ErrSequenceExhausted = errors.New("id: sequence exhausted")
 )
 
-// OptionError wraps an invalid option with its sentinel category.
+// OptionError 패키지에서 공개하는 구조체다.
 type OptionError struct {
 	Option string
 	Err    error
@@ -35,12 +35,15 @@ func (e OptionError) Error() string {
 
 func (e OptionError) Unwrap() error { return e.Err }
 
-// Is reports whether the error matches ErrInvalidOptions or its wrapped cause.
+// Is errors.Is 비교를 지원한다.
+//
+// 매개변수:
+//   - target: 검사하거나 감쌀 오류 값이다.
 func (e OptionError) Is(target error) bool {
 	return target == ErrInvalidOptions || errors.Is(e.Err, target)
 }
 
-// ParseError wraps dependency parse failures without exposing dependency types.
+// ParseError 패키지에서 공개하는 구조체다.
 type ParseError struct {
 	Kind  string
 	Value string
@@ -56,12 +59,15 @@ func (e ParseError) Error() string {
 
 func (e ParseError) Unwrap() error { return e.Err }
 
-// Is reports whether the error matches ErrInvalidID or its wrapped cause.
+// Is errors.Is 비교를 지원한다.
+//
+// 매개변수:
+//   - target: 검사하거나 감쌀 오류 값이다.
 func (e ParseError) Is(target error) bool {
 	return target == ErrInvalidID || errors.Is(e.Err, target)
 }
 
-// EntropyError wraps reader failures from UUID, ULID, and KSUID entropy sources.
+// EntropyError 패키지에서 공개하는 구조체다.
 type EntropyError struct {
 	Kind string
 	Err  error
@@ -76,12 +82,15 @@ func (e EntropyError) Error() string {
 
 func (e EntropyError) Unwrap() error { return e.Err }
 
-// Is reports whether the error matches ErrEntropy or its wrapped cause.
+// Is errors.Is 비교를 지원한다.
+//
+// 매개변수:
+//   - target: 검사하거나 감쌀 오류 값이다.
 func (e EntropyError) Is(target error) bool {
 	return target == ErrEntropy || errors.Is(e.Err, target)
 }
 
-// ClockRollbackError reports a Snowflake timestamp moving backwards.
+// ClockRollbackError 패키지에서 공개하는 구조체다.
 type ClockRollbackError struct {
 	Last int64
 	Now  int64
@@ -91,12 +100,15 @@ func (e ClockRollbackError) Error() string {
 	return fmt.Sprintf("%v: last=%d now=%d", ErrClockRollback, e.Last, e.Now)
 }
 
-// Is reports whether the error matches ErrClockRollback.
+// Is errors.Is 비교를 지원한다.
+//
+// 매개변수:
+//   - target: 검사하거나 감쌀 오류 값이다.
 func (e ClockRollbackError) Is(target error) bool {
 	return target == ErrClockRollback
 }
 
-// SequenceExhaustedError reports sequence exhaustion for a single millisecond.
+// SequenceExhaustedError 패키지에서 공개하는 구조체다.
 type SequenceExhaustedError struct {
 	Millis int64
 }
@@ -105,7 +117,10 @@ func (e SequenceExhaustedError) Error() string {
 	return fmt.Sprintf("%v: millis=%d", ErrSequenceExhausted, e.Millis)
 }
 
-// Is reports whether the error matches ErrSequenceExhausted.
+// Is errors.Is 비교를 지원한다.
+//
+// 매개변수:
+//   - target: 검사하거나 감쌀 오류 값이다.
 func (e SequenceExhaustedError) Is(target error) bool {
 	return target == ErrSequenceExhausted
 }

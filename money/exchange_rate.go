@@ -7,13 +7,20 @@ import (
 	gmoney "github.com/govalues/money"
 )
 
-// ExchangeRate 는 두 통화 사이의 caller-supplied 환율 값입니다.
+// ExchangeRate 패키지에서 공개하는 구조체다.
 type ExchangeRate struct {
 	rate  gmoney.ExchangeRate
 	valid bool
 }
 
-// NewExchangeRate 는 base/quote 통화와 decimal 문자열 환율로 ExchangeRate 를 생성합니다.
+// NewExchangeRate ExchangeRate 인스턴스를 생성한다.
+//
+// 매개변수:
+//   - base: NewExchangeRate에 전달되는 값이다. 허용 범위와 nil 처리 방식은 구현 검증을 따른다.
+//   - quote: NewExchangeRate에 전달되는 값이다. 허용 범위와 nil 처리 방식은 구현 검증을 따른다.
+//   - rate: NewExchangeRate가 해석할 문자열이다. 빈 문자열과 공백은 구현 검증을 따른다.
+//
+// 반환 오류는 입력 검증 실패와 패키지에서 정의한 sentinel error/typed error를 그대로 드러낸다.
 func NewExchangeRate(base Currency, quote Currency, rate string) (ExchangeRate, error) {
 	if err := base.validate(); err != nil {
 		return ExchangeRate{}, err
@@ -38,7 +45,13 @@ func NewExchangeRate(base Currency, quote Currency, rate string) (ExchangeRate, 
 	return ExchangeRate{rate: parsed, valid: true}, nil
 }
 
-// Convert 는 Money 를 ExchangeRate 의 반대쪽 통화로 변환합니다.
+// Convert 금액을 대상 통화로 변환한다.
+//
+// 매개변수:
+//   - amount: Convert에 전달되는 값이다. 허용 범위와 nil 처리 방식은 구현 검증을 따른다.
+//   - rate: Convert에 전달되는 값이다. 허용 범위와 nil 처리 방식은 구현 검증을 따른다.
+//
+// 반환 오류는 입력 검증 실패와 패키지에서 정의한 sentinel error/typed error를 그대로 드러낸다.
 func Convert(amount Money, rate ExchangeRate) (Money, error) {
 	if err := amount.validate(); err != nil {
 		return Money{}, err
@@ -56,13 +69,13 @@ func Convert(amount Money, rate ExchangeRate) (Money, error) {
 	return Money{amount: converted.RoundToCurr(), valid: true}, nil
 }
 
-// Valid 는 환율이 변환 가능한 값인지 반환합니다.
+// Valid 값이 유효한지 반환한다.
 func (r ExchangeRate) Valid() bool {
 	return r.valid && !r.rate.IsZero() && r.rate.IsPos() &&
 		r.rate.Base() != gmoney.XXX && r.rate.Quote() != gmoney.XXX
 }
 
-// Base 는 기준 통화를 반환합니다.
+// Base 환율의 기준 통화를 반환한다.
 func (r ExchangeRate) Base() Currency {
 	if !r.Valid() {
 		return Currency{}
@@ -70,7 +83,7 @@ func (r ExchangeRate) Base() Currency {
 	return Currency{curr: r.rate.Base()}
 }
 
-// Quote 는 상대 통화를 반환합니다.
+// Quote 환율의 상대 통화를 반환한다.
 func (r ExchangeRate) Quote() Currency {
 	if !r.Valid() {
 		return Currency{}
@@ -78,7 +91,7 @@ func (r ExchangeRate) Quote() Currency {
 	return Currency{curr: r.rate.Quote()}
 }
 
-// Rate 는 decimal 환율 문자열을 반환합니다.
+// Rate 기준 통화와 대상 통화 사이의 환율을 반환한다.
 func (r ExchangeRate) Rate() string {
 	if !r.Valid() {
 		return ""
@@ -86,7 +99,7 @@ func (r ExchangeRate) Rate() string {
 	return r.rate.Decimal().String()
 }
 
-// IsZero 는 invalid zero-value ExchangeRate 인지 반환합니다.
+// IsZero 값이 zero value인지 반환한다.
 func (r ExchangeRate) IsZero() bool {
 	return !r.Valid()
 }

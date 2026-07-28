@@ -5,7 +5,7 @@ import (
 	"sync"
 )
 
-// RuleSet stores rules by name and returns them in deterministic order.
+// RuleSet 패키지에서 공개하는 구조체다.
 type RuleSet struct {
 	mu      sync.RWMutex
 	nextSeq uint64
@@ -19,7 +19,12 @@ type ruleEntry struct {
 	seq      uint64
 }
 
-// NewRuleSet creates an empty rule set.
+// NewRuleSet RuleSet 인스턴스를 생성한다.
+//
+// 매개변수:
+//   - rules: NewRuleSet에 전달되는 값이다. 허용 범위와 nil 처리 방식은 구현 검증을 따른다.
+//
+// 반환 오류는 입력 검증 실패와 패키지에서 정의한 sentinel error/typed error를 그대로 드러낸다.
 func NewRuleSet(rules ...Rule) (*RuleSet, error) {
 	set := &RuleSet{byName: make(map[string]ruleEntry)}
 	for _, rule := range rules {
@@ -30,7 +35,12 @@ func NewRuleSet(rules ...Rule) (*RuleSet, error) {
 	return set, nil
 }
 
-// Add registers rule and rejects duplicate names.
+// Add 현재 값에 입력 값을 더한 결과를 반환한다.
+//
+// 매개변수:
+//   - rule: Add에 전달되는 값이다. 허용 범위와 nil 처리 방식은 구현 검증을 따른다.
+//
+// 반환 오류는 입력 검증 실패와 패키지에서 정의한 sentinel error/typed error를 그대로 드러낸다.
 func (s *RuleSet) Add(rule Rule) error {
 	if s == nil {
 		return ErrNilRuleSet
@@ -57,7 +67,10 @@ func (s *RuleSet) Add(rule Rule) error {
 	return nil
 }
 
-// Remove deletes a rule by name and reports whether it existed.
+// Remove key에 해당하는 fact를 제거한다.
+//
+// 매개변수:
+//   - name: Remove가 해석할 문자열이다. 빈 문자열과 공백은 구현 검증을 따른다.
 func (s *RuleSet) Remove(name string) bool {
 	if s == nil {
 		return false
@@ -74,7 +87,10 @@ func (s *RuleSet) Remove(name string) bool {
 	return ok
 }
 
-// Get returns a rule by name.
+// Get key에 해당하는 값을 조회한다.
+//
+// 매개변수:
+//   - name: Get가 해석할 문자열이다. 빈 문자열과 공백은 구현 검증을 따른다.
 func (s *RuleSet) Get(name string) (Rule, bool) {
 	if s == nil {
 		return nil, false
@@ -90,7 +106,7 @@ func (s *RuleSet) Get(name string) (Rule, bool) {
 	return entry.rule, ok
 }
 
-// Len returns the number of registered rules.
+// Len 현재 항목 수를 반환한다.
 func (s *RuleSet) Len() int {
 	if s == nil {
 		return 0
@@ -101,7 +117,7 @@ func (s *RuleSet) Len() int {
 	return len(s.byName)
 }
 
-// Rules returns rules ordered by priority, name, and registration sequence.
+// Rules ruleset에 등록된 rule 목록을 반환한다.
 func (s *RuleSet) Rules() []Rule {
 	entries := s.entries()
 	rules := make([]Rule, 0, len(entries))

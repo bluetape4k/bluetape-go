@@ -29,7 +29,7 @@ const (
 	defaultIMFMaxBodyBytes = 4 << 20
 )
 
-// IMFFrequency selects the IMF ER observation frequency.
+// IMFFrequency string 공개 타입이다.
 type IMFFrequency string
 
 const (
@@ -43,7 +43,7 @@ const (
 	IMFFrequencyAnnual IMFFrequency = "A"
 )
 
-// IMFRateFamily selects the IMF ER rate family.
+// IMFRateFamily string 공개 타입이다.
 type IMFRateFamily string
 
 const (
@@ -53,7 +53,7 @@ const (
 	IMFRatePeriodAverage IMFRateFamily = "PA_RT"
 )
 
-// IMFProviderOptions configures IMFProvider.
+// IMFProviderOptions 패키지에서 공개하는 구조체다.
 type IMFProviderOptions struct {
 	// Client is the HTTP client used for requests. nil uses http.DefaultClient.
 	Client *http.Client
@@ -85,7 +85,7 @@ type IMFProviderOptions struct {
 	CountryCodes map[string]string
 }
 
-// IMFProvider uses IMF Exchange Rates SDMX data for provider-backed conversion.
+// IMFProvider 패키지에서 공개하는 구조체다.
 type IMFProvider struct {
 	client   *http.Client
 	endpoint string
@@ -162,7 +162,12 @@ func (e imfHTTPStatusError) Unwrap() error {
 	return ErrExchangeRateProvider
 }
 
-// NewIMFProvider creates an IMF Exchange Rates SDMX-backed provider.
+// NewIMFProvider IMFProvider 인스턴스를 생성한다.
+//
+// 매개변수:
+//   - options: 적용할 옵션 목록이다. nil이면 기본값만 사용한다.
+//
+// 반환 오류는 입력 검증 실패와 패키지에서 정의한 sentinel error/typed error를 그대로 드러낸다.
 func NewIMFProvider(options IMFProviderOptions) (*IMFProvider, error) {
 	options = normalizeIMFOptions(options)
 	if err := validateIMFOptions(options); err != nil {
@@ -191,7 +196,14 @@ func NewIMFProvider(options IMFProviderOptions) (*IMFProvider, error) {
 	}, nil
 }
 
-// Rate returns an IMF-backed quote for supported domestic/USD-or-EUR pivot currency pairs.
+// Rate 기준 통화와 대상 통화 사이의 환율을 반환한다.
+//
+// 매개변수:
+//   - ctx: 호출자가 소유한 취소, deadline, 요청 범위를 전달한다.
+//   - base: Rate에 전달되는 값이다. 허용 범위와 nil 처리 방식은 구현 검증을 따른다.
+//   - target: Rate에 전달되는 값이다. 허용 범위와 nil 처리 방식은 구현 검증을 따른다.
+//
+// 반환 오류는 입력 검증 실패와 패키지에서 정의한 sentinel error/typed error를 그대로 드러낸다.
 func (p *IMFProvider) Rate(ctx context.Context, base Currency, target Currency) (ExchangeRateQuote, error) {
 	if p == nil {
 		return ExchangeRateQuote{}, ErrExchangeRateProvider
