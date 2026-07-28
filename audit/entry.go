@@ -6,17 +6,21 @@ import (
 	"strings"
 )
 
-// SchemaVersion is the supported audit entry JSON schema version.
+// SchemaVersion는 상수 공개 값이며 audit entry, event, repository, recorder, history 계약을 보존한다.
+// 호출자는 이 식별자를 audit 상태, outbox 상태, 오류, 또는 conformance 계약을 비교할 때 사용한다.
 const SchemaVersion = 1
 
-// SnapshotMetadata describes an optional serialized aggregate snapshot.
+// SnapshotMetadata는 struct 공개 타입이며 audit entry, event, repository, recorder, history 계약을 보존한다.
+// 필드와 zero value, nil 허용 여부, 동시성/transaction 소유권은 생성자와 메서드의 한국어 주석 및 테스트 계약을 따른다.
 type SnapshotMetadata struct {
 	Format        string          `json:"format"`
 	SchemaVersion string          `json:"schema_version"`
 	Payload       json.RawMessage `json:"payload"`
 }
 
-// Validate checks required snapshot metadata fields.
+// Validate는 Validate 공개 API의 동작을 수행하며 audit entry, event, repository, recorder, history 계약을 보존한다.
+//
+// 반환 오류는 입력 검증 실패, 취소, transaction 실패, repository/outbox 실패, 또는 package sentinel/typed error 계약을 보존한다.
 func (m SnapshotMetadata) Validate() error {
 	if strings.TrimSpace(m.Format) == "" {
 		return validationError(ErrInvalidEntry, "snapshot.format", m.Format)
@@ -30,14 +34,19 @@ func (m SnapshotMetadata) Validate() error {
 	return nil
 }
 
-// Clone returns a defensive copy of snapshot metadata.
+// Clone는 Clone 공개 API의 동작을 수행하며 audit entry, event, repository, recorder, history 계약을 보존한다.
 func (m SnapshotMetadata) Clone() SnapshotMetadata {
 	clone := m
 	clone.Payload = cloneRawMessage(m.Payload)
 	return clone
 }
 
-// UnmarshalJSON decodes and validates snapshot metadata.
+// UnmarshalJSON는 UnmarshalJSON 공개 API의 동작을 수행하며 audit entry, event, repository, recorder, history 계약을 보존한다.
+//
+// 매개변수:
+//   - data: UnmarshalJSON 동작에 필요한 data 값이다. zero value, 범위, nil 허용 여부는 함수 계약을 따른다.
+//
+// 반환 오류는 입력 검증 실패, 취소, transaction 실패, repository/outbox 실패, 또는 package sentinel/typed error 계약을 보존한다.
 func (m *SnapshotMetadata) UnmarshalJSON(data []byte) error {
 	type snapshotMetadata SnapshotMetadata
 	var decoded snapshotMetadata
@@ -54,14 +63,22 @@ func (m *SnapshotMetadata) UnmarshalJSON(data []byte) error {
 	return nil
 }
 
-// ChangeMetadata describes optional changed-field metadata for an audit entry.
+// ChangeMetadata는 struct 공개 타입이며 audit entry, event, repository, recorder, history 계약을 보존한다.
+// 필드와 zero value, nil 허용 여부, 동시성/transaction 소유권은 생성자와 메서드의 한국어 주석 및 테스트 계약을 따른다.
 type ChangeMetadata struct {
 	ChangedFields []string `json:"changed_fields"`
 	Summary       string   `json:"summary,omitempty"`
 	Attributes    Metadata `json:"attributes,omitempty"`
 }
 
-// NewChangeMetadata creates normalized change metadata.
+// NewChangeMetadata는 NewChangeMetadata 공개 API의 동작을 수행하며 audit entry, event, repository, recorder, history 계약을 보존한다.
+//
+// 매개변수:
+//   - fields: NewChangeMetadata 동작에 필요한 fields 값이다. zero value, 범위, nil 허용 여부는 함수 계약을 따른다.
+//   - summary: NewChangeMetadata 동작에 필요한 summary 값이다. zero value, 범위, nil 허용 여부는 함수 계약을 따른다.
+//   - attributes: NewChangeMetadata 동작에 필요한 attributes 값이다. zero value, 범위, nil 허용 여부는 함수 계약을 따른다.
+//
+// 반환 오류는 입력 검증 실패, 취소, transaction 실패, repository/outbox 실패, 또는 package sentinel/typed error 계약을 보존한다.
 func NewChangeMetadata(fields []string, summary string, attributes Metadata) (ChangeMetadata, error) {
 	seen := make(map[string]struct{}, len(fields))
 	normalized := make([]string, 0, len(fields))
@@ -88,7 +105,9 @@ func NewChangeMetadata(fields []string, summary string, attributes Metadata) (Ch
 	return change, nil
 }
 
-// Validate checks required change metadata fields.
+// Validate는 Validate 공개 API의 동작을 수행하며 audit entry, event, repository, recorder, history 계약을 보존한다.
+//
+// 반환 오류는 입력 검증 실패, 취소, transaction 실패, repository/outbox 실패, 또는 package sentinel/typed error 계약을 보존한다.
 func (m ChangeMetadata) Validate() error {
 	if len(m.ChangedFields) == 0 {
 		return validationError(ErrInvalidEntry, "change.changed_fields", m.ChangedFields)
@@ -110,7 +129,7 @@ func (m ChangeMetadata) Validate() error {
 	return nil
 }
 
-// Clone returns a defensive copy of change metadata.
+// Clone는 Clone 공개 API의 동작을 수행하며 audit entry, event, repository, recorder, history 계약을 보존한다.
 func (m ChangeMetadata) Clone() ChangeMetadata {
 	clone := ChangeMetadata{
 		Summary:    m.Summary,
@@ -122,7 +141,12 @@ func (m ChangeMetadata) Clone() ChangeMetadata {
 	return clone
 }
 
-// UnmarshalJSON decodes and validates change metadata.
+// UnmarshalJSON는 UnmarshalJSON 공개 API의 동작을 수행하며 audit entry, event, repository, recorder, history 계약을 보존한다.
+//
+// 매개변수:
+//   - data: UnmarshalJSON 동작에 필요한 data 값이다. zero value, 범위, nil 허용 여부는 함수 계약을 따른다.
+//
+// 반환 오류는 입력 검증 실패, 취소, transaction 실패, repository/outbox 실패, 또는 package sentinel/typed error 계약을 보존한다.
 func (m *ChangeMetadata) UnmarshalJSON(data []byte) error {
 	type changeMetadata ChangeMetadata
 	var decoded changeMetadata
@@ -137,7 +161,8 @@ func (m *ChangeMetadata) UnmarshalJSON(data []byte) error {
 	return nil
 }
 
-// EntryOptions contains validated inputs for NewEntry.
+// EntryOptions는 struct 공개 타입이며 audit entry, event, repository, recorder, history 계약을 보존한다.
+// 필드와 zero value, nil 허용 여부, 동시성/transaction 소유권은 생성자와 메서드의 한국어 주석 및 테스트 계약을 따른다.
 type EntryOptions struct {
 	Author   string
 	Event    DomainEvent
@@ -145,7 +170,8 @@ type EntryOptions struct {
 	Change   *ChangeMetadata
 }
 
-// Entry is one immutable audit log record.
+// Entry는 struct 공개 타입이며 audit entry, event, repository, recorder, history 계약을 보존한다.
+// 필드와 zero value, nil 허용 여부, 동시성/transaction 소유권은 생성자와 메서드의 한국어 주석 및 테스트 계약을 따른다.
 type Entry struct {
 	SchemaVersion int               `json:"schema_version"`
 	Aggregate     AggregateID       `json:"aggregate"`
@@ -156,7 +182,12 @@ type Entry struct {
 	Change        *ChangeMetadata   `json:"change,omitempty"`
 }
 
-// NewEntry creates a validated audit entry from a domain event.
+// NewEntry는 NewEntry 공개 API의 동작을 수행하며 audit entry, event, repository, recorder, history 계약을 보존한다.
+//
+// 매개변수:
+//   - options: NewEntry 동작에 필요한 options 값이다. zero value, 범위, nil 허용 여부는 함수 계약을 따른다.
+//
+// 반환 오류는 입력 검증 실패, 취소, transaction 실패, repository/outbox 실패, 또는 package sentinel/typed error 계약을 보존한다.
 func NewEntry(options EntryOptions) (Entry, error) {
 	entry := Entry{
 		SchemaVersion: SchemaVersion,
@@ -179,7 +210,9 @@ func NewEntry(options EntryOptions) (Entry, error) {
 	return entry, nil
 }
 
-// Validate checks the audit entry schema, author, event, and consistency.
+// Validate는 Validate 공개 API의 동작을 수행하며 audit entry, event, repository, recorder, history 계약을 보존한다.
+//
+// 반환 오류는 입력 검증 실패, 취소, transaction 실패, repository/outbox 실패, 또는 package sentinel/typed error 계약을 보존한다.
 func (e Entry) Validate() error {
 	if e.SchemaVersion != SchemaVersion {
 		return validationError(ErrInvalidEntry, "schema_version", e.SchemaVersion)
@@ -215,7 +248,7 @@ func (e Entry) Validate() error {
 	return nil
 }
 
-// Clone returns a defensive copy of the audit entry.
+// Clone는 Clone 공개 API의 동작을 수행하며 audit entry, event, repository, recorder, history 계약을 보존한다.
 func (e Entry) Clone() Entry {
 	clone := e
 	clone.Event = e.Event.Clone()
@@ -230,7 +263,12 @@ func (e Entry) Clone() Entry {
 	return clone
 }
 
-// UnmarshalJSON decodes and validates an audit entry.
+// UnmarshalJSON는 UnmarshalJSON 공개 API의 동작을 수행하며 audit entry, event, repository, recorder, history 계약을 보존한다.
+//
+// 매개변수:
+//   - data: UnmarshalJSON 동작에 필요한 data 값이다. zero value, 범위, nil 허용 여부는 함수 계약을 따른다.
+//
+// 반환 오류는 입력 검증 실패, 취소, transaction 실패, repository/outbox 실패, 또는 package sentinel/typed error 계약을 보존한다.
 func (e *Entry) UnmarshalJSON(data []byte) error {
 	type auditEntry Entry
 	var decoded auditEntry
@@ -246,7 +284,12 @@ func (e *Entry) UnmarshalJSON(data []byte) error {
 	return nil
 }
 
-// DecodeEntryJSON decodes already-bounded JSON bytes into an audit entry.
+// DecodeEntryJSON는 DecodeEntryJSON 공개 API의 동작을 수행하며 audit entry, event, repository, recorder, history 계약을 보존한다.
+//
+// 매개변수:
+//   - data: DecodeEntryJSON 동작에 필요한 data 값이다. zero value, 범위, nil 허용 여부는 함수 계약을 따른다.
+//
+// 반환 오류는 입력 검증 실패, 취소, transaction 실패, repository/outbox 실패, 또는 package sentinel/typed error 계약을 보존한다.
 func DecodeEntryJSON(data []byte) (Entry, error) {
 	var entry Entry
 	if err := json.Unmarshal(data, &entry); err != nil {

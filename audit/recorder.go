@@ -7,7 +7,8 @@ import (
 	"time"
 )
 
-// EventRecord contains caller inputs for AggregateRecorder.Record.
+// EventRecord는 struct 공개 타입이며 audit entry, event, repository, recorder, history 계약을 보존한다.
+// 필드와 zero value, nil 허용 여부, 동시성/transaction 소유권은 생성자와 메서드의 한국어 주석 및 테스트 계약을 따른다.
 type EventRecord struct {
 	EventID        EventID
 	EventType      EventType
@@ -17,7 +18,8 @@ type EventRecord struct {
 	Payload        json.RawMessage
 }
 
-// AggregateRecorder records pending events for one aggregate root.
+// AggregateRecorder는 struct 공개 타입이며 audit entry, event, repository, recorder, history 계약을 보존한다.
+// 필드와 zero value, nil 허용 여부, 동시성/transaction 소유권은 생성자와 메서드의 한국어 주석 및 테스트 계약을 따른다.
 type AggregateRecorder struct {
 	mu        sync.Mutex
 	aggregate AggregateID
@@ -25,12 +27,23 @@ type AggregateRecorder struct {
 	pending   []DomainEvent
 }
 
-// NewAggregateRecorder creates a recorder for an aggregate with no history.
+// NewAggregateRecorder는 NewAggregateRecorder 공개 API의 동작을 수행하며 audit entry, event, repository, recorder, history 계약을 보존한다.
+//
+// 매개변수:
+//   - aggregate: NewAggregateRecorder 동작에 필요한 aggregate 값이다. zero value, 범위, nil 허용 여부는 함수 계약을 따른다.
+//
+// 반환 오류는 입력 검증 실패, 취소, transaction 실패, repository/outbox 실패, 또는 package sentinel/typed error 계약을 보존한다.
 func NewAggregateRecorder(aggregate AggregateID) (*AggregateRecorder, error) {
 	return NewAggregateRecorderFromHead(aggregate, 0)
 }
 
-// NewAggregateRecorderFromHead creates a recorder restored from a durable head.
+// NewAggregateRecorderFromHead는 NewAggregateRecorderFromHead 공개 API의 동작을 수행하며 audit entry, event, repository, recorder, history 계약을 보존한다.
+//
+// 매개변수:
+//   - aggregate: NewAggregateRecorderFromHead 동작에 필요한 aggregate 값이다. zero value, 범위, nil 허용 여부는 함수 계약을 따른다.
+//   - head: NewAggregateRecorderFromHead 동작에 필요한 head 값이다. zero value, 범위, nil 허용 여부는 함수 계약을 따른다.
+//
+// 반환 오류는 입력 검증 실패, 취소, transaction 실패, repository/outbox 실패, 또는 package sentinel/typed error 계약을 보존한다.
 func NewAggregateRecorderFromHead(aggregate AggregateID, head Revision) (*AggregateRecorder, error) {
 	if err := aggregate.Validate(); err != nil {
 		return nil, err
@@ -43,7 +56,12 @@ func NewAggregateRecorderFromHead(aggregate AggregateID, head Revision) (*Aggreg
 	return &AggregateRecorder{aggregate: aggregate, head: head}, nil
 }
 
-// Record validates and records a pending event with the next revision.
+// Record는 Record 공개 API의 동작을 수행하며 audit entry, event, repository, recorder, history 계약을 보존한다.
+//
+// 매개변수:
+//   - record: Record 동작에 필요한 record 값이다. zero value, 범위, nil 허용 여부는 함수 계약을 따른다.
+//
+// 반환 오류는 입력 검증 실패, 취소, transaction 실패, repository/outbox 실패, 또는 package sentinel/typed error 계약을 보존한다.
 func (r *AggregateRecorder) Record(record EventRecord) (DomainEvent, error) {
 	if r == nil {
 		return DomainEvent{}, validationError(ErrInvalidEvent, "recorder", nil)
@@ -102,7 +120,7 @@ func (r *AggregateRecorder) Record(record EventRecord) (DomainEvent, error) {
 	return event.Clone(), nil
 }
 
-// PendingEvents returns a defensive snapshot of unacknowledged events.
+// PendingEvents는 PendingEvents 공개 API의 동작을 수행하며 audit entry, event, repository, recorder, history 계약을 보존한다.
 func (r *AggregateRecorder) PendingEvents() []DomainEvent {
 	if r == nil {
 		return nil
@@ -116,7 +134,12 @@ func (r *AggregateRecorder) PendingEvents() []DomainEvent {
 	return snapshot
 }
 
-// AckThrough acknowledges all pending events at or below revision.
+// AckThrough는 AckThrough 공개 API의 동작을 수행하며 audit entry, event, repository, recorder, history 계약을 보존한다.
+//
+// 매개변수:
+//   - revision: AckThrough 동작에 필요한 revision 값이다. zero value, 범위, nil 허용 여부는 함수 계약을 따른다.
+//
+// 반환 오류는 입력 검증 실패, 취소, transaction 실패, repository/outbox 실패, 또는 package sentinel/typed error 계약을 보존한다.
 func (r *AggregateRecorder) AckThrough(revision Revision) error {
 	if r == nil {
 		return validationError(ErrInvalidRevision, "recorder", nil)
@@ -145,7 +168,7 @@ func (r *AggregateRecorder) AckThrough(revision Revision) error {
 	return nil
 }
 
-// HeadRevision returns the current in-memory head revision.
+// HeadRevision는 HeadRevision 공개 API의 동작을 수행하며 audit entry, event, repository, recorder, history 계약을 보존한다.
 func (r *AggregateRecorder) HeadRevision() Revision {
 	if r == nil {
 		return 0

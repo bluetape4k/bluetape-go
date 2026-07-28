@@ -6,13 +6,15 @@ import (
 	"time"
 )
 
-// Repository appends validated audit entries and reads audit history.
+// Repository는 interface 공개 타입이며 audit entry, event, repository, recorder, history 계약을 보존한다.
+// 필드와 zero value, nil 허용 여부, 동시성/transaction 소유권은 생성자와 메서드의 한국어 주석 및 테스트 계약을 따른다.
 type Repository interface {
 	Append(ctx context.Context, entries ...Entry) error
 	HistoryReader
 }
 
-// HistoryReader queries stored audit history without exposing storage details.
+// HistoryReader는 interface 공개 타입이며 audit entry, event, repository, recorder, history 계약을 보존한다.
+// 필드와 zero value, nil 허용 여부, 동시성/transaction 소유권은 생성자와 메서드의 한국어 주석 및 테스트 계약을 따른다.
 type HistoryReader interface {
 	Find(ctx context.Context, query Query) ([]Entry, error)
 	LoadHistory(ctx context.Context, aggregate AggregateID) (History, bool, error)
@@ -21,7 +23,8 @@ type HistoryReader interface {
 	PreviousSnapshot(ctx context.Context, aggregate AggregateID, before Revision) (Entry, bool, error)
 }
 
-// Query filters audit entries. The zero value returns all entries in append order.
+// Query는 struct 공개 타입이며 audit entry, event, repository, recorder, history 계약을 보존한다.
+// 필드와 zero value, nil 허용 여부, 동시성/transaction 소유권은 생성자와 메서드의 한국어 주석 및 테스트 계약을 따른다.
 type Query struct {
 	Aggregate      *AggregateID
 	AggregateType  string
@@ -33,7 +36,9 @@ type Query struct {
 	Limit          int
 }
 
-// Validate returns a normalized query or an ErrInvalidQuery-compatible error.
+// Validate는 Validate 공개 API의 동작을 수행하며 audit entry, event, repository, recorder, history 계약을 보존한다.
+//
+// 반환 오류는 입력 검증 실패, 취소, transaction 실패, repository/outbox 실패, 또는 package sentinel/typed error 계약을 보존한다.
 func (q Query) Validate() (Query, error) {
 	normalized := q
 	if q.Aggregate != nil {

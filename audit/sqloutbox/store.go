@@ -22,46 +22,48 @@ const (
 )
 
 var (
-	// ErrInvalidArgument reports an invalid sqloutbox API argument.
+	// ErrInvalidArgument는 sqloutbox API 인자가 유효하지 않을 때 반환된다.
 	ErrInvalidArgument = errors.New("invalid sqloutbox argument")
-	// ErrInvalidRecord reports invalid persisted outbox record state.
+	// ErrInvalidRecord는 저장된 outbox record 상태가 유효하지 않을 때 반환된다.
 	ErrInvalidRecord = errors.New("invalid sqloutbox record")
-	// ErrRecordNotFound reports a requested outbox record transition target
-	// that is no longer in the expected state.
+	// ErrRecordNotFound는 전이 대상 outbox record가 더 이상 기대 상태에 없을 때 반환된다.
 	ErrRecordNotFound = errors.New("sqloutbox record not found")
 )
 
-// Status is the lifecycle state of one outbox record.
+// Status는 string 공개 타입이며 SQL outbox store, relay, transaction, idempotent delivery 계약을 보존한다.
+// 필드와 zero value, nil 허용 여부, 동시성/transaction 소유권은 생성자와 메서드의 한국어 주석 및 테스트 계약을 따른다.
 type Status string
 
 const (
-	// StatusPending means a record can be claimed once available_at is reached.
+	// StatusPending은 available_at 이후 relay가 record를 점유할 수 있는 상태다.
 	StatusPending Status = "pending"
-	// StatusClaimed means a relay has claimed the record for publishing.
+	// StatusClaimed는 relay가 publish를 위해 record lease를 점유한 상태다.
 	StatusClaimed Status = "claimed"
-	// StatusPublished means publishing succeeded.
+	// StatusPublished는 publisher 전송이 성공한 상태다.
 	StatusPublished Status = "published"
-	// StatusDeadLetter means retry attempts were exhausted.
+	// StatusDeadLetter는 재시도 한도를 소진해 더 이상 자동 전송하지 않는 상태다.
 	StatusDeadLetter Status = "dead_letter"
 )
 
-// RecordID identifies one outbox row.
+// RecordID는 int64 공개 타입이며 SQL outbox store, relay, transaction, idempotent delivery 계약을 보존한다.
+// 필드와 zero value, nil 허용 여부, 동시성/transaction 소유권은 생성자와 메서드의 한국어 주석 및 테스트 계약을 따른다.
 type RecordID int64
 
-// Options configures a Store.
+// Options는 struct 공개 타입이며 SQL outbox store, relay, transaction, idempotent delivery 계약을 보존한다.
+// 필드와 zero value, nil 허용 여부, 동시성/transaction 소유권은 생성자와 메서드의 한국어 주석 및 테스트 계약을 따른다.
 type Options struct {
-	// Table is the PostgreSQL table name. Dot-separated schema-qualified names
-	// are allowed, for example "audit.audit_outbox".
+	// Table은 PostgreSQL table 이름이다. "audit.audit_outbox" 같은 schema-qualified 이름을 허용한다.
 	Table string
-	// Now supplies wall-clock time for write timestamps.
+	// Now는 write timestamp에 사용할 wall-clock 시간을 공급한다. nil이면 time.Now를 사용한다.
 	Now func() time.Time
-	// MaxEntryBytes bounds JSON bytes decoded from the database.
+	// MaxEntryBytes는 database에서 decode할 Entry JSON byte 한도를 지정한다.
 	MaxEntryBytes int
-	// MaxErrorBytes bounds persisted failure text.
+	// MaxErrorBytes는 저장할 publish failure 문자열의 byte 한도를 지정한다.
 	MaxErrorBytes int
 }
 
-// Store provides SQL audit outbox operations over caller-owned sessions.
+// Store는 struct 공개 타입이며 SQL outbox store, relay, transaction, idempotent delivery 계약을 보존한다.
+// 필드와 zero value, nil 허용 여부, 동시성/transaction 소유권은 생성자와 메서드의 한국어 주석 및 테스트 계약을 따른다.
 type Store struct {
 	table         string
 	quotedTable   string
@@ -71,7 +73,8 @@ type Store struct {
 	maxErrorBytes int
 }
 
-// Record is one decoded outbox row.
+// Record는 struct 공개 타입이며 SQL outbox store, relay, transaction, idempotent delivery 계약을 보존한다.
+// 필드와 zero value, nil 허용 여부, 동시성/transaction 소유권은 생성자와 메서드의 한국어 주석 및 테스트 계약을 따른다.
 type Record struct {
 	ID             RecordID
 	Status         Status
@@ -87,14 +90,16 @@ type Record struct {
 	Entry          audit.Entry
 }
 
-// ClaimOptions controls a claim operation.
+// ClaimOptions는 struct 공개 타입이며 SQL outbox store, relay, transaction, idempotent delivery 계약을 보존한다.
+// 필드와 zero value, nil 허용 여부, 동시성/transaction 소유권은 생성자와 메서드의 한국어 주석 및 테스트 계약을 따른다.
 type ClaimOptions struct {
 	Limit         int
 	Now           time.Time
 	LeaseDuration time.Duration
 }
 
-// Failure describes a failed publish attempt.
+// Failure는 struct 공개 타입이며 SQL outbox store, relay, transaction, idempotent delivery 계약을 보존한다.
+// 필드와 zero value, nil 허용 여부, 동시성/transaction 소유권은 생성자와 메서드의 한국어 주석 및 테스트 계약을 따른다.
 type Failure struct {
 	ID          RecordID
 	Attempt     int
@@ -104,7 +109,12 @@ type Failure struct {
 	Now         time.Time
 }
 
-// NewStore creates a SQL outbox store.
+// NewStore는 NewStore 공개 API의 동작을 수행하며 SQL outbox store, relay, transaction, idempotent delivery 계약을 보존한다.
+//
+// 매개변수:
+//   - options: NewStore 동작에 필요한 options 값이다. zero value, 범위, nil 허용 여부는 함수 계약을 따른다.
+//
+// 반환 오류는 입력 검증 실패, 취소, transaction 실패, repository/outbox 실패, 또는 package sentinel/typed error 계약을 보존한다.
 func NewStore(options Options) (*Store, error) {
 	table := strings.TrimSpace(options.Table)
 	if table == "" {
@@ -144,7 +154,13 @@ func NewStore(options Options) (*Store, error) {
 	}, nil
 }
 
-// CreateSchema creates the PostgreSQL table and claim index when missing.
+// CreateSchema는 CreateSchema 공개 API의 동작을 수행하며 SQL outbox store, relay, transaction, idempotent delivery 계약을 보존한다.
+//
+// 매개변수:
+//   - ctx: 호출자가 소유한 취소, deadline, 요청 범위를 전달한다.
+//   - db: SQL transaction 또는 outbox 저장소 backend다. commit/rollback 소유권은 호출자와 store 계약을 따른다.
+//
+// 반환 오류는 입력 검증 실패, 취소, transaction 실패, repository/outbox 실패, 또는 package sentinel/typed error 계약을 보존한다.
 func (s *Store) CreateSchema(ctx context.Context, db sqlkit.Execer) error {
 	if err := requireStoreAndExecer(s, db); err != nil {
 		return err
@@ -186,7 +202,14 @@ create table if not exists %s (
 	return err
 }
 
-// Enqueue inserts audit entries into the outbox using the supplied session.
+// Enqueue는 Enqueue 공개 API의 동작을 수행하며 SQL outbox store, relay, transaction, idempotent delivery 계약을 보존한다.
+//
+// 매개변수:
+//   - ctx: 호출자가 소유한 취소, deadline, 요청 범위를 전달한다.
+//   - db: SQL transaction 또는 outbox 저장소 backend다. commit/rollback 소유권은 호출자와 store 계약을 따른다.
+//   - entries: Enqueue 동작에 필요한 entries 값이다. zero value, 범위, nil 허용 여부는 함수 계약을 따른다.
+//
+// 반환 오류는 입력 검증 실패, 취소, transaction 실패, repository/outbox 실패, 또는 package sentinel/typed error 계약을 보존한다.
 func (s *Store) Enqueue(ctx context.Context, db sqlkit.Execer, entries ...audit.Entry) error {
 	if err := requireStoreAndExecer(s, db); err != nil {
 		return err
@@ -239,7 +262,14 @@ insert into %s (
 	return nil
 }
 
-// Claim marks available records as claimed and returns their decoded entries.
+// Claim는 Claim 공개 API의 동작을 수행하며 SQL outbox store, relay, transaction, idempotent delivery 계약을 보존한다.
+//
+// 매개변수:
+//   - ctx: 호출자가 소유한 취소, deadline, 요청 범위를 전달한다.
+//   - db: SQL transaction 또는 outbox 저장소 backend다. commit/rollback 소유권은 호출자와 store 계약을 따른다.
+//   - options: Claim 동작에 필요한 options 값이다. zero value, 범위, nil 허용 여부는 함수 계약을 따른다.
+//
+// 반환 오류는 입력 검증 실패, 취소, transaction 실패, repository/outbox 실패, 또는 package sentinel/typed error 계약을 보존한다.
 func (s *Store) Claim(ctx context.Context, db sqlkit.Session, options ClaimOptions) ([]Record, error) {
 	if err := requireStoreAndSession(s, db); err != nil {
 		return nil, err
@@ -317,8 +347,14 @@ returning outbox.id, outbox.status, outbox.aggregate_type, outbox.aggregate_id,
 	return records, nil
 }
 
-// MarkPublished marks claimed records as successfully published when their
-// claim attempt still matches the current row.
+// MarkPublished는 MarkPublished 공개 API의 동작을 수행하며 SQL outbox store, relay, transaction, idempotent delivery 계약을 보존한다.
+//
+// 매개변수:
+//   - ctx: 호출자가 소유한 취소, deadline, 요청 범위를 전달한다.
+//   - db: SQL transaction 또는 outbox 저장소 backend다. commit/rollback 소유권은 호출자와 store 계약을 따른다.
+//   - records: MarkPublished 동작에 필요한 records 값이다. zero value, 범위, nil 허용 여부는 함수 계약을 따른다.
+//
+// 반환 오류는 입력 검증 실패, 취소, transaction 실패, repository/outbox 실패, 또는 package sentinel/typed error 계약을 보존한다.
 func (s *Store) MarkPublished(ctx context.Context, db sqlkit.Execer, records ...Record) error {
 	if err := requireStoreAndExecer(s, db); err != nil {
 		return err
@@ -356,8 +392,14 @@ func (s *Store) MarkPublished(ctx context.Context, db sqlkit.Execer, records ...
 	return nil
 }
 
-// MarkFailed records a failed publish attempt, moving the row to pending or
-// dead_letter based on its current attempt count.
+// MarkFailed는 MarkFailed 공개 API의 동작을 수행하며 SQL outbox store, relay, transaction, idempotent delivery 계약을 보존한다.
+//
+// 매개변수:
+//   - ctx: 호출자가 소유한 취소, deadline, 요청 범위를 전달한다.
+//   - db: SQL transaction 또는 outbox 저장소 backend다. commit/rollback 소유권은 호출자와 store 계약을 따른다.
+//   - failure: MarkFailed 동작에 필요한 failure 값이다. zero value, 범위, nil 허용 여부는 함수 계약을 따른다.
+//
+// 반환 오류는 입력 검증 실패, 취소, transaction 실패, repository/outbox 실패, 또는 package sentinel/typed error 계약을 보존한다.
 func (s *Store) MarkFailed(ctx context.Context, db sqlkit.Execer, failure Failure) error {
 	if err := requireStoreAndExecer(s, db); err != nil {
 		return err
