@@ -1,6 +1,8 @@
 # Issue #178 Step 3-R Plan Review
 
-## Scope
+> 한국어 리뷰 경계: 이 문서는 리뷰 판정과 근거를 한국어 독자가 추적할 수 있도록 정리한다. 심각도 토큰, 판정 토큰, 파일 경로, 라인 번호, 이슈/PR 번호, 명령, 코드 식별자는 원문의 증거 앵커로 보존한다.
+
+## 범위
 
 - Plan reviewed:
   `docs/superpowers/plans/2026-06-14-issue-178-money-exchange-rate-providers-plan.md`
@@ -11,7 +13,7 @@
 - Step 2-R reviewed:
   `docs/superpowers/reviews/2026-06-14-issue-178-money-exchange-rate-providers-step-2r-spec-review.md`
 
-## Execution Mode
+## 실행 모드
 
 The required 7-Tier gate was executed as six independent review lanes plus one
 main integration review. Native subagents were not used because the user
@@ -33,7 +35,7 @@ Equivalent contract preserved:
 |---|---|---|---|
 | P3 | Benchmarks | The plan relies on stress/race evidence but does not require a micro-benchmark for cross-rate decimal conversion. #178 does not require benchmark evidence, so this is non-blocking. | Optional follow-up only if implementation shows a hot path. |
 
-Verdict: PASS. P0=0 P1=0.
+판정: PASS. P0=0 P1=0.
 
 ## Tier 2: Stability
 
@@ -50,7 +52,7 @@ Verdict after edits: PASS. P0=0 P1=0.
 |---|---|---|---|
 | P3 | Endpoint override | Endpoint injection is intentionally caller-owned for tests and internal use. The plan validates scheme and emptiness but should keep docs from implying arbitrary untrusted endpoints are safe. | Covered by Task 7 docs and Task 10 security lane; no blocking edit required. |
 
-Verdict: PASS. P0=0 P1=0.
+판정: PASS. P0=0 P1=0.
 
 ## Tier 4: Operator/Ops
 
@@ -58,7 +60,7 @@ Verdict: PASS. P0=0 P1=0.
 |---|---|---|---|
 | P3 | Live dependency | README examples must not depend on live ECB network availability. | Task 7 already requires fake-provider examples; ECB provider docs can show construction without live test dependency. |
 
-Verdict: PASS. P0=0 P1=0.
+판정: PASS. P0=0 P1=0.
 
 ## Tier 5: Developer/API
 
@@ -75,7 +77,7 @@ Verdict after edits: PASS. P0=0 P1=0.
 |---|---|---|---|
 | P3 | README parity | EN/KO README parity is explicitly planned, but final review must compare actual examples and caveat language, not only file presence. | Covered by Task 10 user/caller lane and Step 7-R. |
 
-Verdict: PASS. P0=0 P1=0.
+판정: PASS. P0=0 P1=0.
 
 ## Main Integration
 
@@ -86,7 +88,7 @@ Verdict: PASS. P0=0 P1=0.
 | P1 | Developer/API | Invalid provider quote behavior was under-specified. | Fixed in plan Task 1. |
 | P3 | Security/Ops/User | Endpoint override docs, fake examples, and README parity need close checking after implementation. | Tracked in Task 7, Task 10, and Step 7-R. |
 
-## Gate Verdict
+## 게이트 판정
 
 - P0: 0
 - P1: 0
@@ -95,7 +97,7 @@ Verdict: PASS. P0=0 P1=0.
 - Required reruns: Tier 2 and Tier 5 were rerun after plan edits.
 - Final verdict: PASS. Step 3-R can close.
 
-## Evidence
+## 증거
 
 ```bash
 git diff --check

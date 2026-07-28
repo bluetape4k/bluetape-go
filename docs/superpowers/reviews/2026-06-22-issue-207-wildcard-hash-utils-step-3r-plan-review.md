@@ -1,14 +1,16 @@
 # Issue #207 Wildcard and Hash Utilities Step 3-R Plan Review
 
-Issue: #207
+> 한국어 리뷰 경계: 이 문서는 리뷰 판정과 근거를 한국어 독자가 추적할 수 있도록 정리한다. 심각도 토큰, 판정 토큰, 파일 경로, 라인 번호, 이슈/PR 번호, 명령, 코드 식별자는 원문의 증거 앵커로 보존한다.
+
+이슈: #207
 Plan: `docs/superpowers/plans/2026-06-22-issue-207-wildcard-hash-utils-plan.md`
 Spec: `docs/superpowers/specs/2026-06-22-issue-207-wildcard-hash-utils-design.md`
-Gate: Step 3-R, 7-Tier plan/test review
-Date: 2026-06-22
+게이트: Step 3-R, 7-Tier plan/test review
+날짜: 2026-06-22
 Worktree: `issue-207-wildcard-hash-utils`
-Base: `origin/develop` at `0ea2bfc`
+기준: `origin/develop` at `0ea2bfc`
 
-## Reviewed Scope
+## 검토 범위
 
 - Implementation plan tasks and TDD order
 - Step 3-R references:
@@ -17,7 +19,7 @@ Base: `origin/develop` at `0ea2bfc`
 - Spec acceptance mapping and verification plan
 - Current `core` package docs, README pair, and package-local test style
 
-## Evidence
+## 증거
 
 | Check | Evidence | Status |
 |---|---|---|
@@ -28,7 +30,7 @@ Base: `origin/develop` at `0ea2bfc`
 | Validation commands | Targeted `go test`, `go test -race`, full `go test ./...`, `make fmt-check`, `make tidy-check`, `make vet`, `make lint`, `make ci`, and `git diff --check` are listed. | PASS |
 | Native subagent state | Prior stale-agent cleanup attempts hung until user interruption; further native lane spawning was explicitly avoided. | UNAVAILABLE; main-session 7-tier fallback performed. |
 
-## Six Review Lanes
+## 6개 검토 관점
 
 | Lane | P0 | P1 | P2 | P3 | Verdict | Evidence |
 |---|---:|---:|---:|---:|---|---|
@@ -53,7 +55,7 @@ Checklist notes:
 - No lifecycle-owning resource/client is created.
 - No new module or CI workflow registration is needed.
 
-## Verdict
+## 판정
 
 P0=0 P1=0
 

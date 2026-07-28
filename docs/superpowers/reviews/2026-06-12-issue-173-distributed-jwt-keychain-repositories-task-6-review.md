@@ -1,16 +1,18 @@
 # Issue #173 Task 6 Review
 
-Issue: #173
-Task: Redis Atomic Rotate, Forced Rotate, Capacity, and TTL
-Date: 2026-06-12
+> 한국어 리뷰 경계: 이 문서는 리뷰 판정과 근거를 한국어 독자가 추적할 수 있도록 정리한다. 심각도 토큰, 판정 토큰, 파일 경로, 라인 번호, 이슈/PR 번호, 명령, 코드 식별자는 원문의 증거 앵커로 보존한다.
 
-## Scope
+이슈: #173
+Task: Redis Atomic Rotate, Forced Rotate, Capacity, and TTL
+날짜: 2026-06-12
+
+## 범위
 
 - `jwt/redis_repository.go`
 - `jwt/redis_scripts.go`
 - `jwt/redis_repository_test.go`
 
-## TDD Evidence
+## TDD 증거
 
 | Phase | Evidence | Status |
 | --- | --- | --- |
@@ -44,7 +46,7 @@ Date: 2026-06-12
 | Cancellation after create does not persist candidates. | `TestRepositoryRotateCanceledAfterCreateDoesNotPersistCandidate`; `TestRepositoryForcedRotateCanceledAfterCreateDoesNotPersistCandidate`. | PASS |
 | Redis scripts keep DTO material private to package `jwt`. | Scripts receive encoded package-private DTO payloads; `jwt/redis` remains an alias facade. | PASS |
 
-## Verdict
+## 판정
 
 P0=0 P1=0
 

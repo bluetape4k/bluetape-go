@@ -1,12 +1,14 @@
 # Issue #592 Probabilistic Redis Key Builder Spec Review
 
-Date: 2026-07-10 KST
-Gate: Step 2-R
+> 한국어 리뷰 경계: 이 문서는 리뷰 판정과 근거를 한국어 독자가 추적할 수 있도록 정리한다. 심각도 토큰, 판정 토큰, 파일 경로, 라인 번호, 이슈/PR 번호, 명령, 코드 식별자는 원문의 증거 앵커로 보존한다.
+
+날짜: 2026-07-10 KST
+게이트: Step 2-R
 Spec: `docs/superpowers/specs/2026-07-10-issue-592-probabilistic-redis-keybuilder-spec.md`
 Test spec: `docs/superpowers/specs/2026-07-10-issue-592-probabilistic-redis-keybuilder-test-spec.md`
 Baseline: `9b8a0a1a80a041b0796bbe27ff9ee987db159c4b`
 
-## Evidence
+## 증거
 
 - CodeGraph located `buildKeys` at `probabilistic/redis/keys.go:18`; direct
   source inspection completed the currently incomplete CodeGraph symbol index
@@ -19,7 +21,7 @@ Baseline: `9b8a0a1a80a041b0796bbe27ff9ee987db159c4b`
   tightly coupled construction-only scope, so the main session performed the
   required six independent local-equivalent perspective passes and integration.
 
-## Six-Perspective Findings
+## 6개 관점 발견 사항
 
 | Perspective | Reviewed scope | P0 | P1 | P2 | P3 | Result |
 |---|---|---:|---:|---:|---:|---|
@@ -30,7 +32,7 @@ Baseline: `9b8a0a1a80a041b0796bbe27ff9ee987db159c4b`
 | Developer/API | package boundaries, Go error compatibility | 0 | 0 | 0 | 0 | Shared construction is adopted without exporting shared error types or changing `RedisError`. |
 | User/Caller | valid/invalid inputs and compatibility | 0 | 0 | 0 | 0 | Caller namespace acceptance and all persisted key values remain stable; no README/API change is required. |
 
-## Integration Verdict
+## 통합 판정
 
 P0=0 P1=0 P2=0 P3=0
 
@@ -40,7 +42,7 @@ to a local opaque configuration error rather than wrapping a shared `redis`
 validation error. This is an acceptance-criteria implementation detail, not a
 new public behavior.
 
-## Rejected With Rationale
+## 근거와 함께 거절함
 
 | Rejected item | Rationale |
 |---|---|

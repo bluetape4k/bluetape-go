@@ -1,12 +1,14 @@
 # Issue #50 Step 7-R PR Review
 
-Date: 2026-06-30
+> 한국어 리뷰 경계: 이 문서는 리뷰 판정과 근거를 한국어 독자가 추적할 수 있도록 정리한다. 심각도 토큰, 판정 토큰, 파일 경로, 라인 번호, 이슈/PR 번호, 명령, 코드 식별자는 원문의 증거 앵커로 보존한다.
+
+날짜: 2026-06-30
 PR: #367
-Branch: `feat/issue-50-graph-backend-research`
+브랜치: `feat/issue-50-graph-backend-research`
 Baseline: `origin/develop@053659e`
 Head: `0b7b429`
 
-## Scope
+## 범위
 
 - `CHANGELOG.md`
 - `WIP.md`
@@ -22,7 +24,7 @@ Head: `0b7b429`
 - PR body final heading check: `## DoD Status`.
 - CI status: `ci` completed successfully on run `28430405017`.
 
-## Findings
+## 발견 사항
 
 | Severity | Finding | Evidence | Verdict |
 |---|---|---|---|
@@ -32,7 +34,7 @@ Head: `0b7b429`
 
 P0=0 P1=0
 
-## Verdict
+## 판정
 
 PASS. The PR satisfies issue #50 acceptance criteria for comparison, ranking,
 selected implementation issue creation, rejected adapter documentation, and

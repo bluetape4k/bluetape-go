@@ -1,6 +1,8 @@
 # Issue #35 Money Step 6-R Code Review
 
-## Scope
+> 한국어 리뷰 경계: 이 문서는 리뷰 판정과 근거를 한국어 독자가 추적할 수 있도록 정리한다. 심각도 토큰, 판정 토큰, 파일 경로, 라인 번호, 이슈/PR 번호, 명령, 코드 식별자는 원문의 증거 앵커로 보존한다.
+
+## 범위
 
 - Worktree: `.worktrees/issue-35-money`
 - Base: `origin/develop`
@@ -38,7 +40,7 @@
 - `mcp__code_review_graph.detect_changes_tool`: no test gaps returned for changed file set; new-file function mapping was not available, so manual diff and subagent lane evidence were used as primary review evidence.
 - `mcp__code_review_graph.find_large_functions_tool` with `file_path_pattern=money/`, `min_lines=50`: 0 large nodes.
 
-## Findings
+## 발견 사항
 
 ### P0
 
@@ -56,7 +58,7 @@ None remaining.
 
 None remaining.
 
-## Verdict
+## 판정
 
 P0=0 P1=0
 

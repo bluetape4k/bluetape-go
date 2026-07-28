@@ -1,12 +1,14 @@
 # Issue #180 FastMoney Evaluation Step 3-R Plan Review
 
-Issue: #180
+> 한국어 리뷰 경계: 이 문서는 리뷰 판정과 근거를 한국어 독자가 추적할 수 있도록 정리한다. 심각도 토큰, 판정 토큰, 파일 경로, 라인 번호, 이슈/PR 번호, 명령, 코드 식별자는 원문의 증거 앵커로 보존한다.
+
+이슈: #180
 Spec: `docs/superpowers/specs/2026-06-14-issue-180-fastmoney-evaluation-design.md`
 Plan: `docs/superpowers/plans/2026-06-14-issue-180-fastmoney-evaluation-plan.md`
-Gate: Step 3-R, 7-Tier plan review
+게이트: Step 3-R, 7-Tier plan review
 Method: main-session role switching. Native subagents were not used in this session because prior lane waits have been unreliable; main-session fallback performed the required six independent lanes plus integration review.
 
-## Reviewed Scope
+## 검토 범위
 
 - New benchmark plan for `money/money_benchmark_test.go`
 - Raw benchmark evidence path:
@@ -26,7 +28,7 @@ Method: main-session role switching. Native subagents were not used in this sess
   - Step 6-R implementation review
   - Step 7-R PR review
 
-## Evidence
+## 증거
 
 | Check | Evidence | Status |
 |---|---|---|
@@ -37,7 +39,7 @@ Method: main-session role switching. Native subagents were not used in this sess
 | Red-flag wording scan | The standard superpowers plan wording scan returned no hits in the plan document. | PASS |
 | Whitespace | `git diff --check` passed. | PASS |
 
-## Six Review Lanes
+## 6개 검토 관점
 
 | Lane | P0 | P1 | P2 | P3 | Verdict | Evidence |
 |---|---:|---:|---:|---:|---|---|
@@ -48,7 +50,7 @@ Method: main-session role switching. Native subagents were not used in this sess
 | Developer/API | 0 | 0 | 0 | 0 | PASS | Plan keeps `Money` as the public API for this issue and labels direct upstream benchmark data as a reference row only. Follow-up creation is required if evidence crosses threshold. |
 | User/Caller | 0 | 0 | 0 | 0 | PASS | README pair must explain `Money` vs `FastMoney`, embed a real chart, link raw output, and keep Korean/English guidance aligned. |
 
-## Main Integration Review
+## 메인 통합 검토
 
 - P0 findings: 0
 - P1 findings: 0
@@ -57,7 +59,7 @@ Method: main-session role switching. Native subagents were not used in this sess
 
 The plan is implementation-ready. It follows the approved benchmark-first design, includes diagram/chart visual gates, keeps evidence reproducible, and preserves the workflow boundary: implementation comes after plan review and PR merge waits for explicit user approval.
 
-## Verdict
+## 판정
 
 P0=0 P1=0
 

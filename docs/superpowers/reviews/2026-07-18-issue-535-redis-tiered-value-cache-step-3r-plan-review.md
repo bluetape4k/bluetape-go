@@ -1,8 +1,10 @@
 # Issue #535 Step 3-R Plan Review
 
-Issue: #535
+> 한국어 리뷰 경계: 이 문서는 리뷰 판정과 근거를 한국어 독자가 추적할 수 있도록 정리한다. 심각도 토큰, 판정 토큰, 파일 경로, 라인 번호, 이슈/PR 번호, 명령, 코드 식별자는 원문의 증거 앵커로 보존한다.
 
-Date: 2026-07-18
+이슈: #535
+
+날짜: 2026-07-18
 
 Spec: `docs/superpowers/specs/2026-07-18-issue-535-redis-tiered-value-cache-design.md`
 
@@ -10,7 +12,7 @@ Plan: `docs/superpowers/plans/2026-07-18-issue-535-redis-tiered-value-cache-plan
 
 Reviewed substantive SHA: `e0d394b06f750529ac0e2c773b83feec5b7e61a6`
 
-Gate: 7-Tier = six independent perspectives plus main-session integration.
+게이트: 7-Tier = six independent perspectives plus main-session integration.
 
 ## Final Exact-Head Results
 
@@ -62,7 +64,7 @@ It is not a completion percentage or resumable cursor. The public field remains
 as approved; Step 6-R must confirm that its GoDoc and both package READMEs state
 this limitation without promising total progress.
 
-## Verification Evidence
+## 검증 증거
 
 - `git diff --check origin/develop...e0d394b06f750529ac0e2c773b83feec5b7e61a6` — PASS.
 - Plan/spec placeholder scan — PASS; only the historical checklist phrase
@@ -74,7 +76,7 @@ this limitation without promising total progress.
 - No implementation test was run at Step 3-R because implementation has not
   started.
 
-## Main Integration Verdict
+## 메인 통합 판정
 
 APPROVE.
 
@@ -86,7 +88,7 @@ APPROVE.
 
 ## DoD
 
-| Item | Status |
+| 항목 | 상태 |
 |---|---|
 | Six perspectives covered | Done; stability used the documented main fallback after timeout. |
 | Same substantive SHA reviewed | Done; `e0d394b06f750529ac0e2c773b83feec5b7e61a6`. |

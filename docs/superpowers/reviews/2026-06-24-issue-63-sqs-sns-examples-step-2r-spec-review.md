@@ -1,9 +1,11 @@
 # Issue #63 SQS/SNS Examples Step 2-R Spec Review
 
-Issue: [#63](https://github.com/bluetape4k/bluetape-go/issues/63)  
-Date: 2026-06-24
+> 한국어 리뷰 경계: 이 문서는 리뷰 판정과 근거를 한국어 독자가 추적할 수 있도록 정리한다. 심각도 토큰, 판정 토큰, 파일 경로, 라인 번호, 이슈/PR 번호, 명령, 코드 식별자는 원문의 증거 앵커로 보존한다.
 
-## 7-Tier Verdict
+이슈: [#63](https://github.com/bluetape4k/bluetape-go/issues/63)
+날짜: 2026-06-24
+
+## 7-Tier 판정
 
 | Lane | P0 | P1 | P2 | P3 | Notes |
 |---|---:|---:|---:|---:|---|

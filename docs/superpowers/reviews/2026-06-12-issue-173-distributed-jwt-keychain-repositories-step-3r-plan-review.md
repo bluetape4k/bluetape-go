@@ -1,14 +1,16 @@
 # Issue #173 Step 3-R Plan Review
 
-Issue: #173
+> 한국어 리뷰 경계: 이 문서는 리뷰 판정과 근거를 한국어 독자가 추적할 수 있도록 정리한다. 심각도 토큰, 판정 토큰, 파일 경로, 라인 번호, 이슈/PR 번호, 명령, 코드 식별자는 원문의 증거 앵커로 보존한다.
+
+이슈: #173
 Milestone: 0.6.1
-Date: 2026-06-12
+날짜: 2026-06-12
 
 Plan: `docs/superpowers/plans/2026-06-12-issue-173-distributed-jwt-keychain-repositories-plan.md`
 Spec: `docs/superpowers/specs/2026-06-12-issue-173-distributed-jwt-keychain-repositories-design.md`
 Spec review: `docs/superpowers/reviews/2026-06-12-issue-173-distributed-jwt-keychain-repositories-step-2r-spec-review.md`
 
-## Review Contract
+## 검토 계약
 
 Step 3-R used the required 7-Tier gate shape:
 
@@ -16,7 +18,7 @@ Step 3-R used the required 7-Tier gate shape:
 - One main-session integration review: deduplicate findings, normalize severity, verify plan edits, own documentation/release/evidence integrity, and close the gate only after `P0=0 P1=0`.
 - No seventh integration subagent was spawned.
 
-## Inputs
+## 입력
 
 - Current plan artifact under `docs/superpowers/plans`.
 - Step 2-R spec and spec review artifacts.
@@ -25,7 +27,7 @@ Step 3-R used the required 7-Tier gate shape:
   - `references/step-3r-plan-review.md`
 - `$bluetape-go-patterns` plan-review checks for Go API, context, cancellation, race/stress, Testcontainers, and public documentation boundaries.
 
-## Lane Results
+## 관점별 결과
 
 | Tier | Perspective | Initial P0 | Initial P1 | Final P0 | Final P1 | Final verdict |
 | --- | --- | ---: | ---: | ---: | ---: | --- |
@@ -53,7 +55,7 @@ Step 3-R used the required 7-Tier gate shape:
 | P2 | Operator/Ops | README and PR tasks needed explicit Redis operations guidance and metadata. | Added TLS/ACL/persistence/noeviction diagnostics, safe `redis-cli` inspection guidance, rollback notes, `--assignee debop`, and label edits. | Fixed in plan. |
 | P2 | User/Caller | Docs needed explicit unsupported capabilities and realistic examples. | Added README verification for MongoDB #198 deferral, unsupported migration/raw-key import boundaries, and HMAC/RSA examples. | Fixed in plan. |
 
-## Rerun Evidence
+## 재실행 증거
 
 | Perspective | Latest blocker status | Evidence |
 | --- | --- | --- |
@@ -64,9 +66,9 @@ Step 3-R used the required 7-Tier gate shape:
 | Developer/API | `P0=0 P1=0` | Affected rerun confirmed typed-nil repository guard, `createWithContext`, facade ordering, and `RetentionLeeway` implementability. |
 | User/Caller | `P0=0 P1=0` | Affected rerun confirmed no public raw-key helper, README unsupported-capability coverage, and RSA example coverage. |
 
-## Main Integration Review
+## 메인 통합 검토
 
-| Check | Result | Evidence |
+| 검사 | 결과 | Evidence |
 | --- | --- | --- |
 | Every spec acceptance maps to concrete tasks | PASS | Plan acceptance mapping covers distributed provider, Redis repository behavior, cross-instance parse, cancellation, docs, stress tests, benchmarks, and review gates. |
 | Task ordering is implementable | PASS | Package-`jwt` Redis core precedes `jwt/redis` facade; tests precede implementation where TDD is required. |
@@ -79,7 +81,7 @@ Step 3-R used the required 7-Tier gate shape:
 
 Material design note: the plan keeps Redis DTO encode/decode and key material reconstruction inside package `jwt`, while exposing package `jwt/redis` as a user-facing facade. This preserves the user-facing Redis import path without adding public raw-key import or seed APIs.
 
-## Verification Commands
+## 검증 명령
 
 ```bash
 rg -n 'TBD|TODO|implement later|fill in details|Similar to|appropriate|add validation|handle edge cases|Write tests for the above|NewHMACKeyChainForRepository|NewRSAKeyChainForRepository|TestOptionsNormalizeKeyTTLRule|benchmem ./jwt/redis' docs/superpowers/plans/2026-06-12-issue-173-distributed-jwt-keychain-repositories-plan.md
@@ -88,7 +90,7 @@ git diff --check
 
 Expected result: first command returns no matches; `git diff --check` passes.
 
-## Gate Verdict
+## 게이트 판정
 
 P0=0 P1=0
 
@@ -98,7 +100,7 @@ Step 4 implementation is unblocked after this Step 3-R plan-review artifact and 
 
 ## Step 3-R Checklist Completion Report
 
-| Item | Status | Notes |
+| 항목 | 상태 | Notes |
 | --- | --- | --- |
 | Required Step 3-R references loaded | Done | `step-3r-plan-review-perspectives.md` and `step-3r-plan-review.md` were read before closure. |
 | Six independent native subagent lanes used | Done | Performance, stability, security, operator/Ops, developer/API, and user/caller lanes ran independently. |

@@ -1,11 +1,13 @@
 # Issue 22 Cache Interfaces Plan Review
 
+> 한국어 리뷰 경계: 이 문서는 리뷰 판정과 근거를 한국어 독자가 추적할 수 있도록 정리한다. 심각도 토큰, 판정 토큰, 파일 경로, 라인 번호, 이슈/PR 번호, 명령, 코드 식별자는 원문의 증거 앵커로 보존한다.
+
 Plan: `docs/superpowers/plans/2026-06-04-issue-22-cache-interfaces-plan.md`
 Spec: `docs/superpowers/specs/2026-06-04-issue-22-cache-interfaces-spec.md`
-Gate: Step 3-R
-Date: 2026-06-04
+게이트: Step 3-R
+날짜: 2026-06-04
 
-## Review Scope
+## 검토 범위
 
 - Task ordering and atomicity.
 - Mapping from #22 acceptance criteria and Step 2-R fixes to implementation work.
@@ -17,7 +19,7 @@ Required references loaded:
 - `/Users/debop/.codex/skills/bluetape4k-full-feature/references/step-3r-plan-review-perspectives.md`
 - `/Users/debop/.codex/skills/bluetape4k-full-feature/references/step-3r-plan-review.md`
 
-## Iteration 1 Findings
+## 반복 1 발견 사항
 
 | Priority | Perspective | Finding | Required plan edit | Status |
 |---|---|---|---|---|
@@ -39,7 +41,7 @@ Required references loaded:
 | Architect | 0 | 0 | 0 | 0 | Scope stays in root `cache`; Redis near-cache remains deferred to #23. |
 | Delivery/docs | 0 | 0 | 0 | 0 | README English/Korean sync, examples, lessons, PR, and CI are assigned. |
 
-## 7-Tier Review
+## 7-Tier 검토
 
 | Tier | Scope | P0 | P1 | P2 | P3 | Evidence |
 |---|---|---:|---:|---:|---:|---|
@@ -68,7 +70,7 @@ Required references loaded:
 
 Open questions: none. No user decision is required before implementation.
 
-## Gate Verdict
+## 게이트 판정
 
 Step 3-R convergence passed.
 
@@ -81,7 +83,7 @@ Step 3-R convergence passed.
 
 ## Step 3-R Checklist Completion Report
 
-| Item | Status | Notes |
+| 항목 | 상태 | Notes |
 |---|---|---|
 | Required references loaded | Done | Both Step 3-R reference files loaded. |
 | Multi-perspective review complete | Done | Implementer, test engineer, architect, delivery perspectives recorded. |

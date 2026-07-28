@@ -1,6 +1,8 @@
 # Issue #166 KSUID Generator Family Spec Review
 
-## Scope
+> 한국어 리뷰 경계: 이 문서는 리뷰 판정과 근거를 한국어 독자가 추적할 수 있도록 정리한다. 심각도 토큰, 판정 토큰, 파일 경로, 라인 번호, 이슈/PR 번호, 명령, 코드 식별자는 원문의 증거 앵커로 보존한다.
+
+## 범위
 
 - Spec:
   `docs/superpowers/specs/2026-06-08-issue-166-ksuid-generator-family-spec.md`
@@ -8,7 +10,7 @@
 - Review gate: Step 2-R, 7-Tier spec review
 - Worktree: `.worktrees/issue-166-ksuid`
 
-## Initial Findings
+## 초기 발견 사항
 
 | Tier | Reviewer | P0 | P1 | P2 | P3 | Summary |
 |---|---:|---:|---:|---:|---:|---|
@@ -17,7 +19,7 @@
 | Test/concurrency | test-engineer subagent | 0 | 0 | 3 | 0 | Deterministic decoded-byte assertions, custom clock concurrency docs, and validation acceptance needed to be explicit. |
 | Docs/release/evidence | local verifier | 0 | 0 | 0 | 0 | Issue metadata, docs update scope, validation commands, and PR metadata requirements were present. |
 
-## Repair
+## 수정
 
 The spec was updated to keep issue #166 seconds-only and defer millisecond
 KSUID to #171.
@@ -42,7 +44,7 @@ Repair details:
 | Test/concurrency | test-engineer subagent | 0 | 0 | 0 | 0 | PASS |
 | Docs/release/evidence | local verifier | 0 | 0 | 0 | 0 | PASS |
 
-## Evidence
+## 증거
 
 - `gh issue view 166`: assignee `debop`, milestone `0.6.0`, labels
   `type: task`, `priority: p1`, `area: utilities`.
@@ -56,7 +58,7 @@ Repair details:
   uses a custom Base62 encoder and alphabet that is not Segment Base62.
 - `git diff --check`: PASS.
 
-## Gate Verdict
+## 게이트 판정
 
 PASS.
 

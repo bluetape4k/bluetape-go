@@ -1,16 +1,18 @@
 # Issue #26 Pre-Implementation Risk Review
 
-Issue: #26
+> 한국어 리뷰 경계: 이 문서는 리뷰 판정과 근거를 한국어 독자가 추적할 수 있도록 정리한다. 심각도 토큰, 판정 토큰, 파일 경로, 라인 번호, 이슈/PR 번호, 명령, 코드 식별자는 원문의 증거 앵커로 보존한다.
+
+이슈: #26
 Milestone: 0.4.0
-Gate: Step 3-P
-Date: 2026-06-05
+게이트: Step 3-P
+날짜: 2026-06-05
 Spec: `docs/superpowers/specs/2026-06-05-issue-26-state-spec.md`
 Plan: `docs/superpowers/plans/2026-06-05-issue-26-state-plan.md`
 
 Reference loaded:
 `/Users/debop/.codex/skills/bluetape4k-full-feature/references/step-4p-perf-scan.md`.
 
-## Trigger
+## 트리거
 
 Step 3-P is required because #26 adds high-complexity concurrency behavior:
 
@@ -32,7 +34,7 @@ Step 3-P is required because #26 adds high-complexity concurrency behavior:
 
 ## Step 3-P Checklist Completion Report
 
-| Item | Status | Notes |
+| 항목 | 상태 | Notes |
 |------|--------|-------|
 | 3-P ran or skip reason recorded | Done | Required by high-complexity concurrency behavior. |
 | Top risks/mitigations added to Step 4 task context | Done | Risk controls map directly to T1-T4 and T8 in the plan. |

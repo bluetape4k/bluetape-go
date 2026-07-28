@@ -1,17 +1,19 @@
 # Issue #173 Task 2 Review
 
-Issue: #173
-Task: Distributed Provider Implementation
-Date: 2026-06-12
+> 한국어 리뷰 경계: 이 문서는 리뷰 판정과 근거를 한국어 독자가 추적할 수 있도록 정리한다. 심각도 토큰, 판정 토큰, 파일 경로, 라인 번호, 이슈/PR 번호, 명령, 코드 식별자는 원문의 증거 앵커로 보존한다.
 
-## Scope
+이슈: #173
+Task: Distributed Provider Implementation
+날짜: 2026-06-12
+
+## 범위
 
 - `jwt/distributed_repository.go`
 - `jwt/distributed_provider.go`
 - `jwt/provider.go`
 - `jwt/distributed_provider_test.go`
 
-## TDD Evidence
+## TDD 증거
 
 | Phase | Evidence | Status |
 | --- | --- | --- |
@@ -36,7 +38,7 @@ Date: 2026-06-12
 
 ## Code Quality Review
 
-| Check | Result | Notes |
+| 검사 | 결과 | Notes |
 | --- | --- | --- |
 | API shape | PASS | Narrow Go API with explicit `context.Context`; no Kotlin-style broad helper surface. |
 | Context propagation | PASS | Every distributed public method validates caller context and passes it to repository calls. |
@@ -44,7 +46,7 @@ Date: 2026-06-12
 | Concurrency safety | PASS | Fake repository is mutex-protected; stress test passes under race detector. |
 | Public security boundary | PASS | No raw-key import/export helper added. Key reconstruction remains package-private. |
 
-## Verdict
+## 판정
 
 P0=0 P1=0
 

@@ -1,6 +1,8 @@
 # Issue 18 Resilience Core 7-Tier Review
 
-## Scope
+> 한국어 리뷰 경계: 이 문서는 리뷰 판정과 근거를 한국어 독자가 추적할 수 있도록 정리한다. 심각도 토큰, 판정 토큰, 파일 경로, 라인 번호, 이슈/PR 번호, 명령, 코드 식별자는 원문의 증거 앵커로 보존한다.
+
+## 범위
 
 - Branch: `feat/issue-18-resilience-core`
 - Base: `origin/develop`
@@ -13,7 +15,7 @@
   - `README.md`, `README.ko.md`
   - `docs/research/2026-06-01-milestone-0.2.0-resilience-research.md`
 
-## Graph Evidence
+## 그래프 증거
 
 - CodeGraph: 102 files, 839 nodes, 1,464 edges; index up to date.
 - code-review-graph: 87 files, 380 nodes, 2,695 edges.
@@ -23,7 +25,7 @@
   lookup; direct diff/source review covered new untracked files that
   code-review-graph did not classify as changed functions.
 
-## Findings
+## 발견 사항
 
 - P0: 0
 - P1: 0
@@ -37,9 +39,9 @@
     values and saturate very large uncapped delays.
 - P3: 0
 
-## Tier Verdicts
+## 계층별 판정
 
-| Tier | Scope | Verdict | Evidence |
+| 계층 | 범위 | 판정 | 증거 |
 |---|---|---:|---|
 | 1 Security | input/secret/auth surface | PASS | No external input parsing, auth, secrets, network, file IO, or new dependency. |
 | 2 Architecture | package/API boundaries | PASS | First-party `resilience` package owns `Operation`, `Policy`, `Compose`, `Run`; external libraries remain reference-only. |
@@ -49,7 +51,7 @@
 | 6 Docs/Release | public docs and planning | PASS | README locale pair updated; superpowers research/spec/plan added; milestone research updated. |
 | 7 Evidence | validation and review gates | PASS | Focused tests, race test, raw lint, vet, and diff check passed after fixes. |
 
-## Validation Evidence
+## 검증 증거
 
 - `go test -count=1 ./resilience`: PASS
 - `go test -race -count=1 ./resilience`: PASS
@@ -60,7 +62,7 @@
 - `git diff --check`: PASS
 - `go mod tidy && git diff --exit-code -- go.mod go.sum`: PASS
 
-## Residual Risks
+## 잔여 위험
 
 - Full observability payload and ordering are intentionally deferred to #21.
 - Circuit breaker and bulkhead behavior are intentionally deferred to #19.

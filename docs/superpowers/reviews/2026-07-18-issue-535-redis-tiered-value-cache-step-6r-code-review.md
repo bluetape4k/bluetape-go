@@ -1,16 +1,18 @@
 # Issue #535 Redis Tiered Value Cache Step 6-R Code Review
 
-Issue: #535
+> 한국어 리뷰 경계: 이 문서는 리뷰 판정과 근거를 한국어 독자가 추적할 수 있도록 정리한다. 심각도 토큰, 판정 토큰, 파일 경로, 라인 번호, 이슈/PR 번호, 명령, 코드 식별자는 원문의 증거 앵커로 보존한다.
 
-Date: 2026-07-18
+이슈: #535
 
-Base: `origin/develop` at `3684299c8e9cbcfd319e4dd73a556d8f9e2463ff`
+날짜: 2026-07-18
+
+기준: `origin/develop` at `3684299c8e9cbcfd319e4dd73a556d8f9e2463ff`
 
 Reviewed implementation SHA: `c2b8674f5c7192a5e751f65c469198259835d3ff`
 
-Gate: six independent perspectives plus main-session integration.
+게이트: six independent perspectives plus main-session integration.
 
-## Convergence History
+## 수렴 이력
 
 The first full implementation review examined `9e009a12209a8c0326aedba7c269c3b7943746a7`.
 It found no P0, but identified missing hostile-concurrency and real-Redis
@@ -30,9 +32,9 @@ The review repairs converged through these exact commits:
 No independent lane timed out in the terminal exact-head review; main-session
 fallback was not required.
 
-## Terminal Exact-Head Results
+## 최종 정확한 HEAD 결과
 
-| Tier | Perspective | Verdict | P0 | P1 | P2 | P3 |
+| 계층 | 관점 | 판정 | P0 | P1 | P2 | P3 |
 |---|---|---:|---:|---:|---:|---:|
 | 1 | Performance | PASS | 0 | 0 | 1 | 0 |
 | 2 | Stability | PASS | 0 | 0 | 1 | 0 |
@@ -92,7 +94,7 @@ Repair evidence:
 - spec, plan, README locale pair, documentation parity, and lesson updated;
 - affected Step 7-R perspectives and full CI require rerun on the repair head.
 
-## Verification Evidence
+## 검증 증거
 
 - Admission/documentation focused tests: `-count=20` — PASS.
 - Admission/documentation focused race tests: `-race -count=5` — PASS.
@@ -108,7 +110,7 @@ Repair evidence:
   normal tests, race tests, and Testcontainers-backed packages.
 - `git diff --check origin/develop...c2b8674f5c7192a5e751f65c469198259835d3ff` — PASS.
 
-## Main Integration Verdict
+## 메인 통합 판정
 
 PASS.
 
@@ -124,7 +126,7 @@ PASS.
 
 ## DoD
 
-| Item | Status |
+| 항목 | 상태 |
 |---|---|
 | Six independent perspectives covered | Done. |
 | Same exact implementation SHA reviewed | Done: `c2b8674f5c7192a5e751f65c469198259835d3ff`. |

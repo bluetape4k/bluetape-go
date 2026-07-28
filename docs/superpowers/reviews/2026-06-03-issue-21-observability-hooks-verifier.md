@@ -1,6 +1,8 @@
 # Issue 21 Observability Hooks Step 5 Verifier
 
-## Scope
+> 한국어 리뷰 경계: 이 문서는 리뷰 판정과 근거를 한국어 독자가 추적할 수 있도록 정리한다. 심각도 토큰, 판정 토큰, 파일 경로, 라인 번호, 이슈/PR 번호, 명령, 코드 식별자는 원문의 증거 앵커로 보존한다.
+
+## 범위
 
 - Spec: `docs/superpowers/specs/2026-06-03-issue-21-observability-hooks-spec.md`
 - Plan: `docs/superpowers/plans/2026-06-03-issue-21-observability-hooks-plan.md`
@@ -10,7 +12,7 @@
 - Tests: `resilience/events_test.go`
 - Docs: `README.md`, `README.ko.md`
 
-## Requirement Mapping
+## 요구사항 매핑
 
 | Requirement | Evidence | Status |
 |---|---|---|
@@ -53,7 +55,7 @@
 - `code-review-graph status --repo .`: 500 nodes, 3,710 edges, branch
   `feat/issue-21-observability-hooks`.
 
-## Verdict
+## 판정
 
 PASS. The implementation satisfies the approved spec and plan. Remaining
 workflow work is Step 6-R review, lesson capture, PR creation, post-PR review,

@@ -1,14 +1,16 @@
 # Issue #117 Cross-Process Stampede Protection Code Review
 
-Date: 2026-06-04
-Scope: `cache/rediscoord`, docs, benchmark target
+> 한국어 리뷰 경계: 이 문서는 리뷰 판정과 근거를 한국어 독자가 추적할 수 있도록 정리한다. 심각도 토큰, 판정 토큰, 파일 경로, 라인 번호, 이슈/PR 번호, 명령, 코드 식별자는 원문의 증거 앵커로 보존한다.
+
+날짜: 2026-06-04
+범위: `cache/rediscoord`, docs, benchmark target
 Review type: 7-Tier implementation review
 
-## Verdict
+## 판정
 
 PASS. `P0 = 0`, `P1 = 0`, `P2 = 0`.
 
-## 7-Tier Findings
+## 7-Tier 발견 사항
 
 | Tier | Focus | P0 | P1 | P2 | P3 | Finding |
 |---|---|---:|---:|---:|---:|---|
@@ -20,7 +22,7 @@ PASS. `P0 = 0`, `P1 = 0`, `P2 = 0`.
 | 6 Performance/stability | Lock TTL, polling, benchmark | 0 | 0 | 0 | 1 | Polling is context-bound; benchmark target is opt-in. Loader over-lease behavior is documented. |
 | 7 Docs/ops | Release notes and WIP | 0 | 0 | 0 | 0 | README pair, CHANGELOG, WIP, research index, verifier, and lessons are updated. |
 
-## Review Notes
+## 검토 메모
 
 - Token-bound envelopes prevent waiters from accepting stale result data from a
   different owner attempt.
@@ -32,7 +34,7 @@ PASS. `P0 = 0`, `P1 = 0`, `P2 = 0`.
   a local fill; this surfaces a failed cross-process guarantee instead of hiding
   coordination loss.
 
-## Residual Risk
+## 잔여 위험
 
 - A durable Redis L2 cache may still be useful later for applications that want
   shared values outside a cold burst. That is intentionally outside #117.

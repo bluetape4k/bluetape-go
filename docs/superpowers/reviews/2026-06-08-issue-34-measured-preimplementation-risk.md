@@ -1,6 +1,8 @@
 # Issue #34 Preimplementation Risk Record
 
-## Scope
+> 한국어 리뷰 경계: 이 문서는 리뷰 판정과 근거를 한국어 독자가 추적할 수 있도록 정리한다. 심각도 토큰, 판정 토큰, 파일 경로, 라인 번호, 이슈/PR 번호, 명령, 코드 식별자는 원문의 증거 앵커로 보존한다.
+
+## 범위
 
 - Issue: #34 `Port measured value and unit helper types`
 - Branch: `issue-34-measured`
@@ -40,7 +42,7 @@ Source tests were present for every family plus `MeasureTest.kt`.
 - Use `GoroutineStressTester` and `AsyncJobTester` from `testing/concurrency` only in tests; do not add production async APIs solely for stress evidence.
 - Base-unit conversion is the future persistence boundary: every family must expose a base unit and tests must prove `Measure.In(base)` returns the canonical base amount.
 
-## Validation Evidence
+## 검증 증거
 
 - `mcp__codegraph.codegraph_status` on the #34 worktree: 183 indexed files, 1981 nodes, 4232 edges.
 - `mcp__codegraph.codegraph_files` confirmed root-level package layout and `testing/concurrency` package availability.

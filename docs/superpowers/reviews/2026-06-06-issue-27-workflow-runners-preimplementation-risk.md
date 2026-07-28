@@ -1,10 +1,12 @@
 # Issue 27 Workflow Runners Pre-Implementation Risk
 
-Issue: #27
-Gate: Step 3-P / T0
-Status: PASS
+> 한국어 리뷰 경계: 이 문서는 리뷰 판정과 근거를 한국어 독자가 추적할 수 있도록 정리한다. 심각도 토큰, 판정 토큰, 파일 경로, 라인 번호, 이슈/PR 번호, 명령, 코드 식별자는 원문의 증거 앵커로 보존한다.
 
-## Reviewed Evidence
+이슈: #27
+게이트: Step 3-P / T0
+상태: PASS
+
+## 검토한 증거
 
 - `docs/superpowers/specs/2026-06-06-issue-27-workflow-runners-spec.md`
 - `docs/superpowers/plans/2026-06-06-issue-27-workflow-runners-plan.md`
@@ -13,7 +15,7 @@ Status: PASS
 - `workreport/*`
 - `testing/concurrency/*`
 
-## Risks
+## 위험
 
 | Risk | Severity | Mitigation fed into implementation |
 |---|---|---|
@@ -25,6 +27,6 @@ Status: PASS
 | Predicate cancellation could be reported as a generic failure. | P2 | Treat `context.Canceled` and `context.DeadlineExceeded` as cancelled reports. |
 | Mutable shared context map could creep into examples. | P2 | Keep examples closure-based and document no mutable `WorkContext` in README. |
 
-## Verdict
+## 판정
 
 P0=0 P1=0. Step 4 implementation is unblocked after the spec/plan commit.

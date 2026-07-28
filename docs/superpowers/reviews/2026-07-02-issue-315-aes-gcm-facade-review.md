@@ -1,6 +1,8 @@
 # Issue #315 AES-GCM Facade Review
 
-## Scope
+> 한국어 리뷰 경계: 이 문서는 리뷰 판정과 근거를 한국어 독자가 추적할 수 있도록 정리한다. 심각도 토큰, 판정 토큰, 파일 경로, 라인 번호, 이슈/PR 번호, 명령, 코드 식별자는 원문의 증거 앵커로 보존한다.
+
+## 범위
 
 - Diff base: `origin/develop`.
 - Module slice: new `encrypt` package plus root README package index.
@@ -8,7 +10,7 @@
   this Codex surface unless explicitly requested, so the current session owns
   the integration verdict.
 
-## Six-Lane Findings
+## 6개 관점 발견 사항
 
 | Lane | Reviewed Evidence | P0 | P1 | P2 | P3 | Verdict |
 |---|---|---:|---:|---:|---:|---|
@@ -19,7 +21,7 @@
 | Developer/API | Small `encrypt` package, byte/string helpers, sentinel errors with `errors.Is`, no new dependency | 0 | 0 | 0 | 0 | PASS |
 | User/Caller | README/README.ko cover usage, associated data, envelope, error taxonomy, and tool boundaries | 0 | 0 | 0 | 0 | PASS |
 
-## Integration Verdict
+## 통합 판정
 
 P0 = 0, P1 = 0.
 
@@ -27,7 +29,7 @@ The implementation satisfies #315's narrow standard-library AES-GCM scope and
 keeps deterministic AEAD, keysets, Redis/KMS stores, age, MAC/digest helpers,
 JWT, and password hashing out of the default package.
 
-## Validation
+## 검증
 
 ```bash
 git diff --check

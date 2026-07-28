@@ -1,6 +1,8 @@
 # Issue #346 Superpowers Review: SQL Audit Outbox
 
-## Scope
+> 한국어 리뷰 경계: 이 문서는 리뷰 판정과 근거를 한국어 독자가 추적할 수 있도록 정리한다. 심각도 토큰, 판정 토큰, 파일 경로, 라인 번호, 이슈/PR 번호, 명령, 코드 식별자는 원문의 증거 앵커로 보존한다.
+
+## 범위
 
 - Code: `audit/sqloutbox`
 - Docs: package README files, root README files, audit README files, changelog
@@ -23,7 +25,7 @@
 - Integration: P0=0 P1=0. Targeted Testcontainers tests cover the new durable
   path without pretending to satisfy `audit.Repository` reads.
 
-## Evidence
+## 증거
 
 - `go test -count=1 ./audit/sqloutbox`
 - `make ci`

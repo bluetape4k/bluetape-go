@@ -1,11 +1,13 @@
 # Issue #49 Step 2-R Spec Review
 
-Date: 2026-06-30
+> 한국어 리뷰 경계: 이 문서는 리뷰 판정과 근거를 한국어 독자가 추적할 수 있도록 정리한다. 심각도 토큰, 판정 토큰, 파일 경로, 라인 번호, 이슈/PR 번호, 명령, 코드 식별자는 원문의 증거 앵커로 보존한다.
+
+날짜: 2026-06-30
 Worktree: `.worktrees/issue-49-graph-io`
-Branch: `feat/issue-49-graph-io`
+브랜치: `feat/issue-49-graph-io`
 Baseline: `da6005c`
 
-## Verdict
+## 판정
 
 P0: 0
 P1: 0
@@ -24,7 +26,7 @@ planning after targeted corrections.
 | Developer/API | 0 | 0 | 4 | Added `ErrInvalidOptions`, fixed the `errors.As` caller shape, removed stale validation wording, and named the raw JSON property default. |
 | User/Caller | 0 | 1 | 2 | Split CSV formula safety from lossless interchange and clarified unsupported capability routing. |
 
-## Corrections Applied
+## 적용한 수정
 
 - #49 is scoped to standard-library NDJSON and CSV stream codecs under
   `graph/graphio`; GraphML, compression, encryption, path helpers, and atomic
@@ -66,7 +68,7 @@ was corrected before implementation planning passed:
 - CSV exports `CSVReader`/`CSVWriter` streaming types, and GraphML has no public
   constant or helper in #49.
 
-## Rerun Evidence
+## 재실행 증거
 
 | Perspective | P0 | P1 | Evidence |
 | --- | ---: | ---: | --- |
@@ -77,7 +79,7 @@ was corrected before implementation planning passed:
 | User/Caller | 0 | 0 | Accepted explicit round-trip/formula mode split, NDJSON ordering, CSV paired streams, flush semantics, and docs expectations. |
 | Main Integration | 0 | 0 | Current on-disk spec has no remaining P0/P1 contradictions across review lanes. |
 
-## Follow-Up Gates
+## 후속 게이트
 
 - Step 3-R must verify that the implementation plan preserves the bounded
   defaults, redaction contract, CSV round-trip policy, and deferred-capability

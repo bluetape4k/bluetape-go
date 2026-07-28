@@ -1,14 +1,16 @@
 # Issue 569 Step 3-R Plan Review
 
-Date: 2026-07-10 KST
-Branch: `feat/issue-569-redis-foundation`
+> 한국어 리뷰 경계: 이 문서는 리뷰 판정과 근거를 한국어 독자가 추적할 수 있도록 정리한다. 심각도 토큰, 판정 토큰, 파일 경로, 라인 번호, 이슈/PR 번호, 명령, 코드 식별자는 원문의 증거 앵커로 보존한다.
+
+날짜: 2026-07-10 KST
+브랜치: `feat/issue-569-redis-foundation`
 Baseline commit: `6a3a261`
 Scope:
 
 - `docs/superpowers/specs/2026-07-10-issue-569-redis-foundation-spec.md`
 - `docs/superpowers/plans/2026-07-10-issue-569-redis-foundation-plan.md`
 
-## Initial Findings
+## 초기 발견 사항
 
 The first Step 3-R pass found P1 blockers in the plan/spec contract before
 implementation:
@@ -22,7 +24,7 @@ implementation:
 | Developer/API | 0 | 3 | Prefix validation ambiguity; nil client boundary; adjacent string error API. |
 | Caller/User | 0 | 1 | Prefix/structural-segment contradiction. |
 
-## Corrections Applied
+## 적용한 수정
 
 - Split colon-delimited package prefixes from single structural segments.
 - Allowed colon-bearing hash tags to preserve existing `probabilistic/redis`

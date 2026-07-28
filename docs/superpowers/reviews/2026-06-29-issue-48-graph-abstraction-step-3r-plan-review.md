@@ -1,11 +1,13 @@
 # Issue #48 Step 3-R Plan Review
 
-Date: 2026-06-29
+> 한국어 리뷰 경계: 이 문서는 리뷰 판정과 근거를 한국어 독자가 추적할 수 있도록 정리한다. 심각도 토큰, 판정 토큰, 파일 경로, 라인 번호, 이슈/PR 번호, 명령, 코드 식별자는 원문의 증거 앵커로 보존한다.
+
+날짜: 2026-06-29
 Worktree: `.worktrees/issue-48-graph-abstraction`
-Branch: `feat/issue-48-graph-abstraction`
+브랜치: `feat/issue-48-graph-abstraction`
 Baseline: `20f9fbc`
 
-## Verdict
+## 판정
 
 P0: 0
 P1: 0
@@ -24,7 +26,7 @@ targeted spec and plan corrections.
 | Developer/API | 0 | 2 | 2 | 1 | Removed public `NewEdgeEndpoints(start,end)` helper, fixed JSON wire shape, pinned reserved `ErrUnsupportedCapability`, and required exported Go docs. |
 | User/Caller | 0 | 1 | 3 | 1 | Strengthened redaction proof, `MustElementID` guidance, README beginner sections, and unsupported capability routing. |
 
-## Corrections Applied
+## 적용한 수정
 
 - `EdgeEndpoints` is now constructed with named fields and validated through
   `EdgeEndpoints.Validate`; no public adjacent `start, end` helper is planned.
@@ -43,7 +45,7 @@ targeted spec and plan corrections.
   `pkg.go.dev`.
 - Stress tests are N/A for #48 model-only values, with race validation retained.
 
-## Rerun Evidence
+## 재실행 증거
 
 | Perspective | P0 | P1 | Evidence |
 | --- | ---: | ---: | --- |
@@ -52,7 +54,7 @@ targeted spec and plan corrections.
 | Developer/API | 0 | 0 | Rerun accepted removal of adjacent endpoint helper, fixed JSON shape, reserved unsupported-capability contract, and Go doc requirements. |
 | User/Caller | 0 | 0 | Rerun accepted redaction proof, `MustElementID` guidance, README beginner sections, and unsupported capability routing. |
 
-## Follow-Up Gates
+## 후속 게이트
 
 - Step 4 must implement tests before code and prove the expected red failures.
 - Step 6-R must verify the actual implementation still has P0=0 and P1=0.

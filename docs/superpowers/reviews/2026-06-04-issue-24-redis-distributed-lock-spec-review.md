@@ -1,12 +1,14 @@
 # Issue #24 Redis Distributed Lock Spec Review
 
-Issue: #24
+> 한국어 리뷰 경계: 이 문서는 리뷰 판정과 근거를 한국어 독자가 추적할 수 있도록 정리한다. 심각도 토큰, 판정 토큰, 파일 경로, 라인 번호, 이슈/PR 번호, 명령, 코드 식별자는 원문의 증거 앵커로 보존한다.
+
+이슈: #24
 Milestone: 0.3.0
-Date: 2026-06-04
+날짜: 2026-06-04
 Reviewed spec: `docs/superpowers/specs/2026-06-04-issue-24-redis-distributed-lock-spec.md`
 Review gate: Step 2-R
 
-## 7-Tier Findings
+## 7-Tier 발견 사항
 
 | Tier | Result | Notes |
 |---|---|---|
@@ -18,7 +20,7 @@ Review gate: Step 2-R
 | Tier 6 - Performance/stability | PASS | One Redis round trip for acquire and one Lua round trip for release; no polling loop in scope. |
 | Tier 7 - Docs/evidence | PASS | README pair, CHANGELOG, research, lessons, and GNO searchable docs are required. |
 
-## Convergence
+## 수렴
 
 | Priority | Count | Status |
 |---|---:|---|
@@ -27,6 +29,6 @@ Review gate: Step 2-R
 | P2 | 0 | PASS |
 | P3 | 0 | PASS |
 
-## Verdict
+## 판정
 
 Step 2-R is closed. The spec is ready for implementation planning.

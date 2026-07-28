@@ -1,11 +1,13 @@
 # Issue #61 Step 6-R Code Review
 
-Issue: [#61](https://github.com/bluetape4k/bluetape-go/issues/61)  
-Branch: `issue-61-floci-service-smoke`  
-Stack base: `issue-220-aws-graph-infra-fixtures` / PR #265  
-Date: 2026-06-23
+> 한국어 리뷰 경계: 이 문서는 리뷰 판정과 근거를 한국어 독자가 추적할 수 있도록 정리한다. 심각도 토큰, 판정 토큰, 파일 경로, 라인 번호, 이슈/PR 번호, 명령, 코드 식별자는 원문의 증거 앵커로 보존한다.
 
-## Scope
+이슈: [#61](https://github.com/bluetape4k/bluetape-go/issues/61)
+브랜치: `issue-61-floci-service-smoke`
+Stack base: `issue-220-aws-graph-infra-fixtures` / PR #265
+날짜: 2026-06-23
+
+## 범위
 
 - `testcontainers/floci/floci.go`
 - `testcontainers/floci/floci_test.go`
@@ -17,7 +19,7 @@ Date: 2026-06-23
 
 This gate used main integration fallback for all six 7-tier perspectives.
 
-## Review Lanes
+## 검토 관점
 
 | Lane | P0 | P1 | P2 | P3 | Evidence |
 |---|---:|---:|---:|---:|---|
@@ -31,7 +33,7 @@ This gate used main integration fallback for all six 7-tier perspectives.
 
 Final gate: `P0=0 P1=0`.
 
-## Validation
+## 검증
 
 RED evidence:
 
@@ -61,7 +63,7 @@ Documentation checks:
 
 ## Step 6 Checklist Completion Report
 
-| Item | Status | Notes |
+| 항목 | 상태 | Notes |
 |---|---|---|
 | Implemented diff reviewed | Done | Floci service config aliases/options, service smoke, README pair, dependency changes. |
 | 7-tier review run | Done | Main integration fallback. |

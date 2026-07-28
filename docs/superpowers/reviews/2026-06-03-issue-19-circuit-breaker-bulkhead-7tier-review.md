@@ -1,6 +1,8 @@
 # Issue 19 Circuit Breaker and Bulkhead 7-Tier Review
 
-## Scope
+> 한국어 리뷰 경계: 이 문서는 리뷰 판정과 근거를 한국어 독자가 추적할 수 있도록 정리한다. 심각도 토큰, 판정 토큰, 파일 경로, 라인 번호, 이슈/PR 번호, 명령, 코드 식별자는 원문의 증거 앵커로 보존한다.
+
+## 범위
 
 - Branch: `feat/issue-19-circuit-breaker-bulkhead`
 - Base: `origin/develop`
@@ -19,7 +21,7 @@
   - `resilience/bulkhead_test.go`
   - `README.md`, `README.ko.md`
 
-## Graph Evidence
+## 그래프 증거
 
 - CodeGraph initialized and synced in this worktree:
   - before implementation: 102 files, 843 nodes, 1,471 edges
@@ -34,7 +36,7 @@
   production callers are still limited to the new `resilience` package and its
   tests.
 
-## Findings
+## 발견 사항
 
 - P0: 0
 - P1: 0
@@ -47,9 +49,9 @@
   goroutine-heavy circuit breaker half-open probe and bulkhead permit tests.
 - P3: 0
 
-## Tier Verdicts
+## 계층별 판정
 
-| Tier | Scope | Verdict | Evidence |
+| 계층 | 범위 | 판정 | 증거 |
 |---|---|---:|---|
 | 1 Security | input, secrets, auth, dependency risk | PASS | No new network, file IO, auth, secrets, or runtime dependency. `.gitignore` only suppresses local agent/runtime directories. |
 | 2 Architecture | package/API boundary | PASS | New policies implement existing `Policy[T]` without reshaping `Operation`, `Compose`, or `Run`. External libraries remain reference-only. |
@@ -59,7 +61,7 @@
 | 6 Docs/Release | public docs and planning | PASS | Research/spec/plan added; README locale pair updates package description. |
 | 7 Evidence | validation and metadata | PASS | Focused tests, race test, repo tests, vet, raw golangci-lint, fmt-check, tidy-check, diff-check, CodeGraph, and code-review-graph all passed. |
 
-## Validation Evidence
+## 검증 증거
 
 - `go test -count=1 ./resilience`: PASS, 29 tests
 - `go test -race -count=1 ./resilience`: PASS, 29 tests
@@ -74,7 +76,7 @@
 - `codegraph status .`: PASS, index up to date
 - `code-review-graph status --repo .`: PASS, 104 files / 491 nodes / 3,456 edges
 
-## Residual Risks
+## 잔여 위험
 
 - Full observability payload shape remains #21.
 - HTTP middleware and copy-paste service examples remain #20.

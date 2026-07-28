@@ -1,22 +1,24 @@
 # Issue 28 Workreport Spec Review
 
-Spec: `docs/superpowers/specs/2026-06-06-issue-28-workreport-spec.md`
-Issue: #28
-Gate: Step 2-R
-Status: PASS
+> 한국어 리뷰 경계: 이 문서는 리뷰 판정과 근거를 한국어 독자가 추적할 수 있도록 정리한다. 심각도 토큰, 판정 토큰, 파일 경로, 라인 번호, 이슈/PR 번호, 명령, 코드 식별자는 원문의 증거 앵커로 보존한다.
 
-## Scope
+Spec: `docs/superpowers/specs/2026-06-06-issue-28-workreport-spec.md`
+이슈: #28
+게이트: Step 2-R
+상태: PASS
+
+## 범위
 
 Reviewed the #28 issue-local spec against the 0.4.0 parent spec, issue body,
 `state` package conventions, and `bluetape-go-patterns`.
 
-## Findings
+## 발견 사항
 
 | Severity | Finding | Resolution |
 |---|---|---|
 | P1 | `Aggregate` was sketched as returning only `Report`, but the spec also required unknown policy validation through an `errors.Is`-compatible error. | Fixed by changing the API direction to `Aggregate(...)(Report, error)` and tying unknown policy validation to that return path. |
 
-## Perspective Review
+## 관점별 검토
 
 | Perspective | P0 | P1 | P2 | P3 | Evidence |
 |---|---:|---:|---:|---:|---|
@@ -25,7 +27,7 @@ Reviewed the #28 issue-local spec against the 0.4.0 parent spec, issue body,
 | Ops/SRE | 0 | 0 | 0 | 0 | Cancellation and error preservation are explicit; no runtime resources or background workers are specified. |
 | Library user | 0 | 0 | 0 | 0 | Zero-value behavior, statuses, failure policies, and examples are required by the spec. |
 
-## Local 7-Tier Review
+## 로컬 7-Tier 검토
 
 | Tier | P0 | P1 | P2 | P3 | Evidence |
 |---|---:|---:|---:|---:|---|
@@ -37,6 +39,6 @@ Reviewed the #28 issue-local spec against the 0.4.0 parent spec, issue body,
 | 6 Performance/stability | 0 | 0 | 0 | 0 | Value copies and deterministic aggregation are sufficient for this small report model. |
 | 7 Docs/release/evidence | 0 | 0 | 0 | 0 | `doc.go`, README pair, examples, and Step 6-R gate are required. |
 
-## Gate Verdict
+## 게이트 판정
 
 P0=0 P1=0. Step 2-R is closed.

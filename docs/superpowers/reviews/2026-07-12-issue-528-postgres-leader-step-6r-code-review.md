@@ -1,6 +1,8 @@
 # Issue #528 PostgreSQL Leader Step 6-R Review
 
-## Scope and verdict
+> 한국어 리뷰 경계: 이 문서는 리뷰 판정과 근거를 한국어 독자가 추적할 수 있도록 정리한다. 심각도 토큰, 판정 토큰, 파일 경로, 라인 번호, 이슈/PR 번호, 명령, 코드 식별자는 원문의 증거 앵커로 보존한다.
+
+## 범위와 판정
 
 - Base: `6688164` (`origin/develop`)
 - Branch: `feat/issue-528-postgres-leader`
@@ -72,7 +74,7 @@
 | DIA-COM | COM-01..09 satisfied; infrastructure icon rule is text-only N/A, review-page exposure is N/A. |
 | DIA-SEQ | SEQ-01..06 satisfied using the wiki best-practice sequence and repo-local Mongo leader sequence as references; numbered messages, palette/markers, lifelines, activations, and branch frames verified. |
 
-## Residual deployment-owned risks
+## 배포 소유 잔여 위험
 
 - The API intentionally provides no fencing token; callers must stop protected
   work immediately on local loss.

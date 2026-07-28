@@ -1,19 +1,21 @@
 # Issue #200 Retrospective Audit Step 2-R Spec Review
 
-Issue: #200
+> 한국어 리뷰 경계: 이 문서는 리뷰 판정과 근거를 한국어 독자가 추적할 수 있도록 정리한다. 심각도 토큰, 판정 토큰, 파일 경로, 라인 번호, 이슈/PR 번호, 명령, 코드 식별자는 원문의 증거 앵커로 보존한다.
+
+이슈: #200
 Spec: `docs/superpowers/specs/2026-06-14-issue-200-retrospective-audit-design.md`
-Gate: Step 2-R, 7-Tier spec/design review
+게이트: Step 2-R, 7-Tier spec/design review
 Method: main-session role switching. Native subagents were not used for this
 gate because this session has had repeated long blocking waits; the required
 six independent review lanes plus main integration fallback were performed and
 recorded here.
 
-## Reviewed Scope
+## 검토 범위
 
 - `docs/superpowers/specs/2026-06-14-issue-200-retrospective-audit-design.md`
 - `docs/images/readme-diagrams/issue-200-retrospective-audit-flow.{svg,png}`
 
-## Evidence
+## 증거
 
 | Check | Evidence | Status |
 |---|---|---|
@@ -24,7 +26,7 @@ recorded here.
 | Diagram XML/PNG | Final SVG and PNG assets are present and rendered as the reviewed diagram. | PASS |
 | Visual inspection | Rendered PNG inspected; main flow, branch routes, six-lane support band, and footer notes have no visible overlap or text overflow. | PASS |
 
-## Six Review Lanes
+## 6개 검토 관점
 
 | Lane | P0 | P1 | P2 | P3 | Verdict | Evidence |
 |---|---:|---:|---:|---:|---|---|
@@ -35,9 +37,9 @@ recorded here.
 | Developer/API | 0 | 0 | 0 | 0 | PASS | Spec requires Go-native API shape, exported docs, sentinel/typed error behavior, nil and zero-value result review. |
 | User/Caller | 0 | 0 | 0 | 0 | PASS | Spec requires README examples, EN/KO parity where public behavior changes, benchmark/chart clarity, and future projects parity. |
 
-## Findings
+## 발견 사항
 
-No P0/P1 findings.
+P0/P1 발견 사항 없음.
 
 | Severity | Finding | Resolution | Status |
 |---|---|---|---|
@@ -45,7 +47,7 @@ No P0/P1 findings.
 | P2 | Concurrency review could become narrative-only without stress or race evidence. | Spec includes `go test -race` plus targeted stress/race commands for lifecycle and shared-state packages. | FIXED |
 | P3 | A full repository audit can become unreadable if it lacks a visual execution model. | Added a rendered PNG diagram and recorded catalog, geometry, and visual gates. | FIXED |
 
-## Main Integration Review
+## 메인 통합 검토
 
 The spec matches #200's acceptance criteria:
 
@@ -56,7 +58,7 @@ The spec matches #200's acceptance criteria:
 - It requires deferred parity gap rationale and target milestone.
 - It keeps Step 2, Step 3, Step 6, and Step 7 review gates in the same six-lane plus main integration shape.
 
-## Verdict
+## 판정
 
 P0=0 P1=0
 

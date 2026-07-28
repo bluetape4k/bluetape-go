@@ -1,6 +1,8 @@
 # Issue #571 Redis Streams Primitive Plan Review
 
-## Scope
+> 한국어 리뷰 경계: 이 문서는 리뷰 판정과 근거를 한국어 독자가 추적할 수 있도록 정리한다. 심각도 토큰, 판정 토큰, 파일 경로, 라인 번호, 이슈/PR 번호, 명령, 코드 식별자는 원문의 증거 앵커로 보존한다.
+
+## 범위
 
 - Spec: `docs/superpowers/specs/2026-07-10-issue-571-redis-streams-spec.md`
 - Test specification: `docs/superpowers/specs/2026-07-10-issue-571-redis-streams-test-spec.md`
@@ -17,7 +19,7 @@
 | P1 | Diagnostics | A simple joined multi-stream key can make distinct ordered key sets share a redaction input. | Require a deterministic length-delimited ordered aggregation before redaction; no raw component is formatted. |
 | P1 | Validation | `XAddArgs.Values` is an interface, so a typed-nil map/slice can bypass an `== nil` check and fail after dispatch. | Require typed-nil value rejection and a unit test before command dispatch. |
 
-## Converged Perspectives
+## 수렴된 관점
 
 | Perspective | P0 | P1 | P2 | P3 | Result |
 |---|---:|---:|---:|---:|---|
@@ -28,7 +30,7 @@
 | Developer/API | 0 | 0 | 0 | 0 | Narrow interfaces follow exact go-redis argument ordering and return its native values; #533 changes only its append dispatch. |
 | User/Caller | 0 | 0 | 0 | 0 | Verbatim keys/payloads, explicit trim/delete, and at-least-once duplicate semantics remain caller-visible. |
 
-## Integration Verdict
+## 통합 판정
 
 Every spec invariant has a mapped unit/integration/provider/documentation task
 and a fresh verification command. Tasks are ordered RED -> GREEN -> Redis

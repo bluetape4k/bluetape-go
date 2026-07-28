@@ -1,9 +1,11 @@
 # Issue #26 State Plan Review
 
-Issue: #26
+> 한국어 리뷰 경계: 이 문서는 리뷰 판정과 근거를 한국어 독자가 추적할 수 있도록 정리한다. 심각도 토큰, 판정 토큰, 파일 경로, 라인 번호, 이슈/PR 번호, 명령, 코드 식별자는 원문의 증거 앵커로 보존한다.
+
+이슈: #26
 Milestone: 0.4.0
-Date: 2026-06-05
-Gate: Step 3-R
+날짜: 2026-06-05
+게이트: Step 3-R
 Reviewed plan: `docs/superpowers/plans/2026-06-05-issue-26-state-plan.md`
 Reference spec: `docs/superpowers/specs/2026-06-05-issue-26-state-spec.md`
 Spec review: `docs/superpowers/reviews/2026-06-05-issue-26-state-spec-review.md`
@@ -17,7 +19,7 @@ Native subagents were not used because the current session tool contract allows
 spawning only when the user explicitly requests sub-agent or parallel-agent
 work. The gate therefore uses local-equivalent independent lanes.
 
-## Scope
+## 범위
 
 - Plan coverage for the `state` package implementation.
 - Mapping from Step 2-R approved spec to concrete tasks and validations.
@@ -51,7 +53,7 @@ Out of scope:
 | Tier 6 Performance/stability | 0 | 1 | 0 | 0 | Step 4-P was not explicitly assigned for guard/lock/race stability review. |
 | Tier 7 Documentation/release/evidence | 0 | 0 | 0 | 0 | Docs and evidence tasks are assigned; PR body and CI verification are planned. |
 
-## Integrated Findings
+## 통합 발견 사항
 
 | ID | Severity | Finding | Required plan edit | Resolution |
 |---|---|---|---|---|
@@ -100,7 +102,7 @@ Rejected during review:
 
 Open questions for user: none.
 
-## Convergence Verdict
+## 수렴 판정
 
 P0=0 P1=0
 
@@ -111,7 +113,7 @@ commit and then Step 3-P.
 
 ### Step 3-R Checklist Completion Report
 
-| Item | Status | Notes |
+| 항목 | 상태 | Notes |
 |------|--------|-------|
 | Multi-perspective plan review complete or explicit local-equivalent review recorded | Done | Implementer, test engineer, architect, and delivery/docs perspectives recorded. |
 | Selected Step 3-R native subagent lanes complete or local-equivalent reason recorded | Done | Local-equivalent used because subagent tool requires explicit user request for sub-agent work. |

@@ -1,9 +1,11 @@
 # Issue #220 Step 6-R Closure Review
 
-Scope: docs-only closure of #220 after Floci and 0.9.0 AWS consumer work.
+> 한국어 리뷰 경계: 이 문서는 리뷰 판정과 근거를 한국어 독자가 추적할 수 있도록 정리한다. 심각도 토큰, 판정 토큰, 파일 경로, 라인 번호, 이슈/PR 번호, 명령, 코드 식별자는 원문의 증거 앵커로 보존한다.
+
+범위: docs-only closure of #220 after Floci and 0.9.0 AWS consumer work.
 Baseline: `origin/develop` at `9899219c386857d981f95323cf04807be79a4aaa`.
 
-## 7-Tier Review
+## 7-Tier 검토
 
 | Lane | P0 | P1 | Verdict | Evidence |
 |---|---:|---:|---|---|
@@ -17,7 +19,7 @@ Baseline: `origin/develop` at `9899219c386857d981f95323cf04807be79a4aaa`.
 
 P0=0 P1=0
 
-## Validation
+## 검증
 
 - PASS `git diff --check`
 - PASS `make fmt-check`
@@ -25,7 +27,7 @@ P0=0 P1=0
 - PASS `make vet`
 - PASS `golangci-lint cache clean && make lint`
 
-## Notes
+## 메모
 
 Subagent lanes were not used due current subagent runtime instability; main
 integration fallback performed with the required lane separation.

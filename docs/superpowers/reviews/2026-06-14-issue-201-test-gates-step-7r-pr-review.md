@@ -1,6 +1,8 @@
 # Issue #201 Step 7-R PR Review
 
-## Scope
+> 한국어 리뷰 경계: 이 문서는 리뷰 판정과 근거를 한국어 독자가 추적할 수 있도록 정리한다. 심각도 토큰, 판정 토큰, 파일 경로, 라인 번호, 이슈/PR 번호, 명령, 코드 식별자는 원문의 증거 앵커로 보존한다.
+
+## 범위
 
 - PR: #237 `test: stabilize cleanup and stress gates`
 - Base: `develop`
@@ -8,7 +10,7 @@
 - Review shape: 7-Tier gate = six independent review lenses plus main integration review.
 - Execution note: native subagent lanes were unstable in this session; lane work was rerun in the main session by role switching. This artifact records `lane timed out/unavailable; main integration fallback performed` for the PR gate.
 
-## PR Evidence
+## PR 증거
 
 | Check | Evidence | Result |
 |---|---|---|
@@ -31,7 +33,7 @@
 | Developer/API | PASS | Public APIs remain unchanged. New cleanup helper is under `internal/`, and wrapper `Start` signatures are unchanged. P0=0 P1=0. |
 | User/Caller | PASS | No production caller behavior changes. Public docs changed only for developer commands. P0=0 P1=0. |
 
-## Main Integration Review
+## 메인 통합 검토
 
 The PR is coherent with issue #201 and the approved plan:
 
@@ -42,6 +44,6 @@ The PR is coherent with issue #201 and the approved plan:
 
 P0=0 P1=0
 
-## Gate Verdict
+## 게이트 판정
 
 PASS pending GitHub CI completion.

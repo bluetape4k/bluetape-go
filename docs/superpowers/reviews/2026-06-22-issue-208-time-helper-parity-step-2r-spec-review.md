@@ -1,17 +1,19 @@
 # Issue #208 Step 2-R Spec Review
 
-Issue: #208
+> 한국어 리뷰 경계: 이 문서는 리뷰 판정과 근거를 한국어 독자가 추적할 수 있도록 정리한다. 심각도 토큰, 판정 토큰, 파일 경로, 라인 번호, 이슈/PR 번호, 명령, 코드 식별자는 원문의 증거 앵커로 보존한다.
+
+이슈: #208
 Milestone: 0.6.3
 Spec: `docs/superpowers/specs/2026-06-22-issue-208-time-helper-parity-design.md`
-Date: 2026-06-22
+날짜: 2026-06-22
 
-## Execution Note
+## 실행 메모
 
 Native subagent unavailable/stale cleanup hang; main-session 7-tier fallback
 performed. Six independent perspectives were reviewed locally, and this
 session owns the integration verdict.
 
-## Scope Reviewed
+## 검토 범위
 
 - Quarter and `YearQuarter` public API contract.
 - Date iteration contract using `iter.Seq[time.Time]`.
@@ -19,7 +21,7 @@ session owns the integration verdict.
 - README and validation requirements.
 - Explicit exclusions against Kotlin/JVM DSL cloning.
 
-## Evidence
+## 증거
 
 - Baseline branch: `origin/develop` at `2c6de4a`.
 - Baseline validation: `go test ./...` passed before spec authoring.
@@ -30,7 +32,7 @@ session owns the integration verdict.
   `DateIterator.kt`, `TemporalIterator.kt`, `DurationSupport.kt`, and the
   broader `utils/javatimes` area.
 
-## 7-Tier Findings
+## 7-Tier 발견 사항
 
 | Tier | Perspective | P0 | P1 | P2/P3 Notes |
 |---|---:|---:|---:|---|
@@ -49,7 +51,7 @@ session owns the integration verdict.
 | P1 | Developer/API | `YearQuarter.Contains` cannot return an error, so invalid receiver behavior was ambiguous. | Specify that invalid `YearQuarter` values return `false`, and require a test. |
 | P1 | Stability | `ErrInvalidTime` was optional even though parse/year/location errors need a stable sentinel. | Make `ErrInvalidTime` mandatory and clarify quarter vs time validation errors. |
 
-## Rejected Items
+## 거절한 항목
 
 - Add a broad duration parser/formatter wrapper: rejected because the Go
   standard library already covers practical duration parsing and formatting.
@@ -58,6 +60,6 @@ session owns the integration verdict.
 - Mirror JVM temporal types or Kotlin numeric DSLs: rejected by issue scope and
   source parity guidance.
 
-## Verdict
+## 판정
 
 P0 = 0, P1 = 0. Step 2-R is closed for implementation planning.
