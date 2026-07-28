@@ -2,7 +2,8 @@ package rules
 
 import "context"
 
-// InferenceConfig configures bounded sequential inference.
+// InferenceConfig는 struct 공개 타입이다.
+// 값의 zero value, nil 허용 여부, 동시성 소유권은 생성자와 메서드의 한국어 주석 및 테스트 계약을 따른다.
 type InferenceConfig struct {
 	// MaxCycles bounds inference and must be positive.
 	MaxCycles int
@@ -10,13 +11,20 @@ type InferenceConfig struct {
 	EngineConfig EngineConfig
 }
 
-// InferenceEngine runs rules repeatedly until convergence or a cycle limit.
+// InferenceEngine는 struct 공개 타입이다.
+// 값의 zero value, nil 허용 여부, 동시성 소유권은 생성자와 메서드의 한국어 주석 및 테스트 계약을 따른다.
 type InferenceEngine struct {
 	rules  *RuleSet
 	config InferenceConfig
 }
 
-// NewInferenceEngine creates a bounded inference engine.
+// NewInferenceEngine는 NewInferenceEngine 공개 API의 동작을 수행한다.
+//
+// 매개변수:
+//   - rules: NewInferenceEngine 동작에 필요한 rules 값이다. zero value, 범위, nil 허용 여부는 함수 계약을 따른다.
+//   - config: NewInferenceEngine 동작에 필요한 config 값이다. zero value, 범위, nil 허용 여부는 함수 계약을 따른다.
+//
+// 반환 오류는 입력 검증 실패, 취소, 외부 원인, 또는 패키지 sentinel/typed error 계약을 보존한다.
 func NewInferenceEngine(rules *RuleSet, config InferenceConfig) (*InferenceEngine, error) {
 	if config.MaxCycles <= 0 {
 		return nil, ErrInvalidMaxCycles
@@ -30,7 +38,8 @@ func NewInferenceEngine(rules *RuleSet, config InferenceConfig) (*InferenceEngin
 	return &InferenceEngine{rules: rules, config: config}, nil
 }
 
-// InferenceResult reports a bounded inference run.
+// InferenceResult는 struct 공개 타입이다.
+// 값의 zero value, nil 허용 여부, 동시성 소유권은 생성자와 메서드의 한국어 주석 및 테스트 계약을 따른다.
 type InferenceResult struct {
 	Cycles       int
 	CycleResults []Result
@@ -41,8 +50,13 @@ type InferenceResult struct {
 	StopReason   DetailStatus
 }
 
-// Run executes inference until no rules apply, context cancellation occurs, a
-// rule fails, or MaxCycles is exceeded.
+// Run는 Run 공개 API의 동작을 수행한다.
+//
+// 매개변수:
+//   - ctx: 호출자가 소유한 취소, deadline, 요청 범위를 전달한다.
+//   - facts: Run 동작에 필요한 facts 값이다. zero value, 범위, nil 허용 여부는 함수 계약을 따른다.
+//
+// 반환 오류는 입력 검증 실패, 취소, 외부 원인, 또는 패키지 sentinel/typed error 계약을 보존한다.
 func (e *InferenceEngine) Run(ctx context.Context, facts *Facts) (InferenceResult, error) {
 	if ctx == nil {
 		ctx = context.Background()

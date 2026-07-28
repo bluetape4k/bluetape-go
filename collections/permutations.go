@@ -2,11 +2,10 @@ package collections
 
 import "iter"
 
-// Permutations returns a lazy sequence of positional permutations.
+// Permutations는 Permutations 공개 API의 동작을 수행한다.
 //
-// The input is copied when Permutations is called, and each yielded permutation
-// is a fresh shallow snapshot. The number of possible results grows
-// factorially; callers should stop iteration early for large inputs.
+// 매개변수:
+//   - values: Permutations가 읽거나 복사하는 values 목록이다. nil과 빈 슬라이스 의미는 함수 계약을 따른다.
 func Permutations[T any](values []T) iter.Seq[[]T] {
 	source := copySlice(values)
 	return func(yield func([]T) bool) {

@@ -6,27 +6,43 @@ import (
 	"unicode/utf8"
 )
 
-// HasLength reports whether value is not empty.
+// HasLength는 HasLength 공개 API의 동작을 수행한다.
+//
+// 매개변수:
+//   - value: HasLength가 해석하거나 검증하는 문자열 값이다. 빈 문자열과 공백 처리 의미는 함수 계약을 따른다.
 func HasLength(value string) bool {
 	return value != ""
 }
 
-// NoLength reports whether value is empty.
+// NoLength는 NoLength 공개 API의 동작을 수행한다.
+//
+// 매개변수:
+//   - value: NoLength가 해석하거나 검증하는 문자열 값이다. 빈 문자열과 공백 처리 의미는 함수 계약을 따른다.
 func NoLength(value string) bool {
 	return value == ""
 }
 
-// HasText reports whether value contains at least one non-whitespace rune.
+// HasText는 HasText 공개 API의 동작을 수행한다.
+//
+// 매개변수:
+//   - value: HasText가 해석하거나 검증하는 문자열 값이다. 빈 문자열과 공백 처리 의미는 함수 계약을 따른다.
 func HasText(value string) bool {
 	return strings.TrimSpace(value) != ""
 }
 
-// NoText reports whether value is empty or only whitespace.
+// NoText는 NoText 공개 API의 동작을 수행한다.
+//
+// 매개변수:
+//   - value: NoText가 해석하거나 검증하는 문자열 값이다. 빈 문자열과 공백 처리 의미는 함수 계약을 따른다.
 func NoText(value string) bool {
 	return !HasText(value)
 }
 
-// EmptyToDefault returns fallback when value is empty.
+// EmptyToDefault는 EmptyToDefault 공개 API의 동작을 수행한다.
+//
+// 매개변수:
+//   - value: EmptyToDefault가 해석하거나 검증하는 문자열 값이다. 빈 문자열과 공백 처리 의미는 함수 계약을 따른다.
+//   - fallback: EmptyToDefault가 해석하거나 검증하는 문자열 값이다. 빈 문자열과 공백 처리 의미는 함수 계약을 따른다.
 func EmptyToDefault(value, fallback string) string {
 	if value == "" {
 		return fallback
@@ -34,7 +50,11 @@ func EmptyToDefault(value, fallback string) string {
 	return value
 }
 
-// BlankToDefault returns fallback when value is empty or only whitespace.
+// BlankToDefault는 BlankToDefault 공개 API의 동작을 수행한다.
+//
+// 매개변수:
+//   - value: BlankToDefault가 해석하거나 검증하는 문자열 값이다. 빈 문자열과 공백 처리 의미는 함수 계약을 따른다.
+//   - fallback: BlankToDefault가 해석하거나 검증하는 문자열 값이다. 빈 문자열과 공백 처리 의미는 함수 계약을 따른다.
 func BlankToDefault(value, fallback string) string {
 	if !HasText(value) {
 		return fallback
@@ -42,7 +62,10 @@ func BlankToDefault(value, fallback string) string {
 	return value
 }
 
-// EmptyToNil returns nil when value is empty; otherwise it returns a pointer to value.
+// EmptyToNil는 EmptyToNil 공개 API의 동작을 수행한다.
+//
+// 매개변수:
+//   - value: EmptyToNil가 해석하거나 검증하는 문자열 값이다. 빈 문자열과 공백 처리 의미는 함수 계약을 따른다.
 func EmptyToNil(value string) *string {
 	if NoLength(value) {
 		return nil
@@ -50,7 +73,10 @@ func EmptyToNil(value string) *string {
 	return &value
 }
 
-// BlankToNil returns nil when value is empty or only whitespace; otherwise it returns a pointer to value.
+// BlankToNil는 BlankToNil 공개 API의 동작을 수행한다.
+//
+// 매개변수:
+//   - value: BlankToNil가 해석하거나 검증하는 문자열 값이다. 빈 문자열과 공백 처리 의미는 함수 계약을 따른다.
 func BlankToNil(value string) *string {
 	if NoText(value) {
 		return nil
@@ -58,7 +84,11 @@ func BlankToNil(value string) *string {
 	return &value
 }
 
-// Mask returns value with every rune replaced by mask.
+// Mask는 Mask 공개 API의 동작을 수행한다.
+//
+// 매개변수:
+//   - value: Mask가 해석하거나 검증하는 문자열 값이다. 빈 문자열과 공백 처리 의미는 함수 계약을 따른다.
+//   - mask: Mask 동작에 필요한 mask 값이다. zero value, 범위, nil 허용 여부는 함수 계약을 따른다.
 func Mask(value string, mask rune) string {
 	if value == "" {
 		return ""
@@ -70,7 +100,11 @@ func Mask(value string, mask rune) string {
 	return builder.String()
 }
 
-// CommonPrefix returns the shared rune prefix of a and b.
+// CommonPrefix는 CommonPrefix 공개 API의 동작을 수행한다.
+//
+// 매개변수:
+//   - a: CommonPrefix가 해석하거나 검증하는 문자열 값이다. 빈 문자열과 공백 처리 의미는 함수 계약을 따른다.
+//   - b: CommonPrefix가 해석하거나 검증하는 문자열 값이다. 빈 문자열과 공백 처리 의미는 함수 계약을 따른다.
 func CommonPrefix(a, b string) string {
 	if a == "" || b == "" {
 		return ""
@@ -89,7 +123,11 @@ func CommonPrefix(a, b string) string {
 	return string(ar[:limit])
 }
 
-// CommonSuffix returns the shared rune suffix of a and b.
+// CommonSuffix는 CommonSuffix 공개 API의 동작을 수행한다.
+//
+// 매개변수:
+//   - a: CommonSuffix가 해석하거나 검증하는 문자열 값이다. 빈 문자열과 공백 처리 의미는 함수 계약을 따른다.
+//   - b: CommonSuffix가 해석하거나 검증하는 문자열 값이다. 빈 문자열과 공백 처리 의미는 함수 계약을 따른다.
 func CommonSuffix(a, b string) string {
 	if a == "" || b == "" {
 		return ""
@@ -108,9 +146,13 @@ func CommonSuffix(a, b string) string {
 	return string(ar[len(ar)-limit:])
 }
 
-// TruncateUTF8Bytes truncates value to at most maxBytes without splitting a UTF-8 rune.
+// TruncateUTF8Bytes는 TruncateUTF8Bytes 공개 API의 동작을 수행한다.
 //
-// It returns an error wrapping ErrInvalidUTF8 when value is not valid UTF-8.
+// 매개변수:
+//   - value: TruncateUTF8Bytes가 해석하거나 검증하는 문자열 값이다. 빈 문자열과 공백 처리 의미는 함수 계약을 따른다.
+//   - maxBytes: TruncateUTF8Bytes 동작에 필요한 maxBytes 값이다. zero value, 범위, nil 허용 여부는 함수 계약을 따른다.
+//
+// 반환 오류는 입력 검증 실패, 취소, 외부 원인, 또는 패키지 sentinel/typed error 계약을 보존한다.
 func TruncateUTF8Bytes(value string, maxBytes int) (string, error) {
 	if maxBytes < 0 {
 		return "", fmt.Errorf("%w: maxBytes[%d] must be non-negative", ErrInvalidArgument, maxBytes)

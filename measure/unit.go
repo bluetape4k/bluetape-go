@@ -6,7 +6,8 @@ import (
 	"strings"
 )
 
-// Unit  기준 단위 대비 ratio를 가진 불변 단위 값입니다.
+// Unit는 struct 공개 타입이다.
+// 값의 zero value, nil 허용 여부, 동시성 소유권은 생성자와 메서드의 한국어 주석 및 테스트 계약을 따른다.
 type Unit[D any] struct {
 	name   string
 	suffix string
@@ -18,17 +19,29 @@ type unitConfig struct {
 	space bool
 }
 
-// UnitOption  단위 생성 옵션입니다.
+// UnitOption는 func 공개 타입이다.
+// 값의 zero value, nil 허용 여부, 동시성 소유권은 생성자와 메서드의 한국어 주석 및 테스트 계약을 따른다.
 type UnitOption[D any] func(*unitConfig)
 
-// WithSpaceBeforeSuffix  수치와 suffix 사이 공백 출력 여부를 지정합니다.
+// WithSpaceBeforeSuffix는 WithSpaceBeforeSuffix 공개 API의 동작을 수행한다.
+//
+// 매개변수:
+//   - space: WithSpaceBeforeSuffix 동작에 필요한 space 값이다. zero value, 범위, nil 허용 여부는 함수 계약을 따른다.
 func WithSpaceBeforeSuffix[D any](space bool) UnitOption[D] {
 	return func(config *unitConfig) {
 		config.space = space
 	}
 }
 
-// NewUnit  유효성 검사를 거쳐 새 Unit을 생성합니다.
+// NewUnit는 NewUnit 공개 API의 동작을 수행한다.
+//
+// 매개변수:
+//   - name: NewUnit가 해석하거나 검증하는 문자열 값이다. 빈 문자열과 공백 처리 의미는 함수 계약을 따른다.
+//   - suffix: NewUnit가 해석하거나 검증하는 문자열 값이다. 빈 문자열과 공백 처리 의미는 함수 계약을 따른다.
+//   - ratio: NewUnit 동작에 필요한 ratio 값이다. zero value, 범위, nil 허용 여부는 함수 계약을 따른다.
+//   - options: NewUnit 동작에 필요한 options 값이다. zero value, 범위, nil 허용 여부는 함수 계약을 따른다.
+//
+// 반환 오류는 입력 검증 실패, 취소, 외부 원인, 또는 패키지 sentinel/typed error 계약을 보존한다.
 func NewUnit[D any](name, suffix string, ratio float64, options ...UnitOption[D]) (Unit[D], error) {
 	config := unitConfig{space: true}
 	for _, option := range options {
@@ -49,7 +62,13 @@ func NewUnit[D any](name, suffix string, ratio float64, options ...UnitOption[D]
 	return unit, nil
 }
 
-// MustUnit  유효하지 않은 단위면 panic을 발생시킵니다.
+// MustUnit는 MustUnit 공개 API의 동작을 수행한다.
+//
+// 매개변수:
+//   - name: MustUnit가 해석하거나 검증하는 문자열 값이다. 빈 문자열과 공백 처리 의미는 함수 계약을 따른다.
+//   - suffix: MustUnit가 해석하거나 검증하는 문자열 값이다. 빈 문자열과 공백 처리 의미는 함수 계약을 따른다.
+//   - ratio: MustUnit 동작에 필요한 ratio 값이다. zero value, 범위, nil 허용 여부는 함수 계약을 따른다.
+//   - options: MustUnit 동작에 필요한 options 값이다. zero value, 범위, nil 허용 여부는 함수 계약을 따른다.
 func MustUnit[D any](name, suffix string, ratio float64, options ...UnitOption[D]) Unit[D] {
 	unit, err := NewUnit[D](name, suffix, ratio, options...)
 	if err != nil {
@@ -77,32 +96,32 @@ func (u Unit[D]) valid() bool {
 	return u.validate() == nil
 }
 
-// Name  단위 이름을 반환합니다.
+// Name는 Name 공개 API의 동작을 수행한다.
 func (u Unit[D]) Name() string {
 	return u.name
 }
 
-// Suffix  단위 suffix를 반환합니다.
+// Suffix는 Suffix 공개 API의 동작을 수행한다.
 func (u Unit[D]) Suffix() string {
 	return u.suffix
 }
 
-// Ratio  기준 단위 대비 배율을 반환합니다.
+// Ratio는 Ratio 공개 API의 동작을 수행한다.
 func (u Unit[D]) Ratio() float64 {
 	return u.ratio
 }
 
-// SpaceBeforeSuffix  포맷 시 수치와 suffix 사이 공백 여부를 반환합니다.
+// SpaceBeforeSuffix는 SpaceBeforeSuffix 공개 API의 동작을 수행한다.
 func (u Unit[D]) SpaceBeforeSuffix() bool {
 	return u.space
 }
 
-// IsValid  단위가 생성자 계약을 만족하는지 반환합니다.
+// IsValid는 IsValid 공개 API의 동작을 수행한다.
 func (u Unit[D]) IsValid() bool {
 	return u.valid()
 }
 
-// String  단위 suffix를 반환합니다.
+// String는 String 공개 API의 동작을 수행한다.
 func (u Unit[D]) String() string {
 	if !u.valid() {
 		return "<invalid unit>"

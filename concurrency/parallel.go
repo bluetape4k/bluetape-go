@@ -5,7 +5,13 @@ import (
 	"fmt"
 )
 
-// Go starts task in a goroutine and returns a single-result error channel.
+// Go는 Go 공개 API의 동작을 수행한다.
+//
+// 매개변수:
+//   - ctx: 호출자가 소유한 취소, deadline, 요청 범위를 전달한다.
+//   - task: Go 동작에 필요한 task 값이다. zero value, 범위, nil 허용 여부는 함수 계약을 따른다.
+//
+// 반환 오류는 입력 검증 실패, 취소, 외부 원인, 또는 패키지 sentinel/typed error 계약을 보존한다.
 func Go(ctx context.Context, task Task) <-chan error {
 	result := make(chan error, 1)
 	go func() {
@@ -15,7 +21,15 @@ func Go(ctx context.Context, task Task) <-chan error {
 	return result
 }
 
-// ForEach applies worker to every value with a bounded concurrency limit.
+// ForEach는 ForEach 공개 API의 동작을 수행한다.
+//
+// 매개변수:
+//   - ctx: 호출자가 소유한 취소, deadline, 요청 범위를 전달한다.
+//   - values: ForEach가 읽거나 복사하는 values 목록이다. nil과 빈 슬라이스 의미는 함수 계약을 따른다.
+//   - limit: ForEach 동작에 필요한 limit 값이다. zero value, 범위, nil 허용 여부는 함수 계약을 따른다.
+//   - worker: 호출자가 소유한 취소, deadline, 요청 범위를 전달한다.
+//
+// 반환 오류는 입력 검증 실패, 취소, 외부 원인, 또는 패키지 sentinel/typed error 계약을 보존한다.
 func ForEach[T any](ctx context.Context, values []T, limit int, worker func(context.Context, T) error) error {
 	if limit <= 0 {
 		return fmt.Errorf("limit must be positive")
@@ -37,8 +51,15 @@ func ForEach[T any](ctx context.Context, values []T, limit int, worker func(cont
 	return group.Wait()
 }
 
-// Map applies mapper to every value with a bounded concurrency limit and
-// returns results in input order.
+// Map는 Map 공개 API의 동작을 수행한다.
+//
+// 매개변수:
+//   - ctx: 호출자가 소유한 취소, deadline, 요청 범위를 전달한다.
+//   - values: Map가 읽거나 복사하는 values 목록이다. nil과 빈 슬라이스 의미는 함수 계약을 따른다.
+//   - limit: Map 동작에 필요한 limit 값이다. zero value, 범위, nil 허용 여부는 함수 계약을 따른다.
+//   - mapper: 호출자가 소유한 취소, deadline, 요청 범위를 전달한다.
+//
+// 반환 오류는 입력 검증 실패, 취소, 외부 원인, 또는 패키지 sentinel/typed error 계약을 보존한다.
 func Map[T any, R any](ctx context.Context, values []T, limit int, mapper func(context.Context, T) (R, error)) ([]R, error) {
 	if limit <= 0 {
 		return nil, fmt.Errorf("limit must be positive")

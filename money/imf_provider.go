@@ -29,7 +29,8 @@ const (
 	defaultIMFMaxBodyBytes = 4 << 20
 )
 
-// IMFFrequency selects the IMF ER observation frequency.
+// IMFFrequency는 string 공개 타입이다.
+// 값의 zero value, nil 허용 여부, 동시성 소유권은 생성자와 메서드의 한국어 주석 및 테스트 계약을 따른다.
 type IMFFrequency string
 
 const (
@@ -43,7 +44,8 @@ const (
 	IMFFrequencyAnnual IMFFrequency = "A"
 )
 
-// IMFRateFamily selects the IMF ER rate family.
+// IMFRateFamily는 string 공개 타입이다.
+// 값의 zero value, nil 허용 여부, 동시성 소유권은 생성자와 메서드의 한국어 주석 및 테스트 계약을 따른다.
 type IMFRateFamily string
 
 const (
@@ -53,7 +55,8 @@ const (
 	IMFRatePeriodAverage IMFRateFamily = "PA_RT"
 )
 
-// IMFProviderOptions configures IMFProvider.
+// IMFProviderOptions는 struct 공개 타입이다.
+// 값의 zero value, nil 허용 여부, 동시성 소유권은 생성자와 메서드의 한국어 주석 및 테스트 계약을 따른다.
 type IMFProviderOptions struct {
 	// Client is the HTTP client used for requests. nil uses http.DefaultClient.
 	Client *http.Client
@@ -85,7 +88,8 @@ type IMFProviderOptions struct {
 	CountryCodes map[string]string
 }
 
-// IMFProvider uses IMF Exchange Rates SDMX data for provider-backed conversion.
+// IMFProvider는 struct 공개 타입이다.
+// 값의 zero value, nil 허용 여부, 동시성 소유권은 생성자와 메서드의 한국어 주석 및 테스트 계약을 따른다.
 type IMFProvider struct {
 	client   *http.Client
 	endpoint string
@@ -162,7 +166,12 @@ func (e imfHTTPStatusError) Unwrap() error {
 	return ErrExchangeRateProvider
 }
 
-// NewIMFProvider creates an IMF Exchange Rates SDMX-backed provider.
+// NewIMFProvider는 NewIMFProvider 공개 API의 동작을 수행한다.
+//
+// 매개변수:
+//   - options: NewIMFProvider 동작에 필요한 options 값이다. zero value, 범위, nil 허용 여부는 함수 계약을 따른다.
+//
+// 반환 오류는 입력 검증 실패, 취소, 외부 원인, 또는 패키지 sentinel/typed error 계약을 보존한다.
 func NewIMFProvider(options IMFProviderOptions) (*IMFProvider, error) {
 	options = normalizeIMFOptions(options)
 	if err := validateIMFOptions(options); err != nil {
@@ -191,7 +200,14 @@ func NewIMFProvider(options IMFProviderOptions) (*IMFProvider, error) {
 	}, nil
 }
 
-// Rate returns an IMF-backed quote for supported domestic/USD-or-EUR pivot currency pairs.
+// Rate는 Rate 공개 API의 동작을 수행한다.
+//
+// 매개변수:
+//   - ctx: 호출자가 소유한 취소, deadline, 요청 범위를 전달한다.
+//   - base: Rate 동작에 필요한 base 값이다. zero value, 범위, nil 허용 여부는 함수 계약을 따른다.
+//   - target: Rate 동작에 필요한 target 값이다. zero value, 범위, nil 허용 여부는 함수 계약을 따른다.
+//
+// 반환 오류는 입력 검증 실패, 취소, 외부 원인, 또는 패키지 sentinel/typed error 계약을 보존한다.
 func (p *IMFProvider) Rate(ctx context.Context, base Currency, target Currency) (ExchangeRateQuote, error) {
 	if p == nil {
 		return ExchangeRateQuote{}, ErrExchangeRateProvider

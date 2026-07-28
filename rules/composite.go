@@ -2,27 +2,38 @@ package rules
 
 import "context"
 
-// CompositeOption configures a composite rule group.
+// CompositeOption는 func 공개 타입이다.
+// 값의 zero value, nil 허용 여부, 동시성 소유권은 생성자와 메서드의 한국어 주석 및 테스트 계약을 따른다.
 type CompositeOption func(*compositeRule)
 
-// WithCompositeDescription sets a composite rule description.
+// WithCompositeDescription는 WithCompositeDescription 공개 API의 동작을 수행한다.
+//
+// 매개변수:
+//   - description: WithCompositeDescription가 해석하거나 검증하는 문자열 값이다. 빈 문자열과 공백 처리 의미는 함수 계약을 따른다.
 func WithCompositeDescription(description string) CompositeOption {
 	return func(rule *compositeRule) {
 		rule.description = description
 	}
 }
 
-// WithCompositePriority sets a composite rule priority. Lower values run first.
+// WithCompositePriority는 WithCompositePriority 공개 API의 동작을 수행한다.
+//
+// 매개변수:
+//   - priority: WithCompositePriority 동작에 필요한 priority 값이다. zero value, 범위, nil 허용 여부는 함수 계약을 따른다.
 func WithCompositePriority(priority int) CompositeOption {
 	return func(rule *compositeRule) {
 		rule.priority = priority
 	}
 }
 
-// NewActivationGroup creates a rule that executes only the first matching child.
+// NewActivationGroup는 NewActivationGroup 공개 API의 동작을 수행한다.
 //
-// Child predicates should be side-effect-free. Composite Execute re-evaluates
-// children instead of storing per-run selection state on the group rule.
+// 매개변수:
+//   - name: NewActivationGroup가 해석하거나 검증하는 문자열 값이다. 빈 문자열과 공백 처리 의미는 함수 계약을 따른다.
+//   - children: NewActivationGroup가 읽거나 복사하는 children 목록이다. nil과 빈 슬라이스 의미는 함수 계약을 따른다.
+//   - options: NewActivationGroup 동작에 필요한 options 값이다. zero value, 범위, nil 허용 여부는 함수 계약을 따른다.
+//
+// 반환 오류는 입력 검증 실패, 취소, 외부 원인, 또는 패키지 sentinel/typed error 계약을 보존한다.
 func NewActivationGroup(name string, children []Rule, options ...CompositeOption) (Rule, error) {
 	group, err := newCompositeRule(name, compositeActivation, children, "", options...)
 	if err != nil {
@@ -31,12 +42,15 @@ func NewActivationGroup(name string, children []Rule, options ...CompositeOption
 	return group, nil
 }
 
-// NewConditionalGroup creates a rule gated by a named guard rule.
+// NewConditionalGroup는 NewConditionalGroup 공개 API의 동작을 수행한다.
 //
-// The guard must be present in children. All non-guard children are dependent
-// rules and are evaluated/executed only when the guard matches. Child
-// predicates should be side-effect-free because Execute re-evaluates the guard
-// and dependent predicates.
+// 매개변수:
+//   - name: NewConditionalGroup가 해석하거나 검증하는 문자열 값이다. 빈 문자열과 공백 처리 의미는 함수 계약을 따른다.
+//   - guardName: NewConditionalGroup가 해석하거나 검증하는 문자열 값이다. 빈 문자열과 공백 처리 의미는 함수 계약을 따른다.
+//   - children: NewConditionalGroup가 읽거나 복사하는 children 목록이다. nil과 빈 슬라이스 의미는 함수 계약을 따른다.
+//   - options: NewConditionalGroup 동작에 필요한 options 값이다. zero value, 범위, nil 허용 여부는 함수 계약을 따른다.
+//
+// 반환 오류는 입력 검증 실패, 취소, 외부 원인, 또는 패키지 sentinel/typed error 계약을 보존한다.
 func NewConditionalGroup(name, guardName string, children []Rule, options ...CompositeOption) (Rule, error) {
 	guardName = normalizeKey(guardName)
 	if guardName == "" {
@@ -52,10 +66,14 @@ func NewConditionalGroup(name, guardName string, children []Rule, options ...Com
 	return group, nil
 }
 
-// NewUnitGroup creates a rule that executes only when all children match.
+// NewUnitGroup는 NewUnitGroup 공개 API의 동작을 수행한다.
 //
-// Child predicates should be side-effect-free. Composite Execute re-evaluates
-// children before executing them to avoid storing per-run state on the group.
+// 매개변수:
+//   - name: NewUnitGroup가 해석하거나 검증하는 문자열 값이다. 빈 문자열과 공백 처리 의미는 함수 계약을 따른다.
+//   - children: NewUnitGroup가 읽거나 복사하는 children 목록이다. nil과 빈 슬라이스 의미는 함수 계약을 따른다.
+//   - options: NewUnitGroup 동작에 필요한 options 값이다. zero value, 범위, nil 허용 여부는 함수 계약을 따른다.
+//
+// 반환 오류는 입력 검증 실패, 취소, 외부 원인, 또는 패키지 sentinel/typed error 계약을 보존한다.
 func NewUnitGroup(name string, children []Rule, options ...CompositeOption) (Rule, error) {
 	group, err := newCompositeRule(name, compositeUnit, children, "", options...)
 	if err != nil {

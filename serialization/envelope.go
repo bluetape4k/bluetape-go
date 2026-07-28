@@ -10,13 +10,20 @@ const (
 	envelopeV1    = 1
 )
 
-// VersionedSerializer wraps a named serializer with a small versioned envelope.
+// VersionedSerializer는 struct 공개 타입이다.
+// 값의 zero value, nil 허용 여부, 동시성 소유권은 생성자와 메서드의 한국어 주석 및 테스트 계약을 따른다.
 type VersionedSerializer[T any] struct {
 	serializer NamedSerializer[T]
 	version    uint16
 }
 
-// NewVersionedSerializer creates a versioned serializer.
+// NewVersionedSerializer는 NewVersionedSerializer 공개 API의 동작을 수행한다.
+//
+// 매개변수:
+//   - serializer: NewVersionedSerializer 동작에 필요한 serializer 값이다. zero value, 범위, nil 허용 여부는 함수 계약을 따른다.
+//   - version: NewVersionedSerializer 동작에 필요한 version 값이다. zero value, 범위, nil 허용 여부는 함수 계약을 따른다.
+//
+// 반환 오류는 입력 검증 실패, 취소, 외부 원인, 또는 패키지 sentinel/typed error 계약을 보존한다.
 func NewVersionedSerializer[T any](serializer NamedSerializer[T], version uint16) (VersionedSerializer[T], error) {
 	if serializer == nil {
 		return VersionedSerializer[T]{}, fmt.Errorf("serializer must not be nil")
@@ -37,17 +44,22 @@ func NewVersionedSerializer[T any](serializer NamedSerializer[T], version uint16
 	}, nil
 }
 
-// Format returns the wrapped serializer format.
+// Format는 Format 공개 API의 동작을 수행한다.
 func (s VersionedSerializer[T]) Format() string {
 	return s.serializer.Format()
 }
 
-// Version returns the payload version written by Marshal.
+// Version는 Version 공개 API의 동작을 수행한다.
 func (s VersionedSerializer[T]) Version() uint16 {
 	return s.version
 }
 
-// Marshal serializes value and prefixes a versioned envelope.
+// Marshal는 Marshal 공개 API의 동작을 수행한다.
+//
+// 매개변수:
+//   - value: Marshal 동작에 필요한 value 값이다. zero value, 범위, nil 허용 여부는 함수 계약을 따른다.
+//
+// 반환 오류는 입력 검증 실패, 취소, 외부 원인, 또는 패키지 sentinel/typed error 계약을 보존한다.
 func (s VersionedSerializer[T]) Marshal(value T) ([]byte, error) {
 	payload, err := s.serializer.Marshal(value)
 	if err != nil {
@@ -65,7 +77,12 @@ func (s VersionedSerializer[T]) Marshal(value T) ([]byte, error) {
 	return result, nil
 }
 
-// Unmarshal validates the envelope and deserializes its payload.
+// Unmarshal는 Unmarshal 공개 API의 동작을 수행한다.
+//
+// 매개변수:
+//   - data: Unmarshal가 읽거나 복사하는 data 목록이다. nil과 빈 슬라이스 의미는 함수 계약을 따른다.
+//
+// 반환 오류는 입력 검증 실패, 취소, 외부 원인, 또는 패키지 sentinel/typed error 계약을 보존한다.
 func (s VersionedSerializer[T]) Unmarshal(data []byte) (T, error) {
 	var zero T
 	payload, err := s.payload(data)

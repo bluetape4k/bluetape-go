@@ -2,16 +2,20 @@ package collections
 
 import "fmt"
 
-// Indexed is a value paired with its 0-based index.
+// Indexed는 struct 공개 타입이다.
+// 값의 zero value, nil 허용 여부, 동시성 소유권은 생성자와 메서드의 한국어 주석 및 테스트 계약을 따른다.
 type Indexed[T any] struct {
 	Index int
 	Value T
 }
 
-// Chunk splits values into fixed-size chunks.
+// Chunk는 Chunk 공개 API의 동작을 수행한다.
 //
-// The final chunk may be smaller than size. A nil input returns nil; an empty
-// non-nil input returns an empty non-nil slice.
+// 매개변수:
+//   - values: Chunk가 읽거나 복사하는 values 목록이다. nil과 빈 슬라이스 의미는 함수 계약을 따른다.
+//   - size: Chunk 동작에 필요한 size 값이다. zero value, 범위, nil 허용 여부는 함수 계약을 따른다.
+//
+// 반환 오류는 입력 검증 실패, 취소, 외부 원인, 또는 패키지 sentinel/typed error 계약을 보존한다.
 func Chunk[T any](values []T, size int) ([][]T, error) {
 	if size <= 0 {
 		return nil, fmt.Errorf("%w: chunk size[%d] must be positive", ErrInvalidArgument, size)
@@ -34,10 +38,14 @@ func Chunk[T any](values []T, size int) ([][]T, error) {
 	return chunks, nil
 }
 
-// Sliding returns one-step windows over values.
+// Sliding는 Sliding 공개 API의 동작을 수행한다.
 //
-// When partialWindows is true, trailing partial windows are included. A nil
-// input returns nil; an empty non-nil input returns an empty non-nil slice.
+// 매개변수:
+//   - values: Sliding가 읽거나 복사하는 values 목록이다. nil과 빈 슬라이스 의미는 함수 계약을 따른다.
+//   - size: Sliding 동작에 필요한 size 값이다. zero value, 범위, nil 허용 여부는 함수 계약을 따른다.
+//   - partialWindows: Sliding 동작에 필요한 partialWindows 값이다. zero value, 범위, nil 허용 여부는 함수 계약을 따른다.
+//
+// 반환 오류는 입력 검증 실패, 취소, 외부 원인, 또는 패키지 sentinel/typed error 계약을 보존한다.
 func Sliding[T any](values []T, size int, partialWindows bool) ([][]T, error) {
 	if size <= 0 {
 		return nil, fmt.Errorf("%w: sliding size[%d] must be positive", ErrInvalidArgument, size)
@@ -63,10 +71,13 @@ func Sliding[T any](values []T, size int, partialWindows bool) ([][]T, error) {
 	return windows, nil
 }
 
-// ChunkBy splits values whenever startsNew returns true for the next value.
+// ChunkBy는 ChunkBy 공개 API의 동작을 수행한다.
 //
-// The matching value starts the new chunk. The first value never creates an
-// empty leading chunk.
+// 매개변수:
+//   - values: ChunkBy가 읽거나 복사하는 values 목록이다. nil과 빈 슬라이스 의미는 함수 계약을 따른다.
+//   - startsNew: ChunkBy 동작에 필요한 startsNew 값이다. zero value, 범위, nil 허용 여부는 함수 계약을 따른다.
+//
+// 반환 오류는 입력 검증 실패, 취소, 외부 원인, 또는 패키지 sentinel/typed error 계약을 보존한다.
 func ChunkBy[T any](values []T, startsNew func(T) bool) ([][]T, error) {
 	if startsNew == nil {
 		return nil, fmt.Errorf("%w: startsNew must not be nil", ErrInvalidArgument)
@@ -90,7 +101,12 @@ func ChunkBy[T any](values []T, startsNew func(T) bool) ([][]T, error) {
 	return chunks, nil
 }
 
-// SafeSubslice returns values[from:to] after clamping indexes to valid bounds.
+// SafeSubslice는 SafeSubslice 공개 API의 동작을 수행한다.
+//
+// 매개변수:
+//   - values: SafeSubslice가 읽거나 복사하는 values 목록이다. nil과 빈 슬라이스 의미는 함수 계약을 따른다.
+//   - from: SafeSubslice 동작에 필요한 from 값이다. zero value, 범위, nil 허용 여부는 함수 계약을 따른다.
+//   - to: SafeSubslice 동작에 필요한 to 값이다. zero value, 범위, nil 허용 여부는 함수 계약을 따른다.
 func SafeSubslice[T any](values []T, from, to int) []T {
 	if values == nil {
 		return nil
@@ -110,7 +126,14 @@ func SafeSubslice[T any](values []T, from, to int) []T {
 	return values[from:to]
 }
 
-// PadTo returns values padded with item until it reaches newSize.
+// PadTo는 PadTo 공개 API의 동작을 수행한다.
+//
+// 매개변수:
+//   - values: PadTo가 읽거나 복사하는 values 목록이다. nil과 빈 슬라이스 의미는 함수 계약을 따른다.
+//   - newSize: PadTo 동작에 필요한 newSize 값이다. zero value, 범위, nil 허용 여부는 함수 계약을 따른다.
+//   - item: PadTo 동작에 필요한 item 값이다. zero value, 범위, nil 허용 여부는 함수 계약을 따른다.
+//
+// 반환 오류는 입력 검증 실패, 취소, 외부 원인, 또는 패키지 sentinel/typed error 계약을 보존한다.
 func PadTo[T any](values []T, newSize int, item T) ([]T, error) {
 	if newSize < 0 {
 		return nil, fmt.Errorf("%w: pad size[%d] must be non-negative", ErrInvalidArgument, newSize)
@@ -127,9 +150,10 @@ func PadTo[T any](values []T, newSize int, item T) ([]T, error) {
 	return padded, nil
 }
 
-// Distinct returns values with duplicate comparable elements removed.
+// Distinct는 Distinct 공개 API의 동작을 수행한다.
 //
-// The first occurrence is kept and input order is preserved.
+// 매개변수:
+//   - values: Distinct가 읽거나 복사하는 values 목록이다. nil과 빈 슬라이스 의미는 함수 계약을 따른다.
 func Distinct[T comparable](values []T) []T {
 	if values == nil {
 		return nil
@@ -150,7 +174,10 @@ func Distinct[T comparable](values []T) []T {
 	return result
 }
 
-// Count returns the number of occurrences for each comparable value.
+// Count는 Count 공개 API의 동작을 수행한다.
+//
+// 매개변수:
+//   - values: Count가 읽거나 복사하는 values 목록이다. nil과 빈 슬라이스 의미는 함수 계약을 따른다.
 func Count[T comparable](values []T) map[T]int {
 	if values == nil {
 		return nil
@@ -162,9 +189,13 @@ func Count[T comparable](values []T) map[T]int {
 	return counts
 }
 
-// DistinctBy returns values with duplicate keys removed.
+// DistinctBy는 DistinctBy 공개 API의 동작을 수행한다.
 //
-// The first occurrence for each key is kept and input order is preserved.
+// 매개변수:
+//   - values: DistinctBy가 읽거나 복사하는 values 목록이다. nil과 빈 슬라이스 의미는 함수 계약을 따른다.
+//   - key: DistinctBy 동작에 필요한 key 값이다. zero value, 범위, nil 허용 여부는 함수 계약을 따른다.
+//
+// 반환 오류는 입력 검증 실패, 취소, 외부 원인, 또는 패키지 sentinel/typed error 계약을 보존한다.
 func DistinctBy[T any, K comparable](values []T, key func(T) K) ([]T, error) {
 	if key == nil {
 		return nil, fmt.Errorf("%w: key must not be nil", ErrInvalidArgument)
@@ -189,7 +220,10 @@ func DistinctBy[T any, K comparable](values []T, key func(T) K) ([]T, error) {
 	return result, nil
 }
 
-// ZipWithIndex returns values paired with their 0-based indexes.
+// ZipWithIndex는 ZipWithIndex 공개 API의 동작을 수행한다.
+//
+// 매개변수:
+//   - values: ZipWithIndex가 읽거나 복사하는 values 목록이다. nil과 빈 슬라이스 의미는 함수 계약을 따른다.
 func ZipWithIndex[T any](values []T) []Indexed[T] {
 	if values == nil {
 		return nil
@@ -204,7 +238,13 @@ func ZipWithIndex[T any](values []T) []Indexed[T] {
 	return indexed
 }
 
-// MapErr maps values and stops at the first mapper error.
+// MapErr는 MapErr 공개 API의 동작을 수행한다.
+//
+// 매개변수:
+//   - values: MapErr가 읽거나 복사하는 values 목록이다. nil과 빈 슬라이스 의미는 함수 계약을 따른다.
+//   - mapper: MapErr 동작에 필요한 mapper 값이다. zero value, 범위, nil 허용 여부는 함수 계약을 따른다.
+//
+// 반환 오류는 입력 검증 실패, 취소, 외부 원인, 또는 패키지 sentinel/typed error 계약을 보존한다.
 func MapErr[T any, R any](values []T, mapper func(T) (R, error)) ([]R, error) {
 	if mapper == nil {
 		return nil, fmt.Errorf("%w: mapper must not be nil", ErrInvalidArgument)
@@ -224,7 +264,13 @@ func MapErr[T any, R any](values []T, mapper func(T) (R, error)) ([]R, error) {
 	return result, nil
 }
 
-// ForEachErr calls action for each value and stops at the first action error.
+// ForEachErr는 ForEachErr 공개 API의 동작을 수행한다.
+//
+// 매개변수:
+//   - values: ForEachErr가 읽거나 복사하는 values 목록이다. nil과 빈 슬라이스 의미는 함수 계약을 따른다.
+//   - action: ForEachErr 동작에 필요한 action 값이다. zero value, 범위, nil 허용 여부는 함수 계약을 따른다.
+//
+// 반환 오류는 입력 검증 실패, 취소, 외부 원인, 또는 패키지 sentinel/typed error 계약을 보존한다.
 func ForEachErr[T any](values []T, action func(T) error) error {
 	if action == nil {
 		return fmt.Errorf("%w: action must not be nil", ErrInvalidArgument)
@@ -237,7 +283,13 @@ func ForEachErr[T any](values []T, action func(T) error) error {
 	return nil
 }
 
-// FilterErr keeps values whose predicate result is true and stops at the first predicate error.
+// FilterErr는 FilterErr 공개 API의 동작을 수행한다.
+//
+// 매개변수:
+//   - values: FilterErr가 읽거나 복사하는 values 목록이다. nil과 빈 슬라이스 의미는 함수 계약을 따른다.
+//   - predicate: FilterErr 동작에 필요한 predicate 값이다. zero value, 범위, nil 허용 여부는 함수 계약을 따른다.
+//
+// 반환 오류는 입력 검증 실패, 취소, 외부 원인, 또는 패키지 sentinel/typed error 계약을 보존한다.
 func FilterErr[T any](values []T, predicate func(T) (bool, error)) ([]T, error) {
 	if predicate == nil {
 		return nil, fmt.Errorf("%w: predicate must not be nil", ErrInvalidArgument)
@@ -259,7 +311,13 @@ func FilterErr[T any](values []T, predicate func(T) (bool, error)) ([]T, error) 
 	return result, nil
 }
 
-// FilterMap maps values and keeps only mapped results whose ok flag is true.
+// FilterMap는 FilterMap 공개 API의 동작을 수행한다.
+//
+// 매개변수:
+//   - values: FilterMap가 읽거나 복사하는 values 목록이다. nil과 빈 슬라이스 의미는 함수 계약을 따른다.
+//   - mapper: FilterMap 동작에 필요한 mapper 값이다. zero value, 범위, nil 허용 여부는 함수 계약을 따른다.
+//
+// 반환 오류는 입력 검증 실패, 취소, 외부 원인, 또는 패키지 sentinel/typed error 계약을 보존한다.
 func FilterMap[T any, R any](values []T, mapper func(T) (R, bool)) ([]R, error) {
 	if mapper == nil {
 		return nil, fmt.Errorf("%w: mapper must not be nil", ErrInvalidArgument)

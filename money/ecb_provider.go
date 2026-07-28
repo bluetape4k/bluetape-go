@@ -27,7 +27,8 @@ const (
 	defaultECBMaxBodyBytes = 4 << 20
 )
 
-// ECBProviderOptions 는 ECBProvider 동작을 설정합니다.
+// ECBProviderOptions는 struct 공개 타입이다.
+// 값의 zero value, nil 허용 여부, 동시성 소유권은 생성자와 메서드의 한국어 주석 및 테스트 계약을 따른다.
 type ECBProviderOptions struct {
 	// Client 는 HTTP 요청에 사용할 client입니다. nil이면 http.DefaultClient를 사용합니다.
 	Client *http.Client
@@ -51,7 +52,8 @@ type ECBProviderOptions struct {
 	Now func() time.Time
 }
 
-// ECBProvider 는 ECB euro reference-rate XML snapshot을 사용하는 provider입니다.
+// ECBProvider는 struct 공개 타입이다.
+// 값의 zero value, nil 허용 여부, 동시성 소유권은 생성자와 메서드의 한국어 주석 및 테스트 계약을 따른다.
 type ECBProvider struct {
 	client   *http.Client
 	endpoint string
@@ -94,7 +96,12 @@ type ecbRateCube struct {
 	Rate     string `xml:"rate,attr"`
 }
 
-// NewECBProvider 는 ECB daily XML 기반 ExchangeRateProvider를 생성합니다.
+// NewECBProvider는 NewECBProvider 공개 API의 동작을 수행한다.
+//
+// 매개변수:
+//   - options: NewECBProvider 동작에 필요한 options 값이다. zero value, 범위, nil 허용 여부는 함수 계약을 따른다.
+//
+// 반환 오류는 입력 검증 실패, 취소, 외부 원인, 또는 패키지 sentinel/typed error 계약을 보존한다.
 func NewECBProvider(options ECBProviderOptions) (*ECBProvider, error) {
 	options = normalizeECBOptions(options)
 	if err := validateECBOptions(options); err != nil {
@@ -118,7 +125,14 @@ func NewECBProvider(options ECBProviderOptions) (*ECBProvider, error) {
 	}, nil
 }
 
-// Rate 는 ECB snapshot에서 base/target 통화쌍에 사용할 환율을 반환합니다.
+// Rate는 Rate 공개 API의 동작을 수행한다.
+//
+// 매개변수:
+//   - ctx: 호출자가 소유한 취소, deadline, 요청 범위를 전달한다.
+//   - base: Rate 동작에 필요한 base 값이다. zero value, 범위, nil 허용 여부는 함수 계약을 따른다.
+//   - target: Rate 동작에 필요한 target 값이다. zero value, 범위, nil 허용 여부는 함수 계약을 따른다.
+//
+// 반환 오류는 입력 검증 실패, 취소, 외부 원인, 또는 패키지 sentinel/typed error 계약을 보존한다.
 func (p *ECBProvider) Rate(ctx context.Context, base Currency, target Currency) (ExchangeRateQuote, error) {
 	if p == nil {
 		return ExchangeRateQuote{}, ErrExchangeRateProvider

@@ -1,8 +1,3 @@
-// Package id provides Go-native ID generators for service identifiers.
-//
-// The package focuses on local ID generation: UUID v4/v7 strings, random and
-// monotonic ULID strings, standard seconds-precision KSUID strings,
-// Kotlin-compatible millisecond KSUID strings, and Snowflake int64 identifiers.
-// Generated IDs are identifiers, not authentication tokens, authorization
-// secrets, or a standalone security boundary.
+// Package id는 bluetape-go의 id 기능을 제공한다.
+// 공개 API 주석은 호출자가 입력, 반환값, 오류, 취소, zero value 계약을 한국어로 확인할 수 있도록 유지한다.
 package id

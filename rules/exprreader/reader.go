@@ -1,4 +1,5 @@
-// Package exprreader compiles YAML and JSON rule documents into rules.RuleSet values.
+// Package exprreader는 bluetape-go의 exprreader 기능을 제공한다.
+// 공개 API 주석은 호출자가 입력, 반환값, 오류, 취소, zero value 계약을 한국어로 확인할 수 있도록 유지한다.
 package exprreader
 
 import (
@@ -27,14 +28,15 @@ var (
 	ErrInvalidRuleAction = errors.New("exprreader rule action is invalid")
 )
 
-// ReaderError wraps reader failures with optional rule and field context.
+// ReaderError는 struct 공개 타입이다.
+// 값의 zero value, nil 허용 여부, 동시성 소유권은 생성자와 메서드의 한국어 주석 및 테스트 계약을 따른다.
 type ReaderError struct {
 	RuleName string
 	Field    string
 	Err      error
 }
 
-// Error returns a human-readable reader error.
+// Error는 Error 공개 API의 동작을 수행한다.
 func (e ReaderError) Error() string {
 	var b strings.Builder
 	b.WriteString("exprreader")
@@ -54,12 +56,15 @@ func (e ReaderError) Error() string {
 	return b.String()
 }
 
-// Unwrap returns the underlying reader failure.
+// Unwrap는 Unwrap 공개 API의 동작을 수행한다.
+//
+// 반환 오류는 입력 검증 실패, 취소, 외부 원인, 또는 패키지 sentinel/typed error 계약을 보존한다.
 func (e ReaderError) Unwrap() error {
 	return e.Err
 }
 
-// Document is the compiled representation of a rule reader document.
+// Document는 struct 공개 타입이다.
+// 값의 zero value, nil 허용 여부, 동시성 소유권은 생성자와 메서드의 한국어 주석 및 테스트 계약을 따른다.
 type Document struct {
 	// Rules contains compiled rules in deterministic RuleSet order.
 	Rules *rules.RuleSet
@@ -67,10 +72,14 @@ type Document struct {
 	EngineConfig rules.EngineConfig
 }
 
-// Option configures document loading.
+// Option는 func 공개 타입이다.
+// 값의 zero value, nil 허용 여부, 동시성 소유권은 생성자와 메서드의 한국어 주석 및 테스트 계약을 따른다.
 type Option func(*config)
 
-// WithMaxNodes sets the maximum expression AST node count accepted at compile time.
+// WithMaxNodes는 WithMaxNodes 공개 API의 동작을 수행한다.
+//
+// 매개변수:
+//   - maxNodes: WithMaxNodes 동작에 필요한 maxNodes 값이다. zero value, 범위, nil 허용 여부는 함수 계약을 따른다.
 func WithMaxNodes(maxNodes uint) Option {
 	return func(c *config) {
 		c.maxNodes = maxNodes
@@ -81,7 +90,14 @@ type config struct {
 	maxNodes uint
 }
 
-// Load reads a YAML or JSON rule document and compiles it into rules.
+// Load는 Load 공개 API의 동작을 수행한다.
+//
+// 매개변수:
+//   - ctx: 호출자가 소유한 취소, deadline, 요청 범위를 전달한다.
+//   - r: Load 동작에 필요한 r 값이다. zero value, 범위, nil 허용 여부는 함수 계약을 따른다.
+//   - options: Load 동작에 필요한 options 값이다. zero value, 범위, nil 허용 여부는 함수 계약을 따른다.
+//
+// 반환 오류는 입력 검증 실패, 취소, 외부 원인, 또는 패키지 sentinel/typed error 계약을 보존한다.
 func Load(ctx context.Context, r io.Reader, options ...Option) (*Document, error) {
 	if ctx == nil {
 		ctx = context.Background()

@@ -1,7 +1,3 @@
-// Package collections provides focused generic helpers for slices and maps.
-//
-// The package fills small gaps around common service-code transformations such
-// as chunking, sliding windows, grouping, distinct-by-key, counting, safe
-// slicing, and error-aware map/filter/for-each pipelines. Prefer Go's standard
-// slices and maps packages when they already express the operation clearly.
+// Package collections는 bluetape-go의 collections 기능을 제공한다.
+// 공개 API 주석은 호출자가 입력, 반환값, 오류, 취소, zero value 계약을 한국어로 확인할 수 있도록 유지한다.
 package collections

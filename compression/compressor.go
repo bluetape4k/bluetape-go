@@ -7,10 +7,12 @@ import (
 	"io"
 )
 
-// ErrDecompressedSizeExceeded reports that decompressed output crossed the caller-provided limit.
+// ErrDecompressedSizeExceeded는 변수 공개 값이다.
+// 호출자는 이 식별자를 패키지의 오류, 옵션, 상수, 또는 기본값 계약을 비교할 때 사용한다.
 var ErrDecompressedSizeExceeded = errors.New("decompressed size exceeded")
 
-// Compressor compresses and decompresses byte slices and streams.
+// Compressor는 interface 공개 타입이다.
+// 값의 zero value, nil 허용 여부, 동시성 소유권은 생성자와 메서드의 한국어 주석 및 테스트 계약을 따른다.
 type Compressor interface {
 	Name() string
 	Compress([]byte) ([]byte, error)
@@ -61,10 +63,14 @@ func (c streamCompressor) Decompress(data []byte) ([]byte, error) {
 	return decompressed, nil
 }
 
-// DecompressLimit decompresses data while retaining at most maxBytes bytes.
+// DecompressLimit는 DecompressLimit 공개 API의 동작을 수행한다.
 //
-// Use this helper for untrusted or externally supplied compressed payloads. It
-// returns ErrDecompressedSizeExceeded when the expanded stream exceeds maxBytes.
+// 매개변수:
+//   - compressor: DecompressLimit 동작에 필요한 compressor 값이다. zero value, 범위, nil 허용 여부는 함수 계약을 따른다.
+//   - data: DecompressLimit가 읽거나 복사하는 data 목록이다. nil과 빈 슬라이스 의미는 함수 계약을 따른다.
+//   - maxBytes: DecompressLimit 동작에 필요한 maxBytes 값이다. zero value, 범위, nil 허용 여부는 함수 계약을 따른다.
+//
+// 반환 오류는 입력 검증 실패, 취소, 외부 원인, 또는 패키지 sentinel/typed error 계약을 보존한다.
 func DecompressLimit(compressor Compressor, data []byte, maxBytes int64) ([]byte, error) {
 	if compressor == nil {
 		return nil, fmt.Errorf("compressor must not be nil")

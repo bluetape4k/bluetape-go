@@ -1,18 +1,25 @@
 package core
 
-// Zero returns the zero value for T.
+// Zero는 Zero 공개 API의 동작을 수행한다.
 func Zero[T any]() T {
 	var zero T
 	return zero
 }
 
-// IsZero reports whether value equals the zero value for T.
+// IsZero는 IsZero 공개 API의 동작을 수행한다.
+//
+// 매개변수:
+//   - value: IsZero 동작에 필요한 value 값이다. zero value, 범위, nil 허용 여부는 함수 계약을 따른다.
 func IsZero[T comparable](value T) bool {
 	var zero T
 	return value == zero
 }
 
-// DefaultIfZero returns fallback when value is the zero value for T.
+// DefaultIfZero는 DefaultIfZero 공개 API의 동작을 수행한다.
+//
+// 매개변수:
+//   - value: DefaultIfZero 동작에 필요한 value 값이다. zero value, 범위, nil 허용 여부는 함수 계약을 따른다.
+//   - fallback: DefaultIfZero 동작에 필요한 fallback 값이다. zero value, 범위, nil 허용 여부는 함수 계약을 따른다.
 func DefaultIfZero[T comparable](value, fallback T) T {
 	if IsZero(value) {
 		return fallback
@@ -20,7 +27,11 @@ func DefaultIfZero[T comparable](value, fallback T) T {
 	return value
 }
 
-// IfZeroOrDefault returns fallback when value is the zero value for T.
+// IfZeroOrDefault는 IfZeroOrDefault 공개 API의 동작을 수행한다.
+//
+// 매개변수:
+//   - value: IfZeroOrDefault 동작에 필요한 value 값이다. zero value, 범위, nil 허용 여부는 함수 계약을 따른다.
+//   - fallback: IfZeroOrDefault 동작에 필요한 fallback 값이다. zero value, 범위, nil 허용 여부는 함수 계약을 따른다.
 func IfZeroOrDefault[T comparable](value T, fallback T) T {
 	if IsZero(value) {
 		return fallback
@@ -28,7 +39,10 @@ func IfZeroOrDefault[T comparable](value T, fallback T) T {
 	return value
 }
 
-// FirstNonZero returns the first non-zero value, or the zero value when all values are zero.
+// FirstNonZero는 FirstNonZero 공개 API의 동작을 수행한다.
+//
+// 매개변수:
+//   - values: FirstNonZero 동작에 필요한 values 값이다. zero value, 범위, nil 허용 여부는 함수 계약을 따른다.
 func FirstNonZero[T comparable](values ...T) T {
 	for _, value := range values {
 		if !IsZero(value) {

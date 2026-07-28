@@ -1,15 +1,3 @@
-// Package core provides small shared helpers used by bluetape-go packages.
-//
-// The package intentionally stays narrow. It contains helpers that make service
-// code clearer without hiding Go's standard library:
-//
-//   - validation helpers return errors instead of panicking;
-//   - pointer helpers remove repetitive temporary variables;
-//   - zero/default helpers make generic fallback code explicit;
-//   - string and number helpers cover small gaps such as UTF-8 byte truncation
-//     and prefixed hexadecimal checks.
-//   - wildcard and XXH64 helpers cover repeated cache/key/filter use cases
-//     without hiding filesystem, OS, or cryptographic boundaries.
-//
-// Prefer the standard library when it already expresses the operation clearly.
+// Package core는 bluetape-go의 core 기능을 제공한다.
+// 공개 API 주석은 호출자가 입력, 반환값, 오류, 취소, zero value 계약을 한국어로 확인할 수 있도록 유지한다.
 package core

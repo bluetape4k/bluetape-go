@@ -10,7 +10,9 @@ type moneyJSON struct {
 	Currency string `json:"currency"`
 }
 
-// MarshalText 는 Money 를 `USD 12.34` 형식으로 직렬화합니다.
+// MarshalText는 MarshalText 공개 API의 동작을 수행한다.
+//
+// 반환 오류는 입력 검증 실패, 취소, 외부 원인, 또는 패키지 sentinel/typed error 계약을 보존한다.
 func (m Money) MarshalText() ([]byte, error) {
 	if err := m.validate(); err != nil {
 		return nil, err
@@ -18,7 +20,12 @@ func (m Money) MarshalText() ([]byte, error) {
 	return []byte(m.String()), nil
 }
 
-// UnmarshalText 는 `USD 12.34` 형식의 텍스트를 Money 로 역직렬화합니다.
+// UnmarshalText는 UnmarshalText 공개 API의 동작을 수행한다.
+//
+// 매개변수:
+//   - text: UnmarshalText가 읽거나 복사하는 text 목록이다. nil과 빈 슬라이스 의미는 함수 계약을 따른다.
+//
+// 반환 오류는 입력 검증 실패, 취소, 외부 원인, 또는 패키지 sentinel/typed error 계약을 보존한다.
 func (m *Money) UnmarshalText(text []byte) error {
 	if m == nil {
 		return ErrInvalidMoney
@@ -31,7 +38,9 @@ func (m *Money) UnmarshalText(text []byte) error {
 	return nil
 }
 
-// MarshalJSON 은 Money 를 명시적 amount/currency object로 직렬화합니다.
+// MarshalJSON는 MarshalJSON 공개 API의 동작을 수행한다.
+//
+// 반환 오류는 입력 검증 실패, 취소, 외부 원인, 또는 패키지 sentinel/typed error 계약을 보존한다.
 func (m Money) MarshalJSON() ([]byte, error) {
 	if err := m.validate(); err != nil {
 		return nil, err
@@ -42,7 +51,12 @@ func (m Money) MarshalJSON() ([]byte, error) {
 	})
 }
 
-// UnmarshalJSON 은 명시적 amount/currency object를 Money 로 역직렬화합니다.
+// UnmarshalJSON는 UnmarshalJSON 공개 API의 동작을 수행한다.
+//
+// 매개변수:
+//   - data: UnmarshalJSON가 읽거나 복사하는 data 목록이다. nil과 빈 슬라이스 의미는 함수 계약을 따른다.
+//
+// 반환 오류는 입력 검증 실패, 취소, 외부 원인, 또는 패키지 sentinel/typed error 계약을 보존한다.
 func (m *Money) UnmarshalJSON(data []byte) error {
 	if m == nil {
 		return ErrInvalidMoney

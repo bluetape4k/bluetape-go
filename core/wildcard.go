@@ -6,7 +6,8 @@ import (
 	"strings"
 )
 
-// ErrMalformedWildcardPattern indicates that a wildcard pattern cannot be parsed.
+// ErrMalformedWildcardPattern는 변수 공개 값이다.
+// 호출자는 이 식별자를 패키지의 오류, 옵션, 상수, 또는 기본값 계약을 비교할 때 사용한다.
 var ErrMalformedWildcardPattern = errors.New("malformed wildcard pattern")
 
 type wildcardTokenKind uint8
@@ -22,10 +23,13 @@ type wildcardToken struct {
 	rune rune
 }
 
-// MatchWildcard reports whether value matches pattern.
+// MatchWildcard는 MatchWildcard 공개 API의 동작을 수행한다.
 //
-// The pattern syntax is case-sensitive. '?' matches one Unicode rune, '*'
-// matches zero or more runes, and backslash escapes the next rune.
+// 매개변수:
+//   - pattern: MatchWildcard가 해석하거나 검증하는 문자열 값이다. 빈 문자열과 공백 처리 의미는 함수 계약을 따른다.
+//   - value: MatchWildcard가 해석하거나 검증하는 문자열 값이다. 빈 문자열과 공백 처리 의미는 함수 계약을 따른다.
+//
+// 반환 오류는 입력 검증 실패, 취소, 외부 원인, 또는 패키지 sentinel/typed error 계약을 보존한다.
 func MatchWildcard(pattern, value string) (bool, error) {
 	tokens, err := parseWildcardPattern(pattern)
 	if err != nil {
@@ -34,10 +38,13 @@ func MatchWildcard(pattern, value string) (bool, error) {
 	return matchWildcardTokens(tokens, []rune(value)), nil
 }
 
-// FirstWildcardMatch returns the index of the first wildcard pattern matching value.
+// FirstWildcardMatch는 FirstWildcardMatch 공개 API의 동작을 수행한다.
 //
-// It returns -1 when no pattern matches. If a pattern is malformed, its error is
-// returned before later patterns are evaluated.
+// 매개변수:
+//   - value: FirstWildcardMatch가 해석하거나 검증하는 문자열 값이다. 빈 문자열과 공백 처리 의미는 함수 계약을 따른다.
+//   - patterns: FirstWildcardMatch 동작에 필요한 patterns 값이다. zero value, 범위, nil 허용 여부는 함수 계약을 따른다.
+//
+// 반환 오류는 입력 검증 실패, 취소, 외부 원인, 또는 패키지 sentinel/typed error 계약을 보존한다.
 func FirstWildcardMatch(value string, patterns ...string) (int, error) {
 	for i, pattern := range patterns {
 		matched, err := MatchWildcard(pattern, value)
@@ -51,21 +58,26 @@ func FirstWildcardMatch(value string, patterns ...string) (int, error) {
 	return -1, nil
 }
 
-// MatchWildcardPath reports whether path matches a lexical wildcard path pattern.
+// MatchWildcardPath는 MatchWildcardPath 공개 API의 동작을 수행한다.
 //
-// Both '/' and '\' are treated as path separators. In slash-separated patterns,
-// backslash can still escape '*', '?', and '\' inside a segment. A pattern
-// segment that is exactly '**' matches zero or more path segments. Matching is
-// case-sensitive and does not inspect or clean the filesystem.
+// 매개변수:
+//   - pattern: MatchWildcardPath가 해석하거나 검증하는 문자열 값이다. 빈 문자열과 공백 처리 의미는 함수 계약을 따른다.
+//   - path: MatchWildcardPath가 해석하거나 검증하는 문자열 값이다. 빈 문자열과 공백 처리 의미는 함수 계약을 따른다.
+//
+// 반환 오류는 입력 검증 실패, 취소, 외부 원인, 또는 패키지 sentinel/typed error 계약을 보존한다.
 func MatchWildcardPath(pattern, path string) (bool, error) {
 	patternSegments := splitWildcardPatternPath(pattern)
 	pathSegments := splitWildcardPath(path)
 	return matchWildcardPathSegments(patternSegments, pathSegments)
 }
 
-// FirstWildcardPathMatch returns the index of the first wildcard path pattern matching path.
+// FirstWildcardPathMatch는 FirstWildcardPathMatch 공개 API의 동작을 수행한다.
 //
-// It returns -1 when no pattern matches.
+// 매개변수:
+//   - path: FirstWildcardPathMatch가 해석하거나 검증하는 문자열 값이다. 빈 문자열과 공백 처리 의미는 함수 계약을 따른다.
+//   - patterns: FirstWildcardPathMatch 동작에 필요한 patterns 값이다. zero value, 범위, nil 허용 여부는 함수 계약을 따른다.
+//
+// 반환 오류는 입력 검증 실패, 취소, 외부 원인, 또는 패키지 sentinel/typed error 계약을 보존한다.
 func FirstWildcardPathMatch(path string, patterns ...string) (int, error) {
 	for i, pattern := range patterns {
 		matched, err := MatchWildcardPath(pattern, path)

@@ -10,7 +10,8 @@ import (
 	"golang.org/x/text/language"
 )
 
-// Currency 는 ISO 4217 통화를 나타내는 값입니다.
+// Currency는 struct 공개 타입이다.
+// 값의 zero value, nil 허용 여부, 동시성 소유권은 생성자와 메서드의 한국어 주석 및 테스트 계약을 따른다.
 type Currency struct {
 	curr gmoney.Currency
 }
@@ -28,7 +29,12 @@ var (
 	JPY = MustParseCurrency("JPY")
 )
 
-// ParseCurrency 는 ISO 4217 alphabetic/numeric currency code를 Currency 로 변환합니다.
+// ParseCurrency는 ParseCurrency 공개 API의 동작을 수행한다.
+//
+// 매개변수:
+//   - code: ParseCurrency가 해석하거나 검증하는 문자열 값이다. 빈 문자열과 공백 처리 의미는 함수 계약을 따른다.
+//
+// 반환 오류는 입력 검증 실패, 취소, 외부 원인, 또는 패키지 sentinel/typed error 계약을 보존한다.
 func ParseCurrency(code string) (Currency, error) {
 	normalized := strings.ToUpper(strings.TrimSpace(code))
 	if normalized == "" || normalized == "XXX" || normalized == "999" {
@@ -44,7 +50,10 @@ func ParseCurrency(code string) (Currency, error) {
 	return Currency{curr: curr}, nil
 }
 
-// MustParseCurrency 는 ParseCurrency 와 같지만 실패하면 panic 합니다.
+// MustParseCurrency는 MustParseCurrency 공개 API의 동작을 수행한다.
+//
+// 매개변수:
+//   - code: MustParseCurrency가 해석하거나 검증하는 문자열 값이다. 빈 문자열과 공백 처리 의미는 함수 계약을 따른다.
 func MustParseCurrency(code string) Currency {
 	curr, err := ParseCurrency(code)
 	if err != nil {
@@ -53,13 +62,21 @@ func MustParseCurrency(code string) Currency {
 	return curr
 }
 
-// IsCurrency 는 code가 #35 public wrapper에서 지원하는 유효 통화인지 반환합니다.
+// IsCurrency는 IsCurrency 공개 API의 동작을 수행한다.
+//
+// 매개변수:
+//   - code: IsCurrency가 해석하거나 검증하는 문자열 값이다. 빈 문자열과 공백 처리 의미는 함수 계약을 따른다.
 func IsCurrency(code string) bool {
 	_, err := ParseCurrency(code)
 	return err == nil
 }
 
-// CurrencyByLocale 은 BCP47 locale tag의 명시적 현재 지역 통화를 반환합니다.
+// CurrencyByLocale는 CurrencyByLocale 공개 API의 동작을 수행한다.
+//
+// 매개변수:
+//   - tag: CurrencyByLocale가 해석하거나 검증하는 문자열 값이다. 빈 문자열과 공백 처리 의미는 함수 계약을 따른다.
+//
+// 반환 오류는 입력 검증 실패, 취소, 외부 원인, 또는 패키지 sentinel/typed error 계약을 보존한다.
 func CurrencyByLocale(tag string) (Currency, error) {
 	normalized := normalizeLocaleTag(tag)
 	if normalized == "" {
@@ -78,7 +95,7 @@ func CurrencyByLocale(tag string) (Currency, error) {
 	return currencyByRegion(region, tag)
 }
 
-// Code 는 3-letter ISO 4217 currency code를 반환합니다.
+// Code는 Code 공개 API의 동작을 수행한다.
 func (c Currency) Code() string {
 	if c.IsZero() {
 		return ""
@@ -86,7 +103,7 @@ func (c Currency) Code() string {
 	return c.curr.Code()
 }
 
-// Num 는 ISO 4217 numeric currency code를 반환합니다.
+// Num는 Num 공개 API의 동작을 수행한다.
 func (c Currency) Num() string {
 	if c.IsZero() {
 		return ""
@@ -94,7 +111,7 @@ func (c Currency) Num() string {
 	return c.curr.Num()
 }
 
-// Scale 은 통화의 기본 minor unit scale을 반환합니다.
+// Scale는 Scale 공개 API의 동작을 수행한다.
 func (c Currency) Scale() int {
 	if c.IsZero() {
 		return 0
@@ -102,12 +119,12 @@ func (c Currency) Scale() int {
 	return c.curr.Scale()
 }
 
-// String 은 통화 코드를 반환합니다.
+// String는 String 공개 API의 동작을 수행한다.
 func (c Currency) String() string {
 	return c.Code()
 }
 
-// IsZero 는 zero-value 또는 no-currency 값을 invalid 통화로 판정합니다.
+// IsZero는 IsZero 공개 API의 동작을 수행한다.
 func (c Currency) IsZero() bool {
 	return c.curr == gmoney.XXX
 }

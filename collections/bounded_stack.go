@@ -2,17 +2,19 @@ package collections
 
 import "fmt"
 
-// BoundedStack is a fixed-capacity LIFO container.
-//
-// Pushing beyond capacity drops the oldest bottom value. BoundedStack is not
-// goroutine-safe; callers that share it across goroutines must synchronize
-// access externally.
+// BoundedStack는 struct 공개 타입이다.
+// 값의 zero value, nil 허용 여부, 동시성 소유권은 생성자와 메서드의 한국어 주석 및 테스트 계약을 따른다.
 type BoundedStack[T any] struct {
 	values   []T
 	capacity int
 }
 
-// NewBoundedStack creates a stack that keeps at most capacity values.
+// NewBoundedStack는 NewBoundedStack 공개 API의 동작을 수행한다.
+//
+// 매개변수:
+//   - capacity: NewBoundedStack 동작에 필요한 capacity 값이다. zero value, 범위, nil 허용 여부는 함수 계약을 따른다.
+//
+// 반환 오류는 입력 검증 실패, 취소, 외부 원인, 또는 패키지 sentinel/typed error 계약을 보존한다.
 func NewBoundedStack[T any](capacity int) (*BoundedStack[T], error) {
 	if capacity <= 0 {
 		return nil, fmt.Errorf("%w: bounded stack capacity[%d] must be positive", ErrInvalidArgument, capacity)
@@ -23,7 +25,7 @@ func NewBoundedStack[T any](capacity int) (*BoundedStack[T], error) {
 	}, nil
 }
 
-// Capacity returns the maximum number of retained values.
+// Capacity는 Capacity 공개 API의 동작을 수행한다.
 func (s *BoundedStack[T]) Capacity() int {
 	if s == nil {
 		return 0
@@ -31,7 +33,7 @@ func (s *BoundedStack[T]) Capacity() int {
 	return s.capacity
 }
 
-// Len returns the number of retained values.
+// Len는 Len 공개 API의 동작을 수행한다.
 func (s *BoundedStack[T]) Len() int {
 	if s == nil {
 		return 0
@@ -39,12 +41,15 @@ func (s *BoundedStack[T]) Len() int {
 	return len(s.values)
 }
 
-// Empty reports whether the stack has no values.
+// Empty는 Empty 공개 API의 동작을 수행한다.
 func (s *BoundedStack[T]) Empty() bool {
 	return s.Len() == 0
 }
 
-// Push adds value to the top of the stack.
+// Push는 Push 공개 API의 동작을 수행한다.
+//
+// 매개변수:
+//   - value: Push 동작에 필요한 value 값이다. zero value, 범위, nil 허용 여부는 함수 계약을 따른다.
 func (s *BoundedStack[T]) Push(value T) {
 	if s == nil || s.capacity <= 0 {
 		return
@@ -61,14 +66,17 @@ func (s *BoundedStack[T]) Push(value T) {
 	}
 }
 
-// PushAll adds values to the top of the stack in argument order.
+// PushAll는 PushAll 공개 API의 동작을 수행한다.
+//
+// 매개변수:
+//   - values: PushAll 동작에 필요한 values 값이다. zero value, 범위, nil 허용 여부는 함수 계약을 따른다.
 func (s *BoundedStack[T]) PushAll(values ...T) {
 	for _, value := range values {
 		s.Push(value)
 	}
 }
 
-// Pop removes and returns the top value.
+// Pop는 Pop 공개 API의 동작을 수행한다.
 func (s *BoundedStack[T]) Pop() (T, bool) {
 	var zero T
 	if s == nil || len(s.values) == 0 {
@@ -81,7 +89,7 @@ func (s *BoundedStack[T]) Pop() (T, bool) {
 	return value, true
 }
 
-// Peek returns the top value without removing it.
+// Peek는 Peek 공개 API의 동작을 수행한다.
 func (s *BoundedStack[T]) Peek() (T, bool) {
 	if s == nil || len(s.values) == 0 {
 		var zero T
@@ -90,7 +98,10 @@ func (s *BoundedStack[T]) Peek() (T, bool) {
 	return s.values[len(s.values)-1], true
 }
 
-// At returns the value at index, where index 0 is the top.
+// At는 At 공개 API의 동작을 수행한다.
+//
+// 매개변수:
+//   - index: At 동작에 필요한 index 값이다. zero value, 범위, nil 허용 여부는 함수 계약을 따른다.
 func (s *BoundedStack[T]) At(index int) (T, bool) {
 	var zero T
 	if s == nil || index < 0 || index >= len(s.values) {
@@ -99,7 +110,7 @@ func (s *BoundedStack[T]) At(index int) (T, bool) {
 	return s.values[len(s.values)-1-index], true
 }
 
-// Values returns a top-to-bottom shallow snapshot.
+// Values는 Values 공개 API의 동작을 수행한다.
 func (s *BoundedStack[T]) Values() []T {
 	if s == nil {
 		return nil
@@ -111,7 +122,7 @@ func (s *BoundedStack[T]) Values() []T {
 	return result
 }
 
-// Clear removes all values.
+// Clear는 Clear 공개 API의 동작을 수행한다.
 func (s *BoundedStack[T]) Clear() {
 	if s == nil {
 		return

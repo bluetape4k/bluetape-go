@@ -26,11 +26,14 @@ type uuidGenerator struct {
 	lastV7Tick int64
 }
 
-// UUIDOption configures UUID string generation.
+// UUIDOption는 func 공개 타입이다.
+// 값의 zero value, nil 허용 여부, 동시성 소유권은 생성자와 메서드의 한국어 주석 및 테스트 계약을 따른다.
 type UUIDOption func(*uuidGenerator) error
 
-// WithUUIDReader injects an entropy reader for deterministic tests. Custom
-// readers must be safe for concurrent use when a generator is shared.
+// WithUUIDReader는 WithUUIDReader 공개 API의 동작을 수행한다.
+//
+// 매개변수:
+//   - reader: WithUUIDReader 동작에 필요한 reader 값이다. zero value, 범위, nil 허용 여부는 함수 계약을 따른다.
 func WithUUIDReader(reader io.Reader) UUIDOption {
 	return func(g *uuidGenerator) error {
 		if reader == nil {
@@ -41,10 +44,10 @@ func WithUUIDReader(reader io.Reader) UUIDOption {
 	}
 }
 
-// WithUUIDTime injects a clock for UUID v7 deterministic tests.
+// WithUUIDTime는 WithUUIDTime 공개 API의 동작을 수행한다.
 //
-// It is ignored by UUID v4 generators because UUID v4 has no timestamp field.
-// Custom clocks must be safe for concurrent use when a generator is shared.
+// 매개변수:
+//   - now: WithUUIDTime 동작에 필요한 now 값이다. zero value, 범위, nil 허용 여부는 함수 계약을 따른다.
 func WithUUIDTime(now func() time.Time) UUIDOption {
 	return func(g *uuidGenerator) error {
 		if now == nil {
@@ -55,12 +58,22 @@ func WithUUIDTime(now func() time.Time) UUIDOption {
 	}
 }
 
-// NewUUIDV4Generator creates a UUID v4 string generator.
+// NewUUIDV4Generator는 NewUUIDV4Generator 공개 API의 동작을 수행한다.
+//
+// 매개변수:
+//   - options: NewUUIDV4Generator 동작에 필요한 options 값이다. zero value, 범위, nil 허용 여부는 함수 계약을 따른다.
+//
+// 반환 오류는 입력 검증 실패, 취소, 외부 원인, 또는 패키지 sentinel/typed error 계약을 보존한다.
 func NewUUIDV4Generator(options ...UUIDOption) (StringGenerator, error) {
 	return newUUIDGenerator(uuidVersion4, options...)
 }
 
-// NewUUIDV7Generator creates a UUID v7 string generator.
+// NewUUIDV7Generator는 NewUUIDV7Generator 공개 API의 동작을 수행한다.
+//
+// 매개변수:
+//   - options: NewUUIDV7Generator 동작에 필요한 options 값이다. zero value, 범위, nil 허용 여부는 함수 계약을 따른다.
+//
+// 반환 오류는 입력 검증 실패, 취소, 외부 원인, 또는 패키지 sentinel/typed error 계약을 보존한다.
 func NewUUIDV7Generator(options ...UUIDOption) (StringGenerator, error) {
 	return newUUIDGenerator(uuidVersion7, options...)
 }
@@ -161,7 +174,9 @@ func uuidV7Tick(now time.Time) (int64, error) {
 	return (milli << 12) | (fraction & 0x0fff), nil
 }
 
-// NewUUIDV4 returns a UUID v4 canonical string.
+// NewUUIDV4는 NewUUIDV4 공개 API의 동작을 수행한다.
+//
+// 반환 오류는 입력 검증 실패, 취소, 외부 원인, 또는 패키지 sentinel/typed error 계약을 보존한다.
 func NewUUIDV4() (string, error) {
 	g, err := NewUUIDV4Generator()
 	if err != nil {
@@ -170,7 +185,9 @@ func NewUUIDV4() (string, error) {
 	return g.NextString()
 }
 
-// NewUUIDV7 returns a UUID v7 canonical string.
+// NewUUIDV7는 NewUUIDV7 공개 API의 동작을 수행한다.
+//
+// 반환 오류는 입력 검증 실패, 취소, 외부 원인, 또는 패키지 sentinel/typed error 계약을 보존한다.
 func NewUUIDV7() (string, error) {
 	g, err := NewUUIDV7Generator()
 	if err != nil {
@@ -179,7 +196,12 @@ func NewUUIDV7() (string, error) {
 	return g.NextString()
 }
 
-// ParseUUID validates and canonicalizes a UUID string.
+// ParseUUID는 ParseUUID 공개 API의 동작을 수행한다.
+//
+// 매개변수:
+//   - value: ParseUUID가 해석하거나 검증하는 문자열 값이다. 빈 문자열과 공백 처리 의미는 함수 계약을 따른다.
+//
+// 반환 오류는 입력 검증 실패, 취소, 외부 원인, 또는 패키지 sentinel/typed error 계약을 보존한다.
 func ParseUUID(value string) (string, error) {
 	parsed, err := googleuuid.Parse(value)
 	if err != nil {

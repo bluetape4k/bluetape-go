@@ -9,12 +9,15 @@ import (
 	"github.com/klauspost/compress/zstd"
 )
 
-// Zstd returns a zstd compressor.
+// Zstd는 Zstd 공개 API의 동작을 수행한다.
 func Zstd() Compressor {
 	return ZstdLevel(zstd.SpeedDefault)
 }
 
-// ZstdLevel returns a zstd compressor with the requested encoder level.
+// ZstdLevel는 ZstdLevel 공개 API의 동작을 수행한다.
+//
+// 매개변수:
+//   - level: ZstdLevel 동작에 필요한 level 값이다. zero value, 범위, nil 허용 여부는 함수 계약을 따른다.
 func ZstdLevel(level zstd.EncoderLevel) Compressor {
 	compressor := &zstdCompressor{
 		level: level,

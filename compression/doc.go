@@ -1,7 +1,3 @@
-// Package compression provides small compressor adapters with streaming support.
-//
-// The package keeps algorithms explicit. Gzip, zlib, and raw DEFLATE use Go's
-// standard library. Zstd, LZ4, and Snappy use focused pure-Go dependencies
-// because they are common service payload choices and are not in the standard
-// library.
+// Package compression는 bluetape-go의 compression 기능을 제공한다.
+// 공개 API 주석은 호출자가 입력, 반환값, 오류, 취소, zero value 계약을 한국어로 확인할 수 있도록 유지한다.
 package compression

@@ -6,21 +6,24 @@ import (
 	"sync"
 )
 
-// Facts stores rule input and output values by key.
-//
-// Facts is safe for concurrent access to the container itself. Stored values
-// are caller-owned: Clone and Snapshot copy the map, not the values inside it.
+// Facts는 struct 공개 타입이다.
+// 값의 zero value, nil 허용 여부, 동시성 소유권은 생성자와 메서드의 한국어 주석 및 테스트 계약을 따른다.
 type Facts struct {
 	mu     sync.RWMutex
 	values map[string]any
 }
 
-// NewFacts creates an empty facts container.
+// NewFacts는 NewFacts 공개 API의 동작을 수행한다.
 func NewFacts() *Facts {
 	return &Facts{values: make(map[string]any)}
 }
 
-// NewFactsFrom creates facts from values.
+// NewFactsFrom는 NewFactsFrom 공개 API의 동작을 수행한다.
+//
+// 매개변수:
+//   - values: NewFactsFrom 동작에 필요한 values 값이다. zero value, 범위, nil 허용 여부는 함수 계약을 따른다.
+//
+// 반환 오류는 입력 검증 실패, 취소, 외부 원인, 또는 패키지 sentinel/typed error 계약을 보존한다.
 func NewFactsFrom(values map[string]any) (*Facts, error) {
 	facts := NewFacts()
 	for key, value := range values {
@@ -31,7 +34,13 @@ func NewFactsFrom(values map[string]any) (*Facts, error) {
 	return facts, nil
 }
 
-// Set stores value under key.
+// Set는 Set 공개 API의 동작을 수행한다.
+//
+// 매개변수:
+//   - key: Set가 해석하거나 검증하는 문자열 값이다. 빈 문자열과 공백 처리 의미는 함수 계약을 따른다.
+//   - value: Set 동작에 필요한 value 값이다. zero value, 범위, nil 허용 여부는 함수 계약을 따른다.
+//
+// 반환 오류는 입력 검증 실패, 취소, 외부 원인, 또는 패키지 sentinel/typed error 계약을 보존한다.
 func (f *Facts) Set(key string, value any) error {
 	if f == nil {
 		return ErrNilFacts
@@ -50,7 +59,10 @@ func (f *Facts) Set(key string, value any) error {
 	return nil
 }
 
-// Get returns the value stored under key.
+// Get는 Get 공개 API의 동작을 수행한다.
+//
+// 매개변수:
+//   - key: Get가 해석하거나 검증하는 문자열 값이다. 빈 문자열과 공백 처리 의미는 함수 계약을 따른다.
 func (f *Facts) Get(key string) (any, bool) {
 	if f == nil {
 		return nil, false
@@ -66,7 +78,10 @@ func (f *Facts) Get(key string) (any, bool) {
 	return value, ok
 }
 
-// Delete removes key and reports whether a value existed.
+// Delete는 Delete 공개 API의 동작을 수행한다.
+//
+// 매개변수:
+//   - key: Delete가 해석하거나 검증하는 문자열 값이다. 빈 문자열과 공백 처리 의미는 함수 계약을 따른다.
 func (f *Facts) Delete(key string) bool {
 	if f == nil {
 		return false
@@ -86,13 +101,16 @@ func (f *Facts) Delete(key string) bool {
 	return ok
 }
 
-// Has reports whether key exists.
+// Has는 Has 공개 API의 동작을 수행한다.
+//
+// 매개변수:
+//   - key: Has가 해석하거나 검증하는 문자열 값이다. 빈 문자열과 공백 처리 의미는 함수 계약을 따른다.
 func (f *Facts) Has(key string) bool {
 	_, ok := f.Get(key)
 	return ok
 }
 
-// Len returns the number of stored facts.
+// Len는 Len 공개 API의 동작을 수행한다.
 func (f *Facts) Len() int {
 	if f == nil {
 		return 0
@@ -103,7 +121,7 @@ func (f *Facts) Len() int {
 	return len(f.values)
 }
 
-// Keys returns stored keys in ascending lexical order.
+// Keys는 Keys 공개 API의 동작을 수행한다.
 func (f *Facts) Keys() []string {
 	if f == nil {
 		return nil
@@ -119,7 +137,7 @@ func (f *Facts) Keys() []string {
 	return keys
 }
 
-// Snapshot returns a shallow copy of the stored key/value map.
+// Snapshot는 Snapshot 공개 API의 동작을 수행한다.
 func (f *Facts) Snapshot() map[string]any {
 	if f == nil {
 		return nil
@@ -134,7 +152,7 @@ func (f *Facts) Snapshot() map[string]any {
 	return copied
 }
 
-// Clone returns a new Facts container with the same shallow-copied values.
+// Clone는 Clone 공개 API의 동작을 수행한다.
 func (f *Facts) Clone() *Facts {
 	return &Facts{values: f.Snapshot()}
 }

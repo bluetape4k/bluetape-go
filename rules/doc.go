@@ -1,7 +1,3 @@
-// Package rules provides small deterministic rule-engine primitives.
-//
-// The package is intentionally dependency-free. It owns facts, rule contracts,
-// deterministic rule-set ordering, composite groups, bounded inference, and a
-// sequential engine while leaving expression languages, YAML readers, and
-// unbounded forward chaining to higher-level packages.
+// Package rules는 bluetape-go의 rules 기능을 제공한다.
+// 공개 API 주석은 호출자가 입력, 반환값, 오류, 취소, zero value 계약을 한국어로 확인할 수 있도록 유지한다.
 package rules

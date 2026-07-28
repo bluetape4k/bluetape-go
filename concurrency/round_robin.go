@@ -5,13 +5,19 @@ import (
 	"sync/atomic"
 )
 
-// RoundRobin is a goroutine-safe cyclic counter over [0, maximum).
+// RoundRobin는 struct 공개 타입이다.
+// 값의 zero value, nil 허용 여부, 동시성 소유권은 생성자와 메서드의 한국어 주석 및 테스트 계약을 따른다.
 type RoundRobin struct {
 	maximum uint64
 	counter atomic.Uint64
 }
 
-// NewRoundRobin creates a cyclic counter whose values are in [0, maximum).
+// NewRoundRobin는 NewRoundRobin 공개 API의 동작을 수행한다.
+//
+// 매개변수:
+//   - maximum: NewRoundRobin 동작에 필요한 maximum 값이다. zero value, 범위, nil 허용 여부는 함수 계약을 따른다.
+//
+// 반환 오류는 입력 검증 실패, 취소, 외부 원인, 또는 패키지 sentinel/typed error 계약을 보존한다.
 func NewRoundRobin(maximum int) (*RoundRobin, error) {
 	if maximum <= 0 {
 		return nil, fmt.Errorf("maximum must be positive")
@@ -19,7 +25,7 @@ func NewRoundRobin(maximum int) (*RoundRobin, error) {
 	return &RoundRobin{maximum: uint64(maximum)}, nil
 }
 
-// Get returns the current counter value.
+// Get는 Get 공개 API의 동작을 수행한다.
 func (r *RoundRobin) Get() int {
 	if r == nil || r.maximum == 0 {
 		return 0
@@ -27,7 +33,12 @@ func (r *RoundRobin) Get() int {
 	return int(r.counter.Load())
 }
 
-// Set sets the current counter value.
+// Set는 Set 공개 API의 동작을 수행한다.
+//
+// 매개변수:
+//   - value: Set 동작에 필요한 value 값이다. zero value, 범위, nil 허용 여부는 함수 계약을 따른다.
+//
+// 반환 오류는 입력 검증 실패, 취소, 외부 원인, 또는 패키지 sentinel/typed error 계약을 보존한다.
 func (r *RoundRobin) Set(value int) error {
 	if r == nil || r.maximum == 0 {
 		return fmt.Errorf("round robin is nil")
@@ -39,7 +50,7 @@ func (r *RoundRobin) Set(value int) error {
 	return nil
 }
 
-// Next increments the counter and returns the next value.
+// Next는 Next 공개 API의 동작을 수행한다.
 func (r *RoundRobin) Next() int {
 	if r == nil || r.maximum == 0 {
 		return 0

@@ -1,10 +1,3 @@
-// Package money 는 ISO 4217 통화와 decimal-backed 금액 값을 다룹니다.
-//
-// 이 package는 govalues/money를 계산 engine으로 사용하지만 public API는
-// bluetape-go가 소유합니다. 통화 불일치, invalid zero-value, 환율 오류는
-// errors.Is로 확인 가능한 sentinel error로 반환됩니다.
-//
-// NewExchangeRate와 Convert는 순수 value API입니다. Provider-backed 환율
-// 변환은 ExchangeRateProvider와 ConvertWithProvider를 사용하며, network/cache
-// failure와 source/freshness metadata를 caller에게 드러냅니다.
+// Package money는 bluetape-go의 money 기능을 제공한다.
+// 공개 API 주석은 호출자가 입력, 반환값, 오류, 취소, zero value 계약을 한국어로 확인할 수 있도록 유지한다.
 package money

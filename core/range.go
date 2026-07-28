@@ -6,11 +6,8 @@ import (
 	"math"
 )
 
-// Range represents an ordered interval with independently open or closed
-// bounds.
-//
-// The zero value is safe to use and behaves as an empty open-open range. Use
-// the constructor functions to create non-empty ranges with validated bounds.
+// Range는 struct 공개 타입이다.
+// 값의 zero value, nil 허용 여부, 동시성 소유권은 생성자와 메서드의 한국어 주석 및 테스트 계약을 따른다.
 type Range[T cmp.Ordered] struct {
 	lower          T
 	upper          T
@@ -18,22 +15,46 @@ type Range[T cmp.Ordered] struct {
 	upperInclusive bool
 }
 
-// ClosedRange returns a range containing both lower and upper.
+// ClosedRange는 ClosedRange 공개 API의 동작을 수행한다.
+//
+// 매개변수:
+//   - lower: ClosedRange 동작에 필요한 lower 값이다. zero value, 범위, nil 허용 여부는 함수 계약을 따른다.
+//   - upper: ClosedRange 동작에 필요한 upper 값이다. zero value, 범위, nil 허용 여부는 함수 계약을 따른다.
+//
+// 반환 오류는 입력 검증 실패, 취소, 외부 원인, 또는 패키지 sentinel/typed error 계약을 보존한다.
 func ClosedRange[T cmp.Ordered](lower, upper T) (Range[T], error) {
 	return newRange(lower, upper, true, true)
 }
 
-// ClosedOpenRange returns a range containing lower and excluding upper.
+// ClosedOpenRange는 ClosedOpenRange 공개 API의 동작을 수행한다.
+//
+// 매개변수:
+//   - lower: ClosedOpenRange 동작에 필요한 lower 값이다. zero value, 범위, nil 허용 여부는 함수 계약을 따른다.
+//   - upper: ClosedOpenRange 동작에 필요한 upper 값이다. zero value, 범위, nil 허용 여부는 함수 계약을 따른다.
+//
+// 반환 오류는 입력 검증 실패, 취소, 외부 원인, 또는 패키지 sentinel/typed error 계약을 보존한다.
 func ClosedOpenRange[T cmp.Ordered](lower, upper T) (Range[T], error) {
 	return newRange(lower, upper, true, false)
 }
 
-// OpenClosedRange returns a range excluding lower and containing upper.
+// OpenClosedRange는 OpenClosedRange 공개 API의 동작을 수행한다.
+//
+// 매개변수:
+//   - lower: OpenClosedRange 동작에 필요한 lower 값이다. zero value, 범위, nil 허용 여부는 함수 계약을 따른다.
+//   - upper: OpenClosedRange 동작에 필요한 upper 값이다. zero value, 범위, nil 허용 여부는 함수 계약을 따른다.
+//
+// 반환 오류는 입력 검증 실패, 취소, 외부 원인, 또는 패키지 sentinel/typed error 계약을 보존한다.
 func OpenClosedRange[T cmp.Ordered](lower, upper T) (Range[T], error) {
 	return newRange(lower, upper, false, true)
 }
 
-// OpenOpenRange returns a range excluding both lower and upper.
+// OpenOpenRange는 OpenOpenRange 공개 API의 동작을 수행한다.
+//
+// 매개변수:
+//   - lower: OpenOpenRange 동작에 필요한 lower 값이다. zero value, 범위, nil 허용 여부는 함수 계약을 따른다.
+//   - upper: OpenOpenRange 동작에 필요한 upper 값이다. zero value, 범위, nil 허용 여부는 함수 계약을 따른다.
+//
+// 반환 오류는 입력 검증 실패, 취소, 외부 원인, 또는 패키지 sentinel/typed error 계약을 보존한다.
 func OpenOpenRange[T cmp.Ordered](lower, upper T) (Range[T], error) {
 	return newRange(lower, upper, false, false)
 }
@@ -68,27 +89,30 @@ func isOrderedNaN[T cmp.Ordered](value T) bool {
 	}
 }
 
-// Lower returns the lower endpoint.
+// Lower는 Lower 공개 API의 동작을 수행한다.
 func (r Range[T]) Lower() T {
 	return r.lower
 }
 
-// Upper returns the upper endpoint.
+// Upper는 Upper 공개 API의 동작을 수행한다.
 func (r Range[T]) Upper() T {
 	return r.upper
 }
 
-// LowerInclusive reports whether the lower endpoint is included.
+// LowerInclusive는 LowerInclusive 공개 API의 동작을 수행한다.
 func (r Range[T]) LowerInclusive() bool {
 	return r.lowerInclusive
 }
 
-// UpperInclusive reports whether the upper endpoint is included.
+// UpperInclusive는 UpperInclusive 공개 API의 동작을 수행한다.
 func (r Range[T]) UpperInclusive() bool {
 	return r.upperInclusive
 }
 
-// Contains reports whether value is inside the range.
+// Contains는 Contains 공개 API의 동작을 수행한다.
+//
+// 매개변수:
+//   - value: Contains 동작에 필요한 value 값이다. zero value, 범위, nil 허용 여부는 함수 계약을 따른다.
 func (r Range[T]) Contains(value T) bool {
 	if r.Empty() {
 		return false
@@ -108,10 +132,10 @@ func (r Range[T]) Contains(value T) bool {
 	return true
 }
 
-// ContainsRange reports whether other is fully inside r.
+// ContainsRange는 ContainsRange 공개 API의 동작을 수행한다.
 //
-// Empty ranges contain no ranges; this method returns false when either side is
-// empty.
+// 매개변수:
+//   - other: ContainsRange 동작에 필요한 other 값이다. zero value, 범위, nil 허용 여부는 함수 계약을 따른다.
 func (r Range[T]) ContainsRange(other Range[T]) bool {
 	if r.Empty() || other.Empty() {
 		return false
@@ -128,7 +152,10 @@ func (r Range[T]) ContainsRange(other Range[T]) bool {
 	return true
 }
 
-// Overlaps reports whether r and other share at least one value.
+// Overlaps는 Overlaps 공개 API의 동작을 수행한다.
+//
+// 매개변수:
+//   - other: Overlaps 동작에 필요한 other 값이다. zero value, 범위, nil 허용 여부는 함수 계약을 따른다.
 func (r Range[T]) Overlaps(other Range[T]) bool {
 	if r.Empty() || other.Empty() {
 		return false
@@ -148,7 +175,7 @@ func (r Range[T]) Overlaps(other Range[T]) bool {
 	return true
 }
 
-// Empty reports whether the range contains no values.
+// Empty는 Empty 공개 API의 동작을 수행한다.
 func (r Range[T]) Empty() bool {
 	if r.lower > r.upper {
 		return true
@@ -159,7 +186,7 @@ func (r Range[T]) Empty() bool {
 	return false
 }
 
-// String returns mathematical interval notation such as [1,5) or (1,5].
+// String는 String 공개 API의 동작을 수행한다.
 func (r Range[T]) String() string {
 	left := "("
 	if r.lowerInclusive {

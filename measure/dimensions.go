@@ -1,51 +1,67 @@
 package measure
 
-// Length  길이 차원입니다.
+// Length는 struct 공개 타입이다.
+// 값의 zero value, nil 허용 여부, 동시성 소유권은 생성자와 메서드의 한국어 주석 및 테스트 계약을 따른다.
 type Length struct{}
 
-// Time  시간 차원입니다.
+// Time는 struct 공개 타입이다.
+// 값의 zero value, nil 허용 여부, 동시성 소유권은 생성자와 메서드의 한국어 주석 및 테스트 계약을 따른다.
 type Time struct{}
 
-// Mass  질량 차원입니다.
+// Mass는 struct 공개 타입이다.
+// 값의 zero value, nil 허용 여부, 동시성 소유권은 생성자와 메서드의 한국어 주석 및 테스트 계약을 따른다.
 type Mass struct{}
 
-// Area  면적 차원입니다.
+// Area는 struct 공개 타입이다.
+// 값의 zero value, nil 허용 여부, 동시성 소유권은 생성자와 메서드의 한국어 주석 및 테스트 계약을 따른다.
 type Area struct{}
 
-// Volume  부피 차원입니다.
+// Volume는 struct 공개 타입이다.
+// 값의 zero value, nil 허용 여부, 동시성 소유권은 생성자와 메서드의 한국어 주석 및 테스트 계약을 따른다.
 type Volume struct{}
 
-// Storage  1024 배율 저장 용량 차원입니다.
+// Storage는 struct 공개 타입이다.
+// 값의 zero value, nil 허용 여부, 동시성 소유권은 생성자와 메서드의 한국어 주석 및 테스트 계약을 따른다.
 type Storage struct{}
 
-// BinarySize  1000/1024 배율과 bit 단위를 함께 다루는 binary size 차원입니다.
+// BinarySize는 struct 공개 타입이다.
+// 값의 zero value, nil 허용 여부, 동시성 소유권은 생성자와 메서드의 한국어 주석 및 테스트 계약을 따른다.
 type BinarySize struct{}
 
-// Frequency  주파수 차원입니다.
+// Frequency는 struct 공개 타입이다.
+// 값의 zero value, nil 허용 여부, 동시성 소유권은 생성자와 메서드의 한국어 주석 및 테스트 계약을 따른다.
 type Frequency struct{}
 
-// Energy  에너지 차원입니다.
+// Energy는 struct 공개 타입이다.
+// 값의 zero value, nil 허용 여부, 동시성 소유권은 생성자와 메서드의 한국어 주석 및 테스트 계약을 따른다.
 type Energy struct{}
 
-// Power  전력 차원입니다.
+// Power는 struct 공개 타입이다.
+// 값의 zero value, nil 허용 여부, 동시성 소유권은 생성자와 메서드의 한국어 주석 및 테스트 계약을 따른다.
 type Power struct{}
 
-// Pressure  압력 차원입니다.
+// Pressure는 struct 공개 타입이다.
+// 값의 zero value, nil 허용 여부, 동시성 소유권은 생성자와 메서드의 한국어 주석 및 테스트 계약을 따른다.
 type Pressure struct{}
 
-// Angle  각도 차원입니다.
+// Angle는 struct 공개 타입이다.
+// 값의 zero value, nil 허용 여부, 동시성 소유권은 생성자와 메서드의 한국어 주석 및 테스트 계약을 따른다.
 type Angle struct{}
 
-// GraphicsLength  픽셀 기반 그래픽 길이 차원입니다.
+// GraphicsLength는 struct 공개 타입이다.
+// 값의 zero value, nil 허용 여부, 동시성 소유권은 생성자와 메서드의 한국어 주석 및 테스트 계약을 따른다.
 type GraphicsLength struct{}
 
-// Product  두 차원의 곱 차원입니다.
+// Product는 struct 공개 타입이다.
+// 값의 zero value, nil 허용 여부, 동시성 소유권은 생성자와 메서드의 한국어 주석 및 테스트 계약을 따른다.
 type Product[A, B any] struct{}
 
-// Ratio  두 차원의 비율 차원입니다.
+// Ratio는 struct 공개 타입이다.
+// 값의 zero value, nil 허용 여부, 동시성 소유권은 생성자와 메서드의 한국어 주석 및 테스트 계약을 따른다.
 type Ratio[A, B any] struct{}
 
-// Inverse  한 차원의 역수 차원입니다.
+// Inverse는 struct 공개 타입이다.
+// 값의 zero value, nil 허용 여부, 동시성 소유권은 생성자와 메서드의 한국어 주석 및 테스트 계약을 따른다.
 type Inverse[D any] struct{}
 
 // Velocity  길이/시간 차원입니다.

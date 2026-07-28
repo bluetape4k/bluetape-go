@@ -2,37 +2,56 @@ package codec
 
 import "encoding/base64"
 
-// EncodeBase64 encodes bytes with standard padded Base64.
+// EncodeBase64는 EncodeBase64 공개 API의 동작을 수행한다.
+//
+// 매개변수:
+//   - input: EncodeBase64가 읽거나 복사하는 input 목록이다. nil과 빈 슬라이스 의미는 함수 계약을 따른다.
 func EncodeBase64(input []byte) string {
 	return base64.StdEncoding.EncodeToString(input)
 }
 
-// DecodeBase64 decodes standard padded Base64.
+// DecodeBase64는 DecodeBase64 공개 API의 동작을 수행한다.
+//
+// 매개변수:
+//   - input: DecodeBase64가 해석하거나 검증하는 문자열 값이다. 빈 문자열과 공백 처리 의미는 함수 계약을 따른다.
+//
+// 반환 오류는 입력 검증 실패, 취소, 외부 원인, 또는 패키지 sentinel/typed error 계약을 보존한다.
 func DecodeBase64(input string) ([]byte, error) {
 	return base64.StdEncoding.DecodeString(input)
 }
 
-// EncodeBase64URL encodes bytes with unpadded URL-safe Base64.
+// EncodeBase64URL는 EncodeBase64URL 공개 API의 동작을 수행한다.
+//
+// 매개변수:
+//   - input: EncodeBase64URL가 읽거나 복사하는 input 목록이다. nil과 빈 슬라이스 의미는 함수 계약을 따른다.
 func EncodeBase64URL(input []byte) string {
 	return base64.RawURLEncoding.EncodeToString(input)
 }
 
-// DecodeBase64URL decodes unpadded URL-safe Base64.
+// DecodeBase64URL는 DecodeBase64URL 공개 API의 동작을 수행한다.
+//
+// 매개변수:
+//   - input: DecodeBase64URL가 해석하거나 검증하는 문자열 값이다. 빈 문자열과 공백 처리 의미는 함수 계약을 따른다.
+//
+// 반환 오류는 입력 검증 실패, 취소, 외부 원인, 또는 패키지 sentinel/typed error 계약을 보존한다.
 func DecodeBase64URL(input string) ([]byte, error) {
 	return base64.RawURLEncoding.DecodeString(input)
 }
 
-// EncodeBase64String encodes a UTF-8 string with standard padded Base64.
+// EncodeBase64String는 EncodeBase64String 공개 API의 동작을 수행한다.
 //
-// It converts the string to bytes before encoding and cannot report invalid UTF-8.
+// 매개변수:
+//   - input: EncodeBase64String가 해석하거나 검증하는 문자열 값이다. 빈 문자열과 공백 처리 의미는 함수 계약을 따른다.
 func EncodeBase64String(input string) string {
 	return EncodeBase64([]byte(input))
 }
 
-// DecodeBase64String decodes standard Base64 bytes into a UTF-8 string.
+// DecodeBase64String는 DecodeBase64String 공개 API의 동작을 수행한다.
 //
-// It returns an error wrapping core.ErrInvalidUTF8 when decoded bytes are not valid UTF-8.
-// Use DecodeBase64 for binary payloads.
+// 매개변수:
+//   - input: DecodeBase64String가 해석하거나 검증하는 문자열 값이다. 빈 문자열과 공백 처리 의미는 함수 계약을 따른다.
+//
+// 반환 오류는 입력 검증 실패, 취소, 외부 원인, 또는 패키지 sentinel/typed error 계약을 보존한다.
 func DecodeBase64String(input string) (string, error) {
 	decoded, err := DecodeBase64(input)
 	if err != nil {

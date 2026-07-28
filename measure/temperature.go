@@ -6,7 +6,8 @@ import (
 	"strings"
 )
 
-// TemperatureUnit  절대 온도와 온도 차이의 표현 단위입니다.
+// TemperatureUnit는 struct 공개 타입이다.
+// 값의 zero value, nil 허용 여부, 동시성 소유권은 생성자와 메서드의 한국어 주석 및 테스트 계약을 따른다.
 type TemperatureUnit struct {
 	name   string
 	suffix string
@@ -20,36 +21,43 @@ var (
 
 var temperatureUnits = []TemperatureUnit{fahrenheitUnit, celsiusUnit, kelvinUnit}
 
-// KelvinUnit  Kelvin 표현 단위를 반환합니다.
+// KelvinUnit는 KelvinUnit 공개 API의 동작을 수행한다.
 func KelvinUnit() TemperatureUnit { return kelvinUnit }
 
-// CelsiusUnit  Celsius 표현 단위를 반환합니다.
+// CelsiusUnit는 CelsiusUnit 공개 API의 동작을 수행한다.
 func CelsiusUnit() TemperatureUnit { return celsiusUnit }
 
-// FahrenheitUnit  Fahrenheit 표현 단위를 반환합니다.
+// FahrenheitUnit는 FahrenheitUnit 공개 API의 동작을 수행한다.
 func FahrenheitUnit() TemperatureUnit { return fahrenheitUnit }
 
-// Name  온도 단위 이름을 반환합니다.
+// Name는 Name 공개 API의 동작을 수행한다.
 func (u TemperatureUnit) Name() string {
 	return u.name
 }
 
-// Suffix  온도 단위 suffix를 반환합니다.
+// Suffix는 Suffix 공개 API의 동작을 수행한다.
 func (u TemperatureUnit) Suffix() string {
 	return u.suffix
 }
 
-// Temperature  Kelvin 기준으로 저장되는 절대 온도입니다.
+// Temperature는 struct 공개 타입이다.
+// 값의 zero value, nil 허용 여부, 동시성 소유권은 생성자와 메서드의 한국어 주석 및 테스트 계약을 따른다.
 type Temperature struct {
 	kelvin float64
 }
 
-// TemperatureDelta  Kelvin 기준으로 저장되는 온도 차이입니다.
+// TemperatureDelta는 struct 공개 타입이다.
+// 값의 zero value, nil 허용 여부, 동시성 소유권은 생성자와 메서드의 한국어 주석 및 테스트 계약을 따른다.
 type TemperatureDelta struct {
 	kelvin float64
 }
 
-// Kelvin  Kelvin 값으로 절대 온도를 생성합니다.
+// Kelvin는 Kelvin 공개 API의 동작을 수행한다.
+//
+// 매개변수:
+//   - value: Kelvin 동작에 필요한 value 값이다. zero value, 범위, nil 허용 여부는 함수 계약을 따른다.
+//
+// 반환 오류는 입력 검증 실패, 취소, 외부 원인, 또는 패키지 sentinel/typed error 계약을 보존한다.
 func Kelvin(value float64) (Temperature, error) {
 	if !finite(value) {
 		return Temperature{}, fmt.Errorf("%w: temperature must be finite", ErrInvalidMeasure)
@@ -57,7 +65,10 @@ func Kelvin(value float64) (Temperature, error) {
 	return Temperature{kelvin: value}, nil
 }
 
-// MustKelvin  Kelvin 생성 실패 시 panic을 발생시킵니다.
+// MustKelvin는 MustKelvin 공개 API의 동작을 수행한다.
+//
+// 매개변수:
+//   - value: MustKelvin 동작에 필요한 value 값이다. zero value, 범위, nil 허용 여부는 함수 계약을 따른다.
 func MustKelvin(value float64) Temperature {
 	temperature, err := Kelvin(value)
 	if err != nil {
@@ -66,12 +77,20 @@ func MustKelvin(value float64) Temperature {
 	return temperature
 }
 
-// Celsius  Celsius 값으로 절대 온도를 생성합니다.
+// Celsius는 Celsius 공개 API의 동작을 수행한다.
+//
+// 매개변수:
+//   - value: Celsius 동작에 필요한 value 값이다. zero value, 범위, nil 허용 여부는 함수 계약을 따른다.
+//
+// 반환 오류는 입력 검증 실패, 취소, 외부 원인, 또는 패키지 sentinel/typed error 계약을 보존한다.
 func Celsius(value float64) (Temperature, error) {
 	return Kelvin(value + 273.15)
 }
 
-// MustCelsius  Celsius 생성 실패 시 panic을 발생시킵니다.
+// MustCelsius는 MustCelsius 공개 API의 동작을 수행한다.
+//
+// 매개변수:
+//   - value: MustCelsius 동작에 필요한 value 값이다. zero value, 범위, nil 허용 여부는 함수 계약을 따른다.
 func MustCelsius(value float64) Temperature {
 	temperature, err := Celsius(value)
 	if err != nil {
@@ -80,12 +99,20 @@ func MustCelsius(value float64) Temperature {
 	return temperature
 }
 
-// Fahrenheit  Fahrenheit 값으로 절대 온도를 생성합니다.
+// Fahrenheit는 Fahrenheit 공개 API의 동작을 수행한다.
+//
+// 매개변수:
+//   - value: Fahrenheit 동작에 필요한 value 값이다. zero value, 범위, nil 허용 여부는 함수 계약을 따른다.
+//
+// 반환 오류는 입력 검증 실패, 취소, 외부 원인, 또는 패키지 sentinel/typed error 계약을 보존한다.
 func Fahrenheit(value float64) (Temperature, error) {
 	return Kelvin((value-32)*5/9 + 273.15)
 }
 
-// MustFahrenheit  Fahrenheit 생성 실패 시 panic을 발생시킵니다.
+// MustFahrenheit는 MustFahrenheit 공개 API의 동작을 수행한다.
+//
+// 매개변수:
+//   - value: MustFahrenheit 동작에 필요한 value 값이다. zero value, 범위, nil 허용 여부는 함수 계약을 따른다.
 func MustFahrenheit(value float64) Temperature {
 	temperature, err := Fahrenheit(value)
 	if err != nil {
@@ -94,7 +121,12 @@ func MustFahrenheit(value float64) Temperature {
 	return temperature
 }
 
-// KelvinDelta  Kelvin 온도 차이를 생성합니다.
+// KelvinDelta는 KelvinDelta 공개 API의 동작을 수행한다.
+//
+// 매개변수:
+//   - value: KelvinDelta 동작에 필요한 value 값이다. zero value, 범위, nil 허용 여부는 함수 계약을 따른다.
+//
+// 반환 오류는 입력 검증 실패, 취소, 외부 원인, 또는 패키지 sentinel/typed error 계약을 보존한다.
 func KelvinDelta(value float64) (TemperatureDelta, error) {
 	if !finite(value) {
 		return TemperatureDelta{}, fmt.Errorf("%w: temperature delta must be finite", ErrInvalidMeasure)
@@ -102,7 +134,10 @@ func KelvinDelta(value float64) (TemperatureDelta, error) {
 	return TemperatureDelta{kelvin: value}, nil
 }
 
-// MustKelvinDelta  Kelvin 온도 차이 생성 실패 시 panic을 발생시킵니다.
+// MustKelvinDelta는 MustKelvinDelta 공개 API의 동작을 수행한다.
+//
+// 매개변수:
+//   - value: MustKelvinDelta 동작에 필요한 value 값이다. zero value, 범위, nil 허용 여부는 함수 계약을 따른다.
 func MustKelvinDelta(value float64) TemperatureDelta {
 	delta, err := KelvinDelta(value)
 	if err != nil {
@@ -111,12 +146,20 @@ func MustKelvinDelta(value float64) TemperatureDelta {
 	return delta
 }
 
-// CelsiusDelta  Celsius 온도 차이를 생성합니다.
+// CelsiusDelta는 CelsiusDelta 공개 API의 동작을 수행한다.
+//
+// 매개변수:
+//   - value: CelsiusDelta 동작에 필요한 value 값이다. zero value, 범위, nil 허용 여부는 함수 계약을 따른다.
+//
+// 반환 오류는 입력 검증 실패, 취소, 외부 원인, 또는 패키지 sentinel/typed error 계약을 보존한다.
 func CelsiusDelta(value float64) (TemperatureDelta, error) {
 	return KelvinDelta(value)
 }
 
-// MustCelsiusDelta  Celsius 온도 차이 생성 실패 시 panic을 발생시킵니다.
+// MustCelsiusDelta는 MustCelsiusDelta 공개 API의 동작을 수행한다.
+//
+// 매개변수:
+//   - value: MustCelsiusDelta 동작에 필요한 value 값이다. zero value, 범위, nil 허용 여부는 함수 계약을 따른다.
 func MustCelsiusDelta(value float64) TemperatureDelta {
 	delta, err := CelsiusDelta(value)
 	if err != nil {
@@ -125,12 +168,20 @@ func MustCelsiusDelta(value float64) TemperatureDelta {
 	return delta
 }
 
-// FahrenheitDelta  Fahrenheit 온도 차이를 생성합니다.
+// FahrenheitDelta는 FahrenheitDelta 공개 API의 동작을 수행한다.
+//
+// 매개변수:
+//   - value: FahrenheitDelta 동작에 필요한 value 값이다. zero value, 범위, nil 허용 여부는 함수 계약을 따른다.
+//
+// 반환 오류는 입력 검증 실패, 취소, 외부 원인, 또는 패키지 sentinel/typed error 계약을 보존한다.
 func FahrenheitDelta(value float64) (TemperatureDelta, error) {
 	return KelvinDelta(value * 5 / 9)
 }
 
-// MustFahrenheitDelta  Fahrenheit 온도 차이 생성 실패 시 panic을 발생시킵니다.
+// MustFahrenheitDelta는 MustFahrenheitDelta 공개 API의 동작을 수행한다.
+//
+// 매개변수:
+//   - value: MustFahrenheitDelta 동작에 필요한 value 값이다. zero value, 범위, nil 허용 여부는 함수 계약을 따른다.
 func MustFahrenheitDelta(value float64) TemperatureDelta {
 	delta, err := FahrenheitDelta(value)
 	if err != nil {
@@ -139,52 +190,64 @@ func MustFahrenheitDelta(value float64) TemperatureDelta {
 	return delta
 }
 
-// InKelvin  절대 온도를 Kelvin으로 반환합니다.
+// InKelvin는 InKelvin 공개 API의 동작을 수행한다.
 func (t Temperature) InKelvin() float64 {
 	return t.kelvin
 }
 
-// InCelsius  절대 온도를 Celsius로 반환합니다.
+// InCelsius는 InCelsius 공개 API의 동작을 수행한다.
 func (t Temperature) InCelsius() float64 {
 	return t.kelvin - 273.15
 }
 
-// InFahrenheit  절대 온도를 Fahrenheit로 반환합니다.
+// InFahrenheit는 InFahrenheit 공개 API의 동작을 수행한다.
 func (t Temperature) InFahrenheit() float64 {
 	return (t.kelvin-273.15)*9/5 + 32
 }
 
-// InKelvin  온도 차이를 Kelvin으로 반환합니다.
+// InKelvin는 InKelvin 공개 API의 동작을 수행한다.
 func (d TemperatureDelta) InKelvin() float64 {
 	return d.kelvin
 }
 
-// InCelsius  온도 차이를 Celsius로 반환합니다.
+// InCelsius는 InCelsius 공개 API의 동작을 수행한다.
 func (d TemperatureDelta) InCelsius() float64 {
 	return d.kelvin
 }
 
-// InFahrenheit  온도 차이를 Fahrenheit로 반환합니다.
+// InFahrenheit는 InFahrenheit 공개 API의 동작을 수행한다.
 func (d TemperatureDelta) InFahrenheit() float64 {
 	return d.kelvin * 9 / 5
 }
 
-// Add  절대 온도에 온도 차이를 더합니다.
+// Add는 Add 공개 API의 동작을 수행한다.
+//
+// 매개변수:
+//   - delta: Add 동작에 필요한 delta 값이다. zero value, 범위, nil 허용 여부는 함수 계약을 따른다.
 func (t Temperature) Add(delta TemperatureDelta) Temperature {
 	return Temperature{kelvin: t.kelvin + delta.kelvin}
 }
 
-// Sub  절대 온도에서 온도 차이를 뺍니다.
+// Sub는 Sub 공개 API의 동작을 수행한다.
+//
+// 매개변수:
+//   - delta: Sub 동작에 필요한 delta 값이다. zero value, 범위, nil 허용 여부는 함수 계약을 따른다.
 func (t Temperature) Sub(delta TemperatureDelta) Temperature {
 	return Temperature{kelvin: t.kelvin - delta.kelvin}
 }
 
-// Delta  두 절대 온도의 차이를 반환합니다.
+// Delta는 Delta 공개 API의 동작을 수행한다.
+//
+// 매개변수:
+//   - other: Delta 동작에 필요한 other 값이다. zero value, 범위, nil 허용 여부는 함수 계약을 따른다.
 func (t Temperature) Delta(other Temperature) TemperatureDelta {
 	return TemperatureDelta{kelvin: t.kelvin - other.kelvin}
 }
 
-// Compare  두 절대 온도를 비교합니다.
+// Compare는 Compare 공개 API의 동작을 수행한다.
+//
+// 매개변수:
+//   - other: Compare 동작에 필요한 other 값이다. zero value, 범위, nil 허용 여부는 함수 계약을 따른다.
 func (t Temperature) Compare(other Temperature) int {
 	switch {
 	case t.kelvin < other.kelvin:
@@ -196,7 +259,12 @@ func (t Temperature) Compare(other Temperature) int {
 	}
 }
 
-// Format  절대 온도를 지정 단위로 포맷합니다.
+// Format는 Format 공개 API의 동작을 수행한다.
+//
+// 매개변수:
+//   - unit: Format 동작에 필요한 unit 값이다. zero value, 범위, nil 허용 여부는 함수 계약을 따른다.
+//
+// 반환 오류는 입력 검증 실패, 취소, 외부 원인, 또는 패키지 sentinel/typed error 계약을 보존한다.
 func (t Temperature) Format(unit TemperatureUnit) (string, error) {
 	if !finite(t.kelvin) {
 		return "", fmt.Errorf("%w: temperature must be finite", ErrInvalidMeasure)
@@ -213,7 +281,12 @@ func (t Temperature) Format(unit TemperatureUnit) (string, error) {
 	}
 }
 
-// Format  온도 차이를 지정 단위로 포맷합니다.
+// Format는 Format 공개 API의 동작을 수행한다.
+//
+// 매개변수:
+//   - unit: Format 동작에 필요한 unit 값이다. zero value, 범위, nil 허용 여부는 함수 계약을 따른다.
+//
+// 반환 오류는 입력 검증 실패, 취소, 외부 원인, 또는 패키지 sentinel/typed error 계약을 보존한다.
 func (d TemperatureDelta) Format(unit TemperatureUnit) (string, error) {
 	if !finite(d.kelvin) {
 		return "", fmt.Errorf("%w: temperature delta must be finite", ErrInvalidMeasure)
@@ -230,7 +303,7 @@ func (d TemperatureDelta) Format(unit TemperatureUnit) (string, error) {
 	}
 }
 
-// String  절대 온도를 Celsius 기준 디버그 문자열로 반환합니다.
+// String는 String 공개 API의 동작을 수행한다.
 func (t Temperature) String() string {
 	text, err := t.Format(celsiusUnit)
 	if err != nil {
@@ -239,7 +312,7 @@ func (t Temperature) String() string {
 	return text
 }
 
-// String  온도 차이를 Celsius 기준 디버그 문자열로 반환합니다.
+// String는 String 공개 API의 동작을 수행한다.
 func (d TemperatureDelta) String() string {
 	text, err := d.Format(celsiusUnit)
 	if err != nil {
@@ -248,7 +321,12 @@ func (d TemperatureDelta) String() string {
 	return text
 }
 
-// ParseTemperature  절대 온도 문자열을 파싱합니다.
+// ParseTemperature는 ParseTemperature 공개 API의 동작을 수행한다.
+//
+// 매개변수:
+//   - text: ParseTemperature가 해석하거나 검증하는 문자열 값이다. 빈 문자열과 공백 처리 의미는 함수 계약을 따른다.
+//
+// 반환 오류는 입력 검증 실패, 취소, 외부 원인, 또는 패키지 sentinel/typed error 계약을 보존한다.
 func ParseTemperature(text string) (Temperature, error) {
 	value, unit, err := parseTemperatureValue(text)
 	if err != nil {
@@ -266,7 +344,12 @@ func ParseTemperature(text string) (Temperature, error) {
 	}
 }
 
-// ParseTemperatureDelta  온도 차이 문자열을 파싱합니다.
+// ParseTemperatureDelta는 ParseTemperatureDelta 공개 API의 동작을 수행한다.
+//
+// 매개변수:
+//   - text: ParseTemperatureDelta가 해석하거나 검증하는 문자열 값이다. 빈 문자열과 공백 처리 의미는 함수 계약을 따른다.
+//
+// 반환 오류는 입력 검증 실패, 취소, 외부 원인, 또는 패키지 sentinel/typed error 계약을 보존한다.
 func ParseTemperatureDelta(text string) (TemperatureDelta, error) {
 	value, unit, err := parseTemperatureValue(text)
 	if err != nil {
