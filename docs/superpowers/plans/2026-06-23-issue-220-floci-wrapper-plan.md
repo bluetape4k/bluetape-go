@@ -1,10 +1,13 @@
 # Issue #220 Floci Wrapper Implementation Plan
 
+> 한국어 운영 요약: 이 계획 문서는 사용자 협업용 실행 계획이다. 아래 원문에 포함된 명령, 경로, API 이름, issue/PR 번호, branch 이름, code block, test output은 추적성과 재현성을 위해 그대로 보존한다. 작업 순서, 위험, 검증, 롤백 판단은 한국어 독자가 바로 실행 경계를 이해할 수 있도록 이 메모를 우선 적용한다.
+> 추가 한국어 요약: 이 문서의 실행 판단은 기존 순서를 따르며, 변경자는 작업 표와 검증 목록을 먼저 확인한 뒤 관련 테스트를 실행한다. 영어로 남은 항목은 코드 식별자 또는 재현 증거다.\n
+
 Issue: [#220](https://github.com/bluetape4k/bluetape-go/issues/220)  
 Spec: `docs/superpowers/specs/2026-06-23-issue-220-floci-wrapper-design.md`  
 Date: 2026-06-23
 
-## Goal
+## 목표
 
 Add `testcontainers/floci` as the first #220 AWS emulator fixture slice.
 
@@ -18,7 +21,7 @@ Baseline `go test ./...` failed once in unrelated
 packages passed. Treat full-suite failures in that package as baseline unless
 the new diff touches rate limiting.
 
-## Tasks
+## 작업
 
 ### T1 - RED Tests
 
@@ -113,7 +116,7 @@ If `make test` or `make race` reproduces only the baseline `ratelimit/redis`
 refill timing failure, rerun the affected command once. If it remains isolated,
 record the exact package/test and proceed with targeted Floci evidence.
 
-## Risks
+## 위험
 
 - `floci/floci:latest` can drift. The first slice documents this risk; a pinned
   image follow-up should be filed if CI becomes unstable.

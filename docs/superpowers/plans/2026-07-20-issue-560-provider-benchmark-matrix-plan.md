@@ -1,30 +1,33 @@
-# Issue #560 Provider Benchmark Matrix Implementation Plan
+# Issue #560 provider benchmark matrix 구현 계획
 
-> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
+> 한국어 재작성 범위: 이 계획 문서는 한국어 운영 문서로 읽히도록 제목, 판단, 작업 설명, 위험, 검증, 롤백 문맥을 한국어로 정리한다. 명령, 경로, API 이름, 이슈/PR 번호, 브랜치명, 코드 블록, 테스트 출력 같은 증거 문자열은 정확성을 위해 원문 그대로 보존한다.
 
-**Goal:** Add reproducible, semantically bounded benchmark matrices and retained evidence for every currently implemented multi-provider family in issue #560.
 
-**Architecture:** Keep each benchmark harness in its family root as external test code, reuse existing Testcontainers helpers, and add no production API or runtime dependency. A fail-safe capture script records exact commands and sanitized raw output; one English report, bilingual README links, and reproducible chart sources aggregate only equivalent scenarios.
+> **에이전트 작업자용:** 필수 하위 스킬: 사용 superpowers:subagent-driven-development (권장) 또는 superpowers:executing-plans to 이 계획을 작업 단위로 구현. 단계는 checkbox (`- [ ]`) 추적 문법을 사용.
 
-**Tech Stack:** Go 1.26.3 benchmarks/tests, existing Redis/MongoDB/PostgreSQL/etcd/Neo4j/Testcontainers dependencies, POSIX shell, Node.js chart generators, Vega-Lite JSON, SVG/PNG, Markdown.
+**목표:** 추가 reproducible, semantically bounded benchmark matrices 및 retained evidence for every currently implemented multi-provider family in issue #560.
+
+**아키텍처:** 유지 each benchmark harness in its family root as external 테스트 code, reuse 기존 Testcontainers helpers, 및 add 없음 production API 또는 runtime dependency. A fail-safe capture script records exact commands 및 sanitized raw output; one 영문 report, bilingual README links, 및 reproducible chart sources aggregate 만 equivalent scenarios.
+
+**기술 스택:** Go 1.26.3 benchmarks/테스트, 기존 Redis/MongoDB/PostgreSQL/etcd/Neo4j/Testcontainers dependencies, POSIX shell, Node.js chart generators, Vega-Lite JSON, SVG/PNG, Markdown.
 
 ---
 
-## File Map
+## 파일 지도
 
-Create:
+생성:
 
-- `leader/provider_benchmark_test.go` — leader latency rows, deterministic concurrent rounds, and correctness probes.
-- `ratelimit/provider_benchmark_test.go` — Redis/PostgreSQL rate-limiter rows and local baseline.
-- `cache/provider_benchmark_test.go` — memory, Redis L2, tiered, near-cache, and serializer sections.
-- `graph/graphio/provider_benchmark_test.go` — CSV/NDJSON/GraphML shapes and construction baseline.
-- `graph/provider_benchmark_test.go` — Neo4j/Memgraph traversal and PostgreSQL recursive-CTE baseline.
-- `scripts/capture-provider-benchmark.sh` — allowlisted family execution and atomic raw-output capture.
-- `scripts/capture-provider-benchmark_test.sh` — success, failure, redaction, and atomic-replacement contract.
+- `leader/provider_benchmark_test.go` — leader latency rows, deterministic concurrent rounds, 및 correctness probes.
+- `ratelimit/provider_benchmark_test.go` — Redis/PostgreSQL rate-limiter rows 및 local baseline.
+- `cache/provider_benchmark_test.go` — memory, Redis L2, tiered, near-cache, 및 serializer sections.
+- `graph/graphio/provider_benchmark_test.go` — CSV/NDJSON/GraphML shapes 및 construction baseline.
+- `graph/provider_benchmark_test.go` — Neo4j/Memgraph traversal 및 PostgreSQL recursive-CTE baseline.
+- `scripts/capture-provider-benchmark.sh` — al낮음listed family execution 및 atomic raw-output capture.
+- `scripts/capture-provider-benchmark_test.sh` — success, failure, redaction, 및 atomic-replacement 계약.
 - `docs/research/outputs/issue-560/environment.md` — sanitized environment manifest.
 - `docs/research/outputs/issue-560/*.txt` — exact successful benchmark/probe outputs.
 - `docs/research/2026-07-20-issue-560-provider-benchmark-matrix.md` — final report.
-- `docs/images/readme-charts/generate-provider-benchmark-summaries.mjs` — raw-output parser and chart renderer.
+- `docs/images/readme-charts/generate-provider-benchmark-summaries.mjs` — raw-output parser 및 chart renderer.
 - `docs/images/readme-charts/provider-benchmark-*-summary.vl.json` — chart data/spec sources.
 - `docs/images/readme-charts/provider-benchmark-*-summary.svg` — reviewable vector charts.
 - `docs/images/readme-charts/provider-benchmark-*-summary.png` — Markdown-compatible raster charts.
@@ -35,52 +38,52 @@ Modify:
 - `testcontainers/redis/redis.go`, `redis_test.go` — immutable Redis image authority.
 - `testcontainers/postgres/postgres.go`, `postgres_test.go` — immutable PostgreSQL image authority.
 - `testcontainers/mongodb/mongodb.go`, `mongodb_test.go` — immutable MongoDB image authority.
-- `graph/neo4j/benchmark_test.go` — checked bounded cleanup and immutable Neo4j/Memgraph images.
-- `README.md`, `README.ko.md` — matching report link, snapshot caveat, and capture command.
+- `graph/neo4j/benchmark_test.go` — checked bounded cleanup 및 immutable Neo4j/Memgraph images.
+- `README.md`, `README.ko.md` — matching report link, snapshot caveat, 및 capture command.
 
-Do not modify exported production contracts in `leader`, `ratelimit`, `cache`,
-`graph`, or `graph/graphio`. Do not add dependencies or benchmark live/cloud/public
+다음을 하지 않는다: modify exported production contracts in `leader`, `ratelimit`, `cache`,
+`graph`, 또는 `graph/graphio`. 다음을 하지 않는다: add dependencies 또는 benchmark live/cloud/공개
 services.
 
-## Spec Coverage Matrix
+## spec coverage matrix
 
 | Spec requirement | Plan proof |
 |---|---|
 | Five implemented multi-provider families | Tasks 2-6 |
-| Equivalent scenarios and local/network separation | Tasks 2-6 family-specific sub-benchmark grammar |
-| Fixture reuse and immutable provenance | Task 1 and Tasks 2-6 fixture construction |
-| Bounded contexts, worker joins, checked cleanup | Tasks 2-6 focused contract tests |
-| Leader acquire/resign/contention/expiry/cancellation/stale-owner coverage | Task 2 latency rows and probes |
-| Cache L1/L2/tiered/near-cache plus serialization | Task 4 |
-| Graph I/O parser/materialization and construction boundary | Task 5 |
-| Path-shaped GraphDB plus PostgreSQL baseline | Task 6 |
-| Exact commands, redaction, failure-safe raw output | Task 7 |
-| Fresh current-HEAD evidence and environment | Task 8 |
-| Tables, charts, selection analysis, caveats | Task 9 |
-| Bilingual discoverability | Task 9 |
-| No public API/dependency/default change | Tasks 1-10 diff and module checks |
-| Full verification and P0/P1=0 | Tasks 10-11 |
+| Equivalent scenarios 및 local/network separation | Tasks 2-6 family-specific sub-benchmark grammar |
+| Fixture reuse 및 immutable provenance | 작업 1 및 Tasks 2-6 fixture construction |
+| Bounded contexts, worker joins, checked cleanup | Tasks 2-6 focused 계약 테스트 |
+| Leader acquire/resign/contention/expiry/cancellation/stale-owner coverage | 작업 2 latency rows 및 probes |
+| Cache L1/L2/tiered/near-cache plus serialization | 작업 4 |
+| Graph I/O parser/materialization 및 construction boundary | 작업 5 |
+| Path-shaped GraphDB plus PostgreSQL baseline | 작업 6 |
+| Exact commands, redaction, failure-safe raw output | 작업 7 |
+| Fresh current-HEAD evidence 및 environment | 작업 8 |
+| Tables, charts, selection analysis, caveats | 작업 9 |
+| Bilingual discoverability | 작업 9 |
+| No 공개 API/dependency/default change | Tasks 1-10 diff 및 module checks |
+| Full verification 및 P0/P1=0 | Tasks 10-11 |
 
-## Step 3-R Plan Review Record
+## 단계 3-R Plan 리뷰 기록
 
-The review target was commit `7bb2a79`; repairs below are applied in the next plan commit.
+The review target was commit `7bb2a79`; repairs be낮음 are applied in the next plan commit.
 
 | Lens | Execution | Initial P0/P1 | Resolution |
 |---|---|---:|---|
-| Performance | Native lane timed out; main integration fallback performed | 0/3 | Defined the local leader baseline, separated expiry timing, and fixed Graph I/O/result-consumption boundaries |
-| Stability | Independent verifier lane | 0/4 | Added blocked-peer drain tests, exact-once lifecycle ordering, serial package gates, and bounded expiry policy |
-| Security | Independent code-reviewer lane | 0/2 | Verified exact digest references and made both success/failure capture sanitize before retention |
-| Operator/Ops | Native lane creation stalled; main integration fallback performed | 0/2 | Made service-version collection post-capture and made PNG rasterization deterministic/fail-closed |
-| Developer/API | Main-session equivalent after native runtime stall | 0/2 | Removed capture-name drift and avoided double container termination while retaining existing helpers |
-| User/caller | Main-session equivalent after native runtime stall | 0/1 | Kept README reproduction arguments exact and separated non-comparable chart/report sections |
+| Performance | Native lane timed out; main integration fallback performed | 0/3 | Defined the local leader baseline, separated expiry timing, 및 fixed Graph I/O/result-consumption boundaries |
+| Stability | Independent verifier lane | 0/4 | Added blocked-peer drain 테스트, exact-once lifecycle ordering, serial 패키지 gates, 및 bounded expiry policy |
+| Security | Independent code-reviewer lane | 0/2 | Verified exact digest references 및 made both success/failure capture sanitize 전에 retention |
+| Operator/Ops | Native lane creation stalled; main integration fallback performed | 0/2 | Made service-version collection post-capture 및 made PNG rasterization deterministic/fail-closed |
+| Developer/API | Main-session equivalent 후 native runtime stall | 0/2 | Removed capture-name drift 및 avoided double container termination while retaining 기존 helpers |
+| User/호출자 | Main-session equivalent 후 native runtime stall | 0/1 | Kept README reproduction arguments exact 및 separated non-comparable chart/report sections |
 
-Main integration result after repair: `P0=0`, `P1=0`. The stalled native paths were not waited on
-again; the main session completed those read-only perspectives as required by the repository
+Main integration result 후 repair: `P0=0`, `P1=0`. The stalled native paths were 아님 waited on
+again; the main session completed those read-만 perspectives as required by the repository
 fallback rule.
 
-### Task 1: Pin Container Provenance Without Changing Helper APIs
+### 작업 1: Pin Container Provenance Without Changing Helper APIs
 
-**Files:**
+**파일:**
 - Modify: `testcontainers/redis/redis.go`
 - Modify: `testcontainers/redis/redis_test.go`
 - Modify: `testcontainers/postgres/postgres.go`
@@ -89,10 +92,10 @@ fallback rule.
 - Modify: `testcontainers/mongodb/mongodb_test.go`
 - Modify: `graph/neo4j/benchmark_test.go`
 
-- [ ] **Step 1: Resolve reviewed multi-architecture image digests**
+- [ ] **단계 1: Resolve reviewed multi-architecture image digests**
 
-Use the reviewed multi-architecture index digests below. Before editing code, inspect each exact
-tag-plus-digest reference and verify that it contains both `linux/amd64` and `linux/arm64`
+사용 the reviewed multi-architecture index digests be낮음. Before editing code, inspect each exact
+tag-plus-digest reference 및 verify that it contains both `linux/amd64` 및 `linux/arm64`
 descriptors:
 
 ```bash
@@ -111,14 +114,14 @@ docker manifest inspect --verbose memgraph/memgraph:3.5.0@sha256:b411deeb2341698
 | `neo4j:5.26.0` | `sha256:5a015e53de1895e7eee1574ae0325cf8c4b89587222778108c594bdd45a474b5` |
 | `memgraph/memgraph:3.5.0` | `sha256:b411deeb2341698f4f7a0d69535c8937c341e924f66962aa3e70acb63c7a5bd1` |
 
-Expected: every exact reference resolves to an index/manifest-list whose Linux descriptors include
-both architectures. Separately resolve each mutable tag and record whether it still points at the
-reviewed index; tag drift is reported but cannot change the pinned code authority. Do not proceed
-if an exact reviewed digest no longer resolves or lacks either target.
+예상: every exact reference resolves to an index/manifest-list whose Linux descriptors include
+both architectures. Separately resolve each mutable tag 및 record whether it still points at the
+reviewed index; tag drift is reported but cannot change the pinned code authority. 다음을 하지 않는다: proceed
+if an exact reviewed digest 없음 longer resolves 또는 lacks either target.
 
-- [ ] **Step 2: Write failing image-authority tests**
+- [ ] **단계 2: Write failing image-authority 테스트**
 
-Add same-package tests for the three shared helpers:
+추가 same-패키지 테스트 for the three 공유 helpers:
 
 ```go
 func TestDefaultImageIsImmutable(t *testing.T) {
@@ -131,39 +134,39 @@ func TestDefaultImageIsImmutable(t *testing.T) {
 ```
 
 In `graph/neo4j/benchmark_test.go`, introduce constants
-`neo4jBenchmarkImage` and `memgraphBenchmarkImage`; add
-`TestGraphBenchmarkImagesAreImmutable` with the same pattern.
+`neo4jBenchmarkImage` 및 `memgraphBenchmarkImage`; add
+`TestGraphBenchmarkImagesAreImmutable` 함께 the same pattern.
 
-- [ ] **Step 3: Run tests and verify RED**
+- [ ] **단계 3: 실행 테스트 및 verify RED**
 
 ```bash
 go test -p 1 -count=1 ./testcontainers/redis ./testcontainers/postgres ./testcontainers/mongodb ./graph/neo4j -run 'Test(DefaultImageIsImmutable|GraphBenchmarkImagesAreImmutable)'
 ```
 
-Expected: FAIL because current helper and GraphDB image strings are mutable tags.
+예상: FAIL because current helper 및 GraphDB image strings are mutable tags.
 
-- [ ] **Step 4: Pin tag-plus-digest constants and keep constructor signatures unchanged**
+- [ ] **단계 4: Pin tag-plus-digest constants 및 keep constructor signatures unchanged**
 
-Use these exact tag-plus-index-digest constants:
+사용 these exact tag-plus-index-digest constants:
 
 ```go
 const defaultImage = "redis:7.4-alpine@sha256:6ab0b6e7381779332f97b8ca76193e45b0756f38d4c0dcda72dbb3c32061ab99"
 ```
 
-Apply the corresponding exact table entry to PostgreSQL, MongoDB, Neo4j, and Memgraph. Do not add
-environment overrides or exported image options. Update GraphDB sub-benchmark display names to
+Apply the corresponding exact table entry to PostgreSQL, MongoDB, Neo4j, 및 Memgraph. 다음을 하지 않는다: add
+environment overrides 또는 exported image options. 업데이트 GraphDB sub-benchmark display names to
 retain the human-readable tag rather than rendering the full digest.
 
-- [ ] **Step 5: Run focused and shared-helper tests**
+- [ ] **단계 5: 실행 focused 및 공유-helper 테스트**
 
 ```bash
 gofmt -w testcontainers/redis/*.go testcontainers/postgres/*.go testcontainers/mongodb/*.go graph/neo4j/benchmark_test.go
 go test -p 1 -count=1 ./testcontainers/redis ./testcontainers/postgres ./testcontainers/mongodb ./graph/neo4j
 ```
 
-Expected: PASS; no exported API diff.
+예상: PASS; 없음 exported API diff.
 
-- [ ] **Step 6: Commit**
+- [ ] **단계 6: 커밋**
 
 ```bash
 git add testcontainers/redis testcontainers/postgres testcontainers/mongodb graph/neo4j/benchmark_test.go
@@ -174,14 +177,14 @@ git commit -m "Pin provider fixtures to reviewed images" \
   -m "Tested: focused testcontainer helper and graph benchmark tests"
 ```
 
-### Task 2: Add the Leader Provider Matrix and Correctness Probes
+### 작업 2: 추가 the Leader Provider Matrix 및 Correctness Probes
 
-**Files:**
-- Create: `leader/provider_benchmark_test.go`
+**파일:**
+- 생성: `leader/provider_benchmark_test.go`
 
-- [ ] **Step 1: Write failing deterministic concurrency-helper tests**
+- [ ] **단계 1: Write failing deterministic concurrency-helper 테스트**
 
-Define test-only result types before provider construction:
+정의 테스트-만 result types 전에 provider construction:
 
 ```go
 type leaderRoundResult struct {
@@ -225,18 +228,18 @@ func TestRunLeaderRoundCancelsAndDrainsOnError(t *testing.T) {
 }
 ```
 
-The helper must use a start barrier, buffered result channel, first-error cancellation, bounded
-wait, and main-goroutine assertion. Worker goroutines must never call `b.Fatal`.
+The helper must use a start barrier, buffered result channel, first-오류 cancellation, bounded
+wait, 및 main-goroutine assertion. Worker goroutines must never call `b.Fatal`.
 
-- [ ] **Step 2: Run tests and verify RED**
+- [ ] **단계 2: 실행 테스트 및 verify RED**
 
 ```bash
 go test -count=1 ./leader -run '^TestRunLeaderRound'
 ```
 
-Expected: FAIL because the helper is undefined.
+예상: FAIL because the helper is undefined.
 
-- [ ] **Step 3: Implement the concurrency helper and fixture interface**
+- [ ] **단계 3: 구현 the concurrency helper 및 fixture interface**
 
 ```go
 type leaderBenchFixture struct {
@@ -248,21 +251,21 @@ type leaderBenchFixture struct {
 }
 ```
 
-Redis/MongoDB/PostgreSQL fixtures must call existing `testcontainers/*` helpers. The etcd
-fixture copies only the current `leader/etcd` platform-digest selection, readiness, and
-client-close order because its fixture is package-private. Every fixture uses a 90-second startup
-context, 10-second operation contexts, internally generated 32-character lowercase-hex prefixes,
-and checked namespace/client cleanup. For shared `StartServer` fixtures, register the
-benchmark-owned namespace/client coordinator after the server so LIFO cleanup performs
+Redis/MongoDB/PostgreSQL fixtures must call 기존 `testcontainers/*` helpers. The etcd
+fixture copies 만 the current `leader/etcd` platform-digest selection, readiness, 및
+client-close order because its fixture is 패키지-private. Every fixture uses a 90-second startup
+context, 10-second operation contexts, internally generated 32-character 낮음ercase-hex prefixes,
+및 checked namespace/client cleanup. For 공유 `StartServer` fixtures, register the
+benchmark-owned namespace/client coordinator 후 the server so LIFO cleanup performs
 `namespace -> client -> existing Started container cleanup` exactly once. The copied etcd fixture
-owns and checks its explicit `namespace -> client -> container` teardown. Every cleanup path uses
-an independently bounded `context.WithoutCancel` and surfaces joined errors.
-Before timing, each container fixture emits one sanitized `provider_version` and pinned
-`image_reference` line without endpoint, DSN, credential, container ID, or host-path fields.
+owns 및 checks its explicit `namespace -> client -> container` teardown. Every cleanup path uses
+an independently bounded `context.WithoutCancel` 및 surfaces joined 오류.
+Before timing, each container fixture emits one sanitized `provider_version` 및 pinned
+`image_reference` line without endpoint, DSN, credential, container ID, 또는 host-path fields.
 
-- [ ] **Step 4: Add exact latency benchmark rows**
+- [ ] **단계 4: 추가 exact latency benchmark rows**
 
-Add:
+추가:
 
 ```go
 func BenchmarkProviderLeaderLocal(b *testing.B)
@@ -270,11 +273,11 @@ func BenchmarkProviderLeaderContainers(b *testing.B)
 ```
 
 `BenchmarkProviderLeaderLocal` emits exactly
-`LocalHarness/CampaignContention/N=8` using a test-local atomic one-winner stub. It measures only
-the shared start-barrier/result-drain/join overhead, consumes every result through a test-local
-sink, and is labeled as a lower-bound concurrency-harness baseline rather than a provider.
+`LocalHarness/CampaignContention/N=8` using a 테스트-local atomic one-winner stub. It measures 만
+the 공유 start-barrier/result-drain/join overhead, consumes every result through a 테스트-local
+sink, 및 is labeled as a 낮음er-bound concurrency-harness baseline rather than a provider.
 
-The container function gates on `BLUETAPE_LEADER_PROVIDER_BENCH=1` and emits:
+The container function gates on `BLUETAPE_LEADER_PROVIDER_BENCH=1` 및 emits:
 
 ```text
 Redis/CampaignUncontended
@@ -287,25 +290,25 @@ PostgreSQL/{CampaignUncontended,ResignOwned,CampaignContention/N=8,LeaderLookup,
 etcd/{CampaignUncontended,ResignOwned,CampaignContention/N=8,LeaderLookup,ExpiryTakeover}
 ```
 
-Use a 30-second lease for non-expiry rounds, 5-second attempt bounds, 10-second round bounds,
-unique groups per round, `b.ReportAllocs()`, explicit `b.ResetTimer()`, and timer-paused
+사용 a 30-second lease for non-expiry rounds, 5-second attempt bounds, 10-second round bounds,
+unique groups per round, `b.ReportAllocs()`, explicit `b.ResetTimer()`, 및 timer-paused
 cleanup. `ExpiryTakeover` uses a one-second lease (the common etcd-compatible minimum), polls at
-25 milliseconds, and has a lease-plus-five-second observation bound. The capture script runs it
-separately with `-benchtime=1x -count=3`; it stays in its own raw/report/chart section rather than
+25 milliseconds, 및 has a lease-plus-five-second observation bound. The capture script runs it
+separately 함께 `-benchtime=1x -count=3`; it stays in its own raw/report/chart section rather than
 the ordinary 100-iteration latency command.
 
-- [ ] **Step 5: Add non-ranked correctness probes**
+- [ ] **단계 5: 추가 non-ranked correctness probes**
 
 ```go
 func TestProviderLeaderBenchmarkProbes(t *testing.T)
 ```
 
 Under the same opt-in gate, run `ActiveHolderCancellation`, `RenewalPersistence`,
-`CancellationCleanup`, and `StaleOwnerRejected` once per provider. Assert exact owner
-preservation/replacement, bounded goroutine drain, bounded resign, and backend absence or
-replacement proof. Do not emit benchmark timing rows for these probes.
+`CancellationCleanup`, 및 `StaleOwnerRejected` once per provider. 검증 exact owner
+preservation/replacement, bounded goroutine drain, bounded resign, 및 backend absence 또는
+replacement proof. 다음을 하지 않는다: emit benchmark timing rows for these probes.
 
-- [ ] **Step 6: Run RED/GREEN smoke and race checks**
+- [ ] **단계 6: 실행 RED/GREEN smoke 및 race checks**
 
 ```bash
 go test -count=1 ./leader -run '^TestRunLeaderRound'
@@ -313,9 +316,9 @@ go test -run '^$' -bench '^BenchmarkProviderLeaderLocal$' -benchtime=1x ./leader
 go test -race -count=1 ./leader -run '^TestRunLeaderRound'
 ```
 
-Expected: PASS. Do not start containers in this step.
+예상: PASS. 다음을 하지 않는다: start containers in this step.
 
-- [ ] **Step 7: Commit**
+- [ ] **단계 7: 커밋**
 
 ```bash
 git add leader/provider_benchmark_test.go
@@ -327,12 +330,12 @@ git commit -m "Measure equivalent leader lifecycle paths" \
   -m "Not-tested: opt-in provider containers run during evidence collection"
 ```
 
-### Task 3: Add the Rate-Limiter Provider Matrix
+### 작업 3: 추가 the Rate-Limiter Provider Matrix
 
-**Files:**
-- Create: `ratelimit/provider_benchmark_test.go`
+**파일:**
+- 생성: `ratelimit/provider_benchmark_test.go`
 
-- [ ] **Step 1: Write failing round-contract tests**
+- [ ] **단계 1: Write failing round-계약 테스트**
 
 ```go
 func TestRunRateLimitRoundJoinsWorkersAndCapsAllowed(t *testing.T) {
@@ -361,41 +364,41 @@ func TestRunRateLimitRoundDrainsAfterError(t *testing.T) {
 }
 ```
 
-- [ ] **Step 2: Verify RED, implement helper, verify GREEN**
+- [ ] **단계 2: 검증 RED, implement helper, verify GREEN**
 
 ```bash
 go test -count=1 ./ratelimit -run '^TestRunRateLimitRound'
 ```
 
-Expected before implementation: FAIL. Implement barrier start, buffered results, first-error
-cancellation, bounded join, and main-goroutine assertions; rerun for PASS.
+Expected 전에 implementation: FAIL. 구현 barrier start, buffered results, first-오류
+cancellation, bounded join, 및 main-goroutine assertions; rerun for PASS.
 
-- [ ] **Step 3: Add local and container benchmark functions**
+- [ ] **단계 3: 추가 local 및 container benchmark functions**
 
 ```go
 func BenchmarkProviderRateLimitLocal(b *testing.B)
 func BenchmarkProviderRateLimitContainers(b *testing.B)
 ```
 
-`Local/TokenBucket/{AllowAvailable,AllowRejected}` is a separate algorithm baseline.
-Redis and PostgreSQL emit `AllowAvailable`, `AllowRejected`, `AllowParallel/N=8`, and
-`AllowDistinctKeys/N=8` with identical capacity/refill inputs. Each iteration uses an internal
-hex namespace, timer-paused seed/reset, fresh 10-second contexts, and checks that same-key allowed
+`Local/TokenBucket/{Al낮음Available,Al낮음Rejected}` is a separate algorithm baseline.
+Redis 및 PostgreSQL emit `Al낮음Available`, `Al낮음Rejected`, `Al낮음Parallel/N=8`, 및
+`Al낮음DistinctKeys/N=8` 함께 identical capacity/refill inputs. Each iteration uses an internal
+hex namespace, timer-paused seed/reset, fresh 10-second contexts, 및 checks that same-key al낮음ed
 count never exceeds capacity. Gate containers on
 `BLUETAPE_RATELIMIT_PROVIDER_BENCH=1`.
 
-Each container fixture calls the existing `StartServer`, whose container cleanup is registered
+Each container fixture calls the 기존 `StartServer`, whose container cleanup is registered
 first. Register one benchmark-owned cleanup coordinator afterward; Go's LIFO cleanup order then
 proves `namespace deletion -> client close -> existing Started container cleanup`, without a
 second `Terminate` call. Give the coordinator an independently bounded `context.WithoutCancel`,
-join and surface its lifecycle errors, and let the existing server cleanup report termination
-errors. Add a fake coordinator test that records namespace/client order and injects one error at
-each stage to prove the later stage still runs and the combined error is returned; rely on the
-existing `testcontainers/server` tests for the final registered container cleanup.
-Emit the sanitized Redis/PostgreSQL `provider_version` and pinned `image_reference` once before
+join 및 surface its lifecycle 오류, 및 let the 기존 server cleanup report termination
+오류. 추가 a fake coordinator 테스트 that records namespace/client order 및 injects one 오류 at
+each stage to prove the later stage still runs 및 the combined 오류 is returned; rely on the
+기존 `testcontainers/server` 테스트 for the final registered container cleanup.
+Emit the sanitized Redis/PostgreSQL `provider_version` 및 pinned `image_reference` once 전에
 timing.
 
-- [ ] **Step 4: Run focused tests and local smoke**
+- [ ] **단계 4: 실행 focused 테스트 및 local smoke**
 
 ```bash
 gofmt -w ratelimit/provider_benchmark_test.go
@@ -404,9 +407,9 @@ go test -run '^$' -bench '^BenchmarkProviderRateLimitLocal$' -benchtime=1x ./rat
 go test -race -count=1 ./ratelimit -run '^TestRunRateLimitRound'
 ```
 
-Expected: PASS without Docker.
+예상: PASS without Docker.
 
-- [ ] **Step 5: Commit**
+- [ ] **단계 5: 커밋**
 
 ```bash
 git add ratelimit/provider_benchmark_test.go
@@ -417,12 +420,12 @@ git commit -m "Compare distributed rate-limit paths" \
   -m "Tested: round helper tests, local smoke benchmark, and focused race test"
 ```
 
-### Task 4: Add the Cache Path Matrix
+### 작업 4: 추가 the Cache Path Matrix
 
-**Files:**
-- Create: `cache/provider_benchmark_test.go`
+**파일:**
+- 생성: `cache/provider_benchmark_test.go`
 
-- [ ] **Step 1: Write failing payload and invalidation-observation tests**
+- [ ] **단계 1: Write failing payload 및 invalidation-observation 테스트**
 
 ```go
 func TestBenchmarkPayloadSizes(t *testing.T) {
@@ -440,24 +443,24 @@ func TestObservePeerInvalidationTimesOutAndDrains(t *testing.T) {
 }
 ```
 
-- [ ] **Step 2: Verify RED and implement deterministic helpers**
+- [ ] **단계 2: 검증 RED 및 implement deterministic helpers**
 
 ```bash
 go test -count=1 ./cache -run '^Test(BenchmarkPayloadSizes|ObservePeerInvalidation)'
 ```
 
-Expected before implementation: FAIL. Implement deterministic payload bytes, internally generated
-hex keys, a bounded observation loop with no leaked ticker/goroutine, and a serializer wrapper
+Expected 전에 implementation: FAIL. 구현 deterministic payload bytes, internally generated
+hex keys, a bounded observation loop 함께 없음 leaked ticker/goroutine, 및 a serializer wrapper
 that counts marshal/unmarshal calls.
 
-- [ ] **Step 3: Add exact local and Redis benchmark sections**
+- [ ] **단계 3: 추가 exact local 및 Redis benchmark sections**
 
 ```go
 func BenchmarkProviderCacheLocal(b *testing.B)
 func BenchmarkProviderCacheRedis(b *testing.B)
 ```
 
-Emit payload sub-benchmarks for `128B` and `4KiB`:
+Emit payload sub-benchmarks for `128B` 및 `4KiB`:
 
 ```text
 Memory/{GetHit,GetMiss,Set,GetOrLoadHot}/{128B,4KiB}
@@ -467,21 +470,21 @@ Tiered/{L1Hit,L2Hit,LoadMiss,WriteThrough}/{128B,4KiB}
 NearCachePubSub/{LocalHit,LocalMiss,PublishSet,PublishDelete,PeerInvalidation}/{128B,4KiB}
 ```
 
-Use the approved `redisvalue.DefaultConfig()` copied per cache, decoded values in L1, JSON
-serialization only at L2, and no batch-put row. Assert the report later records
+사용 the approved `redisvalue.DefaultConfig()` copied per cache, decoded values in L1, JSON
+serialization 만 at L2, 및 없음 batch-put row. 검증 the report later records
 `N/A: no public bulk mutation contract`. For `PeerInvalidation`, complete subscription
-readiness before timing, measure publish-to-peer-eviction observation, use the two-second bound,
-surface subscriber errors, and check every `Close`.
+readiness 전에 timing, measure publish-to-peer-eviction observation, use the two-second bound,
+surface subscriber 오류, 및 check every `Close`.
 
-The Redis fixture calls existing `StartServer` first, then registers one benchmark-owned cleanup
+The Redis fixture calls 기존 `StartServer` first, then registers one benchmark-owned cleanup
 coordinator. LIFO cleanup yields `namespace deletion -> near-cache/subscriber close -> Redis client
-close -> existing Started container cleanup`, without double termination. Give the coordinator an
-independently bounded `context.WithoutCancel`, join and surface every coordinator error, and rely on
-the existing server cleanup to report termination errors. Add a fake coordinator test with injected
-errors to prove later stages still execute and the combined error is returned.
-Emit the sanitized Redis `provider_version` and pinned `image_reference` once before timing.
+close -> 기존 Started container cleanup`, without double termination. Give the coordinator an
+independently bounded `context.WithoutCancel`, join 및 surface every coordinator 오류, 및 rely on
+the 기존 server cleanup to report termination 오류. 추가 a fake coordinator 테스트 함께 injected
+오류 to prove later stages still execute 및 the combined 오류 is returned.
+Emit the sanitized Redis `provider_version` 및 pinned `image_reference` once 전에 timing.
 
-- [ ] **Step 4: Run focused tests, local smoke, and race**
+- [ ] **단계 4: 실행 focused 테스트, local smoke, 및 race**
 
 ```bash
 gofmt -w cache/provider_benchmark_test.go
@@ -490,9 +493,9 @@ go test -run '^$' -bench '^BenchmarkProviderCacheLocal$' -benchtime=1x ./cache
 go test -race -count=1 ./cache -run '^Test(BenchmarkPayloadSizes|ObservePeerInvalidation)'
 ```
 
-Expected: PASS without Docker.
+예상: PASS without Docker.
 
-- [ ] **Step 5: Commit**
+- [ ] **단계 5: 커밋**
 
 ```bash
 git add cache/provider_benchmark_test.go
@@ -503,12 +506,12 @@ git commit -m "Separate local and Redis cache costs" \
   -m "Tested: cache helper tests, local smoke benchmark, and focused race test"
 ```
 
-### Task 5: Add the Graph I/O Format Matrix
+### 작업 5: 추가 the Graph I/O Format Matrix
 
-**Files:**
-- Create: `graph/graphio/provider_benchmark_test.go`
+**파일:**
+- 생성: `graph/graphio/provider_benchmark_test.go`
 
-- [ ] **Step 1: Write failing deterministic-shape and round-trip tests**
+- [ ] **단계 1: Write failing deterministic-shape 및 round-trip 테스트**
 
 ```go
 func TestBenchmarkGraphShapeIsDeterministic(t *testing.T) {
@@ -529,32 +532,32 @@ func TestBenchmarkFormatsRoundTripEquivalentRecords(t *testing.T) {
 }
 ```
 
-Use only deterministic safe scalar values so CSV formula escaping does not change semantics.
+사용 만 deterministic safe scalar values so CSV formula escaping does 아님 change semantics.
 
-- [ ] **Step 2: Verify RED, implement format adapters, verify GREEN**
+- [ ] **단계 2: 검증 RED, implement format adapters, verify GREEN**
 
 ```bash
 go test -count=1 ./graph/graphio -run '^TestBenchmark(GraphShape|Formats)'
 ```
 
-Expected before implementation: FAIL. Implement test-local adapters for paired CSV, NDJSON, and
-GraphML using public APIs and identical logical records.
+Expected 전에 implementation: FAIL. 구현 테스트-local adapters for paired CSV, NDJSON, 및
+GraphML using 공개 APIs 및 identical logical records.
 
-- [ ] **Step 3: Add shape/operation benchmarks**
+- [ ] **단계 3: 추가 shape/operation benchmarks**
 
 ```go
 func BenchmarkGraphIOFormats(b *testing.B)
 ```
 
-Emit `Small/100V-200E-3P`, `Medium/10000V-20000E-5P`, and
-`WideProperties/1000V-2000E-20P` under each format with `Write`, `Read`,
-`RoundTrip`, and `RecordConstructionBaseline`. Pause timing for fixture byte generation,
-call `b.SetBytes(totalEncodedBytes)` only for Write/Read/RoundTrip, report allocations, consume
-each timed result through test-local sinks, and assert normalized record counts plus representative
-IDs after timing. `RecordConstructionBaseline` has no MB/s value because it consumes no encoded
-bytes. Never subtract the construction baseline to invent parser-only numbers.
+Emit `Small/100V-200E-3P`, `Medium/10000V-20000E-5P`, 및
+`WideProperties/1000V-2000E-20P` under each format 함께 `Write`, `Read`,
+`RoundTrip`, 및 `RecordConstructionBaseline`. Pause timing for fixture byte generation,
+call `b.SetBytes(totalEncodedBytes)` 만 for Write/Read/RoundTrip, report allocations, consume
+each timed result through 테스트-local sinks, 및 assert normalized record counts plus representative
+IDs 후 timing. `RecordConstructionBaseline` has 없음 MB/s value because it consumes 없음 encoded
+bytes. Never subtract the construction baseline to invent parser-만 numbers.
 
-- [ ] **Step 4: Run focused tests and smoke**
+- [ ] **단계 4: 실행 focused 테스트 및 smoke**
 
 ```bash
 gofmt -w graph/graphio/provider_benchmark_test.go
@@ -562,9 +565,9 @@ go test -count=1 ./graph/graphio -run '^TestBenchmark(GraphShape|Formats)'
 go test -run '^$' -bench '^BenchmarkGraphIOFormats$' -benchtime=1x ./graph/graphio
 ```
 
-Expected: PASS.
+예상: PASS.
 
-- [ ] **Step 5: Commit**
+- [ ] **단계 5: 커밋**
 
 ```bash
 git add graph/graphio/provider_benchmark_test.go
@@ -575,13 +578,13 @@ git commit -m "Compare graph formats at equivalent boundaries" \
   -m "Tested: deterministic format round trips and graphio smoke benchmark"
 ```
 
-### Task 6: Add Path-Shaped GraphDB and PostgreSQL Baselines
+### 작업 6: 추가 Path-Shaped GraphDB 및 PostgreSQL Baselines
 
-**Files:**
-- Create: `graph/provider_benchmark_test.go`
+**파일:**
+- 생성: `graph/provider_benchmark_test.go`
 - Modify: `graph/neo4j/benchmark_test.go`
 
-- [ ] **Step 1: Write failing shape and result-equivalence tests**
+- [ ] **단계 1: Write failing shape 및 result-equivalence 테스트**
 
 ```go
 func TestTraversalShapesHaveExpectedReachability(t *testing.T) {
@@ -602,18 +605,18 @@ func TestNormalizeTraversalIDsRejectsMissingOrDuplicateRows(t *testing.T) {
 }
 ```
 
-- [ ] **Step 2: Verify RED and implement pure shape helpers**
+- [ ] **단계 2: 검증 RED 및 implement pure shape helpers**
 
 ```bash
 go test -count=1 ./graph -run '^Test(TraversalShapes|NormalizeTraversalIDs)'
 ```
 
-Expected before implementation: FAIL. Implement deterministic vertex/edge seeds, expected ordered
-ID sets, duplicate/missing detection, and internal lowercase-hex run IDs.
+Expected 전에 implementation: FAIL. 구현 deterministic vertex/edge seeds, expected ordered
+ID sets, duplicate/missing detection, 및 internal 낮음ercase-hex run IDs.
 
-- [ ] **Step 3: Implement disposable runtime fixtures**
+- [ ] **단계 3: 구현 disposable runtime fixtures**
 
-Define:
+정의:
 
 ```go
 type traversalRuntime struct {
@@ -625,18 +628,18 @@ type traversalRuntime struct {
 }
 ```
 
-Neo4j and Memgraph use the same parameterized Cypher subset and official Testcontainers
+Neo4j 및 Memgraph use the same parameterized Cypher subset 및 official Testcontainers
 modules/request. PostgreSQL uses `testcontainers/postgres`, a benchmark-owned schema, indexed
-`vertices(id)` and `edges(from_id,to_id)`, and a parameterized recursive CTE. No ambient DSN
-or endpoint is accepted. All runtimes verify expected IDs before `b.ResetTimer()`, use fresh
+`vertices(id)` 및 `edges(from_id,to_id)`, 및 a parameterized recursive CTE. No ambient DSN
+또는 endpoint is accepted. All runtimes verify expected IDs 전에 `b.ResetTimer()`, use fresh
 10-second query contexts, then checked cleanup/client/container shutdown. PostgreSQL uses the
-existing `StartServer` registration and a later benchmark-owned schema/client coordinator so LIFO
+기존 `StartServer` registration 및 a later benchmark-owned schema/client coordinator so LIFO
 cleanup terminates the container exactly once. Neo4j/Memgraph own their raw Testcontainers
-termination. All three paths use independently bounded `context.WithoutCancel` cleanup and surface
-joined errors.
-Emit each sanitized database `provider_version` and pinned `image_reference` once before timing.
+termination. All three paths use independently bounded `context.WithoutCancel` cleanup 및 surface
+joined 오류.
+Emit each sanitized database `provider_version` 및 pinned `image_reference` once 전에 timing.
 
-- [ ] **Step 4: Add exact traversal benchmark**
+- [ ] **단계 4: 추가 exact traversal benchmark**
 
 ```go
 func BenchmarkGraphProviderTraversalContainers(b *testing.B)
@@ -650,17 +653,17 @@ Memgraph/{LongChain/Depth16,LongChain/Depth64,DeepWide/Depth4Fanout4}
 PostgreSQLRecursiveCTE/{LongChain/Depth16,LongChain/Depth64,DeepWide/Depth4Fanout4}
 ```
 
-The timed loop contains only parameterized traversal and result materialization. Seed/index/schema
-and correctness checks remain outside timing. Add `b.ReportAllocs()` and explicit
+The timed loop contains 만 parameterized traversal 및 result materialization. Seed/index/schema
+및 correctness checks remain outside timing. 추가 `b.ReportAllocs()` 및 explicit
 `b.ResetTimer()`.
 
-- [ ] **Step 5: Harden existing GraphDB cleanup**
+- [ ] **단계 5: 강화 기존 GraphDB cleanup**
 
-Replace ignored cleanup errors in `graph/neo4j/benchmark_test.go` with a bounded
-`context.WithoutCancel` cleanup that reports deletion, driver close, and container termination
-failures. Do not move existing CRUD rows into the provider selection chart.
+교체 ignored cleanup 오류 in `graph/neo4j/benchmark_test.go` 함께 a bounded
+`context.WithoutCancel` cleanup that reports deletion, driver close, 및 container termination
+failures. 다음을 하지 않는다: move 기존 CRUD rows into the provider selection chart.
 
-- [ ] **Step 6: Run pure tests and compile/smoke gate**
+- [ ] **단계 6: 실행 pure 테스트 및 compile/smoke gate**
 
 ```bash
 gofmt -w graph/provider_benchmark_test.go graph/neo4j/benchmark_test.go
@@ -669,9 +672,9 @@ go test -run '^$' -bench '^BenchmarkGraphProviderTraversalContainers$' -benchtim
 go test -count=1 ./graph/neo4j
 ```
 
-Expected: PASS; container benchmark reports SKIP without its environment variable.
+예상: PASS; container benchmark reports SKIP without its environment variable.
 
-- [ ] **Step 7: Commit**
+- [ ] **단계 7: 커밋**
 
 ```bash
 git add graph/provider_benchmark_test.go graph/neo4j/benchmark_test.go
@@ -682,15 +685,15 @@ git commit -m "Measure graph databases on path-shaped work" \
   -m "Tested: traversal shape tests, opt-in skip smoke, and graph adapter tests"
 ```
 
-### Task 7: Add Fail-Safe Benchmark Capture
+### 작업 7: 추가 Fail-Safe Benchmark 캡처
 
-**Files:**
-- Create: `scripts/capture-provider-benchmark.sh`
-- Create: `scripts/capture-provider-benchmark_test.sh`
+**파일:**
+- 생성: `scripts/capture-provider-benchmark.sh`
+- 생성: `scripts/capture-provider-benchmark_test.sh`
 
-- [ ] **Step 1: Write the failing shell contract test**
+- [ ] **단계 1: Write the failing shell 계약 테스트**
 
-The test creates a temporary fake `go` executable and output directory, then verifies:
+The 테스트 creates a temporary fake `go` executable 및 output directory, then verifies:
 
 ```sh
 assert_success_writes_atomic_canonical_output
@@ -708,9 +711,9 @@ Invoke:
 bash scripts/capture-provider-benchmark_test.sh
 ```
 
-Expected: FAIL because the capture script does not exist.
+예상: FAIL because the capture script does 아님 exist.
 
-- [ ] **Step 2: Implement an allowlisted POSIX-shell entry point**
+- [ ] **단계 2: 구현 an al낮음listed POSIX-shell entry point**
 
 Accept exactly:
 
@@ -721,7 +724,7 @@ cache-local cache-redis
 graphio graphdb
 ```
 
-Map those names to these exact commands; no caller-supplied command fragment is accepted:
+Map those names to these exact commands; 없음 호출자-supplied command fragment is accepted:
 
 ```text
 leader-local: go test -timeout=10m -run ^$ -bench ^BenchmarkProviderLeaderLocal$ -benchmem -count=5 ./leader
@@ -736,35 +739,35 @@ graphio: go test -timeout=10m -run ^$ -bench ^BenchmarkGraphIOFormats$ -benchmem
 graphdb: env BLUETAPE_GRAPH_PROVIDER_BENCH=1 go test -timeout=30m -p 1 -run ^$ -bench ^BenchmarkGraphProviderTraversalContainers$ -benchtime=100x -count=3 -benchmem ./graph
 ```
 
-In the shell implementation, each token above is passed through `set --` and `"$@"`; the display
+In the shell implementation, each token above is passed through `set --` 및 `"$@"`; the display
 header re-quotes those fixed tokens for readability. The bracketed leader labels identify the two
-fixed commands written to the single `leader-containers.txt` artifact and are not CLI arguments.
+fixed commands written to the single `leader-containers.txt` artifact 및 are 아님 CLI arguments.
 
-The script uses `set -eu`, a cleanup trap, an output-directory override only for its own tracked
-artifact destination, and a `case` that stores commands as positional arguments rather than
+The script uses `set -eu`, a cleanup trap, an output-directory override 만 for its own tracked
+artifact destination, 및 a `case` that stores commands as positional arguments rather than
 `eval`. It writes command, UTC timestamp, Git SHA, pre-run clean state, combined stdout/stderr,
-and exit status to a mode-`0700` temporary directory outside the repository. It rejects a dirty
+및 exit status to a mode-`0700` temporary directory outside the repository. It rejects a dirty
 pre-run tree except the documented artifact-output directory. On success it scans the private
-stream, copies only sanitized content to an artifact-local temporary file, rescans it, and
-atomically renames it. On failure it applies the same sanitize-and-rescan pipeline before retaining
-a timestamped `*-failed-*.txt`; if prohibited content survives, retain metadata with
-`redaction_status: blocked` but discard the stream body. Preserve the previous canonical file and
-return the original non-zero status in all failure cases.
+stream, copies 만 sanitized content to an artifact-local temporary file, rescans it, 및
+atomically renames it. On failure it applies the same sanitize-및-rescan pipeline 전에 retaining
+a timestamped `*-failed-*.txt`; if prohibited content survives, retain metadata 함께
+`redaction_status: blocked` but discard the stream body. 보존 the previous canonical file 및
+return the original non-zero status in 모든 failure cases.
 
-For `leader-containers`, execute and record two allowlisted commands in order: ordinary rows with
-`-benchtime=100x -count=3` while excluding `ExpiryTakeover`, then only `ExpiryTakeover` with
+For `leader-containers`, execute 및 record two al낮음listed commands in order: ordinary rows 함께
+`-benchtime=100x -count=3` while excluding `ExpiryTakeover`, then 만 `ExpiryTakeover` 함께
 `-benchtime=1x -count=3`. A failure in either command makes the whole family capture fail.
 
-- [ ] **Step 3: Verify GREEN and shell syntax**
+- [ ] **단계 3: 검증 GREEN 및 shell syntax**
 
 ```bash
 bash -n scripts/capture-provider-benchmark.sh scripts/capture-provider-benchmark_test.sh
 bash scripts/capture-provider-benchmark_test.sh
 ```
 
-Expected: PASS with all seven named assertions.
+예상: PASS 함께 모든 seven named assertions.
 
-- [ ] **Step 4: Commit code before measurements**
+- [ ] **단계 4: 커밋 code 전에 measurements**
 
 ```bash
 git add scripts/capture-provider-benchmark.sh scripts/capture-provider-benchmark_test.sh
@@ -775,13 +778,13 @@ git commit -m "Preserve benchmark evidence without overwriting failures" \
   -m "Tested: shell syntax and fake-command capture contract"
 ```
 
-### Task 8: Execute the Matrix Sequentially and Preserve Raw Evidence
+### 작업 8: 실행 the Matrix Sequentially 및 보존 Raw 증거
 
-**Files:**
-- Create: `docs/research/outputs/issue-560/environment.md`
-- Create: `docs/research/outputs/issue-560/*.txt`
+**파일:**
+- 생성: `docs/research/outputs/issue-560/environment.md`
+- 생성: `docs/research/outputs/issue-560/*.txt`
 
-- [ ] **Step 1: Verify a clean measurement HEAD**
+- [ ] **단계 1: 검증 a clean measurement HEAD**
 
 ```bash
 git status --porcelain
@@ -791,18 +794,18 @@ docker version
 docker info
 ```
 
-Expected: empty Git status; record only allowlisted environment fields. Do not paste full
+예상: empty Git status; record 만 al낮음listed environment fields. 다음을 하지 않는다: paste full
 `docker info` into the artifact.
 
-- [ ] **Step 2: Write the sanitized host/runtime portion of the environment manifest**
+- [ ] **단계 2: Write the sanitized host/runtime portion of the environment manifest**
 
-Record UTC/local timestamp and timezone, OS/kernel/arch, CPU model, logical CPUs, RAM, Go version,
-Git SHA and clean pre-run state, Docker client/server/platform, and each configured
+기록 UTC/local timestamp 및 timezone, OS/kernel/arch, CPU model, logical CPUs, RAM, Go version,
+Git SHA 및 clean pre-run state, Docker client/server/platform, 및 each configured
 tag-plus-reviewed-digest. Never record DSNs, endpoints, container IDs, host paths, registry
-credentials, proxy configuration, or the complete environment. Provider-reported versions are
-added only after successful container captures; do not write placeholder values.
+credentials, proxy configuration, 또는 the complete environment. Provider-reported versions are
+added 만 후 successful container captures; do 아님 write placeholder values.
 
-- [ ] **Step 3: Run local families**
+- [ ] **단계 3: 실행 local families**
 
 ```bash
 scripts/capture-provider-benchmark.sh leader-local
@@ -811,9 +814,9 @@ scripts/capture-provider-benchmark.sh cache-local
 scripts/capture-provider-benchmark.sh graphio
 ```
 
-Expected: four canonical outputs with exit status 0 and five samples per benchmark row.
+예상: four canonical outputs 함께 exit status 0 및 five samples per benchmark row.
 
-- [ ] **Step 4: Run container families one at a time**
+- [ ] **단계 4: 실행 container families one at a time**
 
 ```bash
 scripts/capture-provider-benchmark.sh leader-containers
@@ -823,15 +826,15 @@ scripts/capture-provider-benchmark.sh cache-redis
 scripts/capture-provider-benchmark.sh graphdb
 ```
 
-Expected: each command exits 0 before the next begins. If any command fails, preserve its failure
+예상: each command exits 0 전에 the next begins. If any command fails, preserve its failure
 artifact, stop downstream reporting for that family, repair the benchmark/fixture in its owning
-task, commit, return to a clean HEAD, and rerun every affected family.
+task, commit, return to a clean HEAD, 및 rerun every affected family.
 
-After all five container commands succeed, parse the allowlisted `provider_version` fields from
+After 모든 five container commands succeed, parse the al낮음listed `provider_version` fields from
 their canonical outputs into `environment.md`; fail if any executed provider is missing, duplicated,
-or inconsistent across families.
+또는 inconsistent across families.
 
-- [ ] **Step 5: Validate evidence integrity**
+- [ ] **단계 5: Validate evidence integrity**
 
 ```bash
 test "$(find docs/research/outputs/issue-560 -maxdepth 1 -name '*.txt' ! -name '*-failed-*' | wc -l | tr -d ' ')" -eq 9
@@ -840,11 +843,11 @@ if rg -n '^exit_status: [^0]' docs/research/outputs/issue-560/*.txt; then exit 1
 if rg -n '(://[^/@[:space:]]+:[^/@[:space:]]+@|(?i)(password|passwd|token|secret|authorization)[=:][^[:space:]]+)' docs/research/outputs/issue-560; then exit 1; fi
 ```
 
-Expected: exactly nine canonical files and ten zero exit headers because `leader-containers` has
-two fixed command sections; no non-zero canonical header; the secret scan has no matches. Manually
-confirm row counts and min/median/max availability for all container scenarios.
+예상: exactly nine canonical files 및 ten zero exit headers because `leader-containers` has
+two fixed command sections; 없음 non-zero canonical header; the secret scan has 없음 matches. Manually
+confirm row counts 및 min/median/max availability for 모든 container scenarios.
 
-- [ ] **Step 6: Commit raw evidence**
+- [ ] **단계 6: 커밋 raw evidence**
 
 ```bash
 git add docs/research/outputs/issue-560
@@ -855,72 +858,72 @@ git commit -m "Retain current-head provider measurements" \
   -m "Tested: nine capture commands, leader probes, artifact exit headers, and secret scan"
 ```
 
-### Task 9: Generate Charts, Report Decisions, and Link Both READMEs
+### 작업 9: 생성 Charts, Report Decisions, 및 Link Both READMEs
 
-**Files:**
-- Create: `docs/research/2026-07-20-issue-560-provider-benchmark-matrix.md`
-- Create: `docs/images/readme-charts/generate-provider-benchmark-summaries.mjs`
-- Create: `docs/images/readme-charts/provider-benchmark-*-summary.vl.json`
-- Create: `docs/images/readme-charts/provider-benchmark-*-summary.svg`
-- Create: `docs/images/readme-charts/provider-benchmark-*-summary.png`
+**파일:**
+- 생성: `docs/research/2026-07-20-issue-560-provider-benchmark-matrix.md`
+- 생성: `docs/images/readme-charts/generate-provider-benchmark-summaries.mjs`
+- 생성: `docs/images/readme-charts/provider-benchmark-*-summary.vl.json`
+- 생성: `docs/images/readme-charts/provider-benchmark-*-summary.svg`
+- 생성: `docs/images/readme-charts/provider-benchmark-*-summary.png`
 - Modify: `README.md`
 - Modify: `README.ko.md`
 
-- [ ] **Step 1: Load the chart workflow before visual work**
+- [ ] **단계 1: Load the chart workf낮음 전에 visual work**
 
-Read and follow `bluetape-diagram/SKILL.md`. Reuse the current repository chart style and retain
-generator, Vega-Lite JSON, SVG, and PNG.
+Read 및 fol낮음 `bluetape-diagram/SKILL.md`. Reuse the current repository chart style 및 retain
+generator, Vega-Lite JSON, SVG, 및 PNG.
 
-- [ ] **Step 2: Write a failing strict raw-output parser**
+- [ ] **단계 2: Write a failing strict raw-output parser**
 
-The Node generator must reject unknown, missing, duplicate, non-finite, or non-zero-exit rows.
-Before implementing parsing, add a self-test mode:
+The Node generator must reject unknown, missing, duplicate, non-finite, 또는 non-zero-exit rows.
+Before implementing parsing, add a self-테스트 mode:
 
 ```bash
 node docs/images/readme-charts/generate-provider-benchmark-summaries.mjs --self-test
 ```
 
-Expected before parser implementation: FAIL. The GREEN self-test covers one valid fixture and
-one valid two-command leader fixture plus unknown/missing/duplicate/non-finite/error-exit fixtures.
-The parser treats command sections independently, requires the exact expected section count, and
-never merges ordinary leader latency samples with `ExpiryTakeover` samples.
+Expected 전에 parser implementation: FAIL. The GREEN self-테스트 covers one valid fixture 및
+one valid two-command leader fixture plus unknown/missing/duplicate/non-finite/오류-exit fixtures.
+The parser treats command sections independently, requires the exact expected section count, 및
+never merges ordinary leader latency samples 함께 `ExpiryTakeover` samples.
 
-- [ ] **Step 3: Generate five family chart sets**
+- [ ] **단계 3: 생성 five family chart sets**
 
-Produce leader, rate limiter, cache, graph I/O, and GraphDB chart sets. Chart only equivalent
-latency rows, keep `ExpiryTakeover` separate, use min/median/max or error bars for container
-samples, label units, provide sufficient contrast and direct provider labels/patterns, and never
-depend on color alone. Keep allocation/density details in tables rather than mixing units. Use
-repository-relative data paths and portable system font stacks; do not embed user-home font paths.
-The generator writes Vega-Lite JSON and SVG directly, invokes `rsvg-convert` with fixed dimensions
-to produce each PNG, and fails clearly if rasterization is unavailable.
+Produce leader, rate limiter, cache, graph I/O, 및 GraphDB chart sets. Chart 만 equivalent
+latency rows, keep `ExpiryTakeover` separate, use min/median/max 또는 오류 bars for container
+samples, label units, provide sufficient contrast 및 direct provider labels/patterns, 및 never
+depend on color alone. 유지 allocation/density details in tables rather than mixing units. 사용
+repository-relative data paths 및 portable system font stacks; do 아님 embed 사용자-home font paths.
+The generator writes Vega-Lite JSON 및 SVG directly, invokes `rsvg-convert` 함께 fixed dimensions
+to produce each PNG, 및 fails clearly if rasterization is unavailable.
 
-- [ ] **Step 4: Visually inspect rendered assets**
+- [ ] **단계 4: Visually inspect rendered assets**
 
-Open every PNG and SVG at document scale. Verify labels, clipping, units, contrast, ordering,
-pattern/label distinction, and consistency with the adjacent raw-derived table. Regenerate until
-all checks pass.
+Open every PNG 및 SVG at document scale. 검증 labels, clipping, units, contrast, ordering,
+pattern/label distinction, 및 consistency 함께 the adjacent raw-derived table. Regenerate until
+모든 checks pass.
 
-- [ ] **Step 5: Write the English report**
+- [ ] **단계 5: Write the 영문 report**
 
 For each family include workload/semantic boundary, exact command/raw link, metric direction,
-table, chart with descriptive alt text, measured evidence, use-case selection guidance,
-caveats/not-proven, and priority/instrumentation follow-up decision. Explicitly record:
+table, chart 함께 descriptive alt text, measured evidence, use-case selection guidance,
+caveats/아님-proven, 및 priority/instrumentation fol낮음-up decision. Explicitly record:
 
-- local rows are lower-bound/API baselines, not distributed winners;
-- active-holder/renewal leader probes are not ranked;
+- local rows are 낮음er-bound/API baselines, 아님 distributed winners;
+- active-holder/renewal leader probes are 아님 ranked;
 - cache batch put is `N/A: no public bulk mutation contract`;
 - graph-store construction is `N/A: no shared construction API`;
-- RESP3 tracking remains a spike, not the production near-cache row;
-- one local Docker snapshot does not establish production SLO, cloud cost, WAN behavior, or a
+- RESP3 tracking remains a spike, 아님 the production near-cache row;
+- one local Docker snapshot does 아님 establish production SLO, cloud cost, WAN behavior, 또는 a
   universal winner.
 
-If evidence suggests a new priority or instrumentation gap, link an existing issue or include a
-follow-up issue draft only. Do not create the GitHub issue without separate approval.
+If evidence suggests a new priority 또는 instrumentation gap, link an 기존 issue 또는 include a
+fol낮음-up issue draft 만. 다음을 하지 않는다: create the GitHub issue without separate approval.
 
-- [ ] **Step 6: Add synchronized root README links**
+- [ ] **단계 6: 추가 synchronized root README links**
 
-`README.md` and `README.ko.md` must both link the report and show:
+`README.md` 및 `README.ko.md` must both link the report 및 show:
 
 ```bash
 scripts/capture-provider-benchmark.sh leader-local
@@ -928,12 +931,12 @@ scripts/capture-provider-benchmark.sh leader-local
 
 The accepted family argument is exactly one of `leader-local`, `leader-containers`,
 `ratelimit-local`, `ratelimit-containers`, `cache-local`, `cache-redis`, `graphio`, `graphdb`,
-or `leader-probes`.
+또는 `leader-probes`.
 
-Explain in each locale that results are short local snapshots and should not be copied as
-production rankings. Do not duplicate result numbers in README.
+Explain in each locale that results are short local snapshots 및 should 아님 be copied as
+production rankings. 다음을 하지 않는다: duplicate result numbers in README.
 
-- [ ] **Step 7: Validate and commit docs/charts**
+- [ ] **단계 7: Validate 및 commit docs/charts**
 
 ```bash
 node docs/images/readme-charts/generate-provider-benchmark-summaries.mjs --self-test
@@ -942,10 +945,10 @@ git diff --check
 rg -n 'provider benchmark|provider 벤치마크' README.md README.ko.md
 ```
 
-Expected: parser self-tests pass, regeneration is deterministic, both README files contain the
-same report/capture surface, and diff check passes.
+예상: parser self-테스트 pass, regeneration is deterministic, both README files contain the
+same report/capture surface, 및 diff check passes.
 
-Commit:
+커밋:
 
 ```bash
 git add docs/research/2026-07-20-issue-560-provider-benchmark-matrix.md docs/images/readme-charts README.md README.ko.md
@@ -956,19 +959,19 @@ git commit -m "Explain provider choices from bounded evidence" \
   -m "Tested: strict parser self-tests, deterministic chart generation, visual QA, README parity, and diff check"
 ```
 
-### Task 10: Record the Type A Lesson and Run Targeted Gates
+### 작업 10: 기록 the Type A Lesson 및 실행 Targeted Gates
 
-**Files:**
-- Create: `docs/lessons/2026-07-20-issue-560-provider-benchmark-matrix.md`
+**파일:**
+- 생성: `docs/lessons/2026-07-20-issue-560-provider-benchmark-matrix.md`
 
-- [ ] **Step 1: Write the reusable lesson**
+- [ ] **단계 1: Write the reusable lesson**
 
-Record the reusable decisions: semantic equivalence before timing, deadline/sleep probes outside
+기록 the reusable decisions: semantic equivalence 전에 timing, deadline/sleep probes outside
 rankings, disposable fixture provenance, deterministic concurrency join, parser/materialization
-boundary, atomic raw capture, and selection guidance instead of universal winners. Include concrete
-file/command evidence and explain when the pattern is `N/A`.
+boundary, atomic raw capture, 및 selection guidance instead of universal winners. Include concrete
+file/command evidence 및 explain when the pattern is `N/A`.
 
-- [ ] **Step 2: Run targeted package and script validation**
+- [ ] **단계 2: 실행 targeted 패키지 및 script validation**
 
 ```bash
 go test -p 1 -count=1 ./testcontainers/redis ./testcontainers/postgres ./testcontainers/mongodb
@@ -979,9 +982,9 @@ bash scripts/capture-provider-benchmark_test.sh
 node docs/images/readme-charts/generate-provider-benchmark-summaries.mjs --self-test
 ```
 
-Expected: all PASS; container benchmarks remain skipped unless explicitly opted in.
+예상: 모든 PASS; container benchmarks remain skipped unless explicitly opted in.
 
-- [ ] **Step 3: Commit lesson**
+- [ ] **단계 3: 커밋 lesson**
 
 ```bash
 git add docs/lessons/2026-07-20-issue-560-provider-benchmark-matrix.md
@@ -991,12 +994,12 @@ git commit -m "Preserve provider benchmark lessons" \
   -m "Tested: targeted package, race, capture-script, and chart-parser checks"
 ```
 
-### Task 11: Run Full Verification, Reviews, and Prepare the PR
+### 작업 11: 실행 Full 검증, Reviews, 및 준비 the PR
 
-**Files:**
-- Modify only files required by verified P0/P1 review repairs.
+**파일:**
+- Modify 만 files required by verified P0/P1 review repairs.
 
-- [ ] **Step 1: Run full repository gates**
+- [ ] **단계 1: 실행 full repository gates**
 
 ```bash
 make fmt-check
@@ -1009,12 +1012,12 @@ make ci
 git diff --check
 ```
 
-Expected: every command exits 0. Testcontainers-backed work stays serial. If the known
+예상: every command exits 0. Testcontainers-backed work stays serial. If the known
 `leader/sql TestLeaseStatements/concurrent-single-winner` symptom recurs, capture the failure,
-rerun the exact subtest repeatedly, and distinguish valid lease expiry from a new regression
-before changing production code.
+rerun the exact subtest repeatedly, 및 distinguish valid lease expiry from a new regression
+전에 changing production code.
 
-- [ ] **Step 2: Re-run artifact reproducibility and security checks**
+- [ ] **단계 2: Re-run artifact reproducibility 및 보안 checks**
 
 ```bash
 node docs/images/readme-charts/generate-provider-benchmark-summaries.mjs
@@ -1023,24 +1026,24 @@ if rg -n '(://[^/@[:space:]]+:[^/@[:space:]]+@|(?i)(password|passwd|token|secret
 git status --short
 ```
 
-Expected: deterministic charts, no secret matches, and clean worktree.
+예상: deterministic charts, 없음 secret matches, 및 clean worktree.
 
-- [ ] **Step 3: Run Step 6-R and Step 7-R reviews**
+- [ ] **단계 3: 실행 단계 6-R 및 단계 7-R reviews**
 
-Run six independent performance, stability, security, Operator/Ops, Developer/API, and
-User/caller lanes plus main integration. Review the implemented diff and then exact PR head.
-Resolve every P0/P1; fix, justify, or file every P2/P3. Heavy container commands remain in the
-main session and sequential.
+실행 six independent 성능, 안정성, 보안, Operator/Ops, Developer/API, 및
+User/호출자 lanes plus main integration. 리뷰 the implemented diff 및 then exact PR head.
+Resolve every P0/P1; fix, justify, 또는 file every P2/P3. Heavy container commands remain in the
+main session 및 sequential.
 
-- [ ] **Step 4: Render the DoD**
+- [ ] **단계 4: Render the DoD**
 
-Report exact counts/evidence for scope, targeted/full tests, race, lint/vet/tidy/fmt, all nine
-capture commands, five family tables/charts, environment/redaction, README parity, lesson, and
+Report exact counts/evidence for scope, targeted/full 테스트, race, lint/vet/tidy/fmt, 모든 nine
+capture commands, five family tables/charts, environment/redaction, README parity, lesson, 및
 7-Tier results. Required final state: `Blocked=0`, `P0=0`, `P1=0`.
 
-- [ ] **Step 5: Push and create the approved PR**
+- [ ] **단계 5: Push 및 create the approved PR**
 
-Push `perf/issue-560-provider-benchmark-matrix` and create:
+Push `perf/issue-560-provider-benchmark-matrix` 및 create:
 
 ```text
 bluetape4k/bluetape-go
@@ -1048,10 +1051,10 @@ develop <- perf/issue-560-provider-benchmark-matrix
 ```
 
 The PR body must include `Closes #560`, benchmark snapshot caveats, exact validation evidence,
-review provenance, and central `## DoD Status`. PR creation is already in the approved delivery
-scope. Do not enable auto-merge and do not merge.
+review provenance, 및 central `## DoD Status`. PR creation is already in the approved delivery
+scope. 다음을 하지 않는다: enable auto-merge 및 do 아님 merge.
 
-- [ ] **Step 6: Stop at merge-ready**
+- [ ] **단계 6: Stop at merge-ready**
 
-After CI, current reviews/threads, exact-head verification, and applicable human-review artifacts
-pass, report the exact PR/head as merge-ready and wait for a fresh explicit user approval.
+After CI, current reviews/threads, exact-head verification, 및 applicable human-review artifacts
+pass, report the exact PR/head as merge-ready 및 wait for a fresh explicit 사용자 approval.

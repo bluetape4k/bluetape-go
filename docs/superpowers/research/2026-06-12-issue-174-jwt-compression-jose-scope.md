@@ -6,89 +6,79 @@ Date: 2026-06-12
 
 ## Research Question
 
-`bluetape-go` already has a small signed JWT helper package built on
-`github.com/golang-jwt/jwt/v5`. The open question is whether source parity with
-the Kotlin JWT stack should add JWT compression now, and which JOSE dependency
-boundary is safe if compression is ever needed.
+`bluetape-go`에는 이미 `github.com/golang-jwt/jwt/v5` 기반의 작은 signed JWT helper
+package가 있다. 열린 질문은 Kotlin JWT stack과 source parity를 맞추기 위해 지금 JWT
+compression을 추가해야 하는지, 그리고 compression이 필요해질 때 어떤 JOSE dependency boundary가
+안전한지다.
 
-## Decision
+## 결정
 
-Do not add compression to the current signed JWT/JWS helper.
+현재 signed JWT/JWS helper에는 compression을 추가하지 않는다.
 
-Keep `github.com/golang-jwt/jwt/v5` as the only runtime dependency for the
-current `jwt` package. Continue rejecting inbound and outbound signed JWTs that
-try to use unsupported JOSE/compression headers such as `zip`, `crit`, `jku`,
-`jwk`, `x5u`, and `x5c`.
+현재 `jwt` package의 유일한 runtime dependency는 `github.com/golang-jwt/jwt/v5`로 유지한다.
+`zip`, `crit`, `jku`, `jwk`, `x5u`, `x5c` 같은 unsupported JOSE/compression header를 쓰려는
+inbound/outbound signed JWT는 계속 거절한다.
 
-If interoperable compression is required later, implement it as a separate,
-explicit JWE boundary. The preferred future dependency for that boundary is
-`github.com/go-jose/go-jose/v4` pinned at `v4.1.4` or newer.
+나중에 interoperable compression이 필요해지면 별도 explicit JWE boundary로 구현한다. 그 boundary의
+preferred future dependency는 `v4.1.4` 이상으로 pin한 `github.com/go-jose/go-jose/v4`다.
 
-No implementation follow-up is opened from #174 because the research rejects
-compression for signed JWTs. A future JWE issue should be created only when a
-real product use case requires encrypted JWTs or compressed JWE payloads.
+#174는 signed JWT compression을 거절하므로 implementation follow-up을 만들지 않는다. encrypted
+JWT 또는 compressed JWE payload가 필요한 실제 product use case가 생길 때만 future JWE issue를 만든다.
 
 ## Primary Evidence
 
 | Source | Evidence | Decision impact |
 |---|---|---|
-| RFC 7515, JSON Web Signature | JWS protects a payload with a digital signature or MAC. Its registered header set covers signature and key selection headers such as `alg`, `jku`, `jwk`, `kid`, `x5u`, `x5c`, `typ`, `cty`, and `crit`; `zip` is not the JWS compression mechanism. | Do not treat `zip` as a standard signed JWT/JWS option. |
-| RFC 7516, JSON Web Encryption | `zip` is the compression algorithm applied to plaintext before encryption, and `DEF` is the value defined by the specification. The header must be integrity-protected in the JWE Protected Header. | Compression belongs to a JWE boundary, not to the current signed JWT helper. |
-| RFC 7518, JSON Web Algorithms | The JOSE compression registry is for JWE `zip` member values. PBES2 JWE key management uses `p2c` and `p2s`, which introduces denial-of-service and policy-limit considerations. | A future JWE feature needs explicit algorithm and resource-limit policy. |
-| `github.com/golang-jwt/jwt/v5` | The library supports JWT parsing, verification, generation, signing, and signing-method extensibility, with stable v5 API expectations. Current repo dependency is `v5.3.1`. | Best fit for the current narrow signed JWT helper. |
-| `github.com/go-jose/go-jose/v4` | The library implements JWE, JWS, and JWT standards, supports compact and JSON serializations, and documents `DEF` compression support. Latest release checked: `v4.1.4`, 2026-04-04. | Best future optional JOSE/JWE boundary if JWE becomes necessary. |
-| `github.com/lestrrat-go/jwx/v4` | Broad JOSE suite with active maintenance, latest release `v4.0.2` on 2026-05-07, but it currently requires Go 1.26 plus `GOEXPERIMENT=jsonv2`. | Too broad and operationally heavier for the default helper dependency. |
-| Current `jwt` package | `jwt/composer.go` reserves `zip`, `crit`, `jku`, `jwk`, `x5u`, and `x5c`; `jwt/reader.go` rejects inbound tokens containing those unsupported headers. | Existing fail-closed behavior is correct and should be documented as the #174 result. |
+| RFC 7515, JSON Web Signature | JWS는 payload를 digital signature 또는 MAC으로 보호한다. registered header set은 `alg`, `jku`, `jwk`, `kid`, `x5u`, `x5c`, `typ`, `cty`, `crit` 같은 signature/key selection header를 다루며 `zip`은 JWS compression mechanism이 아니다. | `zip`을 standard signed JWT/JWS option으로 취급하지 않는다. |
+| RFC 7516, JSON Web Encryption | `zip`은 encryption 전 plaintext에 적용되는 compression algorithm이고, specification은 `DEF` 값을 정의한다. header는 JWE Protected Header 안에서 integrity-protected여야 한다. | compression은 현재 signed JWT helper가 아니라 JWE boundary에 속한다. |
+| RFC 7518, JSON Web Algorithms | JOSE compression registry는 JWE `zip` member value를 위한 것이다. PBES2 JWE key management는 `p2c`와 `p2s`를 사용하므로 denial-of-service와 policy-limit 고려가 필요하다. | future JWE feature에는 explicit algorithm 및 resource-limit policy가 필요하다. |
+| `github.com/golang-jwt/jwt/v5` | JWT parsing, verification, generation, signing, signing-method extensibility를 지원한다. 현재 repo dependency는 `v5.3.1`이다. | 현재 narrow signed JWT helper에 가장 잘 맞는다. |
+| `github.com/go-jose/go-jose/v4` | JWE, JWS, JWT standard, compact/JSON serialization, `DEF` compression support를 구현한다. checked latest release: `v4.1.4`, 2026-04-04. | JWE가 필요해질 때 가장 적합한 optional JOSE/JWE boundary다. |
+| `github.com/lestrrat-go/jwx/v4` | broad JOSE suite이며 active maintenance가 있다. latest release `v4.0.2` on 2026-05-07, 하지만 현재 Go 1.26 plus `GOEXPERIMENT=jsonv2`를 요구한다. | default helper dependency로는 너무 넓고 운영 부담이 크다. |
+| Current `jwt` package | `jwt/composer.go`는 `zip`, `crit`, `jku`, `jwk`, `x5u`, `x5c`를 reserve하고, `jwt/reader.go`는 해당 unsupported header를 포함한 inbound token을 거절한다. | 기존 fail-closed behavior가 맞으며 #174 결과로 문서화해야 한다. |
 
 ## Candidate Comparison
 
 | Candidate | Current version checked | Scope | License | Fit |
 |---|---:|---|---|---|
-| `github.com/golang-jwt/jwt/v5` | `v5.3.1` | Signed JWT parsing, validation, generation, and signing | MIT | Adopt for current signed JWT helper. |
-| `github.com/go-jose/go-jose/v4` | `v4.1.4` | JOSE implementation covering JWE, JWS, JWT, compact/JSON serializations, and `DEF` JWE compression | Apache-2.0 | Prefer for a future optional JWE boundary. |
-| `github.com/lestrrat-go/jwx/v4` | `v4.0.2` | Full JOSE suite with JWT/JWS/JWE/JWK and richer policy surface | MIT | Reject for current default dependency; reconsider only if the project intentionally adopts a broad JOSE stack. |
-| First-party adapter around `compression` | N/A | Custom signed-JWT payload compression | Project license | Reject for interoperability and security; it would create a non-standard signed JWT shape. |
+| `github.com/golang-jwt/jwt/v5` | `v5.3.1` | Signed JWT parsing, validation, generation, signing | MIT | current signed JWT helper에 채택한다. |
+| `github.com/go-jose/go-jose/v4` | `v4.1.4` | JWE, JWS, JWT, compact/JSON serialization, `DEF` JWE compression | Apache-2.0 | future optional JWE boundary에 선호한다. |
+| `github.com/lestrrat-go/jwx/v4` | `v4.0.2` | JWT/JWS/JWE/JWK와 richer policy surface를 가진 full JOSE suite | MIT | current default dependency로 거절한다. broad JOSE stack을 의도적으로 채택할 때만 재검토한다. |
+| First-party adapter around `compression` | N/A | Custom signed-JWT payload compression | Project license | interoperability와 security 때문에 거절한다. non-standard signed JWT shape가 된다. |
 
 ## Security Boundary
 
-- Signed JWT parsing must keep `WithValidMethods` and exact provider algorithm
-  matching.
-- `zip` on signed JWT/JWS remains unsupported and rejected.
-- `crit` remains rejected unless a future feature explicitly implements every
-  critical extension listed in the token.
-- Remote key headers `jku`, `jwk`, `x5u`, and `x5c` remain rejected by default;
-  a future trust model would need pinned issuers, TLS/server identity rules,
-  key-source allowlists, and cache invalidation policy.
-- JWE support, if added later, must be a distinct API path rather than an
-  auto-detected extension inside `Provider.Parse`.
+- signed JWT parsing은 `WithValidMethods`와 exact provider algorithm matching을 유지해야 한다.
+- signed JWT/JWS의 `zip`은 unsupported로 유지하고 거절한다.
+- `crit`은 future feature가 token의 모든 critical extension을 명시적으로 구현하기 전까지 거절한다.
+- remote key header `jku`, `jwk`, `x5u`, `x5c`는 기본적으로 거절한다. future trust model에는
+  pinned issuer, TLS/server identity rule, key-source allowlist, cache invalidation policy가 필요하다.
+- JWE support를 나중에 추가하더라도 `Provider.Parse` 안의 auto-detected extension이 아니라 distinct
+  API path여야 한다.
 
 ## Future JWE Acceptance Shape
 
-A future issue should require all of the following before adopting
-`go-jose/go-jose/v4`:
+future issue가 `go-jose/go-jose/v4`를 채택하려면 다음을 모두 요구해야 한다.
 
-- Separate package or constructor boundary for JWE; do not change existing
-  signed JWT behavior.
-- Pin `github.com/go-jose/go-jose/v4` at `v4.1.4` or newer.
-- Allowlist JWE `alg` and `enc` combinations.
-- Accept `zip=DEF` only in the JWE Protected Header.
-- Enforce maximum compact token size, maximum decompressed size, and maximum
-  expansion ratio.
-- Reject malformed compact tokens with excessive segment counts.
-- Reject unsupported `crit` entries.
-- Keep remote key headers disabled unless an explicit pinned trust policy is
-  designed and tested.
-- Prefer service-to-service key management over PBES2. If PBES2 is ever
-  enabled, enforce `p2c` limits and random `p2s`.
+- JWE를 위한 separate package 또는 constructor boundary. 기존 signed JWT behavior를 바꾸지 않는다.
+- `github.com/go-jose/go-jose/v4`를 `v4.1.4` 이상으로 pin한다.
+- JWE `alg`와 `enc` combination을 allowlist한다.
+- JWE Protected Header 안의 `zip=DEF`만 허용한다.
+- maximum compact token size, maximum decompressed size, maximum expansion ratio를 강제한다.
+- segment count가 과도한 malformed compact token을 거절한다.
+- unsupported `crit` entry를 거절한다.
+- explicit pinned trust policy가 설계되고 tested되기 전까지 remote key header를 disabled로 유지한다.
+- PBES2보다 service-to-service key management를 선호한다. PBES2가 활성화되면 `p2c` limit와 random
+  `p2s`를 강제한다.
 
 ## Adopt / Borrow / Skip Decisions
 
 | Decision | Rationale |
 |---|---|
-| Adopt `golang-jwt/jwt/v5` for current `jwt` package | Narrow, stable, already implemented, and sufficient for signed JWT creation and validation. |
-| Borrow `go-jose/go-jose/v4` only for future JWE | It matches the standards boundary where compression belongs without forcing all signed-JWT users into a JOSE-wide dependency. |
-| Skip `jwx/v4` for default dependency | Active and capable, but too broad for this package and currently requires `GOEXPERIMENT=jsonv2`. |
-| Skip first-party signed-JWT compression | Non-standard shape, weak interop, and easy to confuse with JWE `zip`. |
+| current `jwt` package에는 `golang-jwt/jwt/v5`를 채택 | signed JWT 생성과 검증에 충분하고, narrow/stable/already implemented다. |
+| future JWE에만 `go-jose/go-jose/v4`를 borrow | compression이 속하는 standards boundary에 맞고, signed-JWT user 전체에 JOSE-wide dependency를 강제하지 않는다. |
+| default dependency로 `jwx/v4`는 skip | active하고 capable하지만 package 범위보다 넓고 현재 `GOEXPERIMENT=jsonv2`를 요구한다. |
+| first-party signed-JWT compression은 skip | non-standard shape이고 interop이 약하며 JWE `zip`과 혼동되기 쉽다. |
 
 ## Source Links
 
@@ -113,9 +103,9 @@ A future issue should require all of the following before adopting
 
 | Item | Status | Notes |
 |---|---|---|
-| `golang-jwt/jwt/v5` evaluated | Done | Keep for signed JWT only. |
-| `go-jose/go-jose/v4` evaluated | Done | Preferred future JWE dependency, not adopted now. |
-| `lestrrat-go/jwx/v4` evaluated | Done | Rejected for default helper dependency because of breadth and `GOEXPERIMENT=jsonv2`. |
-| Compression decision recorded | Done | Signed JWT compression is a non-goal; JWE is future-only. |
-| Security risks recorded | Done | Header confusion, remote key headers, decompression limits, compact parsing DoS, and PBES2 limits. |
-| Follow-up decision | Done | No implementation issue opened because #174 rejects signed JWT compression. |
+| `golang-jwt/jwt/v5` evaluated | Done | signed JWT only로 유지한다. |
+| `go-jose/go-jose/v4` evaluated | Done | preferred future JWE dependency지만 지금 채택하지 않는다. |
+| `lestrrat-go/jwx/v4` evaluated | Done | breadth와 `GOEXPERIMENT=jsonv2` 때문에 default helper dependency로 거절한다. |
+| Compression decision recorded | Done | signed JWT compression은 non-goal이며 JWE는 future-only다. |
+| Security risks recorded | Done | header confusion, remote key headers, decompression limits, compact parsing DoS, PBES2 limits를 기록했다. |
+| Follow-up decision | Done | #174가 signed JWT compression을 거절하므로 implementation issue를 열지 않는다. |

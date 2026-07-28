@@ -1,77 +1,80 @@
-# Redis Tiered Value Cache Implementation Plan
+# Redis tiered value cache 구현 계획
 
-> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
+> 한국어 재작성 범위: 이 계획 문서는 한국어 운영 문서로 읽히도록 제목, 판단, 작업 설명, 위험, 검증, 롤백 문맥을 한국어로 정리한다. 명령, 경로, API 이름, 이슈/PR 번호, 브랜치명, 코드 블록, 테스트 출력 같은 증거 문자열은 정확성을 위해 원문 그대로 보존한다.
 
-**Goal:** Add `cache/redisvalue`, a bounded serialized Redis L2 provider and a `TieredCache[V]` decorator whose L1 stores `V` directly and whose default configuration can be overridden per cache.
 
-**Architecture:** `ValueCache[V]` owns key construction, TTL normalization, serialization, bounded Redis commands, and namespace clear. `TieredCache[V]` composes one exclusively transferred `cache.Cache[string,V]` L1 with that provider, using an ABA-safe same-key coordinator and a process-local state barrier for invalidation, cleanup, and repair. RESP3 tracking remains outside this package and issue #536 may use only the L1-only invalidation methods.
+> **에이전트 작업자용:** 필수 하위 스킬: 사용 superpowers:subagent-driven-development (권장) 또는 superpowers:executing-plans to 이 계획을 작업 단위로 구현. 단계는 checkbox (`- [ ]`) 추적 문법을 사용.
 
-**Tech Stack:** Go 1.26.3, `github.com/redis/go-redis/v9`, existing `cache` and `serialization` contracts, Redis 7.4 Testcontainers, standard-library synchronization, `testing.AllocsPerRun`, and repository Make targets.
+**목표:** 추가 `cache/redisvalue`, a bounded serialized Redis L2 provider 및 a `TieredCache[V]` decorator whose L1 stores `V` directly 및 whose default configuration can be overridden per cache.
+
+**아키텍처:** `ValueCache[V]` owns key construction, TTL normalization, serialization, bounded Redis commands, 및 namespace clear. `TieredCache[V]` composes one exclusively transferred `cache.Cache[string,V]` L1 함께 that provider, using an ABA-safe same-key coordinator 및 a process-local state barrier for invalidation, cleanup, 및 repair. RESP3 tracking remains outside this 패키지 및 issue #536 may use 만 the L1-만 invalidation methods.
+
+**기술 스택:** Go 1.26.3, `github.com/redis/go-redis/v9`, 기존 `cache` 및 `serialization` contracts, Redis 7.4 Testcontainers, standard-library synchronization, `testing.AllocsPerRun`, 및 repository Make targets.
 
 ---
 
-## File Map
+## 파일 지도
 
-Create these focused files:
+생성 these focused files:
 
-- `cache/redisvalue/doc.go` — package-level behavior and RESP3 boundary.
-- `cache/redisvalue/config.go` — public config defaults, validation, and copied constructor options.
+- `cache/redisvalue/doc.go` — 패키지-level behavior 및 RESP3 boundary.
+- `cache/redisvalue/config.go` — 공개 config defaults, validation, 및 copied constructor options.
 - `cache/redisvalue/errors.go` — stable reasons, redacted `CacheError`, clear progress, provider wrapping.
-- `cache/redisvalue/ttl.go` — zero/sub-millisecond-safe TTL validation and go-redis wire normalization.
-- `cache/redisvalue/value_cache.go` — bounded `Get`, Redis-first `Set`, `SetDefault`, and idempotent `Delete`.
-- `cache/redisvalue/clear.go` — streamed `SCAN MATCH` and sequential bounded `UNLINK`.
+- `cache/redisvalue/ttl.go` — zero/sub-millisecond-safe TTL validation 및 go-redis wire normalization.
+- `cache/redisvalue/value_cache.go` — bounded `Get`, Redis-first `Set`, `SetDefault`, 및 idempotent `Delete`.
+- `cache/redisvalue/clear.go` — streamed `SCAN MATCH` 및 sequential bounded `UNLINK`.
 - `cache/redisvalue/coordination.go` — registry, operation token, load flights, participants, ABA-safe retirement.
 - `cache/redisvalue/local_state.go` — healthy/blocking/blocked/repairing barrier, leases, tickets, repair epochs.
-- `cache/redisvalue/tiered_cache.go` — public decorator reads, loads, mutations, cleanup, and invalidation.
-- `cache/redisvalue/*_test.go` — same-package unit, deterministic concurrency, race, allocation, and integration evidence.
-- `cache/redisvalue/documentation_test.go` — executable English/Korean contract-marker parity.
-- `cache/redisvalue/example_test.go` — compile-checked public API examples.
-- `cache/redisvalue/README.md`, `cache/redisvalue/README.ko.md` — synchronized caller and operator contract.
+- `cache/redisvalue/tiered_cache.go` — 공개 decorator reads, loads, mutations, cleanup, 및 invalidation.
+- `cache/redisvalue/*_test.go` — same-패키지 unit, deterministic concurrency, race, allocation, 및 integration evidence.
+- `cache/redisvalue/documentation_test.go` — executable 영문/한국어 계약-marker parity.
+- `cache/redisvalue/example_test.go` — compile-checked 공개 API example.
+- `cache/redisvalue/README.md`, `cache/redisvalue/README.ko.md` — synchronized 호출자 및 운영자 계약.
 - `docs/lessons/2026-07-18-issue-535-redis-tiered-value-cache.md` — Type A reusable lesson.
 
-Modify only these existing public indexes:
+Modify 만 these 기존 공개 indexes:
 
 - `README.md`
 - `README.ko.md`
 - `CHANGELOG.md`
 
-Do not change `Makefile`, `cache.Cache`, `cache.LoadingCache`, `cache/redisnear`, `cache/rediscoord`, or `redis.ValidateTTL`. Issue #560 owns benchmark-matrix publication and issue #536 owns RESP3 tracking.
+다음을 하지 않는다: change `Makefile`, `cache.Cache`, `cache.LoadingCache`, `cache/redisnear`, `cache/rediscoord`, 또는 `redis.ValidateTTL`. Issue #560 owns benchmark-matrix publication 및 issue #536 owns RESP3 tracking.
 
-## Spec Coverage Matrix
+## spec coverage matrix
 
-| Acceptance criterion | Implementation and proof |
+| Acceptance criterion | Implementation 및 proof |
 |---|---|
-| 1. Constructor-only, zero-value-safe caches | Tasks 2, 6, and 8 constructor/zero-value tests |
-| 2. Caller-owned client and concurrency-safe serializer-backed `ValueCache` | Tasks 2-3 unit tests, Task 9 Redis integration, and Task 10 race evidence |
-| 3. Direct-`V` L1 and L2-only serialization | Task 6 reference/serializer-count tests and Task 9 pointer-isolation integration |
-| 4. Copied defaults and per-cache overrides | Task 1 config-copy tests and Task 11 examples/docs |
-| 5. Allocation-free healthy L1 hit | Task 6 hot-path dependency assertions and Task 10 `AllocsPerRun` proof |
-| 6. L1 -> L2 -> loader with ABA-safe collapse | Tasks 4, 6, and 7 coordinator/flight tests |
-| 7. Finite/zero TTL and known-write adjustment | Tasks 1, 6, and 9 TTL tests |
-| 8. Bounded/redacted reads, writes, clear, inputs, and errors | Tasks 1-3 unit tests plus Task 9 ACL/clear integration |
-| 9. Commit-unknown and token-held cleanup | Tasks 2 and 8 mutation/error tests |
-| 10. Same-key linearization, tickets, state, and generations | Tasks 4-8 deterministic tests and Task 10 adversarial races |
-| 11. One cleanup budget and newest-repair epoch | Tasks 5 and 8 state/repair tests |
-| 12. L1-only invalidation and fleet reset boundary | Task 8 multi-decorator tests and Task 11 operator docs |
-| 13. Synchronous direct-primary public surface | Task 2 constructor types and Task 11 topology docs |
-| 14. Unsupported namespace/L1 sharing | Task 1 namespace validation and Task 11 ownership docs |
-| 15. Unit, integration, race, stress, and examples | Tasks 1-10 targeted evidence and Task 12 full gates |
-| 16. Synchronized English/Korean docs and RESP3 distinction | Task 11 locale-parity check and root/package docs |
+| 1. Constructor-만, zero-value-safe caches | Tasks 2, 6, 및 8 constructor/zero-value 테스트 |
+| 2. Caller-owned client 및 concurrency-safe serializer-backed `ValueCache` | Tasks 2-3 unit 테스트, 작업 9 Redis integration, 및 작업 10 race evidence |
+| 3. Direct-`V` L1 및 L2-만 serialization | 작업 6 reference/serializer-count 테스트 및 작업 9 pointer-isolation integration |
+| 4. Copied defaults 및 per-cache overrides | 작업 1 config-copy 테스트 및 작업 11 example/docs |
+| 5. Allocation-free healthy L1 hit | 작업 6 hot-path dependency assertions 및 작업 10 `AllocsPerRun` proof |
+| 6. L1 -> L2 -> loader 함께 ABA-safe collapse | Tasks 4, 6, 및 7 coordinator/flight 테스트 |
+| 7. Finite/zero TTL 및 known-write adjustment | Tasks 1, 6, 및 9 TTL 테스트 |
+| 8. Bounded/redacted reads, writes, clear, inputs, 및 오류 | Tasks 1-3 unit 테스트 plus 작업 9 ACL/clear integration |
+| 9. 커밋-unknown 및 token-held cleanup | Tasks 2 및 8 mutation/오류 테스트 |
+| 10. Same-key linearization, tickets, state, 및 generations | Tasks 4-8 deterministic 테스트 및 작업 10 adversarial races |
+| 11. One cleanup budget 및 newest-repair epoch | Tasks 5 및 8 state/repair 테스트 |
+| 12. L1-만 invalidation 및 fleet reset boundary | 작업 8 multi-decorator 테스트 및 작업 11 운영자 docs |
+| 13. Synchronous direct-primary 공개 surface | 작업 2 constructor types 및 작업 11 topology docs |
+| 14. Unsupported namespace/L1 sharing | 작업 1 namespace validation 및 작업 11 ownership docs |
+| 15. Unit, integration, race, stress, 및 example | Tasks 1-10 targeted evidence 및 작업 12 full gates |
+| 16. Synchronized 영문/한국어 docs 및 RESP3 distinction | 작업 11 locale-parity check 및 root/패키지 docs |
 
-### Task 1: Lock Configuration, Key, TTL, and Error Contracts
+### 작업 1: 고정 Configuration, Key, TTL, 및 Error Contracts
 
-**Files:**
-- Create: `cache/redisvalue/doc.go`
-- Create: `cache/redisvalue/config.go`
-- Create: `cache/redisvalue/errors.go`
-- Create: `cache/redisvalue/ttl.go`
+**파일:**
+- 생성: `cache/redisvalue/doc.go`
+- 생성: `cache/redisvalue/config.go`
+- 생성: `cache/redisvalue/errors.go`
+- 생성: `cache/redisvalue/ttl.go`
 - Test: `cache/redisvalue/config_test.go`
 - Test: `cache/redisvalue/errors_test.go`
 - Test: `cache/redisvalue/ttl_test.go`
 
-- [ ] **Step 1: Write failing configuration, key, TTL, and error tests**
+- [ ] **단계 1: Write failing configuration, key, TTL, 및 오류 테스트**
 
-Add table-driven tests that assert independent default copies, every configuration bound, namespace/key limits, TTL normalization, redaction, and shared sentinel identity. This task deliberately defines no cache type or constructor, so its GREEN checkpoint does not depend on later coordinator/local-state work.
+추가 table-driven 테스트 that assert independent default copies, every configuration bound, namespace/key limits, TTL normalization, redaction, 및 공유 sentinel identity. This task deliberately defines 없음 cache type 또는 constructor, so its GREEN checkpoint does 아님 depend on later coordinator/local-state work.
 
 ```go
 func TestDefaultConfigReturnsIndependentValidValues(t *testing.T) {
@@ -89,7 +92,7 @@ func TestDefaultConfigReturnsIndependentValidValues(t *testing.T) {
 }
 ```
 
-Add explicit `errors.Is` assertions:
+추가 explicit `errors.Is` assertions:
 
 ```go
 func TestInputValidationPreservesRedisSentinels(t *testing.T) {
@@ -99,19 +102,19 @@ func TestInputValidationPreservesRedisSentinels(t *testing.T) {
 }
 ```
 
-- [ ] **Step 2: Run the tests and verify RED**
+- [ ] **단계 2: 실행 the 테스트 및 verify RED**
 
-Run:
+실행:
 
 ```bash
 go test -count=1 ./cache/redisvalue -run 'Test(DefaultConfig|Config|InputValidation|TTL|CacheError)'
 ```
 
-Expected: FAIL because package/types are not defined.
+예상: FAIL because 패키지/types are 아님 defined.
 
-- [ ] **Step 3: Implement exact public configuration**
+- [ ] **단계 3: 구현 exact 공개 configuration**
 
-Add the exported configuration from the approved spec:
+추가 the exported configuration from the approved spec:
 
 ```go
 type ValueConfig struct {
@@ -149,9 +152,9 @@ func (c Config) Validate() error {
 
 ```
 
-Add table rows that call `Config.Validate` directly for every lower/upper bound and for `LocalTTL > RemoteTTL`; assert `errors.Is(err, btredis.ErrInvalidTTL)` for TTL relationship failures. Tasks 2 and 6 repeat the relevant validation against copied constructor inputs.
+추가 table rows that call `Config.Validate` directly for every 낮음er/upper bound 및 for `LocalTTL > RemoteTTL`; assert `errors.Is(err, btredis.ErrInvalidTTL)` for TTL relationship failures. Tasks 2 및 6 repeat the relevant validation against copied constructor inputs.
 
-Validation must enforce the approved ranges. Do not call `redis.ValidateTTL`; it rejects the zero and positive sub-millisecond TTLs required here. Use:
+검증 must enforce the approved ranges. 다음을 하지 않는다: call `redis.ValidateTTL`; it rejects the zero 및 positive sub-millisecond TTLs required here. 사용:
 
 ```go
 func validateEntryTTL(ttl time.Duration) error {
@@ -175,11 +178,11 @@ func normalizeWireTTL(ttl time.Duration) time.Duration {
 }
 ```
 
-Use `reflect.Value.IsNil` only for interface dependencies. Validate namespace as exactly one `[A-Za-z0-9._-]+` segment of at most 128 bytes and logical keys as non-blank values of at most 1024 bytes before calling `redis.KeyBuilder`.
+사용 `reflect.Value.IsNil` 만 for interface dependencies. Validate namespace as exactly one `[A-Za-z0-9._-]+` segment of at most 128 bytes 및 logical keys as non-blank values of at most 1024 bytes 전에 calling `redis.KeyBuilder`.
 
-- [ ] **Step 4: Implement inspectable redacted errors**
+- [ ] **단계 4: 구현 inspectable redacted 오류**
 
-Define every approved reason and accessor without formatting the causal error:
+정의 every approved reason 및 accessor without formatting the causal 오류:
 
 ```go
 type Reason string
@@ -224,20 +227,20 @@ func (e *CacheError) ClearProgress() (ClearProgress, bool) {
 }
 ```
 
-Provider failures must be `CacheError -> redis.OpError -> original cause`; dispatched mutation failures additionally join `redis.ErrCommitUnknown`. Unit tests must prove raw keys, serialized bytes, provider messages, and addresses are absent from `Error()`.
+Provider failures must be `CacheError -> redis.OpError -> original cause`; dispatched mutation failures additionally join `redis.ErrCommitUnknown`. Unit 테스트 must prove raw keys, serialized bytes, provider messages, 및 addresses are absent from `Error()`.
 
-- [ ] **Step 5: Run focused tests and commit**
+- [ ] **단계 5: 실행 focused 테스트 및 commit**
 
-Run:
+실행:
 
 ```bash
 gofmt -w cache/redisvalue/*.go
 go test -count=1 ./cache/redisvalue -run 'Test(DefaultConfig|Config|Constructor|Input|TTL|CacheError)'
 ```
 
-Expected: PASS.
+예상: PASS.
 
-Commit with Lore trailers:
+커밋 함께 Lore trailers:
 
 ```bash
 git add cache/redisvalue
@@ -248,21 +251,21 @@ git commit -m "Define the redisvalue safety contract" \
   -m "Tested: focused redisvalue config, TTL, key, and error tests"
 ```
 
-### Task 2: Implement the Bounded Serialized Redis L2 Provider
+### 작업 2: 구현 the Bounded Serialized Redis L2 Provider
 
-**Files:**
-- Create: `cache/redisvalue/value_cache.go`
+**파일:**
+- 생성: `cache/redisvalue/value_cache.go`
 - Test: `cache/redisvalue/value_cache_test.go`
 
-- [ ] **Step 1: Write failing bounded read/write tests with a narrow fake**
+- [ ] **단계 1: Write failing bounded read/write 테스트 함께 a narrow fake**
 
-Add `ValueOptions[V]`, `ValueCache[V]`, and `NewValueCache` constructor tests here, where the concrete type is first introduced. Assert nil client, nil/typed-nil serializer, invalid namespace, copied `ValueConfig`, zero-value method safety, and shared input sentinels. The serializer remains caller-owned, immutable after construction, and safe for concurrent `Marshal`/`Unmarshal`; the package does not add a global codec lock.
+추가 `ValueOptions[V]`, `ValueCache[V]`, 및 `NewValueCache` constructor 테스트 here, where the concrete type is first introduced. 검증 nil client, nil/typed-nil serializer, invalid namespace, copied `ValueConfig`, zero-value method safety, 및 공유 input sentinels. The serializer remains 호출자-owned, immutable 후 construction, 및 safe for concurrent `Marshal`/`Unmarshal`; the 패키지 does 아님 add a global codec lock.
 
-Define one package-internal command interface containing an atomic `ReadBounded` boundary plus `Set`, `Del`, `Scan`, and `Unlink`. The production go-redis adapter performs one `GETRANGE` for a non-empty result and, for an ambiguous empty result, re-runs bounded `GETRANGE` plus `EXISTS` inside one `MULTI`/`EXEC` transaction. The fake keeps read behavior injectable while clear tests make unexpected reads panic. Tests must assert non-empty hit uses one command, zero-length hit/miss returns bytes and existence from one atomic recheck, payload length `MaxValueBytes+1` is rejected before unmarshal, marshal happens before Redis, and invalid input/cancellation causes no command. Inject a bounded malformed payload and a serializer error containing payload/key/address markers; assert exactly one unmarshal, `ReasonInvalidPayload`, inspectable cause identity, and no `DEL`, loader fallback, L1 population, or other mutation. Assert the outer error string omits the raw payload, logical/physical key, provider address, and serializer message while `errors.Is`/`errors.As` can still reach causes. The existing oversize-marshal row must prove rejection before Redis dispatch. Task 8 adds the joined provider/local-cleanup redaction assertion after both error paths exist.
+정의 one 패키지-internal command interface containing an atomic `ReadBounded` boundary plus `Set`, `Del`, `Scan`, 및 `Unlink`. The production go-redis adapter performs one `GETRANGE` for a non-empty result 및, for an ambiguous empty result, re-runs bounded `GETRANGE` plus `EXISTS` inside one `MULTI`/`EXEC` transaction. The fake keeps read behavior injectable while clear 테스트 make unexpected reads panic. Tests must assert non-empty hit uses one command, zero-length hit/miss returns bytes 및 existence from one atomic recheck, payload length `MaxValueBytes+1` is rejected 전에 unmarshal, marshal happens 전에 Redis, 및 invalid input/cancellation causes 없음 command. Inject a bounded malformed payload 및 a serializer 오류 containing payload/key/address markers; assert exactly one unmarshal, `ReasonInvalidPayload`, inspectable 원인 identity, 및 없음 `DEL`, loader fallback, L1 population, 또는 other mutation. 검증 the outer 오류 string omits the raw payload, logical/physical key, provider address, 및 serializer message while `errors.Is`/`errors.As` can still reach causes. The 기존 oversize-marshal row must prove rejection 전에 Redis dispatch. 작업 8 adds the joined provider/local-cleanup redaction assertion 후 both 오류 paths exist.
 
-Add `TestValueCacheDifferentKeySerializerCallsProceedConcurrently` with a concurrency-safe latch serializer. Start two `Set` calls for different keys and require both `Marshal` invocations to signal entry before releasing either; then preload two bounded payloads, start two different-key `Get` calls, and require both `Unmarshal` invocations to enter before release. Assert all four operations succeed and exact call counts are two. This deterministic test fails if `ValueCache` adds a package-global serializer mutex; the Task 10 race run proves the latch serializer and built-in serializer remain race-free.
+추가 `TestValueCacheDifferentKeySerializerCallsProceedConcurrently` 함께 a concurrency-safe latch serializer. Start two `Set` calls for different keys 및 require both `Marshal` invocations to signal entry 전에 releasing either; then preload two bounded payloads, start two different-key `Get` calls, 및 require both `Unmarshal` invocations to enter 전에 release. 검증 모든 four operations succeed 및 exact call counts are two. This deterministic 테스트 fails if `ValueCache` adds a 패키지-global serializer mutex; the 작업 10 race run proves the latch serializer 및 built-in serializer remain race-free.
 
-Use this exact public constructor shape:
+사용 this exact 공개 constructor shape:
 
 ```go
 type ValueOptions[V any] struct {
@@ -306,17 +309,17 @@ func TestValueCacheGetUsesBoundedRead(t *testing.T) {
 }
 ```
 
-- [ ] **Step 2: Run focused tests and verify RED**
+- [ ] **단계 2: 실행 focused 테스트 및 verify RED**
 
 ```bash
 go test -count=1 ./cache/redisvalue -run '^TestValueCache'
 ```
 
-Expected: FAIL because L2 methods are absent.
+예상: FAIL because L2 methods are absent.
 
-- [ ] **Step 3: Implement `ValueCache` methods**
+- [ ] **단계 3: 구현 `ValueCache` methods**
 
-Use this internal structure and method order:
+사용 this internal structure 및 method order:
 
 ```go
 type commandClient interface {
@@ -337,9 +340,9 @@ type ValueCache[V any] struct {
 }
 ```
 
-`NewValueCache` validates the concrete client, rejects nil and typed-nil serializers with the shared interface-nil helper, copies either `*options.Config` or `DefaultConfig().Value`, validates the namespace, creates `btredis.NewKeyBuilder("bluetape:cache:value")`, appends the namespace with `Structural`, and stores the resulting builder. It retains but never closes or mutates the caller's client or serializer.
+`NewValueCache` validates the concrete client, rejects nil 및 typed-nil serializers 함께 the 공유 interface-nil helper, copies either `*options.Config` 또는 `DefaultConfig().Value`, validates the namespace, creates `btredis.NewKeyBuilder("bluetape:cache:value")`, appends the namespace 함께 `Structural`, 및 stores the resulting builder. It retains but never closes 또는 mutates the 호출자's client 또는 serializer.
 
-`Get` must issue `GETRANGE 0 MaxValueBytes`; for a zero-length result it must atomically re-read `GETRANGE` and `EXISTS` inside `MULTI`/`EXEC`, reject length `> MaxValueBytes`, and call `Unmarshal` exactly once. `Set` must validate, marshal once, reject oversized bytes, recheck context, normalize TTL, invoke Redis, and preserve commit ambiguity on every non-nil post-invocation command error. `SetDefault` delegates to `Set` with the copied default. `Delete` validates before invocation, is idempotent, and treats any post-invocation error as commit-unknown.
+`Get` must issue `GETRANGE 0 MaxValueBytes`; for a zero-length result it must atomically re-read `GETRANGE` 및 `EXISTS` inside `MULTI`/`EXEC`, reject length `> MaxValueBytes`, 및 call `Unmarshal` exactly once. `Set` must validate, marshal once, reject oversized bytes, recheck context, normalize TTL, invoke Redis, 및 preserve commit ambiguity on every non-nil post-invocation command 오류. `SetDefault` delegates to `Set` 함께 the copied default. `Delete` validates 전에 invocation, is idempotent, 및 treats any post-invocation 오류 as commit-unknown.
 
 ```go
 func (c *ValueCache[V]) SetDefault(ctx context.Context, key string, value V) error {
@@ -370,11 +373,11 @@ func (c *ValueCache[V]) Get(ctx context.Context, logicalKey string) (V, error) {
 }
 ```
 
-All error helpers accept only `btredis.Key.RedactedID`; raw `Key.Value` is restricted to Redis command arguments.
+All 오류 helpers accept 만 `btredis.Key.RedactedID`; raw `Key.Value` is restricted to Redis command arguments.
 
-- [ ] **Step 4: Prove the implemented zero-value methods are safe**
+- [ ] **단계 4: 증명 the implemented zero-value methods are safe**
 
-Test the methods introduced so far; Task 3 adds the final interface assertion and `Clear` zero-value row after `Clear` exists:
+Test the methods introduced so far; 작업 3 adds the final interface assertion 및 `Clear` zero-value row 후 `Clear` exists:
 
 ```go
 func TestValueCacheZeroValueReturnsUninitialized(t *testing.T) {
@@ -386,14 +389,14 @@ func TestValueCacheZeroValueReturnsUninitialized(t *testing.T) {
 }
 ```
 
-- [ ] **Step 5: Run tests and commit**
+- [ ] **단계 5: 실행 테스트 및 commit**
 
 ```bash
 gofmt -w cache/redisvalue/*.go
 go test -count=1 ./cache/redisvalue -run '^TestValueCache'
 ```
 
-Expected: PASS.
+예상: PASS.
 
 ```bash
 git add cache/redisvalue
@@ -404,15 +407,15 @@ git commit -m "Store bounded serialized values in Redis" \
   -m "Tested: focused ValueCache unit tests"
 ```
 
-### Task 3: Add Streamed Namespace Clear and Partial Progress
+### 작업 3: 추가 Streamed Namespace Clear 및 Partial Progress
 
-**Files:**
-- Create: `cache/redisvalue/clear.go`
+**파일:**
+- 생성: `cache/redisvalue/clear.go`
 - Test: `cache/redisvalue/clear_test.go`
 
-- [ ] **Step 1: Write failing page/chunk/error tests**
+- [ ] **단계 1: Write failing page/chunk/오류 테스트**
 
-Script fake `SCAN` pages larger than `ClearBatchSize`. Assert the exact pattern `bluetape:cache:value:<namespace>:*`, `COUNT` hint, sequential `UNLINK` chunks, cursor-zero retry semantics, cancellation between chunks, and partial progress without raw keys.
+Script fake `SCAN` pages larger than `ClearBatchSize`. 검증 the exact pattern `bluetape:cache:value:<namespace>:*`, `COUNT` hint, sequential `UNLINK` chunks, cursor-zero retry semantics, cancellation between chunks, 및 partial progress without raw keys.
 
 ```go
 func TestValueCacheClearStreamsAndRechunksPages(t *testing.T) {
@@ -431,17 +434,17 @@ func TestValueCacheClearStreamsAndRechunksPages(t *testing.T) {
 }
 ```
 
-Use the repository's existing `github.com/google/go-cmp/cmp` dependency for the nested-slice assertion; add no dependency.
+사용 the repository's 기존 `github.com/google/go-cmp/cmp` dependency for the nested-slice assertion; add 없음 dependency.
 
-- [ ] **Step 2: Verify RED**
+- [ ] **단계 2: 검증 RED**
 
 ```bash
 go test -count=1 ./cache/redisvalue -run '^TestValueCacheClear'
 ```
 
-Expected: FAIL because clear is unimplemented.
+예상: FAIL because clear is unimplemented.
 
-- [ ] **Step 3: Implement the cursor loop**
+- [ ] **단계 3: 구현 the cursor loop**
 
 ```go
 func (c *ValueCache[V]) Clear(ctx context.Context) error {
@@ -467,11 +470,11 @@ func (c *ValueCache[V]) Clear(ctx context.Context) error {
 }
 ```
 
-Never call `FLUSHDB`, `KEYS`, blocking `DEL`, or pipeline commands.
+Never call `FLUSHDB`, `KEYS`, blocking `DEL`, 또는 pipeline commands.
 
-- [ ] **Step 4: Run clear tests and commit**
+- [ ] **단계 4: 실행 clear 테스트 및 commit**
 
-Add the final zero-value row and compile-time contract now that every `ValueCache` method exists:
+추가 the final zero-value row 및 compile-time 계약 now that every `ValueCache` method exists:
 
 ```go
 var _ cache.Cache[string, testValue] = (*ValueCache[testValue])(nil)
@@ -487,7 +490,7 @@ gofmt -w cache/redisvalue/*.go
 go test -count=1 ./cache/redisvalue -run '^TestValueCacheClear'
 ```
 
-Expected: PASS.
+예상: PASS.
 
 ```bash
 git add cache/redisvalue
@@ -498,15 +501,15 @@ git commit -m "Clear value namespaces without blocking Redis" \
   -m "Tested: streamed clear and partial-progress tests"
 ```
 
-### Task 4: Build the ABA-Safe Same-Key Coordinator and Load Flights
+### 작업 4: 구성 the ABA-Safe Same-Key Coordinator 및 Load Flights
 
-**Files:**
-- Create: `cache/redisvalue/coordination.go`
+**파일:**
+- 생성: `cache/redisvalue/coordination.go`
 - Test: `cache/redisvalue/coordination_test.go`
 
-- [ ] **Step 1: Write deterministic token, flight, cancellation, and retirement tests**
+- [ ] **단계 1: Write deterministic token, flight, cancellation, 및 retirement 테스트**
 
-Cover one same-key leader, existing followers sharing success/error, follower-only cancellation, leader cancellation before token acquisition, publication/cancellation arbitration, constant-size flight state, active registry returning to zero, and final-retirement ABA against a new lookup.
+Cover one same-key leader, 기존 fol낮음ers sharing success/오류, fol낮음er-만 cancellation, leader cancellation 전에 token acquisition, publication/cancellation arbitration, constant-size flight state, active registry returning to zero, 및 final-retirement ABA against a new lookup.
 
 ```go
 func TestCoordinatorRetirementDoesNotCreateTwoTokenDomains(t *testing.T) {
@@ -530,17 +533,17 @@ func TestCoordinatorRetirementDoesNotCreateTwoTokenDomains(t *testing.T) {
 }
 ```
 
-- [ ] **Step 2: Verify RED**
+- [ ] **단계 2: 검증 RED**
 
 ```bash
 go test -count=1 ./cache/redisvalue -run '^TestCoordinator'
 ```
 
-Expected: FAIL because coordinator types do not exist.
+예상: FAIL because coordinator types do 아님 exist.
 
-- [ ] **Step 3: Implement registry, token, and flight records**
+- [ ] **단계 3: 구현 registry, token, 및 flight records**
 
-Use a registry mutex to serialize lookup/install/retain and identity-checked retirement. Maintain the lock order `registry -> coordinator`; never request registry retirement while holding the coordinator mutex.
+사용 a registry mutex to serialize lookup/install/retain 및 identity-checked retirement. Maintain the lock order `registry -> coordinator`; never request registry retirement while holding the coordinator mutex.
 
 ```go
 type loadFlight[V any] struct {
@@ -583,16 +586,16 @@ func (c *keyCoordinator[V]) acquireToken(ctx context.Context) error {
 func (c *keyCoordinator[V]) releaseToken() { c.token <- struct{}{} }
 ```
 
-Flight publication and follower cancellation must both lock `keyCoordinator.mu`; whichever records first determines the follower result and releases its participant once. The leader retains its participant while waiting for healthy-origin repair, releases its token, then reacquires it and restarts inside the same flight.
+Flight publication 및 fol낮음er cancellation must both lock `keyCoordinator.mu`; whichever records first determines the fol낮음er result 및 releases its participant once. The leader retains its participant while waiting for healthy-origin repair, releases its token, then reacquires it 및 restarts inside the same flight.
 
-- [ ] **Step 4: Run coordinator tests repeatedly and commit**
+- [ ] **단계 4: 실행 coordinator 테스트 repeatedly 및 commit**
 
 ```bash
 go test -count=20 ./cache/redisvalue -run '^TestCoordinator'
 go test -race -count=5 ./cache/redisvalue -run '^TestCoordinator'
 ```
 
-Expected: PASS with registry count zero after every test.
+예상: PASS 함께 registry count zero 후 every 테스트.
 
 ```bash
 git add cache/redisvalue
@@ -603,15 +606,15 @@ git commit -m "Coordinate same-key loads without retained waiters" \
   -m "Tested: repeated coordinator and race tests"
 ```
 
-### Task 5: Implement the Local-State Barrier, Tickets, and Repair Epochs
+### 작업 5: 구현 the Local-State Barrier, Tickets, 및 Repair Epochs
 
-**Files:**
-- Create: `cache/redisvalue/local_state.go`
+**파일:**
+- 생성: `cache/redisvalue/local_state.go`
 - Test: `cache/redisvalue/local_state_test.go`
 
-- [ ] **Step 1: Write the full state/admission matrix as latch tests**
+- [ ] **단계 1: Write the full state/admission matrix as latch 테스트**
 
-Test healthy/current admission, healthy/new-generation terminal handling, context-sensitive wait during repairing-from-healthy without a lease/token, fail-closed blocking/blocked/repairing-from-blocked, cancellation leaving state unchanged, one-shot ticket admission, total repair budget, and stale repair owners failing to heal a newer block.
+Test healthy/current admission, healthy/new-generation terminal handling, context-sensitive wait during repairing-from-healthy without a lease/token, fail-closed blocking/blocked/repairing-from-blocked, cancellation leaving state unchanged, one-shot ticket admission, total repair budget, 및 stale repair owners failing to heal a newer block.
 
 ```go
 func TestLocalStateRepairEpochPreventsStaleHealing(t *testing.T) {
@@ -629,15 +632,15 @@ func TestLocalStateRepairEpochPreventsStaleHealing(t *testing.T) {
 }
 ```
 
-- [ ] **Step 2: Verify RED**
+- [ ] **단계 2: 검증 RED**
 
 ```bash
 go test -count=1 ./cache/redisvalue -run '^TestLocalState'
 ```
 
-Expected: FAIL because the barrier is absent.
+예상: FAIL because the barrier is absent.
 
-- [ ] **Step 3: Implement phases, leases, tickets, and epochs**
+- [ ] **단계 3: 구현 phases, leases, tickets, 및 epochs**
 
 ```go
 type localPhase uint8
@@ -669,9 +672,9 @@ type sideEffectTicket struct { generation uint64 }
 type repairLease struct { epoch uint64; origin repairOrigin }
 ```
 
-Every phase change closes `changed` and installs a new channel. Healthy lease admission increments `active`; release decrements it and broadcasts when zero. A ticket may be issued only while the lease generation is current and phase is healthy. Repair admission increments generation, denies new leases, waits for `active == 0` within the single caller budget, and records whether admission observed healthy or blocked. Only an explicit repair admitted from blocked may heal; mandatory cleanup admitted from blocked preserves blocked. `block` increments generation and publishes blocking/blocked without waiting for uncooperative old leases.
+Every phase change closes `changed` 및 installs a new channel. Healthy lease admission increments `active`; release decrements it 및 broadcasts when zero. A ticket may be issued 만 while the lease generation is current 및 phase is healthy. Repair admission increments generation, denies new leases, waits for `active == 0` within the single 호출자 budget, 및 records whether admission observed healthy 또는 blocked. Only an explicit repair admitted from blocked may heal; mandatory cleanup admitted from blocked preserves blocked. `block` increments generation 및 publishes blocking/blocked without waiting for uncooperative old leases.
 
-- [ ] **Step 4: Prove allocation-free healthy admission and commit**
+- [ ] **단계 4: 증명 allocation-free healthy admission 및 commit**
 
 ```go
 func TestHealthyLeaseAdmissionAllocatesNothing(t *testing.T) {
@@ -685,14 +688,14 @@ func TestHealthyLeaseAdmissionAllocatesNothing(t *testing.T) {
 }
 ```
 
-Run:
+실행:
 
 ```bash
 go test -count=20 ./cache/redisvalue -run '^(TestLocalState|TestHealthyLease)'
 go test -race -count=5 ./cache/redisvalue -run '^TestLocalState'
 ```
 
-Expected: PASS.
+예상: PASS.
 
 ```bash
 git add cache/redisvalue
@@ -703,17 +706,17 @@ git commit -m "Fence local cache state with repair epochs" \
   -m "Tested: repeated state-machine, allocation, and race tests"
 ```
 
-### Task 6: Add Tiered Reads, Reference Semantics, and Local TTL Population
+### 작업 6: 추가 Tiered Reads, Reference Semantics, 및 Local TTL Population
 
-**Files:**
-- Create: `cache/redisvalue/tiered_cache.go`
+**파일:**
+- 생성: `cache/redisvalue/tiered_cache.go`
 - Modify: `cache/redisvalue/ttl.go`
 - Test: `cache/redisvalue/tiered_cache_test.go`
 - Modify: `cache/redisvalue/ttl_test.go`
 
-- [ ] **Step 1: Write failing L1/L2/reference tests**
+- [ ] **단계 1: Write failing L1/L2/reference 테스트**
 
-Introduce `TieredOptions[V]`, `TieredCache[V]`, and `NewTieredCache` here. Constructor tests reject nil/typed-nil `Local`, nil and uninitialized `Remote`, invalid copied `TieredConfig`, and `LocalTTL > Remote.config.RemoteTTL` when the remote default is positive. Assert healthy L1 hits perform no serializer/Redis call and preserve pointer identity; L2 hits unmarshal once and store the same decoded `V` in L1; separate cold decorators deserialize distinct pointers; only `cache.ErrCacheMiss` falls through; L1 errors and Redis/serialization errors do not become misses.
+Introduce `TieredOptions[V]`, `TieredCache[V]`, 및 `NewTieredCache` here. Constructor 테스트 reject nil/typed-nil `Local`, nil 및 uninitialized `Remote`, invalid copied `TieredConfig`, 및 `LocalTTL > Remote.config.RemoteTTL` when the remote default is positive. 검증 healthy L1 hits perform 없음 serializer/Redis call 및 preserve pointer identity; L2 hits unmarshal once 및 store the same decoded `V` in L1; separate cold decorators deserialize distinct pointers; 만 `cache.ErrCacheMiss` falls through; L1 오류 및 Redis/serialization 오류 do 아님 become misses.
 
 ```go
 type TieredOptions[V any] struct {
@@ -740,23 +743,23 @@ func TestTieredCacheL2HitStoresDecodedReference(t *testing.T) {
 }
 ```
 
-Name the warmed dependency-count test `TestTieredCacheHealthyL1SkipsRemoteAndSerializer`; it asserts pointer identity, zero serializer calls, zero Redis calls, zero local-state allocations, and no coordinator creation. Name the Redis-first mutation reference test in Task 8 `TestTieredCacheSetPreservesReference`.
+Name the warmed dependency-count 테스트 `TestTieredCacheHealthyL1SkipsRemoteAndSerializer`; it asserts pointer identity, zero serializer calls, zero Redis calls, zero local-state allocations, 및 없음 coordinator creation. Name the Redis-first mutation reference 테스트 in 작업 8 `TestTieredCacheSetPreservesReference`.
 
-Add `TestTieredCacheDifferentKeyL1HitsDoNotSerialize`: a channel-latched fake L1 blocks `Get("slow")`, `Get("fast")` must complete before the slow latch is released, both return direct L1 values, and `coordinators.active()` remains zero. This test fails if a package-global or cross-key lock serializes healthy reads. Task 7 adds the corresponding different-key loader proof after `GetOrLoad` exists.
+추가 `TestTieredCacheDifferentKeyL1HitsDoNotSerialize`: a channel-latched fake L1 blocks `Get("s낮음")`, `Get("fast")` must complete 전에 the s낮음 latch is released, both return direct L1 values, 및 `coordinators.active()` remains zero. This 테스트 fails if a 패키지-global 또는 cross-key lock serializes healthy reads. 작업 7 adds the corresponding different-key loader proof 후 `GetOrLoad` exists.
 
-- [ ] **Step 2: Verify RED**
+- [ ] **단계 2: 검증 RED**
 
 ```bash
 go test -count=1 ./cache/redisvalue -run '^TestTieredCache(Constructor|Get|Stores|Pointer|L1|L2|Healthy|DifferentKeyL1)'
 ```
 
-Expected: FAIL because decorator reads are absent.
+예상: FAIL because decorator reads are absent.
 
-- [ ] **Step 3: Implement constructor and `Get`**
+- [ ] **단계 3: 구현 constructor 및 `Get`**
 
-Define `TieredCache[V]` with copied config, exclusive L1 reference, remote pointer, coordinator registry, and local state. `NewTieredCache` rejects invalid dependencies before reading the remote TTL or creating coordinator/state objects, copies the selected tiered config, and validates its relationship to the remote's copied default. Final `cache.LoadingCache` compatibility is asserted in Task 8 after every required method exists.
+정의 `TieredCache[V]` 함께 copied config, exclusive L1 reference, remote pointer, coordinator registry, 및 local state. `NewTieredCache` rejects invalid dependencies 전에 reading the remote TTL 또는 creating coordinator/state objects, copies the selected tiered config, 및 validates its relationship to the remote's copied default. Final `cache.LoadingCache` compatibility is asserted in 작업 8 후 every required method exists.
 
-`Get` order is: validate/context/key -> initial healthy lease/L1 -> miss only -> same-key coordinator/token -> healthy recheck and L2 ticket -> release lease -> L2 read -> generation/state post-check -> L1 `Set` using `LocalTTL` -> post-check -> return. A failed `Local.Set` must call token-held mandatory local delete before returning.
+`Get` order is: validate/context/key -> initial healthy lease/L1 -> miss 만 -> same-key coordinator/token -> healthy recheck 및 L2 ticket -> release lease -> L2 read -> generation/state post-check -> L1 `Set` using `LocalTTL` -> post-check -> return. A failed `Local.Set` must call token-held mandatory local delete 전에 returning.
 
 ```go
 func (c *TieredCache[V]) Get(ctx context.Context, key string) (V, error) {
@@ -768,20 +771,20 @@ func (c *TieredCache[V]) Get(ctx context.Context, key string) (V, error) {
 }
 ```
 
-Keep the full sequencing in private helpers named `localGet`, `getRemoteCoordinated`, `populateLocalHeld`, and `invalidateLocalHeld`; none may reacquire a token already held by its caller.
+유지 the full sequencing in private helpers named `localGet`, `getRemoteCoordinated`, `populateLocalHeld`, 및 `invalidateLocalHeld`; none may reacquire a token already held by its 호출자.
 
-- [ ] **Step 4: Add elapsed known-write TTL helper tests**
+- [ ] **단계 4: 추가 elapsed known-write TTL helper 테스트**
 
-Test zero, finite, sub-millisecond minimum, fractional truncation, elapsed subtraction, non-positive remainder, and delayed `Local.Set`. Use an injected monotonic clock private to tests; do not expose a clock publicly.
+Test zero, finite, sub-millisecond minimum, fractional truncation, elapsed subtraction, non-positive remainder, 및 delayed `Local.Set`. 사용 an injected monotonic clock private to 테스트; do 아님 expose a clock publicly.
 
-- [ ] **Step 5: Run focused tests and commit**
+- [ ] **단계 5: 실행 focused 테스트 및 commit**
 
 ```bash
 gofmt -w cache/redisvalue/*.go
 go test -count=1 ./cache/redisvalue -run '^TestTieredCache(Constructor|Get|Stores|Pointer|L1|L2|Healthy|DifferentKeyL1|TTL)'
 ```
 
-Expected: PASS.
+예상: PASS.
 
 ```bash
 git add cache/redisvalue
@@ -792,17 +795,17 @@ git commit -m "Read Redis through a reference-preserving L1" \
   -m "Tested: tiered read, reference, error, and TTL tests"
 ```
 
-### Task 7: Implement Collapsed `GetOrLoad` Flights
+### 작업 7: 구현 Collapsed `GetOrLoad` Flights
 
-**Files:**
+**파일:**
 - Modify: `cache/redisvalue/tiered_cache.go`
 - Modify: `cache/redisvalue/coordination.go`
 - Test: `cache/redisvalue/tiered_cache_test.go`
 - Test: `cache/redisvalue/coordination_test.go`
 
-- [ ] **Step 1: Write failing leader/follower load tests**
+- [ ] **단계 1: Write failing leader/fol낮음er load 테스트**
 
-Test L1 -> L2 -> loader order, nil loader rejection before coordinator creation, exact one loader call for success and error waves, first-leader TTL/loader/context ownership, follower-only cancellation, leader cancellation publication, healthy-origin repair wait retaining leadership, no write after cancellation, and coordinator retirement.
+Test L1 -> L2 -> loader order, nil loader rejection 전에 coordinator creation, exact one loader call for success 및 오류 waves, first-leader TTL/loader/context ownership, fol낮음er-만 cancellation, leader cancellation publication, healthy-origin repair wait retaining leadership, 없음 write 후 cancellation, 및 coordinator retirement.
 
 ```go
 func TestGetOrLoadSharesOneLeaderResult(t *testing.T) {
@@ -826,19 +829,19 @@ func TestGetOrLoadSharesOneLeaderResult(t *testing.T) {
 }
 ```
 
-Add `TestGetOrLoadDifferentKeysProceedConcurrently`: two loaders for distinct keys both signal entry before either release latch closes, then both complete with one call each and the coordinator registry returns to zero. The test fails if load coordination introduces a package-global or cross-key lock.
+추가 `TestGetOrLoadDifferentKeysProceedConcurrently`: two loaders for distinct keys both signal entry 전에 either release latch closes, then both complete 함께 one call each 및 the coordinator registry returns to zero. The 테스트 fails if load coordination introduces a 패키지-global 또는 cross-key lock.
 
-- [ ] **Step 2: Verify RED**
+- [ ] **단계 2: 검증 RED**
 
 ```bash
 go test -count=1 ./cache/redisvalue -run '^TestGetOrLoad'
 ```
 
-Expected: FAIL because the load method is absent.
+예상: FAIL because the load method is absent.
 
-- [ ] **Step 3: Implement `GetOrLoad` and default delegation**
+- [ ] **단계 3: 구현 `GetOrLoad` 및 default delegation**
 
-Validate nil loader and TTL before registry lookup. The leader owns the active flight and operation token, rechecks L1, admits one L2 read, admits the loader only after an exact miss, admits the L2 write only after loader success/current healthy state, then populates L1 with the known-write adjusted TTL. Existing followers use the leader's loader, TTL, and context; their own cancellation detaches only them.
+Validate nil loader 및 TTL 전에 registry lookup. The leader owns the active flight 및 operation token, rechecks L1, admits one L2 read, admits the loader 만 후 an exact miss, admits the L2 write 만 후 loader success/current healthy state, then populates L1 함께 the known-write adjusted TTL. Existing fol낮음ers use the leader's loader, TTL, 및 context; their own cancellation detaches 만 them.
 
 ```go
 func (c *TieredCache[V]) GetOrLoadDefault(ctx context.Context, key string, loader cache.Loader[string, V]) (V, error) {
@@ -847,16 +850,16 @@ func (c *TieredCache[V]) GetOrLoadDefault(ctx context.Context, key string, loade
 }
 ```
 
-After result publication, detach the active flight and release the leader participant while still holding the operation token, then release the token. Followers release participants after receiving or canceling. If healthy-origin repair begins while the leader waits, release the key token, retain flight leadership/participant, wait without a local lease, reacquire the token, and restart L1/L2 inside the same flight.
+After result publication, detach the active flight 및 release the leader participant while still holding the operation token, then release the token. Fol낮음ers release participants 후 receiving 또는 canceling. If healthy-origin repair begins while the leader waits, release the key token, retain flight leadership/participant, wait without a local lease, reacquire the token, 및 restart L1/L2 inside the same flight.
 
-- [ ] **Step 4: Run repeated and race tests and commit**
+- [ ] **단계 4: 실행 repeated 및 race 테스트 및 commit**
 
 ```bash
 go test -count=20 ./cache/redisvalue -run '^TestGetOrLoad'
 go test -race -count=5 ./cache/redisvalue -run '^(TestGetOrLoad|TestCoordinator)'
 ```
 
-Expected: PASS with exact loader counts and zero retained coordinators.
+예상: PASS 함께 exact loader counts 및 zero retained coordinators.
 
 ```bash
 git add cache/redisvalue
@@ -867,17 +870,17 @@ git commit -m "Collapse tiered cache loads by key" \
   -m "Tested: repeated load-flight and race tests"
 ```
 
-### Task 8: Implement Redis-First Mutations, Invalidation, Cleanup, and Recovery
+### 작업 8: 구현 Redis-First Mutations, Invalidation, Cleanup, 및 Recovery
 
-**Files:**
+**파일:**
 - Modify: `cache/redisvalue/tiered_cache.go`
 - Modify: `cache/redisvalue/local_state.go`
 - Test: `cache/redisvalue/tiered_cache_test.go`
 - Test: `cache/redisvalue/local_state_test.go`
 
-- [ ] **Step 1: Write failing mutation and blocked-state tests**
+- [ ] **단계 1: Write failing mutation 및 blocked-state 테스트**
 
-Cover Redis-first `Set`, original-reference L1 population, same-key mutation order, commit-unknown cleanup, known success plus later cancellation, L1-set failure followed by token-held delete, `Delete`, `InvalidateLocal`, `ClearLocal`, `TieredCache.Clear`, joined errors, cleanup timeout, blocked fail-closed operations, explicit repair, blocked administrative clear, and every method on a zero-value `TieredCache` returning `ReasonUninitialized` without panic. The joined provider/local-cleanup test injects raw payload/key/address/cause markers and asserts every public joined error string remains redacted while `errors.Is`/`errors.As` preserves both causes.
+Cover Redis-first `Set`, original-reference L1 population, same-key mutation order, commit-unknown cleanup, known success plus later cancellation, L1-set failure fol낮음ed by token-held delete, `Delete`, `InvalidateLocal`, `ClearLocal`, `TieredCache.Clear`, joined 오류, cleanup timeout, blocked fail-closed operations, explicit repair, blocked administrative clear, 및 every method on a zero-value `TieredCache` returning `ReasonUninitialized` without panic. The joined provider/local-cleanup 테스트 injects raw payload/key/address/원인 markers 및 asserts every 공개 joined 오류 string remains redacted while `errors.Is`/`errors.As` preserves both causes.
 
 ```go
 func TestFailedMandatoryCleanupBlocksUntilClearLocal(t *testing.T) {
@@ -893,17 +896,17 @@ func TestFailedMandatoryCleanupBlocksUntilClearLocal(t *testing.T) {
 }
 ```
 
-- [ ] **Step 2: Verify RED**
+- [ ] **단계 2: 검증 RED**
 
 ```bash
 go test -count=1 ./cache/redisvalue -run '^(TestTieredCache(Set|Delete|Clear|ZeroValue)|TestInvalidateLocal|TestClearLocal|TestFailedMandatory)'
 ```
 
-Expected: FAIL because mutation/recovery methods are incomplete.
+예상: FAIL because mutation/recovery methods are incomplete.
 
-- [ ] **Step 3: Implement public mutation and invalidation methods**
+- [ ] **단계 3: 구현 공개 mutation 및 invalidation methods**
 
-`Set` and `Delete` acquire the same-key token, obtain a one-shot L2 ticket at the captured generation, invoke Redis, and always run mandatory token-held L1 invalidation after an invoked ambiguous mutation. Known successful `Set` populates the original `V`; known successful `Delete` removes L1. A failed local population invokes `invalidateLocalHeld` without reacquiring the token.
+`Set` 및 `Delete` acquire the same-key token, obtain a one-shot L2 ticket at the captured generation, invoke Redis, 및 always run mandatory token-held L1 invalidation 후 an invoked ambiguous mutation. Known successful `Set` populates the original `V`; known successful `Delete` removes L1. A failed local population invokes `invalidateLocalHeld` without reacquiring the token.
 
 ```go
 func (c *TieredCache[V]) SetDefault(ctx context.Context, key string, value V) error {
@@ -926,26 +929,26 @@ func (c *TieredCache[V]) InvalidateLocal(ctx context.Context, key string) error 
 }
 ```
 
-Public `InvalidateLocal` passes the child cleanup context to `invalidateLocalHeld`, so token wait plus maintenance admission/delete cannot exceed the caller/`InvalidationWaitTimeout` budget and the local phase uses at most `LocalCleanupTimeout`. Add a latch test with `InvalidationWaitTimeout > LocalCleanupTimeout` that acquires the token immediately, stalls maintenance delete, observes the shorter cleanup deadline, and proves blocked state. Mandatory post-mutation cleanup instead creates `context.WithTimeout(context.Background(), LocalCleanupTimeout)` before calling the same held helper, because safety cleanup must survive caller cancellation. `ClearLocal` uses one `context.WithTimeout(ctx, LocalCleanupTimeout)` budget across explicit repair admission, lease drain, and `Local.Clear`, and heals only if its epoch still owns the state. Neither public invalidation method calls Redis.
+Public `InvalidateLocal` passes the child cleanup context to `invalidateLocalHeld`, so token wait plus maintenance admission/delete cannot exceed the 호출자/`InvalidationWaitTimeout` budget 및 the local phase uses at most `LocalCleanupTimeout`. 추가 a latch 테스트 함께 `InvalidationWaitTimeout > LocalCleanupTimeout` that acquires the token immediately, stalls maintenance delete, observes the shorter cleanup deadline, 및 proves blocked state. Mandatory post-mutation cleanup instead creates `context.WithTimeout(context.Background(), LocalCleanupTimeout)` 전에 calling the same held helper, because safety cleanup must survive 호출자 cancellation. `ClearLocal` uses one `context.WithTimeout(ctx, LocalCleanupTimeout)` budget across explicit repair admission, lease drain, 및 `Local.Clear`, 및 heals 만 if its epoch still owns the state. Neither 공개 invalidation method calls Redis.
 
-- [ ] **Step 4: Implement tiered clear and fleet-scope tests**
+- [ ] **단계 4: 구현 tiered clear 및 fleet-scope 테스트**
 
-`TieredCache.Clear` invokes remote clear first and, once started, always attempts mandatory full local cleanup with the owned timeout. Cleanup origin is captured at local repair admission. A concurrent successful `ClearLocal` during remote scanning wins; an older outer call cannot re-block it. Two decorators sharing L2 must prove that admin/peer clear leaves the other L1 and blocked state untouched until explicit `ClearLocal` or expiry.
+`TieredCache.Clear` invokes remote clear first 및, once started, always attempts mandatory full local cleanup 함께 the owned timeout. Cleanup origin is captured at local repair admission. A concurrent successful `ClearLocal` during remote scanning wins; an older outer call cannot re-block it. Two decorators sharing L2 must prove that admin/peer clear leaves the other L1 및 blocked state untouched until explicit `ClearLocal` 또는 expiry.
 
-After `Get`, `Set`, `Delete`, `Clear`, and `GetOrLoad` all exist, add the final compile-time contract:
+After `Get`, `Set`, `Delete`, `Clear`, 및 `GetOrLoad` 모든 exist, add the final compile-time 계약:
 
 ```go
 var _ cache.LoadingCache[string, testValue] = (*TieredCache[testValue])(nil)
 ```
 
-- [ ] **Step 5: Run repeated mutation/recovery tests and commit**
+- [ ] **단계 5: 실행 repeated mutation/recovery 테스트 및 commit**
 
 ```bash
 go test -count=20 ./cache/redisvalue -run '^(TestTieredCache(Set|Delete|Clear|ZeroValue)|TestInvalidateLocal|TestClearLocal|TestFailedMandatory)'
 go test -race -count=5 ./cache/redisvalue -run '^(TestTieredCache|TestInvalidateLocal|TestClearLocal)'
 ```
 
-Expected: PASS.
+예상: PASS.
 
 ```bash
 git add cache/redisvalue
@@ -957,26 +960,26 @@ git commit -m "Fail closed when local tier cleanup is uncertain" \
   -m "Tested: repeated mutation, cleanup, repair, and race tests"
 ```
 
-### Task 9: Prove Redis Integration, ACLs, TTL, Clear, and Pointer Isolation
+### 작업 9: 증명 Redis Integration, ACLs, TTL, Clear, 및 Pointer Isolation
 
-**Files:**
-- Create: `cache/redisvalue/integration_test.go`
+**파일:**
+- 생성: `cache/redisvalue/integration_test.go`
 
-- [ ] **Step 1: Add one sequential Redis 7.4 Testcontainers suite**
+- [ ] **단계 1: 추가 one sequential Redis 7.4 Testcontainers suite**
 
-Start one container with `testcontainers/redis.Start`, create caller-owned clients, register cleanup, and prove `PING` readiness with `testing.Eventually`. Add sequential subtests for:
+Start one container 함께 `testcontainers/redis.Start`, create 호출자-owned clients, register cleanup, 및 prove `PING` readiness 함께 `testing.Eventually`. 추가 sequential subtests for:
 
 - get/set/delete/miss;
-- finite expiration and zero persistence;
-- sub-millisecond wire minimum and known-write local TTL adjustment;
+- finite expiration 및 zero persistence;
+- sub-millisecond wire minimum 및 known-write local TTL adjustment;
 - empty payload versus missing key;
-- deterministic two-client create interleaving after the first empty `GETRANGE`, proving the transactional re-read never fabricates an empty value;
-- maximum payload and oversize rejection;
+- deterministic two-client create interleaving 후 the first empty `GETRANGE`, proving the transactional re-read never fabricates an empty value;
+- maximum payload 및 oversize rejection;
 - multi-page namespace isolation/clear;
-- two decorators sharing L2 bytes but not pointer identity;
-- mixed-version `VersionedSerializer` matrix: a version-2 reader accepts version-1 bytes, a version-1 reader rejects version-2 bytes with `serialization.ErrUnsupportedVersion`, and namespace reuse remains prohibited unless the deployment's caller-owned serializer matrix proves both upgrade and rollback readers;
-- least-privilege ordinary identity with `GETRANGE`, `EXISTS`, `MULTI`, `EXEC`, `SET`, and `DEL`, plus a separate clear-admin identity;
-- `+SCAN` foreign-prefix enumeration, denied foreign `GET`/`UNLINK`, and denied `FLUSHDB`/`FLUSHALL`.
+- two decorators sharing L2 bytes but 아님 pointer identity;
+- mixed-version `VersionedSerializer` matrix: a version-2 reader accepts version-1 bytes, a version-1 reader rejects version-2 bytes 함께 `serialization.ErrUnsupportedVersion`, 및 namespace reuse remains prohibited unless the deployment's 호출자-owned serializer matrix proves both upgrade 및 rollback readers;
+- least-privilege ordinary identity 함께 `GETRANGE`, `EXISTS`, `MULTI`, `EXEC`, `SET`, 및 `DEL`, plus a separate clear-admin identity;
+- `+SCAN` foreign-prefix enumeration, denied foreign `GET`/`UNLINK`, 및 denied `FLUSHDB`/`FLUSHALL`.
 
 ```go
 func TestRedisValueIntegration(t *testing.T) {
@@ -997,23 +1000,23 @@ func TestRedisValueIntegration(t *testing.T) {
 }
 ```
 
-- [ ] **Step 2: Run serial integration tests**
+- [ ] **단계 2: 실행 serial integration 테스트**
 
 ```bash
 TESTCONTAINERS_REUSE_ENABLE=false TESTCONTAINERS_RYUK_DISABLED=false \
   go test -p 1 -count=1 ./cache/redisvalue -run '^TestRedisValueIntegration$'
 ```
 
-Expected: PASS. If Docker is unavailable, record the exact infrastructure error and do not reinterpret it as a code failure.
+예상: PASS. If Docker is unavailable, record the exact infrastructure 오류 및 do 아님 reinterpret it as a code failure.
 
-- [ ] **Step 3: Run integration tests under the race detector and commit**
+- [ ] **단계 3: 실행 integration 테스트 under the race detector 및 commit**
 
 ```bash
 TESTCONTAINERS_REUSE_ENABLE=false TESTCONTAINERS_RYUK_DISABLED=false \
   go test -race -p 1 -count=1 ./cache/redisvalue -run '^TestRedisValueIntegration$'
 ```
 
-Expected: PASS.
+예상: PASS.
 
 ```bash
 git add cache/redisvalue/integration_test.go
@@ -1024,21 +1027,21 @@ git commit -m "Prove redisvalue behavior against Redis 7.4" \
   -m "Tested: Redis 7.4 integration and race tests"
 ```
 
-### Task 10: Add Adversarial Concurrency, Stress, and Allocation Evidence
+### 작업 10: 추가 Adversarial Concurrency, Stress, 및 Allocation 증거
 
-**Files:**
-- Create: `cache/redisvalue/race_test.go`
+**파일:**
+- 생성: `cache/redisvalue/race_test.go`
 - Modify: `cache/redisvalue/coordination_test.go`
 - Modify: `cache/redisvalue/local_state_test.go`
 - Modify: `cache/redisvalue/tiered_cache_test.go`
 
-- [ ] **Step 1: Add deterministic pause-point races**
+- [ ] **단계 1: 추가 deterministic pause-point races**
 
-Use channels, not sleeps, to pause after ticket admission and before loader/`SET`/`DEL`; during L2 read/refill versus `Set`, `Delete`, `InvalidateLocal`, and `ClearLocal`; after generation capture; during blocked `Clear` remote phase versus explicit repair; and during final coordinator retirement. Assert no usable late L1 write and document accepted concurrent L2 survivors after namespace scan position.
+사용 channels, 아님 sleeps, to pause 후 ticket admission 및 전에 loader/`SET`/`DEL`; during L2 read/refill versus `Set`, `Delete`, `InvalidateLocal`, 및 `ClearLocal`; 후 generation capture; during blocked `Clear` remote phase versus explicit repair; 및 during final coordinator retirement. 검증 없음 usable late L1 write 및 document accepted concurrent L2 survivors 후 namespace scan position.
 
-- [ ] **Step 2: Add bounded stress and registry-zero assertions**
+- [ ] **단계 2: 추가 bounded stress 및 registry-zero assertions**
 
-Use `testing/concurrency.GoroutineStressTester` with explicit workers, rounds, and timeout. Build the stress cache with the stateless `serialization.JSONSerializer[int]` (optionally wrapped by `VersionedSerializer`) and no test-only codec mutex, so the full `-race` run exercises concurrent marshal/unmarshal. Run mixed `Get`, `GetOrLoad`, `Set`, `Delete`, `ClearLocal`, and cancellation; after each wave assert loader totals, no data races, `coordinators.active() == 0`, and no blocked state unless the test injected cleanup failure.
+사용 `testing/concurrency.GoroutineStressTester` 함께 explicit workers, rounds, 및 timeout. 구성 the stress cache 함께 the stateless `serialization.JSONSerializer[int]` (optionally wrapped by `VersionedSerializer`) 및 없음 테스트-만 codec mutex, so the full `-race` run exercises concurrent marshal/unmarshal. 실행 mixed `Get`, `GetOrLoad`, `Set`, `Delete`, `ClearLocal`, 및 cancellation; 후 each wave assert loader totals, 없음 data races, `coordinators.active() == 0`, 및 없음 blocked state unless the 테스트 injected cleanup failure.
 
 ```go
 func TestTieredCacheMixedStressRetiresState(t *testing.T) {
@@ -1075,18 +1078,18 @@ func TestTieredCacheMixedStressRetiresState(t *testing.T) {
 }
 ```
 
-- [ ] **Step 3: Prove the healthy L1 path allocation claim**
+- [ ] **단계 3: 증명 the healthy L1 path allocation claim**
 
-Warm one L1 key, replace Redis and serializer with panic-on-call fakes, and require `testing.AllocsPerRun(1000, func(){ _, _ = tiered.Get(ctx, "hot") }) == 0` after excluding test closure setup.
+Warm one L1 key, replace Redis 및 serializer 함께 panic-on-call fakes, 및 require `testing.AllocsPerRun(1000, func(){ _, _ = tiered.Get(ctx, "hot") }) == 0` 후 excluding 테스트 closure setup.
 
-- [ ] **Step 4: Run repeated/race/stress evidence and commit**
+- [ ] **단계 4: 실행 repeated/race/stress evidence 및 commit**
 
 ```bash
 go test -count=20 ./cache/redisvalue -run '^(TestTieredCache.*Race|TestCoordinator.*ABA|TestLocalState.*Epoch)'
 go test -race -count=1 ./cache/redisvalue
 ```
 
-Expected: PASS with no retained coordinators/flights and no race reports.
+예상: PASS 함께 없음 retained coordinators/flights 및 없음 race reports.
 
 ```bash
 git add cache/redisvalue
@@ -1097,21 +1100,21 @@ git commit -m "Prove tiered cache linearization under hostile races" \
   -m "Tested: repeated latch, stress, allocation, and race tests"
 ```
 
-### Task 11: Publish Examples, Bilingual Documentation, Indexes, and the Type A Lesson
+### 작업 11: 공개 Examples, Bilingual Documentation, Indexes, 및 the Type A Lesson
 
-**Files:**
-- Create: `cache/redisvalue/example_test.go`
-- Create: `cache/redisvalue/documentation_test.go`
-- Create: `cache/redisvalue/README.md`
-- Create: `cache/redisvalue/README.ko.md`
+**파일:**
+- 생성: `cache/redisvalue/example_test.go`
+- 생성: `cache/redisvalue/documentation_test.go`
+- 생성: `cache/redisvalue/README.md`
+- 생성: `cache/redisvalue/README.ko.md`
 - Modify: `README.md`
 - Modify: `README.ko.md`
 - Modify: `CHANGELOG.md`
-- Create: `docs/lessons/2026-07-18-issue-535-redis-tiered-value-cache.md`
+- 생성: `docs/lessons/2026-07-18-issue-535-redis-tiered-value-cache.md`
 
-- [ ] **Step 1: Add compile-checked public examples**
+- [ ] **단계 1: 추가 compile-checked 공개 example**
 
-Examples must show caller-owned direct `*redis.Client`, `DefaultConfig` copy/override, `VersionedSerializer`, `ValueCache`, `TieredCache` with `cache.NewMemory`, default and per-entry TTL, immutable pointer snapshot guidance, `ClearLocal` versus namespace `Clear`, and fail-closed error handling. Do not instantiate `redis.NewFailoverClient` as supported.
+Examples must show 호출자-owned direct `*redis.Client`, `DefaultConfig` copy/override, `VersionedSerializer`, `ValueCache`, `TieredCache` 함께 `cache.NewMemory`, default 및 per-entry TTL, immutable pointer snapshot guidance, `ClearLocal` versus namespace `Clear`, 및 fail-closed 오류 handling. 다음을 하지 않는다: instantiate `redis.NewFailoverClient` as supported.
 
 ```go
 func ExampleNewTieredCache() {
@@ -1135,30 +1138,30 @@ func ExampleNewTieredCache() {
 }
 ```
 
-- [ ] **Step 2: Write synchronized English and Korean READMEs**
+- [ ] **단계 2: Write synchronized 영문 및 한국어 READMEs**
 
-Both files must contain the same heading structure and facts:
+Both files must contain the same heading structure 및 facts:
 
-1. L1 stores `V`/references; only L2 serializes.
-2. Defaults and per-cache override table.
-3. L1 ownership and pointer immutability.
+1. L1 stores `V`/references; 만 L2 serializes.
+2. Defaults 및 per-cache override table.
+3. L1 ownership 및 pointer immutability.
 4. L1 -> L2 -> first-leader loader policy.
-5. TTL semantics, unknown existing L2 expiry window, and zero TTL.
-6. Strict Redis-first errors, commit-unknown, cancellation, blocked recovery.
-7. `ClearLocal`, `InvalidateLocal`, L2-only admin clear, non-atomic `SCAN`/`UNLINK` cost, and the fleet reset runbook.
+5. TTL semantics, unknown 기존 L2 expiry window, 및 zero TTL.
+6. Strict Redis-first 오류, commit-unknown, cancellation, blocked recovery.
+7. `ClearLocal`, `InvalidateLocal`, L2-만 admin clear, non-atomic `SCAN`/`UNLINK` cost, 및 the fleet reset runbook.
 8. Stable direct-primary requirement; failover/proxy/cluster/ring unsupported.
 9. ACL/TLS/readiness/memory/timeout/telemetry/partial-clear operations.
-10. `VersionedSerializer`, namespace rotation, rollout, rollback, and zero-TTL cleanup.
-11. Why current Pub/Sub `redisnear` must not wrap this decorator, `rediscoord` ownership, and #536 RESP3 proof gate.
-12. Serial normal/race test commands.
-13. Redis bytes are untrusted; serializers must avoid executable deserialization, return errors rather than panic for malformed input, and own temporary allocations, nesting/recursion, decompression, and CPU limits because `MaxValueBytes` bounds Redis admission bytes rather than decoder work.
-14. Tamper-sensitive deployments wrap payloads in an authenticated envelope in addition to `VersionedSerializer`; built-in versioning detects compatibility mismatches, not malicious modification.
-15. A namespace is one exclusive tenant/schema/clear trust domain and not an authorization boundary; incompatible tenants or wire formats require separate namespaces and Redis ACL/network isolation.
-16. `SCAN COUNT` is a hint: the client retains one Redis-controlled page and one bounded `UNLINK` argument chunk, but cannot bound the byte size of a returned page or external keys.
-17. The serializer is caller-owned, immutable after construction, and safe for concurrent marshal/unmarshal; the package does not clone it or serialize calls behind a global lock.
-18. The built-in versioned envelope is backward-readable only (`v2` reads `v1`, `v1` rejects `v2`); namespace reuse across an upgrade/rollback window is prohibited until the application proves its exact bidirectional serializer matrix.
+10. `VersionedSerializer`, namespace rotation, rollout, rollback, 및 zero-TTL cleanup.
+11. Why current Pub/Sub `redisnear` must 아님 wrap this decorator, `rediscoord` ownership, 및 #536 RESP3 proof gate.
+12. Serial normal/race 테스트 commands.
+13. Redis bytes are untrusted; serializers must avoid executable deserialization, return 오류 rather than panic for malformed input, 및 own temporary allocations, nesting/recursion, decompression, 및 CPU limits because `MaxValueBytes` bounds Redis admission bytes rather than decoder work.
+14. Tamper-sensitive deployments wrap payloads in an authenticated envelope in addition to `VersionedSerializer`; built-in versioning detects compatibility mismatches, 아님 malicious modification.
+15. A namespace is one exclusive tenant/schema/clear trust domain 및 아님 an authorization boundary; incompatible tenants 또는 wire formats require separate namespaces 및 Redis ACL/network isolation.
+16. `SCAN COUNT` is a hint: the client retains one Redis-controlled page 및 one bounded `UNLINK` argument chunk, but cannot bound the byte size of a returned page 또는 external keys.
+17. The serializer is 호출자-owned, immutable 후 construction, 및 safe for concurrent marshal/unmarshal; the 패키지 does 아님 clone it 또는 serialize calls behind a global lock.
+18. The built-in versioned envelope is backward-readable 만 (`v2` reads `v1`, `v1` rejects `v2`); namespace reuse across an upgrade/rollback window is prohibited until the application proves its exact bidirectional serializer matrix.
 
-Place ordered `<!-- redisvalue-contract: <id> -->` markers before the 18 synchronized facts in both READMEs. Add an executable parity test:
+Place ordered `<!-- redisvalue-contract: <id> -->` markers 전에 the 18 synchronized facts in both READMEs. 추가 an executable parity 테스트:
 
 ```go
 func TestReadmeContractMarkersStayInParity(t *testing.T) {
@@ -1186,13 +1189,13 @@ func TestReadmeContractMarkersStayInParity(t *testing.T) {
 }
 ```
 
-- [ ] **Step 3: Update root indexes and changelog**
+- [ ] **단계 3: 업데이트 root indexes 및 changelog**
 
-Add `cache/redisvalue` next to `cache/redisfory` in both package tables and cache-category lists. Add one `Unreleased / Added` changelog bullet describing the generic Redis L2 plus reference-preserving tiered decorator and explicitly excluding RESP3 coherence.
+추가 `cache/redisvalue` next to `cache/redisfory` in both 패키지 tables 및 cache-category lists. 추가 one `Unreleased / Added` changelog bullet describing the generic Redis L2 plus reference-preserving tiered decorator 및 explicitly excluding RESP3 coherence.
 
-- [ ] **Step 4: Write the Type A lesson**
+- [ ] **단계 4: Write the Type A lesson**
 
-Use this structure with evidence from the final implementation:
+사용 this structure 함께 evidence from the final implementation:
 
 ```markdown
 # Lessons Learned - Redis Tiered Value Cache (#535)
@@ -1215,16 +1218,16 @@ Serializing or cloning values before every L1 write would make the local tier a 
 Future RESP3 work calls only `InvalidateLocal` or `ClearLocal`; it never routes invalidation events through `Set`, `Delete`, or `Clear`, because those methods mutate L2.
 ```
 
-Keep these exact test names when adding the tests in Tasks 6, 9, and 10. Do not claim benchmark results owned by #560.
+유지 these exact 테스트 names when adding the 테스트 in Tasks 6, 9, 및 10. 다음을 하지 않는다: claim benchmark results owned by #560.
 
-- [ ] **Step 5: Compile examples, verify locale parity, and commit**
+- [ ] **단계 5: Compile example, verify locale parity, 및 commit**
 
 ```bash
 go test -count=1 ./cache/redisvalue -run '^(Example|TestReadmeContractMarkersStayInParity)'
 git diff --check
 ```
 
-Expected: PASS.
+예상: PASS.
 
 ```bash
 git add cache/redisvalue README.md README.ko.md CHANGELOG.md docs/lessons/2026-07-18-issue-535-redis-tiered-value-cache.md
@@ -1235,13 +1238,13 @@ git commit -m "Document the redisvalue ownership boundary" \
   -m "Tested: compile-checked examples, locale structure scan, and diff check"
 ```
 
-### Task 12: Run Full Verification and Complete the Pre-PR Review Gate
+### 작업 12: 실행 Full 검증 및 Complete the Pre-PR 리뷰 Gate
 
-**Files:**
-- Modify only if verification finds a defect: files already introduced by Tasks 1-11
-- Create: `docs/superpowers/reviews/2026-07-18-issue-535-redis-tiered-value-cache-step-6r-code-review.md`
+**파일:**
+- Modify 만 if verification finds a defect: files already introduced by Tasks 1-11
+- 생성: `docs/superpowers/reviews/2026-07-18-issue-535-redis-tiered-value-cache-step-6r-code-review.md`
 
-- [ ] **Step 1: Run focused verification first**
+- [ ] **단계 1: 실행 focused verification first**
 
 ```bash
 TESTCONTAINERS_REUSE_ENABLE=false TESTCONTAINERS_RYUK_DISABLED=false \
@@ -1250,9 +1253,9 @@ TESTCONTAINERS_REUSE_ENABLE=false TESTCONTAINERS_RYUK_DISABLED=false \
   go test -race -p 1 -count=1 ./cache/redisvalue
 ```
 
-Expected: PASS.
+예상: PASS.
 
-- [ ] **Step 2: Run static and repository gates**
+- [ ] **단계 2: 실행 static 및 repository gates**
 
 ```bash
 make fmt-check
@@ -1265,17 +1268,17 @@ TESTCONTAINERS_REUSE_ENABLE=false TESTCONTAINERS_RYUK_DISABLED=false make ci
 git diff --check origin/develop...HEAD
 ```
 
-Expected: every command exits 0. `make ci` repeats earlier gates intentionally as the repository completion proof.
+예상: every command exits 0. `make ci` repeats earlier gates intentionally as the repository completion proof.
 
-- [ ] **Step 3: Run Step 6-R six-lane review and main integration**
+- [ ] **단계 3: 실행 단계 6-R six-lane review 및 main integration**
 
-Review the exact implementation HEAD independently from performance, stability, security, operator/Ops, developer/API, and user/caller perspectives. The main session integrates findings and requires `P0=0/P1=0`. Record exact SHA, commands, lane counts, accepted P2s, and any main-session timeout fallback in the review artifact.
+리뷰 the exact implementation HEAD independently from 성능, 안정성, 보안, 운영자/Ops, 개발자/API, 및 사용자/호출자 perspectives. The main session integrates findings 및 requires `P0=0/P1=0`. 기록 exact SHA, commands, lane counts, accepted P2s, 및 any main-session timeout fallback in the review artifact.
 
-- [ ] **Step 4: Fix every P0/P1 and rerun affected plus full gates**
+- [ ] **단계 4: Fix every P0/P1 및 rerun affected plus full gates**
 
-For each repair, add or tighten a regression test first, prove RED against the defect, implement the smallest fix, prove GREEN, commit with Lore trailers, then rerun all six perspectives against the new exact HEAD. Do not declare convergence from reviews of different substantive commits.
+For each repair, add 또는 tighten a regression 테스트 first, prove RED against the defect, implement the smallest fix, prove GREEN, commit 함께 Lore trailers, then rerun 모든 six perspectives against the new exact HEAD. 다음을 하지 않는다: declare convergence from reviews of different substantive commits.
 
-- [ ] **Step 5: Commit review evidence and stop at the PR authority gate**
+- [ ] **단계 5: 커밋 review evidence 및 stop at the PR authority gate**
 
 ```bash
 git add docs/superpowers/reviews/2026-07-18-issue-535-redis-tiered-value-cache-step-6r-code-review.md
@@ -1285,8 +1288,8 @@ git commit -m "Record redisvalue implementation convergence" \
   -m "Tested: targeted, race, stress, Testcontainers, examples, static gates, and make ci"
 ```
 
-Report the exact branch/HEAD and merge-ready local evidence. Do not push, create a PR, enable auto-merge, merge, tag, publish, or delete the worktree without the next explicit authority gate.
+Report the exact branch/HEAD 및 merge-ready local evidence. 다음을 하지 않는다: push, create a PR, enable auto-merge, merge, tag, publish, 또는 delete the worktree without the next explicit authority gate.
 
-## Rollback Strategy
+## 롤백 Strategy
 
-Before publication, revert the implementation commits in reverse task order; no existing package, Redis key family, interface, or dependency is changed. After adoption, roll back callers to their prior cache path while retaining the old namespace for at least the maximum finite TTL plus margin. Incompatible serializer changes rotate the namespace; zero-TTL namespaces require an explicit stable-primary admin clear. A rollback never treats Redis logical databases as tenant isolation and never connects the unsupported failover/proxy topology to `ValueCache.Clear`.
+Before publication, revert the implementation commits in reverse task order; 없음 기존 패키지, Redis key family, interface, 또는 dependency is changed. After adoption, roll back callers to their prior cache path while retaining the old namespace for at least the maximum finite TTL plus margin. Incompatible serializer changes rotate the namespace; zero-TTL namespaces require an explicit stable-primary admin clear. A rollback never treats Redis logical databases as tenant isolation 및 never connects the unsupported failover/proxy topology to `ValueCache.Clear`.

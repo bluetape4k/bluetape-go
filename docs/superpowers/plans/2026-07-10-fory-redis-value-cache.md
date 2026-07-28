@@ -1,34 +1,37 @@
-# Fory Redis Value Cache Implementation Plan
+# Fory Redis Value Cache 구현 계획
 
-> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
+> 한국어 재작성 범위: 이 계획 문서는 한국어 운영 문서로 읽히도록 제목, 판단, 작업 설명, 위험, 검증, 롤백 문맥을 한국어로 정리한다. 명령, 경로, API 이름, 이슈/PR 번호, 브랜치명, 코드 블록, 테스트 출력 같은 증거 문자열은 정확성을 위해 원문 그대로 보존한다.
 
-**Goal:** Add a Go-native Apache Fory direct Redis value cache with explicit fast/compatible profiles, bounded binary envelopes, schema-generation isolation, and safe typed diagnostics.
 
-**Architecture:** Extract only the synchronized Fory runtime lifecycle into `cache/internal/forynative`, while `cache/rediscoord/fory` retains `BTFY v1` and its public API. Build `cache/redisfory` as an independent package that owns `BTFV v1`, physical keys, TTL, Redis commands, and cache errors; a package-private codec interface makes dispatch-time cancellation deterministic to test.
+> **에이전트 작업자용:** 필수 하위 스킬: 사용 superpowers:subagent-driven-development (권장) 또는 superpowers:executing-plans to 이 계획을 작업 단위로 구현. 단계는 checkbox (`- [ ]`) 추적 문법을 사용.
 
-**Tech Stack:** Go 1.26, Apache Fory Go v1.3.0, go-redis v9, Testcontainers Redis 7.4, standard `testing`, race detector, SVG plus CairoSVG-rendered PNG.
+**목표:** 추가 a Go-native Apache Fory direct Redis value cache 함께 explicit fast/compatible profiles, bounded binary envelopes, schema-generation isolation, 및 safe typed 진단.
+
+**아키텍처:** Extract 만 the synchronized Fory runtime lifecycle into `cache/internal/forynative`, while `cache/rediscoord/fory` retains `BTFY v1` 및 its 공개 API. 구성 `cache/redisfory` as an independent 패키지 that owns `BTFV v1`, physical keys, TTL, Redis commands, 및 cache 오류; a 패키지-private codec interface makes dispatch-time cancellation deterministic to 테스트.
+
+**기술 스택:** Go 1.26, Apache Fory Go v1.3.0, go-redis v9, Testcontainers Redis 7.4, standard `testing`, race detector, SVG plus CairoSVG-rendered PNG.
 
 ---
 
-## File Map
+## 파일 지도
 
-- Create `cache/internal/forynative/runtime.go` and `runtime_test.go`: bounded defaults, root validation, registration, synchronized serialization, sanitized internal errors.
-- Modify `cache/rediscoord/fory/codec.go` and `codec_test.go`: delegate runtime lifecycle while retaining public API and `BTFY v1`.
-- Create `cache/redisfory/doc.go`, `options.go`, `errors.go`, `envelope.go`, `value_cache.go`: public direct-cache implementation.
-- Create `cache/redisfory/value_cache_test.go`, `integration_test.go`, `example_test.go`: unit, Redis 7.4, race, and compile evidence.
-- Create `cache/redisfory/README.md`, `README.ko.md`, and paired `docs/images/readme-diagrams/redisfory-direct-value-flow.svg|png`.
-- Modify `README.md`, `README.ko.md`, and `CHANGELOG.md`: package discovery and unreleased change.
-- Create implementation review and lesson artifacts under `docs/review` and `docs/lessons`.
+- 생성 `cache/internal/forynative/runtime.go` 및 `runtime_test.go`: bounded defaults, root validation, registration, synchronized serialization, sanitized internal 오류.
+- Modify `cache/rediscoord/fory/codec.go` 및 `codec_test.go`: delegate runtime lifecycle while retaining 공개 API 및 `BTFY v1`.
+- 생성 `cache/redisfory/doc.go`, `options.go`, `errors.go`, `envelope.go`, `value_cache.go`: 공개 direct-cache implementation.
+- 생성 `cache/redisfory/value_cache_test.go`, `integration_test.go`, `example_test.go`: unit, Redis 7.4, race, 및 compile evidence.
+- 생성 `cache/redisfory/README.md`, `README.ko.md`, 및 paired `docs/images/readme-diagrams/redisfory-direct-value-f낮음.svg|png`.
+- Modify `README.md`, `README.ko.md`, 및 `CHANGELOG.md`: 패키지 discovery 및 unreleased change.
+- 생성 implementation review 및 lesson artifacts under `docs/review` 및 `docs/lessons`.
 
-### Task 1: Extract The Shared Native Fory Runtime
+### 작업 1: Extract The Shared Native Fory Runtime
 
-**Files:**
-- Create: `cache/internal/forynative/runtime.go`
-- Create: `cache/internal/forynative/runtime_test.go`
+**파일:**
+- 생성: `cache/internal/forynative/runtime.go`
+- 생성: `cache/internal/forynative/runtime_test.go`
 
-- [ ] **Step 1: Write failing construction and safety tests**
+- [ ] **단계 1: Write failing construction 및 safety 테스트**
 
-Use registered test structs and the intended API:
+사용 registered 테스트 structs 및 the intended API:
 
 ```go
 func TestNewUsesBoundedDefaultsAndRejectsInvalidInputs(t *testing.T) {
@@ -45,15 +48,15 @@ func TestNewUsesBoundedDefaultsAndRejectsInvalidInputs(t *testing.T) {
 }
 ```
 
-Also name tests for nil registration, registration error/panic redaction, unsupported roots, payload bounds, provider panic sanitization, returned-byte copying, and 16 workers x 100 exact-value round trips.
+Also name 테스트 for nil registration, registration 오류/panic redaction, unsupported roots, payload bounds, provider panic sanitization, returned-byte copying, 및 16 workers x 100 exact-value round trips.
 
-- [ ] **Step 2: Confirm the package is missing**
+- [ ] **단계 2: Confirm the 패키지 is missing**
 
-Run: `go test -count=1 ./cache/internal/forynative`
+실행: `go test -count=1 ./cache/internal/forynative`
 
-Expected: FAIL because the package/API does not exist.
+예상: FAIL because the 패키지/API does 아님 exist.
 
-- [ ] **Step 3: Implement the minimal runtime contract**
+- [ ] **단계 3: 구현 the minimal runtime 계약**
 
 ```go
 type Profile uint8
@@ -91,22 +94,22 @@ func (r *Runtime[V]) Serialize(value V) ([]byte, error)
 func (r *Runtime[V]) Deserialize(raw []byte) (V, error)
 ```
 
-Apply defaults `1<<20`, `20`, `512`, `4096`, `10`, `3`; reject negatives and payloads over `math.MaxUint32`; validate roots. Construct Fory with `WithXlang(false)`, profile-specific `WithCompatible`, `WithTrackRef(false)`, and all limits. Lock only the Fory call plus returned-byte copy. Replace registration/provider text and panics with sanitized sentinels.
-For a struct root, pass `&value` to Fory exactly as the existing codec does; primitive and `[]byte`
-roots pass their value directly. Tests use `errors.As` and the accessors above and prove that
-`Error()` and `Unwrap()` contain only sanitized package causes.
+Apply defaults `1<<20`, `20`, `512`, `4096`, `10`, `3`; reject negatives 및 payloads over `math.MaxUint32`; validate roots. Construct Fory 함께 `WithXlang(false)`, profile-specific `WithCompatible`, `WithTrackRef(false)`, 및 모든 limits. 고정 만 the Fory call plus returned-byte copy. 교체 registration/provider text 및 panics 함께 sanitized sentinels.
+For a struct root, pass `&value` to Fory exactly as the 기존 codec does; primitive 및 `[]byte`
+roots pass their value directly. Tests use `errors.As` 및 the accessors above 및 prove that
+`Error()` 및 `Unwrap()` contain 만 sanitized 패키지 causes.
 
-- [ ] **Step 4: Run focused verification**
+- [ ] **단계 4: 실행 focused verification**
 
-Run: `go test -count=1 ./cache/internal/forynative`
+실행: `go test -count=1 ./cache/internal/forynative`
 
-Expected: PASS.
+예상: PASS.
 
-Run: `go test -race -count=1 ./cache/internal/forynative`
+실행: `go test -race -count=1 ./cache/internal/forynative`
 
-Expected: PASS with no race report.
+예상: PASS 함께 없음 race report.
 
-- [ ] **Step 5: Commit**
+- [ ] **단계 5: 커밋**
 
 ```bash
 git add cache/internal/forynative
@@ -117,13 +120,13 @@ git commit -m "Share the constrained Fory runtime without sharing wire formats" 
   -m "Tested: cache/internal/forynative unit and race tests"
 ```
 
-### Task 2: Preserve The Existing `BTFY v1` Codec
+### 작업 2: 보존 The Existing `BTFY v1` Codec
 
-**Files:**
+**파일:**
 - Modify: `cache/rediscoord/fory/codec.go`
 - Modify: `cache/rediscoord/fory/codec_test.go`
 
-- [ ] **Step 1: Add a golden-layout regression test**
+- [ ] **단계 1: 추가 a golden-layout regression 테스트**
 
 ```go
 func TestBTFYV1LayoutRemainsStable(t *testing.T) {
@@ -140,27 +143,27 @@ func TestBTFYV1LayoutRemainsStable(t *testing.T) {
 }
 ```
 
-- [ ] **Step 2: Establish the pre-refactor baseline**
+- [ ] **단계 2: Establish the pre-refactor baseline**
 
-Run: `go test -count=1 ./cache/rediscoord/fory`
+실행: `go test -count=1 ./cache/rediscoord/fory`
 
-Expected: PASS.
+예상: PASS.
 
-- [ ] **Step 3: Delegate local runtime work to `forynative.Runtime[V]`**
+- [ ] **단계 3: Delegate local runtime work to `forynative.Runtime[V]`**
 
-Keep `Registration`, `Options`, `Codec`, `Profile`, `Reason`, constructors, error accessors, and `BTFY` source-compatible. Map options/profile/reasons at the package boundary. Do not move `wrap`, `unwrap`, or public error formatting into internal code.
+유지 `Registration`, `Options`, `Codec`, `Profile`, `Reason`, constructors, 오류 accessors, 및 `BTFY` source-compatible. Map options/profile/reasons at the 패키지 boundary. 다음을 하지 않는다: move `wrap`, `unwrap`, 또는 공개 오류 formatting into internal code.
 
-- [ ] **Step 4: Verify compatibility**
+- [ ] **단계 4: 검증 compatibility**
 
-Run: `go test -count=1 ./cache/rediscoord/fory`
+실행: `go test -count=1 ./cache/rediscoord/fory`
 
-Expected: PASS including all pre-existing tests and the golden layout.
+예상: PASS including 모든 pre-기존 테스트 및 the golden layout.
 
-Run: `go test -race -count=1 ./cache/internal/forynative ./cache/rediscoord/fory`
+실행: `go test -race -count=1 ./cache/internal/forynative ./cache/rediscoord/fory`
 
-Expected: PASS.
+예상: PASS.
 
-- [ ] **Step 5: Commit**
+- [ ] **단계 5: 커밋**
 
 ```bash
 git add cache/rediscoord/fory
@@ -171,18 +174,18 @@ git commit -m "Keep BTFY stable while reusing the native runtime" \
   -m "Tested: rediscoord/fory unit and race tests"
 ```
 
-### Task 3: Define The Direct API And `BTFV v1`
+### 작업 3: 정의 The Direct API And `BTFV v1`
 
-**Files:**
-- Create: `cache/redisfory/doc.go`
-- Create: `cache/redisfory/options.go`
-- Create: `cache/redisfory/errors.go`
-- Create: `cache/redisfory/envelope.go`
-- Create: `cache/redisfory/value_cache_test.go`
+**파일:**
+- 생성: `cache/redisfory/doc.go`
+- 생성: `cache/redisfory/options.go`
+- 생성: `cache/redisfory/errors.go`
+- 생성: `cache/redisfory/envelope.go`
+- 생성: `cache/redisfory/value_cache_test.go`
 
-- [ ] **Step 1: Write failing API, constructor, error, and envelope tests**
+- [ ] **단계 1: Write failing API, constructor, 오류, 및 envelope 테스트**
 
-Compile-check `Registration`, both constructors, `Profile`, `Reason`, and `CacheError` accessors. Test nil/typed-nil `redis.Cmdable`, invalid namespace, zero generation, nil registration, negative limits, uint32 overflow, unsupported roots, zero-value cache, and redaction. Assert this layout:
+Compile-check `Registration`, both constructors, `Profile`, `Reason`, 및 `CacheError` accessors. Test nil/typed-nil `redis.Cmdable`, invalid namespace, zero generation, nil registration, negative limits, uint32 overf낮음, unsupported roots, zero-value cache, 및 redaction. 검증 this layout:
 
 ```go
 func TestBTFVLayoutAndValidation(t *testing.T) {
@@ -197,15 +200,15 @@ func TestBTFVLayoutAndValidation(t *testing.T) {
 }
 ```
 
-Mutate magic, version, profile, generation, declared length, trailing bytes, truncation, and total size; assert `errors.As` and exact `Reason()`.
+Mutate magic, version, profile, generation, declared length, trailing bytes, truncation, 및 total size; assert `errors.As` 및 exact `Reason()`.
 
-- [ ] **Step 2: Confirm missing symbols**
+- [ ] **단계 2: Confirm missing symbols**
 
-Run: `go test -count=1 ./cache/redisfory`
+실행: `go test -count=1 ./cache/redisfory`
 
-Expected: FAIL because the package API does not exist.
+예상: FAIL because the 패키지 API does 아님 exist.
 
-- [ ] **Step 3: Implement the exact public contract**
+- [ ] **단계 3: 구현 the exact 공개 계약**
 
 ```go
 type Registration func(*fory.Fory) error
@@ -249,25 +252,25 @@ func NewNativeFast[V any](Options) (*ValueCache[V], error)
 func NewNativeCompatible[V any](Options) (*ValueCache[V], error)
 ```
 
-Give every exported type, option field, constant, constructor, and method an English Go doc
-comment. Package/type docs state trusted-internal Go-only storage, no xlang/fallback/`Clear`, and
+Give every exported type, option field, constant, constructor, 및 method an 영문 Go doc
+comment. Package/type docs state trusted-internal Go-만 storage, 없음 xlang/fallback/`Clear`, 및
 mandatory explicit schema generation.
 
-Validate every colon-separated namespace segment against `^[A-Za-z0-9._-]+$`; table tests reject
-`*`, `?`, `[`, `]`, backslash, whitespace, control characters, braces, and empty segments. Build
-keys with `btredis.NewKeyBuilder("bluetape:cache:fory")`, append
+Validate every colon-separated namespace segment against `^[A-Za-z0-9._-]+$`; table 테스트 reject
+`*`, `?`, `[`, `]`, backslash, whitespace, control characters, braces, 및 empty segments. 구성
+keys 함께 `btredis.NewKeyBuilder("bluetape:cache:fory")`, append
 `strings.Split(namespace, ":")...` through `Structural`, then append
-`fmt.Sprintf("g%d", generation)` through `Structural`. Detect typed nil clients before runtime
-construction. `wrap` uses a 14-byte header; `unwrap` checks total bound before slicing and all
-metadata before Fory decode.
+`fmt.Sprintf("g%d", generation)` through `Structural`. Detect typed nil clients 전에 runtime
+construction. `wrap` uses a 14-byte header; `unwrap` checks total bound 전에 slicing 및 모든
+metadata 전에 Fory decode.
 
-- [ ] **Step 4: Run focused tests**
+- [ ] **단계 4: 실행 focused 테스트**
 
-Run: `go test -count=1 ./cache/redisfory`
+실행: `go test -count=1 ./cache/redisfory`
 
-Expected: PASS for API, constructor, error, and envelope tests.
+예상: PASS for API, constructor, 오류, 및 envelope 테스트.
 
-- [ ] **Step 5: Commit**
+- [ ] **단계 5: 커밋**
 
 ```bash
 git add cache/redisfory
@@ -278,15 +281,15 @@ git commit -m "Make direct Fory values distinguishable and bounded" \
   -m "Tested: go test -count=1 ./cache/redisfory"
 ```
 
-### Task 4: Implement `Get`, `Set`, And `Delete` Test-First
+### 작업 4: 구현 `Get`, `Set`, And `Delete` Test-First
 
-**Files:**
-- Create: `cache/redisfory/value_cache.go`
+**파일:**
+- 생성: `cache/redisfory/value_cache.go`
 - Modify: `cache/redisfory/value_cache_test.go`
 
-- [ ] **Step 1: Add failing command and cancellation tests**
+- [ ] **단계 1: 추가 failing command 및 cancellation 테스트**
 
-Use this package-private seam for deterministic cancellation:
+사용 this 패키지-private seam for deterministic cancellation:
 
 ```go
 type valueCodec[V any] interface {
@@ -301,25 +304,25 @@ type commandClient interface {
 }
 ```
 
-Use a Redis command double or go-redis hook to count commands and capture key/TTL/bytes. A blocking fake codec waits until the test cancels context, then returns bytes; assert `Set` returns `context.Canceled` and SET count is zero.
+사용 a Redis command double 또는 go-redis hook to count commands 및 capture key/TTL/bytes. A blocking fake codec waits until the 테스트 cancels context, then returns bytes; assert `Set` returns `context.Canceled` 및 SET count is zero.
 
-Store the validated public `redis.Cmdable` through the narrow `commandClient` field so the tests
-implement only three commands and add no mocking dependency. Name tests:
+Store the validated 공개 `redis.Cmdable` through the narrow `commandClient` field so the 테스트
+implement 만 three commands 및 add 없음 mocking dependency. Name 테스트:
 `TestValueCacheSetStoresBTFVWithTTL`, `TestValueCacheSetRechecksContextAfterSerialization`,
 `TestValueCacheGetMapsRedisNilToCacheMiss`, `TestValueCacheGetValidatesBeforeDecode`,
 `TestValueCacheGetRechecksContextAfterRedisReadBeforeDecode`,
 `TestValueCacheDeleteValidatesKeyAndIsIdempotent`, `TestValueCacheMethodsNormalizeNilContext`,
 `TestValueCacheCommandContextErrorsRemainInspectable`,
-`TestValueCacheMethodsSanitizeRedisProviderErrors`, and `TestZeroValueCacheReturnsUninitialized`.
-Malformed envelope cases inject a fake codec with a deserialize counter and assert it stays zero.
+`TestValueCacheMethodsSanitizeRedisProviderErrors`, 및 `TestZeroValueCacheReturnsUninitialized`.
+Malformed envelope cases inject a fake codec 함께 a deserialize counter 및 assert it stays zero.
 
-- [ ] **Step 2: Confirm missing method behavior**
+- [ ] **단계 2: Confirm missing method behavior**
 
-Run: `go test -count=1 ./cache/redisfory`
+실행: `go test -count=1 ./cache/redisfory`
 
-Expected: FAIL on missing methods or dispatch.
+예상: FAIL on missing methods 또는 dispatch.
 
-- [ ] **Step 3: Implement the methods with dispatch boundaries**
+- [ ] **단계 3: 구현 the methods 함께 dispatch boundaries**
 
 ```go
 func (c *ValueCache[V]) Set(ctx context.Context, logicalKey string, value V, ttl time.Duration) error {
@@ -340,25 +343,25 @@ func (c *ValueCache[V]) Set(ctx context.Context, logicalKey string, value V, ttl
 }
 ```
 
-Implement `Get` and `Delete` with the same normalize/preflight/key sequence. `Get` maps only
-`redis.Nil` to `cache.ErrCacheMiss`, then rechecks `ctx.Err()` after bytes return and before
-envelope/decode work. Command failures use `operationError`, which replaces the raw Redis cause
-with an unexported package sentinel and joins only `ctx.Err()` when non-nil before constructing
-`btredis.OpError`; tests prove `errors.Is` for cancellation/deadline and no provider/key/payload
-marker through `Error()` or `Unwrap()`. `Delete` treats zero deleted keys as success. Never hold
+구현 `Get` 및 `Delete` 함께 the same normalize/preflight/key sequence. `Get` maps 만
+`redis.Nil` to `cache.ErrCacheMiss`, then rechecks `ctx.Err()` 후 bytes return 및 전에
+envelope/decode work. Command failures use `operationError`, which replaces the raw Redis 원인
+함께 an unexported 패키지 sentinel 및 joins 만 `ctx.Err()` when non-nil 전에 constructing
+`btredis.OpError`; 테스트 prove `errors.Is` for cancellation/deadline 및 없음 provider/key/payload
+marker through `Error()` 또는 `Unwrap()`. `Delete` treats zero deleted keys as success. Never hold
 the Fory mutex over Redis I/O.
 
-- [ ] **Step 4: Run unit and race tests**
+- [ ] **단계 4: 실행 unit 및 race 테스트**
 
-Run: `go test -count=1 ./cache/redisfory`
+실행: `go test -count=1 ./cache/redisfory`
 
-Expected: PASS.
+예상: PASS.
 
-Run: `go test -race -count=1 ./cache/internal/forynative ./cache/rediscoord/fory ./cache/redisfory`
+실행: `go test -race -count=1 ./cache/internal/forynative ./cache/rediscoord/fory ./cache/redisfory`
 
-Expected: PASS.
+예상: PASS.
 
-- [ ] **Step 5: Commit**
+- [ ] **단계 5: 커밋**
 
 ```bash
 git add cache/redisfory
@@ -369,43 +372,43 @@ git commit -m "Store native Fory values without late canceled writes" \
   -m "Tested: redisfory unit and race tests"
 ```
 
-### Task 5: Prove Redis Storage, TTL, Generation, And Concurrency
+### 작업 5: 증명 Redis Storage, TTL, Generation, And Concurrency
 
-**Files:**
-- Create: `cache/redisfory/integration_test.go`
+**파일:**
+- 생성: `cache/redisfory/integration_test.go`
 
-- [ ] **Step 1: Write failing Testcontainers tests**
+- [ ] **단계 1: Write failing Testcontainers 테스트**
 
-Create each integration context with `context.WithTimeout(context.Background(), 30*time.Second)`
-and register its cancel function before calling `addr := redistestcontainer.Start(ctx, t)`. Use
-separate failure messages for container startup/readiness and Redis operations. Construct
-`redis.NewClient(&redis.Options{Addr: addr})`, and close that caller-owned client with `t.Cleanup`.
+생성 each integration context 함께 `context.WithTimeout(context.Background(), 30*time.Second)`
+및 register its cancel function 전에 calling `addr := redistestcontainer.Start(ctx, t)`. 사용
+separate failure messages for container startup/readiness 및 Redis operations. Construct
+`redis.NewClient(&redis.Options{Addr: addr})`, 및 close that 호출자-owned client 함께 `t.Cleanup`.
 Register `integrationValue{Name string; Count int}` as `redisfory.integrationValue`. Test both
-profiles, raw Redis bytes beginning `BTFV` and not JSON/base64, TTL expiry as
+profiles, raw Redis bytes beginning `BTFV` 및 아님 JSON/base64, TTL expiry as
 `cache.ErrCacheMiss`, explicit miss, idempotent delete, generation 1/2 key isolation, redacted
-command failure, and 16 workers x 100 exact round trips with operation/miss/error counts.
+command failure, 및 16 workers x 100 exact round trips 함께 operation/miss/오류 counts.
 
-- [ ] **Step 2: Run integration tests**
+- [ ] **단계 2: 실행 integration 테스트**
 
-Run: `go test -count=1 ./cache/redisfory`
+실행: `go test -count=1 ./cache/redisfory`
 
-Expected: FAIL if any direct Redis path is incomplete.
+예상: FAIL if any direct Redis path is incomplete.
 
-- [ ] **Step 3: Make integration-only corrections**
+- [ ] **단계 3: Make integration-만 corrections**
 
-Adjust cache code or fixtures without adding retries, ownership, fallback, loading, `Clear`, compression, or migration. Never close the caller client from `ValueCache`.
+Adjust cache code 또는 fixtures without adding retries, ownership, fallback, loading, `Clear`, compression, 또는 migration. Never close the 호출자 client from `ValueCache`.
 
-- [ ] **Step 4: Run serial integration and race gates**
+- [ ] **단계 4: 실행 serial integration 및 race gates**
 
-Run: `go test -count=1 ./cache/redisfory`
+실행: `go test -count=1 ./cache/redisfory`
 
-Expected: PASS against Redis 7.4.
+예상: PASS against Redis 7.4.
 
-Run: `go test -race -count=1 ./cache/redisfory`
+실행: `go test -race -count=1 ./cache/redisfory`
 
-Expected: PASS. Do not run another Redis/DB Testcontainers command concurrently.
+예상: PASS. 다음을 하지 않는다: run another Redis/DB Testcontainers command concurrently.
 
-- [ ] **Step 5: Commit**
+- [ ] **단계 5: 커밋**
 
 ```bash
 git add cache/redisfory
@@ -415,51 +418,51 @@ git commit -m "Prove direct Fory cache behavior against Redis 7.4" \
   -m "Tested: Redis 7.4 integration and race tests"
 ```
 
-### Task 6: Add Examples And Bilingual Documentation
+### 작업 6: 추가 Examples And Bilingual Documentation
 
-**Files:**
-- Create: `cache/redisfory/example_test.go`
-- Create: `cache/redisfory/README.md`
-- Create: `cache/redisfory/README.ko.md`
+**파일:**
+- 생성: `cache/redisfory/example_test.go`
+- 생성: `cache/redisfory/README.md`
+- 생성: `cache/redisfory/README.ko.md`
 - Modify: `README.md`
 - Modify: `README.ko.md`
 - Modify: `CHANGELOG.md`
 
-- [ ] **Step 1: Write compile-checked examples**
+- [ ] **단계 1: Write compile-checked example**
 
-Add `ExampleNewNativeFast` and `ExampleNewNativeCompatible` with caller-owned client, explicit registration, `SchemaGeneration: 1`, positive TTL, and `Set`/`Get`/`Delete`. Omit `Output:` so no live Redis connection is required.
+추가 `ExampleNewNativeFast` 및 `ExampleNewNativeCompatible` 함께 호출자-owned client, explicit registration, `SchemaGeneration: 1`, positive TTL, 및 `Set`/`Get`/`Delete`. Omit `Output:` so 없음 live Redis connection is required.
 
-- [ ] **Step 2: Compile examples**
+- [ ] **단계 2: Compile example**
 
-Run: `go test -run Example -count=1 ./cache/redisfory`
+실행: `go test -run Example -count=1 ./cache/redisfory`
 
-Expected: PASS.
+예상: PASS.
 
-- [ ] **Step 3: Write synchronized README contracts**
+- [ ] **단계 3: Write synchronized README contracts**
 
-Both locales cover import/usage, profiles, Go-only/no-xlang, complete option tuple, roots, exact
-defaults, all stable reason constants, `BTFV`, schema generation, visible Redis keys/values,
-ACL/TLS, caller lifecycle, TTL, typed errors, no fallback/loading/Clear/compression, Cluster hash
-tags, rollout/rollback, bounded `SCAN` cleanup, low-cardinality telemetry, and #599 benchmark
+Both locales cover import/usage, profiles, Go-만/없음-xlang, complete option tuple, roots, exact
+defaults, 모든 stable reason constants, `BTFV`, schema generation, visible Redis keys/values,
+ACL/TLS, 호출자 lifecycle, TTL, typed 오류, 없음 fallback/loading/Clear/compression, Cluster hash
+tags, rollout/rollback, bounded `SCAN` cleanup, 낮음-cardinality telemetry, 및 #599 benchmark
 ownership. Cleanup distinguishes standalone Redis from Redis Cluster: every primary gets its own
-dry-run count, bounded scan/delete, and re-scan; neither mode uses `KEYS`.
+dry-run count, bounded scan/delete, 및 re-scan; neither mode uses `KEYS`.
 
-- [ ] **Step 4: Update root discovery and changelog**
+- [ ] **단계 4: 업데이트 root discovery 및 changelog**
 
-Add `cache/redisfory` beside cache packages in both root README tables/lists. Add one unreleased `Added` bullet without a performance claim.
+추가 `cache/redisfory` beside cache packages in both root README tables/lists. 추가 one unreleased `Added` bullet without a 성능 claim.
 
-- [ ] **Step 5: Verify locale consistency**
+- [ ] **단계 5: 검증 locale consistency**
 
-Run: `rg -n 'redisfory|BTFV|SchemaGeneration|native-compatible' cache/redisfory/README.md cache/redisfory/README.ko.md README.md README.ko.md CHANGELOG.md`
+실행: `rg -n 'redisfory|BTFV|SchemaGeneration|native-compatible' cache/redisfory/README.md cache/redisfory/README.ko.md README.md README.ko.md CHANGELOG.md`
 
-Expected: references in both locales, root indexes, and changelog.
+예상: references in both locales, root indexes, 및 changelog.
 
-Compare both package README heading sets and manually check paired import snippets, defaults
+Compare both 패키지 README heading sets 및 manually check paired import snippets, defaults
 table, reason list, non-goals, rollout/rollback, ACL/TLS, hash tags, standalone/Cluster cleanup,
-and benchmark boundary. Compare both root README table/list entries; record parity in the review
+및 benchmark boundary. Compare both root README table/list entries; record parity in the review
 artifact.
 
-- [ ] **Step 6: Commit**
+- [ ] **단계 6: 커밋**
 
 ```bash
 git add cache/redisfory README.md README.ko.md CHANGELOG.md
@@ -469,33 +472,33 @@ git commit -m "Document the boundary of direct Fory cache values" \
   -m "Tested: compile-checked examples and locale reference scan"
 ```
 
-### Task 7: Create And Audit The Architecture Diagram
+### 작업 7: 생성 And 감사 The 아키텍처 Diagram
 
-**Files:**
-- Create: `docs/images/readme-diagrams/redisfory-direct-value-flow.svg`
-- Create: `docs/images/readme-diagrams/redisfory-direct-value-flow.png`
+**파일:**
+- 생성: `docs/images/readme-diagrams/redisfory-direct-value-f낮음.svg`
+- 생성: `docs/images/readme-diagrams/redisfory-direct-value-f낮음.png`
 - Modify: `cache/redisfory/README.md`
 - Modify: `cache/redisfory/README.ko.md`
 
-- [ ] **Step 1: Load `bluetape4k-diagram` and create SVG**
+- [ ] **단계 1: Load `bluetape4k-diagram` 및 create SVG**
 
-Show caller, `ValueCache`, key/schema builder, `BTFV` validation, synchronized Fory runtime, caller-owned client, and Redis. Mark trust boundaries and visible binary storage. Show `rediscoord` as a separate JSON/base64 coordination path.
+Show 호출자, `ValueCache`, key/schema builder, `BTFV` validation, synchronized Fory runtime, 호출자-owned client, 및 Redis. Mark trust boundaries 및 visible binary storage. Show `rediscoord` as a separate JSON/base64 coordination path.
 
-- [ ] **Step 2: Render PNG**
+- [ ] **단계 2: Render PNG**
 
-Run: `cairosvg docs/images/readme-diagrams/redisfory-direct-value-flow.svg -o docs/images/readme-diagrams/redisfory-direct-value-flow.png`
+실행: `cairosvg docs/images/readme-diagrams/redisfory-direct-value-f낮음.svg -o docs/images/readme-diagrams/redisfory-direct-value-f낮음.png`
 
-Expected: exit 0 and non-empty paired files.
+예상: exit 0 및 non-empty paired files.
 
-- [ ] **Step 3: Embed PNG in both READMEs**
+- [ ] **단계 3: Embed PNG in both READMEs**
 
-Use `../../docs/images/readme-diagrams/redisfory-direct-value-flow.png`; keep adjacent SVG as source.
+사용 `../../docs/images/readme-diagrams/redisfory-direct-value-f낮음.png`; keep adjacent SVG as source.
 
-- [ ] **Step 4: Audit and inspect**
+- [ ] **단계 4: 감사 및 inspect**
 
-Run the current diagram skill's XML, endpoint, kind, and sequence-style audit commands. Inspect PNG at original resolution with `view_image`. Expected: zero findings, legible labels, no overlap/cropping, correct arrows.
+실행 the current diagram skill's XML, endpoint, kind, 및 sequence-style audit commands. Inspect PNG at original resolution 함께 `view_image`. 예상: zero findings, legible labels, 없음 overlap/cropping, correct arrows.
 
-- [ ] **Step 5: Commit**
+- [ ] **단계 5: 커밋**
 
 ```bash
 git add docs/images/readme-diagrams/redisfory-direct-value-flow.svg \
@@ -507,14 +510,14 @@ git commit -m "Make the direct Fory cache trust boundary inspectable" \
   -m "Tested: diagram audits and original-size PNG inspection"
 ```
 
-### Task 8: Run Verification And Review Gates
+### 작업 8: 실행 검증 And 리뷰 Gates
 
-**Files:**
-- Create: `docs/review/2026-07-10-issue-598-fory-redis-value-cache-implementation-review.md`
-- Create: `docs/lessons/2026-07-10-issue-598-fory-redis-value-cache.md`
-- Modify only on findings: files from Tasks 1-7
+**파일:**
+- 생성: `docs/review/2026-07-10-issue-598-fory-redis-value-cache-implementation-review.md`
+- 생성: `docs/lessons/2026-07-10-issue-598-fory-redis-value-cache.md`
+- Modify 만 on findings: files from Tasks 1-7
 
-- [ ] **Step 1: Run targeted gates sequentially**
+- [ ] **단계 1: 실행 targeted gates sequentially**
 
 ```bash
 go test -p 1 -count=1 ./cache/internal/forynative ./cache/rediscoord/fory ./cache/redisfory
@@ -524,27 +527,27 @@ go vet ./cache/internal/forynative ./cache/rediscoord/fory ./cache/redisfory
 git diff --check
 ```
 
-Expected: every command exits 0; Docker-backed commands are not parallelized.
+예상: every command exits 0; Docker-backed commands are 아님 parallelized.
 
-- [ ] **Step 2: Run full repository verification**
+- [ ] **단계 2: 실행 full repository verification**
 
-Run: `make ci`
+실행: `make ci`
 
-Expected: PASS for formatting, tidy, vet, lint, tests, and configured checks.
+예상: PASS for formatting, tidy, vet, lint, 테스트, 및 configured checks.
 
-- [ ] **Step 3: Execute Step 6-R**
+- [ ] **단계 3: 실행 단계 6-R**
 
-Run six independent performance, stability, security, operator/Ops, developer/API, and user/caller read-only reviews plus main integration. Record P0/P1/P2/P3 and evidence. Fix P0/P1 test-first and rerun affected lanes to P0=0/P1=0.
+실행 six independent 성능, 안정성, 보안, 운영자/Ops, 개발자/API, 및 사용자/호출자 read-만 reviews plus main integration. 기록 P0/P1/P2/P3 및 evidence. Fix P0/P1 테스트-first 및 rerun affected lanes to P0=0/P1=0.
 
-- [ ] **Step 4: Execute Step 7-R**
+- [ ] **단계 4: 실행 단계 7-R**
 
-Review the complete branch diff against spec and plan with the same lanes plus main integration. Re-run the smallest proof after late changes, then `make ci` and `git diff --check`. Close only at P0=0/P1=0.
+리뷰 the complete branch diff against spec 및 plan 함께 the same lanes plus main integration. Re-run the smallest proof 후 late changes, then `make ci` 및 `git diff --check`. Close 만 at P0=0/P1=0.
 
-- [ ] **Step 5: Record lessons and evidence**
+- [ ] **단계 5: 기록 lessons 및 evidence**
 
-Document runtime boundaries, dispatch-time cancellation, envelope-first validation, key visibility, and benchmark separation. Do not invent benchmark results; link #599.
+문서화 runtime boundaries, dispatch-time cancellation, envelope-first validation, key visibility, 및 benchmark separation. 다음을 하지 않는다: invent benchmark results; link #599.
 
-- [ ] **Step 6: Commit evidence**
+- [ ] **단계 6: 커밋 evidence**
 
 ```bash
 git add docs/review/2026-07-10-issue-598-fory-redis-value-cache-implementation-review.md \
@@ -555,31 +558,31 @@ git commit -m "Retain the evidence behind the direct Fory cache decision" \
   -m "Tested: targeted gates; make ci; Step 6-R and Step 7-R P0=0 P1=0"
 ```
 
-### Task 9: Publish The Pull Request Without Merging
+### 작업 9: 공개 The Pull Request Without Merging
 
-**Files:**
+**파일:**
 - No production file changes expected.
 
-- [ ] **Step 1: Verify branch hygiene**
+- [ ] **단계 1: 검증 branch hygiene**
 
-Run: `git status --short && git log --oneline origin/develop..HEAD && git diff --check origin/develop...HEAD`
+실행: `git status --short && git log --oneline origin/develop..HEAD && git diff --check origin/develop...HEAD`
 
-Expected: clean status, intentional Lore commits, no whitespace errors.
+예상: clean status, intentional Lore commits, 없음 whitespace 오류.
 
-Run: `gh issue view 598 --json state,assignees,milestone,labels && gh issue view 599 --json state,assignees,milestone,labels`
+실행: `gh issue view 598 --json state,assignees,milestone,labels && gh issue view 599 --json state,assignees,milestone,labels`
 
-Expected: both issues have the intended assignee, milestone, labels, and state before publication.
+예상: both issues have the intended assignee, milestone, labels, 및 state 전에 publication.
 
-- [ ] **Step 2: Push and create the issue-linked PR**
+- [ ] **단계 2: Push 및 create the issue-linked PR**
 
-The PR body summarizes API/wire/operational boundaries, exact verification, and #599 benchmark ownership, and ends with `## DoD Status`.
+The PR body summarizes API/wire/operational boundaries, exact verification, 및 #599 benchmark ownership, 및 ends 함께 `## DoD Status`.
 
-- [ ] **Step 3: Verify live metadata and CI**
+- [ ] **단계 3: 검증 live metadata 및 CI**
 
-Use `gh pr view` and `gh pr checks` to verify closing reference, assignee, milestone, final body
-section, head SHA, and checks. Fix failures within the approved plan automatically and rerun the
+사용 `gh pr view` 및 `gh pr checks` to verify closing reference, assignee, milestone, final body
+section, head SHA, 및 checks. Fix failures within the approved plan automatically 및 rerun the
 affected gate.
 
-- [ ] **Step 4: Stop at merge approval**
+- [ ] **단계 4: Stop at merge approval**
 
-Report PR URL, CI, Step 6-R/7-R counts, and tests. Do not merge without explicit user approval.
+Report PR URL, CI, 단계 6-R/7-R counts, 및 테스트. 다음을 하지 않는다: merge without explicit 사용자 approval.
