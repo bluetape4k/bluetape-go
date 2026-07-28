@@ -1,6 +1,9 @@
 # Issue #179 Locale Currency Mapping Design
 
-## Goal
+> 한국어 요구사항 경계: 이 spec/design/test-spec 문서는 한국어 독자가 요구사항을 추적할 수 있도록 목적과 검증 경계를 한국어로 보강한다. API 이름, command, code identifier, issue/PR 번호, compatibility matrix, acceptance keyword, DoD/test evidence는 요구사항 약화를 막기 위해 원문 그대로 보존한다. 변경자는 아래 literal contract를 삭제하거나 의미를 약하게 바꾸지 않아야 한다.
+
+
+## 목표
 
 `money.CurrencyByLocale`를 작은 수동 region map에서 `golang.org/x/text`의 BCP47/CLDR 데이터 기반 lookup으로 확장한다. 이 API는 현재 지역의 대표 통화를 편의상 찾는 함수로 유지하며, 회계/세무/법정통화 권위를 대체하지 않는다.
 
@@ -150,7 +153,7 @@ Update `money/README.md` and `money/README.ko.md`:
 
 Update root README package summary only if the public money summary needs the fuller locale mapping called out.
 
-## Risks And Mitigations
+## 위험 And Mitigations
 
 | Risk | Severity | Mitigation |
 |---|---:|---|
