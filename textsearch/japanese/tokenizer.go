@@ -11,34 +11,34 @@ import (
 )
 
 const (
-	// MetadataLanguage identifies tokens produced by this Japanese adapter.
+	// MetadataLanguage는 textsearch language image example에서 caller-visible 상태와 의미를 설명한다.
 	MetadataLanguage = "language"
-	// MetadataDictionary records the Kagome dictionary selected at construction.
+	// MetadataDictionary는 textsearch language image example에서 동작과 caller-visible 계약을 설명한다.
 	MetadataDictionary = "dictionary"
-	// MetadataTokenClass records Kagome's token class.
+	// MetadataTokenClass는 textsearch language image example에서 동작과 caller-visible 계약을 설명한다.
 	MetadataTokenClass = "kagome.class"
-	// MetadataPOS records Kagome's POS hierarchy as a slash-separated string.
+	// MetadataPOS는 textsearch language image example에서 동작과 caller-visible 계약을 설명한다.
 	MetadataPOS = "kagome.pos"
-	// MetadataBaseForm records Kagome's base-form feature when present.
+	// MetadataBaseForm는 textsearch language image example에서 동작과 caller-visible 계약을 설명한다.
 	MetadataBaseForm = "kagome.base_form"
-	// MetadataReading records Kagome's reading feature when present.
+	// MetadataReading는 textsearch language image example에서 동작과 caller-visible 계약을 설명한다.
 	MetadataReading = "kagome.reading"
-	// MetadataPronunciation records Kagome's pronunciation feature when present.
+	// MetadataPronunciation는 textsearch language image example에서 동작과 caller-visible 계약을 설명한다.
 	MetadataPronunciation = "kagome.pronunciation"
 )
 
-// Option configures a Japanese Tokenizer.
+// Option는 textsearch language image example에서 설정값과 기본값 적용 방식을 설명한다.
 type Option func(*config) error
 
-// TokenizeMode selects Kagome's segmentation mode.
+// TokenizeMode는 textsearch language image example에서 leader election 선택과 조정 계약을 설명한다.
 type TokenizeMode = ktokenizer.TokenizeMode
 
 const (
-	// Normal is regular Kagome segmentation.
+	// Normal는 textsearch language image example에서 caller-visible 상태와 의미를 설명한다.
 	Normal TokenizeMode = ktokenizer.Normal
-	// Search adds segmentation useful for search indexes.
+	// Search는 textsearch language image example에서 동작과 caller-visible 계약을 설명한다.
 	Search TokenizeMode = ktokenizer.Search
-	// Extended is Kagome's extended search segmentation mode.
+	// Extended는 textsearch language image example에서 caller-visible 상태와 의미를 설명한다.
 	Extended TokenizeMode = ktokenizer.Extended
 )
 
@@ -49,7 +49,7 @@ type config struct {
 	options        []ktokenizer.Option
 }
 
-// WithDictionary selects a Kagome dictionary. The zero value uses IPA.
+// WithDictionary는 textsearch language image example에서 leader election 선택과 조정 계약을 설명한다.
 func WithDictionary(name string, dictionary *dict.Dict) Option {
 	return func(cfg *config) error {
 		if dictionary == nil {
@@ -64,7 +64,7 @@ func WithDictionary(name string, dictionary *dict.Dict) Option {
 	}
 }
 
-// WithMode selects Kagome's tokenize mode. The zero value uses Normal.
+// WithMode는 textsearch language image example에서 leader election 선택과 조정 계약을 설명한다.
 func WithMode(mode TokenizeMode) Option {
 	return func(cfg *config) error {
 		switch mode {
@@ -77,7 +77,7 @@ func WithMode(mode TokenizeMode) Option {
 	}
 }
 
-// WithKagomeOptions appends raw Kagome tokenizer options.
+// WithKagomeOptions는 textsearch language image example에서 동작과 caller-visible 계약을 설명한다.
 func WithKagomeOptions(options ...ktokenizer.Option) Option {
 	return func(cfg *config) error {
 		cfg.options = append(cfg.options, options...)
@@ -85,7 +85,7 @@ func WithKagomeOptions(options ...ktokenizer.Option) Option {
 	}
 }
 
-// Tokenizer adapts Kagome v2 to textsearch.Tokenizer.
+// Tokenizer는 textsearch language image example에서 동작과 caller-visible 계약을 설명한다.
 type Tokenizer struct {
 	inner          *ktokenizer.Tokenizer
 	dictionaryName string
@@ -94,7 +94,7 @@ type Tokenizer struct {
 
 var _ textsearch.Tokenizer = (*Tokenizer)(nil)
 
-// NewTokenizer creates a Japanese tokenizer backed by Kagome and IPA.
+// NewTokenizer는 textsearch language image example에서 생성과 초기화 계약을 설명한다.
 func NewTokenizer(options ...Option) (*Tokenizer, error) {
 	cfg := config{
 		dictionary:     ipa.Dict(),
@@ -122,7 +122,7 @@ func NewTokenizer(options ...Option) (*Tokenizer, error) {
 	}, nil
 }
 
-// Tokenize validates a textsearch request and returns Kagome tokens.
+// Tokenize는 textsearch language image example에서 반환값과 오류 의미를 설명한다.
 func (t *Tokenizer) Tokenize(request textsearch.TokenizeRequest) (textsearch.TokenizeResponse, error) {
 	if t == nil || t.inner == nil {
 		return textsearch.TokenizeResponse{}, fmt.Errorf("japanese tokenizer is nil")
@@ -161,17 +161,17 @@ func (t *Tokenizer) Tokenize(request textsearch.TokenizeRequest) (textsearch.Tok
 	return textsearch.TokenizeResponse{Request: normalized, Tokens: tokens}, nil
 }
 
-// IsNoun reports whether token metadata came from a Japanese noun.
+// IsNoun는 textsearch language image example에서 반환값과 오류 의미를 설명한다.
 func IsNoun(token textsearch.Token) bool {
 	return hasPOSPrefix(token, "名詞")
 }
 
-// IsVerb reports whether token metadata came from a Japanese verb.
+// IsVerb는 textsearch language image example에서 반환값과 오류 의미를 설명한다.
 func IsVerb(token textsearch.Token) bool {
 	return hasPOSPrefix(token, "動詞")
 }
 
-// Filter returns tokens that satisfy predicate.
+// Filter는 textsearch language image example에서 반환값과 오류 의미를 설명한다.
 func Filter(tokens []textsearch.Token, predicate func(textsearch.Token) bool) []textsearch.Token {
 	if predicate == nil {
 		return nil
@@ -185,12 +185,12 @@ func Filter(tokens []textsearch.Token, predicate func(textsearch.Token) bool) []
 	return filtered
 }
 
-// FilterNouns returns Japanese noun tokens.
+// FilterNouns는 textsearch language image example에서 반환값과 오류 의미를 설명한다.
 func FilterNouns(tokens []textsearch.Token) []textsearch.Token {
 	return Filter(tokens, IsNoun)
 }
 
-// FilterVerbs returns Japanese verb tokens.
+// FilterVerbs는 textsearch language image example에서 반환값과 오류 의미를 설명한다.
 func FilterVerbs(tokens []textsearch.Token) []textsearch.Token {
 	return Filter(tokens, IsVerb)
 }

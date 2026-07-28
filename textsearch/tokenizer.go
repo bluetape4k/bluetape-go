@@ -8,93 +8,93 @@ import (
 	"unicode/utf8"
 )
 
-// MaxTokenizeTextLength is the maximum input size accepted by
-// NewTokenizeRequest and SimpleTokenizer.Tokenize.
+// MaxTokenizeTextLength는 textsearch language image example에서 caller-visible 상태와 의미를 설명한다.
+// NewTokenizeRequest는 textsearch language image example에서 동작과 caller-visible 계약을 설명한다.
 const MaxTokenizeTextLength = 100_000
 
-// PartOfSpeech is a tokenizer-owned coarse token class.
+// PartOfSpeech는 textsearch language image example에서 caller-visible 상태와 의미를 설명한다.
 //
-// The core package intentionally keeps this small. Language-specific
-// morphological tags belong in tokenizer implementations that can place their
-// original tag in Token.Metadata.
+// 이 주석은 tokenizer, normalization, language detection, image/example 경계를 설명한다.
+// 세부 조건은 language script, tokenizer, normalization, example ownership 계약을 따른다.
+// 세부 조건은 language script, tokenizer, normalization, example ownership 계약을 따른다.
 type PartOfSpeech string
 
 const (
-	// POSUnknown reports an implementation-specific token class.
+	// POSUnknown는 textsearch language image example에서 반환값과 오류 의미를 설명한다.
 	POSUnknown PartOfSpeech = "unknown"
-	// POSWord reports contiguous Unicode letters and combining marks.
+	// POSWord는 textsearch language image example에서 반환값과 오류 의미를 설명한다.
 	POSWord PartOfSpeech = "word"
-	// POSNumber reports contiguous Unicode digits.
+	// POSNumber는 textsearch language image example에서 반환값과 오류 의미를 설명한다.
 	POSNumber PartOfSpeech = "number"
-	// POSWhitespace reports contiguous Unicode whitespace.
+	// POSWhitespace는 textsearch language image example에서 반환값과 오류 의미를 설명한다.
 	POSWhitespace PartOfSpeech = "whitespace"
-	// POSPunctuation reports contiguous Unicode punctuation.
+	// POSPunctuation는 textsearch language image example에서 반환값과 오류 의미를 설명한다.
 	POSPunctuation PartOfSpeech = "punctuation"
-	// POSSymbol reports contiguous Unicode symbols or other single-rune tokens.
+	// POSSymbol는 textsearch language image example에서 반환값과 오류 의미를 설명한다.
 	POSSymbol PartOfSpeech = "symbol"
 )
 
-// TokenSpan identifies a token byte range in the original input.
+// TokenSpan는 textsearch language image example에서 caller-visible 상태와 의미를 설명한다.
 //
-// End is exclusive. Spans are byte offsets so callers can slice the original Go
-// string without requiring normalized-offset mapping.
+// End는 textsearch language image example에서 설정값과 기본값 적용 방식을 설명한다.
+// 세부 조건은 language script, tokenizer, normalization, example ownership 계약을 따른다.
 type TokenSpan struct {
 	Start int
 	End   int
 }
 
-// Token is one lexical token from a tokenizer.
+// Token는 textsearch language image example에서 caller-visible 상태와 의미를 설명한다.
 type Token struct {
-	// Text is the original input slice for Span.
+	// Text는 textsearch language image example에서 caller-visible 상태와 의미를 설명한다.
 	Text string
-	// Span identifies Text in the original input.
+	// Span는 textsearch language image example에서 caller-visible 상태와 의미를 설명한다.
 	Span TokenSpan
-	// Normalized is Text after the request normalization mode is applied.
+	// Normalized는 textsearch language image example에서 caller-visible 상태와 의미를 설명한다.
 	Normalized string
-	// POS is the tokenizer-owned coarse or language-specific token class.
+	// POS는 textsearch language image example에서 caller-visible 상태와 의미를 설명한다.
 	POS PartOfSpeech
-	// Metadata carries tokenizer-owned labels such as language, original POS
-	// tag, dictionary source, or confidence. Implementations should copy maps
-	// before returning tokens.
+	// Metadata는 textsearch language image example에서 동작과 caller-visible 계약을 설명한다.
+	// 이 주석은 textsearch language image example의 backend 요구사항, cancellation, timeout, 오류 처리 세부사항을 설명한다.
+	// 세부 조건은 language script, tokenizer, normalization, example ownership 계약을 따른다.
 	Metadata map[string]string
 }
 
-// NormalizedText describes a caller-visible normalization result.
+// NormalizedText는 textsearch language image example에서 caller-visible 상태와 의미를 설명한다.
 type NormalizedText struct {
 	Original   string
 	Normalized string
 	Mode       NormalizeMode
 }
 
-// NormalizeText applies a textsearch normalization mode without case folding.
+// NormalizeText는 textsearch language image example에서 동작과 caller-visible 계약을 설명한다.
 func NormalizeText(input string, mode NormalizeMode) NormalizedText {
 	normalized := normalizeString(input, Config{Normalize: mode})
 	return NormalizedText{Original: input, Normalized: normalized.text, Mode: mode}
 }
 
-// TokenizeOptions controls tokenizer output.
+// TokenizeOptions는 textsearch language image example에서 동작과 caller-visible 계약을 설명한다.
 type TokenizeOptions struct {
-	// Normalize applies Unicode normalization to Token.Normalized. Token spans
-	// still refer to byte offsets in the original input.
+	// Normalize는 textsearch language image example에서 동작과 caller-visible 계약을 설명한다.
+	// 세부 조건은 language script, tokenizer, normalization, example ownership 계약을 따른다.
 	Normalize NormalizeMode
-	// IncludeWhitespace keeps whitespace tokens in the response. The zero value
-	// skips whitespace.
+	// IncludeWhitespace는 textsearch language image example에서 동작과 caller-visible 계약을 설명한다.
+	// 세부 조건은 language script, tokenizer, normalization, example ownership 계약을 따른다.
 	IncludeWhitespace bool
 }
 
-// TokenizeRequest is a validated tokenizer request.
+// TokenizeRequest는 textsearch language image example에서 caller-visible 상태와 의미를 설명한다.
 type TokenizeRequest struct {
 	Text    string
 	Options TokenizeOptions
 }
 
-// TokenizeResponse contains tokenizer results.
+// TokenizeResponse는 textsearch language image example에서 caller-visible 상태와 의미를 설명한다.
 type TokenizeResponse struct {
 	Request TokenizeRequest
 	Tokens  []Token
 }
 
-// Texts returns original token texts in order.
+// Texts는 textsearch language image example에서 반환값과 오류 의미를 설명한다.
 func (r TokenizeResponse) Texts() []string {
 	texts := make([]string, len(r.Tokens))
 	for i, token := range r.Tokens {
@@ -103,7 +103,7 @@ func (r TokenizeResponse) Texts() []string {
 	return texts
 }
 
-// NormalizedTexts returns normalized token texts in order.
+// NormalizedTexts는 textsearch language image example에서 반환값과 오류 의미를 설명한다.
 func (r TokenizeResponse) NormalizedTexts() []string {
 	texts := make([]string, len(r.Tokens))
 	for i, token := range r.Tokens {
@@ -112,7 +112,7 @@ func (r TokenizeResponse) NormalizedTexts() []string {
 	return texts
 }
 
-// NewTokenizeRequest validates text and applies tokenizer defaults.
+// NewTokenizeRequest는 textsearch language image example에서 동작과 caller-visible 계약을 설명한다.
 func NewTokenizeRequest(text string, options TokenizeOptions) (TokenizeRequest, error) {
 	textLength := utf8.RuneCountInString(text)
 	if textLength > MaxTokenizeTextLength {
@@ -124,32 +124,32 @@ func NewTokenizeRequest(text string, options TokenizeOptions) (TokenizeRequest, 
 	return TokenizeRequest{Text: text, Options: options}, nil
 }
 
-// Tokenizer is the minimal tokenizer contract used by textsearch callers.
+// Tokenizer는 textsearch language image example에서 caller-visible 상태와 의미를 설명한다.
 type Tokenizer interface {
 	Tokenize(TokenizeRequest) (TokenizeResponse, error)
 }
 
-// TokenizerFunc adapts a function to Tokenizer.
+// TokenizerFunc는 textsearch language image example에서 동작과 caller-visible 계약을 설명한다.
 type TokenizerFunc func(TokenizeRequest) (TokenizeResponse, error)
 
-// Tokenize calls f(request).
+// Tokenize는 textsearch language image example에서 동작과 caller-visible 계약을 설명한다.
 func (f TokenizerFunc) Tokenize(request TokenizeRequest) (TokenizeResponse, error) {
 	return f(request)
 }
 
-// SimpleTokenizer is a dependency-free deterministic lexical tokenizer.
+// SimpleTokenizer는 textsearch language image example에서 caller-visible 상태와 의미를 설명한다.
 //
-// It groups Unicode letters and combining marks, digits, whitespace, and
-// punctuation. It is not a morphological analyzer and does not detect language.
+// 이 주석은 tokenizer, normalization, language detection, image/example 경계를 설명한다.
+// 이 주석은 textsearch language image example의 backend 요구사항, cancellation, timeout, 오류 처리 세부사항을 설명한다.
 type SimpleTokenizer struct{}
 
-// NewSimpleTokenizer returns a dependency-free tokenizer for tests and simple
-// lexical workflows.
+// NewSimpleTokenizer는 textsearch language image example에서 반환값과 오류 의미를 설명한다.
+// 세부 조건은 language script, tokenizer, normalization, example ownership 계약을 따른다.
 func NewSimpleTokenizer() SimpleTokenizer {
 	return SimpleTokenizer{}
 }
 
-// Tokenize validates request text and returns deterministic lexical tokens.
+// Tokenize는 textsearch language image example에서 반환값과 오류 의미를 설명한다.
 func (t SimpleTokenizer) Tokenize(request TokenizeRequest) (TokenizeResponse, error) {
 	normalized, err := NewTokenizeRequest(request.Text, request.Options)
 	if err != nil {
@@ -238,31 +238,31 @@ func runeWidth(input string, r rune) int {
 	return utf8.RuneLen(r)
 }
 
-// DictionaryEntry is one tokenizer dictionary item.
+// DictionaryEntry는 textsearch language image example에서 caller-visible 상태와 의미를 설명한다.
 type DictionaryEntry struct {
-	// ID is caller-owned metadata. When empty, a stable decimal index is used.
+	// ID는 textsearch language image example에서 caller-visible 상태와 의미를 설명한다.
 	ID string
-	// Text is the dictionary surface form.
+	// Text는 textsearch language image example에서 caller-visible 상태와 의미를 설명한다.
 	Text string
-	// Normalized is optional normalized surface form.
+	// Normalized는 textsearch language image example에서 caller-visible 상태와 의미를 설명한다.
 	Normalized string
-	// POS is an optional coarse or implementation-specific token class.
+	// POS는 textsearch language image example에서 caller-visible 상태와 의미를 설명한다.
 	POS PartOfSpeech
-	// Severity can be reused by blockword-style dictionary consumers.
+	// Severity는 textsearch language image example에서 동작과 caller-visible 계약을 설명한다.
 	Severity Severity
-	// Metadata carries caller-owned labels such as source, language, or model.
+	// Metadata는 textsearch language image example에서 동작과 caller-visible 계약을 설명한다.
 	Metadata map[string]string
 }
 
-// DictionaryProvider loads tokenizer dictionary entries.
+// DictionaryProvider는 textsearch language image example에서 동작과 caller-visible 계약을 설명한다.
 type DictionaryProvider interface {
 	Entries(context.Context) ([]DictionaryEntry, error)
 }
 
-// StaticDictionaryProvider is an in-memory DictionaryProvider.
+// StaticDictionaryProvider는 textsearch language image example에서 caller-visible 상태와 의미를 설명한다.
 type StaticDictionaryProvider []DictionaryEntry
 
-// Entries returns a copy of provider entries.
+// Entries는 textsearch language image example에서 반환값과 오류 의미를 설명한다.
 func (p StaticDictionaryProvider) Entries(ctx context.Context) ([]DictionaryEntry, error) {
 	if ctx == nil {
 		ctx = context.Background()
@@ -273,13 +273,13 @@ func (p StaticDictionaryProvider) Entries(ctx context.Context) ([]DictionaryEntr
 	return copyDictionaryEntries([]DictionaryEntry(p)), nil
 }
 
-// DictionarySet is an immutable lookup over dictionary entries.
+// DictionarySet는 textsearch language image example에서 caller-visible 상태와 의미를 설명한다.
 type DictionarySet struct {
 	entries []DictionaryEntry
 	byText  map[string]DictionaryEntry
 }
 
-// NewDictionarySet builds an immutable dictionary lookup from entries.
+// NewDictionarySet는 textsearch language image example에서 생성과 초기화 계약을 설명한다.
 func NewDictionarySet(entries []DictionaryEntry) (*DictionarySet, error) {
 	if len(entries) == 0 {
 		return nil, ErrNoPatterns
@@ -305,7 +305,7 @@ func NewDictionarySet(entries []DictionaryEntry) (*DictionarySet, error) {
 	return &DictionarySet{entries: copied, byText: byText}, nil
 }
 
-// Entries returns a copy of dictionary entries in construction order.
+// Entries는 textsearch language image example에서 반환값과 오류 의미를 설명한다.
 func (s *DictionarySet) Entries() []DictionaryEntry {
 	if s == nil {
 		return nil
@@ -313,7 +313,7 @@ func (s *DictionarySet) Entries() []DictionaryEntry {
 	return copyDictionaryEntries(s.entries)
 }
 
-// Contains reports whether text exists in the dictionary.
+// Contains는 textsearch language image example에서 반환값과 오류 의미를 설명한다.
 func (s *DictionarySet) Contains(text string) bool {
 	if s == nil {
 		return false
@@ -322,7 +322,7 @@ func (s *DictionarySet) Contains(text string) bool {
 	return ok
 }
 
-// Entry returns a copy of the dictionary entry for text.
+// Entry는 textsearch language image example에서 반환값과 오류 의미를 설명한다.
 func (s *DictionarySet) Entry(text string) (DictionaryEntry, bool) {
 	if s == nil {
 		return DictionaryEntry{}, false

@@ -1,6 +1,6 @@
-// Package textsearch provides deterministic multi-pattern text search.
+// Package textsearch는 textsearch language image example 계약과 호출자 사용 경계를 설명한다.
 //
-// Matchers are immutable after Compile returns. They are safe for concurrent
-// use by multiple goroutines as long as callers do not mutate their input
-// strings while searching, which is Go's normal string contract.
+// Matchers는 textsearch language image example에서 반환값과 오류 의미를 설명한다.
+// 세부 조건은 language script, tokenizer, normalization, example ownership 계약을 따른다.
+// 세부 조건은 language script, tokenizer, normalization, example ownership 계약을 따른다.
 package textsearch

@@ -1,6 +1,6 @@
-// Package language adapts Lingua-Go language detection behind an optional
-// textsearch subpackage.
+// Package language는 textsearch language image example 계약과 호출자 사용 경계를 설명한다.
+// 세부 조건은 language script, tokenizer, normalization, example ownership 계약을 따른다.
 //
-// Importing this package pulls in Lingua language models. The core textsearch
-// package remains dependency-free and does not import Lingua.
+// Importing는 textsearch language image example에서 caller-visible 상태와 의미를 설명한다.
+// 세부 조건은 language script, tokenizer, normalization, example ownership 계약을 따른다.
 package language

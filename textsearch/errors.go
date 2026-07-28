@@ -3,20 +3,20 @@ package textsearch
 import "errors"
 
 var (
-	// ErrEmptyPattern reports an empty pattern in the dictionary.
+	// ErrEmptyPattern는 textsearch language image example에서 반환값과 오류 의미를 설명한다.
 	ErrEmptyPattern = errors.New("textsearch: pattern must not be empty")
-	// ErrNoPatterns reports an empty dictionary.
+	// ErrNoPatterns는 textsearch language image example에서 반환값과 오류 의미를 설명한다.
 	ErrNoPatterns = errors.New("textsearch: at least one pattern is required")
-	// ErrDuplicatePatternID reports duplicate caller-owned dictionary IDs.
+	// ErrDuplicatePatternID는 textsearch language image example에서 반환값과 오류 의미를 설명한다.
 	ErrDuplicatePatternID = errors.New("textsearch: duplicate pattern id")
-	// ErrBlockwordTextTooLong reports blockword input above MaxBlockwordTextLength.
+	// ErrBlockwordTextTooLong는 textsearch language image example에서 반환값과 오류 의미를 설명한다.
 	ErrBlockwordTextTooLong = errors.New("textsearch: blockword text too long")
-	// ErrBlankBlockwordText reports a blank blockword request.
+	// ErrBlankBlockwordText는 textsearch language image example에서 반환값과 오류 의미를 설명한다.
 	ErrBlankBlockwordText = errors.New("textsearch: blockword text must not be blank")
-	// ErrTokenizeTextTooLong reports tokenizer input above MaxTokenizeTextLength.
+	// ErrTokenizeTextTooLong는 textsearch language image example에서 반환값과 오류 의미를 설명한다.
 	ErrTokenizeTextTooLong = errors.New("textsearch: tokenize text too long")
-	// ErrBlankTokenizeText reports a blank tokenizer request.
+	// ErrBlankTokenizeText는 textsearch language image example에서 반환값과 오류 의미를 설명한다.
 	ErrBlankTokenizeText = errors.New("textsearch: tokenize text must not be blank")
-	// ErrDuplicateDictionaryText reports duplicate dictionary surface text.
+	// ErrDuplicateDictionaryText는 textsearch language image example에서 반환값과 오류 의미를 설명한다.
 	ErrDuplicateDictionaryText = errors.New("textsearch: duplicate dictionary text")
 )
