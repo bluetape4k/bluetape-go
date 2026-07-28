@@ -12,18 +12,18 @@ import (
 const (
 	defaultImage = "mongo:7.0@sha256:340c1c56fb10e95cf79ff547f8664b96bc6ead9909bc355238cbf865a9695a6f"
 
-	// URIKey는 Testcontainers fixture에서 caller-visible 상태와 의미를 설명한다.
+	// URIKey Testcontainers fixture에서 caller-visible 상태와 의미를 설명한다.
 	URIKey = "mongodb.uri"
 )
 
-// Start는 Testcontainers fixture에서 반환값과 오류 의미를 설명한다.
+// Start Testcontainers fixture에서 반환값과 오류 의미를 설명한다.
 func Start(ctx context.Context, tb testing.TB) string {
 	tb.Helper()
 
 	return mustDetail(ctx, tb, StartServer(ctx, tb), URIKey)
 }
 
-// StartServer는 Testcontainers fixture에서 반환값과 오류 의미를 설명한다.
+// StartServer Testcontainers fixture에서 반환값과 오류 의미를 설명한다.
 func StartServer(ctx context.Context, tb testing.TB) *tcserver.Started {
 	tb.Helper()
 

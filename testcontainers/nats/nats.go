@@ -12,18 +12,18 @@ import (
 const (
 	defaultImage = "nats:2.10-alpine"
 
-	// URLKey는 Testcontainers fixture에서 caller-visible 상태와 의미를 설명한다.
+	// URLKey Testcontainers fixture에서 caller-visible 상태와 의미를 설명한다.
 	URLKey = "nats.url"
 )
 
-// Start는 Testcontainers fixture에서 반환값과 오류 의미를 설명한다.
+// Start Testcontainers fixture에서 반환값과 오류 의미를 설명한다.
 func Start(ctx context.Context, tb testing.TB) string {
 	tb.Helper()
 
 	return mustDetail(ctx, tb, StartServer(ctx, tb), URLKey)
 }
 
-// StartServer는 Testcontainers fixture에서 반환값과 오류 의미를 설명한다.
+// StartServer Testcontainers fixture에서 반환값과 오류 의미를 설명한다.
 func StartServer(ctx context.Context, tb testing.TB) *tcserver.Started {
 	tb.Helper()
 

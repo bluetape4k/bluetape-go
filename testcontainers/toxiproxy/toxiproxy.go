@@ -14,18 +14,18 @@ import (
 const (
 	defaultImage = "ghcr.io/shopify/toxiproxy:2.12.0"
 
-	// ControlURIKey는 Testcontainers fixture에서 caller-visible 상태와 의미를 설명한다.
+	// ControlURIKey Testcontainers fixture에서 caller-visible 상태와 의미를 설명한다.
 	ControlURIKey = "toxiproxy.control_uri"
 )
 
-// Start는 Testcontainers fixture에서 반환값과 오류 의미를 설명한다.
+// Start Testcontainers fixture에서 반환값과 오류 의미를 설명한다.
 func Start(ctx context.Context, tb testing.TB, opts ...testcontainers.ContainerCustomizer) string {
 	tb.Helper()
 
 	return mustDetail(ctx, tb, StartServer(ctx, tb, opts...), ControlURIKey)
 }
 
-// StartServer는 Testcontainers fixture에서 반환값과 오류 의미를 설명한다.
+// StartServer Testcontainers fixture에서 반환값과 오류 의미를 설명한다.
 func StartServer(ctx context.Context, tb testing.TB, opts ...testcontainers.ContainerCustomizer) *tcserver.Started {
 	tb.Helper()
 
@@ -52,7 +52,7 @@ func StartServer(ctx context.Context, tb testing.TB, opts ...testcontainers.Cont
 	return srv
 }
 
-// StartContainer는 Testcontainers fixture에서 반환값과 오류 의미를 설명한다.
+// StartContainer Testcontainers fixture에서 반환값과 오류 의미를 설명한다.
 func StartContainer(ctx context.Context, tb testing.TB, opts ...testcontainers.ContainerCustomizer) *tctoxiproxy.Container {
 	tb.Helper()
 
@@ -64,7 +64,7 @@ func StartContainer(ctx context.Context, tb testing.TB, opts ...testcontainers.C
 	return container
 }
 
-// ProxiedEndpoint는 Testcontainers fixture에서 반환값과 오류 의미를 설명한다.
+// ProxiedEndpoint Testcontainers fixture에서 반환값과 오류 의미를 설명한다.
 func ProxiedEndpoint(ctx context.Context, tb testing.TB, container *tctoxiproxy.Container, port int) string {
 	tb.Helper()
 	if container == nil {

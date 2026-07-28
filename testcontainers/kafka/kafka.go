@@ -15,13 +15,13 @@ const (
 	defaultImage     = "confluentinc/confluent-local:7.5.0"
 	defaultClusterID = "bluetape-test-cluster"
 
-	// BrokersKey는 Testcontainers fixture에서 caller-visible 상태와 의미를 설명한다.
+	// BrokersKey Testcontainers fixture에서 caller-visible 상태와 의미를 설명한다.
 	BrokersKey = "kafka.brokers"
 )
 
 var errEmptyBrokers = errors.New("empty broker list")
 
-// Start는 Testcontainers fixture에서 반환값과 오류 의미를 설명한다.
+// Start Testcontainers fixture에서 반환값과 오류 의미를 설명한다.
 func Start(ctx context.Context, tb testing.TB) []string {
 	tb.Helper()
 
@@ -32,7 +32,7 @@ func Start(ctx context.Context, tb testing.TB) []string {
 	return brokers
 }
 
-// StartServer는 Testcontainers fixture에서 반환값과 오류 의미를 설명한다.
+// StartServer Testcontainers fixture에서 반환값과 오류 의미를 설명한다.
 func StartServer(ctx context.Context, tb testing.TB) *tcserver.Started {
 	tb.Helper()
 

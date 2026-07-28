@@ -15,38 +15,38 @@ import (
 const (
 	defaultImage = "floci/floci:latest"
 
-	// EndpointKey는 Testcontainers fixture에서 caller-visible 상태와 의미를 설명한다.
+	// EndpointKey Testcontainers fixture에서 caller-visible 상태와 의미를 설명한다.
 	EndpointKey = "floci.endpoint"
-	// RegionKey는 Testcontainers fixture에서 caller-visible 상태와 의미를 설명한다.
+	// RegionKey Testcontainers fixture에서 caller-visible 상태와 의미를 설명한다.
 	RegionKey = "floci.region"
-	// AccessKeyIDKey는 Testcontainers fixture에서 caller-visible 상태와 의미를 설명한다.
+	// AccessKeyIDKey Testcontainers fixture에서 caller-visible 상태와 의미를 설명한다.
 	AccessKeyIDKey = "floci.access_key_id"
-	// SecretAccessKeyKey는 Testcontainers fixture에서 caller-visible 상태와 의미를 설명한다.
+	// SecretAccessKeyKey Testcontainers fixture에서 caller-visible 상태와 의미를 설명한다.
 	SecretAccessKeyKey = "floci.secret_access_key"
-	// AccountIDKey는 Testcontainers fixture에서 caller-visible 상태와 의미를 설명한다.
+	// AccountIDKey Testcontainers fixture에서 caller-visible 상태와 의미를 설명한다.
 	AccountIDKey = "floci.account_id"
-	// AvailabilityZoneKey는 Testcontainers fixture에서 caller-visible 상태와 의미를 설명한다.
+	// AvailabilityZoneKey Testcontainers fixture에서 caller-visible 상태와 의미를 설명한다.
 	AvailabilityZoneKey = "floci.availability_zone"
-	// DedicatedNetworkNameKey는 Testcontainers fixture에서 caller-visible 상태와 의미를 설명한다.
+	// DedicatedNetworkNameKey Testcontainers fixture에서 caller-visible 상태와 의미를 설명한다.
 	DedicatedNetworkNameKey = "floci.dedicated_network_name"
 )
 
 // 이 주석은 Testcontainers fixture startup, endpoint, environment, cleanup 조건을 설명한다.
 type ContainerOption func(*upstreamfloci.FlociContainer)
 
-// S3Config는 Testcontainers fixture에서 동작과 caller-visible 계약을 설명한다.
+// S3Config Testcontainers fixture에서 동작과 caller-visible 계약을 설명한다.
 type S3Config = upstreamfloci.S3Config
 
-// SQSConfig는 Testcontainers fixture에서 동작과 caller-visible 계약을 설명한다.
+// SQSConfig Testcontainers fixture에서 동작과 caller-visible 계약을 설명한다.
 type SQSConfig = upstreamfloci.SqsConfig
 
-// SNSConfig는 Testcontainers fixture에서 동작과 caller-visible 계약을 설명한다.
+// SNSConfig Testcontainers fixture에서 동작과 caller-visible 계약을 설명한다.
 type SNSConfig = upstreamfloci.SnsConfig
 
-// DynamoDBConfig는 Testcontainers fixture에서 동작과 caller-visible 계약을 설명한다.
+// DynamoDBConfig Testcontainers fixture에서 동작과 caller-visible 계약을 설명한다.
 type DynamoDBConfig = upstreamfloci.DynamoDbConfig
 
-// Details는 Testcontainers fixture에서 caller-visible 상태와 의미를 설명한다.
+// Details Testcontainers fixture에서 caller-visible 상태와 의미를 설명한다.
 type Details struct {
 	Endpoint             string
 	Region               string
@@ -57,62 +57,62 @@ type Details struct {
 	DedicatedNetworkName string
 }
 
-// DefaultS3Config는 Testcontainers fixture에서 반환값과 오류 의미를 설명한다.
+// DefaultS3Config Testcontainers fixture에서 반환값과 오류 의미를 설명한다.
 func DefaultS3Config() S3Config {
 	return upstreamfloci.DefaultS3Config()
 }
 
-// DefaultSQSConfig는 Testcontainers fixture에서 반환값과 오류 의미를 설명한다.
+// DefaultSQSConfig Testcontainers fixture에서 반환값과 오류 의미를 설명한다.
 func DefaultSQSConfig() SQSConfig {
 	return upstreamfloci.DefaultSqsConfig()
 }
 
-// DefaultSNSConfig는 Testcontainers fixture에서 반환값과 오류 의미를 설명한다.
+// DefaultSNSConfig Testcontainers fixture에서 반환값과 오류 의미를 설명한다.
 func DefaultSNSConfig() SNSConfig {
 	return upstreamfloci.DefaultSnsConfig()
 }
 
-// DefaultDynamoDBConfig는 Testcontainers fixture에서 반환값과 오류 의미를 설명한다.
+// DefaultDynamoDBConfig Testcontainers fixture에서 반환값과 오류 의미를 설명한다.
 func DefaultDynamoDBConfig() DynamoDBConfig {
 	return upstreamfloci.DefaultDynamoDbConfig()
 }
 
-// WithS3Config는 Testcontainers fixture에서 동작과 caller-visible 계약을 설명한다.
+// WithS3Config Testcontainers fixture에서 동작과 caller-visible 계약을 설명한다.
 func WithS3Config(cfg S3Config) ContainerOption {
 	return func(container *upstreamfloci.FlociContainer) {
 		container.WithS3Config(cfg)
 	}
 }
 
-// WithSQSConfig는 Testcontainers fixture에서 동작과 caller-visible 계약을 설명한다.
+// WithSQSConfig Testcontainers fixture에서 동작과 caller-visible 계약을 설명한다.
 func WithSQSConfig(cfg SQSConfig) ContainerOption {
 	return func(container *upstreamfloci.FlociContainer) {
 		container.WithSqsConfig(cfg)
 	}
 }
 
-// WithSNSConfig는 Testcontainers fixture에서 동작과 caller-visible 계약을 설명한다.
+// WithSNSConfig Testcontainers fixture에서 동작과 caller-visible 계약을 설명한다.
 func WithSNSConfig(cfg SNSConfig) ContainerOption {
 	return func(container *upstreamfloci.FlociContainer) {
 		container.WithSnsConfig(cfg)
 	}
 }
 
-// WithDynamoDBConfig는 Testcontainers fixture에서 동작과 caller-visible 계약을 설명한다.
+// WithDynamoDBConfig Testcontainers fixture에서 동작과 caller-visible 계약을 설명한다.
 func WithDynamoDBConfig(cfg DynamoDBConfig) ContainerOption {
 	return func(container *upstreamfloci.FlociContainer) {
 		container.WithDynamoDbConfig(cfg)
 	}
 }
 
-// Start는 Testcontainers fixture에서 반환값과 오류 의미를 설명한다.
+// Start Testcontainers fixture에서 반환값과 오류 의미를 설명한다.
 func Start(ctx context.Context, tb testing.TB, opts ...ContainerOption) Details {
 	tb.Helper()
 
 	return DetailsFromContainer(tb, StartContainer(ctx, tb, opts...))
 }
 
-// StartContainer는 Testcontainers fixture에서 반환값과 오류 의미를 설명한다.
+// StartContainer Testcontainers fixture에서 반환값과 오류 의미를 설명한다.
 func StartContainer(ctx context.Context, tb testing.TB, opts ...ContainerOption) *upstreamfloci.StartedFlociContainer {
 	tb.Helper()
 
@@ -137,7 +137,7 @@ func StartContainer(ctx context.Context, tb testing.TB, opts ...ContainerOption)
 	return container
 }
 
-// DetailsFromContainer는 Testcontainers fixture에서 동작과 caller-visible 계약을 설명한다.
+// DetailsFromContainer Testcontainers fixture에서 동작과 caller-visible 계약을 설명한다.
 func DetailsFromContainer(tb testing.TB, container *upstreamfloci.StartedFlociContainer) Details {
 	tb.Helper()
 	if container == nil {
@@ -154,7 +154,7 @@ func DetailsFromContainer(tb testing.TB, container *upstreamfloci.StartedFlociCo
 	}
 }
 
-// ConnectionDetails는 Testcontainers fixture에서 반환값과 오류 의미를 설명한다.
+// ConnectionDetails Testcontainers fixture에서 반환값과 오류 의미를 설명한다.
 func (d Details) ConnectionDetails() tcserver.ConnectionDetails {
 	return tcserver.ConnectionDetails{
 		EndpointKey:             d.Endpoint,
@@ -167,7 +167,7 @@ func (d Details) ConnectionDetails() tcserver.ConnectionDetails {
 	}
 }
 
-// LoadConfig는 Testcontainers fixture에서 반환값과 오류 의미를 설명한다.
+// LoadConfig Testcontainers fixture에서 반환값과 오류 의미를 설명한다.
 func LoadConfig(ctx context.Context, tb testing.TB, details Details, opts ...func(*config.LoadOptions) error) aws.Config {
 	tb.Helper()
 	requireDetail(tb, EndpointKey, details.Endpoint)

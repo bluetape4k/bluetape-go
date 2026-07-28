@@ -15,18 +15,18 @@ const (
 	defaultUsername = "bluetape"
 	defaultPassword = "bluetape"
 
-	// DSNKey는 Testcontainers fixture에서 caller-visible 상태와 의미를 설명한다.
+	// DSNKey Testcontainers fixture에서 caller-visible 상태와 의미를 설명한다.
 	DSNKey = "mariadb.dsn"
 )
 
-// Start는 Testcontainers fixture에서 반환값과 오류 의미를 설명한다.
+// Start Testcontainers fixture에서 반환값과 오류 의미를 설명한다.
 func Start(ctx context.Context, tb testing.TB) string {
 	tb.Helper()
 
 	return mustDetail(ctx, tb, StartServer(ctx, tb), DSNKey)
 }
 
-// StartServer는 Testcontainers fixture에서 반환값과 오류 의미를 설명한다.
+// StartServer Testcontainers fixture에서 반환값과 오류 의미를 설명한다.
 func StartServer(ctx context.Context, tb testing.TB) *tcserver.Started {
 	tb.Helper()
 

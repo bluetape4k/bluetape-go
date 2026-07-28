@@ -35,7 +35,7 @@ type composeConfig struct {
 // ComposeOption 은 JWT 생성 option이다.
 type ComposeOption func(*composeConfig) error
 
-// WithHeader 는 안전한 custom header를 추가한다.
+// WithHeader 안전한 custom header를 추가한다.
 func WithHeader(name string, value any) ComposeOption {
 	return func(cfg *composeConfig) error {
 		if _, exists := reservedHeaders[name]; exists {
@@ -57,7 +57,7 @@ func WithClaim(name string, value any) ComposeOption {
 	}
 }
 
-// WithIssuer 는 iss claim을 지정한다.
+// WithIssuer iss claim을 지정한다.
 func WithIssuer(issuer string) ComposeOption {
 	return func(cfg *composeConfig) error {
 		cfg.claims["iss"] = issuer
@@ -65,7 +65,7 @@ func WithIssuer(issuer string) ComposeOption {
 	}
 }
 
-// WithSubject 는 sub claim을 지정한다.
+// WithSubject sub claim을 지정한다.
 func WithSubject(subject string) ComposeOption {
 	return func(cfg *composeConfig) error {
 		cfg.claims["sub"] = subject
@@ -73,7 +73,7 @@ func WithSubject(subject string) ComposeOption {
 	}
 }
 
-// WithAudience 는 aud claim을 지정한다.
+// WithAudience aud claim을 지정한다.
 func WithAudience(audience ...string) ComposeOption {
 	return func(cfg *composeConfig) error {
 		copied := append([]string(nil), audience...)
@@ -90,7 +90,7 @@ func WithIssuedAt(issuedAt time.Time) ComposeOption {
 	}
 }
 
-// WithNotBefore 는 nbf claim을 지정한다.
+// WithNotBefore nbf claim을 지정한다.
 func WithNotBefore(notBefore time.Time) ComposeOption {
 	return func(cfg *composeConfig) error {
 		cfg.claims["nbf"] = golangjwt.NewNumericDate(notBefore)
@@ -106,7 +106,7 @@ func WithExpiresAt(expiresAt time.Time) ComposeOption {
 	}
 }
 
-// WithExpiresAfter 는 provider clock 기준 exp claim을 지정한다.
+// WithExpiresAfter provider clock 기준 exp claim을 지정한다.
 func WithExpiresAfter(ttl time.Duration) ComposeOption {
 	return func(cfg *composeConfig) error {
 		if ttl <= 0 {
@@ -117,7 +117,7 @@ func WithExpiresAfter(ttl time.Duration) ComposeOption {
 	}
 }
 
-// WithJWTID 는 jti claim을 지정한다.
+// WithJWTID jti claim을 지정한다.
 func WithJWTID(id string) ComposeOption {
 	return func(cfg *composeConfig) error {
 		cfg.claims["jti"] = id
