@@ -1,6 +1,3 @@
-// Package redislock Redis 단일 인스턴스 기반 owner-token lock을 제공한다.
-//
-// Lock 획득은 Redis SET NX + TTL로 수행하고, 해제는 저장된 token이 lease token과
-// 같을 때만 DEL하는 Lua script로 수행한다. 이 package는 Redlock quorum, fencing
-// token, blocking retry를 제공하지 않는다.
+// Package redislock bluetape-go의 redislock lock/rate-limit 기능을 제공한다.
+// 공개 API 주석은 key, owner token, TTL, quota, backend ownership, 오류 계약을 한국어로 확인할 수 있도록 유지한다.
 package redislock

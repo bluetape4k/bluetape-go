@@ -14,7 +14,11 @@ var runnerID atomic.Uint64
 const conformanceWaitTimeout = 2 * time.Second
 const conformanceCaseTimeout = 5 * time.Second
 
-// Run executes all mandatory token-bucket conformance cases.
+// Run Run 공개 API의 동작을 수행하며 rate-limit conformance harness의 quota/result ownership 계약을 보존한다.
+//
+// 매개변수:
+//   - t: Run에 전달되는 값이다. 허용 범위와 nil 처리 방식은 구현 검증을 따른다.
+//   - harness: Run에 전달되는 값이다. 허용 범위와 nil 처리 방식은 구현 검증을 따른다.
 func Run(t *testing.T, harness Harness) {
 	t.Helper()
 	if err := validateHarness(harness); err != nil {

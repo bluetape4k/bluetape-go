@@ -10,14 +10,16 @@ import (
 	"time"
 )
 
-// Config describes a token bucket in tokens per second.
+// Config struct 공개 타입이며 rate-limit conformance harness의 quota/result ownership 계약을 보존한다.
+// 필드와 zero value, nil 허용 여부, 동시성 소유권은 생성자와 메서드의 한국어 주석 및 테스트 계약을 따른다.
 type Config struct {
 	RatePerSecond float64
 	Burst         int64
 	IdleTTL       time.Duration
 }
 
-// Result is the provider-neutral token-bucket outcome.
+// Result struct 공개 타입이며 rate-limit conformance harness의 quota/result ownership 계약을 보존한다.
+// 필드와 zero value, nil 허용 여부, 동시성 소유권은 생성자와 메서드의 한국어 주석 및 테스트 계약을 따른다.
 type Result struct {
 	Allowed    bool
 	Requested  int64
@@ -26,13 +28,16 @@ type Result struct {
 	ResetAfter time.Duration
 }
 
-// AllowFunc consumes tokens for one key.
+// AllowFunc func 공개 타입이며 rate-limit conformance harness의 quota/result ownership 계약을 보존한다.
+// 필드와 zero value, nil 허용 여부, 동시성 소유권은 생성자와 메서드의 한국어 주석 및 테스트 계약을 따른다.
 type AllowFunc func(context.Context, string, int64) (Result, error)
 
-// Factory constructs an AllowFunc for a configuration.
+// Factory func 공개 타입이며 rate-limit conformance harness의 quota/result ownership 계약을 보존한다.
+// 필드와 zero value, nil 허용 여부, 동시성 소유권은 생성자와 메서드의 한국어 주석 및 테스트 계약을 따른다.
 type Factory func(testing.TB, Config) (AllowFunc, error)
 
-// Phase identifies a deterministic mutation boundary.
+// Phase string 공개 타입이며 rate-limit conformance harness의 quota/result ownership 계약을 보존한다.
+// 필드와 zero value, nil 허용 여부, 동시성 소유권은 생성자와 메서드의 한국어 주석 및 테스트 계약을 따른다.
 type Phase string
 
 const (
@@ -42,23 +47,27 @@ const (
 	PhaseAfterLinearize Phase = "after-linearize"
 )
 
-// Gate pauses one Allow call at a deterministic boundary.
+// Gate interface 공개 타입이며 rate-limit conformance harness의 quota/result ownership 계약을 보존한다.
+// 필드와 zero value, nil 허용 여부, 동시성 소유권은 생성자와 메서드의 한국어 주석 및 테스트 계약을 따른다.
 type Gate interface {
 	AwaitStarted(context.Context) error
 	Resume()
 }
 
-// Control supplies mandatory backend observation and fault injection.
+// Control interface 공개 타입이며 rate-limit conformance harness의 quota/result ownership 계약을 보존한다.
+// 필드와 zero value, nil 허용 여부, 동시성 소유권은 생성자와 메서드의 한국어 주석 및 테스트 계약을 따른다.
 type Control interface {
 	GateNext(context.Context, string, Phase) (Gate, error)
 	FailNext(context.Context, string, error) error
 	OperationCount(string) int64
 }
 
-// ErrorClassifier identifies typed provider errors without importing a provider.
+// ErrorClassifier func 공개 타입이며 rate-limit conformance harness의 quota/result ownership 계약을 보존한다.
+// 필드와 zero value, nil 허용 여부, 동시성 소유권은 생성자와 메서드의 한국어 주석 및 테스트 계약을 따른다.
 type ErrorClassifier func(error) bool
 
-// Harness supplies a provider factory, control, and error classifier.
+// Harness struct 공개 타입이며 rate-limit conformance harness의 quota/result ownership 계약을 보존한다.
+// 필드와 zero value, nil 허용 여부, 동시성 소유권은 생성자와 메서드의 한국어 주석 및 테스트 계약을 따른다.
 type Harness struct {
 	New             Factory
 	Control         Control

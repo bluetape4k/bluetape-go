@@ -6,7 +6,8 @@ import (
 	"time"
 )
 
-// Options Redis lock 생성 설정이다.
+// Options struct 공개 타입이며 Redis lock key, owner token, TTL, unlock safety 계약을 보존한다.
+// 필드와 zero value, nil 허용 여부, 동시성 소유권은 생성자와 메서드의 한국어 주석 및 테스트 계약을 따른다.
 type Options struct {
 	// Key Redis lock key다. 필수다.
 	Key string
