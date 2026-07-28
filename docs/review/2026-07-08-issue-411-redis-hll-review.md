@@ -1,13 +1,15 @@
 # Issue #411 Redis HyperLogLog Review
 
-## Scope
+> 한국어 감사/리뷰 경계: 이 문서는 리뷰 결론과 남은 위험을 한국어 독자가 추적할 수 있도록 정리한다. 심각도 표기, 판정 표기, 파일 경로, 라인 번호, 이슈/PR 링크, 명령, 코드 식별자, 인용 증거는 원문의 증거 앵커로 보존한다.
+
+## 범위
 
 - Issue: #411 `Implement first Redis probabilistic follow-up structure`
 - Branch: `issue-411-redis-hll`
 - Work type: Type B fast track
 - Diff base: `origin/develop`
 
-## Evidence Reviewed
+## 검토한 증거
 
 - New Redis HLL API in `probabilistic/redis/hyperloglog.go`.
 - HLL integration, cancellation, error wrapping, raw-value redaction, merge, and
@@ -19,9 +21,9 @@
 - #410 research decision selecting HLL before Cuckoo.
 - code-review-graph diff scan for the 14-file actual changed set.
 
-## Findings
+## 발견 사항
 
-No P0/P1 findings.
+P0/P1 발견 사항 없음.
 
 | Lane | Verdict | Notes |
 |---|---|---|
@@ -33,7 +35,7 @@ No P0/P1 findings.
 | User/Caller | PASS | README and examples state HLL is approximate cardinality only, not membership or duplicate certainty. P0=0 P1=0. |
 | Integration | PASS | Existing Bloom key prefix and config metadata remain isolated; cleanup helpers remove HLL keys for shared Redis fixture hygiene. P0=0 P1=0. |
 
-## Validation
+## 검증
 
 - `make fmt-check`: PASS.
 - `make tidy-check`: PASS.
@@ -48,7 +50,7 @@ No P0/P1 findings.
   `go test -p 1 -count=1 ./probabilistic/redis && go test -p 1 -race -count=1 ./probabilistic/redis`: PASS.
 - `git diff --check`: PASS.
 
-## Notes
+## 메모
 
 The first full `make test` and `make race` commands were started concurrently.
 Both passed, but the Testcontainers serial rule was repaired by rerunning the

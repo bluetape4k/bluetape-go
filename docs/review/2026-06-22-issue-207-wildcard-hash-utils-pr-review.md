@@ -1,10 +1,12 @@
 # Issue #207 Wildcard and Hash Utilities Step 7-R PR Review
 
+> 한국어 감사/리뷰 경계: 이 문서는 리뷰 결론과 남은 위험을 한국어 독자가 추적할 수 있도록 정리한다. 심각도 표기, 판정 표기, 파일 경로, 라인 번호, 이슈/PR 링크, 명령, 코드 식별자, 인용 증거는 원문의 증거 앵커로 보존한다.
+
 PR: #254
-Scope: Actual PR diff from `origin/develop` to `issue-207-wildcard-hash-utils`
+범위: Actual PR diff from `origin/develop` to `issue-207-wildcard-hash-utils`
 after PR creation.
 
-## Gate Result
+## 게이트 결과
 
 P0=0 P1=0
 
@@ -14,7 +16,7 @@ Native subagent lanes were unavailable because stale-agent cleanup attempts
 hung until user interruption. The same six-lane 7-tier review frame was
 performed in the main session against the live PR diff.
 
-## Lane Results
+## 관점별 결과
 
 | Lane | P0 | P1 | P2 | P3 | Verdict | Evidence |
 |---|---:|---:|---:|---:|---|---|
@@ -25,7 +27,7 @@ performed in the main session against the live PR diff.
 | Developer/API | 0 | 0 | 0 | 0 | PASS | Public API is small and documented. A P2 stale Go doc comment on `FirstWildcardPathMatch` was fixed in commit `47d0add`. |
 | User/caller docs | 0 | 0 | 0 | 0 | PASS | README and Korean README explain wildcard syntax, lexical path behavior, escaped literals, XXH64 limits, and excluded JVM-style helpers. |
 
-## Findings
+## 발견 사항
 
 Resolved P2: `FirstWildcardPathMatch` originally said malformed pattern errors
 could be returned before later patterns were evaluated, but current path
@@ -35,7 +37,7 @@ comment to the reachable contract.
 
 No P0/P1 findings remain.
 
-## Validation
+## 검증
 
 | Command / Review | Status | Evidence |
 |---|---|---|
@@ -47,7 +49,7 @@ No P0/P1 findings remain.
 | PR body verification | PASS | Live body last `##` heading is `## DoD Status`. |
 | PR metadata | PASS | PR #254 assignee, milestone, and labels match issue #207. |
 
-## Residual Risk
+## 잔여 위험
 
 GitHub CI was still in progress at review time and is handled by Step 8. Path
 matching remains lexical and intentionally does not model filesystem

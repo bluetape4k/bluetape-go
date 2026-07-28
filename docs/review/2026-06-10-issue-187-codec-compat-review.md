@@ -1,6 +1,8 @@
 # Issue #187 7-Tier Review: Codec compatibility hardening
 
-## Scope
+> 한국어 감사/리뷰 경계: 이 문서는 리뷰 결론과 남은 위험을 한국어 독자가 추적할 수 있도록 정리한다. 심각도 표기, 판정 표기, 파일 경로, 라인 번호, 이슈/PR 링크, 명령, 코드 식별자, 인용 증거는 원문의 증거 앵커로 보존한다.
+
+## 범위
 
 - Issue: #187 `Harden Base58 and Base62 codec compatibility`
 - Branch: `issue/187-codec-compat`
@@ -10,7 +12,7 @@
   - `codec/README.md`
   - `codec/README.ko.md`
 
-## Summary
+## 요약
 
 The change locks Base58 and Base62 compatibility evidence without changing
 production codec logic. Tests now cover Base58 known vectors, Base62 numeric
@@ -20,7 +22,7 @@ divergence, Go's byte-oriented over-128-bit decode behavior, and bounded
 goroutine stress for concurrent Base58/Base62/URL62 round trips. README files
 now carry a bilingual compatibility matrix for bluetape4k-core.
 
-## 7-Tier Findings
+## 7-Tier 발견 사항
 
 ### Tier 1: Security and Dependency Scope
 
@@ -80,7 +82,7 @@ now carry a bilingual compatibility matrix for bluetape4k-core.
   verified before PR creation.
 - Gate: P0=0, P1=0 for local pre-PR gate.
 
-## Validation
+## 검증
 
 - PASS: `git diff --check`
 - PASS: `go test -count=1 ./codec`
@@ -89,7 +91,7 @@ now carry a bilingual compatibility matrix for bluetape4k-core.
 - PASS: `go test -race -count=1 ./codec -run 'ConcurrentRoundTripStress|Base58|Base62|URL62|Empty|Blank'`
 - PASS: `make ci`
 
-## Subagent Gate Summary
+## 서브에이전트 게이트 요약
 
 - Tier 1 security/dependency: P0=0 P1=0
 - Tier 2 architecture/API shape: P0=0 P1=0
@@ -98,7 +100,7 @@ now carry a bilingual compatibility matrix for bluetape4k-core.
 - Tier 5 test adequacy: P0=0 P1=0, P2 repaired
 - Tier 7 verifier: P0=0 P1=0, PR evidence pending until PR creation
 
-## Gate Verdict
+## 게이트 판정
 
 P0=0 P1=0
 

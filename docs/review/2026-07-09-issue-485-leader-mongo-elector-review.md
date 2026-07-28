@@ -1,11 +1,13 @@
 # Issue #485 MongoDB Leader Elector Review
 
-Issue: [#485](https://github.com/bluetape4k/bluetape-go/issues/485)  
-Branch: `feat/issue-485-leader-mongo-elector`  
-Baseline: `a781ada`  
-Date: 2026-07-09
+> 한국어 감사/리뷰 경계: 이 문서는 리뷰 결론과 남은 위험을 한국어 독자가 추적할 수 있도록 정리한다. 심각도 표기, 판정 표기, 파일 경로, 라인 번호, 이슈/PR 링크, 명령, 코드 식별자, 인용 증거는 원문의 증거 앵커로 보존한다.
 
-## Scope
+이슈: [#485](https://github.com/bluetape4k/bluetape-go/issues/485)
+브랜치: `feat/issue-485-leader-mongo-elector`
+Baseline: `a781ada`
+날짜: 2026-07-09
+
+## 범위
 
 - `leader/mongo`
 - `leader/README.md` and `leader/README.ko.md`
@@ -18,7 +20,7 @@ Date: 2026-07-09
 - `docs/images/readme-diagrams/mongo-leader-election-sequence.svg`
 - `docs/images/readme-diagrams/mongo-leader-election-sequence.png`
 
-## 7-Tier Review
+## 7-Tier 검토
 
 | Lane | Verdict | Evidence |
 |---|---|---|
@@ -30,7 +32,7 @@ Date: 2026-07-09
 | User/Caller | PASS | P0=0 P1=0. README pair shows import, setup, lease document fields, operational boundaries, and verification commands. |
 | Integration | PASS | P0=0 P1=0. Main-session review accepts single-elector-only scope and defers MongoDB group/strategic variants per #431. |
 
-## Validation
+## 검증
 
 | Command | Status | Evidence |
 |---|---|---|
@@ -48,7 +50,7 @@ Date: 2026-07-09
 | `diagram-connector-audit.py`, `diagram-geometry-audit.py`, `diagram-endpoint-audit.py`, `diagram-mixed-corner-audit.py`, and `diagram-sequence-style-audit.py` | PASS | Runtime map and sequence diagram connector, endpoint, mixed-corner, diagonal, and sequence-style checks passed. |
 | `view_image` | PASS | Full-size runtime map and sequence PNGs inspected; text, lanes, labels, and connectors are readable. |
 
-## Findings
+## 발견 사항
 
 P0=0 P1=0
 

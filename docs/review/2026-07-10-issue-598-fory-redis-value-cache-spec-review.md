@@ -1,12 +1,14 @@
 # Issue #598 Fory Redis Value Cache Spec Review
 
-## Scope
+> 한국어 감사/리뷰 경계: 이 문서는 리뷰 결론과 남은 위험을 한국어 독자가 추적할 수 있도록 정리한다. 심각도 표기, 판정 표기, 파일 경로, 라인 번호, 이슈/PR 링크, 명령, 코드 식별자, 인용 증거는 원문의 증거 앵커로 보존한다.
+
+## 범위
 
 - Design: `docs/superpowers/specs/2026-07-10-issue-598-fory-redis-value-cache-design.md`
 - Gate: Step 2-R, six independent perspectives plus main-session integration
 - Blocking threshold: P0/P1 must be zero after amendments and targeted re-review
 
-## Independent Reviews
+## 독립 검토
 
 | Perspective | Initial P0 | Initial P1 | Notable non-blocking findings | Resolution |
 |---|---:|---:|---|---|
@@ -17,7 +19,7 @@
 | Developer/API | 0 | 2 | inspectable typed error; undefined public registration boundary | Added public `Registration`, `Profile`, `Reason`, and `CacheError` accessors; re-review P0=0 P1=0 |
 | User/Caller | 0 | 0 | Delete key validation; exact defaults/root shapes; nil context | Added all-method validation, exact defaults, and supported/rejected root contract |
 
-## Main-Session Integration
+## 메인 세션 통합
 
 The integration review found one additional cancellation race: cancellation can occur during
 Fory serialization or envelope allocation after the initial context check. The amended `Set`
@@ -35,7 +37,7 @@ The amended spec also fixes the following cross-perspective contracts:
 - Old-generation cleanup uses bounded `SCAN` plus batched `UNLINK`/`DEL`, never `KEYS`.
 - Benchmark issue #599 owns result tables, charts, analysis, provenance, and contention evidence.
 
-## Final Verdict
+## 최종 판정
 
 PASS. Targeted security and developer/API re-reviews confirmed P0=0 and P1=0.
 All six perspectives and the main-session integration review are closed for Step 2-R.

@@ -1,11 +1,13 @@
 # Issue #433 GraphML Research Review
 
-Issue: [#433](https://github.com/bluetape4k/bluetape-go/issues/433)
-Branch: `feat/issue-433-graphml-research`
-Baseline: `6f30d20`
-Date: 2026-07-09
+> 한국어 감사/리뷰 경계: 이 문서는 리뷰 결론과 남은 위험을 한국어 독자가 추적할 수 있도록 정리한다. 심각도 표기, 판정 표기, 파일 경로, 라인 번호, 이슈/PR 링크, 명령, 코드 식별자, 인용 증거는 원문의 증거 앵커로 보존한다.
 
-## Scope
+이슈: [#433](https://github.com/bluetape4k/bluetape-go/issues/433)
+브랜치: `feat/issue-433-graphml-research`
+Baseline: `6f30d20`
+날짜: 2026-07-09
+
+## 범위
 
 - GraphML research decision note.
 - `graph` and `graph/graphio` README capability wording.
@@ -14,7 +16,7 @@ Date: 2026-07-09
 
 No production Go code or public API behavior changes are in scope.
 
-## Evidence
+## 증거
 
 - Current `graphio` docs already defer GraphML until NDJSON/CSV adoption
   evidence exists.
@@ -27,7 +29,7 @@ No production Go code or public API behavior changes are in scope.
 - `bluetape4k-graph` history shows GraphML needed explicit compatibility
   fixtures and typed-value error handling before compatibility claims were safe.
 
-## Lens Check
+## 관점 검사
 
 | Lens | Verdict | Evidence |
 |---|---|---|
@@ -39,7 +41,7 @@ No production Go code or public API behavior changes are in scope.
 | User/Caller | PASS | P0=0 P1=0. README links a concrete decision instead of overpromising GraphML support. |
 | Integration | PASS | P0=0 P1=0. Main-session review accepts defer decision and follow-up gates. |
 
-## Validation
+## 검증
 
 | Command | Status | Evidence |
 |---|---|---|
@@ -54,7 +56,7 @@ No production Go code or public API behavior changes are in scope.
 | `gno embed --collection bluetape4k-wiki` | PASS | Embedded two chunks for the new wiki research note. |
 | `gno search "GraphML graphio defer" -c bluetape4k-wiki --limit 5` | PASS | Returned `research/2026-07-09-bluetape-go-graphml-graphio-evaluation.md`. |
 
-## Findings
+## 발견 사항
 
 P0=0 P1=0
 
@@ -62,7 +64,7 @@ P0=0 P1=0
 - P3 follow-up: if a future issue implements GraphML, require a fixture corpus
   before public README wording claims producer compatibility.
 
-## Residual Risk
+## 잔여 위험
 
 This is a research decision, not an implementation proof. If a downstream
 workflow later requires GraphML, the implementation issue must rerun source
