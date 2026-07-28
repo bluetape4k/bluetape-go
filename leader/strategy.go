@@ -37,7 +37,7 @@ func (c CandidateInfo) SuccessRate() float64 {
 	return float64(c.SuccessCount) / float64(total)
 }
 
-// IdleDuration은 마지막 completion 또는 registration 이후 경과 시간을 반환한다.
+// IdleDuration 마지막 completion 또는 registration 이후 경과 시간을 반환한다.
 func (c CandidateInfo) IdleDuration(now time.Time) time.Duration {
 	base := c.RegisteredAt
 	if !c.LastCompletedAt.IsZero() {

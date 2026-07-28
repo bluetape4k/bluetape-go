@@ -8,19 +8,19 @@ import (
 	"github.com/bluetape4k/bluetape-go/leader"
 )
 
-// Timing은 provider conformance case가 사용하는 시간 경계를 설정한다.
+// Timing provider conformance case가 사용하는 시간 경계를 설정한다.
 type Timing struct {
 	// Lease case lease duration을 설정한다.
 	Lease time.Duration
-	// RenewInterval은 case renewal cadence를 설정한다.
+	// RenewInterval case renewal cadence를 설정한다.
 	RenewInterval time.Duration
-	// CaseTimeout은 cancellation과 containment가 시작되기 전 evaluator work의 한도를 정한다.
+	// CaseTimeout cancellation과 containment가 시작되기 전 evaluator work의 한도를 정한다.
 	// final provider join은 제한하지 않는다. 호출자는 provider work를 unblock할 Abort와,
 	// join할 수 없는 provider를 fail-stop할 외부 go test timeout을 설정해야 한다.
 	CaseTimeout time.Duration
-	// WaitTimeout은 case 안의 backend-state observation 한도를 정한다.
+	// WaitTimeout case 안의 backend-state observation 한도를 정한다.
 	WaitTimeout time.Duration
-	// ResignTimeout은 abort containment 전에 수행하는 normal cleanup 한도를 정한다.
+	// ResignTimeout abort containment 전에 수행하는 normal cleanup 한도를 정한다.
 	ResignTimeout time.Duration
 	_             struct{}
 }
@@ -32,7 +32,7 @@ type AbortFunc func(context.Context, leader.Options) error
 
 // Config conformance run을 설정한다.
 type Config struct {
-	// Timing은 zero-valued conformance timing field를 override한다.
+	// Timing zero-valued conformance timing field를 override한다.
 	Timing Timing
 	// Abort evaluator가 grace 동안 join되거나 provider hard stop이 필요한 경우 모두에서
 	// root cancellation 뒤 timeout case를 contain한다.

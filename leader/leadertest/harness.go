@@ -8,22 +8,22 @@ import (
 	"github.com/bluetape4k/bluetape-go/leader"
 )
 
-// Operation은 test Control이 관찰하는 leader mutation boundary를 식별한다.
+// Operation test Control이 관찰하는 leader mutation boundary를 식별한다.
 type Operation string
 
 const (
-	// OperationCampaign은 acquisition attempt를 식별한다.
+	// OperationCampaign acquisition attempt를 식별한다.
 	OperationCampaign Operation = "campaign"
 	// OperationRenew lease renewal attempt를 식별한다.
 	OperationRenew Operation = "renew"
-	// OperationResign은 compare-and-delete attempt를 식별한다.
+	// OperationResign compare-and-delete attempt를 식별한다.
 	OperationResign Operation = "resign"
 )
 
 // Factory harness backend namespace에 연결된 elector 하나를 생성한다.
 type Factory func(testing.TB, leader.Options) (leader.Elector, error)
 
-// Control은 deterministic test-only backend observation과 fault injection을 노출한다.
+// Control deterministic test-only backend observation과 fault injection을 노출한다.
 type Control interface {
 	ReplaceOwner(context.Context, leader.Options, string) error
 	FailNext(context.Context, leader.Options, Operation, error) error

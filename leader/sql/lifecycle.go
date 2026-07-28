@@ -10,7 +10,7 @@ import (
 
 var _ leader.Elector = (*Elector)(nil)
 
-// Campaign은 elector가 leadership을 획득하거나 ctx가 끝날 때까지 기다린다.
+// Campaign elector가 leadership을 획득하거나 ctx가 끝날 때까지 기다린다.
 //
 // 충돌하는 local state에는 leader.ErrAlreadyLeader, leader.ErrCampaignInProgress,
 // leader.ErrCleanupPending을 반환한다. reconciliation이 ctx 만료 후 ownership을 확인할 수 있으므로
@@ -43,7 +43,7 @@ func (e *Elector) Campaign(ctx context.Context) error {
 	}
 }
 
-// Resign은 renewal을 중지하고 이 elector의 owner token을 조건부로 삭제한다.
+// Resign renewal을 중지하고 이 elector의 owner token을 조건부로 삭제한다.
 //
 // delete 결과가 불명확하면 leader.ErrCommitUnknown을 반환한다. 같은 elector에서 fresh bounded context로
 // Resign을 재시도한 뒤, 최종 fallback으로 full-lease expiry를 사용한다.

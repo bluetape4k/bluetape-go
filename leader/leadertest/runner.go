@@ -21,7 +21,7 @@ var (
 
 type evaluator func(context.Context, *testing.T, Harness, leader.Options, Timing) error
 
-// Run은 기본 timing으로 모든 필수 single-elector conformance case를 실행한다.
+// Run 기본 timing으로 모든 필수 single-elector conformance case를 실행한다.
 func Run(t *testing.T, harness Harness) {
 	RunWithConfig(t, harness, Config{})
 }
