@@ -7,16 +7,16 @@ import (
 	"time"
 )
 
-// ExchangeRateProvider 는 context-aware 환율 source입니다.
+// ExchangeRateProvider context-aware 환율 source입니다.
 type ExchangeRateProvider interface {
 	Rate(ctx context.Context, base Currency, target Currency) (ExchangeRateQuote, error)
 }
 
-// ExchangeRateQuote 는 provider가 반환한 환율과 source metadata입니다.
+// ExchangeRateQuote provider가 반환한 환율과 source metadata입니다.
 type ExchangeRateQuote struct {
-	// Rate 는 변환에 사용할 환율입니다.
+	// Rate 변환에 사용할 환율입니다.
 	Rate ExchangeRate
-	// Source 는 환율 source 이름입니다.
+	// Source 환율 source 이름입니다.
 	Source string
 	// ObservedAt 은 provider가 환율을 관측한 시각입니다.
 	ObservedAt time.Time
@@ -26,11 +26,11 @@ type ExchangeRateQuote struct {
 	ExpiresAt time.Time
 	// Stale 은 refresh 실패 후 오래된 snapshot으로 만든 quote인지 나타냅니다.
 	Stale bool
-	// RefreshError 는 stale fallback을 유발한 refresh 오류입니다.
+	// RefreshError stale fallback을 유발한 refresh 오류입니다.
 	RefreshError error
 }
 
-// ConvertWithProvider 는 provider에서 환율을 받아 Money를 target 통화로 변환합니다.
+// ConvertWithProvider provider에서 환율을 받아 Money를 target 통화로 변환합니다.
 func ConvertWithProvider(ctx context.Context, amount Money, target Currency, provider ExchangeRateProvider) (Money, ExchangeRateQuote, error) {
 	if err := amount.validate(); err != nil {
 		return Money{}, ExchangeRateQuote{}, err

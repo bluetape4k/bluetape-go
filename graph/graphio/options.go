@@ -9,40 +9,40 @@ const (
 	defaultMaxFailures    = 100
 )
 
-// UnlimitedRecords는 graph IO Neo4j backend에서 동작과 caller-visible 계약을 설명한다.
+// UnlimitedRecords graph IO Neo4j backend에서 동작과 caller-visible 계약을 설명한다.
 const UnlimitedRecords int64 = -1
 
-// Format는 graph IO Neo4j backend에서 caller-visible 상태와 의미를 설명한다.
+// Format graph IO Neo4j backend에서 caller-visible 상태와 의미를 설명한다.
 type Format string
 
 const (
-	// FormatNDJSON는 graph IO Neo4j backend에서 caller-visible 상태와 의미를 설명한다.
+	// FormatNDJSON graph IO Neo4j backend에서 caller-visible 상태와 의미를 설명한다.
 	FormatNDJSON Format = "ndjson"
-	// FormatCSV는 graph IO Neo4j backend에서 caller-visible 상태와 의미를 설명한다.
+	// FormatCSV graph IO Neo4j backend에서 caller-visible 상태와 의미를 설명한다.
 	FormatCSV Format = "csv"
 )
 
-// DuplicateVertexPolicy는 graph IO Neo4j backend에서 동작과 caller-visible 계약을 설명한다.
+// DuplicateVertexPolicy graph IO Neo4j backend에서 동작과 caller-visible 계약을 설명한다.
 type DuplicateVertexPolicy string
 
 const (
-	// DuplicateVertexFail는 graph IO Neo4j backend에서 동작과 caller-visible 계약을 설명한다.
+	// DuplicateVertexFail graph IO Neo4j backend에서 동작과 caller-visible 계약을 설명한다.
 	DuplicateVertexFail DuplicateVertexPolicy = "fail"
-	// DuplicateVertexSkip는 graph IO Neo4j backend에서 동작과 caller-visible 계약을 설명한다.
+	// DuplicateVertexSkip graph IO Neo4j backend에서 동작과 caller-visible 계약을 설명한다.
 	DuplicateVertexSkip DuplicateVertexPolicy = "skip"
 )
 
-// MissingEndpointPolicy는 graph IO Neo4j backend에서 caller-visible 상태와 의미를 설명한다.
+// MissingEndpointPolicy graph IO Neo4j backend에서 caller-visible 상태와 의미를 설명한다.
 type MissingEndpointPolicy string
 
 const (
-	// MissingEndpointFail는 graph IO Neo4j backend에서 동작과 caller-visible 계약을 설명한다.
+	// MissingEndpointFail graph IO Neo4j backend에서 동작과 caller-visible 계약을 설명한다.
 	MissingEndpointFail MissingEndpointPolicy = "fail"
-	// MissingEndpointSkipEdge는 graph IO Neo4j backend에서 동작과 caller-visible 계약을 설명한다.
+	// MissingEndpointSkipEdge graph IO Neo4j backend에서 동작과 caller-visible 계약을 설명한다.
 	MissingEndpointSkipEdge MissingEndpointPolicy = "skip_edge"
 )
 
-// ReadOptions는 graph IO Neo4j backend에서 설정값과 기본값 적용 방식을 설명한다.
+// ReadOptions graph IO Neo4j backend에서 설정값과 기본값 적용 방식을 설명한다.
 type ReadOptions struct {
 	DuplicateVertexPolicy DuplicateVertexPolicy
 	MissingEndpointPolicy MissingEndpointPolicy
@@ -54,7 +54,7 @@ type ReadOptions struct {
 	MaxFailures           int
 }
 
-// WriteOptions는 graph IO Neo4j backend에서 설정값과 기본값 적용 방식을 설명한다.
+// WriteOptions graph IO Neo4j backend에서 설정값과 기본값 적용 방식을 설명한다.
 type WriteOptions struct {
 	IncludeEmptyProperties bool
 	MaxFailures            int
@@ -70,7 +70,7 @@ func normalizeWriteOptions(options WriteOptions) (WriteOptions, error) {
 	return options, nil
 }
 
-// NormalizeReadOptions는 graph IO Neo4j backend에서 동작과 caller-visible 계약을 설명한다.
+// NormalizeReadOptions graph IO Neo4j backend에서 동작과 caller-visible 계약을 설명한다.
 func NormalizeReadOptions(options ReadOptions) (ReadOptions, error) {
 	if options.DuplicateVertexPolicy == "" {
 		options.DuplicateVertexPolicy = DuplicateVertexFail

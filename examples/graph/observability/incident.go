@@ -23,7 +23,7 @@ const (
 	edgeRootCause = "ROOT_CAUSE"
 )
 
-// IncidentGraph는 graph IO Neo4j backend에서 caller-visible 상태와 의미를 설명한다.
+// IncidentGraph graph IO Neo4j backend에서 caller-visible 상태와 의미를 설명한다.
 type IncidentGraph struct {
 	vertices []graph.Vertex
 	edges    []graph.Edge
@@ -52,12 +52,12 @@ type rawEdge struct {
 	properties graph.Properties
 }
 
-// SeedIncidentGraph는 graph IO Neo4j backend에서 반환값과 오류 의미를 설명한다.
+// SeedIncidentGraph graph IO Neo4j backend에서 반환값과 오류 의미를 설명한다.
 func SeedIncidentGraph() (IncidentGraph, error) {
 	return newIncidentGraph(seedVertices(), seedEdges())
 }
 
-// ReadIncidentGraphNDJSON는 graph IO Neo4j backend에서 동작과 caller-visible 계약을 설명한다.
+// ReadIncidentGraphNDJSON graph IO Neo4j backend에서 동작과 caller-visible 계약을 설명한다.
 func ReadIncidentGraphNDJSON(ctx context.Context, reader io.Reader) (IncidentGraph, graphio.Report, error) {
 	records, report, err := graphio.ReadNDJSON(ctx, reader, graphio.ReadOptions{})
 	if err != nil {
@@ -84,17 +84,17 @@ func ReadIncidentGraphNDJSON(ctx context.Context, reader io.Reader) (IncidentGra
 	return incident, report, nil
 }
 
-// Vertices는 graph IO Neo4j backend에서 반환값과 오류 의미를 설명한다.
+// Vertices graph IO Neo4j backend에서 반환값과 오류 의미를 설명한다.
 func (g IncidentGraph) Vertices() []graph.Vertex {
 	return append([]graph.Vertex(nil), g.vertices...)
 }
 
-// Edges는 graph IO Neo4j backend에서 반환값과 오류 의미를 설명한다.
+// Edges graph IO Neo4j backend에서 반환값과 오류 의미를 설명한다.
 func (g IncidentGraph) Edges() []graph.Edge {
 	return append([]graph.Edge(nil), g.edges...)
 }
 
-// Records는 graph IO Neo4j backend에서 반환값과 오류 의미를 설명한다.
+// Records graph IO Neo4j backend에서 반환값과 오류 의미를 설명한다.
 func (g IncidentGraph) Records() ([]graphio.Record, error) {
 	records := make([]graphio.Record, 0, len(g.vertices)+len(g.edges))
 	for _, vertex := range g.vertices {
@@ -114,7 +114,7 @@ func (g IncidentGraph) Records() ([]graphio.Record, error) {
 	return records, nil
 }
 
-// WriteNDJSON는 graph IO Neo4j backend에서 동작과 caller-visible 계약을 설명한다.
+// WriteNDJSON graph IO Neo4j backend에서 동작과 caller-visible 계약을 설명한다.
 func (g IncidentGraph) WriteNDJSON(ctx context.Context, writer io.Writer) (graphio.Report, error) {
 	records, err := g.Records()
 	if err != nil {
@@ -123,7 +123,7 @@ func (g IncidentGraph) WriteNDJSON(ctx context.Context, writer io.Writer) (graph
 	return graphio.WriteNDJSON(ctx, writer, records, graphio.WriteOptions{})
 }
 
-// DownstreamDependencies는 graph IO Neo4j backend에서 반환값과 오류 의미를 설명한다.
+// DownstreamDependencies graph IO Neo4j backend에서 반환값과 오류 의미를 설명한다.
 func (g IncidentGraph) DownstreamDependencies(serviceID string, maxDepth int) []string {
 	start, ok := g.serviceIDs[serviceID]
 	if !ok {
@@ -132,7 +132,7 @@ func (g IncidentGraph) DownstreamDependencies(serviceID string, maxDepth int) []
 	return g.traverseServices(start, maxDepth, g.outgoing, edgeDependsOn)
 }
 
-// UpstreamImpactedServices는 graph IO Neo4j backend에서 반환값과 오류 의미를 설명한다.
+// UpstreamImpactedServices graph IO Neo4j backend에서 반환값과 오류 의미를 설명한다.
 func (g IncidentGraph) UpstreamImpactedServices(serviceID string, maxDepth int) []string {
 	start, ok := g.serviceIDs[serviceID]
 	if !ok {
@@ -141,7 +141,7 @@ func (g IncidentGraph) UpstreamImpactedServices(serviceID string, maxDepth int) 
 	return g.traverseServices(start, maxDepth, g.incoming, edgeDependsOn)
 }
 
-// AffectedAPIs는 graph IO Neo4j backend에서 반환값과 오류 의미를 설명한다.
+// AffectedAPIs graph IO Neo4j backend에서 반환값과 오류 의미를 설명한다.
 func (g IncidentGraph) AffectedAPIs(serviceID string, maxDepth int) []string {
 	start, ok := g.serviceIDs[serviceID]
 	if !ok {
@@ -150,7 +150,7 @@ func (g IncidentGraph) AffectedAPIs(serviceID string, maxDepth int) []string {
 	return g.traverseByLabel(start, maxDepth, g.incoming, edgeDependsOn, labelAPI, "apiId")
 }
 
-// AlertBoundary는 graph IO Neo4j backend에서 반환값과 오류 의미를 설명한다.
+// AlertBoundary graph IO Neo4j backend에서 반환값과 오류 의미를 설명한다.
 func (g IncidentGraph) AlertBoundary(alertIDs []string, _ int) []string {
 	result := make(map[string]struct{})
 	for _, alertID := range alertIDs {
@@ -170,7 +170,7 @@ func (g IncidentGraph) AlertBoundary(alertIDs []string, _ int) []string {
 	return sortedKeys(result)
 }
 
-// OwningTeams는 graph IO Neo4j backend에서 반환값과 오류 의미를 설명한다.
+// OwningTeams graph IO Neo4j backend에서 반환값과 오류 의미를 설명한다.
 func (g IncidentGraph) OwningTeams(serviceID string) []string {
 	vertexID, ok := g.serviceIDs[serviceID]
 	if !ok {

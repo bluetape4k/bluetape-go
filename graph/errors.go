@@ -6,21 +6,21 @@ import (
 )
 
 var (
-	// ErrInvalidElementID는 graph IO Neo4j backend에서 반환값과 오류 의미를 설명한다.
+	// ErrInvalidElementID graph IO Neo4j backend에서 반환값과 오류 의미를 설명한다.
 	ErrInvalidElementID = errors.New("invalid graph element id")
-	// ErrInvalidLabel는 graph IO Neo4j backend에서 반환값과 오류 의미를 설명한다.
+	// ErrInvalidLabel graph IO Neo4j backend에서 반환값과 오류 의미를 설명한다.
 	ErrInvalidLabel = errors.New("invalid graph label")
-	// ErrInvalidVertex는 graph IO Neo4j backend에서 반환값과 오류 의미를 설명한다.
+	// ErrInvalidVertex graph IO Neo4j backend에서 반환값과 오류 의미를 설명한다.
 	ErrInvalidVertex = errors.New("invalid graph vertex")
-	// ErrInvalidEdge는 graph IO Neo4j backend에서 반환값과 오류 의미를 설명한다.
+	// ErrInvalidEdge graph IO Neo4j backend에서 반환값과 오류 의미를 설명한다.
 	ErrInvalidEdge = errors.New("invalid graph edge")
-	// ErrInvalidPath는 graph IO Neo4j backend에서 반환값과 오류 의미를 설명한다.
+	// ErrInvalidPath graph IO Neo4j backend에서 반환값과 오류 의미를 설명한다.
 	ErrInvalidPath = errors.New("invalid graph path")
-	// ErrUnsupportedCapability는 graph IO Neo4j backend에서 caller-visible 상태와 의미를 설명한다.
+	// ErrUnsupportedCapability graph IO Neo4j backend에서 caller-visible 상태와 의미를 설명한다.
 	ErrUnsupportedCapability = errors.New("unsupported graph capability")
 )
 
-// ValidationError는 graph IO Neo4j backend에서 동작과 caller-visible 계약을 설명한다.
+// ValidationError graph IO Neo4j backend에서 동작과 caller-visible 계약을 설명한다.
 type ValidationError struct {
 	Kind    error
 	Field   string
@@ -28,7 +28,7 @@ type ValidationError struct {
 	Cause   error
 }
 
-// Error는 graph IO Neo4j backend에서 반환값과 오류 의미를 설명한다.
+// Error graph IO Neo4j backend에서 반환값과 오류 의미를 설명한다.
 func (e *ValidationError) Error() string {
 	if e == nil {
 		return "<nil>"
@@ -45,7 +45,7 @@ func (e *ValidationError) Error() string {
 	return fmt.Sprintf("%s: field %s: %s", e.kindText(), e.Field, e.Summary)
 }
 
-// Unwrap는 graph IO Neo4j backend에서 제공하는 기능과 사용 경계를 설명한다.
+// Unwrap graph IO Neo4j backend에서 제공하는 기능과 사용 경계를 설명한다.
 func (e *ValidationError) Unwrap() []error {
 	if e == nil {
 		return nil

@@ -6,15 +6,15 @@ import (
 )
 
 var (
-	// ErrInvalidOptions는 graph IO Neo4j backend에서 반환값과 오류 의미를 설명한다.
+	// ErrInvalidOptions graph IO Neo4j backend에서 반환값과 오류 의미를 설명한다.
 	ErrInvalidOptions = errors.New("graph/neo4j: invalid options")
-	// ErrInvalidRecord는 graph IO Neo4j backend에서 반환값과 오류 의미를 설명한다.
+	// ErrInvalidRecord graph IO Neo4j backend에서 반환값과 오류 의미를 설명한다.
 	ErrInvalidRecord = errors.New("graph/neo4j: invalid record")
-	// ErrDriver는 graph IO Neo4j backend에서 반환값과 오류 의미를 설명한다.
+	// ErrDriver graph IO Neo4j backend에서 반환값과 오류 의미를 설명한다.
 	ErrDriver = errors.New("graph/neo4j: driver error")
 )
 
-// Error는 graph IO Neo4j backend에서 동작과 caller-visible 계약을 설명한다.
+// Error graph IO Neo4j backend에서 동작과 caller-visible 계약을 설명한다.
 // 이 주석은 graph IO Neo4j backend의 backend 요구사항, cancellation, timeout, 오류 처리 세부사항을 설명한다.
 type Error struct {
 	Kind      error
@@ -40,7 +40,7 @@ func (e *Error) Error() string {
 	return kind.Error()
 }
 
-// Unwrap는 graph IO Neo4j backend에서 제공하는 기능과 사용 경계를 설명한다.
+// Unwrap graph IO Neo4j backend에서 제공하는 기능과 사용 경계를 설명한다.
 func (e *Error) Unwrap() error {
 	if e == nil {
 		return nil
@@ -48,7 +48,7 @@ func (e *Error) Unwrap() error {
 	return e.Cause
 }
 
-// Is는 graph IO Neo4j backend에서 반환값과 오류 의미를 설명한다.
+// Is graph IO Neo4j backend에서 반환값과 오류 의미를 설명한다.
 func (e *Error) Is(target error) bool {
 	if e == nil {
 		return false

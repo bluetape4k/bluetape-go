@@ -2,7 +2,7 @@ package graphio
 
 import "time"
 
-// Failure는 graph IO Neo4j backend에서 동작과 caller-visible 계약을 설명한다.
+// Failure graph IO Neo4j backend에서 동작과 caller-visible 계약을 설명한다.
 type Failure struct {
 	Phase    Phase
 	Severity Severity
@@ -12,7 +12,7 @@ type Failure struct {
 	Summary  string
 }
 
-// Report는 graph IO Neo4j backend에서 반환값과 오류 의미를 설명한다.
+// Report graph IO Neo4j backend에서 반환값과 오류 의미를 설명한다.
 type Report struct {
 	Format          Format
 	VerticesRead    int64
@@ -26,7 +26,7 @@ type Report struct {
 	Elapsed         time.Duration
 }
 
-// AddFailure는 graph IO Neo4j backend에서 동작과 caller-visible 계약을 설명한다.
+// AddFailure graph IO Neo4j backend에서 동작과 caller-visible 계약을 설명한다.
 func (r *Report) AddFailure(failure Failure, maxFailures int) {
 	if maxFailures == 0 {
 		maxFailures = defaultMaxFailures

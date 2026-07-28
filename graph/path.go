@@ -13,14 +13,14 @@ const (
 	pathStepEdge
 )
 
-// PathStep는 graph IO Neo4j backend에서 caller-visible 상태와 의미를 설명한다.
+// PathStep graph IO Neo4j backend에서 caller-visible 상태와 의미를 설명한다.
 type PathStep struct {
 	kind   pathStepKind
 	vertex Vertex
 	edge   Edge
 }
 
-// VertexStep는 graph IO Neo4j backend에서 생성과 초기화 계약을 설명한다.
+// VertexStep graph IO Neo4j backend에서 생성과 초기화 계약을 설명한다.
 func VertexStep(vertex Vertex) (PathStep, error) {
 	if err := vertex.Validate(); err != nil {
 		return PathStep{}, validationError(ErrInvalidPath, "vertex", "invalid vertex step", err)
@@ -28,7 +28,7 @@ func VertexStep(vertex Vertex) (PathStep, error) {
 	return PathStep{kind: pathStepVertex, vertex: vertex}, nil
 }
 
-// EdgeStep는 graph IO Neo4j backend에서 생성과 초기화 계약을 설명한다.
+// EdgeStep graph IO Neo4j backend에서 생성과 초기화 계약을 설명한다.
 func EdgeStep(edge Edge) (PathStep, error) {
 	if err := edge.Validate(); err != nil {
 		return PathStep{}, validationError(ErrInvalidPath, "edge", "invalid edge step", err)
@@ -36,17 +36,17 @@ func EdgeStep(edge Edge) (PathStep, error) {
 	return PathStep{kind: pathStepEdge, edge: edge}, nil
 }
 
-// IsVertex는 graph IO Neo4j backend에서 반환값과 오류 의미를 설명한다.
+// IsVertex graph IO Neo4j backend에서 반환값과 오류 의미를 설명한다.
 func (step PathStep) IsVertex() bool {
 	return step.kind == pathStepVertex
 }
 
-// IsEdge는 graph IO Neo4j backend에서 반환값과 오류 의미를 설명한다.
+// IsEdge graph IO Neo4j backend에서 반환값과 오류 의미를 설명한다.
 func (step PathStep) IsEdge() bool {
 	return step.kind == pathStepEdge
 }
 
-// Vertex는 graph IO Neo4j backend에서 반환값과 오류 의미를 설명한다.
+// Vertex graph IO Neo4j backend에서 반환값과 오류 의미를 설명한다.
 func (step PathStep) Vertex() (Vertex, bool) {
 	if !step.IsVertex() {
 		return Vertex{}, false
@@ -54,7 +54,7 @@ func (step PathStep) Vertex() (Vertex, bool) {
 	return step.vertex, true
 }
 
-// Edge는 graph IO Neo4j backend에서 반환값과 오류 의미를 설명한다.
+// Edge graph IO Neo4j backend에서 반환값과 오류 의미를 설명한다.
 func (step PathStep) Edge() (Edge, bool) {
 	if !step.IsEdge() {
 		return Edge{}, false
@@ -62,7 +62,7 @@ func (step PathStep) Edge() (Edge, bool) {
 	return step.edge, true
 }
 
-// Validate는 graph IO Neo4j backend에서 반환값과 오류 의미를 설명한다.
+// Validate graph IO Neo4j backend에서 반환값과 오류 의미를 설명한다.
 func (step PathStep) Validate() error {
 	switch step.kind {
 	case pathStepVertex:
@@ -80,7 +80,7 @@ func (step PathStep) Validate() error {
 	}
 }
 
-// MarshalJSON는 graph IO Neo4j backend에서 동작과 caller-visible 계약을 설명한다.
+// MarshalJSON graph IO Neo4j backend에서 동작과 caller-visible 계약을 설명한다.
 func (step PathStep) MarshalJSON() ([]byte, error) {
 	if err := step.Validate(); err != nil {
 		return nil, err
@@ -91,7 +91,7 @@ func (step PathStep) MarshalJSON() ([]byte, error) {
 	return json.Marshal(pathStepJSON{Edge: &step.edge})
 }
 
-// UnmarshalJSON는 graph IO Neo4j backend에서 동작과 caller-visible 계약을 설명한다.
+// UnmarshalJSON graph IO Neo4j backend에서 동작과 caller-visible 계약을 설명한다.
 func (step *PathStep) UnmarshalJSON(data []byte) error {
 	var decoded pathStepJSON
 	if err := json.Unmarshal(data, &decoded); err != nil {
@@ -123,21 +123,21 @@ type pathStepJSON struct {
 	Edge   *Edge   `json:"edge,omitempty"`
 }
 
-// Path는 graph IO Neo4j backend에서 caller-visible 상태와 의미를 설명한다.
+// Path graph IO Neo4j backend에서 caller-visible 상태와 의미를 설명한다.
 //
-// Path는 graph IO Neo4j backend에서 동작과 caller-visible 계약을 설명한다.
+// Path graph IO Neo4j backend에서 동작과 caller-visible 계약을 설명한다.
 // 세부 조건은 GraphML, NDJSON, CSV, Neo4j 계약과 caller-owned graph model을 따른다.
 type Path struct {
 	steps       []PathStep
 	totalWeight float64
 }
 
-// EmptyPath는 graph IO Neo4j backend에서 반환값과 오류 의미를 설명한다.
+// EmptyPath graph IO Neo4j backend에서 반환값과 오류 의미를 설명한다.
 func EmptyPath() Path {
 	return Path{}
 }
 
-// NewPath는 graph IO Neo4j backend에서 생성과 초기화 계약을 설명한다.
+// NewPath graph IO Neo4j backend에서 생성과 초기화 계약을 설명한다.
 // 이 주석은 graph format, backend requirement, traversal, serialization 조건을 설명한다.
 func NewPath(steps ...PathStep) (Path, error) {
 	weight := 0.0
@@ -149,7 +149,7 @@ func NewPath(steps ...PathStep) (Path, error) {
 	return NewWeightedPath(weight, steps...)
 }
 
-// NewWeightedPath는 graph IO Neo4j backend에서 생성과 초기화 계약을 설명한다.
+// NewWeightedPath graph IO Neo4j backend에서 생성과 초기화 계약을 설명한다.
 // 이 주석은 graph format, backend requirement, traversal, serialization 조건을 설명한다.
 func NewWeightedPath(weight float64, steps ...PathStep) (Path, error) {
 	if !validWeight(weight) {
@@ -165,7 +165,7 @@ func NewWeightedPath(weight float64, steps ...PathStep) (Path, error) {
 	return Path{steps: copied, totalWeight: weight}, nil
 }
 
-// Steps는 graph IO Neo4j backend에서 반환값과 오류 의미를 설명한다.
+// Steps graph IO Neo4j backend에서 반환값과 오류 의미를 설명한다.
 func (path Path) Steps() []PathStep {
 	if len(path.steps) == 0 {
 		return nil
@@ -175,7 +175,7 @@ func (path Path) Steps() []PathStep {
 	return copied
 }
 
-// Vertices는 graph IO Neo4j backend에서 반환값과 오류 의미를 설명한다.
+// Vertices graph IO Neo4j backend에서 반환값과 오류 의미를 설명한다.
 func (path Path) Vertices() []Vertex {
 	if len(path.steps) == 0 {
 		return nil
@@ -189,7 +189,7 @@ func (path Path) Vertices() []Vertex {
 	return vertices
 }
 
-// Edges는 graph IO Neo4j backend에서 반환값과 오류 의미를 설명한다.
+// Edges graph IO Neo4j backend에서 반환값과 오류 의미를 설명한다.
 func (path Path) Edges() []Edge {
 	if len(path.steps) == 0 {
 		return nil
@@ -203,7 +203,7 @@ func (path Path) Edges() []Edge {
 	return edges
 }
 
-// Length는 graph IO Neo4j backend에서 반환값과 오류 의미를 설명한다.
+// Length graph IO Neo4j backend에서 반환값과 오류 의미를 설명한다.
 func (path Path) Length() int {
 	count := 0
 	for _, step := range path.steps {
@@ -214,17 +214,17 @@ func (path Path) Length() int {
 	return count
 }
 
-// TotalWeight는 graph IO Neo4j backend에서 반환값과 오류 의미를 설명한다.
+// TotalWeight graph IO Neo4j backend에서 반환값과 오류 의미를 설명한다.
 func (path Path) TotalWeight() float64 {
 	return path.totalWeight
 }
 
-// IsEmpty는 graph IO Neo4j backend에서 반환값과 오류 의미를 설명한다.
+// IsEmpty graph IO Neo4j backend에서 반환값과 오류 의미를 설명한다.
 func (path Path) IsEmpty() bool {
 	return len(path.steps) == 0
 }
 
-// Validate는 graph IO Neo4j backend에서 반환값과 오류 의미를 설명한다.
+// Validate graph IO Neo4j backend에서 반환값과 오류 의미를 설명한다.
 // 이 주석은 graph format, backend requirement, traversal, serialization 조건을 설명한다.
 func (path Path) Validate() error {
 	if !validWeight(path.totalWeight) {
@@ -238,7 +238,7 @@ func (path Path) Validate() error {
 	return nil
 }
 
-// MarshalJSON는 graph IO Neo4j backend에서 동작과 caller-visible 계약을 설명한다.
+// MarshalJSON graph IO Neo4j backend에서 동작과 caller-visible 계약을 설명한다.
 func (path Path) MarshalJSON() ([]byte, error) {
 	if err := path.Validate(); err != nil {
 		return nil, err
@@ -253,7 +253,7 @@ func (path Path) MarshalJSON() ([]byte, error) {
 	})
 }
 
-// UnmarshalJSON는 graph IO Neo4j backend에서 동작과 caller-visible 계약을 설명한다.
+// UnmarshalJSON graph IO Neo4j backend에서 동작과 caller-visible 계약을 설명한다.
 func (path *Path) UnmarshalJSON(data []byte) error {
 	var decoded pathDecodeJSON
 	if err := json.Unmarshal(data, &decoded); err != nil {

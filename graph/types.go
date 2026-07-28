@@ -6,10 +6,10 @@ import (
 	"strings"
 )
 
-// ElementID는 graph IO Neo4j backend에서 caller-visible 상태와 의미를 설명한다.
+// ElementID graph IO Neo4j backend에서 caller-visible 상태와 의미를 설명한다.
 type ElementID string
 
-// NewElementID는 graph IO Neo4j backend에서 생성과 초기화 계약을 설명한다.
+// NewElementID graph IO Neo4j backend에서 생성과 초기화 계약을 설명한다.
 func NewElementID(value string) (ElementID, error) {
 	normalized := strings.TrimSpace(value)
 	id := ElementID(normalized)
@@ -19,7 +19,7 @@ func NewElementID(value string) (ElementID, error) {
 	return id, nil
 }
 
-// ElementIDFromInt는 graph IO Neo4j backend에서 생성과 초기화 계약을 설명한다.
+// ElementIDFromInt graph IO Neo4j backend에서 생성과 초기화 계약을 설명한다.
 func ElementIDFromInt(value int64) (ElementID, error) {
 	if value < 0 {
 		return "", validationError(ErrInvalidElementID, "id", "negative integer id", nil)
@@ -27,7 +27,7 @@ func ElementIDFromInt(value int64) (ElementID, error) {
 	return ElementID(strconv.FormatInt(value, 10)), nil
 }
 
-// MustElementID는 graph IO Neo4j backend에서 생성과 초기화 계약을 설명한다.
+// MustElementID graph IO Neo4j backend에서 생성과 초기화 계약을 설명한다.
 func MustElementID(value string) ElementID {
 	id, err := NewElementID(value)
 	if err != nil {
@@ -36,12 +36,12 @@ func MustElementID(value string) ElementID {
 	return id
 }
 
-// String는 graph IO Neo4j backend에서 반환값과 오류 의미를 설명한다.
+// String graph IO Neo4j backend에서 반환값과 오류 의미를 설명한다.
 func (id ElementID) String() string {
 	return string(id)
 }
 
-// Validate는 graph IO Neo4j backend에서 반환값과 오류 의미를 설명한다.
+// Validate graph IO Neo4j backend에서 반환값과 오류 의미를 설명한다.
 func (id ElementID) Validate() error {
 	if strings.TrimSpace(string(id)) == "" {
 		return validationError(ErrInvalidElementID, "id", "blank value", nil)
@@ -49,7 +49,7 @@ func (id ElementID) Validate() error {
 	return nil
 }
 
-// MarshalJSON는 graph IO Neo4j backend에서 동작과 caller-visible 계약을 설명한다.
+// MarshalJSON graph IO Neo4j backend에서 동작과 caller-visible 계약을 설명한다.
 func (id ElementID) MarshalJSON() ([]byte, error) {
 	if err := id.Validate(); err != nil {
 		return nil, err
@@ -57,7 +57,7 @@ func (id ElementID) MarshalJSON() ([]byte, error) {
 	return json.Marshal(id.String())
 }
 
-// UnmarshalJSON는 graph IO Neo4j backend에서 동작과 caller-visible 계약을 설명한다.
+// UnmarshalJSON graph IO Neo4j backend에서 동작과 caller-visible 계약을 설명한다.
 func (id *ElementID) UnmarshalJSON(data []byte) error {
 	var value string
 	if err := json.Unmarshal(data, &value); err != nil {
@@ -71,10 +71,10 @@ func (id *ElementID) UnmarshalJSON(data []byte) error {
 	return nil
 }
 
-// Label는 graph IO Neo4j backend에서 동작과 caller-visible 계약을 설명한다.
+// Label graph IO Neo4j backend에서 동작과 caller-visible 계약을 설명한다.
 type Label string
 
-// NewLabel는 graph IO Neo4j backend에서 생성과 초기화 계약을 설명한다.
+// NewLabel graph IO Neo4j backend에서 생성과 초기화 계약을 설명한다.
 func NewLabel(value string) (Label, error) {
 	normalized := strings.TrimSpace(value)
 	label := Label(normalized)
@@ -84,12 +84,12 @@ func NewLabel(value string) (Label, error) {
 	return label, nil
 }
 
-// String는 graph IO Neo4j backend에서 반환값과 오류 의미를 설명한다.
+// String graph IO Neo4j backend에서 반환값과 오류 의미를 설명한다.
 func (label Label) String() string {
 	return string(label)
 }
 
-// Validate는 graph IO Neo4j backend에서 반환값과 오류 의미를 설명한다.
+// Validate graph IO Neo4j backend에서 반환값과 오류 의미를 설명한다.
 func (label Label) Validate() error {
 	if strings.TrimSpace(string(label)) == "" {
 		return validationError(ErrInvalidLabel, "label", "blank value", nil)
@@ -97,7 +97,7 @@ func (label Label) Validate() error {
 	return nil
 }
 
-// MarshalJSON는 graph IO Neo4j backend에서 동작과 caller-visible 계약을 설명한다.
+// MarshalJSON graph IO Neo4j backend에서 동작과 caller-visible 계약을 설명한다.
 func (label Label) MarshalJSON() ([]byte, error) {
 	if err := label.Validate(); err != nil {
 		return nil, err
@@ -105,7 +105,7 @@ func (label Label) MarshalJSON() ([]byte, error) {
 	return json.Marshal(label.String())
 }
 
-// UnmarshalJSON는 graph IO Neo4j backend에서 동작과 caller-visible 계약을 설명한다.
+// UnmarshalJSON graph IO Neo4j backend에서 동작과 caller-visible 계약을 설명한다.
 func (label *Label) UnmarshalJSON(data []byte) error {
 	var value string
 	if err := json.Unmarshal(data, &value); err != nil {
@@ -119,10 +119,10 @@ func (label *Label) UnmarshalJSON(data []byte) error {
 	return nil
 }
 
-// Properties는 graph IO Neo4j backend에서 동작과 caller-visible 계약을 설명한다.
+// Properties graph IO Neo4j backend에서 동작과 caller-visible 계약을 설명한다.
 type Properties map[string]any
 
-// Clone는 graph IO Neo4j backend에서 반환값과 오류 의미를 설명한다.
+// Clone graph IO Neo4j backend에서 반환값과 오류 의미를 설명한다.
 func (p Properties) Clone() Properties {
 	if p == nil {
 		return nil
@@ -134,14 +134,14 @@ func (p Properties) Clone() Properties {
 	return clone
 }
 
-// Vertex는 graph IO Neo4j backend에서 caller-visible 상태와 의미를 설명한다.
+// Vertex graph IO Neo4j backend에서 caller-visible 상태와 의미를 설명한다.
 type Vertex struct {
 	id         ElementID
 	label      Label
 	properties Properties
 }
 
-// NewVertex는 graph IO Neo4j backend에서 생성과 초기화 계약을 설명한다.
+// NewVertex graph IO Neo4j backend에서 생성과 초기화 계약을 설명한다.
 func NewVertex(id ElementID, label Label, properties Properties) (Vertex, error) {
 	if err := id.Validate(); err != nil {
 		return Vertex{}, err
@@ -152,7 +152,7 @@ func NewVertex(id ElementID, label Label, properties Properties) (Vertex, error)
 	return Vertex{id: id, label: label, properties: properties.Clone()}, nil
 }
 
-// ParseVertex는 graph IO Neo4j backend에서 생성과 초기화 계약을 설명한다.
+// ParseVertex graph IO Neo4j backend에서 생성과 초기화 계약을 설명한다.
 func ParseVertex(id string, label string, properties Properties) (Vertex, error) {
 	parsedID, err := NewElementID(id)
 	if err != nil {
@@ -165,22 +165,22 @@ func ParseVertex(id string, label string, properties Properties) (Vertex, error)
 	return NewVertex(parsedID, parsedLabel, properties)
 }
 
-// ID는 graph IO Neo4j backend에서 반환값과 오류 의미를 설명한다.
+// ID graph IO Neo4j backend에서 반환값과 오류 의미를 설명한다.
 func (v Vertex) ID() ElementID {
 	return v.id
 }
 
-// Label는 graph IO Neo4j backend에서 반환값과 오류 의미를 설명한다.
+// Label graph IO Neo4j backend에서 반환값과 오류 의미를 설명한다.
 func (v Vertex) Label() Label {
 	return v.label
 }
 
-// Properties는 graph IO Neo4j backend에서 반환값과 오류 의미를 설명한다.
+// Properties graph IO Neo4j backend에서 반환값과 오류 의미를 설명한다.
 func (v Vertex) Properties() Properties {
 	return v.properties.Clone()
 }
 
-// Validate는 graph IO Neo4j backend에서 반환값과 오류 의미를 설명한다.
+// Validate graph IO Neo4j backend에서 반환값과 오류 의미를 설명한다.
 func (v Vertex) Validate() error {
 	if err := v.id.Validate(); err != nil {
 		return validationError(ErrInvalidVertex, "id", "invalid vertex id", err)
@@ -191,7 +191,7 @@ func (v Vertex) Validate() error {
 	return nil
 }
 
-// MarshalJSON는 graph IO Neo4j backend에서 동작과 caller-visible 계약을 설명한다.
+// MarshalJSON graph IO Neo4j backend에서 동작과 caller-visible 계약을 설명한다.
 func (v Vertex) MarshalJSON() ([]byte, error) {
 	if err := v.Validate(); err != nil {
 		return nil, err
@@ -203,7 +203,7 @@ func (v Vertex) MarshalJSON() ([]byte, error) {
 	})
 }
 
-// UnmarshalJSON는 graph IO Neo4j backend에서 동작과 caller-visible 계약을 설명한다.
+// UnmarshalJSON graph IO Neo4j backend에서 동작과 caller-visible 계약을 설명한다.
 func (v *Vertex) UnmarshalJSON(data []byte) error {
 	var decoded vertexJSON
 	if err := json.Unmarshal(data, &decoded); err != nil {
@@ -223,13 +223,13 @@ type vertexJSON struct {
 	Properties Properties `json:"properties"`
 }
 
-// EdgeEndpoints는 graph IO Neo4j backend에서 동작과 caller-visible 계약을 설명한다.
+// EdgeEndpoints graph IO Neo4j backend에서 동작과 caller-visible 계약을 설명한다.
 type EdgeEndpoints struct {
 	Start ElementID
 	End   ElementID
 }
 
-// Validate는 graph IO Neo4j backend에서 반환값과 오류 의미를 설명한다.
+// Validate graph IO Neo4j backend에서 반환값과 오류 의미를 설명한다.
 func (endpoints EdgeEndpoints) Validate() error {
 	if err := endpoints.Start.Validate(); err != nil {
 		return validationError(ErrInvalidElementID, "start", "invalid start endpoint", err)
@@ -240,13 +240,13 @@ func (endpoints EdgeEndpoints) Validate() error {
 	return nil
 }
 
-// RawEdgeEndpoints는 graph IO Neo4j backend에서 동작과 caller-visible 계약을 설명한다.
+// RawEdgeEndpoints graph IO Neo4j backend에서 동작과 caller-visible 계약을 설명한다.
 type RawEdgeEndpoints struct {
 	Start string
 	End   string
 }
 
-// Edge는 graph IO Neo4j backend에서 caller-visible 상태와 의미를 설명한다.
+// Edge graph IO Neo4j backend에서 caller-visible 상태와 의미를 설명한다.
 type Edge struct {
 	id         ElementID
 	label      Label
@@ -254,7 +254,7 @@ type Edge struct {
 	properties Properties
 }
 
-// NewEdge는 graph IO Neo4j backend에서 생성과 초기화 계약을 설명한다.
+// NewEdge graph IO Neo4j backend에서 생성과 초기화 계약을 설명한다.
 func NewEdge(id ElementID, label Label, endpoints EdgeEndpoints, properties Properties) (Edge, error) {
 	if err := id.Validate(); err != nil {
 		return Edge{}, err
@@ -268,7 +268,7 @@ func NewEdge(id ElementID, label Label, endpoints EdgeEndpoints, properties Prop
 	return Edge{id: id, label: label, endpoints: endpoints, properties: properties.Clone()}, nil
 }
 
-// ParseEdge는 graph IO Neo4j backend에서 생성과 초기화 계약을 설명한다.
+// ParseEdge graph IO Neo4j backend에서 생성과 초기화 계약을 설명한다.
 func ParseEdge(id string, label string, endpoints RawEdgeEndpoints, properties Properties) (Edge, error) {
 	parsedID, err := NewElementID(id)
 	if err != nil {
@@ -289,32 +289,32 @@ func ParseEdge(id string, label string, endpoints RawEdgeEndpoints, properties P
 	return NewEdge(parsedID, parsedLabel, EdgeEndpoints{Start: start, End: end}, properties)
 }
 
-// ID는 graph IO Neo4j backend에서 반환값과 오류 의미를 설명한다.
+// ID graph IO Neo4j backend에서 반환값과 오류 의미를 설명한다.
 func (e Edge) ID() ElementID {
 	return e.id
 }
 
-// Label는 graph IO Neo4j backend에서 반환값과 오류 의미를 설명한다.
+// Label graph IO Neo4j backend에서 반환값과 오류 의미를 설명한다.
 func (e Edge) Label() Label {
 	return e.label
 }
 
-// StartID는 graph IO Neo4j backend에서 반환값과 오류 의미를 설명한다.
+// StartID graph IO Neo4j backend에서 반환값과 오류 의미를 설명한다.
 func (e Edge) StartID() ElementID {
 	return e.endpoints.Start
 }
 
-// EndID는 graph IO Neo4j backend에서 반환값과 오류 의미를 설명한다.
+// EndID graph IO Neo4j backend에서 반환값과 오류 의미를 설명한다.
 func (e Edge) EndID() ElementID {
 	return e.endpoints.End
 }
 
-// Properties는 graph IO Neo4j backend에서 반환값과 오류 의미를 설명한다.
+// Properties graph IO Neo4j backend에서 반환값과 오류 의미를 설명한다.
 func (e Edge) Properties() Properties {
 	return e.properties.Clone()
 }
 
-// Validate는 graph IO Neo4j backend에서 반환값과 오류 의미를 설명한다.
+// Validate graph IO Neo4j backend에서 반환값과 오류 의미를 설명한다.
 func (e Edge) Validate() error {
 	if err := e.id.Validate(); err != nil {
 		return validationError(ErrInvalidEdge, "id", "invalid edge id", err)
@@ -328,7 +328,7 @@ func (e Edge) Validate() error {
 	return nil
 }
 
-// MarshalJSON는 graph IO Neo4j backend에서 동작과 caller-visible 계약을 설명한다.
+// MarshalJSON graph IO Neo4j backend에서 동작과 caller-visible 계약을 설명한다.
 func (e Edge) MarshalJSON() ([]byte, error) {
 	if err := e.Validate(); err != nil {
 		return nil, err
@@ -342,7 +342,7 @@ func (e Edge) MarshalJSON() ([]byte, error) {
 	})
 }
 
-// UnmarshalJSON는 graph IO Neo4j backend에서 동작과 caller-visible 계약을 설명한다.
+// UnmarshalJSON graph IO Neo4j backend에서 동작과 caller-visible 계약을 설명한다.
 func (e *Edge) UnmarshalJSON(data []byte) error {
 	var decoded edgeJSON
 	if err := json.Unmarshal(data, &decoded); err != nil {

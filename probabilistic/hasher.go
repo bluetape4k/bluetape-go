@@ -7,7 +7,7 @@ const (
 	bytesHasherKey  = "probabilistic:bytes:v1"
 )
 
-// Hasher 는 Bloom filter 값에서 stable hash 입력 bytes를 만드는 전략입니다.
+// Hasher Bloom filter 값에서 stable hash 입력 bytes를 만드는 전략입니다.
 //
 // Custom hasher 함수는 deterministic하고 goroutine-safe해야 합니다.
 type Hasher[T any] struct {
@@ -15,7 +15,7 @@ type Hasher[T any] struct {
 	sum func(T) []byte
 }
 
-// NewHasher 는 compatibility key와 hash 입력 함수를 가진 Hasher를 만듭니다.
+// NewHasher compatibility key와 hash 입력 함수를 가진 Hasher를 만듭니다.
 // 같은 key를 가진 Hasher는 PutAll에서 호환된다고 간주되므로, caller는 key와 함수
 // 구현의 의미를 stable하게 유지해야 합니다.
 func NewHasher[T any](key string, sum func(T) []byte) (Hasher[T], error) {
@@ -28,7 +28,7 @@ func NewHasher[T any](key string, sum func(T) []byte) (Hasher[T], error) {
 	return Hasher[T]{key: key, sum: sum}, nil
 }
 
-// Key 는 PutAll 호환성 판단에 사용하는 stable hasher key를 반환합니다.
+// Key PutAll 호환성 판단에 사용하는 stable hasher key를 반환합니다.
 func (h Hasher[T]) Key() string {
 	return h.key
 }

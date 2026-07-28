@@ -31,7 +31,7 @@ const (
 	campaignRetryCap  = 250 * time.Millisecond
 )
 
-// Elector 는 Redis 기반 leader elector다.
+// Elector Redis 기반 leader elector다.
 type Elector struct {
 	client redis.Cmdable
 	opts   leader.Options
@@ -47,7 +47,7 @@ type Elector struct {
 	done        chan struct{}
 }
 
-// New 는 Redis 기반 leader elector를 만든다.
+// New Redis 기반 leader elector를 만든다.
 func New(client redis.Cmdable, opts leader.Options) (*Elector, error) {
 	if client == nil {
 		return nil, errors.New("redis client must not be nil")
@@ -161,14 +161,14 @@ func (e *Elector) Resign(ctx context.Context) error {
 	return nil
 }
 
-// IsLeader 는 이 elector가 아직 leader라고 판단하는지 알려준다.
+// IsLeader 이 elector가 아직 leader라고 판단하는지 알려준다.
 func (e *Elector) IsLeader() bool {
 	e.mu.RLock()
 	defer e.mu.RUnlock()
 	return e.owned
 }
 
-// Leader 는 Redis에 기록된 현재 leader token을 반환한다.
+// Leader Redis에 기록된 현재 leader token을 반환한다.
 func (e *Elector) Leader(ctx context.Context) (string, error) {
 	if ctx == nil {
 		return "", leader.ErrInvalidContext

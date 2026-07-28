@@ -8,7 +8,7 @@ import (
 	"github.com/neo4j/neo4j-go-driver/v6/neo4j/dbtype"
 )
 
-// VertexFromNode는 graph IO Neo4j backend에서 동작과 caller-visible 계약을 설명한다.
+// VertexFromNode graph IO Neo4j backend에서 동작과 caller-visible 계약을 설명한다.
 //
 // 이 주석은 graph format, backend requirement, traversal, serialization 조건을 설명한다.
 // 세부 조건은 GraphML, NDJSON, CSV, Neo4j 계약과 caller-owned graph model을 따른다.
@@ -29,7 +29,7 @@ func VertexFromNode(node dbtype.Node) (graph.Vertex, error) {
 	return vertex, nil
 }
 
-// EdgeFromRelationship는 graph IO Neo4j backend에서 동작과 caller-visible 계약을 설명한다.
+// EdgeFromRelationship graph IO Neo4j backend에서 동작과 caller-visible 계약을 설명한다.
 func EdgeFromRelationship(relationship dbtype.Relationship) (graph.Edge, error) {
 	id, err := elementID(relationship.ElementId)
 	if err != nil {

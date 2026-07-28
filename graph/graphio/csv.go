@@ -43,7 +43,7 @@ type CSVWriter struct {
 	terminalError error
 }
 
-// NewCSVWriter는 graph IO Neo4j backend에서 생성과 초기화 계약을 설명한다.
+// NewCSVWriter graph IO Neo4j backend에서 생성과 초기화 계약을 설명한다.
 func NewCSVWriter(ctx context.Context, streams CSVWriterStreams, options CSVWriteOptions) *CSVWriter {
 	if ctx == nil {
 		ctx = context.Background()
@@ -65,7 +65,7 @@ func NewCSVWriter(ctx context.Context, streams CSVWriterStreams, options CSVWrit
 	return writer
 }
 
-// WriteVertex는 graph IO Neo4j backend에서 동작과 caller-visible 계약을 설명한다.
+// WriteVertex graph IO Neo4j backend에서 동작과 caller-visible 계약을 설명한다.
 func (w *CSVWriter) WriteVertex(vertex graph.Vertex) error {
 	if w.closed {
 		return ErrStreamClosed
@@ -93,7 +93,7 @@ func (w *CSVWriter) WriteVertex(vertex graph.Vertex) error {
 	return nil
 }
 
-// WriteEdge는 graph IO Neo4j backend에서 동작과 caller-visible 계약을 설명한다.
+// WriteEdge graph IO Neo4j backend에서 동작과 caller-visible 계약을 설명한다.
 func (w *CSVWriter) WriteEdge(edge graph.Edge) error {
 	if w.closed {
 		return ErrStreamClosed
@@ -121,7 +121,7 @@ func (w *CSVWriter) WriteEdge(edge graph.Edge) error {
 	return nil
 }
 
-// Close는 graph IO Neo4j backend에서 반환값과 오류 의미를 설명한다.
+// Close graph IO Neo4j backend에서 반환값과 오류 의미를 설명한다.
 func (w *CSVWriter) Close() (Report, error) {
 	if w.closed {
 		return w.final, w.terminalError
@@ -234,7 +234,7 @@ func (w *CSVWriter) escape(value string) string {
 	return value
 }
 
-// WriteCSV는 graph IO Neo4j backend에서 동작과 caller-visible 계약을 설명한다.
+// WriteCSV graph IO Neo4j backend에서 동작과 caller-visible 계약을 설명한다.
 func WriteCSV(ctx context.Context, streams CSVWriterStreams, records []Record, options CSVWriteOptions) (Report, error) {
 	normalized, err := normalizeCSVWriteOptions(options)
 	if err != nil {
@@ -284,7 +284,7 @@ type CSVReader struct {
 	setupErr     error
 }
 
-// NewCSVReader는 graph IO Neo4j backend에서 생성과 초기화 계약을 설명한다.
+// NewCSVReader graph IO Neo4j backend에서 생성과 초기화 계약을 설명한다.
 func NewCSVReader(ctx context.Context, streams CSVReaderStreams, options CSVReadOptions) *CSVReader {
 	if ctx == nil {
 		ctx = context.Background()
@@ -307,7 +307,7 @@ func NewCSVReader(ctx context.Context, streams CSVReaderStreams, options CSVRead
 	return reader
 }
 
-// ReadVertex는 graph IO Neo4j backend에서 동작과 caller-visible 계약을 설명한다.
+// ReadVertex graph IO Neo4j backend에서 동작과 caller-visible 계약을 설명한다.
 func (r *CSVReader) ReadVertex() (graph.Vertex, error) {
 	if r.closed {
 		return graph.Vertex{}, ErrStreamClosed
@@ -346,7 +346,7 @@ func (r *CSVReader) ReadVertex() (graph.Vertex, error) {
 	}
 }
 
-// ReadEdge는 graph IO Neo4j backend에서 동작과 caller-visible 계약을 설명한다.
+// ReadEdge graph IO Neo4j backend에서 동작과 caller-visible 계약을 설명한다.
 func (r *CSVReader) ReadEdge() (graph.Edge, error) {
 	if r.closed {
 		return graph.Edge{}, ErrStreamClosed
@@ -388,7 +388,7 @@ func (r *CSVReader) ReadEdge() (graph.Edge, error) {
 	}
 }
 
-// Close는 graph IO Neo4j backend에서 반환값과 오류 의미를 설명한다.
+// Close graph IO Neo4j backend에서 반환값과 오류 의미를 설명한다.
 func (r *CSVReader) Close() (Report, error) {
 	if r.closed {
 		return r.final, nil
@@ -522,7 +522,7 @@ func (r *CSVReader) propertiesFromRow(row []string, header csvHeader, loc Locati
 	}
 }
 
-// ReadCSV는 graph IO Neo4j backend에서 caller-visible 상태와 의미를 설명한다.
+// ReadCSV graph IO Neo4j backend에서 caller-visible 상태와 의미를 설명한다.
 func ReadCSV(ctx context.Context, streams CSVReaderStreams, options CSVReadOptions) ([]Record, Report, error) {
 	reader := NewCSVReader(ctx, streams, options)
 	records := make([]Record, 0)
