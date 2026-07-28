@@ -40,10 +40,10 @@ type Handler struct {
 // NewHandler NewHandler 공개 API의 동작을 수행하며 token bucket, limiter option, HTTP boundary, result quota 계약을 보존한다.
 //
 // 매개변수:
-//   - next: NewHandler 동작에 필요한 next 값이다. zero value, 범위, nil 허용 여부는 함수 계약을 따른다.
-//   - options: NewHandler 동작에 필요한 options 값이다. zero value, 범위, nil 허용 여부는 함수 계약을 따른다.
+//   - next: 다음 HTTP handler다.
+//   - options: 적용할 옵션 목록이다. nil이면 기본값만 사용한다.
 //
-// 반환 오류는 입력 검증 실패, 취소, Redis/backend 실패, lock ownership 불일치, quota 거절, 또는 package sentinel/typed error 계약을 보존한다.
+// 반환 오류는 입력 검증 실패, context 취소, Redis/backend 실패, lock ownership 불일치, quota 거절, package sentinel error와 typed error를 그대로 드러낸다.
 func NewHandler(next http.Handler, options HandlerOptions) (*Handler, error) {
 	if options.Limiter == nil {
 		return nil, fmt.Errorf("limiter must not be nil")
@@ -78,8 +78,8 @@ func NewHandler(next http.Handler, options HandlerOptions) (*Handler, error) {
 // ServeHTTP ServeHTTP 공개 API의 동작을 수행하며 token bucket, limiter option, HTTP boundary, result quota 계약을 보존한다.
 //
 // 매개변수:
-//   - w: ServeHTTP 동작에 필요한 w 값이다. zero value, 범위, nil 허용 여부는 함수 계약을 따른다.
-//   - req: ServeHTTP 동작에 필요한 req 값이다. zero value, 범위, nil 허용 여부는 함수 계약을 따른다.
+//   - w: 응답을 기록할 HTTP writer다.
+//   - req: 처리할 HTTP request다.
 func (h *Handler) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 	key := strings.TrimSpace(h.keyFunc(req))
 	if key == "" {
@@ -102,7 +102,7 @@ func (h *Handler) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 // RemoteIPKey RemoteIPKey 공개 API의 동작을 수행하며 token bucket, limiter option, HTTP boundary, result quota 계약을 보존한다.
 //
 // 매개변수:
-//   - req: RemoteIPKey 동작에 필요한 req 값이다. zero value, 범위, nil 허용 여부는 함수 계약을 따른다.
+//   - req: 처리할 HTTP request다.
 func RemoteIPKey(req *http.Request) string {
 	if req == nil {
 		return ""

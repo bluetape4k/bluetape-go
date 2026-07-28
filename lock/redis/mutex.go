@@ -37,9 +37,9 @@ type Lease struct {
 //
 // 매개변수:
 //   - client: Redis backend 또는 conformance provider다. 연결/종료 소유권은 생성자와 harness 계약을 따른다.
-//   - opts: New 동작에 필요한 opts 값이다. zero value, 범위, nil 허용 여부는 함수 계약을 따른다.
+//   - opts: New에 전달되는 값이다. 허용 범위와 nil 처리 방식은 구현 검증을 따른다.
 //
-// 반환 오류는 입력 검증 실패, 취소, Redis/backend 실패, lock ownership 불일치, quota 거절, 또는 package sentinel/typed error 계약을 보존한다.
+// 반환 오류는 입력 검증 실패, context 취소, Redis/backend 실패, lock ownership 불일치, quota 거절, package sentinel error와 typed error를 그대로 드러낸다.
 func New(client redis.Cmdable, opts Options) (*Mutex, error) {
 	if client == nil {
 		return nil, fmt.Errorf("redis client must not be nil")
@@ -56,7 +56,7 @@ func New(client redis.Cmdable, opts Options) (*Mutex, error) {
 // 매개변수:
 //   - ctx: 호출자가 소유한 취소, deadline, 요청 범위를 전달한다.
 //
-// 반환 오류는 입력 검증 실패, 취소, Redis/backend 실패, lock ownership 불일치, quota 거절, 또는 package sentinel/typed error 계약을 보존한다.
+// 반환 오류는 입력 검증 실패, context 취소, Redis/backend 실패, lock ownership 불일치, quota 거절, package sentinel error와 typed error를 그대로 드러낸다.
 func (m *Mutex) TryLock(ctx context.Context) (*Lease, error) {
 	ctx = normalizeContext(ctx)
 	if err := ctx.Err(); err != nil {
@@ -125,7 +125,7 @@ func (l *Lease) Token() string {
 // 매개변수:
 //   - ctx: 호출자가 소유한 취소, deadline, 요청 범위를 전달한다.
 //
-// 반환 오류는 입력 검증 실패, 취소, Redis/backend 실패, lock ownership 불일치, quota 거절, 또는 package sentinel/typed error 계약을 보존한다.
+// 반환 오류는 입력 검증 실패, context 취소, Redis/backend 실패, lock ownership 불일치, quota 거절, package sentinel error와 typed error를 그대로 드러낸다.
 func (l *Lease) Unlock(ctx context.Context) (bool, error) {
 	if l == nil || l.mutex == nil {
 		return false, nil
