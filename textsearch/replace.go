@@ -2,10 +2,10 @@ package textsearch
 
 import "strings"
 
-// Replacer는 textsearch language image example에서 반환값과 오류 의미를 설명한다.
+// Replacer textsearch language image example에서 반환값과 오류 의미를 설명한다.
 type Replacer func(Match) string
 
-// Replace는 textsearch language image example에서 반환값과 오류 의미를 설명한다.
+// Replace textsearch language image example에서 반환값과 오류 의미를 설명한다.
 // 세부 조건은 language script, tokenizer, normalization, example ownership 계약을 따른다.
 // 이 주석은 textsearch language image example의 backend 요구사항, cancellation, timeout, 오류 처리 세부사항을 설명한다.
 func (m *Matcher) Replace(input string, replacer Replacer) string {
@@ -29,7 +29,7 @@ func (m *Matcher) Replace(input string, replacer Replacer) string {
 	return builder.String()
 }
 
-// Mask는 textsearch language image example에서 반환값과 오류 의미를 설명한다.
+// Mask textsearch language image example에서 반환값과 오류 의미를 설명한다.
 func (m *Matcher) Mask(input string, mask rune) string {
 	return m.Replace(input, func(match Match) string {
 		count := 0

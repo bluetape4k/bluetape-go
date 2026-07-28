@@ -24,14 +24,14 @@ type node struct {
 	outputs []output
 }
 
-// Matcher는 textsearch language image example에서 caller-visible 상태와 의미를 설명한다.
+// Matcher textsearch language image example에서 caller-visible 상태와 의미를 설명한다.
 type Matcher struct {
 	cfg      Config
 	patterns []compiledPattern
 	nodes    []node
 }
 
-// Compile는 textsearch language image example에서 생성과 초기화 계약을 설명한다.
+// Compile textsearch language image example에서 생성과 초기화 계약을 설명한다.
 func Compile(patterns []Pattern, cfg Config) (*Matcher, error) {
 	if len(patterns) == 0 {
 		return nil, ErrNoPatterns
@@ -54,7 +54,7 @@ func Compile(patterns []Pattern, cfg Config) (*Matcher, error) {
 	return m, nil
 }
 
-// CompileStrings는 textsearch language image example에서 생성과 초기화 계약을 설명한다.
+// CompileStrings textsearch language image example에서 생성과 초기화 계약을 설명한다.
 func CompileStrings(patterns []string, cfg Config) (*Matcher, error) {
 	entries := make([]Pattern, len(patterns))
 	for i, pattern := range patterns {
@@ -110,13 +110,13 @@ func (m *Matcher) buildFailures() {
 	}
 }
 
-// Contains는 textsearch language image example에서 반환값과 오류 의미를 설명한다.
+// Contains textsearch language image example에서 반환값과 오류 의미를 설명한다.
 func (m *Matcher) Contains(input string) bool {
 	_, ok := m.First(input)
 	return ok
 }
 
-// First는 textsearch language image example에서 반환값과 오류 의미를 설명한다.
+// First textsearch language image example에서 반환값과 오류 의미를 설명한다.
 // 세부 조건은 language script, tokenizer, normalization, example ownership 계약을 따른다.
 func (m *Matcher) First(input string) (Match, bool) {
 	matches := m.find(input, true)
@@ -126,7 +126,7 @@ func (m *Matcher) First(input string) (Match, bool) {
 	return matches[0], true
 }
 
-// FindAll는 textsearch language image example에서 반환값과 오류 의미를 설명한다.
+// FindAll textsearch language image example에서 반환값과 오류 의미를 설명한다.
 func (m *Matcher) FindAll(input string) []Match {
 	return m.find(input, false)
 }

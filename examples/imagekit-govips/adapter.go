@@ -27,7 +27,7 @@ var (
 	startError error
 )
 
-// Runtime는 textsearch language image example에서 caller-visible 상태와 의미를 설명한다.
+// Runtime textsearch language image example에서 caller-visible 상태와 의미를 설명한다.
 // 세부 조건은 language script, tokenizer, normalization, example ownership 계약을 따른다.
 type Runtime struct {
 	LibvipsVersion string
@@ -37,7 +37,7 @@ type Runtime struct {
 	SupportsGIF    bool
 }
 
-// Startup는 textsearch language image example에서 동작과 caller-visible 계약을 설명한다.
+// Startup textsearch language image example에서 동작과 caller-visible 계약을 설명한다.
 // 세부 조건은 language script, tokenizer, normalization, example ownership 계약을 따른다.
 // 세부 조건은 language script, tokenizer, normalization, example ownership 계약을 따른다.
 func Startup() error {
@@ -56,7 +56,7 @@ func Startup() error {
 	return nil
 }
 
-// RuntimeInfo는 textsearch language image example에서 반환값과 오류 의미를 설명한다.
+// RuntimeInfo textsearch language image example에서 반환값과 오류 의미를 설명한다.
 func RuntimeInfo() Runtime {
 	return Runtime{
 		LibvipsVersion: vips.Version,
@@ -67,7 +67,7 @@ func RuntimeInfo() Runtime {
 	}
 }
 
-// Transform는 textsearch language image example에서 반환값과 오류 의미를 설명한다.
+// Transform textsearch language image example에서 반환값과 오류 의미를 설명한다.
 // 세부 조건은 language script, tokenizer, normalization, example ownership 계약을 따른다.
 func Transform(ctx context.Context, reader io.Reader, request imagekit.Request) (imagekit.Result, error) {
 	var output bytes.Buffer
@@ -79,7 +79,7 @@ func Transform(ctx context.Context, reader io.Reader, request imagekit.Request) 
 	return result, nil
 }
 
-// TransformTo는 textsearch language image example에서 동작과 caller-visible 계약을 설명한다.
+// TransformTo textsearch language image example에서 동작과 caller-visible 계약을 설명한다.
 // 세부 조건은 language script, tokenizer, normalization, example ownership 계약을 따른다.
 // 세부 조건은 language script, tokenizer, normalization, example ownership 계약을 따른다.
 func TransformTo(ctx context.Context, writer io.Writer, reader io.Reader, request imagekit.Request) (imagekit.Result, error) {

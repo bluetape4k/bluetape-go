@@ -8,47 +8,47 @@ import (
 	lingua "github.com/pemistahl/lingua-go"
 )
 
-// MaxTextLength는 textsearch language image example에서 caller-visible 상태와 의미를 설명한다.
+// MaxTextLength textsearch language image example에서 caller-visible 상태와 의미를 설명한다.
 const MaxTextLength = 100_000
 
-// Language는 textsearch language image example에서 caller-visible 상태와 의미를 설명한다.
+// Language textsearch language image example에서 caller-visible 상태와 의미를 설명한다.
 // 이 주석은 textsearch language image example의 backend 요구사항, cancellation, timeout, 오류 처리 세부사항을 설명한다.
 type Language = lingua.Language
 
 const (
-	// Unknown는 textsearch language image example에서 반환값과 오류 의미를 설명한다.
+	// Unknown textsearch language image example에서 반환값과 오류 의미를 설명한다.
 	Unknown Language = lingua.Unknown
-	// Chinese는 textsearch language image example에서 caller-visible 상태와 의미를 설명한다.
+	// Chinese textsearch language image example에서 caller-visible 상태와 의미를 설명한다.
 	Chinese Language = lingua.Chinese
 	// 이 주석은 tokenizer, normalization, language detection, image/example 경계를 설명한다.
 	English Language = lingua.English
-	// French는 textsearch language image example에서 caller-visible 상태와 의미를 설명한다.
+	// French textsearch language image example에서 caller-visible 상태와 의미를 설명한다.
 	French Language = lingua.French
-	// German는 textsearch language image example에서 caller-visible 상태와 의미를 설명한다.
+	// German textsearch language image example에서 caller-visible 상태와 의미를 설명한다.
 	German Language = lingua.German
 	// 이 주석은 tokenizer, normalization, language detection, image/example 경계를 설명한다.
 	Japanese Language = lingua.Japanese
 	// 이 주석은 tokenizer, normalization, language detection, image/example 경계를 설명한다.
 	Korean Language = lingua.Korean
-	// Latin는 textsearch language image example에서 caller-visible 상태와 의미를 설명한다.
+	// Latin textsearch language image example에서 caller-visible 상태와 의미를 설명한다.
 	Latin Language = lingua.Latin
-	// Spanish는 textsearch language image example에서 caller-visible 상태와 의미를 설명한다.
+	// Spanish textsearch language image example에서 caller-visible 상태와 의미를 설명한다.
 	Spanish Language = lingua.Spanish
-	// Thai는 textsearch language image example에서 caller-visible 상태와 의미를 설명한다.
+	// Thai textsearch language image example에서 caller-visible 상태와 의미를 설명한다.
 	Thai Language = lingua.Thai
 )
 
-// AllLanguages는 textsearch language image example에서 반환값과 오류 의미를 설명한다.
+// AllLanguages textsearch language image example에서 반환값과 오류 의미를 설명한다.
 func AllLanguages() []Language {
 	return lingua.AllLanguages()
 }
 
-// AllSpokenLanguages는 textsearch language image example에서 반환값과 오류 의미를 설명한다.
+// AllSpokenLanguages textsearch language image example에서 반환값과 오류 의미를 설명한다.
 func AllSpokenLanguages() []Language {
 	return lingua.AllSpokenLanguages()
 }
 
-// Option는 textsearch language image example에서 설정값과 기본값 적용 방식을 설명한다.
+// Option textsearch language image example에서 설정값과 기본값 적용 방식을 설명한다.
 type Option func(*config) error
 
 type config struct {
@@ -57,7 +57,7 @@ type config struct {
 	minimumRelativeDistance *float64
 }
 
-// WithLowAccuracyMode는 textsearch language image example에서 동작과 caller-visible 계약을 설명한다.
+// WithLowAccuracyMode textsearch language image example에서 동작과 caller-visible 계약을 설명한다.
 func WithLowAccuracyMode() Option {
 	return func(cfg *config) error {
 		cfg.lowAccuracy = true
@@ -65,7 +65,7 @@ func WithLowAccuracyMode() Option {
 	}
 }
 
-// WithPreloadedLanguageModels는 textsearch language image example에서 동작과 caller-visible 계약을 설명한다.
+// WithPreloadedLanguageModels textsearch language image example에서 동작과 caller-visible 계약을 설명한다.
 func WithPreloadedLanguageModels() Option {
 	return func(cfg *config) error {
 		cfg.preload = true
@@ -73,7 +73,7 @@ func WithPreloadedLanguageModels() Option {
 	}
 }
 
-// WithMinimumRelativeDistance는 textsearch language image example에서 설정값과 기본값 적용 방식을 설명한다.
+// WithMinimumRelativeDistance textsearch language image example에서 설정값과 기본값 적용 방식을 설명한다.
 func WithMinimumRelativeDistance(distance float64) Option {
 	return func(cfg *config) error {
 		if distance < 0 || distance > 0.99 {
@@ -84,33 +84,33 @@ func WithMinimumRelativeDistance(distance float64) Option {
 	}
 }
 
-// Detector는 textsearch language image example에서 동작과 caller-visible 계약을 설명한다.
+// Detector textsearch language image example에서 동작과 caller-visible 계약을 설명한다.
 type Detector struct {
 	inner     lingua.LanguageDetector
 	languages []Language
 }
 
-// NewAllDetector는 textsearch language image example에서 생성과 초기화 계약을 설명한다.
+// NewAllDetector textsearch language image example에서 생성과 초기화 계약을 설명한다.
 func NewAllDetector(options ...Option) (*Detector, error) {
 	builder := lingua.NewLanguageDetectorBuilder().FromAllLanguages()
 	return buildDetector(builder, lingua.AllLanguages(), options...)
 }
 
-// NewSpokenDetector는 textsearch language image example에서 생성과 초기화 계약을 설명한다.
+// NewSpokenDetector textsearch language image example에서 생성과 초기화 계약을 설명한다.
 func NewSpokenDetector(options ...Option) (*Detector, error) {
 	languages := lingua.AllSpokenLanguages()
 	builder := lingua.NewLanguageDetectorBuilder().FromLanguages(languages...)
 	return buildDetector(builder, languages, options...)
 }
 
-// NewLatinScriptDetector는 textsearch language image example에서 생성과 초기화 계약을 설명한다.
+// NewLatinScriptDetector textsearch language image example에서 생성과 초기화 계약을 설명한다.
 func NewLatinScriptDetector(options ...Option) (*Detector, error) {
 	languages := lingua.AllLanguagesWithLatinScript()
 	builder := lingua.NewLanguageDetectorBuilder().FromAllLanguagesWithLatinScript()
 	return buildDetector(builder, languages, options...)
 }
 
-// NewDetector는 textsearch language image example에서 생성과 초기화 계약을 설명한다.
+// NewDetector textsearch language image example에서 생성과 초기화 계약을 설명한다.
 func NewDetector(languages []Language, options ...Option) (*Detector, error) {
 	languages = normalizeLanguages(languages)
 	if len(languages) < 2 {
@@ -145,7 +145,7 @@ func buildDetector(builder lingua.LanguageDetectorBuilder, languages []Language,
 	}, nil
 }
 
-// Languages는 textsearch language image example에서 반환값과 오류 의미를 설명한다.
+// Languages textsearch language image example에서 반환값과 오류 의미를 설명한다.
 func (d *Detector) Languages() []Language {
 	if d == nil {
 		return nil
@@ -153,7 +153,7 @@ func (d *Detector) Languages() []Language {
 	return append([]Language(nil), d.languages...)
 }
 
-// Result는 textsearch language image example에서 동작과 caller-visible 계약을 설명한다.
+// Result textsearch language image example에서 동작과 caller-visible 계약을 설명한다.
 type Result struct {
 	Language   Language
 	Detected   bool
@@ -162,7 +162,7 @@ type Result struct {
 	ISO6393    string
 }
 
-// Confidence는 textsearch language image example에서 동작과 caller-visible 계약을 설명한다.
+// Confidence textsearch language image example에서 동작과 caller-visible 계약을 설명한다.
 type Confidence struct {
 	Language Language
 	Value    float64
@@ -170,7 +170,7 @@ type Confidence struct {
 	ISO6393  string
 }
 
-// Section는 textsearch language image example에서 동작과 caller-visible 계약을 설명한다.
+// Section textsearch language image example에서 동작과 caller-visible 계약을 설명한다.
 type Section struct {
 	Language Language
 	Start    int
@@ -180,7 +180,7 @@ type Section struct {
 	ISO6393  string
 }
 
-// Detect는 textsearch language image example에서 동작과 caller-visible 계약을 설명한다.
+// Detect textsearch language image example에서 동작과 caller-visible 계약을 설명한다.
 func (d *Detector) Detect(text string) (Result, error) {
 	if err := validateText(text); err != nil {
 		return Result{}, err
@@ -201,7 +201,7 @@ func (d *Detector) Detect(text string) (Result, error) {
 	}, nil
 }
 
-// Confidences는 textsearch language image example에서 반환값과 오류 의미를 설명한다.
+// Confidences textsearch language image example에서 반환값과 오류 의미를 설명한다.
 func (d *Detector) Confidences(text string) ([]Confidence, error) {
 	if err := validateText(text); err != nil {
 		return nil, err
@@ -223,7 +223,7 @@ func (d *Detector) Confidences(text string) ([]Confidence, error) {
 	return confidences, nil
 }
 
-// DetectMultiple는 textsearch language image example에서 동작과 caller-visible 계약을 설명한다.
+// DetectMultiple textsearch language image example에서 동작과 caller-visible 계약을 설명한다.
 func (d *Detector) DetectMultiple(text string) ([]Section, error) {
 	if err := validateText(text); err != nil {
 		return nil, err

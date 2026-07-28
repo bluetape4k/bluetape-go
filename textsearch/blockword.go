@@ -6,62 +6,62 @@ import (
 	"unicode/utf8"
 )
 
-// MaxBlockwordTextLength는 textsearch language image example에서 caller-visible 상태와 의미를 설명한다.
-// NewBlockwordRequest는 textsearch language image example에서 동작과 caller-visible 계약을 설명한다.
+// MaxBlockwordTextLength textsearch language image example에서 caller-visible 상태와 의미를 설명한다.
+// NewBlockwordRequest textsearch language image example에서 동작과 caller-visible 계약을 설명한다.
 const MaxBlockwordTextLength = 100_000
 
-// Severity는 textsearch language image example에서 caller-visible 상태와 의미를 설명한다.
+// Severity textsearch language image example에서 caller-visible 상태와 의미를 설명한다.
 type Severity int
 
 const (
-	// SeverityLow는 textsearch language image example에서 caller-visible 상태와 의미를 설명한다.
+	// SeverityLow textsearch language image example에서 caller-visible 상태와 의미를 설명한다.
 	SeverityLow Severity = iota
-	// SeverityMiddle는 textsearch language image example에서 caller-visible 상태와 의미를 설명한다.
+	// SeverityMiddle textsearch language image example에서 caller-visible 상태와 의미를 설명한다.
 	SeverityMiddle
-	// SeverityHigh는 textsearch language image example에서 caller-visible 상태와 의미를 설명한다.
+	// SeverityHigh textsearch language image example에서 caller-visible 상태와 의미를 설명한다.
 	SeverityHigh
 )
 
-// BlockwordEntry는 textsearch language image example에서 caller-visible 상태와 의미를 설명한다.
+// BlockwordEntry textsearch language image example에서 caller-visible 상태와 의미를 설명한다.
 type BlockwordEntry struct {
-	// ID는 textsearch language image example에서 caller-visible 상태와 의미를 설명한다.
+	// ID textsearch language image example에서 caller-visible 상태와 의미를 설명한다.
 	ID string
-	// Text는 textsearch language image example에서 caller-visible 상태와 의미를 설명한다.
+	// Text textsearch language image example에서 caller-visible 상태와 의미를 설명한다.
 	Text string
-	// Severity는 textsearch language image example에서 동작과 caller-visible 계약을 설명한다.
+	// Severity textsearch language image example에서 동작과 caller-visible 계약을 설명한다.
 	Severity Severity
-	// Metadata는 textsearch language image example에서 동작과 caller-visible 계약을 설명한다.
+	// Metadata textsearch language image example에서 동작과 caller-visible 계약을 설명한다.
 	Metadata map[string]string
 }
 
-// BlockwordOptions는 textsearch language image example에서 동작과 caller-visible 계약을 설명한다.
+// BlockwordOptions textsearch language image example에서 동작과 caller-visible 계약을 설명한다.
 type BlockwordOptions struct {
-	// Mask는 textsearch language image example에서 caller-visible 상태와 의미를 설명한다.
+	// Mask textsearch language image example에서 caller-visible 상태와 의미를 설명한다.
 	Mask string
-	// MinSeverity는 textsearch language image example에서 동작과 caller-visible 계약을 설명한다.
+	// MinSeverity textsearch language image example에서 동작과 caller-visible 계약을 설명한다.
 	// 세부 조건은 language script, tokenizer, normalization, example ownership 계약을 따른다.
 	MinSeverity Severity
 }
 
-// BlockwordRequest는 textsearch language image example에서 caller-visible 상태와 의미를 설명한다.
+// BlockwordRequest textsearch language image example에서 caller-visible 상태와 의미를 설명한다.
 type BlockwordRequest struct {
 	Text    string
 	Options BlockwordOptions
 }
 
-// BlockwordResponse는 textsearch language image example에서 caller-visible 상태와 의미를 설명한다.
+// BlockwordResponse textsearch language image example에서 caller-visible 상태와 의미를 설명한다.
 type BlockwordResponse struct {
 	Request    BlockwordRequest
 	MaskedText string
 	Matches    []BlockwordMatch
 }
 
-// BlockwordExists는 textsearch language image example에서 반환값과 오류 의미를 설명한다.
+// BlockwordExists textsearch language image example에서 반환값과 오류 의미를 설명한다.
 func (r BlockwordResponse) BlockwordExists() bool {
 	return len(r.Matches) > 0
 }
 
-// BlockWords는 textsearch language image example에서 반환값과 오류 의미를 설명한다.
+// BlockWords textsearch language image example에서 반환값과 오류 의미를 설명한다.
 func (r BlockwordResponse) BlockWords() []string {
 	words := make([]string, len(r.Matches))
 	for i, match := range r.Matches {
@@ -70,7 +70,7 @@ func (r BlockwordResponse) BlockWords() []string {
 	return words
 }
 
-// BlockwordMatch는 textsearch language image example에서 동작과 caller-visible 계약을 설명한다.
+// BlockwordMatch textsearch language image example에서 동작과 caller-visible 계약을 설명한다.
 type BlockwordMatch struct {
 	Entry BlockwordEntry
 	Start int
@@ -78,13 +78,13 @@ type BlockwordMatch struct {
 	Text  string
 }
 
-// BlockwordDictionary는 textsearch language image example에서 caller-visible 상태와 의미를 설명한다.
+// BlockwordDictionary textsearch language image example에서 caller-visible 상태와 의미를 설명한다.
 type BlockwordDictionary struct {
 	matcher *Matcher
 	entries map[string]BlockwordEntry
 }
 
-// NewBlockwordRequest는 textsearch language image example에서 동작과 caller-visible 계약을 설명한다.
+// NewBlockwordRequest textsearch language image example에서 동작과 caller-visible 계약을 설명한다.
 func NewBlockwordRequest(text string, options BlockwordOptions) (BlockwordRequest, error) {
 	textLength := utf8.RuneCountInString(text)
 	if textLength > MaxBlockwordTextLength {
@@ -96,7 +96,7 @@ func NewBlockwordRequest(text string, options BlockwordOptions) (BlockwordReques
 	return BlockwordRequest{Text: text, Options: normalizeBlockwordOptions(options)}, nil
 }
 
-// NewBlockwordDictionary는 textsearch language image example에서 동작과 caller-visible 계약을 설명한다.
+// NewBlockwordDictionary textsearch language image example에서 동작과 caller-visible 계약을 설명한다.
 func NewBlockwordDictionary(entries []BlockwordEntry, cfg Config) (*BlockwordDictionary, error) {
 	if len(entries) == 0 {
 		return nil, ErrNoPatterns
@@ -125,7 +125,7 @@ func NewBlockwordDictionary(entries []BlockwordEntry, cfg Config) (*BlockwordDic
 	return &BlockwordDictionary{matcher: matcher, entries: compiled}, nil
 }
 
-// Detect는 textsearch language image example에서 반환값과 오류 의미를 설명한다.
+// Detect textsearch language image example에서 반환값과 오류 의미를 설명한다.
 func (d *BlockwordDictionary) Detect(text string, options BlockwordOptions) []BlockwordMatch {
 	if d == nil || d.matcher == nil {
 		return nil
@@ -148,7 +148,7 @@ func (d *BlockwordDictionary) Detect(text string, options BlockwordOptions) []Bl
 	return selectBlockwordLeftmostLongest(result)
 }
 
-// Process는 textsearch language image example에서 반환값과 오류 의미를 설명한다.
+// Process textsearch language image example에서 반환값과 오류 의미를 설명한다.
 func (d *BlockwordDictionary) Process(request BlockwordRequest) (BlockwordResponse, error) {
 	normalized, err := NewBlockwordRequest(request.Text, request.Options)
 	if err != nil {
@@ -162,7 +162,7 @@ func (d *BlockwordDictionary) Process(request BlockwordRequest) (BlockwordRespon
 	}, nil
 }
 
-// Mask는 textsearch language image example에서 반환값과 오류 의미를 설명한다.
+// Mask textsearch language image example에서 반환값과 오류 의미를 설명한다.
 func (d *BlockwordDictionary) Mask(text string, options BlockwordOptions) (string, error) {
 	request, err := NewBlockwordRequest(text, options)
 	if err != nil {
