@@ -44,7 +44,7 @@ type Options struct {
 	ReturnItemCollectionMetrics types.ReturnItemCollectionMetrics
 }
 
-// Option은 WriteAll 실행 설정을 변경한다.
+// Option WriteAll 실행 설정을 변경한다.
 type Option func(*Options)
 
 // Result 완료된 BatchWriteItem 호출 결과를 요약한다.
@@ -99,7 +99,7 @@ func WithReturnItemCollectionMetrics(value types.ReturnItemCollectionMetrics) Op
 	}
 }
 
-// WriteAll은 모든 request item을 DynamoDB BatchWriteItem으로 기록한다.
+// WriteAll 모든 request item을 DynamoDB BatchWriteItem으로 기록한다.
 //
 // requestItems는 AWS SDK가 받는 table-to-WriteRequest map과 같은 형식을 사용한다. WriteAll은 map을
 // 최대 MaxItemsPerBatch item을 포함하는 request로 나눈 뒤, DynamoDB가 반환한 UnprocessedItems만

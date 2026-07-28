@@ -47,7 +47,7 @@ type Order struct {
 	UpdatedAt  time.Time
 }
 
-// LineItem은 example source state의 단일 order line이다.
+// LineItem example source state의 단일 order line이다.
 type LineItem struct {
 	SKU      string
 	Quantity int
@@ -149,7 +149,7 @@ func (s *OrderService) CreateOrder(ctx context.Context, command CreateOrderComma
 	return order, nil
 }
 
-// AddItem은 line item 하나를 추가하고 변경을 audit history에 기록한다.
+// AddItem line item 하나를 추가하고 변경을 audit history에 기록한다.
 func (s *OrderService) AddItem(ctx context.Context, command AddItemCommand) (Order, error) {
 	if err := checkContext(ctx); err != nil {
 		return Order{}, err
@@ -236,7 +236,7 @@ func (s *OrderService) History(ctx context.Context, orderID string) (audit.Histo
 	return s.repo.LoadHistory(ctx, aggregate)
 }
 
-// Lookup은 source order state의 defensive copy를 반환한다.
+// Lookup source order state의 defensive copy를 반환한다.
 func (s *OrderService) Lookup(orderID string) (Order, bool) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
