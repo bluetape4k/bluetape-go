@@ -1,7 +1,3 @@
-// Package rediscoordfory provides opt-in Go-native Apache Fory codecs for
-// rediscoord coordination payloads.
-//
-// The codecs are intended for trusted internal Redis traffic. Apache Fory is
-// not encryption, and this package does not provide cross-language (xlang)
-// interoperability or direct Redis value-cache storage.
+// Package rediscoordfory는 bluetape-go의 rediscoordfory cache 기능을 제공한다.
+// 공개 API 주석은 key, TTL, serialization, backend ownership, 오류 계약을 한국어로 확인할 수 있도록 유지한다.
 package rediscoordfory

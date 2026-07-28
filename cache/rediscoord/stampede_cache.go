@@ -12,14 +12,20 @@ import (
 	"github.com/redis/go-redis/v9"
 )
 
-// StampedeCache coordinates cross-process load bursts through Redis.
+// StampedeCache는 struct 공개 타입이며 Redis 조정, stampede 방지, codec envelope 계약을 보존한다.
+// 필드와 zero value, nil 허용 여부, 동시성 소유권은 생성자와 메서드의 한국어 주석 및 테스트 계약을 따른다.
 type StampedeCache[V any] struct {
 	cfg config[V]
 }
 
 var _ cache.LoadingCache[string, string] = (*StampedeCache[string])(nil)
 
-// NewStampedeCache creates a Redis coordination wrapper.
+// NewStampedeCache는 NewStampedeCache 공개 API의 동작을 수행하며 Redis 조정, stampede 방지, codec envelope 계약을 보존한다.
+//
+// 매개변수:
+//   - options: NewStampedeCache 동작에 필요한 options 값이다. zero value, 범위, nil 허용 여부는 함수 계약을 따른다.
+//
+// 반환 오류는 cache miss, 입력 검증 실패, 취소, Redis/backend 실패, 또는 package sentinel/typed error 계약을 보존한다.
 func NewStampedeCache[V any](options Options[V]) (*StampedeCache[V], error) {
 	cfg, err := normalizeOptions(options)
 	if err != nil {
@@ -28,27 +34,60 @@ func NewStampedeCache[V any](options Options[V]) (*StampedeCache[V], error) {
 	return &StampedeCache[V]{cfg: cfg}, nil
 }
 
-// Get reads a value from the wrapped cache.
+// Get는 Get 공개 API의 동작을 수행하며 Redis 조정, stampede 방지, codec envelope 계약을 보존한다.
+//
+// 매개변수:
+//   - ctx: 호출자가 소유한 취소, deadline, 요청 범위를 전달한다.
+//   - key: cache lookup과 저장에 사용하는 caller-owned key다. 정규화와 namespace 의미는 package 계약을 따른다.
+//
+// 반환 오류는 cache miss, 입력 검증 실패, 취소, Redis/backend 실패, 또는 package sentinel/typed error 계약을 보존한다.
 func (c *StampedeCache[V]) Get(ctx context.Context, key string) (V, error) {
 	return c.cfg.cache.Get(normalizeContext(ctx), key)
 }
 
-// Set writes a value to the wrapped cache.
+// Set는 Set 공개 API의 동작을 수행하며 Redis 조정, stampede 방지, codec envelope 계약을 보존한다.
+//
+// 매개변수:
+//   - ctx: 호출자가 소유한 취소, deadline, 요청 범위를 전달한다.
+//   - key: cache lookup과 저장에 사용하는 caller-owned key다. 정규화와 namespace 의미는 package 계약을 따른다.
+//   - value: 직렬화하거나 cache에 보관할 값이다. nil, zero value, aliasing 의미는 serializer/cache 계약을 따른다.
+//   - ttl: cache entry의 유효 시간이다. zero, 음수, 만료 의미는 옵션과 TTL 계약을 따른다.
+//
+// 반환 오류는 cache miss, 입력 검증 실패, 취소, Redis/backend 실패, 또는 package sentinel/typed error 계약을 보존한다.
 func (c *StampedeCache[V]) Set(ctx context.Context, key string, value V, ttl time.Duration) error {
 	return c.cfg.cache.Set(normalizeContext(ctx), key, value, ttl)
 }
 
-// Delete removes a key from the wrapped cache.
+// Delete는 Delete 공개 API의 동작을 수행하며 Redis 조정, stampede 방지, codec envelope 계약을 보존한다.
+//
+// 매개변수:
+//   - ctx: 호출자가 소유한 취소, deadline, 요청 범위를 전달한다.
+//   - key: cache lookup과 저장에 사용하는 caller-owned key다. 정규화와 namespace 의미는 package 계약을 따른다.
+//
+// 반환 오류는 cache miss, 입력 검증 실패, 취소, Redis/backend 실패, 또는 package sentinel/typed error 계약을 보존한다.
 func (c *StampedeCache[V]) Delete(ctx context.Context, key string) error {
 	return c.cfg.cache.Delete(normalizeContext(ctx), key)
 }
 
-// Clear empties the wrapped cache.
+// Clear는 Clear 공개 API의 동작을 수행하며 Redis 조정, stampede 방지, codec envelope 계약을 보존한다.
+//
+// 매개변수:
+//   - ctx: 호출자가 소유한 취소, deadline, 요청 범위를 전달한다.
+//
+// 반환 오류는 cache miss, 입력 검증 실패, 취소, Redis/backend 실패, 또는 package sentinel/typed error 계약을 보존한다.
 func (c *StampedeCache[V]) Clear(ctx context.Context) error {
 	return c.cfg.cache.Clear(normalizeContext(ctx))
 }
 
-// GetOrLoad shares one process's loader result during a cold-miss burst.
+// GetOrLoad는 GetOrLoad 공개 API의 동작을 수행하며 Redis 조정, stampede 방지, codec envelope 계약을 보존한다.
+//
+// 매개변수:
+//   - ctx: 호출자가 소유한 취소, deadline, 요청 범위를 전달한다.
+//   - key: cache lookup과 저장에 사용하는 caller-owned key다. 정규화와 namespace 의미는 package 계약을 따른다.
+//   - ttl: cache entry의 유효 시간이다. zero, 음수, 만료 의미는 옵션과 TTL 계약을 따른다.
+//   - loader: GetOrLoad 동작에 필요한 loader 값이다. zero value, 범위, nil 허용 여부는 함수 계약을 따른다.
+//
+// 반환 오류는 cache miss, 입력 검증 실패, 취소, Redis/backend 실패, 또는 package sentinel/typed error 계약을 보존한다.
 func (c *StampedeCache[V]) GetOrLoad(
 	ctx context.Context,
 	key string,

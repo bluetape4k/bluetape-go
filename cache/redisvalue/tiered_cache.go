@@ -9,23 +9,21 @@ import (
 	btredis "github.com/bluetape4k/bluetape-go/redis"
 )
 
-// TieredOptions configures a process-local L1 decorator around a serialized
-// Redis ValueCache L2. Local becomes exclusively owned by the decorator for
-// cache operations, while its lifecycle remains caller-owned.
+// TieredOptions는 struct 공개 타입이며 tiered Redis value cache의 local/remote ownership, TTL, clear coordination 계약을 보존한다.
+// 필드와 zero value, nil 허용 여부, 동시성 소유권은 생성자와 메서드의 한국어 주석 및 테스트 계약을 따른다.
 type TieredOptions[V any] struct {
-	// Local must be new or empty, or already contain values only for the exact
+	// Local은 새 cache이거나 비어 있어야 하며, 같은 Remote/namespace/key 계약의 값만 포함해야 한다.
 	// Namespace, schema, and tenant represented by Remote. It must not be shared
 	// with another decorator.
 	Local cache.Cache[string, V]
-	// Remote is the serialized L2 provider decorated by this cache.
+	// Remote는 이 cache가 감싸는 serialized L2 provider다.
 	Remote *ValueCache[V]
-	// Config is copied during construction. Nil uses DefaultConfig().Tiered.
+	// Config는 생성 시 복사된다. nil이면 DefaultConfig().Tiered를 사용한다.
 	Config *TieredConfig
 }
 
-// TieredCache composes a caller-owned process-local L1 with a ValueCache L2.
-// It stores V directly in L1 and is not a coherent multi-process near cache.
-// Its zero value is not usable; construct it with NewTieredCache.
+// TieredCache는 struct 공개 타입이며 tiered Redis value cache의 local/remote ownership, TTL, clear coordination 계약을 보존한다.
+// 필드와 zero value, nil 허용 여부, 동시성 소유권은 생성자와 메서드의 한국어 주석 및 테스트 계약을 따른다.
 type TieredCache[V any] struct {
 	local        cache.Cache[string, V]
 	remote       *ValueCache[V]
@@ -35,7 +33,12 @@ type TieredCache[V any] struct {
 	now          func() time.Time
 }
 
-// NewTieredCache constructs a reference-preserving process-local L1 decorator.
+// NewTieredCache는 NewTieredCache 공개 API의 동작을 수행하며 tiered Redis value cache의 local/remote ownership, TTL, clear coordination 계약을 보존한다.
+//
+// 매개변수:
+//   - options: NewTieredCache 동작에 필요한 options 값이다. zero value, 범위, nil 허용 여부는 함수 계약을 따른다.
+//
+// 반환 오류는 cache miss, 입력 검증 실패, 취소, Redis/backend 실패, 또는 package sentinel/typed error 계약을 보존한다.
 func NewTieredCache[V any](options TieredOptions[V]) (*TieredCache[V], error) {
 	if nilInterface(options.Local) || !initializedValueCache(options.Remote) {
 		return nil, newCacheError("configure-tiered", ReasonConfiguration, "", nil)
@@ -65,8 +68,13 @@ func NewTieredCache[V any](options TieredOptions[V]) (*TieredCache[V], error) {
 	}, nil
 }
 
-// Get returns a stable L1 hit without serialization, or reads and decodes L2
-// after an exact L1 miss.
+// Get는 Get 공개 API의 동작을 수행하며 tiered Redis value cache의 local/remote ownership, TTL, clear coordination 계약을 보존한다.
+//
+// 매개변수:
+//   - ctx: 호출자가 소유한 취소, deadline, 요청 범위를 전달한다.
+//   - key: cache lookup과 저장에 사용하는 caller-owned key다. 정규화와 namespace 의미는 package 계약을 따른다.
+//
+// 반환 오류는 cache miss, 입력 검증 실패, 취소, Redis/backend 실패, 또는 package sentinel/typed error 계약을 보존한다.
 func (c *TieredCache[V]) Get(ctx context.Context, key string) (V, error) {
 	var zero V
 	ctx = normalizeContext(ctx)
@@ -79,8 +87,15 @@ func (c *TieredCache[V]) Get(ctx context.Context, key string) (V, error) {
 	return c.getRemoteCoordinated(ctx, key)
 }
 
-// GetOrLoad returns an L1 or L2 hit, or collapses one caller loader invocation
-// for the active same-key process-local flight.
+// GetOrLoad는 GetOrLoad 공개 API의 동작을 수행하며 tiered Redis value cache의 local/remote ownership, TTL, clear coordination 계약을 보존한다.
+//
+// 매개변수:
+//   - ctx: 호출자가 소유한 취소, deadline, 요청 범위를 전달한다.
+//   - key: cache lookup과 저장에 사용하는 caller-owned key다. 정규화와 namespace 의미는 package 계약을 따른다.
+//   - remoteTTL: cache entry의 유효 시간이다. zero, 음수, 만료 의미는 옵션과 TTL 계약을 따른다.
+//   - loader: GetOrLoad 동작에 필요한 loader 값이다. zero value, 범위, nil 허용 여부는 함수 계약을 따른다.
+//
+// 반환 오류는 cache miss, 입력 검증 실패, 취소, Redis/backend 실패, 또는 package sentinel/typed error 계약을 보존한다.
 func (c *TieredCache[V]) GetOrLoad(
 	ctx context.Context,
 	key string,
@@ -122,7 +137,14 @@ func (c *TieredCache[V]) GetOrLoad(
 	return value, err
 }
 
-// GetOrLoadDefault delegates to GetOrLoad using the copied L2 default TTL.
+// GetOrLoadDefault는 GetOrLoadDefault 공개 API의 동작을 수행하며 tiered Redis value cache의 local/remote ownership, TTL, clear coordination 계약을 보존한다.
+//
+// 매개변수:
+//   - ctx: 호출자가 소유한 취소, deadline, 요청 범위를 전달한다.
+//   - key: cache lookup과 저장에 사용하는 caller-owned key다. 정규화와 namespace 의미는 package 계약을 따른다.
+//   - loader: GetOrLoadDefault 동작에 필요한 loader 값이다. zero value, 범위, nil 허용 여부는 함수 계약을 따른다.
+//
+// 반환 오류는 cache miss, 입력 검증 실패, 취소, Redis/backend 실패, 또는 package sentinel/typed error 계약을 보존한다.
 func (c *TieredCache[V]) GetOrLoadDefault(
 	ctx context.Context,
 	key string,
@@ -135,8 +157,15 @@ func (c *TieredCache[V]) GetOrLoadDefault(
 	return c.GetOrLoad(ctx, key, c.remote.config.RemoteTTL, loader)
 }
 
-// Set writes Redis first, then stores the original V reference in L1 when the
-// local generation remains current.
+// Set는 Set 공개 API의 동작을 수행하며 tiered Redis value cache의 local/remote ownership, TTL, clear coordination 계약을 보존한다.
+//
+// 매개변수:
+//   - ctx: 호출자가 소유한 취소, deadline, 요청 범위를 전달한다.
+//   - key: cache lookup과 저장에 사용하는 caller-owned key다. 정규화와 namespace 의미는 package 계약을 따른다.
+//   - value: 직렬화하거나 cache에 보관할 값이다. nil, zero value, aliasing 의미는 serializer/cache 계약을 따른다.
+//   - remoteTTL: cache entry의 유효 시간이다. zero, 음수, 만료 의미는 옵션과 TTL 계약을 따른다.
+//
+// 반환 오류는 cache miss, 입력 검증 실패, 취소, Redis/backend 실패, 또는 package sentinel/typed error 계약을 보존한다.
 func (c *TieredCache[V]) Set(ctx context.Context, key string, value V, remoteTTL time.Duration) error {
 	ctx = normalizeContext(ctx)
 	if err := c.validateCall(ctx, "set", key); err != nil {
@@ -210,7 +239,14 @@ func (c *TieredCache[V]) Set(ctx context.Context, key string, value V, remoteTTL
 	return c.populateLocalHeld(ctx, key, value, localTTL, generation)
 }
 
-// SetDefault delegates to Set using the copied L2 default TTL.
+// SetDefault는 SetDefault 공개 API의 동작을 수행하며 tiered Redis value cache의 local/remote ownership, TTL, clear coordination 계약을 보존한다.
+//
+// 매개변수:
+//   - ctx: 호출자가 소유한 취소, deadline, 요청 범위를 전달한다.
+//   - key: cache lookup과 저장에 사용하는 caller-owned key다. 정규화와 namespace 의미는 package 계약을 따른다.
+//   - value: 직렬화하거나 cache에 보관할 값이다. nil, zero value, aliasing 의미는 serializer/cache 계약을 따른다.
+//
+// 반환 오류는 cache miss, 입력 검증 실패, 취소, Redis/backend 실패, 또는 package sentinel/typed error 계약을 보존한다.
 func (c *TieredCache[V]) SetDefault(ctx context.Context, key string, value V) error {
 	if c == nil || !initializedValueCache(c.remote) {
 		return newCacheError("set-default", ReasonUninitialized, "", nil)
@@ -218,8 +254,13 @@ func (c *TieredCache[V]) SetDefault(ctx context.Context, key string, value V) er
 	return c.Set(ctx, key, value, c.remote.config.RemoteTTL)
 }
 
-// Delete removes Redis first, then always attempts mandatory local deletion
-// after the Redis command has been invoked.
+// Delete는 Delete 공개 API의 동작을 수행하며 tiered Redis value cache의 local/remote ownership, TTL, clear coordination 계약을 보존한다.
+//
+// 매개변수:
+//   - ctx: 호출자가 소유한 취소, deadline, 요청 범위를 전달한다.
+//   - key: cache lookup과 저장에 사용하는 caller-owned key다. 정규화와 namespace 의미는 package 계약을 따른다.
+//
+// 반환 오류는 cache miss, 입력 검증 실패, 취소, Redis/backend 실패, 또는 package sentinel/typed error 계약을 보존한다.
 func (c *TieredCache[V]) Delete(ctx context.Context, key string) error {
 	ctx = normalizeContext(ctx)
 	if err := c.validateCall(ctx, "delete", key); err != nil {
@@ -269,8 +310,13 @@ func (c *TieredCache[V]) Delete(ctx context.Context, key string) error {
 	return c.mutationResult("delete", key, generation, remoteErr, cleanupErr)
 }
 
-// InvalidateLocal removes only this decorator's L1 entry. It never invokes
-// Redis and never heals a globally blocked local state.
+// InvalidateLocal는 InvalidateLocal 공개 API의 동작을 수행하며 tiered Redis value cache의 local/remote ownership, TTL, clear coordination 계약을 보존한다.
+//
+// 매개변수:
+//   - ctx: 호출자가 소유한 취소, deadline, 요청 범위를 전달한다.
+//   - key: cache lookup과 저장에 사용하는 caller-owned key다. 정규화와 namespace 의미는 package 계약을 따른다.
+//
+// 반환 오류는 cache miss, 입력 검증 실패, 취소, Redis/backend 실패, 또는 package sentinel/typed error 계약을 보존한다.
 func (c *TieredCache[V]) InvalidateLocal(ctx context.Context, key string) error {
 	ctx = normalizeContext(ctx)
 	if err := c.validateCall(ctx, "invalidate-local", key); err != nil {
@@ -290,8 +336,12 @@ func (c *TieredCache[V]) InvalidateLocal(ctx context.Context, key string) error 
 	return c.invalidateLocalHeld(cleanupCtx, key)
 }
 
-// ClearLocal clears only this decorator's L1 and is the sole explicit repair
-// operation that may heal blocked local state.
+// ClearLocal는 ClearLocal 공개 API의 동작을 수행하며 tiered Redis value cache의 local/remote ownership, TTL, clear coordination 계약을 보존한다.
+//
+// 매개변수:
+//   - ctx: 호출자가 소유한 취소, deadline, 요청 범위를 전달한다.
+//
+// 반환 오류는 cache miss, 입력 검증 실패, 취소, Redis/backend 실패, 또는 package sentinel/typed error 계약을 보존한다.
 func (c *TieredCache[V]) ClearLocal(ctx context.Context) error {
 	ctx = normalizeContext(ctx)
 	if err := c.validateInitialized("clear-local"); err != nil {
@@ -314,8 +364,12 @@ func (c *TieredCache[V]) ClearLocal(ctx context.Context) error {
 	return nil
 }
 
-// Clear clears this namespace in Redis, then always attempts a mandatory full
-// clear of this decorator's L1 once the remote operation has begun.
+// Clear는 Clear 공개 API의 동작을 수행하며 tiered Redis value cache의 local/remote ownership, TTL, clear coordination 계약을 보존한다.
+//
+// 매개변수:
+//   - ctx: 호출자가 소유한 취소, deadline, 요청 범위를 전달한다.
+//
+// 반환 오류는 cache miss, 입력 검증 실패, 취소, Redis/backend 실패, 또는 package sentinel/typed error 계약을 보존한다.
 func (c *TieredCache[V]) Clear(ctx context.Context) error {
 	ctx = normalizeContext(ctx)
 	if err := c.validateNoKeyCall(ctx, "clear"); err != nil {
