@@ -1,98 +1,94 @@
-# Lessons Learned — Redis NearCache (2026-06-04)
+# Redis NearCache Lessons (2026-06-04)
 
 **Related issue**: #23
 **Impact modules**: `cache/redisnear`, `cache`, `testcontainers/redis`
 
-## L1: Testcontainers log readiness is not always connection readiness
+## L1: Testcontainers log readiness가 항상 connection readiness는 아니다
 
-### Problem
+### 문제
 
-The first Redis NearCache package test failed once with `connect: connection refused`
-immediately after the Redis container helper returned an address.
+첫 Redis NearCache package test는 Redis container helper가 address를 반환한 직후
+`connect: connection refused`로 한 번 실패했다.
 
-### Lesson
+### 교훈
 
-For Redis Pub/Sub integration tests, add a lightweight `PING` readiness check in
-the package-level test helper before constructing subscribers. This keeps the
-shared container fixture unchanged while protecting timing-sensitive subscriber
-startup tests.
-
-### Evidence
-
-- Initial `go test -count=1 ./cache ./cache/redisnear` failed in
-  `TestNearCacheInvalidatesPeerEntries`.
-- After adding `waitForRedis`, `go test -count=1 ./cache ./cache/redisnear`
-  passed.
-
-## L2: Failure-mode behavior needs a direct test, not only a design note
-
-### Problem
-
-The spec required receive errors to clear the local cache and call `OnError`, but
-the first test pass covered malformed messages and close semantics without
-forcing a receive error.
-
-### Lesson
-
-Near-cache invalidation tests must include both data-path proof and failure-path
-proof: peer invalidation, malformed payload reporting, receive-error local clear,
-close idempotency, stress, and cancellation.
+Redis Pub/Sub integration test는 subscriber를 만들기 전에 package-level test helper
+안에서 가벼운 `PING` readiness check를 추가한다. shared container fixture는 그대로
+두면서 timing-sensitive subscriber startup test를 보호한다.
 
 ### Evidence
 
-- Added `TestNearCacheClearsLocalOnReceiveError`.
-- `go test -count=1 ./cache/redisnear` passed.
-- `go test -race -count=1 ./cache/redisnear` passed.
+- initial `go test -count=1 ./cache ./cache/redisnear`는
+  `TestNearCacheInvalidatesPeerEntries`에서 실패했다.
+- `waitForRedis` 추가 후 `go test -count=1 ./cache ./cache/redisnear`가 통과했다.
 
-## L3: Examples must satisfy the same errcheck gate as production code
+## L2: failure-mode behavior는 design note가 아니라 direct test가 필요하다
 
-### Problem
+### 문제
 
-The compile-only `ExampleNewPubSub` initially used bare `defer client.Close()`
-and `defer near.Close()`. `make ci` failed at lint with two errcheck findings.
+spec은 receive error에서 local cache를 clear하고 `OnError`를 호출해야 한다고
+요구했지만, 첫 test pass는 malformed message와 close semantics만 다뤘다.
 
-### Lesson
+### 교훈
 
-Even when examples are intentionally minimal, close calls should use a deferred
-function and explicitly discard the error when cleanup cannot affect the example
-result.
-
-### Evidence
-
-- Initial `make ci` failed in `cache/redisnear/example_test.go`.
-- After wrapping deferred closes, `make ci` passed with `0 issues`.
-
-## L4: NearCache reviews must stress peer behavior, not only local methods
-
-### Problem
-
-The first stress test exercised one `NearCache` instance. That passed race and CI
-but did not pressure the actual near-cache risk: two peers exchanging
-invalidations while local `GetOrLoad` calls continue.
-
-### Lesson
-
-Redis near-cache stress coverage must include at least two Redis-backed peers,
-concurrent mutating operations on both sides, and peer reads/loaders under
-invalidation pressure.
+Near-cache invalidation test는 data path와 failure path를 모두 포함해야 한다. peer
+invalidation, malformed payload reporting, receive-error local clear, close
+idempotency, stress, cancellation을 함께 고정한다.
 
 ### Evidence
 
-- Hard PR review found this as P1.
-- `TestNearCacheConcurrentStress` now uses two peer `NearCache` instances.
+- `TestNearCacheClearsLocalOnReceiveError` 추가.
+- `go test -count=1 ./cache/redisnear` 통과.
+- `go test -race -count=1 ./cache/redisnear` 통과.
 
-## L5: Observer hooks on background loops need isolation
+## L3: example도 production code와 같은 errcheck gate를 만족해야 한다
 
-### Problem
+### 문제
 
-`OnError` originally ran inline on the subscriber loop. A blocking handler could
-delay invalidation processing, and a panic could terminate the goroutine.
+compile-only `ExampleNewPubSub`는 처음에 bare `defer client.Close()`와
+`defer near.Close()`를 사용했다. `make ci`는 lint 단계에서 errcheck finding 2개로
+실패했다.
 
-### Lesson
+### 교훈
 
-Background lifecycle loops should isolate diagnostic hooks from protocol
-processing. Use a bounded queue where loss is acceptable, recover handler
-panics, and document the best-effort contract.
+example이 의도적으로 작더라도 close call은 deferred function 안에서 처리하고,
+cleanup이 example result에 영향을 줄 수 없을 때는 error를 명시적으로 discard한다.
+
+### Evidence
+
+- initial `make ci`는 `cache/redisnear/example_test.go`에서 실패했다.
+- deferred close를 감싼 뒤 `make ci`가 `0 issues`로 통과했다.
+
+## L4: NearCache review는 local method뿐 아니라 peer behavior를 stress해야 한다
+
+### 문제
+
+첫 stress test는 `NearCache` instance 하나만 exercise했다. race와 CI는 통과했지만
+실제 near-cache risk인 두 peer의 invalidation exchange와 concurrent `GetOrLoad`
+상황을 압박하지 못했다.
+
+### 교훈
+
+Redis near-cache stress coverage는 적어도 두 Redis-backed peer, 양쪽의 concurrent
+mutating operation, invalidation pressure 아래의 peer read/loader를 포함해야 한다.
+
+### Evidence
+
+- hard PR review가 이를 P1로 발견했다.
+- `TestNearCacheConcurrentStress`는 이제 두 peer `NearCache` instance를 사용한다.
+
+## L5: background loop의 observer hook은 isolation이 필요하다
+
+### 문제
+
+`OnError`는 원래 subscriber loop에서 inline으로 실행됐다. blocking handler는
+invalidation processing을 지연시킬 수 있고 panic은 goroutine을 종료할 수 있었다.
+
+### 교훈
+
+background lifecycle loop는 diagnostic hook을 protocol processing과 격리해야 한다.
+loss가 허용되는 bounded queue를 사용하고, handler panic을 recover하며,
+best-effort contract를 문서화한다.
 
 ### Evidence
 

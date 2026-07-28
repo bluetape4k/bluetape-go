@@ -1,40 +1,39 @@
-# Issue #598 Lesson: A Payload Bound Must Start At The Redis Read
+# Issue #598 교훈: Payload Bound는 Redis Read에서 시작해야 한다
 
 ## Context
 
-A direct Redis value cache can validate its binary envelope perfectly and still
-fail its resource-bound promise if it first downloads the entire stored value.
-Bad rollout data, a stale writer, manual corruption, or a compromised peer can
-place a value larger than the configured Fory payload limit under a valid key.
+direct Redis value cache는 binary envelope를 완벽히 검증하더라도, 먼저 저장된 전체
+value를 다운로드하면 resource-bound 약속을 지키지 못할 수 있다. 잘못된 rollout
+data, stale writer, manual corruption, compromised peer는 valid key 아래 configured
+Fory payload limit보다 큰 value를 둘 수 있다.
 
 ## Learning
 
-Enforce the bound at the earliest controllable allocation. Read only the
-envelope header, configured payload, and one overflow-detection byte from Redis;
-reject overflow before Fory sees the value. Because `GETRANGE` returns an empty
-string for both a missing key and an existing empty value, pair it with an
-existence check so `cache.ErrCacheMiss` continues to mean absent or expired,
-while empty corrupt data still fails envelope validation.
+가장 이른 controllable allocation에서 bound를 강제한다. Redis에서는 envelope header,
+configured payload, overflow-detection byte 하나만 읽고, Fory가 value를 보기 전에
+overflow를 거절한다. `GETRANGE`는 missing key와 existing empty value 모두에 empty
+string을 반환하므로 existence check와 묶어 `cache.ErrCacheMiss`가 계속 absent 또는
+expired를 뜻하게 하고, empty corrupt data는 envelope validation에서 실패하게 한다.
 
-Operational documentation is part of this contract. Replacing `GET` with
-`GETRANGE` and `EXISTS` changes the least-privilege ACL surface even when the Go
-API is unchanged. Keep an integration test that authenticates as a restricted
-Redis user and proves the exact documented command set supports the lifecycle.
+Operational documentation도 이 contract의 일부다. Go API가 바뀌지 않아도 `GET`을
+`GETRANGE`와 `EXISTS`로 교체하면 least-privilege ACL surface가 바뀐다. restricted
+Redis user로 인증해 정확히 문서화된 command set이 lifecycle을 지원함을 증명하는
+integration test를 유지한다.
 
-Wire-format independence also matters. Shared Fory runtime code can remove
-duplicate locking, registration, panic, and bounds logic, while public packages
-retain distinct `BTFV` and `BTFY` envelopes for different storage semantics.
+Wire-format independence도 중요하다. shared Fory runtime code는 duplicate locking,
+registration, panic, bounds logic을 제거할 수 있지만 public package는 서로 다른
+storage semantics를 위해 별도 `BTFV`와 `BTFY` envelope를 유지한다.
 
 ## Durable Checks
 
-- Recheck cancellation immediately before every external side effect.
-- Bound network response materialization before decode or decompression.
-- Preserve the distinction between missing, empty-corrupt, and oversized data.
-- Treat namespace, profile, registration names, schema generation, limits, and
-  Redis ACL commands as one rollout contract.
-- Replace provider causes with sanitized categories; classify infrastructure
-  failures at caller-owned hooks without logging raw provider text.
-- Use explicit Redis readiness polling and run shared Testcontainers packages
-  serially when local Docker resources are constrained.
-- Keep performance claims in #599 until raw output, environment/revision
-  metadata, a table, a Chart, and written analysis exist.
+- 모든 external side effect 직전에 cancellation을 다시 확인한다.
+- decode 또는 decompression 전에 network response materialization을 bound한다.
+- missing, empty-corrupt, oversized data의 구분을 보존한다.
+- namespace, profile, registration name, schema generation, limit, Redis ACL
+  command를 하나의 rollout contract로 취급한다.
+- provider cause는 sanitized category로 대체한다. raw provider text를 logging하지
+  않고 caller-owned hook에서 infrastructure failure를 분류한다.
+- explicit Redis readiness polling을 사용하고 local Docker resource가 제한적이면
+  shared Testcontainers package를 serial로 실행한다.
+- raw output, environment/revision metadata, table, Chart, written analysis가
+  생길 때까지 performance claim은 #599에 남긴다.

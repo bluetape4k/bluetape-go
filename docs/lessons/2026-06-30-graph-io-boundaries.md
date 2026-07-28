@@ -1,29 +1,26 @@
-# Graph I/O Boundaries
+# Graph I/O 경계
 
-Date: 2026-06-30
-Issue: #49
-Milestone: 0.10.0
+일자: 2026-06-30
+이슈: #49
+마일스톤: 0.10.0
 
-## Lesson
+## 교훈
 
-Graph import/export should start at bounded record streams, not at filesystem
-or backend ownership. NDJSON and paired CSV are enough to prove vertex/edge
-interchange behavior while keeping GraphML, compression, encryption, atomic
-file replacement, repository/session APIs, and traversal semantics out of the
-first public contract.
+Graph import/export는 filesystem 또는 backend ownership이 아니라 bounded record
+stream에서 시작해야 한다. NDJSON과 paired CSV만으로 vertex/edge interchange behavior를
+증명할 수 있으며, GraphML, compression, encryption, atomic file replacement,
+repository/session API, traversal semantics는 첫 public contract 밖에 둘 수 있다.
 
-## Applied Contract
+## 적용된 계약
 
-- `graph/graphio` writes vertices before edges in finite helpers.
-- Streaming CSV readers require callers to consume vertices before edges.
-- Readers fail closed by default for duplicate vertices and missing endpoints.
-- CSV record byte limits are enforced before `encoding/csv` parses the logical
-  record.
-- CSV formula escaping is the default for caller-facing exports; raw output is
-  explicit.
+- `graph/graphio` finite helper는 vertex를 edge보다 먼저 쓴다.
+- Streaming CSV reader는 caller가 vertex를 edge보다 먼저 소비해야 한다.
+- Reader는 기본적으로 duplicate vertex와 missing endpoint에 fail closed한다.
+- CSV record byte limit은 `encoding/csv`가 logical record를 parse하기 전에 적용한다.
+- CSV formula escaping은 caller-facing export의 기본값이다. Raw output은 명시적으로
+  선택해야 한다.
 
-## Follow-up
+## 후속 작업
 
-Backend adapter evaluation (#50) and domain examples (#51) should reuse the
-record contracts directly instead of introducing repository, session, or schema
-contracts prematurely.
+Backend adapter evaluation (#50)과 domain example (#51)은 repository, session, schema
+contract를 성급히 도입하지 말고 record contract를 직접 재사용해야 한다.

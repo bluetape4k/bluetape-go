@@ -1,51 +1,50 @@
-# Lessons Learned - Redis Cache Coordinator Substrate Migration (2026-07-10)
+# 교훈 - Redis Cache Coordinator Substrate Migration (2026-07-10)
 
 **Related issue:** #588
 **Affected module:** `cache/rediscoord`
 
-## L1: Reuse a safety primitive only when its input contract is compatible
+## L1: input contract가 호환될 때만 safety primitive를 재사용한다
 
 ### Problem
 
-The shared `redis.KeyBuilder` validates package-owned structural segments and
-`redis.OwnerToken` accepts canonical values. `cache/rediscoord` intentionally
-preserves caller namespaces/keys verbatim and compares short-lived result
-envelope tokens as opaque historical values.
+shared `redis.KeyBuilder`는 package-owned structural segment를 검증하고
+`redis.OwnerToken`은 canonical value를 받는다. `cache/rediscoord`는 caller
+namespace/key를 verbatim 보존하고 short-lived result envelope token을 opaque historical
+value로 비교하도록 의도되어 있다.
 
 ### Decision
 
-Reuse only `redis.OpError` for direct provider diagnostics. Keep key layout,
-duration normalization, envelope token handling, and the migrated `lock/redis`
-lease boundary local.
+direct provider diagnostic에는 `redis.OpError`만 재사용한다. key layout, duration
+normalization, envelope token handling, migration된 `lock/redis` lease boundary는
+local로 유지한다.
 
 ### Evidence
 
-- `cache/rediscoord/operation_error_test.go`: redacted failures, typed causes,
-  late-context cause joining, key-byte preservation, and opaque token coverage.
+- `cache/rediscoord/operation_error_test.go`: redacted failure, typed cause,
+  late-context cause joining, key-byte preservation, opaque token coverage.
 - `TESTCONTAINERS_REUSE_ENABLE=false TESTCONTAINERS_RYUK_DISABLED=false make ci`
 
 ### Future Guard
 
-For every remaining #570 slice, compare public key/token/TTL/error inputs with
-the shared helper before adopting it. A helper that rejects an established
-caller value is a compatibility boundary, not a refactoring opportunity.
+남은 모든 #570 slice에서 shared helper를 채택하기 전에 public key/token/TTL/error
+input을 비교한다. 확립된 caller value를 거절하는 helper는 refactoring opportunity가
+아니라 compatibility boundary다.
 
-## L2: Local Testcontainers verification must override stale reuse settings
+## L2: Local Testcontainers verification은 stale reuse setting을 override해야 한다
 
 ### Problem
 
-The machine-level Testcontainers configuration enabled reuse and disabled Ryuk,
-allowing old provider containers to remain alive and intermittently corrupt
-port-mapped integration runs.
+machine-level Testcontainers configuration이 reuse를 켜고 Ryuk를 꺼 두어 old provider
+container가 살아남았고, port-mapped integration run을 간헐적으로 오염시켰다.
 
 ### Decision
 
-For repository-wide local verification, use explicit non-reuse plus cleanup
-environment values until the machine-level setting is repaired deliberately.
+machine-level setting을 의도적으로 고칠 때까지 repository-wide local verification에는
+명시적 non-reuse와 cleanup environment value를 사용한다.
 
 ### Future Guard
 
-When unrelated Redis, PostgreSQL, and NATS tests fail with mixed connection
-resets, EOFs, or timeouts, inspect labeled stale containers before changing
-application code. Re-run the full gate with
-`TESTCONTAINERS_REUSE_ENABLE=false TESTCONTAINERS_RYUK_DISABLED=false`.
+무관한 Redis, PostgreSQL, NATS test가 connection reset, EOF, timeout이 섞여 실패하면
+application code를 바꾸기 전에 labeled stale container를 점검한다. full gate는
+`TESTCONTAINERS_REUSE_ENABLE=false TESTCONTAINERS_RYUK_DISABLED=false`로 다시
+실행한다.

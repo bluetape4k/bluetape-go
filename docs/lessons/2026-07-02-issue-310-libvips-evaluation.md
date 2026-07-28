@@ -1,33 +1,32 @@
-# Lessons Learned - Issue #310 Libvips Evaluation (2026-07-02)
+# Issue #310 Libvips evaluation 교훈 (2026-07-02)
 
-**Related PR**: #374
-**Affected modules**: `examples/imagekit-govips`, `imagekit` docs/research
+**관련 PR**: #374
+**영향 모듈**: `examples/imagekit-govips`, `imagekit` docs/research
 
-## L1: Keep native image adapters outside the default Go module until CI owns them
+## L1: Native image adapter는 CI가 소유하기 전까지 default Go module 밖에 둔다
 
-### Problem
+### 문제
 
-libvips-backed adapters need cgo, `pkg-config`, native library installation, and
-host-specific codec availability. Adding govips directly to the root module or
-default `imagekit` package would make normal callers pay for native dependency
-and CI complexity even when they only need small pure-Go thumbnails.
+libvips-backed adapter에는 cgo, `pkg-config`, native library installation,
+host-specific codec availability가 필요하다. govips를 root module이나 default `imagekit`
+package에 직접 추가하면 작은 pure-Go thumbnail만 필요한 일반 호출자도 native dependency와
+CI complexity를 부담하게 된다.
 
-### Lesson
+### 교훈
 
-For bluetape-go native image experiments, start with an isolated nested example
-module. Promote it to a root package only after native CI, codec support policy,
-and release packaging are explicitly accepted.
+bluetape-go native image experiment는 격리된 nested example module에서 시작한다. Native
+CI, codec support policy, release packaging을 명시적으로 수용한 뒤에만 root package로
+승격한다.
 
-## L2: govips lifecycle must be process-owned
+## L2: govips lifecycle은 process-owned여야 한다
 
-### Problem
+### 문제
 
-`govips` can start libvips explicitly, but its source rejects restart after
-shutdown. A request-scoped start/stop helper would be unsafe and hard to test.
+`govips`는 libvips를 명시적으로 시작할 수 있지만, source는 shutdown 뒤 restart를 거부한다.
+Request-scoped start/stop helper는 안전하지 않고 테스트하기도 어렵다.
 
-### Lesson
+### 교훈
 
-Use a process-level `sync.Once` startup, do not call shutdown on normal request
-paths, and close every `ImageRef` after export. Document that context
-cancellation is checked around native work but cannot preempt a libvips call
-already in progress.
+Process-level `sync.Once` startup을 사용하고, 일반 request path에서는 shutdown을 호출하지
+않으며, export 뒤에는 모든 `ImageRef`를 닫는다. Context cancellation은 native work 전후로
+확인할 수 있지만 이미 진행 중인 libvips call을 선점할 수 없다는 점을 문서화한다.

@@ -1,33 +1,32 @@
-# Issue #592 Lesson: Shared Redis Construction Has a Narrow Compatibility Boundary
+# Issue #592 교훈: Shared Redis Construction의 Compatibility Boundary는 좁다
 
 ## Context
 
-`probabilistic/redis` had local Bloom and HyperLogLog structural key formatting
-that exactly matched the shared `redis.KeyBuilder` for its fixed prefixes and
-validated namespaces.
+`probabilistic/redis`에는 fixed prefix와 validated namespace에 대해 shared
+`redis.KeyBuilder`와 정확히 일치하는 local Bloom/HyperLogLog structural key
+formatting이 있었다.
 
 ## Learning
 
-Reuse a shared Redis key builder only after the provider's own validation has
-accepted caller input, and use only the constructed key value when the provider
-owns a distinct public diagnostic contract. Shared construction does not imply
-that validation errors, redacted identifiers, or typed operational errors are
-compatible.
+shared Redis key builder는 provider 자체 validation이 caller input을 수락한 뒤에만
+재사용한다. provider가 별도 public diagnostic contract를 소유한다면 constructed key
+value만 사용한다. shared construction이 validation error, redacted identifier, typed
+operational error의 compatibility를 뜻하지는 않는다.
 
-For this package, the shared builder's 24-hex `Key.RedactedID` must not replace
-the existing `redis-key:` plus 12-hex probabilistic identifier. The provider's
-namespace validation also remains the first caller-visible boundary because it
-contains sensitive-marker policy beyond generic hash-tag validation.
+이 package에서는 shared builder의 24-hex `Key.RedactedID`가 기존 `redis-key:`와
+12-hex probabilistic identifier를 대체하면 안 된다. provider의 namespace validation은
+generic hash-tag validation을 넘어서는 sensitive-marker policy를 포함하므로 첫
+caller-visible boundary로 남는다.
 
 ## Durable Checks
 
-- Assert exact Redis key bytes, including a colon-containing Cluster hash tag.
-- Add a direct private-adapter RED test when output-parity tests would be
-  false-green against the old formatting implementation.
-- Keep shared builder failures opaque and unwrapped after locally validated
-  input; do not expose shared key-validation error types through the provider.
-- Preserve provider-specific `RedisError` and script metadata sentinel mapping
-  unless a separate public compatibility issue approves changing them.
-- Mark benchmark work N/A for construction-only migrations. Any cross-provider
-  performance conclusion belongs to issue #560 and requires a result table,
-  chart, and written analysis together.
+- colon-containing Cluster hash tag를 포함해 정확한 Redis key byte를 assert한다.
+- output-parity test가 기존 formatting implementation에 대해 false-green이 될 수
+  있으면 direct private-adapter RED test를 추가한다.
+- locally validated input 뒤 shared builder failure는 opaque/unwrapped로 유지한다.
+  provider를 통해 shared key-validation error type을 노출하지 않는다.
+- 별도 public compatibility issue가 변경을 승인하지 않는 한 provider-specific
+  `RedisError`와 script metadata sentinel mapping을 보존한다.
+- construction-only migration의 benchmark work는 N/A로 표시한다. cross-provider
+  performance conclusion은 issue #560 소관이며 result table, chart, written
+  analysis가 함께 필요하다.

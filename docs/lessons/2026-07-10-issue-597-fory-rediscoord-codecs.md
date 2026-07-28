@@ -1,33 +1,32 @@
-# Issue #597 Lesson: Serialization Bounds Must Cover Every Allocation Layer
+# Issue #597 교훈: Serialization Bound는 모든 Allocation Layer를 덮어야 한다
 
 ## Context
 
-`rediscoord` stores a codec payload inside a binary profile wrapper, then inside
-a JSON/base64 owner-result envelope, then inside Redis. Apache Fory also returns
-marshal bytes owned by mutable runtime state.
+`rediscoord`는 codec payload를 binary profile wrapper 안에 넣고, 다시 JSON/base64
+owner-result envelope 안에 넣은 뒤 Redis에 저장한다. Apache Fory도 mutable runtime
+state가 소유한 marshal byte를 반환한다.
 
 ## Learning
 
-A payload limit at provider decode is not enough. The owner path must reject
-oversized provider bytes before copying or wrapping them, preflight the outer
-JSON/base64 size before its large allocation, and bound the Redis read response
-before JSON decode. The runtime-owned Fory bytes must be copied while the same
-mutex still protects the runtime.
+provider decode 단계의 payload limit만으로는 부족하다. owner path는 provider byte를
+copy/wrap하기 전에 oversized provider byte를 거절하고, 큰 allocation 전에 outer
+JSON/base64 size를 preflight하며, JSON decode 전에 Redis read response를 bound해야
+한다. runtime-owned Fory byte는 같은 mutex가 runtime을 보호하는 동안 copy해야 한다.
 
-Error redaction has the same layered property. A sanitized `Error()` is
-insufficient when `Unwrap()` exposes raw registration or provider text. Replace
-untrusted causes with safe sentinel causes while keeping stable typed
-operation/profile/reason labels.
+Error redaction도 같은 layered property를 갖는다. `Unwrap()`이 raw registration 또는
+provider text를 노출한다면 sanitized `Error()`만으로는 부족하다. stable typed
+operation/profile/reason label은 유지하되 untrusted cause는 safe sentinel cause로
+대체한다.
 
 ## Durable Checks
 
-- Pin wire profile, wrapper version, and all provider metadata limits.
-- Reject limits larger than the wire length field.
-- Use a root-kind whitelist and prove nil/empty/zero semantics for every public
-  profile.
-- Make shared runtime ownership panic-safe and detect value copies with
-  `go vet -copylocks`.
-- Treat namespace, codec/profile, registration set, and every size limit as one
-  rollout tuple.
-- Keep benchmark claims out of implementation PRs. Benchmark work requires a
-  same-condition result table, Chart, and written analysis.
+- wire profile, wrapper version, 모든 provider metadata limit을 pin한다.
+- wire length field보다 큰 limit을 거절한다.
+- root-kind whitelist를 사용하고 모든 public profile의 nil/empty/zero semantics를
+  증명한다.
+- shared runtime ownership을 panic-safe하게 만들고 `go vet -copylocks`로 value
+  copy를 탐지한다.
+- namespace, codec/profile, registration set, 모든 size limit을 하나의 rollout
+  tuple로 취급한다.
+- implementation PR에는 benchmark claim을 넣지 않는다. benchmark work에는
+  same-condition result table, Chart, written analysis가 필요하다.

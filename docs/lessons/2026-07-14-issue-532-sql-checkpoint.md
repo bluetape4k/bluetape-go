@@ -1,201 +1,189 @@
-# Lessons Learned - PostgreSQL Batch Checkpoint (2026-07-14)
+# PostgreSQL Batch Checkpoint 교훈 (2026-07-14)
 
 **Related issue:** #532
 **Affected modules:** `batch`, `batch/sqlcheckpoint`
 
-## L1: Checkpoint progress is a consumed-input boundary
+## L1: checkpoint progress는 consumed-input 경계다
 
-### Problem
+### 문제
 
-Output count is not a safe resume position. A processor may filter an input,
-emit multiple outputs, retry internally, or fail after consuming only part of a
-chunk. Advancing by written output can replay or skip source items.
+output count는 안전한 resume position이 아니다. processor는 input을 filter하거나 여러 output을
+emit하거나 내부 retry를 하거나 chunk 일부만 소비한 뒤 실패할 수 있다. written output 기준으로
+전진하면 source item을 replay하거나 skip할 수 있다.
 
-### Decision
+### 결정
 
-Capture the checkpoint after each consumed input and commit the last captured
-value only with that chunk's business output. Empty final chunks do not commit,
-and failed provider calls cannot mutate the caller's retained pending slice.
+각 consumed input 뒤 checkpoint를 capture하고, 마지막 captured value는 해당 chunk의 business
+output과 함께만 commit한다. empty final chunk는 commit하지 않으며, 실패한 provider call은
+caller가 보유한 pending slice를 mutate할 수 없어야 한다.
 
-### Future guard
+### 향후 가드
 
-Batch persistence must test filtered items, partial output, exact-multiple EOF,
-empty input, processor retries, and provider mutation attempts before treating
-an offset as durable progress.
+batch persistence는 offset을 durable progress로 보기 전에 filtered item, partial output,
+exact-multiple EOF, empty input, processor retry, provider mutation attempt를 테스트해야 한다.
 
-## L2: Insert and update need different CAS proofs
+## L2: insert와 update에는 서로 다른 CAS proof가 필요하다
 
-### Problem
+### 문제
 
-An absent checkpoint has no stored revision to compare, while an existing row
-must reject stale writers. Treating both paths as an unconditional upsert can
-hide concurrent creation or overwrite a newer resume position.
+없는 checkpoint에는 비교할 stored revision이 없고, 기존 row는 stale writer를 거부해야 한다.
+두 경로를 unconditional upsert로 처리하면 concurrent creation을 숨기거나 더 최신 resume
+position을 덮어쓸 수 있다.
 
-### Decision
+### 결정
 
-Use an insert that succeeds only for expected revision zero, and an update that
-matches the exact expected revision before incrementing it. A zero affected-row
-result rolls back the whole transaction as `ErrCheckpointConflict`.
+expected revision zero에서만 성공하는 insert와, exact expected revision을 맞춘 뒤 increment하는
+update를 사용한다. affected row가 0이면 전체 transaction을 `ErrCheckpointConflict`로 rollback한다.
 
-### Future guard
+### 향후 가드
 
-Provider conformance should prove exact winner/loser behavior with independent
-business keys and a barrier immediately before checkpoint CAS.
+provider conformance는 independent business key와 checkpoint CAS 직전 barrier로 정확한
+winner/loser behavior를 증명해야 한다.
 
-## L3: Callback return does not prove transaction ownership
+## L3: callback return은 transaction ownership을 증명하지 않는다
 
-### Problem
+### 문제
 
-A callback with SQL access can execute raw transaction control, leave the
-transaction aborted, or panic after changing session state. A successful Go
-return alone cannot prove the provider still owns a usable transaction.
+SQL access가 있는 callback은 raw transaction control을 실행하거나 transaction을 aborted 상태로
+남기거나 session state 변경 후 panic할 수 있다. Go return 성공만으로 provider가 usable
+transaction을 여전히 소유한다는 사실은 증명되지 않는다.
 
-### Decision
+### 결정
 
-Expose a guarded query/exec session, establish a fixed savepoint, then probe
-ownership before checkpoint CAS. Recover PostgreSQL `25P02` only with
-`ROLLBACK TO SAVEPOINT`; if ownership cannot be proven, stop at
-`ErrAtomicityUnknown` and never guess that rollback succeeded.
+guarded query/exec session을 노출하고 fixed savepoint를 만든 뒤 checkpoint CAS 전에 ownership을
+probe한다. PostgreSQL `25P02`는 `ROLLBACK TO SAVEPOINT`로만 복구한다. ownership을 증명할 수
+없으면 `ErrAtomicityUnknown`에서 멈추고 rollback 성공을 추측하지 않는다.
 
-### Future guard
+### 향후 가드
 
-Test raw BEGIN/COMMIT/ROLLBACK, aborted transactions, savepoint loss,
-cancellation, connection loss, panic, and competing actors. Ownership evidence
-must fail closed.
+raw BEGIN/COMMIT/ROLLBACK, aborted transaction, savepoint loss, cancellation,
+connection loss, panic, competing actor를 테스트한다. ownership evidence는 fail-closed여야 한다.
 
-## L4: Commit unknown and atomicity unknown require different recovery
+## L4: commit unknown과 atomicity unknown은 복구가 다르다
 
-### Problem
+### 문제
 
-A lost commit response may mean the provider-owned transaction committed, but
-an ownership failure may mean business and checkpoint attribution itself is
-unknown. Automatically replaying either case can duplicate business effects.
+lost commit response는 provider-owned transaction이 commit됐을 수 있음을 뜻하지만, ownership
+failure는 business와 checkpoint attribution 자체가 unknown일 수 있음을 뜻한다. 둘 중 어느
+경우든 자동 replay하면 business effect가 중복될 수 있다.
 
-### Decision
+### 결정
 
-Classify provider commit ambiguity as `ErrCommitUnknown` with stable operation
-`OperationCommit`. Classify unproven callback ownership as
-`ErrAtomicityUnknown` as well. Both stop the step. The caller keeps the key
-quiesced; commit-only unknown uses a bounded fresh atomic-writer `Load`, while
-atomicity unknown requires manual business/checkpoint reconciliation.
+provider commit ambiguity는 stable operation `OperationCommit`을 가진 `ErrCommitUnknown`으로
+분류한다. 증명되지 않은 callback ownership은 `ErrAtomicityUnknown`으로 분류한다. 둘 다 step을
+멈춘다. caller는 key를 quiesced 상태로 유지한다. commit-only unknown은 bounded fresh
+atomic-writer `Load`를 쓰고, atomicity unknown은 수동 business/checkpoint reconciliation이 필요하다.
 
-### Future guard
+### 향후 가드
 
-Public examples must start at `Step.Run`, inspect `Report.Err`, preserve
-same-key exclusivity, and prohibit automatic callback replay.
+public example은 `Step.Run`에서 시작하고 `Report.Err`를 inspect하며 same-key exclusivity를
+보존하고 automatic callback replay를 금지해야 한다.
 
-## L5: Panic behavior belongs to the supervisor contract
+## L5: panic behavior는 supervisor contract에 속한다
 
-### Problem
+### 문제
 
-Recovering a callback panic solely to clean up can accidentally replace the
-original panic identity, expose its value in an error string, or resume after
-an unproven transaction boundary.
+cleanup만 위해 callback panic을 recover하면 원래 panic identity를 우연히 바꾸거나, 값을 error
+string에 노출하거나, 증명되지 않은 transaction boundary 뒤에서 resume할 수 있다.
 
-### Decision
+### 결정
 
-When ownership and rollback are proven, re-panic the original value exactly.
-When they are not, raise a sanitized `AtomicityPanic` whose trusted accessor is
-the only path to the original value. Trusted top-level supervision performs
-quiesce and reconciliation.
+ownership과 rollback이 증명되면 원래 값을 그대로 re-panic한다. 그렇지 않으면 original value로
+가는 유일한 경로가 trusted accessor인 sanitized `AtomicityPanic`을 발생시킨다. trusted top-level
+supervision이 quiesce와 reconciliation을 수행한다.
 
-### Future guard
+### 향후 가드
 
-Cover string, error, nil, and typed-nil panic values, and assert both identity
-and default-format redaction.
+string, error, nil, typed-nil panic value를 모두 다루고 identity와 default-format redaction을
+함께 assert한다.
 
-## L6: Source compatibility needs an external unkeyed fixture
+## L6: source compatibility에는 외부 unkeyed fixture가 필요하다
 
-### Problem
+### 문제
 
-Adding a field to an exported options struct can compile inside the package yet
-break callers that use unkeyed composite literals.
+exported options struct에 field를 추가하면 package 내부에서는 compile되지만 unkeyed composite
+literal을 쓰는 caller를 깨뜨릴 수 있다.
 
-### Decision
+### 결정
 
-Keep the legacy options layout unchanged and add the atomic path through new
-types and a new constructor. Compile an external unkeyed `StepOptions` fixture
-as part of `make test` and therefore `make ci`.
+legacy options layout은 바꾸지 않고, new type과 new constructor로 atomic path를 추가한다.
+외부 unkeyed `StepOptions` fixture를 `make test`, 따라서 `make ci`의 일부로 compile한다.
 
-### Future guard
+### 향후 가드
 
-For additive Go APIs, test compatibility from another package; package-local
-tests cannot represent every source-level caller shape.
+additive Go API는 다른 package에서 compatibility를 테스트한다. package-local test는 모든
+source-level caller shape를 대표할 수 없다.
 
-## L7: Cleanup and pool release need hostile small-pool tests
+## L7: cleanup과 pool release에는 hostile small-pool test가 필요하다
 
-### Problem
+### 문제
 
-Rollback or cleanup that depends on an already canceled context can strand a
-connection. With a large pool the leak is easy to miss; with one connection it
-immediately blocks the next operation.
+이미 취소된 context에 의존하는 rollback 또는 cleanup은 connection을 붙잡아 둘 수 있다. 큰 pool에서는
+leak을 놓치기 쉽지만, connection 하나에서는 다음 operation이 즉시 막힌다.
 
-### Decision
+### 결정
 
-Use deterministic transaction cleanup, preserve rollback causes without
-rendering secrets, and prove a known callback failure releases a one-connection
-pool. Reader close is attempted with cancellation removed and its error is
-joined; the caller still owns an outer shutdown deadline.
+deterministic transaction cleanup을 사용하고, secret을 렌더링하지 않은 채 rollback cause를
+보존한다. 알려진 callback failure가 one-connection pool을 release한다는 점을 증명한다. reader
+close는 cancellation을 제거한 상태로 시도하고 error는 joined 처리한다. outer shutdown deadline은
+여전히 caller-owned다.
 
-### Future guard
+### 향후 가드
 
-Every SQL provider should include one-connection failure/recovery tests and
-distinguish library cleanup guarantees from caller-owned shutdown budgets.
+모든 SQL provider는 one-connection failure/recovery test를 포함하고, library cleanup guarantee와
+caller-owned shutdown budget을 구분해야 한다.
 
-## L8: `IF NOT EXISTS` needs catalog, ACL, and role-graph proof
+## L8: `IF NOT EXISTS`에는 catalog, ACL, role-graph proof가 필요하다
 
-### Problem
+### 문제
 
-Migration syntax does not prove that a pre-existing object has the expected
-columns, constraints, owner, ACLs, RLS/policy/trigger state, or role topology.
-Checking only roles granted to runtime also misses dangerous inbound edges.
+migration syntax는 기존 객체가 expected columns, constraints, owner, ACLs,
+RLS/policy/trigger state, role topology를 가진다는 증거가 아니다. runtime에 grant된 role만
+확인하면 위험한 inbound edge도 놓친다.
 
-### Decision
+### 결정
 
-Make schema application caller-owned and require exact pre-grant and post-grant
-validation. Accept only the approved deployer-to-owner membership, reject all
-runtime edges, privileged owner/runtime attributes, unrelated grants, column
-ACLs, and hostile catalog drift.
+schema application은 caller-owned로 두고 exact pre-grant 및 post-grant validation을 요구한다.
+승인된 deployer-to-owner membership만 허용하고, 모든 runtime edge, privileged owner/runtime
+attribute, unrelated grant, column ACL, hostile catalog drift를 거부한다.
 
-### Future guard
+### 향후 가드
 
-Pair every fixed-schema SQL provider with normal and one-property-hostile
-catalog fixtures, including both directions of `pg_auth_members`.
+모든 fixed-schema SQL provider에는 normal fixture와 one-property-hostile catalog fixture를
+붙이고, `pg_auth_members` 양방향을 포함한다.
 
-## L9: Isolation is a public provider contract
+## L9: isolation은 public provider contract다
 
-### Problem
+### 문제
 
-Inheriting a database or role default of Repeatable Read changed concurrent CAS
-behavior and surfaced a generic transaction failure instead of the documented
-checkpoint conflict.
+database 또는 role default의 Repeatable Read를 상속하면 concurrent CAS behavior가 바뀌고,
+문서화된 checkpoint conflict 대신 generic transaction failure가 표면화됐다.
 
-### Decision
+### 결정
 
-Begin provider commits explicitly at Read Committed. Document that ambient
-defaults are ignored, callbacks must be correct at that isolation, codecs and
-callbacks must be concurrency-safe, and callers must serialize same-key work
-when required by their business semantics.
+provider commit은 명시적으로 Read Committed에서 시작한다. ambient default는 무시되고, callback은
+해당 isolation에서 올바르게 동작해야 하며, codec과 callback은 concurrency-safe여야 하고,
+business semantics가 요구하면 caller가 same-key work를 serialize해야 한다고 문서화한다.
 
-### Future guard
+### 향후 가드
 
-Concurrency integration tests should deliberately change ambient isolation and
-still require the provider's documented result.
+concurrency integration test는 ambient isolation을 일부러 바꾸고도 provider의 문서화된 결과를
+요구해야 한다.
 
-## L10: Capacity work must remain evidence-based
+## L10: capacity 작업은 evidence-based로 남아야 한다
 
-### Problem
+### 문제
 
-Correctness tests establish atomicity and failure semantics, not production
-throughput, hot-key latency, WAL growth, autovacuum behavior, or pool sizing.
+correctness test는 atomicity와 failure semantics를 세우지만 production throughput, hot-key
+latency, WAL growth, autovacuum behavior, pool sizing을 증명하지 않는다.
 
-### Decision
+### 결정
 
-Keep performance positioning qualitative and defer the benchmark/capacity
-matrix to issue #560. The runbook requires deployment-owned canary thresholds
-and database telemetry instead of universal numbers.
+performance positioning은 qualitative하게 유지하고 benchmark/capacity matrix는 issue #560으로
+미룬다. runbook은 universal number 대신 deployment-owned canary threshold와 database telemetry를
+요구한다.
 
-### Future guard
+### 향후 가드
 
-Do not turn conformance timings into capacity claims. Benchmark the exact
-provider workload and topology under the dedicated benchmark issue.
+conformance timing을 capacity claim으로 바꾸지 않는다. 전용 benchmark issue에서 정확한 provider
+workload와 topology를 benchmark한다.
