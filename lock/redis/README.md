@@ -14,7 +14,10 @@ coordination work that needs TTL cleanup and owner-safe unlock semantics.
 ## Import
 
 ```go
-import redislock "github.com/bluetape4k/bluetape-go/lock/redis"
+import (
+    redislock "github.com/bluetape4k/bluetape-go/lock/redis"
+    btredis "github.com/bluetape4k/bluetape-go/redis"
+)
 ```
 
 ## Usage
@@ -31,7 +34,28 @@ if err != nil {
 lockCtx, lockCancel := context.WithTimeout(ctx, 5*time.Second)
 defer lockCancel()
 
+cleanupLease := func(lease *redislock.Lease) error {
+    var lastErr error
+    for range 2 {
+        cleanupCtx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+        _, cleanupErr := lease.Unlock(cleanupCtx)
+        cancel()
+        if cleanupErr == nil { // released or confirmed absent after a lost reply
+            return nil
+        }
+        lastErr = cleanupErr
+        if !errors.Is(cleanupErr, btredis.ErrCommitUnknown) {
+            break
+        }
+    }
+    return lastErr // TTL is the final fallback
+}
+
 lease, err := mutex.TryLock(lockCtx)
+if lease != nil && err != nil {
+    cleanupErr := cleanupLease(lease)
+    return errors.Join(err, cleanupErr) // classify err before bare context errors
+}
 if errors.Is(err, redislock.ErrNotAcquired) {
     return nil
 }
@@ -39,9 +63,7 @@ if err != nil {
     return err
 }
 defer func() {
-    cleanupCtx, cleanupCancel := context.WithTimeout(context.Background(), 5*time.Second)
-    defer cleanupCancel()
-    _, _ = lease.Unlock(cleanupCtx)
+    _ = cleanupLease(lease)
 }()
 ```
 
@@ -54,6 +76,8 @@ defer func() {
 - A custom token may be supplied through `Options.Token`; otherwise each
   acquire generates a random owner token.
 - Context cancellation is preserved for Redis commands.
+- Redis command failures preserve their cause for `errors.Is` and `errors.As`,
+  while diagnostic messages redact raw lock keys and owner tokens.
 - Cleanup may use a fresh context after request cancellation, but it should be
   bounded with an explicit timeout.
 
@@ -69,3 +93,16 @@ defer func() {
 ```bash
 go test -count=1 ./lock/redis
 ```
+
+## Conformance And Commit-Unknown Recovery
+
+Use the bilingual [v0.19.0 rollout runbook](../../docs/release/v0.19.0-provider-conformance-runbook.md)
+for the custom-token mixed-version exception, canary telemetry and thresholds,
+and owner-aware resign/TTL rollback gates.
+
+`locktest.Run` validates the Redis provider at real SetNX/Eval boundaries. Check
+`btredis.ErrCommitUnknown` before context errors. If `TryLock` returns `lease != nil`
+with an error, immediately attempt bounded cleanup. A lost `Unlock` returns false
+and the typed error; retry the same lease callback. Compare-delete protects a
+replacement owner, and TTL is the final fallback. Custom nonblank token bytes,
+including surrounding whitespace, are no longer trimmed.

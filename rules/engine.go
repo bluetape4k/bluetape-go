@@ -6,7 +6,7 @@ import (
 	"fmt"
 )
 
-// EngineConfig configures sequential engine behavior.
+// EngineConfig 패키지에서 공개하는 구조체다.
 type EngineConfig struct {
 	// StopOnFirstApplied stops after the first rule whose Execute succeeds.
 	StopOnFirstApplied bool
@@ -21,13 +21,17 @@ type EngineConfig struct {
 	UsePriorityThreshold bool
 }
 
-// Engine runs rules sequentially.
+// Engine 패키지에서 공개하는 구조체다.
 type Engine struct {
 	rules  *RuleSet
 	config EngineConfig
 }
 
-// NewEngine creates a sequential engine over rules.
+// NewEngine Engine 인스턴스를 생성한다.
+//
+// 매개변수:
+//   - rules: NewEngine에 전달되는 값이다. 허용 범위와 nil 처리 방식은 구현 검증을 따른다.
+//   - config: NewEngine에 전달되는 값이다. 허용 범위와 nil 처리 방식은 구현 검증을 따른다.
 func NewEngine(rules *RuleSet, config EngineConfig) *Engine {
 	if rules == nil {
 		rules = &RuleSet{byName: make(map[string]ruleEntry)}
@@ -35,7 +39,7 @@ func NewEngine(rules *RuleSet, config EngineConfig) *Engine {
 	return &Engine{rules: rules, config: config}
 }
 
-// DetailStatus summarizes one rule's engine result.
+// DetailStatus string 공개 타입이다.
 type DetailStatus string
 
 const (
@@ -55,7 +59,7 @@ const (
 	StatusSkipped DetailStatus = "skipped"
 )
 
-// Detail records one rule's evaluation and execution outcome.
+// Detail 패키지에서 공개하는 구조체다.
 type Detail struct {
 	RuleName  string
 	Priority  int
@@ -65,7 +69,7 @@ type Detail struct {
 	Err       error
 }
 
-// Result reports a sequential engine run.
+// Result 패키지에서 공개하는 구조체다.
 type Result struct {
 	Details      []Detail
 	Applied      int
@@ -76,7 +80,13 @@ type Result struct {
 	StopReason   DetailStatus
 }
 
-// Run evaluates and executes configured rules in deterministic order.
+// Run 작업을 실행하고 완료 또는 오류를 반환한다.
+//
+// 매개변수:
+//   - ctx: 호출자가 소유한 취소, deadline, 요청 범위를 전달한다.
+//   - facts: Run에 전달되는 값이다. 허용 범위와 nil 처리 방식은 구현 검증을 따른다.
+//
+// 반환 오류는 입력 검증 실패와 패키지에서 정의한 sentinel error/typed error를 그대로 드러낸다.
 func (e *Engine) Run(ctx context.Context, facts *Facts) (Result, error) {
 	if ctx == nil {
 		ctx = context.Background()

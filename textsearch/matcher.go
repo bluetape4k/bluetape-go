@@ -24,14 +24,14 @@ type node struct {
 	outputs []output
 }
 
-// Matcher is an immutable compiled multi-pattern automaton.
+// Matcher textsearch language image example에서 caller-visible 상태와 의미를 설명한다.
 type Matcher struct {
 	cfg      Config
 	patterns []compiledPattern
 	nodes    []node
 }
 
-// Compile builds an immutable matcher from patterns.
+// Compile textsearch language image example에서 생성과 초기화 계약을 설명한다.
 func Compile(patterns []Pattern, cfg Config) (*Matcher, error) {
 	if len(patterns) == 0 {
 		return nil, ErrNoPatterns
@@ -54,7 +54,7 @@ func Compile(patterns []Pattern, cfg Config) (*Matcher, error) {
 	return m, nil
 }
 
-// CompileStrings builds a matcher from plain string patterns.
+// CompileStrings textsearch language image example에서 생성과 초기화 계약을 설명한다.
 func CompileStrings(patterns []string, cfg Config) (*Matcher, error) {
 	entries := make([]Pattern, len(patterns))
 	for i, pattern := range patterns {
@@ -110,14 +110,14 @@ func (m *Matcher) buildFailures() {
 	}
 }
 
-// Contains reports whether input has at least one accepted match.
+// Contains textsearch language image example에서 반환값과 오류 의미를 설명한다.
 func (m *Matcher) Contains(input string) bool {
 	_, ok := m.First(input)
 	return ok
 }
 
-// First returns the earliest accepted match. Ties prefer the longest pattern,
-// then original dictionary order.
+// First textsearch language image example에서 반환값과 오류 의미를 설명한다.
+// 세부 조건은 language script, tokenizer, normalization, example ownership 계약을 따른다.
 func (m *Matcher) First(input string) (Match, bool) {
 	matches := m.find(input, true)
 	if len(matches) == 0 {
@@ -126,7 +126,7 @@ func (m *Matcher) First(input string) (Match, bool) {
 	return matches[0], true
 }
 
-// FindAll returns all accepted matches according to Config.Overlap.
+// FindAll textsearch language image example에서 반환값과 오류 의미를 설명한다.
 func (m *Matcher) FindAll(input string) []Match {
 	return m.find(input, false)
 }

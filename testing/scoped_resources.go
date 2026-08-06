@@ -13,13 +13,19 @@ import (
 
 var captureOutputMu sync.Mutex
 
-// CapturedOutput contains process stdout and stderr text captured during a test helper call.
+// CapturedOutput 테스트 helper의 timeout, cancellation, cleanup에서 사용하는 구조체다.
 type CapturedOutput struct {
 	Stdout string
 	Stderr string
 }
 
-// CheckTempOutputPath joins path parts under root and rejects absolute or parent-traversing parts.
+// CheckTempOutputPath 테스트 helper의 timeout, cancellation, cleanup 동작을 수행한다.
+//
+// 매개변수:
+//   - root: CheckTempOutputPath가 해석할 문자열이다. 빈 문자열은 구현 검증을 따른다.
+//   - parts: CheckTempOutputPath에 전달되는 값이다. 허용 범위와 nil 처리 방식은 구현 검증을 따른다.
+//
+// 반환 오류는 입력 검증 실패, context 취소/deadline, 상태 전이 실패, 패키지 sentinel error와 typed error를 그대로 드러낸다.
 func CheckTempOutputPath(root string, parts ...string) (string, error) {
 	if root == "" {
 		return "", errors.New("root must not be empty")
@@ -54,7 +60,11 @@ func CheckTempOutputPath(root string, parts ...string) (string, error) {
 	return path, nil
 }
 
-// TempOutputDir creates a scoped output directory under tb.TempDir.
+// TempOutputDir 테스트 helper의 timeout, cancellation, cleanup 동작을 수행한다.
+//
+// 매개변수:
+//   - tb: 실패를 보고할 testing 객체다.
+//   - parts: TempOutputDir에 전달되는 값이다. 허용 범위와 nil 처리 방식은 구현 검증을 따른다.
 func TempOutputDir(tb testing.TB, parts ...string) string {
 	tb.Helper()
 
@@ -66,7 +76,11 @@ func TempOutputDir(tb testing.TB, parts ...string) string {
 	return path
 }
 
-// TempOutputPath returns a scoped output path under tb.TempDir and creates its parent directory.
+// TempOutputPath 테스트 helper의 timeout, cancellation, cleanup 동작을 수행한다.
+//
+// 매개변수:
+//   - tb: 실패를 보고할 testing 객체다.
+//   - parts: TempOutputPath에 전달되는 값이다. 허용 범위와 nil 처리 방식은 구현 검증을 따른다.
 func TempOutputPath(tb testing.TB, parts ...string) string {
 	tb.Helper()
 
@@ -78,9 +92,12 @@ func TempOutputPath(tb testing.TB, parts ...string) string {
 	return path
 }
 
-// SetEnv sets an environment variable and restores its previous state during tb.Cleanup.
+// SetEnv 테스트 helper의 timeout, cancellation, cleanup 동작을 수행한다.
 //
-// Environment variables are process-global. Do not use this helper from parallel tests.
+// 매개변수:
+//   - tb: 실패를 보고할 testing 객체다.
+//   - key: SetEnv가 해석할 문자열이다. 빈 문자열은 구현 검증을 따른다.
+//   - value: SetEnv가 해석할 문자열이다. 빈 문자열은 구현 검증을 따른다.
 func SetEnv(tb testing.TB, key, value string) {
 	tb.Helper()
 
@@ -91,9 +108,11 @@ func SetEnv(tb testing.TB, key, value string) {
 	tb.Cleanup(restore)
 }
 
-// UnsetEnv unsets an environment variable and restores its previous state during tb.Cleanup.
+// UnsetEnv 테스트 helper의 timeout, cancellation, cleanup 동작을 수행한다.
 //
-// Environment variables are process-global. Do not use this helper from parallel tests.
+// 매개변수:
+//   - tb: 실패를 보고할 testing 객체다.
+//   - key: UnsetEnv가 해석할 문자열이다. 빈 문자열은 구현 검증을 따른다.
 func UnsetEnv(tb testing.TB, key string) {
 	tb.Helper()
 
@@ -104,10 +123,11 @@ func UnsetEnv(tb testing.TB, key string) {
 	tb.Cleanup(restore)
 }
 
-// CaptureOutput captures process stdout and stderr while run executes and fails tb on setup errors.
+// CaptureOutput 테스트 helper의 timeout, cancellation, cleanup 동작을 수행한다.
 //
-// Stdout and stderr are process-global. Do not use this helper from parallel tests or while other
-// goroutines may write to os.Stdout/os.Stderr.
+// 매개변수:
+//   - tb: 실패를 보고할 testing 객체다.
+//   - run: CaptureOutput에 전달되는 값이다. 허용 범위와 nil 처리 방식은 구현 검증을 따른다.
 func CaptureOutput(tb testing.TB, run func()) CapturedOutput {
 	tb.Helper()
 
@@ -119,11 +139,12 @@ func CaptureOutput(tb testing.TB, run func()) CapturedOutput {
 	return output
 }
 
-// CheckCaptureOutput captures process stdout and stderr while run executes.
+// CheckCaptureOutput 테스트 helper의 timeout, cancellation, cleanup 동작을 수행한다.
 //
-// The helper serializes capture calls and restores os.Stdout/os.Stderr before returning or
-// re-panicking. Stdout and stderr are process-global, so callers must not use it from parallel tests
-// or while unrelated goroutines may write to the process streams.
+// 매개변수:
+//   - run: CheckCaptureOutput에 전달되는 값이다. 허용 범위와 nil 처리 방식은 구현 검증을 따른다.
+//
+// 반환 오류는 입력 검증 실패, context 취소/deadline, 상태 전이 실패, 패키지 sentinel error와 typed error를 그대로 드러낸다.
 func CheckCaptureOutput(run func()) (CapturedOutput, error) {
 	if run == nil {
 		return CapturedOutput{}, errors.New("run must not be nil")

@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"github.com/bluetape4k/bluetape-go/leader"
+	"github.com/bluetape4k/bluetape-go/leader/leadertest"
 	mongodbtestcontainer "github.com/bluetape4k/bluetape-go/testcontainers/mongodb"
 	bttesting "github.com/bluetape4k/bluetape-go/testing"
 	concurrencytest "github.com/bluetape4k/bluetape-go/testing/concurrency"
@@ -17,6 +18,26 @@ import (
 	"go.mongodb.org/mongo-driver/v2/mongo"
 	"go.mongodb.org/mongo-driver/v2/mongo/options"
 )
+
+func TestElectorIgnoresStaleRenewalWorkerState(t *testing.T) {
+	oldDone := make(chan struct{})
+	currentDone := make(chan struct{})
+	elector := &Elector{owned: true, generation: 2, done: currentDone}
+
+	elector.clearOwnershipAfterLoss(1, oldDone, true)
+
+	if !elector.owned || elector.cleanup || elector.done != currentDone {
+		t.Fatal("stale renewal worker changed current ownership state")
+	}
+}
+
+func TestElectorInactiveCleanupDoesNotChangeState(t *testing.T) {
+	elector := &Elector{}
+	_, _, _, active := elector.clearOwnership()
+	if active || elector.cleanup {
+		t.Fatal("inactive cleanup changed elector state")
+	}
+}
 
 func TestMongoElectorIntegration(t *testing.T) {
 	ctx, cancel := context.WithTimeout(context.Background(), 2*time.Minute)
@@ -33,6 +54,24 @@ func TestMongoElectorIntegration(t *testing.T) {
 		if err := client.Disconnect(cleanupCtx); err != nil {
 			t.Fatalf("disconnect mongodb client: %v", err)
 		}
+	})
+
+	t.Run("conformance", func(t *testing.T) {
+		collection := newTestCollection(ctx, t, client)
+		control := newMongoConformanceControl(collection)
+		leadertest.Run(t, leadertest.Harness{
+			New: func(_ testing.TB, opts leader.Options) (leader.Elector, error) {
+				elector, err := New(collection, opts, WithRetryDelay(10*time.Millisecond))
+				if err != nil {
+					return nil, err
+				}
+				elector.testHook = func(operation string) error {
+					return control.after(opts, operation)
+				}
+				return elector, nil
+			},
+			Control: control,
+		})
 	})
 
 	t.Run("campaign and resign", func(t *testing.T) {
@@ -68,6 +107,26 @@ func TestMongoElectorIntegration(t *testing.T) {
 			current, err := elector.Leader(ctx)
 			return err == nil && current == ""
 		})
+	})
+
+	t.Run("repeated resign permits another campaign", func(t *testing.T) {
+		collection := newTestCollection(ctx, t, client)
+		elector := newTestElector(t, collection, "repeated-resign", "member-1")
+		if err := elector.Campaign(ctx); err != nil {
+			t.Fatalf("campaign: %v", err)
+		}
+		if err := elector.Resign(ctx); err != nil {
+			t.Fatalf("first resign: %v", err)
+		}
+		if err := elector.Resign(ctx); err != nil {
+			t.Fatalf("second resign: %v", err)
+		}
+		if err := elector.Campaign(ctx); err != nil {
+			t.Fatalf("campaign after repeated resign: %v", err)
+		}
+		if err := elector.Resign(ctx); err != nil {
+			t.Fatalf("final resign: %v", err)
+		}
 	})
 
 	t.Run("duplicate local campaign", func(t *testing.T) {

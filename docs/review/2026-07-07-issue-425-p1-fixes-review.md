@@ -1,8 +1,10 @@
 # Issue 425 P1 Fix Review
 
-Date: 2026-07-07 KST
+> 한국어 감사/리뷰 경계: 이 문서는 리뷰 결론과 남은 위험을 한국어 독자가 추적할 수 있도록 정리한다. 심각도 표기, 판정 표기, 파일 경로, 라인 번호, 이슈/PR 링크, 명령, 코드 식별자, 인용 증거는 원문의 증거 앵커로 보존한다.
 
-## Scope
+날짜: 2026-07-07 KST
+
+## 범위
 
 - Issue: #425
 - Baseline: `4dca212` (`Record blockers before 0.13.0 fixes`)
@@ -10,14 +12,14 @@ Date: 2026-07-07 KST
   - `cache.Memory.GetOrLoad` same-key cancellation isolation.
   - `ratelimit/redis` caller-owned logical key preservation.
 
-## Root Cause
+## 원인
 
 | Finding | Root cause | Fix |
 |---|---|---|
 | P1-1 cache same-key cancellation | The shared `singleflight` load captured the first caller's context and returned its context error to all waiters. | Live waiters retry when a shared result fails with `context.Canceled` or `context.DeadlineExceeded` while their own context remains live. Context-error paths also drop the per-key flight mapping. |
 | P1-2 Redis rate-limit key trimming | `normalizeKey` returned `strings.TrimSpace(key)`, so whitespace-distinct caller keys mapped to one Redis bucket. | Blank validation still trims for inspection, but byte-length validation and storage use the original key. |
 
-## 7-Tier Review
+## 7-Tier 검토
 
 | Lane | Verdict | Evidence |
 |---|---|---|
@@ -29,7 +31,7 @@ Date: 2026-07-07 KST
 | User/Caller | Pass | Callers no longer inherit unrelated same-key cancellation, and whitespace-distinct Redis logical keys no longer share rate-limit state. |
 | Integration | Pass | Targeted package tests and race tests passed for both touched packages. |
 
-## Validation
+## 검증
 
 - `go test -count=1 ./cache -run TestMemorySameKeyCanceledOwnerDoesNotCancelLiveWaiter`: RED before fix, PASS after fix.
 - `go test -count=1 ./ratelimit/redis -run TestLimiterPreservesCallerOwnedKeys`: RED before fix, PASS after fix.
@@ -41,7 +43,7 @@ Date: 2026-07-07 KST
   `golangci-lint cache clean`, rerun PASS: `tidy-check`, `fmt-check`, `vet`,
   `lint`, `test`, and `race`.
 
-## Findings
+## 발견 사항
 
 - P0: 0
 - P1: 0
@@ -50,7 +52,7 @@ Date: 2026-07-07 KST
 
 P0=0 P1=0
 
-## Verdict
+## 판정
 
 Pass. The two #424 retrospective P1 blockers routed to #425 are fixed with
 regression tests and targeted race validation.

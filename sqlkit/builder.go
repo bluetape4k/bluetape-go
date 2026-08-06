@@ -11,7 +11,7 @@ type whereClause struct {
 	args     []any
 }
 
-// SelectBuilder builds a simple PostgreSQL SELECT statement.
+// SelectBuilder 단순한 PostgreSQL SELECT statement를 구성한다.
 type SelectBuilder struct {
 	table   string
 	columns []string
@@ -20,37 +20,37 @@ type SelectBuilder struct {
 	limit   *int
 }
 
-// SelectFrom starts a SELECT statement for table.
+// SelectFrom table을 대상으로 하는 SELECT statement 구성을 시작한다.
 func SelectFrom(table string) *SelectBuilder {
 	return &SelectBuilder{table: table}
 }
 
-// Columns sets the projected columns. When omitted, SELECT uses *.
+// Columns projection column을 설정한다. 생략하면 SELECT는 *를 사용한다.
 func (b *SelectBuilder) Columns(columns ...string) *SelectBuilder {
 	b.columns = append(b.columns, columns...)
 	return b
 }
 
-// Where adds a caller-owned SQL predicate fragment. Use ? placeholders for
-// values; Build rewrites them to PostgreSQL $n placeholders.
+// Where 호출자가 소유한 SQL predicate fragment를 추가한다. 값 자리에는 ? placeholder를 사용하며
+// Build가 PostgreSQL $n placeholder로 다시 쓴다.
 func (b *SelectBuilder) Where(fragment string, args ...any) *SelectBuilder {
 	b.where = append(b.where, whereClause{fragment: fragment, args: copyArgs(args)})
 	return b
 }
 
-// OrderBy adds ascending identifier-based order clauses.
+// OrderBy identifier 기반 ascending order clause를 추가한다.
 func (b *SelectBuilder) OrderBy(columns ...string) *SelectBuilder {
 	b.orderBy = append(b.orderBy, columns...)
 	return b
 }
 
-// Limit sets a PostgreSQL LIMIT value.
+// Limit PostgreSQL LIMIT 값을 설정한다.
 func (b *SelectBuilder) Limit(limit int) *SelectBuilder {
 	b.limit = &limit
 	return b
 }
 
-// Build returns the inspectable SELECT statement.
+// Build 검토 가능한 SELECT statement를 반환한다.
 func (b *SelectBuilder) Build() (Statement, error) {
 	table, err := quoteIdentifier(b.table)
 	if err != nil {
@@ -96,7 +96,7 @@ func (b *SelectBuilder) Build() (Statement, error) {
 	return NewStatement(sql.String(), args...), nil
 }
 
-// InsertBuilder builds a simple PostgreSQL INSERT statement.
+// InsertBuilder 단순한 PostgreSQL INSERT statement를 구성한다.
 type InsertBuilder struct {
 	table     string
 	columns   []string
@@ -104,30 +104,30 @@ type InsertBuilder struct {
 	returning []string
 }
 
-// InsertInto starts an INSERT statement for table.
+// InsertInto table을 대상으로 하는 INSERT statement 구성을 시작한다.
 func InsertInto(table string) *InsertBuilder {
 	return &InsertBuilder{table: table}
 }
 
-// Columns sets the inserted columns.
+// Columns insert 대상 column 목록을 설정한다.
 func (b *InsertBuilder) Columns(columns ...string) *InsertBuilder {
 	b.columns = append(b.columns, columns...)
 	return b
 }
 
-// Values sets one row of inserted values.
+// Values insert할 단일 row 값을 설정한다.
 func (b *InsertBuilder) Values(values ...any) *InsertBuilder {
 	b.values = append(b.values, values...)
 	return b
 }
 
-// Returning adds PostgreSQL RETURNING columns.
+// Returning PostgreSQL RETURNING column 목록을 추가한다.
 func (b *InsertBuilder) Returning(columns ...string) *InsertBuilder {
 	b.returning = append(b.returning, columns...)
 	return b
 }
 
-// Build returns the inspectable INSERT statement.
+// Build 검토 가능한 INSERT statement를 반환한다.
 func (b *InsertBuilder) Build() (Statement, error) {
 	table, err := quoteIdentifier(b.table)
 	if err != nil {
@@ -170,7 +170,7 @@ func (b *InsertBuilder) Build() (Statement, error) {
 	return NewStatement(sql.String(), b.values...), nil
 }
 
-// UpdateBuilder builds a simple PostgreSQL UPDATE statement.
+// UpdateBuilder 단순한 PostgreSQL UPDATE statement를 구성한다.
 type UpdateBuilder struct {
 	table string
 	sets  []assignment
@@ -182,25 +182,25 @@ type assignment struct {
 	value  any
 }
 
-// Update starts an UPDATE statement for table.
+// Update table을 대상으로 하는 UPDATE statement 구성을 시작한다.
 func Update(table string) *UpdateBuilder {
 	return &UpdateBuilder{table: table}
 }
 
-// Set adds a column assignment.
+// Set column assignment를 추가한다.
 func (b *UpdateBuilder) Set(column string, value any) *UpdateBuilder {
 	b.sets = append(b.sets, assignment{column: column, value: value})
 	return b
 }
 
-// Where adds a caller-owned SQL predicate fragment. Use ? placeholders for
-// values; Build rewrites them to PostgreSQL $n placeholders.
+// Where 호출자가 소유한 SQL predicate fragment를 추가한다. 값 자리에는 ? placeholder를 사용하며
+// Build가 PostgreSQL $n placeholder로 다시 쓴다.
 func (b *UpdateBuilder) Where(fragment string, args ...any) *UpdateBuilder {
 	b.where = append(b.where, whereClause{fragment: fragment, args: copyArgs(args)})
 	return b
 }
 
-// Build returns the inspectable UPDATE statement.
+// Build 검토 가능한 UPDATE statement를 반환한다.
 func (b *UpdateBuilder) Build() (Statement, error) {
 	table, err := quoteIdentifier(b.table)
 	if err != nil {
@@ -239,25 +239,25 @@ func (b *UpdateBuilder) Build() (Statement, error) {
 	return NewStatement(sql.String(), args...), nil
 }
 
-// DeleteBuilder builds a simple PostgreSQL DELETE statement.
+// DeleteBuilder 단순한 PostgreSQL DELETE statement를 구성한다.
 type DeleteBuilder struct {
 	table string
 	where []whereClause
 }
 
-// DeleteFrom starts a DELETE statement for table.
+// DeleteFrom table을 대상으로 하는 DELETE statement 구성을 시작한다.
 func DeleteFrom(table string) *DeleteBuilder {
 	return &DeleteBuilder{table: table}
 }
 
-// Where adds a caller-owned SQL predicate fragment. Use ? placeholders for
-// values; Build rewrites them to PostgreSQL $n placeholders.
+// Where 호출자가 소유한 SQL predicate fragment를 추가한다. 값 자리에는 ? placeholder를 사용하며
+// Build가 PostgreSQL $n placeholder로 다시 쓴다.
 func (b *DeleteBuilder) Where(fragment string, args ...any) *DeleteBuilder {
 	b.where = append(b.where, whereClause{fragment: fragment, args: copyArgs(args)})
 	return b
 }
 
-// Build returns the inspectable DELETE statement.
+// Build 검토 가능한 DELETE statement를 반환한다.
 func (b *DeleteBuilder) Build() (Statement, error) {
 	table, err := quoteIdentifier(b.table)
 	if err != nil {

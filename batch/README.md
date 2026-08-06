@@ -68,6 +68,21 @@ report := job.Run(ctx)
 - `Report` captures status, counters, elapsed boundary timestamps, child
   reports, and the terminal error.
 
+## Atomic PostgreSQL Checkpoints
+
+The legacy `Writer + CheckpointStore` path can use a durable checkpoint store,
+but it is **not atomic with business writes**: `Writer.Write` and
+`CheckpointStore.Save` are separate operations. A crash between them can replay
+an already committed chunk. This remains a supported at-least-once path when
+business writes and checkpoints intentionally use different stores.
+
+Use the additive `NewAtomicStep` constructor with
+[`batch/sqlcheckpoint`](sqlcheckpoint/README.md) when PostgreSQL business rows
+and reader progress must commit in one transaction. For this atomic path,
+`RetryPolicy` and `SkipPolicy` apply only to processor failures; they never
+retry/skip `AtomicCheckpointWriter.Commit`, the callback, checkpoint CAS, or an
+unknown-outcome error.
+
 ## Operational Boundaries
 
 - The package owns control flow, counters, retry, skip, chunking, and checkpoint

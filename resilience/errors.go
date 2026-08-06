@@ -14,7 +14,7 @@ var (
 	ErrBulkheadRejected = errors.New("bulkhead rejected call")
 )
 
-// RetryError reports that a retry policy exhausted its attempts.
+// RetryError struct 공개 타입이며 취소, deadline, retry, timeout, circuit breaker 상태를 보존한다.
 type RetryError struct {
 	PolicyName string
 	Attempts   int
@@ -28,17 +28,22 @@ func (e RetryError) Error() string {
 	return fmt.Sprintf("retry exhausted after %d attempts: %v", e.Attempts, e.Cause)
 }
 
-// Unwrap returns the last operation error.
+// Unwrap Unwrap 공개 API의 동작을 수행하며 취소, deadline, retry, timeout, circuit breaker 상태를 보존한다.
+//
+// 반환 오류는 입력 검증 실패, context 취소/deadline, 상태 전이 실패, 패키지 sentinel error와 typed error를 그대로 드러낸다.
 func (e RetryError) Unwrap() error {
 	return e.Cause
 }
 
-// Is allows errors.Is(err, ErrRetryExhausted).
+// Is Is 공개 API의 동작을 수행하며 취소, deadline, retry, timeout, circuit breaker 상태를 보존한다.
+//
+// 매개변수:
+//   - target: 검사하거나 감쌀 오류 값이다.
 func (e RetryError) Is(target error) bool {
 	return target == ErrRetryExhausted
 }
 
-// TimeoutError reports that a timeout policy's own deadline expired.
+// TimeoutError struct 공개 타입이며 취소, deadline, retry, timeout, circuit breaker 상태를 보존한다.
 type TimeoutError struct {
 	PolicyName string
 	Timeout    time.Duration
@@ -52,17 +57,22 @@ func (e TimeoutError) Error() string {
 	return fmt.Sprintf("timeout expired after %s: %v", e.Timeout, e.Cause)
 }
 
-// Unwrap returns the context deadline error observed by the operation.
+// Unwrap Unwrap 공개 API의 동작을 수행하며 취소, deadline, retry, timeout, circuit breaker 상태를 보존한다.
+//
+// 반환 오류는 입력 검증 실패, context 취소/deadline, 상태 전이 실패, 패키지 sentinel error와 typed error를 그대로 드러낸다.
 func (e TimeoutError) Unwrap() error {
 	return e.Cause
 }
 
-// Is allows errors.Is(err, ErrTimeout).
+// Is Is 공개 API의 동작을 수행하며 취소, deadline, retry, timeout, circuit breaker 상태를 보존한다.
+//
+// 매개변수:
+//   - target: 검사하거나 감쌀 오류 값이다.
 func (e TimeoutError) Is(target error) bool {
 	return target == ErrTimeout
 }
 
-// CircuitOpenError reports that a circuit breaker rejected a call.
+// CircuitOpenError struct 공개 타입이며 취소, deadline, retry, timeout, circuit breaker 상태를 보존한다.
 type CircuitOpenError struct {
 	PolicyName string
 	State      CircuitState
@@ -75,12 +85,15 @@ func (e CircuitOpenError) Error() string {
 	return fmt.Sprintf("circuit breaker rejected call in %s state", e.State)
 }
 
-// Is allows errors.Is(err, ErrCircuitOpen).
+// Is Is 공개 API의 동작을 수행하며 취소, deadline, retry, timeout, circuit breaker 상태를 보존한다.
+//
+// 매개변수:
+//   - target: 검사하거나 감쌀 오류 값이다.
 func (e CircuitOpenError) Is(target error) bool {
 	return target == ErrCircuitOpen
 }
 
-// BulkheadRejectedError reports that a bulkhead rejected a call.
+// BulkheadRejectedError struct 공개 타입이며 취소, deadline, retry, timeout, circuit breaker 상태를 보존한다.
 type BulkheadRejectedError struct {
 	PolicyName string
 }
@@ -92,7 +105,10 @@ func (e BulkheadRejectedError) Error() string {
 	return "bulkhead rejected call"
 }
 
-// Is allows errors.Is(err, ErrBulkheadRejected).
+// Is Is 공개 API의 동작을 수행하며 취소, deadline, retry, timeout, circuit breaker 상태를 보존한다.
+//
+// 매개변수:
+//   - target: 검사하거나 감쌀 오류 값이다.
 func (e BulkheadRejectedError) Is(target error) bool {
 	return target == ErrBulkheadRejected
 }

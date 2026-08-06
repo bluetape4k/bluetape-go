@@ -1,4 +1,4 @@
-// Package redisleader 는 Redis 기반 leader election을 제공한다.
+// Package redisleader Redis 기반 leader election을 제공한다.
 //
 // 여러 backend replica가 같은 batch, migration, polling 작업을 중복 실행하지
 // 않도록 하나의 group 안에서 하나의 member만 leader가 되게 한다. 실제 Redis 기반
@@ -6,7 +6,7 @@
 // 최대 N개의 member가 동시에 leader slot을 보유하게 한다. StrategicElector는 Redis
 // candidate registry와 deterministic strategy로 winner node만 action을 실행한다.
 //
-// Redis key 형식은 Go 전용이다. Go elector는
+// 이 주석은 backend lease, ownership, consistency, cancellation 조건을 설명한다.
 // `bluetape:leader:<group>` key에 `memberID:random` token을 저장하고 TTL을
 // 갱신한다. Go group elector는 `bluetape:leader-group:<group>` ZSET에
 // `memberID:random` token과 만료 score를 저장한다. Go strategic elector는

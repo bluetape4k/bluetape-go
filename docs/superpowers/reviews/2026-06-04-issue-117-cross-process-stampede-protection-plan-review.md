@@ -1,14 +1,16 @@
 # Issue #117 Cross-Process Stampede Protection Plan Review
 
-Date: 2026-06-04
-Scope: `docs/superpowers/plans/2026-06-04-issue-117-cross-process-stampede-protection-plan.md`
+> 한국어 리뷰 경계: 이 문서는 리뷰 판정과 근거를 한국어 독자가 추적할 수 있도록 정리한다. 심각도 토큰, 판정 토큰, 파일 경로, 라인 번호, 이슈/PR 번호, 명령, 코드 식별자는 원문의 증거 앵커로 보존한다.
+
+날짜: 2026-06-04
+범위: `docs/superpowers/plans/2026-06-04-issue-117-cross-process-stampede-protection-plan.md`
 Review type: 7-Tier plan gate
 
-## Verdict
+## 판정
 
 PASS. `P0 = 0`, `P1 = 0`.
 
-## 7-Tier Findings
+## 7-Tier 발견 사항
 
 | Tier | Focus | P0 | P1 | P2 | P3 | Finding |
 |---|---|---:|---:|---:|---:|---|

@@ -1,6 +1,8 @@
 # Issue #491 GraphML Graph I/O Review
 
-Date: 2026-07-10
+> 한국어 감사/리뷰 경계: 이 문서는 리뷰 결론과 남은 위험을 한국어 독자가 추적할 수 있도록 정리한다. 심각도 표기, 판정 표기, 파일 경로, 라인 번호, 이슈/PR 링크, 명령, 코드 식별자, 인용 증거는 원문의 증거 앵커로 보존한다.
+
+날짜: 2026-07-10
 
 Scope:
 
@@ -8,7 +10,7 @@ Scope:
 - `graph/graphio` and `graph` README updates
 - root README and changelog references
 
-## Evidence
+## 증거
 
 - Issue #491 requires an optional bounded GraphML import/export slice based on
   #433 research.
@@ -18,7 +20,7 @@ Scope:
   malformed XML, duplicate IDs, missing endpoints, unknown keys, oversized
   input, context cancellation, and unsupported constructs.
 
-## 7-Tier Lanes
+## 7-Tier 관점
 
 | Lane | Verdict | Notes |
 |---|---|---|
@@ -30,12 +32,12 @@ Scope:
 | User/Caller | Pass | Bilingual docs state supported subset, non-goals, input limits, and exact test commands. |
 | Integration | Pass | Acceptance commands target `./graph ./graph/graphio/...` and `./graph/graphio/...` race coverage. |
 
-## Findings
+## 발견 사항
 
 - P0: 0
 - P1: 0
 
-## Residual Risk
+## 잔여 위험
 
 The named-producer evidence is limited to a documented, namespaced structural
 fixture. Any stronger Gephi, NetworkX, Neo4j APOC, or yEd compatibility claim

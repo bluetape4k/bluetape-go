@@ -1,13 +1,15 @@
 # Issue #33 JWT Helper Utilities Code Review
 
+> 한국어 리뷰 경계: 이 문서는 리뷰 판정과 근거를 한국어 독자가 추적할 수 있도록 정리한다. 심각도 토큰, 판정 토큰, 파일 경로, 라인 번호, 이슈/PR 번호, 명령, 코드 식별자는 원문의 증거 앵커로 보존한다.
+
 Task: Step 6-R implemented diff review
-Issue: #33
-Date: 2026-06-08
-Scope: `jwt/`, root README pair, package README pair, `CHANGELOG.md`,
+이슈: #33
+날짜: 2026-06-08
+범위: `jwt/`, root README pair, package README pair, `CHANGELOG.md`,
 `WIP.md`, `go.mod`, `go.sum`, and #33 spec/plan/review artifacts.
 Baseline: `origin/develop`
 
-## Integrated Verdict
+## 통합 판정
 
 PASS.
 
@@ -17,7 +19,7 @@ All P0/P1 findings from the first Step 6-R iteration were fixed and affected
 lanes were re-reviewed. Remaining P2/P3 items were either fixed or recorded as
 explicit follow-up scope in #173, #174, or #175.
 
-## Review Lanes
+## 검토 관점
 
 | Lane | P0 | P1 | P2 | P3 | Latest verdict | Evidence |
 |---|---:|---:|---:|---:|---|---|
@@ -40,7 +42,7 @@ explicit follow-up scope in #173, #174, or #175.
 | P2 | `WithClock` comment overstated parse-clock behavior. | Provider clock and parse clock comments now describe their separate boundaries. |
 | P2 | Fixed provider `ForcedRotate` returned a token error wrapper. | It now returns `OptionError` with `ErrInvalidOptions` compatibility. |
 
-## Tier Summary
+## 계층 요약
 
 | Tier | Result | Notes |
 |---|---|---|
@@ -52,7 +54,7 @@ explicit follow-up scope in #173, #174, or #175.
 | 6 Performance/stability | PASS | No write lock is held during signature verification; rotation critical sections are bounded. |
 | 7 Docs/release/evidence | PASS | README pairs, examples, CHANGELOG, WIP, concurrency notes, and follow-up issue links are present. |
 
-## Validation Evidence
+## 검증 증거
 
 ```bash
 go test -count=1 ./jwt

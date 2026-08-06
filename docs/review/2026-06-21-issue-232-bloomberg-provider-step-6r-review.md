@@ -1,17 +1,19 @@
 # Issue #232 Bloomberg Provider Step 6-R Review
 
-Scope: Bloomberg-backed exchange-rate provider evaluation, README pair,
+> 한국어 감사/리뷰 경계: 이 문서는 리뷰 결론과 남은 위험을 한국어 독자가 추적할 수 있도록 정리한다. 심각도 표기, 판정 표기, 파일 경로, 라인 번호, 이슈/PR 링크, 명령, 코드 식별자, 인용 증거는 원문의 증거 앵커로 보존한다.
+
+범위: Bloomberg-backed exchange-rate provider evaluation, README pair,
 research note, WIP, changelog, and research index updates.
 
 Baseline: `develop` at `a76d396`.
 
-## Gate Result
+## 게이트 결과
 
 P0=0 P1=0
 
 Final verdict: PASS.
 
-## Lane Results
+## 관점별 결과
 
 | Lane | P0 | P1 | P2 | P3 | Verdict | Evidence |
 |---|---:|---:|---:|---:|---|---|
@@ -22,9 +24,9 @@ Final verdict: PASS.
 | Developer/API | 0 | 0 | 0 | 0 | PASS | The decision rejects a default `money.NewBloombergProvider` and requires any future implementation to live behind the existing `ExchangeRateProvider` contract with fake-backed tests. |
 | User/caller docs | 0 | 0 | 0 | 0 | PASS | The README pair now states Bloomberg-backed rates require customer-owned Bloomberg access, entitlements, and deployment topology and are not part of default `money` behavior. |
 
-## Findings
+## 발견 사항
 
-No P0/P1 findings.
+P0/P1 발견 사항 없음.
 
 Repaired P2: narrowed the stability lane wording from "existing ECB/IMF
 contract" to "desired IMF/current context contract" because the future
@@ -37,7 +39,7 @@ public data source. The research note and README wording now avoid that by
 requiring licensed customer infrastructure and by keeping default tests free of
 Bloomberg SDKs, credentials, and paid access.
 
-## Validation
+## 검증
 
 | Command / Review | Status | Evidence |
 |---|---|
@@ -47,7 +49,7 @@ Bloomberg SDKs, credentials, and paid access.
 | `make ci` | PASS | Full repo validation completed successfully, including Testcontainers-backed packages. |
 | Step 6-R 7-tier lanes | PASS | Performance, security, operator/Ops, developer/API, dependency/licensing P0=0 P1=0; stability P0=0 P1=0 after P2 wording repair. |
 
-## Residual Risk
+## 잔여 위험
 
 The exact Bloomberg security mnemonic, field mnemonic, pricing source, and
 entitlement behavior can only be finalized by a licensed Bloomberg customer

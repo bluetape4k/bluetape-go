@@ -1,9 +1,11 @@
 # Issue #26 State Cleanup And Performance/Stability Scan
 
-Issue: #26
+> 한국어 리뷰 경계: 이 문서는 리뷰 판정과 근거를 한국어 독자가 추적할 수 있도록 정리한다. 심각도 토큰, 판정 토큰, 파일 경로, 라인 번호, 이슈/PR 번호, 명령, 코드 식별자는 원문의 증거 앵커로 보존한다.
+
+이슈: #26
 Milestone: 0.4.0
 Gates: Step 4-S, Step 4-P
-Date: 2026-06-05
+날짜: 2026-06-05
 
 Reference loaded:
 `/Users/debop/.codex/skills/bluetape4k-full-feature/references/step-4p-perf-scan.md`.
@@ -50,14 +52,14 @@ Reviewed files:
 
 ### Step 4-S Checklist Completion Report
 
-| Item | Status | Notes |
+| 항목 | 상태 | Notes |
 |------|--------|-------|
 | Cleanup ran or skip reason recorded | Done | Trigger evaluated; no cleanup patch required after focused inspection. |
 | Compile/test command rerun after cleanup | Done | Targeted, race, example, and full repo tests passed after implementation. |
 
 ### Step 4-P Checklist Completion Report
 
-| Item | Status | Notes |
+| 항목 | 상태 | Notes |
 |------|--------|-------|
 | Run/skip decision recorded | Done | Ran because #26 adds synchronization and guard execution. |
 | Source performance scan complete when triggered | Done | `state/*.go` reviewed. |

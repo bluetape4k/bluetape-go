@@ -1,7 +1,3 @@
-// Package sqloutbox stores audit entries in a PostgreSQL-backed outbox table.
-//
-// The package is intentionally transaction-neutral: callers pass the
-// database/sql session, usually *sql.DB or *sql.Tx, that should own each
-// operation. Delivery is at-least-once and publishers must handle duplicate
-// attempts by using the stable event ID or idempotency key.
+// Package sqloutbox bluetape-go의 sqloutbox audit/outbox 기능을 제공한다.
+// 공개 API 주석은 transaction, idempotency, repository ownership, delivery, 오류 계약을 한국어로 확인할 수 있도록 유지한다.
 package sqloutbox

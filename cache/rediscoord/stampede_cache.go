@@ -8,17 +8,23 @@ import (
 
 	"github.com/bluetape4k/bluetape-go/cache"
 	redislock "github.com/bluetape4k/bluetape-go/lock/redis"
+	btredis "github.com/bluetape4k/bluetape-go/redis"
 	"github.com/redis/go-redis/v9"
 )
 
-// StampedeCache 는 Redis로 cross-process load burst를 조정한다.
+// StampedeCache Redis 조정, stampede 방지, codec envelope에서 사용하는 구조체다.
 type StampedeCache[V any] struct {
 	cfg config[V]
 }
 
 var _ cache.LoadingCache[string, string] = (*StampedeCache[string])(nil)
 
-// NewStampedeCache 는 Redis coordination wrapper를 만든다.
+// NewStampedeCache Redis 조정, stampede 방지, codec envelope에 사용할 값을 생성한다.
+//
+// 매개변수:
+//   - options: 적용할 옵션 목록이다. nil이면 기본값만 사용한다.
+//
+// 반환 오류는 cache miss, 입력 검증 실패, context 취소, Redis/backend 실패, package sentinel error와 typed error를 그대로 드러낸다.
 func NewStampedeCache[V any](options Options[V]) (*StampedeCache[V], error) {
 	cfg, err := normalizeOptions(options)
 	if err != nil {
@@ -27,27 +33,60 @@ func NewStampedeCache[V any](options Options[V]) (*StampedeCache[V], error) {
 	return &StampedeCache[V]{cfg: cfg}, nil
 }
 
-// Get 은 감싼 cache에서 값을 읽는다.
+// Get Redis 조정, stampede 방지, codec envelope에서 필요한 값을 조회한다.
+//
+// 매개변수:
+//   - ctx: 호출자가 소유한 취소, deadline, 요청 범위를 전달한다.
+//   - key: cache lookup과 저장에 사용하는 caller-owned key다. 정규화와 namespace 의미는 package 계약을 따른다.
+//
+// 반환 오류는 cache miss, 입력 검증 실패, context 취소, Redis/backend 실패, package sentinel error와 typed error를 그대로 드러낸다.
 func (c *StampedeCache[V]) Get(ctx context.Context, key string) (V, error) {
 	return c.cfg.cache.Get(normalizeContext(ctx), key)
 }
 
-// Set 은 감싼 cache에 값을 쓴다.
+// Set Redis 조정, stampede 방지, codec envelope의 상태를 변경한다.
+//
+// 매개변수:
+//   - ctx: 호출자가 소유한 취소, deadline, 요청 범위를 전달한다.
+//   - key: cache lookup과 저장에 사용하는 caller-owned key다. 정규화와 namespace 의미는 package 계약을 따른다.
+//   - value: 직렬화하거나 cache에 보관할 값이다. nil, zero value, aliasing 의미는 serializer/cache 계약을 따른다.
+//   - ttl: cache entry의 유효 시간이다. zero, 음수, 만료 의미는 옵션과 TTL 계약을 따른다.
+//
+// 반환 오류는 cache miss, 입력 검증 실패, context 취소, Redis/backend 실패, package sentinel error와 typed error를 그대로 드러낸다.
 func (c *StampedeCache[V]) Set(ctx context.Context, key string, value V, ttl time.Duration) error {
 	return c.cfg.cache.Set(normalizeContext(ctx), key, value, ttl)
 }
 
-// Delete 는 감싼 cache에서 key를 제거한다.
+// Delete Redis 조정, stampede 방지, codec envelope의 상태를 변경한다.
+//
+// 매개변수:
+//   - ctx: 호출자가 소유한 취소, deadline, 요청 범위를 전달한다.
+//   - key: cache lookup과 저장에 사용하는 caller-owned key다. 정규화와 namespace 의미는 package 계약을 따른다.
+//
+// 반환 오류는 cache miss, 입력 검증 실패, context 취소, Redis/backend 실패, package sentinel error와 typed error를 그대로 드러낸다.
 func (c *StampedeCache[V]) Delete(ctx context.Context, key string) error {
 	return c.cfg.cache.Delete(normalizeContext(ctx), key)
 }
 
-// Clear 는 감싼 cache를 비운다.
+// Clear Redis 조정, stampede 방지, codec envelope 동작을 수행한다.
+//
+// 매개변수:
+//   - ctx: 호출자가 소유한 취소, deadline, 요청 범위를 전달한다.
+//
+// 반환 오류는 cache miss, 입력 검증 실패, context 취소, Redis/backend 실패, package sentinel error와 typed error를 그대로 드러낸다.
 func (c *StampedeCache[V]) Clear(ctx context.Context) error {
 	return c.cfg.cache.Clear(normalizeContext(ctx))
 }
 
-// GetOrLoad 는 cold miss burst에서 한 process의 loader 결과를 공유한다.
+// GetOrLoad Redis 조정, stampede 방지, codec envelope 동작을 수행한다.
+//
+// 매개변수:
+//   - ctx: 호출자가 소유한 취소, deadline, 요청 범위를 전달한다.
+//   - key: cache lookup과 저장에 사용하는 caller-owned key다. 정규화와 namespace 의미는 package 계약을 따른다.
+//   - ttl: cache entry의 유효 시간이다. zero, 음수, 만료 의미는 옵션과 TTL 계약을 따른다.
+//   - loader: GetOrLoad에 전달되는 값이다. 허용 범위와 nil 처리 방식은 구현 검증을 따른다.
+//
+// 반환 오류는 cache miss, 입력 검증 실패, context 취소, Redis/backend 실패, package sentinel error와 typed error를 그대로 드러낸다.
 func (c *StampedeCache[V]) GetOrLoad(
 	ctx context.Context,
 	key string,
@@ -80,6 +119,9 @@ func (c *StampedeCache[V]) GetOrLoad(
 		}
 
 		lease, err := c.tryAcquire(ctx, key)
+		if lease != nil && err != nil {
+			return zero, errors.Join(err, c.reconcileUnlock(lease))
+		}
 		if err == nil {
 			return c.loadAsOwner(ctx, key, ttl, loader, lease)
 		}
@@ -203,12 +245,25 @@ func (c *StampedeCache[V]) readOwnerResult(
 	ownerToken string,
 ) (V, bool, error) {
 	var zero V
-	encoded, err := c.cfg.client.Get(ctx, c.resultKey(key)).Bytes()
+	resultKey := c.resultKey(key)
+	var encoded []byte
+	var err error
+	if c.cfg.maxResultBytes > 0 {
+		encoded, err = c.cfg.client.GetRange(ctx, resultKey, 0, int64(c.cfg.maxResultBytes)).Bytes()
+		if err == nil && len(encoded) == 0 {
+			return zero, false, nil
+		}
+	} else {
+		encoded, err = c.cfg.client.Get(ctx, resultKey).Bytes()
+	}
 	if errors.Is(err, redis.Nil) {
 		return zero, false, nil
 	}
 	if err != nil {
-		return zero, false, fmt.Errorf("redis load result get: %w", err)
+		return zero, false, operationError(ctx, "result-get", resultKey, err)
+	}
+	if c.cfg.maxResultBytes > 0 && len(encoded) > c.cfg.maxResultBytes {
+		return zero, false, operationError(ctx, "result-get", resultKey, ErrResultTooLarge)
 	}
 
 	payload, ok, err := decodeResult(encoded, ownerToken)
@@ -234,7 +289,7 @@ func (c *StampedeCache[V]) ownerToken(ctx context.Context, key string) (string, 
 		return "", false, nil
 	}
 	if err != nil {
-		return "", false, fmt.Errorf("redis load lock owner get: %w", err)
+		return "", false, operationError(ctx, "owner-get", c.lockKey(key), err)
 	}
 	return token, true, nil
 }
@@ -248,7 +303,7 @@ func (c *StampedeCache[V]) ensureOwner(ctx context.Context, lease *redislock.Lea
 		return fmt.Errorf("redis load lock expired before result publication")
 	}
 	if err != nil {
-		return fmt.Errorf("redis load lock owner get: %w", err)
+		return operationError(ctx, "owner-check", lease.Key(), err)
 	}
 	if token != lease.Token() {
 		return fmt.Errorf("redis load lock expired before result publication")
@@ -257,17 +312,33 @@ func (c *StampedeCache[V]) ensureOwner(ctx context.Context, lease *redislock.Lea
 }
 
 func (c *StampedeCache[V]) storeResult(ctx context.Context, key string, token string, payload []byte) error {
+	if c.cfg.maxResultBytes > 0 {
+		size, err := encodedResultSize(token, payload)
+		if err != nil {
+			return err
+		}
+		if size > c.cfg.maxResultBytes {
+			return operationError(ctx, "result-set", c.resultKey(key), ErrResultTooLarge)
+		}
+	}
 	encoded, err := encodeResult(token, payload)
 	if err != nil {
 		return err
 	}
+	if c.cfg.maxResultBytes > 0 && len(encoded) > c.cfg.maxResultBytes {
+		return operationError(ctx, "result-set", c.resultKey(key), ErrResultTooLarge)
+	}
 	if err := c.cfg.client.Set(ctx, c.resultKey(key), encoded, c.cfg.resultTTL).Err(); err != nil {
-		return fmt.Errorf("redis load result set: %w", err)
+		return operationError(ctx, "result-set", c.resultKey(key), err)
 	}
 	return nil
 }
 
-func (c *StampedeCache[V]) unlock(lease *redislock.Lease) error {
+type leaseUnlocker interface {
+	Unlock(context.Context) (bool, error)
+}
+
+func (c *StampedeCache[V]) unlock(lease leaseUnlocker) error {
 	if lease == nil {
 		return nil
 	}
@@ -284,6 +355,30 @@ func (c *StampedeCache[V]) unlock(lease *redislock.Lease) error {
 	return nil
 }
 
+func (c *StampedeCache[V]) reconcileUnlock(lease leaseUnlocker) error {
+	if lease == nil {
+		return nil
+	}
+	_, err := unlockOnce(lease)
+	if err == nil {
+		return nil
+	}
+	if !errors.Is(err, btredis.ErrCommitUnknown) {
+		return err
+	}
+	_, retryErr := unlockOnce(lease)
+	if retryErr == nil {
+		return nil
+	}
+	return errors.Join(err, retryErr)
+}
+
+func unlockOnce(lease leaseUnlocker) (bool, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), unlockTimeout)
+	defer cancel()
+	return lease.Unlock(ctx)
+}
+
 func (c *StampedeCache[V]) lockKey(key string) string {
 	return c.cfg.keyPrefix + ":lock:" + key
 }
@@ -297,4 +392,15 @@ func normalizeContext(ctx context.Context) context.Context {
 		return context.Background()
 	}
 	return ctx
+}
+
+func operationError(ctx context.Context, operation string, rawKey string, err error) error {
+	if ctx != nil && ctx.Err() != nil {
+		err = errors.Join(err, ctx.Err())
+	}
+	return btredis.NewOpError(
+		btredis.OpLabels{Family: "cache coordination", Operation: operation},
+		rawKey,
+		err,
+	)
 }

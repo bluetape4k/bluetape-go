@@ -1,12 +1,14 @@
 # Issue #107 Cache Benchmark Suite Implementation Review
 
-Issue: #107
+> 한국어 리뷰 경계: 이 문서는 리뷰 판정과 근거를 한국어 독자가 추적할 수 있도록 정리한다. 심각도 토큰, 판정 토큰, 파일 경로, 라인 번호, 이슈/PR 번호, 명령, 코드 식별자는 원문의 증거 앵커로 보존한다.
+
+이슈: #107
 Milestone: 0.3.0
-Date: 2026-06-04
+날짜: 2026-06-04
 Review gate: Step 5 / Step 6-R
 Diff base: `origin/develop`
 
-## Reviewed Scope
+## 검토 범위
 
 - `cache/memory_benchmark_test.go`
 - `cache/redisnear/near_cache_benchmark_test.go`
@@ -32,7 +34,7 @@ Diff base: `origin/develop`
 | Opt-in outside CI | PASS | `make bench-cache` target exists; `ci` target does not depend on it |
 | Research evidence | PASS | `docs/research/2026-06-04-issue-107-cache-benchmark-suite.md` includes commands, environment notes, sample results, and interpretation boundary |
 
-## 7-Tier Findings
+## 7-Tier 발견 사항
 
 | Tier | Result | Notes |
 |---|---|---|
@@ -44,9 +46,9 @@ Diff base: `origin/develop`
 | Tier 6 - Performance/stability | PASS | Benchmarks are opt-in and sample results are labeled local snapshots; Testcontainers benchmark commands were run serially. |
 | Tier 7 - Documentation/release/evidence | PASS | Research note is GNO-targeted; README/CHANGELOG are N/A because public runtime behavior did not change. |
 
-## Validation Evidence
+## 검증 증거
 
-| Command | Result |
+| 명령 | 결과 |
 |---|---|
 | `go test -count=1 ./cache` | PASS, 13 tests |
 | `go test -count=1 ./cache/redisnear` | PASS, 15 tests |
@@ -60,7 +62,7 @@ Diff base: `origin/develop`
 | `gno update` | PASS, pre-merge index had `0 added, 0 updated` because hidden worktree docs are not visible to the collection |
 | `gno search "issue-107-cache-benchmark-suite" -c bluetape4k-docs -n 10` | PRE-MERGE GAP, post-merge/local-sync direct search required |
 
-## Convergence
+## 수렴
 
 | Priority | Count | Status |
 |---|---:|---|
@@ -69,7 +71,7 @@ Diff base: `origin/develop`
 | P2 | 0 | PASS |
 | P3 | 0 | PASS |
 
-## Verdict
+## 판정
 
 Step 5 and Step 6-R are closed. The benchmark suite satisfies #107 and is ready
 for lessons, commit, PR creation, and CI.

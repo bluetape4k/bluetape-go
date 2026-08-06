@@ -77,17 +77,24 @@ future scope, not part of the current public API.
 | [`leader`](leader/README.md) | active | Leader election API, including single, group, and strategy-based contracts. |
 | [`leader/redis`](leader/redis/README.md) | active | Redis-backed single, group, and strategic leader election using TTL renewal, ZSET slot tokens, and candidate registries. |
 | [`leader/mongo`](leader/mongo/README.md) | active | MongoDB-backed single, group, and strategic leader election using owner-token leases, bounded slots, candidate registries, and TTL cleanup indexes. |
+| [`leader/sql`](leader/sql/README.md) | active | PostgreSQL-only single leader election using caller-owned row leases and a caller-owned `*sql.DB`. |
+| [`leader/etcd`](leader/etcd/README.md) | active | etcd single leader election using a caller-owned client, official Session/Election primitives, and exact ownership monitoring. |
 | [`resilience`](resilience/README.md) | active | First-party composable retry, timeout, circuit breaker, and bulkhead policies with synchronous observability hooks and `net/http` adapters. |
 | [`cache`](cache/README.md) | active | Generic in-process TTL cache interfaces with context-aware loaders and same-key stampede protection. |
 | [`cache/redisnear`](cache/redisnear/README.md) | active | Redis Pub/Sub near-cache invalidation for process-local loading caches. |
 | [`cache/rediscoord`](cache/rediscoord/README.md) | active | Opt-in Redis coordination wrapper that shares one loader result across process-local caches during a cold burst. |
+| [`cache/redisfory`](cache/redisfory/README.md) | active | Bounded Go-native Apache Fory binary values stored directly in Redis with explicit schema generations. |
+| [`cache/redisvalue`](cache/redisvalue/README.md) | active | Bounded serialized Redis L2 values with a reference-preserving process-local tiered decorator. |
+| [`redis`](redis/README.md) | active | Shared Redis key, owner-token, lease script, TTL, and redacted operation error primitives. |
 | [`lock/redis`](lock/redis/README.md) | active | Redis single-instance owner-token lock with TTL acquisition and owner-safe Lua unlock. |
 | [`ratelimit`](ratelimit/README.md) | active | Process-local keyed token-bucket limiter and `net/http` middleware. |
 | [`ratelimit/redis`](ratelimit/redis/README.md) | active | Redis-backed token-bucket limiter with atomic Lua consume/refill and idle key expiration. |
+| [`ratelimit/sql`](ratelimit/sql/README.md) | active | PostgreSQL atomic token buckets for moderate-QPS, database-only deployments with caller-owned schema and cleanup. |
 | [`state`](state/README.md) | active | Small finite state machine primitives with typed transitions, guards, final states, and sentinel errors. |
 | [`workreport`](workreport/README.md) | active | Status, failure-policy, and report-tree values for lightweight workflow code. |
 | [`workflow`](workflow/README.md) | active | Sequential, conditional, and all-branches parallel runners built on `context.Context` and `workreport`. |
 | [`batch`](batch/README.md) | active | Chunk-oriented batch steps, sequential jobs, retry/skip policies, reports, and checkpoints. |
+| [`batch/sqlcheckpoint`](batch/sqlcheckpoint/README.md) | active | PostgreSQL durable checkpoints that atomically commit a batch callback and consumed-input progress with revision CAS. |
 | [`id`](id/README.md) | active | UUID v4/v7, random and monotonic ULID, standard KSUID, Kotlin-compatible KSUID millis, and Snowflake ID generators. |
 | [`jwt`](jwt/README.md) | active | JWT signing, parsing, validation, typed claim reading, in-memory/distributed `kid` key rotation, and optional provider cache adapters with explicit algorithms. |
 | [`jwt/redis`](jwt/redis/README.md) | active | Redis-specific facade for distributed JWT key-chain repository construction. |
@@ -154,12 +161,17 @@ overview.
   boundaries.
 - Coordination: [`leader`](leader/README.md),
   [`leader/redis`](leader/redis/README.md),
-  [`leader/mongo`](leader/mongo/README.md), and
+  [`leader/mongo`](leader/mongo/README.md),
+  [`leader/sql`](leader/sql/README.md),
+  [`leader/etcd`](leader/etcd/README.md),
+  [`redis`](redis/README.md), [`redis/stream`](redis/stream/README.md), and
   [`lock/redis`](lock/redis/README.md).
 - Runtime policies, cache, state, and workflow: [`resilience`](resilience/README.md),
   [`cache`](cache/README.md), [`cache/redisnear`](cache/redisnear/README.md),
-  [`cache/rediscoord`](cache/rediscoord/README.md), [`ratelimit`](ratelimit/README.md),
-  [`state`](state/README.md), [`workreport`](workreport/README.md), and
+  [`cache/rediscoord`](cache/rediscoord/README.md), [`cache/redisfory`](cache/redisfory/README.md),
+  [`cache/redisvalue`](cache/redisvalue/README.md),
+  [`ratelimit`](ratelimit/README.md),
+  [`state`](state/README.md), [`workreport`](workreport/README.md),
   [`workflow`](workflow/README.md), and [`batch`](batch/README.md).
 - Portable utilities: [`id`](id/README.md), [`jwt`](jwt/README.md),
   [`jwt/redis`](jwt/redis/README.md), [`jwt/mongo`](jwt/mongo/README.md),
@@ -339,6 +351,24 @@ Common commands:
 | `make bench-ratelimit` | Run opt-in local rate limiter benchmarks. |
 | `make bench-id` | Run opt-in id generator benchmarks. |
 | `make ci` | Run the local CI gate. |
+
+### Provider benchmark matrix
+
+The [provider benchmark report](docs/research/2026-07-20-issue-560-provider-benchmark-matrix.md)
+compares semantically equivalent leader, rate-limit, cache, graph I/O, and graph traversal rows.
+Capture one family at a time:
+
+```bash
+scripts/capture-provider-benchmark.sh leader-local
+```
+
+The accepted family is exactly one of `leader-local`, `leader-containers`, `leader-probes`,
+`ratelimit-local`, `ratelimit-containers`, `cache-local`, `cache-redis`, `graphio`, or `graphdb`.
+The container-backed families require Docker, can take several minutes, and must run sequentially
+so their fixtures and host resources do not overlap. Follow the report's recapture checklist when
+refreshing tracked evidence and charts.
+Results are short local snapshots with pinned fixture provenance; do not copy them as production
+rankings.
 
 Redis integration tests use Testcontainers and require Docker. The regular CI
 and Nightly workflows both run these tests against real containers and publish

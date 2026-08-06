@@ -11,19 +11,24 @@ import (
 )
 
 var (
-	// ErrNilPublisherFunc reports a nil PublisherFunc.
+	// ErrNilPublisherFunc PublisherFunc가 nil일 때 반환된다.
 	ErrNilPublisherFunc = errors.New("nil sqloutbox publisher function")
-	// ErrNilRecordingPublisher reports a nil *RecordingPublisher receiver.
+	// ErrNilRecordingPublisher *RecordingPublisher receiver가 nil일 때 반환된다.
 	ErrNilRecordingPublisher = errors.New("nil sqloutbox recording publisher")
-	// ErrInjectedFailure is the default error returned by WithFailures when no
-	// explicit error is supplied.
+	// ErrInjectedFailure WithFailures에 명시 오류가 없을 때 사용하는 기본 주입 오류다.
 	ErrInjectedFailure = errors.New("injected sqloutbox publisher failure")
 )
 
-// PublisherFunc adapts a function into a sqloutbox.Publisher.
+// PublisherFunc SQL outbox transaction, relay, idempotent delivery에서 사용하는 함수 타입이다.
 type PublisherFunc func(context.Context, sqloutbox.Record) error
 
-// Publish publishes one claimed sqloutbox record.
+// Publish SQL outbox transaction, relay, idempotent delivery의 쓰기 동작을 수행한다.
+//
+// 매개변수:
+//   - ctx: 호출자가 소유한 취소, deadline, 요청 범위를 전달한다.
+//   - record: Publish에 전달되는 값이다. 허용 범위와 nil 처리 방식은 구현 검증을 따른다.
+//
+// 반환 오류는 입력 검증 실패, context 취소, transaction 실패, repository/outbox 실패, package sentinel error와 typed error를 그대로 드러낸다.
 func (fn PublisherFunc) Publish(ctx context.Context, record sqloutbox.Record) error {
 	if err := contextError(ctx); err != nil {
 		return err
@@ -34,18 +39,28 @@ func (fn PublisherFunc) Publish(ctx context.Context, record sqloutbox.Record) er
 	return fn(ctx, record)
 }
 
-// DiscardPublisher accepts records without retaining or transporting them.
+// DiscardPublisher SQL outbox transaction, relay, idempotent delivery에서 사용하는 구조체다.
 type DiscardPublisher struct{}
 
-// Publish accepts one claimed sqloutbox record.
+// Publish SQL outbox transaction, relay, idempotent delivery의 쓰기 동작을 수행한다.
+//
+// 매개변수:
+//   - ctx: 호출자가 소유한 취소, deadline, 요청 범위를 전달한다.
+//   - _: Publish에 전달되는 값이다. 허용 범위와 nil 처리 방식은 구현 검증을 따른다.
+//
+// 반환 오류는 입력 검증 실패, context 취소, transaction 실패, repository/outbox 실패, package sentinel error와 typed error를 그대로 드러낸다.
 func (DiscardPublisher) Publish(ctx context.Context, _ sqloutbox.Record) error {
 	return contextError(ctx)
 }
 
-// RecordingOption configures a RecordingPublisher.
+// RecordingOption SQL outbox transaction, relay, idempotent delivery에서 사용하는 함수 타입이다.
 type RecordingOption func(*RecordingPublisher)
 
-// WithFailures configures deterministic per-event publish failures.
+// WithFailures SQL outbox transaction, relay, idempotent delivery 옵션을 설정한다.
+//
+// 매개변수:
+//   - failures: WithFailures에 전달되는 값이다. 허용 범위와 nil 처리 방식은 구현 검증을 따른다.
+//   - err: WithFailures에 전달되는 값이다. 허용 범위와 nil 처리 방식은 구현 검증을 따른다.
 func WithFailures(failures map[audit.EventID]int, err error) RecordingOption {
 	return func(p *RecordingPublisher) {
 		p.mu.Lock()
@@ -64,9 +79,7 @@ func WithFailures(failures map[audit.EventID]int, err error) RecordingOption {
 	}
 }
 
-// RecordingPublisher records every publish attempt and can inject deterministic
-// failures. Its zero value is ready to use and is safe for concurrent Publish
-// calls.
+// RecordingPublisher SQL outbox transaction, relay, idempotent delivery에서 사용하는 구조체다.
 type RecordingPublisher struct {
 	mu         sync.Mutex
 	records    []sqloutbox.Record
@@ -74,7 +87,10 @@ type RecordingPublisher struct {
 	failureErr error
 }
 
-// NewRecordingPublisher creates a recording publisher.
+// NewRecordingPublisher SQL outbox transaction, relay, idempotent delivery에 사용할 값을 생성한다.
+//
+// 매개변수:
+//   - options: 적용할 옵션 목록이다. nil이면 기본값만 사용한다.
 func NewRecordingPublisher(options ...RecordingOption) *RecordingPublisher {
 	publisher := &RecordingPublisher{}
 	for _, option := range options {
@@ -85,7 +101,13 @@ func NewRecordingPublisher(options ...RecordingOption) *RecordingPublisher {
 	return publisher
 }
 
-// Publish records one claimed sqloutbox record.
+// Publish SQL outbox transaction, relay, idempotent delivery의 쓰기 동작을 수행한다.
+//
+// 매개변수:
+//   - ctx: 호출자가 소유한 취소, deadline, 요청 범위를 전달한다.
+//   - record: Publish에 전달되는 값이다. 허용 범위와 nil 처리 방식은 구현 검증을 따른다.
+//
+// 반환 오류는 입력 검증 실패, context 취소, transaction 실패, repository/outbox 실패, package sentinel error와 typed error를 그대로 드러낸다.
 func (p *RecordingPublisher) Publish(ctx context.Context, record sqloutbox.Record) error {
 	if err := contextError(ctx); err != nil {
 		return err
@@ -110,7 +132,7 @@ func (p *RecordingPublisher) Publish(ctx context.Context, record sqloutbox.Recor
 	return nil
 }
 
-// Records returns a snapshot of all publish attempts.
+// Records SQL outbox transaction, relay, idempotent delivery에서 필요한 값을 조회한다.
 func (p *RecordingPublisher) Records() []sqloutbox.Record {
 	if p == nil {
 		return nil
@@ -124,7 +146,7 @@ func (p *RecordingPublisher) Records() []sqloutbox.Record {
 	return records
 }
 
-// EventIDs returns a snapshot of published event IDs in attempt order.
+// EventIDs SQL outbox transaction, relay, idempotent delivery에서 필요한 값을 조회한다.
 func (p *RecordingPublisher) EventIDs() []audit.EventID {
 	if p == nil {
 		return nil
@@ -140,7 +162,7 @@ func (p *RecordingPublisher) EventIDs() []audit.EventID {
 	return ids
 }
 
-// Count returns the number of publish attempts recorded.
+// Count SQL outbox transaction, relay, idempotent delivery에서 필요한 값을 조회한다.
 func (p *RecordingPublisher) Count() int {
 	if p == nil {
 		return 0
@@ -152,7 +174,7 @@ func (p *RecordingPublisher) Count() int {
 	return len(p.records)
 }
 
-// Reset clears recorded attempts and failure counters.
+// Reset SQL outbox transaction, relay, idempotent delivery의 쓰기 동작을 수행한다.
 func (p *RecordingPublisher) Reset() {
 	if p == nil {
 		return

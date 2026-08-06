@@ -1,15 +1,17 @@
 # Issue #200 Retrospective Audit Step 6-R Artifact Review
 
-Issue: #200
+> 한국어 리뷰 경계: 이 문서는 리뷰 판정과 근거를 한국어 독자가 추적할 수 있도록 정리한다. 심각도 토큰, 판정 토큰, 파일 경로, 라인 번호, 이슈/PR 번호, 명령, 코드 식별자는 원문의 증거 앵커로 보존한다.
+
+이슈: #200
 Audit artifact: `docs/audits/2026-06-14-issue-200-retrospective-audit.md`
 Plan: `docs/superpowers/plans/2026-06-14-issue-200-retrospective-audit-plan.md`
-Gate: Step 6-R, 7-Tier artifact/code review
+게이트: Step 6-R, 7-Tier artifact/code review
 Method: main-session role switching. Native subagents were not used for this
 gate because this session has had repeated long blocking waits; lane timed out
 risk was avoided by main integration fallback. The required six independent
 review lanes plus main integration are recorded here.
 
-## Reviewed Scope
+## 검토 범위
 
 - `docs/audits/2026-06-14-issue-200-retrospective-audit.md`
 - `docs/audits/outputs/issue-200/milestones.json`
@@ -21,7 +23,7 @@ review lanes plus main integration are recorded here.
 - `docs/audits/outputs/issue-200/go-test-race-targeted.txt`
 - `docs/audits/outputs/issue-200/make-ci.txt`
 
-## Evidence
+## 증거
 
 | Check | Evidence | Status |
 |---|---|---|
@@ -34,7 +36,7 @@ review lanes plus main integration are recorded here.
 | CI | `make ci` passed after `golangci-lint cache clean`; output includes `0 issues.` and all test/race package lines passed. | PASS |
 | Placeholder scan | Audit artifact scan for unresolved angle-bracket/schema placeholders returned no hits after cleanup. | PASS |
 
-## Six Review Lanes
+## 6개 검토 관점
 
 | Lane | P0 | P1 | P2 | P3 | Verdict | Evidence |
 |---|---:|---:|---:|---:|---|---|
@@ -45,9 +47,9 @@ review lanes plus main integration are recorded here.
 | Developer/API | 0 | 0 | 0 | 0 | PASS | Public APIs use context-aware runtime operations, sentinel/typed errors, nil/zero-value tests, and README/example coverage for the main packages. |
 | User/Caller | 0 | 0 | 2 | 1 | PASS_WITH_P2 | `batch` and `probabilistic/redis` need README parity; `jwt/redis` local README is a P3 discoverability note because root JWT README covers Redis usage. |
 
-## Findings
+## 발견 사항
 
-No P0/P1 findings.
+P0/P1 발견 사항 없음.
 
 | Severity | Finding | Status |
 |---|---|---|
@@ -56,7 +58,7 @@ No P0/P1 findings.
 | P2 | Testcontainers cleanup termination contexts are unbounded. | Recorded in deferred parity gaps with target milestone `0.6.2`. |
 | P3 | `jwt/redis` relies on root JWT README sections rather than a package-local README. | Recorded as optional discoverability work for `0.6.3`. |
 
-## Main Integration Review
+## 메인 통합 검토
 
 The audit artifact satisfies #200 acceptance criteria:
 
@@ -67,7 +69,7 @@ The audit artifact satisfies #200 acceptance criteria:
 - Full test, full race, targeted stress/race, and `make ci` evidence are preserved.
 - The `make ci` stale-cache recovery is documented as an operator note rather than hidden.
 
-## Verdict
+## 판정
 
 P0=0 P1=0
 

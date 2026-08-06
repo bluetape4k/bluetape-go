@@ -1,15 +1,17 @@
 # Issue #26 State Verifier
 
-Issue: #26
+> 한국어 리뷰 경계: 이 문서는 리뷰 판정과 근거를 한국어 독자가 추적할 수 있도록 정리한다. 심각도 토큰, 판정 토큰, 파일 경로, 라인 번호, 이슈/PR 번호, 명령, 코드 식별자는 원문의 증거 앵커로 보존한다.
+
+이슈: #26
 Milestone: 0.4.0
-Gate: Step 5
-Date: 2026-06-05
-Verdict: VERIFIED
+게이트: Step 5
+날짜: 2026-06-05
+판정: VERIFIED
 
 Reference loaded:
 `/Users/debop/.codex/skills/bluetape4k-full-feature/references/step-5-verifier-checklist.md`.
 
-## Inputs
+## 입력
 
 - Spec: `docs/superpowers/specs/2026-06-05-issue-26-state-spec.md`
 - Plan: `docs/superpowers/plans/2026-06-05-issue-26-state-plan.md`
@@ -52,9 +54,9 @@ Reference loaded:
 | Stress/race coverage. | PASS | `GoroutineStressTester`; `go test -race -count=1 ./state`. |
 | Release/workflow docs. | PASS | `CHANGELOG.md`, `WIP.md`, and lesson updated. |
 
-## Verification Commands
+## 검증 명령
 
-| Command | Result |
+| 명령 | 결과 |
 |---|---|
 | `go test -count=1 ./state` | PASS |
 | `go test -race -count=1 ./state` | PASS |
@@ -76,7 +78,7 @@ README alignment stay with #132/#133/#137.
 
 ### Step 5 Checklist Completion Report
 
-| Item | Status | Notes |
+| 항목 | 상태 | Notes |
 |------|--------|-------|
 | Spec and plan files confirmed accessible | Done | Paths listed above. |
 | Verifier check items pass or have fixed evidence | Done | Requirement table all PASS. |

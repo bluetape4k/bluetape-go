@@ -7,13 +7,13 @@ import (
 	golangjwt "github.com/golang-jwt/jwt/v5"
 )
 
-// DistributedProvider composes JWT tokens with KeyChains shared through a repository.
+// DistributedProvider JWT key provider repository에서 caller-visible 상태와 의미를 설명한다.
 type DistributedProvider struct {
 	provider *Provider
 	repo     DistributedKeyChainRepository
 }
 
-// NewDistributedHMACProvider creates a distributed HMAC provider.
+// NewDistributedHMACProvider JWT key provider repository에서 생성과 초기화 계약을 설명한다.
 func NewDistributedHMACProvider(ctx context.Context, repo DistributedKeyChainRepository, algorithm Algorithm, options ...ProviderOption) (*DistributedProvider, error) {
 	if _, ok := algorithm.hmacSecretLength(); !ok {
 		return nil, OptionError{Option: "algorithm", Err: errorsNew("algorithm must be hmac")}
@@ -21,7 +21,7 @@ func NewDistributedHMACProvider(ctx context.Context, repo DistributedKeyChainRep
 	return newDistributedProvider(ctx, repo, algorithm, options...)
 }
 
-// NewDistributedRSAProvider creates a distributed RSA or RSA-PSS provider.
+// NewDistributedRSAProvider JWT key provider repository에서 생성과 초기화 계약을 설명한다.
 func NewDistributedRSAProvider(ctx context.Context, repo DistributedKeyChainRepository, algorithm Algorithm, options ...ProviderOption) (*DistributedProvider, error) {
 	if !algorithm.isRSA() {
 		return nil, OptionError{Option: "algorithm", Err: errorsNew("algorithm must be rsa")}
@@ -51,7 +51,7 @@ func newDistributedProvider(ctx context.Context, repo DistributedKeyChainReposit
 	return &DistributedProvider{provider: p, repo: repo}, nil
 }
 
-// ComposeContext creates and signs a JWT with a repository-backed current key.
+// ComposeContext JWT key provider repository에서 생성과 초기화 계약을 설명한다.
 func (p *DistributedProvider) ComposeContext(ctx context.Context, options ...ComposeOption) (string, error) {
 	if err := p.validateReady(ctx); err != nil {
 		return "", err
@@ -66,7 +66,7 @@ func (p *DistributedProvider) ComposeContext(ctx context.Context, options ...Com
 	return p.provider.composeWithKey(key, options...)
 }
 
-// ParseContext verifies a JWT with a repository-backed key selected by kid.
+// ParseContext JWT key provider repository에서 동작과 caller-visible 계약을 설명한다.
 func (p *DistributedProvider) ParseContext(ctx context.Context, token string, options ...ParseOption) (*Reader, error) {
 	if err := p.validateReady(ctx); err != nil {
 		return nil, err
@@ -74,7 +74,7 @@ func (p *DistributedProvider) ParseContext(ctx context.Context, token string, op
 	return p.provider.parseWithKeyFunc(token, p.distributedKeyFunc(ctx), options...)
 }
 
-// CurrentKeyChainContext returns the current non-expired distributed signing key.
+// CurrentKeyChainContext JWT key provider repository에서 반환값과 오류 의미를 설명한다.
 func (p *DistributedProvider) CurrentKeyChainContext(ctx context.Context) (*KeyChain, error) {
 	if err := p.validateReady(ctx); err != nil {
 		return nil, err
@@ -89,7 +89,7 @@ func (p *DistributedProvider) CurrentKeyChainContext(ctx context.Context) (*KeyC
 	return key, nil
 }
 
-// RotateContext returns the current key or creates a new key when no live key exists.
+// RotateContext JWT key provider repository에서 반환값과 오류 의미를 설명한다.
 func (p *DistributedProvider) RotateContext(ctx context.Context) (*KeyChain, error) {
 	if err := p.validateReady(ctx); err != nil {
 		return nil, err
@@ -104,7 +104,7 @@ func (p *DistributedProvider) RotateContext(ctx context.Context) (*KeyChain, err
 	return key, nil
 }
 
-// ForcedRotateContext always creates and stores a new distributed signing key.
+// ForcedRotateContext JWT key provider repository에서 생성과 초기화 계약을 설명한다.
 func (p *DistributedProvider) ForcedRotateContext(ctx context.Context) (*KeyChain, error) {
 	if err := p.validateReady(ctx); err != nil {
 		return nil, err
@@ -119,7 +119,7 @@ func (p *DistributedProvider) ForcedRotateContext(ctx context.Context) (*KeyChai
 	return key, nil
 }
 
-// FindKeyChainContext finds a distributed signing key by kid.
+// FindKeyChainContext JWT key provider repository에서 caller-visible 상태와 의미를 설명한다.
 func (p *DistributedProvider) FindKeyChainContext(ctx context.Context, kid string) (*KeyChain, error) {
 	if err := p.validateReady(ctx); err != nil {
 		return nil, err
@@ -137,7 +137,7 @@ func (p *DistributedProvider) FindKeyChainContext(ctx context.Context, kid strin
 	return key, nil
 }
 
-// DeleteKeyChainsContext deletes all repository keys for explicit reset flows.
+// DeleteKeyChainsContext JWT key provider repository에서 실행, cancellation, cleanup 계약을 설명한다.
 func (p *DistributedProvider) DeleteKeyChainsContext(ctx context.Context) error {
 	if err := p.validateReady(ctx); err != nil {
 		return err

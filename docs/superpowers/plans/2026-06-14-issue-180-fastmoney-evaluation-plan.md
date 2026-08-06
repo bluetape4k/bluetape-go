@@ -1,5 +1,8 @@
 # Issue #180 FastMoney Evaluation Implementation Plan
 
+> 한국어 운영 요약: 이 계획 문서는 사용자 협업용 실행 계획이다. 아래 원문에 포함된 명령, 경로, API 이름, issue/PR 번호, branch 이름, code block, test output은 추적성과 재현성을 위해 그대로 보존한다. 작업 순서, 위험, 검증, 롤백 판단은 한국어 독자가 바로 실행 경계를 이해할 수 있도록 이 메모를 우선 적용한다.
+
+
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
 **Goal:** Measure whether the current decimal-backed `money.Money` API needs a separate public long-backed `FastMoney` type, then document the decision with raw benchmark output, a real chart, README guidance, and review evidence.
@@ -700,7 +703,7 @@ Stop after PR creation and review. Wait for explicit merge approval before mergi
 8. Task 8: Step 6-R implementation review.
 9. Task 9: commit, PR, Step 7-R review, then stop for merge approval.
 
-## Plan Self-Review Checklist
+## 계획 Self-Review Checklist
 
 - The plan creates no public `FastMoney` type in this issue.
 - The plan preserves raw benchmark output before interpreting it.

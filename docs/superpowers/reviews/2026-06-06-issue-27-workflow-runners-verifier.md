@@ -1,10 +1,12 @@
 # Issue 27 Workflow Runners Verifier
 
-Issue: #27
+> 한국어 리뷰 경계: 이 문서는 리뷰 판정과 근거를 한국어 독자가 추적할 수 있도록 정리한다. 심각도 토큰, 판정 토큰, 파일 경로, 라인 번호, 이슈/PR 번호, 명령, 코드 식별자는 원문의 증거 앵커로 보존한다.
+
+이슈: #27
 Spec: `docs/superpowers/specs/2026-06-06-issue-27-workflow-runners-spec.md`
 Plan: `docs/superpowers/plans/2026-06-06-issue-27-workflow-runners-plan.md`
-Gate: Step 5
-Status: VERIFIED
+게이트: Step 5
+상태: VERIFIED
 
 ## Verified Scope
 
@@ -28,9 +30,9 @@ Status: VERIFIED
 | README pair and examples exist. | PASS | `workflow/README.md`, `workflow/README.ko.md`, `workflow/workflow_example_test.go`. |
 | No new dependencies. | PASS | Implementation imports stdlib plus `workreport`; no `go.mod` change. |
 
-## Validation Commands
+## 검증 명령
 
-| Command | Result |
+| 명령 | 결과 |
 |---|---|
 | `gofmt -w workflow` | PASS |
 | `go test -count=1 ./workflow ./workreport` | PASS: `workflow 0.669s`, `workreport 1.102s` |
@@ -42,7 +44,7 @@ Status: VERIFIED
 | `rg -n "workflow|#27|0.4.0" CHANGELOG.md WIP.md docs/lessons/2026-06-06-workflow-runners.md` | PASS |
 | `git diff --check` | PASS |
 
-## Residual Risks
+## 잔여 위험
 
 | Risk | Status | Notes |
 |---|---|---|
@@ -50,7 +52,7 @@ Status: VERIFIED
 | Work that ignores context may still return completed after cancellation. | Accepted | Runner propagates context and cancels siblings; a work function owns honoring its context. README documents context-driven work. |
 | Any-success parallel semantics not implemented. | Accepted | Spec and plan explicitly defer optional any-success semantics. |
 
-## Verdict
+## 판정
 
 VERIFIED. Issue #27 implementation satisfies the spec and plan with current
 local evidence.

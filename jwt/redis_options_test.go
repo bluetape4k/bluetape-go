@@ -6,6 +6,7 @@ import (
 	"testing"
 	"time"
 
+	btredis "github.com/bluetape4k/bluetape-go/redis"
 	"github.com/redis/go-redis/v9"
 )
 
@@ -147,6 +148,21 @@ func TestRepositoryKeyNamesAreVersionedAndNamespaced(t *testing.T) {
 	}
 	if got := normalized.orderKey(); got != "bluetape:jwt:v1:prod:order" {
 		t.Fatalf("orderKey() = %q", got)
+	}
+}
+
+func TestRepositoryNamespaceValidationPrecedesSharedKeyBuilder(t *testing.T) {
+	client := newRedisOptionsTestClient(t)
+	_, err := (RedisRepositoryOptions{Client: client, Namespace: "tenant:unsafe"}).normalize()
+	if !errors.Is(err, ErrInvalidOptions) {
+		t.Fatalf("normalize() error = %v, want ErrInvalidOptions", err)
+	}
+	if errors.Is(err, btredis.ErrInvalidKey) {
+		t.Fatalf("normalize() leaked shared redis key error: %v", err)
+	}
+	var optionErr OptionError
+	if !errors.As(err, &optionErr) || optionErr.Option != "namespace" {
+		t.Fatalf("normalize() error = %T %v, want namespace OptionError", err, err)
 	}
 }
 

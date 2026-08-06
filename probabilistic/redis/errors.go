@@ -7,15 +7,15 @@ import (
 )
 
 var (
-	// ErrInvalidOptions is returned when Redis probabilistic options are invalid.
+	// ErrInvalidOptions Redis probabilistic option이 invalid일 때 반환된다.
 	ErrInvalidOptions = errors.New("redis probabilistic: invalid options")
-	// ErrConfigMismatch is returned when stored metadata does not match caller config.
+	// ErrConfigMismatch 저장된 metadata가 호출자 config와 호환되지 않을 때 반환된다.
 	ErrConfigMismatch = errors.New("redis bloom: config mismatch")
-	// ErrConfigCorrupt is returned when stored metadata is missing or incomplete.
+	// ErrConfigCorrupt 저장된 metadata가 없거나 불완전할 때 반환된다.
 	ErrConfigCorrupt = errors.New("redis bloom: config corrupt")
 )
 
-// RedisError wraps an operational Redis failure with a redacted key id.
+// RedisError Redis Bloom/HyperLogLog key, TTL, script, backend compatibility에서 사용하는 구조체다.
 type RedisError struct {
 	Family    string
 	Operation string

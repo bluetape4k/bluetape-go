@@ -1,0 +1,42 @@
+command_label: ratelimit-containers
+command: env BLUETAPE_RATELIMIT_PROVIDER_BENCH=1 go test -timeout=30m -p 1 -run \^\$ -bench \^BenchmarkProviderRateLimitContainers\$ -benchtime=100x -count=3 -benchmem ./ratelimit
+timestamp_utc: 2026-07-20T15:55:26Z
+git_sha: ce98afa5932afbee15b669610d7f5390b29446ca
+pre_run_clean: true
+output_begin
+goos: darwin
+goarch: arm64
+pkg: github.com/bluetape4k/bluetape-go/ratelimit
+cpu: Apple M5
+BenchmarkProviderRateLimitContainers/Redis/AllowAvailable-10         	     100	    225625 ns/op	    1088 B/op	      24 allocs/op
+BenchmarkProviderRateLimitContainers/Redis/AllowAvailable-10         	     100	    198861 ns/op	    1088 B/op	      24 allocs/op
+BenchmarkProviderRateLimitContainers/Redis/AllowAvailable-10         	     100	    201944 ns/op	    1088 B/op	      24 allocs/op
+BenchmarkProviderRateLimitContainers/Redis/AllowRejected-10          	     100	    199032 ns/op	    1088 B/op	      25 allocs/op
+BenchmarkProviderRateLimitContainers/Redis/AllowRejected-10          	     100	    200486 ns/op	    1088 B/op	      25 allocs/op
+BenchmarkProviderRateLimitContainers/Redis/AllowRejected-10          	     100	    199208 ns/op	    1088 B/op	      25 allocs/op
+BenchmarkProviderRateLimitContainers/Redis/AllowParallel/N=8-10      	     100	    366799 ns/op	   11537 B/op	     206 allocs/op
+BenchmarkProviderRateLimitContainers/Redis/AllowParallel/N=8-10      	     100	    371754 ns/op	   10908 B/op	     204 allocs/op
+BenchmarkProviderRateLimitContainers/Redis/AllowParallel/N=8-10      	     100	    382773 ns/op	   10728 B/op	     204 allocs/op
+BenchmarkProviderRateLimitContainers/Redis/AllowDistinctKeys/N=8-10  	     100	    378421 ns/op	   10512 B/op	     199 allocs/op
+BenchmarkProviderRateLimitContainers/Redis/AllowDistinctKeys/N=8-10  	     100	    384072 ns/op	   10578 B/op	     199 allocs/op
+BenchmarkProviderRateLimitContainers/Redis/AllowDistinctKeys/N=8-10  	     100	    382412 ns/op	   10542 B/op	     199 allocs/op
+BenchmarkProviderRateLimitContainers/PostgreSQL/AllowAvailable-10    	     100	    325824 ns/op	    2625 B/op	      50 allocs/op
+BenchmarkProviderRateLimitContainers/PostgreSQL/AllowAvailable-10    	     100	    216216 ns/op	    2612 B/op	      49 allocs/op
+BenchmarkProviderRateLimitContainers/PostgreSQL/AllowAvailable-10    	     100	    223450 ns/op	    2611 B/op	      49 allocs/op
+BenchmarkProviderRateLimitContainers/PostgreSQL/AllowRejected-10     	     100	    282758 ns/op	    2646 B/op	      51 allocs/op
+BenchmarkProviderRateLimitContainers/PostgreSQL/AllowRejected-10     	     100	    232513 ns/op	    2648 B/op	      51 allocs/op
+BenchmarkProviderRateLimitContainers/PostgreSQL/AllowRejected-10     	     100	    214592 ns/op	    2648 B/op	      51 allocs/op
+--- FAIL: BenchmarkProviderRateLimitContainers/PostgreSQL/AllowParallel/N=8
+    provider_benchmark_test.go:341: PostgreSQL/AllowParallel: worker 4 allowed retry after = 16m39.991682s, want 0
+BenchmarkProviderRateLimitContainers/PostgreSQL/AllowDistinctKeys/N=8-10         	     100	   9419871 ns/op	  610532 B/op	    2465 allocs/op
+BenchmarkProviderRateLimitContainers/PostgreSQL/AllowDistinctKeys/N=8-10         	     100	   9713022 ns/op	  611636 B/op	    2472 allocs/op
+BenchmarkProviderRateLimitContainers/PostgreSQL/AllowDistinctKeys/N=8-10         	     100	   9717494 ns/op	  611478 B/op	    2471 allocs/op
+--- FAIL: BenchmarkProviderRateLimitContainers/PostgreSQL
+    provider_benchmark_test.go:329: provider_version="16.14" image_reference="postgres:16-alpine@sha256:57c72fd2a128e416c7fcc499958864df5301e940bca0a56f58fddf30ffc07777"
+--- FAIL: BenchmarkProviderRateLimitContainers
+FAIL
+exit status 1
+FAIL	github.com/bluetape4k/bluetape-go/ratelimit	6.828s
+FAIL
+output_end
+exit_status: 1

@@ -1,13 +1,15 @@
 # Issue #206 Range and Collection Primitives Step 2-R Spec Review
 
-Issue: #206
-Spec: `docs/superpowers/specs/2026-06-22-issue-206-range-collections-design.md`
-Gate: Step 2-R, 7-Tier spec review
-Date: 2026-06-22
-Worktree: `issue-206-range-collections`
-Base: `origin/develop` at `8ebb5e9`
+> 한국어 리뷰 경계: 이 문서는 리뷰 판정과 근거를 한국어 독자가 추적할 수 있도록 정리한다. 심각도 토큰, 판정 토큰, 파일 경로, 라인 번호, 이슈/PR 번호, 명령, 코드 식별자는 원문의 증거 앵커로 보존한다.
 
-## Reviewed Scope
+이슈: #206
+Spec: `docs/superpowers/specs/2026-06-22-issue-206-range-collections-design.md`
+게이트: Step 2-R, 7-Tier spec review
+날짜: 2026-06-22
+Worktree: `issue-206-range-collections`
+기준: `origin/develop` at `8ebb5e9`
+
+## 검토 범위
 
 - `docs/superpowers/specs/2026-06-22-issue-206-range-collections-design.md`
 - GitHub issue #206 metadata and parent epic #204 context
@@ -16,7 +18,7 @@ Base: `origin/develop` at `8ebb5e9`
 - Kotlin source references for ranges, bounded stack, ring buffer, pagination,
   and permutations
 
-## Evidence
+## 증거
 
 | Check | Evidence | Status |
 |---|---|---|
@@ -27,7 +29,7 @@ Base: `origin/develop` at `8ebb5e9`
 | Whitespace gate | `git diff --check` passed after spec review edits. | PASS |
 | Native subagent attempt | Three lanes spawned, remaining lanes failed with `agent thread limit reached`, and stale-agent cleanup hung until user interruption. | UNAVAILABLE; main-session 7-tier fallback performed. |
 
-## Six Review Lanes
+## 6개 검토 관점
 
 | Lane | P0 | P1 | P2 | P3 | Verdict | Evidence |
 |---|---:|---:|---:|---:|---|---|
@@ -38,7 +40,7 @@ Base: `origin/develop` at `8ebb5e9`
 | Developer/API | 0 | 0 | 0 | 0 | PASS after rerun | Initial concern was invariant leakage through exported fields. Spec now makes `Range` and `Page` fields unexported, adds read-only accessors, and uses symmetric `OpenOpenRange` naming. See spec lines 107-140 and 196-222. |
 | User/Caller | 0 | 0 | 0 | 0 | PASS after rerun | Spec requires examples and English/Korean README coverage for boundary notation, stack/ring order, 0-based pages, shallow snapshots, factorial permutations, and Kotlin/JVM exclusions. See spec lines 254-275. |
 
-## Main Integration Review
+## 메인 통합 검토
 
 The reviewed spec satisfies #206 without over-porting Kotlin/JVM shapes:
 
@@ -53,7 +55,7 @@ The reviewed spec satisfies #206 without over-porting Kotlin/JVM shapes:
   shallow snapshots, and non-panicking stack/ring access.
 - It preserves README and example obligations for both English and Korean docs.
 
-## Findings Convergence
+## 발견 사항 수렴
 
 | Iteration | Finding | Action | Result |
 |---|---|---|---|
@@ -64,7 +66,7 @@ The reviewed spec satisfies #206 without over-porting Kotlin/JVM shapes:
 | 1 | P2: permutation factorial growth could be under-documented. | Added factorial-growth docs and no-materialized-helper mitigation. | Performance/security/user reruns passed. |
 | 1 | P3: slice snapshots could be mistaken for deep copies. | Added shallow snapshot documentation requirement. | User/caller rerun passed. |
 
-## Verdict
+## 판정
 
 P0=0 P1=0
 

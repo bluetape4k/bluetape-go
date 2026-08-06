@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/bluetape4k/bluetape-go/leader"
+	btredis "github.com/bluetape4k/bluetape-go/redis"
 	"github.com/redis/go-redis/v9"
 )
 
@@ -49,7 +50,7 @@ return active
 
 const groupPollInterval = 50 * time.Millisecond
 
-// GroupElector 는 Redis ZSET 기반 multi-leader elector다.
+// GroupElector Redis ZSET 기반 multi-leader elector다.
 type GroupElector struct {
 	client redis.Cmdable
 	opts   leader.GroupOptions
@@ -63,7 +64,7 @@ type GroupElector struct {
 	done   chan struct{}
 }
 
-// NewGroup 는 Redis 기반 multi-leader elector를 만든다.
+// NewGroup Redis 기반 multi-leader elector를 만든다.
 func NewGroup(client redis.Cmdable, opts leader.GroupOptions) (*GroupElector, error) {
 	if client == nil {
 		return nil, errors.New("redis client must not be nil")
@@ -74,7 +75,7 @@ func NewGroup(client redis.Cmdable, opts leader.GroupOptions) (*GroupElector, er
 		return nil, err
 	}
 
-	token, err := randomToken()
+	token, err := newElectorToken(normalized.MemberID)
 	if err != nil {
 		return nil, err
 	}
@@ -83,11 +84,16 @@ func NewGroup(client redis.Cmdable, opts leader.GroupOptions) (*GroupElector, er
 		client: client,
 		opts:   normalized,
 		key:    fmt.Sprintf("%s:%s", normalized.KeyPrefix, normalized.Group),
-		token:  normalized.MemberID + ":" + token,
+		token:  token,
 	}, nil
 }
 
-// Campaign 은 빈 leader slot을 획득할 때까지 대기한다.
+// Campaign leader election의 lease, owner token, fencing, group key 동작을 수행한다.
+//
+// 매개변수:
+//   - ctx: 호출자가 소유한 취소, deadline, 요청 범위를 전달한다.
+//
+// 반환 오류는 입력 검증 실패, context 취소, Redis/backend 실패, lease/token 불일치, package sentinel error와 typed error를 그대로 드러낸다.
 func (e *GroupElector) Campaign(ctx context.Context) error {
 	e.mu.Lock()
 	if e.owned || e.active {
@@ -104,7 +110,7 @@ func (e *GroupElector) Campaign(ctx context.Context) error {
 	for {
 		ok, err := e.acquire(ctx)
 		if err != nil {
-			return fmt.Errorf("redis leader group campaign: %w", err)
+			return btredis.NewOpError(btredis.OpLabels{Family: "leader redis group", Operation: "campaign"}, e.key, err)
 		}
 		if ok {
 			renewCtx, cancel := context.WithCancel(context.Background())
@@ -129,7 +135,12 @@ func (e *GroupElector) Campaign(ctx context.Context) error {
 	}
 }
 
-// Resign 은 이 elector가 아직 소유한 leader slot만 해제한다.
+// Resign leader election의 lease, owner token, fencing, group key 동작을 수행한다.
+//
+// 매개변수:
+//   - ctx: 호출자가 소유한 취소, deadline, 요청 범위를 전달한다.
+//
+// 반환 오류는 입력 검증 실패, context 취소, Redis/backend 실패, lease/token 불일치, package sentinel error와 typed error를 그대로 드러낸다.
 func (e *GroupElector) Resign(ctx context.Context) error {
 	if ctx == nil {
 		ctx = context.Background()
@@ -159,32 +170,32 @@ func (e *GroupElector) Resign(ctx context.Context) error {
 	}
 
 	if _, err := e.client.Eval(ctx, groupReleaseScript, []string{e.key}, e.token).Result(); err != nil {
-		return fmt.Errorf("redis leader group resign: %w", err)
+		return btredis.NewOpError(btredis.OpLabels{Family: "leader redis group", Operation: "resign"}, e.key, err)
 	}
 	return nil
 }
 
-// IsLeader 는 이 elector가 아직 leader slot을 보유한다고 판단하는지 알려준다.
+// IsLeader 이 elector가 아직 leader slot을 보유한다고 판단하는지 알려준다.
 func (e *GroupElector) IsLeader() bool {
 	e.mu.RLock()
 	defer e.mu.RUnlock()
 	return e.owned
 }
 
-// ActiveCount 는 현재 살아 있는 leader slot 수를 반환한다.
+// ActiveCount 현재 살아 있는 leader slot 수를 반환한다.
 func (e *GroupElector) ActiveCount(ctx context.Context) (int, error) {
 	active, err := e.activeCount(ctx)
 	if err != nil {
-		return 0, fmt.Errorf("redis leader group active count: %w", err)
+		return 0, btredis.NewOpError(btredis.OpLabels{Family: "leader redis group", Operation: "active_count"}, e.key, err)
 	}
 	return active, nil
 }
 
-// AvailableSlots 는 추가로 획득할 수 있는 leader slot 수를 반환한다.
+// AvailableSlots 추가로 획득할 수 있는 leader slot 수를 반환한다.
 func (e *GroupElector) AvailableSlots(ctx context.Context) (int, error) {
 	active, err := e.activeCount(ctx)
 	if err != nil {
-		return 0, fmt.Errorf("redis leader group available slots: %w", err)
+		return 0, btredis.NewOpError(btredis.OpLabels{Family: "leader redis group", Operation: "available_slots"}, e.key, err)
 	}
 	available := e.opts.MaxLeaders - active
 	if available < 0 {
@@ -249,7 +260,7 @@ func (e *GroupElector) renew(ctx context.Context) (bool, error) {
 	ttlMillis := int64(e.opts.Lease / time.Millisecond)
 	result, err := e.client.Eval(renewCtx, groupRenewScript, []string{e.key}, e.token, ttlMillis).Int()
 	if err != nil {
-		return false, err
+		return false, btredis.NewOpError(btredis.OpLabels{Family: "leader redis group", Operation: "renew"}, e.key, err)
 	}
 	return result == 1, nil
 }

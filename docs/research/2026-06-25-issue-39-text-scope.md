@@ -1,11 +1,10 @@
-# Issue 39 Text Research Scope
+# Issue 39 Text 연구 범위
 
-Issue #39 is the 0.7.0 research gate for deciding how much of
-`bluetape4k-text` should become Go packages in the 0.9.0 text milestone.
-This note supersedes the broad June 1 placeholder for concrete scope decisions
-on #45 and #52-#55.
+Issue #39는 0.9.0 text milestone에서 `bluetape4k-text` 중 어느 범위를 Go package로
+가져올지 결정하는 0.7.0 research gate다. 이 노트는 #45와 #52-#55의 구체적인 scope
+decision으로 넓은 June 1 placeholder를 대체한다.
 
-## Source Inventory
+## 소스 인벤토리
 
 Source repository: `/Users/debop/work/bluetape4k/bluetape4k-text`
 
@@ -29,36 +28,32 @@ Source repository: `/Users/debop/work/bluetape4k/bluetape4k-text`
   detection, Unicode script helpers, and an explicit warning that detectors
   should be reused because model loading is expensive.
 
-## Current Go Ecosystem Evidence
+## 현재 Go Ecosystem 증거
 
-- Aho-Corasick has several Go libraries, but their tradeoffs vary. Cloudflare's
-  package is established and BSD-licensed, but module metadata has no tagged
-  release. `orcasecurity/aho-corasick` is fresh and inspired by Rust's
-  implementation, but has little adoption signal. `rrethy/ahocorasick` has a
-  tagged MIT release but a small maintenance surface. `coregx/ahocorasick` is
-  new and performance-focused, but requires a newer Go version than this repo.
-- A small first-party Aho-Corasick implementation remains realistic for
-  bluetape-go because #52 needs Unicode normalization, offset mapping,
-  boundary behavior, replacement, and masking integration more than raw
-  throughput claims. Adopting a package can be deferred until benchmark
-  evidence proves it is needed.
-- `ikawaha/kagome/v2` is the strongest Japanese tokenizer candidate: pure Go,
-  active, tagged, and Go-native. It still brings dictionary/model size and
-  deployment cost that should stay outside the tokenizer core.
-- `pemistahl/lingua-go` is the closest parity candidate for language detection,
-  including mixed-language support. Its own documentation notes high memory use
-  when all high-accuracy language models are loaded, so it should be isolated
-  behind an optional package and subset-building API.
-- `abadojack/whatlanggo` is simpler, pure Go, and dependency-light, but its
-  latest module release is old. It can be a fallback or comparison target, not
-  the first parity choice.
-- Korean tokenization is the weakest Go adoption path. Evidence found no
-  mature Go-native Korean tokenizer that matches the source module's
-  normalization, POS, stemming, phrase extraction, sentence splitting,
-  dictionary update, and blockword behavior. A direct port would be a large NLP
-  project, not a helper package.
+- Aho-Corasick에는 여러 Go library가 있지만 tradeoff가 다르다. Cloudflare package는
+  established이고 BSD-licensed지만 module metadata에 tagged release가 없다.
+  `orcasecurity/aho-corasick`은 새롭고 Rust 구현에서 영향을 받았지만 adoption signal이
+  약하다. `rrethy/ahocorasick`은 tagged MIT release가 있으나 maintenance surface가 작다.
+  `coregx/ahocorasick`은 새롭고 performance-focused지만 이 repo보다 새 Go version을
+  요구한다.
+- #52는 raw throughput claim보다 Unicode normalization, offset mapping, boundary
+  behavior, replacement, masking integration이 더 중요하므로, bluetape-go에서는 작은
+  first-party Aho-Corasick implementation이 현실적이다. Package adoption은 benchmark
+  evidence가 필요성을 증명할 때까지 defer할 수 있다.
+- `ikawaha/kagome/v2`는 가장 강한 Japanese tokenizer 후보이다. pure Go이고 active,
+  tagged, Go-native다. 다만 dictionary/model size와 deployment cost가 있으므로
+  tokenizer core 밖에 둬야 한다.
+- `pemistahl/lingua-go`는 mixed-language support를 포함해 language detection에서 가장
+  가까운 parity 후보이다. 자체 documentation이 모든 high-accuracy language model loading
+  시 high memory use를 언급하므로 optional package와 subset-building API 뒤에 격리해야 한다.
+- `abadojack/whatlanggo`는 더 단순하고 pure Go이며 dependency-light지만 최신 module
+  release가 오래됐다. 첫 parity choice가 아니라 fallback 또는 comparison target으로 둔다.
+- Korean tokenization은 Go adoption path가 가장 약하다. Source module의 normalization,
+  POS, stemming, phrase extraction, sentence splitting, dictionary update,
+  blockword behavior에 맞는 mature Go-native Korean tokenizer 증거를 찾지 못했다.
+  직접 port는 helper package가 아니라 큰 NLP project다.
 
-## Ranking
+## 순위
 
 | Area | Go fit | Risk | Decision |
 |---|---:|---:|---|
@@ -72,7 +67,7 @@ Source repository: `/Users/debop/work/bluetape4k/bluetape4k-text`
 | Runtime dictionary mutation | Medium | Medium/high | Prefer immutable compiled dictionaries plus explicit rebuild/swap workflow; runtime mutation needs stress/race proof. |
 | Streaming/Flow matching | Medium | Medium | Translate to iterator/channel only after synchronous API stabilizes; no goroutine-heavy API first. |
 
-## Implement
+## 구현
 
 - #52 first-party package for deterministic multi-pattern search:
   immutable compiled automata, `Contains`, `First`, `FindAll`, replacement,
@@ -86,7 +81,7 @@ Source repository: `/Users/debop/work/bluetape4k/bluetape4k-text`
   blockword request/response, and optional tokenizer interfaces. Keep the
   package usable without Korean/Japanese/language-detection dependencies.
 
-## Adopt
+## 채택
 
 - Adopt Kagome only in a separate optional Japanese tokenizer package if #55
   confirms dictionary size, license, POS mapping, and benchmark/test shape.
@@ -113,7 +108,7 @@ Source repository: `/Users/debop/work/bluetape4k/bluetape4k-text`
 - Flow-style asynchronous matching until the synchronous API and blockword
   package prove caller value.
 
-## Issue Updates Required
+## 필요한 Issue 업데이트
 
 - #45: record the implementation order as #52, #53, #54, then optional #55
   dependency-backed packages.
@@ -126,16 +121,16 @@ Source repository: `/Users/debop/work/bluetape4k/bluetape4k-text`
 - #55: split Korean defer, Japanese Kagome adoption research, and Lingua-Go vs
   Whatlanggo language-detection comparison into explicit decisions.
 
-## Validation Plan
+## 검증 계획
 
-- Documentation-only PR: `git diff --check` and targeted `rg`.
-- Verify #45/#52-#55 issue bodies contain the #39 research update.
-- Preserve external evidence in `bluetape4k-wiki` and validate with
+- Documentation-only PR에서는 `git diff --check`와 targeted `rg`를 실행한다.
+- #45/#52-#55 issue body가 #39 research update를 포함하는지 확인한다.
+- External evidence는 `bluetape4k-wiki`에 보존하고
   `gno update`, `gno embed --collection bluetape4k-wiki`, and representative
-  `gno search`.
+  `gno search`로 검증한다.
 
-## Follow-up Recommendation
+## 후속 권고
 
-Do not begin #54 by porting all `tokenizer-core` and Korean/Japanese concepts.
-Start #52 with the smallest compiled search API, then let #53 masking expose
-the dictionary/core model surface that is actually needed.
+#54를 모든 `tokenizer-core`와 Korean/Japanese concept port로 시작하지 않는다. #52는
+가장 작은 compiled search API로 시작하고, #53 masking이 실제로 필요한
+dictionary/core model surface를 드러내게 한다.

@@ -1,12 +1,14 @@
 # Issue #33 JWT PR Review
 
-Task: Step 7-R PR review
-Issue: #33
-PR: #176
-Date: 2026-06-08
-Scope: PR #176 `issue-33-jwt` against `origin/develop`
+> 한국어 리뷰 경계: 이 문서는 리뷰 판정과 근거를 한국어 독자가 추적할 수 있도록 정리한다. 심각도 토큰, 판정 토큰, 파일 경로, 라인 번호, 이슈/PR 번호, 명령, 코드 식별자는 원문의 증거 앵커로 보존한다.
 
-## Integrated Verdict
+Task: Step 7-R PR review
+이슈: #33
+PR: #176
+날짜: 2026-06-08
+범위: PR #176 `issue-33-jwt` against `origin/develop`
+
+## 통합 판정
 
 PASS.
 
@@ -16,9 +18,9 @@ The first PR review iteration found one P1 in nested reader copy isolation. The
 implementation now recursively copies `[]any` elements and has a nested
 array/object mutation regression test.
 
-## PR Metadata Evidence
+## PR 메타데이터 증거
 
-| Item | Status | Evidence |
+| 항목 | 상태 | Evidence |
 |---|---|---|
 | Assignee | PASS | PR #176 assignee `debop`, matching issue #33. |
 | Labels | PASS | `type: task`, `priority: p1`, `area: utilities`, matching issue #33. |
@@ -44,7 +46,7 @@ git diff --check origin/develop --
 
 ## Step 7-R Checklist Completion Report
 
-| Item | Status | Notes |
+| 항목 | 상태 | Notes |
 |---|---|---|
 | PR body verified before merge | Done | Body is non-empty and ends with `## DoD Status`. |
 | PR metadata mirrors issue | Done | Assignee, labels, and milestone match #33. |

@@ -1,0 +1,135 @@
+{
+  "$schema": "https://vega.github.io/schema/vega-lite/v5.json",
+  "title": {
+    "text": "Cache path latency",
+    "subtitle": "min - median - max ns/op; lower is better; logarithmic axis"
+  },
+  "width": 740,
+  "height": 552,
+  "data": {
+    "values": [
+      {
+        "provider": "Memory",
+        "scenario": "Get hit 128 B",
+        "panel": "Hot read paths",
+        "min": 37.49,
+        "median": 37.68,
+        "max": 37.87,
+        "samples": 5
+      },
+      {
+        "provider": "Tiered",
+        "scenario": "L1 hit 128 B",
+        "panel": "Hot read paths",
+        "min": 174.1,
+        "median": 193.4,
+        "max": 273.7,
+        "samples": 3
+      },
+      {
+        "provider": "NearCachePubSub",
+        "scenario": "Local hit 128 B",
+        "panel": "Hot read paths",
+        "min": 254.5,
+        "median": 322.5,
+        "max": 421.7,
+        "samples": 3
+      },
+      {
+        "provider": "RedisL2",
+        "scenario": "Get hit 128 B",
+        "panel": "Remote read paths",
+        "min": 180870,
+        "median": 180964,
+        "max": 245986,
+        "samples": 3
+      },
+      {
+        "provider": "Tiered",
+        "scenario": "L2 hit 128 B",
+        "panel": "Remote read paths",
+        "min": 177220,
+        "median": 177988,
+        "max": 178617,
+        "samples": 3
+      },
+      {
+        "provider": "NearCachePubSub",
+        "scenario": "Peer invalidation 128 B",
+        "panel": "Invalidation observation",
+        "min": 313261,
+        "median": 314018,
+        "max": 320600,
+        "samples": 3
+      }
+    ]
+  },
+  "encoding": {
+    "y": {
+      "field": "scenario",
+      "type": "nominal",
+      "title": null
+    },
+    "color": {
+      "field": "provider",
+      "type": "nominal",
+      "title": "Provider"
+    },
+    "shape": {
+      "field": "provider",
+      "type": "nominal",
+      "title": "Provider"
+    },
+    "row": {
+      "field": "panel",
+      "type": "nominal",
+      "title": null
+    }
+  },
+  "layer": [
+    {
+      "mark": {
+        "type": "rule",
+        "strokeWidth": 4
+      },
+      "encoding": {
+        "x": {
+          "field": "min",
+          "type": "quantitative",
+          "title": "latency (ns/op) - lower is better",
+          "scale": {
+            "type": "log",
+            "zero": false
+          }
+        },
+        "x2": {
+          "field": "max"
+        }
+      }
+    },
+    {
+      "mark": {
+        "type": "point",
+        "filled": true,
+        "size": 100
+      },
+      "encoding": {
+        "x": {
+          "field": "median",
+          "type": "quantitative",
+          "scale": {
+            "type": "log",
+            "zero": false
+          }
+        }
+      }
+    }
+  ],
+  "config": {
+    "font": "Comic Mono, SFMono-Regular, Consolas, monospace",
+    "title": {
+      "font": "Architects Daughter, Comic Sans MS, cursive"
+    },
+    "background": "#FFFFFF"
+  }
+}

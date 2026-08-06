@@ -33,7 +33,7 @@ const (
 	maxGroupDepth = 4
 )
 
-// AccessExplanation explains whether a user can perform an action on a resource.
+// AccessExplanation graph IO Neo4j backend에서 동작과 caller-visible 계약을 설명한다.
 type AccessExplanation struct {
 	UserID     string
 	ResourceID string
@@ -43,7 +43,7 @@ type AccessExplanation struct {
 	Reason     string
 }
 
-// PrivilegeChain describes inherited privileged access that should be reviewed.
+// PrivilegeChain graph IO Neo4j backend에서 동작과 caller-visible 계약을 설명한다.
 type PrivilegeChain struct {
 	UserID string
 	RoleID string
@@ -51,7 +51,7 @@ type PrivilegeChain struct {
 	Reason string
 }
 
-// Graph is a small immutable IAM access graph fixture.
+// Graph graph IO Neo4j backend에서 caller-visible 상태와 의미를 설명한다.
 type Graph struct {
 	vertices []graph.Vertex
 	edges    []graph.Edge
@@ -81,12 +81,12 @@ type vertexPath struct {
 	vertices []graph.Vertex
 }
 
-// SeedIAMAccessGraph returns the bundled IAM access graph.
+// SeedIAMAccessGraph graph IO Neo4j backend에서 반환값과 오류 의미를 설명한다.
 func SeedIAMAccessGraph() (Graph, error) {
 	return newIAMAccessGraph(seedVertices(), seedEdges())
 }
 
-// ReadIAMAccessGraphNDJSON imports an IAM access graph from graphio NDJSON records.
+// ReadIAMAccessGraphNDJSON graph IO Neo4j backend에서 동작과 caller-visible 계약을 설명한다.
 func ReadIAMAccessGraphNDJSON(ctx context.Context, reader io.Reader) (Graph, graphio.Report, error) {
 	records, report, err := graphio.ReadNDJSON(ctx, reader, graphio.ReadOptions{})
 	if err != nil {
@@ -113,17 +113,17 @@ func ReadIAMAccessGraphNDJSON(ctx context.Context, reader io.Reader) (Graph, gra
 	return access, report, nil
 }
 
-// Vertices returns the graph vertices in fixture order.
+// Vertices graph IO Neo4j backend에서 반환값과 오류 의미를 설명한다.
 func (g Graph) Vertices() []graph.Vertex {
 	return append([]graph.Vertex(nil), g.vertices...)
 }
 
-// Edges returns the graph edges in fixture order.
+// Edges graph IO Neo4j backend에서 반환값과 오류 의미를 설명한다.
 func (g Graph) Edges() []graph.Edge {
 	return append([]graph.Edge(nil), g.edges...)
 }
 
-// Records returns graphio records for every vertex and edge in fixture order.
+// Records graph IO Neo4j backend에서 반환값과 오류 의미를 설명한다.
 func (g Graph) Records() ([]graphio.Record, error) {
 	records := make([]graphio.Record, 0, len(g.vertices)+len(g.edges))
 	for _, vertex := range g.vertices {
@@ -143,7 +143,7 @@ func (g Graph) Records() ([]graphio.Record, error) {
 	return records, nil
 }
 
-// WriteNDJSON exports the IAM access graph as graphio NDJSON records.
+// WriteNDJSON graph IO Neo4j backend에서 동작과 caller-visible 계약을 설명한다.
 func (g Graph) WriteNDJSON(ctx context.Context, writer io.Writer) (graphio.Report, error) {
 	records, err := g.Records()
 	if err != nil {
@@ -152,7 +152,7 @@ func (g Graph) WriteNDJSON(ctx context.Context, writer io.Writer) (graphio.Repor
 	return graphio.WriteNDJSON(ctx, writer, records, graphio.WriteOptions{})
 }
 
-// ExplainAccess explains whether a user can perform action on resourceID.
+// ExplainAccess graph IO Neo4j backend에서 동작과 caller-visible 계약을 설명한다.
 func (g Graph) ExplainAccess(userID string, resourceID string, action string) AccessExplanation {
 	user, ok := g.userByID(userID)
 	if !ok {
@@ -184,7 +184,7 @@ func (g Graph) ExplainAccess(userID string, resourceID string, action string) Ac
 	return denied(userID, resourceID, action, "No matching grant path")
 }
 
-// RiskyPrivilegeChains returns nested group paths that grant admin roles.
+// RiskyPrivilegeChains graph IO Neo4j backend에서 반환값과 오류 의미를 설명한다.
 func (g Graph) RiskyPrivilegeChains(userID string) []PrivilegeChain {
 	user, ok := g.userByID(userID)
 	if !ok {
@@ -214,7 +214,7 @@ func (g Graph) RiskyPrivilegeChains(userID string) []PrivilegeChain {
 	return chains
 }
 
-// ExcessivePermissions finds allowed actions outside the approved resource set.
+// ExcessivePermissions graph IO Neo4j backend에서 동작과 caller-visible 계약을 설명한다.
 func (g Graph) ExcessivePermissions(userID string, approvedActionsByResource map[string][]string) []AccessExplanation {
 	user, ok := g.userByID(userID)
 	if !ok {

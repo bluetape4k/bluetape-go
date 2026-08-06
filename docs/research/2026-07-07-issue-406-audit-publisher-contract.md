@@ -1,57 +1,43 @@
 # Issue #406 Audit Publisher Contract
 
-Issue #406 stabilizes the `audit/sqloutbox.Publisher` boundary before the
-first helper adapter package in #407.
+Issue #406은 #407의 첫 helper adapter package 전에 `audit/sqloutbox.Publisher` boundary를 안정화한다.
 
-## Decision
+## 결정
 
-Keep the publisher boundary on `audit/sqloutbox.Record` and
-`context.Context`. Do not introduce a generic broker abstraction in this slice.
+publisher boundary는 `audit/sqloutbox.Record`와 `context.Context`에 둔다. 이 slice에서는 generic broker abstraction을
+도입하지 않는다.
 
-The contract is:
+contract는 다음과 같다.
 
-- delivery is at-least-once, so publishers and consumers must handle duplicate
-  publish attempts;
-- `Record.EventID` and `Record.IdempotencyKey` are the stable deduplication
-  keys across retries and expired claim leases;
-- caller-owned context cancellation or deadline errors stop `RunOnce` without
-  calling `MarkFailed`;
-- non-cancellation publish errors are persisted through retry/dead-letter state
-  with bounded failure text;
-- broker topology, authentication, TLS, retention, replay, logging, metrics,
-  and redaction remain adapter/application responsibilities.
+- delivery는 at-least-once이므로 publisher와 consumer는 duplicate publish attempt를 처리해야 한다.
+- `Record.EventID`와 `Record.IdempotencyKey`는 retry 및 expired claim lease 전반의 stable deduplication key다.
+- caller-owned context cancellation 또는 deadline error는 `MarkFailed`를 호출하지 않고 `RunOnce`를 멈춘다.
+- non-cancellation publish error는 bounded failure text로 retry/dead-letter state에 저장된다.
+- broker topology, authentication, TLS, retention, replay, logging, metrics, redaction은 adapter/application responsibility로
+  남는다.
 
 ## Implementation Scope
 
-- Expanded the public `Publisher` doc comment with at-least-once,
-  idempotency, and caller cancellation rules.
-- Updated `Relay.RunOnce` to return wrapped caller context cancellation errors
-  directly instead of storing them as retry/dead-letter failures.
-- Added cancellation, duplicate retry envelope, and concurrent `RunOnce`
-  stress tests over the PostgreSQL-backed store.
-- Updated `audit/sqloutbox` README files and the parent `audit` README files in
-  English and Korean.
+- public `Publisher` doc comment에 at-least-once, idempotency, caller cancellation rule을 확장했다.
+- `Relay.RunOnce`는 wrapped caller context cancellation error를 retry/dead-letter failure로 저장하지 않고 그대로 반환하도록 바꿨다.
+- PostgreSQL-backed store 위에서 cancellation, duplicate retry envelope, concurrent `RunOnce` stress test를 추가했다.
+- `audit/sqloutbox` README pair와 parent `audit` README pair를 English/Korean으로 갱신했다.
 
 ## Diagram Decision
 
-No new README diagram is required for #406.
+#406에는 새 README diagram이 필요하지 않다.
 
-Evidence:
+근거:
 
-- The existing class contract map already shows the public participants:
-  source caller, `Store`, `Relay`, `Publisher`, and `Record`.
-- The existing sequence diagram already shows claim, publish error,
-  retry/dead-letter, and publish success branches.
-- #406 changes the cancellation exception and duplicate/idempotency wording,
-  but it does not add a new public type, transport participant, or sequence
-  branch that cannot be explained by the existing retry/error branch plus README
-  prose.
-- Full-size PNG inspection was performed for both existing diagrams and found
-  no overlap, truncation, or readability defects.
+- 기존 class contract map은 source caller, `Store`, `Relay`, `Publisher`, `Record`라는 public participant를 이미 보여 준다.
+- 기존 sequence diagram은 claim, publish error, retry/dead-letter, publish success branch를 이미 보여 준다.
+- #406은 cancellation exception과 duplicate/idempotency wording을 바꾸지만, 기존 retry/error branch 및 README prose로 설명할 수
+  없는 새 public type, transport participant, sequence branch를 추가하지 않는다.
+- 기존 두 diagram의 full-size PNG를 검사했고 overlap, truncation, readability defect가 없었다.
 
 ## Validation Plan
 
 - `go test -count=1 ./audit/sqloutbox`
 - `go test -race -count=1 ./audit/sqloutbox`
 - `git diff --check`
-- 7-Tier review artifact with P0/P1 findings before PR.
+- PR 전 P0/P1 finding을 포함한 7-Tier review artifact.

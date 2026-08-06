@@ -1,6 +1,9 @@
 # Issue #180 FastMoney Evaluation Design
 
-## Goal
+> 한국어 요구사항 경계: 이 spec/design/test-spec 문서는 한국어 독자가 요구사항을 추적할 수 있도록 목적과 검증 경계를 한국어로 보강한다. API 이름, command, code identifier, issue/PR 번호, compatibility matrix, acceptance keyword, DoD/test evidence는 요구사항 약화를 막기 위해 원문 그대로 보존한다. 변경자는 아래 literal contract를 삭제하거나 의미를 약하게 바꾸지 않아야 한다.
+
+
+## 목표
 
 `money` package에 별도 long-backed `FastMoney` public type이 필요한지
 벤치마크와 사용 사례 근거로 판정한다. 이 작업의 기본 방향은 새 public type을
@@ -225,7 +228,7 @@ PR body, docs, chart, benchmark evidence, and CI state.
 - Goroutine stress and race evidence are reported.
 - 7-Tier review evidence records P0=0 and P1=0 before PR.
 
-## Risks And Mitigations
+## 위험 And Mitigations
 
 | Risk | Severity | Mitigation |
 |---|---:|---|

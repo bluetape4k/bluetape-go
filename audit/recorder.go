@@ -7,7 +7,7 @@ import (
 	"time"
 )
 
-// EventRecord contains caller inputs for AggregateRecorder.Record.
+// EventRecord audit entry, event, repository, recorder, history에서 사용하는 구조체다.
 type EventRecord struct {
 	EventID        EventID
 	EventType      EventType
@@ -17,7 +17,7 @@ type EventRecord struct {
 	Payload        json.RawMessage
 }
 
-// AggregateRecorder records pending events for one aggregate root.
+// AggregateRecorder audit entry, event, repository, recorder, history에서 사용하는 구조체다.
 type AggregateRecorder struct {
 	mu        sync.Mutex
 	aggregate AggregateID
@@ -25,12 +25,23 @@ type AggregateRecorder struct {
 	pending   []DomainEvent
 }
 
-// NewAggregateRecorder creates a recorder for an aggregate with no history.
+// NewAggregateRecorder audit entry, event, repository, recorder, history에 사용할 값을 생성한다.
+//
+// 매개변수:
+//   - aggregate: NewAggregateRecorder에 전달되는 값이다. 허용 범위와 nil 처리 방식은 구현 검증을 따른다.
+//
+// 반환 오류는 입력 검증 실패, context 취소, transaction 실패, repository/outbox 실패, package sentinel error와 typed error를 그대로 드러낸다.
 func NewAggregateRecorder(aggregate AggregateID) (*AggregateRecorder, error) {
 	return NewAggregateRecorderFromHead(aggregate, 0)
 }
 
-// NewAggregateRecorderFromHead creates a recorder restored from a durable head.
+// NewAggregateRecorderFromHead audit entry, event, repository, recorder, history에 사용할 값을 생성한다.
+//
+// 매개변수:
+//   - aggregate: NewAggregateRecorderFromHead에 전달되는 값이다. 허용 범위와 nil 처리 방식은 구현 검증을 따른다.
+//   - head: NewAggregateRecorderFromHead에 전달되는 값이다. 허용 범위와 nil 처리 방식은 구현 검증을 따른다.
+//
+// 반환 오류는 입력 검증 실패, context 취소, transaction 실패, repository/outbox 실패, package sentinel error와 typed error를 그대로 드러낸다.
 func NewAggregateRecorderFromHead(aggregate AggregateID, head Revision) (*AggregateRecorder, error) {
 	if err := aggregate.Validate(); err != nil {
 		return nil, err
@@ -43,7 +54,12 @@ func NewAggregateRecorderFromHead(aggregate AggregateID, head Revision) (*Aggreg
 	return &AggregateRecorder{aggregate: aggregate, head: head}, nil
 }
 
-// Record validates and records a pending event with the next revision.
+// Record audit entry, event, repository, recorder, history의 쓰기 동작을 수행한다.
+//
+// 매개변수:
+//   - record: Record에 전달되는 값이다. 허용 범위와 nil 처리 방식은 구현 검증을 따른다.
+//
+// 반환 오류는 입력 검증 실패, context 취소, transaction 실패, repository/outbox 실패, package sentinel error와 typed error를 그대로 드러낸다.
 func (r *AggregateRecorder) Record(record EventRecord) (DomainEvent, error) {
 	if r == nil {
 		return DomainEvent{}, validationError(ErrInvalidEvent, "recorder", nil)
@@ -102,7 +118,7 @@ func (r *AggregateRecorder) Record(record EventRecord) (DomainEvent, error) {
 	return event.Clone(), nil
 }
 
-// PendingEvents returns a defensive snapshot of unacknowledged events.
+// PendingEvents audit entry, event, repository, recorder, history에서 필요한 값을 조회한다.
 func (r *AggregateRecorder) PendingEvents() []DomainEvent {
 	if r == nil {
 		return nil
@@ -116,7 +132,12 @@ func (r *AggregateRecorder) PendingEvents() []DomainEvent {
 	return snapshot
 }
 
-// AckThrough acknowledges all pending events at or below revision.
+// AckThrough audit entry, event, repository, recorder, history의 상태를 변경한다.
+//
+// 매개변수:
+//   - revision: AckThrough에 전달되는 값이다. 허용 범위와 nil 처리 방식은 구현 검증을 따른다.
+//
+// 반환 오류는 입력 검증 실패, context 취소, transaction 실패, repository/outbox 실패, package sentinel error와 typed error를 그대로 드러낸다.
 func (r *AggregateRecorder) AckThrough(revision Revision) error {
 	if r == nil {
 		return validationError(ErrInvalidRevision, "recorder", nil)
@@ -145,7 +166,7 @@ func (r *AggregateRecorder) AckThrough(revision Revision) error {
 	return nil
 }
 
-// HeadRevision returns the current in-memory head revision.
+// HeadRevision audit entry, event, repository, recorder, history에서 필요한 값을 조회한다.
 func (r *AggregateRecorder) HeadRevision() Revision {
 	if r == nil {
 		return 0

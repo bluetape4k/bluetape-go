@@ -1,12 +1,14 @@
 # Issue #34 Measured Values Spec Review
 
-Task: Step 2-R spec review
-Issue: #34
-Date: 2026-06-08
-Spec: `docs/superpowers/specs/2026-06-08-issue-34-measured-values-spec.md`
-Scope: Go-native measured value and unit helper package for milestone 0.6.0.
+> 한국어 리뷰 경계: 이 문서는 리뷰 판정과 근거를 한국어 독자가 추적할 수 있도록 정리한다. 심각도 토큰, 판정 토큰, 파일 경로, 라인 번호, 이슈/PR 번호, 명령, 코드 식별자는 원문의 증거 앵커로 보존한다.
 
-## Review Method
+Task: Step 2-R spec review
+이슈: #34
+날짜: 2026-06-08
+Spec: `docs/superpowers/specs/2026-06-08-issue-34-measured-values-spec.md`
+범위: Go-native measured value and unit helper package for milestone 0.6.0.
+
+## 검토 방법
 
 Native subagent review was attempted for the architect/API lane, but the current
 session returned `collab spawn failed: agent thread limit reached` twice. This
@@ -24,7 +26,7 @@ Source evidence inspected:
 - Representative source tests for conversion, formatting, temperature, compound
   operations, and stress expectations.
 
-## Integrated Verdict
+## 통합 판정
 
 PASS.
 
@@ -36,7 +38,7 @@ and did not close NaN/infinity, zero-value `Measure`, `Must`, or numeric
 formatting behavior. The spec now names `NewUnit`, `MustUnit`, finite-value
 validation, zero-value typed errors, and deterministic numeric rendering.
 
-## Findings
+## 발견 사항
 
 | Priority | Finding | Fix |
 |---|---|---|
@@ -58,7 +60,7 @@ validation, zero-value typed errors, and deterministic numeric rendering.
 
 ## Step 2-R Checklist Completion Report
 
-| Item | Status | Notes |
+| 항목 | 상태 | Notes |
 |---|---|---|
 | Required reference loaded | Done | `references/step-2r-spec-review.md` read before review. |
 | Source evidence checked | Done | Kotlin source README/files/tests inspected. |

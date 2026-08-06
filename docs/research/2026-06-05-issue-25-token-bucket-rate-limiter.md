@@ -1,29 +1,29 @@
-# Issue #25 Token-Bucket Rate Limiter Research
+# Issue #25 Token-Bucket Rate Limiter 연구
 
 Issue: #25
 Milestone: 0.3.0
 Date: 2026-06-05
 Work type: Type A - Full Feature
 
-## Research Question
+## 연구 질문
 
-How should `bluetape-go` add practical token-bucket rate limiting with local and
-Redis-backed implementations, without adding a new dependency or weakening the
-existing Redis coordination package boundaries?
+`bluetape-go`는 새 dependency를 추가하거나 기존 Redis coordination package 경계를
+흐리지 않으면서, local 및 Redis-backed 구현을 갖춘 실용적인 token-bucket rate
+limiting을 어떻게 추가해야 하는가?
 
-## Current Repository Evidence
+## 현재 Repository 근거
 
-- `go.mod` already depends on `github.com/redis/go-redis/v9 v9.20.0`.
-- `lock/redis` uses `redis.Cmdable`, validates options before command
-  execution, and uses `Eval` for owner-token compare-and-delete.
-- `cache/rediscoord` uses explicit Redis coordination packages instead of
-  hiding cross-process behavior inside the local cache contract.
-- `resilience/http.go` exposes standard-library HTTP adapters without binding
-  to any router framework.
-- `testing/concurrency` provides `GoroutineStressTester` and `AsyncJobTester`,
-  which #25 explicitly requires for stress/cancellation coverage.
+- `go.mod`는 이미 `github.com/redis/go-redis/v9 v9.20.0`에 의존한다.
+- `lock/redis`는 `redis.Cmdable`을 사용하고, command 실행 전에 options를 검증하며,
+  owner-token compare-and-delete에 `Eval`을 사용한다.
+- `cache/rediscoord`는 cross-process behavior를 local cache contract 안에 숨기지
+  않고 명시적인 Redis coordination package를 사용한다.
+- `resilience/http.go`는 특정 router framework에 묶이지 않는 standard-library HTTP
+  adapter를 노출한다.
+- `testing/concurrency`는 #25가 stress/cancellation coverage에 명시적으로 요구한
+  `GoroutineStressTester`와 `AsyncJobTester`를 제공한다.
 
-## External Evidence
+## 외부 근거
 
 | Source | Relevant point | Decision impact |
 |---|---|---|
@@ -33,25 +33,25 @@ existing Redis coordination package boundaries?
 | go-redis v9 package docs, https://pkg.go.dev/github.com/redis/go-redis/v9 | `Client` and `Cmdable` expose `Eval(ctx, script, keys, args...)`. | Reuse the existing `redis.Cmdable` boundary and avoid client lifecycle ownership. |
 | Go `x/time/rate`, https://pkg.go.dev/golang.org/x/time/rate | The standard ecosystem has a mature local token-bucket limiter API. | Borrow conceptual semantics, but do not add the dependency because the workflow forbids new dependencies without explicit request. |
 
-## Token-Bucket Semantics
+## Token-Bucket 의미
 
-A token bucket holds up to `Burst` tokens. Tokens refill over time at
-`RatePerSecond`, and a request consumes `Tokens` tokens only when enough tokens
-are available. This permits short bursts up to `Burst` while bounding long-term
-rate to `RatePerSecond`.
+token bucket은 최대 `Burst` tokens를 보관한다. token은 시간이 지나며
+`RatePerSecond` 속도로 refill되고, request는 충분한 token이 있을 때만 `Tokens`
+tokens를 소비한다. 따라서 짧은 burst는 `Burst`까지 허용하면서 장기 rate는
+`RatePerSecond`로 제한한다.
 
-Returned diagnostics should include:
+반환 diagnostics에는 다음이 포함되어야 한다.
 
-- whether the request was allowed;
-- requested token count;
-- remaining whole tokens after the attempt;
-- retry-after duration for rejected attempts;
-- reset-after duration until the bucket is full.
+- request 허용 여부;
+- 요청한 token 수;
+- 시도 이후 남은 whole token 수;
+- rejected attempt에 대한 retry-after duration;
+- bucket이 full이 될 때까지의 reset-after duration.
 
-Rejection is normal control flow and should not be returned as an error.
-Errors are reserved for validation, context cancellation, and backend failures.
+rejection은 정상 control flow이며 error로 반환하지 않는다. error는 validation,
+context cancellation, backend failure에만 사용한다.
 
-## Package Boundary Options
+## Package 경계 선택지
 
 | Option | Summary | Pros | Cons | Decision |
 |---|---|---|---|---|
@@ -62,43 +62,43 @@ Errors are reserved for validation, context cancellation, and backend failures.
 
 ## Redis State Model
 
-Use one Redis key per logical bucket:
+logical bucket마다 Redis key 하나를 사용한다.
 
 ```text
 bluetape:ratelimit:<namespace>:bucket:<key>
 ```
 
-Store state as a hash:
+state는 hash로 저장한다.
 
 - `tokens`: remaining microtokens;
 - `updated_ms`: Redis server time in milliseconds for the last refill.
 
-The Redis script should:
+Redis script는 다음을 수행해야 한다.
 
-1. validate positive requested tokens, burst microtokens, and refill rate;
-2. read Redis `TIME`;
-3. read the bucket hash or initialize it as full;
-4. refill based on elapsed milliseconds;
-5. consume requested tokens only if enough tokens remain;
-6. store updated state with `HSET`;
-7. set idle expiration with `PEXPIRE`;
-8. return allowed flag, remaining whole tokens, retry-after milliseconds,
-   reset-after milliseconds, and current time.
+1. positive requested tokens, burst microtokens, refill rate를 검증한다;
+2. Redis `TIME`을 읽는다;
+3. bucket hash를 읽거나 full 상태로 초기화한다;
+4. elapsed milliseconds 기준으로 refill한다;
+5. token이 충분할 때만 requested tokens를 소비한다;
+6. 갱신된 state를 `HSET`으로 저장한다;
+7. idle expiration을 `PEXPIRE`로 설정한다;
+8. allowed flag, remaining whole tokens, retry-after milliseconds,
+   reset-after milliseconds, current time을 반환한다.
 
-Representing tokens as integer microtokens avoids most fractional-token drift
-while still supporting non-integer `RatePerSecond` values.
+token을 integer microtokens로 표현하면 non-integer `RatePerSecond` 값을 지원하면서도
+대부분의 fractional-token drift를 피할 수 있다.
 
-## Concurrency And Consistency
+## Concurrency 및 Consistency
 
-- Local limiter uses one mutex-protected map of per-key bucket state.
-- Redis limiter relies on one `EVAL` script per attempt, so concurrent clients
-  cannot interleave refill and consume for the same key.
-- Redis server time is authoritative for distributed buckets.
-- Redis key expiration bounds idle bucket memory.
-- Neither implementation is a fairness queue. A burst of concurrent callers is
-  arbitrated by mutex or Redis command order.
+- local limiter는 key별 bucket state를 담는 mutex-protected map 하나를 사용한다.
+- Redis limiter는 시도마다 `EVAL` script 하나에 의존하므로, concurrent client가 같은
+  key의 refill과 consume을 interleave할 수 없다.
+- Redis server time은 distributed bucket의 authoritative time이다.
+- Redis key expiration은 idle bucket memory를 제한한다.
+- 어느 구현도 fairness queue가 아니다. concurrent caller burst는 mutex 또는 Redis
+  command order로 중재된다.
 
-## Public API Direction
+## Public API 방향
 
 ```go
 package ratelimit
@@ -124,7 +124,7 @@ type Result struct {
 func New(options Options) (*TokenBucket, error)
 ```
 
-Redis package direction:
+Redis package 방향:
 
 ```go
 package redisratelimit
@@ -141,50 +141,48 @@ type Options struct {
 func New(options Options) (*Limiter, error)
 ```
 
-## HTTP Middleware Direction
+## HTTP Middleware 방향
 
-The root package should provide standard-library middleware:
+root package는 standard-library middleware를 제공해야 한다.
 
-- accepts any `Limiter` implementation;
-- defaults to one token per request;
-- defaults keying to `Request.RemoteAddr` host only;
-- does not trust proxy headers by default;
-- writes `429 Too Many Requests` on rejection;
-- sets `Retry-After` when `RetryAfter` is positive;
-- supports a custom rejection/error handler.
+- 모든 `Limiter` 구현을 받는다;
+- request당 token 하나를 기본값으로 둔다;
+- keying 기본값은 `Request.RemoteAddr` host만 사용한다;
+- 기본적으로 proxy header를 신뢰하지 않는다;
+- rejection 시 `429 Too Many Requests`를 쓴다;
+- `RetryAfter`가 양수이면 `Retry-After`를 설정한다;
+- custom rejection/error handler를 지원한다.
 
-No router-specific adapters should be added in #25.
+#25에서는 router-specific adapter를 추가하지 않는다.
 
-## Test Requirements
+## 테스트 요구사항
 
-- Local unit tests for option validation, burst, refill, rejection diagnostics,
-  idle cleanup, context cancellation, and concurrent access.
-- Redis Testcontainers tests for script defaults, burst, refill, concurrent
-  clients, key expiration, context cancellation, and namespace separation.
-- HTTP middleware tests for pass-through, rejection, custom key function, custom
-  handler, and `Retry-After` header.
-- Stress tests with `GoroutineStressTester` for both local and Redis burst
-  contention.
-- Cancellation tests with `AsyncJobTester`.
-- Race-targeted local tests and Redis package tests.
+- option validation, burst, refill, rejection diagnostics, idle cleanup,
+  context cancellation, concurrent access에 대한 local unit test.
+- script defaults, burst, refill, concurrent clients, key expiration,
+  context cancellation, namespace separation에 대한 Redis Testcontainers test.
+- pass-through, rejection, custom key function, custom handler,
+  `Retry-After` header에 대한 HTTP middleware test.
+- local 및 Redis burst contention 모두에 대한 `GoroutineStressTester` stress test.
+- `AsyncJobTester` cancellation test.
+- race-targeted local test와 Redis package test.
 
-## Benchmark Boundary
+## Benchmark 경계
 
-#25 should add focused benchmarks for the new package because rate limiting is
-hot-path infrastructure:
+#25는 rate limiting이 hot-path infrastructure이므로 새 package에 대한 focused
+benchmark를 추가해야 한다.
 
 - local allowed path;
 - local rejected path;
 - HTTP middleware allowed path.
 
-Redis benchmarks should be opt-in and documented, not part of `make ci`.
-If Redis benchmark scope grows, create a follow-up issue instead of expanding
-the first implementation.
+Redis benchmark는 `make ci`의 일부가 아니라 opt-in이고 문서화된 형태여야 한다.
+Redis benchmark scope가 커지면 첫 구현을 확장하지 말고 follow-up issue를 만든다.
 
-## Decision
+## 결정
 
-Implement a new root `ratelimit` package for shared API, local keyed token
-bucket, HTTP middleware, and local benchmarks. Implement a new
-`ratelimit/redis` package for Redis-backed distributed buckets using a single
-Lua `EVAL` script with Redis server time and key TTL. Reuse `go-redis/v9` and
-Testcontainers already present in the repository; do not add dependencies.
+shared API, local keyed token bucket, HTTP middleware, local benchmark를 위해 새 root
+`ratelimit` package를 구현한다. Redis server time과 key TTL을 사용하는 단일 Lua
+`EVAL` script 기반 Redis-backed distributed bucket을 위해 새 `ratelimit/redis`
+package를 구현한다. repository에 이미 있는 `go-redis/v9`와 Testcontainers를
+재사용하고 dependency는 추가하지 않는다.

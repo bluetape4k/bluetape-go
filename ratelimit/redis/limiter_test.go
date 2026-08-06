@@ -106,16 +106,27 @@ func TestLimiterRefillsFromRedisServerTime(t *testing.T) {
 	client := redisClient(ctx, t)
 	limiter := newLimiter(t, client, "refill", Options{RatePerSecond: 20, Burst: 1})
 
-	if _, err := limiter.Allow(ctx, "user-1", 1); err != nil {
+	initial, err := limiter.Allow(ctx, "user-1", 1)
+	if err != nil {
 		t.Fatalf("consume burst: %v", err)
 	}
-	time.Sleep(75 * time.Millisecond)
-	result, err := limiter.Allow(ctx, "user-1", 1)
-	if err != nil {
-		t.Fatalf("allow after refill: %v", err)
+	if !initial.Allowed {
+		t.Fatalf("consume burst rejected: %+v", initial)
 	}
-	if !result.Allowed {
-		t.Fatalf("expected refill to allow request: %+v", result)
+
+	deadline := time.Now().Add(2 * time.Second)
+	for {
+		result, err := limiter.Allow(ctx, "user-1", 1)
+		if err != nil {
+			t.Fatalf("allow after refill: %v", err)
+		}
+		if result.Allowed {
+			return
+		}
+		if result.RetryAfter <= 0 || time.Now().After(deadline) {
+			t.Fatalf("expected refill to allow request: %+v", result)
+		}
+		time.Sleep(min(result.RetryAfter, time.Until(deadline)))
 	}
 }
 

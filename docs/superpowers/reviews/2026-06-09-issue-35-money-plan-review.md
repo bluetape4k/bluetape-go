@@ -1,13 +1,15 @@
 # Issue #35 Money Plan Review
 
-## Scope
+> 한국어 리뷰 경계: 이 문서는 리뷰 판정과 근거를 한국어 독자가 추적할 수 있도록 정리한다. 심각도 토큰, 판정 토큰, 파일 경로, 라인 번호, 이슈/PR 번호, 명령, 코드 식별자는 원문의 증거 앵커로 보존한다.
+
+## 범위
 
 - Plan: `docs/superpowers/plans/2026-06-09-issue-35-money-decimal-plan.md`
 - Spec: `docs/superpowers/specs/2026-06-09-issue-35-money-decimal-spec.md`
 - Gate: Step 3-R, implementation plan review
 - Baseline: `58bccab Add JWT helper utilities`
 
-## Reviewer Lanes
+## 검토자 관점
 
 | Lane | Result | P0 | P1 | P2 | P3 | Evidence |
 |---|---|---:|---:|---:|---:|---|
@@ -15,7 +17,7 @@
 | Test engineer + verifier | FAIL -> PASS after rerun | 0 | 0 | 0 | 0 | Initial P1s on `IsCurrency`/`MustParseCurrency` and `Neg`/`Abs`/`Equal` tests were fixed and rerun passed. |
 | Security/SRE/performance | PASS | 0 | 0 | 2 | 0 | P2s on dependency revalidation commands and explicit stress options were fixed in the plan. |
 
-## Integrated Findings
+## 통합 발견 사항
 
 | Priority | Area | Disposition |
 |---|---|---|
@@ -40,6 +42,6 @@
 | 6 Performance/stability | 0 | 0 | Explicit stress options, race test, and full `make ci` are planned. |
 | 7 Docs/release/evidence | 0 | 0 | README pairs, changelog, WIP, follow-up issues, PR metadata, and DoD body are planned. |
 
-## Convergence Verdict
+## 수렴 판정
 
 P0=0 P1=0. Step 3-R PASS.

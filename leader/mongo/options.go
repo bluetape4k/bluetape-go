@@ -14,11 +14,11 @@ type config struct {
 	clock      func() time.Time
 }
 
-// Option configures a MongoDB elector.
+// Option leader backend election에서 설정값과 기본값 적용 방식을 설명한다.
 type Option func(*config) error
 
-// WithRetryDelay configures how long Campaign waits between failed acquisition
-// attempts while another live owner exists.
+// WithRetryDelay leader backend election에서 설정값과 기본값 적용 방식을 설명한다.
+// 세부 조건은 backend별 lease, cleanup, retry 계약을 따른다.
 func WithRetryDelay(delay time.Duration) Option {
 	return func(cfg *config) error {
 		if delay <= 0 {
@@ -29,11 +29,11 @@ func WithRetryDelay(delay time.Duration) Option {
 	}
 }
 
-// WithClock configures the clock used for lease_until timestamps.
+// WithClock leader backend election에서 설정값과 기본값 적용 방식을 설명한다.
 //
-// It exists primarily for deterministic tests. Production callers should keep
-// clocks synchronized across contenders and choose lease durations larger than
-// expected skew plus MongoDB operation latency.
+// 이 주석은 backend lease, ownership, consistency, cancellation 조건을 설명한다.
+// 세부 조건은 backend별 lease, cleanup, retry 계약을 따른다.
+// 세부 조건은 backend별 lease, cleanup, retry 계약을 따른다.
 func WithClock(clock func() time.Time) Option {
 	return func(cfg *config) error {
 		if clock == nil {

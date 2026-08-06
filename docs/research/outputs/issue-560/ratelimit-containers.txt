@@ -1,0 +1,111 @@
+command_label: ratelimit-containers
+command: env BLUETAPE_RATELIMIT_PROVIDER_BENCH=1 go test -timeout=30m -p 1 -run \^\$ -bench \^BenchmarkProviderRateLimitContainers\$ -benchtime=100x -count=3 -benchmem ./ratelimit
+timestamp_utc: 2026-07-20T18:03:12Z
+git_sha: 1f1069f4b119957d96158c969f819d6374f902c8
+pre_run_clean: true
+max_output_bytes: 16777216
+output_begin
+goos: darwin
+goarch: arm64
+pkg: github.com/bluetape4k/bluetape-go/ratelimit
+cpu: Apple M5
+BenchmarkProviderRateLimitContainers/Redis/AllowAvailable-10         	     100	    266167 ns/op	    1088 B/op	      24 allocs/op
+--- BENCH: BenchmarkProviderRateLimitContainers/Redis/AllowAvailable-10
+    provider_benchmark_test.go:335: provider_version="7.4.9" image_reference="redis:7.4-alpine@sha256:6ab0b6e7381779332f97b8ca76193e45b0756f38d4c0dcda72dbb3c32061ab99"
+    provider_benchmark_test.go:335: provider_version="7.4.9" image_reference="redis:7.4-alpine@sha256:6ab0b6e7381779332f97b8ca76193e45b0756f38d4c0dcda72dbb3c32061ab99"
+BenchmarkProviderRateLimitContainers/Redis/AllowAvailable-10         	     100	    474556 ns/op	    1088 B/op	      24 allocs/op
+--- BENCH: BenchmarkProviderRateLimitContainers/Redis/AllowAvailable-10
+    provider_benchmark_test.go:335: provider_version="7.4.9" image_reference="redis:7.4-alpine@sha256:6ab0b6e7381779332f97b8ca76193e45b0756f38d4c0dcda72dbb3c32061ab99"
+    provider_benchmark_test.go:335: provider_version="7.4.9" image_reference="redis:7.4-alpine@sha256:6ab0b6e7381779332f97b8ca76193e45b0756f38d4c0dcda72dbb3c32061ab99"
+BenchmarkProviderRateLimitContainers/Redis/AllowAvailable-10         	     100	    311739 ns/op	    1088 B/op	      24 allocs/op
+--- BENCH: BenchmarkProviderRateLimitContainers/Redis/AllowAvailable-10
+    provider_benchmark_test.go:335: provider_version="7.4.9" image_reference="redis:7.4-alpine@sha256:6ab0b6e7381779332f97b8ca76193e45b0756f38d4c0dcda72dbb3c32061ab99"
+    provider_benchmark_test.go:335: provider_version="7.4.9" image_reference="redis:7.4-alpine@sha256:6ab0b6e7381779332f97b8ca76193e45b0756f38d4c0dcda72dbb3c32061ab99"
+BenchmarkProviderRateLimitContainers/Redis/AllowRejected-10          	     100	    289903 ns/op	    1088 B/op	      25 allocs/op
+--- BENCH: BenchmarkProviderRateLimitContainers/Redis/AllowRejected-10
+    provider_benchmark_test.go:338: provider_version="7.4.9" image_reference="redis:7.4-alpine@sha256:6ab0b6e7381779332f97b8ca76193e45b0756f38d4c0dcda72dbb3c32061ab99"
+    provider_benchmark_test.go:338: provider_version="7.4.9" image_reference="redis:7.4-alpine@sha256:6ab0b6e7381779332f97b8ca76193e45b0756f38d4c0dcda72dbb3c32061ab99"
+BenchmarkProviderRateLimitContainers/Redis/AllowRejected-10          	     100	    210440 ns/op	    1088 B/op	      25 allocs/op
+--- BENCH: BenchmarkProviderRateLimitContainers/Redis/AllowRejected-10
+    provider_benchmark_test.go:338: provider_version="7.4.9" image_reference="redis:7.4-alpine@sha256:6ab0b6e7381779332f97b8ca76193e45b0756f38d4c0dcda72dbb3c32061ab99"
+    provider_benchmark_test.go:338: provider_version="7.4.9" image_reference="redis:7.4-alpine@sha256:6ab0b6e7381779332f97b8ca76193e45b0756f38d4c0dcda72dbb3c32061ab99"
+BenchmarkProviderRateLimitContainers/Redis/AllowRejected-10          	     100	    203543 ns/op	    1088 B/op	      25 allocs/op
+--- BENCH: BenchmarkProviderRateLimitContainers/Redis/AllowRejected-10
+    provider_benchmark_test.go:338: provider_version="7.4.9" image_reference="redis:7.4-alpine@sha256:6ab0b6e7381779332f97b8ca76193e45b0756f38d4c0dcda72dbb3c32061ab99"
+    provider_benchmark_test.go:338: provider_version="7.4.9" image_reference="redis:7.4-alpine@sha256:6ab0b6e7381779332f97b8ca76193e45b0756f38d4c0dcda72dbb3c32061ab99"
+BenchmarkProviderRateLimitContainers/Redis/AllowParallel/N=8-10      	     100	    550017 ns/op	   11294 B/op	     205 allocs/op
+--- BENCH: BenchmarkProviderRateLimitContainers/Redis/AllowParallel/N=8-10
+    provider_benchmark_test.go:341: provider_version="7.4.9" image_reference="redis:7.4-alpine@sha256:6ab0b6e7381779332f97b8ca76193e45b0756f38d4c0dcda72dbb3c32061ab99"
+    provider_benchmark_test.go:341: provider_version="7.4.9" image_reference="redis:7.4-alpine@sha256:6ab0b6e7381779332f97b8ca76193e45b0756f38d4c0dcda72dbb3c32061ab99"
+BenchmarkProviderRateLimitContainers/Redis/AllowParallel/N=8-10      	     100	    493548 ns/op	   11078 B/op	     205 allocs/op
+--- BENCH: BenchmarkProviderRateLimitContainers/Redis/AllowParallel/N=8-10
+    provider_benchmark_test.go:341: provider_version="7.4.9" image_reference="redis:7.4-alpine@sha256:6ab0b6e7381779332f97b8ca76193e45b0756f38d4c0dcda72dbb3c32061ab99"
+    provider_benchmark_test.go:341: provider_version="7.4.9" image_reference="redis:7.4-alpine@sha256:6ab0b6e7381779332f97b8ca76193e45b0756f38d4c0dcda72dbb3c32061ab99"
+BenchmarkProviderRateLimitContainers/Redis/AllowParallel/N=8-10      	     100	    505321 ns/op	   10532 B/op	     203 allocs/op
+--- BENCH: BenchmarkProviderRateLimitContainers/Redis/AllowParallel/N=8-10
+    provider_benchmark_test.go:341: provider_version="7.4.9" image_reference="redis:7.4-alpine@sha256:6ab0b6e7381779332f97b8ca76193e45b0756f38d4c0dcda72dbb3c32061ab99"
+    provider_benchmark_test.go:341: provider_version="7.4.9" image_reference="redis:7.4-alpine@sha256:6ab0b6e7381779332f97b8ca76193e45b0756f38d4c0dcda72dbb3c32061ab99"
+BenchmarkProviderRateLimitContainers/Redis/AllowDistinctKeys/N=8-10  	     100	    478591 ns/op	   10781 B/op	     199 allocs/op
+--- BENCH: BenchmarkProviderRateLimitContainers/Redis/AllowDistinctKeys/N=8-10
+    provider_benchmark_test.go:344: provider_version="7.4.9" image_reference="redis:7.4-alpine@sha256:6ab0b6e7381779332f97b8ca76193e45b0756f38d4c0dcda72dbb3c32061ab99"
+    provider_benchmark_test.go:344: provider_version="7.4.9" image_reference="redis:7.4-alpine@sha256:6ab0b6e7381779332f97b8ca76193e45b0756f38d4c0dcda72dbb3c32061ab99"
+BenchmarkProviderRateLimitContainers/Redis/AllowDistinctKeys/N=8-10  	     100	    500820 ns/op	   10522 B/op	     199 allocs/op
+--- BENCH: BenchmarkProviderRateLimitContainers/Redis/AllowDistinctKeys/N=8-10
+    provider_benchmark_test.go:344: provider_version="7.4.9" image_reference="redis:7.4-alpine@sha256:6ab0b6e7381779332f97b8ca76193e45b0756f38d4c0dcda72dbb3c32061ab99"
+    provider_benchmark_test.go:344: provider_version="7.4.9" image_reference="redis:7.4-alpine@sha256:6ab0b6e7381779332f97b8ca76193e45b0756f38d4c0dcda72dbb3c32061ab99"
+BenchmarkProviderRateLimitContainers/Redis/AllowDistinctKeys/N=8-10  	     100	    482923 ns/op	   10474 B/op	     199 allocs/op
+--- BENCH: BenchmarkProviderRateLimitContainers/Redis/AllowDistinctKeys/N=8-10
+    provider_benchmark_test.go:344: provider_version="7.4.9" image_reference="redis:7.4-alpine@sha256:6ab0b6e7381779332f97b8ca76193e45b0756f38d4c0dcda72dbb3c32061ab99"
+    provider_benchmark_test.go:344: provider_version="7.4.9" image_reference="redis:7.4-alpine@sha256:6ab0b6e7381779332f97b8ca76193e45b0756f38d4c0dcda72dbb3c32061ab99"
+BenchmarkProviderRateLimitContainers/PostgreSQL/AllowAvailable-10    	     100	    381648 ns/op	    2630 B/op	      50 allocs/op
+--- BENCH: BenchmarkProviderRateLimitContainers/PostgreSQL/AllowAvailable-10
+    provider_benchmark_test.go:335: provider_version="16.14" image_reference="postgres:16-alpine@sha256:57c72fd2a128e416c7fcc499958864df5301e940bca0a56f58fddf30ffc07777"
+    provider_benchmark_test.go:335: provider_version="16.14" image_reference="postgres:16-alpine@sha256:57c72fd2a128e416c7fcc499958864df5301e940bca0a56f58fddf30ffc07777"
+BenchmarkProviderRateLimitContainers/PostgreSQL/AllowAvailable-10    	     100	    243079 ns/op	    2619 B/op	      49 allocs/op
+--- BENCH: BenchmarkProviderRateLimitContainers/PostgreSQL/AllowAvailable-10
+    provider_benchmark_test.go:335: provider_version="16.14" image_reference="postgres:16-alpine@sha256:57c72fd2a128e416c7fcc499958864df5301e940bca0a56f58fddf30ffc07777"
+    provider_benchmark_test.go:335: provider_version="16.14" image_reference="postgres:16-alpine@sha256:57c72fd2a128e416c7fcc499958864df5301e940bca0a56f58fddf30ffc07777"
+BenchmarkProviderRateLimitContainers/PostgreSQL/AllowAvailable-10    	     100	    219269 ns/op	    2609 B/op	      49 allocs/op
+--- BENCH: BenchmarkProviderRateLimitContainers/PostgreSQL/AllowAvailable-10
+    provider_benchmark_test.go:335: provider_version="16.14" image_reference="postgres:16-alpine@sha256:57c72fd2a128e416c7fcc499958864df5301e940bca0a56f58fddf30ffc07777"
+    provider_benchmark_test.go:335: provider_version="16.14" image_reference="postgres:16-alpine@sha256:57c72fd2a128e416c7fcc499958864df5301e940bca0a56f58fddf30ffc07777"
+BenchmarkProviderRateLimitContainers/PostgreSQL/AllowRejected-10     	     100	    216226 ns/op	    2647 B/op	      51 allocs/op
+--- BENCH: BenchmarkProviderRateLimitContainers/PostgreSQL/AllowRejected-10
+    provider_benchmark_test.go:338: provider_version="16.14" image_reference="postgres:16-alpine@sha256:57c72fd2a128e416c7fcc499958864df5301e940bca0a56f58fddf30ffc07777"
+    provider_benchmark_test.go:338: provider_version="16.14" image_reference="postgres:16-alpine@sha256:57c72fd2a128e416c7fcc499958864df5301e940bca0a56f58fddf30ffc07777"
+BenchmarkProviderRateLimitContainers/PostgreSQL/AllowRejected-10     	     100	    246152 ns/op	    2649 B/op	      51 allocs/op
+--- BENCH: BenchmarkProviderRateLimitContainers/PostgreSQL/AllowRejected-10
+    provider_benchmark_test.go:338: provider_version="16.14" image_reference="postgres:16-alpine@sha256:57c72fd2a128e416c7fcc499958864df5301e940bca0a56f58fddf30ffc07777"
+    provider_benchmark_test.go:338: provider_version="16.14" image_reference="postgres:16-alpine@sha256:57c72fd2a128e416c7fcc499958864df5301e940bca0a56f58fddf30ffc07777"
+BenchmarkProviderRateLimitContainers/PostgreSQL/AllowRejected-10     	     100	    223576 ns/op	    2647 B/op	      51 allocs/op
+--- BENCH: BenchmarkProviderRateLimitContainers/PostgreSQL/AllowRejected-10
+    provider_benchmark_test.go:338: provider_version="16.14" image_reference="postgres:16-alpine@sha256:57c72fd2a128e416c7fcc499958864df5301e940bca0a56f58fddf30ffc07777"
+    provider_benchmark_test.go:338: provider_version="16.14" image_reference="postgres:16-alpine@sha256:57c72fd2a128e416c7fcc499958864df5301e940bca0a56f58fddf30ffc07777"
+BenchmarkProviderRateLimitContainers/PostgreSQL/AllowParallel/N=8-10 	     100	  10649285 ns/op	  607031 B/op	    2459 allocs/op
+--- BENCH: BenchmarkProviderRateLimitContainers/PostgreSQL/AllowParallel/N=8-10
+    provider_benchmark_test.go:341: provider_version="16.14" image_reference="postgres:16-alpine@sha256:57c72fd2a128e416c7fcc499958864df5301e940bca0a56f58fddf30ffc07777"
+    provider_benchmark_test.go:341: provider_version="16.14" image_reference="postgres:16-alpine@sha256:57c72fd2a128e416c7fcc499958864df5301e940bca0a56f58fddf30ffc07777"
+BenchmarkProviderRateLimitContainers/PostgreSQL/AllowParallel/N=8-10 	     100	  10911136 ns/op	  602188 B/op	    2440 allocs/op
+--- BENCH: BenchmarkProviderRateLimitContainers/PostgreSQL/AllowParallel/N=8-10
+    provider_benchmark_test.go:341: provider_version="16.14" image_reference="postgres:16-alpine@sha256:57c72fd2a128e416c7fcc499958864df5301e940bca0a56f58fddf30ffc07777"
+    provider_benchmark_test.go:341: provider_version="16.14" image_reference="postgres:16-alpine@sha256:57c72fd2a128e416c7fcc499958864df5301e940bca0a56f58fddf30ffc07777"
+BenchmarkProviderRateLimitContainers/PostgreSQL/AllowParallel/N=8-10 	     100	  10090286 ns/op	  599909 B/op	    2432 allocs/op
+--- BENCH: BenchmarkProviderRateLimitContainers/PostgreSQL/AllowParallel/N=8-10
+    provider_benchmark_test.go:341: provider_version="16.14" image_reference="postgres:16-alpine@sha256:57c72fd2a128e416c7fcc499958864df5301e940bca0a56f58fddf30ffc07777"
+    provider_benchmark_test.go:341: provider_version="16.14" image_reference="postgres:16-alpine@sha256:57c72fd2a128e416c7fcc499958864df5301e940bca0a56f58fddf30ffc07777"
+BenchmarkProviderRateLimitContainers/PostgreSQL/AllowDistinctKeys/N=8-10         	     100	  10931700 ns/op	  600664 B/op	    2433 allocs/op
+--- BENCH: BenchmarkProviderRateLimitContainers/PostgreSQL/AllowDistinctKeys/N=8-10
+    provider_benchmark_test.go:344: provider_version="16.14" image_reference="postgres:16-alpine@sha256:57c72fd2a128e416c7fcc499958864df5301e940bca0a56f58fddf30ffc07777"
+    provider_benchmark_test.go:344: provider_version="16.14" image_reference="postgres:16-alpine@sha256:57c72fd2a128e416c7fcc499958864df5301e940bca0a56f58fddf30ffc07777"
+BenchmarkProviderRateLimitContainers/PostgreSQL/AllowDistinctKeys/N=8-10         	     100	  13065134 ns/op	  603777 B/op	    2442 allocs/op
+--- BENCH: BenchmarkProviderRateLimitContainers/PostgreSQL/AllowDistinctKeys/N=8-10
+    provider_benchmark_test.go:344: provider_version="16.14" image_reference="postgres:16-alpine@sha256:57c72fd2a128e416c7fcc499958864df5301e940bca0a56f58fddf30ffc07777"
+    provider_benchmark_test.go:344: provider_version="16.14" image_reference="postgres:16-alpine@sha256:57c72fd2a128e416c7fcc499958864df5301e940bca0a56f58fddf30ffc07777"
+BenchmarkProviderRateLimitContainers/PostgreSQL/AllowDistinctKeys/N=8-10         	     100	  11749495 ns/op	  605814 B/op	    2450 allocs/op
+--- BENCH: BenchmarkProviderRateLimitContainers/PostgreSQL/AllowDistinctKeys/N=8-10
+    provider_benchmark_test.go:344: provider_version="16.14" image_reference="postgres:16-alpine@sha256:57c72fd2a128e416c7fcc499958864df5301e940bca0a56f58fddf30ffc07777"
+    provider_benchmark_test.go:344: provider_version="16.14" image_reference="postgres:16-alpine@sha256:57c72fd2a128e416c7fcc499958864df5301e940bca0a56f58fddf30ffc07777"
+PASS
+ok  	github.com/bluetape4k/bluetape-go/ratelimit	11.650s
+output_end
+exit_status: 0

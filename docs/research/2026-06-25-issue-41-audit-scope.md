@@ -1,11 +1,10 @@
-# Issue 41 Audit And Outbox Research Scope
+# Issue 41 Audit 및 Outbox 연구 범위
 
-Issue #41 is the 0.7.0 research gate for deciding how
-`bluetape4k-javers` patterns should shape the Go audit/event milestone. The Go
-track should port the audit/history and event-boundary concepts, not JaVers'
-object diff engine or JVM framework integrations.
+Issue #41은 `bluetape4k-javers` pattern이 Go audit/event milestone을 어떻게 형성해야
+하는지 결정하는 0.7.0 research gate다. Go track은 JaVers object diff engine이나 JVM
+framework integration이 아니라 audit/history와 event-boundary concept를 가져와야 한다.
 
-## Source Inventory
+## 소스 인벤토리
 
 Source repository: `/Users/debop/work/bluetape4k/bluetape4k-javers`
 
@@ -30,17 +29,17 @@ Source repository: `/Users/debop/work/bluetape4k/bluetape4k-javers`
 - Examples cover Exposed DDD CQRS, Ktor REST audit history, Spring Boot REST
   audit history, Kafka domain events, and Redis read-model projections.
 
-## Current Go Repository Evidence
+## 현재 Go Repository 증거
 
-- `bluetape-go` already has Redis, Kafka, NATS, PostgreSQL/MySQL, MongoDB, AWS,
-  testcontainers, and eventual consistency testing dependencies, but the audit
-  package does not exist yet.
-- The 0.10.0 placeholder already says the track should become a Go audit/event
-  package without depending on JaVers.
-- Issue #46 and #56-#59 already exist, so #41 should update those issues rather
-  than create another broad implementation issue.
+- `bluetape-go`에는 이미 Redis, Kafka, NATS, PostgreSQL/MySQL, MongoDB, AWS,
+  testcontainers, eventual consistency testing dependency가 있지만 audit package는
+  아직 없다.
+- 0.10.0 placeholder는 이미 이 track이 JaVers에 의존하지 않는 Go audit/event package가
+  되어야 한다고 말한다.
+- Issue #46과 #56-#59가 이미 있으므로 #41은 또 다른 broad implementation issue를
+  만들기보다 해당 issue들을 업데이트해야 한다.
 
-## Ranking
+## 순위
 
 | Area | Go fit | Risk | Decision |
 |---|---:|---:|---|
@@ -54,30 +53,29 @@ Source repository: `/Users/debop/work/bluetape4k/bluetape4k-javers`
 | Ktor/Spring/Exposed example parity | Low | Medium | Translate to Go runnable examples, not framework auto-configuration. |
 | Full event sourcing framework | Low | High | Non-goal for 0.10.0. |
 
-## Implement
+## 구현
 
-- #56 should define the core model:
+- #56은 core model을 정의해야 한다.
   aggregate id, aggregate type, revision, domain event, audit entry, snapshot
   metadata, author, occurred/recorded timestamps, idempotency key, and
-  serialization compatibility rules.
-- #57 should define repository and history query interfaces with an in-memory
-  implementation and reusable conformance tests. Query history by aggregate,
-  type, revision/time range, newest/previous entries, and metadata filters
-  only where the model can support stable behavior.
-- #59 should add a small runnable Go example after #56/#57 exist. It should
-  demonstrate command-side persistence boundaries, audit history queries, and
-  optional publisher hooks with in-memory or file-backed fixtures.
+  serialization compatibility rule이 포함된다.
+- #57은 in-memory implementation과 reusable conformance test를 가진 repository 및
+  history query interface를 정의해야 한다. History query는 model이 stable behavior를
+  지원할 수 있는 범위에서 aggregate, type, revision/time range, newest/previous entry,
+  metadata filter로 제한한다.
+- #59는 #56/#57 이후 작은 runnable Go example을 추가해야 한다. In-memory 또는 file-backed
+  fixture로 command-side persistence boundary, audit history query, optional publisher
+  hook을 보여준다.
 
-## Adopt Later
+## 나중에 채택
 
-- SQL persistence should wait for #100 or reuse its eventual repository
-  boundary. SQL is the most natural durable audit source for history queries,
-  but its schema and migration story should not be designed twice.
-- Kafka and NATS adapters should wait until #58 defines at-least-once delivery,
-  idempotency, retry/dead-letter, ordering, serialization, and application-owned
-  responsibilities.
-- Redis can be considered for projections or a direct audit store only after
-  replay, ordering, and head/restoration semantics are explicit.
+- SQL persistence는 #100을 기다리거나 그 eventual repository boundary를 재사용해야 한다.
+  SQL은 history query에 가장 자연스러운 durable audit source지만 schema와 migration
+  story를 두 번 설계하면 안 된다.
+- Kafka와 NATS adapter는 #58이 at-least-once delivery, idempotency, retry/dead-letter,
+  ordering, serialization, application-owned responsibility를 정의할 때까지 기다린다.
+- Redis는 replay, ordering, head/restoration semantic이 명시된 뒤에야 projection 또는
+  direct audit store로 검토할 수 있다.
 
 ## Example-only
 
@@ -96,7 +94,7 @@ Source repository: `/Users/debop/work/bluetape4k/bluetape4k-javers`
 - Redis write-behind for SQL audit writes. Redis should be a projection/cache
   path or an explicitly accepted audit source, not hidden persistence.
 
-## Issue Updates Required
+## 필요한 Issue 업데이트
 
 - #46: record the issue #41 decision and keep the epic framed as audit/history
   support, not event sourcing or JaVers clone work.
@@ -108,14 +106,14 @@ Source repository: `/Users/debop/work/bluetape4k/bluetape4k-javers`
   treat Kafka/NATS/Redis as adapters after delivery semantics are explicit.
 - #59: keep as runnable example after #56/#57; avoid framework parity claims.
 
-## Validation Plan
+## 검증 계획
 
-- Documentation-only PR: `git diff --check` and targeted `rg`.
-- Verify #46 and #56-#59 issue bodies contain the #41 research update.
-- No Go tests are required for this PR because no Go code changes.
+- Documentation-only PR에서는 `git diff --check`와 targeted `rg`를 실행한다.
+- #46과 #56-#59 issue body가 #41 research update를 포함하는지 확인한다.
+- Go code change가 없으므로 이 PR에는 Go test가 필요하지 않다.
 
-## Follow-up Recommendation
+## 후속 권고
 
-Start #56 with explicit audit/event records and no hidden diffing. Then make
-#57 prove repository semantics through in-memory conformance tests before
-selecting SQL, Redis, Kafka, or NATS adapters.
+#56은 hidden diffing 없이 explicit audit/event record로 시작한다. 이후 SQL, Redis,
+Kafka, NATS adapter를 고르기 전에 #57에서 in-memory conformance test로 repository
+semantic을 증명한다.

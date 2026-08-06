@@ -1,0 +1,75 @@
+command_label: cache-local
+command: go test -timeout=10m -run \^\$ -bench \^BenchmarkProviderCacheLocal\$ -benchmem -count=5 ./cache
+timestamp_utc: 2026-07-20T17:55:00Z
+git_sha: 1f1069f4b119957d96158c969f819d6374f902c8
+pre_run_clean: true
+max_output_bytes: 16777216
+output_begin
+goos: darwin
+goarch: arm64
+pkg: github.com/bluetape4k/bluetape-go/cache
+cpu: Apple M5
+BenchmarkProviderCacheLocal/Memory/GetHit/128B-10         	31941433	        37.85 ns/op	       0 B/op	       0 allocs/op
+BenchmarkProviderCacheLocal/Memory/GetHit/128B-10         	31326070	        37.87 ns/op	       0 B/op	       0 allocs/op
+BenchmarkProviderCacheLocal/Memory/GetHit/128B-10         	32072019	        37.49 ns/op	       0 B/op	       0 allocs/op
+BenchmarkProviderCacheLocal/Memory/GetHit/128B-10         	31947038	        37.63 ns/op	       0 B/op	       0 allocs/op
+BenchmarkProviderCacheLocal/Memory/GetHit/128B-10         	31838226	        37.68 ns/op	       0 B/op	       0 allocs/op
+BenchmarkProviderCacheLocal/Memory/GetHit/4KiB-10         	31823977	        37.47 ns/op	       0 B/op	       0 allocs/op
+BenchmarkProviderCacheLocal/Memory/GetHit/4KiB-10         	31495855	        37.60 ns/op	       0 B/op	       0 allocs/op
+BenchmarkProviderCacheLocal/Memory/GetHit/4KiB-10         	31483804	        37.47 ns/op	       0 B/op	       0 allocs/op
+BenchmarkProviderCacheLocal/Memory/GetHit/4KiB-10         	32208891	        37.60 ns/op	       0 B/op	       0 allocs/op
+BenchmarkProviderCacheLocal/Memory/GetHit/4KiB-10         	31602094	        37.45 ns/op	       0 B/op	       0 allocs/op
+BenchmarkProviderCacheLocal/Memory/GetMiss/128B-10        	152228707	         8.325 ns/op	       0 B/op	       0 allocs/op
+BenchmarkProviderCacheLocal/Memory/GetMiss/128B-10        	147207187	         7.487 ns/op	       0 B/op	       0 allocs/op
+BenchmarkProviderCacheLocal/Memory/GetMiss/128B-10        	160140682	         7.781 ns/op	       0 B/op	       0 allocs/op
+BenchmarkProviderCacheLocal/Memory/GetMiss/128B-10        	159043924	         7.517 ns/op	       0 B/op	       0 allocs/op
+BenchmarkProviderCacheLocal/Memory/GetMiss/128B-10        	160897135	         7.797 ns/op	       0 B/op	       0 allocs/op
+BenchmarkProviderCacheLocal/Memory/GetMiss/4KiB-10        	154462990	         7.763 ns/op	       0 B/op	       0 allocs/op
+BenchmarkProviderCacheLocal/Memory/GetMiss/4KiB-10        	155288854	         7.614 ns/op	       0 B/op	       0 allocs/op
+BenchmarkProviderCacheLocal/Memory/GetMiss/4KiB-10        	155732799	         7.971 ns/op	       0 B/op	       0 allocs/op
+BenchmarkProviderCacheLocal/Memory/GetMiss/4KiB-10        	156551542	         7.570 ns/op	       0 B/op	       0 allocs/op
+BenchmarkProviderCacheLocal/Memory/GetMiss/4KiB-10        	141388338	         7.807 ns/op	       0 B/op	       0 allocs/op
+BenchmarkProviderCacheLocal/Memory/Set/128B-10            	28718295	        41.02 ns/op	       0 B/op	       0 allocs/op
+BenchmarkProviderCacheLocal/Memory/Set/128B-10            	29297589	        41.39 ns/op	       0 B/op	       0 allocs/op
+BenchmarkProviderCacheLocal/Memory/Set/128B-10            	29189444	        41.16 ns/op	       0 B/op	       0 allocs/op
+BenchmarkProviderCacheLocal/Memory/Set/128B-10            	29534037	        41.13 ns/op	       0 B/op	       0 allocs/op
+BenchmarkProviderCacheLocal/Memory/Set/128B-10            	28558395	        40.97 ns/op	       0 B/op	       0 allocs/op
+BenchmarkProviderCacheLocal/Memory/Set/4KiB-10            	29455140	        40.46 ns/op	       0 B/op	       0 allocs/op
+BenchmarkProviderCacheLocal/Memory/Set/4KiB-10            	29802495	        40.61 ns/op	       0 B/op	       0 allocs/op
+BenchmarkProviderCacheLocal/Memory/Set/4KiB-10            	29776459	        40.76 ns/op	       0 B/op	       0 allocs/op
+BenchmarkProviderCacheLocal/Memory/Set/4KiB-10            	29403386	        41.08 ns/op	       0 B/op	       0 allocs/op
+BenchmarkProviderCacheLocal/Memory/Set/4KiB-10            	29640362	        40.76 ns/op	       0 B/op	       0 allocs/op
+BenchmarkProviderCacheLocal/Memory/GetOrLoadHot/128B-10   	20983881	        57.45 ns/op	      40 B/op	       2 allocs/op
+BenchmarkProviderCacheLocal/Memory/GetOrLoadHot/128B-10   	20218371	        58.37 ns/op	      40 B/op	       2 allocs/op
+BenchmarkProviderCacheLocal/Memory/GetOrLoadHot/128B-10   	20160626	        57.92 ns/op	      40 B/op	       2 allocs/op
+BenchmarkProviderCacheLocal/Memory/GetOrLoadHot/128B-10   	21252698	        56.95 ns/op	      40 B/op	       2 allocs/op
+BenchmarkProviderCacheLocal/Memory/GetOrLoadHot/128B-10   	21184102	        57.64 ns/op	      40 B/op	       2 allocs/op
+BenchmarkProviderCacheLocal/Memory/GetOrLoadHot/4KiB-10   	20092718	        58.51 ns/op	      40 B/op	       2 allocs/op
+BenchmarkProviderCacheLocal/Memory/GetOrLoadHot/4KiB-10   	20821524	        57.45 ns/op	      40 B/op	       2 allocs/op
+BenchmarkProviderCacheLocal/Memory/GetOrLoadHot/4KiB-10   	21077036	        56.76 ns/op	      40 B/op	       2 allocs/op
+BenchmarkProviderCacheLocal/Memory/GetOrLoadHot/4KiB-10   	21150964	        57.05 ns/op	      40 B/op	       2 allocs/op
+BenchmarkProviderCacheLocal/Memory/GetOrLoadHot/4KiB-10   	21173122	        58.42 ns/op	      40 B/op	       2 allocs/op
+BenchmarkProviderCacheLocal/SerializationBaseline/Marshal/128B-10    	10404252	       116.4 ns/op	     224 B/op	       1 allocs/op
+BenchmarkProviderCacheLocal/SerializationBaseline/Marshal/128B-10    	10331188	       116.0 ns/op	     224 B/op	       1 allocs/op
+BenchmarkProviderCacheLocal/SerializationBaseline/Marshal/128B-10    	10378478	       116.8 ns/op	     224 B/op	       1 allocs/op
+BenchmarkProviderCacheLocal/SerializationBaseline/Marshal/128B-10    	10034112	       117.9 ns/op	     224 B/op	       1 allocs/op
+BenchmarkProviderCacheLocal/SerializationBaseline/Marshal/128B-10    	10224600	       116.8 ns/op	     224 B/op	       1 allocs/op
+BenchmarkProviderCacheLocal/SerializationBaseline/Marshal/4KiB-10    	  699585	      1724 ns/op	    6149 B/op	       1 allocs/op
+BenchmarkProviderCacheLocal/SerializationBaseline/Marshal/4KiB-10    	  702387	      1728 ns/op	    6149 B/op	       1 allocs/op
+BenchmarkProviderCacheLocal/SerializationBaseline/Marshal/4KiB-10    	  696092	      1726 ns/op	    6149 B/op	       1 allocs/op
+BenchmarkProviderCacheLocal/SerializationBaseline/Marshal/4KiB-10    	  697152	      1730 ns/op	    6149 B/op	       1 allocs/op
+BenchmarkProviderCacheLocal/SerializationBaseline/Marshal/4KiB-10    	  696368	      1722 ns/op	    6150 B/op	       1 allocs/op
+BenchmarkProviderCacheLocal/SerializationBaseline/Unmarshal/128B-10  	 1526946	       758.2 ns/op	     432 B/op	       8 allocs/op
+BenchmarkProviderCacheLocal/SerializationBaseline/Unmarshal/128B-10  	 1552296	       767.2 ns/op	     432 B/op	       8 allocs/op
+BenchmarkProviderCacheLocal/SerializationBaseline/Unmarshal/128B-10  	 1572132	       769.5 ns/op	     432 B/op	       8 allocs/op
+BenchmarkProviderCacheLocal/SerializationBaseline/Unmarshal/128B-10  	 1537539	       764.0 ns/op	     432 B/op	       8 allocs/op
+BenchmarkProviderCacheLocal/SerializationBaseline/Unmarshal/128B-10  	 1594269	       765.5 ns/op	     432 B/op	       8 allocs/op
+BenchmarkProviderCacheLocal/SerializationBaseline/Unmarshal/4KiB-10  	   86521	     13880 ns/op	    5152 B/op	       8 allocs/op
+BenchmarkProviderCacheLocal/SerializationBaseline/Unmarshal/4KiB-10  	   87075	     13493 ns/op	    5152 B/op	       8 allocs/op
+BenchmarkProviderCacheLocal/SerializationBaseline/Unmarshal/4KiB-10  	   87583	     13745 ns/op	    5152 B/op	       8 allocs/op
+BenchmarkProviderCacheLocal/SerializationBaseline/Unmarshal/4KiB-10  	   86563	     13821 ns/op	    5152 B/op	       8 allocs/op
+BenchmarkProviderCacheLocal/SerializationBaseline/Unmarshal/4KiB-10  	   84069	     14156 ns/op	    5152 B/op	       8 allocs/op
+PASS
+ok  	github.com/bluetape4k/bluetape-go/cache	88.051s
+output_end
+exit_status: 0

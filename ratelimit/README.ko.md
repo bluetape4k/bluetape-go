@@ -6,7 +6,13 @@
 middleware를 제공합니다. In-process request guard, tenant throttle, deterministic
 rejection diagnostic이 필요한 test에 적합합니다.
 
-여러 process가 하나의 bucket을 공유해야 하면 [`ratelimit/redis`](redis/README.ko.md)를 사용하세요.
+소유권과 traffic 특성에 맞춰 provider를 선택합니다.
+
+| Provider | 적합한 경우 | 운영 경계 |
+|---|---|---|
+| Local `ratelimit` | 한 process가 quota를 소유합니다. | 빠른 in-memory state이며 process 사이에 공유되지 않습니다. |
+| [`ratelimit/redis`](redis/README.ko.md) | 여러 process가 낮은 latency의 quota를 공유해야 합니다. | Caller-owned Redis와 atomic Lua operation을 사용합니다. |
+| [`ratelimit/sql`](sql/README.ko.md) | PostgreSQL을 이미 공유하는 moderate-QPS, database-only 배포입니다. | Caller-owned PostgreSQL schema, pool, cleanup을 사용하며 high-QPS에서 Redis를 대체하지 않습니다. |
 
 ## 다이어그램
 
@@ -39,8 +45,8 @@ if !result.Allowed {
 ```
 
 Rejected attempt는 error가 아니라 정상 result입니다. Error는 invalid input,
-context cancellation, `ratelimit/redis` 같은 backend implementation failure에
-사용합니다.
+context cancellation, `ratelimit/redis`나 `ratelimit/sql` 같은 backend
+implementation failure에 사용합니다.
 
 ## HTTP Middleware
 
@@ -112,3 +118,18 @@ external Redis latency와 deployment topology에 의존하므로 별도로 유�
 | `BenchmarkTokenBucketAllowAllowed` | 116.4 | 0 | 0 |
 | `BenchmarkTokenBucketAllowRejected` | 76.76 | 0 | 0 |
 | `BenchmarkHandlerAllowed` | 51.26 | 160 | 3 |
+
+## Provider Conformance
+
+`ratelimit/ratelimittest.Run`은 local, Redis, SQL provider에 같은 burst, refill,
+cancellation, exact-admission contract를 적용합니다. Distributed provider의 redacted
+failure는 `ratelimit.OperationError`로 확인합니다.
+`errors.Is(err, ratelimit.ErrCommitUnknown)`이면 한 번 debit됐을 수 있으므로 zero result를
+버리고 자동 replay하지 않습니다.
+
+Local, Redis, SQL 사이에 quota state is not shared라는 경계가 있습니다. Provider를
+동시에 섞으면 각각이 full burst를 허용해 multiple full bursts가 생기므로 금지합니다.
+안전한 canary는 independent namespace와 independent cohort를 사용합니다. Cutover 또는
+rollback에서는 old provider를 quiesce하고 보수적인 full-refill window를 기다린 뒤
+정확히 하나의 새 provider를 활성화합니다. 겹치는 구간이 필요하면
+approved extra-burst budget을 사전에 기록합니다.

@@ -1,11 +1,13 @@
 # Issue 32 ID Generator Verifier
 
-Issue: #32
+> 한국어 리뷰 경계: 이 문서는 리뷰 판정과 근거를 한국어 독자가 추적할 수 있도록 정리한다. 심각도 토큰, 판정 토큰, 파일 경로, 라인 번호, 이슈/PR 번호, 명령, 코드 식별자는 원문의 증거 앵커로 보존한다.
+
+이슈: #32
 Milestone: 0.6.0
-Scope: `id` package foundation, UUID v4/v7, random/monotonic ULID, Snowflake,
+범위: `id` package foundation, UUID v4/v7, random/monotonic ULID, Snowflake,
 docs, tests, benchmarks, and release notes.
 
-## Implementation Scope
+## 구현 범위
 
 | Plan task | Status | Evidence |
 |---|---|---|
@@ -20,7 +22,7 @@ docs, tests, benchmarks, and release notes.
 | T8 root docs/release notes | PASS | `README.md`, `README.ko.md`, `CHANGELOG.md`, `WIP.md`. |
 | T9 validation | PASS | Commands below. |
 
-## Validation Evidence
+## 검증 증거
 
 Commands passed:
 
@@ -111,7 +113,7 @@ rg -n "UUID parsing accepts only canonical|Base62 deferred|snowflakeMaxTimestamp
 rg -n "id|0.5.1|0.6.0|v0.5.1|v0.5.0" README.md README.ko.md CHANGELOG.md WIP.md
 ```
 
-## Dependency Evidence
+## 의존성 증거
 
 `go.mod` now lists direct dependencies:
 

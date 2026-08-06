@@ -1,6 +1,8 @@
 # Issue #357 Codec Time UUID Review
 
-Date: 2026-07-04
+> 한국어 감사/리뷰 경계: 이 문서는 리뷰 결론과 남은 위험을 한국어 독자가 추적할 수 있도록 정리한다. 심각도 표기, 판정 표기, 파일 경로, 라인 번호, 이슈/PR 링크, 명령, 코드 식별자, 인용 증거는 원문의 증거 앵커로 보존한다.
+
+날짜: 2026-07-04
 
 Scope:
 
@@ -13,7 +15,7 @@ Scope:
 - `id/README.md`
 - `id/README.ko.md`
 
-## Evidence
+## 증거
 
 - Issue #357 asks for URL62, time, and UUID parity gaps from
   `bluetape4k-core` without importing JVM DSL shape.
@@ -33,7 +35,7 @@ Scope:
 - Time helpers already cover the idiomatic Go subset. Broad duration
   parser/formatter wrappers and Java-time DSL aliases remain non-goals.
 
-## 7-Tier Lanes
+## 7-Tier 관점
 
 | Lane | Verdict | Notes |
 |---|---|---|
@@ -45,7 +47,7 @@ Scope:
 | User/Caller | Pass | README pairs and executable examples document Kotlin `Url62` compatibility, high-order zero normalization, and the byte-helper divergence. |
 | Integration | Pass | Full local gate passed after the P1 fixes. |
 
-## Validation
+## 검증
 
 - `git diff --check`: PASS
 - `go test -count=1 ./codec`: PASS
@@ -58,12 +60,12 @@ Scope:
 - `make test`: PASS
 - `make race`: PASS
 
-## Findings
+## 발견 사항
 
 - P0: 0
 - P1: 0
 
-## Residual Risk
+## 잔여 위험
 
 The UUID URL62 helpers intentionally normalize compact UUID text as numeric
 128-bit values. Callers that need arbitrary byte payload round trips should keep

@@ -12,6 +12,8 @@ ciphertext in a versioned envelope.
 
 ![encrypt envelope sequence](../docs/images/readme-diagrams/encrypt-envelope-sequence.png)
 
+![sqlkit column scan and value sequence](../docs/images/readme-diagrams/sqlkit-column-scan-value-sequence.png)
+
 ## Import
 
 ```go
@@ -62,6 +64,23 @@ Associated data binds ciphertext to context without encrypting that context. Use
 stable values such as tenant, entity, column, message type, or protocol version.
 The exact same associated data must be supplied for decryption; wrong associated
 data returns `ErrAuthenticationFailed`.
+
+## SQL Column Integration
+
+`sqlkit.NewEncryptedBytesColumn` stores the binary `BTENC` envelope in a
+BYTEA/BLOB column. `sqlkit.NewEncryptedStringColumn` stores the same envelope
+as raw URL-safe base64 in a TEXT/VARCHAR column. Both constructors copy their
+associated data.
+
+Use stable associated data such as tenant, entity, column, and protocol version
+so ciphertext cannot be moved silently to a different context. Callers still
+own key persistence, access control, rotation, and the strategy for decrypting
+historical rows after rotation.
+
+Random nonces deliberately prevent equality, ordering, and filtering queries
+over ciphertext. When search is a real requirement, design and review a
+separate blind-index system; do not replace the random nonce with a fixed one.
+Cloud KMS and envelope encryption remain separate provider concerns.
 
 ## Envelope
 

@@ -1,20 +1,20 @@
 # Issue #55 Tokenizer And Language Detection Options
 
-Issue #55 decides which dependency-backed text features should follow the
-first-party `textsearch` core. It compares the Go ecosystem against
-`bluetape4k-text` source parity and keeps large NLP dependencies out of core.
+Issue #55는 first-party `textsearch` core 뒤에 어떤 dependency-backed text
+feature가 와야 하는지 결정한다. Go ecosystem을 `bluetape4k-text` source
+parity와 비교하고, 큰 NLP dependency는 core 밖에 둔다.
 
-## Source Parity Target
+## 소스 Parity 대상
 
 Source repository: `/Users/debop/work/bluetape4k/bluetape4k-text`
 
 | Source module | Source capability | Go parity implication |
 |---|---|---|
-| `tokenizer-korean` | Korean normalization, 26-class POS tokenization, noun tokenization, phrase extraction, stemming, sentence splitting, detokenization, runtime noun/blockword dictionary updates, and thread-safe facade methods. | Full parity is a large NLP project, not an adapter around `textsearch.Tokenizer`. |
-| `tokenizer-japanese` | Kuromoji IPAdic tokenization, POS helpers, noun/verb filtering, compound blockword detection, masking, and dynamic blockword dictionary management. | Japanese has a credible Go-native adapter path through Kagome, but dictionary/model cost must stay optional. |
-| `lingua` | Lingua-backed language detection, mixed-language detection, detector builders, Unicode script helpers, and detector reuse guidance. | Lingua-Go is the closest parity path; lightweight detectors can be fallback-only. |
+| `tokenizer-korean` | Korean normalization, 26-class POS tokenization, noun tokenization, phrase extraction, stemming, sentence splitting, detokenization, runtime noun/blockword dictionary updates, and thread-safe facade methods. | Full parity는 큰 NLP project이며 `textsearch.Tokenizer` 주변 adapter가 아니다. |
+| `tokenizer-japanese` | Kuromoji IPAdic tokenization, POS helpers, noun/verb filtering, compound blockword detection, masking, and dynamic blockword dictionary management. | Japanese는 Kagome을 통한 credible Go-native adapter path가 있지만 dictionary/model cost는 optional이어야 한다. |
+| `lingua` | Lingua-backed language detection, mixed-language detection, detector builders, Unicode script helpers, and detector reuse guidance. | Lingua-Go가 가장 가까운 parity path이다. Lightweight detector는 fallback-only로 둔다. |
 
-## External Evidence
+## 외부 근거
 
 Sources checked on 2026-06-26:
 
@@ -48,67 +48,67 @@ Module cache size sample from `go get` and `du -sh`:
 | `github.com/abadojack/whatlanggo@v1.0.1` | 388K |
 | `github.com/jmhodges/gocld3@v1.0.0` | 2.8M |
 
-This size evidence makes dependency isolation mandatory. None of these should
-be pulled into the base `textsearch` package.
+이 size evidence 때문에 dependency isolation은 필수다. 이 중 어떤 것도 base
+`textsearch` package로 끌어오면 안 된다.
 
-## Comparison
+## 비교
 
 | Area | Best candidate | Quality | Dictionary/model story | Deployment cost | Decision |
 |---|---|---:|---|---|---|
-| Japanese tokenizer | Kagome v2 + IPA dictionary | High | Pure Go, embedded IPA/UniDic dictionaries, user dictionary support, POS features. | Medium/high: 31M + 22M IPA or 87M UniDic. | Adopt in optional `textsearch/japanese` package. |
-| Korean tokenizer | None for full parity | Low/medium | Kagome ko dict exists but has tiny adoption signal, 90M cache size, and does not cover source normalization/stemming/sentence/dictionary facade parity. MeCab wrappers add cgo/deployment cost. | High. | Defer full Korean tokenizer. No core dependency. |
-| Language detection parity | Lingua-Go | High | Short-text and mixed-language oriented, detector reuse, high/low accuracy modes, shared model memory. | High: 123M cache size and large runtime memory risk. | Adopt in optional `textsearch/language` package with subset builder. |
-| Lightweight language/script detection | Whatlanggo | Medium | 84 languages, script recognition, pure Go/no dependencies. | Low: 388K cache size. | Compare as fallback only; not parity replacement. |
-| CLD3-style detection | gocld3 | Low/medium | Small module but low adoption; may need external native-style model assumptions depending on implementation. | Low/medium. | Defer unless Lingua-Go is rejected by benchmark/memory proof. |
+| Japanese tokenizer | Kagome v2 + IPA dictionary | High | Pure Go, embedded IPA/UniDic dictionaries, user dictionary support, POS features. | Medium/high: 31M + 22M IPA or 87M UniDic. | Optional `textsearch/japanese` package에서 채택한다. |
+| Korean tokenizer | None for full parity | Low/medium | Kagome ko dict exists but has tiny adoption signal, 90M cache size, and does not cover source normalization/stemming/sentence/dictionary facade parity. MeCab wrappers add cgo/deployment cost. | High. | Full Korean tokenizer는 보류한다. Core dependency는 추가하지 않는다. |
+| Language detection parity | Lingua-Go | High | Short-text and mixed-language oriented, detector reuse, high/low accuracy modes, shared model memory. | High: 123M cache size and large runtime memory risk. | Optional `textsearch/language` package에서 subset builder와 함께 채택한다. |
+| Lightweight language/script detection | Whatlanggo | Medium | 84 languages, script recognition, pure Go/no dependencies. | Low: 388K cache size. | Fallback으로만 비교한다. Parity replacement가 아니다. |
+| CLD3-style detection | gocld3 | Low/medium | Small module but low adoption; may need external native-style model assumptions depending on implementation. | Low/medium. | Lingua-Go가 benchmark/memory proof에서 기각될 때까지 보류한다. |
 
-## Decisions
+## 결정
 
-### Implement / Adopt
+### 구현 / 채택
 
-1. **Japanese tokenizer adapter**: create an optional package around Kagome v2
-   and `textsearch.Tokenizer`. Start with IPA dictionary, POS mapping,
-   byte-span preservation, noun/verb filters, and blockword examples. Keep
-   UniDic as a documented opt-in if needed later.
-2. **Language detection adapter**: create an optional package around Lingua-Go
-   with subset construction, detector reuse, mixed-language helper, Unicode
-   script helper, and memory guidance. Add Whatlanggo comparison tests only if
-   the memory budget forces a lighter detector path.
+1. **Japanese tokenizer adapter**: Kagome v2와 `textsearch.Tokenizer` 주변의
+   optional package를 만든다. IPA dictionary, POS mapping, byte-span
+   preservation, noun/verb filters, blockword examples로 시작한다. 필요해질
+   때까지 UniDic은 documented opt-in으로 둔다.
+2. **Language detection adapter**: Lingua-Go 주변의 optional package를 만든다.
+   subset construction, detector reuse, mixed-language helper, Unicode script
+   helper, memory guidance를 포함한다. Memory budget이 lighter detector path를
+   강제할 때만 Whatlanggo comparison test를 추가한다.
 
-### Defer
+### 보류
 
-- Full Korean tokenizer parity: defer normalization, POS, stemming, phrase
-  extraction, sentence splitting, detokenization, and runtime noun dictionary
-  updates. Existing `textsearch` blockword matching plus examples are enough
-  until a mature Go-native Korean NLP path appears.
-- Kagome Korean dictionary adoption: do not select it now. Its 90M cache size,
-  tiny adoption signal, and narrower dictionary-only surface do not justify a
-  public Korean tokenizer package.
-- MeCab cgo wrappers: keep out of bluetape-go package scope because they add
-  system-level runtime dependencies and platform deployment cost.
+- Full Korean tokenizer parity: normalization, POS, stemming, phrase
+  extraction, sentence splitting, detokenization, runtime noun dictionary
+  updates는 보류한다. Mature Go-native Korean NLP path가 나타나기 전까지는
+  기존 `textsearch` blockword matching과 examples로 충분하다.
+- Kagome Korean dictionary adoption: 지금 선택하지 않는다. 90M cache size,
+  tiny adoption signal, narrower dictionary-only surface는 public Korean
+  tokenizer package를 정당화하지 못한다.
+- MeCab cgo wrappers: system-level runtime dependency와 platform deployment
+  cost를 추가하므로 bluetape-go package scope 밖에 둔다.
 
-### Will Not Attempt In Go Core
+### Go Core에서 시도하지 않을 것
 
-- No direct Kotlin/JVM facade port.
-- No large NLP model/dictionary dependency in `textsearch`.
-- No runtime mutable dictionary contract unless a future package proves
-  lock-free swap or synchronized mutation through `GoroutineStressTester` and
-  `go test -race`.
-- No claim that blockword masking or language detection is a security policy.
+- Direct Kotlin/JVM facade port는 하지 않는다.
+- `textsearch`에 large NLP model/dictionary dependency를 넣지 않는다.
+- 향후 package가 `GoroutineStressTester`와 `go test -race`로 lock-free swap
+  또는 synchronized mutation을 증명하기 전까지 runtime mutable dictionary
+  contract를 만들지 않는다.
+- Blockword masking이나 language detection을 security policy라고 주장하지 않는다.
 
-## Follow-up Implementation Issues
+## 후속 구현 이슈
 
 - #336 Japanese Kagome adapter: selected. `type: task`, `priority: p1`,
   `area: text`, milestone `0.8.0`.
 - #337 Lingua-Go language detection adapter: selected. `type: task`,
   `priority: p1`, `area: text`, milestone `0.8.0`.
-- Korean tokenizer: no implementation issue. Record defer decision in #45 and
-  this research note.
+- Korean tokenizer: no implementation issue. Defer decision은 #45와 이
+  research note에 기록한다.
 
-## Validation
+## 검증
 
-- `gh repo view` metadata for each dependency candidate.
-- `go list -m -versions` for Kagome, Lingua-Go, Whatlanggo, gocld3, MeCab
-  wrapper.
-- `go get` + `du -sh` module cache sample for model/dictionary size.
-- Local source inventory from `bluetape4k-text/tokenizer-korean`,
-  `tokenizer-japanese`, and `lingua` READMEs.
+- 각 dependency candidate에 대한 `gh repo view` metadata.
+- Kagome, Lingua-Go, Whatlanggo, gocld3, MeCab wrapper에 대한
+  `go list -m -versions`.
+- Model/dictionary size에 대한 `go get` + `du -sh` module cache sample.
+- `bluetape4k-text/tokenizer-korean`, `tokenizer-japanese`, `lingua` README의
+  local source inventory.

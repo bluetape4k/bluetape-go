@@ -18,33 +18,36 @@ const (
 	unlockTimeout       = time.Second
 )
 
-// Options 는 StampedeCache 생성 설정이다.
+// Options Redis 조정, stampede 방지, codec envelope에서 사용하는 구조체다.
 type Options[V any] struct {
-	// Client는 Redis coordination backend다. 필수다.
+	// Client 필수 Redis coordination backend다.
 	Client redis.Cmdable
-	// Cache는 감쌀 local 또는 near LoadingCache다. 필수다.
+	// Cache 감쌀 필수 local 또는 near LoadingCache다.
 	Cache cache.LoadingCache[string, V]
-	// Namespace는 coordination key scope다.
+	// Namespace coordination key 범위를 나눈다.
 	Namespace string
-	// Codec은 loader 결과 payload codec이다. 필수다.
+	// Codec loader result payload를 encoding/decoding하는 필수 codec이다.
 	Codec Codec[V]
-	// LockTTL은 load owner lease 기간이다.
+	// LockTTL load owner lease 유지 시간이다.
 	LockTTL time.Duration
-	// ResultTTL은 shared result envelope 보관 기간이다.
+	// ResultTTL 공유 result envelope 보존 시간이다.
 	ResultTTL time.Duration
-	// PollInterval은 waiter polling 간격이다.
+	// PollInterval waiter가 result를 재확인하는 polling 간격이다.
 	PollInterval time.Duration
+	// MaxResultBytes encoded Redis result envelope byte 상한이다. zero는 제한 없음을 뜻한다.
+	MaxResultBytes int
 }
 
 type config[V any] struct {
-	client       redis.Cmdable
-	cache        cache.LoadingCache[string, V]
-	namespace    string
-	codec        Codec[V]
-	lockTTL      time.Duration
-	resultTTL    time.Duration
-	pollInterval time.Duration
-	keyPrefix    string
+	client         redis.Cmdable
+	cache          cache.LoadingCache[string, V]
+	namespace      string
+	codec          Codec[V]
+	lockTTL        time.Duration
+	resultTTL      time.Duration
+	pollInterval   time.Duration
+	maxResultBytes int
+	keyPrefix      string
 }
 
 func normalizeOptions[V any](options Options[V]) (config[V], error) {
@@ -56,6 +59,9 @@ func normalizeOptions[V any](options Options[V]) (config[V], error) {
 	}
 	if options.Codec == nil {
 		return config[V]{}, fmt.Errorf("codec must not be nil")
+	}
+	if options.MaxResultBytes < 0 {
+		return config[V]{}, fmt.Errorf("max result bytes must not be negative")
 	}
 
 	namespace := options.Namespace
@@ -79,14 +85,15 @@ func normalizeOptions[V any](options Options[V]) (config[V], error) {
 	}
 
 	return config[V]{
-		client:       options.Client,
-		cache:        options.Cache,
-		namespace:    namespace,
-		codec:        options.Codec,
-		lockTTL:      lockTTL,
-		resultTTL:    resultTTL,
-		pollInterval: pollInterval,
-		keyPrefix:    defaultKeyPrefix + ":" + namespace,
+		client:         options.Client,
+		cache:          options.Cache,
+		namespace:      namespace,
+		codec:          options.Codec,
+		lockTTL:        lockTTL,
+		resultTTL:      resultTTL,
+		pollInterval:   pollInterval,
+		maxResultBytes: options.MaxResultBytes,
+		keyPrefix:      defaultKeyPrefix + ":" + namespace,
 	}, nil
 }
 

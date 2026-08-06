@@ -1,10 +1,10 @@
-// Package mongoleader provides MongoDB-backed leader election.
+// Package mongoleader leader backend election 계약과 호출자 사용 경계를 설명한다.
 //
-// The package implements leader.Elector, leader.GroupElector, and
-// leader.StrategicElector with separate document models for single leases,
-// bounded group slots, and strategy candidate registries.
+// 이 주석은 backend lease, ownership, consistency, cancellation 조건을 설명한다.
+// 이 주석은 leader backend election의 backend 요구사항, cancellation, timeout, 오류 처리 세부사항을 설명한다.
+// 세부 조건은 backend별 lease, cleanup, retry 계약을 따른다.
 //
-// Callers own the MongoDB client, database, collection, indexes, write concern,
-// and cleanup. Lease validity is decided by the lease_until field in normal
-// reads and writes; TTL indexes are optional cleanup support only.
+// 이 주석은 backend lease, ownership, consistency, cancellation 조건을 설명한다.
+// 세부 조건은 backend별 lease, cleanup, retry 계약을 따른다.
+// 세부 조건은 backend별 lease, cleanup, retry 계약을 따른다.
 package mongoleader

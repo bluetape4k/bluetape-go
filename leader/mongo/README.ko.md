@@ -39,10 +39,22 @@ elector, err := mongoleader.New(collection, leader.Options{
 if err != nil {
     return err
 }
-if err := elector.Campaign(ctx); err != nil {
+campaignCtx, campaignCancel := context.WithTimeout(ctx, 15*time.Second)
+defer campaignCancel()
+if err := elector.Campaign(campaignCtx); err != nil {
+    if errors.Is(err, leader.ErrCommitUnknown) {
+        cleanupCtx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+        cleanupErr := elector.Resign(cleanupCtx)
+        cancel()
+        return errors.Join(err, cleanupErr) // lease TTL이 최종 fallback
+    }
     return err
 }
-defer elector.Resign(context.Background())
+defer func() {
+    cleanupCtx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+    defer cancel()
+    _ = elector.Resign(cleanupCtx)
+}()
 ```
 
 최대 `MaxLeaders`개의 worker가 동시에 실행될 수 있어야 한다면 `NewGroup`을
@@ -61,10 +73,16 @@ group, err := mongoleader.NewGroup(collection, leader.GroupOptions{
 if err != nil {
     return err
 }
-if err := group.Campaign(ctx); err != nil {
+groupCtx, groupCancel := context.WithTimeout(ctx, 15*time.Second)
+defer groupCancel()
+if err := group.Campaign(groupCtx); err != nil {
     return err
 }
-defer group.Resign(context.Background())
+defer func() {
+    cleanupCtx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+    defer cancel()
+    _ = group.Resign(cleanupCtx)
+}()
 ```
 
 Candidate들이 lock 경합 대신 metadata 기반으로 순위화되어야 한다면
@@ -180,3 +198,15 @@ go test -count=1 ./leader ./leader/mongo
 go test -race -count=1 ./leader ./leader/mongo
 go test -p 1 -count=1 ./leader/mongo ./testcontainers/mongodb
 ```
+
+## Conformance 및 복구
+
+Mixed-version 제약, canary telemetry/threshold, resign/TTL rollback gate는 영·한
+[v0.19.0 rollout runbook](../../docs/release/v0.19.0-provider-conformance-runbook.md)을
+따릅니다.
+
+Single elector는 `leader/leadertest.Run`을 실행하고 서로 다른 local-state sentinel을
+사용하며 backend 실패를 `leader.OperationError`로 감쌉니다. Dispatch된 campaign 또는
+resign 실패는 `leader.ErrCommitUnknown`을 match할 수 있습니다. 같은 elector로 bounded
+`Resign`을 재시도하고 새 campaign 전에는 lease TTL을 기다립니다. BSON lease schema와
+TTL cleanup index는 변경되지 않았습니다.

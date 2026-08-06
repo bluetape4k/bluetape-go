@@ -2,7 +2,7 @@ package rules
 
 import "context"
 
-// InferenceConfig configures bounded sequential inference.
+// InferenceConfig 패키지에서 공개하는 구조체다.
 type InferenceConfig struct {
 	// MaxCycles bounds inference and must be positive.
 	MaxCycles int
@@ -10,13 +10,19 @@ type InferenceConfig struct {
 	EngineConfig EngineConfig
 }
 
-// InferenceEngine runs rules repeatedly until convergence or a cycle limit.
+// InferenceEngine 패키지에서 공개하는 구조체다.
 type InferenceEngine struct {
 	rules  *RuleSet
 	config InferenceConfig
 }
 
-// NewInferenceEngine creates a bounded inference engine.
+// NewInferenceEngine InferenceEngine 인스턴스를 생성한다.
+//
+// 매개변수:
+//   - rules: NewInferenceEngine에 전달되는 값이다. 허용 범위와 nil 처리 방식은 구현 검증을 따른다.
+//   - config: NewInferenceEngine에 전달되는 값이다. 허용 범위와 nil 처리 방식은 구현 검증을 따른다.
+//
+// 반환 오류는 입력 검증 실패와 패키지에서 정의한 sentinel error/typed error를 그대로 드러낸다.
 func NewInferenceEngine(rules *RuleSet, config InferenceConfig) (*InferenceEngine, error) {
 	if config.MaxCycles <= 0 {
 		return nil, ErrInvalidMaxCycles
@@ -30,7 +36,7 @@ func NewInferenceEngine(rules *RuleSet, config InferenceConfig) (*InferenceEngin
 	return &InferenceEngine{rules: rules, config: config}, nil
 }
 
-// InferenceResult reports a bounded inference run.
+// InferenceResult 패키지에서 공개하는 구조체다.
 type InferenceResult struct {
 	Cycles       int
 	CycleResults []Result
@@ -41,8 +47,13 @@ type InferenceResult struct {
 	StopReason   DetailStatus
 }
 
-// Run executes inference until no rules apply, context cancellation occurs, a
-// rule fails, or MaxCycles is exceeded.
+// Run 작업을 실행하고 완료 또는 오류를 반환한다.
+//
+// 매개변수:
+//   - ctx: 호출자가 소유한 취소, deadline, 요청 범위를 전달한다.
+//   - facts: Run에 전달되는 값이다. 허용 범위와 nil 처리 방식은 구현 검증을 따른다.
+//
+// 반환 오류는 입력 검증 실패와 패키지에서 정의한 sentinel error/typed error를 그대로 드러낸다.
 func (e *InferenceEngine) Run(ctx context.Context, facts *Facts) (InferenceResult, error) {
 	if ctx == nil {
 		ctx = context.Background()

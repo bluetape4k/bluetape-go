@@ -15,38 +15,38 @@ import (
 const (
 	defaultImage = "floci/floci:latest"
 
-	// EndpointKey is the documented key for the Floci AWS endpoint URI.
+	// EndpointKey Testcontainers fixture에서 caller-visible 상태와 의미를 설명한다.
 	EndpointKey = "floci.endpoint"
-	// RegionKey is the documented key for the Floci AWS region.
+	// RegionKey Testcontainers fixture에서 caller-visible 상태와 의미를 설명한다.
 	RegionKey = "floci.region"
-	// AccessKeyIDKey is the documented key for the Floci test access key ID.
+	// AccessKeyIDKey Testcontainers fixture에서 caller-visible 상태와 의미를 설명한다.
 	AccessKeyIDKey = "floci.access_key_id"
-	// SecretAccessKeyKey is the documented key for the Floci test secret access key.
+	// SecretAccessKeyKey Testcontainers fixture에서 caller-visible 상태와 의미를 설명한다.
 	SecretAccessKeyKey = "floci.secret_access_key"
-	// AccountIDKey is the documented key for the Floci test AWS account ID.
+	// AccountIDKey Testcontainers fixture에서 caller-visible 상태와 의미를 설명한다.
 	AccountIDKey = "floci.account_id"
-	// AvailabilityZoneKey is the documented key for the Floci availability zone.
+	// AvailabilityZoneKey Testcontainers fixture에서 caller-visible 상태와 의미를 설명한다.
 	AvailabilityZoneKey = "floci.availability_zone"
-	// DedicatedNetworkNameKey is the documented key for the optional Floci Docker network.
+	// DedicatedNetworkNameKey Testcontainers fixture에서 caller-visible 상태와 의미를 설명한다.
 	DedicatedNetworkNameKey = "floci.dedicated_network_name"
 )
 
-// ContainerOption customizes the upstream Floci container builder before start.
+// ContainerOption Floci test container 생성 옵션을 조정한다.
 type ContainerOption func(*upstreamfloci.FlociContainer)
 
-// S3Config aliases the upstream Floci S3 service configuration.
+// S3Config Testcontainers fixture에서 동작과 caller-visible 계약을 설명한다.
 type S3Config = upstreamfloci.S3Config
 
-// SQSConfig aliases the upstream Floci SQS service configuration.
+// SQSConfig Testcontainers fixture에서 동작과 caller-visible 계약을 설명한다.
 type SQSConfig = upstreamfloci.SqsConfig
 
-// SNSConfig aliases the upstream Floci SNS service configuration.
+// SNSConfig Testcontainers fixture에서 동작과 caller-visible 계약을 설명한다.
 type SNSConfig = upstreamfloci.SnsConfig
 
-// DynamoDBConfig aliases the upstream Floci DynamoDB service configuration.
+// DynamoDBConfig Testcontainers fixture에서 동작과 caller-visible 계약을 설명한다.
 type DynamoDBConfig = upstreamfloci.DynamoDbConfig
 
-// Details contains the connection values needed by AWS SDK for Go v2 clients.
+// Details Testcontainers fixture에서 caller-visible 상태와 의미를 설명한다.
 type Details struct {
 	Endpoint             string
 	Region               string
@@ -57,62 +57,62 @@ type Details struct {
 	DedicatedNetworkName string
 }
 
-// DefaultS3Config returns the upstream default Floci S3 service configuration.
+// DefaultS3Config Testcontainers fixture에서 반환값과 오류 의미를 설명한다.
 func DefaultS3Config() S3Config {
 	return upstreamfloci.DefaultS3Config()
 }
 
-// DefaultSQSConfig returns the upstream default Floci SQS service configuration.
+// DefaultSQSConfig Testcontainers fixture에서 반환값과 오류 의미를 설명한다.
 func DefaultSQSConfig() SQSConfig {
 	return upstreamfloci.DefaultSqsConfig()
 }
 
-// DefaultSNSConfig returns the upstream default Floci SNS service configuration.
+// DefaultSNSConfig Testcontainers fixture에서 반환값과 오류 의미를 설명한다.
 func DefaultSNSConfig() SNSConfig {
 	return upstreamfloci.DefaultSnsConfig()
 }
 
-// DefaultDynamoDBConfig returns the upstream default Floci DynamoDB service configuration.
+// DefaultDynamoDBConfig Testcontainers fixture에서 반환값과 오류 의미를 설명한다.
 func DefaultDynamoDBConfig() DynamoDBConfig {
 	return upstreamfloci.DefaultDynamoDbConfig()
 }
 
-// WithS3Config applies the Floci S3 service configuration before start.
+// WithS3Config Testcontainers fixture에서 동작과 caller-visible 계약을 설명한다.
 func WithS3Config(cfg S3Config) ContainerOption {
 	return func(container *upstreamfloci.FlociContainer) {
 		container.WithS3Config(cfg)
 	}
 }
 
-// WithSQSConfig applies the Floci SQS service configuration before start.
+// WithSQSConfig Testcontainers fixture에서 동작과 caller-visible 계약을 설명한다.
 func WithSQSConfig(cfg SQSConfig) ContainerOption {
 	return func(container *upstreamfloci.FlociContainer) {
 		container.WithSqsConfig(cfg)
 	}
 }
 
-// WithSNSConfig applies the Floci SNS service configuration before start.
+// WithSNSConfig Testcontainers fixture에서 동작과 caller-visible 계약을 설명한다.
 func WithSNSConfig(cfg SNSConfig) ContainerOption {
 	return func(container *upstreamfloci.FlociContainer) {
 		container.WithSnsConfig(cfg)
 	}
 }
 
-// WithDynamoDBConfig applies the Floci DynamoDB service configuration before start.
+// WithDynamoDBConfig Testcontainers fixture에서 동작과 caller-visible 계약을 설명한다.
 func WithDynamoDBConfig(cfg DynamoDBConfig) ContainerOption {
 	return func(container *upstreamfloci.FlociContainer) {
 		container.WithDynamoDbConfig(cfg)
 	}
 }
 
-// Start launches a Floci test container and returns its AWS SDK details.
+// Start Testcontainers fixture에서 반환값과 오류 의미를 설명한다.
 func Start(ctx context.Context, tb testing.TB, opts ...ContainerOption) Details {
 	tb.Helper()
 
 	return DetailsFromContainer(tb, StartContainer(ctx, tb, opts...))
 }
 
-// StartContainer launches a Floci test container and returns the upstream container.
+// StartContainer Testcontainers fixture에서 반환값과 오류 의미를 설명한다.
 func StartContainer(ctx context.Context, tb testing.TB, opts ...ContainerOption) *upstreamfloci.StartedFlociContainer {
 	tb.Helper()
 
@@ -137,7 +137,7 @@ func StartContainer(ctx context.Context, tb testing.TB, opts ...ContainerOption)
 	return container
 }
 
-// DetailsFromContainer extracts AWS SDK details from an upstream Floci container.
+// DetailsFromContainer Testcontainers fixture에서 동작과 caller-visible 계약을 설명한다.
 func DetailsFromContainer(tb testing.TB, container *upstreamfloci.StartedFlociContainer) Details {
 	tb.Helper()
 	if container == nil {
@@ -154,7 +154,7 @@ func DetailsFromContainer(tb testing.TB, container *upstreamfloci.StartedFlociCo
 	}
 }
 
-// ConnectionDetails returns the shared connection-detail map for env export.
+// ConnectionDetails Testcontainers fixture에서 반환값과 오류 의미를 설명한다.
 func (d Details) ConnectionDetails() tcserver.ConnectionDetails {
 	return tcserver.ConnectionDetails{
 		EndpointKey:             d.Endpoint,
@@ -167,7 +167,7 @@ func (d Details) ConnectionDetails() tcserver.ConnectionDetails {
 	}
 }
 
-// LoadConfig returns an AWS SDK for Go v2 config for the Floci endpoint.
+// LoadConfig Testcontainers fixture에서 반환값과 오류 의미를 설명한다.
 func LoadConfig(ctx context.Context, tb testing.TB, details Details, opts ...func(*config.LoadOptions) error) aws.Config {
 	tb.Helper()
 	requireDetail(tb, EndpointKey, details.Endpoint)

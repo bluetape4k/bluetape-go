@@ -8,39 +8,34 @@ Milestone: `0.12.0`
 
 ## Purpose
 
-This matrix maps `bluetape4k-projects/bluetape4k/core` source areas to the
-current or proposed bluetape-go package boundaries before 0.12.0 implementation
-continues. The goal is selective Go-native parity, not a mechanical Kotlin/JVM
-port.
+이 matrix는 0.12.0 implementation이 계속되기 전에 `bluetape4k-projects/bluetape4k/core` source 영역을 현재 또는 제안된
+bluetape-go package boundary에 매핑한다. 목표는 selective Go-native parity이지 mechanical Kotlin/JVM port가 아니다.
 
-Decision labels:
+decision label:
 
-- `keep`: current Go package already owns the useful subset.
-- `adapt`: port the concept with Go idioms, error returns, generics, and
-  `context.Context` where appropriate.
-- `replace`: use a 0.12.0 implementation issue to replace weak, duplicated, or
-  too-small current helpers with source-backed Go behavior.
-- `split later`: useful, but belongs outside the current core foundation.
-- `non-goal`: JVM/Kotlin-specific or too broad for bluetape-go.
+- `keep`: 현재 Go package가 이미 유용한 subset을 소유한다.
+- `adapt`: Go idiom, error return, generics, 필요 시 `context.Context`로 개념을 옮긴다.
+- `replace`: 0.12.0 implementation issue에서 약하거나 중복되거나 너무 작은 helper를 source-backed Go behavior로 대체한다.
+- `split later`: 유용하지만 현재 core foundation 밖에 둔다.
+- `non-goal`: JVM/Kotlin-specific이거나 bluetape-go에 너무 넓다.
 
 ## Source Evidence
 
-Kotlin source tree reviewed:
+review한 Kotlin source tree:
 
 - `bluetape4k/core/README.md` and `README.ko.md`
 - `bluetape4k/core/src/main/kotlin/io/bluetape4k/*`
-- Notable groups: `apache`, `codec`, `collections`, `concurrent`,
-  `exceptions`, `functional`, `javatimes`, `ranges`, `support`,
-  `support/i18n`, and `utils`
+- notable groups: `apache`, `codec`, `collections`, `concurrent`, `exceptions`, `functional`, `javatimes`, `ranges`,
+  `support`, `support/i18n`, `utils`
 
-Current Go packages reviewed:
+review한 현재 Go package:
 
 - `core`
 - `collections`
 - `codec`
 - `concurrency`
 
-Prior planning notes reviewed:
+review한 prior planning note:
 
 - `docs/research/2026-06-21-issue-202-source-parity-matrix.md`
 - `docs/superpowers/research/2026-06-24-issue-223-utility-parity.md`
@@ -48,67 +43,59 @@ Prior planning notes reviewed:
 
 ## Parity Matrix
 
-| Kotlin source package/file group | Existing/proposed Go package | Current Go status | Decision | Replacement candidate | Rationale and compatibility notes | Follow-up |
-|---|---|---|---|---|---|---|
-| Root value-object helpers: `AbstractValueObject.kt`, `ValueObject.kt`, `DefaultFields.kt`, `GetterSetter.kt`, `ToStringBuilder.kt`, `SortDirection.kt` | Existing domain packages; no shared base package | No abstract value-object framework | non-goal | No | Go value types should expose concrete fields, methods, `String`, `MarshalText`, or package-local comparison. A shared inheritance-like base would be unidiomatic and would not replace current APIs. | None |
-| `support/RequireSupport.kt`, `AssertSupport.kt` | `core` | `RequireNotBlank`, `RequireNotEmpty`, range and numeric checks return errors wrapping `core.ErrInvalidArgument` | adapt / replace | Yes | Keep error-return validation. Do not port Kotlin contracts, exception hierarchies, or assertion DSL panics. Replace scattered package validation only when #359 adds source-backed helpers with tests. | [#359](https://github.com/bluetape4k/bluetape-go/issues/359) |
-| `support/StringSupport.kt` | `core` | `HasText`, `EmptyToDefault`, `BlankToDefault`, `TruncateUTF8Bytes` | adapt / replace | Yes | Add only repeated caller needs such as blank checks, byte-length validation, safe truncation, or small masking/prefix helpers. Reject broad Apache-style aliases for `strings` and `unicode/utf8`. | [#359](https://github.com/bluetape4k/bluetape-go/issues/359) |
-| `support/UuidSupport.kt` | `core` or package-local helper | No UUID helper in `core` | adapt | Yes | UUID support should be narrow: parse/validate, zero UUID handling, text compatibility, and possibly byte conversion if required by existing codec/id packages. Do not add a global UUID abstraction unless implementation evidence shows repeated use. | [#359](https://github.com/bluetape4k/bluetape-go/issues/359) |
-| `support/ObjectSupport.kt`, `AnySupport.kt`, primitive/array helpers, boolean/number/byte-array helpers | `core` | `Ptr`, `ValueOr`, zero/default helpers, `Clamp`, hex checks | adapt / replace | Yes | Keep small generic fallback helpers that remove repeated boilerplate. Reject Kotlin extension-surface breadth, reflection shortcuts, and object identity helpers unless a package has concrete duplication. | [#359](https://github.com/bluetape4k/bluetape-go/issues/359) |
-| `ranges/*` | `core` | Generic ordered `Range` with open/closed constructors | keep | No | Current Go API covers explicit boundary semantics and rejects invalid ranges. Kotlin operator overloads and DSL constructors remain intentionally excluded. | None |
-| `javatimes/*` | `core` plus standard `time` | `Quarter`, `YearQuarter`, date iteration | keep / split later | No | Keep small reporting-calendar helpers already in `core`. Broad Java Time mirrors, period frameworks, duration DSLs, and parser/formatter wrappers stay out of core unless a future package proves repeated demand. | None |
-| `codec/*`: `Base58.kt`, `Base62.kt`, `Base64StringEncoder.kt`, `HexStringEncoder.kt`, `StringEncoder*.kt`, `Url62.kt` | `codec` | Base58, Base62, URL62 alias, Base64, Base64URL, Hex, UTF-8 string helpers | keep / adapt | Yes | Existing `codec` has compatibility vectors and binary-safe APIs. #357 should audit remaining URL62/time/UUID-oriented source parity and replace only proven gaps, preserving current API names when stronger. | [#357](https://github.com/bluetape4k/bluetape-go/issues/357) |
-| `collections/BoundedStack.kt`, `RingBuffer.kt`, `PaginatedList.kt`, `permutations/*` | `collections` | Bounded stack, ring buffer, page, lazy permutations | keep | No | The main data structures already exist with Go generics, error-return constructors, snapshot semantics, and examples. Future work should improve gaps, not rebuild the package. | [#360](https://github.com/bluetape4k/bluetape-go/issues/360) |
-| `collections/CollectionSupport.kt`, `MapSupport.kt`, `SequenceSupport.kt`, `ListSupport.kt`, `SetSupport.kt` | `collections` | `Chunk`, `ChunkBy`, `Distinct`, `DistinctBy`, `MapErr`, `FilterErr`, `FilterMap`, `GroupBy`, `CountBy` | adapt / replace | Yes | Keep helpers when they encode error-aware generic workflows that Go lacks. Avoid thin aliases for `slices`, `maps`, or plain loops. #360 should replace weak overlap and add only source-backed high-value helpers. | [#360](https://github.com/bluetape4k/bluetape-go/issues/360) |
-| `collections/eclipse/*`, Java stream/iterator adapters | None | No counterpart | non-goal | No | Tied to JVM collection libraries and Kotlin sequence idioms. Go callers should use slices, maps, iterators, and explicit adapters local to packages. | None |
-| `concurrent/*`: future/completable-future/executor/lock/thread utilities | `concurrency` | `Group`, `Go`, `ForEach`, `Map`, `WorkerPool`, panic-to-error | adapt / replace | Yes | Replace JVM executor/future concepts with context-aware goroutine helpers. #355 should focus cancellation, bounded work, panic handling, lifecycle tests, and README contract clarity. | [#355](https://github.com/bluetape4k/bluetape-go/issues/355) |
-| `concurrent/virtualthread/*` | None | No counterpart | non-goal | No | JVM virtual threads do not map to Go. Goroutines and `context.Context` are the target runtime model. | None |
-| `exceptions/*` | Package-local sentinels and wrapped errors | Existing packages use sentinel errors such as `ErrInvalidArgument`, `ErrInvalidTime`, and `ErrInvalidUTF8` | adapt | No | Keep Go error values and wrapping. Do not port exception classes or throw-style flow control. | Per implementation issue |
-| `functional/*`, `support/ResultSupport.kt` | Proposed rules package or local domain code | No general functional package | split later / non-goal | No | General monads, lambdas, and result DSLs do not belong in core. Rule-engine primitives are already separated from core foundation work. | [#375](https://github.com/bluetape4k/bluetape-go/issues/375), [#377](https://github.com/bluetape4k/bluetape-go/issues/377), [#376](https://github.com/bluetape4k/bluetape-go/issues/376) |
-| `utils/Wildcard.kt` | `core` | `MatchWildcard`, `FirstWildcardMatch`, path matching, malformed pattern sentinel | keep | No | Current helpers are Go-native, lexical, portable, and documented. Keep in `core` because package filters and key matchers can share them. | None |
-| `utils/XXHasher.kt` | `core` | `XXH64Bytes`, `XXH64String` | keep | No | Current API documents non-cryptographic use and matches repeated cache/key needs. Do not broaden into cryptographic helpers. | None |
-| `utils/Resourcex.kt`, `Systemx.kt`, `ShutdownQueue.kt`, temp/env/output helpers | None or package-local | No broad utility package | non-goal | No | Go standard packages (`os`, `io/fs`, `runtime`, `signal`, `context`) are clearer. Shared wrappers should appear only when a package owns a concrete operational contract. | None |
-| `support/ClassSupport.kt`, `ClassLoaderSupport.kt`, `JavaTypeSupport.kt`, `KotlinDetector.kt`, reflection helpers | None | No counterpart | non-goal | No | JVM classpath, Kotlin runtime detection, and Java type helpers are not portable Go concerns. | None |
-| `support/i18n/*` | Existing locale/currency packages where needed | Locale/currency work lives outside core | split later | No | I18n behavior should remain domain-specific, not a core foundation helper. Existing money/locale work should own compatibility. | None |
-| `apache/*` wrapper helpers | Standard library or focused Go packages | No wrapper layer | non-goal | No | Do not port Apache Commons facades. Prefer `strings`, `bytes`, `unicode`, `math`, `path/filepath`, `net`, and small first-party helpers only where repeated bluetape-go code proves value. | None |
-| Logging-like helper expectations from JVM ecosystem | Proposed `slog` conventions | No global logger facade | adapt | No | Use Go `log/slog` and explicit dependency injection/context fields rather than a bluetape4k-logging style facade. | [#361](https://github.com/bluetape4k/bluetape-go/issues/361) |
+| Kotlin source group | Go boundary | Decision | Replacement candidate | Rationale / follow-up |
+|---|---|---|---|---|
+| root value-object helper: `AbstractValueObject.kt`, `ValueObject.kt`, `DefaultFields.kt`, `GetterSetter.kt`, `ToStringBuilder.kt`, `SortDirection.kt` | existing domain package | non-goal | No | Go value type은 concrete field, method, `String`, `MarshalText`, package-local comparison을 노출해야 한다. inheritance-like base는 unidiomatic이며 current API를 대체하지 않는다. |
+| `support/RequireSupport.kt`, `AssertSupport.kt` | `core` | adapt / replace | Yes | error-return validation을 유지한다. Kotlin contract, exception hierarchy, assertion DSL panic은 port하지 않는다. source-backed helper는 [#359](https://github.com/bluetape4k/bluetape-go/issues/359)에서 다룬다. |
+| `support/StringSupport.kt` | `core` | adapt / replace | Yes | blank check, byte-length validation, safe truncation, small masking/prefix helper처럼 반복 caller need만 추가한다. Apache-style alias는 거부한다. [#359](https://github.com/bluetape4k/bluetape-go/issues/359). |
+| `support/UuidSupport.kt` | `core` 또는 package-local helper | adapt | Yes | parse/validate, zero UUID, text compatibility, 필요 시 byte conversion처럼 좁게 둔다. global UUID abstraction은 repeated use evidence 없이는 추가하지 않는다. [#359](https://github.com/bluetape4k/bluetape-go/issues/359). |
+| `support/ObjectSupport.kt`, `AnySupport.kt`, primitive/array helper | `core` | adapt / replace | Yes | 반복 boilerplate를 줄이는 작은 generic fallback helper만 유지한다. Kotlin extension breadth, reflection shortcut, object identity helper는 concrete duplication 없이는 거부한다. [#359](https://github.com/bluetape4k/bluetape-go/issues/359). |
+| `ranges/*` | `core` | keep | No | current Go API가 explicit boundary semantics와 invalid range rejection을 덮는다. Kotlin operator overload 및 DSL constructor는 제외한다. |
+| `javatimes/*` | `core` plus `time` | keep / split later | No | `Quarter`, `YearQuarter`, date iteration 같은 작은 reporting-calendar helper만 유지한다. broad Java Time mirror와 parser/formatter wrapper는 future package가 반복 demand를 증명할 때까지 제외한다. |
+| `codec/*` | `codec` | keep / adapt | Yes | existing `codec`은 compatibility vector와 binary-safe API를 가진다. #357은 URL62/time/UUID-oriented parity gap만 audit하고 더 강한 경우 current API name을 보존한다. [#357](https://github.com/bluetape4k/bluetape-go/issues/357). |
+| `collections/BoundedStack.kt`, `RingBuffer.kt`, `PaginatedList.kt`, `permutations/*` | `collections` | keep | No | data structure는 이미 Go generics, error-return constructor, snapshot semantics, example을 가진다. future work는 rebuild가 아니라 gap 개선이다. [#360](https://github.com/bluetape4k/bluetape-go/issues/360). |
+| `collections/*Support.kt` | `collections` | adapt / replace | Yes | Go가 부족한 error-aware generic workflow만 유지한다. `slices`, `maps`, plain loop thin alias는 피한다. [#360](https://github.com/bluetape4k/bluetape-go/issues/360). |
+| `collections/eclipse/*`, Java stream/iterator adapter | none | non-goal | No | JVM collection library 및 Kotlin sequence idiom에 묶여 있다. Go caller는 slice, map, iterator, package-local adapter를 쓴다. |
+| `concurrent/*` future/executor/lock/thread utilities | `concurrency` | adapt / replace | Yes | JVM executor/future 대신 context-aware goroutine contract를 쓴다. #355는 cancellation, bounded work, panic handling, lifecycle test, README contract clarity에 집중한다. [#355](https://github.com/bluetape4k/bluetape-go/issues/355). |
+| `concurrent/virtualthread/*` | none | non-goal | No | JVM virtual thread는 Go에 매핑되지 않는다. target runtime model은 goroutine과 `context.Context`다. |
+| `exceptions/*` | package-local sentinel 및 wrapped error | adapt | No | Go error value와 wrapping을 유지한다. exception class 또는 throw-style control flow는 port하지 않는다. |
+| `functional/*`, `support/ResultSupport.kt` | rules package 또는 local domain code | split later / non-goal | No | general monad, lambda, result DSL은 core에 속하지 않는다. rule-engine primitive는 core foundation 밖에서 추적한다. [#375](https://github.com/bluetape4k/bluetape-go/issues/375), [#377](https://github.com/bluetape4k/bluetape-go/issues/377), [#376](https://github.com/bluetape4k/bluetape-go/issues/376). |
+| `utils/Wildcard.kt` | `core` | keep | No | current helper는 Go-native, lexical, portable, documented다. package filter와 key matcher가 공유할 수 있으므로 `core`에 둔다. |
+| `utils/XXHasher.kt` | `core` | keep | No | current API는 non-cryptographic use를 문서화하고 repeated cache/key need에 맞는다. cryptographic helper로 넓히지 않는다. |
+| `utils/Resourcex.kt`, `Systemx.kt`, `ShutdownQueue.kt` 등 | none or package-local | non-goal | No | `os`, `io/fs`, `runtime`, `signal`, `context` 같은 Go standard package가 더 명확하다. shared wrapper는 concrete operational contract가 있을 때만 만든다. |
+| `support/ClassSupport.kt`, `ClassLoaderSupport.kt`, `JavaTypeSupport.kt`, `KotlinDetector.kt` | none | non-goal | No | JVM classpath, Kotlin runtime detection, Java type helper는 Go concern이 아니다. |
+| `support/i18n/*` | domain package | split later | No | i18n behavior는 core foundation helper가 아니라 domain-specific이어야 한다. |
+| `apache/*` wrapper helper | standard library 또는 focused package | non-goal | No | Apache Commons facade는 port하지 않는다. `strings`, `bytes`, `unicode`, `math`, `path/filepath`, `net`과 작은 first-party helper를 우선한다. |
+| JVM logging-like expectation | `slog` convention | adapt | No | global logger facade 대신 Go `log/slog`와 explicit dependency injection/context field를 사용한다. [#361](https://github.com/bluetape4k/bluetape-go/issues/361). |
 
 ## Replacement Queue
 
-0.12.0 implementation should apply replacements in this order:
+0.12.0 implementation은 다음 순서로 replacement를 적용한다.
 
-1. [#359](https://github.com/bluetape4k/bluetape-go/issues/359) owns `core`
-   replacement work. Add source-backed string validation, UUID helpers, and
-   default/require consolidation only after tests show repeated use.
-2. [#360](https://github.com/bluetape4k/bluetape-go/issues/360) owns
-   `collections` helper review. Keep the existing data structures; replace only
-   thin or duplicated helpers with higher-value generic functions.
-3. [#357](https://github.com/bluetape4k/bluetape-go/issues/357) owns `codec`
-   parity gaps. Preserve current binary-safe APIs and compatibility vectors.
-4. [#355](https://github.com/bluetape4k/bluetape-go/issues/355) owns
-   `concurrency` design. Replace JVM futures/executors with context-aware
-   goroutine contracts.
-5. [#361](https://github.com/bluetape4k/bluetape-go/issues/361) owns logging
-   conventions using `log/slog`; no global facade is introduced here.
+1. [#359](https://github.com/bluetape4k/bluetape-go/issues/359): `core` replacement. source-backed string validation,
+   UUID helper, default/require consolidation은 test가 repeated use를 보일 때만 추가한다.
+2. [#360](https://github.com/bluetape4k/bluetape-go/issues/360): `collections` helper review. 기존 data structure는 유지하고
+   thin 또는 duplicated helper만 high-value generic function으로 대체한다.
+3. [#357](https://github.com/bluetape4k/bluetape-go/issues/357): `codec` parity gap. current binary-safe API와 compatibility
+   vector를 보존한다.
+4. [#355](https://github.com/bluetape4k/bluetape-go/issues/355): `concurrency` design. JVM future/executor 대신
+   context-aware goroutine contract로 대체한다.
+5. [#361](https://github.com/bluetape4k/bluetape-go/issues/361): `log/slog` 기반 logging convention. global facade는 없다.
 6. [#375](https://github.com/bluetape4k/bluetape-go/issues/375),
-   [#377](https://github.com/bluetape4k/bluetape-go/issues/377), and
-   [#376](https://github.com/bluetape4k/bluetape-go/issues/376) keep rule
-   primitives outside `core`.
+   [#377](https://github.com/bluetape4k/bluetape-go/issues/377),
+   [#376](https://github.com/bluetape4k/bluetape-go/issues/376): rule primitive는 `core` 밖에 둔다.
 
 ## Non-Goal Guardrails
 
-- No Kotlin extension-surface port.
-- No JVM reflection, classpath, virtual-thread, executor, or
-  `CompletableFuture` compatibility layer.
-- No Apache Commons wrapper package.
-- No global logging facade.
-- No public API change is made by this document.
+- Kotlin extension-surface port 없음.
+- JVM reflection, classpath, virtual-thread, executor, `CompletableFuture` compatibility layer 없음.
+- Apache Commons wrapper package 없음.
+- global logging facade 없음.
+- 이 문서는 public API change를 만들지 않는다.
 
 ## Acceptance Check
 
-- Matrix covers the Kotlin source package/file groups that shape 0.12.0 core
-  foundation work.
-- Replacement candidates are linked to implementation issues for `core`,
-  `collections`, `codec`, and `concurrency`.
-- JVM/Kotlin-only surfaces are explicitly marked as non-goals.
-- Public roadmap/index documentation links this 0.12.0 source-parity note.
+- matrix가 0.12.0 core foundation work를 shaping하는 Kotlin source package/file group을 덮는다.
+- `core`, `collections`, `codec`, `concurrency` implementation issue에 replacement candidate가 link되어 있다.
+- JVM/Kotlin-only surface는 non-goal로 명시되어 있다.
+- public roadmap/index documentation이 이 0.12.0 source-parity note를 link한다.

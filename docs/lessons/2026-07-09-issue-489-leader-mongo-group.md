@@ -1,40 +1,40 @@
-# MongoDB Group Leader Lessons
+# MongoDB Group Leader 교훈
 
-## L1: Model group leadership as bounded slots, not an unbounded owner array
+## L1: group leadership은 unbounded owner array가 아니라 bounded slot으로 모델링한다
 
-MongoDB can enforce a group elector cap without transactions when each possible
-leader slot has its own `_id`. A contender atomically acquires one expired slot
-document, and no more than `MaxLeaders` slot documents are eligible for a given
-group.
-
-Prevention:
-
-- Keep slot IDs deterministic: `<keyPrefix>:<group>:slot:<slot>`.
-- Acquire only from `[0, MaxLeaders)` for the normalized group.
-- Count active leadership with `group_key` plus `lease_until > now`.
-- Treat duplicate-key and no-match acquisition races as lost attempts, not
-  backend errors.
-
-## L2: TTL remains cleanup only for group electors
-
-Group slots can be reused before MongoDB's TTL monitor deletes old documents.
-Correctness comes from the acquisition and count predicates on `lease_until`,
-not from physical deletion.
+가능한 leader slot마다 자체 `_id`를 두면 MongoDB는 transaction 없이 group elector
+cap을 강제할 수 있다. contender는 expired slot document 하나를 atomic하게
+acquire하고, 특정 group에 대해 eligible한 slot document 수는 `MaxLeaders`를 넘지
+않는다.
 
 Prevention:
 
-- Keep `lease_until <= now` as the takeover predicate.
-- Keep `lease_until > now` as the active-count predicate.
-- Document the TTL index as cleanup support only.
+- slot ID는 deterministic하게 유지한다: `<keyPrefix>:<group>:slot:<slot>`.
+- normalized group에 대해 `[0, MaxLeaders)`에서만 acquire한다.
+- active leadership은 `group_key`와 `lease_until > now`로 count한다.
+- duplicate-key와 no-match acquisition race는 backend error가 아니라 lost attempt로
+  취급한다.
 
-## L3: Renewal loss must clear local group leadership
+## L2: group elector에서도 TTL은 cleanup 전용이다
 
-`GroupElector.IsLeader` is local state, so renewal must update exactly the slot
-and owner token acquired by the elector. A zero-match renewal means the slot was
-removed, replaced, or expired and must flip local state to false.
+MongoDB TTL monitor가 old document를 삭제하기 전에 group slot은 재사용될 수 있다.
+correctness는 physical deletion이 아니라 `lease_until`에 대한 acquisition/count
+predicate에서 나온다.
 
 Prevention:
 
-- Store the acquired slot number locally.
-- Renew with `_id`, `token`, and `lease_until > now`.
-- Race-test token replacement and concurrent contenders.
+- `lease_until <= now`를 takeover predicate로 유지한다.
+- `lease_until > now`를 active-count predicate로 유지한다.
+- TTL index를 cleanup support로만 문서화한다.
+
+## L3: renewal loss는 local group leadership을 지워야 한다
+
+`GroupElector.IsLeader`는 local state이므로 renewal은 elector가 획득한 정확한 slot과
+owner token을 update해야 한다. zero-match renewal은 slot이 제거, 교체 또는 만료된
+것이므로 local state를 false로 바꿔야 한다.
+
+Prevention:
+
+- acquired slot number를 local에 저장한다.
+- `_id`, `token`, `lease_until > now`로 renew한다.
+- token replacement와 concurrent contender를 race-test한다.

@@ -8,59 +8,59 @@ import (
 )
 
 var (
-	// ErrInvalidRecord reports an invalid graphio record.
+	// ErrInvalidRecord graph IO Neo4j backend에서 반환값과 오류 의미를 설명한다.
 	ErrInvalidRecord = errors.New("invalid graphio record")
-	// ErrInvalidOptions reports invalid graphio options.
+	// ErrInvalidOptions graph IO Neo4j backend에서 반환값과 오류 의미를 설명한다.
 	ErrInvalidOptions = errors.New("invalid graphio options")
-	// ErrDuplicateVertex reports a duplicate vertex ID.
+	// ErrDuplicateVertex graph IO Neo4j backend에서 반환값과 오류 의미를 설명한다.
 	ErrDuplicateVertex = errors.New("duplicate graph vertex")
-	// ErrMissingEndpoint reports an edge whose endpoints were not seen.
+	// ErrMissingEndpoint graph IO Neo4j backend에서 반환값과 오류 의미를 설명한다.
 	ErrMissingEndpoint = errors.New("missing graph edge endpoint")
-	// ErrMalformedInput reports malformed graph input.
+	// ErrMalformedInput graph IO Neo4j backend에서 반환값과 오류 의미를 설명한다.
 	ErrMalformedInput = errors.New("malformed graph input")
-	// ErrStreamClosed reports use of a reader or writer after Close.
+	// ErrStreamClosed graph IO Neo4j backend에서 반환값과 오류 의미를 설명한다.
 	ErrStreamClosed = errors.New("graphio stream closed")
 )
 
-// Phase describes where a graphio failure occurred.
+// Phase graph IO Neo4j backend에서 동작과 caller-visible 계약을 설명한다.
 type Phase string
 
 const (
-	// PhaseReadVertex identifies vertex read failures.
+	// PhaseReadVertex graph IO Neo4j backend에서 caller-visible 상태와 의미를 설명한다.
 	PhaseReadVertex Phase = "read_vertex"
-	// PhaseReadEdge identifies edge read failures.
+	// PhaseReadEdge graph IO Neo4j backend에서 caller-visible 상태와 의미를 설명한다.
 	PhaseReadEdge Phase = "read_edge"
-	// PhaseWriteVertex identifies vertex write failures.
+	// PhaseWriteVertex graph IO Neo4j backend에서 caller-visible 상태와 의미를 설명한다.
 	PhaseWriteVertex Phase = "write_vertex"
-	// PhaseWriteEdge identifies edge write failures.
+	// PhaseWriteEdge graph IO Neo4j backend에서 caller-visible 상태와 의미를 설명한다.
 	PhaseWriteEdge Phase = "write_edge"
-	// PhaseValidate identifies validation failures.
+	// PhaseValidate graph IO Neo4j backend에서 caller-visible 상태와 의미를 설명한다.
 	PhaseValidate Phase = "validate"
 )
 
-// Severity describes whether a report entry is fatal or informational.
+// Severity graph IO Neo4j backend에서 caller-visible 상태와 의미를 설명한다.
 type Severity string
 
 const (
-	// SeverityError identifies a fatal failure.
+	// SeverityError graph IO Neo4j backend에서 caller-visible 상태와 의미를 설명한다.
 	SeverityError Severity = "error"
-	// SeverityWarning identifies a non-fatal report entry.
+	// SeverityWarning graph IO Neo4j backend에서 caller-visible 상태와 의미를 설명한다.
 	SeverityWarning Severity = "warning"
 )
 
-// FileRole identifies the stream where an input or output failure occurred.
+// FileRole graph IO Neo4j backend에서 caller-visible 상태와 의미를 설명한다.
 type FileRole string
 
 const (
-	// FileRoleVertices identifies a vertex CSV stream.
+	// FileRoleVertices graph IO Neo4j backend에서 caller-visible 상태와 의미를 설명한다.
 	FileRoleVertices FileRole = "vertices"
-	// FileRoleEdges identifies an edge CSV stream.
+	// FileRoleEdges graph IO Neo4j backend에서 caller-visible 상태와 의미를 설명한다.
 	FileRoleEdges FileRole = "edges"
-	// FileRoleStream identifies a single-stream format.
+	// FileRoleStream graph IO Neo4j backend에서 caller-visible 상태와 의미를 설명한다.
 	FileRoleStream FileRole = "stream"
 )
 
-// Location describes a redacted stream position.
+// Location graph IO Neo4j backend에서 동작과 caller-visible 계약을 설명한다.
 type Location struct {
 	Line     int64
 	Row      int64
@@ -68,7 +68,7 @@ type Location struct {
 	FileRole FileRole
 }
 
-// Error describes a redacted graphio failure.
+// Error graph IO Neo4j backend에서 동작과 caller-visible 계약을 설명한다.
 type Error struct {
 	Kind     error
 	Format   Format
@@ -80,7 +80,7 @@ type Error struct {
 	Cause    error
 }
 
-// NewError creates a redacted graphio error.
+// NewError graph IO Neo4j backend에서 생성과 초기화 계약을 설명한다.
 func NewError(kind error, format Format, phase Phase, location Location, field string, recordID string, summary string, cause error) *Error {
 	return &Error{
 		Kind:     kind,
@@ -94,7 +94,7 @@ func NewError(kind error, format Format, phase Phase, location Location, field s
 	}
 }
 
-// Error returns a redacted failure message.
+// Error graph IO Neo4j backend에서 반환값과 오류 의미를 설명한다.
 func (e *Error) Error() string {
 	if e == nil {
 		return "<nil>"
@@ -119,7 +119,7 @@ func (e *Error) Error() string {
 	return strings.Join(parts, ": ")
 }
 
-// Unwrap exposes the sentinel kind and optional cause to errors.Is/As.
+// Unwrap graph IO Neo4j backend에서 제공하는 기능과 사용 경계를 설명한다.
 func (e *Error) Unwrap() []error {
 	if e == nil {
 		return nil

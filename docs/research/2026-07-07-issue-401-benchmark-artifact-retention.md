@@ -8,15 +8,14 @@ Work type: Benchmark evidence retention
 
 ## Goal
 
-Preserve the raw benchmark outputs and environment metadata needed for the
-0.14.0 SerDe baseline without turning one local run into a production ranking.
+local run 하나를 production ranking으로 바꾸지 않으면서 0.14.0 SerDe baseline에 필요한 raw benchmark output과 environment
+metadata를 보존한다.
 
-This note defines the retention path and report template that #402 must use
-when it publishes the cross-repo recommendation matrix.
+이 note는 #402가 cross-repo recommendation matrix를 publish할 때 사용해야 하는 retention path와 report template을 정의한다.
 
 ## Retention Path
 
-Accepted 0.14.0 Go SerDe baseline artifacts live under:
+accepted 0.14.0 Go SerDe baseline artifact는 다음 경로에 둔다.
 
 ```text
 docs/research/outputs/issue-401/
@@ -24,68 +23,62 @@ docs/research/outputs/issue-401/
 
 | File | Purpose |
 |---|---|
-| `environment.md` | Host, OS, CPU, Go version, git revision, dirty-tree state, metric direction, fixture versions, and command inventory. |
-| `go-serialization-bench.txt` | Full `go test -run '^$' -bench '^BenchmarkSerialization' -benchmem ./serialization` output. |
-| `go-codec-bench.txt` | Full `go test -run '^$' -bench '^BenchmarkCodec' -benchmem ./codec` output. |
-| `go-compression-bench.txt` | Full `go test -run '^$' -bench '^BenchmarkCompressors' -benchmem ./compression` output. |
-| `README.md` | Human-readable inventory for the artifact directory. |
+| `environment.md` | host, OS, CPU, Go version, git revision, dirty-tree state, metric direction, fixture version, command inventory. |
+| `go-serialization-bench.txt` | full `go test -run '^$' -bench '^BenchmarkSerialization' -benchmem ./serialization` output. |
+| `go-codec-bench.txt` | full `go test -run '^$' -bench '^BenchmarkCodec' -benchmem ./codec` output. |
+| `go-compression-bench.txt` | full `go test -run '^$' -bench '^BenchmarkCompressors' -benchmem ./compression` output. |
+| `README.md` | artifact directory용 human-readable inventory. |
 
-Future SerDe benchmark refreshes should either append a new issue-specific
-output directory or add a dated subdirectory. Do not overwrite an accepted raw
-output file after downstream reports cite it.
+future SerDe benchmark refresh는 새 issue-specific output directory를 append하거나 dated subdirectory를 추가해야 한다. downstream
+report가 cite한 accepted raw output file은 overwrite하지 않는다.
 
 ## Traceability Rule
 
-Every benchmark-derived statement in #402 must cite three things:
+#402의 모든 benchmark-derived statement는 세 가지를 cite해야 한다.
 
 | Required citation | Example |
 |---|---|
 | Command | `environment.md` command inventory row |
 | Raw output file | `docs/research/outputs/issue-401/go-codec-bench.txt` |
-| Row or metric boundary | Benchmark name plus metric direction from `environment.md` |
+| Row or metric boundary | benchmark name plus metric direction from `environment.md` |
 
-If a report aggregates several rows, it must list every raw output file used by
-the aggregation before giving the summary. If a result is a hypothesis rather
-than measured evidence, label it as a hypothesis and do not cite it as a local
-snapshot result.
+report가 여러 row를 aggregate하면 summary를 쓰기 전에 aggregation에 사용한 모든 raw output file을 나열해야 한다. result가 measured
+evidence가 아니라 hypothesis라면 hypothesis로 label하고 local snapshot result처럼 cite하지 않는다.
 
 ## Metric Direction
 
 | Metric | Direction | Notes |
 |---|---|---|
-| `ns/op` | Lower is better | Local elapsed benchmark time. Do not compare across machines without recording environment. |
-| `B/op` | Lower is better | Allocation volume per operation where Go reports it. |
-| `allocs/op` | Lower is better | Allocation count per operation. |
-| `MB/s` | Higher is better | Throughput derived by Go from `SetBytes`; compare only for same fixture class. |
-| `encoded_bytes` | Lower is denser | Codec/serializer output size, not by itself a performance winner. |
-| `serialized_bytes` | Lower is denser | Serialization output size before compression. |
-| `compressed_bytes` | Lower is denser | Compression output size. |
-| `compressed/original` | Lower is denser | Compression ratio against original bytes. |
-| `compressed/serialized` | Lower is denser | Compression ratio against serialized bytes. |
+| `ns/op` | 낮을수록 좋다 | local elapsed benchmark time. environment 기록 없이 machine 간 비교하지 않는다. |
+| `B/op` | 낮을수록 좋다 | Go가 보고하는 operation당 allocation volume. |
+| `allocs/op` | 낮을수록 좋다 | operation당 allocation count. |
+| `MB/s` | 높을수록 좋다 | Go가 `SetBytes`에서 계산한 throughput. 같은 fixture class에서만 비교한다. |
+| `encoded_bytes` | 낮을수록 조밀하다 | codec/serializer output size이며 standalone performance winner가 아니다. |
+| `serialized_bytes` | 낮을수록 조밀하다 | compression 전 serialization output size. |
+| `compressed_bytes` | 낮을수록 조밀하다 | compression output size. |
+| `compressed/original` | 낮을수록 조밀하다 | original byte 대비 compression ratio. |
+| `compressed/serialized` | 낮을수록 조밀하다 | serialized byte 대비 compression ratio. |
 
 ## Language Boundary
 
-Use local-snapshot language:
+local-snapshot language를 사용한다.
 
 - "In this local Go snapshot..."
 - "The retained output reports..."
 - "This row is evidence for the fixture and command above..."
 
-Avoid language that declares an absolute winner, a default choice, or an
-operational selection from this local run alone.
+absolute winner, default choice, 또는 이 local run만으로 operational selection을 선언하는 표현은 피한다.
 
-Any production recommendation needs a separate decision record that combines raw
-Go, Rust, and JVM outputs with caller constraints and security boundaries.
+production recommendation에는 raw Go, Rust, JVM output과 caller constraint, security boundary를 결합한 별도 decision record가 필요하다.
 
 ## Template
 
-Use [benchmark-artifact-template.md](benchmark-artifact-template.md) for future
-benchmark updates. The template keeps command, environment, output file, metric
-direction, and interpretation boundary in one compact report.
+future benchmark update에는 [benchmark-artifact-template.md](benchmark-artifact-template.md)를 사용한다. 이 template은 command,
+environment, output file, metric direction, interpretation boundary를 하나의 compact report로 묶는다.
 
 ## Follow-up Ownership
 
 | Issue | Responsibility |
 |---|---|
-| #402 | Publish the cross-repo SerDe recommendation matrix using these retained artifacts and sibling-repo evidence. |
-| #403 | Create optimization follow-ups only where retained evidence shows a concrete, scoped gap. |
+| #402 | retained artifact와 sibling-repo evidence를 사용해 cross-repo SerDe recommendation matrix를 publish한다. |
+| #403 | retained evidence가 concrete, scoped gap을 보일 때만 optimization follow-up을 만든다. |

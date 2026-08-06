@@ -1,0 +1,140 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="1120" viewBox="0 0 1600 1120" role="img" aria-labelledby="title desc">
+  <title id="title">Redis Streams Consumer Lifecycle</title>
+  <desc id="desc">Producer append, consumer-group read, acknowledge, pending recovery with auto-claim, and explicit retention remain caller-owned operations.</desc>
+  <defs>
+    <filter id="softShadow" x="-8%" y="-10%" width="116%" height="124%"><feDropShadow dx="0" dy="5" stdDeviation="5" flood-color="#0F172A" flood-opacity="0.10"/></filter>
+    <marker id="arrow-blue" markerWidth="16" markerHeight="16" refX="15" refY="8" orient="auto" markerUnits="userSpaceOnUse"><path d="M0 0L16 8L0 16Z" fill="#4f77c9"/></marker>
+    <marker id="arrow-green" markerWidth="16" markerHeight="16" refX="15" refY="8" orient="auto" markerUnits="userSpaceOnUse"><path d="M0 0L16 8L0 16Z" fill="#319873"/></marker>
+    <marker id="arrow-amber" markerWidth="16" markerHeight="16" refX="15" refY="8" orient="auto" markerUnits="userSpaceOnUse"><path d="M0 0L16 8L0 16Z" fill="#cf8428"/></marker>
+    <marker id="arrow-red" markerWidth="16" markerHeight="16" refX="15" refY="8" orient="auto" markerUnits="userSpaceOnUse"><path d="M0 0L16 8L0 16Z" fill="#c85d73"/></marker>
+    <marker id="arrow-teal" markerWidth="16" markerHeight="16" refX="15" refY="8" orient="auto" markerUnits="userSpaceOnUse"><path d="M0 0L16 8L0 16Z" fill="#3f7d9c"/></marker>
+    <style>
+      .canvas { fill:#f8fafc; }
+      .frame { fill:#ffffff; stroke:#cbd5e1; stroke-width:1.5; filter:url(#softShadow); }
+      .title, .part-title { font-family:"Architects Daughter"; fill:#263a57; }
+      .title { font-size:42px; }
+      .subtitle, .body, .msg, .region, .footer { font-family:"Comic Mono"; fill:#526276; }
+      .subtitle { font-size:17px; }
+      .part-title { font-size:23px; }
+      .body { font-size:13px; }
+      .msg { font-size:13px; font-weight:700; }
+      .region { font-size:12px; font-weight:700; }
+      .footer { font-size:14px; }
+      .participant { stroke-width:2.2; rx:12; }
+      .lifeline { stroke:#c5d4e3; stroke-width:2; stroke-dasharray:8 8; }
+      .activation { fill:#f3eeff; stroke:#8a65d8; stroke-width:1.7; rx:7; opacity:.88; }
+      .route { fill:none; stroke-width:3; stroke-linecap:round; stroke-linejoin:round; }
+      .return { fill:none; stroke-width:2.6; stroke-linecap:round; stroke-linejoin:round; stroke-dasharray:9 8; }
+      .alt { fill:#f7f2ff; fill-opacity:.20; stroke:#78909c; stroke-width:2.4; stroke-dasharray:12 7; rx:16; }
+      .else-line { stroke:#78909c; stroke-width:2.2; stroke-dasharray:12 8; }
+      .pill { fill:#ffffff; stroke:#cbd9e7; stroke-width:1.5; rx:14; }
+      .badge { stroke-width:1.6; }
+      .badge-text { font-family:"Comic Mono"; font-size:10px; font-weight:700; fill:#ffffff; }
+      .footer-box { fill:#ffffff; stroke:#d4e0ec; stroke-width:1.5; rx:12; }
+    </style>
+  </defs>
+  <rect class="canvas" width="1600" height="1120"/>
+  <rect class="frame" x="34" y="30" width="1532" height="1056" rx="8"/>
+  <text class="title" x="74" y="88">Redis Streams Consumer Lifecycle</text>
+  <text class="subtitle" x="78" y="120">Append, pending recovery, acknowledgement, and retention are explicit caller-owned Redis operations.</text>
+
+  <rect class="participant" x="90" y="162" width="250" height="92" fill="#eaf2ff" stroke="#6d9df0"/>
+  <text class="part-title" x="215" y="202" text-anchor="middle">Producer</text>
+  <text class="body" x="215" y="228" text-anchor="middle">caller-owned payload</text>
+  <rect class="participant" x="450" y="162" width="290" height="92" fill="#fff4de" stroke="#d59c3f"/>
+  <text class="part-title" x="595" y="202" text-anchor="middle">redisstream</text>
+  <text class="body" x="595" y="228" text-anchor="middle">direct command helper</text>
+  <rect class="participant" x="860" y="162" width="270" height="92" fill="#fff0f0" stroke="#dc2626"/>
+  <text class="part-title" x="995" y="202" text-anchor="middle">Redis Streams</text>
+  <text class="body" x="995" y="228" text-anchor="middle">stream and PEL state</text>
+  <rect class="participant" x="1240" y="162" width="270" height="92" fill="#edf9f4" stroke="#63b891"/>
+  <text class="part-title" x="1375" y="202" text-anchor="middle">Consumer</text>
+  <text class="body" x="1375" y="228" text-anchor="middle">idempotent effect owner</text>
+
+  <path class="lifeline" d="M215 254V988"/>
+  <path class="lifeline" d="M595 254V988"/>
+  <path class="lifeline" d="M995 254V988"/>
+  <path class="lifeline" d="M1375 254V988"/>
+  <rect class="activation" x="585" y="294" width="20" height="112"/>
+  <rect class="activation" x="985" y="350" width="20" height="70"/>
+  <rect class="activation" x="1365" y="488" width="20" height="440"/>
+  <rect class="activation" x="585" y="482" width="20" height="390"/>
+  <rect class="activation" x="985" y="536" width="20" height="390"/>
+
+  <path class="route" d="M215 310H585" stroke="#4f77c9" marker-end="url(#arrow-blue)"/>
+  <rect class="pill" x="310" y="278" width="184" height="34"/>
+  <circle class="badge" cx="330" cy="295" r="14" fill="#4f77c9" stroke="#4f77c9"/>
+  <text class="badge-text" x="330" y="299" text-anchor="middle">1</text>
+  <text class="msg" x="348" y="300" fill="#4f77c9">Append(entry)</text>
+
+  <path class="route" d="M605 366H985" stroke="#cf8428" marker-end="url(#arrow-amber)"/>
+  <rect class="pill" x="700" y="334" width="178" height="34"/>
+  <circle class="badge" cx="720" cy="351" r="14" fill="#cf8428" stroke="#cf8428"/>
+  <text class="badge-text" x="720" y="355" text-anchor="middle">2</text>
+  <text class="msg" x="738" y="356" fill="#cf8428">XADD verbatim fields</text>
+
+  <path class="return" d="M985 422H215" stroke="#3f7d9c" marker-end="url(#arrow-teal)"/>
+  <rect class="pill" x="532" y="390" width="142" height="34"/>
+  <circle class="badge" cx="552" cy="407" r="14" fill="#3f7d9c" stroke="#3f7d9c"/>
+  <text class="badge-text" x="552" y="411" text-anchor="middle">3</text>
+  <text class="msg" x="570" y="412" fill="#3f7d9c">entry ID</text>
+
+  <rect class="alt" x="76" y="458" width="1448" height="476"/>
+  <rect class="pill" x="100" y="474" width="188" height="32"/>
+  <text class="region" x="194" y="495" text-anchor="middle">alt processed or pending</text>
+
+  <path class="route" d="M1375 530H605" stroke="#4f77c9" marker-end="url(#arrow-blue)"/>
+  <rect class="pill" x="882" y="498" width="216" height="34"/>
+  <circle class="badge" cx="902" cy="515" r="14" fill="#4f77c9" stroke="#4f77c9"/>
+  <text class="badge-text" x="902" y="519" text-anchor="middle">4</text>
+  <text class="msg" x="920" y="520" fill="#4f77c9">ReadGroup(group, consumer)</text>
+
+  <path class="route" d="M605 586H985" stroke="#cf8428" marker-end="url(#arrow-amber)"/>
+  <rect class="pill" x="718" y="554" width="152" height="34"/>
+  <circle class="badge" cx="738" cy="571" r="14" fill="#cf8428" stroke="#cf8428"/>
+  <text class="badge-text" x="738" y="575" text-anchor="middle">5</text>
+  <text class="msg" x="756" y="576" fill="#cf8428">XREADGROUP &gt;</text>
+
+  <path class="return" d="M995 642H1375" stroke="#3f7d9c" marker-end="url(#arrow-teal)"/>
+  <rect class="pill" x="1088" y="610" width="196" height="34"/>
+  <circle class="badge" cx="1108" cy="627" r="14" fill="#3f7d9c" stroke="#3f7d9c"/>
+  <text class="badge-text" x="1108" y="631" text-anchor="middle">6</text>
+  <text class="msg" x="1126" y="632" fill="#3f7d9c">messages enter PEL</text>
+
+  <path class="route" d="M1375 698H995" stroke="#319873" marker-end="url(#arrow-green)"/>
+  <rect class="pill" x="1083" y="666" width="204" height="34"/>
+  <circle class="badge" cx="1103" cy="683" r="14" fill="#319873" stroke="#319873"/>
+  <text class="badge-text" x="1103" y="687" text-anchor="middle">7</text>
+  <text class="msg" x="1121" y="688" fill="#319873">effect complete; XACK</text>
+
+  <path class="else-line" d="M76 738H1524"/>
+  <rect class="pill" x="100" y="720" width="182" height="32"/>
+  <text class="region" x="191" y="741" text-anchor="middle">else unacknowledged</text>
+
+  <path class="route" d="M1375 786H605" stroke="#c85d73" marker-end="url(#arrow-red)"/>
+  <rect class="pill" x="858" y="754" width="256" height="34"/>
+  <circle class="badge" cx="878" cy="771" r="14" fill="#c85d73" stroke="#c85d73"/>
+  <text class="badge-text" x="878" y="775" text-anchor="middle">8</text>
+  <text class="msg" x="896" y="776" fill="#c85d73">recovery chooses AutoClaim</text>
+
+  <path class="route" d="M605 842H985" stroke="#c85d73" marker-end="url(#arrow-red)"/>
+  <rect class="pill" x="716" y="810" width="170" height="34"/>
+  <circle class="badge" cx="736" cy="827" r="14" fill="#c85d73" stroke="#c85d73"/>
+  <text class="badge-text" x="736" y="831" text-anchor="middle">9</text>
+  <text class="msg" x="754" y="832" fill="#c85d73">XAUTOCLAIM cursor</text>
+
+  <path class="return" d="M995 900H1375" stroke="#3f7d9c" marker-end="url(#arrow-teal)"/>
+  <rect class="pill" x="1084" y="868" width="202" height="34"/>
+  <circle class="badge" cx="1104" cy="885" r="14" fill="#3f7d9c" stroke="#3f7d9c"/>
+  <text class="badge-text" x="1104" y="889" text-anchor="middle">10</text>
+  <text class="msg" x="1122" y="890" fill="#3f7d9c">retry idempotent effect</text>
+
+  <path class="route" d="M215 954H985" stroke="#cf8428" marker-end="url(#arrow-amber)"/>
+  <rect class="pill" x="505" y="922" width="194" height="34"/>
+  <circle class="badge" cx="525" cy="939" r="14" fill="#cf8428" stroke="#cf8428"/>
+  <text class="badge-text" x="525" y="943" text-anchor="middle">11</text>
+  <text class="msg" x="543" y="944" fill="#cf8428">explicit trim or delete</text>
+
+  <rect class="footer-box" x="84" y="1018" width="1432" height="42" rx="8"/>
+  <text class="footer" x="800" y="1045" text-anchor="middle">At-least-once: preserve idempotency, inspect pending state, and choose replay or retention above this package.</text>
+</svg>

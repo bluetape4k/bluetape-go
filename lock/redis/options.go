@@ -6,13 +6,13 @@ import (
 	"time"
 )
 
-// Options 는 Redis lock 생성 설정이다.
+// Options Redis lock 생성 설정이다.
 type Options struct {
-	// Key는 Redis lock key다. 필수다.
+	// Key Redis lock key다. 필수다.
 	Key string
-	// TTL은 lock이 자동 만료될 시간이다. 양수여야 한다.
+	// TTL lock이 자동 만료될 시간이다. 양수여야 한다.
 	TTL time.Duration
-	// Token은 선택적 owner token이다. 비우면 acquire마다 무작위 token을 만든다.
+	// Token 선택적 owner token이다. 비우면 acquire마다 무작위 token을 만든다.
 	Token string
 }
 
@@ -29,9 +29,8 @@ func (o Options) normalize() (options, error) {
 	if o.TTL <= 0 {
 		return options{}, fmt.Errorf("redis lock ttl must be positive")
 	}
-	token := strings.TrimSpace(o.Token)
-	if o.Token != "" && token == "" {
+	if o.Token != "" && strings.TrimSpace(o.Token) == "" {
 		return options{}, fmt.Errorf("redis lock token must not be blank")
 	}
-	return options{key: o.Key, ttl: o.TTL, token: token}, nil
+	return options{key: o.Key, ttl: o.TTL, token: o.Token}, nil
 }

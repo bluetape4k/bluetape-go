@@ -39,10 +39,22 @@ elector, err := mongoleader.New(collection, leader.Options{
 if err != nil {
     return err
 }
-if err := elector.Campaign(ctx); err != nil {
+campaignCtx, campaignCancel := context.WithTimeout(ctx, 15*time.Second)
+defer campaignCancel()
+if err := elector.Campaign(campaignCtx); err != nil {
+    if errors.Is(err, leader.ErrCommitUnknown) {
+        cleanupCtx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+        cleanupErr := elector.Resign(cleanupCtx)
+        cancel()
+        return errors.Join(err, cleanupErr) // lease TTL is the final fallback
+    }
     return err
 }
-defer elector.Resign(context.Background())
+defer func() {
+    cleanupCtx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+    defer cancel()
+    _ = elector.Resign(cleanupCtx)
+}()
 ```
 
 Use `NewGroup` when up to `MaxLeaders` workers may run concurrently:
@@ -60,10 +72,16 @@ group, err := mongoleader.NewGroup(collection, leader.GroupOptions{
 if err != nil {
     return err
 }
-if err := group.Campaign(ctx); err != nil {
+groupCtx, groupCancel := context.WithTimeout(ctx, 15*time.Second)
+defer groupCancel()
+if err := group.Campaign(groupCtx); err != nil {
     return err
 }
-defer group.Resign(context.Background())
+defer func() {
+    cleanupCtx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+    defer cancel()
+    _ = group.Resign(cleanupCtx)
+}()
 ```
 
 Use `NewStrategic` when candidates should be ranked by metadata instead of
@@ -178,3 +196,15 @@ go test -count=1 ./leader ./leader/mongo
 go test -race -count=1 ./leader ./leader/mongo
 go test -p 1 -count=1 ./leader/mongo ./testcontainers/mongodb
 ```
+
+## Conformance And Recovery
+
+Use the bilingual [v0.19.0 rollout runbook](../../docs/release/v0.19.0-provider-conformance-runbook.md)
+for mixed-version constraints, canary telemetry and thresholds, and resign/TTL
+rollback gates.
+
+The single elector runs `leader/leadertest.Run`, uses distinct local-state
+sentinels, and wraps backend failures in `leader.OperationError`. A dispatched
+campaign or resign failure may match `leader.ErrCommitUnknown`; retry bounded
+`Resign` with the same elector, then rely on lease TTL before another campaign.
+The BSON lease schema and TTL cleanup index are unchanged.

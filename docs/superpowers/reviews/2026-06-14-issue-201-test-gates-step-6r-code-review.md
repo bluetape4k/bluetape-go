@@ -1,13 +1,15 @@
 # Issue #201 Step 6-R Code Review
 
-## Scope
+> 한국어 리뷰 경계: 이 문서는 리뷰 판정과 근거를 한국어 독자가 추적할 수 있도록 정리한다. 심각도 토큰, 판정 토큰, 파일 경로, 라인 번호, 이슈/PR 번호, 명령, 코드 식별자는 원문의 증거 앵커로 보존한다.
+
+## 범위
 
 - Issue: #201 `test: Upgrade missing failure cancellation race and cleanup gates`
 - Branch: `issue-201-test-gates`
 - Review shape: 7-Tier gate = six independent review lenses plus main integration review.
 - Execution note: native subagent lanes were unstable in this session; lane work was rerun in the main session by role switching. This artifact records `lane timed out/unavailable; main integration fallback performed` for the gate.
 
-## Reviewed Diff
+## 검토한 diff
 
 - `internal/testcleanup`: bounded Testcontainers termination helper.
 - `testcontainers/{redis,postgres,mysql,nats,kafka}`: wrappers use bounded cleanup.
@@ -16,7 +18,7 @@
 - `testing/concurrency`: GoroutineStressTester invalid option and cancellation coverage.
 - `cache/rediscoord`, `ratelimit/redis`: bounded eventual waits adjusted for full-suite load.
 
-## Evidence
+## 증거
 
 | Check | Evidence | Result |
 |---|---|---|
@@ -38,7 +40,7 @@
 | Developer/API | PASS | New helper is internal-only and does not widen public library API. Existing testcontainer wrapper signatures remain unchanged. P0=0 P1=0. |
 | User/Caller | PASS | Runtime library behavior is unchanged; changes affect tests, cleanup, and local CI gates only. Public docs reflect command behavior. P0=0 P1=0. |
 
-## Main Integration Review
+## 메인 통합 검토
 
 The implemented diff addresses the Step 3 plan goals and the additional failures exposed by full-suite validation:
 

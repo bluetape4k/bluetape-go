@@ -1,10 +1,12 @@
 # Issue #223 Step 6-R Review
 
-Scope: utility parity boundary decision, follow-up issue split, and PR evidence
+> 한국어 리뷰 경계: 이 문서는 리뷰 판정과 근거를 한국어 독자가 추적할 수 있도록 정리한다. 심각도 토큰, 판정 토큰, 파일 경로, 라인 번호, 이슈/PR 번호, 명령, 코드 식별자는 원문의 증거 앵커로 보존한다.
+
+범위: utility parity boundary decision, follow-up issue split, and PR evidence
 for #223.
 Baseline: `origin/develop` at `686c478b50d44f0248f9cc9439eed3fbf4c2e43f`.
 
-## 7-Tier Review
+## 7-Tier 검토
 
 | Lane | P0 | P1 | Verdict | Evidence |
 |---|---:|---:|---|---|
@@ -25,7 +27,7 @@ stress are not risk-relevant to the changed surface because this PR adds no Go
 code, goroutines, shared state, or public concurrency claim. The repository
 race gate is still planned as final validation.
 
-## Validation
+## 검증
 
 - PASS `git diff --check`
 - PASS `make fmt-check`
@@ -35,7 +37,7 @@ race gate is still planned as final validation.
 - PASS `make test`
 - PASS `make race`
 
-## Notes
+## 메모
 
 Subagent lanes were not used due current subagent/runtime instability; main
 integration fallback performed with the required lane separation.

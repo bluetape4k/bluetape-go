@@ -1,5 +1,7 @@
 # Issue 32 ID Generator Foundation Spec Review
 
+> 한국어 리뷰 경계: 이 문서는 리뷰 판정과 근거를 한국어 독자가 추적할 수 있도록 정리한다. 심각도 토큰, 판정 토큰, 파일 경로, 라인 번호, 이슈/PR 번호, 명령, 코드 식별자는 원문의 증거 앵커로 보존한다.
+
 Spec: `docs/superpowers/specs/2026-06-08-issue-32-id-generator-foundation-spec.md`
 Review gate: Step 2-R
 Baseline: `origin/develop` at `fc2ec24`
@@ -12,7 +14,7 @@ always use subagents with the 7-Tier frame. That local-only gate was treated as
 procedural `FAIL`; Step 2-R was reopened and rerun with subagent lanes for all
 seven tiers.
 
-## Lane Budget
+## 관점 예산
 
 - Lanes: 7 independent read-only subagents.
 - Write scope: none.
@@ -20,7 +22,7 @@ seven tiers.
 - Stop condition: each tier returns P0/P1/P2/P3 findings with file:line
   evidence and explicit `P0=<n> P1=<n>`.
 
-## Initial Subagent Results
+## 초기 서브에이전트 결과
 
 | Tier | Reviewer | P0 | P1 | P2 | P3 | Summary |
 |---|---|---:|---:|---:|---:|---|
@@ -55,7 +57,7 @@ Initial blocker result: `P0=0 P1=0`.
 | 6 Performance/stability | subagent | 0 | 0 | 0 | 0 | Spec lines 324-326 require `-benchmem` benchmark smoke; lines 340 and 238-240 cover hot-path and unbounded wait risks. |
 | 7 Docs/release/evidence | subagent | 0 | 0 | 0 | 0 | Spec lines 298-304 cover root README/release drift, CHANGELOG, and WIP; lines 6, 25-26, 286-292, 342, 353-354 cover deferrals and example support/defer docs. |
 
-## Integrated Verdict
+## 통합 판정
 
 PASS. Subagent-based Step 2-R convergence reached `P0=0 P1=0`.
 

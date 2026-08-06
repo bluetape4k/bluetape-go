@@ -15,7 +15,10 @@ consume, bucket state 저장, key expiration 갱신을 atomically 수행합니�
 ## 설치
 
 ```go
-import redisratelimit "github.com/bluetape4k/bluetape-go/ratelimit/redis"
+import (
+    redisratelimit "github.com/bluetape4k/bluetape-go/ratelimit/redis"
+    btredis "github.com/bluetape4k/bluetape-go/redis"
+)
 ```
 
 ## 사용 예
@@ -32,6 +35,10 @@ if err != nil {
 }
 
 result, err := limiter.Allow(ctx, "tenant:blue", 1)
+if errors.Is(err, btredis.ErrCommitUnknown) {
+    fullRefill := 2 * time.Second // Burst / RatePerSecond
+    return fmt.Errorf("자동 replay 금지; 최소 %s 대기하거나 한 debit을 budget에 반영: %w", fullRefill, err)
+}
 if err != nil {
     return err
 }
@@ -65,6 +72,9 @@ Script는 Redis `TIME`을 사용하므로 distributed caller는 local machine cl
 - 하나의 key에 대한 concurrent client는 Redis script execution으로 serialize됩니다.
 - Rejected attempt는 error가 아니라 정상 `ratelimit.Result` value입니다.
 - Redis command/script failure는 error로 반환됩니다.
+- Redis command/script failure는 `errors.Is`로 원래 cause를 유지하고,
+  `errors.As`를 통한 typed diagnostics를 제공하며 raw Redis key와 provider
+  detail은 redaction합니다.
 - FIFO fairness, waiting, reservation, adaptive limit, Redis Cluster multi-key
   behavior는 제공하지 않습니다.
 - `MaxKeyBytes`는 untrusted logical key 길이를 제한합니다. 기본값은 512 bytes입니다.
@@ -82,3 +92,14 @@ go test -race -count=1 ./ratelimit/redis
 Coverage는 burst/rejection, refill, namespace isolation, idle key expiration,
 context cancellation, `GoroutineStressTester` 기반 concurrent-client stress를
 포함합니다.
+
+## Conformance 및 Commit-Unknown 복구
+
+Mixed-version 제약, canary telemetry/threshold, cleanup/TTL rollback gate는 영·한
+[v0.19.0 rollout runbook](../../docs/release/v0.19.0-provider-conformance-runbook.md)을
+따릅니다.
+
+Provider는 Lua debit boundary에서 `ratelimittest.Run`을 실행합니다. Eval 응답 유실은
+zero `Result`와 `btredis.ErrCommitUnknown`을 match하는 typed `btredis.OpError`를 반환하며 한 번
+debit됐을 수 있습니다. Replay하지 말고 최소 `Burst / RatePerSecond`를 기다리거나 caller
+budget에 한 번의 debit을 반영합니다.

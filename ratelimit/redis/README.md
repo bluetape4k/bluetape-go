@@ -15,7 +15,10 @@ stores bucket state, and refreshes key expiration atomically.
 ## Install
 
 ```go
-import redisratelimit "github.com/bluetape4k/bluetape-go/ratelimit/redis"
+import (
+    redisratelimit "github.com/bluetape4k/bluetape-go/ratelimit/redis"
+    btredis "github.com/bluetape4k/bluetape-go/redis"
+)
 ```
 
 ## Usage
@@ -32,6 +35,10 @@ if err != nil {
 }
 
 result, err := limiter.Allow(ctx, "tenant:blue", 1)
+if errors.Is(err, btredis.ErrCommitUnknown) {
+    fullRefill := 2 * time.Second // Burst / RatePerSecond
+    return fmt.Errorf("do not replay; wait at least %s or absorb one debit: %w", fullRefill, err)
+}
 if err != nil {
     return err
 }
@@ -64,6 +71,9 @@ machine clocks. `PEXPIRE` keeps inactive bucket keys bounded by `IdleTTL`.
 - Concurrent clients for one key are serialized by Redis script execution.
 - Rejected attempts are normal `ratelimit.Result` values, not errors.
 - Redis command/script failures are returned as errors.
+- Redis command/script failures retain their original cause for `errors.Is`,
+  expose typed diagnostics through `errors.As`, and redact raw Redis key and
+  provider details.
 - No FIFO fairness, waiting, reservations, adaptive limits, or Redis Cluster
   multi-key behavior is provided.
 - `MaxKeyBytes` bounds untrusted logical key length; default is 512 bytes.
@@ -81,3 +91,14 @@ go test -race -count=1 ./ratelimit/redis
 Coverage includes burst/rejection, refill, namespace isolation, idle key
 expiration, context cancellation, and concurrent-client stress with
 `GoroutineStressTester`.
+
+## Conformance And Commit-Unknown Recovery
+
+Use the bilingual [v0.19.0 rollout runbook](../../docs/release/v0.19.0-provider-conformance-runbook.md)
+for mixed-version constraints, canary telemetry and thresholds, and cleanup/TTL
+rollback gates.
+
+The provider runs `ratelimittest.Run` at the Lua debit boundary. An Eval response
+loss returns a zero `Result` and a typed `btredis.OpError` matching
+`btredis.ErrCommitUnknown`; it may represent one debit. Do not replay. Wait at least
+`Burst / RatePerSecond` or account for one debit in the caller's budget.

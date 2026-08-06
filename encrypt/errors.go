@@ -6,18 +6,18 @@ import (
 )
 
 var (
-	// ErrInvalidKey reports missing or unsupported AES key material.
+	// ErrInvalidKey AES key material이 없거나 지원하지 않는 크기일 때 반환된다.
 	ErrInvalidKey = errors.New("encrypt: invalid key")
-	// ErrMalformedCiphertext reports a ciphertext envelope that cannot be parsed.
+	// ErrMalformedCiphertext ciphertext envelope를 parse할 수 없을 때 반환된다.
 	ErrMalformedCiphertext = errors.New("encrypt: malformed ciphertext")
-	// ErrAuthenticationFailed reports tamper, wrong key, or wrong associated data.
+	// ErrAuthenticationFailed 변조, 잘못된 key, 또는 다른 associated data로 인증이 실패했을 때 반환된다.
 	ErrAuthenticationFailed = errors.New("encrypt: authentication failed")
-	// ErrInvalidOptions reports invalid encryptor options.
+	// ErrInvalidOptions encryptor option이 유효하지 않을 때 반환된다.
 	ErrInvalidOptions = errors.New("encrypt: invalid options")
 )
 
-// Error preserves encrypt sentinel identity and an optional cause without
-// exposing plaintext, ciphertext, key bytes, or associated data through Error().
+// Error encrypt sentinel identity와 선택적 원인을 보존하되 Error() 문자열에 plaintext,
+// ciphertext, key byte, associated data를 노출하지 않는다.
 type Error struct {
 	Kind      error
 	Operation string
@@ -45,7 +45,7 @@ func (e *Error) Unwrap() error {
 	return e.Cause
 }
 
-// Is reports matches against encrypt sentinel errors and the wrapped cause.
+// Is encrypt sentinel error와 wrapping된 원인에 대한 errors.Is matching을 지원한다.
 func (e *Error) Is(target error) bool {
 	if e == nil {
 		return false

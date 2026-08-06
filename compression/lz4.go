@@ -6,7 +6,7 @@ import (
 	"github.com/pierrec/lz4/v4"
 )
 
-// LZ4 returns an LZ4 stream compressor.
+// LZ4 LZ4 compressor를 생성한다.
 func LZ4() Compressor {
 	return streamCompressor{
 		name: "lz4",

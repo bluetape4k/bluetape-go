@@ -1,26 +1,24 @@
-# Issue #346 Lesson: SQL Audit Outbox
+# Issue #346 교훈: SQL audit outbox
 
-## Decision
+## 결정
 
-The first durable audit publisher boundary is a PostgreSQL-backed outbox store
-and relay in `audit/sqloutbox`.
+첫 durable audit publisher boundary는 `audit/sqloutbox`의 PostgreSQL-backed outbox
+store와 relay다.
 
-## Lessons
+## 교훈
 
-- Keep source transaction ownership visible. Passing `*sql.Tx` or `*sql.DB`
-  into store methods is clearer than hiding transaction hooks inside an outbox
-  repository.
-- Per-aggregate ordering needs claim-time protection, not just `order by`.
-  Later revisions are excluded while earlier revisions remain pending or
-  claimed.
-- `RunOnce` and `Run` serve different owners: schedulers can poll one batch,
-  while service workers can run until context cancellation.
-- Retry/dead-letter state belongs in the outbox row; broker-specific adapter
-  logic should come later.
+- Source transaction ownership은 보이게 둔다. Store method에 `*sql.Tx` 또는 `*sql.DB`를
+  전달하는 방식이 transaction hook을 outbox repository 안에 숨기는 방식보다 명확하다.
+- Per-aggregate ordering은 단순한 `order by`가 아니라 claim-time protection이 필요하다.
+  이전 revision이 pending 또는 claimed 상태로 남아 있으면 이후 revision은 제외한다.
+- `RunOnce`와 `Run`은 owner가 다르다. Scheduler는 batch 하나를 poll할 수 있고, service
+  worker는 context cancellation까지 실행할 수 있다.
+- Retry/dead-letter state는 outbox row에 둔다. Broker-specific adapter logic은 나중에
+  추가한다.
 
-## Follow-ups
+## 후속 작업
 
-- Add concrete broker publisher adapters only after the SQL outbox contract has
-  held through examples.
-- Keep retention, replay tooling, migration rollout, and PII policy as explicit
-  application/operator responsibilities.
+- Concrete broker publisher adapter는 SQL outbox contract가 example을 통해 검증된 뒤에만
+  추가한다.
+- Retention, replay tooling, migration rollout, PII policy는 명시적인
+  application/operator responsibility로 남긴다.
