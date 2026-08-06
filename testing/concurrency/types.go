@@ -14,10 +14,10 @@ const (
 	defaultRoundsPerTask = 1
 )
 
-// Task is a context-aware test body.
+// Task 테스트 helper의 timeout, cancellation, cleanup에서 사용하는 함수 타입이다.
 type Task func(context.Context) error
 
-// Options configures a tester run.
+// Options 테스트 helper의 timeout, cancellation, cleanup에서 사용하는 구조체다.
 type Options struct {
 	// Workers bounds the number of tasks that may run concurrently.
 	Workers int
@@ -57,7 +57,7 @@ func withTimeout(ctx context.Context, timeout time.Duration) (context.Context, c
 	return context.WithTimeout(ctx, timeout)
 }
 
-// Report summarizes a tester run.
+// Report 테스트 helper의 timeout, cancellation, cleanup에서 사용하는 구조체다.
 type Report struct {
 	// Scheduled is the total number of task executions planned for the run.
 	Scheduled int
@@ -84,7 +84,7 @@ type Report struct {
 	Duration time.Duration
 }
 
-// RunError contains one or more task failures captured during a tester run.
+// RunError 테스트 helper의 timeout, cancellation, cleanup에서 사용하는 구조체다.
 type RunError struct {
 	Errors []error
 }
@@ -103,7 +103,10 @@ func (e RunError) Error() string {
 	return "concurrency test failed: " + strings.Join(parts, "; ")
 }
 
-// Is reports whether any captured error matches target.
+// Is errors.Is 비교를 지원한다.
+//
+// 매개변수:
+//   - target: 검사하거나 감쌀 오류 값이다.
 func (e RunError) Is(target error) bool {
 	for _, err := range e.Errors {
 		if errors.Is(err, target) {
@@ -113,7 +116,10 @@ func (e RunError) Is(target error) bool {
 	return false
 }
 
-// As reports whether any captured error can be assigned to target.
+// As 테스트 helper의 timeout, cancellation, cleanup 동작을 수행한다.
+//
+// 매개변수:
+//   - target: As에 전달되는 값이다. 허용 범위와 nil 처리 방식은 구현 검증을 따른다.
 func (e RunError) As(target any) bool {
 	for _, err := range e.Errors {
 		if errors.As(err, target) {

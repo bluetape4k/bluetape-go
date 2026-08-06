@@ -10,13 +10,13 @@ import (
 	"github.com/bluetape4k/bluetape-go/workreport"
 )
 
-// Work is a context-aware workflow step.
+// Work workflow 실행 순서, 병렬성, 실패 전파에서 사용하는 함수 타입이다.
 type Work func(context.Context) workreport.Report
 
-// Predicate selects a conditional branch.
+// Predicate workflow 실행 순서, 병렬성, 실패 전파에서 사용하는 함수 타입이다.
 type Predicate func(context.Context) (bool, error)
 
-// Runner executes a workflow and returns a structured report.
+// Runner workflow 실행 순서, 병렬성, 실패 전파에서 사용하는 인터페이스이다.
 type Runner interface {
 	Run(context.Context) workreport.Report
 }
@@ -40,7 +40,12 @@ type parallelRunner struct {
 	works  []Work
 }
 
-// Sequential creates a runner that executes works in input order.
+// Sequential workflow 실행 순서, 병렬성, 실패 전파 동작을 수행한다.
+//
+// 매개변수:
+//   - name: report나 상태를 식별할 이름이다.
+//   - policy: Sequential에 전달되는 값이다. 허용 범위와 nil 처리 방식은 구현 검증을 따른다.
+//   - works: Sequential에 전달되는 값이다. 허용 범위와 nil 처리 방식은 구현 검증을 따른다.
 func Sequential(name string, policy workreport.FailurePolicy, works ...Work) Runner {
 	return sequentialRunner{
 		name:   name,
@@ -49,7 +54,13 @@ func Sequential(name string, policy workreport.FailurePolicy, works ...Work) Run
 	}
 }
 
-// Conditional creates a runner that evaluates predicate once and runs one branch.
+// Conditional workflow 실행 순서, 병렬성, 실패 전파 동작을 수행한다.
+//
+// 매개변수:
+//   - name: report나 상태를 식별할 이름이다.
+//   - predicate: Conditional에 전달되는 값이다. 허용 범위와 nil 처리 방식은 구현 검증을 따른다.
+//   - trueWork: Conditional에 전달되는 값이다. 허용 범위와 nil 처리 방식은 구현 검증을 따른다.
+//   - falseWork: Conditional에 전달되는 값이다. 허용 범위와 nil 처리 방식은 구현 검증을 따른다.
 func Conditional(name string, predicate Predicate, trueWork Work, falseWork ...Work) Runner {
 	return conditionalRunner{
 		name:        name,
@@ -59,7 +70,12 @@ func Conditional(name string, predicate Predicate, trueWork Work, falseWork ...W
 	}
 }
 
-// Parallel creates a runner that starts all works with a shared cancellable context.
+// Parallel workflow 실행 순서, 병렬성, 실패 전파 동작을 수행한다.
+//
+// 매개변수:
+//   - name: report나 상태를 식별할 이름이다.
+//   - policy: Parallel에 전달되는 값이다. 허용 범위와 nil 처리 방식은 구현 검증을 따른다.
+//   - works: Parallel에 전달되는 값이다. 허용 범위와 nil 처리 방식은 구현 검증을 따른다.
 func Parallel(name string, policy workreport.FailurePolicy, works ...Work) Runner {
 	return parallelRunner{
 		name:   name,

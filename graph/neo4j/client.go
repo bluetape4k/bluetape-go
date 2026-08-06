@@ -12,17 +12,17 @@ import (
 
 const sessionCloseTimeout = 5 * time.Second
 
-// Client provides small query helpers over a caller-owned Neo4j driver.
+// Client graph IO Neo4j backend에서 제공하는 기능과 사용 경계를 설명한다.
 //
-// Driver is safe for concurrent use, and Client holds only immutable
-// configuration. Callers must still avoid closing the driver while operations
-// are in flight.
+// Driver graph IO Neo4j backend에서 caller-visible 상태와 의미를 설명한다.
+// 이 주석은 graph IO Neo4j backend의 backend 요구사항, cancellation, timeout, 오류 처리 세부사항을 설명한다.
+// 세부 조건은 GraphML, NDJSON, CSV, Neo4j 계약과 caller-owned graph model을 따른다.
 type Client struct {
 	driver   neo4jdriver.Driver
 	database string
 }
 
-// NewClient creates a Client around a caller-owned Neo4j driver.
+// NewClient graph IO Neo4j backend에서 생성과 초기화 계약을 설명한다.
 func NewClient(driver neo4jdriver.Driver, options ...Option) (*Client, error) {
 	if driver == nil {
 		return nil, errorWith(ErrInvalidOptions, "new client", nil)
@@ -34,7 +34,7 @@ func NewClient(driver neo4jdriver.Driver, options ...Option) (*Client, error) {
 	return &Client{driver: driver, database: cfg.database}, nil
 }
 
-// VerifyConnectivity checks that the underlying driver can reach Neo4j.
+// VerifyConnectivity graph IO Neo4j backend에서 동작과 caller-visible 계약을 설명한다.
 func (c *Client) VerifyConnectivity(ctx context.Context) error {
 	if c == nil || c.driver == nil {
 		return errorWith(ErrInvalidOptions, "verify connectivity", nil)
@@ -45,7 +45,7 @@ func (c *Client) VerifyConnectivity(ctx context.Context) error {
 	return nil
 }
 
-// Close closes the caller-owned driver through this client.
+// Close graph IO Neo4j backend에서 caller-visible 상태와 의미를 설명한다.
 func (c *Client) Close(ctx context.Context) error {
 	if c == nil || c.driver == nil {
 		return errorWith(ErrInvalidOptions, "close client", nil)
@@ -56,7 +56,7 @@ func (c *Client) Close(ctx context.Context) error {
 	return nil
 }
 
-// ExecuteWrite runs a write query and consumes the result summary.
+// ExecuteWrite graph IO Neo4j backend에서 실행, cancellation, cleanup 계약을 설명한다.
 func (c *Client) ExecuteWrite(ctx context.Context, cypher string, params map[string]any) error {
 	if c == nil || c.driver == nil {
 		return errorWith(ErrInvalidOptions, "execute write", nil)
@@ -81,7 +81,7 @@ func (c *Client) ExecuteWrite(ctx context.Context, cypher string, params map[str
 	return nil
 }
 
-// ReadVertices runs a read query and adapts the named result column to vertices.
+// ReadVertices graph IO Neo4j backend에서 실행, cancellation, cleanup 계약을 설명한다.
 func (c *Client) ReadVertices(ctx context.Context, cypher string, params map[string]any, column string) ([]graph.Vertex, error) {
 	if c == nil || c.driver == nil {
 		return nil, errorWith(ErrInvalidOptions, "read vertices", nil)
@@ -113,7 +113,7 @@ func (c *Client) ReadVertices(ctx context.Context, cypher string, params map[str
 	return values.([]graph.Vertex), nil
 }
 
-// ReadEdges runs a read query and adapts the named result column to edges.
+// ReadEdges graph IO Neo4j backend에서 실행, cancellation, cleanup 계약을 설명한다.
 func (c *Client) ReadEdges(ctx context.Context, cypher string, params map[string]any, column string) ([]graph.Edge, error) {
 	if c == nil || c.driver == nil {
 		return nil, errorWith(ErrInvalidOptions, "read edges", nil)
@@ -145,7 +145,7 @@ func (c *Client) ReadEdges(ctx context.Context, cypher string, params map[string
 	return values.([]graph.Edge), nil
 }
 
-// VerticesFromRecords adapts the named column from each record to vertices.
+// VerticesFromRecords graph IO Neo4j backend에서 동작과 caller-visible 계약을 설명한다.
 func VerticesFromRecords(records []*neo4jdriver.Record, column string) ([]graph.Vertex, error) {
 	normalizedColumn, err := normalizeColumn(column)
 	if err != nil {
@@ -166,7 +166,7 @@ func VerticesFromRecords(records []*neo4jdriver.Record, column string) ([]graph.
 	return vertices, nil
 }
 
-// EdgesFromRecords adapts the named column from each record to edges.
+// EdgesFromRecords graph IO Neo4j backend에서 동작과 caller-visible 계약을 설명한다.
 func EdgesFromRecords(records []*neo4jdriver.Record, column string) ([]graph.Edge, error) {
 	normalizedColumn, err := normalizeColumn(column)
 	if err != nil {

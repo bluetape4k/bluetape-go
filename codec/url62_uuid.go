@@ -12,8 +12,12 @@ import (
 const uuidByteLength = 16
 const maxUUIDURL62Length = 22
 
-// EncodeUUIDURL62 encodes hyphenated UUID text with Kotlin Url62-compatible
-// numeric Base62 normalization.
+// EncodeUUIDURL62 입력 값을 UUIDURL62 형식으로 인코딩한다.
+//
+// 매개변수:
+//   - value: EncodeUUIDURL62가 해석할 문자열이다. 빈 문자열과 공백은 구현 검증을 따른다.
+//
+// 반환 오류는 입력 검증 실패와 패키지에서 정의한 sentinel error/typed error를 그대로 드러낸다.
 func EncodeUUIDURL62(value string) (string, error) {
 	canonical, err := core.CanonicalUUID(value)
 	if err != nil {
@@ -32,8 +36,12 @@ func EncodeUUIDURL62(value string) (string, error) {
 	return EncodeURL62(numericBytes), nil
 }
 
-// DecodeUUIDURL62 decodes Kotlin Url62-compatible UUID text and returns
-// lowercase canonical hyphenated UUID text.
+// DecodeUUIDURL62 UUIDURL62 형식의 입력을 원래 값으로 디코딩한다.
+//
+// 매개변수:
+//   - value: DecodeUUIDURL62가 해석할 문자열이다. 빈 문자열과 공백은 구현 검증을 따른다.
+//
+// 반환 오류는 입력 검증 실패와 패키지에서 정의한 sentinel error/typed error를 그대로 드러낸다.
 func DecodeUUIDURL62(value string) (string, error) {
 	if strings.TrimSpace(value) == "" {
 		return "", fmt.Errorf("%w: URL62 UUID must not be blank", core.ErrInvalidArgument)

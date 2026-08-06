@@ -1,11 +1,13 @@
 # Issue 22 Cache Interfaces Spec Review
 
+> 한국어 리뷰 경계: 이 문서는 리뷰 판정과 근거를 한국어 독자가 추적할 수 있도록 정리한다. 심각도 토큰, 판정 토큰, 파일 경로, 라인 번호, 이슈/PR 번호, 명령, 코드 식별자는 원문의 증거 앵커로 보존한다.
+
 Spec: `docs/superpowers/specs/2026-06-04-issue-22-cache-interfaces-spec.md`
 Research: `docs/superpowers/research/2026-06-04-issue-22-cache-interfaces-research.md`
-Gate: Step 2-R
-Date: 2026-06-04
+게이트: Step 2-R
+날짜: 2026-06-04
 
-## Review Scope
+## 검토 범위
 
 - Public `cache` API shape.
 - TTL and cache-miss semantics.
@@ -15,7 +17,7 @@ Date: 2026-06-04
 
 Required reference loaded: `/Users/debop/.codex/skills/bluetape4k-full-feature/references/step-2r-spec-review.md`.
 
-## Iteration 1 Findings
+## 반복 1 발견 사항
 
 | Priority | Perspective | Finding | Required spec edit | Status |
 |---|---|---|---|---|
@@ -32,7 +34,7 @@ Required reference loaded: `/Users/debop/.codex/skills/bluetape4k-full-feature/r
 - Added concurrent caller safety and `Delete`/`Clear` versus in-flight loader
   ordering contract.
 
-## 7-Tier Review
+## 7-Tier 검토
 
 | Tier | Scope | P0 | P1 | P2 | P3 | Evidence |
 |---|---|---:|---:|---:|---:|---|
@@ -63,7 +65,7 @@ Required reference loaded: `/Users/debop/.codex/skills/bluetape4k-full-feature/r
 
 Open questions: none. No user decision is required before Step 3.
 
-## Gate Verdict
+## 게이트 판정
 
 Step 2-R convergence passed.
 
@@ -76,7 +78,7 @@ Step 2-R convergence passed.
 
 ## Step 2-R Checklist Completion Report
 
-| Item | Status | Notes |
+| 항목 | 상태 | Notes |
 |---|---|---|
 | Required reference loaded | Done | `step-2r-spec-review.md`. |
 | Multi-perspective review complete | Done | Developer, security, Ops/SRE, user/caller perspectives recorded. |

@@ -1,13 +1,15 @@
 # Step 6-R Review: Issue 224 Integration Recipes
 
-Issue: #224
-Branch: issue-224-integration-recipes
-Date: 2026-06-24
+> 한국어 리뷰 경계: 이 문서는 리뷰 판정과 근거를 한국어 독자가 추적할 수 있도록 정리한다. 심각도 토큰, 판정 토큰, 파일 경로, 라인 번호, 이슈/PR 번호, 명령, 코드 식별자는 원문의 증거 앵커로 보존한다.
+
+이슈: #224
+브랜치: issue-224-integration-recipes
+날짜: 2026-06-24
 
 Subagent lanes were not used due to current subagent/runtime instability; main
 integration fallback performed with required lane separation.
 
-## Performance Lane
+## 성능 관점
 
 P0: 0
 P1: 0
@@ -16,7 +18,7 @@ P1: 0
 - Redis smoke is env-gated and uses a single Testcontainers Redis instance.
 - Retry examples use `resilience.NoBackoff()` and bounded `MaxAttempts`.
 
-## Stability Lane
+## 안정성 관점
 
 P0: 0
 P1: 0
@@ -26,7 +28,7 @@ P1: 0
   `t.Cleanup`.
 - Batch failure paths cover temporary write retry and invalid-item skip.
 
-## Security Lane
+## 보안 관점
 
 P0: 0
 P1: 0
@@ -36,7 +38,7 @@ P1: 0
   recipe signs an access token.
 - Redis lock cleanup only unlocks with the owner token.
 
-## Operator/Ops Lane
+## 운영 관점
 
 P0: 0
 P1: 0
@@ -46,7 +48,7 @@ P1: 0
 - README documents serial execution for Testcontainers-backed packages.
 - Package docs describe cleanup, timeouts, and failure-path behavior.
 
-## Developer/API Lane
+## 개발자/API 관점
 
 P0: 0
 P1: 0
@@ -55,7 +57,7 @@ P1: 0
 - No helper abstraction was promoted from example code into a library package.
 - Root README and README.ko.md link the new example package.
 
-## User/Caller Lane
+## 사용자/호출자 관점
 
 P0: 0
 P1: 0
@@ -64,7 +66,7 @@ P1: 0
   tests, and race tests.
 - README links point to maintained package-level docs.
 
-## Main Integration Verdict
+## 메인 통합 판정
 
 P0: 0
 P1: 0
@@ -72,7 +74,7 @@ P1: 0
 The change is scoped to examples and documentation. It should proceed if the
 example package, Redis smoke, and standard repository gates pass.
 
-## Validation Evidence
+## 검증 증거
 
 - PASS `go test -count=1 ./examples/integration`
 - PASS `BLUETAPE_INTEGRATION_RECIPE_SMOKE=1 go test -p 1 -count=1 ./examples/integration`

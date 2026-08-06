@@ -1,8 +1,10 @@
-# Release Guide
+# 릴리스 가이드
+
+> 한국어 릴리스 경계: 이 문서는 릴리스 절차를 한국어 독자가 추적할 수 있도록 정리한다. 버전, 태그, 권한 게이트, 명령, CI 증거, GitHub 상태 이름은 원문의 재현성 앵커로 보존한다.
 
 This guide defines the Go module release flow for `bluetape-go`.
 
-## Model
+## 모델
 
 `bluetape-go` is a Go module. Consumers select versions through semantic Git
 tags, not through branch names. A release tag such as `v0.3.0` points at one
@@ -30,7 +32,7 @@ References:
 - Go module version numbers: <https://go.dev/doc/modules/version-numbers>
 - Go module reference: <https://go.dev/ref/mod>
 
-## Release Preconditions
+## 릴리스 사전 조건
 
 Before creating a release PR:
 
@@ -58,7 +60,7 @@ rg -n "## \\[vX\\.Y\\.Z\\]" CHANGELOG.md
 make ci
 ```
 
-## Standard Release Flow
+## 표준 릴리스 흐름
 
 1. Prepare `develop`.
    - Update `CHANGELOG.md`.
@@ -106,7 +108,7 @@ go test ./...
    - Commit `go.mod` and `go.sum` changes.
    - Open a PR in the consumer repository.
 
-## `v0.13.0` Release Plan
+## `v0.13.0` 릴리스 계획
 
 `v0.13.0` contains the retrospective hardening pass for all work completed
 through `v0.12.0`:

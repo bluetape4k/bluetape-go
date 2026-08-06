@@ -1,18 +1,20 @@
 # Issue #208 Step 3-R Plan Review
 
-Issue: #208
+> 한국어 리뷰 경계: 이 문서는 리뷰 판정과 근거를 한국어 독자가 추적할 수 있도록 정리한다. 심각도 토큰, 판정 토큰, 파일 경로, 라인 번호, 이슈/PR 번호, 명령, 코드 식별자는 원문의 증거 앵커로 보존한다.
+
+이슈: #208
 Milestone: 0.6.3
 Plan: `docs/superpowers/plans/2026-06-22-issue-208-time-helper-parity-plan.md`
 Spec: `docs/superpowers/specs/2026-06-22-issue-208-time-helper-parity-design.md`
-Date: 2026-06-22
+날짜: 2026-06-22
 
-## Execution Note
+## 실행 메모
 
 Native subagent unavailable/stale cleanup hang; main-session 7-tier fallback
 performed. Six independent perspectives were reviewed locally, and this
 session owns the integration verdict.
 
-## Evidence
+## 증거
 
 - Plan maps each spec DoD item to concrete tests, implementation tasks, docs,
   validation, review, and PR metadata work.
@@ -21,7 +23,7 @@ session owns the integration verdict.
 - Step 3-R check items were applied to task ordering, test shape,
   documentation, compatibility, and validation commands.
 
-## 7-Tier Findings
+## 7-Tier 발견 사항
 
 | Tier | Perspective | P0 | P1 | P2/P3 Notes |
 |---|---:|---:|---:|---|
@@ -41,7 +43,7 @@ session owns the integration verdict.
 
 No P0/P1 findings remain.
 
-## Rejected Items
+## 거절한 항목
 
 - Add benchmarks: rejected because the selected API is tiny calendar arithmetic
   with no allocation contract beyond lazy iteration; unit tests are adequate.
@@ -50,6 +52,6 @@ No P0/P1 findings remain.
 - Split into a new package: rejected because `core` already owns narrow shared
   helpers and #204 tracks core foundation parity.
 
-## Verdict
+## 판정
 
 P0 = 0, P1 = 0. Step 3-R is closed for implementation.

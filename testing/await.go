@@ -8,7 +8,7 @@ import (
 	"time"
 )
 
-// AwaitStatus tells CheckAwait how to handle an observed value/error pair.
+// AwaitStatus int 공개 타입이며 테스트 helper의 timeout, cancellation, cleanup 계약을 보존한다.
 type AwaitStatus int
 
 const (
@@ -21,16 +21,16 @@ const (
 	AwaitFailure
 )
 
-// AwaitProbe observes an eventually consistent value.
+// AwaitProbe 테스트 helper의 timeout, cancellation, cleanup에서 사용하는 함수 타입이다.
 type AwaitProbe[T any] func(context.Context) (T, error)
 
-// AwaitCheck classifies a probe observation.
+// AwaitCheck 테스트 helper의 timeout, cancellation, cleanup에서 사용하는 함수 타입이다.
 type AwaitCheck[T any] func(T, error) AwaitStatus
 
-// AwaitErrorProbe observes an eventually expected error state.
+// AwaitErrorProbe 테스트 helper의 timeout, cancellation, cleanup에서 사용하는 함수 타입이다.
 type AwaitErrorProbe func(context.Context) error
 
-// AwaitResult contains the final observation made by an await helper.
+// AwaitResult 테스트 helper의 timeout, cancellation, cleanup에서 사용하는 구조체다.
 type AwaitResult[T any] struct {
 	// Value is the final value returned by the probe.
 	Value T
@@ -42,7 +42,16 @@ type AwaitResult[T any] struct {
 	Elapsed time.Duration
 }
 
-// CheckAwait polls probe until check reports success or failure.
+// CheckAwait 테스트 helper의 timeout, cancellation, cleanup 동작을 수행한다.
+//
+// 매개변수:
+//   - ctx: 호출자가 소유한 취소, deadline, 요청 범위를 전달한다.
+//   - timeout: 대기 또는 실행을 제한할 시간이다. 0의 의미는 함수별 기본값을 따른다.
+//   - interval: 재시도 또는 polling 사이의 간격이다.
+//   - probe: 상태를 읽어올 함수다.
+//   - check: probe 결과를 판정하는 함수다.
+//
+// 반환 오류는 입력 검증 실패, context 취소/deadline, 상태 전이 실패, 패키지 sentinel error와 typed error를 그대로 드러낸다.
 func CheckAwait[T any](
 	ctx context.Context,
 	timeout time.Duration,
@@ -111,7 +120,15 @@ func CheckAwait[T any](
 	}
 }
 
-// RequireAwait fails tb when CheckAwait fails.
+// RequireAwait 테스트 helper의 timeout, cancellation, cleanup 동작을 수행한다.
+//
+// 매개변수:
+//   - ctx: 호출자가 소유한 취소, deadline, 요청 범위를 전달한다.
+//   - tb: 실패를 보고할 testing 객체다.
+//   - timeout: 대기 또는 실행을 제한할 시간이다. 0의 의미는 함수별 기본값을 따른다.
+//   - interval: 재시도 또는 polling 사이의 간격이다.
+//   - probe: 상태를 읽어올 함수다.
+//   - check: probe 결과를 판정하는 함수다.
 func RequireAwait[T any](
 	ctx context.Context,
 	tb testing.TB,
@@ -129,7 +146,16 @@ func RequireAwait[T any](
 	return result
 }
 
-// CheckAwaitValue polls probe until the observed value equals want.
+// CheckAwaitValue 테스트 helper의 timeout, cancellation, cleanup 동작을 수행한다.
+//
+// 매개변수:
+//   - ctx: 호출자가 소유한 취소, deadline, 요청 범위를 전달한다.
+//   - timeout: 대기 또는 실행을 제한할 시간이다. 0의 의미는 함수별 기본값을 따른다.
+//   - interval: 재시도 또는 polling 사이의 간격이다.
+//   - probe: 상태를 읽어올 함수다.
+//   - want: 기대하는 값이다.
+//
+// 반환 오류는 입력 검증 실패, context 취소/deadline, 상태 전이 실패, 패키지 sentinel error와 typed error를 그대로 드러낸다.
 func CheckAwaitValue[T comparable](
 	ctx context.Context,
 	timeout time.Duration,
@@ -145,7 +171,15 @@ func CheckAwaitValue[T comparable](
 	})
 }
 
-// RequireAwaitValue fails tb when CheckAwaitValue fails.
+// RequireAwaitValue 테스트 helper의 timeout, cancellation, cleanup 동작을 수행한다.
+//
+// 매개변수:
+//   - ctx: 호출자가 소유한 취소, deadline, 요청 범위를 전달한다.
+//   - tb: 실패를 보고할 testing 객체다.
+//   - timeout: 대기 또는 실행을 제한할 시간이다. 0의 의미는 함수별 기본값을 따른다.
+//   - interval: 재시도 또는 polling 사이의 간격이다.
+//   - probe: 상태를 읽어올 함수다.
+//   - want: 기대하는 값이다.
 func RequireAwaitValue[T comparable](
 	ctx context.Context,
 	tb testing.TB,
@@ -163,7 +197,16 @@ func RequireAwaitValue[T comparable](
 	return result
 }
 
-// CheckAwaitError polls probe until its error matches target.
+// CheckAwaitError 테스트 helper의 timeout, cancellation, cleanup 동작을 수행한다.
+//
+// 매개변수:
+//   - ctx: 호출자가 소유한 취소, deadline, 요청 범위를 전달한다.
+//   - timeout: 대기 또는 실행을 제한할 시간이다. 0의 의미는 함수별 기본값을 따른다.
+//   - interval: 재시도 또는 polling 사이의 간격이다.
+//   - probe: 상태를 읽어올 함수다.
+//   - target: 검사하거나 감쌀 오류 값이다.
+//
+// 반환 오류는 입력 검증 실패, context 취소/deadline, 상태 전이 실패, 패키지 sentinel error와 typed error를 그대로 드러낸다.
 func CheckAwaitError(
 	ctx context.Context,
 	timeout time.Duration,
@@ -189,7 +232,15 @@ func CheckAwaitError(
 	})
 }
 
-// RequireAwaitError fails tb when CheckAwaitError fails.
+// RequireAwaitError 테스트 helper의 timeout, cancellation, cleanup 동작을 수행한다.
+//
+// 매개변수:
+//   - ctx: 호출자가 소유한 취소, deadline, 요청 범위를 전달한다.
+//   - tb: 실패를 보고할 testing 객체다.
+//   - timeout: 대기 또는 실행을 제한할 시간이다. 0의 의미는 함수별 기본값을 따른다.
+//   - interval: 재시도 또는 polling 사이의 간격이다.
+//   - probe: 상태를 읽어올 함수다.
+//   - target: 검사하거나 감쌀 오류 값이다.
 func RequireAwaitError(
 	ctx context.Context,
 	tb testing.TB,

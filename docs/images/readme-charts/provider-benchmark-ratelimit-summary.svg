@@ -1,0 +1,79 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="712" viewBox="0 0 1200 712">
+<defs><style>
+    .title{font-family:'Architects Daughter','Comic Sans MS',cursive;font-size:34px;font-weight:700;fill:#0F172A}
+    .mono{font-family:'Comic Mono','SFMono-Regular',Consolas,monospace;fill:#334155}
+    .subtitle{font-size:16px}.panel{font-size:20px;font-weight:700}.label{font-size:14px}.value{font-size:13px;font-weight:700}.axis{font-size:12px;fill:#64748B}
+  </style></defs>
+<rect width="1200" height="712" fill="#F8FAFC"/>
+<rect x="20" y="20" width="1160" height="672" rx="24" fill="#FFFFFF" stroke="#CBD5E1" stroke-width="2"/>
+<text x="44" y="66" class="title">Rate-limit provider latency</text>
+<text x="44" y="96" class="mono subtitle">min - median - max ns/op; lower is better; logarithmic axis</text>
+<text x="44" y="124" class="mono axis">Whisker = observed min/max; marker = median; labels and marker shapes identify providers.</text>
+<text x="44" y="170" class="title panel">Equivalent allow decisions</text>
+<text x="44" y="204" class="mono label">Redis - AllowAvailable</text>
+<line x1="420" y1="198" x2="990" y2="198" stroke="#E2E8F0"/>
+<line x1="500.7792998320542" y1="198" x2="548.4946190578055" y2="198" stroke="#2563EB" stroke-width="5" stroke-linecap="round"/>
+<line x1="500.7792998320542" y1="191" x2="500.7792998320542" y2="205" stroke="#2563EB" stroke-width="2"/>
+<line x1="548.4946190578055" y1="191" x2="548.4946190578055" y2="205" stroke="#2563EB" stroke-width="2"/>
+<circle cx="513.8203162080295" cy="198" r="6" fill="#2563EB"/>
+<text x="1014" y="203" class="mono value">311.7 us</text>
+<text x="44" y="252" class="mono label">PostgreSQL - AllowAvailable</text>
+<line x1="420" y1="246" x2="990" y2="246" stroke="#E2E8F0"/>
+<line x1="484.7856748326234" y1="246" x2="530.5159682583317" y2="246" stroke="#7C3AED" stroke-width="5" stroke-linecap="round"/>
+<line x1="484.7856748326234" y1="239" x2="484.7856748326234" y2="253" stroke="#7C3AED" stroke-width="2"/>
+<line x1="530.5159682583317" y1="239" x2="530.5159682583317" y2="253" stroke="#7C3AED" stroke-width="2"/>
+<path d="M 493.29201379754403 239 L 500.29201379754403 246 L 493.29201379754403 253 L 486.29201379754403 246 Z" fill="#7C3AED"/>
+<text x="1014" y="251" class="mono value">243.1 us</text>
+<text x="44" y="300" class="mono label">Redis - AllowRejected</text>
+<line x1="420" y1="294" x2="990" y2="294" stroke="#E2E8F0"/>
+<line x1="478.64467253781555" y1="294" x2="507.8280148207742" y2="294" stroke="#2563EB" stroke-width="5" stroke-linecap="round"/>
+<line x1="478.64467253781555" y1="287" x2="478.64467253781555" y2="301" stroke="#2563EB" stroke-width="2"/>
+<line x1="507.8280148207742" y1="287" x2="507.8280148207742" y2="301" stroke="#2563EB" stroke-width="2"/>
+<circle cx="481.394375693773" cy="294" r="6" fill="#2563EB"/>
+<text x="1014" y="299" class="mono value">210.4 us</text>
+<text x="44" y="348" class="mono label">PostgreSQL - AllowRejected</text>
+<line x1="420" y1="342" x2="990" y2="342" stroke="#E2E8F0"/>
+<line x1="483.6325037180727" y1="342" x2="494.32864007052564" y2="342" stroke="#7C3AED" stroke-width="5" stroke-linecap="round"/>
+<line x1="483.6325037180727" y1="335" x2="483.6325037180727" y2="349" stroke="#7C3AED" stroke-width="2"/>
+<line x1="494.32864007052564" y1="335" x2="494.32864007052564" y2="349" stroke="#7C3AED" stroke-width="2"/>
+<path d="M 486.39078456483526 335 L 493.39078456483526 342 L 486.39078456483526 349 L 479.39078456483526 342 Z" fill="#7C3AED"/>
+<text x="1014" y="347" class="mono value">223.6 us</text>
+<text x="44" y="396" class="mono label">Redis - AllowParallel N=8</text>
+<line x1="420" y1="390" x2="990" y2="390" stroke="#E2E8F0"/>
+<line x1="551.7325853084133" y1="390" x2="560.6714614575387" y2="390" stroke="#2563EB" stroke-width="5" stroke-linecap="round"/>
+<line x1="551.7325853084133" y1="383" x2="551.7325853084133" y2="397" stroke="#2563EB" stroke-width="2"/>
+<line x1="560.6714614575387" y1="383" x2="560.6714614575387" y2="397" stroke="#2563EB" stroke-width="2"/>
+<circle cx="553.6777959131878" cy="390" r="6" fill="#2563EB"/>
+<text x="1014" y="395" class="mono value">505.3 us</text>
+<text x="44" y="444" class="mono label">PostgreSQL - AllowParallel N=8</text>
+<line x1="420" y1="438" x2="990" y2="438" stroke="#E2E8F0"/>
+<line x1="800.7416604579257" y1="438" x2="807.1952941095931" y2="438" stroke="#7C3AED" stroke-width="5" stroke-linecap="round"/>
+<line x1="800.7416604579257" y1="431" x2="800.7416604579257" y2="445" stroke="#7C3AED" stroke-width="2"/>
+<line x1="807.1952941095931" y1="431" x2="807.1952941095931" y2="445" stroke="#7C3AED" stroke-width="2"/>
+<path d="M 805.1908854879141 431 L 812.1908854879141 438 L 805.1908854879141 445 L 798.1908854879141 438 Z" fill="#7C3AED"/>
+<text x="1014" y="443" class="mono value">10.65 ms</text>
+<text x="44" y="492" class="mono label">Redis - AllowDistinctKeys N=8</text>
+<line x1="420" y1="486" x2="990" y2="486" stroke="#E2E8F0"/>
+<line x1="549.1932601982364" y1="486" x2="552.9395161381283" y2="486" stroke="#2563EB" stroke-width="5" stroke-linecap="round"/>
+<line x1="549.1932601982364" y1="479" x2="549.1932601982364" y2="493" stroke="#2563EB" stroke-width="2"/>
+<line x1="552.9395161381283" y1="479" x2="552.9395161381283" y2="493" stroke="#2563EB" stroke-width="2"/>
+<circle cx="549.9367990771959" cy="486" r="6" fill="#2563EB"/>
+<text x="1014" y="491" class="mono value">482.9 us</text>
+<text x="44" y="540" class="mono label">PostgreSQL - AllowDistinctKeys N=8</text>
+<line x1="420" y1="534" x2="990" y2="534" stroke="#E2E8F0"/>
+<line x1="807.3506639094893" y1="534" x2="822.0616349851473" y2="534" stroke="#7C3AED" stroke-width="5" stroke-linecap="round"/>
+<line x1="807.3506639094893" y1="527" x2="807.3506639094893" y2="541" stroke="#7C3AED" stroke-width="2"/>
+<line x1="822.0616349851473" y1="527" x2="822.0616349851473" y2="541" stroke="#7C3AED" stroke-width="2"/>
+<path d="M 813.3036481490021 527 L 820.3036481490021 534 L 813.3036481490021 541 L 806.3036481490021 534 Z" fill="#7C3AED"/>
+<text x="1014" y="539" class="mono value">11.75 ms</text>
+<line x1="420" y1="630" x2="420" y2="640" stroke="#64748B"/>
+<text x="420" y="660" text-anchor="middle" class="mono axis">100.0 us</text>
+<line x1="610" y1="630" x2="610" y2="640" stroke="#64748B"/>
+<text x="610" y="660" text-anchor="middle" class="mono axis">1.00 ms</text>
+<line x1="800" y1="630" x2="800" y2="640" stroke="#64748B"/>
+<text x="800" y="660" text-anchor="middle" class="mono axis">10.00 ms</text>
+<line x1="990" y1="630" x2="990" y2="640" stroke="#64748B"/>
+<text x="990" y="660" text-anchor="middle" class="mono axis">100.00 ms</text>
+<line x1="420" y1="638" x2="990" y2="638" stroke="#64748B"/>
+<text x="705" y="682" text-anchor="middle" class="mono subtitle">latency (ns/op) - lower is better - log scale</text>
+</svg>

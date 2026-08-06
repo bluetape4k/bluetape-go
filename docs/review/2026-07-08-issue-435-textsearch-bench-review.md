@@ -1,10 +1,12 @@
 # Issue #435 Textsearch benchmark review
 
-Issue: #435
-Date: 2026-07-08
-Scope: benchmark suite and dependency-adoption evidence for `textsearch`.
+> 한국어 감사/리뷰 경계: 이 문서는 리뷰 결론과 남은 위험을 한국어 독자가 추적할 수 있도록 정리한다. 심각도 표기, 판정 표기, 파일 경로, 라인 번호, 이슈/PR 링크, 명령, 코드 식별자, 인용 증거는 원문의 증거 앵커로 보존한다.
 
-## Reviewed Artifacts
+이슈: #435
+날짜: 2026-07-08
+범위: benchmark suite and dependency-adoption evidence for `textsearch`.
+
+## 검토한 산출물
 
 - `textsearch/matcher_benchmark_test.go`
 - `docs/research/2026-07-08-issue-435-textsearch-bench.md`
@@ -12,7 +14,7 @@ Scope: benchmark suite and dependency-adoption evidence for `textsearch`.
 - `docs/research/outputs/issue-435/environment.md`
 - `docs/lessons/2026-07-08-issue-435-textsearch-bench.md`
 
-## Findings
+## 발견 사항
 
 | Severity | Finding | Evidence |
 |---|---|---|
@@ -20,7 +22,7 @@ Scope: benchmark suite and dependency-adoption evidence for `textsearch`.
 | P1 | None | Candidate comparison is scoped to raw matching and does not claim parity for Unicode normalization, offsets, boundaries, replacement, or masking. |
 | P2 | None | Raw output and environment metadata are preserved for repeatability. |
 
-## Lens Check
+## 관점 검사
 
 | Lens | Verdict | Evidence |
 |---|---|---|

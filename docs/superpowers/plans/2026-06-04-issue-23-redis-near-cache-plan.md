@@ -1,110 +1,38 @@
-# Issue 23 Redis Near Cache Implementation Plan
+# Issue 23 Redis Near Cache Plan
 
-Issue: #23
-Milestone: 0.3.0
-Date: 2026-06-04
-Spec: `docs/superpowers/specs/2026-06-04-issue-23-redis-near-cache-spec.md`
+## 분류
 
-## Objective
+- 작업 유형: Type A - Full Feature.
+- 근거: Redis-backed cache package, local near-cache coordination, Testcontainers integration tests, docs/examples를 포함한다.
+- 범위: #22 cache interface 위에 Redis 저장소와 local near-cache를 구현한다.
 
-Implement the first Redis NearCache strategy as application-level Pub/Sub
-invalidation while preserving a strategy boundary for future RESP3
-`CLIENT TRACKING` support.
+## 목표
 
-## Task Plan
+Redis를 공유 저장소로 사용하면서 process-local near-cache로 hot read latency를 줄인다. correctness는 Redis state를 기준으로 하고, near-cache는 TTL과 invalidation 정책으로 제한한다.
 
-| Task | Scope | Details | Validation |
-|---|---|---|---|
-| T1 Package scaffold | `cache/redisnear` | Add `doc.go`, options, minimal Redis client interface, `ErrClosed`, operation constants, and constructor defaults. | `go test -count=1 ./cache/redisnear` |
-| T2 Message contract | `cache/redisnear` | Encode/decode JSON invalidation messages with version, namespace, origin ID, operation, and key. | Unit tests for valid, malformed, unknown version/op, namespace/origin filtering. |
-| T3 Subscriber lifecycle | `cache/redisnear` | `NewPubSub` subscribes, waits for ack, starts one receive loop, clears local cache on receive error, applies bounded backoff, isolates `OnError` through a bounded async reporter, and supports idempotent `Close`. | Unit tests for close behavior, OnError panic/blocking behavior; Testcontainers constructor readiness test. |
-| T4 Cache operations | `cache/redisnear` | Implement `Get`, `Set`, `Delete`, `Clear`, `GetOrLoad`; local mutations delegate to `cache.LoadingCache[string,V]`; mutating operations publish invalidations. | Unit tests for local behavior and `ErrClosed`; Testcontainers peer invalidation tests. |
-| T5 Testcontainers peer proof | `cache/redisnear` | Use Redis fixture to run two `NearCache` instances and prove `Set`, `Delete`, `Clear`, and repopulation after invalidation. | `go test -count=1 ./cache/redisnear -run TestPubSub` |
-| T6 Stress/cancellation | `cache/redisnear` | Use `GoroutineStressTester` for concurrent operations and peer invalidation; use `AsyncJobTester` for cancellation/close paths. | `go test -count=1 ./cache/redisnear -run 'Stress|Async|Cancellation'` |
-| T7 Examples/docs | `cache/redisnear`, README pair, CHANGELOG | Add package docs/example, README/README.ko cache section update, and CHANGELOG Unreleased entry. | `go test -count=1 ./cache/redisnear`; targeted README grep. |
-| T8 Lessons/review prep | `docs/lessons`, `docs/superpowers/reviews` | Add lesson, run local 7-tier implemented diff review, and record P0/P1 convergence. | `git diff --check`; review artifact P0=0/P1=0. |
+## 순서
 
-## API and Lifecycle Checks
+1. #22 cache interface와 error contract를 확인한다.
+2. caller-owned `redis.Cmdable`와 namespace option을 사용하는 Redis cache options를 설계한다.
+3. key derivation, serialization boundary, TTL semantics를 테스트로 고정한다.
+4. Redis get/set/delete/clear path와 local near-cache lookup path를 구현한다.
+5. near-cache stale window, invalidation, Redis deletion, context cancellation을 테스트한다.
+6. Testcontainers Redis integration tests를 추가하고 shared resource 충돌을 피하도록 순차 실행을 문서화한다.
+7. README/README.ko.md에 operational caveats, key layout, lifecycle ownership을 반영한다.
 
-- `Client` must expose only required Redis Pub/Sub operations: `Publish` plus
-  `Subscribe`.
-- `NewPubSub` must return only after Redis subscription acknowledgement.
-- `ErrClosed` must be returned by public operations after `Close`; close must
-  wait for already-entered operations before returning and use a bounded
-  shutdown error if operations do not stop.
-- `Close` must be idempotent and must close the subscription goroutine.
-- Receive errors before close must call local `Clear`, call `OnError` when set,
-  and retry with bounded backoff.
-- `OnError` must not stop or block the subscriber receive loop; handler panic
-  is recovered.
-- `Set`, `Delete`, and `Clear` must return publish errors without rolling back
-  local mutation.
+## 리뷰 게이트
 
-## Test Matrix
+- Redis client lifecycle을 package가 소유하지 않는지 확인한다.
+- local near-cache가 source-of-truth처럼 동작하지 않는지 확인한다.
+- serialization error와 Redis error가 redacted/wrapped되는지 확인한다.
+- TTL과 namespace validation이 production misuse를 줄이는지 확인한다.
+- `context.Context` cancellation이 Redis call에 전달되는지 확인한다.
 
-| Behavior | Test type | Required assertion |
-|---|---|---|
-| Defaults/options | Unit | default namespace/channel/local/origin are set; invalid client/channel/namespace fail. |
-| Message payload | Unit | encode/decode round trips; malformed and unknown payloads are reported. |
-| Inbound filtering | Unit | same origin and wrong namespace do not mutate local cache. |
-| Close lifecycle | Unit | repeated close succeeds; operations after close return `ErrClosed`. |
-| Set invalidation | Testcontainers | peer local value is deleted after another instance calls `Set`. |
-| Delete invalidation | Testcontainers | peer local value is deleted after another instance calls `Delete`. |
-| Clear invalidation | Testcontainers | peer local cache is cleared after another instance calls `Clear`. |
-| GetOrLoad repopulation | Testcontainers | peer `GetOrLoad` reloads after invalidation. |
-| Subscription readiness | Testcontainers | invalidation published immediately after constructor is observed by peer. |
-| Concurrent operations | Stress | `GoroutineStressTester` catches panics/errors/races across peer near-cache operations. |
-| Cancellation/close | Async | `AsyncJobTester` verifies canceled constructor/loader/close paths do not hang. |
-| OnError isolation | Unit/Testcontainers | blocking or panicking error handlers do not stop peer invalidation processing. |
+## 검증 게이트
 
-## Validation Commands
-
-Run Testcontainers-backed commands serially.
-
-```bash
-go test -count=1 ./cache
-go test -count=1 ./cache/redisnear
-go test -race -count=1 ./cache/redisnear
-go test -count=1 ./...
-git diff --check
-```
-
-If Docker/Testcontainers is unavailable, record the blocker and run the
-non-container unit subset first:
-
-```bash
-go test -count=1 ./cache/redisnear -run 'TestOptions|TestMessage|TestClose'
-```
-
-## Benchmark Handling
-
-Stress tests are part of #23. Benchmarks remain follow-up work under #107.
-After #23 lands, #107 should include:
-
-- local `cache.Memory` baseline;
-- Redis NearCache local hit/miss;
-- publish latency;
-- peer invalidation latency;
-- concurrent `GetOrLoad`;
-- measured command and environment notes.
-
-## Documentation Tasks
-
-- README.md: add Redis NearCache package row and concise cache section note.
-- README.ko.md: synchronized Korean update.
-- README pair: document publish failure semantics, best-effort `OnError`, and
-  Redis ACL/TLS/channel isolation expectations.
-- CHANGELOG.md: Unreleased entry for `cache/redisnear`.
-- Package docs/comments: Go source comments are Korean and short; public
-  contributor artifacts remain English.
-
-## Step 3 Checklist Completion Report
-
-| Item | Status | Notes |
-|---|---|---|
-| Every spec requirement mapped | Done | See task plan and test matrix. |
-| Task order is implementable | Done | Scaffold/message/lifecycle before behavior/tests/docs. |
-| Concrete validation commands named | Done | Targeted package tests, race test, full `go test`, and `git diff --check`. |
-| Testcontainers handled serially | Done | Commands explicitly say serial execution. |
-| Stress and benchmark handling clear | Done | Stress in #23, benchmarks in #107. |
-| README/CHANGELOG/lessons assigned | Done | T7/T8. |
+- `go test -count=1 ./cache/...`
+- `go test -race -count=1 ./cache/...`
+- `go test -count=1 ./...`
+- `go vet ./...`
+- `make fmt-check`
+- `git diff --check`

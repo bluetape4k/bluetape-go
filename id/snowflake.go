@@ -18,13 +18,13 @@ const (
 
 var defaultSnowflakeEpoch = time.Date(2020, 1, 1, 0, 0, 0, 0, time.UTC)
 
-// SnowflakeGenerator produces Snowflake IDs.
+// SnowflakeGenerator 패키지에서 공개하는 인터페이스다.
 type SnowflakeGenerator interface {
 	Int64Generator
 	StringGenerator
 }
 
-// SnowflakeOption configures Snowflake generation and decoding.
+// SnowflakeOption func 공개 타입이다.
 type SnowflakeOption func(*snowflakeConfig) error
 
 type snowflakeConfig struct {
@@ -32,7 +32,10 @@ type snowflakeConfig struct {
 	now   func() time.Time
 }
 
-// WithSnowflakeEpoch sets the epoch used for generation and decoding.
+// WithSnowflakeEpoch SnowflakeEpoch 설정을 적용한 옵션을 반환한다.
+//
+// 매개변수:
+//   - epoch: WithSnowflakeEpoch에 전달되는 값이다. 허용 범위와 nil 처리 방식은 구현 검증을 따른다.
 func WithSnowflakeEpoch(epoch time.Time) SnowflakeOption {
 	return func(c *snowflakeConfig) error {
 		if epoch.IsZero() {
@@ -43,7 +46,10 @@ func WithSnowflakeEpoch(epoch time.Time) SnowflakeOption {
 	}
 }
 
-// WithSnowflakeTime injects a clock for deterministic tests.
+// WithSnowflakeTime SnowflakeTime 설정을 적용한 옵션을 반환한다.
+//
+// 매개변수:
+//   - now: WithSnowflakeTime에 전달되는 값이다. 허용 범위와 nil 처리 방식은 구현 검증을 따른다.
 func WithSnowflakeTime(now func() time.Time) SnowflakeOption {
 	return func(c *snowflakeConfig) error {
 		if now == nil {
@@ -62,15 +68,20 @@ type snowflakeGenerator struct {
 	sequence  int64
 }
 
-// SnowflakeParts contains decoded Snowflake fields.
+// SnowflakeParts 패키지에서 공개하는 구조체다.
 type SnowflakeParts struct {
 	Time      time.Time
 	MachineID int64
 	Sequence  int64
 }
 
-// NewSnowflakeGenerator creates a Snowflake generator for a caller-owned
-// machine ID. Machine IDs must be unique per live generator/process/deployment.
+// NewSnowflakeGenerator SnowflakeGenerator 인스턴스를 생성한다.
+//
+// 매개변수:
+//   - machineID: NewSnowflakeGenerator에 전달되는 값이다. 허용 범위와 nil 처리 방식은 구현 검증을 따른다.
+//   - options: 적용할 옵션 목록이다. nil이면 기본값만 사용한다.
+//
+// 반환 오류는 입력 검증 실패와 패키지에서 정의한 sentinel error/typed error를 그대로 드러낸다.
 func NewSnowflakeGenerator(machineID int64, options ...SnowflakeOption) (SnowflakeGenerator, error) {
 	if machineID < 0 || machineID > snowflakeMaxMachineID {
 		return nil, OptionError{Option: "machineID", Err: ErrInvalidOptions}
@@ -139,7 +150,12 @@ func (g *snowflakeGenerator) NextString() (string, error) {
 	return strconv.FormatInt(value, 10), nil
 }
 
-// ParseSnowflake parses a decimal Snowflake ID.
+// ParseSnowflake 문자열 입력을 도메인 값으로 해석한다.
+//
+// 매개변수:
+//   - value: ParseSnowflake가 해석할 문자열이다. 빈 문자열과 공백은 구현 검증을 따른다.
+//
+// 반환 오류는 입력 검증 실패와 패키지에서 정의한 sentinel error/typed error를 그대로 드러낸다.
 func ParseSnowflake(value string) (int64, error) {
 	parsed, err := strconv.ParseInt(value, 10, 64)
 	if err != nil || parsed < 0 {
@@ -151,7 +167,13 @@ func ParseSnowflake(value string) (int64, error) {
 	return parsed, nil
 }
 
-// DecodeSnowflake decodes a Snowflake ID with the default epoch or supplied epoch.
+// DecodeSnowflake Snowflake 형식의 입력을 원래 값으로 디코딩한다.
+//
+// 매개변수:
+//   - value: DecodeSnowflake에 전달되는 값이다. 허용 범위와 nil 처리 방식은 구현 검증을 따른다.
+//   - options: 적용할 옵션 목록이다. nil이면 기본값만 사용한다.
+//
+// 반환 오류는 입력 검증 실패와 패키지에서 정의한 sentinel error/typed error를 그대로 드러낸다.
 func DecodeSnowflake(value int64, options ...SnowflakeOption) (SnowflakeParts, error) {
 	if value < 0 {
 		return SnowflakeParts{}, ParseError{Kind: "snowflake", Value: strconv.FormatInt(value, 10), Err: errorsNew("must be non-negative")}

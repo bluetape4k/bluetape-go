@@ -1,11 +1,11 @@
-# Issue #192 ID generator performance optimization
+# Issue #192 ID generator performance optimization 연구
 
-## Scope
+## 범위
 
-Issue #192 follows the Issue #168 Kotlin-vs-Go benchmark snapshot. The Issue
-#168 chart and raw outputs remain the pre-optimization baseline. This note
-records the Go-side optimization pass for UUID v4/v7, random ULID, monotonic
-ULID, KSUID seconds, and Kotlin-compatible KSUID millis.
+Issue #192는 Issue #168 Kotlin-vs-Go benchmark snapshot을 따른다. Issue #168 chart와
+raw output은 pre-optimization baseline으로 유지한다. 이 note는 UUID v4/v7, random
+ULID, monotonic ULID, KSUID seconds, Kotlin-compatible KSUID millis에 대한 Go-side
+optimization pass를 기록한다.
 
 ## Environment
 
@@ -25,7 +25,7 @@ ULID, KSUID seconds, and Kotlin-compatible KSUID millis.
 
 ![Kotlin vs Go optimized ID generator comparison](../images/readme-charts/id-generator-kotlin-go-optimized-comparison.png)
 
-## Commands
+## 명령
 
 Baseline benchmark:
 
@@ -80,8 +80,8 @@ go tool pprof -top docs/research/outputs/issue-192/id-after-default-buffer.cpu.p
 
 ## Baseline Findings
 
-`benchstat` over 10 runs showed that generator reuse alone was not the main
-performance lever:
+10회 실행한 `benchstat` 결과는 generator reuse만으로는 핵심 performance lever를 설명할
+수 없음을 보여 주었다.
 
 | Benchmark | Baseline ns/op | Baseline B/op | Baseline allocs/op |
 |---|---:|---:|---:|
@@ -92,47 +92,43 @@ performance lever:
 | KSUID seconds | 393.10 | 48 | 2 |
 | KSUID millis | 316.80 | 104 | 3 |
 
-The baseline CPU profile attributed about one quarter of sampled time to
-`io.ReadFull` through the crypto randomness path. The memory profile showed
-stable string/allocation costs for UUID, ULID, KSUID, and an additional
-allocation in the KSUID millis encoder.
+baseline CPU profile은 sampled time의 약 4분의 1이 crypto randomness path를 통한
+`io.ReadFull`에 있음을 보여 주었다. memory profile은 UUID, ULID, KSUID의 안정적인
+string/allocation cost와 KSUID millis encoder의 추가 allocation을 보여 주었다.
 
-## Accepted Changes
+## 채택한 변경
 
 ### Buffered crypto entropy
 
-Default UUID, ULID, KSUID seconds, and KSUID millis generation now share a
-package-local locked buffered reader over `crypto/rand`.
+default UUID, ULID, KSUID seconds, KSUID millis generation은 이제 `crypto/rand` 위의
+package-local locked buffered reader를 공유한다.
 
-This keeps the default entropy source crypto-grade while reducing per-ID
-randomness overhead. Generated IDs remain identifiers, not authentication or
-authorization secrets. Callers that inject custom readers keep the previous
-behavior and must still provide concurrency-safe readers when sharing a
-generator.
+이 방식은 default entropy source를 crypto-grade로 유지하면서 per-ID randomness
+overhead를 줄인다. 생성된 ID는 authentication 또는 authorization secret이 아니라
+identifier로 남는다. custom reader를 주입하는 caller는 이전 behavior를 유지하며,
+generator를 공유할 때는 여전히 concurrency-safe reader를 제공해야 한다.
 
 ### KSUID millis prefix encoding
 
-KSUID millis `NextString` now encodes the required 27-character prefix into a
-fixed local buffer instead of allocating a temporary output slice and then
-truncating the resulting string.
+KSUID millis `NextString`은 temporary output slice를 allocation한 뒤 resulting string을
+truncating하지 않고, 필요한 27-character prefix를 fixed local buffer에 encode한다.
 
-## Rejected or Deferred Changes
+## 거절 또는 보류한 변경
 
-- Reusing generator instances only: useful for API shape and allocations, but
-  it did not explain the large gap by itself.
-- Stack-buffering Segment KSUID string output: it regressed single-thread KSUID
-  seconds by about 1.12% and did not reduce allocations.
-- Treating ULID string marshaling as the main lever: direct `MarshalTextTo`
-  slightly improved random ULID but did not reduce allocation counts. The larger
-  ULID improvement came from entropy buffering.
-- UUID v7 sharding or per-goroutine sequence allocation: still a possible
-  follow-up for parallel UUID v7, but the first bottleneck was entropy reads.
+- generator instance reuse만 적용: API shape와 allocation에는 유용하지만, 큰 gap을
+  단독으로 설명하지 못했다.
+- Segment KSUID string output stack-buffering: single-thread KSUID seconds를 약
+  1.12% regressed시켰고 allocation을 줄이지 못했다.
+- ULID string marshaling을 main lever로 취급: direct `MarshalTextTo`는 random ULID를
+  약간 개선했지만 allocation count를 줄이지 못했다. 더 큰 ULID 개선은 entropy
+  buffering에서 나왔다.
+- UUID v7 sharding 또는 per-goroutine sequence allocation: parallel UUID v7에 대한
+  가능한 follow-up이지만, 첫 bottleneck은 entropy reads였다.
 
-## Final Result
+## 최종 결과
 
-Final `benchstat` against the baseline. `NewString` rows include convenience
-generator construction, while `reused` rows measure an existing generator's
-`NextString()` path:
+baseline 대비 최종 `benchstat`다. `NewString` row는 convenience generator construction을
+포함하고, `reused` row는 existing generator의 `NextString()` path를 측정한다.
 
 | Benchmark | Baseline ns/op | Final ns/op | Change |
 |---|---:|---:|---:|
@@ -153,23 +149,22 @@ generator construction, while `reused` rows measure an existing generator's
 | KSUID millis | 316.80 | 122.80 | -61.23% |
 | KSUID millis parallel | 621.00 | 209.00 | -66.35% |
 
-Geomean latency improved by 58.34%. KSUID millis allocation improved from
-`104 B/op, 3 allocs/op` to `56 B/op, 2 allocs/op`. Other string ID families
-kept the same allocation count, which means the main improvement was read-path
-latency rather than string allocation removal.
+geomean latency는 58.34% 개선되었다. KSUID millis allocation은
+`104 B/op, 3 allocs/op`에서 `56 B/op, 2 allocs/op`로 개선되었다. 다른 string ID
+family는 같은 allocation count를 유지했으므로, main improvement는 string allocation
+removal이 아니라 read-path latency였다.
 
-After the change, crypto/sysrand profile share dropped sharply, and the visible
-hot spots shifted to string encoding, time access, UUID v7 ordering, and
-dependency encoders. Those are separate follow-up optimization topics.
+변경 이후 crypto/sysrand profile share는 크게 낮아졌고, visible hot spot은 string
+encoding, time access, UUID v7 ordering, dependency encoder로 이동했다. 이들은 별도
+follow-up optimization topic이다.
 
-## Post-Optimization Kotlin Comparison
+## 최적화 이후 Kotlin 비교
 
-The Issue #168 Kotlin rows are retained as the JVM baseline and normalized from
-`kotlinx-benchmark` throughput with `1e9 / (ops/s * 100)`. The Go UUID, ULID,
-and KSUID rows below use the Issue #192 optimized local snapshot. Snowflake is
-unchanged by this issue, so the Go row remains the Issue #168 synthetic-clock
-hot-path value and should not be read as a production-equivalent cross-runtime
-Snowflake verdict.
+Issue #168 Kotlin row는 JVM baseline으로 유지하며, `kotlinx-benchmark` throughput을
+`1e9 / (ops/s * 100)`으로 normalize한다. 아래 Go UUID, ULID, KSUID row는 Issue #192
+optimized local snapshot을 사용한다. Snowflake는 이 issue에서 변경되지 않았으므로 Go
+row는 Issue #168 synthetic-clock hot-path value로 남고, production-equivalent
+cross-runtime Snowflake verdict로 읽으면 안 된다.
 
 ### Single Thread
 
@@ -193,16 +188,16 @@ Snowflake verdict.
 | KSUID millis | 209.00 | 396.50 | Go |
 | KSUID seconds | 244.20 | 388.70 | Go |
 
-The updated chart changes the story materially: after buffering Go entropy,
-Go leads UUID v4, KSUID millis, and the concurrent ULID/KSUID rows in this
-local snapshot. Kotlin still leads UUID v7 and the single-thread monotonic ULID
-row. UUID v7 remains the clearest Go follow-up because its parallel row still
-shows ordering/lock cost after entropy overhead is reduced.
+updated chart는 해석을 크게 바꾼다. Go entropy를 buffering한 뒤 이 local snapshot에서
+Go는 UUID v4, KSUID millis, concurrent ULID/KSUID row를 앞선다. Kotlin은 여전히 UUID
+v7과 single-thread monotonic ULID row를 앞선다. entropy overhead를 줄인 뒤에도
+parallel row가 ordering/lock cost를 보여 주므로 UUID v7은 가장 명확한 Go follow-up으로
+남는다.
 
 ## Blog Seed
 
-This issue is a good blog topic because the initial hypothesis was wrong in an
-interesting way: Go was expected to dominate, generator reuse helped only a
-little, and profiling showed that random entropy reads and string encoding were
-the real constraints. Keep Issue #168's chart as the baseline visual, then add
-Issue #192's before/after table as the optimization story.
+이 issue는 초기 hypothesis가 흥미로운 방식으로 틀렸기 때문에 좋은 blog topic이다. Go가
+압도할 것으로 예상했지만 generator reuse는 조금만 도움이 되었고, profiling은 random
+entropy reads와 string encoding이 실제 constraint임을 보여 주었다. Issue #168 chart를
+baseline visual로 유지하고 Issue #192 before/after table을 optimization story로
+추가한다.

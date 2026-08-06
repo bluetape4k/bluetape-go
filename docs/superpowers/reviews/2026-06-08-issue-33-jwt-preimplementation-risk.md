@@ -1,8 +1,10 @@
 # Issue #33 JWT Pre-Implementation Risk Note
 
+> 한국어 리뷰 경계: 이 문서는 리뷰 판정과 근거를 한국어 독자가 추적할 수 있도록 정리한다. 심각도 토큰, 판정 토큰, 파일 경로, 라인 번호, 이슈/PR 번호, 명령, 코드 식별자는 원문의 증거 앵커로 보존한다.
+
 Task: T0 dependency and API risk note
-Issue: #33
-Date: 2026-06-08
+이슈: #33
+날짜: 2026-06-08
 
 ## Dependency Decision
 
@@ -25,7 +27,7 @@ Local evidence:
     `WithExpirationRequired`, and `WithTimeFunc` cover #33 parse-validation
     needs.
 
-## Rejected Alternatives
+## 거절한 대안
 
 | Candidate | Decision |
 | --- | --- |
@@ -59,7 +61,7 @@ Public API should use:
 - The in-memory repository stays private and context-free in #33; #173 owns the
   future context-aware distributed repository contract.
 
-## Verification Commands
+## 검증 명령
 
 ```bash
 go get github.com/golang-jwt/jwt/v5@v5.3.1

@@ -6,10 +6,11 @@ import (
 	"fmt"
 	"time"
 
+	btredis "github.com/bluetape4k/bluetape-go/redis"
 	"github.com/redis/go-redis/v9"
 )
 
-// RedisRepository stores distributed JWT KeyChains in Redis.
+// RedisRepository JWT key provider repository에서 caller-visible 상태와 의미를 설명한다.
 type RedisRepository struct {
 	client redis.Cmdable
 	opts   redisRepositoryOptions
@@ -17,7 +18,7 @@ type RedisRepository struct {
 
 var _ DistributedKeyChainRepository = (*RedisRepository)(nil)
 
-// NewRedisRepository creates a Redis-backed distributed KeyChain repository.
+// NewRedisRepository JWT key provider repository에서 생성과 초기화 계약을 설명한다.
 func NewRedisRepository(options RedisRepositoryOptions) (*RedisRepository, error) {
 	normalized, err := options.normalize()
 	if err != nil {
@@ -26,7 +27,7 @@ func NewRedisRepository(options RedisRepositoryOptions) (*RedisRepository, error
 	return &RedisRepository{client: normalized.client, opts: normalized}, nil
 }
 
-// Current returns the current non-expired KeyChain.
+// Current JWT key provider repository에서 반환값과 오류 의미를 설명한다.
 func (r *RedisRepository) Current(ctx context.Context, now time.Time) (*KeyChain, error) {
 	if err := r.validateReady(ctx); err != nil {
 		return nil, err
@@ -36,7 +37,7 @@ func (r *RedisRepository) Current(ctx context.Context, now time.Time) (*KeyChain
 		if errors.Is(err, redis.Nil) {
 			return nil, KeyError{Kind: ErrKeyNotFound, Err: errorsNew("current key not found")}
 		}
-		return nil, fmt.Errorf("redis jwt current: %w", err)
+		return nil, redisRepositoryOperationError(ctx, "current-get", r.opts.currentKey(), err)
 	}
 	key, err := r.findPayload(ctx, kid, now)
 	if err != nil {
@@ -45,7 +46,7 @@ func (r *RedisRepository) Current(ctx context.Context, now time.Time) (*KeyChain
 	return key, nil
 }
 
-// Find returns a non-expired KeyChain by kid.
+// Find JWT key provider repository에서 반환값과 오류 의미를 설명한다.
 func (r *RedisRepository) Find(ctx context.Context, kid string, now time.Time) (*KeyChain, error) {
 	if err := r.validateReady(ctx); err != nil {
 		return nil, err
@@ -56,7 +57,7 @@ func (r *RedisRepository) Find(ctx context.Context, kid string, now time.Time) (
 	return r.findPayload(ctx, kid, now)
 }
 
-// Rotate returns the current key or stores a new one when no live key exists.
+// Rotate JWT key provider repository에서 반환값과 오류 의미를 설명한다.
 func (r *RedisRepository) Rotate(ctx context.Context, create func() (*KeyChain, error), now time.Time) (*KeyChain, error) {
 	if err := r.validateReady(ctx); err != nil {
 		return nil, err
@@ -78,7 +79,7 @@ func (r *RedisRepository) Rotate(ctx context.Context, create func() (*KeyChain, 
 	return r.storeCAS(ctx, observedKID, key, now)
 }
 
-// ForcedRotate always stores a newly created KeyChain.
+// ForcedRotate JWT key provider repository에서 동작과 caller-visible 계약을 설명한다.
 func (r *RedisRepository) ForcedRotate(ctx context.Context, create func() (*KeyChain, error), now time.Time) (*KeyChain, error) {
 	if err := r.validateReady(ctx); err != nil {
 		return nil, err
@@ -93,13 +94,13 @@ func (r *RedisRepository) ForcedRotate(ctx context.Context, create func() (*KeyC
 	return r.store(ctx, key, now)
 }
 
-// DeleteAll removes all Redis state for this repository namespace.
+// DeleteAll JWT key provider repository에서 caller-visible 상태와 의미를 설명한다.
 func (r *RedisRepository) DeleteAll(ctx context.Context) error {
 	if err := r.validateReady(ctx); err != nil {
 		return err
 	}
 	if err := r.client.Del(ctx, r.opts.metaKey(), r.opts.currentKey(), r.opts.keysKey(), r.opts.orderKey()).Err(); err != nil {
-		return fmt.Errorf("redis jwt delete all: %w", err)
+		return redisRepositoryOperationError(ctx, "delete-all", r.opts.metaKey(), err)
 	}
 	return nil
 }
@@ -117,7 +118,7 @@ func (r *RedisRepository) findPayload(ctx context.Context, kid string, now time.
 		if errors.Is(err, redis.Nil) {
 			return nil, KeyError{Kind: ErrKeyNotFound, KID: kid, Err: errorsNew("key not found")}
 		}
-		return nil, fmt.Errorf("redis jwt find key: %w", err)
+		return nil, redisRepositoryOperationError(ctx, "key-get", r.opts.keysKey(), err)
 	}
 	key, err := decodeRedisKeyChain(payload, r.opts.maxKeyBytes)
 	if err != nil {
@@ -132,7 +133,7 @@ func (r *RedisRepository) findPayload(ctx context.Context, kid string, now time.
 func (r *RedisRepository) currentPayload(ctx context.Context, now time.Time) (*KeyChain, string, error) {
 	values, err := r.client.Eval(ctx, redisCurrentScript, []string{r.opts.currentKey(), r.opts.keysKey()}).Slice()
 	if err != nil {
-		return nil, "", fmt.Errorf("redis jwt current script: %w", err)
+		return nil, "", redisRepositoryOperationError(ctx, "current-script", r.opts.currentKey(), err)
 	}
 	present, payload, kid, err := parseRedisKeyScriptResult(values)
 	if err != nil {
@@ -170,7 +171,7 @@ func (r *RedisRepository) storeCAS(ctx context.Context, observedKID string, key 
 		string(key.Algorithm()),
 	).Slice()
 	if err != nil {
-		return nil, fmt.Errorf("redis jwt rotate: %w", err)
+		return nil, redisRepositoryOperationError(ctx, "rotate-script", r.opts.currentKey(), err)
 	}
 	return r.decodeStoreScriptResult(values, now)
 }
@@ -193,9 +194,20 @@ func (r *RedisRepository) store(ctx context.Context, key *KeyChain, now time.Tim
 		string(key.Algorithm()),
 	).Slice()
 	if err != nil {
-		return nil, fmt.Errorf("redis jwt store: %w", err)
+		return nil, redisRepositoryOperationError(ctx, "store-script", r.opts.currentKey(), err)
 	}
 	return r.decodeStoreScriptResult(values, now)
+}
+
+func redisRepositoryOperationError(ctx context.Context, operation string, rawKey string, err error) error {
+	if ctx != nil && ctx.Err() != nil {
+		err = errors.Join(err, ctx.Err())
+	}
+	return btredis.NewOpError(
+		btredis.OpLabels{Family: "jwt repository", Operation: operation},
+		rawKey,
+		err,
+	)
 }
 
 func (r *RedisRepository) prepareStorePayload(ctx context.Context, key *KeyChain, now time.Time) ([]byte, error) {

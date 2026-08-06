@@ -74,17 +74,24 @@ API가 아니라 module-gated future scope입니다.
 | [`leader`](leader/README.ko.md) | active | 단일, group, strategy 기반 계약을 포함한 leader election API. |
 | [`leader/redis`](leader/redis/README.ko.md) | active | TTL renewal, ZSET slot token, candidate registry 기반 Redis 단일/group/strategic leader election 구현. |
 | [`leader/mongo`](leader/mongo/README.ko.md) | active | Owner-token lease, bounded slot, candidate registry, TTL cleanup index를 사용하는 MongoDB 단일/group/strategic leader election 구현. |
+| [`leader/sql`](leader/sql/README.ko.md) | active | Caller-owned row lease와 caller-owned `*sql.DB`를 사용하는 PostgreSQL 전용 단일 leader election 구현. |
+| [`leader/etcd`](leader/etcd/README.ko.md) | active | Caller-owned client, 공식 Session/Election primitive, exact ownership monitoring을 사용하는 etcd 단일 leader election 구현. |
 | [`resilience`](resilience/README.ko.md) | active | service call을 위한 자체 composable retry, timeout, circuit breaker, bulkhead policy, synchronous observability hook, `net/http` adapter. |
 | [`cache`](cache/README.ko.md) | active | context-aware loader와 same-key stampede protection을 제공하는 generic in-process TTL cache interface. |
 | [`cache/redisnear`](cache/redisnear/README.ko.md) | active | process-local loading cache를 위한 Redis Pub/Sub near-cache invalidation. |
 | [`cache/rediscoord`](cache/rediscoord/README.ko.md) | active | cold burst 동안 하나의 loader 결과를 process-local cache 사이에서 공유하는 opt-in Redis coordination wrapper. |
+| [`cache/redisfory`](cache/redisfory/README.ko.md) | active | 명시적인 schema generation으로 Redis에 직접 저장하는 bounded Go-native Apache Fory binary value cache. |
+| [`cache/redisvalue`](cache/redisvalue/README.ko.md) | active | Reference를 보존하는 process-local tiered decorator와 bounded serialized Redis L2 value cache. |
+| [`redis`](redis/README.ko.md) | active | Redis key, owner-token, lease script, TTL, redacted operation error를 위한 공유 primitive. |
 | [`lock/redis`](lock/redis/README.ko.md) | active | TTL acquire와 owner-safe Lua unlock을 제공하는 Redis 단일 인스턴스 owner-token lock. |
 | [`ratelimit`](ratelimit/README.ko.md) | active | process-local keyed token-bucket limiter와 `net/http` middleware. |
 | [`ratelimit/redis`](ratelimit/redis/README.ko.md) | active | atomic Lua consume/refill과 idle key expiration을 쓰는 Redis-backed token-bucket limiter. |
+| [`ratelimit/sql`](ratelimit/sql/README.ko.md) | active | Caller-owned schema와 cleanup을 사용하는 moderate-QPS, database-only 배포용 PostgreSQL atomic token bucket. |
 | [`state`](state/README.ko.md) | active | typed transition, guard, final state, sentinel error를 제공하는 작은 finite state machine primitive. |
 | [`workreport`](workreport/README.ko.md) | active | lightweight workflow code를 위한 status, failure-policy, report-tree value. |
 | [`workflow`](workflow/README.ko.md) | active | `context.Context`와 `workreport` 기반 sequential, conditional, all-branches parallel runner. |
 | [`batch`](batch/README.ko.md) | active | Chunk-oriented batch step, sequential job, retry/skip policy, report, checkpoint. |
+| [`batch/sqlcheckpoint`](batch/sqlcheckpoint/README.ko.md) | active | Batch callback과 consumed-input checkpoint를 revision CAS로 함께 commit하는 PostgreSQL durable checkpoint provider. |
 | [`id`](id/README.ko.md) | active | UUID v4/v7, random/monotonic ULID, standard KSUID, Kotlin-compatible KSUID millis, Snowflake ID generator. |
 | [`jwt`](jwt/README.ko.md) | active | 명시적 algorithm을 사용하는 JWT signing, parsing, validation, typed claim reading, in-memory/distributed `kid` key rotation, optional provider cache adapter. |
 | [`jwt/redis`](jwt/redis/README.ko.md) | active | Distributed JWT key-chain repository 생성을 위한 Redis 전용 facade. |
@@ -150,10 +157,15 @@ go get github.com/bluetape4k/bluetape-go
   thumbnail, JPEG/PNG conversion helper인 [`imagekit`](imagekit/README.ko.md).
 - Coordination: [`leader`](leader/README.ko.md),
   [`leader/redis`](leader/redis/README.ko.md),
-  [`leader/mongo`](leader/mongo/README.ko.md), [`lock/redis`](lock/redis/README.ko.md).
+  [`leader/mongo`](leader/mongo/README.ko.md),
+  [`leader/sql`](leader/sql/README.ko.md), [`leader/etcd`](leader/etcd/README.ko.md),
+  [`redis`](redis/README.ko.md),
+  [`redis/stream`](redis/stream/README.ko.md), [`lock/redis`](lock/redis/README.ko.md).
 - Runtime policy/cache/state/workflow: [`resilience`](resilience/README.ko.md),
   [`cache`](cache/README.ko.md), [`cache/redisnear`](cache/redisnear/README.ko.md),
-  [`cache/rediscoord`](cache/rediscoord/README.ko.md), [`ratelimit`](ratelimit/README.ko.md),
+  [`cache/rediscoord`](cache/rediscoord/README.ko.md), [`cache/redisfory`](cache/redisfory/README.ko.md),
+  [`cache/redisvalue`](cache/redisvalue/README.ko.md),
+  [`ratelimit`](ratelimit/README.ko.md),
   [`state`](state/README.ko.md), [`workreport`](workreport/README.ko.md),
   [`workflow`](workflow/README.ko.md), [`batch`](batch/README.ko.md).
 - Portable utility: [`id`](id/README.ko.md), [`jwt`](jwt/README.ko.md),
@@ -332,6 +344,24 @@ make ci
 | `make bench-ratelimit` | opt-in local rate limiter benchmark를 실행합니다. |
 | `make bench-id` | opt-in id generator benchmark를 실행합니다. |
 | `make ci` | 로컬 CI gate를 실행합니다. |
+
+### Provider 벤치마크 매트릭스
+
+[Provider 벤치마크 보고서](docs/research/2026-07-20-issue-560-provider-benchmark-matrix.md)는
+동일한 의미의 leader, rate-limit, cache, graph I/O, graph traversal row만 비교합니다.
+한 번에 family 하나를 수집합니다.
+
+```bash
+scripts/capture-provider-benchmark.sh leader-local
+```
+
+허용되는 family는 `leader-local`, `leader-containers`, `leader-probes`, `ratelimit-local`,
+`ratelimit-containers`, `cache-local`, `cache-redis`, `graphio`, `graphdb` 중 정확히 하나입니다.
+컨테이너 기반 family는 Docker가 필요하고 몇 분 이상 걸릴 수 있으며, fixture와 host
+resource가 겹치지 않도록 직렬로 실행해야 합니다. 추적 중인 증거와 차트를 갱신할 때는
+보고서의 재수집 checklist를 따르세요.
+결과는 고정된 fixture provenance를 가진 짧은 로컬 snapshot이므로 production 순위로
+복사해서 사용하지 마세요.
 
 Redis integration test는 Testcontainers를 사용하므로 Docker가 필요합니다. 일반
 CI와 Nightly workflow 모두 실제 container를 사용해 테스트하고 Go coverage

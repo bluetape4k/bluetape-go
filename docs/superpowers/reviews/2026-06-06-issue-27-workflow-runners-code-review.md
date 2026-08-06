@@ -1,20 +1,22 @@
 # Issue 27 Workflow Runners Code Review
 
-Issue: #27
-Gate: Step 6-R
-Status: PASS
+> 한국어 리뷰 경계: 이 문서는 리뷰 판정과 근거를 한국어 독자가 추적할 수 있도록 정리한다. 심각도 토큰, 판정 토큰, 파일 경로, 라인 번호, 이슈/PR 번호, 명령, 코드 식별자는 원문의 증거 앵커로 보존한다.
 
-## Scope
+이슈: #27
+게이트: Step 6-R
+상태: PASS
+
+## 범위
 
 Reviewed the local diff after implementation against #27 acceptance criteria,
 the issue-local spec/plan, #135 package split, #28 `workreport` behavior,
 `bluetape-go-patterns`, and the latest validation output.
 
-## Findings
+## 발견 사항
 
 No P0, P1, P2, or P3 findings.
 
-## Local 7-Tier Review
+## 로컬 7-Tier 검토
 
 | Tier | P0 | P1 | P2 | P3 | Evidence |
 |---|---:|---:|---:|---:|---|
@@ -35,7 +37,7 @@ No P0, P1, P2, or P3 findings.
 | Test engineer | 0 | 0 | 0 | 0 | Unit, stress, cancellation, race, vet, and full test gates pass. |
 | Architect | 0 | 0 | 0 | 0 | No mutable workflow context, durable engine, scheduler, retry, or DSL surface added. |
 
-## Validation Evidence
+## 검증 증거
 
 - `go test -count=1 ./workflow ./workreport`: PASS.
 - `go test -race -count=1 ./workflow ./workreport`: PASS.
@@ -43,6 +45,6 @@ No P0, P1, P2, or P3 findings.
 - `go vet ./workflow ./workreport`: PASS.
 - `git diff --check`: PASS.
 
-## Gate Verdict
+## 게이트 판정
 
 P0=0 P1=0. Step 6-R is closed.

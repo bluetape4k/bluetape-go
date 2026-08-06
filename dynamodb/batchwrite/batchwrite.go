@@ -11,32 +11,32 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/dynamodb/types"
 )
 
-// MaxItemsPerBatch is the DynamoDB BatchWriteItem request item limit.
+// MaxItemsPerBatch DynamoDB BatchWriteItem request의 item 한도다.
 const MaxItemsPerBatch = 25
 
-// DefaultMaxAttempts is the default attempt budget for each request chunk.
+// DefaultMaxAttempts 각 request chunk에 적용하는 기본 attempt 예산이다.
 const DefaultMaxAttempts = 3
 
 var (
-	// ErrNilClient reports a missing DynamoDB batch write client.
+	// ErrNilClient DynamoDB batch write client가 없을 때 반환된다.
 	ErrNilClient = errors.New("batchwrite: client must not be nil")
-	// ErrEmptyRequestItems reports an empty batch write request set.
+	// ErrEmptyRequestItems batch write request set이 비어 있을 때 반환된다.
 	ErrEmptyRequestItems = errors.New("batchwrite: request items must not be empty")
-	// ErrInvalidMaxAttempts reports a non-positive retry budget.
+	// ErrInvalidMaxAttempts retry budget이 양수가 아닐 때 반환된다.
 	ErrInvalidMaxAttempts = errors.New("batchwrite: max attempts must be positive")
-	// ErrUnprocessedItems reports exhausted retry attempts with items still pending.
+	// ErrUnprocessedItems retry attempt를 소진한 뒤에도 pending item이 남았을 때 반환된다.
 	ErrUnprocessedItems = errors.New("batchwrite: unprocessed items remain")
 )
 
-// Client is the AWS SDK for Go v2 BatchWriteItem subset used by WriteAll.
+// Client WriteAll이 사용하는 AWS SDK for Go v2 BatchWriteItem subset이다.
 type Client interface {
 	BatchWriteItem(context.Context, *dynamodb.BatchWriteItemInput, ...func(*dynamodb.Options)) (*dynamodb.BatchWriteItemOutput, error)
 }
 
-// Backoff returns the delay after a failed one-based attempt.
+// Backoff 1-base attempt 실패 뒤 대기할 delay를 반환한다.
 type Backoff func(attempt int) time.Duration
 
-// Options configures WriteAll.
+// Options WriteAll 실행 방식을 설정한다.
 type Options struct {
 	MaxAttempts                 int
 	Backoff                     Backoff
@@ -44,10 +44,10 @@ type Options struct {
 	ReturnItemCollectionMetrics types.ReturnItemCollectionMetrics
 }
 
-// Option configures WriteAll.
+// Option WriteAll 실행 설정을 변경한다.
 type Option func(*Options)
 
-// Result summarizes completed BatchWriteItem calls.
+// Result 완료된 BatchWriteItem 호출 결과를 요약한다.
 type Result struct {
 	Attempts              int
 	Processed             int
@@ -55,56 +55,55 @@ type Result struct {
 	ItemCollectionMetrics map[string][]types.ItemCollectionMetrics
 }
 
-// UnprocessedItemsError reports items that remained after retry exhaustion.
+// UnprocessedItemsError retry를 소진한 뒤에도 남은 item을 보고한다.
 type UnprocessedItemsError struct {
 	Attempts         int
 	UnprocessedItems map[string][]types.WriteRequest
 }
 
-// Error returns a human-readable retry exhaustion message.
+// Error 사람이 읽을 수 있는 retry exhaustion message를 반환한다.
 func (e UnprocessedItemsError) Error() string {
 	return fmt.Sprintf("%v after %d attempts (%d item(s) remain)", ErrUnprocessedItems, e.Attempts, countRequestItems(e.UnprocessedItems))
 }
 
-// Is supports errors.Is(err, ErrUnprocessedItems).
+// Is errors.Is(err, ErrUnprocessedItems)를 지원한다.
 func (e UnprocessedItemsError) Is(target error) bool {
 	return target == ErrUnprocessedItems
 }
 
-// WithMaxAttempts sets the per-chunk attempt budget.
+// WithMaxAttempts chunk별 attempt budget을 설정한다.
 func WithMaxAttempts(maxAttempts int) Option {
 	return func(options *Options) {
 		options.MaxAttempts = maxAttempts
 	}
 }
 
-// WithBackoff sets the retry delay policy used before resubmitting unprocessed items.
+// WithBackoff unprocessed item을 다시 제출하기 전에 사용할 retry delay policy를 설정한다.
 func WithBackoff(backoff Backoff) Option {
 	return func(options *Options) {
 		options.Backoff = backoff
 	}
 }
 
-// WithReturnConsumedCapacity requests DynamoDB consumed-capacity details.
+// WithReturnConsumedCapacity DynamoDB consumed-capacity detail 반환을 요청한다.
 func WithReturnConsumedCapacity(value types.ReturnConsumedCapacity) Option {
 	return func(options *Options) {
 		options.ReturnConsumedCapacity = value
 	}
 }
 
-// WithReturnItemCollectionMetrics requests DynamoDB item-collection metrics.
+// WithReturnItemCollectionMetrics DynamoDB item-collection metric 반환을 요청한다.
 func WithReturnItemCollectionMetrics(value types.ReturnItemCollectionMetrics) Option {
 	return func(options *Options) {
 		options.ReturnItemCollectionMetrics = value
 	}
 }
 
-// WriteAll writes all request items with DynamoDB BatchWriteItem.
+// WriteAll 모든 request item을 DynamoDB BatchWriteItem으로 기록한다.
 //
-// requestItems uses the same table-to-WriteRequest map accepted by the AWS SDK.
-// WriteAll splits the map into requests containing at most MaxItemsPerBatch
-// items, then retries only the UnprocessedItems returned by DynamoDB. Service
-// errors are returned immediately and wrapped with their batch attempt context.
+// requestItems는 AWS SDK가 받는 table-to-WriteRequest map과 같은 형식을 사용한다. WriteAll은 map을
+// 최대 MaxItemsPerBatch item을 포함하는 request로 나눈 뒤, DynamoDB가 반환한 UnprocessedItems만
+// 재시도한다. Service error는 즉시 반환하며 batch attempt context로 감싼다.
 func WriteAll(ctx context.Context, client Client, requestItems map[string][]types.WriteRequest, options ...Option) (Result, error) {
 	if ctx == nil {
 		ctx = context.Background()

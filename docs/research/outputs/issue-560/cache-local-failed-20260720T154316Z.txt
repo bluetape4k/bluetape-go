@@ -1,0 +1,35 @@
+command_label: cache-local
+command: go test -timeout=10m -run \^\$ -bench \^BenchmarkProviderCacheLocal\$ -benchmem -count=5 ./cache
+timestamp_utc: 2026-07-20T15:43:16Z
+git_sha: 53b8512219efc6afcf8f6c8d9b5f33651d20ebdf
+pre_run_clean: true
+output_begin
+goos: darwin
+goarch: arm64
+pkg: github.com/bluetape4k/bluetape-go/cache
+cpu: Apple M5
+BenchmarkProviderCacheLocal/Memory/GetHit/128B-10         	31931700	        37.83 ns/op	       0 B/op	       0 allocs/op
+BenchmarkProviderCacheLocal/Memory/GetHit/128B-10         	31716802	        37.91 ns/op	       0 B/op	       0 allocs/op
+BenchmarkProviderCacheLocal/Memory/GetHit/128B-10         	31800398	        37.83 ns/op	       0 B/op	       0 allocs/op
+BenchmarkProviderCacheLocal/Memory/GetHit/128B-10         	31965938	        37.86 ns/op	       0 B/op	       0 allocs/op
+BenchmarkProviderCacheLocal/Memory/GetHit/128B-10         	31351612	        37.91 ns/op	       0 B/op	       0 allocs/op
+BenchmarkProviderCacheLocal/Memory/GetHit/4KiB-10         	32131882	        37.71 ns/op	       0 B/op	       0 allocs/op
+BenchmarkProviderCacheLocal/Memory/GetHit/4KiB-10         	31842943	        37.72 ns/op	       0 B/op	       0 allocs/op
+BenchmarkProviderCacheLocal/Memory/GetHit/4KiB-10         	31743372	        37.65 ns/op	       0 B/op	       0 allocs/op
+BenchmarkProviderCacheLocal/Memory/GetHit/4KiB-10         	31542769	        37.78 ns/op	       0 B/op	       0 allocs/op
+BenchmarkProviderCacheLocal/Memory/GetHit/4KiB-10         	31685955	        37.78 ns/op	       0 B/op	       0 allocs/op
+BenchmarkProviderCacheLocal/Memory/GetMiss/128B-10        	156333628	         7.946 ns/op	       0 B/op	       0 allocs/op
+BenchmarkProviderCacheLocal/Memory/GetMiss/128B-10        	158122887	         7.585 ns/op	       0 B/op	       0 allocs/op
+BenchmarkProviderCacheLocal/Memory/GetMiss/128B-10        	158847297	         7.460 ns/op	       0 B/op	       0 allocs/op
+BenchmarkProviderCacheLocal/Memory/GetMiss/128B-10        	160782608	         7.443 ns/op	       0 B/op	       0 allocs/op
+BenchmarkProviderCacheLocal/Memory/GetMiss/128B-10        	155137114	         7.676 ns/op	       0 B/op	       0 allocs/op
+BenchmarkProviderCacheLocal/Memory/GetMiss/4KiB-10        	160485002	         7.517 ns/op	       0 B/op	       0 allocs/op
+BenchmarkProviderCacheLocal/Memory/GetMiss/4KiB-10        	159384739	         7.593 ns/op	       0 B/op	       0 allocs/op
+BenchmarkProviderCacheLocal/Memory/GetMiss/4KiB-10        	157121370	         7.492 ns/op	       0 B/op	       0 allocs/op
+BenchmarkProviderCacheLocal/Memory/GetMiss/4KiB-10        	160006292	         7.470 ns/op	       0 B/op	       0 allocs/op
+BenchmarkProviderCacheLocal/Memory/GetMiss/4KiB-10        	159182728	         7.538 ns/op	       0 B/op	       0 allocs/op
+BenchmarkProviderCacheLocal/Memory/Set/128B-10            	29066392	        41.14 ns/op	       0 B/op	       0 allocs/op
+BenchmarkProviderCacheLocal/Memory/Set/128B-10            	signal: interrupt
+FAIL	github.com/bluetape4k/bluetape-go/cache	35.578s
+output_end
+exit_status: 1

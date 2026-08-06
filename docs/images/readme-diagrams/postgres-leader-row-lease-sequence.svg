@@ -1,0 +1,176 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1500" height="1380" viewBox="0 0 1500 1380" role="img" aria-labelledby="title desc">
+  <title id="title">PostgreSQL Leader Row-Lease Sequence</title>
+  <desc id="desc">One PostgreSQL primary row serializes campaign, contention, renewal, observation, commit-unknown reconciliation, cleanup, and safe resign.</desc>
+  <defs>
+    <filter id="softShadow" x="-8%" y="-10%" width="116%" height="124%"><feDropShadow dx="0" dy="5" stdDeviation="5" flood-color="#0f172a" flood-opacity="0.10"/></filter>
+    <marker id="arrow-blue" markerWidth="16" markerHeight="16" viewBox="0 0 10 10" refX="9" refY="5" orient="auto" markerUnits="userSpaceOnUse"><path d="M 0 0 L 10 5 L 0 10 Z" fill="#4f77c9"/></marker>
+    <marker id="arrow-green" markerWidth="16" markerHeight="16" viewBox="0 0 10 10" refX="9" refY="5" orient="auto" markerUnits="userSpaceOnUse"><path d="M 0 0 L 10 5 L 0 10 Z" fill="#319873"/></marker>
+    <marker id="arrow-amber" markerWidth="16" markerHeight="16" viewBox="0 0 10 10" refX="9" refY="5" orient="auto" markerUnits="userSpaceOnUse"><path d="M 0 0 L 10 5 L 0 10 Z" fill="#cf8428"/></marker>
+    <marker id="arrow-red" markerWidth="16" markerHeight="16" viewBox="0 0 10 10" refX="9" refY="5" orient="auto" markerUnits="userSpaceOnUse"><path d="M 0 0 L 10 5 L 0 10 Z" fill="#c85d73"/></marker>
+    <marker id="arrow-purple" markerWidth="16" markerHeight="16" viewBox="0 0 10 10" refX="9" refY="5" orient="auto" markerUnits="userSpaceOnUse"><path d="M 0 0 L 10 5 L 0 10 Z" fill="#7e62d9"/></marker>
+    <marker id="arrow-teal" markerWidth="16" markerHeight="16" viewBox="0 0 10 10" refX="9" refY="5" orient="auto" markerUnits="userSpaceOnUse"><path d="M 0 0 L 10 5 L 0 10 Z" fill="#3f7d9c"/></marker>
+    <style>
+      .canvas { fill: #f8fafc; }
+      .frame { fill: #ffffff; stroke: #cbd5e1; stroke-width: 1.5; filter: url(#softShadow); }
+      .title, .part-title { font-family: "Architects Daughter", "Comic Sans MS", cursive; fill: #263a57; }
+      .title { font-size: 42px; }
+      .subtitle, .small, .msg, .region, .note, .footer { font-family: "Comic Mono", "SFMono-Regular", monospace; fill: #526276; }
+      .subtitle { font-size: 17px; }
+      .small { font-size: 12px; }
+      .msg { font-size: 13px; font-weight: 700; }
+      .region { font-size: 12px; font-weight: 700; }
+      .note { font-size: 12px; }
+      .footer { font-size: 14px; }
+      .participant { stroke-width: 2.2; rx: 12; }
+      .lifeline { stroke: #c5d4e3; stroke-width: 2; stroke-dasharray: 8 8; }
+      .activation { fill: #f3eeff; stroke: #8a65d8; stroke-width: 1.7; rx: 7; opacity: .88; }
+      .route { fill: none; stroke-width: 3; stroke-linecap: round; stroke-linejoin: round; }
+      .return { fill: none; stroke-width: 2.6; stroke-linecap: round; stroke-linejoin: round; stroke-dasharray: 9 8; }
+      .alt { fill: none; stroke: #78909c; stroke-width: 2.4; stroke-dasharray: 12 7; rx: 16; }
+      .alt-label { fill: #ffffff; stroke: #d7e0e4; stroke-width: 1.5; rx: 15; }
+      .else-line { stroke: #78909c; stroke-width: 2.2; stroke-dasharray: 12 8; }
+      .pill { fill: #ffffff; stroke: #cbd9e7; stroke-width: 1.5; rx: 14; }
+      .badge { stroke-width: 1.6; }
+      .badge-text { font-family: "Comic Mono", monospace; font-size: 10px; font-weight: 700; fill: #ffffff; }
+      .callout { fill: #fffaf0; stroke: #e5c07b; stroke-width: 1.5; rx: 12; }
+      .legend { fill: #ffffff; stroke: #d4e0ec; stroke-width: 1.5; rx: 12; }
+    </style>
+  </defs>
+
+  <rect class="canvas" width="1500" height="1380"/>
+  <rect class="frame" x="34" y="30" width="1432" height="1320" rx="8"/>
+  <text class="title" x="72" y="88">PostgreSQL Leader Row-Lease Sequence</text>
+  <text class="subtitle" x="76" y="120">One primary row serializes acquire, renew, observe, cleanup, and expiry takeover with server time.</text>
+
+  <rect class="participant" x="70" y="174" width="180" height="68" fill="#eaf2ff" stroke="#6d9df0"/>
+  <text class="part-title participant-title" x="160" y="202" text-anchor="middle">Caller</text>
+  <text class="small" x="160" y="224" text-anchor="middle">protected work</text>
+  <line class="lifeline" x1="160" y1="242" x2="160" y2="1280"/>
+
+  <rect class="participant" x="390" y="174" width="180" height="68" fill="#fff4de" stroke="#d59c3f"/>
+  <text class="part-title participant-title" x="480" y="202" text-anchor="middle">sqlleader.Elector</text>
+  <text class="small" x="480" y="224" text-anchor="middle">owner token + generation</text>
+  <line class="lifeline" x1="480" y1="242" x2="480" y2="1280"/>
+
+  <rect class="participant" x="750" y="174" width="180" height="68" fill="#edf9f4" stroke="#63b891"/>
+  <text class="part-title participant-title" x="840" y="202" text-anchor="middle">caller-owned *sql.DB</text>
+  <text class="small" x="840" y="224" text-anchor="middle">bounded pool attempts</text>
+  <line class="lifeline" x1="840" y1="242" x2="840" y2="1280"/>
+
+  <rect class="participant" x="1110" y="174" width="220" height="68" fill="#f3efff" stroke="#9b7aec"/>
+  <text class="part-title participant-title" x="1220" y="202" text-anchor="middle">PostgreSQL primary</text>
+  <text class="small" x="1220" y="224" text-anchor="middle">public.bluetape_leader_leases</text>
+  <line class="lifeline" x1="1220" y1="242" x2="1220" y2="1280"/>
+
+  <rect class="activation" x="473" y="286" width="14" height="960" rx="7"/>
+  <rect class="activation" x="833" y="344" width="14" height="902" rx="7"/>
+  <rect class="activation" x="1213" y="402" width="14" height="844" rx="7"/>
+
+  <path class="route" d="M160 300 L480 300" stroke="#4f77c9" marker-end="url(#arrow-blue)"/>
+  <rect class="pill" x="218" y="258" width="202" height="30" rx="15"/>
+  <circle class="badge" cx="236" cy="273" r="13" fill="#4f77c9"/>
+  <text class="badge-text badgeText" x="236" y="277" text-anchor="middle">1</text>
+  <text class="msg" x="326" y="278" text-anchor="middle" fill="#4f77c9">Campaign(ctx)</text>
+
+  <path class="route" d="M480 360 L840 360" stroke="#cf8428" marker-end="url(#arrow-amber)"/>
+  <rect class="pill" x="510" y="318" width="300" height="30" rx="15"/>
+  <circle class="badge" cx="528" cy="333" r="13" fill="#cf8428"/>
+  <text class="badge-text badgeText" x="528" y="337" text-anchor="middle">2</text>
+  <text class="msg" x="670" y="338" text-anchor="middle" fill="#cf8428">execute atomic UPSERT</text>
+
+  <path class="route" d="M840 420 L1220 420" stroke="#cf8428" marker-end="url(#arrow-amber)"/>
+  <rect class="pill" x="876" y="378" width="308" height="30" rx="15"/>
+  <circle class="badge" cx="894" cy="393" r="13" fill="#cf8428"/>
+  <text class="badge-text badgeText" x="894" y="397" text-anchor="middle">3</text>
+  <text class="msg" x="1040" y="398" text-anchor="middle" fill="#cf8428">serialize one key by row lock</text>
+
+  <rect class="alt" x="84" y="446" width="1290" height="286" rx="16"/>
+  <rect class="alt-label" x="102" y="464" width="210" height="30" rx="15"/>
+  <text class="region" x="124" y="484">alt acquired or expired</text>
+
+  <path class="return" d="M1220 520 L840 520" stroke="#319873" marker-end="url(#arrow-green)"/>
+  <rect class="pill" x="900" y="478" width="262" height="30" rx="15"/>
+  <circle class="badge" cx="918" cy="493" r="13" fill="#319873"/>
+  <text class="badge-text badgeText" x="918" y="497" text-anchor="middle">4</text>
+  <text class="msg" x="1040" y="498" text-anchor="middle" fill="#319873">return owner token + lease</text>
+
+  <path class="return" d="M840 574 L480 574" stroke="#319873" marker-end="url(#arrow-green)"/>
+  <rect class="pill" x="532" y="532" width="256" height="30" rx="15"/>
+  <circle class="badge" cx="550" cy="547" r="13" fill="#319873"/>
+  <text class="badge-text badgeText" x="550" y="551" text-anchor="middle">5</text>
+  <text class="msg" x="670" y="552" text-anchor="middle" fill="#319873">confirm; start renew loop</text>
+
+  <line class="else-line" x1="98" y1="608" x2="1360" y2="608"/>
+  <rect class="alt-label" x="102" y="626" width="194" height="30" rx="15"/>
+  <text class="region" x="124" y="646">else live owner</text>
+
+  <path class="return" d="M1220 674 L840 674" stroke="#c85d73" marker-end="url(#arrow-red)"/>
+  <rect class="pill" x="914" y="632" width="234" height="30" rx="15"/>
+  <circle class="badge" cx="932" cy="647" r="13" fill="#c85d73"/>
+  <text class="badge-text badgeText" x="932" y="651" text-anchor="middle">4</text>
+  <text class="msg" x="1044" y="652" text-anchor="middle" fill="#c85d73">no RETURNING row</text>
+
+  <path class="return" d="M840 712 L480 712" stroke="#c85d73" marker-end="url(#arrow-red)"/>
+  <rect class="pill" x="536" y="670" width="248" height="30" rx="15"/>
+  <circle class="badge" cx="554" cy="685" r="13" fill="#c85d73"/>
+  <text class="badge-text badgeText" x="554" y="689" text-anchor="middle">5</text>
+  <text class="msg" x="670" y="690" text-anchor="middle" fill="#c85d73">jittered bounded retry</text>
+
+  <path class="route" d="M480 774 L840 774" stroke="#319873" marker-end="url(#arrow-green)"/>
+  <rect class="pill" x="514" y="732" width="292" height="30" rx="15"/>
+  <circle class="badge" cx="532" cy="747" r="13" fill="#319873"/>
+  <text class="badge-text badgeText" x="532" y="751" text-anchor="middle">6</text>
+  <text class="msg" x="670" y="752" text-anchor="middle" fill="#319873">periodic token-bound UPDATE</text>
+
+  <path class="route" d="M840 830 L1220 830" stroke="#319873" marker-end="url(#arrow-green)"/>
+  <rect class="pill" x="892" y="788" width="276" height="30" rx="15"/>
+  <circle class="badge" cx="910" cy="803" r="13" fill="#319873"/>
+  <text class="badge-text badgeText" x="910" y="807" text-anchor="middle">7</text>
+  <text class="msg" x="1040" y="808" text-anchor="middle" fill="#319873">extend only live same token</text>
+
+  <path class="route" d="M160 886 L480 886" stroke="#3f7d9c" marker-end="url(#arrow-teal)"/>
+  <rect class="pill" x="224" y="844" width="190" height="30" rx="15"/>
+  <circle class="badge" cx="242" cy="859" r="13" fill="#3f7d9c"/>
+  <text class="badge-text badgeText" x="242" y="863" text-anchor="middle">8</text>
+  <text class="msg" x="330" y="864" text-anchor="middle" fill="#3f7d9c">Leader(ctx)</text>
+
+  <path class="route" d="M480 942 L840 942" stroke="#3f7d9c" marker-end="url(#arrow-teal)"/>
+  <rect class="pill" x="528" y="900" width="264" height="30" rx="15"/>
+  <circle class="badge" cx="546" cy="915" r="13" fill="#3f7d9c"/>
+  <text class="badge-text badgeText" x="546" y="919" text-anchor="middle">9</text>
+  <text class="msg" x="670" y="920" text-anchor="middle" fill="#3f7d9c">SELECT live owner token</text>
+
+  <path class="route" d="M160 998 L480 998" stroke="#7e62d9" marker-end="url(#arrow-purple)"/>
+  <rect class="pill" x="222" y="956" width="196" height="30" rx="15"/>
+  <circle class="badge" cx="240" cy="971" r="13" fill="#7e62d9"/>
+  <text class="badge-text badgeText" x="240" y="975" text-anchor="middle">10</text>
+  <text class="msg" x="330" y="976" text-anchor="middle" fill="#7e62d9">Resign(ctx)</text>
+
+  <path class="route" d="M480 1054 L840 1054" stroke="#7e62d9" marker-end="url(#arrow-purple)"/>
+  <rect class="pill" x="516" y="1012" width="288" height="30" rx="15"/>
+  <circle class="badge" cx="534" cy="1027" r="13" fill="#7e62d9"/>
+  <text class="badge-text badgeText" x="534" y="1031" text-anchor="middle">11</text>
+  <text class="msg" x="670" y="1032" text-anchor="middle" fill="#7e62d9">join worker; DELETE own token</text>
+
+  <rect class="alt" x="84" y="1080" width="1290" height="198" rx="16"/>
+  <rect class="alt-label" x="102" y="1098" width="248" height="30" rx="15"/>
+  <text class="region" x="124" y="1118">alt mutation response lost</text>
+
+  <path class="route" d="M480 1160 L840 1160" stroke="#cf8428" marker-end="url(#arrow-amber)"/>
+  <rect class="pill" x="520" y="1118" width="280" height="30" rx="15"/>
+  <circle class="badge" cx="538" cy="1133" r="13" fill="#cf8428"/>
+  <text class="badge-text badgeText" x="538" y="1137" text-anchor="middle">12</text>
+  <text class="msg" x="670" y="1138" text-anchor="middle" fill="#cf8428">fresh bounded primary probe</text>
+
+  <path class="route" d="M840 1216 L1220 1216" stroke="#cf8428" marker-end="url(#arrow-amber)"/>
+  <rect class="pill" x="890" y="1174" width="280" height="30" rx="15"/>
+  <circle class="badge" cx="908" cy="1189" r="13" fill="#cf8428"/>
+  <text class="badge-text badgeText" x="908" y="1193" text-anchor="middle">13</text>
+  <text class="msg" x="1040" y="1194" text-anchor="middle" fill="#cf8428">read live token on same primary</text>
+
+  <rect class="callout" x="104" y="1232" width="1160" height="34" rx="12"/>
+  <text class="note" x="684" y="1254" text-anchor="middle">own token: confirm acquire; probe failure: cleanup pending; bounded same-elector DELETE or full lease expiry</text>
+
+  <rect class="legend" x="82" y="1300" width="1336" height="40" rx="8"/>
+  <text class="footer" x="750" y="1326" text-anchor="middle">Server time and owner-token predicates decide safety; row deletion is cleanup, not the correctness clock.</text>
+</svg>

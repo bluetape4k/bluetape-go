@@ -1,19 +1,18 @@
-# Benchmark Artifact Retention
+# Benchmark artifact retention
 
-Issue #401 makes benchmark output traceable before recommendation work starts.
+Issue #401은 recommendation 작업을 시작하기 전에 benchmark output을 추적 가능하게 만든다.
 
-## Lessons
+## 교훈
 
-- Keep raw output, command, and environment metadata together. A benchmark row
-  without OS, CPU, Go version, git SHA, and dirty-tree state is not enough for a
-  cross-repo recommendation.
-- Store local snapshots as evidence, not rankings. Reports can say what a file
-  measured; production defaults require a later decision with caller constraints
-  and security boundaries.
-- Use stable issue-specific output directories. Downstream reports should cite
-  files instead of relying on pasted benchmark excerpts.
+- Raw output, command, environment metadata는 함께 보존한다. OS, CPU, Go version, git
+  SHA, dirty-tree state가 없는 benchmark row는 cross-repo recommendation에 충분하지 않다.
+- Local snapshot은 ranking이 아니라 evidence로 저장한다. Report는 파일이 무엇을
+  측정했는지 말할 수 있지만, production default는 caller constraint와 security boundary를
+  반영한 별도 결정이 필요하다.
+- Issue별 stable output directory를 사용한다. Downstream report는 pasted benchmark
+  excerpt에 의존하지 말고 file을 cite해야 한다.
 
-## Evidence
+## 증거
 
 - `docs/research/2026-07-07-issue-401-benchmark-artifact-retention.md`
 - `docs/research/benchmark-artifact-template.md`

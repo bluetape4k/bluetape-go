@@ -1,21 +1,20 @@
-# Lessons Learned - Cache Benchmark Suite (2026-06-04)
+# Cache Benchmark Suite Lessons (2026-06-04)
 
 Issue: #107
 Milestone: 0.3.0
 
-## L1: Benchmark PRs need measured docs, not only commands
+## L1: benchmark PR에는 command만 아니라 측정 해석 문서가 필요하다
 
-### Problem
+### 문제
 
-#107 asks for benchmark commands, environment notes, and sample results. A PR
-body alone would satisfy the short-term review but would not be searchable by
-GNO after the branch is merged.
+#107은 benchmark command, environment note, sample result를 요구했다. PR body만으로도
+단기 review는 통과할 수 있지만 branch가 merge된 뒤 GNO에서 검색 가능한 durable
+knowledge가 남지 않는다.
 
-### Lesson
+### 교훈
 
-Benchmark work should write the durable interpretation under `docs/research`
-with sample output, environment notes, and explicit limits such as "local
-snapshot, not production ranking".
+benchmark work는 sample output, environment note, "local snapshot, not production
+ranking" 같은 explicit limit를 `docs/research` 아래에 기록해야 한다.
 
 ### Evidence
 
@@ -23,21 +22,20 @@ snapshot, not production ranking".
 - `go test -run '^$' -bench '^BenchmarkMemory' -benchtime=100ms -benchmem ./cache`
 - `go test -run '^$' -bench '^BenchmarkNearCache' -benchtime=100ms -benchmem ./cache/redisnear`
 
-## L2: Worktree boundaries must be checked before patching
+## L2: patch 전에 worktree boundary를 확인한다
 
-### Problem
+### 문제
 
-The first patch application used the session default directory and wrote #107
-files into the main `develop` worktree instead of the feature worktree.
+첫 patch application은 session default directory를 사용해 #107 파일을 feature
+worktree가 아니라 main `develop` worktree에 작성했다.
 
-### Lesson
+### 교훈
 
-For multi-worktree bluetape-go work, use absolute paths or verify `git status`
-in the target worktree before every `apply_patch` edit. If a patch lands in the
-wrong worktree, move the patch to the feature worktree and restore `develop`
-clean before continuing.
+multi-worktree bluetape-go work에서는 `apply_patch` edit 전마다 absolute path를
+사용하거나 target worktree에서 `git status`를 확인한다. patch가 잘못된 worktree에
+들어가면 feature worktree로 옮기고 `develop`을 clean하게 복구한 뒤 계속한다.
 
 ### Evidence
 
-- Main `develop` worktree was restored to clean before tests continued.
-- All #107 changes now live in `.worktrees/bench-issue-107-cache-suite`.
+- test 진행 전 main `develop` worktree를 clean 상태로 복구했다.
+- 모든 #107 변경은 `.worktrees/bench-issue-107-cache-suite`에 존재한다.

@@ -1,14 +1,16 @@
 # Issue #34 Measured Values Plan Review
 
+> 한국어 리뷰 경계: 이 문서는 리뷰 판정과 근거를 한국어 독자가 추적할 수 있도록 정리한다. 심각도 토큰, 판정 토큰, 파일 경로, 라인 번호, 이슈/PR 번호, 명령, 코드 식별자는 원문의 증거 앵커로 보존한다.
+
 Task: Step 3-R plan review
-Issue: #34
-Date: 2026-06-08
+이슈: #34
+날짜: 2026-06-08
 Spec: `docs/superpowers/specs/2026-06-08-issue-34-measured-values-spec.md`
 Plan: `docs/superpowers/plans/2026-06-08-issue-34-measured-values-plan.md`
-Scope: Go-native `measure` package for typed units, conversion, parsing,
+범위: Go-native `measure` package for typed units, conversion, parsing,
 formatting, temperature, compound units, stress coverage, and docs.
 
-## Review Method
+## 검토 방법
 
 Required references loaded:
 
@@ -26,7 +28,7 @@ Native subagents reviewed independent lanes:
 The main session integrated the findings, patched the spec/plan for every P1
 and selected P2, then reran the affected code/API and test-engineer lanes.
 
-## Iteration 1 Findings
+## 반복 1 발견 사항
 
 | Priority | Lane | Finding | Resolution |
 |---|---|---|---|
@@ -71,7 +73,7 @@ Final verdict: PASS. Step 4 implementation is unblocked.
 
 ## Step 3-R Checklist Completion Report
 
-| Item | Status | Notes |
+| 항목 | 상태 | Notes |
 |---|---|---|
 | Required references loaded | Done | Step 3-R reference files read. |
 | Every spec requirement maps to a task | Done | T1-T11 cover core, families, parsing, formatting, temperature, compound, stress, docs, verification, and PR. |

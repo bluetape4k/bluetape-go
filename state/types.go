@@ -2,14 +2,10 @@ package state
 
 import "context"
 
-// Guard decides whether a transition may proceed.
-//
-// Guards receive the caller context, current state, and event. Returning an
-// error rejects the transition. Because CanTransition can evaluate guards
-// without mutating the machine, guards should be safe for inquiry calls.
+// Guard 상태 전이, guard, final state에서 사용하는 함수 타입이다.
 type Guard[S comparable, E comparable] func(context.Context, S, E) error
 
-// Transition defines one event path from a source state to a target state.
+// Transition 상태 전이, guard, final state에서 사용하는 구조체다.
 type Transition[S comparable, E comparable] struct {
 	From  S
 	Event E
@@ -17,21 +13,24 @@ type Transition[S comparable, E comparable] struct {
 	Guard Guard[S, E]
 }
 
-// Result reports the state change performed by Transition.
+// Result 상태 전이, guard, final state에서 사용하는 구조체다.
 type Result[S comparable, E comparable] struct {
 	Previous S
 	Event    E
 	Current  S
 }
 
-// Option configures a Machine during construction.
+// Option 상태 전이, guard, final state에서 사용하는 함수 타입이다.
 type Option[S comparable, E comparable] func(*config[S, E])
 
 type config[S comparable, E comparable] struct {
 	finalStates map[S]struct{}
 }
 
-// WithFinalStates marks states that reject further transitions.
+// WithFinalStates 상태 전이, guard, final state 옵션을 설정한다.
+//
+// 매개변수:
+//   - states: 최종 상태로 취급할 상태 목록이다.
 func WithFinalStates[S comparable, E comparable](states ...S) Option[S, E] {
 	return func(cfg *config[S, E]) {
 		if cfg.finalStates == nil {

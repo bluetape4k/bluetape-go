@@ -4,17 +4,50 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"strings"
 	"sync/atomic"
 	"testing"
 	"time"
 
 	"github.com/bluetape4k/bluetape-go/cache"
 	"github.com/bluetape4k/bluetape-go/cache/redisnear"
+	btredis "github.com/bluetape4k/bluetape-go/redis"
 	redistestcontainer "github.com/bluetape4k/bluetape-go/testcontainers/redis"
 	bttesting "github.com/bluetape4k/bluetape-go/testing"
 	concurrencytest "github.com/bluetape4k/bluetape-go/testing/concurrency"
 	"github.com/redis/go-redis/v9"
 )
+
+func TestReconcileUnlockRetriesCommitUnknownOnSameLease(t *testing.T) {
+	lease := &scriptedUnlocker{results: []unlockResult{
+		{err: errors.Join(errors.New("lost response"), btredis.ErrCommitUnknown)},
+		{released: false},
+	}}
+	coord := &StampedeCache[string]{}
+
+	if err := coord.reconcileUnlock(lease); err != nil {
+		t.Fatalf("reconcile unlock: %v", err)
+	}
+	if lease.calls != 2 {
+		t.Fatalf("unlock calls = %d, want 2", lease.calls)
+	}
+}
+
+type unlockResult struct {
+	released bool
+	err      error
+}
+
+type scriptedUnlocker struct {
+	results []unlockResult
+	calls   int
+}
+
+func (s *scriptedUnlocker) Unlock(context.Context) (bool, error) {
+	result := s.results[s.calls]
+	s.calls++
+	return result.released, result.err
+}
 
 func TestNewStampedeCacheRejectsInvalidOptions(t *testing.T) {
 	client := redis.NewClient(&redis.Options{Addr: "127.0.0.1:0"})
@@ -34,6 +67,7 @@ func TestNewStampedeCacheRejectsInvalidOptions(t *testing.T) {
 		{name: "negative lock ttl", opts: Options[string]{Client: client, Cache: local, Codec: JSONCodec[string]{}, LockTTL: -time.Second}},
 		{name: "negative result ttl", opts: Options[string]{Client: client, Cache: local, Codec: JSONCodec[string]{}, ResultTTL: -time.Second}},
 		{name: "negative poll interval", opts: Options[string]{Client: client, Cache: local, Codec: JSONCodec[string]{}, PollInterval: -time.Second}},
+		{name: "negative max result bytes", opts: Options[string]{Client: client, Cache: local, Codec: JSONCodec[string]{}, MaxResultBytes: -1}},
 	}
 
 	for _, tt := range tests {
@@ -71,6 +105,38 @@ func TestNewStampedeCacheAppliesDefaults(t *testing.T) {
 	if coord.cfg.pollInterval != defaultPollInterval {
 		t.Fatalf("poll interval = %s, want %s", coord.cfg.pollInterval, defaultPollInterval)
 	}
+	if coord.cfg.maxResultBytes != 0 {
+		t.Fatalf("max result bytes = %d, want unlimited", coord.cfg.maxResultBytes)
+	}
+}
+
+func TestStampedeCacheMaxResultBytesBoundsWriteAndRead(t *testing.T) {
+	ctx := context.Background()
+	client := redisClient(ctx, t)
+	coord, err := NewStampedeCache[string](Options[string]{
+		Client: client, Cache: cache.NewMemory[string, string](), Namespace: "result-limit",
+		Codec: JSONCodec[string]{}, MaxResultBytes: 32,
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	err = coord.storeResult(ctx, "write-key", "owner-token", []byte("payload-too-large-for-envelope"))
+	if !errors.Is(err, ErrResultTooLarge) {
+		t.Fatalf("store error = %v", err)
+	}
+	if exists, err := client.Exists(ctx, coord.resultKey("write-key")).Result(); err != nil || exists != 0 {
+		t.Fatalf("oversized result published: exists=%d err=%v", exists, err)
+	}
+
+	readKey := coord.resultKey("read-key")
+	if err := client.Set(ctx, readKey, []byte(strings.Repeat("x", 33)), time.Minute).Err(); err != nil {
+		t.Fatal(err)
+	}
+	_, _, err = coord.readOwnerResult(ctx, "read-key", time.Minute, "owner-token")
+	if !errors.Is(err, ErrResultTooLarge) {
+		t.Fatalf("read error = %v", err)
+	}
 }
 
 func TestJSONCodecRoundTrips(t *testing.T) {
@@ -107,6 +173,28 @@ func TestResultEnvelopeRequiresMatchingToken(t *testing.T) {
 	}
 	if payload, ok, err := decodeResult(encoded, "owner-b"); err != nil || ok || payload != nil {
 		t.Fatalf("wrong token should be ignored, ok=%t payload=%q err=%v", ok, payload, err)
+	}
+}
+
+func TestEncodedResultSizeMatchesJSONEnvelope(t *testing.T) {
+	for _, tc := range []struct {
+		token   string
+		payload []byte
+	}{
+		{token: "owner", payload: []byte("value")},
+		{token: "owner<>&\u2028", payload: []byte{}},
+	} {
+		encoded, err := encodeResult(tc.token, tc.payload)
+		if err != nil {
+			t.Fatal(err)
+		}
+		size, err := encodedResultSize(tc.token, tc.payload)
+		if err != nil {
+			t.Fatal(err)
+		}
+		if size != len(encoded) {
+			t.Fatalf("size = %d, encoded = %d", size, len(encoded))
+		}
 	}
 }
 

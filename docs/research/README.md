@@ -27,6 +27,7 @@ scope, dependency candidates, and GitHub issues.
 | `Backlog` | [Issue #422 OpenTelemetry bridge guidance](2026-07-09-issue-422-otel-bridge-guidance.md), [Issue #431 MongoDB leader storage](2026-07-09-issue-431-leader-mongodb-storage.md), [Issue #433 GraphML graphio evaluation](2026-07-09-issue-433-graphml-graphio-evaluation.md), [Issue #439 audit repository and SQL outbox benchmark](2026-07-09-issue-439-audit-outbox-benchmark.md) |
 | `0.15.0` | [Issue #405 audit publisher adapter target](2026-07-07-issue-405-audit-publisher-target.md), [Issue #407 audit publisher adapter](2026-07-07-issue-407-audit-publisher-adapter.md), [Issue #455 zstd allocation profile](2026-07-08-issue-455-zstd-allocation-profile.md), [Issue #456 JSON repeated collection profile](2026-07-07-issue-456-json-repeated-profile.md) |
 | `0.17.0` | [Issue #415 workshop adoption matrix](2026-07-08-issue-415-workshop-adoption-matrix.md) |
+| `0.19.0` | [Issue #536 RESP3 CLIENT TRACKING spike](2026-07-18-issue-536-resp3-client-tracking-spike.md) |
 
 ## Update Rule
 

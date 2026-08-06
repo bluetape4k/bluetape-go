@@ -65,6 +65,21 @@ report := job.Run(ctx)
 - `Report`는 status, counter, 시작/종료 시각, child report, terminal error를
   담습니다.
 
+## PostgreSQL atomic checkpoint
+
+Legacy `Writer + CheckpointStore` 경로는 durable checkpoint store를 사용할 수 있지만,
+business write와 원자적으로 commit되지는 않습니다(**not atomic with business writes**).
+`Writer.Write`와
+`CheckpointStore.Save`가 별도 operation이므로 그 사이에 crash가 발생하면 이미 commit된
+chunk를 replay할 수 있습니다. Business write와 checkpoint가 서로 다른 store에 있고
+at-least-once replay를 수용하는 경우에는 이 경로를 계속 사용할 수 있습니다.
+
+PostgreSQL business row와 reader progress를 한 transaction에서 commit해야 한다면 additive
+`NewAtomicStep` constructor와 [`batch/sqlcheckpoint`](sqlcheckpoint/README.ko.md)를
+사용합니다. Atomic 경로에서 `RetryPolicy`와 `SkipPolicy`는 processor failure에만
+적용되며 `AtomicCheckpointWriter.Commit`, callback, checkpoint CAS, unknown-outcome
+error에는 적용되지 않습니다.
+
 ## 운영 경계
 
 - 이 패키지는 control flow, counter, retry, skip, chunking, checkpoint coordination을

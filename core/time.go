@@ -7,10 +7,7 @@ import (
 	"time"
 )
 
-// Quarter represents one calendar quarter.
-//
-// The zero value is invalid. Use NewQuarter or QuarterOf when accepting
-// caller-provided values.
+// Quarter int 공개 타입이다.
 type Quarter int
 
 const (
@@ -24,7 +21,12 @@ const (
 	Quarter4 Quarter = 4
 )
 
-// NewQuarter returns a validated quarter for number 1 through 4.
+// NewQuarter Quarter 인스턴스를 생성한다.
+//
+// 매개변수:
+//   - number: NewQuarter에 전달되는 값이다. 허용 범위와 nil 처리 방식은 구현 검증을 따른다.
+//
+// 반환 오류는 입력 검증 실패와 패키지에서 정의한 sentinel error/typed error를 그대로 드러낸다.
 func NewQuarter(number int) (Quarter, error) {
 	q := Quarter(number)
 	if !q.Valid() {
@@ -33,7 +35,12 @@ func NewQuarter(number int) (Quarter, error) {
 	return q, nil
 }
 
-// QuarterOf returns the quarter containing month.
+// QuarterOf 입력 값에서 도메인 값을 계산한다.
+//
+// 매개변수:
+//   - month: QuarterOf에 전달되는 값이다. 허용 범위와 nil 처리 방식은 구현 검증을 따른다.
+//
+// 반환 오류는 입력 검증 실패와 패키지에서 정의한 sentinel error/typed error를 그대로 드러낸다.
 func QuarterOf(month time.Month) (Quarter, error) {
 	if month < time.January || month > time.December {
 		return 0, fmt.Errorf("%w: month %d", ErrInvalidQuarter, month)
@@ -41,17 +48,19 @@ func QuarterOf(month time.Month) (Quarter, error) {
 	return Quarter((int(month)-1)/3 + 1), nil
 }
 
-// Valid reports whether q is Q1 through Q4.
+// Valid 값이 유효한지 반환한다.
 func (q Quarter) Valid() bool {
 	return q >= Quarter1 && q <= Quarter4
 }
 
-// Number returns the numeric quarter value.
+// Number numeric constraint에 포함되는 타입 집합이다.
 func (q Quarter) Number() int {
 	return int(q)
 }
 
-// StartMonth returns the first month in q.
+// StartMonth 분기 시작 월을 반환한다.
+//
+// 반환 오류는 입력 검증 실패와 패키지에서 정의한 sentinel error/typed error를 그대로 드러낸다.
 func (q Quarter) StartMonth() (time.Month, error) {
 	if !q.Valid() {
 		return 0, fmt.Errorf("%w: %d", ErrInvalidQuarter, q)
@@ -59,7 +68,9 @@ func (q Quarter) StartMonth() (time.Month, error) {
 	return time.Month((int(q)-1)*3 + 1), nil
 }
 
-// EndMonth returns the last month in q.
+// EndMonth 분기 종료 월을 반환한다.
+//
+// 반환 오류는 입력 검증 실패와 패키지에서 정의한 sentinel error/typed error를 그대로 드러낸다.
 func (q Quarter) EndMonth() (time.Month, error) {
 	start, err := q.StartMonth()
 	if err != nil {
@@ -68,7 +79,12 @@ func (q Quarter) EndMonth() (time.Month, error) {
 	return start + 2, nil
 }
 
-// Add returns the quarter n quarters after q.
+// Add 현재 값에 입력 값을 더한 결과를 반환한다.
+//
+// 매개변수:
+//   - n: Add에 전달되는 값이다. 허용 범위와 nil 처리 방식은 구현 검증을 따른다.
+//
+// 반환 오류는 입력 검증 실패와 패키지에서 정의한 sentinel error/typed error를 그대로 드러낸다.
 func (q Quarter) Add(n int) (Quarter, error) {
 	if !q.Valid() {
 		return 0, fmt.Errorf("%w: %d", ErrInvalidQuarter, q)
@@ -77,7 +93,7 @@ func (q Quarter) Add(n int) (Quarter, error) {
 	return Quarter(offset + 1), nil
 }
 
-// String returns Q1, Q2, Q3, Q4, or a diagnostic for invalid values.
+// String 값을 사람이 읽을 수 있는 문자열로 반환한다.
 func (q Quarter) String() string {
 	if !q.Valid() {
 		return fmt.Sprintf("Quarter(%d)", q)
@@ -85,16 +101,19 @@ func (q Quarter) String() string {
 	return fmt.Sprintf("Q%d", q)
 }
 
-// YearQuarter represents a calendar quarter in a specific year.
-//
-// Year zero is invalid. Use NewYearQuarter or ParseYearQuarter when accepting
-// caller-provided values.
+// YearQuarter 패키지에서 공개하는 구조체다.
 type YearQuarter struct {
 	Year    int
 	Quarter Quarter
 }
 
-// NewYearQuarter returns a validated YearQuarter.
+// NewYearQuarter YearQuarter 인스턴스를 생성한다.
+//
+// 매개변수:
+//   - year: NewYearQuarter에 전달되는 값이다. 허용 범위와 nil 처리 방식은 구현 검증을 따른다.
+//   - quarter: NewYearQuarter에 전달되는 값이다. 허용 범위와 nil 처리 방식은 구현 검증을 따른다.
+//
+// 반환 오류는 입력 검증 실패와 패키지에서 정의한 sentinel error/typed error를 그대로 드러낸다.
 func NewYearQuarter(year int, quarter Quarter) (YearQuarter, error) {
 	yq := YearQuarter{Year: year, Quarter: quarter}
 	if err := yq.validate(); err != nil {
@@ -103,13 +122,21 @@ func NewYearQuarter(year int, quarter Quarter) (YearQuarter, error) {
 	return yq, nil
 }
 
-// YearQuarterOf returns the year and quarter containing t in t's location.
+// YearQuarterOf 입력 값에서 도메인 값을 계산한다.
+//
+// 매개변수:
+//   - t: YearQuarterOf에 전달되는 값이다. 허용 범위와 nil 처리 방식은 구현 검증을 따른다.
 func YearQuarterOf(t time.Time) YearQuarter {
 	quarter, _ := QuarterOf(t.Month())
 	return YearQuarter{Year: t.Year(), Quarter: quarter}
 }
 
-// ParseYearQuarter parses a canonical value such as 2026-Q3.
+// ParseYearQuarter 문자열 입력을 도메인 값으로 해석한다.
+//
+// 매개변수:
+//   - value: ParseYearQuarter가 해석할 문자열이다. 빈 문자열과 공백은 구현 검증을 따른다.
+//
+// 반환 오류는 입력 검증 실패와 패키지에서 정의한 sentinel error/typed error를 그대로 드러낸다.
 func ParseYearQuarter(value string) (YearQuarter, error) {
 	if len(value) != len("2006-Q1") || value[4] != '-' || value[5] != 'Q' {
 		return YearQuarter{}, fmt.Errorf("%w: expected YYYY-QN", ErrInvalidTime)
@@ -127,12 +154,17 @@ func ParseYearQuarter(value string) (YearQuarter, error) {
 	return NewYearQuarter(year, quarter)
 }
 
-// Valid reports whether yq has a non-zero year and a valid quarter.
+// Valid 값이 유효한지 반환한다.
 func (yq YearQuarter) Valid() bool {
 	return yq.Year != 0 && yq.Quarter.Valid()
 }
 
-// Add returns the YearQuarter n quarters after yq.
+// Add 현재 값에 입력 값을 더한 결과를 반환한다.
+//
+// 매개변수:
+//   - n: Add에 전달되는 값이다. 허용 범위와 nil 처리 방식은 구현 검증을 따른다.
+//
+// 반환 오류는 입력 검증 실패와 패키지에서 정의한 sentinel error/typed error를 그대로 드러낸다.
 func (yq YearQuarter) Add(n int) (YearQuarter, error) {
 	if err := yq.validate(); err != nil {
 		return YearQuarter{}, err
@@ -143,7 +175,12 @@ func (yq YearQuarter) Add(n int) (YearQuarter, error) {
 	return NewYearQuarter(year, quarter)
 }
 
-// Start returns local midnight on the first day of yq in loc.
+// Start 병렬 작업 실행 흐름을 제어한다.
+//
+// 매개변수:
+//   - loc: Start에 전달되는 값이다. 허용 범위와 nil 처리 방식은 구현 검증을 따른다.
+//
+// 반환 오류는 입력 검증 실패와 패키지에서 정의한 sentinel error/typed error를 그대로 드러낸다.
 func (yq YearQuarter) Start(loc *time.Location) (time.Time, error) {
 	if loc == nil {
 		return time.Time{}, fmt.Errorf("%w: nil location", ErrInvalidTime)
@@ -158,7 +195,12 @@ func (yq YearQuarter) Start(loc *time.Location) (time.Time, error) {
 	return time.Date(yq.Year, month, 1, 0, 0, 0, 0, loc), nil
 }
 
-// End returns local midnight at the exclusive start of the next quarter.
+// End 기간의 종료 시각을 반환한다.
+//
+// 매개변수:
+//   - loc: End에 전달되는 값이다. 허용 범위와 nil 처리 방식은 구현 검증을 따른다.
+//
+// 반환 오류는 입력 검증 실패와 패키지에서 정의한 sentinel error/typed error를 그대로 드러낸다.
 func (yq YearQuarter) End(loc *time.Location) (time.Time, error) {
 	start, err := yq.Start(loc)
 	if err != nil {
@@ -167,7 +209,10 @@ func (yq YearQuarter) End(loc *time.Location) (time.Time, error) {
 	return start.AddDate(0, 3, 0), nil
 }
 
-// Contains reports whether t is in yq in t's location.
+// Contains 값이 포함되어 있는지 반환한다.
+//
+// 매개변수:
+//   - t: Contains에 전달되는 값이다. 허용 범위와 nil 처리 방식은 구현 검증을 따른다.
 func (yq YearQuarter) Contains(t time.Time) bool {
 	if !yq.Valid() {
 		return false
@@ -184,7 +229,7 @@ func (yq YearQuarter) Contains(t time.Time) bool {
 	return !t.Before(start) && t.Before(end)
 }
 
-// String returns canonical YYYY-QN text or a diagnostic for invalid values.
+// String 값을 사람이 읽을 수 있는 문자열로 반환한다.
 func (yq YearQuarter) String() string {
 	if !yq.Valid() {
 		return fmt.Sprintf("YearQuarter(%d,%s)", yq.Year, yq.Quarter)
@@ -202,9 +247,11 @@ func (yq YearQuarter) validate() error {
 	return nil
 }
 
-// DatesUntil returns midnight dates from startInclusive through endExclusive.
+// DatesUntil 종료일 전까지의 날짜 목록을 반환한다.
 //
-// Boundaries are compared as calendar dates in startInclusive's location.
+// 매개변수:
+//   - startInclusive: DatesUntil에 전달되는 값이다. 허용 범위와 nil 처리 방식은 구현 검증을 따른다.
+//   - endExclusive: DatesUntil에 전달되는 값이다. 허용 범위와 nil 처리 방식은 구현 검증을 따른다.
 func DatesUntil(startInclusive, endExclusive time.Time) iter.Seq[time.Time] {
 	loc := startInclusive.Location()
 	start := dateOnly(startInclusive, loc)
@@ -218,9 +265,11 @@ func DatesUntil(startInclusive, endExclusive time.Time) iter.Seq[time.Time] {
 	}
 }
 
-// DatesInclusive returns midnight dates from startInclusive through endInclusive.
+// DatesInclusive 시작일과 종료일을 포함한 날짜 목록을 반환한다.
 //
-// Boundaries are compared as calendar dates in startInclusive's location.
+// 매개변수:
+//   - startInclusive: DatesInclusive에 전달되는 값이다. 허용 범위와 nil 처리 방식은 구현 검증을 따른다.
+//   - endInclusive: DatesInclusive에 전달되는 값이다. 허용 범위와 nil 처리 방식은 구현 검증을 따른다.
 func DatesInclusive(startInclusive, endInclusive time.Time) iter.Seq[time.Time] {
 	loc := startInclusive.Location()
 	start := dateOnly(startInclusive, loc)

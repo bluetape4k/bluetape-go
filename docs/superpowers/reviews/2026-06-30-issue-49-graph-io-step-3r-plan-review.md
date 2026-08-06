@@ -1,11 +1,13 @@
 # Issue #49 Step 3-R Plan Review
 
-Date: 2026-06-30
+> 한국어 리뷰 경계: 이 문서는 리뷰 판정과 근거를 한국어 독자가 추적할 수 있도록 정리한다. 심각도 토큰, 판정 토큰, 파일 경로, 라인 번호, 이슈/PR 번호, 명령, 코드 식별자는 원문의 증거 앵커로 보존한다.
+
+날짜: 2026-06-30
 Worktree: `.worktrees/issue-49-graph-io`
-Branch: `feat/issue-49-graph-io`
+브랜치: `feat/issue-49-graph-io`
 Baseline: `da6005c`
 
-## Verdict
+## 판정
 
 P0: 0
 P1: 0
@@ -24,7 +26,7 @@ targeted spec and plan corrections.
 | Developer/API | 0 | 2 | 0 | 0 | Added exported `CSVReader`/`CSVWriter` streaming contract and removed public `FormatGraphML`. |
 | User/Caller | 0 | 1 | 0 | 0 | Added direct `CSVReader`/`CSVWriter` tests and examples for header setup, read sequencing, EOF, close, and reports. |
 
-## Corrections Applied
+## 적용한 수정
 
 - CSV writes now default to `CSVFormulaEscape`; `CSVFormulaRaw` is an explicit
   lossless graph-interchange opt-in.
@@ -42,7 +44,7 @@ targeted spec and plan corrections.
   `ErrStreamClosed`, stable final report reuse, and no count mutation.
 - Examples must include direct `CSVReader`/`CSVWriter` usage.
 
-## Rerun Evidence
+## 재실행 증거
 
 | Perspective | P0 | P1 | Evidence |
 | --- | ---: | ---: | --- |
@@ -54,7 +56,7 @@ targeted spec and plan corrections.
 | User/Caller | 0 | 0 | Focused rerun accepted direct CSVReader/CSVWriter tests and examples for caller usability. |
 | Main Integration | 0 | 0 | Current on-disk spec and plan have no remaining P0/P1 contradictions across review lanes. |
 
-## Follow-Up Gates
+## 후속 게이트
 
 - Step 4 must write the planned failing tests before implementation code.
 - Step 6-R must verify the actual implementation against the corrected plan,

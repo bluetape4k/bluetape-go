@@ -1,12 +1,14 @@
 # Issue #33 JWT Helper Utilities Spec Review
 
+> 한국어 리뷰 경계: 이 문서는 리뷰 판정과 근거를 한국어 독자가 추적할 수 있도록 정리한다. 심각도 토큰, 판정 토큰, 파일 경로, 라인 번호, 이슈/PR 번호, 명령, 코드 식별자는 원문의 증거 앵커로 보존한다.
+
 Review type: Step 2-R spec review
 Spec: `docs/superpowers/specs/2026-06-08-issue-33-jwt-helper-utilities-spec.md`
-Issue: #33
+이슈: #33
 Milestone: 0.6.0
-Review date: 2026-06-08
+검토일: 2026-06-08
 
-## Inputs
+## 입력
 
 - GitHub issue #33: assignee `debop`, milestone `0.6.0`, labels
   `type: task`, `priority: p1`, `area: utilities`.
@@ -19,7 +21,7 @@ Review date: 2026-06-08
   - `github.com/golang-jwt/jwt/v5` selected for #33 core.
   - `lestrrat-go/jwx` and `go-jose/go-jose` deferred to #174.
 
-## Subagent Results
+## 서브에이전트 결과
 
 | Reviewer | Role | Initial P0 | Initial P1 | Initial P2 | Initial P3 | Verdict |
 | --- | --- | ---: | ---: | ---: | ---: | --- |
@@ -28,14 +30,14 @@ Review date: 2026-06-08
 | Kierkegaard | architect | 0 | 1 | 2 | 0 | Failed until repository context/future distributed API boundary was fixed. |
 | Herschel | critic closure | 0 | 0 | 0 | 0 | Passed after P1/P2 closure. |
 
-## Blockers Closed
+## 차단 항목 종료
 
 | Finding | Severity | Resolution |
 | --- | --- | --- |
 | Deterministic clock/entropy/key-generation tests were not required. | P1 | Spec now requires test-local entropy without global mutation at lines 232-233, no package-global entropy/clock/parser mutation at line 278, deterministic clock assertions at lines 357-358, and deterministic entropy/failure assertions at lines 359-361. |
 | `KeyChainRepository` looked like a future public distributed repository API but had no `context.Context`. | P1 | Spec now uses unexported `keyChainRepository` at lines 239-246 and explicitly scopes it to #33 in-memory only at lines 249-252. #173 was updated to require a context-aware distributed repository contract. |
 
-## Non-Blocking Fixes Applied
+## 비차단 수정 적용
 
 | Finding | Severity | Resolution |
 | --- | --- | --- |
@@ -53,7 +55,7 @@ Final Step 2-R counts: P0=0, P1=0, P2=0, P3=0.
 
 Gate verdict: PASS. The spec may advance to plan.
 
-## Verification
+## 검증
 
 ```bash
 git diff --check

@@ -35,6 +35,12 @@ campaignCtx, campaignCancel := context.WithTimeout(ctx, 15*time.Second)
 defer campaignCancel()
 
 if err := elector.Campaign(campaignCtx); err != nil {
+    if errors.Is(err, leader.ErrCommitUnknown) {
+        cleanupCtx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+        cleanupErr := elector.Resign(cleanupCtx)
+        cancel()
+        return errors.Join(err, cleanupErr) // TTL이 최종 fallback
+    }
     return err
 }
 defer func() {
@@ -98,6 +104,13 @@ _ = ran
 - Campaign은 leadership을 획득하거나 caller context가 cancel될 때까지 대기합니다.
 - Cleanup은 request context보다 오래 걸릴 수 있지만, 복사 가능한 예제에서는
   `Resign`에도 명시적인 cleanup timeout을 둡니다.
+- Single-elector value는 `memberID:<random>` layout을 유지합니다. random suffix는
+  내부 canonical owner token이며 caller-visible lease API가 아닙니다.
+- Single-Elector Redis provider failure는 `errors.Is` / `errors.As`용 cause를
+  유지하면서 diagnostic text에서는 raw Redis key와 owner-token value를
+  redaction합니다.
+- Group-Elector ZSET member도 `memberID:<random>` 값을 유지하며 random suffix는
+  canonical이고 provider diagnostic은 같은 typed/redacted contract를 따릅니다.
 
 ## 실행 가능한 Batch 예제
 
@@ -117,3 +130,15 @@ go test -count=1 ./leader/redis -run 'Test(BatchSchedulerExample|MigrationGateEx
 ```bash
 go test -count=1 ./leader/redis
 ```
+
+## Conformance 및 복구
+
+Mixed-version 제약, canary telemetry/threshold, resign/TTL rollback gate는 영·한
+[v0.19.0 rollout runbook](../../docs/release/v0.19.0-provider-conformance-runbook.md)을
+따릅니다.
+
+`Campaign`은 bounded retry로 leadership 획득 또는 context 종료까지 기다립니다. Dispatch
+응답 유실은 owner token으로 reconcile하며 probe 실패는 `leader.ErrCommitUnknown`과
+`redis.ErrCommitUnknown`을 모두 match합니다. Elector를 유지하고 bounded `Resign`을
+실행하며 cleanup을 확인할 수 없으면 lease TTL을 기다립니다. Canary acquire command
+rate는 초당 12회 이하여야 합니다.

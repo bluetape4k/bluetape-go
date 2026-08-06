@@ -2,7 +2,7 @@ package workreport
 
 import "time"
 
-// Report captures one work outcome and optional child outcomes.
+// Report work report 상태, failure policy, child report에서 사용하는 구조체다.
 type Report struct {
 	Name      string
 	Status    Status
@@ -13,32 +13,58 @@ type Report struct {
 	Children  []Report
 }
 
-// Completed reports successful work.
+// Completed work report 상태, failure policy, child report 동작을 수행한다.
+//
+// 매개변수:
+//   - name: report나 상태를 식별할 이름이다.
 func Completed(name string) Report {
 	return newReport(name, StatusCompleted, nil, "", nil)
 }
 
-// Failed reports work that failed with err.
+// Failed work report 상태, failure policy, child report 동작을 수행한다.
+//
+// 매개변수:
+//   - name: report나 상태를 식별할 이름이다.
+//   - err: 검사하거나 감쌀 오류 값이다.
 func Failed(name string, err error) Report {
 	return newReport(name, StatusFailed, err, "", nil)
 }
 
-// Partial reports aggregated work with one or more non-completed children.
+// Partial work report 상태, failure policy, child report 동작을 수행한다.
+//
+// 매개변수:
+//   - name: report나 상태를 식별할 이름이다.
+//   - children: Partial에 전달되는 값이다. 허용 범위와 nil 처리 방식은 구현 검증을 따른다.
 func Partial(name string, children ...Report) Report {
 	return newReport(name, StatusPartial, nil, "", children)
 }
 
-// Aborted reports work stopped for a caller-defined reason.
+// Aborted work report 상태, failure policy, child report 동작을 수행한다.
+//
+// 매개변수:
+//   - name: report나 상태를 식별할 이름이다.
+//   - reason: 중단 또는 실패 이유다.
 func Aborted(name, reason string) Report {
 	return newReport(name, StatusAborted, nil, reason, nil)
 }
 
-// Cancelled reports work stopped by caller cancellation or deadline.
+// Cancelled work report 상태, failure policy, child report 동작을 수행한다.
+//
+// 매개변수:
+//   - name: report나 상태를 식별할 이름이다.
+//   - err: 검사하거나 감쌀 오류 값이다.
 func Cancelled(name string, err error) Report {
 	return newReport(name, StatusCancelled, err, "", nil)
 }
 
-// Aggregate combines child reports according to policy.
+// Aggregate work report 상태, failure policy, child report 동작을 수행한다.
+//
+// 매개변수:
+//   - name: report나 상태를 식별할 이름이다.
+//   - policy: Aggregate에 전달되는 값이다. 허용 범위와 nil 처리 방식은 구현 검증을 따른다.
+//   - children: Aggregate에 전달되는 값이다. 허용 범위와 nil 처리 방식은 구현 검증을 따른다.
+//
+// 반환 오류는 입력 검증 실패, context 취소/deadline, 상태 전이 실패, 패키지 sentinel error와 typed error를 그대로 드러낸다.
 func Aggregate(name string, policy FailurePolicy, children ...Report) (Report, error) {
 	if !policy.valid() {
 		return Report{}, FailurePolicyError{Policy: policy}
@@ -57,32 +83,32 @@ func Aggregate(name string, policy FailurePolicy, children ...Report) (Report, e
 	}
 }
 
-// IsSuccess reports whether the report is completed.
+// IsSuccess work report 상태, failure policy, child report 상태가 조건을 만족하는지 반환한다.
 func (r Report) IsSuccess() bool {
 	return r.Status == StatusCompleted
 }
 
-// IsFailed reports whether the report status is failed.
+// IsFailed work report 상태, failure policy, child report 상태가 조건을 만족하는지 반환한다.
 func (r Report) IsFailed() bool {
 	return r.Status == StatusFailed
 }
 
-// IsPartial reports whether the report status is partial.
+// IsPartial work report 상태, failure policy, child report 상태가 조건을 만족하는지 반환한다.
 func (r Report) IsPartial() bool {
 	return r.Status == StatusPartial
 }
 
-// IsAborted reports whether the report status is aborted.
+// IsAborted work report 상태, failure policy, child report 상태가 조건을 만족하는지 반환한다.
 func (r Report) IsAborted() bool {
 	return r.Status == StatusAborted
 }
 
-// IsCancelled reports whether the report status is cancelled.
+// IsCancelled work report 상태, failure policy, child report 상태가 조건을 만족하는지 반환한다.
 func (r Report) IsCancelled() bool {
 	return r.Status == StatusCancelled
 }
 
-// IsFailure reports whether the report represents a non-success known outcome.
+// IsFailure work report 상태, failure policy, child report 상태가 조건을 만족하는지 반환한다.
 func (r Report) IsFailure() bool {
 	switch r.Status {
 	case StatusFailed, StatusPartial, StatusAborted, StatusCancelled:
@@ -92,7 +118,7 @@ func (r Report) IsFailure() bool {
 	}
 }
 
-// IsTerminal reports whether the report has a known terminal status.
+// IsTerminal work report 상태, failure policy, child report 상태가 조건을 만족하는지 반환한다.
 func (r Report) IsTerminal() bool {
 	return r.Status.known()
 }

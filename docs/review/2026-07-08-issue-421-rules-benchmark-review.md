@@ -1,24 +1,26 @@
 # Issue #421 Rules Benchmark Review
 
-Issue: [#421](https://github.com/bluetape4k/bluetape-go/issues/421)
-Branch: `feat/issue-421-rules-bench`
+> 한국어 감사/리뷰 경계: 이 문서는 리뷰 결론과 남은 위험을 한국어 독자가 추적할 수 있도록 정리한다. 심각도 표기, 판정 표기, 파일 경로, 라인 번호, 이슈/PR 링크, 명령, 코드 식별자, 인용 증거는 원문의 증거 앵커로 보존한다.
+
+이슈: [#421](https://github.com/bluetape4k/bluetape-go/issues/421)
+브랜치: `feat/issue-421-rules-bench`
 Baseline: `d29b86e`
 
-## Scope
+## 범위
 
 - `Makefile`
 - `rules/rules_benchmark_test.go`
 - `docs/research/outputs/issue-421/environment.md`
 - `docs/research/outputs/issue-421/rules-benchmark.txt`
 
-## Evidence
+## 증거
 
 - Issue #421 requires benchmark command/raw output preservation, measured evidence for future optimization follow-ups, and existing rules behavior remaining covered by tests.
 - `Makefile:11`, `Makefile:28`, and `Makefile:82` expose `bench-rules` as a phony, help-listed, opt-in benchmark target.
 - `rules/rules_benchmark_test.go:9`, `rules/rules_benchmark_test.go:55`, `rules/rules_benchmark_test.go:97`, `rules/rules_benchmark_test.go:147`, and `rules/rules_benchmark_test.go:215` cover composite activation, unit, conditional, bounded inference, and sequential engine hot paths.
 - `docs/research/outputs/issue-421/environment.md:27` records the benchmark command and `docs/research/outputs/issue-421/rules-benchmark.txt:5` preserves the raw benchmark rows.
 
-## 7-Tier Lanes
+## 7-Tier 관점
 
 | Lane | Verdict | Notes |
 |---|---|---|
@@ -30,7 +32,7 @@ Baseline: `d29b86e`
 | User/Caller | PASS after repair | P0=0 P1=0. `bench-rules` is discoverable and reproduces the preserved evidence command. |
 | Integration | PASS | Main-session review accepted the benchmark-only scope and confirmed no production API behavior changes. |
 
-## Validation
+## 검증
 
 | Command | Status | Evidence |
 |---|---|---|
@@ -45,7 +47,7 @@ Baseline: `d29b86e`
 | `make bench-rules` | PASS | Raw `-count=5` benchmark rows preserved under `docs/research/outputs/issue-421/rules-benchmark.txt`. |
 | Artifact hygiene scan | PASS | `rg -n "/Users\|debop\|TOKEN\|SECRET\|PASSWORD\|GITHUB_\|sk-\|ghp_\|github_pat\|BEGIN .*PRIVATE\|PRIVATE KEY" docs/research/outputs/issue-421` returned no matches. |
 
-## Findings
+## 발견 사항
 
 P0=0 P1=0
 
@@ -55,6 +57,6 @@ P0=0 P1=0
 - P3 resolved: `environment.md` exposed local hostname/kernel fingerprint.
 - P3 documented: composite benchmark rows measure steady-state `Facts` reuse, not fresh request construction.
 
-## Residual Risk
+## 잔여 위험
 
 The retained benchmark evidence is a local comparable snapshot, not a production ranking. Future optimization work should compare baseline and candidate output with `benchstat`, and should add fresh-`Facts` variants if request-style allocation cost becomes the optimization target.

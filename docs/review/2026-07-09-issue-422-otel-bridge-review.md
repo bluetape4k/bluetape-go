@@ -1,10 +1,12 @@
 # Issue #422 OpenTelemetry Bridge Guidance Review
 
-Issue: [#422](https://github.com/bluetape4k/bluetape-go/issues/422)  
-Branch: `docs/issue-422-otel-bridge`  
-Date: 2026-07-09
+> 한국어 감사/리뷰 경계: 이 문서는 리뷰 결론과 남은 위험을 한국어 독자가 추적할 수 있도록 정리한다. 심각도 표기, 판정 표기, 파일 경로, 라인 번호, 이슈/PR 링크, 명령, 코드 식별자, 인용 증거는 원문의 증거 앵커로 보존한다.
 
-## Scope
+이슈: [#422](https://github.com/bluetape4k/bluetape-go/issues/422)
+브랜치: `docs/issue-422-otel-bridge`
+날짜: 2026-07-09
+
+## 범위
 
 - `docs/research/2026-07-09-issue-422-otel-bridge-guidance.md`
 - `docs/research/README.md`
@@ -12,7 +14,7 @@ Date: 2026-07-09
 - `resilience/README.ko.md`
 - `CHANGELOG.md`
 
-## Review
+## 검토
 
 | Lane | Verdict | Evidence |
 |---|---|---|
@@ -24,7 +26,7 @@ Date: 2026-07-09
 | User/Caller | PASS | P0=0 P1=0. #139 is linked as `slog` demand but not overstated as OpenTelemetry demand; #422 closes as boundary guidance. |
 | Integration | PASS | P0=0 P1=0. Current #275 and #361 decisions are preserved without scheduling a new adapter package. |
 
-## Validation
+## 검증
 
 | Command | Status | Evidence |
 |---|---|---|
@@ -35,7 +37,7 @@ Date: 2026-07-09
 | `go test -run Example -count=1 ./resilience` | PASS | Compile-checked `slog` bridge example still passes. |
 | `git diff --check` | PASS | No whitespace errors. |
 
-## Findings
+## 발견 사항
 
 P0=0 P1=0
 

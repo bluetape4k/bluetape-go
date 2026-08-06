@@ -17,6 +17,7 @@ import (
 	"github.com/bluetape4k/bluetape-go/leader"
 	redisleader "github.com/bluetape4k/bluetape-go/leader/redis"
 	redislock "github.com/bluetape4k/bluetape-go/lock/redis"
+	btredis "github.com/bluetape4k/bluetape-go/redis"
 	"github.com/bluetape4k/bluetape-go/resilience"
 	redistestcontainer "github.com/bluetape4k/bluetape-go/testcontainers/redis"
 	"github.com/bluetape4k/bluetape-go/workflow"
@@ -201,16 +202,19 @@ func TestRedisCoordinationRecipeSmoke(t *testing.T) {
 		t.Fatalf("redis lock: %v", err)
 	}
 	lease, err := mutex.TryLock(ctx)
+	if lease != nil && err != nil {
+		cleanupErr := reconcileRecipeLease(lease)
+		if errors.Is(err, btredis.ErrCommitUnknown) {
+			t.Fatalf("try lock commit unknown: %v", errors.Join(err, cleanupErr))
+		}
+		t.Fatalf("try lock failed after owner-aware cleanup: %v", errors.Join(err, cleanupErr))
+	}
 	if err != nil {
 		t.Fatalf("try lock: %v", err)
 	}
 	t.Cleanup(func() {
-		unlocked, err := lease.Unlock(context.Background())
-		if err != nil {
+		if err := reconcileRecipeLease(lease); err != nil {
 			t.Fatalf("unlock redis lease: %v", err)
-		}
-		if !unlocked {
-			t.Fatalf("redis lease was not owned during cleanup")
 		}
 	})
 
@@ -228,7 +232,9 @@ func TestRedisCoordinationRecipeSmoke(t *testing.T) {
 		t.Fatalf("campaign leadership: %v", err)
 	}
 	t.Cleanup(func() {
-		if err := elector.Resign(context.Background()); err != nil {
+		cleanupCtx, cleanupCancel := context.WithTimeout(context.Background(), 5*time.Second)
+		defer cleanupCancel()
+		if err := elector.Resign(cleanupCtx); err != nil {
 			t.Fatalf("resign leadership: %v", err)
 		}
 	})
@@ -255,6 +261,23 @@ func TestRedisCoordinationRecipeSmoke(t *testing.T) {
 	if got != 2 {
 		t.Fatalf("redis result = %d, want 2", got)
 	}
+}
+
+func reconcileRecipeLease(lease *redislock.Lease) error {
+	var firstErr error
+	for range 2 {
+		cleanupCtx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+		_, err := lease.Unlock(cleanupCtx)
+		cancel()
+		if err == nil {
+			return nil // released or confirmed absent after the same-lease retry
+		}
+		if !errors.Is(err, btredis.ErrCommitUnknown) {
+			return errors.Join(firstErr, err)
+		}
+		firstErr = errors.Join(firstErr, err)
+	}
+	return firstErr // Redis TTL remains the final fallback
 }
 
 var (

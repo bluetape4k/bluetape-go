@@ -1,13 +1,15 @@
 # Issue #35 Money Spec Review
 
-## Scope
+> 한국어 리뷰 경계: 이 문서는 리뷰 판정과 근거를 한국어 독자가 추적할 수 있도록 정리한다. 심각도 토큰, 판정 토큰, 파일 경로, 라인 번호, 이슈/PR 번호, 명령, 코드 식별자는 원문의 증거 앵커로 보존한다.
+
+## 범위
 
 - Spec: `docs/superpowers/specs/2026-06-09-issue-35-money-decimal-spec.md`
 - Gate: Step 2-R, 7-Tier spec/design review
 - Baseline: `58bccab Add JWT helper utilities`
 - Worktree: `.worktrees/issue-35-money`
 
-## Reviewer Lanes
+## 검토자 관점
 
 | Lane | Result | P0 | P1 | P2 | P3 | Evidence |
 |---|---|---:|---:|---:|---:|---|
@@ -40,6 +42,6 @@
 - Moved follow-up issue creation before README linking and specified follow-up metadata.
 - Added validation commands: `go mod tidy`, `git diff --check`, `golangci-lint config verify`, targeted test, race test, and `make ci`.
 
-## Convergence Verdict
+## 수렴 판정
 
 P0=0 P1=0. Step 2-R PASS.

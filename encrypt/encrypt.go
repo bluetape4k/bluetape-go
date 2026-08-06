@@ -21,23 +21,22 @@ var (
 	envelopeHeader = []byte{'B', 'T', 'E', 'N', 'C', envelopeVersion, algorithmAESGCM}
 )
 
-// Option configures an Encryptor.
+// Option Encryptor 생성 설정을 적용한다.
 type Option func(*config) error
 
 type config struct{}
 
-// Encryptor encrypts and decrypts bytes with caller-owned AES key material.
+// Encryptor 호출자가 소유한 AES key material로 byte를 암호화하고 복호화한다.
 //
-// Encryptor values are immutable after construction and safe for concurrent
-// use by multiple goroutines.
+// Encryptor 값은 생성 후 불변이며 여러 goroutine에서 동시에 사용해도 안전하다.
 type Encryptor struct {
 	aead cipher.AEAD
 }
 
-// New creates an Encryptor from a 16, 24, or 32 byte AES key.
+// New 16, 24, 32 byte AES key로 Encryptor를 생성한다.
 //
-// The key is copied before use. Callers must persist and rotate key material
-// outside this package; generated keys are test or provisioning helpers only.
+// key는 사용 전에 복사된다. 호출자는 이 package 밖에서 key material을 영속화하고 회전해야 하며,
+// 생성된 key는 test나 provisioning helper 용도에 한정된다.
 func New(key []byte, options ...Option) (Encryptor, error) {
 	var cfg config
 	for _, option := range options {
@@ -67,7 +66,7 @@ func New(key []byte, options ...Option) (Encryptor, error) {
 	return Encryptor{aead: aead}, nil
 }
 
-// Encrypt encrypts plaintext and returns a versioned ciphertext envelope.
+// Encrypt plaintext를 암호화하고 versioned ciphertext envelope를 반환한다.
 func Encrypt(key, plaintext, associatedData []byte) ([]byte, error) {
 	encryptor, err := New(key)
 	if err != nil {
@@ -76,7 +75,7 @@ func Encrypt(key, plaintext, associatedData []byte) ([]byte, error) {
 	return encryptor.Encrypt(plaintext, associatedData)
 }
 
-// Decrypt decrypts a versioned ciphertext envelope.
+// Decrypt versioned ciphertext envelope를 복호화한다.
 func Decrypt(key, ciphertext, associatedData []byte) ([]byte, error) {
 	encryptor, err := New(key)
 	if err != nil {
@@ -85,7 +84,7 @@ func Decrypt(key, ciphertext, associatedData []byte) ([]byte, error) {
 	return encryptor.Decrypt(ciphertext, associatedData)
 }
 
-// Encrypt encrypts plaintext and returns a versioned ciphertext envelope.
+// Encrypt plaintext를 암호화하고 versioned ciphertext envelope를 반환한다.
 func (e Encryptor) Encrypt(plaintext, associatedData []byte) ([]byte, error) {
 	if e.aead == nil {
 		return nil, errorWith(ErrInvalidKey, "encrypt", nil)
@@ -98,7 +97,7 @@ func (e Encryptor) Encrypt(plaintext, associatedData []byte) ([]byte, error) {
 	return out, nil
 }
 
-// Decrypt decrypts a versioned ciphertext envelope.
+// Decrypt versioned ciphertext envelope를 복호화한다.
 func (e Encryptor) Decrypt(ciphertext, associatedData []byte) ([]byte, error) {
 	if e.aead == nil {
 		return nil, errorWith(ErrInvalidKey, "decrypt", nil)
@@ -116,7 +115,7 @@ func (e Encryptor) Decrypt(ciphertext, associatedData []byte) ([]byte, error) {
 	return plaintext, nil
 }
 
-// EncryptString encrypts UTF-8 text and returns a URL-safe base64 envelope.
+// EncryptString UTF-8 text를 암호화하고 URL-safe base64 envelope를 반환한다.
 func (e Encryptor) EncryptString(plaintext string, associatedData []byte) (string, error) {
 	if !utf8.ValidString(plaintext) {
 		return "", errorWith(ErrInvalidOptions, "encrypt string", nil)
@@ -128,7 +127,7 @@ func (e Encryptor) EncryptString(plaintext string, associatedData []byte) (strin
 	return base64.RawURLEncoding.EncodeToString(ciphertext), nil
 }
 
-// DecryptString decrypts a URL-safe base64 envelope into UTF-8 text.
+// DecryptString URL-safe base64 envelope를 UTF-8 text로 복호화한다.
 func (e Encryptor) DecryptString(ciphertext string, associatedData []byte) (string, error) {
 	envelope, err := base64.RawURLEncoding.DecodeString(ciphertext)
 	if err != nil {

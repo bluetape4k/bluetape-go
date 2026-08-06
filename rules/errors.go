@@ -36,7 +36,7 @@ var (
 	ErrInferenceNonConverged = errors.New("rules inference did not converge")
 )
 
-// RulePhase identifies which engine phase produced an error.
+// RulePhase string 공개 타입이다.
 type RulePhase string
 
 const (
@@ -46,14 +46,14 @@ const (
 	PhaseExecute RulePhase = "execute"
 )
 
-// RuleError wraps an evaluation or execution error with rule context.
+// RuleError 패키지에서 공개하는 구조체다.
 type RuleError struct {
 	RuleName string
 	Phase    RulePhase
 	Err      error
 }
 
-// Error returns a human-readable rule error message.
+// Error 오류 메시지를 반환한다.
 func (e RuleError) Error() string {
 	if e.Err == nil {
 		if e.RuleName == "" {
@@ -67,24 +67,29 @@ func (e RuleError) Error() string {
 	return "rules " + string(e.Phase) + " failed for " + e.RuleName + ": " + e.Err.Error()
 }
 
-// Unwrap returns the underlying cause.
+// Unwrap 감싼 원인 오류를 반환한다.
+//
+// 반환 오류는 입력 검증 실패와 패키지에서 정의한 sentinel error/typed error를 그대로 드러낸다.
 func (e RuleError) Unwrap() error {
 	return e.Err
 }
 
-// Is reports whether the error matches the phase sentinel.
+// Is errors.Is 비교를 지원한다.
+//
+// 매개변수:
+//   - target: 검사하거나 감쌀 오류 값이다.
 func (e RuleError) Is(target error) bool {
 	return e.Phase == PhaseEvaluate && target == ErrRuleEvaluation ||
 		e.Phase == PhaseExecute && target == ErrRuleExecution
 }
 
-// InferenceError reports bounded inference failure details.
+// InferenceError 패키지에서 공개하는 구조체다.
 type InferenceError struct {
 	Cycles int
 	Err    error
 }
 
-// Error returns a human-readable inference error message.
+// Error 오류 메시지를 반환한다.
 func (e InferenceError) Error() string {
 	if e.Err == nil {
 		return "rules inference failed"
@@ -92,7 +97,9 @@ func (e InferenceError) Error() string {
 	return "rules inference failed after " + strconv.Itoa(e.Cycles) + " cycles: " + e.Err.Error()
 }
 
-// Unwrap returns the underlying inference cause.
+// Unwrap 감싼 원인 오류를 반환한다.
+//
+// 반환 오류는 입력 검증 실패와 패키지에서 정의한 sentinel error/typed error를 그대로 드러낸다.
 func (e InferenceError) Unwrap() error {
 	return e.Err
 }

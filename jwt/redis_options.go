@@ -5,6 +5,7 @@ import (
 	"strings"
 	"time"
 
+	btredis "github.com/bluetape4k/bluetape-go/redis"
 	"github.com/redis/go-redis/v9"
 )
 
@@ -16,29 +17,37 @@ const (
 	maxRedisMaxKeyBytes     = 1 << 20
 )
 
-// RedisRepositoryOptions configures a Redis-backed distributed KeyChain repository.
+// RedisRepositoryOptions JWT key provider repository에서 설정값과 기본값 적용 방식을 설명한다.
 type RedisRepositoryOptions struct {
-	// Client is caller-owned. The repository never closes it.
+	// Client JWT key provider repository에서 caller-visible 상태와 의미를 설명한다.
 	Client redis.Cmdable
-	// Namespace scopes Redis signing authority keys.
+	// Namespace JWT key provider repository에서 caller-visible 상태와 의미를 설명한다.
 	Namespace string
-	// Capacity limits retained KeyChains.
+	// Capacity JWT key provider repository에서 동작과 caller-visible 계약을 설명한다.
 	Capacity int
-	// KeyTTL sets Redis expiration for stored KeyChains. Zero means no Redis TTL.
+	// KeyTTL JWT key provider repository에서 설정값과 기본값 적용 방식을 설명한다.
 	KeyTTL time.Duration
-	// RetentionLeeway is the maximum parse leeway Redis TTL must preserve.
+	// RetentionLeeway JWT key provider repository에서 caller-visible 상태와 의미를 설명한다.
 	RetentionLeeway time.Duration
-	// MaxKeyBytes limits each serialized KeyChain payload.
+	// MaxKeyBytes JWT key provider repository에서 동작과 caller-visible 계약을 설명한다.
 	MaxKeyBytes int
 }
 
 type redisRepositoryOptions struct {
 	client          redis.Cmdable
 	namespace       string
+	keys            redisRepositoryKeys
 	capacity        int
 	keyTTL          time.Duration
 	retentionLeeway time.Duration
 	maxKeyBytes     int
+}
+
+type redisRepositoryKeys struct {
+	meta    btredis.Key
+	current btredis.Key
+	keys    btredis.Key
+	order   btredis.Key
 }
 
 func (o RedisRepositoryOptions) normalize() (redisRepositoryOptions, error) {
@@ -48,6 +57,10 @@ func (o RedisRepositoryOptions) normalize() (redisRepositoryOptions, error) {
 	namespace, err := normalizeRedisNamespace(o.Namespace)
 	if err != nil {
 		return redisRepositoryOptions{}, err
+	}
+	keys, err := buildRedisRepositoryKeys(namespace)
+	if err != nil {
+		return redisRepositoryOptions{}, OptionError{Option: "namespace", Err: errorsNew("invalid redis key configuration")}
 	}
 	capacity := o.Capacity
 	if capacity == 0 {
@@ -72,11 +85,40 @@ func (o RedisRepositoryOptions) normalize() (redisRepositoryOptions, error) {
 	return redisRepositoryOptions{
 		client:          o.Client,
 		namespace:       namespace,
+		keys:            keys,
 		capacity:        capacity,
 		keyTTL:          o.KeyTTL,
 		retentionLeeway: o.RetentionLeeway,
 		maxKeyBytes:     maxKeyBytes,
 	}, nil
+}
+
+func buildRedisRepositoryKeys(namespace string) (redisRepositoryKeys, error) {
+	builder, err := btredis.NewKeyBuilder(defaultRedisKeyPrefix)
+	if err != nil {
+		return redisRepositoryKeys{}, err
+	}
+	builder, err = builder.Structural(namespace)
+	if err != nil {
+		return redisRepositoryKeys{}, err
+	}
+	meta, err := builder.StructuralKey("meta")
+	if err != nil {
+		return redisRepositoryKeys{}, err
+	}
+	current, err := builder.StructuralKey("current")
+	if err != nil {
+		return redisRepositoryKeys{}, err
+	}
+	keys, err := builder.StructuralKey("keys")
+	if err != nil {
+		return redisRepositoryKeys{}, err
+	}
+	order, err := builder.StructuralKey("order")
+	if err != nil {
+		return redisRepositoryKeys{}, err
+	}
+	return redisRepositoryKeys{meta: meta, current: current, keys: keys, order: order}, nil
 }
 
 func normalizeRedisNamespace(namespace string) (string, error) {
@@ -100,22 +142,18 @@ func normalizeRedisNamespace(namespace string) (string, error) {
 	return trimmed, nil
 }
 
-func (o redisRepositoryOptions) keyPrefix() string {
-	return defaultRedisKeyPrefix + ":" + o.namespace
-}
-
 func (o redisRepositoryOptions) metaKey() string {
-	return o.keyPrefix() + ":meta"
+	return o.keys.meta.Value
 }
 
 func (o redisRepositoryOptions) currentKey() string {
-	return o.keyPrefix() + ":current"
+	return o.keys.current.Value
 }
 
 func (o redisRepositoryOptions) keysKey() string {
-	return o.keyPrefix() + ":keys"
+	return o.keys.keys.Value
 }
 
 func (o redisRepositoryOptions) orderKey() string {
-	return o.keyPrefix() + ":order"
+	return o.keys.order.Value
 }

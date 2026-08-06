@@ -1,11 +1,13 @@
 # Issue #36 Plan Review
 
+> 한국어 리뷰 경계: 이 문서는 리뷰 판정과 근거를 한국어 독자가 추적할 수 있도록 정리한다. 심각도 토큰, 판정 토큰, 파일 경로, 라인 번호, 이슈/PR 번호, 명령, 코드 식별자는 원문의 증거 앵커로 보존한다.
+
 Plan: `docs/superpowers/plans/2026-06-09-issue-36-probabilistic-bloom-filter-plan.md`
 Spec: `docs/superpowers/specs/2026-06-09-issue-36-probabilistic-bloom-filter-spec.md`
-Review date: 2026-06-09
-Scope: Step 3-R local 7-Tier review plus in-flight subagent review lanes.
+검토일: 2026-06-09
+범위: Step 3-R local 7-Tier review plus in-flight subagent review lanes.
 
-## Integrated Findings
+## 통합 발견 사항
 
 P0=0 P1=0
 
@@ -19,7 +21,7 @@ P0=0 P1=0
 | Performance/stability | 0 | 0 | 0 | 0 | Plan requires bounded deterministic FPP assertions and race detector. |
 | Docs/release | 0 | 0 | 0 | 0 | Plan covers README, README.ko, root README, CHANGELOG, WIP, testlog, PR metadata, release follow-through. |
 
-## Requirement Mapping
+## 요구사항 매핑
 
 | Spec requirement | Plan task |
 |---|---|
@@ -50,7 +52,7 @@ doc checks, deterministic FPP corpus, and opt-in benchmarks.
 
 Repair review: P0=0 P1=0. Implementation may proceed.
 
-## Step DoD
+## 단계 DoD
 
 | Step | Status | Evidence |
 |---|---|---|

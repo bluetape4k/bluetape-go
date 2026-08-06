@@ -1,10 +1,13 @@
 # Issue #223 Utility Parity Boundary
 
+> 한국어 연구 요약: 이 문서는 사용자 협업용 조사/결정 기록이다. 아래 표와 목록의 URL, package name, command, issue number, version, source path는 evidence이므로 그대로 보존한다. 의사결정, 선택/보류/거절 사유, 후속 이슈 경계는 한국어 독자가 바로 이해할 수 있도록 이 요약을 우선 적용한다.
+> 추가 한국어 해석: 이 문서에서 영어로 남은 표의 값은 원문 근거이며, 실제 채택 여부는 한국어 결정 문장을 따른다. 후속 작업자는 보류와 거절 항목을 새 구현 범위로 착각하지 않아야 한다.\n
+
 Issue: #223
 Parent Epic: #221
 Date: 2026-06-24
 
-## Decision
+## 결정
 
 Close #223 as a Go-native boundary decision, not as a new public API slice.
 
@@ -57,7 +60,7 @@ domains.
 - #276 `research: Evaluate geo and coordinate utility scope`
 - #277 `research: Evaluate focused statistics and math utility scope`
 
-## Validation Plan
+## 검증 Plan
 
 This is a docs/research closure. Required local gates are repository hygiene
 checks plus Step 6-R review:

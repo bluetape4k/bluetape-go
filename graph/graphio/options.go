@@ -9,40 +9,40 @@ const (
 	defaultMaxFailures    = 100
 )
 
-// UnlimitedRecords opts into no record-count cap for trusted bounded inputs.
+// UnlimitedRecords graph IO Neo4j backend에서 동작과 caller-visible 계약을 설명한다.
 const UnlimitedRecords int64 = -1
 
-// Format identifies a graph wire format.
+// Format graph IO Neo4j backend에서 caller-visible 상태와 의미를 설명한다.
 type Format string
 
 const (
-	// FormatNDJSON identifies newline-delimited JSON graph records.
+	// FormatNDJSON graph IO Neo4j backend에서 caller-visible 상태와 의미를 설명한다.
 	FormatNDJSON Format = "ndjson"
-	// FormatCSV identifies paired vertex and edge CSV records.
+	// FormatCSV graph IO Neo4j backend에서 caller-visible 상태와 의미를 설명한다.
 	FormatCSV Format = "csv"
 )
 
-// DuplicateVertexPolicy controls duplicate vertex handling.
+// DuplicateVertexPolicy graph IO Neo4j backend에서 동작과 caller-visible 계약을 설명한다.
 type DuplicateVertexPolicy string
 
 const (
-	// DuplicateVertexFail rejects duplicate vertex IDs.
+	// DuplicateVertexFail graph IO Neo4j backend에서 동작과 caller-visible 계약을 설명한다.
 	DuplicateVertexFail DuplicateVertexPolicy = "fail"
-	// DuplicateVertexSkip skips duplicate vertex rows.
+	// DuplicateVertexSkip graph IO Neo4j backend에서 동작과 caller-visible 계약을 설명한다.
 	DuplicateVertexSkip DuplicateVertexPolicy = "skip"
 )
 
-// MissingEndpointPolicy controls missing edge endpoint handling.
+// MissingEndpointPolicy graph IO Neo4j backend에서 caller-visible 상태와 의미를 설명한다.
 type MissingEndpointPolicy string
 
 const (
-	// MissingEndpointFail rejects edges whose endpoints were not seen.
+	// MissingEndpointFail graph IO Neo4j backend에서 동작과 caller-visible 계약을 설명한다.
 	MissingEndpointFail MissingEndpointPolicy = "fail"
-	// MissingEndpointSkipEdge skips edges whose endpoints were not seen.
+	// MissingEndpointSkipEdge graph IO Neo4j backend에서 동작과 caller-visible 계약을 설명한다.
 	MissingEndpointSkipEdge MissingEndpointPolicy = "skip_edge"
 )
 
-// ReadOptions configures graph imports.
+// ReadOptions graph IO Neo4j backend에서 설정값과 기본값 적용 방식을 설명한다.
 type ReadOptions struct {
 	DuplicateVertexPolicy DuplicateVertexPolicy
 	MissingEndpointPolicy MissingEndpointPolicy
@@ -54,7 +54,7 @@ type ReadOptions struct {
 	MaxFailures           int
 }
 
-// WriteOptions configures graph exports.
+// WriteOptions graph IO Neo4j backend에서 설정값과 기본값 적용 방식을 설명한다.
 type WriteOptions struct {
 	IncludeEmptyProperties bool
 	MaxFailures            int
@@ -70,7 +70,7 @@ func normalizeWriteOptions(options WriteOptions) (WriteOptions, error) {
 	return options, nil
 }
 
-// NormalizeReadOptions applies fail-closed safe defaults.
+// NormalizeReadOptions graph IO Neo4j backend에서 동작과 caller-visible 계약을 설명한다.
 func NormalizeReadOptions(options ReadOptions) (ReadOptions, error) {
 	if options.DuplicateVertexPolicy == "" {
 		options.DuplicateVertexPolicy = DuplicateVertexFail
@@ -118,29 +118,29 @@ func checkRecordLimit(options ReadOptions, count int64) error {
 	return nil
 }
 
-// CSVPropertyMode selects how CSV properties are encoded.
+// CSVPropertyMode CSV property column을 쓰고 읽는 방식을 선택한다.
 type CSVPropertyMode string
 
 const (
-	// CSVPropertiesPrefixedColumns maps properties to columns with a prefix.
+	// CSVPropertiesPrefixedColumns property를 prefix column으로 펼친다.
 	CSVPropertiesPrefixedColumns CSVPropertyMode = "prefixed_columns"
-	// CSVPropertiesRawJSONColumn maps all properties to one JSON column.
+	// CSVPropertiesRawJSONColumn property를 JSON column 하나에 보관한다.
 	CSVPropertiesRawJSONColumn CSVPropertyMode = "raw_json_column"
-	// CSVPropertiesNone omits properties.
+	// CSVPropertiesNone property column을 쓰지 않는다.
 	CSVPropertiesNone CSVPropertyMode = "none"
 )
 
-// CSVFormulaPolicy selects CSV formula escaping behavior.
+// CSVFormulaPolicy spreadsheet formula injection 방지 방식을 선택한다.
 type CSVFormulaPolicy string
 
 const (
-	// CSVFormulaEscape prefixes formula-like cells with a quote.
+	// CSVFormulaEscape formula처럼 보이는 cell을 escape한다.
 	CSVFormulaEscape CSVFormulaPolicy = "escape"
-	// CSVFormulaRaw writes cells without spreadsheet formula escaping.
+	// CSVFormulaRaw cell 값을 escape하지 않고 그대로 쓴다.
 	CSVFormulaRaw CSVFormulaPolicy = "raw"
 )
 
-// CSVWriteOptions configures paired CSV exports.
+// CSVWriteOptions CSV writer 동작을 조정한다.
 type CSVWriteOptions struct {
 	WriteOptions
 	PropertyMode        CSVPropertyMode
@@ -150,7 +150,7 @@ type CSVWriteOptions struct {
 	PropertyColumns     []string
 }
 
-// CSVReadOptions configures paired CSV imports.
+// CSVReadOptions CSV reader 동작을 조정한다.
 type CSVReadOptions struct {
 	ReadOptions
 	PropertyMode        CSVPropertyMode

@@ -10,18 +10,18 @@ import (
 	golangjwt "github.com/golang-jwt/jwt/v5"
 )
 
-// Signer 는 JWT 문자열을 생성한다.
+// Signer JWT 문자열을 생성한다.
 type Signer interface {
 	Compose(options ...ComposeOption) (string, error)
 }
 
-// Parser 는 JWT 문자열을 검증하고 읽는다.
+// Parser JWT 문자열을 검증하고 읽는다.
 type Parser interface {
 	Parse(token string, options ...ParseOption) (*Reader, error)
 	TryParse(token string, options ...ParseOption) (*Reader, bool)
 }
 
-// Rotator 는 in-memory KeyChain 회전을 제어한다.
+// Rotator in-memory KeyChain 회전을 제어한다.
 type Rotator interface {
 	CurrentKeyChain() (*KeyChain, error)
 	Rotate() (*KeyChain, error)
@@ -29,7 +29,7 @@ type Rotator interface {
 	FindKeyChain(kid string) (*KeyChain, error)
 }
 
-// Provider 는 JWT 생성, 검증, in-memory KeyChain 회전을 제공한다.
+// Provider JWT 생성, 검증, in-memory KeyChain 회전을 제공한다.
 type Provider struct {
 	algorithm Algorithm
 	cfg       providerConfig
@@ -41,7 +41,7 @@ var _ Signer = (*Provider)(nil)
 var _ Parser = (*Provider)(nil)
 var _ Rotator = (*Provider)(nil)
 
-// NewFixedHMACProvider 는 하나의 HMAC secret으로 고정 provider를 만든다.
+// NewFixedHMACProvider 하나의 HMAC secret으로 고정 provider를 만든다.
 func NewFixedHMACProvider(algorithm Algorithm, secret []byte, options ...ProviderOption) (*Provider, error) {
 	cfg, err := normalizeProviderConfig(options)
 	if err != nil {
@@ -58,7 +58,7 @@ func NewFixedHMACProvider(algorithm Algorithm, secret []byte, options ...Provide
 	return &Provider{algorithm: algorithm, cfg: cfg, fixedKey: key}, nil
 }
 
-// NewFixedRSAProvider 는 하나의 RSA private key로 고정 provider를 만든다.
+// NewFixedRSAProvider 하나의 RSA private key로 고정 provider를 만든다.
 func NewFixedRSAProvider(algorithm Algorithm, privateKey *rsa.PrivateKey, options ...ProviderOption) (*Provider, error) {
 	cfg, err := normalizeProviderConfig(options)
 	if err != nil {
@@ -75,7 +75,7 @@ func NewFixedRSAProvider(algorithm Algorithm, privateKey *rsa.PrivateKey, option
 	return &Provider{algorithm: algorithm, cfg: cfg, fixedKey: key}, nil
 }
 
-// NewHMACProvider 는 in-memory 회전 HMAC provider를 만든다.
+// NewHMACProvider in-memory 회전 HMAC provider를 만든다.
 func NewHMACProvider(algorithm Algorithm, options ...ProviderOption) (*Provider, error) {
 	if _, ok := algorithm.hmacSecretLength(); !ok {
 		return nil, OptionError{Option: "algorithm", Err: errorsNew("algorithm must be hmac")}
@@ -83,7 +83,7 @@ func NewHMACProvider(algorithm Algorithm, options ...ProviderOption) (*Provider,
 	return newRotatingProvider(algorithm, options...)
 }
 
-// NewRSAProvider 는 in-memory 회전 RSA/PS provider를 만든다.
+// NewRSAProvider in-memory 회전 RSA/PS provider를 만든다.
 func NewRSAProvider(algorithm Algorithm, options ...ProviderOption) (*Provider, error) {
 	if !algorithm.isRSA() {
 		return nil, OptionError{Option: "algorithm", Err: errorsNew("algorithm must be rsa")}
@@ -110,7 +110,7 @@ func newRotatingProvider(algorithm Algorithm, options ...ProviderOption) (*Provi
 	return p, nil
 }
 
-// Compose 는 JWT를 생성하고 서명한다.
+// Compose JWT를 생성하고 서명한다.
 func (p *Provider) Compose(options ...ComposeOption) (string, error) {
 	if err := p.validateReady(); err != nil {
 		return "", err
@@ -152,7 +152,7 @@ func (p *Provider) composeWithKey(key *KeyChain, options ...ComposeOption) (stri
 	return signed, nil
 }
 
-// Parse 는 JWT를 검증하고 Reader를 반환한다.
+// Parse JWT를 검증하고 Reader를 반환한다.
 func (p *Provider) Parse(tokenValue string, options ...ParseOption) (*Reader, error) {
 	if err := p.validateReady(); err != nil {
 		return nil, err
@@ -203,7 +203,7 @@ func (p *Provider) parseWithKeyFunc(tokenValue string, keyFunc func(func() time.
 	return reader, nil
 }
 
-// TryParse 는 Parse 성공 여부를 bool로 반환한다.
+// TryParse Parse 성공 여부를 bool로 반환한다.
 func (p *Provider) TryParse(token string, options ...ParseOption) (*Reader, bool) {
 	reader, err := p.Parse(token, options...)
 	if err != nil {
@@ -223,7 +223,7 @@ func (p *Provider) CurrentKeyChain() (*KeyChain, error) {
 	return p.repo.rotate(p.createKeyChain, p.now())
 }
 
-// Rotate 는 현재 key가 만료된 경우에만 새 KeyChain을 만든다.
+// Rotate 현재 key가 만료된 경우에만 새 KeyChain을 만든다.
 func (p *Provider) Rotate() (*KeyChain, error) {
 	if err := p.validateReady(); err != nil {
 		return nil, err
@@ -234,7 +234,7 @@ func (p *Provider) Rotate() (*KeyChain, error) {
 	return p.repo.rotate(p.createKeyChain, p.now())
 }
 
-// ForcedRotate 는 항상 새 KeyChain을 만든다.
+// ForcedRotate 항상 새 KeyChain을 만든다.
 func (p *Provider) ForcedRotate() (*KeyChain, error) {
 	if err := p.validateReadyForRotation(); err != nil {
 		return nil, err

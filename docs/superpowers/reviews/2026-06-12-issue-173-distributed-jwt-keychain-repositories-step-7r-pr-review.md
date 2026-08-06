@@ -1,5 +1,7 @@
 # Issue #173 Step 7-R PR Review
 
+> 한국어 리뷰 경계: 이 문서는 리뷰 판정과 근거를 한국어 독자가 추적할 수 있도록 정리한다. 심각도 토큰, 판정 토큰, 파일 경로, 라인 번호, 이슈/PR 번호, 명령, 코드 식별자는 원문의 증거 앵커로 보존한다.
+
 Task: Step 7-R PR review for PR #226.
 
 Gate rule: `P0=0 P1=0`.
@@ -10,9 +12,9 @@ closed promptly. The remaining Step 7-R lanes were run as separate read-only
 submissions on already completed agents to preserve the six-lane review
 contract without waiting indefinitely.
 
-## PR Evidence
+## PR 증거
 
-| Check | Result | Evidence |
+| 검사 | 결과 | Evidence |
 | --- | --- | --- |
 | PR | PASS | https://github.com/bluetape4k/bluetape-go/pull/226 |
 | Issue link | PASS | PR body includes `Fixes #173`; MongoDB remains deferred to #198. |
@@ -40,7 +42,7 @@ contract without waiting indefinitely.
 | User/Caller P2/P3: README import and TTL guidance were incomplete for Redis callers. | Add full Redis import block and paired `jwt.WithKeyTTL` plus `redisjwt.Options{KeyTTL, RetentionLeeway}` example. | `jwt/README.md:10`; `jwt/README.md:123`; `jwt/README.ko.md:10`; `jwt/README.ko.md:123` |
 | Diagram gate correction: final `redis-jwt-distributed-key-rotation.png` was a raw Graphviz copy. | Replace the raw Graphviz copy with decorated hand-authored `.svg/.png` README assets. | `docs/images/readme-diagrams/redis-jwt-distributed-key-rotation.png`; visual inspection |
 
-## Main Integration Review
+## 메인 통합 검토
 
 No P0 or P1 findings remain after the stability rerun and the local P2/P3
 follow-up fixes. PR metadata, live PR body shape, CI state, issue linkage, docs

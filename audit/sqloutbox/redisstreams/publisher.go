@@ -9,25 +9,24 @@ import (
 	"strings"
 
 	"github.com/bluetape4k/bluetape-go/audit/sqloutbox"
+	redisstream "github.com/bluetape4k/bluetape-go/redis/stream"
 	"github.com/redis/go-redis/v9"
 )
 
 const defaultStream = "audit:sqloutbox"
 
-// Client is the narrow go-redis surface used by Publisher.
-type Client interface {
-	XAdd(context.Context, *redis.XAddArgs) *redis.StringCmd
-}
+// Client Publisher가 사용하는 좁은 Redis Streams append surface다.
+type Client = redisstream.Appender
 
-// Options configures a Redis Streams sqloutbox publisher.
+// Options Redis Stream outbox publish, idempotency, stream key에서 사용하는 구조체다.
 type Options struct {
-	// Client is the caller-owned Redis client.
+	// Client 호출자가 소유한 Redis client다.
 	Client Client
-	// Stream is the Redis stream key. The default is "audit:sqloutbox".
+	// Stream Redis stream key다. 기본값은 "audit:sqloutbox"다.
 	Stream string
 }
 
-// Publisher appends sqloutbox records to one Redis stream.
+// Publisher Redis Stream outbox publish, idempotency, stream key에서 사용하는 구조체다.
 type Publisher struct {
 	client Client
 	stream string
@@ -35,7 +34,12 @@ type Publisher struct {
 
 var _ sqloutbox.Publisher = (*Publisher)(nil)
 
-// New creates a Redis Streams sqloutbox publisher.
+// New Redis Stream outbox publish, idempotency, stream key에 사용할 값을 생성한다.
+//
+// 매개변수:
+//   - options: 적용할 옵션 목록이다. nil이면 기본값만 사용한다.
+//
+// 반환 오류는 입력 검증 실패, context 취소, Redis/backend 실패, lease/token 불일치, package sentinel error와 typed error를 그대로 드러낸다.
 func New(options Options) (*Publisher, error) {
 	if isNilClient(options.Client) {
 		return nil, fmt.Errorf("%w: redis client must not be nil", sqloutbox.ErrInvalidArgument)
@@ -50,7 +54,7 @@ func New(options Options) (*Publisher, error) {
 	return &Publisher{client: options.Client, stream: stream}, nil
 }
 
-// Stream returns the Redis stream key used by the publisher.
+// Stream Redis Stream outbox publish, idempotency, stream key에서 필요한 값을 조회한다.
 func (p *Publisher) Stream() string {
 	if p == nil {
 		return ""
@@ -58,7 +62,13 @@ func (p *Publisher) Stream() string {
 	return p.stream
 }
 
-// Publish appends one Redis stream entry for record.
+// Publish Redis Stream outbox publish, idempotency, stream key의 쓰기 동작을 수행한다.
+//
+// 매개변수:
+//   - ctx: 호출자가 소유한 취소, deadline, 요청 범위를 전달한다.
+//   - record: Publish에 전달되는 값이다. 허용 범위와 nil 처리 방식은 구현 검증을 따른다.
+//
+// 반환 오류는 입력 검증 실패, context 취소, Redis/backend 실패, lease/token 불일치, package sentinel error와 typed error를 그대로 드러낸다.
 func (p *Publisher) Publish(ctx context.Context, record sqloutbox.Record) error {
 	ctx = normalizeContext(ctx)
 	if err := ctx.Err(); err != nil {
@@ -75,10 +85,10 @@ func (p *Publisher) Publish(ctx context.Context, record sqloutbox.Record) error 
 	if err := ctx.Err(); err != nil {
 		return err
 	}
-	if _, err := p.client.XAdd(ctx, &redis.XAddArgs{
+	if _, err := redisstream.Append(ctx, p.client, redis.XAddArgs{
 		Stream: p.stream,
 		Values: values,
-	}).Result(); err != nil {
+	}); err != nil {
 		return fmt.Errorf("redis streams publish: %w", err)
 	}
 	return nil

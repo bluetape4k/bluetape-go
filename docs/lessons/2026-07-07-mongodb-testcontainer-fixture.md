@@ -1,27 +1,26 @@
-# MongoDB Testcontainers Fixture Lessons
+# MongoDB Testcontainers fixture 교훈
 
-## L1: Promote real private fixtures only after a package boundary exists
+## L1: Package boundary가 생긴 뒤에만 실제 private fixture를 승격한다
 
-Issue #430 promoted the private MongoDB Testcontainers setup embedded in JWT
-tests into `testcontainers/mongodb`. Earlier database fixture research deferred
-MongoDB until a MongoDB package boundary existed; the JWT Mongo repository now
-provides that consumer.
+Issue #430은 JWT test에 묻혀 있던 private MongoDB Testcontainers setup을
+`testcontainers/mongodb`로 승격했다. 이전 database fixture research는 MongoDB package
+boundary가 생길 때까지 MongoDB를 보류했으며, 이제 JWT Mongo repository가 그 consumer가 됐다.
 
-Prevention:
+예방:
 
-- Keep fixture packages demand-backed by an active package consumer.
-- Expose only connection details and cleanup contracts; keep clients,
-  databases, collections, credentials, indexes, and test data caller-owned.
-- Refactor package-private launchers once a shared fixture exists so test
-  startup behavior has one public implementation.
+- Fixture package는 active package consumer의 수요로 뒷받침한다.
+- Connection detail과 cleanup contract만 노출한다. Client, database, collection,
+  credential, index, test data는 caller-owned로 둔다.
+- Shared fixture가 생기면 package-private launcher를 refactor해 test startup behavior가
+  하나의 public implementation을 갖게 한다.
 
-## L2: Testcontainers cleanup and client cleanup have different owners
+## L2: Testcontainers cleanup과 client cleanup의 owner는 다르다
 
-The fixture package owns container termination through `t.Cleanup` and bounded
-`internal/testcleanup`. MongoDB client disconnect remains in caller tests.
+Fixture package는 `t.Cleanup`과 bounded `internal/testcleanup`을 통해 container termination을
+소유한다. MongoDB client disconnect는 caller test에 남긴다.
 
-Prevention:
+예방:
 
-- Do not hide driver client lifecycle in Testcontainers helpers.
-- Use bounded `context.WithoutCancel` cleanup contexts for client disconnects
-  when tests may cancel their setup context.
+- Testcontainers helper 안에 driver client lifecycle을 숨기지 않는다.
+- Test가 setup context를 cancel할 수 있을 때 client disconnect에는 bounded
+  `context.WithoutCancel` cleanup context를 사용한다.

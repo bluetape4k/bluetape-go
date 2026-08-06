@@ -1,21 +1,21 @@
-# Issue #62 S3 Examples Lesson
+# Issue #62 S3 Example 교훈
 
-## What Changed
+## 변경된 점
 
-`examples/s3` keeps S3 as an example-only track instead of introducing a
-bluetape S3 client wrapper. The copyable examples use AWS SDK for Go v2 clients
-directly and rely on `testcontainers/floci` only for local integration tests.
+`examples/s3`는 bluetape S3 client wrapper를 도입하지 않고 S3를 example-only track으로
+유지한다. copyable example은 AWS SDK for Go v2 client를 직접 사용하고,
+`testcontainers/floci`는 local integration test에서만 의존한다.
 
-## What To Keep
+## 유지할 규칙
 
-- Keep AWS service clients caller-owned unless a follow-up issue proves repeated
-  Go-specific boilerplate.
-- Use opt-in Floci smoke tests for emulator-backed examples so normal
-  `go test ./...` stays stable.
-- Document KMS/client-side encryption as deferred unless a concrete consumer
-  needs key policy, envelope metadata, or compatibility behavior.
+- follow-up issue가 반복되는 Go-specific boilerplate를 증명하지 않는 한 AWS service
+  client는 caller-owned로 유지한다.
+- emulator-backed example에는 opt-in Floci smoke test를 사용해 일반 `go test ./...`가
+  stable하게 유지되게 한다.
+- concrete consumer가 key policy, envelope metadata, compatibility behavior를 필요로
+  하지 않는 한 KMS/client-side encryption은 deferred로 문서화한다.
 
-## Verification Reminder
+## 검증 Reminder
 
-For future AWS example issues, run the normal package test, opt-in Floci smoke,
-race test, and serial Docker-backed race smoke before PR creation.
+향후 AWS example issue에서는 PR creation 전에 normal package test, opt-in Floci smoke,
+race test, serial Docker-backed race smoke를 실행한다.

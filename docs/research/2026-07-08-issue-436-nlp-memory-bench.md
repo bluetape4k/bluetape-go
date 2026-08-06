@@ -1,23 +1,16 @@
 # Issue #436 NLP Adapter Memory Benchmark Evidence
 
-Issue #436 measures optional NLP packages so Kagome and Lingua-Go costs stay
-explicit. The benchmark suite covers package-local startup, construction plus
-first use, steady-state tokenization/detection, POS filtering, allocations,
-dependency module sizes, and isolated process RSS snapshots.
+Issue #436은 optional NLP package를 측정해 Kagome과 Lingua-Go 비용을 명시적으로 유지한다. benchmark suite는
+package-local startup, construction plus first use, steady-state tokenization/detection, POS filtering, allocation,
+dependency module size, isolated process RSS snapshot을 덮는다.
 
 ## Artifacts
 
-- Raw acceptance benchmark:
-  `docs/research/outputs/issue-436/nlp-bench.txt`
-- Isolated one-case-per-process startup/RSS snapshots:
-  `docs/research/outputs/issue-436/nlp-cold-start-isolated.txt`
-- Single-process startup smoke output:
-  `docs/research/outputs/issue-436/nlp-startup-benchtime-1x.txt`
-- Environment, dependency versions, Go versions, and module cache sizes:
-  `docs/research/outputs/issue-436/environment.md`
-- Benchmark sources:
-  `textsearch/japanese/tokenizer_benchmark_test.go`
-  `textsearch/language/detector_benchmark_test.go`
+- raw acceptance benchmark: `docs/research/outputs/issue-436/nlp-bench.txt`
+- isolated one-case-per-process startup/RSS snapshot: `docs/research/outputs/issue-436/nlp-cold-start-isolated.txt`
+- single-process startup smoke output: `docs/research/outputs/issue-436/nlp-startup-benchtime-1x.txt`
+- environment, dependency version, Go version, module cache size: `docs/research/outputs/issue-436/environment.md`
+- benchmark source: `textsearch/japanese/tokenizer_benchmark_test.go`, `textsearch/language/detector_benchmark_test.go`
 
 ## Run Conditions
 
@@ -27,9 +20,9 @@ dependency module sizes, and isolated process RSS snapshots.
 - Go: `go1.26.5`
 - Command:
   `go test -run '^$' -bench . -benchmem ./textsearch/japanese ./textsearch/language`
-- Isolated startup/RSS command shape:
+- isolated startup/RSS command shape:
   `/usr/bin/time -l go test -run '^$' -bench '^BenchmarkName$/^case$' -benchtime=1x -benchmem ./package`
-- Single-process smoke command:
+- single-process smoke command:
   `/usr/bin/time -l go test -run '^$' -bench . -benchtime=1x -benchmem ./textsearch/japanese ./textsearch/language`
 
 ## Dependency Footprint
@@ -41,14 +34,12 @@ dependency module sizes, and isolated process RSS snapshots.
 | `github.com/ikawaha/kagome-dict/ipa` | `v1.2.6` | `1.24.0` | 22M |
 | `github.com/pemistahl/lingua-go` | `v1.4.0` | `1.18` | 123M |
 
-Isolated startup snapshots reported `154714112` to `156368896` bytes maximum
-resident set size for Japanese/Kagome cases and `386465792` to `387448832`
-bytes for Lingua-Go cases. Treat these as local process snapshots, not
-production memory limits.
+isolated startup snapshot은 Japanese/Kagome case에서 `154714112`부터 `156368896` bytes maximum resident set size를,
+Lingua-Go case에서 `386465792`부터 `387448832` bytes를 보고했다. 이는 local process snapshot이지 production memory limit이 아니다.
 
 ## Japanese Kagome Results
 
-Warm steady-state rows from `nlp-bench.txt`:
+`nlp-bench.txt`의 warm steady-state row:
 
 | Case | Result |
 |---|---:|
@@ -60,20 +51,19 @@ Warm steady-state rows from `nlp-bench.txt`:
 | `BenchmarkTokenizerFilterPOS/nouns` | `454.8 ns/op`, `1536 B/op`, `1 alloc/op` |
 | `BenchmarkTokenizerFilterPOS/verbs` | `419.1 ns/op`, `1536 B/op`, `1 alloc/op` |
 
-Isolated startup snapshots show the cold package/dictionary shape more clearly:
+isolated startup snapshot은 cold package/dictionary shape를 더 분명하게 보여 준다.
 
 | Case | Result |
 |---|---:|
 | `BenchmarkTokenizerConstruction/normal` | `281207666 ns/op`, `221170304 B/op`, `5594008 allocs/op`, `154714112 RSS` |
 | `BenchmarkTokenizerConstructionAndFirstUse/large` | `284994834 ns/op`, `222528032 B/op`, `5609775 allocs/op`, `156368896 RSS` |
 
-Interpretation: Kagome IPA dictionary initialization is the meaningful startup
-cost. Once the dictionary is warm in-process, `NewTokenizer` is cheap and the
-steady tokenization cost is proportional to input length and tokenize mode.
+해석: Kagome IPA dictionary initialization이 의미 있는 startup cost다. dictionary가 process 안에서 warm 상태가 되면
+`NewTokenizer`는 저렴하고 steady tokenization cost는 input length와 tokenize mode에 비례한다.
 
 ## Lingua-Go Results
 
-Warm steady-state rows from `nlp-bench.txt`:
+`nlp-bench.txt`의 warm steady-state row:
 
 | Case | Result |
 |---|---:|
@@ -90,7 +80,7 @@ Warm steady-state rows from `nlp-bench.txt`:
 | `BenchmarkDetectorConfidences` | `40654 ns/op`, `11010 B/op`, `335 allocs/op` |
 | `BenchmarkDetectorDetectMultiple` | `853115 ns/op`, `318926 B/op`, `10261 allocs/op` |
 
-Isolated startup snapshots show the first model load cost:
+isolated startup snapshot은 first model load cost를 보여 준다.
 
 | Case | Result |
 |---|---:|
@@ -99,25 +89,21 @@ Isolated startup snapshots show the first model load cost:
 | `BenchmarkDetectorConstruction/subset_preloaded_low_accuracy` | `7975500 ns/op`, `7229128 B/op`, `95419 allocs/op`, `387448832 RSS` |
 | `BenchmarkDetectorConstructionAndFirstUse/all_lazy_low_accuracy` | `130951875 ns/op`, `146485976 B/op`, `1967005 allocs/op`, `386514944 RSS` |
 
-Interpretation: high-accuracy first use and all-language first use are the
-meaningful Lingua cold-start cost centers. Low-accuracy subsets remain much
-cheaper in allocation and first-use time, while broad Latin/all-language
-steady-state detection is still materially slower than a domain subset for
-English text.
+해석: high-accuracy first use와 all-language first use가 의미 있는 Lingua cold-start cost center다. low-accuracy subset은
+allocation과 first-use time이 훨씬 저렴하고, broad Latin/all-language steady-state detection은 English text에서 domain subset보다
+여전히 느리다.
 
-## Decision
+## 결정
 
-No production API change is needed in this issue.
+이 issue에서는 production API change가 필요하지 않다.
 
-Existing README guidance remains directionally correct:
+기존 README guidance는 계속 맞다.
 
-- keep `textsearch/japanese` and `textsearch/language` optional,
-- build tokenizers/detectors once and reuse them,
-- prefer selected language subsets when the domain is known,
-- use `WithLowAccuracyMode` when memory/startup cost matters more than
-  short-text accuracy,
-- avoid treating local benchmark output as a production memory limit.
+- `textsearch/japanese`와 `textsearch/language`는 optional로 유지한다.
+- tokenizer/detector는 한 번 만들고 재사용한다.
+- domain을 알고 있으면 selected language subset을 우선한다.
+- memory/startup cost가 short-text accuracy보다 중요하면 `WithLowAccuracyMode`를 사용한다.
+- local benchmark output을 production memory limit으로 취급하지 않는다.
 
-No follow-up issue is created. The measurements show meaningful startup and
-first-use costs, but no missing reuse/subset API or avoidable per-call
-allocation problem that requires implementation work.
+새 follow-up issue는 만들지 않는다. 측정값은 meaningful startup 및 first-use cost를 보여 주지만, implementation work가 필요한
+missing reuse/subset API 또는 avoidable per-call allocation 문제는 보이지 않는다.

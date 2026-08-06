@@ -19,7 +19,11 @@ owner-token result envelope for the active load attempt.
 ## Import
 
 ```go
-import "github.com/bluetape4k/bluetape-go/cache/rediscoord"
+import (
+    "github.com/apache/fory/go/fory"
+    "github.com/bluetape4k/bluetape-go/cache/rediscoord"
+    rediscoordfory "github.com/bluetape4k/bluetape-go/cache/rediscoord/fory"
+)
 ```
 
 ## Usage
@@ -41,6 +45,7 @@ coordinated, err := rediscoord.NewStampedeCache[string](rediscoord.Options[strin
     Cache:     near,
     Namespace: "catalog",
     Codec:     rediscoord.JSONCodec[string]{},
+    MaxResultBytes: 2 << 20,
 })
 if err != nil {
     return err
@@ -52,6 +57,57 @@ value, err := coordinated.GetOrLoad(ctx, "sku:42", time.Minute,
     },
 )
 ```
+
+## Go-native Apache Fory Codec
+
+For trusted internal Go-only coordination payloads, import
+`cache/rediscoord/fory` and select a profile explicitly:
+
+```go
+codec, err := rediscoordfory.NewNativeFast[CatalogValue](rediscoordfory.Options{
+    Register: func(runtime *fory.Fory) error {
+        return runtime.RegisterStructByName(CatalogValue{}, "catalog.ValueV1")
+    },
+})
+if err != nil {
+    return err
+}
+
+coordinated, err := rediscoord.NewStampedeCache[CatalogValue](rediscoord.Options[CatalogValue]{
+    Client: client, Cache: localCache, Namespace: "catalog:fory-native-fast:schema-v1",
+    Codec: codec, MaxResultBytes: 2 << 20,
+})
+```
+
+`NewNativeFast` is for fixed schemas. `NewNativeCompatible` permits Fory's
+compatible field evolution, but does not make semantic or incompatible type
+changes safe. Both constructors disable xlang and reference tracking. They
+accept bool, integer, unsigned integer, floating-point, struct, string, and
+`[]byte` roots; pointer, complex, map, array, non-byte slice, interface,
+function, channel, and unsafe-pointer roots are rejected.
+
+The bounded defaults are 1 MiB payloads, depth 20, 512 fields, 4096 bytes of
+type metadata, 10 schema versions per type, and 3 average schema versions per
+type. `CodecError` exposes stable operation, profile, and reason labels without
+formatting payload or provider details. Reasons include `configuration`,
+`uninitialized`, `registration`, `payload-too-large`, `invalid-magic`,
+`unsupported-version`, `profile-mismatch`, `length-mismatch`,
+`unsupported-value`, and `fory-failure`.
+
+Fory is not encryption. Redis operators can observe the bytes. Use Redis ACL,
+TLS, and namespace isolation for sensitive values.
+
+### Rollout And Rollback
+
+Every process sharing a namespace must use the same codec profile,
+registration set, `MaxResultBytes`, and Fory resource limits. Use a namespace such as
+`catalog:fory-native-fast:schema-v1`; never mix JSON, native-fast, or
+native-compatible values in one namespace. Switch readers and writers together,
+then retain the old namespace for at least `LockTTL + ResultTTL + safety
+margin`. Rollback switches back to the prior codec/namespace pair. Cleanup must
+use bounded, TTL-aware `SCAN MATCH`, never `KEYS`. Scan lock and result keys
+separately with `bluetape:cache:coord:<namespace>:lock:*` and
+`bluetape:cache:coord:<namespace>:result:*`.
 
 ## Behavior
 
@@ -72,6 +128,12 @@ value, err := coordinated.GetOrLoad(ctx, "sku:42", time.Minute,
   value.
 - Mutual exclusion is bounded by `LockTTL`. If a loader runs past the lease,
   another process may acquire the load lease and run a loader.
+- Direct Redis command failures retain their cause for `errors.Is` and expose
+  a typed `redis.OpError` for `errors.As`; formatted diagnostics redact raw
+  Redis keys, owner tokens, payloads, and provider text.
+- `MaxResultBytes` bounds the encoded JSON/base64 owner-result envelope before
+  Redis publication and before JSON decoding. Zero preserves unlimited legacy
+  behavior.
 - Benchmarks are opt-in through `make bench-cache`; normal `make ci` does not
   run benchmark workloads.
 

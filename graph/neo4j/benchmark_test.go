@@ -5,6 +5,8 @@ import (
 	"errors"
 	"fmt"
 	"os"
+	"reflect"
+	"regexp"
 	"testing"
 	"time"
 
@@ -20,7 +22,140 @@ import (
 const (
 	graphNeo4jBenchEnv           = "BLUETAPE_GRAPH_NEO4J_BENCH"
 	graphBenchmarkOperationLimit = 10 * time.Second
+	graphBenchmarkCleanupLimit   = 30 * time.Second
+	neo4jBenchmarkImage          = "neo4j:5.26.0@sha256:5a015e53de1895e7eee1574ae0325cf8c4b89587222778108c594bdd45a474b5"
+	memgraphBenchmarkImage       = "memgraph/memgraph:3.5.0@sha256:b411deeb2341698f4f7a0d69535c8937c341e924f66962aa3e70acb63c7a5bd1"
 )
+
+type graphBenchmarkCleanupStage struct {
+	name string
+	run  func(context.Context) error
+}
+
+func runGraphBenchmarkCleanupStages(parent context.Context, timeout time.Duration, stages []graphBenchmarkCleanupStage) error {
+	if parent == nil {
+		parent = context.Background()
+	}
+	if timeout <= 0 {
+		timeout = graphBenchmarkCleanupLimit
+	}
+	var joined error
+	for _, stage := range stages {
+		if stage.run == nil {
+			continue
+		}
+		ctx, cancel := context.WithTimeout(context.WithoutCancel(parent), timeout)
+		err := stage.run(ctx)
+		cancel()
+		if err != nil {
+			joined = errors.Join(joined, fmt.Errorf("%s: %w", stage.name, err))
+		}
+	}
+	return joined
+}
+
+func registerGraphBenchmarkCleanup(parent context.Context, b *testing.B, timeout time.Duration, stage graphBenchmarkCleanupStage) {
+	b.Helper()
+	b.Cleanup(func() {
+		if err := runGraphBenchmarkCleanupStages(parent, timeout, []graphBenchmarkCleanupStage{stage}); err != nil {
+			b.Errorf("graph benchmark cleanup: %v", err)
+		}
+	})
+}
+
+func TestGraphBenchmarkImagesAreImmutable(t *testing.T) {
+	tests := []struct {
+		name  string
+		image string
+		want  string
+	}{
+		{
+			name:  "neo4j",
+			image: neo4jBenchmarkImage,
+			want:  "neo4j:5.26.0@sha256:5a015e53de1895e7eee1574ae0325cf8c4b89587222778108c594bdd45a474b5",
+		},
+		{
+			name:  "memgraph",
+			image: memgraphBenchmarkImage,
+			want:  "memgraph/memgraph:3.5.0@sha256:b411deeb2341698f4f7a0d69535c8937c341e924f66962aa3e70acb63c7a5bd1",
+		},
+	}
+	immutableImage := regexp.MustCompile(`^[^[:space:]@]+@sha256:[0-9a-f]{64}$`)
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if tt.image != tt.want {
+				t.Fatalf("image = %q, want %q", tt.image, tt.want)
+			}
+			if !immutableImage.MatchString(tt.image) {
+				t.Fatalf("image = %q, want immutable image reference", tt.image)
+			}
+		})
+	}
+}
+
+func TestRunGraphBenchmarkCleanupStagesContinuesAndJoinsErrors(t *testing.T) {
+	wantDelete := errors.New("delete failed")
+	wantClose := errors.New("close failed")
+	wantTerminate := errors.New("terminate failed")
+	var calls []string
+	err := runGraphBenchmarkCleanupStages(context.Background(), 100*time.Millisecond, []graphBenchmarkCleanupStage{
+		{name: "delete data", run: func(context.Context) error { calls = append(calls, "delete"); return wantDelete }},
+		{name: "close driver", run: func(context.Context) error { calls = append(calls, "close"); return wantClose }},
+		{name: "terminate container", run: func(context.Context) error { calls = append(calls, "terminate"); return wantTerminate }},
+	})
+	if !reflect.DeepEqual(calls, []string{"delete", "close", "terminate"}) {
+		t.Fatalf("cleanup calls = %#v", calls)
+	}
+	for _, want := range []error{wantDelete, wantClose, wantTerminate} {
+		if !errors.Is(err, want) {
+			t.Fatalf("cleanup error = %v, want joined %v", err, want)
+		}
+	}
+}
+
+func TestRunGraphBenchmarkCleanupStagesBoundsEveryStage(t *testing.T) {
+	var calls []string
+	block := func(name string) func(context.Context) error {
+		return func(ctx context.Context) error {
+			calls = append(calls, name)
+			<-ctx.Done()
+			return ctx.Err()
+		}
+	}
+	started := time.Now()
+	err := runGraphBenchmarkCleanupStages(context.Background(), 10*time.Millisecond, []graphBenchmarkCleanupStage{
+		{name: "delete data", run: block("delete")},
+		{name: "close driver", run: block("close")},
+		{name: "terminate container", run: block("terminate")},
+	})
+	if err == nil {
+		t.Fatal("expected bounded cleanup error")
+	}
+	if !reflect.DeepEqual(calls, []string{"delete", "close", "terminate"}) {
+		t.Fatalf("cleanup calls = %#v", calls)
+	}
+	if elapsed := time.Since(started); elapsed > time.Second {
+		t.Fatalf("bounded cleanup took %s", elapsed)
+	}
+}
+
+func TestRunGraphBenchmarkCleanupStagesIgnoresCanceledParent(t *testing.T) {
+	parent, cancel := context.WithCancel(context.Background())
+	cancel()
+	called := false
+	err := runGraphBenchmarkCleanupStages(parent, time.Second, []graphBenchmarkCleanupStage{
+		{name: "delete data", run: func(ctx context.Context) error {
+			called = true
+			return ctx.Err()
+		}},
+	})
+	if err != nil {
+		t.Fatalf("cleanup with canceled parent: %v", err)
+	}
+	if !called {
+		t.Fatal("cleanup stage was not called")
+	}
+}
 
 func BenchmarkVertexFromNode(b *testing.B) {
 	node := dbtype.Node{
@@ -258,13 +393,14 @@ func graphBenchmarkRunID(runtime string, name string) string {
 
 func cleanupGraphBenchmarkData(ctx context.Context, b *testing.B, client *neo4jadapter.Client, runID string) {
 	b.Helper()
-	b.Cleanup(func() {
-		cleanupCtx, cancel := context.WithTimeout(context.WithoutCancel(ctx), 10*time.Second)
-		defer cancel()
-		_ = client.ExecuteWrite(cleanupCtx, `
+	registerGraphBenchmarkCleanup(ctx, b, graphBenchmarkOperationLimit, graphBenchmarkCleanupStage{
+		name: "delete benchmark data " + runID,
+		run: func(cleanupCtx context.Context) error {
+			return client.ExecuteWrite(cleanupCtx, `
 MATCH (n:BTBenchNode {run: $run})
 DETACH DELETE n
 `, map[string]any{"run": runID})
+		},
 	})
 }
 
@@ -338,10 +474,9 @@ func newBenchmarkClient(ctx context.Context, b *testing.B, driver neo4jdriver.Dr
 	if err != nil {
 		b.Fatalf("NewClient() error = %v", err)
 	}
-	b.Cleanup(func() {
-		if err := client.Close(ctx); err != nil {
-			b.Fatalf("Close() error = %v", err)
-		}
+	registerGraphBenchmarkCleanup(ctx, b, graphBenchmarkOperationLimit, graphBenchmarkCleanupStage{
+		name: "close graph adapter and driver",
+		run:  client.Close,
 	})
 	if err := client.VerifyConnectivity(ctx); err != nil {
 		b.Fatalf("VerifyConnectivity() error = %v", err)
@@ -351,11 +486,16 @@ func newBenchmarkClient(ctx context.Context, b *testing.B, driver neo4jdriver.Dr
 
 func startNeo4jBenchmarkDriver(ctx context.Context, b *testing.B) neo4jdriver.Driver {
 	b.Helper()
-	container, err := tcneo4j.Run(ctx, "neo4j:5.26.0")
+	container, err := tcneo4j.Run(ctx, neo4jBenchmarkImage)
 	if err != nil {
-		b.Fatal(testcleanup.FormatStartError("neo4j", "neo4j:5.26.0", err))
+		b.Fatal(testcleanup.FormatStartError("neo4j", neo4jBenchmarkImage, err))
 	}
-	testcleanup.Register(ctx, b, "neo4j", container)
+	registerGraphBenchmarkCleanup(ctx, b, graphBenchmarkCleanupLimit, graphBenchmarkCleanupStage{
+		name: "terminate neo4j container",
+		run: func(cleanupCtx context.Context) error {
+			return container.Terminate(cleanupCtx)
+		},
+	})
 
 	boltURL, err := container.BoltUrl(ctx)
 	if err != nil {
@@ -372,16 +512,21 @@ func startMemgraphBenchmarkDriver(ctx context.Context, b *testing.B) neo4jdriver
 	b.Helper()
 	container, err := testcontainers.GenericContainer(ctx, testcontainers.GenericContainerRequest{
 		ContainerRequest: testcontainers.ContainerRequest{
-			Image:        memgraphImage,
+			Image:        memgraphBenchmarkImage,
 			ExposedPorts: []string{memgraphBoltPort},
 			WaitingFor:   wait.ForListeningPort(memgraphBoltPort),
 		},
 		Started: true,
 	})
 	if err != nil {
-		b.Fatal(testcleanup.FormatStartError("memgraph", memgraphImage, err))
+		b.Fatal(testcleanup.FormatStartError("memgraph", memgraphBenchmarkImage, err))
 	}
-	testcleanup.Register(ctx, b, "memgraph", container)
+	registerGraphBenchmarkCleanup(ctx, b, graphBenchmarkCleanupLimit, graphBenchmarkCleanupStage{
+		name: "terminate memgraph container",
+		run: func(cleanupCtx context.Context) error {
+			return container.Terminate(cleanupCtx)
+		},
+	})
 
 	boltURL, err := container.PortEndpoint(ctx, memgraphBoltPort, "bolt")
 	if err != nil {
@@ -392,10 +537,13 @@ func startMemgraphBenchmarkDriver(ctx context.Context, b *testing.B) neo4jdriver
 		b.Fatalf("new memgraph driver: %v", err)
 	}
 	verifyCtx, cancel := context.WithTimeout(ctx, 30*time.Second)
-	defer cancel()
-	if err := waitForMemgraphConnectivity(verifyCtx, driver); err != nil {
-		_ = driver.Close(ctx)
-		b.Fatalf("memgraph verify connectivity: %v", err)
+	verifyErr := waitForMemgraphConnectivity(verifyCtx, driver)
+	cancel()
+	if verifyErr != nil {
+		closeErr := runGraphBenchmarkCleanupStages(ctx, graphBenchmarkOperationLimit, []graphBenchmarkCleanupStage{
+			{name: "close memgraph driver after readiness failure", run: driver.Close},
+		})
+		b.Fatalf("memgraph verify connectivity: %v", errors.Join(verifyErr, closeErr))
 	}
 	return driver
 }

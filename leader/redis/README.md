@@ -36,6 +36,12 @@ campaignCtx, campaignCancel := context.WithTimeout(ctx, 15*time.Second)
 defer campaignCancel()
 
 if err := elector.Campaign(campaignCtx); err != nil {
+    if errors.Is(err, leader.ErrCommitUnknown) {
+        cleanupCtx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+        cleanupErr := elector.Resign(cleanupCtx)
+        cancel()
+        return errors.Join(err, cleanupErr) // TTL is the final fallback
+    }
     return err
 }
 defer func() {
@@ -106,6 +112,13 @@ _ = ran
   cancelled.
 - Cleanup may outlive a request context, but copied examples should still bound
   `Resign` with an explicit cleanup timeout.
+- Single-elector values retain the `memberID:<random>` layout; the random
+  suffix is an internal canonical owner token, not a caller-visible lease API.
+- Single-Elector Redis provider failures preserve their cause for
+  `errors.Is` / `errors.As` while diagnostic text redacts raw Redis keys and
+  owner-token values.
+- Group-Elector ZSET members retain `memberID:<random>` values; its random
+  suffix is canonical and provider diagnostics follow the same typed, redacted contract.
 
 ## Runnable Batch Examples
 
@@ -128,3 +141,15 @@ go test -count=1 ./leader/redis -run 'Test(BatchSchedulerExample|MigrationGateEx
 ```bash
 go test -count=1 ./leader/redis
 ```
+
+## Conformance And Recovery
+
+Use the bilingual [v0.19.0 rollout runbook](../../docs/release/v0.19.0-provider-conformance-runbook.md)
+for mixed-version constraints, canary telemetry and thresholds, and resign/TTL
+rollback gates.
+
+`Campaign` blocks with bounded retry until acquisition or context termination.
+A dispatched response loss is reconciled by owner token; probe failure matches
+both `leader.ErrCommitUnknown` and `redis.ErrCommitUnknown`. Keep the elector,
+run bounded `Resign`, and wait for lease TTL if cleanup cannot be confirmed.
+Canary command rate must stay at or below 12 acquisition commands per second.

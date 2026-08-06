@@ -1,22 +1,24 @@
 # Issue #456 Review: JSON Repeated Collection Profile
 
-## Scope
+> 한국어 감사/리뷰 경계: 이 문서는 리뷰 결론과 남은 위험을 한국어 독자가 추적할 수 있도록 정리한다. 심각도 표기, 판정 표기, 파일 경로, 라인 번호, 이슈/PR 링크, 명령, 코드 식별자, 인용 증거는 원문의 증거 앵커로 보존한다.
+
+## 범위
 
 - `serialization.JSONSerializer.Unmarshal` default decode path.
 - Repeated-collection JSON decode and round-trip benchmark/profile artifacts.
 - `serialization` README pair benchmark notes.
 - Research, lesson, and review ledger notes.
 
-## Diagram Decision
+## 다이어그램 결정
 
 No diagram change is required. The existing serialization README diagram
 describes envelope flow; #456 changes the default JSON decode implementation
 path without adding a new public topology, sequence, class relationship, or
 reader question that a diagram would answer.
 
-## Lane Findings
+## 관점별 발견 사항
 
-### Performance
+### 성능
 
 P0: 0
 P1: 0
@@ -28,7 +30,7 @@ P1: 0
 - RoundTrip allocation dropped from about `3.46-3.51 MB/op` to about
   `2.14-2.17 MB/op`.
 
-### Stability
+### 안정성
 
 P0: 0
 P1: 0
@@ -38,7 +40,7 @@ P1: 0
 - Existing tests continue to cover corrupt input, empty input, trailing JSON,
   and unknown fields.
 
-### Security
+### 보안
 
 P0: 0
 P1: 0
@@ -47,7 +49,7 @@ P1: 0
   introduced.
 - The serializer still rejects trailing JSON values.
 
-### Operator/Ops
+### 운영/Ops
 
 P0: 0
 P1: 0
@@ -55,7 +57,7 @@ P1: 0
 - Retained raw benchmark and pprof artifacts record command, host, revision,
   metric direction, and interpretation boundary.
 
-### Developer/API
+### 개발자/API
 
 P0: 0
 P1: 0
@@ -64,7 +66,7 @@ P1: 0
 - Error wrapping remains `unmarshal json: %w` for `encoding/json` failures.
 - Empty input keeps the package-owned validation error.
 
-### User/Caller
+### 사용자/호출자
 
 P0: 0
 P1: 0
@@ -73,7 +75,7 @@ P1: 0
   new API.
 - No caller-visible aliasing or data ownership contract changed.
 
-## Integration Verdict
+## 통합 판정
 
 P0: 0
 P1: 0
@@ -82,7 +84,7 @@ The change is narrow and evidence-backed. It removes avoidable decoder buffer
 allocation from the common JSON decode path while preserving strict decode
 behavior and leaving remaining fixture materialization costs to `encoding/json`.
 
-## Evidence
+## 증거
 
 - `gh issue view 456`
 - `ctx_batch_execute` over #456, #455, #404, and SerDe benchmark docs.

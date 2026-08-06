@@ -1,10 +1,12 @@
 # Issue #36 Spec Review
 
-Spec: `docs/superpowers/specs/2026-06-09-issue-36-probabilistic-bloom-filter-spec.md`
-Review date: 2026-06-09
-Scope: Step 2-R local 7-Tier review plus in-flight subagent review lanes.
+> 한국어 리뷰 경계: 이 문서는 리뷰 판정과 근거를 한국어 독자가 추적할 수 있도록 정리한다. 심각도 토큰, 판정 토큰, 파일 경로, 라인 번호, 이슈/PR 번호, 명령, 코드 식별자는 원문의 증거 앵커로 보존한다.
 
-## Integrated Findings
+Spec: `docs/superpowers/specs/2026-06-09-issue-36-probabilistic-bloom-filter-spec.md`
+검토일: 2026-06-09
+범위: Step 2-R local 7-Tier review plus in-flight subagent review lanes.
+
+## 통합 발견 사항
 
 P0=0 P1=0
 
@@ -18,7 +20,7 @@ P0=0 P1=0
 | Performance/stability | 0 | 0 | 0 | 0 | Spec fixes SHA-256 double hashing, bounded hash count, and mutex-backed goroutine safety. |
 | Docs/release | 0 | 0 | 0 | 0 | Spec requires bilingual README, root README, CHANGELOG, WIP, #182 deferral, PR metadata. |
 
-## Review Notes
+## 검토 메모
 
 - Accepted deliberate Go deviation from Kotlin source: Kotlin states writes are
   not thread-safe; Go package will be goroutine-safe and prove it with
@@ -40,7 +42,7 @@ Initial subagent source-parity review reported P0=0 P1=3:
 
 Repair review: P0=0 P1=0. Implementation may proceed.
 
-## Step DoD
+## 단계 DoD
 
 | Step | Status | Evidence |
 |---|---|---|

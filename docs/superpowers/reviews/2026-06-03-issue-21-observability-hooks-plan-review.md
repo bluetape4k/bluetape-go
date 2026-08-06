@@ -1,22 +1,24 @@
 # Issue 21 Observability Hooks Plan Review
 
-## Scope
+> 한국어 리뷰 경계: 이 문서는 리뷰 판정과 근거를 한국어 독자가 추적할 수 있도록 정리한다. 심각도 토큰, 판정 토큰, 파일 경로, 라인 번호, 이슈/PR 번호, 명령, 코드 식별자는 원문의 증거 앵커로 보존한다.
+
+## 범위
 
 - Plan: `docs/superpowers/plans/2026-06-03-issue-21-observability-hooks-plan.md`
 - Spec: `docs/superpowers/specs/2026-06-03-issue-21-observability-hooks-spec.md`
 - Issue: #21
 - Review gate: Step 3-R
 
-## Findings
+## 발견 사항
 
 - P0: 0
 - P1: 0
 - P2: 0
 - P3: 0
 
-## Tier Verdicts
+## 계층별 판정
 
-| Tier | Scope | Verdict | Evidence |
+| 계층 | 범위 | 판정 | 증거 |
 |---|---|---:|---|
 | 1 Security | dependency and data exposure | PASS | Plan adds no exporter, global registry, or external dependency. |
 | 2 Ops/SRE | operational usability | PASS | Plan covers stable policy type/category/error-category constants and sync handler behavior for logging/metrics bridges. |
@@ -39,6 +41,6 @@
 | Full validation and graph-aware review | T8 |
 | Lessons, PR, CI, DoD | T9 |
 
-## Integrated Verdict
+## 통합 판정
 
 P0=0 and P1=0. Step 3-R is closed.

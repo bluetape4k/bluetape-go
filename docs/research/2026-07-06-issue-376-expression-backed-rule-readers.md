@@ -2,73 +2,62 @@
 
 Date: 2026-07-06
 
-## Decision
+## 결정
 
-Adopt a narrow, optional `expr-lang/expr` backed reader in a follow-up issue, but
-only for expression-backed predicates. Do not add expression-backed actions in
-the first implementation slice.
+follow-up issue에서 좁고 optional한 `expr-lang/expr` backed reader를 채택한다. 단, 첫 implementation slice는
+expression-backed predicate에만 한정하고 expression-backed action은 추가하지 않는다.
 
-The reader should compile YAML/JSON definitions into the existing first-party
-`rules.Rule` contract. It must not introduce a second execution engine, a
-JVM-style annotation model, arbitrary Go code execution, HOCON support, or
-unbounded forward chaining.
+reader는 YAML/JSON definition을 기존 first-party `rules.Rule` contract로 compile해야 한다. 두 번째 execution engine,
+JVM-style annotation model, arbitrary Go code execution, HOCON support, unbounded forward chaining은 도입하지 않는다.
 
 ## Repo-Local Constraints
 
-- `rules.Rule` already owns `Evaluate(context.Context, *Facts)` and
-  `Execute(context.Context, *Facts) error`.
-- `RuleSet`, composite groups, and `InferenceEngine` already define
-  deterministic ordering, fail-closed composite drift behavior, max-cycle
-  bounded inference, and context-aware execution.
-- Future readers should compile to these contracts rather than bypassing them.
-- Inference mutates `Facts` in place and is not transactional; reader docs must
-  keep that visible when readers are used with inference.
+- `rules.Rule`은 이미 `Evaluate(context.Context, *Facts)`와 `Execute(context.Context, *Facts) error`를 소유한다.
+- `RuleSet`, composite group, `InferenceEngine`은 deterministic ordering, fail-closed composite drift behavior,
+  max-cycle bounded inference, context-aware execution을 이미 정의한다.
+- future reader는 이 contract를 우회하지 말고 compile target으로 사용해야 한다.
+- inference는 `Facts`를 in-place mutate하며 transactional하지 않다. reader docs는 reader가 inference와 함께 쓰일 때 이 점을
+  계속 보이게 해야 한다.
 
 ## Candidate Matrix
 
-| Candidate | Maintenance | License | Safety / sandbox model | Extensibility | Testability | Go API ergonomics | Decision |
-|---|---|---|---|---|---|---|---|
-| `github.com/expr-lang/expr` | Active; GitHub release `v1.17.8` published 2026-02-14, pushed 2026-06-04; `go list` shows `v1.17.8`. | MIT | Go-centric expression language; README describes memory-safe, side-effect-free, always-terminating expressions. API supports static type checks with `Env`, result type assertions such as `AsBool`, builtin disabling, custom functions, `MaxNodes`, and `WithContext` for context-aware function calls. | Good fit for a constrained predicate adapter: compile once, run many; custom functions can be whitelisted. | Strong: compile errors and runtime errors are ordinary Go errors; compiled programs can be unit-tested against `Facts` snapshots. | Best fit: small API, typed compile step, no standalone rule-engine lifecycle. | Prefer for follow-up implementation. |
-| `github.com/PaesslerAG/gval` | Active enough; release `v1.2.3` in GitHub releases, `go list` also reports `v1.2.4`; pushed 2025-08-04. | BSD-3-Clause | Provides `EvaluateWithContext`, `NewEvaluableWithContext`, and `Evaluable(context.Context, ...)`; grammar is composable from language fragments. Less explicit static type checking than `expr`. | Very flexible language composition and custom selectors/functions. | Good for expression-unit tests, but more behavior is runtime/type-conversion driven. | Smaller and composable, but less directly aligned with typed rule predicates. | Keep as fallback/reference, not first choice. |
-| `github.com/Knetic/govaluate` | Archived; README points to `ARCHIVED.md`; latest release `v3.0.0` from 2017. | MIT | Older arbitrary expression evaluator. Maintainer explicitly says the repo is preserved and will not receive updates; recommends active alternatives such as `expr`. | Legacy surface only. | Existing users can still test it, but no maintenance path. | Familiar API, but archived dependency is not acceptable for new bluetape-go surface. | Reject. |
-| `github.com/hyperjumptech/grule-rule-engine` | Active; release `v1.20.4` in 2025, pushed 2026-02-10. | GitHub reports `NOASSERTION`; README badge says Apache 2.0. | Full rule engine with GRL DSL inspired by Drools. Too broad for a reader that should compile into `rules.Rule`. | High, but it owns rule syntax, knowledge base, and inference model. | Would test a separate engine rather than bluetape-go contracts. | Heavy lifecycle and DSL compared with first-party rules. | Reference only. |
-| `github.com/rulego/rulego` | Active; release `v0.36.0` in 2026, pushed 2026-06-26. | Apache-2.0 | Component orchestration/rule-chain framework with many built-in protocol/action components and dynamic loading/plugin concepts. | Very high for orchestration systems. | Tests would exercise RuleGo chains, not `rules.Rule`. | Too broad and action-oriented for safe config readers. | Reference only. |
-| `github.com/gorules/zen-go` | Active; pushed 2026-03-15, no GitHub release object; `go list` shows `v0.20.0`. | MIT | Native binding to Zen Engine / JSON Decision Model. Requires engine lifecycle and `Dispose`. | Strong for full BRMS/JDM models. | Testable, but brings native binding lifecycle and JDM model. | Good for BRMS users, not for first-party rules predicate readers. | Reference only. |
-| `github.com/bytedance/arishem` | Active-ish; release `v1.1.0` in 2025, pushed 2025-03-24. | Apache-2.0 | JSON-compatible DSL rule engine with global initialization and custom execution model. README/docs are primarily Chinese. | Built for visual/configured rules. | Testable, but separate engine semantics. | Less ergonomic for narrow Go library integration. | Reference only. |
+| Candidate | Decision | 이유 |
+|---|---|---|
+| `github.com/expr-lang/expr` | Prefer for follow-up implementation | active, MIT, Go-centric expression language다. README는 memory-safe, side-effect-free, always-terminating expression을 설명한다. `Env`, `AsBool`, builtin disabling, custom function, `MaxNodes`, `WithContext`가 predicate adapter에 잘 맞는다. |
+| `github.com/PaesslerAG/gval` | fallback/reference | active enough이고 BSD-3-Clause다. `EvaluateWithContext`, composable grammar가 있지만 static type checking이 `expr`보다 약하고 runtime/type-conversion driven behavior가 많다. |
+| `github.com/Knetic/govaluate` | Reject | archived이며 `ARCHIVED.md`가 active alternative로 `expr`를 권한다. 새 bluetape-go surface에는 적합하지 않다. |
+| `github.com/hyperjumptech/grule-rule-engine` | reference only | active full rule engine이지만 GRL DSL, knowledge base, inference model을 따로 소유하므로 `rules.Rule` reader로는 너무 넓다. |
+| `github.com/rulego/rulego` | reference only | component orchestration/rule-chain framework이며 protocol/action component와 plugin concept가 넓다. first-party rules predicate reader보다 크다. |
+| `github.com/gorules/zen-go` | reference only | JDM/BRMS에는 강하지만 native binding lifecycle과 `Dispose`가 필요하다. first-party predicate reader에는 과하다. |
+| `github.com/bytedance/arishem` | reference only | JSON-compatible DSL rule engine이지만 global initialization과 별도 execution model을 가진다. docs도 주로 Chinese다. |
 
 ## Proposed Reader Scope
 
-Create an optional package in a follow-up issue, for example
-`rules/exprreader` or `rules/readers/exprjson`, with an explicit dependency on
-`github.com/expr-lang/expr`.
+follow-up issue에서 `rules/exprreader` 또는 `rules/readers/exprjson` 같은 optional package를 만들고
+`github.com/expr-lang/expr`에 explicit dependency를 둔다.
 
-The first implementation should support:
+첫 implementation은 다음을 지원한다.
 
-- YAML and JSON documents with the same schema.
-- Predicate expressions only.
-- Built-in actions limited to a tiny whitelist that mutates `Facts` through
-  predefined operations.
-- Compile-on-load and run-many execution.
-- `expr.AsBool()` for every predicate.
-- `expr.Env` using a narrow map/struct projection from `Facts`.
-- `expr.MaxNodes` with a conservative default.
-- `expr.DisableAllBuiltins()` plus explicit `EnableBuiltin` or whitelisted
-  `Function` registrations only when needed.
-- Context propagation through `expr.WithContext("ctx")` for allowed custom
-  functions that accept `context.Context`.
+- 같은 schema의 YAML 및 JSON document.
+- predicate expression only.
+- `Facts`를 predefined operation으로 mutate하는 아주 작은 whitelist의 built-in action.
+- compile-on-load 및 run-many execution.
+- 모든 predicate에 `expr.AsBool()`.
+- `Facts`에서 좁은 map/struct projection을 사용하는 `expr.Env`.
+- conservative default를 가진 `expr.MaxNodes`.
+- 기본적으로 `expr.DisableAllBuiltins()`를 사용하고 필요할 때만 explicit `EnableBuiltin` 또는 whitelisted `Function` 등록.
+- `context.Context`를 받는 allowed custom function에는 `expr.WithContext("ctx")`로 context propagation.
 
-Do not support:
+지원하지 않는 항목:
 
-- Arbitrary Go callbacks declared in YAML/JSON.
-- Unbounded loops, script blocks, reflection registration, annotations, or
-  external DSL actions.
-- Side-effectful expression predicates.
-- HOCON in the first Go reader.
+- YAML/JSON에 선언된 arbitrary Go callback.
+- unbounded loop, script block, reflection registration, annotation, external DSL action.
+- side-effectful expression predicate.
+- 첫 Go reader의 HOCON.
 
 ## Minimal YAML/JSON Schema
 
-The schema is justified because `expr` is suitable for predicate evaluation.
-Keep it intentionally small:
+`expr`가 predicate evaluation에 적합하므로 schema를 의도적으로 작게 둔다.
 
 ```yaml
 version: 1
@@ -81,70 +70,53 @@ rules:
       - set:
           key: discount
           value: 10
-  - name: fraud-review
-    priority: 20
-    when: risk_score >= 80
-    then:
-      - set:
-          key: review_required
-          value: true
 engine:
   stopOnFirstApplied: false
   stopOnFirstFailed: true
   usePriorityThreshold: false
 ```
 
-Schema rules:
+schema rule:
 
-- `version` is required and must be `1`.
-- `rules` is required and must be non-empty.
-- `name` is required and follows the existing `rules` blank-key validation.
-- `priority` defaults to `0`.
-- `when` is required and must compile to bool.
-- `then` is optional; when present, only whitelisted declarative actions are
-  allowed. First slice should support `set` only.
-- `engine` is optional and maps only to safe `rules.EngineConfig` fields.
-- Inference configuration belongs in a separate top-level `inference` block only
-  if a later issue explicitly adds reader-backed inference. It must reject
-  `stopOnFirstNotTriggered`, matching `NewInferenceEngine`.
+- `version`은 required이며 `1`이어야 한다.
+- `rules`는 required이며 non-empty여야 한다.
+- `name`은 required이며 기존 `rules` blank-key validation을 따른다.
+- `priority` default는 `0`이다.
+- `when`은 required이며 bool로 compile되어야 한다.
+- `then`은 optional이다. 있으면 whitelisted declarative action만 허용한다. 첫 slice는 `set`만 지원한다.
+- `engine`은 optional이며 safe `rules.EngineConfig` field에만 매핑한다.
+- reader-backed inference는 later issue가 명시적으로 추가할 때만 별도 top-level `inference` block에 둔다. 그때도
+  `NewInferenceEngine`과 맞춰 `stopOnFirstNotTriggered`는 거부해야 한다.
 
 ## Error Policy
 
-Add typed reader errors that remain compatible with `errors.Is` /
-`errors.As`:
+`errors.Is` / `errors.As`와 호환되는 typed reader error를 추가한다.
 
-- `ErrInvalidRuleDocument`: malformed YAML/JSON or schema-level validation.
+- `ErrInvalidRuleDocument`: malformed YAML/JSON 또는 schema-level validation.
 - `ErrInvalidRuleExpression`: expression parse/compile/type-check failure.
-- `ErrInvalidRuleAction`: unsupported action or invalid action payload.
-- `ReaderError{RuleName, Field, Err}` for rule-local wrapping.
+- `ErrInvalidRuleAction`: unsupported action 또는 invalid action payload.
+- `ReaderError{RuleName, Field, Err}`: rule-local wrapping.
 
-Compilation should fail the whole document if any rule is invalid. Runtime
-predicate errors should return through `Rule.Evaluate`; action errors should
-return through `Rule.Execute`. Engine behavior should then reuse the existing
-`ErrRuleEvaluation` and `ErrRuleExecution` wrapping.
+rule 하나라도 invalid이면 compilation은 전체 document를 fail한다. runtime predicate error는 `Rule.Evaluate`로 반환하고,
+action error는 `Rule.Execute`로 반환한다. engine behavior는 기존 `ErrRuleEvaluation` 및 `ErrRuleExecution` wrapping을 재사용한다.
 
 ## Context-Cancellation Policy
 
-- Loading/parsing accepts `context.Context` and checks it before each document
-  phase: decode, schema validation, expression compile, rule construction.
-- Expression evaluation receives the caller's context through the generated
-  `Rule.Evaluate`.
-- `expr` itself does not make `Run` take a `context.Context`; the adapter must
-  check `ctx.Err()` before calling `expr.Run`.
-- Any custom whitelisted function that can block or perform I/O must accept
-  `context.Context` and be wired through `expr.WithContext("ctx")`.
-- The first implementation should avoid I/O custom functions entirely. Reader
-  loading should only read from `io.Reader` / `[]byte` supplied by the caller.
+- loading/parsing은 `context.Context`를 받고 decode, schema validation, expression compile, rule construction 각 phase 전에
+  context를 확인한다.
+- expression evaluation은 generated `Rule.Evaluate`를 통해 caller context를 받는다.
+- `expr.Run` 자체는 `context.Context`를 받지 않으므로 adapter가 `expr.Run` 호출 전에 `ctx.Err()`를 확인해야 한다.
+- block 또는 I/O 가능성이 있는 whitelisted custom function은 반드시 `context.Context`를 받고 `expr.WithContext("ctx")`로 연결한다.
+- 첫 implementation은 I/O custom function을 피한다. reader loading은 caller가 넘긴 `io.Reader` / `[]byte`에서만 읽는다.
 
 ## Implementation Issues
 
-Create one follow-up implementation issue:
+follow-up implementation issue 하나를 만든다.
 
 - `feat: add expr-backed YAML and JSON rules reader`
 
-Acceptance for that issue should include schema tests, compile-time type tests,
-runtime predicate/action error tests, context cancellation tests, and
-`go test -race -count=1 ./rules ./rules/...`.
+acceptance에는 schema test, compile-time type test, runtime predicate/action error test, context cancellation test,
+`go test -race -count=1 ./rules ./rules/...`가 포함되어야 한다.
 
 ## Sources
 

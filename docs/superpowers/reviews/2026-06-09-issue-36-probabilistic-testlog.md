@@ -1,9 +1,11 @@
 # Issue #36 Test Log
 
-Date: 2026-06-09
-Scope: `probabilistic` package and #36 documentation.
+> 한국어 리뷰 경계: 이 문서는 리뷰 판정과 근거를 한국어 독자가 추적할 수 있도록 정리한다. 심각도 토큰, 판정 토큰, 파일 경로, 라인 번호, 이슈/PR 번호, 명령, 코드 식별자는 원문의 증거 앵커로 보존한다.
 
-## Commands
+날짜: 2026-06-09
+범위: `probabilistic` package and #36 documentation.
+
+## 명령
 
 ```bash
 go test -count=1 ./probabilistic
@@ -29,7 +31,7 @@ make ci
 - `make ci`: PASS again after sealed-interface and custom-hasher stress fixes at
   `2026-06-09 15:25:30 KST`.
 
-## Notes
+## 메모
 
 - Deterministic false-positive test inserts 10,000 values into a 1% filter and
   queries 20,000 disjoint missing values with a 3% upper bound.

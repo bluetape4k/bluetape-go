@@ -7,24 +7,22 @@ Work type: Type A - Benchmark Suite
 
 ## Research Question
 
-How should `bluetape-go` benchmark the 0.3.0 local cache and Redis Pub/Sub
-NearCache paths so future adapter decisions are based on repeatable evidence
-without slowing normal CI?
+normal CI를 느리게 만들지 않으면서 future adapter decision을 repeatable evidence에 기반하게 하려면 `bluetape-go`가
+0.3.0 local cache와 Redis Pub/Sub NearCache path를 어떻게 benchmark해야 하는가?
 
-## Current Decision
+## 현재 결정
 
-Use package-local Go benchmarks in `cache` and `cache/redisnear`, expose them
-through an opt-in `make bench-cache` target, and keep results as comparable
-local snapshots rather than production rankings.
+`cache`와 `cache/redisnear`에 package-local Go benchmark를 둔다. 이 benchmark는 opt-in `make bench-cache` target으로
+노출하고, result는 production ranking이 아니라 비교 가능한 local snapshot으로 유지한다.
 
 ## Evidence
 
 | Evidence | Observation | Decision impact |
 |---|---|---|
-| `cache.Memory` tests | Existing tests already cover TTL, miss, same-key collapse, different-key flight behavior, and cancellation. | Benchmarks can reuse current package internals and avoid production hooks. |
-| `cache/redisnear` tests | Testcontainers already proves Pub/Sub peer invalidation, outage handling, and stress behavior. | Redis benchmarks should use the same strategy and remain serial/opt-in. |
-| `compression` benchmark pattern | Existing benchmark lives beside package tests and has a Makefile opt-in target. | Use the same Go-native structure for cache benchmarks. |
-| #110 RESP3 research | RESP3 `CLIENT TRACKING` remains a future strategy boundary. | Do not benchmark RESP3 in #107. |
+| `cache.Memory` tests | 기존 test가 TTL, miss, same-key collapse, different-key flight behavior, cancellation을 이미 덮는다. | benchmark는 현재 package internal을 재사용하고 production hook을 피할 수 있다. |
+| `cache/redisnear` tests | Testcontainers가 Pub/Sub peer invalidation, outage handling, stress behavior를 이미 증명한다. | Redis benchmark도 같은 strategy를 쓰고 serial/opt-in으로 남겨야 한다. |
+| `compression` benchmark pattern | 기존 benchmark는 package test 옆에 있으며 Makefile opt-in target을 가진다. | cache benchmark도 같은 Go-native structure를 사용한다. |
+| #110 RESP3 research | RESP3 `CLIENT TRACKING`은 future strategy boundary로 남는다. | #107에서는 RESP3를 benchmark하지 않는다. |
 
 ## Benchmark Commands
 
@@ -34,28 +32,24 @@ go test -run '^$' -bench '^BenchmarkNearCache' -benchmem ./cache/redisnear
 make bench-cache
 ```
 
-`make ci` must not call `bench-cache`.
+`make ci`는 `bench-cache`를 호출하면 안 된다.
 
 ## Environment Notes
 
-- Local memory benchmarks need no external service.
-- Redis NearCache benchmarks start Redis 7.4 with Testcontainers, so Docker
-  must be available.
-- Testcontainers-backed benchmark commands should be run serially across
-  worktrees.
-- Short local `-benchtime` runs are useful for PR evidence but should not be
-  treated as production capacity numbers.
+- local memory benchmark에는 외부 service가 필요 없다.
+- Redis NearCache benchmark는 Testcontainers로 Redis 7.4를 시작하므로 Docker가 필요하다.
+- Testcontainers-backed benchmark command는 worktree 간 serial로 실행해야 한다.
+- 짧은 local `-benchtime` run은 PR evidence에는 유용하지만 production capacity number로 취급하지 않는다.
 
 ## Planned Metrics
 
-- Standard Go `ns/op`, `B/op`, and `allocs/op`.
-- `loads/op` for `GetOrLoad` concurrency scenarios to expose loader collapse or
-  invalidation pressure.
-- Peer invalidation benchmark `ns/op` for publish-to-peer-evict latency.
+- standard Go `ns/op`, `B/op`, `allocs/op`.
+- `GetOrLoad` concurrency scenario에서 loader collapse 또는 invalidation pressure를 드러내기 위한 `loads/op`.
+- publish-to-peer-evict latency를 위한 peer invalidation benchmark `ns/op`.
 
 ## Sample Results
 
-Local smoke run:
+local smoke run:
 
 - Date: 2026-06-04
 - Host: macOS arm64, Apple M4 Pro
@@ -104,9 +98,7 @@ Selected output:
 | `BenchmarkNearCachePeerInvalidation-12` | 464896 | 2617 | 58 |  |
 | `BenchmarkNearCacheGetOrLoadUnderInvalidation-12` | 326.5 | 44 | 2 | `0.005997 loads/op` |
 
-## Interpretation Boundary
+## 해석 경계
 
-The benchmark suite answers whether behavior is measurable and comparable in
-this repository. It does not rank external cache dependencies, does not prove
-production Redis latency, and does not replace load testing in an application
-deployment.
+이 benchmark suite는 이 repository 안에서 behavior가 측정 가능하고 비교 가능한지 답한다. 외부 cache dependency를 ranking하지
+않고, production Redis latency를 증명하지 않으며, application deployment의 load test를 대체하지 않는다.

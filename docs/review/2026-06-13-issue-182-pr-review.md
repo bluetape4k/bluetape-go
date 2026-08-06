@@ -1,12 +1,14 @@
 # Issue 182 PR Review - Redis Probabilistic Filters
 
-Date: 2026-06-13
-PR: https://github.com/bluetape4k/bluetape-go/pull/229
-Base: `develop`
-Head: `issue-182-redis-probabilistic-filters`
-Scope: PR #229 live diff plus local Step 7-R follow-up fixes before final push.
+> 한국어 감사/리뷰 경계: 이 문서는 리뷰 결론과 남은 위험을 한국어 독자가 추적할 수 있도록 정리한다. 심각도 표기, 판정 표기, 파일 경로, 라인 번호, 이슈/PR 링크, 명령, 코드 식별자, 인용 증거는 원문의 증거 앵커로 보존한다.
 
-## Gate Shape
+날짜: 2026-06-13
+PR: https://github.com/bluetape4k/bluetape-go/pull/229
+기준: `develop`
+Head: `issue-182-redis-probabilistic-filters`
+범위: PR #229 live diff plus local Step 7-R follow-up fixes before final push.
+
+## 게이트 형태
 
 Step 7-R used the required 7-Tier shape:
 
@@ -21,7 +23,7 @@ Step 7-R used the required 7-Tier shape:
 No seventh integration subagent was used. The main Codex session owned
 deduplication, severity normalization, fallback review, and final P0/P1 verdict.
 
-## Lane Results
+## 관점별 결과
 
 | Lane | Result | P0 | P1 | P2 | Notes |
 |---|---:|---:|---:|---:|---|
@@ -35,7 +37,7 @@ deduplication, severity normalization, fallback review, and final P0/P1 verdict.
 
 Final Step 7-R gate: `P0=0 P1=0`.
 
-## Findings Repaired During Step 7-R
+## Step 7-R 중 수정한 발견 사항
 
 - Security P2: namespace and hasher sensitive-marker validation was too narrow.
   Fixed by centralizing marker checks and rejecting token, secret, password,
@@ -54,7 +56,7 @@ Final Step 7-R gate: `P0=0 P1=0`.
   say Bloom is delivered by #182 / PR #229, with Cuckoo/HyperLogLog left as
   follow-up scope.
 
-## Timeout/Fallback Note
+## 타임아웃/대체 처리 메모
 
 The final Security rerun subagent did not return a completed finding after the
 bounded wait and was closed. This lane is recorded as:
@@ -76,7 +78,7 @@ Fallback evidence:
 
 No P0/P1/P2 findings remain after fallback review.
 
-## Verification Evidence
+## 검증 증거
 
 - `gopls check probabilistic/redis/options.go probabilistic/redis/options_test.go probabilistic/redis/example_test.go probabilistic/redis/filter_benchmark_test.go`
 - `go test -p 1 -count=1 ./probabilistic/redis`
@@ -97,7 +99,7 @@ Remote PR evidence before final follow-up push:
 - GitHub merge state: `CLEAN`
 - GitHub check `ci`: `SUCCESS`
 
-## Final Verdict
+## 최종 판정
 
 Step 7-R PASS.
 

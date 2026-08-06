@@ -12,6 +12,7 @@ import (
 	"time"
 
 	"github.com/bluetape4k/bluetape-go/internal/testcleanup"
+	btredis "github.com/bluetape4k/bluetape-go/redis"
 	concurrencytest "github.com/bluetape4k/bluetape-go/testing/concurrency"
 	"github.com/redis/go-redis/v9"
 	tcredis "github.com/testcontainers/testcontainers-go/modules/redis"
@@ -162,6 +163,142 @@ func TestRepositoryDeadlinePreserved(t *testing.T) {
 	defer cancel()
 	if _, err := repo.Current(expired, time.Now()); !errors.Is(err, context.DeadlineExceeded) {
 		t.Fatalf("Current(expired ctx) error = %v, want context.DeadlineExceeded", err)
+	}
+}
+
+func TestRepositoryRedisFailuresAreTypedRedactedAndRetainLateContext(t *testing.T) {
+	now := time.Date(2026, 7, 12, 10, 0, 0, 0, time.UTC)
+	key, err := newHMACKeyChain(
+		"secret-kid-marker",
+		HS256,
+		[]byte("hmac-secret-marker-32-bytes-long"),
+		now,
+		time.Hour,
+	)
+	if err != nil {
+		t.Fatalf("newHMACKeyChain() error = %v", err)
+	}
+
+	tests := []struct {
+		name      string
+		operation string
+		rawKey    func(*RedisRepository) string
+		invoke    func(context.Context, *RedisRepository) error
+	}{
+		{
+			name:      "get current",
+			operation: "current-get",
+			rawKey:    func(repo *RedisRepository) string { return repo.opts.currentKey() },
+			invoke: func(ctx context.Context, repo *RedisRepository) error {
+				_, err := repo.Current(ctx, now)
+				return err
+			},
+		},
+		{
+			name:      "hget key",
+			operation: "key-get",
+			rawKey:    func(repo *RedisRepository) string { return repo.opts.keysKey() },
+			invoke: func(ctx context.Context, repo *RedisRepository) error {
+				_, err := repo.Find(ctx, key.KID(), now)
+				return err
+			},
+		},
+		{
+			name:      "delete all",
+			operation: "delete-all",
+			rawKey:    func(repo *RedisRepository) string { return repo.opts.metaKey() },
+			invoke:    func(ctx context.Context, repo *RedisRepository) error { return repo.DeleteAll(ctx) },
+		},
+		{
+			name:      "eval current",
+			operation: "current-script",
+			rawKey:    func(repo *RedisRepository) string { return repo.opts.currentKey() },
+			invoke: func(ctx context.Context, repo *RedisRepository) error {
+				_, err := repo.Rotate(ctx, func() (*KeyChain, error) { return key, nil }, now)
+				return err
+			},
+		},
+		{
+			name:      "eval store",
+			operation: "store-script",
+			rawKey:    func(repo *RedisRepository) string { return repo.opts.currentKey() },
+			invoke: func(ctx context.Context, repo *RedisRepository) error {
+				_, err := repo.ForcedRotate(ctx, func() (*KeyChain, error) { return key, nil }, now)
+				return err
+			},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			ctx, cancel := context.WithCancel(context.Background())
+			client := redis.NewClient(&redis.Options{Addr: "127.0.0.1:0"})
+			client.AddHook(cancelAfterRedisOperationHook{cancel: cancel})
+			repo := newTestRedisRepository(t, client, "typed-error-marker", RedisRepositoryOptions{})
+			if err := client.Close(); err != nil {
+				t.Fatalf("Close() error = %v", err)
+			}
+
+			err := tt.invoke(ctx, repo)
+			assertRedisRepositoryOpError(
+				t,
+				err,
+				redis.ErrClosed,
+				tt.operation,
+				tt.rawKey(repo),
+				key.KID(),
+				"hmac-secret-marker",
+				redis.ErrClosed.Error(),
+			)
+			if !errors.Is(err, context.Canceled) {
+				t.Fatalf("error = %v, want late context.Canceled", err)
+			}
+		})
+	}
+}
+
+func TestRepositoryRotateScriptFailureIsTypedRedactedAndRetainsLateContext(t *testing.T) {
+	now := time.Date(2026, 7, 12, 10, 0, 0, 0, time.UTC)
+	key := newTestHMACKey(t, "rotate-secret-kid-marker", now, time.Hour)
+	ctx, cancel := context.WithCancel(context.Background())
+	injected := errors.New("redis-provider-secret-marker")
+	hook := &failRotateScriptHook{cancel: cancel, err: injected}
+	client := redis.NewClient(&redis.Options{Addr: "127.0.0.1:0"})
+	client.AddHook(hook)
+	t.Cleanup(func() { _ = client.Close() })
+	repo := newTestRedisRepository(t, client, "rotate-error-marker", RedisRepositoryOptions{})
+
+	_, err := repo.Rotate(ctx, func() (*KeyChain, error) { return key, nil }, now)
+	assertRedisRepositoryOpError(
+		t,
+		err,
+		injected,
+		"rotate-script",
+		repo.opts.currentKey(),
+		key.KID(),
+		injected.Error(),
+	)
+	if !errors.Is(err, context.Canceled) {
+		t.Fatalf("error = %v, want late context.Canceled", err)
+	}
+}
+
+func TestRedisRepositoryOperationErrorRetainsLateDeadline(t *testing.T) {
+	ctx, cancel := context.WithDeadline(context.Background(), time.Now().Add(-time.Second))
+	defer cancel()
+	injected := errors.New("redis-provider-deadline-marker")
+
+	err := redisRepositoryOperationError(ctx, "key-get", "raw-key-deadline-marker", injected)
+	assertRedisRepositoryOpError(
+		t,
+		err,
+		injected,
+		"key-get",
+		"raw-key-deadline-marker",
+		injected.Error(),
+	)
+	if !errors.Is(err, context.DeadlineExceeded) {
+		t.Fatalf("error = %v, want late context.DeadlineExceeded", err)
 	}
 }
 
@@ -648,6 +785,96 @@ func seedRedisKeyChain(ctx context.Context, t *testing.T, repo *RedisRepository,
 type redisCommandRecorder struct {
 	mu       sync.Mutex
 	recorded []string
+}
+
+type cancelAfterRedisOperationHook struct {
+	cancel context.CancelFunc
+}
+
+type failRotateScriptHook struct {
+	cancel context.CancelFunc
+	err    error
+	evals  int
+}
+
+func (h *failRotateScriptHook) DialHook(next redis.DialHook) redis.DialHook {
+	return next
+}
+
+func (h *failRotateScriptHook) ProcessHook(next redis.ProcessHook) redis.ProcessHook {
+	return func(ctx context.Context, cmd redis.Cmder) error {
+		if strings.EqualFold(cmd.Name(), "eval") {
+			h.evals++
+			if h.evals == 1 {
+				result, ok := cmd.(*redis.Cmd)
+				if !ok {
+					return fmt.Errorf("eval command type = %T", cmd)
+				}
+				result.SetVal([]any{int64(0), "", ""})
+				return nil
+			}
+			h.cancel()
+			return h.err
+		}
+		return next(ctx, cmd)
+	}
+}
+
+func (h *failRotateScriptHook) ProcessPipelineHook(next redis.ProcessPipelineHook) redis.ProcessPipelineHook {
+	return next
+}
+
+func (h cancelAfterRedisOperationHook) DialHook(next redis.DialHook) redis.DialHook {
+	return next
+}
+
+func (h cancelAfterRedisOperationHook) ProcessHook(next redis.ProcessHook) redis.ProcessHook {
+	return func(ctx context.Context, cmd redis.Cmder) error {
+		err := next(ctx, cmd)
+		h.cancel()
+		return err
+	}
+}
+
+func (h cancelAfterRedisOperationHook) ProcessPipelineHook(next redis.ProcessPipelineHook) redis.ProcessPipelineHook {
+	return func(ctx context.Context, cmds []redis.Cmder) error {
+		err := next(ctx, cmds)
+		h.cancel()
+		return err
+	}
+}
+
+func assertRedisRepositoryOpError(
+	t *testing.T,
+	err error,
+	cause error,
+	operation string,
+	rawKey string,
+	forbidden ...string,
+) {
+	t.Helper()
+
+	if !errors.Is(err, cause) {
+		t.Fatalf("error = %v, want cause %v", err, cause)
+	}
+	var opErr *btredis.OpError
+	if !errors.As(err, &opErr) {
+		t.Fatalf("error = %T, want *redis.OpError", err)
+	}
+	if got, want := opErr.Family(), "jwt repository"; got != want {
+		t.Fatalf("family = %q, want %q", got, want)
+	}
+	if got := opErr.Operation(); got != operation {
+		t.Fatalf("operation = %q, want %q", got, operation)
+	}
+	if got, want := opErr.KeyID(), btredis.RedactedKeyID(rawKey); got != want {
+		t.Fatalf("key id = %q, want %q", got, want)
+	}
+	for _, value := range append(forbidden, rawKey) {
+		if value != "" && strings.Contains(err.Error(), value) {
+			t.Fatalf("error leaked %q: %v", value, err)
+		}
+	}
 }
 
 func (r *redisCommandRecorder) DialHook(next redis.DialHook) redis.DialHook {

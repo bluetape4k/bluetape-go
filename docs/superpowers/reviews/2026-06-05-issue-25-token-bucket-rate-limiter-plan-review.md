@@ -1,8 +1,10 @@
 # Issue #25 Plan Review
 
-Issue: #25
+> 한국어 리뷰 경계: 이 문서는 리뷰 판정과 근거를 한국어 독자가 추적할 수 있도록 정리한다. 심각도 토큰, 판정 토큰, 파일 경로, 라인 번호, 이슈/PR 번호, 명령, 코드 식별자는 원문의 증거 앵커로 보존한다.
+
+이슈: #25
 Milestone: 0.3.0
-Date: 2026-06-05
+날짜: 2026-06-05
 Reviewed plan: `docs/superpowers/plans/2026-06-05-issue-25-token-bucket-rate-limiter-plan.md`
 Reference spec: `docs/superpowers/specs/2026-06-05-issue-25-token-bucket-rate-limiter-spec.md`
 
@@ -13,7 +15,7 @@ Reference spec: `docs/superpowers/specs/2026-06-05-issue-25-token-bucket-rate-li
 - Validation commands for local tests, race tests, Testcontainers tests,
   benchmark smoke, docs checks, GNO search, and wiki preservation.
 
-## Perspective Findings
+## 관점별 발견 사항
 
 | Perspective | P0 | P1 | P2 | P3 | Notes |
 |---|---:|---:|---:|---:|---|
@@ -22,7 +24,7 @@ Reference spec: `docs/superpowers/specs/2026-06-05-issue-25-token-bucket-rate-li
 | Architect | 0 | 0 | 0 | 0 | Package boundary avoids changing existing cache/resilience/lock contracts. |
 | Delivery/docs | 0 | 1 | 0 | 0 | Initial plan missed mandatory `bluetape4k-wiki` preservation for external official-doc evidence. |
 
-## 7-Tier Review
+## 7-Tier 검토
 
 | Tier | P0 | P1 | P2 | P3 | Evidence |
 |---|---:|---:|---:|---:|---|
@@ -34,13 +36,13 @@ Reference spec: `docs/superpowers/specs/2026-06-05-issue-25-token-bucket-rate-li
 | Tier 6 Performance/stability | 0 | 0 | 0 | 0 | Local benchmarks are included; Redis benchmark expansion remains explicitly bounded. |
 | Tier 7 Docs/release/evidence | 0 | 1 | 0 | 0 | Initial plan lacked wiki preservation and `gno embed` validation. |
 
-## Integrated Findings
+## 통합 발견 사항
 
 | ID | Severity | Finding | Required plan edit | Status |
 |---|---|---|---|---|
 | P3R-1 | P1 | External official docs are used as research evidence, but the plan did not preserve them in `bluetape4k-wiki` or require `gno embed`. | Add wiki research preservation to T8 and validation sequence. | Resolved |
 
-## Convergence Verdict
+## 수렴 판정
 
 - P0: 0
 - P1: 1 -> 0 after plan/spec update

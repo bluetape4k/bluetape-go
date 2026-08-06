@@ -15,7 +15,7 @@ var (
 	ErrUnknownInitialState  = errors.New("unknown initial state")
 )
 
-// TransitionError reports a transition-specific failure.
+// TransitionError 상태 전이, guard, final state에서 사용하는 구조체다.
 type TransitionError[S comparable, E comparable] struct {
 	Kind  error
 	From  S
@@ -32,12 +32,17 @@ func (e TransitionError[S, E]) Error() string {
 	return message
 }
 
-// Unwrap returns the guard or context cause when one exists.
+// Unwrap 감싼 원인 오류를 반환한다.
+//
+// 반환 오류는 입력 검증 실패, context 취소/deadline, 상태 전이 실패, 패키지 sentinel error와 typed error를 그대로 드러낸다.
 func (e TransitionError[S, E]) Unwrap() error {
 	return e.Cause
 }
 
-// Is allows errors.Is checks against the package sentinel error.
+// Is errors.Is 비교를 지원한다.
+//
+// 매개변수:
+//   - target: 검사하거나 감쌀 오류 값이다.
 func (e TransitionError[S, E]) Is(target error) bool {
 	return target == e.Kind
 }

@@ -14,7 +14,7 @@ const (
 	PolicyTypeBulkhead       = "bulkhead"
 )
 
-// EventKind classifies policy events.
+// EventKind string 공개 타입이며 취소, deadline, retry, timeout, circuit breaker 상태를 보존한다.
 type EventKind string
 
 const (
@@ -37,7 +37,7 @@ const (
 	EventFailure EventKind = "failure"
 )
 
-// EventCategory identifies the broad observability class for an event.
+// EventCategory string 공개 타입이며 취소, deadline, retry, timeout, circuit breaker 상태를 보존한다.
 type EventCategory string
 
 const (
@@ -57,7 +57,7 @@ const (
 	EventCategoryFailure EventCategory = "failure"
 )
 
-// ErrorCategory is a stable, low-cardinality error label for events.
+// ErrorCategory string 공개 타입이며 취소, deadline, retry, timeout, circuit breaker 상태를 보존한다.
 type ErrorCategory string
 
 const (
@@ -80,7 +80,7 @@ const (
 	ErrorCategoryFailure ErrorCategory = "failure"
 )
 
-// Event describes a policy decision or outcome.
+// Event struct 공개 타입이며 취소, deadline, retry, timeout, circuit breaker 상태를 보존한다.
 type Event struct {
 	PolicyName    string
 	PolicyType    string
@@ -96,7 +96,7 @@ type Event struct {
 	InFlight      int
 }
 
-// EventHandler receives policy events synchronously.
+// EventHandler func 공개 타입이며 취소, deadline, retry, timeout, circuit breaker 상태를 보존한다.
 type EventHandler func(context.Context, Event)
 
 func emitEvent(ctx context.Context, handler EventHandler, event Event) {

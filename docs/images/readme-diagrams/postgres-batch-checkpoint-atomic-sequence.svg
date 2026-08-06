@@ -1,0 +1,184 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1500" height="1540" viewBox="0 0 1500 1540" role="img" aria-labelledby="title desc">
+  <title id="title">PostgreSQL Atomic Batch Checkpoint Sequence</title>
+  <desc id="desc">A batch step restores progress, commits business output and its checkpoint atomically, and separates rollback, conflict, commit-unknown, and atomicity-unknown recovery.</desc>
+  <defs>
+    <filter id="softShadow" x="-8%" y="-10%" width="116%" height="124%"><feDropShadow dx="0" dy="5" stdDeviation="5" flood-color="#0f172a" flood-opacity="0.10"/></filter>
+    <marker id="arrow-blue" markerWidth="16" markerHeight="16" viewBox="0 0 10 10" refX="9" refY="5" orient="auto" markerUnits="userSpaceOnUse"><path d="M 0 0 L 10 5 L 0 10 Z" fill="#4f77c9"/></marker>
+    <marker id="arrow-green" markerWidth="16" markerHeight="16" viewBox="0 0 10 10" refX="9" refY="5" orient="auto" markerUnits="userSpaceOnUse"><path d="M 0 0 L 10 5 L 0 10 Z" fill="#319873"/></marker>
+    <marker id="arrow-amber" markerWidth="16" markerHeight="16" viewBox="0 0 10 10" refX="9" refY="5" orient="auto" markerUnits="userSpaceOnUse"><path d="M 0 0 L 10 5 L 0 10 Z" fill="#cf8428"/></marker>
+    <marker id="arrow-red" markerWidth="16" markerHeight="16" viewBox="0 0 10 10" refX="9" refY="5" orient="auto" markerUnits="userSpaceOnUse"><path d="M 0 0 L 10 5 L 0 10 Z" fill="#c85d73"/></marker>
+    <marker id="arrow-purple" markerWidth="16" markerHeight="16" viewBox="0 0 10 10" refX="9" refY="5" orient="auto" markerUnits="userSpaceOnUse"><path d="M 0 0 L 10 5 L 0 10 Z" fill="#7e62d9"/></marker>
+    <style>
+      .canvas { fill: #f8fafc; }
+      .frame { fill: #ffffff; stroke: #cbd5e1; stroke-width: 1.5; filter: url(#softShadow); }
+      .title, .part-title { font-family: "Architects Daughter", "Comic Sans MS", cursive; fill: #263a57; }
+      .title { font-size: 42px; }
+      .subtitle, .small, .msg, .region, .note, .footer { font-family: "Comic Mono", "SFMono-Regular", monospace; fill: #526276; }
+      .subtitle { font-size: 17px; }
+      .small { font-size: 12px; }
+      .msg { font-size: 13px; font-weight: 700; }
+      .region { font-size: 12px; font-weight: 700; }
+      .note { font-size: 12px; }
+      .footer { font-size: 14px; }
+      .participant { stroke-width: 2.2; rx: 12; }
+      .lifeline { stroke: #c5d4e3; stroke-width: 2; stroke-dasharray: 8 8; }
+      .activation { fill: #f3eeff; stroke: #8a65d8; stroke-width: 1.7; rx: 7; opacity: .88; }
+      .route { fill: none; stroke-width: 3; stroke-linecap: round; stroke-linejoin: round; }
+      .return { fill: none; stroke-width: 2.6; stroke-linecap: round; stroke-linejoin: round; stroke-dasharray: 9 8; }
+      .alt { fill: none; stroke: #78909c; stroke-width: 2.4; stroke-dasharray: 12 7; rx: 16; }
+      .alt-label { fill: #ffffff; stroke: #d7e0e4; stroke-width: 1.5; rx: 15; }
+      .else-line { stroke: #78909c; stroke-width: 2.2; stroke-dasharray: 12 8; }
+      .pill { fill: #ffffff; stroke: #cbd9e7; stroke-width: 1.5; rx: 14; }
+      .badge { stroke-width: 1.6; }
+      .badge-text { font-family: "Comic Mono", monospace; font-size: 10px; font-weight: 700; fill: #ffffff; }
+      .callout { fill: #fffaf0; stroke: #e5c07b; stroke-width: 1.5; rx: 12; }
+      .danger { fill: #fff4f5; stroke: #dfa0ab; stroke-width: 1.5; rx: 12; }
+      .legend { fill: #ffffff; stroke: #d4e0ec; stroke-width: 1.5; rx: 12; }
+    </style>
+  </defs>
+
+  <rect class="canvas" width="1500" height="1540"/>
+  <rect class="frame" x="34" y="30" width="1432" height="1480" rx="8"/>
+  <text class="title" x="72" y="88">PostgreSQL Atomic Batch Checkpoint</text>
+  <text class="subtitle" x="76" y="120">The consumed-input boundary advances only with its business output in one caller-owned transaction.</text>
+
+  <rect class="participant" x="90" y="174" width="180" height="68" fill="#eaf2ff" stroke="#6d9df0"/>
+  <text class="part-title participant-title" x="180" y="202" text-anchor="middle">Step</text>
+  <text class="small" x="180" y="224" text-anchor="middle">chunk orchestration</text>
+  <line class="lifeline" x1="180" y1="242" x2="180" y2="1435"/>
+
+  <rect class="participant" x="450" y="174" width="180" height="68" fill="#fff4de" stroke="#d59c3f"/>
+  <text class="part-title participant-title" x="540" y="202" text-anchor="middle">CheckpointReader</text>
+  <text class="small" x="540" y="224" text-anchor="middle">restore durable progress</text>
+  <line class="lifeline" x1="540" y1="242" x2="540" y2="1435"/>
+
+  <rect class="participant" x="810" y="174" width="180" height="68" fill="#edf9f4" stroke="#63b891"/>
+  <text class="part-title participant-title" x="900" y="202" text-anchor="middle">Atomic Writer</text>
+  <text class="small" x="900" y="224" text-anchor="middle">callback + checkpoint CAS</text>
+  <line class="lifeline" x1="900" y1="242" x2="900" y2="1435"/>
+
+  <rect class="participant" x="1170" y="174" width="220" height="68" fill="#f3efff" stroke="#9b7aec"/>
+  <text class="part-title participant-title" x="1280" y="202" text-anchor="middle">PostgreSQL</text>
+  <text class="small" x="1280" y="224" text-anchor="middle">writable primary</text>
+  <line class="lifeline" x1="1280" y1="242" x2="1280" y2="1435"/>
+
+  <rect class="activation" x="173" y="284" width="14" height="1100" rx="7"/>
+  <rect class="activation" x="893" y="284" width="14" height="198" rx="7"/>
+  <rect class="activation" x="893" y="524" width="14" height="860" rx="7"/>
+  <rect class="activation" x="1273" y="584" width="14" height="800" rx="7"/>
+
+  <path class="route" d="M180 300 L900 300" stroke="#4f77c9" marker-end="url(#arrow-blue)"/>
+  <rect class="pill" x="416" y="258" width="248" height="30" rx="15"/>
+  <circle class="badge" cx="434" cy="273" r="13" fill="#4f77c9"/>
+  <text class="badge-text badgeText" x="434" y="277" text-anchor="middle">1</text>
+  <text class="msg" x="550" y="278" text-anchor="middle" fill="#4f77c9">Load(checkpoint key)</text>
+
+  <path class="route" d="M900 360 L1280 360" stroke="#cf8428" marker-end="url(#arrow-amber)"/>
+  <rect class="pill" x="958" y="318" width="284" height="30" rx="15"/>
+  <circle class="badge" cx="976" cy="333" r="13" fill="#cf8428"/>
+  <text class="badge-text badgeText" x="976" y="337" text-anchor="middle">2</text>
+  <text class="msg" x="1110" y="338" text-anchor="middle" fill="#cf8428">read payload + revision</text>
+
+  <path class="return" d="M1280 420 L900 420" stroke="#319873" marker-end="url(#arrow-green)"/>
+  <rect class="pill" x="950" y="378" width="300" height="30" rx="15"/>
+  <circle class="badge" cx="968" cy="393" r="13" fill="#319873"/>
+  <text class="badge-text badgeText" x="968" y="397" text-anchor="middle">3</text>
+  <text class="msg" x="1110" y="398" text-anchor="middle" fill="#319873">checkpoint value + revision</text>
+
+  <path class="route" d="M180 480 L540 480" stroke="#4f77c9" marker-end="url(#arrow-blue)"/>
+  <rect class="pill" x="232" y="438" width="256" height="30" rx="15"/>
+  <circle class="badge" cx="250" cy="453" r="13" fill="#4f77c9"/>
+  <text class="badge-text badgeText" x="250" y="457" text-anchor="middle">4</text>
+  <text class="msg" x="370" y="458" text-anchor="middle" fill="#4f77c9">Restore(checkpoint value)</text>
+
+  <rect class="callout" x="730" y="508" width="580" height="38" rx="12"/>
+  <text class="note" x="1020" y="532" text-anchor="middle">Consumed-input boundary: next unread item after success.</text>
+
+  <path class="route" d="M180 568 L900 568" stroke="#4f77c9" marker-end="url(#arrow-blue)"/>
+  <rect class="pill" x="382" y="526" width="316" height="30" rx="15"/>
+  <circle class="badge" cx="400" cy="541" r="13" fill="#4f77c9"/>
+  <text class="badge-text badgeText" x="400" y="545" text-anchor="middle">5</text>
+  <text class="msg" x="550" y="546" text-anchor="middle" fill="#4f77c9">Commit(chunk, checkpoint)</text>
+
+  <path class="route" d="M900 628 L1280 628" stroke="#7e62d9" marker-end="url(#arrow-purple)"/>
+  <rect class="pill" x="958" y="586" width="264" height="30" rx="15"/>
+  <circle class="badge" cx="976" cy="601" r="13" fill="#7e62d9"/>
+  <text class="badge-text badgeText" x="976" y="605" text-anchor="middle">6</text>
+  <text class="msg" x="1100" y="606" text-anchor="middle" fill="#7e62d9">BEGIN; SAVEPOINT callback</text>
+
+  <path class="route" d="M900 688 L1280 688" stroke="#4f77c9" marker-end="url(#arrow-blue)"/>
+  <rect class="pill" x="962" y="646" width="256" height="30" rx="15"/>
+  <circle class="badge" cx="980" cy="661" r="13" fill="#4f77c9"/>
+  <text class="badge-text badgeText" x="980" y="665" text-anchor="middle">7</text>
+  <text class="msg" x="1100" y="666" text-anchor="middle" fill="#4f77c9">run business callback(tx)</text>
+
+  <path class="route" d="M900 748 L1280 748" stroke="#cf8428" marker-end="url(#arrow-amber)"/>
+  <rect class="pill" x="956" y="706" width="268" height="30" rx="15"/>
+  <circle class="badge" cx="974" cy="721" r="13" fill="#cf8428"/>
+  <text class="badge-text badgeText" x="974" y="725" text-anchor="middle">8</text>
+  <text class="msg" x="1100" y="726" text-anchor="middle" fill="#cf8428">probe transaction ownership</text>
+
+  <rect class="danger" x="202" y="700" width="594" height="60" rx="12"/>
+  <text class="note" x="499" y="719" text-anchor="middle">ownership unproven -> ErrAtomicityUnknown; Step stops</text>
+  <text class="note" x="499" y="737" text-anchor="middle">caller keeps the key quiesced; no automatic replay</text>
+  <text class="note" x="499" y="755" text-anchor="middle">manually reconcile business output and checkpoint before CAS</text>
+
+  <path class="route" d="M900 808 L1280 808" stroke="#319873" marker-end="url(#arrow-green)"/>
+  <rect class="pill" x="952" y="766" width="276" height="30" rx="15"/>
+  <circle class="badge" cx="970" cy="781" r="13" fill="#319873"/>
+  <text class="badge-text badgeText" x="970" y="785" text-anchor="middle">9</text>
+  <text class="msg" x="1100" y="786" text-anchor="middle" fill="#319873">checkpoint INSERT / UPDATE CAS</text>
+
+  <rect class="alt" x="74" y="842" width="1352" height="374" rx="16"/>
+  <rect class="alt-label" x="92" y="860" width="222" height="30" rx="15"/>
+  <text class="region" x="114" y="880">alt transaction outcome</text>
+
+  <path class="route" d="M900 932 L1280 932" stroke="#319873" marker-end="url(#arrow-green)"/>
+  <rect class="pill" x="980" y="890" width="220" height="30" rx="15"/>
+  <circle class="badge" cx="998" cy="905" r="13" fill="#319873"/>
+  <text class="badge-text badgeText" x="998" y="909" text-anchor="middle">10</text>
+  <text class="msg" x="1100" y="910" text-anchor="middle" fill="#319873">COMMIT both changes</text>
+
+  <path class="return" d="M900 982 L180 982" stroke="#319873" marker-end="url(#arrow-green)"/>
+  <rect class="pill" x="418" y="940" width="244" height="30" rx="15"/>
+  <circle class="badge" cx="436" cy="955" r="13" fill="#319873"/>
+  <text class="badge-text badgeText" x="436" y="959" text-anchor="middle">11</text>
+  <text class="msg" x="550" y="960" text-anchor="middle" fill="#319873">success; advance reader</text>
+
+  <line class="else-line" x1="88" y1="1010" x2="1412" y2="1010"/>
+  <rect class="alt-label" x="92" y="1026" width="250" height="30" rx="15"/>
+  <text class="region" x="114" y="1046">else known callback failure</text>
+  <path class="route" d="M900 1094 L1280 1094" stroke="#c85d73" marker-end="url(#arrow-red)"/>
+  <rect class="pill" x="930" y="1052" width="340" height="30" rx="15"/>
+  <circle class="badge" cx="948" cy="1067" r="13" fill="#c85d73"/>
+  <text class="badge-text badgeText" x="948" y="1071" text-anchor="middle">10</text>
+  <text class="msg" x="1100" y="1072" text-anchor="middle" fill="#c85d73">ROLLBACK; 25P02 first: ROLLBACK TO</text>
+
+  <line class="else-line" x1="88" y1="1120" x2="1412" y2="1120"/>
+  <rect class="alt-label" x="92" y="1136" width="226" height="30" rx="15"/>
+  <text class="region" x="114" y="1156">else checkpoint conflict</text>
+  <path class="return" d="M1280 1190 L900 1190" stroke="#c85d73" marker-end="url(#arrow-red)"/>
+  <rect class="pill" x="962" y="1148" width="256" height="30" rx="15"/>
+  <circle class="badge" cx="980" cy="1163" r="13" fill="#c85d73"/>
+  <text class="badge-text badgeText" x="980" y="1167" text-anchor="middle">10</text>
+  <text class="msg" x="1100" y="1168" text-anchor="middle" fill="#c85d73">CAS miss; rollback all</text>
+
+  <rect class="alt" x="74" y="1236" width="1352" height="190" rx="16"/>
+  <rect class="alt-label" x="92" y="1254" width="250" height="30" rx="15"/>
+  <text class="region" x="114" y="1274">alt response is uncertain</text>
+
+  <path class="return" d="M900 1320 L180 1320" stroke="#cf8428" marker-end="url(#arrow-amber)"/>
+  <rect class="pill" x="386" y="1278" width="308" height="30" rx="15"/>
+  <circle class="badge" cx="404" cy="1293" r="13" fill="#cf8428"/>
+  <text class="badge-text badgeText" x="404" y="1297" text-anchor="middle">10</text>
+  <text class="msg" x="550" y="1298" text-anchor="middle" fill="#cf8428">ErrCommitUnknown; Step stops</text>
+
+  <path class="route" d="M180 1380 L900 1380" stroke="#cf8428" marker-end="url(#arrow-amber)"/>
+  <rect class="pill" x="365" y="1338" width="370" height="30" rx="15"/>
+  <circle class="badge" cx="383" cy="1353" r="13" fill="#cf8428"/>
+  <text class="badge-text badgeText" x="383" y="1357" text-anchor="middle">11</text>
+  <text class="msg" x="550" y="1358" text-anchor="middle" fill="#cf8428">caller: quiesce; Atomic Writer.Load</text>
+
+  <rect class="legend" x="82" y="1480" width="1336" height="28" rx="8"/>
+  <text class="footer" x="750" y="1499" text-anchor="middle">Error returns end the Step; labeled caller policy runs outside it and never replays the callback automatically.</text>
+</svg>

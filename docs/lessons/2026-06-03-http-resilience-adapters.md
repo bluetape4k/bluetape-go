@@ -1,16 +1,16 @@
-# HTTP resilience adapters
+# HTTP Resilience Adapters
 
-HTTP retry examples need stricter contracts than plain service-call retry.
-`net/http` request bodies are not always replayable, and retryable response
-bodies must be closed before the next attempt so clients do not leak
-connections.
+HTTP retry example은 일반 service-call retry보다 엄격한 contract가 필요하다.
+`net/http` request body는 항상 replay 가능하지 않고, retry 가능한 response body는
+다음 attempt 전에 닫아야 connection leak이 생기지 않는다.
 
-For bluetape-go HTTP adapters:
+bluetape-go HTTP adapter의 기준은 다음과 같다.
 
-- Keep the adapter close to `net/http`; no framework dependency is needed.
-- Convert retryable response statuses to an explicit error before policy
-  composition so retry and circuit breaker policies can observe failures.
-- Close retryable response bodies before retrying.
-- Require `Request.GetBody` for request bodies that may be retried.
-- Prefer retry on outbound client calls. Server handlers can use admission and
-  timeout policies, but retrying a handler after it writes a response is unsafe.
+- adapter는 `net/http`에 가깝게 유지하고 framework dependency를 추가하지 않는다.
+- retry와 circuit breaker policy가 failure를 관찰할 수 있도록 retryable response
+  status를 policy composition 전에 명시적 error로 변환한다.
+- retry 전에 retryable response body를 닫는다.
+- retry될 수 있는 request body에는 `Request.GetBody`를 요구한다.
+- retry는 outbound client call에 우선 적용한다. Server handler는 admission과
+  timeout policy를 사용할 수 있지만, response를 쓴 뒤 handler를 retry하는 것은
+  안전하지 않다.

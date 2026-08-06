@@ -2,10 +2,7 @@ package collections
 
 import "fmt"
 
-// RingBuffer is a fixed-capacity FIFO-oriented buffer.
-//
-// Adding beyond capacity overwrites the oldest value. RingBuffer is not
-// goroutine-safe and is not a blocking queue.
+// RingBuffer 패키지에서 공개하는 구조체다.
 type RingBuffer[T any] struct {
 	values   []T
 	start    int
@@ -13,7 +10,12 @@ type RingBuffer[T any] struct {
 	capacity int
 }
 
-// NewRingBuffer creates a fixed-capacity ring buffer.
+// NewRingBuffer RingBuffer 인스턴스를 생성한다.
+//
+// 매개변수:
+//   - capacity: NewRingBuffer에 전달되는 값이다. 허용 범위와 nil 처리 방식은 구현 검증을 따른다.
+//
+// 반환 오류는 입력 검증 실패와 패키지에서 정의한 sentinel error/typed error를 그대로 드러낸다.
 func NewRingBuffer[T any](capacity int) (*RingBuffer[T], error) {
 	if capacity <= 0 {
 		return nil, fmt.Errorf("%w: ring buffer capacity[%d] must be positive", ErrInvalidArgument, capacity)
@@ -24,7 +26,7 @@ func NewRingBuffer[T any](capacity int) (*RingBuffer[T], error) {
 	}, nil
 }
 
-// Capacity returns the maximum number of retained values.
+// Capacity 저장 가능한 최대 항목 수를 반환한다.
 func (r *RingBuffer[T]) Capacity() int {
 	if r == nil {
 		return 0
@@ -32,7 +34,7 @@ func (r *RingBuffer[T]) Capacity() int {
 	return r.capacity
 }
 
-// Len returns the number of retained values.
+// Len 현재 항목 수를 반환한다.
 func (r *RingBuffer[T]) Len() int {
 	if r == nil {
 		return 0
@@ -40,12 +42,15 @@ func (r *RingBuffer[T]) Len() int {
 	return r.length
 }
 
-// Empty reports whether the ring has no values.
+// Empty 저장된 항목이 없는지 반환한다.
 func (r *RingBuffer[T]) Empty() bool {
 	return r.Len() == 0
 }
 
-// Add appends value, overwriting the oldest value when the ring is full.
+// Add 현재 값에 입력 값을 더한 결과를 반환한다.
+//
+// 매개변수:
+//   - value: Add에 전달되는 값이다. 허용 범위와 nil 처리 방식은 구현 검증을 따른다.
 func (r *RingBuffer[T]) Add(value T) {
 	if r == nil || r.capacity <= 0 {
 		return
@@ -60,14 +65,20 @@ func (r *RingBuffer[T]) Add(value T) {
 	r.start = (r.start + 1) % r.capacity
 }
 
-// AddAll appends values in argument order.
+// AddAll 여러 값을 순서대로 추가한다.
+//
+// 매개변수:
+//   - values: AddAll에 전달되는 값이다. 허용 범위와 nil 처리 방식은 구현 검증을 따른다.
 func (r *RingBuffer[T]) AddAll(values ...T) {
 	for _, value := range values {
 		r.Add(value)
 	}
 }
 
-// At returns the value at index, where index 0 is the oldest retained value.
+// At index 위치의 값을 반환한다.
+//
+// 매개변수:
+//   - index: At에 전달되는 값이다. 허용 범위와 nil 처리 방식은 구현 검증을 따른다.
 func (r *RingBuffer[T]) At(index int) (T, bool) {
 	var zero T
 	if r == nil || index < 0 || index >= r.length {
@@ -76,7 +87,7 @@ func (r *RingBuffer[T]) At(index int) (T, bool) {
 	return r.values[(r.start+index)%r.capacity], true
 }
 
-// Values returns an oldest-to-newest shallow snapshot.
+// Values 현재 값을 슬라이스로 반환한다.
 func (r *RingBuffer[T]) Values() []T {
 	if r == nil {
 		return nil
@@ -88,7 +99,12 @@ func (r *RingBuffer[T]) Values() []T {
 	return result
 }
 
-// Drop removes n oldest values.
+// Drop 앞쪽 n개 항목을 제거한다.
+//
+// 매개변수:
+//   - n: Drop에 전달되는 값이다. 허용 범위와 nil 처리 방식은 구현 검증을 따른다.
+//
+// 반환 오류는 입력 검증 실패와 패키지에서 정의한 sentinel error/typed error를 그대로 드러낸다.
 func (r *RingBuffer[T]) Drop(n int) error {
 	if n < 0 {
 		return fmt.Errorf("%w: drop count[%d] must be non-negative", ErrInvalidArgument, n)
@@ -109,7 +125,7 @@ func (r *RingBuffer[T]) Drop(n int) error {
 	return nil
 }
 
-// Clear removes all values.
+// Clear 저장된 항목을 모두 제거한다.
 func (r *RingBuffer[T]) Clear() {
 	if r == nil {
 		return

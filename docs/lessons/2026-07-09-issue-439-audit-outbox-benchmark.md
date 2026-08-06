@@ -1,20 +1,18 @@
-# Issue #439 Audit Outbox Benchmark Lesson
+# Issue #439 Audit Outbox Benchmark 교훈
 
-Audit and outbox benchmark work is complete only when raw output, result tables,
-charts, and written interpretation all move together.
+Audit와 outbox benchmark 작업은 raw output, result table, chart, written
+interpretation이 함께 움직일 때만 완료로 본다.
 
-- Preserve benchmark commands and raw output under `docs/research/outputs/` so
-  follow-up adapter issues can link measured evidence instead of summary-only
-  claims.
-- Keep in-memory audit repository rows separate from PostgreSQL/Testcontainers
-  outbox rows. They measure different boundaries and should not be ranked as
-  interchangeable delivery options.
-- Database-backed benchmarks need an explicit opt-in env flag, serial command,
-  fixture image/version, and bounded operation contexts.
-- Treat impossible Testcontainers rows such as single-digit `ns/op` as a timer
-  hygiene failure. Setup, reset, and seed work may be excluded, but the SQL
-  operation itself must be inside `StartTimer` / `StopTimer`.
-- A local benchmark snapshot is regression and planning evidence, not a
-  production throughput guarantee. Do not use it to change delivery semantics,
-  retry ownership, idempotency, or dead-letter behavior without a separate
-  design issue.
+- benchmark command와 raw output을 `docs/research/outputs/` 아래 보존해 follow-up
+  adapter issue가 summary-only claim 대신 측정 evidence를 link할 수 있게 한다.
+- in-memory audit repository row와 PostgreSQL/Testcontainers outbox row를 분리한다.
+  둘은 다른 boundary를 측정하므로 interchangeable delivery option처럼 ranking해서는
+  안 된다.
+- Database-backed benchmark에는 명시적 opt-in env flag, serial command, fixture
+  image/version, bounded operation context가 필요하다.
+- single-digit `ns/op` 같은 불가능한 Testcontainers row는 timer hygiene failure로
+  취급한다. setup, reset, seed work는 제외할 수 있지만 SQL operation 자체는
+  `StartTimer` / `StopTimer` 안에 있어야 한다.
+- local benchmark snapshot은 regression과 planning evidence이지 production
+  throughput guarantee가 아니다. 별도 design issue 없이 delivery semantics, retry
+  ownership, idempotency, dead-letter behavior를 바꾸는 근거로 쓰지 않는다.

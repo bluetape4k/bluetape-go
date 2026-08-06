@@ -14,7 +14,10 @@
 ## 가져오기
 
 ```go
-import redislock "github.com/bluetape4k/bluetape-go/lock/redis"
+import (
+    redislock "github.com/bluetape4k/bluetape-go/lock/redis"
+    btredis "github.com/bluetape4k/bluetape-go/redis"
+)
 ```
 
 ## 사용 예
@@ -31,7 +34,28 @@ if err != nil {
 lockCtx, lockCancel := context.WithTimeout(ctx, 5*time.Second)
 defer lockCancel()
 
+cleanupLease := func(lease *redislock.Lease) error {
+    var lastErr error
+    for range 2 {
+        cleanupCtx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+        _, cleanupErr := lease.Unlock(cleanupCtx)
+        cancel()
+        if cleanupErr == nil { // release됐거나 응답 유실 뒤 absence가 확인됨
+            return nil
+        }
+        lastErr = cleanupErr
+        if !errors.Is(cleanupErr, btredis.ErrCommitUnknown) {
+            break
+        }
+    }
+    return lastErr // TTL이 최종 fallback
+}
+
 lease, err := mutex.TryLock(lockCtx)
+if lease != nil && err != nil {
+    cleanupErr := cleanupLease(lease)
+    return errors.Join(err, cleanupErr) // bare context error보다 err type을 먼저 판별
+}
 if errors.Is(err, redislock.ErrNotAcquired) {
     return nil
 }
@@ -39,9 +63,7 @@ if err != nil {
     return err
 }
 defer func() {
-    cleanupCtx, cleanupCancel := context.WithTimeout(context.Background(), 5*time.Second)
-    defer cleanupCancel()
-    _, _ = lease.Unlock(cleanupCtx)
+    _ = cleanupLease(lease)
 }()
 ```
 
@@ -51,6 +73,8 @@ defer func() {
 - `Lease.Unlock`은 저장된 token이 lease token과 여전히 일치할 때만 Redis key를 삭제합니다.
 - `Options.Token`으로 custom token을 제공할 수 있습니다. 제공하지 않으면 acquire마다 random owner token을 생성합니다.
 - Redis command의 context cancellation은 보존됩니다.
+- Redis command failure는 `errors.Is`, `errors.As`를 위한 cause를 보존하고,
+  diagnostic message에서는 raw lock key와 owner token을 redacted 처리합니다.
 - Cleanup은 request cancellation 뒤의 fresh context를 사용할 수 있지만,
   명시적인 timeout으로 제한해야 합니다.
 
@@ -65,3 +89,16 @@ defer func() {
 ```bash
 go test -count=1 ./lock/redis
 ```
+
+## Conformance 및 Commit-Unknown 복구
+
+Custom-token mixed-version 예외, canary telemetry/threshold, owner-aware
+resign/TTL rollback gate는 영·한 [v0.19.0 rollout runbook](../../docs/release/v0.19.0-provider-conformance-runbook.md)을
+따릅니다.
+
+`locktest.Run`은 실제 Redis SetNX/Eval boundary에서 provider를 검증합니다. Context
+error보다 `btredis.ErrCommitUnknown`을 먼저 확인합니다. `TryLock`이 error와 함께
+`lease != nil`을 반환하면 즉시 bounded cleanup을 시도합니다. `Unlock` 응답 유실은 false와
+typed error를 반환하므로 같은 lease callback을 재시도합니다. Compare-delete가 replacement
+owner를 보호하며 TTL이 최종 fallback입니다. 앞뒤 공백을 포함한 nonblank custom token
+byte는 더 이상 trim하지 않습니다.

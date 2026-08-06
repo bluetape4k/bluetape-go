@@ -5,7 +5,7 @@ import (
 	"fmt"
 )
 
-// PanicError wraps a panic value captured from a task goroutine.
+// PanicError 패키지에서 공개하는 구조체다.
 type PanicError struct {
 	Value any
 }

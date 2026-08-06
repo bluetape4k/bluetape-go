@@ -1,12 +1,14 @@
 # Issue #182 Step 6-R Code Review
 
-Scope: `origin/develop...HEAD`
+> 한국어 감사/리뷰 경계: 이 문서는 리뷰 결론과 남은 위험을 한국어 독자가 추적할 수 있도록 정리한다. 심각도 표기, 판정 표기, 파일 경로, 라인 번호, 이슈/PR 링크, 명령, 코드 식별자, 인용 증거는 원문의 증거 앵커로 보존한다.
+
+범위: `origin/develop...HEAD`
 
 Head reviewed after repair commit: `c57056e`
 
 Subject: Redis-backed probabilistic Bloom filters.
 
-## Gate Model
+## 게이트 모델
 
 7-Tier gate was executed as six independent subagent lanes plus this main
 integration review. No seventh integration subagent was used.
@@ -20,7 +22,7 @@ integration review. No seventh integration subagent was used.
 | Tier 5 Developer/API | P0=0 P1=0 P2=3 PASS | P0=0 P1=0 P2=0 PASS | Addressed README test commands, changelog wording, and generator font discovery. |
 | Tier 6 User/Caller | P0=0 P1=1 P2=1 FAIL | P0=0 P1=0 P2=0 PASS | Replaced nil examples and clarified Redis package tests plus Docker requirement. |
 
-## Repaired Findings
+## 수정한 발견 사항
 
 - Performance P1: benchmark coverage now spans `fpp_0.100`, `fpp_0.010`, and
   `fpp_0.001` for `Put`, `MightContain`, and `Offsets`.
@@ -39,7 +41,7 @@ integration review. No seventh integration subagent was used.
 - Developer P2: diagram generator discovers fonts through env overrides and
   common paths instead of a single hardcoded local path.
 
-## Commands Run
+## 실행한 명령
 
 ```bash
 gopls check probabilistic/redis/example_test.go probabilistic/redis/filter.go probabilistic/internal/bloomhash/indexes.go probabilistic/redis/filter_benchmark_test.go
@@ -70,7 +72,7 @@ BenchmarkRedisBloomOffsets/fpp_0.010-12             139.5 ns/op  183 B/op    4 a
 BenchmarkRedisBloomOffsets/fpp_0.001-12             161.8 ns/op  231 B/op    4 allocs/op
 ```
 
-## Main Integration Verdict
+## 메인 통합 판정
 
 All P1 findings were repaired and rerun by the owning lanes. Remaining residual
 risk is limited to GitHub CI/PR review, which has not run yet.

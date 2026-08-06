@@ -5,7 +5,6 @@ import (
 	"crypto/rand"
 	"encoding/hex"
 	"errors"
-	"fmt"
 	"sync"
 	"time"
 
@@ -15,7 +14,7 @@ import (
 	"go.mongodb.org/mongo-driver/v2/mongo/options"
 )
 
-// Elector is a MongoDB-backed single leader elector.
+// Elector leader backend election에서 caller-visible 상태와 의미를 설명한다.
 type Elector struct {
 	collection *mongo.Collection
 	opts       leader.Options
@@ -26,8 +25,11 @@ type Elector struct {
 	mu          sync.RWMutex
 	owned       bool
 	campaigning bool
+	cleanup     bool
+	generation  uint64
 	cancel      context.CancelFunc
 	done        chan struct{}
+	testHook    func(string) error
 }
 
 var _ leader.Elector = (*Elector)(nil)
@@ -42,7 +44,7 @@ type leaseDocument struct {
 	UpdatedAt  time.Time `bson:"updated_at"`
 }
 
-// New creates a MongoDB-backed single leader elector.
+// New leader backend election에서 생성과 초기화 계약을 설명한다.
 func New(collection *mongo.Collection, opts leader.Options, optionFns ...Option) (*Elector, error) {
 	if err := requireCollection(collection); err != nil {
 		return nil, err
@@ -68,10 +70,13 @@ func New(collection *mongo.Collection, opts leader.Options, optionFns ...Option)
 	}, nil
 }
 
-// Campaign loops until this elector acquires leadership or ctx is canceled.
+// Campaign leader backend election에서 caller-visible 상태와 의미를 설명한다.
 func (e *Elector) Campaign(ctx context.Context) error {
 	if ctx == nil {
-		ctx = context.Background()
+		return leader.ErrInvalidContext
+	}
+	if err := ctx.Err(); err != nil {
+		return err
 	}
 	if err := e.beginCampaign(); err != nil {
 		return err
@@ -81,6 +86,20 @@ func (e *Elector) Campaign(ctx context.Context) error {
 	for {
 		acquired, err := e.tryAcquire(ctx)
 		if err != nil {
+			if acquired {
+				e.mu.Lock()
+				e.cleanup = true
+				e.mu.Unlock()
+				return errors.Join(
+					leader.NewOperationError("mongo", "campaign", err),
+					leader.ErrCommitUnknown,
+				)
+			}
+			if errors.Is(err, leader.ErrCommitUnknown) {
+				e.mu.Lock()
+				e.cleanup = true
+				e.mu.Unlock()
+			}
 			return err
 		}
 		if acquired {
@@ -93,13 +112,16 @@ func (e *Elector) Campaign(ctx context.Context) error {
 	}
 }
 
-// Resign releases leadership only when this elector still owns it.
+// Resign leader backend election에서 실행, cancellation, cleanup 계약을 설명한다.
 func (e *Elector) Resign(ctx context.Context) error {
 	if ctx == nil {
-		ctx = context.Background()
+		return leader.ErrInvalidContext
 	}
-	cancel, done, owned := e.clearOwnership()
-	if !owned {
+	if err := ctx.Err(); err != nil {
+		return err
+	}
+	generation, cancel, done, active := e.clearOwnership()
+	if !active {
 		return nil
 	}
 	if cancel != nil {
@@ -113,22 +135,41 @@ func (e *Elector) Resign(ctx context.Context) error {
 		}
 	}
 	if _, err := e.collection.DeleteOne(ctx, bson.M{"_id": e.key, "token": e.token}); err != nil {
-		return fmt.Errorf("mongo leader resign: %w", err)
+		return errors.Join(
+			leader.NewOperationError("mongo", "resign", err),
+			leader.ErrCommitUnknown,
+		)
 	}
+	if err := e.afterMutation("resign"); err != nil {
+		return errors.Join(
+			leader.NewOperationError("mongo", "resign", err),
+			leader.ErrCommitUnknown,
+		)
+	}
+	e.mu.Lock()
+	if e.generation == generation {
+		e.cleanup = false
+		e.cancel = nil
+		e.done = nil
+	}
+	e.mu.Unlock()
 	return nil
 }
 
-// IsLeader reports whether this elector still believes it owns leadership.
+// IsLeader leader backend election에서 반환값과 오류 의미를 설명한다.
 func (e *Elector) IsLeader() bool {
 	e.mu.RLock()
 	defer e.mu.RUnlock()
 	return e.owned
 }
 
-// Leader returns the active leader token recorded in MongoDB.
+// Leader leader backend election에서 반환값과 오류 의미를 설명한다.
 func (e *Elector) Leader(ctx context.Context) (string, error) {
 	if ctx == nil {
-		ctx = context.Background()
+		return "", leader.ErrInvalidContext
+	}
+	if err := ctx.Err(); err != nil {
+		return "", err
 	}
 	now := e.cfg.clock().UTC()
 	var doc leaseDocument
@@ -137,7 +178,7 @@ func (e *Elector) Leader(ctx context.Context) (string, error) {
 		if errors.Is(err, mongo.ErrNoDocuments) {
 			return "", nil
 		}
-		return "", fmt.Errorf("mongo leader lookup: %w", err)
+		return "", leader.NewOperationError("mongo", "lookup", err)
 	}
 	return doc.Token, nil
 }
@@ -145,8 +186,14 @@ func (e *Elector) Leader(ctx context.Context) (string, error) {
 func (e *Elector) beginCampaign() error {
 	e.mu.Lock()
 	defer e.mu.Unlock()
-	if e.owned || e.campaigning {
+	if e.cleanup {
+		return leader.ErrCleanupPending
+	}
+	if e.owned {
 		return leader.ErrAlreadyLeader
+	}
+	if e.campaigning {
+		return leader.ErrCampaignInProgress
 	}
 	e.campaigning = true
 	return nil
@@ -195,11 +242,21 @@ func (e *Elector) tryAcquire(ctx context.Context) (bool, error) {
 	err := e.collection.FindOneAndUpdate(ctx, filter, update, opts).Decode(&updated)
 	if err != nil {
 		if mongo.IsDuplicateKeyError(err) {
+			_ = e.afterMutation("campaign")
 			return false, nil
 		}
-		return false, fmt.Errorf("mongo leader campaign: %w", err)
+		return false, errors.Join(
+			leader.NewOperationError("mongo", "campaign", err),
+			leader.ErrCommitUnknown,
+		)
 	}
-	return updated.Token == e.token && updated.LeaseUntil.After(now), nil
+	acquired := updated.Token == e.token && updated.LeaseUntil.After(now)
+	if acquired {
+		if err := e.afterMutation("campaign"); err != nil {
+			return true, err
+		}
+	}
+	return acquired, nil
 }
 
 func (e *Elector) startRenewal() {
@@ -207,15 +264,18 @@ func (e *Elector) startRenewal() {
 	done := make(chan struct{})
 
 	e.mu.Lock()
+	e.generation++
+	generation := e.generation
 	e.owned = true
+	e.cleanup = false
 	e.cancel = cancel
 	e.done = done
 	e.mu.Unlock()
 
-	go e.renewLoop(renewCtx, done)
+	go e.renewLoop(renewCtx, generation, done)
 }
 
-func (e *Elector) renewLoop(ctx context.Context, done chan<- struct{}) {
+func (e *Elector) renewLoop(ctx context.Context, generation uint64, done chan struct{}) {
 	defer close(done)
 
 	ticker := time.NewTicker(e.opts.RenewInterval)
@@ -228,7 +288,7 @@ func (e *Elector) renewLoop(ctx context.Context, done chan<- struct{}) {
 		case <-ticker.C:
 			ok, err := e.renew(ctx)
 			if err != nil || !ok {
-				e.clearOwnershipAfterLoss()
+				e.clearOwnershipAfterLoss(generation, done, err != nil)
 				return
 			}
 		}
@@ -246,29 +306,49 @@ func (e *Elector) renew(ctx context.Context) (bool, error) {
 		bson.M{"$set": bson.M{"lease_until": now.Add(e.opts.Lease), "updated_at": now}},
 	)
 	if err != nil {
-		return false, err
+		return false, leader.NewOperationError("mongo", "renew", err)
 	}
-	return result.MatchedCount == 1, nil
+	matched := result.MatchedCount == 1
+	if matched {
+		if err := e.afterMutation("renew"); err != nil {
+			return true, err
+		}
+	}
+	return matched, nil
 }
 
-func (e *Elector) clearOwnership() (context.CancelFunc, chan struct{}, bool) {
+func (e *Elector) clearOwnership() (uint64, context.CancelFunc, chan struct{}, bool) {
 	e.mu.Lock()
 	defer e.mu.Unlock()
-	owned := e.owned
+	active := e.owned || e.cleanup
+	if !active {
+		return e.generation, nil, nil, false
+	}
+	generation := e.generation
 	cancel := e.cancel
 	done := e.done
 	e.owned = false
-	e.cancel = nil
-	e.done = nil
-	return cancel, done, owned
+	e.cleanup = true
+	return generation, cancel, done, true
 }
 
-func (e *Elector) clearOwnershipAfterLoss() {
+func (e *Elector) clearOwnershipAfterLoss(generation uint64, done chan struct{}, cleanup bool) {
 	e.mu.Lock()
+	defer e.mu.Unlock()
+	if e.generation != generation || e.done != done {
+		return
+	}
 	e.owned = false
+	e.cleanup = cleanup
 	e.cancel = nil
 	e.done = nil
-	e.mu.Unlock()
+}
+
+func (e *Elector) afterMutation(operation string) error {
+	if e.testHook == nil {
+		return nil
+	}
+	return e.testHook(operation)
 }
 
 func sleepContext(ctx context.Context, delay time.Duration) error {

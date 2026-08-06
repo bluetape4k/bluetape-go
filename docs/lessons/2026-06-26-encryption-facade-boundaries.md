@@ -1,15 +1,15 @@
-# Encryption Facade Boundaries
+# Encryption Facade Boundary 교훈
 
-For Go encryption work, the default facade should hide nonce management and keep
-the common path dependency-free when Go's standard library can satisfy the
-contract. With Go 1.26, `cipher.NewGCMWithRandomNonce` is the right starting
-point for a byte/string AEAD facade.
+Go encryption 작업에서 default facade는 nonce management를 숨겨야 하며, Go standard
+library가 contract를 만족할 수 있다면 common path를 dependency-free로 유지해야 한다.
+Go 1.26에서는 byte/string AEAD facade의 시작점으로
+`cipher.NewGCMWithRandomNonce`가 적절하다.
 
-Do not generate ephemeral singleton keys for durable ciphertext. Key material
-must be caller-owned, persisted, or loaded from an explicit provider. This
-matches the exposed Tink lesson that persisted encrypted columns cannot rely on
-new generated keysets.
+durable ciphertext에 ephemeral singleton key를 생성하지 않는다. key material은
+caller-owned, persisted, 또는 explicit provider에서 load되어야 한다. 이는 persisted
+encrypted column이 새로 generated keyset에 의존할 수 없다는 Exposed Tink lesson과도
+맞다.
 
-Keep deterministic AEAD, Tink keysets, Redis keyset stores, AWS KMS envelope
-support, age file encryption, MAC, and digest helpers out of the default package
-until a concrete caller owns their operational risks.
+deterministic AEAD, Tink keyset, Redis keyset store, AWS KMS envelope support, age
+file encryption, MAC, digest helper는 concrete caller가 operational risk를 소유할 때까지
+default package 밖에 둔다.

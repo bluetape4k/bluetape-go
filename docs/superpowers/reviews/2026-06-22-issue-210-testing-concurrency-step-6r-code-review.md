@@ -1,16 +1,18 @@
 # Issue #210 Step 6-R Code Review
 
-Issue: #210
-Milestone: 0.6.4
-Date: 2026-06-22
+> 한국어 리뷰 경계: 이 문서는 리뷰 판정과 근거를 한국어 독자가 추적할 수 있도록 정리한다. 심각도 토큰, 판정 토큰, 파일 경로, 라인 번호, 이슈/PR 번호, 명령, 코드 식별자는 원문의 증거 앵커로 보존한다.
 
-## Execution Note
+이슈: #210
+Milestone: 0.6.4
+날짜: 2026-06-22
+
+## 실행 메모
 
 Native subagent unavailable/stale cleanup hang; main-session 7-tier fallback
 performed. Six independent perspectives were reviewed locally, and this
 session owns the integration verdict.
 
-## Scope Reviewed
+## 검토 범위
 
 - `testing/concurrency/types.go`
 - `testing/concurrency/runner.go`
@@ -19,7 +21,7 @@ session owns the integration verdict.
 - `testing/concurrency/README.ko.md`
 - `docs/superpowers/specs/2026-06-22-issue-210-testing-concurrency-hardening.md`
 
-## Evidence
+## 증거
 
 - `go test -count=1 ./testing/concurrency` passed.
 - `go test -race -count=1 ./testing/concurrency` passed.
@@ -32,7 +34,7 @@ session owns the integration verdict.
 - Re-running that single `lock/redis` race test passed.
 - Re-running full `make race` passed.
 
-## 7-Tier Findings
+## 7-Tier 발견 사항
 
 | Tier | Perspective | P0 | P1 | P2/P3 Notes |
 |---|---:|---:|---:|---|
@@ -44,7 +46,7 @@ session owns the integration verdict.
 | 6 | User/Caller | 0 | 0 | Caller can now distinguish scheduled, started, completed, failed, skipped, and max concurrent executions. |
 | 7 | Integration | 0 | 0 | Scope stays inside `testing/concurrency`; unrelated `lock/redis` flaky race was retried and passed. |
 
-## Findings
+## 발견 사항
 
 | Priority | Area | Finding | Resolution |
 |---|---|---|---|
@@ -52,6 +54,6 @@ session owns the integration verdict.
 
 No P0/P1 findings remain.
 
-## Verdict
+## 판정
 
 P0 = 0, P1 = 0. Step 6-R is closed for commit and PR creation.

@@ -1,0 +1,24 @@
+command_label: ratelimit-local
+command: go test -timeout=10m -run \^\$ -bench \^BenchmarkProviderRateLimitLocal\$ -benchmem -count=5 ./ratelimit
+timestamp_utc: 2026-07-20T15:22:49Z
+git_sha: c8a209ca4a7dcba1e6a2e5334427abf768a30a5a
+pre_run_clean: true
+output_begin
+goos: darwin
+goarch: arm64
+pkg: github.com/bluetape4k/bluetape-go/ratelimit
+cpu: Apple M5
+BenchmarkProviderRateLimitLocal/Local/TokenBucket/AllowAvailable-10         	  951441	      1200 ns/op	     960 B/op	       6 allocs/op
+BenchmarkProviderRateLimitLocal/Local/TokenBucket/AllowAvailable-10         	  972165	      1193 ns/op	     960 B/op	       6 allocs/op
+BenchmarkProviderRateLimitLocal/Local/TokenBucket/AllowAvailable-10         	 1000000	      1202 ns/op	     960 B/op	       6 allocs/op
+BenchmarkProviderRateLimitLocal/Local/TokenBucket/AllowAvailable-10         	  956299	      1197 ns/op	     960 B/op	       6 allocs/op
+BenchmarkProviderRateLimitLocal/Local/TokenBucket/AllowAvailable-10         	  943861	      1188 ns/op	     960 B/op	       6 allocs/op
+BenchmarkProviderRateLimitLocal/Local/TokenBucket/AllowRejected-10          	 1414702	       860.9 ns/op	     320 B/op	       5 allocs/op
+BenchmarkProviderRateLimitLocal/Local/TokenBucket/AllowRejected-10          	 1420567	       851.1 ns/op	     320 B/op	       5 allocs/op
+BenchmarkProviderRateLimitLocal/Local/TokenBucket/AllowRejected-10          	 1432705	       846.7 ns/op	     320 B/op	       5 allocs/op
+BenchmarkProviderRateLimitLocal/Local/TokenBucket/AllowRejected-10          	 1421631	       846.3 ns/op	     320 B/op	       5 allocs/op
+BenchmarkProviderRateLimitLocal/Local/TokenBucket/AllowRejected-10          	signal: interrupt
+FAIL	github.com/bluetape4k/bluetape-go/ratelimit	754.881s
+FAIL
+output_end
+exit_status: 1

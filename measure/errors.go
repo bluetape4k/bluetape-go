@@ -18,14 +18,14 @@ var (
 	ErrDivideByZero = errors.New("measure: divide by zero")
 )
 
-// ParseError  파싱 실패 입력과 원인을 보존합니다.
+// ParseError 패키지에서 공개하는 구조체다.
 type ParseError struct {
 	Input  string
 	Suffix string
 	Err    error
 }
 
-// Error  파싱 실패 메시지를 반환합니다.
+// Error 오류 메시지를 반환한다.
 func (e ParseError) Error() string {
 	if e.Suffix == "" {
 		return fmt.Sprintf("%s: %q", ErrInvalidParse, e.Input)
@@ -33,7 +33,9 @@ func (e ParseError) Error() string {
 	return fmt.Sprintf("%s: %q suffix %q", ErrInvalidParse, e.Input, e.Suffix)
 }
 
-// Unwrap  errors.Is/errors.As가 원인 에러를 찾도록 합니다.
+// Unwrap 감싼 원인 오류를 반환한다.
+//
+// 반환 오류는 입력 검증 실패와 패키지에서 정의한 sentinel error/typed error를 그대로 드러낸다.
 func (e ParseError) Unwrap() error {
 	if e.Err == nil {
 		return ErrInvalidParse
@@ -41,7 +43,10 @@ func (e ParseError) Unwrap() error {
 	return e.Err
 }
 
-// Is  ParseError가 ErrInvalidParse와 원인 sentinel 모두에 match되도록 합니다.
+// Is errors.Is 비교를 지원한다.
+//
+// 매개변수:
+//   - target: 검사하거나 감쌀 오류 값이다.
 func (e ParseError) Is(target error) bool {
 	return target == ErrInvalidParse || errors.Is(e.Err, target)
 }

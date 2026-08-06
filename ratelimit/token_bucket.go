@@ -17,17 +17,25 @@ type bucketState struct {
 	lastSeenAt time.Time
 }
 
-// TokenBucket 은 process-local keyed rate limiter다.
+// TokenBucket token bucket, limiter option, HTTP boundary, result quota에서 사용하는 구조체다.
 type TokenBucket struct {
-	mu      sync.Mutex
-	opts    options
-	now     clockFunc
-	buckets map[string]bucketState
+	mu       sync.Mutex
+	opts     options
+	now      clockFunc
+	buckets  map[string]bucketState
+	testHook func(context.Context, string, tokenBucketTestPhase) error
 }
+
+type tokenBucketTestPhase uint8
+
+const (
+	tokenBucketBeforeLinearize tokenBucketTestPhase = iota + 1
+	tokenBucketAfterLinearize
+)
 
 var _ Limiter = (*TokenBucket)(nil)
 
-// New 는 process-local token bucket limiter를 만든다.
+// New process-local token bucket limiter를 만든다.
 func New(options Options) (*TokenBucket, error) {
 	return newWithClock(options, time.Now)
 }
@@ -47,7 +55,7 @@ func newWithClock(options Options, now clockFunc) (*TokenBucket, error) {
 	}, nil
 }
 
-// Allow 는 key bucket에서 token을 소비한다.
+// Allow key bucket에서 token을 소비한다.
 func (l *TokenBucket) Allow(ctx context.Context, key string, tokens int64) (Result, error) {
 	ctx = normalizeContext(ctx)
 	if err := ctx.Err(); err != nil {
@@ -70,6 +78,11 @@ func (l *TokenBucket) Allow(ctx context.Context, key string, tokens int64) (Resu
 	now := l.now()
 	l.mu.Lock()
 	defer l.mu.Unlock()
+	if l.testHook != nil {
+		if err := l.testHook(ctx, key, tokenBucketBeforeLinearize); err != nil {
+			return Result{}, err
+		}
+	}
 
 	l.pruneIdle(now)
 
@@ -104,6 +117,11 @@ func (l *TokenBucket) Allow(ctx context.Context, key string, tokens int64) (Resu
 	}
 
 	l.buckets[key] = state
+	if l.testHook != nil {
+		if err := l.testHook(context.Background(), key, tokenBucketAfterLinearize); err != nil {
+			return Result{}, err
+		}
+	}
 	return result, nil
 }
 

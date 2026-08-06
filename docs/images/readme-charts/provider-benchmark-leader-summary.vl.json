@@ -1,0 +1,189 @@
+{
+  "$schema": "https://vega.github.io/schema/vega-lite/v5.json",
+  "title": {
+    "text": "Leader provider latency",
+    "subtitle": "min - median - max ns/op; lower is better; expiry isolated; logarithmic axis"
+  },
+  "width": 740,
+  "height": 782,
+  "data": {
+    "values": [
+      {
+        "provider": "Redis",
+        "scenario": "Campaign uncontended",
+        "panel": "Ordinary operations",
+        "min": 193175,
+        "median": 199635,
+        "max": 256596,
+        "samples": 3
+      },
+      {
+        "provider": "Redis",
+        "scenario": "Leader lookup",
+        "panel": "Ordinary operations",
+        "min": 202180,
+        "median": 224905,
+        "max": 231709,
+        "samples": 3
+      },
+      {
+        "provider": "Redis",
+        "scenario": "Expiry takeover",
+        "panel": "Deadline-driven takeover",
+        "min": 1004296458,
+        "median": 1004323375,
+        "max": 1004653333,
+        "samples": 3
+      },
+      {
+        "provider": "MongoDB",
+        "scenario": "Campaign uncontended",
+        "panel": "Ordinary operations",
+        "min": 402851,
+        "median": 468764,
+        "max": 503648,
+        "samples": 3
+      },
+      {
+        "provider": "MongoDB",
+        "scenario": "Leader lookup",
+        "panel": "Ordinary operations",
+        "min": 315020,
+        "median": 345329,
+        "max": 350979,
+        "samples": 3
+      },
+      {
+        "provider": "MongoDB",
+        "scenario": "Expiry takeover",
+        "panel": "Deadline-driven takeover",
+        "min": 1002791833,
+        "median": 1006958625,
+        "max": 1007044000,
+        "samples": 3
+      },
+      {
+        "provider": "PostgreSQL",
+        "scenario": "Campaign uncontended",
+        "panel": "Ordinary operations",
+        "min": 1315618,
+        "median": 1436177,
+        "max": 1467531,
+        "samples": 3
+      },
+      {
+        "provider": "PostgreSQL",
+        "scenario": "Leader lookup",
+        "panel": "Ordinary operations",
+        "min": 655902,
+        "median": 661827,
+        "max": 780634,
+        "samples": 3
+      },
+      {
+        "provider": "PostgreSQL",
+        "scenario": "Expiry takeover",
+        "panel": "Deadline-driven takeover",
+        "min": 1003729833,
+        "median": 1007953834,
+        "max": 1010098292,
+        "samples": 3
+      },
+      {
+        "provider": "etcd",
+        "scenario": "Campaign uncontended",
+        "panel": "Ordinary operations",
+        "min": 1967557,
+        "median": 1977304,
+        "max": 3679669,
+        "samples": 3
+      },
+      {
+        "provider": "etcd",
+        "scenario": "Leader lookup",
+        "panel": "Ordinary operations",
+        "min": 289956,
+        "median": 290424,
+        "max": 387885,
+        "samples": 3
+      },
+      {
+        "provider": "etcd",
+        "scenario": "Expiry takeover",
+        "panel": "Deadline-driven takeover",
+        "min": 2060678709,
+        "median": 2085930625,
+        "max": 2286870208,
+        "samples": 3
+      }
+    ]
+  },
+  "encoding": {
+    "y": {
+      "field": "scenario",
+      "type": "nominal",
+      "title": null
+    },
+    "color": {
+      "field": "provider",
+      "type": "nominal",
+      "title": "Provider"
+    },
+    "shape": {
+      "field": "provider",
+      "type": "nominal",
+      "title": "Provider"
+    },
+    "row": {
+      "field": "panel",
+      "type": "nominal",
+      "title": null
+    }
+  },
+  "layer": [
+    {
+      "mark": {
+        "type": "rule",
+        "strokeWidth": 4
+      },
+      "encoding": {
+        "x": {
+          "field": "min",
+          "type": "quantitative",
+          "title": "latency (ns/op) - lower is better",
+          "scale": {
+            "type": "log",
+            "zero": false
+          }
+        },
+        "x2": {
+          "field": "max"
+        }
+      }
+    },
+    {
+      "mark": {
+        "type": "point",
+        "filled": true,
+        "size": 100
+      },
+      "encoding": {
+        "x": {
+          "field": "median",
+          "type": "quantitative",
+          "scale": {
+            "type": "log",
+            "zero": false
+          }
+        }
+      }
+    }
+  ],
+  "config": {
+    "font": "Comic Mono, SFMono-Regular, Consolas, monospace",
+    "title": {
+      "font": "Architects Daughter, Comic Sans MS, cursive"
+    },
+    "background": "#FFFFFF"
+  }
+}

@@ -1,16 +1,18 @@
 # Issue 27 Workflow Runners PR Review
 
-Issue: #27
-PR: #142
-Gate: Step 7-R
-Status: PASS
+> 한국어 리뷰 경계: 이 문서는 리뷰 판정과 근거를 한국어 독자가 추적할 수 있도록 정리한다. 심각도 토큰, 판정 토큰, 파일 경로, 라인 번호, 이슈/PR 번호, 명령, 코드 식별자는 원문의 증거 앵커로 보존한다.
 
-## Scope
+이슈: #27
+PR: #142
+게이트: Step 7-R
+상태: PASS
+
+## 범위
 
 Reviewed live PR #142 after creation against the local implementation, PR body
 requirements, DoD evidence, and current GitHub check state.
 
-## PR Evidence
+## PR 증거
 
 | Item | Evidence |
 |---|---|
@@ -21,11 +23,11 @@ requirements, DoD evidence, and current GitHub check state.
 | Issue linkage | Body includes `Fixes #27`. |
 | Current CI | `ci` in progress at GitHub Actions run `27025240372`, job `79763492151`. |
 
-## Findings
+## 발견 사항
 
 No P0, P1, P2, or P3 findings.
 
-## Checklist
+## 체크리스트
 
 | Check | Status | Evidence |
 |---|---|---|
@@ -36,6 +38,6 @@ No P0, P1, P2, or P3 findings.
 | CI status checked | PASS | `gh pr checks 142 --watch=false` returned pending `ci`. |
 | Merge withheld | PASS | PR remains open; no merge command run. |
 
-## Verdict
+## 판정
 
 P0=0 P1=0. Step 7-R is closed pending CI completion.

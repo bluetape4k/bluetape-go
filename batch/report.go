@@ -2,7 +2,7 @@ package batch
 
 import "time"
 
-// Status is the terminal outcome for a batch step or job.
+// Status batch 단계, checkpoint, writer 안전성, 재시작에서 사용하는 문자열 타입이다.
 type Status string
 
 const (
@@ -16,7 +16,7 @@ const (
 	StatusPartial Status = "partial"
 )
 
-// Report captures a batch step or job outcome.
+// Report batch 단계, checkpoint, writer 안전성, 재시작에서 사용하는 구조체다.
 type Report struct {
 	Name        string
 	Status      Status
@@ -31,12 +31,12 @@ type Report struct {
 	Children    []Report
 }
 
-// IsSuccess reports whether the batch work completed without failure.
+// IsSuccess batch 단계, checkpoint, writer 안전성, 재시작 상태가 조건을 만족하는지 반환한다.
 func (r Report) IsSuccess() bool {
 	return r.Status == StatusCompleted
 }
 
-// IsFailure reports whether the batch work did not complete cleanly.
+// IsFailure batch 단계, checkpoint, writer 안전성, 재시작 상태가 조건을 만족하는지 반환한다.
 func (r Report) IsFailure() bool {
 	return r.Status == StatusFailed || r.Status == StatusCancelled || r.Status == StatusPartial
 }

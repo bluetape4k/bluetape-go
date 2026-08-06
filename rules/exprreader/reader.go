@@ -1,4 +1,4 @@
-// Package exprreader compiles YAML and JSON rule documents into rules.RuleSet values.
+// Package exprreader bluetape-go의 exprreader 기능을 제공한다.
 package exprreader
 
 import (
@@ -27,14 +27,14 @@ var (
 	ErrInvalidRuleAction = errors.New("exprreader rule action is invalid")
 )
 
-// ReaderError wraps reader failures with optional rule and field context.
+// ReaderError 패키지에서 공개하는 구조체다.
 type ReaderError struct {
 	RuleName string
 	Field    string
 	Err      error
 }
 
-// Error returns a human-readable reader error.
+// Error 오류 메시지를 반환한다.
 func (e ReaderError) Error() string {
 	var b strings.Builder
 	b.WriteString("exprreader")
@@ -54,12 +54,14 @@ func (e ReaderError) Error() string {
 	return b.String()
 }
 
-// Unwrap returns the underlying reader failure.
+// Unwrap 감싼 원인 오류를 반환한다.
+//
+// 반환 오류는 입력 검증 실패와 패키지에서 정의한 sentinel error/typed error를 그대로 드러낸다.
 func (e ReaderError) Unwrap() error {
 	return e.Err
 }
 
-// Document is the compiled representation of a rule reader document.
+// Document 패키지에서 공개하는 구조체다.
 type Document struct {
 	// Rules contains compiled rules in deterministic RuleSet order.
 	Rules *rules.RuleSet
@@ -67,10 +69,13 @@ type Document struct {
 	EngineConfig rules.EngineConfig
 }
 
-// Option configures document loading.
+// Option func 공개 타입이다.
 type Option func(*config)
 
-// WithMaxNodes sets the maximum expression AST node count accepted at compile time.
+// WithMaxNodes MaxNodes 설정을 적용한 옵션을 반환한다.
+//
+// 매개변수:
+//   - maxNodes: WithMaxNodes에 전달되는 값이다. 허용 범위와 nil 처리 방식은 구현 검증을 따른다.
 func WithMaxNodes(maxNodes uint) Option {
 	return func(c *config) {
 		c.maxNodes = maxNodes
@@ -81,7 +86,14 @@ type config struct {
 	maxNodes uint
 }
 
-// Load reads a YAML or JSON rule document and compiles it into rules.
+// Load key에 해당하는 값을 조회한다.
+//
+// 매개변수:
+//   - ctx: 호출자가 소유한 취소, deadline, 요청 범위를 전달한다.
+//   - r: Load에 전달되는 값이다. 허용 범위와 nil 처리 방식은 구현 검증을 따른다.
+//   - options: 적용할 옵션 목록이다. nil이면 기본값만 사용한다.
+//
+// 반환 오류는 입력 검증 실패와 패키지에서 정의한 sentinel error/typed error를 그대로 드러낸다.
 func Load(ctx context.Context, r io.Reader, options ...Option) (*Document, error) {
 	if ctx == nil {
 		ctx = context.Background()

@@ -5,20 +5,21 @@ Milestone: 0.3.0
 
 ## Lesson
 
-Redis-backed candidate statistics must be updated atomically. A read/modify/write
-sequence can lose success or failure counts when multiple elected action runs
-finish at the same time, so result updates use a Lua script that preserves the
-candidate TTL and increments counters in one Redis command.
+Redis-backed candidate statistic은 atomically update해야 한다. 여러 elected action
+run이 동시에 끝날 때 read/modify/write sequence는 success 또는 failure count를
+잃을 수 있으므로, result update는 candidate TTL을 보존하고 counter를 하나의 Redis
+command에서 증가시키는 Lua script를 사용한다.
 
 ## Applied Guardrails
 
-- Register/list bookkeeping uses Redis server time, not local process clocks.
-- Candidate listing prunes expired ZSET members and missing candidate values.
-- Strategy implementations copy input slices before sorting, so election does
-  not mutate caller-owned candidate lists.
-- Random election sorts by node ID before seed-stable selection, so caller input
-  order does not affect the chosen candidate.
-- Result counters have an exact concurrent update regression test.
+- register/list bookkeeping은 local process clock이 아니라 Redis server time을
+  사용한다.
+- candidate listing은 expired ZSET member와 missing candidate value를 prune한다.
+- strategy implementation은 sorting 전에 input slice를 copy해 caller-owned candidate
+  list를 mutate하지 않는다.
+- random election은 seed-stable selection 전에 node ID로 sort해 caller input order가
+  선택 결과에 영향을 주지 않게 한다.
+- result counter에는 exact concurrent update regression test가 있다.
 
 ## Validation Evidence
 

@@ -1,11 +1,13 @@
 # Issue 57 Audit Repository 7-Tier Review
 
-Date: 2026-06-27
-Scope: `audit` repository contracts, `MemoryRepository`, `audit/audittest`
+> 한국어 감사/리뷰 경계: 이 문서는 리뷰 결론과 남은 위험을 한국어 독자가 추적할 수 있도록 정리한다. 심각도 표기, 판정 표기, 파일 경로, 라인 번호, 이슈/PR 링크, 명령, 코드 식별자, 인용 증거는 원문의 증거 앵커로 보존한다.
+
+날짜: 2026-06-27
+범위: `audit` repository contracts, `MemoryRepository`, `audit/audittest`
 conformance helper, README pair, CHANGELOG, WIP, spec, and plan.
 Baseline: `428992e5cf4fa4e13fd0fe1106a341df9e7dce55`
 
-## Evidence
+## 증거
 
 - `go test -count=1 ./audit ./audit/audittest` PASS
 - `go test -race -count=1 ./audit ./audit/audittest` PASS
@@ -13,7 +15,7 @@ Baseline: `428992e5cf4fa4e13fd0fe1106a341df9e7dce55`
 - `make ci` PASS
 - `git diff --check` PASS
 
-## 7-Tier Verdict
+## 7-Tier 판정
 
 | Lane | Verdict | Evidence |
 |---|---|---|
@@ -24,7 +26,7 @@ Baseline: `428992e5cf4fa4e13fd0fe1106a341df9e7dce55`
 | Developer/API | P0=0 P1=0 | Public APIs use small Go interfaces, `context.Context`, sentinel errors, `(Entry, bool, error)` and `(History, bool, error)` for missing data, and an importable `audit/audittest` conformance helper. |
 | User/Caller | P0=0 P1=0 | README and Korean README document append/query behavior, snapshot helpers, missing-history behavior, and conformance usage. |
 
-## Integration Notes
+## 통합 메모
 
 - `History` remains full and contiguous from initial revision; partial queries
   return `[]Entry`.

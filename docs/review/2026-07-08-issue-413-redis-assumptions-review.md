@@ -1,8 +1,10 @@
 # Issue #413 Redis Probabilistic Assumptions Review
 
+> 한국어 감사/리뷰 경계: 이 문서는 리뷰 결론과 남은 위험을 한국어 독자가 추적할 수 있도록 정리한다. 심각도 표기, 판정 표기, 파일 경로, 라인 번호, 이슈/PR 링크, 명령, 코드 식별자, 인용 증거는 원문의 증거 앵커로 보존한다.
+
 P0=0 P1=0
 
-## Scope
+## 범위
 
 - Issue: #413, document Redis probabilistic structure assumptions.
 - Branch: `issue-413-redis-assumptions`
@@ -11,7 +13,7 @@ P0=0 P1=0
   `scripts/generate-redis-readme-diagrams.py`, and
   `docs/images/readme-diagrams/probabilistic-redis-bloom-runtime.{svg,png}`.
 
-## Findings
+## 발견 사항
 
 | Lane | Verdict | Evidence |
 |---|---|---|
@@ -23,7 +25,7 @@ P0=0 P1=0
 | User/Caller | PASS | English and Korean README updates are synchronized and distinguish Bloom membership from HLL approximate distinct count. P0=0 P1=0. |
 | Integration | PASS | Diagram and docs match the implemented Redis test/API surface; no RedisBloom `CF*` API is documented as available. P0=0 P1=0. |
 
-## Diagram Evidence
+## 다이어그램 증거
 
 | Gate | Evidence | Result |
 |---|---|---|
@@ -37,7 +39,7 @@ P0=0 P1=0
 | Mixed-corner audit | `diagram-mixed-corner-audit.py docs/images/readme-diagrams/probabilistic-redis-bloom-runtime.svg` | PASS, `paths=6 q_bends=8 failures=0` |
 | Full-size eye check | Visual inspection of rendered PNG after final coordinate fix. | PASS, all labels readable, connectors attach to card edges, no text/card/connector overlap observed. |
 
-## Validation
+## 검증
 
 - `git diff --check`
 - `go test -run Example -count=1 ./probabilistic/redis`

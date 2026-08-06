@@ -1,13 +1,15 @@
 # Issue #180 FastMoney Evaluation Step 7-R PR Review
 
-Issue: #180
+> 한국어 리뷰 경계: 이 문서는 리뷰 판정과 근거를 한국어 독자가 추적할 수 있도록 정리한다. 심각도 토큰, 판정 토큰, 파일 경로, 라인 번호, 이슈/PR 번호, 명령, 코드 식별자는 원문의 증거 앵커로 보존한다.
+
+이슈: #180
 PR: https://github.com/bluetape4k/bluetape-go/pull/235
-Branch: `issue-180-fastmoney-evaluation`
-Base: `develop`
-Gate: Step 7-R, 7-Tier PR review
+브랜치: `issue-180-fastmoney-evaluation`
+기준: `develop`
+게이트: Step 7-R, 7-Tier PR review
 Method: main-session role switching. Native subagents were not used in this session because prior lane waits have been unreliable; main-session fallback performed the required six independent lanes plus integration review.
 
-## Reviewed Scope
+## 검토 범위
 
 - Live PR metadata:
   - PR #235: `Evaluate FastMoney need with benchmark evidence`
@@ -23,7 +25,7 @@ Method: main-session role switching. Native subagents were not used in this sess
   - `gh pr checks 235 --watch --interval 20`
   - Result: `ci pass 2m7s`
 
-## Evidence
+## 증거
 
 | Check | Evidence | Status |
 |---|---|---|
@@ -34,7 +36,7 @@ Method: main-session role switching. Native subagents were not used in this sess
 | Remote CI | `gh pr checks 235 --watch --interval 20` ended with `ci pass 2m7s`. | PASS |
 | Local review chain | Step 2-R, Step 3-R, and Step 6-R artifacts are present and record `P0=0 P1=0`. | PASS |
 
-## Six Review Lanes
+## 6개 검토 관점
 
 | Lane | P0 | P1 | P2 | P3 | Verdict | Evidence |
 |---|---:|---:|---:|---:|---|---|
@@ -45,7 +47,7 @@ Method: main-session role switching. Native subagents were not used in this sess
 | Developer/API | 0 | 0 | 0 | 0 | PASS | PR explicitly rejects public `FastMoney` for now and keeps `Money`, `NewMinor`, and `MinorUnits` as the public minor-unit path. |
 | User/Caller | 0 | 0 | 0 | 0 | PASS | README pair embeds the real chart and explains the caller-facing decision in English and Korean. |
 
-## Main Integration Review
+## 메인 통합 검토
 
 - P0 findings: 0
 - P1 findings: 0
@@ -54,7 +56,7 @@ Method: main-session role switching. Native subagents were not used in this sess
 
 The PR is ready for human review. CI passed, the PR body has the required final DoD section, and the implementation satisfies the benchmark-first scope without adding a public `FastMoney` API.
 
-## Verdict
+## 판정
 
 P0=0 P1=0
 

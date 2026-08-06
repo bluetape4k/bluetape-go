@@ -1,6 +1,6 @@
 package workreport
 
-// Status describes the outcome of a work item or aggregated work.
+// Status work report 상태, failure policy, child report에서 사용하는 문자열 타입이다.
 type Status string
 
 const (

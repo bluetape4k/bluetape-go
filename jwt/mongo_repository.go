@@ -17,7 +17,7 @@ const (
 	mongoCursorCloseTimeout  = 5 * time.Second
 )
 
-// MongoRepository stores distributed JWT KeyChains in MongoDB.
+// MongoRepository JWT key provider repository에서 caller-visible 상태와 의미를 설명한다.
 type MongoRepository struct {
 	collection *mongo.Collection
 	opts       mongoRepositoryOptions
@@ -42,7 +42,7 @@ type mongoCurrentDocument struct {
 	KID       string `bson:"kid"`
 }
 
-// NewMongoRepository creates a MongoDB-backed distributed KeyChain repository.
+// NewMongoRepository JWT key provider repository에서 생성과 초기화 계약을 설명한다.
 func NewMongoRepository(options MongoRepositoryOptions) (*MongoRepository, error) {
 	normalized, err := options.normalize()
 	if err != nil {
@@ -52,7 +52,7 @@ func NewMongoRepository(options MongoRepositoryOptions) (*MongoRepository, error
 	return &MongoRepository{collection: collection, opts: normalized}, nil
 }
 
-// Current returns the current non-expired KeyChain.
+// Current JWT key provider repository에서 반환값과 오류 의미를 설명한다.
 func (r *MongoRepository) Current(ctx context.Context, now time.Time) (*KeyChain, error) {
 	if err := r.validateReady(ctx); err != nil {
 		return nil, err
@@ -64,7 +64,7 @@ func (r *MongoRepository) Current(ctx context.Context, now time.Time) (*KeyChain
 	return r.findPayload(ctx, kid, now)
 }
 
-// Find returns a non-expired KeyChain by kid.
+// Find JWT key provider repository에서 반환값과 오류 의미를 설명한다.
 func (r *MongoRepository) Find(ctx context.Context, kid string, now time.Time) (*KeyChain, error) {
 	if err := r.validateReady(ctx); err != nil {
 		return nil, err
@@ -75,7 +75,7 @@ func (r *MongoRepository) Find(ctx context.Context, kid string, now time.Time) (
 	return r.findPayload(ctx, kid, now)
 }
 
-// Rotate returns the current key or stores a new one when no live key exists.
+// Rotate JWT key provider repository에서 반환값과 오류 의미를 설명한다.
 func (r *MongoRepository) Rotate(ctx context.Context, create func() (*KeyChain, error), now time.Time) (*KeyChain, error) {
 	if err := r.validateReady(ctx); err != nil {
 		return nil, err
@@ -97,7 +97,7 @@ func (r *MongoRepository) Rotate(ctx context.Context, create func() (*KeyChain, 
 	return r.storeCAS(ctx, observedKID, key, now)
 }
 
-// ForcedRotate always stores a newly created KeyChain.
+// ForcedRotate JWT key provider repository에서 동작과 caller-visible 계약을 설명한다.
 func (r *MongoRepository) ForcedRotate(ctx context.Context, create func() (*KeyChain, error), now time.Time) (*KeyChain, error) {
 	if err := r.validateReady(ctx); err != nil {
 		return nil, err
@@ -112,7 +112,7 @@ func (r *MongoRepository) ForcedRotate(ctx context.Context, create func() (*KeyC
 	return r.store(ctx, key, now)
 }
 
-// DeleteAll removes all MongoDB state for this repository namespace.
+// DeleteAll JWT key provider repository에서 caller-visible 상태와 의미를 설명한다.
 func (r *MongoRepository) DeleteAll(ctx context.Context) error {
 	if err := r.validateReady(ctx); err != nil {
 		return err

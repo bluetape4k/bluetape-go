@@ -1,6 +1,8 @@
 # Issue #366 Memgraph Compatibility Review
 
-## Scope
+> 한국어 리뷰 경계: 이 문서는 리뷰 판정과 근거를 한국어 독자가 추적할 수 있도록 정리한다. 심각도 토큰, 판정 토큰, 파일 경로, 라인 번호, 이슈/PR 번호, 명령, 코드 식별자는 원문의 증거 앵커로 보존한다.
+
+## 범위
 
 - Diff base: `origin/develop`.
 - Module slice: `graph/neo4j` Memgraph compatibility test plus README pair and
@@ -8,7 +10,7 @@
 - Review mode: main-session six-lane review. Native subagents were not spawned
   because this Codex surface only spawns subagents on explicit user request.
 
-## Six-Lane Findings
+## 6개 관점 발견 사항
 
 | Lane | Reviewed Evidence | P0 | P1 | P2 | P3 | Verdict |
 |---|---|---:|---:|---:|---:|---|
@@ -19,14 +21,14 @@
 | Developer/API | No `graph/memgraph` package added; existing `graph/neo4j` surface remains the single compatibility target | 0 | 0 | 0 | 0 | PASS |
 | User/Caller | README/README.ko explain compatibility matrix, guardrails, and deferred standalone backend abstraction | 0 | 0 | 0 | 0 | PASS |
 
-## Integration Verdict
+## 통합 판정
 
 P0 = 0, P1 = 0.
 
 Memgraph compatibility is proven as coverage around the Neo4j-driver adapter
 path. No separate Memgraph abstraction is justified by the current evidence.
 
-## Validation
+## 검증
 
 ```bash
 make fmt-check

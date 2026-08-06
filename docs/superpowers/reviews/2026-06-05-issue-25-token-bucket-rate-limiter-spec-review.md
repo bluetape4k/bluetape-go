@@ -1,8 +1,10 @@
 # Issue #25 Spec Review
 
-Issue: #25
+> 한국어 리뷰 경계: 이 문서는 리뷰 판정과 근거를 한국어 독자가 추적할 수 있도록 정리한다. 심각도 토큰, 판정 토큰, 파일 경로, 라인 번호, 이슈/PR 번호, 명령, 코드 식별자는 원문의 증거 앵커로 보존한다.
+
+이슈: #25
 Milestone: 0.3.0
-Date: 2026-06-05
+날짜: 2026-06-05
 Reviewed spec: `docs/superpowers/specs/2026-06-05-issue-25-token-bucket-rate-limiter-spec.md`
 Research: `docs/research/2026-06-05-issue-25-token-bucket-rate-limiter.md`
 
@@ -14,7 +16,7 @@ Research: `docs/research/2026-06-05-issue-25-token-bucket-rate-limiter.md`
 - Repository fit against `lock/redis`, `cache/rediscoord`, `resilience/http.go`,
   and `testing/concurrency`.
 
-## Perspective Findings
+## 관점별 발견 사항
 
 | Perspective | P0 | P1 | P2 | P3 | Notes |
 |---|---:|---:|---:|---:|---|
@@ -23,7 +25,7 @@ Research: `docs/research/2026-06-05-issue-25-token-bucket-rate-limiter.md`
 | Ops/SRE | 0 | 0 | 1 | 0 | Added explicit microtoken overflow validation requirement. |
 | User/caller | 0 | 0 | 0 | 0 | Rejection-vs-error semantics and custom `KeyFunc` are explicit. |
 
-## 7-Tier Review
+## 7-Tier 검토
 
 | Tier | P0 | P1 | P2 | P3 | Evidence |
 |---|---:|---:|---:|---:|---|
@@ -35,7 +37,7 @@ Research: `docs/research/2026-06-05-issue-25-token-bucket-rate-limiter.md`
 | Tier 6 Performance/stability | 0 | 0 | 1 | 0 | Local benchmarks and hot-path rejection diagnostics required; Redis benchmarks kept opt-in/follow-up. |
 | Tier 7 Docs/release/evidence | 0 | 0 | 0 | 0 | README pair, package READMEs, CHANGELOG, WIP, research index, and lessons are required. |
 
-## Integrated Findings
+## 통합 발견 사항
 
 | ID | Severity | Finding | Resolution |
 |---|---|---|---|
@@ -43,7 +45,7 @@ Research: `docs/research/2026-06-05-issue-25-token-bucket-rate-limiter.md`
 | S2R-2 | P2 | Redis microtoken math needs explicit overflow validation. | Added safe positive `int64` microtoken validation requirement. |
 | S2R-3 | P2 | Default remote-IP keying could imply proxy-header trust. | Added explicit non-trust boundary and custom `KeyFunc` guidance. |
 
-## Convergence Verdict
+## 수렴 판정
 
 - P0: 0
 - P1: 0

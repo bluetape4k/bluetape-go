@@ -4,6 +4,8 @@ import (
 	"crypto/sha256"
 	"encoding/hex"
 	"fmt"
+
+	btredis "github.com/bluetape4k/bluetape-go/redis"
 )
 
 const (
@@ -24,27 +26,70 @@ type hyperLogLogKey struct {
 }
 
 func buildKeys(namespace string) (redisKeys, error) {
-	if err := validateNamespace(namespace); err != nil {
+	builder, err := keyBuilderForNamespace(keyPrefix, namespace)
+	if err != nil {
 		return redisKeys{}, err
 	}
-	slot := fmt.Sprintf("%s:{%s}", keyPrefix, namespace)
+	slot, err := structuralKeyValue(builder)
+	if err != nil {
+		return redisKeys{}, err
+	}
+	bits, err := structuralKeyValue(builder, "bits")
+	if err != nil {
+		return redisKeys{}, err
+	}
+	config, err := structuralKeyValue(builder, "config")
+	if err != nil {
+		return redisKeys{}, err
+	}
 	return redisKeys{
 		slot:       slot,
-		bits:       slot + ":bits",
-		config:     slot + ":config",
+		bits:       bits,
+		config:     config,
 		redactedID: redactedRedisKeyID(slot),
 	}, nil
 }
 
 func buildHyperLogLogKey(namespace string) (hyperLogLogKey, error) {
-	if err := validateNamespace(namespace); err != nil {
+	builder, err := keyBuilderForNamespace(hyperLogLogPrefix, namespace)
+	if err != nil {
 		return hyperLogLogKey{}, err
 	}
-	key := fmt.Sprintf("%s:{%s}", hyperLogLogPrefix, namespace)
+	key, err := structuralKeyValue(builder)
+	if err != nil {
+		return hyperLogLogKey{}, err
+	}
 	return hyperLogLogKey{
 		key:        key,
 		redactedID: redactedRedisKeyID(key),
 	}, nil
+}
+
+func keyBuilderForNamespace(prefix string, namespace string) (btredis.KeyBuilder, error) {
+	if err := validateNamespace(namespace); err != nil {
+		return btredis.KeyBuilder{}, err
+	}
+	builder, err := btredis.NewKeyBuilder(prefix)
+	if err != nil {
+		return btredis.KeyBuilder{}, keyBuilderConfigurationError()
+	}
+	builder, err = builder.WithHashTag(namespace)
+	if err != nil {
+		return btredis.KeyBuilder{}, keyBuilderConfigurationError()
+	}
+	return builder, nil
+}
+
+func structuralKeyValue(builder btredis.KeyBuilder, parts ...string) (string, error) {
+	key, err := builder.StructuralKey(parts...)
+	if err != nil {
+		return "", keyBuilderConfigurationError()
+	}
+	return key.Value, nil
+}
+
+func keyBuilderConfigurationError() error {
+	return fmt.Errorf("redis probabilistic: invalid key builder configuration")
 }
 
 func redactedRedisKeyID(key string) string {

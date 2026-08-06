@@ -1,7 +1,9 @@
 # Issue #400 Go SerDe Runners Review
 
-Issue: #400
-Branch: `issue-400-benchmark-runners`
+> 한국어 감사/리뷰 경계: 이 문서는 리뷰 결론과 남은 위험을 한국어 독자가 추적할 수 있도록 정리한다. 심각도 표기, 판정 표기, 파일 경로, 라인 번호, 이슈/PR 링크, 명령, 코드 식별자, 인용 증거는 원문의 증거 앵커로 보존한다.
+
+이슈: #400
+브랜치: `issue-400-benchmark-runners`
 Review date: 2026-07-07
 Scope:
 
@@ -16,7 +18,7 @@ Scope:
 - `docs/benchmarks/2026-07-07-issue-400-go-serde-runners.md`
 - `docs/lessons/2026-07-07-serde-benchmark-runners.md`
 
-## Acceptance Review
+## 수용 기준 검토
 
 | Criterion | Evidence | Verdict |
 |---|---|---|
@@ -26,13 +28,13 @@ Scope:
 | Existing package tests still pass for touched packages. | `go test -count=1 ./serialization ./codec ./compression` passed. | PASS |
 | No new runtime dependency without separate decision. | The runners use existing package dependencies and standard library helpers only. | PASS |
 
-## P0/P1 Findings
+## P0/P1 발견 사항
 
 P0=0 P1=0
 
 No blocker findings after static review and targeted validation.
 
-## Validation
+## 검증
 
 - `gofmt -w serialization/serialization_benchmark_test.go codec/codec_benchmark_test.go`: PASS
 - `make lint`: PASS
@@ -42,7 +44,7 @@ No blocker findings after static review and targeted validation.
 - `go test -run '^$' -bench '^BenchmarkCompressors' -benchmem -benchtime=1x ./compression`: PASS
 - `git diff --check`: PASS
 
-## Residual Risk
+## 잔여 위험
 
 - #401 still owns canonical raw output retention and environment metadata.
 - Codec large-payload coverage intentionally excludes Base58/Base62/URL62 except

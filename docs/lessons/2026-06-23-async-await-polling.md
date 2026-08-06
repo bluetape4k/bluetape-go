@@ -1,37 +1,36 @@
-# Lessons: Async Await Polling Helpers
+# Async Await Polling Helper 교훈
 
-## What changed
+## 변경된 점
 
-Issue #211 added context-aware await/polling helpers to the root `testing`
-package:
+Issue #211은 root `testing` package에 context-aware await/polling helper를 추가했다.
 
 - `CheckAwait` and `RequireAwait`
 - `CheckAwaitValue` and `RequireAwaitValue`
 - `CheckAwaitError` and `RequireAwaitError`
 - `AwaitResult`, `AwaitStatus`, `AwaitProbe`, and `AwaitCheck`
 
-The helpers complement the existing Gomega-backed `Eventually` and
-`Consistently` wrappers instead of replacing them.
+이 helper들은 기존 Gomega-backed `Eventually`, `Consistently` wrapper를 대체하지 않고
+보완한다.
 
-## What surprised us
+## 예상과 달랐던 점
 
-The repository lint rule requires `context.Context` to be the first argument
-even for `Require*` test helpers. The initial `RequireAwait(tb, ctx, ...)`
-shape was more familiar for test assertions, but revive rejected it. The final
-API is `RequireAwait(ctx, tb, ...)` and the README examples follow that order.
+repository lint rule은 `Require*` test helper에서도 `context.Context`가 첫 번째
+argument여야 한다고 요구한다. 초기 `RequireAwait(tb, ctx, ...)` 형태가 test assertion에는
+더 익숙했지만 revive가 거부했다. 최종 API는 `RequireAwait(ctx, tb, ...)`이고 README
+example도 이 순서를 따른다.
 
-## What to repeat
+## 반복할 규칙
 
-- Keep await/polling helpers cooperative and synchronous. A probe that ignores
-  its context can still block its own test; helpers should document this rather
-  than hide a goroutine leak behind a timeout.
-- Do not retry caller-owned `context.Canceled` or `context.DeadlineExceeded`.
-- Return the final observed value/error and attempt count so timeout diagnostics
-  are useful without requiring logging inside the probe.
-- Use `testing/concurrency` for repeated bounded goroutine stress; keep root
-  `testing` helpers small and assertion-focused.
+- await/polling helper는 cooperative하고 synchronous하게 유지한다. context를 무시하는
+  probe는 여전히 자기 test를 block할 수 있다. helper는 이를 timeout 뒤의 goroutine
+  leak로 숨기지 말고 문서화해야 한다.
+- caller-owned `context.Canceled` 또는 `context.DeadlineExceeded`는 retry하지 않는다.
+- probe 내부 logging 없이도 timeout diagnostics가 유용하도록 최종 observed value/error와
+  attempt count를 반환한다.
+- 반복 bounded goroutine stress에는 `testing/concurrency`를 사용하고, root `testing`
+  helper는 작고 assertion-focused하게 유지한다.
 
-## Verification
+## 검증
 
 - `go test -count=1 ./testing`: PASS
 - `go test -race -count=1 ./testing`: PASS

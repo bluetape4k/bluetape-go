@@ -1,17 +1,19 @@
 # Issue #173 Task 5 Review
 
-Issue: #173
-Task: Redis Repository Read Paths and Delete
-Date: 2026-06-12
+> 한국어 리뷰 경계: 이 문서는 리뷰 판정과 근거를 한국어 독자가 추적할 수 있도록 정리한다. 심각도 토큰, 판정 토큰, 파일 경로, 라인 번호, 이슈/PR 번호, 명령, 코드 식별자는 원문의 증거 앵커로 보존한다.
 
-## Scope
+이슈: #173
+Task: Redis Repository Read Paths and Delete
+날짜: 2026-06-12
+
+## 범위
 
 - `jwt/redis_repository.go`
 - `jwt/redis_repository_test.go`
 - `jwt/redis/redis.go`
 - `jwt/redis/redis_test.go`
 
-## TDD Evidence
+## TDD 증거
 
 | Phase | Evidence | Status |
 | --- | --- | --- |
@@ -43,7 +45,7 @@ Date: 2026-06-12
 | Caller context cancellation and deadline are preserved. | `TestRepositoryContextCancellationPreserved` uses `AsyncJobTester`; `TestRepositoryDeadlinePreserved`. | PASS |
 | Testcontainers-backed verification stayed serial. | Commands used `-p 1` for Redis-backed package tests. | PASS |
 
-## Verdict
+## 판정
 
 P0=0 P1=0
 

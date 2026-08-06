@@ -1,71 +1,38 @@
-# Issue 107 Cache Benchmark Suite Implementation Plan
+# Issue 107 Cache Benchmark Suite Plan
 
-Issue: #107
-Milestone: 0.3.0
-Date: 2026-06-04
-Spec: `docs/superpowers/specs/2026-06-04-issue-107-cache-benchmark-suite-spec.md`
+## 분류
 
-## Objective
+- 작업 유형: Type A - Full Feature.
+- 근거: cache benchmark harness, reproducible evidence, documentation, CI-safe test boundaries를 추가한다.
+- 범위: cache interface와 Redis-backed cache 구현의 성능 특성을 비교 가능한 형태로 고정한다.
 
-Add repeatable, opt-in benchmark coverage for `cache.Memory` and Redis Pub/Sub
-NearCache while keeping production code and normal CI unchanged.
+## 목표
 
-## Task Plan
+cache 패키지에 재현 가능한 benchmark suite를 추가하고, raw benchmark output과 요약 문서를 분리한다. 벤치마크는 기능 검증을 대체하지 않으며, allocation/latency 추세를 추적하는 evidence로 사용한다.
 
-| Task | Scope | Details | Validation |
-|---|---|---|---|
-| T1 Memory benchmark harness | `cache/memory_benchmark_test.go` | Add hit, miss, set, delete, TTL expiry, hot/cold `GetOrLoad`, same-key concurrent collapse, and different-key concurrent load benchmarks. | `go test -run '^$' -bench '^BenchmarkMemory' -benchtime=100ms -benchmem ./cache` |
-| T2 Redis benchmark harness | `cache/redisnear/near_cache_benchmark_test.go` | Add Testcontainers-backed benchmarks for local hit/miss, `Set`/`Delete`/`Clear` publish paths, peer invalidation latency, and `GetOrLoad` under invalidation pressure. | `go test -run '^$' -bench '^BenchmarkNearCache' -benchtime=100ms -benchmem ./cache/redisnear` |
-| T3 Opt-in command | `Makefile` | Add `bench-cache` help text and target; do not wire it into `ci`. | `make -n bench-cache`; `rg "bench-cache|ci:" Makefile` |
-| T4 Research/report update | `docs/research` | Fill #107 research note with commands, environment, sample local results, and interpretation boundary; link it from index and 0.3.0 note. | `gno update`; `gno search "issue-107-cache-benchmark-suite" -c bluetape4k-docs` after merge/local sync |
-| T5 Verification | repo root | Run targeted tests, benchmark smoke runs, formatting, diff check, and full package tests for touched packages. | See validation commands below. |
-| T6 Review and lessons | `docs/superpowers/reviews`, `docs/lessons` | Record implemented diff 7-Tier review and lessons before commit/PR. | Review artifact P0=0/P1=0; lessons committed. |
+## 순서
 
-## Benchmark Checks
+1. #22 cache interfaces와 #23 Redis near-cache 구현 상태를 확인한다.
+2. benchmark 대상 API와 데이터셋 크기를 고정한다.
+3. in-memory, Redis, near-cache 경로를 같은 workload shape로 비교한다.
+4. `testing.B` benchmark와 필요 시 opt-in integration benchmark를 분리한다.
+5. raw output은 `docs/research/outputs/issue-107/` 아래에 보존하고, 문서 본문에는 한국어 요약과 해석만 둔다.
+6. benchmark 결과가 README나 PR evidence에 들어가면 source command, machine/context, date를 함께 기록한다.
+7. regression threshold가 필요한 경우 CI-safe 범위로만 적용한다.
 
-- Use `b.ReportAllocs()` in all benchmark scenarios.
-- Use `b.ResetTimer()` after setup.
-- Use bounded waits for peer invalidation so a broken invalidation path fails.
-- Use `loads/op` custom metrics for `GetOrLoad` concurrency scenarios.
-- Avoid package-level Redis/Testcontainers startup.
-- Keep helper code in benchmark/test files unless production reuse is required.
+## 리뷰 게이트
 
-## Validation Commands
+- benchmark가 cache semantics 테스트를 대체하지 않는지 확인한다.
+- Redis/Testcontainers 의존 benchmark가 기본 unit test를 불안정하게 만들지 않는지 확인한다.
+- 데이터셋과 workload가 package behavior와 연결되는지 확인한다.
+- raw output과 해석 문서가 분리되어 있는지 확인한다.
+- allocation과 latency 수치가 과장 없이 설명되는지 확인한다.
 
-Run Testcontainers-backed commands serially.
+## 검증 게이트
 
-```bash
-go test -count=1 ./cache
-go test -count=1 ./cache/redisnear
-go test -run '^$' -bench '^BenchmarkMemory' -benchtime=100ms -benchmem ./cache
-go test -run '^$' -bench '^BenchmarkNearCache' -benchtime=100ms -benchmem ./cache/redisnear
-make -n bench-cache
-gofmt -w cache/memory_benchmark_test.go cache/redisnear/near_cache_benchmark_test.go
-git diff --check
-```
-
-Optional if time and Docker stability allow:
-
-```bash
-go test -race -count=1 ./cache ./cache/redisnear
-```
-
-## Documentation and Evidence
-
-- `docs/research/2026-06-04-issue-107-cache-benchmark-suite.md` must include
-  sample results from the local benchmark smoke runs.
-- PR body must state that results are local snapshots and not production
-  rankings.
-- README pair is not required because public runtime behavior and user-facing
-  API do not change.
-- CHANGELOG is not required because benchmarks do not change library behavior.
-
-## Step 3 Checklist Completion Report
-
-| Item | Status | Notes |
-|---|---|---|
-| Every spec requirement mapped | Done | T1-T4 map all #107 acceptance criteria. |
-| Task order implementable | Done | Benchmarks first, command surface second, docs and review after measured results. |
-| Testcontainers handled serially | Done | Redis benchmark/test commands are listed as serial. |
-| Verification commands concrete | Done | Targeted tests, benchmark smoke runs, Makefile dry run, gofmt, diff check. |
-| Public docs impact assessed | Done | README/CHANGELOG N/A because no public runtime behavior changes. |
+- `go test -count=1 ./cache/...`
+- `go test -run '^$' -bench . ./cache/...`
+- 필요 시 opt-in Redis benchmark command를 별도 기록한다.
+- `go vet ./...`
+- `make fmt-check`
+- `git diff --check`

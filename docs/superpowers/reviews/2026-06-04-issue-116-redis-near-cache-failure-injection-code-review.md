@@ -1,6 +1,8 @@
 # Issue #116 Redis NearCache Failure-Injection 7-Tier Review
 
-## Scope
+> 한국어 리뷰 경계: 이 문서는 리뷰 판정과 근거를 한국어 독자가 추적할 수 있도록 정리한다. 심각도 토큰, 판정 토큰, 파일 경로, 라인 번호, 이슈/PR 번호, 명령, 코드 식별자는 원문의 증거 앵커로 보존한다.
+
+## 범위
 
 - Issue: #116 `test: Add Redis NearCache failure-injection coverage`
 - Diff base: `origin/develop`
@@ -10,7 +12,7 @@
   - `README.ko.md`
   - `docs/lessons/2026-06-04-redis-near-cache-failure-injection.md`
 
-## Integrated Verdict
+## 통합 판정
 
 | Severity | Count | Verdict |
 |---|---:|---|
@@ -21,7 +23,7 @@
 
 Gate verdict: PASS. P0 = 0 and P1 = 0.
 
-## Tier Findings
+## 계층별 발견 사항
 
 | Tier | Focus | P0 | P1 | P2 | P3 | Evidence |
 |---|---|---:|---:|---:|---:|---|
@@ -33,7 +35,7 @@ Gate verdict: PASS. P0 = 0 and P1 = 0.
 | 6 Performance/stability | Runtime overhead, race, Testcontainers lifecycle | 0 | 0 | 0 | 0 | Tests are integration-only; container termination guarded by `sync.Once`; no production hot path changed. |
 | 7 Docs/release/evidence | README locale parity, lessons, release risk | 0 | 0 | 0 | 0 | English/Korean README guidance updated in sync; lessons file captures durable operational rule. |
 
-## Validation Evidence
+## 검증 증거
 
 - `go test -count=1 ./cache/redisnear -run "RedisOutage|RecreateAfterRedisOutage"`:
   PASS (`ok github.com/bluetape4k/bluetape-go/cache/redisnear 1.835s`)
@@ -57,7 +59,7 @@ Gate verdict: PASS. P0 = 0 and P1 = 0.
   package, race, related package, diff hygiene, and full `make ci` validation.
 - Final review verdict: PASS. P0 = 0 and P1 = 0.
 
-## Review Notes
+## 검토 메모
 
 - The tests intentionally do not claim automatic Redis resubscribe/reconnect as
   a production guarantee. They prove a safe recreate path after terminal Redis

@@ -2,14 +2,14 @@ package neo4j
 
 import "strings"
 
-// Option configures a Client.
+// Option graph IO Neo4j backend에서 설정값과 기본값 적용 방식을 설명한다.
 type Option func(*config) error
 
 type config struct {
 	database string
 }
 
-// WithDatabase sets the Neo4j database name used by query helpers.
+// WithDatabase graph IO Neo4j backend에서 설정값과 기본값 적용 방식을 설명한다.
 func WithDatabase(name string) Option {
 	return func(cfg *config) error {
 		normalized := strings.TrimSpace(name)

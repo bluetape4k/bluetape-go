@@ -1,16 +1,18 @@
 # Issue 136 Stress And Cancellation Gate PR Review
 
-Issue: #136
-PR: #143
-Gate: Step 7-R
-Status: PASS
+> 한국어 리뷰 경계: 이 문서는 리뷰 판정과 근거를 한국어 독자가 추적할 수 있도록 정리한다. 심각도 토큰, 판정 토큰, 파일 경로, 라인 번호, 이슈/PR 번호, 명령, 코드 식별자는 원문의 증거 앵커로 보존한다.
 
-## Scope
+이슈: #136
+PR: #143
+게이트: Step 7-R
+상태: PASS
+
+## 범위
 
 Reviewed PR #143 after creation for body completeness, mergeability, CI wiring,
 and local validation carry-over.
 
-## PR Evidence
+## PR 증거
 
 | Check | Status | Evidence |
 |---|---|---|
@@ -20,7 +22,7 @@ and local validation carry-over.
 | Mergeability. | PASS | `gh pr view 143` reports `MERGEABLE`. |
 | CI wiring. | PASS | CI check was created for PR #143 and entered the queue. |
 
-## Findings
+## 발견 사항
 
 No P0, P1, P2, or P3 findings.
 
@@ -31,6 +33,6 @@ No P0, P1, P2, or P3 findings.
 - `go test -count=1 ./...`: PASS.
 - `git diff --check`: PASS.
 
-## Gate Verdict
+## 게이트 판정
 
 P0=0 P1=0. Step 7-R is closed pending final CI completion.

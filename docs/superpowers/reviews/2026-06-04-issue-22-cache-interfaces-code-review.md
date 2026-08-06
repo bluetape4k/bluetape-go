@@ -1,8 +1,10 @@
 # Issue 22 Cache Interfaces Code Review
 
-Scope: `cache` package, README locale pair, and issue #22 design artifacts
-Gate: Step 6-R
-Date: 2026-06-04
+> 한국어 리뷰 경계: 이 문서는 리뷰 판정과 근거를 한국어 독자가 추적할 수 있도록 정리한다. 심각도 토큰, 판정 토큰, 파일 경로, 라인 번호, 이슈/PR 번호, 명령, 코드 식별자는 원문의 증거 앵커로 보존한다.
+
+범위: `cache` package, README locale pair, and issue #22 design artifacts
+게이트: Step 6-R
+날짜: 2026-06-04
 Diff base: `origin/develop`
 
 Required references loaded:
@@ -16,7 +18,7 @@ Required references loaded:
 - Heavy commands: no parallel Testcontainers commands; validation evidence reused from completed targeted tests, race test, diff check, and `make ci`.
 - Stop condition: integrated findings table shows `P0 = 0` and `P1 = 0`.
 
-## 7-Tier Findings
+## 7-Tier 발견 사항
 
 | Tier | Scope | P0 | P1 | P2 | P3 | Findings and evidence |
 |---|---|---:|---:|---:|---:|---|
@@ -44,7 +46,7 @@ Required references loaded:
 | Validation freshness | Pass | `go test`, race, `git diff --check`, and `make ci` rerun after the zero-value fix. |
 | Unrelated changes | Pass | Changed scope is #22 docs, `cache`, and README locale pair. |
 
-## Convergence
+## 수렴
 
 | Priority | Count | Status |
 |---|---:|---|
@@ -55,7 +57,7 @@ Required references loaded:
 
 ## Step 6-R Checklist Completion Report
 
-| Item | Status | Notes |
+| 항목 | 상태 | Notes |
 |---|---|---|
 | Tier 1 complete | Done | Security review recorded. |
 | Tier 2 complete | Done | Ops/SRE reliability review recorded. |
@@ -65,6 +67,6 @@ Required references loaded:
 | Tier 6 complete | Done | Performance/stability review recorded. |
 | Tier 7 complete | Done | Docs/release/evidence review recorded. |
 | Current-session integration review complete | Done | Integration table recorded. |
-| Current-session P0/P1 independently verified | Done | No P0/P1 findings. |
+| Current-session P0/P1 independently verified | Done | P0/P1 발견 사항 없음. |
 | Findings normalized | Done | P0/P1/P2/P3 table recorded. |
 | Convergence verification passed | Done | `P0 = 0`, `P1 = 0`. |
