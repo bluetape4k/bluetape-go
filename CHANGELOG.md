@@ -7,6 +7,8 @@
 
 ## [Unreleased]
 
+## [v0.19.0] - 2026-08-06
+
 ### Added
 
 - `leader/leadertest`, `lock/locktest`, `ratelimit/ratelimittest`에 mandatory
