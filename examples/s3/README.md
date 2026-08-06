@@ -13,13 +13,17 @@ directly.
 - `PutObject` and `GetObject`
 - object metadata and content type
 - streaming upload and streaming download with `io.Reader` / `io.Writer`
+- AWS SDK transfer-manager upload/download with caller-owned clients
+- multipart upload completion and cancellation cleanup
 - presigned GET and PUT URLs
+- request checksum and SSE-KMS options
 - S3 error mapping with modeled errors and Smithy API error codes
 - local Floci endpoint configuration with path-style S3 addressing
 
-KMS and client-side encryption are out of scope for this package. Add a focused
-KMS/encryption issue only when a concrete Go consumer needs envelope encryption,
-key policy, or metadata compatibility.
+Client-side encryption and a bluetape KMS/envelope provider are out of scope for
+this package. The examples only show the AWS SDK request fields for SSE-KMS;
+key policy, KMS permissions, and production encryption decisions remain
+caller-owned.
 
 ## Diagram
 
@@ -48,6 +52,38 @@ client := s3.NewFromConfig(cfg, func(options *s3.Options) {
 For real AWS S3, omit the local endpoint override and only set options required
 by the application.
 
+## Transfer Manager and Multipart Cleanup
+
+The AWS SDK transfer manager is a caller-owned utility. `Example_transferManagerUploadDownload`
+uses `transfermanager.New(client, ...)` for multipart-aware upload and parallel
+download without adding a bluetape S3 client wrapper. Keep the request context
+bounded and use `transfermanagertypes.NewWriteAtBuffer` (or another caller-owned
+`io.WriterAt`) for `DownloadObject`.
+
+For a direct multipart flow, retain the upload ID until `CompleteMultipartUpload`
+succeeds. On a part or completion error, call `AbortMultipartUpload` with a
+short, bounded cleanup context derived with `context.WithoutCancel`; otherwise a
+canceled request can leave uploaded parts behind. Treat cleanup errors as a
+separate operational failure and record the bucket, key, and upload ID for
+operator remediation. The compile-checked `Example_multipartCleanup` shows this
+contract without contacting AWS during the default test run.
+
+## Checksums and SSE-KMS Request Options
+
+Set `PutObjectInput.ChecksumAlgorithm` (or the corresponding transfer-manager
+field) when the request needs an SDK-computed checksum. To request checksum
+validation on a read, use `GetObjectInput.ChecksumMode =
+s3types.ChecksumModeEnabled` and inspect the returned checksum fields. The
+server still validates the request; a compile-checked example is not evidence of
+live bucket policy or checksum behavior.
+
+For SSE-KMS, set `ServerSideEncryption` to `s3types.ServerSideEncryptionAwsKms`,
+provide the KMS key ID/ARN with `SSEKMSKeyId`, and optionally set
+`BucketKeyEnabled` and a base64-encoded `SSEKMSEncryptionContext`. The caller's
+AWS identity needs the matching S3 and KMS permissions, and the KMS key policy
+must allow the operation. Floci/default CI does not provide live KMS semantics;
+verify these options against an opt-in AWS environment.
+
 ## Content Type
 
 The examples use standard-library content type handling instead of a bluetape
@@ -63,6 +99,7 @@ Compile-check the examples:
 
 ```bash
 go test -count=1 ./examples/s3
+go test -run Example -count=1 ./examples/s3
 ```
 
 Run the Docker-backed Floci smoke test:
