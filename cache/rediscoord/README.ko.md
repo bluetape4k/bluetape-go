@@ -158,3 +158,19 @@ go test -run '^$' -bench '^BenchmarkStampedeCache' -benchmem ./cache/rediscoord
 | `BenchmarkMemoryGetOrLoadSameKeyConcurrent` | 11030 | 4189 | 57 | `1.000 loads/op` |
 | `BenchmarkNearCacheSetPublish` | 424923 | 1209 | 29 |  |
 | `BenchmarkStampedeCacheGetOrLoadColdWinner` | 1685522 | 2692 | 58 | `1.000 loads/op` |
+
+### Issue #599 Fory profile 비교
+
+Complete coordination path도 같은 value fixture로 JSON, `NativeFast`,
+`NativeCompatible`를 비교합니다. 승인된 3-sample snapshot의 `ColdWinner`
+median은 JSON `710,174 ns/op`, `NativeFast` `744,297`,
+`NativeCompatible` `712,784`입니다. local `Hot` path는 wrapped in-memory
+cache가 이미 채워져 있어 약 `81 ns/op`이며 Redis lock/result 측정이 아닙니다.
+
+![Issue #599 Fory와 Redis benchmark](../../docs/images/readme-charts/issue599-fory-redis-benchmark.png)
+
+환경, wire-byte 계층 정의, schema-evolution check, mutex 대 pool contention
+분석은 [benchmark 보고서](../../docs/benchmarks/2026-08-07-issue-599-fory-redis.md),
+[raw output](../../docs/research/outputs/issue-599/benchmark.txt),
+[parsed summary](../../docs/research/outputs/issue-599/summary.json),
+[capture manifest](../../docs/research/outputs/issue-599/environment.md)에서 확인할 수 있습니다.

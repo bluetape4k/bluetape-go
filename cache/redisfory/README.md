@@ -189,10 +189,39 @@ prefix, for example `bluetape:cache:fory:catalog.products:g1:*`.
 
 ## Benchmarks
 
-Issue #599 owns comparative benchmarks for Fory profiles and alternative Redis
-value providers. That work must retain raw output, environment and revision
-metadata, a result table, a chart, and written analysis, including mutex versus
-pool contention. This feature does not claim benchmark results.
+Issue #599 records a reproducible comparison of JSON, `NativeFast`, and
+`NativeCompatible` across the in-process codec, direct Redis value cache, and
+complete stampede-coordination paths. It also records a benchmark-only
+shared-mutex versus codec-pool contention comparison. The snapshot is local
+evidence, not a production capacity ranking; profile modes are not schema
+equivalents.
+
+```bash
+go test -run '^$' -bench '^BenchmarkIssue599' -benchmem -count=3 ./cache/redisfory
+python3 scripts/parse-issue-599-benchmark.py \
+  --input docs/research/outputs/issue-599/benchmark.txt \
+  --output docs/research/outputs/issue-599/summary.json
+```
+
+The [Korean benchmark report](../../docs/benchmarks/2026-08-07-issue-599-fory-redis.md)
+contains the exact host/module/image metadata, raw output, parsed table,
+schema-evolution and malformed-payload checks, and the written interpretation.
+
+![Issue #599 Fory and Redis benchmark](../../docs/images/readme-charts/issue599-fory-redis-benchmark.png)
+
+| Path / fixture | JSON | NativeFast | NativeCompatible |
+|---|---:|---:|---:|
+| Codec Small RoundTrip (`ns/op`) | 1,897 | 807 | 679 |
+| Codec Medium RoundTrip (`ns/op`) | 19,473 | 2,336 | 2,198 |
+| Direct Redis Small RoundTrip (`ns/op`) | 362,419 | 368,433 | 343,563 |
+| Direct Redis Medium RoundTrip (`ns/op`) | 416,319 | 397,376 | 389,708 |
+| Coordination ColdWinner (`ns/op`) | 710,174 | 744,297 | 712,784 |
+
+Direct Redis `wire-bytes` are measured from the stored value/envelope; codec and
+coordination rows report the codec payload. The raw snapshot is
+[benchmark.txt](../../docs/research/outputs/issue-599/benchmark.txt) and its
+validated [summary.json](../../docs/research/outputs/issue-599/summary.json);
+the capture manifest is [environment.md](../../docs/research/outputs/issue-599/environment.md).
 
 ## Test
 

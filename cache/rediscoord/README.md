@@ -169,3 +169,21 @@ magnitude.
 | `BenchmarkMemoryGetOrLoadSameKeyConcurrent` | 11030 | 4189 | 57 | `1.000 loads/op` |
 | `BenchmarkNearCacheSetPublish` | 424923 | 1209 | 29 |  |
 | `BenchmarkStampedeCacheGetOrLoadColdWinner` | 1685522 | 2692 | 58 | `1.000 loads/op` |
+
+### Issue #599 Fory profile comparison
+
+The complete coordination path is also measured against JSON, `NativeFast`, and
+`NativeCompatible` with the same value fixture. The approved three-sample
+snapshot reports `ColdWinner` medians of `710,174 ns/op` (JSON), `744,297`
+(`NativeFast`), and `712,784` (`NativeCompatible`). The local `Hot` path is about
+`81 ns/op` because the wrapped in-memory cache is already populated; it is not a
+Redis lock/result measurement.
+
+![Issue #599 Fory and Redis benchmark](../../docs/images/readme-charts/issue599-fory-redis-benchmark.png)
+
+See the [benchmark report](../../docs/benchmarks/2026-08-07-issue-599-fory-redis.md),
+[raw output](../../docs/research/outputs/issue-599/benchmark.txt), and
+[parsed summary](../../docs/research/outputs/issue-599/summary.json) plus the
+[capture manifest](../../docs/research/outputs/issue-599/environment.md) for the
+environment, wire-byte layer definitions, schema-evolution check, and mutex
+versus pool contention analysis.
