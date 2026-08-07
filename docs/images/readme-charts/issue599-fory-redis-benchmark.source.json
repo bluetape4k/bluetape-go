@@ -1,0 +1,36 @@
+{
+  "summary": "docs/research/outputs/issue-599/summary.json",
+  "panels": [
+    {
+      "title": "In-process codec / Small / RoundTrip",
+      "rows": [
+        "BenchmarkIssue599Codec/JSON/Small/RoundTrip",
+        "BenchmarkIssue599Codec/NativeFast/Small/RoundTrip",
+        "BenchmarkIssue599Codec/NativeCompatible/Small/RoundTrip"
+      ]
+    },
+    {
+      "title": "Direct Redis value cache / Small / RoundTrip",
+      "rows": [
+        "BenchmarkIssue599DirectRedis/JSON/Small/RoundTrip",
+        "BenchmarkIssue599DirectRedis/NativeFast/Small/RoundTrip",
+        "BenchmarkIssue599DirectRedis/NativeCompatible/Small/RoundTrip"
+      ]
+    },
+    {
+      "title": "Stampede coordination / ColdWinner",
+      "rows": [
+        "BenchmarkIssue599Coordination/JSON/ColdWinner",
+        "BenchmarkIssue599Coordination/NativeFast/ColdWinner",
+        "BenchmarkIssue599Coordination/NativeCompatible/ColdWinner"
+      ]
+    },
+    {
+      "title": "NativeFast contention / RoundTrip",
+      "rows": [
+        "BenchmarkIssue599Contention/NativeFast/Mutex",
+        "BenchmarkIssue599Contention/NativeFast/Pool"
+      ]
+    }
+  ]
+}
