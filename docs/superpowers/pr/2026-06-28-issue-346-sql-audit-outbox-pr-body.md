@@ -1,25 +1,26 @@
 Closes #346.
 
-## Summary
+## 요약
 
-- add `audit/sqloutbox` with PostgreSQL-backed enqueue, claim lease,
-  claim-attempt-guarded publish/failure marks, retry, dead-letter, and relay
-  APIs
-- keep transaction ownership explicit by accepting caller-supplied
-  `database/sql` sessions
-- document at-least-once delivery, per-aggregate claim ordering, idempotency,
-  migration, redaction, and operator boundaries
+- PostgreSQL 기반 enqueue, claim lease, claim-attempt-guarded publish/failure
+  mark, retry, dead-letter, relay API를 제공하는 `audit/sqloutbox`를 추가한다.
+- caller가 전달한 `database/sql` session을 받아 transaction ownership을
+  명시적으로 유지한다.
+- at-least-once delivery, aggregate별 claim ordering, idempotency, migration,
+  redaction, operator 경계를 문서화한다.
 
-## Validation
+## 검증
 
 - `go test -count=1 ./audit/sqloutbox`
 - `make ci`
 
 ## DoD Status
 
-- [x] Issue #346 scope implemented.
-- [x] PostgreSQL Testcontainers coverage added for store, claim lease, stale mark rejection, and relay behavior.
-- [x] Stress/cancellation helpers used for concurrent claim and relay lifecycle.
-- [x] README, changelog, spec, plan, review, lesson, and PR artifacts updated.
-- [x] P0=0 P1=0 review recorded.
-- [x] Local CI passed.
+- [x] 이슈 #346 범위를 구현했다.
+- [x] store, claim lease, stale mark rejection, relay 동작을 대상으로
+      PostgreSQL Testcontainers coverage를 추가했다.
+- [x] concurrent claim 및 relay lifecycle에 stress/cancellation helper를
+      사용했다.
+- [x] README, changelog, spec, plan, review, lesson, PR 산출물을 갱신했다.
+- [x] P0=0 P1=0 review를 기록했다.
+- [x] 로컬 CI를 통과했다.
