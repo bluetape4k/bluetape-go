@@ -1,7 +1,7 @@
 # WIP
 
-Snapshot: 2026-08-06 KST
-Scope: `0.19.0` provider-foundation release prep.
+스냅샷: 2026-08-06 KST
+범위: `0.19.0` provider-foundation release 준비.
 
 ## 현재 Target Release
 
@@ -22,8 +22,8 @@ unmilestoned P2 후속 작업이다. 이 issue는 `v0.19.0`에서 명시적으�
 ## 현재 상태
 
 - `v0.1.0`, `v0.1.1`, `v0.2.0`, `v0.3.0`, `v0.4.0`, `v0.5.0`, `v0.5.1`,
-  `v0.6.0`, `v0.6.1` through `v0.6.8`, `v0.7.0`, `v0.8.0`, `v0.9.0`,
-  `v0.10.0`, `v0.11.0`, `v0.12.0`, `v0.13.0`, `v0.14.0`, `v0.15.0`, and
+  `v0.6.0`, `v0.6.1`부터 `v0.6.8`까지, `v0.7.0`, `v0.8.0`, `v0.9.0`,
+  `v0.10.0`, `v0.11.0`, `v0.12.0`, `v0.13.0`, `v0.14.0`, `v0.15.0` 및
   `v0.16.0`, `v0.17.0`, `v0.18.0`은 tag와 release가 끝났다.
 - Milestone `0.19.0`의 open issue는 0개이며 implementation issue 21개와
   implementation PR 20개가 모두 closed/merged 상태다.
@@ -34,7 +34,7 @@ unmilestoned P2 후속 작업이다. 이 issue는 `v0.19.0`에서 명시적으�
   Testcontainers timing-sensitive package test가 간헐적으로 실패했지만, fresh
   full CI가 다시 통과해 local validation gate를 닫았다.
 
-## Release Checklist
+## Release checklist
 
 1. 이 release-prep branch를 `develop`에 merge해서 `CHANGELOG.md`, `WIP.md`,
    release checklist evidence가 `v0.19.0`을 반영하게 한다.
@@ -46,7 +46,7 @@ unmilestoned P2 후속 작업이다. 이 issue는 `v0.19.0`에서 명시적으�
 5. `main`에 `v0.19.0` tag를 생성한다.
 6. validation evidence와 함께 `CHANGELOG.md`에서 GitHub Release를 생성한다.
 
-## Release Support Notes
+## Release 지원 메모
 
 0.19.0 slice는 provider conformance, PostgreSQL/etcd leader election,
 PostgreSQL rate limiting과 durable checkpoint, Redis Fory/value cache, Redis
