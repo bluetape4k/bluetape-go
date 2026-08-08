@@ -18,20 +18,20 @@
 	<marker id="64748B" viewBox="0 0 5 5" refX="4.5" refY="2.5" markerWidth="5" markerHeight="5" markerUnits="userSpaceOnUse" orient="auto">
     <path d="M 0.5 0.5 L 4.5 2.5 L 0.5 4.5 Z" fill="#64748B"/>
   </marker>
-	<marker id="2563EB" viewBox="0 0 5 5" refX="4.5" refY="2.5" markerWidth="5" markerHeight="5" markerUnits="userSpaceOnUse" orient="auto">
-    <path d="M 0.5 0.5 L 4.5 2.5 L 0.5 4.5 Z" fill="#2563EB"/>
+	<marker id="2563EB" viewBox="0 0 10 10" refX="4.5" refY="2.5" markerWidth="10" markerHeight="10" markerUnits="userSpaceOnUse" orient="auto" data-role="secondary" data-tip-direction="positive-x">
+    <path d="M 0.5 0.5 L 4.5 2.5 L 0.5 4.5 Z" fill="#2563EB" stroke-dasharray="none"/>
   </marker>
-	<marker id="7C3AED" viewBox="0 0 5 5" refX="4.5" refY="2.5" markerWidth="5" markerHeight="5" markerUnits="userSpaceOnUse" orient="auto">
-    <path d="M 0.5 0.5 L 4.5 2.5 L 0.5 4.5 Z" fill="#7C3AED"/>
+	<marker id="7C3AED" viewBox="0 0 10 10" refX="4.5" refY="2.5" markerWidth="10" markerHeight="10" markerUnits="userSpaceOnUse" orient="auto" data-role="secondary" data-tip-direction="positive-x">
+    <path d="M 0.5 0.5 L 4.5 2.5 L 0.5 4.5 Z" fill="#7C3AED" stroke-dasharray="none"/>
   </marker>
-	<marker id="16A34A" viewBox="0 0 5 5" refX="4.5" refY="2.5" markerWidth="5" markerHeight="5" markerUnits="userSpaceOnUse" orient="auto">
-    <path d="M 0.5 0.5 L 4.5 2.5 L 0.5 4.5 Z" fill="#16A34A"/>
+	<marker id="16A34A" viewBox="0 0 10 10" refX="4.5" refY="2.5" markerWidth="10" markerHeight="10" markerUnits="userSpaceOnUse" orient="auto" data-role="secondary" data-tip-direction="positive-x">
+    <path d="M 0.5 0.5 L 4.5 2.5 L 0.5 4.5 Z" fill="#16A34A" stroke-dasharray="none"/>
   </marker>
-	<marker id="D97706" viewBox="0 0 5 5" refX="4.5" refY="2.5" markerWidth="5" markerHeight="5" markerUnits="userSpaceOnUse" orient="auto">
-    <path d="M 0.5 0.5 L 4.5 2.5 L 0.5 4.5 Z" fill="#D97706"/>
+	<marker id="D97706" viewBox="0 0 10 10" refX="4.5" refY="2.5" markerWidth="10" markerHeight="10" markerUnits="userSpaceOnUse" orient="auto" data-role="secondary" data-tip-direction="positive-x">
+    <path d="M 0.5 0.5 L 4.5 2.5 L 0.5 4.5 Z" fill="#D97706" stroke-dasharray="none"/>
   </marker>
-	<marker id="DC2626" viewBox="0 0 5 5" refX="4.5" refY="2.5" markerWidth="5" markerHeight="5" markerUnits="userSpaceOnUse" orient="auto">
-    <path d="M 0.5 0.5 L 4.5 2.5 L 0.5 4.5 Z" fill="#DC2626"/>
+	<marker id="DC2626" viewBox="0 0 10 10" refX="4.5" refY="2.5" markerWidth="10" markerHeight="10" markerUnits="userSpaceOnUse" orient="auto" data-role="secondary" data-tip-direction="positive-x">
+    <path d="M 0.5 0.5 L 4.5 2.5 L 0.5 4.5 Z" fill="#DC2626" stroke-dasharray="none"/>
   </marker>
 	<marker id="475569" viewBox="0 0 5 5" refX="4.5" refY="2.5" markerWidth="5" markerHeight="5" markerUnits="userSpaceOnUse" orient="auto">
     <path d="M 0.5 0.5 L 4.5 2.5 L 0.5 4.5 Z" fill="#475569"/>
