@@ -82,7 +82,8 @@ def marker_defs() -> list[str]:
             f'    <marker id="arrow-{name}" markerWidth="14" markerHeight="14" '
             f'refX="13" refY="7" orient="auto" markerUnits="userSpaceOnUse" '
             f'data-role="primary" data-tip-direction="positive-x">'
-            f'<path d="M 0 0 L 14 7 L 0 14 Z" fill="{color}" stroke-dasharray="none"/></marker>'
+            f'<path d="M 0 0 L 14 7 L 0 14 Z" fill="{color}" stroke="{color}" '
+            f'stroke-width="0" stroke-dasharray="none"/></marker>'
         )
     lines.append(
         """    <style>
