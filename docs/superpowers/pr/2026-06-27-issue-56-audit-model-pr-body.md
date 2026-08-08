@@ -1,27 +1,26 @@
-## Summary
+## 요약
 
-- Add the `audit` package with `AggregateID`, `Revision`, `DomainEvent`,
-  `Entry`, `SnapshotMetadata`, `ChangeMetadata`, `AggregateRecorder`, and
-  `History`.
-- Validate constructor and JSON decode paths, including schema version,
-  aggregate/revision consistency, missing snapshot payloads, metadata taxonomy,
-  redacted validation errors, duplicate event/idempotency handling, and
-  pending-event ack behavior.
-- Add bilingual audit READMEs, root README entries, CHANGELOG/WIP updates,
-  Step 6-R review evidence, and lessons.
+- `audit` package에 `AggregateID`, `Revision`, `DomainEvent`, `Entry`,
+  `SnapshotMetadata`, `ChangeMetadata`, `AggregateRecorder`, `History`를
+  추가한다.
+- 검증 항목: schema version, aggregate/revision consistency, missing snapshot payload,
+  metadata taxonomy, redacted validation error, duplicate event/idempotency
+  처리, pending-event ack 동작을 포함하여 constructor와 JSON decode 경로를
+  검증한다.
+- bilingual audit README, root README 항목, CHANGELOG/WIP 갱신, Step 6-R
+  review 증거, lesson을 추가한다.
 
-## Boundaries
+## 경계
 
-- Repository interfaces, history query storage, outbox publishers, SQL/Redis/
-  Kafka/NATS adapters, and JaVers-style object diffing remain out of scope for
-  #56.
-- Recorder pending events are an in-process retry aid only. Later repository
-  and outbox issues must provide durable transaction, rollback, outbox, or
-  reconciliation semantics before acking events.
+- 다음은 #56 범위에서 제외한다: Repository interface, history query storage,
+  outbox publisher, SQL/Redis/Kafka/NATS adapter, JaVers 방식 object diffing.
+- Recorder pending event는 process 내부 retry 보조 수단일 뿐이다. 이후
+  repository 및 outbox issue는 event를 ack하기 전에 durable transaction,
+  rollback, outbox, reconciliation semantics를 제공해야 한다.
 
 Closes #56
 
-## Verification
+## 검증
 
 - `go test -count=1 ./audit`
 - `go test -race -count=1 ./audit`
@@ -33,10 +32,10 @@ Closes #56
 
 ## DoD Status
 
-| Gate | Status | Evidence |
+| 게이트 | 상태 | 증거 |
 |---|---|---|
-| Issue scope | PASS | Implements #56 model/recording/history basics and keeps repository/outbox/diffing out of scope. |
-| Tests | PASS | Targeted audit tests, race test, benchmark command, and `make ci` passed. |
-| Review | PASS | Step 6-R seven-tier review closed with `P0=0 P1=0` after fixing the snapshot payload P1. |
-| Docs | PASS | `audit/README.md`, `audit/README.ko.md`, root README pair, CHANGELOG, WIP, review, and lesson updated. |
-| PR metadata | PASS | Assignee, milestone, and labels mirror #56. |
+| 이슈 범위 | PASS | #56 model/recording/history 기본 기능을 구현하고 repository/outbox/diffing을 범위에서 제외. |
+| Test | PASS | 대상 audit test, race test, benchmark 명령, `make ci` 통과. |
+| Review | PASS | snapshot payload P1을 수정한 뒤 `P0=0 P1=0`으로 Step 6-R seven-tier review 종료. |
+| Docs | PASS | `audit/README.md`, `audit/README.ko.md`, root README pair, CHANGELOG, WIP, review, lesson 갱신. |
+| PR metadata | PASS | Assignee, milestone, label이 #56과 일치. |

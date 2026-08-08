@@ -1,30 +1,30 @@
-## Summary
+## 요약
 
-- Add `core.Range` with closed/open boundary constructors, containment,
-  overlap checks, NaN-safe membership, and zero-value empty behavior.
-- Add `collections.BoundedStack`, `RingBuffer`, `Page`, and lazy
-  `Permutations` using Go-native generic and `iter.Seq` APIs.
-- Update English/Korean README files, compile-tested examples, verifier/review
-  artifacts, and lessons.
+- 닫힌/열린 경계 생성자, containment, overlap 검사, NaN-safe membership,
+  zero-value empty 동작을 제공하는 `core.Range`를 추가한다.
+- Go-native generic API를 사용하는 `collections.BoundedStack`, `RingBuffer`,
+  `Page`, lazy `Permutations` 및 `iter.Seq` API를 추가한다.
+- English/Korean README, compile-test한 example, verifier/review 산출물,
+  lesson을 갱신한다.
 
 Closes #206.
 
-## Review
+## 검토
 
-- Step 2-R spec review: `P0=0 P1=0`
-- Step 3-R plan review: `P0=0 P1=0`
+- Step 2-R spec 검토: `P0=0 P1=0`
+- Step 3-R plan 검토: `P0=0 P1=0`
 - Step 5 verifier: PASS
-- Step 6-R code review: `P0=0 P1=0`
+- Step 6-R 코드 검토: `P0=0 P1=0`
 
 ## DoD Status
 
-| Gate | Status | Evidence |
+| 게이트 | 상태 | 증거 |
 |---|---|---|
-| Worktree | PASS | `issue-206-range-collections` based on `origin/develop`. |
-| TDD | PASS | RED undefined-symbol tests preceded implementation; targeted GREEN passed after implementation. |
-| Targeted tests | PASS | `go test -count=1 ./core ./collections` |
-| Race gate | PASS | `go test -race -count=1 ./core ./collections` |
-| Full tests | PASS | `go test ./...` |
+| Worktree | PASS | `issue-206-range-collections`가 `origin/develop`을 기반으로 함. |
+| TDD | PASS | RED undefined-symbol test가 구현보다 먼저 실행되었고, 구현 후 대상 GREEN 통과. |
+| 대상 test | PASS | `go test -count=1 ./core ./collections` |
+| Race 게이트 | PASS | `go test -race -count=1 ./core ./collections` |
+| 전체 test | PASS | `go test ./...` |
 | Whitespace | PASS | `git diff --check` |
 | CI | PASS | `make ci` |
-| Lessons | PASS | `docs/lessons/2026-06-22-issue-206-range-collections.md` committed before PR. |
+| Lessons | PASS | `docs/lessons/2026-06-22-issue-206-range-collections.md`를 PR 전에 commit. |
