@@ -3,11 +3,11 @@
   <desc id="desc">Producer append, consumer-group read, acknowledge, pending recovery with auto-claim, and explicit retention remain caller-owned operations.</desc>
   <defs>
     <filter id="softShadow" x="-8%" y="-10%" width="116%" height="124%"><feDropShadow dx="0" dy="5" stdDeviation="5" flood-color="#0F172A" flood-opacity="0.10"/></filter>
-    <marker id="arrow-blue" markerWidth="16" markerHeight="16" refX="15" refY="8" orient="auto" markerUnits="userSpaceOnUse"><path d="M0 0L16 8L0 16Z" fill="#4f77c9"/></marker>
-    <marker id="arrow-green" markerWidth="16" markerHeight="16" refX="15" refY="8" orient="auto" markerUnits="userSpaceOnUse"><path d="M0 0L16 8L0 16Z" fill="#319873"/></marker>
-    <marker id="arrow-amber" markerWidth="16" markerHeight="16" refX="15" refY="8" orient="auto" markerUnits="userSpaceOnUse"><path d="M0 0L16 8L0 16Z" fill="#cf8428"/></marker>
-    <marker id="arrow-red" markerWidth="16" markerHeight="16" refX="15" refY="8" orient="auto" markerUnits="userSpaceOnUse"><path d="M0 0L16 8L0 16Z" fill="#c85d73"/></marker>
-    <marker id="arrow-teal" markerWidth="16" markerHeight="16" refX="15" refY="8" orient="auto" markerUnits="userSpaceOnUse"><path d="M0 0L16 8L0 16Z" fill="#3f7d9c"/></marker>
+    <marker id="arrow-blue" markerWidth="14" markerHeight="14" refX="15" refY="8" orient="auto" markerUnits="userSpaceOnUse" viewBox="0 0 16 16" data-role="primary" data-tip-direction="positive-x"><path d="M0 0L16 8L0 16Z" fill="#4f77c9" stroke-dasharray="none"/></marker>
+    <marker id="arrow-green" markerWidth="14" markerHeight="14" refX="15" refY="8" orient="auto" markerUnits="userSpaceOnUse" viewBox="0 0 16 16" data-role="primary" data-tip-direction="positive-x"><path d="M0 0L16 8L0 16Z" fill="#319873" stroke-dasharray="none"/></marker>
+    <marker id="arrow-amber" markerWidth="14" markerHeight="14" refX="15" refY="8" orient="auto" markerUnits="userSpaceOnUse" viewBox="0 0 16 16" data-role="primary" data-tip-direction="positive-x"><path d="M0 0L16 8L0 16Z" fill="#cf8428" stroke-dasharray="none"/></marker>
+    <marker id="arrow-red" markerWidth="14" markerHeight="14" refX="15" refY="8" orient="auto" markerUnits="userSpaceOnUse" viewBox="0 0 16 16" data-role="primary" data-tip-direction="positive-x"><path d="M0 0L16 8L0 16Z" fill="#c85d73" stroke-dasharray="none"/></marker>
+    <marker id="arrow-teal" markerWidth="14" markerHeight="14" refX="15" refY="8" orient="auto" markerUnits="userSpaceOnUse" viewBox="0 0 16 16" data-role="primary" data-tip-direction="positive-x"><path d="M0 0L16 8L0 16Z" fill="#3f7d9c" stroke-dasharray="none"/></marker>
     <style>
       .canvas { fill:#f8fafc; }
       .frame { fill:#ffffff; stroke:#cbd5e1; stroke-width:1.5; filter:url(#softShadow); }

@@ -5,11 +5,11 @@
     <filter id="shadow" x="-8%" y="-10%" width="116%" height="124%">
       <feDropShadow dx="0" dy="4" stdDeviation="5" flood-color="#243247" flood-opacity="0.11"/>
     </filter>
-    <marker id="arrow-teal" markerWidth="14" markerHeight="14" refX="13" refY="7" orient="auto" markerUnits="userSpaceOnUse">
-      <path d="M0 0L14 7L0 14Z" fill="#238b7b"/>
+    <marker id="arrow-teal" markerWidth="14" markerHeight="14" refX="13" refY="7" orient="auto" markerUnits="userSpaceOnUse" viewBox="0 0 14 14" data-role="primary" data-tip-direction="positive-x">
+      <path d="M0 0L14 7L0 14Z" fill="#238b7b" stroke-dasharray="none"/>
     </marker>
-    <marker id="arrow-gray" markerWidth="10" markerHeight="10" refX="9" refY="5" orient="auto" markerUnits="userSpaceOnUse">
-      <path d="M0 0L10 5L0 10Z" fill="#66758a"/>
+    <marker id="arrow-gray" markerWidth="10" markerHeight="10" refX="9" refY="5" orient="auto" markerUnits="userSpaceOnUse" viewBox="0 0 10 10" data-role="secondary" data-tip-direction="positive-x">
+      <path d="M0 0L10 5L0 10Z" fill="#66758a" stroke-dasharray="none"/>
     </marker>
     <path id="redis-b" d="M45.536 38.764c-2.013 1.05-12.44 5.337-14.66 6.494s-3.453 1.146-5.207.308-12.85-5.32-14.85-6.276c-1-.478-1.524-.88-1.524-1.26v-3.813s14.447-3.145 16.78-3.982 3.14-.867 5.126-.14 13.853 2.868 15.814 3.587v3.76c0 .377-.452.8-1.477 1.324z"/>
     <path id="redis-c" d="M45.536 28.733c-2.013 1.05-12.44 5.337-14.66 6.494s-3.453 1.146-5.207.308-12.85-5.32-14.85-6.276-2.04-1.613-.077-2.382l15.332-5.935c2.332-.837 3.14-.867 5.126-.14s12.35 4.853 14.312 5.57 2.037 1.31.024 2.36z"/>
