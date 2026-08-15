@@ -100,6 +100,18 @@ func (p *RetryPolicy[T]) Apply(operation Operation[T]) Operation[T] {
 			}
 
 			lastErr = err
+			if IsNonRetryable(err) {
+				emitEvent(ctx, p.options.OnEvent, Event{
+					PolicyName:    p.options.Name,
+					PolicyType:    PolicyTypeRetry,
+					Kind:          EventFailure,
+					Category:      EventCategoryFailure,
+					Attempt:       attempt,
+					Err:           err,
+					ErrorCategory: categorizeError(err),
+				})
+				return zero, err
+			}
 			if !p.options.RetryIf(err) {
 				emitEvent(ctx, p.options.OnEvent, Event{
 					PolicyName:    p.options.Name,
