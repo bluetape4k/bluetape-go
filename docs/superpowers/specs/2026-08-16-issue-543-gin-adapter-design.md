@@ -36,20 +36,27 @@ func RequestContext(options web.RequestContextOptions) gin.HandlerFunc
 
 type RateLimitOptions struct {
 	Limiter      ratelimit.Limiter
-	KeyFunc      ratelimit.KeyFunc
+	KeyFunc      RateLimitKeyFunc
 	Tokens       int64
 	ErrorHandler func(*gin.Context, ratelimit.Result, error)
 }
 
+type RateLimitKeyFunc func(*gin.Context) string
+
 func NewRateLimit(options RateLimitOptions) (gin.HandlerFunc, error)
 
+type ContextParser interface {
+    ParseContext(context.Context, string, ...jwt.ParseOption) (*jwt.Reader, error)
+}
+
 type JWTOptions struct {
-	Parser       jwt.Parser
-	Header       string
-	Scheme       string
-	ContextKey   string
-	ParseOptions []jwt.ParseOption
-	ErrorHandler func(*gin.Context, error)
+	Parser        jwt.Parser
+	ContextParser ContextParser
+	Header        string
+	Scheme        string
+	ContextKey    string
+	ParseOptions  []jwt.ParseOption
+	ErrorHandler  func(*gin.Context, error)
 }
 
 type JWTErrorKind string
@@ -65,6 +72,9 @@ const (
 type AuthenticationError struct {
 	Kind JWTErrorKind
 }
+
+func (e AuthenticationError) Error() string
+func (e AuthenticationError) ProblemDetails() web.Problem
 
 func NewJWT(options JWTOptions) (gin.HandlerFunc, error)
 
@@ -104,8 +114,8 @@ mTLS 또는 server-established metadata처럼 client가 바꿀 수 없는 신호
 
 ### Rate-limit adapter
 
-`NewRateLimit`은 Gin-native `RateLimitOptions`를 받아 limiter, key function,
-token 수, 오류 handler를 설정한다. 내부에서는 기존
+`NewRateLimit`은 Gin-native `RateLimitOptions`를 받아 limiter, Gin-native
+`RateLimitKeyFunc`, token 수, 오류 handler를 설정한다. 내부에서는 기존
 `ratelimit.HandlerOptions`로 변환해 framework-neutral `ratelimit.Handler`를
 한 번 구성하고, request context에 현재 `*gin.Context`를 연결한 bridge
 `http.Handler`를 downstream으로 사용한다. 따라서 caller는 `net/http`
@@ -116,11 +126,15 @@ writer/request callback을 직접 다루지 않는다.
   `c.Abort()`한다.
 - limiter/key 오류: 기존 오류 handler가 기록한 상태와 body를 유지하고
   `c.Abort()`한다.
+- request context가 `context.Canceled` 또는 `context.DeadlineExceeded`이면
+  backend 오류로 뭉뚱그리지 않고 기존 `web.ProblemFromError`의 cancellation/
+  deadline mapping을 사용한다. downstream은 호출하지 않고 bounded return을
+  보장한다.
 - backend 오류: 기본 adapter handler는 원인 문자열을 response에 복사하지 않고
   redacted 503 Problem을 기록한다. caller가 `RateLimitOptions.ErrorHandler`를
   직접 제공한 경우 그 공개 범위와 logging은 caller 책임이다.
-- key function은 `c.Request`를 기준으로 호출하며, 기본값은 기존
-  `ratelimit.RemoteIPKey`이다.
+- key function은 `*gin.Context`를 기준으로 호출하며, 기본값은
+  `ratelimit.RemoteIPKey`를 adapter 내부에서 감싼 함수다.
 
 이 bridge는 rate-limit 판단을 재구현하지 않으므로 core와 Gin의 결과가
 달라지는 drift를 방지한다.
@@ -141,27 +155,33 @@ data race가 변하지 않는다.
 Bearer 값이 없거나 형식이 잘못되었거나 parser가 실패하면 token 원문을
 response, log, Gin context에 노출하지 않고 redacted authentication error로
 오류 handler를 호출한다. callback용 오류는 parser의 원문 오류나 `Unwrap`
-경로를 노출하지 않으며, 안정된 분류만 보존한다. 성공한
-`*jwt.Reader`만 `c.Set`으로 저장하며 `JWTReader` helper로 읽는다.
+경로를 노출하지 않으며, 안정된 분류만 보존한다. callback을 호출할 때는
+Authorization header를 제거한 request 복사본을 임시 연결해 callback이 원문
+token을 다시 읽을 수 없게 하고, 호출 뒤 원래 request 포인터를 복구한다.
+성공한 `*jwt.Reader`만 `c.Set`으로 저장하며 `JWTReader` helper로 읽는다.
 `JWTReader`의 빈 key는 `DefaultJWTContextKey`를 사용한다.
 
 `AuthenticationError`는 token 원문이나 parser 원인 오류를 포함하지 않는
-안정된 분류 API다. caller는 `errors.As`로 `Kind`를 읽어 metrics/audit를
-문자열 파싱 없이 분류할 수 있다.
+안정된 분류 API다. `Error()`는 `authentication failed: <kind>` 형태의 고정
+문자열만 반환하고 `Unwrap()`을 제공하지 않는다. `ProblemDetails()`는
+고정된 401 `web.Problem`만 반환한다. caller는 `errors.As`로 `Kind`를 읽어
+metrics/audit를 문자열 파싱 없이 분류할 수 있다.
 
-`Parser`가 nil이면 생성자는 오류를 반환한다. Header, scheme, context key가
-비어 있으면 각각 기본값을 사용하고, whitespace/control 문자가 포함되거나
-Authorization header가 여러 개 또는 comma-joined 값으로 모호하면 요청을
-401로 거부한다. 문법은 정확히 하나의 `Bearer <non-empty-token>` 값이며,
-token은 control 문자를 포함하지 않고 최대 8 KiB다. `ParseOptions` 안의 nil
-option도 생성자에서 거부한다.
+`Parser`와 `ContextParser`가 모두 nil이거나 동시에 설정되면 생성자는 오류를
+반환한다. Header, scheme, context key가 비어 있으면 각각 기본값을 사용하고,
+whitespace/control 문자가 포함되거나 Authorization header가 여러 개 또는
+comma-joined 값으로 모호하면 요청을 401로 거부한다. 문법은 정확히 하나의
+`Bearer <non-empty-token>` 값이며, token은 control 문자를 포함하지 않고 최대
+8 KiB다. `ParseOptions` 안의 nil option도 생성자에서 거부한다.
+Parser, ContextParser, limiter, policy interface의 typed-nil 값도 생성자에서
+거부해 serving 중 nil receiver panic을 방지한다.
 
-parser가 `ParseContext(context.Context, string, ...jwt.ParseOption)`을
-지원하는 경우 request context를 전달한다. 그렇지 않은 기존 `jwt.Parser`는
-`Parse`를 사용하고, parse 전후로 request cancellation을 확인한다. 이 legacy
-경로는 진행 중인 blocking parse를 중단할 수 없는 best-effort 계약이며, strict
-cancellation이 필요한 caller는 context-capable parser를 사용해야 한다. 이
-선택적 interface는 기존 Parser 구현의 source compatibility를 유지한다.
+`ContextParser`가 설정된 경우 request context를 전달한다. 그렇지 않은 기존
+`jwt.Parser`는 `Parse`를 사용하고, parse 전후로 request cancellation을
+확인한다. 이 legacy 경로는 진행 중인 blocking parse를 중단할 수 없는
+best-effort 계약이며, strict cancellation이 필요한 caller는 ContextParser를
+사용해야 한다. 별도 field를 두어 기존 Parser 구현과 `DistributedProvider`
+같은 context-only provider를 모두 source-compatible하게 수용한다.
 
 ### Resilience route wrapper
 
