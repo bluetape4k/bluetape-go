@@ -68,8 +68,9 @@ _ = requestWithContext
 _ = value
 ```
 
-`#542` adds HTTP middleware conformance. Gin and Echo adapters remain in `#543`
-and `#544`; JWT/JWKS behavior remains outside this package.
+`#542` adds HTTP middleware conformance. The Gin adapter is available in
+[`web/gin`](gin/README.md) under `#543`; the Echo adapter remains in `#544`.
+JWT/JWKS provider behavior remains outside this package.
 
 ## Test
 
