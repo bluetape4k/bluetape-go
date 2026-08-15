@@ -81,6 +81,7 @@ future scope, not part of the current public API.
 | [`leader/etcd`](leader/etcd/README.md) | active | etcd single leader election using a caller-owned client, official Session/Election primitives, and exact ownership monitoring. |
 | [`resilience`](resilience/README.md) | active | First-party composable retry, timeout, circuit breaker, and bulkhead policies with synchronous observability hooks and `net/http` adapters. |
 | [`web`](web/README.md) | active | Framework-neutral RFC 9457 problem details responses and trusted request context helpers for `net/http` handlers. |
+| [`webtest`](webtest/README.md) | test | Framework-neutral `net/http` middleware conformance harness and resource-ownership fixtures for tests. |
 | [`cache`](cache/README.md) | active | Generic in-process TTL cache interfaces with context-aware loaders and same-key stampede protection. |
 | [`cache/redisnear`](cache/redisnear/README.md) | active | Redis Pub/Sub near-cache invalidation for process-local loading caches. |
 | [`cache/rediscoord`](cache/rediscoord/README.md) | active | Opt-in Redis coordination wrapper that shares one loader result across process-local caches during a cold burst. |
@@ -143,7 +144,7 @@ overview.
   [`concurrency`](concurrency/README.md), [`codec`](codec/README.md),
   [`encrypt`](encrypt/README.md), [`compression`](compression/README.md), and
   [`serialization`](serialization/README.md).
-- Test support: [`testing`](testing/README.md),
+- Test support: [`testing`](testing/README.md), [`webtest`](webtest/README.md),
   [`testing/concurrency`](testing/concurrency/README.md), and the fixture
   package READMEs listed above. Focused examples in `testing` cover
   table-driven tests, package-local builders, golden files, deterministic random

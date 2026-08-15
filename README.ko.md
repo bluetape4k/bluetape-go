@@ -78,6 +78,7 @@ API가 아니라 module-gated future scope입니다.
 | [`leader/etcd`](leader/etcd/README.ko.md) | active | Caller-owned client, 공식 Session/Election primitive, exact ownership monitoring을 사용하는 etcd 단일 leader election 구현. |
 | [`resilience`](resilience/README.ko.md) | active | service call을 위한 자체 composable retry, timeout, circuit breaker, bulkhead policy, synchronous observability hook, `net/http` adapter. |
 | [`web`](web/README.ko.md) | active | `net/http` handler를 위한 framework-neutral RFC 9457 problem details 응답과 trusted request context helper. |
+| [`webtest`](webtest/README.ko.md) | test | 테스트에서 사용하는 framework-neutral `net/http` middleware conformance harness와 resource ownership fixture. |
 | [`cache`](cache/README.ko.md) | active | context-aware loader와 same-key stampede protection을 제공하는 generic in-process TTL cache interface. |
 | [`cache/redisnear`](cache/redisnear/README.ko.md) | active | process-local loading cache를 위한 Redis Pub/Sub near-cache invalidation. |
 | [`cache/rediscoord`](cache/rediscoord/README.ko.md) | active | cold burst 동안 하나의 loader 결과를 process-local cache 사이에서 공유하는 opt-in Redis coordination wrapper. |
@@ -139,7 +140,7 @@ go get github.com/bluetape4k/bluetape-go
   [`concurrency`](concurrency/README.ko.md), [`codec`](codec/README.ko.md),
   [`encrypt`](encrypt/README.ko.md), [`compression`](compression/README.ko.md),
   [`serialization`](serialization/README.ko.md).
-- Test support: [`testing`](testing/README.ko.md),
+- Test support: [`testing`](testing/README.ko.md), [`webtest`](webtest/README.ko.md),
   [`testing/concurrency`](testing/concurrency/README.ko.md), 위 표의 Testcontainers
   fixture package README. `testing`의 focused example은 assertion DSL 추가 없이
   table-driven test, package-local builder, golden file, deterministic random data,
