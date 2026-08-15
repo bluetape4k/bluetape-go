@@ -1,0 +1,25 @@
+{
+  "$schema": "https://vega.github.io/schema/vega-lite/v5.json",
+  "title": "Gin adapter benchmark summary",
+  "description": "Generated from docs/research/outputs/issue-543/bench-results.json; lower latency is better.",
+  "data": {
+    "name": "gin_adapter_benchmark_rows"
+  },
+  "mark": "bar",
+  "encoding": {
+    "y": {
+      "field": "name",
+      "type": "nominal",
+      "sort": "-x"
+    },
+    "x": {
+      "field": "ns_per_op",
+      "type": "quantitative",
+      "title": "ns/op"
+    },
+    "color": {
+      "field": "scope",
+      "type": "nominal"
+    }
+  }
+}
