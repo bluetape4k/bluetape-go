@@ -56,6 +56,8 @@ function validate(summary) {
   if (!summary || !Array.isArray(summary.rows) || summary.rows.length === 0) throw new Error("benchmark rows are missing");
   const names = new Set();
   const exact = new Set();
+  const benchmarkCount = Number.parseInt(summary.metadata?.benchmark_count || "1", 10);
+  const allowExactDuplicates = Number.isInteger(benchmarkCount) && benchmarkCount > 1;
   for (const row of summary.rows) {
     if (!expected.has(row.name)) throw new Error(`unknown benchmark row ${row.name}`);
     finite(row.cpu, `${row.name}.cpu`);
@@ -69,7 +71,7 @@ function validate(summary) {
     if (row.failed === true) throw new Error(`failed benchmark row ${row.name}`);
     names.add(row.name);
     const signature = [row.name, row.cpu, row.iterations, row.ns_per_op, row.bytes_per_op, row.allocs_per_op].join("|");
-    if (exact.has(signature)) throw new Error(`duplicate benchmark row ${row.name} cpu=${row.cpu}`);
+    if (exact.has(signature) && !allowExactDuplicates) throw new Error(`duplicate benchmark row ${row.name} cpu=${row.cpu}`);
     exact.add(signature);
   }
   const missing = expectedNames.filter((name) => !names.has(name));

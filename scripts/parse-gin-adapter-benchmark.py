@@ -113,7 +113,11 @@ def parse_input(path: Path) -> tuple[list[dict[str, object]], dict[str, str]]:
             if row is None:
                 continue
             signature = tuple(row[field] for field in ("name", "cpu", "iterations", "ns_per_op", "bytes_per_op", "allocs_per_op"))
-            if signature in seen_exact:
+            try:
+                expected_samples = int(metadata.get("benchmark_count", "1"))
+            except ValueError as error:
+                raise ValueError("benchmark_count must be an integer") from error
+            if signature in seen_exact and expected_samples <= 1:
                 raise ValueError(f"duplicate benchmark row: {row['name']} cpu={row['cpu']}")
             seen_exact.add(signature)
             rows.append(row)
