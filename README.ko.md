@@ -77,6 +77,7 @@ API가 아니라 module-gated future scope입니다.
 | [`leader/sql`](leader/sql/README.ko.md) | active | Caller-owned row lease와 caller-owned `*sql.DB`를 사용하는 PostgreSQL 전용 단일 leader election 구현. |
 | [`leader/etcd`](leader/etcd/README.ko.md) | active | Caller-owned client, 공식 Session/Election primitive, exact ownership monitoring을 사용하는 etcd 단일 leader election 구현. |
 | [`resilience`](resilience/README.ko.md) | active | service call을 위한 자체 composable retry, timeout, circuit breaker, bulkhead policy, synchronous observability hook, `net/http` adapter. |
+| [`web`](web/README.ko.md) | active | `net/http` handler를 위한 framework-neutral RFC 9457 problem details 응답과 trusted request context helper. |
 | [`cache`](cache/README.ko.md) | active | context-aware loader와 same-key stampede protection을 제공하는 generic in-process TTL cache interface. |
 | [`cache/redisnear`](cache/redisnear/README.ko.md) | active | process-local loading cache를 위한 Redis Pub/Sub near-cache invalidation. |
 | [`cache/rediscoord`](cache/rediscoord/README.ko.md) | active | cold burst 동안 하나의 loader 결과를 process-local cache 사이에서 공유하는 opt-in Redis coordination wrapper. |
@@ -162,6 +163,7 @@ go get github.com/bluetape4k/bluetape-go
   [`redis`](redis/README.ko.md),
   [`redis/stream`](redis/stream/README.ko.md), [`lock/redis`](lock/redis/README.ko.md).
 - Runtime policy/cache/state/workflow: [`resilience`](resilience/README.ko.md),
+  [`web`](web/README.ko.md),
   [`cache`](cache/README.ko.md), [`cache/redisnear`](cache/redisnear/README.ko.md),
   [`cache/rediscoord`](cache/rediscoord/README.ko.md), [`cache/redisfory`](cache/redisfory/README.ko.md),
   [`cache/redisvalue`](cache/redisvalue/README.ko.md),

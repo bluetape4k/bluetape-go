@@ -80,6 +80,7 @@ future scope, not part of the current public API.
 | [`leader/sql`](leader/sql/README.md) | active | PostgreSQL-only single leader election using caller-owned row leases and a caller-owned `*sql.DB`. |
 | [`leader/etcd`](leader/etcd/README.md) | active | etcd single leader election using a caller-owned client, official Session/Election primitives, and exact ownership monitoring. |
 | [`resilience`](resilience/README.md) | active | First-party composable retry, timeout, circuit breaker, and bulkhead policies with synchronous observability hooks and `net/http` adapters. |
+| [`web`](web/README.md) | active | Framework-neutral RFC 9457 problem details responses and trusted request context helpers for `net/http` handlers. |
 | [`cache`](cache/README.md) | active | Generic in-process TTL cache interfaces with context-aware loaders and same-key stampede protection. |
 | [`cache/redisnear`](cache/redisnear/README.md) | active | Redis Pub/Sub near-cache invalidation for process-local loading caches. |
 | [`cache/rediscoord`](cache/rediscoord/README.md) | active | Opt-in Redis coordination wrapper that shares one loader result across process-local caches during a cold burst. |
@@ -167,6 +168,7 @@ overview.
   [`redis`](redis/README.md), [`redis/stream`](redis/stream/README.md), and
   [`lock/redis`](lock/redis/README.md).
 - Runtime policies, cache, state, and workflow: [`resilience`](resilience/README.md),
+  [`web`](web/README.md),
   [`cache`](cache/README.md), [`cache/redisnear`](cache/redisnear/README.md),
   [`cache/rediscoord`](cache/rediscoord/README.md), [`cache/redisfory`](cache/redisfory/README.md),
   [`cache/redisvalue`](cache/redisvalue/README.md),
