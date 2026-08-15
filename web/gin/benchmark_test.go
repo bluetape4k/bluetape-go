@@ -4,9 +4,6 @@ import (
 	"context"
 	"net/http"
 	"net/http/httptest"
-	"runtime"
-	"sync"
-	"sync/atomic"
 	"testing"
 
 	"github.com/bluetape4k/bluetape-go/jwt"
@@ -53,10 +50,10 @@ func BenchmarkGinAdapterColdConstruction(b *testing.B) {
 	gin.SetMode(gin.TestMode)
 	b.ReportAllocs()
 	b.StopTimer()
-	provider, token, limiter := newGinBenchmarkDependencies(b)
+	provider, _, limiter := newGinBenchmarkDependencies(b)
 	b.StartTimer()
 	for i := 0; i < b.N; i++ {
-		if _, err := buildFullGinAdapter(provider, token, limiter); err != nil {
+		if _, err := buildFullGinAdapter(provider, limiter); err != nil {
 			b.Fatal(err)
 		}
 	}
@@ -70,18 +67,17 @@ func BenchmarkGinAdapterColdFirstRequest(b *testing.B) {
 	b.StartTimer()
 	for i := 0; i < b.N; i++ {
 		b.StopTimer()
-		handler, err := buildFullGinAdapter(provider, token, limiter)
+		handler, err := buildFullGinAdapter(provider, limiter)
 		if err != nil {
 			b.Fatal(err)
 		}
-		request := newBenchmarkRequest(token)
-		recorder := httptest.NewRecorder()
 		b.StartTimer()
-		handler.ServeHTTP(recorder, request)
+		status := serveGinBenchmarkRequest(handler, token)
 		b.StopTimer()
-		if recorder.Code != http.StatusNoContent {
-			b.Fatalf("status = %d, want 204", recorder.Code)
+		if status != http.StatusNoContent {
+			b.Fatalf("status = %d, want 204", status)
 		}
+		b.StartTimer()
 	}
 }
 
@@ -120,7 +116,7 @@ func newGinBenchmarkFixture(b *testing.B) ginBenchmarkFixture {
 	if err != nil {
 		b.Fatal(err)
 	}
-	full, err := buildFullGinAdapter(provider, token, limiter)
+	full, err := buildFullGinAdapter(provider, limiter)
 	if err != nil {
 		b.Fatal(err)
 	}
@@ -156,7 +152,7 @@ func buildBridgeGinAdapter() (http.Handler, error) {
 	return router, nil
 }
 
-func buildFullGinAdapter(provider jwt.Parser, token string, limiter ratelimit.Limiter) (http.Handler, error) {
+func buildFullGinAdapter(provider jwt.Parser, limiter ratelimit.Limiter) (http.Handler, error) {
 	rateLimit, err := ginadapter.NewRateLimit(ginadapter.RateLimitOptions{Limiter: limiter})
 	if err != nil {
 		return nil, err
@@ -179,7 +175,7 @@ func buildFullGinAdapter(provider jwt.Parser, token string, limiter ratelimit.Li
 }
 
 func newBenchmarkRequest(token string) *http.Request {
-	request := httptest.NewRequest(http.MethodGet, benchmarkRequestURL, nil)
+	request := httptest.NewRequestWithContext(context.Background(), http.MethodGet, benchmarkRequestURL, nil)
 	if token != "" {
 		request.Header.Set("Authorization", "Bearer "+token)
 	}
@@ -190,58 +186,28 @@ func runGinSerialBenchmark(b *testing.B, handler http.Handler, token string) {
 	b.Helper()
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
-		recorder := httptest.NewRecorder()
-		handler.ServeHTTP(recorder, newBenchmarkRequest(token))
-		if recorder.Code != http.StatusNoContent {
-			b.Fatalf("status = %d, want 204", recorder.Code)
+		status := serveGinBenchmarkRequest(handler, token)
+		if status != http.StatusNoContent {
+			b.Fatalf("status = %d, want 204", status)
 		}
 	}
 }
 
 func runGinParallelBenchmark(b *testing.B, handler http.Handler, token string) {
 	b.Helper()
-	workers := runtime.GOMAXPROCS(0)
-	if workers < 1 {
-		workers = 1
-	}
-	if workers > b.N {
-		workers = b.N
-	}
-	start := make(chan struct{})
-	var next atomic.Int64
-	var completed atomic.Int64
-	var failures atomic.Int64
-	var wait sync.WaitGroup
-	wait.Add(workers)
-	for i := 0; i < workers; i++ {
-		go func() {
-			defer wait.Done()
-			<-start
-			for {
-				index := next.Add(1) - 1
-				if index >= int64(b.N) {
-					return
-				}
-				recorder := httptest.NewRecorder()
-				handler.ServeHTTP(recorder, newBenchmarkRequest(token))
-				if recorder.Code != http.StatusNoContent {
-					failures.Add(1)
-					continue
-				}
-				completed.Add(1)
+	b.RunParallel(func(pb *testing.PB) {
+		for pb.Next() {
+			if status := serveGinBenchmarkRequest(handler, token); status != http.StatusNoContent {
+				b.Errorf("status = %d, want 204", status)
 			}
-		}()
-	}
-	b.ResetTimer()
-	close(start)
-	wait.Wait()
-	b.StopTimer()
-	if failures.Load() != 0 {
-		b.Fatalf("parallel requests failed: %d", failures.Load())
-	}
-	if completed.Load() != int64(b.N) {
-		b.Fatalf("completed requests = %d, want %d", completed.Load(), b.N)
-	}
+		}
+	})
+}
+
+func serveGinBenchmarkRequest(handler http.Handler, token string) int {
+	recorder := httptest.NewRecorder()
+	handler.ServeHTTP(recorder, newBenchmarkRequest(token))
+	return recorder.Code
 }
 
 type benchmarkLimiter struct{}

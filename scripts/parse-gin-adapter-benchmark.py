@@ -9,6 +9,7 @@ import math
 import os
 import re
 import tempfile
+from collections import Counter
 from pathlib import Path
 
 
@@ -99,7 +100,6 @@ def split_benchmark_name(raw: str) -> tuple[str, int]:
 def parse_input(path: Path) -> tuple[list[dict[str, object]], dict[str, str]]:
     rows: list[dict[str, object]] = []
     metadata: dict[str, str] = {}
-    seen_exact: set[tuple[object, ...]] = set()
     with path.open(encoding="utf-8") as stream:
         for line in stream:
             stripped = line.strip()
@@ -107,25 +107,47 @@ def parse_input(path: Path) -> tuple[list[dict[str, object]], dict[str, str]]:
                 raise ValueError(f"benchmark command failed: {stripped}")
             if ": " in stripped and not stripped.startswith("Benchmark"):
                 key, value = stripped.split(": ", 1)
-                if key in {"timestamp_utc", "git_sha", "dirty_tree", "no_regression", "gin_version", "fixture_identity", "go_version", "goos", "goarch", "cpu", "logical_cpus", "benchmark_count", "max_output_bytes", "command"} and key not in metadata:
+                if key in {"timestamp_utc", "git_sha", "dirty_tree", "capture_eligibility", "no_regression", "gin_version", "fixture_identity", "go_version", "goos", "goarch", "cpu", "logical_cpus", "benchmark_count", "max_output_bytes", "command"} and key not in metadata:
                     metadata[key] = value
             row = parse_benchmark_line(line)
             if row is None:
                 continue
-            signature = tuple(row[field] for field in ("name", "cpu", "iterations", "ns_per_op", "bytes_per_op", "allocs_per_op"))
-            try:
-                expected_samples = int(metadata.get("benchmark_count", "1"))
-            except ValueError as error:
-                raise ValueError("benchmark_count must be an integer") from error
-            if signature in seen_exact and expected_samples <= 1:
-                raise ValueError(f"duplicate benchmark row: {row['name']} cpu={row['cpu']}")
-            seen_exact.add(signature)
             rows.append(row)
     if not rows:
         raise ValueError("no Gin adapter benchmark rows found")
     missing = sorted(EXPECTED - {str(row["name"]) for row in rows})
     if missing:
         raise ValueError(f"missing benchmark rows: {', '.join(missing)}")
+    try:
+        expected_samples = int(metadata.get("benchmark_count", "1"))
+    except ValueError as error:
+        raise ValueError("benchmark_count must be an integer") from error
+    if expected_samples <= 0:
+        raise ValueError("benchmark_count must be a positive integer")
+    raw_cpus = metadata.get("cpu")
+    if raw_cpus is None:
+        expected_cpus = sorted({int(row["cpu"]) for row in rows})
+    else:
+        try:
+            expected_cpus = [int(value) for value in raw_cpus.split(",")]
+        except ValueError as error:
+            raise ValueError("cpu metadata must be a comma-separated integer list") from error
+        if not expected_cpus or any(value <= 0 for value in expected_cpus) or len(set(expected_cpus)) != len(expected_cpus):
+            raise ValueError("cpu metadata must contain unique positive integers")
+    if not expected_cpus:
+        raise ValueError("no benchmark CPU values found")
+    counts = Counter((str(row["name"]), int(row["cpu"])) for row in rows)
+    for name in EXPECTED_NAMES:
+        for cpu in expected_cpus:
+            observed = counts[(name, cpu)]
+            if observed != expected_samples:
+                raise ValueError(
+                    f"benchmark sample count mismatch: {name} cpu={cpu} "
+                    f"observed={observed} expected={expected_samples}"
+                )
+    unexpected_cpus = sorted({int(row["cpu"]) for row in rows} - set(expected_cpus))
+    if unexpected_cpus:
+        raise ValueError(f"unexpected benchmark CPU values: {unexpected_cpus}")
     if metadata.get("dirty_tree") == "true":
         metadata["no_regression"] = "N/A"
     return rows, metadata

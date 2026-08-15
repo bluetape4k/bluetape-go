@@ -72,6 +72,13 @@ case "${1:-}" in
     printf '%s\n' v1.12.0
     ;;
   test)
+    if [ "${FAKE_GO_SIGNAL:-0}" = 1 ]; then
+      kill -TERM "${BLUETAPE_GIN_BENCH_CAPTURE_PID:?}"
+      sleep 30
+    fi
+    if [ "${FAKE_GO_BLOCK:-0}" = 1 ]; then
+      sleep 30
+    fi
     cat "$FAKE_GO_OUTPUT_FILE"
     exit "${FAKE_GO_EXIT:-0}"
     ;;
@@ -146,6 +153,13 @@ assert_parser_guards() {
   head -n 1 "$baseline" >>"$duplicate"
   assert_parser_rejects "$duplicate" duplicate
 
+  local incomplete=$test_root/parser-incomplete-samples.txt
+  {
+    printf '%s\n' 'benchmark_count: 2' 'cpu: 1'
+    cat "$baseline"
+  } >"$incomplete"
+  assert_parser_rejects "$incomplete" incomplete-samples
+
   local nonfinite=$test_root/parser-nonfinite.txt
   awk 'NR == 1 { sub(/10 ns\/op/, "NaN ns/op") } { print }' "$baseline" >"$nonfinite"
   assert_parser_rejects "$nonfinite" nonfinite
@@ -161,7 +175,7 @@ assert_parser_guards() {
 assert_capture_success_and_redaction() {
   local fixture
   fixture=$(setup_fixture success)
-  run_capture "$fixture" 1 1,2
+  run_capture "$fixture" 1 1
   local output_dir=$fixture/repo/docs/research/outputs/issue-543
   local results=$output_dir/bench-results.json
   test -s "$results" || fail 'successful capture did not publish results'
@@ -170,11 +184,14 @@ assert_capture_success_and_redaction() {
   test -s "$fixture/repo/docs/images/readme-charts/gin-adapter-benchmark-summary.svg" || fail 'SVG was not published'
   test -s "$fixture/repo/docs/images/readme-charts/gin-adapter-benchmark-summary.png" || fail 'PNG was not published'
   assert_file_contains "$results" '\"dirty_tree\": \"false\"'
-  assert_file_contains "$results" '\"no_regression\": \"eligible\"'
+  assert_file_contains "$results" '\"capture_eligibility\": \"eligible\"'
+  assert_file_contains "$results" '\"no_regression\": \"N/A\"'
 
   fixture=$(setup_fixture redaction)
   {
     printf '%s\n' 'token=raw-token-must-not-persist'
+    printf '%s\n' 'panic: raw-token-must-not-persist'
+    printf '%s\n' 'Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiIxIn0.signature'
     cat "$fixture/bench.txt"
   } >"$fixture/secret-bench.txt"
   if (
@@ -188,6 +205,7 @@ assert_capture_success_and_redaction() {
     fail 'redacted benchmark output unexpectedly failed'
   fi
   assert_file_excludes "$fixture/repo/docs/research/outputs/issue-543/bench-output.txt" 'raw-token-must-not-persist'
+  assert_file_excludes "$fixture/repo/docs/research/outputs/issue-543/bench-output.txt" 'eyJhbGciOiJIUzI1NiJ9'
   assert_file_contains "$fixture/repo/docs/research/outputs/issue-543/bench-output.txt" '^\[redacted_output_line\]$'
 }
 
@@ -231,6 +249,45 @@ assert_capture_failures_preserve_canonical_state() {
   assert_file_contains "$failed" '^failure_exit_status: 124$'
 }
 
+assert_signal_preserves_failure_artifact() {
+  local fixture
+  fixture=$(setup_fixture signal)
+  python3 - "$fixture" <<'PY'
+import os
+import signal
+import subprocess
+import sys
+import time
+
+fixture = sys.argv[1]
+repo = os.path.join(fixture, "repo")
+environment = os.environ.copy()
+environment.update({
+    "PATH": os.path.join(fixture, "bin") + os.pathsep + environment["PATH"],
+    "FAKE_GO_OUTPUT_FILE": os.path.join(fixture, "bench.txt"),
+    "FAKE_GO_BLOCK": "1",
+    "BLUETAPE_GIN_BENCH_OUTPUT_DIR": "docs/research/outputs/issue-543",
+})
+process = subprocess.Popen(
+    [os.path.join(repo, "scripts/capture-gin-adapter-benchmark.sh"), "1", "1"],
+    cwd=repo,
+    env=environment,
+)
+time.sleep(1.0)
+process.send_signal(signal.SIGTERM)
+status = process.wait(timeout=5)
+if status != 143:
+    raise SystemExit(f"signal interruption returned {status}, want 143")
+PY
+  local output_dir=$fixture/repo/docs/research/outputs/issue-543
+  local failed
+  failed=$(find "$output_dir" -maxdepth 1 -name 'bench-failed-*.txt' -print -quit)
+  test -n "$failed" || fail 'signal interruption did not retain failure metadata'
+  assert_file_contains "$failed" '^failure_phase: benchmark$'
+  assert_file_contains "$failed" '^failure_exit_status: 143$'
+  test ! -e "$output_dir/bench-results.json" || fail 'signal interruption published canonical results'
+}
+
 assert_dirty_tree_is_not_a_regression_claim() {
   local fixture
   fixture=$(setup_fixture dirty)
@@ -238,18 +295,28 @@ assert_dirty_tree_is_not_a_regression_claim() {
   run_capture "$fixture" 1 1
   local results=$fixture/repo/docs/research/outputs/issue-543/bench-results.json
   assert_file_contains "$results" '\"dirty_tree\": \"true\"'
+  assert_file_contains "$results" '\"capture_eligibility\": \"N/A\"'
   assert_file_contains "$results" '\"no_regression\": \"N/A\"'
 }
 
 assert_publication_failure_preserves_previous_files() {
   local fixture
   fixture=$(setup_fixture publication)
+  local output_dir=$fixture/repo/docs/research/outputs/issue-543
+  local chart_dir=$fixture/repo/docs/images/readme-charts
+  mkdir -p "$output_dir" "$chart_dir"
+  printf '%s\n' previous-output >"$output_dir/bench-output.txt"
+  printf '%s\n' previous-results >"$output_dir/bench-results.json"
+  printf '%s\n' previous-environment >"$output_dir/bench-environment.txt"
+  printf '%s\n' previous-svg >"$chart_dir/gin-adapter-benchmark-summary.svg"
+  printf '%s\n' previous-png >"$chart_dir/gin-adapter-benchmark-summary.png"
+  printf '%s\n' previous-chart-source >"$chart_dir/gin-adapter-benchmark-summary.vl.json"
   cat >"$fixture/bin/mv" <<'FAKE_MV'
 #!/usr/bin/env bash
 set -eu
 target=${!#}
 case "$target" in
-  *bench-output.txt) exit 91 ;;
+  *bench-results.json) exit 91 ;;
   *) exec /bin/mv "$@" ;;
 esac
 FAKE_MV
@@ -264,7 +331,12 @@ FAKE_MV
   else
     test "$?" -eq 125 || fail 'publication failure returned the wrong status'
   fi
-  test ! -e "$fixture/repo/docs/research/outputs/issue-543/bench-output.txt" || fail 'publication failure created canonical output'
+  test "$(cat "$output_dir/bench-output.txt")" = previous-output || fail 'publication failure did not roll back raw output'
+  test "$(cat "$output_dir/bench-results.json")" = previous-results || fail 'publication failure did not preserve results'
+  test "$(cat "$output_dir/bench-environment.txt")" = previous-environment || fail 'publication failure did not preserve environment'
+  test "$(cat "$chart_dir/gin-adapter-benchmark-summary.svg")" = previous-svg || fail 'publication failure did not preserve SVG'
+  test "$(cat "$chart_dir/gin-adapter-benchmark-summary.png")" = previous-png || fail 'publication failure did not preserve PNG'
+  test "$(cat "$chart_dir/gin-adapter-benchmark-summary.vl.json")" = previous-chart-source || fail 'publication failure did not preserve chart source'
   test -n "$(find "$fixture/repo/docs/research/outputs/issue-543" -maxdepth 1 -name 'bench-failed-*.txt' -print -quit)" || fail 'publication failure did not retain failure metadata'
 }
 
@@ -280,6 +352,8 @@ assert_capture_success_and_redaction
 printf 'PASS: capture success and redaction\n'
 assert_capture_failures_preserve_canonical_state
 printf 'PASS: capture output-limit and timeout guards\n'
+assert_signal_preserves_failure_artifact
+printf 'PASS: signal failure artifact guard\n'
 assert_dirty_tree_is_not_a_regression_claim
 printf 'PASS: dirty-tree N/A guard\n'
 assert_publication_failure_preserves_previous_files

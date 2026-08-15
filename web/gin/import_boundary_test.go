@@ -2,6 +2,7 @@ package ginadapter_test
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
 	"errors"
 	"io"
@@ -20,7 +21,7 @@ func TestGinImportBoundary(t *testing.T) {
 		t.Fatal("runtime.Caller() failed")
 	}
 	moduleRoot := filepath.Clean(filepath.Join(filepath.Dir(filename), "..", ".."))
-	command := exec.Command("go", "list", "-json", "./...")
+	command := exec.CommandContext(context.Background(), "go", "list", "-json", "./...")
 	command.Dir = moduleRoot
 	output, err := command.Output()
 	if err != nil {
@@ -47,6 +48,6 @@ func TestGinImportBoundary(t *testing.T) {
 	}
 }
 
-func TestContextParserAcceptsDistributedProvider(t *testing.T) {
+func TestContextParserAcceptsDistributedProvider(_ *testing.T) {
 	var _ ginadapter.ContextParser = (*jwt.DistributedProvider)(nil)
 }

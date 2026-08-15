@@ -27,7 +27,7 @@ func TestNonRetryablePreservesCauseAndMarker(t *testing.T) {
 	if !errors.As(err, &typed) {
 		t.Fatalf("error type = %T, want NonRetryableError", err)
 	}
-	if typed.Cause != cause {
+	if !errors.Is(typed.Cause, cause) {
 		t.Fatalf("Cause = %v, want %v", typed.Cause, cause)
 	}
 	if resilience.NonRetryable(nil) != nil || resilience.IsNonRetryable(nil) {

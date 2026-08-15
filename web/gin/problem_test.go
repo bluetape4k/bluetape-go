@@ -1,6 +1,7 @@
 package ginadapter_test
 
 import (
+	"context"
 	"errors"
 	"net/http"
 	"net/http/httptest"
@@ -31,7 +32,7 @@ func TestAbortWithProblemWritesRFC9457AndAborts(t *testing.T) {
 	gin.SetMode(gin.TestMode)
 	recorder := httptest.NewRecorder()
 	c, _ := gin.CreateTestContext(recorder)
-	c.Request = httptest.NewRequest(http.MethodGet, "http://example.test/orders", nil)
+	c.Request = httptest.NewRequestWithContext(context.Background(), http.MethodGet, "http://example.test/orders", nil)
 	raw := errors.New("database secret must not be exposed")
 	if err := ginadapter.AbortWithProblem(c, raw); err != nil {
 		t.Fatalf("AbortWithProblem() error = %v", err)
@@ -54,7 +55,7 @@ func TestAbortWithProblemDoesNotOverwriteCommittedWriter(t *testing.T) {
 	gin.SetMode(gin.TestMode)
 	recorder := httptest.NewRecorder()
 	c, _ := gin.CreateTestContext(recorder)
-	c.Request = httptest.NewRequest(http.MethodGet, "http://example.test/orders", nil)
+	c.Request = httptest.NewRequestWithContext(context.Background(), http.MethodGet, "http://example.test/orders", nil)
 	c.String(http.StatusAccepted, "already written")
 	if err := ginadapter.AbortWithProblem(c, errors.New("ignored")); err != nil {
 		t.Fatalf("AbortWithProblem() error = %v", err)
@@ -68,7 +69,7 @@ func TestAbortWithProblemFallsBackAfterPreWriteMarshalFailure(t *testing.T) {
 	gin.SetMode(gin.TestMode)
 	recorder := httptest.NewRecorder()
 	c, _ := gin.CreateTestContext(recorder)
-	c.Request = httptest.NewRequest(http.MethodGet, "http://example.test/orders", nil)
+	c.Request = httptest.NewRequestWithContext(context.Background(), http.MethodGet, "http://example.test/orders", nil)
 	writeErr := ginadapter.AbortWithProblem(c, invalidProblemError{})
 	if !errors.Is(writeErr, web.ErrInvalidProblem) {
 		t.Fatalf("AbortWithProblem() error = %v, want invalid problem", writeErr)

@@ -14,7 +14,8 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-// NewRateLimit은 공통 ratelimit HTTP middleware를 Gin middleware로 연결한다.
+// NewRateLimit bridges the common ratelimit HTTP middleware to Gin middleware.
+// 공통 ratelimit HTTP middleware를 Gin middleware로 연결한다.
 //
 // 허용된 요청만 현재 Gin chain의 다음 handler로 진행하며, 거부와 backend
 // 오류는 요청별 context를 사용해 서로 다른 Gin 요청에 섞이지 않도록 한다.

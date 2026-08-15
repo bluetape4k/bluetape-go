@@ -8,7 +8,8 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-// AbortWithProblem은 RFC 9457 Problem 응답을 기록하고 Gin chain을 중단한다.
+// AbortWithProblem writes an RFC 9457 Problem response and aborts the Gin chain.
+// RFC 9457 Problem 응답을 기록하고 Gin chain을 중단한다.
 func AbortWithProblem(c *gin.Context, err error) error {
 	if c == nil || err == nil {
 		return web.ErrInvalidProblem
@@ -27,7 +28,8 @@ func AbortWithProblem(c *gin.Context, err error) error {
 	return writeErr
 }
 
-// JWTReader는 Gin context에 저장된 검증 reader를 읽는다.
+// JWTReader reads a validated JWT reader stored in the Gin context.
+// Gin context에 저장된 검증 reader를 읽는다.
 func JWTReader(c *gin.Context, key string) (*jwt.Reader, bool) {
 	if c == nil {
 		return nil, false

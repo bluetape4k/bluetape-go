@@ -57,7 +57,15 @@ function validate(summary) {
   const names = new Set();
   const exact = new Set();
   const benchmarkCount = Number.parseInt(summary.metadata?.benchmark_count || "1", 10);
-  const allowExactDuplicates = Number.isInteger(benchmarkCount) && benchmarkCount > 1;
+  if (!Number.isInteger(benchmarkCount) || benchmarkCount <= 0) throw new Error("benchmark_count must be a positive integer");
+  const rawCpus = summary.metadata?.cpu;
+  const expectedCpus = rawCpus
+    ? rawCpus.split(",").map((value) => Number.parseInt(value, 10))
+    : [...new Set(summary.rows.map((row) => row.cpu))];
+  if (!expectedCpus.length || expectedCpus.some((value) => !Number.isInteger(value) || value <= 0) || new Set(expectedCpus).size !== expectedCpus.length) {
+    throw new Error("cpu metadata must contain unique positive integers");
+  }
+  const counts = new Map();
   for (const row of summary.rows) {
     if (!expected.has(row.name)) throw new Error(`unknown benchmark row ${row.name}`);
     finite(row.cpu, `${row.name}.cpu`);
@@ -70,12 +78,21 @@ function validate(summary) {
     }
     if (row.failed === true) throw new Error(`failed benchmark row ${row.name}`);
     names.add(row.name);
+    if (!expectedCpus.includes(row.cpu)) throw new Error(`unexpected benchmark CPU ${row.cpu}`);
+    const key = `${row.name}|${row.cpu}`;
+    counts.set(key, (counts.get(key) || 0) + 1);
     const signature = [row.name, row.cpu, row.iterations, row.ns_per_op, row.bytes_per_op, row.allocs_per_op].join("|");
-    if (exact.has(signature) && !allowExactDuplicates) throw new Error(`duplicate benchmark row ${row.name} cpu=${row.cpu}`);
+    if (exact.has(signature) && benchmarkCount <= 1) throw new Error(`duplicate benchmark row ${row.name} cpu=${row.cpu}`);
     exact.add(signature);
   }
   const missing = expectedNames.filter((name) => !names.has(name));
   if (missing.length) throw new Error(`missing benchmark rows: ${missing.join(", ")}`);
+  for (const name of expectedNames) {
+    for (const cpu of expectedCpus) {
+      const observed = counts.get(`${name}|${cpu}`) || 0;
+      if (observed !== benchmarkCount) throw new Error(`benchmark sample count mismatch ${name} cpu=${cpu}: ${observed} != ${benchmarkCount}`);
+    }
+  }
   return summary;
 }
 
@@ -176,10 +193,21 @@ function render(summary, outputDir) {
 }
 
 function selfTest() {
-  const rows = expectedNames.map((name, index) => ({ name, cpu: 1, iterations: 1, ns_per_op: index + 1, bytes_per_op: index, allocs_per_op: index }));
-  validate({ rows });
-  summarize({ rows });
-  console.log("self-test: valid rows, missing/unknown/duplicate/non-finite guards ready");
+  const rows = expectedNames.flatMap((name, index) => [
+    { name, cpu: 1, iterations: 1, ns_per_op: index + 1, bytes_per_op: index, allocs_per_op: index },
+    { name, cpu: 1, iterations: 2, ns_per_op: index + 2, bytes_per_op: index + 1, allocs_per_op: index + 1 },
+  ]);
+  const summary = { metadata: { benchmark_count: "2", cpu: "1" }, rows };
+  validate(summary);
+  summarize(summary);
+  let rejected = false;
+  try {
+    validate({ metadata: { benchmark_count: "2", cpu: "1" }, rows: rows.slice(1) });
+  } catch {
+    rejected = true;
+  }
+  if (!rejected) throw new Error("incomplete sample set was accepted");
+  console.log("self-test: valid rows, sample-count/missing/unknown/duplicate/non-finite guards ready");
 }
 
 try {

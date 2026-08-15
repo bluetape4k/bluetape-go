@@ -36,7 +36,7 @@ func TestNewRateLimitAllowsAndCallsDownstreamOnce(t *testing.T) {
 	})
 
 	recorder := httptest.NewRecorder()
-	router.ServeHTTP(recorder, httptest.NewRequest(http.MethodGet, "http://example.test/orders", nil))
+	router.ServeHTTP(recorder, httptest.NewRequestWithContext(context.Background(), http.MethodGet, "http://example.test/orders", nil))
 	if recorder.Code != http.StatusNoContent || downstreamCalls != 1 {
 		t.Fatalf("response = (%d, downstream=%d), want (204, 1)", recorder.Code, downstreamCalls)
 	}
@@ -67,7 +67,7 @@ func TestNewRateLimitRejectsWithProblemAndPreservesQuotaHeaders(t *testing.T) {
 	})
 
 	recorder := httptest.NewRecorder()
-	router.ServeHTTP(recorder, httptest.NewRequest(http.MethodGet, "http://example.test/orders", nil))
+	router.ServeHTTP(recorder, httptest.NewRequestWithContext(context.Background(), http.MethodGet, "http://example.test/orders", nil))
 	if recorder.Code != http.StatusTooManyRequests || downstreamCalls != 0 {
 		t.Fatalf("response = (%d, downstream=%d), want (429, 0)", recorder.Code, downstreamCalls)
 	}
@@ -112,7 +112,7 @@ func TestNewRateLimitRedactsBackendErrorAndMapsCancellation(t *testing.T) {
 			})
 
 			recorder := httptest.NewRecorder()
-			router.ServeHTTP(recorder, httptest.NewRequest(http.MethodGet, "http://example.test/orders", nil))
+			router.ServeHTTP(recorder, httptest.NewRequestWithContext(context.Background(), http.MethodGet, "http://example.test/orders", nil))
 			if recorder.Code != tt.status || downstreamCalls != 0 {
 				t.Fatalf("response = (%d, downstream=%d), want (%d, 0)", recorder.Code, downstreamCalls, tt.status)
 			}
@@ -155,7 +155,7 @@ func TestNewRateLimitInvokesCustomErrorHandlerAfterAborting(t *testing.T) {
 	})
 
 	recorder := httptest.NewRecorder()
-	router.ServeHTTP(recorder, httptest.NewRequest(http.MethodGet, "http://example.test/orders", nil))
+	router.ServeHTTP(recorder, httptest.NewRequestWithContext(context.Background(), http.MethodGet, "http://example.test/orders", nil))
 	if recorder.Code != http.StatusTeapot || !called || !aborted || downstreamCalls != 0 {
 		t.Fatalf("response = (%d, called=%t, aborted=%t, downstream=%d)", recorder.Code, called, aborted, downstreamCalls)
 	}
@@ -206,7 +206,7 @@ func TestNewRateLimitDoesNotLeakGinContextAcrossConcurrentRequests(t *testing.T)
 		go func(i int) {
 			defer wg.Done()
 			recorder := httptest.NewRecorder()
-			router.ServeHTTP(recorder, httptest.NewRequest(http.MethodGet, "http://example.test/orders/"+string(rune('a'+i%26)), nil))
+			router.ServeHTTP(recorder, httptest.NewRequestWithContext(context.Background(), http.MethodGet, "http://example.test/orders/"+string(rune('a'+i%26)), nil))
 			if recorder.Code != http.StatusNoContent {
 				t.Errorf("status = %d, want 204", recorder.Code)
 			}

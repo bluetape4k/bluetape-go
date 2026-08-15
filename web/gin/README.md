@@ -22,11 +22,21 @@ composition order is recovery, request context, rate limit, authentication,
 and a route-level resilience wrapper:
 
 ```go
+func buildRouter() (*gin.Engine, error) {
+provider, err := jwt.NewFixedHMACProvider(jwt.HS256, []byte("0123456789abcdef0123456789abcdef"))
+if err != nil { return nil, err }
+limiter, err := ratelimit.New(ratelimit.Options{RatePerSecond: 10, Burst: 10})
+if err != nil { return nil, err }
+rateLimit, err := ginadapter.NewRateLimit(ginadapter.RateLimitOptions{Limiter: limiter})
+if err != nil { return nil, err }
+authentication, err := ginadapter.NewJWT(ginadapter.JWTOptions{Parser: provider})
+if err != nil { return nil, err }
 router := gin.New()
-router.Use(gin.Recovery())
-router.Use(ginadapter.RequestContext(web.RequestContextOptions{}))
-router.Use(rateLimit, authentication)
+router.Use(gin.Recovery(), ginadapter.RequestContext(web.RequestContextOptions{}), rateLimit, authentication)
+handler := func(c *gin.Context) { c.Status(http.StatusNoContent) }
 router.GET("/orders", ginadapter.WrapResilience(handler, ginadapter.ResilienceOptions{}))
+return router, nil
+}
 ```
 
 `RequestContext` stores the shared `web.RequestContext` in a request copy and
@@ -66,18 +76,51 @@ are accepted only when the caller's `TrustedProxy` predicate returns true.
    Request-context header-name mistakes are surfaced as a 400 on the first
    request. There is no separate startup-validation API; the examples are the
    deterministic readiness smoke test.
-2. **Canary** — route a small percentage of traffic through the Gin adapter.
-   Probe one trusted and one untrusted request-context header, a valid and
-   missing JWT, and an allowed and rejected rate-limit request.
-3. **Observe** — record status, request ID, `c.IsAborted()`, and
-   `c.Writer.Written()` in callbacks. Record `AuthenticationError.Kind`, not
-   Authorization headers, raw tokens, or raw parser/backend errors.
-4. **Rollback** — remove the adapter middleware from the canary route and
-   restore the previous `net/http` path. Do not retry a route after it has
-   written a response.
-5. **Recovery** — keep `gin.Recovery()` outside the adapter chain. Investigate
-   401/429/503 Problem responses using the safe status and kind fields, then
-   replay the preflight and canary probes before restoring traffic.
+2. **Canary (5 minutes)** — route a small percentage of traffic through the Gin
+   adapter. During the full window, readiness must remain `200` and a normal
+   request must remain `2xx`.
+
+   ```bash
+   curl -i https://service.example/readyz
+   # expected: HTTP/2 200 and the documented readiness body
+   curl -i -H 'X-Auth-Subject: subject-1' https://service.example/orders
+   # expected for a trusted request: 2xx and no raw error/token fields
+   curl -i -H 'X-Auth-Subject: spoofed' https://service.example/orders
+   # expected for an untrusted peer: the subject is ignored or a safe 4xx
+   curl -i -H 'Authorization: Bearer <test-token>' https://service.example/orders
+   # expected: 2xx for a valid token; missing/invalid token is a redacted 401
+   curl -i https://service.example/orders
+   # expected: 401 application/problem+json without token/parser detail
+   ```
+
+3. **Observe** — callbacks emit exactly `adapter`, `kind`, `status`,
+   `committed`, `request_id`, and `duration`. Record `c.IsAborted()`,
+   `c.Writer.Written()`, and `AuthenticationError.Kind` after the relevant
+   middleware decision. Never record Authorization headers, raw tokens, or raw
+   parser/backend errors. The callback request copy is already redacted.
+
+   | callback | timing | fields |
+   | --- | --- | --- |
+   | rate-limit error handler | after abort, before response is returned | adapter, kind, status, committed, request_id, duration |
+   | JWT error handler | after abort and sanitized request copy | adapter, kind, status, committed, request_id, duration |
+   | resilience error handler | after policy result, before an uncommitted Problem is written | adapter, kind, status, committed, request_id, duration |
+
+4. **Rollback** — if a raw token/parser error is observed, or the canary
+   breaches its error budget, remove the adapter middleware and restore the
+   previous `net/http` path. Do not retry a route after it has written a
+   response.
+5. **Recovery** — keep `gin.Recovery()` outside the adapter chain. Restore
+   traffic only after readiness is `200`, normal requests are `2xx`, and the
+   5xx/429/401 ratios have returned to the pre-canary baseline. Re-run the
+   preflight and all probes before expanding traffic.
+
+## Migration shape
+
+Before: register the existing `http.Handler` directly on the Gin router or
+serve it from the `net/http` path. After: keep the handler body unchanged and
+wrap the route with `WrapResilience`, while adding `RequestContext`, `NewJWT`,
+and `NewRateLimit` in the bootstrap order above. `ExampleMigration` is the
+compile-checked reference for this before/after boundary.
 
 ## Verification
 

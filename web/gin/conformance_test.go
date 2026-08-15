@@ -155,6 +155,75 @@ func TestGinAdapterConformance(t *testing.T) {
 	)
 }
 
+func TestGinSpecificConformanceContracts(t *testing.T) {
+	gin.SetMode(gin.TestMode)
+	t.Run("rate limit aborts and writes without downstream", func(t *testing.T) {
+		middleware, err := ginadapter.NewRateLimit(ginadapter.RateLimitOptions{
+			Limiter: &fakeLimiter{allow: func(context.Context, string, int64) (ratelimit.Result, error) {
+				return ratelimit.Result{Allowed: false, Remaining: 0}, nil
+			}},
+		})
+		if err != nil {
+			t.Fatalf("NewRateLimit() error = %v", err)
+		}
+		downstreamCalls := 0
+		var aborted, written bool
+		router := gin.New()
+		router.Use(func(c *gin.Context) {
+			c.Next()
+			aborted = c.IsAborted()
+			written = c.Writer.Written()
+		})
+		router.Use(middleware)
+		router.GET("/orders", func(c *gin.Context) {
+			downstreamCalls++
+			c.Status(http.StatusNoContent)
+		})
+		recorder := httptest.NewRecorder()
+		router.ServeHTTP(recorder, conformanceRequestFactory(context.Background()))
+		if recorder.Code != http.StatusTooManyRequests || downstreamCalls != 0 || !aborted || !written {
+			t.Fatalf("response = (%d, downstream=%d, aborted=%t, written=%t), want 429/0/true/true", recorder.Code, downstreamCalls, aborted, written)
+		}
+	})
+
+	t.Run("JWTReader is available before downstream once", func(t *testing.T) {
+		middleware, err := ginadapter.NewJWT(ginadapter.JWTOptions{Parser: &fakeJWTParser{}})
+		if err != nil {
+			t.Fatalf("NewJWT() error = %v", err)
+		}
+		downstreamCalls := 0
+		router := gin.New()
+		router.Use(middleware)
+		router.GET("/orders", func(c *gin.Context) {
+			downstreamCalls++
+			if _, ok := ginadapter.JWTReader(c, ""); !ok {
+				t.Error("JWTReader() did not find the verified reader")
+			}
+			c.Status(http.StatusNoContent)
+		})
+		req := conformanceRequestFactory(context.Background())
+		req.Header.Set("Authorization", "Bearer token")
+		recorder := httptest.NewRecorder()
+		router.ServeHTTP(recorder, req)
+		if recorder.Code != http.StatusNoContent || downstreamCalls != 1 {
+			t.Fatalf("response = (%d, downstream=%d), want 204/1", recorder.Code, downstreamCalls)
+		}
+	})
+
+	t.Run("outer recovery handles resilience panic", func(t *testing.T) {
+		router := gin.New()
+		router.Use(gin.Recovery())
+		router.GET("/panic", ginadapter.WrapResilience(func(*gin.Context) {
+			panic("conformance panic")
+		}, ginadapter.ResilienceOptions{}))
+		recorder := httptest.NewRecorder()
+		router.ServeHTTP(recorder, httptest.NewRequestWithContext(context.Background(), http.MethodGet, "http://example.test/panic", nil))
+		if recorder.Code != http.StatusInternalServerError {
+			t.Fatalf("status = %d, want 500 from outer Recovery", recorder.Code)
+		}
+	})
+}
+
 func ginProblemAdapter(next http.Handler) http.Handler {
 	return ginEngine(func(c *gin.Context) {
 		next.ServeHTTP(c.Writer, c.Request)

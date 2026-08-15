@@ -11,7 +11,8 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-// WrapResilience는 하나의 Gin route handler를 공통 resilience policy로 감싼다.
+// WrapResilience wraps one Gin route handler with common resilience policies.
+// 하나의 Gin route handler를 공통 resilience policy로 감싼다.
 //
 // 재시도 사이에는 request, body, headers, keys, params, errors를 복원한다.
 // 이미 응답이 기록된 오류는 NonRetryable로 표시해 writer를 덮어쓰거나
@@ -42,7 +43,7 @@ func WrapResilience(next gin.HandlerFunc, options ResilienceOptions) gin.Handler
 			ctx = original.Context()
 		}
 		_, err := resilience.Run(ctx, func(policyCtx context.Context) (struct{}, error) {
-			return runResilienceAttempt(c, original, state, policyCtx, next)
+			return runResilienceAttempt(policyCtx, c, original, state, next)
 		}, policies...)
 		if err == nil {
 			return
@@ -92,10 +93,10 @@ func newResilienceAttemptState(c *gin.Context) resilienceAttemptState {
 }
 
 func runResilienceAttempt(
+	policyCtx context.Context,
 	c *gin.Context,
 	original *http.Request,
 	state resilienceAttemptState,
-	policyCtx context.Context,
 	next gin.HandlerFunc,
 ) (struct{}, error) {
 	var zero struct{}
@@ -158,7 +159,7 @@ func cloneResilienceRequest(ctx context.Context, original *http.Request) (*http.
 }
 
 func requestMayHaveBody(request *http.Request) bool {
-	return request != nil && request.Body != nil && request.ContentLength != 0
+	return request != nil && request.Body != nil && request.Body != http.NoBody
 }
 
 func latestAttemptError(c *gin.Context, baseline int) error {
@@ -194,11 +195,75 @@ func recordResilienceError(c *gin.Context, err error) {
 	if err == nil {
 		return
 	}
-	last := c.Errors.Last()
-	if last != nil && errors.Is(last.Err, err) {
-		return
+	// Gin의 기본 logger는 c.Errors.String()을 출력하므로 provider 또는 route
+	// 오류를 그대로 보존하면 민감한 상세가 노출될 수 있다. 기존 오류의 Type과
+	// cause 연결은 유지하되 Meta는 제거하고, logger에는 안전한 observer 오류만
+	// 노출한다.
+	existing := append([]*gin.Error(nil), c.Errors...)
+	c.Errors = c.Errors[:0]
+	for _, entry := range existing {
+		if entry == nil || entry.Err == nil {
+			continue
+		}
+		c.Errors = append(c.Errors, &gin.Error{
+			Err:  newResilienceObserverError(entry.Err),
+			Type: entry.Type,
+		})
 	}
-	c.Error(err)
+	_ = c.Error(newResilienceObserverError(err))
+}
+
+type resilienceObserverError struct {
+	cause          error
+	nonRetryable   bool
+	retryExhausted bool
+	timeout        bool
+	circuitOpen    bool
+	bulkhead       bool
+	canceled       bool
+	deadline       bool
+}
+
+func newResilienceObserverError(err error) resilienceObserverError {
+	return resilienceObserverError{
+		cause:          err,
+		nonRetryable:   errors.Is(err, resilience.ErrNonRetryable),
+		retryExhausted: errors.Is(err, resilience.ErrRetryExhausted),
+		timeout:        errors.Is(err, resilience.ErrTimeout),
+		circuitOpen:    errors.Is(err, resilience.ErrCircuitOpen),
+		bulkhead:       errors.Is(err, resilience.ErrBulkheadRejected),
+		canceled:       errors.Is(err, context.Canceled),
+		deadline:       errors.Is(err, context.DeadlineExceeded),
+	}
+}
+
+func (resilienceObserverError) Error() string {
+	return "resilience operation failed"
+}
+
+func (e resilienceObserverError) Unwrap() error {
+	return e.cause
+}
+
+func (e resilienceObserverError) Is(target error) bool {
+	switch target {
+	case resilience.ErrNonRetryable:
+		return e.nonRetryable
+	case resilience.ErrRetryExhausted:
+		return e.retryExhausted
+	case resilience.ErrTimeout:
+		return e.timeout
+	case resilience.ErrCircuitOpen:
+		return e.circuitOpen
+	case resilience.ErrBulkheadRejected:
+		return e.bulkhead
+	case context.Canceled:
+		return e.canceled
+	case context.DeadlineExceeded:
+		return e.deadline
+	default:
+		return false
+	}
 }
 
 func cloneHeader(header http.Header) http.Header {

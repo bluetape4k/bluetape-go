@@ -22,11 +22,21 @@ compile-checked fixture입니다. 일반적인 조합 순서는 recovery, reques
 rate limit, authentication, route-level resilience wrapper입니다.
 
 ```go
+func buildRouter() (*gin.Engine, error) {
+provider, err := jwt.NewFixedHMACProvider(jwt.HS256, []byte("0123456789abcdef0123456789abcdef"))
+if err != nil { return nil, err }
+limiter, err := ratelimit.New(ratelimit.Options{RatePerSecond: 10, Burst: 10})
+if err != nil { return nil, err }
+rateLimit, err := ginadapter.NewRateLimit(ginadapter.RateLimitOptions{Limiter: limiter})
+if err != nil { return nil, err }
+authentication, err := ginadapter.NewJWT(ginadapter.JWTOptions{Parser: provider})
+if err != nil { return nil, err }
 router := gin.New()
-router.Use(gin.Recovery())
-router.Use(ginadapter.RequestContext(web.RequestContextOptions{}))
-router.Use(rateLimit, authentication)
+router.Use(gin.Recovery(), ginadapter.RequestContext(web.RequestContextOptions{}), rateLimit, authentication)
+handler := func(c *gin.Context) { c.Status(http.StatusNoContent) }
 router.GET("/orders", ginadapter.WrapResilience(handler, ginadapter.ResilienceOptions{}))
+return router, nil
+}
 ```
 
 `RequestContext`는 공유 `web.RequestContext`를 request 복사본에 저장하고 정상
@@ -63,17 +73,49 @@ router.GET("/orders", ginadapter.WrapResilience(handler, ginadapter.ResilienceOp
 
    Request-context header-name 오류는 별도 startup validation API 없이 첫 요청의
    400으로 표시됩니다. deterministic readiness smoke test는 example이 담당합니다.
-2. **Canary** — 일부 traffic만 Gin adapter 경로로 보냅니다. trusted/untrusted
-   request-context header, valid/missing JWT, allow/reject rate-limit 요청을 각각
-   probe합니다.
-3. **Observe** — callback에서 status, request ID, `c.IsAborted()`,
-   `c.Writer.Written()`을 기록합니다. `AuthenticationError.Kind`만 기록하고
-   Authorization header, raw token, raw parser/backend error는 기록하지 않습니다.
-4. **Rollback** — canary route에서 adapter middleware를 제거하고 이전
-   `net/http` 경로로 복원합니다. response를 기록한 route는 retry하지 않습니다.
-5. **Recovery** — `gin.Recovery()`는 adapter chain 바깥에 둡니다. 401/429/503
-   Problem을 safe status와 kind field로 조사하고 traffic 복구 전 preflight와
-   canary probe를 다시 실행합니다.
+2. **Canary (5분)** — 일부 traffic만 Gin adapter 경로로 보냅니다. 전체 관찰
+   기간 동안 readiness는 `200`, 정상 요청은 `2xx`를 유지해야 합니다.
+
+   ```bash
+   curl -i https://service.example/readyz
+   # 기대: HTTP/2 200과 문서화된 readiness body
+   curl -i -H 'X-Auth-Subject: subject-1' https://service.example/orders
+   # trusted 요청 기대: 2xx, raw error/token field 없음
+   curl -i -H 'X-Auth-Subject: spoofed' https://service.example/orders
+   # untrusted peer 기대: subject 무시 또는 안전한 4xx
+   curl -i -H 'Authorization: Bearer <test-token>' https://service.example/orders
+   # 기대: valid token은 2xx, missing/invalid token은 redacted 401
+   curl -i https://service.example/orders
+   # 기대: token/parser detail 없는 401 application/problem+json
+   ```
+
+3. **Observe** — callback은 `adapter`, `kind`, `status`, `committed`,
+   `request_id`, `duration`만 emit합니다. 해당 middleware 결정 이후
+   `c.IsAborted()`, `c.Writer.Written()`, `AuthenticationError.Kind`를
+   기록합니다. Authorization header, raw token, raw parser/backend error는
+   기록하지 않습니다. callback request copy도 이미 redacted 상태입니다.
+
+   | callback | 시점 | 필드 |
+   | --- | --- | --- |
+   | rate-limit error handler | abort 이후, response 반환 전 | adapter, kind, status, committed, request_id, duration |
+   | JWT error handler | abort 및 sanitized request copy 이후 | adapter, kind, status, committed, request_id, duration |
+   | resilience error handler | policy 결과 이후, uncommitted Problem 기록 전 | adapter, kind, status, committed, request_id, duration |
+
+4. **Rollback** — raw token/parser error가 관찰되거나 canary error budget을
+   넘으면 adapter middleware를 제거하고 이전 `net/http` 경로로 복원합니다.
+   response를 기록한 route는 retry하지 않습니다.
+5. **Recovery** — `gin.Recovery()`는 adapter chain 바깥에 둡니다. readiness가
+   `200`, 정상 요청이 `2xx`이고 5xx/429/401 비율이 canary 이전 baseline으로
+   돌아온 뒤에만 traffic을 복구합니다. 복구 전에 preflight와 모든 probe를
+   다시 실행합니다.
+
+## Migration 형태
+
+이전에는 기존 `http.Handler`를 Gin router에 직접 등록하거나 `net/http` 경로로
+serve합니다. 이후에는 handler 본문을 유지한 채 route를 `WrapResilience`로
+감싸고, 위 bootstrap 순서에 `RequestContext`, `NewJWT`, `NewRateLimit`을
+추가합니다. `ExampleMigration`이 이 before/after 경계를 compile-checked
+형태로 보여 줍니다.
 
 ## 검증
 

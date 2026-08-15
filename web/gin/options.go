@@ -12,13 +12,16 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-// DefaultJWTContextKey는 검증된 JWT reader를 저장하는 기본 Gin key다.
+// DefaultJWTContextKey is the default Gin key for a validated JWT reader.
+// 검증된 JWT reader를 저장하는 기본 Gin key다.
 const DefaultJWTContextKey = "bluetape.web.gin.jwt"
 
-// RateLimitKeyFunc는 Gin 요청에서 rate-limit key를 추출한다.
+// RateLimitKeyFunc extracts a rate-limit key from a Gin request.
+// Gin 요청에서 rate-limit key를 추출한다.
 type RateLimitKeyFunc func(*gin.Context) string
 
-// RateLimitOptions는 Gin rate-limit middleware 설정이다.
+// RateLimitOptions configures Gin rate-limit middleware.
+// Gin rate-limit middleware 설정이다.
 type RateLimitOptions struct {
 	Limiter      ratelimit.Limiter
 	KeyFunc      RateLimitKeyFunc
@@ -26,12 +29,14 @@ type RateLimitOptions struct {
 	ErrorHandler func(*gin.Context, ratelimit.Result, error)
 }
 
-// ContextParser는 request context를 받는 JWT parser 계약이다.
+// ContextParser defines a JWT parser contract that receives request context.
+// request context를 받는 JWT parser 계약이다.
 type ContextParser interface {
 	ParseContext(context.Context, string, ...jwt.ParseOption) (*jwt.Reader, error)
 }
 
-// JWTOptions는 Gin JWT middleware 설정이다.
+// JWTOptions configures Gin JWT middleware.
+// Gin JWT middleware 설정이다.
 type JWTOptions struct {
 	Parser        jwt.Parser
 	ContextParser ContextParser
@@ -42,23 +47,30 @@ type JWTOptions struct {
 	ErrorHandler  func(*gin.Context, error)
 }
 
-// JWTErrorKind는 redacted JWT 인증 실패 분류다.
+// JWTErrorKind classifies a redacted JWT authentication failure.
+// redacted JWT 인증 실패 분류다.
 type JWTErrorKind string
 
 const (
-	// JWTErrorMissing은 인증 header가 없음을 나타낸다.
+	// JWTErrorMissing indicates that the authentication header is absent.
+	// 인증 header가 없음을 나타낸다.
 	JWTErrorMissing JWTErrorKind = "missing"
-	// JWTErrorMalformed는 인증 header 문법 오류를 나타낸다.
+	// JWTErrorMalformed indicates malformed authentication header syntax.
+	// 인증 header 문법 오류를 나타낸다.
 	JWTErrorMalformed JWTErrorKind = "malformed"
-	// JWTErrorInvalid은 검증 실패를 나타낸다.
+	// JWTErrorInvalid indicates token verification failure.
+	// 검증 실패를 나타낸다.
 	JWTErrorInvalid JWTErrorKind = "invalid"
-	// JWTErrorExpired는 만료된 token을 나타낸다.
+	// JWTErrorExpired indicates an expired token.
+	// 만료된 token을 나타낸다.
 	JWTErrorExpired JWTErrorKind = "expired"
-	// JWTErrorCanceled는 request cancellation 또는 deadline을 나타낸다.
+	// JWTErrorCanceled indicates request cancellation or a deadline.
+	// request cancellation 또는 deadline을 나타낸다.
 	JWTErrorCanceled JWTErrorKind = "canceled"
 )
 
-// AuthenticationError는 token 또는 parser 원인을 포함하지 않는 인증 오류다.
+// AuthenticationError is a redacted authentication error without token or parser cause.
+// token 또는 parser 원인을 포함하지 않는 인증 오류다.
 type AuthenticationError struct {
 	Kind JWTErrorKind
 }
@@ -72,7 +84,8 @@ func (e AuthenticationError) Error() string {
 	return fmt.Sprintf("authentication failed: %s", kind)
 }
 
-// ProblemDetails는 인증 실패를 공개 가능한 401 Problem으로 변환한다.
+// ProblemDetails converts an authentication failure to a public 401 Problem.
+// 인증 실패를 공개 가능한 401 Problem으로 변환한다.
 func (e AuthenticationError) ProblemDetails() web.Problem {
 	return web.Problem{
 		Type:   "about:blank",
@@ -82,7 +95,8 @@ func (e AuthenticationError) ProblemDetails() web.Problem {
 	}
 }
 
-// ResilienceOptions는 route-level resilience middleware 설정이다.
+// ResilienceOptions configures route-level resilience middleware.
+// route-level resilience middleware 설정이다.
 type ResilienceOptions struct {
 	Policies     []resilience.Policy[struct{}]
 	ErrorHandler func(*gin.Context, error)

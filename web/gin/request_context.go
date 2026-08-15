@@ -7,7 +7,8 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-// RequestContext는 framework-neutral request context를 Gin request에 연결한다.
+// RequestContext bridges a framework-neutral request context to a Gin request.
+// framework-neutral request context를 Gin request에 연결한다.
 //
 // middleware가 반환되거나 panic이 전파될 때 원래 request 포인터를 복원한다.
 func RequestContext(options web.RequestContextOptions) gin.HandlerFunc {

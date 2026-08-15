@@ -1,6 +1,7 @@
 package ginadapter_test
 
 import (
+	"context"
 	"fmt"
 	"net/http"
 	"net/http/httptest"
@@ -35,7 +36,7 @@ func ExampleMigration() {
 		panic(err)
 	}
 
-	req := httptest.NewRequest(http.MethodGet, "http://example.test/orders", nil)
+	req := httptest.NewRequestWithContext(context.Background(), http.MethodGet, "http://example.test/orders", nil)
 	req.Header.Set("Authorization", "Bearer "+token)
 	recorder := httptest.NewRecorder()
 	router.ServeHTTP(recorder, req)

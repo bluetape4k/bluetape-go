@@ -15,7 +15,8 @@ import (
 
 const maxBearerTokenBytes = 8 * 1024
 
-// NewJWT는 엄격한 Bearer 인증을 수행하는 Gin middleware를 만든다.
+// NewJWT creates Gin middleware for strict Bearer authentication.
+// 엄격한 Bearer 인증을 수행하는 Gin middleware를 만든다.
 //
 // parser 오류와 token 원문은 AuthenticationError로 redaction하고, 성공한
 // reader만 Gin context에 저장한다.
@@ -196,7 +197,11 @@ func failJWT(c *gin.Context, err AuthenticationError, header string, callback fu
 		return
 	}
 	copyRequest := original.Clone(original.Context())
-	copyRequest.Header.Del(header)
+	for key := range copyRequest.Header {
+		if strings.EqualFold(key, header) || strings.EqualFold(key, "Authorization") {
+			delete(copyRequest.Header, key)
+		}
+	}
 	c.Request = copyRequest
 	defer func() { c.Request = original }()
 	callback(c, err)

@@ -8,11 +8,14 @@ import (
 	"strings"
 	"sync/atomic"
 	"testing"
+	"time"
 
 	"github.com/bluetape4k/bluetape-go/jwt"
 	ginadapter "github.com/bluetape4k/bluetape-go/web/gin"
 	"github.com/gin-gonic/gin"
 )
+
+type parserContextKey struct{}
 
 func TestNewJWTStoresReaderAndCallsDownstream(t *testing.T) {
 	gin.SetMode(gin.TestMode)
@@ -35,7 +38,7 @@ func TestNewJWTStoresReaderAndCallsDownstream(t *testing.T) {
 	})
 
 	recorder := httptest.NewRecorder()
-	req := httptest.NewRequest(http.MethodGet, "http://example.test/orders", nil)
+	req := httptest.NewRequestWithContext(context.Background(), http.MethodGet, "http://example.test/orders", nil)
 	req.Header.Set("Authorization", "Bearer valid-token")
 	router.ServeHTTP(recorder, req)
 	if recorder.Code != http.StatusNoContent {
@@ -89,7 +92,7 @@ func TestNewJWTStrictlyRejectsAmbiguousAuthorization(t *testing.T) {
 				c.Status(http.StatusNoContent)
 			})
 
-			req := httptest.NewRequest(http.MethodGet, "http://example.test/orders", nil)
+			req := httptest.NewRequestWithContext(context.Background(), http.MethodGet, "http://example.test/orders", nil)
 			tt.setup(req)
 			recorder := httptest.NewRecorder()
 			router.ServeHTTP(recorder, req)
@@ -141,7 +144,7 @@ func TestNewJWTRedactsParserErrorAndSanitizesCallbackRequest(t *testing.T) {
 	router.Use(middleware)
 	router.GET("/orders", func(c *gin.Context) { c.Status(http.StatusNoContent) })
 
-	req := httptest.NewRequest(http.MethodGet, "http://example.test/orders", nil)
+	req := httptest.NewRequestWithContext(context.Background(), http.MethodGet, "http://example.test/orders", nil)
 	req.Header.Set("Authorization", "Bearer raw-token")
 	recorder := httptest.NewRecorder()
 	router.ServeHTTP(recorder, req)
@@ -157,6 +160,73 @@ func TestNewJWTRedactsParserErrorAndSanitizesCallbackRequest(t *testing.T) {
 	var authErr ginadapter.AuthenticationError
 	if !errors.As(callbackErr, &authErr) || authErr.Kind != ginadapter.JWTErrorInvalid {
 		t.Fatalf("callback error = %#v, want invalid AuthenticationError", callbackErr)
+	}
+}
+
+func TestNewJWTCallbackRedactsNonCanonicalAuthorizationKeys(t *testing.T) {
+	gin.SetMode(gin.TestMode)
+	parser := &fakeJWTParser{parse: func(string, ...jwt.ParseOption) (*jwt.Reader, error) {
+		return new(jwt.Reader), nil
+	}}
+	var leaked bool
+	middleware, err := ginadapter.NewJWT(ginadapter.JWTOptions{
+		Parser: parser,
+		ErrorHandler: func(c *gin.Context, _ error) {
+			for key, values := range c.Request.Header {
+				if strings.EqualFold(key, "Authorization") && len(values) > 0 {
+					leaked = true
+				}
+			}
+			c.Status(http.StatusUnauthorized)
+		},
+	})
+	if err != nil {
+		t.Fatalf("NewJWT() error = %v", err)
+	}
+	router := gin.New()
+	router.Use(middleware)
+	router.GET("/orders", func(c *gin.Context) { c.Status(http.StatusNoContent) })
+	req := httptest.NewRequestWithContext(context.Background(), http.MethodGet, "http://example.test/orders", nil)
+	req.Header["authorization"] = []string{"Bearer raw-token"}
+	recorder := httptest.NewRecorder()
+	router.ServeHTTP(recorder, req)
+	if recorder.Code != http.StatusUnauthorized || leaked {
+		t.Fatalf("response = (%d, leaked=%t), want 401 without Authorization keys", recorder.Code, leaked)
+	}
+}
+
+func TestNewJWTCallbackRedactsCanonicalAuthorizationWithCustomHeader(t *testing.T) {
+	gin.SetMode(gin.TestMode)
+	parser := &fakeJWTParser{parse: func(string, ...jwt.ParseOption) (*jwt.Reader, error) {
+		return new(jwt.Reader), nil
+	}}
+	var leaked bool
+	middleware, err := ginadapter.NewJWT(ginadapter.JWTOptions{
+		Parser: parser,
+		Header: "X-Auth",
+		ErrorHandler: func(c *gin.Context, _ error) {
+			for key, values := range c.Request.Header {
+				if (strings.EqualFold(key, "Authorization") || strings.EqualFold(key, "X-Auth")) && len(values) > 0 {
+					leaked = true
+				}
+			}
+			c.Status(http.StatusUnauthorized)
+		},
+	})
+	if err != nil {
+		t.Fatalf("NewJWT() error = %v", err)
+	}
+	router := gin.New()
+	router.Use(middleware)
+	router.GET("/orders", func(c *gin.Context) { c.Status(http.StatusNoContent) })
+	req := httptest.NewRequestWithContext(context.Background(), http.MethodGet, "http://example.test/orders", nil)
+	req.Header.Set("Authorization", "Bearer raw-token")
+	// The configured header is absent, so this request enters the callback with
+	// the ordinary Authorization header still present unless both are redacted.
+	recorder := httptest.NewRecorder()
+	router.ServeHTTP(recorder, req)
+	if recorder.Code != http.StatusUnauthorized || leaked {
+		t.Fatalf("response = (%d, leaked=%t), want 401 without auth headers", recorder.Code, leaked)
 	}
 }
 
@@ -192,7 +262,7 @@ func TestNewJWTClassifiesExpiredAndContextCancellation(t *testing.T) {
 			router := gin.New()
 			router.Use(middleware)
 			router.GET("/orders", func(c *gin.Context) { c.Status(http.StatusNoContent) })
-			req := httptest.NewRequest(http.MethodGet, "http://example.test/orders", nil)
+			req := httptest.NewRequestWithContext(context.Background(), http.MethodGet, "http://example.test/orders", nil)
 			req.Header.Set("Authorization", "Bearer token")
 			recorder := httptest.NewRecorder()
 			router.ServeHTTP(recorder, req)
@@ -205,7 +275,7 @@ func TestNewJWTClassifiesExpiredAndContextCancellation(t *testing.T) {
 
 func TestNewJWTUsesContextParserAndPropagatesRequestContext(t *testing.T) {
 	gin.SetMode(gin.TestMode)
-	const marker = "parser-context"
+	marker := parserContextKey{}
 	var seen atomic.Bool
 	parser := contextJWTParserFunc(func(ctx context.Context, token string, options ...jwt.ParseOption) (*jwt.Reader, error) {
 		if token != "token" || ctx.Value(marker) != "value" || len(options) != 1 {
@@ -233,12 +303,93 @@ func TestNewJWTUsesContextParserAndPropagatesRequestContext(t *testing.T) {
 	})
 	router.Use(middleware)
 	router.GET("/orders", func(c *gin.Context) { c.Status(http.StatusNoContent) })
-	req := httptest.NewRequest(http.MethodGet, "http://example.test/orders", nil)
+	req := httptest.NewRequestWithContext(context.Background(), http.MethodGet, "http://example.test/orders", nil)
 	req.Header.Set("Authorization", "Bearer token")
 	recorder := httptest.NewRecorder()
 	router.ServeHTTP(recorder, req)
 	if !seen.Load() || got.Kind != ginadapter.JWTErrorCanceled {
 		t.Fatalf("context parser = (seen=%t, kind=%q), want (true, canceled)", seen.Load(), got.Kind)
+	}
+}
+
+func TestNewJWTReturnsPromptlyWhenContextParserIsCanceledInFlight(t *testing.T) {
+	gin.SetMode(gin.TestMode)
+	started := make(chan struct{})
+	parser := contextJWTParserFunc(func(ctx context.Context, _ string, _ ...jwt.ParseOption) (*jwt.Reader, error) {
+		close(started)
+		<-ctx.Done()
+		return nil, ctx.Err()
+	})
+	var got ginadapter.AuthenticationError
+	middleware, err := ginadapter.NewJWT(ginadapter.JWTOptions{
+		ContextParser: parser,
+		ErrorHandler: func(c *gin.Context, err error) {
+			_ = errors.As(err, &got)
+			c.Status(http.StatusUnauthorized)
+		},
+	})
+	if err != nil {
+		t.Fatalf("NewJWT() error = %v", err)
+	}
+	router := gin.New()
+	router.Use(middleware)
+	router.GET("/orders", func(c *gin.Context) { c.Status(http.StatusNoContent) })
+	requestContext, cancel := context.WithCancel(context.Background())
+	req := httptest.NewRequestWithContext(requestContext, http.MethodGet, "http://example.test/orders", nil)
+	req.Header.Set("Authorization", "Bearer token")
+	recorder := httptest.NewRecorder()
+	done := make(chan struct{})
+	go func() {
+		router.ServeHTTP(recorder, req)
+		close(done)
+	}()
+	select {
+	case <-started:
+		cancel()
+	case <-time.After(time.Second):
+		t.Fatal("context parser did not start")
+	}
+	select {
+	case <-done:
+	case <-time.After(time.Second):
+		t.Fatal("JWT middleware did not return after cancellation")
+	}
+	if recorder.Code != http.StatusUnauthorized || got.Kind != ginadapter.JWTErrorCanceled {
+		t.Fatalf("response = (%d, kind=%q), want (401, canceled)", recorder.Code, got.Kind)
+	}
+}
+
+func TestNewJWTRejectsReaderWhenContextIsCanceledAfterParserReturns(t *testing.T) {
+	gin.SetMode(gin.TestMode)
+	requestContext, cancel := context.WithCancel(context.Background())
+	parser := &fakeJWTParser{parse: func(string, ...jwt.ParseOption) (*jwt.Reader, error) {
+		cancel()
+		return new(jwt.Reader), nil
+	}}
+	var got ginadapter.AuthenticationError
+	middleware, err := ginadapter.NewJWT(ginadapter.JWTOptions{
+		Parser: parser,
+		ErrorHandler: func(c *gin.Context, err error) {
+			_ = errors.As(err, &got)
+			c.Status(http.StatusUnauthorized)
+		},
+	})
+	if err != nil {
+		t.Fatalf("NewJWT() error = %v", err)
+	}
+	downstreamCalls := 0
+	router := gin.New()
+	router.Use(middleware)
+	router.GET("/orders", func(c *gin.Context) {
+		downstreamCalls++
+		c.Status(http.StatusNoContent)
+	})
+	req := httptest.NewRequestWithContext(requestContext, http.MethodGet, "http://example.test/orders", nil)
+	req.Header.Set("Authorization", "Bearer token")
+	recorder := httptest.NewRecorder()
+	router.ServeHTTP(recorder, req)
+	if recorder.Code != http.StatusUnauthorized || got.Kind != ginadapter.JWTErrorCanceled || downstreamCalls != 0 {
+		t.Fatalf("response = (%d, kind=%q, downstream=%d), want canceled 401 without downstream", recorder.Code, got.Kind, downstreamCalls)
 	}
 }
 
@@ -272,7 +423,7 @@ func TestNewJWTCopiesParseOptionsAndRejectsTypedNilParser(t *testing.T) {
 	router := gin.New()
 	router.Use(middleware)
 	router.GET("/orders", func(c *gin.Context) { c.Status(http.StatusNoContent) })
-	req := httptest.NewRequest(http.MethodGet, "http://example.test/orders", nil)
+	req := httptest.NewRequestWithContext(context.Background(), http.MethodGet, "http://example.test/orders", nil)
 	req.Header.Set("Authorization", "Bearer token")
 	recorder := httptest.NewRecorder()
 	router.ServeHTTP(recorder, req)

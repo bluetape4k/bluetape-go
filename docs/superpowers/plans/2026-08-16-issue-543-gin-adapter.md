@@ -163,7 +163,7 @@
 - [ ] web/gin/benchmark_test.go에 deterministic local fixture benchmark를 추가한다. ReportAllocs를 사용하고 no-op, direct-core, bridge, full adapter를 같은 request/writer/context 계약으로 serial과 b.RunParallel로 측정하며 -cpu 1,2,4를 지원한다. parallel fixture는 start gate, worker join, per-iteration request/recorder 격리, 완료 수가 b.N과 일치하는 검사를 갖는다.
 - [ ] 모든 benchmark의 fixture construction, seed, parser/provider 생성, warm-up, cleanup은 b.StopTimer 구간에 둔다. timer 안에는 지정된 request operation과 required completion만 둔다. serial/direct-core/bridge/full 행의 semantic boundary를 report에 함께 적는다.
 - [ ] cold-start는 middleware construction과 첫 request를 각각 BenchmarkGinAdapterColdConstruction, BenchmarkGinAdapterColdFirstRequest로 분리하고, warm-request는 동일 fixture에서 10회 warm-up 후 request만 측정한다. JWT는 parser-only fixture로 제한하고 JWKS network/provider benchmark는 Issue #545로 남긴다.
-- [ ] report 산식을 고정한다: bridge overhead = (bridge ns/op - direct-core ns/op) / direct-core ns/op, full overhead = (full ns/op - no-op ns/op) / no-op ns/op. baseline SHA와 fixture identity가 없으면 no-regression 결론은 N/A로 표시하고 숫자를 추정하지 않는다.
+- [ ] report 산식을 고정한다: bridge overhead = (bridge ns/op - direct-core ns/op) / direct-core ns/op, full overhead = (full ns/op - no-op ns/op) / no-op ns/op. clean capture는 `capture_eligibility=eligible`로 provenance만 표시하고, baseline SHA와 fixture identity 비교가 없으면 `no_regression=N/A`로 기록하며 숫자를 추정하지 않는다.
 - [ ] Makefile에 BENCH_COUNT와 BENCH_CPU 변수를 받는 bench-web-gin target을 추가하고 serial 및 CPU matrix를 canonical command로 실행한다.
 
   ~~~make
@@ -173,7 +173,7 @@
       @scripts/capture-gin-adapter-benchmark.sh "$(BENCH_COUNT)" "$(BENCH_CPU)"
   ~~~
 
-- [ ] scripts/parse-gin-adapter-benchmark.py를 추가해 raw Go benchmark output을 benchmark name, cpu, ns/op, B/op, allocs/op row의 JSON으로 변환하고 missing, unknown, duplicate, non-finite, failed row를 거부한다. scripts/capture-gin-adapter-benchmark.sh는 set -euo pipefail, private mktemp directory, signal cleanup, go test -timeout=10m 명령별 raw output, 최대 10 MiB output limit, Go/OS/CPU/Git SHA/dirty-tree/Gin version/fixture identity environment file을 기록하고 이 parser와 chart generator를 호출한다. clean-tree capture만 no-regression 결론을 허용하고 dirty-tree capture는 강제로 N/A로 기록한다. 모든 명령과 chart generation이 성공한 경우에만 temp 파일을 canonical 경로로 atomic rename하고, non-zero·중단·redaction·publication 실패는 기존 canonical을 보존한 timestamped -failed- artifact로 남긴다.
+- [ ] scripts/parse-gin-adapter-benchmark.py를 추가해 raw Go benchmark output을 benchmark name, cpu, ns/op, B/op, allocs/op row의 JSON으로 변환하고 missing, unknown, duplicate, non-finite, failed row, metadata `benchmark_count`별 sample 누락/초과를 거부한다. scripts/capture-gin-adapter-benchmark.sh는 set -euo pipefail, private mktemp directory, signal cleanup, go test -timeout=10m 명령별 raw output, 최대 10 MiB output limit, Go/OS/CPU/Git SHA/dirty-tree/Gin version/fixture identity environment file을 기록하고 이 parser와 chart generator를 호출한다. clean-tree capture는 `capture_eligibility=eligible`로 provenance를 표시하되 baseline 비교가 없는 `no_regression`은 N/A로 기록하고, dirty-tree capture는 두 값을 모두 N/A로 기록한다. 모든 명령과 chart generation이 성공한 경우에만 temp 파일을 canonical 경로로 staging하고 publication 중간 실패 시 기존 canonical 묶음을 rollback하며, non-zero·중단·redaction·publication 실패는 timestamped `-failed-` artifact로 남긴다.
 - [ ] 다음 canonical capture와 재현 명령을 실행한다.
 
   ~~~bash

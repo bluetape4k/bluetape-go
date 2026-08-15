@@ -12,6 +12,8 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
+type temporaryRequestContextKey struct{}
+
 func TestRequestContextAddsFrameworkNeutralValueAndRestoresRequest(t *testing.T) {
 	gin.SetMode(gin.TestMode)
 	router := gin.New()
@@ -31,11 +33,11 @@ func TestRequestContextAddsFrameworkNeutralValueAndRestoresRequest(t *testing.T)
 			c.Status(http.StatusInternalServerError)
 			return
 		}
-		c.Request = c.Request.WithContext(context.WithValue(c.Request.Context(), struct{}{}, "temporary"))
+		c.Request = c.Request.WithContext(context.WithValue(c.Request.Context(), temporaryRequestContextKey{}, "temporary"))
 		c.Status(http.StatusNoContent)
 	})
 
-	req := httptest.NewRequest(http.MethodGet, "http://example.test/orders", nil)
+	req := httptest.NewRequestWithContext(context.Background(), http.MethodGet, "http://example.test/orders", nil)
 	recorder := httptest.NewRecorder()
 	router.ServeHTTP(recorder, req)
 	if recorder.Code != http.StatusNoContent {
@@ -63,7 +65,7 @@ func TestRequestContextFailsClosedForUntrustedHeaders(t *testing.T) {
 		c.Status(http.StatusNoContent)
 	})
 
-	req := httptest.NewRequest(http.MethodGet, "http://example.test/orders", nil)
+	req := httptest.NewRequestWithContext(context.Background(), http.MethodGet, "http://example.test/orders", nil)
 	req.Header.Set(web.AuthSubjectHeader, "attacker")
 	req.Header.Set("X-Forwarded-For", "10.0.0.1")
 	recorder := httptest.NewRecorder()
@@ -89,7 +91,7 @@ func TestRequestContextAcceptsTrustedServerPredicateOnly(t *testing.T) {
 		c.Status(http.StatusNoContent)
 	})
 
-	req := httptest.NewRequest(http.MethodGet, "http://example.test/orders", nil)
+	req := httptest.NewRequestWithContext(context.Background(), http.MethodGet, "http://example.test/orders", nil)
 	req.Header.Set(web.AuthSubjectHeader, "trusted-subject")
 	recorder := httptest.NewRecorder()
 	router.ServeHTTP(recorder, req)
@@ -135,7 +137,7 @@ func TestRequestContextRejectsInvalidConfigurationWithoutCallingDownstream(t *te
 	})
 
 	recorder := httptest.NewRecorder()
-	router.ServeHTTP(recorder, httptest.NewRequest(http.MethodGet, "http://example.test/orders", nil))
+	router.ServeHTTP(recorder, httptest.NewRequestWithContext(context.Background(), http.MethodGet, "http://example.test/orders", nil))
 	if recorder.Code != http.StatusBadRequest {
 		t.Fatalf("status = %d, want 400", recorder.Code)
 	}
@@ -162,9 +164,9 @@ func TestRequestContextRestoresRequestAfterPanic(t *testing.T) {
 	router.Use(ginadapter.RequestContext(web.RequestContextOptions{
 		GenerateID: func() (string, error) { return "request-5", nil },
 	}))
-	router.GET("/orders", func(c *gin.Context) { panic("route panic") })
+	router.GET("/orders", func(_ *gin.Context) { panic("route panic") })
 
-	router.ServeHTTP(httptest.NewRecorder(), httptest.NewRequest(http.MethodGet, "http://example.test/orders", nil))
+	router.ServeHTTP(httptest.NewRecorder(), httptest.NewRequestWithContext(context.Background(), http.MethodGet, "http://example.test/orders", nil))
 	if !restored {
 		t.Fatal("middleware did not restore request after panic")
 	}
