@@ -164,11 +164,11 @@ request/correlation ID는 권한을 부여하지 않으므로 안전한 형식 �
 
 ## DoD
 
-- [ ] `web` public API와 package docs가 `#541` 범위만 노출한다.
-- [ ] 모든 신규 동작에 RED→GREEN TDD 증거가 있다.
-- [ ] unit, example, race, vet, lint, format, tidy 검증이 통과한다.
-- [ ] README 양쪽 언어가 API·trusted-header 경계를 동일하게 설명한다.
-- [ ] `#542`가 재사용할 수 있는 framework-neutral surface를 유지한다.
+- [x] `web` public API와 package docs가 `#541` 범위만 노출한다.
+- [x] 모든 신규 동작에 RED→GREEN TDD 증거가 있다.
+- [x] unit, example, race, vet, lint, format, tidy 검증이 통과한다.
+- [x] README 양쪽 언어가 API·trusted-header 경계를 동일하게 설명한다.
+- [x] `#542`가 재사용할 수 있는 framework-neutral surface를 유지한다.
 - [ ] PR은 `feat/web-api-541` head와 `develop` base를 사용하고 `#541` 및
   `#540`을 연결한다.
 

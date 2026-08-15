@@ -24,7 +24,7 @@ context에 연결한다. framework adapter와 middleware conformance는 후속 P
 - Create: `web/problem_test.go`
 - Create: `web/doc.go`
 
-- [ ] **Step 1: 공개 계약을 테스트로 고정한다.**
+- [x] **Step 1: 공개 계약을 테스트로 고정한다.**
 
   `web/problem_test.go`에 다음 table-driven 테스트를 추가한다.
 
@@ -45,13 +45,13 @@ context에 연결한다. framework adapter와 middleware conformance는 후속 P
   }
   ```
 
-- [ ] **Step 2: RED를 확인한다.**
+- [x] **Step 2: RED를 확인한다.**
 
   Run: `go test -count=1 ./web -run 'Test(NewProblem|ProblemFromError)'`
 
   Expected: `FAIL` with missing `web` package/API errors.
 
-- [ ] **Step 3: package 문서의 최소 골격만 추가한다.**
+- [x] **Step 3: package 문서의 최소 골격만 추가한다.**
 
   `web/doc.go`에는 package 목적과 `#541`의 framework-neutral, no-auth-policy
   경계를 한국어 Go doc으로 적는다. 이 단계에서는 production problem 구현을
@@ -64,7 +64,7 @@ context에 연결한다. framework adapter와 middleware conformance는 후속 P
 - Create: `web/problem.go`
 - Modify: `web/problem_test.go`
 
-- [ ] **Step 1: status와 JSON 계약을 최소 구현한다.**
+- [x] **Step 1: status와 JSON 계약을 최소 구현한다.**
 
   다음 선언과 동작을 구현한다.
 
@@ -98,13 +98,13 @@ context에 연결한다. framework adapter와 middleware conformance는 후속 P
   `URL.RequestURI()`를 instance에 사용한다. nil writer와 nil request의 오류를
   명확히 반환한다.
 
-- [ ] **Step 2: GREEN을 확인한다.**
+- [x] **Step 2: GREEN을 확인한다.**
 
   Run: `go test -count=1 ./web -run 'Test(NewProblem|ProblemFromError|WriteProblem)'`
 
   Expected: 모든 Task 1 테스트가 `PASS`.
 
-- [ ] **Step 3: 직렬화·보안 경계 테스트를 추가하고 유지한다.**
+- [x] **Step 3: 직렬화·보안 경계 테스트를 추가하고 유지한다.**
 
   extension key가 `type`, 빈 문자열, control character일 때 거부되는지,
   순환 map이 writer 상태를 변경하기 전에 오류를 반환하는지, request instance와
@@ -117,7 +117,7 @@ context에 연결한다. framework adapter와 middleware conformance는 후속 P
 
 - Create: `web/context_test.go`
 
-- [ ] **Step 1: trusted-header 계약을 테스트로 고정한다.**
+- [x] **Step 1: trusted-header 계약을 테스트로 고정한다.**
 
   `httptest.NewRequest` 기반 table-driven 테스트를 추가한다.
 
@@ -145,7 +145,7 @@ context에 연결한다. framework adapter와 middleware conformance는 후속 P
   })
   ```
 
-- [ ] **Step 2: RED를 확인한다.**
+- [x] **Step 2: RED를 확인한다.**
 
   Run: `go test -count=1 ./web -run 'Test(ExtractRequestContext|RequestContext)'`
 
@@ -158,7 +158,7 @@ context에 연결한다. framework adapter와 middleware conformance는 후속 P
 - Create: `web/context.go`
 - Modify: `web/context_test.go`
 
-- [ ] **Step 1: context 값과 header 추출을 구현한다.**
+- [x] **Step 1: context 값과 header 추출을 구현한다.**
 
   `RequestContext`, `RequestContextOptions`, context key, 기본 header 상수,
   `ExtractRequestContext`, `WithRequestContext`,
@@ -171,13 +171,13 @@ context에 연결한다. framework adapter와 middleware conformance는 후속 P
   false일 때 auth/trace header를 보존하지 않는다. global mutable state나
   goroutine은 사용하지 않는다.
 
-- [ ] **Step 2: GREEN을 확인한다.**
+- [x] **Step 2: GREEN을 확인한다.**
 
   Run: `go test -count=1 ./web -run 'Test(ExtractRequestContext|RequestContext)'`
 
   Expected: Task 3의 모든 테스트가 `PASS`.
 
-- [ ] **Step 3: cancellation과 race 범위를 확인한다.**
+- [x] **Step 3: cancellation과 race 범위를 확인한다.**
 
   Run: `go test -race -count=1 ./web`
 
@@ -194,20 +194,20 @@ context에 연결한다. framework adapter와 middleware conformance는 후속 P
 - Modify: `README.md`
 - Modify: `README.ko.md`
 
-- [ ] **Step 1: compile-checked example을 추가한다.**
+- [x] **Step 1: compile-checked example을 추가한다.**
 
   `ExampleWriteProblem`은 `ProblemError`를 `httptest.ResponseRecorder`에 쓰고
   status/content type/body를 확인한다. `ExampleWithRequestContextOnRequest`는
   trusted proxy와 generated ID를 보여 준다.
 
-- [ ] **Step 2: README 두 언어를 같은 계약으로 작성한다.**
+- [x] **Step 2: README 두 언어를 같은 계약으로 작성한다.**
 
   package import, problem response, header trust rule, auth policy non-goal,
   cancellation/context ownership, 후속 `#542` conformance 경계를 모두 설명한다.
   Korean 기술 문장은 `korean-naturalness-checklist.md`의 KO-01~KO-06을 통과시키고,
   API 이름·commands·URLs는 그대로 보존한다.
 
-- [ ] **Step 3: root package table을 갱신한다.**
+- [x] **Step 3: root package table을 갱신한다.**
 
   `README.md`와 `README.ko.md`의 package inventory에 `web` 항목을 같은 위치와
   의미로 추가한다. 다이어그램은 새로 만들지 않는다. 범위가 package docs와
@@ -221,7 +221,7 @@ context에 연결한다. framework adapter와 middleware conformance는 후속 P
 - Modify: `docs/superpowers/plans/2026-08-15-issue-541-web-context-plan.md`
 - Create: `docs/lessons/2026-08-15-issue-541-web-context.md`
 
-- [ ] **Step 1: format, static, targeted 검증을 실행한다.**
+- [x] **Step 1: format, static, targeted 검증을 실행한다.**
 
   ```bash
   gofmt -w web/*.go
@@ -234,24 +234,24 @@ context에 연결한다. framework adapter와 middleware conformance는 후속 P
   make lint
   ```
 
-- [ ] **Step 2: proportional repository 검증을 실행한다.**
+- [x] **Step 2: proportional repository 검증을 실행한다.**
 
   `go test -count=1 ./...`를 실행하고, Testcontainers가 포함된 전체 race는
   repository helper인 `make race`를 사용해 직렬 실행한다. 실패하면 원인을
   분리해 `#541` 범위의 오류만 수정하고 targeted 검증부터 반복한다.
 
-- [ ] **Step 3: 계획·spec·diff를 대조한다.**
+- [x] **Step 3: 계획·spec·diff를 대조한다.**
 
   `git diff --stat`, `git diff --check`, `git status --short`, public symbol
   목록, README locale parity를 읽어 acceptance criterion 누락을 확인한다.
 
-- [ ] **Step 4: 한국어 lesson을 작성한다.**
+- [x] **Step 4: 한국어 lesson을 작성한다.**
 
   RFC 7807 명칭과 RFC 9457 현재 표준의 차이, trusted proxy를 helper가 소유하지
   않는 이유, test evidence와 남은 `#542` 경계를 기록한다. SPW-01~SPW-05를
   통과시킨 뒤에만 commit한다.
 
-- [ ] **Step 5: Lore 형식으로 첫 PR commit을 만든다.**
+- [x] **Step 5: Lore 형식으로 첫 PR commit을 만든다.**
 
   ```bash
   git add web README.md README.ko.md docs/superpowers docs/lessons
