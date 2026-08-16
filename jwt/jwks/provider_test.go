@@ -3,7 +3,9 @@ package jwks
 import (
 	"context"
 	"errors"
+	"net"
 	"net/http"
+	"strings"
 	"testing"
 	"time"
 
@@ -23,6 +25,8 @@ func TestNewRejectsUnsafeEndpointAndNilOption(t *testing.T) {
 		{name: "remote http", endpoint: "http://example.com/jwks.json"},
 		{name: "hostname http", endpoint: "http://localhost/jwks.json"},
 		{name: "private literal", endpoint: "https://10.0.0.1/jwks.json"},
+		{name: "https loopback literal", endpoint: "https://127.0.0.1/jwks.json"},
+		{name: "https ipv6 loopback literal", endpoint: "https://[::1]/jwks.json"},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -38,15 +42,42 @@ func TestNewRejectsUnsafeEndpointAndNilOption(t *testing.T) {
 }
 
 func TestDefaultHTTPClientDisablesProxyAndBoundsHeaders(t *testing.T) {
-	transport, ok := defaultHTTPClient().Transport.(*http.Transport)
+	transport, ok := defaultHTTPClient(false).Transport.(*http.Transport)
 	if !ok {
-		t.Fatalf("default transport type = %T", defaultHTTPClient().Transport)
+		t.Fatalf("default transport type = %T", defaultHTTPClient(false).Transport)
 	}
 	if transport.Proxy != nil {
 		t.Fatal("default JWKS client must not inherit environment proxy")
 	}
 	if got, want := transport.MaxResponseHeaderBytes, int64(64<<10); got != want {
 		t.Fatalf("MaxResponseHeaderBytes = %d, want %d", got, want)
+	}
+}
+
+func TestDefaultDialPolicyRejectsLoopbackForHTTPS(t *testing.T) {
+	transport, ok := defaultHTTPClient(false).Transport.(*http.Transport)
+	if !ok {
+		t.Fatalf("default transport type = %T", defaultHTTPClient(false).Transport)
+	}
+	lookupLoopback := func(context.Context, string) ([]net.IPAddr, error) {
+		return []net.IPAddr{{IP: net.ParseIP("127.0.0.1")}}, nil
+	}
+	for _, tt := range []struct {
+		name    string
+		address string
+	}{
+		{name: "literal", address: "127.0.0.1:443"},
+		{name: "resolved", address: "issuer.example.test:443"},
+	} {
+		t.Run(tt.name, func(t *testing.T) {
+			_, err := restrictedDialContextWithPolicy(context.Background(), "tcp", tt.address, false, lookupLoopback)
+			if err == nil || !strings.Contains(err.Error(), "private or link-local address is not allowed") {
+				t.Fatalf("restrictedDialContextWithPolicy(%q) error = %v, want loopback policy rejection", tt.address, err)
+			}
+		})
+	}
+	if transport.DialContext == nil {
+		t.Fatal("default HTTPS transport must install a restricted dialer")
 	}
 }
 

@@ -80,10 +80,11 @@ its context has been cancelled.
 - The default endpoint scheme is HTTPS. Loopback HTTP is allowed only for
   tests and local development.
 - The endpoint must have a host and cannot contain userinfo or a fragment.
-- The default client rejects private, link-local, unspecified, and other
-  non-global dial targets, disables environment proxies, and caps response
-  headers at 64 KiB. Redirects are not followed. HTTP endpoints must use a
-  loopback IP literal.
+- The default client rejects private, link-local, unspecified, loopback, and
+  other non-global dial targets, disables environment proxies, and caps
+  response headers at 64 KiB. Redirects are not followed. HTTP endpoints may
+  use a loopback IP literal as the test/development exception; HTTPS loopback
+  literals and DNS results remain blocked.
 - `WithHTTPClient` transfers TLS verification, proxy, DNS/dial, redirect, and
   allowlist policy to the caller. Do not use `InsecureSkipVerify` unless that
   trust decision is intentional and documented by the caller. A custom

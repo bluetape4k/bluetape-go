@@ -48,8 +48,10 @@
 - 기본 HTTP client는 redirect를 자동 추적하지 않는다. JWKS endpoint는
   trusted operator configuration의 직접 URL이며 일반 입력값으로 취급하지
   않는다. 기본 endpoint는 `https`만 허용하고, `http`는 loopback host의
-  `httptest`/개발 경로에만 허용한다. 기본 dial 정책은 loopback(HTTP 테스트
-  예외), link-local, private, cloud-metadata literal address를 거부한다.
+  `httptest`/개발 경로에만 허용한다. 기본 dial 정책은 loopback, link-local,
+  private, cloud-metadata literal address를 거부하며, HTTP endpoint에 한해
+  loopback을 endpoint-scoped 예외로 허용한다. HTTPS loopback literal과 DNS
+  resolution 결과는 모두 차단한다.
   custom `http.Client`를 주입하는 호출자는 TLS 검증, proxy, DNS/dial,
   redirect/allowlist 정책을 자신의 trusted configuration에서 책임지며,
   custom client가 이 경계를 완화할 수 있음을 문서화한다. endpoint에는

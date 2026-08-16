@@ -52,7 +52,7 @@ func New(endpoint string, options ...Option) (*Provider, error) {
 	if err != nil {
 		return nil, err
 	}
-	cfg := defaultConfig()
+	cfg := defaultConfig(parsed.Scheme == "http")
 	for _, option := range options {
 		if option == nil {
 			return nil, optionError("option", errors.New("must not be nil"))
@@ -359,7 +359,7 @@ func validateEndpoint(raw string) (*url.URL, error) {
 	}
 	addr := net.ParseIP(host)
 	if addr != nil {
-		if isBlockedAddress(addr) {
+		if isBlockedAddress(addr) && (u.Scheme != "http" || !addr.IsLoopback()) {
 			return nil, optionError("endpoint", errors.New("private or link-local address is not allowed"))
 		}
 	}
@@ -370,10 +370,7 @@ func validateEndpoint(raw string) (*url.URL, error) {
 }
 
 func isBlockedAddress(addr net.IP) bool {
-	if addr.IsLoopback() {
-		return false
-	}
-	return addr.IsPrivate() || addr.IsLinkLocalUnicast() || addr.IsUnspecified() || !addr.IsGlobalUnicast()
+	return addr.IsLoopback() || addr.IsPrivate() || addr.IsLinkLocalUnicast() || addr.IsUnspecified() || !addr.IsGlobalUnicast()
 }
 
 func validateKID(kid string) error {
@@ -388,7 +385,7 @@ func validateKID(kid string) error {
 	return nil
 }
 
-func defaultHTTPClient() *http.Client {
+func defaultHTTPClient(allowLoopback bool) *http.Client {
 	transport, ok := http.DefaultTransport.(*http.Transport)
 	if ok {
 		transport = transport.Clone()
@@ -398,6 +395,9 @@ func defaultHTTPClient() *http.Client {
 	transport.Proxy = nil
 	transport.MaxResponseHeaderBytes = defaultMaxHeaderSize
 	transport.DialContext = restrictedDialContext
+	if allowLoopback {
+		transport.DialContext = restrictedDialContextAllowLoopback
+	}
 	return &http.Client{
 		Transport: transport,
 		CheckRedirect: func(*http.Request, []*http.Request) error {
@@ -418,23 +418,37 @@ func sanitizeFetchCause(err error) error {
 }
 
 func restrictedDialContext(ctx context.Context, network, address string) (net.Conn, error) {
+	return restrictedDialContextWithPolicy(ctx, network, address, false, net.DefaultResolver.LookupIPAddr)
+}
+
+func restrictedDialContextAllowLoopback(ctx context.Context, network, address string) (net.Conn, error) {
+	return restrictedDialContextWithPolicy(ctx, network, address, true, net.DefaultResolver.LookupIPAddr)
+}
+
+func restrictedDialContextWithPolicy(
+	ctx context.Context,
+	network string,
+	address string,
+	allowLoopback bool,
+	lookupIPAddr func(context.Context, string) ([]net.IPAddr, error),
+) (net.Conn, error) {
 	host, port, err := net.SplitHostPort(address)
 	if err != nil {
 		return nil, err
 	}
 	if literal := net.ParseIP(host); literal != nil {
-		if isBlockedAddress(literal) {
+		if isBlockedAddress(literal) && (!allowLoopback || !literal.IsLoopback()) {
 			return nil, errors.New("private or link-local address is not allowed")
 		}
 		return (&net.Dialer{}).DialContext(ctx, network, address)
 	}
-	addresses, err := net.DefaultResolver.LookupIPAddr(ctx, host)
+	addresses, err := lookupIPAddr(ctx, host)
 	if err != nil {
 		return nil, err
 	}
 	var lastErr error
 	for _, resolved := range addresses {
-		if isBlockedAddress(resolved.IP) {
+		if isBlockedAddress(resolved.IP) && (!allowLoopback || !resolved.IP.IsLoopback()) {
 			lastErr = errors.New("private or link-local address is not allowed")
 			continue
 		}
