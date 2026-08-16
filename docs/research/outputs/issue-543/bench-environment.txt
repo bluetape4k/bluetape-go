@@ -1,10 +1,10 @@
 capture_status: success
-capture_stamp: 20260816T000044Z-29445
+capture_stamp: 20260816T022506Z-63261
 chart_source: gin-adapter-benchmark-summary.vl.json
 chart_svg: gin-adapter-benchmark-summary.svg
 chart_png: gin-adapter-benchmark-summary.png
-timestamp_utc: 2026-08-16T00:00:44Z
-git_sha: 91a41d9632f9f60fda4d28c9a40780d88d28cc4e
+timestamp_utc: 2026-08-16T02:25:06Z
+git_sha: 3e14c7e0ad027c7d0187e7a0524f0a5db976e126
 dirty_tree: false
 capture_eligibility: eligible
 no_regression: N/A

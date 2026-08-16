@@ -1,0 +1,62 @@
+{
+  "failures": [],
+  "metrics": [
+    {
+      "baseline": 5160.0,
+      "candidate": 5160.0,
+      "delta_ratio": 0.0,
+      "max_regression": 0.15,
+      "metric": "ns_per_op",
+      "name": "BenchmarkGinAdapter/FullAdapter/Serial",
+      "regressed": false
+    },
+    {
+      "baseline": 12009.0,
+      "candidate": 12009.0,
+      "delta_ratio": 0.0,
+      "max_regression": 0.1,
+      "metric": "bytes_per_op",
+      "name": "BenchmarkGinAdapter/FullAdapter/Serial",
+      "regressed": false
+    },
+    {
+      "baseline": 96.0,
+      "candidate": 96.0,
+      "delta_ratio": 0.0,
+      "max_regression": 0.1,
+      "metric": "allocs_per_op",
+      "name": "BenchmarkGinAdapter/FullAdapter/Serial",
+      "regressed": false
+    },
+    {
+      "baseline": 5197.0,
+      "candidate": 5197.0,
+      "delta_ratio": 0.0,
+      "max_regression": 0.15,
+      "metric": "ns_per_op",
+      "name": "BenchmarkGinAdapter/FullAdapterRetry/Serial",
+      "regressed": false
+    },
+    {
+      "baseline": 12041.0,
+      "candidate": 12041.0,
+      "delta_ratio": 0.0,
+      "max_regression": 0.1,
+      "metric": "bytes_per_op",
+      "name": "BenchmarkGinAdapter/FullAdapterRetry/Serial",
+      "regressed": false
+    },
+    {
+      "baseline": 97.0,
+      "candidate": 97.0,
+      "delta_ratio": 0.0,
+      "max_regression": 0.1,
+      "metric": "allocs_per_op",
+      "name": "BenchmarkGinAdapter/FullAdapterRetry/Serial",
+      "regressed": false
+    }
+  ],
+  "no_regression": "passed",
+  "schema_version": 1,
+  "status": "passed"
+}

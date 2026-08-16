@@ -32,6 +32,7 @@ func BenchmarkGinAdapter(b *testing.B) {
 		{name: "DirectCore", handler: fixture.directCore},
 		{name: "Bridge", handler: fixture.bridge},
 		{name: "FullAdapter", handler: fixture.fullAdapter, token: fixture.token},
+		{name: "FullAdapterRetry", handler: fixture.fullAdapterRetry, token: fixture.token},
 	}
 	for _, benchmark := range benchmarks {
 		benchmark := benchmark
@@ -102,11 +103,12 @@ func BenchmarkGinAdapterWarmRequest(b *testing.B) {
 }
 
 type ginBenchmarkFixture struct {
-	noOp        http.Handler
-	directCore  http.Handler
-	bridge      http.Handler
-	fullAdapter http.Handler
-	token       string
+	noOp             http.Handler
+	directCore       http.Handler
+	bridge           http.Handler
+	fullAdapter      http.Handler
+	fullAdapterRetry http.Handler
+	token            string
 }
 
 func newGinBenchmarkFixture(b *testing.B) ginBenchmarkFixture {
@@ -120,6 +122,10 @@ func newGinBenchmarkFixture(b *testing.B) ginBenchmarkFixture {
 	if err != nil {
 		b.Fatal(err)
 	}
+	fullRetry, err := buildFullGinAdapterWithRetry(provider, limiter)
+	if err != nil {
+		b.Fatal(err)
+	}
 	noOp := http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) { w.WriteHeader(http.StatusNoContent) })
 	direct := http.HandlerFunc(func(w http.ResponseWriter, request *http.Request) {
 		requestWithContext, _, err := web.WithRequestContextOnRequest(request, web.RequestContextOptions{GenerateID: func() (string, error) { return "benchmark-request", nil }})
@@ -129,7 +135,14 @@ func newGinBenchmarkFixture(b *testing.B) ginBenchmarkFixture {
 		}
 		noOp.ServeHTTP(w, requestWithContext)
 	})
-	return ginBenchmarkFixture{noOp: noOp, directCore: direct, bridge: bridge, fullAdapter: full, token: token}
+	return ginBenchmarkFixture{
+		noOp:             noOp,
+		directCore:       direct,
+		bridge:           bridge,
+		fullAdapter:      full,
+		fullAdapterRetry: fullRetry,
+		token:            token,
+	}
 }
 
 func newGinBenchmarkDependencies(b *testing.B) (*jwt.Provider, string, ratelimit.Limiter) {
@@ -153,6 +166,25 @@ func buildBridgeGinAdapter() (http.Handler, error) {
 }
 
 func buildFullGinAdapter(provider jwt.Parser, limiter ratelimit.Limiter) (http.Handler, error) {
+	return buildFullGinAdapterWithPolicies(provider, limiter)
+}
+
+func buildFullGinAdapterWithRetry(provider jwt.Parser, limiter ratelimit.Limiter) (http.Handler, error) {
+	retry, err := resilience.NewRetry[struct{}](resilience.RetryOptions{
+		Name:        "gin-adapter-benchmark",
+		MaxAttempts: 2,
+	})
+	if err != nil {
+		return nil, err
+	}
+	return buildFullGinAdapterWithPolicies(provider, limiter, retry)
+}
+
+func buildFullGinAdapterWithPolicies(
+	provider jwt.Parser,
+	limiter ratelimit.Limiter,
+	policies ...resilience.Policy[struct{}],
+) (http.Handler, error) {
 	rateLimit, err := ginadapter.NewRateLimit(ginadapter.RateLimitOptions{Limiter: limiter})
 	if err != nil {
 		return nil, err
@@ -170,7 +202,7 @@ func buildFullGinAdapter(provider jwt.Parser, limiter ratelimit.Limiter) (http.H
 			return
 		}
 		c.Status(http.StatusNoContent)
-	}, ginadapter.ResilienceOptions{Policies: []resilience.Policy[struct{}]{}}))
+	}, ginadapter.ResilienceOptions{Policies: policies}))
 	return router, nil
 }
 

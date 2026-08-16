@@ -22,6 +22,8 @@ EXPECTED_NAMES = (
     "BenchmarkGinAdapter/Bridge/Parallel",
     "BenchmarkGinAdapter/FullAdapter/Serial",
     "BenchmarkGinAdapter/FullAdapter/Parallel",
+    "BenchmarkGinAdapter/FullAdapterRetry/Serial",
+    "BenchmarkGinAdapter/FullAdapterRetry/Parallel",
     "BenchmarkGinAdapterColdConstruction",
     "BenchmarkGinAdapterColdFirstRequest",
     "BenchmarkGinAdapterWarmRequest/Serial",

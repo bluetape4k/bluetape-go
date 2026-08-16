@@ -16,6 +16,8 @@ const expectedNames = [
   "BenchmarkGinAdapter/Bridge/Parallel",
   "BenchmarkGinAdapter/FullAdapter/Serial",
   "BenchmarkGinAdapter/FullAdapter/Parallel",
+  "BenchmarkGinAdapter/FullAdapterRetry/Serial",
+  "BenchmarkGinAdapter/FullAdapterRetry/Parallel",
   "BenchmarkGinAdapterColdConstruction",
   "BenchmarkGinAdapterColdFirstRequest",
   "BenchmarkGinAdapterWarmRequest/Serial",
@@ -141,11 +143,14 @@ function render(summary, outputDir) {
   const svg = [];
   svg.push(`<svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${height}" viewBox="0 0 ${width} ${height}" role="img" aria-labelledby="title desc">`);
   svg.push(`<title id="title">Gin adapter benchmark summary</title>`);
-  svg.push(`<desc id="desc">Median CPU 1 serial latency for no-op, direct core, bridge, and full Gin adapter fixtures. Lower is better.</desc>`);
+  svg.push(`<desc id="desc">Median CPU 1 serial latency for no-op, direct core, bridge, parser-only full adapter, and retry-policy full adapter fixtures. Lower is better.</desc>`);
   svg.push(`<defs><style>.title{font:700 30px Inter,Arial,sans-serif;fill:#0F172A}.subtitle{font:16px Inter,Arial,sans-serif;fill:#475569}.label{font:16px ui-monospace,monospace;fill:#334155}.value{font:700 15px ui-monospace,monospace;fill:#0F172A}.note{font:15px Inter,Arial,sans-serif;fill:#475569}</style></defs>`);
   svg.push(`<rect width="${width}" height="${height}" fill="#F8FAFC"/><rect x="24" y="24" width="${width - 48}" height="${height - 48}" rx="24" fill="#FFFFFF" stroke="#CBD5E1" stroke-width="2"/>`);
   svg.push(`<text x="70" y="78" class="title">Gin adapter · Issue #543</text>`);
   svg.push(`<text x="70" y="110" class="subtitle">CPU 1 serial median · ns/op, B/op, allocs/op are parsed from raw Go benchmark output · lower is better</text>`);
+  svg.push(`<rect x="70" y="121" width="12" height="12" rx="3" fill="#2563EB"/><text x="90" y="133" class="value">base path</text>`);
+  svg.push(`<rect x="235" y="121" width="12" height="12" rx="3" fill="#F59E0B"/><text x="255" y="133" class="value">FullAdapter · empty policy</text>`);
+  svg.push(`<rect x="510" y="121" width="12" height="12" rx="3" fill="#0F766E"/><text x="530" y="133" class="value">FullAdapterRetry · retry policy</text>`);
   for (const tick of [0, 0.25, 0.5, 0.75, 1]) {
     const x = chartX + chartW * tick;
     svg.push(`<line x1="${x}" y1="150" x2="${x}" y2="510" stroke="#E2E8F0"/>`);
@@ -155,13 +160,14 @@ function render(summary, outputDir) {
     const y = 176 + index * rowH;
     const widthValue = Math.max(3, (row.nsPerOp / max) * chartW);
     svg.push(`<text x="70" y="${y + 24}" class="label">${escape(row.name.replace("BenchmarkGinAdapter/", ""))}</text>`);
-    svg.push(`<rect x="${chartX}" y="${y}" width="${widthValue}" height="30" rx="8" fill="${index === 3 ? "#F59E0B" : "#2563EB"}"/>`);
+    const fill = row.name.includes("FullAdapterRetry") ? "#0F766E" : row.name.includes("FullAdapter/Serial") ? "#F59E0B" : "#2563EB";
+    svg.push(`<rect x="${chartX}" y="${y}" width="${widthValue}" height="30" rx="8" fill="${fill}"/>`);
     svg.push(`<text x="${chartX + chartW + 24}" y="${y + 23}" class="value">${format(row.nsPerOp)} ns/op</text>`);
   });
   svg.push(`<rect x="70" y="570" width="1360" height="110" rx="16" fill="#ECFEFF" stroke="#0891B2"/>`);
   svg.push(`<text x="100" y="612" class="note">bridge overhead = (bridge - direct-core) / direct-core = ${(bridgeOverhead * 100).toFixed(1)}%</text>`);
   svg.push(`<text x="100" y="645" class="note">full overhead = (full adapter - no-op) / no-op = ${(fullOverhead * 100).toFixed(1)}%</text>`);
-  svg.push(`<text x="100" y="678" class="note">Raw rows and environment metadata remain the source of truth; this chart is one local snapshot.</text>`);
+  svg.push(`<text x="100" y="678" class="note">FullAdapterRetry includes the no-backoff retry-policy success path; raw rows remain the source of truth.</text>`);
   svg.push(`</svg>`);
   mkdirSync(outputDir, { recursive: true });
   const svgPath = join(outputDir, "gin-adapter-benchmark-summary.svg");
@@ -176,7 +182,7 @@ function render(summary, outputDir) {
       {
         $schema: "https://vega.github.io/schema/vega-lite/v5.json",
         title: "Gin adapter benchmark summary",
-        description: "Median CPU 1 serial latency for Gin adapter fixtures; lower latency is better.",
+        description: "Median CPU 1 serial latency for parser-only and retry-policy Gin adapter fixtures; lower latency is better.",
         data: { values: rows.map((row) => ({ name: row.name, ns_per_op: row.nsPerOp })) },
         mark: "bar",
         encoding: {

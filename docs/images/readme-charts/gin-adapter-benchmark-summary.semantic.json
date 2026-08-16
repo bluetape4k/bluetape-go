@@ -1,0 +1,25 @@
+{
+  "kind": "chart",
+  "source": {
+    "question": "How does the parser-only Gin adapter path compare with the retry-policy success path at CPU 1 serial latency?",
+    "revision": "3e14c7e0ad027c7d0187e7a0524f0a5db976e126",
+    "paths": [
+      "web/gin/benchmark_test.go",
+      "scripts/parse-gin-adapter-benchmark.py",
+      "docs/images/readme-charts/generate-gin-adapter-benchmark-summary.mjs",
+      "docs/research/2026-08-16-issue-543-gin-adapter-benchmark.md"
+    ]
+  },
+  "nodes": [
+    {"id": "noop", "label": "NoOp", "source": "web/gin/benchmark_test.go"},
+    {"id": "direct-core", "label": "DirectCore", "source": "web/gin/benchmark_test.go"},
+    {"id": "bridge", "label": "Bridge", "source": "web/gin/benchmark_test.go"},
+    {"id": "full-adapter", "label": "FullAdapter", "source": "web/gin/benchmark_test.go"},
+    {"id": "full-adapter-retry", "label": "FullAdapterRetry", "source": "web/gin/benchmark_test.go"}
+  ],
+  "edges": [],
+  "behavior": {"branches": 0, "loops": 0},
+  "repairs": [
+    {"target": "full-adapter-retry", "reason": "separate parser-only and retry-policy benchmark bars", "touches": 1}
+  ]
+}
