@@ -48,7 +48,8 @@ compile-checked [`example_test.go`](example_test.go)에 동일한 bootstrap과
   `web` mapper가 redaction합니다.
 - `RequestContext`는 검증된 request context를 request 복사본에 저장하고
   middleware가 반환하거나 panic한 뒤 원래 request pointer를 복원합니다. 제한
-  header는 caller의 `TrustedProxy` predicate가 true일 때만 읽습니다.
+  header는 caller의 `TrustedProxy` predicate가 true일 때만 읽고 중복값은
+  모호한 identity를 선택하지 않도록 fail-closed합니다.
 - `NewRateLimit`은 limiter가 허용한 경우에만 다음 Echo handler를 한 번 호출합니다.
   거부 응답은 `Retry-After`와 `X-RateLimit-Remaining`을 보존하고 backend 오류는
   안전한 503 Problem으로 반환합니다.
@@ -56,7 +57,11 @@ compile-checked [`example_test.go`](example_test.go)에 동일한 bootstrap과
   허용합니다. 중복/comma-joined 값, control/whitespace, 8 KiB 초과 token을
   거부합니다. `JWTReader`는 context에 저장한 검증된 `*jwt.Reader`만 반환합니다.
   기본 실패 응답은 redacted 401이며 custom callback에는 설정한 인증 header와
-  Authorization을 제거한 request 복사본을 전달합니다.
+  Authorization을 제거한 request 복사본을 전달합니다. callback request의 body는
+  `http.NoBody`이므로 원본 request body를 소비할 수 없습니다. parser I/O가
+  cancellation을 관찰해야 하면 `ContextParser`를 사용합니다. legacy `Parser`
+  경로는 parse 전후에 cancellation을 확인하지만 blocking `Parse` 구현 자체를
+  중단할 수 없는 synchronous best-effort 계약입니다.
 - `WrapResilience`는 route-level wrapper입니다. 각 attempt에서 request context와
   replayable body를 복제합니다. 이미 commit된 응답, 재생할 수 없는 body,
   cancellation은 retry하지 않습니다. Echo context에는 key 열거 API가 없으므로

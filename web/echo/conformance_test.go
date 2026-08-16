@@ -158,8 +158,9 @@ func TestEchoAdapterConformance(t *testing.T) {
 
 func TestEchoSpecificConformanceContracts(t *testing.T) {
 	t.Run("callback receives sanitized JWT request copy", func(t *testing.T) {
-		ctx, recorder := newEchoContext(http.MethodGet, "http://example.test/orders", nil)
+		ctx, recorder := newEchoContext(http.MethodGet, "http://example.test/orders", strings.NewReader("private body"))
 		ctx.Request().Header.Set("Authorization", "Bearer token")
+		original := ctx.Request()
 		var callbackRequest *http.Request
 		middleware, err := echoadapter.NewJWT(echoadapter.JWTOptions{
 			Parser: &fakeJWTParser{err: errors.New("private parser detail")},
@@ -180,6 +181,14 @@ func TestEchoSpecificConformanceContracts(t *testing.T) {
 		}
 		if callbackRequest == nil || callbackHeader != "" || recorder.Code != http.StatusUnauthorized {
 			t.Fatalf("callback request/header/status = %#v/%q/%d, want sanitized/empty/401", callbackRequest, callbackHeader, recorder.Code)
+		}
+		body, readErr := io.ReadAll(callbackRequest.Body)
+		if readErr != nil || len(body) != 0 || original.Body == nil {
+			t.Fatalf("callback body = %q/%v, want isolated empty body and original body", body, readErr)
+		}
+		originalBody, readErr := io.ReadAll(original.Body)
+		if readErr != nil || string(originalBody) != "private body" {
+			t.Fatalf("original body = %q/%v, want private body and no callback consumption", originalBody, readErr)
 		}
 	})
 

@@ -166,6 +166,18 @@ func TestExtractRequestContext(t *testing.T) {
 		}
 	})
 
+	t.Run("rejects duplicate trusted headers", func(t *testing.T) {
+		req := httptest.NewRequestWithContext(context.Background(), http.MethodGet, "https://example.test/orders", nil)
+		req.Header.Add("X-Auth-Subject", "first")
+		req.Header.Add("X-Auth-Subject", "second")
+		_, err := web.ExtractRequestContext(req, web.RequestContextOptions{
+			TrustedProxy: func(*http.Request) bool { return true },
+		})
+		if !errors.Is(err, web.ErrInvalidRequestContext) {
+			t.Fatalf("duplicate trusted header error = %v, want ErrInvalidRequestContext", err)
+		}
+	})
+
 	t.Run("evaluates trusted proxy once", func(t *testing.T) {
 		calls := 0
 		req := httptest.NewRequestWithContext(context.Background(), http.MethodGet, "https://example.test/orders", nil)
