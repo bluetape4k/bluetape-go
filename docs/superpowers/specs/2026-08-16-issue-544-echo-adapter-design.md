@@ -66,6 +66,12 @@ store mutation을 수행한 뒤 오류를 반환하는 경우 commit 또는 non-
   기본 callback에 노출하지 않는다.
 - `context.Canceled`/`context.DeadlineExceeded`는 기존 `web.WriteProblem` 매핑을
   사용한다.
+- `ContextParser`가 설정되면 request context를 parser I/O에 전달해 strict
+  cancellation을 지원한다. 기존 `Parser`는 parse 전후만 확인하는 synchronous
+  best-effort 경로이며, blocking `Parse`를 중단해야 하는 caller는
+  `ContextParser`를 구현해야 한다.
+- JWT failure callback request는 인증 header를 제거하고 body를 `http.NoBody`로
+  격리해 callback이 원본 body를 소비하지 못하게 한다.
 - custom error callback은 caller-owned Echo context와 원인 오류를 받을 수 있으므로
   로그 redaction 책임은 callback caller에게 있음을 문서화한다.
 - 이미 `Response().Committed`이면 adapter가 두 번째 status/body를 쓰지 않는다.

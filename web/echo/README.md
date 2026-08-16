@@ -48,7 +48,8 @@ bootstrap and a migration example using `echo.WrapHandler`.
   `web` mapper.
 - `RequestContext` stores validated request context values on a copied request
   and restores the original request pointer when the middleware returns or
-  panics. Restricted headers require the caller's `TrustedProxy` predicate.
+  panics. Restricted headers require the caller's `TrustedProxy` predicate;
+  duplicate values fail closed instead of selecting an ambiguous identity.
 - `NewRateLimit` calls the next Echo handler once only when the limiter allows
   the request. Rejections preserve `Retry-After` and
   `X-RateLimit-Remaining`; backend failures are safe 503 Problems.
@@ -56,7 +57,11 @@ bootstrap and a migration example using `echo.WrapHandler`.
   rejects duplicate/comma-joined values, controls, whitespace, and tokens over
   8 KiB. `JWTReader` returns only the verified `*jwt.Reader` stored in context.
   The default failure response is a redacted 401. A custom callback receives a
-  request copy without the configured authentication header or Authorization.
+  request copy without the configured authentication header or Authorization;
+  its body is `http.NoBody` so callback inspection cannot consume the original
+  request. Use `ContextParser` when parser I/O must observe cancellation. The
+  legacy `Parser` path is synchronous and checks cancellation before and after
+  parsing, but cannot interrupt a blocking `Parse` implementation.
 - `WrapResilience` is a route-level wrapper. Request context and replayable
   bodies are cloned for each attempt. A committed response, non-replayable body,
   or cancellation is marked non-retryable. Echo's context store has no public

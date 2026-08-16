@@ -62,7 +62,7 @@ func ExtractRequestContext(req *http.Request, options RequestContextOptions) (Re
 		return RequestContext{}, err
 	}
 
-	requestID, err := validatedHeaderValue(req.Header.Get(headers.requestID), headers.requestID)
+	requestID, err := validatedSingleHeaderValue(req.Header, headers.requestID)
 	if err != nil {
 		return RequestContext{}, err
 	}
@@ -84,7 +84,7 @@ func ExtractRequestContext(req *http.Request, options RequestContextOptions) (Re
 		}
 	}
 
-	correlationID, err := validatedHeaderValue(req.Header.Get(headers.correlationID), headers.correlationID)
+	correlationID, err := validatedSingleHeaderValue(req.Header, headers.correlationID)
 	if err != nil {
 		return RequestContext{}, err
 	}
@@ -98,11 +98,11 @@ func ExtractRequestContext(req *http.Request, options RequestContextOptions) (Re
 		return value, nil
 	}
 
-	value.AuthSubject, err = validatedHeaderValue(req.Header.Get(headers.authSubject), headers.authSubject)
+	value.AuthSubject, err = validatedSingleHeaderValue(req.Header, headers.authSubject)
 	if err != nil {
 		return RequestContext{}, err
 	}
-	value.TraceParent, err = validatedHeaderValue(req.Header.Get(headers.traceParent), headers.traceParent)
+	value.TraceParent, err = validatedSingleHeaderValue(req.Header, headers.traceParent)
 	if err != nil {
 		return RequestContext{}, err
 	}
@@ -111,7 +111,7 @@ func ExtractRequestContext(req *http.Request, options RequestContextOptions) (Re
 			return RequestContext{}, err
 		}
 	}
-	value.TraceState, err = validatedHeaderValue(req.Header.Get(headers.traceState), headers.traceState)
+	value.TraceState, err = validatedSingleHeaderValue(req.Header, headers.traceState)
 	if err != nil {
 		return RequestContext{}, err
 	}
@@ -212,6 +212,17 @@ func validatedHeaderValue(value, name string) (string, error) {
 		}
 	}
 	return value, nil
+}
+
+func validatedSingleHeaderValue(headers http.Header, name string) (string, error) {
+	values := headers.Values(name)
+	if len(values) > 1 {
+		return "", invalidRequestContext("multiple %s values", name)
+	}
+	if len(values) == 0 {
+		return "", nil
+	}
+	return validatedHeaderValue(values[0], name)
 }
 
 func validateTraceParent(value string) error {

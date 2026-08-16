@@ -191,6 +191,9 @@ func failJWT(c echo.Context, err AuthenticationError, header string, callback fu
 		return nil
 	}
 	copyRequest := original.Clone(original.Context())
+	copyRequest.Body = http.NoBody
+	copyRequest.GetBody = nil
+	copyRequest.ContentLength = 0
 	for key := range copyRequest.Header {
 		if strings.EqualFold(key, header) || strings.EqualFold(key, "Authorization") {
 			delete(copyRequest.Header, key)
