@@ -46,6 +46,7 @@
 | `make ci` (`3281546`) | PASS: fresh 전체 test/race, tidy/fmt/vet/lint 및 benchmark contract self-test |
 | `make ci` (`118049c`) | PASS: HTTPS loopback hardening 이후 fresh 전체 test/race 및 benchmark contract self-test |
 | `make ci` (`5586855`) | PASS: 전역 transport TLS/dial hook 비상속 보강 이후 fresh 전체 test/race 및 benchmark contract self-test |
+| GitHub PR #696 CI (`a1751fc`) | PASS: [run 31957574627](https://github.com/bluetape4k/bluetape-go/actions/runs/31957574627), 전체 test/coverage/race 및 lint 게이트 |
 
 `make tidy-check`의 정규화 결과로 `github.com/go-jose/go-jose/v4 v4.1.4`가
 직접 dependency block에 위치한다. 이 차이는 신규 package의 실제 import를
@@ -89,5 +90,5 @@ benchmark HTTP metric은 warm-up 이후 timed 구간의 `http-requests/op`로
 ## 남은 gap
 
 - `govulncheck`는 실행 파일이 없어 보안 취약점 스캔 결과를 확보하지 못했다.
-- GitHub PR/CI 확인은 최신 head push 후 원격 run을 별도로 확인한다.
+- GitHub PR/CI는 run `31957574627`에서 head `a1751fc` 기준으로 통과했다.
 - release tag/publication은 이번 issue 범위가 아니며 별도 승인 없이 수행하지 않는다.
