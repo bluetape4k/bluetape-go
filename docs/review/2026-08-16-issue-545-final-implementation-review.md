@@ -9,6 +9,8 @@
 - 최신 보강: benchmark fixture 초기화 경계, startup provider 주입형 README,
   algorithm import와 FetchError sanitization 문서 정합성
 - fresh CI 기준 커밋: `3281546af91b1e557943fe4209c4d57d86cff1a`
+- 보안 hardening 커밋: `118049c` — HTTPS loopback literal·DNS 결과 차단과
+  HTTP endpoint-scoped loopback 예외
 - 범위: RSA/ECDSA/Ed25519 JWKS 공개키 provider, cache/rotation, context-aware
   fetch, KeyFunc, 오류·운영 경계, 테스트와 양국어 README
 
@@ -23,7 +25,7 @@
 |---|---|---|
 | Performance | PASS | 정규화된 `http-requests/op` benchmark와 cold/TTL/forced/parallel miss fixture, warm hit 0 request 증거 |
 | Stability | PASS | leader/waiter cancellation, takeover, late-result suppression, context-aware worker cleanup, rollback race 반복 검증 |
-| Security | PASS | 기본 proxy 차단, 64 KiB header cap, loopback IP literal HTTP, SSRF dial 제한, public-only JWK/algorithm/key header 검증, transport cause redaction |
+| Security | PASS | 기본 proxy 차단, 64 KiB header cap, HTTP endpoint-scoped loopback만 허용하고 HTTPS literal·DNS loopback은 차단, SSRF dial 제한, public-only JWK/algorithm/key header 검증, transport cause redaction |
 | Operator/Ops | PASS | rollback drill, fail-closed, readiness refresh, overlap retirement, owner/preflight/page/clear runbook 표 |
 | Developer/API | PASS | zero-value 거부, typed sentinel/`errors.Is` 계약, Go doc, self-contained Quick Start, compile-checked example |
 | User/Caller | PASS | request-scoped context/KeyFunc, claims policy parser 위임, allowlist는 축소만 허용, README/README.ko 의미 parity |
@@ -51,7 +53,8 @@ make ci                                            PASS
 `make ci`는 tidy, fmt, vet, lint, 전체 테스트, 전체 race, benchmark contract
 self-test를 포함한다. 첫 후속 실행에서 기존 `ratelimit/sql` 시간 경계 테스트가
 일시 실패했으나 동일 테스트 재실행 후, 커밋된 최신 상태의 fresh `make ci`에서
-전체 게이트가 통과했다.
+전체 게이트가 통과했다. HTTPS loopback hardening 이후 `118049c` 기준 fresh
+`make ci`도 전체 게이트를 다시 통과했다.
 
 ## 잔여 위험과 비목표
 
