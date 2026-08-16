@@ -68,6 +68,7 @@ type resilienceAttemptState struct {
 	paramNames  []string
 	paramValues []string
 	header      http.Header
+	writer      http.ResponseWriter
 }
 
 func newResilienceAttemptState(c echo.Context) resilienceAttemptState {
@@ -77,6 +78,7 @@ func newResilienceAttemptState(c echo.Context) resilienceAttemptState {
 		paramNames:  append([]string(nil), c.ParamNames()...),
 		paramValues: append([]string(nil), c.ParamValues()...),
 		header:      cloneHeader(c.Response().Header()),
+		writer:      c.Response().Writer,
 	}
 }
 
@@ -90,7 +92,7 @@ func runResilienceAttempt(
 ) (struct{}, error) {
 	var zero struct{}
 	if err := policyCtx.Err(); err != nil {
-		return zero, err
+		return zero, resilience.NonRetryable(err)
 	}
 	if original == nil {
 		return zero, resilienceInvalidRequestError{}
@@ -102,23 +104,34 @@ func runResilienceAttempt(
 		return zero, resilience.NonRetryable(err)
 	}
 	attempt := &attemptContext{Context: c, previous: make(map[string]any)}
+	trackedWriter := &trackedResponseWriter{ResponseWriter: c.Response().Writer}
+	c.Response().Writer = trackedWriter
 	c.SetRequest(attemptRequest)
+	restoreStore := true
 	defer func() {
 		c.SetRequest(original)
-		attempt.restore()
+		c.Response().Writer = state.writer
+		if restoreStore {
+			attempt.restore()
+		}
 		if body != nil {
 			_ = body.Close()
 		}
 	}()
 
 	attemptErr := next(attempt)
-	if attemptErr == nil {
-		if err := policyCtx.Err(); err != nil {
-			return zero, err
-		}
+	if trackedWriter.committed && !c.Response().Committed {
+		c.Response().Committed = true
 		return zero, nil
 	}
-	if c.Response().Committed || (original.Body != nil && original.GetBody == nil && requestMayHaveBody(original)) {
+	if attemptErr == nil {
+		if err := policyCtx.Err(); err != nil {
+			return zero, resilience.NonRetryable(err)
+		}
+		restoreStore = false
+		return zero, nil
+	}
+	if len(attempt.previous) > 0 || c.Response().Committed || (original.Body != nil && original.GetBody == nil && requestMayHaveBody(original)) || errors.Is(attemptErr, context.Canceled) || errors.Is(attemptErr, context.DeadlineExceeded) {
 		return zero, resilience.NonRetryable(attemptErr)
 	}
 	return zero, attemptErr
@@ -154,9 +167,27 @@ func restoreResilienceAttemptState(c echo.Context, state resilienceAttemptState)
 	c.SetPath(state.path)
 	c.SetParamNames(state.paramNames...)
 	c.SetParamValues(state.paramValues...)
+	if c.Response() != nil {
+		c.Response().Writer = state.writer
+	}
 	if c.Response() != nil && !c.Response().Committed {
 		restoreHeader(c.Response().Header(), state.header)
 	}
+}
+
+type trackedResponseWriter struct {
+	http.ResponseWriter
+	committed bool
+}
+
+func (w *trackedResponseWriter) WriteHeader(statusCode int) {
+	w.committed = true
+	w.ResponseWriter.WriteHeader(statusCode)
+}
+
+func (w *trackedResponseWriter) Write(body []byte) (int, error) {
+	w.committed = true
+	return w.ResponseWriter.Write(body)
 }
 
 type attemptContext struct {

@@ -17,6 +17,7 @@ import (
     "github.com/bluetape4k/bluetape-go/web"
     echoadapter "github.com/bluetape4k/bluetape-go/web/echo"
     "github.com/labstack/echo/v4"
+    "github.com/labstack/echo/v4/middleware"
 )
 
 func buildServer() (*echo.Echo, error) {
@@ -30,7 +31,7 @@ func buildServer() (*echo.Echo, error) {
     if err != nil { return nil, err }
 
     server := echo.New()
-    server.Use(echoadapter.RequestContext(web.RequestContextOptions{}), rateLimit, authentication)
+    server.Use(middleware.Recover(), echoadapter.RequestContext(web.RequestContextOptions{}), rateLimit, authentication)
     server.GET("/orders", echoadapter.WrapResilience(func(c echo.Context) error {
         return c.NoContent(http.StatusNoContent)
     }, echoadapter.ResilienceOptions{}))
@@ -61,7 +62,8 @@ compile-checked [`example_test.go`](example_test.go)에 동일한 bootstrap과
   `http.NoBody`이므로 원본 request body를 소비할 수 없습니다. parser I/O가
   cancellation을 관찰해야 하면 `ContextParser`를 사용합니다. legacy `Parser`
   경로는 parse 전후에 cancellation을 확인하지만 blocking `Parse` 구현 자체를
-  중단할 수 없는 synchronous best-effort 계약입니다.
+  중단할 수 없는 synchronous best-effort 계약입니다. parser cancellation은
+  Gin adapter와 동일하게 redacted 401 인증 실패로 보고합니다.
 - `WrapResilience`는 route-level wrapper입니다. 각 attempt에서 request context와
   replayable body를 복제합니다. 재생할 수 없는 body도 첫 attempt에는 전달하고
   retry가 필요해지는 순간 fail-closed하며, 이미 commit된 응답과 cancellation도
@@ -69,8 +71,12 @@ compile-checked [`example_test.go`](example_test.go)에 동일한 bootstrap과
   `DefaultResilienceErrorContextKey`에 저장되고 `ResilienceError`로 읽을 수
   있으므로 바깥 Echo logger나 error handler가 원인을 노출하지 않고 low-cardinality
   실패를 기록할 수 있습니다. Echo context에는 key 열거 API가 없으므로 adapter가
-  변경한 key만 복원하며, 임의 store 변경을 retry해야 하는 handler는 해당 변경을
-  non-retryable 경계 밖에 두어야 합니다.
+  변경한 key만 실패 attempt 뒤에 복원합니다. route 오류와 함께 store를 변경하면
+  non-retryable이며, 성공한 attempt의 변경은 해당 request에 남습니다.
+  `c.Response().Writer`를 직접 쓰는 경우에도 commit으로 추적해 retry를 중단합니다.
+  status/size bookkeeping을 보존하려면 Echo response method를 사용하고,
+  panic을 500으로 넘기려면 `middleware.Recover()`를 가장 바깥 middleware로
+  설치합니다.
 
 ## Migration
 

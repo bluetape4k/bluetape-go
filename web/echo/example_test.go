@@ -8,6 +8,7 @@ import (
 	"github.com/bluetape4k/bluetape-go/web"
 	echoadapter "github.com/bluetape4k/bluetape-go/web/echo"
 	"github.com/labstack/echo/v4"
+	"github.com/labstack/echo/v4/middleware"
 )
 
 func Example() {
@@ -29,7 +30,7 @@ func Example() {
 	}
 
 	server := echo.New()
-	server.Use(echoadapter.RequestContext(web.RequestContextOptions{}), rateLimit, authentication)
+	server.Use(middleware.Recover(), echoadapter.RequestContext(web.RequestContextOptions{}), rateLimit, authentication)
 	server.GET("/orders", echoadapter.WrapResilience(func(c echo.Context) error {
 		return c.NoContent(http.StatusNoContent)
 	}, echoadapter.ResilienceOptions{}))

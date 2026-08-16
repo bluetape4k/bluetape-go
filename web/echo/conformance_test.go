@@ -2,6 +2,7 @@ package echoadapter_test
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"io"
 	"net/http"
@@ -15,10 +16,146 @@ import (
 	"github.com/bluetape4k/bluetape-go/resilience"
 	"github.com/bluetape4k/bluetape-go/web"
 	echoadapter "github.com/bluetape4k/bluetape-go/web/echo"
+	"github.com/bluetape4k/bluetape-go/webtest"
 	"github.com/labstack/echo/v4"
+	"github.com/labstack/echo/v4/middleware"
 )
 
 func TestEchoAdapterConformance(t *testing.T) {
+	webtest.Run(t,
+		webtest.Scenario{
+			Name:    "problem response uses RFC 9457 writer",
+			Adapter: echoProblemAdapter,
+			NewRequest: func(ctx context.Context) *http.Request {
+				return httptest.NewRequestWithContext(ctx, http.MethodGet, "https://example.test/orders?x=1", nil)
+			},
+			Next: http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
+				_ = web.WriteProblem(w, req, conformanceProblemError{})
+			}),
+			Assert: func(t *testing.T, got webtest.Observation) {
+				if got.StatusCode != http.StatusUnprocessableEntity || got.NextCalls != 1 {
+					t.Fatalf("observation = %#v, want 422 and one next call", got)
+				}
+				if got.Header.Get("Content-Type") != "application/problem+json" {
+					t.Fatalf("Content-Type = %q, want application/problem+json", got.Header.Get("Content-Type"))
+				}
+				var body map[string]any
+				if err := json.Unmarshal(got.Body, &body); err != nil || body["instance"] != "/orders" {
+					t.Fatalf("problem body = %q, want RFC 9457 instance", got.Body)
+				}
+			},
+		},
+		webtest.Scenario{
+			Name:    "request context forwards trusted fields only",
+			Adapter: echoRequestContextAdapter,
+			NewRequest: func(ctx context.Context) *http.Request {
+				req := httptest.NewRequestWithContext(ctx, http.MethodGet, "http://example.test/orders", nil)
+				req.Header.Set(web.AuthSubjectHeader, "subject-1")
+				req.Header.Set(web.RequestIDHeader, "request-1")
+				req.Header.Set("X-Trusted", "yes")
+				return req
+			},
+			Next: http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
+				value, ok := web.RequestContextFromContext(req.Context())
+				if !ok || value.AuthSubject != "subject-1" {
+					http.Error(w, "missing trusted context", http.StatusInternalServerError)
+					return
+				}
+				w.WriteHeader(http.StatusNoContent)
+			}),
+			Assert: func(t *testing.T, got webtest.Observation) {
+				if got.StatusCode != http.StatusNoContent || got.NextCalls != 1 || got.NextRequest == nil {
+					t.Fatalf("observation = %#v, want trusted context and one next call", got)
+				}
+			},
+		},
+		webtest.Scenario{
+			Name:    "request context drops untrusted restricted fields",
+			Adapter: echoRequestContextAdapter,
+			NewRequest: func(ctx context.Context) *http.Request {
+				req := httptest.NewRequestWithContext(ctx, http.MethodGet, "http://example.test/orders", nil)
+				req.Header.Set(web.AuthSubjectHeader, "spoofed")
+				return req
+			},
+			Next: http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
+				value, _ := web.RequestContextFromContext(req.Context())
+				if value.AuthSubject != "" {
+					http.Error(w, "untrusted field forwarded", http.StatusInternalServerError)
+					return
+				}
+				w.WriteHeader(http.StatusNoContent)
+			}),
+			Assert: func(t *testing.T, got webtest.Observation) {
+				if got.StatusCode != http.StatusNoContent || got.NextCalls != 1 {
+					t.Fatalf("observation = %#v, want 204 and one next call", got)
+				}
+			},
+		},
+		webtest.Scenario{
+			Name: "rate limit rejection aborts next and preserves headers",
+			Adapter: echoRateLimitAdapter(&fakeLimiter{allow: func(context.Context, string, int64) (ratelimit.Result, error) {
+				return ratelimit.Result{Remaining: 0, RetryAfter: 1500 * time.Millisecond}, nil
+			}}, nil),
+			NewRequest: conformanceRequestFactory,
+			Next:       http.NotFoundHandler(),
+			Assert: func(t *testing.T, got webtest.Observation) {
+				if got.StatusCode != http.StatusTooManyRequests || got.NextCalls != 0 || got.Header.Get("X-RateLimit-Remaining") != "0" {
+					t.Fatalf("observation = %#v, want 429, no next, remaining=0", got)
+				}
+			},
+		},
+		webtest.Scenario{
+			Name:    "JWT success stores reader before next",
+			Adapter: echoJWTAdapter,
+			NewRequest: func(ctx context.Context) *http.Request {
+				req := conformanceRequestFactory(ctx)
+				req.Header.Set("Authorization", "Bearer token")
+				return req
+			},
+			Next: http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) { w.WriteHeader(http.StatusNoContent) }),
+			Assert: func(t *testing.T, got webtest.Observation) {
+				if got.StatusCode != http.StatusNoContent || got.NextCalls != 1 {
+					t.Fatalf("observation = %#v, want 204 and one next call", got)
+				}
+			},
+		},
+		webtest.Scenario{
+			Name:       "JWT missing token is a redacted 401",
+			Adapter:    echoJWTAdapter,
+			NewRequest: conformanceRequestFactory,
+			Next:       http.NotFoundHandler(),
+			Assert: func(t *testing.T, got webtest.Observation) {
+				if got.StatusCode != http.StatusUnauthorized || got.NextCalls != 0 || strings.Contains(string(got.Body), "token") {
+					t.Fatalf("observation = %#v, want redacted 401 and no next", got)
+				}
+			},
+		},
+		webtest.Scenario{
+			Name:       "resilience route reaches next once",
+			Adapter:    echoResilienceAdapter(nil),
+			NewRequest: conformanceRequestFactory,
+			Next:       http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) { w.WriteHeader(http.StatusNoContent) }),
+			Assert: func(t *testing.T, got webtest.Observation) {
+				if got.StatusCode != http.StatusNoContent || got.NextCalls != 1 {
+					t.Fatalf("observation = %#v, want 204 and one next call", got)
+				}
+			},
+		},
+		webtest.Scenario{
+			Name: "resilience policy error is safe 503",
+			Adapter: echoResilienceAdapter([]resilience.Policy[struct{}]{resilience.PolicyFunc[struct{}](func(resilience.Operation[struct{}]) resilience.Operation[struct{}] {
+				return func(context.Context) (struct{}, error) { return struct{}{}, errors.New("private policy detail") }
+			})}),
+			NewRequest: conformanceRequestFactory,
+			Next:       http.NotFoundHandler(),
+			Assert: func(t *testing.T, got webtest.Observation) {
+				if got.StatusCode != http.StatusServiceUnavailable || got.NextCalls != 0 || strings.Contains(string(got.Body), "private policy detail") {
+					t.Fatalf("observation = %#v, want safe 503 and no next", got)
+				}
+			},
+		},
+	)
+
 	t.Run("problem response uses RFC 9457 writer", func(t *testing.T) {
 		ctx, recorder := newEchoContext(http.MethodGet, "https://example.test/orders?x=1", nil)
 		err := echoadapter.AbortWithProblem(ctx, conformanceProblemError{})
@@ -157,6 +294,21 @@ func TestEchoAdapterConformance(t *testing.T) {
 }
 
 func TestEchoSpecificConformanceContracts(t *testing.T) {
+	t.Run("outer recovery handles resilience panic", func(t *testing.T) {
+		server := echo.New()
+		recoverConfig := middleware.DefaultRecoverConfig
+		recoverConfig.DisablePrintStack = true
+		server.Use(middleware.RecoverWithConfig(recoverConfig))
+		server.GET("/panic", echoadapter.WrapResilience(func(echo.Context) error {
+			panic("conformance panic")
+		}, echoadapter.ResilienceOptions{}))
+		recorder := httptest.NewRecorder()
+		server.ServeHTTP(recorder, httptest.NewRequestWithContext(context.Background(), http.MethodGet, "http://example.test/panic", nil))
+		if recorder.Code != http.StatusInternalServerError {
+			t.Fatalf("status = %d, want 500 from outer Recover", recorder.Code)
+		}
+	})
+
 	t.Run("callback receives sanitized JWT request copy", func(t *testing.T) {
 		ctx, recorder := newEchoContext(http.MethodGet, "http://example.test/orders", strings.NewReader("private body"))
 		ctx.Request().Header.Set("Authorization", "Bearer token")
@@ -204,6 +356,71 @@ func TestEchoSpecificConformanceContracts(t *testing.T) {
 			t.Fatalf("response = (%d, %q), want 202/committed", recorder.Code, recorder.Body.String())
 		}
 	})
+}
+
+func echoProblemAdapter(next http.Handler) http.Handler {
+	return echoEngine(func(c echo.Context) error {
+		next.ServeHTTP(c.Response(), c.Request())
+		return nil
+	})
+}
+
+func echoRequestContextAdapter(next http.Handler) http.Handler {
+	return echoEngine(func(c echo.Context) error {
+		next.ServeHTTP(c.Response(), c.Request())
+		return nil
+	}, echoadapter.RequestContext(web.RequestContextOptions{
+		TrustedProxy: func(req *http.Request) bool { return req.Header.Get("X-Trusted") == "yes" },
+	}))
+}
+
+func echoRateLimitAdapter(limiter ratelimit.Limiter, keyFunc echoadapter.RateLimitKeyFunc) webtest.Adapter {
+	return func(next http.Handler) http.Handler {
+		middleware, err := echoadapter.NewRateLimit(echoadapter.RateLimitOptions{Limiter: limiter, KeyFunc: keyFunc})
+		if err != nil {
+			return http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+				http.Error(w, err.Error(), http.StatusInternalServerError)
+			})
+		}
+		return echoEngine(func(c echo.Context) error {
+			next.ServeHTTP(c.Response(), c.Request())
+			return nil
+		}, middleware)
+	}
+}
+
+func echoJWTAdapter(next http.Handler) http.Handler {
+	middleware, err := echoadapter.NewJWT(echoadapter.JWTOptions{Parser: &fakeJWTParser{}})
+	if err != nil {
+		return http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+		})
+	}
+	return echoEngine(func(c echo.Context) error {
+		next.ServeHTTP(c.Response(), c.Request())
+		return nil
+	}, middleware)
+}
+
+func echoResilienceAdapter(policies []resilience.Policy[struct{}]) webtest.Adapter {
+	return func(next http.Handler) http.Handler {
+		wrapped := echoadapter.WrapResilience(func(c echo.Context) error {
+			next.ServeHTTP(c.Response(), c.Request())
+			return nil
+		}, echoadapter.ResilienceOptions{Policies: policies})
+		return echoEngine(wrapped)
+	}
+}
+
+func echoEngine(handler echo.HandlerFunc, middleware ...echo.MiddlewareFunc) http.Handler {
+	server := echo.New()
+	server.Use(middleware...)
+	server.Any("/*path", handler)
+	return server
+}
+
+func conformanceRequestFactory(ctx context.Context) *http.Request {
+	return httptest.NewRequestWithContext(ctx, http.MethodGet, "http://example.test/orders", nil)
 }
 
 func newEchoContext(method, target string, body io.Reader) (echo.Context, *httptest.ResponseRecorder) {
