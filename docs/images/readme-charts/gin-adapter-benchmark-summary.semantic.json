@@ -2,7 +2,7 @@
   "kind": "chart",
   "source": {
     "question": "How does the parser-only Gin adapter path compare with the retry-policy success path at CPU 1 serial latency?",
-    "revision": "3deed7f4b5644373c32e17ddc6946e7989d84c97",
+    "revision": "3e14c7e0ad027c7d0187e7a0524f0a5db976e126",
     "paths": [
       "web/gin/benchmark_test.go",
       "scripts/parse-gin-adapter-benchmark.py",

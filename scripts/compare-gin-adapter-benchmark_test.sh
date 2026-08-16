@@ -139,4 +139,14 @@ test "$status" -eq 2 || fail 'missing baseline returned the wrong status'
 assert_report_status "$report" inconclusive
 printf 'PASS: missing baseline inconclusive\n'
 
+printf '{' >"$test_root/malformed.json"
+if python3 "$comparator" --baseline "$test_root/malformed.json" --candidate "$candidate" --output "$report" >/dev/null 2>&1; then
+  fail 'malformed baseline was accepted'
+else
+  status=$?
+fi
+test "$status" -eq 2 || fail 'malformed baseline returned the wrong status'
+assert_report_status "$report" inconclusive
+printf 'PASS: malformed baseline inconclusive\n'
+
 printf 'PASS: benchmark comparator contract\n'

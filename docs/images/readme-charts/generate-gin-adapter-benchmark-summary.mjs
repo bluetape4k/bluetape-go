@@ -148,6 +148,9 @@ function render(summary, outputDir) {
   svg.push(`<rect width="${width}" height="${height}" fill="#F8FAFC"/><rect x="24" y="24" width="${width - 48}" height="${height - 48}" rx="24" fill="#FFFFFF" stroke="#CBD5E1" stroke-width="2"/>`);
   svg.push(`<text x="70" y="78" class="title">Gin adapter · Issue #543</text>`);
   svg.push(`<text x="70" y="110" class="subtitle">CPU 1 serial median · ns/op, B/op, allocs/op are parsed from raw Go benchmark output · lower is better</text>`);
+  svg.push(`<rect x="70" y="121" width="12" height="12" rx="3" fill="#2563EB"/><text x="90" y="133" class="value">base path</text>`);
+  svg.push(`<rect x="235" y="121" width="12" height="12" rx="3" fill="#F59E0B"/><text x="255" y="133" class="value">FullAdapter · empty policy</text>`);
+  svg.push(`<rect x="510" y="121" width="12" height="12" rx="3" fill="#0F766E"/><text x="530" y="133" class="value">FullAdapterRetry · retry policy</text>`);
   for (const tick of [0, 0.25, 0.5, 0.75, 1]) {
     const x = chartX + chartW * tick;
     svg.push(`<line x1="${x}" y1="150" x2="${x}" y2="510" stroke="#E2E8F0"/>`);

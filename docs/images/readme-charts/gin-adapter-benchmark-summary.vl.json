@@ -1,20 +1,20 @@
 {
   "$schema": "https://vega.github.io/schema/vega-lite/v5.json",
   "title": "Gin adapter benchmark summary",
-  "description": "Median CPU 1 serial latency for Gin adapter fixtures; lower latency is better.",
+  "description": "Median CPU 1 serial latency for parser-only and retry-policy Gin adapter fixtures; lower latency is better.",
   "data": {
     "values": [
       {
         "name": "BenchmarkGinAdapter/NoOp/Serial",
-        "ns_per_op": 825.6
+        "ns_per_op": 844.1
       },
       {
         "name": "BenchmarkGinAdapter/NoOp/Parallel",
-        "ns_per_op": 837.7
+        "ns_per_op": 856.1
       },
       {
         "name": "BenchmarkGinAdapter/DirectCore/Serial",
-        "ns_per_op": 1136
+        "ns_per_op": 1158
       },
       {
         "name": "BenchmarkGinAdapter/DirectCore/Parallel",
@@ -22,35 +22,43 @@
       },
       {
         "name": "BenchmarkGinAdapter/Bridge/Serial",
-        "ns_per_op": 1188
+        "ns_per_op": 1206
       },
       {
         "name": "BenchmarkGinAdapter/Bridge/Parallel",
-        "ns_per_op": 1186
+        "ns_per_op": 1200
       },
       {
         "name": "BenchmarkGinAdapter/FullAdapter/Serial",
-        "ns_per_op": 5073
+        "ns_per_op": 5160
       },
       {
         "name": "BenchmarkGinAdapter/FullAdapter/Parallel",
-        "ns_per_op": 5118
+        "ns_per_op": 5139
+      },
+      {
+        "name": "BenchmarkGinAdapter/FullAdapterRetry/Serial",
+        "ns_per_op": 5197
+      },
+      {
+        "name": "BenchmarkGinAdapter/FullAdapterRetry/Parallel",
+        "ns_per_op": 5194
       },
       {
         "name": "BenchmarkGinAdapterColdConstruction",
-        "ns_per_op": 634.2
+        "ns_per_op": 631.8
       },
       {
         "name": "BenchmarkGinAdapterColdFirstRequest",
-        "ns_per_op": 8976
+        "ns_per_op": 10345
       },
       {
         "name": "BenchmarkGinAdapterWarmRequest/Serial",
-        "ns_per_op": 5072
+        "ns_per_op": 5172
       },
       {
         "name": "BenchmarkGinAdapterWarmRequest/Parallel",
-        "ns_per_op": 5083
+        "ns_per_op": 5159
       }
     ]
   },
@@ -76,17 +84,17 @@
       "dirty_tree": "false",
       "fixture_identity": "gin-v1.12.0-parser-only-local",
       "gin_version": "v1.12.0",
-      "git_sha": "91a41d9632f9f60fda4d28c9a40780d88d28cc4e",
+      "git_sha": "3e14c7e0ad027c7d0187e7a0524f0a5db976e126",
       "go_version": "go version go1.26.6 darwin/arm64",
       "goarch": "arm64",
       "goos": "darwin",
       "logical_cpus": "10",
       "max_output_bytes": "10485760",
       "no_regression": "N/A",
-      "timestamp_utc": "2026-08-16T00:00:44Z"
+      "timestamp_utc": "2026-08-16T02:25:06Z"
     },
     "metricDirection": "lower is better",
-    "bridgeOverhead": 0.045774647887323945,
-    "fullOverhead": 5.144622093023255
+    "bridgeOverhead": 0.04145077720207254,
+    "fullOverhead": 5.1130197843857355
   }
 }
