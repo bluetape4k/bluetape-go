@@ -82,6 +82,7 @@ future scope, not part of the current public API.
 | [`resilience`](resilience/README.md) | active | First-party composable retry, timeout, circuit breaker, and bulkhead policies with synchronous observability hooks and `net/http` adapters. |
 | [`web`](web/README.md) | active | Framework-neutral RFC 9457 problem details responses and trusted request context helpers for `net/http` handlers. |
 | [`web/gin`](web/gin/README.md) | active | Gin adapter for request context, rate limiting, strict JWT authentication, RFC 9457 Problems, and route-level resilience. |
+| [`web/echo`](web/echo/README.md) | active | Echo adapter for request context, rate limiting, strict JWT authentication, RFC 9457 Problems, and route-level resilience. |
 | [`webtest`](webtest/README.md) | test | Framework-neutral `net/http` middleware conformance harness and resource-ownership fixtures for tests. |
 | [`cache`](cache/README.md) | active | Generic in-process TTL cache interfaces with context-aware loaders and same-key stampede protection. |
 | [`cache/redisnear`](cache/redisnear/README.md) | active | Redis Pub/Sub near-cache invalidation for process-local loading caches. |

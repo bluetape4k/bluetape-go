@@ -79,6 +79,7 @@ API가 아니라 module-gated future scope입니다.
 | [`resilience`](resilience/README.ko.md) | active | service call을 위한 자체 composable retry, timeout, circuit breaker, bulkhead policy, synchronous observability hook, `net/http` adapter. |
 | [`web`](web/README.ko.md) | active | `net/http` handler를 위한 framework-neutral RFC 9457 problem details 응답과 trusted request context helper. |
 | [`web/gin`](web/gin/README.ko.md) | active | Request context, rate limit, strict JWT authentication, RFC 9457 Problem, route-level resilience를 위한 Gin adapter. |
+| [`web/echo`](web/echo/README.ko.md) | active | Request context, rate limit, strict JWT authentication, RFC 9457 Problem, route-level resilience를 위한 Echo adapter. |
 | [`webtest`](webtest/README.ko.md) | test | 테스트에서 사용하는 framework-neutral `net/http` middleware conformance harness와 resource ownership fixture. |
 | [`cache`](cache/README.ko.md) | active | context-aware loader와 same-key stampede protection을 제공하는 generic in-process TTL cache interface. |
 | [`cache/redisnear`](cache/redisnear/README.ko.md) | active | process-local loading cache를 위한 Redis Pub/Sub near-cache invalidation. |
