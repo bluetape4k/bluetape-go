@@ -122,6 +122,30 @@ parser·chart generator는 누락, 미지 행, 단일 capture의 중복, 비유�
 거부한다. `-count>1`에서 Go가 반올림된 동일 sample을 반복할 수 있으므로 capture의
 `benchmark_count` metadata가 있을 때만 같은 metric sample을 허용한다.
 
+차트 subprocess는 기본 60초 watchdog과 benchmark output limit을 공유하며, 다음
+환경 변수로 각각 좁힐 수 있다.
+
+```bash
+BLUETAPE_GIN_BENCH_CHART_TIMEOUT_SECONDS=30 \
+BLUETAPE_GIN_BENCH_CHART_MAX_OUTPUT_BYTES=65536 \
+scripts/capture-gin-adapter-benchmark.sh 5 1,2,4
+```
+
+chart가 timeout, signal, non-zero exit, output limit으로 끝나면 canonical
+`bench-results.json`과 기존 chart 파일은 publish하지 않고
+`bench-failed-*.txt`를 남긴다. 실패 artifact에는 다음 진단 계약이 포함된다.
+
+- `chart_failure_reason`: `timeout`, `signal`, `exit`, `output_limit`
+- `chart_exit_status`: subprocess의 관측 status (`timeout`은 `124`, signal은
+  `128+signal`)
+- `chart_stderr_begin`/`chart_stderr_end`: path, token, endpoint 등 민감값을
+  redaction한 bounded stderr
+- `[chart_timeout_after_N_seconds]` 또는
+  `[chart_output_truncated_at_N_bytes]` 경계 marker
+
+capture command 자체는 chart 실패를 `125`로 반환한다. 이 artifact와 기존
+canonical 파일을 함께 확인해야 실패를 회귀 없음으로 오인하지 않는다.
+
 ## 결론과 제한
 
 이번 변경은 동일 command와 fixture identity로 clean baseline을 저장하고, 현재

@@ -61,6 +61,30 @@ if [ "$max_output_bytes" -le 0 ] || [ "$max_output_bytes" -gt "$default_max_outp
   exit 2
 fi
 
+default_chart_timeout_seconds=60
+chart_timeout_seconds=${BLUETAPE_GIN_BENCH_CHART_TIMEOUT_SECONDS:-$default_chart_timeout_seconds}
+case "$chart_timeout_seconds" in
+  ''|*[!0-9]*)
+    printf 'error: chart timeout must be a positive second count\n' >&2
+    exit 2
+    ;;
+esac
+if [ "$chart_timeout_seconds" -le 0 ] || [ "$chart_timeout_seconds" -gt 600 ]; then
+  printf 'error: chart timeout must be between 1 and 600 seconds\n' >&2
+  exit 2
+fi
+chart_max_output_bytes=${BLUETAPE_GIN_BENCH_CHART_MAX_OUTPUT_BYTES:-$max_output_bytes}
+case "$chart_max_output_bytes" in
+  ''|*[!0-9]*)
+    printf 'error: chart output limit must be a positive byte count\n' >&2
+    exit 2
+    ;;
+esac
+if [ "$chart_max_output_bytes" -le 0 ] || [ "$chart_max_output_bytes" -gt "$default_max_output_bytes" ]; then
+  printf 'error: chart output limit must be between 1 and %s bytes\n' "$default_max_output_bytes" >&2
+  exit 2
+fi
+
 repo_root=$(git rev-parse --show-toplevel 2>/dev/null) || {
   printf 'error: benchmark capture must run inside a Git worktree\n' >&2
   exit 2
@@ -144,10 +168,16 @@ metadata_file=$private_dir/bench-environment.txt
 command_output_file=$private_dir/command-output.txt
 results_file=$private_dir/bench-results.json
 chart_output_dir=$private_dir/chart
+chart_generation_log=$private_dir/chart-generation.log
+chart_generation_sanitized_file=$private_dir/chart-generation-sanitized.log
 failure_file=$private_dir/failure.txt
 capture_stamp=$(date -u '+%Y%m%dT%H%M%SZ')-$$
 git_sha=$(git rev-parse HEAD)
 timestamp_utc=$(date -u '+%Y-%m-%dT%H:%M:%SZ')
+benchmark_pid=''
+chart_pid=''
+chart_failure_reason=not_run
+chart_exit_status=not_run
 
 go_version=$(go version 2>/dev/null || printf 'unknown')
 goos=$(go env GOOS 2>/dev/null || printf 'unknown')
@@ -191,6 +221,8 @@ write_metadata() {
     printf 'logical_cpus: %s\n' "$logical_cpus"
     printf 'benchmark_count: %s\n' "$count"
     printf 'max_output_bytes: %s\n' "$max_output_bytes"
+    printf 'chart_timeout_seconds: %s\n' "$chart_timeout_seconds"
+    printf 'chart_max_output_bytes: %s\n' "$chart_max_output_bytes"
     printf 'command: %s\n' "$command_string"
   } >"$metadata_file"
 }
@@ -238,7 +270,9 @@ run_benchmark() {
   return "$command_status"
 }
 
-sanitize_output() {
+sanitize_file() {
+  local input=$1
+  local output=$2
   LC_ALL=C awk '
     {
       lower = tolower($0)
@@ -271,13 +305,114 @@ sanitize_output() {
       }
       print
     }
-  ' "$raw_file" >"$sanitized_file"
+  ' "$input" >"$output"
+}
+
+sanitize_output() {
+  sanitize_file "$raw_file" "$sanitized_file"
+}
+
+sanitize_chart_output() {
+  if [ -f "$chart_generation_log" ]; then
+    sanitize_file "$chart_generation_log" "$chart_generation_sanitized_file"
+  else
+    : >"$chart_generation_sanitized_file"
+  fi
+  if contains_prohibited_content "$chart_generation_sanitized_file"; then
+    redaction_status=blocked
+  fi
 }
 
 contains_prohibited_content() {
   LC_ALL=C grep -Eiq \
     '([[:alpha:]][[:alnum:]+.-]*:\/\/|(^|[^[:alnum:]])(password|passwd|token|secret|authorization|credential|access[-_]?key|access[-_]?token|api[-_]?key|private[-_]?key|client[-_]?secret|endpoint|dsn|proxy|registry|container[-_]?id)[[:space:]]*[=:][[:space:]]*[^[:space:]]+|"(password|passwd|token|secret|authorization|credential|access[-_]?key|access[-_]?token|api[-_]?key|private[-_]?key|client[-_]?secret|endpoint|dsn|proxy|registry|container[-_]?id)"[[:space:]]*:|-----BEGIN [^-]*PRIVATE KEY-----|-----END [^-]*PRIVATE KEY-----|\/Users\/[^\/[:space:]]+|\/home\/[^\/[:space:]]+|\/private\/(var|tmp)\/[^[:space:]]+|\/var\/folders\/[^[:space:]]+|\/tmp\/[^[:space:]]+|(localhost|host\.docker\.internal):[0-9]+|(^|[[:space:]])panic:[[:space:]]+|(^|[[:space:]])bearer[[:space:]]+[[:alnum:]_.-]+|(^|[[:space:]])eyJ[[:alnum:]_-]+\.[[:alnum:]_-]+\.[[:alnum:]_-]+($|[[:space:]])|([0-9]{1,3}\.){3}[0-9]{1,3}:[0-9]+)' \
     "$1"
+}
+
+terminate_chart_process() {
+  local child
+  if [ -z "${chart_pid:-}" ]; then
+    return 0
+  fi
+  for child in $(pgrep -P "$chart_pid" 2>/dev/null || true); do
+    kill -TERM "$child" 2>/dev/null || true
+  done
+  kill -TERM "$chart_pid" 2>/dev/null || true
+  wait "$chart_pid" 2>/dev/null || true
+  for child in $(pgrep -P "$chart_pid" 2>/dev/null || true); do
+    kill -KILL "$child" 2>/dev/null || true
+  done
+  kill -KILL "$chart_pid" 2>/dev/null || true
+  chart_pid=''
+}
+
+truncate_chart_log() {
+  local temporary=$private_dir/chart-generation-truncated.log
+  if [ ! -f "$chart_generation_log" ]; then
+    : >"$chart_generation_log"
+    return 0
+  fi
+  if ! head -c "$chart_max_output_bytes" "$chart_generation_log" >"$temporary"; then
+    rm -f "$temporary"
+    return 1
+  fi
+  mv -f "$temporary" "$chart_generation_log"
+}
+
+run_chart_generation() {
+  : >"$chart_generation_log"
+  chart_failure_reason=not_run
+  chart_exit_status=not_run
+  BLUETAPE_GIN_BENCH_CHART_DIR="$chart_output_dir" node \
+    "$repo_root/docs/images/readme-charts/generate-gin-adapter-benchmark-summary.mjs" \
+    "$results_file" >"$chart_generation_log" 2>&1 &
+  chart_pid=$!
+
+  local chart_started=$SECONDS
+  local output_bytes=0
+  local command_status=0
+  while kill -0 "$chart_pid" 2>/dev/null; do
+    output_bytes=$(wc -c <"$chart_generation_log" | tr -d '[:space:]')
+    if [ "$output_bytes" -gt "$chart_max_output_bytes" ]; then
+      chart_failure_reason=output_limit
+      terminate_chart_process
+      truncate_chart_log
+      printf '\n[chart_output_truncated_at_%s_bytes]\n' "$chart_max_output_bytes" >>"$chart_generation_log"
+      chart_exit_status=125
+      return 125
+    fi
+    if [ $((SECONDS - chart_started)) -ge "$chart_timeout_seconds" ]; then
+      chart_failure_reason=timeout
+      terminate_chart_process
+      printf '\n[chart_timeout_after_%s_seconds]\n' "$chart_timeout_seconds" >>"$chart_generation_log"
+      chart_exit_status=124
+      return 124
+    fi
+    sleep 0.05
+  done
+
+  if wait "$chart_pid"; then
+    command_status=0
+  else
+    command_status=$?
+  fi
+  chart_pid=''
+  output_bytes=$(wc -c <"$chart_generation_log" | tr -d '[:space:]')
+  if [ "$output_bytes" -gt "$chart_max_output_bytes" ] && [ "$command_status" -eq 0 ]; then
+    chart_failure_reason=output_limit
+    truncate_chart_log
+    printf '\n[chart_output_truncated_at_%s_bytes]\n' "$chart_max_output_bytes" >>"$chart_generation_log"
+    command_status=125
+  fi
+  chart_exit_status=$command_status
+  if [ "$command_status" -eq 0 ]; then
+    chart_failure_reason=none
+  elif [ "$chart_failure_reason" != "output_limit" ] && [ "$command_status" -ge 128 ]; then
+    chart_failure_reason=signal
+  elif [ "$chart_failure_reason" != "output_limit" ]; then
+    chart_failure_reason='exit'
+  fi
+  return "$command_status"
 }
 
 write_failure_metadata() {
@@ -288,12 +423,19 @@ write_failure_metadata() {
     printf 'capture_status: failed\n'
     printf 'failure_phase: %s\n' "$phase"
     printf 'failure_exit_status: %s\n' "$failure_status"
+    printf 'chart_failure_reason: %s\n' "$chart_failure_reason"
+    printf 'chart_exit_status: %s\n' "$chart_exit_status"
     printf 'redaction_status: %s\n' "$redaction_status"
     cat "$metadata_file"
     if [ -f "$sanitized_file" ] && [ "$redaction_status" = "passed" ]; then
       printf 'failure_output_begin\n'
       cat "$sanitized_file"
       printf 'failure_output_end\n'
+    fi
+    if [ -f "$chart_generation_sanitized_file" ] && [ "$redaction_status" = "passed" ]; then
+      printf 'chart_stderr_begin\n'
+      cat "$chart_generation_sanitized_file"
+      printf 'chart_stderr_end\n'
     fi
   } >"$failure_file"
 }
@@ -336,6 +478,9 @@ publish_failure() {
 handle_exit() {
   local exit_status=$1
   trap - EXIT INT TERM HUP
+  if [ -n "${chart_pid:-}" ]; then
+    terminate_chart_process || true
+  fi
   if { [ "$exit_status" -eq 129 ] || [ "$exit_status" -eq 130 ] || [ "$exit_status" -eq 143 ]; } && \
     [ "${failure_written:-false}" = false ]; then
     if [ "${publication_started:-false}" = true ]; then
@@ -427,6 +572,12 @@ handle_signal() {
   if [ -n "${benchmark_pid:-}" ]; then
     kill -TERM "$benchmark_pid" 2>/dev/null || true
   fi
+  if [ -n "${chart_pid:-}" ]; then
+    terminate_chart_process || true
+    chart_failure_reason=signal
+    chart_exit_status=$signal_status
+    sanitize_chart_output || true
+  fi
   if [ "${publication_started:-false}" = true ]; then
     restore_publication || true
     publication_started=false
@@ -477,12 +628,12 @@ if ! python3 "$repo_root/scripts/parse-gin-adapter-benchmark.py" --input "$sanit
 fi
 
 phase=chart
-if ! BLUETAPE_GIN_BENCH_CHART_DIR="$chart_output_dir" node \
-  "$repo_root/docs/images/readme-charts/generate-gin-adapter-benchmark-summary.mjs" \
-  "$results_file" >/"$private_dir/chart-generation.log" 2>&1; then
+if ! run_chart_generation; then
   status=125
+  sanitize_chart_output
   publish_failure "$phase" "$status" "$redaction_status"
-  printf 'error: Gin adapter benchmark chart generation failed\n' >&2
+  printf 'error: Gin adapter benchmark chart generation failed (reason=%s exit_status=%s)\n' \
+    "$chart_failure_reason" "$chart_exit_status" >&2
   exit "$status"
 fi
 
