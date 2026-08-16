@@ -54,10 +54,10 @@ func (e FetchError) Error() string {
 	return ErrFetch.Error()
 }
 
-// Unwrap는 context와 transport sentinel을 보존한다.
+// Unwrap는 sanitization을 통과한 context sentinel만 보존한다.
 func (e FetchError) Unwrap() error { return e.Err }
 
-// Is 는 ErrFetch와 감싼 원인 sentinel을 보존한다.
+// Is 는 ErrFetch와 sanitization을 통과한 원인 sentinel을 보존한다.
 func (e FetchError) Is(target error) bool {
 	return target == ErrFetch || errors.Is(e.Err, target)
 }

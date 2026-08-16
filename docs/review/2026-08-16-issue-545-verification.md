@@ -68,12 +68,12 @@ license: /Users/debop/work/go/pkg/mod/github.com/go-jose/go-jose/v4@v4.1.4/LICEN
 실행 환경: Apple M5, `darwin/arm64`, `go1.26.6`.
 
 ```text
-BenchmarkLookupCacheHit-10          20       172.9 ns/op       0 http-requests/op     336 B/op   3 allocs/op
-BenchmarkLookupParallelHit-10       20       531.2 ns/op       0 http-requests/op     570 B/op   4 allocs/op
-BenchmarkLookupForcedRefresh-10     20     95125 ns/op       1.000 http-requests/op 11424 B/op 134 allocs/op
-BenchmarkLookupColdMiss-10          20     99965 ns/op       1.000 http-requests/op 13645 B/op 144 allocs/op
-BenchmarkLookupTTLExpiry-10         20     92300 ns/op       1.000 http-requests/op 11775 B/op 137 allocs/op
-BenchmarkLookupParallelMiss-10      20     17779 ns/op       0.1000 http-requests/op 3627 B/op 24 allocs/op
+BenchmarkLookupCacheHit-10          20       183.3 ns/op       0 http-requests/op     336 B/op   3 allocs/op
+BenchmarkLookupParallelHit-10       20       533.4 ns/op       0 http-requests/op     594 B/op   4 allocs/op
+BenchmarkLookupForcedRefresh-10     20     98002 ns/op       1.000 http-requests/op 11456 B/op 134 allocs/op
+BenchmarkLookupColdMiss-10          20    105200 ns/op       1.000 http-requests/op 13651 B/op 144 allocs/op
+BenchmarkLookupTTLExpiry-10         20     94242 ns/op       1.000 http-requests/op 11776 B/op 137 allocs/op
+BenchmarkLookupParallelMiss-10      20     17688 ns/op       0.1000 http-requests/op 3733 B/op 25 allocs/op
 ```
 
 benchmark HTTP metric은 warm-up 이후 timed 구간의 `http-requests/op`로

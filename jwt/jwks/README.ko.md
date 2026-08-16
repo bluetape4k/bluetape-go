@@ -21,24 +21,32 @@ import (
 
 ## 빠른 시작
 
-`New`는 network-free constructor입니다. readiness 단계에서 bounded
-`Refresh`를 명시적으로 실행한 뒤 request-scoped `KeyFunc`를 만들고 claims
-정책은 JWT parser에 둡니다.
+`New`는 network-free constructor입니다. startup에서 provider 하나를 만들고
+readiness 단계에서 bounded `Refresh`를 명시적으로 실행한 뒤 각 request에
+주입하세요. request-scoped `KeyFunc`를 만들고 claims 정책은 JWT parser에
+둡니다.
 
 ```go
-func verifyJWKS(req *http.Request, signedToken string) error {
+func newJWKSProvider() (*jwks.Provider, error) {
     provider, err := jwks.New(
         "https://issuer.example.com/.well-known/jwks.json",
         jwks.WithAllowedAlgorithms(jwks.RS256, jwks.PS256),
     )
     if err != nil {
-        return err
+        return nil, err
     }
 
     refreshCtx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
     defer cancel()
     if err := provider.Refresh(refreshCtx); err != nil {
-        return err
+        return nil, err
+    }
+    return provider, nil
+}
+
+func verifyJWKS(req *http.Request, signedToken string, provider *jwks.Provider) error {
+    if provider == nil {
+        return jwks.ErrInvalidOptions
     }
 
     requestCtx, cancel := context.WithTimeout(req.Context(), time.Second)
@@ -111,6 +119,8 @@ RSA/ECDSA 값과 Ed25519 byte slice는 defensive copy입니다.
 `jwt.Algorithm`을 전달할 때는 명시적으로 변환하세요.
 
 ```go
+import rootjwt "github.com/bluetape4k/bluetape-go/jwt"
+
 jwks.WithAllowedAlgorithms(jwks.Algorithm(rootjwt.RS256))
 ```
 

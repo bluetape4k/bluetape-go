@@ -22,23 +22,31 @@ import (
 
 ## Quick start
 
-`New` is network-free. Use an explicit bounded `Refresh` during readiness, then
-create a request-scoped `KeyFunc` and keep claims policy in the JWT parser:
+`New` is network-free. Create one provider during startup, run an explicit
+bounded `Refresh` during readiness, and inject that provider into each request.
+Create a request-scoped `KeyFunc` and keep claims policy in the JWT parser:
 
 ```go
-func verifyJWKS(req *http.Request, signedToken string) error {
+func newJWKSProvider() (*jwks.Provider, error) {
     provider, err := jwks.New(
         "https://issuer.example.com/.well-known/jwks.json",
         jwks.WithAllowedAlgorithms(jwks.RS256, jwks.PS256),
     )
     if err != nil {
-        return err
+        return nil, err
     }
 
     refreshCtx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
     defer cancel()
     if err := provider.Refresh(refreshCtx); err != nil {
-        return err
+        return nil, err
+    }
+    return provider, nil
+}
+
+func verifyJWKS(req *http.Request, signedToken string, provider *jwks.Provider) error {
+    if provider == nil {
+        return jwks.ErrInvalidOptions
     }
 
     requestCtx, cancel := context.WithTimeout(req.Context(), time.Second)
@@ -118,6 +126,8 @@ narrow this set; it cannot enable HMAC or another symmetric algorithm. When a
 root `jwt.Algorithm` value is passed, convert it explicitly:
 
 ```go
+import rootjwt "github.com/bluetape4k/bluetape-go/jwt"
+
 jwks.WithAllowedAlgorithms(jwks.Algorithm(rootjwt.RS256))
 ```
 
