@@ -109,7 +109,7 @@ def parse_input(path: Path) -> tuple[list[dict[str, object]], dict[str, str]]:
                 raise ValueError(f"benchmark command failed: {stripped}")
             if ": " in stripped and not stripped.startswith("Benchmark"):
                 key, value = stripped.split(": ", 1)
-                if key in {"timestamp_utc", "git_sha", "dirty_tree", "capture_eligibility", "no_regression", "gin_version", "fixture_identity", "go_version", "goos", "goarch", "cpu", "logical_cpus", "benchmark_count", "max_output_bytes", "command"} and key not in metadata:
+                if key in {"timestamp_utc", "git_sha", "dirty_tree", "capture_eligibility", "no_regression", "gin_version", "fixture_identity", "go_version", "goos", "goarch", "cpu", "logical_cpus", "benchmark_count", "max_output_bytes", "chart_timeout_seconds", "chart_max_output_bytes", "command"} and key not in metadata:
                     metadata[key] = value
             row = parse_benchmark_line(line)
             if row is None:

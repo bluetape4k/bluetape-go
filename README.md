@@ -354,6 +354,8 @@ Common commands:
 | `make bench-cache` | Run opt-in cache, Redis NearCache, and Redis coordinator benchmarks. |
 | `make bench-ratelimit` | Run opt-in local rate limiter benchmarks. |
 | `make bench-id` | Run opt-in id generator benchmarks. |
+| `make bench-web-gin` | Run the opt-in Gin adapter benchmark capture. Narrow the chart watchdog/output bound with `BLUETAPE_GIN_BENCH_CHART_TIMEOUT_SECONDS` and `BLUETAPE_GIN_BENCH_CHART_MAX_OUTPUT_BYTES`. |
+| `make check-bench-web-gin` | Validate Gin benchmark parser, chart, failure-diagnostic, and regression-comparator contracts without running the benchmark. |
 | `make ci` | Run the local CI gate. |
 
 ### Provider benchmark matrix

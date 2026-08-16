@@ -347,6 +347,8 @@ make ci
 | `make bench-cache` | opt-in cache, Redis NearCache, Redis coordinator benchmark를 실행합니다. |
 | `make bench-ratelimit` | opt-in local rate limiter benchmark를 실행합니다. |
 | `make bench-id` | opt-in id generator benchmark를 실행합니다. |
+| `make bench-web-gin` | opt-in Gin adapter benchmark capture를 실행합니다. `BLUETAPE_GIN_BENCH_CHART_TIMEOUT_SECONDS`와 `BLUETAPE_GIN_BENCH_CHART_MAX_OUTPUT_BYTES`로 chart watchdog/output 상한을 좁힐 수 있습니다. |
+| `make check-bench-web-gin` | benchmark를 실행하지 않고 Gin parser, chart, failure-diagnostic, regression-comparator contract를 검증합니다. |
 | `make ci` | 로컬 CI gate를 실행합니다. |
 
 ### Provider 벤치마크 매트릭스

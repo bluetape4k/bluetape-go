@@ -52,6 +52,8 @@ write_benchmark_rows() {
 setup_fixture() {
   local name=$1
   local fixture=$test_root/$name
+  local real_node
+  real_node=$(command -v node)
   mkdir -p "$fixture/repo/scripts" "$fixture/repo/docs/images/readme-charts" "$fixture/bin"
   cp "$capture_script" "$fixture/repo/scripts/capture-gin-adapter-benchmark.sh"
   cp "$parser" "$fixture/repo/scripts/parse-gin-adapter-benchmark.py"
@@ -108,6 +110,28 @@ test -n "$output"
 printf '%s\n' 'fixture png' >"$output"
 FAKE_RSVG
   chmod +x "$fixture/bin/rsvg-convert"
+  cat >"$fixture/bin/node" <<'FAKE_NODE'
+#!/usr/bin/env bash
+set -eu
+if [ "${FAKE_NODE_SIGNAL:-0}" = 1 ]; then
+  printf '%s\n' "${FAKE_NODE_STDERR:-chart renderer signal stderr}" >&2
+  kill -TERM "$$"
+fi
+if [ "${FAKE_NODE_MALFORMED:-0}" = 1 ]; then
+  printf '%s\n' '{"metadata": {}, "rows": []}' >"${2:?chart input path is required}"
+fi
+if [ "${FAKE_NODE_BLOCK:-0}" = 1 ]; then
+  printf '%s\n' "${FAKE_NODE_STDERR:-chart renderer timeout stderr}" >&2
+  sleep 30
+fi
+if [ "${FAKE_NODE_EXIT:-0}" != 0 ]; then
+  printf '%s\n' "${FAKE_NODE_STDERR:-chart renderer exit stderr}" >&2
+  exit "$FAKE_NODE_EXIT"
+fi
+exec "$(cat "$(dirname "$0")/real-node")" "$@"
+FAKE_NODE
+  printf '%s\n' "$real_node" >"$fixture/bin/real-node"
+  chmod +x "$fixture/bin/node"
   write_benchmark_rows "$fixture/bench.txt"
   git -C "$fixture/repo" init -q
   git -C "$fixture/repo" config user.name benchmark-test
@@ -190,6 +214,8 @@ assert_capture_success_and_redaction() {
   assert_file_contains "$results" '\"dirty_tree\": \"false\"'
   assert_file_contains "$results" '\"capture_eligibility\": \"eligible\"'
   assert_file_contains "$results" '\"no_regression\": \"N/A\"'
+  assert_file_contains "$results" '\"chart_timeout_seconds\": \"60\"'
+  assert_file_contains "$results" '\"chart_max_output_bytes\": \"10485760\"'
 
   fixture=$(setup_fixture redaction)
   {
@@ -251,6 +277,126 @@ assert_capture_failures_preserve_canonical_state() {
   failed=$(find "$fixture/repo/docs/research/outputs/issue-543" -maxdepth 1 -name 'bench-failed-*.txt' -print -quit)
   test -n "$failed" || fail 'timeout fixture did not retain failure metadata'
   assert_file_contains "$failed" '^failure_exit_status: 124$'
+}
+
+assert_chart_failure_diagnostics() {
+  local fixture
+  fixture=$(setup_fixture chart-exit)
+  local output_dir=$fixture/repo/docs/research/outputs/issue-543
+  local chart_dir=$fixture/repo/docs/images/readme-charts
+  mkdir -p "$output_dir" "$chart_dir"
+  printf '%s\n' previous-results >"$output_dir/bench-results.json"
+  printf '%s\n' previous-svg >"$chart_dir/gin-adapter-benchmark-summary.svg"
+  printf '%s\n' previous-png >"$chart_dir/gin-adapter-benchmark-summary.png"
+  if (
+    cd "$fixture/repo"
+    PATH="$fixture/bin:$PATH" FAKE_GO_OUTPUT_FILE="$fixture/bench.txt" \
+      FAKE_NODE_EXIT=42 FAKE_NODE_STDERR='chart renderer exit stderr' \
+      BLUETAPE_GIN_BENCH_OUTPUT_DIR=docs/research/outputs/issue-543 \
+      "$fixture/repo/scripts/capture-gin-adapter-benchmark.sh" 1 1
+  ); then
+    fail 'chart failure fixture returned success'
+  else
+    test "$?" -eq 125 || fail 'chart failure fixture returned the wrong status'
+  fi
+  local failed
+  failed=$(find "$fixture/repo/docs/research/outputs/issue-543" -maxdepth 1 -name 'bench-failed-*.txt' -print -quit)
+  test -n "$failed" || fail 'chart failure fixture did not retain failure metadata'
+  assert_file_contains "$failed" '^failure_phase: chart$'
+  assert_file_contains "$failed" '^chart_failure_reason: exit$'
+  assert_file_contains "$failed" '^chart_exit_status: 42$'
+  assert_file_contains "$failed" '^chart_stderr_begin$'
+  assert_file_contains "$failed" '^chart renderer exit stderr$'
+  test "$(cat "$output_dir/bench-results.json")" = previous-results || fail 'chart failure replaced canonical results'
+  test "$(cat "$chart_dir/gin-adapter-benchmark-summary.svg")" = previous-svg || fail 'chart failure replaced previous SVG'
+  test "$(cat "$chart_dir/gin-adapter-benchmark-summary.png")" = previous-png || fail 'chart failure replaced previous PNG'
+
+  fixture=$(setup_fixture chart-timeout)
+  if (
+    cd "$fixture/repo"
+    PATH="$fixture/bin:$PATH" FAKE_GO_OUTPUT_FILE="$fixture/bench.txt" \
+      FAKE_NODE_BLOCK=1 FAKE_NODE_STDERR='chart renderer timeout stderr' \
+      BLUETAPE_GIN_BENCH_CHART_TIMEOUT_SECONDS=1 \
+      BLUETAPE_GIN_BENCH_OUTPUT_DIR=docs/research/outputs/issue-543 \
+      "$fixture/repo/scripts/capture-gin-adapter-benchmark.sh" 1 1
+  ); then
+    fail 'chart timeout fixture returned success'
+  else
+    test "$?" -eq 125 || fail 'chart timeout fixture returned the wrong status'
+  fi
+  failed=$(find "$fixture/repo/docs/research/outputs/issue-543" -maxdepth 1 -name 'bench-failed-*.txt' -print -quit)
+  test -n "$failed" || fail 'chart timeout fixture did not retain failure metadata'
+  assert_file_contains "$failed" '^failure_phase: chart$'
+  assert_file_contains "$failed" '^chart_failure_reason: timeout$'
+  assert_file_contains "$failed" '^chart_exit_status: 124$'
+  assert_file_contains "$failed" '^chart_timeout_seconds: 1$'
+  assert_file_contains "$failed" '^chart renderer timeout stderr$'
+  assert_file_contains "$failed" '^\[chart_timeout_after_1_seconds\]$'
+  test ! -e "$fixture/repo/docs/research/outputs/issue-543/bench-results.json" || fail 'chart timeout published canonical results'
+
+  fixture=$(setup_fixture chart-signal)
+  if (
+    cd "$fixture/repo"
+    PATH="$fixture/bin:$PATH" FAKE_GO_OUTPUT_FILE="$fixture/bench.txt" \
+      FAKE_NODE_SIGNAL=1 FAKE_NODE_STDERR='chart renderer signal stderr' \
+      BLUETAPE_GIN_BENCH_OUTPUT_DIR=docs/research/outputs/issue-543 \
+      "$fixture/repo/scripts/capture-gin-adapter-benchmark.sh" 1 1
+  ); then
+    fail 'chart signal fixture returned success'
+  else
+    test "$?" -eq 125 || fail 'chart signal fixture returned the wrong status'
+  fi
+  failed=$(find "$fixture/repo/docs/research/outputs/issue-543" -maxdepth 1 -name 'bench-failed-*.txt' -print -quit)
+  test -n "$failed" || fail 'chart signal fixture did not retain failure metadata'
+  assert_file_contains "$failed" '^failure_phase: chart$'
+  assert_file_contains "$failed" '^chart_failure_reason: signal$'
+  assert_file_contains "$failed" '^chart_exit_status: 143$'
+  assert_file_contains "$failed" '^chart renderer signal stderr$'
+  test ! -e "$fixture/repo/docs/research/outputs/issue-543/bench-results.json" || fail 'chart signal published canonical results'
+
+  fixture=$(setup_fixture chart-output-limit)
+  local chart_output
+  chart_output=$(printf '%256s' '' | tr ' ' x)
+  if (
+    cd "$fixture/repo"
+    PATH="$fixture/bin:$PATH" FAKE_GO_OUTPUT_FILE="$fixture/bench.txt" \
+      FAKE_NODE_STDERR="$chart_output" BLUETAPE_GIN_BENCH_CHART_MAX_OUTPUT_BYTES=64 \
+      BLUETAPE_GIN_BENCH_OUTPUT_DIR=docs/research/outputs/issue-543 \
+      "$fixture/repo/scripts/capture-gin-adapter-benchmark.sh" 1 1
+  ); then
+    fail 'chart output-limit fixture returned success'
+  else
+    test "$?" -eq 125 || fail 'chart output-limit fixture returned the wrong status'
+  fi
+  failed=$(find "$fixture/repo/docs/research/outputs/issue-543" -maxdepth 1 -name 'bench-failed-*.txt' -print -quit)
+  test -n "$failed" || fail 'chart output-limit fixture did not retain failure metadata'
+  assert_file_contains "$failed" '^failure_phase: chart$'
+  assert_file_contains "$failed" '^chart_failure_reason: output_limit$'
+  assert_file_contains "$failed" '^chart_exit_status: 125$'
+  assert_file_contains "$failed" '^\[chart_output_truncated_at_64_bytes\]$'
+  assert_file_excludes "$failed" 'xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx'
+  test ! -e "$fixture/repo/docs/research/outputs/issue-543/bench-results.json" || fail 'chart output-limit published canonical results'
+
+  fixture=$(setup_fixture chart-malformed)
+  if (
+    cd "$fixture/repo"
+    PATH="$fixture/bin:$PATH" FAKE_GO_OUTPUT_FILE="$fixture/bench.txt" \
+      FAKE_NODE_MALFORMED=1 \
+      BLUETAPE_GIN_BENCH_OUTPUT_DIR=docs/research/outputs/issue-543 \
+      "$fixture/repo/scripts/capture-gin-adapter-benchmark.sh" 1 1
+  ); then
+    fail 'chart malformed-input fixture returned success'
+  else
+    test "$?" -eq 125 || fail 'chart malformed-input fixture returned the wrong status'
+  fi
+  failed=$(find "$fixture/repo/docs/research/outputs/issue-543" -maxdepth 1 -name 'bench-failed-*.txt' -print -quit)
+  test -n "$failed" || fail 'chart malformed-input fixture did not retain failure metadata'
+  assert_file_contains "$failed" '^failure_phase: chart$'
+  assert_file_contains "$failed" '^chart_failure_reason: exit$'
+  assert_file_contains "$failed" '^chart_exit_status: [1-9][0-9]*$'
+  assert_file_contains "$failed" '^chart_stderr_begin$'
+  assert_file_contains "$failed" '^chart_stderr_end$'
+  test ! -e "$fixture/repo/docs/research/outputs/issue-543/bench-results.json" || fail 'chart malformed-input published canonical results'
 }
 
 assert_signal_preserves_failure_artifact() {
@@ -356,6 +502,8 @@ assert_capture_success_and_redaction
 printf 'PASS: capture success and redaction\n'
 assert_capture_failures_preserve_canonical_state
 printf 'PASS: capture output-limit and timeout guards\n'
+assert_chart_failure_diagnostics
+printf 'PASS: chart failure diagnostics guard\n'
 assert_signal_preserves_failure_artifact
 printf 'PASS: signal failure artifact guard\n'
 assert_dirty_tree_is_not_a_regression_claim
