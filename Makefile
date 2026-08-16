@@ -10,7 +10,7 @@ COVERAGE_HTML ?= $(COVERAGE_DIR)/coverage.html
 BENCH_COUNT ?= 5
 BENCH_CPU ?= 1,2,4
 
-.PHONY: help fmt fmt-check tidy tidy-check vet lint test race coverage bench-cache bench-ratelimit bench-compression bench-id bench-rules bench-web-gin check-bench-web-gin ci
+.PHONY: help fmt fmt-check tidy tidy-check vet lint test race coverage bench-cache bench-ratelimit bench-compression bench-id bench-rules bench-web-gin bench-web-gin-regression check-bench-web-gin ci
 
 help:
 	@printf '%s\n' \
@@ -29,6 +29,7 @@ help:
 		'  bench-id    Run opt-in id generator benchmarks' \
 		'  bench-rules Run opt-in rules composite and inference benchmarks' \
 		'  bench-web-gin Run the opt-in Gin adapter benchmark capture (BENCH_COUNT/BENCH_CPU)' \
+		'  bench-web-gin-regression Compare Gin adapter capture with BENCH_BASELINE' \
 		'  check-bench-web-gin Validate the Gin adapter benchmark capture contract without running benchmarks' \
 		'  ci          Run the local CI gate'
 
@@ -90,7 +91,15 @@ bench-rules:
 bench-web-gin:
 	@scripts/capture-gin-adapter-benchmark.sh "$(BENCH_COUNT)" "$(BENCH_CPU)"
 
+BENCH_BASELINE ?= docs/research/outputs/issue-543/bench-baseline.json
+BENCH_RESULTS ?= docs/research/outputs/issue-543/bench-results.json
+BENCH_REGRESSION_REPORT ?= docs/research/outputs/issue-543/bench-regression.json
+
+bench-web-gin-regression: bench-web-gin
+	@python3 scripts/compare-gin-adapter-benchmark.py --baseline "$(BENCH_BASELINE)" --candidate "$(BENCH_RESULTS)" --output "$(BENCH_REGRESSION_REPORT)"
+
 check-bench-web-gin:
 	@scripts/capture-gin-adapter-benchmark_test.sh
+	@scripts/compare-gin-adapter-benchmark_test.sh
 
 ci: tidy-check fmt-check vet lint test race check-bench-web-gin

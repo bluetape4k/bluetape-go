@@ -5,6 +5,7 @@ set -euo pipefail
 script_dir=$(cd "$(dirname "$0")" && pwd -P)
 capture_script=$script_dir/capture-gin-adapter-benchmark.sh
 parser=$script_dir/parse-gin-adapter-benchmark.py
+comparator=$script_dir/compare-gin-adapter-benchmark.py
 chart_generator=$(cd "$script_dir/../docs/images/readme-charts" && pwd -P)/generate-gin-adapter-benchmark-summary.mjs
 test_root=$(mktemp -d "${TMPDIR:-/tmp}/capture-gin-adapter-benchmark-test.XXXXXX")
 trap 'rm -rf "$test_root"' EXIT
@@ -39,6 +40,8 @@ write_benchmark_rows() {
     'BenchmarkGinAdapter/Bridge/Parallel-1 1 60 ns/op 6 B/op 1 allocs/op' \
     'BenchmarkGinAdapter/FullAdapter/Serial-1 1 70 ns/op 7 B/op 1 allocs/op' \
     'BenchmarkGinAdapter/FullAdapter/Parallel-1 1 80 ns/op 8 B/op 1 allocs/op' \
+    'BenchmarkGinAdapter/FullAdapterRetry/Serial-1 1 85 ns/op 8 B/op 1 allocs/op' \
+    'BenchmarkGinAdapter/FullAdapterRetry/Parallel-1 1 95 ns/op 9 B/op 1 allocs/op' \
     'BenchmarkGinAdapterColdConstruction-1 1 90 ns/op 9 B/op 1 allocs/op' \
     'BenchmarkGinAdapterColdFirstRequest-1 1 100 ns/op 10 B/op 1 allocs/op' \
     'BenchmarkGinAdapterWarmRequest/Serial-1 1 110 ns/op 11 B/op 1 allocs/op' \
@@ -52,6 +55,7 @@ setup_fixture() {
   mkdir -p "$fixture/repo/scripts" "$fixture/repo/docs/images/readme-charts" "$fixture/bin"
   cp "$capture_script" "$fixture/repo/scripts/capture-gin-adapter-benchmark.sh"
   cp "$parser" "$fixture/repo/scripts/parse-gin-adapter-benchmark.py"
+  cp "$comparator" "$fixture/repo/scripts/compare-gin-adapter-benchmark.py"
   cp "$chart_generator" "$fixture/repo/docs/images/readme-charts/generate-gin-adapter-benchmark-summary.mjs"
   chmod +x "$fixture/repo/scripts/capture-gin-adapter-benchmark.sh" "$fixture/repo/scripts/parse-gin-adapter-benchmark.py"
   cat >"$fixture/bin/go" <<'FAKE_GO'
