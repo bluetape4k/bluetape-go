@@ -53,7 +53,11 @@ compile-checked [`example_test.go`](example_test.go)에 동일한 bootstrap과
   모호한 identity를 선택하지 않도록 fail-closed합니다.
 - `NewRateLimit`은 limiter가 허용한 경우에만 다음 Echo handler를 한 번 호출합니다.
   거부 응답은 `Retry-After`와 `X-RateLimit-Remaining`을 보존하고 backend 오류는
-  안전한 503 Problem으로 반환합니다.
+  안전한 503 Problem으로 반환합니다. custom `ErrorHandler`는 terminal
+  callback이며 status/body 결정과 backend 오류 redaction은 caller의 책임입니다.
+  adapter는 callback 뒤에 nil을 반환하므로 아무 것도 쓰지 않은 callback은 Echo의
+  기본 200 응답을 남길 수 있습니다. 최종 응답을 쓰거나 outer error handler로
+  명시적으로 위임해야 합니다.
 - `NewJWT`는 대소문자를 구분하지 않는 정확히 하나의 `Bearer <token>` header만
   허용합니다. 중복/comma-joined 값, control/whitespace, 8 KiB 초과 token을
   거부합니다. `JWTReader`는 context에 저장한 검증된 `*jwt.Reader`만 반환합니다.
@@ -77,6 +81,11 @@ compile-checked [`example_test.go`](example_test.go)에 동일한 bootstrap과
   status/size bookkeeping을 보존하려면 Echo response method를 사용하고,
   panic을 500으로 넘기려면 `middleware.Recover()`를 가장 바깥 middleware로
   설치합니다.
+
+  rate-limit, JWT, resilience의 custom `ErrorHandler`는 모두 terminal이며
+  caller가 소유합니다. callback은 최종 Echo 응답을 쓰거나 outer error handler로
+  의도적으로 넘겨야 하며, 응답 없이 반환하면 Echo의 기본 200 status가 남을 수
+  있습니다.
 
 ## Migration
 

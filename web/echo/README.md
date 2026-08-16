@@ -54,7 +54,11 @@ bootstrap and a migration example using `echo.WrapHandler`.
 - `NewRateLimit` calls the next Echo handler once only when the limiter allows
   the request. Rejections preserve `Retry-After` and
   `X-RateLimit-Remaining`; backend failures are safe 503 Problems. A custom
-  `ErrorHandler` is caller-owned and must redact any backend error it records.
+  `ErrorHandler` is terminal and caller-owned: it must choose the status/body
+  (and redact any backend error it records). The adapter returns nil after the
+  callback, so a callback that writes nothing can leave Echo's default 200
+  response; write a terminal response or delegate explicitly to the outer
+  error handler.
 - `NewJWT` accepts exactly one case-insensitive `Bearer <token>` header. It
   rejects duplicate/comma-joined values, controls, whitespace, and tokens over
   8 KiB. `JWTReader` returns only the verified `*jwt.Reader` stored in context.
@@ -82,6 +86,11 @@ bootstrap and a migration example using `echo.WrapHandler`.
   retries; prefer Echo's response methods so status and size bookkeeping remain
   available. Install `middleware.Recover()` as the outermost middleware for
   panic-to-500 handling.
+
+  The custom `ErrorHandler` callbacks for rate-limit, JWT, and resilience are
+  terminal and caller-owned. Each callback must write the final Echo response
+  or deliberately hand off to an outer error handler; returning without a
+  response can otherwise leave Echo's default 200 status.
 
 ## Migration
 
