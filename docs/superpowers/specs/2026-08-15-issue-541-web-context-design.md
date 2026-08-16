@@ -69,7 +69,9 @@ func WriteProblem(w http.ResponseWriter, req *http.Request, err error) error
 extension 값은 `encoding/json`이 지원하는 값만 허용하고, JSON 직렬화 실패는
 응답을 시작하기 전에 반환한다. `WriteProblem`은 nil request를 허용하되
 `instance`를 채우지 않고, request가 있으면 `RequestURI`에서 fragment를
-제거하지 않은 원문을 그대로 사용하지 않고 `URL.RequestURI()`를 사용한다.
+제거하지 않은 원문을 그대로 사용하지 않고 query와 fragment를 제외한 URL의
+escaped path를 사용한다. credential-like query 값이 `instance`로 되울려서는
+안 된다.
 zero-value `Problem`이나 `ProblemError`가 반환한 잘못된 status는 writer가
 응답을 시작하기 전에 `ErrInvalidProblem`으로 거부한다. `WriteProblem`에 nil
 error를 전달하는 것도 동일한 입력 오류로 처리한다.

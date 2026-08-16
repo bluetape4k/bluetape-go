@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"net/http"
 	"net/http/httptest"
+	"strings"
 	"testing"
 
 	"github.com/bluetape4k/bluetape-go/web"
@@ -160,11 +161,31 @@ func TestWriteProblem(t *testing.T) {
 		if err := json.Unmarshal(recorder.Body.Bytes(), &body); err != nil {
 			t.Fatalf("response body is not JSON: %v", err)
 		}
-		if body["instance"] != "/orders?x=1" {
-			t.Errorf("instance = %v, want /orders?x=1", body["instance"])
+		if body["instance"] != "/orders" {
+			t.Errorf("instance = %v, want path-only /orders", body["instance"])
 		}
 		if body["alpha"] != true || body["zeta"] != "last" {
 			t.Errorf("extensions = %#v, want alpha and zeta", body)
+		}
+	})
+
+	t.Run("does not echo credential-like query values", func(t *testing.T) {
+		request := httptest.NewRequestWithContext(context.Background(), http.MethodGet,
+			"https://example.test/orders?token=raw-token&password=secret", nil)
+		recorder := httptest.NewRecorder()
+		if err := web.WriteProblem(recorder, request, errors.New("private parser detail")); err != nil {
+			t.Fatalf("WriteProblem() error = %v", err)
+		}
+		body := recorder.Body.String()
+		if strings.Contains(body, "raw-token") || strings.Contains(body, "secret") || strings.Contains(body, "?") {
+			t.Fatalf("problem body = %q, contains query credentials", body)
+		}
+		var decoded map[string]any
+		if err := json.Unmarshal(recorder.Body.Bytes(), &decoded); err != nil {
+			t.Fatalf("response is not JSON: %v", err)
+		}
+		if decoded["instance"] != "/orders" {
+			t.Fatalf("instance = %v, want /orders", decoded["instance"])
 		}
 	})
 

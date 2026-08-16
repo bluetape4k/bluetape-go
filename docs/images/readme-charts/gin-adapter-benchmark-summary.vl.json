@@ -1,0 +1,92 @@
+{
+  "$schema": "https://vega.github.io/schema/vega-lite/v5.json",
+  "title": "Gin adapter benchmark summary",
+  "description": "Median CPU 1 serial latency for Gin adapter fixtures; lower latency is better.",
+  "data": {
+    "values": [
+      {
+        "name": "BenchmarkGinAdapter/NoOp/Serial",
+        "ns_per_op": 825.6
+      },
+      {
+        "name": "BenchmarkGinAdapter/NoOp/Parallel",
+        "ns_per_op": 837.7
+      },
+      {
+        "name": "BenchmarkGinAdapter/DirectCore/Serial",
+        "ns_per_op": 1136
+      },
+      {
+        "name": "BenchmarkGinAdapter/DirectCore/Parallel",
+        "ns_per_op": 1154
+      },
+      {
+        "name": "BenchmarkGinAdapter/Bridge/Serial",
+        "ns_per_op": 1188
+      },
+      {
+        "name": "BenchmarkGinAdapter/Bridge/Parallel",
+        "ns_per_op": 1186
+      },
+      {
+        "name": "BenchmarkGinAdapter/FullAdapter/Serial",
+        "ns_per_op": 5073
+      },
+      {
+        "name": "BenchmarkGinAdapter/FullAdapter/Parallel",
+        "ns_per_op": 5118
+      },
+      {
+        "name": "BenchmarkGinAdapterColdConstruction",
+        "ns_per_op": 634.2
+      },
+      {
+        "name": "BenchmarkGinAdapterColdFirstRequest",
+        "ns_per_op": 8976
+      },
+      {
+        "name": "BenchmarkGinAdapterWarmRequest/Serial",
+        "ns_per_op": 5072
+      },
+      {
+        "name": "BenchmarkGinAdapterWarmRequest/Parallel",
+        "ns_per_op": 5083
+      }
+    ]
+  },
+  "mark": "bar",
+  "encoding": {
+    "y": {
+      "field": "name",
+      "type": "nominal",
+      "sort": "-x"
+    },
+    "x": {
+      "field": "ns_per_op",
+      "type": "quantitative",
+      "title": "ns/op"
+    }
+  },
+  "usermeta": {
+    "metadata": {
+      "benchmark_count": "5",
+      "capture_eligibility": "eligible",
+      "command": "go test -timeout=10m -run \\^\\$ -bench \\^BenchmarkGinAdapter -benchmem -count=5 -cpu=1\\,2\\,4 ./web/gin",
+      "cpu": "1,2,4",
+      "dirty_tree": "false",
+      "fixture_identity": "gin-v1.12.0-parser-only-local",
+      "gin_version": "v1.12.0",
+      "git_sha": "91a41d9632f9f60fda4d28c9a40780d88d28cc4e",
+      "go_version": "go version go1.26.6 darwin/arm64",
+      "goarch": "arm64",
+      "goos": "darwin",
+      "logical_cpus": "10",
+      "max_output_bytes": "10485760",
+      "no_regression": "N/A",
+      "timestamp_utc": "2026-08-16T00:00:44Z"
+    },
+    "metricDirection": "lower is better",
+    "bridgeOverhead": 0.045774647887323945,
+    "fullOverhead": 5.144622093023255
+  }
+}

@@ -95,7 +95,7 @@ context에 연결한다. framework adapter와 middleware conformance는 후속 P
   `WriteProblem`은 표준 필드와 extension key 충돌을 검사하고
   `json.Marshal`을 먼저 수행한 뒤에만 header/status/body를 쓴다. `Content-Type`
   은 정확히 `application/problem+json`으로 설정하고, request가 있으면
-  `URL.RequestURI()`를 instance에 사용한다. nil writer와 nil request의 오류를
+  query와 fragment를 제외한 URL escaped path를 instance에 사용한다. nil writer와 nil request의 오류를
   명확히 반환한다.
 
 - [x] **Step 2: GREEN을 확인한다.**

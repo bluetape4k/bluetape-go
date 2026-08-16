@@ -46,7 +46,7 @@ func TestProblemResponseConformance(t *testing.T) {
 			if err := json.Unmarshal(got.Body, &body); err != nil {
 				t.Fatalf("problem body is not JSON: %v", err)
 			}
-			if body["instance"] != "/orders?x=1" || body["detail"] != "order total is invalid" {
+			if body["instance"] != "/orders" || body["detail"] != "order total is invalid" {
 				t.Fatalf("problem body = %#v, want instance and detail", body)
 			}
 		},

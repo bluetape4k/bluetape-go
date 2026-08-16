@@ -69,7 +69,10 @@ func WriteProblem(w http.ResponseWriter, req *http.Request, err error) error {
 
 	problem := ProblemFromError(err)
 	if problem.Instance == "" && req != nil && req.URL != nil {
-		problem.Instance = req.URL.RequestURI()
+		problem.Instance = req.URL.EscapedPath()
+		if problem.Instance == "" {
+			problem.Instance = "/"
+		}
 	}
 
 	body, marshalErr := marshalProblem(problem)

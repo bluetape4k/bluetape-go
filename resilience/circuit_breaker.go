@@ -236,7 +236,13 @@ func (p *CircuitBreakerPolicy[T]) transitionLocked(next CircuitState, now time.T
 }
 
 func defaultFailurePredicate(err error) bool {
-	if err == nil || errors.Is(err, context.Canceled) {
+	if err == nil {
+		return false
+	}
+	if IsNonRetryable(err) {
+		return true
+	}
+	if errors.Is(err, context.Canceled) {
 		return false
 	}
 	return true
