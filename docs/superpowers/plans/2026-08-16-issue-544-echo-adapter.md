@@ -134,7 +134,9 @@ middleware와 route handler로 연결하고, 문서·CI·PR DoD를 완성한다.
 **Files:**
 
 - Create: `web/echo/conformance_test.go`, `web/echo/example_test.go`
+- Create: `web/echo/benchmark_test.go`
 - Create: `web/echo/README.md`, `web/echo/README.ko.md`
+- Create: `docs/research/outputs/issue-544/README.md`, `bench-output.txt`
 - Modify: `web/README.md`, `web/README.ko.md`, root `README.md`, root `README.ko.md`
 
 - [ ] **Step 1: 공통 conformance를 연결한다.**
@@ -147,10 +149,17 @@ middleware와 route handler로 연결하고, 문서·CI·PR DoD를 완성한다.
   compile-check한다.
 - [ ] **Step 3: 양국 README를 작성한다.**
   install/import, composition order, error/redaction, retry limitation, runbook,
-  migration, verification 명령을 English/Korean source-equivalent로 유지한다.
+  migration, framework boundary difference, request-path benchmark 링크와
+  verification 명령을 English/Korean source-equivalent로 유지한다.
 - [ ] **Step 4: 문서와 source parity를 검증한다.**
   `git diff --check`, 링크/코드 fence 확인, locale diff 검토, examples test를
   다시 실행한다.
+
+- [ ] **Step 5: request-path benchmark evidence를 기록한다.**
+  `BenchmarkEchoAdapter`와 warm request를 CPU `1,2,4`의 serial/parallel 행으로
+  측정하고, command·환경·raw output·요약표·chart·use-case 해석을
+  `docs/research/outputs/issue-544`에 보존한다. startup 비교나 호스트 간 회귀
+  결론은 이 local baseline에서 주장하지 않는다.
 
 ## Task 7: final review와 PR delivery
 
@@ -162,7 +171,9 @@ middleware와 route handler로 연결하고, 문서·CI·PR DoD를 완성한다.
 - [ ] **Step 1: final validation을 순차 실행한다.**
   `go test -count=1 ./web/echo`, `go test -race -count=1 ./web/echo`,
   `go vet ./web/echo`, `make fmt-check`, `make tidy-check`, `make lint`,
-  `make ci`, `git diff --check`를 실행한다.
+  `go test -run '^$' -bench '^BenchmarkEchoAdapter($|WarmRequest$)' -benchtime=100ms
+  -benchmem -count=1 -cpu=1,2,4 ./web/echo`, `make ci`, `git diff --check`를
+  실행한다.
 - [ ] **Step 2: 7-Tier review를 통합한다.**
   performance, stability, security, operator/Ops, developer/API, user/caller
   관점에서 P0/P1을 확인하고 main session에서 중복·문서·release evidence를

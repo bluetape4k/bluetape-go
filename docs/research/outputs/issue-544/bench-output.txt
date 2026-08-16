@@ -1,0 +1,42 @@
+goos: darwin
+goarch: arm64
+pkg: github.com/bluetape4k/bluetape-go/web/echo
+cpu: Apple M5
+BenchmarkEchoAdapter/NoOp/Serial       94580  1414 ns/op  5360 B/op  13 allocs/op
+BenchmarkEchoAdapter/NoOp/Serial-2     98140  1314 ns/op  5360 B/op  13 allocs/op
+BenchmarkEchoAdapter/NoOp/Serial-4     94986  1197 ns/op  5361 B/op  13 allocs/op
+BenchmarkEchoAdapter/NoOp/Parallel     117724  891.9 ns/op  5360 B/op  13 allocs/op
+BenchmarkEchoAdapter/NoOp/Parallel-2   137905  826.1 ns/op  5360 B/op  13 allocs/op
+BenchmarkEchoAdapter/NoOp/Parallel-4   128792  920.8 ns/op  5361 B/op  13 allocs/op
+BenchmarkEchoAdapter/DirectCore/Serial       104042  1145 ns/op  5840 B/op  18 allocs/op
+BenchmarkEchoAdapter/DirectCore/Serial-2     106530  1035 ns/op  5840 B/op  18 allocs/op
+BenchmarkEchoAdapter/DirectCore/Serial-4     114924  1036 ns/op  5841 B/op  18 allocs/op
+BenchmarkEchoAdapter/DirectCore/Parallel     104833  1117 ns/op  5840 B/op  18 allocs/op
+BenchmarkEchoAdapter/DirectCore/Parallel-2   115494  1017 ns/op  5840 B/op  18 allocs/op
+BenchmarkEchoAdapter/DirectCore/Parallel-4   110049  1115 ns/op  5841 B/op  18 allocs/op
+BenchmarkEchoAdapter/Bridge/Serial           95530  1193 ns/op  5952 B/op  19 allocs/op
+BenchmarkEchoAdapter/Bridge/Serial-2         113188  1065 ns/op  5953 B/op  19 allocs/op
+BenchmarkEchoAdapter/Bridge/Serial-4         107828  1012 ns/op  5954 B/op  19 allocs/op
+BenchmarkEchoAdapter/Bridge/Parallel         100642  1163 ns/op  5952 B/op  19 allocs/op
+BenchmarkEchoAdapter/Bridge/Parallel-2       118981  1028 ns/op  5953 B/op  19 allocs/op
+BenchmarkEchoAdapter/Bridge/Parallel-4       119113  973.6 ns/op  5956 B/op  19 allocs/op
+BenchmarkEchoAdapter/FullAdapter/Serial       23944  4936 ns/op  11833 B/op  97 allocs/op
+BenchmarkEchoAdapter/FullAdapter/Serial-2     28005  4139 ns/op  11834 B/op  97 allocs/op
+BenchmarkEchoAdapter/FullAdapter/Serial-4     28729  4157 ns/op  11837 B/op  97 allocs/op
+BenchmarkEchoAdapter/FullAdapter/Parallel     24688  4860 ns/op  11833 B/op  97 allocs/op
+BenchmarkEchoAdapter/FullAdapter/Parallel-2   35990  3291 ns/op  11834 B/op  97 allocs/op
+BenchmarkEchoAdapter/FullAdapter/Parallel-4   46070  2610 ns/op  11839 B/op  97 allocs/op
+BenchmarkEchoAdapter/FullAdapterRetry/Serial      24492  4876 ns/op  11865 B/op  98 allocs/op
+BenchmarkEchoAdapter/FullAdapterRetry/Serial-2    28588  4210 ns/op  11866 B/op  98 allocs/op
+BenchmarkEchoAdapter/FullAdapterRetry/Serial-4    28533  4226 ns/op  11869 B/op  98 allocs/op
+BenchmarkEchoAdapter/FullAdapterRetry/Parallel    24355  4875 ns/op  11865 B/op  98 allocs/op
+BenchmarkEchoAdapter/FullAdapterRetry/Parallel-2  35875  4454 ns/op  11867 B/op  98 allocs/op
+BenchmarkEchoAdapter/FullAdapterRetry/Parallel-4  25449  4547 ns/op  11872 B/op  98 allocs/op
+BenchmarkEchoAdapterWarmRequest/Serial             22924  5152 ns/op  11833 B/op  97 allocs/op
+BenchmarkEchoAdapterWarmRequest/Serial-2           26107  4460 ns/op  11834 B/op  97 allocs/op
+BenchmarkEchoAdapterWarmRequest/Serial-4           27554  4442 ns/op  11837 B/op  97 allocs/op
+BenchmarkEchoAdapterWarmRequest/Parallel           22905  5196 ns/op  11833 B/op  97 allocs/op
+BenchmarkEchoAdapterWarmRequest/Parallel-2         25940  5525 ns/op  11835 B/op  97 allocs/op
+BenchmarkEchoAdapterWarmRequest/Parallel-4         26018  4785 ns/op  11840 B/op  97 allocs/op
+PASS
+ok   github.com/bluetape4k/bluetape-go/web/echo 5.590s
