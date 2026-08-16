@@ -2,8 +2,12 @@ package echoadapter_test
 
 import (
 	"context"
+	"errors"
+	"io"
 	"net/http"
 	"net/http/httptest"
+	"strings"
+	"sync/atomic"
 	"testing"
 
 	"github.com/bluetape4k/bluetape-go/jwt"
@@ -24,25 +28,37 @@ func BenchmarkEchoAdapter(b *testing.B) {
 	b.StartTimer()
 
 	benchmarks := []struct {
-		name    string
-		handler http.Handler
-		token   string
+		name           string
+		handler        http.Handler
+		token          string
+		requestFactory func(string) *http.Request
 	}{
 		{name: "NoOp", handler: fixture.noOp},
 		{name: "DirectCore", handler: fixture.directCore},
 		{name: "Bridge", handler: fixture.bridge},
 		{name: "FullAdapter", handler: fixture.fullAdapter, token: fixture.token},
-		{name: "FullAdapterRetry", handler: fixture.fullAdapterRetry, token: fixture.token},
+		{
+			name:           "FullAdapterRetry",
+			handler:        fixture.fullAdapterRetry,
+			token:          fixture.token,
+			requestFactory: newEchoBenchmarkRetryRequest,
+		},
+		{
+			name:           "ReplayableBody",
+			handler:        fixture.fullAdapterRetry,
+			token:          fixture.token,
+			requestFactory: newEchoBenchmarkBodyRequest,
+		},
 	}
 	for _, benchmark := range benchmarks {
 		benchmark := benchmark
 		b.Run(benchmark.name+"/Serial", func(b *testing.B) {
 			b.ReportAllocs()
-			runEchoSerialBenchmark(b, benchmark.handler, benchmark.token)
+			runEchoSerialBenchmark(b, benchmark.handler, benchmark.token, benchmark.requestFactory)
 		})
 		b.Run(benchmark.name+"/Parallel", func(b *testing.B) {
 			b.ReportAllocs()
-			runEchoParallelBenchmark(b, benchmark.handler, benchmark.token)
+			runEchoParallelBenchmark(b, benchmark.handler, benchmark.token, benchmark.requestFactory)
 		})
 	}
 }
@@ -73,7 +89,7 @@ func BenchmarkEchoAdapterColdFirstRequest(b *testing.B) {
 			b.Fatal(err)
 		}
 		b.StartTimer()
-		status := serveEchoBenchmarkRequest(handler, token)
+		status := serveEchoBenchmarkRequest(handler, token, nil)
 		b.StopTimer()
 		if status != http.StatusNoContent {
 			b.Fatalf("status = %d, want 204", status)
@@ -94,11 +110,11 @@ func BenchmarkEchoAdapterWarmRequest(b *testing.B) {
 	b.StartTimer()
 	b.Run("Serial", func(b *testing.B) {
 		b.ReportAllocs()
-		runEchoSerialBenchmark(b, fixture.fullAdapter, fixture.token)
+		runEchoSerialBenchmark(b, fixture.fullAdapter, fixture.token, nil)
 	})
 	b.Run("Parallel", func(b *testing.B) {
 		b.ReportAllocs()
-		runEchoParallelBenchmark(b, fixture.fullAdapter, fixture.token)
+		runEchoParallelBenchmark(b, fixture.fullAdapter, fixture.token, nil)
 	})
 }
 
@@ -206,10 +222,10 @@ func buildFullEchoAdapterWithPolicies(
 		authentication,
 	)
 	server.GET("/orders", echoadapter.WrapResilience(func(c echo.Context) error {
-		if _, ok := echoadapter.JWTReader(c, ""); !ok {
-			return c.NoContent(http.StatusInternalServerError)
-		}
-		return c.NoContent(http.StatusNoContent)
+		return serveEchoBenchmarkRoute(c, false)
+	}, echoadapter.ResilienceOptions{Policies: policies}))
+	server.POST("/orders", echoadapter.WrapResilience(func(c echo.Context) error {
+		return serveEchoBenchmarkRoute(c, true)
 	}, echoadapter.ResilienceOptions{Policies: policies}))
 	return server, nil
 }
@@ -222,30 +238,85 @@ func newEchoBenchmarkRequest(token string) *http.Request {
 	return request
 }
 
-func runEchoSerialBenchmark(b *testing.B, handler http.Handler, token string) {
+func newEchoBenchmarkRetryRequest(token string) *http.Request {
+	request := httptest.NewRequestWithContext(
+		context.WithValue(context.Background(), echoBenchmarkRetryStateKey{}, &echoBenchmarkRetryState{}),
+		http.MethodGet,
+		echoBenchmarkRequestURL,
+		nil,
+	)
+	if token != "" {
+		request.Header.Set("Authorization", "Bearer "+token)
+	}
+	return request
+}
+
+func newEchoBenchmarkBodyRequest(token string) *http.Request {
+	const payload = "benchmark-payload"
+	request := httptest.NewRequestWithContext(
+		context.WithValue(context.Background(), echoBenchmarkRetryStateKey{}, &echoBenchmarkRetryState{}),
+		http.MethodPost,
+		echoBenchmarkRequestURL,
+		strings.NewReader(payload),
+	)
+	request.GetBody = func() (io.ReadCloser, error) {
+		return io.NopCloser(strings.NewReader(payload)), nil
+	}
+	if token != "" {
+		request.Header.Set("Authorization", "Bearer "+token)
+	}
+	return request
+}
+
+func serveEchoBenchmarkRoute(c echo.Context, bodyRequired bool) error {
+	if _, ok := echoadapter.JWTReader(c, ""); !ok {
+		return c.NoContent(http.StatusInternalServerError)
+	}
+	if bodyRequired {
+		body, err := io.ReadAll(c.Request().Body)
+		if err != nil || string(body) != "benchmark-payload" {
+			return errors.New("benchmark request body was not replayed")
+		}
+	}
+	if state, _ := c.Request().Context().Value(echoBenchmarkRetryStateKey{}).(*echoBenchmarkRetryState); state != nil && state.attempts.Add(1) == 1 {
+		return errors.New("benchmark transient route failure")
+	}
+	return c.NoContent(http.StatusNoContent)
+}
+
+type echoBenchmarkRetryState struct {
+	attempts atomic.Int32
+}
+
+type echoBenchmarkRetryStateKey struct{}
+
+func runEchoSerialBenchmark(b *testing.B, handler http.Handler, token string, requestFactory func(string) *http.Request) {
 	b.Helper()
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
-		if status := serveEchoBenchmarkRequest(handler, token); status != http.StatusNoContent {
+		if status := serveEchoBenchmarkRequest(handler, token, requestFactory); status != http.StatusNoContent {
 			b.Fatalf("status = %d, want 204", status)
 		}
 	}
 }
 
-func runEchoParallelBenchmark(b *testing.B, handler http.Handler, token string) {
+func runEchoParallelBenchmark(b *testing.B, handler http.Handler, token string, requestFactory func(string) *http.Request) {
 	b.Helper()
 	b.RunParallel(func(pb *testing.PB) {
 		for pb.Next() {
-			if status := serveEchoBenchmarkRequest(handler, token); status != http.StatusNoContent {
+			if status := serveEchoBenchmarkRequest(handler, token, requestFactory); status != http.StatusNoContent {
 				b.Errorf("status = %d, want 204", status)
 			}
 		}
 	})
 }
 
-func serveEchoBenchmarkRequest(handler http.Handler, token string) int {
+func serveEchoBenchmarkRequest(handler http.Handler, token string, requestFactory func(string) *http.Request) int {
 	recorder := httptest.NewRecorder()
-	handler.ServeHTTP(recorder, newEchoBenchmarkRequest(token))
+	if requestFactory == nil {
+		requestFactory = newEchoBenchmarkRequest
+	}
+	handler.ServeHTTP(recorder, requestFactory(token))
 	return recorder.Code
 }
 
