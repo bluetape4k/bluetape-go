@@ -99,8 +99,13 @@ case "$resolved_chart" in
     ;;
 esac
 
+# canonical evidence 파일은 capture가 자체 갱신하므로 source cleanliness 판정에서 제외한다.
 dirty=$(git status --porcelain=v1 --untracked-files=all -- . \
-  ":(exclude)$output_rel" ":(exclude)$output_rel/**")
+  ":(exclude)$output_rel" ":(exclude)$output_rel/**" \
+  ":(exclude)docs/images/readme-charts/gin-adapter-benchmark-summary.png" \
+  ":(exclude)docs/images/readme-charts/gin-adapter-benchmark-summary.svg" \
+  ":(exclude)docs/images/readme-charts/gin-adapter-benchmark-summary.vl.json" \
+  ":(exclude)docs/research/2026-08-16-issue-543-gin-adapter-benchmark.md")
 if [ -n "$dirty" ]; then
   dirty_tree=true
   capture_eligibility=N/A

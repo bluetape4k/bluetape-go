@@ -32,7 +32,11 @@
    `capture_eligibility=eligible`로 표시하되, 비교 baseline SHA가 없으면
    숫자를 근거로 회귀 없음이라고 주장하지 않고 `no_regression=N/A`로
    기록한다. dirty tree capture도 같은 규칙을 따른다.
-8. **문서 언어와 API 문서 규칙을 검증한다.** public README는 한국어/영어
+8. **capture 산출물은 source cleanliness에서 분리한다.** canonical raw,
+   parsed, chart, environment와 해당 report는 capture가 갱신하는 evidence이므로
+   dirty-tree 판정에서 제외한다. 대신 코드·설정·테스트의 변경은 계속
+   `capture_eligibility=N/A`를 만든다.
+9. **문서 언어와 API 문서 규칙을 검증한다.** public README는 한국어/영어
    parity를 유지하고, Go exported identifier doc은 lint가 인식할 수 있도록
    identifier로 시작한 뒤 한국어 설명을 둔다. `revive`, `noctx`가 요구하는
    context 전달과 오류 원인 비교(`errors.Is`)도 테스트 코드까지 적용한다.
