@@ -83,7 +83,8 @@ closure를 재사용하지 마세요.
   dial target을 거부하고 환경 proxy를 사용하지 않으며 response header를
   64 KiB로 제한하고 redirect를 따라가지 않습니다. HTTP endpoint는
   test/development 예외로 loopback IP literal을 허용하지만 HTTPS loopback
-  literal과 DNS 결과는 계속 차단합니다.
+  literal과 DNS 결과는 계속 차단합니다. 전역 transport의 TLS/dial hook도
+  상속하지 않습니다.
 - `WithHTTPClient`를 사용하면 TLS 검증, proxy, DNS/dial, redirect, allowlist 정책을
   caller가 책임집니다. caller가 의도하고 문서화한 경우가 아니면
   `InsecureSkipVerify`를 사용하지 마세요. custom `RoundTripper`는 request와

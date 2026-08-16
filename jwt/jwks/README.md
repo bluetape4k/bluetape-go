@@ -84,7 +84,8 @@ its context has been cancelled.
   other non-global dial targets, disables environment proxies, and caps
   response headers at 64 KiB. Redirects are not followed. HTTP endpoints may
   use a loopback IP literal as the test/development exception; HTTPS loopback
-  literals and DNS results remain blocked.
+  literals and DNS results remain blocked. Global transport TLS/dial hooks are
+  not inherited.
 - `WithHTTPClient` transfers TLS verification, proxy, DNS/dial, redirect, and
   allowlist policy to the caller. Do not use `InsecureSkipVerify` unless that
   trust decision is intentional and documented by the caller. A custom

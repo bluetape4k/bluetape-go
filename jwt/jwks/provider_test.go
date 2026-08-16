@@ -2,6 +2,7 @@ package jwks
 
 import (
 	"context"
+	"crypto/tls"
 	"errors"
 	"net"
 	"net/http"
@@ -51,6 +52,26 @@ func TestDefaultHTTPClientDisablesProxyAndBoundsHeaders(t *testing.T) {
 	}
 	if got, want := transport.MaxResponseHeaderBytes, int64(64<<10); got != want {
 		t.Fatalf("MaxResponseHeaderBytes = %d, want %d", got, want)
+	}
+}
+
+func TestDefaultHTTPClientDoesNotInheritGlobalTLSHooks(t *testing.T) {
+	originalTransport := http.DefaultTransport
+	t.Cleanup(func() { http.DefaultTransport = originalTransport })
+	http.DefaultTransport = &http.Transport{
+		DialTLSContext: func(context.Context, string, string) (net.Conn, error) {
+			return nil, errors.New("unexpected global TLS dial hook")
+		},
+		TLSClientConfig: &tls.Config{MinVersion: tls.VersionTLS13},
+		TLSNextProto:    map[string]func(string, *tls.Conn) http.RoundTripper{},
+	}
+
+	transport, ok := defaultHTTPClient(false).Transport.(*http.Transport)
+	if !ok {
+		t.Fatalf("default transport type = %T", defaultHTTPClient(false).Transport)
+	}
+	if transport.DialTLSContext != nil || transport.DialTLS != nil || transport.TLSClientConfig != nil || transport.TLSNextProto != nil { //nolint:staticcheck // inspect legacy hook for global transport isolation
+		t.Fatalf("default client inherited global TLS hooks: %#v", transport)
 	}
 }
 

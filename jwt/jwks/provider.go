@@ -393,6 +393,10 @@ func defaultHTTPClient(allowLoopback bool) *http.Client {
 		transport = (&http.Transport{}).Clone()
 	}
 	transport.Proxy = nil
+	transport.DialTLSContext = nil
+	transport.DialTLS = nil //nolint:staticcheck // clear a legacy hook inherited from a mutated global transport
+	transport.TLSClientConfig = nil
+	transport.TLSNextProto = nil
 	transport.MaxResponseHeaderBytes = defaultMaxHeaderSize
 	transport.DialContext = restrictedDialContext
 	if allowLoopback {
