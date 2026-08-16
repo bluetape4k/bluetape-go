@@ -70,6 +70,20 @@ route에는 `WrapResilience`를 적용하고 `RequestContext`, `NewRateLimit`, `
 필요한 middleware만 선택합니다. 이 adapter는 global logger, framework abstraction,
 Fiber 지원을 추가하지 않습니다.
 
+## Framework 경계 차이
+
+`net/http` core는 `http.ResponseWriter`에 직접 쓰고 handler 오류를 호출자에게
+반환합니다. Echo handler는 `error`를 반환하고 `echo.Context` store와
+`Response().Committed`를 노출하므로, 이 adapter는 middleware가 거부한 요청을
+Echo chain에서 중단하고 이미 commit된 응답을 덮어쓰지 않습니다. Gin adapter는
+Gin의 abort/index와 writer 상태를 사용하므로 Gin 전용 abort 동작을 Echo에서
+암묵적으로 재현하지 않습니다. 바깥 Echo 경계에서 framework-native 오류 처리를
+유지하고 기존 `http.Handler` route에는 `echo.WrapHandler`를 사용합니다.
+
+request-path benchmark 근거는
+[`docs/research/outputs/issue-544`](../../docs/research/outputs/issue-544/README.md)에
+기록했습니다.
+
 ## 검증
 
 ```bash

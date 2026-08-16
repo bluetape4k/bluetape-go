@@ -16,7 +16,8 @@ Echo 애플리케이션에서 사용할 수 있는 얇은 adapter로 연결한�
 - 의존성 확인: `github.com/labstack/echo/v4` 최신 확인 버전 `v4.15.4`,
   module `go 1.25.0`; repository는 `go 1.26.3`이므로 호환된다.
 - 포함: Echo adapter package, 직접 의존성, 단위/conformance/race/example 테스트,
-  package README 두 locale와 web README 연결.
+  request-path benchmark, package README 두 locale와 web README 연결, benchmark
+  raw output·요약표·chart·use-case 분석 artifact.
 - 제외: Fiber adapter, 일반 framework abstraction, JWKS provider(#545),
   core `web`/`jwt`/`ratelimit`/`resilience` API 변경.
 
@@ -76,6 +77,9 @@ store mutation을 수행한 뒤 오류를 반환하는 경우 commit 또는 non-
 - Echo-specific 테스트로 `Committed`, handler once-only, `JWTReader`, path/params,
   error callback request redaction, outer Echo HTTP error handler 경계를 검증한다.
 - compile-checked `Example`/`Example_migration`을 제공한다.
+- request-path benchmark는 context extraction, rate-limit, JWT, RFC 9457 Problem,
+  resilience hook 조합의 local baseline을 serial/parallel CPU matrix로 기록하고,
+  startup 시간이나 서로 다른 호스트의 수치를 framework 승패로 해석하지 않는다.
 - `go test -count=1 ./web/echo`, `go test -race -count=1 ./web/echo`,
   `go vet ./web/echo`, formatter/lint, `git diff --check`, README locale parity,
   `make ci`와 PR CI를 통과한다.

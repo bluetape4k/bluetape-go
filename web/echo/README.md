@@ -70,6 +70,19 @@ routes can use `WrapResilience` while `RequestContext`, `NewRateLimit`, and
 `NewJWT` remain optional middleware. The adapter does not add a global logger,
 framework abstraction, or Fiber support.
 
+## Framework boundary differences
+
+The `net/http` core writes directly to `http.ResponseWriter` and returns handler
+errors to its caller. Echo handlers return `error`, expose `echo.Context` storage,
+and track `Response().Committed`; this adapter stops the Echo chain on rejected
+middleware and never overwrites a committed response. The Gin adapter uses Gin's
+abort/index and writer state instead, so Gin-specific abort behavior is not
+silently reproduced in Echo. Keep framework-native error handling at the outer
+Echo boundary and use `echo.WrapHandler` for legacy `http.Handler` routes.
+
+Request-path benchmark evidence is tracked in
+[`docs/research/outputs/issue-544`](../../docs/research/outputs/issue-544/README.md).
+
 ## Verification
 
 ```bash
