@@ -38,7 +38,7 @@ func TestGinAdapterConformance(t *testing.T) {
 					t.Fatalf("Content-Type = %q, want application/problem+json", got.Header.Get("Content-Type"))
 				}
 				var body map[string]any
-				if err := json.Unmarshal(got.Body, &body); err != nil || body["instance"] != "/orders?x=1" {
+				if err := json.Unmarshal(got.Body, &body); err != nil || body["instance"] != "/orders" {
 					t.Fatalf("problem body = %q, want RFC 9457 instance", got.Body)
 				}
 			},
@@ -183,6 +183,29 @@ func TestGinSpecificConformanceContracts(t *testing.T) {
 		router.ServeHTTP(recorder, conformanceRequestFactory(context.Background()))
 		if recorder.Code != http.StatusTooManyRequests || downstreamCalls != 0 || !aborted || !written {
 			t.Fatalf("response = (%d, downstream=%d, aborted=%t, written=%t), want 429/0/true/true", recorder.Code, downstreamCalls, aborted, written)
+		}
+	})
+
+	t.Run("resilience preserves c.Errors causes without metadata", func(t *testing.T) {
+		routeErr := errors.New("private route detail")
+		var observed []*gin.Error
+		router := gin.New()
+		router.Use(func(c *gin.Context) {
+			c.Next()
+			observed = append([]*gin.Error(nil), c.Errors...)
+		})
+		router.GET("/errors", ginadapter.WrapResilience(func(c *gin.Context) {
+			entry := c.Error(routeErr)
+			_ = entry.SetMeta("private")
+		}, ginadapter.ResilienceOptions{}))
+
+		recorder := httptest.NewRecorder()
+		router.ServeHTTP(recorder, httptest.NewRequestWithContext(context.Background(), http.MethodGet, "http://example.test/errors", nil))
+		if recorder.Code != http.StatusServiceUnavailable || len(observed) != 2 {
+			t.Fatalf("response = (%d, errors=%d), want 503 and two sanitized errors", recorder.Code, len(observed))
+		}
+		if observed[0].Meta != nil || !errors.Is(observed[0].Err, routeErr) {
+			t.Fatalf("first observed error = %#v, want cause-preserving error without metadata", observed[0])
 		}
 	})
 

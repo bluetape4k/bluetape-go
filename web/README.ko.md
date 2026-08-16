@@ -40,7 +40,8 @@ func handler(w http.ResponseWriter, r *http.Request) {
 
 `WriteProblem`은 status와 extension key를 검증하고 body를 status 쓰기 전에
 직렬화합니다. 성공하면 정확히 `application/problem+json` media type을 설정하고,
-request가 있으면 `URL.RequestURI()`를 `instance`로 사용합니다. nil request에서는
+request가 있으면 query와 fragment를 제외한 URL의 escaped path를 `instance`로
+사용해 credential-like query 값이 응답에 되울리지 않게 합니다. nil request에서는
 `instance`를 비워 두며, nil error 또는 writer는 `web.ErrInvalidProblem`을
 반환합니다.
 

@@ -22,20 +22,30 @@ compile-checked fixture입니다. 일반적인 조합 순서는 recovery, reques
 rate limit, authentication, route-level resilience wrapper입니다.
 
 ```go
+import (
+    "net/http"
+
+    "github.com/bluetape4k/bluetape-go/jwt"
+    "github.com/bluetape4k/bluetape-go/ratelimit"
+    "github.com/bluetape4k/bluetape-go/web"
+    ginadapter "github.com/bluetape4k/bluetape-go/web/gin"
+    "github.com/gin-gonic/gin"
+)
+
 func buildRouter() (*gin.Engine, error) {
-provider, err := jwt.NewFixedHMACProvider(jwt.HS256, []byte("0123456789abcdef0123456789abcdef"))
-if err != nil { return nil, err }
-limiter, err := ratelimit.New(ratelimit.Options{RatePerSecond: 10, Burst: 10})
-if err != nil { return nil, err }
-rateLimit, err := ginadapter.NewRateLimit(ginadapter.RateLimitOptions{Limiter: limiter})
-if err != nil { return nil, err }
-authentication, err := ginadapter.NewJWT(ginadapter.JWTOptions{Parser: provider})
-if err != nil { return nil, err }
-router := gin.New()
-router.Use(gin.Recovery(), ginadapter.RequestContext(web.RequestContextOptions{}), rateLimit, authentication)
-handler := func(c *gin.Context) { c.Status(http.StatusNoContent) }
-router.GET("/orders", ginadapter.WrapResilience(handler, ginadapter.ResilienceOptions{}))
-return router, nil
+    provider, err := jwt.NewFixedHMACProvider(jwt.HS256, []byte("0123456789abcdef0123456789abcdef"))
+    if err != nil { return nil, err }
+    limiter, err := ratelimit.New(ratelimit.Options{RatePerSecond: 10, Burst: 10})
+    if err != nil { return nil, err }
+    rateLimit, err := ginadapter.NewRateLimit(ginadapter.RateLimitOptions{Limiter: limiter})
+    if err != nil { return nil, err }
+    authentication, err := ginadapter.NewJWT(ginadapter.JWTOptions{Parser: provider})
+    if err != nil { return nil, err }
+    router := gin.New()
+    router.Use(gin.Recovery(), ginadapter.RequestContext(web.RequestContextOptions{}), rateLimit, authentication)
+    handler := func(c *gin.Context) { c.Status(http.StatusNoContent) }
+    router.GET("/orders", ginadapter.WrapResilience(handler, ginadapter.ResilienceOptions{}))
+    return router, nil
 }
 ```
 
@@ -66,6 +76,8 @@ return router, nil
 1. **Preflight** — rollout 전에 example smoke test와 package 검사를 실행합니다.
 
    ```bash
+   git rev-parse --show-toplevel
+   # 기대: bluetape-go repository root
    go test -run 'Example(Bootstrap|Migration)$' ./web/gin
    go test ./web/gin
    go test -race ./web/gin
@@ -87,19 +99,25 @@ return router, nil
    # 기대: valid token은 2xx, missing/invalid token은 redacted 401
    curl -i https://service.example/orders
    # 기대: token/parser detail 없는 401 application/problem+json
+   curl -i --max-time 2 https://service.example/orders
+   # server가 cancellation을 관찰하면 기대: 408 application/problem+json과
+   # bounded "Request canceled" body; deadline은 504로 매핑됩니다.
    ```
 
 3. **Observe** — callback은 `adapter`, `kind`, `status`, `committed`,
    `request_id`, `duration`만 emit합니다. 해당 middleware 결정 이후
    `c.IsAborted()`, `c.Writer.Written()`, `AuthenticationError.Kind`를
    기록합니다. Authorization header, raw token, raw parser/backend error는
-   기록하지 않습니다. callback request copy도 이미 redacted 상태입니다.
+   기록하지 않습니다. JWT error handler에는 sanitized request 복사본이
+   전달됩니다. Rate-limit과 resilience callback에는 caller-owned Gin
+   context/request가 전달되고 custom handler에는 원래 error도 전달되므로,
+   logging 전에 해당 값을 sanitize해야 합니다.
 
    | callback | 시점 | 필드 |
    | --- | --- | --- |
-   | rate-limit error handler | abort 이후, response 반환 전 | adapter, kind, status, committed, request_id, duration |
+   | rate-limit error handler | abort 이후, response 반환 전; caller-owned request/error를 sanitize | adapter, kind, status, committed, request_id, duration |
    | JWT error handler | abort 및 sanitized request copy 이후 | adapter, kind, status, committed, request_id, duration |
-   | resilience error handler | policy 결과 이후, uncommitted Problem 기록 전 | adapter, kind, status, committed, request_id, duration |
+   | resilience error handler | policy 결과 이후, uncommitted Problem 기록 전; caller-owned context/error를 sanitize | adapter, kind, status, committed, request_id, duration |
 
 4. **Rollback** — raw token/parser error가 관찰되거나 canary error budget을
    넘으면 adapter middleware를 제거하고 이전 `net/http` 경로로 복원합니다.
@@ -111,10 +129,11 @@ return router, nil
 
 ## Migration 형태
 
-이전에는 기존 `http.Handler`를 Gin router에 직접 등록하거나 `net/http` 경로로
-serve합니다. 이후에는 handler 본문을 유지한 채 route를 `WrapResilience`로
-감싸고, 위 bootstrap 순서에 `RequestContext`, `NewJWT`, `NewRateLimit`을
-추가합니다. `ExampleMigration`이 이 before/after 경계를 compile-checked
+이전에는 기존 `http.Handler`를 `net/http` 경로에서 serve하고, Gin 뒤에 유지해야
+하면 `gin.WrapH(handler)`(또는 동등한 framework bridge)로 연결합니다. 이후에는
+handler 본문을 유지한 채 새 Gin route를 `WrapResilience`로 감싸고, 위 bootstrap
+순서에 `RequestContext`, `NewJWT`, `NewRateLimit`을 추가합니다.
+`ExampleMigration`이 `gin.WrapH` bridge와 adapter 경로를 모두 compile-checked
 형태로 보여 줍니다.
 
 ## 검증

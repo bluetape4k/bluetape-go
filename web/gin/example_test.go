@@ -31,6 +31,15 @@ func ExampleBootstrap() {
 }
 
 func ExampleMigration() {
+	legacy := http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+		w.WriteHeader(http.StatusNoContent)
+	})
+	legacyRouter := gin.New()
+	legacyRouter.GET("/legacy", gin.WrapH(legacy))
+	legacyRequest := httptest.NewRequestWithContext(context.Background(), http.MethodGet, "http://example.test/legacy", nil)
+	legacyRecorder := httptest.NewRecorder()
+	legacyRouter.ServeHTTP(legacyRecorder, legacyRequest)
+
 	router, token, err := exampleRouter()
 	if err != nil {
 		panic(err)
@@ -41,10 +50,10 @@ func ExampleMigration() {
 	recorder := httptest.NewRecorder()
 	router.ServeHTTP(recorder, req)
 
-	fmt.Println(recorder.Code)
+	fmt.Println(legacyRecorder.Code, recorder.Code)
 
 	// Output:
-	// 204
+	// 204 204
 }
 
 func exampleRouter() (*gin.Engine, string, error) {

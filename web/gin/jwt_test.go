@@ -395,11 +395,13 @@ func TestNewJWTRejectsReaderWhenContextIsCanceledAfterParserReturns(t *testing.T
 
 func TestNewJWTCopiesParseOptionsAndRejectsTypedNilParser(t *testing.T) {
 	var typedNil *fakeJWTParser
+	var typedNilContextParser contextJWTParserFunc
 	for name, options := range map[string]ginadapter.JWTOptions{
-		"none":       {},
-		"both":       {Parser: &fakeJWTParser{}, ContextParser: contextJWTParserFunc(func(context.Context, string, ...jwt.ParseOption) (*jwt.Reader, error) { return nil, nil })},
-		"typed nil":  {Parser: typedNil},
-		"nil option": {Parser: &fakeJWTParser{}, ParseOptions: []jwt.ParseOption{nil}},
+		"none":                     {},
+		"both":                     {Parser: &fakeJWTParser{}, ContextParser: contextJWTParserFunc(func(context.Context, string, ...jwt.ParseOption) (*jwt.Reader, error) { return nil, nil })},
+		"typed nil":                {Parser: typedNil},
+		"typed nil context parser": {ContextParser: typedNilContextParser},
+		"nil option":               {Parser: &fakeJWTParser{}, ParseOptions: []jwt.ParseOption{nil}},
 	} {
 		t.Run(name, func(t *testing.T) {
 			if _, err := ginadapter.NewJWT(options); err == nil {
@@ -429,6 +431,34 @@ func TestNewJWTCopiesParseOptionsAndRejectsTypedNilParser(t *testing.T) {
 	router.ServeHTTP(recorder, req)
 	if recorder.Code != http.StatusNoContent {
 		t.Fatalf("status = %d, want 204", recorder.Code)
+	}
+}
+
+func TestNewJWTNormalizesTypedNilContextParserBeforeRequest(t *testing.T) {
+	gin.SetMode(gin.TestMode)
+	var typedNil contextJWTParserFunc
+	parser := &fakeJWTParser{parse: func(token string, _ ...jwt.ParseOption) (*jwt.Reader, error) {
+		if token != "token" {
+			t.Fatalf("parser token = %q, want token", token)
+		}
+		return new(jwt.Reader), nil
+	}}
+	middleware, err := ginadapter.NewJWT(ginadapter.JWTOptions{
+		Parser:        parser,
+		ContextParser: typedNil,
+	})
+	if err != nil {
+		t.Fatalf("NewJWT() error = %v", err)
+	}
+	router := gin.New()
+	router.Use(middleware)
+	router.GET("/orders", func(c *gin.Context) { c.Status(http.StatusNoContent) })
+	req := httptest.NewRequestWithContext(context.Background(), http.MethodGet, "http://example.test/orders", nil)
+	req.Header.Set("Authorization", "Bearer token")
+	recorder := httptest.NewRecorder()
+	router.ServeHTTP(recorder, req)
+	if recorder.Code != http.StatusNoContent {
+		t.Fatalf("status = %d, want 204 without typed-nil ContextParser panic", recorder.Code)
 	}
 }
 

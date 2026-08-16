@@ -94,7 +94,7 @@
 
 - [x] web/gin/jwt.go에 NewJWT(options JWTOptions) (gin.HandlerFunc, error)를 구현한다. parser와 parse options를 생성 시 검증하고 context key/header/scheme 기본값을 적용한다.
 - [x] Authorization header는 정확히 하나만 허용한다. comma-joined 또는 duplicate header, Bearer 이외 scheme, 빈 token, control character, 8 KiB 초과 token을 거부한다.
-- [x] constructor에서 ParseOptions slice를 방어적으로 복사하고 nil option을 거부한다. ContextParser가 설정되면 ParseContext(context.Context, string, ...jwt.ParseOption)를 사용하고, strict cancellation 경로에서는 이를 요구한다. 기존 Parser는 ContextParser와 동시에 설정할 수 없다. typed-nil 두 parser interface도 거부한다.
+- [x] constructor에서 ParseOptions slice를 방어적으로 복사하고 nil option을 거부한다. ContextParser가 설정되면 ParseContext(context.Context, string, ...jwt.ParseOption)를 사용하고, strict cancellation 경로에서는 이를 요구한다. 기존 Parser는 ContextParser와 동시에 설정할 수 없다. typed-nil parser interface는 nil로 정규화해 정확히 하나의 실 parser만 선택하며, 둘 다 nil인 경우는 거부한다.
 - [x] legacy Parse만 있는 경우 pre/post ctx.Err()를 확인하는 best-effort 경로로 명시하고, blocking parser 취소 뒤 bounded return과 goroutine 잔류 없음은 context-capable parser 경로에서 검증한다. 취소/마감은 JWTErrorCanceled로 분류한다.
 - [x] 성공 시 raw token이 아니라 reader만 context key에 저장하고 JWTReader로 읽는다. parser error와 token은 callback/response에 노출하지 않는다. callback에 전달하는 request 복사본에서는 Authorization header를 제거해 callback이 raw token을 읽을 수 없도록 한다.
 - [x] web/gin/jwt_test.go에 성공 reader storage, missing/malformed/multiple header, invalid/expired token, cancellation/deadline, context-aware parser, legacy parser, custom ErrorHandler, parser nil/options invalid, option-slice mutation, callback header redaction, downstream isolation 테스트를 추가한다.

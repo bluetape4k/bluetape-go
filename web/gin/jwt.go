@@ -48,7 +48,13 @@ func NewJWT(options JWTOptions) (gin.HandlerFunc, error) {
 
 	parseOptions := append([]jwt.ParseOption(nil), options.ParseOptions...)
 	parser := options.Parser
+	if isNilInterface(parser) {
+		parser = nil
+	}
 	contextParser := options.ContextParser
+	if isNilInterface(contextParser) {
+		contextParser = nil
+	}
 
 	return func(c *gin.Context) {
 		if c == nil {

@@ -40,8 +40,10 @@ func handler(w http.ResponseWriter, r *http.Request) {
 
 `WriteProblem` validates status and extension keys, serializes the body before
 writing the status, sets the exact `application/problem+json` media type, and
-uses `URL.RequestURI()` for `instance` when a request is present. A nil request
-leaves `instance` empty; a nil error or writer returns `web.ErrInvalidProblem`.
+uses the URL's escaped path (without query or fragment) for `instance` when a
+request is present, so credential-like query values are never echoed. A nil
+request leaves `instance` empty; a nil error or writer returns
+`web.ErrInvalidProblem`.
 
 ## Request context
 

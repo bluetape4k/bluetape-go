@@ -22,20 +22,30 @@ composition order is recovery, request context, rate limit, authentication,
 and a route-level resilience wrapper:
 
 ```go
+import (
+    "net/http"
+
+    "github.com/bluetape4k/bluetape-go/jwt"
+    "github.com/bluetape4k/bluetape-go/ratelimit"
+    "github.com/bluetape4k/bluetape-go/web"
+    ginadapter "github.com/bluetape4k/bluetape-go/web/gin"
+    "github.com/gin-gonic/gin"
+)
+
 func buildRouter() (*gin.Engine, error) {
-provider, err := jwt.NewFixedHMACProvider(jwt.HS256, []byte("0123456789abcdef0123456789abcdef"))
-if err != nil { return nil, err }
-limiter, err := ratelimit.New(ratelimit.Options{RatePerSecond: 10, Burst: 10})
-if err != nil { return nil, err }
-rateLimit, err := ginadapter.NewRateLimit(ginadapter.RateLimitOptions{Limiter: limiter})
-if err != nil { return nil, err }
-authentication, err := ginadapter.NewJWT(ginadapter.JWTOptions{Parser: provider})
-if err != nil { return nil, err }
-router := gin.New()
-router.Use(gin.Recovery(), ginadapter.RequestContext(web.RequestContextOptions{}), rateLimit, authentication)
-handler := func(c *gin.Context) { c.Status(http.StatusNoContent) }
-router.GET("/orders", ginadapter.WrapResilience(handler, ginadapter.ResilienceOptions{}))
-return router, nil
+    provider, err := jwt.NewFixedHMACProvider(jwt.HS256, []byte("0123456789abcdef0123456789abcdef"))
+    if err != nil { return nil, err }
+    limiter, err := ratelimit.New(ratelimit.Options{RatePerSecond: 10, Burst: 10})
+    if err != nil { return nil, err }
+    rateLimit, err := ginadapter.NewRateLimit(ginadapter.RateLimitOptions{Limiter: limiter})
+    if err != nil { return nil, err }
+    authentication, err := ginadapter.NewJWT(ginadapter.JWTOptions{Parser: provider})
+    if err != nil { return nil, err }
+    router := gin.New()
+    router.Use(gin.Recovery(), ginadapter.RequestContext(web.RequestContextOptions{}), rateLimit, authentication)
+    handler := func(c *gin.Context) { c.Status(http.StatusNoContent) }
+    router.GET("/orders", ginadapter.WrapResilience(handler, ginadapter.ResilienceOptions{}))
+    return router, nil
 }
 ```
 
@@ -68,6 +78,8 @@ are accepted only when the caller's `TrustedProxy` predicate returns true.
    rollout:
 
    ```bash
+   git rev-parse --show-toplevel
+   # expected: the bluetape-go repository root
    go test -run 'Example(Bootstrap|Migration)$' ./web/gin
    go test ./web/gin
    go test -race ./web/gin
@@ -91,19 +103,25 @@ are accepted only when the caller's `TrustedProxy` predicate returns true.
    # expected: 2xx for a valid token; missing/invalid token is a redacted 401
    curl -i https://service.example/orders
    # expected: 401 application/problem+json without token/parser detail
+   curl -i --max-time 2 https://service.example/orders
+   # expected when the server observes cancellation: 408 application/problem+json
+   # with a bounded "Request canceled" body; a deadline maps to 504 instead
    ```
 
 3. **Observe** — callbacks emit exactly `adapter`, `kind`, `status`,
    `committed`, `request_id`, and `duration`. Record `c.IsAborted()`,
    `c.Writer.Written()`, and `AuthenticationError.Kind` after the relevant
    middleware decision. Never record Authorization headers, raw tokens, or raw
-   parser/backend errors. The callback request copy is already redacted.
+   parser/backend errors. The JWT error handler receives a sanitized request
+   copy. Rate-limit and resilience callbacks receive caller-owned Gin
+   context/request and, for custom handlers, the original error; sanitize those
+   values before logging.
 
    | callback | timing | fields |
    | --- | --- | --- |
-   | rate-limit error handler | after abort, before response is returned | adapter, kind, status, committed, request_id, duration |
+   | rate-limit error handler | after abort, before response is returned; sanitize caller-owned request/error | adapter, kind, status, committed, request_id, duration |
    | JWT error handler | after abort and sanitized request copy | adapter, kind, status, committed, request_id, duration |
-   | resilience error handler | after policy result, before an uncommitted Problem is written | adapter, kind, status, committed, request_id, duration |
+   | resilience error handler | after policy result, before an uncommitted Problem is written; sanitize caller-owned context/error | adapter, kind, status, committed, request_id, duration |
 
 4. **Rollback** — if a raw token/parser error is observed, or the canary
    breaches its error budget, remove the adapter middleware and restore the
@@ -116,11 +134,12 @@ are accepted only when the caller's `TrustedProxy` predicate returns true.
 
 ## Migration shape
 
-Before: register the existing `http.Handler` directly on the Gin router or
-serve it from the `net/http` path. After: keep the handler body unchanged and
-wrap the route with `WrapResilience`, while adding `RequestContext`, `NewJWT`,
-and `NewRateLimit` in the bootstrap order above. `ExampleMigration` is the
-compile-checked reference for this before/after boundary.
+Before: serve the existing `http.Handler` on the `net/http` path; when it must
+remain behind Gin, adapt it with `gin.WrapH(handler)` (or the equivalent
+framework bridge). After: keep the handler body unchanged and wrap the new Gin
+route with `WrapResilience`, while adding `RequestContext`, `NewJWT`, and
+`NewRateLimit` in the bootstrap order above. `ExampleMigration` is the
+compile-checked reference for both the `gin.WrapH` bridge and the adapter path.
 
 ## Verification
 
