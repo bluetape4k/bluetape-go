@@ -7,6 +7,7 @@
 - 기준: `origin/develop`의 `9cad5a3d330b1da335e26170d3b97684af0cf44d`
 - 설계/계획: `docs/superpowers/specs/2026-08-16-issue-545-jwks-provider-design.md`,
   `docs/superpowers/plans/2026-08-16-issue-545-jwks-provider-plan.md`
+- 최신 코드 검증 기준: `3281546af91b1e557943fe4209c4d57d86cff1a9`
 - 의도적으로 하지 않은 작업: release promotion, tag, GitHub merge
 
 ## 기능 검증
@@ -42,6 +43,7 @@
 | `govulncheck ./jwt/jwks` | 실행 불가: `govulncheck` 미설치 |
 | `make ci` (커밋 전) | `tidy-check`가 의도한 신규 go.mod/go.sum diff를 감지하여 중단 |
 | `make ci` (커밋 후) | PASS: tidy/fmt/vet/lint/test/race 및 benchmark contract self-test |
+| `make ci` (`3281546`) | PASS: fresh 전체 test/race, tidy/fmt/vet/lint 및 benchmark contract self-test |
 
 `make tidy-check`의 정규화 결과로 `github.com/go-jose/go-jose/v4 v4.1.4`가
 직접 dependency block에 위치한다. 이 차이는 신규 package의 실제 import를
