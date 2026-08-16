@@ -97,16 +97,16 @@ type ResilienceOptions struct {
 
 // ResilienceError reads the redacted resilience observer stored by WrapResilience.
 // WrapResilience가 저장한 redacted resilience observer 오류를 읽는다.
-func ResilienceError(c echo.Context) (error, bool) {
+func ResilienceError(c echo.Context) error {
 	if isNilInterface(c) {
-		return nil, false
+		return nil
 	}
 	value := c.Get(DefaultResilienceErrorContextKey)
 	err, ok := value.(error)
 	if !ok || isNilInterface(err) {
-		return nil, false
+		return nil
 	}
-	return err, true
+	return err
 }
 
 func validateParserOptions(options JWTOptions) error {

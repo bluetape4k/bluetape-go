@@ -275,9 +275,9 @@ func TestResilienceRecordsRedactedObserverByDefault(t *testing.T) {
 	err := echoadapter.WrapResilience(func(echo.Context) error {
 		return cause
 	}, echoadapter.ResilienceOptions{})(ctx)
-	observed, ok := echoadapter.ResilienceError(ctx)
-	if err != nil || recorder.Code != http.StatusServiceUnavailable || !ok || observed == nil || observed.Error() != "resilience operation failed" || strings.Contains(observed.Error(), "private route detail") || !errors.Is(observed, cause) {
-		t.Fatalf("err=%v status=%d observed=%v ok=%t, want nil/503/redacted observer", err, recorder.Code, observed, ok)
+	observed := echoadapter.ResilienceError(ctx)
+	if err != nil || recorder.Code != http.StatusServiceUnavailable || observed == nil || observed.Error() != "resilience operation failed" || strings.Contains(observed.Error(), "private route detail") || !errors.Is(observed, cause) {
+		t.Fatalf("err=%v status=%d observed=%v, want nil/503/redacted observer", err, recorder.Code, observed)
 	}
 }
 
