@@ -34,7 +34,8 @@ import (
 | Redis-backed distributed key rotation | `jwt/redis.New`와 `NewDistributedHMACProvider` 또는 `NewDistributedRSAProvider` | context-aware Redis I/O로 여러 process instance가 signing key를 공유합니다. |
 | MongoDB-backed distributed key rotation | `jwt/mongo.New`와 `NewDistributedHMACProvider` 또는 `NewDistributedRSAProvider` | service가 이미 MongoDB를 trusted state로 운영할 때 MongoDB로 signing key를 공유합니다. |
 | signed JWT compression | Non-goal | `zip`은 signed JWT helper가 아니라 JWE 경계에 속합니다. |
-| JWE, JWK, JWKS | Deferred | 실제 사용 사례가 생기면 JWE/JWKS를 명시적인 optional JOSE 경계로 추가할 수 있습니다. |
+| JWKS signature key lookup | `jwt/jwks` | RSA/ECDSA/Ed25519 공개키를 위한 optional direct-URL provider이며 bounded TTL, rotation, context-aware refresh를 제공합니다. |
+| JWE decryption과 OIDC discovery | Deferred | 구체적인 사용 사례가 생길 때까지 별도의 optional JOSE 경계로 유지합니다. |
 | provider cache adapter | `NewCachedProvider` 또는 `NewCachedDistributedProvider` | trusted `cache.Cache[string,*jwt.Reader]` wrapper로 provider validation을 우회하지 않고 반복 parse/signature verification 비용을 줄입니다. |
 
 ## 사용법
@@ -314,9 +315,10 @@ state를 관련 service data와 함께 두고 싶다면 MongoDB를 선택하세�
 
 ## 동작
 
-- `jwt`는 auth framework가 아닙니다. HTTP middleware, session, OIDC, JWKS,
-  authorization rule, role, user model, auth middleware, background rotation
-  timer, token revocation storage를 제공하지 않습니다.
+- `jwt`는 auth framework가 아닙니다. HTTP middleware, OIDC discovery, JWE
+  decryption, authorization rule, role, user model, background rotation timer,
+  token revocation storage를 제공하지 않습니다. Optional `jwt/jwks`는 direct-URL
+  asymmetric signature key lookup만 제공하며 claims policy 경계를 바꾸지 않습니다.
 - Parse는 항상 `WithValidMethods`로 허용 algorithm을 제한하고, token의 `alg`
   header가 provider algorithm과 일치해야 verification key material을 반환합니다.
 - Reader API는 검증된 header와 claim만 노출하며 raw bearer token은 노출하지

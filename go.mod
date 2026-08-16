@@ -18,6 +18,7 @@ require (
 	github.com/expr-lang/expr v1.17.8
 	github.com/floci-io/testcontainers-floci-go v0.0.0-20260513220955-f6077bc13ae6
 	github.com/gin-gonic/gin v1.12.0
+	github.com/go-jose/go-jose/v4 v4.1.4
 	github.com/go-sql-driver/mysql v1.10.0
 	github.com/golang-jwt/jwt/v5 v5.3.1
 	github.com/golang/snappy v1.0.0

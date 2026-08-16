@@ -7,6 +7,13 @@
 
 ## [Unreleased]
 
+### 추가
+
+- `jwt/jwks` optional provider를 추가한다. 직접 지정한 JWKS JSON URL에서
+  RSA/ECDSA/Ed25519 공개키를 context-aware로 조회하고 TTL, rotation,
+  unknown `kid` cooldown, single-flight refresh, defensive copy를 제공한다.
+  대칭 key와 JWE, OIDC discovery는 범위에서 제외한다.
+
 ## [v0.19.0] - 2026-08-06
 
 ### 추가
