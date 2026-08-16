@@ -146,9 +146,9 @@ func WithAllowedAlgorithms(algorithms ...Algorithm) Option {
 	}
 }
 
-func defaultConfig() config {
+func defaultConfig(allowLoopback bool) config {
 	return config{
-		client:            defaultHTTPClient(),
+		client:            defaultHTTPClient(allowLoopback),
 		cacheTTL:          defaultCacheTTL,
 		refreshCooldown:   defaultRefreshCooldown,
 		fetchTimeout:      defaultFetchTimeout,
