@@ -20,6 +20,7 @@ func BenchmarkLookupCacheHit(b *testing.B) {
 	if _, err := provider.Lookup(context.Background(), "benchmark", RS256); err != nil {
 		b.Fatal(err)
 	}
+	baseline := requests.Load()
 	b.ReportAllocs()
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
@@ -28,7 +29,7 @@ func BenchmarkLookupCacheHit(b *testing.B) {
 		}
 	}
 	b.StopTimer()
-	b.ReportMetric(float64(requests.Load()), "http-requests")
+	reportHTTPRequests(b, requests, baseline)
 }
 
 func BenchmarkLookupParallelHit(b *testing.B) {
@@ -37,6 +38,7 @@ func BenchmarkLookupParallelHit(b *testing.B) {
 	if _, err := provider.Lookup(context.Background(), "benchmark", RS256); err != nil {
 		b.Fatal(err)
 	}
+	baseline := requests.Load()
 	b.ReportAllocs()
 	b.ResetTimer()
 	b.RunParallel(func(pb *testing.PB) {
@@ -47,7 +49,7 @@ func BenchmarkLookupParallelHit(b *testing.B) {
 		}
 	})
 	b.StopTimer()
-	b.ReportMetric(float64(requests.Load()), "http-requests")
+	reportHTTPRequests(b, requests, baseline)
 }
 
 func BenchmarkLookupForcedRefresh(b *testing.B) {
@@ -56,6 +58,7 @@ func BenchmarkLookupForcedRefresh(b *testing.B) {
 	if err := provider.Refresh(context.Background()); err != nil {
 		b.Fatal(err)
 	}
+	baseline := requests.Load()
 	b.ReportAllocs()
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
@@ -64,7 +67,66 @@ func BenchmarkLookupForcedRefresh(b *testing.B) {
 		}
 	}
 	b.StopTimer()
-	b.ReportMetric(float64(requests.Load()), "http-requests")
+	reportHTTPRequests(b, requests, baseline)
+}
+
+func BenchmarkLookupColdMiss(b *testing.B) {
+	provider, requests, cleanup := benchmarkProvider(b)
+	defer cleanup()
+	provider.cfg.cacheTTL = 0
+	b.ReportAllocs()
+	b.ResetTimer()
+	for i := 0; i < b.N; i++ {
+		if _, err := provider.Lookup(context.Background(), "benchmark", RS256); err != nil {
+			b.Fatal(err)
+		}
+	}
+	b.StopTimer()
+	reportHTTPRequests(b, requests, 0)
+}
+
+func BenchmarkLookupTTLExpiry(b *testing.B) {
+	provider, requests, cleanup := benchmarkProvider(b)
+	defer cleanup()
+	now := time.Now()
+	provider.cfg.cacheTTL = time.Nanosecond
+	provider.cfg.now = func() time.Time { return now }
+	if _, err := provider.Lookup(context.Background(), "benchmark", RS256); err != nil {
+		b.Fatal(err)
+	}
+	baseline := requests.Load()
+	b.ReportAllocs()
+	b.ResetTimer()
+	for i := 0; i < b.N; i++ {
+		now = now.Add(2 * time.Nanosecond)
+		if _, err := provider.Lookup(context.Background(), "benchmark", RS256); err != nil {
+			b.Fatal(err)
+		}
+	}
+	b.StopTimer()
+	reportHTTPRequests(b, requests, baseline)
+}
+
+func BenchmarkLookupParallelMiss(b *testing.B) {
+	provider, requests, cleanup := benchmarkProvider(b)
+	defer cleanup()
+	provider.cfg.cacheTTL = 0
+	b.ReportAllocs()
+	b.ResetTimer()
+	b.RunParallel(func(pb *testing.PB) {
+		for pb.Next() {
+			if _, err := provider.Lookup(context.Background(), "benchmark", RS256); err != nil {
+				b.Error(err)
+			}
+		}
+	})
+	b.StopTimer()
+	reportHTTPRequests(b, requests, 0)
+}
+
+func reportHTTPRequests(b *testing.B, requests *atomic.Int64, baseline int64) {
+	b.Helper()
+	b.ReportMetric(float64(requests.Load()-baseline)/float64(b.N), "http-requests/op")
 }
 
 func benchmarkProvider(b *testing.B) (*Provider, *atomic.Int64, func()) {

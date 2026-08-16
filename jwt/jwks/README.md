@@ -12,7 +12,11 @@ out of scope.
 ```go
 import (
     "context"
+    "net/http"
+    "time"
+
     "github.com/bluetape4k/bluetape-go/jwt/jwks"
+    jwt "github.com/golang-jwt/jwt/v5"
 )
 ```
 
@@ -22,34 +26,37 @@ import (
 create a request-scoped `KeyFunc` and keep claims policy in the JWT parser:
 
 ```go
-provider, err := jwks.New(
-    "https://issuer.example.com/.well-known/jwks.json",
-    jwks.WithAllowedAlgorithms(jwks.RS256, jwks.PS256),
-)
-if err != nil {
-    return err
-}
+func verifyJWKS(req *http.Request, signedToken string) error {
+    provider, err := jwks.New(
+        "https://issuer.example.com/.well-known/jwks.json",
+        jwks.WithAllowedAlgorithms(jwks.RS256, jwks.PS256),
+    )
+    if err != nil {
+        return err
+    }
 
-refreshCtx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
-defer cancel()
-if err := provider.Refresh(refreshCtx); err != nil {
-    return err
-}
+    refreshCtx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+    defer cancel()
+    if err := provider.Refresh(refreshCtx); err != nil {
+        return err
+    }
 
-requestCtx, cancel := context.WithTimeout(req.Context(), time.Second)
-defer cancel()
-keyFunc, err := provider.KeyFunc(requestCtx)
-if err != nil {
+    requestCtx, cancel := context.WithTimeout(req.Context(), time.Second)
+    defer cancel()
+    keyFunc, err := provider.KeyFunc(requestCtx)
+    if err != nil {
+        return err
+    }
+    parser := jwt.NewParser(
+        jwt.WithValidMethods([]string{"RS256", "PS256"}),
+        jwt.WithIssuer("issuer"),
+        jwt.WithAudience("api"),
+        jwt.WithExpirationRequired(),
+    )
+    claims := &jwt.RegisteredClaims{}
+    _, err = parser.ParseWithClaims(signedToken, claims, keyFunc)
     return err
 }
-parser := jwt.NewParser(
-    jwt.WithValidMethods([]string{"RS256", "PS256"}),
-    jwt.WithIssuer("issuer"),
-    jwt.WithAudience("api"),
-    jwt.WithExpirationRequired(),
-)
-claims := &jwt.RegisteredClaims{}
-token, err := parser.ParseWithClaims(signedToken, claims, keyFunc)
 ```
 
 The provider performs key lookup and signature-algorithm matching only. The
@@ -66,10 +73,15 @@ its context has been cancelled.
   tests and local development.
 - The endpoint must have a host and cannot contain userinfo or a fragment.
 - The default client rejects private, link-local, unspecified, and other
-  non-global dial targets. Redirects are not followed.
+  non-global dial targets, disables environment proxies, and caps response
+  headers at 64 KiB. Redirects are not followed. HTTP endpoints must use a
+  loopback IP literal.
 - `WithHTTPClient` transfers TLS verification, proxy, DNS/dial, redirect, and
   allowlist policy to the caller. Do not use `InsecureSkipVerify` unless that
-  trust decision is intentional and documented by the caller.
+  trust decision is intentional and documented by the caller. A custom
+  `RoundTripper` must honor `Request.Context()` cancellation for the request
+  and response body lifetime; a non-cooperative transport can leave a canceled
+  refresh operation running while a takeover proceeds.
 - The endpoint is a direct JWKS JSON URL. OIDC discovery and automatic issuer
   metadata lookup are not performed.
 
@@ -123,17 +135,34 @@ Event fields should be limited to `operation`, bounded `FetchClass`, outcome,
 and bounded HTTP status. Do not log endpoint URLs, bearer tokens, raw bodies,
 JWK material, raw transport causes, or high-cardinality `kid` values.
 
-Recommended runbook: record the first refresh failure as a warning; page after
-three consecutive failures or five minutes, whichever comes first. Verify
-endpoint health and allowlists, perform a bounded `Refresh`, validate a known
-`kid` signature, and only then resume traffic. For rollback, restore the prior
-endpoint configuration, construct a new provider, run readiness `Refresh`, and
-verify a known token. During mixed-version rotation, retain overlap keys until
-every consumer has refreshed before retiring the old key.
+Recommended runbook:
+
+| Phase | Owner | Action | Clear condition |
+|---|---|---|---|
+| Preflight | service/on-call owner | Check endpoint health, TLS, allowlist, and current `FetchClass`; keep the prior endpoint configuration ready. | A bounded `Refresh` can be attempted with a caller deadline. |
+| Warning | service/on-call owner | Record the first refresh failure without endpoint URL, raw body, token, JWK, transport cause, or high-cardinality `kid`. | Failure counter resets after a successful refresh. |
+| Page | service/on-call owner | Page after three consecutive failures or five minutes, whichever comes first. | A readiness `Refresh` succeeds and a known `kid` signature verifies. |
+| Rollback | release owner | Restore the prior endpoint configuration, construct a new provider, run readiness `Refresh`, and verify a known token before resuming traffic. | Known-token verification passes on the restored provider. |
+| Rotation | issuer/release owner | Retain overlap keys until every consumer has refreshed; then retire the old key and verify the next snapshot. | All consumer readiness checks pass and old-key lookups fail closed. |
+
+During mixed-version rotation, retain overlap keys until every consumer has
+refreshed before retiring the old key.
+
+Readiness should use the same bounded commands before traffic opens:
+
+```go
+readinessCtx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+defer cancel()
+if err := provider.Refresh(readinessCtx); err != nil {
+    return err
+}
+if _, err := provider.Lookup(readinessCtx, knownKid, jwks.RS256); err != nil {
+    return err
+}
+```
 
 ## Non-goals
 
 This package does not implement OIDC discovery, JWE decryption, token claims
 policy, endpoint failover, logging/metrics, retries/backoff, or background
 refresh. Those policies belong to the service that owns the provider.
-

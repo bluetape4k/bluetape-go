@@ -11,7 +11,11 @@ package-global cache, background refresh는 의도적으로 범위에서 제외�
 ```go
 import (
     "context"
+    "net/http"
+    "time"
+
     "github.com/bluetape4k/bluetape-go/jwt/jwks"
+    jwt "github.com/golang-jwt/jwt/v5"
 )
 ```
 
@@ -22,34 +26,37 @@ import (
 정책은 JWT parser에 둡니다.
 
 ```go
-provider, err := jwks.New(
-    "https://issuer.example.com/.well-known/jwks.json",
-    jwks.WithAllowedAlgorithms(jwks.RS256, jwks.PS256),
-)
-if err != nil {
-    return err
-}
+func verifyJWKS(req *http.Request, signedToken string) error {
+    provider, err := jwks.New(
+        "https://issuer.example.com/.well-known/jwks.json",
+        jwks.WithAllowedAlgorithms(jwks.RS256, jwks.PS256),
+    )
+    if err != nil {
+        return err
+    }
 
-refreshCtx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
-defer cancel()
-if err := provider.Refresh(refreshCtx); err != nil {
-    return err
-}
+    refreshCtx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+    defer cancel()
+    if err := provider.Refresh(refreshCtx); err != nil {
+        return err
+    }
 
-requestCtx, cancel := context.WithTimeout(req.Context(), time.Second)
-defer cancel()
-keyFunc, err := provider.KeyFunc(requestCtx)
-if err != nil {
+    requestCtx, cancel := context.WithTimeout(req.Context(), time.Second)
+    defer cancel()
+    keyFunc, err := provider.KeyFunc(requestCtx)
+    if err != nil {
+        return err
+    }
+    parser := jwt.NewParser(
+        jwt.WithValidMethods([]string{"RS256", "PS256"}),
+        jwt.WithIssuer("issuer"),
+        jwt.WithAudience("api"),
+        jwt.WithExpirationRequired(),
+    )
+    claims := &jwt.RegisteredClaims{}
+    _, err = parser.ParseWithClaims(signedToken, claims, keyFunc)
     return err
 }
-parser := jwt.NewParser(
-    jwt.WithValidMethods([]string{"RS256", "PS256"}),
-    jwt.WithIssuer("issuer"),
-    jwt.WithAudience("api"),
-    jwt.WithExpirationRequired(),
-)
-claims := &jwt.RegisteredClaims{}
-token, err := parser.ParseWithClaims(signedToken, claims, keyFunc)
 ```
 
 Provider는 key lookup과 signature algorithm matching만 담당합니다. issuer,
@@ -65,10 +72,13 @@ closure를 재사용하지 마세요.
   허용합니다.
 - endpoint에는 host가 있어야 하며 userinfo와 fragment를 포함할 수 없습니다.
 - 기본 client는 private, link-local, unspecified 및 다른 non-global dial target을
-  거부하고 redirect를 따라가지 않습니다.
+  거부하고 환경 proxy를 사용하지 않으며 response header를 64 KiB로 제한하고
+  redirect를 따라가지 않습니다. HTTP endpoint는 loopback IP literal만 허용합니다.
 - `WithHTTPClient`를 사용하면 TLS 검증, proxy, DNS/dial, redirect, allowlist 정책을
   caller가 책임집니다. caller가 의도하고 문서화한 경우가 아니면
-  `InsecureSkipVerify`를 사용하지 마세요.
+  `InsecureSkipVerify`를 사용하지 마세요. custom `RoundTripper`는 request와
+  response body 수명 전체에서 `Request.Context()` 취소를 준수해야 합니다. 취소를
+  무시하는 transport는 takeover 중에도 이전 refresh 작업을 남길 수 있습니다.
 - endpoint는 직접 JWKS JSON URL이어야 합니다. OIDC discovery와 issuer metadata
   자동 조회는 수행하지 않습니다.
 
@@ -118,16 +128,35 @@ event field는 `operation`, bounded `FetchClass`, outcome, bounded HTTP status�
 사용하세요. endpoint URL, bearer token, raw body, JWK material, raw transport
 cause, high-cardinality `kid`는 log에 남기지 않습니다.
 
-권장 runbook은 첫 refresh 실패를 warning으로 기록하고, 연속 3회 또는 5분 중
-먼저 도달한 시점에 page하는 것입니다. endpoint health와 allowlist를 확인하고
-bounded `Refresh`를 실행한 뒤 known `kid` signature를 검증하고 traffic을
-재개하세요. Rollback은 이전 endpoint 설정 복원 → 새 provider 생성 → readiness
-`Refresh` → known token 검증 순서입니다. mixed-version rotation에서는 모든
-consumer가 refresh를 완료할 때까지 overlap key를 유지한 뒤 이전 key를 제거합니다.
+권장 runbook은 다음 표를 따릅니다.
+
+| 단계 | 담당 | 조치 | 해제 조건 |
+|---|---|---|---|
+| Preflight | service/on-call owner | endpoint health, TLS, allowlist와 현재 `FetchClass`를 확인하고 이전 endpoint 설정을 보관합니다. | caller deadline이 있는 bounded `Refresh`를 실행할 수 있습니다. |
+| Warning | service/on-call owner | endpoint URL, raw body, token, JWK, transport cause, high-cardinality `kid` 없이 첫 실패를 기록합니다. | 성공 refresh 뒤 failure counter가 초기화됩니다. |
+| Page | service/on-call owner | 연속 3회 또는 5분 중 먼저 도달하면 page합니다. | readiness `Refresh`와 known `kid` signature 검증이 성공합니다. |
+| Rollback | release owner | 이전 endpoint 설정을 복원하고 새 provider를 생성해 readiness `Refresh`와 known token 검증 뒤 traffic을 재개합니다. | 복원 provider에서 known token 검증이 성공합니다. |
+| Rotation | issuer/release owner | 모든 consumer refresh 전까지 overlap key를 유지하고 이후 이전 key를 제거합니다. | 모든 consumer readiness가 통과하고 이전 key lookup이 fail closed 됩니다. |
+
+mixed-version rotation에서는 모든 consumer가 refresh를 완료할 때까지
+overlap key를 유지한 뒤 이전 key를 제거합니다.
+
+traffic을 열기 전 readiness에서는 다음과 같이 동일한 bounded 명령을
+실행하세요.
+
+```go
+readinessCtx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+defer cancel()
+if err := provider.Refresh(readinessCtx); err != nil {
+    return err
+}
+if _, err := provider.Lookup(readinessCtx, knownKid, jwks.RS256); err != nil {
+    return err
+}
+```
 
 ## Non-goal
 
 이 package는 OIDC discovery, JWE decryption, token claims 정책, endpoint failover,
 logging/metrics, retry/backoff, background refresh를 구현하지 않습니다. 이 정책은
 provider를 소유한 service가 결정합니다.
-
