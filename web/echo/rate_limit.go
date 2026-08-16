@@ -73,7 +73,7 @@ func NewRateLimit(options RateLimitOptions) (echo.MiddlewareFunc, error) {
 			state := &echoRequestState{context: c, next: next}
 			request := original.WithContext(context.WithValue(original.Context(), echoContextKey{}, state))
 			c.SetRequest(request)
-			core.ServeHTTP(c.Response().Writer, request)
+			core.ServeHTTP(c.Response(), request)
 			if state.nextErr != nil && !c.Response().Committed && !state.handled {
 				return state.nextErr
 			}

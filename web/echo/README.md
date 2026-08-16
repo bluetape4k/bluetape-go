@@ -63,10 +63,15 @@ bootstrap and a migration example using `echo.WrapHandler`.
   legacy `Parser` path is synchronous and checks cancellation before and after
   parsing, but cannot interrupt a blocking `Parse` implementation.
 - `WrapResilience` is a route-level wrapper. Request context and replayable
-  bodies are cloned for each attempt. A committed response, non-replayable body,
-  or cancellation is marked non-retryable. Echo's context store has no public
-  key enumeration API, so adapter-owned key mutations are restored while a
-  handler that needs arbitrary store rollback must avoid retrying that mutation.
+  bodies are cloned for each attempt. A non-replayable body is delivered to the
+  first attempt and then fails closed if a retry would be required; committed
+  responses and cancellation are also non-retryable. A redacted observer error
+  is stored under `DefaultResilienceErrorContextKey` and can be read with
+  `ResilienceError` so an outer Echo logger or error handler can record the
+  low-cardinality failure without exposing its cause. Echo's context store has
+  no public key enumeration API, so adapter-owned key mutations are restored
+  while a handler that needs arbitrary store rollback must avoid retrying that
+  mutation.
 
 ## Migration
 

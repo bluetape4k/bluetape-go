@@ -51,6 +51,18 @@
   `http.NewRequest`에도 context 전달을 요구했고, `staticcheck`는 embedded
   context selector를 단순화하라고 지적했다. production/test code를 같은
   context contract로 정리한 뒤 lint가 통과했다.
+- Echo `Response().Writer`를 직접 넘기면 raw `web.WriteProblem`/rate-limit
+  응답이 Echo의 `Response().Committed`를 갱신하지 않는다. 공통 writer를
+  bridge할 때는 Echo `*Response` 자체를 `http.ResponseWriter`로 전달해
+  commit 상태와 body accounting을 함께 보존해야 한다.
+- `httptest.NewRequestWithContext`는 incoming-style body의 `GetBody`를 채우지
+  않는다. resilience는 첫 시도에 원본 non-replayable body를 전달하고, 실제
+  재시도가 필요한 두 번째 시도에서만 fail-closed해야 하며, replay benchmark는
+  `GetBody`를 명시한 POST fixture로 body 복원을 증명해야 한다.
+- framework adapter의 기본 resilience 실패가 generic Problem만 남기면 운영
+  원인이 사라진다. raw cause를 응답에 노출하지 않으면서 redacted observer를
+  Echo context에 보존하고 caller-owned `ResilienceError` 경로로 기록 가능하게
+  해야 한다.
 
 ## 다음 수정자가 피해야 할 선택
 

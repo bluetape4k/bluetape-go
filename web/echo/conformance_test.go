@@ -25,8 +25,8 @@ func TestEchoAdapterConformance(t *testing.T) {
 		if err != nil {
 			t.Fatalf("AbortWithProblem() error = %v", err)
 		}
-		if recorder.Code != http.StatusUnprocessableEntity || recorder.Header().Get("Content-Type") != "application/problem+json" {
-			t.Fatalf("response = (%d, %q), want 422/application/problem+json", recorder.Code, recorder.Header().Get("Content-Type"))
+		if recorder.Code != http.StatusUnprocessableEntity || recorder.Header().Get("Content-Type") != "application/problem+json" || !ctx.Response().Committed {
+			t.Fatalf("response = (%d, %q, committed=%t), want 422/application/problem+json/true", recorder.Code, recorder.Header().Get("Content-Type"), ctx.Response().Committed)
 		}
 		if strings.Contains(recorder.Body.String(), "x=1") {
 			t.Fatalf("problem instance leaked query: %s", recorder.Body.String())
@@ -87,8 +87,8 @@ func TestEchoAdapterConformance(t *testing.T) {
 			nextCalls++
 			return next.NoContent(http.StatusNoContent)
 		})(ctx)
-		if err != nil || recorder.Code != http.StatusTooManyRequests || nextCalls != 0 || recorder.Header().Get("X-RateLimit-Remaining") != "0" {
-			t.Fatalf("err=%v status=%d next=%d remaining=%q, want nil/429/0/0", err, recorder.Code, nextCalls, recorder.Header().Get("X-RateLimit-Remaining"))
+		if err != nil || recorder.Code != http.StatusTooManyRequests || nextCalls != 0 || recorder.Header().Get("X-RateLimit-Remaining") != "0" || !ctx.Response().Committed {
+			t.Fatalf("err=%v status=%d next=%d remaining=%q committed=%t, want nil/429/0/0/true", err, recorder.Code, nextCalls, recorder.Header().Get("X-RateLimit-Remaining"), ctx.Response().Committed)
 		}
 	})
 
