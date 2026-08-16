@@ -70,8 +70,9 @@ _ = value
 ```
 
 `#542`에서 HTTP middleware conformance를 추가했습니다. Gin adapter는 `#543`의
-[`web/gin`](gin/README.ko.md)에서 제공하며 Echo adapter는 `#544`에서 다룹니다.
-JWT/JWKS provider 동작은 이 package 범위 밖에 둡니다.
+[`web/gin`](gin/README.ko.md)에서 제공하고 Echo adapter는 `#544`의
+[`web/echo`](echo/README.ko.md)에서 제공합니다. JWT/JWKS provider 동작은 이
+package 범위 밖에 둡니다.
 
 ## 테스트
 

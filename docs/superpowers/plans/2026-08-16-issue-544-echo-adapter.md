@@ -103,7 +103,7 @@ middleware와 route handler로 연결하고, 문서·CI·PR DoD를 완성한다.
   실패 callback에는 Authorization/header가 제거된 request clone과
   `AuthenticationError`만 전달하고, callback이 없으면 safe 401 Problem을 기록한다.
 - [ ] **Step 4: examples와 race를 검증한다.**
-  `go test -run 'Example(Bootstrap|Migration)$' -count=1 ./web/echo`와
+  `go test -run '^Example$|^Example_migration$' -count=1 ./web/echo`와
   `go test -race -count=1 ./web/echo`를 실행한다.
 
 ## Task 5: resilience route wrapper
@@ -142,8 +142,8 @@ middleware와 route handler로 연결하고, 문서·CI·PR DoD를 완성한다.
   Echo-specific `Committed`, abort, handler-once, `JWTReader`, callback redaction,
   outer error handler를 별도 subtest로 검증한다.
 - [ ] **Step 2: compile-checked examples를 추가한다.**
-  `ExampleBootstrap`은 recovery, request context, rate limit, JWT, route resilience
-  조합을 보여 주고 `ExampleMigration`은 `echo.WrapHandler`와 adapter path를
+  `Example`은 recovery, request context, rate limit, JWT, route resilience
+  조합을 보여 주고 `Example_migration`은 `echo.WrapHandler`와 adapter path를
   compile-check한다.
 - [ ] **Step 3: 양국 README를 작성한다.**
   install/import, composition order, error/redaction, retry limitation, runbook,

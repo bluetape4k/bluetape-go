@@ -75,7 +75,7 @@ store mutation을 수행한 뒤 오류를 반환하는 경우 commit 또는 non-
   JWT success/failure, resilience success/failure conformance를 검증한다.
 - Echo-specific 테스트로 `Committed`, handler once-only, `JWTReader`, path/params,
   error callback request redaction, outer Echo HTTP error handler 경계를 검증한다.
-- compile-checked `ExampleBootstrap`/`ExampleMigration`을 제공한다.
+- compile-checked `Example`/`Example_migration`을 제공한다.
 - `go test -count=1 ./web/echo`, `go test -race -count=1 ./web/echo`,
   `go vet ./web/echo`, formatter/lint, `git diff --check`, README locale parity,
   `make ci`와 PR CI를 통과한다.
