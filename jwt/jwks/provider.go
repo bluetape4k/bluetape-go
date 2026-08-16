@@ -19,6 +19,7 @@ import (
 )
 
 // Provider 는 원격 JWKS snapshot과 bounded refresh 상태를 소유한다.
+// Provider는 반드시 New로 생성해야 하며 zero value는 사용할 수 없다.
 type Provider struct {
 	endpoint string
 	client   *http.Client
@@ -67,6 +68,9 @@ func New(endpoint string, options ...Option) (*Provider, error) {
 func (p *Provider) Lookup(ctx context.Context, kid string, algorithm Algorithm) (any, error) {
 	if p == nil {
 		return nil, optionError("provider", errors.New("must not be nil"))
+	}
+	if err := p.validateInitialized(); err != nil {
+		return nil, err
 	}
 	if ctx == nil {
 		return nil, optionError("context", errors.New("must not be nil"))
@@ -123,6 +127,9 @@ func (p *Provider) Refresh(ctx context.Context) error {
 	if p == nil {
 		return optionError("provider", errors.New("must not be nil"))
 	}
+	if err := p.validateInitialized(); err != nil {
+		return err
+	}
 	if ctx == nil {
 		return optionError("context", errors.New("must not be nil"))
 	}
@@ -133,6 +140,9 @@ func (p *Provider) Refresh(ctx context.Context) error {
 func (p *Provider) KeyFunc(ctx context.Context) (golangjwt.Keyfunc, error) {
 	if p == nil {
 		return nil, optionError("provider", errors.New("must not be nil"))
+	}
+	if err := p.validateInitialized(); err != nil {
+		return nil, err
 	}
 	if ctx == nil {
 		return nil, optionError("context", errors.New("must not be nil"))
@@ -158,6 +168,15 @@ func (p *Provider) KeyFunc(ctx context.Context) (golangjwt.Keyfunc, error) {
 		}
 		return key, nil
 	}, nil
+}
+
+func (p *Provider) validateInitialized() error {
+	if p.endpoint == "" || p.client == nil || p.cfg.cacheTTL <= 0 ||
+		p.cfg.refreshCooldown <= 0 || p.cfg.fetchTimeout <= 0 ||
+		p.cfg.maxBodySize <= 0 || p.cfg.now == nil || len(p.cfg.allowedAlgorithms) == 0 {
+		return optionError("provider", errors.New("must be initialized with New"))
+	}
+	return nil
 }
 
 func (p *Provider) refresh(ctx context.Context, forced, bypassCooldown bool) error {
@@ -287,7 +306,7 @@ func (p *Provider) fetch(ctx context.Context) ([]byte, error) {
 	defer cancel()
 	request, err := http.NewRequestWithContext(requestContext, http.MethodGet, p.endpoint, nil)
 	if err != nil {
-		return nil, FetchError{Class: FetchClassTransport, Err: err}
+		return nil, FetchError{Class: FetchClassTransport, Err: sanitizeFetchCause(err)}
 	}
 	response, err := p.client.Do(request)
 	if err != nil {
@@ -296,9 +315,9 @@ func (p *Provider) fetch(ctx context.Context) ([]byte, error) {
 			cause = ctx.Err()
 		}
 		if cause == nil {
-			cause = err
+			cause = sanitizeFetchCause(err)
 		}
-		return nil, FetchError{Class: FetchClassTransport, Err: cause}
+		return nil, FetchError{Class: FetchClassTransport, Err: sanitizeFetchCause(cause)}
 	}
 	defer func() { _ = response.Body.Close() }()
 	if response.StatusCode != http.StatusOK {
@@ -312,7 +331,7 @@ func (p *Provider) fetch(ctx context.Context) ([]byte, error) {
 	}
 	body, err := io.ReadAll(io.LimitReader(response.Body, p.cfg.maxBodySize+1))
 	if err != nil {
-		return nil, FetchError{Class: FetchClassTransport, Status: response.StatusCode, Err: err}
+		return nil, FetchError{Class: FetchClassTransport, Status: response.StatusCode, Err: sanitizeFetchCause(err)}
 	}
 	if int64(len(body)) > p.cfg.maxBodySize {
 		return nil, FetchError{Class: FetchClassBody, Status: response.StatusCode}
@@ -344,18 +363,10 @@ func validateEndpoint(raw string) (*url.URL, error) {
 			return nil, optionError("endpoint", errors.New("private or link-local address is not allowed"))
 		}
 	}
-	if u.Scheme == "http" && !isLoopbackHost(host, addr) {
+	if u.Scheme == "http" && (addr == nil || !addr.IsLoopback()) {
 		return nil, optionError("endpoint", errors.New("http is only allowed for loopback"))
 	}
 	return u, nil
-}
-
-func isLoopbackHost(host string, addr net.IP) bool {
-	if addr != nil {
-		return addr.IsLoopback()
-	}
-	host = strings.ToLower(host)
-	return host == "localhost" || strings.HasSuffix(host, ".localhost")
 }
 
 func isBlockedAddress(addr net.IP) bool {
@@ -384,12 +395,25 @@ func defaultHTTPClient() *http.Client {
 	} else {
 		transport = (&http.Transport{}).Clone()
 	}
+	transport.Proxy = nil
+	transport.MaxResponseHeaderBytes = defaultMaxHeaderSize
 	transport.DialContext = restrictedDialContext
 	return &http.Client{
 		Transport: transport,
 		CheckRedirect: func(*http.Request, []*http.Request) error {
 			return http.ErrUseLastResponse
 		},
+	}
+}
+
+func sanitizeFetchCause(err error) error {
+	switch {
+	case errors.Is(err, context.Canceled):
+		return context.Canceled
+	case errors.Is(err, context.DeadlineExceeded):
+		return context.DeadlineExceeded
+	default:
+		return nil
 	}
 }
 

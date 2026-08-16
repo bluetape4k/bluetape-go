@@ -24,6 +24,9 @@
 - TTL/cache hit/rotation, unknown `kid` cooldown, explicit refresh,
   single-flight, waiter cancellation, leader takeover, late-result suppression,
   warm lookup non-blocking, defensive public-key copy
+- context-aware custom transport cancellation worker cleanup
+- bounded rollback drill: blocked endpoint, TTL fail-closed, endpoint restore,
+  readiness refresh, known-token verification, overlap-key retirement
 
 ## 저장소 게이트
 
@@ -65,14 +68,19 @@ license: /Users/debop/work/go/pkg/mod/github.com/go-jose/go-jose/v4@v4.1.4/LICEN
 실행 환경: Apple M5, `darwin/arm64`, `go1.26.6`.
 
 ```text
-BenchmarkLookupCacheHit-10          12499452    95.89 ns/op      1.000 http-requests    336 B/op   3 allocs/op
-BenchmarkLookupParallelHit-10        7196502   169.9 ns/op      1.000 http-requests    336 B/op   3 allocs/op
-BenchmarkLookupForcedRefresh-10        24550  47400 ns/op   24551 http-requests  11260 B/op 134 allocs/op
+BenchmarkLookupCacheHit-10          20       172.9 ns/op       0 http-requests/op     336 B/op   3 allocs/op
+BenchmarkLookupParallelHit-10       20       531.2 ns/op       0 http-requests/op     570 B/op   4 allocs/op
+BenchmarkLookupForcedRefresh-10     20     95125 ns/op       1.000 http-requests/op 11424 B/op 134 allocs/op
+BenchmarkLookupColdMiss-10          20     99965 ns/op       1.000 http-requests/op 13645 B/op 144 allocs/op
+BenchmarkLookupTTLExpiry-10         20     92300 ns/op       1.000 http-requests/op 11775 B/op 137 allocs/op
+BenchmarkLookupParallelMiss-10      20     17779 ns/op       0.1000 http-requests/op 3627 B/op 24 allocs/op
 ```
 
-cache hit와 parallel hit는 warm snapshot에서 HTTP request를 1회로 유지한다.
-forced refresh는 명시적 cooldown 우회 계약 때문에 iteration마다 1회 request를
-발생시킨다.
+benchmark HTTP metric은 warm-up 이후 timed 구간의 `http-requests/op`로
+정규화한다. cache hit와 parallel hit는 warm snapshot에서 추가 HTTP request를
+발생시키지 않으며, TTL expiry와 forced refresh는 iteration당 bounded refresh
+1회를 검증한다. 전체 rollback drill은 초기 readiness 1회, 만료 실패 1회,
+복원 readiness 1회, overlap retirement 1회로 총 4회 요청을 확인한다.
 
 ## 남은 gap
 

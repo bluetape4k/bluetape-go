@@ -33,3 +33,8 @@ TTL, rotation, cooldown, single-flight와 caller context 수명은 provider가
 - cached key material과 `kid`를 log/metric label에 직접 넣지 않는다. event에는
   operation, bounded fetch class, outcome, bounded status만 남긴다.
 
+- custom `RoundTripper`는 `Request.Context()` 취소를 request와 response body
+  수명 전체에 전파해야 한다. 비협조 transport의 orphan worker는 provider가
+  강제로 회수할 수 없으므로 caller-owned trust boundary로 문서화하고,
+  context-aware transport에서는 반복 취소 뒤 active worker가 0으로 돌아오는
+  회귀 테스트를 유지한다.

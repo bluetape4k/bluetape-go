@@ -21,6 +21,7 @@ func TestNewRejectsUnsafeEndpointAndNilOption(t *testing.T) {
 		{name: "userinfo", endpoint: "https://user:pass@example.com/jwks.json"},
 		{name: "fragment", endpoint: "https://example.com/jwks.json#keys"},
 		{name: "remote http", endpoint: "http://example.com/jwks.json"},
+		{name: "hostname http", endpoint: "http://localhost/jwks.json"},
 		{name: "private literal", endpoint: "https://10.0.0.1/jwks.json"},
 	}
 	for _, tt := range tests {
@@ -33,6 +34,32 @@ func TestNewRejectsUnsafeEndpointAndNilOption(t *testing.T) {
 
 	if _, err := New("https://example.com/jwks.json", nil); !errors.Is(err, rootjwt.ErrInvalidOptions) {
 		t.Fatalf("New(..., nil) error = %v, want ErrInvalidOptions", err)
+	}
+}
+
+func TestDefaultHTTPClientDisablesProxyAndBoundsHeaders(t *testing.T) {
+	transport, ok := defaultHTTPClient().Transport.(*http.Transport)
+	if !ok {
+		t.Fatalf("default transport type = %T", defaultHTTPClient().Transport)
+	}
+	if transport.Proxy != nil {
+		t.Fatal("default JWKS client must not inherit environment proxy")
+	}
+	if got, want := transport.MaxResponseHeaderBytes, int64(64<<10); got != want {
+		t.Fatalf("MaxResponseHeaderBytes = %d, want %d", got, want)
+	}
+}
+
+func TestZeroValueProviderIsRejected(t *testing.T) {
+	var provider Provider
+	if _, err := provider.Lookup(context.Background(), "kid", RS256); !errors.Is(err, rootjwt.ErrInvalidOptions) {
+		t.Fatalf("zero-value Lookup() error = %v, want ErrInvalidOptions", err)
+	}
+	if err := provider.Refresh(context.Background()); !errors.Is(err, rootjwt.ErrInvalidOptions) {
+		t.Fatalf("zero-value Refresh() error = %v, want ErrInvalidOptions", err)
+	}
+	if _, err := provider.KeyFunc(context.Background()); !errors.Is(err, rootjwt.ErrInvalidOptions) {
+		t.Fatalf("zero-value KeyFunc() error = %v, want ErrInvalidOptions", err)
 	}
 }
 

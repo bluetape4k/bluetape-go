@@ -12,6 +12,7 @@ const (
 	defaultCacheTTL        = 5 * time.Minute
 	defaultFetchTimeout    = 10 * time.Second
 	defaultMaxBodySize     = int64(1 << 20)
+	defaultMaxHeaderSize   = int64(64 << 10)
 	hardMaxBodySize        = int64(8 << 20)
 	defaultRefreshCooldown = time.Second
 )
@@ -56,6 +57,8 @@ type config struct {
 type Option func(*config) error
 
 // WithHTTPClient 는 JWKS fetch에 사용할 HTTP client를 지정한다.
+// 주입하는 RoundTripper는 request context 취소와 response body 수명을
+// 준수해야 하며, 취소 뒤에도 네트워크 작업을 계속하지 않아야 한다.
 func WithHTTPClient(client *http.Client) Option {
 	return func(cfg *config) error {
 		if client == nil {

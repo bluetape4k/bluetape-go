@@ -92,3 +92,25 @@ func TestFetchRejectsBodyLimitAndContentLengthEarly(t *testing.T) {
 		t.Fatalf("FetchError = %#v", fetchErr)
 	}
 }
+
+func TestFetchRedactsNonContextTransportCause(t *testing.T) {
+	provider, err := New("https://issuer.example.test/jwks", WithHTTPClient(&http.Client{
+		Transport: roundTripFunc(func(*http.Request) (*http.Response, error) {
+			return nil, errors.New("https://issuer.example.test/jwks bearer-token raw-body")
+		}),
+	}))
+	if err != nil {
+		t.Fatal(err)
+	}
+	_, err = provider.fetch(context.Background())
+	if !errors.Is(err, ErrFetch) {
+		t.Fatalf("fetch() error = %v, want ErrFetch", err)
+	}
+	var fetchErr FetchError
+	if !errors.As(err, &fetchErr) {
+		t.Fatalf("FetchError = %T", err)
+	}
+	if fetchErr.Err != nil || strings.Contains(fetchErr.Error(), "issuer.example.test") || strings.Contains(fetchErr.Error(), "bearer-token") {
+		t.Fatalf("transport cause leaked: %#v / %q", fetchErr.Err, fetchErr.Error())
+	}
+}

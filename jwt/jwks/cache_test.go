@@ -19,6 +19,7 @@ import (
 	"time"
 
 	jose "github.com/go-jose/go-jose/v4"
+	golangjwt "github.com/golang-jwt/jwt/v5"
 )
 
 func TestLookupFetchesCachesAndRotatesSnapshot(t *testing.T) {
@@ -162,6 +163,128 @@ func TestRefreshLeaderCancellationAllowsTakeoverAndIgnoresLateResult(t *testing.
 
 	if _, err := provider.Lookup(context.Background(), "old", RS256); !errors.Is(err, ErrKeyNotFound) {
 		t.Fatalf("late leader published old key: error = %v, want ErrKeyNotFound", err)
+	}
+}
+
+func TestRefreshCancellationWithContextAwareTransportReleasesWorkers(t *testing.T) {
+	var requests atomic.Int64
+	var active atomic.Int64
+	started := make(chan struct{}, 3)
+	stopped := make(chan struct{}, 3)
+	client := &http.Client{Transport: roundTripFunc(func(req *http.Request) (*http.Response, error) {
+		requests.Add(1)
+		active.Add(1)
+		started <- struct{}{}
+		defer func() {
+			active.Add(-1)
+			stopped <- struct{}{}
+		}()
+		<-req.Context().Done()
+		return nil, req.Context().Err()
+	})}
+	provider, err := New("https://issuer.example.test/jwks", WithHTTPClient(client))
+	if err != nil {
+		t.Fatal(err)
+	}
+	for i := 0; i < 3; i++ {
+		ctx, cancel := context.WithCancel(context.Background())
+		done := make(chan error, 1)
+		go func() { done <- provider.Refresh(ctx) }()
+		<-started
+		cancel()
+		if err := <-done; !errors.Is(err, context.Canceled) {
+			t.Fatalf("Refresh() error = %v, want context.Canceled", err)
+		}
+		select {
+		case <-stopped:
+		case <-time.After(time.Second):
+			t.Fatal("context-aware transport worker did not stop")
+		}
+		if got := active.Load(); got != 0 {
+			t.Fatalf("active transport workers = %d, want 0", got)
+		}
+	}
+	if got := requests.Load(); got != 3 {
+		t.Fatalf("requests = %d, want 3", got)
+	}
+}
+
+func TestRollbackDrillFailsClosedAndRestoresReadiness(t *testing.T) {
+	oldPrivate, err := rsa.GenerateKey(rand.Reader, 2048)
+	if err != nil {
+		t.Fatal(err)
+	}
+	newPrivate, err := rsa.GenerateKey(rand.Reader, 2048)
+	if err != nil {
+		t.Fatal(err)
+	}
+	oldKey := jose.JSONWebKey{Key: &oldPrivate.PublicKey, KeyID: "old", Algorithm: string(RS256), Use: "sig"}
+	newKey := jose.JSONWebKey{Key: &newPrivate.PublicKey, KeyID: "new", Algorithm: string(RS256), Use: "sig"}
+	type responseState struct {
+		status int
+		body   []byte
+	}
+	var response atomic.Value
+	response.Store(responseState{status: http.StatusOK, body: marshalJWKSet(t, oldKey)})
+	var requests atomic.Int64
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+		requests.Add(1)
+		state := response.Load().(responseState)
+		w.WriteHeader(state.status)
+		_, _ = w.Write(state.body)
+	}))
+	defer server.Close()
+
+	provider, err := New(server.URL, WithCacheTTL(time.Minute))
+	if err != nil {
+		t.Fatal(err)
+	}
+	now := time.Date(2026, 8, 16, 12, 0, 0, 0, time.UTC)
+	provider.cfg.now = func() time.Time { return now }
+	if _, err := provider.Lookup(context.Background(), "old", RS256); err != nil {
+		t.Fatalf("initial readiness lookup error = %v", err)
+	}
+
+	response.Store(responseState{status: http.StatusServiceUnavailable, body: []byte(`service unavailable`)})
+	now = now.Add(time.Minute)
+	if _, err := provider.Lookup(context.Background(), "old", RS256); !errors.Is(err, ErrFetch) {
+		t.Fatalf("expired lookup error = %v, want ErrFetch", err)
+	}
+
+	response.Store(responseState{status: http.StatusOK, body: marshalJWKSet(t, oldKey, newKey)})
+	restored, err := New(server.URL, WithCacheTTL(time.Minute))
+	if err != nil {
+		t.Fatal(err)
+	}
+	if err := restored.Refresh(context.Background()); err != nil {
+		t.Fatalf("restored readiness Refresh() error = %v", err)
+	}
+	knownToken := golangjwt.NewWithClaims(golangjwt.SigningMethodRS256, golangjwt.RegisteredClaims{
+		Issuer: "issuer",
+	})
+	knownToken.Header["kid"] = "new"
+	signed, err := knownToken.SignedString(newPrivate)
+	if err != nil {
+		t.Fatal(err)
+	}
+	keyFunc, err := restored.KeyFunc(context.Background())
+	if err != nil {
+		t.Fatal(err)
+	}
+	parsed, err := golangjwt.ParseWithClaims(signed, &golangjwt.RegisteredClaims{}, keyFunc)
+	if err != nil || !parsed.Valid {
+		t.Fatalf("known token verification error = %v, valid = %v", err, parsed != nil && parsed.Valid)
+	}
+
+	response.Store(responseState{status: http.StatusOK, body: marshalJWKSet(t, newKey)})
+	if err := restored.Refresh(context.Background()); err != nil {
+		t.Fatalf("retirement Refresh() error = %v", err)
+	}
+	if _, err := restored.Lookup(context.Background(), "old", RS256); !errors.Is(err, ErrKeyNotFound) {
+		t.Fatalf("retired old key lookup error = %v, want ErrKeyNotFound", err)
+	}
+	if got := requests.Load(); got != 4 {
+		t.Fatalf("rollback drill HTTP requests = %d, want 4", got)
 	}
 }
 
