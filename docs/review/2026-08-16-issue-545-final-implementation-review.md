@@ -9,6 +9,8 @@
 - 최신 보강: `5586855` — HTTPS loopback literal·DNS 결과 차단, HTTP
   endpoint-scoped loopback 예외, 전역 transport TLS/dial hook 비상속
 - fresh CI 기준 커밋: `55868555a1a5de0f4843ba16f9e6f0230a340c19`
+- 원격 CI 기준: PR #696 head `a1751fc8c68e93676d1e99df6aaf2c53e8ac8007`,
+  [run 31957574627](https://github.com/bluetape4k/bluetape-go/actions/runs/31957574627)
 - 범위: RSA/ECDSA/Ed25519 JWKS 공개키 provider, cache/rotation, context-aware
   fetch, KeyFunc, 오류·운영 경계, 테스트와 양국어 README
 
@@ -69,5 +71,5 @@ Gin chart timeout fixture가 각각 일시 실패했으나, 해당 검증을 독
 - [x] KeyFunc와 claims policy 경계
 - [x] 테스트, race, lint, vet, tidy, benchmark, 문서
 - [x] 최종 6-lane 및 main 통합 검토
-- [ ] GitHub PR/remote CI 증거 (최신 head push 후 확인 중)
+- [x] GitHub PR/remote CI 증거 (run `31957574627`, head `a1751fc`)
 - [ ] 별도 merge 승인, merge 후 local sync/cleanup
