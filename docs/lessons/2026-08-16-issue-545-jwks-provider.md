@@ -38,3 +38,7 @@ TTL, rotation, cooldown, single-flight와 caller context 수명은 provider가
   강제로 회수할 수 없으므로 caller-owned trust boundary로 문서화하고,
   context-aware transport에서는 반복 취소 뒤 active worker가 0으로 돌아오는
   회귀 테스트를 유지한다.
+- `http.DefaultTransport`를 복제할 때도 전역 `DialTLSContext`, `DialTLS`,
+  `TLSClientConfig`, `TLSNextProto`, `Proxy`를 상속하지 않아야 한다. 기본
+  client의 SSRF와 TLS 경계는 프로세스 전역 mutable transport 설정과
+  독립적으로 유지한다.

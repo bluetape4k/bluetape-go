@@ -7,7 +7,7 @@
 - 기준: `origin/develop`의 `9cad5a3d330b1da335e26170d3b97684af0cf44d`
 - 설계/계획: `docs/superpowers/specs/2026-08-16-issue-545-jwks-provider-design.md`,
   `docs/superpowers/plans/2026-08-16-issue-545-jwks-provider-plan.md`
-- 최신 코드 검증 기준: `118049c`
+- 최신 코드 검증 기준: `55868555a1a5de0f4843ba16f9e6f0230a340c19`
 - 의도적으로 하지 않은 작업: release promotion, tag, GitHub merge
 
 ## 기능 검증
@@ -45,6 +45,7 @@
 | `make ci` (커밋 후) | PASS: tidy/fmt/vet/lint/test/race 및 benchmark contract self-test |
 | `make ci` (`3281546`) | PASS: fresh 전체 test/race, tidy/fmt/vet/lint 및 benchmark contract self-test |
 | `make ci` (`118049c`) | PASS: HTTPS loopback hardening 이후 fresh 전체 test/race 및 benchmark contract self-test |
+| `make ci` (`5586855`) | PASS: 전역 transport TLS/dial hook 비상속 보강 이후 fresh 전체 test/race 및 benchmark contract self-test |
 
 `make tidy-check`의 정규화 결과로 `github.com/go-jose/go-jose/v4 v4.1.4`가
 직접 dependency block에 위치한다. 이 차이는 신규 package의 실제 import를
@@ -88,5 +89,5 @@ benchmark HTTP metric은 warm-up 이후 timed 구간의 `http-requests/op`로
 ## 남은 gap
 
 - `govulncheck`는 실행 파일이 없어 보안 취약점 스캔 결과를 확보하지 못했다.
-- GitHub PR/CI 확인은 PR 생성 후 수행한다.
+- GitHub PR/CI 확인은 최신 head push 후 원격 run을 별도로 확인한다.
 - release tag/publication은 이번 issue 범위가 아니며 별도 승인 없이 수행하지 않는다.
