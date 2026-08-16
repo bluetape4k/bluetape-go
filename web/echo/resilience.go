@@ -37,14 +37,17 @@ func WrapResilience(next echo.HandlerFunc, options ResilienceOptions) echo.Handl
 			ctx = original.Context()
 		}
 		state := newResilienceAttemptState(c)
+		attemptNumber := 0
 		_, err := resilience.Run(ctx, func(policyCtx context.Context) (struct{}, error) {
-			return runResilienceAttempt(policyCtx, c, original, state, next)
+			attemptNumber++
+			return runResilienceAttempt(policyCtx, c, original, state, next, attemptNumber)
 		}, policies...)
 		if err == nil {
 			return nil
 		}
 
 		observerErr := newResilienceObserverError(err)
+		c.Set(DefaultResilienceErrorContextKey, observerErr)
 		if options.ErrorHandler != nil {
 			options.ErrorHandler(c, observerErr)
 			return nil
@@ -83,6 +86,7 @@ func runResilienceAttempt(
 	original *http.Request,
 	state resilienceAttemptState,
 	next echo.HandlerFunc,
+	attemptNumber int,
 ) (struct{}, error) {
 	var zero struct{}
 	if err := policyCtx.Err(); err != nil {
@@ -93,7 +97,7 @@ func runResilienceAttempt(
 	}
 
 	restoreResilienceAttemptState(c, state)
-	attemptRequest, body, err := cloneResilienceRequest(policyCtx, original)
+	attemptRequest, body, err := cloneResilienceRequest(policyCtx, original, attemptNumber)
 	if err != nil {
 		return zero, resilience.NonRetryable(err)
 	}
@@ -120,13 +124,17 @@ func runResilienceAttempt(
 	return zero, attemptErr
 }
 
-func cloneResilienceRequest(ctx context.Context, original *http.Request) (*http.Request, io.ReadCloser, error) {
-	request := original.WithContext(ctx)
+func cloneResilienceRequest(ctx context.Context, original *http.Request, attemptNumber int) (*http.Request, io.ReadCloser, error) {
+	request := original.Clone(ctx)
 	if original.Body == nil || original.Body == http.NoBody {
 		request.Body = http.NoBody
 		return request, nil, nil
 	}
 	if original.GetBody == nil {
+		if attemptNumber == 1 {
+			request.Body = original.Body
+			return request, nil, nil
+		}
 		return nil, nil, fmt.Errorf("request body is not replayable")
 	}
 	body, err := original.GetBody()

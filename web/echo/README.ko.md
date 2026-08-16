@@ -63,10 +63,14 @@ compile-checked [`example_test.go`](example_test.go)에 동일한 bootstrap과
   경로는 parse 전후에 cancellation을 확인하지만 blocking `Parse` 구현 자체를
   중단할 수 없는 synchronous best-effort 계약입니다.
 - `WrapResilience`는 route-level wrapper입니다. 각 attempt에서 request context와
-  replayable body를 복제합니다. 이미 commit된 응답, 재생할 수 없는 body,
-  cancellation은 retry하지 않습니다. Echo context에는 key 열거 API가 없으므로
-  adapter가 변경한 key만 복원하며, 임의 store 변경을 retry해야 하는 handler는
-  해당 변경을 non-retryable 경계 밖에 두어야 합니다.
+  replayable body를 복제합니다. 재생할 수 없는 body도 첫 attempt에는 전달하고
+  retry가 필요해지는 순간 fail-closed하며, 이미 commit된 응답과 cancellation도
+  retry하지 않습니다. redacted observer 오류는
+  `DefaultResilienceErrorContextKey`에 저장되고 `ResilienceError`로 읽을 수
+  있으므로 바깥 Echo logger나 error handler가 원인을 노출하지 않고 low-cardinality
+  실패를 기록할 수 있습니다. Echo context에는 key 열거 API가 없으므로 adapter가
+  변경한 key만 복원하며, 임의 store 변경을 retry해야 하는 handler는 해당 변경을
+  non-retryable 경계 밖에 두어야 합니다.
 
 ## Migration
 

@@ -51,8 +51,10 @@ Echo 애플리케이션에서 사용할 수 있는 얇은 adapter로 연결한�
   `*jwt.Reader`만 Echo context에 저장한다. 실패 callback에는 Authorization이 제거된
   request 복사본과 redacted 오류만 전달한다.
 - `ResilienceOptions`, `WrapResilience`: Echo route handler를 공통 policy로
-  감싼다. request context와 replayable body를 attempt마다 복원하며 commit된
-  response, replay 불가능 body, cancellation은 retry하지 않는다.
+  감싼다. request context와 replayable body를 attempt마다 복원하며, replay
+  불가능 body는 첫 시도만 허용하고 이후 retry를 fail-closed한다. commit된
+  response와 cancellation도 retry하지 않는다. 실패 시 redacted observer를
+  `DefaultResilienceErrorContextKey`에 기록하고 `ResilienceError`로 읽을 수 있다.
 
 Echo의 context store는 public enumeration API가 없으므로 adapter가 임의의
 `Set` 키를 snapshot한다고 약속하지 않는다. 따라서 retry attempt 사이에
@@ -74,6 +76,9 @@ store mutation을 수행한 뒤 오류를 반환하는 경우 commit 또는 non-
   격리해 callback이 원본 body를 소비하지 못하게 한다.
 - custom error callback은 caller-owned Echo context와 원인 오류를 받을 수 있으므로
   로그 redaction 책임은 callback caller에게 있음을 문서화한다.
+- 기본 resilience 오류 경로도 redacted observer를 Echo context에 남겨 outer
+  logger/error handler가 low-cardinality 분류를 기록할 수 있게 하며, Problem body에는
+  원인 오류를 노출하지 않는다.
 - 이미 `Response().Committed`이면 adapter가 두 번째 status/body를 쓰지 않는다.
 
 ## 테스트와 DoD
@@ -94,6 +99,7 @@ store mutation을 수행한 뒤 오류를 반환하는 경우 commit 또는 non-
 
 ## 롤백
 
-Echo adapter 변경은 새 package와 dependency를 함께 revert할 수 있다. 기존
-`web`, Gin adapter, `ratelimit`, `jwt`, `resilience` 파일은 수정하지 않으며,
+Echo adapter 변경은 새 package와 dependency를 함께 revert할 수 있다. 공통
+`web/context.go`의 duplicate trusted-header fail-closed hardening을 제외한
+`web`, Gin adapter, `ratelimit`, `jwt`, `resilience` API는 수정하지 않으며,
 실패 시 feature branch와 PR만 닫고 integration branch는 건드리지 않는다.

@@ -22,11 +22,11 @@ func AbortWithProblem(c echo.Context, err error) error {
 		return nil
 	}
 
-	writeErr := web.WriteProblem(response.Writer, c.Request(), err)
+	writeErr := web.WriteProblem(response, c.Request(), err)
 	if writeErr == nil || response.Committed {
 		return writeErr
 	}
-	if fallbackErr := web.WriteProblem(response.Writer, c.Request(), fallbackProblemError{}); fallbackErr != nil {
+	if fallbackErr := web.WriteProblem(response, c.Request(), fallbackProblemError{}); fallbackErr != nil {
 		return writeErr
 	}
 	return writeErr

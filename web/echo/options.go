@@ -16,6 +16,10 @@ import (
 // 검증된 JWT reader를 저장하는 기본 Echo key다.
 const DefaultJWTContextKey = "bluetape.web.echo.jwt"
 
+// DefaultResilienceErrorContextKey is the Echo key for a redacted resilience observer error.
+// redacted resilience observer 오류를 저장하는 기본 Echo key다.
+const DefaultResilienceErrorContextKey = "bluetape.web.echo.resilience.error"
+
 // RateLimitKeyFunc extracts a rate-limit key from an Echo request.
 // Echo request에서 rate-limit key를 추출한다.
 type RateLimitKeyFunc func(echo.Context) string
@@ -89,6 +93,20 @@ func (e AuthenticationError) ProblemDetails() web.Problem {
 type ResilienceOptions struct {
 	Policies     []resilience.Policy[struct{}]
 	ErrorHandler func(echo.Context, error)
+}
+
+// ResilienceError reads the redacted resilience observer stored by WrapResilience.
+// WrapResilience가 저장한 redacted resilience observer 오류를 읽는다.
+func ResilienceError(c echo.Context) (error, bool) {
+	if isNilInterface(c) {
+		return nil, false
+	}
+	value := c.Get(DefaultResilienceErrorContextKey)
+	err, ok := value.(error)
+	if !ok || isNilInterface(err) {
+		return nil, false
+	}
+	return err, true
 }
 
 func validateParserOptions(options JWTOptions) error {
