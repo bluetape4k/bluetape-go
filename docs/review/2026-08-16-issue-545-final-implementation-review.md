@@ -8,6 +8,7 @@
 - 후속 hardening 커밋: `7afba0b344f2cc06b27d1afee216cabcbc06031a`
 - 최신 보강: benchmark fixture 초기화 경계, startup provider 주입형 README,
   algorithm import와 FetchError sanitization 문서 정합성
+- fresh CI 기준 커밋: `3281546af91b1e557943fe4209c4d57d86cff1a`
 - 범위: RSA/ECDSA/Ed25519 JWKS 공개키 provider, cache/rotation, context-aware
   fetch, KeyFunc, 오류·운영 경계, 테스트와 양국어 README
 
