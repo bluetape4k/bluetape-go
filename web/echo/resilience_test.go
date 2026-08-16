@@ -16,7 +16,7 @@ import (
 	"github.com/labstack/echo/v4"
 )
 
-func TestResilienceRetriesReplayableBodyAndRestoresStore(t *testing.T) {
+func TestResilienceRetriesReplayableBody(t *testing.T) {
 	request, err := http.NewRequestWithContext(context.Background(), http.MethodPost, "http://example.test/orders", strings.NewReader("payload"))
 	if err != nil {
 		t.Fatalf("NewRequest() error = %v", err)
@@ -29,7 +29,6 @@ func TestResilienceRetriesReplayableBodyAndRestoresStore(t *testing.T) {
 		if value := c.Get("attempt"); value != nil {
 			t.Fatalf("store value leaked into attempt %d: %v", attempts, value)
 		}
-		c.Set("attempt", attempts)
 		body, err := io.ReadAll(c.Request().Body)
 		if err != nil {
 			return err
@@ -47,6 +46,30 @@ func TestResilienceRetriesReplayableBodyAndRestoresStore(t *testing.T) {
 	}
 }
 
+func TestResilienceDoesNotRetryStoreMutationAfterRouteError(t *testing.T) {
+	ctx, recorder := newEchoContext(http.MethodGet, "http://example.test/orders", nil)
+	attempts := 0
+	err := echoadapter.WrapResilience(func(c echo.Context) error {
+		attempts++
+		c.Set("private", "attempt-local")
+		return errors.New("store mutation failed")
+	}, echoadapter.ResilienceOptions{Policies: []resilience.Policy[struct{}]{retryPolicy(3)}})(ctx)
+	if err != nil || recorder.Code != http.StatusServiceUnavailable || attempts != 1 || ctx.Get("private") != nil {
+		t.Fatalf("err=%v status=%d attempts=%d private=%v, want nil/503/1/nil", err, recorder.Code, attempts, ctx.Get("private"))
+	}
+}
+
+func TestResilienceSuccessfulStoreMutationPersists(t *testing.T) {
+	ctx, recorder := newEchoContext(http.MethodGet, "http://example.test/orders", nil)
+	err := echoadapter.WrapResilience(func(c echo.Context) error {
+		c.Set("request-scoped", "value")
+		return c.NoContent(http.StatusNoContent)
+	}, echoadapter.ResilienceOptions{})(ctx)
+	if err != nil || recorder.Code != http.StatusNoContent || ctx.Get("request-scoped") != "value" {
+		t.Fatalf("err=%v status=%d value=%v, want nil/204/value", err, recorder.Code, ctx.Get("request-scoped"))
+	}
+}
+
 func TestResilienceDoesNotRetryCommittedResponse(t *testing.T) {
 	ctx, recorder := newEchoContext(http.MethodGet, "http://example.test/orders", nil)
 	attempts := 0
@@ -59,6 +82,19 @@ func TestResilienceDoesNotRetryCommittedResponse(t *testing.T) {
 	}, echoadapter.ResilienceOptions{Policies: []resilience.Policy[struct{}]{retryPolicy(3)}})(ctx)
 	if err != nil || recorder.Code != http.StatusAccepted || recorder.Body.String() != "committed" || attempts != 1 {
 		t.Fatalf("err=%v status=%d body=%q attempts=%d, want nil/202/committed/1", err, recorder.Code, recorder.Body.String(), attempts)
+	}
+}
+
+func TestResilienceDoesNotRetryRawWriterResponse(t *testing.T) {
+	ctx, recorder := newEchoContext(http.MethodGet, "http://example.test/orders", nil)
+	attempts := 0
+	err := echoadapter.WrapResilience(func(c echo.Context) error {
+		attempts++
+		_, _ = c.Response().Writer.Write([]byte("raw response"))
+		return errors.New("post-raw-write failure")
+	}, echoadapter.ResilienceOptions{Policies: []resilience.Policy[struct{}]{retryPolicy(3)}})(ctx)
+	if err != nil || recorder.Code != http.StatusOK || recorder.Body.String() != "raw response" || attempts != 1 || !ctx.Response().Committed {
+		t.Fatalf("err=%v status=%d body=%q attempts=%d committed=%t, want nil/200/raw response/1/true", err, recorder.Code, recorder.Body.String(), attempts, ctx.Response().Committed)
 	}
 }
 
@@ -248,10 +284,12 @@ func TestResilienceRecordsRedactedObserverByDefault(t *testing.T) {
 func TestResilienceCancellationMapsToProblem(t *testing.T) {
 	request := httptest.NewRequestWithContext(context.Background(), http.MethodGet, "http://example.test/orders", nil)
 	ctx, recorder := newEchoContextFromRequest(request)
+	attempts := 0
 	err := echoadapter.WrapResilience(func(echo.Context) error {
+		attempts++
 		return context.Canceled
-	}, echoadapter.ResilienceOptions{})(ctx)
-	if err != nil || recorder.Code != http.StatusRequestTimeout {
-		t.Fatalf("err=%v status=%d, want nil/408", err, recorder.Code)
+	}, echoadapter.ResilienceOptions{Policies: []resilience.Policy[struct{}]{retryPolicy(3)}})(ctx)
+	if err != nil || recorder.Code != http.StatusRequestTimeout || attempts != 1 {
+		t.Fatalf("err=%v status=%d attempts=%d, want nil/408/1", err, recorder.Code, attempts)
 	}
 }

@@ -49,7 +49,8 @@ Echo 애플리케이션에서 사용할 수 있는 얇은 adapter로 연결한�
 - `JWTOptions`, `ContextParser`, `JWTErrorKind`, `AuthenticationError`, `NewJWT`,
   `JWTReader`: 정확히 하나의 case-insensitive `Bearer` header만 허용하고 검증된
   `*jwt.Reader`만 Echo context에 저장한다. 실패 callback에는 Authorization이 제거된
-  request 복사본과 redacted 오류만 전달한다.
+  request 복사본과 redacted 오류만 전달한다. parser 취소/마감도 인증 실패로
+  redacted 401을 반환하며, 이는 Gin adapter와의 일관성을 유지하는 의도적 계약이다.
 - `ResilienceOptions`, `WrapResilience`: Echo route handler를 공통 policy로
   감싼다. request context와 replayable body를 attempt마다 복원하며, replay
   불가능 body는 첫 시도만 허용하고 이후 retry를 fail-closed한다. commit된
@@ -59,15 +60,17 @@ Echo 애플리케이션에서 사용할 수 있는 얇은 adapter로 연결한�
 Echo의 context store는 public enumeration API가 없으므로 adapter가 임의의
 `Set` 키를 snapshot한다고 약속하지 않는다. 따라서 retry attempt 사이에
 복원할 수 있는 request/path/params와 adapter-owned 상태만 복원하고, handler가
-store mutation을 수행한 뒤 오류를 반환하는 경우 commit 또는 non-retryable
-경계로 fail-closed한다. 이 제한은 README와 테스트에 명시한다.
+store mutation을 수행한 뒤 오류를 반환하는 경우 non-retryable 경계로
+fail-closed한다. 성공한 attempt의 store mutation은 해당 Echo 요청에 남기며,
+이 제한은 README와 테스트에 명시한다.
 
 ## 오류와 보안 경계
 
 - 원인 오류, raw token, Authorization 값, provider payload를 Problem body나
   기본 callback에 노출하지 않는다.
-- `context.Canceled`/`context.DeadlineExceeded`는 기존 `web.WriteProblem` 매핑을
-  사용한다.
+- rate-limit/resilience의 `context.Canceled`/`context.DeadlineExceeded`는 기존
+  `web.WriteProblem` 매핑을 사용한다. JWT parser 취소는 인증 실패 경계에서
+  redacted 401을 반환한다.
 - `ContextParser`가 설정되면 request context를 parser I/O에 전달해 strict
   cancellation을 지원한다. 기존 `Parser`는 parse 전후만 확인하는 synchronous
   best-effort 경로이며, blocking `Parse`를 중단해야 하는 caller는

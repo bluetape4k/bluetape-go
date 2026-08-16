@@ -17,6 +17,7 @@ import (
     "github.com/bluetape4k/bluetape-go/web"
     echoadapter "github.com/bluetape4k/bluetape-go/web/echo"
     "github.com/labstack/echo/v4"
+    "github.com/labstack/echo/v4/middleware"
 )
 
 func buildServer() (*echo.Echo, error) {
@@ -30,7 +31,7 @@ func buildServer() (*echo.Echo, error) {
     if err != nil { return nil, err }
 
     server := echo.New()
-    server.Use(echoadapter.RequestContext(web.RequestContextOptions{}), rateLimit, authentication)
+    server.Use(middleware.Recover(), echoadapter.RequestContext(web.RequestContextOptions{}), rateLimit, authentication)
     server.GET("/orders", echoadapter.WrapResilience(func(c echo.Context) error {
         return c.NoContent(http.StatusNoContent)
     }, echoadapter.ResilienceOptions{}))
@@ -52,7 +53,8 @@ bootstrap and a migration example using `echo.WrapHandler`.
   duplicate values fail closed instead of selecting an ambiguous identity.
 - `NewRateLimit` calls the next Echo handler once only when the limiter allows
   the request. Rejections preserve `Retry-After` and
-  `X-RateLimit-Remaining`; backend failures are safe 503 Problems.
+  `X-RateLimit-Remaining`; backend failures are safe 503 Problems. A custom
+  `ErrorHandler` is caller-owned and must redact any backend error it records.
 - `NewJWT` accepts exactly one case-insensitive `Bearer <token>` header. It
   rejects duplicate/comma-joined values, controls, whitespace, and tokens over
   8 KiB. `JWTReader` returns only the verified `*jwt.Reader` stored in context.
@@ -61,7 +63,9 @@ bootstrap and a migration example using `echo.WrapHandler`.
   its body is `http.NoBody` so callback inspection cannot consume the original
   request. Use `ContextParser` when parser I/O must observe cancellation. The
   legacy `Parser` path is synchronous and checks cancellation before and after
-  parsing, but cannot interrupt a blocking `Parse` implementation.
+  parsing, but cannot interrupt a blocking `Parse` implementation. Parser
+  cancellation is intentionally reported as the same redacted 401 authentication
+  failure as the Gin adapter.
 - `WrapResilience` is a route-level wrapper. Request context and replayable
   bodies are cloned for each attempt. A non-replayable body is delivered to the
   first attempt and then fails closed if a retry would be required; committed
@@ -70,8 +74,14 @@ bootstrap and a migration example using `echo.WrapHandler`.
   `ResilienceError` so an outer Echo logger or error handler can record the
   low-cardinality failure without exposing its cause. Echo's context store has
   no public key enumeration API, so adapter-owned key mutations are restored
-  while a handler that needs arbitrary store rollback must avoid retrying that
-  mutation.
+  after failed attempts; a store mutation followed by a route error is
+  non-retryable, while a successful attempt keeps the mutation for the request.
+  The observer's `Unwrap` preserves the cause for `errors.Is`; callers must keep
+  that cause out of public logs and responses.
+  Direct writes through `c.Response().Writer` are tracked as committed and stop
+  retries; prefer Echo's response methods so status and size bookkeeping remain
+  available. Install `middleware.Recover()` as the outermost middleware for
+  panic-to-500 handling.
 
 ## Migration
 

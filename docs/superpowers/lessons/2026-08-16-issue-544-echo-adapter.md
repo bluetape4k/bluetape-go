@@ -63,6 +63,13 @@
   원인이 사라진다. raw cause를 응답에 노출하지 않으면서 redacted observer를
   Echo context에 보존하고 caller-owned `ResilienceError` 경로로 기록 가능하게
   해야 한다.
+- custom resilience policy가 취소 오류를 재시도하지 않도록 adapter가
+  `context.Canceled`/`DeadlineExceeded`를 non-retryable로 감싸야 한다. Echo
+  context store mutation 뒤 route 오류도 같은 fail-closed 경계로 묶고, 성공한
+  attempt의 store 값은 요청 범위에서 보존해야 한다.
+- framework-neutral conformance 계약은 Echo-specific 테스트만으로 충족되지
+  않는다. `webtest.Run`에 Echo bridge를 연결해 problem/context/rate-limit/JWT/
+  resilience 공통 시나리오를 실제 HTTP handler 경계에서 다시 실행해야 한다.
 
 ## 다음 수정자가 피해야 할 선택
 
