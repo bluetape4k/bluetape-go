@@ -217,7 +217,7 @@
 - [x] Step 6-R code review를 performance, stability, security, operator/Ops, developer/API, user/caller 여섯 lane으로 수행하고 docs/superpowers/reviews/2026-08-16-issue-543-step-6r-code-review.md에 P0/P1/P2와 evidence를 기록한다. main integration verdict에는 0 known P0/P1을 요구한다.
 - [x] docs/superpowers/lessons/2026-08-16-issue-543-gin-adapter.md에 재사용 가능한 Go/Gin adapter 교훈, 실패 원인, 다음 수정자가 피해야 할 선택을 한국어로 기록한다.
 - [x] gh issue view 543 --json title,body,assignees,milestone,state,parent로 Issue metadata를 재확인하고, PR body에 Closes #543, 설계/계획/리뷰/benchmark/lesson 링크, 테스트 결과, final ## DoD Status를 포함한다.
-- [ ] PR을 생성한 뒤 PR_NUMBER=$(gh pr view --json number --jq .number)로 번호를 읽고 gh pr checks "$PR_NUMBER" --watch --interval 10과 gh pr view "$PR_NUMBER" --json headRefOid,baseRefName,statusCheckRollup,reviews,reviewDecision,mergeStateStatus,body를 실행한다. local HEAD와 headRefOid가 일치하고 모든 check가 성공하며 unresolved review thread가 없고 mergeStateStatus가 clean인 것을 live read-back한다. CI가 성공해도 merge는 별도의 최신 사용자 승인 전까지 보류한다.
+- [x] PR #687에 대해 `gh pr checks 687 --watch --interval 10`과 `gh pr view 687 --json headRefOid,baseRefName,statusCheckRollup,reviews,reviewDecision,mergeStateStatus,body`를 실행했다. local HEAD `b2ecafc`와 `headRefOid`가 일치하고 CI run `31917992608`이 성공했으며 reviews/comments가 없고 `mergeStateStatus=CLEAN`인 것을 live read-back했다. CI가 성공해도 merge는 별도의 최신 사용자 승인 전까지 보류한다.
 - [x] merge 승인 전 stop condition은 “코드·문서·benchmark·review·lesson 완료, 모든 로컬 검증 성공, PR CI/review live evidence 확보, merge approval 미확보”이다.
 
 ## 완료 판정
@@ -225,5 +225,5 @@
 - [x] Issue #543 범위의 Gin adapter와 테스트/문서/benchmark가 존재한다.
 - [x] Gin import boundary, strict JWT, redacted errors, trusted peer fail-closed, committed-response retry stop, request cancellation, concurrent isolation이 fresh test output으로 입증된다.
 - [x] make ci와 make race가 성공하고 Step 6-R에서 P0/P1이 없다.
-- [ ] 변경 파일·커밋·PR·CI evidence를 사용자에게 한국어 DoD로 보고한다.
+- [x] 변경 파일·커밋·PR·CI evidence를 사용자에게 한국어 DoD로 보고한다.
 - [x] merge/local sync/cleanup은 별도 최신 승인 전까지 PENDING으로 남긴다.

@@ -45,11 +45,11 @@
 - `make bench-web-gin` — capture SHA `91a41d9632f9f60fda4d28c9a40780d88d28cc4e`,
   `2026-08-16T00:00:44Z`, 180 rows, CPU `1,2,4`, count `5`
 - `web/problem_test.go`의 credential-like query 회귀와 `web/gin/jwt_test.go`의 typed-nil ContextParser 요청 경계 회귀 — 통과
-- `git diff --check` — 통과 (후속 commit 전)
+- `git diff --check` 및 최종 worktree clean — 통과
+- PR #687 CI run `31917992608` — `ci` success, 14m33s; head `b2ecafc` 일치, reviews/comments 없음, `mergeStateStatus=CLEAN`
 
 ## 최종 결론
 
-**APPROVED FOR PR CI RECHECK.** 구현·문서·benchmark·lesson과 최종 6-lane
-review의 P0/P1 gate를 충족했다. 후속 변경을 commit/push한 뒤 PR CI를 다시
-모니터링한다. branch merge와 local sync/cleanup은 최신 사용자 merge 승인
-전까지 실행하지 않는다.
+**PR CI GREEN, 병합 승인 대기.** 구현·문서·benchmark·lesson과 최종 6-lane
+review의 P0/P1 gate, PR live read-back을 충족했다. branch merge와 local
+sync/cleanup은 최신 사용자 merge 승인 전까지 실행하지 않는다.
