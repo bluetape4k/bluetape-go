@@ -32,6 +32,12 @@
    `staticcheck`, `gofmt`를 테스트 코드까지 적용한다. 영문/한국어 README는
    install, migration, redaction, retry limitation, 검증 명령을 같은 범위로
    유지한다.
+8. **benchmark provenance와 retry fixture를 함께 고정한다.** raw output의
+   capture SHA는 benchmark 코드가 실제 존재하는 commit을 가리켜야 한다.
+   성공만 하는 GET fixture를 `Retry`라고 부르지 말고 첫 시도 실패 후 두 번째
+   성공을 만들며, replayable body는 `GetBody`를 명시하고 매 시도 payload를
+   검증한다. `-count=5` 반복과 CPU matrix는 방향성 근거로 보존하되, local
+   baseline을 cross-host regression threshold로 과장하지 않는다.
 
 ## 이번 작업에서 확인한 실패 원인
 
@@ -63,3 +69,5 @@
 - `go vet ./web/echo`
 - `make fmt-check`, `make tidy-check`, `make vet`, `make lint`, `make ci`
 - `git diff --check`
+- `go test -run '^$' -bench '^BenchmarkEchoAdapter$' -benchtime=100ms -benchmem -count=5 -cpu=1 ./web/echo`
+- `go test -run '^$' -bench '^BenchmarkEchoAdapter' -benchtime=100ms -benchmem -count=5 -cpu=1,2,4 ./web/echo`
