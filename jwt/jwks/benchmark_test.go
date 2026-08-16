@@ -73,7 +73,7 @@ func BenchmarkLookupForcedRefresh(b *testing.B) {
 func BenchmarkLookupColdMiss(b *testing.B) {
 	provider, requests, cleanup := benchmarkProvider(b)
 	defer cleanup()
-	provider.cfg.cacheTTL = 0
+	configureExpiringBenchmarkProvider(provider)
 	b.ReportAllocs()
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
@@ -110,7 +110,7 @@ func BenchmarkLookupTTLExpiry(b *testing.B) {
 func BenchmarkLookupParallelMiss(b *testing.B) {
 	provider, requests, cleanup := benchmarkProvider(b)
 	defer cleanup()
-	provider.cfg.cacheTTL = 0
+	configureExpiringBenchmarkProvider(provider)
 	b.ReportAllocs()
 	b.ResetTimer()
 	b.RunParallel(func(pb *testing.PB) {
@@ -127,6 +127,14 @@ func BenchmarkLookupParallelMiss(b *testing.B) {
 func reportHTTPRequests(b *testing.B, requests *atomic.Int64, baseline int64) {
 	b.Helper()
 	b.ReportMetric(float64(requests.Load()-baseline)/float64(b.N), "http-requests/op")
+}
+
+func configureExpiringBenchmarkProvider(provider *Provider) {
+	var ticks atomic.Int64
+	provider.cfg.cacheTTL = time.Nanosecond
+	provider.cfg.now = func() time.Time {
+		return time.Unix(0, ticks.Add(int64(time.Microsecond))).UTC()
+	}
 }
 
 func benchmarkProvider(b *testing.B) (*Provider, *atomic.Int64, func()) {
