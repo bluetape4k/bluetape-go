@@ -1,0 +1,205 @@
+timestamp_utc: 2026-08-16T00:00:44Z
+git_sha: 91a41d9632f9f60fda4d28c9a40780d88d28cc4e
+dirty_tree: false
+capture_eligibility: eligible
+no_regression: N/A
+gin_version: v1.12.0
+fixture_identity: gin-v1.12.0-parser-only-local
+go_version: go version go1.26.6 darwin/arm64
+goos: darwin
+goarch: arm64
+cpu: 1,2,4
+logical_cpus: 10
+benchmark_count: 5
+max_output_bytes: 10485760
+command: go test -timeout=10m -run \^\$ -bench \^BenchmarkGinAdapter -benchmem -count=5 -cpu=1\,2\,4 ./web/gin
+output_begin
+goos: darwin
+goarch: arm64
+pkg: github.com/bluetape4k/bluetape-go/web/gin
+cpu: Apple M5
+BenchmarkGinAdapter/NoOp/Serial         	 1447386	       821.3 ns/op	    5360 B/op	      13 allocs/op
+BenchmarkGinAdapter/NoOp/Serial         	 1455594	       826.8 ns/op	    5360 B/op	      13 allocs/op
+BenchmarkGinAdapter/NoOp/Serial         	 1453357	       821.2 ns/op	    5360 B/op	      13 allocs/op
+BenchmarkGinAdapter/NoOp/Serial         	 1454916	       825.6 ns/op	    5360 B/op	      13 allocs/op
+BenchmarkGinAdapter/NoOp/Serial         	 1449800	       828.8 ns/op	    5360 B/op	      13 allocs/op
+BenchmarkGinAdapter/NoOp/Serial-2       	 1551226	       773.5 ns/op	    5360 B/op	      13 allocs/op
+BenchmarkGinAdapter/NoOp/Serial-2       	 1561405	       785.3 ns/op	    5360 B/op	      13 allocs/op
+BenchmarkGinAdapter/NoOp/Serial-2       	 1515595	       779.2 ns/op	    5360 B/op	      13 allocs/op
+BenchmarkGinAdapter/NoOp/Serial-2       	 1565109	       787.2 ns/op	    5360 B/op	      13 allocs/op
+BenchmarkGinAdapter/NoOp/Serial-2       	 1537140	       776.6 ns/op	    5360 B/op	      13 allocs/op
+BenchmarkGinAdapter/NoOp/Serial-4       	 1601308	       741.8 ns/op	    5361 B/op	      13 allocs/op
+BenchmarkGinAdapter/NoOp/Serial-4       	 1615834	       737.7 ns/op	    5361 B/op	      13 allocs/op
+BenchmarkGinAdapter/NoOp/Serial-4       	 1615579	       744.5 ns/op	    5361 B/op	      13 allocs/op
+BenchmarkGinAdapter/NoOp/Serial-4       	 1617631	       741.7 ns/op	    5361 B/op	      13 allocs/op
+BenchmarkGinAdapter/NoOp/Serial-4       	 1605268	       744.3 ns/op	    5361 B/op	      13 allocs/op
+BenchmarkGinAdapter/NoOp/Parallel       	 1416538	       839.7 ns/op	    5360 B/op	      13 allocs/op
+BenchmarkGinAdapter/NoOp/Parallel       	 1433644	       834.6 ns/op	    5360 B/op	      13 allocs/op
+BenchmarkGinAdapter/NoOp/Parallel       	 1437812	       837.7 ns/op	    5360 B/op	      13 allocs/op
+BenchmarkGinAdapter/NoOp/Parallel       	 1432443	       837.9 ns/op	    5360 B/op	      13 allocs/op
+BenchmarkGinAdapter/NoOp/Parallel       	 1434549	       836.9 ns/op	    5360 B/op	      13 allocs/op
+BenchmarkGinAdapter/NoOp/Parallel-2     	 1432369	       826.1 ns/op	    5360 B/op	      13 allocs/op
+BenchmarkGinAdapter/NoOp/Parallel-2     	 1470662	       821.0 ns/op	    5360 B/op	      13 allocs/op
+BenchmarkGinAdapter/NoOp/Parallel-2     	 1454313	       823.1 ns/op	    5360 B/op	      13 allocs/op
+BenchmarkGinAdapter/NoOp/Parallel-2     	 1453707	       825.9 ns/op	    5360 B/op	      13 allocs/op
+BenchmarkGinAdapter/NoOp/Parallel-2     	 1449930	       813.7 ns/op	    5360 B/op	      13 allocs/op
+BenchmarkGinAdapter/NoOp/Parallel-4     	 1584438	       751.9 ns/op	    5361 B/op	      13 allocs/op
+BenchmarkGinAdapter/NoOp/Parallel-4     	 1594104	       752.8 ns/op	    5361 B/op	      13 allocs/op
+BenchmarkGinAdapter/NoOp/Parallel-4     	 1600328	       754.1 ns/op	    5361 B/op	      13 allocs/op
+BenchmarkGinAdapter/NoOp/Parallel-4     	 1581302	       753.2 ns/op	    5361 B/op	      13 allocs/op
+BenchmarkGinAdapter/NoOp/Parallel-4     	 1598709	       753.3 ns/op	    5361 B/op	      13 allocs/op
+BenchmarkGinAdapter/DirectCore/Serial   	 1000000	      1143 ns/op	    5840 B/op	      18 allocs/op
+BenchmarkGinAdapter/DirectCore/Serial   	 1000000	      1136 ns/op	    5840 B/op	      18 allocs/op
+BenchmarkGinAdapter/DirectCore/Serial   	 1000000	      1136 ns/op	    5840 B/op	      18 allocs/op
+BenchmarkGinAdapter/DirectCore/Serial   	 1000000	      1134 ns/op	    5840 B/op	      18 allocs/op
+BenchmarkGinAdapter/DirectCore/Serial   	 1000000	      1132 ns/op	    5840 B/op	      18 allocs/op
+BenchmarkGinAdapter/DirectCore/Serial-2 	 1000000	      1019 ns/op	    5840 B/op	      18 allocs/op
+BenchmarkGinAdapter/DirectCore/Serial-2 	 1000000	      1014 ns/op	    5840 B/op	      18 allocs/op
+BenchmarkGinAdapter/DirectCore/Serial-2 	 1000000	      1022 ns/op	    5840 B/op	      18 allocs/op
+BenchmarkGinAdapter/DirectCore/Serial-2 	 1000000	      1095 ns/op	    5840 B/op	      18 allocs/op
+BenchmarkGinAdapter/DirectCore/Serial-2 	 1000000	      1251 ns/op	    5840 B/op	      18 allocs/op
+BenchmarkGinAdapter/DirectCore/Serial-4 	 1000000	      1055 ns/op	    5841 B/op	      18 allocs/op
+BenchmarkGinAdapter/DirectCore/Serial-4 	 1237178	       985.5 ns/op	    5841 B/op	      18 allocs/op
+BenchmarkGinAdapter/DirectCore/Serial-4 	 1213466	      1220 ns/op	    5841 B/op	      18 allocs/op
+BenchmarkGinAdapter/DirectCore/Serial-4 	 1000000	      1084 ns/op	    5841 B/op	      18 allocs/op
+BenchmarkGinAdapter/DirectCore/Serial-4 	 1237550	       972.2 ns/op	    5841 B/op	      18 allocs/op
+BenchmarkGinAdapter/DirectCore/Parallel           	 1000000	      1195 ns/op	    5840 B/op	      18 allocs/op
+BenchmarkGinAdapter/DirectCore/Parallel           	  991844	      1342 ns/op	    5840 B/op	      18 allocs/op
+BenchmarkGinAdapter/DirectCore/Parallel           	 1000000	      1154 ns/op	    5840 B/op	      18 allocs/op
+BenchmarkGinAdapter/DirectCore/Parallel           	 1000000	      1140 ns/op	    5840 B/op	      18 allocs/op
+BenchmarkGinAdapter/DirectCore/Parallel           	 1000000	      1139 ns/op	    5840 B/op	      18 allocs/op
+BenchmarkGinAdapter/DirectCore/Parallel-2         	 1000000	      1091 ns/op	    5840 B/op	      18 allocs/op
+BenchmarkGinAdapter/DirectCore/Parallel-2         	 1000000	      1244 ns/op	    5840 B/op	      18 allocs/op
+BenchmarkGinAdapter/DirectCore/Parallel-2         	 1000000	      1016 ns/op	    5840 B/op	      18 allocs/op
+BenchmarkGinAdapter/DirectCore/Parallel-2         	 1201803	       999.9 ns/op	    5840 B/op	      18 allocs/op
+BenchmarkGinAdapter/DirectCore/Parallel-2         	 1000000	      1009 ns/op	    5840 B/op	      18 allocs/op
+BenchmarkGinAdapter/DirectCore/Parallel-4         	 1327798	       903.0 ns/op	    5841 B/op	      18 allocs/op
+BenchmarkGinAdapter/DirectCore/Parallel-4         	 1317126	       912.3 ns/op	    5841 B/op	      18 allocs/op
+BenchmarkGinAdapter/DirectCore/Parallel-4         	 1331947	       903.5 ns/op	    5841 B/op	      18 allocs/op
+BenchmarkGinAdapter/DirectCore/Parallel-4         	 1329025	       904.0 ns/op	    5841 B/op	      18 allocs/op
+BenchmarkGinAdapter/DirectCore/Parallel-4         	 1322904	       910.1 ns/op	    5841 B/op	      18 allocs/op
+BenchmarkGinAdapter/Bridge/Serial                 	  951786	      1192 ns/op	    5840 B/op	      18 allocs/op
+BenchmarkGinAdapter/Bridge/Serial                 	 1000000	      1188 ns/op	    5840 B/op	      18 allocs/op
+BenchmarkGinAdapter/Bridge/Serial                 	  989431	      1189 ns/op	    5840 B/op	      18 allocs/op
+BenchmarkGinAdapter/Bridge/Serial                 	 1000000	      1183 ns/op	    5840 B/op	      18 allocs/op
+BenchmarkGinAdapter/Bridge/Serial                 	 1000000	      1181 ns/op	    5840 B/op	      18 allocs/op
+BenchmarkGinAdapter/Bridge/Serial-2               	 1000000	      1059 ns/op	    5841 B/op	      18 allocs/op
+BenchmarkGinAdapter/Bridge/Serial-2               	 1000000	      1055 ns/op	    5841 B/op	      18 allocs/op
+BenchmarkGinAdapter/Bridge/Serial-2               	 1000000	      1057 ns/op	    5841 B/op	      18 allocs/op
+BenchmarkGinAdapter/Bridge/Serial-2               	 1000000	      1054 ns/op	    5841 B/op	      18 allocs/op
+BenchmarkGinAdapter/Bridge/Serial-2               	 1000000	      1053 ns/op	    5841 B/op	      18 allocs/op
+BenchmarkGinAdapter/Bridge/Serial-4               	 1216977	      1009 ns/op	    5842 B/op	      18 allocs/op
+BenchmarkGinAdapter/Bridge/Serial-4               	 1201736	       993.2 ns/op	    5842 B/op	      18 allocs/op
+BenchmarkGinAdapter/Bridge/Serial-4               	 1203571	      1012 ns/op	    5842 B/op	      18 allocs/op
+BenchmarkGinAdapter/Bridge/Serial-4               	 1000000	      1004 ns/op	    5843 B/op	      18 allocs/op
+BenchmarkGinAdapter/Bridge/Serial-4               	 1203246	      1204 ns/op	    5842 B/op	      18 allocs/op
+BenchmarkGinAdapter/Bridge/Parallel               	  850690	      1261 ns/op	    5840 B/op	      18 allocs/op
+BenchmarkGinAdapter/Bridge/Parallel               	  966422	      1204 ns/op	    5840 B/op	      18 allocs/op
+BenchmarkGinAdapter/Bridge/Parallel               	 1000000	      1180 ns/op	    5840 B/op	      18 allocs/op
+BenchmarkGinAdapter/Bridge/Parallel               	 1000000	      1181 ns/op	    5840 B/op	      18 allocs/op
+BenchmarkGinAdapter/Bridge/Parallel               	 1000000	      1186 ns/op	    5840 B/op	      18 allocs/op
+BenchmarkGinAdapter/Bridge/Parallel-2             	 1000000	      1025 ns/op	    5841 B/op	      18 allocs/op
+BenchmarkGinAdapter/Bridge/Parallel-2             	 1000000	      1031 ns/op	    5841 B/op	      18 allocs/op
+BenchmarkGinAdapter/Bridge/Parallel-2             	 1000000	      1032 ns/op	    5841 B/op	      18 allocs/op
+BenchmarkGinAdapter/Bridge/Parallel-2             	 1000000	      1034 ns/op	    5841 B/op	      18 allocs/op
+BenchmarkGinAdapter/Bridge/Parallel-2             	 1000000	      1017 ns/op	    5841 B/op	      18 allocs/op
+BenchmarkGinAdapter/Bridge/Parallel-4             	 1286523	       928.2 ns/op	    5843 B/op	      18 allocs/op
+BenchmarkGinAdapter/Bridge/Parallel-4             	 1295217	       939.8 ns/op	    5843 B/op	      18 allocs/op
+BenchmarkGinAdapter/Bridge/Parallel-4             	 1294027	       954.8 ns/op	    5843 B/op	      18 allocs/op
+BenchmarkGinAdapter/Bridge/Parallel-4             	 1276501	       929.9 ns/op	    5844 B/op	      18 allocs/op
+BenchmarkGinAdapter/Bridge/Parallel-4             	 1294563	       930.7 ns/op	    5844 B/op	      18 allocs/op
+BenchmarkGinAdapter/FullAdapter/Serial            	  232778	      5070 ns/op	   12009 B/op	      96 allocs/op
+BenchmarkGinAdapter/FullAdapter/Serial            	  237409	      5073 ns/op	   12009 B/op	      96 allocs/op
+BenchmarkGinAdapter/FullAdapter/Serial            	  237019	      5083 ns/op	   12009 B/op	      96 allocs/op
+BenchmarkGinAdapter/FullAdapter/Serial            	  235386	      5105 ns/op	   12009 B/op	      96 allocs/op
+BenchmarkGinAdapter/FullAdapter/Serial            	  238182	      5059 ns/op	   12009 B/op	      96 allocs/op
+BenchmarkGinAdapter/FullAdapter/Serial-2          	  279352	      4271 ns/op	   12010 B/op	      96 allocs/op
+BenchmarkGinAdapter/FullAdapter/Serial-2          	  279878	      4304 ns/op	   12010 B/op	      96 allocs/op
+BenchmarkGinAdapter/FullAdapter/Serial-2          	  280250	      4301 ns/op	   12010 B/op	      96 allocs/op
+BenchmarkGinAdapter/FullAdapter/Serial-2          	  279915	      4282 ns/op	   12010 B/op	      96 allocs/op
+BenchmarkGinAdapter/FullAdapter/Serial-2          	  280137	      4539 ns/op	   12010 B/op	      96 allocs/op
+BenchmarkGinAdapter/FullAdapter/Serial-4          	  265311	      5078 ns/op	   12013 B/op	      96 allocs/op
+BenchmarkGinAdapter/FullAdapter/Serial-4          	  264902	      4373 ns/op	   12013 B/op	      96 allocs/op
+BenchmarkGinAdapter/FullAdapter/Serial-4          	  276128	      4268 ns/op	   12013 B/op	      96 allocs/op
+BenchmarkGinAdapter/FullAdapter/Serial-4          	  280320	      4261 ns/op	   12013 B/op	      96 allocs/op
+BenchmarkGinAdapter/FullAdapter/Serial-4          	  281925	      4263 ns/op	   12013 B/op	      96 allocs/op
+BenchmarkGinAdapter/FullAdapter/Parallel          	  235992	      5118 ns/op	   12009 B/op	      96 allocs/op
+BenchmarkGinAdapter/FullAdapter/Parallel          	  232983	      5120 ns/op	   12009 B/op	      96 allocs/op
+BenchmarkGinAdapter/FullAdapter/Parallel          	  235647	      5108 ns/op	   12009 B/op	      96 allocs/op
+BenchmarkGinAdapter/FullAdapter/Parallel          	  234712	      5119 ns/op	   12009 B/op	      96 allocs/op
+BenchmarkGinAdapter/FullAdapter/Parallel          	  235989	      5107 ns/op	   12009 B/op	      96 allocs/op
+BenchmarkGinAdapter/FullAdapter/Parallel-2        	  360061	      3406 ns/op	   12011 B/op	      96 allocs/op
+BenchmarkGinAdapter/FullAdapter/Parallel-2        	  343150	      3421 ns/op	   12011 B/op	      96 allocs/op
+BenchmarkGinAdapter/FullAdapter/Parallel-2        	  353265	      3398 ns/op	   12011 B/op	      96 allocs/op
+BenchmarkGinAdapter/FullAdapter/Parallel-2        	  356677	      3397 ns/op	   12011 B/op	      96 allocs/op
+BenchmarkGinAdapter/FullAdapter/Parallel-2        	  346987	      3388 ns/op	   12011 B/op	      96 allocs/op
+BenchmarkGinAdapter/FullAdapter/Parallel-4        	  428241	      3938 ns/op	   12016 B/op	      96 allocs/op
+BenchmarkGinAdapter/FullAdapter/Parallel-4        	  281815	      3730 ns/op	   12016 B/op	      96 allocs/op
+BenchmarkGinAdapter/FullAdapter/Parallel-4        	  337698	      3062 ns/op	   12016 B/op	      96 allocs/op
+BenchmarkGinAdapter/FullAdapter/Parallel-4        	  422052	      2920 ns/op	   12016 B/op	      96 allocs/op
+BenchmarkGinAdapter/FullAdapter/Parallel-4        	  408674	      3242 ns/op	   12016 B/op	      96 allocs/op
+BenchmarkGinAdapterColdConstruction               	 1737873	       697.4 ns/op	    1672 B/op	      25 allocs/op
+BenchmarkGinAdapterColdConstruction               	 1902482	       623.1 ns/op	    1672 B/op	      25 allocs/op
+BenchmarkGinAdapterColdConstruction               	 1931359	       620.8 ns/op	    1672 B/op	      25 allocs/op
+BenchmarkGinAdapterColdConstruction               	 1802262	       711.7 ns/op	    1672 B/op	      25 allocs/op
+BenchmarkGinAdapterColdConstruction               	 1862845	       634.2 ns/op	    1672 B/op	      25 allocs/op
+BenchmarkGinAdapterColdConstruction-2             	 2476914	       484.7 ns/op	    1672 B/op	      25 allocs/op
+BenchmarkGinAdapterColdConstruction-2             	 2487312	       503.6 ns/op	    1672 B/op	      25 allocs/op
+BenchmarkGinAdapterColdConstruction-2             	 2344159	       558.6 ns/op	    1672 B/op	      25 allocs/op
+BenchmarkGinAdapterColdConstruction-2             	 2406489	       482.8 ns/op	    1672 B/op	      25 allocs/op
+BenchmarkGinAdapterColdConstruction-2             	 2500212	       480.5 ns/op	    1672 B/op	      25 allocs/op
+BenchmarkGinAdapterColdConstruction-4             	 2549989	       472.4 ns/op	    1672 B/op	      25 allocs/op
+BenchmarkGinAdapterColdConstruction-4             	 2228210	       556.4 ns/op	    1672 B/op	      25 allocs/op
+BenchmarkGinAdapterColdConstruction-4             	 2394367	       479.7 ns/op	    1672 B/op	      25 allocs/op
+BenchmarkGinAdapterColdConstruction-4             	 2554562	       469.0 ns/op	    1672 B/op	      25 allocs/op
+BenchmarkGinAdapterColdConstruction-4             	 2555865	       469.1 ns/op	    1672 B/op	      25 allocs/op
+BenchmarkGinAdapterColdFirstRequest               	  123691	      9734 ns/op	   12503 B/op	     101 allocs/op
+BenchmarkGinAdapterColdFirstRequest               	  123472	     10574 ns/op	   12503 B/op	     101 allocs/op
+BenchmarkGinAdapterColdFirstRequest               	  127100	      8976 ns/op	   12503 B/op	     101 allocs/op
+BenchmarkGinAdapterColdFirstRequest               	  136600	      8731 ns/op	   12503 B/op	     101 allocs/op
+BenchmarkGinAdapterColdFirstRequest               	  126783	      8488 ns/op	   12503 B/op	     101 allocs/op
+BenchmarkGinAdapterColdFirstRequest-2             	  132835	      9430 ns/op	   12634 B/op	     101 allocs/op
+BenchmarkGinAdapterColdFirstRequest-2             	  131556	      9034 ns/op	   12634 B/op	     101 allocs/op
+BenchmarkGinAdapterColdFirstRequest-2             	  132039	      9086 ns/op	   12634 B/op	     101 allocs/op
+BenchmarkGinAdapterColdFirstRequest-2             	  133650	      9428 ns/op	   12634 B/op	     101 allocs/op
+BenchmarkGinAdapterColdFirstRequest-2             	  133270	      9064 ns/op	   12634 B/op	     101 allocs/op
+BenchmarkGinAdapterColdFirstRequest-4             	  142251	      8825 ns/op	   12895 B/op	     101 allocs/op
+BenchmarkGinAdapterColdFirstRequest-4             	  142976	      8462 ns/op	   12895 B/op	     101 allocs/op
+BenchmarkGinAdapterColdFirstRequest-4             	  141792	      8557 ns/op	   12895 B/op	     101 allocs/op
+BenchmarkGinAdapterColdFirstRequest-4             	  139796	      8482 ns/op	   12895 B/op	     101 allocs/op
+BenchmarkGinAdapterColdFirstRequest-4             	  141752	      8868 ns/op	   12895 B/op	     101 allocs/op
+BenchmarkGinAdapterWarmRequest/Serial             	  236016	      5113 ns/op	   12009 B/op	      96 allocs/op
+BenchmarkGinAdapterWarmRequest/Serial             	  234955	      5097 ns/op	   12009 B/op	      96 allocs/op
+BenchmarkGinAdapterWarmRequest/Serial             	  237182	      5043 ns/op	   12009 B/op	      96 allocs/op
+BenchmarkGinAdapterWarmRequest/Serial             	  234108	      5070 ns/op	   12009 B/op	      96 allocs/op
+BenchmarkGinAdapterWarmRequest/Serial             	  239360	      5072 ns/op	   12009 B/op	      96 allocs/op
+BenchmarkGinAdapterWarmRequest/Serial-2           	  276396	      4305 ns/op	   12010 B/op	      96 allocs/op
+BenchmarkGinAdapterWarmRequest/Serial-2           	  278980	      4305 ns/op	   12010 B/op	      96 allocs/op
+BenchmarkGinAdapterWarmRequest/Serial-2           	  276312	      4313 ns/op	   12010 B/op	      96 allocs/op
+BenchmarkGinAdapterWarmRequest/Serial-2           	  275950	      4313 ns/op	   12010 B/op	      96 allocs/op
+BenchmarkGinAdapterWarmRequest/Serial-2           	  279394	      4315 ns/op	   12010 B/op	      96 allocs/op
+BenchmarkGinAdapterWarmRequest/Serial-4           	  279546	      4288 ns/op	   12013 B/op	      96 allocs/op
+BenchmarkGinAdapterWarmRequest/Serial-4           	  281828	      4276 ns/op	   12013 B/op	      96 allocs/op
+BenchmarkGinAdapterWarmRequest/Serial-4           	  280909	      4249 ns/op	   12013 B/op	      96 allocs/op
+BenchmarkGinAdapterWarmRequest/Serial-4           	  283592	      4234 ns/op	   12013 B/op	      96 allocs/op
+BenchmarkGinAdapterWarmRequest/Serial-4           	  278524	      4271 ns/op	   12013 B/op	      96 allocs/op
+BenchmarkGinAdapterWarmRequest/Parallel           	  236128	      5083 ns/op	   12009 B/op	      96 allocs/op
+BenchmarkGinAdapterWarmRequest/Parallel           	  236007	      5081 ns/op	   12009 B/op	      96 allocs/op
+BenchmarkGinAdapterWarmRequest/Parallel           	  236168	      5075 ns/op	   12009 B/op	      96 allocs/op
+BenchmarkGinAdapterWarmRequest/Parallel           	  231988	      5085 ns/op	   12009 B/op	      96 allocs/op
+BenchmarkGinAdapterWarmRequest/Parallel           	  236899	      5112 ns/op	   12009 B/op	      96 allocs/op
+BenchmarkGinAdapterWarmRequest/Parallel-2         	  350628	      3456 ns/op	   12011 B/op	      96 allocs/op
+BenchmarkGinAdapterWarmRequest/Parallel-2         	  350479	      3437 ns/op	   12011 B/op	      96 allocs/op
+BenchmarkGinAdapterWarmRequest/Parallel-2         	  354232	      3421 ns/op	   12011 B/op	      96 allocs/op
+BenchmarkGinAdapterWarmRequest/Parallel-2         	  348714	      3455 ns/op	   12011 B/op	      96 allocs/op
+BenchmarkGinAdapterWarmRequest/Parallel-2         	  348669	      3662 ns/op	   12011 B/op	      96 allocs/op
+BenchmarkGinAdapterWarmRequest/Parallel-4         	  341023	      4107 ns/op	   12016 B/op	      96 allocs/op
+BenchmarkGinAdapterWarmRequest/Parallel-4         	  338210	      3429 ns/op	   12016 B/op	      96 allocs/op
+BenchmarkGinAdapterWarmRequest/Parallel-4         	  400538	      2982 ns/op	   12016 B/op	      96 allocs/op
+BenchmarkGinAdapterWarmRequest/Parallel-4         	  399178	      2945 ns/op	   12016 B/op	      96 allocs/op
+BenchmarkGinAdapterWarmRequest/Parallel-4         	  413854	      2907 ns/op	   12016 B/op	      96 allocs/op
+PASS
+ok  	github.com/bluetape4k/bluetape-go/web/gin	446.977s
+
+output_end
+exit_status: 0
