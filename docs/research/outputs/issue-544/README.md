@@ -3,10 +3,10 @@
 ## 실행 조건
 
 - 실행일: 2026-08-16
-- benchmark 코드 커밋: `da708a6a658319e9fd14959d03e518624f5ebcd9`
+- benchmark 코드 커밋: `81f534a570d7d39fce271ac40a1544c3b8991ed9`
 - raw 명령: `go test -run '^$' -bench '^BenchmarkEchoAdapter$' -benchtime=100ms -benchmem -count=5 -cpu=1 ./web/echo`
 - 전체 확인 명령: `go test -run '^$' -bench '^BenchmarkEchoAdapter' -benchtime=100ms -benchmem -count=5 -cpu=1,2,4 ./web/echo`
-- 전체 확인 결과: PASS, 58.694s
+- 전체 확인 결과: PASS, 65.954s
 - 런타임: `go1.26.6 darwin/arm64`, macOS Darwin 25.6.0, Apple M5
 - 원본: [`bench-output.txt`](bench-output.txt)
 
@@ -23,19 +23,19 @@ local baseline이다. raw 명령은 CPU=1에서 5회 반복한 `Serial`/`Paralle
 
 | 시나리오 | ns/op | B/op | allocs/op | 측정 의미 |
 | --- | ---: | ---: | ---: | --- |
-| NoOp | 929.1 | 5,360 | 13 | HTTP handler 하한 |
-| DirectCore | 1,110 | 5,840 | 18 | net/http core context 경로 |
-| Bridge | 1,148 | 5,952 | 19 | Echo ↔ core context bridge |
-| FullAdapter | 4,875 | 11,833 | 97 | context + rate-limit + JWT + resilience 성공 경로 |
-| FullAdapterRetry | 5,232 | 12,385 | 106 | 첫 시도 실패 후 GET 재시도 |
-| ReplayableBody | 5,554 | 13,553 | 114 | 첫 시도 실패 후 POST 본문 재생 |
+| NoOp | 760.5 | 5,360 | 13 | HTTP handler 하한 |
+| DirectCore | 1,045 | 5,840 | 18 | net/http core context 경로 |
+| Bridge | 1,121 | 5,952 | 19 | Echo ↔ core context bridge |
+| FullAdapter | 5,041 | 12,441 | 103 | context + rate-limit + JWT + resilience 성공 경로 |
+| FullAdapterRetry | 5,696 | 13,569 | 117 | 첫 시도 실패 후 GET 재시도 |
+| ReplayableBody | 5,914 | 14,737 | 125 | 첫 시도 실패 후 POST 본문 재생 |
 
 ```mermaid
 xychart-beta
     title "Echo adapter CPU=1 serial request-path cost (median of 5)"
     x-axis ["NoOp", "DirectCore", "Bridge", "Full", "Retry", "Body"]
     y-axis "ns/op" 0 --> 6000
-    bar [929, 1110, 1148, 4875, 5232, 5554]
+    bar [761, 1045, 1121, 5041, 5696, 5914]
 ```
 
 ## 해석과 사용 범위
