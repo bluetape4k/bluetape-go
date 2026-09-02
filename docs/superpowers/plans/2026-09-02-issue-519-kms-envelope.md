@@ -44,7 +44,7 @@ Public `/Users/debop/work/bluetape4k/bluetape-skills` bundle은 별도 promotion
 - Modify: `encrypt/encrypt.go`
 - Modify: `encrypt/doc.go`, `encrypt/README.md`, `encrypt/README.ko.md`
 
-- [ ] **Step 1: detached API failing tests를 추가한다.**
+- [x] **Step 1: detached API failing tests를 추가한다.**
 
 다음 테스트를 `encrypt/encrypt_test.go`에 추가한다. 생성된 nonce는 12 bytes이고 ciphertext는 plaintext와 16-byte tag를 포함하며, detached decrypt는 동일한 associated data에서 원문을 복원해야 한다. 잘못된 nonce/tag와 zero-value encryptor는 기존 sentinel을 보존해야 한다.
 
@@ -69,13 +69,13 @@ func TestZeroValueEncryptorDetachedFailsSafely(t *testing.T) {
 }
 ```
 
-- [ ] **Step 2: detached tests가 기존 코드에서 실패하는지 확인한다.**
+- [x] **Step 2: detached tests가 기존 코드에서 실패하는지 확인한다.**
 
 Run: `go test -count=1 ./encrypt -run 'TestDetached|TestZeroValueEncryptorDetached'`
 
 Expected: compile failure에 `EncryptDetached` 또는 `DecryptDetached` undefined가 포함된다. 이 실패는 새 public contract가 아직 없다는 RED 증거다.
 
-- [ ] **Step 3: 기존 AEAD를 재사용하는 최소 구현을 추가한다.**
+- [x] **Step 3: 기존 AEAD를 재사용하는 최소 구현을 추가한다.**
 
 `encrypt/encrypt.go`에 다음 흐름을 추가하고 기존 `Encrypt`/`Decrypt`는 이를 통해 동작하게 한다. 현재 `cipher.NewGCMWithRandomNonce`는 `NonceSize()==0`, `Overhead()==28`이므로 detached contract에 직접 사용할 수 없다. `New`는 `cipher.NewGCM`으로 12-byte nonce/16-byte tag AEAD를 만들고, `EncryptDetached`가 `crypto/rand.Reader`에서 nonce를 채운 뒤 `Seal` 결과와 nonce를 독립 복사한다. `DecryptDetached`는 nonce/tag 길이를 먼저 검사한 뒤 `Open`하고 기존 authentication error를 wrapping한다. 기존 facade는 `header|nonce|ciphertext+tag` 배열을 유지해 이미 발행된 `BTENC` bytes도 복호화한다.
 
@@ -101,13 +101,13 @@ func (e Encryptor) DecryptDetached(nonce, ciphertext, associatedData []byte) ([]
 
 `Encrypt`는 `EncryptDetached` 결과를 `envelopeHeader|nonce|ciphertext`로 합치고, `Decrypt`는 header를 검증한 뒤 payload를 12-byte nonce와 나머지 ciphertext로 분리해 detached method를 호출한다. `parseEnvelope`의 최소 길이는 nonce 12 + tag 16으로 고정한다. 기존 BTENC 길이/bytes와 `EncryptString`/`DecryptString` 동작은 유지한다. 공개 Go doc comment는 한국어로 작성한다.
 
-- [ ] **Step 4: detached targeted GREEN과 기존 encrypt 회귀를 실행한다.**
+- [x] **Step 4: detached targeted GREEN과 기존 encrypt 회귀를 실행한다.**
 
 Run: `gofmt -w encrypt/encrypt.go encrypt/encrypt_test.go && go test -count=1 ./encrypt`
 
 Expected: detached tests와 기존 전체 `encrypt` tests가 PASS; wrong key/AAD/tamper는 `ErrAuthenticationFailed`, malformed input은 `ErrMalformedCiphertext`를 유지한다.
 
-- [ ] **Step 5: parent docs에 provider용 detached boundary를 명시한다.**
+- [x] **Step 5: parent docs에 provider용 detached boundary를 명시한다.**
 
 README 두 locale과 `doc.go`에 detached methods가 low-level provider composition surface이고 일반 caller는 기존 `Encrypt`/`Decrypt`를 계속 사용한다는 설명을 추가한다. 실행 범위 밖인 KMS client/config/lifecycle/rotation은 `encrypt/kms` README로 연결한다. `git diff --check`와 Korean terminology audit를 실행한다.
 
@@ -118,9 +118,9 @@ README 두 locale과 `doc.go`에 detached methods가 low-level provider composit
 - Create: `encrypt/kms/errors.go`, `encrypt/kms/envelope.go`, `encrypt/kms/provider_test.go`
 - Create: `encrypt/kms/doc.go`
 
-- [ ] **Step 1: KMS package RED fixtures와 parser tests를 작성한다.**
+- [x] **Step 1: KMS package RED fixtures와 parser tests를 작성한다.**
 
-`provider_test.go`에 fake 없는 순수 envelope table을 먼저 작성한다. tests는 canonical marshal bytes, sorted context, duplicate/case-variant/unknown/trailing/invalid-UTF-8/null rejection, canonical base64, top-level whitespace/field reorder/escaped-name/alternate-number mutation, unsupported version/algorithm, 6144-byte encrypted data key bound, nonce/tag/32 MiB plaintext-derived bound/64 MiB limits를 검증한다. `Envelope` values는 parse/marshal 후 slices/maps가 독립 복사됨을 확인한다. context byte limit은 모든 key/value의 UTF-8 byte 길이 합계로 계산하고, 여러 `WithEncryptionContext` option 사이 duplicate key는 deterministic error로 거부한다.
+`provider_test.go`에 fake 없는 순수 envelope table을 먼저 작성한다. tests는 canonical marshal bytes, sorted context, exact duplicate 및 top-level field case-variant/unknown/trailing/invalid-UTF-8/null rejection, canonical base64, top-level whitespace/field reorder/escaped-name/alternate-number mutation, unsupported version/algorithm, 6144-byte encrypted data key bound, nonce/tag/32 MiB plaintext-derived bound/64 MiB limits를 검증한다. `Envelope` values는 parse/marshal 후 slices/maps가 독립 복사됨을 확인한다. context byte limit은 모든 key/value의 UTF-8 byte 길이 합계로 계산하고, case-sensitive distinct key는 허용하며 여러 `WithEncryptionContext` option 사이 exact duplicate key는 deterministic error로 거부한다.
 
 ```go
 func TestParseEnvelopeRejectsStrictInput(t *testing.T) {
@@ -139,23 +139,23 @@ func TestParseEnvelopeRejectsStrictInput(t *testing.T) {
 }
 ```
 
-- [ ] **Step 2: parser RED를 확인한다.**
+- [x] **Step 2: parser RED를 확인한다.**
 
 Run: `go test -count=1 ./encrypt/kms -run 'TestParseEnvelope'`
 
 Expected: package/files 또는 `ParseEnvelope` undefined compile failure. No AWS credentials/network are used.
 
-- [ ] **Step 3: `go.mod`에 선택된 SDK version만 추가한다.**
+- [x] **Step 3: `go.mod`에 선택된 SDK version만 추가한다.**
 
 Run: `go get github.com/aws/aws-sdk-go-v2/service/kms@v1.42.1 && go mod tidy`
 
 Expected: direct requirement `service/kms v1.42.1`가 추가되고 unrelated AWS root upgrade는 발생하지 않는다. `go list -m github.com/aws/aws-sdk-go-v2/service/kms`가 `v1.42.1`을 출력한다. Diff를 확인한 뒤 다음 단계로 이동한다.
 
-- [ ] **Step 4: safe error와 immutable envelope parser를 구현한다.**
+- [x] **Step 4: safe error와 immutable envelope parser를 구현한다.**
 
 `errors.go`는 다음 sentinel을 선언한다: `ErrNilClient`, `ErrInvalidKeyID`, `ErrInvalidProvider`, `ErrInvalidOptions`, `ErrInputTooLarge`, `ErrMalformedEnvelope`, `ErrUnsupportedVersion`, `ErrUnsupportedAlgorithm`, `ErrMetadataMismatch`, `ErrInvalidDataKey`, `ErrKMSOperation`, 그리고 `ErrAuthenticationFailed = encrypt.ErrAuthenticationFailed`. `*Error.Error()`는 sentinel과 고정 operation만 출력하고 `Unwrap`/`Is`로 cause와 sentinel을 보존한다. `doc.go`와 모든 exported type/field/constant/sentinel/method에는 한국어 Go doc comment를 작성해 lint/revive 계약을 고정한다.
 
-`envelope.go`는 `BTKMS` prefix와 ordered wire struct를 사용한다. `MarshalBinary`는 version/algorithm/key/context/nonce/tag/blob 및 UTF-8/limit을 검증하고 context entry를 key 오름차순으로 정렬한다. `ParseEnvelope`는 전체 길이와 base64 encoded length를 먼저 검사하고, `encoding/json.Decoder.Token` object walk로 decoded exact/lowercase field set을 추적해 duplicate/case-variant/unknown/trailing/invalid UTF-8/null을 거부한다. context entry object도 같은 strict walker를 사용하며 sorted order를 요구한다. parser 결과를 canonical re-marshal해 입력과 byte-for-byte 일치하는지 확인하여 whitespace, field reorder, escaped field name, alternate numeric form을 거부한다. `EncryptedDataKey` decoded bytes는 `MaxEncryptedDataKeySize=6144`를 넘으면 KMS 전 `ErrMalformedEnvelope`다. ciphertext에서 GCM tag 16 bytes를 제외한 plaintext 길이가 `MaxPlaintextSize`를 넘는 경우도 parse 단계에서 KMS 전 `ErrInputTooLarge`로 거부한다.
+`envelope.go`는 `BTKMS` prefix와 ordered wire struct를 사용한다. `MarshalBinary`는 version/algorithm/key/context/nonce/tag/blob 및 UTF-8/limit을 검증하고 context entry를 key 오름차순으로 정렬한다. `ParseEnvelope`는 전체 길이와 base64 encoded length를 먼저 검사하고, `encoding/json.Decoder.Token` object walk로 decoded exact/lowercase field set을 추적해 duplicate/case-variant/unknown/trailing/invalid UTF-8/null을 거부한다. context entry object도 같은 strict walker를 사용하며 sorted order를 요구한다. parser 결과를 canonical re-marshal해 입력과 byte-for-byte 일치하는지 확인하여 whitespace, field reorder, escaped field name, alternate numeric form을 거부한다. `EncryptedDataKey` decoded bytes는 `MaxEncryptedDataKeySize=6144`를 넘으면 KMS 전 `ErrMalformedEnvelope`다. ciphertext에서 GCM tag 16 bytes를 제외한 plaintext 길이가 `MaxPlaintextSize`를 넘는 경우도 parse 단계에서 KMS 전 `ErrInputTooLarge`로 거부한다. Encryption context key는 case-sensitive exact 문자열 정책이므로 case만 다른 distinct key는 허용하고 exact duplicate만 거부한다.
 
 canonical metadata/AAD는 다음 helpers로 고정한다.
 
@@ -168,7 +168,7 @@ func associatedData(metadata, callerAD []byte) ([]byte, error) {
 
 `nonce`와 `ciphertext`는 AEAD nonce/tag가 검증하므로 metadata JSON에 넣지 않는다. Caller AD는 `MaxAssociatedDataSize`를 초과하면 `ErrInputTooLarge`다. `go vet`/gofmt를 실행하고 parser tests를 GREEN으로 만든다.
 
-- [ ] **Step 5: envelope targeted GREEN과 strict parser mutation tests를 실행한다.**
+- [x] **Step 5: envelope targeted GREEN과 strict parser mutation tests를 실행한다.**
 
 Run: `gofmt -w encrypt/kms/*.go && go test -count=1 ./encrypt/kms -run 'TestParseEnvelope|TestMarshalEnvelope|TestCanonical'`
 
@@ -180,7 +180,7 @@ Expected: all pure wire/AAD tests PASS; malformed/unsupported input never calls 
 - Create: `encrypt/kms/provider.go`
 - Modify: `encrypt/kms/provider_test.go`
 
-- [ ] **Step 1: fake client와 Encrypt RED tests를 작성한다.**
+- [x] **Step 1: fake client와 Encrypt RED tests를 작성한다.**
 
 Fake는 `sync.Mutex`로 logical `GenerateDataKey`/`Decrypt` calls, deep-copied inputs, optional output/error, blocking channel, and context observation을 기록한다. Tests는 constructor validation/option map copy, zero-value provider, successful Encrypt envelope, key spec/context/key ID assertions, KMS error wrapping, nil/wrong-length/empty blob output, preflight cancellation, post-KMS cancellation, output+error zeroing, input aliasing, and plaintext/AD bound with zero calls를 포함한다.
 
@@ -197,13 +197,13 @@ func TestProviderEncryptUsesOneDataKeyCallAndZeroesSDKPlaintext(t *testing.T) {
 }
 ```
 
-- [ ] **Step 2: Encrypt RED를 실행한다.**
+- [x] **Step 2: Encrypt RED를 실행한다.**
 
 Run: `go test -count=1 ./encrypt/kms -run 'TestProviderEncrypt'`
 
 Expected: compile failure for `Client`, `New`, `Provider.Encrypt`, or fake support. This is the first provider behavior RED checkpoint.
 
-- [ ] **Step 3: immutable provider/config and Encrypt flow를 최소 구현한다.**
+- [x] **Step 3: immutable provider/config and Encrypt flow를 최소 구현한다.**
 
 `Client`는 AWS SDK v2 exact subset을 선언하고 실제 SDK client 적합성을 compile-only assertion(`var _ Client = (*awskms.Client)(nil)`)으로 고정한다.
 
@@ -214,11 +214,11 @@ type Client interface {
 }
 ```
 
-`New`는 nil client와 typed-nil client(reflection으로 nil pointer/interface를 판별), blank/invalid UTF-8/oversized key ID, nil Option을 거부하고 key/context를 복사한다. `WithEncryptionContext`는 nil을 empty context로 취급하되 key/value UTF-8과 64-entry/8 KiB(sum of key/value UTF-8 bytes) bounds를 적용한다. 여러 option이 같은 key를 제공하면 `ErrInvalidOptions`로 거부하고 조용히 덮어쓰지 않는다. zero-value 또는 nil receiver는 `ErrInvalidProvider`다. typed-nil constructor 테스트는 panic과 KMS call이 모두 0인지 확인한다. KMS output의 `Plaintext`/`CiphertextBlob` buffer는 provider가 호출 중 소비하고 반환 즉시 zero하므로 caller-owned client는 반환 후 해당 slice를 공유·재사용·보관하지 않아야 하며 fake가 이 ownership 계약을 검사한다.
+`New`는 nil client와 typed-nil client(reflection으로 `Chan`, `Func`, `Interface`, `Map`, `Pointer`, `Slice` 모든 nil 가능 kind를 판별), blank/invalid UTF-8/oversized key ID, nil Option을 거부하고 key/context를 복사한다. `WithEncryptionContext`는 nil을 empty context로 취급하되 key/value UTF-8과 64-entry/8 KiB(sum of key/value UTF-8 bytes) bounds를 적용한다. 여러 option이 같은 key를 제공하면 `ErrInvalidOptions`로 거부하고 조용히 덮어쓰지 않는다. zero-value 또는 nil receiver는 `ErrInvalidProvider`다. typed-nil constructor 테스트는 panic과 KMS call이 모두 0인지 확인한다. KMS output의 `Plaintext`/`CiphertextBlob` buffer는 provider가 복사한 뒤 반환 즉시 best-effort zero하므로 caller-owned client는 반환 후 해당 slice를 공유·재사용·보관하지 않아야 하며 fake가 이 ownership 계약을 검사한다.
 
-`Encrypt` 순서는 (1) nil context→background와 즉시 cancellation, (2) plaintext/AD bounds(boundary 성공, +1 실패), (3) `GenerateDataKey` 한 번 호출, (4) non-nil output 직후 `defer zeroBytes(output.Plaintext)`를 `err`/length 검증보다 먼저 예약, (5) `CiphertextBlob` empty 또는 `MaxEncryptedDataKeySize+1`이면 즉시 `ErrInvalidDataKey`로 반환하고 metadata에 사용할 blob은 fresh deep copy, (6) 별도 `localKey` copy 생성 직후 zero defer, (7) `ErrKMSOperation`/`ErrInvalidDataKey` 분기, (8) `encrypt.New` + exact canonical AAD + `EncryptDetached`, (9) envelope marshal/size, (10) 최종 context check와 cancellation 시 nil 결과다. transient KMS error fake는 retry 없이 `GenerateDataKey=1`을 검증한다. KMS output `KeyId`는 alias resolution 차이 때문에 비교하지 않고 configured keyID를 metadata에 유지한다. Provider는 retry/close/reconfigure/logger를 하지 않는다.
+`Encrypt` 순서는 (1) nil context→background와 즉시 cancellation, (2) plaintext/AD bounds(boundary 성공, +1 실패), (3) `GenerateDataKey` 한 번 호출, (4) non-nil output 직후 `defer zeroBytes(output.Plaintext)`와 `defer zeroBytes(output.CiphertextBlob)`를 `err`/length 검증보다 먼저 예약, (5) `CiphertextBlob` empty 또는 `MaxEncryptedDataKeySize+1`이면 즉시 `ErrInvalidDataKey`로 반환하고 metadata에 사용할 blob은 fresh deep copy, (6) 별도 `localKey` copy 생성 직후 zero defer, (7) `ErrKMSOperation`/`ErrInvalidDataKey` 분기, (8) `encrypt.New` + exact canonical AAD + `EncryptDetached`, (9) envelope marshal/size, (10) 최종 context check와 cancellation 시 nil 결과다. transient KMS error fake는 retry 없이 `GenerateDataKey=1`을 검증한다. KMS output `KeyId`는 alias resolution 차이 때문에 비교하지 않고 configured keyID를 metadata에 유지한다. Provider는 retry/close/reconfigure/logger를 하지 않는다.
 
-- [ ] **Step 4: Encrypt GREEN과 failure/cancellation/zeroing tests를 실행한다.**
+- [x] **Step 4: Encrypt GREEN과 failure/cancellation/zeroing tests를 실행한다.**
 
 Run: `gofmt -w encrypt/kms/provider.go encrypt/kms/provider_test.go && go test -count=1 ./encrypt/kms -run 'TestProviderEncrypt|TestProviderConstructor|TestZero|TestCancellation'`
 
@@ -230,21 +230,21 @@ Expected: success, KMS failures, wrong output lengths, `(output, err)`, pre/post
 - Modify: `encrypt/kms/provider.go`, `encrypt/kms/envelope.go`
 - Modify: `encrypt/kms/provider_test.go`
 
-- [ ] **Step 1: Decrypt RED tests를 작성한다.**
+- [x] **Step 1: Decrypt RED tests를 작성한다.**
 
 Round-trip envelope로 success를 고정하고, provider key/context mismatch가 KMS calls 0인지, ciphertext-derived plaintext `MaxPlaintextSize+1`과 oversized caller associated data가 KMS calls 0인지, encrypted data key/nonce/ciphertext/metadata/AAD tamper가 authentication error인지, KMS decrypt error/nil/wrong plaintext output/empty blob이 safe sentinel인지, pre-canceled malformed input이 context error 우선인지 검증한다. alias/ARN 표현이 달라진 envelope는 KMS 전에 `ErrMetadataMismatch`인지 확인하고, encrypted data key tamper/KMS `InvalidCiphertext`는 `ErrKMSOperation` 또는 `ErrInvalidDataKey`로 구분한다. KMS fake가 반환한 plaintext key의 zeroing과 local plaintext의 final-cancel zeroing을 검사한다. `err.Error()` 및 `fmt.Sprintf("%+v", err)`가 key ID/context/plaintext/ciphertext/nonce/AWS error text를 포함하지 않는지 확인한다.
 
-- [ ] **Step 2: Decrypt RED를 실행한다.**
+- [x] **Step 2: Decrypt RED를 실행한다.**
 
 Run: `go test -count=1 ./encrypt/kms -run 'TestProviderDecrypt|TestMetadata|TestRedaction'`
 
 Expected: missing `Provider.Decrypt` or incomplete metadata/AAD behavior failures.
 
-- [ ] **Step 3: Decrypt flow를 구현한다.**
+- [x] **Step 3: Decrypt flow를 구현한다.**
 
 `Decrypt`는 즉시 ctx check → caller associated data byte length preflight(`MaxAssociatedDataSize` 초과는 parse/KMS 전에 `ErrInputTooLarge`) → strict ParseEnvelope → ciphertext-derived plaintext bound 확인 → exact key/context match → parse/metadata/KMS 직전 ctx checks → `Decrypt` one call → output non-nil 즉시 zero defer → output/error validation → post-KMS ctx check → 별도 `localKey` copy와 즉시 zero defer → same canonical metadata/AAD와 nonce를 이용한 `DecryptDetached` → final ctx check에서 cancellation이면 local plaintext zero 후 nil 반환 순서를 지킨다. KMS input blob/context는 매 호출 deep copy한다. Metadata mismatch/parse/size failure는 KMS 0회다. KMS operation errors는 `errorWith(ErrKMSOperation, "decrypt", err)`로 감싸고 AWS cause는 `Unwrap`에서만 접근한다.
 
-- [ ] **Step 4: Decrypt GREEN과 mutation/redaction 테스트를 실행한다.**
+- [x] **Step 4: Decrypt GREEN과 mutation/redaction 테스트를 실행한다.**
 
 Run: `gofmt -w encrypt/kms/provider.go encrypt/kms/envelope.go encrypt/kms/provider_test.go && go test -count=1 ./encrypt/kms`
 
@@ -256,23 +256,25 @@ Expected: entire package tests PASS; tamper maps to `encrypt.ErrAuthenticationFa
 - Create: `encrypt/kms/benchmark_test.go`, `encrypt/kms/example_test.go`, `encrypt/kms/README.md`, `encrypt/kms/README.ko.md`
 - Modify: `encrypt/kms/provider_test.go`, `README.md`, `README.ko.md`
 
-- [ ] **Step 1: shared provider stress/race RED를 보강한다.**
+- [x] **Step 1: shared provider stress/race RED를 보강한다.**
 
 8 workers × 64 rounds fake test에서 immutable provider를 공유해 exact Generate/Decrypt logical call count를 각각 독립 검증하고 no goroutine leak/bounded timeout를 검증한다. Fake는 state mutex를 block 구간에서 놓고, 매 호출 fresh output/deep-copy와 context observation을 제공한다. Fake는 concurrent-safe/context-aware contract를 명시적으로 구현하고, provider guarantee가 that contract를 조건으로 한다는 문서 assertion을 추가한다. Thread-unsafe client를 provider가 serialize하거나 종료한다고 주장하지 않는다.
 
-- [ ] **Step 2: benchmark harness를 추가한다.**
+- [x] **Step 2: benchmark harness를 추가한다.**
 
-`BenchmarkDetached`, `BenchmarkEnvelopeMarshalParse`, `BenchmarkProviderEncrypt`, `BenchmarkProviderDecrypt`, `BenchmarkProviderRoundTrip`, `BenchmarkProviderRoundTripParallel`를 1 KiB, 1 MiB, `MaxPlaintextSize` fixture에 대해 작성한다. setup, fake output, fixture, result buffer는 timer 밖에 두고 timed loop에는 대상 연산만 둔다. 최대 fixture는 `-benchtime=1x`를 사용하고 `b.ReportAllocs()`와 pre-timer correctness를 유지한다. Parallel benchmark는 `b.RunParallel`, isolated buffers/results, start gate를 사용한다. 각 sub-benchmark counter를 reset하고 Encrypt는 `GenerateDataKey=1`, Decrypt는 `Decrypt=1`, RoundTrip은 각각 `1/1`을 독립 검증한다. Provider benchmark fake는 fresh output을 매 호출 반환하고 network RTT/retry attempt를 측정하지 않는다.
+`BenchmarkDetached`, `BenchmarkEnvelopeMarshalParse`, `BenchmarkProviderEncrypt`, `BenchmarkProviderDecrypt`, `BenchmarkProviderRoundTrip`, `BenchmarkProviderRoundTripParallel`를 1 KiB, 1 MiB, `MaxPlaintextSize` fixture에 대해 작성한다. setup, fake output, fixture, result buffer는 timer 밖에 두고 timed loop에는 대상 연산만 둔다. 최대 fixture는 serial benchmark에서 `-benchtime=1x`를 사용하고, 작은 fixture의 parallel benchmark는 별도 time-based 실행으로 실제 겹침을 측정한다. 모든 benchmark는 `b.ReportAllocs()`와 pre-timer correctness를 유지한다. Parallel benchmark는 `b.RunParallel`, isolated buffers/results, start gate를 사용한다. 각 sub-benchmark counter를 reset하고 serial Encrypt/Decrypt는 `GenerateDataKey=1`/`Decrypt=1`, RoundTrip은 각각 `1/1`을 독립 검증한다. parallel variant는 기대값을 `b.N`으로 검증한다. Provider benchmark fake는 fresh output을 매 호출 반환하고 network RTT/retry attempt를 측정하지 않는다.
 
-Run: `go test -timeout=10m -run '^$' -bench 'Benchmark(Detached|Envelope|Provider)' -benchmem -benchtime=1x -count=3 -cpu=1,2,4 ./encrypt/kms`
+Run serial bounded fixtures: `go test -timeout=10m -run '^$' -bench 'Benchmark(Detached|Envelope|Provider)(/1KiB|/1MiB|/MaxPlaintextSize)$' -benchmem -benchtime=1x -count=3 -cpu=1,2,4 ./encrypt/kms`.
+
+Run parallel small fixtures separately: `go test -timeout=10m -run '^$' -bench 'BenchmarkProviderRoundTripParallel/(1KiB|1MiB)$' -benchmem -benchtime=200ms -count=3 -cpu=1,2,4 ./encrypt/kms`.
 
 Expected: command compiles/runs without AWS credentials, emits `ns/op`, `B/op`, `allocs/op` for each size, and records raw output in the lesson/DoD with commit SHA, dirty-tree state, Go/OS/CPU/GOMAXPROCS, fixture identity, metric direction, and `no_regression=N/A` when no prior baseline exists. No fixed machine-dependent threshold is claimed; regression guard is bounded input plus per-method logical call counts.
 
-- [ ] **Step 3: example과 package README 두 locale를 작성한다.**
+- [x] **Step 3: example과 package README 두 locale를 작성한다.**
 
 README usage는 `kms.New(callerOwnedClient, keyARN, kms.WithEncryptionContext(...))`, context cancellation/deadline, `errors.Is`, `Max*` bounds, alias-retarget caveat, caller-owned credential/client/retry/rotation/lifecycle/IAM/logging/instrumentation을 설명한다. instrumentation은 operation별 latency/error/cancellation과 provider logical call을 기록하되 SDK retry/network attempt와 구분하고 key ID/context/plaintext/envelope를 metric label이나 로그에 넣지 않는 caller 지침을 포함한다. `BTENC`와 `BTKMS`는 wire 호환이 아니며 자동 migration이 없다. reader-first/writer-later rollout, rollback 시 신규 BTKMS 쓰기 중단, 기존 reader와 key 보존, caller-owned dual-read/dual-write·re-encryption 절차를 명시한다. 동일한 key ID 문자열 표현(alias/ARN)을 암복호화에 재사용해야 하며 표현이 다르면 `ErrMetadataMismatch`가 된다. key ID/context는 envelope와 AWS audit log에 노출될 수 있고 secret/PII를 넣지 않으며 raw envelope/associated data를 로그에 남기지 않는다는 경고를 둔다. 최소 IAM permission은 대상 key에 대한 `kms:GenerateDataKey`와 `kms:Decrypt`이며 policy/region/account 조건은 caller provisioning 범위다. associated data는 envelope에 저장되지 않으므로 caller가 복호화 때 동일하게 재공급해야 한다. Live AWS 호출은 예제·test·CI에서 하지 않는다. English/Korean headings/claims/commands/links를 동일하게 유지한다.
 
-- [ ] **Step 4: root README package index와 documentation 목록을 동기화한다.**
+- [x] **Step 4: root README package index와 documentation 목록을 동기화한다.**
 
 `encrypt/kms` row와 AWS/암호화 documentation bullet을 English/Korean root README에 같은 위치와 의미로 추가한다. `encrypt` README의 KMS boundary는 새 package 링크를 가리킨다. Run `git diff --check`와 `node /Users/debop/.codex/skills/bluetape-writer/scripts/audit-korean-terms.mjs --json <all changed Korean docs>`; findings=0이어야 한다.
 
@@ -283,19 +285,19 @@ README usage는 `kms.New(callerOwnedClient, keyARN, kms.WithEncryptionContext(..
 - Apply live target: `/Users/debop/.codex/skills/bluetape-go-patterns/SKILL.md`
 - Evidence: `.omx/skill-green-evidence.json`, `.omx/skill-refactor-evidence.json` (ignored runtime files)
 
-- [ ] **Step 1: RED pressure 결과와 현재 skill source를 대조한다.**
+- [x] **Step 1: RED pressure 결과와 현재 skill source를 대조한다.**
 
 초기 RED에서 관측한 KMS client lifecycle/SDK coupling, cancellation, DEK zeroing/expanded-key 한계, safe error/redaction, canonical metadata/fake deep-copy, README parity 누락을 current managed skill의 기존 guidance와 대조한다. 중복 문구 대신 한 번 재사용 가능한 hardening rule로 합친다.
 
-- [ ] **Step 2: managed source에 최소 규칙을 추가한다.**
+- [x] **Step 2: managed source에 최소 규칙을 추가한다.**
 
 영문 LLM-facing skill 문체로 다음 규칙을 추가한다: caller-owned AWS/KMS client/config/credential/lifecycle/retry/cache/IAM boundary와 minimal SDK subset; non-nil KMS plaintext output 즉시 zero defer(성공/실패/cancel/panic, local copies 포함) 및 best-effort 한계; canonical version/algorithm/key/context/encrypted-DEK AAD와 strict duplicate/unknown/invalid-UTF8 parsing; pre/post/final cancellation checkpoints와 no-goroutine-leak; safe operation errors/no internal logger; mutex/deep-copy/context-aware fake, metadata mismatch pre-KMS, race/redaction/benchmark proof; package README locale parity. Add KMS/envelope trigger to hardening-lessons routing without broad unrelated rules.
 
-- [ ] **Step 3: `chezmoi apply`와 source/live parity를 검증한다.**
+- [x] **Step 3: `chezmoi apply`와 source/live parity를 검증한다.**
 
 Run `chezmoi source-path /Users/debop/.codex/skills/bluetape-go-patterns/SKILL.md`, `chezmoi diff -- /Users/debop/.codex/skills/bluetape-go-patterns/SKILL.md`, `chezmoi apply /Users/debop/.codex/skills/bluetape-go-patterns/SKILL.md`; then compare SHA-256 of managed source and live target. `private_dot_claude` 및 public `bluetape-skills`는 변경하지 않는다.
 
-- [ ] **Step 4: GREEN pressure test를 fresh native lane에서 실행한다.**
+- [x] **Step 4: GREEN pressure test를 fresh native lane에서 실행한다.**
 
 Fresh `analyst`/`verifier` lane에게 combined issue-519 pressure scenario를 주고 updated live `bluetape-go-patterns`를 읽게 한다. Agent가 선택한 client ownership, zeroing order, AAD strictness, cancellation, fake observability, docs/benchmark gates를 RED baseline과 비교해 `.omx/skill-green-evidence.json`에 기록한다. No code edits.
 

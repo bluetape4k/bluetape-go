@@ -101,7 +101,7 @@ func ParseEnvelope(data []byte) (Envelope, error)
 func (e Envelope) MarshalBinary() ([]byte, error)
 ```
 
-`Client`는 AWS SDK v2 method subset을 그대로 사용해 `*kms.Client`와 fake가 같은 interface를 만족하게 한다. 실제 SDK 적합성은 compile-only assertion으로 고정한다. `Provider`는 client를 닫거나 재구성하지 않고, AWS option function을 임의로 추가하지 않으며, caller가 설정한 retry/timeout/config를 그대로 존중한다. constructor가 받은 `keyID`와 context map은 복사해 provider 생성 뒤 외부 mutation이 동작을 바꾸지 않게 한다. nil context는 repository convention에 맞춰 `context.Background()`로 취급하고, nil client·interface 내부 typed-nil client·빈 key ID·nil option은 constructor에서 거부한다.
+`Client`는 AWS SDK v2 method subset을 그대로 사용해 `*kms.Client`와 fake가 같은 interface를 만족하게 한다. 실제 SDK 적합성은 compile-only assertion으로 고정한다. `Provider`는 client를 닫거나 재구성하지 않고, AWS option function을 임의로 추가하지 않으며, caller가 설정한 retry/timeout/config를 그대로 존중한다. constructor가 받은 `keyID`와 context map은 복사해 provider 생성 뒤 외부 mutation이 동작을 바꾸지 않게 한다. nil context는 repository convention에 맞춰 `context.Background()`로 취급하고, nil client·interface 내부 typed-nil client·빈 key ID·nil option은 constructor에서 거부한다. typed-nil 검사는 reflection의 모든 nil 가능 kind(`Chan`, `Func`, `Interface`, `Map`, `Pointer`, `Slice`)를 포함해 panic과 KMS 호출을 막는다.
 
 `WithEncryptionContext`는 하나의 option map을 추가하는 형태이며 nil map은 empty context로 취급한다. 여러 option이 같은 context key를 제공하면 `ErrInvalidOptions`로 거부하고 last-wins merge를 하지 않는다. context key 비교는 case-sensitive한 exact 문자열이며, wire entry field(`key`, `value`) 이름의 대소문자 변형은 parser가 거부한다. `MaxContextSize`는 모든 key/value의 UTF-8 byte 길이 합계로 계산하며 정확히 8 KiB는 허용하고 1 byte 초과는 거부한다. provider는 caller가 전달한 plaintext, associated data, envelope를 호출 중 변경하지 않는다는 계약을 요구하고, 반환 slice의 소유권은 caller에게 있지만 provider가 소비하는 KMS output buffer는 caller가 보관하거나 재사용하지 않아야 한다.
 
@@ -160,7 +160,7 @@ BTKMS | {"version":1,"algorithm":"AES-256-GCM","key_id":"...",
 | `Algorithm` | `AlgorithmAES256GCM`인 `AES-256-GCM`만 허용 |
 | `KeyID` | valid UTF-8, 공백만 있는 값과 2 KiB 초과 거부; provider 설정과 exact match 필요 |
 | `EncryptedDataKey` | 비어 있지 않아야 하며 decoded raw blob은 6144 bytes 이하; KMS `CiphertextBlob` 그대로 저장 |
-| `EncryptionContext` | valid UTF-8 non-secret key/value만 사용; sorted entry, duplicate/case-variant key와 64개 초과 거부; `MaxContextSize`는 모든 key/value의 UTF-8 byte 길이 합계(구분자·JSON escaping 제외)로 계산하고 8 KiB 초과 거부; constructor 값과 exact map match 필요 |
+| `EncryptionContext` | valid UTF-8 non-secret key/value만 사용; sorted entry, exact duplicate key와 64개 초과 거부; key는 case-sensitive하므로 `tenant`와 `Tenant`처럼 case만 다른 distinct key는 허용; `MaxContextSize`는 모든 key/value의 UTF-8 byte 길이 합계(구분자·JSON escaping 제외)로 계산하고 8 KiB 초과 거부; constructor 값과 exact map match 필요 |
 | `Nonce` | local `encrypt` AES-GCM nonce size인 12 bytes |
 | `Ciphertext` | AES-GCM authentication tag 16 bytes 이상 |
 
@@ -189,7 +189,7 @@ AEAD authentication이 실패한다.
 1. `ctx == nil`이면 background context로 정규화하고, 즉시 `ctx.Err()`를 확인한다.
 2. plaintext와 caller associated data의 byte 한도를 확인한다. 초과하면 KMS 호출 없이 `ErrInputTooLarge`를 반환한다. `MaxPlaintextSize` boundary는 통과하고 `+1`은 실패해야 한다.
 3. caller-owned client로 `GenerateDataKey(ctx, &awskms.GenerateDataKeyInput{KeyId: keyID, KeySpec: kmstypes.DataKeySpecAes256, EncryptionContext: clone(context)})`를 한 번 호출한다. client는 context를 협력적으로 관찰하고 provider는 retry를 추가하지 않는다.
-4. output이 non-nil이면 `err`와 길이를 검사하기 전에 `defer zeroBytes(output.Plaintext)`를 예약한다. `(output, err)` 반환과 panic을 포함해 SDK slice를 zero한다. `CiphertextBlob`이 비어 있거나 `MaxEncryptedDataKeySize`를 넘으면 `ErrInvalidDataKey`를 반환하고, metadata/AAD에 사용할 blob은 별도 deep copy를 만든다.
+4. output이 non-nil이면 `err`와 길이를 검사하기 전에 `defer zeroBytes(output.Plaintext)`와 `defer zeroBytes(output.CiphertextBlob)`를 예약한다. `(output, err)` 반환과 panic을 포함해 SDK slice를 zero한다. `CiphertextBlob`이 비어 있거나 `MaxEncryptedDataKeySize`를 넘으면 `ErrInvalidDataKey`를 반환하고, metadata/AAD에 사용할 blob은 별도 deep copy를 만든다.
 5. `localKey := append([]byte(nil), output.Plaintext...)`를 만든 직후 `defer zeroBytes(localKey)`를 예약한 뒤 `encrypt.New(localKey)`로 local AES-GCM facade를 만든다. output slice와 local copy는 모든 반환 경로에서 각각 zero한다. metadata JSON과 caller associated data는 length-prefixed AAD로 결합한다.
 6. `ctx.Err()`를 확인한 뒤 `EncryptDetached`로 random 12-byte nonce와 sealed ciphertext를 만들고, metadata·nonce·ciphertext를 `Envelope`에 넣어 `MarshalBinary`한다. 직렬화 결과가 `MaxEnvelopeSize`를 넘으면 `ErrInputTooLarge`를 반환한다.
 7. 결과 publish 직전에 `ctx.Err()`를 다시 확인한다. 취소된 경우 결과 bytes를 폐기하고 nil과 `context.Canceled` 또는 `context.DeadlineExceeded`를 반환한다. provider는 local crypto 중간을 강제 중단하지 않지만 최종 publish 경계에서 취소된 결과를 노출하지 않는다.
@@ -250,7 +250,7 @@ provider가 별도로 만드는 mutable local copy를 모두 zero한다. Go comp
 
 ## 테스트와 DoD
 
-`encrypt/kms` fake client는 state를 보호할 때만 mutex를 잡고, blocking channel을 기다리는 동안에는 mutex를 보유하지 않는다. 매 호출마다 SDK output의 `Plaintext`와 `CiphertextBlob`을 fresh deep copy로 반환하며 `t.Cleanup`이 모든 block channel을 해제한다. `GenerateDataKey`/`Decrypt` 입력도 deep-copy한다. 다음 table-driven 테스트를 작성한다.
+`encrypt/kms` fake client는 state를 보호할 때만 mutex를 잡고, blocking channel을 기다리는 동안에는 mutex를 보유하지 않는다. 매 호출마다 SDK output의 `Plaintext`와 `CiphertextBlob`을 fresh deep copy로 반환하며 `t.Cleanup`이 모든 block channel을 해제한다. Provider는 복사 후 SDK `Plaintext`와 `CiphertextBlob`을 모두 best-effort zero하고, `GenerateDataKey`/`Decrypt` 입력도 deep-copy한다. 다음 table-driven 테스트를 작성한다.
 
 - constructor: nil client, blank/oversized/invalid-UTF-8 key ID, nil option, context copy/empty context, zero-value provider
 - round trip: AES-256 data key, KMS context, `BTKMS` parse/marshal, associated data

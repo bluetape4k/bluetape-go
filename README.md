@@ -56,6 +56,7 @@ future scope, not part of the current public API.
 | [`concurrency`](concurrency/README.md) | active | Context-aware goroutine groups, worker pools, and bounded parallel helpers. |
 | [`codec`](codec/README.md) | active | Base58, Base62, Base64, hex, and URL-safe encoding helpers. |
 | [`encrypt`](encrypt/README.md) | active | Stdlib AES-GCM byte/string facade with versioned envelopes and associated data. |
+| [`encrypt/kms`](encrypt/kms/README.md) | active | Caller-owned AWS KMS AES-256 data-key envelope provider with strict BTKMS metadata and bounded local AES-GCM payloads. |
 | [`compression`](compression/README.md) | active | gzip, deflate, zstd, lz4, snappy, and registry-backed compression helpers. |
 | [`imagekit`](imagekit/README.md) | active | Bounded pure-Go thumbnail, resize, and JPEG/PNG conversion helpers for service inputs. |
 | [`serialization`](serialization/README.md) | active | JSON and binary serializer interfaces with safe defaults. |
@@ -144,14 +145,14 @@ overview.
 
 - Foundation: [`core`](core/README.md), [`collections`](collections/README.md),
   [`concurrency`](concurrency/README.md), [`codec`](codec/README.md),
-  [`encrypt`](encrypt/README.md), [`compression`](compression/README.md), and
+  [`encrypt`](encrypt/README.md), [`encrypt/kms`](encrypt/kms/README.md), [`compression`](compression/README.md), and
   [`serialization`](serialization/README.md).
 - Test support: [`testing`](testing/README.md), [`webtest`](webtest/README.md),
   [`testing/concurrency`](testing/concurrency/README.md), and the fixture
   package READMEs listed above. Focused examples in `testing` cover
   table-driven tests, package-local builders, golden files, deterministic random
   data, and cancellation assertions without adding an assertion DSL.
-- AWS/Floci: [`dynamodb/batchwrite`](dynamodb/batchwrite/README.md) and
+- AWS/Floci: [`dynamodb/batchwrite`](dynamodb/batchwrite/README.md), [`encrypt/kms`](encrypt/kms/README.md), and
   compile-checked examples under [`examples/integration`](examples/integration/README.md),
   [`examples/s3`](examples/s3/README.md), and
   [`examples/sqs-sns`](examples/sqs-sns/README.md).

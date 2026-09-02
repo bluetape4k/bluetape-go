@@ -4,8 +4,10 @@ import (
 	"bytes"
 	"crypto/aes"
 	"crypto/cipher"
+	"crypto/rand"
 	"encoding/base64"
 	"fmt"
+	"io"
 	"unicode/utf8"
 )
 
@@ -58,7 +60,7 @@ func New(key []byte, options ...Option) (Encryptor, error) {
 		return Encryptor{}, errorWith(ErrInvalidKey, "new", err)
 	}
 
-	aead, err := cipher.NewGCMWithRandomNonce(block)
+	aead, err := cipher.NewGCM(block)
 	if err != nil {
 		return Encryptor{}, errorWith(ErrInvalidOptions, "new", err)
 	}
@@ -86,14 +88,15 @@ func Decrypt(key, ciphertext, associatedData []byte) ([]byte, error) {
 
 // Encrypt plaintext를 암호화하고 versioned ciphertext envelope를 반환한다.
 func (e Encryptor) Encrypt(plaintext, associatedData []byte) ([]byte, error) {
-	if e.aead == nil {
-		return nil, errorWith(ErrInvalidKey, "encrypt", nil)
+	nonce, ciphertext, err := e.EncryptDetached(plaintext, associatedData)
+	if err != nil {
+		return nil, err
 	}
 
-	sealed := e.aead.Seal(nil, nil, plaintext, associatedData)
-	out := make([]byte, 0, len(envelopeHeader)+len(sealed))
+	out := make([]byte, 0, len(envelopeHeader)+len(nonce)+len(ciphertext))
 	out = append(out, envelopeHeader...)
-	out = append(out, sealed...)
+	out = append(out, nonce...)
+	out = append(out, ciphertext...)
 	return out, nil
 }
 
@@ -103,14 +106,42 @@ func (e Encryptor) Decrypt(ciphertext, associatedData []byte) ([]byte, error) {
 		return nil, errorWith(ErrInvalidKey, "decrypt", nil)
 	}
 
-	payload, err := parseEnvelope(ciphertext, e.aead.Overhead())
+	payload, err := parseEnvelope(ciphertext, e.aead.NonceSize()+e.aead.Overhead())
 	if err != nil {
 		return nil, err
 	}
 
-	plaintext, err := e.aead.Open(nil, nil, payload, associatedData)
+	return e.DecryptDetached(payload[:e.aead.NonceSize()], payload[e.aead.NonceSize():], associatedData)
+}
+
+// EncryptDetached plaintext를 암호화하고 nonce와 authentication tag를 포함한 ciphertext를 분리해 반환한다.
+// 반환된 두 slice는 독립 복사본이며, 호출자는 이를 outer envelope에 저장할 책임이 있다.
+func (e Encryptor) EncryptDetached(plaintext, associatedData []byte) ([]byte, []byte, error) {
+	if e.aead == nil {
+		return nil, nil, errorWith(ErrInvalidKey, "encrypt detached", nil)
+	}
+
+	nonce := make([]byte, e.aead.NonceSize())
+	if _, err := io.ReadFull(rand.Reader, nonce); err != nil {
+		return nil, nil, errorWith(ErrInvalidOptions, "encrypt detached", err)
+	}
+	ciphertext := e.aead.Seal(nil, nonce, plaintext, associatedData)
+	return append([]byte(nil), nonce...), append([]byte(nil), ciphertext...), nil
+}
+
+// DecryptDetached 분리된 nonce와 ciphertext를 검증하고 plaintext를 반환한다.
+// nonce와 ciphertext 길이가 유효하지 않으면 authentication 전에 malformed 오류를 반환한다.
+func (e Encryptor) DecryptDetached(nonce, ciphertext, associatedData []byte) ([]byte, error) {
+	if e.aead == nil {
+		return nil, errorWith(ErrInvalidKey, "decrypt detached", nil)
+	}
+	if len(nonce) != e.aead.NonceSize() || len(ciphertext) < e.aead.Overhead() {
+		return nil, errorWith(ErrMalformedCiphertext, "decrypt detached", nil)
+	}
+
+	plaintext, err := e.aead.Open(nil, nonce, ciphertext, associatedData)
 	if err != nil {
-		return nil, errorWith(ErrAuthenticationFailed, "decrypt", err)
+		return nil, errorWith(ErrAuthenticationFailed, "decrypt detached", err)
 	}
 	return plaintext, nil
 }
