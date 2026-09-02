@@ -93,7 +93,7 @@ logical KMS call count를 확인하는 자료다. 이전 benchmark baseline은 �
 
 | 항목 | 값 |
 |---|---|
-| benchmark commit | `12a1e0601aa3f42e5ef9c0f4cd3772d415da6e3a` |
+| benchmark commit | `83a17cdd88fd7e2b6d3973e1465ba031c3ad54d2` |
 | benchmark dirty tree | `false` |
 | 환경 | `darwin/arm64`, Apple M4 Pro, 12 logical CPU, Go `go1.27.1`, `go.mod` `go 1.26.3`, `GOMAXPROCS` unset |
 | fixtures | `1KiB`, `1MiB`, `MaxPlaintextSize=32 MiB`; fake outputs와 setup은 timer 밖 |
@@ -112,11 +112,11 @@ go test -timeout=10m -run '^$' \
 요약이다.
 
 ```text
-BenchmarkEnvelopeMarshalParse/MaxPlaintextSize-4   1  80734625 ns/op  33569456 B/op  32 allocs/op
-BenchmarkProviderEncrypt/MaxPlaintextSize-4        1  15805542 ns/op  78314712 B/op  39 allocs/op
-BenchmarkProviderDecrypt/MaxPlaintextSize-4        1 229348834 ns/op  67126296 B/op  45 allocs/op
-BenchmarkProviderRoundTrip/MaxPlaintextSize-4      1 245781416 ns/op 145442296 B/op  90 allocs/op
-BenchmarkProviderRoundTripParallel/1MiB-4          109 2099372 ns/op   4577016 B/op  71 allocs/op
+BenchmarkEnvelopeMarshalParse/MaxPlaintextSize-4   1  80306625 ns/op  33569456 B/op  32 allocs/op
+BenchmarkProviderEncrypt/MaxPlaintextSize-4        1  15928458 ns/op  78314600 B/op  38 allocs/op
+BenchmarkProviderDecrypt/MaxPlaintextSize-4        1 216294833 ns/op  67126680 B/op  47 allocs/op
+BenchmarkProviderRoundTrip/MaxPlaintextSize-4      1 224529291 ns/op 145440496 B/op  79 allocs/op
+BenchmarkProviderRoundTripParallel/1MiB-4          106 2088760 ns/op   4576470 B/op  70 allocs/op
 ```
 
 직렬 benchmark는 `GenerateDataKey`/`Decrypt` logical call count를 각각 `b.N`과
@@ -132,8 +132,8 @@ go test -timeout=10m -run '^$' \
 ```
 
 ```text
-BenchmarkProviderRoundTripParallel/1KiB-4  62632  3826 ns/op  13673 B/op  63 allocs/op
-BenchmarkProviderRoundTripParallel/1MiB-4    109  2099372 ns/op  4577016 B/op  71 allocs/op
+BenchmarkProviderRoundTripParallel/1KiB-4  49406  4759 ns/op  13675 B/op  63 allocs/op
+BenchmarkProviderRoundTripParallel/1MiB-4    106  2088760 ns/op  4576470 B/op  70 allocs/op
 ```
 
 ## 검증과 release bookkeeping
