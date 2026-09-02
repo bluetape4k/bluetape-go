@@ -302,7 +302,7 @@ Run `chezmoi source-path /Users/debop/.codex/skills/bluetape-go-patterns/SKILL.m
 
 Fresh `analyst`/`verifier` lane에게 combined issue-519 pressure scenario를 주고 updated live `bluetape-go-patterns`를 읽게 한다. Agent가 선택한 client ownership, zeroing order, AAD strictness, cancellation, fake observability, docs/benchmark gates를 RED baseline과 비교해 `.omx/skill-green-evidence.json`에 기록한다. No code edits.
 
-- [ ] **Step 5: REFACTOR self-review와 self-audit를 실행한다.**
+- [x] **Step 5: REFACTOR self-review와 self-audit를 실행한다.**
 
 규칙 중복/모호한 “secure/safe/handle errors” 표현/placeholder/과도한 library-specific claim을 제거하고 description이 trigger-only인지 확인한다. `$self-audit` skill을 fresh read한 뒤 live/managed skill hashes, `git diff --check`, `chezmoi diff`, ownership audit를 실행한다. Managed chezmoi repository commit/push는 source/live 검증 후 별도 commit gate로 기록하며 public bundle promotion은 N/A로 남긴다.
 
@@ -312,15 +312,15 @@ Fresh `analyst`/`verifier` lane에게 combined issue-519 pressure scenario를 �
 - Create: `docs/lessons/2026-09-02-issue-519-kms-envelope.md`
 - Modify: no production files after Step 6-R except fixes explicitly mapped to findings.
 
-- [ ] **Step 1: Korean lesson artifact를 작성하고 SPW-01..05를 완료한다.**
+- [x] **Step 1: Korean lesson artifact를 작성하고 SPW-01..05를 완료한다.**
 
 Lesson은 context/decision/outcome/verification을 요약하고, RED shortcut(“KMS wrap이면 충분”), security/stability P1(즉시 zero defer, exact AAD, cancellation precedence, client contract), performance P1(blob bound), JSON decode 전 raw string bound, public error redaction, legacy BTENC fixture, strict parser/limit correction, BTENC↔BTKMS rollout/rollback과 deferred CHANGELOG/WIP release bookkeeping을 failed assumption→evidence→future guard 형식으로 기록한다. live AWS/PR/merge/public bundle은 범위 밖이라는 N/A 근거를 명시한다. `bluetape-writer` Korean naturalness checklist와 terminology audit 후 `git diff --check`를 실행한다.
 
-- [ ] **Step 2: 구현된 exact head에서 7-Tier Step 6-R를 수행한다.**
+- [x] **Step 2: 구현된 exact head에서 7-Tier Step 6-R를 수행한다.**
 
 performance, stability, security, operator/Ops, developer/API, user/caller 여섯 독립 lane을 최대 3개씩 bounded wave로 dispatch하고 main session이 통합한다. 모든 lane은 exact local head/SHA와 changed-path scope를 고정한다. P0/P1이면 해당 파일을 수정하고 영향받은 테스트/렌즈를 재실행한다. Solo-developer 범위의 independent human review는 N/A로 기록하되 security, exact-head, CI, external-mutation, credential gates는 유지한다.
 
-- [ ] **Step 3: targeted → standard → full verification을 순서대로 실행한다.**
+- [x] **Step 3: targeted → standard → full verification을 순서대로 실행한다.**
 
 Run in order:
 
@@ -340,11 +340,11 @@ make ci
 
 Expected: each command exits 0; full Go suite uses `-p 1 -count=1 -timeout=10m` because Testcontainers resources are shared. `make race`/`make ci` output is read to terminal completion, skipped Docker surfaces are reported as N/A only with concrete scope evidence, and no failed/old-SHA result is treated as pass. Record first failure and independent rerun separately; a retry-only PASS cannot erase the first failure. Re-run `go mod tidy` only if `tidy-check` identifies drift, then verify clean second run.
 
-- [ ] **Step 4: final diff, dependency, docs, skill, and worktree audit를 수행한다.**
+- [x] **Step 4: final diff, dependency, docs, skill, and worktree audit를 수행한다.**
 
 Run `git diff --check`, `git status --short`, `git diff --stat`, `git diff -- go.mod go.sum`, `go list -m all | rg 'aws-sdk-go-v2/service/kms'`, README locale parity checks, Korean terminology audit, managed/live skill SHA comparison, and `git log -1 --format=%H`. Confirm no live AWS request, credential file, unrelated file, or public skill bundle change exists.
 
-- [ ] **Step 5: Lore commit으로 수렴된 scoped branch를 기록한다.**
+- [x] **Step 5: Lore commit으로 수렴된 scoped branch를 기록한다.**
 
 Commit intent and trailers must be Korean and follow repository protocol:
 
@@ -360,6 +360,6 @@ Tested: targeted, race, full go test, make fmt/tidy/vet/lint/test/race/ci, docs/
 Not-tested: live AWS credential/network, PR/merge/publish.
 ```
 
-- [ ] **Step 6: workflow completion-check와 DoD report를 작성한다.**
+- [x] **Step 6: workflow completion-check와 DoD report를 작성한다.**
 
 Machine receipt에서 all lanes terminal, required checks, component evidence, main verification을 확인한다. Final report는 plan item status, changed outputs, exact head SHA, command evidence/counts, N/A/blocked items (`Required checks: X/Y; N/A: N; Blocked: N`), known risks, user actions(없으면 명시), next steps(없으면 명시), final `DONE`/`PENDING`/`BLOCKED`를 Korean으로 정리한다. PR/merge/publish는 명시적 후속 gate로 남긴다.
