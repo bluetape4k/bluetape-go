@@ -53,6 +53,7 @@ API가 아니라 module-gated future scope입니다.
 | [`concurrency`](concurrency/README.ko.md) | active | context-aware goroutine group, worker pool, bounded parallel helper. |
 | [`codec`](codec/README.ko.md) | active | Base58, Base62, Base64, hex, URL-safe encoding helper. |
 | [`encrypt`](encrypt/README.ko.md) | active | Versioned envelope와 associated data를 지원하는 stdlib AES-GCM byte/string facade. |
+| [`encrypt/kms`](encrypt/kms/README.ko.md) | active | Caller-owned AWS KMS AES-256 data key와 strict BTKMS metadata, bounded local AES-GCM payload를 조합하는 envelope provider. |
 | [`compression`](compression/README.ko.md) | active | gzip, deflate, zstd, lz4, snappy, registry 기반 compression helper. |
 | [`imagekit`](imagekit/README.ko.md) | active | 서비스 입력을 위한 bounded pure-Go thumbnail, resize, JPEG/PNG conversion helper. |
 | [`serialization`](serialization/README.ko.md) | active | 안전한 기본값을 가진 JSON/binary serializer interface. |
@@ -140,14 +141,14 @@ go get github.com/bluetape4k/bluetape-go
 
 - Foundation: [`core`](core/README.ko.md), [`collections`](collections/README.ko.md),
   [`concurrency`](concurrency/README.ko.md), [`codec`](codec/README.ko.md),
-  [`encrypt`](encrypt/README.ko.md), [`compression`](compression/README.ko.md),
+  [`encrypt`](encrypt/README.ko.md), [`encrypt/kms`](encrypt/kms/README.ko.md), [`compression`](compression/README.ko.md),
   [`serialization`](serialization/README.ko.md).
 - Test support: [`testing`](testing/README.ko.md), [`webtest`](webtest/README.ko.md),
   [`testing/concurrency`](testing/concurrency/README.ko.md), 위 표의 Testcontainers
   fixture package README. `testing`의 focused example은 assertion DSL 추가 없이
   table-driven test, package-local builder, golden file, deterministic random data,
   cancellation assertion을 다룹니다.
-- AWS/Floci: [`dynamodb/batchwrite`](dynamodb/batchwrite/README.ko.md),
+- AWS/Floci: [`dynamodb/batchwrite`](dynamodb/batchwrite/README.ko.md), [`encrypt/kms`](encrypt/kms/README.ko.md),
   [`examples/integration`](examples/integration/README.ko.md),
   [`examples/s3`](examples/s3/README.ko.md),
   [`examples/sqs-sns`](examples/sqs-sns/README.ko.md).

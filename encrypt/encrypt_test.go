@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"encoding/base64"
+	"encoding/hex"
 	"errors"
 	"strings"
 	"testing"
@@ -12,6 +13,21 @@ import (
 	"github.com/bluetape4k/bluetape-go/encrypt"
 	concurrencytest "github.com/bluetape4k/bluetape-go/testing/concurrency"
 )
+
+func TestDecryptReadsLegacyRandomNonceFixture(t *testing.T) {
+	key := []byte("01234567890123456789012345678901")
+	fixture, err := hex.DecodeString("4254454e430101000102030405060708090a0b967f75d4fe906d242712937ddd2ce359379cc17a4274de2b706449768c2d")
+	if err != nil {
+		t.Fatal(err)
+	}
+	plaintext, err := encrypt.Decrypt(key, fixture, []byte("legacy-ad"))
+	if err != nil {
+		t.Fatalf("Decrypt(legacy fixture) error = %v", err)
+	}
+	if string(plaintext) != "legacy payload" {
+		t.Fatalf("Decrypt(legacy fixture) = %q, want legacy payload", plaintext)
+	}
+}
 
 func TestEncryptDecryptBytesRoundTrip(t *testing.T) {
 	key := testKey(32, 1)
@@ -32,6 +48,45 @@ func TestEncryptDecryptBytesRoundTrip(t *testing.T) {
 	}
 	if !bytes.Equal(decrypted, plaintext) {
 		t.Fatalf("Decrypt() = %q, want %q", decrypted, plaintext)
+	}
+}
+
+func TestDetachedRoundTripAndAuthentication(t *testing.T) {
+	enc, err := encrypt.New(testKey(32, 20))
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	nonce, sealed, err := enc.EncryptDetached([]byte("payload"), []byte("ad"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(nonce) != 12 || len(sealed) != len("payload")+16 {
+		t.Fatalf("detached sizes: %d/%d", len(nonce), len(sealed))
+	}
+
+	plain, err := enc.DecryptDetached(nonce, sealed, []byte("ad"))
+	if err != nil || string(plain) != "payload" {
+		t.Fatalf("decrypt = %q, %v", plain, err)
+	}
+	if _, err := enc.DecryptDetached(nonce[:len(nonce)-1], sealed, []byte("ad")); !errors.Is(err, encrypt.ErrMalformedCiphertext) {
+		t.Fatalf("nonce error = %v", err)
+	}
+	if _, err := enc.DecryptDetached(nonce, sealed[:15], []byte("ad")); !errors.Is(err, encrypt.ErrMalformedCiphertext) {
+		t.Fatalf("tag error = %v", err)
+	}
+	if _, err := enc.DecryptDetached(nonce, sealed, []byte("other")); !errors.Is(err, encrypt.ErrAuthenticationFailed) {
+		t.Fatalf("AAD error = %v", err)
+	}
+}
+
+func TestZeroValueEncryptorDetachedFailsSafely(t *testing.T) {
+	var enc encrypt.Encryptor
+	if _, _, err := enc.EncryptDetached(nil, nil); !errors.Is(err, encrypt.ErrInvalidKey) {
+		t.Fatal(err)
+	}
+	if _, err := enc.DecryptDetached(make([]byte, 12), make([]byte, 16), nil); !errors.Is(err, encrypt.ErrInvalidKey) {
+		t.Fatal(err)
 	}
 }
 

@@ -13,6 +13,10 @@
   RSA/ECDSA/Ed25519 공개키를 context-aware로 조회하고 TTL, rotation,
   unknown `kid` cooldown, single-flight refresh, defensive copy를 제공한다.
   대칭 key와 JWE, OIDC discovery는 범위에서 제외한다.
+- `encrypt/kms` caller-owned AWS KMS client를 사용하는 AES-256 data-key
+  envelope provider를 추가한다. strict canonical `BTKMS` envelope, bounded
+  local AES-GCM payload, safe error, cancellation, fake-only 검증을 포함하며
+  live AWS 호출과 자동 `BTENC` migration은 범위에서 제외한다.
 
 ## [v0.19.0] - 2026-08-06
 
