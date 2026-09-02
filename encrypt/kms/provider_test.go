@@ -35,6 +35,7 @@ type fakeClient struct {
 	decryptCount           int
 	lastGenerate           *kms.GenerateDataKeyInput
 	lastDecrypt            *kms.DecryptInput
+	lastDecryptBlob        []byte
 	lastGeneratedPlaintext []byte
 	lastGeneratedBlob      []byte
 	lastDecryptedPlaintext []byte
@@ -76,6 +77,7 @@ func (f *fakeClient) Decrypt(ctx context.Context, input *kms.DecryptInput, _ ...
 	f.mu.Lock()
 	f.decryptCount++
 	f.lastDecrypt = cloneDecryptInput(input)
+	f.lastDecryptBlob = input.CiphertextBlob
 	plaintext := append([]byte(nil), f.decryptPlaintext...)
 	err := f.decryptErr
 	block := f.decryptBlock
@@ -107,6 +109,7 @@ func (f *fakeClient) resetCounts() {
 	f.decryptCount = 0
 	f.lastGenerate = nil
 	f.lastDecrypt = nil
+	f.lastDecryptBlob = nil
 }
 
 func (f *fakeClient) returnedGeneratePlaintext() []byte {
@@ -137,6 +140,12 @@ func (f *fakeClient) decryptedInput() *kms.DecryptInput {
 	f.mu.Lock()
 	defer f.mu.Unlock()
 	return cloneDecryptInput(f.lastDecrypt)
+}
+
+func (f *fakeClient) decryptedBlobReference() []byte {
+	f.mu.Lock()
+	defer f.mu.Unlock()
+	return f.lastDecryptBlob
 }
 
 func cloneGenerateInput(input *kms.GenerateDataKeyInput) *kms.GenerateDataKeyInput {
@@ -329,6 +338,7 @@ func TestProviderRoundTripUsesExactMetadataAndZeroesKeys(t *testing.T) {
 		t.Fatalf("KMS calls after Decrypt = %d/%d, want 1/1", generate, decrypt)
 	}
 	assertAllZero(t, fake.returnedDecryptPlaintext())
+	assertAllZero(t, fake.decryptedBlobReference())
 	decrypted := fake.decryptedInput()
 	if decrypted == nil || decrypted.KeyId == nil || *decrypted.KeyId != testKeyID {
 		t.Fatalf("Decrypt input = %#v", decrypted)
@@ -630,6 +640,9 @@ func TestProviderCancellationCheckpoints(t *testing.T) {
 
 	block := make(chan struct{})
 	fake.generateBlock = block
+	var releaseOnce sync.Once
+	release := func() { releaseOnce.Do(func() { close(block) }) }
+	t.Cleanup(release)
 	done := make(chan error, 1)
 	ctx, cancel = context.WithCancel(context.Background())
 	go func() {
@@ -642,10 +655,16 @@ func TestProviderCancellationCheckpoints(t *testing.T) {
 		if !errors.Is(err, context.Canceled) {
 			t.Fatalf("in-KMS Encrypt() error = %v", err)
 		}
+		release()
 	case <-time.After(2 * time.Second):
+		release()
+		select {
+		case <-done:
+		case <-time.After(2 * time.Second):
+			t.Fatal("blocked fake goroutine did not terminate after release")
+		}
 		t.Fatal("blocked fake did not observe cancellation")
 	}
-	close(block)
 }
 
 func TestParseEnvelopeRejectsNonCanonicalInput(t *testing.T) {
@@ -926,18 +945,20 @@ func TestProviderConcurrentRoundTrip(t *testing.T) {
 	const workers = 8
 	const iterations = 20
 	errorsCh := make(chan error, workers)
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
 	var wait sync.WaitGroup
 	wait.Add(workers)
 	for worker := 0; worker < workers; worker++ {
 		go func() {
 			defer wait.Done()
 			for iteration := 0; iteration < iterations; iteration++ {
-				wire, err := provider.Encrypt(context.Background(), []byte("payload"), []byte("record-v1"))
+				wire, err := provider.Encrypt(ctx, []byte("payload"), []byte("record-v1"))
 				if err != nil {
 					errorsCh <- err
 					return
 				}
-				plaintext, err := provider.Decrypt(context.Background(), wire, []byte("record-v1"))
+				plaintext, err := provider.Decrypt(ctx, wire, []byte("record-v1"))
 				if err != nil {
 					errorsCh <- err
 					return
@@ -949,7 +970,22 @@ func TestProviderConcurrentRoundTrip(t *testing.T) {
 			}
 		}()
 	}
-	wait.Wait()
+	done := make(chan struct{})
+	go func() {
+		wait.Wait()
+		close(done)
+	}()
+	select {
+	case <-done:
+	case <-time.After(12 * time.Second):
+		cancel()
+		select {
+		case <-done:
+		case <-time.After(2 * time.Second):
+			t.Fatal("concurrent round-trip workers did not terminate")
+		}
+		t.Fatal("concurrent round-trip exceeded bounded timeout")
+	}
 	close(errorsCh)
 	for err := range errorsCh {
 		t.Fatal(err)

@@ -55,6 +55,7 @@ func New(key []byte, options ...Option) (Encryptor, error) {
 	}
 
 	copied := append([]byte(nil), key...)
+	defer zeroBytes(copied)
 	block, err := aes.NewCipher(copied)
 	if err != nil {
 		return Encryptor{}, errorWith(ErrInvalidKey, "new", err)
@@ -198,5 +199,11 @@ func validAESKeySize(size int) bool {
 		return true
 	default:
 		return false
+	}
+}
+
+func zeroBytes(value []byte) {
+	for index := range value {
+		value[index] = 0
 	}
 }

@@ -91,18 +91,66 @@ func (e Envelope) MarshalBinary() ([]byte, error) {
 	if err := validateEnvelope(e); err != nil {
 		return nil, err
 	}
-	wire := toWireEnvelope(e)
-	jsonBytes, err := json.Marshal(wire)
-	if err != nil {
+	var out bytes.Buffer
+	out.Grow(len(envelopeMagic) + 256 + len(e.KeyID) + base64.StdEncoding.EncodedLen(len(e.EncryptedDataKey)) + base64.StdEncoding.EncodedLen(len(e.Nonce)) + base64.StdEncoding.EncodedLen(len(e.Ciphertext)))
+	out.WriteString(envelopeMagic)
+	out.WriteString(`{"version":1,"algorithm":"AES-256-GCM","key_id":`)
+	if err := writeJSONString(&out, e.KeyID); err != nil {
 		return nil, errorWith(ErrMalformedEnvelope, "marshal envelope", err)
 	}
-	out := make([]byte, 0, len(envelopeMagic)+len(jsonBytes))
-	out = append(out, envelopeMagic...)
-	out = append(out, jsonBytes...)
-	if len(out) > MaxEnvelopeSize {
+	out.WriteString(`,"encrypted_data_key":"`)
+	writeBase64(&out, e.EncryptedDataKey)
+	out.WriteString(`","encryption_context":[`)
+	for index, entry := range contextEntries(e.EncryptionContext) {
+		if index > 0 {
+			out.WriteByte(',')
+		}
+		out.WriteString(`{"key":`)
+		if err := writeJSONString(&out, entry.Key); err != nil {
+			return nil, errorWith(ErrMalformedEnvelope, "marshal envelope", err)
+		}
+		out.WriteString(`,"value":`)
+		if err := writeJSONString(&out, entry.Value); err != nil {
+			return nil, errorWith(ErrMalformedEnvelope, "marshal envelope", err)
+		}
+		out.WriteByte('}')
+	}
+	out.WriteString(`],"nonce":"`)
+	writeBase64(&out, e.Nonce)
+	out.WriteString(`","ciphertext":"`)
+	writeBase64(&out, e.Ciphertext)
+	out.WriteString(`"}`)
+	if out.Len() > MaxEnvelopeSize {
 		return nil, errorWith(ErrInputTooLarge, "marshal envelope", nil)
 	}
-	return out, nil
+	return out.Bytes(), nil
+}
+
+func writeJSONString(out *bytes.Buffer, value string) error {
+	encoded, err := json.Marshal(value)
+	if err != nil {
+		return err
+	}
+	_, _ = out.Write(encoded)
+	return nil
+}
+
+func writeBase64(out *bytes.Buffer, value []byte) {
+	encoder := base64.NewEncoder(base64.StdEncoding, out)
+	_, _ = encoder.Write(value)
+	_ = encoder.Close()
+}
+
+func toWireEnvelope(e Envelope) wireEnvelope {
+	return wireEnvelope{
+		Version:           e.Version,
+		Algorithm:         e.Algorithm,
+		KeyID:             e.KeyID,
+		EncryptedDataKey:  base64.StdEncoding.EncodeToString(e.EncryptedDataKey),
+		EncryptionContext: contextEntries(e.EncryptionContext),
+		Nonce:             base64.StdEncoding.EncodeToString(e.Nonce),
+		Ciphertext:        base64.StdEncoding.EncodeToString(e.Ciphertext),
+	}
 }
 
 // ParseEnvelope - canonical BTKMS bytes를 엄격히 검증하고 독립 복사본을 반환한다.
@@ -117,85 +165,18 @@ func ParseEnvelope(data []byte) (Envelope, error) {
 	if !utf8.Valid(jsonBytes) {
 		return Envelope{}, errorWith(ErrMalformedEnvelope, "parse envelope", nil)
 	}
-	values, err := decodeStrictObject(jsonBytes)
-	if err != nil {
-		return Envelope{}, errorWith(ErrMalformedEnvelope, "parse envelope", nil)
-	}
-	if err := requireFields(values, "version", "algorithm", "key_id", "encrypted_data_key", "encryption_context", "nonce", "ciphertext"); err != nil {
-		return Envelope{}, errorWith(ErrMalformedEnvelope, "parse envelope", nil)
-	}
-
-	version, err := decodeUint8(values["version"])
-	if err != nil {
-		return Envelope{}, errorWith(ErrMalformedEnvelope, "parse envelope", nil)
-	}
-	if version != EnvelopeVersion {
-		return Envelope{}, errorWith(ErrUnsupportedVersion, "parse envelope", nil)
-	}
-	algorithm, err := decodeString(values["algorithm"])
-	if err != nil {
-		return Envelope{}, errorWith(ErrMalformedEnvelope, "parse envelope", nil)
-	}
-	if Algorithm(algorithm) != AlgorithmAES256GCM {
-		return Envelope{}, errorWith(ErrUnsupportedAlgorithm, "parse envelope", nil)
-	}
-	keyID, err := decodeString(values["key_id"])
-	if err != nil {
-		return Envelope{}, errorWith(ErrMalformedEnvelope, "parse envelope", nil)
-	}
-	encodedDataKey, err := decodeString(values["encrypted_data_key"])
-	if err != nil {
-		return Envelope{}, errorWith(ErrMalformedEnvelope, "parse envelope", nil)
-	}
-	dataKey, err := decodeCanonicalBase64(encodedDataKey, MaxEncryptedDataKeySize)
-	if err != nil {
-		return Envelope{}, errorWith(ErrMalformedEnvelope, "parse envelope", nil)
-	}
-	nonceEncoded, err := decodeString(values["nonce"])
-	if err != nil {
-		return Envelope{}, errorWith(ErrMalformedEnvelope, "parse envelope", nil)
-	}
-	nonce, err := decodeCanonicalBase64(nonceEncoded, gcmNonceSize)
-	if err != nil {
-		return Envelope{}, errorWith(ErrMalformedEnvelope, "parse envelope", nil)
-	}
-	ciphertextEncoded, err := decodeString(values["ciphertext"])
-	if err != nil {
-		return Envelope{}, errorWith(ErrMalformedEnvelope, "parse envelope", nil)
-	}
-	if len(ciphertextEncoded) > base64.StdEncoding.EncodedLen(MaxPlaintextSize+gcmOverhead) {
-		return Envelope{}, errorWith(ErrInputTooLarge, "parse envelope", nil)
-	}
-	ciphertext, err := decodeCanonicalBase64(ciphertextEncoded, MaxPlaintextSize+gcmOverhead)
-	if err != nil {
-		return Envelope{}, errorWith(ErrMalformedEnvelope, "parse envelope", nil)
-	}
-	context, err := decodeContext(values["encryption_context"])
+	envelope, err := parseCanonicalEnvelope(jsonBytes)
 	if err != nil {
 		if errors.Is(err, ErrInputTooLarge) {
 			return Envelope{}, err
 		}
+		if errors.Is(err, ErrUnsupportedVersion) || errors.Is(err, ErrUnsupportedAlgorithm) {
+			return Envelope{}, err
+		}
 		return Envelope{}, errorWith(ErrMalformedEnvelope, "parse envelope", nil)
-	}
-
-	envelope := Envelope{
-		Version:           version,
-		Algorithm:         Algorithm(algorithm),
-		KeyID:             keyID,
-		EncryptedDataKey:  append([]byte(nil), dataKey...),
-		EncryptionContext: cloneContext(context),
-		Nonce:             append([]byte(nil), nonce...),
-		Ciphertext:        append([]byte(nil), ciphertext...),
 	}
 	if err := validateEnvelope(envelope); err != nil {
 		return Envelope{}, err
-	}
-	canonical, err := envelope.MarshalBinary()
-	if err != nil {
-		return Envelope{}, err
-	}
-	if !bytes.Equal(canonical, data) {
-		return Envelope{}, errorWith(ErrMalformedEnvelope, "parse envelope", nil)
 	}
 	return envelope, nil
 }
@@ -286,18 +267,6 @@ func validateContext(context map[string]string) error {
 	return nil
 }
 
-func toWireEnvelope(e Envelope) wireEnvelope {
-	return wireEnvelope{
-		Version:           e.Version,
-		Algorithm:         e.Algorithm,
-		KeyID:             e.KeyID,
-		EncryptedDataKey:  base64.StdEncoding.EncodeToString(e.EncryptedDataKey),
-		EncryptionContext: contextEntries(e.EncryptionContext),
-		Nonce:             base64.StdEncoding.EncodeToString(e.Nonce),
-		Ciphertext:        base64.StdEncoding.EncodeToString(e.Ciphertext),
-	}
-}
-
 func contextEntries(context map[string]string) []wireContextEntry {
 	entries := make([]wireContextEntry, 0, len(context))
 	for key, value := range context {
@@ -311,6 +280,314 @@ func contextEntries(context map[string]string) []wireContextEntry {
 	return entries
 }
 
+type canonicalJSONParser struct {
+	data   []byte
+	offset int
+}
+
+func parseCanonicalEnvelope(data []byte) (Envelope, error) {
+	parser := canonicalJSONParser{data: data}
+	if !parser.consume('{') {
+		return Envelope{}, io.ErrUnexpectedEOF
+	}
+
+	fieldNames := [...]string{
+		"version",
+		"algorithm",
+		"key_id",
+		"encrypted_data_key",
+		"encryption_context",
+		"nonce",
+		"ciphertext",
+	}
+	envelope := Envelope{}
+	for index, fieldName := range fieldNames {
+		if index > 0 && !parser.consume(',') {
+			return Envelope{}, io.ErrUnexpectedEOF
+		}
+		field, err := parser.stringRaw()
+		if err != nil || !bytes.Equal(field, []byte(`"`+fieldName+`"`)) {
+			return Envelope{}, io.ErrUnexpectedEOF
+		}
+		if !parser.consume(':') {
+			return Envelope{}, io.ErrUnexpectedEOF
+		}
+
+		switch fieldName {
+		case "version":
+			version, err := parser.uint8()
+			if err != nil {
+				return Envelope{}, err
+			}
+			if version != EnvelopeVersion {
+				return Envelope{}, errorWith(ErrUnsupportedVersion, "parse envelope", nil)
+			}
+			envelope.Version = version
+		case "algorithm":
+			raw, err := parser.stringRaw()
+			if err != nil {
+				return Envelope{}, err
+			}
+			algorithm, err := decodeCanonicalJSONString(raw)
+			if err != nil {
+				return Envelope{}, err
+			}
+			if Algorithm(algorithm) != AlgorithmAES256GCM {
+				return Envelope{}, errorWith(ErrUnsupportedAlgorithm, "parse envelope", nil)
+			}
+			envelope.Algorithm = Algorithm(algorithm)
+		case "key_id":
+			raw, err := parser.stringRaw()
+			if err != nil {
+				return Envelope{}, err
+			}
+			value, err := decodeCanonicalJSONString(raw)
+			if err != nil {
+				return Envelope{}, err
+			}
+			envelope.KeyID = value
+		case "encrypted_data_key":
+			raw, err := parser.stringRaw()
+			if err != nil {
+				return Envelope{}, err
+			}
+			value, err := decodeCanonicalBase64Raw(raw, MaxEncryptedDataKeySize)
+			if err != nil {
+				return Envelope{}, err
+			}
+			envelope.EncryptedDataKey = value
+		case "encryption_context":
+			value, err := parser.context()
+			if err != nil {
+				return Envelope{}, err
+			}
+			envelope.EncryptionContext = value
+		case "nonce":
+			raw, err := parser.stringRaw()
+			if err != nil {
+				return Envelope{}, err
+			}
+			value, err := decodeCanonicalBase64Raw(raw, gcmNonceSize)
+			if err != nil {
+				return Envelope{}, err
+			}
+			envelope.Nonce = value
+		case "ciphertext":
+			raw, err := parser.stringRaw()
+			if err != nil {
+				return Envelope{}, err
+			}
+			encoded := raw[1 : len(raw)-1]
+			if len(encoded) > base64.StdEncoding.EncodedLen(MaxPlaintextSize+gcmOverhead) {
+				return Envelope{}, errorWith(ErrInputTooLarge, "parse envelope", nil)
+			}
+			value, err := decodeCanonicalBase64Raw(raw, MaxPlaintextSize+gcmOverhead)
+			if err != nil {
+				return Envelope{}, err
+			}
+			envelope.Ciphertext = value
+		}
+	}
+	if !parser.consume('}') || parser.offset != len(parser.data) {
+		return Envelope{}, io.ErrUnexpectedEOF
+	}
+	return envelope, nil
+}
+
+func (p *canonicalJSONParser) consume(expected byte) bool {
+	if p.offset >= len(p.data) || p.data[p.offset] != expected {
+		return false
+	}
+	p.offset++
+	return true
+}
+
+func (p *canonicalJSONParser) stringRaw() ([]byte, error) {
+	if !p.consume('"') {
+		return nil, io.ErrUnexpectedEOF
+	}
+	start := p.offset - 1
+	for index := p.offset; index < len(p.data); index++ {
+		switch p.data[index] {
+		case '"':
+			p.offset = index + 1
+			return p.data[start:p.offset], nil
+		case '\\':
+			index++
+			if index >= len(p.data) {
+				return nil, io.ErrUnexpectedEOF
+			}
+			if p.data[index] == 'u' {
+				if index+4 >= len(p.data) {
+					return nil, io.ErrUnexpectedEOF
+				}
+				index += 4
+			}
+		default:
+			if p.data[index] < 0x20 {
+				return nil, io.ErrUnexpectedEOF
+			}
+		}
+	}
+	return nil, io.ErrUnexpectedEOF
+}
+
+func (p *canonicalJSONParser) uint8() (uint8, error) {
+	start := p.offset
+	for p.offset < len(p.data) && p.data[p.offset] >= '0' && p.data[p.offset] <= '9' {
+		p.offset++
+	}
+	if start == p.offset {
+		return 0, io.ErrUnexpectedEOF
+	}
+	var value uint8
+	if err := json.Unmarshal(p.data[start:p.offset], &value); err != nil {
+		return 0, io.ErrUnexpectedEOF
+	}
+	return value, nil
+}
+
+func (p *canonicalJSONParser) context() (map[string]string, error) {
+	if !p.consume('[') {
+		return nil, io.ErrUnexpectedEOF
+	}
+	context := make(map[string]string)
+	if p.consume(']') {
+		return context, nil
+	}
+	previous := ""
+	for index := 0; ; index++ {
+		if index >= MaxContextEntries {
+			return nil, errorWith(ErrInputTooLarge, "parse context", nil)
+		}
+		if !p.consume('{') {
+			return nil, io.ErrUnexpectedEOF
+		}
+		keyField, err := p.stringRaw()
+		if err != nil || !bytes.Equal(keyField, []byte(`"key"`)) || !p.consume(':') {
+			return nil, io.ErrUnexpectedEOF
+		}
+		keyRaw, err := p.stringRaw()
+		if err != nil {
+			return nil, err
+		}
+		key, err := decodeCanonicalJSONString(keyRaw)
+		if err != nil || key == "" {
+			return nil, io.ErrUnexpectedEOF
+		}
+		if !p.consume(',') {
+			return nil, io.ErrUnexpectedEOF
+		}
+		valueField, err := p.stringRaw()
+		if err != nil || !bytes.Equal(valueField, []byte(`"value"`)) || !p.consume(':') {
+			return nil, io.ErrUnexpectedEOF
+		}
+		valueRaw, err := p.stringRaw()
+		if err != nil {
+			return nil, err
+		}
+		value, err := decodeCanonicalJSONString(valueRaw)
+		if err != nil {
+			return nil, err
+		}
+		if !p.consume('}') || (index > 0 && key <= previous) {
+			return nil, io.ErrUnexpectedEOF
+		}
+		if _, exists := context[key]; exists {
+			return nil, io.ErrUnexpectedEOF
+		}
+		context[key] = value
+		previous = key
+		if p.consume(']') {
+			break
+		}
+		if !p.consume(',') {
+			return nil, io.ErrUnexpectedEOF
+		}
+	}
+	if err := validateContext(context); err != nil {
+		return nil, err
+	}
+	return context, nil
+}
+
+func decodeCanonicalJSONString(raw []byte) (string, error) {
+	var value string
+	if err := json.Unmarshal(raw, &value); err != nil || !utf8.ValidString(value) {
+		return "", io.ErrUnexpectedEOF
+	}
+	canonical, err := json.Marshal(value)
+	if err != nil || !bytes.Equal(canonical, raw) {
+		return "", io.ErrUnexpectedEOF
+	}
+	return value, nil
+}
+
+func decodeCanonicalBase64Raw(raw []byte, maxDecoded int) ([]byte, error) {
+	if len(raw) < 2 || raw[0] != '"' || raw[len(raw)-1] != '"' {
+		return nil, io.ErrUnexpectedEOF
+	}
+	encoded := raw[1 : len(raw)-1]
+	if len(encoded) > base64.StdEncoding.EncodedLen(maxDecoded) || !validCanonicalBase64(encoded) {
+		return nil, io.ErrUnexpectedEOF
+	}
+	decoded := make([]byte, base64.StdEncoding.DecodedLen(len(encoded)))
+	length, err := base64.StdEncoding.Decode(decoded, encoded)
+	if err != nil {
+		return nil, io.ErrUnexpectedEOF
+	}
+	return decoded[:length], nil
+}
+
+func validCanonicalBase64(encoded []byte) bool {
+	if len(encoded)%4 != 0 {
+		return false
+	}
+	padding := 0
+	for index := len(encoded) - 1; index >= 0 && encoded[index] == '='; index-- {
+		padding++
+	}
+	if padding > 2 {
+		return false
+	}
+	contentLength := len(encoded) - padding
+	for index, value := range encoded {
+		if index >= contentLength {
+			if value != '=' {
+				return false
+			}
+			continue
+		}
+		if base64Value(value) < 0 {
+			return false
+		}
+	}
+	if padding == 0 {
+		return contentLength%4 == 0
+	}
+	if padding == 1 {
+		return contentLength%4 == 3 && base64Value(encoded[contentLength-1])&0x03 == 0
+	}
+	return contentLength%4 == 2 && base64Value(encoded[contentLength-1])&0x0f == 0
+}
+
+func base64Value(value byte) int {
+	switch {
+	case value >= 'A' && value <= 'Z':
+		return int(value - 'A')
+	case value >= 'a' && value <= 'z':
+		return int(value-'a') + 26
+	case value >= '0' && value <= '9':
+		return int(value-'0') + 52
+	case value == '+':
+		return 62
+	case value == '/':
+		return 63
+	default:
+		return -1
+	}
+}
+
 func cloneContext(context map[string]string) map[string]string {
 	if len(context) == 0 {
 		return map[string]string{}
@@ -320,141 +597,4 @@ func cloneContext(context map[string]string) map[string]string {
 		contextCopy[key] = value
 	}
 	return contextCopy
-}
-
-func decodeStrictObject(data []byte) (map[string]json.RawMessage, error) {
-	decoder := json.NewDecoder(bytes.NewReader(data))
-	decoder.UseNumber()
-	token, err := decoder.Token()
-	if err != nil {
-		return nil, err
-	}
-	delimiter, ok := token.(json.Delim)
-	if !ok || delimiter != '{' {
-		return nil, io.ErrUnexpectedEOF
-	}
-	values := make(map[string]json.RawMessage)
-	lower := make(map[string]string)
-	for decoder.More() {
-		keyToken, err := decoder.Token()
-		if err != nil {
-			return nil, err
-		}
-		key, ok := keyToken.(string)
-		if !ok || key == "" {
-			return nil, io.ErrUnexpectedEOF
-		}
-		lowerKey := strings.ToLower(key)
-		if _, exists := values[key]; exists {
-			return nil, io.ErrUnexpectedEOF
-		}
-		if previous, exists := lower[lowerKey]; exists && previous != key {
-			return nil, io.ErrUnexpectedEOF
-		}
-		lower[lowerKey] = key
-		var raw json.RawMessage
-		if err := decoder.Decode(&raw); err != nil {
-			return nil, err
-		}
-		if len(bytes.TrimSpace(raw)) == 0 || bytes.Equal(bytes.TrimSpace(raw), []byte("null")) {
-			return nil, io.ErrUnexpectedEOF
-		}
-		values[key] = append([]byte(nil), raw...)
-	}
-	if token, err := decoder.Token(); err != nil || token != json.Delim('}') {
-		return nil, io.ErrUnexpectedEOF
-	}
-	var extra any
-	if err := decoder.Decode(&extra); err != io.EOF {
-		return nil, io.ErrUnexpectedEOF
-	}
-	return values, nil
-}
-
-func requireFields(values map[string]json.RawMessage, fields ...string) error {
-	if len(values) != len(fields) {
-		return io.ErrUnexpectedEOF
-	}
-	for _, field := range fields {
-		if _, ok := values[field]; !ok {
-			return io.ErrUnexpectedEOF
-		}
-	}
-	return nil
-}
-
-func decodeString(raw json.RawMessage) (string, error) {
-	var value string
-	if err := json.Unmarshal(raw, &value); err != nil || !utf8.ValidString(value) {
-		return "", io.ErrUnexpectedEOF
-	}
-	return value, nil
-}
-
-func decodeUint8(raw json.RawMessage) (uint8, error) {
-	var value uint8
-	if err := json.Unmarshal(raw, &value); err != nil {
-		return 0, err
-	}
-	return value, nil
-}
-
-func decodeCanonicalBase64(encoded string, maxDecoded int) ([]byte, error) {
-	if maxDecoded < 0 || len(encoded) > base64.StdEncoding.EncodedLen(maxDecoded) {
-		return nil, io.ErrUnexpectedEOF
-	}
-	decoded, err := base64.StdEncoding.DecodeString(encoded)
-	if err != nil || len(decoded) > maxDecoded || base64.StdEncoding.EncodeToString(decoded) != encoded {
-		return nil, io.ErrUnexpectedEOF
-	}
-	return decoded, nil
-}
-
-func decodeContext(raw json.RawMessage) (map[string]string, error) {
-	if len(raw) == 0 || raw[0] != '[' {
-		return nil, io.ErrUnexpectedEOF
-	}
-	var entries []json.RawMessage
-	decoder := json.NewDecoder(bytes.NewReader(raw))
-	if err := decoder.Decode(&entries); err != nil {
-		return nil, err
-	}
-	var extra any
-	if err := decoder.Decode(&extra); err != io.EOF {
-		return nil, io.ErrUnexpectedEOF
-	}
-	if len(entries) > MaxContextEntries {
-		return nil, errorWith(ErrInputTooLarge, "parse context", nil)
-	}
-	context := make(map[string]string, len(entries))
-	previous := ""
-	for index, entry := range entries {
-		values, err := decodeStrictObject(entry)
-		if err != nil || len(values) != 2 {
-			return nil, io.ErrUnexpectedEOF
-		}
-		if err := requireFields(values, "key", "value"); err != nil {
-			return nil, err
-		}
-		key, err := decodeString(values["key"])
-		if err != nil || key == "" {
-			return nil, io.ErrUnexpectedEOF
-		}
-		value, err := decodeString(values["value"])
-		if err != nil {
-			return nil, err
-		}
-		if index > 0 && key <= previous {
-			return nil, io.ErrUnexpectedEOF
-		}
-		if _, exists := context[key]; exists {
-			return nil, io.ErrUnexpectedEOF
-		}
-		context[key] = value
-		previous = key
-	}
-	if err := validateContext(context); err != nil {
-		return nil, err
-	}
-	return context, nil
 }

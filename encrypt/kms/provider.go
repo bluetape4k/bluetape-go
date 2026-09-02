@@ -124,6 +124,7 @@ func (p *Provider) Encrypt(ctx context.Context, plaintext, associatedData []byte
 	}
 
 	encryptedDataKey := append([]byte(nil), output.CiphertextBlob...)
+	defer zeroBytes(encryptedDataKey)
 	localKey := append([]byte(nil), output.Plaintext...)
 	defer zeroBytes(localKey)
 	if err := ctx.Err(); err != nil {
@@ -194,8 +195,10 @@ func (p *Provider) Decrypt(ctx context.Context, data, associatedData []byte) ([]
 		return nil, err
 	}
 
+	ciphertextBlob := append([]byte(nil), envelope.EncryptedDataKey...)
+	defer zeroBytes(ciphertextBlob)
 	output, callErr := p.client.Decrypt(ctx, &awskms.DecryptInput{
-		CiphertextBlob:    append([]byte(nil), envelope.EncryptedDataKey...),
+		CiphertextBlob:    ciphertextBlob,
 		KeyId:             aws.String(p.keyID),
 		EncryptionContext: cloneContext(p.encryptionContext),
 	})
