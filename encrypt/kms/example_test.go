@@ -3,6 +3,7 @@ package kms_test
 import (
 	"context"
 	"fmt"
+	"time"
 
 	awskms "github.com/aws/aws-sdk-go-v2/service/kms"
 	"github.com/bluetape4k/bluetape-go/encrypt/kms"
@@ -35,11 +36,13 @@ func ExampleProvider() {
 	if err != nil {
 		panic(err)
 	}
-	envelope, err := provider.Encrypt(context.Background(), []byte("payload"), []byte("record:v1"))
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
+	defer cancel()
+	envelope, err := provider.Encrypt(ctx, []byte("payload"), []byte("record:v1"))
 	if err != nil {
 		panic(err)
 	}
-	plaintext, err := provider.Decrypt(context.Background(), envelope, []byte("record:v1"))
+	plaintext, err := provider.Decrypt(ctx, envelope, []byte("record:v1"))
 	if err != nil {
 		panic(err)
 	}

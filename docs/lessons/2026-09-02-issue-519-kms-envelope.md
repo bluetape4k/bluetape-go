@@ -1,6 +1,11 @@
-# Issue #519 KMS envelope provider lesson
+# Issue #519 KMS envelope provider 교훈
 
-## 결정
+Issue: [#519](https://github.com/bluetape4k/bluetape-go/issues/519)
+Parent: [#517](https://github.com/bluetape4k/bluetape-go/issues/517)
+범위: caller-owned AWS SDK for Go v2 KMS client를 사용하는 `encrypt/kms`와
+재사용 가능한 `encrypt` detached 경계
+
+## 맥락과 결정
 
 `encrypt/kms`는 caller-owned AWS SDK for Go v2 KMS client의
 `GenerateDataKey`/`Decrypt` 두 method만 주입받는다. KMS client의 credential,
@@ -12,16 +17,44 @@ AES-GCM detached 경계를 재사용한다.
 않으며, rollout이 필요하면 caller가 reader-first/writer-later 또는 dual-read/
 dual-write, historical re-encryption, rollback을 설계한다.
 
+## 발견과 수정
+
+초기 구현은 KMS envelope라는 외형을 먼저 만들면 충분하다고 가정했다. RED와
+7-Tier 렌즈는 다음 누락을 드러냈다.
+
+- KMS client lifecycle, credential, retry, IAM, logging을 provider가 가져가면
+  caller의 운영 정책과 SDK 계약을 숨기게 된다. 두 SDK method만 받는
+  caller-owned interface로 경계를 고정했다.
+- KMS output을 길이 검사한 뒤 지우면 `(output, err)`, malformed output,
+  cancellation 경로에서 plaintext data key가 남는다. non-nil output을 받은
+  직후 plaintext와 encrypted blob에 zero `defer`를 예약하고 local key와
+  metadata blob copy도 별도로 지운다. 이는 Go GC나 AES expanded key 삭제를
+  보장하지 않는 best-effort 계약이다.
+- metadata를 일반 JSON decoder에 맡기면 duplicate/case-variant/unknown/null/
+  whitespace/trailing 입력을 묵인할 수 있다. `BTKMS` parser는 bounded token
+  scanner로 exact field/order와 canonical string/number를 확인하고, base64를
+  destination에 직접 decode한다. `MarshalBinary`도 큰 base64 값을 streaming
+  encoder로 써서 canonical envelope 전체를 다시 만들지 않는다.
+- 32 MiB payload에서 `RawMessage`와 canonical re-marshal을 겹치면 allocation이
+  650--973 MB/op까지 증폭했다. lexical parser와 streaming marshal로 바꾼 뒤
+  최대 `ProviderRoundTrip`은 약 145 MB/op로 내려갔다. 이후 `EncryptDetached`가
+  `Seal(nil)`의 새 ciphertext와 새 nonce를 다시 복사하던 P2도 제거했다.
+- fake가 mutex를 block 구간에 잡거나 output slice를 재사용하면 cancellation,
+  aliasing, concurrent contract를 검증하지 못한다. fake는 호출마다 deep copy와
+  fresh output을 만들고, block 해제와 child goroutine 종료를 `t.Cleanup` 및
+  bounded wait로 보장한다.
+
 ## 재발 방지 guard
 
 - AES-GCM은 `cipher.NewGCM`과 `crypto/rand.Reader`의 12-byte nonce, 16-byte tag를
   사용한다. `cipher.NewGCMWithRandomNonce`의 zero nonce size API를 detached
   provider 경계에 재사용하지 않는다. `BTENC`의 기존 `header|nonce|ciphertext+tag`
   bytes는 계속 읽는다.
-- `BTKMS` parser는 `BTKMS` prefix, strict token walk, exact/lowercase duplicate
-  field 검사, unknown/null/invalid UTF-8/trailing 거부, canonical re-marshal byte
-  비교, padded base64 canonical 검사를 모두 통과해야 한다. Context key는
-  case-sensitive exact 문자열이고 case만 다른 distinct key는 허용한다.
+- `BTKMS` parser는 `BTKMS` prefix, bounded lexical token walk, exact/lowercase
+  duplicate field 검사, unknown/null/invalid UTF-8/trailing 거부, canonical
+  string/number 검사, padded base64 canonical 검사를 모두 통과해야 한다. 전체
+  envelope를 다시 marshal해 비교하지 않으며, context key는 case-sensitive exact
+  문자열이고 case만 다른 distinct key는 허용한다.
 - `MaxPlaintextSize=32 MiB`, `MaxAssociatedDataSize=64 KiB`, encrypted data key
   6144 bytes, envelope 64 MiB의 사전 한도를 유지한다. ciphertext에서 tag를 뺀
   plaintext 길이는 parse 전에 검사해 oversized input이 KMS에 도달하지 않는다.
@@ -35,6 +68,55 @@ dual-write, historical re-encryption, rollback을 설계한다.
 - Error 문자열은 safe sentinel과 고정 operation label만 포함한다. AWS cause는
   `Unwrap`/`Is`로만 선택적으로 조회하며 key ID, context, plaintext, raw envelope를
   metric label이나 일반 log에 넣지 않는다.
+
+## Benchmark evidence
+
+이번 benchmark 측정은 production ranking이 아닌 local allocation/latency와 fake의
+logical KMS call count를 확인하는 자료다. 이전 benchmark baseline은 없으므로
+`no_regression=N/A`로 기록한다.
+
+| 항목 | 값 |
+|---|---|
+| 환경 | `darwin/arm64`, Apple M4 Pro, 12 logical CPU, Go `go1.27.1`, `go.mod` `go 1.26.3`, `GOMAXPROCS` unset |
+| fixtures | `1KiB`, `1MiB`, `MaxPlaintextSize=32 MiB`; fake outputs와 setup은 timer 밖 |
+| 범위 | live AWS credential/network, SDK retry/network attempt, production throughput은 측정하지 않음 |
+
+실행 명령:
+
+```bash
+go test -timeout=10m -run '^$' \
+  -bench '^Benchmark(Detached|EnvelopeMarshalParse|Provider(Encrypt|Decrypt|RoundTrip))/(1KiB|1MiB|MaxPlaintextSize)' \
+  -benchmem -benchtime=1x -count=3 -cpu=1,2,4 ./encrypt/kms
+```
+
+대표 raw rows는 다음과 같다. `-count=3 -cpu=1,2,4` 전체 출력은 이 실행에서
+터미널로 읽었고, 아래 값은 같은 실행의 최대 fixture와 parallel 경로를 보존한
+요약이다.
+
+```text
+BenchmarkEnvelopeMarshalParse/MaxPlaintextSize-4   1  74282541 ns/op  33569072 B/op  30 allocs/op
+BenchmarkProviderEncrypt/MaxPlaintextSize-4        1  16456667 ns/op  78315504 B/op  42 allocs/op
+BenchmarkProviderDecrypt/MaxPlaintextSize-4        1 216065750 ns/op  67126680 B/op  47 allocs/op
+BenchmarkProviderRoundTrip/MaxPlaintextSize-4      1 246938000 ns/op 145442408 B/op  91 allocs/op
+BenchmarkProviderRoundTripParallel/1MiB-4          1   7668584 ns/op   4580928 B/op  94 allocs/op
+```
+
+직렬 benchmark는 `GenerateDataKey`/`Decrypt` logical call count를 각각 `b.N`과
+비교하고, parallel benchmark는 두 count 모두 `b.N`과 비교한다. 최대 fixture의
+입력·envelope 한도와 KMS 전 조기 거부도 별도 test로 유지한다.
+
+작은 fixture parallel 실행도 별도로 확인했다.
+
+```bash
+go test -timeout=10m -run '^$' \
+  -bench '^BenchmarkProviderRoundTripParallel/(1KiB|1MiB)' \
+  -benchmem -benchtime=200ms -count=3 -cpu=1,2,4 ./encrypt/kms
+```
+
+```text
+BenchmarkProviderRoundTripParallel/1KiB-4  60691  4141 ns/op  13675 B/op  63 allocs/op
+BenchmarkProviderRoundTripParallel/1MiB-4    108  2166936 ns/op  4577080 B/op  73 allocs/op
+```
 
 ## 검증과 release bookkeeping
 

@@ -77,7 +77,7 @@ Expected: compile failure에 `EncryptDetached` 또는 `DecryptDetached` undefine
 
 - [x] **Step 3: 기존 AEAD를 재사용하는 최소 구현을 추가한다.**
 
-`encrypt/encrypt.go`에 다음 흐름을 추가하고 기존 `Encrypt`/`Decrypt`는 이를 통해 동작하게 한다. 현재 `cipher.NewGCMWithRandomNonce`는 `NonceSize()==0`, `Overhead()==28`이므로 detached contract에 직접 사용할 수 없다. `New`는 `cipher.NewGCM`으로 12-byte nonce/16-byte tag AEAD를 만들고, `EncryptDetached`가 `crypto/rand.Reader`에서 nonce를 채운 뒤 `Seal` 결과와 nonce를 독립 복사한다. `DecryptDetached`는 nonce/tag 길이를 먼저 검사한 뒤 `Open`하고 기존 authentication error를 wrapping한다. 기존 facade는 `header|nonce|ciphertext+tag` 배열을 유지해 이미 발행된 `BTENC` bytes도 복호화한다.
+`encrypt/encrypt.go`에 다음 흐름을 추가하고 기존 `Encrypt`/`Decrypt`는 이를 통해 동작하게 한다. 현재 `cipher.NewGCMWithRandomNonce`는 `NonceSize()==0`, `Overhead()==28`이므로 detached contract에 직접 사용할 수 없다. `New`는 `cipher.NewGCM`으로 12-byte nonce/16-byte tag AEAD를 만들고, `EncryptDetached`가 `crypto/rand.Reader`에서 새 nonce를 채운 뒤 `Seal(nil)`이 만든 새 ciphertext와 함께 반환한다. 두 slice는 입력과 분리된 caller-owned buffer이며 불필요한 전체 복사를 추가하지 않는다. `DecryptDetached`는 nonce/tag 길이를 먼저 검사한 뒤 `Open`하고 기존 authentication error를 wrapping한다. 기존 facade는 `header|nonce|ciphertext+tag` 배열을 유지해 이미 발행된 `BTENC` bytes도 복호화한다.
 
 ```go
 func (e Encryptor) EncryptDetached(plaintext, associatedData []byte) ([]byte, []byte, error) {

@@ -116,7 +116,7 @@ func (e Encryptor) Decrypt(ciphertext, associatedData []byte) ([]byte, error) {
 }
 
 // EncryptDetached plaintext를 암호화하고 nonce와 authentication tag를 포함한 ciphertext를 분리해 반환한다.
-// 반환된 두 slice는 독립 복사본이며, 호출자는 이를 outer envelope에 저장할 책임이 있다.
+// 반환된 두 slice는 입력과 분리된 새 버퍼이며, 호출자는 이를 outer envelope에 저장할 책임이 있다.
 func (e Encryptor) EncryptDetached(plaintext, associatedData []byte) ([]byte, []byte, error) {
 	if e.aead == nil {
 		return nil, nil, errorWith(ErrInvalidKey, "encrypt detached", nil)
@@ -127,7 +127,7 @@ func (e Encryptor) EncryptDetached(plaintext, associatedData []byte) ([]byte, []
 		return nil, nil, errorWith(ErrInvalidOptions, "encrypt detached", err)
 	}
 	ciphertext := e.aead.Seal(nil, nonce, plaintext, associatedData)
-	return append([]byte(nil), nonce...), append([]byte(nil), ciphertext...), nil
+	return nonce, ciphertext, nil
 }
 
 // DecryptDetached 분리된 nonce와 ciphertext를 검증하고 plaintext를 반환한다.

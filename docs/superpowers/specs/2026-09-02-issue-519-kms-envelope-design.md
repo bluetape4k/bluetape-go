@@ -57,7 +57,7 @@ func (e Encryptor) EncryptDetached(plaintext, associatedData []byte) (nonce, cip
 func (e Encryptor) DecryptDetached(nonce, ciphertext, associatedData []byte) ([]byte, error)
 ```
 
-두 method는 AES-GCM 표준 `cipher.NewGCM` AEAD를 사용하고 호출마다 `crypto/rand`로 12-byte nonce를 생성한다. `EncryptDetached`는 nonce와 nonce를 제외한 sealed bytes를 각각 독립 복사해 반환하고, `DecryptDetached`는 nonce 길이 12와 authentication tag 길이 16을 먼저 검사한다. 기존 `Encrypt`/`Decrypt`는 같은 `nonce|ciphertext+tag` 배열을 `BTENC` 뒤에 저장하므로 기존 wire 길이와 이미 발행된 ciphertext 복호화 호환성을 유지한다.
+두 method는 AES-GCM 표준 `cipher.NewGCM` AEAD를 사용하고 호출마다 `crypto/rand`로 12-byte nonce를 생성한다. `EncryptDetached`는 새 nonce와 `Seal(nil)`이 만든 sealed bytes를 입력과 분리된 caller-owned buffer로 반환하며, 불필요한 전체 복사를 추가하지 않는다. `DecryptDetached`는 nonce 길이 12와 authentication tag 길이 16을 먼저 검사한다. 기존 `Encrypt`/`Decrypt`는 같은 `nonce|ciphertext+tag` 배열을 `BTENC` 뒤에 저장하므로 기존 wire 길이와 이미 발행된 ciphertext 복호화 호환성을 유지한다.
 
 ### `encrypt/kms` public API
 
