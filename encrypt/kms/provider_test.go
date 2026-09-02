@@ -452,6 +452,31 @@ func TestProviderPreflightBoundsAvoidKMSCalls(t *testing.T) {
 	}
 }
 
+func TestProviderRejectsOversizedCiphertextBeforeKMS(t *testing.T) {
+	fake := newFakeClient(bytes.Repeat([]byte{7}, 32), []byte("blob"))
+	provider := mustProvider(t, fake, testKeyID, nil)
+	wire := wireEnvelope{
+		Version:           EnvelopeVersion,
+		Algorithm:         AlgorithmAES256GCM,
+		KeyID:             testKeyID,
+		EncryptedDataKey:  base64.StdEncoding.EncodeToString([]byte("encrypted-data-key")),
+		EncryptionContext: []wireContextEntry{},
+		Nonce:             base64.StdEncoding.EncodeToString(bytes.Repeat([]byte{2}, gcmNonceSize)),
+		Ciphertext:        strings.Repeat("A", base64.StdEncoding.EncodedLen(MaxPlaintextSize+gcmOverhead)+4),
+	}
+	encoded, err := json.Marshal(wire)
+	if err != nil {
+		t.Fatal(err)
+	}
+	data := append([]byte(envelopeMagic), encoded...)
+	if _, err := provider.Decrypt(context.Background(), data, nil); !errors.Is(err, ErrInputTooLarge) {
+		t.Fatalf("Decrypt() error = %v, want ErrInputTooLarge", err)
+	}
+	if _, decrypt := fake.counts(); decrypt != 0 {
+		t.Fatalf("KMS Decrypt calls = %d, want 0", decrypt)
+	}
+}
+
 func TestProviderTreatsNilContextAsBackground(t *testing.T) {
 	fake := newFakeClient(bytes.Repeat([]byte{7}, 32), []byte("blob"))
 	provider := mustProvider(t, fake, testKeyID, nil)
@@ -862,6 +887,31 @@ func TestParseEnvelopeRejectsOversizedAndUnsortedContext(t *testing.T) {
 				t.Fatalf("ParseEnvelope() error = %v, want %v", err, want)
 			}
 		})
+	}
+}
+
+func TestParseEnvelopeBoundsJSONStringsBeforeDecoding(t *testing.T) {
+	valid := mustEnvelopeBytes(t, testEnvelope())
+	oversizedKey := strings.Repeat("k", maxJSONStringBytes(MaxKeyIDSize)+1)
+	keyMutation := bytes.Replace(
+		valid,
+		[]byte(`"key_id":"`+testKeyID+`"`),
+		[]byte(`"key_id":"`+oversizedKey+`"`),
+		1,
+	)
+	if _, err := ParseEnvelope(keyMutation); !errors.Is(err, ErrInputTooLarge) {
+		t.Fatalf("oversized key ID error = %v, want ErrInputTooLarge", err)
+	}
+
+	oversizedContextValue := strings.Repeat("v", maxJSONStringBytes(MaxContextSize)+1)
+	contextMutation := bytes.Replace(
+		valid,
+		[]byte(`"value":"blue"`),
+		[]byte(`"value":"`+oversizedContextValue+`"`),
+		1,
+	)
+	if _, err := ParseEnvelope(contextMutation); !errors.Is(err, ErrInputTooLarge) {
+		t.Fatalf("oversized context value error = %v, want ErrInputTooLarge", err)
 	}
 }
 

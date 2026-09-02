@@ -33,8 +33,10 @@ dual-write, historical re-encryption, rollback을 설계한다.
 - metadata를 일반 JSON decoder에 맡기면 duplicate/case-variant/unknown/null/
   whitespace/trailing 입력을 묵인할 수 있다. `BTKMS` parser는 bounded token
   scanner로 exact field/order와 canonical string/number를 확인하고, base64를
-  destination에 직접 decode한다. `MarshalBinary`도 큰 base64 값을 streaming
-  encoder로 써서 canonical envelope 전체를 다시 만들지 않는다.
+  destination에 직접 decode한다. JSON string은 `json.Unmarshal` 전에 raw source
+  길이를 bounded 검사해 escape-heavy 입력의 allocation 증폭도 차단한다.
+  `MarshalBinary`도 큰 base64 값을 streaming encoder로 써서 canonical envelope
+  전체를 다시 만들지 않는다.
 - 32 MiB payload에서 `RawMessage`와 canonical re-marshal을 겹치면 allocation이
   650--973 MB/op까지 증폭했다. lexical parser와 streaming marshal로 바꾼 뒤
   최대 `ProviderRoundTrip`은 약 145 MB/op로 내려갔다. 이후 `EncryptDetached`가
@@ -43,21 +45,34 @@ dual-write, historical re-encryption, rollback을 설계한다.
   aliasing, concurrent contract를 검증하지 못한다. fake는 호출마다 deep copy와
   fresh output을 만들고, block 해제와 child goroutine 종료를 `t.Cleanup` 및
   bounded wait로 보장한다.
+- public `Error`의 exported field를 caller가 직접 만들 수 있으므로, 내부
+  `errorWith` 경로만 안전하다고 가정하면 안 된다. Sentinel과 operation을 safe
+  allowlist로 정규화하고 manual construction redaction 회귀를 추가했다.
+- 새 detached writer가 기존 `cipher.NewGCMWithRandomNonce` 출력과 같은
+  `header|nonce|ciphertext+tag` 바이트를 읽는지 고정 historical fixture로
+  검증했다. Writer 교체 때도 reader compatibility를 별도 회귀로 유지한다.
 
 ## 재발 방지 guard
 
 - AES-GCM은 `cipher.NewGCM`과 `crypto/rand.Reader`의 12-byte nonce, 16-byte tag를
   사용한다. `cipher.NewGCMWithRandomNonce`의 zero nonce size API를 detached
   provider 경계에 재사용하지 않는다. `BTENC`의 기존 `header|nonce|ciphertext+tag`
-  bytes는 계속 읽는다.
-- `BTKMS` parser는 `BTKMS` prefix, bounded lexical token walk, exact/lowercase
+  bytes는 계속 읽으며, legacy random-nonce fixture를 읽는 테스트로 고정한다.
+- `BTKMS` parser는 `BTKMS` prefix, bounded lexical token walk, JSON decode 전 raw
+  string bound, exact/lowercase
   duplicate field 검사, unknown/null/invalid UTF-8/trailing 거부, canonical
   string/number 검사, padded base64 canonical 검사를 모두 통과해야 한다. 전체
   envelope를 다시 marshal해 비교하지 않으며, context key는 case-sensitive exact
   문자열이고 case만 다른 distinct key는 허용한다.
-- `MaxPlaintextSize=32 MiB`, `MaxAssociatedDataSize=64 KiB`, encrypted data key
+- `MaxPlaintextSize=32 MiB`, `MaxAssociatedDataSize=64 KiB`, `MaxKeyIDSize=2048
+  bytes`, context `64` entries/`8192` aggregate bytes, encrypted data key
   6144 bytes, envelope 64 MiB의 사전 한도를 유지한다. ciphertext에서 tag를 뺀
-  plaintext 길이는 parse 전에 검사해 oversized input이 KMS에 도달하지 않는다.
+  plaintext 길이는 parse 전에 검사해 oversized input이 KMS에 도달하지 않으며,
+  provider-level 회귀가 KMS `Decrypt` 호출 0회를 고정한다.
+- Associated data는 envelope에 저장하지 않고 인증에만 사용한다. 복호화 caller가
+  정확히 같은 bytes를 다시 공급해야 하며, mismatch는
+  `ErrAuthenticationFailed`다. 이 계약과 모든 public 한도는 양 locale README에
+  기록한다.
 - KMS output이 non-nil이면 error/길이 검증보다 먼저 plaintext와 ciphertext blob에
   zero defer를 예약한다. Metadata에 쓸 blob과 local AES key는 별도 복사하고,
   local key도 모든 반환 경로에서 best-effort zero한다. Go GC와 AES expanded key
@@ -67,7 +82,8 @@ dual-write, historical re-encryption, rollback을 설계한다.
   provider가 KMS retry나 비협조적인 goroutine 강제 종료를 추가하지 않는다.
 - Error 문자열은 safe sentinel과 고정 operation label만 포함한다. AWS cause는
   `Unwrap`/`Is`로만 선택적으로 조회하며 key ID, context, plaintext, raw envelope를
-  metric label이나 일반 log에 넣지 않는다.
+  metric label이나 일반 log에 넣지 않는다. Exported `Error`를 수동 구성해도
+  sentinel/operation/원인 문자열이 새지 않는지 검증한다.
 
 ## Benchmark evidence
 

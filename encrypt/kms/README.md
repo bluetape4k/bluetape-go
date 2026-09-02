@@ -43,15 +43,21 @@ fake client and never require AWS credentials or network access.
 - `KeyID` is stored and compared as the exact caller string. Alias and ARN
   spellings are different metadata; use an immutable key ARN/ID for long-lived
   data when alias retargeting must not change recovery behavior.
+- Associated data is not stored in the envelope. It is authenticated as part
+  of the payload, so `Decrypt` must receive the exact same bytes; a mismatch
+  returns `ErrAuthenticationFailed`.
 - Encryption-context keys and values are non-secret, valid UTF-8 strings. Keys
   are case-sensitive: `tenant` and `Tenant` are distinct keys, while an exact
-  duplicate is rejected. The context is visible to KMS/CloudTrail and must not
-  contain credentials, PII, or payload data.
+  duplicate is rejected. At most `MaxContextEntries` (64) entries and
+  `MaxContextSize` (8192 UTF-8 bytes across all keys and values) are accepted.
+  The context is visible to KMS/CloudTrail and must not contain credentials,
+  PII, or payload data.
 - Plaintext is limited to `MaxPlaintextSize` (32 MiB), associated data to
   `MaxAssociatedDataSize` (64 KiB), encrypted data keys to
   `MaxEncryptedDataKeySize` (6144 bytes), and serialized envelopes to
-  `MaxEnvelopeSize` (64 MiB). `BTKMS` parsing is strict and canonical; unknown,
-  duplicate, case-variant, non-canonical, or trailing JSON is rejected.
+  `MaxEnvelopeSize` (64 MiB). `KeyID` is limited to `MaxKeyIDSize` (2048
+  UTF-8 bytes). `BTKMS` parsing is strict and canonical; unknown, duplicate,
+  case-variant, non-canonical, or trailing JSON is rejected.
 
 `BTKMS` is intentionally incompatible with the local `BTENC` wire format from
 `encrypt`. There is no automatic migration. A caller that needs a rollout must

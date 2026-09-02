@@ -17,12 +17,13 @@
 - Modify: `encrypt/doc.go`, `encrypt/README.md`, `encrypt/README.ko.md` — detached provider 경계와 선택 규칙 문서화.
 - Modify: `go.mod`, `go.sum` — AWS KMS service module `v1.42.1` direct requirement 추가.
 - Create: `encrypt/kms/errors.go` — safe sentinel 및 `*Error` wrapping.
+- Create: `encrypt/kms/errors_test.go` — externally constructed error redaction 회귀 테스트.
 - Create: `encrypt/kms/doc.go` — package comment와 exported API documentation contract.
 - Create: `encrypt/kms/envelope.go` — `BTKMS` wire object, canonical metadata/AAD, strict JSON token parser, size validation.
 - Create: `encrypt/kms/provider.go` — caller-owned KMS client interface, immutable provider/options, Encrypt/Decrypt data flow, DEK zeroing/cancellation.
-- Create: `encrypt/kms/provider_test.go` — mutex/deep-copy/context-aware fake와 table-driven provider 계약 테스트.
+- Create: `encrypt/kms/provider_test.go` — mutex/deep-copy/context-aware fake와 table-driven provider 계약 테스트, oversized ciphertext zero-KMS guard.
 - Create: `encrypt/kms/benchmark_test.go` — detached/envelope/provider fake benchmark matrix와 logical call count 검증.
-- Create: `encrypt/kms/example_test.go` — live credential/network 없이 컴파일되는 caller-owned fake 사용 예.
+- Create: `encrypt/kms/example_test.go` — live credential/network 없이 컴파일되는 context-aware caller-owned fake 사용 예.
 - Create: `encrypt/kms/README.md`, `encrypt/kms/README.ko.md` — usage, limits, rotation, lifecycle, safe errors, unsupported live-AWS scope.
 - Modify: `README.md`, `README.ko.md` — package index와 AWS/암호화 package documentation parity.
 - Create: `docs/lessons/2026-09-02-issue-519-kms-envelope.md` — 2-R/TDD/6-R에서 재발 방지에 필요한 결정과 guard.
@@ -291,7 +292,7 @@ README usage는 `kms.New(callerOwnedClient, keyARN, kms.WithEncryptionContext(..
 
 - [x] **Step 2: managed source에 최소 규칙을 추가한다.**
 
-영문 LLM-facing skill 문체로 다음 규칙을 추가한다: caller-owned AWS/KMS client/config/credential/lifecycle/retry/cache/IAM boundary와 minimal SDK subset; non-nil KMS plaintext output 즉시 zero defer(성공/실패/cancel/panic, local copies 포함) 및 best-effort 한계; canonical version/algorithm/key/context/encrypted-DEK AAD와 strict duplicate/unknown/invalid-UTF8 parsing; pre/post/final cancellation checkpoints와 no-goroutine-leak; safe operation errors/no internal logger; mutex/deep-copy/context-aware fake, metadata mismatch pre-KMS, race/redaction/benchmark proof; package README locale parity. Add KMS/envelope trigger to hardening-lessons routing without broad unrelated rules.
+영문 LLM-facing skill 문체로 다음 규칙을 추가한다: caller-owned AWS/KMS client/config/credential/lifecycle/retry/cache/IAM boundary와 minimal SDK subset; non-nil KMS plaintext output 즉시 zero defer(성공/실패/cancel/panic, local copies 포함) 및 best-effort 한계; canonical version/algorithm/key/context/encrypted-DEK AAD와 strict duplicate/unknown/invalid-UTF8 parsing; JSON decode 전 raw string bound와 legacy wire fixture compatibility; pre/post/final cancellation checkpoints와 no-goroutine-leak; safe operation errors/no internal logger; mutex/deep-copy/context-aware fake, metadata mismatch pre-KMS, race/redaction/benchmark proof; package README locale parity. Add KMS/envelope trigger to hardening-lessons routing without broad unrelated rules.
 
 - [x] **Step 3: `chezmoi apply`와 source/live parity를 검증한다.**
 
@@ -313,7 +314,7 @@ Fresh `analyst`/`verifier` lane에게 combined issue-519 pressure scenario를 �
 
 - [ ] **Step 1: Korean lesson artifact를 작성하고 SPW-01..05를 완료한다.**
 
-Lesson은 context/decision/outcome/verification을 요약하고, RED shortcut(“KMS wrap이면 충분”), security/stability P1(즉시 zero defer, exact AAD, cancellation precedence, client contract), performance P1(blob bound), strict parser/limit correction, BTENC↔BTKMS rollout/rollback과 deferred CHANGELOG/WIP release bookkeeping을 failed assumption→evidence→future guard 형식으로 기록한다. live AWS/PR/merge/public bundle은 범위 밖이라는 N/A 근거를 명시한다. `bluetape-writer` Korean naturalness checklist와 terminology audit 후 `git diff --check`를 실행한다.
+Lesson은 context/decision/outcome/verification을 요약하고, RED shortcut(“KMS wrap이면 충분”), security/stability P1(즉시 zero defer, exact AAD, cancellation precedence, client contract), performance P1(blob bound), JSON decode 전 raw string bound, public error redaction, legacy BTENC fixture, strict parser/limit correction, BTENC↔BTKMS rollout/rollback과 deferred CHANGELOG/WIP release bookkeeping을 failed assumption→evidence→future guard 형식으로 기록한다. live AWS/PR/merge/public bundle은 범위 밖이라는 N/A 근거를 명시한다. `bluetape-writer` Korean naturalness checklist와 terminology audit 후 `git diff --check`를 실행한다.
 
 - [ ] **Step 2: 구현된 exact head에서 7-Tier Step 6-R를 수행한다.**
 

@@ -47,14 +47,12 @@ func (e *Error) Error() string {
 	if e == nil {
 		return ErrInvalidProvider.Error()
 	}
-	kind := e.Kind
-	if kind == nil {
-		kind = ErrInvalidProvider
-	}
-	if e.Operation == "" {
+	kind := safeKind(e.Kind)
+	operation := safeOperation(e.Operation)
+	if operation == "" {
 		return kind.Error()
 	}
-	return fmt.Sprintf("%v: %s", kind, e.Operation)
+	return fmt.Sprintf("%v: %s", kind, operation)
 }
 
 // Unwrap - 원인 오류를 반환해 context 및 SDK sentinel matching을 지원한다.
@@ -75,4 +73,54 @@ func (e *Error) Is(target error) bool {
 
 func errorWith(kind error, operation string, cause error) *Error {
 	return &Error{Kind: kind, Operation: operation, Cause: cause}
+}
+
+func safeKind(kind error) error {
+	for _, sentinel := range []error{
+		ErrNilClient,
+		ErrInvalidKeyID,
+		ErrInvalidProvider,
+		ErrInvalidOptions,
+		ErrInputTooLarge,
+		ErrMalformedEnvelope,
+		ErrUnsupportedVersion,
+		ErrUnsupportedAlgorithm,
+		ErrMetadataMismatch,
+		ErrInvalidDataKey,
+		ErrKMSOperation,
+		ErrAuthenticationFailed,
+	} {
+		if errors.Is(kind, sentinel) {
+			return sentinel
+		}
+	}
+	return ErrInvalidProvider
+}
+
+func safeOperation(operation string) string {
+	switch operation {
+	case "apply encryption context",
+		"apply option",
+		"build associated data",
+		"decrypt data key",
+		"decrypt metadata",
+		"decrypt payload",
+		"decrypt preflight",
+		"encrypt payload",
+		"encrypt preflight",
+		"generate data key",
+		"marshal envelope",
+		"marshal metadata",
+		"parse context",
+		"parse envelope",
+		"parse string",
+		"validate context",
+		"validate envelope":
+		return operation
+	default:
+		if operation == "" {
+			return ""
+		}
+		return "operation"
+	}
 }

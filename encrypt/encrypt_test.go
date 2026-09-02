@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"encoding/base64"
+	"encoding/hex"
 	"errors"
 	"strings"
 	"testing"
@@ -12,6 +13,21 @@ import (
 	"github.com/bluetape4k/bluetape-go/encrypt"
 	concurrencytest "github.com/bluetape4k/bluetape-go/testing/concurrency"
 )
+
+func TestDecryptReadsLegacyRandomNonceFixture(t *testing.T) {
+	key := []byte("01234567890123456789012345678901")
+	fixture, err := hex.DecodeString("4254454e430101000102030405060708090a0b967f75d4fe906d242712937ddd2ce359379cc17a4274de2b706449768c2d")
+	if err != nil {
+		t.Fatal(err)
+	}
+	plaintext, err := encrypt.Decrypt(key, fixture, []byte("legacy-ad"))
+	if err != nil {
+		t.Fatalf("Decrypt(legacy fixture) error = %v", err)
+	}
+	if string(plaintext) != "legacy payload" {
+		t.Fatalf("Decrypt(legacy fixture) = %q, want legacy payload", plaintext)
+	}
+}
 
 func TestEncryptDecryptBytesRoundTrip(t *testing.T) {
 	key := testKey(32, 1)

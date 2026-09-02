@@ -42,15 +42,20 @@ plaintext, err = provider.Decrypt(ctx, envelope, []byte("invoice:v1"))
 - `KeyID`는 caller가 준 문자열을 그대로 저장하고 비교합니다. Alias와 ARN 표기는
   다른 metadata입니다. Alias retarget가 복구 동작을 바꾸지 않아야 하는 장기 데이터에는
   immutable key ARN/ID를 사용하십시오.
+- Associated data는 envelope에 저장하지 않습니다. Payload 인증에만 사용하므로
+  `Decrypt`에도 정확히 같은 byte를 전달해야 하며, 다르면
+  `ErrAuthenticationFailed`를 반환합니다.
 - Encryption context key/value는 secret이 아닌 valid UTF-8 문자열이어야 합니다. Key는
   case-sensitive하므로 `tenant`와 `Tenant`는 서로 다른 key이고, exact duplicate만
-  거부합니다. Context는 KMS/CloudTrail에 보일 수 있으므로 credential, PII, payload를
-  넣지 마십시오.
+  거부합니다. 최대 `MaxContextEntries`(64)개 entry와 모든 key/value 합계
+  `MaxContextSize`(8192 UTF-8 byte)까지 허용합니다. Context는 KMS/CloudTrail에
+  보일 수 있으므로 credential, PII, payload를 넣지 마십시오.
 - Plaintext는 `MaxPlaintextSize`(32 MiB), associated data는
   `MaxAssociatedDataSize`(64 KiB), encrypted data key는
   `MaxEncryptedDataKeySize`(6144 byte), serialized envelope는
-  `MaxEnvelopeSize`(64 MiB)까지입니다. `BTKMS` parser는 strict canonical 규칙을
-  적용하며 unknown, duplicate, case-variant, non-canonical, trailing JSON을 거부합니다.
+  `MaxEnvelopeSize`(64 MiB)까지입니다. `KeyID`는 `MaxKeyIDSize`(2048 UTF-8 byte)까지
+  허용합니다. `BTKMS` parser는 strict canonical 규칙을 적용하며 unknown, duplicate,
+  case-variant, non-canonical, trailing JSON을 거부합니다.
 
 `BTKMS`는 `encrypt`의 local `BTENC` wire format과 의도적으로 호환되지 않습니다.
 자동 migration도 하지 않습니다. Rollout이 필요하면 caller가 reader-first/writer-later

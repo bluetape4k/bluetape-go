@@ -14,14 +14,20 @@ type exampleClient struct {
 	blob []byte
 }
 
-func (c *exampleClient) GenerateDataKey(context.Context, *awskms.GenerateDataKeyInput, ...func(*awskms.Options)) (*awskms.GenerateDataKeyOutput, error) {
+func (c *exampleClient) GenerateDataKey(ctx context.Context, _ *awskms.GenerateDataKeyInput, _ ...func(*awskms.Options)) (*awskms.GenerateDataKeyOutput, error) {
+	if err := ctx.Err(); err != nil {
+		return nil, err
+	}
 	return &awskms.GenerateDataKeyOutput{
 		Plaintext:      append([]byte(nil), c.key...),
 		CiphertextBlob: append([]byte(nil), c.blob...),
 	}, nil
 }
 
-func (c *exampleClient) Decrypt(context.Context, *awskms.DecryptInput, ...func(*awskms.Options)) (*awskms.DecryptOutput, error) {
+func (c *exampleClient) Decrypt(ctx context.Context, _ *awskms.DecryptInput, _ ...func(*awskms.Options)) (*awskms.DecryptOutput, error) {
+	if err := ctx.Err(); err != nil {
+		return nil, err
+	}
 	return &awskms.DecryptOutput{Plaintext: append([]byte(nil), c.key...)}, nil
 }
 

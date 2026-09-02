@@ -15,6 +15,10 @@ const (
 	envelopeMagic = "BTKMS"
 	gcmNonceSize  = 12
 	gcmOverhead   = 16
+	// JSON escaping can use up to six source bytes for one decoded byte
+	// (for example, "\\u003c"). Keep the parser bound conservative so
+	// validation happens before json.Unmarshal allocates a decoded string.
+	maxJSONStringEscapeBytes = 6
 )
 
 const (
@@ -324,7 +328,7 @@ func parseCanonicalEnvelope(data []byte) (Envelope, error) {
 			}
 			envelope.Version = version
 		case "algorithm":
-			raw, err := parser.stringRaw()
+			raw, err := parser.stringRawBounded(len(AlgorithmAES256GCM) + 2)
 			if err != nil {
 				return Envelope{}, err
 			}
@@ -337,7 +341,7 @@ func parseCanonicalEnvelope(data []byte) (Envelope, error) {
 			}
 			envelope.Algorithm = Algorithm(algorithm)
 		case "key_id":
-			raw, err := parser.stringRaw()
+			raw, err := parser.stringRawBounded(maxJSONStringBytes(MaxKeyIDSize))
 			if err != nil {
 				return Envelope{}, err
 			}
@@ -403,6 +407,10 @@ func (p *canonicalJSONParser) consume(expected byte) bool {
 }
 
 func (p *canonicalJSONParser) stringRaw() ([]byte, error) {
+	return p.stringRawBounded(0)
+}
+
+func (p *canonicalJSONParser) stringRawBounded(maxRawBytes int) ([]byte, error) {
 	if !p.consume('"') {
 		return nil, io.ErrUnexpectedEOF
 	}
@@ -411,6 +419,9 @@ func (p *canonicalJSONParser) stringRaw() ([]byte, error) {
 		switch p.data[index] {
 		case '"':
 			p.offset = index + 1
+			if maxRawBytes > 0 && p.offset-start > maxRawBytes {
+				return nil, errorWith(ErrInputTooLarge, "parse string", nil)
+			}
 			return p.data[start:p.offset], nil
 		case '\\':
 			index++
@@ -427,6 +438,9 @@ func (p *canonicalJSONParser) stringRaw() ([]byte, error) {
 			if p.data[index] < 0x20 {
 				return nil, io.ErrUnexpectedEOF
 			}
+		}
+		if maxRawBytes > 0 && index-start+1 > maxRawBytes {
+			return nil, errorWith(ErrInputTooLarge, "parse string", nil)
 		}
 	}
 	return nil, io.ErrUnexpectedEOF
@@ -456,6 +470,7 @@ func (p *canonicalJSONParser) context() (map[string]string, error) {
 		return context, nil
 	}
 	previous := ""
+	rawBytes := 0
 	for index := 0; ; index++ {
 		if index >= MaxContextEntries {
 			return nil, errorWith(ErrInputTooLarge, "parse context", nil)
@@ -467,9 +482,13 @@ func (p *canonicalJSONParser) context() (map[string]string, error) {
 		if err != nil || !bytes.Equal(keyField, []byte(`"key"`)) || !p.consume(':') {
 			return nil, io.ErrUnexpectedEOF
 		}
-		keyRaw, err := p.stringRaw()
+		keyRaw, err := p.stringRawBounded(maxJSONStringBytes(MaxContextSize))
 		if err != nil {
 			return nil, err
+		}
+		rawBytes += len(keyRaw)
+		if rawBytes > maxContextJSONStringBytes() {
+			return nil, errorWith(ErrInputTooLarge, "parse context", nil)
 		}
 		key, err := decodeCanonicalJSONString(keyRaw)
 		if err != nil || key == "" {
@@ -482,9 +501,13 @@ func (p *canonicalJSONParser) context() (map[string]string, error) {
 		if err != nil || !bytes.Equal(valueField, []byte(`"value"`)) || !p.consume(':') {
 			return nil, io.ErrUnexpectedEOF
 		}
-		valueRaw, err := p.stringRaw()
+		valueRaw, err := p.stringRawBounded(maxJSONStringBytes(MaxContextSize))
 		if err != nil {
 			return nil, err
+		}
+		rawBytes += len(valueRaw)
+		if rawBytes > maxContextJSONStringBytes() {
+			return nil, errorWith(ErrInputTooLarge, "parse context", nil)
 		}
 		value, err := decodeCanonicalJSONString(valueRaw)
 		if err != nil {
@@ -509,6 +532,17 @@ func (p *canonicalJSONParser) context() (map[string]string, error) {
 		return nil, err
 	}
 	return context, nil
+}
+
+func maxJSONStringBytes(maxDecodedBytes int) int {
+	return maxDecodedBytes*maxJSONStringEscapeBytes + 2
+}
+
+func maxContextJSONStringBytes() int {
+	// Every context entry has two quoted strings. This bound permits the
+	// largest valid escaped representation while keeping decode allocations
+	// bounded by the aggregate context contract.
+	return MaxContextSize*maxJSONStringEscapeBytes + 4*MaxContextEntries
 }
 
 func decodeCanonicalJSONString(raw []byte) (string, error) {
