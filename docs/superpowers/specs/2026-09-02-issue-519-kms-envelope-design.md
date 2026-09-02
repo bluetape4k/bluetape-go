@@ -103,7 +103,29 @@ func (e Envelope) MarshalBinary() ([]byte, error)
 
 `Client`는 AWS SDK v2 method subset을 그대로 사용해 `*kms.Client`와 fake가 같은 interface를 만족하게 한다. `Provider`는 client를 닫거나 재구성하지 않고, AWS option function을 임의로 추가하지 않으며, caller가 설정한 retry/timeout/config를 그대로 존중한다. constructor가 받은 `keyID`와 context map은 복사해 provider 생성 뒤 외부 mutation이 동작을 바꾸지 않게 한다. nil context는 repository convention에 맞춰 `context.Background()`로 취급하고, nil client·빈 key ID·nil option은 constructor에서 거부한다.
 
-`Provider`는 생성 뒤 불변이며 concurrent `Encrypt`/`Decrypt` 호출에 안전하다. 호출마다 context map과 KMS input byte slices를 복사한다. provider는 내부 logger/global hook을 설치하지 않는다. 모든 operation error는 safe sentinel과 operation label만 `Error()`에 표시하고, caller가 그 error를 자체 logger로 기록한다.
+`Provider`는 생성 뒤 불변이며, 주입된 `Client`가 다음 계약을 준수하는 경우 concurrent `Encrypt`/`Decrypt` 호출에 안전하다. `Client` 구현은 method 동시 호출에 안전하고, `context.Context` 취소를 협력적으로 관찰해 반환해야 하며, 호출이 반환된 뒤 request input을 변경하거나 보관하지 않아야 한다. provider는 비협조적인 client 호출을 강제 종료하거나 별도 goroutine으로 감싸지 않는다. 호출마다 context map과 KMS input byte slices를 복사한다. provider는 내부 logger/global hook을 설치하지 않는다. 모든 operation error는 safe sentinel과 operation label만 `Error()`에 표시하고, caller가 그 error를 자체 logger로 기록한다.
+
+`keyID`는 non-blank UTF-8 문자열(최대 2 KiB)을 그대로 envelope에 저장하고 KMS input에 전달한다. ARN, key ID, alias를 모두 허용하지만 KMS output의 resolved `KeyId`는 저장하거나 비교하지 않는다. alias retarget는 historical envelope 복구 계약이 아니므로 장기 보존 데이터에는 immutable key ARN/ID를 사용하고, rotation/recovery는 caller가 소유한다.
+
+다음 입력 한도는 KMS 호출 전과 envelope 직렬화/parse 단계에서 동일하게 적용한다.
+
+```go
+const (
+    MaxEnvelopeSize         = 64 << 20 // 64 MiB, serialized BTKMS bytes
+    MaxPlaintextSize        = 48 << 20 // conservative pre-KMS bound
+    MaxAssociatedDataSize   = 64 << 10
+    MaxKeyIDSize            = 2 << 10
+    MaxContextEntries       = 64
+    MaxContextSize          = 8 << 10
+    MaxEncryptedDataKeySize = 6144 // AWS KMS Decrypt CiphertextBlob limit
+)
+```
+
+`MaxPlaintextSize`는 base64/JSON 및 envelope metadata overhead를 위한 보수적 사전
+한도이며, 최종 serialized envelope도 `MaxEnvelopeSize`를 넘을 수 없다. 초과는
+`ErrInputTooLarge`이고 KMS 호출은 0회다. fake benchmark는 logical SDK method call과
+local allocation/latency만 측정하며, caller-owned SDK retry에 따른 network attempt나
+실제 AWS RTT를 주장하지 않는다.
 
 ## `BTKMS` wire contract
 
@@ -121,7 +143,7 @@ BTKMS | {"version":1,"algorithm":"AES-256-GCM","key_id":"...",
 [{"key":"service","value":"billing"},{"key":"tenant","value":"blue"}]
 ```
 
-이 표현은 Go map iteration 순서에 의존하지 않으며 duplicate key와 순서 위반을 parse 단계에서 거부할 수 있다. `MarshalBinary`는 field validation과 context 정렬을 수행하고, `ParseEnvelope`는 `json.Decoder.DisallowUnknownFields`와 trailing byte 검사를 사용한다. version 또는 algorithm이 지원되지 않으면 전용 sentinel을 반환한다. envelope 전체와 context metadata는 bounded input으로 취급하며, 구현은 현재 범위에서 64 MiB envelope 상한, 2 KiB key ID 상한, 64개 context entry와 8 KiB context 합계 상한을 사용한다.
+이 표현은 Go map iteration 순서에 의존하지 않으며 duplicate key와 순서 위반을 parse 단계에서 거부한다. `MarshalBinary`는 field validation과 context 정렬을 수행하고, `ParseEnvelope`는 token-level object walk로 unknown field, duplicate field, 대소문자만 다른 field, invalid UTF-8, `null` 필수값, trailing byte를 거부한다. `encoding/json`의 case-insensitive field matching이나 duplicate overwrite에 의존하지 않는다. byte field는 표준 padded base64의 canonical re-encoding과 일치해야 하며 whitespace/비정규 표기는 거부한다. version 또는 algorithm이 지원되지 않으면 전용 sentinel을 반환한다. envelope 전체와 context metadata는 bounded input으로 취급한다. `EncryptedDataKey`는 JSON base64 길이를 먼저 검사한 뒤 decode하며, decode된 raw `CiphertextBlob`이 `MaxEncryptedDataKeySize`를 넘으면 KMS 호출 전에 `ErrMalformedEnvelope`를 반환한다. 모든 한도는 `MaxEnvelopeSize`, `MaxKeyIDSize`, `MaxContextEntries`, `MaxContextSize` 상수로 고정한다.
 
 필수 검사는 다음과 같다.
 
@@ -129,32 +151,53 @@ BTKMS | {"version":1,"algorithm":"AES-256-GCM","key_id":"...",
 |---|---|
 | `Version` | `EnvelopeVersion`인 `1`만 허용 |
 | `Algorithm` | `AlgorithmAES256GCM`인 `AES-256-GCM`만 허용 |
-| `KeyID` | 공백만 있는 값 거부; provider 설정과 exact match 필요 |
-| `EncryptedDataKey` | 비어 있지 않아야 함; KMS `CiphertextBlob` 그대로 저장 |
-| `EncryptionContext` | non-secret key/value만 사용; constructor 값과 exact map match 필요 |
+| `KeyID` | valid UTF-8, 공백만 있는 값과 2 KiB 초과 거부; provider 설정과 exact match 필요 |
+| `EncryptedDataKey` | 비어 있지 않아야 하며 decoded raw blob은 6144 bytes 이하; KMS `CiphertextBlob` 그대로 저장 |
+| `EncryptionContext` | valid UTF-8 non-secret key/value만 사용; sorted entry, duplicate/case-variant key와 64개/8 KiB 초과 거부; constructor 값과 exact map match 필요 |
 | `Nonce` | local `encrypt` AES-GCM nonce size인 12 bytes |
 | `Ciphertext` | AES-GCM authentication tag 16 bytes 이상 |
 
 `Envelope`가 반환하는 slice와 map은 parse 결과의 독립 복사본이다. caller가 그 값을 변경해도 이미 생성된 provider 상태나 다른 호출을 변경하지 않는다.
 
+local AEAD associated data는 다음 고정 record의 canonical JSON bytes를 metadata로
+사용한다. field 순서는 `version`, `algorithm`, `key_id`, `encrypted_data_key`,
+`encryption_context`이며, `encryption_context`는 위의 sorted entry 배열이다. `nonce`와
+`ciphertext`는 각각 AEAD nonce와 authentication tag에 의해 이미 검증되므로 metadata
+record에 중복하지 않는다. 최종 AAD bytes는 다음과 같이 domain과 두 length prefix를
+big-endian `uint32`로 이어 붙인다.
+
+```text
+"BTKMS-AAD\x01" |
+u32be(len(metadataJSON)) | metadataJSON |
+u32be(len(callerAssociatedData)) | callerAssociatedData
+```
+
+`metadataJSON`의 byte field는 wire와 같은 표준 padded base64이고, caller associated
+data는 최대 `MaxAssociatedDataSize`다. 따라서 key ID, algorithm, encrypted data key,
+정렬된 context, caller AD 중 하나라도 바뀌면 동일한 data key를 복호화하더라도 local
+AEAD authentication이 실패한다.
+
 ## 암호화 data flow
 
-1. `ctx == nil`이면 background context로 정규화하고, `ctx.Err()`를 확인한다.
-2. caller-owned client로 `GenerateDataKey(ctx, &awskms.GenerateDataKeyInput{KeyId: keyID, KeySpec: kmstypes.DataKeySpecAes256, EncryptionContext: clone(context)})`를 한 번 호출한다.
-3. output과 `Plaintext` 길이 32 bytes, `CiphertextBlob` non-empty를 검증한다. plaintext slice에는 즉시 `defer zeroBytes`를 예약한다.
-4. `encrypt.New(output.Plaintext)`로 local AES-GCM facade를 만들고, KMS metadata의 canonical JSON과 caller associated data를 length-prefixed AAD로 결합한다.
-5. `EncryptDetached`로 random 12-byte nonce와 sealed ciphertext를 만들고, metadata·nonce·ciphertext를 `Envelope`에 넣어 `MarshalBinary`한다.
-6. context가 KMS 응답 뒤 취소됐으면 local encryption을 시작하지 않고 `context.Canceled` 또는 `context.DeadlineExceeded`를 반환한다. 반환값은 nil이다.
+1. `ctx == nil`이면 background context로 정규화하고, 즉시 `ctx.Err()`를 확인한다.
+2. plaintext와 caller associated data의 byte 한도를 확인한다. 초과하면 KMS 호출 없이 `ErrInputTooLarge`를 반환한다.
+3. caller-owned client로 `GenerateDataKey(ctx, &awskms.GenerateDataKeyInput{KeyId: keyID, KeySpec: kmstypes.DataKeySpecAes256, EncryptionContext: clone(context)})`를 한 번 호출한다. client는 context를 협력적으로 관찰하고 provider는 retry를 추가하지 않는다.
+4. output이 non-nil이면 `err`와 길이를 검사하기 전에 `defer zeroBytes(output.Plaintext)`를 예약한다. `(output, err)` 반환과 panic을 포함해 SDK slice를 zero한다. `err`가 있으면 `ErrKMSOperation`, output이 nil이거나 plaintext가 32 bytes가 아니거나 encrypted blob이 비어 있으면 `ErrInvalidDataKey`를 반환한다.
+5. `encrypt.New(output.Plaintext)`로 local AES-GCM facade를 만들고, 위에서 고정한 metadata JSON과 caller associated data를 length-prefixed AAD로 결합한다.
+6. `ctx.Err()`를 확인한 뒤 `EncryptDetached`로 random 12-byte nonce와 sealed ciphertext를 만들고, metadata·nonce·ciphertext를 `Envelope`에 넣어 `MarshalBinary`한다. 직렬화 결과가 `MaxEnvelopeSize`를 넘으면 `ErrInputTooLarge`를 반환한다.
+7. 결과 publish 직전에 `ctx.Err()`를 다시 확인한다. 취소된 경우 결과 bytes를 폐기하고 nil과 `context.Canceled` 또는 `context.DeadlineExceeded`를 반환한다. provider는 local crypto 중간을 강제 중단하지 않지만 최종 publish 경계에서 취소된 결과를 노출하지 않는다.
 
 KMS plaintext key는 caller에게 반환하지 않는다. `encrypt.New` 내부의 key copy와 AES expanded key는 Go crypto implementation이 관리하므로, 문서는 삭제를 best-effort로 한정한다.
 
 ## 복호화 data flow
 
-1. context를 정규화하고 `ParseEnvelope`로 magic, JSON, version, algorithm, size, field lengths를 검증한다.
-2. envelope `KeyID`와 context가 provider 설정과 exact match인지 확인한다. 불일치면 KMS를 호출하지 않고 `ErrMetadataMismatch`를 반환한다.
-3. `ctx.Err()`를 확인한 뒤 `Decrypt(ctx, &awskms.DecryptInput{CiphertextBlob: clone(encryptedDataKey), KeyId: keyID, EncryptionContext: clone(context)})`를 한 번 호출한다.
-4. output과 32-byte `Plaintext`를 검증하고 즉시 zero defer를 예약한다. KMS output 이후 context가 취소됐으면 local decrypt를 실행하지 않고 cancellation error를 반환한다.
-5. 같은 canonical metadata AAD와 envelope nonce로 `DecryptDetached`를 호출한다. nonce 변경, ciphertext 변경, associated data 변경, metadata 변경은 `encrypt.ErrAuthenticationFailed`를 보존한다.
+1. context를 정규화하고 즉시 `ctx.Err()`를 확인한다. pre-canceled context는 malformed envelope나 metadata mismatch보다 우선한다.
+2. `ParseEnvelope`로 magic, JSON, version, algorithm, size, field lengths와 strict token 규칙을 검증한다.
+3. envelope `KeyID`와 context가 provider 설정과 exact match인지 확인한다. 불일치면 KMS를 호출하지 않고 `ErrMetadataMismatch`를 반환한다.
+4. parse/metadata validation 뒤와 KMS 호출 직전에 `ctx.Err()`를 다시 확인한다. 취소되면 KMS 호출은 0회다.
+5. `Decrypt(ctx, &awskms.DecryptInput{CiphertextBlob: clone(encryptedDataKey), KeyId: keyID, EncryptionContext: clone(context)})`를 한 번 호출한다. output이 non-nil이면 `err`와 길이를 검사하기 전에 `defer zeroBytes(output.Plaintext)`를 예약하고, `(output, err)`·wrong-length·panic을 포함해 SDK slice를 zero한다. `err`/nil output/32 bytes가 아닌 plaintext는 각각 `ErrKMSOperation`/`ErrInvalidDataKey`다.
+6. KMS output 이후 `ctx.Err()`를 확인한다. 취소되면 local decrypt를 실행하지 않고 cancellation error를 반환한다.
+7. 같은 canonical metadata AAD와 envelope nonce로 `DecryptDetached`를 호출한다. local decrypt 뒤 최종 `ctx.Err()`를 확인하고, 취소 시 plaintext를 zero한 뒤 결과를 폐기한다. nonce 변경, ciphertext 변경, associated data 변경, metadata 변경은 `encrypt.ErrAuthenticationFailed`를 보존한다.
 
 ## 오류와 cancellation 계약
 
@@ -164,7 +207,9 @@ provider는 다음 sentinel을 제공한다.
 var (
 	ErrNilClient           = errors.New("kms: client must not be nil")
 	ErrInvalidKeyID        = errors.New("kms: key ID must not be empty")
+	ErrInvalidProvider     = errors.New("kms: invalid provider")
 	ErrInvalidOptions      = errors.New("kms: invalid options")
+	ErrInputTooLarge       = errors.New("kms: input exceeds limit")
 	ErrMalformedEnvelope   = errors.New("kms: malformed envelope")
 	ErrUnsupportedVersion  = errors.New("kms: unsupported envelope version")
 	ErrUnsupportedAlgorithm = errors.New("kms: unsupported envelope algorithm")
@@ -180,34 +225,41 @@ var (
 | 단계 | 실패 조건 | KMS 호출 | 결과 |
 |---|---|---:|---|
 | constructor | nil client, blank key ID, invalid option/context | 0 | 해당 sentinel |
+| zero-value provider | nil receiver 또는 zero-value `Provider` | 0 | `ErrInvalidProvider` |
 | preflight | 이미 취소/마감된 context | 0 | context error |
 | GenerateDataKey/Decrypt | SDK error | 1 | `ErrKMSOperation` + 원인 |
 | KMS output validation | nil output, missing encrypted/plaintext key, wrong DEK length | 1 | `ErrInvalidDataKey` |
+| input bound | plaintext/associated data/envelope/blob/context 한도 초과 | 0 | `ErrInputTooLarge` 또는 `ErrMalformedEnvelope` |
 | post-KMS cancellation | 응답 뒤 local crypto 전 context 취소 | 1 | context error, local crypto 0 |
 | envelope parse | magic/JSON/size/field/unknown-field 오류 | 0 | `ErrMalformedEnvelope` 또는 version/algorithm sentinel |
 | metadata validation | key ID/context mismatch | 0 | `ErrMetadataMismatch` |
 | local AEAD | tamper, wrong AAD, wrong nonce, wrong DEK | 1 on decrypt path | `ErrAuthenticationFailed` 보존 |
 
-모든 KMS output plaintext 경로는 성공·실패·cancellation·validation panic 경로를 포함해 best-effort zero defer를 사용한다. fake는 output slice를 기록하기 전에 자체 복사해 zero 검증과 input aliasing 검증을 분리한다.
+모든 KMS output plaintext 경로는 output이 non-nil인 즉시 best-effort zero defer를 예약하고
+성공·실패·cancellation·validation panic 경로를 포함한다. `output.Plaintext` 자체와
+provider가 별도로 만드는 mutable local copy를 모두 zero한다. Go compiler/GC와
+`encrypt.New` 내부 AES expanded key까지 삭제된다고 주장하지 않는다. fake는 output slice를
+반환 전에 자체 복사해 zero 검증과 input aliasing 검증을 분리한다.
 
 ## 테스트와 DoD
 
 `encrypt/kms` fake client는 mutex로 호출을 기록하고, `GenerateDataKey`/`Decrypt` 입력을 deep-copy한다. 다음 table-driven 테스트를 작성한다.
 
-- constructor: nil client, blank key ID, nil option, context copy/empty context
+- constructor: nil client, blank/oversized/invalid-UTF-8 key ID, nil option, context copy/empty context, zero-value provider
 - round trip: AES-256 data key, KMS context, `BTKMS` parse/marshal, associated data
-- envelope: deterministic metadata bytes, sorted context, unknown/trailing fields, size/length limits, unsupported version/algorithm
+- envelope: deterministic metadata bytes, sorted context, unknown/trailing/duplicate/case-variant/invalid-UTF-8 fields, canonical base64, size/length limits, unsupported version/algorithm, oversized encrypted data key rejected before KMS
 - metadata: provider key ID/context mismatch가 KMS 호출 전에 거부되는지
 - KMS failures: GenerateDataKey/Decrypt error wrapping, nil output, wrong key lengths, empty encrypted blob
 - local failures: nonce/ciphertext tamper, associated data mismatch, encrypted data key tamper, redaction of all sensitive fixtures
-- cancellation: preflight, inside KMS, post-KMS-before-local-crypto, deadline; expected call counts and zero plaintext
+- cancellation: preflight-before-parse, inside KMS, post-KMS-before-local-crypto, local-crypto/final-publish deadline; expected call counts and zero plaintext
 - ownership: provider가 client를 close/reconfigure하지 않음, constructor/input/output slice와 map mutation isolation
-- concurrency: shared immutable provider stress test와 `go test -race`; bounded timeout and no goroutine leak
+- concurrency: shared immutable provider stress test와 `go test -race` under a concurrent-safe, context-aware fake; bounded timeout and no goroutine leak
+- bounds/performance: plaintext and associated-data preflight with zero KMS calls; fake logical call count plus detached AEAD, envelope marshal/parse, and provider round-trip `-benchmem` matrix for 1 KiB/1 MiB/maximum accepted payload; record command, commit SHA, Go version, and observed allocation/latency baseline without live AWS RTT claims
 - examples: package example compiles without live credentials or AWS network
 
 검증 명령은 순서대로 `gofmt`, `go test -count=1 ./encrypt ./encrypt/kms`, `go test -race -count=1 ./encrypt ./encrypt/kms`, `go test ./...`, `make fmt-check`, `make tidy-check`, `make vet`, `make lint`, `make test`, `make race`, `make ci`다. Docker-backed 기존 패키지는 저장소 규칙에 따라 순차 실행한다.
 
-완료 DoD는 provider code/test, detached parent contract, English/Korean package README와 root README parity, exact dependency diff, safe error/cancellation 증거, race 결과, skill GREEN/REFACTOR pressure 결과, lesson을 모두 포함한다. live AWS, PR, merge, publication은 명시적인 후속 gate로 남긴다.
+완료 DoD는 provider code/test, detached parent contract, English/Korean package README와 root README parity, exact dependency diff, safe error/cancellation 증거, race 결과, bounded benchmark evidence, skill GREEN/REFACTOR pressure 결과, lesson을 모두 포함한다. live AWS, PR, merge, publication은 명시적인 후속 gate로 남긴다.
 
 ## 대안과 결정
 
