@@ -116,6 +116,7 @@ README 두 locale과 `doc.go`에 detached methods가 low-level provider composit
 **Files:**
 - Modify: `go.mod`, `go.sum`
 - Create: `encrypt/kms/errors.go`, `encrypt/kms/envelope.go`, `encrypt/kms/provider_test.go`
+- Create: `encrypt/kms/doc.go`
 
 - [ ] **Step 1: KMS package RED fixtures와 parser tests를 작성한다.**
 
