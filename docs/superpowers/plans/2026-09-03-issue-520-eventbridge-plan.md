@@ -343,7 +343,7 @@
 - Modify: all implementation/docs files above as required by review
 - Modify: `.omx/issue-520-*.json` transient evidence files (ignored)
 
-- [ ] **Step 1: run focused and package verification**
+- [x] **Step 1: run focused and package verification**
 
   Run:
 
@@ -359,7 +359,7 @@
   Capture command, exact commit SHA, package list, and test counts. Confirm no
   live AWS endpoint/config/credential access appears in tests.
 
-- [ ] **Step 2: perform six-lens + main integration Step 6-R**
+- [x] **Step 2: perform six-lens + main integration Step 6-R**
 
   Review exact diff for performance, stability, security, operator/Ops,
   developer/API, and user/caller. Main integration checks scope against #520,
@@ -369,7 +369,7 @@
   Any P0/P1 is fixed and re-reviewed before PR; unavailable external review is
   recorded as `PENDING`/main-session fallback, never as clean pass.
 
-- [ ] **Step 3: run repository gates**
+- [x] **Step 3: run repository gates**
 
   Run from the feature worktree:
 

@@ -2,7 +2,9 @@
 
 ## 판정
 
-- 기준 diff: `origin/develop...90dba26382713f715748ef1510df11e7ba42b3fd`
+- 검토 대상 구현 diff: `origin/develop...90dba26382713f715748ef1510df11e7ba42b3fd`
+- 리뷰/계획 bookkeeping은 구현 검증 후속 commit에 추가되며, 아래 P0/P1 판정은 위
+  구현 head의 exact tree를 기준으로 한다.
 - 대상: `audit/sqloutbox/eventbridge`와 parent README locale pair, Go module,
   설계/계획/lesson 문서
 - Step 6-R 통합 판정: `PASS (P0=0, P1=0, P2=0, P3=0)`
