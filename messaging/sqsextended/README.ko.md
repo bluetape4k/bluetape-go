@@ -100,6 +100,10 @@ envelope를 모두 preflight하므로 일부 object만 읽지 않습니다.
   response body를 close한 뒤 exact size와 SHA-256을 확인합니다. missing object,
   malformed response, size mismatch와 checksum failure에서는 SQS message를
   acknowledge하지 않습니다.
+- `ReceiveMessage`가 반환된 뒤 object read 전에 cancellation이 발생하면
+  receipt handle을 의도적으로 반환하지 않습니다. 이때 visibility timeout이
+  이미 시작됐을 수 있으므로 batch의 visibility 연장, retry와 reconciliation
+  정책은 caller가 소유해야 합니다.
 - `Delete`는 SQS `DeleteMessage`를 먼저 실행하고 성공한 경우에만 S3
   `DeleteObject`를 실행합니다. SQS 삭제가 실패하면 S3를 호출하지 않습니다.
   S3 cleanup이 실패하면 반환 error의 `QueueDeleted() == true`로 queue ack

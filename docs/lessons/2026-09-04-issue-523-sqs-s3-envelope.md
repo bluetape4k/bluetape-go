@@ -15,6 +15,9 @@ logging·queue topology·lifecycle·DLQ·replay를 소유하지 않는다.
 - SQS 수신은 envelope, declared size, response body close와 SHA-256을 검증하지만
   acknowledge하지 않는다. visibility timeout과 processing budget은 caller가
   함께 설계해야 한다.
+- `ReceiveMessage` 뒤 object read 전에 취소되면 receipt handle을 반환하지 않는
+  현재 API 경계를 명시해야 한다. visibility가 이미 시작될 수 있으므로 caller의
+  visibility/retry/reconciliation runbook이 이 상태를 다룬다.
 - 삭제 순서를 SQS first로 고정하면 S3 cleanup 실패가 queue ack 이후에 발생한다.
   `QueueDeleted()`를 통해 repair/lifecycle 경로가 이미 지워진 queue message를
   구분할 수 있다.

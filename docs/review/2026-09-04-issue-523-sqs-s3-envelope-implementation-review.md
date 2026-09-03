@@ -25,13 +25,18 @@
 현재 구현 판정은 `P0=0, P1=0`이다. 원격 CI와 merge gate는 새 commit의 exact head에서
 다시 확인한다.
 
+운영 관점의 P2로 `ReceiveMessage` 뒤 object read 전 cancellation 시 receipt
+handle을 반환하지 않는 API 경계를 확인했다. visibility/retry/reconciliation
+소유권을 EN/KO README, spec와 lesson에 명시했으며 API 확장은 이 범위에 넣지
+않는다. P0/P1 차단은 없다.
+
 ## 판정
 
 - 검토 대상 구현 tree: baseline `HEAD=906a68fdb41551ccaa6ce1394a2370e654ade10e`와
   이 worktree의 issue #523 변경
 - 대상 범위: `messaging/sqsextended`, root README locale pair, spec/plan/risk와
   이 구현 리뷰·lesson 문서
-- Step 6-R 통합 판정: `PASS (P0=0, P1=0, P2=0, P3=0)`
+- Step 6-R 통합 판정: `PASS (P0=0, P1=0, P2=1, P3=0)`
 - 원격 PR/CI와 live AWS 호출: 아직 실행하지 않음. 부모 workflow의 PR gate에서
   exact head 기준으로 별도 확인한다.
 
@@ -71,7 +76,7 @@ ownership, failure, cancellation, cleanup 순서를 package API와 fake-first te
 | Security | 0 | 0 | 0 | 0 | bucket/key, payload, checksum과 raw AWS error를 public formatting에서 제외하고 canonical/UTF-8/size 검증을 dispatch 전에 수행한다. |
 | Operator/Ops | 0 | 0 | 0 | 0 | credentials, retry, timeout, logger, queue/bucket/IAM, lifecycle, DLQ, replay와 visibility extension은 caller/operator가 소유한다. |
 | Developer/API | 0 | 0 | 0 | 0 | narrow interface, immutable provider configuration, compile-time SDK assertions, Korean Go doc과 EN/KO README를 확인했다. |
-| User/Caller | 0 | 0 | 0 | 0 | caller bucket/key를 그대로 유지하고 S3→SQS send, SQS→S3 delete order와 orphan/queue-deleted 상태를 관찰할 수 있다. |
+| User/Caller | 0 | 0 | 1 | 0 | caller bucket/key를 그대로 유지하고 S3→SQS send, SQS→S3 delete order와 orphan/queue-deleted 상태를 관찰할 수 있다. Receive cancellation의 receipt/visibility reconciliation 경계는 문서화했다. |
 | Main integration | 0 | 0 | 0 | 0 | #523 범위에만 변경했으며 parent #517의 후속 SQS/Kinesis/Step Functions와 운영 provisioning은 건드리지 않았다. |
 
 P0/P1 차단 finding은 없다. live AWS/emulator compatibility, production IAM와

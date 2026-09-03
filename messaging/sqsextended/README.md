@@ -100,6 +100,10 @@ is dispatched so an over-budget batch performs no partial reads.
   one byte, closes the S3 response body, and verifies exact size and SHA-256.
   Missing objects, malformed responses, size mismatches, and checksum failures
   leave the SQS message unacknowledged.
+- If cancellation is observed after `ReceiveMessage` returns but before object
+  reads finish, the receipt handles are intentionally not returned. Visibility
+  may already be running; the caller owns visibility extension, retry, and
+  reconciliation policy for that batch.
 - `Delete` calls SQS `DeleteMessage` first and only then calls S3
   `DeleteObject`. If SQS deletion fails, S3 is not touched. If S3 cleanup fails,
   the returned error reports `QueueDeleted() == true`, so the caller can route

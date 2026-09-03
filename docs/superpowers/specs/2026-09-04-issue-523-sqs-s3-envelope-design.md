@@ -102,6 +102,9 @@ size/checksum mismatch는 SQS message를 삭제하지 않고 오류를 반환한
 여러 message 중 일부가 성공한 경우 already-read values를 반환하지 않고
 오류를 우선한다. caller는 visibility timeout과 processing budget을 맞춰야
 하며 provider는 `ChangeMessageVisibility`를 암묵적으로 호출하지 않는다.
+`ReceiveMessage` response 뒤 object read 전 cancellation에서는 receipt handle을
+반환하지 않는다. visibility가 이미 시작될 수 있으므로 해당 batch의 retry,
+visibility extension과 reconciliation은 caller가 소유한다.
 
 `DeleteRequest`는 `QueueURL`, `ReceiptHandle`, `Envelope`를 받는다. SQS
 `DeleteMessage`가 성공한 뒤 cancellation checkpoint를 확인하고 S3
