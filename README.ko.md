@@ -72,6 +72,7 @@ API가 아니라 module-gated future scope입니다.
 | [`examples/graph/iamaccess`](examples/graph/iamaccess/README.ko.md) | example | Effective access, deny path, risky privilege chain, least-privilege drift, NDJSON graph I/O 경계를 보여주는 runnable IAM access graph. |
 | [`examples/s3`](examples/s3/README.ko.md) | example | Floci fixture 기반 compile-checked AWS SDK for Go v2 S3 예제. |
 | [`examples/sqs-sns`](examples/sqs-sns/README.ko.md) | example | Floci fixture 기반 compile-checked AWS SDK for Go v2 SQS/SNS 예제. |
+| [`examples/cloudwatch`](examples/cloudwatch/README.ko.md) | example | limits, cancellation, redaction 경계를 검증하는 fake-first AWS SDK for Go v2 CloudWatch Metrics/Logs 예제. |
 | [`leader`](leader/README.ko.md) | active | 단일, group, strategy 기반 계약을 포함한 leader election API. |
 | [`leader/redis`](leader/redis/README.ko.md) | active | TTL renewal, ZSET slot token, candidate registry 기반 Redis 단일/group/strategic leader election 구현. |
 | [`leader/mongo`](leader/mongo/README.ko.md) | active | Owner-token lease, bounded slot, candidate registry, TTL cleanup index를 사용하는 MongoDB 단일/group/strategic leader election 구현. |
@@ -152,7 +153,8 @@ go get github.com/bluetape4k/bluetape-go
 - AWS/Floci: [`dynamodb/batchwrite`](dynamodb/batchwrite/README.ko.md), [`encrypt/kms`](encrypt/kms/README.ko.md), [`workflow/stepfunctions`](workflow/stepfunctions/README.ko.md),
   [`examples/integration`](examples/integration/README.ko.md),
   [`examples/s3`](examples/s3/README.ko.md),
-  [`examples/sqs-sns`](examples/sqs-sns/README.ko.md).
+  [`examples/sqs-sns`](examples/sqs-sns/README.ko.md), 그리고 fake-first
+  CloudWatch Metrics/Logs 예시인 [`examples/cloudwatch`](examples/cloudwatch/README.ko.md).
 - Text: deterministic multi-pattern search, tokenizer core interface,
   blockword detection/masking, severity metadata, normalization,
   boundary-aware matching을 위한
