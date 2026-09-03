@@ -401,7 +401,7 @@ func TestS3VectorsPreflightEnforcesServiceBounds(t *testing.T) {
 			return err
 		}},
 		{name: "put key length", call: func() error {
-			_, err := provider.PutVectors(context.Background(), &awss3vectors.PutVectorsInput{IndexName: aws.String("index"), VectorBucketName: aws.String("bucket"), Vectors: []types.PutInputVector{validVector(strings.Repeat("k", MaxVectorKeyBytes+1), 1)}})
+			_, err := provider.PutVectors(context.Background(), &awss3vectors.PutVectorsInput{IndexName: aws.String("index"), VectorBucketName: aws.String("bucket"), Vectors: []types.PutInputVector{validVector(strings.Repeat("k", MaxVectorKeyCharacters+1), 1)}})
 			return err
 		}},
 		{name: "put estimated request bytes", call: func() error {
@@ -447,6 +447,24 @@ func TestS3VectorsPreflightEnforcesServiceBounds(t *testing.T) {
 	}
 	if totalCalls(fake) != 0 {
 		t.Fatalf("invalid bounded requests made %d SDK calls, want 0", totalCalls(fake))
+	}
+}
+
+func TestS3VectorsAcceptsUTF8VectorKeyWithinCharacterLimit(t *testing.T) {
+	fake := newFakeClient()
+	fake.putVectorsOutput = &awss3vectors.PutVectorsOutput{}
+	provider := mustProvider(t, fake)
+	key := strings.Repeat("한", MaxVectorKeyCharacters)
+	_, err := provider.PutVectors(context.Background(), &awss3vectors.PutVectorsInput{
+		IndexName:        aws.String("index"),
+		VectorBucketName: aws.String("bucket"),
+		Vectors:          []types.PutInputVector{{Key: aws.String(key), Data: &types.VectorDataMemberFloat32{Value: []float32{1}}}},
+	})
+	if err != nil {
+		t.Fatalf("UTF-8 key within character limit: %v", err)
+	}
+	if fake.callCount("put vectors") != 1 {
+		t.Fatalf("UTF-8 key dispatch count = %d, want 1", fake.callCount("put vectors"))
 	}
 }
 

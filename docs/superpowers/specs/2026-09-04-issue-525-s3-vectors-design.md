@@ -39,7 +39,7 @@ S3 Vectors는 일반 S3 object API와 별도 service이며 SDK의 `document.Inte
 paginator를 숨기거나 결과를 vector database 모델로 변환하지 않는다. `Provider`는
 bucket/index 식별자와 finite float32 값 외에도 AWS request bound를 dispatch 전에
 검증한다: PutVectors 500개/4,096 dimension, GetVectors 100개 key, vector key
-63 byte, ListVectors 1,000개와 16 segment, QueryVectors TopK 10,000, vector
+valid UTF-8 1,024자, ListVectors 1,000개와 16 segment, QueryVectors TopK 10,000, vector
 metadata 40 KiB, request payload 20 MiB. index dimension, distance metric,
 metadata schema와 filter 값의 의미는 호출자가 소유한다.
 

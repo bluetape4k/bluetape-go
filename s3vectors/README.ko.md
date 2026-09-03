@@ -74,8 +74,8 @@ adapter는 SDK를 호출하기 전에 다음 malformed request를 거부합니�
 - bucket reference에는 ARN 또는 name 중 정확히 하나를 사용합니다.
 - index operation에는 index ARN 또는 index name과 bucket name을 함께 지정합니다.
 - vector write/query에는 비어 있지 않고 finite한 `float32` data가 필요합니다.
-- vector key는 valid UTF-8이며 최대 63 byte이고, `GetVectors`에는 최대 100개
-  key를 지정합니다.
+- vector key는 공백만으로 이루어지지 않은 valid UTF-8 문자를 최대 1,024자까지
+  사용할 수 있고, `GetVectors`에는 최대 100개 key를 지정합니다.
 - `PutVectors`는 최대 500개 vector와 dimension 4,096까지 허용합니다.
 - `TopK`는 1 이상 10,000 이하이고 pagination limit는 양수이면서 AWS page-size
   상한(버킷/index 500, vector 1,000) 이하여야 합니다.

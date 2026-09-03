@@ -4,7 +4,7 @@
 
 security/performance 리뷰의 oversized request·clone amplification 지적을
 반영했다. AWS documented bound를 기준으로 PutVectors 500개/4,096 dimension,
-GetVectors 100개 key, 63-byte key, List page/segment, Query TopK 10,000,
+GetVectors 100개 key, valid UTF-8 1,024자 key, List page/segment, Query TopK 10,000,
 metadata 40 KiB와 request 20 MiB preflight를 clone 전에 적용한다. QueryVectors
 fake의 post-response hook과 root README EN/KO package row도 보강했으며, oversized
 입력의 SDK 호출 0회·targeted race/vet가 PASS다. `Error.GoString`과 `%#v` redaction
@@ -14,7 +14,10 @@ document marshaler의 panic을 광범위하게 recover하지 않고, 명시적 m
 error만 invalid request로 분류해 caller bug와 SDK 계약 결함을 숨기지 않는다.
 vector float32 JSON 표기는 component당 보수적 32 byte를 예약해 20 MiB
 preflight가 실제 인코딩보다 작아지지 않도록 했다.
-보강 판정은 `P0=0, P1=0`이며 exact-head 원격 CI를 별도 확인한다.
+caller 리뷰에서 확인된 AWS vector key 계약(UTF-8, 최대 1,024자)을 반영해
+기존 63-byte 제한을 제거하고 `utf8.ValidString`/`utf8.RuneCountInString`으로
+검증한다. 기존의 공백-only key 거부도 유지한다. 근거는 [Amazon S3 Vectors](https://docs.aws.amazon.com/AmazonS3/latest/userguide/s3-vectors-vectors.html)의
+vector key 설명이다. 보강 판정은 `P0=0, P1=0`이며 exact-head 원격 CI를 별도 확인한다.
 
 ## 검토 범위
 

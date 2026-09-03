@@ -26,8 +26,8 @@ const (
 	MaxQueryTopK int32 = 10_000
 	// MaxVectorDimension 상수는 vector dimension 상한이다.
 	MaxVectorDimension = 4096
-	// MaxVectorKeyBytes 상수는 vector key byte 상한이다.
-	MaxVectorKeyBytes = 63
+	// MaxVectorKeyCharacters 상수는 vector key UTF-8 문자 수 상한이다.
+	MaxVectorKeyCharacters = 1024
 	// MaxSegmentCount 상수는 병렬 ListVectors segment 수 상한이다.
 	MaxSegmentCount int32 = 16
 	// MaxVectorMetadataBytes 상수는 vector 하나의 metadata byte 상한이다.
@@ -455,7 +455,7 @@ func validOptionalString(value *string, maxBytes int) bool {
 }
 
 func validVectorKey(value *string) bool {
-	return value != nil && utf8.ValidString(*value) && strings.TrimSpace(*value) != "" && len(*value) <= MaxVectorKeyBytes
+	return value != nil && utf8.ValidString(*value) && strings.TrimSpace(*value) != "" && utf8.RuneCountInString(*value) <= MaxVectorKeyCharacters
 }
 
 func validVectorData(data types.VectorData) bool {

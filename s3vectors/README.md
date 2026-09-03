@@ -74,8 +74,8 @@ The adapter rejects malformed requests before making an SDK call:
 - bucket references use exactly one of ARN or name;
 - index operations use either an index ARN or both index and bucket names;
 - vector writes and queries require non-empty finite `float32` data;
-- vector keys are valid UTF-8 and at most 63 bytes; `GetVectors` accepts at most
-  100 keys;
+- vector keys accept non-blank valid UTF-8 content up to 1,024 characters;
+  `GetVectors` accepts at most 100 keys;
 - `PutVectors` accepts at most 500 vectors and dimensions up to 4,096;
 - `TopK` is positive and at most 10,000; pagination limits are positive and
   bounded to the AWS page sizes (500 buckets/indexes, 1,000 vectors);

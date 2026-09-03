@@ -19,6 +19,9 @@ metadata schema, filter 의미 해석, credentials, retry, pagination, logging�
   먼저 발생시키지 않도록 한다. float32 JSON 표기 차이를 흡수하는 보수적
   component byte budget을 사용하고, index에 설정된 실제 dimension 일치는
   caller가 소유한다.
+- vector key는 AWS 계약에 맞춰 공백만으로 이루어지지 않은 valid UTF-8을 최대
+  1,024자까지 허용한다. byte 수로 제한하면 다중 byte key를 잘못 거부하므로
+  rune 수와 UTF-8 유효성을 검사하고, 기존 non-blank caller 계약은 유지한다.
 - `context.Context` 취소는 SDK 호출 전후에 확인하며, 반환된 응답이나 SDK 오류보다
   caller 취소를 우선한다.
 - SDK 오류는 `errors.Is`/`errors.As`가 유지되도록 감싸되, resource ARN·bucket/index
