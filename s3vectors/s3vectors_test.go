@@ -425,8 +425,8 @@ func TestS3VectorsPreflightEnforcesServiceBounds(t *testing.T) {
 			return err
 		}},
 		{name: "list results", call: func() error {
-			max := MaxListVectorsResults + 1
-			_, err := provider.ListVectors(context.Background(), &awss3vectors.ListVectorsInput{IndexName: aws.String("index"), VectorBucketName: aws.String("bucket"), MaxResults: &max})
+			maxResults := MaxListVectorsResults + 1
+			_, err := provider.ListVectors(context.Background(), &awss3vectors.ListVectorsInput{IndexName: aws.String("index"), VectorBucketName: aws.String("bucket"), MaxResults: &maxResults})
 			return err
 		}},
 		{name: "segment count", call: func() error {

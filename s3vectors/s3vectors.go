@@ -12,33 +12,33 @@ import (
 )
 
 const (
-	// MaxListVectorBucketsResults는 vector bucket page-size 상한이다.
+	// MaxListVectorBucketsResults 상수는 vector bucket page-size 상한이다.
 	MaxListVectorBucketsResults int32 = 500
-	// MaxListIndexesResults는 index page-size 상한이다.
+	// MaxListIndexesResults 상수는 index page-size 상한이다.
 	MaxListIndexesResults int32 = 500
-	// MaxPutVectors는 PutVectors 한 호출의 vector 수 상한이다.
+	// MaxPutVectors 상수는 PutVectors 한 호출의 vector 수 상한이다.
 	MaxPutVectors = 500
-	// MaxGetVectors는 GetVectors 한 호출의 key 수 상한이다.
+	// MaxGetVectors 상수는 GetVectors 한 호출의 key 수 상한이다.
 	MaxGetVectors = 100
-	// MaxListVectorsResults는 vector page-size 상한이다.
+	// MaxListVectorsResults 상수는 vector page-size 상한이다.
 	MaxListVectorsResults int32 = 1000
-	// MaxQueryTopK는 QueryVectors top-K 상한이다.
+	// MaxQueryTopK 상수는 QueryVectors top-K 상한이다.
 	MaxQueryTopK int32 = 10_000
-	// MaxVectorDimension은 vector dimension 상한이다.
+	// MaxVectorDimension 상수는 vector dimension 상한이다.
 	MaxVectorDimension = 4096
-	// MaxVectorKeyBytes는 vector key byte 상한이다.
+	// MaxVectorKeyBytes 상수는 vector key byte 상한이다.
 	MaxVectorKeyBytes = 63
-	// MaxSegmentCount는 병렬 ListVectors segment 수 상한이다.
+	// MaxSegmentCount 상수는 병렬 ListVectors segment 수 상한이다.
 	MaxSegmentCount int32 = 16
-	// MaxVectorMetadataBytes는 vector 하나의 metadata byte 상한이다.
+	// MaxVectorMetadataBytes 상수는 vector 하나의 metadata byte 상한이다.
 	MaxVectorMetadataBytes = 40 << 10
-	// MaxRequestPayloadBytes는 JSON request payload byte 상한이다.
+	// MaxRequestPayloadBytes 상수는 JSON request payload byte 상한이다.
 	MaxRequestPayloadBytes = 20 << 20
-	// MaxIdentifierBytes는 index/bucket 식별자 byte 상한이다.
+	// MaxIdentifierBytes 상수는 index/bucket 식별자 byte 상한이다.
 	MaxIdentifierBytes = 1024
-	// MaxPaginationTokenBytes는 pagination token byte 상한이다.
+	// MaxPaginationTokenBytes 상수는 pagination token byte 상한이다.
 	MaxPaginationTokenBytes = 2048
-	// MaxPrefixBytes는 list prefix byte 상한이다.
+	// MaxPrefixBytes 상수는 list prefix byte 상한이다.
 	MaxPrefixBytes = 1024
 	// maxVectorComponentBytes는 JSON 직렬화 시 float32 하나에 보수적으로
 	// 예약하는 byte 수다. 실제 SDK 인코더가 사용하는 표기 차이까지 포함해
