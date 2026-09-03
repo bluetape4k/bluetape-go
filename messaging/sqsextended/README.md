@@ -77,9 +77,12 @@ install a logger, extend visibility, or run a background cleanup worker.
 encryption metadata are preserved in the wire contract. `EncodeEnvelope` and
 `DecodeEnvelope` reject unsupported versions, unknown/duplicate fields,
 non-canonical JSON, invalid UTF-8, malformed checksums, and oversized input.
-The default payload bound is `DefaultMaxPayloadSize` (256 MiB); configure a
+The default per-object payload bound is `DefaultMaxPayloadSize` (256 MiB); configure a
 smaller bound with `Options.MaxPayloadSize` when the application has a tighter
-budget.
+budget. `Receive` also enforces a 512 MiB aggregate payload budget by default
+(`DefaultMaxReceivePayloadSize`). Configure a lower bounded value with
+`Options.MaxReceivePayloadSize`; envelopes are preflighted before any S3 object
+is dispatched so an over-budget batch performs no partial reads.
 
 ## Failure and cleanup semantics
 
@@ -89,6 +92,10 @@ budget.
   intentionally not deleted. The returned `*sqsextended.Error` reports
   `OrphanedObject() == true`; call `DeleteObject` explicitly or rely on the
   caller-owned S3 lifecycle policy.
+- If cancellation is observed immediately after the S3 put or SQS send,
+  `ErrCanceled` is returned while `errors.Is(err, context.Canceled)` remains
+  true. The object may be orphaned, so inspect `OrphanedObject()` and reconcile
+  it explicitly.
 - `Receive` validates the envelope, reads at most the declared payload size plus
   one byte, closes the S3 response body, and verifies exact size and SHA-256.
   Missing objects, malformed responses, size mismatches, and checksum failures
@@ -97,6 +104,9 @@ budget.
   `DeleteObject`. If SQS deletion fails, S3 is not touched. If S3 cleanup fails,
   the returned error reports `QueueDeleted() == true`, so the caller can route
   cleanup to a separate repair/lifecycle process.
+- If cancellation is observed immediately after either delete side effect,
+  `ErrCanceled` is returned with `QueueDeleted() == true`; the caller can use
+  that state to reconcile object cleanup without retrying the queue ack.
 - Context cancellation is checked before dispatch and after every SDK response.
   Cancellation wins over a late success response. The provider never retries a
   canceled operation or extends visibility implicitly.

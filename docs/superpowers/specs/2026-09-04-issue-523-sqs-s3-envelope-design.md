@@ -80,7 +80,9 @@ type S3Client interface {
 }
 ```
 
-`Options`에는 두 client와 `MaxPayloadSize`만 둔다. provider는 client를 닫거나
+`Options`에는 두 client와 개별 `MaxPayloadSize`, Receive 누적
+`MaxReceivePayloadSize`를 둔다. 기본 누적 bound는 512 MiB이며 개별 payload
+bound 이상 512 MiB 이하의 bounded 값만 허용한다. provider는 client를 닫거나
   goroutine/retry/logger를 설치하지 않는다. client가 동시 호출과 cooperative
   context cancellation을 지원하면 provider도 concurrent `Send`/`Receive`에
   안전하다.
@@ -88,12 +90,14 @@ type S3Client interface {
 `SendRequest`는 `QueueURL`, `Bucket`, `Key`, `Payload`와 optional
 `ContentType`/`EncryptionMetadata`를 받는다. `Send`는 S3 `PutObject` 성공 뒤
 SQS `SendMessage`를 정확히 한 번 호출하고 `SendResult{MessageID,Envelope}`를
-반환한다. S3 성공 후 SQS 실패는 `ErrMessageSendFailed`와
-`OrphanedObject()==true`를 반환하며 자동 delete하지 않는다.
+반환한다. S3 성공 후 SQS 실패 또는 cancellation으로 send 결과가 확정되지
+않으면 `OrphanedObject()==true`를 반환하며 자동 delete하지 않는다.
 
 `ReceiveRequest`는 `QueueURL`, optional `MaxNumberOfMessages`,
 `VisibilityTimeout`, `WaitTimeSeconds`를 받는다. 수신된 각 SQS body를
-decode하고 S3 object를 bounded read한다. malformed envelope, missing object,
+decode하고 모든 envelope의 declared size 합을 누적 bound와 비교한 뒤 S3 object를
+bounded read한다. 누적 bound를 초과하면 어떤 S3 object도 dispatch하지 않는다.
+malformed envelope, missing object,
 size/checksum mismatch는 SQS message를 삭제하지 않고 오류를 반환한다.
 여러 message 중 일부가 성공한 경우 already-read values를 반환하지 않고
 오류를 우선한다. caller는 visibility timeout과 processing budget을 맞춰야
@@ -103,22 +107,24 @@ size/checksum mismatch는 SQS message를 삭제하지 않고 오류를 반환한
 `DeleteMessage`가 성공한 뒤 cancellation checkpoint를 확인하고 S3
 `DeleteObject`를 호출한다. SQS delete 실패 시 S3 delete를 호출하지 않는다.
 S3 delete 실패는 `ErrObjectDeleteFailed`이며 이미 queue message가 ack됐다는
-사실을 `QueueDeleted()==true`로 관찰할 수 있다. cancellation이 두 번째
-호출 전에 발생하면 context error를 반환하고 object는 lifecycle/caller
-cleanup 대상으로 남긴다.
+사실을 `QueueDeleted()==true`로 관찰할 수 있다. cancellation이 각 side
+effect 직후 발생하면 `ErrCanceled`와 원인 context error를 함께 반환하고,
+`QueueDeleted()==true` 또는 `OrphanedObject()==true`로 확인된 cleanup 상태를
+caller가 reconciliation해야 한다.
 
 ## 오류·cancellation 계약
 
 오류 문자열은 고정된 sentinel과 allowlisted operation만 포함하고 queue URL,
 bucket/key, payload, checksum, AWS provider message를 포함하지 않는다.
 `errors.Is`로 package sentinel과 injected cause를 관찰할 수 있고
-`errors.As`로 `*Error`를 얻는다. `fmt.Sprintf("%+v", err)`도 redacted다.
+`errors.As`로 `*Error`를 얻는다. `fmt.Sprintf("%+v", err)`와 `%#v`도 redacted다.
 
 모든 public IO method는 nil context를 `context.Background()`로 정규화하고,
 dispatch 전·각 provider response 직후·최종 결과 publication 직전에
 `ctx.Err()`를 확인한다. caller cancellation은 SDK 오류나 성공 response보다
-우선한다. provider는 cancellation을 retry하거나 late result를 publish하지
-않는다.
+우선한다. side effect가 이미 완료된 뒤 취소되면 `ErrCanceled`를 사용해
+`errors.Is(err, context.Canceled)`를 유지하면서 cleanup 상태를 보존한다.
+provider는 cancellation을 retry하거나 late result를 publish하지 않는다.
 
 ## Test 계약
 
@@ -126,11 +132,11 @@ dispatch 전·각 provider response 직후·최종 결과 publication 직전에
   trailing/non-canonical/version mismatch, size/checksum mismatch
 - constructor nil/typed-nil client와 bounded option
 - `Send` request deep-copy, S3→SQS 순서, S3 failure, SQS failure/orphan flag,
-  nil/malformed outputs, cancellation
-- `Receive` envelope parsing, bounded body read/close, missing object,
+  nil/malformed outputs, side-effect cancellation과 orphan flag
+- `Receive` envelope parsing, aggregate payload preflight, bounded body read/close, missing object,
   checksum/size mismatch, partial batch error와 no delete
 - `Delete` SQS-first order, SQS failure no object delete, object delete failure,
-  cancellation between deletes
+  side-effect cancellation과 queue-deleted flag
 - error redaction including `%+v`, `errors.Is`/`errors.As`, concurrent fake
   isolation under `go test -race`
 

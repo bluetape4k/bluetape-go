@@ -114,6 +114,7 @@ type fakeS3Client struct {
 	lastDelete  *s3.DeleteObjectInput
 	putOutput   *s3.PutObjectOutput
 	getOutput   *s3.GetObjectOutput
+	getBody     io.ReadCloser
 	deleteOut   *s3.DeleteObjectOutput
 	putErr      error
 	getErr      error
@@ -121,6 +122,18 @@ type fakeS3Client struct {
 	order       *[]string
 	cancelAfter func()
 	lastContext context.Context
+}
+
+type countingReadCloser struct {
+	io.Reader
+	onClose func()
+}
+
+func (r *countingReadCloser) Close() error {
+	if r.onClose != nil {
+		r.onClose()
+	}
+	return nil
 }
 
 func (f *fakeS3Client) PutObject(ctx context.Context, input *s3.PutObjectInput, _ ...func(*s3.Options)) (*s3.PutObjectOutput, error) {
@@ -152,10 +165,16 @@ func (f *fakeS3Client) GetObject(ctx context.Context, input *s3.GetObjectInput, 
 	f.lastGet = cloneGetInput(input)
 	f.lastContext = ctx
 	output, err := cloneGetOutput(f.getOutput), f.getErr
-	order := f.order
+	if f.getBody != nil {
+		output = &s3.GetObjectOutput{Body: f.getBody}
+	}
+	order, cancelAfter := f.order, f.cancelAfter
 	f.mu.Unlock()
 	if order != nil {
 		*order = append(*order, "s3.get")
+	}
+	if cancelAfter != nil {
+		cancelAfter()
 	}
 	if err != nil {
 		return output, err
@@ -199,6 +218,8 @@ func TestNewRejectsNilAndInvalidOptions(t *testing.T) {
 		{name: "typed nil sqs", options: Options{SQSClient: (*fakeSQSClient)(nil), S3Client: fakeS3}, want: ErrNilClient},
 		{name: "typed nil s3", options: Options{SQSClient: fakeSQS, S3Client: (*fakeS3Client)(nil)}, want: ErrNilClient},
 		{name: "zero max", options: Options{SQSClient: fakeSQS, S3Client: fakeS3, MaxPayloadSize: -1}, want: ErrInvalidOptions},
+		{name: "receive budget below payload", options: Options{SQSClient: fakeSQS, S3Client: fakeS3, MaxReceivePayloadSize: DefaultMaxPayloadSize - 1}, want: ErrInvalidOptions},
+		{name: "receive budget above hard bound", options: Options{SQSClient: fakeSQS, S3Client: fakeS3, MaxReceivePayloadSize: DefaultMaxReceivePayloadSize + 1}, want: ErrInvalidOptions},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -213,6 +234,9 @@ func TestNewRejectsNilAndInvalidOptions(t *testing.T) {
 	}
 	if provider.MaxPayloadSize() != DefaultMaxPayloadSize {
 		t.Fatalf("MaxPayloadSize = %d, want %d", provider.MaxPayloadSize(), DefaultMaxPayloadSize)
+	}
+	if provider.MaxReceivePayloadSize() != DefaultMaxReceivePayloadSize {
+		t.Fatalf("MaxReceivePayloadSize = %d, want %d", provider.MaxReceivePayloadSize(), DefaultMaxReceivePayloadSize)
 	}
 }
 
@@ -298,7 +322,7 @@ func TestSendFailureMatrixAndOrphanContract(t *testing.T) {
 	if s3Client.deletes != 0 {
 		t.Fatalf("automatic S3 deletes = %d, want 0", s3Client.deletes)
 	}
-	if strings.Contains(fmt.Sprintf("%+v", err), "secret") || strings.Contains(err.Error(), "queue") {
+	if strings.Contains(fmt.Sprintf("%+v %#v", err, err), "secret") || strings.Contains(err.Error(), "queue") {
 		t.Fatalf("error leaked provider details: %v / %+v", err, err)
 	}
 }
@@ -338,7 +362,9 @@ func TestSendCancellationWinsAtBoundaries(t *testing.T) {
 	s3Client := &fakeS3Client{putOutput: &s3.PutObjectOutput{}, cancelAfter: cancel}
 	sqsClient := &fakeSQSClient{sendOutput: &sqs.SendMessageOutput{MessageId: aws.String("message")}}
 	provider := mustProvider(t, sqsClient, s3Client)
-	if _, err := provider.Send(ctx, validSendRequest()); !errors.Is(err, context.Canceled) {
+	result, err := provider.Send(ctx, validSendRequest())
+	var operationError *Error
+	if result != nil || !errors.Is(err, context.Canceled) || !errors.Is(err, ErrCanceled) || !errors.As(err, &operationError) || !operationError.OrphanedObject() {
 		t.Fatalf("Send cancellation after S3 = %v, want context.Canceled", err)
 	}
 	if sqsClient.puts != 0 {
@@ -349,8 +375,42 @@ func TestSendCancellationWinsAtBoundaries(t *testing.T) {
 	s3Client = &fakeS3Client{putOutput: &s3.PutObjectOutput{}}
 	sqsClient = &fakeSQSClient{sendOutput: &sqs.SendMessageOutput{MessageId: aws.String("message")}, cancelAfter: cancel}
 	provider = mustProvider(t, sqsClient, s3Client)
-	if _, err := provider.Send(ctx, validSendRequest()); !errors.Is(err, context.Canceled) {
+	result, err = provider.Send(ctx, validSendRequest())
+	operationError = nil
+	if result != nil || !errors.Is(err, context.Canceled) || !errors.Is(err, ErrCanceled) || !errors.As(err, &operationError) || !operationError.OrphanedObject() {
 		t.Fatalf("Send cancellation after SQS = %v, want context.Canceled", err)
+	}
+}
+
+func TestSendCancellationPreservesOrphanStateWithoutSDKOutput(t *testing.T) {
+	ctx, cancel := context.WithCancel(context.Background())
+	s3Client := &fakeS3Client{cancelAfter: cancel}
+	sqsClient := &fakeSQSClient{sendOutput: &sqs.SendMessageOutput{MessageId: aws.String("message")}}
+	provider := mustProvider(t, sqsClient, s3Client)
+	result, err := provider.Send(ctx, validSendRequest())
+	var operationError *Error
+	if result != nil || !errors.Is(err, context.Canceled) || !errors.Is(err, ErrCanceled) || !errors.As(err, &operationError) || !operationError.OrphanedObject() {
+		t.Fatalf("Send cancellation = %v, want redacted orphan state", err)
+	}
+}
+
+func TestReceiveClosesObjectBodyWhenCanceledAfterGet(t *testing.T) {
+	payload := []byte("payload")
+	encoded, err := EncodeEnvelope(envelopeFor("bucket", "key", payload))
+	if err != nil {
+		t.Fatal(err)
+	}
+	ctx, cancel := context.WithCancel(context.Background())
+	closed := 0
+	body := &countingReadCloser{Reader: bytes.NewReader(payload), onClose: func() { closed++ }}
+	sqsClient := &fakeSQSClient{receiveOut: &sqs.ReceiveMessageOutput{Messages: []sqstypes.Message{{MessageId: aws.String("message"), ReceiptHandle: aws.String("receipt"), Body: aws.String(string(encoded))}}}}
+	s3Client := &fakeS3Client{getBody: body, cancelAfter: cancel}
+	provider := mustProvider(t, sqsClient, s3Client)
+	if messages, err := provider.Receive(ctx, validReceiveRequest()); messages != nil || !errors.Is(err, context.Canceled) {
+		t.Fatalf("Receive result = %#v/%v, want canceled", messages, err)
+	}
+	if closed != 1 {
+		t.Fatalf("GetObject body close count = %d, want 1", closed)
 	}
 }
 
@@ -472,6 +532,46 @@ func TestReceiveRejectsMalformedMessageIdentityAndBatchSize(t *testing.T) {
 	}
 }
 
+func TestReceiveRejectsAggregatePayloadBeforeObjectDispatch(t *testing.T) {
+	firstPayload := bytes.Repeat([]byte("a"), 6)
+	secondPayload := bytes.Repeat([]byte("b"), 6)
+	first, err := EncodeEnvelope(envelopeFor("bucket", "first", firstPayload))
+	if err != nil {
+		t.Fatal(err)
+	}
+	second, err := EncodeEnvelope(envelopeFor("bucket", "second", secondPayload))
+	if err != nil {
+		t.Fatal(err)
+	}
+	message := func(body []byte, id string) sqstypes.Message {
+		return sqstypes.Message{
+			MessageId:     aws.String(id),
+			ReceiptHandle: aws.String("receipt-" + id),
+			Body:          aws.String(string(body)),
+		}
+	}
+	sqsClient := &fakeSQSClient{receiveOut: &sqs.ReceiveMessageOutput{Messages: []sqstypes.Message{
+		message(first, "first"),
+		message(second, "second"),
+	}}}
+	s3Client := &fakeS3Client{getOutput: &s3.GetObjectOutput{Body: io.NopCloser(bytes.NewReader(firstPayload))}}
+	provider, err := New(Options{
+		SQSClient:             sqsClient,
+		S3Client:              s3Client,
+		MaxPayloadSize:        6,
+		MaxReceivePayloadSize: 10,
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if messages, err := provider.Receive(context.Background(), ReceiveRequest{QueueURL: "queue", MaxNumberOfMessages: 2}); messages != nil || !errors.Is(err, ErrPayloadTooLarge) {
+		t.Fatalf("Receive result = %#v/%v, want aggregate payload error", messages, err)
+	}
+	if s3Client.gets != 0 {
+		t.Fatalf("S3 dispatches = %d, want 0 before aggregate preflight", s3Client.gets)
+	}
+}
+
 func TestDeleteUsesSQSFirstAndReportsCleanupState(t *testing.T) {
 	payload := []byte("hello world")
 	envelope := envelopeFor("payloads", "orders/42/payload", payload)
@@ -521,8 +621,24 @@ func TestDeleteCancellationBetweenQueueAndObject(t *testing.T) {
 	s3Client := &fakeS3Client{}
 	provider := mustProvider(t, sqsClient, s3Client)
 	err := provider.Delete(ctx, DeleteRequest{QueueURL: "queue", ReceiptHandle: "receipt", Envelope: envelopeFor("bucket", "key", []byte("payload"))})
-	if !errors.Is(err, context.Canceled) {
+	var operationError *Error
+	if !errors.Is(err, context.Canceled) || !errors.Is(err, ErrCanceled) || !errors.As(err, &operationError) || !operationError.QueueDeleted() {
 		t.Fatalf("Delete cancellation = %v, want context.Canceled", err)
+	}
+	if s3Client.deletes != 0 {
+		t.Fatalf("S3 deletes after cancellation = %d, want 0", s3Client.deletes)
+	}
+}
+
+func TestDeleteCancellationPreservesQueueStateWithoutSDKOutput(t *testing.T) {
+	ctx, cancel := context.WithCancel(context.Background())
+	sqsClient := &fakeSQSClient{cancelAfter: cancel}
+	s3Client := &fakeS3Client{}
+	provider := mustProvider(t, sqsClient, s3Client)
+	err := provider.Delete(ctx, DeleteRequest{QueueURL: "queue", ReceiptHandle: "receipt", Envelope: envelopeFor("bucket", "key", []byte("payload"))})
+	var operationError *Error
+	if !errors.Is(err, context.Canceled) || !errors.Is(err, ErrCanceled) || !errors.As(err, &operationError) || !operationError.QueueDeleted() {
+		t.Fatalf("Delete cancellation = %v, want redacted queue state", err)
 	}
 	if s3Client.deletes != 0 {
 		t.Fatalf("S3 deletes after cancellation = %d, want 0", s3Client.deletes)

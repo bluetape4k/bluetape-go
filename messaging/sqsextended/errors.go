@@ -38,6 +38,10 @@ var (
 	ErrObjectDeleteFailed = errors.New("sqsextended: object delete failed")
 	// ErrMalformedOutput - nil 또는 불완전한 AWS SDK output을 나타낸다.
 	ErrMalformedOutput = errors.New("sqsextended: malformed provider output")
+	// ErrCanceled - 외부 side effect 뒤 caller context가 취소되어 결과 상태가
+	// 부분적으로만 확인된 경우를 나타낸다. errors.Is로 context 원인을 확인할
+	// 수 있으며, OrphanedObject 또는 QueueDeleted 상태를 함께 확인해야 한다.
+	ErrCanceled = errors.New("sqsextended: operation canceled")
 )
 
 // Error - 민감한 값을 제거한 provider operation error이다.
@@ -64,6 +68,11 @@ func (e *Error) Error() string {
 		return kind.Error()
 	}
 	return fmt.Sprintf("%v: %s", kind, operation)
+}
+
+// GoString은 %#v 형식에서도 provider cause와 request 세부정보를 숨긴다.
+func (e *Error) GoString() string {
+	return e.Error()
 }
 
 // Unwrap은 causal error를 형식화하지 않은 채 errors.Is/errors.As에 노출한다.
@@ -122,6 +131,7 @@ func safeKind(kind error) error {
 		ErrMessageDeleteFailed,
 		ErrObjectDeleteFailed,
 		ErrMalformedOutput,
+		ErrCanceled,
 	} {
 		if errors.Is(kind, sentinel) {
 			return sentinel

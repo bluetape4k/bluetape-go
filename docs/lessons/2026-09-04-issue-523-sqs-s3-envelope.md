@@ -24,9 +24,16 @@ logging·queue topology·lifecycle·DLQ·replay를 소유하지 않는다.
 - 외부 SDK error는 `errors.Is`/`errors.As`로 원인과 상태를 관찰하되 `Error()`와
   `%+v`에는 provider URL, object key, checksum, payload와 raw diagnostic을
   포함하지 않는다.
+- side effect 직후 cancellation은 단순 `context.Canceled`로 버리지 말고
+  `ErrCanceled`와 `OrphanedObject`/`QueueDeleted` 상태를 함께 보존해야 caller가
+  중복 ack나 cleanup 누락 없이 reconciliation할 수 있다.
 - fake는 SDK request와 response body를 복사하고 context/order/call count를
   기록해야 live AWS credential 없이 partial success, output anomaly, cancellation,
   race를 재현할 수 있다.
+
+- Receive batch는 개별 payload bound만으로는 여러 near-limit object가 수 GiB를
+  동시에 보관할 수 있다. bounded aggregate budget을 먼저 계산하고 초과 batch는
+  S3 dispatch 전에 거부해 partial read와 peak memory를 함께 제한한다.
 
 ## 유예 범위
 

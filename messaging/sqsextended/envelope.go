@@ -15,6 +15,9 @@ const (
 	// DefaultMaxPayloadSize - option을 지정하지 않았을 때 Provider가 읽는
 	// payload의 상한이다.
 	DefaultMaxPayloadSize int64 = 256 << 20
+	// DefaultMaxReceivePayloadSize - option을 지정하지 않았을 때 하나의
+	// Receive 호출이 누적해 보관할 payload byte의 상한이다.
+	DefaultMaxReceivePayloadSize int64 = 512 << 20
 	// MaxEnvelopeSize - 인코딩된 SQS envelope body의 상한이다.
 	MaxEnvelopeSize = 64 << 10
 

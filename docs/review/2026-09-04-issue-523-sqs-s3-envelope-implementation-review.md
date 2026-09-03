@@ -1,5 +1,28 @@
 # #523 SQS S3 envelope 구현 리뷰
 
+## 2026-09-04 보강 검토
+
+독립 performance/security/API 리뷰에서 확인된 P1/P2 위험을 재검증하고 다음
+수정을 반영했다.
+
+- `Receive`는 기본 512 MiB aggregate payload budget을 envelope preflight에서
+  계산하며, 초과 batch는 S3 `GetObject` dispatch 전에 `ErrPayloadTooLarge`로
+  종료한다. near-limit 두 object 회귀 테스트에서 S3 호출 0회를 확인했다.
+- `GetObject` response 직후 cancellation 경로도 response body를 닫고, S3/SQS
+  side effect 뒤 cancellation은 `ErrCanceled`와 `OrphanedObject`/
+  `QueueDeleted` 상태를 보존한다.
+- SDK가 cancellation 시 nil output을 반환해도 side effect 완료 여부를
+  결정할 수 없으므로 동일한 orphan/queue-deleted 상태를 보존한다. SQS
+  `DeleteMessage`가 output과 error를 함께 반환하는 경우에도 queue ack
+  가능성을 `QueueDeleted`로 전달한다.
+- payload 하나의 SHA-256 digest를 envelope와 S3 checksum에 재사용하고,
+  `Error.GoString`과 `%v %+v %#v` adversarial 검증으로 provider cause redaction을
+  고정했다.
+
+보강 후 이 worktree의 targeted test, race, vet와 `git diff --check`가 PASS이며
+현재 구현 판정은 `P0=0, P1=0`이다. 원격 CI와 merge gate는 새 commit의 exact head에서
+다시 확인한다.
+
 ## 판정
 
 - 검토 대상 구현 tree: baseline `HEAD=906a68fdb41551ccaa6ce1394a2370e654ade10e`와

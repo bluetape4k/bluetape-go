@@ -15,6 +15,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/s3"
 	s3types "github.com/aws/aws-sdk-go-v2/service/s3/types"
 	"github.com/aws/aws-sdk-go-v2/service/sqs"
+	sqstypes "github.com/aws/aws-sdk-go-v2/service/sqs/types"
 )
 
 // SQSClient - Provider가 사용하는 최소 SQS SDK 표면이다.
@@ -45,14 +46,20 @@ type Options struct {
 	// MaxPayloadSize는 허용하고 읽을 payload byte 수의 상한이다. 0이면
 	// DefaultMaxPayloadSize를 사용한다.
 	MaxPayloadSize int64
+	// MaxReceivePayloadSize는 하나의 Receive 호출에서 누적해 보관할 payload
+	// byte 수의 상한이다. 0이면 DefaultMaxReceivePayloadSize를 사용한다.
+	// 단일 payload 상한 이상이어야 하며, provider는 이 상한을 넘는 S3
+	// object를 dispatch하기 전에 거부한다.
+	MaxReceivePayloadSize int64
 }
 
 // Provider - SQS client 하나와 S3 client 하나를 결합하지만 어느 client의
 // lifecycle이나 운영 정책도 소유하지 않는다.
 type Provider struct {
-	sqsClient      SQSClient
-	s3Client       S3Client
-	maxPayloadSize int64
+	sqsClient             SQSClient
+	s3Client              S3Client
+	maxPayloadSize        int64
+	maxReceivePayloadSize int64
 }
 
 // New - client와 payload 상한을 검증하고 변경할 수 없는 Provider를 반환한다.
@@ -67,10 +74,18 @@ func New(options Options) (*Provider, error) {
 	if maxPayloadSize < 1 || maxPayloadSize > DefaultMaxPayloadSize {
 		return nil, newError(ErrInvalidOptions, "validate options", nil, false, false)
 	}
+	maxReceivePayloadSize := options.MaxReceivePayloadSize
+	if maxReceivePayloadSize == 0 {
+		maxReceivePayloadSize = DefaultMaxReceivePayloadSize
+	}
+	if maxReceivePayloadSize < maxPayloadSize || maxReceivePayloadSize > DefaultMaxReceivePayloadSize {
+		return nil, newError(ErrInvalidOptions, "validate options", nil, false, false)
+	}
 	return &Provider{
-		sqsClient:      options.SQSClient,
-		s3Client:       options.S3Client,
-		maxPayloadSize: maxPayloadSize,
+		sqsClient:             options.SQSClient,
+		s3Client:              options.S3Client,
+		maxPayloadSize:        maxPayloadSize,
+		maxReceivePayloadSize: maxReceivePayloadSize,
 	}, nil
 }
 
@@ -81,6 +96,15 @@ func (p *Provider) MaxPayloadSize() int64 {
 		return 0
 	}
 	return p.maxPayloadSize
+}
+
+// MaxReceivePayloadSize - 구성된 Receive 누적 payload 상한을 반환하며,
+// Provider가 nil이면 0을 반환한다.
+func (p *Provider) MaxReceivePayloadSize() int64 {
+	if p == nil {
+		return 0
+	}
+	return p.maxReceivePayloadSize
 }
 
 // SendRequest - 하나의 payload object와 대상 queue를 기술한다.
@@ -121,12 +145,13 @@ func (p *Provider) Send(ctx context.Context, request SendRequest) (*SendResult, 
 		return nil, err
 	}
 	payload := append([]byte(nil), request.Payload...)
+	digest := sha256.Sum256(payload)
 	envelope := Envelope{
 		Version:            EnvelopeVersion,
 		Bucket:             request.Bucket,
 		Key:                request.Key,
 		ContentSize:        int64(len(payload)),
-		Checksum:           payloadChecksum(payload),
+		Checksum:           hex.EncodeToString(digest[:]),
 		ContentType:        request.ContentType,
 		EncryptionMetadata: cloneMetadata(request.EncryptionMetadata),
 	}
@@ -137,7 +162,6 @@ func (p *Provider) Send(ctx context.Context, request SendRequest) (*SendResult, 
 	if err := ctx.Err(); err != nil {
 		return nil, err
 	}
-	checksum := sha256.Sum256(payload)
 	contentLength := int64(len(payload))
 	s3Output, callErr := p.s3Client.PutObject(ctx, &s3.PutObjectInput{
 		Bucket:            aws.String(request.Bucket),
@@ -146,10 +170,10 @@ func (p *Provider) Send(ctx context.Context, request SendRequest) (*SendResult, 
 		ContentLength:     &contentLength,
 		ContentType:       optionalString(request.ContentType),
 		ChecksumAlgorithm: s3types.ChecksumAlgorithmSha256,
-		ChecksumSHA256:    aws.String(base64.StdEncoding.EncodeToString(checksum[:])),
+		ChecksumSHA256:    aws.String(base64.StdEncoding.EncodeToString(digest[:])),
 	})
 	if err := ctx.Err(); err != nil {
-		return nil, err
+		return nil, newError(ErrCanceled, "put object", err, true, false)
 	}
 	if callErr != nil {
 		return nil, newError(ErrObjectPutFailed, "put object", callErr, s3Output != nil, false)
@@ -166,7 +190,7 @@ func (p *Provider) Send(ctx context.Context, request SendRequest) (*SendResult, 
 		MessageBody: aws.String(string(envelopeBody)),
 	})
 	if err := ctx.Err(); err != nil {
-		return nil, err
+		return nil, newError(ErrCanceled, "send message", err, true, false)
 	}
 	if callErr != nil {
 		return nil, newError(ErrMessageSendFailed, "send message", callErr, true, false)
@@ -238,10 +262,15 @@ func (p *Provider) Receive(ctx context.Context, request ReceiveRequest) ([]Recei
 	if output == nil {
 		return nil, newError(ErrMalformedOutput, "receive", nil, false, false)
 	}
-	if len(output.Messages) > 10 {
+	if len(output.Messages) > int(maxMessages) {
 		return nil, newError(ErrMalformedOutput, "receive", nil, false, false)
 	}
-	messages := make([]ReceivedMessage, 0, len(output.Messages))
+	type pendingMessage struct {
+		message  sqstypes.Message
+		envelope Envelope
+	}
+	pending := make([]pendingMessage, 0, len(output.Messages))
+	var totalPayloadSize int64
 	for _, message := range output.Messages {
 		if err := ctx.Err(); err != nil {
 			return nil, err
@@ -260,6 +289,15 @@ func (p *Provider) Receive(ctx context.Context, request ReceiveRequest) ([]Recei
 		if envelope.ContentSize > p.maxPayloadSize {
 			return nil, newError(ErrPayloadTooLarge, "receive", nil, false, false)
 		}
+		if envelope.ContentSize > p.maxReceivePayloadSize-totalPayloadSize {
+			return nil, newError(ErrPayloadTooLarge, "receive", nil, false, false)
+		}
+		totalPayloadSize += envelope.ContentSize
+		pending = append(pending, pendingMessage{message: message, envelope: envelope})
+	}
+	messages := make([]ReceivedMessage, 0, len(pending))
+	for _, item := range pending {
+		message, envelope := item.message, item.envelope
 		if err := ctx.Err(); err != nil {
 			return nil, err
 		}
@@ -268,6 +306,7 @@ func (p *Provider) Receive(ctx context.Context, request ReceiveRequest) ([]Recei
 			Key:    aws.String(envelope.Key),
 		})
 		if err := ctx.Err(); err != nil {
+			closeObjectBody(object)
 			return nil, err
 		}
 		if callErr != nil {
@@ -326,10 +365,10 @@ func (p *Provider) Delete(ctx context.Context, request DeleteRequest) error {
 		ReceiptHandle: aws.String(request.ReceiptHandle),
 	})
 	if err := ctx.Err(); err != nil {
-		return err
+		return newError(ErrCanceled, "delete message", err, false, true)
 	}
 	if callErr != nil {
-		return newError(ErrMessageDeleteFailed, "delete message", callErr, false, false)
+		return newError(ErrMessageDeleteFailed, "delete message", callErr, false, sqsOutput != nil)
 	}
 	if sqsOutput == nil {
 		return newError(ErrMalformedOutput, "delete message", nil, false, false)
@@ -342,7 +381,7 @@ func (p *Provider) Delete(ctx context.Context, request DeleteRequest) error {
 		Key:    aws.String(request.Envelope.Key),
 	})
 	if err := ctx.Err(); err != nil {
-		return err
+		return newError(ErrCanceled, "delete object", err, false, true)
 	}
 	if callErr != nil {
 		return newError(ErrObjectDeleteFailed, "delete object", callErr, false, true)

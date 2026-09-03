@@ -77,8 +77,12 @@ visibility를 연장하거나 background cleanup worker를 실행하지 않습�
 encryption metadata를 wire contract에 보존합니다. `EncodeEnvelope`와
 `DecodeEnvelope`는 unsupported version, unknown/duplicate field, non-canonical
 JSON, invalid UTF-8, malformed checksum과 oversized input을 거부합니다.
-기본 payload bound는 `DefaultMaxPayloadSize` (256 MiB)이며, application이 더
-작은 budget을 가지면 `Options.MaxPayloadSize`로 줄일 수 있습니다.
+개별 object의 기본 payload bound는 `DefaultMaxPayloadSize` (256 MiB)이며,
+application이 더 작은 budget을 가지면 `Options.MaxPayloadSize`로 줄일 수
+있습니다. `Receive`는 기본적으로 하나의 호출에서 누적 보관하는 payload를
+512 MiB(`DefaultMaxReceivePayloadSize`)로 제한합니다. `Options.MaxReceivePayloadSize`로
+더 작은 bounded 값을 지정할 수 있으며, over-budget batch는 S3 dispatch 전에
+envelope를 모두 preflight하므로 일부 object만 읽지 않습니다.
 
 ## Failure와 cleanup 의미
 
@@ -88,6 +92,10 @@ JSON, invalid UTF-8, malformed checksum과 oversized input을 거부합니다.
   자동 삭제하지 않습니다. 반환된 `*sqsextended.Error`의
   `OrphanedObject() == true`를 확인하고 `DeleteObject`를 명시적으로 호출하거나
   caller-owned S3 lifecycle policy에 맡깁니다.
+- S3 put 또는 SQS send 직후 cancellation이 관찰되면 `ErrCanceled`와
+  `errors.Is(err, context.Canceled)`를 함께 확인하십시오. object가 남을 수
+  있으므로 이 경우에도 `OrphanedObject() == true`를 확인하고 reconciliation을
+  수행해야 합니다.
 - `Receive`는 envelope를 검증하고 declared size + 1 byte까지만 읽고 S3
   response body를 close한 뒤 exact size와 SHA-256을 확인합니다. missing object,
   malformed response, size mismatch와 checksum failure에서는 SQS message를
@@ -97,6 +105,9 @@ JSON, invalid UTF-8, malformed checksum과 oversized input을 거부합니다.
   S3 cleanup이 실패하면 반환 error의 `QueueDeleted() == true`로 queue ack
   완료를 확인할 수 있으므로 별도 repair/lifecycle process로 cleanup할 수
   있습니다.
+- SQS delete 또는 S3 cleanup 직후 cancellation이 관찰되면 `ErrCanceled`를
+  반환하면서 `QueueDeleted() == true`를 보존합니다. queue는 이미 삭제됐을
+  수 있으므로 object cleanup을 재시도할 때 이 상태를 사용하십시오.
 - SDK 호출 전과 각 response 직후에 context를 확인합니다. 늦게 도착한 성공
   response보다 cancellation이 우선하며, 취소된 작업을 retry하거나 visibility를
   암묵적으로 연장하지 않습니다.
