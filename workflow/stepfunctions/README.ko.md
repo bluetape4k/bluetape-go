@@ -79,6 +79,9 @@ fmt.Println(execution.Status)
   성공 execution에서만 반환되고 실패 execution은 provider `Error`/`Cause`
   metadata를 사용합니다. `StopExecution`은 `EXPRESS` state machine에서 지원되지
   않으며 `Error`는 256 bytes, `Cause`는 32768 bytes까지입니다.
+- `Wait`는 알려진 `PENDING_REDRIVE` 관찰 결과를 transport error 없이 반환합니다.
+  Caller는 `Execution.Status`를 확인해야 하며 이를 `SUCCEEDED`로 간주하면 안 됩니다.
+  Redrive policy는 caller가 소유합니다.
 - Polling 기본값은 첫 1초, 최대 30초입니다. Custom `Backoff`는 1부터 시작하는
   시도 횟수와 직전 간격을 받고 음수는 실패하며 상한을 넘으면 cap됩니다.
 

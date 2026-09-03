@@ -81,6 +81,9 @@ fmt.Println(execution.Status)
   provider `Error`/`Cause` metadata instead. `StopExecution` is unsupported by
   `EXPRESS` state machines and accepts at most 256-byte `Error` and 32768-byte
   `Cause` values.
+- `Wait` returns a known `PENDING_REDRIVE` observation without a transport error;
+  callers must inspect `Execution.Status` and must not treat it as
+  `SUCCEEDED`. Redrive policy remains caller-owned.
 - Polling defaults to a 1-second first interval and a 30-second maximum. A
   custom `Backoff` receives a 1-based attempt number and previous interval;
   negative values fail and larger values are capped.
