@@ -29,6 +29,11 @@ token을 무시하고 동일 stream에 대한 병렬 put을 허용한다.
 응답의 `RejectedLogEventsInfo` 또는 `RejectedEntityInfo`가 있으면 helper는
 `errLogRejected`를 감싼 typed rejection error를 반환한다. rejection index와
 entity 거부 여부만 복사해 제공하며 AWS diagnostic text는 노출하지 않는다.
+부분 응답에서는 일부 event가 이미 수락되고 나머지만 거부될 수 있으므로,
+caller는 service metadata가 허용하는 경우 거부된 index만 재시도해야 하며
+전체 batch를 무조건 재전송해서는 안 된다. `RejectedEntityInfo`가 있으면
+event 수락이 부분적일 수 있으므로 entity 단위 reconciliation 정책은 caller가
+결정해야 한다.
 
 두 예시는 SDK 호출 전에, 그리고 SDK가 반환한 직후 `context.Context`를
 확인한다. 따라서 provider가 성공 또는 실패를 반환해도 호출자 취소가

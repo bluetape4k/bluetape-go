@@ -30,7 +30,11 @@ stream.
 If the response contains `RejectedLogEventsInfo` or `RejectedEntityInfo`, the
 helper returns a typed rejection error wrapping `errLogRejected`. It exposes
 only rejection indexes and an entity-rejected flag; provider diagnostic text is
-never copied into the error.
+never copied into the error. A partial response can contain events that were
+accepted alongside rejected events, so the caller should retry only the
+rejected indexes when the service metadata makes that safe; do not blindly
+resend the whole batch. `RejectedEntityInfo` requires the caller's entity-level
+reconciliation policy because event acceptance may be partial.
 
 Both examples check `context.Context` before dispatch and after the SDK returns.
 Caller cancellation therefore wins over a successful or failed provider
