@@ -87,9 +87,9 @@
 
 **Files:** `docs/review/2026-09-03-issue-522-step-functions-implementation-review.md`, `docs/lessons/2026-09-03-issue-522-step-functions.md`.
 
-- [ ] **Step 1: Review exact diff.** Perform six read-only lenses (performance, stability, security, operator/Ops, developer/API, user/caller) plus main-session integration; report `file:line` findings as P0/P1/P2/P3. P0/P1 must be zero.
-- [ ] **Step 2: Apply writer SPW-01..05.** Review records exact head/baseline/commands, no-live-AWS scope, GO-HARD-08 evidence, gaps, and verdict. Lesson records reusable failed assumption/evidence/decision/future guard, not a diary.
-- [ ] **Step 3: Commit.** Use Korean Lore trailers (`Constraint`, `Rejected`, `Confidence`, `Scope-risk`, `Directive`, `Tested`, `Not-tested`) and include only #522 files.
+- [x] **Step 1: Review exact diff.** Perform six read-only lenses (performance, stability, security, operator/Ops, developer/API, user/caller) plus main-session integration; report `file:line` findings as P0/P1/P2/P3. P0/P1 must be zero. Review verdict is APPROVE with P0=0/P1=0 and one documented non-blocking P2 WATCH for `PENDING_REDRIVE` caller branching.
+- [x] **Step 2: Apply writer SPW-01..05.** Review records exact head/baseline/commands, no-live-AWS scope, GO-HARD-08 evidence, gaps, and verdict. Lesson records reusable failed assumption/evidence/decision/future guard, not a diary.
+- [x] **Step 3: Commit.** Use Korean Lore trailers (`Constraint`, `Rejected`, `Confidence`, `Scope-risk`, `Directive`, `Tested`, `Not-tested`) and include only #522 files.
 
 ## Task 8: PR, CI, merge, cleanup
 
@@ -111,3 +111,4 @@
 - Spec coverage: issue acceptance themes map to Tasks 1–6; GO-HARD-08 maps to Tasks 3, 6, 7; docs/lesson/PR/merge map to Tasks 5, 7, 8.
 - Placeholder/type scan: no unresolved marker or undefined type/function appears; all public types are defined in Task 1 and reused unchanged.
 - SPW-01..05: PASS — audience/source/side effects, complete ordered contract, Korean technical register, spec-to-task traceability, and rendered read-back are recorded here.
+- Review read-back: `docs/review/2026-09-03-issue-522-step-functions-implementation-review.md` records exact head `4d9c2b1`, baseline, six lenses, GO-HARD-08 evidence, P0/P1=0, and the non-blocking `PENDING_REDRIVE` WATCH. `docs/lessons/2026-09-03-issue-522-step-functions.md` records the chart fixture boundary failure, minimal fix, and reusable guard.
