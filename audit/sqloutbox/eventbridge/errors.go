@@ -25,7 +25,7 @@ var (
 
 var safeErrorCodePattern = regexp.MustCompile(`^[A-Za-z0-9._-]{1,64}$`)
 
-// Error는 EventBridge 오류를 안전한 sentinel과 operation으로 표현한다.
+// Error - EventBridge 오류를 안전한 sentinel과 operation으로 표현한다.
 //
 // AWS response message, detail, bus 이름과 같은 caller/provider 값은 Error
 // 문자열에 포함하지 않는다. Cause는 errors.Is로만 관찰할 수 있다.
@@ -58,7 +58,7 @@ func (e *Error) Unwrap() error {
 	return e.cause
 }
 
-// Is는 package sentinel과 sanitised transport cause의 errors.Is matching을 지원한다.
+// Is - package sentinel과 sanitised transport cause의 errors.Is matching을 지원한다.
 func (e *Error) Is(target error) bool {
 	if e == nil {
 		return false
@@ -66,7 +66,7 @@ func (e *Error) Is(target error) bool {
 	return target == safeKind(e.kind) || errors.Is(e.cause, target)
 }
 
-// FailureCount는 EventBridge가 보고한 실패 entry 수를 반환한다.
+// FailureCount - EventBridge가 보고한 실패 entry 수를 반환한다.
 func (e *Error) FailureCount() int32 {
 	if e == nil {
 		return 0
@@ -74,7 +74,7 @@ func (e *Error) FailureCount() int32 {
 	return e.failureCount
 }
 
-// ErrorCode는 allowlist를 통과한 EventBridge 오류 코드를 반환한다.
+// ErrorCode - allowlist를 통과한 EventBridge 오류 코드를 반환한다.
 func (e *Error) ErrorCode() string {
 	if e == nil {
 		return ""

@@ -1,4 +1,4 @@
-// Package eventbridge는 audit/sqloutbox.Record를 Amazon EventBridge로 전달하는
+// Package eventbridge - audit/sqloutbox.Record를 Amazon EventBridge로 전달하는
 // caller-owned publisher adapter를 제공한다.
 //
 // Publisher는 한 번에 하나의 entry만 PutEvents로 전송하며 stable event ID와

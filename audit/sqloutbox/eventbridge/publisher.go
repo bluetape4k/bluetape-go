@@ -22,12 +22,12 @@ const (
 	maxEventBusNameBytes = 256
 )
 
-// Client는 Publisher가 사용하는 좁은 EventBridge SDK surface다.
+// Client - Publisher가 사용하는 좁은 EventBridge SDK surface다.
 type Client interface {
 	PutEvents(context.Context, *awseventbridge.PutEventsInput, ...func(*awseventbridge.Options)) (*awseventbridge.PutEventsOutput, error)
 }
 
-// Options는 EventBridge publisher 생성에 필요한 caller-owned 값이다.
+// Options - EventBridge publisher 생성에 필요한 caller-owned 값이다.
 type Options struct {
 	// Client는 호출자가 생성·수명·retry 정책을 소유하는 EventBridge client다.
 	Client Client
@@ -41,7 +41,7 @@ type Options struct {
 	MaxDetailSize int
 }
 
-// Publisher는 sqloutbox record를 단일 EventBridge entry로 전달한다.
+// Publisher - sqloutbox record를 단일 EventBridge entry로 전달한다.
 type Publisher struct {
 	client        Client
 	eventBusName  string
@@ -53,7 +53,7 @@ type Publisher struct {
 var _ sqloutbox.Publisher = (*Publisher)(nil)
 var _ Client = (*awseventbridge.Client)(nil)
 
-// New는 caller-owned EventBridge client와 immutable publish 설정을 검증한다.
+// New - caller-owned EventBridge client와 immutable publish 설정을 검증한다.
 func New(options Options) (*Publisher, error) {
 	if isNilClient(options.Client) {
 		return nil, ErrNilClient
@@ -85,7 +85,7 @@ func New(options Options) (*Publisher, error) {
 	}, nil
 }
 
-// EventBusName은 publisher가 사용할 custom bus 이름 또는 빈 default bus 값을 반환한다.
+// EventBusName - publisher가 사용할 custom bus 이름 또는 빈 default bus 값을 반환한다.
 func (p *Publisher) EventBusName() string {
 	if p == nil {
 		return ""
@@ -93,7 +93,7 @@ func (p *Publisher) EventBusName() string {
 	return p.eventBusName
 }
 
-// Source는 publisher가 EventBridge request에 전달할 source를 반환한다.
+// Source - publisher가 EventBridge request에 전달할 source를 반환한다.
 func (p *Publisher) Source() string {
 	if p == nil {
 		return ""
@@ -101,7 +101,7 @@ func (p *Publisher) Source() string {
 	return p.source
 }
 
-// DetailType은 publisher가 EventBridge request에 전달할 detail type을 반환한다.
+// DetailType - publisher가 EventBridge request에 전달할 detail type을 반환한다.
 func (p *Publisher) DetailType() string {
 	if p == nil {
 		return ""
@@ -109,7 +109,7 @@ func (p *Publisher) DetailType() string {
 	return p.detailType
 }
 
-// Publish는 record를 검증된 JSON detail의 단일 EventBridge entry로 전송한다.
+// Publish - record를 검증된 JSON detail의 단일 EventBridge entry로 전송한다.
 func (p *Publisher) Publish(ctx context.Context, record sqloutbox.Record) error {
 	ctx = normalizeContext(ctx)
 	if err := ctx.Err(); err != nil {
