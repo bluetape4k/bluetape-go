@@ -66,6 +66,8 @@ API가 아니라 module-gated future scope입니다.
 | [`testcontainers/nats`](testcontainers/nats/README.ko.md) | active | Testcontainers for Go 기반 NATS fixture. |
 | [`testcontainers/kafka`](testcontainers/kafka/README.ko.md) | active | Testcontainers for Go 기반 Kafka fixture. |
 | [`dynamodb/batchwrite`](dynamodb/batchwrite/README.ko.md) | active | AWS SDK for Go v2 BatchWriteItem 25개 chunking과 unprocessed-item retry helper. |
+| [`secretsmanager`](secretsmanager/README.ko.md) | active | Redacted string/binary 값과 caller-owned bounded positive-TTL cache를 제공하는 AWS Secrets Manager lookup provider. |
+| [`ssm`](ssm/README.ko.md) | active | 명시적 SecureString 복호화와 caller-owned bounded positive-TTL cache를 제공하는 AWS Parameter Store lookup provider. |
 | [`examples/integration`](examples/integration/README.ko.md) | example | 수정된 `0.6.x` package를 묶는 compile-checked end-to-end recipe. |
 | [`examples/audit`](examples/audit/README.ko.md) | example | Repository history와 outbox replay boundary를 보여주는 runnable audit-backed order service. |
 | [`examples/graph/observability`](examples/graph/observability/README.ko.md) | example | Blast radius, alert boundary, ownership, NDJSON graph I/O 경계를 보여주는 runnable observability incident graph. |
@@ -150,7 +152,7 @@ go get github.com/bluetape4k/bluetape-go
   fixture package README. `testing`의 focused example은 assertion DSL 추가 없이
   table-driven test, package-local builder, golden file, deterministic random data,
   cancellation assertion을 다룹니다.
-- AWS/Floci: [`dynamodb/batchwrite`](dynamodb/batchwrite/README.ko.md), [`encrypt/kms`](encrypt/kms/README.ko.md), [`workflow/stepfunctions`](workflow/stepfunctions/README.ko.md),
+- AWS/Floci: [`dynamodb/batchwrite`](dynamodb/batchwrite/README.ko.md), [`encrypt/kms`](encrypt/kms/README.ko.md), [`secretsmanager`](secretsmanager/README.ko.md), [`ssm`](ssm/README.ko.md), [`workflow/stepfunctions`](workflow/stepfunctions/README.ko.md),
   [`examples/integration`](examples/integration/README.ko.md),
   [`examples/s3`](examples/s3/README.ko.md),
   [`examples/sqs-sns`](examples/sqs-sns/README.ko.md), 그리고 fake-first
@@ -371,7 +373,7 @@ scripts/capture-provider-benchmark.sh leader-local
 컨테이너 기반 family는 Docker가 필요하고 몇 분 이상 걸릴 수 있으며, fixture와 host
 resource가 겹치지 않도록 직렬로 실행해야 합니다. 추적 중인 증거와 차트를 갱신할 때는
 보고서의 재수집 checklist를 따르세요.
-결과는 고정된 fixture provenance를 가진 짧은 로컬 snapshot이므로 production 순위로
+결과는 고정된 fixture provenance를 가진 짧은 로컬 측정 기록이므로 production 순위로
 복사해서 사용하지 마세요.
 
 Redis integration test는 Testcontainers를 사용하므로 Docker가 필요합니다. 일반
