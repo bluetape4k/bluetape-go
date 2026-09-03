@@ -346,6 +346,44 @@ func TestDescribeUnknownStatusFailsClosed(t *testing.T) {
 	}
 }
 
+func TestDescribeRejectsMismatchedExecutionARN(t *testing.T) {
+	startedAt := time.Now().UTC()
+	requestedARN := "arn:aws:states:ap-northeast-2:123456789012:execution:orders:requested"
+	fake := &fakeClient{describeFn: func(context.Context, *sfn.DescribeExecutionInput) (*sfn.DescribeExecutionOutput, error) {
+		return describeOutput(
+			types.ExecutionStatusSucceeded,
+			"arn:aws:states:ap-northeast-2:123456789012:execution:orders:other",
+			testStateMachineARN,
+			startedAt,
+		), nil
+	}}
+	bridge, err := New(Options{Client: fake})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if _, err := bridge.Describe(context.Background(), requestedARN); !errors.Is(err, ErrMalformedOutput) {
+		t.Fatalf("Describe() error = %v, want ErrMalformedOutput for mismatched identity", err)
+	}
+}
+
+func TestDescribePreservesAWSAllowedExecutionName(t *testing.T) {
+	startedAt := time.Now().UTC()
+	executionARN := "arn:aws:states:ap-northeast-2:123456789012:execution:orders:run-name"
+	fake := &fakeClient{describeFn: func(context.Context, *sfn.DescribeExecutionInput) (*sfn.DescribeExecutionOutput, error) {
+		output := describeOutput(types.ExecutionStatusSucceeded, executionARN, testStateMachineARN, startedAt)
+		output.Name = strptr("order.v1")
+		return output, nil
+	}}
+	bridge, err := New(Options{Client: fake})
+	if err != nil {
+		t.Fatal(err)
+	}
+	execution, err := bridge.Describe(context.Background(), executionARN)
+	if err != nil || execution == nil || execution.Name != "order.v1" {
+		t.Fatalf("Describe() = %+v, %v; want provider-valid name preserved", execution, err)
+	}
+}
+
 func TestDescribeRejectsMalformedRequiredFields(t *testing.T) {
 	startedAt := time.Now().UTC()
 	validARN := "arn:aws:states:ap-northeast-2:123456789012:execution:orders:run-malformed"

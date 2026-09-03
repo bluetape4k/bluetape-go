@@ -68,10 +68,17 @@ fmt.Println(execution.Status)
   거부합니다.
 - Execution name은 선택 사항입니다. 지정하면 1–80 ASCII bytes와
   `[A-Za-z0-9_-]`만 허용합니다. 이름을 생성하거나 `ExecutionAlreadyExists`를
-  retry하지 않으며, standard workflow의 name+input 멱등성은 AWS service 계약으로
-  남깁니다.
+  retry하지 않습니다. `STANDARD`에서는 실행 중 같은 name+input이 멱등적이고,
+  종료된 execution의 이름은 종료 90일 뒤 재사용할 수 있습니다. `EXPRESS`는
+  멱등적이지 않고 이름을 즉시 재사용할 수 있습니다. 이는 package deduplication이
+  아니라 AWS service 계약입니다.
 - State-machine/execution ARN은 256 UTF-8 bytes, trace header는 선택적 256 ASCII
   bytes로 제한합니다.
+- `DescribeExecution`은 eventually consistent이며 일반적인 `EXPRESS` execution을
+  지원하지 않습니다(Map Run이 dispatch한 execution은 AWS 예외입니다). `Output`은
+  성공 execution에서만 반환되고 실패 execution은 provider `Error`/`Cause`
+  metadata를 사용합니다. `StopExecution`은 `EXPRESS` state machine에서 지원되지
+  않으며 `Error`는 256 bytes, `Cause`는 32768 bytes까지입니다.
 - Polling 기본값은 첫 1초, 최대 30초입니다. Custom `Backoff`는 1부터 시작하는
   시도 횟수와 직전 간격을 받고 음수는 실패하며 상한을 넘으면 cap됩니다.
 
@@ -95,3 +102,10 @@ go test -race ./workflow/stepfunctions
 go vet ./workflow/stepfunctions
 golangci-lint run ./workflow/stepfunctions/...
 ```
+
+Service 수준 한도와 consistency·idempotency 동작은 AWS
+[`StartExecution`](https://docs.aws.amazon.com/step-functions/latest/apireference/API_StartExecution.html),
+[`DescribeExecution`](https://docs.aws.amazon.com/step-functions/latest/apireference/API_DescribeExecution.html),
+[`StopExecution`](https://docs.aws.amazon.com/step-functions/latest/apireference/API_StopExecution.html)
+계약을 따릅니다. Bridge는 state machine을 provision하지 않으며 기본 CI에서
+live AWS smoke test를 실행하지 않습니다.

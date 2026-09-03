@@ -8,6 +8,7 @@ import (
 	"reflect"
 	"strings"
 	"time"
+	"unicode"
 	"unicode/utf8"
 
 	"github.com/aws/aws-sdk-go-v2/service/sfn"
@@ -240,6 +241,9 @@ func (b *Bridge) Describe(ctx context.Context, executionARN string) (*Execution,
 		return nil, newError(ErrMalformedOutput, "describe", "", nil)
 	}
 	if err := validateARNValue(*output.ExecutionArn); err != nil {
+		return nil, newError(ErrMalformedOutput, "describe", "", nil)
+	}
+	if *output.ExecutionArn != executionARN {
 		return nil, newError(ErrMalformedOutput, "describe", "", nil)
 	}
 	if err := validateARNValue(*output.StateMachineArn); err != nil {
@@ -584,8 +588,17 @@ func validateResponseName(value string) error {
 	if value == "" {
 		return nil
 	}
-	if err := validateExecutionName(value); err != nil {
-		return err
+	if !utf8.ValidString(value) || len(value) > maxExecutionName {
+		return ErrInvalidRequest
+	}
+	for _, char := range value {
+		if unicode.IsSpace(char) || unicode.IsControl(char) || char == '\ufffe' || char == '\uffff' {
+			return ErrInvalidRequest
+		}
+		switch char {
+		case '<', '>', '{', '}', '[', ']', '?', '*', '"', '#', '%', '\\', '^', '|', '~', '`', '$', '&', ',', ';', ':', '/':
+			return ErrInvalidRequest
+		}
 	}
 	return nil
 }

@@ -22,6 +22,9 @@
 - Create `workflow/stepfunctions/README.md` and `workflow/stepfunctions/README.ko.md`: API, limits, polling, failure, IAM and live-test boundaries.
 - Modify `workflow/README.md`, `workflow/README.ko.md`, root `README.md`, and root `README.ko.md`: package index/link parity.
 - Modify `go.mod` and `go.sum`: add only `service/sfn` and required checksums.
+- Modify `scripts/capture-gin-adapter-benchmark.sh` only to make the existing
+  chart-timeout regression guard sub-second safe after repository CI exposed a
+  one-second fixture boundary race; no benchmark contract is broadened.
 - Create `docs/review/2026-09-03-issue-522-step-functions-implementation-review.md` and `docs/lessons/2026-09-03-issue-522-step-functions.md` before PR.
 - Do not modify existing `workflow` runtime behavior or add state-machine/provisioning wrappers.
 
@@ -29,56 +32,56 @@
 
 **Files:** `go.mod`, `go.sum`, `workflow/stepfunctions/doc.go`, `errors.go`, `bridge.go`, `bridge_test.go`.
 
-- [ ] **Step 1: Add the AWS SDK dependency.** Run `go get github.com/aws/aws-sdk-go-v2/service/sfn@v1.48.0`. Expected: selected module/checksums only; existing root SDK line remains compatible.
-- [ ] **Step 2: Write RED tests.** Define `Client` with only `StartExecution`/`DescribeExecution`, `StopClient` with only `StopExecution`, `Options{Client, MaxInputSize}`, `StartRequest`, `StopRequest`, `WaitOptions`, and `Backoff`. Test `New(Options{})`, typed-nil clients for every reflect-nil kind, negative/over-limit input size, and zero-value `Bridge`; assert `errors.Is` sentinels and zero provider calls.
-- [ ] **Step 3: Run RED.** `go test -count=1 ./workflow/stepfunctions`; record missing constructor/sentinel failures.
-- [ ] **Step 4: Implement minimum contract.** Add immutable `Bridge`, constructor/default input limit, nil-context normalization, typed-nil detection, and safe `*Error` (`Error`, `Unwrap`, `Is`, status accessor). No provider text, ARN, payload, credential, or trace-header formatting.
-- [ ] **Step 5: Run GREEN.** `gofmt -w workflow/stepfunctions/*.go && go test -count=1 ./workflow/stepfunctions`; constructor/zero-value tests must pass.
+- [x] **Step 1: Add the AWS SDK dependency.** Run `go get github.com/aws/aws-sdk-go-v2/service/sfn@v1.48.0`. Expected: selected module/checksums only; existing root SDK line remains compatible.
+- [x] **Step 2: Write RED tests.** Define `Client` with only `StartExecution`/`DescribeExecution`, `StopClient` with only `StopExecution`, `Options{Client, MaxInputSize}`, `StartRequest`, `StopRequest`, `WaitOptions`, and `Backoff`. Test `New(Options{})`, typed-nil clients for every reflect-nil kind, negative/over-limit input size, and zero-value `Bridge`; assert `errors.Is` sentinels and zero provider calls.
+- [x] **Step 3: Run RED.** `go test -count=1 ./workflow/stepfunctions`; record missing constructor/sentinel failures.
+- [x] **Step 4: Implement minimum contract.** Add immutable `Bridge`, constructor/default input limit, nil-context normalization, typed-nil detection, and safe `*Error` (`Error`, `Unwrap`, `Is`, status accessor). No provider text, ARN, payload, credential, or trace-header formatting.
+- [x] **Step 5: Run GREEN.** `gofmt -w workflow/stepfunctions/*.go && go test -count=1 ./workflow/stepfunctions`; constructor/zero-value tests must pass.
 
 ## Task 2: Start, Describe, and optional Stop
 
 **Files:** `workflow/stepfunctions/bridge.go`, `errors.go`, `bridge_test.go`.
 
-- [ ] **Step 1: Start RED tests.** Fake deep-copies `StartExecutionInput`, records context/call count, and covers valid mapping, nil input→`{}`, invalid ARN/name/JSON/UTF-8/size, trace header, and pre-dispatch cancellation; every reject has zero calls.
-- [ ] **Step 2: Implement `Start`.** Validate ARN (1–256 UTF-8 bytes), optional ASCII name (1–80 `[A-Za-z0-9_-]`), input (nil/empty `{}`, valid UTF-8 JSON, configured maximum 262144 bytes), and trace header (ASCII ≤256). Build `sfn.StartExecutionInput`, check context before/after SDK call, map transport to `ErrStartFailed`, and reject nil/missing ARN or start time as `ErrMalformedOutput`.
-- [ ] **Step 3: Describe/Stop RED tests.** Cover ARN validation, request mapping, every known status, optional metadata, malformed required/optional fields, transport errors, absent stop capability, error/cause bounds, and before/after cancellation.
-- [ ] **Step 4: Implement `Describe`.** Map required ARN/state-machine ARN/status/start time and optional name/input/output/error/cause/stop time into `Execution`; validate AWS byte bounds/UTF-8; map transport to `ErrDescribeFailed` while preserving `errors.Is` cause.
-- [ ] **Step 5: Implement `Stop`.** Type-assert `StopClient`; absent capability returns `ErrStopUnsupported` without a call. Validate ARN, optional error ≤256 and cause ≤32768 bytes, checkpoint context, map transport to `ErrStopFailed`, require `StopDate`, and never call Stop from Wait.
-- [ ] **Step 6: Focused GREEN.** Run `gofmt -w workflow/stepfunctions/*.go`, `go test -count=1 ./workflow/stepfunctions`, and `go vet ./workflow/stepfunctions`; all mapping/error tests must pass.
+- [x] **Step 1: Start RED tests.** Fake deep-copies `StartExecutionInput`, records context/call count, and covers valid mapping, nil input→`{}`, invalid ARN/name/JSON/UTF-8/size, trace header, and pre-dispatch cancellation; every reject has zero calls.
+- [x] **Step 2: Implement `Start`.** Validate ARN (1–256 UTF-8 bytes), optional ASCII name (1–80 `[A-Za-z0-9_-]`), input (nil/empty `{}`, valid UTF-8 JSON, configured maximum 262144 bytes), and trace header (ASCII ≤256). Build `sfn.StartExecutionInput`, check context before/after SDK call, map transport to `ErrStartFailed`, and reject nil/missing ARN or start time as `ErrMalformedOutput`.
+- [x] **Step 3: Describe/Stop RED tests.** Cover ARN validation, request mapping, every known status, optional metadata, malformed required/optional fields, transport errors, absent stop capability, error/cause bounds, and before/after cancellation.
+- [x] **Step 4: Implement `Describe`.** Map required ARN/state-machine ARN/status/start time and optional name/input/output/error/cause/stop time into `Execution`; validate AWS byte bounds/UTF-8 and preserve the requested execution identity; map transport to `ErrDescribeFailed` while preserving `errors.Is` cause.
+- [x] **Step 5: Implement `Stop`.** Type-assert `StopClient`; absent capability returns `ErrStopUnsupported` without a call. Validate ARN, optional error ≤256 and cause ≤32768 bytes, checkpoint context, map transport to `ErrStopFailed`, require `StopDate`, and never call Stop from Wait.
+- [x] **Step 6: Focused GREEN.** Run `gofmt -w workflow/stepfunctions/*.go`, `go test -count=1 ./workflow/stepfunctions`, and `go vet ./workflow/stepfunctions`; all mapping/error tests must pass.
 
 ## Task 3: Bounded Wait and GO-HARD-08
 
 **Files:** `workflow/stepfunctions/bridge.go`, `errors.go`, `bridge_test.go`.
 
-- [ ] **Step 1: Wait RED tests.** Fake sequences cover immediate success, `RUNNING→SUCCEEDED`, `FAILED`, `TIMED_OUT`, `ABORTED`, `PENDING_REDRIVE`, unknown status, describe transport error, explicit timeout, caller cancellation during timer and after response, custom backoff order/cap, and proof of no implicit Stop/retry.
-- [ ] **Step 2: Normalize options.** Defaults: poll interval 1s, max interval 30s, timeout 0 (caller context/deadline only). Reject negative/invalid values and max < poll. Custom `Backoff(attempt, previous)` may return zero, rejects negative values, and is capped at max.
-- [ ] **Step 3: Implement polling.** Validate before calls; create a child deadline only for positive Timeout; describe immediately; poll only `RUNNING`; allowlist terminal statuses; return last `Execution` plus status-specific errors for failed/timed-out/aborted; fail closed on unknown status; use `time.NewTimer` + `select`; parent cancellation wins; check after each response; never stop/retry implicitly or publish late success.
-- [ ] **Step 4: Run GREEN race proof.** `gofmt -w workflow/stepfunctions/*.go && go test -count=1 ./workflow/stepfunctions && go test -race -count=1 ./workflow/stepfunctions`; all wait/backoff/cancellation tests and race detector must pass.
+- [x] **Step 1: Wait RED tests.** Fake sequences cover immediate success, `RUNNING→SUCCEEDED`, `FAILED`, `TIMED_OUT`, `ABORTED`, `PENDING_REDRIVE`, unknown status, describe transport error, explicit timeout, caller cancellation during timer and after response, custom backoff order/cap, and proof of no implicit Stop/retry.
+- [x] **Step 2: Normalize options.** Defaults: poll interval 1s, max interval 30s, timeout 0 (caller context/deadline only). Reject negative/invalid values and max < poll. Custom `Backoff(attempt, previous)` may return zero, rejects negative values, and is capped at max.
+- [x] **Step 3: Implement polling.** Validate before calls; create a child deadline only for positive Timeout; describe immediately; poll only `RUNNING`; allowlist terminal statuses; return last `Execution` plus status-specific errors for failed/timed-out/aborted; fail closed on unknown status; use `time.NewTimer` + `select`; parent cancellation wins; check after each response; never stop/retry implicitly or publish late success.
+- [x] **Step 4: Run GREEN race proof.** `gofmt -w workflow/stepfunctions/*.go && go test -count=1 ./workflow/stepfunctions && go test -race -count=1 ./workflow/stepfunctions`; all wait/backoff/cancellation tests and race detector must pass.
 
 ## Task 4: Fake isolation, example, redaction
 
 **Files:** `workflow/stepfunctions/bridge_test.go`, `example_test.go`.
 
-- [ ] **Step 1: Harden fake.** Deep-copy requests, return fresh outputs, record contexts and logical calls, support blocking/cancellation and output-plus-error, and run concurrent distinct requests to prove isolation and no caller-slice retention.
-- [ ] **Step 2: Add `ExampleNew`.** Construct fake, call `New`, `Start`, and bounded `WaitOptions`; compile only, no credentials/network/live AWS.
-- [ ] **Step 3: Redaction tests.** Inject provider errors containing credential-like text, payload, ARN, and message; assert neither `Error()` nor `%+v` contains them while `errors.Is` matches the cause.
-- [ ] **Step 4: Run examples/race.** `go test -run '^Example' -count=1 ./workflow/stepfunctions && go test -race -count=1 ./workflow/stepfunctions`; expect PASS.
+- [x] **Step 1: Harden fake.** Deep-copy requests, return fresh outputs, record contexts and logical calls, support blocking/cancellation and output-plus-error, and run concurrent distinct requests to prove isolation and no caller-slice retention.
+- [x] **Step 2: Add `ExampleNew`.** Construct fake, call `New`, `Start`, and bounded `WaitOptions`; compile only, no credentials/network/live AWS.
+- [x] **Step 3: Redaction tests.** Inject provider errors containing credential-like text, payload, ARN, and message; assert neither `Error()` nor `%+v` contains them while `errors.Is` matches the cause.
+- [x] **Step 4: Run examples/race.** `go test -run '^Example' -count=1 ./workflow/stepfunctions && go test -race -count=1 ./workflow/stepfunctions`; expect PASS.
 
 ## Task 5: Documentation and locale parity
 
 **Files:** package README EN/KO, `workflow/README.md`, `workflow/README.ko.md`, root `README.md`, root `README.ko.md`.
 
-- [ ] **Step 1: Write package READMEs.** Document import, interfaces, limits, STANDARD idempotency, EXPRESS/Describe/Stop limits, eventual consistency, status/errors, 1s/30s polling defaults, timeout/cancellation precedence, no implicit stop/retry, fake-only CI, and caller/operator ownership. Keep code/tables/links semantically aligned.
-- [ ] **Step 2: Register indexes.** Add matching package links to workflow and root indexes; do not claim provisioning or live AWS support.
-- [ ] **Step 3: Read back parity.** Run `git diff --check`, compare EN/KO headings/tables/code/limits/URLs manually, and record the parity matrix in the workflow evidence.
+- [x] **Step 1: Write package READMEs.** Document import, interfaces, limits, STANDARD idempotency, EXPRESS/Describe/Stop limits, eventual consistency, status/errors, 1s/30s polling defaults, timeout/cancellation precedence, no implicit stop/retry, fake-only CI, and caller/operator ownership. Keep code/tables/links semantically aligned.
+- [x] **Step 2: Register indexes.** Add matching package links to workflow and root indexes; do not claim provisioning or live AWS support.
+- [x] **Step 3: Read back parity.** Run `git diff --check`, compare EN/KO headings/tables/code/limits/URLs manually, and record the parity matrix in the workflow evidence.
 
 ## Task 6: Spec/plan verification and repository checks
 
 **Files:** `docs/superpowers/plans/2026-09-03-issue-522-step-functions-plan.md`.
 
-- [ ] **Step 1: Run checks sequentially.** Execute `git diff --check`; targeted normal/race/example/vet; then `make fmt-check`, `make tidy-check`, `make vet`, `make lint`, `make test`, `make race`, and `make ci`. Heavy suites remain serialized; diagnose and record any first failure before retry.
-- [ ] **Step 2: Verify traceability.** Read spec and current diff; map narrow API, bounds, response mapping, statuses, timeout/backoff, cancellation, no provisioning, fake-only CI, docs, example, and race proof to exact files and fresh commands; check only proved rows.
-- [ ] **Step 3: Record GO-HARD-08.** Implementation review/lesson must cite explicit timeout/deadline ownership, cancellable timer, capped backoff, terminal allowlist/unknown policy, no implicit Stop/retry, response-boundary cancellation, fake sequence, and race/resource result.
+- [x] **Step 1: Run checks sequentially.** Execute `git diff --check`; targeted normal/race/example/vet; then `make fmt-check`, `make tidy-check`, `make vet`, `make lint`, `make test`, `make race`, and `make ci`. Heavy suites remain serialized; diagnose and record any first failure before retry. The first `make ci` exposed a one-second chart fixture boundary race; the sub-second-safe elapsed counter was fixed and `make check-bench-web-gin` passed five consecutive times before the full CI rerun passed.
+- [x] **Step 2: Verify traceability.** Read spec and current diff; map narrow API, bounds, response mapping, statuses, timeout/backoff, cancellation, no provisioning, fake-only CI, docs, example, and race proof to exact files and fresh commands; check only proved rows.
+- [x] **Step 3: Record GO-HARD-08.** Implementation review/lesson must cite explicit timeout/deadline ownership, cancellable timer, capped backoff, terminal allowlist/unknown policy, no implicit Stop/retry, response-boundary cancellation, fake sequence, and race/resource result.
 
 ## Task 7: Step 6-R review and Lore commit
 

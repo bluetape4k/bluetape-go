@@ -52,7 +52,7 @@ fmt.Println(execution.Status)
   and trace header before making an SDK call. Empty input is sent as `{}` and
   input bytes are preserved without reformatting.
 - `Describe` preserves execution ARN, state-machine ARN, name, status, start and
-  stop times, input/output, and provider failure metadata in an immutable result
+  stop times, input/output, and provider failure metadata in an independent result
   copy. Unknown statuses fail closed with `ErrUnknownStatus`.
 - `Stop` uses the optional `StopClient` capability. A client that only exposes
   `StartExecution` and `DescribeExecution` returns `ErrStopUnsupported`; waiting
@@ -69,10 +69,18 @@ fmt.Println(execution.Status)
   are rejected.
 - Execution names are optional. When supplied, they are 1–80 ASCII bytes from
   `[A-Za-z0-9_-]`. The package does not generate names or retry
-  `ExecutionAlreadyExists`; standard-workflow name+input idempotency remains an
-  AWS service contract.
+  `ExecutionAlreadyExists`; for `STANDARD`, the same name+input is idempotent
+  while running, a closed execution blocks reuse until 90 days after closure,
+  and `EXPRESS` is not idempotent (its names can be reused immediately). These
+  are AWS service contracts, not package-level deduplication.
 - State-machine and execution ARNs are bounded to 256 UTF-8 bytes. Trace
   headers are optional ASCII values bounded to 256 bytes.
+- `DescribeExecution` is eventually consistent and does not support ordinary
+  `EXPRESS` executions (Map Run-dispatched executions are an AWS exception).
+  `Output` is returned only for successful executions; failed executions expose
+  provider `Error`/`Cause` metadata instead. `StopExecution` is unsupported by
+  `EXPRESS` state machines and accepts at most 256-byte `Error` and 32768-byte
+  `Cause` values.
 - Polling defaults to a 1-second first interval and a 30-second maximum. A
   custom `Backoff` receives a 1-based attempt number and previous interval;
   negative values fail and larger values are capped.
@@ -99,3 +107,10 @@ go test -race ./workflow/stepfunctions
 go vet ./workflow/stepfunctions
 golangci-lint run ./workflow/stepfunctions/...
 ```
+
+The service-level limits and consistency/idempotency behavior follow the
+[AWS `StartExecution`](https://docs.aws.amazon.com/step-functions/latest/apireference/API_StartExecution.html),
+[`DescribeExecution`](https://docs.aws.amazon.com/step-functions/latest/apireference/API_DescribeExecution.html),
+and [`StopExecution`](https://docs.aws.amazon.com/step-functions/latest/apireference/API_StopExecution.html)
+contracts. The bridge does not provision state machines or perform live-AWS
+smoke tests in default CI.
