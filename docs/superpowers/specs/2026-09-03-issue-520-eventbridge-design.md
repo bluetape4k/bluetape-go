@@ -240,7 +240,9 @@ single-entry/partial-failure/cancellation 의미를 추가하고 locale pair를
 SPW-01 requirements, SPW-02 design, SPW-03 plan, SPW-04 implementation,
 SPW-05 verification은 각각 issue body/live metadata, 이 설계와 source ledger,
 실행 plan, RED→GREEN diff, fresh test/CI evidence로 추적한다. 현재 문서는
-SPW-01/02 PASS이며, implementation 이후 나머지를 갱신한다.
+SPW-01/02/03/04/05 PASS이며, 구현 review와 repository-wide CI 증적은
+`docs/review/2026-09-03-issue-520-eventbridge-implementation-review.md`에
+고정한다.
 
 ## 롤백과 후속 범위
 
