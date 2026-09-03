@@ -75,6 +75,7 @@ future scope, not part of the current public API.
 | [`examples/graph/iamaccess`](examples/graph/iamaccess/README.md) | example | Runnable IAM access graph showing effective access, deny paths, risky privilege chains, least-privilege drift, and NDJSON graph I/O boundaries. |
 | [`examples/s3`](examples/s3/README.md) | example | Compile-checked AWS SDK for Go v2 S3 examples backed by the Floci fixture. |
 | [`examples/sqs-sns`](examples/sqs-sns/README.md) | example | Compile-checked AWS SDK for Go v2 SQS/SNS examples backed by the Floci fixture. |
+| [`examples/cloudwatch`](examples/cloudwatch/README.md) | example | Compile-checked AWS SDK for Go v2 CloudWatch Metrics and Logs request examples with limits, cancellation, and redaction guidance. |
 | [`leader`](leader/README.md) | active | Leader election API, including single, group, and strategy-based contracts. |
 | [`leader/redis`](leader/redis/README.md) | active | Redis-backed single, group, and strategic leader election using TTL renewal, ZSET slot tokens, and candidate registries. |
 | [`leader/mongo`](leader/mongo/README.md) | active | MongoDB-backed single, group, and strategic leader election using owner-token leases, bounded slots, candidate registries, and TTL cleanup indexes. |
@@ -156,7 +157,8 @@ overview.
 - AWS/Floci: [`dynamodb/batchwrite`](dynamodb/batchwrite/README.md), [`encrypt/kms`](encrypt/kms/README.md), [`workflow/stepfunctions`](workflow/stepfunctions/README.md), and
   compile-checked examples under [`examples/integration`](examples/integration/README.md),
   [`examples/s3`](examples/s3/README.md), and
-  [`examples/sqs-sns`](examples/sqs-sns/README.md).
+  [`examples/sqs-sns`](examples/sqs-sns/README.md), plus the fake-first
+  CloudWatch Metrics/Logs examples under [`examples/cloudwatch`](examples/cloudwatch/README.md).
 - Text: [`textsearch`](textsearch/README.md) for deterministic multi-pattern
   search, tokenizer core interfaces, blockword detection/masking, severity
   metadata, normalization, boundary-aware matching, and the optional

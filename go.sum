@@ -16,8 +16,8 @@ github.com/apache/fory/go/fory v1.3.0 h1:9MyLGrc1vJCuUT46qoRHZiETkM1dgsd/Z/cvRqF
 github.com/apache/fory/go/fory v1.3.0/go.mod h1:VYWxaCCKSt+7pt9EDxUCspI2xQgR1r3EPjxtwz/LTXU=
 github.com/aws/aws-sdk-go-v2 v1.45.1 h1:iIoG3NaLhV6UZpPXyPXlDj2I9oS8tV/nMcMnITCC6Ks=
 github.com/aws/aws-sdk-go-v2 v1.45.1/go.mod h1:bttEH6JqnUL8LepvDVfdrds/fZ5bCIxzpe3abyUrhDU=
-github.com/aws/aws-sdk-go-v2/aws/protocol/eventstream v1.7.14 h1:3IZY0XAJquT3aHzbkHfPzy4ACPcEjVG0x87KOwtpqGY=
-github.com/aws/aws-sdk-go-v2/aws/protocol/eventstream v1.7.14/go.mod h1:zwM6veDkhGgQFqkBy+uT28AAYpLu+uFMlPl+rCg/73E=
+github.com/aws/aws-sdk-go-v2/aws/protocol/eventstream v1.7.20 h1:GPRlPwz40I2B2VrBEASOA3Bi77NyeqejNLkifosX0rs=
+github.com/aws/aws-sdk-go-v2/aws/protocol/eventstream v1.7.20/go.mod h1:g7PNzKcsOKWb4fkSRBA7BZVAS6Y8IcxzN+nRohhQ1Q8=
 github.com/aws/aws-sdk-go-v2/config v1.32.28 h1:qY6afygxK5c2PPU3Sz8W6yB5W44RF1vnmPdBwViDN+Y=
 github.com/aws/aws-sdk-go-v2/config v1.32.28/go.mod h1:WeS/wN1IDs8YC+BxTrFz9ZyJ1rufRBQfirOcDusEpmQ=
 github.com/aws/aws-sdk-go-v2/credentials v1.19.27 h1:cFksKkdaBGGmpe6XJpvrxFNWkbXY5/gwFqZNB2O9WCM=
@@ -32,6 +32,10 @@ github.com/aws/aws-sdk-go-v2/internal/endpoints/v2 v2.8.1 h1:K0JsbZQj+1h208Ro1zH
 github.com/aws/aws-sdk-go-v2/internal/endpoints/v2 v2.8.1/go.mod h1:W3/vL6EtCIatICGy9ab29QhMuae+cOKPWcMxv02CO+Q=
 github.com/aws/aws-sdk-go-v2/internal/v4a v1.4.31 h1:3GUprIsfmGcC5SACIyB0e7E0BM1O1b3Erl5CePYIAeQ=
 github.com/aws/aws-sdk-go-v2/internal/v4a v1.4.31/go.mod h1:7PuV1yl5e2xnUbm+RqvVg5i2iBM8EyijZNoI9wsOoOc=
+github.com/aws/aws-sdk-go-v2/service/cloudwatch v1.70.0 h1:rM/fsht9hzb/0Iq3S/+0tM9SwneQ/zV3DmzHrYsbPtk=
+github.com/aws/aws-sdk-go-v2/service/cloudwatch v1.70.0/go.mod h1:rmlhLCdedUIhyhhkK9E2BBqHiaUpsmb0Yg7S58r6aaE=
+github.com/aws/aws-sdk-go-v2/service/cloudwatchlogs v1.85.0 h1:8Qhh84Cm/ae7HxhRh9A5Fz+H/qpumvT7c9HqdymGeRo=
+github.com/aws/aws-sdk-go-v2/service/cloudwatchlogs v1.85.0/go.mod h1:hp3qwCtX+QPXVJMyKsFO/sLXkirzH0R3UHRVM4QBGV4=
 github.com/aws/aws-sdk-go-v2/service/dynamodb v1.57.3 h1:XgjzLEE8CrNYnr4Xmi1W5PfKsKMjp4Pu1rWkJNO43JI=
 github.com/aws/aws-sdk-go-v2/service/dynamodb v1.57.3/go.mod h1:r7sfLXEN8RUA89tAHy1E7lCtVOOWIkqVy/FbnUdxW1E=
 github.com/aws/aws-sdk-go-v2/service/eventbridge v1.47.0 h1:LuPLDBMCmldgg779sq8swfEdRNMeKlaT852uxKYCOkk=
