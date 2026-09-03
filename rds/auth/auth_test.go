@@ -80,6 +80,14 @@ func TestBuildAuthTokenRejectsMalformedRequestsBeforeCredentialLookup(t *testing
 		"db.example.com:65536",
 		":5432",
 		"2001:db8::1:5432",
+		"db.example.com@attacker.example:5432",
+		"db.example.com%evil:5432",
+		"db.example.com\\evil:5432",
+		"db.example.com\x00evil:5432",
+		"db..example.com:5432",
+		"-db.example.com:5432",
+		"db-.example.com:5432",
+		"db_example.com:5432",
 	}
 	for _, endpoint := range endpoints {
 		t.Run(endpoint, func(t *testing.T) {
@@ -140,7 +148,7 @@ func TestBuildAuthTokenCancellationWinsBeforeAndAfterSDKCall(t *testing.T) {
 func TestBuildAuthTokenWrapsCredentialErrorWithoutDetails(t *testing.T) {
 	credentials := &fakeCredentials{err: errors.New("credential secret=super-sensitive")}
 	_, err := BuildAuthToken(context.Background(), validRequest(), credentials)
-	if !errors.Is(err, ErrBuildFailed) || strings.Contains(err.Error(), "super-sensitive") || strings.Contains(fmt.Sprintf("%+v", err), "secret-access-key") {
+	if !errors.Is(err, ErrBuildFailed) || strings.Contains(err.Error(), "super-sensitive") || strings.Contains(fmt.Sprintf("%+v %#v", err, err), "secret-access-key") || strings.Contains(fmt.Sprintf("%#v", err), "super-sensitive") {
 		t.Fatalf("redaction/error matching failed: %v", err)
 	}
 }

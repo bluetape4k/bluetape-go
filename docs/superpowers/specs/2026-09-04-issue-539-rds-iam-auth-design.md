@@ -25,8 +25,10 @@ caller 또는 운영 계층의 책임이다.
    AWS SDK의 15분 signing lifetime은 README와 Go doc에 기록하고 갱신 시점은
    caller가 소유한다.
 4. endpoint, region, username을 SDK 호출 전에 검증하고, endpoint는 scheme,
-   path, query, fragment가 없는 host:port 형식이어야 한다. IPv6 bracket 표기는
-   허용하고 port는 1..65535로 제한한다.
+   path, query, fragment, userinfo, percent escape와 backslash가 없는
+   host:port 형식이어야 한다. DNS host는 ASCII label 길이(63 byte/label,
+   253 byte/전체)를 지키고 IPv4와 IPv6 literal을 허용하며 port는 1..65535로
+   제한한다.
 5. 모든 외부/credential 경계 전후에 context를 검사해 caller cancellation이
    token 성공보다 우선하도록 한다.
 

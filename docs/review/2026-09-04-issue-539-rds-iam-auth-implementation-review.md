@@ -1,5 +1,13 @@
 # #539 RDS IAM auth token helper 구현 리뷰
 
+## 2026-09-04 보강 검토
+
+endpoint validation을 strict host grammar로 보강해 userinfo, percent escape,
+backslash, control/NUL, malformed DNS label과 trailing dot을 SDK dispatch 전에
+거부한다. EN/KO README와 lesson/spec에 동일한 경계를 반영했으며 adversarial
+endpoint table test와 `%#v` redaction test를 유지한다. 보강 판정은
+`P0=0, P1=0`이다.
+
 ## 판정
 
 - 검토 대상: `feat/issue-539-rds-iam-auth` working tree delta

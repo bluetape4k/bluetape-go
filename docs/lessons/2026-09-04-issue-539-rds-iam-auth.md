@@ -7,9 +7,11 @@ RDS IAM authentication은 token signing과 database connection lifecycle을
 호출하고 credential/config/IAM policy, SQL driver/DSN, pool, retry와 refresh는
 caller/operator에게 남긴다.
 
-endpoint는 SDK에 맡기기 전에 scheme/path/query/fragment가 없는 `host:port`인지
-확인한다. bracketed IPv6를 허용하되 port는 `1..65535`로 제한하고 region과
-username은 valid UTF-8, non-blank, bounded 값으로만 전달한다.
+endpoint는 SDK에 맡기기 전에 scheme/path/query/fragment/userinfo/percent
+escape/backslash가 없는 `host:port`인지 확인한다. DNS host는 ASCII label
+(63 byte/label, 253 byte/전체)만 허용하고 IPv4와 bracketed IPv6를 지원하며
+port는 `1..65535`로 제한한다. region과 username은 valid UTF-8, non-blank,
+bounded 값으로만 전달한다.
 
 ## 검증에서 확인한 hardening
 

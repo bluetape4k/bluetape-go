@@ -79,16 +79,29 @@ func validEndpoint(endpoint string) bool {
 }
 
 func validHost(host string) bool {
-	if !utf8.ValidString(host) || strings.TrimSpace(host) != host || strings.ContainsAny(host, "/?#[]") {
+	if !utf8.ValidString(host) || strings.TrimSpace(host) != host || strings.ContainsAny(host, "/?#[]@%\\") {
 		return false
 	}
 	for _, character := range host {
-		if unicode.IsSpace(character) {
+		if character < 0x20 || character == 0x7f || unicode.IsSpace(character) {
 			return false
 		}
 	}
 	if strings.Contains(host, ":") {
 		return net.ParseIP(host) != nil
+	}
+	if len(host) > 253 || strings.HasSuffix(host, ".") {
+		return false
+	}
+	for _, label := range strings.Split(host, ".") {
+		if label == "" || len(label) > 63 || label[0] == '-' || label[len(label)-1] == '-' {
+			return false
+		}
+		for _, character := range label {
+			if (character < 'a' || character > 'z') && (character < 'A' || character > 'Z') && (character < '0' || character > '9') && character != '-' {
+				return false
+			}
+		}
 	}
 	return true
 }
@@ -98,7 +111,7 @@ func validField(value string, maxBytes int) bool {
 		return false
 	}
 	for _, character := range value {
-		if unicode.IsSpace(character) {
+		if character < 0x20 || character == 0x7f || unicode.IsSpace(character) {
 			return false
 		}
 	}

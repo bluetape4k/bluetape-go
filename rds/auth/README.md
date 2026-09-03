@@ -29,7 +29,9 @@ or manage a pool.
 ## Contracts
 
 - `Request.Endpoint` must be an exact `host:port` value without a scheme, path,
-  query, or fragment. Bracketed IPv6 is supported; ports are `1..65535`.
+  query, fragment, userinfo, percent escape, or backslash. DNS hosts use ASCII
+  labels (each at most 63 bytes, total at most 253 bytes); IPv4 and bracketed
+  IPv6 literals are supported; ports are `1..65535`.
 - Region and username must be valid UTF-8, non-blank, and bounded. Values are
   passed to the AWS SDK without trimming or normalization.
 - `context.Context` is checked before the SDK call and after the signing

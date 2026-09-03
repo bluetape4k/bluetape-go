@@ -34,7 +34,7 @@
 ## Task 2: validation/token/error 구현
 
 - [x] `doc.go`, `errors.go`, `token.go`와 `auth.go`를 작성한다.
-- [x] endpoint는 `net.SplitHostPort`로 IPv4/IPv6 host:port를 검사하고 scheme/path/query/fragment/blank host, port 범위를 거부한다. region/username은 valid UTF-8/nonblank/byte bound를 적용한다.
+- [x] endpoint는 `net.SplitHostPort`와 strict DNS/IP host grammar로 IPv4/IPv6 host:port를 검사하고 scheme/path/query/fragment/userinfo/percent escape/backslash, malformed label, blank host와 port 범위를 거부한다. region/username은 valid UTF-8/nonblank/byte bound를 적용한다.
 - [x] dispatch 전후 context를 검사하고 `rdsauth.BuildAuthToken`을 한 번만 호출한다. output empty는 malformed로 거부하고 SDK error는 safe typed error로 감싼다.
 - [x] token copy/formatter/redaction과 `errors.Is`를 검증한다.
 

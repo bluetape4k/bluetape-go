@@ -28,8 +28,10 @@ MySQL도 동일하게 `token.Text()`를 driver password field에 전달하십시
 
 ## 계약
 
-- `Request.Endpoint`는 scheme, path, query, fragment가 없는 정확한 `host:port`
-  형식이어야 합니다. Bracketed IPv6를 지원하고 port는 `1..65535` 범위입니다.
+- `Request.Endpoint`는 scheme, path, query, fragment, userinfo, percent escape와
+  backslash가 없는 정확한 `host:port` 형식이어야 합니다. DNS host는 ASCII
+  label(각 최대 63 byte, 전체 최대 253 byte)만 허용하고 IPv4와 bracketed
+  IPv6 literal을 지원하며 port는 `1..65535` 범위입니다.
 - Region과 username은 valid UTF-8, non-blank, bounded 값이어야 합니다. 값은
   trim 또는 normalization 없이 AWS SDK에 전달합니다.
 - SDK 호출 전과 signing response 후 `context.Context`를 검사합니다. 늦은 token
