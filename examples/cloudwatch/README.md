@@ -12,8 +12,8 @@ decisions; this package does not install a global registry or logger.
 
 `PutMetricData` accepts at most 1,000 metrics per request and 30 dimensions per
 metric. The HTTP request payload must remain below 1 MiB. Metric names,
-namespaces, dimensions, and values are validated before dispatch; `NaN` and
-infinite values are rejected. Dimension values identify a time series, so
+namespaces, dimensions, and values are validated before dispatch; `NaN`,
+infinite, and out-of-range values are rejected. Dimension values identify a time series, so
 high-cardinality values such as request IDs should not be used as default
 observability labels.
 
@@ -22,8 +22,15 @@ observability labels.
 `PutLogEvents` requires chronological events. A batch contains at most 10,000
 events, each event is at most 1 MiB, and the batch is at most 1 MiB including
 the documented 26-byte per-event overhead. Events in a batch must span no more
-than 24 hours. The legacy sequence token is intentionally omitted: CloudWatch
-Logs now ignores it and accepts parallel puts to the same stream.
+than 24 hours, and events older than 14 days or more than 2 hours in the future
+are rejected during preflight. The legacy sequence token is intentionally
+omitted: CloudWatch Logs now ignores it and accepts parallel puts to the same
+stream.
+
+If the response contains `RejectedLogEventsInfo` or `RejectedEntityInfo`, the
+helper returns a typed rejection error wrapping `errLogRejected`. It exposes
+only rejection indexes and an entity-rejected flag; provider diagnostic text is
+never copied into the error.
 
 Both examples check `context.Context` before dispatch and after the SDK returns.
 Caller cancellation therefore wins over a successful or failed provider

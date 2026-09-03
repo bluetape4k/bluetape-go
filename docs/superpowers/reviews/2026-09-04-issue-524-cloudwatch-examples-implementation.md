@@ -1,5 +1,15 @@
 # Issue #524 CloudWatch 예시 구현 검토
 
+## 2026-09-04 보강 검토
+
+API/security 리뷰의 partial-rejection, service-range, typed-nil과 timestamp
+overflow 지적을 반영했다. `PutLogEvents`가 `RejectedLogEventsInfo`와
+`RejectedEntityInfo`를 typed error로 전달하고, metric 값(`±2^360`)과 Logs
+timestamp(14일 이전/2시간 이후)를 preflight한다. client는 typed-nil reflect
+검사를 통과해야 하며 log span 비교는 int64 overflow 없이 수행한다. rejection
+index defensive copy, range/overflow/typed-nil 회귀 테스트와 targeted race/vet가
+PASS다. 보강 판정은 `P0=0, P1=0`이며 새 commit의 exact-head CI를 별도 확인한다.
+
 ## 검토 범위
 
 기준 base `906a68fdb41551ccaa6ce1394a2370e654ade10e`, branch

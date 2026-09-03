@@ -6,6 +6,7 @@ import (
 	"errors"
 	"fmt"
 	"math"
+	"reflect"
 	"strings"
 	"sync"
 	"testing"
@@ -35,6 +36,8 @@ var (
 	errInvalidLog    = errors.New("cloudwatch example: invalid log request")
 	errLogPayload    = errors.New("cloudwatch example: log payload exceeds limit")
 	errLogPublish    = errors.New("cloudwatch example: log publish failed")
+	errLogRejected   = errors.New("cloudwatch example: log events rejected")
+	errLogMalformed  = errors.New("cloudwatch example: malformed log response")
 )
 
 // operationError deliberately keeps provider text out of example diagnostics.
@@ -44,6 +47,29 @@ type operationError struct {
 	operation string
 	kind      error
 }
+
+// logRejectionError preserves only retry-relevant rejection indexes and whether
+// the entity was rejected; provider diagnostics remain outside the error text.
+type logRejectionError struct {
+	info         *cloudwatchlogstypes.RejectedLogEventsInfo
+	entityReject bool
+}
+
+func (e *logRejectionError) Error() string { return "cloudwatchlogs.PutLogEvents: rejected log events" }
+func (e *logRejectionError) Unwrap() error { return errLogRejected }
+
+func (e *logRejectionError) RejectedLogEventsInfo() *cloudwatchlogstypes.RejectedLogEventsInfo {
+	if e == nil || e.info == nil {
+		return nil
+	}
+	copyInfo := *e.info
+	copyInfo.ExpiredLogEventEndIndex = cloneInt32(e.info.ExpiredLogEventEndIndex)
+	copyInfo.TooNewLogEventStartIndex = cloneInt32(e.info.TooNewLogEventStartIndex)
+	copyInfo.TooOldLogEventEndIndex = cloneInt32(e.info.TooOldLogEventEndIndex)
+	return &copyInfo
+}
+
+func (e *logRejectionError) EntityRejected() bool { return e != nil && e.entityReject }
 
 func (e *operationError) Error() string { return e.operation + ": " + e.kind.Error() }
 func (e *operationError) Unwrap() error { return e.kind }
@@ -143,7 +169,9 @@ func buildMetricInput(namespace string, data []cloudwatchtypes.MetricDatum) (*cl
 	return input, nil
 }
 
-func validMetricValue(value float64) bool { return !math.IsNaN(value) && !math.IsInf(value, 0) }
+func validMetricValue(value float64) bool {
+	return !math.IsNaN(value) && !math.IsInf(value, 0) && math.Abs(value) <= math.Ldexp(1, 360)
+}
 
 func validDimensionToken(value string) bool {
 	if value == "" || value[0] == ':' || !utf8.ValidString(value) {
@@ -166,7 +194,7 @@ func putMetricData(ctx context.Context, client metricClient, namespace string, d
 	if err := ctx.Err(); err != nil {
 		return err
 	}
-	if client == nil {
+	if isNilClient(client) {
 		return errInvalidMetric
 	}
 	input, err := buildMetricInput(namespace, data)
@@ -202,6 +230,9 @@ func buildLogInput(group, stream string, events []cloudwatchlogstypes.InputLogEv
 	}
 	var firstTimestamp, previousTimestamp int64
 	var totalBytes int
+	now := time.Now().UnixMilli()
+	oldestTimestamp := now - (14 * 24 * time.Hour).Milliseconds()
+	newestTimestamp := now + (2 * time.Hour).Milliseconds()
 	for i := range copyEvents {
 		event := &copyEvents[i]
 		if event.Message == nil || event.Timestamp == nil || !utf8.ValidString(*event.Message) {
@@ -218,7 +249,10 @@ func buildLogInput(group, stream string, events []cloudwatchlogstypes.InputLogEv
 			firstTimestamp = *event.Timestamp
 		}
 		previousTimestamp = *event.Timestamp
-		if previousTimestamp-firstTimestamp > logSpanLimit.Milliseconds() {
+		if previousTimestamp < oldestTimestamp || previousTimestamp > newestTimestamp {
+			return nil, errInvalidLog
+		}
+		if exceedsLogSpan(firstTimestamp, previousTimestamp, logSpanLimit.Milliseconds()) {
 			return nil, errInvalidLog
 		}
 		if messageBytes > cloudWatchPayloadLimit-totalBytes-logEventOverhead {
@@ -239,12 +273,19 @@ func buildLogInput(group, stream string, events []cloudwatchlogstypes.InputLogEv
 	return input, nil
 }
 
+func exceedsLogSpan(first, last, limit int64) bool {
+	if last <= first || first > math.MaxInt64-limit {
+		return false
+	}
+	return last > first+limit
+}
+
 func putLogEvents(ctx context.Context, client logsClient, group, stream string, events []cloudwatchlogstypes.InputLogEvent) error {
 	ctx = contextOrBackground(ctx)
 	if err := ctx.Err(); err != nil {
 		return err
 	}
-	if client == nil {
+	if isNilClient(client) {
 		return errInvalidLog
 	}
 	input, err := buildLogInput(group, stream, events)
@@ -254,7 +295,8 @@ func putLogEvents(ctx context.Context, client logsClient, group, stream string, 
 	if err := ctx.Err(); err != nil {
 		return err
 	}
-	if _, callErr := client.PutLogEvents(ctx, input); callErr != nil {
+	output, callErr := client.PutLogEvents(ctx, input)
+	if callErr != nil {
 		if err := ctx.Err(); err != nil {
 			return err
 		}
@@ -263,7 +305,42 @@ func putLogEvents(ctx context.Context, client logsClient, group, stream string, 
 	if err := ctx.Err(); err != nil {
 		return err
 	}
+	if output == nil {
+		return &operationError{operation: "cloudwatchlogs.PutLogEvents", kind: errLogMalformed}
+	}
+	if output.RejectedLogEventsInfo != nil || output.RejectedEntityInfo != nil {
+		var info *cloudwatchlogstypes.RejectedLogEventsInfo
+		if output.RejectedLogEventsInfo != nil {
+			copyInfo := *output.RejectedLogEventsInfo
+			copyInfo.ExpiredLogEventEndIndex = cloneInt32(output.RejectedLogEventsInfo.ExpiredLogEventEndIndex)
+			copyInfo.TooNewLogEventStartIndex = cloneInt32(output.RejectedLogEventsInfo.TooNewLogEventStartIndex)
+			copyInfo.TooOldLogEventEndIndex = cloneInt32(output.RejectedLogEventsInfo.TooOldLogEventEndIndex)
+			info = &copyInfo
+		}
+		return &logRejectionError{info: info, entityReject: output.RejectedEntityInfo != nil}
+	}
 	return nil
+}
+
+func isNilClient(client any) bool {
+	if client == nil {
+		return true
+	}
+	value := reflect.ValueOf(client)
+	switch value.Kind() {
+	case reflect.Chan, reflect.Func, reflect.Interface, reflect.Map, reflect.Pointer, reflect.Slice:
+		return value.IsNil()
+	default:
+		return false
+	}
+}
+
+func cloneInt32(value *int32) *int32 {
+	if value == nil {
+		return nil
+	}
+	copyValue := *value
+	return &copyValue
 }
 
 type metricFake struct {
@@ -465,6 +542,7 @@ func TestMetricRequestAndLimits(t *testing.T) {
 		{name: "empty", data: nil, want: errInvalidMetric},
 		{name: "too many metrics", data: makeMetricData(metricLimit + 1), want: errInvalidMetric},
 		{name: "nan", data: []cloudwatchtypes.MetricDatum{{MetricName: aws.String("requests"), Value: aws.Float64(math.NaN())}}, want: errInvalidMetric},
+		{name: "out of range", data: []cloudwatchtypes.MetricDatum{{MetricName: aws.String("requests"), Value: aws.Float64(math.Ldexp(1, 360) * 2)}}, want: errInvalidMetric},
 		{name: "duplicate dimension", data: []cloudwatchtypes.MetricDatum{{MetricName: aws.String("requests"), Dimensions: []cloudwatchtypes.Dimension{{Name: aws.String("queue"), Value: aws.String("a")}, {Name: aws.String("queue"), Value: aws.String("b")}}}}, want: errInvalidMetric},
 		{name: "valid", data: valid},
 	}
@@ -539,6 +617,20 @@ func TestLogRequestAndLimits(t *testing.T) {
 	span := []cloudwatchlogstypes.InputLogEvent{{Timestamp: aws.Int64(now), Message: aws.String("a")}, {Timestamp: aws.Int64(now + logSpanLimit.Milliseconds() + 1), Message: aws.String("b")}}
 	if _, err := buildLogInput("/bluetape/example", "app", span); !errors.Is(err, errInvalidLog) {
 		t.Fatalf("span error = %v", err)
+	}
+	old := []cloudwatchlogstypes.InputLogEvent{{Timestamp: aws.Int64(now - (15 * 24 * time.Hour).Milliseconds()), Message: aws.String("old")}}
+	if _, err := buildLogInput("/bluetape/example", "app", old); !errors.Is(err, errInvalidLog) {
+		t.Fatalf("old event error = %v", err)
+	}
+	newEvent := []cloudwatchlogstypes.InputLogEvent{{Timestamp: aws.Int64(now + (3 * time.Hour).Milliseconds()), Message: aws.String("future")}}
+	if _, err := buildLogInput("/bluetape/example", "app", newEvent); !errors.Is(err, errInvalidLog) {
+		t.Fatalf("future event error = %v", err)
+	}
+	if !exceedsLogSpan(math.MinInt64, math.MaxInt64, 1) {
+		t.Fatal("overflowing timestamp span was not rejected")
+	}
+	if exceedsLogSpan(math.MaxInt64-1, math.MaxInt64, 1) {
+		t.Fatal("saturated timestamp span was rejected")
 	}
 }
 
@@ -646,6 +738,47 @@ func TestLogCancellationAndRedaction(t *testing.T) {
 	fake.mu.Unlock()
 	if calls != 0 {
 		t.Fatalf("canceled call count = %d, want 0", calls)
+	}
+}
+
+func TestLogPartialRejectionIsObservable(t *testing.T) {
+	end := int32(1)
+	fake := &logsFake{output: &cloudwatchlogs.PutLogEventsOutput{
+		RejectedLogEventsInfo: &cloudwatchlogstypes.RejectedLogEventsInfo{TooOldLogEventEndIndex: &end},
+	}}
+	now := time.Now().UnixMilli()
+	err := putLogEvents(context.Background(), fake, "/bluetape/example", "app", []cloudwatchlogstypes.InputLogEvent{{Timestamp: aws.Int64(now), Message: aws.String("event")}})
+	if !errors.Is(err, errLogRejected) {
+		t.Fatalf("partial rejection error = %v, want errLogRejected", err)
+	}
+	var rejection *logRejectionError
+	if !errors.As(err, &rejection) || rejection.EntityRejected() {
+		t.Fatalf("partial rejection type = %#v", err)
+	}
+	info := rejection.RejectedLogEventsInfo()
+	if info == nil || info.TooOldLogEventEndIndex == nil || *info.TooOldLogEventEndIndex != 1 {
+		t.Fatalf("rejection info = %#v", info)
+	}
+	*info.TooOldLogEventEndIndex = 99
+	if original := rejection.RejectedLogEventsInfo(); original == nil || *original.TooOldLogEventEndIndex != 1 {
+		t.Fatalf("rejection info was not copied = %#v", original)
+	}
+
+	entityFake := &logsFake{output: &cloudwatchlogs.PutLogEventsOutput{RejectedEntityInfo: &cloudwatchlogstypes.RejectedEntityInfo{}}}
+	err = putLogEvents(context.Background(), entityFake, "/bluetape/example", "app", []cloudwatchlogstypes.InputLogEvent{{Timestamp: aws.Int64(now), Message: aws.String("event")}})
+	if !errors.Is(err, errLogRejected) || !errors.As(err, &rejection) || !rejection.EntityRejected() {
+		t.Fatalf("entity rejection error = %#v", err)
+	}
+}
+
+func TestPutHelpersRejectTypedNilClients(t *testing.T) {
+	var metricNil *metricFake
+	if err := putMetricData(context.Background(), metricNil, "Bluetape/Example", []cloudwatchtypes.MetricDatum{{MetricName: aws.String("requests"), Value: aws.Float64(1)}}); !errors.Is(err, errInvalidMetric) {
+		t.Fatalf("typed nil metric client error = %v", err)
+	}
+	var logsNil *logsFake
+	if err := putLogEvents(context.Background(), logsNil, "/bluetape/example", "app", []cloudwatchlogstypes.InputLogEvent{{Timestamp: aws.Int64(time.Now().UnixMilli()), Message: aws.String("event")}}); !errors.Is(err, errInvalidLog) {
+		t.Fatalf("typed nil logs client error = %v", err)
 	}
 }
 

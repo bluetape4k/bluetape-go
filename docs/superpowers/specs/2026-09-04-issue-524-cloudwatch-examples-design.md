@@ -24,14 +24,18 @@ shape, context 전달, 호출 전/후 cancellation, limits, redacted diagnostics
 
 `PutMetricData` 예시는 한 request에 최대 1,000 metrics, 30 dimensions와
 1 MiB HTTP payload 제한을 문서화하며 metric name/namespace와 dimension
-cardinality를 입력 단계에서 확인한다. `NaN`/`Inf`는 전송하지 않는다.
+cardinality를 입력 단계에서 확인한다. `NaN`/`Inf`와 AWS 허용 범위를 벗어난
+값은 전송하지 않는다.
 
 `PutLogEvents` 예시는 시간순 event, event당 1 MiB, batch 10,000 events,
 전체 1 MiB(각 event당 26 bytes overhead 포함), 24시간 span을 적용한다.
 현재 CloudWatch Logs sequence token은 무시/폐기되었고 동일 stream에 대한
 병렬 `PutLogEvents`가 허용된다는 사실을 README와 example 주석에 고정한다.
+14일 이전/2시간 이후 event는 preflight에서 거부하고, 응답의 partial
+rejection index와 entity rejection을 typed error로 caller에게 전달한다.
 
 오류 문자열에는 metric 값, log body, AWS provider message가 들어가지 않는다.
+partial rejection도 고정된 sentinel과 retry-relevant index만 노출한다.
 호출자는 `errors.Is`로 cancellation을 검사하고, 안전한 operation/sentinel만
 관찰성 hook이나 caller-owned logger에 전달한다. high-cardinality dimension,
 log field와 raw payload를 기본 계측 label로 사용하지 않는다.
