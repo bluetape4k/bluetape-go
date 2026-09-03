@@ -95,6 +95,7 @@ API가 아니라 module-gated future scope입니다.
 | [`state`](state/README.ko.md) | active | typed transition, guard, final state, sentinel error를 제공하는 작은 finite state machine primitive. |
 | [`workreport`](workreport/README.ko.md) | active | lightweight workflow code를 위한 status, failure-policy, report-tree value. |
 | [`workflow`](workflow/README.ko.md) | active | `context.Context`와 `workreport` 기반 sequential, conditional, all-branches parallel runner. |
+| [`workflow/stepfunctions`](workflow/stepfunctions/README.ko.md) | active | Start, describe, optional stop, bounded cancellable polling을 제공하는 caller-owned AWS Step Functions execution bridge. |
 | [`batch`](batch/README.ko.md) | active | Chunk-oriented batch step, sequential job, retry/skip policy, report, checkpoint. |
 | [`batch/sqlcheckpoint`](batch/sqlcheckpoint/README.ko.md) | active | Batch callback과 consumed-input checkpoint를 revision CAS로 함께 commit하는 PostgreSQL durable checkpoint provider. |
 | [`id`](id/README.ko.md) | active | UUID v4/v7, random/monotonic ULID, standard KSUID, Kotlin-compatible KSUID millis, Snowflake ID generator. |
@@ -148,7 +149,7 @@ go get github.com/bluetape4k/bluetape-go
   fixture package README. `testing`의 focused example은 assertion DSL 추가 없이
   table-driven test, package-local builder, golden file, deterministic random data,
   cancellation assertion을 다룹니다.
-- AWS/Floci: [`dynamodb/batchwrite`](dynamodb/batchwrite/README.ko.md), [`encrypt/kms`](encrypt/kms/README.ko.md),
+- AWS/Floci: [`dynamodb/batchwrite`](dynamodb/batchwrite/README.ko.md), [`encrypt/kms`](encrypt/kms/README.ko.md), [`workflow/stepfunctions`](workflow/stepfunctions/README.ko.md),
   [`examples/integration`](examples/integration/README.ko.md),
   [`examples/s3`](examples/s3/README.ko.md),
   [`examples/sqs-sns`](examples/sqs-sns/README.ko.md).
@@ -173,7 +174,7 @@ go get github.com/bluetape4k/bluetape-go
   [`cache/redisvalue`](cache/redisvalue/README.ko.md),
   [`ratelimit`](ratelimit/README.ko.md),
   [`state`](state/README.ko.md), [`workreport`](workreport/README.ko.md),
-  [`workflow`](workflow/README.ko.md), [`batch`](batch/README.ko.md).
+  [`workflow`](workflow/README.ko.md), [`workflow/stepfunctions`](workflow/stepfunctions/README.ko.md), [`batch`](batch/README.ko.md).
 - Portable utility: [`id`](id/README.ko.md), [`jwt`](jwt/README.ko.md),
   [`jwt/redis`](jwt/redis/README.ko.md), [`jwt/mongo`](jwt/mongo/README.ko.md),
   [`measure`](measure/README.ko.md), [`money`](money/README.ko.md),

@@ -368,7 +368,7 @@ run_chart_generation() {
     "$results_file" >"$chart_generation_log" 2>&1 &
   chart_pid=$!
 
-  local chart_started=$SECONDS
+  local chart_elapsed_ms=0
   local output_bytes=0
   local command_status=0
   while kill -0 "$chart_pid" 2>/dev/null; do
@@ -381,7 +381,7 @@ run_chart_generation() {
       chart_exit_status=125
       return 125
     fi
-    if [ $((SECONDS - chart_started)) -ge "$chart_timeout_seconds" ]; then
+    if [ "$chart_elapsed_ms" -ge "$((chart_timeout_seconds * 1000))" ]; then
       chart_failure_reason=timeout
       terminate_chart_process
       printf '\n[chart_timeout_after_%s_seconds]\n' "$chart_timeout_seconds" >>"$chart_generation_log"
@@ -389,6 +389,7 @@ run_chart_generation() {
       return 124
     fi
     sleep 0.05
+    chart_elapsed_ms=$((chart_elapsed_ms + 50))
   done
 
   if wait "$chart_pid"; then

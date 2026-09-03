@@ -98,6 +98,7 @@ future scope, not part of the current public API.
 | [`state`](state/README.md) | active | Small finite state machine primitives with typed transitions, guards, final states, and sentinel errors. |
 | [`workreport`](workreport/README.md) | active | Status, failure-policy, and report-tree values for lightweight workflow code. |
 | [`workflow`](workflow/README.md) | active | Sequential, conditional, and all-branches parallel runners built on `context.Context` and `workreport`. |
+| [`workflow/stepfunctions`](workflow/stepfunctions/README.md) | active | Caller-owned AWS Step Functions execution bridge with start, describe, optional stop, and bounded cancellable polling. |
 | [`batch`](batch/README.md) | active | Chunk-oriented batch steps, sequential jobs, retry/skip policies, reports, and checkpoints. |
 | [`batch/sqlcheckpoint`](batch/sqlcheckpoint/README.md) | active | PostgreSQL durable checkpoints that atomically commit a batch callback and consumed-input progress with revision CAS. |
 | [`id`](id/README.md) | active | UUID v4/v7, random and monotonic ULID, standard KSUID, Kotlin-compatible KSUID millis, and Snowflake ID generators. |
@@ -152,7 +153,7 @@ overview.
   package READMEs listed above. Focused examples in `testing` cover
   table-driven tests, package-local builders, golden files, deterministic random
   data, and cancellation assertions without adding an assertion DSL.
-- AWS/Floci: [`dynamodb/batchwrite`](dynamodb/batchwrite/README.md), [`encrypt/kms`](encrypt/kms/README.md), and
+- AWS/Floci: [`dynamodb/batchwrite`](dynamodb/batchwrite/README.md), [`encrypt/kms`](encrypt/kms/README.md), [`workflow/stepfunctions`](workflow/stepfunctions/README.md), and
   compile-checked examples under [`examples/integration`](examples/integration/README.md),
   [`examples/s3`](examples/s3/README.md), and
   [`examples/sqs-sns`](examples/sqs-sns/README.md).
@@ -178,7 +179,7 @@ overview.
   [`cache/redisvalue`](cache/redisvalue/README.md),
   [`ratelimit`](ratelimit/README.md),
   [`state`](state/README.md), [`workreport`](workreport/README.md),
-  [`workflow`](workflow/README.md), and [`batch`](batch/README.md).
+  [`workflow`](workflow/README.md), [`workflow/stepfunctions`](workflow/stepfunctions/README.md), and [`batch`](batch/README.md).
 - Portable utilities: [`id`](id/README.md), [`jwt`](jwt/README.md),
   [`jwt/redis`](jwt/redis/README.md), [`jwt/mongo`](jwt/mongo/README.md),
   [`measure`](measure/README.md), [`money`](money/README.md),
