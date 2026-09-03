@@ -183,7 +183,7 @@ func (p *Provider) Send(ctx context.Context, request SendRequest) (*SendResult, 
 	}
 
 	if err := ctx.Err(); err != nil {
-		return nil, err
+		return nil, newError(ErrCanceled, "send message", err, true, false)
 	}
 	output, callErr := p.sqsClient.SendMessage(ctx, &sqs.SendMessageInput{
 		QueueUrl:    aws.String(request.QueueURL),
@@ -374,7 +374,7 @@ func (p *Provider) Delete(ctx context.Context, request DeleteRequest) error {
 		return newError(ErrMalformedOutput, "delete message", nil, false, false)
 	}
 	if err := ctx.Err(); err != nil {
-		return err
+		return newError(ErrCanceled, "delete object", err, false, true)
 	}
 	s3Output, callErr := p.s3Client.DeleteObject(ctx, &s3.DeleteObjectInput{
 		Bucket: aws.String(request.Envelope.Bucket),

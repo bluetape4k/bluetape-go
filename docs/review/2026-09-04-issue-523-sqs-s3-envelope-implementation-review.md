@@ -15,6 +15,8 @@
   결정할 수 없으므로 동일한 orphan/queue-deleted 상태를 보존한다. SQS
   `DeleteMessage`가 output과 error를 함께 반환하는 경우에도 queue ack
   가능성을 `QueueDeleted`로 전달한다.
+- 첫 side effect 이후 다음 SDK dispatch 직전의 cancellation도 동일한 상태로
+  반환하며, 결정적 context fake가 queue/object dispatch 0회를 회귀 검증한다.
 - payload 하나의 SHA-256 digest를 envelope와 S3 checksum에 재사용하고,
   `Error.GoString`과 `%v %+v %#v` adversarial 검증으로 provider cause redaction을
   고정했다.

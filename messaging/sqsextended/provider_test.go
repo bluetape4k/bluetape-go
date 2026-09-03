@@ -129,6 +129,20 @@ type countingReadCloser struct {
 	onClose func()
 }
 
+type cancelOnErrContext struct {
+	context.Context
+	cancelAt int
+	checks   int
+}
+
+func (c *cancelOnErrContext) Err() error {
+	c.checks++
+	if c.checks >= c.cancelAt {
+		return context.Canceled
+	}
+	return nil
+}
+
 func (r *countingReadCloser) Close() error {
 	if r.onClose != nil {
 		r.onClose()
@@ -394,6 +408,21 @@ func TestSendCancellationPreservesOrphanStateWithoutSDKOutput(t *testing.T) {
 	}
 }
 
+func TestSendCancellationBeforeQueueDispatchPreservesOrphanState(t *testing.T) {
+	ctx := &cancelOnErrContext{Context: context.Background(), cancelAt: 5}
+	s3Client := &fakeS3Client{putOutput: &s3.PutObjectOutput{}}
+	sqsClient := &fakeSQSClient{sendOutput: &sqs.SendMessageOutput{MessageId: aws.String("message")}}
+	provider := mustProvider(t, sqsClient, s3Client)
+	result, err := provider.Send(ctx, validSendRequest())
+	var operationError *Error
+	if result != nil || !errors.Is(err, context.Canceled) || !errors.Is(err, ErrCanceled) || !errors.As(err, &operationError) || !operationError.OrphanedObject() {
+		t.Fatalf("Send cancellation = %v, want orphan state before queue dispatch", err)
+	}
+	if sqsClient.puts != 0 {
+		t.Fatalf("SQS calls after pre-dispatch cancellation = %d, want 0", sqsClient.puts)
+	}
+}
+
 func TestReceiveClosesObjectBodyWhenCanceledAfterGet(t *testing.T) {
 	payload := []byte("payload")
 	encoded, err := EncodeEnvelope(envelopeFor("bucket", "key", payload))
@@ -642,6 +671,21 @@ func TestDeleteCancellationPreservesQueueStateWithoutSDKOutput(t *testing.T) {
 	}
 	if s3Client.deletes != 0 {
 		t.Fatalf("S3 deletes after cancellation = %d, want 0", s3Client.deletes)
+	}
+}
+
+func TestDeleteCancellationBeforeObjectDispatchPreservesQueueState(t *testing.T) {
+	ctx := &cancelOnErrContext{Context: context.Background(), cancelAt: 5}
+	sqsClient := &fakeSQSClient{deleteOut: &sqs.DeleteMessageOutput{}}
+	s3Client := &fakeS3Client{deleteOut: &s3.DeleteObjectOutput{}}
+	provider := mustProvider(t, sqsClient, s3Client)
+	err := provider.Delete(ctx, DeleteRequest{QueueURL: "queue", ReceiptHandle: "receipt", Envelope: envelopeFor("bucket", "key", []byte("payload"))})
+	var operationError *Error
+	if !errors.Is(err, context.Canceled) || !errors.Is(err, ErrCanceled) || !errors.As(err, &operationError) || !operationError.QueueDeleted() {
+		t.Fatalf("Delete cancellation = %v, want queue state before object dispatch", err)
+	}
+	if s3Client.deletes != 0 {
+		t.Fatalf("S3 deletes after pre-dispatch cancellation = %d, want 0", s3Client.deletes)
 	}
 }
 
