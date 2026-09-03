@@ -57,6 +57,15 @@ go test ./workflow
   report를 input order로 보존합니다. `StopOnFailure`, aborted, cancelled child
   report는 sibling을 cancel하고 시작된 goroutine을 기다립니다.
 
+## 외부 실행 bridge
+
+[`workflow/stepfunctions`](stepfunctions/README.ko.md)는 이 in-process runner와
+분리된 package입니다. Caller-owned AWS Step Functions execution을 start,
+describe, optional stop, bounded wait/polling하는 bridge만 제공합니다. State
+machine을 정의·배포하거나 retry 및 durable workflow engine을 소유하지 않습니다.
+Payload 한도, 멱등성, cancellation, fake-first 검증 계약은 package README를
+참고하세요.
+
 ## 계약
 
 - Nil caller context는 `context.Background()`로 처리합니다.
