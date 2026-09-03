@@ -15,9 +15,11 @@ require (
 	github.com/aws/aws-sdk-go-v2/service/eventbridge v1.47.0
 	github.com/aws/aws-sdk-go-v2/service/kms v1.42.1
 	github.com/aws/aws-sdk-go-v2/service/s3 v1.105.0
+	github.com/aws/aws-sdk-go-v2/service/secretsmanager v1.47.0
 	github.com/aws/aws-sdk-go-v2/service/sfn v1.48.0
 	github.com/aws/aws-sdk-go-v2/service/sns v1.39.17
 	github.com/aws/aws-sdk-go-v2/service/sqs v1.42.27
+	github.com/aws/aws-sdk-go-v2/service/ssm v1.76.0
 	github.com/cespare/xxhash/v2 v2.3.0
 	github.com/cloudflare/ahocorasick v0.0.0-20240916140611-054963ec9396
 	github.com/expr-lang/expr v1.17.8
