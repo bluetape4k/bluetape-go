@@ -42,7 +42,7 @@ func (e *Error) Error() string {
 	return fmt.Sprintf("%v: %s", kind, operation)
 }
 
-// GoString은 %#v 형식에서도 parameter name과 provider cause를 숨긴다.
+// GoString 메서드는 %#v 형식에서도 parameter name과 provider cause를 숨긴다.
 func (e *Error) GoString() string {
 	return e.Error()
 }
