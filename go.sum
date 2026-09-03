@@ -34,6 +34,8 @@ github.com/aws/aws-sdk-go-v2/internal/v4a v1.4.31 h1:3GUprIsfmGcC5SACIyB0e7E0BM1
 github.com/aws/aws-sdk-go-v2/internal/v4a v1.4.31/go.mod h1:7PuV1yl5e2xnUbm+RqvVg5i2iBM8EyijZNoI9wsOoOc=
 github.com/aws/aws-sdk-go-v2/service/dynamodb v1.57.3 h1:XgjzLEE8CrNYnr4Xmi1W5PfKsKMjp4Pu1rWkJNO43JI=
 github.com/aws/aws-sdk-go-v2/service/dynamodb v1.57.3/go.mod h1:r7sfLXEN8RUA89tAHy1E7lCtVOOWIkqVy/FbnUdxW1E=
+github.com/aws/aws-sdk-go-v2/service/eventbridge v1.47.0 h1:LuPLDBMCmldgg779sq8swfEdRNMeKlaT852uxKYCOkk=
+github.com/aws/aws-sdk-go-v2/service/eventbridge v1.47.0/go.mod h1:3g/foYPw/4CT8yV7/A1QsbvnhDZW/2x2uzl4vkqX49o=
 github.com/aws/aws-sdk-go-v2/service/internal/accept-encoding v1.13.13 h1:mbRIur/BiHK6SKPjoBIXSE/hJ6g6JGRLuxQy1jGjlN4=
 github.com/aws/aws-sdk-go-v2/service/internal/accept-encoding v1.13.13/go.mod h1:ITg9em2KbJx1s0y4aqRX5OYWG6HBZ5TVR//OdpEZ2CQ=
 github.com/aws/aws-sdk-go-v2/service/internal/checksum v1.9.23 h1:9Fjh6fi/U5JEStVZijmaMpUwE/gvBJj7x2B/PjbO9To=

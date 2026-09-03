@@ -101,6 +101,11 @@ Redpanda, Pulsar 같은 durable transport는 이후 adapter 범위로 남깁니�
 broker-backed provider는 [`redisstreams`](redisstreams/README.ko.md)이며, Redis
 Streams에 record를 append하되 stream topology와 consumer replay policy는 caller에
 맡깁니다.
+EventBridge adapter
+[`eventbridge`](eventbridge/README.ko.md)는 검증된 record 하나를
+`PutEvents` 한 번으로 전송하고 JSON detail에 안정적인 event ID와
+idempotency key를 보존하며 AWS topology나 client lifecycle을 소유하지 않고
+entry-level failure를 매핑합니다.
 
 ## Boundaries
 
@@ -122,6 +127,9 @@ Streams에 record를 append하되 stream topology와 consumer replay policy는 c
 - [`redisstreams`](redisstreams/README.ko.md)는 좁은 Redis Streams publisher를
   제공합니다. Kafka, NATS, RabbitMQ, Redpanda, Pulsar, direct Redis audit
   storage는 이후 adapter 범위입니다.
+- [`eventbridge`](eventbridge/README.ko.md)는 좁은 single-entry EventBridge
+  publisher를 제공합니다. bus/rule/target provisioning과 downstream
+  idempotency는 caller/operator 책임입니다.
 
 ## Tests
 
@@ -129,6 +137,7 @@ Streams에 record를 append하되 stream topology와 consumer replay policy는 c
 go test -count=1 ./audit/sqloutbox
 go test -race -count=1 ./audit/sqloutbox
 go test -count=1 ./audit/sqloutbox/redisstreams
+go test -count=1 ./audit/sqloutbox/eventbridge
 go test -count=1 ./audit/sqloutbox -run 'RelayRunOnce(PublisherContextCancellationDoesNotRetry|RetriesDuplicatePublishWithStableEnvelope|ConcurrentStressPublishesEachRecordOnce)'
 ```
 
