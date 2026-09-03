@@ -11,6 +11,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/aws"
 	awsssm "github.com/aws/aws-sdk-go-v2/service/ssm"
 	awsssmtypes "github.com/aws/aws-sdk-go-v2/service/ssm/types"
+	"github.com/bluetape4k/bluetape-go/cache"
 )
 
 type fakeClient struct {
@@ -138,7 +139,7 @@ func TestProviderConfiguredDecryptionAndCacheModesDoNotCollide(t *testing.T) {
 	parameter := "value"
 	parameterOutput := parameterValue(parameter)
 	fake := &fakeClient{output: &awsssm.GetParameterOutput{Parameter: &parameterOutput}}
-	provider, err := New(Options{Client: fake, CacheTTL: time.Minute})
+	provider, err := New(Options{Client: fake, Cache: testCache(), CacheTTL: time.Minute})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -215,7 +216,7 @@ func TestProviderWrapsLookupErrorWithoutParameterDetails(t *testing.T) {
 		t.Fatal(err)
 	}
 	_, err = provider.Get(context.Background(), "parameter-name")
-	if !errors.Is(err, ErrLookupFailed) || contains(err.Error(), "super-sensitive") || contains(fmt.Sprintf("%+v", err), "parameter-name") {
+	if !errors.Is(err, ErrLookupFailed) || contains(err.Error(), "super-sensitive") || contains(fmt.Sprintf("%+v %#v", err, err), "parameter-name") || contains(fmt.Sprintf("%#v", err), "super-sensitive") {
 		t.Fatalf("redaction/error matching failed: %v", err)
 	}
 }
@@ -223,7 +224,7 @@ func TestProviderWrapsLookupErrorWithoutParameterDetails(t *testing.T) {
 func TestProviderPositiveTTLCachesOnlySuccessfulValues(t *testing.T) {
 	parameter := "cached"
 	fake := &fakeClient{output: &awsssm.GetParameterOutput{Parameter: func() *awsssmtypes.Parameter { parameter := parameterValue(parameter); return &parameter }()}}
-	provider, err := New(Options{Client: fake, CacheTTL: time.Minute})
+	provider, err := New(Options{Client: fake, Cache: testCache(), CacheTTL: time.Minute})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -238,11 +239,31 @@ func TestProviderPositiveTTLCachesOnlySuccessfulValues(t *testing.T) {
 	}
 }
 
+func TestProviderPositiveTTLExpiresValues(t *testing.T) {
+	parameter := "expiring"
+	parameterOutput := parameterValue(parameter)
+	fake := &fakeClient{output: &awsssm.GetParameterOutput{Parameter: &parameterOutput}}
+	provider, err := New(Options{Client: fake, Cache: testCache(), CacheTTL: 10 * time.Millisecond})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if _, err = provider.Get(context.Background(), "param"); err != nil {
+		t.Fatal(err)
+	}
+	time.Sleep(30 * time.Millisecond)
+	if _, err = provider.Get(context.Background(), "param"); err != nil {
+		t.Fatal(err)
+	}
+	if fake.count() != 2 {
+		t.Fatalf("expired value calls = %d, want 2", fake.count())
+	}
+}
+
 func TestProviderConcurrentCacheLoadsShareSuccessfulResult(t *testing.T) {
 	parameter := "concurrent"
 	parameterOutput := parameterValue(parameter)
 	fake := &fakeClient{output: &awsssm.GetParameterOutput{Parameter: &parameterOutput}}
-	provider, err := New(Options{Client: fake, CacheTTL: time.Minute})
+	provider, err := New(Options{Client: fake, Cache: testCache(), CacheTTL: time.Minute})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -266,7 +287,7 @@ func TestProviderConcurrentCacheLoadsShareSuccessfulResult(t *testing.T) {
 
 func TestProviderDoesNotCacheLookupErrors(t *testing.T) {
 	fake := &fakeClient{err: errors.New("temporary parameter failure")}
-	provider, err := New(Options{Client: fake, CacheTTL: time.Minute})
+	provider, err := New(Options{Client: fake, Cache: testCache(), CacheTTL: time.Minute})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -288,6 +309,13 @@ func TestNewRejectsNilClientAndNegativeTTL(t *testing.T) {
 	if _, err := New(Options{Client: &fakeClient{}, CacheTTL: -time.Second}); !errors.Is(err, ErrInvalidOptions) {
 		t.Fatalf("negative ttl error = %v", err)
 	}
+	if _, err := New(Options{Client: &fakeClient{}, CacheTTL: time.Minute}); !errors.Is(err, ErrInvalidOptions) {
+		t.Fatalf("positive ttl without cache error = %v", err)
+	}
+}
+
+func testCache() cache.LoadingCache[string, Value] {
+	return cache.NewMemory[string, Value]()
 }
 
 func parameterValue(value string) awsssmtypes.Parameter {

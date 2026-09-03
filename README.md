@@ -69,8 +69,8 @@ future scope, not part of the current public API.
 | [`testcontainers/nats`](testcontainers/nats/README.md) | active | NATS fixture helpers based on Testcontainers for Go. |
 | [`testcontainers/kafka`](testcontainers/kafka/README.md) | active | Kafka fixture helpers based on Testcontainers for Go. |
 | [`dynamodb/batchwrite`](dynamodb/batchwrite/README.md) | active | Narrow AWS SDK for Go v2 BatchWriteItem chunking and unprocessed-item retry helper. |
-| [`secretsmanager`](secretsmanager/README.md) | active | Caller-owned AWS Secrets Manager lookup with redacted string/binary values and optional positive-TTL cache. |
-| [`ssm`](ssm/README.md) | active | Caller-owned AWS Parameter Store lookup with explicit SecureString decryption and optional positive-TTL cache. |
+| [`secretsmanager`](secretsmanager/README.md) | active | Caller-owned AWS Secrets Manager lookup with redacted string/binary values and an explicit bounded positive-TTL cache. |
+| [`ssm`](ssm/README.md) | active | Caller-owned AWS Parameter Store lookup with explicit SecureString decryption and an explicit bounded positive-TTL cache. |
 | [`examples/integration`](examples/integration/README.md) | example | Compile-checked end-to-end recipes across corrected `0.6.x` packages. |
 | [`examples/audit`](examples/audit/README.md) | example | Runnable audit-backed order service demonstrating repository history and outbox replay boundaries. |
 | [`examples/graph/observability`](examples/graph/observability/README.md) | example | Runnable observability incident graph showing blast-radius, alert-boundary, ownership, and NDJSON graph I/O boundaries. |

@@ -2,9 +2,9 @@
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
-**Goal:** caller-owned AWS SDK client로 Secrets Manager와 SSM 값을 조회하는 두 개의 좁은 provider를 추가하고 redaction, cancellation, optional positive TTL cache를 fake-first 테스트로 고정한다.
+**Goal:** caller-owned AWS SDK client로 Secrets Manager와 SSM 값을 조회하는 두 개의 좁은 provider를 추가하고 redaction, cancellation, optional positive TTL cache와 bounded cache ownership을 fake-first 테스트로 고정한다.
 
-**Architecture:** `secretsmanager`와 `ssm`을 별도 package로 두고 각각 AWS SDK method subset만 주입한다. 결과는 formatter가 비밀값을 숨기는 immutable `Value`로 반환하며 기존 generic `cache.LoadingCache`를 선택적으로 사용한다. provider는 retry, credentials, precedence, refresh와 logger를 소유하지 않는다.
+**Architecture:** `secretsmanager`와 `ssm`을 별도 package로 두고 각각 AWS SDK method subset만 주입한다. 결과는 formatter가 비밀값을 숨기는 immutable `Value`로 반환하며 기존 generic `cache.LoadingCache`를 선택적으로 사용한다. positive TTL에서는 bounded caller-owned cache를 요구하고 provider는 unbounded process-local cache를 만들지 않는다. provider는 retry, credentials, precedence, refresh와 logger를 소유하지 않는다.
 
 **Tech Stack:** Go `1.26.3`, AWS SDK for Go v2 `service/secretsmanager v1.47.0`, `service/ssm v1.76.0`, `context`, `reflect`, `errors`, existing `cache.Memory`, `go test -race`.
 
@@ -32,14 +32,14 @@
 
 - [x] `secretsmanager/doc.go`, `errors.go`, `value.go`, `provider.go`에 `Client`, `Options`, `Provider`, `Value`, safe `Error`를 구현한다.
 - [x] `Get`은 identifier 검증, pre/post context check, `GetSecretValue` request mapping, string/binary output 선택을 수행한다.
-- [x] positive TTL cache는 `cache.LoadingCache.GetOrLoad`를 사용하고 성공만 저장한다. cache key와 raw value를 error에 넣지 않는다.
+- [x] positive TTL cache는 caller-supplied `cache.LoadingCache.GetOrLoad`를 사용하고 성공만 저장한다. cache key와 raw value를 error에 넣지 않으며, cache가 없으면 constructor가 거부한다.
 - [x] targeted normal/race tests와 `go vet ./secretsmanager`를 실행한다.
 
 ## Task 3: SSM 구현
 
 - [x] `ssm/doc.go`, `errors.go`, `value.go`, `provider.go`에 `Client`, `Options.WithDecryption`, `Provider.Get`, `Provider.GetSecure`를 구현한다.
 - [x] request의 `Name`과 effective `WithDecryption`을 검증/전달하고 mode별 cache key를 분리한다.
-- [x] parameter missing value, transport error, cancellation, cache hit/expiry와 redaction을 검증한다.
+- [x] parameter missing value, transport error, cancellation, cache hit/expiry, positive TTL cache 누락과 redaction을 검증한다.
 - [x] targeted normal/race tests와 `go vet ./ssm`를 실행한다.
 
 ## Task 4: docs/index 및 review

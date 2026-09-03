@@ -27,6 +27,6 @@ func ExampleProvider() {
 	if err != nil {
 		panic(err)
 	}
-	fmt.Println(value.Text())
-	// Output: example-secret
+	fmt.Printf("set=%t bytes=%d\n", value.IsSet(), len(value.Bytes()))
+	// Output: set=true bytes=14
 }

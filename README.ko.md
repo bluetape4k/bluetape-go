@@ -66,8 +66,8 @@ API가 아니라 module-gated future scope입니다.
 | [`testcontainers/nats`](testcontainers/nats/README.ko.md) | active | Testcontainers for Go 기반 NATS fixture. |
 | [`testcontainers/kafka`](testcontainers/kafka/README.ko.md) | active | Testcontainers for Go 기반 Kafka fixture. |
 | [`dynamodb/batchwrite`](dynamodb/batchwrite/README.ko.md) | active | AWS SDK for Go v2 BatchWriteItem 25개 chunking과 unprocessed-item retry helper. |
-| [`secretsmanager`](secretsmanager/README.ko.md) | active | Redacted string/binary 값과 optional positive-TTL cache를 제공하는 caller-owned AWS Secrets Manager lookup provider. |
-| [`ssm`](ssm/README.ko.md) | active | 명시적 SecureString 복호화와 optional positive-TTL cache를 제공하는 caller-owned AWS Parameter Store lookup provider. |
+| [`secretsmanager`](secretsmanager/README.ko.md) | active | Redacted string/binary 값과 caller-owned bounded positive-TTL cache를 제공하는 AWS Secrets Manager lookup provider. |
+| [`ssm`](ssm/README.ko.md) | active | 명시적 SecureString 복호화와 caller-owned bounded positive-TTL cache를 제공하는 AWS Parameter Store lookup provider. |
 | [`examples/integration`](examples/integration/README.ko.md) | example | 수정된 `0.6.x` package를 묶는 compile-checked end-to-end recipe. |
 | [`examples/audit`](examples/audit/README.ko.md) | example | Repository history와 outbox replay boundary를 보여주는 runnable audit-backed order service. |
 | [`examples/graph/observability`](examples/graph/observability/README.ko.md) | example | Blast radius, alert boundary, ownership, NDJSON graph I/O 경계를 보여주는 runnable observability incident graph. |

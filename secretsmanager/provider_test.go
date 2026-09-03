@@ -10,6 +10,7 @@ import (
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	awssm "github.com/aws/aws-sdk-go-v2/service/secretsmanager"
+	"github.com/bluetape4k/bluetape-go/cache"
 )
 
 type fakeClient struct {
@@ -160,7 +161,7 @@ func TestProviderRejectsMalformedOutputWithoutCaching(t *testing.T) {
 	} {
 		t.Run(name, func(t *testing.T) {
 			fake := &fakeClient{output: output}
-			provider, err := New(Options{Client: fake, CacheTTL: time.Minute})
+			provider, err := New(Options{Client: fake, Cache: testCache(), CacheTTL: time.Minute})
 			if err != nil {
 				t.Fatal(err)
 			}
@@ -214,7 +215,7 @@ func TestProviderWrapsLookupErrorWithoutSecretDetails(t *testing.T) {
 		t.Fatal(err)
 	}
 	_, err = provider.Get(context.Background(), "secret-name")
-	if !errors.Is(err, ErrLookupFailed) || !stringsNotContains(err.Error(), "super-sensitive") || !stringsNotContains(fmt.Sprintf("%+v", err), "secret-name") {
+	if !errors.Is(err, ErrLookupFailed) || !stringsNotContains(err.Error(), "super-sensitive") || !stringsNotContains(fmt.Sprintf("%+v %#v", err, err), "secret-name") || !stringsNotContains(fmt.Sprintf("%#v", err), "super-sensitive") {
 		t.Fatalf("redaction/error matching failed: %v", err)
 	}
 }
@@ -222,7 +223,7 @@ func TestProviderWrapsLookupErrorWithoutSecretDetails(t *testing.T) {
 func TestProviderPositiveTTLCachesOnlySuccessfulValues(t *testing.T) {
 	secret := "cached"
 	fake := &fakeClient{output: &awssm.GetSecretValueOutput{SecretString: &secret}}
-	provider, err := New(Options{Client: fake, CacheTTL: time.Minute})
+	provider, err := New(Options{Client: fake, Cache: testCache(), CacheTTL: time.Minute})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -237,9 +238,28 @@ func TestProviderPositiveTTLCachesOnlySuccessfulValues(t *testing.T) {
 	}
 }
 
+func TestProviderPositiveTTLExpiresValues(t *testing.T) {
+	secret := "expiring"
+	fake := &fakeClient{output: &awssm.GetSecretValueOutput{SecretString: &secret}}
+	provider, err := New(Options{Client: fake, Cache: testCache(), CacheTTL: 10 * time.Millisecond})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if _, err = provider.Get(context.Background(), "secret"); err != nil {
+		t.Fatal(err)
+	}
+	time.Sleep(30 * time.Millisecond)
+	if _, err = provider.Get(context.Background(), "secret"); err != nil {
+		t.Fatal(err)
+	}
+	if fake.count() != 2 {
+		t.Fatalf("expired value calls = %d, want 2", fake.count())
+	}
+}
+
 func TestProviderDoesNotCacheLookupErrors(t *testing.T) {
 	fake := &fakeClient{err: errors.New("temporary secret failure")}
-	provider, err := New(Options{Client: fake, CacheTTL: time.Minute})
+	provider, err := New(Options{Client: fake, Cache: testCache(), CacheTTL: time.Minute})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -256,7 +276,7 @@ func TestProviderDoesNotCacheLookupErrors(t *testing.T) {
 func TestProviderConcurrentCacheLoadsShareSuccessfulResult(t *testing.T) {
 	secret := "concurrent"
 	fake := &fakeClient{output: &awssm.GetSecretValueOutput{SecretString: &secret}}
-	provider, err := New(Options{Client: fake, CacheTTL: time.Minute})
+	provider, err := New(Options{Client: fake, Cache: testCache(), CacheTTL: time.Minute})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -286,6 +306,13 @@ func TestNewRejectsNilClientAndNegativeTTL(t *testing.T) {
 	if _, err := New(Options{Client: &fakeClient{}, CacheTTL: -time.Second}); !errors.Is(err, ErrInvalidOptions) {
 		t.Fatalf("negative ttl error = %v", err)
 	}
+	if _, err := New(Options{Client: &fakeClient{}, CacheTTL: time.Minute}); !errors.Is(err, ErrInvalidOptions) {
+		t.Fatalf("positive ttl without cache error = %v", err)
+	}
+}
+
+func testCache() cache.LoadingCache[string, Value] {
+	return cache.NewMemory[string, Value]()
 }
 
 func stringsNotContains(value, unwanted string) bool {

@@ -4,14 +4,15 @@
 
 `secretsmanager`는 AWS SDK for Go v2 `GetSecretValue`만 사용하는 좁은
 provider입니다. caller-owned client를 주입하고 string 또는 binary 결과를
-redacted `Value`로 반환하며, positive TTL `cache.LoadingCache`를 선택적으로
-사용합니다.
+redacted `Value`로 반환하며, caller-owned positive TTL
+`cache.LoadingCache`를 선택적으로 사용합니다.
 
 ## 사용 예
 
 ```go
 provider, err := secretsmanager.New(secretsmanager.Options{
     Client: client, // config, credential, retry, lifecycle은 caller 소유
+    Cache: cache,   // bounded capacity/eviction 정책도 caller 소유
     CacheTTL: 5 * time.Minute,
 })
 if err != nil {
@@ -38,9 +39,10 @@ password := value.Text() // raw value를 명시적으로 전달
 - `SecretString`과 `SecretBinary`는 동시에 존재할 수 없습니다. 값이 없거나
   malformed response이면 typed sentinel을 반환하고 cache에 저장하지 않습니다.
 - `CacheTTL == 0`이면 cache를 사용하지 않습니다. Positive TTL에서는 전달받은
-  `cache.LoadingCache`를 사용하고, cache가 없으면 provider가 process-local
-  cache를 생성합니다. 성공값만 저장하며 오류, cancellation, stale 값은
-  cache 경로에서 반환하지 않습니다.
+  `cache.LoadingCache`가 반드시 필요합니다. provider가 process-local
+  unbounded cache를 암묵적으로 생성하지 않으며, bounded capacity/eviction
+  정책과 invalidation은 caller가 선택하고 소유합니다. 성공값만 저장하며
+  오류, cancellation, stale 값은 cache 경로에서 반환하지 않습니다.
 - 이름은 valid UTF-8, non-blank, 최대 2048 byte여야 합니다. caller 문자열은
   trim 또는 normalization 없이 AWS request에 그대로 전달합니다.
 

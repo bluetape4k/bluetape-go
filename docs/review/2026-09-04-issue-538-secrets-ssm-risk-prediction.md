@@ -11,7 +11,7 @@
 | raw secret이 formatter/error/cache 경계에서 노출 | 높음 | unexported `Value` bytes, `String`/`GoString` redaction, error `%+v` test |
 | SecretString/SecretBinary 또는 SSM nil output을 성공 처리 | 높음 | exact-one/missing-value table tests, zero provider call on invalid input |
 | response 직후 cancellation이 성공을 가림 | 높음 | SDK response 후 `ctx.Err()` 우선 검사와 blocking fake |
-| error/cancellation/stale 값이 TTL cache에 저장 | 높음 | `GetOrLoad` success-only contract, expiry/error/no-stale tests |
+| error/cancellation/stale 값 또는 unbounded process-local cache가 secret을 보존 | 높음 | positive TTL에서 caller-owned bounded cache를 요구하고 implicit cache 생성을 거부한다. `GetOrLoad` success-only contract, expiry/error/no-stale tests |
 | shared cache race 또는 caller buffer alias | 높음 | value copy, mutex-safe existing cache, normal/race concurrent tests |
 | decryption mode cache collision | 중간 | mode-prefixed SSM cache key와 captured request tests |
 | caller 설정 precedence/credential lifecycle 오해 | 중간 | EN/KO README에 소유권과 비목표 명시 |
@@ -19,8 +19,8 @@
 
 ## Stop conditions
 
-P0/P1 secret exposure, cancellation masking, cache stale/error hit, data race,
-or unbounded input must block PR progression. live emulator가 지원되지 않으면
+P0/P1 secret exposure, cancellation masking, cache stale/error hit, unbounded
+cache retention, data race, or unbounded input must block PR progression. live emulator가 지원되지 않으면
 fake-first evidence를 유지하고 이를 live smoke PASS로 표현하지 않는다.
 
 ## SPW status

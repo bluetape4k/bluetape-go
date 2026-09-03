@@ -27,8 +27,8 @@ var _ Client = (*awssm.Client)(nil)
 type Options struct {
 	// Client는 호출자가 생성하고 수명을 관리하는 Secrets Manager client다.
 	Client Client
-	// Cache는 optional caller-owned positive TTL cache다. nil이면 CacheTTL이
-	// positive일 때 process-local cache.Memory를 provider가 생성한다.
+	// Cache는 caller-owned positive TTL cache다. CacheTTL이 positive이면
+	// bounded capacity/eviction 정책을 가진 cache를 반드시 제공해야 한다.
 	Cache cache.LoadingCache[string, Value]
 	// CacheTTL이 0이면 cache를 사용하지 않는다. 음수는 거부된다.
 	CacheTTL time.Duration
@@ -53,11 +53,10 @@ func New(options Options) (*Provider, error) {
 	if options.Cache != nil && isNilCache(options.Cache) {
 		return nil, newError(ErrInvalidOptions, "validate options", nil)
 	}
-	lookupCache := options.Cache
-	if lookupCache == nil && options.CacheTTL > 0 {
-		lookupCache = cache.NewMemory[string, Value]()
+	if options.CacheTTL > 0 && options.Cache == nil {
+		return nil, newError(ErrInvalidOptions, "validate options", nil)
 	}
-	return &Provider{client: options.Client, cache: lookupCache, cacheTTL: options.CacheTTL}, nil
+	return &Provider{client: options.Client, cache: options.Cache, cacheTTL: options.CacheTTL}, nil
 }
 
 // Get - secret ARN 또는 name으로 현재 secret 값을 조회한다.
@@ -133,7 +132,7 @@ func (p *Provider) lookup(ctx context.Context, name string) (Value, error) {
 }
 
 func (p *Provider) validate() error {
-	if p == nil || isNilClient(p.client) || p.cacheTTL < 0 {
+	if p == nil || isNilClient(p.client) || p.cacheTTL < 0 || (p.cacheTTL > 0 && (p.cache == nil || isNilCache(p.cache))) {
 		return newError(ErrInvalidOptions, "validate options", nil)
 	}
 	if p.cache != nil && isNilCache(p.cache) {

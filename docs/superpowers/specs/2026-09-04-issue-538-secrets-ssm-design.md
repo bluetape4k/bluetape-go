@@ -23,9 +23,10 @@ smoke는 호출자 또는 별도 이슈의 책임이다.
    `[REDACTED]`를 반환한다.
 3. cache는 기존 `cache.LoadingCache[string, Value]`를 선택적으로 주입한다.
    `CacheTTL == 0`은 cache를 사용하지 않고, positive TTL만 성공 결과를
-   저장한다. 오류, cancellation, stale value는 저장하지 않는다. cache가
-   없고 positive TTL을 지정하면 process-local `cache.Memory`를 provider가
-   생성한다.
+   저장한다. 오류, cancellation, stale value는 저장하지 않는다. positive
+   TTL에서는 caller가 bounded capacity/eviction 정책을 가진 cache를 반드시
+   제공하며, provider는 unbounded process-local cache를 암묵적으로 생성하지
+   않는다. cache ownership과 invalidation도 caller의 책임이다.
 4. 모든 외부 호출 전후에 `context.Context`를 검사한다. response와
    cancellation이 함께 도착하면 caller cancellation을 반환한다.
 5. 오류 문자열에는 secret/parameter name, raw value, provider error text를
@@ -65,7 +66,7 @@ decryption mode를 포함한다.
 
 `Client`에는 SDK concrete client가 compile-time assertion으로 연결된다.
 `New`는 nil 및 모든 `reflect.IsNil` 가능 kind의 typed-nil client/cache,
-negative TTL, nil option을 거부한다. 이름은 trim하거나 정규화하지 않고
+negative TTL, positive TTL에서 cache 누락, nil option을 거부한다. 이름은 trim하거나 정규화하지 않고
 valid UTF-8, non-blank, AWS의 2048-byte 상한만 검사한다.
 
 ## 응답 및 오류 계약
@@ -73,7 +74,8 @@ valid UTF-8, non-blank, AWS의 2048-byte 상한만 검사한다.
 Secrets Manager 응답에서 `SecretString`과 `SecretBinary` 중 정확히 하나가
 존재해야 한다. empty string과 non-nil empty binary는 유효한 값이다. 둘 다
 없거나 둘 다 있으면 `ErrMissingValue` 또는 `ErrMalformedOutput`을 반환하고
-cache/호출자에게 저장하지 않는다. SSM 응답에는 `Parameter`와 non-nil
+cache/호출자에게 저장하지 않는다. Positive TTL cache는 만료 후 재조회와
+caller-owned eviction 경계를 검증한다. SSM 응답에는 `Parameter`와 non-nil
 `Parameter.Value`가 필요하다.
 
 각 package는 다음 sentinel과 safe typed `Error`를 제공한다.

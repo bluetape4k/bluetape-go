@@ -4,14 +4,15 @@
 
 `ssm` is a narrow AWS SDK for Go v2 Parameter Store `GetParameter` provider.
 It accepts a caller-owned client, exposes SecureString decryption as an
-explicit option, returns a redacted `Value`, and optionally uses a positive-TTL
-`cache.LoadingCache`.
+explicit option, returns a redacted `Value`, and optionally uses a caller-owned
+positive-TTL `cache.LoadingCache`.
 
 ## Usage
 
 ```go
 provider, err := ssm.New(ssm.Options{
     Client:         client, // caller owns config, credentials, retries, and lifecycle
+    Cache:           cache,  // caller owns bounded capacity and eviction policy
     WithDecryption: true,
     CacheTTL:       5 * time.Minute,
 })
@@ -40,10 +41,11 @@ empty parameter remains set.
   result publication. Caller cancellation wins over a late successful response.
 - `Get` uses `Options.WithDecryption`; `GetSecure` forces decryption. Plain and
   secure lookups use different cache keys and cannot return one another's data.
-- `CacheTTL == 0` disables caching. A positive TTL uses the supplied
-  `cache.LoadingCache`; if no cache is supplied, a process-local cache is used.
-  Only successful values are cached. Errors, cancellation, and stale values are
-  not cached.
+- `CacheTTL == 0` disables caching. A positive TTL requires the supplied
+  `cache.LoadingCache`; the provider never creates an implicit unbounded
+  process-local cache. The caller chooses and owns bounded capacity, eviction,
+  and invalidation policy. Only successful values are cached. Errors,
+  cancellation, and stale values are not cached.
 - Names are valid UTF-8, non-blank, and at most 2048 bytes. The exact caller
   string is passed to AWS without trimming or normalization.
 

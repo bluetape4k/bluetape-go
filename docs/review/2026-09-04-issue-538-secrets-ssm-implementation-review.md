@@ -1,5 +1,15 @@
 # #538 Secrets Manager 및 SSM provider 구현 리뷰
 
+## 2026-09-04 보강 검토
+
+performance/security 리뷰의 positive-TTL implicit unbounded cache와 `%#v`
+redaction 지적을 반영했다. `CacheTTL > 0`이면 caller-owned cache를 반드시
+제공해야 하며 provider가 `cache.NewMemory`를 자동 생성하지 않는다. 양 package의
+short-TTL expiry와 constructor rejection 회귀 테스트가 추가됐고, `Error.GoString`
+및 `%+v %#v` 검증으로 provider cause redaction을 고정했다. Secret example은
+raw value 대신 set 여부와 byte 길이만 출력한다. targeted test, race, vet와
+`git diff --check`가 PASS하며 보강 판정은 `P0=0, P1=0`이다.
+
 ## 판정
 
 - 검토 대상: `feat/issue-538-secrets-ssm` working tree delta

@@ -7,9 +7,11 @@ caller-owned SDK method subset만 받아야 한다. SecretString, SecretBinary�
 SSM SecureString은 서로 다른 response 계약이므로 `secretsmanager`와 `ssm`을
 분리하고, 원문은 immutable `Value`의 명시적 `Bytes`/`Text` 경로로만 전달한다.
 
-positive TTL cache가 필요할 때는 기존 `cache.LoadingCache` 계약을 재사용한다.
-성공 결과만 저장하고 오류, cancellation, stale value는 저장하지 않으며, SSM
-plain/decrypted 조회는 cache key namespace를 분리해야 한다.
+positive TTL cache가 필요할 때는 caller-owned 기존 `cache.LoadingCache` 계약을
+재사용한다. provider는 unbounded process-local cache를 암묵적으로 만들지 않고,
+bounded capacity/eviction 정책이 없는 positive TTL 구성을 거부한다. 성공 결과만
+저장하고 오류, cancellation, stale value는 저장하지 않으며, SSM plain/decrypted
+조회는 cache key namespace를 분리해야 한다.
 
 ## 검증에서 확인한 hardening
 
@@ -22,7 +24,9 @@ plain/decrypted 조회는 cache key namespace를 분리해야 한다.
 - `Value.Bytes()`와 provider/cache 경계에서 defensive copy를 사용해 caller
   buffer mutation이 cache에 저장된 값을 바꾸지 않게 했다.
 - positive TTL concurrent load는 기존 Memory cache의 single-flight에 맡기고,
-  provider가 global cache나 refresh goroutine을 만들지 않는다.
+  provider가 global cache나 refresh goroutine을 만들지 않는다. expiry 회귀는
+  짧은 TTL로 재조회가 발생하는지 검증하고 실제 cache capacity/eviction은
+  caller-owned backend에서 보장한다.
 - GoDoc exported identifier 규칙을 `golangci-lint`로 확인하려면 한국어 조사와
   identifier를 공백 또는 `-`로 분리해야 한다. 최종 lint 결과는 `0 issues`다.
 
