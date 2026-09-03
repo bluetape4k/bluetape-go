@@ -16,8 +16,9 @@ metadata schema, filter 의미 해석, credentials, retry, pagination, logging�
   복제해 SDK opt-in 변형으로부터 보호한다.
 - AWS가 문서화한 batch/count/dimension/key/page/TopK와 20 MiB request bound를
   clone·dispatch 전에 적용해 큰 invalid 입력이 serialization/network 비용을
-  먼저 발생시키지 않도록 한다. index에 설정된 실제 dimension 일치는 caller가
-  소유한다.
+  먼저 발생시키지 않도록 한다. float32 JSON 표기 차이를 흡수하는 보수적
+  component byte budget을 사용하고, index에 설정된 실제 dimension 일치는
+  caller가 소유한다.
 - `context.Context` 취소는 SDK 호출 전후에 확인하며, 반환된 응답이나 SDK 오류보다
   caller 취소를 우선한다.
 - SDK 오류는 `errors.Is`/`errors.As`가 유지되도록 감싸되, resource ARN·bucket/index

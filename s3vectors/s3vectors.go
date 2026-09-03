@@ -491,13 +491,7 @@ type documentMarshaler interface {
 	MarshalSmithyDocument() ([]byte, error)
 }
 
-func serializedDocumentSize(value any) (size int, ok bool) {
-	defer func() {
-		if recover() != nil {
-			// 호출자 소유 custom document의 panic은 요청 preflight 밖으로 전파하지 않는다.
-			size, ok = 0, false
-		}
-	}()
+func serializedDocumentSize(value any) (int, bool) {
 	if value == nil || isNilValue(value) {
 		return 0, true
 	}

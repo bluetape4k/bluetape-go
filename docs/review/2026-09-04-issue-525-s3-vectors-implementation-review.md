@@ -10,6 +10,10 @@ fake의 post-response hook과 root README EN/KO package row도 보강했으며, 
 입력의 SDK 호출 0회·targeted race/vet가 PASS다. `Error.GoString`과 `%#v` redaction
 검증도 포함한다. opaque `document.Interface`는 provider-specific deep-copy를
 시도하지 않고 dispatch 동안 caller 불변 계약을 README/spec/lesson에 명시했다.
+document marshaler의 panic을 광범위하게 recover하지 않고, 명시적 marshal
+error만 invalid request로 분류해 caller bug와 SDK 계약 결함을 숨기지 않는다.
+vector float32 JSON 표기는 component당 보수적 32 byte를 예약해 20 MiB
+preflight가 실제 인코딩보다 작아지지 않도록 했다.
 보강 판정은 `P0=0, P1=0`이며 exact-head 원격 CI를 별도 확인한다.
 
 ## 검토 범위
