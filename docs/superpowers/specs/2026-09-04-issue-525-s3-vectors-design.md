@@ -35,11 +35,13 @@ S3 Vectors는 일반 S3 object API와 별도 service이며 SDK의 `document.Inte
 - `ListIndexes`, `GetIndex`
 - `PutVectors`, `GetVectors`, `ListVectors`, `QueryVectors`
 
-`Provider`는 각 메서드에서 같은 이름의 SDK input/output을 사용하며,
-SDK paginator를 숨기거나 결과를 vector database 모델로 변환하지 않는다.
-`Provider`는 bucket/index 식별자, non-empty keys/vectors, float32 값의 finite
-여부, query `TopK`, segment 조합 같은 조기 검증만 수행한다. dimension,
-distance metric, metadata schema와 filter 값의 의미는 호출자가 소유한다.
+`Provider`는 각 메서드에서 같은 이름의 SDK input/output을 사용하며, SDK
+paginator를 숨기거나 결과를 vector database 모델로 변환하지 않는다. `Provider`는
+bucket/index 식별자와 finite float32 값 외에도 AWS request bound를 dispatch 전에
+검증한다: PutVectors 500개/4,096 dimension, GetVectors 100개 key, vector key
+63 byte, ListVectors 1,000개와 16 segment, QueryVectors TopK 10,000, vector
+metadata 40 KiB, request payload 20 MiB. index dimension, distance metric,
+metadata schema와 filter 값의 의미는 호출자가 소유한다.
 
 모든 외부 호출은 전달받은 `context.Context`를 그대로 사용한다. 호출 전과
 응답 직후 context를 확인해 caller cancellation이 SDK 오류보다 우선하도록
@@ -58,7 +60,9 @@ distance metric, metadata schema와 filter 값의 의미는 호출자가 소유�
 `Provider` zero value는 외부 호출 없이 `ErrInvalidProvider`를 반환한다.
 입력/응답 slice와 metadata 값은 호출자/SDK 메모리를 보존하도록 필요한
 경계에서 복사한다. SDK의 `document.Interface` 자체는 opaque 값으로 유지해
-직렬화 의미를 변경하지 않는다.
+직렬화 의미를 변경하지 않는다. 호출자는 SDK dispatch가 끝날 때까지 해당
+opaque document를 변경하지 않아야 하며, provider-specific 구현의 deep-copy는
+지원하지 않는다.
 
 ## 실패, cancellation, 보안 계약
 
@@ -70,8 +74,9 @@ distance metric, metadata schema와 filter 값의 의미는 호출자가 소유�
 - 오류 문자열에는 bucket/index 이름, metadata/filter, vector 값, provider
   오류의 raw message를 포함하지 않는다.
 - vector 값은 finite `float32`만 허용하고 cosine index의 zero-vector 정책과
-  dimension 일치는 AWS index 계약/호출자 책임으로 남긴다. 이 package가
-  임의 dimension이나 distance metric을 추론하지 않는다.
+  실제 index dimension 일치는 AWS index 계약/호출자 책임으로 남긴다. 이
+  package는 서비스의 4,096 dimension 상한만 preflight하고 임의 dimension이나
+  distance metric을 추론하지 않는다.
 
 ## 수용 기준과 DoD
 

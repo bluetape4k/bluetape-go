@@ -166,7 +166,9 @@ func (f *fakeClient) QueryVectors(ctx context.Context, input *awss3vectors.Query
 	f.queryVectorsInput = cloneQueryVectorsInput(input)
 	out := f.queryVectorsOutput
 	f.mu.Unlock()
-	return out, f.result("query vectors")
+	err := f.result("query vectors")
+	f.after()
+	return out, err
 }
 
 func (f *fakeClient) callCount(operation string) int {
@@ -373,6 +375,81 @@ func TestPutVectorsValidatesFiniteValuesAndPreservesMetadata(t *testing.T) {
 	}
 }
 
+func TestS3VectorsPreflightEnforcesServiceBounds(t *testing.T) {
+	fake := newFakeClient()
+	provider := mustProvider(t, fake)
+	validVector := func(key string, dimension int) types.PutInputVector {
+		return types.PutInputVector{
+			Key:  aws.String(key),
+			Data: &types.VectorDataMemberFloat32{Value: make([]float32, dimension)},
+		}
+	}
+	tests := []struct {
+		name string
+		call func() error
+	}{
+		{name: "put count", call: func() error {
+			vectors := make([]types.PutInputVector, MaxPutVectors+1)
+			for i := range vectors {
+				vectors[i] = validVector(fmt.Sprintf("item-%d", i), 1)
+			}
+			_, err := provider.PutVectors(context.Background(), &awss3vectors.PutVectorsInput{IndexName: aws.String("index"), VectorBucketName: aws.String("bucket"), Vectors: vectors})
+			return err
+		}},
+		{name: "put dimension", call: func() error {
+			_, err := provider.PutVectors(context.Background(), &awss3vectors.PutVectorsInput{IndexName: aws.String("index"), VectorBucketName: aws.String("bucket"), Vectors: []types.PutInputVector{validVector("item", MaxVectorDimension+1)}})
+			return err
+		}},
+		{name: "put key length", call: func() error {
+			_, err := provider.PutVectors(context.Background(), &awss3vectors.PutVectorsInput{IndexName: aws.String("index"), VectorBucketName: aws.String("bucket"), Vectors: []types.PutInputVector{validVector(strings.Repeat("k", MaxVectorKeyBytes+1), 1)}})
+			return err
+		}},
+		{name: "put estimated request bytes", call: func() error {
+			vectors := make([]types.PutInputVector, 200)
+			for i := range vectors {
+				vectors[i] = validVector(fmt.Sprintf("item-%d", i), MaxVectorDimension)
+			}
+			_, err := provider.PutVectors(context.Background(), &awss3vectors.PutVectorsInput{IndexName: aws.String("index"), VectorBucketName: aws.String("bucket"), Vectors: vectors})
+			return err
+		}},
+		{name: "metadata bytes", call: func() error {
+			_, err := provider.PutVectors(context.Background(), &awss3vectors.PutVectorsInput{IndexName: aws.String("index"), VectorBucketName: aws.String("bucket"), Vectors: []types.PutInputVector{{Key: aws.String("item"), Data: &types.VectorDataMemberFloat32{Value: []float32{1}}, Metadata: document.NewLazyDocument(strings.Repeat("m", MaxVectorMetadataBytes))}}})
+			return err
+		}},
+		{name: "get count", call: func() error {
+			keys := make([]string, MaxGetVectors+1)
+			for i := range keys {
+				keys[i] = fmt.Sprintf("item-%d", i)
+			}
+			_, err := provider.GetVectors(context.Background(), &awss3vectors.GetVectorsInput{IndexName: aws.String("index"), VectorBucketName: aws.String("bucket"), Keys: keys})
+			return err
+		}},
+		{name: "list results", call: func() error {
+			max := MaxListVectorsResults + 1
+			_, err := provider.ListVectors(context.Background(), &awss3vectors.ListVectorsInput{IndexName: aws.String("index"), VectorBucketName: aws.String("bucket"), MaxResults: &max})
+			return err
+		}},
+		{name: "segment count", call: func() error {
+			_, err := provider.ListVectors(context.Background(), &awss3vectors.ListVectorsInput{IndexName: aws.String("index"), VectorBucketName: aws.String("bucket"), SegmentCount: aws.Int32(MaxSegmentCount + 1), SegmentIndex: 0})
+			return err
+		}},
+		{name: "query top k", call: func() error {
+			_, err := provider.QueryVectors(context.Background(), &awss3vectors.QueryVectorsInput{IndexName: aws.String("index"), VectorBucketName: aws.String("bucket"), QueryVector: &types.VectorDataMemberFloat32{Value: []float32{1}}, TopK: aws.Int32(MaxQueryTopK + 1)})
+			return err
+		}},
+	}
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			if err := test.call(); !errors.Is(err, ErrInvalidRequest) {
+				t.Fatalf("error = %v, want ErrInvalidRequest", err)
+			}
+		})
+	}
+	if totalCalls(fake) != 0 {
+		t.Fatalf("invalid bounded requests made %d SDK calls, want 0", totalCalls(fake))
+	}
+}
+
 func TestGetVectorsRejectsEmptyKeys(t *testing.T) {
 	fake := newFakeClient()
 	provider := mustProvider(t, fake)
@@ -496,7 +573,7 @@ func TestProviderWrapsSDKErrorWithoutLeakingDetails(t *testing.T) {
 	if !errors.Is(err, ErrOperationFailed) || !errors.Is(err, cause) {
 		t.Fatalf("error = %v, want operation and cause matching", err)
 	}
-	message := fmt.Sprintf("%v %+v", err, err)
+	message := fmt.Sprintf("%v %+v %#v", err, err, err)
 	for _, secret := range []string{"provider secret metadata item-1", "catalog", "private-bucket"} {
 		if strings.Contains(message, secret) {
 			t.Fatalf("error %q leaks %q", message, secret)

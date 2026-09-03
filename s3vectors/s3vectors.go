@@ -5,9 +5,45 @@ import (
 	"math"
 	"reflect"
 	"strings"
+	"unicode/utf8"
 
 	awss3vectors "github.com/aws/aws-sdk-go-v2/service/s3vectors"
 	"github.com/aws/aws-sdk-go-v2/service/s3vectors/types"
+)
+
+const (
+	// MaxListVectorBucketsResults는 vector bucket page-size 상한이다.
+	MaxListVectorBucketsResults int32 = 500
+	// MaxListIndexesResults는 index page-size 상한이다.
+	MaxListIndexesResults int32 = 500
+	// MaxPutVectors는 PutVectors 한 호출의 vector 수 상한이다.
+	MaxPutVectors = 500
+	// MaxGetVectors는 GetVectors 한 호출의 key 수 상한이다.
+	MaxGetVectors = 100
+	// MaxListVectorsResults는 vector page-size 상한이다.
+	MaxListVectorsResults int32 = 1000
+	// MaxQueryTopK는 QueryVectors top-K 상한이다.
+	MaxQueryTopK int32 = 10_000
+	// MaxVectorDimension은 vector dimension 상한이다.
+	MaxVectorDimension = 4096
+	// MaxVectorKeyBytes는 vector key byte 상한이다.
+	MaxVectorKeyBytes = 63
+	// MaxSegmentCount는 병렬 ListVectors segment 수 상한이다.
+	MaxSegmentCount int32 = 16
+	// MaxVectorMetadataBytes는 vector 하나의 metadata byte 상한이다.
+	MaxVectorMetadataBytes = 40 << 10
+	// MaxRequestPayloadBytes는 JSON request payload byte 상한이다.
+	MaxRequestPayloadBytes = 20 << 20
+	// MaxIdentifierBytes는 index/bucket 식별자 byte 상한이다.
+	MaxIdentifierBytes = 1024
+	// MaxPaginationTokenBytes는 pagination token byte 상한이다.
+	MaxPaginationTokenBytes = 2048
+	// MaxPrefixBytes는 list prefix byte 상한이다.
+	MaxPrefixBytes = 1024
+	// maxVectorComponentBytes는 JSON 직렬화 시 float32 하나에 보수적으로
+	// 예약하는 byte 수다. 실제 SDK 인코더가 사용하는 표기 차이까지 포함해
+	// request payload preflight가 documented 20 MiB를 넘기지 않도록 한다.
+	maxVectorComponentBytes int64 = 32
 )
 
 // Client 는 Provider가 사용하는 최소 S3 Vectors SDK surface다.
@@ -60,10 +96,10 @@ func (p *Provider) ListVectorBuckets(ctx context.Context, input *awss3vectors.Li
 	if err != nil {
 		return nil, err
 	}
-	input = cloneListVectorBucketsInput(input)
 	if err := validateListVectorBucketsInput(input); err != nil {
 		return nil, err
 	}
+	input = cloneListVectorBucketsInput(input)
 	if err := ctx.Err(); err != nil {
 		return nil, err
 	}
@@ -81,10 +117,10 @@ func (p *Provider) GetVectorBucket(ctx context.Context, input *awss3vectors.GetV
 	if err != nil {
 		return nil, err
 	}
-	input = cloneGetVectorBucketInput(input)
 	if err := validateGetVectorBucketInput(input); err != nil {
 		return nil, err
 	}
+	input = cloneGetVectorBucketInput(input)
 	if err := ctx.Err(); err != nil {
 		return nil, err
 	}
@@ -101,10 +137,10 @@ func (p *Provider) ListIndexes(ctx context.Context, input *awss3vectors.ListInde
 	if err != nil {
 		return nil, err
 	}
-	input = cloneListIndexesInput(input)
 	if err := validateListIndexesInput(input); err != nil {
 		return nil, err
 	}
+	input = cloneListIndexesInput(input)
 	if err := ctx.Err(); err != nil {
 		return nil, err
 	}
@@ -121,10 +157,10 @@ func (p *Provider) GetIndex(ctx context.Context, input *awss3vectors.GetIndexInp
 	if err != nil {
 		return nil, err
 	}
-	input = cloneGetIndexInput(input)
 	if err := validateGetIndexInput(input); err != nil {
 		return nil, err
 	}
+	input = cloneGetIndexInput(input)
 	if err := ctx.Err(); err != nil {
 		return nil, err
 	}
@@ -142,10 +178,10 @@ func (p *Provider) PutVectors(ctx context.Context, input *awss3vectors.PutVector
 	if err != nil {
 		return nil, err
 	}
-	input = clonePutVectorsInput(input)
 	if err := validatePutVectorsInput(input); err != nil {
 		return nil, err
 	}
+	input = clonePutVectorsInput(input)
 	if err := ctx.Err(); err != nil {
 		return nil, err
 	}
@@ -163,10 +199,10 @@ func (p *Provider) GetVectors(ctx context.Context, input *awss3vectors.GetVector
 	if err != nil {
 		return nil, err
 	}
-	input = cloneGetVectorsInput(input)
 	if err := validateGetVectorsInput(input); err != nil {
 		return nil, err
 	}
+	input = cloneGetVectorsInput(input)
 	if err := ctx.Err(); err != nil {
 		return nil, err
 	}
@@ -184,10 +220,10 @@ func (p *Provider) ListVectors(ctx context.Context, input *awss3vectors.ListVect
 	if err != nil {
 		return nil, err
 	}
-	input = cloneListVectorsInput(input)
 	if err := validateListVectorsInput(input); err != nil {
 		return nil, err
 	}
+	input = cloneListVectorsInput(input)
 	if err := ctx.Err(); err != nil {
 		return nil, err
 	}
@@ -205,10 +241,10 @@ func (p *Provider) QueryVectors(ctx context.Context, input *awss3vectors.QueryVe
 	if err != nil {
 		return nil, err
 	}
-	input = cloneQueryVectorsInput(input)
 	if err := validateQueryVectorsInput(input); err != nil {
 		return nil, err
 	}
+	input = cloneQueryVectorsInput(input)
 	if err := ctx.Err(); err != nil {
 		return nil, err
 	}
@@ -278,7 +314,10 @@ func validateListVectorBucketsInput(input *awss3vectors.ListVectorBucketsInput) 
 	if input == nil {
 		return nil
 	}
-	if input.MaxResults != nil && *input.MaxResults <= 0 {
+	if input.MaxResults != nil && (*input.MaxResults <= 0 || *input.MaxResults > MaxListVectorBucketsResults) {
+		return newError(ErrInvalidRequest, "validate request", nil)
+	}
+	if !validOptionalString(input.Prefix, MaxPrefixBytes) || !validOptionalString(input.NextToken, MaxPaginationTokenBytes) {
 		return newError(ErrInvalidRequest, "validate request", nil)
 	}
 	return nil
@@ -295,7 +334,10 @@ func validateListIndexesInput(input *awss3vectors.ListIndexesInput) error {
 	if input == nil || !validIdentifierPair(input.VectorBucketArn, input.VectorBucketName) {
 		return newError(ErrInvalidRequest, "validate request", nil)
 	}
-	if input.MaxResults != nil && *input.MaxResults <= 0 {
+	if input.MaxResults != nil && (*input.MaxResults <= 0 || *input.MaxResults > MaxListIndexesResults) {
+		return newError(ErrInvalidRequest, "validate request", nil)
+	}
+	if !validOptionalString(input.Prefix, MaxPrefixBytes) || !validOptionalString(input.NextToken, MaxPaginationTokenBytes) {
 		return newError(ErrInvalidRequest, "validate request", nil)
 	}
 	return nil
@@ -309,12 +351,20 @@ func validateGetIndexInput(input *awss3vectors.GetIndexInput) error {
 }
 
 func validatePutVectorsInput(input *awss3vectors.PutVectorsInput) error {
-	if input == nil || !validIndexReference(input.IndexArn, input.IndexName, input.VectorBucketName) || len(input.Vectors) == 0 {
+	if input == nil || !validIndexReference(input.IndexArn, input.IndexName, input.VectorBucketName) || len(input.Vectors) == 0 || len(input.Vectors) > MaxPutVectors {
 		return newError(ErrInvalidRequest, "validate request", nil)
 	}
+	var requestBytes int64
 	for i := range input.Vectors {
 		vector := &input.Vectors[i]
-		if !nonBlankPointer(vector.Key) || !validVectorData(vector.Data) {
+		if !validVectorKey(vector.Key) || !validVectorData(vector.Data) {
+			return newError(ErrInvalidRequest, "validate request", nil)
+		}
+		metadataBytes, ok := serializedDocumentSize(vector.Metadata)
+		if !ok || metadataBytes > MaxVectorMetadataBytes {
+			return newError(ErrInvalidRequest, "validate request", nil)
+		}
+		if !addRequestBytes(&requestBytes, int64(len(*vector.Key))+int64(vectorDimension(vector.Data))*maxVectorComponentBytes+int64(metadataBytes)+64) {
 			return newError(ErrInvalidRequest, "validate request", nil)
 		}
 	}
@@ -322,11 +372,12 @@ func validatePutVectorsInput(input *awss3vectors.PutVectorsInput) error {
 }
 
 func validateGetVectorsInput(input *awss3vectors.GetVectorsInput) error {
-	if input == nil || !validIndexReference(input.IndexArn, input.IndexName, input.VectorBucketName) || len(input.Keys) == 0 {
+	if input == nil || !validIndexReference(input.IndexArn, input.IndexName, input.VectorBucketName) || len(input.Keys) == 0 || len(input.Keys) > MaxGetVectors {
 		return newError(ErrInvalidRequest, "validate request", nil)
 	}
+	var requestBytes int64
 	for _, key := range input.Keys {
-		if strings.TrimSpace(key) == "" {
+		if !validVectorKey(&key) || !addRequestBytes(&requestBytes, int64(len(key))+8) {
 			return newError(ErrInvalidRequest, "validate request", nil)
 		}
 	}
@@ -337,7 +388,10 @@ func validateListVectorsInput(input *awss3vectors.ListVectorsInput) error {
 	if input == nil || !validIndexReference(input.IndexArn, input.IndexName, input.VectorBucketName) {
 		return newError(ErrInvalidRequest, "validate request", nil)
 	}
-	if input.MaxResults != nil && *input.MaxResults <= 0 {
+	if input.MaxResults != nil && (*input.MaxResults <= 0 || *input.MaxResults > MaxListVectorsResults) {
+		return newError(ErrInvalidRequest, "validate request", nil)
+	}
+	if !validOptionalString(input.NextToken, MaxPaginationTokenBytes) {
 		return newError(ErrInvalidRequest, "validate request", nil)
 	}
 	if input.SegmentCount == nil {
@@ -346,14 +400,25 @@ func validateListVectorsInput(input *awss3vectors.ListVectorsInput) error {
 		}
 		return nil
 	}
-	if *input.SegmentCount <= 0 || input.SegmentIndex < 0 || input.SegmentIndex >= *input.SegmentCount {
+	if *input.SegmentCount <= 0 || *input.SegmentCount > MaxSegmentCount || input.SegmentIndex < 0 || input.SegmentIndex >= *input.SegmentCount {
 		return newError(ErrInvalidRequest, "validate request", nil)
 	}
 	return nil
 }
 
 func validateQueryVectorsInput(input *awss3vectors.QueryVectorsInput) error {
-	if input == nil || !validIndexReference(input.IndexArn, input.IndexName, input.VectorBucketName) || input.TopK == nil || *input.TopK <= 0 || !validVectorData(input.QueryVector) {
+	if input == nil || !validIndexReference(input.IndexArn, input.IndexName, input.VectorBucketName) || input.TopK == nil || *input.TopK <= 0 || *input.TopK > MaxQueryTopK || !validVectorData(input.QueryVector) {
+		return newError(ErrInvalidRequest, "validate request", nil)
+	}
+	filterBytes, ok := serializedDocumentSize(input.Filter)
+	if !ok || filterBytes > MaxRequestPayloadBytes {
+		return newError(ErrInvalidRequest, "validate request", nil)
+	}
+	requestBytes := int64(vectorDimension(input.QueryVector))*maxVectorComponentBytes + int64(filterBytes) + 128
+	if requestBytes > MaxRequestPayloadBytes {
+		return newError(ErrInvalidRequest, "validate request", nil)
+	}
+	if !validOptionalString(input.NextToken, MaxPaginationTokenBytes) {
 		return newError(ErrInvalidRequest, "validate request", nil)
 	}
 	return nil
@@ -382,7 +447,15 @@ func validIndexReference(arn, indexName, bucketName *string) bool {
 }
 
 func nonBlankPointer(value *string) bool {
-	return value != nil && strings.TrimSpace(*value) != ""
+	return value != nil && utf8.ValidString(*value) && len(*value) <= MaxIdentifierBytes && strings.TrimSpace(*value) != ""
+}
+
+func validOptionalString(value *string, maxBytes int) bool {
+	return value == nil || (utf8.ValidString(*value) && len(*value) <= maxBytes)
+}
+
+func validVectorKey(value *string) bool {
+	return value != nil && utf8.ValidString(*value) && strings.TrimSpace(*value) != "" && len(*value) <= MaxVectorKeyBytes
 }
 
 func validVectorData(data types.VectorData) bool {
@@ -391,7 +464,7 @@ func validVectorData(data types.VectorData) bool {
 	}
 	switch value := data.(type) {
 	case *types.VectorDataMemberFloat32:
-		if value == nil || len(value.Value) == 0 {
+		if value == nil || len(value.Value) == 0 || len(value.Value) > MaxVectorDimension {
 			return false
 		}
 		for _, item := range value.Value {
@@ -407,6 +480,46 @@ func validVectorData(data types.VectorData) bool {
 	}
 }
 
+func vectorDimension(data types.VectorData) int {
+	if value, ok := data.(*types.VectorDataMemberFloat32); ok && value != nil {
+		return len(value.Value)
+	}
+	return 0
+}
+
+type documentMarshaler interface {
+	MarshalSmithyDocument() ([]byte, error)
+}
+
+func serializedDocumentSize(value any) (size int, ok bool) {
+	defer func() {
+		if recover() != nil {
+			// 호출자 소유 custom document의 panic은 요청 preflight 밖으로 전파하지 않는다.
+			size, ok = 0, false
+		}
+	}()
+	if value == nil || isNilValue(value) {
+		return 0, true
+	}
+	marshaler, ok := value.(documentMarshaler)
+	if !ok {
+		return 0, false
+	}
+	encoded, err := marshaler.MarshalSmithyDocument()
+	if err != nil {
+		return 0, false
+	}
+	return len(encoded), true
+}
+
+func addRequestBytes(total *int64, amount int64) bool {
+	if total == nil || amount < 0 || amount > MaxRequestPayloadBytes-*total {
+		return false
+	}
+	*total += amount
+	return true
+}
+
 func normalizeContext(ctx context.Context) context.Context {
 	if ctx == nil {
 		return context.Background()
@@ -415,13 +528,17 @@ func normalizeContext(ctx context.Context) context.Context {
 }
 
 func isNilClient(client Client) bool {
-	if client == nil {
+	return isNilValue(client)
+}
+
+func isNilValue(value any) bool {
+	if value == nil {
 		return true
 	}
-	value := reflect.ValueOf(client)
-	switch value.Kind() {
+	valueOf := reflect.ValueOf(value)
+	switch valueOf.Kind() {
 	case reflect.Chan, reflect.Func, reflect.Interface, reflect.Map, reflect.Pointer, reflect.Slice:
-		return value.IsNil()
+		return valueOf.IsNil()
 	default:
 		return false
 	}

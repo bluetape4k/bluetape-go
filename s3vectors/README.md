@@ -74,25 +74,32 @@ The adapter rejects malformed requests before making an SDK call:
 - bucket references use exactly one of ARN or name;
 - index operations use either an index ARN or both index and bucket names;
 - vector writes and queries require non-empty finite `float32` data;
-- vector keys must be non-empty; `GetVectors` requires at least one key;
-- `TopK` and positive pagination limits must be positive;
+- vector keys are valid UTF-8 and at most 63 bytes; `GetVectors` accepts at most
+  100 keys;
+- `PutVectors` accepts at most 500 vectors and dimensions up to 4,096;
+- `TopK` is positive and at most 10,000; pagination limits are positive and
+  bounded to the AWS page sizes (500 buckets/indexes, 1,000 vectors);
 - `ListVectors` requires a valid `SegmentIndex`/`SegmentCount` pair when using
-  parallel listing.
+  parallel listing, with at most 16 segments;
+- each vector metadata document is bounded to 40 KiB and request preflight keeps
+  the estimated JSON payload within 20 MiB.
 
 Responses with nil output or missing SDK-required top-level fields are reported
 as `ErrMalformedOutput` rather than being treated as successful empty results.
 
-The adapter does not infer vector dimensions or distance metrics, generate
+The adapter does not infer index vector dimensions or distance metrics, generate
 embeddings, own Bedrock/OpenSearch integration, interpret metadata schemas or
 filters, collect all pages, retry requests, or install a logger. The caller
 owns those policies, credentials, client lifecycle, timeout, retry, logging,
 metrics, and cancellation deadline. S3 Vectors metadata and query filters stay
-as the SDK's opaque `document.Interface` values.
+as the SDK's opaque `document.Interface` values. The caller must keep those
+opaque values immutable for the duration of the SDK dispatch; the adapter does
+not deep-copy provider-specific document implementations.
 
 Cancellation is checked before dispatch and immediately after the SDK returns;
-caller cancellation wins over an SDK output or error. The adapter clones
-mutable SDK request pointers, key slices, and known `float32` vector slices
-before dispatch. Provider errors never include vector values, metadata/filter
+caller cancellation wins over an SDK output or error. The adapter validates
+before cloning, then clones mutable SDK request pointers, key slices, and known
+`float32` vector slices before dispatch. Provider errors never include vector values, metadata/filter
 documents, resource names, or raw provider messages; the original cause remains
 available through `errors.Is`/`errors.As`.
 

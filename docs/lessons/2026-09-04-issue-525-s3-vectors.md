@@ -14,12 +14,17 @@ metadata schema, filter 의미 해석, credentials, retry, pagination, logging�
 
 - 요청은 SDK 호출 전에 검증하고, caller가 재사용하는 요청 slice와 vector data를
   복제해 SDK opt-in 변형으로부터 보호한다.
+- AWS가 문서화한 batch/count/dimension/key/page/TopK와 20 MiB request bound를
+  clone·dispatch 전에 적용해 큰 invalid 입력이 serialization/network 비용을
+  먼저 발생시키지 않도록 한다. index에 설정된 실제 dimension 일치는 caller가
+  소유한다.
 - `context.Context` 취소는 SDK 호출 전후에 확인하며, 반환된 응답이나 SDK 오류보다
   caller 취소를 우선한다.
 - SDK 오류는 `errors.Is`/`errors.As`가 유지되도록 감싸되, resource ARN·bucket/index
   이름·provider 오류 문자열은 adapter 메시지에 복사하지 않는다.
 - SDK의 opaque `document.Interface` filter와 metadata는 해석·정규화하지 않고
-  그대로 전달한다.
+  그대로 전달한다. 이 값은 provider-specific 구현을 deep-copy하지 않으므로
+  caller는 SDK dispatch가 끝날 때까지 변경하지 않을 책임이 있다.
 - fake-first 테스트가 기본 경로이며, 검증된 live AWS 또는 local emulator가 없으므로
   기본 테스트에 외부 서비스를 연결하지 않는다. live 검증은 별도의 명시적 opt-in
   환경과 검증된 대상이 준비된 뒤 추가해야 한다.

@@ -74,24 +74,31 @@ adapter는 SDK를 호출하기 전에 다음 malformed request를 거부합니�
 - bucket reference에는 ARN 또는 name 중 정확히 하나를 사용합니다.
 - index operation에는 index ARN 또는 index name과 bucket name을 함께 지정합니다.
 - vector write/query에는 비어 있지 않고 finite한 `float32` data가 필요합니다.
-- vector key는 비어 있을 수 없고, `GetVectors`에는 key가 하나 이상 필요합니다.
-- `TopK`와 양수 pagination limit를 요구합니다.
+- vector key는 valid UTF-8이며 최대 63 byte이고, `GetVectors`에는 최대 100개
+  key를 지정합니다.
+- `PutVectors`는 최대 500개 vector와 dimension 4,096까지 허용합니다.
+- `TopK`는 1 이상 10,000 이하이고 pagination limit는 양수이면서 AWS page-size
+  상한(버킷/index 500, vector 1,000) 이하여야 합니다.
 - parallel listing을 사용할 때 `ListVectors`의 `SegmentIndex`와 `SegmentCount`
-  조합이 유효해야 합니다.
+  조합이 유효해야 하며 segment는 최대 16개입니다.
+- vector 하나의 metadata document는 40 KiB 이하이고 request preflight는
+  추정 JSON payload를 20 MiB 이하로 제한합니다.
 
 output이 nil이거나 SDK가 요구하는 최상위 field가 없으면 성공한 빈 결과로
 처리하지 않고 `ErrMalformedOutput`으로 반환합니다.
 
-adapter는 vector dimension이나 distance metric을 추론하지 않습니다. embedding
+adapter는 index vector dimension이나 distance metric을 추론하지 않습니다. embedding
 생성, Bedrock/OpenSearch 연동, metadata schema/filter 해석, 전체 page 수집,
 request retry와 logger 설치도 제공하지 않습니다. 이 정책과 credentials, client
 lifecycle, timeout, retry, logging, metrics와 cancellation deadline은 caller가
 소유합니다. S3 Vectors metadata와 query filter는 SDK의 opaque
-`document.Interface` 값으로 유지합니다.
+`document.Interface` 값으로 유지합니다. 호출자는 SDK dispatch가 끝날 때까지
+이 opaque 값을 변경하지 않아야 하며, adapter는 provider-specific document 구현을
+deep-copy하지 않습니다.
 
 cancellation은 dispatch 전과 SDK 응답 직후 확인하며 SDK output/error보다 caller의
-cancellation을 우선합니다. adapter는 SDK request의 mutable pointer, key slice와
-알려진 `float32` vector slice를 dispatch 전에 복사합니다. Provider 오류에는
+cancellation을 우선합니다. adapter는 먼저 request를 검증한 뒤 SDK request의
+mutable pointer, key slice와 알려진 `float32` vector slice를 dispatch 전에 복사합니다. Provider 오류에는
 vector 값, metadata/filter document, resource name 또는 provider raw message를
 포함하지 않으며 원인은 `errors.Is`/`errors.As`로 확인할 수 있습니다.
 

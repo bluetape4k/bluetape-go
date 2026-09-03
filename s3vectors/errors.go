@@ -42,6 +42,11 @@ func (e *Error) Error() string {
 	return fmt.Sprintf("%v: %s", kind, operation)
 }
 
+// GoString은 %#v 형식에서도 provider cause와 request 세부정보를 숨긴다.
+func (e *Error) GoString() string {
+	return e.Error()
+}
+
 // Unwrap은 caller가 errors.Is/errors.As로 확인할 수 있는 원인을 반환한다.
 func (e *Error) Unwrap() error {
 	if e == nil {
