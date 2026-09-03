@@ -56,6 +56,8 @@ github.com/aws/aws-sdk-go-v2/service/s3 v1.105.0 h1:XptwLL+UHXgafYMIHTy59IRovLbh
 github.com/aws/aws-sdk-go-v2/service/s3 v1.105.0/go.mod h1:zdmCoFO/dSI7GlrwsPqFJI+WlFnSU4Tc8TJnlXrM1Do=
 github.com/aws/aws-sdk-go-v2/service/secretsmanager v1.47.0 h1:LjEecQF5MLvqi1H/fMlU4JL6aQZyN/7BYMynz6PVnxQ=
 github.com/aws/aws-sdk-go-v2/service/secretsmanager v1.47.0/go.mod h1:2rdJeO95tT+EGmjF4jWmIzNKRwIMpr7Dnf7W6mIB9EQ=
+github.com/aws/aws-sdk-go-v2/service/s3vectors v1.13.0 h1:w685fEsKqGqiVzYW89LzZkiaj4Y5RBAI4ts0o2LOn7Q=
+github.com/aws/aws-sdk-go-v2/service/s3vectors v1.13.0/go.mod h1:QQYHmAyNqD5F66Yjn54cXKbqR26A99+45CYtIwvQckw=
 github.com/aws/aws-sdk-go-v2/service/sfn v1.48.0 h1:G6KG5s416iBvIFc9UReh3O+6LImBfxR/HXFeFJ6rY6k=
 github.com/aws/aws-sdk-go-v2/service/sfn v1.48.0/go.mod h1:pfMEgN9npDtoHYEYmxJRwhIiGXQt3mwIqyXjo1/RnaM=
 github.com/aws/aws-sdk-go-v2/service/signin v1.3.0 h1:i0+tbB9QBnzL5NrF2WR/zk8q2s+1N+RaDYr2627E8UI=
