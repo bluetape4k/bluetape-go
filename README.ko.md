@@ -68,6 +68,7 @@ API가 아니라 module-gated future scope입니다.
 | [`dynamodb/batchwrite`](dynamodb/batchwrite/README.ko.md) | active | AWS SDK for Go v2 BatchWriteItem 25개 chunking과 unprocessed-item retry helper. |
 | [`secretsmanager`](secretsmanager/README.ko.md) | active | Redacted string/binary 값과 caller-owned bounded positive-TTL cache를 제공하는 AWS Secrets Manager lookup provider. |
 | [`ssm`](ssm/README.ko.md) | active | 명시적 SecureString 복호화와 caller-owned bounded positive-TTL cache를 제공하는 AWS Parameter Store lookup provider. |
+| [`messaging/sqsextended`](messaging/sqsextended/README.ko.md) | active | Caller-owned AWS SDK for Go v2 SQS/S3 대용량 payload envelope, bounded read, checksum 검증과 명시적 cleanup 순서. |
 | [`examples/integration`](examples/integration/README.ko.md) | example | 수정된 `0.6.x` package를 묶는 compile-checked end-to-end recipe. |
 | [`examples/audit`](examples/audit/README.ko.md) | example | Repository history와 outbox replay boundary를 보여주는 runnable audit-backed order service. |
 | [`examples/graph/observability`](examples/graph/observability/README.ko.md) | example | Blast radius, alert boundary, ownership, NDJSON graph I/O 경계를 보여주는 runnable observability incident graph. |
@@ -152,7 +153,7 @@ go get github.com/bluetape4k/bluetape-go
   fixture package README. `testing`의 focused example은 assertion DSL 추가 없이
   table-driven test, package-local builder, golden file, deterministic random data,
   cancellation assertion을 다룹니다.
-- AWS/Floci: [`dynamodb/batchwrite`](dynamodb/batchwrite/README.ko.md), [`encrypt/kms`](encrypt/kms/README.ko.md), [`secretsmanager`](secretsmanager/README.ko.md), [`ssm`](ssm/README.ko.md), [`workflow/stepfunctions`](workflow/stepfunctions/README.ko.md),
+ - AWS/Floci: [`dynamodb/batchwrite`](dynamodb/batchwrite/README.ko.md), [`messaging/sqsextended`](messaging/sqsextended/README.ko.md), [`encrypt/kms`](encrypt/kms/README.ko.md), [`secretsmanager`](secretsmanager/README.ko.md), [`ssm`](ssm/README.ko.md), [`workflow/stepfunctions`](workflow/stepfunctions/README.ko.md),
   [`examples/integration`](examples/integration/README.ko.md),
   [`examples/s3`](examples/s3/README.ko.md),
   [`examples/sqs-sns`](examples/sqs-sns/README.ko.md), 그리고 fake-first
