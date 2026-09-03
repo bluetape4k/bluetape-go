@@ -47,7 +47,7 @@
   표현이 없는지 검색하고, API의 `Options`, `Publisher.Publish`, sentinel
   이름은 이후 task와 일치해야 한다.
 
-- [ ] **Step 2: 호환 module만 추가**
+- [x] **Step 2: 호환 module만 추가**
 
   `go.mod`에 다음 한 줄을 direct requirement로 추가하고, 다른 AWS root module은
   올리지 않는다.
@@ -63,7 +63,7 @@
   checksums만 추가된다. `go list -m all | rg 'aws-sdk-go-v2($|/service/eventbridge)'`로
   `v1.42.1`/`v1.47.0` 조합을 확인한다.
 
-- [ ] **Step 3: Step 3-R 계획 review 작성**
+- [x] **Step 3: Step 3-R 계획 review 작성**
 
   여섯 관점별 P0/P1을 0으로 검토하고, 다음 위험을 계획에 반영한다.
 
@@ -78,14 +78,14 @@
   exact planned command/test evidence;
   no P0/P1 finding may remain unresolved before Task 2.
 
-- [ ] **Step 4: external-risk prediction 기록**
+- [x] **Step 4: external-risk prediction 기록**
 
   Create `docs/review/2026-09-03-issue-520-eventbridge-risk-prediction.md` with
   probability/impact/mitigation rows for SDK response shape drift, entry-size
   overhead, cancellation after network return, response error leakage, fake
   aliasing, and dependency churn. Each row names a concrete test or code guard.
 
-- [ ] **Step 5: plan gate 검증**
+- [x] **Step 5: plan gate 검증**
 
   Run: `git diff --check && go mod tidy && go list -m github.com/aws/aws-sdk-go-v2/service/eventbridge`
 
@@ -101,7 +101,7 @@
 - Create: `audit/sqloutbox/eventbridge/publisher_test.go`
 - Create: `audit/sqloutbox/eventbridge/example_test.go`
 
-- [ ] **Step 1: package docs와 compile surface 선언**
+- [x] **Step 1: package docs와 compile surface 선언**
 
   `doc.go`는 Korean Go doc으로 caller-owned client, no live AWS, stable detail
   identity, cancellation/retry boundary를 설명한다. Test file의 첫 선언은 다음
@@ -112,7 +112,7 @@
   var _ Client = (*awseventbridge.Client)(nil)
   ```
 
-- [ ] **Step 2: mutex-safe fake 작성**
+- [x] **Step 2: mutex-safe fake 작성**
 
   `fakeClient`는 `sync.Mutex`로 `calls`, deep-copied `lastInput`, configured
   `output`, `err`, `entered` channel과 `release` channel을 보호한다. `PutEvents`
@@ -121,7 +121,7 @@
   `Entries`, pointer string/time, `Detail` bytes를 복사하여 publisher가
   request를 재사용해도 fake observation이 변하지 않게 한다.
 
-- [ ] **Step 3: constructor/shape RED tests 작성**
+- [x] **Step 3: constructor/shape RED tests 작성**
 
   다음 table cases를 먼저 작성한다. 아직 `Publisher` 구현이 없으므로 focused
   test는 compile 또는 undefined symbol로 RED여야 한다.
@@ -141,13 +141,14 @@
   exact and untrimmed, default `MaxDetailSize==256<<10`, and accessors return
   immutable copied strings.
 
-- [ ] **Step 4: Publish RED matrix 작성**
+- [x] **Step 4: Publish RED matrix 작성**
 
   `testRecord` must create a valid `audit.Entry` whose record identity, revision,
   schema and both timestamps match. Add cases for success, record ID/attempts
   zero, entry validation failure, identity mismatch, oversized detail, canceled
   context, transport error, nil output, zero/one/two response entries,
-  `FailedEntryCount`, per-entry error code/message, and post-response cancellation.
+  `FailedEntryCount`, per-entry error code/message, missing success `EventId`,
+  and post-response cancellation.
   Every preflight failure asserts fake calls `==0`.
 
   Run: `go test ./audit/sqloutbox/eventbridge -run 'Test(New|Publish)' -count=1`
@@ -155,7 +156,7 @@
   Expected: RED with missing implementation symbols, not environment/Testcontainers
   failures. Record this command and exact first failure in the plan review notes.
 
-- [ ] **Step 5: compile-checked example RED 작성**
+- [x] **Step 5: compile-checked example RED 작성**
 
   `ExampleNew` uses a fake implementing only `PutEvents`, passes `Options{Client,
   Source:"com.example.billing", DetailType:"InvoicePaid"}`, assigns the result
@@ -170,7 +171,7 @@
 - Create: `audit/sqloutbox/eventbridge/errors.go`
 - Modify: `audit/sqloutbox/eventbridge/publisher_test.go`
 
-- [ ] **Step 1: sentinel과 typed Error 구현**
+- [x] **Step 1: sentinel과 typed Error 구현**
 
   Export the exact sentinels from the spec:
 
@@ -193,7 +194,7 @@
   messages are discarded. `Unwrap` returns a sanitized sentinel/cause and `Is`
   matches both package sentinel and transport cause without formatting it.
 
-- [ ] **Step 2: redaction tests를 먼저 통과시키기**
+- [x] **Step 2: redaction tests를 먼저 통과시키기**
 
   Inject `errors.New("AWS secret detail: customer-42")` as transport cause and
   `ErrorMessage="raw customer-42 credentials"` as entry result. Assert
@@ -202,7 +203,7 @@
   none of `customer-42`, `credentials`, source, bus, or JSON detail. Assert safe
   code/count accessors are stable.
 
-- [ ] **Step 3: run error-focused tests**
+- [x] **Step 3: run error-focused tests**
 
   Run: `go test ./audit/sqloutbox/eventbridge -run 'TestPublish.*(Error|Failure|Redaction)|TestError' -count=1`
 
@@ -216,7 +217,7 @@
 - Create: `audit/sqloutbox/eventbridge/publisher.go`
 - Modify: `audit/sqloutbox/eventbridge/publisher_test.go`, `example_test.go`
 
-- [ ] **Step 1: define constants and immutable options**
+- [x] **Step 1: define constants and immutable options**
 
   Use `defaultMaxDetailSize = 256 << 10`, `maxEventEntrySize = 256 << 10`,
   `maxSourceBytes=256`, `maxDetailTypeBytes=128`, `maxEventBusNameBytes=256`.
@@ -224,7 +225,7 @@
   strings exactly. It rejects typed-nil client using the same nil-capable
   reflection kinds as `redisstreams` and stores no caller-owned mutable map/slice.
 
-- [ ] **Step 2: validate record and construct envelope**
+- [x] **Step 2: validate record and construct envelope**
 
   Create an unexported `detailEnvelope` matching Redis field names:
 
@@ -248,11 +249,11 @@
 
   Validate positive ID/attempts, `record.Entry.Validate()`, exact record↔entry
   aggregate/revision/event ID/idempotency/event type/schema/timestamp equality,
-  marshal `record.Entry`, then marshal the envelope. Use UTC RFC3339Nano strings
-  as `redisstreams.messageValues` does. Reject `len(detail)` over configured cap
+  and raw JSON/string size before allocation. Marshal `record.Entry`, then marshal
+  the envelope. Use UTC RFC3339Nano strings as `redisstreams.messageValues` does. Reject `len(detail)` over configured cap
   or `len(detail)+len(source)+len(detailType)+len(eventBusName) >= 256<<10`.
 
-- [ ] **Step 3: implement Publish context and request mapping**
+- [x] **Step 3: implement Publish context and request mapping**
 
   Normalize nil context to `context.Background()`, check `ctx.Err()` before
   validation and again immediately before `PutEvents`. Build exactly one
@@ -272,17 +273,18 @@
   Do not add retries, goroutines, options mutation, logger calls, resources,
   endpoint IDs, or EventBridge response EventId handling.
 
-- [ ] **Step 4: implement response mapping and cancellation priority**
+- [x] **Step 4: implement response mapping and cancellation priority**
 
   After the SDK returns, check `ctx.Err()` first. Then require non-nil output and
   exactly one result entry. If transport `err` is non-nil, return `Error{kind:
   ErrPublishFailed, operation:"publish", cause:err}`. If output shape is wrong,
-  return `ErrMalformedOutput`. If `FailedEntryCount>0` or result `ErrorCode` is
-  nonempty, return `Error{kind: ErrPartialFailure, operation:"publish",
-  failureCount: max(failedCount,1), code: safeCode(result.ErrorCode)}`. Only zero
-  count and empty code returns nil. Never copy `ErrorMessage` into an error.
+  return `ErrMalformedOutput`. If `FailedEntryCount>0` or result `ErrorCode`/
+  `ErrorMessage` is nonempty, return `Error{kind: ErrPartialFailure,
+  operation:"publish", failureCount: max(failedCount,1),
+  code: safeCode(result.ErrorCode)}`. Only zero count, empty code/message, and a
+  nonblank success `EventId` returns nil. Never copy `ErrorMessage` into an error.
 
-- [ ] **Step 5: run targeted GREEN and race tests**
+- [x] **Step 5: run targeted GREEN and race tests**
 
   Run sequentially:
 
@@ -307,7 +309,7 @@
 - Modify: `audit/sqloutbox/README.md`, `audit/sqloutbox/README.ko.md`
 - Create: `docs/lessons/2026-09-03-issue-520-eventbridge.md`
 
-- [ ] **Step 1: write child README locale pair**
+- [x] **Step 1: write child README locale pair**
 
   Document the exact `New(Options{...})` shape, default/custom bus behavior,
   single-entry detail field table, stable identity, `FailedEntryCount` and
@@ -318,14 +320,14 @@
   Explain EventBridge response `EventId` is not outbox identity. Keep paragraphs
   semantically identical in English and Korean; retain code/commands/URLs.
 
-- [ ] **Step 2: link parent README pair**
+- [x] **Step 2: link parent README pair**
 
   Add an EventBridge subsection/link under existing sqloutbox publisher choices.
   Do not change relay transaction or Redis Streams behavior. Mention no new
   diagram is needed because the existing relay→publisher boundary answers the
   topology question.
 
-- [ ] **Step 3: record lesson and docs review**
+- [x] **Step 3: record lesson and docs review**
 
   Lesson records: narrow SDK subset, AWS partial result handling, exact detail
   size accounting, error redaction, and why Kinesis/#522 remain separate. Run

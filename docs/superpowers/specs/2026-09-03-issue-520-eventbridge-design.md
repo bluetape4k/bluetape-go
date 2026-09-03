@@ -129,7 +129,10 @@ object를 `json.RawMessage`로 삽입한다.
 }
 ```
 
-모든 record identity와 `Entry.Validate()` 결과는 publish 전에 고정한다.
+모든 record identity와 `Entry.Validate()` 결과는 publish 전에 고정한다. JSON
+문자열이 `encoding/json`에 의해 replacement character로 조용히 바뀌지 않도록
+entry의 aggregate/event/author/metadata와 optional change/snapshot 문자열도
+valid UTF-8인지 확인한다.
 `Record.ID`와 `Attempts`는 양수여야 하며, `Record.Entry`가 유효하고
 record의 aggregate/revision/event ID/idempotency/event type/schema 및
 timestamps와 exact match해야 한다. 불일치나 malformed entry는 SDK 호출
@@ -139,12 +142,12 @@ timestamps와 exact match해야 한다. 불일치나 malformed entry는 SDK 호�
 ## Publish data flow
 
 1. nil context를 정규화하고 `ctx.Err()`를 확인한다.
-2. record identity, entry validation, detail JSON 생성 및 bounded size를 SDK 호출 전에 수행한다.
+2. record identity, entry validation, raw JSON/string size preflight, detail JSON 생성 및 bounded size를 SDK 호출 전에 수행한다.
 3. `PutEventsInput`에 `Entries` 한 개를 구성한다. `EventBusName`이 빈 값이면 해당 pointer를 생략하고, `Source`, `DetailType`, `Time=Record.OccurredAt`를 전달한다.
 4. dispatch 직전에 context를 다시 확인하고 `PutEvents(ctx, input)`을 한 번 호출한다. adapter는 SDK retry를 추가하지 않는다.
 5. transport error는 원인에 대해 `errors.Is`를 보존할 수 있지만 `Error()`/`%+v`에는 operation과 안전한 sentinel만 노출한다.
 6. 반환 직후 context가 취소되었으면 성공 response라도 cancellation을 반환한다. 취소는 relay가 retry/dead-letter하지 않는 기존 의미를 보존한다.
-7. output은 non-nil이고 `len(Entries)==1`이어야 한다. `FailedEntryCount==0`이고 entry error code가 비어 있을 때만 성공이다.
+7. output은 non-nil이고 `len(Entries)==1`이어야 한다. `FailedEntryCount==0`이고 entry error code/message가 비어 있으며 성공 `EventId`가 non-blank일 때만 성공이다. 성공 `EventId`는 검증만 하고 stable outbox identity로 사용하지 않는다.
 
 detail 또는 EventBridge entry size가 한도를 넘으면 `ErrDetailTooLarge`로
 반환하고 SDK 호출은 0회다. JSON에 raw payload, credentials, client error text를 별도 로그로
@@ -177,7 +180,7 @@ idempotency key, bus/source 값, AWS `ErrorMessage`를 출력하지 않는다.
 | invalid/oversized record/detail | `ErrInvalidRecord`/`ErrDetailTooLarge` | 영구 입력 오류, SDK 호출 0회 |
 | network/SDK error | `ErrPublishFailed`를 감싼 `*Error` | relay가 기존 retry/dead-letter 경로를 적용 |
 | nil/malformed output | `ErrMalformedOutput`를 감싼 `*Error` | provider contract 위반 또는 SDK anomaly |
-| `FailedEntryCount>0` 또는 entry error code | `ErrPartialFailure`를 감싼 `*Error` | 단일 entry이므로 이번 publish가 실패; bounded retry 가능 |
+| `FailedEntryCount>0` 또는 entry error code/message | `ErrPartialFailure`를 감싼 `*Error` | 단일 entry이므로 이번 publish가 실패; bounded retry 가능 |
 
 단일 entry에서 `FailedEntryCount==1`은 논리적으로 full failure이지만
 EventBridge의 entry-level failure contract를 보존하기 위해 `FailureCount`와
