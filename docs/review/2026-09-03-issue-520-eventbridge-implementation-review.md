@@ -78,6 +78,14 @@ P0/P1 차단 finding은 없다. 생산 코드 concurrency scan에서 goroutine,
 | `git diff --check origin/develop...HEAD` | PASS |
 | Codex self-audit + bluetape contract validator | PASS, `Contract issues: 0` |
 
+첫 `make ci` 시도에서는 변경과 무관한 기존
+`redisstreams.TestPublishAllowsDuplicateAttemptsWithStableEnvelope`가
+Testcontainers Redis `Eventually` 5초 경계에서 timeout했다. `colima status`,
+`docker context show`, `docker info`로 Docker 연결과 Colima 상태를 확인한 뒤
+동일 테스트를 단독 재현했을 때 0.85초로 PASS했고, repository 전체 `make ci`를
+재실행해 모든 normal/race/benchmark guard가 PASS했다. 이는 코드 finding이
+아니며 P0/P1/P2/P3 수에는 포함하지 않는다.
+
 Testcontainers-backed 기존 package도 repository-wide `make test`, `make race`,
 `make ci`에서 통과했으며, live AWS endpoint/credential는 접근하지 않았다.
 `go test -run Example -count=1 ./audit/sqloutbox/eventbridge`는 전체 package
