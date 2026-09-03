@@ -415,6 +415,7 @@ func TestPublishRejectsMalformedOutput(t *testing.T) {
 		{name: "nil output", output: nil},
 		{name: "zero entries", output: &awseventbridge.PutEventsOutput{}},
 		{name: "two entries", output: &awseventbridge.PutEventsOutput{Entries: make([]awstypes.PutEventsResultEntry, 2)}},
+		{name: "invalid event id", output: &awseventbridge.PutEventsOutput{Entries: []awstypes.PutEventsResultEntry{{EventId: invalidStringPointer()}}}},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -537,6 +538,11 @@ func stringValue(value *string) string {
 		return "<nil>"
 	}
 	return *value
+}
+
+func invalidStringPointer() *string {
+	value := string([]byte{0xff})
+	return &value
 }
 
 func detailJSON(t *testing.T, detail map[string]any, key string) []byte {

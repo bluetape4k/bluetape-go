@@ -162,7 +162,7 @@ func (p *Publisher) Publish(ctx context.Context, record sqloutbox.Record) error 
 		}
 		return newError(ErrPartialFailure, "publish", nil, failureCount, code)
 	}
-	if result.EventId == nil || strings.TrimSpace(*result.EventId) == "" {
+	if result.EventId == nil || !utf8.ValidString(*result.EventId) || strings.TrimSpace(*result.EventId) == "" {
 		return newError(ErrMalformedOutput, "publish", nil, 0, "")
 	}
 	return nil
