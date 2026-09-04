@@ -25,8 +25,9 @@ caller/operator가 소유합니다.
   `75a5d0fe2f2862c6d64d2934a2da987c08645fe0`입니다.
 - `CHANGELOG.md`에 `## [v0.20.0] - 2026-09-04` 섹션을 추가했고, `WIP.md`를
   현재 release scope로 갱신했습니다.
-- `0.20.0` milestone은 open issue 0개이지만 아직 열려 있습니다. 문서·검증이
-  완료되면 close합니다.
+- `0.20.0` milestone은 issue 42개를 모두 닫은 뒤
+  `2026-09-04T14:24:08Z`에 `CLOSED`로 전환했고, live read-back은
+  `open_issues=0`, `closed_issues=42`를 확인했습니다.
 - exact-head GitHub CI는 성공했습니다: run `33869096004`.
 - PostgreSQL Testcontainers fixture는 `ForListeningPort`의 TCP 수락만으로
   반환하지 않고 native `pgx` 연결·ping을 bounded retry하도록 보강했습니다.
