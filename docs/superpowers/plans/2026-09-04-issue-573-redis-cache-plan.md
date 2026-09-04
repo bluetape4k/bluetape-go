@@ -90,10 +90,13 @@ Docker readiness 확인 뒤 실행한다.
 
 ## Task 7 — review/PR gate
 
-- [ ] Step 6-R 7-Tier review를 performance, stability, security, operator/Ops,
-  developer/API, user/caller six lanes와 main integration으로 수행한다.
-- [ ] P0/P1 finding은 수정 후 동일 exact head에서 normal/race/문서 검증을 반복한다.
-  unavailable/skipped lane은 PASS가 아닌 PENDING/기록된 fallback이다.
+- [x] Step 6-R 7-Tier review를 performance, stability, security, operator/Ops,
+  developer/API, user/caller six lenses와 main integration으로 수행하고
+  `docs/superpowers/reviews/2026-09-04-issue-573-redis-cache-primitives-step-6r-code-review.md`
+  에 exact base/head와 fallback 경계를 기록한다.
+- [x] P0/P1 finding은 수정 후 동일 exact head에서 normal/race/문서 검증을 반복한다.
+  최종 `P0=0`, `P1=0`이며 architect 독립 lane unavailable은 PASS가 아닌
+  main-session fallback과 `PENDING` 조건부 gate로 기록했다.
 - [ ] Korean PR body 끝에 `## DoD Status`를 두고 tests/static/review/docs/
   integration/gaps를 기록하며 #573/milestone/assignee live read-back을 한다.
 - [ ] PR 생성은 승인된 target repo/base/head에서만 수행하고, merge는 fresh
