@@ -63,7 +63,14 @@ compile-checked [`example_test.go`](example_test.go)에 동일한 bootstrap과
   callback이며 status/body 결정과 backend 오류 redaction은 caller의 책임입니다.
   adapter는 callback 뒤에 nil을 반환하므로 아무 것도 쓰지 않은 callback은 Echo의
   기본 200 응답을 남길 수 있습니다. 최종 응답을 쓰거나 outer error handler로
-  명시적으로 위임해야 합니다.
+  명시적으로 위임해야 합니다. 기본 Problem writer가 rejection, backend 오류,
+  cancellation 응답에서 실패하면 adapter는 commit된 응답을 유지하고 retry나
+  덮어쓰기를 하지 않으며 `DefaultRateLimitWriteErrorContextKey`에 고정 메시지
+  observer를 저장합니다. `RateLimitWriteError`로 읽을 수 있고 observer의
+  `Unwrap`은 caller-owned 원인에 대한 `errors.Is`를 보존하지만 공개 메시지는
+  redacted됩니다. custom callback의 응답·관측 소유권은 기존과 같습니다.
+  경로별 수용 기준은 [#693 설계 문서](../../docs/superpowers/specs/2026-09-05-issue-693-echo-rate-limit-write-observer-design.md)에
+  기록했습니다.
 - `NewJWT`는 대소문자를 구분하지 않는 정확히 하나의 `Bearer <token>` header만
   허용합니다. 중복/comma-joined 값, control/whitespace, 8 KiB 초과 token을
   거부합니다. `JWTReader`는 context에 저장한 검증된 `*jwt.Reader`만 반환합니다.
