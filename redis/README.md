@@ -11,14 +11,31 @@ connections, retries, logging, metrics, tenant isolation, or package-specific
 key authorization. Callers keep their `go-redis` clients and deadlines.
 
 For direct Redis Streams operations, use the sibling
-[`redis/stream`](stream/README.md) package. It owns only command validation and
-sanitized errors; callers still own stream topology, payload encoding,
-consumer-group policy, replay, and retention.
+[`redis/stream`](stream/README.md) package. For durable single-key values or
+key-per-entry maps, use [`redis/bucket`](bucket/README.md) or
+[`redis/mapcache`](mapcache/README.md). These packages own only their command
+and serialization boundaries; callers still own stream topology, payload
+encoding, consumer-group policy, replay, retention, client lifecycle, and
+retry policy.
 
 Issue #569 only adds the foundation package. Existing packages such as
 `lock/redis`, `leader/redis`, `ratelimit/redis`, and `probabilistic/redis` are
 not migrated here. Follow-up migrations must add old/new key parity tests and
 benchmark evidence before replacing package-local helpers.
+
+## Durable value primitives
+
+| Primitive | Storage contract | Does not provide |
+|---|---|---|
+| `redis/bucket` | one caller-serialized value per logical key; atomic get/delete and CAS | local eviction, near-cache invalidation, stampede loading |
+| `redis/mapcache` | independent key-per-entry values and TTLs | map-wide iteration/clear, cross-entry transactions, local eviction |
+| `cache/redisnear` | process-local near-cache with Redis invalidation | durable value schema or stampede ownership |
+| `cache/rediscoord` | stampede/loading coordination | durable map storage or local eviction |
+
+Both durable primitives preserve logical key bytes, optionally add a Redis
+Cluster hash tag, and use redacted operation errors. Redis persistence,
+eviction, ACL/TLS, maxmemory, capacity, and availability remain operator and
+caller concerns.
 
 ## Keys
 

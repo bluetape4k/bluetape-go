@@ -10,14 +10,29 @@ logging, metrics, tenant isolation, package-specific key authorization을 소유
 않습니다. Caller가 `go-redis` client와 deadline을 소유합니다.
 
 직접 Redis Streams operation은 sibling [`redis/stream`](stream/README.ko.md)
-package를 사용하세요. 이 package는 command validation과 sanitized error만
-소유하며 stream topology, payload encoding, consumer-group policy, replay,
-retention은 caller-owned입니다.
+package를 사용하세요. 내구성 있는 single-key value나 key-per-entry map은
+[`redis/bucket`](bucket/README.ko.md) 또는 [`redis/mapcache`](mapcache/README.ko.md)를
+사용하세요. 각 package는 command와 serialization 경계만 소유하며 stream topology,
+payload encoding, consumer-group policy, replay, retention, client lifecycle과 retry
+policy는 caller-owned입니다.
 
 Issue #569는 foundation package만 추가합니다. `lock/redis`, `leader/redis`,
 `ratelimit/redis`, `probabilistic/redis` 같은 기존 package는 여기서 migration하지
 않습니다. 후속 migration은 package-local helper를 교체하기 전에 old/new key parity
 test와 benchmark evidence를 추가해야 합니다.
+
+## 내구성 value primitive
+
+| Primitive | 저장 계약 | 제공하지 않는 것 |
+|---|---|---|
+| `redis/bucket` | logical key당 caller-serialized value 하나; atomic get/delete와 CAS | local eviction, near-cache invalidation, stampede loading |
+| `redis/mapcache` | entry별 독립 key와 TTL | map 전체 iteration/clear, entry 간 transaction, local eviction |
+| `cache/redisnear` | Redis invalidation을 사용하는 process-local near-cache | durable value schema, stampede ownership |
+| `cache/rediscoord` | stampede/loading coordination | durable map 저장소, local eviction |
+
+두 durable primitive는 logical key byte를 보존하고 optional Redis Cluster hash tag와
+redacted operation error를 사용합니다. Redis persistence, eviction, ACL/TLS,
+maxmemory, capacity와 availability는 operator와 caller의 책임입니다.
 
 ## Key
 
