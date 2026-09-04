@@ -13,10 +13,57 @@
   RSA/ECDSA/Ed25519 공개키를 context-aware로 조회하고 TTL, rotation,
   unknown `kid` cooldown, single-flight refresh, defensive copy를 제공한다.
   대칭 key와 JWE, OIDC discovery는 범위에서 제외한다.
-- `encrypt/kms` caller-owned AWS KMS client를 사용하는 AES-256 data-key
+
+## [v0.20.0] - 2026-09-04
+
+### 추가
+
+- `examples/s3`에 S3 presigned GET/PUT, transfer manager, multipart cleanup,
+  checksum 및 SSE-KMS 사용을 보여 주는 compile-checked 예제를 추가한다.
+- `encrypt/kms`에 caller-owned AWS KMS client를 사용하는 AES-256 data-key
   envelope provider를 추가한다. strict canonical `BTKMS` envelope, bounded
-  local AES-GCM payload, safe error, cancellation, fake-only 검증을 포함하며
-  live AWS 호출과 자동 `BTENC` migration은 범위에서 제외한다.
+  local AES-GCM payload, cancellation, redacted error 및 fake-client 검증을
+  포함하며 key policy, rotation, IAM 및 data-key cache는 호출자가 소유한다.
+- `audit/sqloutbox/eventbridge`에 stable event ID/idempotency key를 보존하고
+  partial failure를 결정론적으로 매핑하는 EventBridge publisher adapter를
+  추가한다.
+- `workflow/stepfunctions`에 Start/Describe/선택적 Stop execution과
+  cancellation-aware bounded polling bridge를 추가한다.
+- `messaging/sqsextended`에 SQS와 S3를 조합하는 versioned large-payload
+  envelope provider를 추가한다. object ownership, cleanup, checksum 및
+  cancellation 경계를 호출자에게 노출한다.
+- `examples/cloudwatch`에 CloudWatch Metrics와 Logs의 별도 batch,
+  cancellation, redaction 및 현재 `PutLogEvents` 병렬성 계약을 보여 주는
+  compile-checked 예제를 추가한다.
+- `s3vectors`에 caller-owned AWS SDK client를 사용하는 얇은 vector bucket,
+  index, put/get/list/query 표면과 fake/live-opt-in 검증을 추가한다.
+- `secretsmanager`와 `ssm`에 caller-owned client 기반 lookup provider를,
+  `rds/auth`에 RDS IAM database authentication token helper를 추가한다.
+- `leader/dynamodb`에 조건부 쓰기, 명시적 lease deadline, owner token,
+  renewal/resign 및 stale-owner takeover를 갖춘 Go-native leader provider를
+  추가한다. TTL은 cleanup 힌트로만 사용한다.
+- `redis` 공통 key/owner-token/lease/script/error 기반 위에 `redis/lock`,
+  `redis/semaphore`, `redis/stream`, `redis/bucket`, `redis/mapcache`를
+  추가하고, caller-owned context와 typed/redacted provider error를 보존한다.
+- `cache/rediscoord/fory`와 `cache/redisfory`에 명시적 native-fast/native-
+  compatible Apache Fory profile과 versioned binary envelope를 추가한다.
+  `cache/redisvalue`는 bounded direct Redis value-cache 경계를 제공한다.
+
+### 변경
+
+- AWS adapter와 예제는 SDK client, credentials, IAM, provisioning, retry,
+  timeout, connection 및 downstream idempotency를 caller/operator 책임으로
+  유지하고, 기본 CI는 fake-client 또는 compile-checked 경로만 사용한다.
+- Redis·DynamoDB·cache provider는 context cancellation, lease deadline,
+  owner/fencing token, payload bound, cleanup 및 commit-unknown 의미를
+  명시적으로 검증하고 raw provider error를 redaction한다.
+- Fory provider는 `xlang=false`, 고정 profile/schema, trusted-internal 입력과
+  의도적인 schema rotation을 요구하며 JSON 기본값과 기존 coordination
+  envelope를 변경하지 않는다.
+- leader, JWT, graph, textsearch, image/example, database, audit, crypto,
+  AWS, Redis, cache, lock, rate-limit, probabilistic 및 Testcontainers 공개
+  Go doc 주석을 한국어로 정비한다. README와 LLM-facing 운영 문서는 기존
+  언어·범위를 유지한다.
 
 ## [v0.19.0] - 2026-08-06
 
