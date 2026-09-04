@@ -16,20 +16,25 @@ import (
 )
 
 type fakeClient struct {
-	mu          sync.Mutex
-	items       map[string]map[string]types.AttributeValue
-	calls       []string
-	lastPut     *dynamodb.PutItemInput
-	lastUpdate  *dynamodb.UpdateItemInput
-	lastDelete  *dynamodb.DeleteItemInput
-	lastGet     *dynamodb.GetItemInput
-	putErr      error
-	updateErr   error
-	deleteErr   error
-	getErr      error
-	afterPut    func()
-	afterUpdate func()
-	afterDelete func()
+	mu           sync.Mutex
+	items        map[string]map[string]types.AttributeValue
+	calls        []string
+	lastPut      *dynamodb.PutItemInput
+	lastUpdate   *dynamodb.UpdateItemInput
+	lastDelete   *dynamodb.DeleteItemInput
+	lastGet      *dynamodb.GetItemInput
+	putErr       error
+	putOutput    *dynamodb.PutItemOutput
+	updateErr    error
+	updateOutput *dynamodb.UpdateItemOutput
+	deleteErr    error
+	deleteOutput *dynamodb.DeleteItemOutput
+	getErr       error
+	getBlock     chan struct{}
+	getStarted   chan<- struct{}
+	afterPut     func()
+	afterUpdate  func()
+	afterDelete  func()
 }
 
 func newFakeClient() *fakeClient {
@@ -47,10 +52,12 @@ func (f *fakeClient) PutItem(ctx context.Context, input *dynamodb.PutItemInput, 
 	if f.putErr != nil {
 		err := f.putErr
 		f.putErr = nil
+		output := f.putOutput
+		f.putOutput = nil
 		if f.afterPut != nil {
 			f.afterPut()
 		}
-		return nil, err
+		return output, err
 	}
 	key := itemKey(input.Item, input.ExpressionAttributeNames["#key"])
 	if _, exists := f.items[key]; exists {
@@ -77,10 +84,12 @@ func (f *fakeClient) UpdateItem(ctx context.Context, input *dynamodb.UpdateItemI
 	if f.updateErr != nil {
 		err := f.updateErr
 		f.updateErr = nil
+		output := f.updateOutput
+		f.updateOutput = nil
 		if f.afterUpdate != nil {
 			f.afterUpdate()
 		}
-		return nil, err
+		return output, err
 	}
 	key := itemKey(input.Key, input.ExpressionAttributeNames["#key"])
 	item, exists := f.items[key]
@@ -112,10 +121,12 @@ func (f *fakeClient) DeleteItem(ctx context.Context, input *dynamodb.DeleteItemI
 	if f.deleteErr != nil {
 		err := f.deleteErr
 		f.deleteErr = nil
+		output := f.deleteOutput
+		f.deleteOutput = nil
 		if f.afterDelete != nil {
 			f.afterDelete()
 		}
-		return nil, err
+		return output, err
 	}
 	key := itemKey(input.Key, input.ExpressionAttributeNames["#key"])
 	item, exists := f.items[key]
@@ -135,6 +146,19 @@ func (f *fakeClient) DeleteItem(ctx context.Context, input *dynamodb.DeleteItemI
 func (f *fakeClient) GetItem(ctx context.Context, input *dynamodb.GetItemInput, _ ...func(*dynamodb.Options)) (*dynamodb.GetItemOutput, error) {
 	if err := ctx.Err(); err != nil {
 		return nil, err
+	}
+	if f.getStarted != nil {
+		select {
+		case f.getStarted <- struct{}{}:
+		default:
+		}
+	}
+	if f.getBlock != nil {
+		select {
+		case <-f.getBlock:
+		case <-ctx.Done():
+			return nil, ctx.Err()
+		}
 	}
 	f.mu.Lock()
 	defer f.mu.Unlock()
@@ -208,7 +232,13 @@ func cloneStrings(values map[string]string) map[string]string {
 
 func itemKey(item map[string]types.AttributeValue, keyName string) string {
 	if keyName == "" {
-		keyName = "group"
+		for candidate := range item {
+			keyName = candidate
+			break
+		}
+		if keyName == "" {
+			keyName = "group"
+		}
 	}
 	value, ok := item[keyName].(*types.AttributeValueMemberS)
 	if !ok {
@@ -401,6 +431,7 @@ func TestCampaignWaitsForActiveOwnerUntilContextEnds(t *testing.T) {
 func TestCampaignReturnsCommitUnknownAfterProviderFailure(t *testing.T) {
 	fake := newFakeClient()
 	fake.putErr = errors.New("raw table secret group token")
+	fake.putOutput = &dynamodb.PutItemOutput{}
 	fake.getErr = errors.New("raw probe failure")
 	elector, err := New(fake, "leaders", testOptions(nil))
 	if err != nil {
@@ -415,6 +446,83 @@ func TestCampaignReturnsCommitUnknownAfterProviderFailure(t *testing.T) {
 	}
 	if err := elector.Resign(context.Background()); err != nil && !errors.Is(err, leader.ErrCommitUnknown) {
 		t.Fatalf("cleanup Resign() error = %v", err)
+	}
+}
+
+func TestRenewProbeIsBoundedAndLeavesCleanupPending(t *testing.T) {
+	fake := newFakeClient()
+	probeStarted := make(chan struct{}, 1)
+	fake.getStarted = probeStarted
+	fake.getBlock = make(chan struct{})
+	elector, err := New(fake, "leaders", testOptions(nil), WithRetryDelay(time.Millisecond))
+	if err != nil {
+		t.Fatal(err)
+	}
+	if err := elector.Campaign(context.Background()); err != nil {
+		t.Fatal(err)
+	}
+	fake.mu.Lock()
+	fake.updateErr = errors.New("renew transport failure")
+	fake.mu.Unlock()
+
+	select {
+	case <-probeStarted:
+	case <-time.After(500 * time.Millisecond):
+		t.Fatal("renewal did not start its ownership probe")
+	}
+	deadline := time.After(500 * time.Millisecond)
+	for {
+		elector.mu.RLock()
+		pending, owned := elector.cleanup, elector.owned
+		elector.mu.RUnlock()
+		if pending && !owned {
+			break
+		}
+		select {
+		case <-deadline:
+			t.Fatal("renewal probe did not reach cleanup-pending state")
+		default:
+			time.Sleep(time.Millisecond)
+		}
+	}
+	close(fake.getBlock)
+	if err := elector.Resign(context.Background()); err != nil {
+		t.Fatalf("Resign() after bounded probe = %v", err)
+	}
+}
+
+func TestUpdateAndDeleteRequestsDoNotDeclareUnusedKeyAlias(t *testing.T) {
+	fake := newFakeClient()
+	elector, err := New(fake, "leaders", testOptions(nil))
+	if err != nil {
+		t.Fatal(err)
+	}
+	if err := elector.Campaign(context.Background()); err != nil {
+		t.Fatal(err)
+	}
+	if ok, err := elector.renew(context.Background()); err != nil || !ok {
+		t.Fatalf("renew() = %v, %v", ok, err)
+	}
+	fake.mu.Lock()
+	update := cloneUpdateInput(fake.lastUpdate)
+	fake.mu.Unlock()
+	if update == nil {
+		t.Fatal("Campaign() did not produce an UpdateItem request")
+	}
+	if _, exists := update.ExpressionAttributeNames["#key"]; exists {
+		t.Fatal("UpdateItem declared unused #key alias")
+	}
+	if err := elector.Resign(context.Background()); err != nil {
+		t.Fatal(err)
+	}
+	fake.mu.Lock()
+	deleteInput := cloneDeleteInput(fake.lastDelete)
+	fake.mu.Unlock()
+	if deleteInput == nil {
+		t.Fatal("Resign() did not produce a DeleteItem request")
+	}
+	if _, exists := deleteInput.ExpressionAttributeNames["#key"]; exists {
+		t.Fatal("DeleteItem declared unused #key alias")
 	}
 }
 

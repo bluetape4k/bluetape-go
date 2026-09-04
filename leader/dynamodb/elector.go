@@ -235,7 +235,9 @@ func (e *Elector) renewLoop(ctx context.Context, generation uint64, done chan st
 				continue
 			}
 			if err != nil {
-				confirmed, probeErr := e.probeOwnership(ctx)
+				probeCtx, probeCancel := context.WithTimeout(ctx, e.attemptBudget())
+				confirmed, probeErr := e.probeOwnership(probeCtx)
+				probeCancel()
 				if probeErr == nil && confirmed {
 					e.log(ctx, "dynamodb leader renewal response reconciled", slogLevelWarn, "renew")
 					continue
@@ -324,7 +326,7 @@ func (e *Elector) takeoverInput(deadline time.Time) *dynamodb.UpdateItemInput {
 		Key:                 e.key(),
 		ConditionExpression: aws.String("attribute_not_exists(#lease) OR #lease <= :now"),
 		ExpressionAttributeNames: map[string]string{
-			"#key": e.cfg.keyAttribute, "#owner": e.cfg.ownerAttribute,
+			"#owner": e.cfg.ownerAttribute,
 			"#lease": e.cfg.leaseAttribute, "#ttl": e.cfg.ttlAttribute,
 		},
 		ExpressionAttributeValues: map[string]types.AttributeValue{
@@ -343,7 +345,7 @@ func (e *Elector) renewInput(deadline time.Time) *dynamodb.UpdateItemInput {
 		Key:                 e.key(),
 		ConditionExpression: aws.String("#owner = :owner AND #lease > :now"),
 		ExpressionAttributeNames: map[string]string{
-			"#key": e.cfg.keyAttribute, "#owner": e.cfg.ownerAttribute,
+			"#owner": e.cfg.ownerAttribute,
 			"#lease": e.cfg.leaseAttribute, "#ttl": e.cfg.ttlAttribute,
 		},
 		ExpressionAttributeValues: map[string]types.AttributeValue{
@@ -362,7 +364,7 @@ func (e *Elector) deleteInput() *dynamodb.DeleteItemInput {
 		Key:                 e.key(),
 		ConditionExpression: aws.String("#owner = :owner"),
 		ExpressionAttributeNames: map[string]string{
-			"#key": e.cfg.keyAttribute, "#owner": e.cfg.ownerAttribute,
+			"#owner": e.cfg.ownerAttribute,
 		},
 		ExpressionAttributeValues: map[string]types.AttributeValue{
 			":owner": &types.AttributeValueMemberS{Value: e.token},
