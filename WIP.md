@@ -20,7 +20,7 @@ caller/operator가 소유합니다.
 
 - `develop` 기준 후보는 `aba16affd96d9f5008caec97b6108f4effbf47f6`이며,
   release-preparation branch의 현재 문서 커밋은
-  `cd951124fa1f13d4a761814ecb948d26a718e690`입니다.
+  `ca2d9b7f2b5d9bdf16c83d8ad49ffeb80c03d3b3`입니다.
 - release 기준 `origin/main`은 기존 `v0.19.0` commit
   `75a5d0fe2f2862c6d64d2934a2da987c08645fe0`입니다.
 - `CHANGELOG.md`에 `## [v0.20.0] - 2026-09-04` 섹션을 추가했고, `WIP.md`를
