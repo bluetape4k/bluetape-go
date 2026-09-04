@@ -8,6 +8,7 @@ require (
 	github.com/aws/aws-sdk-go-v2 v1.45.1
 	github.com/aws/aws-sdk-go-v2/config v1.32.28
 	github.com/aws/aws-sdk-go-v2/credentials v1.19.27
+	github.com/aws/aws-sdk-go-v2/feature/rds/auth v1.7.1
 	github.com/aws/aws-sdk-go-v2/feature/s3/transfermanager v0.3.0
 	github.com/aws/aws-sdk-go-v2/service/cloudwatch v1.70.0
 	github.com/aws/aws-sdk-go-v2/service/cloudwatchlogs v1.85.0
