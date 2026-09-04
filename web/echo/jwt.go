@@ -52,6 +52,11 @@ func NewJWT(options JWTOptions) (echo.MiddlewareFunc, error) {
 	if isNilInterface(contextParser) {
 		contextParser = nil
 	}
+	if contextParser == nil {
+		if upgraded, ok := parser.(ContextParser); ok {
+			contextParser = upgraded
+		}
+	}
 
 	return func(next echo.HandlerFunc) echo.HandlerFunc {
 		return func(c echo.Context) error {
