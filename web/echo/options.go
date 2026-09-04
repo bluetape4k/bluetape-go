@@ -52,7 +52,7 @@ func RateLimitWriteError(c echo.Context) error {
 }
 
 // ContextParser defines a JWT parser contract that receives request context.
-// request context를 받는 JWT parser 계약이다.
+// NewJWT는 JWTOptions.ContextParser를 설정했거나 Parser가 이 계약도 구현하면 request context 경로를 사용한다.
 type ContextParser interface {
 	ParseContext(context.Context, string, ...jwt.ParseOption) (*jwt.Reader, error)
 }
