@@ -18,8 +18,8 @@ func TestMapCacheRedisIntegrationIndependentEntryExpiry(t *testing.T) {
 	t.Cleanup(func() {
 		cleanupCtx, cleanupCancel := context.WithTimeout(context.Background(), 5*time.Second)
 		defer cleanupCancel()
-		_ = client.Close()
 		_ = client.FlushDB(cleanupCtx).Err()
+		_ = client.Close()
 	})
 	cache, err := New(client, Options[string]{Namespace: "integration-map", HashTag: "integration", Serializer: serialization.StringSerializer{}})
 	if err != nil {

@@ -286,6 +286,10 @@ func TestMapCacheCancellationAndRedaction(t *testing.T) {
 	if strings.Contains(err.Error(), "raw redis") || strings.Contains(err.Error(), "secret-key") {
 		t.Fatalf("Set() leaked sensitive text: %v", err)
 	}
+	formatted := fmt.Sprintf("%+v", err)
+	if strings.Contains(formatted, "raw redis") || strings.Contains(formatted, "secret-key") {
+		t.Fatalf("Set() %%+v leaked sensitive text: %s", formatted)
+	}
 	if err := cache.Set(nil, "key", "value", 0); !errors.Is(err, ErrInvalidContext) { //nolint:staticcheck // nil context is the contract input under test.
 		t.Fatalf("Set(nil) = %v", err)
 	}

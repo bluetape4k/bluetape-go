@@ -264,6 +264,10 @@ func TestBucketErrorsCancellationAndRedaction(t *testing.T) {
 	if stringsContains(err.Error(), "raw redis password") || stringsContains(err.Error(), "secret-key") {
 		t.Fatalf("Set() leaked sensitive text: %v", err)
 	}
+	formatted := fmt.Sprintf("%+v", err)
+	if stringsContains(formatted, "raw redis password") || stringsContains(formatted, "secret-key") {
+		t.Fatalf("Set() %%+v leaked sensitive text: %s", formatted)
+	}
 	if err := bucket.Set(nil, "key", "value", 0); !errors.Is(err, ErrInvalidContext) { //nolint:staticcheck // nil context is the contract input under test.
 		t.Fatalf("Set(nil) = %v", err)
 	}
