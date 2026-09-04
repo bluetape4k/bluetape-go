@@ -1,0 +1,100 @@
+{
+  "$schema": "https://vega.github.io/schema/vega-lite/v5.json",
+  "title": "Gin adapter benchmark summary",
+  "description": "Median CPU 1 serial latency for parser-only and retry-policy Gin adapter fixtures; lower latency is better.",
+  "data": {
+    "values": [
+      {
+        "name": "BenchmarkGinAdapter/NoOp/Serial",
+        "ns_per_op": 844.1
+      },
+      {
+        "name": "BenchmarkGinAdapter/NoOp/Parallel",
+        "ns_per_op": 856.1
+      },
+      {
+        "name": "BenchmarkGinAdapter/DirectCore/Serial",
+        "ns_per_op": 1158
+      },
+      {
+        "name": "BenchmarkGinAdapter/DirectCore/Parallel",
+        "ns_per_op": 1154
+      },
+      {
+        "name": "BenchmarkGinAdapter/Bridge/Serial",
+        "ns_per_op": 1206
+      },
+      {
+        "name": "BenchmarkGinAdapter/Bridge/Parallel",
+        "ns_per_op": 1200
+      },
+      {
+        "name": "BenchmarkGinAdapter/FullAdapter/Serial",
+        "ns_per_op": 5160
+      },
+      {
+        "name": "BenchmarkGinAdapter/FullAdapter/Parallel",
+        "ns_per_op": 5139
+      },
+      {
+        "name": "BenchmarkGinAdapter/FullAdapterRetry/Serial",
+        "ns_per_op": 5197
+      },
+      {
+        "name": "BenchmarkGinAdapter/FullAdapterRetry/Parallel",
+        "ns_per_op": 5194
+      },
+      {
+        "name": "BenchmarkGinAdapterColdConstruction",
+        "ns_per_op": 631.8
+      },
+      {
+        "name": "BenchmarkGinAdapterColdFirstRequest",
+        "ns_per_op": 10345
+      },
+      {
+        "name": "BenchmarkGinAdapterWarmRequest/Serial",
+        "ns_per_op": 5172
+      },
+      {
+        "name": "BenchmarkGinAdapterWarmRequest/Parallel",
+        "ns_per_op": 5159
+      }
+    ]
+  },
+  "mark": "bar",
+  "encoding": {
+    "y": {
+      "field": "name",
+      "type": "nominal",
+      "sort": "-x"
+    },
+    "x": {
+      "field": "ns_per_op",
+      "type": "quantitative",
+      "title": "ns/op"
+    }
+  },
+  "usermeta": {
+    "metadata": {
+      "benchmark_count": "5",
+      "capture_eligibility": "eligible",
+      "command": "go test -timeout=10m -run \\^\\$ -bench \\^BenchmarkGinAdapter -benchmem -count=5 -cpu=1\\,2\\,4 ./web/gin",
+      "cpu": "1,2,4",
+      "dirty_tree": "false",
+      "fixture_identity": "gin-v1.12.0-parser-only-local",
+      "gin_version": "v1.12.0",
+      "git_sha": "3e14c7e0ad027c7d0187e7a0524f0a5db976e126",
+      "go_version": "go version go1.26.6 darwin/arm64",
+      "goarch": "arm64",
+      "goos": "darwin",
+      "logical_cpus": "10",
+      "max_output_bytes": "10485760",
+      "no_regression": "N/A",
+      "timestamp_utc": "2026-08-16T02:25:06Z"
+    },
+    "metricDirection": "lower is better",
+    "bridgeOverhead": 0.04145077720207254,
+    "fullOverhead": 5.1130197843857355
+  }
+}

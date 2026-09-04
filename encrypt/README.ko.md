@@ -3,8 +3,8 @@
 [English](README.md) | [한국어](README.ko.md)
 
 `encrypt`는 local service data를 위한 작은 standard-library AES-GCM facade입니다.
-Go random-nonce GCM AEAD를 사용해 nonce 관리를 숨기고, ciphertext를 versioned
-envelope로 감쌉니다.
+Random 96-bit nonce와 16-byte authentication tag를 사용하고 ciphertext를
+versioned envelope로 감쌉니다.
 
 ## Diagrams
 
@@ -49,6 +49,14 @@ text, err := encryptor.DecryptString(token, ad)
 String helper는 invalid UTF-8을 거부합니다. 임의의 binary payload에는 byte helper를
 사용하십시오.
 
+Provider 조합
+
+`Encryptor.EncryptDetached`와 `DecryptDetached`는 nonce를 outer envelope에 저장하는
+provider를 위한 low-level 조합 surface입니다. 두 method는 12-byte nonce와 AES-GCM sealed
+bytes(plaintext와 16-byte tag 포함)를 분리해서 주고받습니다. 일반 caller는 계속
+`Encrypt`와 `Decrypt`를 사용하십시오. 이 facade는
+`BTENC | version | algorithm | nonce | ciphertext+tag` wire layout을 유지합니다.
+
 ## Key material
 
 - Key는 AES-128, AES-192, AES-256 material인 16, 24, 32 byte여야 합니다.
@@ -88,9 +96,9 @@ Byte ciphertext는 다음 envelope를 사용합니다.
 BTENC | version=0x01 | algorithm=0x01 | random-nonce AES-GCM ciphertext
 ```
 
-AES-GCM payload는 `cipher.NewGCMWithRandomNonce`로 생성합니다. Standard library는
-각 ciphertext 앞에 random 96-bit nonce를 붙이고 16-byte authentication tag를
-추가하므로, plaintext 길이에 28 byte AEAD overhead가 더해집니다.
+AES-GCM payload는 `cipher.NewGCM`으로 만들고 `crypto/rand.Reader`에서 random 96-bit nonce를
+생성합니다. 16-byte authentication tag도 추가되므로 `BTENC` facade는 plaintext 길이에
+nonce와 tag를 합친 28 byte overhead를 더합니다. 기존 `BTENC` bytes도 계속 읽을 수 있습니다.
 
 String ciphertext는 같은 byte envelope를 raw URL-safe base64로 인코딩한 값입니다.
 

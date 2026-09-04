@@ -1,0 +1,1719 @@
+{
+  "benchmark_prefix": "BenchmarkGinAdapter",
+  "expected_names": [
+    "BenchmarkGinAdapter/NoOp/Serial",
+    "BenchmarkGinAdapter/NoOp/Parallel",
+    "BenchmarkGinAdapter/DirectCore/Serial",
+    "BenchmarkGinAdapter/DirectCore/Parallel",
+    "BenchmarkGinAdapter/Bridge/Serial",
+    "BenchmarkGinAdapter/Bridge/Parallel",
+    "BenchmarkGinAdapter/FullAdapter/Serial",
+    "BenchmarkGinAdapter/FullAdapter/Parallel",
+    "BenchmarkGinAdapter/FullAdapterRetry/Serial",
+    "BenchmarkGinAdapter/FullAdapterRetry/Parallel",
+    "BenchmarkGinAdapterColdConstruction",
+    "BenchmarkGinAdapterColdFirstRequest",
+    "BenchmarkGinAdapterWarmRequest/Serial",
+    "BenchmarkGinAdapterWarmRequest/Parallel"
+  ],
+  "metadata": {
+    "benchmark_count": "5",
+    "capture_eligibility": "eligible",
+    "command": "go test -timeout=10m -run \\^\\$ -bench \\^BenchmarkGinAdapter -benchmem -count=5 -cpu=1\\,2\\,4 ./web/gin",
+    "cpu": "1,2,4",
+    "dirty_tree": "false",
+    "fixture_identity": "gin-v1.12.0-parser-only-local",
+    "gin_version": "v1.12.0",
+    "git_sha": "3e14c7e0ad027c7d0187e7a0524f0a5db976e126",
+    "go_version": "go version go1.26.6 darwin/arm64",
+    "goarch": "arm64",
+    "goos": "darwin",
+    "logical_cpus": "10",
+    "max_output_bytes": "10485760",
+    "no_regression": "N/A",
+    "timestamp_utc": "2026-08-16T02:25:06Z"
+  },
+  "rows": [
+    {
+      "allocs_per_op": 13.0,
+      "bytes_per_op": 5360.0,
+      "cpu": 1,
+      "iterations": 1400583,
+      "name": "BenchmarkGinAdapter/NoOp/Serial",
+      "ns_per_op": 843.1
+    },
+    {
+      "allocs_per_op": 13.0,
+      "bytes_per_op": 5360.0,
+      "cpu": 1,
+      "iterations": 1422969,
+      "name": "BenchmarkGinAdapter/NoOp/Serial",
+      "ns_per_op": 846.7
+    },
+    {
+      "allocs_per_op": 13.0,
+      "bytes_per_op": 5360.0,
+      "cpu": 1,
+      "iterations": 1416102,
+      "name": "BenchmarkGinAdapter/NoOp/Serial",
+      "ns_per_op": 843.8
+    },
+    {
+      "allocs_per_op": 13.0,
+      "bytes_per_op": 5360.0,
+      "cpu": 1,
+      "iterations": 1419430,
+      "name": "BenchmarkGinAdapter/NoOp/Serial",
+      "ns_per_op": 850.1
+    },
+    {
+      "allocs_per_op": 13.0,
+      "bytes_per_op": 5360.0,
+      "cpu": 1,
+      "iterations": 1416906,
+      "name": "BenchmarkGinAdapter/NoOp/Serial",
+      "ns_per_op": 844.1
+    },
+    {
+      "allocs_per_op": 13.0,
+      "bytes_per_op": 5360.0,
+      "cpu": 2,
+      "iterations": 1507628,
+      "name": "BenchmarkGinAdapter/NoOp/Serial",
+      "ns_per_op": 790.0
+    },
+    {
+      "allocs_per_op": 13.0,
+      "bytes_per_op": 5360.0,
+      "cpu": 2,
+      "iterations": 1501135,
+      "name": "BenchmarkGinAdapter/NoOp/Serial",
+      "ns_per_op": 793.3
+    },
+    {
+      "allocs_per_op": 13.0,
+      "bytes_per_op": 5360.0,
+      "cpu": 2,
+      "iterations": 1517688,
+      "name": "BenchmarkGinAdapter/NoOp/Serial",
+      "ns_per_op": 792.3
+    },
+    {
+      "allocs_per_op": 13.0,
+      "bytes_per_op": 5360.0,
+      "cpu": 2,
+      "iterations": 1521756,
+      "name": "BenchmarkGinAdapter/NoOp/Serial",
+      "ns_per_op": 789.0
+    },
+    {
+      "allocs_per_op": 13.0,
+      "bytes_per_op": 5360.0,
+      "cpu": 2,
+      "iterations": 1514233,
+      "name": "BenchmarkGinAdapter/NoOp/Serial",
+      "ns_per_op": 793.9
+    },
+    {
+      "allocs_per_op": 13.0,
+      "bytes_per_op": 5361.0,
+      "cpu": 4,
+      "iterations": 1605361,
+      "name": "BenchmarkGinAdapter/NoOp/Serial",
+      "ns_per_op": 748.5
+    },
+    {
+      "allocs_per_op": 13.0,
+      "bytes_per_op": 5361.0,
+      "cpu": 4,
+      "iterations": 1604364,
+      "name": "BenchmarkGinAdapter/NoOp/Serial",
+      "ns_per_op": 752.1
+    },
+    {
+      "allocs_per_op": 13.0,
+      "bytes_per_op": 5361.0,
+      "cpu": 4,
+      "iterations": 1605732,
+      "name": "BenchmarkGinAdapter/NoOp/Serial",
+      "ns_per_op": 748.8
+    },
+    {
+      "allocs_per_op": 13.0,
+      "bytes_per_op": 5361.0,
+      "cpu": 4,
+      "iterations": 1603881,
+      "name": "BenchmarkGinAdapter/NoOp/Serial",
+      "ns_per_op": 750.8
+    },
+    {
+      "allocs_per_op": 13.0,
+      "bytes_per_op": 5361.0,
+      "cpu": 4,
+      "iterations": 1584362,
+      "name": "BenchmarkGinAdapter/NoOp/Serial",
+      "ns_per_op": 746.3
+    },
+    {
+      "allocs_per_op": 13.0,
+      "bytes_per_op": 5360.0,
+      "cpu": 1,
+      "iterations": 1393528,
+      "name": "BenchmarkGinAdapter/NoOp/Parallel",
+      "ns_per_op": 855.8
+    },
+    {
+      "allocs_per_op": 13.0,
+      "bytes_per_op": 5360.0,
+      "cpu": 1,
+      "iterations": 1408370,
+      "name": "BenchmarkGinAdapter/NoOp/Parallel",
+      "ns_per_op": 850.5
+    },
+    {
+      "allocs_per_op": 13.0,
+      "bytes_per_op": 5360.0,
+      "cpu": 1,
+      "iterations": 1409230,
+      "name": "BenchmarkGinAdapter/NoOp/Parallel",
+      "ns_per_op": 857.5
+    },
+    {
+      "allocs_per_op": 13.0,
+      "bytes_per_op": 5360.0,
+      "cpu": 1,
+      "iterations": 1402936,
+      "name": "BenchmarkGinAdapter/NoOp/Parallel",
+      "ns_per_op": 856.1
+    },
+    {
+      "allocs_per_op": 13.0,
+      "bytes_per_op": 5360.0,
+      "cpu": 1,
+      "iterations": 1394649,
+      "name": "BenchmarkGinAdapter/NoOp/Parallel",
+      "ns_per_op": 861.6
+    },
+    {
+      "allocs_per_op": 13.0,
+      "bytes_per_op": 5360.0,
+      "cpu": 2,
+      "iterations": 1431051,
+      "name": "BenchmarkGinAdapter/NoOp/Parallel",
+      "ns_per_op": 830.6
+    },
+    {
+      "allocs_per_op": 13.0,
+      "bytes_per_op": 5360.0,
+      "cpu": 2,
+      "iterations": 1455415,
+      "name": "BenchmarkGinAdapter/NoOp/Parallel",
+      "ns_per_op": 822.1
+    },
+    {
+      "allocs_per_op": 13.0,
+      "bytes_per_op": 5360.0,
+      "cpu": 2,
+      "iterations": 1449735,
+      "name": "BenchmarkGinAdapter/NoOp/Parallel",
+      "ns_per_op": 830.8
+    },
+    {
+      "allocs_per_op": 13.0,
+      "bytes_per_op": 5360.0,
+      "cpu": 2,
+      "iterations": 1471863,
+      "name": "BenchmarkGinAdapter/NoOp/Parallel",
+      "ns_per_op": 828.4
+    },
+    {
+      "allocs_per_op": 13.0,
+      "bytes_per_op": 5360.0,
+      "cpu": 2,
+      "iterations": 1461415,
+      "name": "BenchmarkGinAdapter/NoOp/Parallel",
+      "ns_per_op": 816.2
+    },
+    {
+      "allocs_per_op": 13.0,
+      "bytes_per_op": 5361.0,
+      "cpu": 4,
+      "iterations": 1605260,
+      "name": "BenchmarkGinAdapter/NoOp/Parallel",
+      "ns_per_op": 746.1
+    },
+    {
+      "allocs_per_op": 13.0,
+      "bytes_per_op": 5361.0,
+      "cpu": 4,
+      "iterations": 1569885,
+      "name": "BenchmarkGinAdapter/NoOp/Parallel",
+      "ns_per_op": 748.6
+    },
+    {
+      "allocs_per_op": 13.0,
+      "bytes_per_op": 5361.0,
+      "cpu": 4,
+      "iterations": 1607234,
+      "name": "BenchmarkGinAdapter/NoOp/Parallel",
+      "ns_per_op": 754.6
+    },
+    {
+      "allocs_per_op": 13.0,
+      "bytes_per_op": 5361.0,
+      "cpu": 4,
+      "iterations": 1603712,
+      "name": "BenchmarkGinAdapter/NoOp/Parallel",
+      "ns_per_op": 751.5
+    },
+    {
+      "allocs_per_op": 13.0,
+      "bytes_per_op": 5361.0,
+      "cpu": 4,
+      "iterations": 1593834,
+      "name": "BenchmarkGinAdapter/NoOp/Parallel",
+      "ns_per_op": 749.4
+    },
+    {
+      "allocs_per_op": 18.0,
+      "bytes_per_op": 5840.0,
+      "cpu": 1,
+      "iterations": 1000000,
+      "name": "BenchmarkGinAdapter/DirectCore/Serial",
+      "ns_per_op": 1155.0
+    },
+    {
+      "allocs_per_op": 18.0,
+      "bytes_per_op": 5840.0,
+      "cpu": 1,
+      "iterations": 1000000,
+      "name": "BenchmarkGinAdapter/DirectCore/Serial",
+      "ns_per_op": 1160.0
+    },
+    {
+      "allocs_per_op": 18.0,
+      "bytes_per_op": 5840.0,
+      "cpu": 1,
+      "iterations": 1000000,
+      "name": "BenchmarkGinAdapter/DirectCore/Serial",
+      "ns_per_op": 1165.0
+    },
+    {
+      "allocs_per_op": 18.0,
+      "bytes_per_op": 5840.0,
+      "cpu": 1,
+      "iterations": 1000000,
+      "name": "BenchmarkGinAdapter/DirectCore/Serial",
+      "ns_per_op": 1158.0
+    },
+    {
+      "allocs_per_op": 18.0,
+      "bytes_per_op": 5840.0,
+      "cpu": 1,
+      "iterations": 1000000,
+      "name": "BenchmarkGinAdapter/DirectCore/Serial",
+      "ns_per_op": 1155.0
+    },
+    {
+      "allocs_per_op": 18.0,
+      "bytes_per_op": 5840.0,
+      "cpu": 2,
+      "iterations": 1000000,
+      "name": "BenchmarkGinAdapter/DirectCore/Serial",
+      "ns_per_op": 1030.0
+    },
+    {
+      "allocs_per_op": 18.0,
+      "bytes_per_op": 5840.0,
+      "cpu": 2,
+      "iterations": 1000000,
+      "name": "BenchmarkGinAdapter/DirectCore/Serial",
+      "ns_per_op": 1022.0
+    },
+    {
+      "allocs_per_op": 18.0,
+      "bytes_per_op": 5840.0,
+      "cpu": 2,
+      "iterations": 1000000,
+      "name": "BenchmarkGinAdapter/DirectCore/Serial",
+      "ns_per_op": 1017.0
+    },
+    {
+      "allocs_per_op": 18.0,
+      "bytes_per_op": 5840.0,
+      "cpu": 2,
+      "iterations": 1000000,
+      "name": "BenchmarkGinAdapter/DirectCore/Serial",
+      "ns_per_op": 1024.0
+    },
+    {
+      "allocs_per_op": 18.0,
+      "bytes_per_op": 5840.0,
+      "cpu": 2,
+      "iterations": 1000000,
+      "name": "BenchmarkGinAdapter/DirectCore/Serial",
+      "ns_per_op": 1032.0
+    },
+    {
+      "allocs_per_op": 18.0,
+      "bytes_per_op": 5841.0,
+      "cpu": 4,
+      "iterations": 1220834,
+      "name": "BenchmarkGinAdapter/DirectCore/Serial",
+      "ns_per_op": 986.6
+    },
+    {
+      "allocs_per_op": 18.0,
+      "bytes_per_op": 5841.0,
+      "cpu": 4,
+      "iterations": 1225050,
+      "name": "BenchmarkGinAdapter/DirectCore/Serial",
+      "ns_per_op": 981.9
+    },
+    {
+      "allocs_per_op": 18.0,
+      "bytes_per_op": 5841.0,
+      "cpu": 4,
+      "iterations": 1215177,
+      "name": "BenchmarkGinAdapter/DirectCore/Serial",
+      "ns_per_op": 987.7
+    },
+    {
+      "allocs_per_op": 18.0,
+      "bytes_per_op": 5841.0,
+      "cpu": 4,
+      "iterations": 1227684,
+      "name": "BenchmarkGinAdapter/DirectCore/Serial",
+      "ns_per_op": 973.1
+    },
+    {
+      "allocs_per_op": 18.0,
+      "bytes_per_op": 5841.0,
+      "cpu": 4,
+      "iterations": 1234435,
+      "name": "BenchmarkGinAdapter/DirectCore/Serial",
+      "ns_per_op": 986.3
+    },
+    {
+      "allocs_per_op": 18.0,
+      "bytes_per_op": 5840.0,
+      "cpu": 1,
+      "iterations": 1000000,
+      "name": "BenchmarkGinAdapter/DirectCore/Parallel",
+      "ns_per_op": 1155.0
+    },
+    {
+      "allocs_per_op": 18.0,
+      "bytes_per_op": 5840.0,
+      "cpu": 1,
+      "iterations": 1000000,
+      "name": "BenchmarkGinAdapter/DirectCore/Parallel",
+      "ns_per_op": 1165.0
+    },
+    {
+      "allocs_per_op": 18.0,
+      "bytes_per_op": 5840.0,
+      "cpu": 1,
+      "iterations": 1000000,
+      "name": "BenchmarkGinAdapter/DirectCore/Parallel",
+      "ns_per_op": 1154.0
+    },
+    {
+      "allocs_per_op": 18.0,
+      "bytes_per_op": 5840.0,
+      "cpu": 1,
+      "iterations": 1000000,
+      "name": "BenchmarkGinAdapter/DirectCore/Parallel",
+      "ns_per_op": 1154.0
+    },
+    {
+      "allocs_per_op": 18.0,
+      "bytes_per_op": 5840.0,
+      "cpu": 1,
+      "iterations": 1000000,
+      "name": "BenchmarkGinAdapter/DirectCore/Parallel",
+      "ns_per_op": 1153.0
+    },
+    {
+      "allocs_per_op": 18.0,
+      "bytes_per_op": 5840.0,
+      "cpu": 2,
+      "iterations": 1000000,
+      "name": "BenchmarkGinAdapter/DirectCore/Parallel",
+      "ns_per_op": 1012.0
+    },
+    {
+      "allocs_per_op": 18.0,
+      "bytes_per_op": 5840.0,
+      "cpu": 2,
+      "iterations": 1000000,
+      "name": "BenchmarkGinAdapter/DirectCore/Parallel",
+      "ns_per_op": 1004.0
+    },
+    {
+      "allocs_per_op": 18.0,
+      "bytes_per_op": 5840.0,
+      "cpu": 2,
+      "iterations": 1000000,
+      "name": "BenchmarkGinAdapter/DirectCore/Parallel",
+      "ns_per_op": 1013.0
+    },
+    {
+      "allocs_per_op": 18.0,
+      "bytes_per_op": 5840.0,
+      "cpu": 2,
+      "iterations": 851906,
+      "name": "BenchmarkGinAdapter/DirectCore/Parallel",
+      "ns_per_op": 1182.0
+    },
+    {
+      "allocs_per_op": 18.0,
+      "bytes_per_op": 5840.0,
+      "cpu": 2,
+      "iterations": 964111,
+      "name": "BenchmarkGinAdapter/DirectCore/Parallel",
+      "ns_per_op": 1041.0
+    },
+    {
+      "allocs_per_op": 18.0,
+      "bytes_per_op": 5841.0,
+      "cpu": 4,
+      "iterations": 1331880,
+      "name": "BenchmarkGinAdapter/DirectCore/Parallel",
+      "ns_per_op": 904.7
+    },
+    {
+      "allocs_per_op": 18.0,
+      "bytes_per_op": 5841.0,
+      "cpu": 4,
+      "iterations": 1321075,
+      "name": "BenchmarkGinAdapter/DirectCore/Parallel",
+      "ns_per_op": 905.6
+    },
+    {
+      "allocs_per_op": 18.0,
+      "bytes_per_op": 5841.0,
+      "cpu": 4,
+      "iterations": 1336276,
+      "name": "BenchmarkGinAdapter/DirectCore/Parallel",
+      "ns_per_op": 899.7
+    },
+    {
+      "allocs_per_op": 18.0,
+      "bytes_per_op": 5841.0,
+      "cpu": 4,
+      "iterations": 1326573,
+      "name": "BenchmarkGinAdapter/DirectCore/Parallel",
+      "ns_per_op": 906.1
+    },
+    {
+      "allocs_per_op": 18.0,
+      "bytes_per_op": 5841.0,
+      "cpu": 4,
+      "iterations": 1334485,
+      "name": "BenchmarkGinAdapter/DirectCore/Parallel",
+      "ns_per_op": 901.5
+    },
+    {
+      "allocs_per_op": 18.0,
+      "bytes_per_op": 5840.0,
+      "cpu": 1,
+      "iterations": 975517,
+      "name": "BenchmarkGinAdapter/Bridge/Serial",
+      "ns_per_op": 1203.0
+    },
+    {
+      "allocs_per_op": 18.0,
+      "bytes_per_op": 5840.0,
+      "cpu": 1,
+      "iterations": 1000000,
+      "name": "BenchmarkGinAdapter/Bridge/Serial",
+      "ns_per_op": 1206.0
+    },
+    {
+      "allocs_per_op": 18.0,
+      "bytes_per_op": 5840.0,
+      "cpu": 1,
+      "iterations": 1000000,
+      "name": "BenchmarkGinAdapter/Bridge/Serial",
+      "ns_per_op": 1219.0
+    },
+    {
+      "allocs_per_op": 18.0,
+      "bytes_per_op": 5840.0,
+      "cpu": 1,
+      "iterations": 1000000,
+      "name": "BenchmarkGinAdapter/Bridge/Serial",
+      "ns_per_op": 1205.0
+    },
+    {
+      "allocs_per_op": 18.0,
+      "bytes_per_op": 5840.0,
+      "cpu": 1,
+      "iterations": 987697,
+      "name": "BenchmarkGinAdapter/Bridge/Serial",
+      "ns_per_op": 1209.0
+    },
+    {
+      "allocs_per_op": 18.0,
+      "bytes_per_op": 5841.0,
+      "cpu": 2,
+      "iterations": 1000000,
+      "name": "BenchmarkGinAdapter/Bridge/Serial",
+      "ns_per_op": 1067.0
+    },
+    {
+      "allocs_per_op": 18.0,
+      "bytes_per_op": 5841.0,
+      "cpu": 2,
+      "iterations": 1000000,
+      "name": "BenchmarkGinAdapter/Bridge/Serial",
+      "ns_per_op": 1059.0
+    },
+    {
+      "allocs_per_op": 18.0,
+      "bytes_per_op": 5841.0,
+      "cpu": 2,
+      "iterations": 1000000,
+      "name": "BenchmarkGinAdapter/Bridge/Serial",
+      "ns_per_op": 1056.0
+    },
+    {
+      "allocs_per_op": 18.0,
+      "bytes_per_op": 5841.0,
+      "cpu": 2,
+      "iterations": 1000000,
+      "name": "BenchmarkGinAdapter/Bridge/Serial",
+      "ns_per_op": 1052.0
+    },
+    {
+      "allocs_per_op": 18.0,
+      "bytes_per_op": 5841.0,
+      "cpu": 2,
+      "iterations": 1000000,
+      "name": "BenchmarkGinAdapter/Bridge/Serial",
+      "ns_per_op": 1053.0
+    },
+    {
+      "allocs_per_op": 18.0,
+      "bytes_per_op": 5842.0,
+      "cpu": 4,
+      "iterations": 1000000,
+      "name": "BenchmarkGinAdapter/Bridge/Serial",
+      "ns_per_op": 1018.0
+    },
+    {
+      "allocs_per_op": 18.0,
+      "bytes_per_op": 5842.0,
+      "cpu": 4,
+      "iterations": 1000000,
+      "name": "BenchmarkGinAdapter/Bridge/Serial",
+      "ns_per_op": 1020.0
+    },
+    {
+      "allocs_per_op": 18.0,
+      "bytes_per_op": 5842.0,
+      "cpu": 4,
+      "iterations": 1000000,
+      "name": "BenchmarkGinAdapter/Bridge/Serial",
+      "ns_per_op": 1024.0
+    },
+    {
+      "allocs_per_op": 18.0,
+      "bytes_per_op": 5842.0,
+      "cpu": 4,
+      "iterations": 1000000,
+      "name": "BenchmarkGinAdapter/Bridge/Serial",
+      "ns_per_op": 1015.0
+    },
+    {
+      "allocs_per_op": 18.0,
+      "bytes_per_op": 5842.0,
+      "cpu": 4,
+      "iterations": 1000000,
+      "name": "BenchmarkGinAdapter/Bridge/Serial",
+      "ns_per_op": 1014.0
+    },
+    {
+      "allocs_per_op": 18.0,
+      "bytes_per_op": 5840.0,
+      "cpu": 1,
+      "iterations": 1000000,
+      "name": "BenchmarkGinAdapter/Bridge/Parallel",
+      "ns_per_op": 1208.0
+    },
+    {
+      "allocs_per_op": 18.0,
+      "bytes_per_op": 5840.0,
+      "cpu": 1,
+      "iterations": 979958,
+      "name": "BenchmarkGinAdapter/Bridge/Parallel",
+      "ns_per_op": 1199.0
+    },
+    {
+      "allocs_per_op": 18.0,
+      "bytes_per_op": 5840.0,
+      "cpu": 1,
+      "iterations": 976720,
+      "name": "BenchmarkGinAdapter/Bridge/Parallel",
+      "ns_per_op": 1200.0
+    },
+    {
+      "allocs_per_op": 18.0,
+      "bytes_per_op": 5840.0,
+      "cpu": 1,
+      "iterations": 1000000,
+      "name": "BenchmarkGinAdapter/Bridge/Parallel",
+      "ns_per_op": 1198.0
+    },
+    {
+      "allocs_per_op": 18.0,
+      "bytes_per_op": 5840.0,
+      "cpu": 1,
+      "iterations": 988270,
+      "name": "BenchmarkGinAdapter/Bridge/Parallel",
+      "ns_per_op": 1204.0
+    },
+    {
+      "allocs_per_op": 18.0,
+      "bytes_per_op": 5841.0,
+      "cpu": 2,
+      "iterations": 1000000,
+      "name": "BenchmarkGinAdapter/Bridge/Parallel",
+      "ns_per_op": 1028.0
+    },
+    {
+      "allocs_per_op": 18.0,
+      "bytes_per_op": 5841.0,
+      "cpu": 2,
+      "iterations": 1000000,
+      "name": "BenchmarkGinAdapter/Bridge/Parallel",
+      "ns_per_op": 1023.0
+    },
+    {
+      "allocs_per_op": 18.0,
+      "bytes_per_op": 5841.0,
+      "cpu": 2,
+      "iterations": 1000000,
+      "name": "BenchmarkGinAdapter/Bridge/Parallel",
+      "ns_per_op": 1045.0
+    },
+    {
+      "allocs_per_op": 18.0,
+      "bytes_per_op": 5841.0,
+      "cpu": 2,
+      "iterations": 1000000,
+      "name": "BenchmarkGinAdapter/Bridge/Parallel",
+      "ns_per_op": 1032.0
+    },
+    {
+      "allocs_per_op": 18.0,
+      "bytes_per_op": 5841.0,
+      "cpu": 2,
+      "iterations": 1000000,
+      "name": "BenchmarkGinAdapter/Bridge/Parallel",
+      "ns_per_op": 1033.0
+    },
+    {
+      "allocs_per_op": 18.0,
+      "bytes_per_op": 5843.0,
+      "cpu": 4,
+      "iterations": 1297868,
+      "name": "BenchmarkGinAdapter/Bridge/Parallel",
+      "ns_per_op": 925.8
+    },
+    {
+      "allocs_per_op": 18.0,
+      "bytes_per_op": 5843.0,
+      "cpu": 4,
+      "iterations": 1299643,
+      "name": "BenchmarkGinAdapter/Bridge/Parallel",
+      "ns_per_op": 931.9
+    },
+    {
+      "allocs_per_op": 18.0,
+      "bytes_per_op": 5843.0,
+      "cpu": 4,
+      "iterations": 1289361,
+      "name": "BenchmarkGinAdapter/Bridge/Parallel",
+      "ns_per_op": 925.9
+    },
+    {
+      "allocs_per_op": 18.0,
+      "bytes_per_op": 5844.0,
+      "cpu": 4,
+      "iterations": 1293145,
+      "name": "BenchmarkGinAdapter/Bridge/Parallel",
+      "ns_per_op": 927.6
+    },
+    {
+      "allocs_per_op": 18.0,
+      "bytes_per_op": 5843.0,
+      "cpu": 4,
+      "iterations": 1283253,
+      "name": "BenchmarkGinAdapter/Bridge/Parallel",
+      "ns_per_op": 951.4
+    },
+    {
+      "allocs_per_op": 96.0,
+      "bytes_per_op": 12009.0,
+      "cpu": 1,
+      "iterations": 214426,
+      "name": "BenchmarkGinAdapter/FullAdapter/Serial",
+      "ns_per_op": 5194.0
+    },
+    {
+      "allocs_per_op": 96.0,
+      "bytes_per_op": 12009.0,
+      "cpu": 1,
+      "iterations": 231442,
+      "name": "BenchmarkGinAdapter/FullAdapter/Serial",
+      "ns_per_op": 5162.0
+    },
+    {
+      "allocs_per_op": 96.0,
+      "bytes_per_op": 12009.0,
+      "cpu": 1,
+      "iterations": 234043,
+      "name": "BenchmarkGinAdapter/FullAdapter/Serial",
+      "ns_per_op": 5138.0
+    },
+    {
+      "allocs_per_op": 96.0,
+      "bytes_per_op": 12009.0,
+      "cpu": 1,
+      "iterations": 232663,
+      "name": "BenchmarkGinAdapter/FullAdapter/Serial",
+      "ns_per_op": 5158.0
+    },
+    {
+      "allocs_per_op": 96.0,
+      "bytes_per_op": 12009.0,
+      "cpu": 1,
+      "iterations": 233456,
+      "name": "BenchmarkGinAdapter/FullAdapter/Serial",
+      "ns_per_op": 5160.0
+    },
+    {
+      "allocs_per_op": 96.0,
+      "bytes_per_op": 12010.0,
+      "cpu": 2,
+      "iterations": 276090,
+      "name": "BenchmarkGinAdapter/FullAdapter/Serial",
+      "ns_per_op": 4356.0
+    },
+    {
+      "allocs_per_op": 96.0,
+      "bytes_per_op": 12010.0,
+      "cpu": 2,
+      "iterations": 271700,
+      "name": "BenchmarkGinAdapter/FullAdapter/Serial",
+      "ns_per_op": 4369.0
+    },
+    {
+      "allocs_per_op": 96.0,
+      "bytes_per_op": 12010.0,
+      "cpu": 2,
+      "iterations": 276398,
+      "name": "BenchmarkGinAdapter/FullAdapter/Serial",
+      "ns_per_op": 4347.0
+    },
+    {
+      "allocs_per_op": 96.0,
+      "bytes_per_op": 12010.0,
+      "cpu": 2,
+      "iterations": 273774,
+      "name": "BenchmarkGinAdapter/FullAdapter/Serial",
+      "ns_per_op": 4373.0
+    },
+    {
+      "allocs_per_op": 96.0,
+      "bytes_per_op": 12010.0,
+      "cpu": 2,
+      "iterations": 271419,
+      "name": "BenchmarkGinAdapter/FullAdapter/Serial",
+      "ns_per_op": 4383.0
+    },
+    {
+      "allocs_per_op": 96.0,
+      "bytes_per_op": 12013.0,
+      "cpu": 4,
+      "iterations": 277148,
+      "name": "BenchmarkGinAdapter/FullAdapter/Serial",
+      "ns_per_op": 4330.0
+    },
+    {
+      "allocs_per_op": 96.0,
+      "bytes_per_op": 12013.0,
+      "cpu": 4,
+      "iterations": 275726,
+      "name": "BenchmarkGinAdapter/FullAdapter/Serial",
+      "ns_per_op": 4340.0
+    },
+    {
+      "allocs_per_op": 96.0,
+      "bytes_per_op": 12013.0,
+      "cpu": 4,
+      "iterations": 277346,
+      "name": "BenchmarkGinAdapter/FullAdapter/Serial",
+      "ns_per_op": 4321.0
+    },
+    {
+      "allocs_per_op": 96.0,
+      "bytes_per_op": 12013.0,
+      "cpu": 4,
+      "iterations": 277280,
+      "name": "BenchmarkGinAdapter/FullAdapter/Serial",
+      "ns_per_op": 4333.0
+    },
+    {
+      "allocs_per_op": 96.0,
+      "bytes_per_op": 12013.0,
+      "cpu": 4,
+      "iterations": 278245,
+      "name": "BenchmarkGinAdapter/FullAdapter/Serial",
+      "ns_per_op": 4349.0
+    },
+    {
+      "allocs_per_op": 96.0,
+      "bytes_per_op": 12009.0,
+      "cpu": 1,
+      "iterations": 231957,
+      "name": "BenchmarkGinAdapter/FullAdapter/Parallel",
+      "ns_per_op": 5179.0
+    },
+    {
+      "allocs_per_op": 96.0,
+      "bytes_per_op": 12009.0,
+      "cpu": 1,
+      "iterations": 235392,
+      "name": "BenchmarkGinAdapter/FullAdapter/Parallel",
+      "ns_per_op": 5137.0
+    },
+    {
+      "allocs_per_op": 96.0,
+      "bytes_per_op": 12009.0,
+      "cpu": 1,
+      "iterations": 235090,
+      "name": "BenchmarkGinAdapter/FullAdapter/Parallel",
+      "ns_per_op": 5131.0
+    },
+    {
+      "allocs_per_op": 96.0,
+      "bytes_per_op": 12009.0,
+      "cpu": 1,
+      "iterations": 233558,
+      "name": "BenchmarkGinAdapter/FullAdapter/Parallel",
+      "ns_per_op": 5139.0
+    },
+    {
+      "allocs_per_op": 96.0,
+      "bytes_per_op": 12009.0,
+      "cpu": 1,
+      "iterations": 233672,
+      "name": "BenchmarkGinAdapter/FullAdapter/Parallel",
+      "ns_per_op": 5480.0
+    },
+    {
+      "allocs_per_op": 96.0,
+      "bytes_per_op": 12011.0,
+      "cpu": 2,
+      "iterations": 326262,
+      "name": "BenchmarkGinAdapter/FullAdapter/Parallel",
+      "ns_per_op": 4314.0
+    },
+    {
+      "allocs_per_op": 96.0,
+      "bytes_per_op": 12011.0,
+      "cpu": 2,
+      "iterations": 326556,
+      "name": "BenchmarkGinAdapter/FullAdapter/Parallel",
+      "ns_per_op": 3518.0
+    },
+    {
+      "allocs_per_op": 96.0,
+      "bytes_per_op": 12011.0,
+      "cpu": 2,
+      "iterations": 344062,
+      "name": "BenchmarkGinAdapter/FullAdapter/Parallel",
+      "ns_per_op": 3485.0
+    },
+    {
+      "allocs_per_op": 96.0,
+      "bytes_per_op": 12011.0,
+      "cpu": 2,
+      "iterations": 341450,
+      "name": "BenchmarkGinAdapter/FullAdapter/Parallel",
+      "ns_per_op": 3515.0
+    },
+    {
+      "allocs_per_op": 96.0,
+      "bytes_per_op": 12011.0,
+      "cpu": 2,
+      "iterations": 347929,
+      "name": "BenchmarkGinAdapter/FullAdapter/Parallel",
+      "ns_per_op": 3433.0
+    },
+    {
+      "allocs_per_op": 96.0,
+      "bytes_per_op": 12016.0,
+      "cpu": 4,
+      "iterations": 400951,
+      "name": "BenchmarkGinAdapter/FullAdapter/Parallel",
+      "ns_per_op": 2940.0
+    },
+    {
+      "allocs_per_op": 96.0,
+      "bytes_per_op": 12016.0,
+      "cpu": 4,
+      "iterations": 418780,
+      "name": "BenchmarkGinAdapter/FullAdapter/Parallel",
+      "ns_per_op": 2945.0
+    },
+    {
+      "allocs_per_op": 96.0,
+      "bytes_per_op": 12016.0,
+      "cpu": 4,
+      "iterations": 412572,
+      "name": "BenchmarkGinAdapter/FullAdapter/Parallel",
+      "ns_per_op": 2995.0
+    },
+    {
+      "allocs_per_op": 96.0,
+      "bytes_per_op": 12016.0,
+      "cpu": 4,
+      "iterations": 401590,
+      "name": "BenchmarkGinAdapter/FullAdapter/Parallel",
+      "ns_per_op": 2979.0
+    },
+    {
+      "allocs_per_op": 96.0,
+      "bytes_per_op": 12016.0,
+      "cpu": 4,
+      "iterations": 410868,
+      "name": "BenchmarkGinAdapter/FullAdapter/Parallel",
+      "ns_per_op": 2993.0
+    },
+    {
+      "allocs_per_op": 97.0,
+      "bytes_per_op": 12041.0,
+      "cpu": 1,
+      "iterations": 225042,
+      "name": "BenchmarkGinAdapter/FullAdapterRetry/Serial",
+      "ns_per_op": 5252.0
+    },
+    {
+      "allocs_per_op": 97.0,
+      "bytes_per_op": 12041.0,
+      "cpu": 1,
+      "iterations": 224058,
+      "name": "BenchmarkGinAdapter/FullAdapterRetry/Serial",
+      "ns_per_op": 5229.0
+    },
+    {
+      "allocs_per_op": 97.0,
+      "bytes_per_op": 12041.0,
+      "cpu": 1,
+      "iterations": 227739,
+      "name": "BenchmarkGinAdapter/FullAdapterRetry/Serial",
+      "ns_per_op": 5195.0
+    },
+    {
+      "allocs_per_op": 97.0,
+      "bytes_per_op": 12041.0,
+      "cpu": 1,
+      "iterations": 230426,
+      "name": "BenchmarkGinAdapter/FullAdapterRetry/Serial",
+      "ns_per_op": 5197.0
+    },
+    {
+      "allocs_per_op": 97.0,
+      "bytes_per_op": 12041.0,
+      "cpu": 1,
+      "iterations": 231980,
+      "name": "BenchmarkGinAdapter/FullAdapterRetry/Serial",
+      "ns_per_op": 5191.0
+    },
+    {
+      "allocs_per_op": 97.0,
+      "bytes_per_op": 12042.0,
+      "cpu": 2,
+      "iterations": 269016,
+      "name": "BenchmarkGinAdapter/FullAdapterRetry/Serial",
+      "ns_per_op": 4418.0
+    },
+    {
+      "allocs_per_op": 97.0,
+      "bytes_per_op": 12042.0,
+      "cpu": 2,
+      "iterations": 269668,
+      "name": "BenchmarkGinAdapter/FullAdapterRetry/Serial",
+      "ns_per_op": 4451.0
+    },
+    {
+      "allocs_per_op": 97.0,
+      "bytes_per_op": 12042.0,
+      "cpu": 2,
+      "iterations": 272866,
+      "name": "BenchmarkGinAdapter/FullAdapterRetry/Serial",
+      "ns_per_op": 4415.0
+    },
+    {
+      "allocs_per_op": 97.0,
+      "bytes_per_op": 12042.0,
+      "cpu": 2,
+      "iterations": 274555,
+      "name": "BenchmarkGinAdapter/FullAdapterRetry/Serial",
+      "ns_per_op": 4390.0
+    },
+    {
+      "allocs_per_op": 97.0,
+      "bytes_per_op": 12042.0,
+      "cpu": 2,
+      "iterations": 270616,
+      "name": "BenchmarkGinAdapter/FullAdapterRetry/Serial",
+      "ns_per_op": 4414.0
+    },
+    {
+      "allocs_per_op": 97.0,
+      "bytes_per_op": 12045.0,
+      "cpu": 4,
+      "iterations": 275719,
+      "name": "BenchmarkGinAdapter/FullAdapterRetry/Serial",
+      "ns_per_op": 4372.0
+    },
+    {
+      "allocs_per_op": 97.0,
+      "bytes_per_op": 12045.0,
+      "cpu": 4,
+      "iterations": 273698,
+      "name": "BenchmarkGinAdapter/FullAdapterRetry/Serial",
+      "ns_per_op": 4392.0
+    },
+    {
+      "allocs_per_op": 97.0,
+      "bytes_per_op": 12045.0,
+      "cpu": 4,
+      "iterations": 272176,
+      "name": "BenchmarkGinAdapter/FullAdapterRetry/Serial",
+      "ns_per_op": 4374.0
+    },
+    {
+      "allocs_per_op": 97.0,
+      "bytes_per_op": 12045.0,
+      "cpu": 4,
+      "iterations": 276136,
+      "name": "BenchmarkGinAdapter/FullAdapterRetry/Serial",
+      "ns_per_op": 4373.0
+    },
+    {
+      "allocs_per_op": 97.0,
+      "bytes_per_op": 12045.0,
+      "cpu": 4,
+      "iterations": 272728,
+      "name": "BenchmarkGinAdapter/FullAdapterRetry/Serial",
+      "ns_per_op": 4382.0
+    },
+    {
+      "allocs_per_op": 97.0,
+      "bytes_per_op": 12041.0,
+      "cpu": 1,
+      "iterations": 229136,
+      "name": "BenchmarkGinAdapter/FullAdapterRetry/Parallel",
+      "ns_per_op": 5295.0
+    },
+    {
+      "allocs_per_op": 97.0,
+      "bytes_per_op": 12041.0,
+      "cpu": 1,
+      "iterations": 231572,
+      "name": "BenchmarkGinAdapter/FullAdapterRetry/Parallel",
+      "ns_per_op": 5169.0
+    },
+    {
+      "allocs_per_op": 97.0,
+      "bytes_per_op": 12041.0,
+      "cpu": 1,
+      "iterations": 231270,
+      "name": "BenchmarkGinAdapter/FullAdapterRetry/Parallel",
+      "ns_per_op": 5208.0
+    },
+    {
+      "allocs_per_op": 97.0,
+      "bytes_per_op": 12041.0,
+      "cpu": 1,
+      "iterations": 231962,
+      "name": "BenchmarkGinAdapter/FullAdapterRetry/Parallel",
+      "ns_per_op": 5162.0
+    },
+    {
+      "allocs_per_op": 97.0,
+      "bytes_per_op": 12041.0,
+      "cpu": 1,
+      "iterations": 229717,
+      "name": "BenchmarkGinAdapter/FullAdapterRetry/Parallel",
+      "ns_per_op": 5194.0
+    },
+    {
+      "allocs_per_op": 97.0,
+      "bytes_per_op": 12043.0,
+      "cpu": 2,
+      "iterations": 342574,
+      "name": "BenchmarkGinAdapter/FullAdapterRetry/Parallel",
+      "ns_per_op": 3531.0
+    },
+    {
+      "allocs_per_op": 97.0,
+      "bytes_per_op": 12043.0,
+      "cpu": 2,
+      "iterations": 347288,
+      "name": "BenchmarkGinAdapter/FullAdapterRetry/Parallel",
+      "ns_per_op": 3531.0
+    },
+    {
+      "allocs_per_op": 97.0,
+      "bytes_per_op": 12043.0,
+      "cpu": 2,
+      "iterations": 338649,
+      "name": "BenchmarkGinAdapter/FullAdapterRetry/Parallel",
+      "ns_per_op": 3501.0
+    },
+    {
+      "allocs_per_op": 97.0,
+      "bytes_per_op": 12043.0,
+      "cpu": 2,
+      "iterations": 344672,
+      "name": "BenchmarkGinAdapter/FullAdapterRetry/Parallel",
+      "ns_per_op": 3493.0
+    },
+    {
+      "allocs_per_op": 97.0,
+      "bytes_per_op": 12043.0,
+      "cpu": 2,
+      "iterations": 345736,
+      "name": "BenchmarkGinAdapter/FullAdapterRetry/Parallel",
+      "ns_per_op": 3530.0
+    },
+    {
+      "allocs_per_op": 97.0,
+      "bytes_per_op": 12048.0,
+      "cpu": 4,
+      "iterations": 415441,
+      "name": "BenchmarkGinAdapter/FullAdapterRetry/Parallel",
+      "ns_per_op": 2945.0
+    },
+    {
+      "allocs_per_op": 97.0,
+      "bytes_per_op": 12048.0,
+      "cpu": 4,
+      "iterations": 410210,
+      "name": "BenchmarkGinAdapter/FullAdapterRetry/Parallel",
+      "ns_per_op": 2964.0
+    },
+    {
+      "allocs_per_op": 97.0,
+      "bytes_per_op": 12048.0,
+      "cpu": 4,
+      "iterations": 389366,
+      "name": "BenchmarkGinAdapter/FullAdapterRetry/Parallel",
+      "ns_per_op": 2976.0
+    },
+    {
+      "allocs_per_op": 97.0,
+      "bytes_per_op": 12048.0,
+      "cpu": 4,
+      "iterations": 407202,
+      "name": "BenchmarkGinAdapter/FullAdapterRetry/Parallel",
+      "ns_per_op": 2987.0
+    },
+    {
+      "allocs_per_op": 97.0,
+      "bytes_per_op": 12048.0,
+      "cpu": 4,
+      "iterations": 404277,
+      "name": "BenchmarkGinAdapter/FullAdapterRetry/Parallel",
+      "ns_per_op": 3002.0
+    },
+    {
+      "allocs_per_op": 25.0,
+      "bytes_per_op": 1672.0,
+      "cpu": 1,
+      "iterations": 1875842,
+      "name": "BenchmarkGinAdapterColdConstruction",
+      "ns_per_op": 646.8
+    },
+    {
+      "allocs_per_op": 25.0,
+      "bytes_per_op": 1672.0,
+      "cpu": 1,
+      "iterations": 1879380,
+      "name": "BenchmarkGinAdapterColdConstruction",
+      "ns_per_op": 631.4
+    },
+    {
+      "allocs_per_op": 25.0,
+      "bytes_per_op": 1672.0,
+      "cpu": 1,
+      "iterations": 1904280,
+      "name": "BenchmarkGinAdapterColdConstruction",
+      "ns_per_op": 629.6
+    },
+    {
+      "allocs_per_op": 25.0,
+      "bytes_per_op": 1672.0,
+      "cpu": 1,
+      "iterations": 1884044,
+      "name": "BenchmarkGinAdapterColdConstruction",
+      "ns_per_op": 637.5
+    },
+    {
+      "allocs_per_op": 25.0,
+      "bytes_per_op": 1672.0,
+      "cpu": 1,
+      "iterations": 1890967,
+      "name": "BenchmarkGinAdapterColdConstruction",
+      "ns_per_op": 631.8
+    },
+    {
+      "allocs_per_op": 25.0,
+      "bytes_per_op": 1672.0,
+      "cpu": 2,
+      "iterations": 2446767,
+      "name": "BenchmarkGinAdapterColdConstruction",
+      "ns_per_op": 488.2
+    },
+    {
+      "allocs_per_op": 25.0,
+      "bytes_per_op": 1672.0,
+      "cpu": 2,
+      "iterations": 2452902,
+      "name": "BenchmarkGinAdapterColdConstruction",
+      "ns_per_op": 491.4
+    },
+    {
+      "allocs_per_op": 25.0,
+      "bytes_per_op": 1672.0,
+      "cpu": 2,
+      "iterations": 2451882,
+      "name": "BenchmarkGinAdapterColdConstruction",
+      "ns_per_op": 489.2
+    },
+    {
+      "allocs_per_op": 25.0,
+      "bytes_per_op": 1672.0,
+      "cpu": 2,
+      "iterations": 2447752,
+      "name": "BenchmarkGinAdapterColdConstruction",
+      "ns_per_op": 487.2
+    },
+    {
+      "allocs_per_op": 25.0,
+      "bytes_per_op": 1672.0,
+      "cpu": 2,
+      "iterations": 2471036,
+      "name": "BenchmarkGinAdapterColdConstruction",
+      "ns_per_op": 488.8
+    },
+    {
+      "allocs_per_op": 25.0,
+      "bytes_per_op": 1672.0,
+      "cpu": 4,
+      "iterations": 2530232,
+      "name": "BenchmarkGinAdapterColdConstruction",
+      "ns_per_op": 478.0
+    },
+    {
+      "allocs_per_op": 25.0,
+      "bytes_per_op": 1672.0,
+      "cpu": 4,
+      "iterations": 2531536,
+      "name": "BenchmarkGinAdapterColdConstruction",
+      "ns_per_op": 478.4
+    },
+    {
+      "allocs_per_op": 25.0,
+      "bytes_per_op": 1672.0,
+      "cpu": 4,
+      "iterations": 2513196,
+      "name": "BenchmarkGinAdapterColdConstruction",
+      "ns_per_op": 478.4
+    },
+    {
+      "allocs_per_op": 25.0,
+      "bytes_per_op": 1672.0,
+      "cpu": 4,
+      "iterations": 2525534,
+      "name": "BenchmarkGinAdapterColdConstruction",
+      "ns_per_op": 478.4
+    },
+    {
+      "allocs_per_op": 25.0,
+      "bytes_per_op": 1672.0,
+      "cpu": 4,
+      "iterations": 2528409,
+      "name": "BenchmarkGinAdapterColdConstruction",
+      "ns_per_op": 475.4
+    },
+    {
+      "allocs_per_op": 101.0,
+      "bytes_per_op": 12503.0,
+      "cpu": 1,
+      "iterations": 117522,
+      "name": "BenchmarkGinAdapterColdFirstRequest",
+      "ns_per_op": 10431.0
+    },
+    {
+      "allocs_per_op": 101.0,
+      "bytes_per_op": 12503.0,
+      "cpu": 1,
+      "iterations": 115046,
+      "name": "BenchmarkGinAdapterColdFirstRequest",
+      "ns_per_op": 10226.0
+    },
+    {
+      "allocs_per_op": 101.0,
+      "bytes_per_op": 12503.0,
+      "cpu": 1,
+      "iterations": 115039,
+      "name": "BenchmarkGinAdapterColdFirstRequest",
+      "ns_per_op": 10345.0
+    },
+    {
+      "allocs_per_op": 101.0,
+      "bytes_per_op": 12503.0,
+      "cpu": 1,
+      "iterations": 117486,
+      "name": "BenchmarkGinAdapterColdFirstRequest",
+      "ns_per_op": 11304.0
+    },
+    {
+      "allocs_per_op": 101.0,
+      "bytes_per_op": 12503.0,
+      "cpu": 1,
+      "iterations": 117441,
+      "name": "BenchmarkGinAdapterColdFirstRequest",
+      "ns_per_op": 10235.0
+    },
+    {
+      "allocs_per_op": 101.0,
+      "bytes_per_op": 12634.0,
+      "cpu": 2,
+      "iterations": 128942,
+      "name": "BenchmarkGinAdapterColdFirstRequest",
+      "ns_per_op": 9385.0
+    },
+    {
+      "allocs_per_op": 101.0,
+      "bytes_per_op": 12634.0,
+      "cpu": 2,
+      "iterations": 127252,
+      "name": "BenchmarkGinAdapterColdFirstRequest",
+      "ns_per_op": 9344.0
+    },
+    {
+      "allocs_per_op": 101.0,
+      "bytes_per_op": 12634.0,
+      "cpu": 2,
+      "iterations": 128086,
+      "name": "BenchmarkGinAdapterColdFirstRequest",
+      "ns_per_op": 9378.0
+    },
+    {
+      "allocs_per_op": 101.0,
+      "bytes_per_op": 12634.0,
+      "cpu": 2,
+      "iterations": 127986,
+      "name": "BenchmarkGinAdapterColdFirstRequest",
+      "ns_per_op": 9329.0
+    },
+    {
+      "allocs_per_op": 101.0,
+      "bytes_per_op": 12634.0,
+      "cpu": 2,
+      "iterations": 128787,
+      "name": "BenchmarkGinAdapterColdFirstRequest",
+      "ns_per_op": 9866.0
+    },
+    {
+      "allocs_per_op": 101.0,
+      "bytes_per_op": 12895.0,
+      "cpu": 4,
+      "iterations": 133911,
+      "name": "BenchmarkGinAdapterColdFirstRequest",
+      "ns_per_op": 8807.0
+    },
+    {
+      "allocs_per_op": 101.0,
+      "bytes_per_op": 12895.0,
+      "cpu": 4,
+      "iterations": 137139,
+      "name": "BenchmarkGinAdapterColdFirstRequest",
+      "ns_per_op": 8764.0
+    },
+    {
+      "allocs_per_op": 101.0,
+      "bytes_per_op": 12895.0,
+      "cpu": 4,
+      "iterations": 135902,
+      "name": "BenchmarkGinAdapterColdFirstRequest",
+      "ns_per_op": 8818.0
+    },
+    {
+      "allocs_per_op": 101.0,
+      "bytes_per_op": 12895.0,
+      "cpu": 4,
+      "iterations": 136357,
+      "name": "BenchmarkGinAdapterColdFirstRequest",
+      "ns_per_op": 8810.0
+    },
+    {
+      "allocs_per_op": 101.0,
+      "bytes_per_op": 12895.0,
+      "cpu": 4,
+      "iterations": 137319,
+      "name": "BenchmarkGinAdapterColdFirstRequest",
+      "ns_per_op": 8808.0
+    },
+    {
+      "allocs_per_op": 96.0,
+      "bytes_per_op": 12009.0,
+      "cpu": 1,
+      "iterations": 232514,
+      "name": "BenchmarkGinAdapterWarmRequest/Serial",
+      "ns_per_op": 5206.0
+    },
+    {
+      "allocs_per_op": 96.0,
+      "bytes_per_op": 12009.0,
+      "cpu": 1,
+      "iterations": 232641,
+      "name": "BenchmarkGinAdapterWarmRequest/Serial",
+      "ns_per_op": 5169.0
+    },
+    {
+      "allocs_per_op": 96.0,
+      "bytes_per_op": 12009.0,
+      "cpu": 1,
+      "iterations": 233883,
+      "name": "BenchmarkGinAdapterWarmRequest/Serial",
+      "ns_per_op": 5142.0
+    },
+    {
+      "allocs_per_op": 96.0,
+      "bytes_per_op": 12009.0,
+      "cpu": 1,
+      "iterations": 235167,
+      "name": "BenchmarkGinAdapterWarmRequest/Serial",
+      "ns_per_op": 5172.0
+    },
+    {
+      "allocs_per_op": 96.0,
+      "bytes_per_op": 12009.0,
+      "cpu": 1,
+      "iterations": 232294,
+      "name": "BenchmarkGinAdapterWarmRequest/Serial",
+      "ns_per_op": 5181.0
+    },
+    {
+      "allocs_per_op": 96.0,
+      "bytes_per_op": 12010.0,
+      "cpu": 2,
+      "iterations": 271467,
+      "name": "BenchmarkGinAdapterWarmRequest/Serial",
+      "ns_per_op": 4392.0
+    },
+    {
+      "allocs_per_op": 96.0,
+      "bytes_per_op": 12010.0,
+      "cpu": 2,
+      "iterations": 274594,
+      "name": "BenchmarkGinAdapterWarmRequest/Serial",
+      "ns_per_op": 4373.0
+    },
+    {
+      "allocs_per_op": 96.0,
+      "bytes_per_op": 12010.0,
+      "cpu": 2,
+      "iterations": 273945,
+      "name": "BenchmarkGinAdapterWarmRequest/Serial",
+      "ns_per_op": 4393.0
+    },
+    {
+      "allocs_per_op": 96.0,
+      "bytes_per_op": 12010.0,
+      "cpu": 2,
+      "iterations": 272798,
+      "name": "BenchmarkGinAdapterWarmRequest/Serial",
+      "ns_per_op": 4377.0
+    },
+    {
+      "allocs_per_op": 96.0,
+      "bytes_per_op": 12010.0,
+      "cpu": 2,
+      "iterations": 274930,
+      "name": "BenchmarkGinAdapterWarmRequest/Serial",
+      "ns_per_op": 4377.0
+    },
+    {
+      "allocs_per_op": 96.0,
+      "bytes_per_op": 12013.0,
+      "cpu": 4,
+      "iterations": 277410,
+      "name": "BenchmarkGinAdapterWarmRequest/Serial",
+      "ns_per_op": 4341.0
+    },
+    {
+      "allocs_per_op": 96.0,
+      "bytes_per_op": 12013.0,
+      "cpu": 4,
+      "iterations": 276214,
+      "name": "BenchmarkGinAdapterWarmRequest/Serial",
+      "ns_per_op": 4356.0
+    },
+    {
+      "allocs_per_op": 96.0,
+      "bytes_per_op": 12013.0,
+      "cpu": 4,
+      "iterations": 279180,
+      "name": "BenchmarkGinAdapterWarmRequest/Serial",
+      "ns_per_op": 4375.0
+    },
+    {
+      "allocs_per_op": 96.0,
+      "bytes_per_op": 12013.0,
+      "cpu": 4,
+      "iterations": 269774,
+      "name": "BenchmarkGinAdapterWarmRequest/Serial",
+      "ns_per_op": 4354.0
+    },
+    {
+      "allocs_per_op": 96.0,
+      "bytes_per_op": 12013.0,
+      "cpu": 4,
+      "iterations": 272968,
+      "name": "BenchmarkGinAdapterWarmRequest/Serial",
+      "ns_per_op": 4325.0
+    },
+    {
+      "allocs_per_op": 96.0,
+      "bytes_per_op": 12009.0,
+      "cpu": 1,
+      "iterations": 231604,
+      "name": "BenchmarkGinAdapterWarmRequest/Parallel",
+      "ns_per_op": 5159.0
+    },
+    {
+      "allocs_per_op": 96.0,
+      "bytes_per_op": 12009.0,
+      "cpu": 1,
+      "iterations": 234150,
+      "name": "BenchmarkGinAdapterWarmRequest/Parallel",
+      "ns_per_op": 5173.0
+    },
+    {
+      "allocs_per_op": 96.0,
+      "bytes_per_op": 12009.0,
+      "cpu": 1,
+      "iterations": 233973,
+      "name": "BenchmarkGinAdapterWarmRequest/Parallel",
+      "ns_per_op": 5137.0
+    },
+    {
+      "allocs_per_op": 96.0,
+      "bytes_per_op": 12009.0,
+      "cpu": 1,
+      "iterations": 235221,
+      "name": "BenchmarkGinAdapterWarmRequest/Parallel",
+      "ns_per_op": 5123.0
+    },
+    {
+      "allocs_per_op": 96.0,
+      "bytes_per_op": 12009.0,
+      "cpu": 1,
+      "iterations": 234136,
+      "name": "BenchmarkGinAdapterWarmRequest/Parallel",
+      "ns_per_op": 5169.0
+    },
+    {
+      "allocs_per_op": 96.0,
+      "bytes_per_op": 12011.0,
+      "cpu": 2,
+      "iterations": 352004,
+      "name": "BenchmarkGinAdapterWarmRequest/Parallel",
+      "ns_per_op": 3438.0
+    },
+    {
+      "allocs_per_op": 96.0,
+      "bytes_per_op": 12011.0,
+      "cpu": 2,
+      "iterations": 349647,
+      "name": "BenchmarkGinAdapterWarmRequest/Parallel",
+      "ns_per_op": 3473.0
+    },
+    {
+      "allocs_per_op": 96.0,
+      "bytes_per_op": 12011.0,
+      "cpu": 2,
+      "iterations": 346868,
+      "name": "BenchmarkGinAdapterWarmRequest/Parallel",
+      "ns_per_op": 3488.0
+    },
+    {
+      "allocs_per_op": 96.0,
+      "bytes_per_op": 12011.0,
+      "cpu": 2,
+      "iterations": 349614,
+      "name": "BenchmarkGinAdapterWarmRequest/Parallel",
+      "ns_per_op": 3508.0
+    },
+    {
+      "allocs_per_op": 96.0,
+      "bytes_per_op": 12011.0,
+      "cpu": 2,
+      "iterations": 343551,
+      "name": "BenchmarkGinAdapterWarmRequest/Parallel",
+      "ns_per_op": 3735.0
+    },
+    {
+      "allocs_per_op": 96.0,
+      "bytes_per_op": 12016.0,
+      "cpu": 4,
+      "iterations": 342661,
+      "name": "BenchmarkGinAdapterWarmRequest/Parallel",
+      "ns_per_op": 4283.0
+    },
+    {
+      "allocs_per_op": 96.0,
+      "bytes_per_op": 12016.0,
+      "cpu": 4,
+      "iterations": 329062,
+      "name": "BenchmarkGinAdapterWarmRequest/Parallel",
+      "ns_per_op": 3416.0
+    },
+    {
+      "allocs_per_op": 96.0,
+      "bytes_per_op": 12016.0,
+      "cpu": 4,
+      "iterations": 401701,
+      "name": "BenchmarkGinAdapterWarmRequest/Parallel",
+      "ns_per_op": 2951.0
+    },
+    {
+      "allocs_per_op": 96.0,
+      "bytes_per_op": 12016.0,
+      "cpu": 4,
+      "iterations": 405488,
+      "name": "BenchmarkGinAdapterWarmRequest/Parallel",
+      "ns_per_op": 2945.0
+    },
+    {
+      "allocs_per_op": 96.0,
+      "bytes_per_op": 12016.0,
+      "cpu": 4,
+      "iterations": 427800,
+      "name": "BenchmarkGinAdapterWarmRequest/Parallel",
+      "ns_per_op": 2939.0
+    }
+  ],
+  "schema_version": 1
+}

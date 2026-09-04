@@ -188,10 +188,38 @@ bounded `DEL` batch, final re-scan으로 obsolete key를 정리합니다. `KEYS`
 
 ## Benchmarks
 
-Issue #599가 Fory profile과 alternative Redis value provider의 비교 benchmark를
-담당합니다. 해당 작업은 raw output, environment/revision metadata, 결과 표, chart,
-written analysis를 보존하고 mutex와 pool contention도 분석해야 합니다. 이 feature는
-benchmark 결과를 주장하지 않습니다.
+Issue #599는 JSON, `NativeFast`, `NativeCompatible`를 in-process codec,
+direct Redis value cache, complete stampede-coordination 경로에서 비교한
+재현 가능한 snapshot을 보존합니다. Benchmark-only shared mutex 대 codec pool
+contention도 포함합니다. 이 수치는 local evidence이며 production capacity
+ranking이 아니고, profile mode를 같은 schema mode로 해석하지 않습니다.
+
+```bash
+go test -run '^$' -bench '^BenchmarkIssue599' -benchmem -count=3 ./cache/redisfory
+python3 scripts/parse-issue-599-benchmark.py \
+  --input docs/research/outputs/issue-599/benchmark.txt \
+  --output docs/research/outputs/issue-599/summary.json
+```
+
+[한국어 benchmark 보고서](../../docs/benchmarks/2026-08-07-issue-599-fory-redis.md)에
+정확한 host/module/image metadata, raw output, parsed table,
+schema-evolution/malformed-payload check와 written interpretation을 기록했습니다.
+
+![Issue #599 Fory와 Redis benchmark](../../docs/images/readme-charts/issue599-fory-redis-benchmark.png)
+
+| 경로 / fixture | JSON | NativeFast | NativeCompatible |
+|---|---:|---:|---:|
+| Codec Small RoundTrip (`ns/op`) | 1,897 | 807 | 679 |
+| Codec Medium RoundTrip (`ns/op`) | 19,473 | 2,336 | 2,198 |
+| Direct Redis Small RoundTrip (`ns/op`) | 362,419 | 368,433 | 343,563 |
+| Direct Redis Medium RoundTrip (`ns/op`) | 416,319 | 397,376 | 389,708 |
+| Coordination ColdWinner (`ns/op`) | 710,174 | 744,297 | 712,784 |
+
+Direct Redis `wire-bytes`는 실제 저장 value/envelope 길이이고, codec과
+coordination row는 codec payload 길이입니다. raw snapshot은
+[benchmark.txt](../../docs/research/outputs/issue-599/benchmark.txt), 검증된 결과는
+[summary.json](../../docs/research/outputs/issue-599/summary.json), capture manifest는
+[environment.md](../../docs/research/outputs/issue-599/environment.md)입니다.
 
 ## Test
 

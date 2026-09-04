@@ -1,0 +1,122 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1500" height="1080" viewBox="0 0 1500 1080" role="img" aria-labelledby="title desc">
+<title id="title">Issue #599 Go Fory and Redis cache benchmark</title>
+<desc id="desc">Three-sample median latency comparison for JSON, NativeFast, NativeCompatible, and NativeFast mutex versus pool contention. Whiskers show observed minimum and maximum. Lower is better.</desc>
+<metadata>source: docs/research/outputs/issue-599/summary.json; samples: 3; metric: ns/op; scale: log10</metadata>
+<defs><style>
+  .title{font-family:Inter,Arial,sans-serif;font-size:30px;font-weight:750;fill:#0F172A}
+  .subtitle{font-family:Inter,Arial,sans-serif;font-size:16px;fill:#475569}
+  .panel{font-family:Inter,Arial,sans-serif;font-size:19px;font-weight:700;fill:#0F172A}
+  .label{font-family:Inter,Arial,sans-serif;font-size:15px;fill:#334155}
+  .value{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:14px;font-weight:700;fill:#0F172A}
+  .axis{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:13px;fill:#64748B}
+</style></defs>
+<rect width="1500" height="1080" fill="#F8FAFC"/>
+<rect x="24" y="24" width="1452" height="1032" rx="24" fill="#FFFFFF" stroke="#CBD5E1" stroke-width="2"/>
+<text x="70" y="78" class="title">Issue #599 · Go Fory / Redis cache profiles</text>
+<text x="70" y="108" class="subtitle">Three samples per row · median latency with observed min/max whisker · lower is better · log scale</text>
+<circle cx="78" cy="145" r="8" fill="#2563EB" stroke="#FFFFFF" stroke-width="2"/>
+<text x="94" y="150" class="label">JSON</text>
+<rect x="221" y="138" width="14" height="14" rx="2" fill="#059669" stroke="#FFFFFF" stroke-width="2"/>
+<text x="244" y="150" class="label">NativeFast</text>
+<path d="M 378 136 L 387 145 L 378 154 L 369 145 Z" fill="#D97706" stroke="#FFFFFF" stroke-width="2"/>
+<text x="394" y="150" class="label">NativeCompatible</text>
+<circle cx="568" cy="145" r="8" fill="#7C3AED" stroke="#FFFFFF" stroke-width="2"/>
+<text x="584" y="150" class="label">Mutex</text>
+<rect x="711" y="138" width="14" height="14" rx="2" fill="#DC2626" stroke="#FFFFFF" stroke-width="2"/>
+<text x="734" y="150" class="label">Pool</text>
+<line x1="430" y1="170" x2="430" y2="972" stroke="#E2E8F0" stroke-width="1"/>
+<text x="430" y="998" text-anchor="middle" class="axis">10</text>
+<line x1="596" y1="170" x2="596" y2="972" stroke="#E2E8F0" stroke-width="1"/>
+<text x="596" y="998" text-anchor="middle" class="axis">100</text>
+<line x1="762" y1="170" x2="762" y2="972" stroke="#E2E8F0" stroke-width="1"/>
+<text x="762" y="998" text-anchor="middle" class="axis">1.0k</text>
+<line x1="928" y1="170" x2="928" y2="972" stroke="#E2E8F0" stroke-width="1"/>
+<text x="928" y="998" text-anchor="middle" class="axis">10k</text>
+<line x1="1094" y1="170" x2="1094" y2="972" stroke="#E2E8F0" stroke-width="1"/>
+<text x="1094" y="998" text-anchor="middle" class="axis">100k</text>
+<line x1="1260" y1="170" x2="1260" y2="972" stroke="#E2E8F0" stroke-width="1"/>
+<text x="1260" y="998" text-anchor="middle" class="axis">1.0M</text>
+<text x="70" y="190" class="panel">In-process codec / Small / RoundTrip</text>
+<text x="86" y="224" class="label">JSON</text>
+<line x1="430" y1="219" x2="1260" y2="219" stroke="#F1F5F9" stroke-width="1"/>
+<line x1="807.5485400613629" y1="219" x2="808.1971705431515" y2="219" stroke="#2563EB" stroke-width="6" stroke-linecap="round"/>
+<line x1="807.5485400613629" y1="211" x2="807.5485400613629" y2="227" stroke="#2563EB" stroke-width="2"/>
+<line x1="808.1971705431515" y1="211" x2="808.1971705431515" y2="227" stroke="#2563EB" stroke-width="2"/>
+<circle cx="808.1591769275179" cy="219" r="8" fill="#2563EB" stroke="#FFFFFF" stroke-width="2"/>
+<text x="1280" y="224" class="value">1.9k ns/op</text>
+<text x="86" y="271" class="label">NativeFast</text>
+<line x1="430" y1="266" x2="1260" y2="266" stroke="#F1F5F9" stroke-width="1"/>
+<line x1="746.4695037736274" y1="266" x2="746.5499396532866" y2="266" stroke="#059669" stroke-width="6" stroke-linecap="round"/>
+<line x1="746.4695037736274" y1="258" x2="746.4695037736274" y2="274" stroke="#059669" stroke-width="2"/>
+<line x1="746.5499396532866" y1="258" x2="746.5499396532866" y2="274" stroke="#059669" stroke-width="2"/>
+<rect x="739.514201452532" y="259" width="14" height="14" rx="2" fill="#059669" stroke="#FFFFFF" stroke-width="2"/>
+<text x="1280" y="271" class="value">807 ns/op</text>
+<text x="86" y="318" class="label">NativeCompatible</text>
+<line x1="430" y1="313" x2="1260" y2="313" stroke="#F1F5F9" stroke-width="1"/>
+<line x1="733.9309437247096" y1="313" x2="734.1752726010088" y2="313" stroke="#D97706" stroke-width="6" stroke-linecap="round"/>
+<line x1="733.9309437247096" y1="305" x2="733.9309437247096" y2="321" stroke="#D97706" stroke-width="2"/>
+<line x1="734.1752726010088" y1="305" x2="734.1752726010088" y2="321" stroke="#D97706" stroke-width="2"/>
+<path d="M 734.0585229657836 304 L 743.0585229657836 313 L 734.0585229657836 322 L 725.0585229657836 313 Z" fill="#D97706" stroke="#FFFFFF" stroke-width="2"/>
+<text x="1280" y="318" class="value">679 ns/op</text>
+<text x="70" y="402" class="panel">Direct Redis value cache / Small / RoundTrip</text>
+<text x="86" y="436" class="label">JSON</text>
+<line x1="430" y1="431" x2="1260" y2="431" stroke="#F1F5F9" stroke-width="1"/>
+<line x1="1183.5595218674944" y1="431" x2="1188.4209836220857" y2="431" stroke="#2563EB" stroke-width="6" stroke-linecap="round"/>
+<line x1="1183.5595218674944" y1="423" x2="1183.5595218674944" y2="439" stroke="#2563EB" stroke-width="2"/>
+<line x1="1188.4209836220857" y1="423" x2="1188.4209836220857" y2="439" stroke="#2563EB" stroke-width="2"/>
+<circle cx="1186.8290189798975" cy="431" r="8" fill="#2563EB" stroke="#FFFFFF" stroke-width="2"/>
+<text x="1280" y="436" class="value">362k ns/op</text>
+<text x="86" y="483" class="label">NativeFast</text>
+<line x1="430" y1="478" x2="1260" y2="478" stroke="#F1F5F9" stroke-width="1"/>
+<line x1="1183.428059188464" y1="478" x2="1188.6193734216267" y2="478" stroke="#059669" stroke-width="6" stroke-linecap="round"/>
+<line x1="1183.428059188464" y1="470" x2="1183.428059188464" y2="486" stroke="#059669" stroke-width="2"/>
+<line x1="1188.6193734216267" y1="470" x2="1188.6193734216267" y2="486" stroke="#059669" stroke-width="2"/>
+<rect x="1181.0155147155292" y="471" width="14" height="14" rx="2" fill="#059669" stroke="#FFFFFF" stroke-width="2"/>
+<text x="1280" y="483" class="value">368k ns/op</text>
+<text x="86" y="530" class="label">NativeCompatible</text>
+<line x1="430" y1="525" x2="1260" y2="525" stroke="#F1F5F9" stroke-width="1"/>
+<line x1="1182.9161811548186" y1="525" x2="1186.0329326663377" y2="525" stroke="#D97706" stroke-width="6" stroke-linecap="round"/>
+<line x1="1182.9161811548186" y1="517" x2="1182.9161811548186" y2="533" stroke="#D97706" stroke-width="2"/>
+<line x1="1186.0329326663377" y1="517" x2="1186.0329326663377" y2="533" stroke="#D97706" stroke-width="2"/>
+<path d="M 1182.977060134957 516 L 1191.977060134957 525 L 1182.977060134957 534 L 1173.977060134957 525 Z" fill="#D97706" stroke="#FFFFFF" stroke-width="2"/>
+<text x="1280" y="530" class="value">344k ns/op</text>
+<text x="70" y="614" class="panel">Stampede coordination / ColdWinner</text>
+<text x="86" y="648" class="label">JSON</text>
+<line x1="430" y1="643" x2="1260" y2="643" stroke="#F1F5F9" stroke-width="1"/>
+<line x1="1234.662850143458" y1="643" x2="1238.0942300161412" y2="643" stroke="#2563EB" stroke-width="6" stroke-linecap="round"/>
+<line x1="1234.662850143458" y1="635" x2="1234.662850143458" y2="651" stroke="#2563EB" stroke-width="2"/>
+<line x1="1238.0942300161412" y1="635" x2="1238.0942300161412" y2="651" stroke="#2563EB" stroke-width="2"/>
+<circle cx="1235.3265515563312" cy="643" r="8" fill="#2563EB" stroke="#FFFFFF" stroke-width="2"/>
+<text x="1280" y="648" class="value">710k ns/op</text>
+<text x="86" y="695" class="label">NativeFast</text>
+<line x1="430" y1="690" x2="1260" y2="690" stroke="#F1F5F9" stroke-width="1"/>
+<line x1="1235.3095966587753" y1="690" x2="1238.918216495022" y2="690" stroke="#059669" stroke-width="6" stroke-linecap="round"/>
+<line x1="1235.3095966587753" y1="682" x2="1235.3095966587753" y2="698" stroke="#059669" stroke-width="2"/>
+<line x1="1238.918216495022" y1="682" x2="1238.918216495022" y2="698" stroke="#059669" stroke-width="2"/>
+<rect x="1231.7098805721216" y="683" width="14" height="14" rx="2" fill="#059669" stroke="#FFFFFF" stroke-width="2"/>
+<text x="1280" y="695" class="value">744k ns/op</text>
+<text x="86" y="742" class="label">NativeCompatible</text>
+<line x1="430" y1="737" x2="1260" y2="737" stroke="#F1F5F9" stroke-width="1"/>
+<line x1="1234.7757676260596" y1="737" x2="1238.84342412169" y2="737" stroke="#D97706" stroke-width="6" stroke-linecap="round"/>
+<line x1="1234.7757676260596" y1="729" x2="1234.7757676260596" y2="745" stroke="#D97706" stroke-width="2"/>
+<line x1="1238.84342412169" y1="729" x2="1238.84342412169" y2="745" stroke="#D97706" stroke-width="2"/>
+<path d="M 1235.5910184460672 728 L 1244.5910184460672 737 L 1235.5910184460672 746 L 1226.5910184460672 737 Z" fill="#D97706" stroke="#FFFFFF" stroke-width="2"/>
+<text x="1280" y="742" class="value">713k ns/op</text>
+<text x="70" y="826" class="panel">NativeFast contention / RoundTrip</text>
+<text x="86" y="860" class="label">Mutex</text>
+<line x1="430" y1="855" x2="1260" y2="855" stroke="#F1F5F9" stroke-width="1"/>
+<line x1="770.2345316907655" y1="855" x2="770.4913187262653" y2="855" stroke="#7C3AED" stroke-width="6" stroke-linecap="round"/>
+<line x1="770.2345316907655" y1="847" x2="770.2345316907655" y2="863" stroke="#7C3AED" stroke-width="2"/>
+<line x1="770.4913187262653" y1="847" x2="770.4913187262653" y2="863" stroke="#7C3AED" stroke-width="2"/>
+<circle cx="770.2988142487436" cy="855" r="8" fill="#7C3AED" stroke="#FFFFFF" stroke-width="2"/>
+<text x="1280" y="860" class="value">1.1k ns/op</text>
+<text x="86" y="907" class="label">Pool</text>
+<line x1="430" y1="902" x2="1260" y2="902" stroke="#F1F5F9" stroke-width="1"/>
+<line x1="694.9986059036014" y1="902" x2="696.6593066083605" y2="902" stroke="#DC2626" stroke-width="6" stroke-linecap="round"/>
+<line x1="694.9986059036014" y1="894" x2="694.9986059036014" y2="910" stroke="#DC2626" stroke-width="2"/>
+<line x1="696.6593066083605" y1="894" x2="696.6593066083605" y2="910" stroke="#DC2626" stroke-width="2"/>
+<rect x="688.5262281036727" y="895" width="14" height="14" rx="2" fill="#DC2626" stroke="#FFFFFF" stroke-width="2"/>
+<text x="1280" y="907" class="value">398 ns/op</text>
+<line x1="430" y1="972" x2="1260" y2="972" stroke="#64748B" stroke-width="1.5"/>
+<text x="845" y="1032" text-anchor="middle" class="subtitle">latency (ns/op, log10) · profile measurements are not schema-mode equivalents</text>
+</svg>

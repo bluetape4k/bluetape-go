@@ -2,20 +2,26 @@ Resolves #62.
 
 Stacked on #267 / `issue-60-aws-helper-boundaries`.
 
-## Summary
+## 요약
 
-- Added `examples/s3` compile-checked examples for direct AWS SDK for Go v2 S3 usage.
-- Covered put/get, metadata, content type detection, streaming upload/download, presigned GET/PUT URLs, and not-found error mapping.
-- Documented Floci path-style endpoint setup and KMS/client-side encryption as out of scope until a concrete Go consumer needs it.
-- Updated root README package indexes in English and Korean.
+- 직접 AWS SDK for Go v2 S3 사용을 보여 주는 compile-checked example인
+  `examples/s3`를 추가했다.
+- 다루는 기능: put/get, metadata, content type detection, streaming upload/download,
+  presigned GET/PUT URL, not-found error mapping을 다룬다.
+- 구체적인 Go consumer가 필요로 할 때까지 Floci path-style endpoint 설정과
+  KMS/client-side encryption을 범위에서 제외한다고 문서화했다.
+- root README package index를 English 및 Korean으로 갱신했다.
 
-## Review
+## 검토
 
-- Step 2-R, Step 3-R, and Step 6-R 7-tier review artifacts are included under `docs/superpowers/reviews/`.
-- Step 6-R verdict: P0=0, P1=0.
-- Go stress requirement: not applicable to this example-only package because it adds no shared mutable state or public concurrency primitive; smoke and race gates cover the Docker-backed example path.
+- Step 2-R, Step 3-R, Step 6-R 7-tier review 산출물이
+  `docs/superpowers/reviews/` 아래에 포함되어 있다.
+- Step 6-R 검토 결과: P0=0, P1=0.
+- Go stress requirement: example-only package이며 shared mutable state나 public
+  concurrency primitive를 추가하지 않으므로 해당 없음. smoke 및 race
+  게이트가 Docker 기반 example 경로를 다룬다.
 
-## Verification
+## 검증
 
 - PASS `go test -count=1 ./examples/s3`
 - PASS `go test -race -count=1 ./examples/s3`
@@ -31,8 +37,9 @@ Stacked on #267 / `issue-60-aws-helper-boundaries`.
 
 ## DoD Status
 
-- [x] Issue #62 scope implemented with direct AWS SDK examples.
-- [x] README and README.ko.md remain synchronized for public package behavior.
-- [x] Docker-backed Floci smoke test is opt-in and documented.
-- [x] 7-tier review completed with main integration fallback where needed.
-- [ ] GitHub CI pending.
+- [x] 직접 AWS SDK example으로 이슈 #62 범위를 구현했다.
+- [x] public package 동작에 대해 README와 README.ko.md를 동기화했다.
+- [x] Docker 기반 Floci smoke test는 opt-in이며 문서화되어 있다.
+- [x] 필요한 경우 main integration fallback을 사용하여 7-tier review를
+      완료했다.
+- [ ] GitHub CI 대기.

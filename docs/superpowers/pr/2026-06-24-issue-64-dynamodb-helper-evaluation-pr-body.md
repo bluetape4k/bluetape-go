@@ -1,19 +1,26 @@
 Resolves #64.
 
-## Summary
+## 요약
 
-- Recorded the DynamoDB helper decision matrix for package code, examples, direct SDK usage, and deferred surfaces.
-- Selected only one bluetape-go implementation follow-up: #270 for narrow `BatchWriteItem` chunking and `UnprocessedItems` retry.
-- Routed conditional writes and optimistic locking to the existing workshop scenario issue: bluetape-go-workshop#61.
-- Rejected broad repository, mapper, expression, DAX, Spring/Ktor, and generic client wrappers for the Go core repo.
+- package code, example, direct SDK 사용, 보류 범위에 대한 DynamoDB helper
+  decision matrix를 기록했다.
+- 좁은 `BatchWriteItem` chunking과 `UnprocessedItems` retry를 다루는 #270만
+  bluetape-go 구현 후속으로 선택했다.
+- conditional write와 optimistic locking은 기존 workshop scenario issue인
+  bluetape-go-workshop#61로 연결했다.
+- Go core repo에 광범위한 repository, mapper, expression, DAX, Spring/Ktor,
+  generic client wrapper를 추가하는 방안을 거부했다.
 
-## Review
+## 검토
 
-- Step 2-R and Step 6-R 7-tier review artifacts are included under `docs/superpowers/reviews/`.
-- Step 6-R verdict: P0=0, P1=0.
-- Go stress requirement: not applicable to this docs/research-only diff. #270 must reassess stress need if implementation introduces shared state, goroutines, worker lifecycle, or goroutine-safe public claims.
+- Step 2-R 및 Step 6-R 7-tier review 산출물이 `docs/superpowers/reviews/`
+  아래에 포함되어 있다.
+- Step 6-R 검토 결과: P0=0, P1=0.
+- Go stress requirement: docs/research-only diff이므로 해당 없음. 구현이
+  shared state, goroutine, worker lifecycle, goroutine-safe public claim을
+  도입하면 #270에서 stress 필요성을 다시 평가해야 한다.
 
-## Validation
+## 검증
 
 - PASS `git diff --check`
 - PASS `make fmt-check`
@@ -22,10 +29,10 @@ Resolves #64.
 
 ## DoD Status
 
-- [x] Issue #64 DynamoDB candidates evaluated.
-- [x] Helper vs example vs direct SDK decisions recorded.
-- [x] Follow-up helper issue #270 created.
-- [x] Existing workshop conditional repository example linked.
-- [x] 7-tier review completed with P0=0 P1=0.
-- [x] Local validation completed.
-- [ ] GitHub CI pending.
+- [x] 이슈 #64 DynamoDB 후보를 평가했다.
+- [x] Helper, example, direct SDK 간 결정을 기록했다.
+- [x] 후속 helper issue #270을 생성했다.
+- [x] 기존 workshop conditional repository example을 연결했다.
+- [x] P0=0 P1=0으로 7-tier review를 완료했다.
+- [x] 로컬 validation을 완료했다.
+- [ ] GitHub CI 대기.

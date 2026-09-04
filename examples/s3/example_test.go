@@ -3,6 +3,7 @@ package s3example_test
 import (
 	"bytes"
 	"context"
+	"encoding/base64"
 	"errors"
 	"fmt"
 	"io"
@@ -16,6 +17,8 @@ import (
 	"time"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/aws/aws-sdk-go-v2/feature/s3/transfermanager"
+	transfermanagertypes "github.com/aws/aws-sdk-go-v2/feature/s3/transfermanager/types"
 	"github.com/aws/aws-sdk-go-v2/service/s3"
 	s3types "github.com/aws/aws-sdk-go-v2/service/s3/types"
 	flocitestcontainer "github.com/bluetape4k/bluetape-go/testcontainers/floci"
@@ -113,6 +116,109 @@ func Example_streamingUploadDownload() {
 		if _, err := io.Copy(&downloaded, out.Body); err != nil {
 			return
 		}
+	}
+}
+
+func Example_transferManagerUploadDownload() {
+	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+	defer cancel()
+	cfg := aws.Config{}
+
+	client := s3.NewFromConfig(cfg, func(options *s3.Options) {
+		options.UsePathStyle = true
+	})
+	transfers := transfermanager.New(client, func(options *transfermanager.Options) {
+		options.Concurrency = 2
+		options.PartSizeBytes = 5 * 1024 * 1024
+		options.MultipartUploadThreshold = 16 * 1024 * 1024
+	})
+
+	if _, err := transfers.UploadObject(ctx, &transfermanager.UploadObjectInput{
+		Bucket:      aws.String("example-bucket"),
+		Key:         aws.String("large-object.bin"),
+		Body:        strings.NewReader("transfer-manager payload"),
+		ContentType: aws.String("application/octet-stream"),
+		Metadata: map[string]string{
+			"source": "bluetape-go",
+		},
+	}); err != nil {
+		return
+	}
+
+	destination := transfermanagertypes.NewWriteAtBuffer(nil)
+	if _, err := transfers.DownloadObject(ctx, &transfermanager.DownloadObjectInput{
+		Bucket:   aws.String("example-bucket"),
+		Key:      aws.String("large-object.bin"),
+		WriterAt: destination,
+	}); err != nil {
+		return
+	}
+	_ = destination.Bytes()
+}
+
+func Example_multipartCleanup() {
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+	client := s3.NewFromConfig(aws.Config{})
+	bucket := "example-bucket"
+	key := "multipart-object.bin"
+
+	started, err := client.CreateMultipartUpload(ctx, &s3.CreateMultipartUploadInput{
+		Bucket: aws.String(bucket),
+		Key:    aws.String(key),
+	})
+	if err != nil || started == nil || started.UploadId == nil {
+		return
+	}
+
+	part, err := client.UploadPart(ctx, &s3.UploadPartInput{
+		Bucket:     aws.String(bucket),
+		Key:        aws.String(key),
+		UploadId:   started.UploadId,
+		PartNumber: aws.Int32(1),
+		Body:       strings.NewReader("part-1"),
+	})
+	if err != nil {
+		cancel()
+		_ = abortMultipartUpload(ctx, client, bucket, key, aws.ToString(started.UploadId))
+		return
+	}
+
+	if _, err := client.CompleteMultipartUpload(ctx, &s3.CompleteMultipartUploadInput{
+		Bucket:   aws.String(bucket),
+		Key:      aws.String(key),
+		UploadId: started.UploadId,
+		MultipartUpload: &s3types.CompletedMultipartUpload{
+			Parts: []s3types.CompletedPart{{
+				ETag:       part.ETag,
+				PartNumber: aws.Int32(1),
+			}},
+		},
+	}); err != nil {
+		cancel()
+		_ = abortMultipartUpload(ctx, client, bucket, key, aws.ToString(started.UploadId))
+	}
+}
+
+func Example_checksumAndSSEKMSRequest() {
+	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+	defer cancel()
+	client := s3.NewFromConfig(aws.Config{})
+
+	encryptionContext := base64.StdEncoding.EncodeToString([]byte(`{"purpose":"bluetape-go-example"}`))
+	if _, err := client.PutObject(ctx, &s3.PutObjectInput{
+		Bucket:                  aws.String("example-bucket"),
+		Key:                     aws.String("integrity-checked.txt"),
+		Body:                    strings.NewReader("integrity-checked payload"),
+		ContentType:             aws.String("text/plain; charset=utf-8"),
+		Metadata:                map[string]string{"source": "bluetape-go"},
+		ChecksumAlgorithm:       s3types.ChecksumAlgorithmSha256,
+		ServerSideEncryption:    s3types.ServerSideEncryptionAwsKms,
+		SSEKMSKeyId:             aws.String("arn:aws:kms:us-east-1:111122223333:key/example"),
+		SSEKMSEncryptionContext: aws.String(encryptionContext),
+		BucketKeyEnabled:        aws.Bool(true),
+	}); err != nil {
+		return
 	}
 }
 
@@ -294,6 +400,21 @@ func downloadObject(ctx context.Context, client *s3.Client, bucket, key string, 
 	}
 	if closeErr != nil {
 		return fmt.Errorf("close object body: %w", closeErr)
+	}
+	return nil
+}
+
+func abortMultipartUpload(ctx context.Context, client *s3.Client, bucket, key, uploadID string) error {
+	cleanupCtx, cancel := context.WithTimeout(context.WithoutCancel(ctx), 10*time.Second)
+	defer cancel()
+
+	_, err := client.AbortMultipartUpload(cleanupCtx, &s3.AbortMultipartUploadInput{
+		Bucket:   aws.String(bucket),
+		Key:      aws.String(key),
+		UploadId: aws.String(uploadID),
+	})
+	if err != nil {
+		return fmt.Errorf("abort multipart upload: %w", err)
 	}
 	return nil
 }
