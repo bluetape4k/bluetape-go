@@ -16,9 +16,12 @@ key-per-entry maps, use [`redis/bucket`](bucket/README.md) or
 [`redis/mapcache`](mapcache/README.md). These packages own only their command
 and serialization boundaries; callers still own stream topology, payload
 encoding, consumer-group policy, replay, retention, client lifecycle, and
-retry policy.
+retry policy. Durable values enforce a `MaxPayloadBytes` bound (default `1 MiB`,
+maximum `64 MiB`) and use bounded Lua reads rather than materializing an
+unbounded Redis value.
 
-Issue #569 only adds the foundation package. Existing packages such as
+Issue #569 provides the foundation package and #573 adds the durable bucket and
+key-per-entry map siblings. Existing packages such as
 `lock/redis`, `leader/redis`, `ratelimit/redis`, and `probabilistic/redis` are
 not migrated here. Follow-up migrations must add old/new key parity tests and
 benchmark evidence before replacing package-local helpers.
@@ -33,9 +36,10 @@ benchmark evidence before replacing package-local helpers.
 | `cache/rediscoord` | stampede/loading coordination | durable map storage or local eviction |
 
 Both durable primitives preserve logical key bytes, optionally add a Redis
-Cluster hash tag, and use redacted operation errors. Redis persistence,
-eviction, ACL/TLS, maxmemory, capacity, and availability remain operator and
-caller concerns.
+Cluster hash tag, and use redacted operation errors. Their caller-owned client
+must expose `SET`, `SETNX`, `DEL`, and `EVAL`; the bounded scripts invoke
+`GETRANGE` and `EXISTS`. Redis persistence, eviction, ACL/TLS, maxmemory,
+capacity, and availability remain operator and caller concerns.
 
 ## Keys
 
@@ -105,8 +109,8 @@ Operational checks:
   with bounded `SCAN` / `MATCH` / `COUNT`, recompute `RedactedKeyID` locally to
   match the failing id, dry-run the candidate set before delete, and avoid
   blocking broad `KEYS` scans in production. Do not log raw keys or tokens.
-- Rollback: #569 does not migrate existing Redis packages, so rollback is
-  removing consumers of the new package, not changing existing Redis behavior.
+- Rollback: #569/#573 do not migrate existing Redis packages, so rollback is
+  removing consumers of the new packages, not changing existing Redis behavior.
 
 ## Verification
 

@@ -59,7 +59,6 @@ stampede 계층을 함께 사용해야 한다. 목표는 다음과 같다.
 package redisbucket
 
 type Client interface {
-    Get(context.Context, string) *redis.StringCmd
     Set(context.Context, string, any, time.Duration) *redis.StatusCmd
     SetNX(context.Context, string, any, time.Duration) *redis.BoolCmd
     Del(context.Context, ...string) *redis.IntCmd
@@ -67,10 +66,11 @@ type Client interface {
 }
 
 type Options[V any] struct {
-    Namespace string
-    HashTag   string
-    Serializer serialization.Serializer[V]
-    Logger    *slog.Logger
+    Namespace       string
+    HashTag         string
+    Serializer      serialization.Serializer[V]
+    Logger          *slog.Logger
+    MaxPayloadBytes int
 }
 
 func New[V any](client Client, options Options[V]) (*Bucket[V], error)
@@ -88,7 +88,9 @@ func (b *Bucket[V]) Delete(context.Context, string) error
 `redis/mapcache`는 같은 `Client`/`Options[V]`와 method set을 제공하되
 constructor가 `map` structural segment를 사용한다. 두 package의 client는
 `*redis.Client`와 mutex-safe fake가 구현할 수 있는 최소 subset이며 client를
-닫거나 command retry를 추가하지 않는다. `Options`는 생성 시 복사된다.
+닫거나 command retry를 추가하지 않는다. `Options`는 생성 시 복사된다. `Client`는
+bounded read와 atomic mutation에 필요한 `Eval`을 통해 `GETRANGE`, `EXISTS`,
+`EVAL`, `SET`, `SETNX`, `DEL` 권한을 caller가 부여한 Redis ACL에서 사용한다.
 
 `Namespace`는 blank/whitespace-only를 거부하고 exact non-blank 문자열을
 `btredis.NewKeyBuilder` prefix로 사용한다. `HashTag`가 비어 있지 않으면
@@ -96,7 +98,10 @@ constructor가 `map` structural segment를 사용한다. 두 package의 client�
 reflect nil-capable typed-nil은 constructor에서 거부한다. `Logger`를 생략하면
 caller의 `slog.Default()`를 사용하고 global logger 설정을 변경하지 않는다.
 운영 log는 operation/result 같은 low-cardinality 필드만 기록하며 raw key,
-payload, provider text는 기록하지 않는다.
+payload, provider text는 기록하지 않는다. `MaxPayloadBytes == 0`은
+`1 MiB` 기본값이며 `1..64 MiB` 범위만 허용한다. 이 값은 serialized payload의
+상한으로, package가 Redis `GET` 전체 값을 materialize하거나 codec에 넘기지
+않도록 하는 안전 경계다.
 
 zero-value `Bucket`/`MapCache`는 constructor-only다. method는 초기화 검증 후
 고정 `ErrUninitialized`를 반환하며 panic하지 않는다.
@@ -133,8 +138,10 @@ reconcile할 수 없을 때 사용한다.
 
 ## Bucket 원자성
 
-- `Get`은 `GET` 한 번을 수행한다. Redis `Nil`은 `(zero, false, nil)`이며 empty
-  payload는 serializer가 해석한다.
+- `Get`은 `Eval`으로 `GETRANGE(key, 0, max)`와 `EXISTS`를 같은 script에서
+  수행한다. Redis `Nil`은 `(zero, false, nil)`이며 empty payload는 serializer가
+  해석한다. `max+1` byte가 관찰되면 `ErrPayloadTooLarge`를 반환하고 codec을
+  호출하지 않는다.
 - `Set`은 `SET key payload`를 수행한다. `ttl==0`은 expiration 0, 양수는
   normalized duration으로 전달한다.
 - `SetIfAbsent`는 `SETNX`를 사용하고 false는 existing owner/value를 뜻하는
@@ -142,17 +149,21 @@ reconcile할 수 없을 때 사용한다.
 - `GetAndDelete`는 다음 Lua를 한 번 실행한다.
 
   ```lua
-  local value = redis.call("GET", KEYS[1])
-  if not value then return {0} end
+  local value = redis.call("GETRANGE", KEYS[1], 0, ARGV[1])
+  if value == "" and redis.call("EXISTS", KEYS[1]) == 0 then return {0} end
+  if string.len(value) > tonumber(ARGV[1]) then return {2} end
   redis.call("DEL", KEYS[1])
   return {1, value}
   ```
 
   결과 `{0}`은 miss, `{1,payload}`는 read와 delete가 모두 같은 invocation에서
-  성공한 hit다. malformed result는 `ErrMalformedResult`다.
-- `CompareAndSet`는 expected payload와 현재 GET bytes가 정확히 같을 때만
-  replacement를 저장한다. Lua는 persistent와 `PX milliseconds` 두 branch를
-  사용하고 `{1}`/`{0}` 외 결과를 malformed로 거부한다. missing key는 false다.
+  성공한 hit다. `{2}`는 oversized 기존 값을 삭제하지 않고
+  `ErrPayloadTooLarge`로 반환한다. malformed result는 `ErrMalformedResult`다.
+- `CompareAndSet`는 expected/replacement를 dispatch 전에 marshal하고 각각
+  상한과 비교한다. Lua는 `GETRANGE`로 현재 값을 최대 `max+1` byte만 관찰하고,
+  oversized 기존 값에는 `{2}`를 반환해 replacement를 저장하지 않는다. 정확히
+  일치할 때만 persistent 또는 `PX milliseconds` branch로 저장하며 결과
+  `{1}`/`{0}`/`{2}` 외 값은 malformed로 거부한다. missing key는 false다.
 - `Delete`는 `DEL`을 호출하고 count와 무관하게 성공한다. provider error가
   dispatch 뒤 확정되지 않으면 commit unknown을 보존한다.
 
@@ -192,6 +203,7 @@ caller가 cleanup deadline을 만들고, unknown mutation은 Redis 상태를 별
 | invalid client/serializer/namespace/key/TTL | dispatch 0회, typed validation sentinel |
 | codec marshal/unmarshal 오류 | `ErrSerialization` 또는 `ErrInvalidPayload`, raw payload 없음 |
 | Redis `Nil` on read | `(zero, false, nil)` |
+| serialized payload가 상한 초과 | `ErrPayloadTooLarge`, read/CAS/get-and-delete는 기존 key 보존 |
 | SetNX/CAS false | 정상 조건 불충족, 다른 value 변경 없음 |
 | provider error before result | redacted `Error`; mutation이면 `ErrCommitUnknown` |
 | malformed Lua result | `ErrMalformedResult`; mutation이면 commit unknown |
@@ -204,19 +216,23 @@ mutex-safe fake client는 command args와 payload를 deep-copy하고 호출 수,
 context, configured result/error, output-plus-error를 기록한다.
 
 - constructor/options, namespace/hash-tag, exact key preservation, typed-nil client/serializer
+- `MaxPayloadBytes` 기본값/범위, write preflight와 bounded read/CAS/get-and-delete의
+  oversized legacy value 및 empty payload
 - Bucket/MapCache Get/Set/SetIfAbsent/Delete success/miss/TTL normalization
 - Lua get-and-delete/CAS result parser, malformed/partial result, codec failure
 - dispatch 전/후 cancellation, mutation unknown, safe `Error()`/`%+v`, `errors.Is`/`errors.As`
 - concurrent CAS exact winner count와 race test
 - Redis Testcontainers를 하나씩 실행해 expiry, conditional write, delete,
-  cancellation, concurrent CAS 및 readiness/cleanup을 검증
+  cancellation, concurrent CAS, oversized legacy value 보존, empty payload 및
+  readiness/cleanup을 검증
 - compile-checked examples가 durable Redis, near-cache, stampede coordination의
   경계를 각각 설명
 
 일반 CI는 fake/unit, examples, `go vet`/lint를 실행한다. Redis Testcontainers는
 공유 Docker 자원을 고려해 repository suite와 직렬화한다. real Redis 설정,
-persistence/eviction/ACL/TLS와 production rollout은 DoD에서 제외하되 README에
-명시한다.
+persistence/eviction/maxmemory/TLS와 production rollout은 DoD에서 제외하되
+README에 명시한다. ACL을 사용하는 배포는 `GETRANGE`, `EXISTS`, `EVAL`, `SET`,
+`SETNX`, `DEL` command 권한과 Lua 실행 정책을 caller/operator가 검증한다.
 
 SPW-01 요구사항은 live #573 body와 #568 parent metadata로 확인했다. SPW-02
 설계는 이 문서, SPW-03 실행 plan, SPW-04 RED→GREEN 구현, SPW-05 fresh

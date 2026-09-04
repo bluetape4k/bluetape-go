@@ -33,38 +33,38 @@ Testcontainers로 증명하고 P0=0/P1=0 exact-head CI를 확보한다.
 - [x] live #573/#568 metadata와 local Redis/serialization/cache patterns를 확인한다.
 - [x] Bucket/MapCache API, key/TTL/codec/context/atomicity/zero-value/non-goal 계약을 spec에 고정한다.
 - [x] source parity를 `keep`(KeyBuilder/OpError/Serializer), `adapt`(redisvalue context/TTL), `split`(near-cache/stampede와 durable primitive), `defer`(hash-wide transaction/clear), `non-goal`(RedisJSON/eviction)으로 기록한다.
-- [ ] plan review에서 six lenses의 P0/P1과 Redis Cluster/TTL/cancellation 위험을 확인한다.
-- [ ] fake/client skeleton과 RED test를 먼저 작성하고 missing implementation symbols의 첫 실패를 기록한다.
+- [x] plan review에서 six lenses의 P0/P1과 Redis Cluster/TTL/cancellation 위험을 확인한다. 초기 review의 P1(payload bound)과 후속 review의 mutation-path bypass를 수정하고 Step 6-R 증적에 기록한다.
+- [x] fake/client skeleton과 RED test를 먼저 작성하고 missing implementation symbols의 첫 실패를 기록한다.
 
 ## Task 2 — shared contract per package (TDD)
 
-- [ ] 최소 `Client` interface(`Get`, `Set`, `SetNX`, `Del`, `Eval`)와 typed-nil reflection 검증을 구현한다.
-- [ ] `Options[V]`의 namespace/hash-tag/serializer/logger 검증과 immutable key builder를 구현한다.
-- [ ] `ErrInvalidContext`, `ErrInvalidOptions`, `ErrSerialization`, `ErrInvalidPayload`, `ErrMalformedResult`, `ErrUninitialized`를 safe typed `Error`와 함께 정의한다.
-- [ ] provider error는 `btredis.OpError` 기반으로 raw key/payload/provider text를 숨기고 `errors.Is`/`errors.As`/`btredis.ErrCommitUnknown`을 보존한다.
-- [ ] TTL `0=persistent`, negative reject, sub-ms→1ms normalization과 exact logical key bytes를 table-driven test한다.
+- [x] 최소 `Client` interface(`Set`, `SetNX`, `Del`, `Eval`)와 typed-nil reflection 검증을 구현한다. Bounded read는 `Eval`을 통해 `GETRANGE`/`EXISTS`를 호출한다.
+- [x] `Options[V]`의 namespace/hash-tag/serializer/logger/`MaxPayloadBytes` 검증과 immutable key builder를 구현한다.
+- [x] `ErrInvalidContext`, `ErrInvalidOptions`, `ErrSerialization`, `ErrInvalidPayload`, `ErrMalformedResult`, `ErrPayloadTooLarge`, `ErrUninitialized`를 safe typed `Error`와 함께 정의한다.
+- [x] provider error는 `btredis.OpError` 기반으로 raw key/payload/provider text를 숨기고 `errors.Is`/`errors.As`/`btredis.ErrCommitUnknown`을 보존한다.
+- [x] TTL `0=persistent`, negative reject, sub-ms→1ms normalization과 exact logical key bytes를 table-driven test한다.
 
 ## Task 3 — Bucket GREEN 구현
 
-- [ ] `Get`은 Redis `Nil`을 `(zero,false,nil)`로 매핑하고 response 뒤 cancellation 시 unmarshal하지 않는다.
-- [ ] `Set`/`SetIfAbsent`는 marshal·size/ctx preflight 뒤 exact key와 normalized TTL을 한 번만 dispatch한다.
-- [ ] `GetAndDelete` Lua result `{0}`/`{1,payload}` parser와 malformed/partial result를 구현한다.
-- [ ] `CompareAndSet` Lua가 expected/replacement bytes를 atomic하게 비교하고 persistent/PX branch를 선택하도록 구현한다.
-- [ ] `Delete`와 모든 mutation의 provider error/output-plus-error/post-dispatch cancellation을 commit-unknown으로 매핑한다.
+- [x] `Get`은 `GETRANGE`/`EXISTS` bounded Lua로 Redis miss를 `(zero,false,nil)`로 매핑하고 response 뒤 cancellation 시 unmarshal하지 않는다.
+- [x] `Set`/`SetIfAbsent`는 marshal·size/ctx preflight 뒤 exact key와 normalized TTL을 한 번만 dispatch한다.
+- [x] `GetAndDelete` Lua result `{0}`/`{1,payload}`/`{2}` parser와 malformed/partial result를 구현한다. `{2}`는 기존 key를 보존한다.
+- [x] `CompareAndSet` Lua가 expected/replacement bytes를 preflight하고 현재 값을 bounded read로 확인한 뒤 persistent/PX branch를 atomic하게 선택한다.
+- [x] `Delete`와 모든 mutation의 provider error/output-plus-error/post-dispatch cancellation을 commit-unknown으로 매핑한다.
 
 ## Task 4 — MapCache GREEN 구현
 
-- [ ] MapCache는 `map` structural segment와 logical key-per-entry만 사용하고 전체 map hash/iteration/clear를 추가하지 않는다.
-- [ ] Bucket과 동일한 typed value/TTL/context/error contract를 유지하며 `Get`, `Set`, `SetIfAbsent`, `GetAndDelete`, `CompareAndSet`, `Delete`를 구현한다.
-- [ ] 같은 namespace의 서로 다른 key가 collision 없이 보존되고 entry별 TTL 만료가 독립적인지 fake/integration으로 확인한다.
+- [x] MapCache는 `map` structural segment와 logical key-per-entry만 사용하고 전체 map hash/iteration/clear를 추가하지 않는다.
+- [x] Bucket과 동일한 typed value/TTL/context/error contract를 유지하며 `Get`, `Set`, `SetIfAbsent`, `GetAndDelete`, `CompareAndSet`, `Delete`를 구현한다.
+- [x] 같은 namespace의 서로 다른 key가 collision 없이 보존되고 entry별 TTL 만료가 독립적인지 fake/integration으로 확인한다.
 
 ## Task 5 — tests/examples/docs
 
-- [ ] mutex-safe fake는 input/payload deep-copy, call count/sequence/context, configured errors, output-plus-error를 기록한다.
-- [ ] codec failure, malformed Lua result, no-dispatch cancellation, late cancellation, redaction, concurrent CAS exact winner를 normal/race로 검증한다.
-- [ ] Redis Testcontainers는 다른 Docker suite와 직렬 실행하고 readiness/cleanup을 증명한다. 환경 미충족은 SKIP가 아닌 명시적 PENDING 증적으로 남긴다.
-- [ ] package README locale pair와 compile-checked example에서 durable Redis, process-local `cache.Memory`, `cache/redisnear`, `cache/rediscoord`를 구분한다.
-- [ ] root `redis` README 두 locale에 sibling link, API comparison, persistence/eviction/ACL/TLS/maxmemory와 caller-owned retry/timeout/client/codec를 추가한다.
+- [x] mutex-safe fake는 input/payload deep-copy, call count/sequence/context, configured errors, output-plus-error를 기록한다.
+- [x] codec failure, malformed Lua result, no-dispatch cancellation, late cancellation, redaction, concurrent CAS exact winner와 payload bound를 normal/race로 검증한다.
+- [x] Redis Testcontainers는 다른 Docker suite와 직렬 실행하고 readiness/cleanup, expiry, empty/oversized legacy value 보존, concurrent CAS를 증명한다. 환경 미충족은 명시적 PENDING 증적으로 남긴다.
+- [x] package README locale pair와 compile-checked example에서 durable Redis, process-local `cache.Memory`, `cache/redisnear`, `cache/rediscoord`를 구분한다.
+- [x] root `redis` README 두 locale에 sibling link, API comparison, payload bound, persistence/eviction/ACL/TLS/maxmemory와 caller-owned retry/timeout/client/codec를 추가한다.
 
 ## Task 6 — 검증 명령
 

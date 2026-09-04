@@ -5,6 +5,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"strconv"
 	"strings"
 	"sync"
 	"testing"
@@ -130,24 +131,48 @@ func (f *fakeClient) Eval(_ context.Context, script string, keys []string, args 
 		return redis.NewCmdResult(nil, errors.New("missing key"))
 	}
 	switch {
-	case strings.Contains(script, "redis.call(\"DEL\""):
+	case strings.Contains(script, "GETRANGE") && strings.Contains(script, "redis.call(\"DEL\""):
 		value, ok := f.values[keys[0]]
 		if !ok {
 			return redis.NewCmdResult([]interface{}{int64(0)}, f.evalErr)
 		}
+		if len(args) < 1 {
+			return redis.NewCmdResult(nil, errors.New("missing payload bound"))
+		}
+		maxPayloadBytes, _ := strconv.Atoi(fmt.Sprint(args[0]))
+		if len(value) > maxPayloadBytes {
+			return redis.NewCmdResult([]interface{}{int64(2)}, f.evalErr)
+		}
 		delete(f.values, keys[0])
 		return redis.NewCmdResult([]interface{}{int64(1), append([]byte(nil), value...)}, f.evalErr)
-	case strings.Contains(script, "ARGV[3]"):
-		if len(args) != 3 {
+	case strings.Contains(script, "ARGV[4]"):
+		if len(args) != 4 {
 			return redis.NewCmdResult(int64(9), f.evalErr)
 		}
 		expected, replacement := cloneBytes(args[0]), cloneBytes(args[1])
 		current, exists := f.values[keys[0]]
+		maxPayloadBytes, _ := strconv.Atoi(fmt.Sprint(args[3]))
+		if exists && len(current) > maxPayloadBytes {
+			return redis.NewCmdResult(int64(2), f.evalErr)
+		}
 		if !exists || !bytes.Equal(current, expected) {
 			return redis.NewCmdResult(int64(0), f.evalErr)
 		}
 		f.values[keys[0]] = replacement
 		return redis.NewCmdResult(int64(1), f.evalErr)
+	case strings.Contains(script, "GETRANGE"):
+		if len(args) < 2 {
+			return redis.NewCmdResult(nil, errors.New("missing payload bound"))
+		}
+		maxPayloadBytes, _ := strconv.Atoi(fmt.Sprint(args[1]))
+		value, exists := f.values[keys[0]]
+		if !exists {
+			return redis.NewCmdResult([]interface{}{int64(0)}, f.evalErr)
+		}
+		if len(value) > maxPayloadBytes {
+			return redis.NewCmdResult([]interface{}{int64(2)}, f.evalErr)
+		}
+		return redis.NewCmdResult([]interface{}{int64(1), append([]byte(nil), value...)}, f.evalErr)
 	default:
 		return redis.NewCmdResult(f.evalResult, f.evalErr)
 	}
@@ -182,6 +207,11 @@ func TestConstructorRejectsInvalidDependenciesAndZeroValue(t *testing.T) {
 	for _, serializer := range []serialization.Serializer[string]{nil, typedNilSerializer} {
 		if _, err := New[string](newFakeClient(), Options[string]{Namespace: "catalog", Serializer: serializer}); !errors.Is(err, ErrInvalidOptions) {
 			t.Fatalf("invalid serializer error = %v", err)
+		}
+	}
+	for _, maxPayloadBytes := range []int{-1, MaxPayloadBytesLimit + 1} {
+		if _, err := New[string](newFakeClient(), Options[string]{Namespace: "catalog", Serializer: serialization.StringSerializer{}, MaxPayloadBytes: maxPayloadBytes}); !errors.Is(err, ErrInvalidOptions) {
+			t.Fatalf("MaxPayloadBytes=%d error = %v, want ErrInvalidOptions", maxPayloadBytes, err)
 		}
 	}
 	var zero MapCache[string]
@@ -320,6 +350,48 @@ func TestMapCacheRejectsNegativeTTLAndCodecFailures(t *testing.T) {
 	unmarshalCache := mapForTest(t, fake, &unmarshalErrorSerializer{})
 	if _, _, err := unmarshalCache.Get(context.Background(), "key"); !errors.Is(err, ErrInvalidPayload) {
 		t.Fatalf("unmarshal error = %v", err)
+	}
+}
+
+func TestMapCacheEnforcesPayloadBoundBeforeDispatchAndDecode(t *testing.T) {
+	fake := newFakeClient()
+	cache, err := New(fake, Options[string]{
+		Namespace:       "tenant:catalog",
+		HashTag:         "tenant",
+		Serializer:      serialization.StringSerializer{},
+		MaxPayloadBytes: 4,
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if err := cache.Set(context.Background(), "oversized", "12345", 0); !errors.Is(err, ErrPayloadTooLarge) {
+		t.Fatalf("oversized Set() = %v, want ErrPayloadTooLarge", err)
+	}
+	fake.mu.Lock()
+	if len(fake.calls) != 0 {
+		t.Fatalf("oversized Set() dispatched calls = %v", fake.calls)
+	}
+	fake.values["tenant:catalog:map:{tenant}:oversized"] = []byte("12345")
+	fake.mu.Unlock()
+	if _, _, err := cache.Get(context.Background(), "oversized"); !errors.Is(err, ErrPayloadTooLarge) {
+		t.Fatalf("oversized Get() = %v, want ErrPayloadTooLarge", err)
+	}
+	fake.mu.Lock()
+	if _, exists := fake.values["tenant:catalog:map:{tenant}:oversized"]; !exists {
+		t.Fatal("oversized Get() unexpectedly changed the stored value")
+	}
+	fake.mu.Unlock()
+	if ok, err := cache.CompareAndSet(context.Background(), "oversized", "1234", "next", 0); !errors.Is(err, ErrPayloadTooLarge) || ok {
+		t.Fatalf("oversized CAS() = %v, %v", ok, err)
+	}
+	if _, _, err := cache.GetAndDelete(context.Background(), "oversized"); !errors.Is(err, ErrPayloadTooLarge) {
+		t.Fatalf("oversized GetAndDelete() = %v, want ErrPayloadTooLarge", err)
+	}
+	if err := cache.Set(context.Background(), "empty", "", 0); err != nil {
+		t.Fatal(err)
+	}
+	if got, hit, err := cache.Get(context.Background(), "empty"); err != nil || !hit || got != "" {
+		t.Fatalf("empty Get() = %q, %v, %v", got, hit, err)
 	}
 }
 

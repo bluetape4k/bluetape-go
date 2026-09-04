@@ -16,7 +16,6 @@ import (
 
 // Client MapCache가 사용하는 caller-owned Redis command의 최소 surface다.
 type Client interface {
-	Get(context.Context, string) *redis.StringCmd
 	Set(context.Context, string, any, time.Duration) *redis.StatusCmd
 	SetNX(context.Context, string, any, time.Duration) *redis.BoolCmd
 	Del(context.Context, ...string) *redis.IntCmd
@@ -25,27 +24,41 @@ type Client interface {
 
 // Options typed MapCache를 설정하며 입력값의 소유권을 가져가지 않는다.
 type Options[V any] struct {
-	Namespace  string
-	HashTag    string
-	Serializer serialization.Serializer[V]
-	Logger     *slog.Logger
+	Namespace       string
+	HashTag         string
+	Serializer      serialization.Serializer[V]
+	Logger          *slog.Logger
+	MaxPayloadBytes int
 }
 
 // MapCache 독립 entry TTL을 사용하는 key-per-entry Redis map primitive다.
 type MapCache[V any] struct {
-	client     Client
-	serializer serialization.Serializer[V]
-	keys       btredis.KeyBuilder
-	logger     *slog.Logger
+	client          Client
+	serializer      serialization.Serializer[V]
+	keys            btredis.KeyBuilder
+	logger          *slog.Logger
+	maxPayloadBytes int
 }
 
 const (
-	getAndDeleteScript = `local value = redis.call("GET", KEYS[1])
-if not value then return {0} end
+	// DefaultMaxPayloadBytes 기본 serialized value 크기 상한이다.
+	DefaultMaxPayloadBytes = 1 << 20
+	// MaxPayloadBytesLimit New가 허용하는 serialized value 크기 상한의 최대값이다.
+	MaxPayloadBytesLimit = 64 << 20
+
+	boundedGetScript = `local value = redis.call("GETRANGE", KEYS[1], 0, ARGV[1])
+if value == "" and redis.call("EXISTS", KEYS[1]) == 0 then return {0} end
+if string.len(value) > tonumber(ARGV[2]) then return {2} end
+return {1, value}`
+	getAndDeleteScript = `local value = redis.call("GETRANGE", KEYS[1], 0, ARGV[1])
+if value == "" and redis.call("EXISTS", KEYS[1]) == 0 then return {0} end
+if string.len(value) > tonumber(ARGV[1]) then return {2} end
 redis.call("DEL", KEYS[1])
 return {1, value}`
-	compareAndSetScript = `local current = redis.call("GET", KEYS[1])
-if not current or current ~= ARGV[1] then return 0 end
+	compareAndSetScript = `local current = redis.call("GETRANGE", KEYS[1], 0, ARGV[4])
+if current == "" and redis.call("EXISTS", KEYS[1]) == 0 then return 0 end
+if string.len(current) > tonumber(ARGV[4]) then return 2 end
+if current ~= ARGV[1] then return 0 end
 if ARGV[3] == "0" then
   redis.call("SET", KEYS[1], ARGV[2])
 else
@@ -61,6 +74,10 @@ func New[V any](client Client, options Options[V]) (*MapCache[V], error) {
 	}
 	if isNil(options.Serializer) {
 		return nil, ErrInvalidOptions
+	}
+	maxPayloadBytes, err := normalizeMaxPayloadBytes(options.MaxPayloadBytes)
+	if err != nil {
+		return nil, err
 	}
 	builder, err := btredis.NewKeyBuilder(options.Namespace)
 	if err != nil {
@@ -80,7 +97,13 @@ func New[V any](client Client, options Options[V]) (*MapCache[V], error) {
 	if logger == nil {
 		logger = slog.Default()
 	}
-	return &MapCache[V]{client: client, serializer: options.Serializer, keys: builder, logger: logger}, nil
+	return &MapCache[V]{
+		client:          client,
+		serializer:      options.Serializer,
+		keys:            builder,
+		logger:          logger,
+		maxPayloadBytes: maxPayloadBytes,
+	}, nil
 }
 
 // Get map entry 하나를 읽고 logical key 존재 여부를 반환한다.
@@ -96,28 +119,45 @@ func (m *MapCache[V]) Get(ctx context.Context, logicalKey string) (V, bool, erro
 	if err != nil {
 		return zero, false, err
 	}
-	cmd := m.client.Get(ctx, key.Value)
+	limit := strconv.FormatInt(int64(m.maxPayloadBytes), 10)
+	cmd := m.client.Eval(ctx, boundedGetScript, []string{key.Value}, limit, limit)
 	if cmd == nil {
 		return zero, false, newError("get", key.RedactedID, ErrMalformedResult)
 	}
-	payload, err := cmd.Bytes()
+	result, err := cmd.Result()
 	if ctxErr := ctx.Err(); ctxErr != nil {
-		if err != nil && !errors.Is(err, redis.Nil) {
+		if err != nil {
 			wrapped := errors.Join(providerError("get", key.RedactedID, err, false), ctxErr)
 			m.logFailure(ctx, "get", key.RedactedID, wrapped)
 			return zero, false, wrapped
 		}
 		return zero, false, ctxErr
 	}
-	if errors.Is(err, redis.Nil) {
-		return zero, false, nil
-	}
 	if err != nil {
 		wrapped := providerError("get", key.RedactedID, err, false)
 		m.logFailure(ctx, "get", key.RedactedID, wrapped)
 		return zero, false, wrapped
 	}
-	value, err := m.serializer.Unmarshal(append([]byte(nil), payload...))
+	status, payload, hit, ok := parseBoundedGetResult(result)
+	if !ok {
+		wrapped := newError("get", key.RedactedID, ErrMalformedResult)
+		m.logFailure(ctx, "get", key.RedactedID, wrapped)
+		return zero, false, wrapped
+	}
+	if status == 2 {
+		wrapped := newError("get", key.RedactedID, ErrPayloadTooLarge)
+		m.logFailure(ctx, "get", key.RedactedID, wrapped)
+		return zero, false, wrapped
+	}
+	if !hit {
+		return zero, false, nil
+	}
+	if len(payload) > m.maxPayloadBytes {
+		wrapped := newError("get", key.RedactedID, ErrPayloadTooLarge)
+		m.logFailure(ctx, "get", key.RedactedID, wrapped)
+		return zero, false, wrapped
+	}
+	value, err := m.serializer.Unmarshal(payloadOrEmpty(payload))
 	if err != nil {
 		wrapped := codecError("get", key.RedactedID, ErrInvalidPayload, err)
 		m.logFailure(ctx, "get", key.RedactedID, wrapped)
@@ -177,7 +217,8 @@ func (m *MapCache[V]) GetAndDelete(ctx context.Context, logicalKey string) (V, b
 	if err != nil {
 		return zero, false, err
 	}
-	cmd := m.client.Eval(ctx, getAndDeleteScript, []string{key.Value})
+	limit := strconv.FormatInt(int64(m.maxPayloadBytes), 10)
+	cmd := m.client.Eval(ctx, getAndDeleteScript, []string{key.Value}, limit)
 	if cmd == nil {
 		wrapped := malformedMutation("get-and-delete", key.RedactedID)
 		m.logFailure(ctx, "get-and-delete", key.RedactedID, wrapped)
@@ -192,15 +233,19 @@ func (m *MapCache[V]) GetAndDelete(ctx context.Context, logicalKey string) (V, b
 	}
 	status, payload, hit, ok := parseGetAndDeleteResult(result)
 	if !ok {
-		_ = status
 		wrapped := malformedMutation("get-and-delete", key.RedactedID)
+		m.logFailure(ctx, "get-and-delete", key.RedactedID, wrapped)
+		return zero, false, wrapped
+	}
+	if status == 2 {
+		wrapped := newError("get-and-delete", key.RedactedID, ErrPayloadTooLarge)
 		m.logFailure(ctx, "get-and-delete", key.RedactedID, wrapped)
 		return zero, false, wrapped
 	}
 	if !hit {
 		return zero, false, nil
 	}
-	value, err := m.serializer.Unmarshal(payload)
+	value, err := m.serializer.Unmarshal(payloadOrEmpty(payload))
 	if err != nil {
 		wrapped := codecError("get-and-delete", key.RedactedID, ErrInvalidPayload, err)
 		m.logFailure(ctx, "get-and-delete", key.RedactedID, wrapped)
@@ -231,16 +276,26 @@ func (m *MapCache[V]) CompareAndSet(ctx context.Context, logicalKey string, expe
 		m.logFailure(ctx, "compare-and-set", key.RedactedID, wrapped)
 		return false, wrapped
 	}
+	if len(expectedPayload) > m.maxPayloadBytes {
+		wrapped := newError("compare-and-set", key.RedactedID, ErrPayloadTooLarge)
+		m.logFailure(ctx, "compare-and-set", key.RedactedID, wrapped)
+		return false, wrapped
+	}
 	replacementPayload, err := m.serializer.Marshal(replacement)
 	if err != nil {
 		wrapped := codecError("compare-and-set", key.RedactedID, ErrSerialization, err)
 		m.logFailure(ctx, "compare-and-set", key.RedactedID, wrapped)
 		return false, wrapped
 	}
+	if len(replacementPayload) > m.maxPayloadBytes {
+		wrapped := newError("compare-and-set", key.RedactedID, ErrPayloadTooLarge)
+		m.logFailure(ctx, "compare-and-set", key.RedactedID, wrapped)
+		return false, wrapped
+	}
 	if err := ctx.Err(); err != nil {
 		return false, err
 	}
-	cmd := m.client.Eval(ctx, compareAndSetScript, []string{key.Value}, payloadOrEmpty(expectedPayload), payloadOrEmpty(replacementPayload), strconv.FormatInt(normalized.Milliseconds(), 10))
+	cmd := m.client.Eval(ctx, compareAndSetScript, []string{key.Value}, payloadOrEmpty(expectedPayload), payloadOrEmpty(replacementPayload), strconv.FormatInt(normalized.Milliseconds(), 10), strconv.FormatInt(int64(m.maxPayloadBytes), 10))
 	if cmd == nil {
 		wrapped := malformedMutation("compare-and-set", key.RedactedID)
 		m.logFailure(ctx, "compare-and-set", key.RedactedID, wrapped)
@@ -258,6 +313,10 @@ func (m *MapCache[V]) CompareAndSet(ctx context.Context, logicalKey string, expe
 		return false, nil
 	case 1:
 		return true, nil
+	case 2:
+		wrapped := newError("compare-and-set", key.RedactedID, ErrPayloadTooLarge)
+		m.logFailure(ctx, "compare-and-set", key.RedactedID, wrapped)
+		return false, wrapped
 	default:
 		wrapped := malformedMutation("compare-and-set", key.RedactedID)
 		m.logFailure(ctx, "compare-and-set", key.RedactedID, wrapped)
@@ -306,6 +365,11 @@ func (m *MapCache[V]) prepareWrite(ctx context.Context, operation, logicalKey st
 	payload, err := m.serializer.Marshal(value)
 	if err != nil {
 		return zero, nil, 0, codecError(operation, key.RedactedID, ErrSerialization, err)
+	}
+	if len(payload) > m.maxPayloadBytes {
+		wrapped := newError(operation, key.RedactedID, ErrPayloadTooLarge)
+		m.logFailure(ctx, operation, key.RedactedID, wrapped)
+		return zero, nil, 0, wrapped
 	}
 	if err := ctx.Err(); err != nil {
 		return zero, nil, 0, err
@@ -365,11 +429,21 @@ func normalizeTTL(ttl time.Duration) (time.Duration, error) {
 	return ttl.Truncate(time.Millisecond), nil
 }
 
+func normalizeMaxPayloadBytes(maxPayloadBytes int) (int, error) {
+	if maxPayloadBytes == 0 {
+		return DefaultMaxPayloadBytes, nil
+	}
+	if maxPayloadBytes < 1 || maxPayloadBytes > MaxPayloadBytesLimit {
+		return 0, fmt.Errorf("%w: max payload bytes must be between 1 and %d", ErrInvalidOptions, MaxPayloadBytesLimit)
+	}
+	return maxPayloadBytes, nil
+}
+
 func payloadOrEmpty(payload []byte) []byte {
 	if payload == nil {
 		return []byte{}
 	}
-	return append([]byte(nil), payload...)
+	return append([]byte{}, payload...)
 }
 
 func isNil(value any) bool {
@@ -403,6 +477,31 @@ func parseGetAndDeleteResult(value any) (int64, []byte, bool, bool) {
 		}
 		payload, ok := resultBytes(values[1])
 		return status, payload, ok, ok
+	case 2:
+		return status, nil, false, len(values) == 1
+	default:
+		return status, nil, false, false
+	}
+}
+
+func parseBoundedGetResult(value any) (int64, []byte, bool, bool) {
+	values, ok := value.([]interface{})
+	if !ok || len(values) == 0 {
+		return 0, nil, false, false
+	}
+	status, ok := scriptInt(values[:1])
+	if !ok {
+		return 0, nil, false, false
+	}
+	switch status {
+	case 0, 2:
+		return status, nil, false, len(values) == 1
+	case 1:
+		if len(values) != 2 {
+			return status, nil, false, false
+		}
+		payload, ok := resultBytes(values[1])
+		return status, payload, true, ok
 	default:
 		return status, nil, false, false
 	}

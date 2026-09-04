@@ -19,6 +19,8 @@ var (
 	ErrSerialization = errors.New("redis mapcache: serialization failed")
 	// ErrInvalidPayload serializer unmarshal이 실패했을 때 반환된다.
 	ErrInvalidPayload = errors.New("redis mapcache: invalid payload")
+	// ErrPayloadTooLarge serialized value가 configured bound를 초과했을 때 반환된다.
+	ErrPayloadTooLarge = errors.New("redis mapcache: payload too large")
 	// ErrMalformedResult Redis command 또는 Lua result 형식이 예상과 다를 때 반환된다.
 	ErrMalformedResult = errors.New("redis mapcache: malformed result")
 	// ErrUninitialized zero-value MapCache를 사용했을 때 반환된다.
