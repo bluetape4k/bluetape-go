@@ -102,10 +102,13 @@ readiness·cleanup·credential 경계를 증적에 남긴다.
 
 ## Task 8 — review/PR gate
 
-- [ ] Step 6-R 7-Tier review: performance, stability, security, operator/Ops,
-  developer/API, user/caller six lanes와 main integration을 수행한다.
-- [ ] P0/P1 finding이 있으면 수정 후 같은 exact head에서 재검증한다. skipped/
-  unavailable lane은 PASS가 아니라 PENDING/recorded fallback이다.
+- [x] Step 6-R 7-Tier review: performance, stability, security, operator/Ops,
+  developer/API, user/caller six lenses와 main integration을 수행하고
+  `docs/superpowers/reviews/2026-09-04-issue-559-dynamodb-leader-step-6r-code-review.md`
+  에 exact base/head와 fallback 경계를 기록한다.
+- [x] P0/P1 finding이 있으면 수정 후 같은 exact head에서 재검증한다.
+  최종 `P0=0`, `P1=0`이며 architect 독립 lane unavailable은 PASS로 위장하지
+  않고 main-session fallback과 `PENDING` 조건부 gate로 기록했다.
 - [ ] Korean PR body 끝에 `## DoD Status`와 tests/static/review/docs/gaps를
   기록하고 issue #559/milestone/assignee를 live read-back한다.
 - [ ] PR 생성은 승인된 target repo/base/head 범위에서만 수행한다. merge는
