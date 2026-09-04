@@ -71,6 +71,7 @@ future scope, not part of the current public API.
 | [`dynamodb/batchwrite`](dynamodb/batchwrite/README.md) | active | Narrow AWS SDK for Go v2 BatchWriteItem chunking and unprocessed-item retry helper. |
 | [`secretsmanager`](secretsmanager/README.md) | active | Caller-owned AWS Secrets Manager lookup with redacted string/binary values and an explicit bounded positive-TTL cache. |
 | [`ssm`](ssm/README.md) | active | Caller-owned AWS Parameter Store lookup with explicit SecureString decryption and an explicit bounded positive-TTL cache. |
+| [`messaging/sqsextended`](messaging/sqsextended/README.md) | active | Caller-owned AWS SDK for Go v2 SQS/S3 large-payload envelope with bounded reads, checksum validation, and explicit cleanup order. |
 | [`examples/integration`](examples/integration/README.md) | example | Compile-checked end-to-end recipes across corrected `0.6.x` packages. |
 | [`examples/audit`](examples/audit/README.md) | example | Runnable audit-backed order service demonstrating repository history and outbox replay boundaries. |
 | [`examples/graph/observability`](examples/graph/observability/README.md) | example | Runnable observability incident graph showing blast-radius, alert-boundary, ownership, and NDJSON graph I/O boundaries. |
@@ -156,7 +157,7 @@ overview.
   package READMEs listed above. Focused examples in `testing` cover
   table-driven tests, package-local builders, golden files, deterministic random
   data, and cancellation assertions without adding an assertion DSL.
-- AWS/Floci: [`dynamodb/batchwrite`](dynamodb/batchwrite/README.md), [`encrypt/kms`](encrypt/kms/README.md), [`secretsmanager`](secretsmanager/README.md), [`ssm`](ssm/README.md), [`workflow/stepfunctions`](workflow/stepfunctions/README.md), and
+ - AWS/Floci: [`dynamodb/batchwrite`](dynamodb/batchwrite/README.md), [`messaging/sqsextended`](messaging/sqsextended/README.md), [`encrypt/kms`](encrypt/kms/README.md), [`secretsmanager`](secretsmanager/README.md), [`ssm`](ssm/README.md), [`workflow/stepfunctions`](workflow/stepfunctions/README.md), and
   compile-checked examples under [`examples/integration`](examples/integration/README.md),
   [`examples/s3`](examples/s3/README.md), and
   [`examples/sqs-sns`](examples/sqs-sns/README.md), plus the fake-first
