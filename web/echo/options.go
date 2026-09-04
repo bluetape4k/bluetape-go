@@ -20,6 +20,10 @@ const DefaultJWTContextKey = "bluetape.web.echo.jwt"
 // redacted resilience observer 오류를 저장하는 기본 Echo key다.
 const DefaultResilienceErrorContextKey = "bluetape.web.echo.resilience.error"
 
+// DefaultRateLimitWriteErrorContextKey is the Echo key for a redacted rate-limit Problem write observer.
+// redacted rate-limit Problem write observer를 저장하는 기본 Echo key다.
+const DefaultRateLimitWriteErrorContextKey = "bluetape.web.echo.rate_limit.write_error"
+
 // RateLimitKeyFunc extracts a rate-limit key from an Echo request.
 // Echo request에서 rate-limit key를 추출한다.
 type RateLimitKeyFunc func(echo.Context) string
@@ -31,6 +35,20 @@ type RateLimitOptions struct {
 	KeyFunc      RateLimitKeyFunc
 	Tokens       int64
 	ErrorHandler func(echo.Context, ratelimit.Result, error)
+}
+
+// RateLimitWriteError reads the redacted observer for a failed rate-limit Problem write.
+// rate-limit Problem 쓰기 실패의 redacted observer를 읽는다.
+func RateLimitWriteError(c echo.Context) error {
+	if isNilInterface(c) {
+		return nil
+	}
+	value := c.Get(DefaultRateLimitWriteErrorContextKey)
+	err, ok := value.(error)
+	if !ok || isNilInterface(err) {
+		return nil
+	}
+	return err
 }
 
 // ContextParser defines a JWT parser contract that receives request context.

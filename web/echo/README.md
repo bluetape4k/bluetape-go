@@ -64,7 +64,14 @@ bootstrap and a migration example using `echo.WrapHandler`.
   (and redact any backend error it records). The adapter returns nil after the
   callback, so a callback that writes nothing can leave Echo's default 200
   response; write a terminal response or delegate explicitly to the outer
-  error handler.
+  error handler. If the default Problem writer fails on a rejection, backend
+  error, or cancellation response, the adapter keeps the committed response,
+  does not retry or overwrite it, and stores a fixed-message observer under
+  `DefaultRateLimitWriteErrorContextKey`; read it with `RateLimitWriteError`.
+  The observer's `Unwrap` preserves `errors.Is` for the caller-owned cause, but
+  its public message is redacted. Custom callbacks keep their existing
+  caller-owned write and observation policy. See the [#693 design](../../docs/superpowers/specs/2026-09-05-issue-693-echo-rate-limit-write-observer-design.md)
+  for the path-by-path acceptance mapping.
 - `NewJWT` accepts exactly one case-insensitive `Bearer <token>` header. It
   rejects duplicate/comma-joined values, controls, whitespace, and tokens over
   8 KiB. `JWTReader` returns only the verified `*jwt.Reader` stored in context.

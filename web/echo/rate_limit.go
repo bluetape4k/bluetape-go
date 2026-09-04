@@ -49,7 +49,7 @@ func NewRateLimit(options RateLimitOptions) (echo.MiddlewareFunc, error) {
 			if state == nil {
 				return
 			}
-			handleRateLimitError(state.context, writer, request, result, requestErr, options.ErrorHandler)
+			state.writeErr = handleRateLimitError(state.context, writer, request, result, requestErr, options.ErrorHandler)
 			state.handled = true
 		},
 	})
@@ -74,6 +74,9 @@ func NewRateLimit(options RateLimitOptions) (echo.MiddlewareFunc, error) {
 			request := original.WithContext(context.WithValue(original.Context(), echoContextKey{}, state))
 			c.SetRequest(request)
 			core.ServeHTTP(c.Response(), request)
+			if state.writeErr != nil {
+				c.Set(DefaultRateLimitWriteErrorContextKey, newRateLimitWriteObserverError(state.writeErr))
+			}
 			if state.nextErr != nil && !c.Response().Committed && !state.handled {
 				return state.nextErr
 			}
@@ -85,10 +88,11 @@ func NewRateLimit(options RateLimitOptions) (echo.MiddlewareFunc, error) {
 type echoContextKey struct{}
 
 type echoRequestState struct {
-	context echo.Context
-	next    echo.HandlerFunc
-	nextErr error
-	handled bool
+	context  echo.Context
+	next     echo.HandlerFunc
+	nextErr  error
+	writeErr error
+	handled  bool
 }
 
 func handleRateLimitError(
@@ -98,27 +102,37 @@ func handleRateLimitError(
 	result ratelimit.Result,
 	requestErr error,
 	custom func(echo.Context, ratelimit.Result, error),
-) {
+) error {
 	if custom != nil && !isNilInterface(c) {
 		custom(c, result, requestErr)
-		return
+		return nil
 	}
 
 	if requestErr != nil {
 		if errors.Is(requestErr, context.Canceled) || errors.Is(requestErr, context.DeadlineExceeded) {
-			_ = web.WriteProblem(writer, request, requestErr)
-			return
+			return web.WriteProblem(writer, request, requestErr)
 		}
-		_ = web.WriteProblem(writer, request, rateLimitBackendProblemError{})
-		return
+		return web.WriteProblem(writer, request, rateLimitBackendProblemError{})
 	}
 
 	if result.RetryAfter > 0 {
 		writer.Header().Set("Retry-After", strconv.FormatInt(retryAfterSeconds(result.RetryAfter), 10))
 	}
 	writer.Header().Set("X-RateLimit-Remaining", strconv.FormatInt(result.Remaining, 10))
-	_ = web.WriteProblem(writer, request, rateLimitRejectedError{})
+	return web.WriteProblem(writer, request, rateLimitRejectedError{})
 }
+
+type rateLimitWriteObserverError struct {
+	cause error
+}
+
+func newRateLimitWriteObserverError(err error) rateLimitWriteObserverError {
+	return rateLimitWriteObserverError{cause: err}
+}
+
+func (rateLimitWriteObserverError) Error() string { return "rate limit problem response write failed" }
+
+func (e rateLimitWriteObserverError) Unwrap() error { return e.cause }
 
 func retryAfterSeconds(duration time.Duration) int64 {
 	if duration <= 0 {
