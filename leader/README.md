@@ -61,6 +61,11 @@ if err != nil {
   official Session/Election primitives, server-granted TTL, bounded Proclaim,
   and exact-key ownership monitoring. It provides no fencing token, group, or
   strategic election.
+- `leader/dynamodb` is a single `Elector` over a caller-owned DynamoDB client.
+  It uses conditional item writes, strongly consistent deadline reads, and TTL
+  only as asynchronous cleanup; it provides no Global Tables or fencing semantics.
+  The table is the namespace boundary; inherited `KeyPrefix` is validated but
+  not encoded in the item key.
 
 ## Test
 
@@ -69,6 +74,7 @@ go test -count=1 ./leader
 go test -count=1 ./leader/mongo
 go test -p 1 -count=1 ./leader/sql
 go test -p 1 -count=1 ./leader/etcd
+go test -count=1 ./leader/dynamodb
 ```
 
 ## Single-Elector Conformance

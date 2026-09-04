@@ -33,7 +33,8 @@ import (
 | Redis-backed distributed key rotation | `jwt/redis.New` with `NewDistributedHMACProvider` or `NewDistributedRSAProvider` | Shares signing keys across process instances with context-aware Redis I/O. |
 | MongoDB-backed distributed key rotation | `jwt/mongo.New` with `NewDistributedHMACProvider` or `NewDistributedRSAProvider` | Shares signing keys through MongoDB when the service already operates MongoDB as trusted state. |
 | Signed JWT compression | Non-goal | `zip` belongs to a JWE boundary, not to the signed JWT helper. |
-| JWE, JWK, JWKS | Deferred | JWE/JWKS can be added later as explicit optional JOSE boundaries if real use cases appear. |
+| JWKS signature key lookup | `jwt/jwks` | Optional direct-URL provider for RSA/ECDSA/Ed25519 public keys with bounded TTL, rotation, and context-aware refresh. |
+| JWE decryption and OIDC discovery | Deferred | These remain separate optional JOSE boundaries until a concrete use case requires them. |
 | Provider cache adapters | `NewCachedProvider` or `NewCachedDistributedProvider` | Optional trusted `cache.Cache[string,*jwt.Reader]` wrappers reduce repeated parse and signature verification cost without bypassing provider validation. |
 
 ## Usage
@@ -318,8 +319,10 @@ contract.
 ## Behavior
 
 - `jwt` is not an auth framework. It does not provide HTTP middleware,
-  sessions, OIDC, JWKS, authorization rules, roles, user models, auth
-  middleware, background rotation timers, or token revocation storage.
+  sessions, OIDC discovery, JWE decryption, authorization rules, roles, user
+  models, background rotation timers, or token revocation storage. The optional
+  `jwt/jwks` package provides only direct-URL asymmetric signature key lookup;
+  it does not change this claims-policy boundary.
 - Parsing always constrains accepted algorithms with `WithValidMethods`, and
   the token `alg` header must match the provider's configured algorithm before
   verification key material is returned.

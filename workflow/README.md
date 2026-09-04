@@ -55,6 +55,15 @@ go test ./workflow
   preserves child reports in input order. `StopOnFailure`, aborted, and
   cancelled child reports cancel siblings and wait for started goroutines.
 
+## External execution bridge
+
+[`workflow/stepfunctions`](stepfunctions/README.md) is intentionally separate
+from these in-process runners. It provides a caller-owned AWS Step Functions
+execution bridge for start, describe, optional stop, and bounded wait/polling.
+It does not define, deploy, retry, or own a durable workflow engine. See the
+package README for payload limits, idempotency, cancellation, and fake-first
+verification contracts.
+
 ## Contracts
 
 - Nil caller contexts are treated as `context.Background()`.

@@ -101,6 +101,11 @@ such as Kafka, NATS, RabbitMQ, Redpanda, and Pulsar remain later adapter
 scopes. The first broker-backed provider is
 [`redisstreams`](redisstreams/README.md), which appends records to Redis
 Streams while leaving stream topology and consumer replay policy to callers.
+The EventBridge adapter
+[`eventbridge`](eventbridge/README.md) sends one validated record per
+`PutEvents` call, preserves the stable event ID and idempotency key in JSON
+detail, and maps entry-level failures without owning AWS topology or client
+lifecycle.
 
 ## Boundaries
 
@@ -121,6 +126,9 @@ Streams while leaving stream topology and consumer replay policy to callers.
 - [`redisstreams`](redisstreams/README.md) provides a narrow Redis Streams
   publisher; Kafka, NATS, RabbitMQ, Redpanda, Pulsar, and direct Redis audit
   storage remain later adapter scopes.
+- [`eventbridge`](eventbridge/README.md) provides a narrow single-entry
+  EventBridge publisher; bus/rule/target provisioning and downstream
+  idempotency remain caller/operator-owned.
 
 ## Tests
 
@@ -128,6 +136,7 @@ Streams while leaving stream topology and consumer replay policy to callers.
 go test -count=1 ./audit/sqloutbox
 go test -race -count=1 ./audit/sqloutbox
 go test -count=1 ./audit/sqloutbox/redisstreams
+go test -count=1 ./audit/sqloutbox/eventbridge
 go test -count=1 ./audit/sqloutbox -run 'RelayRunOnce(PublisherContextCancellationDoesNotRetry|RetriesDuplicatePublishWithStableEnvelope|ConcurrentStressPublishesEachRecordOnce)'
 ```
 

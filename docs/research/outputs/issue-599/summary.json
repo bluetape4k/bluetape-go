@@ -1,0 +1,2451 @@
+{
+  "benchmark_prefix": "BenchmarkIssue599",
+  "coverage": {
+    "missing_groups": [],
+    "present_groups": [
+      "codec/JSON",
+      "codec/NativeFast",
+      "codec/NativeCompatible",
+      "direct-redis/JSON",
+      "direct-redis/NativeFast",
+      "direct-redis/NativeCompatible",
+      "coordination/JSON",
+      "coordination/NativeFast",
+      "coordination/NativeCompatible",
+      "contention/NativeFast"
+    ],
+    "required_groups": [
+      "codec/JSON",
+      "codec/NativeFast",
+      "codec/NativeCompatible",
+      "direct-redis/JSON",
+      "direct-redis/NativeFast",
+      "direct-redis/NativeCompatible",
+      "coordination/JSON",
+      "coordination/NativeFast",
+      "coordination/NativeCompatible",
+      "contention/NativeFast"
+    ],
+    "row_count": 71,
+    "scenario_coverage": 1.0
+  },
+  "guards": {
+    "has_alloc_metrics": true,
+    "has_round_trip": true,
+    "has_wire_bytes": true
+  },
+  "required_samples": 3,
+  "rows": [
+    {
+      "allocs_per_op": {
+        "max": 10.0,
+        "median": 10.0,
+        "min": 10.0
+      },
+      "bytes_per_op": {
+        "max": 416.0,
+        "median": 416.0,
+        "min": 416.0
+      },
+      "iterations": [
+        1939354,
+        1943328,
+        1956160
+      ],
+      "metrics": {
+        "wire-bytes": {
+          "max": 84.0,
+          "median": 84.0,
+          "min": 84.0
+        }
+      },
+      "name": "BenchmarkIssue599Codec/JSON/Empty/Decode",
+      "ns_per_op": {
+        "max": 618.5,
+        "median": 618.3,
+        "min": 613.9
+      },
+      "samples": 3,
+      "workers": [
+        10
+      ]
+    },
+    {
+      "allocs_per_op": {
+        "max": 2.0,
+        "median": 2.0,
+        "min": 2.0
+      },
+      "bytes_per_op": {
+        "max": 208.0,
+        "median": 208.0,
+        "min": 208.0
+      },
+      "iterations": [
+        8421994,
+        8440287,
+        8444970
+      ],
+      "metrics": {
+        "wire-bytes": {
+          "max": 84.0,
+          "median": 84.0,
+          "min": 84.0
+        }
+      },
+      "name": "BenchmarkIssue599Codec/JSON/Empty/Encode",
+      "ns_per_op": {
+        "max": 142.8,
+        "median": 142.3,
+        "min": 142.3
+      },
+      "samples": 3,
+      "workers": [
+        10
+      ]
+    },
+    {
+      "allocs_per_op": {
+        "max": 12.0,
+        "median": 12.0,
+        "min": 12.0
+      },
+      "bytes_per_op": {
+        "max": 624.0,
+        "median": 624.0,
+        "min": 624.0
+      },
+      "iterations": [
+        1534143,
+        1536684,
+        1539618
+      ],
+      "metrics": {
+        "wire-bytes": {
+          "max": 84.0,
+          "median": 84.0,
+          "min": 84.0
+        }
+      },
+      "name": "BenchmarkIssue599Codec/JSON/Empty/RoundTrip",
+      "ns_per_op": {
+        "max": 782.6,
+        "median": 780.8,
+        "min": 779.5
+      },
+      "samples": 3,
+      "workers": [
+        10
+      ]
+    },
+    {
+      "allocs_per_op": {
+        "max": 34.0,
+        "median": 34.0,
+        "min": 34.0
+      },
+      "bytes_per_op": {
+        "max": 5936.0,
+        "median": 5936.0,
+        "min": 5936.0
+      },
+      "iterations": [
+        70366,
+        70572,
+        70728
+      ],
+      "metrics": {
+        "wire-bytes": {
+          "max": 5831.0,
+          "median": 5831.0,
+          "min": 5831.0
+        }
+      },
+      "name": "BenchmarkIssue599Codec/JSON/Medium/Decode",
+      "ns_per_op": {
+        "max": 17201.0,
+        "median": 17159.0,
+        "min": 17020.0
+      },
+      "samples": 3,
+      "workers": [
+        10
+      ]
+    },
+    {
+      "allocs_per_op": {
+        "max": 2.0,
+        "median": 2.0,
+        "min": 2.0
+      },
+      "bytes_per_op": {
+        "max": 6262.0,
+        "median": 6262.0,
+        "min": 6262.0
+      },
+      "iterations": [
+        573433,
+        578878,
+        585991
+      ],
+      "metrics": {
+        "wire-bytes": {
+          "max": 5831.0,
+          "median": 5831.0,
+          "min": 5831.0
+        }
+      },
+      "name": "BenchmarkIssue599Codec/JSON/Medium/Encode",
+      "ns_per_op": {
+        "max": 2099.0,
+        "median": 2090.0,
+        "min": 2088.0
+      },
+      "samples": 3,
+      "workers": [
+        10
+      ]
+    },
+    {
+      "allocs_per_op": {
+        "max": 36.0,
+        "median": 36.0,
+        "min": 36.0
+      },
+      "bytes_per_op": {
+        "max": 12253.0,
+        "median": 12252.0,
+        "min": 12252.0
+      },
+      "iterations": [
+        61604,
+        62102,
+        62300
+      ],
+      "metrics": {
+        "wire-bytes": {
+          "max": 5831.0,
+          "median": 5831.0,
+          "min": 5831.0
+        }
+      },
+      "name": "BenchmarkIssue599Codec/JSON/Medium/RoundTrip",
+      "ns_per_op": {
+        "max": 19482.0,
+        "median": 19473.0,
+        "min": 19258.0
+      },
+      "samples": 3,
+      "workers": [
+        10
+      ]
+    },
+    {
+      "allocs_per_op": {
+        "max": 7.0,
+        "median": 7.0,
+        "min": 7.0
+      },
+      "bytes_per_op": {
+        "max": 352.0,
+        "median": 352.0,
+        "min": 352.0
+      },
+      "iterations": [
+        2194795,
+        2233458,
+        2270394
+      ],
+      "metrics": {
+        "wire-bytes": {
+          "max": 86.0,
+          "median": 86.0,
+          "min": 86.0
+        }
+      },
+      "name": "BenchmarkIssue599Codec/JSON/Nil/Decode",
+      "ns_per_op": {
+        "max": 540.7,
+        "median": 539.7,
+        "min": 536.4
+      },
+      "samples": 3,
+      "workers": [
+        10
+      ]
+    },
+    {
+      "allocs_per_op": {
+        "max": 2.0,
+        "median": 2.0,
+        "min": 2.0
+      },
+      "bytes_per_op": {
+        "max": 208.0,
+        "median": 208.0,
+        "min": 208.0
+      },
+      "iterations": [
+        8974676,
+        8979310,
+        8995065
+      ],
+      "metrics": {
+        "wire-bytes": {
+          "max": 86.0,
+          "median": 86.0,
+          "min": 86.0
+        }
+      },
+      "name": "BenchmarkIssue599Codec/JSON/Nil/Encode",
+      "ns_per_op": {
+        "max": 133.6,
+        "median": 133.6,
+        "min": 133.3
+      },
+      "samples": 3,
+      "workers": [
+        10
+      ]
+    },
+    {
+      "allocs_per_op": {
+        "max": 9.0,
+        "median": 9.0,
+        "min": 9.0
+      },
+      "bytes_per_op": {
+        "max": 560.0,
+        "median": 560.0,
+        "min": 560.0
+      },
+      "iterations": [
+        1740202,
+        1740890,
+        1763751
+      ],
+      "metrics": {
+        "wire-bytes": {
+          "max": 86.0,
+          "median": 86.0,
+          "min": 86.0
+        }
+      },
+      "name": "BenchmarkIssue599Codec/JSON/Nil/RoundTrip",
+      "ns_per_op": {
+        "max": 687.8,
+        "median": 687.5,
+        "min": 686.0
+      },
+      "samples": 3,
+      "workers": [
+        10
+      ]
+    },
+    {
+      "allocs_per_op": {
+        "max": 86.0,
+        "median": 86.0,
+        "min": 86.0
+      },
+      "bytes_per_op": {
+        "max": 7984.0,
+        "median": 7984.0,
+        "min": 7984.0
+      },
+      "iterations": [
+        53054,
+        53829,
+        54297
+      ],
+      "metrics": {
+        "wire-bytes": {
+          "max": 6616.0,
+          "median": 6616.0,
+          "min": 6616.0
+        }
+      },
+      "name": "BenchmarkIssue599Codec/JSON/Repeated/Decode",
+      "ns_per_op": {
+        "max": 22455.0,
+        "median": 22373.0,
+        "min": 22297.0
+      },
+      "samples": 3,
+      "workers": [
+        10
+      ]
+    },
+    {
+      "allocs_per_op": {
+        "max": 2.0,
+        "median": 2.0,
+        "min": 2.0
+      },
+      "bytes_per_op": {
+        "max": 6904.0,
+        "median": 6903.0,
+        "min": 6903.0
+      },
+      "iterations": [
+        400888,
+        402374,
+        403429
+      ],
+      "metrics": {
+        "wire-bytes": {
+          "max": 6616.0,
+          "median": 6616.0,
+          "min": 6616.0
+        }
+      },
+      "name": "BenchmarkIssue599Codec/JSON/Repeated/Encode",
+      "ns_per_op": {
+        "max": 2990.0,
+        "median": 2987.0,
+        "min": 2981.0
+      },
+      "samples": 3,
+      "workers": [
+        10
+      ]
+    },
+    {
+      "allocs_per_op": {
+        "max": 88.0,
+        "median": 88.0,
+        "min": 88.0
+      },
+      "bytes_per_op": {
+        "max": 14980.0,
+        "median": 14976.0,
+        "min": 14971.0
+      },
+      "iterations": [
+        47290,
+        47341,
+        47436
+      ],
+      "metrics": {
+        "wire-bytes": {
+          "max": 6616.0,
+          "median": 6616.0,
+          "min": 6616.0
+        }
+      },
+      "name": "BenchmarkIssue599Codec/JSON/Repeated/RoundTrip",
+      "ns_per_op": {
+        "max": 25351.0,
+        "median": 25334.0,
+        "min": 25334.0
+      },
+      "samples": 3,
+      "workers": [
+        10
+      ]
+    },
+    {
+      "allocs_per_op": {
+        "max": 18.0,
+        "median": 18.0,
+        "min": 18.0
+      },
+      "bytes_per_op": {
+        "max": 704.0,
+        "median": 704.0,
+        "min": 704.0
+      },
+      "iterations": [
+        746745,
+        751045,
+        765130
+      ],
+      "metrics": {
+        "wire-bytes": {
+          "max": 325.0,
+          "median": 325.0,
+          "min": 325.0
+        }
+      },
+      "name": "BenchmarkIssue599Codec/JSON/Small/Decode",
+      "ns_per_op": {
+        "max": 1586.0,
+        "median": 1576.0,
+        "min": 1564.0
+      },
+      "samples": 3,
+      "workers": [
+        10
+      ]
+    },
+    {
+      "allocs_per_op": {
+        "max": 2.0,
+        "median": 2.0,
+        "min": 2.0
+      },
+      "bytes_per_op": {
+        "max": 464.0,
+        "median": 464.0,
+        "min": 464.0
+      },
+      "iterations": [
+        4435908,
+        4570374,
+        4587108
+      ],
+      "metrics": {
+        "wire-bytes": {
+          "max": 325.0,
+          "median": 325.0,
+          "min": 325.0
+        }
+      },
+      "name": "BenchmarkIssue599Codec/JSON/Small/Encode",
+      "ns_per_op": {
+        "max": 263.3,
+        "median": 262.6,
+        "min": 262.1
+      },
+      "samples": 3,
+      "workers": [
+        10
+      ]
+    },
+    {
+      "allocs_per_op": {
+        "max": 20.0,
+        "median": 20.0,
+        "min": 20.0
+      },
+      "bytes_per_op": {
+        "max": 1169.0,
+        "median": 1169.0,
+        "min": 1169.0
+      },
+      "iterations": [
+        634461,
+        635620,
+        647401
+      ],
+      "metrics": {
+        "wire-bytes": {
+          "max": 325.0,
+          "median": 325.0,
+          "min": 325.0
+        }
+      },
+      "name": "BenchmarkIssue599Codec/JSON/Small/RoundTrip",
+      "ns_per_op": {
+        "max": 1898.0,
+        "median": 1897.0,
+        "min": 1881.0
+      },
+      "samples": 3,
+      "workers": [
+        10
+      ]
+    },
+    {
+      "allocs_per_op": {
+        "max": 5.0,
+        "median": 5.0,
+        "min": 5.0
+      },
+      "bytes_per_op": {
+        "max": 181.0,
+        "median": 181.0,
+        "min": 181.0
+      },
+      "iterations": [
+        6021867,
+        6036046,
+        6040609
+      ],
+      "metrics": {
+        "wire-bytes": {
+          "max": 110.0,
+          "median": 110.0,
+          "min": 110.0
+        }
+      },
+      "name": "BenchmarkIssue599Codec/NativeCompatible/Empty/Decode",
+      "ns_per_op": {
+        "max": 199.0,
+        "median": 198.9,
+        "min": 198.7
+      },
+      "samples": 3,
+      "workers": [
+        10
+      ]
+    },
+    {
+      "allocs_per_op": {
+        "max": 4.0,
+        "median": 4.0,
+        "min": 4.0
+      },
+      "bytes_per_op": {
+        "max": 448.0,
+        "median": 448.0,
+        "min": 448.0
+      },
+      "iterations": [
+        6480090,
+        6480622,
+        6497846
+      ],
+      "metrics": {
+        "wire-bytes": {
+          "max": 110.0,
+          "median": 110.0,
+          "min": 110.0
+        }
+      },
+      "name": "BenchmarkIssue599Codec/NativeCompatible/Empty/Encode",
+      "ns_per_op": {
+        "max": 186.1,
+        "median": 185.2,
+        "min": 185.0
+      },
+      "samples": 3,
+      "workers": [
+        10
+      ]
+    },
+    {
+      "allocs_per_op": {
+        "max": 9.0,
+        "median": 9.0,
+        "min": 9.0
+      },
+      "bytes_per_op": {
+        "max": 629.0,
+        "median": 629.0,
+        "min": 629.0
+      },
+      "iterations": [
+        3045939,
+        3060892,
+        3064016
+      ],
+      "metrics": {
+        "wire-bytes": {
+          "max": 110.0,
+          "median": 110.0,
+          "min": 110.0
+        }
+      },
+      "name": "BenchmarkIssue599Codec/NativeCompatible/Empty/RoundTrip",
+      "ns_per_op": {
+        "max": 396.0,
+        "median": 392.7,
+        "min": 392.6
+      },
+      "samples": 3,
+      "workers": [
+        10
+      ]
+    },
+    {
+      "allocs_per_op": {
+        "max": 23.0,
+        "median": 23.0,
+        "min": 23.0
+      },
+      "bytes_per_op": {
+        "max": 4664.0,
+        "median": 4664.0,
+        "min": 4664.0
+      },
+      "iterations": [
+        1327635,
+        1328682,
+        1328858
+      ],
+      "metrics": {
+        "wire-bytes": {
+          "max": 4391.0,
+          "median": 4391.0,
+          "min": 4391.0
+        }
+      },
+      "name": "BenchmarkIssue599Codec/NativeCompatible/Medium/Decode",
+      "ns_per_op": {
+        "max": 910.8,
+        "median": 905.6,
+        "min": 898.7
+      },
+      "samples": 3,
+      "workers": [
+        10
+      ]
+    },
+    {
+      "allocs_per_op": {
+        "max": 5.0,
+        "median": 5.0,
+        "min": 5.0
+      },
+      "bytes_per_op": {
+        "max": 10000.0,
+        "median": 10000.0,
+        "min": 10000.0
+      },
+      "iterations": [
+        972312,
+        974433,
+        983250
+      ],
+      "metrics": {
+        "wire-bytes": {
+          "max": 4391.0,
+          "median": 4391.0,
+          "min": 4391.0
+        }
+      },
+      "name": "BenchmarkIssue599Codec/NativeCompatible/Medium/Encode",
+      "ns_per_op": {
+        "max": 1242.0,
+        "median": 1237.0,
+        "min": 1231.0
+      },
+      "samples": 3,
+      "workers": [
+        10
+      ]
+    },
+    {
+      "allocs_per_op": {
+        "max": 28.0,
+        "median": 28.0,
+        "min": 28.0
+      },
+      "bytes_per_op": {
+        "max": 14664.0,
+        "median": 14664.0,
+        "min": 14664.0
+      },
+      "iterations": [
+        543795,
+        547064,
+        561112
+      ],
+      "metrics": {
+        "wire-bytes": {
+          "max": 4391.0,
+          "median": 4391.0,
+          "min": 4391.0
+        }
+      },
+      "name": "BenchmarkIssue599Codec/NativeCompatible/Medium/RoundTrip",
+      "ns_per_op": {
+        "max": 2216.0,
+        "median": 2198.0,
+        "min": 2194.0
+      },
+      "samples": 3,
+      "workers": [
+        10
+      ]
+    },
+    {
+      "allocs_per_op": {
+        "max": 3.0,
+        "median": 3.0,
+        "min": 3.0
+      },
+      "bytes_per_op": {
+        "max": 128.0,
+        "median": 128.0,
+        "min": 128.0
+      },
+      "iterations": [
+        8867889,
+        8928039,
+        8954115
+      ],
+      "metrics": {
+        "wire-bytes": {
+          "max": 103.0,
+          "median": 103.0,
+          "min": 103.0
+        }
+      },
+      "name": "BenchmarkIssue599Codec/NativeCompatible/Nil/Decode",
+      "ns_per_op": {
+        "max": 134.6,
+        "median": 134.6,
+        "min": 134.4
+      },
+      "samples": 3,
+      "workers": [
+        10
+      ]
+    },
+    {
+      "allocs_per_op": {
+        "max": 4.0,
+        "median": 4.0,
+        "min": 4.0
+      },
+      "bytes_per_op": {
+        "max": 432.0,
+        "median": 432.0,
+        "min": 432.0
+      },
+      "iterations": [
+        6940786,
+        7052971,
+        7068781
+      ],
+      "metrics": {
+        "wire-bytes": {
+          "max": 103.0,
+          "median": 103.0,
+          "min": 103.0
+        }
+      },
+      "name": "BenchmarkIssue599Codec/NativeCompatible/Nil/Encode",
+      "ns_per_op": {
+        "max": 170.2,
+        "median": 170.2,
+        "min": 169.9
+      },
+      "samples": 3,
+      "workers": [
+        10
+      ]
+    },
+    {
+      "allocs_per_op": {
+        "max": 7.0,
+        "median": 7.0,
+        "min": 7.0
+      },
+      "bytes_per_op": {
+        "max": 560.0,
+        "median": 560.0,
+        "min": 560.0
+      },
+      "iterations": [
+        3832544,
+        3847478,
+        3854061
+      ],
+      "metrics": {
+        "wire-bytes": {
+          "max": 103.0,
+          "median": 103.0,
+          "min": 103.0
+        }
+      },
+      "name": "BenchmarkIssue599Codec/NativeCompatible/Nil/RoundTrip",
+      "ns_per_op": {
+        "max": 311.4,
+        "median": 310.9,
+        "min": 310.6
+      },
+      "samples": 3,
+      "workers": [
+        10
+      ]
+    },
+    {
+      "allocs_per_op": {
+        "max": 71.0,
+        "median": 71.0,
+        "min": 71.0
+      },
+      "bytes_per_op": {
+        "max": 5840.0,
+        "median": 5840.0,
+        "min": 5840.0
+      },
+      "iterations": [
+        745365,
+        749124,
+        752450
+      ],
+      "metrics": {
+        "wire-bytes": {
+          "max": 4702.0,
+          "median": 4702.0,
+          "min": 4702.0
+        }
+      },
+      "name": "BenchmarkIssue599Codec/NativeCompatible/Repeated/Decode",
+      "ns_per_op": {
+        "max": 1607.0,
+        "median": 1604.0,
+        "min": 1598.0
+      },
+      "samples": 3,
+      "workers": [
+        10
+      ]
+    },
+    {
+      "allocs_per_op": {
+        "max": 5.0,
+        "median": 5.0,
+        "min": 5.0
+      },
+      "bytes_per_op": {
+        "max": 10000.0,
+        "median": 10000.0,
+        "min": 10000.0
+      },
+      "iterations": [
+        783822,
+        800526,
+        810472
+      ],
+      "metrics": {
+        "wire-bytes": {
+          "max": 4702.0,
+          "median": 4702.0,
+          "min": 4702.0
+        }
+      },
+      "name": "BenchmarkIssue599Codec/NativeCompatible/Repeated/Encode",
+      "ns_per_op": {
+        "max": 1501.0,
+        "median": 1493.0,
+        "min": 1489.0
+      },
+      "samples": 3,
+      "workers": [
+        10
+      ]
+    },
+    {
+      "allocs_per_op": {
+        "max": 76.0,
+        "median": 76.0,
+        "min": 76.0
+      },
+      "bytes_per_op": {
+        "max": 15840.0,
+        "median": 15840.0,
+        "min": 15840.0
+      },
+      "iterations": [
+        378096,
+        383018,
+        383124
+      ],
+      "metrics": {
+        "wire-bytes": {
+          "max": 4702.0,
+          "median": 4702.0,
+          "min": 4702.0
+        }
+      },
+      "name": "BenchmarkIssue599Codec/NativeCompatible/Repeated/RoundTrip",
+      "ns_per_op": {
+        "max": 3167.0,
+        "median": 3150.0,
+        "min": 3140.0
+      },
+      "samples": 3,
+      "workers": [
+        10
+      ]
+    },
+    {
+      "allocs_per_op": {
+        "max": 11.0,
+        "median": 11.0,
+        "min": 11.0
+      },
+      "bytes_per_op": {
+        "max": 408.0,
+        "median": 408.0,
+        "min": 408.0
+      },
+      "iterations": [
+        3720142,
+        3747879,
+        3753512
+      ],
+      "metrics": {
+        "wire-bytes": {
+          "max": 327.0,
+          "median": 327.0,
+          "min": 327.0
+        }
+      },
+      "name": "BenchmarkIssue599Codec/NativeCompatible/Small/Decode",
+      "ns_per_op": {
+        "max": 320.4,
+        "median": 319.7,
+        "min": 319.7
+      },
+      "samples": 3,
+      "workers": [
+        10
+      ]
+    },
+    {
+      "allocs_per_op": {
+        "max": 5.0,
+        "median": 5.0,
+        "min": 5.0
+      },
+      "bytes_per_op": {
+        "max": 944.0,
+        "median": 944.0,
+        "min": 944.0
+      },
+      "iterations": [
+        3542013,
+        3583641,
+        3607056
+      ],
+      "metrics": {
+        "wire-bytes": {
+          "max": 327.0,
+          "median": 327.0,
+          "min": 327.0
+        }
+      },
+      "name": "BenchmarkIssue599Codec/NativeCompatible/Small/Encode",
+      "ns_per_op": {
+        "max": 334.0,
+        "median": 333.4,
+        "min": 333.2
+      },
+      "samples": 3,
+      "workers": [
+        10
+      ]
+    },
+    {
+      "allocs_per_op": {
+        "max": 16.0,
+        "median": 16.0,
+        "min": 16.0
+      },
+      "bytes_per_op": {
+        "max": 1352.0,
+        "median": 1352.0,
+        "min": 1352.0
+      },
+      "iterations": [
+        1761256,
+        1768917,
+        1771845
+      ],
+      "metrics": {
+        "wire-bytes": {
+          "max": 327.0,
+          "median": 327.0,
+          "min": 327.0
+        }
+      },
+      "name": "BenchmarkIssue599Codec/NativeCompatible/Small/RoundTrip",
+      "ns_per_op": {
+        "max": 679.8,
+        "median": 678.7,
+        "min": 677.5
+      },
+      "samples": 3,
+      "workers": [
+        10
+      ]
+    },
+    {
+      "allocs_per_op": {
+        "max": 9.0,
+        "median": 9.0,
+        "min": 9.0
+      },
+      "bytes_per_op": {
+        "max": 232.0,
+        "median": 232.0,
+        "min": 232.0
+      },
+      "iterations": [
+        4625394,
+        4636234,
+        4664456
+      ],
+      "metrics": {
+        "wire-bytes": {
+          "max": 70.0,
+          "median": 70.0,
+          "min": 70.0
+        }
+      },
+      "name": "BenchmarkIssue599Codec/NativeFast/Empty/Decode",
+      "ns_per_op": {
+        "max": 258.8,
+        "median": 258.3,
+        "min": 258.1
+      },
+      "samples": 3,
+      "workers": [
+        10
+      ]
+    },
+    {
+      "allocs_per_op": {
+        "max": 6.0,
+        "median": 6.0,
+        "min": 6.0
+      },
+      "bytes_per_op": {
+        "max": 392.0,
+        "median": 392.0,
+        "min": 392.0
+      },
+      "iterations": [
+        6109770,
+        6116880,
+        6129040
+      ],
+      "metrics": {
+        "wire-bytes": {
+          "max": 70.0,
+          "median": 70.0,
+          "min": 70.0
+        }
+      },
+      "name": "BenchmarkIssue599Codec/NativeFast/Empty/Encode",
+      "ns_per_op": {
+        "max": 197.7,
+        "median": 196.8,
+        "min": 196.6
+      },
+      "samples": 3,
+      "workers": [
+        10
+      ]
+    },
+    {
+      "allocs_per_op": {
+        "max": 15.0,
+        "median": 15.0,
+        "min": 15.0
+      },
+      "bytes_per_op": {
+        "max": 624.0,
+        "median": 624.0,
+        "min": 624.0
+      },
+      "iterations": [
+        2558358,
+        2564019,
+        2567992
+      ],
+      "metrics": {
+        "wire-bytes": {
+          "max": 70.0,
+          "median": 70.0,
+          "min": 70.0
+        }
+      },
+      "name": "BenchmarkIssue599Codec/NativeFast/Empty/RoundTrip",
+      "ns_per_op": {
+        "max": 467.6,
+        "median": 467.2,
+        "min": 467.0
+      },
+      "samples": 3,
+      "workers": [
+        10
+      ]
+    },
+    {
+      "allocs_per_op": {
+        "max": 30.0,
+        "median": 30.0,
+        "min": 30.0
+      },
+      "bytes_per_op": {
+        "max": 4752.0,
+        "median": 4752.0,
+        "min": 4752.0
+      },
+      "iterations": [
+        1000000
+      ],
+      "metrics": {
+        "wire-bytes": {
+          "max": 4339.0,
+          "median": 4339.0,
+          "min": 4339.0
+        }
+      },
+      "name": "BenchmarkIssue599Codec/NativeFast/Medium/Decode",
+      "ns_per_op": {
+        "max": 1055.0,
+        "median": 1045.0,
+        "min": 1042.0
+      },
+      "samples": 3,
+      "workers": [
+        10
+      ]
+    },
+    {
+      "allocs_per_op": {
+        "max": 8.0,
+        "median": 8.0,
+        "min": 8.0
+      },
+      "bytes_per_op": {
+        "max": 10056.0,
+        "median": 10056.0,
+        "min": 10056.0
+      },
+      "iterations": [
+        936055,
+        940309,
+        943809
+      ],
+      "metrics": {
+        "wire-bytes": {
+          "max": 4339.0,
+          "median": 4339.0,
+          "min": 4339.0
+        }
+      },
+      "name": "BenchmarkIssue599Codec/NativeFast/Medium/Encode",
+      "ns_per_op": {
+        "max": 1284.0,
+        "median": 1279.0,
+        "min": 1269.0
+      },
+      "samples": 3,
+      "workers": [
+        10
+      ]
+    },
+    {
+      "allocs_per_op": {
+        "max": 38.0,
+        "median": 38.0,
+        "min": 38.0
+      },
+      "bytes_per_op": {
+        "max": 14808.0,
+        "median": 14808.0,
+        "min": 14808.0
+      },
+      "iterations": [
+        515334,
+        519590,
+        520352
+      ],
+      "metrics": {
+        "wire-bytes": {
+          "max": 4339.0,
+          "median": 4339.0,
+          "min": 4339.0
+        }
+      },
+      "name": "BenchmarkIssue599Codec/NativeFast/Medium/RoundTrip",
+      "ns_per_op": {
+        "max": 2341.0,
+        "median": 2336.0,
+        "min": 2331.0
+      },
+      "samples": 3,
+      "workers": [
+        10
+      ]
+    },
+    {
+      "allocs_per_op": {
+        "max": 7.0,
+        "median": 7.0,
+        "min": 7.0
+      },
+      "bytes_per_op": {
+        "max": 176.0,
+        "median": 176.0,
+        "min": 176.0
+      },
+      "iterations": [
+        6080761,
+        6081939,
+        6093525
+      ],
+      "metrics": {
+        "wire-bytes": {
+          "max": 63.0,
+          "median": 63.0,
+          "min": 63.0
+        }
+      },
+      "name": "BenchmarkIssue599Codec/NativeFast/Nil/Decode",
+      "ns_per_op": {
+        "max": 198.2,
+        "median": 197.9,
+        "min": 197.4
+      },
+      "samples": 3,
+      "workers": [
+        10
+      ]
+    },
+    {
+      "allocs_per_op": {
+        "max": 6.0,
+        "median": 6.0,
+        "min": 6.0
+      },
+      "bytes_per_op": {
+        "max": 376.0,
+        "median": 376.0,
+        "min": 376.0
+      },
+      "iterations": [
+        6638616,
+        6654432,
+        6679392
+      ],
+      "metrics": {
+        "wire-bytes": {
+          "max": 63.0,
+          "median": 63.0,
+          "min": 63.0
+        }
+      },
+      "name": "BenchmarkIssue599Codec/NativeFast/Nil/Encode",
+      "ns_per_op": {
+        "max": 180.2,
+        "median": 180.2,
+        "min": 179.9
+      },
+      "samples": 3,
+      "workers": [
+        10
+      ]
+    },
+    {
+      "allocs_per_op": {
+        "max": 13.0,
+        "median": 13.0,
+        "min": 13.0
+      },
+      "bytes_per_op": {
+        "max": 552.0,
+        "median": 552.0,
+        "min": 552.0
+      },
+      "iterations": [
+        3093536,
+        3099411,
+        3099526
+      ],
+      "metrics": {
+        "wire-bytes": {
+          "max": 63.0,
+          "median": 63.0,
+          "min": 63.0
+        }
+      },
+      "name": "BenchmarkIssue599Codec/NativeFast/Nil/RoundTrip",
+      "ns_per_op": {
+        "max": 386.8,
+        "median": 386.5,
+        "min": 386.4
+      },
+      "samples": 3,
+      "workers": [
+        10
+      ]
+    },
+    {
+      "allocs_per_op": {
+        "max": 78.0,
+        "median": 78.0,
+        "min": 78.0
+      },
+      "bytes_per_op": {
+        "max": 5936.0,
+        "median": 5936.0,
+        "min": 5936.0
+      },
+      "iterations": [
+        673930,
+        679071,
+        689139
+      ],
+      "metrics": {
+        "wire-bytes": {
+          "max": 4698.0,
+          "median": 4698.0,
+          "min": 4698.0
+        }
+      },
+      "name": "BenchmarkIssue599Codec/NativeFast/Repeated/Decode",
+      "ns_per_op": {
+        "max": 1766.0,
+        "median": 1760.0,
+        "min": 1758.0
+      },
+      "samples": 3,
+      "workers": [
+        10
+      ]
+    },
+    {
+      "allocs_per_op": {
+        "max": 8.0,
+        "median": 8.0,
+        "min": 8.0
+      },
+      "bytes_per_op": {
+        "max": 10056.0,
+        "median": 10056.0,
+        "min": 10056.0
+      },
+      "iterations": [
+        776668,
+        786708,
+        796911
+      ],
+      "metrics": {
+        "wire-bytes": {
+          "max": 4698.0,
+          "median": 4698.0,
+          "min": 4698.0
+        }
+      },
+      "name": "BenchmarkIssue599Codec/NativeFast/Repeated/Encode",
+      "ns_per_op": {
+        "max": 1533.0,
+        "median": 1524.0,
+        "min": 1523.0
+      },
+      "samples": 3,
+      "workers": [
+        10
+      ]
+    },
+    {
+      "allocs_per_op": {
+        "max": 86.0,
+        "median": 86.0,
+        "min": 86.0
+      },
+      "bytes_per_op": {
+        "max": 15992.0,
+        "median": 15992.0,
+        "min": 15992.0
+      },
+      "iterations": [
+        361802,
+        362589,
+        367910
+      ],
+      "metrics": {
+        "wire-bytes": {
+          "max": 4698.0,
+          "median": 4698.0,
+          "min": 4698.0
+        }
+      },
+      "name": "BenchmarkIssue599Codec/NativeFast/Repeated/RoundTrip",
+      "ns_per_op": {
+        "max": 3358.0,
+        "median": 3355.0,
+        "min": 3346.0
+      },
+      "samples": 3,
+      "workers": [
+        10
+      ]
+    },
+    {
+      "allocs_per_op": {
+        "max": 18.0,
+        "median": 18.0,
+        "min": 18.0
+      },
+      "bytes_per_op": {
+        "max": 496.0,
+        "median": 496.0,
+        "min": 496.0
+      },
+      "iterations": [
+        2667690,
+        2696748,
+        2708127
+      ],
+      "metrics": {
+        "wire-bytes": {
+          "max": 263.0,
+          "median": 263.0,
+          "min": 263.0
+        }
+      },
+      "name": "BenchmarkIssue599Codec/NativeFast/Small/Decode",
+      "ns_per_op": {
+        "max": 444.9,
+        "median": 444.7,
+        "min": 444.4
+      },
+      "samples": 3,
+      "workers": [
+        10
+      ]
+    },
+    {
+      "allocs_per_op": {
+        "max": 8.0,
+        "median": 8.0,
+        "min": 8.0
+      },
+      "bytes_per_op": {
+        "max": 872.0,
+        "median": 872.0,
+        "min": 872.0
+      },
+      "iterations": [
+        3569961,
+        3592664,
+        3599034
+      ],
+      "metrics": {
+        "wire-bytes": {
+          "max": 263.0,
+          "median": 263.0,
+          "min": 263.0
+        }
+      },
+      "name": "BenchmarkIssue599Codec/NativeFast/Small/Encode",
+      "ns_per_op": {
+        "max": 334.7,
+        "median": 334.7,
+        "min": 333.4
+      },
+      "samples": 3,
+      "workers": [
+        10
+      ]
+    },
+    {
+      "allocs_per_op": {
+        "max": 26.0,
+        "median": 26.0,
+        "min": 26.0
+      },
+      "bytes_per_op": {
+        "max": 1368.0,
+        "median": 1368.0,
+        "min": 1368.0
+      },
+      "iterations": [
+        1489159,
+        1492904,
+        1494400
+      ],
+      "metrics": {
+        "wire-bytes": {
+          "max": 263.0,
+          "median": 263.0,
+          "min": 263.0
+        }
+      },
+      "name": "BenchmarkIssue599Codec/NativeFast/Small/RoundTrip",
+      "ns_per_op": {
+        "max": 807.1,
+        "median": 806.7,
+        "min": 806.2
+      },
+      "samples": 3,
+      "workers": [
+        10
+      ]
+    },
+    {
+      "allocs_per_op": {
+        "max": 26.0,
+        "median": 26.0,
+        "min": 26.0
+      },
+      "bytes_per_op": {
+        "max": 1368.0,
+        "median": 1368.0,
+        "min": 1368.0
+      },
+      "iterations": [
+        1000000
+      ],
+      "metrics": {
+        "wire-bytes": {
+          "max": 263.0,
+          "median": 263.0,
+          "min": 263.0
+        }
+      },
+      "name": "BenchmarkIssue599Contention/NativeFast/Mutex",
+      "ns_per_op": {
+        "max": 1125.0,
+        "median": 1122.0,
+        "min": 1121.0
+      },
+      "samples": 3,
+      "workers": [
+        10
+      ]
+    },
+    {
+      "allocs_per_op": {
+        "max": 26.0,
+        "median": 26.0,
+        "min": 26.0
+      },
+      "bytes_per_op": {
+        "max": 1368.0,
+        "median": 1368.0,
+        "min": 1368.0
+      },
+      "iterations": [
+        3003722,
+        3041104,
+        3043482
+      ],
+      "metrics": {
+        "wire-bytes": {
+          "max": 263.0,
+          "median": 263.0,
+          "min": 263.0
+        }
+      },
+      "name": "BenchmarkIssue599Contention/NativeFast/Pool",
+      "ns_per_op": {
+        "max": 404.0,
+        "median": 397.7,
+        "min": 394.8
+      },
+      "samples": 3,
+      "workers": [
+        10
+      ]
+    },
+    {
+      "allocs_per_op": {
+        "max": 67.0,
+        "median": 67.0,
+        "min": 66.0
+      },
+      "bytes_per_op": {
+        "max": 4273.0,
+        "median": 4265.0,
+        "min": 4264.0
+      },
+      "iterations": [
+        1659,
+        1688,
+        1712
+      ],
+      "metrics": {
+        "wire-bytes": {
+          "max": 325.0,
+          "median": 325.0,
+          "min": 325.0
+        }
+      },
+      "name": "BenchmarkIssue599Coordination/JSON/ColdWinner",
+      "ns_per_op": {
+        "max": 737968.0,
+        "median": 710174.0,
+        "min": 703666.0
+      },
+      "samples": 3,
+      "workers": [
+        10
+      ]
+    },
+    {
+      "allocs_per_op": {
+        "max": 1.0,
+        "median": 1.0,
+        "min": 1.0
+      },
+      "bytes_per_op": {
+        "max": 128.0,
+        "median": 128.0,
+        "min": 128.0
+      },
+      "iterations": [
+        14526584,
+        15041457,
+        15163656
+      ],
+      "metrics": {
+        "wire-bytes": {
+          "max": 325.0,
+          "median": 325.0,
+          "min": 325.0
+        }
+      },
+      "name": "BenchmarkIssue599Coordination/JSON/Hot",
+      "ns_per_op": {
+        "max": 81.06,
+        "median": 80.85,
+        "min": 80.68
+      },
+      "samples": 3,
+      "workers": [
+        10
+      ]
+    },
+    {
+      "allocs_per_op": {
+        "max": 70.0,
+        "median": 70.0,
+        "min": 70.0
+      },
+      "bytes_per_op": {
+        "max": 4798.0,
+        "median": 4792.0,
+        "min": 4785.0
+      },
+      "iterations": [
+        1605,
+        1606,
+        1729
+      ],
+      "metrics": {
+        "wire-bytes": {
+          "max": 327.0,
+          "median": 327.0,
+          "min": 327.0
+        }
+      },
+      "name": "BenchmarkIssue599Coordination/NativeCompatible/ColdWinner",
+      "ns_per_op": {
+        "max": 745677.0,
+        "median": 712784.0,
+        "min": 704769.0
+      },
+      "samples": 3,
+      "workers": [
+        10
+      ]
+    },
+    {
+      "allocs_per_op": {
+        "max": 1.0,
+        "median": 1.0,
+        "min": 1.0
+      },
+      "bytes_per_op": {
+        "max": 128.0,
+        "median": 128.0,
+        "min": 128.0
+      },
+      "iterations": [
+        14612583,
+        14979706,
+        15023082
+      ],
+      "metrics": {
+        "wire-bytes": {
+          "max": 327.0,
+          "median": 327.0,
+          "min": 327.0
+        }
+      },
+      "name": "BenchmarkIssue599Coordination/NativeCompatible/Hot",
+      "ns_per_op": {
+        "max": 81.95,
+        "median": 81.67,
+        "min": 81.29
+      },
+      "samples": 3,
+      "workers": [
+        10
+      ]
+    },
+    {
+      "allocs_per_op": {
+        "max": 73.0,
+        "median": 73.0,
+        "min": 73.0
+      },
+      "bytes_per_op": {
+        "max": 4619.0,
+        "median": 4619.0,
+        "min": 4604.0
+      },
+      "iterations": [
+        1599,
+        1609,
+        1714
+      ],
+      "metrics": {
+        "wire-bytes": {
+          "max": 263.0,
+          "median": 263.0,
+          "min": 263.0
+        }
+      },
+      "name": "BenchmarkIssue599Coordination/NativeFast/ColdWinner",
+      "ns_per_op": {
+        "max": 746451.0,
+        "median": 744297.0,
+        "min": 710007.0
+      },
+      "samples": 3,
+      "workers": [
+        10
+      ]
+    },
+    {
+      "allocs_per_op": {
+        "max": 1.0,
+        "median": 1.0,
+        "min": 1.0
+      },
+      "bytes_per_op": {
+        "max": 128.0,
+        "median": 128.0,
+        "min": 128.0
+      },
+      "iterations": [
+        14647170,
+        14776292,
+        14992893
+      ],
+      "metrics": {
+        "wire-bytes": {
+          "max": 263.0,
+          "median": 263.0,
+          "min": 263.0
+        }
+      },
+      "name": "BenchmarkIssue599Coordination/NativeFast/Hot",
+      "ns_per_op": {
+        "max": 81.27,
+        "median": 81.22,
+        "min": 81.19
+      },
+      "samples": 3,
+      "workers": [
+        10
+      ]
+    },
+    {
+      "allocs_per_op": {
+        "max": 46.0,
+        "median": 46.0,
+        "min": 46.0
+      },
+      "bytes_per_op": {
+        "max": 12568.0,
+        "median": 12568.0,
+        "min": 12568.0
+      },
+      "iterations": [
+        5464,
+        5816,
+        5888
+      ],
+      "metrics": {
+        "wire-bytes": {
+          "max": 5831.0,
+          "median": 5831.0,
+          "min": 5831.0
+        }
+      },
+      "name": "BenchmarkIssue599DirectRedis/JSON/Medium/Get",
+      "ns_per_op": {
+        "max": 216855.0,
+        "median": 213276.0,
+        "min": 206749.0
+      },
+      "samples": 3,
+      "workers": [
+        10
+      ]
+    },
+    {
+      "allocs_per_op": {
+        "max": 61.0,
+        "median": 61.0,
+        "min": 61.0
+      },
+      "bytes_per_op": {
+        "max": 19485.0,
+        "median": 19485.0,
+        "min": 19456.0
+      },
+      "iterations": [
+        2850,
+        2887,
+        2964
+      ],
+      "metrics": {
+        "wire-bytes": {
+          "max": 5831.0,
+          "median": 5831.0,
+          "min": 5831.0
+        }
+      },
+      "name": "BenchmarkIssue599DirectRedis/JSON/Medium/RoundTrip",
+      "ns_per_op": {
+        "max": 420963.0,
+        "median": 416319.0,
+        "min": 409393.0
+      },
+      "samples": 3,
+      "workers": [
+        10
+      ]
+    },
+    {
+      "allocs_per_op": {
+        "max": 15.0,
+        "median": 15.0,
+        "min": 15.0
+      },
+      "bytes_per_op": {
+        "max": 6835.0,
+        "median": 6817.0,
+        "min": 6808.0
+      },
+      "iterations": [
+        5858,
+        5986,
+        6417
+      ],
+      "metrics": {
+        "wire-bytes": {
+          "max": 5831.0,
+          "median": 5831.0,
+          "min": 5831.0
+        }
+      },
+      "name": "BenchmarkIssue599DirectRedis/JSON/Medium/Set",
+      "ns_per_op": {
+        "max": 199029.0,
+        "median": 196709.0,
+        "min": 189672.0
+      },
+      "samples": 3,
+      "workers": [
+        10
+      ]
+    },
+    {
+      "allocs_per_op": {
+        "max": 30.0,
+        "median": 30.0,
+        "min": 30.0
+      },
+      "bytes_per_op": {
+        "max": 1544.0,
+        "median": 1544.0,
+        "min": 1544.0
+      },
+      "iterations": [
+        6520,
+        6873,
+        7002
+      ],
+      "metrics": {
+        "wire-bytes": {
+          "max": 325.0,
+          "median": 325.0,
+          "min": 325.0
+        }
+      },
+      "name": "BenchmarkIssue599DirectRedis/JSON/Small/Get",
+      "ns_per_op": {
+        "max": 185082.0,
+        "median": 178315.0,
+        "min": 177744.0
+      },
+      "samples": 3,
+      "workers": [
+        10
+      ]
+    },
+    {
+      "allocs_per_op": {
+        "max": 45.0,
+        "median": 45.0,
+        "min": 45.0
+      },
+      "bytes_per_op": {
+        "max": 2539.0,
+        "median": 2539.0,
+        "min": 2538.0
+      },
+      "iterations": [
+        3242,
+        3248,
+        3264
+      ],
+      "metrics": {
+        "wire-bytes": {
+          "max": 325.0,
+          "median": 325.0,
+          "min": 325.0
+        }
+      },
+      "name": "BenchmarkIssue599DirectRedis/JSON/Small/RoundTrip",
+      "ns_per_op": {
+        "max": 370511.0,
+        "median": 362419.0,
+        "min": 346350.0
+      },
+      "samples": 3,
+      "workers": [
+        10
+      ]
+    },
+    {
+      "allocs_per_op": {
+        "max": 15.0,
+        "median": 15.0,
+        "min": 15.0
+      },
+      "bytes_per_op": {
+        "max": 993.0,
+        "median": 993.0,
+        "min": 992.0
+      },
+      "iterations": [
+        6435,
+        6943,
+        7005
+      ],
+      "metrics": {
+        "wire-bytes": {
+          "max": 325.0,
+          "median": 325.0,
+          "min": 325.0
+        }
+      },
+      "name": "BenchmarkIssue599DirectRedis/JSON/Small/Set",
+      "ns_per_op": {
+        "max": 181595.0,
+        "median": 179734.0,
+        "min": 171142.0
+      },
+      "samples": 3,
+      "workers": [
+        10
+      ]
+    },
+    {
+      "allocs_per_op": {
+        "max": 35.0,
+        "median": 35.0,
+        "min": 35.0
+      },
+      "bytes_per_op": {
+        "max": 10048.0,
+        "median": 10048.0,
+        "min": 10048.0
+      },
+      "iterations": [
+        5378,
+        6496,
+        6583
+      ],
+      "metrics": {
+        "wire-bytes": {
+          "max": 4395.0,
+          "median": 4395.0,
+          "min": 4395.0
+        }
+      },
+      "name": "BenchmarkIssue599DirectRedis/NativeCompatible/Medium/Get",
+      "ns_per_op": {
+        "max": 196996.0,
+        "median": 185210.0,
+        "min": 183812.0
+      },
+      "samples": 3,
+      "workers": [
+        10
+      ]
+    },
+    {
+      "allocs_per_op": {
+        "max": 53.0,
+        "median": 53.0,
+        "min": 53.0
+      },
+      "bytes_per_op": {
+        "max": 20624.0,
+        "median": 20624.0,
+        "min": 20624.0
+      },
+      "iterations": [
+        3208,
+        3212,
+        3213
+      ],
+      "metrics": {
+        "wire-bytes": {
+          "max": 4395.0,
+          "median": 4395.0,
+          "min": 4395.0
+        }
+      },
+      "name": "BenchmarkIssue599DirectRedis/NativeCompatible/Medium/RoundTrip",
+      "ns_per_op": {
+        "max": 395549.0,
+        "median": 389708.0,
+        "min": 374247.0
+      },
+      "samples": 3,
+      "workers": [
+        10
+      ]
+    },
+    {
+      "allocs_per_op": {
+        "max": 18.0,
+        "median": 18.0,
+        "min": 18.0
+      },
+      "bytes_per_op": {
+        "max": 10576.0,
+        "median": 10576.0,
+        "min": 10576.0
+      },
+      "iterations": [
+        6427,
+        6429,
+        6494
+      ],
+      "metrics": {
+        "wire-bytes": {
+          "max": 4395.0,
+          "median": 4395.0,
+          "min": 4395.0
+        }
+      },
+      "name": "BenchmarkIssue599DirectRedis/NativeCompatible/Medium/Set",
+      "ns_per_op": {
+        "max": 190885.0,
+        "median": 190687.0,
+        "min": 187166.0
+      },
+      "samples": 3,
+      "workers": [
+        10
+      ]
+    },
+    {
+      "allocs_per_op": {
+        "max": 23.0,
+        "median": 23.0,
+        "min": 23.0
+      },
+      "bytes_per_op": {
+        "max": 1280.0,
+        "median": 1280.0,
+        "min": 1280.0
+      },
+      "iterations": [
+        6909,
+        6956,
+        7063
+      ],
+      "metrics": {
+        "wire-bytes": {
+          "max": 331.0,
+          "median": 331.0,
+          "min": 331.0
+        }
+      },
+      "name": "BenchmarkIssue599DirectRedis/NativeCompatible/Small/Get",
+      "ns_per_op": {
+        "max": 172855.0,
+        "median": 171235.0,
+        "min": 170339.0
+      },
+      "samples": 3,
+      "workers": [
+        10
+      ]
+    },
+    {
+      "allocs_per_op": {
+        "max": 41.0,
+        "median": 41.0,
+        "min": 41.0
+      },
+      "bytes_per_op": {
+        "max": 2800.0,
+        "median": 2800.0,
+        "min": 2800.0
+      },
+      "iterations": [
+        3267,
+        3474,
+        3476
+      ],
+      "metrics": {
+        "wire-bytes": {
+          "max": 331.0,
+          "median": 331.0,
+          "min": 331.0
+        }
+      },
+      "name": "BenchmarkIssue599DirectRedis/NativeCompatible/Small/RoundTrip",
+      "ns_per_op": {
+        "max": 358439.0,
+        "median": 343563.0,
+        "min": 343273.0
+      },
+      "samples": 3,
+      "workers": [
+        10
+      ]
+    },
+    {
+      "allocs_per_op": {
+        "max": 18.0,
+        "median": 18.0,
+        "min": 18.0
+      },
+      "bytes_per_op": {
+        "max": 1520.0,
+        "median": 1520.0,
+        "min": 1520.0
+      },
+      "iterations": [
+        6350,
+        6433,
+        6993
+      ],
+      "metrics": {
+        "wire-bytes": {
+          "max": 331.0,
+          "median": 331.0,
+          "min": 331.0
+        }
+      },
+      "name": "BenchmarkIssue599DirectRedis/NativeCompatible/Small/Set",
+      "ns_per_op": {
+        "max": 184628.0,
+        "median": 181739.0,
+        "min": 173414.0
+      },
+      "samples": 3,
+      "workers": [
+        10
+      ]
+    },
+    {
+      "allocs_per_op": {
+        "max": 42.0,
+        "median": 42.0,
+        "min": 42.0
+      },
+      "bytes_per_op": {
+        "max": 10152.0,
+        "median": 10152.0,
+        "min": 10152.0
+      },
+      "iterations": [
+        5934,
+        5991,
+        6585
+      ],
+      "metrics": {
+        "wire-bytes": {
+          "max": 4343.0,
+          "median": 4343.0,
+          "min": 4343.0
+        }
+      },
+      "name": "BenchmarkIssue599DirectRedis/NativeFast/Medium/Get",
+      "ns_per_op": {
+        "max": 197340.0,
+        "median": 190145.0,
+        "min": 182753.0
+      },
+      "samples": 3,
+      "workers": [
+        10
+      ]
+    },
+    {
+      "allocs_per_op": {
+        "max": 63.0,
+        "median": 63.0,
+        "min": 63.0
+      },
+      "bytes_per_op": {
+        "max": 20784.0,
+        "median": 20784.0,
+        "min": 20784.0
+      },
+      "iterations": [
+        2974,
+        3110,
+        3240
+      ],
+      "metrics": {
+        "wire-bytes": {
+          "max": 4343.0,
+          "median": 4343.0,
+          "min": 4343.0
+        }
+      },
+      "name": "BenchmarkIssue599DirectRedis/NativeFast/Medium/RoundTrip",
+      "ns_per_op": {
+        "max": 398615.0,
+        "median": 397376.0,
+        "min": 381791.0
+      },
+      "samples": 3,
+      "workers": [
+        10
+      ]
+    },
+    {
+      "allocs_per_op": {
+        "max": 21.0,
+        "median": 21.0,
+        "min": 21.0
+      },
+      "bytes_per_op": {
+        "max": 10632.0,
+        "median": 10632.0,
+        "min": 10632.0
+      },
+      "iterations": [
+        6002,
+        6050,
+        6472
+      ],
+      "metrics": {
+        "wire-bytes": {
+          "max": 4343.0,
+          "median": 4343.0,
+          "min": 4343.0
+        }
+      },
+      "name": "BenchmarkIssue599DirectRedis/NativeFast/Medium/Set",
+      "ns_per_op": {
+        "max": 196352.0,
+        "median": 189451.0,
+        "min": 187842.0
+      },
+      "samples": 3,
+      "workers": [
+        10
+      ]
+    },
+    {
+      "allocs_per_op": {
+        "max": 30.0,
+        "median": 30.0,
+        "min": 30.0
+      },
+      "bytes_per_op": {
+        "max": 1320.0,
+        "median": 1320.0,
+        "min": 1320.0
+      },
+      "iterations": [
+        6421,
+        6548,
+        6621
+      ],
+      "metrics": {
+        "wire-bytes": {
+          "max": 267.0,
+          "median": 267.0,
+          "min": 267.0
+        }
+      },
+      "name": "BenchmarkIssue599DirectRedis/NativeFast/Small/Get",
+      "ns_per_op": {
+        "max": 184257.0,
+        "median": 184056.0,
+        "min": 180981.0
+      },
+      "samples": 3,
+      "workers": [
+        10
+      ]
+    },
+    {
+      "allocs_per_op": {
+        "max": 51.0,
+        "median": 51.0,
+        "min": 51.0
+      },
+      "bytes_per_op": {
+        "max": 2768.0,
+        "median": 2768.0,
+        "min": 2768.0
+      },
+      "iterations": [
+        3261,
+        3456,
+        3530
+      ],
+      "metrics": {
+        "wire-bytes": {
+          "max": 267.0,
+          "median": 267.0,
+          "min": 267.0
+        }
+      },
+      "name": "BenchmarkIssue599DirectRedis/NativeFast/Small/RoundTrip",
+      "ns_per_op": {
+        "max": 371532.0,
+        "median": 368433.0,
+        "min": 345719.0
+      },
+      "samples": 3,
+      "workers": [
+        10
+      ]
+    },
+    {
+      "allocs_per_op": {
+        "max": 21.0,
+        "median": 21.0,
+        "min": 21.0
+      },
+      "bytes_per_op": {
+        "max": 1448.0,
+        "median": 1448.0,
+        "min": 1448.0
+      },
+      "iterations": [
+        6475,
+        6487,
+        6495
+      ],
+      "metrics": {
+        "wire-bytes": {
+          "max": 267.0,
+          "median": 267.0,
+          "min": 267.0
+        }
+      },
+      "name": "BenchmarkIssue599DirectRedis/NativeFast/Small/Set",
+      "ns_per_op": {
+        "max": 186738.0,
+        "median": 184075.0,
+        "min": 178839.0
+      },
+      "samples": 3,
+      "workers": [
+        10
+      ]
+    }
+  ],
+  "schema_version": 1
+}

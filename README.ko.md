@@ -53,6 +53,7 @@ API가 아니라 module-gated future scope입니다.
 | [`concurrency`](concurrency/README.ko.md) | active | context-aware goroutine group, worker pool, bounded parallel helper. |
 | [`codec`](codec/README.ko.md) | active | Base58, Base62, Base64, hex, URL-safe encoding helper. |
 | [`encrypt`](encrypt/README.ko.md) | active | Versioned envelope와 associated data를 지원하는 stdlib AES-GCM byte/string facade. |
+| [`encrypt/kms`](encrypt/kms/README.ko.md) | active | Caller-owned AWS KMS AES-256 data key와 strict BTKMS metadata, bounded local AES-GCM payload를 조합하는 envelope provider. |
 | [`compression`](compression/README.ko.md) | active | gzip, deflate, zstd, lz4, snappy, registry 기반 compression helper. |
 | [`imagekit`](imagekit/README.ko.md) | active | 서비스 입력을 위한 bounded pure-Go thumbnail, resize, JPEG/PNG conversion helper. |
 | [`serialization`](serialization/README.ko.md) | active | 안전한 기본값을 가진 JSON/binary serializer interface. |
@@ -65,18 +66,28 @@ API가 아니라 module-gated future scope입니다.
 | [`testcontainers/nats`](testcontainers/nats/README.ko.md) | active | Testcontainers for Go 기반 NATS fixture. |
 | [`testcontainers/kafka`](testcontainers/kafka/README.ko.md) | active | Testcontainers for Go 기반 Kafka fixture. |
 | [`dynamodb/batchwrite`](dynamodb/batchwrite/README.ko.md) | active | AWS SDK for Go v2 BatchWriteItem 25개 chunking과 unprocessed-item retry helper. |
+| [`secretsmanager`](secretsmanager/README.ko.md) | active | Redacted string/binary 값과 caller-owned bounded positive-TTL cache를 제공하는 AWS Secrets Manager lookup provider. |
+| [`ssm`](ssm/README.ko.md) | active | 명시적 SecureString 복호화와 caller-owned bounded positive-TTL cache를 제공하는 AWS Parameter Store lookup provider. |
+| [`messaging/sqsextended`](messaging/sqsextended/README.ko.md) | active | Caller-owned AWS SDK for Go v2 SQS/S3 대용량 payload envelope, bounded read, checksum 검증과 명시적 cleanup 순서. |
+| [`s3vectors`](s3vectors/README.ko.md) | active | Caller-owned AWS SDK for Go v2 S3 Vectors bucket, index와 vector operation adapter. |
+| [`rds/auth`](rds/auth/README.ko.md) | active | Caller-owned AWS RDS IAM authentication token 검증과 redacted token handoff helper. |
 | [`examples/integration`](examples/integration/README.ko.md) | example | 수정된 `0.6.x` package를 묶는 compile-checked end-to-end recipe. |
 | [`examples/audit`](examples/audit/README.ko.md) | example | Repository history와 outbox replay boundary를 보여주는 runnable audit-backed order service. |
 | [`examples/graph/observability`](examples/graph/observability/README.ko.md) | example | Blast radius, alert boundary, ownership, NDJSON graph I/O 경계를 보여주는 runnable observability incident graph. |
 | [`examples/graph/iamaccess`](examples/graph/iamaccess/README.ko.md) | example | Effective access, deny path, risky privilege chain, least-privilege drift, NDJSON graph I/O 경계를 보여주는 runnable IAM access graph. |
 | [`examples/s3`](examples/s3/README.ko.md) | example | Floci fixture 기반 compile-checked AWS SDK for Go v2 S3 예제. |
 | [`examples/sqs-sns`](examples/sqs-sns/README.ko.md) | example | Floci fixture 기반 compile-checked AWS SDK for Go v2 SQS/SNS 예제. |
+| [`examples/cloudwatch`](examples/cloudwatch/README.ko.md) | example | limits, cancellation, redaction 경계를 검증하는 fake-first AWS SDK for Go v2 CloudWatch Metrics/Logs 예제. |
 | [`leader`](leader/README.ko.md) | active | 단일, group, strategy 기반 계약을 포함한 leader election API. |
 | [`leader/redis`](leader/redis/README.ko.md) | active | TTL renewal, ZSET slot token, candidate registry 기반 Redis 단일/group/strategic leader election 구현. |
 | [`leader/mongo`](leader/mongo/README.ko.md) | active | Owner-token lease, bounded slot, candidate registry, TTL cleanup index를 사용하는 MongoDB 단일/group/strategic leader election 구현. |
 | [`leader/sql`](leader/sql/README.ko.md) | active | Caller-owned row lease와 caller-owned `*sql.DB`를 사용하는 PostgreSQL 전용 단일 leader election 구현. |
 | [`leader/etcd`](leader/etcd/README.ko.md) | active | Caller-owned client, 공식 Session/Election primitive, exact ownership monitoring을 사용하는 etcd 단일 leader election 구현. |
 | [`resilience`](resilience/README.ko.md) | active | service call을 위한 자체 composable retry, timeout, circuit breaker, bulkhead policy, synchronous observability hook, `net/http` adapter. |
+| [`web`](web/README.ko.md) | active | `net/http` handler를 위한 framework-neutral RFC 9457 problem details 응답과 trusted request context helper. |
+| [`web/gin`](web/gin/README.ko.md) | active | Request context, rate limit, strict JWT authentication, RFC 9457 Problem, route-level resilience를 위한 Gin adapter. |
+| [`web/echo`](web/echo/README.ko.md) | active | Request context, rate limit, strict JWT authentication, RFC 9457 Problem, route-level resilience를 위한 Echo adapter. |
+| [`webtest`](webtest/README.ko.md) | test | 테스트에서 사용하는 framework-neutral `net/http` middleware conformance harness와 resource ownership fixture. |
 | [`cache`](cache/README.ko.md) | active | context-aware loader와 same-key stampede protection을 제공하는 generic in-process TTL cache interface. |
 | [`cache/redisnear`](cache/redisnear/README.ko.md) | active | process-local loading cache를 위한 Redis Pub/Sub near-cache invalidation. |
 | [`cache/rediscoord`](cache/rediscoord/README.ko.md) | active | cold burst 동안 하나의 loader 결과를 process-local cache 사이에서 공유하는 opt-in Redis coordination wrapper. |
@@ -90,6 +101,7 @@ API가 아니라 module-gated future scope입니다.
 | [`state`](state/README.ko.md) | active | typed transition, guard, final state, sentinel error를 제공하는 작은 finite state machine primitive. |
 | [`workreport`](workreport/README.ko.md) | active | lightweight workflow code를 위한 status, failure-policy, report-tree value. |
 | [`workflow`](workflow/README.ko.md) | active | `context.Context`와 `workreport` 기반 sequential, conditional, all-branches parallel runner. |
+| [`workflow/stepfunctions`](workflow/stepfunctions/README.ko.md) | active | Start, describe, optional stop, bounded cancellable polling을 제공하는 caller-owned AWS Step Functions execution bridge. |
 | [`batch`](batch/README.ko.md) | active | Chunk-oriented batch step, sequential job, retry/skip policy, report, checkpoint. |
 | [`batch/sqlcheckpoint`](batch/sqlcheckpoint/README.ko.md) | active | Batch callback과 consumed-input checkpoint를 revision CAS로 함께 commit하는 PostgreSQL durable checkpoint provider. |
 | [`id`](id/README.ko.md) | active | UUID v4/v7, random/monotonic ULID, standard KSUID, Kotlin-compatible KSUID millis, Snowflake ID generator. |
@@ -136,17 +148,18 @@ go get github.com/bluetape4k/bluetape-go
 
 - Foundation: [`core`](core/README.ko.md), [`collections`](collections/README.ko.md),
   [`concurrency`](concurrency/README.ko.md), [`codec`](codec/README.ko.md),
-  [`encrypt`](encrypt/README.ko.md), [`compression`](compression/README.ko.md),
+  [`encrypt`](encrypt/README.ko.md), [`encrypt/kms`](encrypt/kms/README.ko.md), [`compression`](compression/README.ko.md),
   [`serialization`](serialization/README.ko.md).
-- Test support: [`testing`](testing/README.ko.md),
+- Test support: [`testing`](testing/README.ko.md), [`webtest`](webtest/README.ko.md),
   [`testing/concurrency`](testing/concurrency/README.ko.md), 위 표의 Testcontainers
   fixture package README. `testing`의 focused example은 assertion DSL 추가 없이
   table-driven test, package-local builder, golden file, deterministic random data,
   cancellation assertion을 다룹니다.
-- AWS/Floci: [`dynamodb/batchwrite`](dynamodb/batchwrite/README.ko.md),
+ - AWS/Floci: [`dynamodb/batchwrite`](dynamodb/batchwrite/README.ko.md), [`messaging/sqsextended`](messaging/sqsextended/README.ko.md), [`encrypt/kms`](encrypt/kms/README.ko.md), [`rds/auth`](rds/auth/README.ko.md), [`secretsmanager`](secretsmanager/README.ko.md), [`ssm`](ssm/README.ko.md), [`workflow/stepfunctions`](workflow/stepfunctions/README.ko.md),
   [`examples/integration`](examples/integration/README.ko.md),
   [`examples/s3`](examples/s3/README.ko.md),
-  [`examples/sqs-sns`](examples/sqs-sns/README.ko.md).
+  [`examples/sqs-sns`](examples/sqs-sns/README.ko.md), 그리고 fake-first
+  CloudWatch Metrics/Logs 예시인 [`examples/cloudwatch`](examples/cloudwatch/README.ko.md).
 - Text: deterministic multi-pattern search, tokenizer core interface,
   blockword detection/masking, severity metadata, normalization,
   boundary-aware matching을 위한
@@ -162,12 +175,13 @@ go get github.com/bluetape4k/bluetape-go
   [`redis`](redis/README.ko.md),
   [`redis/stream`](redis/stream/README.ko.md), [`lock/redis`](lock/redis/README.ko.md).
 - Runtime policy/cache/state/workflow: [`resilience`](resilience/README.ko.md),
+  [`web`](web/README.ko.md),
   [`cache`](cache/README.ko.md), [`cache/redisnear`](cache/redisnear/README.ko.md),
   [`cache/rediscoord`](cache/rediscoord/README.ko.md), [`cache/redisfory`](cache/redisfory/README.ko.md),
   [`cache/redisvalue`](cache/redisvalue/README.ko.md),
   [`ratelimit`](ratelimit/README.ko.md),
   [`state`](state/README.ko.md), [`workreport`](workreport/README.ko.md),
-  [`workflow`](workflow/README.ko.md), [`batch`](batch/README.ko.md).
+  [`workflow`](workflow/README.ko.md), [`workflow/stepfunctions`](workflow/stepfunctions/README.ko.md), [`batch`](batch/README.ko.md).
 - Portable utility: [`id`](id/README.ko.md), [`jwt`](jwt/README.ko.md),
   [`jwt/redis`](jwt/redis/README.ko.md), [`jwt/mongo`](jwt/mongo/README.ko.md),
   [`measure`](measure/README.ko.md), [`money`](money/README.ko.md),
@@ -343,6 +357,8 @@ make ci
 | `make bench-cache` | opt-in cache, Redis NearCache, Redis coordinator benchmark를 실행합니다. |
 | `make bench-ratelimit` | opt-in local rate limiter benchmark를 실행합니다. |
 | `make bench-id` | opt-in id generator benchmark를 실행합니다. |
+| `make bench-web-gin` | opt-in Gin adapter benchmark capture를 실행합니다. `BLUETAPE_GIN_BENCH_CHART_TIMEOUT_SECONDS`와 `BLUETAPE_GIN_BENCH_CHART_MAX_OUTPUT_BYTES`로 chart watchdog/output 상한을 좁힐 수 있습니다. |
+| `make check-bench-web-gin` | benchmark를 실행하지 않고 Gin parser, chart, failure-diagnostic, regression-comparator contract를 검증합니다. |
 | `make ci` | 로컬 CI gate를 실행합니다. |
 
 ### Provider 벤치마크 매트릭스
@@ -360,7 +376,7 @@ scripts/capture-provider-benchmark.sh leader-local
 컨테이너 기반 family는 Docker가 필요하고 몇 분 이상 걸릴 수 있으며, fixture와 host
 resource가 겹치지 않도록 직렬로 실행해야 합니다. 추적 중인 증거와 차트를 갱신할 때는
 보고서의 재수집 checklist를 따르세요.
-결과는 고정된 fixture provenance를 가진 짧은 로컬 snapshot이므로 production 순위로
+결과는 고정된 fixture provenance를 가진 짧은 로컬 측정 기록이므로 production 순위로
 복사해서 사용하지 마세요.
 
 Redis integration test는 Testcontainers를 사용하므로 Docker가 필요합니다. 일반

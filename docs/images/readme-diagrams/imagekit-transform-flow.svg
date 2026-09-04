@@ -2,8 +2,8 @@
   <title id="title">imagekit bounded transform flow</title>
   <desc id="desc">The imagekit transform path reads a bounded image, validates format and pixel limits, resizes, then encodes to bytes or a writer.</desc>
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="13" markerHeight="13" markerUnits="userSpaceOnUse" orient="auto">
-      <path d="M 0 0 L 10 5 L 0 10 Z" fill="#2563eb"/>
+    <marker id="arrow" viewBox="0 0 10.7692 10.7692" refX="9" refY="5" markerWidth="14" markerHeight="14" markerUnits="userSpaceOnUse" orient="auto" data-role="primary" data-tip-direction="positive-x">
+      <path d="M 0 0 L 10 5 L 0 10 Z" fill="#2563eb" stroke-dasharray="none"/>
     </marker>
     <style>
       @font-face{font-family:'Architects Daughter';src:url('/Users/debop/Library/Fonts/ArchitectsDaughter-Regular.ttf');}

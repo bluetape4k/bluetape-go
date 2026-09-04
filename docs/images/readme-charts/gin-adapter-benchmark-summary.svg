@@ -1,0 +1,40 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1500" height="760" viewBox="0 0 1500 760" role="img" aria-labelledby="title desc">
+<title id="title">Gin adapter benchmark summary</title>
+<desc id="desc">Median CPU 1 serial latency for no-op, direct core, bridge, parser-only full adapter, and retry-policy full adapter fixtures. Lower is better.</desc>
+<defs><style>.title{font:700 30px Inter,Arial,sans-serif;fill:#0F172A}.subtitle{font:16px Inter,Arial,sans-serif;fill:#475569}.label{font:16px ui-monospace,monospace;fill:#334155}.value{font:700 15px ui-monospace,monospace;fill:#0F172A}.note{font:15px Inter,Arial,sans-serif;fill:#475569}</style></defs>
+<rect width="1500" height="760" fill="#F8FAFC"/><rect x="24" y="24" width="1452" height="712" rx="24" fill="#FFFFFF" stroke="#CBD5E1" stroke-width="2"/>
+<text x="70" y="78" class="title">Gin adapter · Issue #543</text>
+<text x="70" y="110" class="subtitle">CPU 1 serial median · ns/op, B/op, allocs/op are parsed from raw Go benchmark output · lower is better</text>
+<rect x="70" y="121" width="12" height="12" rx="3" fill="#2563EB"/><text x="90" y="133" class="value">base path</text>
+<rect x="235" y="121" width="12" height="12" rx="3" fill="#F59E0B"/><text x="255" y="133" class="value">FullAdapter · empty policy</text>
+<rect x="510" y="121" width="12" height="12" rx="3" fill="#0F766E"/><text x="530" y="133" class="value">FullAdapterRetry · retry policy</text>
+<line x1="470" y1="150" x2="470" y2="510" stroke="#E2E8F0"/>
+<text x="470" y="535" text-anchor="middle" class="value">0.00</text>
+<line x1="675" y1="150" x2="675" y2="510" stroke="#E2E8F0"/>
+<text x="675" y="535" text-anchor="middle" class="value">1.3k</text>
+<line x1="880" y1="150" x2="880" y2="510" stroke="#E2E8F0"/>
+<text x="880" y="535" text-anchor="middle" class="value">2.6k</text>
+<line x1="1085" y1="150" x2="1085" y2="510" stroke="#E2E8F0"/>
+<text x="1085" y="535" text-anchor="middle" class="value">3.9k</text>
+<line x1="1290" y1="150" x2="1290" y2="510" stroke="#E2E8F0"/>
+<text x="1290" y="535" text-anchor="middle" class="value">5.2k</text>
+<text x="70" y="200" class="label">NoOp/Serial</text>
+<rect x="470" y="176" width="133.18491437367715" height="30" rx="8" fill="#2563EB"/>
+<text x="1314" y="199" class="value">844 ns/op</text>
+<text x="70" y="266" class="label">DirectCore/Serial</text>
+<rect x="470" y="242" width="182.71310371368097" height="30" rx="8" fill="#2563EB"/>
+<text x="1314" y="265" class="value">1.2k ns/op</text>
+<text x="70" y="332" class="label">Bridge/Serial</text>
+<rect x="470" y="308" width="190.28670386761593" height="30" rx="8" fill="#2563EB"/>
+<text x="1314" y="331" class="value">1.2k ns/op</text>
+<text x="70" y="398" class="label">FullAdapter/Serial</text>
+<rect x="470" y="374" width="814.1620165480085" height="30" rx="8" fill="#F59E0B"/>
+<text x="1314" y="397" class="value">5.2k ns/op</text>
+<text x="70" y="464" class="label">FullAdapterRetry/Serial</text>
+<rect x="470" y="440" width="820" height="30" rx="8" fill="#0F766E"/>
+<text x="1314" y="463" class="value">5.2k ns/op</text>
+<rect x="70" y="570" width="1360" height="110" rx="16" fill="#ECFEFF" stroke="#0891B2"/>
+<text x="100" y="612" class="note">bridge overhead = (bridge - direct-core) / direct-core = 4.1%</text>
+<text x="100" y="645" class="note">full overhead = (full adapter - no-op) / no-op = 511.3%</text>
+<text x="100" y="678" class="note">FullAdapterRetry includes the no-backoff retry-policy success path; raw rows remain the source of truth.</text>
+</svg>

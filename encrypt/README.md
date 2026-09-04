@@ -3,8 +3,8 @@
 [English](README.md) | [한국어](README.ko.md)
 
 `encrypt` provides a small standard-library AES-GCM facade for local service
-data. It hides nonce management by using Go's random-nonce GCM AEAD and wraps
-ciphertext in a versioned envelope.
+data. It uses a random 96-bit nonce and a 16-byte authentication tag, then
+wraps ciphertext in a versioned envelope.
 
 ## Diagrams
 
@@ -49,6 +49,15 @@ text, err := encryptor.DecryptString(token, ad)
 String helpers reject invalid UTF-8. Use byte helpers for arbitrary binary
 payloads.
 
+Provider composition
+
+`Encryptor.EncryptDetached` and `DecryptDetached` are a low-level composition
+surface for providers that store the nonce in an outer envelope. They return
+and consume a 12-byte nonce plus the AES-GCM sealed bytes (plaintext plus the
+16-byte tag). Ordinary callers should continue to use `Encrypt` and `Decrypt`,
+which preserve the `BTENC | version | algorithm | nonce | ciphertext+tag`
+wire layout.
+
 ## Key Material
 
 - Keys must be AES-128, AES-192, or AES-256 material: 16, 24, or 32 bytes.
@@ -90,9 +99,10 @@ Byte ciphertext uses this envelope:
 BTENC | version=0x01 | algorithm=0x01 | random-nonce AES-GCM ciphertext
 ```
 
-The AES-GCM payload is produced by `cipher.NewGCMWithRandomNonce`. The standard
-library prepends a random 96-bit nonce to each ciphertext and adds a 16-byte
-authentication tag, for 28 bytes of AEAD overhead before the plaintext length.
+The AES-GCM payload uses `cipher.NewGCM`, with a random 96-bit nonce generated
+from `crypto/rand.Reader` and a 16-byte authentication tag. The `BTENC` facade
+therefore keeps 28 bytes of nonce-plus-tag overhead before the plaintext
+length. Existing `BTENC` bytes remain readable.
 
 String ciphertext is raw URL-safe base64 of the same byte envelope.
 

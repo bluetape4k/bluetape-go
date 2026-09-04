@@ -1,15 +1,73 @@
-# Changelog
+# 변경 기록
 
-이 project의 주요 변경 사항은 이 파일에 기록한다.
+이 프로젝트의 주요 변경 사항을 이 파일에 기록합니다.
 
 형식은 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/)를 따르며,
-첫 tag가 publish된 뒤에는 semantic versioning을 사용한다.
+첫 태그를 배포한 뒤에는 시맨틱 버전 관리를 사용합니다.
 
 ## [Unreleased]
 
+### 추가
+
+- `jwt/jwks` optional provider를 추가한다. 직접 지정한 JWKS JSON URL에서
+  RSA/ECDSA/Ed25519 공개키를 context-aware로 조회하고 TTL, rotation,
+  unknown `kid` cooldown, single-flight refresh, defensive copy를 제공한다.
+  대칭 key와 JWE, OIDC discovery는 범위에서 제외한다.
+
+## [v0.20.0] - 2026-09-04
+
+### 추가
+
+- `examples/s3`에 S3 presigned GET/PUT, transfer manager, multipart cleanup,
+  checksum 및 SSE-KMS 사용을 보여 주는 compile-checked 예제를 추가한다.
+- `encrypt/kms`에 caller-owned AWS KMS client를 사용하는 AES-256 data-key
+  envelope provider를 추가한다. strict canonical `BTKMS` envelope, bounded
+  local AES-GCM payload, cancellation, redacted error 및 fake-client 검증을
+  포함하며 key policy, rotation, IAM 및 data-key cache는 호출자가 소유한다.
+- `audit/sqloutbox/eventbridge`에 stable event ID/idempotency key를 보존하고
+  partial failure를 결정론적으로 매핑하는 EventBridge publisher adapter를
+  추가한다.
+- `workflow/stepfunctions`에 Start/Describe/선택적 Stop execution과
+  cancellation-aware bounded polling bridge를 추가한다.
+- `messaging/sqsextended`에 SQS와 S3를 조합하는 versioned large-payload
+  envelope provider를 추가한다. object ownership, cleanup, checksum 및
+  cancellation 경계를 호출자에게 노출한다.
+- `examples/cloudwatch`에 CloudWatch Metrics와 Logs의 별도 batch,
+  cancellation, redaction 및 현재 `PutLogEvents` 병렬성 계약을 보여 주는
+  compile-checked 예제를 추가한다.
+- `s3vectors`에 caller-owned AWS SDK client를 사용하는 얇은 vector bucket,
+  index, put/get/list/query 표면과 fake/live-opt-in 검증을 추가한다.
+- `secretsmanager`와 `ssm`에 caller-owned client 기반 lookup provider를,
+  `rds/auth`에 RDS IAM database authentication token helper를 추가한다.
+- `leader/dynamodb`에 조건부 쓰기, 명시적 lease deadline, owner token,
+  renewal/resign 및 stale-owner takeover를 갖춘 Go-native leader provider를
+  추가한다. TTL은 cleanup 힌트로만 사용한다.
+- `redis` 공통 key/owner-token/lease/script/error 기반 위에 `redis/lock`,
+  `redis/semaphore`, `redis/stream`, `redis/bucket`, `redis/mapcache`를
+  추가하고, caller-owned context와 typed/redacted provider error를 보존한다.
+- `cache/rediscoord/fory`와 `cache/redisfory`에 명시적 native-fast/native-
+  compatible Apache Fory profile과 versioned binary envelope를 추가한다.
+  `cache/redisvalue`는 bounded direct Redis value-cache 경계를 제공한다.
+
+### 변경
+
+- AWS adapter와 예제는 SDK client, credentials, IAM, provisioning, retry,
+  timeout, connection 및 downstream idempotency를 caller/operator 책임으로
+  유지하고, 기본 CI는 fake-client 또는 compile-checked 경로만 사용한다.
+- Redis·DynamoDB·cache provider는 context cancellation, lease deadline,
+  owner/fencing token, payload bound, cleanup 및 commit-unknown 의미를
+  명시적으로 검증하고 raw provider error를 redaction한다.
+- Fory provider는 `xlang=false`, 고정 profile/schema, trusted-internal 입력과
+  의도적인 schema rotation을 요구하며 JSON 기본값과 기존 coordination
+  envelope를 변경하지 않는다.
+- leader, JWT, graph, textsearch, image/example, database, audit, crypto,
+  AWS, Redis, cache, lock, rate-limit, probabilistic 및 Testcontainers 공개
+  Go doc 주석을 한국어로 정비한다. README와 LLM-facing 운영 문서는 기존
+  언어·범위를 유지한다.
+
 ## [v0.19.0] - 2026-08-06
 
-### Added
+### 추가
 
 - `leader/leadertest`, `lock/locktest`, `ratelimit/ratelimittest`에 mandatory
   public provider conformance runner를 추가한다. in-memory reference fixture와
@@ -44,7 +102,7 @@
 - key, owner-token, lease script, TTL, redacted Redis operation error primitive를
   담은 `redis` foundation package를 추가한다.
 
-### Changed
+### 변경
 
 - Redis와 Mongo 전반에서 single-leader campaign waiting, local-state sentinel,
   typed provider failure, commit-unknown cleanup을 통합한다.
@@ -64,7 +122,7 @@
 
 ## [v0.18.0] - 2026-07-10
 
-### Added
+### 추가
 
 - bounded slot lease document, concurrent acquisition에서의 exact `MaxLeaders`
   admission, renewal-loss detection, Testcontainers stress coverage, bilingual
@@ -85,13 +143,13 @@
 
 ## [v0.17.0] - 2026-07-09
 
-### Added
+### 추가
 
 - caller-owned MongoDB collection, owner-token lease document, optional TTL
   cleanup index support, renewal-loss detection, contention test, bilingual
   README coverage를 갖춘 `leader/mongo` single leader elector backend를 추가한다.
 
-### Changed
+### 변경
 
 - root/package README documentation은 source-checked workshop adoption example,
   active cross-repo workshop issue, 0.17.0 workshop adoption release-readiness
@@ -102,7 +160,7 @@
 
 ## [v0.16.0] - 2026-07-08
 
-### Added
+### 추가
 
 - `probabilistic/redis`에 Redis HyperLogLog support를 추가한다. `NewHyperLogLog`,
   `NewStringHyperLogLog`, `NewBytesHyperLogLog` constructor, SHA-256 value digest,
@@ -114,7 +172,7 @@
   첫 follow-up structure로 core Redis HLL을 선택하고 RedisBloom `CF*` Cuckoo
   support는 module-gated 상태로 둔다.
 
-### Changed
+### 변경
 
 - `probabilistic/redis` README documentation과 runtime diagram은 현재 core Redis
   Bloom/HLL assumption과 future RedisBloom module Cuckoo support를 분리한다.
@@ -123,9 +181,9 @@
 
 ## [v0.15.0] - 2026-07-08
 
-### Added
+### 추가
 
-- `audit/sqloutbox`의 audit publisher adoption track을 추가한다. documented
+- `audit/sqloutbox`의 audit publisher adoption 트랙을 추가한다. documented
   `Publisher` retry contract, stable `Record.EventID`와
   `Record.IdempotencyKey` handoff guidance, duplicate-safe at-least-once delivery
   example을 포함한다.
@@ -136,10 +194,10 @@
 - 첫 audit publisher adapter target에 대한 research와 lesson을 추가하고, Kafka,
   NATS, Redis Streams 등 durable transport adapter보다 standard-library
   test/example helper를 먼저 선택한다.
-- 0.15.0 SerDe follow-up track에서 JSON repeated-collection decoding과 zstd
+- 0.15.0 SerDe 후속 트랙에서 JSON repeated-collection decoding과 zstd
   compression allocation cost profiling evidence를 보존한다.
 
-### Changed
+### 변경
 
 - `serialization.JSONSerializer`는 default decode path에서 `json.Unmarshal`을
   사용하면서 strict trailing-payload rejection과 `WithDisallowUnknownFields`
@@ -151,7 +209,7 @@
 
 ## [v0.14.0] - 2026-07-07
 
-### Added
+### 추가
 
 - `serialization`, `codec`, `compression`을 위한 cross-repo SerDe/compression
   benchmark baseline을 추가한다. shared fixture/scenario definition, Go benchmark
@@ -162,7 +220,7 @@
 - 재현 가능한 future benchmark report를 위한 benchmark artifact retention
   template과 issue-specific output directory를 추가한다.
 
-### Changed
+### 변경
 
 - root, serialization, codec, compression, research README는 production ranking
   claim 대신 0.14.0 benchmark snapshot과 raw evidence를 link한다.
@@ -171,9 +229,9 @@
 
 ## [v0.13.0] - 2026-07-07
 
-### Added
+### 추가
 
-- 0.1.0부터 0.12.0까지 release-readiness retrospective audit을 추가한다. tracked
+- 0.1.0부터 0.12.0까지 release-readiness retrospective audit을 추가한다. 기록된
   7-tier review evidence, final P0/P1 count, deferred P2/P3 routing, release
   preflight state를 포함한다.
 - 기존 concurrency, resilience, DynamoDB batchwrite, testing-helper contract에
@@ -183,15 +241,15 @@
   Testcontainers for Go 기반 reusable MongoDB integration fixture package
   `testcontainers/mongodb`를 추가한다.
 
-### Changed
+### 변경
 
 - cumulative lesson hardening은 Testcontainers, cache, Redis coordination, JWT
   documentation 전반에 bounded cleanup context와 errcheck-shaped cleanup example을
   기록한다.
 - feature-gap triage는 후속 audit, probabilistic, messaging, AWS, SQL, graph,
-  HTTP fixture idea를 0.13.0 line을 막지 않는 방식으로 분류한다.
+  HTTP fixture idea를 0.13.0 릴리스 train을 막지 않는 방식으로 분류한다.
 
-### Fixed
+### 버그 수정
 
 - `cache.Memory.GetOrLoad`는 same-key caller cancellation isolation을 보존하여
   late canceled loader result를 cache에 쓰지 않는다.
@@ -200,7 +258,7 @@
 
 ## [v0.12.0] - 2026-07-06
 
-### Added
+### 추가
 
 - `core`, `collections`, `codec`, `concurrency`, observability convention,
   rule-engine boundary에 대해 source-backed Go-native decision을 갖춘 core
@@ -221,7 +279,7 @@
 - 누락된 package docs를 위한 package README diagram coverage를 paired SVG/PNG
   asset과 visual/audit review evidence로 추가한다.
 
-### Changed
+### 변경
 
 - public example과 package-local hook은 global bluetape-go logger registry를
   추가하지 않고 caller-owned `log/slog` pattern을 사용한다.
@@ -230,7 +288,7 @@
 
 ## [v0.11.0] - 2026-07-03
 
-### Added
+### 추가
 
 - dependency-light pure-Go resize, thumbnail, format conversion, bounded image
   decode/encode limit, explicit option validation, benchmark evidence, README
@@ -252,7 +310,7 @@
 
 ## [v0.10.0] - 2026-07-01
 
-### Added
+### 추가
 
 - graph I/O helper와 example을 위한 model-only vertex, edge, path, label, ID,
   shallow property, validated JSON value를 갖춘 `graph` package를 추가한다.
@@ -272,7 +330,7 @@
 
 ## [v0.9.0] - 2026-06-29
 
-### Added
+### 추가
 
 - aggregate ID, monotonic revision, caller-owned domain event ID, idempotency key,
   validated JSON audit entry, pending event recorder, storage-neutral history
@@ -291,7 +349,7 @@
 
 ## [v0.8.0] - 2026-06-27
 
-### Added
+### 추가
 
 - immutable Aho-Corasick multi-pattern matcher, first/all match mode, overlap
   policy, Unicode normalization, word-boundary filtering, replacement, masking,
@@ -311,7 +369,7 @@
 
 ## [v0.7.0] - 2026-06-26
 
-### Added
+### 추가
 
 - runtime-first `database/sql` transaction helper, 작은 `Session`/`Queryer`/
   `Execer` interface, explicit row mapping helper, cardinality-aware `QueryAll`,
@@ -325,7 +383,7 @@
   기준을 문서화하는 SQL generator/migration guidance를 추가한다. sqlc, Jet,
   Atlas는 core runtime dependency boundary 밖에 둔다.
 
-### Changed
+### 변경
 
 - root README와 Korean README는 `sqlkit`을 active data-access package로 나열하고
   optional SQL generator/migration guide를 link한다.
@@ -335,7 +393,7 @@
 
 ## [v0.6.8] - 2026-06-25
 
-### Added
+### 추가
 
 - untrusted compressed payload를 다루고 기존 `Compressor` interface를 바꾸지 않은
   채 expanded-output hard limit이 필요한 caller를 위해
@@ -344,9 +402,9 @@
   `core.ErrInvalidArgument`와 `collections.ErrInvalidArgument` sentinel contract를
   추가한다.
 
-### Changed
+### 변경
 
-- root README release status는 published `v0.6.7` line과 MongoDB-backed JWT
+- root README release status는 published `v0.6.7` 릴리스 train과 MongoDB-backed JWT
   KeyChain repository scope를 반영한다.
 - Redis leader와 lock example은 bounded campaign/acquire context와 별도 bounded
   cleanup context를 사용한다.
@@ -355,7 +413,7 @@
 - Docker-backed test는 PostgreSQL, MySQL, MariaDB, NATS, Redis Bloom, JWT
   Redis/Mongo fixture에서 explicit startup context를 사용한다.
 
-### Fixed
+### 버그 수정
 
 - ECB exchange-rate XML fetch는 XML decoding 전에 response body를 제한한다.
 - MongoDB JWT repository trim cursor cleanup은 bounded cleanup context를 사용한다.
@@ -366,7 +424,7 @@
 
 ## [v0.6.7] - 2026-06-25
 
-### Added
+### 추가
 
 - MongoDB-backed distributed JWT key-chain storage를 위한 `jwt.MongoRepository`와
   `jwt/mongo` facade를 추가한다. shared-provider rotation, `kid` lookup, capacity
@@ -375,7 +433,7 @@
 
 ## [v0.6.6] - 2026-06-25
 
-### Added
+### 추가
 
 - developer experience parity를 위한 focused testing fixture example, assertion
   pattern, golden-file data, bilingual testing README update를 추가한다.
@@ -387,14 +445,14 @@
 - rechecked 0.6.x parity matrix, `P0=0 P1=0` state, deferred follow-up, explicit
   Go non-goal을 문서화하는 corrective-series closure audit를 추가한다.
 
-### Changed
+### 변경
 
 - root README release roadmap은 completed corrective 0.6.3부터 0.6.6 series를
   반영하고 closed parity hardening과 later roadmap work를 분리한다.
 
 ## [v0.6.5] - 2026-06-25
 
-### Added
+### 추가
 
 - bounded startup error reporting과 service connection metadata helper를 갖춘
   shared Testcontainers server/property export abstraction을 추가한다.
@@ -404,7 +462,7 @@
   example을 추가한다. bilingual README coverage와 explicit wrapper boundary
   decision을 포함한다.
 
-### Changed
+### 변경
 
 - 더 많은 service fixture를 추가하기 전에 기존 Testcontainers lifecycle과
   connection contract를 harden한다. serial execution guidance와 cleanup/startup
@@ -412,7 +470,7 @@
 
 ## [v0.6.4] - 2026-06-25
 
-### Added
+### 추가
 
 - context-aware timeout behavior, interval control, example, focused test를 갖춘
   `testing` async await/polling helper를 추가한다.
@@ -423,14 +481,14 @@
 - current milestone에서 broad fixture dependency를 거부하는 random data parameter
   source와 test reporting helper research note를 추가한다.
 
-### Changed
+### 변경
 
 - `testing/concurrency` helper reporting을 harden하여 stress failure가
   race-compatible execution을 약화하지 않고 caller-visible evidence를 보존하게 한다.
 
 ## [v0.6.3] - 2026-06-25
 
-### Added
+### 추가
 
 - Go-native API, table-driven test, bilingual README coverage를 갖춘
   `collections` bounded stack, ring buffer, pagination, permutation helper를
@@ -439,7 +497,7 @@
   bluetape4k-core에서 영감을 받은 `core` range helper, wildcard matching, XXH64
   hashing, resource-style helper documentation, quarter/time helper를 추가한다.
 
-### Changed
+### 변경
 
 - invalid UTF-8, nil/empty, malformed input, documentation boundary를 포함해
   `core`, `collections`, `codec`, `serialization` text/binary contract를 harden한
@@ -447,7 +505,7 @@
 
 ## [v0.6.2] - 2026-06-21
 
-### Added
+### 추가
 
 - IMF Exchange Rates SDMX-backed reference rate provider `money.NewIMFProvider`를
   추가한다. configurable period-average/end-of-period family, frequency, cache와
@@ -461,7 +519,7 @@
 
 ## [v0.6.1] - 2026-06-21
 
-### Added
+### 추가
 
 - Redis-backed shared Bloom filter package `probabilistic/redis`를 추가한다.
   Cluster-safe hash-tagged key pair, immutable config metadata, static Lua bitmap
@@ -486,7 +544,7 @@
   `NewMinor`, `MinorUnits`를 public minor-unit path로 유지한다는 decision을 갖춘
   `money` FastMoney evaluation benchmark evidence를 추가한다.
 
-### Changed
+### 변경
 
 - #174 JWT compression/JOSE decision을 문서화한다. signed JWT compression은 현재
   `jwt` helper의 non-goal이고, `zip=DEF`는 future explicit JWE boundary에 속하며,
@@ -494,7 +552,7 @@
 
 ## [v0.6.0] - 2026-06-09
 
-### Added
+### 추가
 
 - repo-owned UUID v4/v7 string generator, random/monotonic ULID generator,
   standard seconds-precision KSUID generation, parsing, timestamp extraction,
@@ -528,7 +586,7 @@
 
 ## [v0.5.1] - 2026-06-08
 
-### Fixed
+### 버그 수정
 
 - `SkipPolicy`와 일치하는 checkpointed `batch.Step` writer failure는 unsafe
   skipped writer chunk 이후 checkpoint를 advance하지 않고
@@ -537,7 +595,7 @@
 
 ## [v0.5.0] - 2026-06-08
 
-### Added
+### 추가
 
 - first-party reader/processor/writer chunk step, sequential job, report,
   filtering, context cancellation, resource cleanup, stress/cancellation coverage를
@@ -554,14 +612,14 @@
 - batch retry/skip policy와 checkpoint restart scope를 보여 주는 README
   architecture diagram refresh를 추가한다.
 
-### Changed
+### 변경
 
 - root README architecture asset은 completed 0.5.0 batch recovery scope를 반영한다.
 - WIP와 release guide는 0.5.0 release-preparation state를 반영한다.
 
 ## [v0.4.0] - 2026-06-06
 
-### Added
+### 추가
 
 - first-party finite state machine primitive, explicit transition, context-aware
   guard, final state, deterministic transition error, stress/cancellation coverage,
@@ -581,7 +639,7 @@
 - 0.4.0 workflow primitive와 complex Redis coordination package를 위한 README
   diagram asset을 추가한다. PNG-only README embed와 adjacent SVG source를 포함한다.
 
-### Changed
+### 변경
 
 - 모든 package-level `README.md`는 sibling `README.ko.md`와 일관된
   `English | 한국어` language switch를 갖는다.
@@ -590,7 +648,7 @@
 
 ## [v0.3.0] - 2026-06-05
 
-### Added
+### 추가
 
 - generic cache interface, process-local TTL `Memory`, `ErrCacheMiss`,
   context-aware loader, `GetOrLoad` same-key stampede protection을 갖춘 `cache`
@@ -622,17 +680,17 @@
   HTML report, GitHub Step Summary output, uploaded workflow artifact를 통해 CI와
   Nightly용 Go coverage reporting을 추가한다.
 
-### Changed
+### 변경
 
 - package documentation은 package-level `README.md`에 위치하고 root README는 link가
   있는 high-level index로 남는다.
-- README와 WIP documentation은 completed `0.3.0` release line, merged package
+- README와 WIP documentation은 completed `0.3.0` 릴리스 train, merged package
   surface, open cache/coordination follow-up issue를 반영한다.
 - `make bench-ratelimit`는 opt-in local rate limiter benchmark run을 노출한다.
 
 ## [v0.2.0] - 2026-06-04
 
-### Added
+### 추가
 
 - ZSET slot token을 사용하는 semaphore-style multi-leader election을 위해
   `leader.GroupElector`와 Redis-backed `redisleader.NewGroup`을 추가한다.
@@ -643,27 +701,27 @@
   추가한다.
 - reusable Redis fixture를 위한 Redis Testcontainers smoke coverage를 추가한다.
 
-### Changed
+### 변경
 
 - README example은 retry, timeout, circuit breaker, bulkhead, observability hook,
   HTTP adapter, leader group election을 보여 준다.
 
 ## [v0.1.1] - 2026-06-03
 
-### Added
+### 추가
 
 - composable typed policy, retry, timeout, deterministic backoff, event hook,
   example을 갖춘 initial first-party `resilience` package를 추가한다.
 - research, spec, plan, 7-tier review, lesson artifact를 포함한 `0.1.0` foundation
   surface의 retrospective milestone evidence를 추가한다.
 
-### Fixed
+### 버그 수정
 
 - JSON deserialization은 첫 valid JSON value 이후 trailing payload를 거부한다.
 
 ## [v0.1.0] - 2026-06-03
 
-### Added
+### 추가
 
 - `core`, `testing`, `testcontainers/redis`, `leader`, `leader/redis` package를
   갖춘 initial Go module을 추가한다.
@@ -692,7 +750,7 @@
 - Kotlin/Go mixed participant를 위한 Redis leader key compatibility decision을
   추가한다.
 
-### Changed
+### 변경
 
 - CI는 real Testcontainers dependency를 대상으로 formatting, module tidiness,
   vet, lint, test, race test를 검증한다.

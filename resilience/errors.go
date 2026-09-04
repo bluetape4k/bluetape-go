@@ -12,7 +12,48 @@ var (
 	ErrTimeout          = errors.New("operation timed out")
 	ErrCircuitOpen      = errors.New("circuit breaker is open")
 	ErrBulkheadRejected = errors.New("bulkhead rejected call")
+	ErrNonRetryable     = errors.New("resilience operation is non-retryable")
 )
+
+// NonRetryableError marks an error that must not be retried while preserving
+// the original cause for callers and failure observers.
+type NonRetryableError struct {
+	Cause error
+}
+
+// Error returns a stable marker followed by the original cause message.
+func (e NonRetryableError) Error() string {
+	if e.Cause == nil {
+		return ErrNonRetryable.Error()
+	}
+	return fmt.Sprintf("%s: %v", ErrNonRetryable, e.Cause)
+}
+
+// Unwrap preserves the original cause for errors.Is and errors.As.
+func (e NonRetryableError) Unwrap() error {
+	return e.Cause
+}
+
+// Is identifies the non-retryable marker without relying on string matching.
+func (e NonRetryableError) Is(target error) bool {
+	return target == ErrNonRetryable
+}
+
+// NonRetryable marks err as non-retryable. Nil remains nil.
+func NonRetryable(err error) error {
+	if err == nil {
+		return nil
+	}
+	if IsNonRetryable(err) {
+		return err
+	}
+	return NonRetryableError{Cause: err}
+}
+
+// IsNonRetryable reports whether err contains the non-retryable marker.
+func IsNonRetryable(err error) bool {
+	return err != nil && errors.Is(err, ErrNonRetryable)
+}
 
 // RetryError struct 공개 타입이며 취소, deadline, retry, timeout, circuit breaker 상태를 보존한다.
 type RetryError struct {

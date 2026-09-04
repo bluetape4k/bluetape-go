@@ -56,6 +56,7 @@ future scope, not part of the current public API.
 | [`concurrency`](concurrency/README.md) | active | Context-aware goroutine groups, worker pools, and bounded parallel helpers. |
 | [`codec`](codec/README.md) | active | Base58, Base62, Base64, hex, and URL-safe encoding helpers. |
 | [`encrypt`](encrypt/README.md) | active | Stdlib AES-GCM byte/string facade with versioned envelopes and associated data. |
+| [`encrypt/kms`](encrypt/kms/README.md) | active | Caller-owned AWS KMS AES-256 data-key envelope provider with strict BTKMS metadata and bounded local AES-GCM payloads. |
 | [`compression`](compression/README.md) | active | gzip, deflate, zstd, lz4, snappy, and registry-backed compression helpers. |
 | [`imagekit`](imagekit/README.md) | active | Bounded pure-Go thumbnail, resize, and JPEG/PNG conversion helpers for service inputs. |
 | [`serialization`](serialization/README.md) | active | JSON and binary serializer interfaces with safe defaults. |
@@ -68,18 +69,28 @@ future scope, not part of the current public API.
 | [`testcontainers/nats`](testcontainers/nats/README.md) | active | NATS fixture helpers based on Testcontainers for Go. |
 | [`testcontainers/kafka`](testcontainers/kafka/README.md) | active | Kafka fixture helpers based on Testcontainers for Go. |
 | [`dynamodb/batchwrite`](dynamodb/batchwrite/README.md) | active | Narrow AWS SDK for Go v2 BatchWriteItem chunking and unprocessed-item retry helper. |
+| [`secretsmanager`](secretsmanager/README.md) | active | Caller-owned AWS Secrets Manager lookup with redacted string/binary values and an explicit bounded positive-TTL cache. |
+| [`ssm`](ssm/README.md) | active | Caller-owned AWS Parameter Store lookup with explicit SecureString decryption and an explicit bounded positive-TTL cache. |
+| [`messaging/sqsextended`](messaging/sqsextended/README.md) | active | Caller-owned AWS SDK for Go v2 SQS/S3 large-payload envelope with bounded reads, checksum validation, and explicit cleanup order. |
+| [`s3vectors`](s3vectors/README.md) | active | Caller-owned AWS SDK for Go v2 S3 Vectors bucket, index, and vector operation adapter. |
+| [`rds/auth`](rds/auth/README.md) | active | Caller-owned AWS RDS IAM authentication token validation and redacted token handoff helper. |
 | [`examples/integration`](examples/integration/README.md) | example | Compile-checked end-to-end recipes across corrected `0.6.x` packages. |
 | [`examples/audit`](examples/audit/README.md) | example | Runnable audit-backed order service demonstrating repository history and outbox replay boundaries. |
 | [`examples/graph/observability`](examples/graph/observability/README.md) | example | Runnable observability incident graph showing blast-radius, alert-boundary, ownership, and NDJSON graph I/O boundaries. |
 | [`examples/graph/iamaccess`](examples/graph/iamaccess/README.md) | example | Runnable IAM access graph showing effective access, deny paths, risky privilege chains, least-privilege drift, and NDJSON graph I/O boundaries. |
 | [`examples/s3`](examples/s3/README.md) | example | Compile-checked AWS SDK for Go v2 S3 examples backed by the Floci fixture. |
 | [`examples/sqs-sns`](examples/sqs-sns/README.md) | example | Compile-checked AWS SDK for Go v2 SQS/SNS examples backed by the Floci fixture. |
+| [`examples/cloudwatch`](examples/cloudwatch/README.md) | example | Compile-checked AWS SDK for Go v2 CloudWatch Metrics and Logs request examples with limits, cancellation, and redaction guidance. |
 | [`leader`](leader/README.md) | active | Leader election API, including single, group, and strategy-based contracts. |
 | [`leader/redis`](leader/redis/README.md) | active | Redis-backed single, group, and strategic leader election using TTL renewal, ZSET slot tokens, and candidate registries. |
 | [`leader/mongo`](leader/mongo/README.md) | active | MongoDB-backed single, group, and strategic leader election using owner-token leases, bounded slots, candidate registries, and TTL cleanup indexes. |
 | [`leader/sql`](leader/sql/README.md) | active | PostgreSQL-only single leader election using caller-owned row leases and a caller-owned `*sql.DB`. |
 | [`leader/etcd`](leader/etcd/README.md) | active | etcd single leader election using a caller-owned client, official Session/Election primitives, and exact ownership monitoring. |
 | [`resilience`](resilience/README.md) | active | First-party composable retry, timeout, circuit breaker, and bulkhead policies with synchronous observability hooks and `net/http` adapters. |
+| [`web`](web/README.md) | active | Framework-neutral RFC 9457 problem details responses and trusted request context helpers for `net/http` handlers. |
+| [`web/gin`](web/gin/README.md) | active | Gin adapter for request context, rate limiting, strict JWT authentication, RFC 9457 Problems, and route-level resilience. |
+| [`web/echo`](web/echo/README.md) | active | Echo adapter for request context, rate limiting, strict JWT authentication, RFC 9457 Problems, and route-level resilience. |
+| [`webtest`](webtest/README.md) | test | Framework-neutral `net/http` middleware conformance harness and resource-ownership fixtures for tests. |
 | [`cache`](cache/README.md) | active | Generic in-process TTL cache interfaces with context-aware loaders and same-key stampede protection. |
 | [`cache/redisnear`](cache/redisnear/README.md) | active | Redis Pub/Sub near-cache invalidation for process-local loading caches. |
 | [`cache/rediscoord`](cache/rediscoord/README.md) | active | Opt-in Redis coordination wrapper that shares one loader result across process-local caches during a cold burst. |
@@ -93,6 +104,7 @@ future scope, not part of the current public API.
 | [`state`](state/README.md) | active | Small finite state machine primitives with typed transitions, guards, final states, and sentinel errors. |
 | [`workreport`](workreport/README.md) | active | Status, failure-policy, and report-tree values for lightweight workflow code. |
 | [`workflow`](workflow/README.md) | active | Sequential, conditional, and all-branches parallel runners built on `context.Context` and `workreport`. |
+| [`workflow/stepfunctions`](workflow/stepfunctions/README.md) | active | Caller-owned AWS Step Functions execution bridge with start, describe, optional stop, and bounded cancellable polling. |
 | [`batch`](batch/README.md) | active | Chunk-oriented batch steps, sequential jobs, retry/skip policies, reports, and checkpoints. |
 | [`batch/sqlcheckpoint`](batch/sqlcheckpoint/README.md) | active | PostgreSQL durable checkpoints that atomically commit a batch callback and consumed-input progress with revision CAS. |
 | [`id`](id/README.md) | active | UUID v4/v7, random and monotonic ULID, standard KSUID, Kotlin-compatible KSUID millis, and Snowflake ID generators. |
@@ -140,17 +152,18 @@ overview.
 
 - Foundation: [`core`](core/README.md), [`collections`](collections/README.md),
   [`concurrency`](concurrency/README.md), [`codec`](codec/README.md),
-  [`encrypt`](encrypt/README.md), [`compression`](compression/README.md), and
+  [`encrypt`](encrypt/README.md), [`encrypt/kms`](encrypt/kms/README.md), [`compression`](compression/README.md), and
   [`serialization`](serialization/README.md).
-- Test support: [`testing`](testing/README.md),
+- Test support: [`testing`](testing/README.md), [`webtest`](webtest/README.md),
   [`testing/concurrency`](testing/concurrency/README.md), and the fixture
   package READMEs listed above. Focused examples in `testing` cover
   table-driven tests, package-local builders, golden files, deterministic random
   data, and cancellation assertions without adding an assertion DSL.
-- AWS/Floci: [`dynamodb/batchwrite`](dynamodb/batchwrite/README.md) and
+ - AWS/Floci: [`dynamodb/batchwrite`](dynamodb/batchwrite/README.md), [`messaging/sqsextended`](messaging/sqsextended/README.md), [`encrypt/kms`](encrypt/kms/README.md), [`rds/auth`](rds/auth/README.md), [`secretsmanager`](secretsmanager/README.md), [`ssm`](ssm/README.md), [`workflow/stepfunctions`](workflow/stepfunctions/README.md), and
   compile-checked examples under [`examples/integration`](examples/integration/README.md),
   [`examples/s3`](examples/s3/README.md), and
-  [`examples/sqs-sns`](examples/sqs-sns/README.md).
+  [`examples/sqs-sns`](examples/sqs-sns/README.md), plus the fake-first
+  CloudWatch Metrics/Logs examples under [`examples/cloudwatch`](examples/cloudwatch/README.md).
 - Text: [`textsearch`](textsearch/README.md) for deterministic multi-pattern
   search, tokenizer core interfaces, blockword detection/masking, severity
   metadata, normalization, boundary-aware matching, and the optional
@@ -167,12 +180,13 @@ overview.
   [`redis`](redis/README.md), [`redis/stream`](redis/stream/README.md), and
   [`lock/redis`](lock/redis/README.md).
 - Runtime policies, cache, state, and workflow: [`resilience`](resilience/README.md),
+  [`web`](web/README.md),
   [`cache`](cache/README.md), [`cache/redisnear`](cache/redisnear/README.md),
   [`cache/rediscoord`](cache/rediscoord/README.md), [`cache/redisfory`](cache/redisfory/README.md),
   [`cache/redisvalue`](cache/redisvalue/README.md),
   [`ratelimit`](ratelimit/README.md),
   [`state`](state/README.md), [`workreport`](workreport/README.md),
-  [`workflow`](workflow/README.md), and [`batch`](batch/README.md).
+  [`workflow`](workflow/README.md), [`workflow/stepfunctions`](workflow/stepfunctions/README.md), and [`batch`](batch/README.md).
 - Portable utilities: [`id`](id/README.md), [`jwt`](jwt/README.md),
   [`jwt/redis`](jwt/redis/README.md), [`jwt/mongo`](jwt/mongo/README.md),
   [`measure`](measure/README.md), [`money`](money/README.md),
@@ -350,6 +364,8 @@ Common commands:
 | `make bench-cache` | Run opt-in cache, Redis NearCache, and Redis coordinator benchmarks. |
 | `make bench-ratelimit` | Run opt-in local rate limiter benchmarks. |
 | `make bench-id` | Run opt-in id generator benchmarks. |
+| `make bench-web-gin` | Run the opt-in Gin adapter benchmark capture. Narrow the chart watchdog/output bound with `BLUETAPE_GIN_BENCH_CHART_TIMEOUT_SECONDS` and `BLUETAPE_GIN_BENCH_CHART_MAX_OUTPUT_BYTES`. |
+| `make check-bench-web-gin` | Validate Gin benchmark parser, chart, failure-diagnostic, and regression-comparator contracts without running the benchmark. |
 | `make ci` | Run the local CI gate. |
 
 ### Provider benchmark matrix

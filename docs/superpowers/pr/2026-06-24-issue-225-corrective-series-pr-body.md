@@ -1,14 +1,14 @@
 Closes #225.
 
-## Summary
+## 요약
 
-- Add the final `0.6.x` corrective-series closure report.
-- Record the rechecked #202 source-parity matrix state after `0.6.3` through
-  `0.6.6`.
-- Separate corrective-series `P0=0 P1=0` gate status from later roadmap work and
-  explicit Go non-goals.
+- 최종 `0.6.x` corrective-series closure report를 추가한다.
+- `0.6.3`부터 `0.6.6`까지 다시 확인한 #202 source-parity matrix 상태를
+  기록한다.
+- corrective-series `P0=0 P1=0` 게이트 상태를 이후 roadmap 작업 및 명시적
+  Go non-goal과 분리한다.
 
-## Validation
+## 검증
 
 - PASS `git diff --check`
 - PASS `make fmt-check`
@@ -19,15 +19,15 @@ Closes #225.
 - PASS `make race`
 - PENDING GitHub CI
 
-## Review
+## 검토
 
-- Step 6-R: P0=0 P1=0, main integration fallback with seven-lane separation.
+- Step 6-R: P0=0 P1=0, seven-lane 분리를 적용한 main integration fallback.
 - Step 7-R: PENDING
 
 ## DoD Status
 
-- PASS #202 parity matrix rechecked after 0.6.3-0.6.6.
-- PASS remaining non-blocking parity gaps linked to later issues or non-goals.
-- PASS final closure report records `P0=0 P1=0`.
-- PASS local validation gates.
-- PENDING PR metadata parity with #225.
+- PASS 0.6.3-0.6.6 이후 #202 parity matrix 재확인.
+- PASS 남은 non-blocking parity gap을 이후 issue 또는 non-goal에 연결.
+- PASS 최종 closure report에 `P0=0 P1=0` 기록.
+- PASS 로컬 validation 게이트.
+- PENDING #225와의 PR metadata parity.
