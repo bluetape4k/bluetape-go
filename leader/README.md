@@ -64,6 +64,8 @@ if err != nil {
 - `leader/dynamodb` is a single `Elector` over a caller-owned DynamoDB client.
   It uses conditional item writes, strongly consistent deadline reads, and TTL
   only as asynchronous cleanup; it provides no Global Tables or fencing semantics.
+  The table is the namespace boundary; inherited `KeyPrefix` is validated but
+  not encoded in the item key.
 
 ## Test
 

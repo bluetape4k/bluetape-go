@@ -116,7 +116,9 @@ func (e *Elector) Resign(ctx context.Context) error {
 	if ctxErr := ctx.Err(); ctxErr != nil {
 		return errors.Join(operationErr, ctxErr, leader.ErrCommitUnknown)
 	}
-	confirmed, probeErr := e.probeOwnership(ctx)
+	probeCtx, probeCancel := context.WithTimeout(ctx, e.attemptBudget())
+	defer probeCancel()
+	confirmed, probeErr := e.probeOwnership(probeCtx)
 	if probeErr == nil && !confirmed {
 		resolved = true
 		return nil
@@ -168,25 +170,37 @@ func (e *Elector) acquireAttempt(ctx context.Context) (bool, error) {
 		e.markCleanupPending()
 		return false, errors.Join(ctxErr, leader.ErrCommitUnknown)
 	}
+	if attemptErr := attemptCtx.Err(); attemptErr != nil {
+		if err != nil {
+			attemptErr = errors.Join(err, attemptErr)
+		}
+		return e.reconcileAfterTimeout(ctx, "campaign", attemptErr)
+	}
 	if err == nil {
 		return true, nil
 	}
 	if isConditionalFailure(err) {
-		return e.takeover(ctx, deadline)
+		return e.takeover(ctx)
 	}
 	return e.reconcileAfterError(ctx, "campaign", err)
 }
 
-func (e *Elector) takeover(ctx context.Context, deadline time.Time) (bool, error) {
+func (e *Elector) takeover(ctx context.Context) (bool, error) {
 	attemptCtx, cancel := context.WithTimeout(ctx, e.attemptBudget())
 	defer cancel()
-	output, err := e.client.UpdateItem(attemptCtx, e.takeoverInput(deadline))
+	output, err := e.client.UpdateItem(attemptCtx, e.takeoverInput(e.deadline()))
 	if err == nil && output == nil {
 		err = errMalformedResponse
 	}
 	if ctxErr := ctx.Err(); ctxErr != nil {
 		e.markCleanupPending()
 		return false, errors.Join(ctxErr, leader.ErrCommitUnknown)
+	}
+	if attemptErr := attemptCtx.Err(); attemptErr != nil {
+		if err != nil {
+			attemptErr = errors.Join(err, attemptErr)
+		}
+		return e.reconcileAfterTimeout(ctx, "campaign", attemptErr)
 	}
 	if err == nil {
 		return true, nil
@@ -198,6 +212,14 @@ func (e *Elector) takeover(ctx context.Context, deadline time.Time) (bool, error
 }
 
 func (e *Elector) reconcileAfterError(ctx context.Context, operation string, cause error) (bool, error) {
+	return e.reconcile(ctx, operation, cause, false)
+}
+
+func (e *Elector) reconcileAfterTimeout(ctx context.Context, operation string, cause error) (bool, error) {
+	return e.reconcile(ctx, operation, cause, true)
+}
+
+func (e *Elector) reconcile(ctx context.Context, operation string, cause error, retryOnNoOwner bool) (bool, error) {
 	if ctxErr := ctx.Err(); ctxErr != nil {
 		e.markCleanupPending()
 		return false, errors.Join(providerError(operation, cause, true), ctxErr)
@@ -207,6 +229,9 @@ func (e *Elector) reconcileAfterError(ctx context.Context, operation string, cau
 	confirmed, probeErr := e.probeOwnership(probeCtx)
 	if probeErr == nil && confirmed {
 		return true, nil
+	}
+	if probeErr == nil && retryOnNoOwner {
+		return false, nil
 	}
 	if probeErr != nil {
 		e.markCleanupPending()

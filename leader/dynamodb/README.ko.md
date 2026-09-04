@@ -28,6 +28,12 @@ defer elector.Resign(cleanupCtx)
 table/IAM provisioning은 caller가 소유합니다. 이 package는 client를 만들거나
 migration을 실행하지 않습니다.
 
+공통 `leader.Options.KeyPrefix`는 provider 호환성을 위해 검증하지만 DynamoDB
+item key에는 인코딩하지 않습니다. 이 provider에서 table 자체가 namespace
+경계이므로 서로 다른 key-prefix 정책을 하나의 table에서 공유하려면 `Group`이
+전역적으로 충돌하지 않도록 caller가 보장해야 합니다. namespace별 table 분리나
+group 이름에 prefix를 넣는 정책은 operator/caller의 책임입니다.
+
 ## Item schema
 
 기본 attribute는 다음과 같습니다.
@@ -66,12 +72,15 @@ Provider failure는 안전한 operation label을 가진 `leader.OperationError`�
 포함되지 않습니다. Cause와 `leader.ErrCommitUnknown`은
 `errors.Is`/`errors.As`로 확인하세요.
 
-Write response가 유실되면 bounded strongly consistent probe를 한 번
+Write response가 유실되거나 bounded attempt context 뒤에 늦은 response가
+도착해도 response만 믿지 않고 bounded strongly consistent probe를 한 번
 수행합니다. Own active token이면 commit을 복구하고, empty/다른 owner이면
-ownership 변경이 없음을 확인합니다. Probe도 실패하면
+새 campaign attempt를 허용합니다. Probe도 실패하면
 `leader.ErrCommitUnknown`과 cleanup pending을 반환하므로 fresh cleanup
-context로 같은 elector의 `Resign`을 재시도하세요. Conditional delete
-failure는 item이 이미 사라졌거나 교체된 상태이므로 idempotent success입니다.
+context로 같은 elector의 `Resign`을 재시도하세요. Takeover deadline은
+conditional update 직전에 다시 계산하며 Resign probe도 같은 attempt budget으로
+제한합니다. Conditional delete failure는 item이 이미 사라졌거나 교체된
+상태이므로 idempotent success입니다.
 
 Lifecycle/failure log는 caller가 선택한 `log/slog` logger(`WithLogger`)로만
 기록합니다. Global logger 설정을 변경하지 않고 raw provider text도 기록하지

@@ -99,6 +99,13 @@ fake가 이를 구현하며, provider는 client를 닫거나 AWS config/credenti
 사용하고 global logger 설정을 변경하지 않는다. 로그에는 operation과
 저카디널리티 상태만 남기며 table/group/token/provider message는 남기지 않는다.
 
+공통 `leader.Options.KeyPrefix`는 다른 provider와의 설정 호환성을 위해
+검증하지만 DynamoDB item key에는 인코딩하지 않는다. 이 provider의 table 자체가
+namespace 경계이므로 같은 table을 서로 다른 `KeyPrefix` 설정과 공유할 때는
+`Group`이 전역적으로 충돌하지 않도록 caller가 보장해야 한다. table을
+namespace별로 분리하거나 prefix를 group 이름에 반영하는 정책은 caller/operator가
+소유한다.
+
 nil interface와 `reflect.IsNil` 가능한 typed-nil client는 생성 시 거부한다.
 zero-value `Elector`는 constructor-only이며 method가 panic하지 않는다는
 계약을 두지 않는다.
@@ -135,11 +142,17 @@ clock skew는 caller/operator가 관리하며 provider가 server time을 가장�
    성공으로 승격하고, item이 없거나 다른 owner면 원래 typed operation error를
    반환한다. probe도 실패하면 `leader.ErrCommitUnknown`과 cleanup pending을
    함께 반환한다.
-5. provider 응답 직후 context가 취소되면 caller cancellation이 우선한다.
+5. 내부 attempt budget이 먼저 만료된 뒤 provider가 늦게 응답해도 response만으로
+   ownership을 publish하지 않는다. bounded strong probe가 own token을 확인할
+   때만 commit을 복구하고, item이 없거나 다른 owner면 다음 bounded attempt로
+   돌아간다. probe도 실패하면 `leader.ErrCommitUnknown`과 cleanup pending을
+   함께 반환한다. takeover deadline은 contention 이후 실제 update 직전에 다시
+   계산해 stale lease를 발행하지 않는다.
+6. provider 응답 직후 context가 취소되면 caller cancellation이 우선한다.
    dispatch가 이미 일어났을 수 있으므로 local cleanup을 pending으로 두고
    `context`와 `leader.ErrCommitUnknown`을 보존한다. 호출자는 fresh cleanup
    context로 같은 elector의 `Resign`을 재시도한다.
-6. busy contention만 retry delay 후 반복한다. package는 retry 횟수나 전체
+7. busy contention만 retry delay 후 반복한다. package는 retry 횟수나 전체
    deadline을 소유하지 않으며 caller context가 상한이다.
 
 ### Renewal
@@ -147,9 +160,10 @@ clock skew는 caller/operator가 관리하며 provider가 server time을 가장�
 renewal goroutine은 `RenewInterval` ticker 하나만 소유한다. 각 update는
 owner token 일치와 `lease_until_ms > now` 조건을 함께 검사하고 deadline/TTL을
 갱신한다. conditional failure은 ownership loss로 간주해 `IsLeader=false`로
-전환하고 다른 owner를 삭제하지 않는다. transport 오류는 bounded strongly
-consistent probe를 한 번 시도한다. own active item이면 late response를
-복구해 renewal을 계속하고, probe 실패이면 cleanup pending으로 멈춘다.
+전환하고 다른 owner를 삭제하지 않는다. transport 오류는 `attemptBudget`으로
+제한된 strongly consistent probe를 한 번 시도한다. own active item이면 late
+response를 복구해 renewal을 계속하고, probe 실패이면 cleanup pending으로
+멈춘다.
 caller가 `Resign`하면 cancel → renewal done join → 조건부 Delete 순서로
 정리한다. ticker, goroutine, context는 모든 경로에서 닫힌다.
 
@@ -157,12 +171,14 @@ caller가 `Resign`하면 cancel → renewal done join → 조건부 Delete 순�
 
 `DeleteItem`은 `#owner = :owner` 조건을 사용한다. item이 없어졌거나 다른
 owner로 교체되어 conditional failure가 반환되면 이미 해제된 것으로 보고
-성공한다. transport 오류는 strongly consistent probe로 판단한다. own item이
-남아 있거나 probe가 실패하면 `leader.OperationError`와
+성공한다. transport 오류는 `attemptBudget`으로 제한된 strongly consistent
+probe로 판단한다. own item이 남아 있거나 probe가 실패하면
+`leader.OperationError`와
 `leader.ErrCommitUnknown`을 반환하고 cleanup pending을 유지한다. item이
 없거나 다른 owner이면 cleanup을 resolved로 기록하고 성공한다. delete 응답
 뒤 cancellation은 context error를 우선하되, dispatch 결과가 불명확한 경우
-`ErrCommitUnknown`을 함께 보존한다.
+`ErrCommitUnknown`을 함께 보존한다. probe가 끝나기 전에 cleanup context가
+끝나도 같은 unknown 상태를 보존한다.
 
 동일 elector의 retry는 같은 opaque token을 사용한다. `Resign`은 idempotent하며
 동시에 호출되어도 generation/resigning counter가 renewal과 cleanup 상태를

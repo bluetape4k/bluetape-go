@@ -57,6 +57,8 @@ if err != nil {
 - `leader/dynamodb`는 caller-owned DynamoDB client를 사용하는 단일 `Elector`입니다.
   조건부 item write와 strongly consistent deadline read를 사용하며 TTL은 비동기
   cleanup 전용입니다. Global Tables와 fencing semantics는 제공하지 않습니다.
+  Table이 namespace 경계이며 공통 `KeyPrefix`는 검증만 하고 item key에는
+  인코딩하지 않습니다.
 
 ## 테스트
 

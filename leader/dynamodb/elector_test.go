@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"strconv"
 	"strings"
 	"sync"
 	"testing"
@@ -16,25 +17,28 @@ import (
 )
 
 type fakeClient struct {
-	mu           sync.Mutex
-	items        map[string]map[string]types.AttributeValue
-	calls        []string
-	lastPut      *dynamodb.PutItemInput
-	lastUpdate   *dynamodb.UpdateItemInput
-	lastDelete   *dynamodb.DeleteItemInput
-	lastGet      *dynamodb.GetItemInput
-	putErr       error
-	putOutput    *dynamodb.PutItemOutput
-	updateErr    error
-	updateOutput *dynamodb.UpdateItemOutput
-	deleteErr    error
-	deleteOutput *dynamodb.DeleteItemOutput
-	getErr       error
-	getBlock     chan struct{}
-	getStarted   chan<- struct{}
-	afterPut     func()
-	afterUpdate  func()
-	afterDelete  func()
+	mu            sync.Mutex
+	items         map[string]map[string]types.AttributeValue
+	calls         []string
+	lastPut       *dynamodb.PutItemInput
+	lastUpdate    *dynamodb.UpdateItemInput
+	lastDelete    *dynamodb.DeleteItemInput
+	lastGet       *dynamodb.GetItemInput
+	putErr        error
+	putOutput     *dynamodb.PutItemOutput
+	updateErr     error
+	updateOutput  *dynamodb.UpdateItemOutput
+	deleteErr     error
+	deleteOutput  *dynamodb.DeleteItemOutput
+	getErr        error
+	getBlock      chan struct{}
+	getStarted    chan<- struct{}
+	putGate       chan struct{}
+	putStarted    chan<- struct{}
+	putSkipCommit bool
+	afterPut      func()
+	afterUpdate   func()
+	afterDelete   func()
 }
 
 func newFakeClient() *fakeClient {
@@ -44,6 +48,15 @@ func newFakeClient() *fakeClient {
 func (f *fakeClient) PutItem(ctx context.Context, input *dynamodb.PutItemInput, _ ...func(*dynamodb.Options)) (*dynamodb.PutItemOutput, error) {
 	if err := ctx.Err(); err != nil {
 		return nil, err
+	}
+	if f.putStarted != nil {
+		select {
+		case f.putStarted <- struct{}{}:
+		default:
+		}
+	}
+	if f.putGate != nil {
+		<-f.putGate
 	}
 	f.mu.Lock()
 	defer f.mu.Unlock()
@@ -58,6 +71,13 @@ func (f *fakeClient) PutItem(ctx context.Context, input *dynamodb.PutItemInput, 
 			f.afterPut()
 		}
 		return output, err
+	}
+	if f.putSkipCommit {
+		f.putSkipCommit = false
+		if f.afterPut != nil {
+			f.afterPut()
+		}
+		return &dynamodb.PutItemOutput{}, nil
 	}
 	key := itemKey(input.Item, input.ExpressionAttributeNames["#key"])
 	if _, exists := f.items[key]; exists {
@@ -449,6 +469,90 @@ func TestCampaignReturnsCommitUnknownAfterProviderFailure(t *testing.T) {
 	}
 }
 
+func TestCampaignDoesNotTrustLatePutSuccess(t *testing.T) {
+	fake := newFakeClient()
+	putStarted := make(chan struct{}, 1)
+	fake.putStarted = putStarted
+	fake.putGate = make(chan struct{})
+	fake.putSkipCommit = true
+	elector, err := New(fake, "leaders", testOptions(nil))
+	if err != nil {
+		t.Fatal(err)
+	}
+	result := make(chan struct {
+		acquired bool
+		err      error
+	}, 1)
+	go func() {
+		acquired, err := elector.acquireAttempt(context.Background())
+		result <- struct {
+			acquired bool
+			err      error
+		}{acquired: acquired, err: err}
+	}()
+	select {
+	case <-putStarted:
+	case <-time.After(500 * time.Millisecond):
+		t.Fatal("PutItem did not start")
+	}
+	time.Sleep(elector.attemptBudget() + 10*time.Millisecond)
+	close(fake.putGate)
+	select {
+	case outcome := <-result:
+		if outcome.acquired || outcome.err != nil {
+			t.Fatalf("late PutItem success = acquired=%v err=%v, want unowned retry", outcome.acquired, outcome.err)
+		}
+	case <-time.After(500 * time.Millisecond):
+		t.Fatal("late PutItem reconciliation did not finish")
+	}
+}
+
+func TestTakeoverRecomputesLeaseDeadlineAfterContention(t *testing.T) {
+	fake := newFakeClient()
+	now := time.Unix(1_700_000_000, 0)
+	fake.items["group"] = map[string]types.AttributeValue{
+		"group":       &types.AttributeValueMemberS{Value: "group"},
+		"owner_token": &types.AttributeValueMemberS{Value: "old-owner"},
+		"lease_until_ms": &types.AttributeValueMemberN{
+			Value: strconv.FormatInt(now.Add(500*time.Millisecond).UnixMilli(), 10),
+		},
+		"expires_at": &types.AttributeValueMemberN{Value: strconv.FormatInt(now.Add(time.Second).Unix(), 10)},
+	}
+	clock := func() time.Time { return now }
+	advanced := false
+	fake.afterPut = func() {
+		if !advanced {
+			now = now.Add(time.Second)
+			advanced = true
+			fake.afterPut = nil
+		}
+	}
+	elector, err := New(fake, "leaders", testOptions(clock), WithClock(clock))
+	if err != nil {
+		t.Fatal(err)
+	}
+	if err := elector.Campaign(context.Background()); err != nil {
+		t.Fatal(err)
+	}
+	fake.mu.Lock()
+	update := cloneUpdateInput(fake.lastUpdate)
+	fake.mu.Unlock()
+	if update == nil {
+		t.Fatal("takeover did not produce UpdateItem")
+	}
+	lease, ok := update.ExpressionAttributeValues[":lease"].(*types.AttributeValueMemberN)
+	if !ok {
+		t.Fatalf("takeover lease = %#v", update.ExpressionAttributeValues[":lease"])
+	}
+	want := now.Add(testOptions(nil).Lease).UnixMilli()
+	if lease.Value != strconv.FormatInt(want, 10) {
+		t.Fatalf("takeover lease = %s, want fresh deadline %d", lease.Value, want)
+	}
+	if err := elector.Resign(context.Background()); err != nil {
+		t.Fatal(err)
+	}
+}
+
 func TestRenewProbeIsBoundedAndLeavesCleanupPending(t *testing.T) {
 	fake := newFakeClient()
 	probeStarted := make(chan struct{}, 1)
@@ -488,6 +592,42 @@ func TestRenewProbeIsBoundedAndLeavesCleanupPending(t *testing.T) {
 	close(fake.getBlock)
 	if err := elector.Resign(context.Background()); err != nil {
 		t.Fatalf("Resign() after bounded probe = %v", err)
+	}
+}
+
+func TestResignProbeIsBoundedAfterDeleteFailure(t *testing.T) {
+	fake := newFakeClient()
+	probeStarted := make(chan struct{}, 1)
+	fake.getStarted = probeStarted
+	fake.getBlock = make(chan struct{})
+	elector, err := New(fake, "leaders", testOptions(nil))
+	if err != nil {
+		t.Fatal(err)
+	}
+	if err := elector.Campaign(context.Background()); err != nil {
+		t.Fatal(err)
+	}
+	fake.mu.Lock()
+	fake.deleteErr = errors.New("delete transport failure")
+	fake.mu.Unlock()
+	resignDone := make(chan error, 1)
+	go func() { resignDone <- elector.Resign(context.Background()) }()
+	select {
+	case <-probeStarted:
+	case <-time.After(500 * time.Millisecond):
+		t.Fatal("Resign() did not start its ownership probe")
+	}
+	select {
+	case err := <-resignDone:
+		if err == nil || !errors.Is(err, leader.ErrCommitUnknown) {
+			t.Fatalf("Resign() after blocked probe = %v, want commit unknown", err)
+		}
+	case <-time.After(500 * time.Millisecond):
+		t.Fatal("Resign() probe was not bounded")
+	}
+	close(fake.getBlock)
+	if err := elector.Resign(context.Background()); err != nil {
+		t.Fatalf("Resign() retry after bounded probe = %v", err)
 	}
 }
 

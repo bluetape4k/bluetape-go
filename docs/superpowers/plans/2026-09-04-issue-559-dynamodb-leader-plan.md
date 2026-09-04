@@ -33,49 +33,50 @@ vet/lint/format/tidy 증거와 PR exact-head CI를 확보한다.
 - [x] live #559 body, parent/related issue, local leader/SQL/Redis/leadertest와 AWS 공식 문서를 확인한다.
 - [x] API/zero-value/error/non-goal/context/goroutine/cleanup 계약을 spec에 고정한다.
 - [x] source parity를 `keep`(leader contract/key lifecycle), `adapt`(SQL bounded lifecycle→DynamoDB conditions), `replace`(SQL query→SDK expressions), `defer`(Global Tables/fencing), `non-goal`(ORM)으로 기록한다.
-- [ ] plan review에서 performance/stability/security/operator/API/user 관점 P0/P1을 각각 확인한다.
-- [ ] `go test` RED test skeleton을 먼저 작성하고 missing symbols의 첫 실패를 기록한다.
+- [x] plan review에서 performance/stability/security/operator/API/user 관점 P0/P1을 각각 확인한다. 초기 review의 unused alias/unbounded probe와 후속 review의 late response를 수정하고 Step 6-R 증적에 기록한다.
+- [x] `go test` RED test skeleton을 먼저 작성하고 missing symbols의 첫 실패를 기록한다.
 
 ## Task 2 — validation와 typed error (TDD)
 
 파일: `options.go`, `errors.go`, `*_test.go`
 
-- [ ] nil 및 typed-nil client(reflect nil-capable kinds), blank table, duplicate/unsafe attribute, invalid leader options, invalid clock/retry를 검증한다.
-- [ ] `ErrInvalidClient`, `ErrInvalidOptions`, `ErrMalformedItem`와 `leader.OperationError` wrapping을 구현한다.
-- [ ] raw AWS message/table/group/token이 `Error()`와 `%+v`에 나오지 않고 `errors.Is`/`errors.As`가 원인과 `leader.ErrCommitUnknown`을 보존하는지 테스트한다.
-- [ ] constructor가 client를 닫지 않고 option/attribute map을 alias하지 않는지 확인한다.
+- [x] nil 및 typed-nil client(reflect nil-capable kinds), blank table, duplicate/unsafe attribute, invalid leader options, invalid clock/retry를 검증한다.
+- [x] `ErrInvalidClient`, `ErrInvalidOptions`, `ErrMalformedItem`와 `leader.OperationError` wrapping을 구현한다.
+- [x] raw AWS message/table/group/token이 `Error()`와 `%+v`에 나오지 않고 `errors.Is`/`errors.As`가 원인과 `leader.ErrCommitUnknown`을 보존하는지 테스트한다.
+- [x] constructor가 client를 닫지 않고 option/attribute map을 alias하지 않는지 확인한다.
 
 ## Task 3 — item/request builder와 fake
 
 파일: `elector.go`, `elector_test.go`
 
-- [ ] epoch-ms deadline, TTL epoch-second ceil, key/owner/lease/TTL AttributeValue를 생성한다.
-- [ ] Put condition `attribute_not_exists(#key)`, takeover Update condition `attribute_not_exists(#lease) OR #lease <= :now`, renewal owner+lease condition, resign owner condition을 정확히 캡처한다.
-- [ ] fake는 request map/AttributeValue를 deep-copy하고 call sequence/count/context와 output-plus-error를 기록한다.
-- [ ] marshal/parse malformed item과 number overflow/empty owner를 provider error text 없이 검증한다.
+- [x] epoch-ms deadline, TTL epoch-second ceil, key/owner/lease/TTL AttributeValue를 생성한다.
+- [x] Put condition `attribute_not_exists(#key)`, takeover Update condition `attribute_not_exists(#lease) OR #lease <= :now`, renewal owner+lease condition, resign owner condition을 정확히 캡처한다.
+- [x] fake는 request map/AttributeValue를 deep-copy하고 call sequence/count/context와 output-plus-error를 기록한다.
+- [x] marshal/parse malformed item과 number overflow/empty owner를 provider error text 없이 검증한다.
 
 ## Task 4 — Campaign GREEN lifecycle
 
-- [ ] local state `owned/campaigning/cleanup/generation/resigning`과 renewal cancel/done join을 mutex로 구현한다.
-- [ ] 최초 Put 성공, conditional contention, expired takeover, bounded retry와 caller context 종료를 구현한다.
-- [ ] conditional 이외 오류 뒤 strongly consistent probe가 own token을 확인하면 성공으로 reconcile한다.
-- [ ] probe가 empty/other면 typed operation error, probe 실패 또는 post-dispatch cancellation이면 `ErrCommitUnknown`과 cleanup pending을 반환한다.
-- [ ] 같은 elector의 retry만 허용하고 busy 외 오류를 자동 재시도하지 않는다.
+- [x] local state `owned/campaigning/cleanup/generation/resigning`과 renewal cancel/done join을 mutex로 구현한다.
+- [x] 최초 Put 성공, conditional contention, expired takeover, bounded retry와 caller context 종료를 구현한다.
+- [x] conditional 이외 오류 뒤 strongly consistent probe가 own token을 확인하면 성공으로 reconcile한다.
+- [x] 내부 attempt timeout 뒤 늦은 Put/Update 응답도 bounded probe로 reconcile하고, takeover deadline을 실제 update 직전에 재계산한다.
+- [x] probe가 empty/other면 typed operation error, probe 실패 또는 post-dispatch cancellation이면 `ErrCommitUnknown`과 cleanup pending을 반환한다.
+- [x] 같은 elector의 retry만 허용하고 busy 외 오류를 자동 재시도하지 않는다.
 
 ## Task 5 — renewal/resign/Leader GREEN lifecycle
 
-- [ ] renewal ticker는 `RenewInterval` 하나만 소유하고 context cancel/close를 deterministic하게 수행한다.
-- [ ] renewal conditional loss는 `IsLeader=false`와 no-cleanup, transport error+own probe는 recovery, probe failure는 cleanup pending으로 매핑한다.
-- [ ] resign은 cancel→done join→conditional Delete 순서를 지키고 gone/replaced conditional failure은 idempotent success로 처리한다.
-- [ ] resign transport error를 strong probe로 reconcile하고 unknown이면 retry 가능한 cleanup pending을 남긴다.
-- [ ] `Leader`는 `ConsistentRead=true`, missing/expired empty, malformed typed error, injected clock을 증명한다.
+- [x] renewal ticker는 `RenewInterval` 하나만 소유하고 context cancel/close를 deterministic하게 수행한다.
+- [x] renewal conditional loss는 `IsLeader=false`와 no-cleanup, transport error+own probe는 recovery, probe failure는 cleanup pending으로 매핑한다.
+- [x] resign은 cancel→done join→conditional Delete 순서를 지키고 gone/replaced conditional failure은 idempotent success로 처리한다.
+- [x] resign transport error와 bounded probe를 reconcile하고 unknown이면 retry 가능한 cleanup pending을 남긴다.
+- [x] `Leader`는 `ConsistentRead=true`, missing/expired empty, malformed typed error, injected clock을 증명한다.
 
 ## Task 6 — 문서/예제 및 conformance
 
-- [ ] package README 두 locale에 schema/IAM/read consistency/TTL/capacity/error/live opt-in/cleanup runbook을 쓴다.
-- [ ] parent README 두 locale에 sibling link와 backend 차이를 추가한다.
-- [ ] compile-checked example은 fake client만 사용하고 client/config/credential lifecycle이 caller-owned임을 보여준다.
-- [ ] `leadertest.Harness` adapter를 연결해 의미가 맞는 15 case를 실행하거나, DynamoDB clock/conditional 차이를 제외 사유로 기록한다.
+- [x] package README 두 locale에 schema/IAM/read consistency/TTL/capacity/error/live opt-in/cleanup runbook을 쓴다.
+- [x] parent README 두 locale에 sibling link와 backend 차이를 추가한다.
+- [x] compile-checked example은 fake client만 사용하고 client/config/credential lifecycle이 caller-owned임을 보여준다.
+- [x] `leadertest.Harness` adapter는 backend clock/conditional semantics가 다른 항목을 직접 연결하지 않고, fake equivalent scenario와 제외 사유를 Step 6-R에 기록한다.
 
 ## Task 7 — 검증 명령
 

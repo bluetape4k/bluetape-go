@@ -28,6 +28,12 @@ The caller creates and closes the AWS client, supplies credentials/region,
 chooses retry and timeout policy, and provisions the table/IAM policy. The
 package never creates a client or runs migrations.
 
+The inherited `leader.Options.KeyPrefix` is validated for provider compatibility
+but is not encoded into the DynamoDB item key. The table is this provider's
+namespace boundary: do not share one table across different key-prefix policies
+unless `Group` values are globally unique. Table-per-namespace or prefixing the
+group at the caller boundary remains an operator decision.
+
 ## Item schema
 
 The default attributes are:
@@ -66,12 +72,15 @@ AWS messages, table names, groups, and owner tokens do not appear in `Error()`
 or `%+v`. Use `errors.Is`/`errors.As` for the cause and
 `leader.ErrCommitUnknown`.
 
-If a write response is lost, the provider performs one bounded strongly
-consistent probe. An own active token confirms the commit; an empty or another
-owner confirms no ownership change; a failed probe returns
-`leader.ErrCommitUnknown` and leaves cleanup pending. Retry `Resign` on the same
-elector with a fresh cleanup context. A conditional delete failure means the
-item is already gone or replaced and is idempotent success.
+If a write response is lost, or the bounded attempt context expires before a
+late response arrives, the provider performs one bounded strongly consistent
+probe and never trusts the late response alone. An own active token confirms the
+commit; an empty or another owner permits a fresh campaign attempt; a failed
+probe returns `leader.ErrCommitUnknown` and leaves cleanup pending. Takeover
+deadlines are recomputed immediately before the conditional update. Retry
+`Resign` on the same elector with a fresh cleanup context; its probe is bounded
+by the same attempt budget. A conditional delete failure means the item is
+already gone or replaced and is idempotent success.
 
 The provider logs lifecycle/failure events only through the caller-selected
 `log/slog` logger (`WithLogger`); no global logger configuration is changed and
