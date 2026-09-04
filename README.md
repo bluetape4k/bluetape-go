@@ -72,6 +72,7 @@ future scope, not part of the current public API.
 | [`secretsmanager`](secretsmanager/README.md) | active | Caller-owned AWS Secrets Manager lookup with redacted string/binary values and an explicit bounded positive-TTL cache. |
 | [`ssm`](ssm/README.md) | active | Caller-owned AWS Parameter Store lookup with explicit SecureString decryption and an explicit bounded positive-TTL cache. |
 | [`messaging/sqsextended`](messaging/sqsextended/README.md) | active | Caller-owned AWS SDK for Go v2 SQS/S3 large-payload envelope with bounded reads, checksum validation, and explicit cleanup order. |
+| [`s3vectors`](s3vectors/README.md) | active | Caller-owned AWS SDK for Go v2 S3 Vectors bucket, index, and vector operation adapter. |
 | [`examples/integration`](examples/integration/README.md) | example | Compile-checked end-to-end recipes across corrected `0.6.x` packages. |
 | [`examples/audit`](examples/audit/README.md) | example | Runnable audit-backed order service demonstrating repository history and outbox replay boundaries. |
 | [`examples/graph/observability`](examples/graph/observability/README.md) | example | Runnable observability incident graph showing blast-radius, alert-boundary, ownership, and NDJSON graph I/O boundaries. |
