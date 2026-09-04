@@ -18,7 +18,9 @@ caller/operator가 소유합니다.
 
 ## 현재 상태
 
-- `develop` 후보는 `aba16affd96d9f5008caec97b6108f4effbf47f6`입니다.
+- `develop` 기준 후보는 `aba16affd96d9f5008caec97b6108f4effbf47f6`이며,
+  release-preparation branch의 현재 문서 커밋은
+  `cd951124fa1f13d4a761814ecb948d26a718e690`입니다.
 - release 기준 `origin/main`은 기존 `v0.19.0` commit
   `75a5d0fe2f2862c6d64d2934a2da987c08645fe0`입니다.
 - `CHANGELOG.md`에 `## [v0.20.0] - 2026-09-04` 섹션을 추가했고, `WIP.md`를
@@ -26,10 +28,13 @@ caller/operator가 소유합니다.
 - `0.20.0` milestone은 open issue 0개이지만 아직 열려 있습니다. 문서·검증이
   완료되면 close합니다.
 - exact-head GitHub CI는 성공했습니다: run `33869096004`.
-- 첫 전체 로컬 `make ci`는 Redis readiness 재시도 후 통과했지만, 두 번째 전체
-  실행의 `-race`에서 `lock/redis::TestMutexRedactsRedisProviderErrors`가
-  3.012초 timeout으로 실패했습니다. 해당 테스트 단독 `-race` 3회는 통과했으며,
-  release candidate에서 전체 `make ci`를 다시 실행해야 합니다.
+- PostgreSQL Testcontainers fixture는 `ForListeningPort`의 TCP 수락만으로
+  반환하지 않고 native `pgx` 연결·ping을 bounded retry하도록 보강했습니다.
+  회귀 테스트는 transient failure 3회 시도와 context deadline을 검증합니다.
+- 로컬 `make ci` 첫 재실행에서는 `leader/etcd` fixture가 15초 readiness budget을
+  초과했지만, 잔여 Testcontainers 없이 두 번째 전체 실행은 종료 코드 0으로
+  정상/`-race` 전체 패키지와 benchmark contract self-test를 통과했습니다.
+  `leader/sql`은 readiness 보강 후 정상 3회와 `-race` 1회를 모두 통과했습니다.
 - `v0.20.0` tag와 GitHub Release는 아직 생성하지 않았습니다.
 
 ## 릴리스 체크리스트
