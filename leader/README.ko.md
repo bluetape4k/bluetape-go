@@ -54,6 +54,9 @@ if err != nil {
 - `leader/etcd`는 caller-owned `*clientv3.Client`, 공식 Session/Election primitive,
   server-granted TTL, bounded Proclaim, exact-key ownership monitoring을 사용하는 단일
   `Elector`입니다. Fencing token, group/strategic election은 제공하지 않습니다.
+- `leader/dynamodb`는 caller-owned DynamoDB client를 사용하는 단일 `Elector`입니다.
+  조건부 item write와 strongly consistent deadline read를 사용하며 TTL은 비동기
+  cleanup 전용입니다. Global Tables와 fencing semantics는 제공하지 않습니다.
 
 ## 테스트
 
@@ -62,6 +65,7 @@ go test -count=1 ./leader
 go test -count=1 ./leader/mongo
 go test -p 1 -count=1 ./leader/sql
 go test -p 1 -count=1 ./leader/etcd
+go test -count=1 ./leader/dynamodb
 ```
 
 ## Single-Elector Conformance
