@@ -44,6 +44,12 @@ compile-checked [`example_test.go`](example_test.go)에 동일한 bootstrap과
 
 ## Middleware 계약
 
+- `RequestContext`, `NewRateLimit`, `NewJWT`, `WrapResilience`는 모두 nil
+  downstream handler를 request별 작업보다 먼저 확인하고 terminal `404 Not Found`
+  응답으로 처리합니다. 이 경로에서는 parser, limiter, resilience policy를
+  호출하지 않습니다. non-nil downstream의 chain과 응답 동작은 유지합니다.
+  결정 근거와 수용 기준은 [#692 설계 문서](../../docs/superpowers/specs/2026-09-05-issue-692-echo-nil-downstream-design.md)에
+  기록했습니다.
 - `AbortWithProblem`은 `application/problem+json`을 기록하고 이미 commit된
   Echo 응답을 덮어쓰지 않습니다. 알 수 없는 오류의 detail은 framework-neutral
   `web` mapper가 redaction합니다.

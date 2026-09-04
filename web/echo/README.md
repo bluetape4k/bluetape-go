@@ -44,6 +44,12 @@ bootstrap and a migration example using `echo.WrapHandler`.
 
 ## Middleware contracts
 
+- `RequestContext`, `NewRateLimit`, `NewJWT`, and `WrapResilience` all treat a
+  nil downstream handler as a terminal `404 Not Found` response before doing
+  request-specific work. They do not call a parser, limiter, or resilience
+  policy on this path. Non-nil downstream handlers keep their existing chain and
+  response behavior. The rationale and acceptance mapping are recorded in the
+  [#692 design](../../docs/superpowers/specs/2026-09-05-issue-692-echo-nil-downstream-design.md).
 - `AbortWithProblem` writes `application/problem+json` and does not overwrite a
   committed Echo response. Unknown errors are redacted by the framework-neutral
   `web` mapper.

@@ -58,6 +58,9 @@ func NewJWT(options JWTOptions) (echo.MiddlewareFunc, error) {
 			if isNilInterface(c) {
 				return nil
 			}
+			if next == nil {
+				return c.NoContent(http.StatusNotFound)
+			}
 			original := c.Request()
 			if original == nil {
 				return failJWT(c, AuthenticationError{Kind: JWTErrorMalformed}, header, options.ErrorHandler)
@@ -84,9 +87,6 @@ func NewJWT(options JWTOptions) (echo.MiddlewareFunc, error) {
 			}
 
 			c.Set(contextKey, reader)
-			if next == nil {
-				return nil
-			}
 			return next(c)
 		}
 	}, nil
