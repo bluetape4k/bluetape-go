@@ -27,17 +27,21 @@ before computing them.
 
 ## Current Status
 
-`bluetape-go` has published the `v0.17.0` release line. The repository now covers
-foundation helpers, codecs, compression, context-aware concurrency, serializer
-contracts, Redis-backed leader election and locks, resilience policies, cache
-coordination, token-bucket rate limiting, finite state machines, workflow
-reports, lightweight workflow runners, checkpointed batch jobs, and portable
-service values, SQL helpers, text search primitives, audit/event packages,
-graph helpers, bounded image helpers, encryption helpers, and first-party rule
-primitives. The `0.18.0` development line is release-prepared with MongoDB
-group and strategic leader electors, bounded GraphML graph I/O, and a Redis
-Streams sqloutbox publisher provider; the `v0.18.0` tag is still pending until
-the release PR, main promotion, tag, and GitHub Release gates complete.
+The current `v0.21.0` release line groups the framework-neutral RFC 9457
+Problem Details and trusted request-context helpers, the `webtest` middleware
+conformance harness, native Gin and Echo adapters, and the optional
+`jwt/jwks` provider. It also makes the Echo nil-downstream behavior
+consistent, exposes redacted observation of rate-limit response-write failures,
+and upgrades legacy JWT parser configurations to context-aware providers when
+that capability is available.
+
+The repository also covers foundation helpers, codecs, compression,
+context-aware concurrency, serializer contracts, Redis-backed leader election
+and locks, resilience policies, cache coordination, token-bucket rate limiting,
+finite state machines, workflow reports, lightweight workflow runners,
+checkpointed batch jobs, portable service values, SQL helpers, text search
+primitives, audit/event packages, graph helpers, bounded image helpers,
+encryption helpers, AWS integration adapters, and first-party rule primitives.
 
 The `v0.6.x` portable utilities scope includes UUID, ULID, KSUID, and Snowflake
 ID generation; explicit-algorithm JWT signing, parsing, validation, and local
