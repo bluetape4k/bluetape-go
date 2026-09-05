@@ -7,12 +7,41 @@
 
 ## [Unreleased]
 
+## [v0.21.0] - 2026-09-05
+
 ### 추가
 
+- `web`에 RFC 9457 Problem Details 응답과 trusted request context helper를
+  추가하고, `webtest`에 `net/http`, Gin, Echo middleware의 status, panic,
+  cancellation, body lifecycle, request ID 및 global-state 격리를 검증하는
+  conformance harness를 추가한다.
+- `web/gin`과 `web/echo`에 request context, rate limit, strict JWT
+  authentication, RFC 9457 Problem 및 route-level resilience adapter를 추가한다.
 - `jwt/jwks` optional provider를 추가한다. 직접 지정한 JWKS JSON URL에서
   RSA/ECDSA/Ed25519 공개키를 context-aware로 조회하고 TTL, rotation,
   unknown `kid` cooldown, single-flight refresh, defensive copy를 제공한다.
   대칭 key와 JWE, OIDC discovery는 범위에서 제외한다.
+- Gin adapter benchmark에 fixture/runtime identity, 회귀 임계값, 실제
+  resilience policy 측정, bounded chart renderer watchdog 및 원자적인 실패
+  진단 artifact를 추가한다.
+
+### 변경
+
+- `v0.20.0` tag tree에 이미 포함됐지만 해당 릴리스 변경 기록에서 분리해
+  설명하지 못한 web helper, Gin/Echo adapter, middleware conformance 및 JWKS
+  provider를 `v0.21.0` web API helper 릴리스 범위로 명시한다.
+- Echo의 request context, JWT, rate-limit, resilience middleware는 nil
+  downstream handler를 모두 HTTP 404로 종료한다.
+- legacy `JWTOptions.Parser`가 construction-time에 context-aware capability를
+  제공하면 이를 자동 사용하고, 명시적 `ContextParser` 설정을 우선한다.
+
+### 버그 수정
+
+- Echo rate-limit 기본 Problem 응답 쓰기가 실패하면 committed response를
+  다시 쓰지 않고 redacted `OnWriteError` observer로 실패를 전달한다.
+- legacy Echo JWT parser의 blocking 호출 중 request가 취소되어도
+  context-aware provider 경로가 취소를 전달하고 in-flight 호출을 남기지 않게
+  한다.
 
 ## [v0.20.0] - 2026-09-04
 

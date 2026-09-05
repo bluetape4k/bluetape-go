@@ -1,60 +1,71 @@
 # 진행 상황
 
-스냅샷: 2026-09-04 KST
-범위: `0.20.0` Go stable release 준비.
+기준 시각: 2026-09-05 KST
+범위: `v0.21.0` Go stable release 준비.
 
 ## 현재 대상 릴리스
 
-`v0.20.0`은 AWS 통합 provider와 compile-checked 예제, DynamoDB leader,
-공유 Redis primitive, Apache Fory 기반 cache, 그리고 공개 Go doc 한국어화를
-묶는 기능 릴리스입니다. AWS client/credential/IAM/provisioning, Redis
-connection/ACL/TLS, database lifecycle 및 downstream idempotency는 계속
-caller/operator가 소유합니다.
+`v0.21.0`은 framework-neutral web helper, middleware conformance, Gin/Echo
+adapter, 선택적 JWKS provider와 Echo 후속 안전성 수정을 묶는 web API helper
+릴리스입니다. Framework abstraction, global logger/MDC, JWE/OIDC discovery,
+application route ownership은 범위에 포함하지 않습니다.
 
-완료된 milestone 이슈는 #517, #518, #519, #520, #522, #523, #524, #525,
-#538, #539, #559, #568, #572, #573, #596, #597, #598, #599, #628, #629,
-#630과 해당 child issue들입니다. 모든 42개 milestone issue가 `CLOSED`이며
-현재 열린 milestone issue는 0개입니다.
+## 이력 경계
+
+`v0.20.0`의 `main` projection tree에는 #541~#545, #688, #689의 구현이
+이미 포함되어 있습니다. 그러나 `v0.20.0` 변경 기록은 해당 web API helper
+범위를 별도 릴리스 항목으로 설명하지 않았습니다. `v0.21.0`은 이 기능군을
+공식 릴리스 범위로 명시하고, `v0.20.0..develop`의 실제 source delta인
+Echo 후속 #692~#694를 함께 배포합니다. `v0.20.0` 사용자는 Echo 후속 수정이
+필요할 때 `v0.21.0`으로 올리면 됩니다.
 
 ## 현재 상태
 
-- `develop` 기준 후보는 `aba16affd96d9f5008caec97b6108f4effbf47f6`이며,
-  release-preparation branch의 현재 문서 커밋은
-  `ca2d9b7f2b5d9bdf16c83d8ad49ffeb80c03d3b3`입니다.
-- release 기준 `origin/main`은 기존 `v0.19.0` commit
-  `75a5d0fe2f2862c6d64d2934a2da987c08645fe0`입니다.
-- `CHANGELOG.md`에 `## [v0.20.0] - 2026-09-04` 섹션을 추가했고, `WIP.md`를
-  현재 release scope로 갱신했습니다.
-- `0.20.0` milestone은 issue 42개를 모두 닫은 뒤
-  `2026-09-04T14:24:08Z`에 `CLOSED`로 전환했고, live read-back은
-  `open_issues=0`, `closed_issues=42`를 확인했습니다.
-- exact-head GitHub CI는 성공했습니다: run `33869096004`.
-- PostgreSQL Testcontainers fixture는 `ForListeningPort`의 TCP 수락만으로
-  반환하지 않고 native `pgx` 연결·ping을 bounded retry하도록 보강했습니다.
-  회귀 테스트는 transient failure 3회 시도와 context deadline을 검증합니다.
-- 로컬 `make ci` 첫 재실행에서는 `leader/etcd` fixture가 15초 readiness budget을
-  초과했지만, 잔여 Testcontainers 없이 두 번째 전체 실행은 종료 코드 0으로
-  정상/`-race` 전체 패키지와 benchmark contract self-test를 통과했습니다.
-  `leader/sql`은 readiness 보강 후 정상 3회와 `-race` 1회를 모두 통과했습니다.
-- `v0.20.0` tag와 GitHub Release는 아직 생성하지 않았습니다.
+- release-preparation 기준 `develop`은
+  `aa2ffc78e7656194b47eb8aedff605acf3dc8df6`이며 `origin/develop`과
+  일치합니다.
+- release 기준 `origin/main`과 `v0.20.0^{}`는
+  `eedd2d50aa4729840f1bb74fc83e8c4e35b07337`입니다.
+- milestone #33 `0.21.0`은 `CLOSED`, `open_issues=0`,
+  `closed_issues=22`입니다. Epic #540과 계획된 하위 이슈는 모두
+  `COMPLETED`이며 #709는 `NOT_PLANNED`입니다.
+- local/remote `v0.21.0` tag와 GitHub Release는 없습니다. 최신 외부
+  release는 `v0.20.0`입니다.
+- baseline `develop` GitHub CI
+  [33928663952](https://github.com/bluetape4k/bluetape-go/actions/runs/33928663952)는
+  exact head `aa2ffc78e7656194b47eb8aedff605acf3dc8df6`에서 성공했습니다.
+- release-preparation tree에서 세 번의 `make ci` normal test와
+  `make check-bench-web-gin`은 통과했습니다. monolithic race 단계는 서로 다른
+  PostgreSQL Testcontainers test에서 Colima mapped-port 연결이 60초 후
+  간헐적으로 reset/refused되어 종료 코드 0을 얻지 못했습니다.
+- `go test -race ./leader/sql -count=1 -v` 전체와 `ratelimit/sql`의 모든
+  top-level test를 한 테스트당 별도 프로세스로 직렬 실행한 검증은 통과했고,
+  각 container의 create/start/ready/terminate lifecycle도 확인했습니다. 따라서
+  로컬 gate는 엄격한 infrastructure 직렬화 증거로 충족하며, exact-head
+  GitHub CI와 Testcontainers Nightly를 원격 필수 증거로 유지합니다.
+- exact release-preparation head의 GitHub CI, 실제 Testcontainers Nightly,
+  release-preparation PR, `main` promotion, tag 및 GitHub Release는
+  아직 실행하지 않았습니다.
 
-## 릴리스 체크리스트
+## 릴리스 순서
 
-1. 이 브랜치의 `CHANGELOG.md`/`WIP.md`를 검토하고 release-preparation PR로
-   `develop`에 반영합니다.
-2. `0.20.0` milestone을 close하고 live read-back합니다.
-3. exact-head local validation, Go P0/P1 review 및 required GitHub/Nightly
-   evidence를 모두 수렴합니다.
-4. 검증된 `develop` tree를 `main`으로 promotion합니다. direct PR이
-   conflicting이면 protected-branch projection fallback을 사용합니다.
-5. `main`의 exact commit에 서명된 annotated `v0.20.0` tag를 생성·push합니다.
-6. matching tag를 대상으로 validation evidence와 `CHANGELOG.md`를 사용해
-   GitHub Release를 생성합니다.
-7. downstream module 업데이트는 release closeout 이후 별도 작업으로 처리합니다.
+1. `CHANGELOG.md`, README locale pair, 이 WIP 및 release checklist의 의미와
+   link를 검증합니다.
+2. release-preparation 최종 tree에서 formatter, tidy, vet, lint, normal test,
+   직렬 race test와 Gin benchmark contract를 검증합니다.
+3. `chore/v0.21.0-release-prep -> develop` PR을 만들고 exact-head CI,
+   review 및 Testcontainers Nightly를 확인합니다.
+4. fresh 승인 뒤 release-preparation PR을 `develop`에 반영합니다.
+5. 검증된 `develop` tree를 `main`으로 promotion합니다. 직접 PR이
+   충돌하면 tree-equivalent protected-branch projection fallback을 사용합니다.
+6. `main` exact commit에 서명된 annotated `v0.21.0` tag를 생성·push하고
+   한국어 GitHub Release를 게시합니다. 각 side effect는 별도 fresh authority
+   gate를 유지합니다.
+7. tag와 Release live read-back, branch sync, task-owned worktree/branch 정리를
+   끝낸 뒤 milestone `0.22.0` 작업을 시작합니다.
 
-## 릴리스 지원 참고
+## 비범위
 
-현재 작업은 tag·merge·GitHub Release를 실행하지 않는 release-preparation
-단계입니다. 각 외부 side effect는 exact target, fresh CI/review/read-back 및
-별도 authority hold를 요구합니다. `#521`의 deferred 상태와 `0.21.0` 이후
-milestone work는 `v0.20.0` 범위에 포함하지 않습니다.
+- downstream consumer의 `go.mod` 업데이트는 이번 요청에 포함하지 않습니다.
+- `0.22.0` 구현은 `v0.21.0` release identity가 검증되기 전 시작하지
+  않습니다.

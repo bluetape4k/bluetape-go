@@ -15,6 +15,9 @@ func RequestContext(options web.RequestContextOptions) echo.MiddlewareFunc {
 			if isNilInterface(c) {
 				return nil
 			}
+			if next == nil {
+				return c.NoContent(http.StatusNotFound)
+			}
 			original := c.Request()
 			defer c.SetRequest(original)
 
@@ -23,9 +26,6 @@ func RequestContext(options web.RequestContextOptions) echo.MiddlewareFunc {
 				return AbortWithProblem(c, requestContextProblemError{})
 			}
 			c.SetRequest(request)
-			if next == nil {
-				return nil
-			}
 			return next(c)
 		}
 	}

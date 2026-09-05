@@ -44,6 +44,12 @@ compile-checked [`example_test.go`](example_test.go)에 동일한 bootstrap과
 
 ## Middleware 계약
 
+- `RequestContext`, `NewRateLimit`, `NewJWT`, `WrapResilience`는 모두 nil
+  downstream handler를 request별 작업보다 먼저 확인하고 terminal `404 Not Found`
+  응답으로 처리합니다. 이 경로에서는 parser, limiter, resilience policy를
+  호출하지 않습니다. non-nil downstream의 chain과 응답 동작은 유지합니다.
+  결정 근거와 수용 기준은 [#692 설계 문서](../../docs/superpowers/specs/2026-09-05-issue-692-echo-nil-downstream-design.md)에
+  기록했습니다.
 - `AbortWithProblem`은 `application/problem+json`을 기록하고 이미 commit된
   Echo 응답을 덮어쓰지 않습니다. 알 수 없는 오류의 detail은 framework-neutral
   `web` mapper가 redaction합니다.
@@ -57,7 +63,14 @@ compile-checked [`example_test.go`](example_test.go)에 동일한 bootstrap과
   callback이며 status/body 결정과 backend 오류 redaction은 caller의 책임입니다.
   adapter는 callback 뒤에 nil을 반환하므로 아무 것도 쓰지 않은 callback은 Echo의
   기본 200 응답을 남길 수 있습니다. 최종 응답을 쓰거나 outer error handler로
-  명시적으로 위임해야 합니다.
+  명시적으로 위임해야 합니다. 기본 Problem writer가 rejection, backend 오류,
+  cancellation 응답에서 실패하면 adapter는 commit된 응답을 유지하고 retry나
+  덮어쓰기를 하지 않으며 `DefaultRateLimitWriteErrorContextKey`에 고정 메시지
+  observer를 저장합니다. `RateLimitWriteError`로 읽을 수 있고 observer의
+  `Unwrap`은 caller-owned 원인에 대한 `errors.Is`를 보존하지만 공개 메시지는
+  redacted됩니다. custom callback의 응답·관측 소유권은 기존과 같습니다.
+  경로별 수용 기준은 [#693 설계 문서](../../docs/superpowers/specs/2026-09-05-issue-693-echo-rate-limit-write-observer-design.md)에
+  기록했습니다.
 - `NewJWT`는 대소문자를 구분하지 않는 정확히 하나의 `Bearer <token>` header만
   허용합니다. 중복/comma-joined 값, control/whitespace, 8 KiB 초과 token을
   거부합니다. `JWTReader`는 context에 저장한 검증된 `*jwt.Reader`만 반환합니다.
@@ -65,9 +78,11 @@ compile-checked [`example_test.go`](example_test.go)에 동일한 bootstrap과
   Authorization을 제거한 request 복사본을 전달합니다. callback request의 body는
   `http.NoBody`이므로 원본 request body를 소비할 수 없습니다. parser I/O가
   cancellation을 관찰해야 하면 `ContextParser`를 사용합니다. legacy `Parser`
-  경로는 parse 전후에 cancellation을 확인하지만 blocking `Parse` 구현 자체를
-  중단할 수 없는 synchronous best-effort 계약입니다. parser cancellation은
-  Gin adapter와 동일하게 redacted 401 인증 실패로 보고합니다.
+  필드로 전달한 값이 `ContextParser`도 구현하면 adapter가 request context와
+  함께 `ParseContext`를 자동 호출합니다. legacy-only `Parser`는 synchronous
+  경로를 유지하며, 호출 중 취소되면 blocking `Parse`가 반환할 때까지 기다립니다.
+  parser cancellation은 Gin adapter와 동일하게 redacted 401 인증 실패로
+  보고합니다.
 - `WrapResilience`는 route-level wrapper입니다. 각 attempt에서 request context와
   replayable body를 복제합니다. 재생할 수 없는 body도 첫 attempt에는 전달하고
   retry가 필요해지는 순간 fail-closed하며, 이미 commit된 응답과 cancellation도
@@ -86,6 +101,22 @@ compile-checked [`example_test.go`](example_test.go)에 동일한 bootstrap과
   caller가 소유합니다. callback은 최종 Echo 응답을 쓰거나 outer error handler로
   의도적으로 넘겨야 하며, 응답 없이 반환하면 Echo의 기본 200 status가 남을 수
   있습니다.
+
+### JWT parser cancellation 이행
+
+| 설정 | cancellation과 수명 계약 |
+| --- | --- |
+| `ContextParser: provider` | provider가 request context를 받고 협력적 cancellation을 소유합니다. adapter는 `ParseContext`가 반환할 때까지 기다리며 provider 작업을 강제로 중단하지 않습니다. |
+| `Parser: provider`이고 `provider`가 `ContextParser`도 구현 | 기존 설정을 유지하는 이행 경로입니다. adapter가 추가 method를 감지해 request context와 함께 `ParseContext`를 호출합니다. |
+| `Parser: legacyProvider`만 구현 | synchronous 호환 경로입니다. `Parse` 전후에 cancellation을 확인하며, 호출 중 취소되면 `Parse`가 반환할 때까지 기다린 뒤 downstream을 호출하지 않고 redacted 401을 반환합니다. adapter가 goroutine을 만들지 않으므로 blocking parse 호출을 분리하거나 누수시키지 않습니다. |
+
+I/O를 수행하거나 blocking할 수 있는 parser는 `ContextParser`를 구현하고
+`ctx.Done()`이 닫히면 provider가 반환하도록 만듭니다. 기존 호출자를 위해
+`Parse`를 유지해도 위 자동 승격과 호환되며, 새 Echo 설정은 cancellation 요구가
+드러나도록 `ContextParser` 필드를 직접 설정합니다. local synchronous parser를
+위한 legacy `Parser`는 `0.21.0`에서 계속 지원하며 deprecation하지 않습니다.
+결정 근거와 수명 테스트는 [#694 설계 문서](../../docs/superpowers/specs/2026-09-05-issue-694-echo-jwt-parser-cancellation-design.md)에
+기록했습니다.
 
 ## Migration
 

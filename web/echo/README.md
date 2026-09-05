@@ -44,6 +44,12 @@ bootstrap and a migration example using `echo.WrapHandler`.
 
 ## Middleware contracts
 
+- `RequestContext`, `NewRateLimit`, `NewJWT`, and `WrapResilience` all treat a
+  nil downstream handler as a terminal `404 Not Found` response before doing
+  request-specific work. They do not call a parser, limiter, or resilience
+  policy on this path. Non-nil downstream handlers keep their existing chain and
+  response behavior. The rationale and acceptance mapping are recorded in the
+  [#692 design](../../docs/superpowers/specs/2026-09-05-issue-692-echo-nil-downstream-design.md).
 - `AbortWithProblem` writes `application/problem+json` and does not overwrite a
   committed Echo response. Unknown errors are redacted by the framework-neutral
   `web` mapper.
@@ -58,18 +64,27 @@ bootstrap and a migration example using `echo.WrapHandler`.
   (and redact any backend error it records). The adapter returns nil after the
   callback, so a callback that writes nothing can leave Echo's default 200
   response; write a terminal response or delegate explicitly to the outer
-  error handler.
+  error handler. If the default Problem writer fails on a rejection, backend
+  error, or cancellation response, the adapter keeps the committed response,
+  does not retry or overwrite it, and stores a fixed-message observer under
+  `DefaultRateLimitWriteErrorContextKey`; read it with `RateLimitWriteError`.
+  The observer's `Unwrap` preserves `errors.Is` for the caller-owned cause, but
+  its public message is redacted. Custom callbacks keep their existing
+  caller-owned write and observation policy. See the [#693 design](../../docs/superpowers/specs/2026-09-05-issue-693-echo-rate-limit-write-observer-design.md)
+  for the path-by-path acceptance mapping.
 - `NewJWT` accepts exactly one case-insensitive `Bearer <token>` header. It
   rejects duplicate/comma-joined values, controls, whitespace, and tokens over
   8 KiB. `JWTReader` returns only the verified `*jwt.Reader` stored in context.
   The default failure response is a redacted 401. A custom callback receives a
   request copy without the configured authentication header or Authorization;
   its body is `http.NoBody` so callback inspection cannot consume the original
-  request. Use `ContextParser` when parser I/O must observe cancellation. The
-  legacy `Parser` path is synchronous and checks cancellation before and after
-  parsing, but cannot interrupt a blocking `Parse` implementation. Parser
-  cancellation is intentionally reported as the same redacted 401 authentication
-  failure as the Gin adapter.
+  request. Use `ContextParser` when parser I/O must observe cancellation. If a
+  value supplied through the legacy `Parser` field also implements
+  `ContextParser`, the adapter automatically uses `ParseContext` with the
+  request context. A legacy-only `Parser` remains synchronous: cancellation is
+  checked before and after `Parse`, and an in-flight cancellation waits for a
+  blocking call to return. Parser cancellation is intentionally reported as the
+  same redacted 401 authentication failure as the Gin adapter.
 - `WrapResilience` is a route-level wrapper. Request context and replayable
   bodies are cloned for each attempt. A non-replayable body is delivered to the
   first attempt and then fails closed if a retry would be required; committed
@@ -91,6 +106,22 @@ bootstrap and a migration example using `echo.WrapHandler`.
   terminal and caller-owned. Each callback must write the final Echo response
   or deliberately hand off to an outer error handler; returning without a
   response can otherwise leave Echo's default 200 status.
+
+### JWT parser cancellation migration
+
+| Configuration | Cancellation and lifecycle contract |
+| --- | --- |
+| `ContextParser: provider` | The provider receives the request context and owns cooperative cancellation. The adapter waits for `ParseContext` to return and never force-stops provider work. |
+| `Parser: provider` where `provider` also implements `ContextParser` | This is a source-compatible migration path. The adapter detects the additional method and calls `ParseContext` with the request context. |
+| `Parser: legacyProvider` only | This is the synchronous compatibility path. Cancellation is checked before and after `Parse`; an in-flight cancellation waits for `Parse` to return, then produces the redacted 401 without calling the downstream handler. The adapter does not spawn a goroutine, so it cannot detach or leak a blocked parse call. |
+
+For a parser that performs I/O or can block, implement `ContextParser` and make
+the provider return when `ctx.Done()` is closed. Keeping `Parse` for existing
+callers is compatible with the automatic upgrade above; new Echo configuration
+should set `ContextParser` explicitly so the cancellation requirement is visible.
+Legacy `Parser` remains supported for local synchronous parsers and is not
+deprecated in `0.21.0`. The rationale and lifecycle tests are recorded in the
+[#694 design](../../docs/superpowers/specs/2026-09-05-issue-694-echo-jwt-parser-cancellation-design.md).
 
 ## Migration
 
