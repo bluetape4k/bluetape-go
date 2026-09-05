@@ -108,6 +108,9 @@ func Decode(hash string) (Cell, error)
 - `+0`과 `-0`은 같은 좌표로 취급한다.
 - longitude `-180`과 `180`은 서로 다른 입력 표현으로 보존하지만 지리적으로 같은
   meridian이므로 거리 결과는 0이어야 한다.
+- 공개 field가 없고 zero value도 유효하므로 현재 외부 caller는 invalid `Point`를 직접
+  만들 수 없다. `Validate`, `DistanceMeters`, `Encode`의 point validation은 package 내부
+  생성 경로와 향후 decoding 확장에서도 invariant를 잃지 않기 위한 방어 계약이다.
 
 ### `Bounds`
 
@@ -118,8 +121,11 @@ func Decode(hash string) (Cell, error)
 - `Bounds{}`는 `[0, 0, 0, 0]`의 유효한 degenerate boundary다.
 - `Contains`는 네 경계를 모두 포함한다. 일반 경계는 `west <= lon && lon <= east`,
   antimeridian 경계는 `lon >= west || lon <= east`로 판정한다.
-- 유효하지 않은 `Point`를 `Contains`에 전달하면 `false`를 반환한다. `Contains`는
-  predicate로 유지하고 별도 오류를 만들지 않는다.
+- `-180`과 `180`은 포함 판정에서도 같은 meridian으로 취급한다. 한 표현이 경계에
+  포함되면 다른 표현도 포함된다. 예를 들어 `[-180, -170]`은 longitude `180`을,
+  `[170, 180]`은 longitude `-180`을 포함한다.
+- Package 내부의 유효하지 않은 `Point`가 전달되면 `Contains`는 `false`를 반환한다.
+  `Contains`는 predicate로 유지하고 별도 오류를 만들지 않는다.
 - longitude 전체 범위를 나타내려면 `west=-180, east=180`을 사용한다.
 
 ### `Cell`
@@ -128,6 +134,10 @@ func Decode(hash string) (Cell, error)
 - `Center`는 항상 `Bounds` 안에 있으며 encode된 원점도 같은 `Bounds` 안에 있다.
 - `Cell{}`는 유효하지 않다. 빈 hash를 성공한 decode 결과와 혼동하지 않도록 내부에
   precision을 보존하고 `Validate`가 이를 검사한다.
+- `Cell{}`에서 `Center`와 `Bounds`를 호출해도 panic하지 않고 각각 유효한 zero-value
+  `Point{}`와 `Bounds{}`를 반환한다. 반환값만으로 decode 성공을 판단하면 안 되며 caller는
+  항상 `Decode` error를 먼저 확인한다. `Cell`은 원래 hash를 보존하거나 `Hash`/`Precision`
+  accessor를 노출하지 않는다. 내부 precision은 `Validate`용 invariant다.
 
 ## 거리 계약
 
@@ -147,7 +157,7 @@ func Decode(hash string) (Cell, error)
 - decode는 cell 중심과 inclusive bounds를 반환한다. encode/decode round trip은 원래
   좌표가 cell 안에 있음을 보장하지만 원래 좌표와 중심점의 exact equality는 보장하지 않는다.
 - longitude와 latitude interval은 표준 geohash 순서대로 longitude bit부터 번갈아
-  이분한다.
+  이분한다. 값이 midpoint와 같으면 upper interval을 선택한다.
 - neighbor, prefix cover, radius query와 저장소 index 설계는 제공하지 않는다.
 
 ## 오류 계약
@@ -163,6 +173,20 @@ func Decode(hash string) (Cell, error)
 오류 문자열은 안정적인 종류와 field만 설명한다. 좌표나 hash 전체를 오류에 복제하지 않아
 로그 cardinality를 불필요하게 늘리지 않는다. Validation은 panic하거나 부분적으로
 normalize한 값을 반환하지 않는다.
+
+함수별 실패 precedence와 zero result는 다음과 같다.
+
+| 함수 | 검증 순서 | 실패 결과 |
+|---|---|---|
+| `NewPoint` | latitude, longitude | `Point{}`, `ErrInvalidPoint` |
+| `NewBounds` | west, south, east, north, south/north ordering | `Bounds{}`, `ErrInvalidBounds` |
+| `DistanceMeters` | left, right | `0`, `ErrInvalidPoint` |
+| `Encode` | point, precision | `""`, `ErrInvalidPoint` 또는 `ErrInvalidPrecision` |
+| `Decode` | length, character/case | `Cell{}`, `ErrInvalidGeohash` |
+| `Cell.Validate` | internal precision, center, bounds | `ErrInvalidCell` |
+
+한 호출에서 여러 입력이 잘못돼도 표의 첫 실패 하나만 반환한다. Caller는 error가 nil일 때만
+zero result를 정상값으로 해석한다.
 
 ## 실패 모드와 대응
 
@@ -183,12 +207,17 @@ normalize한 값을 반환하지 않는다.
 
 - `Point`: ±90/±180, zero value, signed zero, NaN, Inf, 범위 밖 입력
 - `Bounds`: 일반/crossing/degenerate/full-longitude/pole 경계와 inclusive edge
+- `Bounds`: `-180`/`180` 동일 meridian의 양방향 포함
 - 거리: 동일점, 대칭성, known city pair tolerance, antimeridian 인접점, antipodal 안정성
 - Geohash: `(57.64911, 10.40744)`의 알려진 `u4pruydqqvj` 벡터, precision 1과 12,
   invalid length/character/case, encode/decode cell containment
 - 오류: 각 sentinel의 `errors.Is`, 잘못된 값에서 zero result와 non-nil error
 - Example: 좌표 생성, 거리, crossing bounds, geohash encode/decode
 - Fuzz: `Decode`가 임의 문자열에서 panic하지 않고, 성공 시 valid `Cell`만 반환함을 검증
+- Benchmark: `NewPoint`, `Bounds.Contains`, `DistanceMeters`, `Encode`, `Decode`에
+  `ReportAllocs`를 적용한다. 순수 predicate/거리의 zero allocation과 encode/decode의
+  bounded allocation을 관찰하되 Go compiler version에 민감한 nanosecond threshold는
+  release gate로 고정하지 않는다.
 - `go test -race`는 mutable shared state가 없는 공개 계약을 확인한다.
 - `AsyncJobTester`와 Testcontainers는 goroutine/I/O/container가 없는 순수 계산 패키지라
   N/A다.
@@ -198,6 +227,7 @@ normalize한 값을 반환하지 않는다.
 ```bash
 go test -count=1 ./geo
 go test -race -count=1 ./geo
+go test -run '^$' -bench 'Benchmark(NewPoint|BoundsContains|DistanceMeters|Encode|Decode)$' -benchmem ./geo
 make fmt-check
 make tidy-check
 make vet
@@ -210,7 +240,10 @@ make test
 - `geo/README.md`와 `geo/README.ko.md`를 함께 추가한다.
 - root `README.md`와 `README.ko.md` package table을 함께 갱신한다.
 - 모든 exported identifier에 구체적인 Go doc comment를 작성한다.
+- Go doc와 README example은 degree 단위, `NewPoint(latitude, longitude)`, GeoJSON의
+  `(longitude, latitude)` 순서 차이를 named variable로 보여준다. Radian 입력은 지원하지 않는다.
 - `CHANGELOG.md`의 `[Unreleased]` 아래 독자 대상 항목은 한국어로 기록한다.
+- `WIP.md`에 milestone 0.22.0의 #548 진행 상태를 기록한다.
 - 작은 순수 계산 API이므로 diagram은 N/A다. 표와 실행 예제가 독자 흐름을 더 직접적으로
   설명한다.
 
@@ -220,6 +253,9 @@ make test
 유지해 representation을 고정하지 않는다. 이후 constructor 인자 순서, antimeridian 의미,
 precision 범위, canonical lowercase 규칙 또는 지구 반지름을 바꾸는 것은 observable
 behavior change이므로 별도 issue와 migration note가 필요하다.
+
+이 issue의 DoD는 package delivery까지다. Milestone open issue 0, release-preparation branch,
+tag와 publication은 모든 0.22.0 issue가 끝난 뒤 별도 release gate에서 확인한다.
 
 ## 거절한 대안
 
@@ -247,8 +283,8 @@ behavior change이므로 별도 issue와 migration note가 필요하다.
 
 - `[ ]` 공개 API와 sentinel error 구현
 - `[ ]` boundary/distance/geohash unit, fuzz, example test 구현
-- `[ ]` `geo/README.md`, `geo/README.ko.md`, root README와 CHANGELOG 동기화
+- `[ ]` `geo/README.md`, `geo/README.ko.md`, root README, CHANGELOG와 WIP 동기화
 - `[ ]` `go test -count=1 ./geo` 및 `go test -race -count=1 ./geo` 성공
-- `[ ]` `make ci`와 exact-head GitHub CI 성공
+- `[ ]` `make ci`, exact-head GitHub CI와 release checklist가 요구하는 smoke Nightly scope 성공
 - `[ ]` Step 6-R 7-Tier review `P0=0 P1=0`
 - `[ ]` Issue #548 metadata와 PR DoD read-back 완료
