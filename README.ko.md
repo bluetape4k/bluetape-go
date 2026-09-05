@@ -25,17 +25,20 @@ attribute는 계산 전에 `logger.Enabled(ctx, slog.LevelDebug)`로 guard하세
 
 ## 현재 상태
 
-`bluetape-go`는 `v0.17.0` 릴리스 선을 배포했습니다. 현재 repository에는
-foundation helper, codec, compression, context-aware concurrency, serializer
-contract, Redis 기반 leader election과 lock, resilience policy, cache
-coordination, token-bucket rate limiting, finite state machine, workflow report,
-lightweight workflow runner, checkpoint 기반 batch job, portable service value,
-SQL helper, text search primitive, audit/event package, graph helper, bounded
-image helper, encryption helper, first-party rule primitive가 들어 있습니다.
-`0.18.0` 개발 선은 MongoDB group/strategic leader elector, bounded GraphML
-graph I/O, Redis Streams sqloutbox publisher provider까지 release-prep 상태로
-정리되었습니다. `v0.18.0` tag는 release PR, main promotion, tag, GitHub
-Release gate가 끝난 뒤 생성합니다.
+현재 `v0.21.0` 릴리스 선은 framework-neutral RFC 9457 Problem Details와
+trusted request context helper, `webtest` middleware conformance harness,
+Gin/Echo native adapter 및 선택적 `jwt/jwks` provider를 묶습니다. Echo
+middleware의 nil downstream 동작을 통일하고, rate-limit 응답 쓰기 실패를
+redacted observer로 전달하며, legacy JWT parser 설정도 provider가 지원하면
+context-aware 경로로 올립니다.
+
+그 밖에도 foundation helper, codec, compression, context-aware concurrency,
+serializer contract, Redis 기반 leader election과 lock, resilience policy,
+cache coordination, token-bucket rate limiting, finite state machine, workflow
+report, lightweight workflow runner, checkpoint 기반 batch job, portable
+service value, SQL helper, text search primitive, audit/event package, graph
+helper, bounded image helper, encryption helper, AWS integration adapter 및
+first-party rule primitive를 제공합니다.
 
 `v0.6.x` portable utility 범위에는 UUID, ULID, KSUID, Snowflake ID 생성,
 명시적 algorithm 기반 JWT signing/parsing/validation, 인메모리/Redis/MongoDB
