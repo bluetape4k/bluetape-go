@@ -36,9 +36,8 @@ Echo 후속 #692~#694를 함께 배포합니다. `v0.20.0` 사용자는 Echo 후
 
 ### Benchmark ledger
 
-- Implementation SHA: `12d072f4eb307dcadee5ac0844a2611c110b5ded`
-- Working tree: `geo/benchmark_test.go`, `geo/example_test.go`,
-  `geo/fuzz_test.go`가 아직 commit 전인 상태에서 측정했다.
+- Implementation SHA: `0dc2035bf32494df1c10e6bf3498a52cd0a9d960`
+- Working tree: clean
 - Go version: `go1.27.1 darwin/arm64`
 - OS: `Darwin 25.6.0 arm64`
 - GOMAXPROCS: `default`
@@ -55,10 +54,7 @@ Echo 후속 #692~#694를 함께 배포합니다. `v0.20.0` 사용자는 Echo 후
 - Raw output:
 
 ```text
-12d072f4eb307dcadee5ac0844a2611c110b5ded
-?? geo/benchmark_test.go
-?? geo/example_test.go
-?? geo/fuzz_test.go
+0dc2035bf32494df1c10e6bf3498a52cd0a9d960
 go version go1.27.1 darwin/arm64
 Darwin debop-m4-pro.local 25.6.0 Darwin Kernel Version 25.6.0: Fri Jul 31 19:17:26 PDT 2026; root:xnu-12377.161.14~5/RELEASE_ARM64_T6041 arm64
 GOMAXPROCS=default
@@ -66,32 +62,32 @@ goos: darwin
 goarch: arm64
 pkg: github.com/bluetape4k/bluetape-go/geo
 cpu: Apple M4 Pro
-BenchmarkNewPoint-12                         600451590   1.979 ns/op    0 B/op   0 allocs/op
-BenchmarkNewPoint-12                         647989566   1.939 ns/op    0 B/op   0 allocs/op
-BenchmarkNewPoint-12                         603242300   1.915 ns/op    0 B/op   0 allocs/op
-BenchmarkBoundsContains/ordinary-12          283183140   4.189 ns/op    0 B/op   0 allocs/op
-BenchmarkBoundsContains/ordinary-12          289799217   4.195 ns/op    0 B/op   0 allocs/op
-BenchmarkBoundsContains/ordinary-12          280564588   4.243 ns/op    0 B/op   0 allocs/op
-BenchmarkBoundsContains/antimeridian-12      290039995   4.127 ns/op    0 B/op   0 allocs/op
-BenchmarkBoundsContains/antimeridian-12      281724061   4.197 ns/op    0 B/op   0 allocs/op
-BenchmarkBoundsContains/antimeridian-12      294653812   4.148 ns/op    0 B/op   0 allocs/op
-BenchmarkDistanceMeters-12                   39949729    30.07 ns/op    0 B/op   0 allocs/op
-BenchmarkDistanceMeters-12                   40482643    29.43 ns/op    0 B/op   0 allocs/op
-BenchmarkDistanceMeters-12                   40682965    29.61 ns/op    0 B/op   0 allocs/op
-BenchmarkEncode/precision-1-12               138424588   8.743 ns/op    0 B/op   0 allocs/op
-BenchmarkEncode/precision-1-12               139358828   8.851 ns/op    0 B/op   0 allocs/op
-BenchmarkEncode/precision-1-12               133282981   8.950 ns/op    0 B/op   0 allocs/op
-BenchmarkEncode/precision-12-12              11998110    100.2 ns/op   16 B/op   1 allocs/op
-BenchmarkEncode/precision-12-12              11426834    102.6 ns/op   16 B/op   1 allocs/op
-BenchmarkEncode/precision-12-12              12184488    98.80 ns/op   16 B/op   1 allocs/op
-BenchmarkDecode/precision-1-12               91895631    12.97 ns/op    0 B/op   0 allocs/op
-BenchmarkDecode/precision-1-12               91345347    12.95 ns/op    0 B/op   0 allocs/op
-BenchmarkDecode/precision-1-12               92516151    13.28 ns/op    0 B/op   0 allocs/op
-BenchmarkDecode/precision-12-12              13539171    88.04 ns/op    0 B/op   0 allocs/op
-BenchmarkDecode/precision-12-12              13771410    86.17 ns/op    0 B/op   0 allocs/op
-BenchmarkDecode/precision-12-12              13789735    86.71 ns/op    0 B/op   0 allocs/op
+BenchmarkNewPoint-12                         632558580   1.910 ns/op    0 B/op   0 allocs/op
+BenchmarkNewPoint-12                         599988624   2.008 ns/op    0 B/op   0 allocs/op
+BenchmarkNewPoint-12                         599008015   2.002 ns/op    0 B/op   0 allocs/op
+BenchmarkBoundsContains/ordinary-12          272564817   4.534 ns/op    0 B/op   0 allocs/op
+BenchmarkBoundsContains/ordinary-12          264264574   4.439 ns/op    0 B/op   0 allocs/op
+BenchmarkBoundsContains/ordinary-12          276224308   4.394 ns/op    0 B/op   0 allocs/op
+BenchmarkBoundsContains/antimeridian-12      289196144   4.171 ns/op    0 B/op   0 allocs/op
+BenchmarkBoundsContains/antimeridian-12      283608799   4.252 ns/op    0 B/op   0 allocs/op
+BenchmarkBoundsContains/antimeridian-12      287523888   4.246 ns/op    0 B/op   0 allocs/op
+BenchmarkDistanceMeters-12                   40226552    30.71 ns/op    0 B/op   0 allocs/op
+BenchmarkDistanceMeters-12                   38827882    30.93 ns/op    0 B/op   0 allocs/op
+BenchmarkDistanceMeters-12                   38723260    30.59 ns/op    0 B/op   0 allocs/op
+BenchmarkEncode/precision-1-12               136655691   8.883 ns/op    0 B/op   0 allocs/op
+BenchmarkEncode/precision-1-12               138612745   8.877 ns/op    0 B/op   0 allocs/op
+BenchmarkEncode/precision-1-12               134620063   9.033 ns/op    0 B/op   0 allocs/op
+BenchmarkEncode/precision-12-12              11539750    102.6 ns/op   16 B/op   1 allocs/op
+BenchmarkEncode/precision-12-12              11471758    105.9 ns/op   16 B/op   1 allocs/op
+BenchmarkEncode/precision-12-12              11467683    102.6 ns/op   16 B/op   1 allocs/op
+BenchmarkDecode/precision-1-12               91436986    13.18 ns/op    0 B/op   0 allocs/op
+BenchmarkDecode/precision-1-12               91056540    13.16 ns/op    0 B/op   0 allocs/op
+BenchmarkDecode/precision-1-12               92889141    13.07 ns/op    0 B/op   0 allocs/op
+BenchmarkDecode/precision-12-12              13884676    171.0 ns/op   0 B/op   0 allocs/op
+BenchmarkDecode/precision-12-12              13565989    88.40 ns/op   0 B/op   0 allocs/op
+BenchmarkDecode/precision-12-12              13375285    88.18 ns/op   0 B/op   0 allocs/op
 PASS
-ok github.com/bluetape4k/bluetape-go/geo 35.487s
+ok github.com/bluetape4k/bluetape-go/geo 36.909s
 ```
 
 ## 비범위
