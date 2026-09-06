@@ -7,6 +7,12 @@
 
 ## [Unreleased]
 
+### 추가
+
+- `geo`에 WGS 84 degree 좌표 값, antimeridian-aware inclusive bounds,
+  평균 지구 반지름 Haversine 거리와 precision 1..12 canonical lowercase
+  Geohash encode/decode를 추가한다.
+
 ## [v0.21.0] - 2026-09-05
 
 ### 추가
