@@ -79,6 +79,11 @@ Echo 후속 #692~#694를 함께 배포합니다. `v0.20.0` 사용자는 Echo 후
   TinkerPop fixture 검증과 전체 `make test`, `make race`, `make ci`가
   통과했습니다. PR exact-head GitHub CI·review/thread read-back, merge와
   post-merge sync는 아직 남아 있습니다.
+- PR #738의 첫 exact-head CI run `34046283255`는 coverage 단계에서
+  `graph/gremlin`의 TinkerPop factory가 TCP port만 열린 순간 연결을 시도해
+  실패했습니다. `7053dae`에서 `Channel started at port 8182.` log까지 기다리는
+  readiness를 추가했고, 로컬 동일 경계 5회 반복 테스트가 통과했습니다. 수정
+  head를 push한 뒤 원격 CI를 다시 확인해야 합니다.
 - 최종 검증 중 기존 `leader/etcd`의
   `TestBlockedOfficialCampaignCleanupRequiresClientHardStop`이 full-suite에서 한 번
   실패했습니다. Exact test 5회와 전체 `leader/etcd` package 3회가 연속 통과했고,

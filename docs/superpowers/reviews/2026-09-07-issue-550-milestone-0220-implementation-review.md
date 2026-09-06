@@ -4,9 +4,9 @@
 
 대상은 `#547`, `#551`, `#552`, `#554`, `#561`의 구현 tree와 통합 문서다.
 기준 base는 `origin/develop@4b0322e`이고, 구현 slice의 현재 검토 대상 exact
-HEAD는 `d956c9798fe0de04abed3f231251b95f32ff6962`다. Gremlin 중첩 결과 상한
-보정은 `94aa3ef`에, 최종 lint·errcheck·staticcheck 보정은 `d956c97`에
-반영됐다. 구현은 `sqlkit/postgis`, `sqlkit/mysqlgis`,
+HEAD는 `7053dae`다. Gremlin 중첩 결과 상한 보정은 `94aa3ef`에, 최종
+lint·errcheck·staticcheck 보정은 `d956c97`에, TinkerPop channel readiness
+보정은 `7053dae`에 반영됐다. 구현은 `sqlkit/postgis`, `sqlkit/mysqlgis`,
 `sqlkit/mariadbgis`, `geocoding`, `graph/falkordb`, `graph/gremlin`과 각
 local Testcontainers fixture를 독립 경계로 유지한다.
 
@@ -57,6 +57,10 @@ integration fallback review다. PR exact-head에서 독립 lane을 사용할 수
   stream을 defer-close한다 (`graph/gremlin/client.go:116-175`). 중첩 결과도
   무제한 반사 확장을 허용하지 않는다 (`graph/gremlin/result.go`). TinkerPop의
   server-side cancellation을 과장하지 않고 local wait/close 경계로 문서화했다.
+- TinkerPop fixture는 TCP port와 `Channel started at port 8182.` startup log를
+  모두 기다린다 (`testcontainers/tinkerpop/tinkerpop.go:32-43`). port listening
+  직후 Gremlin-Go handshake를 시도하던 PR #738 coverage 실패를 이 경계로
+  보정했고, 동일 테스트 5회 반복에서 모두 통과했다.
 - 실제 PostGIS, MySQL, MariaDB, FalkorDB, TinkerPop fixture suite가 serial
   실행되었고 cleanup/readiness가 각 fixture에 포함된다.
 
@@ -156,8 +160,9 @@ read-back, mergeability와 독립 review lane 증거가 추가되기 전에는 m
 - `make ci`
 - `git diff --check`
 
-위 로컬 검증과 다섯 Docker fixture suite는 현재 exact HEAD에서 통과했다.
-PR exact-head GitHub CI, review/thread read-back, mergeability, merge와
-release/tag는 이 review의 후속 gate다. 독립 review lane은 실행되지 않았으므로
-그 provenance를 주장하지 않으며, main session inline six-lens fallback만
-기록한다.
+위 로컬 검증과 다섯 Docker fixture suite는 `7053dae`에서 통과했다. PR #738의
+첫 exact-head run `34046283255`는 `graph/gremlin` factory readiness gap으로
+실패했고, 해당 수정은 `7053dae`에 반영되어 재실행을 대기 중이다. PR
+exact-head CI, review/thread read-back, mergeability, merge와 release/tag는
+이 review의 후속 gate다. 독립 review lane은 실행되지 않았으므로 그 provenance를
+주장하지 않으며, main session inline six-lens fallback만 기록한다.
