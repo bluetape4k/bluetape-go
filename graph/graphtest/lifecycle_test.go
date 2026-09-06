@@ -181,6 +181,20 @@ func TestCleanupAndCloseRecoversPanicsAndContinues(t *testing.T) {
 	}
 }
 
+func TestCleanupTimeoutIsNamedAndRedacted(t *testing.T) {
+	result := call(context.Background(), 10*time.Millisecond, func(ctx context.Context) (struct{}, error) {
+		<-ctx.Done()
+		return struct{}{}, errors.New("cleanup-timeout-secret")
+	})
+	err := callbackError("cleanup", result)
+	if !errors.Is(err, context.DeadlineExceeded) {
+		t.Fatal("cleanup timeout did not preserve context deadline")
+	}
+	if strings.Contains(err.Error(), "cleanup-timeout-secret") {
+		t.Fatal("cleanup timeout disclosed raw cause")
+	}
+}
+
 func TestNonCooperativeCallbackFailsProcess(t *testing.T) {
 	if os.Getenv("BTGC_NON_COOPERATIVE_HELPER") == "1" {
 		_ = call(context.Background(), 10*time.Millisecond, func(context.Context) (struct{}, error) {

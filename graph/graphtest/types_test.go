@@ -101,6 +101,12 @@ func TestValidateRejectsUnsafeMetadataAndConfigBoundaries(t *testing.T) {
 			h.Provider.ImageReference = "repo/image:1\u2028@sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
 		}},
 		{"missing-capability", func(h *Harness, _ *Config) { h.Capabilities = nil }},
+		{"unknown-capability", func(h *Harness, _ *Config) {
+			h.Capabilities = Capabilities{Capability("unknown"): {Enabled: false, ReasonCode: "not-implemented"}}
+		}},
+		{"enabled-with-reason", func(h *Harness, _ *Config) {
+			h.Capabilities[CapabilityTraversal] = Support{Enabled: true, ReasonCode: "not-implemented"}
+		}},
 		{"unsafe-reason", func(h *Harness, _ *Config) {
 			h.Capabilities[CapabilityTraversal] = Support{ReasonCode: "not supported\nMATCH (n)"}
 		}},
@@ -113,5 +119,17 @@ func TestValidateRejectsUnsafeMetadataAndConfigBoundaries(t *testing.T) {
 				t.Fatal("validateHarness() error = nil")
 			}
 		})
+	}
+}
+
+func TestValidateAdapterRequiresCapabilityCallbackParity(t *testing.T) {
+	t.Parallel()
+	adapter := completeAdapter()
+	if err := validateAdapter(adapter, Capabilities{CapabilityTraversal: {Enabled: false, ReasonCode: "not-implemented"}}); err == nil {
+		t.Fatal("disabled traversal accepted a callback")
+	}
+	adapter.Traverse = nil
+	if err := validateAdapter(adapter, Capabilities{CapabilityTraversal: {Enabled: true}}); err == nil {
+		t.Fatal("enabled traversal accepted a nil callback")
 	}
 }

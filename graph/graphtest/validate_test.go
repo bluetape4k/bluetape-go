@@ -71,3 +71,36 @@ func TestValidatePositiveClassifierRequiresDirectAndWrappedMatches(t *testing.T)
 		t.Fatal("nil provider error accepted")
 	}
 }
+
+func TestValidateAdapterRejectsEveryMissingCoreCallback(t *testing.T) {
+	for _, testCase := range []struct {
+		name   string
+		mutate func(*Adapter)
+	}{
+		{"verify-connectivity", func(adapter *Adapter) { adapter.VerifyConnectivity = nil }},
+		{"create-fixture", func(adapter *Adapter) { adapter.CreateFixture = nil }},
+		{"read-vertices", func(adapter *Adapter) { adapter.ReadVertices = nil }},
+		{"read-edges", func(adapter *Adapter) { adapter.ReadEdges = nil }},
+		{"invalid-operation", func(adapter *Adapter) { adapter.InvalidOperation = nil }},
+		{"block-until-canceled", func(adapter *Adapter) { adapter.BlockUntilCanceled = nil }},
+		{"cleanup-fixture", func(adapter *Adapter) { adapter.CleanupFixture = nil }},
+		{"close", func(adapter *Adapter) { adapter.Close = nil }},
+		{"classifier", func(adapter *Adapter) { adapter.IsProviderError = nil }},
+	} {
+		t.Run(testCase.name, func(t *testing.T) {
+			adapter := completeAdapter()
+			testCase.mutate(&adapter)
+			if err := validateAdapter(adapter, Capabilities{CapabilityTraversal: {Enabled: true}}); err == nil {
+				t.Fatal("validateAdapter() error = nil")
+			}
+		})
+	}
+}
+
+func TestValidateAdapterRejectsClassifierPanic(t *testing.T) {
+	adapter := completeAdapter()
+	adapter.IsProviderError = func(error) bool { panic("classifier-secret") }
+	if err := validateAdapter(adapter, Capabilities{CapabilityTraversal: {Enabled: true}}); err == nil {
+		t.Fatal("validateAdapter() error = nil")
+	}
+}
