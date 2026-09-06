@@ -103,16 +103,23 @@ parameters, or property values.
 
 ## Test
 
-The integration test starts one Neo4j container through Testcontainers for Go.
-Run it serially with the package test:
+The package runs the shared [`graph/graphtest`](../graphtest/README.md) strict
+core and traversal suite against Neo4j and Memgraph. Both providers use the
+digest-pinned images recorded in the conformance test. Fixed queries and
+columns, bound parameters, and `limit+1` reads stay inside provider adapter
+closures. The lifecycle is fixture cleanup, adapter close, `Run` return, then
+container termination.
+
+Run the Testcontainers-backed package serially:
 
 ```bash
 go test -p 1 -count=1 ./graph/neo4j
 go test -p 1 -race -count=1 ./graph/neo4j
 ```
 
-The package test covers node/relationship mapping, bad records, query failure,
-context cancellation, and resource cleanup.
+The package test covers node/relationship mapping, bad records, graph semantic
+parity, provider error redaction, context cancellation, `ReasonCode` capability
+validation, bounded cleanup, and close ordering.
 
 ## Benchmark
 
@@ -150,8 +157,8 @@ Testcontainers for Go does not publish a dedicated Memgraph module yet.
 
 | Runtime | Image | Covered behavior |
 |---|---|---|
-| Neo4j | `neo4j:5.26.0` | create/read node and relationship, result mapping, bad query, cancellation, driver cleanup |
-| Memgraph | `memgraph/memgraph:3.5.0` | same Neo4j-driver adapter surface: create/read node and relationship, result mapping, bad query, cancellation, driver cleanup |
+| Neo4j | `neo4j:5.26.0@sha256:5a015e53de1895e7eee1574ae0325cf8c4b89587222778108c594bdd45a474b5` | shared strict core, traversal, mapping, provider error, cancellation, cleanup/close |
+| Memgraph | `memgraph/memgraph:3.5.0@sha256:b411deeb2341698f4f7a0d69535c8937c341e924f66962aa3e70acb63c7a5bd1` | same shared Neo4j-driver conformance contract |
 
 Observed guardrails:
 

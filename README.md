@@ -124,6 +124,7 @@ future scope, not part of the current public API.
 | [`audit/sqloutbox/redisstreams`](audit/sqloutbox/redisstreams/README.md) | active | Redis Streams sqloutbox publisher that preserves stable event and idempotency metadata. |
 | [`audit/sqloutbox/sqloutboxtest`](audit/sqloutbox/sqloutboxtest/README.md) | active | Deterministic publisher helpers for sqloutbox tests, examples, retries, and duplicate-delivery assertions. |
 | [`graph`](graph/README.md) | active | Model-only graph values for vertices, edges, paths, labels, IDs, shallow properties, and validated JSON. |
+| [`graph/graphtest`](graph/graphtest/README.md) | test | Strict backend conformance harness for graph semantics, cancellation, bounded cleanup, traversal capabilities, and redacted provider errors. |
 | [`graph/graphio`](graph/graphio/README.md) | active | Stream-oriented NDJSON and paired CSV import/export helpers for graph vertices and edges. |
 | [`graph/neo4j`](graph/neo4j/README.md) | active | Proof adapter from the official Neo4j Go driver to graph vertices and edges. |
 | [`probabilistic`](probabilistic/README.md) | active | Goroutine-safe in-memory Bloom filters with deterministic config, merge compatibility checks, and stress/race coverage. |

@@ -1,7 +1,30 @@
 # 진행 상황
 
-기준 시각: 2026-09-05 KST
-범위: `v0.21.0` Go stable release 준비.
+기준 시각: 2026-09-06 KST
+범위: `v0.22.0` 구현 및 후속 delivery gate.
+
+## Issue #555 graph backend conformance
+
+- `[x]` `go test -race -count=10 ./graph/graphtest`
+- `[x]` 독립 process 3회 `go test -count=1 ./graph/neo4j -run '^TestBackendConformance$' -v -timeout=10m`
+- `[x]` legacy Neo4j/Memgraph integration과 shared suite의 같은 tree parity
+- `[x]` migration 뒤 `go test -count=1 ./graph/neo4j -timeout=10m`
+- `[ ]` `make ci`
+- `[ ]` exact-head Testcontainers Nightly
+- `[ ]` Step 6-R 7-Tier review `P0=0 P1=0`
+- Migration commit: `5d73079cd2ce2f8403cb068e7816b399c823e76d`
+- HEAD_SHA: `PENDING`
+- Base/head: `develop` / `feat/issue-555-graph-conformance`
+- PR number/URL: `PENDING`
+- Required CI run IDs/URLs/conclusions/observed timestamp: `PENDING`
+- Testcontainers Nightly run ID/URL/headSha/conclusion/observed timestamp: `PENDING`
+
+세 독립 process의 전체 suite 시간은 각각 16.77초, 16.34초, 16.33초였다.
+Neo4j와 Memgraph는 digest-pinned image에서 strict core와 traversal을 skip 없이
+통과했다. `callback join → fixture cleanup → adapter close → Run 반환 → container
+terminate` 순서와 redacted provider 진단을 확인했다. Legacy/shared parity 뒤 중복
+integration body를 제거했지만 `benchmark_test.go`가 공유하는
+`waitForMemgraphConnectivity`와 `memgraphBoltPort`는 보존했다.
 
 ## 현재 대상 릴리스
 

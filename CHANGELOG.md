@@ -7,6 +7,14 @@
 
 ## [Unreleased]
 
+### 추가
+
+- `graph/graphtest`에 backend-neutral semantic fixture, skip 불가 strict core,
+  traversal capability, cancellation join, bounded cleanup/close와 redacted
+  provider error 검증을 제공하는 공개 conformance harness를 추가한다.
+- Neo4j와 Memgraph adapter가 digest-pinned Testcontainers 환경에서 같은
+  core 및 traversal suite를 실행하도록 통합한다.
+
 ## [v0.21.0] - 2026-09-05
 
 ### 추가

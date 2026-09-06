@@ -131,12 +131,26 @@ record를 매핑한 뒤 호출하는 편이 안전합니다.
 deep-copy, sanitization, trust-boundary primitive가 아니므로 backend/I/O adapter는
 trust boundary를 넘기 전에 nested value를 직접 복사하거나 정제해야 합니다.
 
+## Backend conformance test-support
+
+Production `graph`는 계속 model-only 경계를 유지합니다. Backend 구현은 별도
+[`graph/graphtest`](graphtest/README.ko.md) test-support package로 graph 의미,
+cancellation, provider error 분류, bounded cleanup/close, optional traversal의
+strict shared contract를 실행할 수 있습니다. 이 harness는 production repository나
+query abstraction이 아닙니다.
+
+`RunWithConfig`에는 모든 필드가 채워진 positive config가 필요합니다. Provider
+adapter는 fixed query, bound parameter, `limit+1` result 요청, credential,
+readiness, container termination을 소유하고 harness는 callback join, fixture
+cleanup, adapter close 순서를 통제합니다.
+
 ## Unsupported Capabilities
 
 | Capability | Owner |
 |---|---|
 | NDJSON, paired CSV, bounded GraphML Graph I/O helper | [`graph/graphio`](graphio/README.ko.md), [`graph/graphio/graphml`](graphio/graphml) |
 | Neo4j backend proof | [`graph/neo4j`](neo4j/README.ko.md) |
+| Backend conformance test-support | [`graph/graphtest`](graphtest/README.ko.md) |
 | Broad GraphML/yEd/yFiles compatibility | Bounded `graphio/graphml` subset 이후로 이관; [issue #433 research](../docs/research/2026-07-09-issue-433-graphml-graphio-evaluation.md) 참고 |
 | Neo4j surface 기반 Memgraph compatibility | [`graph/neo4j`](neo4j/README.ko.md) |
 | Domain examples | [`examples/graph/observability`](../examples/graph/observability/README.ko.md), [`examples/graph/iamaccess`](../examples/graph/iamaccess/README.ko.md) |
