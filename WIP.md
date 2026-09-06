@@ -69,14 +69,16 @@ Echo 후속 #692~#694를 함께 배포합니다. `v0.20.0` 사용자는 Echo 후
 - `#551` PostGIS는 `b8e79534`로, `#552` MySQL/MariaDB GIS는 `629b589e`로,
   `#554` Nominatim reverse geocoding은 `5cbc183e`로 구현했습니다.
 - `#547` FalkorDB OpenCypher adapter는 `4a1fdc82`로, `#561` remote
-  Gremlin/TinkerPop adapter는 `c896e254`로 구현했습니다. 각 slice는
-  caller-owned client/credential/lifecycle, bounded result/error, context
-  경계와 digest-pinned local fixture를 유지합니다.
+  Gremlin/TinkerPop adapter는 `c896e254`로 구현했습니다. Gremlin 중첩 결과
+  상한 보정은 `94aa3ef`, lint·errcheck·staticcheck 계약 보정은 `d956c97`에
+  반영했습니다. 각 slice는 caller-owned client/credential/lifecycle,
+  bounded result/error, context 경계와 digest-pinned local fixture를 유지합니다.
 - 다섯 구현 slice와 fixture는 `feat/milestone-0.22.0-integration` 한 통합
   branch에서 한 번의 PR/squash merge를 목표로 합니다. 현재 package-level
-  테스트, race, vet, 실제 PostGIS/MySQL/MariaDB/FalkorDB/TinkerPop fixture
-  검증은 통과했으며, 전체 `make ci`, 7-Tier 구현 review, PR/CI와 merge는
-  아직 남아 있습니다.
+  테스트, race, vet, lint(`0 issues.`), 실제 PostGIS/MySQL/MariaDB/FalkorDB/
+  TinkerPop fixture 검증과 전체 `make test`, `make race`, `make ci`가
+  통과했습니다. PR exact-head GitHub CI·review/thread read-back, merge와
+  post-merge sync는 아직 남아 있습니다.
 - 최종 검증 중 기존 `leader/etcd`의
   `TestBlockedOfficialCampaignCleanupRequiresClientHardStop`이 full-suite에서 한 번
   실패했습니다. Exact test 5회와 전체 `leader/etcd` package 3회가 연속 통과했고,

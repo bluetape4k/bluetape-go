@@ -3,8 +3,10 @@
 ## 검토 범위와 기준
 
 대상은 `#547`, `#551`, `#552`, `#554`, `#561`의 구현 tree와 통합 문서다.
-기준 base는 `origin/develop@4b0322e`이고, 구현 slice의 마지막 code commit은
-`c896e254`다. 구현은 `sqlkit/postgis`, `sqlkit/mysqlgis`,
+기준 base는 `origin/develop@4b0322e`이고, 구현 slice의 현재 검토 대상 exact
+HEAD는 `d956c9798fe0de04abed3f231251b95f32ff6962`다. Gremlin 중첩 결과 상한
+보정은 `94aa3ef`에, 최종 lint·errcheck·staticcheck 보정은 `d956c97`에
+반영됐다. 구현은 `sqlkit/postgis`, `sqlkit/mysqlgis`,
 `sqlkit/mariadbgis`, `geocoding`, `graph/falkordb`, `graph/gremlin`과 각
 local Testcontainers fixture를 독립 경계로 유지한다.
 
@@ -38,8 +40,9 @@ integration fallback review다. PR exact-head에서 독립 lane을 사용할 수
   `sqlkit/mariadbgis/query.go:37-75`).
 - FalkorDB는 `maxRows`와 deterministic sorted parameter serialization을
   적용한다 (`graph/falkordb/client.go:83-113`, `graph/falkordb/query.go:24-58,
-  144-199`). Gremlin은 `maxResults`와 channel collection limit을 적용한다
-  (`graph/gremlin/client.go:116-175`).
+  144-199`). Gremlin은 `maxResults`와 channel collection limit을 적용하고,
+  반사된 slice/array와 중첩 path 값도 `maxExpansionDepth`로 제한한다
+  (`graph/gremlin/client.go:116-175`, `graph/gremlin/result.go`).
 - 따라서 무제한 row/result collection, implicit retry, benchmark parity 주장은
   발견하지 못했다. 전체 repository 성능 benchmark는 이번 범위의 gate가 아니다.
 
@@ -51,7 +54,8 @@ integration fallback review다. PR exact-head에서 독립 lane을 사용할 수
 - Nominatim은 pre-cache/rate-limit/request/body/result 각 checkpoint와 bounded
   body close를 갖는다 (`geocoding/nominatim.go:68-199`).
 - Gremlin은 pre-submit, in-flight select, final publish에서 context를 검사하고
-  stream을 defer-close한다 (`graph/gremlin/client.go:116-175`). TinkerPop의
+  stream을 defer-close한다 (`graph/gremlin/client.go:116-175`). 중첩 결과도
+  무제한 반사 확장을 허용하지 않는다 (`graph/gremlin/result.go`). TinkerPop의
   server-side cancellation을 과장하지 않고 local wait/close 경계로 문서화했다.
 - 실제 PostGIS, MySQL, MariaDB, FalkorDB, TinkerPop fixture suite가 serial
   실행되었고 cleanup/readiness가 각 fixture에 포함된다.
@@ -137,13 +141,23 @@ read-back, mergeability와 독립 review lane 증거가 추가되기 전에는 m
 
 ## 검증 명령
 
+- `make fmt-check`
+- `make tidy-check`
+- `make vet`
+- `make lint` (`0 issues.`)
 - `go test -p 1 -count=1 -timeout=10m ./testcontainers/postgis ./sqlkit/postgis`
 - `go test -p 1 -count=1 -timeout=10m ./sqlkit/mysqlgis`
 - `go test -p 1 -count=1 -timeout=10m ./sqlkit/mariadbgis`
 - `go test -race -count=1 ./geocoding`
 - `go test -race -count=1 ./graph/falkordb`
 - `go test -race -count=1 ./graph/gremlin`
-- `go vet` 대상 package와 `git diff --check`
+- `make test`
+- `make race`
+- `make ci`
+- `git diff --check`
 
-전체 `make test`, `make race`, `make ci`, PR exact-head CI와 release/tag는 이
-review 작성 시점에 아직 후속 gate다.
+위 로컬 검증과 다섯 Docker fixture suite는 현재 exact HEAD에서 통과했다.
+PR exact-head GitHub CI, review/thread read-back, mergeability, merge와
+release/tag는 이 review의 후속 gate다. 독립 review lane은 실행되지 않았으므로
+그 provenance를 주장하지 않으며, main session inline six-lens fallback만
+기록한다.
