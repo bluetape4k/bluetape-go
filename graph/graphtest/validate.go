@@ -120,6 +120,18 @@ func validatePositiveClassifier(classifier func(error) bool, providerErr error) 
 	return nil
 }
 
+type providerProbeError struct {
+	cause error
+}
+
+func (*providerProbeError) Error() string {
+	return "graphtest: provider probe failed"
+}
+
+func (e *providerProbeError) Unwrap() error {
+	return e.cause
+}
+
 func category(phase string, err error) error {
 	if err == nil {
 		return nil
