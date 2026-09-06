@@ -97,6 +97,29 @@ func classify(fn func(error) bool, err error) (matched bool, panicked bool) {
 	return fn(err), false
 }
 
+func snapshotCapabilities(source Capabilities) Capabilities {
+	out := make(Capabilities, len(source))
+	for key, support := range source {
+		out[key] = support
+	}
+	return out
+}
+
+func validatePositiveClassifier(classifier func(error) bool, providerErr error) error {
+	if providerErr == nil {
+		return errInvalidHarness
+	}
+	matched, panicked := classify(classifier, providerErr)
+	if panicked || !matched {
+		return errInvalidHarness
+	}
+	matched, panicked = classify(classifier, fmt.Errorf("nested: %w", providerErr))
+	if panicked || !matched {
+		return errInvalidHarness
+	}
+	return nil
+}
+
 func category(phase string, err error) error {
 	if err == nil {
 		return nil
