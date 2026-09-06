@@ -59,7 +59,7 @@ use `t.Parallel` or have parallel ancestors.
 
 ## Behavior
 
-- Uses `mariadb:11.0.3`.
+- Uses the immutable `mariadb:11.0.3@sha256:27a48773d0d4b95ae6772b092e776a9a2cc5e1dbf9d187b211c6da9c933f0e7a` image reference.
 - Creates database, username, and password as `bluetape`.
 - Adds `parseTime=true` to the returned connection string.
 - Registers container termination with `t.Cleanup`.
@@ -87,4 +87,3 @@ use `t.Parallel` or have parallel ancestors.
 ```bash
 go test -p 1 -count=1 ./testcontainers/mariadb
 ```
-

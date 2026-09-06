@@ -10,7 +10,7 @@ import (
 )
 
 const (
-	defaultImage    = "mariadb:11.0.3"
+	defaultImage    = "mariadb:11.0.3@sha256:27a48773d0d4b95ae6772b092e776a9a2cc5e1dbf9d187b211c6da9c933f0e7a"
 	defaultDatabase = "bluetape"
 	defaultUsername = "bluetape"
 	defaultPassword = "bluetape"
