@@ -43,6 +43,11 @@ row를 `PASS`로 간주하지 않고 정확한 오류와 다음 재실행 조건
 - lifecycle, cancellation, cleanup, size bound, submission count, redaction은
   `go test -race -count=10 ./graph/graphtest`와 최종
   `go test -race -count=1 ./graph/graphtest`에서 통과했다.
+- Step 6-R에서 startup deadline 뒤 성공 반환한 adapter가 닫히지 않는 경로를
+  발견했다. `TestRunClosesAdapterReturnedAfterStartupDeadline`이 수정 전
+  `close count = 0, want 1`로 실패했고, factory 결과 판정보다 close 등록을 먼저
+  수행하도록 고친 뒤 targeted test와 `go test -race -count=10 ./graph/graphtest`가
+  통과했다.
 - Neo4j/Memgraph shared suite는 digest-pinned image로 세 독립 process에서
   16.65초, 16.70초, 16.70초에 통과했다. 이어서
   `go test -race -count=1 ./graph/neo4j -timeout=15m`도 18.198초에 통과했다.

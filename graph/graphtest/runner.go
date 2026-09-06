@@ -34,29 +34,31 @@ func run(parent context.Context, t *testing.T, harness Harness, config Config) (
 	startup := call(parent, config.StartupTimeout, func(ctx context.Context) (Adapter, error) {
 		return harness.New(ctx, t, config)
 	})
+	adapter := startup.value
+	if adapter.Close != nil {
+		defer func() {
+			if recover() != nil {
+				returnErr = errors.Join(returnErr, errors.New("graphtest: runner panic"))
+			}
+			closeStarted := time.Now()
+			closeResult := call(context.WithoutCancel(parent), config.CloseTimeout, func(ctx context.Context) (struct{}, error) {
+				return struct{}{}, adapter.Close(ctx)
+			})
+			closeStatus, closeCategory, closeTimedOut := callbackStatus(closeResult)
+			t.Logf(
+				"graphtest provider=%s phase=close status=%s category=%s timeout=%t duration=%s",
+				harness.Provider.Name,
+				closeStatus,
+				closeCategory,
+				closeTimedOut,
+				time.Since(closeStarted),
+			)
+			returnErr = errors.Join(returnErr, callbackError("close", closeResult))
+		}()
+	}
 	if err := callbackError("factory", startup); err != nil {
 		return err
 	}
-	adapter := startup.value
-	defer func() {
-		if recover() != nil {
-			returnErr = errors.Join(returnErr, errors.New("graphtest: runner panic"))
-		}
-		closeStarted := time.Now()
-		closeResult := call(context.WithoutCancel(parent), config.CloseTimeout, func(ctx context.Context) (struct{}, error) {
-			return struct{}{}, adapter.Close(ctx)
-		})
-		closeStatus, closeCategory, closeTimedOut := callbackStatus(closeResult)
-		t.Logf(
-			"graphtest provider=%s phase=close status=%s category=%s timeout=%t duration=%s",
-			harness.Provider.Name,
-			closeStatus,
-			closeCategory,
-			closeTimedOut,
-			time.Since(closeStarted),
-		)
-		returnErr = errors.Join(returnErr, callbackError("close", closeResult))
-	}()
 	if err := validateAdapter(adapter, capabilities); err != nil {
 		return err
 	}

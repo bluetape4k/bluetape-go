@@ -70,6 +70,31 @@ func TestRunRedactsFactoryPanic(t *testing.T) {
 	}
 }
 
+func TestRunClosesAdapterReturnedAfterStartupDeadline(t *testing.T) {
+	var closed atomic.Int64
+	harness := validFakeHarness(func(adapter *Adapter) {
+		adapter.Close = func(context.Context) error {
+			closed.Add(1)
+			return nil
+		}
+	})
+	original := harness.New
+	harness.New = func(ctx context.Context, tb testing.TB, config Config) (Adapter, error) {
+		<-ctx.Done()
+		return original(context.Background(), tb, config)
+	}
+	config := DefaultConfig()
+	config.StartupTimeout = 10 * time.Millisecond
+
+	err := run(context.Background(), t, harness, config)
+	if !errors.Is(err, context.DeadlineExceeded) {
+		t.Fatalf("run() error = %v, want context deadline", err)
+	}
+	if got := closed.Load(); got != 1 {
+		t.Fatalf("close count = %d, want 1", got)
+	}
+}
+
 func TestRunRedactsFactoryAndCallbackFailures(t *testing.T) {
 	for _, testCase := range []struct {
 		name   string
