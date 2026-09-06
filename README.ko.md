@@ -206,6 +206,8 @@ go get github.com/bluetape4k/bluetape-go
 - Graph: model-only vertex, edge, path, label, ID, shallow property, validated
   JSON value를 제공하는 [`graph`](graph/README.ko.md), bounded NDJSON/paired CSV
   import/export helper를 제공하는 [`graph/graphio`](graph/graphio/README.ko.md),
+  재사용 가능한 backend-neutral 적합성 계약을 제공하는
+  [`graph/graphtest`](graph/graphtest/README.ko.md),
   첫 Neo4j backend proof인 [`graph/neo4j`](graph/neo4j/README.ko.md),
   runnable incident-response graph 예제인
   [`examples/graph/observability`](examples/graph/observability/README.ko.md),
@@ -346,6 +348,12 @@ make coverage
 make ci
 ```
 
+`test`, `race`, `coverage` target은 기본적으로 10분의 Go test timeout을
+적용합니다. `30s`, `1m`, `2m`, `5m`, `10m`, `15m`, `20m`, `30m`, `45m`,
+`60m` 중 하나로 재정의할 수 있습니다. 예를 들어
+`GO_TEST_TIMEOUT=20m make test`를 사용합니다. 지원하지 않거나 0 또는 무제한인
+값은 target 실행 전에 실패합니다.
+
 주요 명령:
 
 | 명령 | 목적 |
@@ -356,9 +364,10 @@ make ci
 | `make tidy-check` | `go mod tidy` 후 `go.mod`/`go.sum` 변경이 있으면 실패합니다. |
 | `make vet` | `go vet ./...`를 실행합니다. |
 | `make lint` | `golangci-lint run ./...`를 실행합니다. |
-| `make test` | Testcontainers 테스트가 package 단위로 직렬 실행되도록 `go test -p 1 -count=1 ./...`를 실행합니다. |
-| `make race` | Testcontainers 테스트가 race detector에서도 package 단위로 직렬 실행되도록 `go test -race -p 1 -count=1 ./...`를 실행합니다. |
-| `make coverage` | `coverage/` 아래에 Go coverage profile, package 소계 table, text summary, HTML report를 생성합니다. |
+| `make test` | Testcontainers 테스트가 제한된 timeout과 package 단위 직렬 실행을 사용하도록 `go test -timeout=10m -p 1 -count=1 ./...`를 실행합니다. |
+| `make race` | Testcontainers 테스트가 race detector에서도 제한된 timeout과 package 단위 직렬 실행을 사용하도록 `go test -timeout=10m -race -p 1 -count=1 ./...`를 실행합니다. |
+| `make coverage` | 제한된 timeout과 package 단위 직렬 실행을 사용해 `coverage/` 아래에 Go coverage 결과를 생성합니다. |
+| `make check-test-timeout` | 허용된 timeout 값과 0, wildcard, allowlist 재정의, injection 입력의 fail-closed 거부를 검증합니다. |
 | `make bench-cache` | opt-in cache, Redis NearCache, Redis coordinator benchmark를 실행합니다. |
 | `make bench-ratelimit` | opt-in local rate limiter benchmark를 실행합니다. |
 | `make bench-id` | opt-in id generator benchmark를 실행합니다. |

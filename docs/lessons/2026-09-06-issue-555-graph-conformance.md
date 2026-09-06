@@ -41,3 +41,15 @@ timeout을 함께 적고, 상위 package recipe에도 Docker-free harness self-t
 `// Config 값은`처럼 쓰면 golint의 identifier prefix와 한국어 가독성을 함께 지킨다.
 이 규칙은 작업 중 `$bluetape-go-patterns`의 durable source와 live skill에 추가해 다음
 Go 작업에서도 재사용할 수 있게 했다.
+
+## 늦게 발견한 작은 지적도 closeout 전에 처리한다
+
+PR #736 merge 뒤 Step 7-R에서 `Makefile`의 명시적 `go test -timeout` 누락과
+`graph/graphtest` 문서 인덱스·rollback 목록 누락을 확인했다. 변경 범위가 작아도
+P2/P3를 deferred로 남기면 milestone 완료 선언과 실제 잔여 작업이 불일치한다.
+
+후속 작업에서는 allowlist로 검증하는 `GO_TEST_TIMEOUT`을 `test`, `race`, `coverage`에
+적용하고, 영문·한국어 README의 package index와 rollback 목록을 함께 고친다. Shell
+recipe에 노출하는 override 값은 인용만 하지 않고 0·무제한·지원하지 않는 값을 target
+실행 전에 거부한다. 앞으로 closeout 직전 리뷰에서 발견한 in-scope P2/P3는 같은
+delivery 흐름에서 해결하고, 검증 비용만을 이유로 미루지 않는다.

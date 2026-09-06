@@ -213,8 +213,9 @@ overview.
 - Graph: [`graph`](graph/README.md) for model-only vertex, edge, path, label,
   ID, shallow property, and validated JSON values, plus
   [`graph/graphio`](graph/graphio/README.md) for bounded NDJSON and paired CSV
-  import/export helpers, [`graph/neo4j`](graph/neo4j/README.md) for the first
-  Neo4j backend proof, and
+  import/export helpers, [`graph/graphtest`](graph/graphtest/README.md) for
+  reusable backend-neutral conformance contracts,
+  [`graph/neo4j`](graph/neo4j/README.md) for the first Neo4j backend proof, and
   [`examples/graph/observability`](examples/graph/observability/README.md) for
   a runnable incident-response graph example plus
   [`examples/graph/iamaccess`](examples/graph/iamaccess/README.md) for IAM
@@ -354,6 +355,11 @@ make coverage
 make ci
 ```
 
+The `test`, `race`, and `coverage` targets use a 10-minute Go test timeout by
+default. Override it with one of `30s`, `1m`, `2m`, `5m`, `10m`, `15m`, `20m`,
+`30m`, `45m`, or `60m`, for example with `GO_TEST_TIMEOUT=20m make test`.
+Unsupported, zero, or unbounded values fail before a target runs.
+
 Common commands:
 
 | Command | Purpose |
@@ -364,9 +370,10 @@ Common commands:
 | `make tidy-check` | Fail when `go.mod` or `go.sum` drift after `go mod tidy`. |
 | `make vet` | Run `go vet ./...`. |
 | `make lint` | Run `golangci-lint run ./...`. |
-| `make test` | Run `go test -p 1 -count=1 ./...` so Testcontainers tests execute with serial package scheduling. |
-| `make race` | Run `go test -race -p 1 -count=1 ./...` so Testcontainers tests execute under the race detector with serial package scheduling. |
-| `make coverage` | Generate Go coverage profile, package subtotal table, text summary, and HTML report under `coverage/`. |
+| `make test` | Run `go test -timeout=10m -p 1 -count=1 ./...` so Testcontainers tests execute with a bounded timeout and serial package scheduling. |
+| `make race` | Run `go test -timeout=10m -race -p 1 -count=1 ./...` so Testcontainers tests execute under the race detector with a bounded timeout and serial package scheduling. |
+| `make coverage` | Generate Go coverage outputs under `coverage/` with a bounded timeout and serial package scheduling. |
+| `make check-test-timeout` | Verify accepted timeout values and fail-closed rejection of zero, wildcard, allowlist-override, and injection inputs. |
 | `make bench-cache` | Run opt-in cache, Redis NearCache, and Redis coordinator benchmarks. |
 | `make bench-ratelimit` | Run opt-in local rate limiter benchmarks. |
 | `make bench-id` | Run opt-in id generator benchmarks. |

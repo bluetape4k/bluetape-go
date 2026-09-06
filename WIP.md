@@ -10,7 +10,7 @@
 - `[x]` legacy Neo4j/Memgraph integration과 shared suite의 같은 tree parity
 - `[x]` migration 뒤 `go test -count=1 ./graph/neo4j -timeout=10m`
 - `[x]` `make ci`
-- `[ ]` exact-head Testcontainers Nightly
+- `[x]` exact-head Testcontainers Nightly
 - `[x]` Step 6-R 7-Tier review `P0=0 P1=0 P2=0 P3=0`
 - Migration commit: `5d73079cd2ce2f8403cb068e7816b399c823e76d`
 - 구현·리뷰 수정 source HEAD: `ec98e00276ffacd98e559ea4177f16fb58df31d0`
@@ -18,13 +18,15 @@
 - pre-integration PR head: `87f9bc3778461a59964de9b1354db3f245e3f205`
 - Base/head: `develop` / `feat/issue-555-graph-conformance`
 - PR number/URL: #736 / https://github.com/bluetape4k/bluetape-go/pull/736
-- Required CI: run `34024733486`, `SUCCESS`, head
-  `87f9bc3778461a59964de9b1354db3f245e3f205`, completed
-  `2026-09-06T09:43:39Z`
+- Required CI: run `34026850947`, `SUCCESS`, head
+  `e59992cfb6fc9b0931fc7a2e3ab8a6767e147806`, completed
+  `2026-09-06T10:29:38Z`
 - `origin/develop` integration commit: `5a461a28f56fa4b049240092e9baa3eba4a4cefe`
 - Post-integration local `make ci`: `PASS` (exit 0)
-- Post-integration GitHub CI: `PENDING`
-- Testcontainers Nightly run ID/URL/headSha/conclusion/observed timestamp: `PENDING`
+- Testcontainers Nightly: run `34027924828`, `SUCCESS`, head
+  `e59992cfb6fc9b0931fc7a2e3ab8a6767e147806`, completed
+  `2026-09-06T10:49:48Z`
+- Merge commit: `0407766723625cd08951c4b92e89ccafc69b231c`
 
 세 독립 process의 전체 suite 시간은 각각 16.77초, 16.34초, 16.33초였다.
 Neo4j와 Memgraph는 digest-pinned image에서 strict core와 traversal을 skip 없이
@@ -62,8 +64,20 @@ Echo 후속 #692~#694를 함께 배포합니다. `v0.20.0` 사용자는 Echo 후
 
 - #548은 PR #735로 merge됐고 `develop`의
   `c48c5c8e0f4edfb12436849ac52d3f04793f6ab6`에 반영됐습니다.
-- #555는 PR #736의 graph backend conformance를 새 `develop`에 통합하고
-  exact-head CI와 Testcontainers Nightly를 다시 고정하는 단계입니다.
+- #555는 PR #736으로 merge됐고 exact-head CI와 Testcontainers Nightly가
+  모두 통과했습니다.
+- Step 7-R 후속 P2/P3는 `chore/graph-conformance-review-followups`에서
+  `go test` timeout과 `graph/graphtest` 문서 인덱스·rollback 목록을 보완하고
+  있습니다. 1차 7-Tier 리뷰가 발견한 coverage timeout·override 검증·README
+  설명 누락도 수정했습니다. `make coverage`, 최종 `make ci`, 7-Tier 여섯 독립
+  관점과 main integration review가 모두 통과했으며 PR exact-head CI를 남겨 두고
+  있습니다.
+- 최종 검증 중 기존 `leader/etcd`의
+  `TestBlockedOfficialCampaignCleanupRequiresClientHardStop`이 full-suite에서 한 번
+  실패했습니다. Exact test 5회와 전체 `leader/etcd` package 3회가 연속 통과했고,
+  이어서 실행한 full `make ci`도 통과했습니다. 이번 diff는 `leader/etcd`를 변경하지
+  않으며 Go 기본값과 같은 10분 timeout을 명시하므로 기존 2초 관찰 timing flake로
+  분류했습니다.
 - `v0.22.0` release preparation, tag와 GitHub Release는 아직 실행하지
   않았습니다.
 
