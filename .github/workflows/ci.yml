@@ -20,7 +20,9 @@ env:
 jobs:
   ci:
     runs-on: ubuntu-latest
-    timeout-minutes: 25
+    # The complete serial race suite includes the milestone's Docker-backed
+    # packages and can exceed the default Ubuntu runner budget on a cold cache.
+    timeout-minutes: 40
     steps:
       - name: Checkout
         uses: actions/checkout@v6
