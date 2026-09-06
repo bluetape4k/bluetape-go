@@ -31,6 +31,7 @@ func run(parent context.Context, t *testing.T, harness Harness, config Config) (
 		return err
 	}
 	capabilities := snapshotCapabilities(harness.Capabilities)
+	startupStarted := time.Now()
 	startup := call(parent, config.StartupTimeout, func(ctx context.Context) (Adapter, error) {
 		return harness.New(ctx, t, config)
 	})
@@ -57,6 +58,17 @@ func run(parent context.Context, t *testing.T, harness Harness, config Config) (
 		}()
 	}
 	if err := callbackError("factory", startup); err != nil {
+		startupStatus, startupCategory, startupTimedOut := callbackStatus(startup)
+		t.Logf(
+			"graphtest provider=%s version=%s image_digest=%s phase=start status=%s category=%s timeout=%t duration=%s",
+			harness.Provider.Name,
+			harness.Provider.Version,
+			imageDigest(harness.Provider.ImageReference),
+			startupStatus,
+			startupCategory,
+			startupTimedOut,
+			time.Since(startupStarted),
+		)
 		return err
 	}
 	if err := validateAdapter(adapter, capabilities); err != nil {

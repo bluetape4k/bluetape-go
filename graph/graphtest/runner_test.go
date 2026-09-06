@@ -3,6 +3,8 @@ package graphtest
 import (
 	"context"
 	"errors"
+	"os"
+	"os/exec"
 	"strings"
 	"sync"
 	"sync/atomic"
@@ -92,6 +94,43 @@ func TestRunClosesAdapterReturnedAfterStartupDeadline(t *testing.T) {
 	}
 	if got := closed.Load(); got != 1 {
 		t.Fatalf("close count = %d, want 1", got)
+	}
+}
+
+func TestRunLogsRedactedStartupFailure(t *testing.T) {
+	if os.Getenv("BTGC_STARTUP_LOG_HELPER") == "1" {
+		harness := validFakeHarness(nil)
+		harness.New = func(ctx context.Context, _ testing.TB, _ Config) (Adapter, error) {
+			<-ctx.Done()
+			return Adapter{}, errors.New("factory-secret-marker")
+		}
+		config := DefaultConfig()
+		config.StartupTimeout = 10 * time.Millisecond
+		if err := run(context.Background(), t, harness, config); err != nil {
+			t.Fatal(err)
+		}
+		return
+	}
+
+	ctx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
+	defer cancel()
+	command := exec.CommandContext(ctx, os.Args[0], "-test.run=^TestRunLogsRedactedStartupFailure$", "-test.v")
+	command.Env = append(os.Environ(), "BTGC_STARTUP_LOG_HELPER=1")
+	output, err := command.CombinedOutput()
+	if err == nil {
+		t.Fatal("startup failure helper exited successfully")
+	}
+	text := string(output)
+	for _, want := range []string{
+		"provider=fake", "image_digest=sha256:", "phase=start", "status=error",
+		"category=timeout", "timeout=true", "duration=",
+	} {
+		if !strings.Contains(text, want) {
+			t.Fatalf("startup failure output missing %q: %s", want, text)
+		}
+	}
+	if strings.Contains(text, "factory-secret-marker") {
+		t.Fatalf("startup failure output disclosed raw cause: %s", text)
 	}
 }
 

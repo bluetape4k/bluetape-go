@@ -35,28 +35,14 @@ close가 경합하지 않습니다.
 
 ## 새 backend 연결
 
-아래 예제는 compile-checked `ExampleRun`, `ExampleCapabilities`와 같은 경계를
-사용합니다. Provider 전용 fixed query는 adapter closure 안에 둡니다.
+전체 compile-checked fake backend는
+[`example_test.go`](example_test.go)에 있습니다. 이 파일의 `exampleHarness` 구성을
+복사하고 in-memory callback을 provider 전용 fixed query로 바꾼 뒤 다음처럼
+호출하세요.
 
 ```go
 func TestBackend(t *testing.T) {
-	harness := graphtest.Harness{
-		Provider: graphtest.ProviderMetadata{
-			Name: "example", Version: "1.0.0",
-			ImageReference: "example:1@sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
-		},
-		New: func(ctx context.Context, tb testing.TB, cfg graphtest.Config) (graphtest.Adapter, error) {
-			// Provider resource를 만들고 readiness를 확인한 뒤, adapter를
-			// 반환하기 전에 tb에 container cleanup을 등록합니다.
-			return newExampleAdapter(ctx, tb, cfg)
-		},
-		Capabilities: graphtest.Capabilities{
-			graphtest.CapabilityTraversal: {
-				Enabled: false, ReasonCode: "query-language-limit",
-			},
-		},
-	}
-	graphtest.Run(t, harness)
+	graphtest.Run(t, exampleHarness())
 }
 ```
 

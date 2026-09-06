@@ -48,6 +48,10 @@ row를 `PASS`로 간주하지 않고 정확한 오류와 다음 재실행 조건
   `close count = 0, want 1`로 실패했고, factory 결과 판정보다 close 등록을 먼저
   수행하도록 고친 뒤 targeted test와 `go test -race -count=10 ./graph/graphtest`가
   통과했다.
+- Startup failure 진단은 validated provider/version/digest와
+  `phase=start`, status, category, timeout, duration만 출력하도록 보강했다.
+  Subprocess 회귀 테스트는 수정 전 `provider=fake` 누락으로 실패했고, 수정 뒤 raw
+  `factory-secret-marker` 없이 요구 필드를 모두 확인했다.
 - Neo4j/Memgraph shared suite는 digest-pinned image로 세 독립 process에서
   16.65초, 16.70초, 16.70초에 통과했다. 이어서
   `go test -race -count=1 ./graph/neo4j -timeout=15m`도 18.198초에 통과했다.

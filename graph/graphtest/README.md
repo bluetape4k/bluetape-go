@@ -37,29 +37,14 @@ driver close never race an active callback.
 
 ## Add a backend
 
-The example below matches the compile-checked `ExampleRun` and
-`ExampleCapabilities`. Provider-specific fixed queries stay inside the
-adapter closures.
+The complete, compile-checked fake backend is in
+[`example_test.go`](example_test.go). Copy its `exampleHarness` shape, replace
+the in-memory callbacks with provider-specific fixed queries, and invoke it as
+follows:
 
 ```go
 func TestBackend(t *testing.T) {
-	harness := graphtest.Harness{
-		Provider: graphtest.ProviderMetadata{
-			Name: "example", Version: "1.0.0",
-			ImageReference: "example:1@sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
-		},
-		New: func(ctx context.Context, tb testing.TB, cfg graphtest.Config) (graphtest.Adapter, error) {
-			// Create the provider resource, verify readiness, and register
-			// container cleanup with tb before returning the adapter.
-			return newExampleAdapter(ctx, tb, cfg)
-		},
-		Capabilities: graphtest.Capabilities{
-			graphtest.CapabilityTraversal: {
-				Enabled: false, ReasonCode: "query-language-limit",
-			},
-		},
-	}
-	graphtest.Run(t, harness)
+	graphtest.Run(t, exampleHarness())
 }
 ```
 

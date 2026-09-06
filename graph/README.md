@@ -185,9 +185,11 @@ deferred to a breaking release.
 go test -count=1 ./graph
 go test -count=1 ./graph/graphio
 go test -count=1 ./graph/graphio/graphml
-go test -p 1 -count=1 ./graph/neo4j
+go test -count=1 ./graph/graphtest
+go test -p 1 -count=1 -timeout=10m ./graph/neo4j
 go test -race -count=1 ./graph
 go test -race -count=1 ./graph/graphio
 go test -race -count=1 ./graph/graphio/graphml
-go test -p 1 -race -count=1 ./graph/neo4j
+go test -race -count=1 ./graph/graphtest
+go test -p 1 -race -count=1 -timeout=15m ./graph/neo4j
 ```

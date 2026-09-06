@@ -111,8 +111,8 @@ container terminate 순서입니다.
 Testcontainers 기반 package test는 직렬로 실행하세요.
 
 ```bash
-go test -p 1 -count=1 ./graph/neo4j
-go test -p 1 -race -count=1 ./graph/neo4j
+go test -p 1 -count=1 -timeout=10m ./graph/neo4j
+go test -p 1 -race -count=1 -timeout=15m ./graph/neo4j
 ```
 
 Package test는 node/relationship mapping, bad record, graph semantic parity,

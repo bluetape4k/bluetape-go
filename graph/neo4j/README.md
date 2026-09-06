@@ -113,8 +113,8 @@ container termination.
 Run the Testcontainers-backed package serially:
 
 ```bash
-go test -p 1 -count=1 ./graph/neo4j
-go test -p 1 -race -count=1 ./graph/neo4j
+go test -p 1 -count=1 -timeout=10m ./graph/neo4j
+go test -p 1 -race -count=1 -timeout=15m ./graph/neo4j
 ```
 
 The package test covers node/relationship mapping, bad records, graph semantic
