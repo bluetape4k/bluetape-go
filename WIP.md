@@ -77,16 +77,18 @@ Echo 후속 #692~#694를 함께 배포합니다. `v0.20.0` 사용자는 Echo 후
   branch에서 한 번의 PR/squash merge를 목표로 합니다. 현재 package-level
   테스트, race, vet, lint(`0 issues.`), 실제 PostGIS/MySQL/MariaDB/FalkorDB/
   TinkerPop fixture 검증과 전체 `make test`, `make race`, `make ci`가
-  통과했습니다. PR exact-head GitHub CI·review/thread read-back, merge와
-  post-merge sync는 아직 남아 있습니다.
+  통과했습니다. PR #738 exact head `e24cfaca`의 GitHub CI run
+  `34049822664`도 coverage·race 포함 전 단계 `SUCCESS`이며, 최신
+  review/thread read-back과 mergeability도 확인했습니다. fresh exact-head
+  merge approval, merge와 post-merge sync는 아직 남아 있습니다.
 - PR #738의 첫 exact-head CI run `34046283255`는 coverage 단계에서
   `graph/gremlin`의 TinkerPop factory가 TCP port만 열린 순간 연결을 시도해
   실패했습니다. `7053dae`에서 `Channel started at port 8182.` log까지 기다리는
-  readiness를 추가했고, 로컬 동일 경계 5회 반복 테스트가 통과했습니다. 수정
-  head를 push한 뒤 원격 CI를 다시 확인해야 합니다. 두 번째 run
+  readiness를 추가했고, 로컬 동일 경계 5회 반복 테스트가 통과했습니다. 두 번째 run
   `34047689484`는 coverage까지 통과했지만 serial `make race`가 job 25분 제한에
   걸려 취소되었습니다. 로컬 최신 head의 전체 race는 586초에 통과했으므로,
   Docker-backed cold-cache 여유를 위해 CI job timeout을 40분으로 조정했습니다.
+  조정 후 세 번째 run `34049822664`는 25m45s에 전체 `SUCCESS`로 완료했습니다.
 - 최종 검증 중 기존 `leader/etcd`의
   `TestBlockedOfficialCampaignCleanupRequiresClientHardStop`이 full-suite에서 한 번
   실패했습니다. Exact test 5회와 전체 `leader/etcd` package 3회가 연속 통과했고,

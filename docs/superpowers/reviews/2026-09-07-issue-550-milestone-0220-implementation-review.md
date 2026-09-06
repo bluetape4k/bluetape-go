@@ -165,7 +165,9 @@ read-back, mergeability와 독립 review lane 증거가 추가되기 전에는 m
 실패했고, 두 번째 `b6fd899` run `34047689484`는 coverage까지 통과한 뒤 serial
 race가 25분 job 제한을 초과해 취소되었다. 로컬 최신 head 전체 race는 586초에
 통과했으며, 재현 가능한 코드 실패가 아닌 cold-cache 실행 예산 문제로 판단해
-CI job timeout을 40분으로 조정한다. 조정 head의 exact-head CI,
-review/thread read-back, mergeability, merge와 release/tag는 이 review의 후속
-gate다. 독립 review lane은 실행되지 않았으므로 그 provenance를 주장하지 않으며,
+CI job timeout을 40분으로 조정했다. 조정 head `e24cfaca`의 exact-head run
+`34049822664`/job `101531284017`는 25m45s에 coverage·race를 포함한 모든 단계가
+`SUCCESS`였고, 최신 review/thread read-back과 `mergeable=MERGEABLE`,
+`mergeStateStatus=CLEAN`을 확인했다. fresh merge approval, merge와 release/tag는
+이 review의 후속 gate다. 독립 review lane은 실행되지 않았으므로 그 provenance를 주장하지 않으며,
 main session inline six-lens fallback만 기록한다.
