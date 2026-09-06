@@ -175,9 +175,9 @@ scenario adoption remains issue-tracked in
 ## Release Support
 
 The graph package family has no service or runtime dependency. Before a release
-tag, rollback is deleting `graph`, `graph/graphio`, README updates, and release
-bookkeeping. After a release tag, changes should preserve the Go API or be
-deferred to a breaking release.
+tag, rollback is deleting `graph`, `graph/graphio`, `graph/graphtest`, README
+updates, and release bookkeeping. After a release tag, changes should preserve
+the Go API or be deferred to a breaking release.
 
 ## Test
 

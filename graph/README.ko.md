@@ -174,9 +174,9 @@ Workshop scenario adoption은 issue
 ## Release Support
 
 Graph package family는 service/runtime dependency가 없습니다. Release tag 전
-rollback은 `graph`, `graph/graphio`, README update, release bookkeeping을 제거하는
-것입니다. Release tag 이후에는 Go API 호환성을 유지하거나 breaking release로
-미뤄야 합니다.
+rollback은 `graph`, `graph/graphio`, `graph/graphtest`, README update, release
+bookkeeping을 제거하는 것입니다. Release tag 이후에는 Go API 호환성을
+유지하거나 breaking release로 미뤄야 합니다.
 
 ## Test
 
