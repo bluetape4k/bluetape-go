@@ -6,12 +6,12 @@ import (
 	"github.com/bluetape4k/bluetape-go/geo"
 )
 
-// Provider는 좌표 하나를 주소 결과로 변환하는 최소 reverse geocoding 계약이다.
+// Provider 는 좌표 하나를 주소 결과로 변환하는 최소 reverse geocoding 계약이다.
 type Provider interface {
 	Reverse(context.Context, geo.Point, Options) (Result, error)
 }
 
-// Result는 provider 응답에서 caller에게 유용한 제한된 주소 정보를 보관한다.
+// Result 는 provider 응답에서 caller에게 유용한 제한된 주소 정보를 보관한다.
 type Result struct {
 	// PlaceID는 provider의 안정적인 장소 식별자다.
 	PlaceID int64

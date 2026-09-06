@@ -53,18 +53,18 @@ func TestMySQLPointRoundTripAndSpatialPredicates(t *testing.T) {
 		t.Fatalf("round trip=%#v srid=%d want=%#v/4326", got, srid, point)
 	}
 	distance, _ := mysqlgis.WithinDistance("places", "location", point, 500)
-	assertMySQLRow(t, ctx, db, distance.SQL, distance.Args...)
+	assertMySQLRow(ctx, t, db, distance.SQL, distance.Args...)
 	bounds, _ := mysqlgis.WithinBounds("places", "location", 126, 37, 128, 38, 4326)
-	assertMySQLRow(t, ctx, db, bounds.SQL, bounds.Args...)
+	assertMySQLRow(ctx, t, db, bounds.SQL, bounds.Args...)
 }
 
-func assertMySQLRow(t *testing.T, ctx context.Context, db *sql.DB, query string, args ...any) {
+func assertMySQLRow(ctx context.Context, t *testing.T, db *sql.DB, query string, args ...any) {
 	t.Helper()
 	rows, err := db.QueryContext(ctx, query, args...)
 	if err != nil {
 		t.Fatalf("query %q: %v", query, err)
 	}
-	defer rows.Close()
+	defer func() { _ = rows.Close() }()
 	if !rows.Next() {
 		t.Fatalf("query %q returned no rows", query)
 	}

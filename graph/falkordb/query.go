@@ -14,9 +14,10 @@ func validGraphName(value string) bool {
 		return false
 	}
 	for i, r := range value {
-		if !(r == '_' || r == '-' || unicode.IsLetter(r) || i > 0 && unicode.IsDigit(r)) {
-			return false
+		if r == '_' || r == '-' || unicode.IsLetter(r) || (i > 0 && unicode.IsDigit(r)) {
+			continue
 		}
+		return false
 	}
 	return true
 }
@@ -63,9 +64,10 @@ func validParameterName(value string) bool {
 		return false
 	}
 	for i, r := range value {
-		if !(r == '_' || unicode.IsLetter(r) || i > 0 && unicode.IsDigit(r)) {
-			return false
+		if r == '_' || unicode.IsLetter(r) || (i > 0 && unicode.IsDigit(r)) {
+			continue
 		}
+		return false
 	}
 	return true
 }

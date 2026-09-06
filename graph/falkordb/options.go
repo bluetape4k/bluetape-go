@@ -11,10 +11,10 @@ const (
 	maxQueryBytes  = 1 << 20
 )
 
-// Option은 FalkorDB client 설정을 변경한다.
+// Option 은 FalkorDB client 설정을 변경한다.
 type Option func(*Client) error
 
-// WithMaxRows는 한 query가 materialize할 최대 row 수를 설정한다.
+// WithMaxRows 는 한 query가 materialize할 최대 row 수를 설정한다.
 func WithMaxRows(limit int) Option {
 	return func(client *Client) error {
 		if limit <= 0 || limit > maxRowsLimit {
@@ -25,7 +25,7 @@ func WithMaxRows(limit int) Option {
 	}
 }
 
-// WithTimeout은 FalkorDB server timeout을 위한 query option을 설정한다.
+// WithTimeout 은 FalkorDB server timeout을 위한 query option을 설정한다.
 func WithTimeout(timeout time.Duration) Option {
 	return func(client *Client) error {
 		if timeout <= 0 {

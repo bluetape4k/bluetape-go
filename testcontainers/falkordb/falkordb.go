@@ -18,13 +18,13 @@ const (
 	AddressKey = "falkordb.address"
 )
 
-// Start는 digest-pinned FalkorDB fixture의 address를 반환한다.
+// Start 는 digest-pinned FalkorDB fixture의 address를 반환한다.
 func Start(ctx context.Context, tb testing.TB) string {
 	tb.Helper()
 	return mustDetail(ctx, tb, StartServer(ctx, tb), AddressKey)
 }
 
-// StartServer는 FalkorDB container와 bounded cleanup을 준비한다.
+// StartServer 는 FalkorDB container와 bounded cleanup을 준비한다.
 func StartServer(ctx context.Context, tb testing.TB) *tcserver.Started {
 	tb.Helper()
 	container, err := testcontainers.GenericContainer(ctx, testcontainers.GenericContainerRequest{

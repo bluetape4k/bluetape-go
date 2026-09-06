@@ -16,7 +16,7 @@ const (
 	ewkbBaseTypeMask = uint32(0x0fffffff)
 )
 
-// Point는 WGS84 경도(X)·위도(Y)와 SRID를 보관하는 유효한 공간 값이다.
+// Point 는 WGS84 경도(X)·위도(Y)와 SRID를 보관하는 유효한 공간 값이다.
 //
 // X는 -180..180, Y는 -90..90의 degree 값이다. zero value는 SQL NULL을
 // 나타내며, Valid가 true일 때만 Value가 non-NULL EWKB를 반환한다.
@@ -30,7 +30,7 @@ type Point struct {
 var _ driver.Valuer = Point{}
 var _ interface{ Scan(any) error } = (*Point)(nil)
 
-// NewPoint는 경도(X), 위도(Y), SRID를 검증한 유효한 Point를 생성한다.
+// NewPoint 는 경도(X), 위도(Y), SRID를 검증한 유효한 Point를 생성한다.
 func NewPoint(x, y float64, srid int) (Point, error) {
 	if err := validateSRID(srid); err != nil {
 		return Point{}, err
@@ -41,12 +41,12 @@ func NewPoint(x, y float64, srid int) (Point, error) {
 	return Point{X: x, Y: y, SRID: srid, Valid: true}, nil
 }
 
-// NewWGS84Point는 위도와 경도를 받아 SRID 4326 Point를 생성한다.
+// NewWGS84Point 는 위도와 경도를 받아 SRID 4326 Point를 생성한다.
 func NewWGS84Point(latitude, longitude float64) (Point, error) {
 	return NewPoint(longitude, latitude, 4326)
 }
 
-// Value는 유효한 Point를 SRID가 포함된 little-endian EWKB로 반환한다.
+// Value 는 유효한 Point를 SRID가 포함된 little-endian EWKB로 반환한다.
 func (p Point) Value() (driver.Value, error) {
 	if !p.Valid {
 		return nil, nil
@@ -58,7 +58,7 @@ func (p Point) Value() (driver.Value, error) {
 	return raw, nil
 }
 
-// MarshalEWKB는 Point를 호출자가 소유하는 새 EWKB byte slice로 인코딩한다.
+// MarshalEWKB 는 Point를 호출자가 소유하는 새 EWKB byte slice로 인코딩한다.
 func (p Point) MarshalEWKB() ([]byte, error) {
 	if !p.Valid {
 		return nil, nil
@@ -79,7 +79,7 @@ func (p Point) MarshalEWKB() ([]byte, error) {
 	return raw, nil
 }
 
-// Scan은 nil, EWKB/WKB byte slice 또는 POINT WKT를 Point로 decode한다.
+// Scan 은 nil, EWKB/WKB byte slice 또는 POINT WKT를 Point로 decode한다.
 //
 // Scan은 decode 성공 후에만 값을 공개하며, 실패하면 receiver를 zero value로
 // 되돌린다. driver가 소유한 byte slice는 내부에 보관하지 않는다.
@@ -118,7 +118,7 @@ func (p *Point) Scan(src any) error {
 	return nil
 }
 
-// ParseEWKB는 EWKB 또는 SRID 없는 WKB Point를 검증해 반환한다.
+// ParseEWKB 는 EWKB 또는 SRID 없는 WKB Point를 검증해 반환한다.
 func ParseEWKB(raw []byte) (Point, error) {
 	if len(raw) < 21 {
 		return Point{}, fmt.Errorf("%w: truncated value", ErrInvalidPoint)

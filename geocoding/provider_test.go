@@ -65,7 +65,7 @@ func TestNominatimReverseErrorTaxonomyAndRedaction(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
 				w.WriteHeader(tt.status)
 				_, _ = w.Write([]byte(tt.body))
 			}))
@@ -92,7 +92,7 @@ func TestNominatimReverseErrorTaxonomyAndRedaction(t *testing.T) {
 
 func TestNominatimReverseCancellationAndBounds(t *testing.T) {
 	var calls atomic.Int32
-	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+	server := httptest.NewServer(http.HandlerFunc(func(_ http.ResponseWriter, r *http.Request) {
 		calls.Add(1)
 		<-r.Context().Done()
 	}))
@@ -131,7 +131,7 @@ func TestOptionsCacheKeyAndCacheOwnership(t *testing.T) {
 	}
 	cache := &memoryCache{}
 	var calls int
-	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
 		calls++
 		_, _ = w.Write([]byte(`{"place_id":1,"display_name":"cached","lat":"37.5","lon":"127","address":{}}`))
 	}))

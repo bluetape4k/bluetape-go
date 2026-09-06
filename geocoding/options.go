@@ -11,13 +11,13 @@ import (
 )
 
 const (
-	// DefaultMaxResponseBytes는 bounded JSON response 기본 상한이다.
+	// DefaultMaxResponseBytes 는 bounded JSON response 기본 상한이다.
 	DefaultMaxResponseBytes int64 = 1 << 20
-	// MaxResponseBytes는 호출자가 지정할 수 있는 response 상한이다.
+	// MaxResponseBytes 는 호출자가 지정할 수 있는 response 상한이다.
 	MaxResponseBytes int64 = 16 << 20
 )
 
-// Options는 reverse 요청의 언어, 상세도와 attribution 선택을 보관한다.
+// Options 는 reverse 요청의 언어, 상세도와 attribution 선택을 보관한다.
 type Options struct {
 	// Language는 Nominatim accept-language 값이다.
 	Language string
@@ -33,7 +33,7 @@ type Options struct {
 	IncludeAttribution bool
 }
 
-// Validate는 요청 option의 범위와 bounded 문자열을 검사한다.
+// Validate 는 요청 option의 범위와 bounded 문자열을 검사한다.
 func (o Options) Validate() error {
 	if o.Zoom < 0 || o.Zoom > 18 {
 		return fmt.Errorf("%w: zoom must be between 0 and 18", ErrInvalidOptions)
@@ -44,7 +44,7 @@ func (o Options) Validate() error {
 	return nil
 }
 
-// CacheKey는 좌표와 요청 의미를 stable low-cardinality 문자열로 반환한다.
+// CacheKey 는 좌표와 요청 의미를 stable low-cardinality 문자열로 반환한다.
 func (o Options) CacheKey(point geo.Point) string {
 	return strings.Join([]string{
 		"nominatim-reverse-v1",
@@ -59,21 +59,21 @@ func (o Options) CacheKey(point geo.Point) string {
 	}, "|")
 }
 
-// RateLimiter는 실제 요청 전에 caller-owned rate policy를 적용한다.
+// RateLimiter 는 실제 요청 전에 caller-owned rate policy를 적용한다.
 type RateLimiter interface {
 	Wait(context.Context) error
 }
 
-// Cache는 reverse 결과를 저장할 caller-owned 선택적 cache 경계다.
+// Cache 는 reverse 결과를 저장할 caller-owned 선택적 cache 경계다.
 type Cache interface {
 	Get(context.Context, string) (Result, bool, error)
 	Set(context.Context, string, Result) error
 }
 
-// Option은 Nominatim client 설정을 변경한다.
+// Option 은 Nominatim client 설정을 변경한다.
 type Option func(*Nominatim) error
 
-// WithMaxResponseBytes는 response body 상한을 설정한다.
+// WithMaxResponseBytes 는 response body 상한을 설정한다.
 func WithMaxResponseBytes(limit int64) Option {
 	return func(client *Nominatim) error {
 		if limit <= 0 || limit > MaxResponseBytes {
@@ -84,7 +84,7 @@ func WithMaxResponseBytes(limit int64) Option {
 	}
 }
 
-// WithTimeout은 HTTP 요청에 사용할 adapter-owned 상한을 설정한다.
+// WithTimeout 은 HTTP 요청에 사용할 adapter-owned 상한을 설정한다.
 func WithTimeout(timeout time.Duration) Option {
 	return func(client *Nominatim) error {
 		if timeout <= 0 {
@@ -95,7 +95,7 @@ func WithTimeout(timeout time.Duration) Option {
 	}
 }
 
-// WithRateLimiter는 요청 전 대기를 caller-owned limiter에 위임한다.
+// WithRateLimiter 는 요청 전 대기를 caller-owned limiter에 위임한다.
 func WithRateLimiter(limiter RateLimiter) Option {
 	return func(client *Nominatim) error {
 		if limiter == nil {
@@ -106,7 +106,7 @@ func WithRateLimiter(limiter RateLimiter) Option {
 	}
 }
 
-// WithCache는 결과 cache를 caller-owned hook으로 주입한다.
+// WithCache 는 결과 cache를 caller-owned hook으로 주입한다.
 func WithCache(cache Cache) Option {
 	return func(client *Nominatim) error {
 		if cache == nil {

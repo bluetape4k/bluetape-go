@@ -11,6 +11,6 @@ func ExampleNewRemoteClient() {
 	if err != nil {
 		return
 	}
-	defer client.Close(context.Background())
+	defer func() { _ = client.Close(context.Background()) }()
 	_, _ = client.Query(context.Background(), "g.V().limit(1)")
 }

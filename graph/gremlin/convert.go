@@ -10,7 +10,7 @@ import (
 	"github.com/bluetape4k/bluetape-go/graph"
 )
 
-// VertexFromValue는 공식 Gremlin vertex 또는 명시적 map shape를 graph.Vertex로 변환한다.
+// VertexFromValue 는 공식 Gremlin vertex 또는 명시적 map shape를 graph.Vertex로 변환한다.
 func VertexFromValue(value any) (graph.Vertex, error) {
 	switch value := value.(type) {
 	case *gremlingo.Vertex:
@@ -33,7 +33,7 @@ func VertexFromValue(value any) (graph.Vertex, error) {
 	}
 }
 
-// EdgeFromValue는 공식 Gremlin edge 또는 명시적 map shape를 graph.Edge로 변환한다.
+// EdgeFromValue 는 공식 Gremlin edge 또는 명시적 map shape를 graph.Edge로 변환한다.
 func EdgeFromValue(value any) (graph.Edge, error) {
 	switch value := value.(type) {
 	case *gremlingo.Edge:
@@ -105,7 +105,7 @@ func vertexFromMap(data map[string]any) (graph.Vertex, error) {
 	if err != nil {
 		return graph.Vertex{}, err
 	}
-	properties, err := propertiesFromElementMap(data, "vertex")
+	properties, err := propertiesFromElementMap(data)
 	if err != nil {
 		return graph.Vertex{}, err
 	}
@@ -129,7 +129,7 @@ func edgeFromMap(data map[string]any) (graph.Edge, error) {
 	if err != nil {
 		return graph.Edge{}, err
 	}
-	properties, err := propertiesFromElementMap(data, "edge")
+	properties, err := propertiesFromElementMap(data)
 	if err != nil {
 		return graph.Edge{}, err
 	}
@@ -161,7 +161,7 @@ func propertiesFromValue(value any) (graph.Properties, error) {
 	}
 }
 
-func propertiesFromElementMap(data map[string]any, kind string) (graph.Properties, error) {
+func propertiesFromElementMap(data map[string]any) (graph.Properties, error) {
 	if raw := firstValue(data, "properties", "valueMap"); raw != nil {
 		return propertiesFromValue(raw)
 	}
@@ -216,8 +216,8 @@ func traversalKeysBounded(value any, limit int) ([]string, error) {
 			}
 			return nil
 		case gremlingo.Path:
-			copy := item
-			return visit(&copy, depth+1)
+			path := item
+			return visit(&path, depth+1)
 		}
 		if reflected, ok := sliceValue(item); ok {
 			for index := 0; index < reflected.Len(); index++ {

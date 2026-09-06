@@ -6,25 +6,25 @@ import (
 )
 
 var (
-	// ErrInvalidOptions는 client 또는 operation option이 유효하지 않음을 나타낸다.
+	// ErrInvalidOptions 는 client 또는 operation option이 유효하지 않음을 나타낸다.
 	ErrInvalidOptions = errors.New("graph/falkordb: invalid options")
-	// ErrInvalidQuery는 query, graph name 또는 parameter가 유효하지 않음을 나타낸다.
+	// ErrInvalidQuery 는 query, graph name 또는 parameter가 유효하지 않음을 나타낸다.
 	ErrInvalidQuery = errors.New("graph/falkordb: invalid query")
-	// ErrInvalidResult는 FalkorDB RESP shape가 기대와 다름을 나타낸다.
+	// ErrInvalidResult 는 FalkorDB RESP shape가 기대와 다름을 나타낸다.
 	ErrInvalidResult = errors.New("graph/falkordb: invalid result")
-	// ErrProvider는 Redis/FalkorDB provider 오류를 나타낸다.
+	// ErrProvider 는 Redis/FalkorDB provider 오류를 나타낸다.
 	ErrProvider = errors.New("graph/falkordb: provider error")
-	// ErrUnsupportedCapability는 이 좁은 adapter가 지원하지 않는 기능을 나타낸다.
+	// ErrUnsupportedCapability 는 이 좁은 adapter가 지원하지 않는 기능을 나타낸다.
 	ErrUnsupportedCapability = errors.New("graph/falkordb: unsupported capability")
 )
 
-// Error는 provider payload와 graph name을 노출하지 않는 typed 오류다.
+// Error 는 provider payload와 graph name을 노출하지 않는 typed 오류다.
 type Error struct {
 	Kind  error
 	Cause error
 }
 
-// Error는 안정된 kind 문자열만 반환한다.
+// Error 는 안정된 kind 문자열만 반환한다.
 func (e *Error) Error() string {
 	if e == nil || e.Kind == nil {
 		return ErrProvider.Error()
@@ -32,7 +32,7 @@ func (e *Error) Error() string {
 	return e.Kind.Error()
 }
 
-// Unwrap는 errors.Is/errors.As용 내부 원인을 보존한다.
+// Unwrap 는 errors.Is/errors.As용 내부 원인을 보존한다.
 func (e *Error) Unwrap() error {
 	if e == nil {
 		return nil
@@ -40,7 +40,7 @@ func (e *Error) Unwrap() error {
 	return e.Cause
 }
 
-// Is는 sentinel 분류와 wrapped provider 오류를 지원한다.
+// Is 는 sentinel 분류와 wrapped provider 오류를 지원한다.
 func (e *Error) Is(target error) bool {
 	if e == nil {
 		return false

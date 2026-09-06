@@ -72,21 +72,21 @@ func TestPostGISPointRoundTripAndIndexedPredicates(t *testing.T) {
 	if err != nil {
 		t.Fatalf("distance SQL: %v", err)
 	}
-	assertOneRow(t, ctx, db, distance)
+	assertOneRow(ctx, t, db, distance)
 	bounds, err := postgis.WithinBounds("places", "location", 126, 37, 128, 38, 4326)
 	if err != nil {
 		t.Fatalf("bounds SQL: %v", err)
 	}
-	assertOneRow(t, ctx, db, bounds)
+	assertOneRow(ctx, t, db, bounds)
 }
 
-func assertOneRow(t *testing.T, ctx context.Context, db *sql.DB, stmt sqlkit.Statement) {
+func assertOneRow(ctx context.Context, t *testing.T, db *sql.DB, stmt sqlkit.Statement) {
 	t.Helper()
 	rows, err := db.QueryContext(ctx, stmt.SQL, stmt.Args...)
 	if err != nil {
 		t.Fatalf("query %q: %v", stmt.SQL, err)
 	}
-	defer rows.Close()
+	defer func() { _ = rows.Close() }()
 	if !rows.Next() {
 		t.Fatalf("query %q returned no rows", stmt.SQL)
 	}

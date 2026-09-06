@@ -20,13 +20,13 @@ const (
 	EndpointKey = "gremlin.endpoint"
 )
 
-// Start는 local TinkerPop endpoint를 시작하고 test cleanup에 등록한다.
+// Start 는 local TinkerPop endpoint를 시작하고 test cleanup에 등록한다.
 func Start(ctx context.Context, tb testing.TB) string {
 	tb.Helper()
 	return mustDetail(ctx, tb, StartServer(ctx, tb), EndpointKey)
 }
 
-// StartServer는 digest-pinned Gremlin Server를 시작해 connection details를 반환한다.
+// StartServer 는 digest-pinned Gremlin Server를 시작해 connection details를 반환한다.
 func StartServer(ctx context.Context, tb testing.TB) *tcserver.Started {
 	tb.Helper()
 	container, err := testcontainers.GenericContainer(ctx, testcontainers.GenericContainerRequest{

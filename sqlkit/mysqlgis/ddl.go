@@ -5,7 +5,7 @@ import (
 	"strings"
 )
 
-// CreateSpatialTableSQL은 MySQL SRID 제약과 NOT NULL Point column DDL을 만든다.
+// CreateSpatialTableSQL 는 MySQL SRID 제약과 NOT NULL Point column DDL을 만든다.
 func CreateSpatialTableSQL(table, column string, srid int) (string, error) {
 	quotedTable, quotedColumn, err := quoteTableColumn(table, column)
 	if err != nil {
@@ -17,7 +17,7 @@ func CreateSpatialTableSQL(table, column string, srid int) (string, error) {
 	return fmt.Sprintf("CREATE TABLE %s (%s POINT SRID %d NOT NULL)", quotedTable, quotedColumn, srid), nil
 }
 
-// CreateSpatialIndexSQL은 MySQL SPATIAL INDEX DDL을 만든다.
+// CreateSpatialIndexSQL 는 MySQL SPATIAL INDEX DDL을 만든다.
 func CreateSpatialIndexSQL(table, column string) (string, error) {
 	quotedTable, quotedColumn, err := quoteTableColumn(table, column)
 	if err != nil {

@@ -13,7 +13,7 @@ import (
 	"github.com/bluetape4k/bluetape-go/graph"
 )
 
-// ResultStream은 공식 Gremlin-Go result channel을 fake-first 경계로 노출한다.
+// ResultStream 은 공식 Gremlin-Go result channel을 fake-first 경계로 노출한다.
 // 구현체는 Close를 여러 번 호출해도 안전해야 한다.
 type ResultStream interface {
 	Results() <-chan *gremlingo.Result
@@ -21,26 +21,26 @@ type ResultStream interface {
 	Close()
 }
 
-// Executor는 remote Gremlin 제출과 bounded result stream을 caller가 주입하는 경계다.
+// Executor 는 remote Gremlin 제출과 bounded result stream을 caller가 주입하는 경계다.
 type Executor interface {
 	Submit(traversal string, bindings map[string]any, timeout time.Duration) (ResultStream, error)
 }
 
-// Submitter는 Executor의 호환 별칭이다.
+// Submitter 는 Executor의 호환 별칭이다.
 type Submitter = Executor
 
-// Result는 remote Gremlin query에서 수집한 defensive top-level values를 보관한다.
+// Result 는 remote Gremlin query에서 수집한 defensive top-level values를 보관한다.
 type Result struct {
 	// Values는 서버가 반환한 순서의 값 복사본이다.
 	Values []any
 }
 
-// Clone은 result slice를 복사해 caller mutation을 격리한다.
+// Clone 은 result slice를 복사해 caller mutation을 격리한다.
 func (r Result) Clone() Result {
 	return Result{Values: append([]any(nil), r.Values...)}
 }
 
-// Client는 caller-owned Gremlin executor 또는 내부에서 생성한 remote connection을 감싼다.
+// Client 는 caller-owned Gremlin executor 또는 내부에서 생성한 remote connection을 감싼다.
 type Client struct {
 	executor   Executor
 	close      func()
@@ -50,7 +50,7 @@ type Client struct {
 	closeOnce  sync.Once
 }
 
-// NewClient는 caller-owned Executor를 감싸며 Executor를 닫지 않는다.
+// NewClient 는 caller-owned Executor를 감싸며 Executor를 닫지 않는다.
 func NewClient(executor Executor, options ...Option) (*Client, error) {
 	if executor == nil {
 		return nil, invalid("executor is nil")
@@ -65,7 +65,7 @@ func NewClient(executor Executor, options ...Option) (*Client, error) {
 	return &Client{executor: executor, maxResults: cfg.maxResults, timeout: cfg.timeout}, nil
 }
 
-// NewConnectionClient는 caller-owned 공식 DriverRemoteConnection을 감싼다.
+// NewConnectionClient 는 caller-owned 공식 DriverRemoteConnection을 감싼다.
 func NewConnectionClient(connection *gremlingo.DriverRemoteConnection, options ...Option) (*Client, error) {
 	if connection == nil {
 		return nil, invalid("remote connection is nil")
@@ -73,7 +73,7 @@ func NewConnectionClient(connection *gremlingo.DriverRemoteConnection, options .
 	return NewClient(driverExecutor{connection: connection}, options...)
 }
 
-// NewRemoteClient는 endpoint와 caller가 제공한 공식 connection 설정으로 adapter를 만든다.
+// NewRemoteClient 는 endpoint와 caller가 제공한 공식 connection 설정으로 adapter를 만든다.
 // 반환된 Client가 생성한 connection은 Client.Close에서 닫힌다.
 func NewRemoteClient(endpoint string, options ...Option) (*Client, error) {
 	if err := validateEndpoint(endpoint); err != nil {
@@ -102,18 +102,18 @@ func NewRemoteClient(endpoint string, options ...Option) (*Client, error) {
 	return client, nil
 }
 
-// New는 NewRemoteClient의 endpoint 중심 편의 생성자다.
+// New 는 NewRemoteClient의 endpoint 중심 편의 생성자다.
 func New(endpoint string, options ...Option) (*Client, error) {
 	return NewRemoteClient(endpoint, options...)
 }
 
-// VerifyConnectivity는 최소 remote traversal로 연결 상태를 확인한다.
+// VerifyConnectivity 는 최소 remote traversal로 연결 상태를 확인한다.
 func (c *Client) VerifyConnectivity(ctx context.Context) error {
 	_, err := c.Query(ctx, "g.V().limit(0).count()")
 	return err
 }
 
-// Query는 traversal을 제출하고 context checkpoint를 거쳐 bounded result를 수집한다.
+// Query 는 traversal을 제출하고 context checkpoint를 거쳐 bounded result를 수집한다.
 func (c *Client) Query(ctx context.Context, traversal string, bindings ...map[string]any) (Result, error) {
 	if err := c.validate(ctx); err != nil {
 		return Result{}, err
@@ -175,13 +175,13 @@ func (c *Client) Query(ctx context.Context, traversal string, bindings ...map[st
 	}
 }
 
-// Execute는 traversal 결과를 버리고 provider 완료만 확인한다.
+// Execute 는 traversal 결과를 버리고 provider 완료만 확인한다.
 func (c *Client) Execute(ctx context.Context, traversal string, bindings ...map[string]any) error {
 	_, err := c.Query(ctx, traversal, bindings...)
 	return err
 }
 
-// ReadVertices는 query 결과를 graph.Vertex로 deterministic하게 변환한다.
+// ReadVertices 는 query 결과를 graph.Vertex로 deterministic하게 변환한다.
 func (c *Client) ReadVertices(ctx context.Context, traversal string, bindings ...map[string]any) ([]graph.Vertex, error) {
 	result, err := c.Query(ctx, traversal, bindings...)
 	if err != nil {
@@ -202,7 +202,7 @@ func (c *Client) ReadVertices(ctx context.Context, traversal string, bindings ..
 	return vertices, nil
 }
 
-// ReadEdges는 query 결과를 directed graph.Edge로 deterministic하게 변환한다.
+// ReadEdges 는 query 결과를 directed graph.Edge로 deterministic하게 변환한다.
 func (c *Client) ReadEdges(ctx context.Context, traversal string, bindings ...map[string]any) ([]graph.Edge, error) {
 	result, err := c.Query(ctx, traversal, bindings...)
 	if err != nil {
@@ -223,7 +223,7 @@ func (c *Client) ReadEdges(ctx context.Context, traversal string, bindings ...ma
 	return edges, nil
 }
 
-// Traverse는 query 결과의 vertex/path 값을 logical key 문자열로 변환한다.
+// Traverse 는 query 결과의 vertex/path 값을 logical key 문자열로 변환한다.
 func (c *Client) Traverse(ctx context.Context, traversal string, bindings ...map[string]any) ([]string, error) {
 	result, err := c.Query(ctx, traversal, bindings...)
 	if err != nil {
@@ -240,7 +240,7 @@ func (c *Client) Traverse(ctx context.Context, traversal string, bindings ...map
 	return keys, nil
 }
 
-// RequireCapability는 지원하지 않는 server-side 기능을 명시적인 typed error로 반환한다.
+// RequireCapability 는 지원하지 않는 server-side 기능을 명시적인 typed error로 반환한다.
 func (c *Client) RequireCapability(capability string) error {
 	if strings.TrimSpace(capability) == "" {
 		return classified(ErrInvalidOptions, "capability is blank", nil)
@@ -253,7 +253,7 @@ func (c *Client) RequireCapability(capability string) error {
 	}
 }
 
-// Close는 owned remote connection만 닫고 caller-owned Executor는 건드리지 않는다.
+// Close 는 owned remote connection만 닫고 caller-owned Executor는 건드리지 않는다.
 func (c *Client) Close(ctx context.Context) error {
 	if c == nil {
 		return invalid("close client")

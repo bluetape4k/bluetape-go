@@ -9,7 +9,7 @@ import (
 	"github.com/bluetape4k/bluetape-go/sqlkit"
 )
 
-// InsertPoint는 ST_GeomFromWKB와 bind argument를 사용하는 MySQL insert statement를 만든다.
+// InsertPoint 는 ST_GeomFromWKB와 bind argument를 사용하는 MySQL insert statement를 만든다.
 func InsertPoint(table, column string, point Point) (sqlkit.Statement, error) {
 	quotedTable, quotedColumn, err := quoteTableColumn(table, column)
 	if err != nil {
@@ -25,7 +25,7 @@ func InsertPoint(table, column string, point Point) (sqlkit.Statement, error) {
 	return sqlkit.NewStatement(fmt.Sprintf("INSERT INTO %s (%s) VALUES (ST_GeomFromWKB(?, %d, 'axis-order=long-lat'))", quotedTable, quotedColumn, point.SRID), raw), nil
 }
 
-// SelectPointSQL은 ST_AsBinary와 ST_SRID를 함께 읽어 SRID를 잃지 않게 한다.
+// SelectPointSQL 는 ST_AsBinary와 ST_SRID를 함께 읽어 SRID를 잃지 않게 한다.
 func SelectPointSQL(table, column string) (string, error) {
 	quotedTable, quotedColumn, err := quoteTableColumn(table, column)
 	if err != nil {
@@ -34,7 +34,7 @@ func SelectPointSQL(table, column string) (string, error) {
 	return fmt.Sprintf("SELECT ST_AsBinary(%s, 'axis-order=long-lat'), ST_SRID(%s) FROM %s", quotedColumn, quotedColumn, quotedTable), nil
 }
 
-// WithinDistance는 미터 단위 ST_Distance_Sphere predicate를 만든다.
+// WithinDistance 는 미터 단위 ST_Distance_Sphere predicate를 만든다.
 func WithinDistance(table, column string, center Point, distance float64) (sqlkit.Statement, error) {
 	quotedTable, quotedColumn, err := quoteTableColumn(table, column)
 	if err != nil {
@@ -53,7 +53,7 @@ func WithinDistance(table, column string, center Point, distance float64) (sqlki
 	return sqlkit.NewStatement(fmt.Sprintf("SELECT * FROM %s WHERE ST_Distance_Sphere(%s, ST_GeomFromWKB(?, %d, 'axis-order=long-lat')) <= ?", quotedTable, quotedColumn, center.SRID), raw, distance), nil
 }
 
-// WithinBounds는 MBRContains와 bind된 polygon WKB를 사용하는 spatial index predicate를 만든다.
+// WithinBounds 는 MBRContains와 bind된 polygon WKB를 사용하는 spatial index predicate를 만든다.
 func WithinBounds(table, column string, minX, minY, maxX, maxY float64, srid int) (sqlkit.Statement, error) {
 	quotedTable, quotedColumn, err := quoteTableColumn(table, column)
 	if err != nil {

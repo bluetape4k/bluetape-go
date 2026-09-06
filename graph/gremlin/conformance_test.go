@@ -5,7 +5,6 @@ import (
 	"errors"
 	"strings"
 	"testing"
-	"time"
 
 	"github.com/bluetape4k/bluetape-go/graph"
 	"github.com/bluetape4k/bluetape-go/graph/graphtest"
@@ -145,7 +144,7 @@ func TestConformanceMetadataIsDigestPinned(t *testing.T) {
 	if !strings.Contains(tinkerPopImage, "@sha256:") || !strings.HasSuffix(tinkerPopImage, "d7b23b4b6773a521cb70cf82c68584a6c68e35019c1357ab4c9371c4e843d651") {
 		t.Fatalf("image reference is not pinned: %s", tinkerPopImage)
 	}
-	if time.Duration(graphtest.DefaultConfig().CaseTimeout) <= 0 {
+	if graphtest.DefaultConfig().CaseTimeout <= 0 {
 		t.Fatal("conformance timeout is not bounded")
 	}
 }

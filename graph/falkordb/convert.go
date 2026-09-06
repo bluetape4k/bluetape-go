@@ -7,7 +7,7 @@ import (
 	"github.com/bluetape4k/bluetape-go/graph"
 )
 
-// VertexFromValue는 map 형태의 bounded FalkorDB node 값을 graph.Vertex로 변환한다.
+// VertexFromValue 는 map 형태의 bounded FalkorDB node 값을 graph.Vertex로 변환한다.
 func VertexFromValue(value any) (graph.Vertex, error) {
 	data, ok := value.(map[string]any)
 	if !ok {
@@ -33,7 +33,7 @@ func VertexFromValue(value any) (graph.Vertex, error) {
 	return graph.ParseVertex(id, label, properties)
 }
 
-// EdgeFromValue는 map 형태의 bounded FalkorDB relationship 값을 graph.Edge로 변환한다.
+// EdgeFromValue 는 map 형태의 bounded FalkorDB relationship 값을 graph.Edge로 변환한다.
 func EdgeFromValue(value any) (graph.Edge, error) {
 	data, ok := value.(map[string]any)
 	if !ok {

@@ -28,13 +28,13 @@ const (
 	ConnectionStringKey = "postgis.connection-string"
 )
 
-// Start는 PostGIS fixture의 connection string을 반환한다.
+// Start 는 PostGIS fixture의 connection string을 반환한다.
 func Start(ctx context.Context, tb testing.TB) string {
 	tb.Helper()
 	return mustDetail(ctx, tb, StartServer(ctx, tb), ConnectionStringKey)
 }
 
-// StartServer는 digest-pinned PostGIS container와 bounded readiness/cleanup을 준비한다.
+// StartServer 는 digest-pinned PostGIS container와 bounded readiness/cleanup을 준비한다.
 func StartServer(ctx context.Context, tb testing.TB) *tcserver.Started {
 	tb.Helper()
 	container, err := testcontainers.GenericContainer(ctx, testcontainers.GenericContainerRequest{

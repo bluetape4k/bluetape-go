@@ -12,7 +12,7 @@ import (
 
 const pointWKBLength = 21
 
-// Point는 MySQL geometry(Point)에 저장할 WGS84 경도(X)·위도(Y)와 SRID를 보관한다.
+// Point 는 MySQL geometry(Point)에 저장할 WGS84 경도(X)·위도(Y)와 SRID를 보관한다.
 //
 // MySQL의 ST_AsBinary 결과에는 SRID가 없을 수 있으므로 Scan은 SRID 0을
 // 사용한다. 조회 시 ST_SRID를 함께 읽었다면 ScanWithSRID로 명시적으로 복원한다.
@@ -23,7 +23,7 @@ type Point struct {
 	Valid bool
 }
 
-// ScannedPoint는 ST_AsBinary와 ST_SRID를 함께 읽은 database/sql 결과다.
+// ScannedPoint 는 ST_AsBinary와 ST_SRID를 함께 읽은 database/sql 결과다.
 type ScannedPoint struct {
 	WKB  []byte
 	SRID int
@@ -32,7 +32,7 @@ type ScannedPoint struct {
 var _ driver.Valuer = Point{}
 var _ interface{ Scan(any) error } = (*Point)(nil)
 
-// NewPoint는 경도(X), 위도(Y), SRID를 검증한 유효한 Point를 생성한다.
+// NewPoint 는 경도(X), 위도(Y), SRID를 검증한 유효한 Point를 생성한다.
 func NewPoint(x, y float64, srid int) (Point, error) {
 	if err := validateSRID(srid); err != nil {
 		return Point{}, err
@@ -43,12 +43,12 @@ func NewPoint(x, y float64, srid int) (Point, error) {
 	return Point{X: x, Y: y, SRID: srid, Valid: true}, nil
 }
 
-// NewWGS84Point는 위도와 경도를 받아 SRID 4326 Point를 생성한다.
+// NewWGS84Point 는 위도와 경도를 받아 SRID 4326 Point를 생성한다.
 func NewWGS84Point(latitude, longitude float64) (Point, error) {
 	return NewPoint(longitude, latitude, 4326)
 }
 
-// Value는 유효한 Point를 MySQL WKB로 반환하며 SRID는 query helper가 전달한다.
+// Value 는 유효한 Point를 MySQL WKB로 반환하며 SRID는 query helper가 전달한다.
 func (p Point) Value() (driver.Value, error) {
 	if !p.Valid {
 		return nil, nil
@@ -60,7 +60,7 @@ func (p Point) Value() (driver.Value, error) {
 	return raw, nil
 }
 
-// MarshalWKB는 SRID 없는 little-endian WKB byte slice를 새로 반환한다.
+// MarshalWKB 는 SRID 없는 little-endian WKB byte slice를 새로 반환한다.
 func (p Point) MarshalWKB() ([]byte, error) {
 	if !p.Valid {
 		return nil, nil
@@ -79,7 +79,7 @@ func (p Point) MarshalWKB() ([]byte, error) {
 	return raw, nil
 }
 
-// Scan은 NULL, SRID 없는 WKB, MySQL internal SRID-prefix WKB 또는 POINT WKT를 decode한다.
+// Scan 은 NULL, SRID 없는 WKB, MySQL internal SRID-prefix WKB 또는 POINT WKT를 decode한다.
 func (p *Point) Scan(src any) error {
 	if p == nil {
 		return fmt.Errorf("%w: nil receiver", ErrInvalidPoint)
@@ -116,7 +116,7 @@ func (p *Point) Scan(src any) error {
 	return nil
 }
 
-// ScanWithSRID는 ST_AsBinary 결과와 별도로 조회한 SRID를 함께 적용한다.
+// ScanWithSRID 는 ST_AsBinary 결과와 별도로 조회한 SRID를 함께 적용한다.
 func (p *Point) ScanWithSRID(raw []byte, srid int) error {
 	if p == nil {
 		return fmt.Errorf("%w: nil receiver", ErrInvalidPoint)
@@ -130,7 +130,7 @@ func (p *Point) ScanWithSRID(raw []byte, srid int) error {
 	return nil
 }
 
-// ParseWKB는 SRID 없는 WKB 또는 MySQL internal SRID-prefix WKB를 Point로 변환한다.
+// ParseWKB 는 SRID 없는 WKB 또는 MySQL internal SRID-prefix WKB를 Point로 변환한다.
 func ParseWKB(raw []byte) (Point, error) {
 	point, err := parseBinary(bytes.Clone(raw), 0)
 	if err == nil {

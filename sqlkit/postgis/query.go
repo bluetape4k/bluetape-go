@@ -8,7 +8,7 @@ import (
 	"github.com/bluetape4k/bluetape-go/sqlkit"
 )
 
-// CreateSpatialTableSQL은 SRID 제약이 있는 PostGIS Point 테이블 DDL을 만든다.
+// CreateSpatialTableSQL 는 SRID 제약이 있는 PostGIS Point 테이블 DDL을 만든다.
 func CreateSpatialTableSQL(table, column string, srid int) (string, error) {
 	quotedTable, quotedColumn, err := quoteTableColumn(table, column)
 	if err != nil {
@@ -20,7 +20,7 @@ func CreateSpatialTableSQL(table, column string, srid int) (string, error) {
 	return fmt.Sprintf("CREATE TABLE %s (%s geometry(Point, %d) NOT NULL)", quotedTable, quotedColumn, srid), nil
 }
 
-// CreateSpatialIndexSQL은 PostGIS geometry column에 대한 GIST index DDL을 만든다.
+// CreateSpatialIndexSQL 는 PostGIS geometry column에 대한 GIST index DDL을 만든다.
 func CreateSpatialIndexSQL(table, column string) (string, error) {
 	quotedTable, quotedColumn, err := quoteTableColumn(table, column)
 	if err != nil {
@@ -34,7 +34,7 @@ func CreateSpatialIndexSQL(table, column string) (string, error) {
 	return fmt.Sprintf("CREATE INDEX %s ON %s USING GIST (%s)", quotedIndex, quotedTable, quotedColumn), nil
 }
 
-// InsertPoint는 EWKB를 bind argument로 사용하는 point insert statement를 만든다.
+// InsertPoint 는 EWKB를 bind argument로 사용하는 point insert statement를 만든다.
 func InsertPoint(table, column string, point Point) (sqlkit.Statement, error) {
 	quotedTable, quotedColumn, err := quoteTableColumn(table, column)
 	if err != nil {
@@ -50,7 +50,7 @@ func InsertPoint(table, column string, point Point) (sqlkit.Statement, error) {
 	), nil
 }
 
-// WithinDistance는 SRID가 같은 geometry에서 거리 단위의 indexed predicate를 만든다.
+// WithinDistance 는 SRID가 같은 geometry에서 거리 단위의 indexed predicate를 만든다.
 func WithinDistance(table, column string, center Point, distance float64) (sqlkit.Statement, error) {
 	quotedTable, quotedColumn, err := quoteTableColumn(table, column)
 	if err != nil {
@@ -73,7 +73,7 @@ func WithinDistance(table, column string, center Point, distance float64) (sqlki
 	return sqlkit.NewStatement(query, raw, distance), nil
 }
 
-// WithinBounds는 inclusive bounding box predicate statement를 만든다.
+// WithinBounds 는 inclusive bounding box predicate statement를 만든다.
 func WithinBounds(table, column string, minX, minY, maxX, maxY float64, srid int) (sqlkit.Statement, error) {
 	quotedTable, quotedColumn, err := quoteTableColumn(table, column)
 	if err != nil {

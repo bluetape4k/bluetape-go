@@ -10,7 +10,7 @@ import (
 	"github.com/bluetape4k/bluetape-go/graph"
 )
 
-// Client는 caller-owned Redis client와 명시적인 graph namespace를 보관한다.
+// Client 는 caller-owned Redis client와 명시적인 graph namespace를 보관한다.
 type Client struct {
 	conn    redis.UniversalClient
 	graph   string
@@ -18,7 +18,7 @@ type Client struct {
 	timeout time.Duration
 }
 
-// Result는 bounded FalkorDB query header, rows, statistics를 보관한다.
+// Result 는 bounded FalkorDB query header, rows, statistics를 보관한다.
 type Result struct {
 	// Columns는 응답 column name의 복사본이다.
 	Columns []string
@@ -30,7 +30,7 @@ type Result struct {
 
 var _ = official.NewQueryOptions
 
-// NewClient는 caller-owned Redis client와 graph name으로 FalkorDB adapter를 만든다.
+// NewClient 는 caller-owned Redis client와 graph name으로 FalkorDB adapter를 만든다.
 func NewClient(conn redis.UniversalClient, graphName string, options ...Option) (*Client, error) {
 	if conn == nil {
 		return nil, invalid("redis client is nil")
@@ -50,7 +50,7 @@ func NewClient(conn redis.UniversalClient, graphName string, options ...Option) 
 	return client, nil
 }
 
-// GraphName은 adapter가 사용하는 명시적 graph namespace를 반환한다.
+// GraphName 은 adapter가 사용하는 명시적 graph namespace를 반환한다.
 func (c *Client) GraphName() string {
 	if c == nil {
 		return ""
@@ -58,7 +58,7 @@ func (c *Client) GraphName() string {
 	return c.graph
 }
 
-// VerifyConnectivity는 caller context를 사용해 Redis PING을 실행한다.
+// VerifyConnectivity 는 caller context를 사용해 Redis PING을 실행한다.
 func (c *Client) VerifyConnectivity(ctx context.Context) error {
 	if err := c.validate(ctx); err != nil {
 		return err
@@ -72,7 +72,7 @@ func (c *Client) VerifyConnectivity(ctx context.Context) error {
 	return nil
 }
 
-// Close는 caller-owned Redis client를 닫지 않고 adapter ownership을 종료한다.
+// Close 는 caller-owned Redis client를 닫지 않고 adapter ownership을 종료한다.
 func (c *Client) Close(context.Context) error {
 	if c == nil {
 		return classified(ErrInvalidOptions, nil)
@@ -80,7 +80,7 @@ func (c *Client) Close(context.Context) error {
 	return nil
 }
 
-// Query는 GRAPH.QUERY를 context-aware raw Redis 명령으로 실행한다.
+// Query 는 GRAPH.QUERY를 context-aware raw Redis 명령으로 실행한다.
 func (c *Client) Query(ctx context.Context, query string, params map[string]any) (Result, error) {
 	if err := c.validate(ctx); err != nil {
 		return Result{}, err
@@ -112,7 +112,7 @@ func (c *Client) Query(ctx context.Context, query string, params map[string]any)
 	return result, nil
 }
 
-// DeleteGraph는 현재 graph namespace를 삭제하며 shared Redis client는 닫지 않는다.
+// DeleteGraph 는 현재 graph namespace를 삭제하며 shared Redis client는 닫지 않는다.
 func (c *Client) DeleteGraph(ctx context.Context) error {
 	if err := c.validate(ctx); err != nil {
 		return err
@@ -129,7 +129,7 @@ func (c *Client) DeleteGraph(ctx context.Context) error {
 	return nil
 }
 
-// ReadVertices는 rows를 graph.Vertex로 제한적으로 변환한다.
+// ReadVertices 는 rows를 graph.Vertex로 제한적으로 변환한다.
 func (c *Client) ReadVertices(ctx context.Context, query string, params map[string]any) ([]graph.Vertex, error) {
 	result, err := c.Query(ctx, query, params)
 	if err != nil {
@@ -146,7 +146,7 @@ func (c *Client) ReadVertices(ctx context.Context, query string, params map[stri
 	return vertices, nil
 }
 
-// ReadEdges는 rows를 graph.Edge로 제한적으로 변환한다.
+// ReadEdges 는 rows를 graph.Edge로 제한적으로 변환한다.
 func (c *Client) ReadEdges(ctx context.Context, query string, params map[string]any) ([]graph.Edge, error) {
 	result, err := c.Query(ctx, query, params)
 	if err != nil {

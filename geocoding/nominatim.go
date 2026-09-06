@@ -15,7 +15,7 @@ import (
 	"github.com/bluetape4k/bluetape-go/geo"
 )
 
-// Nominatim은 호출자가 소유한 HTTP client로 Nominatim 호환 /reverse endpoint를 호출한다.
+// Nominatim 은 호출자가 소유한 HTTP client로 Nominatim 호환 /reverse endpoint를 호출한다.
 type Nominatim struct {
 	baseURL          *url.URL
 	httpClient       *http.Client
@@ -28,7 +28,7 @@ type Nominatim struct {
 
 var _ Provider = (*Nominatim)(nil)
 
-// NewNominatim은 명시적인 base URL, HTTP client와 식별 가능한 User-Agent로 adapter를 만든다.
+// NewNominatim 은 명시적인 base URL, HTTP client와 식별 가능한 User-Agent로 adapter를 만든다.
 //
 // baseURL은 public endpoint 기본값으로 대체되지 않으며, caller가 service
 // policy와 attribution을 직접 준수해야 한다.
@@ -60,12 +60,12 @@ func NewNominatim(baseURL string, httpClient *http.Client, userAgent string, opt
 	return client, nil
 }
 
-// New는 NewNominatim의 짧은 별칭이다.
+// New 는 NewNominatim의 짧은 별칭이다.
 func New(baseURL string, httpClient *http.Client, userAgent string, options ...Option) (*Nominatim, error) {
 	return NewNominatim(baseURL, httpClient, userAgent, options...)
 }
 
-// Reverse는 좌표를 /reverse JSON endpoint로 조회하고 bounded Result를 반환한다.
+// Reverse 는 좌표를 /reverse JSON endpoint로 조회하고 bounded Result를 반환한다.
 func (n *Nominatim) Reverse(ctx context.Context, point geo.Point, options Options) (Result, error) {
 	if n == nil || n.baseURL == nil || n.httpClient == nil {
 		return Result{}, classified(ErrInvalidOptions, 0, nil)
@@ -150,7 +150,7 @@ func (n *Nominatim) Reverse(ctx context.Context, point geo.Point, options Option
 		}
 		return Result{}, classified(ErrProvider, 0, err)
 	}
-	defer resp.Body.Close()
+	defer func() { _ = resp.Body.Close() }()
 	body, err := io.ReadAll(io.LimitReader(resp.Body, n.maxResponseBytes+1))
 	if err != nil {
 		return Result{}, classified(ErrProvider, resp.StatusCode, err)

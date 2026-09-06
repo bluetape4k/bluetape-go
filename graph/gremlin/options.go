@@ -19,10 +19,10 @@ type config struct {
 	connection []func(*gremlingo.DriverRemoteConnectionSettings)
 }
 
-// Option gremlin remote adapter의 caller-owned 설정을 조정한다.
+// Option 은 gremlin remote adapter의 caller-owned 설정을 조정한다.
 type Option func(*config) error
 
-// WithMaxResults는 한 query가 materialize할 최대 result 수를 설정한다.
+// WithMaxResults 는 한 query가 materialize할 최대 result 수를 설정한다.
 func WithMaxResults(limit int) Option {
 	return func(cfg *config) error {
 		if limit < 1 || limit > defaultMaxResults {
@@ -33,7 +33,7 @@ func WithMaxResults(limit int) Option {
 	}
 }
 
-// WithTimeout은 remote request의 evaluation timeout과 local collection 상한을 설정한다.
+// WithTimeout 은 remote request의 evaluation timeout과 local collection 상한을 설정한다.
 func WithTimeout(timeout time.Duration) Option {
 	return func(cfg *config) error {
 		if timeout <= 0 || timeout > maxTimeout {
@@ -44,7 +44,7 @@ func WithTimeout(timeout time.Duration) Option {
 	}
 }
 
-// WithConnectionConfiguration은 공식 Gremlin-Go connection 설정을 caller에게 위임한다.
+// WithConnectionConfiguration 은 공식 Gremlin-Go connection 설정을 caller에게 위임한다.
 func WithConnectionConfiguration(configuration func(*gremlingo.DriverRemoteConnectionSettings)) Option {
 	return func(cfg *config) error {
 		if configuration == nil {
@@ -75,12 +75,12 @@ func normalizeBindings(bindings []map[string]any) (map[string]any, error) {
 	if len(bindings) == 0 || bindings[0] == nil {
 		return nil, nil
 	}
-	copy := make(map[string]any, len(bindings[0]))
+	normalized := make(map[string]any, len(bindings[0]))
 	for key, value := range bindings[0] {
 		if strings.TrimSpace(key) == "" {
 			return nil, classified(ErrInvalidQuery, "blank binding name", nil)
 		}
-		copy[key] = value
+		normalized[key] = value
 	}
-	return copy, nil
+	return normalized, nil
 }

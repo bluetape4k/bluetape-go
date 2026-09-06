@@ -1,4 +1,4 @@
-// Package falkordb는 caller-owned Redis client를 통한 제한된 FalkorDB
+// Package falkordb 는 caller-owned Redis client를 통한 제한된 FalkorDB
 // OpenCypher 경계를 제공한다.
 //
 // 공식 falkordb-go/v2의 고수준 API가 package-global background context를
