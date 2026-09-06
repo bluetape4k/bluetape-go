@@ -32,6 +32,12 @@ middleware의 nil downstream 동작을 통일하고, rate-limit 응답 쓰기 �
 redacted observer로 전달하며, legacy JWT parser 설정도 provider가 지원하면
 context-aware 경로로 올립니다.
 
+아직 배포하지 않은 `v0.22.0` milestone은 caller-owned reverse geocoding,
+PostGIS/MySQL/MariaDB별 GIS helper, 좁은 FalkorDB와 remote Gremlin/TinkerPop
+graph adapter를 추가합니다. 각 backend는 자신의 SQL 또는 remote-protocol
+계약을 유지하며 model-only package에 broad spatial/graph abstraction을
+추가하지 않습니다.
+
 그 밖에도 foundation helper, codec, compression, context-aware concurrency,
 serializer contract, Redis 기반 leader election과 lock, resilience policy,
 cache coordination, token-bucket rate limiting, finite state machine, workflow
@@ -64,7 +70,11 @@ API가 아니라 module-gated future scope입니다.
 | [`testing/concurrency`](testing/concurrency/README.ko.md) | active | concurrent test를 위한 stress/async job helper. |
 | [`testcontainers/redis`](testcontainers/redis/README.ko.md) | active | Testcontainers for Go 기반 Redis fixture. |
 | [`testcontainers/postgres`](testcontainers/postgres/README.ko.md) | active | Testcontainers for Go 기반 PostgreSQL fixture. |
+| [`testcontainers/postgis`](testcontainers/postgis/README.ko.md) | active | Spatial SQL test를 위한 digest-pinned PostGIS fixture. |
 | [`testcontainers/mysql`](testcontainers/mysql/README.ko.md) | active | Testcontainers for Go 기반 MySQL 8.4 fixture. |
+| [`testcontainers/mariadb`](testcontainers/mariadb/README.ko.md) | active | Testcontainers for Go 기반 MariaDB fixture. |
+| [`testcontainers/falkordb`](testcontainers/falkordb/README.ko.md) | active | OpenCypher test를 위한 digest-pinned FalkorDB fixture. |
+| [`testcontainers/tinkerpop`](testcontainers/tinkerpop/README.ko.md) | active | Digest-pinned TinkerPop Gremlin Server fixture. |
 | [`testcontainers/mongodb`](testcontainers/mongodb/README.ko.md) | active | Testcontainers for Go 기반 MongoDB fixture. |
 | [`testcontainers/nats`](testcontainers/nats/README.ko.md) | active | Testcontainers for Go 기반 NATS fixture. |
 | [`testcontainers/kafka`](testcontainers/kafka/README.ko.md) | active | Testcontainers for Go 기반 Kafka fixture. |
@@ -114,8 +124,12 @@ API가 아니라 module-gated future scope입니다.
 | [`measure`](measure/README.ko.md) | active | Typed unit, measured value, compound unit, parsing, formatting, affine temperature helper. |
 | [`money`](money/README.ko.md) | active | ISO 4217 통화 값, CLDR-backed locale currency lookup, decimal-backed 금액, 합산, 직렬화, caller-supplied 환율 변환, ECB-backed provider 변환. |
 | [`geo`](geo/README.ko.md) | active | WGS 84 좌표 값, inclusive antimeridian-aware bounds, Haversine 거리와 canonical lowercase Geohash encode/decode를 제공하는 dependency-free package. |
+| [`geocoding`](geocoding/README.ko.md) | active | Bounded/cancellable response를 갖는 caller-owned reverse-geocoding provider contract와 Nominatim-compatible HTTP adapter. |
 | [`rules`](rules/README.ko.md) | active | Dependency-free facts, functional rule, deterministic rule set, composite group, bounded inference, result detail, context cancellation. |
-| [`sqlkit`](sqlkit/README.ko.md) | active | Runtime-first `database/sql` transaction helper, 명시적 row mapping/cardinality helper, PostgreSQL 우선 inspectable SQL builder. |
+| [`sqlkit`](sqlkit/README.ko.md) | active | Runtime-first `database/sql` transaction helper, 명시적 row mapping/cardinality helper, PostgreSQL 우선 builder와 독립적인 engine별 GIS helper. |
+| [`sqlkit/postgis`](sqlkit/postgis/README.ko.md) | active | PostGIS EWKB/SRID point value, spatial DDL, indexed distance와 bounding-box helper. |
+| [`sqlkit/mysqlgis`](sqlkit/mysqlgis/README.ko.md) | active | MySQL 8.4 SRID-constrained point value, WKB mapping, distance와 MBR helper. |
+| [`sqlkit/mariadbgis`](sqlkit/mariadbgis/README.ko.md) | active | MariaDB SRID-constrained point value, WKB mapping, distance와 MBR helper. |
 | [`audit`](audit/README.ko.md) | active | validated JSON entry, pending event recording, history reconstruction을 제공하는 storage-neutral aggregate event/audit model. |
 | [`audit/sqloutbox`](audit/sqloutbox/README.ko.md) | active | Caller-owned transaction choreography를 유지하는 PostgreSQL-backed audit outbox store와 relay. |
 | [`audit/sqloutbox/redisstreams`](audit/sqloutbox/redisstreams/README.ko.md) | active | 안정적인 event/idempotency metadata를 보존하는 Redis Streams sqloutbox publisher. |
@@ -124,6 +138,8 @@ API가 아니라 module-gated future scope입니다.
 | [`graph/graphtest`](graph/graphtest/README.ko.md) | test | Graph 의미, cancellation, bounded cleanup, traversal capability, redacted provider error를 검증하는 strict backend conformance harness. |
 | [`graph/graphio`](graph/graphio/README.ko.md) | active | Graph vertex/edge를 위한 bounded NDJSON 및 paired CSV import/export helper. |
 | [`graph/neo4j`](graph/neo4j/README.ko.md) | active | 공식 Neo4j Go driver 결과를 graph vertex/edge로 변환하는 proof adapter. |
+| [`graph/falkordb`](graph/falkordb/README.ko.md) | active | Bounded result와 redacted provider error를 제공하는 caller-owned Redis OpenCypher adapter. |
+| [`graph/gremlin`](graph/gremlin/README.ko.md) | active | Bounded result stream, typed mapping, 명시적 capability 제한을 갖는 Gremlin-Go remote adapter. |
 | [`probabilistic`](probabilistic/README.ko.md) | active | deterministic config, merge compatibility check, stress/race coverage를 갖춘 goroutine-safe 인메모리 Bloom filter. |
 | [`probabilistic/redis`](probabilistic/redis/README.ko.md) | active | Static Lua Bloom script, immutable config metadata, operator runbook 경계를 갖춘 Redis-backed shared Bloom filter와 HyperLogLog estimate. |
 
@@ -194,7 +210,13 @@ go get github.com/bluetape4k/bluetape-go
   [`probabilistic`](probabilistic/README.ko.md) 및
   [`probabilistic/redis`](probabilistic/redis/README.ko.md).
 - Data access: [`sqlkit`](sqlkit/README.ko.md) 및 optional
-  [SQL generator/migration guide](docs/sql-generator-migration-guidance.ko.md).
+  [SQL generator/migration guide](docs/sql-generator-migration-guidance.ko.md),
+  그리고 engine별 GIS helper인 [`sqlkit/postgis`](sqlkit/postgis/README.ko.md),
+  [`sqlkit/mysqlgis`](sqlkit/mysqlgis/README.ko.md),
+  [`sqlkit/mariadbgis`](sqlkit/mariadbgis/README.ko.md).
+- Geocoding: [`geocoding`](geocoding/README.ko.md)은 caller-owned
+  reverse-geocoding contract와 Nominatim-compatible HTTP adapter를 제공합니다.
+  Service policy, endpoint 선택, cache와 rate limit은 caller가 소유합니다.
 - Audit: storage-neutral aggregate event value, pending event handoff, validated
   audit entry JSON, history reconstruction을 위한 [`audit`](audit/README.ko.md),
   PostgreSQL-backed at-least-once outbox delivery를 위한
@@ -209,6 +231,8 @@ go get github.com/bluetape4k/bluetape-go
   재사용 가능한 backend-neutral 적합성 계약을 제공하는
   [`graph/graphtest`](graph/graphtest/README.ko.md),
   첫 Neo4j backend proof인 [`graph/neo4j`](graph/neo4j/README.ko.md),
+  bounded OpenCypher adapter인 [`graph/falkordb`](graph/falkordb/README.ko.md),
+  remote Gremlin/TinkerPop adapter인 [`graph/gremlin`](graph/gremlin/README.ko.md),
   runnable incident-response graph 예제인
   [`examples/graph/observability`](examples/graph/observability/README.ko.md),
   IAM access-path review 예제인

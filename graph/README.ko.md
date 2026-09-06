@@ -150,6 +150,8 @@ cleanup, adapter close 순서를 통제합니다.
 |---|---|
 | NDJSON, paired CSV, bounded GraphML Graph I/O helper | [`graph/graphio`](graphio/README.ko.md), [`graph/graphio/graphml`](graphio/graphml) |
 | Neo4j backend proof | [`graph/neo4j`](neo4j/README.ko.md) |
+| FalkorDB OpenCypher adapter | [`graph/falkordb`](falkordb/README.ko.md) |
+| Remote Gremlin/TinkerPop adapter | [`graph/gremlin`](gremlin/README.ko.md) |
 | Backend conformance test-support | [`graph/graphtest`](graphtest/README.ko.md) |
 | Broad GraphML/yEd/yFiles compatibility | Bounded `graphio/graphml` subset 이후로 이관; [issue #433 research](../docs/research/2026-07-09-issue-433-graphml-graphio-evaluation.md) 참고 |
 | Neo4j surface 기반 Memgraph compatibility | [`graph/neo4j`](neo4j/README.ko.md) |

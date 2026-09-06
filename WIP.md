@@ -1,6 +1,6 @@
 # 진행 상황
 
-기준 시각: 2026-09-06 KST
+기준 시각: 2026-09-07 KST
 범위: `v0.22.0` foundation 구현 및 후속 delivery gate.
 
 ## Issue #555 graph backend conformance
@@ -66,12 +66,17 @@ Echo 후속 #692~#694를 함께 배포합니다. `v0.20.0` 사용자는 Echo 후
   `c48c5c8e0f4edfb12436849ac52d3f04793f6ab6`에 반영됐습니다.
 - #555는 PR #736으로 merge됐고 exact-head CI와 Testcontainers Nightly가
   모두 통과했습니다.
-- Step 7-R 후속 P2/P3는 `chore/graph-conformance-review-followups`에서
-  `go test` timeout과 `graph/graphtest` 문서 인덱스·rollback 목록을 보완하고
-  있습니다. 1차 7-Tier 리뷰가 발견한 coverage timeout·override 검증·README
-  설명 누락도 수정했습니다. `make coverage`, 최종 `make ci`, 7-Tier 여섯 독립
-  관점과 main integration review가 모두 통과했으며 PR exact-head CI를 남겨 두고
-  있습니다.
+- `#551` PostGIS는 `b8e79534`로, `#552` MySQL/MariaDB GIS는 `629b589e`로,
+  `#554` Nominatim reverse geocoding은 `5cbc183e`로 구현했습니다.
+- `#547` FalkorDB OpenCypher adapter는 `4a1fdc82`로, `#561` remote
+  Gremlin/TinkerPop adapter는 `c896e254`로 구현했습니다. 각 slice는
+  caller-owned client/credential/lifecycle, bounded result/error, context
+  경계와 digest-pinned local fixture를 유지합니다.
+- 다섯 구현 slice와 fixture는 `feat/milestone-0.22.0-integration` 한 통합
+  branch에서 한 번의 PR/squash merge를 목표로 합니다. 현재 package-level
+  테스트, race, vet, 실제 PostGIS/MySQL/MariaDB/FalkorDB/TinkerPop fixture
+  검증은 통과했으며, 전체 `make ci`, 7-Tier 구현 review, PR/CI와 merge는
+  아직 남아 있습니다.
 - 최종 검증 중 기존 `leader/etcd`의
   `TestBlockedOfficialCampaignCleanupRequiresClientHardStop`이 full-suite에서 한 번
   실패했습니다. Exact test 5회와 전체 `leader/etcd` package 3회가 연속 통과했고,

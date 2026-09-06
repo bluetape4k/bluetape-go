@@ -73,3 +73,7 @@ func decodeUserHash(hash string) (geo.Cell, error) {
 
 Datum 변환, projection, polygon, routing, tile, geocoding, spatial SQL,
 Geohash neighbor/radius cover/index는 제공하지 않습니다.
+그 경계가 필요하면 별도의 [`geocoding`](../geocoding/README.ko.md) 및
+[`sqlkit/postgis`](../sqlkit/postgis/README.ko.md),
+[`sqlkit/mysqlgis`](../sqlkit/mysqlgis/README.ko.md),
+[`sqlkit/mariadbgis`](../sqlkit/mariadbgis/README.ko.md) package를 사용하세요.
