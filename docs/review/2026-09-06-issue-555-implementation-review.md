@@ -62,12 +62,13 @@ timeout을 같은 명령으로 안내한다.
 - `make lint`: `0 issues`
 - `git diff --check`: PASS
 - 구현 source HEAD `b0900bc` 기준 `make test`, `make ci`: PASS
+- 리뷰 수정과 기록을 포함한 exact head
+  `76707c2fd255c24cf27e3f96d5b75fad20c8e1a8`에서 `make ci`: exit 0
 
-리뷰 수정 이후 exact-head `make ci` 결과는 최종 확인 뒤 `WIP.md`에 고정한다. 원격
-GitHub CI와 Testcontainers Nightly는 PR 및 workflow dispatch 별도 권한 게이트이므로
-`PENDING`이다.
+원격 GitHub CI와 Testcontainers Nightly는 PR 및 workflow dispatch 별도 권한
+게이트이므로 `PENDING`이다.
 
 ## 최종 판정
 
-현재 source review 판정은 `P0=0`, `P1=0`, `P2=0`, `P3=0`이다. Exact-head 로컬
-canonical 검증이 통과하면 Step 6-R을 완료한다.
+최종 source review 판정은 `P0=0`, `P1=0`, `P2=0`, `P3=0`이며 exact-head 로컬
+canonical 검증도 통과했다. Step 6-R은 완료다.

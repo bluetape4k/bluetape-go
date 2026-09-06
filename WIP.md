@@ -11,10 +11,11 @@
 - `[x]` migration 뒤 `go test -count=1 ./graph/neo4j -timeout=10m`
 - `[x]` `make ci`
 - `[ ]` exact-head Testcontainers Nightly
-- `[ ]` Step 6-R 7-Tier review `P0=0 P1=0`
+- `[x]` Step 6-R 7-Tier review `P0=0 P1=0 P2=0 P3=0`
 - Migration commit: `5d73079cd2ce2f8403cb068e7816b399c823e76d`
-- 로컬 검증 source HEAD: `b0900bc5ab5b5ca0d55495fa073aef8e1aba2175`
-- HEAD_SHA: `PENDING` (Step 6-R 기록 commit 뒤 고정)
+- 구현·리뷰 수정 source HEAD: `ec98e00276ffacd98e559ea4177f16fb58df31d0`
+- HEAD_SHA: `76707c2fd255c24cf27e3f96d5b75fad20c8e1a8`
+  (exact-head `make ci`; 이후 변경은 이 WIP 증거 기록뿐)
 - Base/head: `develop` / `feat/issue-555-graph-conformance`
 - PR number/URL: `PENDING`
 - Required CI run IDs/URLs/conclusions/observed timestamp: `PENDING`
@@ -26,6 +27,12 @@ Neo4j와 Memgraph는 digest-pinned image에서 strict core와 traversal을 skip 
 terminate` 순서와 redacted provider 진단을 확인했다. Legacy/shared parity 뒤 중복
 integration body를 제거했지만 `benchmark_test.go`가 공유하는
 `waitForMemgraphConnectivity`와 `memgraphBoltPort`는 보존했다.
+
+Step 6-R은 startup deadline 뒤 늦게 반환된 adapter 누수 P1 한 건과 startup failure
+진단 및 caller 문서 P2 네 건을 발견해 모두 수정했다. Delta verifier와 main
+integration review의 최종 판정은 `P0=0 P1=0 P2=0 P3=0`이다. Exact head
+`76707c2fd255c24cf27e3f96d5b75fad20c8e1a8`에서 `make ci`가 exit 0으로
+통과했다.
 
 ## 현재 대상 릴리스
 
