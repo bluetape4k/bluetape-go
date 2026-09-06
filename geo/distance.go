@@ -4,7 +4,7 @@ import "math"
 
 const meanEarthRadiusMeters = 6_371_008.8
 
-// DistanceMeters는 평균 지구 반지름 Haversine 구면 근사 거리를 meter로 반환한다.
+// DistanceMeters 함수는 평균 지구 반지름 Haversine 구면 근사 거리를 meter로 반환한다.
 func DistanceMeters(left, right Point) (float64, error) {
 	if err := left.Validate(); err != nil {
 		return 0, err

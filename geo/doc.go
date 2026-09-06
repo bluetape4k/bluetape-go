@@ -1,4 +1,4 @@
-// Package geo는 WGS 84 degree 좌표를 검증하고 경계 포함, Haversine 거리,
+// Package geo 패키지는 WGS 84 degree 좌표를 검증하고 경계 포함, Haversine 거리,
 // canonical lowercase Geohash encode/decode를 제공한다.
 //
 // NewPoint는 latitude, longitude 순서다. GeoJSON의 좌표 순서인 longitude,

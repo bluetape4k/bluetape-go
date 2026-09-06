@@ -10,20 +10,20 @@ const (
 
 var geohashBits = [...]byte{16, 8, 4, 2, 1}
 
-// Cell은 decode된 Geohash의 중심점과 inclusive 경계를 보존한다.
+// Cell 값은 decode된 Geohash의 중심점과 inclusive 경계를 보존한다.
 type Cell struct {
 	center    Point
 	bounds    Bounds
 	precision int
 }
 
-// Center는 cell 중심점을 반환한다. zero Cell에서는 유효한 zero Point를 반환한다.
+// Center 메서드는 cell 중심점을 반환한다. zero Cell에서는 유효한 zero Point를 반환한다.
 func (c Cell) Center() Point { return c.center }
 
-// Bounds는 cell의 inclusive 경계를 반환한다. zero Cell에서는 유효한 zero Bounds를 반환한다.
+// Bounds 메서드는 cell의 inclusive 경계를 반환한다. zero Cell에서는 유효한 zero Bounds를 반환한다.
 func (c Cell) Bounds() Bounds { return c.bounds }
 
-// Validate는 Cell이 성공한 decode 결과인지 확인한다.
+// Validate 메서드는 Cell이 성공한 decode 결과인지 확인한다.
 func (c Cell) Validate() error {
 	if c.precision < minimumPrecision || c.precision > maximumPrecision {
 		return fieldError(ErrInvalidCell, "precision")
@@ -37,7 +37,7 @@ func (c Cell) Validate() error {
 	return nil
 }
 
-// Encode는 point를 지정 precision의 canonical lowercase Geohash로 변환한다.
+// Encode 함수는 point를 지정 precision의 canonical lowercase Geohash로 변환한다.
 func Encode(point Point, precision int) (string, error) {
 	if err := point.Validate(); err != nil {
 		return "", err
@@ -78,7 +78,7 @@ func Encode(point Point, precision int) (string, error) {
 	return string(encoded), nil
 }
 
-// Decode는 canonical lowercase Geohash를 중심점과 inclusive 경계를 가진 Cell로 변환한다.
+// Decode 함수는 canonical lowercase Geohash를 중심점과 inclusive 경계를 가진 Cell로 변환한다.
 func Decode(hash string) (Cell, error) {
 	if len(hash) < minimumPrecision || len(hash) > maximumPrecision {
 		return Cell{}, fieldError(ErrInvalidGeohash, "length")

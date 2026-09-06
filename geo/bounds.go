@@ -1,6 +1,6 @@
 package geo
 
-// Bounds는 [west, south, east, north] 순서의 inclusive degree 경계다.
+// Bounds 값은 [west, south, east, north] 순서의 inclusive degree 경계다.
 type Bounds struct {
 	west  float64
 	south float64
@@ -8,7 +8,7 @@ type Bounds struct {
 	north float64
 }
 
-// NewBounds는 일반 경계 또는 antimeridian을 가로지르는 경계를 생성한다.
+// NewBounds 함수는 일반 경계 또는 antimeridian을 가로지르는 경계를 생성한다.
 func NewBounds(west, south, east, north float64) (Bounds, error) {
 	bounds := Bounds{west: west, south: south, east: east, north: north}
 	if err := bounds.Validate(); err != nil {
@@ -17,19 +17,19 @@ func NewBounds(west, south, east, north float64) (Bounds, error) {
 	return bounds, nil
 }
 
-// West는 degree 단위 서쪽 경계를 반환한다.
+// West 메서드는 degree 단위 서쪽 경계를 반환한다.
 func (b Bounds) West() float64 { return b.west }
 
-// South는 degree 단위 남쪽 경계를 반환한다.
+// South 메서드는 degree 단위 남쪽 경계를 반환한다.
 func (b Bounds) South() float64 { return b.south }
 
-// East는 degree 단위 동쪽 경계를 반환한다.
+// East 메서드는 degree 단위 동쪽 경계를 반환한다.
 func (b Bounds) East() float64 { return b.east }
 
-// North는 degree 단위 북쪽 경계를 반환한다.
+// North 메서드는 degree 단위 북쪽 경계를 반환한다.
 func (b Bounds) North() float64 { return b.north }
 
-// Validate는 좌표 범위와 south/north 순서를 확인한다.
+// Validate 메서드는 좌표 범위와 south/north 순서를 확인한다.
 func (b Bounds) Validate() error {
 	if !finiteInRange(b.west, -180, 180) {
 		return fieldError(ErrInvalidBounds, "west")
@@ -49,7 +49,7 @@ func (b Bounds) Validate() error {
 	return nil
 }
 
-// Contains는 point가 inclusive 경계 안에 있는지 반환한다.
+// Contains 메서드는 point가 inclusive 경계 안에 있는지 반환한다.
 func (b Bounds) Contains(point Point) bool {
 	if b.Validate() != nil || point.Validate() != nil {
 		return false
@@ -74,7 +74,7 @@ func (b Bounds) containsValidPoint(point Point) bool {
 	return false
 }
 
-// CrossesAntimeridian는 east가 west보다 작은 crossing 경계인지 반환한다.
+// CrossesAntimeridian 메서드는 east가 west보다 작은 crossing 경계인지 반환한다.
 func (b Bounds) CrossesAntimeridian() bool {
 	return b.Validate() == nil && b.east < b.west
 }
