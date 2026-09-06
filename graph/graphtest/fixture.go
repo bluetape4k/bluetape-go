@@ -18,7 +18,7 @@ func newFixture() (Fixture, error) {
 		return Fixture{}, errors.New("graphtest: namespace generation failed")
 	}
 	namespace := "btgc_" + hex.EncodeToString(raw[:])
-	left, err := graph.ParseVertex("left", "BTGCSource", graph.Properties{
+	left, err := graph.ParseVertex("left", "BTGraphConformance", graph.Properties{
 		logicalKeyProperty: "left",
 		"rank":             int64(1),
 		"namespace":        namespace,
@@ -26,7 +26,7 @@ func newFixture() (Fixture, error) {
 	if err != nil {
 		return Fixture{}, err
 	}
-	right, err := graph.ParseVertex("right", "BTGCTarget", graph.Properties{
+	right, err := graph.ParseVertex("right", "BTGraphConformance", graph.Properties{
 		logicalKeyProperty: "right",
 		"active":           true,
 		"namespace":        namespace,

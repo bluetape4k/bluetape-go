@@ -18,6 +18,11 @@ func TestNewFixtureIsValidAndDefensivelyCopied(t *testing.T) {
 	if !strings.HasPrefix(f.Namespace(), "btgc_") || len(f.Namespace()) != len("btgc_")+32 {
 		t.Fatalf("namespace = %q", f.Namespace())
 	}
+	for _, vertex := range f.Vertices() {
+		if got := vertex.Label().String(); got != "BTGraphConformance" {
+			t.Fatalf("vertex label = %q", got)
+		}
+	}
 	vertices := f.Vertices()
 	vertices[0], _ = graph.ParseVertex("changed", "Changed", nil)
 	if f.Vertices()[0].ID().String() == "changed" {
