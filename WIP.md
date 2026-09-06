@@ -36,7 +36,9 @@ Echo 후속 #692~#694를 함께 배포합니다. `v0.20.0` 사용자는 Echo 후
 
 ### Benchmark ledger
 
-- Implementation SHA: `0dc2035bf32494df1c10e6bf3498a52cd0a9d960`
+- Benchmarked SHA: `0dc2035bf32494df1c10e6bf3498a52cd0a9d960`
+- Post-benchmark changes: benchmark evidence commit과 Go doc의 `revive`
+  공백 수정만 뒤따랐으며 실행문은 바뀌지 않았다.
 - Working tree: clean
 - Go version: `go1.27.1 darwin/arm64`
 - OS: `Darwin 25.6.0 arm64`
