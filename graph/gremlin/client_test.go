@@ -9,6 +9,7 @@ import (
 	"time"
 
 	gremlingo "github.com/apache/tinkerpop/gremlin-go/v3/driver"
+	"github.com/bluetape4k/bluetape-go/graph"
 )
 
 func TestQueryUsesCheckpointAndDefensiveBindings(t *testing.T) {
@@ -124,6 +125,46 @@ func TestClientCloseDoesNotCloseBorrowedExecutor(t *testing.T) {
 	_, err = client.Query(context.Background(), "g.V()")
 	if !errors.Is(err, ErrClosed) {
 		t.Fatalf("query after close error=%v", err)
+	}
+}
+
+func TestReadVerticesBoundsNestedResults(t *testing.T) {
+	client, err := NewClient(&fakeExecutor{stream: newFakeStream(&gremlingo.Result{Data: []any{
+		map[string]any{"id": "v1", "label": "person"},
+		map[string]any{"id": "v2", "label": "person"},
+	}})}, WithMaxResults(1))
+	if err != nil {
+		t.Fatal(err)
+	}
+	_, err = client.ReadVertices(context.Background(), "g.V()")
+	if !errors.Is(err, ErrInvalidResult) {
+		t.Fatalf("nested result error=%v", err)
+	}
+}
+
+func TestTraverseBoundsNestedResults(t *testing.T) {
+	client, err := NewClient(&fakeExecutor{stream: newFakeStream(&gremlingo.Result{Data: []any{
+		"left", "right",
+	}})}, WithMaxResults(1))
+	if err != nil {
+		t.Fatal(err)
+	}
+	keys, err := client.Traverse(context.Background(), "g.V()")
+	if !errors.Is(err, ErrInvalidResult) || keys != nil {
+		t.Fatalf("keys=%#v nested result error=%v", keys, err)
+	}
+}
+
+func TestReadVerticesStillConvertsWithinNestedLimit(t *testing.T) {
+	client, err := NewClient(&fakeExecutor{stream: newFakeStream(&gremlingo.Result{Data: []any{
+		map[string]any{"id": "v1", "label": "person"},
+	}})}, WithMaxResults(1))
+	if err != nil {
+		t.Fatal(err)
+	}
+	vertices, err := client.ReadVertices(context.Background(), "g.V()")
+	if err != nil || len(vertices) != 1 || vertices[0].ID() != graph.MustElementID("v1") {
+		t.Fatalf("vertices=%#v err=%v", vertices, err)
 	}
 }
 

@@ -191,39 +191,60 @@ func normalizePropertyValue(value any) any {
 }
 
 func traversalKeys(value any) ([]string, error) {
-	switch value := value.(type) {
-	case *gremlingo.Path:
-		if value == nil {
-			return nil, invalidResult("nil path")
-		}
-		keys := make([]string, 0, len(value.Objects))
-		for _, object := range value.Objects {
-			key, err := traversalKey(object)
-			if err != nil {
-				return nil, err
-			}
-			keys = append(keys, key)
-		}
-		return keys, nil
-	case gremlingo.Path:
-		return traversalKeys(&value)
-	case []any:
-		keys := make([]string, 0, len(value))
-		for _, item := range value {
-			part, err := traversalKeys(item)
-			if err != nil {
-				return nil, err
-			}
-			keys = append(keys, part...)
-		}
-		return keys, nil
-	default:
-		key, err := traversalKey(value)
-		if err != nil {
-			return nil, err
-		}
-		return []string{key}, nil
+	return traversalKeysBounded(value, int(^uint(0)>>1))
+}
+
+func traversalKeysBounded(value any, limit int) ([]string, error) {
+	if limit < 0 {
+		return nil, classified(ErrInvalidResult, "traversal result limit is invalid", nil)
 	}
+	keys := make([]string, 0, minInt(limit, 16))
+	var visit func(any, int) error
+	visit = func(item any, depth int) error {
+		if depth > maxExpansionDepth {
+			return invalidResult("nested traversal result is too deep")
+		}
+		switch item := item.(type) {
+		case *gremlingo.Path:
+			if item == nil {
+				return invalidResult("nil path")
+			}
+			for _, object := range item.Objects {
+				if err := visit(object, depth+1); err != nil {
+					return err
+				}
+			}
+			return nil
+		case gremlingo.Path:
+			copy := item
+			return visit(&copy, depth+1)
+		}
+		if reflected, ok := sliceValue(item); ok {
+			for index := 0; index < reflected.Len(); index++ {
+				value := reflected.Index(index)
+				if !value.CanInterface() {
+					return invalidResult("nested traversal item is inaccessible")
+				}
+				if err := visit(value.Interface(), depth+1); err != nil {
+					return err
+				}
+			}
+			return nil
+		}
+		if len(keys) >= limit {
+			return classified(ErrInvalidResult, "traversal result limit exceeded", nil)
+		}
+		key, err := traversalKey(item)
+		if err != nil {
+			return err
+		}
+		keys = append(keys, key)
+		return nil
+	}
+	if err := visit(value, 0); err != nil {
+		return nil, err
+	}
+	return keys, nil
 }
 
 func traversalKey(value any) (string, error) {
@@ -336,14 +357,12 @@ func invalidResult(operation string) error {
 	return classified(ErrInvalidResult, operation, nil)
 }
 
-func expandReflectSlice(value any) []any {
+const maxExpansionDepth = 64
+
+func sliceValue(value any) (reflect.Value, bool) {
 	rv := reflect.ValueOf(value)
-	if !rv.IsValid() || (rv.Kind() != reflect.Array && rv.Kind() != reflect.Slice) {
-		return nil
+	if !rv.IsValid() || (rv.Kind() != reflect.Array && rv.Kind() != reflect.Slice) || rv.Type().Elem().Kind() == reflect.Uint8 {
+		return reflect.Value{}, false
 	}
-	out := make([]any, rv.Len())
-	for i := range out {
-		out[i] = rv.Index(i).Interface()
-	}
-	return out
+	return rv, true
 }

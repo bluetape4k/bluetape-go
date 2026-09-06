@@ -187,16 +187,17 @@ func (c *Client) ReadVertices(ctx context.Context, traversal string, bindings ..
 	if err != nil {
 		return nil, err
 	}
-	vertices := make([]graph.Vertex, 0, len(result.Values))
-	for _, value := range expandValues(result.Values) {
+	values, err := expandValues(result.Values, c.maxResults)
+	if err != nil {
+		return nil, err
+	}
+	vertices := make([]graph.Vertex, 0, len(values))
+	for _, value := range values {
 		vertex, err := VertexFromValue(value)
 		if err != nil {
 			return nil, err
 		}
 		vertices = append(vertices, vertex)
-		if len(vertices) > c.maxResults {
-			return nil, classified(ErrInvalidResult, "vertex result limit exceeded", nil)
-		}
 	}
 	return vertices, nil
 }
@@ -207,16 +208,17 @@ func (c *Client) ReadEdges(ctx context.Context, traversal string, bindings ...ma
 	if err != nil {
 		return nil, err
 	}
-	edges := make([]graph.Edge, 0, len(result.Values))
-	for _, value := range expandValues(result.Values) {
+	values, err := expandValues(result.Values, c.maxResults)
+	if err != nil {
+		return nil, err
+	}
+	edges := make([]graph.Edge, 0, len(values))
+	for _, value := range values {
 		edge, err := EdgeFromValue(value)
 		if err != nil {
 			return nil, err
 		}
 		edges = append(edges, edge)
-		if len(edges) > c.maxResults {
-			return nil, classified(ErrInvalidResult, "edge result limit exceeded", nil)
-		}
 	}
 	return edges, nil
 }
@@ -227,16 +229,13 @@ func (c *Client) Traverse(ctx context.Context, traversal string, bindings ...map
 	if err != nil {
 		return nil, err
 	}
-	keys := make([]string, 0, len(result.Values))
-	for _, value := range expandValues(result.Values) {
-		part, err := traversalKeys(value)
+	keys := make([]string, 0, minInt(len(result.Values), c.maxResults))
+	for _, value := range result.Values {
+		part, err := traversalKeysBounded(value, c.maxResults-len(keys))
 		if err != nil {
 			return nil, err
 		}
 		keys = append(keys, part...)
-		if len(keys) > c.maxResults {
-			return nil, classified(ErrInvalidResult, "traversal result limit exceeded", nil)
-		}
 	}
 	return keys, nil
 }
@@ -369,16 +368,40 @@ func (s resultSetAdapter) Close() {
 	}
 }
 
-func expandValues(values []any) []any {
-	var expanded []any
-	for _, value := range values {
-		if slice, ok := value.([]any); ok {
-			expanded = append(expanded, slice...)
-			continue
+func expandValues(values []any, limit int) ([]any, error) {
+	if limit < 1 {
+		return nil, classified(ErrInvalidResult, "result limit is invalid", nil)
+	}
+	expanded := make([]any, 0, minInt(len(values), limit))
+	var visit func(any, int) error
+	visit = func(value any, depth int) error {
+		if depth > maxExpansionDepth {
+			return classified(ErrInvalidResult, "nested result is too deep", nil)
+		}
+		if reflected, ok := sliceValue(value); ok {
+			for index := 0; index < reflected.Len(); index++ {
+				item := reflected.Index(index)
+				if !item.CanInterface() {
+					return classified(ErrInvalidResult, "nested result item is inaccessible", nil)
+				}
+				if err := visit(item.Interface(), depth+1); err != nil {
+					return err
+				}
+			}
+			return nil
+		}
+		if len(expanded) >= limit {
+			return classified(ErrInvalidResult, "nested result limit exceeded", nil)
 		}
 		expanded = append(expanded, value)
+		return nil
 	}
-	return expanded
+	for _, value := range values {
+		if err := visit(value, 0); err != nil {
+			return nil, err
+		}
+	}
+	return expanded, nil
 }
 
 func minInt(left, right int) int {
