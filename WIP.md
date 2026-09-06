@@ -1,14 +1,50 @@
 # 진행 상황
 
 기준 시각: 2026-09-06 KST
-범위: `v0.22.0` foundation 구현.
+범위: `v0.22.0` foundation 구현 및 후속 delivery gate.
+
+## Issue #555 graph backend conformance
+
+- `[x]` `go test -race -count=10 ./graph/graphtest`
+- `[x]` 독립 process 3회 `go test -count=1 ./graph/neo4j -run '^TestBackendConformance$' -v -timeout=10m`
+- `[x]` legacy Neo4j/Memgraph integration과 shared suite의 같은 tree parity
+- `[x]` migration 뒤 `go test -count=1 ./graph/neo4j -timeout=10m`
+- `[x]` `make ci`
+- `[ ]` exact-head Testcontainers Nightly
+- `[x]` Step 6-R 7-Tier review `P0=0 P1=0 P2=0 P3=0`
+- Migration commit: `5d73079cd2ce2f8403cb068e7816b399c823e76d`
+- 구현·리뷰 수정 source HEAD: `ec98e00276ffacd98e559ea4177f16fb58df31d0`
+- local canonical validation SHA: `76707c2fd255c24cf27e3f96d5b75fad20c8e1a8`
+- pre-integration PR head: `87f9bc3778461a59964de9b1354db3f245e3f205`
+- Base/head: `develop` / `feat/issue-555-graph-conformance`
+- PR number/URL: #736 / https://github.com/bluetape4k/bluetape-go/pull/736
+- Required CI: run `34024733486`, `SUCCESS`, head
+  `87f9bc3778461a59964de9b1354db3f245e3f205`, completed
+  `2026-09-06T09:43:39Z`
+- `origin/develop` integration commit: `5a461a28f56fa4b049240092e9baa3eba4a4cefe`
+- Post-integration local `make ci`: `PASS` (exit 0)
+- Post-integration GitHub CI: `PENDING`
+- Testcontainers Nightly run ID/URL/headSha/conclusion/observed timestamp: `PENDING`
+
+세 독립 process의 전체 suite 시간은 각각 16.77초, 16.34초, 16.33초였다.
+Neo4j와 Memgraph는 digest-pinned image에서 strict core와 traversal을 skip 없이
+통과했다. `callback join → fixture cleanup → adapter close → Run 반환 → container
+terminate` 순서와 redacted provider 진단을 확인했다. Legacy/shared parity 뒤 중복
+integration body를 제거했지만 `benchmark_test.go`가 공유하는
+`waitForMemgraphConnectivity`와 `memgraphBoltPort`는 보존했다.
+
+Step 6-R은 startup deadline 뒤 늦게 반환된 adapter 누수 P1 한 건과 startup failure
+진단 및 caller 문서 P2 네 건을 발견해 모두 수정했다. Delta verifier와 main
+integration review의 최종 판정은 `P0=0 P1=0 P2=0 P3=0`이다. Exact head
+`76707c2fd255c24cf27e3f96d5b75fad20c8e1a8`에서 `make ci`가 exit 0으로
+통과했다.
 
 ## 현재 대상 릴리스
 
 `v0.22.0`은 좌표/Geohash와 graph backend conformance foundation을 묶는
-릴리스입니다. Issue #548은 외부 dependency 없는 `geo` package delivery를
-담당하며 tag와 publication은 milestone open issue가 0이 된 뒤 별도 gate에서
-진행합니다.
+릴리스입니다. Issue #548의 외부 dependency 없는 `geo` package는 PR #735로
+merge됐습니다. Tag와 publication은 milestone open issue가 0이 된 뒤 별도
+gate에서 진행합니다.
 
 ## v0.21.0 이력 경계
 
@@ -24,11 +60,10 @@ Echo 후속 #692~#694를 함께 배포합니다. `v0.20.0` 사용자는 Echo 후
 
 ## 현재 상태
 
-- #548은 `geo`의 `Point`, `Bounds`, Haversine distance, canonical lowercase
-  Geohash API와 영어/한국어 package 문서를 구현하고 있습니다.
-- #548의 완료 gate는 `go test`, race, benchmark 관찰, formatter, tidy, vet,
-  lint와 전체 직렬 test입니다. Testcontainers와 diagram은 이 순수 계산
-  package에 N/A입니다.
+- #548은 PR #735로 merge됐고 `develop`의
+  `c48c5c8e0f4edfb12436849ac52d3f04793f6ab6`에 반영됐습니다.
+- #555는 PR #736의 graph backend conformance를 새 `develop`에 통합하고
+  exact-head CI와 Testcontainers Nightly를 다시 고정하는 단계입니다.
 - `v0.22.0` release preparation, tag와 GitHub Release는 아직 실행하지
   않았습니다.
 

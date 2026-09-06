@@ -121,6 +121,7 @@ API가 아니라 module-gated future scope입니다.
 | [`audit/sqloutbox/redisstreams`](audit/sqloutbox/redisstreams/README.ko.md) | active | 안정적인 event/idempotency metadata를 보존하는 Redis Streams sqloutbox publisher. |
 | [`audit/sqloutbox/sqloutboxtest`](audit/sqloutbox/sqloutboxtest/README.ko.md) | active | sqloutbox test, example, retry, duplicate-delivery assertion을 위한 deterministic publisher helper. |
 | [`graph`](graph/README.ko.md) | active | Vertex, edge, path, label, ID, shallow property, validated JSON을 제공하는 model-only graph value. |
+| [`graph/graphtest`](graph/graphtest/README.ko.md) | test | Graph 의미, cancellation, bounded cleanup, traversal capability, redacted provider error를 검증하는 strict backend conformance harness. |
 | [`graph/graphio`](graph/graphio/README.ko.md) | active | Graph vertex/edge를 위한 bounded NDJSON 및 paired CSV import/export helper. |
 | [`graph/neo4j`](graph/neo4j/README.ko.md) | active | 공식 Neo4j Go driver 결과를 graph vertex/edge로 변환하는 proof adapter. |
 | [`probabilistic`](probabilistic/README.ko.md) | active | deterministic config, merge compatibility check, stress/race coverage를 갖춘 goroutine-safe 인메모리 Bloom filter. |

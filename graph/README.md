@@ -132,12 +132,26 @@ boundaries. Nested mutable values remain caller-owned. This package is not a
 deep-copy, sanitization, or trust-boundary primitive; backend and I/O adapters
 must copy or sanitize nested values before crossing trust boundaries.
 
+## Backend Conformance Support
+
+Production `graph` remains model-only. Backend implementations can use the
+separate [`graph/graphtest`](graphtest/README.md) test-support package to run a
+strict shared contract for graph semantics, cancellation, provider-error
+classification, bounded cleanup/close, and optional traversal. The harness is
+not a production repository or query abstraction.
+
+`RunWithConfig` requires a complete positive configuration. Provider adapters
+own fixed queries, bound parameters, `limit+1` result requests, credentials,
+readiness, and container termination; the harness controls callback join,
+fixture cleanup, and adapter close ordering.
+
 ## Unsupported Capabilities
 
 | Capability | Owner |
 |---|---|
 | Graph I/O helpers for NDJSON, paired CSV, and bounded GraphML | [`graph/graphio`](graphio/README.md), [`graph/graphio/graphml`](graphio/graphml) |
 | Neo4j backend proof | [`graph/neo4j`](neo4j/README.md) |
+| Backend conformance test support | [`graph/graphtest`](graphtest/README.md) |
 | Broad GraphML/yEd/yFiles compatibility | Deferred beyond the bounded `graphio/graphml` subset; see [issue #433 research](../docs/research/2026-07-09-issue-433-graphml-graphio-evaluation.md) |
 | Memgraph compatibility with the Neo4j surface | [`graph/neo4j`](neo4j/README.md) |
 | Domain examples | [`examples/graph/observability`](../examples/graph/observability/README.md), [`examples/graph/iamaccess`](../examples/graph/iamaccess/README.md) |
@@ -171,9 +185,11 @@ deferred to a breaking release.
 go test -count=1 ./graph
 go test -count=1 ./graph/graphio
 go test -count=1 ./graph/graphio/graphml
-go test -p 1 -count=1 ./graph/neo4j
+go test -count=1 ./graph/graphtest
+go test -p 1 -count=1 -timeout=10m ./graph/neo4j
 go test -race -count=1 ./graph
 go test -race -count=1 ./graph/graphio
 go test -race -count=1 ./graph/graphio/graphml
-go test -p 1 -race -count=1 ./graph/neo4j
+go test -race -count=1 ./graph/graphtest
+go test -p 1 -race -count=1 -timeout=15m ./graph/neo4j
 ```
