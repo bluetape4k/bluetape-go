@@ -1,6 +1,6 @@
 # 진행 상황
 
-기준 시각: 2026-09-06 KST
+기준 시각: 2026-09-07 KST
 범위: `v0.22.0` foundation 구현 및 후속 delivery gate.
 
 ## Issue #555 graph backend conformance
@@ -66,12 +66,29 @@ Echo 후속 #692~#694를 함께 배포합니다. `v0.20.0` 사용자는 Echo 후
   `c48c5c8e0f4edfb12436849ac52d3f04793f6ab6`에 반영됐습니다.
 - #555는 PR #736으로 merge됐고 exact-head CI와 Testcontainers Nightly가
   모두 통과했습니다.
-- Step 7-R 후속 P2/P3는 `chore/graph-conformance-review-followups`에서
-  `go test` timeout과 `graph/graphtest` 문서 인덱스·rollback 목록을 보완하고
-  있습니다. 1차 7-Tier 리뷰가 발견한 coverage timeout·override 검증·README
-  설명 누락도 수정했습니다. `make coverage`, 최종 `make ci`, 7-Tier 여섯 독립
-  관점과 main integration review가 모두 통과했으며 PR exact-head CI를 남겨 두고
-  있습니다.
+- `#551` PostGIS는 `b8e79534`로, `#552` MySQL/MariaDB GIS는 `629b589e`로,
+  `#554` Nominatim reverse geocoding은 `5cbc183e`로 구현했습니다.
+- `#547` FalkorDB OpenCypher adapter는 `4a1fdc82`로, `#561` remote
+  Gremlin/TinkerPop adapter는 `c896e254`로 구현했습니다. Gremlin 중첩 결과
+  상한 보정은 `94aa3ef`, lint·errcheck·staticcheck 계약 보정은 `d956c97`에
+  반영했습니다. 각 slice는 caller-owned client/credential/lifecycle,
+  bounded result/error, context 경계와 digest-pinned local fixture를 유지합니다.
+- 다섯 구현 slice와 fixture는 `feat/milestone-0.22.0-integration` 한 통합
+  branch에서 한 번의 PR/squash merge를 목표로 합니다. 현재 package-level
+  테스트, race, vet, lint(`0 issues.`), 실제 PostGIS/MySQL/MariaDB/FalkorDB/
+  TinkerPop fixture 검증과 전체 `make test`, `make race`, `make ci`가
+  통과했습니다. PR #738 exact head `e24cfaca`의 GitHub CI run
+  `34049822664`도 coverage·race 포함 전 단계 `SUCCESS`이며, 최신
+  review/thread read-back과 mergeability도 확인했습니다. fresh exact-head
+  merge approval, merge와 post-merge sync는 아직 남아 있습니다.
+- PR #738의 첫 exact-head CI run `34046283255`는 coverage 단계에서
+  `graph/gremlin`의 TinkerPop factory가 TCP port만 열린 순간 연결을 시도해
+  실패했습니다. `7053dae`에서 `Channel started at port 8182.` log까지 기다리는
+  readiness를 추가했고, 로컬 동일 경계 5회 반복 테스트가 통과했습니다. 두 번째 run
+  `34047689484`는 coverage까지 통과했지만 serial `make race`가 job 25분 제한에
+  걸려 취소되었습니다. 로컬 최신 head의 전체 race는 586초에 통과했으므로,
+  Docker-backed cold-cache 여유를 위해 CI job timeout을 40분으로 조정했습니다.
+  조정 후 세 번째 run `34049822664`는 25m45s에 전체 `SUCCESS`로 완료했습니다.
 - 최종 검증 중 기존 `leader/etcd`의
   `TestBlockedOfficialCampaignCleanupRequiresClientHardStop`이 full-suite에서 한 번
   실패했습니다. Exact test 5회와 전체 `leader/etcd` package 3회가 연속 통과했고,

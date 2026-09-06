@@ -73,3 +73,8 @@ func decodeUserHash(hash string) (geo.Cell, error) {
 
 This package does not provide datum conversion, projection, polygons, routing,
 tiles, geocoding, spatial SQL, Geohash neighbors, radius covers, or indexes.
+Use the separate [`geocoding`](../geocoding/README.md) and
+[`sqlkit/postgis`](../sqlkit/postgis/README.md),
+[`sqlkit/mysqlgis`](../sqlkit/mysqlgis/README.md), or
+[`sqlkit/mariadbgis`](../sqlkit/mariadbgis/README.md) packages when those
+boundaries are required.

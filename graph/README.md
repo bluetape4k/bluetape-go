@@ -151,6 +151,8 @@ fixture cleanup, and adapter close ordering.
 |---|---|
 | Graph I/O helpers for NDJSON, paired CSV, and bounded GraphML | [`graph/graphio`](graphio/README.md), [`graph/graphio/graphml`](graphio/graphml) |
 | Neo4j backend proof | [`graph/neo4j`](neo4j/README.md) |
+| FalkorDB OpenCypher adapter | [`graph/falkordb`](falkordb/README.md) |
+| Remote Gremlin/TinkerPop adapter | [`graph/gremlin`](gremlin/README.md) |
 | Backend conformance test support | [`graph/graphtest`](graphtest/README.md) |
 | Broad GraphML/yEd/yFiles compatibility | Deferred beyond the bounded `graphio/graphml` subset; see [issue #433 research](../docs/research/2026-07-09-issue-433-graphml-graphio-evaluation.md) |
 | Memgraph compatibility with the Neo4j surface | [`graph/neo4j`](neo4j/README.md) |
