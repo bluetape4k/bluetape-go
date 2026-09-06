@@ -117,6 +117,7 @@ future scope, not part of the current public API.
 | [`jwt/mongo`](jwt/mongo/README.md) | active | MongoDB-specific facade for distributed JWT key-chain repository construction. |
 | [`measure`](measure/README.md) | active | Typed units, measured values, compound units, parsing, formatting, and affine temperature helpers. |
 | [`money`](money/README.md) | active | ISO 4217 currency values, CLDR-backed locale currency lookup, decimal-backed money amounts, aggregation, serialization, caller-supplied exchange-rate conversion, and ECB-backed provider conversion. |
+| [`geo`](geo/README.md) | active | Dependency-free WGS 84 coordinate values, inclusive antimeridian-aware bounds, Haversine distance, and canonical lowercase Geohash encode/decode. |
 | [`rules`](rules/README.md) | active | Dependency-free facts, functional rules, deterministic rule sets, composite groups, bounded inference, result details, and context cancellation. |
 | [`sqlkit`](sqlkit/README.md) | active | Runtime-first `database/sql` transaction helpers, explicit row mapping/cardinality helpers, and PostgreSQL-first inspectable SQL builders. |
 | [`audit`](audit/README.md) | active | Storage-neutral aggregate event and audit model with validated JSON entries, pending-event recording, and history reconstruction. |
