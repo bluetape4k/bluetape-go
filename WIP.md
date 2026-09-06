@@ -9,11 +9,12 @@
 - `[x]` 독립 process 3회 `go test -count=1 ./graph/neo4j -run '^TestBackendConformance$' -v -timeout=10m`
 - `[x]` legacy Neo4j/Memgraph integration과 shared suite의 같은 tree parity
 - `[x]` migration 뒤 `go test -count=1 ./graph/neo4j -timeout=10m`
-- `[ ]` `make ci`
+- `[x]` `make ci`
 - `[ ]` exact-head Testcontainers Nightly
 - `[ ]` Step 6-R 7-Tier review `P0=0 P1=0`
 - Migration commit: `5d73079cd2ce2f8403cb068e7816b399c823e76d`
-- HEAD_SHA: `PENDING`
+- 로컬 검증 source HEAD: `b0900bc5ab5b5ca0d55495fa073aef8e1aba2175`
+- HEAD_SHA: `PENDING` (Step 6-R 기록 commit 뒤 고정)
 - Base/head: `develop` / `feat/issue-555-graph-conformance`
 - PR number/URL: `PENDING`
 - Required CI run IDs/URLs/conclusions/observed timestamp: `PENDING`
