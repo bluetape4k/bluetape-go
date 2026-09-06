@@ -92,44 +92,6 @@ func validateAdapter(a Adapter, caps Capabilities) error {
 	return nil
 }
 
-func validateFixture(f Fixture) error {
-	if f.namespace == "" || len(f.vertices) == 0 || len(f.edges) == 0 {
-		return errInvalidHarness
-	}
-	for _, vertex := range f.vertices {
-		if err := vertex.Validate(); err != nil {
-			return errInvalidHarness
-		}
-	}
-	for _, edge := range f.edges {
-		if err := edge.Validate(); err != nil {
-			return errInvalidHarness
-		}
-	}
-	return nil
-}
-
-func cloneVertices(src []graph.Vertex) []graph.Vertex {
-	out := make([]graph.Vertex, len(src))
-	for i, vertex := range src {
-		out[i], _ = graph.NewVertex(vertex.ID(), vertex.Label(), vertex.Properties())
-	}
-	return out
-}
-
-func cloneEdges(src []graph.Edge) []graph.Edge {
-	out := make([]graph.Edge, len(src))
-	for i, edge := range src {
-		out[i], _ = graph.NewEdge(
-			edge.ID(),
-			edge.Label(),
-			graph.EdgeEndpoints{Start: edge.StartID(), End: edge.EndID()},
-			edge.Properties(),
-		)
-	}
-	return out
-}
-
 func classify(fn func(error) bool, err error) (matched bool, panicked bool) {
 	defer func() { panicked = recover() != nil }()
 	return fn(err), false
