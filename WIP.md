@@ -21,7 +21,9 @@
 - Required CI: run `34024733486`, `SUCCESS`, head
   `87f9bc3778461a59964de9b1354db3f245e3f205`, completed
   `2026-09-06T09:43:39Z`
-- `origin/develop` integration head와 post-integration CI: `PENDING`
+- `origin/develop` integration commit: `5a461a28f56fa4b049240092e9baa3eba4a4cefe`
+- Post-integration local `make ci`: `PASS` (exit 0)
+- Post-integration GitHub CI: `PENDING`
 - Testcontainers Nightly run ID/URL/headSha/conclusion/observed timestamp: `PENDING`
 
 세 독립 process의 전체 suite 시간은 각각 16.77초, 16.34초, 16.33초였다.
