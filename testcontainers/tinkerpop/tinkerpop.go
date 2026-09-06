@@ -13,8 +13,10 @@ import (
 )
 
 const (
-	defaultImage = "tinkerpop/gremlin-server:3.8.1@sha256:d7b23b4b6773a521cb70cf82c68584a6c68e35019c1357ab4c9371c4e843d651"
-	gremlinPort  = "8182/tcp"
+	defaultImage     = "tinkerpop/gremlin-server:3.8.1@sha256:d7b23b4b6773a521cb70cf82c68584a6c68e35019c1357ab4c9371c4e843d651"
+	gremlinPort      = "8182/tcp"
+	readinessLog     = "Channel started at port 8182."
+	readinessTimeout = 90 * time.Second
 
 	// EndpointKey TinkerPop WebSocket endpoint를 저장하는 documented key다.
 	EndpointKey = "gremlin.endpoint"
@@ -33,8 +35,10 @@ func StartServer(ctx context.Context, tb testing.TB) *tcserver.Started {
 		ContainerRequest: testcontainers.ContainerRequest{
 			Image:        defaultImage,
 			ExposedPorts: []string{gremlinPort},
-			WaitingFor: wait.ForListeningPort(gremlinPort).
-				WithStartupTimeout(90 * time.Second),
+			WaitingFor: wait.ForAll(
+				wait.ForListeningPort(gremlinPort).WithStartupTimeout(readinessTimeout),
+				wait.ForLog(readinessLog).WithStartupTimeout(readinessTimeout),
+			).WithDeadline(readinessTimeout),
 		},
 		Started: true,
 	})
