@@ -27,19 +27,13 @@ before computing them.
 
 ## Current Status
 
-The current `v0.21.0` release line groups the framework-neutral RFC 9457
-Problem Details and trusted request-context helpers, the `webtest` middleware
-conformance harness, native Gin and Echo adapters, and the optional
-`jwt/jwks` provider. It also makes the Echo nil-downstream behavior
-consistent, exposes redacted observation of rate-limit response-write failures,
-and upgrades legacy JWT parser configurations to context-aware providers when
-that capability is available.
-
-The unreleased `v0.22.0` milestone adds caller-owned reverse geocoding,
-engine-specific PostGIS/MySQL/MariaDB GIS helpers, and narrow FalkorDB and
-remote Gremlin/TinkerPop graph adapters. Each backend keeps its own SQL or
-remote-protocol contract; the milestone does not add a broad spatial or graph
-abstraction to the model-only packages.
+The `v0.22.0` release scope adds WGS 84 coordinate and canonical
+Geohash helpers, caller-owned reverse geocoding, engine-specific
+PostGIS/MySQL/MariaDB GIS helpers, and narrow FalkorDB and remote
+Gremlin/TinkerPop graph adapters. A backend-neutral graph conformance harness
+keeps core, traversal, cancellation, cleanup, and redacted-error behavior
+consistent without introducing a broad spatial or graph abstraction to the
+model-only packages.
 
 The repository also covers foundation helpers, codecs, compression,
 context-aware concurrency, serializer contracts, Redis-backed leader election
