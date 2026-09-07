@@ -7,6 +7,8 @@
 
 ## [Unreleased]
 
+## [v0.22.0] - 2026-09-07
+
 ### 추가
 
 - `geo`에 WGS 84 degree 좌표 값, antimeridian-aware inclusive bounds,
@@ -14,9 +16,9 @@
   Geohash encode/decode를 추가한다.
 - `graph/graphtest`에 backend-neutral semantic fixture, skip 불가 strict core,
   traversal capability, cancellation join, bounded cleanup/close와 redacted
-  provider error 검증을 제공하는 공개 conformance harness를 추가한다.
-- Neo4j와 Memgraph adapter가 digest-pinned Testcontainers 환경에서 같은
-  core 및 traversal suite를 실행하도록 통합한다.
+  provider error 검증을 제공하는 공개 테스트용 conformance harness를 추가한다.
+- `graph/neo4j` adapter가 digest-pinned Neo4j 및 Memgraph Testcontainers
+  환경에서 같은 core 및 traversal suite를 실행하도록 통합한다.
 - `sqlkit/postgis`에 명시적 SRID를 보존하는 EWKB point 값, spatial DDL,
   indexed `ST_DWithin`, bounding-box helper와 PostGIS fixture를 추가한다.
 - `sqlkit/mysqlgis`와 `sqlkit/mariadbgis`에 엔진별 SRID/WKB mapping, axis-order
@@ -26,7 +28,8 @@
   rate-limit, cache와 서비스 정책은 caller가 소유한다.
 - `graph/falkordb`에 caller-owned Redis 기반 bounded OpenCypher query와
   vertex/edge mapping을, `graph/gremlin`에 Gremlin-Go remote result stream,
-  typed mapping과 명시적 capability 경계를 추가한다.
+  typed mapping과 명시적 capability 경계를 추가한다. Gremlin cancellation은
+  local waiting을 제한하며 server-side traversal 중단을 보장하지 않는다.
 - `testcontainers/postgis`, `testcontainers/falkordb`,
   `testcontainers/tinkerpop` fixture를 immutable image reference로 추가하고,
   기존 MySQL/MariaDB fixture의 기본 image도 digest로 고정한다.

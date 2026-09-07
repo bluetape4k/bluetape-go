@@ -1,7 +1,7 @@
 # 진행 상황
 
 기준 시각: 2026-09-07 KST
-범위: `v0.22.0` foundation 구현 및 후속 delivery gate.
+범위: `v0.22.0` 안정 릴리스 준비와 배포 검증.
 
 ## Issue #555 graph backend conformance
 
@@ -43,10 +43,12 @@ integration review의 최종 판정은 `P0=0 P1=0 P2=0 P3=0`이다. Exact head
 
 ## 현재 대상 릴리스
 
-`v0.22.0`은 좌표/Geohash와 graph backend conformance foundation을 묶는
-릴리스입니다. Issue #548의 외부 dependency 없는 `geo` package는 PR #735로
-merge됐습니다. Tag와 publication은 milestone open issue가 0이 된 뒤 별도
-gate에서 진행합니다.
+`v0.22.0`은 좌표/Geohash, spatial database와 reverse geocoding provider,
+graph backend conformance 및 FalkorDB/Gremlin adapter를 묶는 안정 릴리스입니다.
+Milestone #34의 issue는 모두 닫혔고 release-preparation branch에서
+CHANGELOG, README locale pair와 배포 checklist를 정리하고 있습니다. Tag와
+GitHub Release는 exact-head CI, Testcontainers Nightly, main 승격을 통과한 뒤
+각 별도 gate에서 진행합니다.
 
 ## v0.21.0 이력 경계
 
@@ -73,14 +75,13 @@ Echo 후속 #692~#694를 함께 배포합니다. `v0.20.0` 사용자는 Echo 후
   상한 보정은 `94aa3ef`, lint·errcheck·staticcheck 계약 보정은 `d956c97`에
   반영했습니다. 각 slice는 caller-owned client/credential/lifecycle,
   bounded result/error, context 경계와 digest-pinned local fixture를 유지합니다.
-- 다섯 구현 slice와 fixture는 `feat/milestone-0.22.0-integration` 한 통합
-  branch에서 한 번의 PR/squash merge를 목표로 합니다. 현재 package-level
-  테스트, race, vet, lint(`0 issues.`), 실제 PostGIS/MySQL/MariaDB/FalkorDB/
-  TinkerPop fixture 검증과 전체 `make test`, `make race`, `make ci`가
-  통과했습니다. PR #738 exact head `e24cfaca`의 GitHub CI run
-  `34049822664`도 coverage·race 포함 전 단계 `SUCCESS`이며, 최신
-  review/thread read-back과 mergeability도 확인했습니다. fresh exact-head
-  merge approval, merge와 post-merge sync는 아직 남아 있습니다.
+- 다섯 구현 slice와 fixture는 PR #738 exact head
+  `ab36adf56b236847e3fe711039d2d6e2f33b3388`에서 CI run `34051401427`을
+  통과한 뒤 `develop`의
+  `0bec680a93c5e8326b1e04adf62e40ab4d9bf242`로 squash merge됐습니다.
+  Package-level test, race, vet, lint(`0 issues.`), 실제
+  PostGIS/MySQL/MariaDB/FalkorDB/TinkerPop fixture 검증과 전체 `make ci`가
+  통과했고 구현 worktree와 branch 정리도 완료했습니다.
 - PR #738의 첫 exact-head CI run `34046283255`는 coverage 단계에서
   `graph/gremlin`의 TinkerPop factory가 TCP port만 열린 순간 연결을 시도해
   실패했습니다. `7053dae`에서 `Channel started at port 8182.` log까지 기다리는
@@ -95,8 +96,17 @@ Echo 후속 #692~#694를 함께 배포합니다. `v0.20.0` 사용자는 Echo 후
   이어서 실행한 full `make ci`도 통과했습니다. 이번 diff는 `leader/etcd`를 변경하지
   않으며 Go 기본값과 같은 10분 timeout을 명시하므로 기존 2초 관찰 timing flake로
   분류했습니다.
-- `v0.22.0` release preparation, tag와 GitHub Release는 아직 실행하지
-  않았습니다.
+- `v0.22.0` release-preparation worktree는 `develop@0bec680a`에서
+  시작했습니다. Release-prep PR, exact-head GitHub CI/Nightly, milestone 종료,
+  main 승격, tag와 GitHub Release는 아직 실행하지 않았습니다.
+- Release-prep 첫 `make ci`에서 `leader/sql` campaign timeout이
+  `ErrCommitUnknown`과 결합된 뒤 같은 elector의 cleanup을 생략해 다음 takeover가
+  `ErrCleanupPending`으로 막히는 test-contract 누락을 확인했습니다. Test가 fresh
+  bounded `Resign`을 수행하도록 수정했고, exact subtest race 20회에서 container
+  stop/termination까지 통과했습니다. DB row lock과 reconciliation fault를 쓰는
+  deterministic regression도 owner token 보존과 cleanup guard/clear를 race 10회
+  통과했습니다. Release-preparation exact head에서 전체 `make ci`도 exit 0으로
+  통과했으며, 이후 head가 바뀌면 이 증거를 폐기하고 같은 검증을 다시 실행합니다.
 
 ## 0.22.0 / #548
 
@@ -161,5 +171,5 @@ ok github.com/bluetape4k/bluetape-go/geo 36.909s
 ## 비범위
 
 - downstream consumer의 `go.mod` 업데이트는 이번 요청에 포함하지 않습니다.
-- `v0.22.0` release preparation, tag, publication과 downstream handoff는
-  feature 구현 뒤 별도 gate로 진행합니다.
+- `v0.23.0` 구현은 `v0.22.0`의 tag, GitHub Release, 배포 신원과 로컬 정리를
+  검증한 뒤 별도 workflow에서 시작합니다.

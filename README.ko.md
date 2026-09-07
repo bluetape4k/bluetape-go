@@ -25,18 +25,12 @@ attribute는 계산 전에 `logger.Enabled(ctx, slog.LevelDebug)`로 guard하세
 
 ## 현재 상태
 
-현재 `v0.21.0` 릴리스 선은 framework-neutral RFC 9457 Problem Details와
-trusted request context helper, `webtest` middleware conformance harness,
-Gin/Echo native adapter 및 선택적 `jwt/jwks` provider를 묶습니다. Echo
-middleware의 nil downstream 동작을 통일하고, rate-limit 응답 쓰기 실패를
-redacted observer로 전달하며, legacy JWT parser 설정도 provider가 지원하면
-context-aware 경로로 올립니다.
-
-아직 배포하지 않은 `v0.22.0` milestone은 caller-owned reverse geocoding,
-PostGIS/MySQL/MariaDB별 GIS helper, 좁은 FalkorDB와 remote Gremlin/TinkerPop
-graph adapter를 추가합니다. 각 backend는 자신의 SQL 또는 remote-protocol
-계약을 유지하며 model-only package에 broad spatial/graph abstraction을
-추가하지 않습니다.
+`v0.22.0` 릴리스 범위는 WGS 84 좌표와 canonical Geohash helper,
+caller-owned reverse geocoding, PostGIS/MySQL/MariaDB별 GIS helper, 좁은
+FalkorDB와 remote Gremlin/TinkerPop graph adapter를 추가합니다.
+Backend-neutral graph conformance harness는 core, traversal, cancellation,
+cleanup, redacted error 동작을 통일하지만 model-only package에 broad
+spatial/graph abstraction을 추가하지 않습니다.
 
 그 밖에도 foundation helper, codec, compression, context-aware concurrency,
 serializer contract, Redis 기반 leader election과 lock, resilience policy,
