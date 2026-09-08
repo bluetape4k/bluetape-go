@@ -136,9 +136,9 @@ func TestRenderWithEncoderRejectsMalformedProviderOutput(t *testing.T) {
 }
 
 func TestRenderWithEncoderRejectsProviderOutputWithOverflowingBounds(t *testing.T) {
-	max := int(^uint(0) >> 1)
-	min := -max - 1
-	source := &fakeBarcode{rect: image.Rect(min, 0, max, 1), dims: 1}
+	maxValue := int(^uint(0) >> 1)
+	minValue := -maxValue - 1
+	source := &fakeBarcode{rect: image.Rect(minValue, 0, maxValue, 1), dims: 1}
 	_, err := renderWithEncoder(context.Background(), code128Request(64, 32), func(string, QRLevel) (providerbarcode.Barcode, error) {
 		return source, nil
 	})
@@ -183,6 +183,7 @@ func TestRenderWithEncoderCancellationDuringRowCopyWins(t *testing.T) {
 
 func TestRenderWithEncoderRejectsNilContextWithoutProviderCall(t *testing.T) {
 	calls := 0
+	//nolint:staticcheck // nil context is an explicit API contract test.
 	_, err := renderWithEncoder(nil, code128Request(64, 32), func(string, QRLevel) (providerbarcode.Barcode, error) {
 		calls++
 		return &fakeBarcode{rect: image.Rect(0, 0, 3, 1), dims: 1}, nil

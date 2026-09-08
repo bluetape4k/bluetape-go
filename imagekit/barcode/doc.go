@@ -1,5 +1,5 @@
-// Package barcode는 제한된 QR·Code128 이미지를 생성하는 순수 Go helper를
-// 제공한다.
+// Package barcode (바코드 패키지)는 제한된 QR·Code128 이미지를 생성하는 순수 Go
+// helper를 제공한다.
 //
 // QR 입력은 유효한 UTF-8 문자열을, Code128 입력은 printable ASCII만
 // 허용한다. 출력 크기와 픽셀 수에는 고정 상한이 있으며 잘못된 요청은

@@ -4,9 +4,11 @@ import (
 	"bytes"
 	"context"
 	"errors"
+	"fmt"
 	"image"
 	"image/png"
 	"strings"
+	"sync"
 	"testing"
 
 	"github.com/bluetape4k/bluetape-go/imagekit/barcode"
@@ -67,6 +69,7 @@ func TestRenderRejects(t *testing.T) {
 
 func TestRenderRejectsNilContext(t *testing.T) {
 	req := barcode.Request{Kind: barcode.QR, Content: "x", Width: 128, Height: 128}
+	//nolint:staticcheck // nil context is an explicit API contract test.
 	_, err := barcode.Render(nil, req)
 	if !errors.Is(err, barcode.ErrInvalidOptions) {
 		t.Fatalf("Render(nil, req) error = %v, want errors.Is(..., %v)", err, barcode.ErrInvalidOptions)
@@ -254,6 +257,7 @@ func TestEncodePNGMatchesRender(t *testing.T) {
 
 func TestEncodePNGRejectsNilContext(t *testing.T) {
 	req := barcode.Request{Kind: barcode.QR, Content: "x", Width: 64, Height: 64}
+	//nolint:staticcheck // nil context is an explicit API contract test.
 	_, err := barcode.EncodePNG(nil, req)
 	if !errors.Is(err, barcode.ErrInvalidOptions) {
 		t.Fatalf("EncodePNG(nil, req) error = %v, want ErrInvalidOptions", err)
@@ -274,6 +278,40 @@ func TestEncodePNGReturnsIndependentBuffers(t *testing.T) {
 	first[0] ^= 0xff
 	if second[0] != original {
 		t.Fatal("EncodePNG results share a byte buffer")
+	}
+}
+
+func TestConcurrent(t *testing.T) {
+	const workers = 32
+	errs := make(chan error, workers)
+	var group sync.WaitGroup
+	group.Add(workers)
+	for i := 0; i < workers; i++ {
+		i := i
+		go func() {
+			defer group.Done()
+			req := barcode.Request{Kind: barcode.Code128, Content: "CONCURRENT", Width: 256, Height: 64}
+			if i%2 == 0 {
+				req = barcode.Request{Kind: barcode.QR, Content: "동시 호출", Width: 128, Height: 128}
+			}
+			img, err := barcode.Render(context.Background(), req)
+			if err != nil {
+				errs <- err
+				return
+			}
+			if img.Bounds().Dx() != req.Width || img.Bounds().Dy() != req.Height {
+				errs <- fmt.Errorf("bounds = %v, want %dx%d", img.Bounds(), req.Width, req.Height)
+				return
+			}
+			if _, ok := img.(*image.Gray); !ok {
+				errs <- fmt.Errorf("image type = %T, want *image.Gray", img)
+			}
+		}()
+	}
+	group.Wait()
+	close(errs)
+	for err := range errs {
+		t.Errorf("concurrent render error: %v", err)
 	}
 }
 
