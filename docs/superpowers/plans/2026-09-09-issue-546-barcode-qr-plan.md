@@ -32,8 +32,15 @@
 - `imagekit/README.md`, `imagekit/README.ko.md`: barcode 하위 패키지 링크와 transform 조합 시 resize/crop 주의점.
 - `README.md`, `README.ko.md`: root package index와 imagekit 설명의 barcode 링크/범위.
 - `CHANGELOG.md`: `Unreleased`의 추가 항목에 #546 public package를 기록한다.
+- `web/gin/jwt_test.go`, `cache/redisnear/resp3_tracking_spike_test.go`,
+  `leader/etcd/campaign_test.go`: configured hosted linter의 기존 test-only
+  `lostcancel`/`SA5011` baseline을 최소 early-return/cancel guard로 정리한다.
 
-기존 `imagekit/*.go`의 공개 타입·함수와 오류 구현은 수정하지 않는다. Go module은 별도 package 등록 파일이 필요 없으므로 catalog/workflow 파일은 변경하지 않는다. 관리되는 Codex skill source는 Task 8에서 별도 source-first 절차로만 수정한다.
+기존 `imagekit/*.go`의 공개 타입·함수와 오류 구현은 수정하지 않는다. 위 세
+파일의 변경은 production 동작과 barcode API를 건드리지 않는 CI test-only
+baseline 보강이다. Go module은 별도 package 등록 파일이 필요 없으므로
+catalog/workflow 파일은 변경하지 않는다. 관리되는 Codex skill source는 Task
+8에서 별도 source-first 절차로만 수정한다.
 
 ## Task 1: dependency를 고정하고 RED 테스트 골격을 만든다
 
@@ -280,7 +287,7 @@ Expected: all commands exit 0. race test에는 32개 동시 QR/Code128 호출을
 
 Run sequentially: `make fmt-check`, `make tidy-check`, `make vet`, `make lint`, `make test`, `make race`, `make ci`.
 
-Expected: each command exits 0. `make tidy-check`가 dependency drift를 보고하면 go.mod/go.sum만 정리하고 source behavior를 바꾸지 않은 뒤 모든 affected test를 다시 실행한다.
+Expected: each command exits 0. `make tidy-check`가 dependency drift를 보고하면 go.mod/go.sum만 정리하고 source behavior를 바꾸지 않은 뒤 모든 affected test를 다시 실행한다. Hosted lint가 기존 test-only baseline 진단을 재현하면 해당 테스트의 cancel/nil guard만 보강하고, barcode production scope는 넓히지 않는다.
 
 - [x] **Step 3: dependency·license·source evidence를 고정한다**
 
@@ -373,12 +380,13 @@ Task 1 RED → Task 2 validation → Task 3 renderer → Task 4 PNG/cancel
 - [x] 계획 6개 관점 및 메인 통합 review.
 - [x] 구현·검증·lesson·pre-PR review.
 - [x] `$bluetape-go-patterns` source/live parity와 지속 가능한 guard 승격.
-- [x] 개별 PR 생성과 hosted CI (`#743`, `ci success`, exact head `905753bc`).
+- [ ] 개별 PR 생성과 hosted CI는 baseline lint 보강 후 새 exact head에서 다시
+  고정한다 (`#743`).
 
-구현·검증·review·pattern 승격과 개별 PR/hosted CI까지 완료했다. PR `#743`은
-`develop`을 base로 하고 exact head `905753bc1f85489e73059b4c65f49a84d35dab04`를
-가리키며 hosted `ci`가 `SUCCESS`다. merge·tag·release·worktree 삭제는 별도
-승인 대기다.
+구현·검증·review·pattern 승격과 개별 PR까지 완료했다. hosted `ci`는
+`73d5cfae0aac887fdc480a4b97443d4ca56bf090`에서 baseline lint 7건으로 실패했으며,
+test-only 보강을 push한 새 exact head에서 terminal 결과를 다시 고정한다.
+merge·tag·release·worktree 삭제는 별도 승인 대기다.
 
 ## 계획 자체 검토와 문서 게이트
 

@@ -227,6 +227,7 @@ func TestCampaignCreatedNotifyTimeoutJoinsMonitorAndSession(t *testing.T) {
 	elector.mu.RUnlock()
 	if generation == nil {
 		t.Fatal("Campaign did not retain its in-progress generation")
+		return
 	}
 	if err := <-result; !errors.Is(err, context.DeadlineExceeded) {
 		t.Fatalf("Campaign error = %v, want deadline exceeded", err)

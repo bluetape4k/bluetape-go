@@ -12,6 +12,9 @@
 - **통합 결론:** 추가 수정 없이 PR gate로 진행할 수 있다. 이 리뷰에는
   merge·tag·release 권한이 포함되지 않는다.
 
+> 아래의 hosted CI baseline lint 보강 후 최종 head는 계획·PR metadata와 함께
+> 다시 갱신했다. feature production code와 public API는 변경하지 않았다.
+
 ## 이슈와 live metadata
 
 2026-09-09에 `gh issue view 546 --repo bluetape4k/bluetape-go
@@ -80,6 +83,23 @@ PASS로 세지 않았다.
 
 메인 통합 검토에서 추가 P0/P1/P2/P3는 발견하지 못했다.
 
+## Hosted CI baseline lint 보강
+
+새 계획 문서 commit 이후 hosted `ci` run `34263218885`와 failed job 재실행이
+동일 head에서 다음 기존 테스트 파일의 7개 진단으로 실패했다.
+
+- `web/gin/jwt_test.go`: `lostcancel` 2건
+- `cache/redisnear/resp3_tracking_spike_test.go`: `SA5011` 4건
+- `leader/etcd/campaign_test.go`: `SA5011` 1건
+
+세 파일은 `origin/develop...HEAD` feature diff에 없었고, local
+`golangci-lint 2.13.2`에서는 재현되지 않았다. configured hosted
+`golangci-lint v2.12.2`와의 차이를 숨기거나 unrelated production code를
+고치지 않고, 테스트 전용으로 `defer cancel()`과 nil guard의 명시적 early
+return을 추가했다. 변경 후 해당 세 패키지 test/race와 `golangci-lint run
+./...`가 PASS했다. 이 보강은 CI gate를 만족하기 위한 최소 test-only 범위이며,
+최종 changed file count와 plan의 scope에 반영한다.
+
 ## 검증 증거
 
 현재 HEAD에서 다음 명령을 실행했다.
@@ -99,6 +119,9 @@ PASS로 세지 않았다.
 - `make race` — PASS
 - `make ci` — PASS (재실행; 첫 실행의 `sqlkit/postgis` container exit 139은
   단독 재실행 및 aggregate 재실행에서 해소됨)
+- `go test ./web/gin ./cache/redisnear ./leader/etcd -count=1` — PASS
+- `go test -race -p 1 ./web/gin ./cache/redisnear ./leader/etcd -count=1` — PASS
+- `golangci-lint run ./... --timeout=5m` — `0 issues`
 - `git diff --check origin/develop...HEAD` — PASS
 - `go list ./...` — 110 packages
 
