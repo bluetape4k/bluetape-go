@@ -27,17 +27,35 @@ provider의 `Content()`가 반환 image에 남지 않도록 매 호출 새 `*ima
 ## 재사용 가능한 Go 규칙
 
 외부 image/binary provider adapter를 추가할 때는 (1) dispatch 전 bounded input,
-(2) caller-owned 표준 출력 복사, (3) checked geometry와 명시적 여백,
-(4) bounded output writer, (5) provider 반환·publish checkpoint의 cancellation
-우선순위를 함께 검토한다. provider가 caller cancellation을 직접 지원하지 않는
-경우에는 즉시 선점을 주장하지 않고 그 한계를 README와 테스트에 적는다.
+(2) provider metadata/content API가 아닌 `image.Image`·`io.Writer` 같은 최소
+표준 capability seam, (3) caller-owned 표준 출력 복사, (4) checked geometry와
+명시적 여백, (5) bounded output writer, (6) provider 반환·publish checkpoint의
+cancellation 우선순위를 함께 검토한다. byte-size 상한은 UTF-8 검사·canonicalization·
+decode보다 먼저 적용하고, oversized malformed input도 같은 분류를 유지하는지
+테스트한다. checked area·scale·offset은 한 번 계산한 값을 allocation과 copy에
+재사용해 검증된 bound와 실제 geometry가 어긋나지 않게 한다. provider가 caller
+cancellation을 직접 지원하지 않는 경우에는 즉시 선점을 주장하지 않고 그 한계를
+README와 테스트에 적는다.
 
 ## 검증 근거
 
 Task 3·4의 package-local seam과 public tests가 malformed/nil/output-plus-error,
 오류 문자열·`Unwrap`·`errors.As`, nonzero bounds, quiet zone, detachment,
-PNG cap, cancellation precedence를 확인한다. `go test ./imagekit/barcode`와
-race 검증은 구현 단계에서 fresh하게 다시 실행한다.
+PNG cap, cancellation precedence를 확인한다. 최종 HEAD에서 다음 검증을 fresh하게
+실행했다.
+
+- `go test ./imagekit/barcode -count=1` — PASS
+- `go test -race ./imagekit/barcode -run '^TestConcurrent$' -count=10` — PASS
+- `go test -race ./imagekit/barcode -count=1` — PASS
+- `go test ./imagekit -count=1` — PASS
+- `go test ./imagekit/barcode -run '^Example' -count=1` — PASS
+- `make fmt-check`, `make tidy-check`, `make vet`, `make lint` — PASS
+- `make test`, `make race`, `make ci` — PASS
+- `go mod verify` — PASS
+
+첫 aggregate 실행에서는 기존 `sqlkit/postgis` Testcontainers가 exit 139로
+실패했으나 해당 패키지 단독 재실행과 aggregate 재실행이 모두 PASS했다. 이는
+barcode 변경과 무관한 환경성 관찰로 review에 남긴다.
 
 ## 남은 공백
 
