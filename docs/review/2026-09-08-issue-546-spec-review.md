@@ -50,8 +50,20 @@
 
 수정된 spec의 사용자 재승인 후 `spec-stability-rerun`을 수행하고, 기존 실패 lane과 exact evidence digest를 연결해 resolution receipt를 기록한다.
 
+## 재검토 결과
+
+사용자가 보완된 spec을 승인한 뒤 `1ebee2a` 기준으로 안정성 correction lane을 재실행했다.
+
+| 관점 | 결과 | 근거 |
+|---|---|---|
+| 안정성 | PASS | `spec-stability-rerun2`가 provider `Cause == nil`, context 원형 오류, 취소·소유권·lifecycle 계약을 재확인했다. 이전 `spec-stability` P1은 resolution receipt로 연결했다. |
+| 보안 | PASS | 메인 inline fallback이 provider 원문을 문자열·Cause·로그에 넣지 않는 sentinel-only 경계를 재확인했다. |
+| 성능·운영·API·호출자 | PASS 유지 | 보완으로 기존 P0/P1 범위가 확장되지 않았고, dependency 검증 watchpoint는 계획 단계로 이관했다. |
+
+통합 결과는 **P0=0, P1=0**이다. 구현 provider 동작·PNG lifecycle·race 검증은 계획 승인 후 수행한다.
+
 ## 상태
 
-- Spec review: **PENDING — 보완된 spec 사용자 재승인 및 안정성 재검토 필요**
+- Spec review: **PASS — 사용자 재승인, 6개 관점 및 메인 통합 검토 완료 (P0=0, P1=0)**
 - 구현/계획/PR/CI: 미착수
 - 머지·배포·정리: 권한 없음, 수행하지 않음
