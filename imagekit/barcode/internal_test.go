@@ -1,13 +1,16 @@
 package barcode
 
 import (
+	"bytes"
 	"context"
 	"errors"
 	"fmt"
 	"image"
 	"image/color"
+	"image/png"
 	"strings"
 	"testing"
+	"time"
 
 	"github.com/bluetape4k/bluetape-go/imagekit"
 	providerbarcode "github.com/boombuler/barcode"
@@ -305,5 +308,147 @@ func TestRenderWithEncoderRejectsOnePixelShortCanvas(t *testing.T) {
 	})
 	if !errors.Is(err, ErrInvalidOptions) {
 		t.Fatalf("Code128 error = %v, want ErrInvalidOptions", err)
+	}
+}
+
+func TestCappedWriterHonorsLimitWithoutPartialWrite(t *testing.T) {
+	writer := &cappedWriter{ctx: context.Background(), limit: 3}
+	if n, err := writer.Write([]byte("abc")); n != 3 || err != nil {
+		t.Fatalf("first Write = (%d, %v), want (3, nil)", n, err)
+	}
+	if n, err := writer.Write([]byte("d")); n != 0 || !errors.Is(err, errPNGTooLarge) {
+		t.Fatalf("second Write = (%d, %v), want (0, errPNGTooLarge)", n, err)
+	}
+	if got := writer.buf.String(); got != "abc" {
+		t.Fatalf("buffer = %q, want %q", got, "abc")
+	}
+}
+
+func TestCappedWriterCancellationPrecedesLimit(t *testing.T) {
+	ctx, cancel := context.WithCancel(context.Background())
+	cancel()
+	writer := &cappedWriter{ctx: ctx, limit: 1}
+	n, err := writer.Write([]byte("too large"))
+	if n != 0 || !errors.Is(err, context.Canceled) {
+		t.Fatalf("Write = (%d, %v), want (0, context.Canceled)", n, err)
+	}
+}
+
+func TestEncodePNGWithRendererRejectsPreCanceledContextWithoutRender(t *testing.T) {
+	ctx, cancel := context.WithCancel(context.Background())
+	cancel()
+	calls := 0
+	img, err := encodePNGWithRenderer(ctx, code128Request(64, 32), func(context.Context, Request) (image.Image, error) {
+		calls++
+		return image.NewGray(image.Rect(0, 0, 1, 1)), nil
+	}, maxPNGBytes)
+	if img != nil || !errors.Is(err, context.Canceled) {
+		t.Fatalf("result = (%v, %v), want (nil, context.Canceled)", img, err)
+	}
+	if calls != 0 {
+		t.Fatalf("renderer calls = %d, want 0", calls)
+	}
+}
+
+func TestEncodePNGWithRendererPreservesDeadlineAfterRender(t *testing.T) {
+	ctx, cancel := context.WithDeadline(context.Background(), time.Now().Add(-time.Nanosecond))
+	defer cancel()
+	calls := 0
+	img, err := encodePNGWithRenderer(ctx, code128Request(64, 32), func(context.Context, Request) (image.Image, error) {
+		calls++
+		return image.NewGray(image.Rect(0, 0, 1, 1)), nil
+	}, maxPNGBytes)
+	if img != nil || !errors.Is(err, context.DeadlineExceeded) {
+		t.Fatalf("result = (%v, %v), want (nil, context.DeadlineExceeded)", img, err)
+	}
+	if calls != 0 {
+		t.Fatalf("renderer calls = %d, want 0", calls)
+	}
+}
+
+func TestEncodePNGWithRendererContextAfterRenderWins(t *testing.T) {
+	ctx, cancel := context.WithCancel(context.Background())
+	img, err := encodePNGWithRenderer(ctx, code128Request(64, 32), func(context.Context, Request) (image.Image, error) {
+		cancel()
+		return image.NewGray(image.Rect(0, 0, 1, 1)), nil
+	}, maxPNGBytes)
+	if img != nil || !errors.Is(err, context.Canceled) {
+		t.Fatalf("result = (%v, %v), want (nil, context.Canceled)", img, err)
+	}
+}
+
+func TestEncodePNGWithRendererRejectsNilImageAndSmallCap(t *testing.T) {
+	valid := func(context.Context, Request) (image.Image, error) {
+		return nil, nil
+	}
+	img, err := encodePNGWithRenderer(context.Background(), code128Request(64, 32), valid, maxPNGBytes)
+	if img != nil || !errors.Is(err, ErrEncode) {
+		t.Fatalf("nil image result = (%v, %v), want (nil, ErrEncode)", img, err)
+	}
+
+	checkerboard := image.NewGray(image.Rect(0, 0, 32, 32))
+	for y := 0; y < 32; y++ {
+		for x := 0; x < 32; x++ {
+			if (x+y)%2 == 0 {
+				checkerboard.SetGray(x, y, color.Gray{Y: 0})
+			}
+		}
+	}
+	img, err = encodePNGWithRenderer(context.Background(), code128Request(64, 32), func(context.Context, Request) (image.Image, error) {
+		return checkerboard, nil
+	}, 1)
+	if img != nil || !errors.Is(err, ErrEncode) {
+		t.Fatalf("capped result = (%v, %v), want (nil, ErrEncode)", img, err)
+	}
+	var imageError *imagekit.Error
+	if !errors.As(err, &imageError) || imageError.Cause != nil {
+		t.Fatalf("capped error = %#v, want imagekit.Error with nil Cause", err)
+	}
+}
+
+func TestEncodePNGWithRendererCancellationDuringWrite(t *testing.T) {
+	ctx, cancel := context.WithCancel(context.Background())
+	imageToEncode := &cancelingImage{ctx: cancel, image: image.NewGray(image.Rect(0, 0, 16, 16))}
+	img, err := encodePNGWithRenderer(ctx, code128Request(64, 32), func(context.Context, Request) (image.Image, error) {
+		return imageToEncode, nil
+	}, maxPNGBytes)
+	if img != nil || !errors.Is(err, context.Canceled) {
+		t.Fatalf("result = (%v, %v), want (nil, context.Canceled)", img, err)
+	}
+}
+
+type cancelingImage struct {
+	ctx   context.CancelFunc
+	image *image.Gray
+}
+
+func (c *cancelingImage) ColorModel() color.Model {
+	return c.image.ColorModel()
+}
+
+func (c *cancelingImage) Bounds() image.Rectangle {
+	return c.image.Bounds()
+}
+
+func (c *cancelingImage) At(x, y int) color.Color {
+	c.ctx()
+	return c.image.At(x, y)
+}
+
+func TestEncodePNGWithRendererProducesDecodablePNG(t *testing.T) {
+	source := image.NewGray(image.Rect(0, 0, 3, 3))
+	source.SetGray(1, 1, color.Gray{Y: 0})
+	payload, err := encodePNGWithRenderer(context.Background(), code128Request(64, 32), func(context.Context, Request) (image.Image, error) {
+		return source, nil
+	}, maxPNGBytes)
+	if err != nil {
+		t.Fatalf("encode error = %v", err)
+	}
+	decoded, err := png.Decode(bytes.NewReader(payload))
+	if err != nil {
+		t.Fatalf("decode error = %v", err)
+	}
+	if decoded.Bounds() != source.Bounds() {
+		t.Fatalf("decoded bounds = %v, want %v", decoded.Bounds(), source.Bounds())
 	}
 }

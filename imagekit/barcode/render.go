@@ -24,19 +24,6 @@ func Render(ctx context.Context, req Request) (image.Image, error) {
 	return renderWithEncoder(ctx, req, encoderForKind(req.Kind))
 }
 
-// EncodePNG validates a barcode request and reserves the PNG output contract.
-//
-// PNG encoding is added after the renderer boundary in Task 4.
-func EncodePNG(ctx context.Context, req Request) ([]byte, error) {
-	if err := validateRequest(ctx, req); err != nil {
-		return nil, err
-	}
-	if err := ctx.Err(); err != nil {
-		return nil, err
-	}
-	return nil, newEncodeError("png")
-}
-
 func encoderForKind(kind Kind) encodeFunc {
 	switch kind {
 	case QR:

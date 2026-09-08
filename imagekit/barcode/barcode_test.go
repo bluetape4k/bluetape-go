@@ -1,9 +1,11 @@
 package barcode_test
 
 import (
+	"bytes"
 	"context"
 	"errors"
 	"image"
+	"image/png"
 	"strings"
 	"testing"
 
@@ -214,6 +216,64 @@ func TestRenderIsDeterministicAndDetached(t *testing.T) {
 	firstGray.Pix[0] = 0
 	if secondGray.Pix[0] != original {
 		t.Fatal("rendered images share a pixel buffer")
+	}
+}
+
+func TestEncodePNGMatchesRender(t *testing.T) {
+	tests := []barcode.Request{
+		{Kind: barcode.QR, Content: "한글 PNG", Width: 128, Height: 128},
+		{Kind: barcode.Code128, Content: "PNG-546", Width: 256, Height: 64},
+	}
+	for _, req := range tests {
+		t.Run(req.Content, func(t *testing.T) {
+			rendered, err := barcode.Render(context.Background(), req)
+			if err != nil {
+				t.Fatalf("Render error = %v", err)
+			}
+			payload, err := barcode.EncodePNG(context.Background(), req)
+			if err != nil {
+				t.Fatalf("EncodePNG error = %v", err)
+			}
+			decoded, err := png.Decode(bytes.NewReader(payload))
+			if err != nil {
+				t.Fatalf("png.Decode error = %v", err)
+			}
+			if decoded.Bounds() != rendered.Bounds() {
+				t.Fatalf("decoded bounds = %v, rendered = %v", decoded.Bounds(), rendered.Bounds())
+			}
+			for y := rendered.Bounds().Min.Y; y < rendered.Bounds().Max.Y; y++ {
+				for x := rendered.Bounds().Min.X; x < rendered.Bounds().Max.X; x++ {
+					if decoded.At(x, y) != rendered.At(x, y) {
+						t.Fatalf("pixel mismatch at (%d,%d): decoded=%v rendered=%v", x, y, decoded.At(x, y), rendered.At(x, y))
+					}
+				}
+			}
+		})
+	}
+}
+
+func TestEncodePNGRejectsNilContext(t *testing.T) {
+	req := barcode.Request{Kind: barcode.QR, Content: "x", Width: 64, Height: 64}
+	_, err := barcode.EncodePNG(nil, req)
+	if !errors.Is(err, barcode.ErrInvalidOptions) {
+		t.Fatalf("EncodePNG(nil, req) error = %v, want ErrInvalidOptions", err)
+	}
+}
+
+func TestEncodePNGReturnsIndependentBuffers(t *testing.T) {
+	req := barcode.Request{Kind: barcode.Code128, Content: "buffer", Width: 128, Height: 32}
+	first, err := barcode.EncodePNG(context.Background(), req)
+	if err != nil {
+		t.Fatalf("first EncodePNG error = %v", err)
+	}
+	second, err := barcode.EncodePNG(context.Background(), req)
+	if err != nil {
+		t.Fatalf("second EncodePNG error = %v", err)
+	}
+	original := second[0]
+	first[0] ^= 0xff
+	if second[0] != original {
+		t.Fatal("EncodePNG results share a byte buffer")
 	}
 }
 
