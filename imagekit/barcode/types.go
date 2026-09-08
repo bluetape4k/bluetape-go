@@ -15,51 +15,51 @@ const (
 )
 
 var (
-	// ErrInvalidOptions reports a malformed barcode request or nil context.
+	// ErrInvalidOptions 오류는 잘못된 barcode 요청 또는 nil context를 나타낸다.
 	ErrInvalidOptions = imagekit.ErrInvalidOptions
-	// ErrInputTooLarge reports content that exceeds the barcode input limit.
+	// ErrInputTooLarge 오류는 barcode 입력 한도를 초과한 content를 나타낸다.
 	ErrInputTooLarge = imagekit.ErrInputTooLarge
-	// ErrImageTooLarge reports dimensions or pixels that exceed the image limit.
+	// ErrImageTooLarge 오류는 이미지 크기 또는 pixel 한도 초과를 나타낸다.
 	ErrImageTooLarge = imagekit.ErrImageTooLarge
-	// ErrEncode reports a provider or output encoding failure.
+	// ErrEncode 오류는 provider 또는 출력 encoding 실패를 나타낸다.
 	ErrEncode = imagekit.ErrEncode
 )
 
-// Kind identifies the barcode family to render.
+// Kind 값은 렌더링할 barcode family를 식별한다.
 type Kind uint8
 
 const (
-	// QR selects a UTF-8 QR code.
+	// QR 값은 UTF-8 QR code를 선택한다.
 	QR Kind = iota + 1
-	// Code128 selects a printable-ASCII Code128 barcode.
+	// Code128 값은 printable ASCII Code128 barcode를 선택한다.
 	Code128
 )
 
-// QRLevel selects the QR error-correction level.
+// QRLevel 값은 QR error-correction level을 선택한다.
 type QRLevel uint8
 
 const (
-	// QRLevelM selects the default medium QR error correction.
+	// QRLevelM 값은 기본 medium QR error correction을 선택한다.
 	QRLevelM QRLevel = iota
-	// QRLevelL selects low QR error correction.
+	// QRLevelL 값은 low QR error correction을 선택한다.
 	QRLevelL
-	// QRLevelQ selects quartile QR error correction.
+	// QRLevelQ 값은 quartile QR error correction을 선택한다.
 	QRLevelQ
-	// QRLevelH selects high QR error correction.
+	// QRLevelH 값은 high QR error correction을 선택한다.
 	QRLevelH
 )
 
-// Request describes one bounded barcode image request.
+// Request 값은 하나의 bounded barcode 이미지 요청을 설명한다.
 type Request struct {
-	// Kind selects QR or Code128 rendering.
+	// Kind 필드는 QR 또는 Code128 렌더링을 선택한다.
 	Kind Kind
-	// Content is the payload encoded into the barcode.
+	// Content 필드는 barcode에 encoding할 payload다.
 	Content string
-	// Width is the requested output width in pixels.
+	// Width 필드는 요청한 출력 width(pixel)다.
 	Width int
-	// Height is the requested output height in pixels.
+	// Height 필드는 요청한 출력 height(pixel)다.
 	Height int
-	// QRLevel selects QR error correction; Code128 accepts only QRLevelM.
+	// QRLevel 필드는 QR error correction을 선택하며 Code128은 QRLevelM만 허용한다.
 	QRLevel QRLevel
 }
 

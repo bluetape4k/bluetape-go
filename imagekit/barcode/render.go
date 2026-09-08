@@ -17,8 +17,8 @@ const (
 
 type encodeFunc func(content string, level QRLevel) (image.Image, error)
 
-// Render validates a request, invokes the selected barcode provider, and
-// returns a detached black-and-white image with its fixed quiet zone.
+// Render 함수는 요청을 검증하고 선택한 barcode provider를 호출해 고정 quiet zone을
+// 포함한 분리된 흑백 이미지를 반환한다.
 func Render(ctx context.Context, req Request) (image.Image, error) {
 	return renderWithEncoder(ctx, req, encoderForKind(req.Kind))
 }

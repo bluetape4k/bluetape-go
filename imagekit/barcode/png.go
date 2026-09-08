@@ -20,11 +20,11 @@ type cappedWriter struct {
 	buf   bytes.Buffer
 }
 
-// EncodePNG renders a barcode and encodes it as bounded standard PNG bytes.
+// EncodePNG 함수는 barcode를 렌더링해 bounded 표준 PNG 바이트로 encoding한다.
 //
-// The returned byte slice is owned by the caller. A provider, writer, or
-// output-size failure returns nil and a fixed ErrEncode error; cancellation and
-// deadline errors are returned unchanged.
+// 반환한 byte slice의 소유권은 caller에게 있다. provider, writer 또는 output-size
+// 실패는 nil과 고정 ErrEncode 오류를 반환하며 cancellation과 deadline 오류는
+// 변경하지 않고 반환한다.
 func EncodePNG(ctx context.Context, req Request) ([]byte, error) {
 	return encodePNGWithRenderer(ctx, req, Render, maxPNGBytes)
 }
