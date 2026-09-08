@@ -73,7 +73,7 @@ tests := []struct {
 }
 ```
 
-각 유효성 행은 `Render(context.Background(), req)`의 `errors.Is`를 검사한다. provider 호출 부재와 실제 nil context 호출은 Task 3에서 package-local seam을 추가한 뒤 보강한다. nil context 행은 실제 `Render(nil, req)` 호출을 별도 테스트로 둔다. 이 시점에는 package와 함수가 없으므로 컴파일 또는 테스트가 실패해야 한다(RED).
+nil context를 제외한 각 유효성 행은 `Render(context.Background(), req)`의 `errors.Is`를 검사한다. 표의 `nil context` 행은 실제 `Render(nil, req)` 호출을 별도 테스트로 두고, provider 호출 부재와 함께 Task 3에서 package-local seam을 추가한 뒤 보강한다. 이 시점에는 package와 함수가 없으므로 컴파일 또는 테스트가 실패해야 한다(RED).
 
 - [ ] **Step 3: RED 결과를 읽고 첫 커밋을 만든다**
 
