@@ -89,4 +89,3 @@ resize·crop 또는 JPEG 변환은 module edge와 quiet zone을 훼손해 판독
 
 custom color, logo, caption, decoding, OCR, CAPTCHA, file/network I/O, provider
 client 설정, global cache는 제공하지 않습니다.
-

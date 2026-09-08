@@ -44,4 +44,3 @@ race 검증은 구현 단계에서 fresh하게 다시 실행한다.
 `govulncheck` 실행 파일이 없는 환경이므로 vulnerability scan PASS를 주장하지
 않는다. 독립 decoder 왕복과 physical scanner 시험은 범위 밖이며, non-cooperative
 provider 호출 중 즉시 선점도 보장하지 않는다.
-

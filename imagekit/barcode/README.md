@@ -94,4 +94,3 @@ package does not promise scanner compatibility after such transformations.
 
 The package does not provide custom colors, logos, captions, decoding, OCR,
 CAPTCHA, file/network I/O, provider client configuration, or a global cache.
-
