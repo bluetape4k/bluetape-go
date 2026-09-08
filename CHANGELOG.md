@@ -7,6 +7,12 @@
 
 ## [Unreleased]
 
+### 추가
+
+- `imagekit/barcode`에 bounded QR·Code128 rendering, 고정 quiet zone,
+  caller-owned Gray image, capped PNG 출력과 redacted provider 오류 경계를
+  추가한다.
+
 ## [v0.22.0] - 2026-09-07
 
 ### 추가
@@ -279,7 +285,7 @@
 ### 변경
 
 - root, serialization, codec, compression, research README는 production ranking
-  claim 대신 0.14.0 benchmark snapshot과 raw evidence를 link한다.
+  claim 대신 0.14.0 benchmark 기준 데이터와 raw evidence를 link한다.
 - benchmark runner는 timing 전에 round-trip behavior를 검증하고 downstream
   analysis를 위한 deterministic scenario name을 포함한다.
 

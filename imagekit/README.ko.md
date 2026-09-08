@@ -71,6 +71,14 @@ if err == nil {
 }
 ```
 
+## Barcode 생성
+
+[`imagekit/barcode`](barcode/README.ko.md) 하위 패키지는 제한된 QR·Code128
+생성을 추가합니다. 명시적인 입력 제한, quiet zone, 취소 checkpoint, redacted
+provider 오류를 적용하며 caller-owned 흑백 `*image.Gray` 또는 capped PNG 바이트를
+반환합니다. PNG output은 `bytes.NewReader`로 `Transform`에 전달할 수 있지만,
+임의 resize·crop·JPEG 변환은 판독성을 낮출 수 있습니다.
+
 ## 모드
 
 | 모드 | 동작 |

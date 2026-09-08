@@ -70,6 +70,15 @@ if err == nil {
 }
 ```
 
+## Barcode generation
+
+The [`imagekit/barcode`](barcode/README.md) subpackage adds bounded QR and
+Code128 rendering. It returns caller-owned black-and-white `*image.Gray` images
+or capped PNG bytes, with explicit input limits, quiet zones, cancellation
+checkpoints, and redacted provider errors. PNG output can be passed back to
+`Transform` through `bytes.NewReader`; arbitrary resize, crop, or JPEG conversion
+can reduce scanability.
+
 ## Modes
 
 | Mode | Behavior |
