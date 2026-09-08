@@ -41,7 +41,7 @@
 - Modify: `go.mod`, `go.sum`
 - Create: `imagekit/barcode/barcode_test.go`
 
-- [ ] **Step 1: dependency와 checksum을 추가한다**
+- [x] **Step 1: dependency와 checksum을 추가한다**
 
 Run:
 
@@ -52,7 +52,7 @@ go mod verify
 
 Expected: dependency module cache와 `go.sum`이 준비되고 `go mod verify`가 `all modules verified`를 반환한다. 아직 provider import가 없는 RED 단계에서는 `go mod tidy`가 미사용 dependency를 제거할 수 있으므로 tidy는 Task 3 provider import 직후에 실행한다. provider source ref와 module version은 Task 6의 pinned commit/source readback과 대조한다.
 
-- [ ] **Step 2: 공개 계약의 실패 테스트를 먼저 작성한다**
+- [x] **Step 2: 공개 계약의 실패 테스트를 먼저 작성한다**
 
 `barcode_test.go`는 `package barcode_test`로 시작하고 다음 table을 만든다.
 
@@ -75,7 +75,7 @@ tests := []struct {
 
 nil context를 제외한 각 유효성 행은 `Render(context.Background(), req)`의 `errors.Is`를 검사한다. 표의 `nil context` 행은 실제 `Render(nil, req)` 호출을 별도 테스트로 두고, provider 호출 부재와 함께 Task 3에서 package-local seam을 추가한 뒤 보강한다. 이 시점에는 package와 함수가 없으므로 컴파일 또는 테스트가 실패해야 한다(RED).
 
-- [ ] **Step 3: RED 결과를 읽고 첫 커밋을 만든다**
+- [x] **Step 3: RED 결과를 읽고 첫 커밋을 만든다**
 
 Run: `go test ./imagekit/barcode -run 'TestRenderRejects|TestEncodePNGRejects' -count=1`
 
@@ -91,7 +91,7 @@ Commit: `test: barcode 입력과 크기 경계를 먼저 고정한다`
 - Create: `imagekit/barcode/doc.go`
 - Test: `imagekit/barcode/barcode_test.go`
 
-- [ ] **Step 1: 공개 타입과 sentinel alias를 정의한다**
+- [x] **Step 1: 공개 타입과 sentinel alias를 정의한다**
 
 `types.go`의 핵심 형태는 다음과 같다. 모든 exported declaration의 Go doc 주석은 식별자로 시작하는 한국어 문장으로 작성한다.
 
@@ -123,11 +123,11 @@ type Request struct {
 
 `var`로 `imagekit.ErrInvalidOptions`, `ErrInputTooLarge`, `ErrImageTooLarge`, `ErrEncode`를 alias해 호출자가 `errors.Is`를 쓸 수 있게 한다. `validateRequest`는 context nil, kind, UTF-8, 콘텐츠 byte/rune 범위, QR level, 양수 크기, 4,096 각 축, 4,194,304 픽셀을 provider 호출 전 검사한다. 음수·0 크기와 비정방형 QR은 `ErrInvalidOptions`, 각 축 4,096 초과와 pixel 상한 초과는 `ErrImageTooLarge`로 분류한다. QR의 `QRLevelM/L/Q/H` 값과 Code128에서 `QRLevelM`만 허용하는 매핑을 명시한다. 이 Task의 `Render` 진입점은 validation을 통과한 경우에만 다음 Task의 provider 경계로 넘어가는 compile-safe skeleton으로 두며, 실제 provider 성공 동작은 Task 3에서만 완성한다.
 
-- [ ] **Step 2: 안전한 provider 오류 변환을 구현한다**
+- [x] **Step 2: 안전한 provider 오류 변환을 구현한다**
 
 `newEncodeError(format string)`는 `&imagekit.Error{Kind: imagekit.ErrEncode, Operation: "render", Format: format, Cause: nil}`만 만든다. provider가 반환한 오류 객체는 저장·출력·로그에 사용하지 않는다. `context.Canceled`와 `context.DeadlineExceeded`는 원형으로 반환하고, 나머지 helper 오류는 고정 sentinel로 변환한다.
 
-- [ ] **Step 3: 검증과 오류 테스트를 GREEN으로 만든다**
+- [x] **Step 3: 검증과 오류 테스트를 GREEN으로 만든다**
 
 콘텐츠 길이의 정확히 1,024/1,025 byte, Code128 80 byte 및 printable ASCII 경계, invalid UTF-8 문자열, 각 축 4,096/4,097, 픽셀 4,194,304/4,194,305를 table test로 추가한다. 이 단계에서는 provider 전 입력 거부와 sentinel 분류를 GREEN으로 만들고, provider 오류 원문 비노출과 `errors.As` 비복원은 Task 3의 package-local seam 테스트에서 검증한다.
 
@@ -144,11 +144,11 @@ Commit: `feat: barcode 요청과 안전한 오류 경계를 추가한다`
 - Test: `imagekit/barcode/barcode_test.go`
 - Test: `imagekit/barcode/internal_test.go`
 
-- [ ] **Step 1: provider 호출 seam을 만든다**
+- [x] **Step 1: provider 호출 seam을 만든다**
 
 공개 함수는 `Render(ctx context.Context, req Request) (image.Image, error)`로 고정하고, 내부 `renderWithEncoder(ctx, req, encoder)`는 테스트용 함수 주입만 허용한다. 실제 encoder는 `qr.Encode(req.Content, mappedLevel, qr.Unicode)` 또는 `code128.Encode(req.Content)`를 호출한다. provider 타입은 공개 구조체에 저장하지 않는다. encoder 반환 직후 geometry 계산·이미지 할당·provider 오류 변환보다 먼저 `ctx.Err()`를 확인하고, 취소·deadline이면 원형 context 오류와 nil 결과를 반환한다. provider import가 실제로 존재하는 이 시점에 `go mod tidy && go mod verify`를 실행해 `github.com/boombuler/barcode v1.1.0` direct require와 checksum을 고정하고 그 결과를 Task 3 commit 증거로 남긴다.
 
-- [ ] **Step 2: provider 결과를 checked geometry로 복사한다**
+- [x] **Step 2: provider 결과를 checked geometry로 복사한다**
 
 provider 결과가 nil이거나 빈 bounds면 `ErrEncode`를 반환한다. `symbolWidth`와 `symbolHeight`를 bounds에서 읽고, QR은 두 값이 같음을 확인한다. quiet zone은 QR 4 module, Code128 좌우 10 module로 둔다. 다음 조건을 checked integer arithmetic으로 계산한다.
 
@@ -165,7 +165,7 @@ Code128.scaleX = Width / Code128.requiredWidth
 
 각 분기에서 required 치수의 덧셈·곱셈·pixel 수는 checked integer arithmetic으로 계산한다. bounds의 `Max-Min` span도 checked subtraction으로 계산해 극단적인 provider bounds에서 `Dx()` overflow가 나지 않게 한다. geometry 검증에 들어가기 전 provider 반환 직후 context checkpoint를 다시 실행한다. QR의 `scale < 1`이면 `ErrInvalidOptions`; Code128의 `scaleX < 1`이면 `ErrInvalidOptions`; pinned provider의 `symbolHeight != 1`, nil/empty/malformed output은 `ErrEncode`로 분류한다. 곱셈·덧셈 overflow 또는 전체 pixel 상한 위반이면 `ErrImageTooLarge`다. provider bounds의 `Min` offset을 보정해 모든 `At` 접근이 bounds 안에 있도록 한다. `*image.Gray`를 흰색으로 채운 뒤 중앙 offset에 provider module을 정수 배율로 복사한다. QR은 두 축에 4-module quiet zone을 포함하고, Code128은 x축 10-module quiet zone을 포함한 뒤 각 dark bar를 출력 이미지의 모든 y행에 복제하여 요청 높이를 채운다. Code128은 `scaleY`를 가로 배율 선택에 사용하지 않으며 세로 보간·축소를 하지 않는다. `color.GrayModel.Convert` 결과의 명도 `< 128`만 검정으로, 나머지는 흰색으로 정규화한다.
 
-- [ ] **Step 3: geometry·detachment·결정성 테스트를 GREEN으로 만든다**
+- [x] **Step 3: geometry·detachment·결정성 테스트를 GREEN으로 만든다**
 
 실제 provider 출력으로 QR 256×256, Code128 512×128을 생성하고 다음을 검사한다. provider 오류·특이 output·호출 부재와 private seam은 `internal_test.go`의 `package barcode`에서 검증하고, 호출자 관점은 `barcode_test.go`의 `package barcode_test`에서 검증한다. provider가 성공 또는 오류를 반환하면서 context를 취소하는 경우 geometry·할당·오류 변환보다 원형 context error가 우선되는지 확인한다. provider 오류는 오류 문자열과 `%+v`, `Unwrap`, `errors.As` 어느 경로에도 원문이 남지 않는지 확인한다.
 
@@ -191,15 +191,15 @@ Commit: `feat: QR과 Code128을 표준 Gray 이미지로 렌더링한다`
 - Test: `imagekit/barcode/barcode_test.go`
 - Test: `imagekit/barcode/internal_test.go`
 
-- [ ] **Step 1: context-aware capped writer를 테스트로 고정한다**
+- [x] **Step 1: context-aware capped writer를 테스트로 고정한다**
 
 `internal_test.go`의 package-local 테스트에서 writer는 `Write(p []byte)` 직전에 context를 확인하고, 누적 길이가 4 MiB를 초과하면 고정 `errPNGTooLarge`를 반환한다. 작은 주입 한도로 같은 precedence를 재현해 context error가 cap error보다 먼저 관측되는지 고정한다. PNG encode 실패 시 호출자에게 부분 buffer를 반환하지 않는다.
 
-- [ ] **Step 2: `EncodePNG`를 구현한다**
+- [x] **Step 2: `EncodePNG`를 구현한다**
 
 `EncodePNG(ctx, req)`는 `Render` 후 encode 직전에 context를 확인하고 `png.Encode(limitWriter, img)`를 실행한다. writer의 각 write와 encode 후 context를 확인한다. 성공 시 새 byte slice를 반환하고, provider 오류·PNG 한도 초과·writer 오류는 `nil` 결과와 고정 `ErrEncode` 오류를 반환한다. 취소·deadline은 어느 checkpoint에서 발견되든 원형 `context.Canceled` 또는 `context.DeadlineExceeded`와 nil 결과를 반환한다. detached goroutine, global buffer, 내부 retry를 만들지 않는다.
 
-- [ ] **Step 3: lifecycle과 출력 테스트를 GREEN으로 만든다**
+- [x] **Step 3: lifecycle과 출력 테스트를 GREEN으로 만든다**
 
 다음을 테스트한다.
 
@@ -227,21 +227,21 @@ Commit: `feat: bounded PNG 출력과 취소 경계를 추가한다`
 - Modify: `CHANGELOG.md`
 - Create: `docs/lessons/2026-09-09-issue-546-barcode-qr.md`
 
-- [ ] **Step 1: 실행 가능한 example을 추가한다**
+- [x] **Step 1: 실행 가능한 example을 추가한다**
 
 `ExampleRender_qr`는 한글 UTF-8 payload를 256×256으로 렌더링하고 `Bounds().Dx()/Dy()`를 출력한다. `ExampleEncodePNG_code128`은 printable ASCII payload를 512×128 PNG로 인코딩하고 `image/png` decode bounds를 출력한다. 예제 출력은 크기와 오류 없는 결과만 고정하며 raw PNG byte golden은 고정하지 않는다.
 
-- [ ] **Step 2: package README 두 언어를 작성한다**
+- [x] **Step 2: package README 두 언어를 작성한다**
 
 설치 경로, dependency 버전, `Request` 예제, QR UTF-8/Code128 ASCII allowlist, 4 MiB·4,096² 제한, quiet zone, context 한계, 오류 sentinel, provider 원문 비노출, 스캐너 인증이 아님을 설명한다. 기존 `imagekit.Transform`에 PNG를 전달할 수 있지만 arbitrary resize/crop/JPEG는 판독성을 훼손할 수 있다는 경계를 명시한다.
 
-- [ ] **Step 3: parent README와 lesson을 동기화한다**
+- [x] **Step 3: parent README와 lesson을 동기화한다**
 
 `imagekit/README.md`와 `README.ko.md`의 지원 기능/하위 패키지 링크를 같은 위치에 추가하고, root `README.md`/`README.ko.md`의 package index와 imagekit 설명도 같은 범위로 갱신한다. `CHANGELOG.md`의 `Unreleased` 아래 `추가` 항목에 #546 public package를 기록한다. lesson에는 provider의 `Content()` 누출, quiet zone 보장 부재, non-cooperative cancellation을 구현 watchpoint로 기록한다.
 
 별도 시각화·diagram은 추가하지 않는다. 이번 public contract는 README의 구조 기반 이미지 설명과 실행 가능한 example로 충분하며, diagram source/rendered asset parity 검증은 범위 밖인 N/A 근거를 review에 남긴다.
 
-- [ ] **Step 4: 문서 검증을 수행한다**
+- [x] **Step 4: 문서 검증을 수행한다**
 
 Run:
 
@@ -262,7 +262,7 @@ Commit: `docs: barcode 사용법과 provider 경계를 기록한다`
 **Files:**
 - Inspect: all changed files, `go.mod`, `go.sum`, `.github/workflows`, Makefile
 
-- [ ] **Step 1: package targeted test와 race를 순차 실행한다**
+- [x] **Step 1: package targeted test와 race를 순차 실행한다**
 
 Run:
 
@@ -276,13 +276,13 @@ go mod verify
 
 Expected: all commands exit 0. race test에는 32개 동시 QR/Code128 호출을 포함하고, 실제 provider 내부 goroutine이 남지 않는지 테스트 종료 후 goroutine count로 추정하지 않고 race/결과 소유권으로 검증한다.
 
-- [ ] **Step 2: repository-wide quality gate를 실행한다**
+- [x] **Step 2: repository-wide quality gate를 실행한다**
 
 Run sequentially: `make fmt-check`, `make tidy-check`, `make vet`, `make lint`, `make test`, `make race`, `make ci`.
 
 Expected: each command exits 0. `make tidy-check`가 dependency drift를 보고하면 go.mod/go.sum만 정리하고 source behavior를 바꾸지 않은 뒤 모든 affected test를 다시 실행한다.
 
-- [ ] **Step 3: dependency·license·source evidence를 고정한다**
+- [x] **Step 3: dependency·license·source evidence를 고정한다**
 
 Run:
 
@@ -298,7 +298,7 @@ gh api 'repos/boombuler/barcode/contents/scaledbarcode.go?ref=11e32e438ffcc2af3d
 
 Expected: module version `v1.1.0`, checksum verified, tag `v1.1.0` resolves to commit `11e32e438ffcc2af3d65aa3547c065972a743d70`, pinned Code128/QR/scaling source and MIT license readback. Save bounded command output under `.omx/` for the review receipt. `govulncheck` is not a repository command in this environment; record that absence as a validation gap and do not claim a vulnerability scan PASS.
 
-- [ ] **Step 4: hazard·diff·API audit를 수행한다**
+- [x] **Step 4: hazard·diff·API audit를 수행한다**
 
 Inspect `git diff --stat`, `git diff --check`, `go list ./...`, exported Go doc, all README pairs, `CHANGELOG.md`, no catalog/workflow registration requirement, no cgo/OCR/CAPTCHA/file/network side effect, and no modifications outside the approved file list. This is a subpackage rather than a new module, so settings registration, BOM constraints, test resources, coverage aggregation wiring, and separate CI/Nightly path registration are explicit N/A; existing `go test ./...`, coverage, CI, and Nightly package discovery are checked instead. `git status --short` must show only intended files.
 
@@ -310,19 +310,19 @@ Commit: `test: barcode 전체 검증과 dependency 경계를 확인한다`
 - Inspect: approved spec and plan, all implementation files
 - Modify: `docs/review/2026-09-09-issue-546-code-review.md`, `docs/lessons/2026-09-09-issue-546-barcode-qr.md` when review evidence requires it
 
-- [ ] **Step 1: spec·plan traceability verifier를 수행한다**
+- [x] **Step 1: spec·plan traceability verifier를 수행한다**
 
 AC-01부터 AC-07까지를 public API, input validation, geometry, errors, cancellation, docs, commands와 일대일로 대조한다. 누락은 구현으로 덮지 말고 plan 또는 spec을 먼저 수정하고 해당 승인/검토 gate를 다시 연다.
 
-- [ ] **Step 2: six perspective lanes와 main integration을 실행한다**
+- [x] **Step 2: six perspective lanes와 main integration을 실행한다**
 
 Performance, stability, security, operator/Ops, developer/API, user/caller를 각각 최신 diff와 테스트 결과에 대해 검토한다. 성능·안정성 reviewer가 확인할 watchpoint는 checked arithmetic, capped writer, provider non-cooperative call, race와 반환 이미지 소유권이다. P0/P1은 0건이어야 하며 P2/P3는 수정 또는 명시적 후속 issue/rationale를 남긴다.
 
-- [ ] **Step 3: review writer gate와 lesson을 완료한다**
+- [x] **Step 3: review writer gate와 lesson을 완료한다**
 
 통합 review와 lesson에 SPW-01~05를 기록하고, 한국어 기술 문체·용어 audit·source/command traceability·최종 Markdown readback을 수행한다. `docs/review/2026-09-09-issue-546-code-review.md`에는 priority, 근거, disposition, 남은 검증 gap, P0/P1 count를 넣는다.
 
-- [ ] **Step 4: pre-PR DoD를 렌더링한다**
+- [x] **Step 4: pre-PR DoD를 렌더링한다**
 
 현재 head/base, changed files, commits, local commands, dependency evidence, docs parity, known gaps(`govulncheck` 부재와 실제 물리 scanner 시험 미수행), no-merge boundary를 Korean PR body 형식으로 정리한다. PR body는 `## DoD Status`로 끝내고 issue #546의 번호·assignee·milestone·labels를 live metadata와 대조한다. PR 생성 전 common gate와 linked issue metadata를 다시 읽는다. PR 생성 후 `gh pr view <number> --json headRefOid,baseRefName,mergeStateStatus,statusCheckRollup,reviews,reviewDecision`와 `gh pr checks <number> --watch`로 exact head를 고정하고, 실패하면 동일 head 증거를 폐기한 뒤 수정→targeted/race→hosted CI 순서로 재검증한다.
 
@@ -335,15 +335,15 @@ Performance, stability, security, operator/Ops, developer/API, user/caller를 �
 
 이 Task 시작 시 `$bluetape-maintenance`와 `$bluetape-go-patterns`를 다시 읽고, 운영 source 변경은 해당 maintenance gate를 따른다.
 
-- [ ] **Step 1: 실제 구현 증거에서 재사용 가능한 guard를 추출한다**
+- [x] **Step 1: 실제 구현 증거에서 재사용 가능한 guard를 추출한다**
 
 lesson과 최종 review의 실제 파일·테스트·명령 근거만 사용해, 외부 image/binary provider adapter의 bounded 입력, caller-owned 표준 출력 복사, checked geometry/quiet-zone, capped output, cancellation checkpoint와 non-cooperative provider 경계를 일반 Go 규칙으로 정리한다. barcode 전용 API 이름이나 한 번의 실패를 일반 규칙으로 과장하지 않는다.
 
-- [ ] **Step 2: managed source를 먼저 수정하고 live skill을 적용한다**
+- [x] **Step 2: managed source를 먼저 수정하고 live skill을 적용한다**
 
 `chezmoi status`와 `chezmoi diff`를 확인한 뒤 source 파일을 수정하고, 대상 skill만 `chezmoi apply`한다. `/Users/debop/.codex/skills/...`를 직접 편집하지 않는다. source/rendered/live parity, frontmatter parse, `git diff --check`, skill self-audit를 확인한다.
 
-- [ ] **Step 3: 지속 가능한 source repository 상태를 확인한다**
+- [x] **Step 3: 지속 가능한 source repository 상태를 확인한다**
 
 변경이 의도한 두 skill 파일과 렌더링 결과에만 한정되는지 확인하고, source repository의 Lore commit/push와 local `HEAD`/upstream parity를 확인한다. push가 credential 또는 외부 상태로 막히면 정확한 gap으로 기록하고 Task 8을 `PENDING`으로 남기되 현재 작업의 Go 구현/PR gate와 혼동하지 않는다.
 
@@ -369,13 +369,15 @@ Task 1 RED → Task 2 validation → Task 3 renderer → Task 4 PNG/cancel
 
 - [x] 승인된 amended spec `1ebee2a`와 spec review `3a5f043`의 P0=0/P1=0 결과를 반영했다.
 - [x] 모든 AC에 파일·테스트·명령·rollback 지점을 매핑했다.
-- [ ] 계획 사용자 승인.
-- [ ] 계획 6개 관점 및 메인 통합 review.
-- [ ] 구현·검증·lesson·pre-PR review.
-- [ ] `$bluetape-go-patterns` source/live parity와 지속 가능한 guard 승격.
+- [x] 계획 사용자 승인.
+- [x] 계획 6개 관점 및 메인 통합 review.
+- [x] 구현·검증·lesson·pre-PR review.
+- [x] `$bluetape-go-patterns` source/live parity와 지속 가능한 guard 승격.
 - [ ] 개별 PR 생성과 hosted CI.
 
-현재 문서는 코드 구현 승인을 의미하지 않는다. 다음 단계는 수정된 plan의 사용자 승인 및 plan review이며, 그 전에는 Task 1 dependency 변경과 구현을 시작하지 않는다.
+현재 구현·검증·review·pattern 승격까지 완료했으며, 마지막 미완료 항목은
+개별 PR 생성과 hosted CI다. PR 생성 전 exact-head gate를 다시 읽고, hosted
+CI가 terminal PASS가 되면 이 계획의 마지막 DoD 항목을 갱신한다.
 
 ## 계획 자체 검토와 문서 게이트
 
