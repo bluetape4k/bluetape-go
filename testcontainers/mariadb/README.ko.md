@@ -59,7 +59,7 @@ if err := tcserver.ExportEnv(t, details, map[string]string{
 
 ## 동작
 
-- `mariadb:11.0.3`을 사용합니다.
+- immutable `mariadb:11.0.3@sha256:27a48773d0d4b95ae6772b092e776a9a2cc5e1dbf9d187b211c6da9c933f0e7a` image reference를 사용합니다.
 - Database, username, password는 `bluetape`로 생성합니다.
 - 반환 connection string에 `parseTime=true`를 추가합니다.
 - Container termination을 `t.Cleanup`에 등록합니다.

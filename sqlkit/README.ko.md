@@ -162,6 +162,20 @@ Sequence는 builder output이 `WithTx`, `Statement.Exec`, commit/rollback
 handling, `QueryOne`, explicit mapper scanning, row closing, cardinality
 error로 이어지는 흐름을 보여줍니다.
 
+## Engine별 GIS helper
+
+Spatial SQL은 PostgreSQL 우선 core builder 밖에 둡니다. Database 계약에 맞는
+독립 package를 선택하세요.
+
+| Engine | Package | 계약 |
+|---|---|---|
+| PostGIS | [`sqlkit/postgis`](postgis/README.ko.md) | EWKB/SRID value, spatial DDL, indexed `ST_DWithin`, bounding-box helper. |
+| MySQL 8.4 | [`sqlkit/mysqlgis`](mysqlgis/README.ko.md) | SRID-constrained WKB value, axis-order-aware constructor, spherical distance, MBR helper. |
+| MariaDB | [`sqlkit/mariadbgis`](mariadbgis/README.ko.md) | SRID-constrained WKB value, engine-native constructor, distance, MBR helper. |
+
+이 helper들은 shared dialect abstraction을 만들지 않습니다. Engine별 SRID,
+axis-order, index, distance 의미를 호출자가 확인할 수 있게 유지합니다.
+
 ## 선택 가이드
 
 [SQL generator/migration guide](../docs/sql-generator-migration-guidance.ko.md)는

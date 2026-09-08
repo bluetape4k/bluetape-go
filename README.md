@@ -27,13 +27,13 @@ before computing them.
 
 ## Current Status
 
-The current `v0.21.0` release line groups the framework-neutral RFC 9457
-Problem Details and trusted request-context helpers, the `webtest` middleware
-conformance harness, native Gin and Echo adapters, and the optional
-`jwt/jwks` provider. It also makes the Echo nil-downstream behavior
-consistent, exposes redacted observation of rate-limit response-write failures,
-and upgrades legacy JWT parser configurations to context-aware providers when
-that capability is available.
+The `v0.22.0` release scope adds WGS 84 coordinate and canonical
+Geohash helpers, caller-owned reverse geocoding, engine-specific
+PostGIS/MySQL/MariaDB GIS helpers, and narrow FalkorDB and remote
+Gremlin/TinkerPop graph adapters. A backend-neutral graph conformance harness
+keeps core, traversal, cancellation, cleanup, and redacted-error behavior
+consistent without introducing a broad spatial or graph abstraction to the
+model-only packages.
 
 The repository also covers foundation helpers, codecs, compression,
 context-aware concurrency, serializer contracts, Redis-backed leader election
@@ -68,7 +68,11 @@ future scope, not part of the current public API.
 | [`testing/concurrency`](testing/concurrency/README.md) | active | Stress and async job helpers for concurrent tests. |
 | [`testcontainers/redis`](testcontainers/redis/README.md) | active | Redis fixture helpers based on Testcontainers for Go. |
 | [`testcontainers/postgres`](testcontainers/postgres/README.md) | active | PostgreSQL fixture helpers based on Testcontainers for Go. |
+| [`testcontainers/postgis`](testcontainers/postgis/README.md) | active | Digest-pinned PostGIS fixture helper for spatial SQL tests. |
 | [`testcontainers/mysql`](testcontainers/mysql/README.md) | active | MySQL 8.4 fixture helpers based on Testcontainers for Go. |
+| [`testcontainers/mariadb`](testcontainers/mariadb/README.md) | active | MariaDB fixture helpers based on Testcontainers for Go. |
+| [`testcontainers/falkordb`](testcontainers/falkordb/README.md) | active | Digest-pinned FalkorDB fixture helper for OpenCypher tests. |
+| [`testcontainers/tinkerpop`](testcontainers/tinkerpop/README.md) | active | Digest-pinned TinkerPop Gremlin Server fixture helper. |
 | [`testcontainers/mongodb`](testcontainers/mongodb/README.md) | active | MongoDB fixture helpers based on Testcontainers for Go. |
 | [`testcontainers/nats`](testcontainers/nats/README.md) | active | NATS fixture helpers based on Testcontainers for Go. |
 | [`testcontainers/kafka`](testcontainers/kafka/README.md) | active | Kafka fixture helpers based on Testcontainers for Go. |
@@ -117,15 +121,23 @@ future scope, not part of the current public API.
 | [`jwt/mongo`](jwt/mongo/README.md) | active | MongoDB-specific facade for distributed JWT key-chain repository construction. |
 | [`measure`](measure/README.md) | active | Typed units, measured values, compound units, parsing, formatting, and affine temperature helpers. |
 | [`money`](money/README.md) | active | ISO 4217 currency values, CLDR-backed locale currency lookup, decimal-backed money amounts, aggregation, serialization, caller-supplied exchange-rate conversion, and ECB-backed provider conversion. |
+| [`geo`](geo/README.md) | active | Dependency-free WGS 84 coordinate values, inclusive antimeridian-aware bounds, Haversine distance, and canonical lowercase Geohash encode/decode. |
+| [`geocoding`](geocoding/README.md) | active | Caller-owned reverse-geocoding provider contract and Nominatim-compatible HTTP adapter with bounded, cancellable responses. |
 | [`rules`](rules/README.md) | active | Dependency-free facts, functional rules, deterministic rule sets, composite groups, bounded inference, result details, and context cancellation. |
-| [`sqlkit`](sqlkit/README.md) | active | Runtime-first `database/sql` transaction helpers, explicit row mapping/cardinality helpers, and PostgreSQL-first inspectable SQL builders. |
+| [`sqlkit`](sqlkit/README.md) | active | Runtime-first `database/sql` transaction helpers, explicit row mapping/cardinality helpers, PostgreSQL-first builders, and independent engine-specific GIS helpers. |
+| [`sqlkit/postgis`](sqlkit/postgis/README.md) | active | PostGIS EWKB/SRID point values, spatial DDL, indexed distance, and bounding-box helpers. |
+| [`sqlkit/mysqlgis`](sqlkit/mysqlgis/README.md) | active | MySQL 8.4 SRID-constrained point values, WKB mapping, distance, and MBR helpers. |
+| [`sqlkit/mariadbgis`](sqlkit/mariadbgis/README.md) | active | MariaDB SRID-constrained point values, WKB mapping, distance, and MBR helpers. |
 | [`audit`](audit/README.md) | active | Storage-neutral aggregate event and audit model with validated JSON entries, pending-event recording, and history reconstruction. |
 | [`audit/sqloutbox`](audit/sqloutbox/README.md) | active | PostgreSQL-backed audit outbox store and relay with caller-owned transaction choreography. |
 | [`audit/sqloutbox/redisstreams`](audit/sqloutbox/redisstreams/README.md) | active | Redis Streams sqloutbox publisher that preserves stable event and idempotency metadata. |
 | [`audit/sqloutbox/sqloutboxtest`](audit/sqloutbox/sqloutboxtest/README.md) | active | Deterministic publisher helpers for sqloutbox tests, examples, retries, and duplicate-delivery assertions. |
 | [`graph`](graph/README.md) | active | Model-only graph values for vertices, edges, paths, labels, IDs, shallow properties, and validated JSON. |
+| [`graph/graphtest`](graph/graphtest/README.md) | test | Strict backend conformance harness for graph semantics, cancellation, bounded cleanup, traversal capabilities, and redacted provider errors. |
 | [`graph/graphio`](graph/graphio/README.md) | active | Stream-oriented NDJSON and paired CSV import/export helpers for graph vertices and edges. |
 | [`graph/neo4j`](graph/neo4j/README.md) | active | Proof adapter from the official Neo4j Go driver to graph vertices and edges. |
+| [`graph/falkordb`](graph/falkordb/README.md) | active | Caller-owned Redis OpenCypher adapter with bounded results and redacted provider errors. |
+| [`graph/gremlin`](graph/gremlin/README.md) | active | Gremlin-Go remote adapter with bounded result streams, typed mappings, and explicit capability limits. |
 | [`probabilistic`](probabilistic/README.md) | active | Goroutine-safe in-memory Bloom filters with deterministic config, merge compatibility checks, and stress/race coverage. |
 | [`probabilistic/redis`](probabilistic/redis/README.md) | active | Redis-backed shared Bloom filters and HyperLogLog estimates with static Lua Bloom scripts, immutable config metadata, and operator runbook boundaries. |
 
@@ -197,7 +209,13 @@ overview.
   [`rules`](rules/README.md), and [`probabilistic`](probabilistic/README.md), including
   [`probabilistic/redis`](probabilistic/redis/README.md).
 - Data access: [`sqlkit`](sqlkit/README.md) and the optional
-  [SQL generator/migration guide](docs/sql-generator-migration-guidance.md).
+  [SQL generator/migration guide](docs/sql-generator-migration-guidance.md),
+  plus the engine-specific [`sqlkit/postgis`](sqlkit/postgis/README.md),
+  [`sqlkit/mysqlgis`](sqlkit/mysqlgis/README.md), and
+  [`sqlkit/mariadbgis`](sqlkit/mariadbgis/README.md) GIS helpers.
+- Geocoding: [`geocoding`](geocoding/README.md) provides a caller-owned
+  reverse-geocoding contract and Nominatim-compatible HTTP adapter; service
+  policy, endpoint choice, caching, and rate limits remain caller-owned.
 - Audit: [`audit`](audit/README.md) for storage-neutral aggregate event values,
   pending event handoff, validated audit entry JSON, and history
   reconstruction, plus [`audit/sqloutbox`](audit/sqloutbox/README.md) for
@@ -211,8 +229,12 @@ overview.
 - Graph: [`graph`](graph/README.md) for model-only vertex, edge, path, label,
   ID, shallow property, and validated JSON values, plus
   [`graph/graphio`](graph/graphio/README.md) for bounded NDJSON and paired CSV
-  import/export helpers, [`graph/neo4j`](graph/neo4j/README.md) for the first
-  Neo4j backend proof, and
+  import/export helpers, [`graph/graphtest`](graph/graphtest/README.md) for
+  reusable backend-neutral conformance contracts,
+  [`graph/neo4j`](graph/neo4j/README.md) for the first Neo4j backend proof,
+  [`graph/falkordb`](graph/falkordb/README.md) for the bounded OpenCypher
+  adapter, and [`graph/gremlin`](graph/gremlin/README.md) for the remote
+  Gremlin/TinkerPop adapter, and
   [`examples/graph/observability`](examples/graph/observability/README.md) for
   a runnable incident-response graph example plus
   [`examples/graph/iamaccess`](examples/graph/iamaccess/README.md) for IAM
@@ -352,6 +374,11 @@ make coverage
 make ci
 ```
 
+The `test`, `race`, and `coverage` targets use a 10-minute Go test timeout by
+default. Override it with one of `30s`, `1m`, `2m`, `5m`, `10m`, `15m`, `20m`,
+`30m`, `45m`, or `60m`, for example with `GO_TEST_TIMEOUT=20m make test`.
+Unsupported, zero, or unbounded values fail before a target runs.
+
 Common commands:
 
 | Command | Purpose |
@@ -362,9 +389,10 @@ Common commands:
 | `make tidy-check` | Fail when `go.mod` or `go.sum` drift after `go mod tidy`. |
 | `make vet` | Run `go vet ./...`. |
 | `make lint` | Run `golangci-lint run ./...`. |
-| `make test` | Run `go test -p 1 -count=1 ./...` so Testcontainers tests execute with serial package scheduling. |
-| `make race` | Run `go test -race -p 1 -count=1 ./...` so Testcontainers tests execute under the race detector with serial package scheduling. |
-| `make coverage` | Generate Go coverage profile, package subtotal table, text summary, and HTML report under `coverage/`. |
+| `make test` | Run `go test -timeout=10m -p 1 -count=1 ./...` so Testcontainers tests execute with a bounded timeout and serial package scheduling. |
+| `make race` | Run `go test -timeout=10m -race -p 1 -count=1 ./...` so Testcontainers tests execute under the race detector with a bounded timeout and serial package scheduling. |
+| `make coverage` | Generate Go coverage outputs under `coverage/` with a bounded timeout and serial package scheduling. |
+| `make check-test-timeout` | Verify accepted timeout values and fail-closed rejection of zero, wildcard, allowlist-override, and injection inputs. |
 | `make bench-cache` | Run opt-in cache, Redis NearCache, and Redis coordinator benchmarks. |
 | `make bench-ratelimit` | Run opt-in local rate limiter benchmarks. |
 | `make bench-id` | Run opt-in id generator benchmarks. |

@@ -23,6 +23,7 @@ func TestPostgresFaultRecovery(t *testing.T) {
 	t.Run("acquire-lost-response", func(t *testing.T) { testAcquireLostResponseReconcilesOwnToken(t, db) })
 	t.Run("acquire-after-contention", func(t *testing.T) { testAcquireAfterHookWaitsForSuccessfulMutation(t, db) })
 	t.Run("acquire-probe-failure", func(t *testing.T) { testAcquireProbeFailureReturnsCommitUnknown(t, db) })
+	t.Run("contended-timeout-cleanup", func(t *testing.T) { testContendedTimeoutCleanupPreservesOwner(t, db) })
 	t.Run("attempt-timeout", func(t *testing.T) { testInternalAttemptTimeoutWithOtherOwnerRetries(t, db) })
 	t.Run("renew-lost-response", func(t *testing.T) { testRenewLostResponseClearsOwnedAndKeepsCleanup(t, db) })
 	t.Run("resign-lost-response", func(t *testing.T) { testResignLostResponseIsCommitUnknownThenRetryable(t, db) })
@@ -69,6 +70,29 @@ func testCampaignBlocksUntilContextOrTakeover(t *testing.T, db *sql.DB) {
 	cancel()
 	if !errors.Is(err, context.DeadlineExceeded) {
 		t.Fatalf("Campaign() error=%v, want deadline", err)
+	}
+	if errors.Is(err, leader.ErrCommitUnknown) {
+		if !cleanupPending(contender) {
+			t.Fatal("ambiguous campaign did not retain cleanup")
+		}
+		if cleanupErr := contender.Campaign(ctx); !errors.Is(cleanupErr, leader.ErrCleanupPending) {
+			t.Fatalf("Campaign before cleanup error=%v, want ErrCleanupPending", cleanupErr)
+		}
+		if got, leaderErr := contender.Leader(ctx); leaderErr != nil || got != owner.token {
+			t.Fatalf("Leader before cleanup=%q error=%v, want owner token", got, leaderErr)
+		}
+		cleanupCtx, cleanupCancel := context.WithTimeout(ctx, time.Second)
+		if cleanupErr := contender.Resign(cleanupCtx); cleanupErr != nil {
+			cleanupCancel()
+			t.Fatalf("cleanup after ambiguous campaign: %v", cleanupErr)
+		}
+		cleanupCancel()
+		if cleanupPending(contender) {
+			t.Fatal("bounded cleanup retained cleanup state")
+		}
+		if got, leaderErr := contender.Leader(ctx); leaderErr != nil || got != owner.token {
+			t.Fatalf("Leader after cleanup=%q error=%v, want owner token", got, leaderErr)
+		}
 	}
 	if err := owner.Resign(ctx); err != nil {
 		t.Fatal(err)
@@ -676,6 +700,88 @@ func testAcquireProbeFailureReturnsCommitUnknown(t *testing.T, db *sql.DB) {
 	}
 	if err := e.Resign(context.Background()); err != nil {
 		t.Fatalf("cleanup Resign(): %v", err)
+	}
+}
+
+func testContendedTimeoutCleanupPreservesOwner(t *testing.T, db *sql.DB) {
+	owner := lifecycleElector(t, db, "fault-contended-timeout-cleanup", "owner", 10*time.Second, 100*time.Millisecond)
+	contender := lifecycleElector(t, db, "fault-contended-timeout-cleanup", "contender", 10*time.Second, 100*time.Millisecond)
+	acquireCtx, acquireCancel := context.WithTimeout(context.Background(), time.Second)
+	acquired, err := owner.tryAcquire(acquireCtx)
+	acquireCancel()
+	if err != nil || !acquired {
+		t.Fatalf("owner acquire=%v err=%v", acquired, err)
+	}
+	t.Cleanup(func() {
+		cleanupCtx, cleanupCancel := context.WithTimeout(context.Background(), time.Second)
+		defer cleanupCancel()
+		if _, err := db.ExecContext(cleanupCtx, deleteQuery, owner.key, owner.token); err != nil {
+			t.Errorf("delete owner row: %v", err)
+		}
+	})
+	setupCtx, setupCancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer setupCancel()
+	tx, err := db.BeginTx(setupCtx, nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+	rolledBack := false
+	t.Cleanup(func() {
+		if !rolledBack {
+			if err := tx.Rollback(); err != nil && !errors.Is(err, sql.ErrTxDone) {
+				t.Errorf("rollback owner lock: %v", err)
+			}
+		}
+	})
+	if _, err := tx.ExecContext(setupCtx, `update public.bluetape_leader_leases set updated_at=updated_at where leader_key=$1`, owner.key); err != nil {
+		t.Fatal(err)
+	}
+
+	faults := newFaultController()
+	faults.failNext("campaign", "reconcile", errors.New("primary probe unavailable"))
+	contender.testHook = faults.hook
+	campaignCtx, campaignCancel := context.WithTimeout(context.Background(), 90*time.Millisecond)
+	done := make(chan error, 1)
+	go func() { done <- contender.Campaign(campaignCtx) }()
+	waitForBlockedQuery(t, db, "insert into public.bluetape_leader_leases")
+	err = <-done
+	campaignCancel()
+	if rollbackErr := tx.Rollback(); rollbackErr != nil {
+		t.Fatal(rollbackErr)
+	}
+	rolledBack = true
+	if !errors.Is(err, context.DeadlineExceeded) || !errors.Is(err, leader.ErrCommitUnknown) {
+		t.Fatalf("Campaign() error=%v, want deadline and ErrCommitUnknown", err)
+	}
+	if !cleanupPending(contender) {
+		t.Fatal("ambiguous contender did not retain cleanup")
+	}
+	verifyCtx, verifyCancel := context.WithTimeout(context.Background(), time.Second)
+	got, leaderErr := contender.Leader(verifyCtx)
+	verifyCancel()
+	if leaderErr != nil || got != owner.token {
+		t.Fatalf("Leader before cleanup=%q error=%v, want owner token", got, leaderErr)
+	}
+	guardCtx, guardCancel := context.WithTimeout(context.Background(), time.Second)
+	guardErr := contender.Campaign(guardCtx)
+	guardCancel()
+	if !errors.Is(guardErr, leader.ErrCleanupPending) {
+		t.Fatalf("Campaign before cleanup error=%v, want ErrCleanupPending", guardErr)
+	}
+
+	cleanupCtx, cleanupCancel := context.WithTimeout(context.Background(), time.Second)
+	defer cleanupCancel()
+	if err := contender.Resign(cleanupCtx); err != nil {
+		t.Fatalf("cleanup Resign(): %v", err)
+	}
+	if cleanupPending(contender) {
+		t.Fatal("cleanup Resign retained cleanup state")
+	}
+	verifyAfterCtx, verifyAfterCancel := context.WithTimeout(context.Background(), time.Second)
+	got, leaderErr = contender.Leader(verifyAfterCtx)
+	verifyAfterCancel()
+	if leaderErr != nil || got != owner.token {
+		t.Fatalf("Leader after cleanup=%q error=%v, want owner token", got, leaderErr)
 	}
 }
 

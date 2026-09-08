@@ -101,16 +101,23 @@ Error 문자열은 operation과 column 이름만 포함하고 raw Cypher, parame
 
 ## Test
 
-Integration test는 Testcontainers for Go로 Neo4j container 하나를 시작합니다. Package
-test를 serial로 실행하세요.
+Package test는 Neo4j와 Memgraph에
+[`graph/graphtest`](../graphtest/README.ko.md)의 strict core와 traversal suite를
+같이 실행합니다. 두 provider는 conformance test에 기록된 digest-pinned image를
+사용합니다. Fixed query/column, bound parameter, `limit+1` read는 provider adapter
+closure 안에 둡니다. Lifecycle은 fixture cleanup, adapter close, `Run` 반환,
+container terminate 순서입니다.
+
+Testcontainers 기반 package test는 직렬로 실행하세요.
 
 ```bash
-go test -p 1 -count=1 ./graph/neo4j
-go test -p 1 -race -count=1 ./graph/neo4j
+go test -p 1 -count=1 -timeout=10m ./graph/neo4j
+go test -p 1 -race -count=1 -timeout=15m ./graph/neo4j
 ```
 
-Package test는 node/relationship mapping, bad record, query failure, context
-cancellation, resource cleanup을 검증합니다.
+Package test는 node/relationship mapping, bad record, graph semantic parity,
+provider error redaction, context cancellation, `ReasonCode` capability validation,
+bounded cleanup, close 순서를 검증합니다.
 
 ## Benchmark
 
@@ -148,8 +155,8 @@ Testcontainers 기반 Memgraph matrix를 포함합니다.
 
 | Runtime | Image | 검증 동작 |
 |---|---|---|
-| Neo4j | `neo4j:5.26.0` | node/relationship create/read, result mapping, bad query, cancellation, driver cleanup |
-| Memgraph | `memgraph/memgraph:3.5.0` | 같은 Neo4j-driver adapter surface: node/relationship create/read, result mapping, bad query, cancellation, driver cleanup |
+| Neo4j | `neo4j:5.26.0@sha256:5a015e53de1895e7eee1574ae0325cf8c4b89587222778108c594bdd45a474b5` | shared strict core, traversal, mapping, provider error, cancellation, cleanup/close |
+| Memgraph | `memgraph/memgraph:3.5.0@sha256:b411deeb2341698f4f7a0d69535c8937c341e924f66962aa3e70acb63c7a5bd1` | 같은 shared Neo4j-driver conformance contract |
 
 Guardrail:
 

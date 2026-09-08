@@ -59,7 +59,7 @@ if err := tcserver.ExportEnv(t, details, map[string]string{
 
 ## 동작
 
-- `mysql:8.4`를 사용합니다.
+- immutable `mysql:8.4@sha256:b3b90af2a6552ae30c266fdb7d5dd55f3afb72404bb78d37fe8a23eb857fd3fb` image reference를 사용합니다.
 - Database, username, password는 `bluetape`로 생성합니다.
 - 반환 connection string에 `parseTime=true`를 추가합니다.
 - Container termination을 `t.Cleanup`에 등록합니다.

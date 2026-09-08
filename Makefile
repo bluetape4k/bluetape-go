@@ -1,5 +1,15 @@
 GO ?= go
 GOLANGCI_LINT ?= golangci-lint
+GO_TEST_TIMEOUT ?= 10m
+override GO_TEST_TIMEOUT_VALUES := 30s 1m 2m 5m 10m 15m 20m 30m 45m 60m
+override GO_TEST_TIMEOUT := $(value GO_TEST_TIMEOUT)
+
+ifneq ($(words $(GO_TEST_TIMEOUT)),1)
+$(error GO_TEST_TIMEOUT must be one of: $(GO_TEST_TIMEOUT_VALUES))
+endif
+ifeq ($(filter $(GO_TEST_TIMEOUT_VALUES),$(GO_TEST_TIMEOUT)),)
+$(error GO_TEST_TIMEOUT must be one of: $(GO_TEST_TIMEOUT_VALUES))
+endif
 
 GO_FILES := $(shell find . -name '*.go' -not -path './.git/*')
 COVERAGE_DIR ?= coverage
@@ -10,7 +20,7 @@ COVERAGE_HTML ?= $(COVERAGE_DIR)/coverage.html
 BENCH_COUNT ?= 5
 BENCH_CPU ?= 1,2,4
 
-.PHONY: help fmt fmt-check tidy tidy-check vet lint test race coverage bench-cache bench-ratelimit bench-compression bench-id bench-rules bench-web-gin bench-web-gin-regression check-bench-web-gin ci
+.PHONY: help fmt fmt-check tidy tidy-check vet lint test race coverage check-test-timeout bench-cache bench-ratelimit bench-compression bench-id bench-rules bench-web-gin bench-web-gin-regression check-bench-web-gin ci
 
 help:
 	@printf '%s\n' \
@@ -21,9 +31,11 @@ help:
 		'  tidy-check  Run go mod tidy and fail on go.mod/go.sum drift' \
 		'  vet         Run go vet ./...' \
 		'  lint        Run golangci-lint' \
-		'  test        Run uncached go test ./... with serial package execution for Testcontainers safety' \
-		'  race        Run uncached go test -race ./... with serial package execution for Testcontainers safety' \
-		'  coverage    Generate Go coverage profile, package summary, and HTML report' \
+		'  GO_TEST_TIMEOUT values: $(GO_TEST_TIMEOUT_VALUES) (default: 10m)' \
+		'  test        Run uncached go test ./... with serial package execution and GO_TEST_TIMEOUT' \
+		'  race        Run uncached go test -race ./... with serial package execution and GO_TEST_TIMEOUT' \
+		'  coverage    Generate Go coverage outputs with serial package execution and GO_TEST_TIMEOUT' \
+		'  check-test-timeout Validate accepted and rejected GO_TEST_TIMEOUT values' \
 		'  bench-cache Run opt-in cache, Redis NearCache, and Redis coordinator benchmarks' \
 		'  bench-ratelimit Run opt-in local rate limiter benchmarks' \
 		'  bench-id    Run opt-in id generator benchmarks' \
@@ -53,15 +65,15 @@ lint:
 	@$(GOLANGCI_LINT) run ./...
 
 test:
-	@$(GO) test -p 1 -count=1 ./...
-	@$(GO) test -vet=off ./batch/testdata/compat
+	@$(GO) test -timeout="$(GO_TEST_TIMEOUT)" -p 1 -count=1 ./...
+	@$(GO) test -timeout="$(GO_TEST_TIMEOUT)" -vet=off ./batch/testdata/compat
 
 race:
-	@$(GO) test -race -p 1 -count=1 ./...
+	@$(GO) test -timeout="$(GO_TEST_TIMEOUT)" -race -p 1 -count=1 ./...
 
 coverage:
 	@mkdir -p $(COVERAGE_DIR)
-	@$(GO) test -p 1 -count=1 -covermode=atomic -coverpkg=./... -coverprofile=$(COVERAGE_PROFILE) ./...
+	@$(GO) test -timeout="$(GO_TEST_TIMEOUT)" -p 1 -count=1 -covermode=atomic -coverpkg=./... -coverprofile=$(COVERAGE_PROFILE) ./...
 	@$(GO) tool cover -func=$(COVERAGE_PROFILE) | tee $(COVERAGE_TEXT)
 	@{ \
 		printf '%s\n' '| Package | Coverage | Covered | Statements |'; \
@@ -102,4 +114,26 @@ check-bench-web-gin:
 	@scripts/capture-gin-adapter-benchmark_test.sh
 	@scripts/compare-gin-adapter-benchmark_test.sh
 
-ci: tidy-check fmt-check vet lint test race check-bench-web-gin
+check-test-timeout:
+	@$(MAKE) --no-print-directory -n GO_TEST_TIMEOUT=2m test >/dev/null
+	@for timeout_value in 0 30% 1% %m 1m% 61m; do \
+		if $(MAKE) --no-print-directory -n GO_TEST_TIMEOUT="$$timeout_value" test >/dev/null 2>&1; then \
+			printf '%s\n' "error: GO_TEST_TIMEOUT=$$timeout_value should be rejected" >&2; \
+			exit 1; \
+		fi; \
+	done
+	@if $(MAKE) --no-print-directory -n GO_TEST_TIMEOUT_VALUES=0 GO_TEST_TIMEOUT=0 test >/dev/null 2>&1; then \
+		printf '%s\n' 'error: GO_TEST_TIMEOUT_VALUES override should be rejected' >&2; \
+		exit 1; \
+	fi
+	@if $(MAKE) --no-print-directory -n 'GO_TEST_TIMEOUT=10m;printf INJECTED' test >/dev/null 2>&1; then \
+		printf '%s\n' 'error: shell metacharacters in GO_TEST_TIMEOUT should be rejected' >&2; \
+		exit 1; \
+	fi
+	@if $(MAKE) --no-print-directory -n 'GO_TEST_TIMEOUT=$$(shell printf EXPANDED)' test >/dev/null 2>&1; then \
+		printf '%s\n' 'error: Make functions in GO_TEST_TIMEOUT should be rejected' >&2; \
+		exit 1; \
+	fi
+	@printf '%s\n' 'PASS: Go test timeout guard'
+
+ci: tidy-check fmt-check vet lint check-test-timeout test race check-bench-web-gin

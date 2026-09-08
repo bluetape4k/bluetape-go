@@ -1,71 +1,175 @@
 # 진행 상황
 
-기준 시각: 2026-09-05 KST
-범위: `v0.21.0` Go stable release 준비.
+기준 시각: 2026-09-07 KST
+범위: `v0.22.0` 안정 릴리스 준비와 배포 검증.
+
+## Issue #555 graph backend conformance
+
+- `[x]` `go test -race -count=10 ./graph/graphtest`
+- `[x]` 독립 process 3회 `go test -count=1 ./graph/neo4j -run '^TestBackendConformance$' -v -timeout=10m`
+- `[x]` legacy Neo4j/Memgraph integration과 shared suite의 같은 tree parity
+- `[x]` migration 뒤 `go test -count=1 ./graph/neo4j -timeout=10m`
+- `[x]` `make ci`
+- `[x]` exact-head Testcontainers Nightly
+- `[x]` Step 6-R 7-Tier review `P0=0 P1=0 P2=0 P3=0`
+- Migration commit: `5d73079cd2ce2f8403cb068e7816b399c823e76d`
+- 구현·리뷰 수정 source HEAD: `ec98e00276ffacd98e559ea4177f16fb58df31d0`
+- local canonical validation SHA: `76707c2fd255c24cf27e3f96d5b75fad20c8e1a8`
+- pre-integration PR head: `87f9bc3778461a59964de9b1354db3f245e3f205`
+- Base/head: `develop` / `feat/issue-555-graph-conformance`
+- PR number/URL: #736 / https://github.com/bluetape4k/bluetape-go/pull/736
+- Required CI: run `34026850947`, `SUCCESS`, head
+  `e59992cfb6fc9b0931fc7a2e3ab8a6767e147806`, completed
+  `2026-09-06T10:29:38Z`
+- `origin/develop` integration commit: `5a461a28f56fa4b049240092e9baa3eba4a4cefe`
+- Post-integration local `make ci`: `PASS` (exit 0)
+- Testcontainers Nightly: run `34027924828`, `SUCCESS`, head
+  `e59992cfb6fc9b0931fc7a2e3ab8a6767e147806`, completed
+  `2026-09-06T10:49:48Z`
+- Merge commit: `0407766723625cd08951c4b92e89ccafc69b231c`
+
+세 독립 process의 전체 suite 시간은 각각 16.77초, 16.34초, 16.33초였다.
+Neo4j와 Memgraph는 digest-pinned image에서 strict core와 traversal을 skip 없이
+통과했다. `callback join → fixture cleanup → adapter close → Run 반환 → container
+terminate` 순서와 redacted provider 진단을 확인했다. Legacy/shared parity 뒤 중복
+integration body를 제거했지만 `benchmark_test.go`가 공유하는
+`waitForMemgraphConnectivity`와 `memgraphBoltPort`는 보존했다.
+
+Step 6-R은 startup deadline 뒤 늦게 반환된 adapter 누수 P1 한 건과 startup failure
+진단 및 caller 문서 P2 네 건을 발견해 모두 수정했다. Delta verifier와 main
+integration review의 최종 판정은 `P0=0 P1=0 P2=0 P3=0`이다. Exact head
+`76707c2fd255c24cf27e3f96d5b75fad20c8e1a8`에서 `make ci`가 exit 0으로
+통과했다.
 
 ## 현재 대상 릴리스
 
-`v0.21.0`은 framework-neutral web helper, middleware conformance, Gin/Echo
-adapter, 선택적 JWKS provider와 Echo 후속 안전성 수정을 묶는 web API helper
-릴리스입니다. Framework abstraction, global logger/MDC, JWE/OIDC discovery,
-application route ownership은 범위에 포함하지 않습니다.
+`v0.22.0`은 좌표/Geohash, spatial database와 reverse geocoding provider,
+graph backend conformance 및 FalkorDB/Gremlin adapter를 묶는 안정 릴리스입니다.
+Milestone #34의 issue는 모두 닫혔고 release-preparation branch에서
+CHANGELOG, README locale pair와 배포 checklist를 정리하고 있습니다. Tag와
+GitHub Release는 exact-head CI, Testcontainers Nightly, main 승격을 통과한 뒤
+각 별도 gate에서 진행합니다.
 
-## 이력 경계
+## v0.21.0 이력 경계
 
 `v0.20.0`의 `main` projection tree에는 #541~#545, #688, #689의 구현이
 이미 포함되어 있습니다. 그러나 `v0.20.0` 변경 기록은 해당 web API helper
 범위를 별도 릴리스 항목으로 설명하지 않았습니다. `v0.21.0`은 이 기능군을
 공식 릴리스 범위로 명시하고, `v0.20.0..develop`의 실제 source delta인
 Echo 후속 #692~#694를 함께 배포합니다. `v0.20.0` 사용자는 Echo 후속 수정이
-필요할 때 `v0.21.0`으로 올리면 됩니다.
+필요할 때 `v0.21.0`으로 올리면 됩니다. Milestone #33은 `open_issues=0`으로
+닫혔고, annotated tag `v0.21.0`은
+`c51be7c604a07a131fa39932e0251f67b3c457e6`을 가리킵니다. GitHub Release는
+2026-09-05 13:59:26 UTC에 게시됐습니다.
 
 ## 현재 상태
 
-- release-preparation 기준 `develop`은
-  `aa2ffc78e7656194b47eb8aedff605acf3dc8df6`이며 `origin/develop`과
-  일치합니다.
-- release 기준 `origin/main`과 `v0.20.0^{}`는
-  `eedd2d50aa4729840f1bb74fc83e8c4e35b07337`입니다.
-- milestone #33 `0.21.0`은 `CLOSED`, `open_issues=0`,
-  `closed_issues=22`입니다. Epic #540과 계획된 하위 이슈는 모두
-  `COMPLETED`이며 #709는 `NOT_PLANNED`입니다.
-- local/remote `v0.21.0` tag와 GitHub Release는 없습니다. 최신 외부
-  release는 `v0.20.0`입니다.
-- baseline `develop` GitHub CI
-  [33928663952](https://github.com/bluetape4k/bluetape-go/actions/runs/33928663952)는
-  exact head `aa2ffc78e7656194b47eb8aedff605acf3dc8df6`에서 성공했습니다.
-- release-preparation tree에서 세 번의 `make ci` normal test와
-  `make check-bench-web-gin`은 통과했습니다. monolithic race 단계는 서로 다른
-  PostgreSQL Testcontainers test에서 Colima mapped-port 연결이 60초 후
-  간헐적으로 reset/refused되어 종료 코드 0을 얻지 못했습니다.
-- `go test -race ./leader/sql -count=1 -v` 전체와 `ratelimit/sql`의 모든
-  top-level test를 한 테스트당 별도 프로세스로 직렬 실행한 검증은 통과했고,
-  각 container의 create/start/ready/terminate lifecycle도 확인했습니다. 따라서
-  로컬 gate는 엄격한 infrastructure 직렬화 증거로 충족하며, exact-head
-  GitHub CI와 Testcontainers Nightly를 원격 필수 증거로 유지합니다.
-- exact release-preparation head의 GitHub CI, 실제 Testcontainers Nightly,
-  release-preparation PR, `main` promotion, tag 및 GitHub Release는
-  아직 실행하지 않았습니다.
+- #548은 PR #735로 merge됐고 `develop`의
+  `c48c5c8e0f4edfb12436849ac52d3f04793f6ab6`에 반영됐습니다.
+- #555는 PR #736으로 merge됐고 exact-head CI와 Testcontainers Nightly가
+  모두 통과했습니다.
+- `#551` PostGIS는 `b8e79534`로, `#552` MySQL/MariaDB GIS는 `629b589e`로,
+  `#554` Nominatim reverse geocoding은 `5cbc183e`로 구현했습니다.
+- `#547` FalkorDB OpenCypher adapter는 `4a1fdc82`로, `#561` remote
+  Gremlin/TinkerPop adapter는 `c896e254`로 구현했습니다. Gremlin 중첩 결과
+  상한 보정은 `94aa3ef`, lint·errcheck·staticcheck 계약 보정은 `d956c97`에
+  반영했습니다. 각 slice는 caller-owned client/credential/lifecycle,
+  bounded result/error, context 경계와 digest-pinned local fixture를 유지합니다.
+- 다섯 구현 slice와 fixture는 PR #738 exact head
+  `ab36adf56b236847e3fe711039d2d6e2f33b3388`에서 CI run `34051401427`을
+  통과한 뒤 `develop`의
+  `0bec680a93c5e8326b1e04adf62e40ab4d9bf242`로 squash merge됐습니다.
+  Package-level test, race, vet, lint(`0 issues.`), 실제
+  PostGIS/MySQL/MariaDB/FalkorDB/TinkerPop fixture 검증과 전체 `make ci`가
+  통과했고 구현 worktree와 branch 정리도 완료했습니다.
+- PR #738의 첫 exact-head CI run `34046283255`는 coverage 단계에서
+  `graph/gremlin`의 TinkerPop factory가 TCP port만 열린 순간 연결을 시도해
+  실패했습니다. `7053dae`에서 `Channel started at port 8182.` log까지 기다리는
+  readiness를 추가했고, 로컬 동일 경계 5회 반복 테스트가 통과했습니다. 두 번째 run
+  `34047689484`는 coverage까지 통과했지만 serial `make race`가 job 25분 제한에
+  걸려 취소되었습니다. 로컬 최신 head의 전체 race는 586초에 통과했으므로,
+  Docker-backed cold-cache 여유를 위해 CI job timeout을 40분으로 조정했습니다.
+  조정 후 세 번째 run `34049822664`는 25m45s에 전체 `SUCCESS`로 완료했습니다.
+- 최종 검증 중 기존 `leader/etcd`의
+  `TestBlockedOfficialCampaignCleanupRequiresClientHardStop`이 full-suite에서 한 번
+  실패했습니다. Exact test 5회와 전체 `leader/etcd` package 3회가 연속 통과했고,
+  이어서 실행한 full `make ci`도 통과했습니다. 이번 diff는 `leader/etcd`를 변경하지
+  않으며 Go 기본값과 같은 10분 timeout을 명시하므로 기존 2초 관찰 timing flake로
+  분류했습니다.
+- `v0.22.0` release-preparation worktree는 `develop@0bec680a`에서
+  시작했습니다. Release-prep PR, exact-head GitHub CI/Nightly, milestone 종료,
+  main 승격, tag와 GitHub Release는 아직 실행하지 않았습니다.
+- Release-prep 첫 `make ci`에서 `leader/sql` campaign timeout이
+  `ErrCommitUnknown`과 결합된 뒤 같은 elector의 cleanup을 생략해 다음 takeover가
+  `ErrCleanupPending`으로 막히는 test-contract 누락을 확인했습니다. Test가 fresh
+  bounded `Resign`을 수행하도록 수정했고, exact subtest race 20회에서 container
+  stop/termination까지 통과했습니다. DB row lock과 reconciliation fault를 쓰는
+  deterministic regression도 owner token 보존과 cleanup guard/clear를 race 10회
+  통과했습니다. Release-preparation exact head에서 전체 `make ci`도 exit 0으로
+  통과했으며, 이후 head가 바뀌면 이 증거를 폐기하고 같은 검증을 다시 실행합니다.
 
-## 릴리스 순서
+## 0.22.0 / #548
 
-1. `CHANGELOG.md`, README locale pair, 이 WIP 및 release checklist의 의미와
-   link를 검증합니다.
-2. release-preparation 최종 tree에서 formatter, tidy, vet, lint, normal test,
-   직렬 race test와 Gin benchmark contract를 검증합니다.
-3. `chore/v0.21.0-release-prep -> develop` PR을 만들고 exact-head CI,
-   review 및 Testcontainers Nightly를 확인합니다.
-4. fresh 승인 뒤 release-preparation PR을 `develop`에 반영합니다.
-5. 검증된 `develop` tree를 `main`으로 promotion합니다. 직접 PR이
-   충돌하면 tree-equivalent protected-branch projection fallback을 사용합니다.
-6. `main` exact commit에 서명된 annotated `v0.21.0` tag를 생성·push하고
-   한국어 GitHub Release를 게시합니다. 각 side effect는 별도 fresh authority
-   gate를 유지합니다.
-7. tag와 Release live read-back, branch sync, task-owned worktree/branch 정리를
-   끝낸 뒤 milestone `0.22.0` 작업을 시작합니다.
+### Benchmark ledger
+
+- Benchmarked SHA: `0dc2035bf32494df1c10e6bf3498a52cd0a9d960`
+- Post-benchmark changes: benchmark evidence commit과 Go doc의 `revive`
+  공백 수정만 뒤따랐으며 실행문은 바뀌지 않았다.
+- Working tree: clean
+- Go version: `go1.27.1 darwin/arm64`
+- OS: `Darwin 25.6.0 arm64`
+- GOMAXPROCS: `default`
+- Command: `go test -run '^$' -bench
+  'Benchmark(NewPoint|BoundsContains|DistanceMeters|Encode|Decode)$' -benchmem
+  -count=3 -benchtime=1s ./geo`
+- Fixture/order: `NewPoint`, ordinary/antimeridian `BoundsContains`,
+  `DistanceMeters`, `Encode` precision 1/12, `Decode` precision 1/12 순서다.
+- Metric direction: allocation은 낮을수록 좋다. `ns/op`은 환경 관찰값이며
+  기능 gate로 사용하지 않는다.
+- Three-run verdict: 세 반복 모두 `NewPoint`, `BoundsContains`,
+  `DistanceMeters`, `Decode`는 `0 allocs/op`, `Encode`는 `1 allocs/op` 이하로
+  계획의 `2 allocs/op` 상한을 충족했다.
+- Raw output:
+
+```text
+0dc2035bf32494df1c10e6bf3498a52cd0a9d960
+go version go1.27.1 darwin/arm64
+Darwin debop-m4-pro.local 25.6.0 Darwin Kernel Version 25.6.0: Fri Jul 31 19:17:26 PDT 2026; root:xnu-12377.161.14~5/RELEASE_ARM64_T6041 arm64
+GOMAXPROCS=default
+goos: darwin
+goarch: arm64
+pkg: github.com/bluetape4k/bluetape-go/geo
+cpu: Apple M4 Pro
+BenchmarkNewPoint-12                         632558580   1.910 ns/op    0 B/op   0 allocs/op
+BenchmarkNewPoint-12                         599988624   2.008 ns/op    0 B/op   0 allocs/op
+BenchmarkNewPoint-12                         599008015   2.002 ns/op    0 B/op   0 allocs/op
+BenchmarkBoundsContains/ordinary-12          272564817   4.534 ns/op    0 B/op   0 allocs/op
+BenchmarkBoundsContains/ordinary-12          264264574   4.439 ns/op    0 B/op   0 allocs/op
+BenchmarkBoundsContains/ordinary-12          276224308   4.394 ns/op    0 B/op   0 allocs/op
+BenchmarkBoundsContains/antimeridian-12      289196144   4.171 ns/op    0 B/op   0 allocs/op
+BenchmarkBoundsContains/antimeridian-12      283608799   4.252 ns/op    0 B/op   0 allocs/op
+BenchmarkBoundsContains/antimeridian-12      287523888   4.246 ns/op    0 B/op   0 allocs/op
+BenchmarkDistanceMeters-12                   40226552    30.71 ns/op    0 B/op   0 allocs/op
+BenchmarkDistanceMeters-12                   38827882    30.93 ns/op    0 B/op   0 allocs/op
+BenchmarkDistanceMeters-12                   38723260    30.59 ns/op    0 B/op   0 allocs/op
+BenchmarkEncode/precision-1-12               136655691   8.883 ns/op    0 B/op   0 allocs/op
+BenchmarkEncode/precision-1-12               138612745   8.877 ns/op    0 B/op   0 allocs/op
+BenchmarkEncode/precision-1-12               134620063   9.033 ns/op    0 B/op   0 allocs/op
+BenchmarkEncode/precision-12-12              11539750    102.6 ns/op   16 B/op   1 allocs/op
+BenchmarkEncode/precision-12-12              11471758    105.9 ns/op   16 B/op   1 allocs/op
+BenchmarkEncode/precision-12-12              11467683    102.6 ns/op   16 B/op   1 allocs/op
+BenchmarkDecode/precision-1-12               91436986    13.18 ns/op    0 B/op   0 allocs/op
+BenchmarkDecode/precision-1-12               91056540    13.16 ns/op    0 B/op   0 allocs/op
+BenchmarkDecode/precision-1-12               92889141    13.07 ns/op    0 B/op   0 allocs/op
+BenchmarkDecode/precision-12-12              13884676    171.0 ns/op   0 B/op   0 allocs/op
+BenchmarkDecode/precision-12-12              13565989    88.40 ns/op   0 B/op   0 allocs/op
+BenchmarkDecode/precision-12-12              13375285    88.18 ns/op   0 B/op   0 allocs/op
+PASS
+ok github.com/bluetape4k/bluetape-go/geo 36.909s
+```
 
 ## 비범위
 
 - downstream consumer의 `go.mod` 업데이트는 이번 요청에 포함하지 않습니다.
-- `0.22.0` 구현은 `v0.21.0` release identity가 검증되기 전 시작하지
-  않습니다.
+- `v0.23.0` 구현은 `v0.22.0`의 tag, GitHub Release, 배포 신원과 로컬 정리를
+  검증한 뒤 별도 workflow에서 시작합니다.

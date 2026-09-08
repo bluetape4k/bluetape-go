@@ -162,6 +162,20 @@ The sequence follows builder output through `WithTx`, `Statement.Exec`,
 commit/rollback handling, `QueryOne`, explicit mapper scanning, row closing,
 and cardinality errors.
 
+## Engine-specific GIS helpers
+
+Spatial SQL stays outside the PostgreSQL-first core builder. Use the independent
+engine package that matches the database contract:
+
+| Engine | Package | Contract |
+|---|---|---|
+| PostGIS | [`sqlkit/postgis`](postgis/README.md) | EWKB/SRID values, spatial DDL, indexed `ST_DWithin`, and bounding-box helpers. |
+| MySQL 8.4 | [`sqlkit/mysqlgis`](mysqlgis/README.md) | SRID-constrained WKB values, axis-order-aware constructors, spherical distance, and MBR helpers. |
+| MariaDB | [`sqlkit/mariadbgis`](mariadbgis/README.md) | SRID-constrained WKB values, engine-native constructors, distance, and MBR helpers. |
+
+These helpers intentionally do not create a shared dialect abstraction. They
+keep engine-specific SRID, axis-order, index, and distance semantics visible.
+
 ## Selection Guide
 
 See the [SQL generator/migration guide](../docs/sql-generator-migration-guidance.md)

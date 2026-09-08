@@ -25,12 +25,12 @@ attribute는 계산 전에 `logger.Enabled(ctx, slog.LevelDebug)`로 guard하세
 
 ## 현재 상태
 
-현재 `v0.21.0` 릴리스 선은 framework-neutral RFC 9457 Problem Details와
-trusted request context helper, `webtest` middleware conformance harness,
-Gin/Echo native adapter 및 선택적 `jwt/jwks` provider를 묶습니다. Echo
-middleware의 nil downstream 동작을 통일하고, rate-limit 응답 쓰기 실패를
-redacted observer로 전달하며, legacy JWT parser 설정도 provider가 지원하면
-context-aware 경로로 올립니다.
+`v0.22.0` 릴리스 범위는 WGS 84 좌표와 canonical Geohash helper,
+caller-owned reverse geocoding, PostGIS/MySQL/MariaDB별 GIS helper, 좁은
+FalkorDB와 remote Gremlin/TinkerPop graph adapter를 추가합니다.
+Backend-neutral graph conformance harness는 core, traversal, cancellation,
+cleanup, redacted error 동작을 통일하지만 model-only package에 broad
+spatial/graph abstraction을 추가하지 않습니다.
 
 그 밖에도 foundation helper, codec, compression, context-aware concurrency,
 serializer contract, Redis 기반 leader election과 lock, resilience policy,
@@ -64,7 +64,11 @@ API가 아니라 module-gated future scope입니다.
 | [`testing/concurrency`](testing/concurrency/README.ko.md) | active | concurrent test를 위한 stress/async job helper. |
 | [`testcontainers/redis`](testcontainers/redis/README.ko.md) | active | Testcontainers for Go 기반 Redis fixture. |
 | [`testcontainers/postgres`](testcontainers/postgres/README.ko.md) | active | Testcontainers for Go 기반 PostgreSQL fixture. |
+| [`testcontainers/postgis`](testcontainers/postgis/README.ko.md) | active | Spatial SQL test를 위한 digest-pinned PostGIS fixture. |
 | [`testcontainers/mysql`](testcontainers/mysql/README.ko.md) | active | Testcontainers for Go 기반 MySQL 8.4 fixture. |
+| [`testcontainers/mariadb`](testcontainers/mariadb/README.ko.md) | active | Testcontainers for Go 기반 MariaDB fixture. |
+| [`testcontainers/falkordb`](testcontainers/falkordb/README.ko.md) | active | OpenCypher test를 위한 digest-pinned FalkorDB fixture. |
+| [`testcontainers/tinkerpop`](testcontainers/tinkerpop/README.ko.md) | active | Digest-pinned TinkerPop Gremlin Server fixture. |
 | [`testcontainers/mongodb`](testcontainers/mongodb/README.ko.md) | active | Testcontainers for Go 기반 MongoDB fixture. |
 | [`testcontainers/nats`](testcontainers/nats/README.ko.md) | active | Testcontainers for Go 기반 NATS fixture. |
 | [`testcontainers/kafka`](testcontainers/kafka/README.ko.md) | active | Testcontainers for Go 기반 Kafka fixture. |
@@ -113,15 +117,23 @@ API가 아니라 module-gated future scope입니다.
 | [`jwt/mongo`](jwt/mongo/README.ko.md) | active | Distributed JWT key-chain repository 생성을 위한 MongoDB 전용 facade. |
 | [`measure`](measure/README.ko.md) | active | Typed unit, measured value, compound unit, parsing, formatting, affine temperature helper. |
 | [`money`](money/README.ko.md) | active | ISO 4217 통화 값, CLDR-backed locale currency lookup, decimal-backed 금액, 합산, 직렬화, caller-supplied 환율 변환, ECB-backed provider 변환. |
+| [`geo`](geo/README.ko.md) | active | WGS 84 좌표 값, inclusive antimeridian-aware bounds, Haversine 거리와 canonical lowercase Geohash encode/decode를 제공하는 dependency-free package. |
+| [`geocoding`](geocoding/README.ko.md) | active | Bounded/cancellable response를 갖는 caller-owned reverse-geocoding provider contract와 Nominatim-compatible HTTP adapter. |
 | [`rules`](rules/README.ko.md) | active | Dependency-free facts, functional rule, deterministic rule set, composite group, bounded inference, result detail, context cancellation. |
-| [`sqlkit`](sqlkit/README.ko.md) | active | Runtime-first `database/sql` transaction helper, 명시적 row mapping/cardinality helper, PostgreSQL 우선 inspectable SQL builder. |
+| [`sqlkit`](sqlkit/README.ko.md) | active | Runtime-first `database/sql` transaction helper, 명시적 row mapping/cardinality helper, PostgreSQL 우선 builder와 독립적인 engine별 GIS helper. |
+| [`sqlkit/postgis`](sqlkit/postgis/README.ko.md) | active | PostGIS EWKB/SRID point value, spatial DDL, indexed distance와 bounding-box helper. |
+| [`sqlkit/mysqlgis`](sqlkit/mysqlgis/README.ko.md) | active | MySQL 8.4 SRID-constrained point value, WKB mapping, distance와 MBR helper. |
+| [`sqlkit/mariadbgis`](sqlkit/mariadbgis/README.ko.md) | active | MariaDB SRID-constrained point value, WKB mapping, distance와 MBR helper. |
 | [`audit`](audit/README.ko.md) | active | validated JSON entry, pending event recording, history reconstruction을 제공하는 storage-neutral aggregate event/audit model. |
 | [`audit/sqloutbox`](audit/sqloutbox/README.ko.md) | active | Caller-owned transaction choreography를 유지하는 PostgreSQL-backed audit outbox store와 relay. |
 | [`audit/sqloutbox/redisstreams`](audit/sqloutbox/redisstreams/README.ko.md) | active | 안정적인 event/idempotency metadata를 보존하는 Redis Streams sqloutbox publisher. |
 | [`audit/sqloutbox/sqloutboxtest`](audit/sqloutbox/sqloutboxtest/README.ko.md) | active | sqloutbox test, example, retry, duplicate-delivery assertion을 위한 deterministic publisher helper. |
 | [`graph`](graph/README.ko.md) | active | Vertex, edge, path, label, ID, shallow property, validated JSON을 제공하는 model-only graph value. |
+| [`graph/graphtest`](graph/graphtest/README.ko.md) | test | Graph 의미, cancellation, bounded cleanup, traversal capability, redacted provider error를 검증하는 strict backend conformance harness. |
 | [`graph/graphio`](graph/graphio/README.ko.md) | active | Graph vertex/edge를 위한 bounded NDJSON 및 paired CSV import/export helper. |
 | [`graph/neo4j`](graph/neo4j/README.ko.md) | active | 공식 Neo4j Go driver 결과를 graph vertex/edge로 변환하는 proof adapter. |
+| [`graph/falkordb`](graph/falkordb/README.ko.md) | active | Bounded result와 redacted provider error를 제공하는 caller-owned Redis OpenCypher adapter. |
+| [`graph/gremlin`](graph/gremlin/README.ko.md) | active | Bounded result stream, typed mapping, 명시적 capability 제한을 갖는 Gremlin-Go remote adapter. |
 | [`probabilistic`](probabilistic/README.ko.md) | active | deterministic config, merge compatibility check, stress/race coverage를 갖춘 goroutine-safe 인메모리 Bloom filter. |
 | [`probabilistic/redis`](probabilistic/redis/README.ko.md) | active | Static Lua Bloom script, immutable config metadata, operator runbook 경계를 갖춘 Redis-backed shared Bloom filter와 HyperLogLog estimate. |
 
@@ -192,7 +204,13 @@ go get github.com/bluetape4k/bluetape-go
   [`probabilistic`](probabilistic/README.ko.md) 및
   [`probabilistic/redis`](probabilistic/redis/README.ko.md).
 - Data access: [`sqlkit`](sqlkit/README.ko.md) 및 optional
-  [SQL generator/migration guide](docs/sql-generator-migration-guidance.ko.md).
+  [SQL generator/migration guide](docs/sql-generator-migration-guidance.ko.md),
+  그리고 engine별 GIS helper인 [`sqlkit/postgis`](sqlkit/postgis/README.ko.md),
+  [`sqlkit/mysqlgis`](sqlkit/mysqlgis/README.ko.md),
+  [`sqlkit/mariadbgis`](sqlkit/mariadbgis/README.ko.md).
+- Geocoding: [`geocoding`](geocoding/README.ko.md)은 caller-owned
+  reverse-geocoding contract와 Nominatim-compatible HTTP adapter를 제공합니다.
+  Service policy, endpoint 선택, cache와 rate limit은 caller가 소유합니다.
 - Audit: storage-neutral aggregate event value, pending event handoff, validated
   audit entry JSON, history reconstruction을 위한 [`audit`](audit/README.ko.md),
   PostgreSQL-backed at-least-once outbox delivery를 위한
@@ -204,7 +222,11 @@ go get github.com/bluetape4k/bluetape-go
 - Graph: model-only vertex, edge, path, label, ID, shallow property, validated
   JSON value를 제공하는 [`graph`](graph/README.ko.md), bounded NDJSON/paired CSV
   import/export helper를 제공하는 [`graph/graphio`](graph/graphio/README.ko.md),
+  재사용 가능한 backend-neutral 적합성 계약을 제공하는
+  [`graph/graphtest`](graph/graphtest/README.ko.md),
   첫 Neo4j backend proof인 [`graph/neo4j`](graph/neo4j/README.ko.md),
+  bounded OpenCypher adapter인 [`graph/falkordb`](graph/falkordb/README.ko.md),
+  remote Gremlin/TinkerPop adapter인 [`graph/gremlin`](graph/gremlin/README.ko.md),
   runnable incident-response graph 예제인
   [`examples/graph/observability`](examples/graph/observability/README.ko.md),
   IAM access-path review 예제인
@@ -344,6 +366,12 @@ make coverage
 make ci
 ```
 
+`test`, `race`, `coverage` target은 기본적으로 10분의 Go test timeout을
+적용합니다. `30s`, `1m`, `2m`, `5m`, `10m`, `15m`, `20m`, `30m`, `45m`,
+`60m` 중 하나로 재정의할 수 있습니다. 예를 들어
+`GO_TEST_TIMEOUT=20m make test`를 사용합니다. 지원하지 않거나 0 또는 무제한인
+값은 target 실행 전에 실패합니다.
+
 주요 명령:
 
 | 명령 | 목적 |
@@ -354,9 +382,10 @@ make ci
 | `make tidy-check` | `go mod tidy` 후 `go.mod`/`go.sum` 변경이 있으면 실패합니다. |
 | `make vet` | `go vet ./...`를 실행합니다. |
 | `make lint` | `golangci-lint run ./...`를 실행합니다. |
-| `make test` | Testcontainers 테스트가 package 단위로 직렬 실행되도록 `go test -p 1 -count=1 ./...`를 실행합니다. |
-| `make race` | Testcontainers 테스트가 race detector에서도 package 단위로 직렬 실행되도록 `go test -race -p 1 -count=1 ./...`를 실행합니다. |
-| `make coverage` | `coverage/` 아래에 Go coverage profile, package 소계 table, text summary, HTML report를 생성합니다. |
+| `make test` | Testcontainers 테스트가 제한된 timeout과 package 단위 직렬 실행을 사용하도록 `go test -timeout=10m -p 1 -count=1 ./...`를 실행합니다. |
+| `make race` | Testcontainers 테스트가 race detector에서도 제한된 timeout과 package 단위 직렬 실행을 사용하도록 `go test -timeout=10m -race -p 1 -count=1 ./...`를 실행합니다. |
+| `make coverage` | 제한된 timeout과 package 단위 직렬 실행을 사용해 `coverage/` 아래에 Go coverage 결과를 생성합니다. |
+| `make check-test-timeout` | 허용된 timeout 값과 0, wildcard, allowlist 재정의, injection 입력의 fail-closed 거부를 검증합니다. |
 | `make bench-cache` | opt-in cache, Redis NearCache, Redis coordinator benchmark를 실행합니다. |
 | `make bench-ratelimit` | opt-in local rate limiter benchmark를 실행합니다. |
 | `make bench-id` | opt-in id generator benchmark를 실행합니다. |
