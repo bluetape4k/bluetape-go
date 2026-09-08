@@ -13,16 +13,12 @@ import (
 	"time"
 
 	"github.com/bluetape4k/bluetape-go/imagekit"
-	providerbarcode "github.com/boombuler/barcode"
 )
 
 type fakeBarcode struct {
-	rect     image.Rectangle
-	dims     byte
-	content  string
-	pixels   map[image.Point]color.Color
-	at       func(int, int) color.Color
-	metadata providerbarcode.Metadata
+	rect   image.Rectangle
+	pixels map[image.Point]color.Color
+	at     func(int, int) color.Color
 }
 
 func (f *fakeBarcode) Bounds() image.Rectangle {
@@ -41,17 +37,6 @@ func (f *fakeBarcode) At(x, y int) color.Color {
 
 func (f *fakeBarcode) ColorModel() color.Model {
 	return color.GrayModel
-}
-
-func (f *fakeBarcode) Content() string {
-	return f.content
-}
-
-func (f *fakeBarcode) Metadata() providerbarcode.Metadata {
-	if f.metadata.Dimensions != 0 {
-		return f.metadata
-	}
-	return providerbarcode.Metadata{CodeKind: "fake", Dimensions: f.dims}
 }
 
 type providerFailure struct {
@@ -73,7 +58,7 @@ func qrRequest(width, height int) Request {
 func TestRenderWithEncoderRedactsProviderError(t *testing.T) {
 	ctx := context.Background()
 	cause := &providerFailure{message: `provider secret "payload"`}
-	_, err := renderWithEncoder(ctx, code128Request(64, 32), func(string, QRLevel) (providerbarcode.Barcode, error) {
+	_, err := renderWithEncoder(ctx, code128Request(64, 32), func(string, QRLevel) (image.Image, error) {
 		return nil, cause
 	})
 	if !errors.Is(err, ErrEncode) {
@@ -101,9 +86,9 @@ func TestRenderWithEncoderRedactsProviderError(t *testing.T) {
 }
 
 func TestRenderWithEncoderRedactsOutputPlusProviderError(t *testing.T) {
-	source := &fakeBarcode{rect: image.Rect(0, 0, 1, 1), dims: 1}
+	source := &fakeBarcode{rect: image.Rect(0, 0, 1, 1)}
 	cause := &providerFailure{message: "secret output failure"}
-	_, err := renderWithEncoder(context.Background(), code128Request(21, 4), func(string, QRLevel) (providerbarcode.Barcode, error) {
+	_, err := renderWithEncoder(context.Background(), code128Request(21, 4), func(string, QRLevel) (image.Image, error) {
 		return source, cause
 	})
 	if !errors.Is(err, ErrEncode) || strings.Contains(err.Error(), "secret") {
@@ -115,17 +100,17 @@ func TestRenderWithEncoderRejectsMalformedProviderOutput(t *testing.T) {
 	tests := []struct {
 		name   string
 		req    Request
-		source providerbarcode.Barcode
+		source image.Image
 	}{
 		{name: "nil", req: code128Request(64, 32)},
-		{name: "empty bounds", req: code128Request(64, 32), source: &fakeBarcode{rect: image.Rectangle{}, dims: 1}},
-		{name: "QR nonsquare", req: qrRequest(64, 64), source: &fakeBarcode{rect: image.Rect(0, 0, 2, 1), dims: 2}},
-		{name: "Code128 height", req: code128Request(64, 32), source: &fakeBarcode{rect: image.Rect(0, 0, 3, 2), dims: 1}},
+		{name: "empty bounds", req: code128Request(64, 32), source: &fakeBarcode{rect: image.Rectangle{}}},
+		{name: "QR nonsquare", req: qrRequest(64, 64), source: &fakeBarcode{rect: image.Rect(0, 0, 2, 1)}},
+		{name: "Code128 height", req: code128Request(64, 32), source: &fakeBarcode{rect: image.Rect(0, 0, 3, 2)}},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			_, err := renderWithEncoder(context.Background(), tt.req, func(string, QRLevel) (providerbarcode.Barcode, error) {
+			_, err := renderWithEncoder(context.Background(), tt.req, func(string, QRLevel) (image.Image, error) {
 				return tt.source, nil
 			})
 			if !errors.Is(err, ErrEncode) {
@@ -138,8 +123,8 @@ func TestRenderWithEncoderRejectsMalformedProviderOutput(t *testing.T) {
 func TestRenderWithEncoderRejectsProviderOutputWithOverflowingBounds(t *testing.T) {
 	maxValue := int(^uint(0) >> 1)
 	minValue := -maxValue - 1
-	source := &fakeBarcode{rect: image.Rect(minValue, 0, maxValue, 1), dims: 1}
-	_, err := renderWithEncoder(context.Background(), code128Request(64, 32), func(string, QRLevel) (providerbarcode.Barcode, error) {
+	source := &fakeBarcode{rect: image.Rect(minValue, 0, maxValue, 1)}
+	_, err := renderWithEncoder(context.Background(), code128Request(64, 32), func(string, QRLevel) (image.Image, error) {
 		return source, nil
 	})
 	if !errors.Is(err, ErrImageTooLarge) {
@@ -150,10 +135,10 @@ func TestRenderWithEncoderRejectsProviderOutputWithOverflowingBounds(t *testing.
 func TestRenderWithEncoderCancellationAfterProviderWins(t *testing.T) {
 	ctx, cancel := context.WithCancel(context.Background())
 	called := 0
-	_, err := renderWithEncoder(ctx, code128Request(64, 32), func(string, QRLevel) (providerbarcode.Barcode, error) {
+	_, err := renderWithEncoder(ctx, code128Request(64, 32), func(string, QRLevel) (image.Image, error) {
 		called++
 		cancel()
-		return &fakeBarcode{rect: image.Rect(0, 0, 3, 1), dims: 1}, nil
+		return &fakeBarcode{rect: image.Rect(0, 0, 3, 1)}, nil
 	})
 	if !errors.Is(err, context.Canceled) {
 		t.Fatalf("error = %v, want context.Canceled", err)
@@ -167,13 +152,12 @@ func TestRenderWithEncoderCancellationDuringRowCopyWins(t *testing.T) {
 	ctx, cancel := context.WithCancel(context.Background())
 	source := &fakeBarcode{
 		rect: image.Rect(0, 0, 1, 1),
-		dims: 1,
 		at: func(int, int) color.Color {
 			cancel()
 			return color.Black
 		},
 	}
-	_, err := renderWithEncoder(ctx, code128Request(21, 4), func(string, QRLevel) (providerbarcode.Barcode, error) {
+	_, err := renderWithEncoder(ctx, code128Request(21, 4), func(string, QRLevel) (image.Image, error) {
 		return source, nil
 	})
 	if !errors.Is(err, context.Canceled) {
@@ -184,9 +168,9 @@ func TestRenderWithEncoderCancellationDuringRowCopyWins(t *testing.T) {
 func TestRenderWithEncoderRejectsNilContextWithoutProviderCall(t *testing.T) {
 	calls := 0
 	//nolint:staticcheck // nil context is an explicit API contract test.
-	_, err := renderWithEncoder(nil, code128Request(64, 32), func(string, QRLevel) (providerbarcode.Barcode, error) {
+	_, err := renderWithEncoder(nil, code128Request(64, 32), func(string, QRLevel) (image.Image, error) {
 		calls++
-		return &fakeBarcode{rect: image.Rect(0, 0, 3, 1), dims: 1}, nil
+		return &fakeBarcode{rect: image.Rect(0, 0, 3, 1)}, nil
 	})
 	if !errors.Is(err, ErrInvalidOptions) {
 		t.Fatalf("error = %v, want ErrInvalidOptions", err)
@@ -200,9 +184,9 @@ func TestRenderWithEncoderChecksContextBeforeProvider(t *testing.T) {
 	ctx, cancel := context.WithCancel(context.Background())
 	cancel()
 	calls := 0
-	_, err := renderWithEncoder(ctx, code128Request(64, 32), func(string, QRLevel) (providerbarcode.Barcode, error) {
+	_, err := renderWithEncoder(ctx, code128Request(64, 32), func(string, QRLevel) (image.Image, error) {
 		calls++
-		return &fakeBarcode{rect: image.Rect(0, 0, 3, 1), dims: 1}, nil
+		return &fakeBarcode{rect: image.Rect(0, 0, 3, 1)}, nil
 	})
 	if !errors.Is(err, context.Canceled) {
 		t.Fatalf("error = %v, want context.Canceled", err)
@@ -216,10 +200,10 @@ func TestRenderWithEncoderPreservesProviderInput(t *testing.T) {
 	req := Request{Kind: QR, Content: "한글 payload", Width: 11, Height: 11, QRLevel: QRLevelH}
 	var gotContent string
 	var gotLevel QRLevel
-	_, err := renderWithEncoder(context.Background(), req, func(content string, level QRLevel) (providerbarcode.Barcode, error) {
+	_, err := renderWithEncoder(context.Background(), req, func(content string, level QRLevel) (image.Image, error) {
 		gotContent = content
 		gotLevel = level
-		return &fakeBarcode{rect: image.Rect(0, 0, 3, 3), dims: 2}, nil
+		return &fakeBarcode{rect: image.Rect(0, 0, 3, 3)}, nil
 	})
 	if err != nil {
 		t.Fatalf("render error = %v", err)
@@ -234,15 +218,13 @@ func TestRenderWithEncoderPreservesProviderInput(t *testing.T) {
 
 func TestRenderWithEncoderQRGeometryAndNormalization(t *testing.T) {
 	source := &fakeBarcode{
-		rect:    image.Rect(2, 4, 5, 7),
-		dims:    2,
-		content: "secret payload",
+		rect: image.Rect(2, 4, 5, 7),
 		pixels: map[image.Point]color.Color{
 			{X: 2, Y: 4}: color.Gray{Y: 127},
 			{X: 3, Y: 4}: color.Gray{Y: 128},
 		},
 	}
-	img, err := renderWithEncoder(context.Background(), qrRequest(11, 11), func(string, QRLevel) (providerbarcode.Barcode, error) {
+	img, err := renderWithEncoder(context.Background(), qrRequest(11, 11), func(string, QRLevel) (image.Image, error) {
 		return source, nil
 	})
 	if err != nil {
@@ -272,12 +254,10 @@ func TestRenderWithEncoderQRGeometryAndNormalization(t *testing.T) {
 
 func TestRenderWithEncoderCode128GeometryFillsHeight(t *testing.T) {
 	source := &fakeBarcode{
-		rect:    image.Rect(5, 9, 8, 10),
-		dims:    1,
-		pixels:  map[image.Point]color.Color{{X: 5, Y: 9}: color.Black},
-		content: "secret payload",
+		rect:   image.Rect(5, 9, 8, 10),
+		pixels: map[image.Point]color.Color{{X: 5, Y: 9}: color.Black},
 	}
-	img, err := renderWithEncoder(context.Background(), code128Request(23, 5), func(string, QRLevel) (providerbarcode.Barcode, error) {
+	img, err := renderWithEncoder(context.Background(), code128Request(23, 5), func(string, QRLevel) (image.Image, error) {
 		return source, nil
 	})
 	if err != nil {
@@ -295,16 +275,16 @@ func TestRenderWithEncoderCode128GeometryFillsHeight(t *testing.T) {
 }
 
 func TestRenderWithEncoderRejectsOnePixelShortCanvas(t *testing.T) {
-	qrSource := &fakeBarcode{rect: image.Rect(0, 0, 3, 3), dims: 2}
-	_, err := renderWithEncoder(context.Background(), qrRequest(10, 10), func(string, QRLevel) (providerbarcode.Barcode, error) {
+	qrSource := &fakeBarcode{rect: image.Rect(0, 0, 3, 3)}
+	_, err := renderWithEncoder(context.Background(), qrRequest(10, 10), func(string, QRLevel) (image.Image, error) {
 		return qrSource, nil
 	})
 	if !errors.Is(err, ErrInvalidOptions) {
 		t.Fatalf("QR error = %v, want ErrInvalidOptions", err)
 	}
 
-	codeSource := &fakeBarcode{rect: image.Rect(0, 0, 3, 1), dims: 1}
-	_, err = renderWithEncoder(context.Background(), code128Request(22, 5), func(string, QRLevel) (providerbarcode.Barcode, error) {
+	codeSource := &fakeBarcode{rect: image.Rect(0, 0, 3, 1)}
+	_, err = renderWithEncoder(context.Background(), code128Request(22, 5), func(string, QRLevel) (image.Image, error) {
 		return codeSource, nil
 	})
 	if !errors.Is(err, ErrInvalidOptions) {

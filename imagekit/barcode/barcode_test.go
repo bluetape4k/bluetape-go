@@ -98,6 +98,11 @@ func TestRenderRejectsBoundaries(t *testing.T) {
 			want: barcode.ErrInvalidOptions,
 		},
 		{
+			name: "oversized invalid UTF-8",
+			req:  barcode.Request{Kind: barcode.QR, Content: strings.Repeat("\xff", 1025), Width: 128, Height: 128},
+			want: barcode.ErrInputTooLarge,
+		},
+		{
 			name: "width over 4096",
 			req:  barcode.Request{Kind: barcode.Code128, Content: "A", Width: 4097, Height: 64},
 			want: barcode.ErrImageTooLarge,

@@ -71,9 +71,6 @@ func validateRequest(ctx context.Context, req Request) error {
 	if req.Kind != QR && req.Kind != Code128 {
 		return invalidError("kind")
 	}
-	if !utf8.ValidString(req.Content) {
-		return invalidError("content")
-	}
 	if req.Content == "" {
 		return invalidError("content")
 	}
@@ -82,6 +79,9 @@ func validateRequest(ctx context.Context, req Request) error {
 	case QR:
 		if len(req.Content) > maxContentBytes {
 			return inputTooLargeError("content")
+		}
+		if !utf8.ValidString(req.Content) {
+			return invalidError("content")
 		}
 		if req.QRLevel > QRLevelH {
 			return invalidError("qr_level")

@@ -6,7 +6,6 @@ import (
 	"image/color"
 
 	"github.com/bluetape4k/bluetape-go/imagekit"
-	providerbarcode "github.com/boombuler/barcode"
 	"github.com/boombuler/barcode/code128"
 	"github.com/boombuler/barcode/qr"
 )
@@ -16,7 +15,7 @@ const (
 	code128QuietModules = 10
 )
 
-type encodeFunc func(content string, level QRLevel) (providerbarcode.Barcode, error)
+type encodeFunc func(content string, level QRLevel) (image.Image, error)
 
 // Render validates a request, invokes the selected barcode provider, and
 // returns a detached black-and-white image with its fixed quiet zone.
@@ -27,11 +26,11 @@ func Render(ctx context.Context, req Request) (image.Image, error) {
 func encoderForKind(kind Kind) encodeFunc {
 	switch kind {
 	case QR:
-		return func(content string, level QRLevel) (providerbarcode.Barcode, error) {
+		return func(content string, level QRLevel) (image.Image, error) {
 			return qr.Encode(content, qrLevel(level), qr.Unicode)
 		}
 	case Code128:
-		return func(content string, _ QRLevel) (providerbarcode.Barcode, error) {
+		return func(content string, _ QRLevel) (image.Image, error) {
 			return code128.Encode(content)
 		}
 	default:
@@ -109,7 +108,7 @@ func renderWithEncoder(ctx context.Context, req Request, encoder encodeFunc) (im
 	}
 }
 
-func renderQR(ctx context.Context, req Request, source providerbarcode.Barcode, bounds image.Rectangle, symbolSize int) (image.Image, error) {
+func renderQR(ctx context.Context, req Request, source image.Image, bounds image.Rectangle, symbolSize int) (image.Image, error) {
 	quietWidth := qrQuietModules
 	quietTotal, ok := checkedMul(quietWidth, 2)
 	if !ok {
@@ -150,7 +149,7 @@ func renderQR(ctx context.Context, req Request, source providerbarcode.Barcode, 
 	return copyQR(ctx, req, source, bounds, scaledSymbol, scale, quietPixels, offsetX, offsetY)
 }
 
-func renderCode128(ctx context.Context, req Request, source providerbarcode.Barcode, bounds image.Rectangle, symbolWidth int) (image.Image, error) {
+func renderCode128(ctx context.Context, req Request, source image.Image, bounds image.Rectangle, symbolWidth int) (image.Image, error) {
 	quietWidth := code128QuietModules
 	quietTotal, ok := checkedMul(quietWidth, 2)
 	if !ok {
@@ -180,10 +179,10 @@ func renderCode128(ctx context.Context, req Request, source providerbarcode.Barc
 		return nil, imageTooLargeError("geometry")
 	}
 	offsetX := (req.Width - renderedWidth) / 2
-	return copyCode128(ctx, req, source, bounds, scaledSymbolWidth, scale, offsetX)
+	return copyCode128(ctx, req, source, bounds, scaledSymbolWidth, scale, quietPixels, offsetX)
 }
 
-func copyQR(ctx context.Context, req Request, source providerbarcode.Barcode, bounds image.Rectangle, scaledSymbol, scale, quietPixels, offsetX, offsetY int) (image.Image, error) {
+func copyQR(ctx context.Context, req Request, source image.Image, bounds image.Rectangle, scaledSymbol, scale, quietPixels, offsetX, offsetY int) (image.Image, error) {
 	symbolStartX, ok := checkedAdd(offsetX, quietPixels)
 	if !ok {
 		return nil, imageTooLargeError("geometry")
@@ -226,8 +225,8 @@ func copyQR(ctx context.Context, req Request, source providerbarcode.Barcode, bo
 	return dst, nil
 }
 
-func copyCode128(ctx context.Context, req Request, source providerbarcode.Barcode, bounds image.Rectangle, scaledSymbolWidth, scale, offsetX int) (image.Image, error) {
-	symbolStartX, ok := checkedAdd(offsetX, code128QuietModules*scale)
+func copyCode128(ctx context.Context, req Request, source image.Image, bounds image.Rectangle, scaledSymbolWidth, scale, quietPixels, offsetX int) (image.Image, error) {
+	symbolStartX, ok := checkedAdd(offsetX, quietPixels)
 	if !ok {
 		return nil, imageTooLargeError("geometry")
 	}
