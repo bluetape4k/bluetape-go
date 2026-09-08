@@ -373,11 +373,12 @@ Task 1 RED → Task 2 validation → Task 3 renderer → Task 4 PNG/cancel
 - [x] 계획 6개 관점 및 메인 통합 review.
 - [x] 구현·검증·lesson·pre-PR review.
 - [x] `$bluetape-go-patterns` source/live parity와 지속 가능한 guard 승격.
-- [ ] 개별 PR 생성과 hosted CI.
+- [x] 개별 PR 생성과 hosted CI (`#743`, `ci success`, exact head `905753bc`).
 
-현재 구현·검증·review·pattern 승격까지 완료했으며, 마지막 미완료 항목은
-개별 PR 생성과 hosted CI다. PR 생성 전 exact-head gate를 다시 읽고, hosted
-CI가 terminal PASS가 되면 이 계획의 마지막 DoD 항목을 갱신한다.
+구현·검증·review·pattern 승격과 개별 PR/hosted CI까지 완료했다. PR `#743`은
+`develop`을 base로 하고 exact head `905753bc1f85489e73059b4c65f49a84d35dab04`를
+가리키며 hosted `ci`가 `SUCCESS`다. merge·tag·release·worktree 삭제는 별도
+승인 대기다.
 
 ## 계획 자체 검토와 문서 게이트
 
