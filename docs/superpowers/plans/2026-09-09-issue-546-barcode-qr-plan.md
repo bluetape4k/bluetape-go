@@ -23,6 +23,7 @@
 - `imagekit/barcode/example_test.go`: QR 한글/Code128 ASCII 사용 예제와 출력 확인.
 - `imagekit/barcode/README.md`, `imagekit/barcode/README.ko.md`: 패키지 설치·API·제한·조합 주의점.
 - `docs/lessons/2026-09-09-issue-546-barcode-qr.md`: provider 경계와 이미지 판독성의 재발 방지 기록.
+- `docs/review/2026-09-09-issue-546-plan-review.md`: Step 3-R 6개 관점과 main integration 결과.
 - `docs/review/2026-09-09-issue-546-code-review.md`: pre-PR 7-Tier 통합 리뷰.
 
 ### 수정 파일
@@ -145,7 +146,7 @@ Commit: `feat: barcode 요청과 안전한 오류 경계를 추가한다`
 
 - [ ] **Step 1: provider 호출 seam을 만든다**
 
-공개 함수는 `Render(ctx context.Context, req Request) (image.Image, error)`로 고정하고, 내부 `renderWithEncoder(ctx, req, encoder)`는 테스트용 함수 주입만 허용한다. 실제 encoder는 `qr.Encode(req.Content, mappedLevel, qr.Unicode)` 또는 `code128.Encode(req.Content)`를 호출한다. provider 타입은 공개 구조체에 저장하지 않는다. provider import가 실제로 존재하는 이 시점에 `go mod tidy && go mod verify`를 실행해 `github.com/boombuler/barcode v1.1.0` direct require와 checksum을 고정하고 그 결과를 Task 3 commit 증거로 남긴다.
+공개 함수는 `Render(ctx context.Context, req Request) (image.Image, error)`로 고정하고, 내부 `renderWithEncoder(ctx, req, encoder)`는 테스트용 함수 주입만 허용한다. 실제 encoder는 `qr.Encode(req.Content, mappedLevel, qr.Unicode)` 또는 `code128.Encode(req.Content)`를 호출한다. provider 타입은 공개 구조체에 저장하지 않는다. encoder 반환 직후 geometry 계산·이미지 할당·provider 오류 변환보다 먼저 `ctx.Err()`를 확인하고, 취소·deadline이면 원형 context 오류와 nil 결과를 반환한다. provider import가 실제로 존재하는 이 시점에 `go mod tidy && go mod verify`를 실행해 `github.com/boombuler/barcode v1.1.0` direct require와 checksum을 고정하고 그 결과를 Task 3 commit 증거로 남긴다.
 
 - [ ] **Step 2: provider 결과를 checked geometry로 복사한다**
 
@@ -162,11 +163,11 @@ Code128.requiredWidth = symbolWidth + 2*10
 Code128.scaleX = Width / Code128.requiredWidth
 ```
 
-각 분기에서 required 치수의 덧셈·곱셈·pixel 수는 checked integer arithmetic으로 계산한다. bounds의 `Max-Min` span도 checked subtraction으로 계산해 극단적인 provider bounds에서 `Dx()` overflow가 나지 않게 한다. QR의 `scale < 1`이면 `ErrInvalidOptions`; Code128의 `scaleX < 1` 또는 pinned provider의 `symbolHeight != 1`이면 `ErrInvalidOptions`; 곱셈·덧셈 overflow 또는 전체 pixel 상한 위반이면 `ErrImageTooLarge`다. provider bounds의 `Min` offset을 보정해 모든 `At` 접근이 bounds 안에 있도록 한다. `*image.Gray`를 흰색으로 채운 뒤 중앙 offset에 provider module을 정수 배율로 복사한다. QR은 두 축에 4-module quiet zone을 포함하고, Code128은 x축 10-module quiet zone을 포함한 뒤 각 dark bar를 출력 이미지의 모든 y행에 복제하여 요청 높이를 채운다. Code128은 `scaleY`를 가로 배율 선택에 사용하지 않으며 세로 보간·축소를 하지 않는다. `color.GrayModel.Convert` 결과의 명도 `< 128`만 검정으로, 나머지는 흰색으로 정규화한다.
+각 분기에서 required 치수의 덧셈·곱셈·pixel 수는 checked integer arithmetic으로 계산한다. bounds의 `Max-Min` span도 checked subtraction으로 계산해 극단적인 provider bounds에서 `Dx()` overflow가 나지 않게 한다. geometry 검증에 들어가기 전 provider 반환 직후 context checkpoint를 다시 실행한다. QR의 `scale < 1`이면 `ErrInvalidOptions`; Code128의 `scaleX < 1`이면 `ErrInvalidOptions`; pinned provider의 `symbolHeight != 1`, nil/empty/malformed output은 `ErrEncode`로 분류한다. 곱셈·덧셈 overflow 또는 전체 pixel 상한 위반이면 `ErrImageTooLarge`다. provider bounds의 `Min` offset을 보정해 모든 `At` 접근이 bounds 안에 있도록 한다. `*image.Gray`를 흰색으로 채운 뒤 중앙 offset에 provider module을 정수 배율로 복사한다. QR은 두 축에 4-module quiet zone을 포함하고, Code128은 x축 10-module quiet zone을 포함한 뒤 각 dark bar를 출력 이미지의 모든 y행에 복제하여 요청 높이를 채운다. Code128은 `scaleY`를 가로 배율 선택에 사용하지 않으며 세로 보간·축소를 하지 않는다. `color.GrayModel.Convert` 결과의 명도 `< 128`만 검정으로, 나머지는 흰색으로 정규화한다.
 
 - [ ] **Step 3: geometry·detachment·결정성 테스트를 GREEN으로 만든다**
 
-실제 provider 출력으로 QR 256×256, Code128 512×128을 생성하고 다음을 검사한다. provider 오류·특이 output·호출 부재와 private seam은 `internal_test.go`의 `package barcode`에서 검증하고, 호출자 관점은 `barcode_test.go`의 `package barcode_test`에서 검증한다. provider 오류는 오류 문자열과 `%+v`, `Unwrap`, `errors.As` 어느 경로에도 원문이 남지 않는지 확인한다.
+실제 provider 출력으로 QR 256×256, Code128 512×128을 생성하고 다음을 검사한다. provider 오류·특이 output·호출 부재와 private seam은 `internal_test.go`의 `package barcode`에서 검증하고, 호출자 관점은 `barcode_test.go`의 `package barcode_test`에서 검증한다. provider가 성공 또는 오류를 반환하면서 context를 취소하는 경우 geometry·할당·오류 변환보다 원형 context error가 우선되는지 확인한다. provider 오류는 오류 문자열과 `%+v`, `Unwrap`, `errors.As` 어느 경로에도 원문이 남지 않는지 확인한다.
 
 - bounds가 정확히 요청 크기다.
 - 반환 값은 호출마다 독립된 `*image.Gray`이며 provider bounds의 비영점 `Min`도 동일한 결과로 정규화한다.
@@ -202,7 +203,8 @@ Commit: `feat: QR과 Code128을 표준 Gray 이미지로 렌더링한다`
 
 다음을 테스트한다.
 
-- 이미 취소된 context는 provider 호출 전 `context.Canceled`를 반환하고, 같은 경로의 deadline context는 원형 `context.DeadlineExceeded`를 반환한다. 두 경우 모두 provider 호출 횟수는 0이다.
+- 이미 취소된 context는 `Render`와 `EncodePNG` 각각 provider 호출 전 `context.Canceled`를 반환하고, 같은 경로의 deadline context는 원형 `context.DeadlineExceeded`를 반환한다. 두 public API 모두 provider 호출 횟수는 0이다.
+- nil context는 `Render(nil, req)`와 `EncodePNG(nil, req)` 각각 `ErrInvalidOptions`를 반환하고 provider 호출 횟수는 0이다.
 - provider 이후·행 복사 중·PNG write 직전·최종 반환 직전의 cancel 및 deadline은 각각 원형 `context.Canceled`/`context.DeadlineExceeded`와 nil 결과를 반환한다.
 - 정상 PNG를 `image/png.Decode`해 bounds와 흑백 픽셀이 `Render` 결과와 일치한다.
 - 4 MiB 경계와 초과 출력은 `ErrEncode`, nil 결과, partial bytes 미반환을 보장한다.
@@ -287,13 +289,14 @@ Run:
 ```bash
 go list -m -json github.com/boombuler/barcode
 go mod verify
+gh api 'repos/boombuler/barcode/git/ref/tags/v1.1.0' --jq '.object.sha + " " + .object.type'
 gh api 'repos/boombuler/barcode/contents/LICENSE?ref=11e32e438ffcc2af3d65aa3547c065972a743d70' -H 'Accept: application/vnd.github.raw'
 gh api 'repos/boombuler/barcode/contents/code128/encode.go?ref=11e32e438ffcc2af3d65aa3547c065972a743d70' -H 'Accept: application/vnd.github.raw'
 gh api 'repos/boombuler/barcode/contents/qr/encoder.go?ref=11e32e438ffcc2af3d65aa3547c065972a743d70' -H 'Accept: application/vnd.github.raw'
 gh api 'repos/boombuler/barcode/contents/scaledbarcode.go?ref=11e32e438ffcc2af3d65aa3547c065972a743d70' -H 'Accept: application/vnd.github.raw'
 ```
 
-Expected: module version `v1.1.0`, checksum verified, pinned source commit, Code128/QR/scaling source and MIT license readback. Save bounded command output under `.omx/` for the review receipt. `govulncheck` is not a repository command in this environment; record that absence as a validation gap and do not claim a vulnerability scan PASS.
+Expected: module version `v1.1.0`, checksum verified, tag `v1.1.0` resolves to commit `11e32e438ffcc2af3d65aa3547c065972a743d70`, pinned Code128/QR/scaling source and MIT license readback. Save bounded command output under `.omx/` for the review receipt. `govulncheck` is not a repository command in this environment; record that absence as a validation gap and do not claim a vulnerability scan PASS.
 
 - [ ] **Step 4: hazard·diff·API audit를 수행한다**
 
