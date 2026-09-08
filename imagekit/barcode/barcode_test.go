@@ -3,6 +3,7 @@ package barcode_test
 import (
 	"context"
 	"errors"
+	"image"
 	"strings"
 	"testing"
 
@@ -134,4 +135,125 @@ func TestEncodePNGRejects(t *testing.T) {
 	if !errors.Is(err, barcode.ErrInvalidOptions) {
 		t.Fatalf("EncodePNG invalid request error = %v, want errors.Is(..., %v)", err, barcode.ErrInvalidOptions)
 	}
+}
+
+func TestRenderActualProviders(t *testing.T) {
+	tests := []struct {
+		name   string
+		req    barcode.Request
+		quiet  int
+		checkY bool
+	}{
+		{
+			name:  "QR",
+			req:   barcode.Request{Kind: barcode.QR, Content: "한글 QR payload", Width: 256, Height: 256},
+			quiet: 4,
+		},
+		{
+			name:   "Code128",
+			req:    barcode.Request{Kind: barcode.Code128, Content: "BLUETAPE-546", Width: 512, Height: 128},
+			quiet:  10,
+			checkY: true,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			img, err := barcode.Render(context.Background(), tt.req)
+			if err != nil {
+				t.Fatalf("Render error = %v", err)
+			}
+			if got, want := img.Bounds(), image.Rect(0, 0, tt.req.Width, tt.req.Height); got != want {
+				t.Fatalf("bounds = %v, want %v", got, want)
+			}
+			if _, ok := img.(*image.Gray); !ok {
+				t.Fatalf("image type = %T, want *image.Gray", img)
+			}
+			if _, ok := img.(interface{ Content() string }); ok {
+				t.Fatal("returned image unexpectedly exposes provider Content")
+			}
+			dark, ok := darkBounds(img)
+			if !ok {
+				t.Fatal("rendered image has no dark modules")
+			}
+			if dark.Min.X < tt.quiet || tt.req.Width-dark.Max.X < tt.quiet {
+				t.Fatalf("dark bounds = %v, horizontal quiet zone %d pixels is not preserved", dark, tt.quiet)
+			}
+			if !tt.checkY && (dark.Min.Y < tt.quiet || tt.req.Height-dark.Max.Y < tt.quiet) {
+				t.Fatalf("dark bounds = %v, vertical quiet zone %d pixels is not preserved", dark, tt.quiet)
+			}
+			if tt.checkY {
+				for y := 1; y < tt.req.Height; y++ {
+					for x := 0; x < tt.req.Width; x++ {
+						if img.At(x, y) != img.At(x, 0) {
+							t.Fatalf("Code128 row %d differs at x=%d", y, x)
+						}
+					}
+				}
+			}
+		})
+	}
+}
+
+func TestRenderIsDeterministicAndDetached(t *testing.T) {
+	req := barcode.Request{Kind: barcode.QR, Content: "same payload", Width: 192, Height: 192}
+	first, err := barcode.Render(context.Background(), req)
+	if err != nil {
+		t.Fatalf("first Render error = %v", err)
+	}
+	second, err := barcode.Render(context.Background(), req)
+	if err != nil {
+		t.Fatalf("second Render error = %v", err)
+	}
+	firstGray := first.(*image.Gray)
+	secondGray := second.(*image.Gray)
+	if !equalPixels(firstGray, secondGray) {
+		t.Fatal("identical requests produced different pixels")
+	}
+	original := secondGray.Pix[0]
+	firstGray.Pix[0] = 0
+	if secondGray.Pix[0] != original {
+		t.Fatal("rendered images share a pixel buffer")
+	}
+}
+
+func darkBounds(img image.Image) (image.Rectangle, bool) {
+	bounds := img.Bounds()
+	minX, minY := bounds.Max.X, bounds.Max.Y
+	maxX, maxY := bounds.Min.X, bounds.Min.Y
+	found := false
+	for y := bounds.Min.Y; y < bounds.Max.Y; y++ {
+		for x := bounds.Min.X; x < bounds.Max.X; x++ {
+			r, _, _, _ := img.At(x, y).RGBA()
+			if r >= 0x8000 {
+				continue
+			}
+			found = true
+			if x < minX {
+				minX = x
+			}
+			if y < minY {
+				minY = y
+			}
+			if x+1 > maxX {
+				maxX = x + 1
+			}
+			if y+1 > maxY {
+				maxY = y + 1
+			}
+		}
+	}
+	return image.Rect(minX, minY, maxX, maxY), found
+}
+
+func equalPixels(left, right *image.Gray) bool {
+	if left.Bounds() != right.Bounds() || len(left.Pix) != len(right.Pix) {
+		return false
+	}
+	for i := range left.Pix {
+		if left.Pix[i] != right.Pix[i] {
+			return false
+		}
+	}
+	return true
 }
