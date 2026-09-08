@@ -85,8 +85,9 @@ provider 호출은 협력적 취소 API가 없으므로 호출 도중 즉시 중
 분류는 `ErrInvalidOptions`, `ErrInputTooLarge`, `ErrImageTooLarge`, `ErrEncode`를 사용한다.
 콘텐츠 길이 초과는 `ErrInputTooLarge`, 양수 크기·픽셀 상한 초과는 `ErrImageTooLarge`, 나머지 입력 위반은 `ErrInvalidOptions`다.
 PNG 출력 한도 초과도 `ErrEncode`로 분류한다. `errors.Is`로 분류할 수 있어야 한다.
-원문이 들어갈 수 있는 provider 오류는 `Cause`로 보관하거나 문자열에 붙이지 않는다.
-따라서 provider 오류의 `errors.As` 복원은 지원하지 않는다. context 오류는 원형으로 반환해 `errors.Is`를 유지한다.
+원문이 들어갈 수 있는 provider 오류는 `Cause`에 저장하지 않고 문자열·로그에도 넣지 않는다.
+provider 오류에는 `Cause == nil`인 `imagekit.Error`만 반환하므로 provider 오류의 `errors.As` 복원은 지원하지 않는다.
+context 취소·deadline만 원형으로 반환해 `errors.Is`를 유지한다.
 로깅, 오류 시 원문 출력, 포괄적인 panic 복구는 하지 않는다.
 
 ## 실패 모드와 검증
@@ -96,7 +97,7 @@ PNG 출력 한도 초과도 `ErrEncode`로 분류한다. `errors.Is`로 분류�
 | 빈 콘텐츠·잘못된 UTF-8·미등록 enum·Code128 제어 문자 | provider 호출 전 거부. 경계값과 입력 보존을 table test로 확인한다. |
 | 음수·0·상한 초과·큰 정수 크기 | 할당 전 거부. 픽셀 상한과 오버플로 회피를 검증한다. |
 | 심볼과 여백보다 작은 캔버스 | 크기 오류. 첫 실패 크기와 최소 성공 크기를 비교한다. |
-| provider 인코딩 오류 | 원문 없는 `ErrEncode`. 내부 오류 변환 경계에 원문을 포함한 오류를 주입해 문자열과 unwrap 경로를 확인한다. 공개 provider 교체 API는 만들지 않는다. |
+| provider 인코딩 오류 | 원문 없는 `ErrEncode`. 내부 변환 테스트에 원문을 포함한 오류를 주입해 문자열·`Unwrap`·`errors.As`에 원문이 남지 않는지 확인한다. 공개 provider 교체 API는 만들지 않는다. |
 | 사전·처리 중·최종 확인 시 취소 | context 오류와 nil 결과. 비협력적 provider의 즉시 중단을 주장하지 않는다. |
 | PNG 출력 한도 초과 | `ErrEncode`와 nil 결과. 제한 writer를 작은 한도로 직접 검증한다. |
 | 여러 동시 호출 | 독립적인 결과와 race 검사 통과. 반환 객체끼리 픽셀 버퍼를 공유하지 않는다. |
@@ -107,9 +108,9 @@ PNG 출력 한도 초과도 `ErrEncode`로 분류한다. `errors.Is`로 분류�
 - **AC-02:** 위 입력·크기·출력 한도를 경계값 테스트로 입증한다.
 - **AC-03:** QR 정방형·정수 배율·흰 여백, Code128 막대·좌우 여백을 구조 기반 테스트로 확인한다.
 - **AC-04:** 반환 이미지에 provider의 `Content()` 접근자가 없고, PNG 디코딩 결과의 크기·흑백 픽셀이 Render 결과와 일치한다.
-- **AC-05:** 오류 분류·원문 비노출·취소·공유 상태 부재를 검증한다.
+- **AC-05:** 오류 분류·provider 원문 비노출(`Cause == nil`, `Unwrap`/`errors.As` 비복원)·취소·공유 상태 부재를 검증한다.
 - **AC-06:** `imagekit`과 새 하위 패키지의 README/README.ko, Go doc, 실행 가능한 예제를 동기화한다. ASCII와 한글 QR 예제를 구분한다.
-- **AC-07:** targeted test와 race, `make fmt-check`, `make tidy-check`, `make vet`, `make lint`, `make ci`, PR exact-head CI를 통과한다.
+- **AC-07:** targeted test와 race, `go mod verify`, pinned provider license/checksum 확인, `make fmt-check`, `make tidy-check`, `make vet`, `make lint`, `make ci`, PR exact-head CI를 통과한다.
 
 픽셀 전체 덤프나 PNG 압축 바이트의 고정 golden 대신 크기·모듈·여백·호출 간 결정성을 검사한다.
 provider 전달 콘텐츠는 내부 경계 테스트로 확인하되 공개 객체에는 노출하지 않는다.
@@ -117,7 +118,7 @@ provider 전달 콘텐츠는 내부 경계 테스트로 확인하되 공개 객�
 
 ## 호환성·변경 범위·롤백
 
-새 파일은 `imagekit/barcode/` 아래에 두고, `go.mod`/`go.sum`에 승인된 provider 버전을 추가한다.
+새 파일은 `imagekit/barcode/` 아래에 두고, `go.mod`/`go.sum`에 승인된 provider 버전을 추가한다. 구현 단계에서 `go mod verify`로 checksum을 확인하고, pinned commit의 MIT license와 vulnerability/dependency 검사 결과를 기록한다.
 기존 package README 두 언어에는 새 패키지 링크와 조합 시 주의점을 추가한다.
 기존 이미지 변환 동작, 기본 제한, dependency 버전은 이 작업에서 변경하지 않는다.
 배포 전 롤백 단위는 새 하위 패키지, 해당 dependency 및 문서 변경이다. 외부 데이터나 서비스 상태는 변경하지 않는다.
@@ -126,9 +127,9 @@ provider 전달 콘텐츠는 내부 경계 테스트로 확인하되 공개 객�
 
 - [x] 이슈·base·분리 브랜치·기존 imagekit 근거 확인.
 - [x] 대안·공개 계약·실패 모드·수용 기준·제외 범위 작성.
-- [ ] 작성된 spec 사용자 승인.
-- [ ] 6개 관점과 메인 통합 spec review 완료.
+- [ ] 보완된 spec 사용자 재승인.
+- [ ] 6개 관점과 메인 통합 spec review 완료(P1 수정 후 안정성 관점 재실행 필요).
 - [ ] 구현 계획 작성·검토·승인.
 - [ ] 구현·검증·PR 생성·CI 확인.
 
-현재 문서는 구현 완료 보고가 아니다. 다음 단계는 작성된 spec 승인 후 spec review와 구현 계획이다.
+현재 문서는 구현 완료 보고가 아니다. 다음 단계는 보완된 spec 재승인 후 안정성 관점 재실행, 통합 판정, 구현 계획이다.
