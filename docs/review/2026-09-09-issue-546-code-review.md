@@ -5,15 +5,16 @@
 - **판정:** APPROVE / PASS
 - **검토 기준:** `origin/develop` (`51be48337427323db96d3d3ee944e6331e313b28`)
 - **검토 대상:** `feat/issue-546-barcode-qr` HEAD
-  (`0f6e070882c2734c3268cab24a90add7a9458fc0`)
+  (`68be8bfc6382bad2dd298955d83cbea54b79a742`)
 - **범위:** `imagekit/barcode`, 양언어 README, root/imagekit index,
-  `CHANGELOG.md`, Go module dependency, 계획·lesson·review 문서
+  `CHANGELOG.md`, Go module dependency, 계획·lesson·review 문서, hosted
+  linter baseline을 보강한 세 test 파일
 - **심각도:** `P0=0`, `P1=0`, `P2=0`, `P3=0`
-- **통합 결론:** 추가 수정 없이 PR gate로 진행할 수 있다. 이 리뷰에는
-  merge·tag·release 권한이 포함되지 않는다.
+- **통합 결론:** barcode 구현과 test-only baseline 보강을 포함해 PR gate로
+  진행할 수 있다. 이 리뷰에는 merge·tag·release 권한이 포함되지 않는다.
 
-> 아래의 hosted CI baseline lint 보강 후 최종 head는 계획·PR metadata와 함께
-> 다시 갱신했다. feature production code와 public API는 변경하지 않았다.
+> hosted CI baseline lint 보강을 포함한 현재 review head를 기록했다. feature
+> production code와 public API는 변경하지 않았다.
 
 ## 이슈와 live metadata
 
@@ -50,10 +51,12 @@ GNO 사전 조회에서는 `bluetape4k-github`의 #546 원문과 #498의 CAPTCHA
 
 ### 완료된 독립 lane
 
-- `code-reviewer`: 현재 HEAD `0f6e070` 검토, **APPROVE**, 파일 21개,
-  `P0/P1/P2/P3 = 0/0/0/0`.
-- `architect`: 구현 HEAD의 provider seam, 입력 순서, checked geometry,
-  취소 한계를 재검토, **CLEAR**, `P0/P1/P2/P3 = 0/0/0/0`.
+- `code-reviewer`: implementation ancestor `0f6e070` 검토, **APPROVE**, 파일
+  21개, `P0/P1/P2/P3 = 0/0/0/0`; baseline test-only diff는 main integration이
+  재검토했다.
+- `architect`: implementation HEAD의 provider seam, 입력 순서, checked
+  geometry, 취소 한계를 재검토, **CLEAR**, `P0/P1/P2/P3 = 0/0/0/0`;
+  baseline test-only 변경에는 추가 architectural finding이 없다.
 
 두 리뷰에서 발견했던 이전 P2는 모두 처리했다.
 
@@ -117,8 +120,9 @@ return을 추가했다. 변경 후 해당 세 패키지 test/race와 `golangci-l
 - `go mod verify` — PASS (`all modules verified`)
 - `make test` — PASS
 - `make race` — PASS
-- `make ci` — PASS (재실행; 첫 실행의 `sqlkit/postgis` container exit 139은
-  단독 재실행 및 aggregate 재실행에서 해소됨)
+- `make ci` — feature implementation head에서 PASS (첫 실행의 `sqlkit/postgis`
+  container exit 139은 단독 재실행 및 aggregate 재실행에서 해소됨); baseline
+  보강 후 새 head의 hosted `ci`는 push 후 terminal 결과를 고정한다.
 - `go test ./web/gin ./cache/redisnear ./leader/etcd -count=1` — PASS
 - `go test -race -p 1 ./web/gin ./cache/redisnear ./leader/etcd -count=1` — PASS
 - `golangci-lint run ./... --timeout=5m` — `0 issues`
