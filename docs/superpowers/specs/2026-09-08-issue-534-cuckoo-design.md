@@ -64,8 +64,9 @@ key와 item은 각각 별도 RESP argv로 전달한다. 공백·CR/LF·NUL·명�
 동작마다 하나의 명령만 전송하고 batch·자체 retry·확인용 추가 IO는 수행하지 않는다.
 Exists/Delete는 RESP2 int64 0/1과 RESP3 bool, Count는 비음수 int64만 허용한다.
 Reserve는 정확한 OK, Add는 길이 1의 int64 1 또는 RESP3 true 성공 응답만 허용한다.
-Add의 int64 -1은 문서화된 포화이므로 `ErrCuckooFull`이며 commit-unknown으로
-취급하지 않는다. 그 밖의 결과는 `ErrCuckooReply`이며 성공으로 반환하지 않는다.
+Add의 RESP2 int64 -1과 RESP3 false는 삽입 거부이므로 `ErrCuckooFull`이며
+commit-unknown으로 취급하지 않는다. 공간 부족과 확장 자원 부족을 응답만으로
+구분할 수 없다. 그 밖의 결과는 `ErrCuckooReply`이며 성공으로 반환하지 않는다.
 Exists/Count의 false/0은 missing key와 absent item을 구분하지 않는다. Exists는
 wrong-type key도 false로 반환할 수 있으므로 type/capability health check로 사용하지 않는다.
 
@@ -76,7 +77,7 @@ wrong-type key도 false로 반환할 수 있으므로 type/capability health che
 - `ErrCuckooUnsupported`는 실제 Redis server error의 unknown CF command일 때만
   매핑한다. ACL 실패, WRONGTYPE, transport 오류를 unsupported로 숨기지 않는다.
 - `ErrCuckooReply`는 nil command와 문서에 없는 응답 형태를 나타낸다.
-  `ErrCuckooFull`은 CF.INSERT의 명시적 -1이다.
+  `ErrCuckooFull`은 CF.INSERT의 명시적 -1 또는 RESP3 false이다.
 - 전송된 Reserve/Add/Delete의 실패·잘못된 응답·응답 시점 취소는 보수적으로
   `redis.ErrCommitUnknown`을 함께 보존한다. 명확한 unsupported 응답은 실행되지
   않은 것으로 분류한다. 다만 output-plus-error나 응답 시점 취소가 함께 있으면
@@ -124,8 +125,9 @@ wrong-type key도 false로 반환할 수 있으므로 type/capability health che
   중복 count, known-item delete, 미예약 Add 실패, reserve 충돌, 비확장 포화를 검증한다.
   mutable tag나 테스트 건너뛰기를 positive PASS로 보고하지 않는다.
 - concurrent Add는 BucketSize=64, Capacity=512, Expansion=0에서 같은 item의
-  64회 추가를 확인한다. 다른 fingerprint를 섞지 않아 근사 Count의 충돌 과대 추정을
-  검증값으로 오인하지 않는다. fake 상태 보호와
+  64회 추가를 확인한다. COUNT는 같은 item도 후보 bucket 중복으로 과대 추정할 수
+  있으므로 고정 fixture의 관측값과 일반 계약을 구분한다. 포화 검증은 실패 전후
+  count 불변을 확인한다. fake 상태 보호와
   실제 fixture를 race로 검증한다. Docker suite는 다른 작업과 직렬로 실행한다.
 - Example 테스트와 package README EN/KO에서 동일한 제한과 실행 명령을 제공한다.
 - fmt/tidy/lint, 일반/race, local module-positive, exact-head CI를 통과하고

@@ -3,7 +3,8 @@
 English | [한국어](README.ko.md)
 
 `probabilistic/redis` provides Redis-backed shared Bloom filters and
-HyperLogLog cardinality estimates. Bloom filters keep configuration immutable in
+HyperLogLog cardinality estimates, plus module-backed Cuckoo filters with deletion.
+Bloom filters keep configuration immutable in
 Redis metadata, validate that metadata through Lua scripts before every read or
 mutation, and store shared bits in a Redis bitmap string. HyperLogLog uses core
 Redis `PFADD`, `PFCOUNT`, and `PFMERGE` commands.
@@ -159,7 +160,80 @@ EXISTS  bluetape:probabilistic:hll:v1:{namespace}
 PTTL    bluetape:probabilistic:hll:v1:{namespace}
 ```
 
-## Test
+## Cuckoo filters
+
+`NewCuckoo` adds a separate `bluetape:probabilistic:cuckoo:v1` key family.
+It requires a CF-capable Redis server; a plain Redis 7.4 client or the presence
+of go-redis CF methods does not prove server support. No new Go dependency is required.
+
+```go
+client := redis.NewClient(&redis.Options{
+    Addr: "localhost:6379", MaxRetries: -1,
+    DialTimeout: 3 * time.Second, ReadTimeout: 3 * time.Second,
+    WriteTimeout: 3 * time.Second, ContextTimeoutEnabled: true,
+})
+defer client.Close()
+ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+defer cancel()
+filter, err := redisbloom.NewCuckoo(redisbloom.CuckooOptions{
+    Client: client, Namespace: "tenant-a:members",
+})
+if err != nil { return err }
+if err = filter.Reserve(ctx, redisbloom.CuckooReserveOptions{
+    Capacity: 1024, Expansion: 0,
+}); err != nil { return err }
+if err = filter.Add(ctx, "item"); err != nil { return err }
+mayExist, err := filter.Exists(ctx, "item")
+```
+
+- `Reserve` never replaces an existing key. Capacity is 4..2^30 and at least
+  twice BucketSize. BucketSize zero means 2; MaxIterations zero means 20.
+  Expansion zero **disables growth**; the maximum is 32768. The server rounds
+  capacity/positive expansion to powers of two and may fill before capacity.
+  These are trusted operator settings, not safe tenant quotas: separately bound
+  memory, CPU, and namespace count; never forward untrusted request options.
+- `Add` uses `CF.INSERT NOCREATE` with one item: no implicit creation, batch,
+  hashing, or adapter retry. Items preserve bytes, including empty strings and
+  NUL, up to 64 KiB. Namespace follows existing 1..128-byte ASCII validation.
+- `Exists` is approximate; false also covers missing and wrong-type keys.
+  It is not a health check. `Count` may overestimate even repeated identical
+  items in tiny filters. Neither result is an exact ownership ledger.
+- `Delete` removes one known successful insertion only. Never infer deletion
+  authority from `Exists`, count unknown mutations as successful, or exceed
+  known insertions. Deleting never-added items can remove another fingerprint
+  and cause false negatives. Do not use this filter for authorization or fencing.
+- `ErrCuckooUnsupported` identifies a definite unknown CF command, not ACL or
+  transport failure. Middleware-wrapped or joined errors are conservatively
+  not classified as unsupported; mutations retain commit-unknown instead.
+  `ErrCuckooReply` rejects malformed responses and
+  `ErrCuckooFull` reports insertion rejection due to space or expansion-resource
+  exhaustion; the reply cannot distinguish these causes. Dispatched mutation failures or
+  cancellation may include `redis.ErrCommitUnknown`; do not automatically replay.
+- Every mutation path must disable client, middleware, and caller retry. For
+  Cluster, also bound redirect replay (`MaxRedirects: -1`). The narrow client
+  interface cannot enforce settings. Cluster transport is not tested here.
+- Client construction/Close, credentials, TLS, deadlines, IO timeouts, quotas,
+  and observation are caller-owned. The adapter adds no logger or goroutine.
+  Top-level operation errors redact payload/provider text; unwrapped causes
+  may contain secrets and must not be logged directly. The endpoint is trusted;
+  the adapter cannot bound a hostile server's allocation inside RESP decoding.
+- Nil context is invalid. Pre-cancellation sends no command; cancellation after
+  a response returns no successful result. A non-cooperative client is not
+  force-closed or detached into a goroutine.
+
+The fake-only `ExampleNewCuckoo` demonstrates a successful-insertion ledger
+and an unknown response without network access. To run the module-positive
+fixture (Redis 8.8.1 pinned by digest), separately from other Docker suites:
+
+```bash
+BLUETAPE_CUCKOO_INTEGRATION=1 go test -p 1 -count=1 -timeout=5m ./probabilistic/redis -run '^TestCuckoo'
+BLUETAPE_CUCKOO_INTEGRATION=1 go test -race -p 1 -count=1 -timeout=5m ./probabilistic/redis -run '^TestCuckoo'
+```
+
+Default tests cover fake CF boundaries and plain Redis unsupported behavior;
+an opt-in test not run is not positive capability evidence.
+
+## Existing Bloom and HyperLogLog tests
 
 The package tests start Redis `redis:7.4-alpine` through Testcontainers for Go.
 Container startup is bounded to 90 seconds, readiness pings use short bounded
