@@ -86,8 +86,8 @@ func renderWithEncoder(ctx context.Context, req Request, encoder encodeFunc) (im
 		return nil, malformedEncodeError(formatForKind(req.Kind))
 	}
 
-	// The provider has no context-aware API. This checkpoint intentionally
-	// precedes every geometry decision and image allocation.
+	// provider는 context-aware API를 제공하지 않으므로 이 checkpoint는 모든
+	// geometry 결정과 이미지 할당보다 먼저 실행한다.
 	if err := ctx.Err(); err != nil {
 		return nil, err
 	}
