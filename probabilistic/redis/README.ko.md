@@ -3,7 +3,8 @@
 [English](README.md) | 한국어
 
 `probabilistic/redis`는 Redis-backed shared Bloom filter와 HyperLogLog
-cardinality estimate를 제공합니다. Bloom filter는 configuration을 Redis
+cardinality estimate, 모듈 기반의 삭제 가능한 Cuckoo filter를 제공합니다.
+Bloom filter는 configuration을 Redis
 metadata에 immutable하게 보관하고, 모든 read/mutation 전에 Lua script로 metadata를
 검증하며, shared bit는 Redis bitmap string에 저장합니다. HyperLogLog는 core Redis
 `PFADD`, `PFCOUNT`, `PFMERGE` command를 사용합니다.
@@ -158,7 +159,76 @@ EXISTS  bluetape:probabilistic:hll:v1:{namespace}
 PTTL    bluetape:probabilistic:hll:v1:{namespace}
 ```
 
-## 테스트
+## Cuckoo 필터
+
+`NewCuckoo`는 별도 `bluetape:probabilistic:cuckoo:v1` key를 사용합니다.
+CF를 지원하는 Redis 서버가 필요합니다. 일반 Redis 7.4 client나 go-redis CF 메서드의
+존재만으로 서버 지원을 판단할 수 없습니다. 새 Go 의존성은 필요하지 않습니다.
+
+```go
+client := redis.NewClient(&redis.Options{
+    Addr: "localhost:6379", MaxRetries: -1,
+    DialTimeout: 3 * time.Second, ReadTimeout: 3 * time.Second,
+    WriteTimeout: 3 * time.Second, ContextTimeoutEnabled: true,
+})
+defer client.Close()
+ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+defer cancel()
+filter, err := redisbloom.NewCuckoo(redisbloom.CuckooOptions{
+    Client: client, Namespace: "tenant-a:members",
+})
+if err != nil { return err }
+if err = filter.Reserve(ctx, redisbloom.CuckooReserveOptions{
+    Capacity: 1024, Expansion: 0,
+}); err != nil { return err }
+if err = filter.Add(ctx, "item"); err != nil { return err }
+mayExist, err := filter.Exists(ctx, "item")
+```
+
+- `Reserve`는 기존 key를 덮어쓰지 않습니다. Capacity는 4..2^30이며 BucketSize의
+  두 배 이상입니다. BucketSize 0은 2, MaxIterations 0은 20입니다.
+  Expansion 0은 **확장 금지**이며 최대값은 32768입니다. 서버가 capacity와 양수
+  expansion을 2의 거듭제곱으로 반올림하며 capacity 이전에 포화될 수도 있습니다.
+  이는 신뢰하는 운영 설정이지 안전한 tenant quota가 아닙니다. 메모리·CPU·namespace
+  수를 별도로 제한하고 신뢰하지 않는 요청 옵션을 그대로 전달하지 마세요.
+- `Add`는 단일 item의 `CF.INSERT NOCREATE`를 사용합니다. 자동 생성·batch·hashing·
+  adapter 재시도는 없습니다. item은 빈 문자열·NUL을 포함한 최대64 KiB byte열을
+  보존합니다. Namespace에는 기존 1..128 byte ASCII 검증 규칙을 적용합니다.
+- `Exists`는 근사값이며 false는 missing과 wrong-type도 포함합니다. 건강 상태 검사로
+  사용하지 마세요. 작은 필터에서는 같은 item만 반복해도 `Count`가 과대 추정할 수
+  있습니다. 두 결과 모두 정확한 소유권 장부가 아닙니다.
+- `Delete`는 알려진 성공 삽입을 한 번만 제거합니다. `Exists`로 삭제 권한을 추론하거나,
+  unknown mutation을 성공으로 세거나, 알려진 삽입 수를 초과해 삭제하지 마세요.
+  never-added item 삭제는 다른 fingerprint를 제거해 false negative를 만들 수 있습니다.
+  이 필터를 인증이나 fencing에 사용하지 마세요.
+- `ErrCuckooUnsupported`는 확정적인 CF unknown-command 응답이며 ACL·transport 오류가
+  아닙니다. middleware가 감싸거나 결합한 오류는 보수적으로 미지원으로 분류하지
+  않으며 mutation에는 commit-unknown을 보존합니다.
+  `ErrCuckooReply`는 잘못된 응답, `ErrCuckooFull`은 공간 또는 확장 자원
+  부족에 따른 삽입 거부입니다. 서버 응답만으로 두 원인을 구분하지 못합니다.
+  전송된 mutation 실패·취소에는 `redis.ErrCommitUnknown`이 포함될 수 있으므로 자동 재실행하지 마세요.
+- 모든 mutation 경로에서 client·middleware·호출자 재시도를 꺼야 합니다. Cluster는
+  redirect replay도 제한하세요(`MaxRedirects: -1`). 좁은 client 인터페이스는 설정을
+  강제하지 못하며 이번 검증에는 Cluster transport가 포함되지 않습니다.
+- client 생성·Close, credential·TLS·deadline·IO timeout·quota·관측은 호출자가 소유합니다.
+  adapter 내부 logger나 goroutine은 없습니다. 최상위 오류는 payload·provider 문자열을
+  숨기지만 unwrap한 원인은 민감정보를 포함할 수 있으므로 직접 로깅하지 마세요.
+  endpoint는 신뢰 경계 안에 있으며 적대적인 서버의 RESP 디코딩 할당까지 제한하지 못합니다.
+- nil context는 오류입니다. 전송 전 취소는 명령을 보내지 않고 응답 후 취소는 성공을
+  반환하지 않습니다. 비협조적인 client를 강제 종료하거나 goroutine으로 분리하지 않습니다.
+
+네트워크 없는 `ExampleNewCuckoo`가 성공 삽입 장부와 unknown 응답 처리를 검증합니다.
+다른 Docker suite와 분리해 digest로 고정한 Redis 8.8.1 양성 fixture를 실행할 수 있습니다.
+
+```bash
+BLUETAPE_CUCKOO_INTEGRATION=1 go test -p 1 -count=1 -timeout=5m ./probabilistic/redis -run '^TestCuckoo'
+BLUETAPE_CUCKOO_INTEGRATION=1 go test -race -p 1 -count=1 -timeout=5m ./probabilistic/redis -run '^TestCuckoo'
+```
+
+기본 테스트는 fake CF 계약과 일반 Redis 미지원을 검증합니다. opt-in을 실행하지 않은
+결과는 서버 지원을 입증하지 않습니다.
+
+## 기존 Bloom·HyperLogLog 테스트
 
 Package 테스트는 Testcontainers for Go로 Redis `redis:7.4-alpine`을 시작합니다.
 Container startup은 90초로 제한하고, readiness ping은 10초 window 안에서 짧은
