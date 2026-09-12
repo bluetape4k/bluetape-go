@@ -59,6 +59,7 @@ API가 아니라 module-gated future scope입니다.
 | [`encrypt/kms`](encrypt/kms/README.ko.md) | active | Caller-owned AWS KMS AES-256 data key와 strict BTKMS metadata, bounded local AES-GCM payload를 조합하는 envelope provider. |
 | [`compression`](compression/README.ko.md) | active | gzip, deflate, zstd, lz4, snappy, registry 기반 compression helper. |
 | [`imagekit`](imagekit/README.ko.md) | active | 서비스 입력을 위한 bounded pure-Go thumbnail, resize, JPEG/PNG conversion helper. |
+| [`imagekit/barcode`](imagekit/barcode/README.ko.md) | active | caller-owned Gray image, quiet zone, capped PNG와 redacted provider error를 제공하는 bounded QR·Code128 helper. |
 | [`serialization`](serialization/README.ko.md) | active | 안전한 기본값을 가진 JSON/binary serializer interface. |
 | [`testing`](testing/README.ko.md) | active | eventual consistency 테스트용 공용 helper. |
 | [`testing/concurrency`](testing/concurrency/README.ko.md) | active | concurrent test를 위한 stress/async job helper. |
@@ -182,7 +183,9 @@ go get github.com/bluetape4k/bluetape-go
   [`textsearch/japanese`](textsearch/japanese/README.ko.md), Lingua-Go detector인
   [`textsearch/language`](textsearch/language/README.ko.md).
 - Image: 명시적 format과 memory boundary를 가진 bounded pure-Go resize,
-  thumbnail, JPEG/PNG conversion helper인 [`imagekit`](imagekit/README.ko.md).
+  thumbnail, JPEG/PNG conversion helper인 [`imagekit`](imagekit/README.ko.md)와
+  bounded QR·Code128 image 및 capped PNG helper인
+  [`imagekit/barcode`](imagekit/barcode/README.ko.md).
 - Coordination: [`leader`](leader/README.ko.md),
   [`leader/redis`](leader/redis/README.ko.md),
   [`leader/mongo`](leader/mongo/README.ko.md),

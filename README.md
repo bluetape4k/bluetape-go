@@ -63,6 +63,7 @@ future scope, not part of the current public API.
 | [`encrypt/kms`](encrypt/kms/README.md) | active | Caller-owned AWS KMS AES-256 data-key envelope provider with strict BTKMS metadata and bounded local AES-GCM payloads. |
 | [`compression`](compression/README.md) | active | gzip, deflate, zstd, lz4, snappy, and registry-backed compression helpers. |
 | [`imagekit`](imagekit/README.md) | active | Bounded pure-Go thumbnail, resize, and JPEG/PNG conversion helpers for service inputs. |
+| [`imagekit/barcode`](imagekit/barcode/README.md) | active | Bounded QR and Code128 rendering with caller-owned Gray images, quiet zones, capped PNG output, and redacted provider errors. |
 | [`serialization`](serialization/README.md) | active | JSON and binary serializer interfaces with safe defaults. |
 | [`testing`](testing/README.md) | active | Common test helpers for eventual consistency checks. |
 | [`testing/concurrency`](testing/concurrency/README.md) | active | Stress and async job helpers for concurrent tests. |
@@ -187,7 +188,8 @@ overview.
   [`textsearch/language`](textsearch/language/README.md) Lingua-Go detector.
 - Image: [`imagekit`](imagekit/README.md) for bounded pure-Go resize,
   thumbnail, and JPEG/PNG conversion helpers with explicit format and memory
-  boundaries.
+  boundaries, plus [`imagekit/barcode`](imagekit/barcode/README.md) for bounded
+  QR/Code128 images and capped PNG output.
 - Coordination: [`leader`](leader/README.md),
   [`leader/redis`](leader/redis/README.md),
   [`leader/mongo`](leader/mongo/README.md),

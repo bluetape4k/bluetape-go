@@ -505,11 +505,14 @@ func newRESP3SpikeFixture(t *testing.T, poolSize int) *resp3SpikeFixture {
 	}
 	if inspect == nil {
 		t.Fatal("inspect redis container: empty response")
+		return nil
 	}
-	if inspect.Config == nil {
+	config := inspect.Config
+	if config == nil {
 		t.Fatal("inspect redis container: empty config")
+		return nil
 	}
-	configuredImg := inspect.Config.Image
+	configuredImg := config.Image
 	if configuredImg != resp3SpikeRedisImage {
 		t.Fatalf(
 			"configured image = %q, want %q",
